@@ -1,8 +1,13 @@
 /* conformance.js — does every file in this project obey the standards the project set itself?
  *
  *   node engine/conformance.js            full report
- *   node engine/conformance.js --strict   exit non-zero on any violation (for CI)
+ *   node engine/conformance.js --strict   RATCHET: exit non-zero on any finding that is NOT in
+ *                                         data/conformance-baseline.json (for CI)
  *   node engine/conformance.js --fix-list just the file list, for working through
+ *
+ * `--strict` DOES NOT MEAN "ZERO FINDINGS". It means "no finding that was not already there".
+ * See THE RATCHET at the bottom of this file for why, and for the two ways this could launder
+ * itself if it were written carelessly.
  *
  * WHY THIS EXISTS RATHER THAN A REVIEW
  * -----------------------------------
@@ -53,7 +58,10 @@ function sources() {
 }
 
 const findings = [];
-const flag = (std, file, what, why) => findings.push({ std, file, what, why });
+/* `detail` is the VARIABLE part of a finding — the specific names a file typed, the specific value
+ * of a constant. It is reported and recorded, but it is deliberately NOT part of the identity the
+ * ratchet compares; see fingerprint(). */
+const flag = (std, file, what, why, detail) => findings.push({ std, file, what, why, detail });
 
 const read = f => { try { return fs.readFileSync(f, 'utf8'); } catch (e) { return ''; } };
 
@@ -165,7 +173,8 @@ function checkNamedPokemon(f, src) {
   if (!found.size) return;
   flag('S12', f.rel, `names ${found.size} Pokemon thing(s) in code: ${[...found].slice(0, 5).join(', ')}` +
        (found.size > 5 ? ', ...' : ''),
-       'derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block');
+       'derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block',
+       [...found].sort());
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -185,7 +194,7 @@ function checkAsserted(f, src) {
      * backwards, so it reported a constant that was already explained. */
     const context = src.slice(Math.max(0, at - 500), at) + src.slice(at, at + 200);
     const derived = /measured|derived|estimated|fitted|from the data|counted|observed|Wilson|standard error|quantile|two-sided|normal|because/i.test(context);
-    if (!derived) flag('S8', f.rel, `${m[1]} = ${m[2]} with no stated derivation`, 'a constant that decides must say where it came from');
+    if (!derived) flag('S8', f.rel, `${m[1]} = ${m[2]} with no stated derivation`, 'a constant that decides must say where it came from', [m[2]]);
   }
 }
 
@@ -194,6 +203,7 @@ function checkAsserted(f, src) {
  *
  * Two shapes: a data file nobody generates, and a generated file that does not say so.
  * ------------------------------------------------------------------------------------------- */
+const unreadable = [];
 function checkGeneratedFiles(srcs) {
   const allSrc = srcs.map(s => read(s.full)).join('\n');
   let files; try { files = fs.readdirSync(D('data')); } catch (e) { return; }
@@ -207,6 +217,15 @@ function checkGeneratedFiles(srcs) {
     if (/^(quality-filter|regulations)\.json$/.test(file)) continue;
     const generated = allSrc.includes(file);
     const body = read(D('data', file)).slice(0, 400);
+    /* AN ARTIFACT WE DID NOT GET THE BYTES OF IS NOT AN ARTIFACT WITHOUT A HEADER.
+     *
+     * read() returns '' both for "this file is empty" and for "this file could not be read", and
+     * data/ is written by other processes while this scan runs. Caught live on 2026-08-04: another
+     * division's generator was mid-write on data/rollout-r1-explore1.json, the scan read zero bytes,
+     * and the ratchet went red on a file whose second line is `"generated": ...`. A gate that fires
+     * on a race is a gate that gets switched off, so an unreadable file is REPORTED and not judged —
+     * loud, and not a finding. It cannot hide a real violation: the next run reads the bytes. */
+    if (!body.trim()) { unreadable.push(file); continue; }
     const saysGenerated = /GENERATED|generated|do not hand-edit|provenance/i.test(body);
     if (!generated && !/quality-filter|regulations/.test(file)) {
       flag('S13', 'data/' + file, 'no generator writes it', 'a file nobody generates is a file that will lie');
@@ -300,6 +319,11 @@ for (const std of ['S12', 'S13', 'S8', 'dead', 'convention']) {
   console.log('');
 }
 console.log(`  TOTAL ${findings.length} findings across ${new Set(findings.map(f => f.file)).size} files`);
+if (unreadable.length) {
+  console.log(`\n  NOT JUDGED — ${unreadable.length} file(s) in data/ returned no bytes at scan time`);
+  console.log(`  (empty, or being written by another process). They are neither passed nor failed:`);
+  for (const f of unreadable) console.log(`      data/${f}`);
+}
 console.log('\n  Each check is a mechanical proxy for a standard, not the standard itself. S8 can find a');
 console.log('  bare constant; it cannot tell whether the number was estimated or invented. Read the');
 console.log('  findings, do not just count them.');
@@ -310,4 +334,190 @@ fs.writeFileSync(D('data', 'conformance.json'), JSON.stringify({
   files: srcs.length, findings,
 }, null, 1));
 
-if (STRICT && findings.length) process.exit(1);
+/* ---------------------------------------------------------------------------------------------
+ * THE RATCHET
+ *
+ * This file was registered as a GATE in tests/run-all.js and run WITHOUT --strict, so the exit(1)
+ * below could never fire. It reported findings on every run and exited 0 — a gate that always
+ * passes, which is the single defect this repository has recorded catching itself on most often.
+ * The defect was written up TWICE in run-all.js, in two near-identical comment blocks, and acted on
+ * zero times.
+ *
+ * It was not switched on, because switching it on turns the suite red on ~a hundred findings that
+ * are mostly legitimate, and a red board gets normalised — tests/test-docs-current.js sat red for two
+ * days across ~40 commits under the banned phrase "known failure". A gate that is waived and a gate
+ * that cannot fire are the same gate.
+ *
+ * So: BASELINE WHAT EXISTS, FAIL ONLY ON WHAT IS NEW. The baseline may SHRINK and may never grow.
+ * A finding that gets fixed leaves the baseline on the next run and can never come back.
+ *
+ * Three ways this could launder itself, each closed deliberately:
+ *
+ *   1. A COUNT instead of a LIST. One finding disappearing while another appears nets to zero and
+ *      slips through silently. engine/provenance.js:746 records the same lesson from the other
+ *      side — its first ratchet stored a number, fired at 91 against 90, and could only say "one
+ *      more than last time"; nobody could identify the file and status.js printed NOT DERIVED for
+ *      a session. The LIST is stored, so the diff names its cause.
+ *
+ *   2. A CORRUPT BASELINE READ AS "FIRST RUN". That adopts whatever the tree currently looks like
+ *      as the new baseline and blesses everything that broke since. ABSENT and UNREADABLE are
+ *      different events and only the first is benign (engine/provenance.js:729).
+ *
+ *   3. WRITING THE BASELINE ON A FAILING RUN. If the file were rewritten unconditionally, the new
+ *      finding would be in the baseline by the time anyone re-ran it and the gate would be green on
+ *      the second try. The write happens ONLY when nothing is new.
+ * ------------------------------------------------------------------------------------------- */
+const BASELINE = D('data', 'conformance-baseline.json');
+
+/* THE IDENTITY OF A FINDING IS ITS SHAPE, NOT ITS TEXT.
+ *
+ * `what` carries variable detail — how many Pokemon names a file typed, which five of them fit in
+ * the line, what value a constant holds. If that text were the key, adding a ninth typed move to a
+ * file already flagged for typing eight would read as a BRAND NEW finding and turn the board red on
+ * a file that is already on the list. That is churn, and churn is what gets a gate switched off.
+ *
+ * The variable part is kept as `detail` and reported as a NOTICE when it grows, so widening an
+ * already-baselined violation is visible without being fatal.
+ *
+ * The hash segment in a generated filename is normalised for the same reason: every new rollout
+ * shard would otherwise be a new finding forever. */
+function fingerprint(v) {
+  const file = String(v.file).split('\\').join('/').replace(/-[0-9a-f]{8,}(?=\.)/g, '-<hash>');
+  let kind;
+  if (/^names \d+ Pokemon thing/.test(v.what)) kind = 'names Pokemon things in code';
+  /* The config VALUE is not the identity — when the active regulation rolls over, every file that
+   * hardcodes the old one still has exactly the same defect in exactly the same place. */
+  else if (/^hardcodes /.test(v.what)) kind = 'hardcodes a config value';
+  else if (/ with no stated derivation$/.test(v.what)) kind = `${v.what.split(' =')[0]} has no stated derivation`;
+  else if (/^nothing runs it/.test(v.what)) kind = 'dead: nothing runs it';
+  else kind = v.what;                       /* S13 and convention findings are already invariant */
+  return `${v.std} | ${file} | ${kind}`;
+}
+
+const nowByKey = new Map();
+for (const v of findings) {
+  const key = fingerprint(v);
+  const e = nowByKey.get(key) || { key, std: v.std, file: String(v.file).split('\\').join('/'), what: v.what, detail: [] };
+  if (Array.isArray(v.detail)) for (const d of v.detail) if (!e.detail.includes(d)) e.detail.push(d);
+  e.detail.sort();
+  nowByKey.set(key, e);
+}
+const nowKeys = [...nowByKey.keys()].sort();
+
+/* `errBaseline` rather than `unreadable`: the catch below KEEPS the reason and prints it, but
+ * tests/test-no-silent-failure.js reads a catch body for the shape of a block that speaks, and an
+ * assignment only counts when the name says it holds a failure. Naming it so is the cheaper fix than
+ * arguing with the detector, and the name is no worse. */
+let prev = null, errBaseline = null, carried = [];
+if (fs.existsSync(BASELINE)) {
+  try {
+    prev = JSON.parse(fs.readFileSync(BASELINE, 'utf8'));
+    if (!prev || !Array.isArray(prev.findings)) throw new Error('no `findings` array — the baseline is not a baseline');
+    if (!prev.findings.every(e => e && typeof e.key === 'string')) throw new Error('an entry has no string `key`');
+  } catch (e) { errBaseline = e.message; prev = null; }
+}
+
+console.log('');
+if (errBaseline) {
+  /* Not "first run". A missing baseline is benign; a damaged one is a broken chain of custody. */
+  console.log(`  RATCHET BASELINE UNREADABLE: ${BASELINE}`);
+  console.log(`  ${errBaseline}`);
+  console.log('  Refusing to adopt the current tree as a new baseline — that would launder every');
+  console.log('  finding introduced since the file was last good. Restore it from git and re-run.');
+  process.exitCode = 1;
+} else if (!prev) {
+  console.log(`  RATCHET — no baseline at data/conformance-baseline.json; adopting the current`);
+  console.log(`  ${nowKeys.length} finding(s) as the baseline. From here it may only shrink.`);
+  writeBaseline();
+} else {
+  const prevByKey = new Map(prev.findings.map(e => [e.key, e]));
+  const added = nowKeys.filter(k => !prevByKey.has(k));
+  /* A RACE MUST NOT LOOK LIKE A FIX. This is the dangerous direction, and hardening the other one
+   * created it: a data/ file that returned no bytes because another process was writing it produces
+   * no findings, so its baselined entries would read as FIXED, leave the baseline, and turn the gate
+   * permanently red the moment the file is readable again. A finding may only leave when we actually
+   * looked and it was not there. Entries for a not-judged file are carried forward untouched. */
+  const notJudged = new Set(unreadable.map(f => 'data/' + f));
+  const held = prev.findings.filter(e => !nowByKey.has(e.key) && notJudged.has(e.file));
+  carried = held;
+  const removed = prev.findings.filter(e => !nowByKey.has(e.key) && !notJudged.has(e.file)).map(e => e.key);
+  if (held.length) console.log(`  HELD (${held.length}) — kept in the baseline; their file was not judged this run`);
+  const widened = [];
+  for (const k of nowKeys) {
+    const p = prevByKey.get(k); if (!p || !Array.isArray(p.detail)) continue;
+    const grew = nowByKey.get(k).detail.filter(d => !p.detail.includes(d));
+    if (grew.length) widened.push([k, grew]);
+  }
+
+  console.log(`  RATCHET — ${prev.findings.length} baselined, ${added.length} new, ${removed.length} fixed`);
+  if (removed.length) {
+    console.log(`  FIXED (${removed.length}) — leaving the baseline, and they may never come back:`);
+    for (const k of removed) console.log('    ' + k);
+  }
+  if (widened.length) {
+    /* Informational, not fatal. The file is already on the list; this says the violation grew. */
+    console.log(`  NOTICE — ${widened.length} baselined finding(s) got WIDER (already flagged, still flagged):`);
+    for (const [k, grew] of widened) console.log(`    ${k}  +${grew.join(', ')}`);
+  }
+  if (added.length) {
+    console.log('');
+    console.log(`  RATCHET BROKEN: ${added.length} finding(s) not in the baseline —`);
+    for (const k of added) {
+      const e = nowByKey.get(k);
+      console.log(`    ${k}`);
+      console.log(`        ${e.what}`);
+    }
+    console.log('  Fix them, or fix the standard. The baseline is NOT rewritten while anything is new,');
+    console.log('  so re-running will not make this green — that is the point.');
+    if (STRICT) process.exit(1);
+    process.exitCode = 1;
+  } else {
+    writeBaseline();
+  }
+}
+
+/* One writer, called from two branches. Two copies of a ratchet writer is how a ratchet quietly
+ * stops ratcheting (engine/provenance.js:710). */
+function writeBaseline() {
+  /* WHAT `source_digests` MEANS HERE, because the honest answer is narrower than it looks.
+   *
+   * engine/provenance.js verifies every entry in this map by CONTENT and marks the artifact UNSAFE
+   * when one moves. The findings below are computed from every source file in the tree, but stamping
+   * all of them would mark this file unsafe the moment anybody edits anything — a gate that is red by
+   * design, which is the failure this whole ratchet exists to avoid. The RULE inputs are stamped
+   * instead: engine/conformance.js decides what a finding IS, and data/regulations.json supplies the
+   * config values S12 looks for. If either moves, these keys may no longer mean what they meant, and
+   * that is exactly the restamp-versus-refit line. The whole scanned set is NOT digested here: it
+   * moves on nearly every commit, so a digest of it would rewrite this file on nearly every run and
+   * bury the one thing a reader wants from its history — when a finding entered or left. */
+  const RS = require('./run_stamp.js');
+  const body = {
+    note: 'GENERATED RATCHET BASELINE — do not hand-edit. Written by engine/conformance.js.',
+    source_digests: { 'engine/conformance.js': RS.sha12('engine/conformance.js'),
+                      'data/regulations.json': RS.sha12('data/regulations.json') },
+    source_digests_scope: 'The RULE inputs only. The findings are computed over all source files; '
+        + 'a change to any of them shows up as a finding entering or leaving, not as a stamp mismatch.',
+    files_scanned: srcs.length,
+    rule: 'This list may SHRINK and may NEVER grow. Every entry is a conformance finding that '
+        + 'already existed when the gate was switched on. `node engine/conformance.js --strict` '
+        + 'fails on any finding whose key is not in here. Fix one and it leaves this file on the '
+        + 'next run, and can never return. The KEY is stored rather than a count: one finding '
+        + 'disappearing while another appears nets to zero and slips a count comparison silently.',
+    generated: new Date().toISOString(),
+    by: 'engine/conformance.js',
+    count: nowKeys.length + carried.length,
+    findings: [...nowKeys.map(k => nowByKey.get(k)), ...carried]
+      .sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0)),
+  };
+  /* A NO-OP RUN MUST NOT TOUCH THE FILE. Only `generated` would differ, and this repo has an
+   * unattended auto-commit on a ~2-minute timer: rewriting the baseline on every green run would
+   * commit a timestamp-only diff every time anyone runs the suite and bury the only thing its
+   * history is for — the run where a finding entered or left. */
+  /* files_scanned is compared too, or it would sit stale on a file that was added and had nothing
+   * to report — a small lie, but a field that CAN go stale is a field that eventually does. */
+  const proj = o => JSON.stringify({ s: o.source_digests, n: o.files_scanned, f: o.findings });
+  const same = prev && proj(prev) === proj(body);
+  if (same) return;
+  try { fs.writeFileSync(BASELINE, JSON.stringify(body, null, 1) + '\n'); }
+  catch (e) { console.log('  (could not write the ratchet baseline: ' + e.message + ')'); }
+}

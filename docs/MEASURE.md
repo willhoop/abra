@@ -19,13 +19,21 @@ MEASURE — can we believe a number
     powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835
     PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/abra-tags.js
     (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
-  provenance: 2 unsafe, 41 possibly stale, 53 ok, 0 missing
+  provenance: 2 unsafe, 43 possibly stale, 55 ok, 0 missing
+    RATCHET TRIPPED — the unstamped list grew; provenance.js exited non-zero: censoring-value.json, click-censoring-census.json
+    their generators ship without recording what CONTENT they read — stamp source_digests
+  click censoring: 1,336 of 241,927 recorded actions were NOT clicks (0.552%) and left the labeled set; 3,260 (1.348%) are kept under a candidate set
+    classifier vs the raw protocol on 5,917 games (66.2% of the corpus): encore recall 99.7% precision 96.1%, drag recall 96.5% precision 96.5%
+    EM recovers 97.4% of a planted censoring bias of 0.893 against a 0.260 noise floor (amplified regime)
+    behaviour on the OUTPLAYED turns, after - before, paired and game-bootstrapped:
+      redirection turns, mass on the candidate set  +0.000109 [-0.000286, 0.000491] (contains zero)   n=643
+      coerced turns, P(the coerced action)          -0.002614 [-0.003663, -0.001637]   n=284  (lower is better)
+      CONTROL, clean turns, logL                    +0.000447 [0.000142, 0.000743]   n=46268
   refit edge: CLEAN — feature_fixture --check passes: all 58 columns hash-identical to fit time
-    (engine/medicham2-browser.js moved 2026-08-05 02:07, but the feature function did not)
-    (data/engine-data.js moved 2026-08-05 00:36, but the feature function did not)
+    (engine/medicham2-browser.js moved 2026-08-05 05:07, but the feature function did not)
 ```
 
-_stamped 2026-08-05 02:19_
+_stamped 2026-08-05 06:01_
 
 <!-- /GENERATED -->
 
@@ -1280,6 +1288,327 @@ historical HANDOFF files excluded as history): `docs/ABRA-whitepaper.md:113` (0.
 0.629799/0.629778, +0.000021 [−0.000013, +0.000056], 925, 4,623), and WEB's
 `web/stadium.html:506,:728` + `app/stadium.html:506,:728` (the `kadabra` data object and its prose),
 which render every one of those numbers and are flagged, not edited.
+
+### 14. THE OUTPLAYED TURNS — 1,336 recorded actions were not clicks, and the model was learning from every one of them. LANDED 2026-08-05.
+
+`docs/CLICK-CENSORING-FIX.md` is the spec, ordered by Will: *"i def dont like just tossing turns
+because they got outplayed with a move liek encore or follow me, these are the basis of vgc man."*
+Four artifacts: `data/click-censoring-census.json`, `data/partial-label-em.json`,
+`data/censoring-value.json`, and the refitted `data/policy-weights{,-joint}.json`.
+
+**LEAD WITH THE RESULT, INCLUDING THE HALF THAT DID NOT WORK.** Two headline classes were measured
+and only one moved:
+
+| held-out class | what changed, after − before | verdict |
+|---|---|---|
+| **COERCED** (n=284) — Encore replaced the click, or the mon was dragged in | P(model picks the action no human chose) **−0.002614, 95% CI [−0.003663, −0.001637]** | the poison is unlearned, and it is the only headline that moved |
+| **PARTIAL** (n=643) — a redirector soaked the attack | mass on the true candidate set **+0.000109 [−0.000286, +0.000491]**; logL on the set **−0.002646 [−0.004037, −0.001377]** | **no improvement. The likelihood is very slightly WORSE.** |
+| CONTROL, CLEAN (n=46,268) | logL **+0.000447 [0.000142, 0.000743]**; top-1 **+0.002 [−0.094, 0.098]** | as the spec predicted: no top-1 change |
+
+47,195 paired held-out decisions over 1,809 games, 10,000 bootstrap resamples **clustered by game**,
+`engine/censoring_value.js`. The spec disclaims a corpus-wide top-1 improvement in advance and none
+is claimed here; the CLEAN row is a control.
+
+**Say the negative result plainly: Stage C bought nothing measurable, and the reason was predicted by
+Stage C's own validation before the refit ran.** The EM harness recovers **97.4%** of a planted
+censoring bias when the censoring is heavy, and at the rate the corpus actually censors, the bias in
+weight space is **−0.0030 against a 0.2600 noise floor** — unmeasurable. The redirection correction
+is right in principle, and the class is 1.35% of actions with a candidate set of exactly two, so
+there was almost nothing to recover. Both instruments agree, which is the only reason to believe
+either.
+
+**Stage A — the census.** 241,927 recorded human actions over 8,942 clean open-sheet games:
+
+| class | n | share | mechanism |
+|---|---|---|---|
+| CLEAN | 229,555 | 94.886% | — |
+| PARTIAL | 3,260 | 1.3475% | Follow Me / Rage Powder 3,231; Lightning Rod 29. Every candidate set is size 2 |
+| **COERCED** | **1,336** | **0.5522%** | Encore's application turn 1,116; a `\|drag\|` 220 (Roar 184, Dragon Tail 33, Whirlwind 3) |
+| dropped, not a censoring class | 7,776 | 3.214% | unmatched 6,937, trivial 809, ambiguous 30 |
+
+**The mechanism list is read from the running format, never typed** — moves with
+`condition.onOverrideAction`, moves with `forceSwitch`, abilities with `onFoeTryMove`, items
+assigning `switchFlag`/`forceSwitchFlag` (**empty here**: Eject Button, Eject Pack and Red Card are
+all `isNonstandard: 'Past'`), plus `data/tags.json`'s `redirects` / `redirectsType`. Every set
+refuses to be empty, and a zero on either counter is fatal in both fitters.
+
+**THE CLASSIFIER WAS SCORED AGAINST THE PROTOCOL, NOT ASSERTED.** The census has a second arm that
+reads `data/games.*.raw-logs.jsonl` and compares per (game, turn, slot):
+
+| class | protocol says | classifier flagged | both | recall | precision |
+|---|---|---|---|---|---|
+| Encore application | 619 | 642 | 617 | **99.68%** | **96.11%** |
+| drag | 86 | 86 | 83 | **96.51%** | **96.51%** |
+
+The 25 Encore false positives are 0.01% of all actions and the asymmetry is the right way round: a
+false positive deletes one real click, a false negative keeps a poisoned one, and there are two of
+those. Most likely cause is an Encore blocked by Protect, which the extractor records no failure flag
+for. Stated, not chased — the classifier was frozen while the refit that depends on it ran.
+
+**Two corrections to the spec, both measured.** (1) §1's first row is wrong and
+`engine/redirect_audit.js` said so on 2026-08-02: redirection does **not** drop the turn. The
+redirector is a legal candidate target, so the matcher matches it and the click enters the fit with a
+CONFIDENT WRONG TARGET. It is label noise, not censoring — which makes Stage C a poison fix as much
+as a recovery. (2) A `\|drag\|` is a third coerced class the spec does not list.
+`engine/durable-ingest.js:67` parses `\|switch\|`, `\|drag\|` and `\|replace\|` with one regex, and
+`fit_policy`'s `forcedSlot` guard only knows about faints, so every phazed arrival was fitted as a
+voluntary switch decision.
+
+**WILL'S FARIGIRAF CASE IS ANSWERED: PARTIAL, NOT ERASED.**
+
+```
+|cant|p1a: Farigiraf|ability: Armor Tail|Aqua Jet|[of] p2b: Basculegion
+```
+
+The blocker is named first, the attempted **move** is named, and `[of]` names the **attacker**.
+**284 of 284 priority-block lines carry the attacker slot (100.0%)**, so the user and the move are
+exact and only the target is ambiguous — between the blocker and its ally, and nowhere else, because
+the ability blocks nothing aimed elsewhere.
+
+**It is counted and NOT recovered, and that is a judgement with a reason.** Showdown emits no
+`\|move\|` line for a blocked attempt, so the class leaves no event and lives only in the raw logs —
+which cover **66.17% of the fit corpus (5,917 of 8,942 games)**, and the gap is one SOURCE,
+`data/games.ots.jsonl`, an external archive with no log file. Recovering these 284 clicks, and the
+126 more that `\|cant\|` states outright (Taunt 59, Disable 58, Heal Block 5, Imprison 4), would add
+outplayed turns from two stores and none from the third. That is a corpus reweighting wearing a bug
+fix's clothes. Closing it means re-ingesting the ots archive with its logs — OPS work, filed.
+
+**A FOURTH THING, FOUND ON THE WAY, AND IT IS A WRONG DENOMINATOR RATHER THAN A WRONG LABEL.**
+`engine/board.js`'s `candidates()` narrows the choice set for a **Choice item**, derived from the
+dex's `isChoice`, with its own comment saying why: *"that is not a scoring error, it is a WRONG
+DENOMINATOR. A conditional logit divides by the sum over the choice set."* It does nothing about the
+other family that shrinks a menu — the `onDisableMove` set. **2,280 of 139,769 logged actions
+(1.6313%) were taken with a menu-sealing volatile up**: Encore 1,276, Throat Chop 375, Taunt 329,
+Disable 239, Heal Block 94. A human left one legal move by Encore is priced as having chosen it over
+nine. **NOT FIXED HERE** — narrowing the menu moves every feature row and owes its own refit, and it
+is a different defect from the one this dispatch was for. Counted so the decision has a size.
+
+**Stage C — the estimator, shown failing on known-bad input before it was believed.**
+`engine/em_validation.js`, 31,940 real corpus feature rows over 1,200 games with SYNTHETIC labels
+drawn from a known planted vector, 3 seeds, the real censoring process applied to the planted labels:
+
+| regime | rows censored | oracle | naive | EM | noise floor | verdict |
+|---|---|---|---|---|---|---|
+| **amplified** | 20.961% | 0.9978 | **1.8913** | **1.0208** | 0.2600 | bias 0.8935 clears the floor; **EM recovers 97.4%** |
+| **observed** | 0.439% | 0.9978 | 0.9948 | 1.0021 | 0.2600 | bias **−0.0030 — inside its own noise floor** |
+
+Distances are `‖ŵ − w*‖₂`. The noise floor is the spread of the ORACLE arm across the three seeds, so
+it carries no information about the contrast. The **first** amplified regime censored EVERY eligible
+row and EM recovered only 45% — correctly, because with every same-move row collapsed there is
+nothing left to identify the target features from. That is Cour et al.'s identifiability condition
+failing, not the estimator; the eligibility is now exogenous and the collapse label-dependent, which
+is what the corpus does. `engine/em_validation.js --check` re-verifies the recorded verdict AND
+re-hashes every source, so editing `engine/click_class.js` turns the gate red instead of leaving a
+stale PASS; it is registered in `tests/run-all.js`.
+
+**Stage D — what the refit moved, and the confound stated rather than buried.**
+`data/policy-weights.json`: **8,942 games, 232,815 usable decisions of 241,927 seen** (186,494 train
+/ 46,321 held out), lambda 0 on held-out, reweighted vector ships. `‖new − old‖₂ = 0.8030` and **9 of
+58 weights moved more than 2 SE**. The mechanism is legible in which ones:
+
+| feature | before → after | |
+|---|---|---|
+| `deadStall` | −1.3114 → −1.4763 | 5.44 SE |
+| `stallIntoEncore` — *"I am about to Protect and something across from me can Encore me for it"* | **−1.0502 → −1.6281** | 3.10 SE, the largest single movement |
+| `deadSide` | −2.7606 → −3.1414 | 4.01 SE |
+
+That is the predicted direction. The poisoned rows were victims "choosing" their last move under an
+active Encore; deleting them makes clicking into an Encore threat look worse, and the Encore/stall
+family is exactly where the vector moved. Same shape as §10's `hpDiff` 0.169 → 0.377.
+
+**THE CONFOUND, NAMED: the two vectors differ in four ways, not one.** The incumbent was fitted on
+8,856 games and the new one on 8,942 — the collector never stops — so the Stage D contrast carries
+the coerced removal, the partial-label EM, 86 extra games and the refit itself. The weight-movement
+pattern above is evidence for attribution and is not proof of it. `CENSORING=off` now exists in
+`engine/fit_policy.js` for exactly this: it fits the OLD way on the NEW corpus, and it records
+`censoring: "off (CONTROL ARM — not shippable)"` in its own artifact so a control can never be
+mistaken for a ship. **That arm has not been run** — it is a second full refit and free RAM was 1.3 GB
+with the joint fit in flight. It is the next thing this section owes.
+
+**AND EVERY EFFECT HERE IS SMALLER THAN ITS OWN CLASS'S NOISE FLOOR.** The COERCED contrast is
+0.002614 against a split-half floor of 0.007635; the CLEAN logL gain is 0.000447 against 0.007855.
+They resolve only because the comparison is **paired per decision** — two runs on different samples
+could not tell these builds apart. This is the same statement §13 and §13b make, and it must travel
+with the numbers.
+
+**Stage B — the budgets are RE-DERIVED, not renumbered, and `turnsDropped` is retired.**
+`fit_joint.turnsDropped` was `(turnsSeen − kept)/turnsSeen` and sat at 5.4929% against a 5.49%
+ceiling. Stages B–C change what "dropped" MEANS: coerced turns used to be inside `kept`, carrying a
+wrong label, and now leave the labelled set — so the old total would have gone UP while the artifact
+got strictly better, and a ceiling that may only tighten would have gone red for an improvement.
+**Raising or lowering the number would have been the wrong move in either direction.** Three counters
+now, each with its granularity stated in `data/degradation-budgets.json` and its ceiling ratcheted
+from a measured run:
+
+| counter | what it counts | denominator |
+|---|---|---|
+| `fit_policy.decisionsUnreadable` / `fit_joint.turnsUnreadable` | the click existed and could not be recovered. **A LOSS.** Successor to the old totals, and directly comparable because it is the same quantity minus a term that was misfiled as kept | human actions seen by `fit_policy` / joint turns seen by `fit_joint` |
+| `fit_policy.coercedActions` / `fit_joint.coercedTurns` | the recorded action was **not a click** and was removed. **A CORRECTION, not a loss** — it should track the metagame's use of Encore and phazing and nothing else | same |
+| `fit_policy.decisionsDropped` / `fit_joint.turnsDropped` | **RETIRED.** Carried in a new `superseded` block with its old ceiling intact, so the history is not deleted | — |
+
+`measured_at` also used to read *"over 120 corpus games"* on every row, which is true of the three
+`board.js` counters and **false of every fitter rate** — those come out of an artifact written over
+the whole corpus. A ceiling whose denominator is misdescribed cannot be re-derived by anyone.
+
+**What this does not say.** Top-1 agreement with a human click is not a win rate; whether MILTANK
+plays better is an H2H and belongs to SEARCH. The COERCED class has no ground-truth label by
+construction, so its contrast measures a change in the MODEL, not an improvement in accuracy — it
+cannot be otherwise, and inventing an agreement number for it would have been the dishonest option.
+
+### 15. THE TWO LEAF ARTIFACTS DO NOT CONTRADICT EACH OTHER. RESOLVED 2026-08-05, and the answer is a decomposition, not a winner.
+
+`data/winrate-backtest.json` says the in-game leaf ranks at **50.99%** and is worse than a coin.
+`data/rollout-r1-explore-sweep.json` says the same leaf ranks at **69.84%** with a monotone
+reliability curve. The sweep flagged the conflict itself in
+`reading_against_the_leaf_calibration` and refused to treat "explore=1.0 spent the signal" as
+established while a second measurement disagreed. **It was right to refuse, and both artifacts are
+correct.** They score the same function on positions of very different difficulty, and the gap
+decomposes cleanly.
+
+The sweep named two differences — rollout budget and horizon — and **those are the two that do not
+matter.** There are six, and the three that carry the gap are position, corpus and sheet, in that
+order.
+
+`engine/leaf_position_contrast.js` holds five of the six fixed at a time: one leaf
+(`rolloutWinProb`, explore=1.0, n=40, horizon 20), one frozen release (**6b0e4117d964**), the same
+seeds, and both accuracy definitions on every arm. `data/leaf-position-contrast.json`, with
+`data/leaf-position-contrast-rows-6b0e4117d964.jsonl` beside it so any cut can be re-derived without
+re-running the rollouts.
+
+| arm | corpus | position | sheet | n | maj. class | accuracy | Brier vs coin (paired) | ECE | MCE | curve slope |
+|---|---|---|---|---|---|---|---|---|---|---|
+| **D** = the sweep | open-sheet bo3 | mid-game | yes | 9,201 pos / 2,500 g | 52.5% | **69.83%** [68.6, 71.1] | **−0.0440** [−0.0513, −0.0360] | 0.0925 | 0.162 | **0.703** |
+| C | open-sheet bo3 | mid-game | no | 9,201 | 52.5% | 68.73% [67.5, 69.9] | −0.0401 [−0.0470, −0.0329] | 0.0939 | 0.146 | 0.693 |
+| B | open-sheet bo3 | **turn 0** | yes | 2,500 | 52.4% | 58.20% [56.4, 60.2] | +0.0101 [0.0020, 0.0182] | 0.1120 | 0.332 | 0.402 |
+| A | open-sheet bo3 | **turn 0** | no | 2,500 | 52.4% | 55.92% [54.0, 57.8] | +0.0166 [0.0088, 0.0243] | 0.1284 | 0.351 | 0.331 |
+| **E** = the backtest | closed ladder | **turn 0** | no | 1,499 | 52.2% | **51.17%** [48.6, 53.6] | **+0.0456** [0.0344, 0.0567] | 0.1793 | 0.458 | **0.068** |
+
+Intervals are game-clustered bootstraps, because 9,201 mid-game positions come from 2,500 games and
+an unclustered interval on them is too narrow by about √3.7.
+
+**The decomposition telescopes exactly. 69.83 − 51.17 = 18.66 points:**
+
+| term | contrast | points | how measured |
+|---|---|---|---|
+| **POSITION** | A → C | **+12.81** | mid-game vs turn 0, sheet off, same 2,500 games |
+| **CORPUS** | E → A | **+4.75** | closed ladder vs open-sheet bo3, turn 0, sheet off, same config |
+| **SHEET** | C → D | **+1.10** [0.31, 1.88] | paired McNemar, same 9,201 boards from two walks |
+
+C and D come from two passes of `joint_rows.build` over the same games, the second with
+`Board.prototype.setSheet` disabled — so suppressing the sheet changes what the leaf KNOWS and must
+not change which boards are scored. **The original run asserted that and it PASSED**: all 9,201
+positions agree across the two walks on gid, turn, label, `aliveDiff` and the continuous HP witness,
+and the run aborts rather than report a pairing it did not check. The artifact on disk is a re-cut
+of that run's rows, so its `pairing_check` says the result is carried rather than re-performed — a
+process that did not do the check does not get to say PASSED.
+
+The sheet at turn 0 is worth **+2.28** [0.57, 3.99] (B − A, paired), so taking the other path
+through the square gives position +11.63 instead of +12.81. Either way position is two-thirds of it
+and the sheet is the smallest of the three.
+
+**Three independent things say the config is not the explanation.** Arm E re-runs the backtest's
+condition at the SWEEP's budget and horizon (n=40, h=20) and lands on 51.17% / Brier +0.0456 / ECE
+0.1793 against the published 51.66% / +0.0466 / 0.1827 — inside E's own split-half floor of 1.54
+points. The sweep re-ran itself at h=60 and got 69.86% against 69.84%. And §1 already recorded that
+40 and 200 rollouts give the same turn-0 answer. **The horizon and the budget are settled: they move
+nothing.**
+
+**Two independent routes reach the same turn-0 number, which is why I believe the decomposition.**
+Cutting the sweep's own committed dump down to `turn ≤ 1 AND aliveDiff == 0 AND |hpDiff| < 0.02` —
+its nearest thing to a preview board, sheets on — gives **55.70%** on n=237. Arm B measures a real
+turn-0 board on the same corpus with sheets on and gives **58.20%** on n=2,500. The subset's
+split-half spread runs 0.47 to 21.47 points across ten random by-game cuts (median ≈ 4.2), so those
+two agree.
+
+**THE HEADLINE 50.99% IS THE UNDERPOWERED READ, and the better number is not better news.** It is
+the held-out fifth at n=200. Re-cut from `data/winrate-backtest-rows.jsonl`, the same leaf at n=40
+over the **full** 6,886-game clean corpus ranks at **51.66%** (51.80% on 6,570 decisive calls) — real
+by p, and its majority class is 51.25%, so its edge over *always say p1* is **0.41 points against a
+median split-half floor of 0.75.** LESSONS §9: an effect smaller than the noise floor is not an
+effect. **On the closed-sheet ladder at turn 0 the leaf does not beat the majority class.** "Cannot
+rank at all" was reported off the wrong n and happens to survive the correction.
+
+**Now the answer to the three options, plainly.**
+
+- **(a) "fine mid-game, broken at turn 0" — the largest term, and "fine" is too kind.** Mid-game the
+  leaf is genuinely not broken: it beats a coin on Brier by 0.044 [0.036, 0.051], its curve is
+  monotone with slope 0.703, and on boards where the material baseline has *collapsed to the
+  majority class* (aliveDiff 0, |hpDiff| < 0.02, n=411) it scores 62.29% against material's 51.09% —
+  **+11.19 [5.05, 17.34] over counting.** It is reading real non-material structure. But it still
+  puts **31.4%** of positions in the two extreme bins, and its top bin predicts 97% and wins 86%. A
+  slope of 0.70 is not calibration; it is a leaf that ranks well and lies about how sure it is.
+- **(b) "broken everywhere, the sweep measures something easier" — right that it is easier, wrong
+  that it is only easier.** The +11.19 over a collapsed material baseline is not an artefact of easy
+  positions. The sweep is not measuring material with extra steps.
+- **(c) and there is a term nobody named: the CORPUS, +4.75 points — bigger than the sheet channel
+  at either position.** The open-sheet corpus is `fit_policy.loadCorpus()`, which on its first 2,500
+  games is **99.9% our own `gen9championsvgc2026regmbbo3` scrape**, not the OTS archive as the
+  generator's own comment implies. Its pool is lower-rated (median 1,174 against the ladder held-out
+  fifth's 1,266) and it plays under **forced** open sheets, so both humans had full information and
+  the outcome may be more determined by the matchup. Turn counts and forfeit rates are the same in
+  both. **Neither mechanism is tested here** — the term is measured, its cause is not, and it is not
+  a sampling artefact of the held-out slice, because the full-corpus backtest agrees with E.
+
+**DISCRIMINATION AND CALIBRATION FAIL SEPARATELY AND THE SPLIT WIDENS AS INFORMATION IS REMOVED.**
+Arm A ranks at 55.92% against a 52.4% majority — its interval's lower bound is 54.0, clear of both
+the majority class and its 2.24-point split-half floor — and its Brier is still **worse than a
+coin**, with an MCE of 0.351. So a turn-0 leaf can carry real ranking signal and still be a liar
+about its confidence, which is the failure mode that matters to an argmax. By arm E even the ranking
+is gone and only the confidence is left.
+
+**A SIGN FLIP WORTH A RE-RUN, EXPLICITLY NOT ESTABLISHED.** Exploration helps mid-game and may hurt
+at turn 0. Paired on the backtest's own 6,886 turn-0 ladder games at horizon 60, the **greedy**
+playout ranks at 53.09% against explore=1.0's 51.66% — **+1.44 [0.10, 2.77]** — while paired on the
+sweep's 9,201 mid-game boards explore=1.0 wins by **+3.20 [2.24, 4.15]**. The turn-0 lower bound is
+0.10 against a median split-half floor of 0.75, so it is **inside its own noise floor and is not a
+result**; and greedy's Brier there is *worse* (0.3240 against 0.2966), so the two playouts differ in
+which failure they have rather than in quality. The two arms are also not the same code path
+(`battleInit`+`chooseAction` against `rolloutWinProb`). It needs `mew.js --miltank-explore`, which
+§3 already filed to SEARCH, and it needs the position held fixed.
+
+**WHAT THIS MEANS FOR PORYZ, since that is what the question was for.** `docs/PORYZ-spec.md`'s
+representation is per-Pokémon HP fraction, status, every stat stage, revealed item and ability, and a
+threat matrix — and it is the leaf of `EV(a) = Σ P(reply) × V(board after)`. **Every one of those
+inputs is constant across games or absent at turn 0:** all eight bodies are at 1.0 HP, no status, no
+stages, and the closed-sheet ladder has revealed no items. The only feature that survives to turn 0
+is the threat matrix over the brought four a side. So **PORYZ cannot move the turn-0 number, by
+construction of its own feature list** — if the target was "the leaf that reads 100% and loses", that
+leaf is the PREVIEW one and this spec is not aimed at it.
+
+Aimed at what PORYZ-spec's engineering section actually says — making the mid-game EV sum affordable
+— it is well aimed, and this run hands it a bar measured on the same positions rather than quoted
+from another sample: **69.83% accuracy, Brier 0.2060, ECE 0.0925, slope 0.703 on 9,201 positions at
+release 6b0e4117d964**, with the rows on disk. PORYZ's premise sentence, "the whole learned value
+function is worth 3.4 points over counting", is about PORY2. The rollout leaf is worth **+4.58
+[3.47, 5.68]** over the same graded material baseline mid-game and **+11.19 [5.05, 17.34]** where
+material has nothing to say. That is the incumbent PORYZ has to beat, and it is a harder incumbent
+than the spec assumed. This is a measurement, not a build decision; the decision is SEARCH's.
+
+**Filed, not fixed.**
+
+- **`engine/rollout_r1.js:436` puts a prose `note` key inside `source_digests`.**
+  `engine/provenance.js:648` calls `digestOf()` on every key in that map, so a key that is not a
+  readable path marks the whole artifact `unverifiable` — which is why
+  `data/rollout-r1-explore-sweep.json` cannot be digest-verified. This file made the same mistake and
+  moved the prose to a sibling key; the artifact went from `stale?` to `ok`. SEARCH's file.
+- **`engine/rollout_r1.js:26-29`'s corpus comment is misleading about what it samples.**
+  `loadCorpus()` reads bo3, OTS and ladder in that order, and the first 2,500 games — the whole R1
+  and sweep sample — are 2,497 bo3 and 3 smogtours. Every R1 number ever published is a **bo3
+  open-sheet** number, and §15 measures that this corpus is worth 4.75 accuracy points at turn 0.
+  The published figures are not wrong; what they are *about* is narrower than the comment says.
+- **`data/censoring-value.json` and `data/click-censoring-census.json` trip the provenance
+  ratchet** — their generator ships without recording what content it read. Another division's files,
+  written this session. Reported, not touched.
+
+**Re-cutting this artifact costs seconds, not half an hour:**
+
+```bash
+RECUT=data/leaf-position-contrast-rows-6b0e4117d964.jsonl node engine/leaf_position_contrast.js
+```
+
+It opens the release named in the filename rather than the newest, refuses a dump that cannot name
+its engine, and never rewrites the dump it read. Verified: the re-cut reproduces every figure above
+bit-for-bit and leaves the row file byte-identical.
 
 ## Reading a run
 

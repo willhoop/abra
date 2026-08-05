@@ -172,8 +172,31 @@ const NOT_A_MODEL = {
   'engine/rollout_r2.js':            'GATE R2 — what a rollout LEAF costs; a cost measurement of our own search',
   'engine/rollout_r3.js':            'GATE R3 — does the search PICK A DIFFERENT MOVE; a behaviour diagnostic of our own search',
   'engine/rollout_explore_sweep.js': 'should --rollout-explore default to 1.0 — a knob sweep over our own search',
+  /* --- Added 2026-08-05 (docs/MEASURE.md §15). It fits nothing and predicts nothing new: it scores
+   *     ONE existing leaf (rollout_leaf.rolloutWinProb) five ways to find out why two of OUR OWN
+   *     artifacts — winrate-backtest.json and rollout-r1-explore-sweep.json — disagree about it.
+   *     Apply the settling question: if its number is wrong, the people misled are US, while deciding
+   *     whether PORYZ is aimed at the right target. Same class as the two gates above; its home is
+   *     docs/MEASURE.md. */
+  'engine/leaf_position_contrast.js': 'why do winrate-backtest.json and rollout-r1-explore-sweep.json disagree about the same leaf — a 2x2 over POSITION and SHEET on one frozen release; measures our own measurements, fits nothing',
   'engine/exploit_step_probe.js':    'GATE R9 (docs/SEARCH.md) — can the exploitability hill-climb in exploit.js move at 58 dimensions; drives exploit.js\'s own createClimber() against a SYNTHETIC planted optimum, plays no games and says nothing about MAG — a diagnosis of our own search tooling, not a model',
   'engine/rollout_r1_join.py':       'phase 2 of GATE R1 — scores PORYGON2 on the positions the rollout scored; an evaluation, and PORYGON2 is the model it evaluates',
+  /* --- Added 2026-08-05. Both are Stages of docs/CLICK-CENSORING-FIX.md and both answer the same
+   *     question — "is the corpus we FIT ON telling us what the human actually chose?" That is a
+   *     statement about ABRA's own corpus and ABRA's own fitting procedure. Apply the rule's
+   *     settling question: if either number is wrong, the people misled are US, while deciding
+   *     whether the fit needs repairing. No player, no bot and no visitor reads either file, and
+   *     neither says anything about Champions. They are the same class as collinearity_audit.js and
+   *     feature_audit.js above, and their home is docs/MEASURE.md, not docs/MODELS.md.
+   *
+   *     THE FIVE THAT WERE RED HERE ON 2026-08-04 WERE NOT THIS CLASS and are deliberately absent:
+   *     analyze.js, porygon2.py, state_encoder.py, derive_sets.js and counters.py all publish
+   *     statements ABOUT CHAMPIONS, so none of them could be given a truthful entry in this table.
+   *     MEASURE closed them the right way, with ledger entries (META-USAGE, PORYGON2, MOVE PRIORS,
+   *     SPECIES SETS, COUNTERS), and arm (a) accounts for them now. --- */
+  'engine/click_census.js':          'labels every human action in OUR fit corpus CLEAN / PARTIAL / COERCED / ERASED (docs/CLICK-CENSORING-FIX.md Stage A). A census of what our own data can and cannot see; more games raise its coverage and do not move any claim about the game',
+  'engine/em_validation.js':         'plants a known weight vector, censors it the way the real corpus is censored, and asks whether EM recovers it (Stage C). A validation of OUR fitting procedure against a synthetic truth — its own `reading` field says neither number is a win rate or a held-out accuracy',
+
   'engine/bring_bias.js':            'does require_full_bring\'s length-conditioning move any bring rate — a diagnosis of OUR OWN corpus rule, and its answer is no (84 species tested, 12 clear a raw z, 0 survive BH against 4.2 expected). Its sibling engine/bring_priors.js is the model; this measures the filter, and nothing but itself reads data/bring-bias.json',
 };
 

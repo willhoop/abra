@@ -1,0 +1,2456 @@
+{
+  "generated": "2026-08-05T05:55:40.665Z",
+  "by": "engine/leaf_position_contrast.js",
+  "question": "data/winrate-backtest.json and data/rollout-r1-explore-sweep.json describe the same leaf and disagree about whether it can rank. Which of the six differences between them carries the gap?",
+  "config": {
+    "n_rollouts": 40,
+    "explore": 1,
+    "max_turns": 20,
+    "every_nth_turn": 2,
+    "games_requested": null,
+    "corpus_games_available": null,
+    "ladder_games_requested": null,
+    "corpus": "engine/fit_policy.js loadCorpus() — clean OPEN-SHEET games from games.bo3.jsonl, games.ots.jsonl and the ~1% of games.ladder.jsonl carrying sheets",
+    "note": "ONE config across all four arms. The two artifacts differ in n (200 vs 40) and horizon (60 vs 20); both were separately measured not to move the answer — MEASURE ruled out the budget at turn 0, and the sweep re-ran itself at h=60 (69.86% vs 69.84%)."
+  },
+  "pairing_check": "RE-CUT — the 9,201 paired mid-game rows are carried from the dump; the walk-vs-walk pairing check was performed by the original run and is not re-performed here.",
+  "results": {
+    "A_turn0_nosheet": {
+      "what": "turn 0, NO sheet — backtest_winrate.js's condition, on this corpus",
+      "n": 2500,
+      "n_games": 2500,
+      "base_rate_p1_wins": 0.5244,
+      "majority_class_pct": 52.44,
+      "acc_all_pct": 55.92,
+      "acc_all_ci95_pts": [
+        54.04,
+        57.76
+      ],
+      "decisive_calls": 2369,
+      "acc_decisive_pct": 56.0152,
+      "acc_decisive_ci95_pts": [
+        54.0483,
+        57.9168
+      ],
+      "brier": 0.2666,
+      "brier_vs_coin_paired": 0.0166,
+      "brier_vs_coin_ci95": [
+        0.0088,
+        0.0243
+      ],
+      "logloss": 0.7497,
+      "ece": 0.1284,
+      "mce_bins_over_30": 0.3514,
+      "saturated_share": 0.0528,
+      "curve_slope": 0.3309,
+      "reliability_curve": [
+        {
+          "bin": "0-10%",
+          "n": 62,
+          "predicted": 0.0518,
+          "observed": 0.4032,
+          "observed_ci95": [
+            0.2902,
+            0.5275
+          ]
+        },
+        {
+          "bin": "10-20%",
+          "n": 150,
+          "predicted": 0.143,
+          "observed": 0.3067,
+          "observed_ci95": [
+            0.2385,
+            0.3845
+          ]
+        },
+        {
+          "bin": "20-30%",
+          "n": 256,
+          "predicted": 0.246,
+          "observed": 0.5039,
+          "observed_ci95": [
+            0.4431,
+            0.5646
+          ]
+        },
+        {
+          "bin": "30-40%",
+          "n": 358,
+          "predicted": 0.341,
+          "observed": 0.4302,
+          "observed_ci95": [
+            0.3799,
+            0.4819
+          ]
+        },
+        {
+          "bin": "40-50%",
+          "n": 401,
+          "predicted": 0.4417,
+          "observed": 0.5387,
+          "observed_ci95": [
+            0.4897,
+            0.5868
+          ]
+        },
+        {
+          "bin": "50-60%",
+          "n": 404,
+          "predicted": 0.5404,
+          "observed": 0.5718,
+          "observed_ci95": [
+            0.5231,
+            0.6191
+          ]
+        },
+        {
+          "bin": "60-70%",
+          "n": 359,
+          "predicted": 0.6378,
+          "observed": 0.5543,
+          "observed_ci95": [
+            0.5026,
+            0.6049
+          ]
+        },
+        {
+          "bin": "70-80%",
+          "n": 271,
+          "predicted": 0.7372,
+          "observed": 0.5904,
+          "observed_ci95": [
+            0.531,
+            0.6473
+          ]
+        },
+        {
+          "bin": "80-90%",
+          "n": 169,
+          "predicted": 0.8346,
+          "observed": 0.6154,
+          "observed_ci95": [
+            0.5402,
+            0.6854
+          ]
+        },
+        {
+          "bin": "90-100%",
+          "n": 70,
+          "predicted": 0.9343,
+          "observed": 0.6714,
+          "observed_ci95": [
+            0.555,
+            0.77
+          ]
+        }
+      ],
+      "noise_floor": {
+        "split_half_by_game_acc_all": [
+          54.8,
+          57.04
+        ],
+        "spread_pts": 2.24,
+        "note": "one arm split in half BY GAME. A difference smaller than this spread is not an effect."
+      }
+    },
+    "B_turn0_sheet": {
+      "what": "turn 0, open sheet set on both sides",
+      "n": 2500,
+      "n_games": 2500,
+      "base_rate_p1_wins": 0.5244,
+      "majority_class_pct": 52.44,
+      "acc_all_pct": 58.2,
+      "acc_all_ci95_pts": [
+        56.4,
+        60.16
+      ],
+      "decisive_calls": 2371,
+      "acc_decisive_pct": 58.2876,
+      "acc_decisive_ci95_pts": [
+        56.4103,
+        60.1623
+      ],
+      "brier": 0.2601,
+      "brier_vs_coin_paired": 0.0101,
+      "brier_vs_coin_ci95": [
+        0.002,
+        0.0182
+      ],
+      "logloss": 0.735,
+      "ece": 0.112,
+      "mce_bins_over_30": 0.3324,
+      "saturated_share": 0.06,
+      "curve_slope": 0.4016,
+      "reliability_curve": [
+        {
+          "bin": "0-10%",
+          "n": 63,
+          "predicted": 0.0486,
+          "observed": 0.381,
+          "observed_ci95": [
+            0.2712,
+            0.5044
+          ]
+        },
+        {
+          "bin": "10-20%",
+          "n": 148,
+          "predicted": 0.1439,
+          "observed": 0.3919,
+          "observed_ci95": [
+            0.3169,
+            0.4723
+          ]
+        },
+        {
+          "bin": "20-30%",
+          "n": 278,
+          "predicted": 0.2426,
+          "observed": 0.4065,
+          "observed_ci95": [
+            0.3504,
+            0.4651
+          ]
+        },
+        {
+          "bin": "30-40%",
+          "n": 340,
+          "predicted": 0.3407,
+          "observed": 0.4206,
+          "observed_ci95": [
+            0.3693,
+            0.4737
+          ]
+        },
+        {
+          "bin": "40-50%",
+          "n": 381,
+          "predicted": 0.4405,
+          "observed": 0.5118,
+          "observed_ci95": [
+            0.4618,
+            0.5616
+          ]
+        },
+        {
+          "bin": "50-60%",
+          "n": 410,
+          "predicted": 0.5388,
+          "observed": 0.5756,
+          "observed_ci95": [
+            0.5273,
+            0.6225
+          ]
+        },
+        {
+          "bin": "60-70%",
+          "n": 346,
+          "predicted": 0.6374,
+          "observed": 0.5896,
+          "observed_ci95": [
+            0.5371,
+            0.6402
+          ]
+        },
+        {
+          "bin": "70-80%",
+          "n": 261,
+          "predicted": 0.7381,
+          "observed": 0.6169,
+          "observed_ci95": [
+            0.5566,
+            0.6737
+          ]
+        },
+        {
+          "bin": "80-90%",
+          "n": 186,
+          "predicted": 0.8333,
+          "observed": 0.629,
+          "observed_ci95": [
+            0.5577,
+            0.6952
+          ]
+        },
+        {
+          "bin": "90-100%",
+          "n": 87,
+          "predicted": 0.9348,
+          "observed": 0.6897,
+          "observed_ci95": [
+            0.5862,
+            0.7771
+          ]
+        }
+      ],
+      "noise_floor": {
+        "split_half_by_game_acc_all": [
+          56.64,
+          59.76
+        ],
+        "spread_pts": 3.12,
+        "note": "one arm split in half BY GAME. A difference smaller than this spread is not an effect."
+      }
+    },
+    "C_mid_nosheet": {
+      "what": "mid-game replay boards, sheet SUPPRESSED",
+      "n": 9201,
+      "n_games": 2500,
+      "base_rate_p1_wins": 0.5246,
+      "majority_class_pct": 52.4617,
+      "acc_all_pct": 68.7317,
+      "acc_all_ci95_pts": [
+        67.4703,
+        69.9426
+      ],
+      "decisive_calls": 8955,
+      "acc_decisive_pct": 69.0452,
+      "acc_decisive_ci95_pts": [
+        67.8088,
+        70.2672
+      ],
+      "brier": 0.2099,
+      "brier_vs_coin_paired": -0.0401,
+      "brier_vs_coin_ci95": [
+        -0.047,
+        -0.0329
+      ],
+      "logloss": 0.6326,
+      "ece": 0.0939,
+      "mce_bins_over_30": 0.1461,
+      "saturated_share": 0.3005,
+      "curve_slope": 0.6926,
+      "reliability_curve": [
+        {
+          "bin": "0-10%",
+          "n": 1253,
+          "predicted": 0.0246,
+          "observed": 0.154,
+          "observed_ci95": [
+            0.1351,
+            0.1751
+          ]
+        },
+        {
+          "bin": "10-20%",
+          "n": 748,
+          "predicted": 0.14,
+          "observed": 0.2861,
+          "observed_ci95": [
+            0.2549,
+            0.3195
+          ]
+        },
+        {
+          "bin": "20-30%",
+          "n": 788,
+          "predicted": 0.2419,
+          "observed": 0.3807,
+          "observed_ci95": [
+            0.3475,
+            0.4151
+          ]
+        },
+        {
+          "bin": "30-40%",
+          "n": 824,
+          "predicted": 0.3427,
+          "observed": 0.4126,
+          "observed_ci95": [
+            0.3795,
+            0.4466
+          ]
+        },
+        {
+          "bin": "40-50%",
+          "n": 858,
+          "predicted": 0.4412,
+          "observed": 0.5128,
+          "observed_ci95": [
+            0.4794,
+            0.5461
+          ]
+        },
+        {
+          "bin": "50-60%",
+          "n": 851,
+          "predicted": 0.5412,
+          "observed": 0.5617,
+          "observed_ci95": [
+            0.5282,
+            0.5947
+          ]
+        },
+        {
+          "bin": "60-70%",
+          "n": 815,
+          "predicted": 0.6415,
+          "observed": 0.6282,
+          "observed_ci95": [
+            0.5945,
+            0.6607
+          ]
+        },
+        {
+          "bin": "70-80%",
+          "n": 801,
+          "predicted": 0.7406,
+          "observed": 0.6467,
+          "observed_ci95": [
+            0.613,
+            0.679
+          ]
+        },
+        {
+          "bin": "80-90%",
+          "n": 751,
+          "predicted": 0.8388,
+          "observed": 0.723,
+          "observed_ci95": [
+            0.69,
+            0.7538
+          ]
+        },
+        {
+          "bin": "90-100%",
+          "n": 1512,
+          "predicted": 0.9672,
+          "observed": 0.8525,
+          "observed_ci95": [
+            0.8337,
+            0.8695
+          ]
+        }
+      ],
+      "noise_floor": {
+        "split_half_by_game_acc_all": [
+          68.7755,
+          68.6866
+        ],
+        "spread_pts": 0.0888,
+        "note": "one arm split in half BY GAME. A difference smaller than this spread is not an effect."
+      }
+    },
+    "D_mid_sheet": {
+      "what": "mid-game replay boards, open sheet set — the sweep's condition",
+      "n": 9201,
+      "n_games": 2500,
+      "base_rate_p1_wins": 0.5246,
+      "majority_class_pct": 52.4617,
+      "acc_all_pct": 69.8294,
+      "acc_all_ci95_pts": [
+        68.5849,
+        71.0663
+      ],
+      "decisive_calls": 8932,
+      "acc_decisive_pct": 70.2194,
+      "acc_decisive_ci95_pts": [
+        68.9828,
+        71.4962
+      ],
+      "brier": 0.206,
+      "brier_vs_coin_paired": -0.044,
+      "brier_vs_coin_ci95": [
+        -0.0513,
+        -0.036
+      ],
+      "logloss": 0.622,
+      "ece": 0.0925,
+      "mce_bins_over_30": 0.1622,
+      "saturated_share": 0.3136,
+      "curve_slope": 0.7027,
+      "reliability_curve": [
+        {
+          "bin": "0-10%",
+          "n": 1310,
+          "predicted": 0.0248,
+          "observed": 0.1511,
+          "observed_ci95": [
+            0.1328,
+            0.1716
+          ]
+        },
+        {
+          "bin": "10-20%",
+          "n": 742,
+          "predicted": 0.137,
+          "observed": 0.2992,
+          "observed_ci95": [
+            0.2673,
+            0.3331
+          ]
+        },
+        {
+          "bin": "20-30%",
+          "n": 779,
+          "predicted": 0.2405,
+          "observed": 0.362,
+          "observed_ci95": [
+            0.329,
+            0.3964
+          ]
+        },
+        {
+          "bin": "30-40%",
+          "n": 792,
+          "predicted": 0.3416,
+          "observed": 0.4306,
+          "observed_ci95": [
+            0.3965,
+            0.4653
+          ]
+        },
+        {
+          "bin": "40-50%",
+          "n": 793,
+          "predicted": 0.4392,
+          "observed": 0.4615,
+          "observed_ci95": [
+            0.4271,
+            0.4963
+          ]
+        },
+        {
+          "bin": "50-60%",
+          "n": 805,
+          "predicted": 0.5377,
+          "observed": 0.5801,
+          "observed_ci95": [
+            0.5457,
+            0.6138
+          ]
+        },
+        {
+          "bin": "60-70%",
+          "n": 821,
+          "predicted": 0.6401,
+          "observed": 0.609,
+          "observed_ci95": [
+            0.5752,
+            0.6418
+          ]
+        },
+        {
+          "bin": "70-80%",
+          "n": 809,
+          "predicted": 0.7395,
+          "observed": 0.6564,
+          "observed_ci95": [
+            0.623,
+            0.6883
+          ]
+        },
+        {
+          "bin": "80-90%",
+          "n": 775,
+          "predicted": 0.8398,
+          "observed": 0.7277,
+          "observed_ci95": [
+            0.6953,
+            0.7579
+          ]
+        },
+        {
+          "bin": "90-100%",
+          "n": 1575,
+          "predicted": 0.9684,
+          "observed": 0.861,
+          "observed_ci95": [
+            0.843,
+            0.8772
+          ]
+        }
+      ],
+      "noise_floor": {
+        "split_half_by_game_acc_all": [
+          69.2902,
+          70.3834
+        ],
+        "spread_pts": 1.0933,
+        "note": "one arm split in half BY GAME. A difference smaller than this spread is not an effect."
+      }
+    },
+    "E_turn0_nosheet_ladder": {
+      "what": "turn 0, NO sheet, on the CLOSED-SHEET LADDER corpus — backtest_winrate.js's condition AND its corpus, at this config and this release",
+      "n": 1499,
+      "n_games": 1499,
+      "base_rate_p1_wins": 0.5223,
+      "majority_class_pct": 52.2348,
+      "acc_all_pct": 51.1674,
+      "acc_all_ci95_pts": [
+        48.6324,
+        53.569
+      ],
+      "decisive_calls": 1414,
+      "acc_decisive_pct": 51.1315,
+      "acc_decisive_ci95_pts": [
+        48.5896,
+        53.6723
+      ],
+      "brier": 0.2956,
+      "brier_vs_coin_paired": 0.0456,
+      "brier_vs_coin_ci95": [
+        0.0344,
+        0.0567
+      ],
+      "logloss": 0.8281,
+      "ece": 0.1793,
+      "mce_bins_over_30": 0.458,
+      "saturated_share": 0.0707,
+      "curve_slope": 0.0682,
+      "reliability_curve": [
+        {
+          "bin": "0-10%",
+          "n": 45,
+          "predicted": 0.0531,
+          "observed": 0.5111,
+          "observed_ci95": [
+            0.37,
+            0.6504
+          ]
+        },
+        {
+          "bin": "10-20%",
+          "n": 94,
+          "predicted": 0.1487,
+          "observed": 0.5426,
+          "observed_ci95": [
+            0.4422,
+            0.6396
+          ]
+        },
+        {
+          "bin": "20-30%",
+          "n": 155,
+          "predicted": 0.2444,
+          "observed": 0.5742,
+          "observed_ci95": [
+            0.4955,
+            0.6493
+          ]
+        },
+        {
+          "bin": "30-40%",
+          "n": 195,
+          "predicted": 0.3392,
+          "observed": 0.4615,
+          "observed_ci95": [
+            0.393,
+            0.5316
+          ]
+        },
+        {
+          "bin": "40-50%",
+          "n": 217,
+          "predicted": 0.4417,
+          "observed": 0.4977,
+          "observed_ci95": [
+            0.4318,
+            0.5637
+          ]
+        },
+        {
+          "bin": "50-60%",
+          "n": 215,
+          "predicted": 0.5385,
+          "observed": 0.4651,
+          "observed_ci95": [
+            0.3996,
+            0.5318
+          ]
+        },
+        {
+          "bin": "60-70%",
+          "n": 215,
+          "predicted": 0.6363,
+          "observed": 0.5302,
+          "observed_ci95": [
+            0.4636,
+            0.5958
+          ]
+        },
+        {
+          "bin": "70-80%",
+          "n": 164,
+          "predicted": 0.7387,
+          "observed": 0.5732,
+          "observed_ci95": [
+            0.4966,
+            0.6463
+          ]
+        },
+        {
+          "bin": "80-90%",
+          "n": 138,
+          "predicted": 0.8335,
+          "observed": 0.5652,
+          "observed_ci95": [
+            0.4818,
+            0.6451
+          ]
+        },
+        {
+          "bin": "90-100%",
+          "n": 61,
+          "predicted": 0.9395,
+          "observed": 0.5902,
+          "observed_ci95": [
+            0.465,
+            0.7046
+          ]
+        }
+      ],
+      "noise_floor": {
+        "split_half_by_game_acc_all": [
+          51.9359,
+          50.4
+        ],
+        "spread_pts": 1.5359,
+        "note": "one arm split in half BY GAME. A difference smaller than this spread is not an effect."
+      }
+    }
+  },
+  "contrasts": [
+    {
+      "contrast": "B - A",
+      "what": "THE SHEET CHANNEL AT TURN 0. Same boards, same seeds; the only difference is whether the leaf was told the declared nature/item/ability/moves.",
+      "n": 2500,
+      "acc_diff_pts": 2.28,
+      "ci95_pts": [
+        0.5713,
+        3.9887
+      ],
+      "mcnemar_x_only_right": 266,
+      "mcnemar_y_only_right": 209,
+      "brier_diff": -0.0064,
+      "method": "McNemar sign test on discordant rows; half-width 1.96*sqrt(b+c)/n in points. The two arms scored the SAME boards with the SAME seeds."
+    },
+    {
+      "contrast": "D - C",
+      "what": "THE SHEET CHANNEL MID-GAME. Same boards from two walks, pairing asserted row by row.",
+      "n": 9201,
+      "acc_diff_pts": 1.0977,
+      "ci95_pts": [
+        0.3142,
+        1.8813
+      ],
+      "mcnemar_x_only_right": 727,
+      "mcnemar_y_only_right": 626,
+      "brier_diff": -0.0039,
+      "method": "McNemar sign test on discordant rows; half-width 1.96*sqrt(b+c)/n in points. The two arms scored the SAME boards with the SAME seeds."
+    }
+  ],
+  "material_symmetric_subsets": {
+    "aliveDiff==0": {
+      "D_mid_sheet": {
+        "n": 4222,
+        "n_games": 2055,
+        "base_rate_p1_wins": 0.5261,
+        "majority_class_pct": 52.6054,
+        "acc_all_pct": 62.648,
+        "acc_all_ci95_pts": [
+          60.7848,
+          64.5027
+        ],
+        "decisive_calls": 4046,
+        "acc_decisive_pct": 62.9263,
+        "acc_decisive_ci95_pts": [
+          61.0039,
+          64.8286
+        ],
+        "brier": 0.2465,
+        "brier_vs_coin_paired": -0.0035,
+        "brier_vs_coin_ci95": [
+          -0.0132,
+          0.0065
+        ],
+        "logloss": 0.7246,
+        "ece": 0.111,
+        "mce_bins_over_30": 0.2355,
+        "saturated_share": 0.1641,
+        "curve_slope": 0.5164,
+        "reliability_curve": [
+          {
+            "bin": "0-10%",
+            "n": 301,
+            "predicted": 0.0369,
+            "observed": 0.2724,
+            "observed_ci95": [
+              0.2252,
+              0.3254
+            ]
+          },
+          {
+            "bin": "10-20%",
+            "n": 332,
+            "predicted": 0.1391,
+            "observed": 0.3404,
+            "observed_ci95": [
+              0.2915,
+              0.3929
+            ]
+          },
+          {
+            "bin": "20-30%",
+            "n": 420,
+            "predicted": 0.2422,
+            "observed": 0.381,
+            "observed_ci95": [
+              0.3358,
+              0.4283
+            ]
+          },
+          {
+            "bin": "30-40%",
+            "n": 466,
+            "predicted": 0.3409,
+            "observed": 0.4678,
+            "observed_ci95": [
+              0.423,
+              0.5132
+            ]
+          },
+          {
+            "bin": "40-50%",
+            "n": 489,
+            "predicted": 0.4389,
+            "observed": 0.4479,
+            "observed_ci95": [
+              0.4044,
+              0.4922
+            ]
+          },
+          {
+            "bin": "50-60%",
+            "n": 500,
+            "predicted": 0.5372,
+            "observed": 0.566,
+            "observed_ci95": [
+              0.5222,
+              0.6088
+            ]
+          },
+          {
+            "bin": "60-70%",
+            "n": 485,
+            "predicted": 0.6394,
+            "observed": 0.6124,
+            "observed_ci95": [
+              0.5683,
+              0.6547
+            ]
+          },
+          {
+            "bin": "70-80%",
+            "n": 452,
+            "predicted": 0.7377,
+            "observed": 0.6239,
+            "observed_ci95": [
+              0.5784,
+              0.6673
+            ]
+          },
+          {
+            "bin": "80-90%",
+            "n": 385,
+            "predicted": 0.8393,
+            "observed": 0.7273,
+            "observed_ci95": [
+              0.6807,
+              0.7694
+            ]
+          },
+          {
+            "bin": "90-100%",
+            "n": 392,
+            "predicted": 0.954,
+            "observed": 0.7321,
+            "observed_ci95": [
+              0.6862,
+              0.7736
+            ]
+          }
+        ],
+        "noise_floor": {
+          "split_half_by_game_acc_all": [
+            62.5522,
+            62.7479
+          ],
+          "spread_pts": 0.1957,
+          "note": "one arm split in half BY GAME. A difference smaller than this spread is not an effect."
+        }
+      },
+      "C_mid_nosheet": {
+        "n": 4222,
+        "n_games": 2055,
+        "base_rate_p1_wins": 0.5261,
+        "majority_class_pct": 52.6054,
+        "acc_all_pct": 60.8006,
+        "acc_all_ci95_pts": [
+          59.0598,
+          62.6855
+        ],
+        "decisive_calls": 4067,
+        "acc_decisive_pct": 60.8557,
+        "acc_decisive_ci95_pts": [
+          59.0632,
+          62.7763
+        ],
+        "brier": 0.2549,
+        "brier_vs_coin_paired": 0.0049,
+        "brier_vs_coin_ci95": [
+          -0.0044,
+          0.0141
+        ],
+        "logloss": 0.7471,
+        "ece": 0.1251,
+        "mce_bins_over_30": 0.2444,
+        "saturated_share": 0.1542,
+        "curve_slope": 0.4663,
+        "reliability_curve": [
+          {
+            "bin": "0-10%",
+            "n": 287,
+            "predicted": 0.0343,
+            "observed": 0.2787,
+            "observed_ci95": [
+              0.2301,
+              0.3333
+            ]
+          },
+          {
+            "bin": "10-20%",
+            "n": 329,
+            "predicted": 0.1438,
+            "observed": 0.3739,
+            "observed_ci95": [
+              0.3233,
+              0.4273
+            ]
+          },
+          {
+            "bin": "20-30%",
+            "n": 433,
+            "predicted": 0.2425,
+            "observed": 0.3949,
+            "observed_ci95": [
+              0.35,
+              0.4417
+            ]
+          },
+          {
+            "bin": "30-40%",
+            "n": 477,
+            "predicted": 0.3426,
+            "observed": 0.4298,
+            "observed_ci95": [
+              0.3861,
+              0.4746
+            ]
+          },
+          {
+            "bin": "40-50%",
+            "n": 510,
+            "predicted": 0.4419,
+            "observed": 0.5216,
+            "observed_ci95": [
+              0.4782,
+              0.5646
+            ]
+          },
+          {
+            "bin": "50-60%",
+            "n": 553,
+            "predicted": 0.5417,
+            "observed": 0.5769,
+            "observed_ci95": [
+              0.5353,
+              0.6174
+            ]
+          },
+          {
+            "bin": "60-70%",
+            "n": 484,
+            "predicted": 0.6413,
+            "observed": 0.6012,
+            "observed_ci95": [
+              0.557,
+              0.6439
+            ]
+          },
+          {
+            "bin": "70-80%",
+            "n": 447,
+            "predicted": 0.739,
+            "observed": 0.6219,
+            "observed_ci95": [
+              0.5761,
+              0.6657
+            ]
+          },
+          {
+            "bin": "80-90%",
+            "n": 338,
+            "predicted": 0.8385,
+            "observed": 0.6598,
+            "observed_ci95": [
+              0.6077,
+              0.7082
+            ]
+          },
+          {
+            "bin": "90-100%",
+            "n": 364,
+            "predicted": 0.9544,
+            "observed": 0.728,
+            "observed_ci95": [
+              0.6801,
+              0.7712
+            ]
+          }
+        ],
+        "noise_floor": {
+          "split_half_by_game_acc_all": [
+            61.1137,
+            60.4741
+          ],
+          "spread_pts": 0.6396,
+          "note": "one arm split in half BY GAME. A difference smaller than this spread is not an effect."
+        }
+      }
+    },
+    "aliveDiff==0 AND |hpDiff|<0.10": {
+      "D_mid_sheet": {
+        "n": 849,
+        "n_games": 705,
+        "base_rate_p1_wins": 0.5253,
+        "majority_class_pct": 52.5324,
+        "acc_all_pct": 59.1284,
+        "acc_all_ci95_pts": [
+          55.7396,
+          62.6847
+        ],
+        "decisive_calls": 803,
+        "acc_decisive_pct": 58.7796,
+        "acc_decisive_ci95_pts": [
+          55.1681,
+          62.4069
+        ],
+        "brier": 0.2613,
+        "brier_vs_coin_paired": 0.0113,
+        "brier_vs_coin_ci95": [
+          -0.0052,
+          0.0275
+        ],
+        "logloss": 0.7504,
+        "ece": 0.1375,
+        "mce_bins_over_30": 0.3465,
+        "saturated_share": 0.1166,
+        "curve_slope": 0.3859,
+        "reliability_curve": [
+          {
+            "bin": "0-10%",
+            "n": 36,
+            "predicted": 0.0424,
+            "observed": 0.3889,
+            "observed_ci95": [
+              0.2478,
+              0.5514
+            ]
+          },
+          {
+            "bin": "10-20%",
+            "n": 57,
+            "predicted": 0.1393,
+            "observed": 0.3333,
+            "observed_ci95": [
+              0.2249,
+              0.4628
+            ]
+          },
+          {
+            "bin": "20-30%",
+            "n": 84,
+            "predicted": 0.2417,
+            "observed": 0.381,
+            "observed_ci95": [
+              0.2845,
+              0.4878
+            ]
+          },
+          {
+            "bin": "30-40%",
+            "n": 105,
+            "predicted": 0.3404,
+            "observed": 0.5048,
+            "observed_ci95": [
+              0.4107,
+              0.5985
+            ]
+          },
+          {
+            "bin": "40-50%",
+            "n": 108,
+            "predicted": 0.4431,
+            "observed": 0.4537,
+            "observed_ci95": [
+              0.363,
+              0.5476
+            ]
+          },
+          {
+            "bin": "50-60%",
+            "n": 117,
+            "predicted": 0.5348,
+            "observed": 0.6154,
+            "observed_ci95": [
+              0.5249,
+              0.6985
+            ]
+          },
+          {
+            "bin": "60-70%",
+            "n": 111,
+            "predicted": 0.6386,
+            "observed": 0.5495,
+            "observed_ci95": [
+              0.4569,
+              0.6389
+            ]
+          },
+          {
+            "bin": "70-80%",
+            "n": 101,
+            "predicted": 0.7358,
+            "observed": 0.5446,
+            "observed_ci95": [
+              0.4476,
+              0.6383
+            ]
+          },
+          {
+            "bin": "80-90%",
+            "n": 67,
+            "predicted": 0.8356,
+            "observed": 0.7463,
+            "observed_ci95": [
+              0.6307,
+              0.8351
+            ]
+          },
+          {
+            "bin": "90-100%",
+            "n": 63,
+            "predicted": 0.9444,
+            "observed": 0.6508,
+            "observed_ci95": [
+              0.5275,
+              0.7567
+            ]
+          }
+        ],
+        "noise_floor": {
+          "split_half_by_game_acc_all": [
+            59.1121,
+            59.1449
+          ],
+          "spread_pts": 0.0327,
+          "note": "one arm split in half BY GAME. A difference smaller than this spread is not an effect."
+        }
+      },
+      "C_mid_nosheet": {
+        "n": 849,
+        "n_games": 705,
+        "base_rate_p1_wins": 0.5253,
+        "majority_class_pct": 52.5324,
+        "acc_all_pct": 58.6572,
+        "acc_all_ci95_pts": [
+          55.2204,
+          62.201
+        ],
+        "decisive_calls": 806,
+        "acc_decisive_pct": 57.5682,
+        "acc_decisive_ci95_pts": [
+          53.9723,
+          61.3148
+        ],
+        "brier": 0.2628,
+        "brier_vs_coin_paired": 0.0128,
+        "brier_vs_coin_ci95": [
+          -0.0037,
+          0.0291
+        ],
+        "logloss": 0.745,
+        "ece": 0.1401,
+        "mce_bins_over_30": 0.277,
+        "saturated_share": 0.1143,
+        "curve_slope": 0.3918,
+        "reliability_curve": [
+          {
+            "bin": "0-10%",
+            "n": 35,
+            "predicted": 0.0354,
+            "observed": 0.1714,
+            "observed_ci95": [
+              0.081,
+              0.3268
+            ]
+          },
+          {
+            "bin": "10-20%",
+            "n": 57,
+            "predicted": 0.1441,
+            "observed": 0.4211,
+            "observed_ci95": [
+              0.3019,
+              0.5502
+            ]
+          },
+          {
+            "bin": "20-30%",
+            "n": 77,
+            "predicted": 0.2432,
+            "observed": 0.4935,
+            "observed_ci95": [
+              0.3848,
+              0.6028
+            ]
+          },
+          {
+            "bin": "30-40%",
+            "n": 112,
+            "predicted": 0.3452,
+            "observed": 0.3839,
+            "observed_ci95": [
+              0.2991,
+              0.4764
+            ]
+          },
+          {
+            "bin": "40-50%",
+            "n": 105,
+            "predicted": 0.4433,
+            "observed": 0.5333,
+            "observed_ci95": [
+              0.4384,
+              0.6259
+            ]
+          },
+          {
+            "bin": "50-60%",
+            "n": 137,
+            "predicted": 0.5402,
+            "observed": 0.6131,
+            "observed_ci95": [
+              0.5296,
+              0.6905
+            ]
+          },
+          {
+            "bin": "60-70%",
+            "n": 103,
+            "predicted": 0.6416,
+            "observed": 0.6019,
+            "observed_ci95": [
+              0.5054,
+              0.6912
+            ]
+          },
+          {
+            "bin": "70-80%",
+            "n": 95,
+            "predicted": 0.7416,
+            "observed": 0.5053,
+            "observed_ci95": [
+              0.4065,
+              0.6036
+            ]
+          },
+          {
+            "bin": "80-90%",
+            "n": 66,
+            "predicted": 0.8371,
+            "observed": 0.5606,
+            "observed_ci95": [
+              0.4408,
+              0.6737
+            ]
+          },
+          {
+            "bin": "90-100%",
+            "n": 62,
+            "predicted": 0.9442,
+            "observed": 0.7742,
+            "observed_ci95": [
+              0.6559,
+              0.8604
+            ]
+          }
+        ],
+        "noise_floor": {
+          "split_half_by_game_acc_all": [
+            57.243,
+            60.095
+          ],
+          "spread_pts": 2.852,
+          "note": "one arm split in half BY GAME. A difference smaller than this spread is not an effect."
+        }
+      }
+    },
+    "aliveDiff==0 AND |hpDiff|<0.02 — a turn-0 board in all but name": {
+      "D_mid_sheet": {
+        "n": 411,
+        "n_games": 374,
+        "base_rate_p1_wins": 0.5109,
+        "majority_class_pct": 51.0949,
+        "acc_all_pct": 62.2871,
+        "acc_all_ci95_pts": [
+          57.6271,
+          67.3219
+        ],
+        "decisive_calls": 385,
+        "acc_decisive_pct": 61.8182,
+        "acc_decisive_ci95_pts": [
+          56.8831,
+          67.0984
+        ],
+        "brier": 0.2553,
+        "brier_vs_coin_paired": 0.0053,
+        "brier_vs_coin_ci95": [
+          -0.0184,
+          0.0297
+        ],
+        "logloss": 0.7333,
+        "ece": 0.1607,
+        "mce_bins_over_30": 0.2572,
+        "saturated_share": 0.129,
+        "curve_slope": 0.4316,
+        "reliability_curve": [
+          {
+            "bin": "0-10%",
+            "n": 16,
+            "predicted": 0.0367,
+            "observed": 0.3125,
+            "observed_ci95": [
+              0.1416,
+              0.556
+            ]
+          },
+          {
+            "bin": "10-20%",
+            "n": 30,
+            "predicted": 0.1446,
+            "observed": 0.4,
+            "observed_ci95": [
+              0.2459,
+              0.5768
+            ]
+          },
+          {
+            "bin": "20-30%",
+            "n": 37,
+            "predicted": 0.251,
+            "observed": 0.3784,
+            "observed_ci95": [
+              0.2406,
+              0.539
+            ]
+          },
+          {
+            "bin": "30-40%",
+            "n": 44,
+            "predicted": 0.3401,
+            "observed": 0.4318,
+            "observed_ci95": [
+              0.2968,
+              0.5778
+            ]
+          },
+          {
+            "bin": "40-50%",
+            "n": 39,
+            "predicted": 0.4378,
+            "observed": 0.2564,
+            "observed_ci95": [
+              0.1457,
+              0.4108
+            ]
+          },
+          {
+            "bin": "50-60%",
+            "n": 65,
+            "predicted": 0.5325,
+            "observed": 0.6462,
+            "observed_ci95": [
+              0.5247,
+              0.7512
+            ]
+          },
+          {
+            "bin": "60-70%",
+            "n": 54,
+            "predicted": 0.6375,
+            "observed": 0.5556,
+            "observed_ci95": [
+              0.4238,
+              0.68
+            ]
+          },
+          {
+            "bin": "70-80%",
+            "n": 52,
+            "predicted": 0.738,
+            "observed": 0.4808,
+            "observed_ci95": [
+              0.351,
+              0.6131
+            ]
+          },
+          {
+            "bin": "80-90%",
+            "n": 37,
+            "predicted": 0.8355,
+            "observed": 0.7297,
+            "observed_ci95": [
+              0.5702,
+              0.846
+            ]
+          },
+          {
+            "bin": "90-100%",
+            "n": 37,
+            "predicted": 0.947,
+            "observed": 0.7027,
+            "observed_ci95": [
+              0.5422,
+              0.8251
+            ]
+          }
+        ],
+        "noise_floor": {
+          "split_half_by_game_acc_all": [
+            56.6502,
+            67.7885
+          ],
+          "spread_pts": 11.1382,
+          "note": "one arm split in half BY GAME. A difference smaller than this spread is not an effect."
+        }
+      },
+      "C_mid_nosheet": {
+        "n": 411,
+        "n_games": 374,
+        "base_rate_p1_wins": 0.5109,
+        "majority_class_pct": 51.0949,
+        "acc_all_pct": 60.3406,
+        "acc_all_ci95_pts": [
+          55.4745,
+          65.1332
+        ],
+        "decisive_calls": 380,
+        "acc_decisive_pct": 58.6842,
+        "acc_decisive_ci95_pts": [
+          53.6649,
+          63.7056
+        ],
+        "brier": 0.2517,
+        "brier_vs_coin_paired": 0.0017,
+        "brier_vs_coin_ci95": [
+          -0.0196,
+          0.0244
+        ],
+        "logloss": 0.7133,
+        "ece": 0.1136,
+        "mce_bins_over_30": 0.2602,
+        "saturated_share": 0.1314,
+        "curve_slope": 0.5097,
+        "reliability_curve": [
+          {
+            "bin": "0-10%",
+            "n": 17,
+            "predicted": 0.0426,
+            "observed": 0.1176,
+            "observed_ci95": [
+              0.0329,
+              0.3434
+            ]
+          },
+          {
+            "bin": "10-20%",
+            "n": 22,
+            "predicted": 0.1409,
+            "observed": 0.3636,
+            "observed_ci95": [
+              0.1973,
+              0.5705
+            ]
+          },
+          {
+            "bin": "20-30%",
+            "n": 33,
+            "predicted": 0.2398,
+            "observed": 0.4242,
+            "observed_ci95": [
+              0.2724,
+              0.5919
+            ]
+          },
+          {
+            "bin": "30-40%",
+            "n": 50,
+            "predicted": 0.3465,
+            "observed": 0.38,
+            "observed_ci95": [
+              0.2586,
+              0.5185
+            ]
+          },
+          {
+            "bin": "40-50%",
+            "n": 50,
+            "predicted": 0.44,
+            "observed": 0.48,
+            "observed_ci95": [
+              0.348,
+              0.6149
+            ]
+          },
+          {
+            "bin": "50-60%",
+            "n": 72,
+            "predicted": 0.5349,
+            "observed": 0.5694,
+            "observed_ci95": [
+              0.4544,
+              0.6774
+            ]
+          },
+          {
+            "bin": "60-70%",
+            "n": 47,
+            "predicted": 0.6362,
+            "observed": 0.5745,
+            "observed_ci95": [
+              0.4328,
+              0.7049
+            ]
+          },
+          {
+            "bin": "70-80%",
+            "n": 45,
+            "predicted": 0.7406,
+            "observed": 0.4889,
+            "observed_ci95": [
+              0.3496,
+              0.63
+            ]
+          },
+          {
+            "bin": "80-90%",
+            "n": 38,
+            "predicted": 0.8391,
+            "observed": 0.5789,
+            "observed_ci95": [
+              0.4219,
+              0.7215
+            ]
+          },
+          {
+            "bin": "90-100%",
+            "n": 37,
+            "predicted": 0.9503,
+            "observed": 0.8378,
+            "observed_ci95": [
+              0.6886,
+              0.9235
+            ]
+          }
+        ],
+        "noise_floor": {
+          "split_half_by_game_acc_all": [
+            54.6798,
+            65.8654
+          ],
+          "spread_pts": 11.1856,
+          "note": "one arm split in half BY GAME. A difference smaller than this spread is not an effect."
+        }
+      }
+    },
+    "turn <= 1": {
+      "D_mid_sheet": {
+        "n": 2500,
+        "n_games": 2500,
+        "base_rate_p1_wins": 0.5244,
+        "majority_class_pct": 52.44,
+        "acc_all_pct": 61.12,
+        "acc_all_ci95_pts": [
+          59.24,
+          63.12
+        ],
+        "decisive_calls": 2398,
+        "acc_decisive_pct": 61.6347,
+        "acc_decisive_ci95_pts": [
+          59.7424,
+          63.6935
+        ],
+        "brier": 0.249,
+        "brier_vs_coin_paired": -0.001,
+        "brier_vs_coin_ci95": [
+          -0.0104,
+          0.0087
+        ],
+        "logloss": 0.7198,
+        "ece": 0.1155,
+        "mce_bins_over_30": 0.2372,
+        "saturated_share": 0.1364,
+        "curve_slope": 0.5036,
+        "reliability_curve": [
+          {
+            "bin": "0-10%",
+            "n": 154,
+            "predicted": 0.042,
+            "observed": 0.2792,
+            "observed_ci95": [
+              0.2144,
+              0.3548
+            ]
+          },
+          {
+            "bin": "10-20%",
+            "n": 202,
+            "predicted": 0.1382,
+            "observed": 0.3218,
+            "observed_ci95": [
+              0.2612,
+              0.389
+            ]
+          },
+          {
+            "bin": "20-30%",
+            "n": 274,
+            "predicted": 0.2427,
+            "observed": 0.438,
+            "observed_ci95": [
+              0.3805,
+              0.4972
+            ]
+          },
+          {
+            "bin": "30-40%",
+            "n": 298,
+            "predicted": 0.3419,
+            "observed": 0.4765,
+            "observed_ci95": [
+              0.4205,
+              0.5332
+            ]
+          },
+          {
+            "bin": "40-50%",
+            "n": 293,
+            "predicted": 0.4383,
+            "observed": 0.4505,
+            "observed_ci95": [
+              0.3945,
+              0.5078
+            ]
+          },
+          {
+            "bin": "50-60%",
+            "n": 301,
+            "predicted": 0.5377,
+            "observed": 0.5581,
+            "observed_ci95": [
+              0.5017,
+              0.6132
+            ]
+          },
+          {
+            "bin": "60-70%",
+            "n": 303,
+            "predicted": 0.6412,
+            "observed": 0.5677,
+            "observed_ci95": [
+              0.5114,
+              0.6222
+            ]
+          },
+          {
+            "bin": "70-80%",
+            "n": 276,
+            "predicted": 0.7375,
+            "observed": 0.6304,
+            "observed_ci95": [
+              0.5721,
+              0.6852
+            ]
+          },
+          {
+            "bin": "80-90%",
+            "n": 212,
+            "predicted": 0.8374,
+            "observed": 0.7028,
+            "observed_ci95": [
+              0.6381,
+              0.7603
+            ]
+          },
+          {
+            "bin": "90-100%",
+            "n": 187,
+            "predicted": 0.9486,
+            "observed": 0.7807,
+            "observed_ci95": [
+              0.7161,
+              0.8341
+            ]
+          }
+        ],
+        "noise_floor": {
+          "split_half_by_game_acc_all": [
+            60.48,
+            61.76
+          ],
+          "spread_pts": 1.28,
+          "note": "one arm split in half BY GAME. A difference smaller than this spread is not an effect."
+        }
+      },
+      "C_mid_nosheet": {
+        "n": 2500,
+        "n_games": 2500,
+        "base_rate_p1_wins": 0.5244,
+        "majority_class_pct": 52.44,
+        "acc_all_pct": 59.16,
+        "acc_all_ci95_pts": [
+          57.32,
+          61.04
+        ],
+        "decisive_calls": 2398,
+        "acc_decisive_pct": 59.2994,
+        "acc_decisive_ci95_pts": [
+          57.4468,
+          61.2287
+        ],
+        "brier": 0.2545,
+        "brier_vs_coin_paired": 0.0045,
+        "brier_vs_coin_ci95": [
+          -0.0046,
+          0.013
+        ],
+        "logloss": 0.7295,
+        "ece": 0.1192,
+        "mce_bins_over_30": 0.2244,
+        "saturated_share": 0.1132,
+        "curve_slope": 0.4548,
+        "reliability_curve": [
+          {
+            "bin": "0-10%",
+            "n": 121,
+            "predicted": 0.0432,
+            "observed": 0.2479,
+            "observed_ci95": [
+              0.1795,
+              0.3318
+            ]
+          },
+          {
+            "bin": "10-20%",
+            "n": 191,
+            "predicted": 0.1421,
+            "observed": 0.3508,
+            "observed_ci95": [
+              0.2867,
+              0.4208
+            ]
+          },
+          {
+            "bin": "20-30%",
+            "n": 269,
+            "predicted": 0.2416,
+            "observed": 0.4275,
+            "observed_ci95": [
+              0.3698,
+              0.4872
+            ]
+          },
+          {
+            "bin": "30-40%",
+            "n": 293,
+            "predicted": 0.3434,
+            "observed": 0.4266,
+            "observed_ci95": [
+              0.3713,
+              0.4838
+            ]
+          },
+          {
+            "bin": "40-50%",
+            "n": 342,
+            "predicted": 0.4415,
+            "observed": 0.5468,
+            "observed_ci95": [
+              0.4938,
+              0.5987
+            ]
+          },
+          {
+            "bin": "50-60%",
+            "n": 340,
+            "predicted": 0.5422,
+            "observed": 0.5529,
+            "observed_ci95": [
+              0.4998,
+              0.6049
+            ]
+          },
+          {
+            "bin": "60-70%",
+            "n": 308,
+            "predicted": 0.6405,
+            "observed": 0.6039,
+            "observed_ci95": [
+              0.5483,
+              0.6569
+            ]
+          },
+          {
+            "bin": "70-80%",
+            "n": 292,
+            "predicted": 0.7383,
+            "observed": 0.6233,
+            "observed_ci95": [
+              0.5664,
+              0.6769
+            ]
+          },
+          {
+            "bin": "80-90%",
+            "n": 182,
+            "predicted": 0.8363,
+            "observed": 0.6264,
+            "observed_ci95": [
+              0.5542,
+              0.6934
+            ]
+          },
+          {
+            "bin": "90-100%",
+            "n": 162,
+            "predicted": 0.9466,
+            "observed": 0.7222,
+            "observed_ci95": [
+              0.6487,
+              0.7854
+            ]
+          }
+        ],
+        "noise_floor": {
+          "split_half_by_game_acc_all": [
+            59.52,
+            58.8
+          ],
+          "spread_pts": 0.72,
+          "note": "one arm split in half BY GAME. A difference smaller than this spread is not an effect."
+        }
+      }
+    },
+    "turn <= 2": {
+      "D_mid_sheet": {
+        "n": 3777,
+        "n_games": 2500,
+        "base_rate_p1_wins": 0.5271,
+        "majority_class_pct": 52.7138,
+        "acc_all_pct": 63.013,
+        "acc_all_ci95_pts": [
+          61.3734,
+          64.7184
+        ],
+        "decisive_calls": 3628,
+        "acc_decisive_pct": 63.3958,
+        "acc_decisive_ci95_pts": [
+          61.6997,
+          65.1825
+        ],
+        "brier": 0.2391,
+        "brier_vs_coin_paired": -0.0109,
+        "brier_vs_coin_ci95": [
+          -0.02,
+          -0.0017
+        ],
+        "logloss": 0.6953,
+        "ece": 0.1056,
+        "mce_bins_over_30": 0.207,
+        "saturated_share": 0.1668,
+        "curve_slope": 0.5666,
+        "reliability_curve": [
+          {
+            "bin": "0-10%",
+            "n": 282,
+            "predicted": 0.0368,
+            "observed": 0.2305,
+            "observed_ci95": [
+              0.1852,
+              0.2831
+            ]
+          },
+          {
+            "bin": "10-20%",
+            "n": 316,
+            "predicted": 0.1379,
+            "observed": 0.3449,
+            "observed_ci95": [
+              0.2947,
+              0.3989
+            ]
+          },
+          {
+            "bin": "20-30%",
+            "n": 383,
+            "predicted": 0.2408,
+            "observed": 0.4204,
+            "observed_ci95": [
+              0.372,
+              0.4704
+            ]
+          },
+          {
+            "bin": "30-40%",
+            "n": 416,
+            "predicted": 0.3417,
+            "observed": 0.4351,
+            "observed_ci95": [
+              0.3883,
+              0.4831
+            ]
+          },
+          {
+            "bin": "40-50%",
+            "n": 424,
+            "predicted": 0.4401,
+            "observed": 0.4717,
+            "observed_ci95": [
+              0.4246,
+              0.5193
+            ]
+          },
+          {
+            "bin": "50-60%",
+            "n": 438,
+            "predicted": 0.538,
+            "observed": 0.5525,
+            "observed_ci95": [
+              0.5057,
+              0.5984
+            ]
+          },
+          {
+            "bin": "60-70%",
+            "n": 446,
+            "predicted": 0.6402,
+            "observed": 0.5852,
+            "observed_ci95": [
+              0.5389,
+              0.63
+            ]
+          },
+          {
+            "bin": "70-80%",
+            "n": 404,
+            "predicted": 0.7397,
+            "observed": 0.6361,
+            "observed_ci95": [
+              0.5881,
+              0.6816
+            ]
+          },
+          {
+            "bin": "80-90%",
+            "n": 320,
+            "predicted": 0.8396,
+            "observed": 0.725,
+            "observed_ci95": [
+              0.6736,
+              0.771
+            ]
+          },
+          {
+            "bin": "90-100%",
+            "n": 348,
+            "predicted": 0.952,
+            "observed": 0.8132,
+            "observed_ci95": [
+              0.7689,
+              0.8507
+            ]
+          }
+        ],
+        "noise_floor": {
+          "split_half_by_game_acc_all": [
+            62.4327,
+            63.5748
+          ],
+          "spread_pts": 1.1421,
+          "note": "one arm split in half BY GAME. A difference smaller than this spread is not an effect."
+        }
+      },
+      "C_mid_nosheet": {
+        "n": 3777,
+        "n_games": 2500,
+        "base_rate_p1_wins": 0.5271,
+        "majority_class_pct": 52.7138,
+        "acc_all_pct": 61.0008,
+        "acc_all_ci95_pts": [
+          59.3314,
+          62.6496
+        ],
+        "decisive_calls": 3640,
+        "acc_decisive_pct": 61.2363,
+        "acc_decisive_ci95_pts": [
+          59.5271,
+          62.9067
+        ],
+        "brier": 0.2461,
+        "brier_vs_coin_paired": -0.0039,
+        "brier_vs_coin_ci95": [
+          -0.0122,
+          0.0043
+        ],
+        "logloss": 0.7101,
+        "ece": 0.1143,
+        "mce_bins_over_30": 0.2058,
+        "saturated_share": 0.1467,
+        "curve_slope": 0.5226,
+        "reliability_curve": [
+          {
+            "bin": "0-10%",
+            "n": 245,
+            "predicted": 0.041,
+            "observed": 0.2286,
+            "observed_ci95": [
+              0.1804,
+              0.2851
+            ]
+          },
+          {
+            "bin": "10-20%",
+            "n": 292,
+            "predicted": 0.1435,
+            "observed": 0.3493,
+            "observed_ci95": [
+              0.2969,
+              0.4056
+            ]
+          },
+          {
+            "bin": "20-30%",
+            "n": 392,
+            "predicted": 0.2411,
+            "observed": 0.4107,
+            "observed_ci95": [
+              0.3631,
+              0.4601
+            ]
+          },
+          {
+            "bin": "30-40%",
+            "n": 431,
+            "predicted": 0.3435,
+            "observed": 0.4362,
+            "observed_ci95": [
+              0.3901,
+              0.4834
+            ]
+          },
+          {
+            "bin": "40-50%",
+            "n": 465,
+            "predicted": 0.4412,
+            "observed": 0.5355,
+            "observed_ci95": [
+              0.49,
+              0.5803
+            ]
+          },
+          {
+            "bin": "50-60%",
+            "n": 487,
+            "predicted": 0.5426,
+            "observed": 0.5544,
+            "observed_ci95": [
+              0.51,
+              0.598
+            ]
+          },
+          {
+            "bin": "60-70%",
+            "n": 431,
+            "predicted": 0.6416,
+            "observed": 0.6056,
+            "observed_ci95": [
+              0.5587,
+              0.6506
+            ]
+          },
+          {
+            "bin": "70-80%",
+            "n": 438,
+            "predicted": 0.738,
+            "observed": 0.6096,
+            "observed_ci95": [
+              0.5631,
+              0.6541
+            ]
+          },
+          {
+            "bin": "80-90%",
+            "n": 287,
+            "predicted": 0.8377,
+            "observed": 0.6725,
+            "observed_ci95": [
+              0.6162,
+              0.7242
+            ]
+          },
+          {
+            "bin": "90-100%",
+            "n": 309,
+            "predicted": 0.9523,
+            "observed": 0.7896,
+            "observed_ci95": [
+              0.7408,
+              0.8314
+            ]
+          }
+        ],
+        "noise_floor": {
+          "split_half_by_game_acc_all": [
+            60.9795,
+            61.0214
+          ],
+          "spread_pts": 0.0418,
+          "note": "one arm split in half BY GAME. A difference smaller than this spread is not an effect."
+        }
+      }
+    },
+    "turn <= 1 AND aliveDiff==0 AND |hpDiff|<0.02": {
+      "D_mid_sheet": {
+        "n": 237,
+        "n_games": 237,
+        "base_rate_p1_wins": 0.4979,
+        "majority_class_pct": 50.211,
+        "acc_all_pct": 55.6962,
+        "acc_all_ci95_pts": [
+          49.789,
+          62.0253
+        ],
+        "decisive_calls": 226,
+        "acc_decisive_pct": 55.3097,
+        "acc_decisive_ci95_pts": [
+          49.3213,
+          61.674
+        ],
+        "brier": 0.2796,
+        "brier_vs_coin_paired": 0.0296,
+        "brier_vs_coin_ci95": [
+          -0.0003,
+          0.0597
+        ],
+        "logloss": 0.7806,
+        "ece": 0.1966,
+        "mce_bins_over_30": 0.1908,
+        "saturated_share": 0.0886,
+        "curve_slope": 0.1993,
+        "reliability_curve": [
+          {
+            "bin": "0-10%",
+            "n": 5,
+            "predicted": 0.0425,
+            "observed": 0.6,
+            "observed_ci95": [
+              0.2307,
+              0.8824
+            ]
+          },
+          {
+            "bin": "10-20%",
+            "n": 22,
+            "predicted": 0.1477,
+            "observed": 0.3636,
+            "observed_ci95": [
+              0.1973,
+              0.5705
+            ]
+          },
+          {
+            "bin": "20-30%",
+            "n": 23,
+            "predicted": 0.2533,
+            "observed": 0.4783,
+            "observed_ci95": [
+              0.2924,
+              0.6704
+            ]
+          },
+          {
+            "bin": "30-40%",
+            "n": 27,
+            "predicted": 0.3417,
+            "observed": 0.4815,
+            "observed_ci95": [
+              0.3074,
+              0.6601
+            ]
+          },
+          {
+            "bin": "40-50%",
+            "n": 25,
+            "predicted": 0.438,
+            "observed": 0.36,
+            "observed_ci95": [
+              0.2025,
+              0.5548
+            ]
+          },
+          {
+            "bin": "50-60%",
+            "n": 38,
+            "predicted": 0.5405,
+            "observed": 0.6579,
+            "observed_ci95": [
+              0.4989,
+              0.7879
+            ]
+          },
+          {
+            "bin": "60-70%",
+            "n": 34,
+            "predicted": 0.632,
+            "observed": 0.4412,
+            "observed_ci95": [
+              0.2888,
+              0.6055
+            ]
+          },
+          {
+            "bin": "70-80%",
+            "n": 29,
+            "predicted": 0.7345,
+            "observed": 0.4138,
+            "observed_ci95": [
+              0.2551,
+              0.5926
+            ]
+          },
+          {
+            "bin": "80-90%",
+            "n": 18,
+            "predicted": 0.8319,
+            "observed": 0.6111,
+            "observed_ci95": [
+              0.3862,
+              0.797
+            ]
+          },
+          {
+            "bin": "90-100%",
+            "n": 16,
+            "predicted": 0.9336,
+            "observed": 0.6875,
+            "observed_ci95": [
+              0.444,
+              0.8584
+            ]
+          }
+        ],
+        "noise_floor": {
+          "split_half_by_game_acc_all": [
+            50.8475,
+            60.5042
+          ],
+          "spread_pts": 9.6567,
+          "note": "one arm split in half BY GAME. A difference smaller than this spread is not an effect."
+        }
+      },
+      "C_mid_nosheet": {
+        "n": 237,
+        "n_games": 237,
+        "base_rate_p1_wins": 0.4979,
+        "majority_class_pct": 50.211,
+        "acc_all_pct": 55.2743,
+        "acc_all_ci95_pts": [
+          49.3671,
+          62.0253
+        ],
+        "decisive_calls": 214,
+        "acc_decisive_pct": 52.8037,
+        "acc_decisive_ci95_pts": [
+          46.0094,
+          59.6244
+        ],
+        "brier": 0.2725,
+        "brier_vs_coin_paired": 0.0225,
+        "brier_vs_coin_ci95": [
+          -0.0057,
+          0.0492
+        ],
+        "logloss": 0.7542,
+        "ece": 0.1347,
+        "mce_bins_over_30": 0.071,
+        "saturated_share": 0.0802,
+        "curve_slope": 0.3038,
+        "reliability_curve": [
+          {
+            "bin": "0-10%",
+            "n": 4,
+            "predicted": 0.0719,
+            "observed": 0.25,
+            "observed_ci95": [
+              0.0456,
+              0.6994
+            ]
+          },
+          {
+            "bin": "10-20%",
+            "n": 12,
+            "predicted": 0.1469,
+            "observed": 0.4167,
+            "observed_ci95": [
+              0.1933,
+              0.6805
+            ]
+          },
+          {
+            "bin": "20-30%",
+            "n": 23,
+            "predicted": 0.2413,
+            "observed": 0.4348,
+            "observed_ci95": [
+              0.2563,
+              0.6319
+            ]
+          },
+          {
+            "bin": "30-40%",
+            "n": 31,
+            "predicted": 0.3484,
+            "observed": 0.4194,
+            "observed_ci95": [
+              0.2642,
+              0.5923
+            ]
+          },
+          {
+            "bin": "40-50%",
+            "n": 29,
+            "predicted": 0.4384,
+            "observed": 0.4828,
+            "observed_ci95": [
+              0.3139,
+              0.6557
+            ]
+          },
+          {
+            "bin": "50-60%",
+            "n": 50,
+            "predicted": 0.533,
+            "observed": 0.54,
+            "observed_ci95": [
+              0.404,
+              0.6703
+            ]
+          },
+          {
+            "bin": "60-70%",
+            "n": 24,
+            "predicted": 0.638,
+            "observed": 0.5417,
+            "observed_ci95": [
+              0.3507,
+              0.7211
+            ]
+          },
+          {
+            "bin": "70-80%",
+            "n": 28,
+            "predicted": 0.7371,
+            "observed": 0.4286,
+            "observed_ci95": [
+              0.2651,
+              0.6093
+            ]
+          },
+          {
+            "bin": "80-90%",
+            "n": 21,
+            "predicted": 0.8381,
+            "observed": 0.4762,
+            "observed_ci95": [
+              0.2834,
+              0.6763
+            ]
+          },
+          {
+            "bin": "90-100%",
+            "n": 15,
+            "predicted": 0.9425,
+            "observed": 0.8667,
+            "observed_ci95": [
+              0.6212,
+              0.9626
+            ]
+          }
+        ],
+        "noise_floor": {
+          "split_half_by_game_acc_all": [
+            52.5424,
+            57.9832
+          ],
+          "spread_pts": 5.4408,
+          "note": "one arm split in half BY GAME. A difference smaller than this spread is not an effect."
+        }
+      }
+    }
+  },
+  "runtime_seconds": 14,
+  "engine_release": "6b0e4117d964",
+  "engine_release_cut": "2026-08-05T05:08:37.194Z",
+  "engine_release_cuts": 1,
+  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "source_digests": {
+    "engine/medicham2-browser.js": "80fe43fba1a9",
+    "engine/board.js": "54e3d2ca9f85",
+    "engine/rollout_leaf.js": "7a2311756ab8",
+    "engine/position_features.js": "7927ccb7f5af",
+    "engine/tags.js": "145a3cc9ce2f",
+    "engine/champions_sim.js": "fa5b8af6513a",
+    "engine/mc_key.js": "37c42eb69363",
+    "engine/lookup.js": "d2a03e8adcc5",
+    "engine/set_priors.js": "f8a81445ee3a",
+    "engine/smogon_priors.js": "5c039f9ebdbc",
+    "engine/quality.js": "e397e99ef257",
+    "engine/showdown_path.js": "0efe29f4245d",
+    "data/move-effects.js": "b651bc4c4836",
+    "data/ability-blocks.json": "86741fd35452",
+    "data/smogon-priors.json": "3168f98a24dd",
+    "data/regulations.json": "6c1995e9a9fb",
+    "data/quality-filter.json": "e675d10477c8",
+    "data/engine-data.js": "96a94b7fadf7",
+    "data/abra-tags.js": "3bc02c068657",
+    "data/tags.json": "c0bb781f47a8",
+    "data/policy-weights.json": "626c1d240782",
+    "data/policy-weights-joint.json": "e2aca467ff04",
+    "data/move-priors.json": "a64314db056b",
+    "engine/leaf_position_contrast.js": "b2e90898bee3"
+  },
+  "source_digests_note": "Frozen-release digests plus the generator. Content, not mtime. Every key is a path.",
+  "harness_digests": {
+    "engine/joint_rows.js": "d7e9825ea7da",
+    "engine/fit_policy.js": "45f545425420",
+    "engine/quality.js": "e397e99ef257"
+  },
+  "harness_digests_note": "Loaded LIVE — they choose which positions are sampled, not what a rollout is worth. Informational, not verified by provenance.",
+  "recut": {
+    "from_rows": "data/leaf-position-contrast-rows-6b0e4117d964.jsonl",
+    "note": "Rebuilt from a committed row dump. No rollouts were run; every figure above is a re-aggregation of the same per-position predictions."
+  }
+}

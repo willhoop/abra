@@ -1,0 +1,830 @@
+{
+ "note": "GENERATED RATCHET BASELINE — do not hand-edit. Written by engine/conformance.js.",
+ "source_digests": {
+  "engine/conformance.js": "cf484045f90e",
+  "data/regulations.json": "6c1995e9a9fb"
+ },
+ "source_digests_scope": "The RULE inputs only. The findings are computed over all source files; a change to any of them shows up as a finding entering or leaving, not as a stamp mismatch.",
+ "files_scanned": 296,
+ "rule": "This list may SHRINK and may NEVER grow. Every entry is a conformance finding that already existed when the gate was switched on. `node engine/conformance.js --strict` fails on any finding whose key is not in here. Fix one and it leaves this file on the next run, and can never return. The KEY is stored rather than a count: one finding disappearing while another appears nets to zero and slips a count comparison silently.",
+ "generated": "2026-08-05T05:55:16.354Z",
+ "by": "engine/conformance.js",
+ "count": 96,
+ "findings": [
+  {
+   "key": "S12 | build/build_board_browser.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "build/build_board_browser.js",
+   "what": "names 1 Pokemon thing(s) in code: item:focussash",
+   "detail": [
+    "item:focussash"
+   ]
+  },
+  {
+   "key": "S12 | build/build_mag_data.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "build/build_mag_data.js",
+   "what": "names 2 Pokemon thing(s) in code: move:tailwind, move:protect",
+   "detail": [
+    "move:protect",
+    "move:tailwind"
+   ]
+  },
+  {
+   "key": "S12 | build/gen_items_doc.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "build/gen_items_doc.js",
+   "what": "names 1 Pokemon thing(s) in code: item:lifeorb",
+   "detail": [
+    "item:lifeorb"
+   ]
+  },
+  {
+   "key": "S12 | engine/backtest_winrate.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/backtest_winrate.js",
+   "what": "names 1 Pokemon thing(s) in code: move:detect",
+   "detail": [
+    "move:detect"
+   ]
+  },
+  {
+   "key": "S12 | engine/corpus_shift.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/corpus_shift.js",
+   "what": "names 1 Pokemon thing(s) in code: move:protect",
+   "detail": [
+    "move:protect"
+   ]
+  },
+  {
+   "key": "S12 | engine/double_protect.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/double_protect.js",
+   "what": "names 2 Pokemon thing(s) in code: move:protect, move:detect",
+   "detail": [
+    "move:detect",
+    "move:protect"
+   ]
+  },
+  {
+   "key": "S12 | engine/dynamics.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/dynamics.js",
+   "what": "names 8 Pokemon thing(s) in code: move:fakeout, move:followme, move:ragepowder, move:protect, move:detect, ...",
+   "detail": [
+    "move:detect",
+    "move:fakeout",
+    "move:followme",
+    "move:helpinghand",
+    "move:protect",
+    "move:ragepowder",
+    "move:tailwind",
+    "move:trickroom"
+   ]
+  },
+  {
+   "key": "S12 | engine/feature_fixture.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/feature_fixture.js",
+   "what": "names 2 Pokemon thing(s) in code: move:reflect, move:tailwind",
+   "detail": [
+    "move:reflect",
+    "move:tailwind"
+   ]
+  },
+  {
+   "key": "S12 | engine/fit_joint.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/fit_joint.js",
+   "what": "names 1 Pokemon thing(s) in code: move:detect",
+   "detail": [
+    "move:detect"
+   ]
+  },
+  {
+   "key": "S12 | engine/fit_policy.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/fit_policy.js",
+   "what": "names 1 Pokemon thing(s) in code: move:detect",
+   "detail": [
+    "move:detect"
+   ]
+  },
+  {
+   "key": "S12 | engine/game-spec.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/game-spec.js",
+   "what": "names 2 Pokemon thing(s) in code: move:tailwind, move:trickroom",
+   "detail": [
+    "move:tailwind",
+    "move:trickroom"
+   ]
+  },
+  {
+   "key": "S12 | engine/graveyard/medicham-v2-singles.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/graveyard/medicham-v2-singles.js",
+   "what": "names 3 Pokemon thing(s) in code: move:tailwind, move:trickroom, move:protect",
+   "detail": [
+    "move:protect",
+    "move:tailwind",
+    "move:trickroom"
+   ]
+  },
+  {
+   "key": "S12 | engine/h2h_stats.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/h2h_stats.js",
+   "what": "names 3 Pokemon thing(s) in code: move:protect, move:detect, move:endure",
+   "detail": [
+    "move:detect",
+    "move:endure",
+    "move:protect"
+   ]
+  },
+  {
+   "key": "S12 | engine/ko_calibration.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/ko_calibration.js",
+   "what": "names 7 Pokemon thing(s) in code: move:protect, move:followme, move:ragepowder, move:reflect, move:lightscreen, ...",
+   "detail": [
+    "ability:intimidate",
+    "move:auroraveil",
+    "move:followme",
+    "move:lightscreen",
+    "move:protect",
+    "move:ragepowder",
+    "move:reflect"
+   ]
+  },
+  {
+   "key": "S12 | engine/magnemite.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/magnemite.js",
+   "what": "names 3 Pokemon thing(s) in code: move:reflect, move:lightscreen, move:auroraveil",
+   "detail": [
+    "move:auroraveil",
+    "move:lightscreen",
+    "move:reflect"
+   ]
+  },
+  {
+   "key": "S12 | engine/mechanics_coverage.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/mechanics_coverage.js",
+   "what": "names 1 Pokemon thing(s) in code: ability:prankster",
+   "detail": [
+    "ability:prankster"
+   ]
+  },
+  {
+   "key": "S12 | engine/medicham2-browser.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/medicham2-browser.js",
+   "what": "names 17 Pokemon thing(s) in code: move:earthquake, move:blizzard, move:protect, move:detect, move:tailwind, ...",
+   "detail": [
+    "ability:intimidate",
+    "ability:levitate",
+    "ability:lightningrod",
+    "ability:prankster",
+    "ability:technician",
+    "item:assaultvest",
+    "item:choiceband",
+    "item:lifeorb",
+    "move:blizzard",
+    "move:detect",
+    "move:earthquake",
+    "move:fakeout",
+    "move:helpinghand",
+    "move:protect",
+    "move:ragepowder",
+    "move:tailwind",
+    "move:trickroom"
+   ]
+  },
+  {
+   "key": "S12 | engine/medicham_coverage.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/medicham_coverage.js",
+   "what": "names 2 Pokemon thing(s) in code: move:protect, move:tailwind",
+   "detail": [
+    "move:protect",
+    "move:tailwind"
+   ]
+  },
+  {
+   "key": "S12 | engine/mega_harvest.js | hardcodes a config value",
+   "std": "S12",
+   "file": "engine/mega_harvest.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "detail": []
+  },
+  {
+   "key": "S12 | engine/miltank.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/miltank.js",
+   "what": "names 2 Pokemon thing(s) in code: move:trickroom, move:tailwind",
+   "detail": [
+    "move:tailwind",
+    "move:trickroom"
+   ]
+  },
+  {
+   "key": "S12 | engine/moves-meta.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/moves-meta.js",
+   "what": "names 7 Pokemon thing(s) in code: move:tailwind, move:trickroom, move:protect, move:detect, move:followme, ...",
+   "detail": [
+    "move:detect",
+    "move:followme",
+    "move:protect",
+    "move:ragepowder",
+    "move:tailwind",
+    "move:trickroom",
+    "move:uturn"
+   ]
+  },
+  {
+   "key": "S12 | engine/playstyle.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/playstyle.js",
+   "what": "names 1 Pokemon thing(s) in code: move:tailwind",
+   "detail": [
+    "move:tailwind"
+   ]
+  },
+  {
+   "key": "S12 | engine/position_features.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/position_features.js",
+   "what": "names 5 Pokemon thing(s) in code: move:tailwind, move:trickroom, move:reflect, move:lightscreen, move:auroraveil",
+   "detail": [
+    "move:auroraveil",
+    "move:lightscreen",
+    "move:reflect",
+    "move:tailwind",
+    "move:trickroom"
+   ]
+  },
+  {
+   "key": "S12 | engine/preflight.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/preflight.js",
+   "what": "names 1 Pokemon thing(s) in code: move:protect",
+   "detail": [
+    "move:protect"
+   ]
+  },
+  {
+   "key": "S12 | engine/rollout_r1.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/rollout_r1.js",
+   "what": "names 2 Pokemon thing(s) in code: move:trickroom, move:tailwind",
+   "detail": [
+    "move:tailwind",
+    "move:trickroom"
+   ]
+  },
+  {
+   "key": "S12 | engine/rollout_r2.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/rollout_r2.js",
+   "what": "names 2 Pokemon thing(s) in code: move:trickroom, move:tailwind",
+   "detail": [
+    "move:tailwind",
+    "move:trickroom"
+   ]
+  },
+  {
+   "key": "S12 | engine/rollout_r3.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/rollout_r3.js",
+   "what": "names 2 Pokemon thing(s) in code: move:trickroom, move:tailwind",
+   "detail": [
+    "move:tailwind",
+    "move:trickroom"
+   ]
+  },
+  {
+   "key": "S12 | engine/selftest.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/selftest.js",
+   "what": "names 4 Pokemon thing(s) in code: move:protect, move:detect, move:tailwind, item:choicescarf",
+   "detail": [
+    "item:choicescarf",
+    "move:detect",
+    "move:protect",
+    "move:tailwind"
+   ]
+  },
+  {
+   "key": "S12 | engine/set_priors.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/set_priors.js",
+   "what": "names 5 Pokemon thing(s) in code: move:protect, move:detect, move:tailwind, move:trickroom, move:fakeout",
+   "detail": [
+    "move:detect",
+    "move:fakeout",
+    "move:protect",
+    "move:tailwind",
+    "move:trickroom"
+   ]
+  },
+  {
+   "key": "S12 | engine/sets.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/sets.js",
+   "what": "names 1 Pokemon thing(s) in code: move:protect",
+   "detail": [
+    "move:protect"
+   ]
+  },
+  {
+   "key": "S12 | engine/tag_dex.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/tag_dex.js",
+   "what": "names 17 Pokemon thing(s) in code: move:reflect, move:protect, move:followme, move:ragepowder, move:trickroom, ...",
+   "detail": [
+    "ability:friendguard",
+    "ability:intimidate",
+    "ability:levitate",
+    "ability:lightningrod",
+    "ability:technician",
+    "item:assaultvest",
+    "item:choiceband",
+    "item:choicescarf",
+    "item:leftovers",
+    "move:auroraveil",
+    "move:followme",
+    "move:lightscreen",
+    "move:protect",
+    "move:ragepowder",
+    "move:reflect",
+    "move:tailwind",
+    "move:trickroom"
+   ]
+  },
+  {
+   "key": "S12 | engine/validate_damage.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/validate_damage.js",
+   "what": "names 1 Pokemon thing(s) in code: move:earthquake",
+   "detail": [
+    "move:earthquake"
+   ]
+  },
+  {
+   "key": "S12 | engine/validate_selfplay.js | names Pokemon things in code",
+   "std": "S12",
+   "file": "engine/validate_selfplay.js",
+   "what": "names 1 Pokemon thing(s) in code: move:protect",
+   "detail": [
+    "move:protect"
+   ]
+  },
+  {
+   "key": "S12 | tests/test-team-preview-race.js | hardcodes a config value",
+   "std": "S12",
+   "file": "tests/test-team-preview-race.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "detail": []
+  },
+  {
+   "key": "S12 | web/index.html | hardcodes a config value",
+   "std": "S12",
+   "file": "web/index.html",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "detail": []
+  },
+  {
+   "key": "S12 | web/status-data.js | hardcodes a config value",
+   "std": "S12",
+   "file": "web/status-data.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/ab-batch-effect.json | no generator writes it",
+   "std": "S13",
+   "file": "data/ab-batch-effect.json",
+   "what": "no generator writes it",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/calibration.json | generated but does not say so",
+   "std": "S13",
+   "file": "data/calibration.json",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/degradation-budgets.json | generated but does not say so",
+   "std": "S13",
+   "file": "data/degradation-budgets.json",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/engine-release.json | generated but does not say so",
+   "std": "S13",
+   "file": "data/engine-release.json",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/eval-report.json | generated but does not say so",
+   "std": "S13",
+   "file": "data/eval-report.json",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/exploitability-machamp.json | no generator writes it",
+   "std": "S13",
+   "file": "data/exploitability-machamp.json",
+   "what": "no generator writes it",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/exploitability-mag.json | no generator writes it",
+   "std": "S13",
+   "file": "data/exploitability-mag.json",
+   "what": "no generator writes it",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/jolteon-weights.json | generated but does not say so",
+   "std": "S13",
+   "file": "data/jolteon-weights.json",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/kad-replays.js | generated but does not say so",
+   "std": "S13",
+   "file": "data/kad-replays.js",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/leaf-comparison.json | no generator writes it",
+   "std": "S13",
+   "file": "data/leaf-comparison.json",
+   "what": "no generator writes it",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/live.js | generated but does not say so",
+   "std": "S13",
+   "file": "data/live.js",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/mc-key-baseline.json | generated but does not say so",
+   "std": "S13",
+   "file": "data/mc-key-baseline.json",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/miltank-timing-r6.json | no generator writes it",
+   "std": "S13",
+   "file": "data/miltank-timing-r6.json",
+   "what": "no generator writes it",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/policy-weights-all.json | no generator writes it",
+   "std": "S13",
+   "file": "data/policy-weights-all.json",
+   "what": "no generator writes it",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/policy-weights-joint-presheet.json | no generator writes it",
+   "std": "S13",
+   "file": "data/policy-weights-joint-presheet.json",
+   "what": "no generator writes it",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/policy-weights-julyonly.json | no generator writes it",
+   "std": "S13",
+   "file": "data/policy-weights-julyonly.json",
+   "what": "no generator writes it",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/policy-weights-multiturn.json | no generator writes it",
+   "std": "S13",
+   "file": "data/policy-weights-multiturn.json",
+   "what": "no generator writes it",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/policy-weights-nomt.json | no generator writes it",
+   "std": "S13",
+   "file": "data/policy-weights-nomt.json",
+   "what": "no generator writes it",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/policy-weights-presheet.json | no generator writes it",
+   "std": "S13",
+   "file": "data/policy-weights-presheet.json",
+   "what": "no generator writes it",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/pory.js | generated but does not say so",
+   "std": "S13",
+   "file": "data/pory.js",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/porygon2-curve.json | generated but does not say so",
+   "std": "S13",
+   "file": "data/porygon2-curve.json",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/porygon2-open.json | no generator writes it",
+   "std": "S13",
+   "file": "data/porygon2-open.json",
+   "what": "no generator writes it",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/porygon2-species.json | generated but does not say so",
+   "std": "S13",
+   "file": "data/porygon2-species.json",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/porygon2c-dist.json | no generator writes it",
+   "std": "S13",
+   "file": "data/porygon2c-dist.json",
+   "what": "no generator writes it",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/provenance-stamp.json | generated but does not say so",
+   "std": "S13",
+   "file": "data/provenance-stamp.json",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/rollout-cost.meta.json | no generator writes it",
+   "std": "S13",
+   "file": "data/rollout-cost.meta.json",
+   "what": "no generator writes it",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/rollout-r1-explore1-rows-<hash>.meta.json | no generator writes it",
+   "std": "S13",
+   "file": "data/rollout-r1-explore1-rows-3932186b59ef.meta.json",
+   "what": "no generator writes it",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/rollout-r1-explore1-rows.meta.json | no generator writes it",
+   "std": "S13",
+   "file": "data/rollout-r1-explore1-rows.meta.json",
+   "what": "no generator writes it",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/rollout-r1-greedy-rows-<hash>.meta.json | no generator writes it",
+   "std": "S13",
+   "file": "data/rollout-r1-greedy-rows-3932186b59ef.meta.json",
+   "what": "no generator writes it",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/rollout-r1-withdrawn-join.json | generated but does not say so",
+   "std": "S13",
+   "file": "data/rollout-r1-withdrawn-join.json",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/rollout-r3.meta.json | no generator writes it",
+   "std": "S13",
+   "file": "data/rollout-r3.meta.json",
+   "what": "no generator writes it",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/scoreboard.json | no generator writes it",
+   "std": "S13",
+   "file": "data/scoreboard.json",
+   "what": "no generator writes it",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/sheet-channel-value.json | generated but does not say so",
+   "std": "S13",
+   "file": "data/sheet-channel-value.json",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/slowking-playstyle.js | generated but does not say so",
+   "std": "S13",
+   "file": "data/slowking-playstyle.js",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/slowking.js | generated but does not say so",
+   "std": "S13",
+   "file": "data/slowking.js",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/tag-consumption.json | generated but does not say so",
+   "std": "S13",
+   "file": "data/tag-consumption.json",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/trajectories.sample.json | generated but does not say so",
+   "std": "S13",
+   "file": "data/trajectories.sample.json",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/value-net.json | generated but does not say so",
+   "std": "S13",
+   "file": "data/value-net.json",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S13 | data/xatu.js | generated but does not say so",
+   "std": "S13",
+   "file": "data/xatu.js",
+   "what": "generated but does not say so",
+   "detail": []
+  },
+  {
+   "key": "S8 | tests/test-prng.js | CHI_LIMIT has no stated derivation",
+   "std": "S8",
+   "file": "tests/test-prng.js",
+   "what": "CHI_LIMIT = 27.877 with no stated derivation",
+   "detail": [
+    "27.877"
+   ]
+  },
+  {
+   "key": "convention | build/archive-regulation.js | no opening comment",
+   "std": "convention",
+   "file": "build/archive-regulation.js",
+   "what": "no opening comment",
+   "detail": []
+  },
+  {
+   "key": "convention | build/compress-stores.js | no opening comment",
+   "std": "convention",
+   "file": "build/compress-stores.js",
+   "what": "no opening comment",
+   "detail": []
+  },
+  {
+   "key": "convention | engine/analyze.js | header is one line",
+   "std": "convention",
+   "file": "engine/analyze.js",
+   "what": "header is one line",
+   "detail": []
+  },
+  {
+   "key": "convention | engine/build_mega_dex.js | no opening comment",
+   "std": "convention",
+   "file": "engine/build_mega_dex.js",
+   "what": "no opening comment",
+   "detail": []
+  },
+  {
+   "key": "convention | engine/build_species_abilities.js | no opening comment",
+   "std": "convention",
+   "file": "engine/build_species_abilities.js",
+   "what": "no opening comment",
+   "detail": []
+  },
+  {
+   "key": "convention | engine/game-spec.js | no opening comment",
+   "std": "convention",
+   "file": "engine/game-spec.js",
+   "what": "no opening comment",
+   "detail": []
+  },
+  {
+   "key": "convention | engine/illusion.js | no opening comment",
+   "std": "convention",
+   "file": "engine/illusion.js",
+   "what": "no opening comment",
+   "detail": []
+  },
+  {
+   "key": "convention | engine/ingest_ots.js | no opening comment",
+   "std": "convention",
+   "file": "engine/ingest_ots.js",
+   "what": "no opening comment",
+   "detail": []
+  },
+  {
+   "key": "convention | engine/kadabra.js | no opening comment",
+   "std": "convention",
+   "file": "engine/kadabra.js",
+   "what": "no opening comment",
+   "detail": []
+  },
+  {
+   "key": "convention | engine/status.js | no opening comment",
+   "std": "convention",
+   "file": "engine/status.js",
+   "what": "no opening comment",
+   "detail": []
+  },
+  {
+   "key": "convention | tests/test-dynamics.js | header is one line",
+   "std": "convention",
+   "file": "tests/test-dynamics.js",
+   "what": "header is one line",
+   "detail": []
+  },
+  {
+   "key": "convention | web/futuresight.html | no opening comment",
+   "std": "convention",
+   "file": "web/futuresight.html",
+   "what": "no opening comment",
+   "detail": []
+  },
+  {
+   "key": "convention | web/index.html | no opening comment",
+   "std": "convention",
+   "file": "web/index.html",
+   "what": "no opening comment",
+   "detail": []
+  },
+  {
+   "key": "convention | web/models.html | no opening comment",
+   "std": "convention",
+   "file": "web/models.html",
+   "what": "no opening comment",
+   "detail": []
+  },
+  {
+   "key": "convention | web/orb.html | no opening comment",
+   "std": "convention",
+   "file": "web/orb.html",
+   "what": "no opening comment",
+   "detail": []
+  },
+  {
+   "key": "convention | web/replay.html | no opening comment",
+   "std": "convention",
+   "file": "web/replay.html",
+   "what": "no opening comment",
+   "detail": []
+  },
+  {
+   "key": "convention | web/scoreboard.html | no opening comment",
+   "std": "convention",
+   "file": "web/scoreboard.html",
+   "what": "no opening comment",
+   "detail": []
+  },
+  {
+   "key": "convention | web/stadium.html | no opening comment",
+   "std": "convention",
+   "file": "web/stadium.html",
+   "what": "no opening comment",
+   "detail": []
+  },
+  {
+   "key": "convention | web/status.html | no opening comment",
+   "std": "convention",
+   "file": "web/status.html",
+   "what": "no opening comment",
+   "detail": []
+  },
+  {
+   "key": "convention | web/tower.html | no opening comment",
+   "std": "convention",
+   "file": "web/tower.html",
+   "what": "no opening comment",
+   "detail": []
+  }
+ ]
+}
