@@ -1,0 +1,317 @@
+{
+  "generated": "2026-08-05T04:22:43.193Z",
+  "source": "engine/censoring_value.js",
+  "question": "Does removing the coerced labels and keeping the redirected turns under a marginal likelihood change what the model does ON THOSE TURNS?",
+  "headline": "The class-conditional contrasts are the result. docs/CLICK-CENSORING-FIX.md §4 disclaims a corpus-wide top-1 improvement in advance, so the clean-class row is a CONTROL and must not be quoted as a headline.",
+  "no_engine_release": "Deliberate: this measures a live-tree change, so freezing the tree would measure the thing being tested. Source digests are taken before and after.",
+  "source_digests_before": {
+    "engine/fit_policy.js": "45f545425420",
+    "engine/click_class.js": "011bb621fe76",
+    "engine/click_match.js": "e266c98ffb47",
+    "engine/board.js": "54e3d2ca9f85",
+    "engine/sheet_channels.js": "0b395fa8bfd5",
+    "engine/quality.js": "e397e99ef257",
+    "engine/medicham2-browser.js": "e2bcff0db96f",
+    "data/tags.json": "c0bb781f47a8",
+    "data/engine-data.js": "96a94b7fadf7",
+    "data/move-priors.json": "a64314db056b"
+  },
+  "source_digests_after": {
+    "engine/fit_policy.js": "45f545425420",
+    "engine/click_class.js": "011bb621fe76",
+    "engine/click_match.js": "e266c98ffb47",
+    "engine/board.js": "54e3d2ca9f85",
+    "engine/sheet_channels.js": "0b395fa8bfd5",
+    "engine/quality.js": "e397e99ef257",
+    "engine/medicham2-browser.js": "e2bcff0db96f",
+    "data/tags.json": "c0bb781f47a8",
+    "data/engine-data.js": "96a94b7fadf7",
+    "data/move-priors.json": "a64314db056b"
+  },
+  "showdown_path_set": true,
+  "format": "gen9championsvgc2026regmb",
+  "weights": {
+    "old": {
+      "path": "..\\..\\..\\AppData\\Local\\Temp\\claude\\C--Users-willj-Projects-Pokemon-ABRA\\74b990e2-3b69-4349-a3f3-cd3b3778e5db\\scratchpad\\policy-weights.PRE-CENSORING.json",
+      "generated": "2026-08-04T23:37:26.954Z",
+      "sha256_12": "01bc43936324",
+      "shipped": "reweighted_to_closed"
+    },
+    "new": {
+      "path": "data\\policy-weights.json",
+      "generated": "2026-08-05T04:00:43.715Z",
+      "sha256_12": "626c1d240782",
+      "shipped": "reweighted_to_closed"
+    },
+    "l2_new_minus_old": 0.8030081098903833
+  },
+  "corpus": {
+    "clean_open_sheet_games": 9022,
+    "held_out_games": 1809,
+    "split": "hash(game.id) % 5 === 0, identical to engine/fit_policy.js"
+  },
+  "class_counts": {
+    "clean": 46268,
+    "partial": 643,
+    "coerced": 284
+  },
+  "weights_moved": [
+    {
+      "feature": "deadStall",
+      "before": -1.3114417916430368,
+      "after": -1.4763103940761477,
+      "delta": -0.16486860243311097,
+      "se": 0.03028220844868102,
+      "z": 5.4444048462486565
+    },
+    {
+      "feature": "tgtPhysical",
+      "before": -0.17277703244797238,
+      "after": -0.10233820328277782,
+      "delta": 0.07043882916519456,
+      "se": 0.015962262581783078,
+      "z": 4.412834885048366
+    },
+    {
+      "feature": "deadSide",
+      "before": -2.76058470327181,
+      "after": -3.1413971235196576,
+      "delta": -0.3808124202478478,
+      "se": 0.09495222017821653,
+      "z": 4.010568889627837
+    },
+    {
+      "feature": "immune",
+      "before": -1.8477338896884599,
+      "after": -1.980675689346807,
+      "delta": -0.13294179965834707,
+      "se": 0.04241716315785476,
+      "z": 3.1341511256565275
+    },
+    {
+      "feature": "stallIntoEncore",
+      "before": -1.0501591837463613,
+      "after": -1.6280854921610366,
+      "delta": -0.5779263084146753,
+      "se": 0.1865042633981983,
+      "z": 3.0987297442137627
+    },
+    {
+      "feature": "tgtBulk",
+      "before": 0.16124986453433837,
+      "after": 0.22641059181885986,
+      "delta": 0.06516072728452149,
+      "se": 0.021257569614816885,
+      "z": 3.0652952555358617
+    },
+    {
+      "feature": "isStatus",
+      "before": 0.18586344365783458,
+      "after": 0.25369132382639326,
+      "delta": 0.06782788016855867,
+      "se": 0.026856119200618637,
+      "z": 2.5256024394990115
+    },
+    {
+      "feature": "tgtMayProtect",
+      "before": 0.36925600821453974,
+      "after": 0.4927967580681051,
+      "delta": 0.12354074985356533,
+      "se": 0.04917739867175167,
+      "z": 2.512144871227791
+    },
+    {
+      "feature": "defMismatch",
+      "before": 0.14043992322611157,
+      "after": 0.21799922145949646,
+      "delta": 0.0775592982333849,
+      "se": 0.033747350450094526,
+      "z": 2.2982337042452956
+    }
+  ],
+  "arms": {
+    "clean": {
+      "old": {
+        "ll": -1.7195431197097364,
+        "top1": 32.54517160888735,
+        "p": 0.21829849730076625,
+        "n": 46268
+      },
+      "new": {
+        "ll": -1.7190961158805809,
+        "top1": 32.54733292988675,
+        "p": 0.21940783732810992,
+        "n": 46268
+      }
+    },
+    "partial": {
+      "old": {
+        "ll": -1.126478987003094,
+        "top1": 50.233281493001556,
+        "p": 0.37253968792819603,
+        "n": 643
+      },
+      "new": {
+        "ll": -1.1291248870275459,
+        "top1": 50.077760497667185,
+        "p": 0.3726489583348273,
+        "n": 643
+      }
+    },
+    "coerced": {
+      "old": {
+        "ll": -2.4640781850832116,
+        "top1": 16.549295774647888,
+        "p": 0.1327604936791635,
+        "n": 284
+      },
+      "new": {
+        "ll": -2.5507563408533533,
+        "top1": 16.197183098591548,
+        "p": 0.13014679378247976,
+        "n": 284
+      }
+    }
+  },
+  "contrasts": {
+    "clean": {
+      "ll": {
+        "point": 0.0004470038291555234,
+        "ci95": [
+          0.00014207985054204286,
+          0.0007434060449349467
+        ],
+        "excludes_zero": true
+      },
+      "top1": {
+        "point": 0.002161320999398697,
+        "ci95": [
+          -0.0940713659589889,
+          0.09795385285154623
+        ],
+        "excludes_zero": false
+      },
+      "p": {
+        "point": 0.0011093400273436693,
+        "ci95": [
+          0.0010623556774104759,
+          0.0011571499128911755
+        ],
+        "excludes_zero": true
+      }
+    },
+    "partial": {
+      "ll": {
+        "point": -0.002645900024451864,
+        "ci95": [
+          -0.0040368461575430725,
+          -0.0013774581849466117
+        ],
+        "excludes_zero": true
+      },
+      "top1": {
+        "point": -0.15552099533437058,
+        "ci95": [
+          -1.158940397350996,
+          0.8445945945945894
+        ],
+        "excludes_zero": false
+      },
+      "p": {
+        "point": 0.00010927040663127885,
+        "ci95": [
+          -0.00028628823823378946,
+          0.0004909597180427494
+        ],
+        "excludes_zero": false
+      }
+    },
+    "coerced": {
+      "ll": {
+        "point": -0.08667815577014171,
+        "ci95": [
+          -0.1056312269262949,
+          -0.068489199779465
+        ],
+        "excludes_zero": true
+      },
+      "top1": {
+        "point": -0.3521126760563398,
+        "ci95": [
+          -1.5936254980079667,
+          0.763358778625955
+        ],
+        "excludes_zero": false
+      },
+      "p": {
+        "point": -0.002613699896683752,
+        "ci95": [
+          -0.0036626593571639082,
+          -0.0016365753400296723
+        ],
+        "excludes_zero": true
+      }
+    }
+  },
+  "noise_floor": {
+    "clean": {
+      "cuts": 20,
+      "top1_median": 0.5846402743905585,
+      "top1_range": [
+        0.008447538995255854,
+        1.3776547134288109
+      ],
+      "ll_median": 0.007855223737914474,
+      "p_median": 0.0014316820008250242
+    },
+    "partial": {
+      "cuts": 20,
+      "top1_median": 2.195944790460711,
+      "top1_range": [
+        0.1474926253687343,
+        10.108369617803582
+      ],
+      "ll_median": 0.04273316718115461,
+      "p_median": 0.013435964613109891
+    },
+    "coerced": {
+      "cuts": 20,
+      "top1_median": 3.045355466130113,
+      "top1_range": [
+        0.2681364516609577,
+        7.996031746031747
+      ],
+      "ll_median": 0.06416649285934195,
+      "p_median": 0.007634699858827226
+    }
+  },
+  "bootstrap": {
+    "resamples": 10000,
+    "unit": "game",
+    "note": "one resample drives every class and both arms"
+  },
+  "n_measured": 47195,
+  "n_unit": "held-out decisions, paired across arms",
+  "scoring_rules": {
+    "clean": "log P(recorded click) and whether the argmax is it",
+    "partial": "log SUM P(c) over the candidate set, and whether the argmax lands inside it. Scoring against the recorded target would be scoring against the label this fix calls wrong.",
+    "coerced": "P(the coerced action). There is no human click here, so no agreement number is invented; a DROP in this probability is the poison being unlearned."
+  },
+  "caveats": [
+    "Top-1 agreement with a human click is NOT a win rate. Whether MILTANK plays better is an H2H and belongs to SEARCH.",
+    "Every game here is an OPEN-SHEET game.",
+    "The COERCED class has no ground-truth label by construction, so its contrast measures a change in the model, not an improvement in accuracy. It cannot be otherwise."
+  ],
+  "source_digests": {
+    "engine/fit_policy.js": "45f545425420",
+    "engine/click_class.js": "011bb621fe76",
+    "engine/click_match.js": "e266c98ffb47",
+    "engine/board.js": "54e3d2ca9f85",
+    "engine/sheet_channels.js": "0b395fa8bfd5",
+    "engine/quality.js": "e397e99ef257",
+    "engine/medicham2-browser.js": "e2bcff0db96f",
+    "data/tags.json": "c0bb781f47a8",
+    "data/engine-data.js": "96a94b7fadf7",
+    "data/move-priors.json": "a64314db056b"
+  }
+}

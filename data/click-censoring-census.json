@@ -1,0 +1,196 @@
+{
+ "generated": "2026-08-05T06:11:45.570Z",
+ "source": "engine/click_census.js",
+ "source_digests": {
+  "engine/click_class.js": "011bb621fe76",
+  "engine/click_match.js": "e266c98ffb47",
+  "engine/fit_policy.js": "45f545425420",
+  "engine/board.js": "54e3d2ca9f85",
+  "engine/durable-ingest.js": "b4a7ee95693c",
+  "engine/medicham2-browser.js": "80fe43fba1a9",
+  "data/tags.json": "c0bb781f47a8",
+  "data/engine-data.js": "96a94b7fadf7"
+ },
+ "what": "Every human action in the fit corpus labelled CLEAN / PARTIAL / COERCED / ERASED. docs/CLICK-CENSORING-FIX.md Stage A.",
+ "corpus": {
+  "games": 9022,
+  "games_requested": null,
+  "of_total": 9022
+ },
+ "mechanisms": {
+  "derivation": "moves with condition.onOverrideAction; moves with forceSwitch; abilities with onFoeTryMove; items assigning switchFlag/forceSwitchFlag; data/tags.json `redirects` and `redirectsType`. Nothing here is a literal list.",
+  "actionOverride": [
+   "encore"
+  ],
+  "forcedSwitch": [
+   "circlethrow",
+   "dragontail",
+   "roar",
+   "whirlwind"
+  ],
+  "menuSeal": [
+   "encore",
+   "disable",
+   "gravity",
+   "healblock",
+   "taunt",
+   "throatchop",
+   "torment"
+  ],
+  "priorityBlock": [
+   "armortail",
+   "dazzling",
+   "queenlymajesty"
+  ],
+  "redirect": [
+   "followme",
+   "ragepowder"
+  ],
+  "redirectByAbility": {
+   "lightningrod": "electric",
+   "stormdrain": "water"
+  },
+  "forcedSwitchItems_legal": [],
+  "forcedSwitchItems_banned_in_this_format": [
+   "ejectbutton",
+   "ejectpack",
+   "redcard"
+  ]
+ },
+ "event_stream_arm": {
+  "coverage": 1,
+  "actions_seen": 244146,
+  "clean": 231674,
+  "partial": 3288,
+  "partial_why": {
+   "moveRedirect": 3258,
+   "abilityDraw": 30
+  },
+  "partial_by": {
+   "followme": 678,
+   "ragepowder": 2580,
+   "lightningrod": 30
+  },
+  "partial_set_size": {
+   "2": 3288
+  },
+  "partial_degenerate": 0,
+  "coerced": 1345,
+  "coerced_why": {
+   "actionOverridden": 1124,
+   "draggedIn": 221
+  },
+  "coerced_by": {
+   "encore": 1124,
+   "roar": 184,
+   "dragontail": 34,
+   "whirlwind": 3
+  },
+  "other_drops": {
+   "unmatched": 6995,
+   "trivial": 814,
+   "ambiguous": 30,
+   "noSheet": 0,
+   "noUser": 0
+  },
+  "rates": {
+   "coerced": 0.005508998713884315,
+   "partial": 0.013467351502789314,
+   "unmatched": 0.02865088922202289
+  },
+  "shares_pct": {
+   "clean": 94.89158126694683,
+   "partial": 1.3467351502789315,
+   "coerced": 0.5508998713884316,
+   "unreadable": 3.21078371138581
+  },
+  "seconds": 205.2
+ },
+ "raw_protocol_arm": {
+  "coverage": 0.6647084903569054,
+  "coverage_note": "data/games.ots.jsonl is an external archive with no raw-log file beside it. The gap is one SOURCE, not a random sample, which is why the recoverable clicks below are counted and not taken.",
+  "games_with_log": 5997,
+  "cant_by_reason": {
+   "flinch": 3637,
+   "slp": 1379,
+   "ability: Armor Tail": 248,
+   "move: Taunt": 60,
+   "recharge": 151,
+   "Disable": 58,
+   "frz": 119,
+   "par": 194,
+   "ability: Queenly Majesty": 40,
+   "move: Throat Chop": 7,
+   "move: Imprison": 4,
+   "move: Heal Block": 5,
+   "Attract": 4
+  },
+  "erased_actions": 5340,
+  "not_a_decision_recharge": 151,
+  "recoverable_clicks_not_taken": 127,
+  "recoverable_by_reason": {
+   "move: Taunt": 60,
+   "Disable": 58,
+   "move: Imprison": 4,
+   "move: Heal Block": 5
+  },
+  "priority_blocked": 288,
+  "priority_blocked_naming_attacker": 288,
+  "drag_lines": 87,
+  "encore_starts": 782,
+  "menu_sealed_actions": 2312,
+  "menu_sealed_by_volatile": {
+   "throatchop": 380,
+   "encore": 1294,
+   "taunt": 332,
+   "disable": 242,
+   "healblock": 97
+  },
+  "actions_seen_in_log": 141706,
+  "menu_sealed_rate": 0.01631547005772515,
+  "examples": {
+   "cant:flinch": "|cant|p2b: Primarina|flinch",
+   "encore": "|-start|p1b: Charizard|Encore",
+   "cant:slp": "|cant|p2a: Delphox|slp",
+   "cant:ability: Armor Tail": "|cant|p2a: Farigiraf|ability: Armor Tail|Fake Out|[of] p1a: Incineroar",
+   "cant:move: Taunt": "|cant|p2b: Farigiraf|move: Taunt|Trick Room",
+   "cant:recharge": "|cant|p2b: Sylveon|recharge",
+   "drag": "|drag|p2a: Basculegion|Basculegion, L50, M|100/100",
+   "cant:Disable": "|cant|p2a: Milotic|Disable|Scald",
+   "cant:frz": "|cant|p2a: Hydreigon|frz",
+   "cant:par": "|cant|p1a: Kenjaku|par",
+   "cant:ability: Queenly Majesty": "|cant|p2a: Tsareena|ability: Queenly Majesty|Fake Out|[of] p1a: Pikachu",
+   "cant:move: Throat Chop": "|cant|p1b: Anahita<3|move: Throat Chop",
+   "cant:move: Imprison": "|cant|p1a: Farigiraf|move: Imprison|Psychic",
+   "cant:move: Heal Block": "|cant|p1a: Cuppa Tay|move: Heal Block|Matcha Gotcha",
+   "cant:Attract": "|cant|p1a: Polynomial|Attract"
+  },
+  "farigiraf_verdict": "PARTIAL, not ERASED. `|cant|BLOCKER|ability: Armor Tail|MOVE|[of] ATTACKER` names the attacker slot and the move exactly; only the target is ambiguous, and only between the blocker and its ally, because the ability blocks nothing aimed elsewhere. Showdown emits no |move| line for the blocked attempt, so the extractor produces no event and the class is invisible to the event-stream arm."
+ },
+ "agreement": {
+  "encore": {
+   "truth": 627,
+   "found": 650,
+   "hit": 625
+  },
+  "drag": {
+   "truth": 87,
+   "found": 87,
+   "hit": 84
+  }
+ },
+ "agreement_pct": {
+  "encore": {
+   "recall": 99.68102073365232,
+   "precision": 96.15384615384616
+  },
+  "drag": {
+   "recall": 96.55172413793103,
+   "precision": 96.55172413793103
+  }
+ },
+ "limits": [
+  "The event-stream arm cannot see any class that leaves no event: the whole |cant| family. That is a property of engine/durable-ingest.js, not of the classifier.",
+  "The raw-protocol arm covers 66.47% of the fit corpus and the gap is one store, so it can validate and it cannot be fitted on without reweighting the sample."
+ ]
+}

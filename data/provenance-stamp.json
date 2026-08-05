@@ -1,7 +1,7 @@
 {
   "note": "RATCHET. mtime_only_files may SHRINK and may never grow. mtime cannot detect an artifact written after an input it read before, which is how a 7,100-game WOBBUFFET re-run was cleared as ok on 2026-08-04 while measuring two different defenders. The LIST is recorded rather than a count: the first time this fired it could only say \"one more than last time\", nobody could tell which file, and status.js printed NOT DERIVED for a session.",
   "fix": "Stamp engine_release.open().stamp() (or run_stamp.sourceDigests()) as `source_digests`.",
-  "mtime_only": 92,
+  "mtime_only": 91,
   "mtime_only_files": [
     "ability-blocks.json",
     "abra-meta.js",
@@ -24,7 +24,6 @@
     "double-protect.json",
     "dynamics.json",
     "engine-data.js",
-    "engine-release.json",
     "eval-report.json",
     "exploitability.json",
     "feature-audit.json",
@@ -96,6 +95,6 @@
     "xatu.js",
     "xatu.json"
   ],
-  "verified": 1,
-  "generated": "2026-08-05T02:19:13.523Z"
+  "verified": 3,
+  "generated": "2026-08-05T06:12:23.651Z"
 }
