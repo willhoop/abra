@@ -114,8 +114,24 @@ function main() {
   const before = {}; for (const f of SOURCES) before[f] = sha12(D(f));
 
   const WNEW = process.env.WEIGHTS_NEW || D('data', 'policy-weights.json');
+  /* THE INCUMBENT IS IN THE REPO NOW, and the refusal below stays anyway.
+   *
+   * The 3.42.0 run compared against a copy living in a SESSION SCRATCHPAD — a temp directory that
+   * gets cleaned. A published number whose input exists only in temp is not reproducible by anyone,
+   * including us, one cleanup later. It is preserved as data/policy-weights-pre-censoring.json,
+   * sha12 01bc43936324, which is the digest the artifact itself records.
+   *
+   * Still no default. Refusing to guess is right: silently picking a baseline is how a comparison
+   * ends up measuring something nobody chose. The hint just says where the obvious one is. */
   const WOLD = process.env.WEIGHTS_OLD;
-  if (!WOLD) { console.error('WEIGHTS_OLD must name the pre-censoring incumbent. Refusing to guess.'); process.exit(1); }
+  if (!WOLD) {
+    console.error('WEIGHTS_OLD must name the pre-censoring incumbent. Refusing to guess.');
+    console.error('  The 3.42.0 baseline is preserved at data/policy-weights-pre-censoring.json (sha12 01bc43936324).');
+    console.error('  BEFORE re-running against it, read docs/MEASURE.md on the engine confound: both vectors were');
+    console.error('  fitted under the pre-WIRE-114 engine, so scoring them through the current one breaks the');
+    console.error('  fitting-environment rule and measures the censoring change plus three wires at once.');
+    process.exit(1);
+  }
   const wNew = loadW(WNEW, 'new'), wOld = loadW(WOLD, 'old');
   const l2 = Math.sqrt(wNew.w.reduce((a, v, i) => a + (v - wOld.w[i]) ** 2, 0));
   console.log(`  old ${path.relative(ROOT, WOLD)}  fitted ${wOld.meta.generated}`);

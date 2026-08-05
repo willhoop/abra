@@ -1610,6 +1610,43 @@ It opens the release named in the filename rather than the newest, refuses a dum
 its engine, and never rewrites the dump it read. Verified: the re-cut reproduces every figure above
 bit-for-bit and leaves the row file byte-identical.
 
+## §16 — `censoring-value.json` is UNSAFE, and re-running it is not a repeat
+
+*2026-08-05.* `provenance.js` flags it: `medicham2-browser.js` was `e2bcff0db96f` when it was
+measured and is `80fe43fba1a9` now, because WIRES 114–116 landed underneath it. The flag is
+correct and the artifact should not be quoted.
+
+**Two things had to be fixed before it could even be re-run, and both are worth more than the
+number.**
+
+**The comparison baseline lived in a session scratchpad.** The run compares the pre-censoring
+incumbent against the post-censoring fit, and the incumbent existed only as a copy in a temp
+directory that gets cleaned. A published figure whose input is in `%TEMP%` is not reproducible by
+anyone, ourselves included, one cleanup later. It is now `data/policy-weights-pre-censoring.json`,
+sha12 `01bc43936324` — the digest the artifact itself records, verified to match.
+
+**The artifact was invisible to provenance despite recording more than most files that pass.** It
+stamped `source_digests_before` and `source_digests_after`; `provenance.js` reads `source_digests`
+and nothing else, so it fell to "rests on mtime alone" while carrying better evidence than the files
+around it. Recording something correctly under a name the checker cannot see has the same outcome as
+not recording it. The generator now writes the canonical key too — and the moment it did, the
+artifact stopped being `ok` and became `UNSAFE`, which is the whole point.
+
+**THE RE-RUN IS BLOCKED ON A JUDGEMENT, NOT ON COMPUTE.** Both weight vectors were fitted under the
+pre-WIRE-114 engine. Scoring them through the current one breaks the rule in `CLAUDE.md` that the
+fitting environment and the playing environment must match, and it would measure *the censoring
+change plus three wires* as one quantity. The options, none free:
+
+- **Refit both vectors under the current engine, then re-measure.** Correct, and the expensive one.
+- **Re-measure through a release frozen at `e2bcff0db96f`.** Reproduces the original honestly, but
+  the artifact deliberately reads the live tree — `no_engine_release` says freezing it would measure
+  the thing being tested — so this changes the design of the measurement.
+- **Leave it UNSAFE until the next refit lands anyway**, and do not quote it. Cheapest, and the
+  status quo, but only honest while nothing downstream depends on it.
+
+Not chosen here. `engine/censoring_value.js` refuses to run without `WEIGHTS_OLD` and now points at
+the preserved baseline and at this section, so whoever picks it up is choosing rather than guessing.
+
 ## Reading a run
 
 ```bash
