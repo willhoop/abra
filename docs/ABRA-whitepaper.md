@@ -2,7 +2,7 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.41.0 · Last updated 2026-08-05**
+**Version 3.42.0 · Last updated 2026-08-05**
 **Will Hooper · ABRA**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
@@ -398,7 +398,9 @@ cannot yet reach.
 **The fitting gap below is now half closed.** The sheet-channel section that follows reported that
 the fit discarded the ability and moves the live player sees; the decision it asked for was made
 (open team sheets always, closed sheets deferred), and the single-move layer (MAG) is refitted on
-all four channels: 231,722 decisions, with a point-of-use counter showing the declared channels
+all four channels: 232,815 usable decisions of 241,927 seen at 3.42.0 (231,722 at the 3.40.0 fit,
+before the click-censoring pass removed 1,336 actions that were not clicks), with a point-of-use
+counter showing the declared channels
 reached the board on 99.67% of scored decisions — an environment match stated by measurement, not
 by diff-reading. The pre-refit weights are preserved and the two-channel incumbent is frozen as a
 release (`d3d04b669e18`) for the pending paired held-out comparison against the 0.192-point noise
@@ -414,6 +416,81 @@ optimum showed one accepted step is worth 0.202 win-rate points against a 4.77-p
 the affordable budget, so the search moves to a 4–8-parameter reparameterization first. The full
 argument is `docs/COVERAGE-PLAN-REVIEW.md`. ABRA continues to have **no exploitability number**;
 `data/exploitability.json` remains void.
+
+## Outplayed turns are not noise: the click-censoring fix (3.42.0)
+
+The policy fits learn from human clicks reconstructed out of replay logs. The log records what
+**happened**; the fit needs what was **clicked**. Across all **241,927 recorded human actions over
+8,942 clean open-sheet games** (`data/policy-weights.json`, the fit corpus), **1,336 (0.5522%) were
+never clicks at all** and were being fitted as though they were. The classifier that decides which
+is which is measured separately, against the protocol's own annotations over 9,022 games
+(`data/click-censoring-census.json`) — a slightly larger sweep than the fit, because the census
+reads every stored game while the fit takes only those it can build a board for:
+
+| class | n | share | mechanism |
+|---|---|---|---|
+| CLEAN | 229,555 | 94.886% | the recorded action is the click |
+| PARTIAL | 3,260 | 1.3475% | a redirector soaked the attack; the true target is one of two live foes |
+| **COERCED** | **1,336** | **0.5522%** | Encore replaced the action (1,116); a phazing move dragged the mon in (220) |
+| unreadable | 7,776 | 3.214% | unmatched, trivial or ambiguous |
+
+Both coerced classes were **invisible to every counter in the project**. The move Encore forces out
+is on the victim's own legal menu, so the matcher accepted it; and `|drag|` is stored with the same
+shape as `|switch|`, so a phazed arrival read as a voluntary switch decision. This is label noise,
+and learning with mislabelled examples is strictly harder than learning with missing ones
+(Natarajan, Dhillon, Ravikumar & Tewari, 2013). It is also **Missing Not At Random** in Rubin's
+(1976) sense — the corruption lands precisely on the turns where the opponent's play worked.
+
+Coerced actions now leave the labelled set and are counted. Redirected attacks are kept under the
+**partial-label** likelihood (Cour, Sapp & Taskar, JMLR 2011): the contribution is the marginal
+`log Σ_{c∈C} P_w(c | board, choice set)` over the candidate set, fitted by Generalized EM (Dempster,
+Laird & Rubin 1977; Neal & Hinton 1998), where the E-step is the responsibility `q_c = p_c / Σ_{C}
+p_{c'}` and the M-step is the existing conditional-logit gradient on `q`-weighted rows.
+
+**The estimator was validated on planted weights before the refit ran.** Real corpus feature rows,
+synthetic labels drawn from a known `w*`, the real censoring process applied to those labels, three
+seeds (`data/partial-label-em.json`):
+
+| regime | rows censored | ‖ŵ − w*‖₂ oracle | naive | EM | noise floor |
+|---|---|---|---|---|---|
+| heavy, systematic | 20.96% | 0.9978 | **1.8913** | **1.0208** | 0.2600 |
+| the corpus's own rate | 0.44% | 0.9978 | 0.9948 | 1.0021 | 0.2600 |
+
+EM recovers **97.4%** of the censoring bias where the naive fit is visibly wrong, and at the rate the
+corpus actually censors the bias is **−0.0030 against a 0.2600 floor** — inside the noise.
+
+**Result, paired on 47,195 held-out decisions over 1,809 games, bootstrapped over GAMES**
+(`data/censoring-value.json`):
+
+| held-out class | after − before | |
+|---|---|---|
+| **COERCED** (n=284): P(model picks the action no human chose) | **−0.002614 [−0.003663, −0.001637]** | clears zero |
+| **PARTIAL** (n=643): mass on the true candidate set | +0.000109 [−0.000286, +0.000491] | contains zero |
+| PARTIAL: log-likelihood of the candidate set | −0.002646 [−0.004037, −0.001377] | clears zero, **worse** |
+| CONTROL, CLEAN (n=46,268): log-likelihood | +0.000447 [0.000142, 0.000743] | clears zero |
+| CONTROL, CLEAN: top-1 | +0.002 [−0.094, 0.098] | contains zero |
+
+Read plainly: **the fabricated labels are unlearned and the redirection correction bought nothing
+measurable.** Its own validation predicted that — the class is 1.35% of actions with a candidate set
+of exactly two, so there was almost no bias to remove. No corpus-wide top-1 improvement is claimed;
+the fix's justification is that a wrong label is a wrong label. Every effect is smaller than its
+class's split-half noise floor and resolves only because the comparison is paired per decision.
+
+The mechanism is legible in the refit: of 58 weights, 9 moved past 2 SE and the largest single
+movement is `stallIntoEncore` — *"I am about to Protect and something across from me can Encore me
+for it"* — at **−1.0502 → −1.6281**. The poisoned rows were victims "choosing" their last move under
+an active Encore; deleting them makes clicking into an Encore threat look worse, which is the
+direction the mechanic predicts.
+
+**Three limits, stated.** (i) The two vectors also differ by 86 games of corpus growth and by the
+refit itself, so the attribution rests on the weight-movement pattern rather than on an isolated
+control; `CENSORING=off` exists to run that control and has not been run. (ii) Priority-blocked
+attempts (Armor Tail, Queenly Majesty) are recoverable — the protocol names the attacker and the
+move in **284 of 284 cases (100.0%)** — but live only in raw logs covering 66.17% of the corpus, and
+the missing third is one archive, so recovering them would reweight the sample by source. (iii)
+`board.js` narrows the choice set for a Choice item and not for the `onDisableMove` family, so
+**2,280 of 139,769 logged actions (1.6313%)** were priced against a menu that had already shrunk —
+a wrong denominator rather than a wrong label, and a separate refit.
 
 ## Layer 0 executes; the joint layer refits; the channel value is measured (3.41.0)
 

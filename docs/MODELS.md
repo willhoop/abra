@@ -738,8 +738,11 @@ improvement is not yet shown.
 
 **THE OUTPLAYED TURNS ARE IN THE FIT NOW, AND 1,336 THINGS THAT WERE IN IT ARE NOT — 3.42.0.**
 `docs/CLICK-CENSORING-FIX.md`, all four stages, artifacts `data/click-censoring-census.json`,
-`data/partial-label-em.json`, `data/censoring-value.json`. Of **241,927 recorded human actions over
-8,942 games**, **1,336 (0.5522%) were never clicks** — 1,116 Encore application turns, where the move
+`data/partial-label-em.json`, `data/censoring-value.json`.
+
+Of **241,927 recorded human actions over 8,942 games** (`data/policy-weights.json` — the FIT corpus;
+the census sweeps 9,022 games because it reads every stored game while the fit takes only those it
+can build a board for), **1,336 were never clicks** — 1,116 Encore application turns, where the move
 Encore forces out is on the victim's own menu so the matcher accepted it, and 220 `|drag|` arrivals,
 which `engine/durable-ingest.js` stores with the same shape as a voluntary switch. All 1,336 were
 being fitted as human choices. A further **3,260 (1.3475%)** are redirected attacks whose recorded
