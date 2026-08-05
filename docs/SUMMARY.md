@@ -1,6 +1,6 @@
 # ABRA — Project Summary
 
-**Version 3.41.0 · 2026-08-05 · Will Hooper**
+**Version 3.42.0 · 2026-08-05 · Will Hooper**
 
 A one-page map of the whole project and every component. For depth: the
 [white paper](ABRA-whitepaper.md) (math + sources), the [deck](ABRA-deck-plain-english.md)
@@ -71,7 +71,7 @@ carry one reconstructed from the commit that contained them, labelled inferred r
 
 | Model | What it is | Status | Headline result |
 |---|---|---|---|
-| **MEDICHAM** | Hand-written doubles doubles-battle simulator | ⚠️ **Being replaced** | Within 5% of the Smogon calculator on 31 scenarios, but disagrees with the OFFICIAL Champions engine by 31.1 points of win probability. ADR-001: becomes a lookup over precomputed tables. **Mechanics census 202 live of 205 probed, 3 missing with reasons** (`data/mechanics-census.json`, wires 82–112 landed 3.40.0–3.41.0); **generated interaction matrix 100.0% — 899 of 899 live carrier x reactor cases** after four redundant tags were retired (was 999/1,012; the retired facts live on under their surviving tags), **multi-turn field axis 156/156** (`data/interaction-matrix.json`); damage differential **1/150**, the one row a documented harness-layer artifact (Disguise); two-rulebook collision ratchet **2 clashes / 151 comparable facts** (`data/rulebook-collision.json`); DEAD-tag ratchet **61 → 38** |
+| **MEDICHAM** | Hand-written doubles doubles-battle simulator | ⚠️ **Being replaced** | Within 5% of the Smogon calculator on 31 scenarios, but disagrees with the OFFICIAL Champions engine by 31.1 points of win probability. ADR-001: becomes a lookup over precomputed tables. **Mechanics census 208 live of 211 probed, 3 missing with reasons** (`data/mechanics-census.json`, wires 82–116 landed 3.40.0–3.42.0); **generated interaction matrix 100.0% — 899 of 899 live carrier x reactor cases** after four redundant tags were retired (was 999/1,012; the retired facts live on under their surviving tags), **multi-turn field axis 156/156** (`data/interaction-matrix.json`); damage differential **1/150**, the one row a documented harness-layer artifact (Disguise); two-rulebook collision ratchet **2 clashes / 151 comparable facts** (`data/rulebook-collision.json`); DEAD-tag ratchet **61 → 38** |
 | **GURU** | Meta matchup matrix from real outcomes | ⚠️ **No decisive cells that survive multiplicity** | `data/guru-matchups.json`, 2026-07-31, **5,265 clean games / 12 archetypes / 144 cells**. **6 directed = 3 distinct** matchups clear a 95% test one at a time, and **ZERO survive FDR at q=0.05 or Bonferroni** — 66 pairs, 3.3 expected by chance, 3 observed, smallest exact p 6.1e-3 against a BH threshold of 7.6e-4. Predictive test **0.7124** vs a coin 0.6931 over 1,053 held-out games — **worse than a coin**. Descriptive structure only. (This row read *1,124 clean games, 11 archetypes, 0.735* until 2026-08-04, from a superseded run; the verdict is unchanged.) |
 | **XATU** | Opponent set + next-move belief | ✅ Built | Top-1 36% / top-3 72% on held-out human moves (beats its baselines) |
 | **PORY** | Mid-game win-probability value net | ⚠️ **Contribution unclear** | Log-loss **0.6236** 95% CI [0.6070, 0.6387] vs coin 0.6931 and vs the material heuristic 0.6428 (regenerated 2026-08-05 on 5,883 clean games; the previously published 0.567 predated the current quality filter) — but its features ARE the material state, and it **loses to a two-feature baseline** (alive_diff+hp_diff 0.5822 vs PORY 0.5840, same estimator). Report the gain over MATERIAL, not over a coin. See engine/pory_baseline.py |
@@ -81,7 +81,7 @@ carry one reconstructed from the commit that contained them, labelled inferred r
 | **DITTO** | Team optimiser | ⚠️ Pivoting | Objective de-biased to validated damage (was optimising a backwards signal) |
 | **ALAKAZAM** | In-battle decision engine (capstone) | 🔜 In development | Belief + search + learned value; built last on the inputs above |
 | **MEW** | Self-play data engine | ✅ **Built** | Runs the OFFICIAL Champions engine against itself on real observed teams. 1,000 games, 13/13 validation checks, mirror 51.0% CI [45.4, 56.6] |
-| **MAGNEMITE** (MAG) | The in-battle policy that reads the board | **Built, and improving by self-play (3.28.0)** | Conditional logit over **53 features**, fitted to **146,910 real human clicks** from 6,091 clean open-sheet games. Held out by game: top-1 **33.6%** against the behaviour clone's 27.1%. It now DOES decide switches and DOES run a real damage calculation — both were listed here as missing and both became false. Still one ply, still no model of the opponent's move |
+| **MAGNEMITE** (MAG) | The in-battle policy that reads the board | **Built, and improving by self-play (3.28.0)** | Conditional logit over **58 features**, fitted to **232,815 usable human clicks of 241,927 seen** from 8,942 clean open-sheet games (`data/policy-weights.json`, 3.42.0 — this row read 53 / 146,910 / 6,091 until then, three fits behind). Held out by game: top-1 **32.9%** against the behaviour clone's 23.4%. **1,336 recorded actions that were not clicks at all have been removed from the labels** and 3,260 redirected ones are fitted over a candidate set. It now DOES decide switches and DOES run a real damage calculation — both were listed here as missing and both became false. Still one ply, still no model of the opponent's move |
 | **WOBBUFFET** | Exploitability of MAG — hill-climb a counter over MAG's own weights | ❌ **NOT MEASURED** | **There is no exploitability number for this project (2026-08-04).** The published ~~63.2% [56.6, 69.3], mirror 47.5%~~ is **retracted**: 17 features against the 58 we ship, an engine 25 wire-fixes old, computed before the quality filter existed. The 58-feature re-run is **void** — `data/policy-weights.json` was refitted at 22:15:24 UTC *while it was running* and `engine/medicham2-browser.js` changed content twice more afterwards. Separately its hill-climb accepted **1 of 24** steps and would have been uninformative anyway. `engine/exploit.js` stamps nothing about what it read, which is why none of this was visible to it. See `docs/SEARCH.md` §R8 |
 | **DUSK** | Endgame exact solver | 🔜 Roadmap | Solves small boards (≤2v2, 1v1) perfectly — sharpens ALAKAZAM's endgame and gives clean training targets for PORY |
 | **HYPNO** | Opponent read / exploitability dial | 🔜 Roadmap | Estimates opponent strength + predictability; tells ALAKAZAM when to play safe (vs strong) or exploit (vs weak/predictable) |
@@ -148,8 +148,11 @@ Most results here are also **underpowered**: 1,124 clean games can only detect a
 accuracy points, and a 2-point effect needs ~4,900. `engine/eval_harness.py` now refuses to report a
 null without stating what it could have seen.
 
-The one load-bearing win is the **validated damage engine** — 31/31 within 2% against two independent
-oracles. PORY was the other, until 2026-07-25 showed it loses to a two-feature material baseline.
+The one load-bearing win is the **validated damage engine** — **36 scenarios, 100% within 5% of
+`@smogon/calc`, 97% within 2%, median error 0%, worst 3%** (`data/damage-validation.json`,
+2026-08-05). This line previously read "31/31 within 2%", which overstated the project's single
+load-bearing result in both the count and the tolerance; the artifact is the authority and the
+whitepaper's "within 5%, worst 3%" was the correct statement all along. PORY was the other, until 2026-07-25 showed it loses to a two-feature material baseline.
 The project's two genuine contributions are the ones it treats as plumbing: **behavioural bot
 detection**, and the **measurement discipline** that dissolved WAR, the 55% ceiling and GURU's matchup
 matrix in a single day.
@@ -183,4 +186,5 @@ bias is large, and the closed-sheet Bo1 store carries the latter.
 | mirror control | **49.7% [46.2, 53.2]**, n=782 — survives the void run and retires the seat-asymmetry worry. |
 | MAG refit | ran; **moved nothing measurable.** Weather fix +0.048 top-1 [0.009, 0.093]; the refit itself −0.074 [−0.155, +0.004] against a 0.192-point noise floor. |
 | open, needs a decision | the fit sees `{nature, item}`; the player sees `{nature, item, ability, moves}`. **50.47% of trained decisions**, 99.75% of games. |
+| click censoring (3.42.0) | **1,336 of 241,927 recorded actions were never clicks** (Encore 1,116, `\|drag\|` 220) and were being fitted as human choices. Removed and counted. **3,260 redirected attacks (1.3475%)** now enter as a two-member candidate set instead of a certainty on the redirector. Paired on 47,195 held-out decisions: on coerced turns P(the fabricated action) **−0.002614 [−0.003663, −0.001637]**; on redirection turns **no improvement**; corpus top-1 flat. `data/censoring-value.json` |
 

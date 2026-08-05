@@ -85,7 +85,19 @@ function changelogTop() {
  *
  * A FIGURE is a number a reader would take as a measurement. Version strings, years, section
  * numbers and file paths are numerals that are not figures, and including them buries the signal. */
-const FIGURE_RE = /(?<![\w.\-\/])(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*(%?)/g;
+/* THE SIGN IS PART OF THE FIGURE, and dropping it made real matches look like mismatches.
+ *
+ * These documents write negatives with a TYPOGRAPHIC MINUS (U+2212 '−'), not an ASCII hyphen —
+ * every weight, every paired difference, every confidence interval. The pattern did not treat it as
+ * a sign at all, so `−1.6281` parsed as +1.6281, while `data/policy-weights.json` holds
+ * -1.6280854921610366 which rounds to "-1.6281". The document was quoting its artifact correctly to
+ * four places and was reported as citing a figure the artifact does not contain.
+ *
+ * That is the worst failure mode available to this check: it accuses a correct document, and the
+ * obvious response is to "fix" the document until it agrees with nothing. Any of −, – or - now
+ * carries into the value. */
+const MINUS = '[-\\u2212\\u2013\\u2010\\u2011]';
+const FIGURE_RE = new RegExp(`(?<![\\w./])(${MINUS}?)(\\d{1,3}(?:,\\d{3})+|\\d+(?:\\.\\d+)?)\\s*(%?)`, 'g');
 
 function figuresIn(line) {
   /* Strip the things that contain digits but assert nothing: inline code, links, paths, dates. */
@@ -100,12 +112,14 @@ function figuresIn(line) {
   let m;
   FIGURE_RE.lastIndex = 0;
   while ((m = FIGURE_RE.exec(clean)) !== null) {
-    const raw = m[1];
-    const v = Number(raw.replace(/,/g, ''));
+    const sign = m[1] ? -1 : 1;                     // any of -, −, – captured above
+    const raw = m[2];
+    const v = sign * Number(raw.replace(/,/g, ''));
     if (!isFinite(v)) continue;
-    if (v >= 1900 && v <= 2100 && Number.isInteger(v) && !raw.includes(',')) continue;  // a year
+    /* Year test on the MAGNITUDE: "-2026" is not a year, and a negative figure never is. */
+    if (sign > 0 && v >= 1900 && v <= 2100 && Number.isInteger(v) && !raw.includes(',')) continue;
     const dp = (raw.split('.')[1] || '').length;
-    out.push({ raw: raw + m[2], value: v, pct: m[2] === '%', dp });
+    out.push({ raw: (m[1] || '') + raw + m[3], value: v, pct: m[3] === '%', dp });
   }
   return out;
 }
