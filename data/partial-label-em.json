@@ -1,0 +1,249 @@
+{
+ "generated": "2026-08-05T06:37:44.101Z",
+ "source": "engine/em_validation.js",
+ "source_digests": {
+  "engine/fit_policy.js": "45f545425420",
+  "engine/click_class.js": "011bb621fe76",
+  "engine/click_match.js": "e266c98ffb47",
+  "engine/board.js": "54e3d2ca9f85",
+  "engine/em_validation.js": "0dda9b036dd9"
+ },
+ "what": "Planted-weight recovery under the real censoring process. docs/CLICK-CENSORING-FIX.md Stage C.",
+ "planted_from": "data\\policy-weights.json (reweighted_to_closed)",
+ "corpus": {
+  "games": 1200,
+  "games_requested": 1200,
+  "of_total": 9022,
+  "rows": 31940
+ },
+ "iters": 300,
+ "features": [
+  "eff4",
+  "eff2",
+  "effHalf",
+  "effQuarter",
+  "allyHit",
+  "abilityBlock",
+  "immune",
+  "stab",
+  "bp",
+  "accuracy",
+  "chargeTurn",
+  "rechargeTurn",
+  "pivots",
+  "isStatus",
+  "tgtHurt",
+  "deadStatus",
+  "deadSide",
+  "deadField",
+  "deadWeather",
+  "deadStall",
+  "pranksterFailsDark",
+  "deadNoLastMove",
+  "movesFirst",
+  "priority",
+  "tgtPhysical",
+  "defMismatch",
+  "tgtBulk",
+  "koTarget",
+  "dmgFrac",
+  "tgtMayProtect",
+  "killIsRoll",
+  "killsThreat",
+  "koFirst",
+  "protectThreatened",
+  "volatileOnFoe",
+  "volatileOnSelf",
+  "myOffenseStage",
+  "tgtDefenseStage",
+  "movesBoostMe",
+  "movesLowerFoe",
+  "statusBites",
+  "diesBeforeMoving",
+  "isSwitch",
+  "switchSurvives1",
+  "switchSurvives2",
+  "switchFaster",
+  "switchKOFast",
+  "switchKOSlow",
+  "switchDiesFirst",
+  "speedSwing",
+  "screenValue",
+  "healValue",
+  "stallIntoEncore",
+  "clickCost",
+  "benchRisk",
+  "priorLogP",
+  "setupTurns",
+  "passTurnAccrues"
+ ],
+ "regimes": {
+  "amplified": {
+   "rows": 31940,
+   "seeds": [
+    20260805,
+    20260806,
+    20260807
+   ],
+   "censored_mean": 6704,
+   "relabelled_mean": 3341,
+   "censored_rate": 0.20989355040701316,
+   "l2_from_planted": {
+    "oracle": 0.9897791709038101,
+    "naive": 1.9464292674467394,
+    "em": 1.0722035725333718
+   },
+   "per_seed": [
+    {
+     "seed": 20260805,
+     "censored": 6620,
+     "relabelled": 3311,
+     "oracle": {
+      "l2_from_planted": 1.171357921588205,
+      "worst_feature": "stallIntoEncore",
+      "worst_delta": 0.6542965128330074
+     },
+     "naive": {
+      "l2_from_planted": 2.0435684896887483,
+      "worst_feature": "deadNoLastMove",
+      "worst_delta": 1.097174487638436
+     },
+     "em": {
+      "l2_from_planted": 1.2683724695262786,
+      "worst_feature": "stallIntoEncore",
+      "worst_delta": 0.661325650987848
+     }
+    },
+    {
+     "seed": 20260806,
+     "censored": 6767,
+     "relabelled": 3375,
+     "oracle": {
+      "l2_from_planted": 0.9525177412113398,
+      "worst_feature": "pranksterFailsDark",
+      "worst_delta": 0.4127269011753498
+     },
+     "naive": {
+      "l2_from_planted": 1.7548391375776442,
+      "worst_feature": "immune",
+      "worst_delta": 0.9373798229110006
+     },
+     "em": {
+      "l2_from_planted": 1.124022617372129,
+      "worst_feature": "clickCost",
+      "worst_delta": 0.7389625151455355
+     }
+    },
+    {
+     "seed": 20260807,
+     "censored": 6725,
+     "relabelled": 3337,
+     "oracle": {
+      "l2_from_planted": 0.8454618499118852,
+      "worst_feature": "pranksterFailsDark",
+      "worst_delta": 0.4017687365718008
+     },
+     "naive": {
+      "l2_from_planted": 2.0408801750738252,
+      "worst_feature": "deadNoLastMove",
+      "worst_delta": 1.0794955475767347
+     },
+     "em": {
+      "l2_from_planted": 0.8242156307017077,
+      "worst_feature": "pranksterFailsDark",
+      "worst_delta": 0.3452645018388907
+     }
+    }
+   ],
+   "noise_floor_oracle_spread": 0.32589607167631984,
+   "censoring_bias": 0.9566500965429293,
+   "bias_exceeds_noise_floor": true,
+   "em_recovered_fraction": 0.9138405965489149,
+   "em_beats_naive": true
+  },
+  "observed": {
+   "rows": 31940,
+   "seeds": [
+    20260805,
+    20260806,
+    20260807
+   ],
+   "censored_mean": 139.66666666666666,
+   "relabelled_mean": 63.666666666666664,
+   "censored_rate": 0.004372782300146107,
+   "l2_from_planted": {
+    "oracle": 0.9897791709038101,
+    "naive": 0.9732106392481849,
+    "em": 0.9919930640651168
+   },
+   "per_seed": [
+    {
+     "seed": 20260805,
+     "censored": 139,
+     "relabelled": 61,
+     "oracle": {
+      "l2_from_planted": 1.171357921588205,
+      "worst_feature": "stallIntoEncore",
+      "worst_delta": 0.6542965128330074
+     },
+     "naive": {
+      "l2_from_planted": 1.1532337013125324,
+      "worst_feature": "stallIntoEncore",
+      "worst_delta": 0.6461647309688316
+     },
+     "em": {
+      "l2_from_planted": 1.1767568892441993,
+      "worst_feature": "stallIntoEncore",
+      "worst_delta": 0.6581761709444247
+     }
+    },
+    {
+     "seed": 20260806,
+     "censored": 148,
+     "relabelled": 67,
+     "oracle": {
+      "l2_from_planted": 0.9525177412113398,
+      "worst_feature": "pranksterFailsDark",
+      "worst_delta": 0.4127269011753498
+     },
+     "naive": {
+      "l2_from_planted": 0.9182728190531196,
+      "worst_feature": "pranksterFailsDark",
+      "worst_delta": 0.41317078654386674
+     },
+     "em": {
+      "l2_from_planted": 0.9526444331191541,
+      "worst_feature": "pranksterFailsDark",
+      "worst_delta": 0.41256845099635364
+     }
+    },
+    {
+     "seed": 20260807,
+     "censored": 132,
+     "relabelled": 63,
+     "oracle": {
+      "l2_from_planted": 0.8454618499118852,
+      "worst_feature": "pranksterFailsDark",
+      "worst_delta": 0.4017687365718008
+     },
+     "naive": {
+      "l2_from_planted": 0.8481253973789022,
+      "worst_feature": "pranksterFailsDark",
+      "worst_delta": 0.4025267391794487
+     },
+     "em": {
+      "l2_from_planted": 0.846577869831997,
+      "worst_feature": "pranksterFailsDark",
+      "worst_delta": 0.4023016568090301
+     }
+    }
+   ],
+   "noise_floor_oracle_spread": 0.32589607167631984,
+   "censoring_bias": -0.016568531655625218,
+   "bias_exceeds_noise_floor": false,
+   "em_recovered_fraction": null,
+   "em_beats_naive": false
+  }
+ },
+ "reading": "AMPLIFIED is the known-bad-input demonstration: censoring is heavy and systematic, so a naive fit must be visibly wrong and EM must recover most of the gap. OBSERVED applies only the censoring the corpus really contains, so its bias is small BY CONSTRUCTION — about 1% of rows — and it is the honest size of what Stage C buys in weight space. Neither number is a win rate or a held-out accuracy."
+}
