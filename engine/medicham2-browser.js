@@ -85,6 +85,14 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* WIRE 92 -- a voluntary switch refused because a live foe carries `preventsSwitch` (Shadow Tag on
    * Gengar-Mega). A zero here after real games with a Mega Gengar on the field is the finding. */
   trapBlockedSwitch: 0,
+  /* WIRE 116 -- a voluntary switch refused by a partial-trapping MOVE (Fire Spin, Infestation,
+   * Wrap, Whirlpool, Sand Tomb, Thunder Cage, Magma Storm). Counted apart from the ability above
+   * because the two have different exemptions and a merged counter could not tell them apart. */
+  trapBlockedSwitchByMove: 0,
+  /* WIRE 115 -- a move SECONDARY dropped by the target's Shield Dust. This is the only scope at
+   * which Shield Dust acts, so a zero here after games with a Vivillon on the field is the finding;
+   * before this pass the ability was refusing direct status moves and Static as well. */
+  dustBlockedSecondary: 0,
   /* WIRE 90 -- an entry hazard that RESOLVED on a switch-in (toxic spikes' poison, sticky web's
    * drop). The old MEDFAILS.hazardUnresolved counter is gone because the gap it declared is wired;
    * this is its receipt, so the counter did not merely vanish (docs/ENGINE.md rule). */
@@ -1733,12 +1741,35 @@ function moveFx(id){ if(!id) return null;
 /* Type and ability immunities. A Pokemon that cannot take a status must not take it - otherwise the
  * simulation paralyses Electric types and burns Fire types, which changes who wins. */
 const STATUS_IMMUNE_TYPE={ brn:['Fire'], par:['Electric'], frz:['Ice'], psn:['Poison','Steel'], tox:['Poison','Steel'] };
-const STATUS_IMMUNE_ABIL={ brn:['waterveil','waterbubble','comatose','thermalexchange'],
-                           par:['limber','comatose'],
-                           frz:['magmaarmor','comatose'],
-                           psn:['immunity','comatose','poisonheal'],
-                           tox:['immunity','comatose','poisonheal'],
-                           slp:['insomnia','vitalspirit','comatose','sweetveil'] };
+const STATUS_IMMUNE_ABIL={ brn:['waterveil','waterbubble','thermalexchange'],
+                           par:['limber'],
+                           frz:['magmaarmor'],
+                           psn:['immunity','poisonheal'],
+                           tox:['immunity','poisonheal'],
+                           slp:['insomnia','vitalspirit','sweetveil'] };
+/* WIRE 114 -- ABILITIES THAT REFUSE *EVERY* MAJOR STATUS, held in ONE list rather than repeated
+ * across the six above, because the failure this fixes is exactly what per-status lists produce:
+ * PURIFYING SALT (Garganacl, 51 sheets, legal and played in Reg M-B) was in NONE of them, so a
+ * Garganacl took Will-O-Wisp, Thunder Wave, Spore and Toxic like any other Rock type. Verified
+ * against the official engine at the pinned commit before the wire -- Will-O-Wisp into Purifying
+ * Salt leaves it clean and into Sturdy burns it; Spore likewise. Its handler is one unconditional
+ * `return false` in onSetStatus, so a seventh status added tomorrow is covered without an edit,
+ * which a sixth list entry would not be.
+ *
+ * WHY A NAME AND NOT THE TAG. The artifact's `statusImmune` param is a bare `{immune:true}` on all
+ * twelve carriers -- it does not say WHICH status -- so consuming it by shape would make LEAF GUARD
+ * (sun only) and PASTEL VEIL (poison only) block everything always. docs/ENGINE.md already declares
+ * that: the hand table is RICHER than the artifact and an enrichment reading onSetStatus is future
+ * tag_dex work. This entry is that declaration honoured, not an exception to it.
+ *
+ * COMATOSE IS DECLARED DEAD AND KEPT. It belongs here on the same handler shape (an unconditional
+ * `return false`), and it CANNOT FIRE in this format: its only carrier is Komala, which
+ * `Dex.forFormat('gen9championsvgc2026regmb')` marks `isNonstandard: 'Past'`. It sat in five of the
+ * six lists above with nothing saying so, and a table carrying an unreachable entry invites trust in
+ * the rest of it. Kept rather than deleted because the rule is right and a regulation change is the
+ * trigger -- the same treatment Primordial Sea gets in the weather block. */
+const STATUS_IMMUNE_ABIL_ANY=['purifyingsalt',
+                              'comatose'/* UNREACHABLE in Reg M-B: Komala is isNonstandard 'Past' */];
 /* POWDER MOVES. Grass types are immune to all of them, as are Overcoat and Safety Goggles. This is
  * why Spore misses Rillaboom and Amoonguss entirely - a fact any bring recommendation depends on. */
 /* Screens last 5 turns (8 with Light Clay, which this engine does not model). The DOUBLES
@@ -1817,9 +1848,21 @@ function canTakeStatus(t,st){
   if(!t||t.fainted||t.curHP<=0) return false;
   if(t.status) return false;                                  // one major status at a time
   const ab=(t.ability||'').replace(/[^a-z0-9]/g,'');
-  if(ab==='shielddust') return false;                          // blocks secondary effects entirely
+  /* WIRE 115 -- SHIELD DUST USED TO BE REFUSED HERE AND THAT WAS THE WRONG SCOPE, in the direction
+   * that makes the ability far too strong. `canTakeStatus` is the gate for EVERY status this engine
+   * applies, and its two callers are the DIRECT status-move path (Will-O-Wisp, Thunder Wave, Spore,
+   * Toxic) and the punish-ability exposure loop (Static, Flame Body). Shield Dust blocks NEITHER --
+   * it filters a MOVE'S SECONDARIES and nothing else. Confirmed in the official engine at the pinned
+   * commit, both arms printed: Will-O-Wisp into Shield Dust BURNS (as into Compound Eyes), and a
+   * Shield Dust body that attacks a Static body is PARALYSED (as with any other ability).
+   * The suppression now lives at the one site where it is correct -- the secondary loop in the
+   * attack branch, `dustBlocked` -- plus the two effects Showdown's own source special-cases onto it
+   * (King's Rock, and Poison Touch, which carries the comment "Despite not being a secondary, Shield
+   * Dust / Covert Cloak block Poison Touch's effect"). Covert Cloak is banned in this format, so
+   * Shield Dust is the live carrier of every one of those. */
   const byType=STATUS_IMMUNE_TYPE[st]||[];
   if((t.types||[]).some(ty=>byType.includes(ty))) return false;
+  if(STATUS_IMMUNE_ABIL_ANY.includes(ab)) return false;        // WIRE 114 -- refuses every status
   if((STATUS_IMMUNE_ABIL[st]||[]).includes(ab)) return false;
   return true;
 }
@@ -2701,7 +2744,13 @@ function battleTurn(S,rng,actsForA,actsForB){
       }
       if(a.kind==='yawn'){
         const t=a.target;
-        if(t&&!t.fainted&&!t.protect&&!t.status&&t._yawn==null&&!pranksterBlocked(m,t,a.mv))
+        /* WIRE 114 -- THE DROWSE ASKS THE SAME QUESTION THE SLEEP DOES. Showdown's yawn condition
+           refuses on `!target.runStatusImmunity('slp')`, so an Insomnia or Purifying Salt body never
+           takes the counter at all -- it does not carry a drowse that then quietly fails. This branch
+           tested only `!t.status`, which is one clause of canTakeStatus, so the counter landed on
+           bodies that could never fall asleep. One function answers "can this body be slept" for both
+           routes now, which is CLAUDE.md's facts-are-global rule one field over. */
+        if(t&&!t.fainted&&!t.protect&&t._yawn==null&&canTakeStatus(t,'slp')&&!pranksterBlocked(m,t,a.mv))
           /* +1 because the end-of-turn tick below fires on the APPLICATION turn too. Without it a
              delay of 1 puts the target to sleep on the turn Yawn was clicked, which is a turn early
              and turns a telegraphed threat into an instant one. Same correction the sealsMoves wire
@@ -2808,12 +2857,17 @@ function battleTurn(S,rng,actsForA,actsForB){
            bare switch is gated: `a.mv` present means a pivot MOVE (Parting Shot, Chilly Reception),
            which trapping does not stop in the real game either. The exemptions that ARE derivable
            from the body are applied -- a Ghost type always leaves, and a holder of the same tag is
-           not held (the Shadow Tag mirror rule, read as tag-against-tag rather than a name). The
-           per-carrier conditions (Arena Trap wants grounded, Magnet Pull wants Steel) are not in the
-           params yet; `onlyGrounded`/`onlyTypes` are honoured when the staged enrichment lands, and
-           until then those two carriers -- zero corpus presence -- over-trap, stated here. Counted
-           in MEDSEEN.trapBlockedSwitch, because a refusal that cannot prove it fired is assumed
-           broken. */
+           not held (the Shadow Tag mirror rule, read as tag-against-tag rather than a name).
+           `onlyTypes` (Magnet Pull wants Steel) and `onlyGrounded` (Arena Trap) come from the
+           params, which the tag_dex enrichment landed and this code reads -- the comment that used
+           to sit here said those were "not in the params yet" and that both carriers over-trap, and
+           it described a world that ended when the staged batch ran. Counted in
+           MEDSEEN.trapBlockedSwitch, because a refusal that cannot prove it fired is assumed broken.
+
+           SHED SHELL IS NOT HONOURED ON THIS BRANCH and that is a stated gap, not an oversight: the
+           item lets its holder out of ability trapping too, and this dispatch was scoped to leave the
+           ability branch alone. Zero corpus exposure today (Shadow Tag is Gengar-Mega; Magnet Pull
+           and Arena Trap have none), and the move branch below does honour it. */
         if(!a.mv&&!(m.types||[]).includes('Ghost')&&!TAGS.param('ability',m.ability,'preventsSwitch')){
           const _held=foes.some(x=>{
             if(!x||x.fainted||x.curHP<=0)return false;
@@ -2824,6 +2878,26 @@ function battleTurn(S,rng,actsForA,actsForB){
             return true;
           });
           if(_held){MEDSEEN.trapBlockedSwitch++;continue;}
+        }
+        /* WIRE 116 -- THE PARTIAL TRAP HOLDS THE SWITCH, and until now it did not, anywhere. `_trap`
+           was set (WIRE 51), chipped, expired and even taught to die with its trapper (WIRE 105) --
+           and it appeared in no switch decision at all, so Fire Spin, Wrap, Infestation, Whirlpool,
+           Sand Tomb, Thunder Cage and Magma Storm dealt their per-turn chip and let the victim walk
+           out. That is most of what those moves are for. The comment at the site that SETS the trap
+           said "the switch-blocking half is NOT modelled" and it is now, so that line is gone too.
+
+           THE RULE, TAKEN OFF THE OFFICIAL ENGINE RATHER THAN FROM MEMORY -- all four arms played at
+           the pinned commit and printed: a bare switch out of an Infestation is REJECTED with
+           "Can't switch: The active Pokémon is trapped"; a GHOST type leaves freely and KEEPS the
+           volatile and the chip (98/130 -> 82/130 over the following turn), which is why the exempt
+           test is here at the switch and not at the tick; a SHED SHELL holder leaves; and U-turn
+           pivots out of it, which the `!a.mv` gate above already expresses.
+
+           Shed Shell is a NAME because the item carries no tag at all -- `data/tags.json` has no
+           `shedshell` entry, so there is nothing to read by shape. Stated, in the place it is read. */
+        if(!a.mv&&m._trap&&!(m.types||[]).includes('Ghost')
+           &&String(m.item||'').replace(/[^a-z0-9]/g,'')!=='shedshell'){
+          MEDSEEN.trapBlockedSwitchByMove++;continue;
         }
         const idx=own.indexOf(m);
         /* `a.to` names the replacement when the caller chose one. A switch action without it keeps
@@ -3491,8 +3565,20 @@ function battleTurn(S,rng,actsForA,actsForB){
           const fx=moveFx(a.move.id);
           /* WIRE 97 -- Sheer Force's suppression half reads its own tag (`removesOwnSecondaries`);
            * the x1.3 it pays for lives in dmgRange under the same tag. Shield Dust stays a name:
-           * it carries `untagged` and no derivation describes it yet -- declared, not hidden. */
-          const suppressed = tgAb==='shielddust' || !!TAGS.param('ability',mAb,'removesOwnSecondaries');
+           * it carries `untagged` and no derivation describes it yet -- declared, not hidden.
+           *
+           * WIRE 115 -- THE TWO SUPPRESSIONS ARE NOT THE SAME SUPPRESSION and merging them into one
+           * boolean was wrong in a way no single-mechanic probe could see. Sheer Force sets
+           * `move.secondaries = null` -- EVERY secondary goes, including the ones that boost the
+           * USER. Shield Dust's handler is `secondaries.filter(effect => !!effect.self)` -- it KEEPS
+           * the self ones. So a Trailblaze into a Shield Dust body still leaves the attacker at
+           * Speed +1, and this engine was zeroing it. Verified in the official engine, both arms:
+           * Shield Dust spe+1, Compound Eyes control spe+1. `suppressed` is kept for the two effects
+           * bolted on from outside the move (King's Rock, the procedural status set), where both
+           * abilities really do stop the same thing. */
+          const dustBlocked = tgAb==='shielddust';
+          const sheerForce  = !!TAGS.param('ability',mAb,'removesOwnSecondaries');
+          const suppressed  = dustBlocked || sheerForce;
           /* WIRE 89 -- THE SECONDARY CHANCE IS A FACT ABOUT THIS FORMAT, AND THE RULEBOOK THIS BLOCK
            * READS IS NOT A FORMAT. `CHOMP/data/move-effects.json` is generated from
            * `play.pokemonshowdown.com/data/moves.json` -- the GENERIC gen-9 move data -- and its own
@@ -3510,7 +3596,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            * So this is not a wholesale switch of rulebooks (that is an architecture decision and it
            * is not ENGINE's): it is the CHANCE, one field, taken from the artifact that read the
            * format, and every disagreement is COUNTED so a third one cannot arrive silently. */
-          if(fx&&fx.secondary&&!suppressed){
+          if(fx&&fx.secondary&&!sheerForce){
             const _si=TAGS.param('move',a.move.id,'statusInflict');
             const _fmtChance=(s)=>{
               if(!_si||!Array.isArray(_si.effects))return null;
@@ -3520,6 +3606,11 @@ function battleTurn(S,rng,actsForA,actsForB){
               return _e&&_e.chance!=null?+_e.chance:null;
             };
             for(const s of fx.secondary){
+              /* WIRE 115 -- SHIELD DUST, at the one site where it is correct, and shaped like the
+                 handler rather than like a name: the filter KEEPS the entries marked `self` and drops
+                 the rest, so a status, a target drop or a flinch goes and the user's own boost stays.
+                 Counted, because a refusal that cannot prove it fired is assumed broken. */
+              if(dustBlocked&&!s.selfBoosts){MEDSEEN.dustBlockedSecondary++;continue;}
               const _generic=(s.chance==null?100:s.chance);
               const _fmt=_fmtChance(s);
               if(_fmt!=null&&_fmt!==_generic){
@@ -3612,8 +3703,15 @@ function battleTurn(S,rng,actsForA,actsForB){
            * Poison Touch contributes to the sheet count and can never trigger. The chance is the
            * tag's 0.3, and applyStatus enforces the Steel/Poison immunities so a Poison Touch
            * Corviknight punch poisons nothing. */
+          /* WIRE 115 -- AND SHIELD DUST STOPS THIS ONE, which is the half of the scope fix that
+             would have been LOST if the blanket check in canTakeStatus were simply deleted. Poison
+             Touch is not a secondary and is blocked anyway; Showdown's handler says so in its own
+             comment ("Despite not being a secondary, Shield Dust / Covert Cloak block Poison Touch's
+             effect") and a 40-seed sweep of the pinned engine reads 12/40 poisoned into Compound Eyes
+             and 0/40 into Shield Dust. Named here, beside the effect, rather than inside a gate that
+             also refuses Will-O-Wisp. */
           {const _pt=TAGS.param('ability',m.ability,'poisonsOnMyContact');
-           if(_pt&&(!_pt.needsContact||mvMakesContact(a.move.id))&&rng()<(+_pt.p||0.3))applyStatus(tg,'psn');}
+           if(_pt&&!dustBlocked&&(!_pt.needsContact||mvMakesContact(a.move.id))&&rng()<(+_pt.p||0.3))applyStatus(tg,'psn');}
           /* WIRE 30 -- blocksHealing. Psychic Noise is a DAMAGING move whose whole point is the two
            * turns of Heal Block it leaves behind, and the engine landed the 75 base power and none of
            * the effect. It is the counter to the entire healing family, so it lands in the same pass
@@ -3636,8 +3734,8 @@ function battleTurn(S,rng,actsForA,actsForB){
            * NOTHING -- the whole move is the four-to-five turns after it. The fraction is the tag's
            * `chipPerTurn`; the duration is the tag's `turns` string ("4-5"), and the LOW end is taken
            * rather than the mean, because over-running a trap invents turns of chip that the real
-           * move may not get. The switch-blocking half is NOT modelled and is stated: this engine has
-           * no trapping concept, and a trap that stopped a switch would be a much stronger claim. */
+           * move may not get. The switch-blocking half IS modelled as of WIRE 116 -- see the gate in
+           * the switch branch above; this comment used to say it was not. */
           {const _pt2=TAGS.param('move',a.move.id,'partialTrap');
            if(_pt2&&_pt2.chipPerTurn&&!tg.fainted&&!tg._trap){
              const _tn=String(_pt2.turns||'4').match(/\d+/);

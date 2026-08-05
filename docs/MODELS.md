@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 3.41.0 · Last updated 2026-08-05.**
+**Version 3.42.0 · Last updated 2026-08-05.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
@@ -263,7 +263,7 @@ than Pelipper plus Archaludon** — the same expressiveness failure as DODUO, on
 ## MEDICHAM — Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves
 
 **MECHANICS STATE, 2026-08-05 (3.41.0), read from the artifact rather than typed:**
-`data/mechanics-census.json` reads **202 live of 205 probed, 3 missing, 0 hollow** (wires 82–89 at
+`data/mechanics-census.json` reads **208 live of 211 probed, 3 missing, 0 hollow** (wires 82–89 at
 3.40.0, then the Layer 0 pass — wires 90–112 — at 3.41.0; Marvel Scale and After You/Quash came
 off the missing list, the second because the "cannot tell it from Instruct" blocker was false:
 Instruct carries `instructsTarget {extraAction:true}`, a shape read). The three remaining are each
@@ -675,7 +675,9 @@ not be quoted as evidence that species choice predicts outcomes.
 **Job:** replace a fixed usage table with a per-slot *information state* that narrows as the opponent proves things.
 **The distinction:** "Kingambit usually runs Sucker Punch" is a statement about the population, and it never changes during a game. But in a closed-sheet format nothing is known until it is proven, and every reveal is information. The cheapest and hardest constraint is one a usage table cannot express: **a Pokémon has exactly four moves.** Once four are revealed the set is closed, and every other move in the usage table — however popular — is impossible. There the prior is not merely imprecise, it is wrong.
 **Method:** prior P(move | species) fitted on TRAIN games only; on held-out games we walk the turns in order and predict each move before seeing it, using only what that Pokémon revealed earlier in that same game. Scored by cross-entropy against two baselines (uniform, and the usage prior). The "already revealed" boost is **measured on train data**, not chosen: P(next move is one already seen) = 0.558, and the boost is its odds form, 1.26. An earlier draft asserted 3.0, which flattered the model — the measured value is smaller and so is the gain.
-**Result:** cross-entropy **1.824 vs the usage prior's 1.863** (uniform floor 6.06), top-1 **35.7% vs 34.8%**. Improvement **0.028, 95% CI [0.024, 0.031]** clustered by game — clears zero. On the 2.4% of events where all four moves are already known, belief **1.695 vs prior 2.219**: that is the four-move cap doing the work.
+**Result:** cross-entropy **1.9889 vs the usage prior's 2.0329** (uniform floor 6.0707), top-1 **31.23% vs 30.39%**. Improvement **0.0324, 95% CI [0.028, 0.0364]** clustered by game — clears zero. On the **3.84%** of events where all four moves are already known, belief **1.7874 vs prior 2.3428**: that is the four-move cap doing the work.
+
+*Corrected 2026-08-05. This paragraph previously read 1.824 / 1.863, top-1 35.7% vs 34.8%, improvement 0.028 [0.024, 0.031], and 1.695 vs 2.219 on 2.4% of events. Not one of those figures is in `data/xatu-belief.json`. Note the retracted headline, 0.028, is exactly the artifact's lower CI bound — a value read out of the wrong end of an interval rather than a stale run. The verdict is unchanged: XATU clears zero and remains the strongest model in the project. Only the numbers move.*
 **Honest scope:** this is the move slot only. Items and abilities are unknown-until-proven in the same way and are tracked as possibility sets but not yet scored. **EVs are different in kind** — a damage roll bounds an attacking stat to an interval and moving first proves only an inequality, so an EV spread never collapses to a value the way an ability or item does. That needs a separate interval estimator.
 **Code:** `engine/xatu_belief.py` → `data/xatu-belief.json`. Tests: `tests/test-xatu-belief.py` (14, incl. the uniform floor derived by hand as ln(V) and the boost re-derived from its own probability).
 
@@ -683,7 +685,9 @@ not be quoted as evidence that species choice predicts outcomes.
 **Job:** predict an opponent's set before a single turn is played, using the only information that exists at preview — the other five Pokémon.
 **Why it was needed:** the belief-state tracker only sharpens once something is revealed, but CHOMP decides at turn zero. That looked like a dead end for feeding better beliefs into the bring decision, until the obvious point: a set is chosen to fit a *team*. Pelipper on the roster makes Swift Swim plausible; no rain setter makes it close to pointless.
 **Method:** P(move | species, teammate features) where the features are public at preview — rain/sun/sand/snow setter, Trick Room, Tailwind, redirection. Each (species, context) cell is shrunk toward the species prior by n/(n+K) with K=12, so a context seen once carries under 8% weight and cannot manufacture a signal. Fitted on train games; scored on each Pokémon's FIRST revealed move in held-out games; clustered by game.
-**Result:** cross-entropy **2.4415 vs the bare prior's 2.5257**, top-1 **43.0% vs 40.9%**, improvement **+0.084, 95% CI [0.074, 0.094]**. That is a *larger* gain than the in-game belief tracker (+0.028) — and unlike that one, it is available exactly where CHOMP needs it.
+**Result:** cross-entropy **2.8389 vs the bare prior's 2.8708**, top-1 **38.97% vs 37.80%**, improvement **+0.032, 95% CI [0.0223, 0.0419]**. It is available exactly where CHOMP needs it, which is its real advantage.
+
+*Corrected 2026-08-05. Previously read 2.4415 / 2.5257, top-1 43.0% vs 40.9%, improvement +0.084 [0.074, 0.094] — none of which appears in `data/xatu-context.json`. **The claim that this beats the in-game tracker inverts on the real figures**: 0.032 here against 0.0324 there, which is a tie, not a larger gain. The comparison has been removed rather than reversed, because at that separation neither ordering is supportable.*
 **A domain claim, checked:** "Basculegion is Swift Swim on rain and Adaptability otherwise." Its first move, with a rain setter on the team vs without: Wave Crash **46% vs 27%**, Last Respects **25% vs 48%**, Flip Turn 19% vs 8%. Roughly a 2x swing in both directions — the ability split is visible in move choice without ever observing the ability.
 **Code:** `engine/xatu_context.py` → `data/xatu-context.json`. Tests: `tests/test-xatu-context.py` (14, incl. re-deriving the shrinkage weight by hand).
 
@@ -699,7 +703,7 @@ not be quoted as evidence that species choice predicts outcomes.
 ## MAGNEMITE (MAG) — Move Appraisal Grounded iN Effectiveness, Matchup, Immunity and Timing Estimates (added 2026-07-26)
 **Job:** decide a move by looking at the other side of the field, instead of by how popular the move is.
 **Why:** the behaviour clone answers only *what does this species usually click?* Two gaps followed and no prior-tuning could close them — super-effective moves at 9.7% against a real 21.4%, moves that outright failed at 9.7% against 2.5%. It also made every `build_lab` number a measurement of what beats **bad** play.
-**Method:** three files. `engine/board.js` reconstructs the state a decision was made against and turns (move, target) pairs into **58 features** (12 at 3.21.0); `engine/fit_policy.js` fits those features to real human clicks by **conditional logit** (McFadden 1974) over **8,414 clean open-sheet games and 220,613 decisions** (176,580 train / 44,033 held out); `engine/magnemite.js` plays the fitted distribution inside the official engine. `mew.js --policy score`.
+**Method:** three files. `engine/board.js` reconstructs the state a decision was made against and turns (move, target) pairs into **58 features** (12 at 3.21.0); `engine/fit_policy.js` fits those features to real human clicks by **conditional logit** (McFadden 1974) over **8,942 clean open-sheet games and 232,815 usable decisions of 241,927 seen** (186,494 train / 46,321 held out, `data/policy-weights.json` at 3.42.0; the line read 8,414 / 220,613 / 176,580 / 44,033 for the fit before it); `engine/magnemite.js` plays the fitted distribution inside the official engine. `mew.js --policy score`.
 
 > **Every figure in that line was corrected 2026-08-04 and none of them was a typo.** It read
 > 53 features / 6,091 games / 146,910 decisions / 117,824 train / 29,086 held out. The artifact —
@@ -711,8 +715,10 @@ not be quoted as evidence that species choice predicts outcomes.
 > of the refit. Quote `data/policy-weights.json`; it is one `corpus` object and it cannot drift.
 
 **REFITTED ON THE FOUR-CHANNEL SHEET, 3.40.0 (2026-08-04T23:37Z artifact).** Will's decision: open
-team sheets always; closed sheets deferred. `data/policy-weights.json` now reads corpus
-**8,856 games / 231,722 decisions (185,560 train / 46,162 held out)**, `fitEnvironment.sheet_channels
+team sheets always; closed sheets deferred. *At that release* `data/policy-weights.json` read corpus
+**8,856 games / 231,722 decisions (185,560 train / 46,162 held out)** — **superseded by the 3.42.0
+click-censoring refit below, which is the live figure; this paragraph is the 3.40.0 record and its
+numbers are no longer in the artifact.** `fitEnvironment.sheet_channels`
 = [nature, item, ability, moves]`, `matches_player: true`, and a **point-of-use reach counter** —
 the declared ability/moves arrived on the board for 99.67% of scored decisions — so the
 environment match is measured, not asserted. The two-channel incumbent is preserved
@@ -729,6 +735,31 @@ two-channel incumbent): the sheet buys **+0.005087 logL/decision end-to-end [0.0
 — real, clears zero — and **no demonstrable top-1 gain** against a 0.331-point split-half noise
 floor. Say it exactly that way: MAG prices decisions better with the sheet; a click-rate
 improvement is not yet shown.
+
+**THE OUTPLAYED TURNS ARE IN THE FIT NOW, AND 1,336 THINGS THAT WERE IN IT ARE NOT — 3.42.0.**
+`docs/CLICK-CENSORING-FIX.md`, all four stages, artifacts `data/click-censoring-census.json`,
+`data/partial-label-em.json`, `data/censoring-value.json`. Of **241,927 recorded human actions over
+8,942 games**, **1,336 (0.5522%) were never clicks** — 1,116 Encore application turns, where the move
+Encore forces out is on the victim's own menu so the matcher accepted it, and 220 `|drag|` arrivals,
+which `engine/durable-ingest.js` stores with the same shape as a voluntary switch. All 1,336 were
+being fitted as human choices. A further **3,260 (1.3475%)** are redirected attacks whose recorded
+target is the redirector; those are now fitted under the marginal likelihood over a two-member
+candidate set instead of as a confident wrong label.
+
+`data/policy-weights.json` reads **8,942 games / 232,815 usable decisions of 241,927 seen** (186,494
+train / 46,321 held out). `‖new − old‖₂ = 0.8030`, 9 of 58 weights past 2 SE, and the largest single
+movement is `stallIntoEncore` — *"I am about to Protect and something across from me can Encore me
+for it"* — at **−1.0502 → −1.6281**, which is the direction the mechanism predicts.
+
+**The measured value, and the half that did not work.** 47,195 paired held-out decisions over 1,809
+games, bootstrapped over GAMES (`engine/censoring_value.js`): on **COERCED** turns the model now puts
+**−0.002614 [−0.003663, −0.001637]** less probability on the action no human chose — the poison
+unlearned. On **REDIRECTION** turns there is **no improvement**: mass on the true candidate set
++0.000109 [−0.000286, +0.000491], and the log-likelihood on the set is very slightly worse. Corpus
+top-1 is flat (+0.002 points, contains zero), which the spec disclaimed in advance. The estimator
+itself is sound — it recovers **97.4%** of a planted censoring bias when censoring is heavy — and at
+the corpus's real rate the bias is **inside its own noise floor**, which is why nothing moved. Every
+effect here is smaller than its class's split-half floor and resolves only because it is paired.
 
 **Two changes to how the policy is USED beat every change to what it knows.** Measured 2026-07-30:
 taking the best move instead of sampling is worth **+12 points raw / 79.7% of decisive pairs**, and
@@ -795,7 +826,7 @@ score through `switchFeatures`; the post-KO replacement is scored rather than ro
 a real damage calculation (`board.js` calls the damage engine throughout — `koTarget`, `killIsRoll`,
 `diesBeforeMoving` and the switch-survival features all read it). What remains true: it has **no
 model of the opponent's move**, so it cannot read a Protect or bait a switch; and it is **one ply, no
-search**. The weights are fitted on open-sheet games, which hedge less than closed ladder play, and **2.94%** of clicks could not be matched to a candidate and were dropped (`data/policy-weights.json` records it). This line used to read "~11% … mostly redirection (Follow Me, Rage Powder)". **Both halves were wrong**: redirection is **1.60%** of the unmatched, measured 2026-08-02 by `engine/redirect_audit.js`, and the rate is now a quarter of what it was. The real causes were a foe **switching in on the same turn** (44.4%), an **in-battle forme change** with no sheet entry (19.7%), and a **mirror collapsing the two team sheets** (16.4%) — all fixed in `engine/click_match.js`, which took the slot-level match rate from 87.2% to 97.2%. Redirection's true cost is a *mislabelled* target on 1.55% of clicks, unrecoverable because the protocol records only a move's resolved target and never its chosen one. Logit also assumes independence of irrelevant alternatives, which close-substitute moves violate; see DEFENSE §6.
+search**. The weights are fitted on open-sheet games, which hedge less than closed ladder play, and **2.87%** of clicks could not be matched to a candidate and were dropped (`data/policy-weights.json` records it, `matching.unmatched` 6,937 of 241,927 at 3.42.0). This line used to read "~11% … mostly redirection (Follow Me, Rage Powder)". **Both halves were wrong**: redirection is **1.60%** of the unmatched, measured 2026-08-02 by `engine/redirect_audit.js`, and the rate is now a quarter of what it was. The real causes were a foe **switching in on the same turn** (44.4%), an **in-battle forme change** with no sheet entry (19.7%), and a **mirror collapsing the two team sheets** (16.4%) — all fixed in `engine/click_match.js`, which took the slot-level match rate from 87.2% to 97.2%. Redirection's true cost is a *mislabelled* target, and at 3.42.0 it stopped being unrecoverable and started being HONEST: the click is not recovered — the protocol still records only a move's resolved target — but the turn now enters the fit as a PARTIAL LABEL over the two live foes rather than as a certainty on the redirector (Cour, Sapp & Taskar 2011; `docs/CLICK-CENSORING-FIX.md`). **3,260 of 241,927 actions (1.3475%).** Logit also assumes independence of irrelevant alternatives, which close-substitute moves violate; see DEFENSE §6.
 **Corpus (as of 3.21.0):** three open-sheet sources, deduplicated by replay id, all through quality.js — **`data/games.bo3.jsonl`** (our own hourly scrape of `gen9championsvgc2026regmbbo3`, whose ruleset carries **Force Open Team Sheets**, so every game publishes all six sets), the ~1% of the closed ladder store where both players agreed to sheets, and the external VGC-Bench archive. **220,613 usable decisions kept of 228,084 seen**, from **8,414 games** (`data/policy-weights.json`, 2026-08-04; the line read 198,157 from 7,507 games at 2026-08-02, and 176,981 before `engine/click_match.js`). The 7,471 dropped are 6,669 unmatched, 776 trivial and 26 ambiguous, all recorded under `matching`.
 **Damage table:** 318 species. Eight had no row and therefore computed **zero damage, zero threat and
 zero risk** until 2026-08-02 — five format megas (Victreebel, Feraligatr, Skarmory, Barbaracle,

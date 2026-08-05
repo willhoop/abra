@@ -23,18 +23,25 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  202/205 probed mechanics live, 3 missing   (census 2026-08-05 02:12)
+  208/211 probed mechanics live, 3 missing   (census 2026-08-05 05:23)
   missing:
     move    needsTargetToAttack    Avalanche doubles after being hit
     ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll
     ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit
-  1/150 differential comparisons disagree with Showdown   (2026-08-05 01:59)
+  1/150 differential comparisons disagree with Showdown   (2026-08-05 05:16)
+    seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (56 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
+  interaction matrix: 899/899 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-05 05:16)
+    1514 of 8506 theoretical pairs staged — agreement is a claim about the 1514 that ran, not about the 8506
+      491 inert      not scored — the reference engine behaves identically with and without the reactor
+      107 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
+       19 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
+        2 threw      not scored — the harness could not stage it
   tag coverage: 155/181 probed, 26 unprobed
 ```
 
-_stamped 2026-08-05 02:19_
+_stamped 2026-08-05 05:26_
 
 <!-- /GENERATED -->
 
@@ -47,6 +54,217 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
+
+## THE FROZEN RELEASE LOST A RECORD, AND "RE-CUTTING IS A NO-OP" IS WHY. 2026-08-05.
+
+ENGINE rewrites the simulator while SEARCH measures, and the only reason that is safe is that a
+measurement reads a frozen release rather than the live tree. That mechanism had a hole in the half
+nobody freezes: **the record**.
+
+**THE RECEIPT.** `engine/engine_release.js cut` ran twice over an unchanged tree — 02:12:57Z by
+SEARCH (*"h60 log leg of the R1 explore-sweep re-run — cut immediately before the run because ENGINE
+lands roughly every half hour"*) and 02:26:04Z by the router (*"R10/click-censoring parallel
+session"*). Both produced id `09acd3b404ef`, because the id is the digest **of the file digests** and
+an identical tree must yield an identical id. Exactly **2 lines** of `release.json` changed and
+**zero of the 23 digests**, so no measurement is corrupted — and the first cut's time and reason were
+**destroyed**. Every artifact SEARCH had already stamped `09acd3b404ef` then pointed at a record
+claiming a freeze **thirteen minutes after the run that read it**, for an unrelated purpose. That is
+the *artifact newer than an input it never read* shape this repo has already lost 7,100 games to.
+
+**The docs called a second cut "a no-op". True of the frozen BYTES, false of the RECORD** — and that
+sentence is exactly what made the overwrite look intended.
+
+**THE FIX IS A CUT LOG, NOT A GUARD.** A cut appends one line to `cuts.jsonl` beside the snapshot;
+`release.json`'s `cuts[]` is a rendering of that log, and `cut`/`why` at the top now mean the **FIRST
+freeze of these bytes** and are never rewritten. Under any other reading an artifact can end up older
+than the release it names. An append cannot lose an earlier line, which a read-modify-write of a JSON
+array can under two concurrent cuts — and two agents cutting at once is not hypothetical here, it is
+what happened. A second cut still succeeds and still returns the same id, so no workflow is blocked.
+
+| requirement | how it is met |
+|---|---|
+| determinism unchanged | id is still the digest of the digests; the test asserts both cuts return `09acd3b404ef` and that not one of the 23 digests moved |
+| the first cut is never lost | `cut`/`why` = event 0; later cuts append |
+| a re-cut is still ergonomic | it succeeds, prints `THIS TREE WAS ALREADY FROZEN — this is cut N`, and lists every event |
+| `stamp()` still answers "which bytes" | `engine_release` + the full `source_digests` set, unchanged; `engine_release_cut` is now the first freeze, so it is always ≤ the artifact's own time; new `engine_release_cuts` tells a reader to go and read `cuts[]` |
+
+**THREE MORE OVERWRITE HAZARDS WERE IN THE SAME FILE, and one of them was worse because it wrote
+NOTHING.** The snapshot copy loop was wrapped in `if (!fs.existsSync(dir))`, so a release whose
+snapshot was incomplete (an interrupted cut) or had rotted on disk stayed broken through every later
+cut **while the cut reported success**. It is now per file against the digest the manifest will
+claim, and a repair is shouted and recorded in the cut event, because a silent repair hides that a
+snapshot rotted. The **pointer** `data/engine-release.json` is the one file that is *supposed* to be
+overwritten — that is what a pointer does — but it was copying the latest cut's time, so it made the
+same false claim; it now mirrors the first freeze and carries `latest_cut`/`latest_why` beside it.
+And `release.json` and the pointer are now written **atomically** (temp + rename), so a measurement
+opening a release mid-write cannot read a truncated document.
+
+**PROVEN BY REPRODUCING THE NIGHT.** `tests/test-engine-release.js` cuts, records the metadata,
+stamps an artifact, cuts again over the unchanged tree, and asserts the first record survived — and
+it was **shown red first**: 8 failures on the metadata arm plus 2 on the snapshot-repair arm before
+the fix, 44 passed / 0 failed after. The mutation arms are asserted to have run (`the second cut
+genuinely ran`, and the rot arm asserts `verify()` FAILS before the repairing cut, so the bad input
+is real). It cuts into a **throwaway store** passed as `{store}` — a test that cut into the real one
+would repoint the live pointer while another division measures, which is this mechanism's own failure
+mode arriving through its test.
+
+**The lost record was restored afterwards, as a separate labelled step and through the mechanism**:
+both events written into `cuts.jsonl`, each marked `reconstructed` with its provenance in the record
+(the first also `restored: true`, sub-second precision unrecoverable), then re-rendered with
+`engine_release.js rerender`. Digests untouched, `verify()` intact, 23 files.
+
+**FILED, NOT FIXED — not ENGINE's file.** `engine/miltank.js:145` reads the pointer for
+`rel.digests` and `rel.release`, which **`engine_release.js` has never written** (it writes
+`current`/`cut`/`why`). So `resolveRelease` compares **zero** files, finds zero moved, and stamps
+`release: 'UNNAMED', release_status: 'ON_RELEASE'` — a green attribution derived from an empty
+comparison. Two pointer schemas exist (the other is the hand-rolled recipe in `docs/SEARCH.md:825`).
+SEARCH owns both.
+
+## THE SCOPE PASS — WIRES 114–116. **THE CENSUS NEVER ASKED WHETHER A MECHANIC FIRES ONLY WHERE IT SHOULD.** 2026-08-05.
+
+Census **202 → 208 live / 205 → 211 probed**; missing still 3, hollow still 0, `unarmed` still 146 (all
+six new probes are armed), `threw` 0. Matrix **899/899 at `--full`**, denominator unshrunk.
+Differential **1/150**, the same pre-existing `chesnaught woodhammer -> mimikyu` row.
+
+Three defects, one shape, and the shape is the finding. **Every instrument this division owns asks
+whether a mechanic FIRES. None of them asks whether it fires ONLY WHERE IT SHOULD** — and two of
+these three would have passed a "does it fire" probe on the day they were broken:
+
+| | the mechanic FIRED | and it was still wrong |
+|---|---|---|
+| Shield Dust | blocked Nuzzle's paralysis, correctly | and blocked Will-O-Wisp, Thunder Wave, Spore, Toxic and Static, none of which it touches |
+| the partial trap | chipped every turn, expired on time, died with its trapper (WIRE 105) | and stopped **nothing** — the switch-blocking half is most of what those seven moves are |
+| Purifying Salt | its Ghost-damage half worked all along, off `halvesTypeDamage` | and its status half did not exist, so "is Purifying Salt live" had a true answer and a false one at once |
+
+**EVERY EXPECTED OUTCOME CAME OUT OF THE OFFICIAL ENGINE, NOT OUT OF ANYBODY'S MEMORY.** Each case
+was played at the pinned commit under `gen9championsvgc2026regmb` with both arms printed before a
+line of engine changed. That is what caught the fourth item below, which contradicts the dispatch.
+
+### WIRE 114 — Purifying Salt refuses every status. `statusImmune`, `probe: 'Purifying Salt refuses every major status, and Sturdy takes them all'`
+
+`STATUS_IMMUNE_ABIL` had six per-status lists and Purifying Salt was in **none** of them, so
+**Garganacl — legal, 51 declared sheets — took Will-O-Wisp, Thunder Wave, Spore and Toxic like any
+other Rock type.** Official engine, both arms: into Purifying Salt all four leave it clean, into a
+Sturdy control the same four bodies burn / paralyse / sleep / badly-poison.
+
+It is wired as **one ANY-status list**, not a seventh entry in six places, because the handler is a
+single unconditional `return false` and a seventh status added tomorrow would otherwise need six
+edits and get five. **It is a NAME and that is the standing declaration honoured, not an exception to
+it**: the artifact's `statusImmune` is a bare `{immune:true}` on all twelve carriers, so consuming it
+by shape would make Leaf Guard (sun only) and Pastel Veil (poison only) block everything always —
+which is exactly what the Layer 0 triage said, and why the hand table is richer than the artifact.
+
+**COMATOSE IS DECLARED DEAD AND KEPT.** It sat in five of the six lists with nothing saying it cannot
+fire: its only carrier is **Komala**, `isNonstandard: 'Past'` in this format, verified against the
+format rather than remembered. It belongs in the ANY list on the same handler shape and is labelled
+unreachable in place. A table carrying an unreachable entry invites trust in the rest of it.
+
+**AND THE DROWSE ASKED A DIFFERENT QUESTION FROM THE SLEEP.** The Yawn branch tested `!t.status`,
+which is one clause of `canTakeStatus`, so an Insomnia or Purifying Salt body took the counter and
+then failed to fall asleep two turns later. Showdown's yawn condition refuses on
+`!target.runStatusImmunity('slp')`. One function now answers "can this body be slept" for both routes.
+
+**THE OTHER HALF IS PINNED, NOT FIXED, AND SAYS SO.** Purifying Salt also halves Ghost damage, and
+that was already LIVE off `halvesTypeDamage`. It gains a probe anyway — the weather-rock lesson: a
+mechanic with two halves needs a probe per half, or the halves drift and one passing number covers
+both. The red demo asserts this one stays **GREEN** on the reverted engine, declared as a PIN.
+
+### WIRE 115 — Shield Dust, at the one scope where it is correct. `probe: 'Shield Dust blocks a move SECONDARY and does not block a status MOVE'` (+2 more)
+
+`canTakeStatus` opened with a blanket `if(ab==='shielddust') return false`. That function is the gate
+**every** status in this engine passes, and both its callers are places Shield Dust does not reach:
+the direct status-move path, and the punish-ability loop (Static, Flame Body). Covert Cloak is banned
+in this format, so Shield Dust is the live carrier of the whole family.
+
+The line was **not** deleted. It moved to the secondary loop in the attack branch and grew the two
+special cases the real engine has, because **deleting it would have lost a rule the blanket check was
+accidentally getting right**:
+
+| route | official engine | before | after |
+|---|---|---|---|
+| direct status move (Wisp / T-Wave / Spore / Toxic) | **lands** | refused | lands |
+| a move's secondary status, drop or flinch | blocked | blocked | blocked, at the secondary loop, counted in `MEDSEEN.dustBlockedSecondary` |
+| Static / Flame Body punishing a Shield Dust ATTACKER | **paralyses / burns** | refused | lands |
+| **Poison Touch** into a Shield Dust body | **blocked** — 0/40 seeds vs 12/40 into a control | blocked (by accident) | blocked, named at the effect, with Showdown's own comment quoted |
+| a secondary that boosts the **USER** (Trailblaze, Aqua Step, Flame Charge…) | **kept** — spe+1 | **zeroed** | kept |
+
+**THE DISPATCH'S DIAGNOSIS WAS WRONG ON ONE POINT AND IT IS RECORDED RATHER THAN QUIETLY CORRECTED.**
+It said Shield Dust "does NOT block an ABILITY effect". True of Static and Flame Body; **false of
+Poison Touch**, which Showdown special-cases in its own source — *"Despite not being a secondary,
+Shield Dust / Covert Cloak block Poison Touch's effect"* — and the 40-seed sweep confirms behaviourally.
+A straight deletion of the blanket line would have introduced a new bug while fixing an old one.
+
+**AND A FIFTH ROW NOBODY ASKED ABOUT, found by reading the handler rather than the summary.** Shield
+Dust is `secondaries.filter(effect => !!effect.self)` — it **keeps** the self ones — while Sheer Force
+sets `move.secondaries = null` and removes them all. This engine had merged the two into one boolean,
+so a Trailblaze into a Shield Dust body left the attacker at Speed 0 where the official engine leaves
+it at +1. The two suppressions are now separate; `suppressed` survives only for King's Rock and the
+procedural-status set, where both abilities really do stop the same thing.
+
+**A RED TEST THAT PINNED THE DEFECT.** `tests/test-rollout-effects.js` asserted
+`canTakeStatus(shielddust,'brn') === false` and went red on the fix. The assertion was wrong, not the
+engine — the same event as the Simple/Intimidate row on 2026-08-05 — so it was **re-pinned against the
+official engine with the receipt in place**, and four Purifying Salt rows were added beside it.
+43 passed / 0 failed.
+
+### WIRE 116 — the partial trap holds the switch. `partialTrap`, `probe: 'a partial trap holds a voluntary switch, and Ghost / Shed Shell / a pivot get out'`
+
+`_trap` was initialised, set, chipped, expired and taught to die with its trapper — and **appeared in
+no switch decision anywhere**, so Fire Spin, Wrap, Infestation, Whirlpool, Sand Tomb, Thunder Cage and
+Magma Storm dealt their chip and let the victim walk out. The comment at the site that SETS the trap
+said *"the switch-blocking half is NOT modelled"*, which is how a declared gap survives: it was true,
+so nobody re-read it.
+
+The rule was taken off the official engine, four arms, all printed:
+
+| arm | official engine |
+|---|---|
+| bare switch out of an Infestation | **REJECTED** — `Can't switch: The active Pokémon is trapped` |
+| a **Ghost** type | leaves freely, and **keeps the volatile and the chip** (98/130 → 82/130 the following turn) — which is why the exemption is at the switch and not at the tick |
+| a **Shed Shell** holder | leaves |
+| a pivot **MOVE** (U-turn) | pivots — already expressed by the existing `!a.mv` gate |
+
+Shed Shell is a **name** because `data/tags.json` has no `shedshell` entry at all — there is nothing
+to read by shape. Stated where it is read, like Shield Dust.
+
+**FILED, NOT FIXED: Shed Shell does not release a body from ABILITY trapping.** It should. The
+ability branch was scoped out of this dispatch as correct-and-untouched, and the exposure is zero
+today (Shadow Tag is Gengar-Mega; Magnet Pull and Arena Trap have no corpus presence). Declared at
+the site.
+
+**AND THE STALE COMMENT ON THAT SAME BLOCK IS GONE.** It claimed `onlyGrounded`/`onlyTypes` "are not
+in the params yet" and that Arena Trap and Magnet Pull "over-trap". The staged tag_dex batch landed
+those params, the code reads them, and the comment described a world that ended.
+
+### How each probe was proved
+
+`tests/test-mechanics.js` gained six probes, all **armed**. Every one was demonstrated RED against a
+**known-bad engine**: the source is loaded through a require hook, the seven WIRE sites are reverted
+in memory to exactly what they said before this pass, and **each reversal asserts it applied** —
+a patch that silently failed to match would make a broken engine look fixed, which is this project's
+signature failure arriving through the test meant to catch it. **6 of 6 behaved as declared:
+5 RED, 1 GREEN because it is the declared PIN.** The reverted-engine readings are the receipts:
+
+```
+statusImmune           sturdy brn,par,slp,tox | salt brn,par,slp,tox     <- the immunity did nothing
+shield dust / status   wisp/dust none  (post-fix: brn)
+shield dust / ability  static plain par  dust none                       <- refused a punish ability
+shield dust / self     trailblaze dust 0  plain 1                        <- deleted the attacker's own boost
+partial trap           trapped:incineroar                                <- trapped, and it left anyway
+```
+
+**TWO PROBES WERE WRONG BEFORE THE ENGINE WAS, WHICH MAKES TWENTY-SIX.** The first Shield Dust
+ability arm staged the attack with `tackle`, which is **not in `MC.moves`** — `playerAction` returned
+`{kind:'pass'}`, so both arms read "nothing happened" and the defect looked like agreement. The second
+replaced it with **Flare Blitz**, whose own 10% burn secondary fired on the forced low roll and was
+read as the Poison Touch proc. The shipped probe uses **Drain Punch**: contact, and no secondary of
+its own.
+
+**AND SO WAS THE OFFICIAL-ENGINE HARNESS, THREE TIMES, IN THE SAME DIRECTION.** Every reactor was
+given `['Protect']` as its only move and duly clicked it, so **every status read as blocked** and the
+engine would have been declared correct. Then `pass` was rejected in a doubles slot that has a live
+body. Then Fire Spin's 85% missed on the pinned seed and the trap arm read as "not trapped". Each of
+those makes the reference say what the wrong answer wanted it to say.
 
 ## THE FOUR MISSING MECHANICS, EACH WITH ITS REASON. 2026-08-05, after the Layer 0 pass.
 
@@ -215,14 +433,14 @@ named, tag_dex change staged; **(d)** = blocked or declared, reason stated.
 | `accuracyMod` | 2,537 | **(d) BLOCKED** on the `moveAccuracy(id, field)` signature — confirmed excluded by the dispatch, wording in the missing table above re-confirmed current |
 | `writesAccuracy` | 1,073 | **(d) BLOCKED**, same signature |
 | `randomBoostEachTurn` | 515 | **(c)/(d) derivation over-matched, fix STAGED.** Matched any random onResidual, catching **Healer** (cures ally status) and **Harvest** (regrows a berry). Tightened to require the boost call: membership is exactly Moody. Moody's consumer deliberately not written — the tag's own text says it belongs in forecast variance, not in a feature |
-| `statusImmune` | 430 | **(d) DECLARED.** `{immune:true}` names no status — wiring by shape would make Leaf Guard block everything always. The hand table (STATUS_IMMUNE_ABIL) is currently RICHER than the artifact; enrichment (which statuses, from onSetStatus) is future tag_dex work, noted, not staged in code this pass |
+| `statusImmune` | 430 | **(d) DECLARED.** `{immune:true}` names no status — wiring by shape would make Leaf Guard block everything always. The hand table (STATUS_IMMUNE_ABIL) is currently RICHER than the artifact; enrichment (which statuses, from onSetStatus) is future tag_dex work, noted, not staged in code this pass. **2026-08-05: the declaration held and the table was still INCOMPLETE — Purifying Salt was in none of its six lists. WIRE 114. The verdict was right about the artifact and said nothing about whether the richer table was correct, which is the gap that let a legal, played ability be missing entirely** |
 | `invertsBoosts` | 193 | **(a) WIRE 100b.** Seven `==='contrary'` literals replaced by one `invSign()` reading the tag |
 | `removesOwnSecondaries` | 161 | **(b) WIRE 97.** The suppression half was name-wired (`mAb==='sheerforce'`, now the tag); the **x1.3 was absent entirely** — a Sheer Force body lost its secondaries and got nothing, strictly worse than no ability. Damage half wired on moves that HAVE a secondary; Life Orb recoil skipped on boosted moves (the real interaction) |
 | `addsFlinch` | 83 | **(b) WIRE 103.** King's Rock: 10% flinch on damaging moves without a flinch of their own (the handler's gate, reproduced), inside the same Shield Dust / Sheer Force suppression, same actedAt / Inner Focus bookkeeping |
 | `fractionalPriority` | 78 | **(b) WIRE 101.** Quick Claw: rolled once per holder per turn BEFORE the sort (a comparator roll would re-draw), rng consumed only when the item carries the tag so seeded probes keep their stream |
 | `critDamageUp` | 43 | **(b) WIRE 96.** Sniper x1.5 on the crit, at both crit sites (dmgRange's certain path, the battle loop's rolled path) |
 | `ignoresStatStages` | 2,445 | **(b) ability half / (c) move half.** Unaware wired in dmgRange, both directions, Mold Breaker punches through. The MOVE half (Darkest Lariat, Sacred Sword) has been live all along under `ignoresBoosts` — a redundant second spelling; move-side derivation retired, STAGED |
-| `preventsSwitch` | 0* | **(b) WIRE 92 + STAGED enrichment.** *Sheet count lies by Lesson 3: Shadow Tag is Gengar-Mega. A voluntary switch is refused while a live foe carries the tag; Ghost types and same-tag holders exempt (shape reads); `onlyTypes` (Magnet Pull/Steel) and `onlyGrounded` (Arena Trap) derived from the handlers, honoured when the regeneration lands — until then those two carriers, zero corpus presence, over-trap, stated at the site |
+| `preventsSwitch` | 0* | **(b) WIRE 92 + STAGED enrichment.** *Sheet count lies by Lesson 3: Shadow Tag is Gengar-Mega. A voluntary switch is refused while a live foe carries the tag; Ghost types and same-tag holders exempt (shape reads); `onlyTypes` (Magnet Pull/Steel) and `onlyGrounded` (Arena Trap) derived from the handlers, honoured when the regeneration lands — until then those two carriers, zero corpus presence, over-trap, stated at the site. **2026-08-05: the regeneration ran, the params are read, and the comment saying otherwise survived it and was corrected. This tag is the ABILITY half only; the MOVE half was absent entirely — WIRE 116** |
 | `boostsOnKO` | 0* | **(b) WIRE 104.** Eelevate (Eelektross-Mega — Lesson 3 again) and Beast Boost: +1 to the killer's highest raw stat, from the tag's own params |
 | `privateWeather` | 0* | **(b) WIRE 99.** Mega Sol (Meganium's mega): the holder's own damage formula reads a sun the field never reports, through `effWeatherOf` — precisely the consumer shape the tag's own text demands ("ask what weather THIS mon sees") |
 | `hitsTwice` | 0* | **(b) WIRE 98.** Parental Bond (Kangaskhanite, 217 stone uses): x1.25 on single-target damaging moves, not on spread, not on multi-hit |
@@ -528,6 +746,24 @@ arms.**
   with `heal: true`, and it now resolves to `affect`, so that counter no longer sees it. The heal
   scales off the TARGET's Attack and no artifact this engine reads carries it. Recorded here because a
   counter that quietly went down is exactly the shape this file exists to stop.
+- **Shed Shell does not release a body from ABILITY trapping (WIRE 116 landed it only on the MOVE
+  branch).** The item lets its holder out of Shadow Tag, Magnet Pull and Arena Trap in the real game.
+  The ability branch was scoped out of the 2026-08-05 dispatch as correct-and-untouched, and the
+  exposure is zero today. Declared at the site, one line above the branch.
+- **ENGINE's own number is restated in two documents ENGINE does not own, and the scope pass staled
+  both.** `docs/ADR-002-showdown-is-the-authority.md:52` and `docs/MODELS.md:265` both read
+  **"202 / 205 live"**; the artifact now reads **208 / 211**. `tests/test-docs-current.js` catches it
+  (4 of the 25 new `citation_mismatches` entries) and was **already red on arrival** — the other 21
+  cite `policy-weights.json` and figures quoted from ADR-001, none of which this pass touched. Two
+  line edits, outside the 2026-08-05 dispatch's file scope, so filed rather than made. **This is the
+  standing hazard of a census that may only rise: every document that quotes it goes stale on a good
+  day.** The generated block at the top of this file is the only copy that cannot.
+- **Two ratchets are RED on arrival and neither flags a file ENGINE owns**, re-confirmed 2026-08-05:
+  `test-effective-identity` fails on **`engine/click_class.js: 0 -> 2`**,
+  and `test-no-silent-failure` on 12 new catches across `click_census.js`, `docs_scan.js`,
+  `em_validation.js`, `engine_release.js`, `job_cost.js`, `test-docs-current.js` and
+  `test-engine-release.js`. medicham2's own declaration is still PINNED and still passes. Filed under
+  the DIVISIONS rule "if you trip over another division's bug, you file it".
 - **Grounded-ness is still not tracked, and WIRE 73 inherits the gap.** Grassy Terrain heals a Flying
   TYPE correctly (skipped) and heals a **Levitate** body it should not, counted in
   `fails.terrainHealUngrounded`. Same declared gap as `fails.hazardUnresolved`, one field over.

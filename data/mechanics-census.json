@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-05T02:12:52.246Z",
+  "generated": "2026-08-05T05:23:45.565Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 205,
-  "live": 202,
+  "probed": 211,
+  "live": 208,
   "missing": 3,
-  "armed": 59,
+  "armed": 65,
   "unarmed": 146,
   "threw": 0,
   "hollow": 0,
@@ -1689,7 +1689,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 18.8% (format 20, generic 30), control Rock Slide 28.0% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.4% (format 20, generic 30), control Rock Slide 27.0% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true
     },
@@ -1852,6 +1852,60 @@
       "label": "Mega Sol's own Fire move fires under a sun only it can see",
       "live": true,
       "detail": "Flamethrower on a clear field: ability none 130, Mega Sol 194 (the private sun's x1.5); the FIELD still reports no weather -- only this body's reads see it",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "statusImmune",
+      "label": "Purifying Salt refuses every major status, and Sturdy takes them all",
+      "live": true,
+      "detail": "Wisp/T-Wave/Spore/Toxic into Garganacl -- Sturdy brn,par,slp,tox (the control arm genuinely landed all four), Purifying Salt none,none,none,none; Nuzzle's SECONDARY par: Sturdy par, Purifying Salt none",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "halvesTypeDamage",
+      "label": "Purifying Salt halves a GHOST move and leaves the others alone",
+      "live": true,
+      "detail": "Shadow Ball into Garganacl: no ability 99 -> Purifying Salt 49; Sludge Bomb must NOT move: 55 -> 55",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "untagged",
+      "label": "Shield Dust blocks a move SECONDARY and does not block a status MOVE",
+      "live": true,
+      "detail": "into a Shield Dust Vivillon -- Nuzzle's secondary par: none (blocked; with no ability it is par, so the arm ran), Will-O-Wisp: brn, T-Wave/Spore/Toxic: par,slp,tox",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "untagged",
+      "label": "Shield Dust does not stop Static, and does stop Poison Touch",
+      "live": true,
+      "detail": "Static onto the attacker -- no ability par, Shield Dust par (not blocked); Poison Touch onto the target -- no ability psn, Shield Dust none (blocked, and Showdown says so in its own handler)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "untagged",
+      "label": "Shield Dust drops the target's stat drop and keeps the attacker's own boost",
+      "live": true,
+      "detail": "against a Shield Dust body -- Icy Wind's target spe 0 (dropped; with no ability -1), Trailblaze's own spe 1 (kept; with no ability 1)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "partialTrap",
+      "label": "a partial trap holds a voluntary switch, and Ghost / Shed Shell / a pivot get out",
+      "live": true,
+      "detail": "who stands after the switch click -- Infestation then a bare switch: trapped:milotic; no trap: untrapped:incineroar; Ghost: trapped:incineroar; Shed Shell: trapped:incineroar; Parting Shot (a pivot MOVE): trapped:incineroar",
       "hollow": false,
       "armed": true
     }

@@ -3593,6 +3593,202 @@ probe('ability', 'privateWeather', "Mega Sol's own Fire move fires under a sun o
                  + `the FIELD still reports no weather -- only this body's reads see it` };
 });
 
+/* ================================================================================================
+ * THE CENSUS ASKS WHETHER A MECHANIC FIRES. IT NEVER ASKED WHETHER IT FIRES *ONLY WHERE IT SHOULD*.
+ *
+ * The six probes below are the first that do. Every one of them was shown RED against the engine as
+ * it stood, and each names the OFFICIAL result it was checked against — every expected outcome here
+ * came out of `Dex.forFormat('gen9championsvgc2026regmb')` playing the same case at the pinned
+ * commit, printed and read, rather than out of anybody's memory. Three of them would have passed a
+ * "does the mechanic fire" probe on the day they were broken:
+ *   - Shield Dust FIRED. It fired on Will-O-Wisp, on Thunder Wave, on Spore, on Toxic and on Static
+ *     as well, none of which it touches.
+ *   - the partial trap FIRED. It chipped every turn, expired correctly, and died with its trapper —
+ *     and stopped nothing, which is the whole move.
+ *   - Purifying Salt's DAMAGE half fired all along; only the status half was absent, so "is
+ *     Purifying Salt live" had a true answer and a false one at the same time.
+ * ============================================================================================== */
+
+/* WIRE 114. Garganacl is legal and played in Reg M-B (51 declared sheets) and STATUS_IMMUNE_ABIL had
+ * no entry for it at all, so every Will-O-Wisp, Thunder Wave, Spore and Toxic landed.
+ * Official engine, both arms played: into Purifying Salt all four leave it clean; into Sturdy the
+ * same four bodies burn / paralyse / sleep / badly-poison. */
+probe('ability', 'statusImmune', 'Purifying Salt refuses every major status, and Sturdy takes them all', () => {
+  const one = (ab, moveId) => {
+    const me = bare('milotic'), ally = bare('corviknight');
+    const f1 = bare('garganacl'), f2 = bare('garchomp');
+    f1.ability = ab;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return f1.status || 'none';
+  };
+  /* Spore is a powder and Toxic is Poison-typed: Garganacl is a pure Rock type, so neither the powder
+   * gate nor a type immunity can be what refuses them. That is why the body is Garganacl and not the
+   * Grass or Steel body a lazier staging would have reached for. */
+  const MOVES = ['willowisp', 'thunderwave', 'spore', 'toxic'];
+  const control = MOVES.map(mv => one('sturdy', mv)).join(',');
+  const test = MOVES.map(mv => one('purifyingsalt', mv)).join(',');
+  /* The SECONDARY route as well, because an immunity wired only into the status-move branch would
+   * still let Nuzzle paralyse it. */
+  const secPlain = one('sturdy', 'nuzzle'), secSalt = one('purifyingsalt', 'nuzzle');
+  return { works: control === 'brn,par,slp,tox' && test === 'none,none,none,none'
+                  && secPlain === 'par' && secSalt === 'none',
+           arms: { control, test },
+           detail: `Wisp/T-Wave/Spore/Toxic into Garganacl -- Sturdy ${control} (the control arm `
+                 + `genuinely landed all four), Purifying Salt ${test}; Nuzzle's SECONDARY par: `
+                 + `Sturdy ${secPlain}, Purifying Salt ${secSalt}` };
+});
+
+/* The OTHER half of the same ability, probed because a mechanic with two halves needs a probe per
+ * half — the weather rocks cost this project four routes and one passing probe. This half was
+ * already LIVE off `halvesTypeDamage`; it is pinned here so the pair can never drift apart. */
+probe('ability', 'halvesTypeDamage', 'Purifying Salt halves a GHOST move and leaves the others alone', () => {
+  const off = bare('garganacl'), on = bare('garganacl');
+  on.ability = 'purifyingsalt';
+  const att = bare('gengar');
+  const ghost = M.dmgRange(att, off, MC.moves['shadowball'], fresh(), false).max;
+  const ghostS = M.dmgRange(att, on, MC.moves['shadowball'], fresh(), false).max;
+  const other = M.dmgRange(att, off, MC.moves['sludgebomb'], fresh(), false).max;
+  const otherS = M.dmgRange(att, on, MC.moves['sludgebomb'], fresh(), false).max;
+  return { works: ghostS < ghost * 0.6 && ghostS > 0 && otherS === other,
+           arms: { control: ghost, test: ghostS },
+           detail: `Shadow Ball into Garganacl: no ability ${ghost} -> Purifying Salt ${ghostS}; `
+                 + `Sludge Bomb must NOT move: ${other} -> ${otherS}` };
+});
+
+/* WIRE 115. `canTakeStatus` carried a blanket `if(ab==='shielddust') return false`, and it is the
+ * gate every status in this engine passes through — so a Shield Dust body could not be burned,
+ * paralysed, slept or poisoned by a DIRECT status move. Official engine: Will-O-Wisp into Shield
+ * Dust burns exactly as it does into Compound Eyes. The two arms below are the SCOPE knob — same
+ * body, same ability, one secondary status and one direct status move — so equal arms would mean
+ * the engine cannot tell the two apart, which is precisely the bug. */
+probe('ability', 'untagged', 'Shield Dust blocks a move SECONDARY and does not block a status MOVE', () => {
+  const one = (moveId, ab) => {
+    const me = bare('milotic'), ally = bare('corviknight');
+    const f1 = bare('vivillon'), f2 = bare('garchomp');
+    f1.ability = ab;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    /* A low roll so the 100%-chance secondary is never the thing under test and the 30% ones fire. */
+    M.battleTurn(S, () => 0.01,
+      new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return f1.status || 'none';
+  };
+  const control = one('nuzzle', 'shielddust');          /* secondary  -> blocked */
+  const test = one('willowisp', 'shielddust');          /* status MOVE -> must land */
+  const secPlain = one('nuzzle', 'none');               /* the secondary really does land otherwise */
+  const rest = ['thunderwave', 'spore', 'toxic'].map(mv => one(mv, 'shielddust')).join(',');
+  return { works: control === 'none' && secPlain === 'par' && test === 'brn' && rest === 'par,slp,tox',
+           arms: { control, test },
+           detail: `into a Shield Dust Vivillon -- Nuzzle's secondary par: ${control} (blocked; with `
+                 + `no ability it is ${secPlain}, so the arm ran), Will-O-Wisp: ${test}, `
+                 + `T-Wave/Spore/Toxic: ${rest}` };
+});
+
+/* The same wrong scope on the two ABILITY routes, which are opposite in the real game and were
+ * identical here. Official engine: a Shield Dust body that attacks a Static body IS paralysed
+ * (30% roll, both arms play it); a Poison Touch attacker into a Shield Dust body poisons it
+ * 0 times in 40 seeds against 12 in 40 into Compound Eyes — Showdown special-cases that one onto
+ * Shield Dust in its own source comment. So the arms must DIFFER, and before this pass they agreed
+ * at "nothing happens". */
+probe('ability', 'untagged', 'Shield Dust does not stop Static, and does stop Poison Touch', () => {
+  const staticOn = (attAb) => {
+    const me = bare('incineroar'), ally = bare('corviknight');
+    const f1 = bare('milotic'), f2 = bare('garchomp');
+    me.ability = attAb; f1.ability = 'static';
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, () => 0.01,
+      new Map([[me, M.playerAction(me, 'drainpunch', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return me.status || 'none';                          /* the ATTACKER is what Static punishes */
+  };
+  const ptouch = (tgtAb) => {
+    const me = bare('incineroar'), ally = bare('corviknight');
+    const f1 = bare('garganacl'), f2 = bare('garchomp');
+    me.ability = 'poisontouch'; f1.ability = tgtAb;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, () => 0.01,
+      new Map([[me, M.playerAction(me, 'drainpunch', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return f1.status || 'none';
+  };
+  /* Drain Punch: contact, and it carries NO secondary of its own — the first cut of this used Flare
+   * Blitz and read its own 10% burn as the Poison Touch proc, which is arm 25. */
+  const staticPlain = staticOn('none'), staticDust = staticOn('shielddust');
+  const ptPlain = ptouch('none'), ptDust = ptouch('shielddust');
+  return { works: staticPlain === 'par' && staticDust === 'par' && ptPlain === 'psn' && ptDust === 'none',
+           arms: { control: staticDust, test: ptDust },
+           detail: `Static onto the attacker -- no ability ${staticPlain}, Shield Dust ${staticDust} `
+                 + `(not blocked); Poison Touch onto the target -- no ability ${ptPlain}, `
+                 + `Shield Dust ${ptDust} (blocked, and Showdown says so in its own handler)` };
+});
+
+/* Shield Dust's handler is `secondaries.filter(effect => !!effect.self)` — it KEEPS the secondaries
+ * that boost the USER and drops the rest. This engine merged it with Sheer Force (which really does
+ * delete everything) into one boolean, so a Trailblaze into a Shield Dust body left the attacker at
+ * Speed 0. Official engine: spe+1, identical to the Compound Eyes control. The arms are two KINDS of
+ * secondary against one ability, which is the distinction that was missing. */
+probe('ability', 'untagged', "Shield Dust drops the target's stat drop and keeps the attacker's own boost", () => {
+  const drop = (ab) => {                                  /* Icy Wind: 100% target spe -1 */
+    const me = bare('milotic'), ally = bare('corviknight');
+    const f1 = bare('vivillon'), f2 = bare('garchomp');
+    f1.ability = ab;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, () => 0.01,
+      new Map([[me, M.playerAction(me, 'icywind', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return f1.boosts.sp;
+  };
+  const boost = (ab) => {                                 /* Trailblaze: 100% SELF spe +1 */
+    const me = bare('milotic'), ally = bare('corviknight');
+    const f1 = bare('vivillon'), f2 = bare('garchomp');
+    f1.ability = ab;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, () => 0.01,
+      new Map([[me, M.playerAction(me, 'trailblaze', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return me.boosts.sp;
+  };
+  const control = drop('shielddust'), test = boost('shielddust');
+  const dropPlain = drop('none'), boostPlain = boost('none');
+  return { works: control === 0 && dropPlain === -1 && test === 1 && boostPlain === 1,
+           arms: { control, test },
+           detail: `against a Shield Dust body -- Icy Wind's target spe ${control} (dropped; with no `
+                 + `ability ${dropPlain}), Trailblaze's own spe ${test} (kept; with no ability `
+                 + `${boostPlain})` };
+});
+
+/* WIRE 116. `_trap` was set, chipped, expired and taught to die with its trapper, and appeared in NO
+ * switch decision — so every partial-trapping move let its victim walk out. Official engine: the bare
+ * switch is REJECTED outright ("Can't switch: The active Pokémon is trapped"); a Ghost type leaves
+ * and keeps taking the chip; a Shed Shell holder leaves; a pivot MOVE goes through. */
+probe('move', 'partialTrap', 'a partial trap holds a voluntary switch, and Ghost / Shed Shell / a pivot get out', () => {
+  const run = (foeMove, mySp, item, pivot) => {
+    const me = bare(mySp), ally = bare('corviknight'), sub = bare('incineroar');
+    if (item) me.item = item;
+    const f1 = bare('vivillon'), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally, sub], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, foeMove, me, S.field)], [f2, { kind: 'pass' }]]));
+    /* THE MUTATION ARM MUST BE SHOWN TO HAVE RUN. Without this the "trapped" arms and the control
+       arm are the same experiment: a Fire Spin that missed and a trap that does not hold read
+       identically at the end. */
+    const trapped = !!me._trap;
+    M.battleTurn(S, rng5,
+      new Map([[me, pivot ? M.playerAction(me, 'partingshot', f1, S.field) : { kind: 'switch', to: sub }],
+               [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return (trapped ? 'trapped:' : 'untrapped:') + (S.actA[0] && S.actA[0].name);
+  };
+  const control = run('infestation', 'milotic', '', false);
+  const free = run('protect', 'milotic', '', false);       /* nothing was ever set */
+  const ghost = run('infestation', 'mimikyu', '', false);
+  const shed = run('infestation', 'milotic', 'shedshell', false);
+  const piv = run('infestation', 'milotic', '', true);
+  return { works: control === 'trapped:milotic' && free === 'untrapped:incineroar'
+                  && ghost === 'trapped:incineroar' && shed === 'trapped:incineroar'
+                  && piv === 'trapped:incineroar',
+           arms: { control, test: free },
+           detail: `who stands after the switch click -- Infestation then a bare switch: ${control}; `
+                 + `no trap: ${free}; Ghost: ${ghost}; Shed Shell: ${shed}; Parting Shot (a pivot `
+                 + `MOVE): ${piv}` };
+});
+
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
 console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');

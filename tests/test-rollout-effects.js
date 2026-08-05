@@ -92,7 +92,20 @@ ok(E.canTakeStatus(mon(['Fire']), 'par') === true,       'but a Fire type CAN be
 ok(E.canTakeStatus(mon(['Water'], 'waterveil'), 'brn') === false, 'Water Veil blocks burn');
 ok(E.canTakeStatus(mon(['Normal'], 'limber'), 'par') === false,   'Limber blocks paralysis');
 ok(E.canTakeStatus(mon(['Normal'], 'insomnia'), 'slp') === false, 'Insomnia blocks sleep');
-ok(E.canTakeStatus(mon(['Bug'], 'shielddust'), 'brn') === false,  'Shield Dust blocks secondary status');
+/* RE-PINNED 2026-08-05, WIRE 115. This row asserted `canTakeStatus(shielddust,'brn') === false` and
+ * the assertion was WRONG, not the engine — the same event as the Simple/Intimidate row: a test that
+ * pinned a defect. `canTakeStatus` is the gate for EVERY status, so a false here made Shield Dust
+ * refuse Will-O-Wisp, Thunder Wave, Spore, Toxic and Static, none of which it touches. The official
+ * engine at the pinned commit was played on all of them before this line moved: Will-O-Wisp into
+ * Shield Dust BURNS, exactly as into a Compound Eyes control. Shield Dust filters a move's
+ * SECONDARIES and that now lives at the secondary loop, which is where the census probes it. */
+ok(E.canTakeStatus(mon(['Bug'], 'shielddust'), 'brn') === true,
+   'Shield Dust does NOT block a direct status move (it filters a move\'s secondaries; official engine burns it)');
+/* WIRE 114 — the immunity that was absent from the table altogether. Garganacl is legal in Reg M-B. */
+ok(E.canTakeStatus(mon(['Rock'], 'purifyingsalt'), 'brn') === false, 'Purifying Salt blocks burn');
+ok(E.canTakeStatus(mon(['Rock'], 'purifyingsalt'), 'slp') === false, 'Purifying Salt blocks sleep');
+ok(E.canTakeStatus(mon(['Rock'], 'purifyingsalt'), 'tox') === false, 'Purifying Salt blocks toxic');
+ok(E.canTakeStatus(mon(['Rock'], 'sturdy'), 'brn') === true,         'and a Sturdy control still burns');
 const already = mon(['Normal']); already.status = 'par';
 ok(E.canTakeStatus(already, 'brn') === false, 'a Pokemon already statused cannot take a second');
 

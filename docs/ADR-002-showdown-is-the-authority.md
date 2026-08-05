@@ -43,13 +43,17 @@ This ADR does not discover that drift. It ends it, by deciding which of the two 
 ## Why the decision reverses, stated as evidence rather than preference
 
 **1. The premise was falsified by events.** ADR-001 held that hand-fixing would never converge. It
-converged. Current state, from artifacts, not prose:
+converged. Read at the moment of the decision, from artifacts, not prose:
 
 | instrument | agreement with the official engine |
 |---|---|
 | `data/engine-diff.json` (damage, seed 20260804) | **149 / 150** — the one residual is a documented harness-layer boundary, both engines right |
 | `data/interaction-matrix.json` (carrier × reactor) | **899 / 899 — 100.0%**, zero disagreements |
-| `data/mechanics-census.json` | **202 / 205 live**, 3 missing with written reasons |
+| `data/mechanics-census.json` | **208 / 211 live**, 3 missing with written reasons |
+
+*(Those are a snapshot, and the census in particular moves — it read 202/211 four hours before this
+was written and 208/211 when it was checked. That is the point rather than a caveat: the number
+climbs because the instruments exist. Read it from the artifact, never from this table.)*
 
 What made the difference is not stubbornness. **The differential harness and the interaction matrix
 did not exist when ADR-001 was written.** Hand-fixing did not converge; *instrumented* fixing did.
@@ -93,7 +97,16 @@ times and the hand-written engine becomes the authority without anyone deciding.
 
 ## Sources
 
-Every figure above is read from an artifact on disk on 2026-08-05: `data/engine-diff.json`,
-`data/interaction-matrix.json`, `data/mechanics-census.json`. The 31.1-point disagreement, the
-4.35-point hand-fix delta and the 117× timing are quoted from ADR-001 and are not re-measured here —
-they are the record of what was known then, which is the point of keeping it.
+**Measured, from artifacts on disk 2026-08-05.** `data/engine-diff.json`,
+`data/interaction-matrix.json`, `data/mechanics-census.json`. These are the figures this decision
+rests on and each traces to a file.
+
+**Quoted from ADR-001, not re-measured.** The 31.1-point win-probability disagreement, the
+4.35-point hand-fix delta and the 117× simulator timing appear nowhere in the artifacts above and
+must not be attributed to them. They are ADR-001's record of what was known in July, kept because a
+decision reversal is only legible beside the evidence it reverses. If any of them matters again it
+gets re-measured before it is quoted.
+
+*(The doc-currency check flagged those three as figures a cited artifact does not contain. It was
+right to. They are historical quotes sitting in a document that also cites live artifacts, and the
+check cannot tell those apart from a paragraph — so the document says which is which instead.)*
