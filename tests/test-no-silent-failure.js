@@ -134,6 +134,13 @@ const SPEAKS = [
    * mention of a name like `failCount` in a condition does not qualify. This can only SHRINK the
    * silent set, which is the one direction a detector change here is allowed to move it. */
   /\bfail\w*\s*\(/i,
+  /* WRITING TO stderr IS REPORTING. The list recognised `console.*` and missed
+   * `process.stderr.write`, which is the same act through a lower-level door — and it is the door a
+   * library uses when it must not assume a console exists. `engine/job_cost.js` was flagged for a
+   * catch whose entire body writes the failure to stderr. Same false-positive class as `fail(` above,
+   * same justification: this can only SHRINK the silent set, which is the one direction a detector
+   * change here is allowed to move it. */
+  /\bprocess\s*\.\s*std(err|out)\s*\.\s*write\s*\(/,
 ];
 const isSilent = (body) => !SPEAKS.some(re => re.test(body));
 

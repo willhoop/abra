@@ -610,7 +610,10 @@ function uncommitted() {
     const lastIso = git(['log', '-1', '--format=%cI']);
     const hours = (Date.now() - new Date(lastIso).getTime()) / 3600000;
     let ahead = 0;
-    try { ahead = +git(['rev-list', '--count', '@{u}..HEAD']); } catch (e) { ahead = -1; }  // no upstream
+    /* -1 means "could not ask", NOT "nothing unpushed" — those read identically to a caller and one
+     * of them is a reason to relax. Recorded so the diagnostics block says which it was. */
+    try { ahead = +git(['rev-list', '--count', '@{u}..HEAD']); }
+    catch (noUpstream) { ahead = -1; NOTES.push('git: no upstream branch — unpushed count unknown, not zero'); }
     return { changed, untracked, hours, ahead };
   } catch (e) { logUnreadable('git (working tree age)', e); return null; }
 }

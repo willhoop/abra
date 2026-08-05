@@ -47,8 +47,14 @@ function track(job, meta) {
   const started = Date.now();
   let peak = 0, samples = 0;
 
+  /* A failed sample is COUNTED, not swallowed. `samples` is written into the row, so a run whose
+   * peak was measured twice and a run whose peak was measured two hundred times are distinguishable
+   * by a reader — and `sample_errors` says which of those was an accident. A recorder that hides its
+   * own blind spots reports a low peak as confidently as a real one. */
+  let sampleErrors = 0, lastSampleError = null;
   const sample = () => {
-    try { peak = Math.max(peak, process.memoryUsage().rss); samples++; } catch (e) { /* a dying process cannot sample itself; the exit handler still writes what it has */ }
+    try { peak = Math.max(peak, process.memoryUsage().rss); samples++; }
+    catch (e) { sampleErrors++; lastSampleError = String(e.message || e).slice(0, 120); }
   };
   sample();
   const timer = setInterval(sample, SAMPLE_MS);
@@ -67,14 +73,22 @@ function track(job, meta) {
       samples,
       node: process.version,
       at: new Date().toISOString(),
+      ...(sampleErrors ? { sample_errors: sampleErrors, sample_error: lastSampleError } : {}),
       ...(meta && typeof meta === 'object' ? { meta } : {}),
     };
     try {
       fs.mkdirSync(path.dirname(OUT), { recursive: true });
       fs.appendFileSync(OUT, JSON.stringify(row) + '\n');
-    } catch (e) {
-      /* Announced, not swallowed. Losing the cost record must not look like a job that cost nothing. */
-      try { process.stderr.write('  job_cost: could not record ' + job + ' — ' + (e.message || e) + '\n'); } catch (e2) {}
+    } catch (writeErr) {
+      /* Announced, not swallowed. Losing the cost record must not look like a job that cost nothing.
+       *
+       * ASKED, NOT TRIED. This runs inside an `exit` handler where stderr may already be closed, and
+       * the obvious guard — wrapping the write in its own try — produces an EMPTY catch with nowhere
+       * left to report from. An empty catch is the exact shape this repo's silent-failure ratchet
+       * exists to refuse, and "it is unavoidable here" is what every one of them claimed. Checking
+       * writability first removes the catch rather than excusing it. */
+      const msg = '  job_cost: could not record ' + job + ' — ' + (writeErr.message || writeErr) + '\n';
+      if (process.stderr && process.stderr.writable) process.stderr.write(msg);
     }
   });
 
@@ -83,10 +97,26 @@ function track(job, meta) {
 
 /* ---- reading it back ------------------------------------------------------------------------- */
 function rows() {
-  try {
-    return fs.readFileSync(OUT, 'utf8').split('\n').filter(Boolean)
-      .map(l => { try { return JSON.parse(l); } catch (e) { return null; } }).filter(Boolean);
-  } catch (e) { if (e.code !== 'ENOENT') throw e; return []; }
+  let text;
+  try { text = fs.readFileSync(OUT, 'utf8'); }
+  catch (readErr) {
+    /* ENOENT is the ordinary state before the first run. Anything else is a real failure and is
+     * rethrown rather than reported as "no costs recorded", which reads as a clean slate. */
+    if (readErr.code === 'ENOENT') return [];
+    throw readErr;
+  }
+  const out = [];
+  let unparsable = 0;
+  for (const line of text.split('\n')) {
+    if (!line.trim()) continue;
+    try { out.push(JSON.parse(line)); }
+    catch (parseErr) { unparsable++; }        // a torn append; counted below, never silently dropped
+  }
+  if (unparsable) {
+    process.stderr.write('  job_cost: ' + unparsable + ' unreadable line(s) in ' + OUT
+      + ' — probably a torn append from a killed process; the rest is still valid\n');
+  }
+  return out;
 }
 
 /* The summary reports the MAX and the SPREAD, never a mean on its own. A job whose cost depends on

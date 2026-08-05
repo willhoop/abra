@@ -108,5 +108,127 @@ try {
 ok(sha(fs.readFileSync(live)) === r.manifest.files[VICTIM], 'the live file was restored exactly');
 ok(moved, 'the mutation arm actually ran — a skipped edit would have passed every check above');
 
+/* ---- 4. TONIGHT'S SEQUENCE: TWO CUTS OVER AN UNCHANGED TREE ------------------------------------ *
+ * THE BUG, with the receipt. `engine/engine_release.js cut` ran twice over an unchanged tree on
+ * 2026-08-05 — 02:12:57Z by SEARCH ("h60 log leg of the R1 explore-sweep re-run"), 02:26:04Z by the
+ * router ("R10/click-censoring parallel session"). Both produced id `09acd3b404ef`, exactly 2 lines
+ * of `release.json` changed and ZERO of the 23 digests, so no measurement was corrupted — and the
+ * second cut OVERWROTE the first's `cut` and `why`. Any artifact SEARCH stamped `09acd3b404ef` then
+ * pointed at a record claiming a freeze time THIRTEEN MINUTES AFTER the run that used it, for an
+ * unrelated purpose. That is the "artifact newer than an input it never read" shape this repo has
+ * already lost a 7,100-game measurement to.
+ *
+ * The docs called a second cut "a no-op". That was true of the frozen BYTES and false of the RECORD.
+ *
+ * WHY A THROWAWAY STORE. `cut()` writes the pointer that says which release a measurement opens by
+ * default. A test that cut into the real store would repoint it while another division measures —
+ * the failure this whole file exists to prevent, arriving through the test. `{store}` is passed
+ * explicitly, the CLI never passes it, and every call using one prints that it did. */
+const os = require('os');
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'abra-relstore-'));
+const S = { store: TMP };
+const rec = id => JSON.parse(fs.readFileSync(path.join(TMP, 'releases', id, 'release.json'), 'utf8'));
+
+console.log('\n  -- re-cutting an identical tree (throwaway store at ' + TMP + ')');
+try {
+  const WHY1 = 'FIRST CUT — the h60 leg, cut immediately before the run that reads it';
+  const WHY2 = 'SECOND CUT — an unrelated parallel session, thirteen minutes later';
+
+  const c1 = REL.cut(WHY1, S);
+  const rec1 = rec(c1.id);
+  ok(rec1.why === WHY1, 'the first cut records its own reason');
+  ok(!!rec1.cut, 'the first cut records when it froze the tree');
+
+  /* An artifact is stamped BETWEEN the two cuts — this is SEARCH's run. */
+  const stampedAt = new Date().toISOString();
+  const artifact = REL.open(undefined, S).stamp();
+  ok(artifact.engine_release === c1.id, 'an artifact stamped between the cuts names the release');
+
+  let recut = false;
+  const c2 = REL.cut(WHY2, S);
+  recut = true;
+  const rec2 = rec(c2.id);
+
+  /* 1. DETERMINISM IS NOT WEAKENED. */
+  ok(c2.id === c1.id, `an identical tree still yields the identical id (${c1.id})`
+     + (c2.id === c1.id ? '' : ' — if this failed, the live tree moved mid-test: ' + REL.drift(c1.id, S).join(', ')));
+  ok(JSON.stringify(rec2.files) === JSON.stringify(rec1.files), 'not one of the frozen digests changed');
+
+  /* 2. THE FIRST CUT'S RECORD SURVIVES. This is the assertion that was red. */
+  ok(rec2.cut === rec1.cut, `the FIRST cut's timestamp survived the second cut (${rec1.cut})`);
+  ok(rec2.why === WHY1, "the FIRST cut's reason survived the second cut");
+
+  /* 3. AND THE SECOND CUT IS NOT DISCARDED EITHER — it is an event, not an overwrite. */
+  ok(Array.isArray(rec2.cuts) && rec2.cuts.length === 2, `both cuts are recorded as events (${(rec2.cuts || []).length})`);
+  ok(!!rec2.cuts && rec2.cuts[0] && rec2.cuts[0].why === WHY1, 'event 0 is the first cut');
+  ok(!!rec2.cuts && rec2.cuts[1] && rec2.cuts[1].why === WHY2, 'event 1 is the second cut');
+  ok(!!rec2.cuts && rec2.cuts[1] && rec2.cuts[1].at >= rec2.cuts[0].at, 'the events are in the order they happened');
+
+  /* 4. THE RECEIPT ITSELF: no artifact can be older than the release it names. */
+  ok(new Date(rec2.cut) <= new Date(stampedAt),
+     'the record never claims a freeze time AFTER a run that used it (the exact 2026-08-05 defect)');
+  const stampAfter = REL.open(undefined, S).stamp();
+  ok(stampAfter.engine_release_cut === rec1.cut,
+     'stamp() still names the FIRST freeze, so an old artifact and a new one agree about the release');
+  ok(JSON.stringify(stampAfter.source_digests) === JSON.stringify(artifact.source_digests),
+     'stamp() answers "which bytes" identically before and after the recut');
+
+  /* 5. THE POINTER IS A POINTER, AND IT MUST NOT INVENT A CUT TIME EITHER. */
+  const ptr = JSON.parse(fs.readFileSync(path.join(TMP, 'engine-release.json'), 'utf8'));
+  ok(ptr.current === c1.id, 'the pointer points at the release');
+  ok(ptr.cut === rec1.cut && ptr.why === WHY1, 'the pointer mirrors the FIRST cut, not the latest');
+
+  ok(recut, 'the second cut genuinely ran — a skipped recut must not pass this section');
+
+  /* ---- 5. A ROTTED SNAPSHOT IS REPAIRED AND SAID OUT LOUD, NOT SKIPPED ------------------------ *
+   * The old cut() tested `fs.existsSync(dir)` and skipped the whole copy loop, so a release whose
+   * snapshot was incomplete or had rotted stayed broken through every later cut while cut() reported
+   * success. Shown on known-bad input: verify() must FAIL first. */
+  const ROT = 'data/quality-filter.json';
+  const rotPath = path.join(TMP, 'releases', c1.id, ROT);
+  fs.writeFileSync(rotPath, '{"__rotted":true}\n');
+  ok(!REL.verify(c1.id, S).ok, 'a rotted snapshot file genuinely fails verify() first (the bad input is real)');
+  const c3 = REL.cut('third cut, over a rotted snapshot', S);
+  ok(REL.verify(c3.id, S).ok, 'a later cut RESTORES the rotted snapshot file instead of skipping the copy');
+  const rec3 = rec(c3.id);
+  const ev3 = (rec3.cuts || [])[2];
+  ok(!!ev3 && Array.isArray(ev3.repaired) && ev3.repaired.includes(ROT),
+     'and the repair is recorded in the cut event — a silent repair hides that a snapshot rotted');
+  ok(rec3.cut === rec1.cut && rec3.why === WHY1, 'three cuts later, the first is still the one on top');
+
+  /* ---- 6. A LEGACY RECORD (no cuts array) IS MIGRATED, NOT OVERWRITTEN ------------------------ *
+   * The seven releases already on disk have no event list. A recut must adopt what they DO say as
+   * event 0 rather than replacing it. */
+  const legacyDir = path.join(TMP, 'releases', c1.id);
+  fs.unlinkSync(path.join(legacyDir, 'cuts.jsonl'));
+  const legacy = rec(c1.id);
+  delete legacy.cuts;
+  legacy.cut = '2026-08-05T02:12:57.000Z';
+  legacy.why = 'the pre-event-list record';
+  fs.writeFileSync(path.join(legacyDir, 'release.json'), JSON.stringify(legacy, null, 2) + '\n');
+  const c4 = REL.cut('a cut against a legacy record', S);
+  const rec4 = rec(c4.id);
+  ok(rec4.cut === '2026-08-05T02:12:57.000Z' && rec4.why === 'the pre-event-list record',
+     'a legacy record keeps its own cut/why when a later cut lands on it');
+  ok((rec4.cuts || []).length === 2 && rec4.cuts[0].reconstructed === true,
+     'the legacy value is adopted as event 0 and MARKED reconstructed, not passed off as observed');
+
+  /* ---- 7. SAME ID MUST MEAN SAME DIGESTS — a hand-edited record is refused, not overwritten --- */
+  const good = fs.readFileSync(path.join(legacyDir, 'release.json'));
+  const tampered = JSON.parse(good.toString('utf8'));
+  tampered.files['engine/board.js'] = '000000000000';
+  fs.writeFileSync(path.join(legacyDir, 'release.json'), JSON.stringify(tampered, null, 2) + '\n');
+  /* Named errRefused rather than `threw` so the silent-catch ratchet can see what this is: a
+   * failure STASHED FOR A LATER ASSERTION, which is the one shape of quiet catch that is always
+   * correct in a test expecting a throw. The detector recognises the idiom by the variable name. */
+  let errRefused = null;
+  try { REL.cut('a cut over a record whose digests disagree', S); } catch (e) { errRefused = e.message; }
+  ok(!!errRefused && /digest/i.test(errRefused), 'a cut REFUSES a record whose digests disagree with the tree it just hashed');
+  fs.writeFileSync(path.join(legacyDir, 'release.json'), good);
+} finally {
+  try { fs.rmSync(TMP, { recursive: true, force: true }); }
+  catch (e) { console.error('  (throwaway release store left behind at ' + TMP + ': ' + e.message + ')'); }
+}
+
 console.log(`\nENGINE RELEASE TESTS: ${P} passed, ${F} failed`);
 process.exit(F ? 1 : 0);
