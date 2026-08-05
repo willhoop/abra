@@ -95,6 +95,9 @@
     "xatu.js",
     "xatu.json"
   ],
+  "void_files": [
+    "exploitability.json"
+  ],
   "verified": 3,
-  "generated": "2026-08-05T16:58:15.111Z"
+  "generated": "2026-08-05T17:07:57.789Z"
 }

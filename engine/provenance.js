@@ -418,7 +418,19 @@ for (const a of ARTIFACTS) {
   try { j = JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) { /* mag.js is JS, not JSON */ }
 
   const notes = [];
-  let bad = false, warn = false;
+  /* VOID AND UNSAFE ARE DIFFERENT FINDINGS AND WERE THE SAME FLAG. A self-declared void is a recorded
+   * DECISION — the generator knew its run was invalid and said so, which is the exemplary behaviour
+   * this field exists to reward. An UNSAFE is an artifact that still claims to be true and is not.
+   *
+   * Folding them together made --strict permanently red: CLAUDE.md MANDATES that
+   * data/exploitability.json stay void until WOBBUFFET re-runs, so the gate could not go green no
+   * matter what anyone fixed — and while it was red for that reason, censoring-value.json's genuine
+   * content mismatch sat invisible behind it. A gate that cannot be satisfied is a gate that gets
+   * reported as "one of the known failures", which is the exact normalisation CLAUDE.md bans.
+   *
+   * The void list is RATCHETED instead. A known void does not fail; a NEW one does, because a newly
+   * void artifact means something just invalidated a run and that is news. */
+  let bad = false, warn = false, isVoid = false;
 
   /* THE FILTER ONLY GOVERNS ARTIFACTS DERIVED FROM THE GAME STORE, and treating every artifact as
    * store-derived was a false-positive class found on 2026-07-31, the day this check was finally
@@ -639,7 +651,7 @@ for (const a of ARTIFACTS) {
    * field that can silence a gate is a field that eventually silences it wrongly. */
   if (j && j.void) {
     notes.push('DECLARED VOID BY ITS OWN GENERATOR — ' + String(j.void_reason || 'no reason recorded').split('. ')[0] + '.');
-    bad = true;
+    isVoid = true;
   }
   let digestState = 'mtime-only';
   const stamped = j && (j.source_digests || j.sourceDigests);
@@ -673,7 +685,7 @@ for (const a of ARTIFACTS) {
       }
     }
   }
-  rows.push({ ...a, status: bad ? 'UNSAFE' : (warn ? 'stale?' : 'ok'), games: n, notes, digestState });
+  rows.push({ ...a, status: isVoid ? 'VOID' : bad ? 'UNSAFE' : (warn ? 'stale?' : 'ok'), games: n, notes, digestState });
 }
 
 console.log('PROVENANCE — what every published artifact was actually built on\n');
@@ -687,10 +699,18 @@ for (const r of rows.sort((a, b) => (a.status === 'UNSAFE' ? -1 : b.status === '
 }
 
 const unsafe = rows.filter(r => r.status === 'UNSAFE');
+const voided = rows.filter(r => r.status === 'VOID');
 const stale = rows.filter(r => r.status === 'stale?');
 console.log('');
-console.log(`  ${unsafe.length} UNSAFE, ${stale.length} possibly stale, ${rows.filter(r => r.status === 'ok').length} ok, ` +
-            `${rows.filter(r => r.status === 'missing').length} missing`);
+console.log(`  ${unsafe.length} UNSAFE, ${voided.length} VOID (declared), ${stale.length} possibly stale, ` +
+            `${rows.filter(r => r.status === 'ok').length} ok, ${rows.filter(r => r.status === 'missing').length} missing`);
+if (voided.length) {
+  console.log('');
+  console.log('  DECLARED VOID — the generator invalidated its own run and said so. These are recorded');
+  console.log('  decisions, not undetected faults, and they do not fail --strict. They are RATCHETED:');
+  for (const r of voided) console.log('    ' + r.file + '  — ' + (r.notes[0] || ''));
+  console.log('  The list may shrink and may never grow. A NEW void means a run was just invalidated.');
+}
 
 /* ---- HOW MUCH OF THE TABLE ABOVE RESTS ON A METHOD WE KNOW DOES NOT WORK -----------------------
  *
@@ -710,6 +730,7 @@ const STAMP = D('data', 'provenance-stamp.json');
 /* Writes the NAMED baseline. One function because two branches call it — the ordinary path and the
  * one-time migration off the count-only stamp — and two copies of a ratchet writer is how a ratchet
  * quietly stops ratcheting. */
+const VOID_FILES = voided.map(r => r.file).sort();
 function writeStampFile(list, verifiedCount) {
   try {
     fs.writeFileSync(STAMP, JSON.stringify({
@@ -721,6 +742,11 @@ function writeStampFile(list, verifiedCount) {
       fix: 'Stamp engine_release.open().stamp() (or run_stamp.sourceDigests()) as `source_digests`.',
       mtime_only: list.length,
       mtime_only_files: list,
+      /* THE SECOND RATCHET. A declared void does not fail --strict (see the VOID/UNSAFE split above),
+       * so something has to stop the list growing quietly. This is that something: a NEW void means a
+       * run was just invalidated, which is news and fails; a KNOWN one is a decision already recorded
+       * in CLAUDE.md and does not. */
+      void_files: VOID_FILES,
       verified: verifiedCount,
       generated: new Date().toISOString(),
     }, null, 2) + '\n');
@@ -812,4 +838,20 @@ if (OPTIN.length) {
   console.log('\n  No generator makes the quality filter opt-in. Clean is the default everywhere.');
 }
 
-if (STRICT && (unsafe.length || OPTIN.length)) process.exit(1);
+/* THE VOID RATCHET. Checked here rather than beside the mtime one because it needs `prev`, which is
+ * read further up. A void that is already on the list is a decision; a void that is NOT is a run that
+ * has just been invalidated, and that must stop the suite. */
+const prevVoid = prev && Array.isArray(prev.void_files) ? prev.void_files : null;
+const newVoid = prevVoid ? VOID_FILES.filter(f => !prevVoid.includes(f)) : [];
+const goneVoid = prevVoid ? prevVoid.filter(f => !VOID_FILES.includes(f)) : [];
+if (goneVoid.length) console.log(`\n  no longer void (${goneVoid.length}): ${goneVoid.join(', ')}`);
+if (newVoid.length) {
+  console.log('');
+  console.log(`  VOID RATCHET BROKEN: ${newVoid.length} artifact(s) newly declare themselves void —`);
+  for (const f of newVoid) console.log('    ' + f);
+  console.log('  A generator invalidated its own run since the last stamp. Find out what moved under');
+  console.log('  it before anything downstream is reported. This list may shrink and may never grow.');
+  process.exitCode = 1;
+}
+
+if (STRICT && (unsafe.length || OPTIN.length || newVoid.length)) process.exit(1);
