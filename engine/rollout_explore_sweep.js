@@ -39,10 +39,18 @@ const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
 const argv = process.argv.slice(2);
 const PRINT_ONLY = argv.includes('--print');
-const LOGS = argv.filter(a => !a.startsWith('--'));
-
-const GREEDY = 'data/rollout-r1-rows.jsonl';
-const EXPLORE = 'data/rollout-r1-explore1-rows.jsonl';
+/* --greedy / --explore point the two arms at specific dumps. The defaults are the 2026-08-04 files,
+ * so old invocations keep meaning what they meant; the re-run passes release-stamped filenames
+ * because overwriting a committed dump nearly destroyed the only evidence for the incumbent arm
+ * once already (docs/SEARCH.md, step 2 of the P0.5 commands). */
+function flagValue(name, dflt) {
+  const i = argv.indexOf(name);
+  return i >= 0 && argv[i + 1] ? argv[i + 1] : dflt;
+}
+const GREEDY = flagValue('--greedy', 'data/rollout-r1-rows.jsonl');
+const EXPLORE = flagValue('--explore', 'data/rollout-r1-explore1-rows.jsonl');
+const LOGS = argv.filter((a, i) => !a.startsWith('--')
+  && !(i > 0 && ['--greedy', '--explore'].includes(argv[i - 1])));
 
 /* ---- the rows, and the pairing check that has to pass before anything is computed -------------- */
 function load(rel) {
@@ -258,11 +266,19 @@ const artifact = {
     ci95_pts: [lo, hi],
     method: 'Normal approximation to the sign test on discordant pairs; half-width 1.96*sqrt(b+c)/n '
       + 'in points. Same formula as engine/rollout_r1.js:262-272.',
-    build_caveat: 'The explore=0 column was rolled out on the 2026-08-03 engine and the explore=1 '
-      + 'column on the current one. The sweep re-measured explore=0 on the CURRENT engine in the same '
-      + 'process as explore=1 — see the embedded judge table — and it lands within a tenth of a point '
-      + 'of the committed dump, so the build is not carrying this effect. The cross-build pairing is '
-      + 'used only because the older run dumped one column.',
+    /* SAME-BUILD OR CROSS-BUILD IS A FACT READ FROM THE STAMPS, not prose typed once and left to
+     * rot. The 2026-08-04 artifact carried a cross-build caveat because the greedy dump predated
+     * the explore run; a re-run that dumps both arms from one frozen release must not inherit it. */
+    build_caveat: (() => {
+      const gr = g.meta && g.meta.engine_release, er = e.meta && e.meta.engine_release;
+      if (gr && er && gr === er) {
+        return `SAME BUILD, BY CONSTRUCTION: both dumps are stamped against engine release ${er}, `
+          + 'so the paired difference cannot be carrying an engine change.';
+      }
+      return `CROSS-BUILD PAIRING: the greedy dump is stamped ${gr || 'NOT AT ALL'} and the explore `
+        + `dump ${er || 'NOT AT ALL'}. The paired difference may include an engine change; check the `
+        + 'embedded judge table, which re-measures explore=0 in the same process as explore=1.';
+    })(),
   },
 
   /* THE MECHANISM THAT WAS PROPOSED, AND MEASURED NOT TO BE THE MECHANISM. */
@@ -272,11 +288,13 @@ const artifact = {
       + 'expired. So a playout that ran out of clock is a material count returned as a win '
       + 'probability. If that were common it would explain a flat reliability curve and it would '
       + 'explain why the leaf tracks the material baseline it is supposed to beat.',
-    finding: 'IT IS NOT COMMON AND IT IS NOT THE MECHANISM. Measured by wrapping battleResult and '
-      + 'reading S._explore at the moment of scoring: at the R1 horizon of 20 turns, 99.5% to 99.7% '
-      + 'of playouts end by an actual wipeout at every explore setting, and the cap-hit share is '
-      + '0.3% to 0.5%. Raising the horizon to the live 60 can only lower that further. Exact counts '
-      + 'are in the embedded termination tables.',
+    finding: 'IT IS NOT COMMON AND IT IS NOT THE MECHANISM. Measured 2026-08-04 by wrapping '
+      + 'battleResult and reading S._explore at the moment of scoring: at the R1 horizon of 20 '
+      + 'turns, 99.5% to 99.7% of playouts end by an actual wipeout at every explore setting, and '
+      + 'the cap-hit share is 0.3% to 0.5%. Raising the horizon to the live 60 can only lower that '
+      + 'further. That instrumentation was scratch and was never committed, so logs from later '
+      + 're-runs carry no termination table (termination_table: null below); the 2026-08-04 finding '
+      + 'stands as a one-time measurement of the mechanism, not of the current build.',
     the_real_asymmetry: 'Exploration makes playouts LONGER (mean 4.4 turns at explore=0 against 6.1 '
       + 'at explore=1) and produces more exact ties, but it does not push them into the cap.',
   },
@@ -334,12 +352,23 @@ const artifact = {
     + 'and a 60-turn horizon. Whichever way it resolves, "explore=1.0 spent the signal" should not be '
     + 'treated as established while a second measurement of the same leaf disagrees with it.',
 
-  horizon_note: 'engine/rollout_r1.js passes NO maxTurns, so every R1 number ever published — '
-    + 'including this one — was measured at MEDICHAM\'s default horizon of 20 turns. The live leaf '
-    + 'runs at 60 (engine/miltank.js DEFAULTS.turns). The second embedded log re-runs the sweep with '
-    + 'the horizon injected at 60 so the two can be compared. Filed as a gap: the gate and the '
-    + 'shipped player disagree about a parameter neither states.',
+  horizon_note: `The paired verdict above was measured at a playout horizon of `
+    + `${(e.meta && e.meta.p_column && e.meta.p_column.max_turns) || 20} turns — now a RECORDED `
+    + 'parameter (p_column.max_turns in the sidecar, MAXTURNS env in engine/rollout_r1.js) rather '
+    + 'than an unstated default, which closes the gap the 2026-08-04 artifact filed. The live leaf '
+    + 'runs at 60 (engine/miltank.js DEFAULTS.turns); where a second embedded log is present it '
+    + 're-runs the sweep at MAXTURNS=60 so the two horizons can be compared. Its FILENAME carries '
+    + 'the release id it ran on, which may be a later cut than the dumps\' if ENGINE landed between '
+    + 'runs — the h60 leg is quoted verbatim for scale, and only the paired dumps carry the verdict.',
 
+  /* THE RELEASE RIDES THROUGH. provenance.js verifies source_digests against the release named in
+   * engine_release, so an artifact computed from frozen bytes stays checkable after the live tree
+   * moves — losing these fields is what made the 2026-08-04 artifact UNSAFE the moment the
+   * generator was edited. Taken from the EXPLORE arm's sidecar; if the greedy arm names a different
+   * release the build_caveat above already says so. */
+  engine_release: (e.meta && e.meta.engine_release) || null,
+  engine_release_cut: (e.meta && e.meta.engine_release_cut) || null,
+  showdown_commit: (e.meta && e.meta.showdown_commit) || null,
   source_digests: (e.meta && e.meta.source_digests) || null,
 
   runs: LOGS.map(grab),
@@ -352,9 +381,11 @@ const artifact = {
     'THE MATERIAL BASELINE IS FLATTERED BY ITS TIES on this early-game-heavy sample, where it returns '
       + 'exactly 0.5 on nearly half of positions and the >= 0.5 rule scores every one as a p1 call. '
       + 'The arm-versus-arm comparison does not depend on it; the lift over it does.',
-    'ONE SAMPLE, ONE CORPUS. 2,500 human open-sheet games, mean turn 3.744, base rate 52.5% p1. The '
-      + 'split-half spread of the R1 comparison on this sample runs 0.58 to 1.54 points '
-      + '(data/rollout-r1-explore1.json noise_floor), so an effect has to clear that to be an effect.',
+    `ONE SAMPLE, ONE CORPUS. ${new Set(g.rows.map(r => r.gid)).size.toLocaleString()} human `
+      + `open-sheet games, mean turn ${r3(g.rows.reduce((s, r) => s + r.turn, 0) / n)}, base rate `
+      + `${r3(100 * g.rows.filter(r => r.y === 1).length / n)}% p1. The split-half spread of the R1 `
+      + 'comparison on the 2026-08-04 sample ran 0.58 to 1.54 points (data/rollout-r1-explore1.json '
+      + 'noise_floor), so an effect has to clear that order of spread to be an effect.',
   ],
 };
 

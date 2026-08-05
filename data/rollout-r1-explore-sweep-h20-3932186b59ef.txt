@@ -1,0 +1,38 @@
+ROLLOUT R1 — is playing it out a better judge than the k-NN?
+
+  corpus  8,942 clean open-sheet games, first 2500 sampled
+  leaf    MEDICHAM seeded mid-game, 40 rollouts per position, every 2th turn
+
+  self-check: 2 healthy + bench vs 1 at 5% HP  ->  p1 73.3%  (8 bodies, dropped {"fainted":0,"unbuildable":0,"threw":0})  sane
+
+  positions scored 9,201  (799 unbuildable, 0 unlabelled)  in 2052.7s  -> 223 ms per position
+
+    judge                              accuracy     Brier    log-loss
+  ------------------------------------------------------------------
+   coin                               52.46%    0.2500    0.6931
+   material: bodies then HP (hard)    66.81%    0.3231    6.5244
+   material: porygon2 form (graded)   65.26%    0.2127    0.6124
+   ROLLOUT n=40 explore=0             66.64%    0.2489    1.7309
+   ROLLOUT n=40 explore=0.5           68.91%    0.2111    0.8878
+   ROLLOUT n=40 explore=1             69.84%    0.2060    0.8445
+
+  VERDICT
+  ------------------------------------------------------------------
+  rollout minus material (porygon2 form): +4.58 points  (95% CI 3.47 to 5.68)
+  discordant positions: rollout-only-right 1550, material-only-right 1129, of 9201
+  PORYGON2 is 63.70% on human games (data/porygon2c.json) and beats material by 3.42 there.
+  -> R1 PASSES OUTRIGHT. The lower bound clears PORYGON2's published +3.42 lift,
+     so the rollout carries more than the learned model adds over the same baseline.
+
+  NOT A LIKE-FOR-LIKE TEST OF THE REAL QUESTION, said plainly: the incumbent is
+  PORYGON2, and PORYGON2 is a Python k-NN that has not been scored on THESE positions.
+  Material is the honest local stand-in, and Brier/log-loss below flatter the rollout
+  against it because a sign function emits hard 0/1 and is punished for it.
+  wrote 9,201 rows to data\rollout-r1-explore1-rows-3932186b59ef.jsonl
+  wrote data/rollout-r1-explore1-rows-3932186b59ef.meta.json — n=40, explore=1
+  wrote 9,201 rows to data\rollout-r1-greedy-rows-3932186b59ef.jsonl (explore=0 arm, same walk)
+  wrote data/rollout-r1-greedy-rows-3932186b59ef.meta.json — n=40, explore=0
+  next: node engine/rollout_r1_artifact.js — write data/rollout-r1.json from these rows.
+
+  Both columns are scored on identical positions with identical labels, per
+  docs/DATA-LAW.md case 2. The only thing that differs is which judge was asked.

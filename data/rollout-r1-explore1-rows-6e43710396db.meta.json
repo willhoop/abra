@@ -1,0 +1,63 @@
+{
+  "generated": "2026-08-05T01:31:13.031Z",
+  "by": "engine/rollout_r1.js",
+  "describes": "data/rollout-r1-explore1-rows-6e43710396db.jsonl",
+  "rows": 9201,
+  "p_column": {
+    "key": "40@1",
+    "n_rollouts": 40,
+    "explore": 1,
+    "max_turns": 20,
+    "max_turns_source": "engine default (20) — MAXTURNS unset",
+    "note": "The dump carries ONE rollout column and this names it. It is the same key the VERDICT in this run uses, so the artifact and the printed verdict describe the same thing."
+  },
+  "sweep": {
+    "N_LIST": [
+      40
+    ],
+    "EXPLORE_LIST": [
+      0,
+      0.5,
+      1
+    ],
+    "EVERY": 2,
+    "GAMES": 2500,
+    "MAXTURNS": null,
+    "corpus_games": 8856
+  },
+  "engine_release": "6e43710396db",
+  "engine_release_cut": "2026-08-05T00:58:14.399Z",
+  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "source_digests": {
+    "engine/medicham2-browser.js": "ae012bdf2b3a",
+    "engine/board.js": "54e3d2ca9f85",
+    "engine/rollout_leaf.js": "7a2311756ab8",
+    "engine/position_features.js": "7927ccb7f5af",
+    "engine/tags.js": "0eabc075550a",
+    "engine/champions_sim.js": "084a836be5ef",
+    "engine/mc_key.js": "37c42eb69363",
+    "engine/lookup.js": "d2a03e8adcc5",
+    "engine/set_priors.js": "f8a81445ee3a",
+    "engine/smogon_priors.js": "5c039f9ebdbc",
+    "engine/quality.js": "e397e99ef257",
+    "engine/showdown_path.js": "0efe29f4245d",
+    "data/move-effects.js": "b651bc4c4836",
+    "data/ability-blocks.json": "86741fd35452",
+    "data/smogon-priors.json": "3168f98a24dd",
+    "data/regulations.json": "6c1995e9a9fb",
+    "data/quality-filter.json": "e675d10477c8",
+    "data/engine-data.js": "96a94b7fadf7",
+    "data/abra-tags.js": "3bc02c068657",
+    "data/tags.json": "55347ea228ad",
+    "data/policy-weights.json": "01bc43936324",
+    "data/policy-weights-joint.json": "749953d4b29f",
+    "data/move-priors.json": "a64314db056b",
+    "engine/rollout_r1.js": "54040aa3a09f",
+    "note": "Frozen-release digests plus the generator. Content, not mtime."
+  },
+  "harness_digests": {
+    "engine/joint_rows.js": "8b8fcfbaf7ef",
+    "engine/fit_policy.js": "1de23f069fa0",
+    "note": "Loaded LIVE (they choose which positions are sampled; the sampled positions are recorded in the dump itself). Informational, not verified by provenance."
+  }
+}

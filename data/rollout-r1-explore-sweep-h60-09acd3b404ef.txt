@@ -1,0 +1,7 @@
+ROLLOUT R1 — is playing it out a better judge than the k-NN?
+
+  corpus  8,942 clean open-sheet games, first 2500 sampled
+  leaf    MEDICHAM seeded mid-game, 40 rollouts per position, every 4th turn
+
+  self-check: 2 healthy + bench vs 1 at 5% HP  ->  p1 73.3%  (8 bodies, dropped {"fainted":0,"unbuildable":0,"threw":0})  sane
+

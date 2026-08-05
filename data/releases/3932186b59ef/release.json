@@ -1,0 +1,32 @@
+{
+  "id": "3932186b59ef",
+  "cut": "2026-08-05T01:35:33.350Z",
+  "why": "post-ENGINE-landing recut for the R1 explore-sweep re-run — run A dumps BOTH arm columns from one process (DUMP0), so there is no between-run drift window",
+  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "files": {
+    "engine/medicham2-browser.js": "17afcf76bfff",
+    "engine/board.js": "54e3d2ca9f85",
+    "engine/rollout_leaf.js": "7a2311756ab8",
+    "engine/position_features.js": "7927ccb7f5af",
+    "engine/tags.js": "145a3cc9ce2f",
+    "engine/champions_sim.js": "084a836be5ef",
+    "engine/mc_key.js": "37c42eb69363",
+    "engine/lookup.js": "d2a03e8adcc5",
+    "engine/set_priors.js": "f8a81445ee3a",
+    "engine/smogon_priors.js": "5c039f9ebdbc",
+    "engine/quality.js": "e397e99ef257",
+    "engine/showdown_path.js": "0efe29f4245d",
+    "data/move-effects.js": "b651bc4c4836",
+    "data/ability-blocks.json": "86741fd35452",
+    "data/smogon-priors.json": "3168f98a24dd",
+    "data/regulations.json": "6c1995e9a9fb",
+    "data/quality-filter.json": "e675d10477c8",
+    "data/engine-data.js": "96a94b7fadf7",
+    "data/abra-tags.js": "3bc02c068657",
+    "data/tags.json": "55347ea228ad",
+    "data/policy-weights.json": "01bc43936324",
+    "data/policy-weights-joint.json": "e2aca467ff04",
+    "data/move-priors.json": "a64314db056b"
+  },
+  "note": "IMMUTABLE. A measurement reads these bytes, not the live tree, so other divisions may keep working while it runs. Re-cutting an identical tree returns this same id."
+}

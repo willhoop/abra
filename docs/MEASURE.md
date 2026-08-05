@@ -25,7 +25,7 @@ MEASURE — can we believe a number
     (data/engine-data.js moved 2026-08-05 00:36, but the feature function did not)
 ```
 
-_stamped 2026-08-05 02:14_
+_stamped 2026-08-05 02:19_
 
 <!-- /GENERATED -->
 

@@ -1,0 +1,5 @@
+REFUSING TO RUN: the live tree has moved off release 3932186b59ef:
+  engine/medicham2-browser.js
+  data/tags.json
+The corpus walker (joint_rows/fit_policy) loads live board.js, so live and
+snapshot must agree at load time. Cut a fresh release and re-run.

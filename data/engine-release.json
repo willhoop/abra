@@ -1,6 +1,6 @@
 {
-  "current": "d3d04b669e18",
-  "cut": "2026-08-04T23:18:53.242Z",
-  "why": "pre-refit baseline for the open-sheet channel measurement — freezes the two-channel-fitted MAG and joint vectors as arm A",
+  "current": "09acd3b404ef",
+  "cut": "2026-08-05T02:12:57.405Z",
+  "why": "h60 log leg of the R1 explore-sweep re-run — cut immediately before the run because ENGINE lands roughly every half hour",
   "note": "Pointer to the newest release under data/releases/. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

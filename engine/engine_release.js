@@ -69,6 +69,33 @@ const SOURCES = [
   'engine/position_features.js',
   'engine/tags.js',
   'engine/champions_sim.js',
+  /* THE LOADER CLOSURE, added 2026-08-05 (filed in docs/SEARCH.md R9). Without these six,
+   * `REL.require('engine/board.js')` threw `Cannot find module './mc_key.js'` for 4 of the 12
+   * frozen sources, so the release was a valid DIGEST SET and not a loadable ENGINE — and every
+   * measuring script had to fall back to reading the live tree "after proving zero drift", which
+   * stops being safe the day someone passes --allow-drift. Each of these can change a number:
+   * mc_key decides which dex row a species resolves to, lookup is the path underneath it,
+   * set_priors/smogon_priors decide what an unknown set is filled with, quality decides the team
+   * pool, showdown_path decides which Showdown checkout loads. Adding them changes every FUTURE
+   * release id; existing releases carry their own manifests and are untouched. */
+  'engine/mc_key.js',
+  'engine/lookup.js',
+  'engine/set_priors.js',
+  'engine/smogon_priors.js',
+  'engine/quality.js',
+  'engine/showdown_path.js',
+  /* THE LAZY DATA READS, found by RUNNING from a snapshot rather than by loading it. medicham2
+   * requires data/move-effects.js relative to its own __dirname the first time a priority is asked
+   * (the R1 smoke run crashed there); board.js reads ability-blocks.json and smogon-priors.json
+   * through loadData with strict-miss semantics, so from a snapshot they would THROW, not degrade;
+   * regulations.json names the format champions_sim loads; quality-filter.json IS the definition of
+   * a usable game. Every one changes a number. A release that loads but cannot RUN is the same hole
+   * one layer down. */
+  'data/move-effects.js',
+  'data/ability-blocks.json',
+  'data/smogon-priors.json',
+  'data/regulations.json',
+  'data/quality-filter.json',
   'data/engine-data.js',
   'data/abra-tags.js',
   'data/tags.json',

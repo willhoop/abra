@@ -24,7 +24,7 @@ SEARCH — does MILTANK choose better than MAG
   R3 divergence      80.2% over 121 decisions (24 agreed, 29 skipped)   (2026-08-04 07:55)
     stamped: n=600@explore=1  (TREE WAS DIRTY — trust source_digests, not the commit)
   R4 does it win     ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]   (2026-08-04 08:43)
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-04 23:41):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-05 02:07):
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41
     PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-04 02:36
     PRE-CHANGE games.r4.jsonl  2026-08-04 02:33
@@ -32,7 +32,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-04 00:45
 ```
 
-_stamped 2026-08-05 00:26_
+_stamped 2026-08-05 02:19_
 
 <!-- /GENERATED -->
 
@@ -492,6 +492,126 @@ ratchet; it does mean the headline verified-count understates the fix.
 spawns `mew.js`, which loads the LIVE engine. No release can prevent that without the child being
 runnable from the snapshot. Detection (drift-check every evaluation, abort, self-declared void) is
 what is implemented; prevention is not, and pretending otherwise would be the more dangerous choice.
+
+## R10 — the reparameterisation memo. ANALYSIS, 2026-08-05. WILL DECIDES; nothing here was run against MAG.
+
+R9 ended with "search fewer numbers" and left open WHICH numbers. This section brings the concrete
+options. Every figure traces to an artifact; the two new ones are
+**`data/exploit-step-probe-reparam.json`** (the R9 toy swept over family sizes 4–12 at the real
+budget and at twice it, written by `engine/exploit_step_probe.js --reparam` — same `runOne`, same
+`createClimber`, no games) and the fitted vector itself, **`data/policy-weights.json`**
+(`generated 2026-08-04T23:37:26.954Z`, corpus 8,856 games / 231,722 decisions, frozen in release
+`6e43710396db` as `01bc43936324`).
+
+### The arithmetic that frames every option (data/exploit-step-probe.json)
+
+- One accepted step at d=58 moves true win rate by **0.202 pt**; 220 games resolve **4.77 pt**
+  (independent seeds) / **0.45 pt** (perfect CRN). The step is invisible, so the search cannot climb.
+- Largest family the affordable 24 x 220 = 5,280-game budget can actually search: **about 4** numbers
+  (`largest_searchable_family_at_5280_games`).
+- The toy plants a 25-pt edge (`pMax` 0.75), so "distance closed" reads as "fraction of the family's
+  available edge captured". The confirm leg (`--confirm 800`) certifies nothing smaller than
+  ~**3.5 pt** (1.96·50/√800), whatever the search finds.
+
+**Family sizes at the real budget and at 2x, measured, not extrapolated**
+(`data/exploit-step-probe-reparam.json`; fixed rule; distance closed ± SE over 40 runs; the truth
+about CRN coupling in real games is UNMEASURED, so both brackets are printed):
+
+| family size | 24 x 220 crn | 24 x 220 indep | 48 x 220 crn | 48 x 220 indep | 24 x 440 crn |
+|---|---|---|---|---|---|
+| **4** | **49.9 ± 2.2%** | **37.0 ± 3.9%** | **63.9 ± 2.4%** | **49.3 ± 3.7%** | 51.6 ± 2.7% |
+| 6 | 42.3 ± 2.8% | 18.6 ± 3.3% | 52.6 ± 2.6% | 26.9 ± 3.8% | 45.6 ± 2.2% |
+| 8 | 30.2 ± 2.9% | 11.3 ± 2.5% | 42.8 ± 3.5% | 15.8 ± 3.2% | 36.5 ± 2.5% |
+| 12 | 21.1 ± 2.4% | 1.1 ± 0.6% | 31.7 ± 3.1% | 4.8 ± 1.6% | 26.5 ± 2.3% |
+
+Three design facts fall out before any family is chosen: **doubling ROUNDS beats doubling
+games-per-round in every crn row** (the climb is rounds-starved, exactly as R9's O(d)-evaluations
+argument says); **d=4 is the only size that stays searchable in the independent bracket**, i.e. the
+only one whose verdict does not depend on how well CRN couples in real battles; and a doubled budget
+(48 x 220 + 2 x 800 confirm ≈ 12,160 games, ~75 min by R8's timing) buys d=4 nearly two-thirds of
+its family edge.
+
+### One structural note before the families
+
+MAG **samples** its softmax rather than taking the argmax (`engine/magnemite.js:12-17`), so a global
+temperature is a real, playable lever — `c·w` and `w` are different players here, unlike in an
+argmax policy. That is why F1 below is allowed to spend a parameter on it.
+
+### The families
+
+**F1 — AXIS-4: temperature, prior, kill, initiative. RECOMMENDED.**
+`w'_k = exp(τ) · exp(a_P·[k=priorLogP] + a_K·[k ∈ KILL] + a_I·[k ∈ INIT]) · w_k`, searched over
+`z = (τ, a_P, a_K, a_I)` from `z0 = 0` (so the incumbent MAG is the start point by construction).
+KILL = {koTarget, dmgFrac, tgtMayProtect, killIsRoll, killsThreat, koFirst, protectThreatened};
+INIT = {movesFirst, priority, speedSwing, diesBeforeMoving} — the blocks as `board.js` FEATURES
+declares them (release digest `54e3d2ca9f85`).
+*Why these four axes, from the fit itself:* `priorLogP` is the single most-determined coordinate in
+the whole vector (w +0.1474, SE 0.0026 — the fit pins it hard **for resemblance**, and resemblance is
+exactly the objective that cannot certify it **for winning**); the kill and initiative blocks are
+where the fit is weakest — `koTarget` +0.0348 ± 0.0170, `killsThreat` **−0.0610** ± 0.0131 (killing
+the thing about to kill you fitted *negative*), `priority` −0.0053 ± 0.0159 and `movesFirst`
++0.0075 ± 0.0126 (both indistinguishable from zero). A challenger that wants to beat MAG by wanting
+kills and initiative more than people do lives exactly here.
+*Can express:* greedy⇄noisy play, prior-reliance up or down, uniform kill-hunger, uniform
+initiative-hunger, and their combinations. *Cannot:* rotate within a block (raise `koTarget` while
+lowering `dmgFrac`), touch the switch/support/dead-move axes, flip any individual sign, or form any
+interaction the 58 features do not already carry.
+*Resolution:* 49.9 ± 2.2% of the family edge at 5,280 games (crn) and **37.0 ± 3.9% even at the
+independent bracket**; 63.9 ± 2.4% at the doubled budget.
+*A WOBBUFFET null here proves:* no re-mix of sharpness/prior/kill/initiative beats shipped MAG by
+more than the ~3.5-pt confirm floor. It says **nothing** about within-block, switch-axis, or
+novel-interaction exploits, and MAG's general exploitability stays unmeasured. *A positive* hands
+MEASURE a named, four-number direction to test as a refit objective.
+
+**F2 — BLOCK-8: one log-gain per board.js feature family.** The eight blocks as the FEATURES list
+groups them: targeting/move-quality (13), dead-moves (9), order (4), kill (10),
+disruption/stages (9), switch (8), support/value (4), prior (1) — 58 accounted for.
+*Can express:* everything F1 can, plus the switch, support, dead-move-discipline and disruption
+axes. *Cannot:* within-block rotation or sign flips, same as F1.
+*Resolution:* 30.2 ± 2.9% at budget (crn) but **11.3 ± 2.5% at the independent bracket** — its
+verdict leans on CRN coupling nobody has measured; 42.8 ± 3.5% at 2x.
+*A null proves:* no block-level retuning of MAG's vocabulary beats it at the floor. Broader
+statement than F1's, bought with a real risk that the search under-resolves and the null is about
+the noise, not the family.
+
+**F3 — FLAT-6: the six flattest Fisher directions of the fit. BLOCKED ON MEASURE.**
+`fit_policy.js standardErrors()` already computes the full observed information H (`:663-700`) and
+publishes only the diagonal of H⁻¹. The 4–8 bottom eigenvectors of H (preconditioned) are the
+directions the resemblance likelihood constrains LEAST — the largest moves a challenger can make
+per unit of "still plays like the corpus". Dense directions, not an axis mask, so the probe's
+planted-inside-the-family table applies (d=6: 42.3 ± 2.8% at budget crn, 52.6 ± 2.6% at 2x).
+*Cannot:* move in stiff directions — which is precisely where a deliberately non-human exploit would
+live, so this family is biased toward subtle exploits and blind to flagrant ones. Also unstable
+across refits (eigenvectors rotate with the corpus), so the H snapshot must be pinned in the
+artifact. *Blocked:* needs MEASURE to export H or its eigendecomposition; filed as a one-flag
+change to `fit_policy.js`, not made here — MEASURE's file.
+
+**F4 — SPARSE-8: the eight raw coordinates the fit barely pins** ({priority, movesFirst,
+switchKOFast, tgtHurt, switchKOSlow, pivots, koTarget, allyHit} — the top of the SE/|w| ranking).
+Interpretable and directly refittable, **but it is an axis-aligned subspace of the raw space**, and
+the probe's own warning applies verbatim: against a dense exploit direction it caps at
+1 − √(1 − 8/58) = **7.2% of the distance at any budget**. Its null is therefore the weakest of the
+four. Fit only as a cheap confirmatory second arm if F1 finds something, or not at all.
+
+### Implementation cost, so the decision is priced
+
+`exploit.js` climbs in z-space with `x0 = 0_k` and maps `z → w(z)` before `writeWeights` — one
+`--family` flag, ~30 lines, in the file SEARCH already maintains; the climber, CRN, drift-abort,
+pool-void and confirm phases all apply unchanged. The artifact must stamp the family definition
+(the block memberships and the mapping) beside the release id, or the result names a challenger
+nobody can rebuild.
+
+### Recommendation, marked
+
+**Run F1 at the doubled budget: 48 x 220 search + 2 x 800 confirm ≈ 12,160 games, one process,
+after the current sweep finishes.** It is the only family whose resolution survives the independent
+bracket, its four axes are the four questions this project keeps asking about MAG in prose
+(too timid? too human? too slow to take kills? too willing to lose initiative?), and either outcome
+is actionable: a null retires the block-gain hypothesis at a stated floor, a positive is a refit
+direction with names on it. F2 second if F1 nulls and Will wants the switch/support axes covered.
+F3 waits on MEASURE. F4 only as a confirmatory arm. And the standing caveat carries: every family
+grades *readability by a prepared opponent under our own leaf*, which is not "do we win", and the
+leaf's calibration is MEASURE's open item — a null can be about the leaf, not the search.
 
 ## What the 2026-08-04 mega-weather fix invalidates
 
@@ -1585,3 +1705,11 @@ Size the run to the question: an H2H decides in roughly 420 games, not 200,000.
 `docs/MILTANK.md` §3.1 explains why the current best-response player is exploitable by construction.
 An opponent-aware playout is the first step toward an equilibrium player; ship it only if the A/B
 says so.
+
+### R10 status note (the router, 2026-08-05, at the 3.41.0 close)
+
+The explore-sweep re-run was STOPPED MID-FLIGHT by Will's order to close the session — its A/B
+row dumps and per-release shards are committed as evidence, its final artifact was not
+regenerated, and `data/rollout-r1-explore-sweep.json` therefore REMAINS UNSAFE in provenance,
+named and not hidden. Finishing it is the first SEARCH item next session. The R10 memo above was
+complete before the stop; nothing in it depends on the unfinished run.

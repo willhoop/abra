@@ -32,15 +32,49 @@
  */
 'use strict';
 const path = require('path');
-const CS = require('./champions_sim.js');
+const D = (...p) => path.join(__dirname, '..', ...p);
+
+/* --------------------------------------------------------------------------------------------
+ * STEP 0 — OPEN THE FROZEN RELEASE. The LEAF is read from the snapshot, not the live tree.
+ *
+ * The 2026-08-04 explore sweep was stamped against live files and went UNSAFE in provenance the
+ * moment engine/rollout_r1.js was edited afterwards — and ENGINE edits medicham2 while gates run,
+ * which is the normal state, not an accident. DIVISIONS rule 1: a gate measures a NAMED release.
+ * `open()` verifies the snapshot has not rotted and throws if none was ever cut.
+ *
+ * WHAT STILL LOADS LIVE, said plainly: the corpus walker (fit_policy.js, joint_rows.js) and their
+ * board.js instance. Those are the HARNESS — they decide which positions are sampled, not what a
+ * rollout is worth. The start-of-run drift check below proves live board.js is byte-identical to
+ * the snapshot's at load time, and node caches modules at load, so a mid-run edit to the live tree
+ * cannot reach this process. Their digests are recorded in the sidecar as harness_digests.
+ * ------------------------------------------------------------------------------------------ */
+const REL_API = require('./engine_release.js');
+let REL;
+try { REL = REL_API.open(process.env.RELEASE || undefined); }
+catch (e) {
+  console.error('REFUSING TO RUN: ' + e.message);
+  console.error('R1 is a measurement of the leaf, and a leaf is a fact about one specific engine.');
+  console.error('Without a release the artifact cannot name which. Cut one, or pass RELEASE=<id>.');
+  process.exit(1);
+}
+{
+  const drift0 = REL_API.drift(REL.id);
+  if (drift0.length) {
+    console.error(`REFUSING TO RUN: the live tree has moved off release ${REL.id}:`);
+    for (const f of drift0) console.error('  ' + f);
+    console.error('The corpus walker (joint_rows/fit_policy) loads live board.js, so live and');
+    console.error('snapshot must agree at load time. Cut a fresh release and re-run.');
+    process.exit(1);
+  }
+}
+const CS = REL.require('engine/champions_sim.js');
 const FP = require('./fit_policy.js');
 const JR = require('./joint_rows.js');
 const B = require('./board.js');
-const RL = require('./rollout_leaf.js');
+const RL = REL.require('engine/rollout_leaf.js');
 
 const { Dex } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
-const D = (...p) => path.join(__dirname, '..', ...p);
 
 const GAMES = parseInt(process.env.GAMES || '150', 10);
 const N = parseInt(process.env.N || '40', 10);
@@ -59,6 +93,12 @@ const N_LIST = (process.env.N_LIST || String(N)).split(',').map(Number).filter(B
 const EXPLORE_LIST = (process.env.EXPLORE_LIST || '0').split(',').map(Number);
 /* Every EVERY_TH turn, so a long game does not dominate the sample with near-identical late boards. */
 const EVERY = parseInt(process.env.EVERY || '2', 10);
+/* MAXTURNS — the playout horizon, now a RECORDED parameter instead of an unstated default.
+ * Every R1 number ever published was measured at MEDICHAM's default horizon of 20 turns while the
+ * live leaf runs 60 (engine/miltank.js DEFAULTS.turns); data/rollout-r1-explore-sweep.json filed
+ * that as "a parameter neither states". Unset = the engine default (20), exactly as before, and
+ * whichever value applies is stamped into the sidecar. */
+const MAXTURNS = process.env.MAXTURNS ? parseInt(process.env.MAXTURNS, 10) : 0;
 
 let w1;
 try { w1 = JR.loadRanker(); } catch (e) { console.error(e.message); process.exit(1); }
@@ -146,6 +186,17 @@ function materialPy(board, side) {
 const fs = require('fs');
 const DUMP = process.env.DUMP ? D('data', process.env.DUMP) : null;
 const dumpRows = [];
+/* DUMP0 — the FIRST explore arm's column, dumped from the SAME process as DUMP's last-arm column.
+ *
+ * Added 2026-08-05, and the reason is a measured failure, not tidiness: the re-run plan was "run A
+ * dumps explore=1, run B re-runs EXPLORE_LIST=0 to dump the greedy column on the same positions".
+ * Run A finished at 01:31 and ENGINE landed medicham2/tags edits in the minutes after, so run B's
+ * start-of-run drift guard refused — correctly — and the pairing died in the WINDOW BETWEEN RUNS.
+ * The explore=0 column had already been computed inside run A on the identical boards and seeds; it
+ * simply was not written. One process, both columns, no window. */
+const DUMP0 = process.env.DUMP0 ? D('data', process.env.DUMP0) : null;
+if (DUMP0 && EXPLORE_LIST.length < 2) { console.error('DUMP0 needs EXPLORE_LIST to hold at least two arms.'); process.exit(2); }
+const dumpRows0 = [];
 
 const rows = [];
 let sampled = 0, nulls = 0, unlabelled = 0;
@@ -183,7 +234,9 @@ JR.build(games, dex, {
     const ps = {};
     for (const ee of EXPLORE_LIST) for (const nn of N_LIST) {
       const key = EXPLORE_LIST.length > 1 ? `${nn}@${ee}` : nn;
-      const rr = RL.rolloutWinProb(board, 'p1', { n: nn, dex, seed: gi * 7919 + sampled, field, explore: ee });
+      const rr = RL.rolloutWinProb(board, 'p1', Object.assign(
+        { n: nn, dex, seed: gi * 7919 + sampled, field, explore: ee },
+        MAXTURNS ? { maxTurns: MAXTURNS } : {}));
       if (!rr) { nulls++; return; }
       ps[key] = rr.p;
     }
@@ -222,10 +275,15 @@ JR.build(games, dex, {
       const dumpKey = EXPLORE_LIST.length > 1
         ? `${N_LIST[N_LIST.length - 1]}@${EXPLORE_LIST[EXPLORE_LIST.length - 1]}`
         : N_LIST[N_LIST.length - 1];
-      dumpRows.push({ gid: g.id, turn: board.turn, p: ps[dumpKey],
-                      mpy: materialPy(board, 'p1'), y,
-                      aliveDiff: aliveOf('p1') - aliveOf('p2'),
-                      hpDiff: +(hpOf('p1') - hpOf('p2')).toFixed(6) });
+      const witness = { gid: g.id, turn: board.turn,
+                        mpy: materialPy(board, 'p1'), y,
+                        aliveDiff: aliveOf('p1') - aliveOf('p2'),
+                        hpDiff: +(hpOf('p1') - hpOf('p2')).toFixed(6) };
+      dumpRows.push(Object.assign({ p: ps[dumpKey] }, witness));
+      /* The first arm's column, same board, same witnesses, same seed — the pairing the sweep
+       * checks is then true by construction rather than by two walks happening to agree. */
+      if (DUMP0) dumpRows0.push(Object.assign(
+        { p: ps[`${N_LIST[N_LIST.length - 1]}@${EXPLORE_LIST[0]}`] }, witness));
     }
   },
 });
@@ -342,33 +400,56 @@ if (DUMP) {
       return 'MISSING';
     }
   };
-  const META = 'data/rollout-r1-rows.meta.json';
-  fs.writeFileSync(D(META), JSON.stringify({
-    generated: new Date().toISOString(),
-    by: 'engine/rollout_r1.js',
-    describes: path.relative(D('.'), DUMP).replace(/\\/g, '/'),
-    rows: dumpRows.length,
-    p_column: {
-      key: String(EXPLORE_LIST.length > 1
-        ? `${N_LIST[N_LIST.length - 1]}@${EXPLORE_LIST[EXPLORE_LIST.length - 1]}`
-        : N_LIST[N_LIST.length - 1]),
-      n_rollouts: N_LIST[N_LIST.length - 1],
-      explore: EXPLORE_LIST[EXPLORE_LIST.length - 1],
-      note: 'The dump carries ONE rollout column and this names it. It is the same key the VERDICT '
-        + 'in this run uses, so the artifact and the printed verdict describe the same thing.',
+  /* THE SIDECAR NAME FOLLOWS THE DUMP NAME. It was hardcoded to data/rollout-r1-rows.meta.json,
+   * so a run dumping to any OTHER filename stamped the wrong dump — engine/rollout_explore_sweep.js
+   * looks for `<dump>.meta.json` and would have read a stamp describing a different file. */
+  const writeMeta = (dumpAbs, nRows, exploreVal) => {
+    const META = path.relative(D('.'), dumpAbs).replace(/\\/g, '/').replace(/\.jsonl$/, '.meta.json');
+    fs.writeFileSync(D(META), JSON.stringify(Object.assign({
+      generated: new Date().toISOString(),
+      by: 'engine/rollout_r1.js',
+      describes: path.relative(D('.'), dumpAbs).replace(/\\/g, '/'),
+      rows: nRows,
+      p_column: {
+        key: String(EXPLORE_LIST.length > 1
+          ? `${N_LIST[N_LIST.length - 1]}@${exploreVal}` : N_LIST[N_LIST.length - 1]),
+        n_rollouts: N_LIST[N_LIST.length - 1],
+        explore: exploreVal,
+        max_turns: MAXTURNS || 20,
+        max_turns_source: MAXTURNS ? 'MAXTURNS env, passed to rolloutWinProb' : 'engine default (20) — MAXTURNS unset',
+        note: 'The dump carries ONE rollout column and this names it. Both dumps of a DUMP0 run come '
+          + 'from ONE process and ONE walk, so their rows pair by construction.',
+      },
+      sweep: { N_LIST, EXPLORE_LIST, EVERY, GAMES, MAXTURNS: MAXTURNS || null, corpus_games: games.length },
     },
-    sweep: { N_LIST, EXPLORE_LIST, EVERY, GAMES, corpus_games: games.length },
-    source_digests: {
-      'engine/rollout_r1.js': sha12('engine/rollout_r1.js'),
-      'engine/rollout_leaf.js': sha12('engine/rollout_leaf.js'),
-      'engine/medicham2-browser.js': sha12('engine/medicham2-browser.js'),
-      'engine/board.js': sha12('engine/board.js'),
-      'data/engine-data.js': sha12('data/engine-data.js'),
-      'data/abra-tags.js': sha12('data/abra-tags.js'),
-      note: 'Content, not mtime. A checkout moves an mtime without moving code.',
-    },
-  }, null, 2) + '\n');
-  console.log(`  wrote ${META} — n=${N_LIST[N_LIST.length - 1]}, explore=${EXPLORE_LIST[EXPLORE_LIST.length - 1]}`);
+    /* THE ENGINE THE ROWS DESCRIBE IS THE RELEASE, BY CONSTRUCTION — the leaf was loaded through
+     * REL.require, so these digests are what actually ran, not what happened to be on disk after.
+     * provenance.js verifies source_digests against the named release's frozen copies, which is what
+     * lets ENGINE keep editing the live simulator while this artifact stays checkable. The generator's
+     * own digest rides along because the rows depend on this file too: edit it later and the artifact
+     * honestly reads stale until re-run — that is the correct semantics, it is how the 2026-08-04
+     * sweep was caught, and restamping around it is forbidden. */
+    REL.stamp(),
+    {
+      source_digests: Object.assign({}, REL.stamp().source_digests, {
+        'engine/rollout_r1.js': sha12('engine/rollout_r1.js'),
+        note: 'Frozen-release digests plus the generator. Content, not mtime.',
+      }),
+      harness_digests: {
+        'engine/joint_rows.js': sha12('engine/joint_rows.js'),
+        'engine/fit_policy.js': sha12('engine/fit_policy.js'),
+        note: 'Loaded LIVE (they choose which positions are sampled; the sampled positions are '
+          + 'recorded in the dump itself). Informational, not verified by provenance.',
+      },
+    }), null, 2) + '\n');
+    console.log(`  wrote ${META} — n=${N_LIST[N_LIST.length - 1]}, explore=${exploreVal}`);
+  };
+  writeMeta(DUMP, dumpRows.length, EXPLORE_LIST[EXPLORE_LIST.length - 1]);
+  if (DUMP0) {
+    fs.writeFileSync(DUMP0, dumpRows0.map(r => JSON.stringify(r)).join(String.fromCharCode(10)) + String.fromCharCode(10));
+    console.log(`  wrote ${dumpRows0.length.toLocaleString()} rows to ${path.relative(D('.'), DUMP0)} (explore=${EXPLORE_LIST[0]} arm, same walk)`);
+    writeMeta(DUMP0, dumpRows0.length, EXPLORE_LIST[0]);
+  }
   console.log('  next: node engine/rollout_r1_artifact.js — write data/rollout-r1.json from these rows.');
 }
 console.log('\n  Both columns are scored on identical positions with identical labels, per');
