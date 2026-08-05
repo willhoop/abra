@@ -2,6 +2,34 @@
   "note": "Ceilings on how often each degradation path may fire. Measured, never chosen. A budget may only be TIGHTENED — loosening one is a decision that must be argued for here, not edited quietly. See tests/test-degradation-budgets.js.",
   "workload": "first 120 clean open-sheet corpus games, scored as fit_policy scores them",
   "budgets": {
+    "fit_policy.decisionsUnreadable": {
+      "max_rate": 0.0322,
+      "measured_at": "7776/241927 actions, 3.2142%, data/policy-weights.json 3.42.0",
+      "what": "decisions discarded because the CLICK could not be read — unmatched, ambiguous, trivial, no sheet, no user. Successor to decisionsDropped, and NOT the same quantity: coerced actions are excluded, because an Encored move or a dragged-in body was never a click and counting it as a dropped one conflated 'we could not read the label' with 'there was no label'.",
+      "granularity": "241,927 actions, so one action is 0.00041%. The ceiling sits 0.0058 points above the measurement — about 14 actions of headroom. Four decimal places is the finest cut that is not noise at this corpus size.",
+      "target": null
+    },
+    "fit_policy.coercedActions": {
+      "max_rate": 0.0056,
+      "measured_at": "1336/241927 actions, 0.5522%, data/policy-weights.json 3.42.0",
+      "what": "recorded actions the protocol shows were NOT clicks — Encore overrode the choice (1,116) or a phazing move dragged the mon in (220). Removed from the labeled set rather than fitted with a fabricated label. This counter is the one that had no ceiling because until 3.42.0 these turns were silently trained on.",
+      "granularity": "one action is 0.00041%; the ceiling is 0.0004 points above the measurement, roughly 9 actions. A rise here means the corpus is getting more coercive, not that the fit got worse.",
+      "target": null
+    },
+    "fit_joint.turnsUnreadable": {
+      "max_rate": 0.055,
+      "measured_at": "5573/101459 joint turns, 5.4929%, data/policy-weights-joint.json 3.42.0",
+      "what": "joint turns the pair fit could not use because a CLICK could not be read. Successor to turnsDropped. THIS IS THE CEILING WILL WAS ASKED TO RULE ON — the old one read 5.4929% against a 5.49% limit and was red by 0.0029 points. It is not resolved by moving the line: docs/CLICK-CENSORING-FIX.md ruled the question SUPERSEDED because Stages B-C changed what 'dropped' MEANS, so the budget is re-derived here from the new counter with its granularity stated rather than re-cut against the old one.",
+      "granularity": "101,459 turns, so one turn is 0.00099% — a ceiling quoted to four places can be crossed by a single turn, which is exactly how the old one went red. 0.0550 leaves 0.0071 points, about 72 turns, which is wider than the run-to-run movement of the corpus and narrow enough that a real regression still trips it.",
+      "target": null
+    },
+    "fit_joint.coercedTurns": {
+      "max_rate": 0.0,
+      "measured_at": "0/101459 joint turns, data/policy-weights-joint.json 3.42.0",
+      "what": "joint turns voided because at least one of the two recorded actions was not a click. Currently ZERO, and that is a fact about the joint fit rather than about the game: the joint artifact carries no `coerced` key, so this reads 0 by absence. If the joint fitter starts reporting coercion this ceiling must be re-derived, and a zero here should be read as 'not yet counted', not as 'does not happen'.",
+      "granularity": "a hard zero is only defensible while the counter is structurally absent; the moment it is populated this entry is wrong and the test will say so.",
+      "target": null
+    },
     "board.dmgMon.unknownSpecies": {
       "max_rate": 0,
       "measured_at": "0/14903 over 120 corpus games",
