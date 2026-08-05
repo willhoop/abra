@@ -10,6 +10,151 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.42.0] — 2026-08-05
+
+### Outplayed turns stop being noise: 1,336 recorded actions were not clicks, and MAG was learning from every one
+
+Will: *"i def dont like just tossing turns because they got outplayed with a move liek encore or
+follow me, these are the basis of vgc man."* `docs/CLICK-CENSORING-FIX.md` is the spec; MEASURE
+implemented all four stages and both fitters were refitted under them.
+
+**The result, with the half that did not work first.** Two headline classes were measured on 47,195
+paired held-out decisions over 1,809 games, bootstrapped over GAMES:
+
+- **COERCED turns (n=284)** — Encore replaced the click, or the mon was dragged in.
+  P(model picks the action no human chose) **−0.002614, 95% CI [−0.003663, −0.001637]**. The
+  fabricated label is unlearned. This is the only headline that moved.
+- **REDIRECTION turns (n=643)** — mass on the true candidate set **+0.000109 [−0.000286, +0.000491]**,
+  contains zero; log-likelihood on the set **−0.002646 [−0.004037, −0.001377]**, very slightly
+  WORSE. **Stage C bought nothing measurable**, and its own pre-refit validation predicted that: at
+  the rate the corpus actually censors, the weight-space bias is −0.0030 against a 0.2600 noise floor.
+- **CONTROL, clean turns (n=46,268)** — logL +0.000447 [0.000142, 0.000743]; top-1 +0.002
+  [−0.094, 0.099]. No corpus-wide top-1 change, exactly as the spec disclaimed in advance.
+
+Every effect is smaller than its own class's split-half noise floor and resolves only because the
+comparison is paired per decision.
+
+### Added
+- `engine/click_class.js` — the one reader for *is this recorded action a click at all*, shared by
+  `fit_policy` and `joint_rows`. Mechanism sets are DERIVED from the running format (moves with
+  `condition.onOverrideAction`; moves with `forceSwitch`; abilities with `onFoeTryMove`; items
+  assigning `switchFlag`/`forceSwitchFlag`, **empty in Champions**; `data/tags.json`'s `redirects`)
+  and every set refuses to be empty.
+- `engine/click_census.js` → `data/click-censoring-census.json`. 241,927 actions over 8,942 games:
+  **CLEAN 229,555 (94.886%), PARTIAL 3,260 (1.3475%), COERCED 1,336 (0.5522%)**. A second arm reads
+  the raw protocol on the 66.17% of the corpus that has logs and SCORES the classifier against it —
+  Encore recall 99.68% / precision 96.11%, drag 96.51% / 96.51%.
+- `engine/em_validation.js` → `data/partial-label-em.json`, plus `--check` for the suite. On heavy
+  systematic censoring the naive fit is biased by 0.8935 against a 0.2600 noise floor and **EM
+  recovers 97.4%** of it. Registered as a gate in `tests/run-all.js`.
+- `engine/censoring_value.js` → `data/censoring-value.json`. Paired, class-conditional,
+  game-clustered bootstrap, per-class noise floors, `void: true` if a source moves mid-run.
+- `tests/test-click-censoring.js` — every check shown RED on known-bad input first, on planted
+  protocol logs put through the real `durable-ingest.extract()`.
+- `CENSORING=off` in `engine/fit_policy.js`: the control arm, which fits the old way on the new
+  corpus and stamps `censoring: "off (CONTROL ARM — not shippable)"` in its own artifact. **Not yet
+  run** — see Notes.
+
+### Changed
+- `engine/fit_policy.js` and `engine/joint_rows.js` remove COERCED actions from the labelled set and
+  keep PARTIAL ones under the marginal likelihood (Cour, Sapp & Taskar 2011), fitted by Generalized
+  EM. A zero on either counter is fatal in both fitters.
+- **Both layers refitted.** `data/policy-weights.json`: 8,942 games, 232,815 usable decisions of
+  241,927 seen. `‖new − old‖₂ = 0.8030`, 9 of 58 weights past 2 SE, and the largest single movement
+  is `stallIntoEncore` **−1.0502 → −1.6281** — the feature named for the mechanic, moving in the
+  predicted direction.
+- `data/degradation-budgets.json`: `decisionsDropped` and `turnsDropped` are **retired to a new
+  `superseded` block**, not renumbered. Stage B changes what "dropped" means, so the totals would
+  have risen while the artifact got strictly better. Replaced by `*.decisionsUnreadable` /
+  `*.turnsUnreadable` (a LOSS) and `*.coercedActions` / `*.coercedTurns` (a CORRECTION), each with
+  its granularity recorded. `measured_at` no longer claims "over 120 corpus games" for rates that
+  come from a whole-corpus artifact.
+- `engine/status.js` prints the censoring line, the classifier's own recall/precision, the EM
+  verdict and the class-conditional behaviour change — with the clean class labelled CONTROL.
+
+### Fixed
+- A `|drag|` is stored by `engine/durable-ingest.js:67` with the same shape as a `|switch|`, and
+  `fit_policy`'s `forcedSlot` guard only knew about faints — so **220 phazed arrivals were fitted as
+  voluntary switch decisions**.
+- The Encore application turn passed every counter in the repository, because the move Encore forces
+  out is on the victim's own menu. **1,116 of them** were fitted as human choices.
+- `data/policy-weights.json`'s caveat claimed *"~11% of clicks were dropped as unmatched, mostly
+  redirection"*. Both halves are retracted in the artifact: redirection does not drop a click at all.
+
+### Notes
+- **Will's Farigiraf case is answered: PARTIAL, not ERASED.**
+  `|cant|BLOCKER|ability: Armor Tail|MOVE|[of] ATTACKER` — **284 of 284 (100.0%)** name the attacker
+  slot, so user and move are exact and only the target is ambiguous, between two mons. It is counted
+  and deliberately **not recovered**: the class lives only in raw logs, which cover 66.17% of the fit
+  corpus, and the missing third is one store — recovering it would reweight the sample by source.
+- **Found on the way, not fixed:** `board.js` narrows the choice set for a Choice item and not for
+  the `onDisableMove` family, so **2,280 of 139,769 logged actions (1.6313%)** were priced with a
+  menu that had already shrunk. A wrong denominator, not a wrong label; it owes its own refit.
+- **The Stage D contrast carries a confound and it is stated:** the two vectors differ by the coerced
+  removal, the EM, 86 extra games and the refit itself. `CENSORING=off` exists to isolate it and has
+  not been run.
+- `CHANGELOG.md` has **no entry for 3.41.1** (commit `43ff359`) and none for 3.39.0. Reported, not
+  back-filled — they are other divisions' releases.
+
+### ADR-002 — the repo's stated authority and its actual authority were different files
+
+`docs/ADR-002-showdown-is-the-authority.md`. ADR-001 decided the official Champions mod becomes the
+rules authority and `medicham2-browser.js` becomes a lookup table. **Migration steps 5–8 were never
+executed and the opposite happened** — the hand-written engine is now a standing division whose
+census may never fall, and the leaf of the live search player. That is ADR-001's explicitly rejected
+alternative, adopted in practice, unrecorded for over a week.
+
+Decided: **Showdown is the AUTHORITY, MEDICHAM is the RUNTIME.** Two measured reasons, neither of
+them preference:
+
+- **ADR-001's premise was falsified.** It held that hand-fixing "was never going to converge" after a
+  31.1-point win-probability disagreement. It converged: **149/150** damage rows, **899/899**
+  interaction pairs, **202/205** census. What changed is that the differential harness and the
+  interaction matrix *did not exist* when ADR-001 was written. Hand-fixing did not converge;
+  instrumented fixing did.
+- **The migration is impossible for what we now build.** ADR-001 accepted the official simulator's
+  **117×** slowdown as the price of a precomputed table. That price is unpayable under MILTANK, a
+  search player acquired *after* ADR-001, which plays positions out thousands of times per turn.
+
+Accepted and stated in the ADR: the matrix stages **1,514 of a theoretical 8,506** pairs, so the
+honest claim is agreement on what ran, never "the engine is correct" — and **the decision weakens if
+the coverage programme stalls.** `engine/champions_sim.js` header updated to point at both ADRs.
+
+### Every division agent is now forbidden from killing processes by name
+
+`.claude/agents/{engine,measure,search,ops,web}.md`. On 2026-08-05 an agent cleared a hung scan of
+its own with `taskkill //F //IM node.exe` and killed three node processes repo-wide while four other
+agents were working. It self-reported honestly and nothing was measurably lost — which is luck, not a
+defence: a fit dying at minute 39 leaves a gap rather than an error. Rule added to all five: **kill
+only what you started, and only by pid.** If the process cannot be identified, report and stop.
+
+### Four published figures corrected against their own artifacts
+
+Found by a derived doc-currency check built tonight, which was shown catching all three of the
+named defects before it was trusted. It reports **99 figures attributed to an artifact that does not
+contain them** and **86 traceable to nothing at all**; these four were verified by hand and fixed.
+
+- **The deck was still quoting the retracted 63% exploitability figure**
+  (`docs/ABRA-deck-plain-english.md:186`), two slides after saying we have no answer to how readable
+  the bot is. The standing rule is that this number is never quoted. Rewritten to state the
+  withdrawal and why: 17 features against the 58 shipped, a pre-filter corpus, and a re-run voided
+  when the defender was refitted mid-search. **ABRA still has no exploitability number.**
+- **`SUMMARY.md` overstated the project's one load-bearing win.** It read "31/31 within 2%";
+  `data/damage-validation.json` says **36 scenarios, 100% within 5%, 97% within 2%, median 0%, worst
+  3%**. Wrong in both the count and the tolerance, on the single result everything else rests on.
+  The whitepaper's "within 5%, worst 3%" was correct throughout.
+- **`MODELS.md`'s XATU belief entry was wrong in all four figures.** Artifact: CE **1.9889 vs
+  2.0329**, top-1 **31.23% vs 30.39%**, improvement **0.0324 [0.028, 0.0364]**, four-known **1.7874
+  vs 2.3428** on **3.84%** of events. The retracted headline (0.028) is exactly the artifact's
+  **lower CI bound** — read out of the wrong end of an interval rather than a stale run.
+- **`MODELS.md`'s XATU context entry inverted a comparison.** It claimed a *larger* gain than the
+  in-game tracker; on the real figures it is **0.032 against 0.0324**, a tie. The comparison is
+  removed rather than reversed, because at that separation neither ordering is supportable.
+
+Every verdict is unchanged by these corrections. XATU still clears zero and is still the strongest
+model in the project; the damage engine is still validated. Only the numbers move — which is the
+argument for citing an artifact instead of retyping one.
+
 ## [3.41.0] — 2026-08-05
 
 ### Layer 0 executes, the joint layer refits, and the sheet's value becomes a measurement

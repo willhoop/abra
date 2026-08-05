@@ -158,12 +158,59 @@ function engine() {
   } else say('  census: NOT DERIVED (data/mechanics-census.json absent — run tests/test-mechanics.js)');
 
   if (d) {
+    /* THE SEED AND THE SKIPS BELONG ON THIS LINE. The artifact carries `seed`, `requested`,
+     * `skipped_multihit`, `skipped_non_finite` and `dropped_by_exception`, and this print used to
+     * read none of them — so "1/150 disagree" read as unconditional when rows had been skipped as
+     * not-comparable and the denominator was a SAMPLE, not the corpus. The sampler used a bare
+     * Math.random() until 2026-08-04 and two runs over identical source returned 6 then 3, which is
+     * the whole argument: a residual quoted without its seed is a residual quoted from one draw. */
+    const skipped = (d.skipped_multihit || 0) + (d.skipped_non_finite || 0) + (d.dropped_by_exception || 0);
     say(`  ${d.disagreed}/${d.compared} differential comparisons disagree with Showdown   (${day(new Date(d.generated))})`);
+    say(`    seed ${d.seed == null ? 'NOT RECORDED — this residual is one draw and cannot be reproduced' : d.seed}`
+      + `, requested ${d.requested == null ? '?' : d.requested}`
+      + (skipped ? `, ${skipped} not comparable (multihit ${d.skipped_multihit || 0}, non-finite ${d.skipped_non_finite || 0}, threw ${d.dropped_by_exception || 0})` : ''));
     for (const w of (d.worst || []).slice(0, 6)) {
       say(`    ${w.att} ${w.mv} -> ${w.def}: showdown ${w.showdown}, medicham ${w.medicham}  (${w.uses} uses)`);
     }
     say('    a differential hit is NOT in the census count above — the census probes what someone thought to probe');
   } else say('  differential: NOT DERIVED (data/engine-diff.json absent — run tests/test-engine-diff.js)');
+
+  /* THE INTERACTION MATRIX — the largest instrument, and this file printed nothing about it.
+   *
+   * The census asks whether ONE mechanic is live and the differential asks whether ONE hit's damage
+   * is right. Neither can see a pair: Grassy Terrain never setting a terrain, sandstorm chipping on
+   * the turn it expired, Liquid Voice wholly inert — all ten of those wires were found here and
+   * were invisible to both other instruments. Leaving the matrix off the status print meant the
+   * handoff said nothing about whether the mechanics work TOGETHER, which is now a bigger surface
+   * than either of the things it did print.
+   *
+   * EMITTED-AGAINST-THEORETICAL IS THE HONEST COVERAGE LINE and is deliberately printed beside the
+   * agreement rate. "899 of 899 agree" alone reads as "the engine is correct"; what it means is
+   * "the engine is correct on the pairs the generator could stage". Those are different claims and
+   * the second one is the true one. */
+  const m = j('interaction-matrix.json');
+  if (m) {
+    const theo = (m.theoretical && m.theoretical.total) || null;
+    const pct = m.live ? (100 * m.agree / m.live) : 0;
+    say(`  interaction matrix: ${m.agree}/${m.live} live carrier x reactor pairs agree with the official engine`
+      + ` (${pct.toFixed(1)}%)   (${day(new Date(m.generated))})`);
+    if (theo) {
+      say(`    ${m.ran} of ${theo} theoretical pairs staged — agreement is a claim about the ${m.ran} that ran, not about the ${theo}`);
+    }
+    const notScored = [
+      ['inert', m.inert, 'the reference engine behaves identically with and without the reactor'],
+      ['saturated', m.saturated, 'the control arm already dealt 100% of HP, so a damage ratio is clamped'],
+      ['ko-timing', m.ko_timing, 'a damage-magnitude question — tests/test-engine-diff.js owns it'],
+      ['threw', m.threw, 'the harness could not stage it'],
+    ].filter(r => r[1]);
+    for (const [name, n, why] of notScored) say(`    ${String(n).padStart(5)} ${name.padEnd(10)} not scored — ${why}`);
+    for (const p of (m.parting || []).slice(0, 6)) {
+      say(`    DISAGREES  ${p.carrier} -> ${p.reactor}  (${p.layer}, ${p.uses} uses)`);
+    }
+    if (m.shrink_declared) {
+      say(`    declared shrink ${m.shrink_declared.from} -> ${m.shrink_declared.to}: ${m.shrink_declared.reason}`);
+    }
+  } else say('  interaction matrix: NOT DERIVED (data/interaction-matrix.json absent — run tests/test-interaction-matrix.js --full)');
 
   if (c && t) {
     const names = [...new Set(t.tags.map(x => x.tag || x.name || x.id))];
@@ -238,25 +285,111 @@ function measure() {
 
   /* provenance is the canonical staleness authority; do not reimplement its rules here. Lesson 8. */
   let prov = null, provRan = false;
-  try {
-    const txt = execFileSync(process.execPath, [D('engine', 'provenance.js')], { encoding: 'utf8', maxBuffer: 1 << 24 });
-    provRan = true;
-    const m = txt.match(/(\d+) UNSAFE, (\d+) possibly stale, (\d+) ok, (\d+) missing/);
-    if (m) prov = { unsafe: +m[1], stale: +m[2], ok: +m[3], missing: +m[4] };
-    const optin = /OPT-IN FILTERS/.test(txt);
-    if (prov) {
-      say(`  provenance: ${prov.unsafe} unsafe, ${prov.stale} possibly stale, ${prov.ok} ok, ${prov.missing} missing`);
-      if (optin) say('    a generator makes the quality filter OPT-IN — see the tail of provenance.js');
+  /* A NON-ZERO EXIT IS A VERDICT, NOT A CRASH, AND THIS USED TO DISCARD IT.
+   *
+   * provenance.js exits 1 when the mtime_only ratchet GROWS — a new generator shipped without
+   * stamping its inputs. That is a finding, and it is a finding it prints in full: the counts line,
+   * the UNSAFE list and the names of the newly-unstamped artifacts are all on stdout before it
+   * sets the exit code. execFileSync throws on non-zero and threw that output away, so the entire
+   * provenance section collapsed to NOT DERIVED and the handoff went blind to 90-odd artifacts
+   * because three new ones lacked a stamp.
+   *
+   * Observed doing exactly that on 2026-08-05 while three divisions were mid-flight. A gate that
+   * hides the picture when it fires is a gate people learn to route around, which is the failure
+   * this repo has already paid for once. So: keep the output, print the counts, and say the ratchet
+   * tripped — the two facts are separate and both belong on screen. */
+  const readProv = () => {
+    try {
+      return { txt: execFileSync(process.execPath, [D('engine', 'provenance.js')],
+        { encoding: 'utf8', maxBuffer: 1 << 24 }), tripped: false, err: null };
+    } catch (e) {
+      const txt = typeof e.stdout === 'string' ? e.stdout : (e.stdout ? String(e.stdout) : '');
+      /* OUTPUT PRESENT means it RAN and reached a verdict — a non-zero exit IS that verdict here
+       * (the ratchet grew) and the caller prints it, so there is nothing to record. EMPTY OUTPUT
+       * means the tool genuinely died, which is a defect: record it so it reaches DIAGNOSTICS
+       * instead of being swallowed by a catch that returns a plausible empty result. */
+      if (!txt) logUnreadable('engine/provenance.js (exited non-zero with no output)', e);
+      return { txt, tripped: !!txt, err: e };
     }
-  } catch (e) {
-    NOTES.push('engine/provenance.js did not run: ' + String(e.message || e).split('\n')[0]);
-    say('  provenance: NOT DERIVED (engine/provenance.js did not run: ' + e.message.split('\n')[0] + ')');
+  };
+  {
+    const r = readProv();
+    const m = r.txt && r.txt.match(/(\d+) UNSAFE, (\d+) possibly stale, (\d+) ok, (\d+) missing/);
+    if (m) prov = { unsafe: +m[1], stale: +m[2], ok: +m[3], missing: +m[4] };
+    if (prov) {
+      provRan = true;
+      say(`  provenance: ${prov.unsafe} unsafe, ${prov.stale} possibly stale, ${prov.ok} ok, ${prov.missing} missing`);
+      if (/OPT-IN FILTERS/.test(r.txt)) say('    a generator makes the quality filter OPT-IN — see the tail of provenance.js');
+      if (r.tripped) {
+        /* Name the artifacts. A ratchet that fires without naming its cause is a ratchet someone
+         * switches off — provenance.js learned that lesson about itself and records it in place. */
+        const grew = (r.txt.match(/^\s{4}([\w.-]+\.json)\s*$/gm) || []).map(s => s.trim());
+        say('    RATCHET TRIPPED — the unstamped list grew; provenance.js exited non-zero'
+          + (grew.length ? ': ' + grew.slice(0, 6).join(', ') : ''));
+        say('    their generators ship without recording what CONTENT they read — stamp source_digests');
+        NOTES.push('provenance ratchet tripped: ' + (grew.slice(0, 6).join(', ') || 'see engine/provenance.js'));
+      }
+    } else {
+      const why = r.err ? String(r.err.message || r.err).split('\n')[0] : 'output did not contain a counts line';
+      NOTES.push('engine/provenance.js did not run: ' + why);
+      say('  provenance: NOT DERIVED (engine/provenance.js did not run: ' + why + ')');
+    }
   }
   /* THE OTHER HALF OF THE SAME QUESTION, AND IT WAS MISSING. provenance.js exiting 0 with output
    * this regex does not match leaves `prov` null, no line is printed at all, and the section simply
    * has one fewer row — which reads as "there is no provenance line" rather than "the provenance
    * line could not be parsed". */
   if (provRan && !prov) { NOTES.push('engine/provenance.js ran but its summary line did not parse'); say('  provenance: NOT DERIVED (summary line did not parse)'); }
+
+  /* ---- CLICK CENSORING — read out of the artifacts, never typed ------------------------------
+   * docs/CLICK-CENSORING-FIX.md. Three numbers belong on this screen: how much of the labelled set
+   * was NOT a click (the poison that was being fitted), how much is kept under a candidate set
+   * instead of a wrong certainty, and whether removing the poison changed BEHAVIOUR on those turns.
+   *
+   * The class-conditional contrast is the headline and the corpus-wide one is a control — §4 of the
+   * spec disclaims a corpus-wide top-1 claim in advance, so printing that as the result here would
+   * be manufacturing the thing the spec says not to claim. */
+  const cen = j('click-censoring-census.json');
+  if (!cen) say('  click censoring: NOT DERIVED (data/click-censoring-census.json absent)');
+  else {
+    const a1 = cen.event_stream_arm || {};
+    say(`  click censoring: ${(a1.coerced || 0).toLocaleString()} of ${(a1.actions_seen || 0).toLocaleString()} recorded actions ` +
+      `were NOT clicks (${(100 * (a1.rates || {}).coerced).toFixed(3)}%) and left the labeled set; ` +
+      `${(a1.partial || 0).toLocaleString()} (${(100 * (a1.rates || {}).partial).toFixed(3)}%) are kept under a candidate set`);
+    const ag = cen.agreement || {};
+    const pc2 = (h, t) => (t ? (100 * h / t).toFixed(1) + '%' : 'n/a');
+    say(`    classifier vs the raw protocol on ${((cen.raw_protocol_arm || {}).games_with_log || 0).toLocaleString()} games ` +
+      `(${(100 * ((cen.raw_protocol_arm || {}).coverage || 0)).toFixed(1)}% of the corpus): ` +
+      `encore recall ${pc2((ag.encore || {}).hit, (ag.encore || {}).truth)} precision ${pc2((ag.encore || {}).hit, (ag.encore || {}).found)}, ` +
+      `drag recall ${pc2((ag.drag || {}).hit, (ag.drag || {}).truth)} precision ${pc2((ag.drag || {}).hit, (ag.drag || {}).found)}`);
+    /* AN OLDER ARTIFACT MUST NOT CRASH THIS TOOL. The first version of this line did `.toFixed()` on
+     * a field a pre-noise-floor run does not carry, and status.js died on the whole handoff. A status
+     * tool that throws on a stale input is worse than one that says NOT DERIVED, which is the same
+     * argument the NOTES/logUnreadable block at the top of this file makes. */
+    const em = j('partial-label-em.json');
+    const A = em && em.regimes && em.regimes.amplified;
+    const num = v => (typeof v === 'number' && isFinite(v));
+    if (A && num(A.em_recovered_fraction) && num(A.censoring_bias) && num(A.noise_floor_oracle_spread)) {
+      say(`    EM recovers ${(100 * A.em_recovered_fraction).toFixed(1)}% of a planted censoring bias of ` +
+        `${A.censoring_bias.toFixed(3)} against a ${A.noise_floor_oracle_spread.toFixed(3)} noise floor (amplified regime)` +
+        (A.bias_exceeds_noise_floor ? '' : '  — BUT THE BIAS IS INSIDE ITS OWN NOISE FLOOR, so this regime says nothing'));
+    } else if (A) {
+      NOTES.push('data/partial-label-em.json predates the replicated noise-floor arm — re-run engine/em_validation.js');
+      say('    EM estimator: artifact present but PRE-NOISE-FLOOR shape — re-run engine/em_validation.js');
+    } else {
+      say('    EM estimator: NOT DERIVED (data/partial-label-em.json absent) — the fit is running an unvalidated estimator');
+    }
+    const cv = j('censoring-value.json');
+    if (!cv) say('    behaviour change: NOT DERIVED (data/censoring-value.json absent)');
+    else if (cv.void) say(`    behaviour change: VOID — ${cv.void_reason}`);
+    else {
+      const f = (c, k) => { const x = ((cv.contrasts || {})[c] || {})[k]; return x ? `${x.point >= 0 ? '+' : ''}${x.point.toFixed(6)} [${x.ci95[0].toFixed(6)}, ${x.ci95[1].toFixed(6)}]${x.excludes_zero ? '' : ' (contains zero)'}` : 'n/a'; };
+      say(`    behaviour on the OUTPLAYED turns, after - before, paired and game-bootstrapped:`);
+      say(`      redirection turns, mass on the candidate set  ${f('partial', 'p')}   n=${(cv.class_counts || {}).partial}`);
+      say(`      coerced turns, P(the coerced action)          ${f('coerced', 'p')}   n=${(cv.class_counts || {}).coerced}  (lower is better)`);
+      say(`      CONTROL, clean turns, logL                    ${f('clean', 'll')}   n=${(cv.class_counts || {}).clean}`);
+    }
+  }
 
   const r = refitOwed();
   if (r.verdict === 'NOT DERIVED') say(`  refit edge: NOT DERIVED (${r.reason})`);

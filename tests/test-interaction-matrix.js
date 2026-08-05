@@ -41,6 +41,7 @@
 'use strict';
 require('../engine/showdown_path.js');
 const fs = require('fs');
+const { shrinkDecision } = require('./shrink_guard.js');
 const path = require('path');
 const D = (...p) => path.join(__dirname, '..', ...p);
 require(D('data', 'engine-data.js'));
@@ -423,7 +424,30 @@ const artifact = {
  * artifact whose validity depends on something the file records but nobody compares.
  *
  * Refuse rather than prompt. `--full` is one word, and a run that prints its numbers without
- * publishing them is still a completely useful run. */
+ * publishing them is still a completely useful run.
+ *
+ * TWO DEFECTS IN THIS GUARD, BOTH PAID FOR ON 2026-08-05, BOTH FIXED BELOW.
+ *
+ * 1. THE ADVICE SENT YOU IN A CIRCLE. It said "Re-run with --full to publish" — but the test is
+ *    `live < prevLive` and nothing else, so `--full` does not satisfy it and never could. A run
+ *    already at `--full` was told to re-run at `--full`. The only route is `--publish-shallow`,
+ *    which the same sentence mentioned last and framed as the unusual case.
+ *
+ * 2. A DECLARED SHRINK RECORDED NO REASON. `--publish-shallow` was a bare boolean, so an accepted
+ *    shrink left nothing on disk saying WHY it was accepted, and a later reader could not tell a
+ *    legitimate one from a mistake waved through.
+ *
+ * What that cost: four redundant tags were retired, live legitimately fell 1,012 -> 899, and the
+ * `--full` run reporting 899/899 = 100.0% was REFUSED publication. The number was real and correct.
+ * It was read off the terminal into the whitepaper, the deck, the technical docs and SUMMARY.md,
+ * where it sat for hours as a figure four living documents attributed to an artifact that did not
+ * contain it. The guard was right to fire and the number was right too; what was missing was any
+ * way to say "this shrink is intended, and here is why".
+ *
+ * So a shrink is now DECLARED WITH ITS REASON and the reason is written into the artifact — the
+ * same shape as `RAW-STORE-OK` and `provenance.js`'s `void: true`: a judgement is not suppressed,
+ * it is recorded where a consumer will see it. A bare `--publish-shallow` is refused, because a
+ * flag that silences a gate without saying why is a flag that eventually silences it wrongly. */
 const OUT = D('data', 'interaction-matrix.json');
 let prevLive = null;
 /* ENOENT is a genuine first run. Anything else means the PUBLISHED artifact is unreadable, and
@@ -431,13 +455,24 @@ let prevLive = null;
  * the exact depth-downgrade this guard exists to refuse. */
 try { prevLive = JSON.parse(fs.readFileSync(OUT, 'utf8')).live; }
 catch (e) { if (e.code !== 'ENOENT') console.error(`  note: data/interaction-matrix.json exists but is unreadable (${e.message}) — treating as a first run, so the depth guard cannot fire`); }
-if (typeof prevLive === 'number' && artifact.live < prevLive && !process.argv.includes('--publish-shallow')) {
-  console.log(`\n  NOT WRITTEN — this run staged ${artifact.live} live cases and the published artifact has ${prevLive}.`);
-  console.log('  A shallower run must not replace a deeper one; the numbers above are still valid for this depth.');
-  console.log('  Re-run with --full to publish, or --publish-shallow if the shrink is intended.');
+
+const decision = shrinkDecision(prevLive, artifact.live, process.argv.slice(2));
+if (!decision.write) {
+  console.log('\n  NOT WRITTEN — ' + decision.why);
+  for (const line of decision.advice) console.log('  ' + line);
 } else {
+  if (decision.declared) {
+    artifact.shrink_declared = {
+      from: prevLive, to: artifact.live, depth: depth === Infinity ? 'full' : depth,
+      reason: decision.declared,
+      note: 'A shrink was accepted deliberately. This block is the record of that judgement; ' +
+            'without it the drop from ' + prevLive + ' to ' + artifact.live + ' is indistinguishable ' +
+            'from a shallow run overwriting a deep one.',
+    };
+  }
   fs.writeFileSync(OUT, JSON.stringify(artifact, null, 2) + '\n');
-  console.log('  wrote data/interaction-matrix.json');
+  console.log('  wrote data/interaction-matrix.json'
+    + (decision.declared ? '  (declared shrink: ' + decision.declared + ')' : ''));
 }
 
 /* A DIVERGENCE IS A FINDING AND IS REPORTED, exactly as the census reports a MISSING mechanic — a file

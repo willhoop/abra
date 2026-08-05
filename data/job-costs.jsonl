@@ -1,0 +1,2 @@
+{"job":"selftest-probe","peak_mb":623,"duration_s":0,"samples":2,"node":"v24.15.0","at":"2026-08-05T05:12:52.918Z","meta":{"why":"proving the recorder works"}}
+{"job":"exploit","peak_mb":51,"duration_s":20,"samples":2,"node":"v24.15.0","at":"2026-08-05T05:13:55.825Z","meta":{"argv":"--help"}}

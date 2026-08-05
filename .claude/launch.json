@@ -6,6 +6,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8099", "--directory", "web"],
       "port": 8099
+    },
+    {
+      "name": "agent-dashboard",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["../../portfolio/build/agent_dashboard.js"],
+      "port": 7333
     }
   ]
 }

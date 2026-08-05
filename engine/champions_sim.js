@@ -1,6 +1,17 @@
 /* champions_sim.js — run real Champions battles through Showdown's OFFICIAL simulator.
  *
- * WHY THIS EXISTS (see docs/ADR-001-use-the-champions-mod.md)
+ * WHY THIS EXISTS (see docs/ADR-001-use-the-champions-mod.md, then
+ * docs/ADR-002-showdown-is-the-authority.md, which supersedes its migration half)
+ * ----------------------------------------------------------
+ * ADR-002, 2026-08-05: this file stays the AUTHORITY and `medicham2-browser.js` stays the RUNTIME.
+ * ADR-001 planned to demote the hand-written engine to a lookup table; that never happened and is
+ * now formally withdrawn, for two measured reasons. Its premise — "fixing this engine by hand was
+ * never going to converge" — was falsified: the engine now agrees with this one on 149/150 damage
+ * rows and 899/899 interaction pairs, once instruments existed to point at. And the 117x slowdown
+ * this file carries cannot sit beneath MILTANK, a search player that did not exist when ADR-001 was
+ * written and that plays positions out thousands of times per turn. Nothing here is demoted: every
+ * disagreement is still MEDICHAM's bug by construction, and the honest claim is agreement on the
+ * 1,514 pairs that ran, not on the 8,506 that exist.
  * ----------------------------------------------------------
  * `medicham2-browser.js` is a rules engine written by hand. In one session it was found to apply a
  * uniformly random status, to flinch only on Fake Out, to ignore every type immunity, to treat all

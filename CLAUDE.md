@@ -15,11 +15,15 @@ there are fourteen of them, each was typed by hand at the end of a session, and 
 a day. The 2026-08-04 handoff says "172 tags, 118 unprobed" against a `tags.json` holding 176 unique
 tags with 123 unprobed. Nobody mistyped anything; prose cannot track a corpus. They are history now.
 
-Work is divided four ways — ENGINE, MEASURE, SEARCH, OPS — cut on the invalidation graph so that a
-change in one does not silently invalidate the others. Read [docs/DIVISIONS.md](docs/DIVISIONS.md)
+Work is divided five ways — ENGINE, MEASURE, SEARCH, OPS, WEB — cut on the invalidation graph so
+that a change in one does not silently invalidate the others. Read [docs/DIVISIONS.md](docs/DIVISIONS.md)
 for the map, the routing rule for a new bug, and the frozen-engine-release rule. Each division's
-ledger is `docs/{ENGINE,MEASURE,SEARCH,OPS}.md`; `status.js --write` stamps the numbers into them
+ledger is `docs/{ENGINE,MEASURE,SEARCH,OPS,WEB}.md`; `status.js --write` stamps the numbers into them
 and leaves the judgement alone.
+
+*(WEB was added 2026-08-04 and this file said "four" in three places until 2026-08-05. The count was
+cosmetic; the ledger list was not — the living-docs rule below named four ledgers, so a WEB change
+carried no documented obligation to record itself anywhere.)*
 
 The lessons that cost hours are in [docs/LESSONS.md](docs/LESSONS.md), written once.
 
@@ -119,11 +123,22 @@ const MEDI = REL.require('engine/medicham2-browser.js');   // the SNAPSHOT's byt
 artifact = { ...REL.stamp(), ...result };                  // says exactly what was measured
 ```
 
-Twelve files are frozen — the simulator, the board, the leaf, the features, the tags, **and the
-weights**, because "can anything beat MAG" is a claim about one specific vector and the weights are
-what actually moved. It is a **copy, not a checksum**: verifying digests afterwards only tells you
-the run was wasted. `tests/test-engine-release.js` proves it by editing a live file while a release
-is open and asserting the release still serves the old bytes.
+**Twenty-three** files are frozen — the simulator, the board, the leaf, the features, the tags, the
+loader closure, the lazily-read data files, **and the weights**, because "can anything beat MAG" is a
+claim about one specific vector and the weights are what actually moved. It is a **copy, not a
+checksum**: verifying digests afterwards only tells you the run was wasted.
+`tests/test-engine-release.js` proves it by editing a live file while a release is open and asserting
+the release still serves the old bytes.
+
+*(This said "twelve" until 2026-08-05. The set grew twice, each time because a release that was a
+valid DIGEST SET turned out not to be a loadable — then not a runnable — engine: +6 loader deps so
+`REL.require` resolves, +5 lazily-read data files so a snapshot can actually play a game. Read the
+count from `SOURCES` in `engine/engine_release.js`, never from this sentence.)*
+
+**A re-cut over an identical tree appends, it does not overwrite.** Cutting twice yields the same id
+by design, and the second cut used to rewrite the first one's timestamp and reason — so an artifact
+could point at a release stamped minutes *after* the run that used it. Cuts are now events in
+`data/releases/<id>/cuts.jsonl`; top-level `cut`/`why` mean the FIRST freeze and are never rewritten.
 
 Now ENGINE may rewrite the simulator all night while SEARCH measures. **That is the point of the
 divisions, and it only works because the measurement is not reading those bytes.**
@@ -327,7 +342,7 @@ with its matching PDF where applicable, plus a CHANGELOG entry and a version bum
 - `docs/ABRA-technical-docs.md` (+ `.pdf`) — ASD-STE100 Simplified Technical English, by Diátaxis.
 - `docs/SUMMARY.md` (+ `.pdf`) — whole-project + per-component summary table.
 - `docs/MODELS.md` — the per-model living ledger.
-- The division ledger your change belongs to — `docs/{ENGINE,MEASURE,SEARCH,OPS}.md` — and then
+- The division ledger your change belongs to — `docs/{ENGINE,MEASURE,SEARCH,OPS,WEB}.md` — and then
   `node engine/status.js --write` to restamp the generated blocks. **Never hand-edit inside a
   `<!-- GENERATED -->` block, and never write a handoff document.** State is printed, not typed;
   `docs/HANDOFF-*.md` are historical narrative and are not maintained.

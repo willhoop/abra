@@ -52,3 +52,18 @@ cleanup and is gone.
 
 If something looks like debris: **report it, leave it.** The cost of an extra file sitting in the
 tree is nothing. The cost of deleting the wrong one cannot be undone.
+
+# One more rule, added 2026-08-05 after it nearly cost a measurement
+
+**KILL ONLY WHAT YOU STARTED, AND ONLY BY PID.** Never by image name — no `taskkill /F /IM node.exe`,
+no `Stop-Process -Name node`. Those end every node process on the machine, and on this box that
+includes other divisions' work and the assistant itself.
+
+It happened on 2026-08-05: an agent cleared a hung scan of its own with `taskkill //F //IM node.exe`
+and killed three processes repo-wide while four other agents were working. Nothing was measurably
+lost that time, and that is luck rather than a defence — a fit or a rollout dying at minute 39 does
+not announce itself, it just leaves a gap. The same night the OS killed a 40-minute R1 measurement
+for unrelated reasons and produced no stack, no stderr and no dump.
+
+If your own child process hangs: kill it by the pid you spawned. If you cannot identify it,
+**report it and stop** — a stuck process costs nothing next to somebody else's void run.
