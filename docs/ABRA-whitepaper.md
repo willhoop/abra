@@ -2,7 +2,7 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.42.0 · Last updated 2026-08-05**
+**Version 3.43.0 · Last updated 2026-08-05**
 **Will Hooper · ABRA**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
@@ -492,6 +492,41 @@ the missing third is one archive, so recovering them would reweight the sample b
 **2,280 of 139,769 logged actions (1.6313%)** were priced against a menu that had already shrunk —
 a wrong denominator rather than a wrong label, and a separate refit.
 
+## The matrix’s own arithmetic is closed, and the coverage figure moves (3.43.0)
+
+The interaction matrix is this project's largest conformance instrument, and until this release
+nothing checked its arithmetic. It printed a theoretical cross product, an emitted count and a
+ledger of named drops four lines apart, and **no code compared them**. They did not agree.
+
+The identity is `theoretical === staged + dropped`, per axis, and it is now asserted at generation
+time rather than printed for a reader. It found three defects on its first run:
+
+1. **The denominator omitted the generator's own supplementary keys.** `tests/interaction_matrix.js`
+   stages against `tags.linkage` MERGED with keys it derives itself; the theoretical total counted
+   only the artifact's. 170 pairs were staged or dropped against a universe that had never heard of
+   them. Theoretical **8,506 → 8,676**.
+2. **The type axis mis-costed its depth-cap tail by one.** The index was incremented before the cap
+   was tested, so the tail excluded the very carrier the break was rejecting — 32 firings, 32 pairs
+   of silence, in the direction that *flatters* the coverage rate.
+3. **The outcome buckets were not a partition.** `saturated` did not exclude a case that had thrown
+   and `ko_timing` excluded nothing, so four cases were counted twice and the five printed totals
+   summed to more than the number of cases run.
+
+With the ledger closed, the generator recovers pairs it had been dropping unnamed: emitted
+**1,514 → 1,675**, live **899 → 1,031**.
+
+**The headline agreement figure falls, and that is the instrument working.** The matrix reports
+**1,027 of 1,031 (99.6%)**, where the previous release reported 899 of 899 (100.0%). MEDICHAM did not
+regress: the four disagreements — Shield Dust against Fake Out, Throat Chop and Psychic Noise, and
+Steadfast against Upper Hand — sit on pairs the smaller generator never emitted. A 100.0% computed
+over a denominator that silently dropped 5,090 pairs was the less honest number. The four are
+`UNWIRED` rather than miscalculated: MEDICHAM's own two arms are identical on each, meaning the knob
+is absent rather than wrong.
+
+The self-test is the point. `--selftest-reconcile` mis-costs exactly one drop by one pair — the
+smallest lie the ledger can tell — and requires the identity to stop the run. The file previously
+carried a header stating that the assertion fires; the assertion was defined and never called.
+
 ## Layer 0 executes; the joint layer refits; the channel value is measured (3.41.0)
 
 Same night, three division runs later. **Engine:** Layer 0 of the coverage plan is done — census
@@ -575,10 +610,10 @@ team sheets, since a model fitted on four channels degrades differently from one
 
 ### Interactions, generated rather than sampled
 
-8,506 theoretical carrier × reactor pairs; 1,640 staged; **1,008 that can genuinely co-occur**, where
+8,676 theoretical carrier × reactor pairs; 1,675 staged; **1,031 that can genuinely co-occur**, where
 co-occurrence is decided by the reference engine's own two arms differing rather than by our judgement —
-so "correctly blocked" stays distinguishable from "silently absent". The engine agrees on **940 of 1,008
-(93.3%)**. Every pair the generator refuses is counted under a named reason and printed on each run. The
+so "correctly blocked" stays distinguishable from "silently absent". The engine agrees on **1,027 of 1,031
+(99.6%)**. Every pair the generator refuses is counted under a named reason and printed on each run. The
 156 ordered persistent-field pairs each become an 8-turn script, which is the only construction that can
 observe *Trick Room was already up when Tailwind landed*; that axis went from 30/156 to **156/156**.
 

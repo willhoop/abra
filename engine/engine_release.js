@@ -458,9 +458,25 @@ function citedReleaseIds(opts) {
   const S = store(opts);
   const root = path.join(S.releases, '..');            // data/
   const ids = new Set();
+  /* A FAILED READ HERE MUST FAIL CLOSED, AND IT DID THE OPPOSITE. Returning an empty set on an
+   * unreadable data/ says "no artifact cites any release" — so prune, whose whole rule is "keep a
+   * release while something cites it", would have deleted EVERY release body precisely when it could
+   * no longer tell which were in use. A destructive operation that becomes more destructive the less
+   * it can see is the worst available failure mode, and the catch two lines down already knew that:
+   * it returns every release as CITED. Both paths now agree. */
   let files = [];
-  try { files = fs.readdirSync(root).filter(f => f.endsWith('.json')); } catch (e) { return ids; }
-  const known = (() => { try { return fs.readdirSync(S.releases); } catch (e) { return []; } })();
+  try { files = fs.readdirSync(root).filter(f => f.endsWith('.json')); }
+  catch (e) {
+    throw new Error('prune: cannot list ' + root + ' to find out which releases are cited (' + e.message
+      + '). Refusing to continue — with no citation evidence every release reads as uncited, and '
+      + 'pruning on that would delete the bodies of releases that are in use.');
+  }
+  let known = [];
+  try { known = fs.readdirSync(S.releases); }
+  catch (e) {
+    throw new Error('prune: cannot list ' + S.releases + ' (' + e.message + '). There is nothing to '
+      + 'prune and nothing to compare against; this is a broken store, not an empty one.');
+  }
   for (const f of files) {
     let text;
     try { text = fs.readFileSync(path.join(root, f), 'utf8'); }
@@ -473,8 +489,15 @@ function citedReleaseIds(opts) {
 function prune(apply, opts) {
   const S = store(opts);
   const cited = citedReleaseIds(opts);
+  /* THE CURRENT RELEASE IS NEVER PRUNED, and that protection was one unreadable file away from
+   * vanishing without a word. `current = null` matches no id, so the guard simply stopped applying. */
   let current = null;
-  try { current = JSON.parse(fs.readFileSync(S.pointer, 'utf8')).current; } catch (e) { current = null; }
+  try { current = JSON.parse(fs.readFileSync(S.pointer, 'utf8')).current; }
+  catch (e) {
+    throw new Error('prune: cannot read the current-release pointer ' + S.pointer + ' (' + e.message
+      + '). The rule "the current release is never pruned" cannot be enforced without it, so this '
+      + 'refuses rather than pruning with the guard silently switched off.');
+  }
   const out = [];
   for (const id of fs.readdirSync(S.releases)) {
     const dir = path.join(S.releases, id);

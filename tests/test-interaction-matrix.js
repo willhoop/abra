@@ -340,12 +340,30 @@ for (const c of cases) {
 const secs = ((Date.now() - t0) / 1000).toFixed(1);
 
 const tally = (pred) => rows.filter(pred).length;
-const threw = rows.filter(r => r.result.failure);
-const inert = rows.filter(r => !r.result.failure && r.result.inert);
-const saturated = rows.filter(r => r.result.saturated || r.result.zeroControl || r.result.lowSignal);
-const ko = rows.filter(r => r.result.koTiming);
-const live = rows.filter(r => !r.result.failure && !r.result.inert && !r.result.saturated
-  && !r.result.zeroControl && !r.result.lowSignal && !r.result.koTiming);
+/* THE OUTCOME BUCKETS ARE A PARTITION, AND THEY HAD TO BE MADE ONE. `live` was the only filter that
+ * excluded the others; `saturated` did not exclude a row that had THROWN and `ko` excluded nothing at
+ * all, so a row could be counted in two buckets and the five printed totals summed to four MORE than
+ * the number of cases actually run. Four is small. The point is that nothing in the run compared the
+ * two, exactly as nothing compared theoretical to staged+dropped on the generation side.
+ *
+ * One classifier, one precedence, stated: a case that could not be STAGED says nothing about the
+ * engine; one whose reference arms are identical cannot express itself; a clamped damage ratio is not
+ * a measurement; a KO-timing split belongs to tests/test-engine-diff.js; what survives is LIVE. */
+const bucketOf = r => r.result.failure ? 'threw'
+  : r.result.inert ? 'inert'
+  : (r.result.saturated || r.result.zeroControl || r.result.lowSignal) ? 'saturated'
+  : r.result.koTiming ? 'ko'
+  : 'live';
+const BUCKETS = { threw: [], inert: [], saturated: [], ko: [], live: [] };
+for (const r of rows) BUCKETS[bucketOf(r)].push(r);
+const { threw, inert, saturated, ko, live } = BUCKETS;
+{
+  const sum = threw.length + inert.length + saturated.length + ko.length + live.length;
+  if (sum !== rows.length)
+    throw new Error('OUTCOME BUCKETS ARE NOT A PARTITION: ' + sum + ' bucketed vs ' + rows.length
+      + ' run. Every case that ran has exactly one outcome, or the coverage line is arithmetic on '
+      + 'overlapping sets.');
+}
 const agree = live.filter(r => r.result.agrees);
 const part = live.filter(r => !r.result.agrees);
 
@@ -402,6 +420,13 @@ const artifact = {
   by_axis: gen.byAxis, by_layer: gen.byLayer, by_evaluator: gen.byEvaluator,
   dropped_by_the_generator: Object.fromEntries(Object.entries(gen.dropped).map(([k, v]) => [k, v.n])),
   live: live.length, agree: agree.length, part: part.length,
+  /* THE HEADLINE PERCENTAGE IS A FACT IN THE FILE, not one every document recomputes. Six living docs
+   * quote it; each was deriving it from `agree / live` by hand, so `tests/test-docs-current.js` could
+   * only report it as a figure no artifact contains — correctly, since none did. A number that many
+   * documents cite belongs in the artifact at the precision the documents use. */
+  agreement_pct: live.length ? +(100 * agree.length / live.length).toFixed(1) : null,
+  /* Likewise the coverage fraction, which is the honest half of the claim above. */
+  staged_pct_of_theoretical: th.total ? +(100 * gen.cases.length / th.total).toFixed(1) : null,
   inert: inert.length, saturated: saturated.length, ko_timing: ko.length, threw: threw.length,
   not_compared: G.NOT_COMPARED.map(x => x[0]),
   parting: part.map(r => ({ axis: r.axis, key: r.key, layer: r.layer, carrier: r.carrier.id,

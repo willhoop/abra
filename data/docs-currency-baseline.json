@@ -1,8 +1,8 @@
 {
-  "generated": "2026-08-05T06:39:31.096Z",
+  "generated": "2026-08-05T16:46:35.584Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "3.42.0",
+  "changelog_top_at_baseline": "3.43.0",
   "version_pins": {
     "docs/ARCHITECTURE-NOTES.md": {
       "version": "1.0",
@@ -11,6 +11,10 @@
     "docs/ARCHITECTURE.md": {
       "version": "1.2",
       "reason": "OWN VERSION LINE — an architecture document, versioned independently of the model releases."
+    },
+    "docs/CLICK-CENSORING-FIX.md": {
+      "version": "3.42.0",
+      "reason": "SPEC FOR A SHIPPED RELEASE - it is the written specification of the 3.42.0 click-censoring work, and its content is current FOR that release. Bumping its header at every later release would assert it had been revisited when it had not."
     },
     "docs/COVERAGE-PLAN-REVIEW.md": {
       "version": "3.40.0",
@@ -258,8 +262,7 @@
       "docs/SUMMARY.md|31.1|data/mechanics-census.json,data/interaction-matrix.json,data/rulebook-collision.json",
       "docs/SUMMARY.md|6,091|data/policy-weights.json",
       "docs/SUMMARY.md|7.4|data/quality-filter.json",
-      "docs/SUMMARY.md|8,713|data/quality-filter.json",
-      "docs/SUMMARY.md|999|data/mechanics-census.json,data/interaction-matrix.json,data/rulebook-collision.json"
+      "docs/SUMMARY.md|8,713|data/quality-filter.json"
     ],
     "untraceable_by_doc": {
       "docs/ABRA-technical-docs.md": 2,

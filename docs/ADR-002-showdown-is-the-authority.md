@@ -1,6 +1,6 @@
 # ADR-002 — Showdown is the authority, MEDICHAM is the runtime
 
-**Version 3.42.0 · 2026-08-05 · Status: ACCEPTED · Supersedes the migration half of
+**Version 3.43.0 · 2026-08-05 · Status: ACCEPTED · Supersedes the migration half of
 [ADR-001](ADR-001-use-the-champions-mod.md), which stands as a record and is not deleted.**
 
 ---
@@ -48,7 +48,7 @@ converged. Read at the moment of the decision, from artifacts, not prose:
 | instrument | agreement with the official engine |
 |---|---|
 | `data/engine-diff.json` (damage, seed 20260804) | **149 / 150** — the one residual is a documented harness-layer boundary, both engines right |
-| `data/interaction-matrix.json` (carrier × reactor) | **899 / 899 — 100.0%**, zero disagreements |
+| `data/interaction-matrix.json` (carrier × reactor) | **1,027 / 1,031 — 99.6%**; the four are UNWIRED knobs (Shield Dust ×3, Steadfast ×1), not wrong arithmetic |
 | `data/mechanics-census.json` | **208 / 211 live**, 3 missing with written reasons |
 
 *(Those are a snapshot, and the census in particular moves — it read 202/211 four hours before this
@@ -72,9 +72,9 @@ the authority. Every disagreement remains MEDICHAM's fault by construction.
 
 ## What we accept, and it is not small
 
-**Conformance is proven only where we have looked.** The matrix stages **1,514 of a theoretical
-8,506** carrier × reactor pairs. The honest claim is *"the engine agrees with the official engine on
-the 1,514 pairs that ran"*, never *"the engine is correct"*. That coverage fraction **is** the answer
+**Conformance is proven only where we have looked.** The matrix stages **1,675 of a theoretical
+8,676** carrier × reactor pairs. The honest claim is *"the engine agrees with the official engine on
+the 1,675 pairs that ran"*, never *"the engine is correct"*. That coverage fraction **is** the answer
 to how much of the law we actually follow, and raising it is the entire point of the coverage
 programme (mutation → unified generator → registry → differential).
 
@@ -110,3 +110,20 @@ gets re-measured before it is quoted.
 *(The doc-currency check flagged those three as figures a cited artifact does not contain. It was
 right to. They are historical quotes sitting in a document that also cites live artifacts, and the
 check cannot tell those apart from a paragraph — so the document says which is which instead.)*
+
+## Revision, 3.43.0 — the matrix figures in this ADR moved, and the direction is uncomfortable
+
+This ADR was written citing **1,514 of 8,506 pairs staged** and **899 / 899 — 100.0% agreement**. Both
+are now superseded: **1,675 of 8,676 staged**, **1,027 / 1,031 — 99.6%**. Nothing about the decision
+changes, but the record has to say which way the number went and why.
+
+The matrix never checked its own arithmetic. Once `theoretical = staged + dropped` was asserted per
+axis it failed immediately, on three separate faults (an understated denominator, a depth-cap
+off-by-one, and outcome buckets that were not a partition — see `CHANGELOG.md` 3.43.0). Closing it
+recovered 161 pairs the generator had been discarding without naming them, and among those pairs sit
+four the engine gets wrong.
+
+**So the 100.0% in the table above was an artefact of a denominator that dropped 5,090 pairs in
+silence.** It is exactly the failure this ADR argues *against* — a conformance claim that reads as
+proof and is really a statement about where nobody looked. A 99.6% that knows its own denominator is
+the stronger evidence for keeping MEDICHAM, not weaker.

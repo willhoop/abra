@@ -19,12 +19,10 @@ MEASURE — can we believe a number
     powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835
     PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/abra-tags.js
     (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
-  provenance: 2 unsafe, 43 possibly stale, 55 ok, 0 missing
-    RATCHET TRIPPED — the unstamped list grew; provenance.js exited non-zero: censoring-value.json, click-censoring-census.json
-    their generators ship without recording what CONTENT they read — stamp source_digests
-  click censoring: 1,336 of 241,927 recorded actions were NOT clicks (0.552%) and left the labeled set; 3,260 (1.348%) are kept under a candidate set
-    classifier vs the raw protocol on 5,917 games (66.2% of the corpus): encore recall 99.7% precision 96.1%, drag recall 96.5% precision 96.5%
-    EM recovers 97.4% of a planted censoring bias of 0.893 against a 0.260 noise floor (amplified regime)
+  provenance: 2 unsafe, 42 possibly stale, 56 ok, 0 missing
+  click censoring: 1,345 of 244,146 recorded actions were NOT clicks (0.551%) and left the labeled set; 3,288 (1.347%) are kept under a candidate set
+    classifier vs the raw protocol on 5,997 games (66.5% of the corpus): encore recall 99.7% precision 96.2%, drag recall 96.6% precision 96.6%
+    EM recovers 91.4% of a planted censoring bias of 0.957 against a 0.326 noise floor (amplified regime)
     behaviour on the OUTPLAYED turns, after - before, paired and game-bootstrapped:
       redirection turns, mass on the candidate set  +0.000109 [-0.000286, 0.000491] (contains zero)   n=643
       coerced turns, P(the coerced action)          -0.002614 [-0.003663, -0.001637]   n=284  (lower is better)
@@ -33,7 +31,7 @@ MEASURE — can we believe a number
     (engine/medicham2-browser.js moved 2026-08-05 05:07, but the feature function did not)
 ```
 
-_stamped 2026-08-05 06:01_
+_stamped 2026-08-05 16:44_
 
 <!-- /GENERATED -->
 

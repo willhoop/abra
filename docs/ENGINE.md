@@ -23,25 +23,29 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  208/211 probed mechanics live, 3 missing   (census 2026-08-05 05:56)
+  208/211 probed mechanics live, 3 missing   (census 2026-08-05 06:39)
   missing:
     move    needsTargetToAttack    Avalanche doubles after being hit
     ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll
     ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit
-  1/150 differential comparisons disagree with Showdown   (2026-08-05 05:56)
+  1/150 differential comparisons disagree with Showdown   (2026-08-05 06:39)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (56 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 899/899 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-05 05:16)
-    1514 of 8506 theoretical pairs staged — agreement is a claim about the 1514 that ran, not about the 8506
-      491 inert      not scored — the reference engine behaves identically with and without the reactor
+  interaction matrix: 1027/1031 live carrier x reactor pairs agree with the official engine (99.6%)   (2026-08-05 16:37)
+    1675 of 8676 theoretical pairs staged — agreement is a claim about the 1675 that ran, not about the 8676
+      519 inert      not scored — the reference engine behaves identically with and without the reactor
       107 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
-       19 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
+       16 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
+    DISAGREES  upperhand -> steadfast  (secondary, 73 uses)
+    DISAGREES  fakeout -> shielddust  (secondary, 12872 uses)
+    DISAGREES  throatchop -> shielddust  (secondary, 2888 uses)
+    DISAGREES  psychicnoise -> shielddust  (secondary, 216 uses)
   tag coverage: 155/181 probed, 26 unprobed
 ```
 
-_stamped 2026-08-05 06:01_
+_stamped 2026-08-05 16:44_
 
 <!-- /GENERATED -->
 
@@ -123,7 +127,9 @@ SEARCH owns both.
 ## THE SCOPE PASS — WIRES 114–116. **THE CENSUS NEVER ASKED WHETHER A MECHANIC FIRES ONLY WHERE IT SHOULD.** 2026-08-05.
 
 Census **202 → 208 live / 205 → 211 probed**; missing still 3, hollow still 0, `unarmed` still 146 (all
-six new probes are armed), `threw` 0. Matrix **899/899 at `--full`**, denominator unshrunk.
+six new probes are armed), `threw` 0. Matrix **899/899 at `--full`**, denominator unshrunk. *(3.43.0
+supersedes that figure: the denominator was itself unchecked. See "THE SIZE, AND THE COVERAGE,
+HONESTLY" below — 1,027/1,031 once the generator's arithmetic was closed.)*
 Differential **1/150**, the same pre-existing `chesnaught woodhammer -> mimikyu` row.
 
 Three defects, one shape, and the shape is the finding. **Every instrument this division owns asks
@@ -299,15 +305,30 @@ plays every case in medicham2 and in the official pinned engine and **authors no
 
 | | |
 |---|---|
-| theoretical cross product, no filter at all | **8,506** — flag 7,870, type 480, field 156 |
-| emitted at `--full` | **1,640** — flag 1,171, type 313, field 156 |
-| by layer | secondary 848, legality 379, damage 323, immunity 83, targeting 7 |
-| **LIVE** (the reference engine's two arms differ, so the mechanic can fire) | **1,012** |
-| INERT (the reference engine behaves identically with and without the reactor) | 503 |
+| theoretical cross product, no filter at all | **8,676** — flag 8,040, type 480, field 156 |
+| emitted at `--full` | **1,675** — flag 1,206, type 313, field 156 |
+| by layer | secondary 883, legality 379, damage 323, immunity 83, targeting 7 |
+| **LIVE** (the reference engine's two arms differ, so the mechanic can fire) | **1,031** |
+| INERT (the reference engine behaves identically with and without the reactor) | 519 |
 | SATURATED (the control arm KO'd, so a damage ratio is clamped) | 107 |
-| KO-TIMING (a damage-magnitude question — `test-engine-diff.js` owns it) | 20 |
+| KO-TIMING (a damage-magnitude question — `test-engine-diff.js` owns it) | 16 |
 | THREW (both are the harness — Curse takes no target and `battle.choose` rejects the turn) | 2 |
-| **medicham2 agrees with the official engine on** | **1,011 of 1,012 — 99.9%** (2026-08-05, after the Layer 0 pass; was 940/1,008 the day before, 79.4% on the flag axis and 19.2% on the field axis when the instrument was first pointed at them). **The one survivor is `skillswap -> prankster`**, whose fix is the STAGED `swapsAbilities` regeneration — consumer wired (WIRE 110), derivation written, demonstrated by injection in `tests/probe_red_demo.js` |
+| **medicham2 agrees with the official engine on** | **1,027 of 1,031 — 99.6%** (3.43.0). The four are UNWIRED knobs, not wrong arithmetic — MEDICHAM's own two arms are identical on each: `fakeout`, `throatchop`, `psychicnoise` → **Shield Dust**, and `upperhand` → **Steadfast** |
+
+**THE FIVE OUTCOME ROWS SUM TO `emitted`, AND THEY DID NOT BEFORE 3.42.0.** `saturated` did not
+exclude a case that had THROWN and `ko_timing` excluded nothing at all, so four cases sat in two rows
+each and the column summed to 1,679 against 1,675 run. `tests/test-interaction-matrix.js` now
+classifies once, in a stated precedence, and throws if the five do not partition the run.
+
+**THE GENERATOR ASSERTS ITS OWN ARITHMETIC.** `theoretical = staged + dropped`, checked per axis and,
+on the flag axis, per `(key, reactor)` — where N is known exactly, so the throw names the reactor
+instead of reporting a gap somewhere in 8,000 pairs. Three faults on its first run: the denominator
+read `tags.linkage` while the generator staged against `LINKAGE` (= the artifact's keys MERGED with
+this file's supplementary ones), understating it by 170; the type axis incremented its carrier index
+*before* testing the depth cap, so each of 32 firings lost the very carrier it broke on; and the
+outcome rows above. `node tests/interaction_matrix.js --selftest-reconcile` mis-costs one drop by one
+pair and requires the identity to stop the run — because the header claimed the assertion fired while
+`reconcile()` was defined and never called.
 
 **EVERY DROP IS NAMED AND COUNTED AND PRINTED ON EVERY RUN.** A silent cap reads as "covered
 everything", which is this project's signature failure. The largest buckets are `carrier-does-not-aim-

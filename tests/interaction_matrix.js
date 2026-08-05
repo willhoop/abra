@@ -37,6 +37,23 @@
  *
  * 4. WHAT WAS DROPPED. Every case the generator refuses to emit is counted under a named reason and
  *    printed. A silent cap reads as "covered everything", which is this project's signature failure.
+ *
+ * AND THE FOURTH ONE WAS A CLAIM NOTHING CHECKED, FOR AS LONG AS IT WAS TRUE-SOUNDING. 2026-08-05.
+ * ------------------------------------------------------------------------------------------------
+ * docs/ENGINE.md said "EVERY DROP IS NAMED AND COUNTED AND PRINTED ON EVERY RUN". The drops were
+ * named. They were not COUNTED: the ledger counted OCCURRENCES, and a drop taken at the REACTOR level
+ * — outside the carrier loop — is one occurrence that eliminates every carrier in the key at once.
+ * `contact x ability:static` is ONE line in the ledger and ONE HUNDRED AND FORTY-SIX pairs. So the
+ * artifact read 8,506 theoretical, 1,514 staged, 1,902 dropped, and **5,090 pairs fell between those
+ * numbers with no reason recorded at all** — 60% of the space, vanishing exactly the way a silent cap
+ * does. A pair that is untestable and a pair nobody thought to generate looked identical.
+ *
+ * The fix is not a bigger ledger, it is an ASSERTION:
+ *
+ *     theoretical  ===  staged  +  sum of dropped PAIRS      per axis, checked, throws if it fails.
+ *
+ * A total can be wrong quietly. An identity cannot. `reconcile()` below is the only thing in this file
+ * that can stop a run, and `--selftest-reconcile` proves it fires by mis-costing one drop on purpose.
  */
 'use strict';
 require('../engine/showdown_path.js');
@@ -77,6 +94,10 @@ const LAYER_OF_TAG = {
   /* 5 — SECONDARY: what else happens? Failure looks like: the effect is suppressed. */
   contactPunish: 'secondary', punishesAttacker: 'secondary', punishesContact: 'secondary',
   poisonsOnMyContact: 'secondary', buffsHolderOnHit: 'secondary', disablesAttacker: 'secondary',
+  /* Mummy, Wandering Spirit and Lingering Aroma. The tag has existed since WIRE 80 and was in NEITHER
+   * map, so all three were dropped as `layer-unclassified` — 438 pairs, and the ONE mechanic the
+   * matrix found on its own (case 8 of test-game-diff) had no matrix coverage at all afterwards. */
+  rewritesAbilityOnContact: 'secondary',
   formeChange: 'secondary', weatherChipImmune: 'secondary', statusInflict: 'secondary',
   inflictsPoison: 'secondary', inflictsBurn: 'secondary', flinches: 'secondary',
   writesAccuracy: 'secondary', accuracyMod: 'secondary', perTurnHP: 'secondary',
@@ -105,7 +126,7 @@ const SIDE_OF_TAG = {
   refusesStatusMoves: 'def', redirectsType: 'def', redirects: 'def', reflectsStatusMoves: 'def',
   statusImmune: 'def', preventsCrit: 'def', formeChange: 'def', survivesFromFull: 'def',
   reducesAllyDamage: 'def', halvesDamage: 'def', blocksSoundMoves: 'def', sealsMoves: 'def',
-  weatherChipImmune: 'def',
+  weatherChipImmune: 'def', rewritesAbilityOnContact: 'def',
   damageBoost: 'atk', boostsMoveClass: 'atk', convertsMoveType: 'atk', poisonsOnMyContact: 'atk',
   hitsTwice: 'atk', writesAccuracy: 'atk', accuracyMod: 'atk', auraBoost: 'atk', priorityMod: 'atk',
   fractionalPriority: 'atk', damageMultType: 'atk', blocksExplosion: 'def',
@@ -125,8 +146,128 @@ function classify(kind, id) {
   const order = ['legality', 'targeting', 'immunity', 'damage', 'secondary'];
   const layer = order.find(l => layers.includes(l)) || null;
   const side = sides.length === 1 ? sides[0] : (sides.includes('def') ? 'def' : null);
-  return { tags: own, layer, side, params: rec.params || {} };
+  return { tags: own, layer, side, params: rec.params || {}, untagged: !own.length };
 }
+/* A supplemental reactor brings its own layer and side, derived from the handler shape that put it in
+ * the class. Everything else about it still comes out of the artifact. */
+function classifyReactor(r) {
+  if (!r._layer) return classify(r.kind, r.id);
+  const rec = (r.kind === 'ability' ? tags.abilities : r.kind === 'item' ? tags.items : tags.moves)[r.id] || {};
+  return { tags: (rec.tags || []).filter(t => !INERT_TAGS.has(t)), layer: r._layer, side: r._side,
+           params: rec.params || {}, untagged: false, derived: true };
+}
+
+/* ================================================================================================
+ * SUPPLEMENTAL LINKAGE KEYS — DERIVED HERE, AND THAT IS A DECLARED `tag_dex` GAP
+ * ================================================================================================
+ *
+ * Will: *"cant we call it a class of move called 'contact' that will then check all those rough skin
+ * and flame body type abilities... to make it easier."* That class exists — `tags.linkage` is exactly
+ * that table. The defect is that **`flinch` is not one of its keys**, so Fake Out, whose entire purpose
+ * is to flinch, was never once paired with a flinch blocker and INNER FOCUS APPEARED NOWHERE IN THE
+ * MATRIX AT ALL. Not a sampling problem: a missing class.
+ *
+ * WHY THE DERIVATION IS HERE AND NOT IN `engine/tag_dex.js`, STATED RATHER THAN SNUCK IN. The linkage
+ * index is a FACT and CLAUDE.md says a fact gets one implementation. This block is therefore a
+ * TEMPORARY CONSUMER-SIDE FILL with three properties that make it safe to remove:
+ *   - it is SKIPPED the moment `tags.linkage` grows the key, automatically, with no edit here;
+ *   - its membership is PRINTED on every run, so it can never over-match unnoticed (docs/LESSONS §4);
+ *   - it is counted in `theoretical`, so closing it makes the coverage denominator BIGGER, not the
+ *     coverage percentage prettier.
+ * The tag_dex work it stands in for is filed in docs/ENGINE.md with the exact handler shapes below.
+ *
+ * IT IS NOT A LIST OF ABILITY NAMES. docs/TAGS.md 162 forbids that and this project has been burned by
+ * it repeatedly. Membership is decided by CALLING the official engine's own handler and reading what
+ * it returns — a behavioural probe, not a regex over source text and not a typed set:
+ *
+ *     onTryAddVolatile({id:'flinch'}, ...)  ===  null      ->  this ability REFUSES flinch
+ *     onFlinch                              exists         ->  this ability REACTS to flinch
+ *     onModifySecondaries                   exists         ->  this ability suppresses secondaries
+ *
+ * Executed against every ability in the format, printed, and the throwers are reported rather than
+ * swallowed: Leaf Guard's onTryAddVolatile reads the weather off a real battle and throws on a stub,
+ * so it is UNDECIDED for every volatile and says so. A silent catch here would be a silent default. */
+const STUB_BATTLE = { debug() {}, add() {}, boost() {}, effectState: {}, field: {} };
+const STUB_MON = { name: 'stub', species: { name: 'stub' }, types: [], addVolatile() {}, side: {}, volatiles: {} };
+
+/* THE VOLATILES THAT ANY LEGAL MOVE ACTUALLY INFLICTS, and which moves inflict them. Derived, so a
+ * volatile added next regulation appears without an edit. */
+function inflictedVolatiles() {
+  const m = new Map();
+  for (const mv of dex.moves.all()) {
+    if (!mv.exists || mv.isNonstandard) continue;
+    const vs = new Set();
+    if (mv.volatileStatus) vs.add(mv.volatileStatus);
+    for (const s of (mv.secondaries || [])) if (s.volatileStatus) vs.add(s.volatileStatus);
+    for (const v of vs) { if (!m.has(v)) m.set(v, []); m.get(v).push(mv); }
+  }
+  return m;
+}
+const CAP = s => s.charAt(0).toUpperCase() + s.slice(1);
+function volatileReactors(vol) {
+  const out = [], undecided = [];
+  for (const a of dex.abilities.all()) {
+    if (!a.exists || a.isNonstandard) continue;
+    if (a['on' + CAP(vol)]) { out.push({ id: a.id, name: a.name, how: 'on' + CAP(vol) }); continue; }
+    if (!a.onTryAddVolatile) continue;
+    let r;
+    try { r = a.onTryAddVolatile.call(STUB_BATTLE, { id: vol, name: vol }, STUB_MON, STUB_MON, { id: 'tackle' }); }
+    catch (e) { undecided.push(a.id); continue; }
+    if (r === null) out.push({ id: a.id, name: a.name, how: 'onTryAddVolatile -> null' });
+  }
+  return { out, undecided };
+}
+function secondaryReactors() {
+  const out = [];
+  for (const a of dex.abilities.all())
+    if (a.exists && !a.isNonstandard && a.onModifySecondaries) out.push({ id: a.id, name: a.name, kind: 'ability', how: 'onModifySecondaries' });
+  for (const i of dex.items.all())
+    if (i.exists && !i.isNonstandard && i.onModifySecondaries) out.push({ id: i.id, name: i.name, kind: 'item', how: 'onModifySecondaries' });
+  return out;
+}
+const usesOfMove = id => ((tags.moves[id] || {}).uses || 0);
+const usesOfAbility = id => ((tags.abilities[id] || {}).uses || 0);
+
+let _supplementReport = null;
+function supplementalLinkage() {
+  if (_supplementReport) return _supplementReport;
+  const keys = {}, report = [];
+  const inflicted = inflictedVolatiles();
+  for (const [vol, moves] of [...inflicted.entries()].sort()) {
+    const key = 'volatile:' + vol;
+    if (tags.linkage[key]) { report.push({ key, skipped: 'the artifact now carries this key — the fill is dead and should be deleted' }); continue; }
+    const { out, undecided } = volatileReactors(vol);
+    if (!out.length) continue;
+    const carriers = moves.filter(mv => !mv.isNonstandard && tags.moves[mv.id])
+      .map(mv => ({ id: mv.id, name: mv.name, uses: usesOfMove(mv.id) }))
+      .sort((a, b) => b.uses - a.uses);
+    if (!carriers.length) continue;
+    keys[key] = { carrierMoves: carriers, reactorMoves: [], items: [],
+      abilities: out.map(a => ({ id: a.id, name: a.name, uses: usesOfAbility(a.id), _layer: 'secondary', _side: 'def' })) };
+    report.push({ key, carriers: carriers.length, reactors: out.map(a => a.id + ' (' + a.how + ')'), undecided });
+  }
+  /* THE SECONDARY CLASS. Shield Dust does not name flinch anywhere — it filters EVERY secondary — so
+   * it is not a member of the flinch class at all. It is a member of "the move has a secondary", which
+   * is a class in its own right and the one Fake Out reaches it through. */
+  if (!tags.linkage['moveSecondary']) {
+    const rs = secondaryReactors();
+    const carriers = Object.keys(tags.moves).map(id => dex.moves.get(id))
+      .filter(mv => mv.exists && !mv.isNonstandard && mv.category !== 'Status' && (mv.secondaries || []).length)
+      .map(mv => ({ id: mv.id, name: mv.name, uses: usesOfMove(mv.id) }))
+      .sort((a, b) => b.uses - a.uses);
+    if (rs.length && carriers.length) {
+      keys.moveSecondary = { carrierMoves: carriers, reactorMoves: [], items: rs.filter(r => r.kind === 'item').map(r => ({ id: r.id, name: r.name, uses: 0, _layer: 'secondary', _side: 'def' })),
+        abilities: rs.filter(r => r.kind === 'ability').map(r => ({ id: r.id, name: r.name, uses: usesOfAbility(r.id), _layer: 'secondary', _side: 'def' })) };
+      report.push({ key: 'moveSecondary', carriers: carriers.length, reactors: rs.map(r => r.kind + ':' + r.id + ' (' + r.how + ')'), undecided: [] });
+    }
+  } else report.push({ key: 'moveSecondary', skipped: 'the artifact now carries this key — the fill is dead and should be deleted' });
+  _supplementReport = { keys, report };
+  return _supplementReport;
+}
+/* THE ONE LINKAGE TABLE EVERYTHING READS — the artifact's keys plus the declared fills. `theoretical`
+ * is computed off this same object, so a fill enlarges the denominator it is measured against. */
+const SUPP = supplementalLinkage();
+const LINKAGE = Object.assign({}, tags.linkage, SUPP.keys);
 
 /* ---- BODIES, CACHED ---------------------------------------------------------------------------- */
 const SPECIES = dex.species.all().filter(s => s.exists && !s.isNonstandard && !s.forme
@@ -163,12 +304,82 @@ function speciesWithAbility(abilityId) {
   return abilityCache.get(abilityId);
 }
 
-/* ---- THE DROP LEDGER --------------------------------------------------------------------------- */
+/* ---- THE DROP LEDGER ----------------------------------------------------------------------------
+ *
+ * EVERY DROP CARRIES THE NUMBER OF THEORETICAL PAIRS IT ELIMINATES, and that number is not optional:
+ * `pairs` is a required argument and a missing one throws. It was previously implicit-1, which is
+ * correct for a drop taken inside the carrier loop and wrong by a factor of 146 for one taken outside
+ * it — and being wrong SILENTLY is the whole defect this ledger exists to prevent.
+ *
+ * `n` (occurrences) is kept beside `pairs` because the two say different things: 27 occurrences of
+ * `reactor-not-in-format` is 27 abilities, and 1,180 pairs is what they cost. A reader needs both.
+ *
+ * `who` indexes the drop by the ids it names, so a question like "why is Inner Focus not in the
+ * matrix" has an answer that does not depend on the reactor happening to land in the first four
+ * printed examples. */
+/* --selftest-reconcile ARMS THIS. It mis-costs exactly ONE drop by one pair, which is the smallest
+ * possible lie the ledger can tell, and the identity must still stop the run. A check is only known
+ * to work when it has been seen FAILING on input known to be bad — and this file spent its whole life
+ * carrying a header that said the assertion fires without the assertion ever being called. */
+let MISCOST = false, _miscosted = false;
 function ledger() {
   const c = {};
-  return { add(reason, what) { (c[reason] = c[reason] || { n: 0, eg: [] }).n++;
-             if (c[reason].eg.length < 4) c[reason].eg.push(what); return null; },
-           counts: c };
+  const subjects = new Map();
+  return {
+    add(reason, what, pairs, who) {
+      if (MISCOST && !_miscosted && pairs > 0) { _miscosted = true; pairs -= 1; }
+      if (!Number.isFinite(pairs) || pairs < 0)
+        throw new Error('DROP WITHOUT A PAIR COUNT: "' + reason + '" (' + what + ') — every drop must '
+          + 'say how many theoretical pairs it eliminates, or the reconciliation identity is a guess');
+      const e = (c[reason] = c[reason] || { n: 0, pairs: 0, eg: [] });
+      e.n++; e.pairs += pairs;
+      if (e.eg.length < 4) e.eg.push(what + (pairs === 1 ? '' : '  [' + pairs + ' pairs]'));
+      for (const id of (who || [])) {
+        if (!subjects.has(id)) subjects.set(id, new Map());
+        subjects.get(id).set(reason, (subjects.get(id).get(reason) || 0) + pairs);
+      }
+      return null;
+    },
+    counts: c, subjects,
+    pairs() { return Object.values(c).reduce((a, e) => a + e.pairs, 0); },
+  };
+}
+/* Merge a per-axis ledger into the run-wide one WITHOUT losing the per-axis totals, which are what
+ * the reconciliation is checked against. */
+function mergeLedger(dst, src) {
+  for (const [r, e] of Object.entries(src.counts)) {
+    const d = (dst.counts[r] = dst.counts[r] || { n: 0, pairs: 0, eg: [] });
+    d.n += e.n; d.pairs += e.pairs;
+    for (const g of e.eg) if (d.eg.length < 4) d.eg.push(g);
+  }
+  for (const [id, m] of src.subjects) {
+    if (!dst.subjects.has(id)) dst.subjects.set(id, new Map());
+    for (const [r, p] of m) dst.subjects.get(id).set(r, (dst.subjects.get(id).get(r) || 0) + p);
+  }
+}
+
+/* ---- THE RECONCILIATION IDENTITY ----------------------------------------------------------------
+ *
+ * theoretical === staged + dropped, per axis. This is the ONLY thing in this file that stops a run.
+ *
+ * It is an identity and not a total on purpose. A total is a number somebody has to look at and
+ * compare to another number, and for as long as this file has existed nobody did — the two were
+ * printed four lines apart and differed by 5,090. An identity is checked by the machine every time. */
+function reconcile(axis, theoretical, staged, log) {
+  const dropped = log.pairs();
+  if (theoretical === staged + dropped) return { axis, theoretical, staged, dropped, ok: true };
+  const gap = theoretical - staged - dropped;
+  /* THE LEDGER GOES IN THE MESSAGE. A bare "170 pairs" names no suspect, and a failure nobody can act
+   * on gets commented out — which is how this file ended up with an assertion that was never called. */
+  const top = Object.entries(log.counts).sort((a, b) => b[1].pairs - a[1].pairs).slice(0, 12)
+    .map(([r, e]) => '      ' + String(e.pairs).padStart(6) + ' pairs in ' + String(e.n).padStart(4)
+      + ' drops  ' + r.split(':')[0] + '\n             e.g. ' + e.eg.join(' | ')).join('\n');
+  throw new Error('RECONCILIATION FAILED on the ' + axis + ' axis: theoretical ' + theoretical
+    + ' !== staged ' + staged + ' + dropped ' + dropped + ' (= ' + (staged + dropped) + ').  '
+    + Math.abs(gap) + ' pairs ' + (gap > 0 ? 'reach no decision at all' : 'are counted twice')
+    + '. Every theoretical pair must be staged or dropped into a NAMED bucket; a pair that is neither '
+    + 'is exactly the silence this identity exists to make impossible.\n\n    the ledger as it stands:\n'
+    + top + '\n');
 }
 
 /* ---- FILLERS ----------------------------------------------------------------------------------- */
@@ -184,10 +395,10 @@ const CONTROL_ABILITY = 'Honey Gather';
 /* ---- CO-OCCURRENCE: CAN THIS PAIR ACTUALLY MEET? -----------------------------------------------
  *
  * Returns a holder that can SHOW the effect, or null with the reason logged. */
-function holderFor(cls, reactorId, kind, moveId, log, label) {
+function holderFor(cls, reactorId, kind, moveId, log, label, who) {
   const mv = dex.moves.get(moveId);
   const pool = kind === 'ability' ? speciesWithAbility(reactorId) : SPECIES;
-  if (!pool.length) return log.add('no-holder: no species in MC.mons has the ability', label);
+  if (!pool.length) return log.add('no-holder: no species in MC.mons has the ability', label, 1, who);
   const wantSE = kind === 'item' && cls.params.resistBerry && cls.params.resistBerry.requiresSuperEffective;
   const berryType = cls.params.resistBerry && cls.params.resistBerry.onType;
   const cands = pool.filter(sp => {
@@ -200,7 +411,7 @@ function holderFor(cls, reactorId, kind, moveId, log, label) {
   });
   if (!cands.length) return log.add(wantSE
     ? 'not-super-effective: the resist berry only fires on a super-effective hit of its own type'
-    : 'holder-immune-by-chart: every candidate body already takes zero from this move type', label);
+    : 'holder-immune-by-chart: every candidate body already takes zero from this move type', label, 1, who);
   return bulkiest(cands);
 }
 /* THE BULKIEST CANDIDATE, AND IT IS NOT COSMETIC. The damage evaluator divides one arm by the other,
@@ -247,58 +458,95 @@ const movesAccuracy = cls => !!(cls.params.writesAccuracy || cls.params.accuracy
  * ============================================================================================= */
 function axisFlag(depth, log) {
   const cases = [];
-  for (const [key, v] of Object.entries(tags.linkage)) {
+  for (const [key, v] of Object.entries(LINKAGE)) {
     if (key === 'moveType') continue;                       /* its own axis, below */
     const carriers = (v.carrierMoves || []);
-    if (!carriers.length) { if ((v.abilities || []).length) log.add('no-carrier: the linkage key has reactors but no carrier moves', key); continue; }
     const reactors = [
       ...(v.abilities || []).map(x => ({ ...x, kind: 'ability' })),
       ...(v.items || []).map(x => ({ ...x, kind: 'item' })),
       ...(v.reactorMoves || []).map(x => ({ ...x, kind: 'move' })),
     ];
+    /* A KEY WITH NO CARRIERS CONTRIBUTES ZERO TO THE THEORETICAL PRODUCT, so its drop costs zero pairs
+     * and must still be NAMED: `moveType` had 34 reactors and 0 carriers for as long as this file has
+     * existed, and that is a whole axis with nothing to test. (It is now served by axisType below,
+     * which derives the carrier of a type as every move of that type.) */
+    if (!carriers.length) { if (reactors.length) log.add('no-carrier: the linkage key has reactors but no carrier moves — the whole class is untestable', key + ' (' + reactors.length + ' reactors)', 0, reactors.map(r => r.id)); continue; }
+    const N = carriers.length;
+    /* THE IDENTITY, HELD LOCALLY. Checked per (key, reactor) and not merely per axis, because an axis
+     * total is satisfied by any two errors that cancel, and it names no suspect when it does fail —
+     * "170 pairs somewhere in 7,870" is a number nobody can act on. Here N is known exactly, so the
+     * throw carries the reactor's name. Settled at the TOP of the next iteration and once after the
+     * loop, which is what lets the body keep its `continue`s. */
+    let pl = null, pp = 0, pm = 0;
+    const settle = () => {
+      if (!pl) return;
+      const dropped = log.pairs() - pp, staged = cases.length - pm;
+      if (dropped + staged !== N)
+        throw new Error('RECONCILIATION FAILED at ' + pl + ': the key has ' + N + ' carriers, so that '
+          + 'reactor has exactly ' + N + ' theoretical pairs — but ' + staged + ' were staged and '
+          + dropped + ' dropped (= ' + (staged + dropped) + '). A drop taken OUTSIDE the carrier loop '
+          + 'must cost every carrier it eliminates; one taken inside must cost exactly one.');
+      pl = null;
+    };
     for (const r of reactors) {
-      const cls = classify(r.kind, r.id);
+      settle();
+      pp = log.pairs(); pm = cases.length;
+      const cls = classifyReactor(r);
       const label = key + ' x ' + r.kind + ':' + r.id;
-      if (!cls.layer) { log.add('layer-unclassified: no tag on the reactor maps to a resolution stage', label + ' [' + cls.tags.join(',') + ']'); continue; }
+      pl = label;
+      const W = [r.id];
+      /* A REACTOR THE ARTIFACT DOES NOT DESCRIBE AT ALL IS A DIFFERENT FAULT FROM ONE IT DESCRIBES
+       * BADLY, and folding them together hid ten tag_dex gaps inside a generator-shaped reason.
+       * Pickpocket, Fluffy, Long Reach, Unseen Fist, Stance Change, Magician, Anticipation, Muscle
+       * Band and Wise Glasses all carry `untagged` and nothing else. */
+      if (!cls.layer) {
+        log.add(cls.untagged
+          ? 'reactor-untagged: data/tags.json carries NO tag for this reactor — a tag_dex gap, not a generator one'
+          : 'layer-unclassified: the reactor is tagged, but no tag maps to a resolution stage', label + ' [' + cls.tags.join(',') + ']', N, W); continue;
+      }
       if (cls.side !== 'def' && r.kind !== 'move') {
-        if (!cls.side) { log.add('side-unknown: the reactor tags do not say which side it stands on', label + ' [' + cls.tags.join(',') + ']'); continue; }
+        if (!cls.side) { log.add('side-unknown: the reactor tags do not say which side it stands on', label + ' [' + cls.tags.join(',') + ']', N, W); continue; }
         /* An ATTACKER-side reactor is still a real interaction -- it is generated with the roles
          * swapped rather than dropped. */
       }
-      if (reactorIsChancy(cls)) { log.add('reactor-is-a-die: its own effect fires on a percentage', label); continue; }
-      if (cls.layer === 'damage' && movesAccuracy(cls)) { log.add('reactor-also-moves-accuracy: a damage RATIO would be measuring a miss, not a multiplier', label); continue; }
+      if (reactorIsChancy(cls)) { log.add('reactor-is-a-die: its own effect fires on a percentage, so ONE seeded battle compares luck', label, N, W); continue; }
+      if (cls.layer === 'damage' && movesAccuracy(cls)) { log.add('reactor-also-moves-accuracy: a damage RATIO would be measuring a miss, not a multiplier', label, N, W); continue; }
       /* REACTOR-LEVEL FEASIBILITY IS ASKED ONCE, NOT ONCE PER CARRIER. Iron Barbs, Tangling Hair,
        * Lingering Aroma and Perish Body have ZERO species in this format at all -- Champions marks
        * their carriers `isNonstandard: 'Past'` -- so the pair genuinely cannot occur. Asked inside the
-       * carrier loop it logged 146 drops for one absent ability and made the ledger unreadable. */
+       * carrier loop it logged 146 drops for one absent ability and made the ledger unreadable. It
+       * still COSTS 146 pairs, and saying so is the difference between a filter and a silence. */
       if (r.kind === 'ability' && !speciesWithAbility(r.id).length) {
-        log.add('reactor-not-in-format: no species in this format has the ability at all', label); continue;
+        log.add('reactor-not-in-format: no species in this format has the ability at all', label, N, W); continue;
       }
       if (r.kind === 'move' && !usersOf(r.id).length) {
-        log.add('reactor-not-in-format: no species in this format learns the reactor move', label); continue;
+        log.add('reactor-not-in-format: no species in this format learns the reactor move', label, N, W); continue;
       }
       if (cls.side === 'atk' && !carriers.some(c => (r.kind === 'ability' ? speciesWithAbility(r.id) : SPECIES).some(sp => learns(sp, c.id)))) {
-        log.add('reactor-cannot-carry: no body both has the attacker-side reactor and learns ANY carrier of this flag', label); continue;
+        log.add('reactor-cannot-carry: no body both has the attacker-side reactor and learns ANY carrier of this flag', label, N, W); continue;
       }
       let made = 0;
-      for (const c of carriers) {
-        if (made >= depth) { log.add('depth-cap: carriers beyond --depth for this (key,reactor)', label); break; }
+      for (let ci = 0; ci < N; ci++) {
+        const c = carriers[ci];
+        /* THE DEPTH CAP IS THE ONE DROP THAT WAS ALWAYS GOING TO BE MISCOUNTED, because it is the one
+         * that eliminates a whole TAIL. One log line stood for every remaining carrier. */
+        if (made >= depth) { log.add('depth-cap: carriers beyond --depth for this (key,reactor)', label, N - ci, W); break; }
         const mv = dex.moves.get(c.id);
         const nd = moveIsDeterministic(mv);
-        if (nd) { log.add('carrier-is-a-die: ' + nd, key + ' ' + c.id); continue; }
-        if (!NEEDS_FOE.has(mv.target)) { log.add('carrier-does-not-aim-at-a-foe: target=' + mv.target, key + ' ' + c.id); continue; }
+        if (nd) { log.add('carrier-is-a-die: ' + nd, key + ' ' + c.id, 1, [r.id, c.id]); continue; }
+        if (!NEEDS_FOE.has(mv.target)) { log.add('carrier-does-not-aim-at-a-foe: target=' + mv.target, key + ' ' + c.id, 1, [r.id, c.id]); continue; }
         const users = usersOf(c.id);
-        if (!users.length) { log.add('no-user: no species in MC.mons learns the carrier move', key + ' ' + c.id); continue; }
-        if (cls.layer === 'damage' && !ratioCanMeasure(c.id)) { log.add('carrier-unmeasurable-by-ratio: a residual or a multi-hit lands in the same HP delta as the multiplier', key + ' ' + c.id); continue; }
+        if (!users.length) { log.add('no-user: no species in MC.mons learns the carrier move', key + ' ' + c.id, 1, [r.id, c.id]); continue; }
+        if (cls.layer === 'damage' && !ratioCanMeasure(c.id)) { log.add('carrier-unmeasurable-by-ratio: a residual or a multi-hit lands in the same HP delta as the multiplier', key + ' ' + c.id, 1, [r.id, c.id]); continue; }
         if (r.kind === 'move') {
           /* A REACTOR MOVE IS CLICKED, NOT HELD, so its control cannot be "remove the ability" --
            * the control varies the CARRIER instead: the same body clicks a move of the same category
            * that does NOT carry the flag. Spiky Shield punishes Wave Crash and not Surf. */
           const holder = usersOf(r.id).find(sp => effectiveness(mv.type, typesOf(sp)) !== 0
             || mv.category === 'Status');
-          if (!holder) { log.add('no-holder: no species in MC.mons learns the reactor move on a body this carrier can reach', label); continue; }
+          if (!holder) { log.add('no-holder: no species in MC.mons learns the reactor move on a body this carrier can reach', label, 1, [r.id, c.id]); continue; }
           const user = users[0];
-          const ctl = controlCarrier(key, mv, user, log, label);
+          const ctl = controlCarrier(key, mv, user, log, label, [r.id, c.id]);
           if (!ctl) continue;
           cases.push(mkCase({ axis: 'flag', key, layer: cls.layer, evaluator: evaluatorFor(cls.layer),
             carrier: { kind: 'move', id: c.id, name: mv.name, uses: c.uses || 0, user: user.name },
@@ -313,11 +561,11 @@ function axisFlag(depth, log) {
            * defender is a case in which nothing can happen. */
           const pool = r.kind === 'ability' ? speciesWithAbility(r.id) : SPECIES;
           user = pool.find(sp => learns(sp, c.id));
-          if (!user) { log.add('no-user: no body both has the attacker-side reactor and learns the carrier', label + ' ' + c.id); continue; }
+          if (!user) { log.add('no-user: no body both has the attacker-side reactor and learns the carrier', label + ' ' + c.id, 1, [r.id, c.id]); continue; }
           holder = SPECIES.find(sp => effectiveness(mv.type, typesOf(sp)) > 0 && sp.id !== user.id);
-          if (!holder) { log.add('no-holder: no legal target for the carrier', label + ' ' + c.id); continue; }
+          if (!holder) { log.add('no-holder: no legal target for the carrier', label + ' ' + c.id, 1, [r.id, c.id]); continue; }
         } else {
-          holder = holderFor(cls, r.id, r.kind, c.id, log, label + ' ' + c.id);
+          holder = holderFor(cls, r.id, r.kind, c.id, log, label + ' ' + c.id, [r.id, c.id]);
           if (!holder) continue;
         }
         cases.push(mkCase({ axis: 'flag', key, layer: cls.layer, evaluator: evaluatorFor(cls.layer),
@@ -327,13 +575,14 @@ function axisFlag(depth, log) {
         made++;
       }
     }
+    settle();
   }
   return cases;
 }
 
 /* The control carrier for a reactor-MOVE case: same category, same user, WITHOUT the flag. */
-function controlCarrier(flagKey, mv, user, log, label) {
-  const flagged = new Set((tags.linkage[flagKey].carrierMoves || []).map(x => x.id));
+function controlCarrier(flagKey, mv, user, log, label, who) {
+  const flagged = new Set((LINKAGE[flagKey].carrierMoves || []).map(x => x.id));
   const cand = Object.keys(tags.moves).filter(id => {
     if (flagged.has(id)) return false;
     const m = dex.moves.get(id);
@@ -342,7 +591,7 @@ function controlCarrier(flagKey, mv, user, log, label) {
     if (!NEEDS_FOE.has(m.target)) return false;
     return learns(user, id);
   });
-  if (!cand.length) return log.add('no-control-carrier: the user has no flagless move of the same category', label);
+  if (!cand.length) return log.add('no-control-carrier: the user has no flagless move of the same category', label, 1, who);
   return dex.moves.get(cand[0]);
 }
 
@@ -430,6 +679,22 @@ function movesOfType(type) {
   }
   return byTypeCache.get(k);
 }
+/* WHAT A TYPE-AXIS PAIR IS, so the drop counts below match the denominator instead of guessing at it.
+ * `theoreticalSize()` computes the type axis as, for every reactor, the sum over the types it reacts
+ * to of `movesOfType(type).length`. So a pair is (reactor, type, carrier move) and the cost of a drop
+ * depends entirely on WHERE in the nest it is taken:
+ *   reactor level -> every type and every carrier under it   -> typePairs(cls)
+ *   (reactor,type) -> every carrier of that type              -> pool.length
+ *   carrier level  -> exactly one                             -> 1
+ * Getting this wrong in the generous direction would silence the reconciliation rather than satisfy
+ * it, which is worse than the silence it replaces. Derived from the same two functions the
+ * denominator uses, so the two cannot drift apart. */
+function typePairs(cls) {
+  let n = 0;
+  for (const t of typesReactedTo(cls)) n += movesOfType(t.type).length;
+  return n;
+}
+
 function axisType(depth, log) {
   const cases = [];
   const v = tags.linkage.moveType || { abilities: [], items: [] };
@@ -438,33 +703,38 @@ function axisType(depth, log) {
   for (const r of reactors) {
     const cls = classify(r.kind, r.id);
     const label = 'moveType x ' + r.kind + ':' + r.id;
-    if (!cls.layer) { log.add('layer-unclassified: no tag on the reactor maps to a resolution stage', label + ' [' + cls.tags.join(',') + ']'); continue; }
+    if (!cls.layer) { log.add('layer-unclassified: no tag on the reactor maps to a resolution stage', label + ' [' + cls.tags.join(',') + ']', typePairs(cls), [r.id]); continue; }
     const types = typesReactedTo(cls);
-    if (!types.length) { log.add('no-type-param: the reactor is in the moveType index but no param names a type', label + ' [' + cls.tags.join(',') + ']'); continue; }
-    if (!cls.side) { log.add('side-unknown: the reactor tags do not say which side it stands on', label + ' [' + cls.tags.join(',') + ']'); continue; }
-    if (reactorIsChancy(cls)) { log.add('reactor-is-a-die: its own effect fires on a percentage', label); continue; }
-    if (cls.layer === 'damage' && movesAccuracy(cls)) { log.add('reactor-also-moves-accuracy: a damage RATIO would be measuring a miss, not a multiplier', label); continue; }
-    if (r.kind === 'ability' && !speciesWithAbility(r.id).length) { log.add('reactor-not-in-format: no species in this format has the ability at all', label); continue; }
+    if (!types.length) { log.add('no-type-param: the reactor is in the moveType index but no param names a type', label + ' [' + cls.tags.join(',') + ']', 0, [r.id]); continue; }
+    if (!cls.side) { log.add('side-unknown: the reactor tags do not say which side it stands on', label + ' [' + cls.tags.join(',') + ']', typePairs(cls), [r.id]); continue; }
+    if (reactorIsChancy(cls)) { log.add('reactor-is-a-die: its own effect fires on a percentage', label, typePairs(cls), [r.id]); continue; }
+    if (cls.layer === 'damage' && movesAccuracy(cls)) { log.add('reactor-also-moves-accuracy: a damage RATIO would be measuring a miss, not a multiplier', label, typePairs(cls), [r.id]); continue; }
+    if (r.kind === 'ability' && !speciesWithAbility(r.id).length) { log.add('reactor-not-in-format: no species in this format has the ability at all', label, typePairs(cls), [r.id]); continue; }
     for (const { type: ty, tag: producing } of types) {
       /* THE LAYER OF THIS CASE IS THE LAYER OF THE TAG THAT NAMED THE TYPE, not the earliest layer
        * across everything the reactor happens to also do. */
       const layer = LAYER_OF_TAG[producing] || cls.layer;
       const side = SIDE_OF_TAG[producing] || cls.side;
       const pool = movesOfType(ty);
-      if (!pool.length) { log.add('no-carrier: no deterministic foe-targeting damaging move of this type', label + ' ' + ty); continue; }
-      let made = 0;
+      if (!pool.length) { log.add('no-carrier: no deterministic foe-targeting damaging move of this type', label + ' ' + ty, 0, [r.id]); continue; }
+      /* `pi` COUNTS CARRIERS ALREADY CONSIDERED, so it is incremented AFTER the cap check and not
+       * before it. Incremented first, the tail excluded the very carrier the break was rejecting —
+       * one pair short per firing, 32 firings, 32 pairs of pure silence. Off by one in the direction
+       * that FLATTERS the coverage rate, which is the direction an unchecked total never corrects. */
+      let made = 0, pi = 0;
       for (const row of pool) {
-        if (made >= depth) { log.add('depth-cap: carriers beyond --depth for this (reactor,type)', label + ' ' + ty); break; }
+        if (made >= depth) { log.add('depth-cap: carriers beyond --depth for this (reactor,type)', label + ' ' + ty, pool.length - pi, [r.id]); break; }
+        pi++;
         const users = usersOf(row.id);
-        if (!users.length) { log.add('no-user: no species in MC.mons learns the carrier move', 'moveType ' + row.id); continue; }
-        if (layer === 'damage' && !ratioCanMeasure(row.id)) { log.add('carrier-unmeasurable-by-ratio: a residual or a multi-hit lands in the same HP delta as the multiplier', 'moveType ' + row.id); continue; }
+        if (!users.length) { log.add('no-user: no species in MC.mons learns the carrier move', 'moveType ' + row.id, 1, [r.id, row.id]); continue; }
+        if (layer === 'damage' && !ratioCanMeasure(row.id)) { log.add('carrier-unmeasurable-by-ratio: a residual or a multi-hit lands in the same HP delta as the multiplier', 'moveType ' + row.id, 1, [r.id, row.id]); continue; }
         let user = users[0], holder;
         if (side === 'atk') {
           const p2 = r.kind === 'ability' ? speciesWithAbility(r.id) : SPECIES;
           user = p2.find(sp => learns(sp, row.id));
-          if (!user) { log.add('no-user: no body both has the attacker-side reactor and learns a move of its type', label + ' ' + ty); continue; }
+          if (!user) { log.add('no-user: no body both has the attacker-side reactor and learns a move of its type', label + ' ' + ty, 1, [r.id, row.id]); continue; }
           holder = bulkiest(SPECIES.filter(sp => effectiveness(row.m.type, typesOf(sp)) > 0 && sp.id !== user.id));
-          if (!holder) { log.add('no-holder: no legal target', label + ' ' + ty); continue; }
+          if (!holder) { log.add('no-holder: no legal target', label + ' ' + ty, 1, [r.id, row.id]); continue; }
         } else {
           holder = holderFor(cls, r.id, r.kind, row.id, log, label + ' ' + ty);
           if (!holder) continue;
@@ -515,15 +785,23 @@ function fieldCarriers(log) {
      * script into a switch script: the two engines choose the replacement differently (medicham2
      * refills with live(bench)[0], Showdown asks), so every later turn would diverge about the
      * harness. Excluded and named. */
-    if (mv.selfSwitch) { log.add('field-setter-self-switches: the case would be about the replacement, not the field', id); continue; }
+    /* THESE TWO COST ZERO THEORETICAL PAIRS, and that is a fact about the denominator rather than a
+     * convenient answer. theoreticalSize() computes the field axis as fc*(fc-1) where fc is the
+     * OUTPUT of this function, so a carrier rejected here never entered the count — it is excluded
+     * before the denominator exists. Recorded at 0 so it stays visible in the ledger without
+     * unbalancing the identity. (theoreticalSize calls this with a throwaway ledger, so naming them
+     * here does not double-count.) */
+    if (mv.selfSwitch) { log.add('field-setter-self-switches: the case would be about the replacement, not the field', id, 0, [id]); continue; }
     const users = usersOf(id);
-    if (!users.length) { log.add('no-user: no species in MC.mons learns the field setter', 'field ' + id); continue; }
+    if (!users.length) { log.add('no-user: no species in MC.mons learns the field setter', 'field ' + id, 0, [id]); continue; }
     out.push({ id, name: mv.name, tag: hit[0], uses: rec.uses || 0, user: users[0] });
   }
   /* The persistent effects that exist and that the projection cannot see. Named so the gap is a
    * decision. */
   for (const id of ['safeguard', 'gravity', 'wonderroom', 'magicroom'])
-    if (tags.moves[id]) log.add('field-not-in-projection: persists, but neither engine projection carries it', id);
+    /* Zero for the same reason as the two above: this names a mechanic that never became a field
+     * CARRIER, so it never entered fc and never entered fc*(fc-1). Named so the gap stays visible. */
+    if (tags.moves[id]) log.add('field-not-in-projection: persists, but neither engine projection carries it', id, 0, [id]);
   out.sort((a, b) => b.uses - a.uses);
   return out;
 }
@@ -535,7 +813,7 @@ function axisField(log) {
     /* Both setters must be clickable by ONE side's two bodies, or the script needs a switch and the
      * case stops being about the field. Slot 0 clicks A on turn 1, slot 1 clicks B on turn 3. */
     const userB = usersOf(b.id).find(sp => sp.id !== a.user.id);
-    if (!userB) { log.add('no-user: no second body learns the layered field setter', a.id + ' + ' + b.id); continue; }
+    if (!userB) { log.add('no-user: no second body learns the layered field setter', a.id + ' + ' + b.id, 1, [a.id, b.id]); continue; }
     cases.push(mkCase({ axis: 'field', key: a.tag + '+' + b.tag, layer: 'legality', evaluator: 'field',
       carrier: { kind: 'move', id: a.id, name: a.name, uses: a.uses, user: a.user.name },
       reactor: { kind: 'move', id: b.id, name: b.name, holder: userB.name, side: 'atk' },
@@ -548,11 +826,28 @@ function axisField(log) {
 function generate(opts) {
   opts = opts || {};
   const depth = opts.depth == null ? 3 : opts.depth;
-  const log = ledger();
+  /* ONE LEDGER PER AXIS, because the identity is checked PER AXIS. A single shared ledger can only
+   * prove the three axes balance in TOTAL, and a total hides a compensating pair of errors — the
+   * exact shape of mistake this whole change exists to stop. They are merged afterwards for the
+   * report, which is a presentation concern and comes after the checking. */
+  const logFlag = ledger(), logType = ledger(), logField = ledger();
   _id = 0;
-  const flag = axisFlag(depth, log), type = axisType(depth, log), field = axisField(log);
+  const flag = axisFlag(depth, logFlag), type = axisType(depth, logType), field = axisField(logField);
+
+  /* THE ASSERTION, ACTUALLY CALLED. It was written, documented in this file's own header as "the only
+   * thing that can stop a run", and then never invoked — a check that cannot fire, inside the fix for
+   * checks that cannot fire. Throws; there is no flag to suppress it. */
+  const th = theoreticalSize();
+  const reconciled = [
+    reconcile('flag', th.flag, flag.length, logFlag),
+    reconcile('type', th.type, type.length, logType),
+    reconcile('field', th.field, field.length, logField),
+  ];
+
+  const log = ledger();
+  for (const l of [logFlag, logType, logField]) mergeLedger(log, l);
   const cases = [...flag, ...type, ...field];
-  return { cases, dropped: log.counts, depth,
+  return { cases, dropped: log.counts, depth, reconciled,
     byAxis: { flag: flag.length, type: type.length, field: field.length },
     byLayer: cases.reduce((a, c) => (a[c.layer] = (a[c.layer] || 0) + 1, a), {}),
     byEvaluator: cases.reduce((a, c) => (a[c.evaluator] = (a[c.evaluator] || 0) + 1, a), {}) };
@@ -561,8 +856,14 @@ function generate(opts) {
 /* THE THEORETICAL SIZE, computed WITHOUT any filter, so the coverage claim below has a denominator
  * that is not the thing being measured. */
 function theoreticalSize() {
+  /* THE DENOMINATOR READS `LINKAGE`, NOT `tags.linkage`, AND THAT WAS THE WHOLE 170-PAIR GAP.
+   * `LINKAGE` is the artifact's keys MERGED WITH this file's supplementary ones (line 270); the
+   * generator has always staged against the merged set while the theoretical total counted only the
+   * artifact's. Every supplementary key's pairs were therefore staged or dropped against a
+   * denominator that had never heard of them, so the published coverage RATE was computed on a
+   * denominator smaller than the numerator's own universe. Same object or the two drift again. */
   let flag = 0;
-  for (const [key, v] of Object.entries(tags.linkage)) {
+  for (const [key, v] of Object.entries(LINKAGE)) {
     if (key === 'moveType') continue;
     flag += (v.carrierMoves || []).length * ((v.abilities || []).length + (v.items || []).length + (v.reactorMoves || []).length);
   }
@@ -580,6 +881,25 @@ module.exports = { generate, theoreticalSize, classify, LAYER_OF_TAG, SIDE_OF_TA
 if (require.main === module) {
   const argv = process.argv.slice(2);
   const depth = argv.includes('--full') ? Infinity : +((argv.find(a => a.startsWith('--depth=')) || '--depth=3').slice(8));
+  if (argv.includes('--selftest-reconcile')) {
+    MISCOST = true;
+    /* THE CATCH IS THE ASSERTION. This is the one place in the file where a throw is the PASS
+     * condition, so the error is captured rather than reported — and it is read three lines down,
+     * both for its presence and for its message. Nothing is discarded: a throw that is not the
+     * reconciliation failure is printed in full and exits 1. */
+    let threw = null;
+    try { generate({ depth: Infinity }); } catch (e) { threw = e; }
+    if (!threw || !/RECONCILIATION FAILED/.test(threw.message)) {
+      console.error('SELFTEST FAILED: one drop was mis-costed by a single pair and the run '
+        + (threw ? 'threw something else:\n' + threw.message : 'completed anyway.')
+        + '\nThe reconciliation identity does not actually stop anything, so every coverage number '
+        + 'this file produces is unguarded.');
+      process.exit(1);
+    }
+    console.log('SELFTEST PASSED — one drop mis-costed by 1 pair, and the identity stopped the run:\n  '
+      + threw.message.split('\n')[0]);
+    process.exit(0);
+  }
   const g = generate({ depth });
   const th = theoreticalSize();
   console.log('THE GENERATED INTERACTION MATRIX — generator only, nothing is run here\n');

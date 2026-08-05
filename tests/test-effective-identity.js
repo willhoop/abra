@@ -283,6 +283,13 @@ const RAW = /\.(ability|baseStats|weighthg|weightkg)\b/g;
  * #40b — it read the PRE-mega ability to decide whether a mon is a weather setter, and a mega's
  * weather ability is precisely what differs from its base). It was fixed rather than declared. */
 const DECLARED = {
+  'tests/mutation_harness.js':
+    'One match, and it is an ASSIGNMENT rather than a read: bare() writes `b.ability = \'none\'` onto '
+    + 'a body M.buildMon has just returned, which is the construction case this test names as correct '
+    + 'and which engine/medicham2-browser.js and tests/test-tag-wire.js are already declared for. The '
+    + 'harness exists to STRIP a mechanic and re-run, so blanking the ability is the point of the '
+    + 'function — there is no effective ability to resolve, because the whole intent is that the body '
+    + 'carries none. Walked 2026-08-05; the file contains no other .ability or .species touch.',
   'engine/click_class.js':
     'Two reads, both of a FOE\'S ability, to detect Lightning Rod / Storm Drain redirection when '
     + 'classifying a human click. Declared rather than waved through, because the format DOES contain '

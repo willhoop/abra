@@ -223,7 +223,7 @@ window.ABRA_STATUS = {
    "name": "MAG",
    "tier": "battle",
    "status": "win",
-   "metric": "guesses a human's next click 32% of the time, 9 points better than popularity alone",
+   "metric": "guesses a human's next click 33% of the time, 9 points better than popularity alone",
    "detail": "picks the move and the target",
    "inputs": [
     "store"

@@ -1,6 +1,6 @@
 # ABRA — Technical Documentation
 
-**Version 3.42.0 · Last updated 2026-08-05**
+**Version 3.43.0 · Last updated 2026-08-05**
 
 **Change record for 3.42.0.** The fit checks whether a recorded action was a click. 1,336 of
 241,927 actions were not clicks. Encore replaced 1,116 of them. A phazing move dragged in 220 of
@@ -11,6 +11,17 @@ model now puts less probability on an action no human chose: -0.002614, 95% CI [
 -0.001610]. The redirection change did not improve anything that can be measured. The overall
 top-1 accuracy did not change. Two budget counters were replaced. The old counter measured two
 different things at once.
+
+**Change record for 3.43.0.** The interaction matrix now checks its own arithmetic. The rule is
+`theoretical = staged + dropped`, for each axis. The generator stops if the rule is broken. The rule
+found three faults. The count of theoretical pairs was too small by 170. The depth limit on the type
+axis lost one pair each time it applied, 32 times. Four cases were counted in two result groups.
+After the repair the matrix stages 1,675 pairs of 8,676, and 1,031 of them can occur. The matrix
+agrees with the official engine on 1,027 of these 1,031 cases.
+
+**The agreement figure is lower than in 3.41.0. The simulator did not get worse.** The earlier figure
+of 899 of 899 was measured on a smaller set. The four cases that disagree were not made before this
+release.
 
 **Change record for 3.41.0.** The simulator covers 202 of 205 probed mechanics. Three are missing.
 Each has a written reason. The interaction matrix agrees with the official engine on 899 of 899

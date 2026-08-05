@@ -10,6 +10,66 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.43.0] — 2026-08-05
+
+### The interaction matrix now checks its own arithmetic, and it was wrong three ways
+
+The matrix is this project's largest conformance instrument — 8,676 theoretical carrier × reactor
+pairs. It printed a theoretical total, an emitted count and a ledger of named drops within four lines
+of each other, and **nothing in the code compared them.** They differed by 5,090.
+
+The identity is `theoretical === staged + dropped`, per axis, asserted at generation time. It is not
+a total for a reader to check; it throws. On the flag axis it is asserted per `(key, reactor)`, where
+the carrier count N is known exactly — so a failure names the reactor rather than reporting a gap
+somewhere in eight thousand pairs.
+
+### Fixed
+
+- **The theoretical denominator omitted the generator's own supplementary linkage keys.**
+  `tests/interaction_matrix.js` stages against `LINKAGE` — `data/tags.json`'s keys MERGED with keys
+  the file derives itself — while `theoreticalSize()` counted only `tags.linkage`. 170 pairs were
+  staged or dropped against a universe that had never heard of them. Theoretical **8,506 → 8,676**.
+  Both now read the same object, so they cannot drift apart again.
+- **The type axis mis-costed its depth-cap tail by exactly one, 32 times.** The carrier index was
+  incremented *before* the cap was tested, so the recorded tail excluded the very carrier the break
+  was rejecting. The error ran in the direction that flatters the coverage rate.
+- **The outcome buckets were not a partition.** `saturated` did not exclude a case that had THROWN
+  and `ko_timing` excluded nothing at all, so four cases were counted in two buckets each and the
+  five printed totals summed to 1,679 against 1,675 cases run. `tests/test-interaction-matrix.js`
+  now classifies once, in a stated precedence, and throws if the five do not partition the run.
+- **`reconcile()` was defined and never called**, while this file's header stated it was "the only
+  thing that can stop a run" and that `--selftest-reconcile` proved it fired. Neither was true. Both
+  are now.
+
+### Added
+
+- `node tests/interaction_matrix.js --selftest-reconcile` — mis-costs exactly one drop by one pair,
+  the smallest lie the ledger can tell, and requires the identity to stop the run. Exit 1 if it does
+  not. This satisfies the standing gate: no check is committed until it has been seen FAILING on
+  input known to be bad.
+- A failed reconciliation prints the drop ledger. A bare "170 pairs" names no suspect, and a failure
+  nobody can act on is how this file acquired an assertion that was never called.
+
+### Changed
+
+- **Interaction matrix: 1,514 → 1,675 staged, 899 → 1,031 live, agreement 100.0% → 99.6%
+  (1,027/1,031).** Closing the ledger recovered 161 pairs the generator had been discarding without
+  naming them, and four of those pairs are ones MEDICHAM gets wrong: `fakeout`, `throatchop` and
+  `psychicnoise` against **Shield Dust**, and `upperhand` against **Steadfast**. All four are UNWIRED
+  knobs — MEDICHAM's own two arms are identical on each — rather than wrong arithmetic.
+
+### Notes
+
+- **The headline agreement figure went DOWN and that is the instrument working.** A 100.0% computed
+  over a denominator that dropped 5,090 pairs in silence was the less honest number; it was a
+  statement about where nobody had looked. `docs/ADR-002-showdown-is-the-authority.md` cited both the
+  old figures and now carries a revision section saying which way they moved and why, because a prior
+  conclusion is never silently rewritten.
+- The `899/899` claim is left standing in `docs/ENGINE.md`'s 3.40.0 narrative with a pointer forward,
+  rather than edited out of the history.
+
+---
+
 ## [3.42.0] — 2026-08-05
 
 ### Outplayed turns stop being noise: 1,336 recorded actions were not clicks, and MAG was learning from every one

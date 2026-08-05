@@ -1,0 +1,2618 @@
+{
+  "generated": "2026-08-05T15:48:52.602Z",
+  "by": "tests/mutation_harness.js",
+  "design": "Layer 2 of docs/ENGINE-COVERAGE-PLAN.md. Change the FACT, watch the BEHAVIOUR. A handler that fires and ignores its payload reads LIVE everywhere else in this repo; here it reads READ-AND-IGNORED.",
+  "gate": {
+    "rows": [
+      {
+        "stub": "param-level stub (the WIRE 71 shape)",
+        "operator": "item:choicescarf:speedMult.mult:=11.5",
+        "shipped": "LIVE",
+        "stubbed": "READ-AND-IGNORED",
+        "expectedStub": "READ-AND-IGNORED",
+        "caught": true
+      },
+      {
+        "stub": "set-building stub (proves the mutated DB reaches a MODULE-LOAD derivation)",
+        "operator": "move:rockslide:spreadFoes:REMOVE-TAG",
+        "shipped": "LIVE",
+        "stubbed": "READ-AND-IGNORED",
+        "expectedStub": "READ-AND-IGNORED",
+        "caught": true
+      }
+    ],
+    "ms": 250,
+    "note": "The sweep refuses to run unless both planted stubs are caught. A harness that has never caught a planted stub is not evidence."
+  },
+  "battery": {
+    "rngs": [
+      {
+        "name": "k05",
+        "stream": false
+      },
+      {
+        "name": "k50",
+        "stream": false
+      },
+      {
+        "name": "k95",
+        "stream": false
+      },
+      {
+        "name": "lcg-20260805",
+        "stream": true
+      },
+      {
+        "name": "lcg-777",
+        "stream": true
+      }
+    ],
+    "turns": 4,
+    "teamA": [
+      "incineroar",
+      "milotic",
+      "corviknight"
+    ],
+    "teamB": [
+      "garchomp",
+      "weavile",
+      "archaludon"
+    ]
+  },
+  "cannotSee": [
+    "a fact derived WRONG upstream — propagated faithfully, consumed faithfully, scores LIVE. Layer 4 (test-engine-diff, test-game-diff, the interaction matrix) owns it.",
+    "a mechanic no scenario here stages — reported as UNSTAGEABLE, which is the ABSENCE of a result and is never folded into the pass.",
+    "a param whose value is an object or an array of objects — counted as nestedParamsSkipped, never silently."
+  ],
+  "cost": {
+    "gate_ms": 250,
+    "sweep_ms": 1211,
+    "ms_per_tag": 101,
+    "peak_rss_mb": 133
+  },
+  "summary": {
+    "tagsSwept": 12,
+    "operators": 93,
+    "live": 29,
+    "readAndIgnored": 64,
+    "defectCandidates": 45,
+    "presenceOnly": 9,
+    "unstageableTags": [],
+    "streamShiftSuspect": 2,
+    "nestedParamsSkipped": 1,
+    "inertCases": 0,
+    "liveCases": 32
+  },
+  "ratchet": {
+    "rule": "An operator that was LIVE may never come back anything else. That is the only direction that means a handler stopped reading its fact.",
+    "regressions": []
+  },
+  "tags": [
+    {
+      "tag": "spreadFoes",
+      "carriers": [
+        "move:rockslide",
+        "move:heatwave"
+      ],
+      "cases": [
+        {
+          "carrier": "move:rockslide",
+          "placement": null,
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "move:heatwave",
+          "placement": null,
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        }
+      ],
+      "operators": [
+        {
+          "key": "move:rockslide:spreadFoes:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "move:rockslide",
+          "param": null,
+          "verdict": "LIVE",
+          "changed": 4,
+          "same": 1
+        },
+        {
+          "key": "move:rockslide:spreadFoes.target:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "move:rockslide",
+          "param": "target",
+          "paramShape": "string",
+          "paramWas": "allAdjacentFoes",
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 5,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "move:rockslide:spreadFoes.hitsAlly:=true",
+          "family": "param",
+          "carrier": "move:rockslide",
+          "param": "hitsAlly",
+          "paramShape": "boolean",
+          "paramWas": false,
+          "paramNow": true,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 5,
+          "class": "PRESENCE-ONLY"
+        },
+        {
+          "key": "move:heatwave:spreadFoes:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "move:heatwave",
+          "param": null,
+          "verdict": "LIVE",
+          "changed": 5,
+          "same": 0
+        },
+        {
+          "key": "move:heatwave:spreadFoes.target:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "move:heatwave",
+          "param": "target",
+          "paramShape": "string",
+          "paramWas": "allAdjacentFoes",
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 5,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "move:heatwave:spreadFoes.hitsAlly:=true",
+          "family": "param",
+          "carrier": "move:heatwave",
+          "param": "hitsAlly",
+          "paramShape": "boolean",
+          "paramWas": false,
+          "paramNow": true,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 5,
+          "class": "PRESENCE-ONLY"
+        }
+      ],
+      "nestedParamsSkipped": 0,
+      "asked": 0,
+      "found": 0,
+      "verdict": "LIVE"
+    },
+    {
+      "tag": "spreadAll",
+      "carriers": [
+        "move:earthquake",
+        "move:discharge"
+      ],
+      "cases": [
+        {
+          "carrier": "move:earthquake",
+          "placement": null,
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "move:discharge",
+          "placement": null,
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        }
+      ],
+      "operators": [
+        {
+          "key": "move:earthquake:spreadAll:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "move:earthquake",
+          "param": null,
+          "verdict": "LIVE",
+          "changed": 5,
+          "same": 0
+        },
+        {
+          "key": "move:earthquake:spreadAll.target:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "move:earthquake",
+          "param": "target",
+          "paramShape": "string",
+          "paramWas": "allAdjacent",
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 5,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "move:earthquake:spreadAll.hitsAlly:=false",
+          "family": "param",
+          "carrier": "move:earthquake",
+          "param": "hitsAlly",
+          "paramShape": "boolean",
+          "paramWas": true,
+          "paramNow": false,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 5,
+          "class": "PRESENCE-ONLY"
+        },
+        {
+          "key": "move:discharge:spreadAll:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "move:discharge",
+          "param": null,
+          "verdict": "LIVE",
+          "changed": 5,
+          "same": 0
+        },
+        {
+          "key": "move:discharge:spreadAll.target:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "move:discharge",
+          "param": "target",
+          "paramShape": "string",
+          "paramWas": "allAdjacent",
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 5,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "move:discharge:spreadAll.hitsAlly:=false",
+          "family": "param",
+          "carrier": "move:discharge",
+          "param": "hitsAlly",
+          "paramShape": "boolean",
+          "paramWas": true,
+          "paramNow": false,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 5,
+          "class": "PRESENCE-ONLY"
+        }
+      ],
+      "nestedParamsSkipped": 0,
+      "asked": 0,
+      "found": 0,
+      "verdict": "LIVE"
+    },
+    {
+      "tag": "speedMult",
+      "carriers": [
+        "item:choicescarf"
+      ],
+      "cases": [
+        {
+          "carrier": "item:choicescarf",
+          "placement": "A0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "item:choicescarf",
+          "placement": "B0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        }
+      ],
+      "operators": [
+        {
+          "key": "item:choicescarf:speedMult:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "item:choicescarf",
+          "param": null,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10
+        },
+        {
+          "key": "item:choicescarf:speedMult.mult:=11.5",
+          "family": "param",
+          "carrier": "item:choicescarf",
+          "param": "mult",
+          "paramShape": "number",
+          "paramWas": 1.5,
+          "paramNow": 11.5,
+          "verdict": "LIVE",
+          "changed": 5,
+          "same": 5
+        },
+        {
+          "key": "item:choicescarf:speedMult.mult:=0",
+          "family": "param",
+          "carrier": "item:choicescarf",
+          "param": "mult",
+          "paramShape": "number",
+          "paramWas": 1.5,
+          "paramNow": 0,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        }
+      ],
+      "nestedParamsSkipped": 0,
+      "asked": 660,
+      "found": 70,
+      "verdict": "READ-AND-IGNORED"
+    },
+    {
+      "tag": "stabBoost",
+      "carriers": [
+        "ability:adaptability"
+      ],
+      "cases": [
+        {
+          "carrier": "ability:adaptability",
+          "placement": "A0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "ability:adaptability",
+          "placement": "B0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        }
+      ],
+      "operators": [
+        {
+          "key": "ability:adaptability:stabBoost:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "ability:adaptability",
+          "param": null,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10
+        },
+        {
+          "key": "ability:adaptability:stabBoost.stab:=13",
+          "family": "param",
+          "carrier": "ability:adaptability",
+          "param": "stab",
+          "paramShape": "number",
+          "paramWas": 2,
+          "paramNow": 13,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:adaptability:stabBoost.stab:=0",
+          "family": "param",
+          "carrier": "ability:adaptability",
+          "param": "stab",
+          "paramShape": "number",
+          "paramWas": 2,
+          "paramNow": 0,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        }
+      ],
+      "nestedParamsSkipped": 0,
+      "asked": 80,
+      "found": 20,
+      "verdict": "READ-AND-IGNORED"
+    },
+    {
+      "tag": "setsWeather",
+      "carriers": [
+        "move:raindance",
+        "move:sunnyday"
+      ],
+      "cases": [
+        {
+          "carrier": "move:raindance",
+          "placement": null,
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "move:sunnyday",
+          "placement": null,
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        }
+      ],
+      "operators": [
+        {
+          "key": "move:raindance:setsWeather:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "move:raindance",
+          "param": null,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 5
+        },
+        {
+          "key": "move:raindance:setsWeather.weather:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "move:raindance",
+          "param": "weather",
+          "paramShape": "string",
+          "paramWas": "RainDance",
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 5,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "move:sunnyday:setsWeather:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "move:sunnyday",
+          "param": null,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 5
+        },
+        {
+          "key": "move:sunnyday:setsWeather.weather:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "move:sunnyday",
+          "param": "weather",
+          "paramShape": "string",
+          "paramWas": "sunnyday",
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 5,
+          "class": "DEFECT-CANDIDATE"
+        }
+      ],
+      "nestedParamsSkipped": 0,
+      "asked": 0,
+      "found": 0,
+      "verdict": "READ-AND-IGNORED"
+    },
+    {
+      "tag": "extendsDuration",
+      "carriers": [
+        "item:lightclay",
+        "item:damprock"
+      ],
+      "cases": [
+        {
+          "carrier": "item:lightclay",
+          "placement": "A0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "item:lightclay",
+          "placement": "B0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "item:damprock",
+          "placement": "A0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "item:damprock",
+          "placement": "B0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        }
+      ],
+      "operators": [
+        {
+          "key": "item:lightclay:extendsDuration:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "item:lightclay",
+          "param": null,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10
+        },
+        {
+          "key": "item:lightclay:extendsDuration.extends:=[]",
+          "family": "param",
+          "carrier": "item:lightclay",
+          "param": "extends",
+          "paramShape": "array",
+          "paramWas": [
+            "Aurora Veil",
+            "Light Screen",
+            "Reflect"
+          ],
+          "paramNow": [],
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "item:lightclay:extendsDuration.extends:=[\"ZZ-MUTANT-ZZ\"]",
+          "family": "param",
+          "carrier": "item:lightclay",
+          "param": "extends",
+          "paramShape": "array",
+          "paramWas": [
+            "Aurora Veil",
+            "Light Screen",
+            "Reflect"
+          ],
+          "paramNow": [
+            "ZZ-MUTANT-ZZ"
+          ],
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "item:lightclay:extendsDuration.toTurns:=31",
+          "family": "param",
+          "carrier": "item:lightclay",
+          "param": "toTurns",
+          "paramShape": "number",
+          "paramWas": 8,
+          "paramNow": 31,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "item:lightclay:extendsDuration.toTurns:=0",
+          "family": "param",
+          "carrier": "item:lightclay",
+          "param": "toTurns",
+          "paramShape": "number",
+          "paramWas": 8,
+          "paramNow": 0,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "item:lightclay:extendsDuration.insteadOf:=22",
+          "family": "param",
+          "carrier": "item:lightclay",
+          "param": "insteadOf",
+          "paramShape": "number",
+          "paramWas": 5,
+          "paramNow": 22,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "item:lightclay:extendsDuration.insteadOf:=0",
+          "family": "param",
+          "carrier": "item:lightclay",
+          "param": "insteadOf",
+          "paramShape": "number",
+          "paramWas": 5,
+          "paramNow": 0,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "item:damprock:extendsDuration:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "item:damprock",
+          "param": null,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10
+        },
+        {
+          "key": "item:damprock:extendsDuration.extends:=[]",
+          "family": "param",
+          "carrier": "item:damprock",
+          "param": "extends",
+          "paramShape": "array",
+          "paramWas": [
+            "raindance"
+          ],
+          "paramNow": [],
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "item:damprock:extendsDuration.extends:=[\"ZZ-MUTANT-ZZ\"]",
+          "family": "param",
+          "carrier": "item:damprock",
+          "param": "extends",
+          "paramShape": "array",
+          "paramWas": [
+            "raindance"
+          ],
+          "paramNow": [
+            "ZZ-MUTANT-ZZ"
+          ],
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "item:damprock:extendsDuration.toTurns:=31",
+          "family": "param",
+          "carrier": "item:damprock",
+          "param": "toTurns",
+          "paramShape": "number",
+          "paramWas": 8,
+          "paramNow": 31,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "item:damprock:extendsDuration.toTurns:=0",
+          "family": "param",
+          "carrier": "item:damprock",
+          "param": "toTurns",
+          "paramShape": "number",
+          "paramWas": 8,
+          "paramNow": 0,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "item:damprock:extendsDuration.insteadOf:=22",
+          "family": "param",
+          "carrier": "item:damprock",
+          "param": "insteadOf",
+          "paramShape": "number",
+          "paramWas": 5,
+          "paramNow": 22,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "item:damprock:extendsDuration.insteadOf:=0",
+          "family": "param",
+          "carrier": "item:damprock",
+          "param": "insteadOf",
+          "paramShape": "number",
+          "paramWas": 5,
+          "paramNow": 0,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        }
+      ],
+      "nestedParamsSkipped": 0,
+      "asked": 40,
+      "found": 10,
+      "verdict": "READ-AND-IGNORED"
+    },
+    {
+      "tag": "passiveHeal",
+      "carriers": [
+        "item:leftovers"
+      ],
+      "cases": [
+        {
+          "carrier": "item:leftovers",
+          "placement": "A0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "item:leftovers",
+          "placement": "B0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        }
+      ],
+      "operators": [
+        {
+          "key": "item:leftovers:passiveHeal:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "item:leftovers",
+          "param": null,
+          "verdict": "LIVE",
+          "changed": 10,
+          "same": 0
+        },
+        {
+          "key": "item:leftovers:passiveHeal.heal:=7.1875",
+          "family": "param",
+          "carrier": "item:leftovers",
+          "param": "heal",
+          "paramShape": "number",
+          "paramWas": 0.0625,
+          "paramNow": 7.1875,
+          "verdict": "LIVE",
+          "changed": 10,
+          "same": 0
+        },
+        {
+          "key": "item:leftovers:passiveHeal.heal:=0",
+          "family": "param",
+          "carrier": "item:leftovers",
+          "param": "heal",
+          "paramShape": "number",
+          "paramWas": 0.0625,
+          "paramNow": 0,
+          "verdict": "LIVE",
+          "changed": 10,
+          "same": 0
+        }
+      ],
+      "nestedParamsSkipped": 0,
+      "asked": 320,
+      "found": 20,
+      "verdict": "LIVE"
+    },
+    {
+      "tag": "hazard",
+      "carriers": [
+        "move:stealthrock",
+        "move:toxicspikes"
+      ],
+      "cases": [
+        {
+          "carrier": "move:stealthrock",
+          "placement": null,
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "move:toxicspikes",
+          "placement": null,
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        }
+      ],
+      "operators": [
+        {
+          "key": "move:stealthrock:hazard:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "move:stealthrock",
+          "param": null,
+          "verdict": "LIVE",
+          "changed": 5,
+          "same": 0
+        },
+        {
+          "key": "move:stealthrock:hazard.hazard:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "move:stealthrock",
+          "param": "hazard",
+          "paramShape": "string",
+          "paramWas": "stealthrock",
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "LIVE",
+          "changed": 5,
+          "same": 0
+        },
+        {
+          "key": "move:toxicspikes:hazard:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "move:toxicspikes",
+          "param": null,
+          "verdict": "LIVE",
+          "changed": 5,
+          "same": 0
+        },
+        {
+          "key": "move:toxicspikes:hazard.hazard:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "move:toxicspikes",
+          "param": "hazard",
+          "paramShape": "string",
+          "paramWas": "toxicspikes",
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "LIVE",
+          "changed": 5,
+          "same": 0
+        }
+      ],
+      "nestedParamsSkipped": 0,
+      "asked": 20,
+      "found": 20,
+      "verdict": "LIVE"
+    },
+    {
+      "tag": "partialTrap",
+      "carriers": [
+        "move:infestation",
+        "move:sandtomb"
+      ],
+      "cases": [
+        {
+          "carrier": "move:infestation",
+          "placement": null,
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "move:sandtomb",
+          "placement": null,
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        }
+      ],
+      "operators": [
+        {
+          "key": "move:infestation:partialTrap:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "move:infestation",
+          "param": null,
+          "verdict": "LIVE",
+          "changed": 5,
+          "same": 0
+        },
+        {
+          "key": "move:infestation:partialTrap.turns:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "move:infestation",
+          "param": "turns",
+          "paramShape": "string",
+          "paramWas": "4-5",
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 5,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "move:infestation:partialTrap.chipPerTurn:=7.375",
+          "family": "param",
+          "carrier": "move:infestation",
+          "param": "chipPerTurn",
+          "paramShape": "number",
+          "paramWas": 0.125,
+          "paramNow": 7.375,
+          "verdict": "LIVE",
+          "changed": 5,
+          "same": 0
+        },
+        {
+          "key": "move:infestation:partialTrap.chipPerTurn:=0",
+          "family": "param",
+          "carrier": "move:infestation",
+          "param": "chipPerTurn",
+          "paramShape": "number",
+          "paramWas": 0.125,
+          "paramNow": 0,
+          "verdict": "LIVE",
+          "changed": 5,
+          "same": 0
+        },
+        {
+          "key": "move:sandtomb:partialTrap:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "move:sandtomb",
+          "param": null,
+          "verdict": "LIVE",
+          "changed": 5,
+          "same": 0
+        },
+        {
+          "key": "move:sandtomb:partialTrap.turns:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "move:sandtomb",
+          "param": "turns",
+          "paramShape": "string",
+          "paramWas": "4-5",
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 5,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "move:sandtomb:partialTrap.chipPerTurn:=7.375",
+          "family": "param",
+          "carrier": "move:sandtomb",
+          "param": "chipPerTurn",
+          "paramShape": "number",
+          "paramWas": 0.125,
+          "paramNow": 7.375,
+          "verdict": "LIVE",
+          "changed": 5,
+          "same": 0
+        },
+        {
+          "key": "move:sandtomb:partialTrap.chipPerTurn:=0",
+          "family": "param",
+          "carrier": "move:sandtomb",
+          "param": "chipPerTurn",
+          "paramShape": "number",
+          "paramWas": 0.125,
+          "paramNow": 0,
+          "verdict": "LIVE",
+          "changed": 5,
+          "same": 0
+        }
+      ],
+      "nestedParamsSkipped": 0,
+      "asked": 10,
+      "found": 10,
+      "verdict": "LIVE"
+    },
+    {
+      "tag": "preventsSwitch",
+      "carriers": [
+        "ability:arenatrap",
+        "ability:magnetpull"
+      ],
+      "cases": [
+        {
+          "carrier": "ability:arenatrap",
+          "placement": "A0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "ability:arenatrap",
+          "placement": "B0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "ability:magnetpull",
+          "placement": "A0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "ability:magnetpull",
+          "placement": "B0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        }
+      ],
+      "operators": [
+        {
+          "key": "ability:arenatrap:preventsSwitch:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "ability:arenatrap",
+          "param": null,
+          "verdict": "LIVE",
+          "changed": 5,
+          "same": 5
+        },
+        {
+          "key": "ability:arenatrap:preventsSwitch.source:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:arenatrap",
+          "param": "source",
+          "paramShape": "string",
+          "paramWas": "ability",
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:arenatrap:preventsSwitch.turns:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:arenatrap",
+          "param": "turns",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:arenatrap:preventsSwitch.chips:=true",
+          "family": "param",
+          "carrier": "ability:arenatrap",
+          "param": "chips",
+          "paramShape": "boolean",
+          "paramWas": false,
+          "paramNow": true,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "PRESENCE-ONLY"
+        },
+        {
+          "key": "ability:arenatrap:preventsSwitch.scope:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:arenatrap",
+          "param": "scope",
+          "paramShape": "string",
+          "paramWas": "adjacent foes",
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:arenatrap:preventsSwitch.onlyTypes:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:arenatrap",
+          "param": "onlyTypes",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "LIVE",
+          "changed": 5,
+          "same": 5
+        },
+        {
+          "key": "ability:arenatrap:preventsSwitch.onlyGrounded:=false",
+          "family": "param",
+          "carrier": "ability:arenatrap",
+          "param": "onlyGrounded",
+          "paramShape": "boolean",
+          "paramWas": true,
+          "paramNow": false,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "PRESENCE-ONLY"
+        },
+        {
+          "key": "ability:magnetpull:preventsSwitch:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "ability:magnetpull",
+          "param": null,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10
+        },
+        {
+          "key": "ability:magnetpull:preventsSwitch.source:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:magnetpull",
+          "param": "source",
+          "paramShape": "string",
+          "paramWas": "ability",
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:magnetpull:preventsSwitch.turns:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:magnetpull",
+          "param": "turns",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:magnetpull:preventsSwitch.chips:=true",
+          "family": "param",
+          "carrier": "ability:magnetpull",
+          "param": "chips",
+          "paramShape": "boolean",
+          "paramWas": false,
+          "paramNow": true,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "PRESENCE-ONLY"
+        },
+        {
+          "key": "ability:magnetpull:preventsSwitch.scope:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:magnetpull",
+          "param": "scope",
+          "paramShape": "string",
+          "paramWas": "adjacent foes",
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:magnetpull:preventsSwitch.onlyTypes:=[]",
+          "family": "param",
+          "carrier": "ability:magnetpull",
+          "param": "onlyTypes",
+          "paramShape": "array",
+          "paramWas": [
+            "Steel"
+          ],
+          "paramNow": [],
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:magnetpull:preventsSwitch.onlyTypes:=[\"ZZ-MUTANT-ZZ\"]",
+          "family": "param",
+          "carrier": "ability:magnetpull",
+          "param": "onlyTypes",
+          "paramShape": "array",
+          "paramWas": [
+            "Steel"
+          ],
+          "paramNow": [
+            "ZZ-MUTANT-ZZ"
+          ],
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:magnetpull:preventsSwitch.onlyGrounded:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:magnetpull",
+          "param": "onlyGrounded",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        }
+      ],
+      "nestedParamsSkipped": 0,
+      "asked": 195,
+      "found": 30,
+      "verdict": "LIVE"
+    },
+    {
+      "tag": "statusImmune",
+      "carriers": [
+        "ability:limber",
+        "ability:waterbubble"
+      ],
+      "cases": [
+        {
+          "carrier": "ability:limber",
+          "placement": "A0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "ability:limber",
+          "placement": "B0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "ability:waterbubble",
+          "placement": "A0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "ability:waterbubble",
+          "placement": "B0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        }
+      ],
+      "operators": [
+        {
+          "key": "ability:limber:statusImmune:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "ability:limber",
+          "param": null,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10
+        },
+        {
+          "key": "ability:limber:statusImmune.immune:=false",
+          "family": "param",
+          "carrier": "ability:limber",
+          "param": "immune",
+          "paramShape": "boolean",
+          "paramWas": true,
+          "paramNow": false,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:waterbubble:statusImmune:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "ability:waterbubble",
+          "param": null,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10
+        },
+        {
+          "key": "ability:waterbubble:statusImmune.immune:=false",
+          "family": "param",
+          "carrier": "ability:waterbubble",
+          "param": "immune",
+          "paramShape": "boolean",
+          "paramWas": true,
+          "paramNow": false,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        }
+      ],
+      "nestedParamsSkipped": 0,
+      "asked": 0,
+      "found": 0,
+      "verdict": "READ-AND-IGNORED"
+    },
+    {
+      "tag": "punishesAttacker",
+      "carriers": [
+        "ability:roughskin",
+        "ability:cursedbody"
+      ],
+      "cases": [
+        {
+          "carrier": "ability:roughskin",
+          "placement": "A0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "ability:roughskin",
+          "placement": "B0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "ability:cursedbody",
+          "placement": "A0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        },
+        {
+          "carrier": "ability:cursedbody",
+          "placement": "B0",
+          "inert": false,
+          "expressedUnder": [
+            "k05",
+            "k50",
+            "k95",
+            "lcg-20260805",
+            "lcg-777"
+          ],
+          "threw": []
+        }
+      ],
+      "operators": [
+        {
+          "key": "ability:roughskin:punishesAttacker:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "ability:roughskin",
+          "param": null,
+          "verdict": "LIVE",
+          "changed": 10,
+          "same": 0
+        },
+        {
+          "key": "ability:roughskin:punishesAttacker.compounds:=true",
+          "family": "param",
+          "carrier": "ability:roughskin",
+          "param": "compounds",
+          "paramShape": "boolean",
+          "paramWas": false,
+          "paramNow": true,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "PRESENCE-ONLY"
+        },
+        {
+          "key": "ability:roughskin:punishesAttacker.trigger:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:roughskin",
+          "param": "trigger",
+          "paramShape": "string",
+          "paramWas": "contact",
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:roughskin:punishesAttacker.onFaintOnly:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:roughskin",
+          "param": "onFaintOnly",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "LIVE",
+          "changed": 10,
+          "same": 0
+        },
+        {
+          "key": "ability:roughskin:punishesAttacker.requiresForme:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:roughskin",
+          "param": "requiresForme",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "LIVE",
+          "changed": 10,
+          "same": 0
+        },
+        {
+          "key": "ability:roughskin:punishesAttacker.inflicts:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:roughskin",
+          "param": "inflicts",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "LIVE",
+          "changed": 2,
+          "same": 8,
+          "note": "stream-shift-suspect — every difference came from a STREAMING rng, so a realigned PRNG cannot be ruled out"
+        },
+        {
+          "key": "ability:roughskin:punishesAttacker.inflictsVolatile:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:roughskin",
+          "param": "inflictsVolatile",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:roughskin:punishesAttacker.boosts:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:roughskin",
+          "param": "boosts",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:roughskin:punishesAttacker.fraction:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:roughskin",
+          "param": "fraction",
+          "paramShape": "string",
+          "paramWas": "8",
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "LIVE",
+          "changed": 10,
+          "same": 0
+        },
+        {
+          "key": "ability:roughskin:punishesAttacker.hazard:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:roughskin",
+          "param": "hazard",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "LIVE",
+          "changed": 10,
+          "same": 0
+        },
+        {
+          "key": "ability:roughskin:punishesAttacker.maxLayers:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:roughskin",
+          "param": "maxLayers",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:roughskin:punishesAttacker.setsWeather:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:roughskin",
+          "param": "setsWeather",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:cursedbody:punishesAttacker:REMOVE-TAG",
+          "family": "remove-tag",
+          "carrier": "ability:cursedbody",
+          "param": null,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10
+        },
+        {
+          "key": "ability:cursedbody:punishesAttacker.compounds:=true",
+          "family": "param",
+          "carrier": "ability:cursedbody",
+          "param": "compounds",
+          "paramShape": "boolean",
+          "paramWas": false,
+          "paramNow": true,
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "PRESENCE-ONLY"
+        },
+        {
+          "key": "ability:cursedbody:punishesAttacker.trigger:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:cursedbody",
+          "param": "trigger",
+          "paramShape": "string",
+          "paramWas": "anyHit",
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:cursedbody:punishesAttacker.onFaintOnly:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:cursedbody",
+          "param": "onFaintOnly",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:cursedbody:punishesAttacker.requiresForme:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:cursedbody",
+          "param": "requiresForme",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:cursedbody:punishesAttacker.inflicts:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:cursedbody",
+          "param": "inflicts",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "LIVE",
+          "changed": 3,
+          "same": 7,
+          "note": "stream-shift-suspect — every difference came from a STREAMING rng, so a realigned PRNG cannot be ruled out"
+        },
+        {
+          "key": "ability:cursedbody:punishesAttacker.boosts:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:cursedbody",
+          "param": "boosts",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:cursedbody:punishesAttacker.fraction:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:cursedbody",
+          "param": "fraction",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "LIVE",
+          "changed": 10,
+          "same": 0
+        },
+        {
+          "key": "ability:cursedbody:punishesAttacker.hazard:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:cursedbody",
+          "param": "hazard",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "LIVE",
+          "changed": 10,
+          "same": 0
+        },
+        {
+          "key": "ability:cursedbody:punishesAttacker.maxLayers:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:cursedbody",
+          "param": "maxLayers",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        },
+        {
+          "key": "ability:cursedbody:punishesAttacker.setsWeather:=\"ZZ-MUTANT-ZZ\"",
+          "family": "param",
+          "carrier": "ability:cursedbody",
+          "param": "setsWeather",
+          "paramShape": "null",
+          "paramWas": null,
+          "paramNow": "ZZ-MUTANT-ZZ",
+          "verdict": "READ-AND-IGNORED",
+          "changed": 0,
+          "same": 10,
+          "class": "DEFECT-CANDIDATE"
+        }
+      ],
+      "nestedParamsSkipped": 1,
+      "asked": 80,
+      "found": 20,
+      "verdict": "LIVE"
+    }
+  ],
+  "operators": [
+    {
+      "key": "move:rockslide:spreadFoes:REMOVE-TAG",
+      "tag": "spreadFoes",
+      "family": "remove-tag",
+      "verdict": "LIVE",
+      "changed": 4,
+      "same": 1
+    },
+    {
+      "key": "move:rockslide:spreadFoes.target:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "spreadFoes",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 5
+    },
+    {
+      "key": "move:rockslide:spreadFoes.hitsAlly:=true",
+      "tag": "spreadFoes",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "PRESENCE-ONLY",
+      "changed": 0,
+      "same": 5
+    },
+    {
+      "key": "move:heatwave:spreadFoes:REMOVE-TAG",
+      "tag": "spreadFoes",
+      "family": "remove-tag",
+      "verdict": "LIVE",
+      "changed": 5,
+      "same": 0
+    },
+    {
+      "key": "move:heatwave:spreadFoes.target:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "spreadFoes",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 5
+    },
+    {
+      "key": "move:heatwave:spreadFoes.hitsAlly:=true",
+      "tag": "spreadFoes",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "PRESENCE-ONLY",
+      "changed": 0,
+      "same": 5
+    },
+    {
+      "key": "move:earthquake:spreadAll:REMOVE-TAG",
+      "tag": "spreadAll",
+      "family": "remove-tag",
+      "verdict": "LIVE",
+      "changed": 5,
+      "same": 0
+    },
+    {
+      "key": "move:earthquake:spreadAll.target:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "spreadAll",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 5
+    },
+    {
+      "key": "move:earthquake:spreadAll.hitsAlly:=false",
+      "tag": "spreadAll",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "PRESENCE-ONLY",
+      "changed": 0,
+      "same": 5
+    },
+    {
+      "key": "move:discharge:spreadAll:REMOVE-TAG",
+      "tag": "spreadAll",
+      "family": "remove-tag",
+      "verdict": "LIVE",
+      "changed": 5,
+      "same": 0
+    },
+    {
+      "key": "move:discharge:spreadAll.target:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "spreadAll",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 5
+    },
+    {
+      "key": "move:discharge:spreadAll.hitsAlly:=false",
+      "tag": "spreadAll",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "PRESENCE-ONLY",
+      "changed": 0,
+      "same": 5
+    },
+    {
+      "key": "item:choicescarf:speedMult:REMOVE-TAG",
+      "tag": "speedMult",
+      "family": "remove-tag",
+      "verdict": "READ-AND-IGNORED",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "item:choicescarf:speedMult.mult:=11.5",
+      "tag": "speedMult",
+      "family": "param",
+      "verdict": "LIVE",
+      "changed": 5,
+      "same": 5
+    },
+    {
+      "key": "item:choicescarf:speedMult.mult:=0",
+      "tag": "speedMult",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:adaptability:stabBoost:REMOVE-TAG",
+      "tag": "stabBoost",
+      "family": "remove-tag",
+      "verdict": "READ-AND-IGNORED",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:adaptability:stabBoost.stab:=13",
+      "tag": "stabBoost",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:adaptability:stabBoost.stab:=0",
+      "tag": "stabBoost",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "move:raindance:setsWeather:REMOVE-TAG",
+      "tag": "setsWeather",
+      "family": "remove-tag",
+      "verdict": "READ-AND-IGNORED",
+      "changed": 0,
+      "same": 5
+    },
+    {
+      "key": "move:raindance:setsWeather.weather:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "setsWeather",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 5
+    },
+    {
+      "key": "move:sunnyday:setsWeather:REMOVE-TAG",
+      "tag": "setsWeather",
+      "family": "remove-tag",
+      "verdict": "READ-AND-IGNORED",
+      "changed": 0,
+      "same": 5
+    },
+    {
+      "key": "move:sunnyday:setsWeather.weather:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "setsWeather",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 5
+    },
+    {
+      "key": "item:lightclay:extendsDuration:REMOVE-TAG",
+      "tag": "extendsDuration",
+      "family": "remove-tag",
+      "verdict": "READ-AND-IGNORED",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "item:lightclay:extendsDuration.extends:=[]",
+      "tag": "extendsDuration",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "item:lightclay:extendsDuration.extends:=[\"ZZ-MUTANT-ZZ\"]",
+      "tag": "extendsDuration",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "item:lightclay:extendsDuration.toTurns:=31",
+      "tag": "extendsDuration",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "item:lightclay:extendsDuration.toTurns:=0",
+      "tag": "extendsDuration",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "item:lightclay:extendsDuration.insteadOf:=22",
+      "tag": "extendsDuration",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "item:lightclay:extendsDuration.insteadOf:=0",
+      "tag": "extendsDuration",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "item:damprock:extendsDuration:REMOVE-TAG",
+      "tag": "extendsDuration",
+      "family": "remove-tag",
+      "verdict": "READ-AND-IGNORED",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "item:damprock:extendsDuration.extends:=[]",
+      "tag": "extendsDuration",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "item:damprock:extendsDuration.extends:=[\"ZZ-MUTANT-ZZ\"]",
+      "tag": "extendsDuration",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "item:damprock:extendsDuration.toTurns:=31",
+      "tag": "extendsDuration",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "item:damprock:extendsDuration.toTurns:=0",
+      "tag": "extendsDuration",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "item:damprock:extendsDuration.insteadOf:=22",
+      "tag": "extendsDuration",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "item:damprock:extendsDuration.insteadOf:=0",
+      "tag": "extendsDuration",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "item:leftovers:passiveHeal:REMOVE-TAG",
+      "tag": "passiveHeal",
+      "family": "remove-tag",
+      "verdict": "LIVE",
+      "changed": 10,
+      "same": 0
+    },
+    {
+      "key": "item:leftovers:passiveHeal.heal:=7.1875",
+      "tag": "passiveHeal",
+      "family": "param",
+      "verdict": "LIVE",
+      "changed": 10,
+      "same": 0
+    },
+    {
+      "key": "item:leftovers:passiveHeal.heal:=0",
+      "tag": "passiveHeal",
+      "family": "param",
+      "verdict": "LIVE",
+      "changed": 10,
+      "same": 0
+    },
+    {
+      "key": "move:stealthrock:hazard:REMOVE-TAG",
+      "tag": "hazard",
+      "family": "remove-tag",
+      "verdict": "LIVE",
+      "changed": 5,
+      "same": 0
+    },
+    {
+      "key": "move:stealthrock:hazard.hazard:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "hazard",
+      "family": "param",
+      "verdict": "LIVE",
+      "changed": 5,
+      "same": 0
+    },
+    {
+      "key": "move:toxicspikes:hazard:REMOVE-TAG",
+      "tag": "hazard",
+      "family": "remove-tag",
+      "verdict": "LIVE",
+      "changed": 5,
+      "same": 0
+    },
+    {
+      "key": "move:toxicspikes:hazard.hazard:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "hazard",
+      "family": "param",
+      "verdict": "LIVE",
+      "changed": 5,
+      "same": 0
+    },
+    {
+      "key": "move:infestation:partialTrap:REMOVE-TAG",
+      "tag": "partialTrap",
+      "family": "remove-tag",
+      "verdict": "LIVE",
+      "changed": 5,
+      "same": 0
+    },
+    {
+      "key": "move:infestation:partialTrap.turns:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "partialTrap",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 5
+    },
+    {
+      "key": "move:infestation:partialTrap.chipPerTurn:=7.375",
+      "tag": "partialTrap",
+      "family": "param",
+      "verdict": "LIVE",
+      "changed": 5,
+      "same": 0
+    },
+    {
+      "key": "move:infestation:partialTrap.chipPerTurn:=0",
+      "tag": "partialTrap",
+      "family": "param",
+      "verdict": "LIVE",
+      "changed": 5,
+      "same": 0
+    },
+    {
+      "key": "move:sandtomb:partialTrap:REMOVE-TAG",
+      "tag": "partialTrap",
+      "family": "remove-tag",
+      "verdict": "LIVE",
+      "changed": 5,
+      "same": 0
+    },
+    {
+      "key": "move:sandtomb:partialTrap.turns:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "partialTrap",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 5
+    },
+    {
+      "key": "move:sandtomb:partialTrap.chipPerTurn:=7.375",
+      "tag": "partialTrap",
+      "family": "param",
+      "verdict": "LIVE",
+      "changed": 5,
+      "same": 0
+    },
+    {
+      "key": "move:sandtomb:partialTrap.chipPerTurn:=0",
+      "tag": "partialTrap",
+      "family": "param",
+      "verdict": "LIVE",
+      "changed": 5,
+      "same": 0
+    },
+    {
+      "key": "ability:arenatrap:preventsSwitch:REMOVE-TAG",
+      "tag": "preventsSwitch",
+      "family": "remove-tag",
+      "verdict": "LIVE",
+      "changed": 5,
+      "same": 5
+    },
+    {
+      "key": "ability:arenatrap:preventsSwitch.source:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "preventsSwitch",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:arenatrap:preventsSwitch.turns:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "preventsSwitch",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:arenatrap:preventsSwitch.chips:=true",
+      "tag": "preventsSwitch",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "PRESENCE-ONLY",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:arenatrap:preventsSwitch.scope:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "preventsSwitch",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:arenatrap:preventsSwitch.onlyTypes:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "preventsSwitch",
+      "family": "param",
+      "verdict": "LIVE",
+      "changed": 5,
+      "same": 5
+    },
+    {
+      "key": "ability:arenatrap:preventsSwitch.onlyGrounded:=false",
+      "tag": "preventsSwitch",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "PRESENCE-ONLY",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:magnetpull:preventsSwitch:REMOVE-TAG",
+      "tag": "preventsSwitch",
+      "family": "remove-tag",
+      "verdict": "READ-AND-IGNORED",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:magnetpull:preventsSwitch.source:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "preventsSwitch",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:magnetpull:preventsSwitch.turns:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "preventsSwitch",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:magnetpull:preventsSwitch.chips:=true",
+      "tag": "preventsSwitch",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "PRESENCE-ONLY",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:magnetpull:preventsSwitch.scope:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "preventsSwitch",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:magnetpull:preventsSwitch.onlyTypes:=[]",
+      "tag": "preventsSwitch",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:magnetpull:preventsSwitch.onlyTypes:=[\"ZZ-MUTANT-ZZ\"]",
+      "tag": "preventsSwitch",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:magnetpull:preventsSwitch.onlyGrounded:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "preventsSwitch",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:limber:statusImmune:REMOVE-TAG",
+      "tag": "statusImmune",
+      "family": "remove-tag",
+      "verdict": "READ-AND-IGNORED",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:limber:statusImmune.immune:=false",
+      "tag": "statusImmune",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:waterbubble:statusImmune:REMOVE-TAG",
+      "tag": "statusImmune",
+      "family": "remove-tag",
+      "verdict": "READ-AND-IGNORED",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:waterbubble:statusImmune.immune:=false",
+      "tag": "statusImmune",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:roughskin:punishesAttacker:REMOVE-TAG",
+      "tag": "punishesAttacker",
+      "family": "remove-tag",
+      "verdict": "LIVE",
+      "changed": 10,
+      "same": 0
+    },
+    {
+      "key": "ability:roughskin:punishesAttacker.compounds:=true",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "PRESENCE-ONLY",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:roughskin:punishesAttacker.trigger:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:roughskin:punishesAttacker.onFaintOnly:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "LIVE",
+      "changed": 10,
+      "same": 0
+    },
+    {
+      "key": "ability:roughskin:punishesAttacker.requiresForme:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "LIVE",
+      "changed": 10,
+      "same": 0
+    },
+    {
+      "key": "ability:roughskin:punishesAttacker.inflicts:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "LIVE",
+      "changed": 2,
+      "same": 8,
+      "note": "stream-shift-suspect — every difference came from a STREAMING rng, so a realigned PRNG cannot be ruled out"
+    },
+    {
+      "key": "ability:roughskin:punishesAttacker.inflictsVolatile:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:roughskin:punishesAttacker.boosts:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:roughskin:punishesAttacker.fraction:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "LIVE",
+      "changed": 10,
+      "same": 0
+    },
+    {
+      "key": "ability:roughskin:punishesAttacker.hazard:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "LIVE",
+      "changed": 10,
+      "same": 0
+    },
+    {
+      "key": "ability:roughskin:punishesAttacker.maxLayers:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:roughskin:punishesAttacker.setsWeather:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:cursedbody:punishesAttacker:REMOVE-TAG",
+      "tag": "punishesAttacker",
+      "family": "remove-tag",
+      "verdict": "READ-AND-IGNORED",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:cursedbody:punishesAttacker.compounds:=true",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "PRESENCE-ONLY",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:cursedbody:punishesAttacker.trigger:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:cursedbody:punishesAttacker.onFaintOnly:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:cursedbody:punishesAttacker.requiresForme:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:cursedbody:punishesAttacker.inflicts:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "LIVE",
+      "changed": 3,
+      "same": 7,
+      "note": "stream-shift-suspect — every difference came from a STREAMING rng, so a realigned PRNG cannot be ruled out"
+    },
+    {
+      "key": "ability:cursedbody:punishesAttacker.boosts:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:cursedbody:punishesAttacker.fraction:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "LIVE",
+      "changed": 10,
+      "same": 0
+    },
+    {
+      "key": "ability:cursedbody:punishesAttacker.hazard:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "LIVE",
+      "changed": 10,
+      "same": 0
+    },
+    {
+      "key": "ability:cursedbody:punishesAttacker.maxLayers:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    },
+    {
+      "key": "ability:cursedbody:punishesAttacker.setsWeather:=\"ZZ-MUTANT-ZZ\"",
+      "tag": "punishesAttacker",
+      "family": "param",
+      "verdict": "READ-AND-IGNORED",
+      "class": "DEFECT-CANDIDATE",
+      "changed": 0,
+      "same": 10
+    }
+  ]
+}

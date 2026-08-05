@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 3.42.0 · Last updated 2026-08-05.**
+**Version 3.43.0 · Last updated 2026-08-05.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
@@ -272,10 +272,12 @@ declared with a reason in [ENGINE.md](ENGINE.md) — two on the `moveAccuracy(id
 state `dmgRange` is not given).
 
 **THE INTERACTION MATRIX IS NOW A SEPARATE, GENERATED CLAIM** and it is the one that says whether the
-mechanics work TOGETHER. `data/interaction-matrix.json`: a theoretical cross product of **8,506**
-carrier x reactor pairs, **1,640** emitted after a named and counted co-occurrence filter, **1,008**
+mechanics work TOGETHER. `data/interaction-matrix.json`: a theoretical cross product of **8,676**
+carrier x reactor pairs, **1,675** emitted after a named and counted co-occurrence filter, **1,031**
 of those LIVE by the reference engine's own two-arm test, and medicham2 matches the official pinned
-Showdown engine on **93.3%** of them. The multi-turn field axis — every ordered pair of persistent
+Showdown engine on **99.6%** of them (1,027/1,031). Since 3.43.0 the generator **asserts its own
+arithmetic** — `theoretical = staged + dropped`, per axis, throwing rather than printing — which is
+what moved the denominator off 8,506 and the emitted count off 1,514. The multi-turn field axis — every ordered pair of persistent
 field effects, run eight turns to expiry — is **156/156**. Ten engine bugs were found by it in one
 pass (WIRE 72–81); none was reachable from a single-mechanic probe.
 **Job:** grounded win rate by actually playing the matchup out.
