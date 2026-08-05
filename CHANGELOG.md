@@ -10,6 +10,74 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.46.0] — 2026-08-05
+
+### The harness was defending against its own experiment: 379 of 2,300 cases gave the holder Protect
+
+Will asked one word — *"Goodra?"* — about the review sheet for the 706 cases the matrix reported as
+INERT. Goodra appeared as the holder for both Gooey (135 cases) and Sap Sipper (15), which was worth
+a question. It was the largest staging fault in the instrument.
+
+Every case needs the holder to ACT while it is hit, so it is given a filler move.
+`tests/interaction_matrix.js` `fillerFor()` ended:
+
+    for (const f of FILLERS) if (learns(sp, norm(f))) return f;
+    return 'Protect';
+
+**A holder that learned none of the six fillers was handed a Protect, which blocks the very carrier
+the case exists to land.** Both arms then behave identically, the case reports INERT, and INERT is
+indistinguishable from the outside from *"this interaction genuinely cannot express itself"*.
+
+Measured before it was fixed: **379 of 2,300 staged cases** — Goodra 158, Garbodor 136, Gholdengo 62,
+Arbok 22, Gourgeist 1. That is every Gooey case, every Aftermath case, and every Good as Gold case.
+
+**Gooey was proven to fire in the official engine while this harness recorded it doing nothing.** A
+standalone reproduction gives `|-ability|p2a: Goodra|Gooey` then `|-unboost|p1a: Blastoise|spe|1`;
+through the fixed harness the same case now reports `sdWitness=[".A.active[0].boosts.spe"]` and
+medicham2 agrees.
+
+### Fixed
+
+- **`fillerFor()` no longer falls back to Protect.** It returns `null` for a body it cannot stage,
+  and `holderFor()` REJECTS that body under a named drop reason rather than poisoning the case. The
+  last resort before `null` is DERIVED rather than hand-listed — any Status move the body learns that
+  targets **self** and is not in the protect family. Self only, not ally: the script emits the
+  filler with no target slot, and an ally-aiming move is rejected by `battle.choose` (Dragon Cheer
+  got as far as *"Invalid target"* before this was narrowed).
+- **An assertion in `tests/test-interaction-matrix.js` throws if a holder is ever handed a protect**,
+  because degrading quietly is the entire failure. It is scoped to the FILLER branch only: when the
+  REACTOR is the protect — Spiky Shield, Baneful Bunker, King's Shield — the holder clicking it is
+  the whole case, and the first version threw on `fakeout x spikyshield` for behaving correctly. A
+  guard that fires on correct behaviour gets deleted.
+
+### Changed
+
+- **LIVE 1,453 → 1,634. INERT 706 → 530.** 176 cases stopped being blocked by their own holder.
+  Staged and theoretical are unchanged at 2,300 of 8,795 — nothing was added or removed, cases that
+  were already there simply started expressing themselves.
+- Agreement **1,614 / 1,634 (98.8%)**, disagreements 17 → 20.
+- **`data/interaction-matrix.json` now records `inert_rows`.** Until this release only the COUNT of
+  inert cases was written, so there was no way to look at them — which is why this fault survived
+  every previous pass. INERT is the one outcome the instrument structurally cannot self-diagnose: if
+  the staging is wrong, both arms are wrong together, they agree perfectly, and a shared blind spot
+  cancels out exactly.
+
+### Notes
+
+- **Three newly reachable disagreements**, filed not fixed. The important one is
+  `yawn -> goodasgold`: MEDICHAM applies Yawn through Good as Gold and Showdown does not, and
+  MEDICHAM's own two arms are identical, so the knob is UNWIRED rather than miscalculated.
+- **One newly reachable HARNESS fault**, not an engine one: `yawn -> insomnia` reports
+  `.B.active[0].species medi="gourgeist" sd="milotic"` — the two engines have different bodies in
+  slot 0, which is a staging bug and must not be counted against the simulator.
+- **This mistake was made six times in one session.** The Psychic Terrain reference harness hit it
+  twice (both defenders given Protect; then Earthquake, which `battle.choose` rejects). Diagnosing
+  THIS one hit it three more times: the defender given Protect, Fake Out aimed at the wrong slot, and
+  a bench filler of Farigiraf whose Armor Tail refused the priority move under test. That is why the
+  fallback was REMOVED rather than replaced with a better guess.
+
+---
+
 ## [3.45.0] — 2026-08-05
 
 ### The interaction matrix threw away 902 of 8,676 pairs because they "have a probability", and the reason string was hiding two different faults

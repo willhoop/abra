@@ -1,6 +1,6 @@
 # ABRA — Technical Documentation
 
-**Version 3.45.0 · Last updated 2026-08-05**
+**Version 3.46.0 · Last updated 2026-08-05**
 
 **Change record for 3.42.0.** The fit checks whether a recorded action was a click. 1,336 of
 241,927 actions were not clicks. Encore replaced 1,116 of them. A phazing move dragged in 220 of
@@ -22,10 +22,26 @@ to a different rule. Showdown checks accuracy with the second die. So every move
 missed in the official engine and hit in the simulator. This made false disagreements. It also made
 many cases look empty. Nobody saw this, because all of these moves were removed from the test first.
 
-The harness now checks that the two dice agree. The check runs when the file loads. From
-`data/interaction-matrix.json`: the matrix stages 2,300 pairs of 8,795, and 1,453 of them can occur.
-The matrix agrees with the official engine on 1,436 of these. Twelve new faults in the simulator are
-recorded. They are not repaired in this release.
+The harness now checks that the two dice agree. The check runs when the file loads. The matrix stages
+2,300 pairs of 8,795. At this release 1,453 of them could occur, and the matrix agreed with the
+official engine on 1,436 of these. Release 3.46.0 changed both of those counts. Twelve new faults in
+the simulator are recorded. They are not repaired in this release.
+
+**Change record for 3.46.0.** A test needs the other Pokémon to do something while it is hit. The
+harness gave it a move for this. If the Pokémon could not learn one of six safe moves, the harness
+gave it Protect. Protect stops the move under test. The test then showed no result. A test with no
+result looks the same as a test that cannot work. 379 of 2,300 tests were built this way.
+
+The harness no longer uses Protect for this. It uses any move that the Pokémon aims at itself and
+that does not block. If no such move exists, the test is not built, and the reason is recorded. A
+check stops the run if a Pokémon is given a Protect for this purpose.
+
+From `data/interaction-matrix.json`: 1,634 of the 2,300 tests can occur, and the matrix agrees with
+the official engine on 1,614 of these.
+
+Many tests that showed no result now show one. The count of these is in `CHANGELOG.md`. Three new
+faults in the simulator are recorded. One new fault in the harness is also recorded. The harness fault
+must not be counted against the simulator.
 
 **Change record for 3.44.0.** Psychic Terrain stops a fast move only if the target stands on the
 ground. The simulator stopped the move against every target. A target that flies is not on the

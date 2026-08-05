@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 3.45.0 · Last updated 2026-08-05.**
+**Version 3.46.0 · Last updated 2026-08-05.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
@@ -274,8 +274,8 @@ state `dmgRange` is not given).
 **THE INTERACTION MATRIX IS NOW A SEPARATE, GENERATED CLAIM** and it is the one that says whether the
 mechanics work TOGETHER. `data/interaction-matrix.json`: a theoretical cross product of **8,795**
 carrier x reactor pairs, **2,300** emitted after a named and counted co-occurrence filter (**26.2%**),
-**1,453** of those LIVE by the reference engine's own two-arm test, and medicham2 matches the official
-pinned Showdown engine on **98.8%** of them (1,436/1,453). Since 3.43.0 the generator **asserts its own
+**1,634** of those LIVE by the reference engine's own two-arm test, and medicham2 matches the official
+pinned Showdown engine on **98.8%** of them (1,614/1,634). Since 3.43.0 the generator **asserts its own
 arithmetic** — `theoretical = staged + dropped`, per axis and per `(key, reactor)` on the flag axis,
 throwing rather than printing. That assertion is what moved both the denominator and the emitted
 count off their 3.42.0 values; the superseded figures are in `CHANGELOG.md` 3.43.0 rather than here,

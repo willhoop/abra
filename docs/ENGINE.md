@@ -23,31 +23,31 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  210/213 probed mechanics live, 3 missing   (census 2026-08-05 17:45)
+  210/213 probed mechanics live, 3 missing   (census 2026-08-05 17:54)
   missing:
     move    needsTargetToAttack    Avalanche doubles after being hit
     ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll
     ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit
-  1/150 differential comparisons disagree with Showdown   (2026-08-05 17:37)
+  1/150 differential comparisons disagree with Showdown   (2026-08-05 17:53)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
-    chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (56 uses)
+    chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1436/1453 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-05 17:45)
+  interaction matrix: 1614/1634 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-05 18:22)
     2300 of 8795 theoretical pairs staged — agreement is a claim about the 2300 that ran, not about the 8795
-      706 inert      not scored — the reference engine behaves identically with and without the reactor
-      116 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
-       23 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
+      530 inert      not scored — the reference engine behaves identically with and without the reactor
+      109 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
+       25 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
     DISAGREES  stoneaxe -> roughskin  (secondary, 63 uses)
     DISAGREES  stoneaxe -> wanderingspirit  (secondary, 63 uses)
     DISAGREES  stoneaxe -> mummy  (secondary, 63 uses)
+    DISAGREES  stoneaxe -> gooey  (secondary, 63 uses)
     DISAGREES  gigaimpact -> spikyshield  (secondary, 38 uses)
     DISAGREES  supercellslam -> kingsshield  (secondary, 85 uses)
-    DISAGREES  stoneaxe -> beakblast  (secondary, 63 uses)
   tag coverage: 156/181 probed, 25 unprobed
 ```
 
-_stamped 2026-08-05 17:47_
+_stamped 2026-08-05 18:24_
 
 <!-- /GENERATED -->
 
@@ -468,10 +468,10 @@ plays every case in medicham2 and in the official pinned engine and **authors no
 | theoretical cross product, no filter at all | **8,795** — flag 8,159, type 480, field 156 |
 | emitted at `--full` | **2,300** — flag 1,831, type 313, field 156 |
 | by layer | secondary 883, legality 379, damage 323, immunity 83, targeting 7 |
-| **LIVE** (the reference engine's two arms differ, so the mechanic can fire) | **1,453** |
-| INERT (the reference engine behaves identically with and without the reactor) | 519 |
-| SATURATED (the control arm KO'd, so a damage ratio is clamped) | 107 |
-| KO-TIMING (a damage-magnitude question — `test-engine-diff.js` owns it) | 16 |
+| **LIVE** (the reference engine's two arms differ, so the mechanic can fire) | **1,634** |
+| INERT (the reference engine behaves identically with and without the reactor) | 530 |
+| SATURATED (the control arm KO'd, so a damage ratio is clamped) | 109 |
+| KO-TIMING (a damage-magnitude question — `test-engine-diff.js` owns it) | 25 |
 | THREW (both are the harness — Curse takes no target and `battle.choose` rejects the turn) | 2 |
 | **medicham2 agrees with the official engine on** | **1,027 of 1,031 — 99.6%** (3.43.0). The four are UNWIRED knobs, not wrong arithmetic — MEDICHAM's own two arms are identical on each: `fakeout`, `throatchop`, `psychicnoise` → **Shield Dust**, and `upperhand` → **Steadfast** |
 

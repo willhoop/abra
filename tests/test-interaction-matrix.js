@@ -124,6 +124,26 @@ function stageState(c, arm) {
 
   /* The holder must ACT without stopping the incoming move -- Lesson 5 in a generator. */
   let holderMove = reactorIsMove ? dex.moves.get(c.reactor.id).name : IM.fillerFor(dex.species.get(holderSp));
+  /* THE FILLER MAY NEVER BE A PROTECT, AND THIS IS THE ASSERTION THAT SAYS SO OUT LOUD.
+   *
+   * `fillerFor` used to fall back to 'Protect' for a body that learned nothing else, which defended
+   * the holder against the exact carrier the case was built to land. Both arms then matched and the
+   * case reported INERT -- indistinguishable, from the outside, from "this interaction genuinely
+   * cannot express itself". 379 of 2,300 cases were staged that way, including every Gooey, every
+   * Aftermath and every Good as Gold case. A standalone reproduction proved Gooey fires in the
+   * official engine while this harness recorded it doing nothing.
+   *
+   * The generator now rejects a holder with no safe filler, so reaching here with a protect means
+   * that rejection has been bypassed. It throws rather than degrading, because degrading quietly is
+   * the entire failure. */
+  /* ONLY THE FILLER BRANCH. When the REACTOR IS the protect -- Spiky Shield, Baneful Bunker, King's
+   * Shield -- the holder clicking it is the whole case, and the first version of this guard threw on
+   * `fakeout x spikyshield` for doing exactly what it was built to do. A guard that fires on correct
+   * behaviour gets deleted, so it is narrowed to the branch that was actually wrong. */
+  if (!reactorIsMove && holderMove && IM.PROTECT_FAMILY.has(norm(holderMove)))
+    throw new Error('THE HOLDER WOULD BLOCK THE CARRIER: ' + holderSp + ' was given "' + holderMove
+      + '" as its filler for ' + c.carrier.id + ' x ' + c.reactor.id + '. A protect makes the case '
+      + 'answer itself and report INERT. holderFor() is supposed to have rejected this body.');
   let holderAim = null;
   /* SUCKER PUNCH FAILS AGAINST A TARGET THAT IS NOT ATTACKING, and Helping Hand is a status move — so
    * every one of the eleven Sucker Punch and Upper Hand cases had the carrier FAIL before the reactor
@@ -440,6 +460,27 @@ const artifact = {
   staged_pct_of_theoretical: th.total ? +(100 * gen.cases.length / th.total).toFixed(1) : null,
   inert: inert.length, saturated: saturated.length, ko_timing: ko.length, threw: threw.length,
   not_compared: G.NOT_COMPARED.map(x => x[0]),
+  /* THE INERT ROWS ARE WRITTEN OUT, and until now only their COUNT was.
+   *
+   * INERT means the reference engine behaved identically with and without the reactor, so the case
+   * expresses nothing and is never scored. That is usually honest. It is also the ONE outcome this
+   * whole instrument cannot self-diagnose: if the STAGING is wrong — the holder was immune, the
+   * carrier never connected, the body could not survive to show the effect — then both arms are
+   * wrong together, they agree perfectly, and the case reports INERT rather than reporting a fault.
+   * A shared blind spot cancels out exactly. It has already happened twice in this file's own
+   * reference harness (both defenders given Protect as their only move; then Earthquake, which
+   * `battle.choose` rejects).
+   *
+   * A human who knows what a mechanic NEEDS in order to fire can read this list and say "that one
+   * should have done something" in about a second, which is a judgement no oracle can make — the
+   * oracle faithfully reports that nothing happened and cannot ask why. Sorted by carrier usage so
+   * the moves people actually click come first. */
+  inert_rows: inert.map(r => ({
+    axis: r.axis, key: r.key, layer: r.layer,
+    carrier: r.carrier.id, carrier_uses: r.carrier.uses || 0, user: r.carrier.user,
+    reactor: r.reactor.id, reactor_kind: r.reactor.kind, holder: r.reactor.holder,
+    side: r.reactor.side, evaluator: r.evaluator,
+  })).sort((a, b) => b.carrier_uses - a.carrier_uses),
   parting: part.map(r => ({ axis: r.axis, key: r.key, layer: r.layer, carrier: r.carrier.id,
     reactor: r.reactor.id, kind: r.reactor.kind, side: r.reactor.side, uses: r.carrier.uses,
     evaluator: r.result.evaluator, medi_ratio: r.result.mediRatio, sd_ratio: r.result.sdRatio,

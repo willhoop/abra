@@ -386,7 +386,41 @@ function reconcile(axis, theoretical, staged, log) {
 /* A body standing in a case must ACT without changing the thing under test. Helping Hand is ideal --
  * it aims at the ally, deals nothing, and its volatile is in neither engine's compared set. */
 const FILLERS = ['Helping Hand', 'Bulk Up', 'Calm Mind', 'Iron Defense', 'Agility', 'Protect'];
-function fillerFor(sp) { for (const f of FILLERS) if (learns(sp, norm(f))) return f; return 'Protect'; }
+/* THE FALLBACK USED TO BE `'Protect'`, AND PROTECT BLOCKS THE MOVE UNDER TEST.
+ *
+ * A holder has to ACT, so it is given a filler. When it learned none of the FILLERS above it was
+ * handed Protect — which defends it against the very carrier the case exists to land. Both arms then
+ * behaved identically, the case reported INERT, and INERT reads as "this interaction cannot express
+ * itself" rather than as "the harness defended against its own experiment". 379 of 2,300 staged cases
+ * were built this way: every Gooey case (Goodra), every Aftermath case (Garbodor), every Good as Gold
+ * case (Gholdengo). Gooey was proven to fire in the official engine by a standalone reproduction
+ * while this said it did nothing.
+ *
+ * It is the same mistake the Psychic Terrain reference harness made twice on 2026-08-05, and the same
+ * one made three times while diagnosing THIS one. That is four independent occurrences of "the filler
+ * blocked the carrier", which is why the fallback is now removed rather than replaced by a better
+ * guess: `null` means the body cannot be staged, and `holderFor` rejects it instead of poisoning it.
+ *
+ * The last resort is DERIVED rather than hand-listed, so a body outside the fixed list still gets a
+ * chance: any status move it learns that aims at itself or an ally and is not a protect. */
+const PROTECT_FAMILY = new Set(['protect', 'detect', 'spikyshield', 'kingsshield', 'banefulbunker',
+  'burningbulwark', 'silktrap', 'maxguard', 'obstruct', 'endure']);
+/* SELF ONLY, not ally. The script emits the holder's filler WITHOUT a target slot, so an ally-aiming
+ * move is rejected by `battle.choose` — Dragon Cheer got Goodra as far as "Invalid target" before
+ * this was narrowed. `Helping Hand` stays in FILLERS above because the runner handles its target
+ * explicitly; anything DERIVED here has to work with no target at all. */
+const SELF_OR_ALLY = new Set(['self']);
+function fillerFor(sp) {
+  for (const f of FILLERS) if (f !== 'Protect' && learns(sp, norm(f))) return f;
+  for (const id of Object.keys(tags.moves)) {
+    if (PROTECT_FAMILY.has(id)) continue;
+    const m = dex.moves.get(id);
+    if (!m.exists || m.category !== 'Status') continue;
+    if (!SELF_OR_ALLY.has(m.target)) continue;
+    if (learns(sp, id)) return m.name;
+  }
+  return null;                                     // caller MUST drop the case; never silently Protect
+}
 /* The CONTROL ability. Honey Gather has no battle handler at all in gen 9, in either engine -- which
  * is the whole requirement. Naming a real inert ability rather than '' keeps both engines on the same
  * code path, so the control arm is not also a different-shaped call. */
@@ -412,7 +446,14 @@ function holderFor(cls, reactorId, kind, moveId, log, label, who) {
   if (!cands.length) return log.add(wantSE
     ? 'not-super-effective: the resist berry only fires on a super-effective hit of its own type'
     : 'holder-immune-by-chart: every candidate body already takes zero from this move type', label, 1, who);
-  return bulkiest(cands);
+  /* A BODY WITH NO SAFE FILLER CANNOT BE STAGED, so it is rejected HERE rather than handed Protect in
+   * the runner. Filtered before `bulkiest` on purpose: the bulkiest candidate was exactly how Goodra
+   * and Garbodor won every one of their cases and then blocked all of them. */
+  const stageable = cands.filter(sp => fillerFor(sp) !== null);
+  if (!stageable.length) return log.add('no-safe-filler: every candidate holder would have to click a '
+    + 'protect to have anything to do, which blocks the carrier and makes the case answer itself',
+    label + ' [' + cands.map(s => s.name).join('/') + ']', 1, who);
+  return bulkiest(stageable);
 }
 /* THE BULKIEST CANDIDATE, AND IT IS NOT COSMETIC. The damage evaluator divides one arm by the other,
  * and a control arm that already dealt 100% of the target's HP has its "damage" clamped at max HP --
@@ -967,7 +1008,7 @@ function theoreticalSize() {
   return { flag, type, field: fc * (fc - 1), total: flag + type + fc * (fc - 1) };
 }
 
-module.exports = { generate, theoreticalSize, classify, LAYER_OF_TAG, SIDE_OF_TAG, CONTROL_ABILITY, fillerFor, dex, norm };
+module.exports = { generate, PROTECT_FAMILY, theoreticalSize, classify, LAYER_OF_TAG, SIDE_OF_TAG, CONTROL_ABILITY, fillerFor, dex, norm };
 
 /* ---- PRINT (generator only; the runner is tests/test-game-diff.js --matrix) --------------------- */
 if (require.main === module) {

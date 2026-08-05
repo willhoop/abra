@@ -2,7 +2,7 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.45.0 · Last updated 2026-08-05**
+**Version 3.46.0 · Last updated 2026-08-05**
 **Will Hooper · ABRA**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
@@ -661,9 +661,9 @@ team sheets, since a model fitted on four channels degrades differently from one
 
 ### Interactions, generated rather than sampled
 
-8,795 theoretical carrier × reactor pairs; 2,300 staged; **1,453 that can genuinely co-occur**, where
+8,795 theoretical carrier × reactor pairs; 2,300 staged; **1,634 that can genuinely co-occur**, where
 co-occurrence is decided by the reference engine's own two arms differing rather than by our judgement —
-so "correctly blocked" stays distinguishable from "silently absent". The engine agrees on **1,436 of 1,453
+so "correctly blocked" stays distinguishable from "silently absent". The engine agrees on **1,614 of 1,634
 (98.8%)**. Every pair the generator refuses is counted under a named reason and printed on each run. The
 156 ordered persistent-field pairs each become an 8-turn script, which is the only construction that can
 observe *Trick Room was already up when Tailwind landed*; that axis went from 30/156 to **156/156**.
