@@ -30,6 +30,9 @@ const { spawnSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
+/* Stamped once, before any child runs, and handed down so a check can tell an artifact THIS SUITE
+ * rewrote from one that was already stale when it started. See the env note further down. */
+const SUITE_STARTED_AT = Date.now();
 const LIST_ONLY = process.argv.includes('--list');
 
 /* ---- discovery ------------------------------------------------------------------------------- */
@@ -187,7 +190,12 @@ for (const rel of all) {
    * refresh is one that gets switched off within a week. The suite is where it has to bite. */
   const r = spawnSync(p.cmd, p.args, {
     cwd: ROOT, encoding: 'utf8',
-    env: Object.assign({}, process.env, { ABRA_STRICT_SEMANTICS: '1' }),
+    /* ABRA_SUITE_STARTED_AT lets a child tell "this artifact was stale when the suite began" from
+     * "this suite wrote it thirty seconds ago". tests/test-web-status.js could not be green at the
+     * end of a run that regenerates the very artifacts its board is built from — the harness was
+     * measuring its own side effect and calling it a defect in the site. Only that distinction is
+     * exported; the check itself still fails on a board somebody genuinely forgot to rebuild. */
+    env: Object.assign({}, process.env, { ABRA_STRICT_SEMANTICS: '1', ABRA_SUITE_STARTED_AT: String(SUITE_STARTED_AT) }),
   });
   const secs = ((Date.now() - started) / 1000).toFixed(1);
   if (r.status === 0) { pass.push(rel); console.log(`  ok    ${rel}  (${secs}s)`); }

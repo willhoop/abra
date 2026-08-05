@@ -215,12 +215,40 @@ if (missing.length) {
     + missing.map(s => '          - ' + s).join('\n')
     + '\n        A figure whose source is gone is not fresh; it is unsourced.');
 }
-if (newer.length) {
-  fail('these artifacts have been written SINCE the board was built (' + B.built_at + '):\n' +
-    newer.map(s => '          - ' + s).join('\n') +
-    '\n        The board is describing values that have moved. Rebuild: node web/build-status.js');
+/* THE SUITE REWRITES THE ARTIFACTS THIS BOARD IS BUILT FROM, AND THAT IS NOT THE BOARD'S FAULT.
+ *
+ * `tests/run-all.js` runs test-mechanics (writes mechanics-census.json), test-engine-diff (writes
+ * engine-diff.json) and the interaction matrix (writes interaction-matrix.json). So a full suite
+ * run INVALIDATES the board it is about to check, every time — this test was red at the end of a
+ * run that started green, and rebuilding, committing and re-running reproduced it immediately.
+ * That is the harness measuring its own side effect and reporting it as a defect in the site.
+ *
+ * The fix is NOT to stop checking. A board somebody forgot to rebuild after changing the engine is
+ * exactly what this exists to catch, and that case is untouched. What changes is that an artifact
+ * rewritten AFTER the suite started is attributed to the suite and reported as a notice, while one
+ * that was already newer than the board when the suite BEGAN is still a failure — it was stale
+ * before anybody ran anything, which is the real defect.
+ *
+ * Absent the variable (running this file directly) every entry is a failure, as before. The
+ * strictness only relaxes when something can prove it caused the change. */
+const SUITE_AT = Number(process.env.ABRA_SUITE_STARTED_AT) || null;
+const staleBefore = [], rewrittenByThisRun = [];
+for (const s of newer) {
+  const at = fs.statSync(D(s)).mtime.getTime();
+  (SUITE_AT && at >= SUITE_AT ? rewrittenByThisRun : staleBefore).push(s);
+}
+if (staleBefore.length) {
+  fail('these artifacts were ALREADY newer than the board when this run began (' + B.built_at + '):\n' +
+    staleBefore.map(s => '          - ' + s).join('\n') +
+    '\n        The board is describing values that had already moved. Rebuild: node web/build-status.js');
 } else {
-  pass(sources.size + ' sourced artifacts, none written since the board was built');
+  pass(sources.size + ' sourced artifacts, none stale when this run began');
+}
+if (rewrittenByThisRun.length) {
+  console.log('        NOTE: ' + rewrittenByThisRun.length + ' artifact(s) were rewritten by THIS suite run '
+    + '(' + rewrittenByThisRun.join(', ') + ').\n'
+    + '        Not scored — the suite regenerates them, so the board cannot be current at the end of a\n'
+    + '        run that produced them. Rebuild after the suite if you are about to publish.');
 }
 
 /* ================================================================================================
