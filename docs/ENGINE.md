@@ -3,16 +3,17 @@
 **Owns:** `engine/medicham2-browser.js`, `engine/tag_dex.js`, `data/abra-tags.js`,
 `tests/test-mechanics.js`, `tests/walk_tags.js`, `tests/test-engine-diff.js`,
 `tests/test-game-diff.js`, `tests/interaction_matrix.js`, `tests/test-interaction-matrix.js`,
-`tests/mechanics_rank.js`
+`tests/mechanics_rank.js`, `tests/mutation_harness.js`, `tests/test-mutation-coverage.js`
 
-**Four instruments, and none substitutes for another:**
+**Five instruments, and none substitutes for another:**
 
 | file | asks | structurally cannot see |
 |---|---|---|
-| `test-mechanics.js` | is ONE mechanic live | tag x tag |
+| `test-mechanics.js` | is ONE mechanic live | tag x tag; and whether a LIVE verdict rests on a probe that asserts rather than proves |
 | `test-engine-diff.js` | is ONE HIT's damage right | every turn counter |
 | `test-game-diff.js` | do the two engines hold the same STATE after every turn | damage magnitude |
 | `test-interaction-matrix.js` | does every carrier x reactor pair resolve the way the official engine says | anything the generator refuses to emit — printed on every run |
+| `mutation_harness.js` | does the handler MATTER, or does it only FIRE — change the FACT, watch the BEHAVIOUR | a fact derived WRONG upstream (it is propagated and consumed faithfully and scores LIVE); anything outside `medicham2-browser.js`; a branch no scripted turn reaches, which it counts rather than hides |
 
 **Its one number:** mechanics live. **It must never go down.**
 
@@ -60,6 +61,149 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
+
+## COVERAGE LAYER 2 SWEPT ALL 182 TAGS, AND 52 OF THEM THE SIMULATOR NEVER LOOKS UP. 2026-08-05.
+
+Will: *"i bet there are 100s like taunt just sitting there man"* … *"okay fix it."* He is right. The
+count is **206 operators**, and the shape of them is worse than the number.
+
+`tests/mutation_harness.js` + `data/mutation-coverage.json`, measured against frozen release
+**`032b4a2979dd`** and stamped with it, because a second ENGINE agent was rewriting
+`medicham2-browser.js` for dynamic speed while this ran. **No engine file was edited by this pass.**
+
+| | before (12 tags) | now (all 182) |
+|---|---|---|
+| tags swept | 12 of 182 | **182 of 182** — derived from the release's own `data/tags.json`, never typed |
+| operators | 93 | **785** — 322 LIVE, 463 READ-AND-IGNORED |
+| open defects | `defectCandidates: 45`, which counted **no tag-level finding at all** | **340** — 206 NO-CONSUMER-IN-SOURCE + 37 TAG-NOT-CONSUMED + 97 DEFECT-CANDIDATE |
+| `unstageableTags` | `[]`, for 12 tags | 25 UNSTAGEABLE + 5 NO-CARRIER + 32 UNREACHED-BY-THIS-BATTERY, each named |
+| `streamShiftSuspect` | 2, unexplained | 3, **explained below** |
+
+### THE FINDING: `data/tags.json` IS NOT THE SIMULATOR'S SOURCE OF TRUTH FOR 52 TAGS
+
+A source grep of every `TAGS.param / has / withTag / reactorsTo` call in the frozen
+`medicham2-browser.js` finds **131 distinct tag names. The artifact has 182.** The 52 that appear in
+no lookup are printed on every run. Cross-referenced against `data/mechanics-census.json`'s own
+`armed` field — the one thing that separates a probe which PROVES a mechanic from one that asserts it
+in a prose string — they split three ways, and the split is the fix order:
+
+| census says | tags | what it means |
+|---|---|---|
+| **UNARMED-LIVE** | **27** | a probe ASSERTS the mechanic, the simulator does not read the tag, **and nobody has proven anything.** `forbidsStatusMoves` — Taunt, 1,438 uses — is in this bucket, and today's interaction matrix found a Taunted body still lands Hypnosis. This bucket is where the bodies are |
+| **NO-LIVE-PROBE** | 20 | no live probe AND no lookup. Nothing anywhere demonstrates the fact. Led by `needsTargetToAttack` (Sucker Punch, 6,802), `accuracyMod` and `writesAccuracy` — all three already in the census's MISSING list — then `substitute` (567), `ohko`, `setsRoom`, `passesState` |
+| **ARMED-LIVE** | 5 | a probe PROVES the mechanic and the fact is carried elsewhere. `doublesSideSpeed`, `lowersUser`, `statusCategory`, `statusImmune`, `untagged`. A second, unread copy — the FACTS-ARE-GLOBAL risk — not a missing mechanic, and ranked last |
+
+**THE INSTRUMENT DOES NOT CLAIM 206 MISSING MECHANICS AND MUST NOT BE READ AS IF IT DID.** Recoil
+comes off `mv.rc` in the move table, flinch and every secondary off `data/move-effects.js`, Protect
+off a `PROTECTMOVES` name set, Tailwind off `{kind:'tail'}`, powder off a hard-coded eight-name
+`POWDER` set. Those work. What NO-CONSUMER-IN-SOURCE says is that the fact has a second copy the
+simulator does not read — which is how `data/tags.json` and the engine drift apart without either
+failing, and it is why a new powder move next regulation arrives in the artifact and not in the set.
+
+### The top 20 by usage, and what fraction they carry
+
+The 20 rows are 16 distinct moves carrying **180,189 clicks — 42.0% of all move clicks in the
+corpus.** Every one is NO-CONSUMER-IN-SOURCE with an UNARMED census probe:
+
+```
+ uses   share  carrier / tag                              uses   share  carrier / tag
+71951  16.79%  protect / neverMisses                      7109   1.66%  moonblast / secondaryStatEffect
+71951  16.79%  protect / priority                         6660   1.55%  flareblitz / inflictsBurn
+71951  16.79%  protect / stalling                         6660   1.55%  flareblitz / recoil
+12872   3.00%  fakeout / flinches                         6192   1.44%  ragepowder / powder
+12872   3.00%  fakeout / priority                         6180   1.44%  wavecrash / recoil
+11895   2.78%  rockslide / flinches                       5504   1.28%  shadowball / secondaryStatEffect
+11581   2.70%  tailwind / neverMisses                     5491   1.28%  kowtowcleave / neverMissesAttack
+ 7297   1.70%  partingshot / lowersTarget                 4774   1.11%  lastrespects / needsUntrackedState
+ 7195   1.68%  trickroom / reversesSpeed                  4695   1.10%  encore / locksTarget
+ 7162   1.67%  heatwave / inflictsBurn                    3631   0.85%  sludgebomb / inflictsPoison
+```
+
+Share is **within the carrier KIND**. A move's `uses` is a click count and an ability's is a sheet
+count; adding them and calling the result a share is the Blaze error with an extra step.
+
+### WHAT WAS TRIAGED OUT, each by a rule that is written down and prints what it matched
+
+`readAndIgnored` is 463 and OPEN is 340. The 123 that came off did so under one of these, in order,
+and the membership of every one is in the artifact:
+
+| rule | n | decided from |
+|---|---|---|
+| **UNREACHED-BY-THIS-BATTERY** | 32 | the simulator DOES look the tag up and no scripted turn reached the branch. **Not a defect — this battery's own gap** |
+| PRESENCE-ONLY | 61 | a boolean on a tag whose removal is LIVE; membership already carries the bit |
+| RESTATES-THE-TAG | 13 | a STRING param identical on every carrier (≥2). `spreadFoes.target` is `allAdjacentFoes` on all of them: the tag IS the selector |
+| NO-LEGAL-CARRIER | 11 | an ability no species with `isNonstandard: null` in the format has — derived, not remembered |
+| ZERO-USE-IN-CORPUS | 6 | 0 uses across every ingested sheet |
+| BANNED-BY-FORMAT | 0 | `isNonstandard != null`, asked of the format. Zero, and that is a result: `tag_dex` is not emitting banned carriers |
+| null params | 41 | a null param is not a fact; writing a sentinel asks the consumer to honour something the artifact never asserted |
+| nested params | 21 | objects and arrays-of-objects are not perturbed, counted rather than silent |
+
+**The format id is read out of the release's own `data/regulations.json`.** Not typed —
+`engine/conformance.js` S12 caught the literal on the first run of this file, which is the guard
+working.
+
+### FOUR THINGS WERE WRONG IN THIS FILE BEFORE THE ENGINE WAS. THAT MAKES THIRTY-ONE.
+
+Every one produced a comfortable answer, and three of the four were found by looking at a number that
+was too clean:
+
+- **The harness did not run at all.** The half-finished pairing refactor left `TEAM_A`/`TEAM_B`
+  undefined, so every staging threw, both arms read the same exception text, they compared EQUAL, and
+  every tag scored UNSTAGEABLE. The planted-stub gate caught it — which is what it is for — and
+  `allThrew` is now a per-case field so a staging failure can never again be read as inertness.
+- **`speedMult` and `stabBoost` read READ-AND-IGNORED on an engine that reads both.** The only
+  pairing had an 80-Speed body opposite a 161, so a x1.5 overtakes nothing and turn order — a speed
+  multiplier's only observable — never moves. There is no name-based Choice Scarf fallback anywhere
+  in the engine; grep it. Pairing 2 puts every active body inside one multiplier of the body opposite
+  it, stated as a property of a battery rather than as a fix for one item.
+- **The battery was too SHORT to see the tag this whole file was built around.** `extendsDuration`
+  turns 5 into 8, and a five-turn trace ends with the screen still up in BOTH arms — so Light Clay
+  and Damp Rock reported 7 defect candidates on an engine that reads them perfectly. At ten turns the
+  screen (T1) and the weather (T2) both expire inside the trace and the tag comes back **10 LIVE**.
+  The weather was also being set on T1 by the script, which overwrote every entry `weatherSetter`
+  before it could be observed — that tag went from UNSTAGEABLE to **4/4 LIVE** by moving one click.
+- **`asked = 0` IS NOT DECISIVE HERE, AND A CLASS CALLED `NO-CONSUMER-ANYWHERE` NEARLY SHIPPED SAYING
+  IT WAS.** `engine/tags.js`'s header calls ASKED = 0 decisive, and it is — for a battery of real
+  games. The receipt that it is false for a ten-turn script: **`survivesFromFull` came back asked=0**,
+  and its consumer is `medicham2-browser.js:3508`, WIRE 12, **Focus Sash, 13,125 uses**, which was
+  sitting fifth in the ranked defect list. It reads zero because that branch only runs when a lethal
+  hit lands on a full-HP body and no scripted turn does that. The decision moved to a SOURCE GREP,
+  which cannot be unreached, and the false class became `UNREACHED-BY-THIS-BATTERY`.
+
+**AND THE RATCHET LIED ON ITS FIRST RUN.** It reported
+`item:blackglasses:damageMultType.mult LIVE -> READ-AND-IGNORED` as a regression against an engine
+that had not moved — same release id in both runs. The per-operator ratchet was comparing verdicts
+across two different BATTERIES. Both ratchets are now scoped, and the scope hashes the script text,
+because turns and arms were unchanged while the actions on each turn were rewritten. **The release id
+is deliberately NOT in the scope** — a new release resetting the ceiling would switch the ratchet off
+at exactly the moment it is needed.
+
+### The three stream-shift suspects, explained rather than left as a hedge
+
+`--explain=<operator>` replays one operator and prints the first turn at which the two traces diverge,
+field by field. (It was wrong first too: it staged the reference arm AFTER installing the mutant DB,
+and `TAGS` is one shared module, so both arms ran against the mutant and it printed "no difference"
+for an operator scored LIVE with changed=5.)
+
+| operator | what the replay shows |
+|---|---|
+| `poisontouch:poisonsOnMyContact.needsContact:=false` | **A die drawn and discarded.** The site is `(!_pt.needsContact \|\| mvMakesContact(…)) && rng()<p`, so the mutant short-circuits TRUE and rolls on the special attack too. Under k05 the roll SUCCEEDS and `applyStatus(tg,'psn')` does nothing, because Will-O-Wisp already burned the only target that attack reaches. The extra draw realigns both LCGs; every difference printed is 1-7 HP of damage roll |
+| `toxicchain:poisonsOnMyContact.needsContact:=false` | identical, same site, same carrier tag |
+| `prankster:priorityMod.shift:=10` | **Characterised, not fully explained.** One of twenty arms, streaming, diverging at turn 5 in which body is active. All three constant rngs are byte-identical, and +1 already outranks everything else in this script, so the shift reorders nothing — the likeliest cause is the lazily-drawn speed-tie coin being demanded on one turn and not the other. Said plainly: the LIVE verdict for this operator rests on a realignable stream |
+
+A stream-shift-suspect keeps its LIVE verdict on purpose. LIVE is the safe direction — calling it
+READ-AND-IGNORED would manufacture a defect.
+
+### It is registered, and the ratchet is real
+
+`tests/test-mutation-coverage.js` — auto-discovered by `tests/run-all.js`, unlike a file called
+`mutation_harness.js`. It re-runs the planted-stub gate (~13s), asserts both ratchets, and asserts
+the sweep still covers **every** tag in the release artifact, so a sweep quietly narrowed back to a
+comfortable dozen fails instead of reading as a pass. It does **not** fail when a newer release
+exists; it prints the drift and the command, and the reason that is a deliberate call rather than a
+silent one is written in the file's header.
+
+Full sweep: **171s, 182 tags, peak RSS 358 MB**, single process.
 
 ## WIRE 118 — THERE WERE TWO IMPLEMENTATIONS OF "WHO MOVES FIRST". ONE IS DELETED. 2026-08-05.
 

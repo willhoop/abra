@@ -805,11 +805,58 @@ function allTags(db) {
   return [...s].sort();
 }
 
+/* ---- THE CENSUS CROSS-REFERENCE, which is what turns 206 findings into a fix order --------------
+ *
+ * NO-CONSUMER-IN-SOURCE says the SIMULATOR does not read the tag. It does NOT say the mechanic is
+ * absent, and reporting it that way would be wrong on most of the list: recoil comes off `mv.rc` in
+ * the move table, flinch and every secondary come off `data/move-effects.js`, Protect comes off a
+ * `PROTECTMOVES` name set, Tailwind off `{kind:'tail'}`, powder off a hard-coded eight-name POWDER
+ * set. Those are second, unread copies of a fact — CLAUDE.md's FACTS ARE GLOBAL at risk, and a real
+ * finding — but they are not missing mechanics and must not be ranked as if they were.
+ *
+ * `data/mechanics-census.json` is the artifact that says whether a MECHANIC is live, and it carries
+ * the one field that makes the split decidable: `armed`. An ARMED probe returns {control, test} and
+ * structurally asserts that turning the mechanic on changed something. An UNARMED probe asserts it
+ * in a prose `detail` string. So:
+ *
+ *   ARMED-LIVE      a probe PROVES the mechanic and the simulator does not read the tag
+ *                   -> a second copy of a working fact. Lowest priority.
+ *   UNARMED-LIVE    a probe ASSERTS the mechanic, and the simulator does not read the tag. NOBODY
+ *                   HAS PROVEN ANYTHING HERE. This is the Taunt bucket, and Taunt is in it:
+ *                   `forbidsStatusMoves`, 1,438 uses, census LIVE, and the interaction matrix found
+ *                   on 2026-08-05 that a Taunted body still lands Hypnosis. Highest priority.
+ *   NO-LIVE-PROBE   no live census probe at all AND no lookup in the simulator. Nothing anywhere
+ *                   demonstrates this fact.
+ *
+ * THE CENSUS IS NOT A RELEASE SOURCE and is generated against the LIVE tree, so this is a POINTER
+ * for ordering work, never evidence about the frozen bytes. Its absence is said out loud and every
+ * row falls back to CENSUS-UNAVAILABLE rather than to a comfortable default. */
+function censusCrossRef() {
+  const P = D('data', 'mechanics-census.json');
+  let C = null;
+  try { C = JSON.parse(fs.readFileSync(P, 'utf8')); }
+  catch (e) {
+    console.log('  !! data/mechanics-census.json could not be read (' + e.message + ') — every');
+    console.log('     NO-CONSUMER-IN-SOURCE row is reported as CENSUS-UNAVAILABLE and none is ordered by it.');
+    return { available: false, grade: () => 'CENSUS-UNAVAILABLE' };
+  }
+  const armed = new Set(), unarmed = new Set();
+  for (const r of (C.results || [])) {
+    if (!r.live) continue;
+    (r.armed ? armed : unarmed).add(r.tag);
+  }
+  return {
+    available: true, generated: C.generated, probed: C.probed, live: C.live, armedCount: C.armed,
+    note: 'read from the LIVE tree, not from the frozen release — an ordering pointer, not evidence about the frozen bytes',
+    grade(tag) { return armed.has(tag) ? 'ARMED-LIVE' : unarmed.has(tag) ? 'UNARMED-LIVE' : 'NO-LIVE-PROBE'; },
+  };
+}
+
 /* ---- the ranked defect list --------------------------------------------------------------------
  * RANKED BY USAGE, NOT BY COUNT, and the denominator is PER KIND. A move's `uses` is a click count
  * and an ability's is a sheet count; adding them and calling the result a share would be the Blaze
  * error (docs/ENGINE.md: 4,585 uses on an ability that never fires) with an extra step. */
-function rankDefects(allOps, db) {
+function rankDefects(allOps, db, census) {
   const denom = {};
   for (const kind of ['move', 'item', 'ability']) {
     denom[kind] = Object.values(db[TABLE[kind]]).reduce((s, r) => s + (r.uses || 0), 0);
@@ -828,11 +875,18 @@ function rankDefects(allOps, db) {
     else if (o.class === 'TAG-NOT-CONSUMED' && r.grade !== 'NO-CONSUMER-IN-SOURCE') r.grade = 'TAG-NOT-CONSUMED';
     else r.params.push(o.param);
   }
-  /* SORTED BY GRADE FIRST, THEN USAGE. "The simulator has never heard of this tag" and "one param of
-   * a working handler is ignored" are different jobs, and interleaving them by usage alone would put
-   * a param nobody reads above a mechanic that does not exist. */
+  for (const r of byCarrier.values()) {
+    r.censusProbe = (r.grade === 'NO-CONSUMER-IN-SOURCE') ? census.grade(r.tag) : null;
+  }
+  /* SORTED BY GRADE, THEN BY WHAT THE CENSUS PROVES, THEN BY USAGE. "The simulator has never heard of
+   * this tag and no probe proves the mechanic either" and "one param of a working handler is ignored"
+   * are different jobs, and interleaving them by usage alone would put a 71,951-use row describing a
+   * mechanic that demonstrably WORKS above one that nobody has ever demonstrated. */
   const GRADE = { 'NO-CONSUMER-IN-SOURCE': 0, 'TAG-NOT-CONSUMED': 1, 'params-ignored': 2 };
-  const rows = [...byCarrier.values()].sort((a, b) => GRADE[a.grade] - GRADE[b.grade] || b.uses - a.uses || a.carrier.localeCompare(b.carrier));
+  const CEN = { 'UNARMED-LIVE': 0, 'NO-LIVE-PROBE': 1, 'CENSUS-UNAVAILABLE': 2, 'ARMED-LIVE': 3 };
+  const cen = r => (r.censusProbe ? CEN[r.censusProbe] : 0);
+  const rows = [...byCarrier.values()].sort((a, b) =>
+    GRADE[a.grade] - GRADE[b.grade] || cen(a) - cen(b) || b.uses - a.uses || a.carrier.localeCompare(b.carrier));
   /* Cumulative share is computed WITHIN a kind and over the DISTINCT carriers already listed, so a
    * carrier appearing under three tags is not counted three times against the denominator. It is
    * cumulative DOWN THIS LIST, which is the fix order, not down a usage ranking. */
@@ -867,16 +921,30 @@ function explain(needle) {
   if (!hits.length) { console.log('  no operator key contains "' + needle + '"'); return; }
   for (const { tag, c, op } of hits) {
     console.log('\n  ' + op.key);
+    /* THE BASE ARM RUNS TO COMPLETION BEFORE THE MUTANT DB IS INSTALLED, AND THE FIRST VERSION OF
+     * THIS FUNCTION DID NOT. `TAGS` is one shared module: every engine instance, however freshly
+     * compiled, reads whatever DB is installed AT THE MOMENT IT LOOKS. Staging the reference arm
+     * after `__setDB(db)` therefore ran BOTH arms against the mutant and printed "no difference" for
+     * an operator the sweep had scored LIVE with changed=5. sweepTag has always had this order; the
+     * diagnostic did not, and it produced the comfortable answer. */
     TAGS.__setDB(null);
     const refM = loadEngine(SHIPPED_SRC);
+    const bases = new Map();
+    for (const pl of placementsFor(c.kind)) {
+      for (const a of ARMS) {
+        const opts = { kind: c.kind, id: c.id, placement: pl, neutralize: false };
+        try { bases.set(pl + '|' + a.key, stage(refM, opts, a)); }
+        catch (e) { bases.set(pl + '|' + a.key, 'THREW:' + e.message); }
+      }
+    }
     const db = clone(SHIPPED_DB); op.apply(db);
     TAGS.__setDB(db);
     const mutM = loadEngine(SHIPPED_SRC);
     for (const pl of placementsFor(c.kind)) {
       for (const a of ARMS) {
         const opts = { kind: c.kind, id: c.id, placement: pl, neutralize: false };
-        let base, mut;
-        try { base = stage(refM, opts, a); } catch (e) { base = 'THREW:' + e.message; }
+        const base = bases.get(pl + '|' + a.key);
+        let mut;
         try { mut = stage(mutM, opts, a); } catch (e) { mut = 'THREW:' + e.message; }
         if (base === mut) continue;
         const bl = base.split('\n'), ml = mut.split('\n');
@@ -941,8 +1009,9 @@ function main() {
   const matched = triage(rows, oracle, restates, consumers);
   const allTagNames = allTags(SHIPPED_DB);
   const noConsumerTags = allTagNames.filter(t => !consumers.has(t));
+  const census = censusCrossRef();
   const allOps = rows.flatMap(r => (r.operators || []).map(o => ({ ...o, tag: r.tag })));
-  const ranked = rankDefects(allOps, SHIPPED_DB);
+  const ranked = rankDefects(allOps, SHIPPED_DB, census);
 
   /* PRINT WHAT EVERY DOWNGRADE MATCHED BEFORE ANY OF IT IS TRUSTED. LESSONS §4 — `refusesStatusMoves`
    * caught Telepathy and Wonder Guard, `speedOnItemLoss` caught Sticky Hold. Both were found by
@@ -950,7 +1019,10 @@ function main() {
   console.log('\n  TAG LOOKUPS FOUND IN engine/medicham2-browser.js: ' + consumers.size + ' distinct names; '
     + noConsumerTags.length + ' of ' + allTagNames.length + ' artifact tags are named by NO lookup at all.');
   console.log('  (printed, not trusted — this is a source grep of TAGS.param/has/withTag/reactorsTo)');
-  console.log('    ' + noConsumerTags.join(' '));
+  for (const g of ['UNARMED-LIVE', 'NO-LIVE-PROBE', 'ARMED-LIVE', 'CENSUS-UNAVAILABLE']) {
+    const m = noConsumerTags.filter(t => census.grade(t) === g);
+    if (m.length) console.log('    census ' + g.padEnd(18) + ' ' + String(m.length).padStart(3) + '  ' + m.join(' '));
+  }
 
   console.log('\n  TRIAGE — what each downgrade rule matched (printed, not trusted):');
   for (const [k, v] of Object.entries(matched)) {
@@ -994,8 +1066,19 @@ function main() {
    *                 and a count over 12 are not comparable and silently ratcheting one against the
    *                 other would either wave through a regression or block every run forever. A new
    *                 scope records a new ceiling and SAYS SO. */
+  /* THE SCRIPT TEXT IS IN THE SCOPE, and leaving it out is what let the first false regression
+   * through: turns and arms were unchanged while the ACTIONS on each turn were rewritten, so two
+   * different batteries hashed to the same scope and their verdicts were compared as if they were
+   * the same measurement. Anything that changes what the engine is asked to do belongs here. */
   const scope = require('crypto').createHash('sha256')
-    .update(JSON.stringify({ tags, perKind, arms: ARMS.map(a => a.key), turns: TURNS })).digest('hex').slice(0, 12);
+    .update(JSON.stringify({
+      tags, perKind, arms: ARMS.map(a => a.key), turns: TURNS,
+      script: String(scriptAbilItem) + String(scriptMove) + String(stage) + String(bare),
+      pairings: PAIRINGS,
+      /* THE RELEASE ID IS DELIBERATELY *NOT* IN THE SCOPE. A new release resetting the ceiling would
+       * switch the ratchet off at exactly the moment it is needed — "the engine changed and open
+       * defects went up" is the finding, not the excuse. Only the INSTRUMENT is scoped. */
+    })).digest('hex').slice(0, 12);
   let prev = null;
   try { prev = JSON.parse(fs.readFileSync(OUT, 'utf8')); } catch (e) { if (e.code !== 'ENOENT') throw e; }
   const regressions = [];
@@ -1053,6 +1136,9 @@ function main() {
       ],
       formatOracle: { consulted: oracle.consulted, format: oracle.format || null, legalAbilityCount: oracle.legalAbilityCount || null },
       simulatorTagLookups: [...consumers].sort(),
+      census: Object.assign({}, census.available ? { available: true, generated: census.generated, probed: census.probed, live: census.live, armed: census.armedCount, note: census.note } : { available: false },
+        { tagsWithNoSimulatorLookupByProbeStrength: ['UNARMED-LIVE', 'NO-LIVE-PROBE', 'ARMED-LIVE', 'CENSUS-UNAVAILABLE']
+          .reduce((o, g) => { const m = noConsumerTags.filter(t => census.grade(t) === g); if (m.length) o[g] = m; return o; }, {}) }),
       matched,
       restatementIndex: [...restates.entries()].map(([k, v]) => ({ key: k, value: v.value, carriers: v.carriers })),
     },
@@ -1104,7 +1190,8 @@ function main() {
   for (const r of ranked.rows.slice(0, 20)) {
     console.log('    ' + String(r.uses).padStart(6) + '  ' + (r.shareOfKind * 100).toFixed(2).padStart(5) + '%  '
       + (r.cumShareOfKind * 100).toFixed(1).padStart(5) + '%  ' + (r.carrier + ' / ' + r.tag).padEnd(46)
-      + r.grade + (r.params.length ? '  params:' + r.params.join(',') : ''));
+      + r.grade + (r.censusProbe ? ' / census ' + r.censusProbe : '')
+      + (r.params.length ? '  params:' + r.params.join(',') : ''));
   }
 
   console.log('\n  ' + ceilingNote);

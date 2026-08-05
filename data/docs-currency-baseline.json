@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-05T20:32:53.879Z",
+  "generated": "2026-08-05T20:53:17.353Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
   "changelog_top_at_baseline": "3.49.0",
@@ -262,7 +262,7 @@
       "docs/ROLE-FAMILY.md": 2,
       "docs/SLOWKING-whitepaper.md": 7,
       "docs/SUMMARY.md": 1,
-      "docs/TAG-COVERAGE.md": 10,
+      "docs/TAG-COVERAGE.md": 7,
       "docs/predictability-study.md": 1
     }
   },

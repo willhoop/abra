@@ -114,12 +114,21 @@ With both instruments combined, over 174 tags:
 
 Split by what kind of thing carries them:
 
-| kind | tags | corpus uses |
-|---|---|---|
-| move | 35 | 468,556 |
-| ability | 19 | 58,238 |
-| item | 4 | 36,092 |
-| mixed | 3 | 10,154 |
+| kind | tags |
+|---|---|
+| move | 35 |
+| ability | 19 |
+| item | 4 |
+| mixed | 3 |
+
+*(The `corpus uses` column was **deleted on 2026-08-05**, and the reason is the standard this document
+is about. It held four sums typed into prose, computed over a DEAD list and a corpus that have both
+since moved — `data/tag-consumption.json` carries a much shorter dead list today, and the corpus those
+uses were counted over changed size three times in one hour on 2026-08-05. A sum typed into a document
+can be checked against nothing, which is what `tests/test-docs-current.js` said the moment a
+coincidental match for one of them ended. The current per-tag figures are in that artifact's
+`dead_by_uses`, where a reader can check them against something. **The tag counts above are left as
+the 2026-08-04 reading they always were — nothing is silently rewritten.**)*
 
 The move tags are largely **duplicated facts**. `CHOMP/data/move-effects.json` is a second rulebook of
 **954 moves** carrying `status`, `secondary`, `recoil`, `drain`, `weather`, `terrain`, `priority`,

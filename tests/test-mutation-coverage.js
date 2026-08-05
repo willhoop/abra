@@ -104,10 +104,15 @@ if (A) {
   const s = A.summary || {};
   console.log('\n  ' + s.operators + ' operators over ' + s.tagsSwept + ' tags: ' + s.live + ' LIVE, '
     + s.readAndIgnored + ' READ-AND-IGNORED');
-  console.log('  OPEN: ' + s.tagNotConsumed + ' TAG-NOT-CONSUMED + ' + s.defectCandidates + ' DEFECT-CANDIDATE = '
-    + ((s.tagNotConsumed || 0) + (s.defectCandidates || 0)) + '   ceiling ' + ((R.ceiling || {}).value));
-  console.log('  UNSTAGEABLE tags: ' + (s.unstageableTags || []).length + ', NO-CARRIER: '
-    + (s.noCarrierTags || []).length + ', THREW: ' + (s.threwTags || []).length);
+  console.log('  OPEN: ' + s.noConsumerInSource + ' NO-CONSUMER-IN-SOURCE + ' + s.tagNotConsumed + ' TAG-NOT-CONSUMED + '
+    + s.defectCandidates + ' DEFECT-CANDIDATE = '
+    + ((s.noConsumerInSource || 0) + (s.tagNotConsumed || 0) + (s.defectCandidates || 0))
+    + '   ceiling ' + ((R.ceiling || {}).value));
+  console.log('  ' + (s.tagsWithNoLookupInSimulator || []).length + ' of ' + s.tagsInArtifact
+    + ' tags are named by NO lookup in the simulator');
+  console.log('  not a result: ' + s.unreachedByThisBattery + ' UNREACHED-BY-THIS-BATTERY, '
+    + (s.unstageableTags || []).length + ' UNSTAGEABLE tags, ' + (s.noCarrierTags || []).length
+    + ' NO-CARRIER, ' + (s.threwTags || []).length + ' THREW');
 }
 
 console.log('\n' + P + ' passed, ' + F + ' failed\n');
