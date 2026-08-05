@@ -278,7 +278,7 @@
   "staged_this_run": [
     "extendsDuration",
     "refusesStatusMoves",
-    "speedOnItemLoss",
+    "proceduralStatus",
     "punishesContact",
     "blocksBerries",
     "disablesAttacker",
@@ -298,5 +298,5 @@
     "failsWithoutTerrain",
     "amplifiesBoosts"
   ],
-  "generated": "2026-08-05T18:28:37.444Z"
+  "generated": "2026-08-05T20:42:18.111Z"
 }

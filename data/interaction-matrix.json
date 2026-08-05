@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-05T18:22:49.687Z",
+  "generated": "2026-08-05T19:07:20.546Z",
   "by": "tests/test-interaction-matrix.js",
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "depth": "full",
@@ -7559,6 +7559,1614 @@
       "carrier": "curse",
       "reactor": "quickclaw",
       "why": "1352/test turn 1: p1 choice rejected — \"move 1 1, move 1\"  (Can't move: You can't choose a target for Curse)"
+    }
+  ],
+  "off_gate": 74,
+  "off_gate_rows": [
+    {
+      "key": "contact",
+      "bucket": "ko",
+      "carrier": "populationbomb",
+      "reactor": "roughskin",
+      "kind": "ability",
+      "uses": 401,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"maushold\"",
+          "sd": "\"incineroar\""
+        },
+        {
+          "path": ".A.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        },
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Normal\"]",
+          "sd": "[\"Dark\",\"Fire\"]"
+        },
+        {
+          "path": ".A.benched",
+          "medi": "[\"incineroar\",\"milotic\"]",
+          "sd": "[\"milotic\"]"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "inert",
+      "carrier": "lastresort",
+      "reactor": "roughskin",
+      "kind": "ability",
+      "uses": 182,
+      "diffs": [
+        {
+          "path": ".A.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        },
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "inert",
+      "carrier": "upperhand",
+      "reactor": "roughskin",
+      "kind": "ability",
+      "uses": 76,
+      "diffs": [
+        {
+          "path": ".A.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        },
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "ko",
+      "carrier": "tropkick",
+      "reactor": "wanderingspirit",
+      "kind": "ability",
+      "uses": 188,
+      "diffs": [
+        {
+          "path": ".B.active[0].species",
+          "medi": "\"runerigus\"",
+          "sd": "\"corviknight\""
+        },
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        },
+        {
+          "path": ".B.active[0].boosts.atk",
+          "medi": "-1",
+          "sd": "0"
+        },
+        {
+          "path": ".B.active[0].boosts.spa",
+          "medi": "1",
+          "sd": "0"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "inert",
+      "carrier": "suckerpunch",
+      "reactor": "gooey",
+      "kind": "ability",
+      "uses": 7029,
+      "diffs": [
+        {
+          "path": ".A.active[0].boosts.spe",
+          "medi": "-1",
+          "sd": "0"
+        },
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "inert",
+      "carrier": "lastresort",
+      "reactor": "gooey",
+      "kind": "ability",
+      "uses": 182,
+      "diffs": [
+        {
+          "path": ".A.active[0].boosts.spe",
+          "medi": "-1",
+          "sd": "0"
+        },
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "ko",
+      "carrier": "populationbomb",
+      "reactor": "aftermath",
+      "kind": "ability",
+      "uses": 401,
+      "diffs": [
+        {
+          "path": ".A.active[0].hurt",
+          "medi": "false",
+          "sd": "true"
+        },
+        {
+          "path": ".B.active[0].species",
+          "medi": "\"garbodor\"",
+          "sd": "\"corviknight\""
+        },
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        },
+        {
+          "path": ".B.active[0].boosts.spd",
+          "medi": "2",
+          "sd": "0"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "inert",
+      "carrier": "lastresort",
+      "reactor": "aftermath",
+      "kind": "ability",
+      "uses": 182,
+      "diffs": [
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "inert",
+      "carrier": "upperhand",
+      "reactor": "aftermath",
+      "kind": "ability",
+      "uses": 76,
+      "diffs": [
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "inert",
+      "carrier": "stoneaxe",
+      "reactor": "aftermath",
+      "kind": "ability",
+      "uses": 63,
+      "diffs": [
+        {
+          "path": ".B.hazards.stealthrock",
+          "medi": "null",
+          "sd": "1"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "ko",
+      "carrier": "psyshieldbash",
+      "reactor": "aftermath",
+      "kind": "ability",
+      "uses": 18,
+      "diffs": [
+        {
+          "path": ".A.active[0].hurt",
+          "medi": "false",
+          "sd": "true"
+        },
+        {
+          "path": ".B.active[0].species",
+          "medi": "\"garbodor\"",
+          "sd": "\"corviknight\""
+        },
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        },
+        {
+          "path": ".B.active[0].boosts.spd",
+          "medi": "2",
+          "sd": "0"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "ko",
+      "carrier": "flipturn",
+      "reactor": "spikyshield",
+      "kind": "move",
+      "uses": 2739,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"incineroar\"",
+          "sd": "\"blastoise\""
+        },
+        {
+          "path": ".A.active[0].hurt",
+          "medi": "false",
+          "sd": "true"
+        },
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Dark\",\"Fire\"]",
+          "sd": "[\"Water\"]"
+        },
+        {
+          "path": ".A.benched",
+          "medi": "[\"blastoise\",\"garchomp\"]",
+          "sd": "[\"garchomp\",\"incineroar\"]"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "inert",
+      "carrier": "lastresort",
+      "reactor": "spikyshield",
+      "kind": "move",
+      "uses": 182,
+      "diffs": [
+        {
+          "path": ".A.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "ko",
+      "carrier": "dragontail",
+      "reactor": "spikyshield",
+      "kind": "move",
+      "uses": 103,
+      "diffs": [
+        {
+          "path": ".B.active[0].species",
+          "medi": "\"weavile\"",
+          "sd": "\"chesnaught\""
+        },
+        {
+          "path": ".B.active[0].types",
+          "medi": "[\"Dark\",\"Ice\"]",
+          "sd": "[\"Fighting\",\"Grass\"]"
+        },
+        {
+          "path": ".B.benched",
+          "medi": "[\"chesnaught\",\"corviknight\"]",
+          "sd": "[\"corviknight\",\"weavile\"]"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "ko",
+      "carrier": "flipturn",
+      "reactor": "banefulbunker",
+      "kind": "move",
+      "uses": 2739,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"incineroar\"",
+          "sd": "\"blastoise\""
+        },
+        {
+          "path": ".A.active[0].hurt",
+          "medi": "false",
+          "sd": "true"
+        },
+        {
+          "path": ".A.active[0].status",
+          "medi": "\"\"",
+          "sd": "\"psn\""
+        },
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Dark\",\"Fire\"]",
+          "sd": "[\"Water\"]"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "inert",
+      "carrier": "lastresort",
+      "reactor": "banefulbunker",
+      "kind": "move",
+      "uses": 182,
+      "diffs": [
+        {
+          "path": ".A.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        },
+        {
+          "path": ".A.active[0].status",
+          "medi": "\"psn\"",
+          "sd": "\"\""
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "ko",
+      "carrier": "dragontail",
+      "reactor": "banefulbunker",
+      "kind": "move",
+      "uses": 103,
+      "diffs": [
+        {
+          "path": ".B.active[0].species",
+          "medi": "\"weavile\"",
+          "sd": "\"toxapex\""
+        },
+        {
+          "path": ".B.active[0].types",
+          "medi": "[\"Dark\",\"Ice\"]",
+          "sd": "[\"Poison\",\"Water\"]"
+        },
+        {
+          "path": ".B.benched",
+          "medi": "[\"corviknight\",\"toxapex\"]",
+          "sd": "[\"corviknight\",\"weavile\"]"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "inert",
+      "carrier": "gigaimpact",
+      "reactor": "banefulbunker",
+      "kind": "move",
+      "uses": 38,
+      "diffs": [
+        {
+          "path": ".A.active[0].vol",
+          "medi": "[\"mustrecharge\"]",
+          "sd": "[]"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "ko",
+      "carrier": "flipturn",
+      "reactor": "kingsshield",
+      "kind": "move",
+      "uses": 2739,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"incineroar\"",
+          "sd": "\"blastoise\""
+        },
+        {
+          "path": ".A.active[0].boosts.atk",
+          "medi": "0",
+          "sd": "-1"
+        },
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Dark\",\"Fire\"]",
+          "sd": "[\"Water\"]"
+        },
+        {
+          "path": ".A.benched",
+          "medi": "[\"blastoise\",\"garchomp\"]",
+          "sd": "[\"garchomp\",\"incineroar\"]"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "ko",
+      "carrier": "dragontail",
+      "reactor": "kingsshield",
+      "kind": "move",
+      "uses": 103,
+      "diffs": [
+        {
+          "path": ".B.active[0].species",
+          "medi": "\"weavile\"",
+          "sd": "\"aegislash\""
+        },
+        {
+          "path": ".B.active[0].types",
+          "medi": "[\"Dark\",\"Ice\"]",
+          "sd": "[\"Ghost\",\"Steel\"]"
+        },
+        {
+          "path": ".B.benched",
+          "medi": "[\"aegislash\",\"corviknight\"]",
+          "sd": "[\"corviknight\",\"weavile\"]"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "ko",
+      "carrier": "flareblitz",
+      "reactor": "beakblast",
+      "kind": "move",
+      "uses": 6839,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"charizard\"",
+          "sd": "\"incineroar\""
+        },
+        {
+          "path": ".A.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        },
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Fire\",\"Flying\"]",
+          "sd": "[\"Dark\",\"Fire\"]"
+        },
+        {
+          "path": ".A.benched",
+          "medi": "[\"garchomp\",\"incineroar\"]",
+          "sd": "[\"garchomp\"]"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "ko",
+      "carrier": "spiritbreak",
+      "reactor": "beakblast",
+      "kind": "move",
+      "uses": 1522,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"grimmsnarl\"",
+          "sd": "\"incineroar\""
+        },
+        {
+          "path": ".A.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        },
+        {
+          "path": ".A.active[0].status",
+          "medi": "\"brn\"",
+          "sd": "\"\""
+        },
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Dark\",\"Fairy\"]",
+          "sd": "[\"Dark\",\"Fire\"]"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "ko",
+      "carrier": "superpower",
+      "reactor": "beakblast",
+      "kind": "move",
+      "uses": 444,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"machamp\"",
+          "sd": "\"incineroar\""
+        },
+        {
+          "path": ".A.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        },
+        {
+          "path": ".A.active[0].status",
+          "medi": "\"brn\"",
+          "sd": "\"\""
+        },
+        {
+          "path": ".A.active[0].boosts.atk",
+          "medi": "-1",
+          "sd": "0"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "inert",
+      "carrier": "populationbomb",
+      "reactor": "beakblast",
+      "kind": "move",
+      "uses": 401,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"maushold\"",
+          "sd": "\"incineroar\""
+        },
+        {
+          "path": ".A.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        },
+        {
+          "path": ".A.active[0].status",
+          "medi": "\"brn\"",
+          "sd": "\"\""
+        },
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Normal\"]",
+          "sd": "[\"Dark\",\"Fire\"]"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "ko",
+      "carrier": "tropkick",
+      "reactor": "beakblast",
+      "kind": "move",
+      "uses": 188,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"tsareena\"",
+          "sd": "\"incineroar\""
+        },
+        {
+          "path": ".A.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        },
+        {
+          "path": ".A.active[0].status",
+          "medi": "\"brn\"",
+          "sd": "\"\""
+        },
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Grass\"]",
+          "sd": "[\"Dark\",\"Fire\"]"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "ko",
+      "carrier": "lastresort",
+      "reactor": "beakblast",
+      "kind": "move",
+      "uses": 182,
+      "diffs": [
+        {
+          "path": ".A.active[0].status",
+          "medi": "\"brn\"",
+          "sd": "\"\""
+        },
+        {
+          "path": ".B.active[0].species",
+          "medi": "\"corviknight\"",
+          "sd": "\"toucannon\""
+        },
+        {
+          "path": ".B.active[0].types",
+          "medi": "[\"Flying\",\"Steel\"]",
+          "sd": "[\"Flying\",\"Normal\"]"
+        },
+        {
+          "path": ".B.benched",
+          "medi": "[\"weavile\"]",
+          "sd": "[\"corviknight\",\"weavile\"]"
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "bucket": "ko",
+      "carrier": "upperhand",
+      "reactor": "beakblast",
+      "kind": "move",
+      "uses": 76,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"pikachu\"",
+          "sd": "\"incineroar\""
+        },
+        {
+          "path": ".A.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        },
+        {
+          "path": ".A.active[0].status",
+          "medi": "\"brn\"",
+          "sd": "\"\""
+        },
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Electric\"]",
+          "sd": "[\"Dark\",\"Fire\"]"
+        }
+      ]
+    },
+    {
+      "key": "sound",
+      "bucket": "inert",
+      "carrier": "partingshot",
+      "reactor": "throatchop",
+      "kind": "move",
+      "uses": 7475,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"incineroar\"",
+          "sd": "\"pangoro\""
+        },
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Dark\",\"Fire\"]",
+          "sd": "[\"Dark\",\"Fighting\"]"
+        },
+        {
+          "path": ".A.benched",
+          "medi": "[\"garchomp\",\"pangoro\"]",
+          "sd": "[\"garchomp\",\"incineroar\"]"
+        },
+        {
+          "path": ".B.active[0].boosts.atk",
+          "medi": "-1",
+          "sd": "0"
+        }
+      ]
+    },
+    {
+      "key": "sound",
+      "bucket": "inert",
+      "carrier": "screech",
+      "reactor": "throatchop",
+      "kind": "move",
+      "uses": 4,
+      "diffs": [
+        {
+          "path": ".B.active[0].boosts.def",
+          "medi": "-2",
+          "sd": "0"
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "worryseed",
+      "reactor": "prankster",
+      "kind": "ability",
+      "uses": 55,
+      "diffs": [
+        {
+          "path": ".B.active[0].ability",
+          "medi": "\"honeygather\"",
+          "sd": "\"insomnia\""
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "painsplit",
+      "reactor": "prankster",
+      "kind": "ability",
+      "uses": 41,
+      "diffs": [
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "false",
+          "sd": "true"
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "roleplay",
+      "reactor": "prankster",
+      "kind": "ability",
+      "uses": 18,
+      "diffs": [
+        {
+          "path": ".A.active[0].ability",
+          "medi": "\"prankster\"",
+          "sd": "\"honeygather\""
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "transform",
+      "reactor": "quickclaw",
+      "kind": "item",
+      "uses": 77,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"ditto\"",
+          "sd": "\"venusaur\""
+        },
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Normal\"]",
+          "sd": "[\"Grass\",\"Poison\"]"
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "worryseed",
+      "reactor": "quickclaw",
+      "kind": "item",
+      "uses": 55,
+      "diffs": [
+        {
+          "path": ".B.active[0].ability",
+          "medi": "\"honeygather\"",
+          "sd": "\"insomnia\""
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "painsplit",
+      "reactor": "quickclaw",
+      "kind": "item",
+      "uses": 41,
+      "diffs": [
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "false",
+          "sd": "true"
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "simplebeam",
+      "reactor": "quickclaw",
+      "kind": "item",
+      "uses": 9,
+      "diffs": [
+        {
+          "path": ".B.active[0].ability",
+          "medi": "\"honeygather\"",
+          "sd": "\"simple\""
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "toxicthread",
+      "reactor": "quickclaw",
+      "kind": "item",
+      "uses": 6,
+      "diffs": [
+        {
+          "path": ".B.active[0].boosts.spe",
+          "medi": "0",
+          "sd": "-2"
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "reflecttype",
+      "reactor": "quickclaw",
+      "kind": "item",
+      "uses": 3,
+      "diffs": [
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Ghost\",\"Poison\"]",
+          "sd": "[\"Grass\",\"Poison\"]"
+        },
+        {
+          "path": ".B.active[0].types",
+          "medi": "[\"Normal\"]",
+          "sd": "[\"Grass\",\"Poison\"]"
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "simplebeam",
+      "reactor": "suckerpunch",
+      "kind": "move",
+      "uses": 9,
+      "diffs": [
+        {
+          "path": ".B.active[0].ability",
+          "medi": "\"honeygather\"",
+          "sd": "\"simple\""
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "partingshot",
+      "reactor": "taunt",
+      "kind": "move",
+      "uses": 7475,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"incineroar\"",
+          "sd": "\"pangoro\""
+        },
+        {
+          "path": ".A.active[0].vol",
+          "medi": "[]",
+          "sd": "[\"taunt\"]"
+        },
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Dark\",\"Fire\"]",
+          "sd": "[\"Dark\",\"Fighting\"]"
+        },
+        {
+          "path": ".A.benched",
+          "medi": "[\"garchomp\",\"pangoro\"]",
+          "sd": "[\"garchomp\",\"incineroar\"]"
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "taunt",
+      "reactor": "taunt",
+      "kind": "move",
+      "uses": 1503,
+      "diffs": [
+        {
+          "path": ".B.active[0].vol",
+          "medi": "[\"taunt\"]",
+          "sd": "[]"
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "disable",
+      "reactor": "taunt",
+      "kind": "move",
+      "uses": 730,
+      "diffs": [
+        {
+          "path": ".B.active[0].vol",
+          "medi": "[\"disable\"]",
+          "sd": "[]"
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "strengthsap",
+      "reactor": "taunt",
+      "kind": "move",
+      "uses": 655,
+      "diffs": [
+        {
+          "path": ".B.active[0].boosts.atk",
+          "medi": "-1",
+          "sd": "0"
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "hypnosis",
+      "reactor": "taunt",
+      "kind": "move",
+      "uses": 533,
+      "diffs": [
+        {
+          "path": ".B.active[0].status",
+          "medi": "\"slp\"",
+          "sd": "\"\""
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "memento",
+      "reactor": "taunt",
+      "kind": "move",
+      "uses": 37,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"incineroar\"",
+          "sd": "\"ninetales\""
+        },
+        {
+          "path": ".A.active[0].vol",
+          "medi": "[]",
+          "sd": "[\"taunt\"]"
+        },
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Dark\",\"Fire\"]",
+          "sd": "[\"Fire\"]"
+        },
+        {
+          "path": ".A.benched",
+          "medi": "[\"garchomp\"]",
+          "sd": "[\"garchomp\",\"incineroar\"]"
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "decorate",
+      "reactor": "taunt",
+      "kind": "move",
+      "uses": 36,
+      "diffs": [
+        {
+          "path": ".B.active[0].boosts.atk",
+          "medi": "2",
+          "sd": "0"
+        },
+        {
+          "path": ".B.active[0].boosts.spa",
+          "medi": "2",
+          "sd": "0"
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "stunspore",
+      "reactor": "taunt",
+      "kind": "move",
+      "uses": 24,
+      "diffs": [
+        {
+          "path": ".B.active[0].status",
+          "medi": "\"par\"",
+          "sd": "\"\""
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "whirlwind",
+      "reactor": "taunt",
+      "kind": "move",
+      "uses": 20,
+      "diffs": [
+        {
+          "path": ".B.active[0].species",
+          "medi": "\"weavile\"",
+          "sd": "\"alakazam\""
+        },
+        {
+          "path": ".B.active[0].types",
+          "medi": "[\"Dark\",\"Ice\"]",
+          "sd": "[\"Psychic\"]"
+        },
+        {
+          "path": ".B.benched",
+          "medi": "[\"alakazam\",\"corviknight\"]",
+          "sd": "[\"corviknight\",\"weavile\"]"
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "featherdance",
+      "reactor": "taunt",
+      "kind": "move",
+      "uses": 17,
+      "diffs": [
+        {
+          "path": ".B.active[0].boosts.atk",
+          "medi": "-2",
+          "sd": "0"
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "trickortreat",
+      "reactor": "taunt",
+      "kind": "move",
+      "uses": 8,
+      "diffs": [
+        {
+          "path": ".B.active[0].types",
+          "medi": "[\"Ghost\",\"Psychic\"]",
+          "sd": "[\"Psychic\"]"
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "screech",
+      "reactor": "taunt",
+      "kind": "move",
+      "uses": 4,
+      "diffs": [
+        {
+          "path": ".B.active[0].boosts.def",
+          "medi": "-2",
+          "sd": "0"
+        }
+      ]
+    },
+    {
+      "key": "statusMove",
+      "bucket": "inert",
+      "carrier": "simplebeam",
+      "reactor": "upperhand",
+      "kind": "move",
+      "uses": 9,
+      "diffs": [
+        {
+          "path": ".B.active[0].ability",
+          "medi": "\"honeygather\"",
+          "sd": "\"simple\""
+        }
+      ]
+    },
+    {
+      "key": "physicalMove",
+      "bucket": "inert",
+      "carrier": "poltergeist",
+      "reactor": "toxicdebris",
+      "kind": "ability",
+      "uses": 303,
+      "diffs": [
+        {
+          "path": ".A.hazards.toxicspikes",
+          "medi": "1",
+          "sd": "null"
+        },
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        }
+      ]
+    },
+    {
+      "key": "physicalMove",
+      "bucket": "inert",
+      "carrier": "lastresort",
+      "reactor": "toxicdebris",
+      "kind": "ability",
+      "uses": 182,
+      "diffs": [
+        {
+          "path": ".A.hazards.toxicspikes",
+          "medi": "1",
+          "sd": "null"
+        },
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        }
+      ]
+    },
+    {
+      "key": "physicalMove",
+      "bucket": "inert",
+      "carrier": "upperhand",
+      "reactor": "toxicdebris",
+      "kind": "ability",
+      "uses": 76,
+      "diffs": [
+        {
+          "path": ".A.hazards.toxicspikes",
+          "medi": "1",
+          "sd": "null"
+        },
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        }
+      ]
+    },
+    {
+      "key": "physicalMove",
+      "bucket": "inert",
+      "carrier": "rapidspin",
+      "reactor": "toxicdebris",
+      "kind": "ability",
+      "uses": 11,
+      "diffs": [
+        {
+          "path": ".A.hazards.toxicspikes",
+          "medi": "1",
+          "sd": "null"
+        }
+      ]
+    },
+    {
+      "key": "physicalMove",
+      "bucket": "inert",
+      "carrier": "suckerpunch",
+      "reactor": "weakarmor",
+      "kind": "ability",
+      "uses": 7029,
+      "diffs": [
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        },
+        {
+          "path": ".B.active[0].boosts.def",
+          "medi": "-1",
+          "sd": "0"
+        },
+        {
+          "path": ".B.active[0].boosts.spe",
+          "medi": "2",
+          "sd": "0"
+        }
+      ]
+    },
+    {
+      "key": "physicalMove",
+      "bucket": "ko",
+      "carrier": "populationbomb",
+      "reactor": "weakarmor",
+      "kind": "ability",
+      "uses": 401,
+      "diffs": [
+        {
+          "path": ".B.active[0].species",
+          "medi": "\"skarmory\"",
+          "sd": "\"corviknight\""
+        },
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        },
+        {
+          "path": ".B.active[0].boosts.def",
+          "medi": "-4",
+          "sd": "0"
+        },
+        {
+          "path": ".B.active[0].boosts.spe",
+          "medi": "6",
+          "sd": "0"
+        }
+      ]
+    },
+    {
+      "key": "physicalMove",
+      "bucket": "inert",
+      "carrier": "poltergeist",
+      "reactor": "weakarmor",
+      "kind": "ability",
+      "uses": 303,
+      "diffs": [
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        },
+        {
+          "path": ".B.active[0].boosts.def",
+          "medi": "1",
+          "sd": "2"
+        },
+        {
+          "path": ".B.active[0].boosts.spe",
+          "medi": "2",
+          "sd": "0"
+        }
+      ]
+    },
+    {
+      "key": "physicalMove",
+      "bucket": "inert",
+      "carrier": "lastresort",
+      "reactor": "weakarmor",
+      "kind": "ability",
+      "uses": 182,
+      "diffs": [
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        },
+        {
+          "path": ".B.active[0].boosts.def",
+          "medi": "1",
+          "sd": "2"
+        },
+        {
+          "path": ".B.active[0].boosts.spe",
+          "medi": "2",
+          "sd": "0"
+        }
+      ]
+    },
+    {
+      "key": "physicalMove",
+      "bucket": "inert",
+      "carrier": "endeavor",
+      "reactor": "weakarmor",
+      "kind": "ability",
+      "uses": 99,
+      "diffs": [
+        {
+          "path": ".B.active[0].boosts.def",
+          "medi": "1",
+          "sd": "2"
+        },
+        {
+          "path": ".B.active[0].boosts.spe",
+          "medi": "2",
+          "sd": "0"
+        }
+      ]
+    },
+    {
+      "key": "physicalMove",
+      "bucket": "ko",
+      "carrier": "aurawheel",
+      "reactor": "weakarmor",
+      "kind": "ability",
+      "uses": 25,
+      "diffs": [
+        {
+          "path": ".A.active[0].boosts.spe",
+          "medi": "0",
+          "sd": "1"
+        },
+        {
+          "path": ".B.active[0].species",
+          "medi": "\"corviknight\"",
+          "sd": "\"skarmory\""
+        },
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "false",
+          "sd": "true"
+        },
+        {
+          "path": ".B.active[0].boosts.def",
+          "medi": "0",
+          "sd": "1"
+        }
+      ]
+    },
+    {
+      "key": "physicalMove",
+      "bucket": "ko",
+      "carrier": "bonerush",
+      "reactor": "weakarmor",
+      "kind": "ability",
+      "uses": 5,
+      "diffs": [
+        {
+          "path": ".B.active[0].species",
+          "medi": "\"armarouge\"",
+          "sd": "\"corviknight\""
+        },
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        },
+        {
+          "path": ".B.active[0].boosts.def",
+          "medi": "-3",
+          "sd": "0"
+        },
+        {
+          "path": ".B.active[0].boosts.spe",
+          "medi": "6",
+          "sd": "0"
+        }
+      ]
+    },
+    {
+      "key": "volatile:flinch",
+      "bucket": "inert",
+      "carrier": "upperhand",
+      "reactor": "innerfocus",
+      "kind": "ability",
+      "uses": 76,
+      "diffs": [
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        }
+      ]
+    },
+    {
+      "key": "moveSecondary",
+      "bucket": "inert",
+      "carrier": "upperhand",
+      "reactor": "shielddust",
+      "kind": "ability",
+      "uses": 76,
+      "diffs": [
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "true",
+          "sd": "false"
+        }
+      ]
+    },
+    {
+      "key": "moveSecondary",
+      "bucket": "inert",
+      "carrier": "stoneaxe",
+      "reactor": "shielddust",
+      "kind": "ability",
+      "uses": 63,
+      "diffs": [
+        {
+          "path": ".B.active[0].hurt",
+          "medi": "false",
+          "sd": "true"
+        },
+        {
+          "path": ".B.hazards.stealthrock",
+          "medi": "null",
+          "sd": "1"
+        }
+      ]
+    },
+    {
+      "key": "moveSecondary",
+      "bucket": "inert",
+      "carrier": "torchsong",
+      "reactor": "shielddust",
+      "kind": "ability",
+      "uses": 41,
+      "diffs": [
+        {
+          "path": ".A.active[0].boosts.spa",
+          "medi": "0",
+          "sd": "1"
+        }
+      ]
+    },
+    {
+      "key": "moveSecondary",
+      "bucket": "inert",
+      "carrier": "aurawheel",
+      "reactor": "shielddust",
+      "kind": "ability",
+      "uses": 25,
+      "diffs": [
+        {
+          "path": ".A.active[0].boosts.spe",
+          "medi": "0",
+          "sd": "1"
+        }
+      ]
+    },
+    {
+      "key": "moveType:Electric",
+      "bucket": "ko",
+      "carrier": "voltswitch",
+      "reactor": "lightningrod",
+      "kind": "ability",
+      "uses": 1459,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"incineroar\"",
+          "sd": "\"pikachu\""
+        },
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Dark\",\"Fire\"]",
+          "sd": "[\"Electric\"]"
+        },
+        {
+          "path": ".A.benched",
+          "medi": "[\"garchomp\",\"pikachu\"]",
+          "sd": "[\"garchomp\",\"incineroar\"]"
+        }
+      ]
+    },
+    {
+      "key": "moveType:Electric",
+      "bucket": "ko",
+      "carrier": "voltswitch",
+      "reactor": "lightningrod",
+      "kind": "ability",
+      "uses": 1459,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"incineroar\"",
+          "sd": "\"pikachu\""
+        },
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Dark\",\"Fire\"]",
+          "sd": "[\"Electric\"]"
+        },
+        {
+          "path": ".A.benched",
+          "medi": "[\"garchomp\",\"pikachu\"]",
+          "sd": "[\"garchomp\",\"incineroar\"]"
+        }
+      ]
+    },
+    {
+      "key": "moveType:Water",
+      "bucket": "ko",
+      "carrier": "flipturn",
+      "reactor": "dryskin",
+      "kind": "ability",
+      "uses": 2739,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"incineroar\"",
+          "sd": "\"blastoise\""
+        },
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Dark\",\"Fire\"]",
+          "sd": "[\"Water\"]"
+        },
+        {
+          "path": ".A.benched",
+          "medi": "[\"blastoise\",\"garchomp\"]",
+          "sd": "[\"garchomp\",\"incineroar\"]"
+        }
+      ]
+    },
+    {
+      "key": "moveType:Electric",
+      "bucket": "ko",
+      "carrier": "voltswitch",
+      "reactor": "voltabsorb",
+      "kind": "ability",
+      "uses": 1459,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"incineroar\"",
+          "sd": "\"pikachu\""
+        },
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Dark\",\"Fire\"]",
+          "sd": "[\"Electric\"]"
+        },
+        {
+          "path": ".A.benched",
+          "medi": "[\"garchomp\",\"pikachu\"]",
+          "sd": "[\"garchomp\",\"incineroar\"]"
+        }
+      ]
+    },
+    {
+      "key": "moveType:Electric",
+      "bucket": "ko",
+      "carrier": "voltswitch",
+      "reactor": "motordrive",
+      "kind": "ability",
+      "uses": 1459,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"incineroar\"",
+          "sd": "\"pikachu\""
+        },
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Dark\",\"Fire\"]",
+          "sd": "[\"Electric\"]"
+        },
+        {
+          "path": ".A.benched",
+          "medi": "[\"garchomp\",\"pikachu\"]",
+          "sd": "[\"garchomp\",\"incineroar\"]"
+        }
+      ]
+    },
+    {
+      "key": "moveType:Water",
+      "bucket": "ko",
+      "carrier": "flipturn",
+      "reactor": "waterabsorb",
+      "kind": "ability",
+      "uses": 2739,
+      "diffs": [
+        {
+          "path": ".A.active[0].species",
+          "medi": "\"incineroar\"",
+          "sd": "\"blastoise\""
+        },
+        {
+          "path": ".A.active[0].types",
+          "medi": "[\"Dark\",\"Fire\"]",
+          "sd": "[\"Water\"]"
+        },
+        {
+          "path": ".A.benched",
+          "medi": "[\"blastoise\",\"garchomp\"]",
+          "sd": "[\"garchomp\",\"incineroar\"]"
+        }
+      ]
     }
   ]
 }

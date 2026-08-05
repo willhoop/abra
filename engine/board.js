@@ -2788,8 +2788,33 @@ function featuresFor(cand, user, board, side, dex, priorP) {
        * OWN traits as features, so one model learns what Prankster is worth and applies it to every
        * Pokemon that has it -- including ones the corpus has barely seen. 2,103 clean games across
        * 263 species is about eight games each; there is no such thing as a per-species model here. */
-      set('movesFirst', Math.max(x[FEATURE_INDEX.movesFirst],
-        (slowFirst ? mySpe < thSpe : mySpe > thSpe) ? 1 : 0));
+      /* WHO MOVES FIRST IS MEDICHAM2'S RULE, ASKED — IT IS NOT RESTATED HERE. WIRE 118.
+       *
+       * This line used to read `(slowFirst ? mySpe < thSpe : mySpe > thSpe) ? 1 : 0`: the Trick Room
+       * inversion and the speed comparison, written out by hand, twelve lines below the call this
+       * file already makes into that engine (`D2.priorityRefusedAbove`, :2562). That is two
+       * implementations of one FACT, which is the failure CLAUDE.md names — and they HAD diverged:
+       * medicham2 sorted its action list once a turn and walked it frozen, so it had no dynamic speed
+       * at all, while `speedSetupHelpsPartner` two thousand lines above says in words that a Tailwind
+       * speeds the partner up THIS turn. MAG scored the Tailwind pair as strong and the rollout that
+       * checked it said it did nothing.
+       *
+       * THE EXPECTED-SPEED WRAPPER STAYS, and that is the allowed exception rather than a second
+       * copy: the opponent's spread is hidden, so `mySpe`/`thSpe` are expectations across a
+       * distribution and that is a legitimately different question from the simulator's exact speed
+       * for a built body. What must not be duplicated is the ORDERING RULE underneath — the priority
+       * brackets, the Trick Room inversion, the tie — and that now has one implementation.
+       *
+       * A tie returns 0 and reads as "not first", which is exactly what the strict `>` did. */
+      const D4 = damageEngine();
+      if (!D4 || typeof D4.compareTurnOrder !== 'function') {
+        /* LOUD, NOT SILENT. Without the engine this feature keeps only its priority half, and a
+         * degraded feature that looks like a working one is this project's signature failure. */
+        dmgFailures.unavailable++;
+      } else {
+        set('movesFirst', Math.max(x[FEATURE_INDEX.movesFirst],
+          D4.compareTurnOrder({ spe: mySpe }, { spe: thSpe }, { tr: slowFirst ? 1 : 0 }) < 0 ? 1 : 0));
+      }
       const off = tb.atk + tb.spa;
       const physShare = off ? (tb.atk - tb.spa) / off : 0;
       if (off) set('tgtPhysical', physShare);

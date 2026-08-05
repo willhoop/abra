@@ -1,6 +1,6 @@
 # ADR-002 — Showdown is the authority, MEDICHAM is the runtime
 
-**Version 3.46.0 · 2026-08-05 · Status: ACCEPTED · Supersedes the migration half of
+**Version 3.49.0 · 2026-08-05 · Status: ACCEPTED · Supersedes the migration half of
 [ADR-001](ADR-001-use-the-champions-mod.md), which stands as a record and is not deleted.**
 
 ---
@@ -49,10 +49,10 @@ converged. Read at the moment of the decision, from artifacts, not prose:
 |---|---|
 | `data/engine-diff.json` (damage, seed 20260804) | **149 / 150** — the one residual is a documented harness-layer boundary, both engines right |
 | `data/interaction-matrix.json` (carrier × reactor) | **1,614 / 1,634 — 98.8%** of 2,300 staged from a theoretical 8,795. The 17 are filed individually; the four oldest are UNWIRED knobs (Shield Dust ×3, Steadfast ×1) rather than wrong arithmetic |
-| `data/mechanics-census.json` | **210 / 213 live**, 3 missing with written reasons |
+| `data/mechanics-census.json` | **211 / 214 live**, 3 missing with written reasons |
 
 *(Those are a snapshot, and the census in particular moves — it read 202/211 four hours before this
-was written and 210/213 when it was checked. That is the point rather than a caveat: the number
+was written and 211/214 when it was checked. That is the point rather than a caveat: the number
 climbs because the instruments exist. Read it from the artifact, never from this table.)*
 
 What made the difference is not stubbornness. **The differential harness and the interaction matrix

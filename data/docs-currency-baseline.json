@@ -1,8 +1,8 @@
 {
-  "generated": "2026-08-05T18:25:24.320Z",
+  "generated": "2026-08-05T20:32:53.879Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "3.46.0",
+  "changelog_top_at_baseline": "3.49.0",
   "version_pins": {
     "docs/ARCHITECTURE-NOTES.md": {
       "version": "1.0",
@@ -197,7 +197,6 @@
       "docs/MODELS.md|1,445|data/archetypes.json",
       "docs/MODELS.md|1,613|data/archetypes.json",
       "docs/MODELS.md|1,625|data/archetypes.json",
-      "docs/MODELS.md|1.3475%|data/policy-weights.json",
       "docs/MODELS.md|1.4%|data/illusion.json",
       "docs/MODELS.md|1.605|data/collinearity-joint.json",
       "docs/MODELS.md|1.7%|data/archetypes.json",
@@ -240,7 +239,6 @@
       "docs/MODELS.md|67.97%|data/archetypes.json",
       "docs/MODELS.md|7,228|data/guru-matchups.json,data/core-matchups.json",
       "docs/MODELS.md|88.9%|data/archetypes.json",
-      "docs/MODELS.md|9,022|data/policy-weights.json",
       "docs/MODELS.md|90|data/counterplay.json",
       "docs/MODELS.md|96.5%|data/archetypes.json",
       "docs/MODELS.md|97.6%|data/archetypes.json",
@@ -249,14 +247,9 @@
       "docs/MODELS.md|−0.0114|data/archetypes.json",
       "docs/MODELS.md|−0.0183|data/archetypes.json",
       "docs/MODELS.md|−1.0502|data/policy-weights.json",
-      "docs/SUMMARY.md|1,116|data/censoring-value.json",
-      "docs/SUMMARY.md|1,336|data/censoring-value.json",
-      "docs/SUMMARY.md|1.3475%|data/censoring-value.json",
       "docs/SUMMARY.md|1.71|data/quality-filter.json",
       "docs/SUMMARY.md|146,910|data/policy-weights.json",
       "docs/SUMMARY.md|19,589|data/quality-filter.json",
-      "docs/SUMMARY.md|241,927|data/censoring-value.json",
-      "docs/SUMMARY.md|3,260|data/censoring-value.json",
       "docs/SUMMARY.md|6,091|data/policy-weights.json",
       "docs/SUMMARY.md|7.4|data/quality-filter.json",
       "docs/SUMMARY.md|8,713|data/quality-filter.json"
@@ -264,14 +257,12 @@
     "untraceable_by_doc": {
       "docs/ABRA-technical-docs.md": 2,
       "docs/ABRA-whitepaper.md": 16,
-      "docs/ADR-002-showdown-is-the-authority.md": 1,
       "docs/ARCHITECTURE.md": 1,
-      "docs/CLICK-CENSORING-FIX.md": 1,
-      "docs/MODELS.md": 16,
+      "docs/MODELS.md": 15,
       "docs/ROLE-FAMILY.md": 2,
       "docs/SLOWKING-whitepaper.md": 7,
       "docs/SUMMARY.md": 1,
-      "docs/TAG-COVERAGE.md": 11,
+      "docs/TAG-COVERAGE.md": 10,
       "docs/predictability-study.md": 1
     }
   },

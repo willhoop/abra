@@ -2,7 +2,7 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.46.0 · Last updated 2026-08-05**
+**Version 3.49.0 · Last updated 2026-08-05**
 **Will Hooper · ABRA**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
@@ -423,16 +423,21 @@ The policy fits learn from human clicks reconstructed out of replay logs. The lo
 **happened**; the fit needs what was **clicked**. Across all **241,927 recorded human actions over
 8,942 clean open-sheet games** (`data/policy-weights.json`, the fit corpus), **1,336 (0.5522%) were
 never clicks at all** and were being fitted as though they were. The classifier that decides which
-is which is measured separately, against the protocol's own annotations over 9,022 games
-(`data/click-censoring-census.json`) — a slightly larger sweep than the fit, because the census
-reads every stored game while the fit takes only those it can build a board for:
+is which is measured separately, against the protocol's own annotations over 9,230 games
+(`data/click-censoring-census.json`, re-run 2026-08-05 on the current engine) — a slightly larger
+sweep than the fit, because the census reads every stored game while the fit takes only those it can
+build a board for:
 
 | class | n | share | mechanism |
 |---|---|---|---|
-| CLEAN | 229,555 | 94.886% | the recorded action is the click |
-| PARTIAL | 3,260 | 1.3475% | a redirector soaked the attack; the true target is one of two live foes |
-| **COERCED** | **1,336** | **0.5522%** | Encore replaced the action (1,116); a phazing move dragged the mon in (220) |
-| unreadable | 7,776 | 3.214% | unmatched, trivial or ambiguous |
+| CLEAN | 236,712 | 94.9111% | the recorded action is the click |
+| PARTIAL | 3,328 | 1.3344% | a redirector soaked the attack; the true target is one of two live foes |
+| **COERCED** | **1,383** | **0.5545%** | Encore replaced the action (1,152); a phazing move dragged the mon in (231) |
+| unreadable | 7,126 + 824 + 31 | 3.2000% | unmatched, trivial, ambiguous |
+
+The shares are the reason this table can be re-run without re-arguing the fit: the census has now been
+taken three times as the store grew, and the three class shares agree to a hundredth of a point across
+all of them (`CHANGELOG.md` 3.42.0 and 3.47.0).
 
 Both coerced classes were **invisible to every counter in the project**. The move Encore forces out
 is on the victim's own legal menu, so the matcher accepted it; and `|drag|` is stored with the same
@@ -459,16 +464,18 @@ seeds (`data/partial-label-em.json`):
 EM recovers **97.4%** of the censoring bias where the naive fit is visibly wrong, and at the rate the
 corpus actually censors the bias is **−0.0030 against a 0.2600 floor** — inside the noise.
 
-**Result, paired on 47,195 held-out decisions over 1,809 games, bootstrapped over GAMES**
-(`data/censoring-value.json`):
+**Result, paired on 48,274 held-out decisions over 1,851 games, bootstrapped over GAMES**
+(`data/censoring-value.json`, re-run 2026-08-05 on the current engine and the grown corpus; every
+figure below is inside the interval of the smaller 3.42.0 run it replaces — that run's numbers are in
+`CHANGELOG.md` 3.42.0 and `docs/MEASURE.md` §14, and the comparison is tabulated in §17):
 
 | held-out class | after − before | |
 |---|---|---|
-| **COERCED** (n=284): P(model picks the action no human chose) | **−0.002614 [−0.003663, −0.001637]** | clears zero |
-| **PARTIAL** (n=643): mass on the true candidate set | +0.000109 [−0.000286, +0.000491] | contains zero |
-| PARTIAL: log-likelihood of the candidate set | −0.002646 [−0.004037, −0.001377] | clears zero, **worse** |
-| CONTROL, CLEAN (n=46,268): log-likelihood | +0.000447 [0.000142, 0.000743] | clears zero |
-| CONTROL, CLEAN: top-1 | +0.002 [−0.094, 0.098] | contains zero |
+| **COERCED** (n=293): P(model picks the action no human chose) | **−0.002613 [−0.003650, −0.001672]** | clears zero |
+| **PARTIAL** (n=650): mass on the true candidate set | +0.000122 [−0.000261, +0.000514] | contains zero |
+| PARTIAL: log-likelihood of the candidate set | −0.002662 [−0.004002, −0.001368] | clears zero, **worse** |
+| CONTROL, CLEAN (n=47,331): log-likelihood | +0.000485 [0.000189, 0.000777] | clears zero |
+| CONTROL, CLEAN: top-1 | −0.008 [−0.107, 0.085] | contains zero |
 
 Read plainly: **the fabricated labels are unlearned and the redirection correction bought nothing
 measurable.** Its own validation predicted that — the class is 1.35% of actions with a candidate set
@@ -486,10 +493,10 @@ direction the mechanic predicts.
 refit itself, so the attribution rests on the weight-movement pattern rather than on an isolated
 control; `CENSORING=off` exists to run that control and has not been run. (ii) Priority-blocked
 attempts (Armor Tail, Queenly Majesty) are recoverable — the protocol names the attacker and the
-move in **284 of 284 cases (100.0%)** — but live only in raw logs covering 66.17% of the corpus, and
+move in **299 of 299 cases (100.0%)** — but live only in raw logs covering 67.23% of the corpus, and
 the missing third is one archive, so recovering them would reweight the sample by source. (iii)
 `board.js` narrows the choice set for a Choice item and not for the `onDisableMove` family, so
-**2,280 of 139,769 logged actions (1.6313%)** were priced against a menu that had already shrunk —
+**2,374 of 146,413 logged actions (1.6214%)** were priced against a menu that had already shrunk —
 a wrong denominator rather than a wrong label, and a separate refit.
 
 ## A mechanic that fires everywhere is not a mechanic that works (3.44.0)

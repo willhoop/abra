@@ -23,16 +23,16 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  210/213 probed mechanics live, 3 missing   (census 2026-08-05 17:54)
+  211/214 probed mechanics live, 3 missing   (census 2026-08-05 20:39)
   missing:
     move    needsTargetToAttack    Avalanche doubles after being hit
     ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll
     ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit
-  1/150 differential comparisons disagree with Showdown   (2026-08-05 17:53)
+  1/150 differential comparisons disagree with Showdown   (2026-08-05 20:44)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1614/1634 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-05 18:22)
+  interaction matrix: 1614/1634 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-05 19:07)
     2300 of 8795 theoretical pairs staged — agreement is a claim about the 2300 that ran, not about the 8795
       530 inert      not scored — the reference engine behaves identically with and without the reactor
       109 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
@@ -47,7 +47,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 156/181 probed, 25 unprobed
 ```
 
-_stamped 2026-08-05 18:24_
+_stamped 2026-08-05 20:46_
 
 <!-- /GENERATED -->
 
@@ -60,6 +60,167 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
+
+## WIRE 118 — THERE WERE TWO IMPLEMENTATIONS OF "WHO MOVES FIRST". ONE IS DELETED. 2026-08-05.
+
+Census **210 → 211 live / 213 → 214 probed**; missing still 3 (the same three), hollow 0, `threw` 0,
+`unarmed` 145 (the new probe is armed). Differential **1/150**, the same pre-existing
+`chesnaught woodhammer -> mimikyu` row and the same 11 not-comparable. `tests/test-game-diff.js`
+agrees on every turn of all five scripted games.
+
+Will has raised this three times and the previous answers were the wrong shape — a consistency test, a
+ratchet, a proposed shared module. **A test that checks two copies agree is a workaround for having
+two copies.**
+
+| | before | after |
+|---|---|---|
+| `engine/medicham2-browser.js` | sorted `acts` ONCE per turn and walked it frozen — **no dynamic speed at all** | freezes the bracket, then **re-sorts the remaining actions before each one resolves** |
+| `engine/board.js:2791` | `(slowFirst ? mySpe < thSpe : mySpe > thSpe) ? 1 : 0` — the Trick Room inversion and the speed comparison, restated by hand **twelve lines below `D2.priorityRefusedAbove`**, a call into the very engine that owns the rule | `D4.compareTurnOrder({spe: mySpe}, {spe: thSpe}, {tr: slowFirst ? 1 : 0}) < 0` |
+
+The two had **measurably diverged**, and it is not a corner case: `board.js:466` says in words that a
+Tailwind on a Prankster user lets the partner's Earthquake land first THIS turn, so MAG's `speedSwing`
+and `speedSetupHelpsPartner` believe in dynamic speed — while the rollout that checks MAG's opinion
+said the Tailwind did nothing. MILTANK sat between them and **the search believes the simulator.**
+
+### The rule is Showdown's own, read out of Showdown
+
+```
+sim/battle-queue.ts, file header:  "Actions are sorted based on order (lower first) followed by
+                                    priority (higher first) followed by speed (higher first).
+                                    Ties are broken with Fischer-Yates."
+sim/battle.ts, gated on gen >= 8:  "In gen 8, speed is updated dynamically so update the queue's
+                                    speed properties and sort it."
+                                    this.updateSpeed(); …getActionSpeed(a)…; this.queue.sort();
+```
+
+**The re-sort re-derives the SPEED only.** `order` and `priority` are resolved once, when the action is
+queued — so `_pri` is frozen at the top of the turn here rather than recomputed, and a Grassy Terrain
+set halfway through a turn does not retroactively give Grassy Glide its priority.
+
+**MEASURED FIRST, in the official engine at the pinned commit, both arms printed before a line of
+engine changed** (`scratchpad/ref-dynspeed.js`, then `ref-dynspeed2.js` for the exact probe pair).
+L50 / 0 EV / 31 IV / Serious — Whimsicott 136, Garchomp 122, Milotic 101, Incineroar 80 (160 under
+Tailwind):
+
+```
+control : Whimsicott -> Garchomp -> Milotic -> Incineroar
+tailwind: Whimsicott -> Incineroar -> Garchomp -> Milotic     Incineroar OVERTOOK, inside the turn
+```
+
+### The probe, and it was RED first
+
+`move doublesSideSpeed — "Tailwind speeds the PARTNER up inside the same turn"`, armed. The tag already
+had a probe; that one reads the partner's speed AFTER the turn and **structurally cannot see when the
+boost starts counting** — the weather-rock lesson again, a mechanic with two halves needs a probe per
+half. The outcome, not the order list: Milotic is left on 1 HP, so whoever moves first decides whether
+Milotic ever acts.
+
+```
+RED    partner (Incineroar 80) took 115 … and 115 after the ally clicked Tailwind
+GREEN  partner (Incineroar 80) took 115 … and 0   after the ally clicked Tailwind
+```
+
+**AND THE RED IS PERMANENT, NOT A TRANSCRIPT.** `tests/probe_red_demo.js` gained a `demoSource` arm
+whose known-bad engine is **exactly the frozen queue and nothing else** — the three-line re-sort
+deleted, with the comparator, the frozen bracket, the tie and the `order` overrides all left in place,
+so the one thing that flips is the thing this wire is about. 29 demonstrations, 0 failed;
+`shipped-arm=true, reverted-arm=false`. The revert asserts it applied, so a patch that silently
+stopped matching cannot make a broken engine look fixed.
+
+**THE FIRST STAGING WAS WRONG BEFORE THE ENGINE WAS, WHICH MAKES TWENTY-SEVEN.** The dispatch's pair
+was Garchomp/Incineroar, correct at 0 EV. `buildMon` uses USAGE spreads and its **Garchomp is invested
+at 161**, so Tailwind's 160 does not overtake it — the probe would have printed identical arms on a
+FIXED engine and read as agreement. Incineroar (80) and Milotic (101) are the two bodies whose `MC`
+lines are exactly the reference's own 0-EV lines, so the probe and the reference ask one question at
+one set of numbers.
+
+### The three things the re-sort had to not break, each made explicit
+
+- **THE TIE MUST NOT RE-ROLL.** The old comparator ended `sp||(rng()<0.5?-1:1)` — a coin flipped INSIDE
+  the sort. Re-sorting each iteration re-draws it, the RNG stream diverges, and every seeded run in the
+  repo changes for reasons that have nothing to do with speed. The tie is now rolled **once per action,
+  on first demand, and stored** (the shape `_qc` already uses). Lazily, so a turn with **no** speed tie
+  draws exactly as many numbers as before this wire and the existing seeded probes are untouched rather
+  than merely close.
+- **AFTER YOU / QUASH NO LONGER SPLICE THE ARRAY.** A splice is undone by the next re-sort, so WIRE 109
+  would have gone silently dead under dynamic speed. They write the action's `order` — Showdown's own
+  `3` for next and `201` for last against `200` for a plain move — which is the FIRST key the
+  comparator reads and therefore survives every later re-sort.
+- **"HAS IT ALREADY ACTED" IS NOW "HAS IT RESOLVED".** The flinch bookkeeping was an INDEX into a list
+  frozen at the top of the turn, which stops meaning anything once the list re-sorts. It is a set of
+  the actions still outstanding, which is the same question asked directly **and keeps the half the
+  index was quietly also answering**: a body with no action this turn (dragged in by Roar) is not in
+  the set either, so it cannot be handed a flinch that would leak into the next turn.
+
+### board.js was edited, which this division normally may not do, and here is the evidence it owes
+
+The deletion IS in board.js — there is nothing to delete anywhere else — so this pass touched a file
+ENGINE does not own, under an explicit dispatch, and the obligation that comes with it is discharged
+by measurement rather than by argument:
+
+| question | instrument | answer |
+|---|---|---|
+| did the **board.js** edit move the feature function? | a direct A/B: the WIRE 118 hunk textually reverted and compiled in memory at board.js's own path, both arms hashed column-by-column over the fit's own corpus | **IDENTICAL** — all 58 columns, **1,136,845 candidate vectors over 6,055 clean games**, same row keys |
+| can that instrument SEE a difference? | positive control: the reverted arm's rule INVERTED | **MOVED — `movesFirst`, `deadNoLastMove`, `diesBeforeMoving`** |
+| could the **medicham2** edit move it? | every module export wrapped with a counter over a 300-game feature walk | `battleTurn` — the only existing function this wire changed — is called **0 times** by the feature path. The only new call is `compareTurnOrder`, 37,084 times |
+
+**`engine/feature_engine_contrast.js` CANNOT SEE A board.js CHANGE and its header says so**: it swaps
+`medicham2-browser.js` and `tags.js` between bundles and holds board.js FIXED in every arm, which is
+right for the question it asks and is not this question. Quoting it as if it covered the board edit
+would be a null from an instrument that cannot see. It was run anyway, and it is **NOT IDENTICAL**:
+
+```
+MOVED — at least one feature column differs on identical rows. This is a REFIT, not a restamp.
+  live vs 09acd3b404ef: 3 columns moved: deadNoLastMove, movesFirst, diesBeforeMoving
+  live vs 032b4a2979dd: 3 columns moved: deadNoLastMove, movesFirst, diesBeforeMoving
+  rows 1,136,845 over 6,055 games   (sample pinned, same_rows true)
+```
+
+**THE VERDICT IS REPORTED AS IT CAME OUT, AND IT IS ATTRIBUTED RATHER THAN EXPLAINED AWAY — measured,
+in the same arrangement:**
+
+| arm | `compareTurnOrder` on the injected engine | `dmgFailures.unavailable` over 20 games | mean `movesFirst` |
+|---|---|---|---|
+| live | `function` | **0** | 0.5212 |
+| release `09acd3b404ef` injected under live board.js | `undefined` | **2,110** | 0.2302 |
+
+The release arms run the **live** board.js against an engine that predates the exported rule, so
+board.js's own loud unavailable branch fires and `movesFirst` keeps only its priority half.
+`deadNoLastMove` and `diesBeforeMoving` are its two dependents, which is why exactly those three move —
+the same three the board A/B's positive control moves. **On a like-for-like tree** (the same engine on
+both sides, only the board line varied) **the feature function is IDENTICAL on all 1,136,845 rows.**
+
+**IT IS STILL A REAL PROPERTY AND IT IS MEASURE'S CALL, NOT ENGINE'S.** From now on live board.js
+requires a post-118 engine, so any arrangement that pairs it with a frozen pre-118 release degrades
+`movesFirst` — loudly and counted, but it degrades. The alternative was to have board.js fall back on
+the hand-rolled comparison, which is the duplicate this wire deletes, put back for the sake of a
+cross-version convenience. **The dispatch's rule is followed: the verdict is not IDENTICAL, it is said
+plainly, and no refit was started here.**
+
+### What the re-sort costs
+
+Two extra sorts per turn, measured rather than assumed: `sortTurnOrder` on a four-action list is
+**1.96 µs** against the old inline comparator's **2.38 µs** — cheaper per sort, because the keys are
+built once per ACTION instead of once per comparison — so the wire adds about **4 µs to a turn that
+takes 800–1,100 µs**. The whole-turn benchmark cannot resolve that: five interleaved pairs against
+HEAD's bytes ran 760–3,327 turns/sec inside a single arm, and the medians came out 1,141 (HEAD) vs
+1,281 (WIRE 118), which is noise with a sign. Recorded that way rather than as a win.
+
+### FILED, NOT FIXED — the fit corpus MOVED THREE TIMES IN ONE HOUR, and an artifact was written across the move
+
+Not ENGINE's, and not caused by this wire, but it was found while measuring and a silent one is worse
+than a loud one. `fit_policy.loadCorpus()` returned **9,361** clean open-sheet games at 19:48Z,
+**6,055** at 19:52Z when this pass measured, and **8,957** at 20:35Z — with 3.47.0 recording 9,230
+this morning. An earlier `data/feature-engine-contrast.json` was written straight across that: its
+`live` and `09acd3b404ef` arms scored 9,361 games / 1,774,684 rows and its `032b4a2979dd` arm scored
+**6,055 / 1,136,845**, so `same_rows` was false, all 58 columns "moved", and it published
+`MOVED — this is a REFIT, not a restamp` off arms that had walked different corpora. *(The instrument
+was fixed while this pass ran — it now pins the sample of game ids before any bundle starts and prints
+the pin, and `provenance.js` has grown a CORPUS DRIFT check that names it. Both are somebody else's
+work, landed in the same hour, and are recorded here because this pass's own numbers sit on top of
+them.)* **This pass's board A/B is a photograph of the 6,055-game moment and says so: both arms walked
+the same corpus and the row-key hash proves it, which is the guard doing its job rather than a claim
+that the corpus held still. Why it moves at all is MEASURE's.**
 
 ## WIRE 117 — PSYCHIC TERRAIN REFUSED PRIORITY AGAINST BODIES THAT WERE NOT ON THE GROUND. 2026-08-05.
 

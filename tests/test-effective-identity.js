@@ -283,6 +283,17 @@ const RAW = /\.(ability|baseStats|weighthg|weightkg)\b/g;
  * #40b — it read the PRE-mega ability to decide whether a mon is a weather setter, and a mega's
  * weather ability is precisely what differs from its base). It was fixed rather than declared. */
 const DECLARED = {
+  'engine/feature_engine_contrast.js':
+    'The two `.types` touches are on bodies THIS FILE just built, and the whole subject of the file is '
+    + 'whether such a body carries a type list at all. Every ability and every type it puts ON those '
+    + 'bodies already goes through board.js\'s own accessors — `B.effAbility(mon, dex)` and '
+    + '`B.effTypes(mon, dex)` — so a mega\'s gained ability and changed typing are resolved before the '
+    + 'read, which is what makes the partial arm a faithful copy of board.js:2570. The first read '
+    + '(`if (d && !d.types)`) counts INCOMPLETE bodies inside a wrapper around priorityRefusedAbove, '
+    + 'i.e. it is measuring the absence of the field rather than consuming its value; routing it '
+    + 'through effTypes() would compute a type list for a body that has none and the counter would '
+    + 'read zero on exactly the defect it exists to size. The second reads back the array the line '
+    + 'above wrote, to label a differing row by its body. Walked 2026-08-05.',
   'tests/mutation_harness.js':
     'One match, and it is an ASSIGNMENT rather than a read: bare() writes `b.ability = \'none\'` onto '
     + 'a body M.buildMon has just returned, which is the construction case this test names as correct '

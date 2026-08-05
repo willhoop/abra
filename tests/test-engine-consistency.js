@@ -275,6 +275,47 @@ console.log('\n== 4. priority blocking ==');
     `${v0.toFixed(2)} -> ${v1.toFixed(2)}`);
 }
 
+/* ================= 5. TURN ORDER — ONE RULE, ASKED, NOT TWO RULES COMPARED ================= *
+ *
+ * WIRE 118. board.js used to restate the ordering rule — `(slowFirst ? mySpe < thSpe : mySpe > thSpe)`
+ * — twelve lines below a call it already makes into medicham2, and the two had diverged: this engine
+ * had no dynamic speed at all while MAG's speed features assumed it. The copy is deleted.
+ *
+ * SO THIS IS A WIRING CHECK AND NOT A COMPARISON, deliberately, and it is the same shape as §4 above.
+ * Asserting that the two agree is what you write when there are two of them; the check that has to
+ * exist now is that board.js is genuinely ASKING. Replacing the shared comparator with one that answers
+ * backwards must flip `movesFirst` — a board.js that had kept its own copy would not notice.
+ *
+ * The three multiplier assertions in §1 do NOT become tautologies and are deliberately left alone:
+ * board.js derives Scarf x1.5 / paralysis x0.5 / Tailwind x2 by calling the dex's own onModifySpe
+ * handlers while medicham2 hardcodes them for the browser, and that duplication is not removable. */
+console.log('\n== 5. turn order ==');
+{
+  const mine = names[0], theirs = names[1];
+  const sh = { nature: 'serious', item: '', ability: '', moves: ['protect'] };
+  const iMF = B.FEATURE_INDEX.movesFirst;
+  const val = () => {
+    const board = mkActive(mine, theirs, sh, sh, 0.5);
+    const foe = board.slot('p2', 'a'), user = board.slot('p1', 'a');
+    /* A 0-priority damaging move, so `movesFirst` is decided by the SPEED comparison and not by a
+     * bracket the priority half already set. */
+    const flat = Object.keys(MC.moves).find(id => MC.moves[id] && MC.moves[id].bp && M.movePriority(id, NEUTRAL) === 0);
+    const cand = { raw: null, move: dex.moves.get(flat), targetMon: foe, spread: null, allies: [], foes: [foe] };
+    return B.featuresFor(cand, user, board, 'p1', dex, 0.05)[iMF];
+  };
+  const real = val();
+  const orig = M.compareTurnOrder;
+  let flipped;
+  try { M.compareTurnOrder = (a, b, f) => -orig(a, b, f); flipped = val(); }
+  finally { M.compareTurnOrder = orig; }
+  ok(real !== flipped,
+    'board.js ASKS medicham2 who moves first (an inverted comparator flips movesFirst)',
+    `${real} -> ${flipped}`);
+  /* AND THE CONTROL: the pair must actually differ in speed, or "it flipped" would be unreachable and
+   * this check could not fail for the reason it claims. */
+  ok(real === 1 || real === 0, 'the staged pair produces a decided order', `movesFirst ${real}`);
+}
+
 console.log(`\n${fails ? `ENGINE CONSISTENCY: ${fails} FAILED — a fact is not reaching every engine that needs it`
                         : 'ENGINE CONSISTENCY: all checks passed'}`);
 process.exit(fails ? 1 : 0);

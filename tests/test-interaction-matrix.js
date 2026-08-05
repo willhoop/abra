@@ -398,6 +398,29 @@ const { threw, inert, saturated, ko, live } = BUCKETS;
 const agree = live.filter(r => r.result.agrees);
 const part = live.filter(r => !r.result.agrees);
 
+/* A DISAGREEMENT IS A DISAGREEMENT WHETHER OR NOT THE REACTOR MATTERED, AND THIS GATE HAD IT BACKWARDS.
+ *
+ * Will, 2026-08-05: *"why dont we compare medicham to showdown while testing? that would be the
+ * easiest way to catch? instead of the dumb way of comparing it to itself."*
+ *
+ * The two-arm test is not the dumb half -- it exists because a mechanic MISSING from medicham2, in a
+ * staging that also stops it firing in Showdown, makes both engines produce identical states and
+ * scores as AGREE. A capability that is absent would pass. That is this project's signature failure.
+ *
+ * But it was being used as a GATE: an INERT case was discarded before its medicham2-vs-Showdown
+ * result was ever read. Measured across the 497 inert state cases, 49 of them had the two engines in
+ * DIFFERENT states, every one thrown away -- including ten showing that medicham2 does not implement
+ * Taunt blocking status moves at all (a Taunted body still lands Hypnosis, Stun Spore, Decorate,
+ * Screech, Disable), plus Simple Beam and Worry Seed not applying, and Last Resort and Upper Hand
+ * firing where they should fail.
+ *
+ * INERT means "an AGREEMENT here proves nothing", never "a DISAGREEMENT here does not count". The
+ * label suppresses the positive claim only. These are reported and counted; they stay OUT of the
+ * agreement rate, because that rate is a claim about pairs where the reactor demonstrably fired. */
+const offGate = rows.filter(r => r !== undefined
+  && bucketOf(r) !== 'live' && bucketOf(r) !== 'threw'
+  && r.result && r.result.diffs && r.result.diffs.length);
+
 console.log('  RAN ' + rows.length + ' cases in ' + secs + 's\n');
 console.log('  CAN THE PAIR ACTUALLY MEET? — answered by the REFERENCE engine, not by us:');
 console.log('    ' + String(live.length).padStart(5) + '  LIVE      the reference engine\'s two arms differ, so the mechanic fires');
@@ -428,6 +451,17 @@ if (part.length) {
     if (r.result.evaluator === 'damage' && r.result.mediRatio != null && Math.abs(r.result.mediRatio - 1) < 0.02)
       console.log('      ^ medicham2\'s ratio is 1.000: the knob is UNWIRED, not miscalculated');
   }
+  console.log('');
+}
+if (offGate.length) {
+  console.log('  THE ENGINES DIFFER ON CASES THE GATE DISCARDED — ' + offGate.length + ' of them.');
+  console.log('  The reactor did not demonstrably fire, so these are NOT in the agreement rate above.');
+  console.log('  They are still medicham2 disagreeing with the official engine, and they used to be');
+  console.log('  thrown away unread. INERT means an AGREEMENT proves nothing; a DISAGREEMENT still counts:');
+  for (const r of offGate.slice(0, 30))
+    console.log('    ' + r.key.padEnd(20) + (r.carrier.id + ' -> ' + r.reactor.id).padEnd(34)
+      + (r.result.diffs || []).slice(0, 2).map(d => d[0] + ' medi=' + d[1] + ' sd=' + d[2]).join('  |  '));
+  if (offGate.length > 30) console.log('    ... ' + (offGate.length - 30) + ' more');
   console.log('');
 }
 if (threw.length) {
@@ -487,6 +521,14 @@ const artifact = {
     medi_witness: r.result.mediWitness, sd_witness: r.result.sdWitness,
     turn: r.result.turn || null, diffs: r.result.diffs || null, detail: r.result.detail || null })),
   threw_rows: threw.map(r => ({ key: r.key, carrier: r.carrier.id, reactor: r.reactor.id, why: r.result.failure })),
+  /* Disagreements on cases the two-arm gate discarded. Kept OUT of `agree`/`part` because the
+   * agreement rate is a claim about pairs where the reactor demonstrably fired -- and kept IN the
+   * artifact because they are real differences between the two engines and were previously computed
+   * and thrown away unread. */
+  off_gate: offGate.length,
+  off_gate_rows: offGate.map(r => ({ key: r.key, bucket: bucketOf(r), carrier: r.carrier.id,
+    reactor: r.reactor.id, kind: r.reactor.kind, uses: r.carrier.uses || 0,
+    diffs: (r.result.diffs || []).map(d => ({ path: d[0], medi: d[1], sd: d[2] })) })),
 };
 /* A SHALLOW RUN MAY NOT OVERWRITE A DEEP ONE.
  *

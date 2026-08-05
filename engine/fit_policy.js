@@ -271,7 +271,37 @@ function loadCorpus() {
    *                       different metagame (engine/corpus_shift.js measures it).
    *
    * All three are deduplicated by replay id and every one goes through quality.js. */
-  for (const f of ['games.bo3.jsonl', 'games.ots.jsonl', 'games.ladder.jsonl']) {
+  /* OPEN TEAM SHEET ONLY. Will, 2026-08-05, twice and in capitals: "WE ONLY CARE ABOUT OPEN TEAM
+   * SHEET GAMES AT THE MOMENT. CLOSED SHEET GAMES SHOULD NOT BE USED AT ALL" and "KEEP CLOSED SHEET
+   * GAMES AS A RESERVOIR TO TRAIN FROM ONCE WE COMPLETE OPEN TEAM SHEETS."
+   *
+   * `games.ladder.jsonl` is DROPPED FROM THE FIT and NOT from disk. It holds 43,409 games and the
+   * store is append-only by design — "store raw, analyse on top", and never design an analysis that
+   * forces a re-pull. It is the reservoir for the closed-sheet phase, which comes after this one.
+   *
+   * It was contributing 268 games, 3.8% of the corpus: the ~1% of closed ladder games where both
+   * players happened to agree to optional Open Team Sheets. Those 268 are a self-selected slice of a
+   * population we are not currently targeting, and MAG's features need a sheet, so the other 43,141
+   * could never have fed this fit anyway.
+   *
+   * `games.ots.jsonl` IS DROPPED TOO, and the reason is dates rather than sheets — it is open-sheet
+   * and does not violate the instruction above. Measured on disk:
+   *
+   *     games.ots.jsonl   4,167 games   2026-06-18 -> 2026-06-21    4 distinct days
+   *     games.bo3.jsonl   8,898 games   2026-07-23 -> 2026-08-05   14 distinct days
+   *
+   * The external VGC-Bench archive is a FOUR-DAY SNAPSHOT FROM MID-JUNE, seven weeks stale, and it
+   * was 41.5% of the corpus. It is also a different collection with a different metagame —
+   * engine/corpus_shift.js exists precisely to measure that shift and has never written an artifact,
+   * so the size of the drift is unknown rather than small.
+   *
+   * What remains is the one on-distribution source: bo3 is OUR OWN scrape of the SAME ladder and the
+   * SAME regulation, its ruleset carries "Force Open Team Sheets" so every game publishes all six
+   * sets, it is current through today, and it grows hourly. It outnumbers the archive two to one.
+   *
+   * REVERSIBLE, and the way back is measured rather than remembered: put ots back only once
+   * corpus_shift.js has written an artifact saying how far its metagame sits from ours. */
+  for (const f of ['games.bo3.jsonl']) {
     const p = D('data', f);
     if (!fs.existsSync(p)) continue;
     for (const line of fs.readFileSync(p, 'utf8').split('\n')) {

@@ -12,14 +12,14 @@ game rather than a re-run.
 
 ```
 OPS — the live bot and the store
-  store: 43008 games, 7713 usable (17.9%), 7712 teams   (live.js 2026-08-05)
+  store: 43409 games, 7772 usable (17.9%), 7767 teams   (live.js 2026-08-05)
   live-games/: 34 battles recorded
-  data/games.ladder.jsonl      last written 2026-08-05 16:01
-  data/games.bo3.jsonl         last written 2026-08-05 16:02  <- the Force-OTS format, collected hourly
+  data/games.ladder.jsonl      last written 2026-08-05 19:03
+  data/games.bo3.jsonl         last written 2026-08-05 19:03  <- the Force-OTS format, collected hourly
   data/games.ots.jsonl         last written 2026-07-25 03:46  <- FROZEN external import, complete; date is an import, not a heartbeat
 ```
 
-_stamped 2026-08-05 18:24_
+_stamped 2026-08-05 20:46_
 
 <!-- /GENERATED -->
 

@@ -417,5 +417,37 @@ demoSource('WIRE 117 Grassy Terrain does not heal a Levitate body',
     return healed('none') > 0 && healed('levitate') === 0;
   });
 
+/* ---- WIRE 118, against a source-reverted engine -------------------------------------------------
+ *
+ * THE KNOWN-BAD ENGINE IS EXACTLY THE FROZEN QUEUE AND NOTHING ELSE. Deleting the three-line re-sort
+ * leaves the comparator, the frozen bracket, the tie and the `order` overrides all in place, so what
+ * flips is the one thing this wire is about: whether the remaining actions are re-ordered before each
+ * one resolves. A wider revert would also prove a wider claim, and the point of a known-bad engine is
+ * that it is bad in exactly one respect.
+ *
+ * The assertion is the shipped probe's, both arms in one expression: the control MUST take damage, or
+ * "the partner took nothing" is satisfied by an engine where nothing happens at all. */
+demoSource('WIRE 118 Tailwind speeds the PARTNER up inside the same turn (dynamic speed)',
+  [[`      if(actIdx>0&&actIdx<acts.length-1){
+        const _rest=sortTurnOrder(acts.slice(actIdx),field,rng);
+        for(let _k=0;_k<_rest.length;_k++)acts[actIdx+_k]=_rest[_k];
+      }
+`, '']],
+  (E) => {
+    const took = (setTailwind) => {
+      const me = bare('whimsicott'), ally = bare('incineroar');
+      const f1 = bare('milotic'), f2 = bare('garchomp');
+      const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+      f1.curHP = 1;
+      const before = ally.curHP;
+      E.battleTurn(S, rng5,
+        new Map([[me, setTailwind ? E.playerAction(me, 'tailwind', null, S.field) : { kind: 'pass' }],
+                 [ally, E.playerAction(ally, 'knockoff', f1, S.field)]]),
+        new Map([[f1, E.playerAction(f1, 'scald', ally, S.field)], [f2, { kind: 'pass' }]]));
+      return before - ally.curHP;
+    };
+    return took(false) > 0 && took(true) === 0;
+  });
+
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);
 if (failures) { console.log('  A green-and-stripped pair that did not flip means the probe does NOT watch its knob.'); process.exit(1); }

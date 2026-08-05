@@ -1,6 +1,6 @@
 # ABRA — Project Summary
 
-**Version 3.46.0 · 2026-08-05 · Will Hooper**
+**Version 3.49.0 · 2026-08-05 · Will Hooper**
 
 A one-page map of the whole project and every component. For depth: the
 [white paper](ABRA-whitepaper.md) (math + sources), the [deck](ABRA-deck-plain-english.md)
@@ -186,5 +186,5 @@ bias is large, and the closed-sheet Bo1 store carries the latter.
 | mirror control | **49.7% [46.2, 53.2]**, n=782 — survives the void run and retires the seat-asymmetry worry. |
 | MAG refit | ran; **moved nothing measurable.** Weather fix +0.048 top-1 [0.009, 0.093]; the refit itself −0.074 [−0.155, +0.004] against a 0.192-point noise floor. |
 | open, needs a decision | the fit sees `{nature, item}`; the player sees `{nature, item, ability, moves}`. **50.47% of trained decisions**, 99.75% of games. |
-| click censoring (3.42.0) | **1,336 of 241,927 recorded actions were never clicks** (Encore 1,116, `\|drag\|` 220) and were being fitted as human choices. Removed and counted. **3,260 redirected attacks (1.3475%)** now enter as a two-member candidate set instead of a certainty on the redirector. Paired on 47,195 held-out decisions: on coerced turns P(the fabricated action) **−0.002614 [−0.003663, −0.001637]**; on redirection turns **no improvement**; corpus top-1 flat. `data/censoring-value.json` |
+| click censoring (3.42.0, re-measured 3.47.0) | **1,383 of 249,404 recorded actions were never clicks** (Encore 1,152, `\|drag\|` 231) and were being fitted as human choices. Removed and counted. **3,328 redirected attacks (1.3344%)** now enter as a two-member candidate set instead of a certainty on the redirector. Paired on 48,274 held-out decisions: on coerced turns P(the fabricated action) **−0.002613 [−0.003650, −0.001672]**; on redirection turns **no improvement**; corpus top-1 flat. Both artifacts were re-run under the current engine after four simulator wires landed underneath them, on a corpus grown to 9,230 games, and every 3.42.0 figure reproduced inside its interval — the smaller run's numbers are in `CHANGELOG.md` 3.42.0. `data/click-censoring-census.json`, `data/censoring-value.json` |
 

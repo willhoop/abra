@@ -1,6 +1,6 @@
 # ABRA — the plain-English deck
 
-**Version 3.46.0 · 2026-08-05 · Will Hooper**
+**Version 3.49.0 · 2026-08-05 · Will Hooper**
 
 A slide-by-slide, jargon-light tour. The white paper (linked on the last slide) has the math and sources.
 
@@ -304,6 +304,15 @@ the model now puts measurably less confidence in the move nobody picked. The Fol
 turns are only about 1.3% of the data and the ambiguity is only ever between two targets. Overall
 accuracy did not move at all. We are doing it anyway, because a wrong label is a wrong label and the
 model has no way to tell us which of its mistakes came from one.
+
+**And then the simulator changed underneath both of those numbers, so we checked them again (3.47.0).**
+A measurement is only worth the version of the code it was taken on. Two of these results had been
+computed with a simulator that changed the same day, which normally means the results have to be
+thrown away and re-earned. Before doing that we asked the cheaper question: did the change actually
+alter any of the 58 things the model looks at? We ran every one of them through the old simulator and
+the new one, on 1.75 million real decisions, and got byte-for-byte the same answers — so the change
+was real in the game engine and invisible to the model. We re-ran both measurements anyway, on a
+corpus that had grown by nearly three hundred games, and every conclusion above came back the same.
 
 One more thing we found and did **not** fix: when a Pokémon is Taunted or Encored its menu shrinks,
 sometimes to a single legal option, and we were still scoring the player as though they had picked

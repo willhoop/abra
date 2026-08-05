@@ -62,6 +62,10 @@ const logUnreadable = (where, e) => {
 const j = p => { try { return JSON.parse(fs.readFileSync(D('data', p), 'utf8')); } catch (e) { return logUnreadable(`data/${p}`, e); } };
 const mtime = p => { try { return fs.statSync(D(p)).mtime; } catch (e) { return logUnreadable(`mtime ${p}`, e); } };
 const day = d => d ? d.toISOString().slice(0, 16).replace('T', ' ') : '—';
+/* ONE implementation of "how to hash a file" — engine/engine_release.js owns it. CLAUDE.md: FACTS
+ * ARE GLOBAL, and the local copies of this returned null on an unreadable file, so two nulls
+ * compared EQUAL and a stamp could certify itself. */
+const sha12 = require('./engine_release.js').sha12;
 const out = [];
 const say = s => out.push(s);
 
@@ -100,6 +104,38 @@ function engineInputs() {
   return null;
 }
 
+/* THE SECOND INSTRUMENT ON THE REFIT EDGE, read rather than re-derived — engine/status.js shells out
+ * to engine/provenance.js for the same reason. Returns null unless the artifact is present, carries a
+ * contrast whose ROWS matched (a contrast over different rows says nothing), and was measured against
+ * the CURRENT board.js and medicham2 — otherwise it is describing some other tree and must not speak.
+ * Written by engine/feature_engine_contrast.js. */
+function readContrast() {
+  try {
+    const j = JSON.parse(fs.readFileSync(D('data', 'feature-engine-contrast.json'), 'utf8'));
+    const live = (j.bundles || []).find(b => b.eng === 'live');
+    if (!live) return null;
+    if (live.medicham2 !== sha12(D('engine', 'medicham2-browser.js'))) return null;
+    const d = j.source_digests || {};
+    if (d['engine/board.js'] && d['engine/board.js'] !== sha12(D('engine', 'board.js'))) return null;
+    const usable = (j.contrasts || []).filter(c => c.same_rows);
+    if (!usable.length) return null;
+    const moved = [...new Set([].concat(...usable.map(c => c.columns_that_moved || [])))];
+    const worst = usable.find(c => (c.columns_that_moved || []).length) || usable[0];
+    return { moved, rows: live.rows, a: worst.a, b: worst.b,
+             fixtureNote: 'frozen boards' };
+  } catch (e) {
+    /* IT SPEAKS, and only when there is something to say. A missing artifact is the normal state —
+     * nobody has run the contrast yet — and shouting about it every run is how a note stops being
+     * read. An artifact that EXISTS and cannot be parsed is a different fact and gets a NOTE, because
+     * silently falling back to the fixture alone is exactly the blindness this function was added to
+     * cover. */
+    if (fs.existsSync(D('data', 'feature-engine-contrast.json'))) {
+      return logUnreadable('data/feature-engine-contrast.json (refit edge falls back to the fixture alone)', e);
+    }
+    return null;
+  }
+}
+
 function refitOwed() {
   const w = mtime(WEIGHTS);
   if (!w) return { verdict: 'NOT DERIVED', reason: 'no ' + WEIGHTS };
@@ -121,7 +157,24 @@ function refitOwed() {
   try {
     execFileSync(process.execPath, [D('engine', 'feature_fixture.js'), '--check', D('data', 'policy-weights.json')],
       { encoding: 'utf8', maxBuffer: 1 << 24, env: { ...process.env, SHOWDOWN_PATH: process.env.SHOWDOWN_PATH || 'C:/Users/willj/Projects/Pokemon/pokemon-showdown' } });
-    return { verdict: 'CLEAN', weights: w, newer, how: 'feature_fixture --check passes: all 58 columns hash-identical to fit time' };
+    /* A PASSING FIXTURE IS NOT A CLEAN EDGE, AND ON 2026-08-05 IT SAID CLEAN WHILE THREE COLUMNS HAD
+     * MOVED. `feature_fixture.js` hashes ~50 FROZEN boards, and its own header states the limit: a
+     * guard only guards what it exercises. 3.49.0 made speed order dynamic, no fixture board stands
+     * on that branch, and this line printed "the feature function did not [move]" over
+     * `deadNoLastMove`, `movesFirst` and `diesBeforeMoving` differing on 1,136,845 real corpus rows.
+     * So the corpus contrast is consulted where it exists, and it can only make this verdict WORSE,
+     * never better — an artifact that is missing, stale or inconclusive leaves the fixture's answer
+     * exactly as it was. docs/MEASURE.md §17b. */
+    const c = readContrast();
+    if (c && c.moved.length) {
+      return { verdict: 'REFIT OWED', weights: w, newer,
+               how: `feature_fixture --check passes on its ${c.fixtureNote}, but data/feature-engine-contrast.json `
+                  + `says ${c.moved.length} column(s) MOVED on ${c.rows.toLocaleString()} corpus rows: ${c.moved.join(', ')}`
+                  + ` (${c.a} vs ${c.b})` };
+    }
+    const how = 'feature_fixture --check passes: all 58 columns hash-identical to fit time'
+      + (c ? ` — and data/feature-engine-contrast.json agrees on ${c.rows.toLocaleString()} corpus rows` : '');
+    return { verdict: 'CLEAN', weights: w, newer, how };
   } catch (e) {
     const all = ((e.stdout || '') + '\n' + (e.stderr || '') + '\n' + (e.message || '')).toString();
     const msg = all.split('\n').filter(Boolean).slice(-3).join(' | ');
@@ -415,7 +468,7 @@ function measure() {
     for (const n of r.newer) say(`    moved after the fit: ${n.src}  ${day(n.at)}`);
   } else {
     say(`  refit edge: CLEAN — ${r.how}`);
-    for (const n of r.newer) say(`    (${n.src} moved ${day(n.at)}, but the feature function did not)`);
+    for (const n of r.newer) say(`    (${n.src} moved ${day(n.at)}, and no feature the fixture exercises moved with it)`);
   }
 }
 

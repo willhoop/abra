@@ -1152,6 +1152,43 @@ probe('move', 'doublesSideSpeed', 'Tailwind doubles the side Speed', () => {
   return { works: after > before * 1.8, detail: 'partner speed ' + before + '  ->  ' + after };
 });
 
+/* WIRE 118 -- THE OTHER HALF OF THE SAME TAG. The probe above proves the multiplier is APPLIED; it
+ * reads the speed AFTER the turn and cannot see when the boost starts counting. This asks whether the
+ * partner overtakes INSIDE the turn the Tailwind was clicked, which is what modern VGC does and what
+ * the engine did not: `acts` was sorted once and walked as a frozen list.
+ *
+ * THE EXPECTED ORDER CAME OUT OF THE OFFICIAL ENGINE at the pinned commit, both arms printed before a
+ * line of engine changed (harness: scratchpad/ref-dynspeed2.js, and ref-dynspeed.js before it):
+ *     control : Whimsicott -> Garchomp -> Milotic -> Incineroar
+ *     tailwind: Whimsicott -> Incineroar -> Garchomp -> Milotic     Incineroar OVERTOOK, same turn
+ *
+ * MILOTIC IS THE OVERTAKEN BODY AND THE REFERENCE HARNESS WAS RESTAGED TO SAY SO. The dispatch's pair
+ * was Garchomp/Incineroar at 0 EV (122 vs 80 -> 160). buildMon uses USAGE spreads and its Garchomp is
+ * invested at 161, so Tailwind's 160 does NOT overtake it -- that staging would have printed identical
+ * arms and read as agreement. Incineroar 80 and Milotic 101 are the two bodies whose MC lines are
+ * exactly the reference's own 0-EV lines, so this is the same question at the same numbers in both
+ * engines.
+ *
+ * THE OUTCOME, NOT THE ORDER LIST -- the same shape as the `priority` probe above. Milotic is left on
+ * 1 HP, so whoever moves first decides whether Milotic ever acts: if Incineroar overtakes it, Milotic
+ * faints before its Scald and the partner takes NOTHING. */
+probe('move', 'doublesSideSpeed', 'Tailwind speeds the PARTNER up inside the same turn', () => {
+  const run = (setTailwind) => {
+    const { me, ally, f1, f2, S } = board('whimsicott', 'incineroar', 'milotic', 'garchomp');
+    f1.curHP = 1;                                   // so the KO decides whether it ever acts
+    const before = ally.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, setTailwind ? M.playerAction(me, 'tailwind', null, S.field) : { kind: 'pass' }],
+               [ally, M.playerAction(ally, 'knockoff', f1, S.field)]]),
+      new Map([[f1, M.playerAction(f1, 'scald', ally, S.field)], [f2, { kind: 'pass' }]]));
+    return before - ally.curHP;
+  };
+  const control = run(false), test = run(true);
+  return { works: control > 0 && test === 0, arms: { control, test },
+           detail: 'partner (Incineroar 80) took ' + control + ' from a Milotic (101) that outran it, '
+                 + 'and ' + test + ' after the ally clicked Tailwind on the same turn' };
+});
+
 probe('move', 'sealsMoves', 'Disable stops the target repeating that move', () => {
   /* Staged like Encore and Taunt: the foe commits a move on its own, is Disabled, and is then left
    * COMPLETELY FREE. What it picks is the measurement. Checking the volatile alone would pass on a

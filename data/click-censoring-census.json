@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-05T06:11:45.570Z",
+ "generated": "2026-08-05T18:30:31.366Z",
  "source": "engine/click_census.js",
  "source_digests": {
   "engine/click_class.js": "011bb621fe76",
@@ -7,15 +7,15 @@
   "engine/fit_policy.js": "45f545425420",
   "engine/board.js": "54e3d2ca9f85",
   "engine/durable-ingest.js": "b4a7ee95693c",
-  "engine/medicham2-browser.js": "80fe43fba1a9",
-  "data/tags.json": "c0bb781f47a8",
+  "engine/medicham2-browser.js": "0cb911437fed",
+  "data/tags.json": "73c81e6421b8",
   "data/engine-data.js": "96a94b7fadf7"
  },
  "what": "Every human action in the fit corpus labelled CLEAN / PARTIAL / COERCED / ERASED. docs/CLICK-CENSORING-FIX.md Stage A.",
  "corpus": {
-  "games": 9022,
+  "games": 9230,
   "games_requested": null,
-  "of_total": 9022
+  "of_total": 9230
  },
  "mechanisms": {
   "derivation": "moves with condition.onOverrideAction; moves with forceSwitch; abilities with onFoeTryMove; items assigning switchFlag/forceSwitchFlag; data/tags.json `redirects` and `redirectsType`. Nothing here is a literal list.",
@@ -59,95 +59,95 @@
  },
  "event_stream_arm": {
   "coverage": 1,
-  "actions_seen": 244146,
-  "clean": 231674,
-  "partial": 3288,
+  "actions_seen": 249404,
+  "clean": 236712,
+  "partial": 3328,
   "partial_why": {
-   "moveRedirect": 3258,
+   "moveRedirect": 3298,
    "abilityDraw": 30
   },
   "partial_by": {
-   "followme": 678,
-   "ragepowder": 2580,
+   "followme": 689,
+   "ragepowder": 2609,
    "lightningrod": 30
   },
   "partial_set_size": {
-   "2": 3288
+   "2": 3328
   },
   "partial_degenerate": 0,
-  "coerced": 1345,
+  "coerced": 1383,
   "coerced_why": {
-   "actionOverridden": 1124,
-   "draggedIn": 221
+   "actionOverridden": 1152,
+   "draggedIn": 231
   },
   "coerced_by": {
-   "encore": 1124,
+   "encore": 1152,
    "roar": 184,
-   "dragontail": 34,
-   "whirlwind": 3
+   "dragontail": 42,
+   "whirlwind": 5
   },
   "other_drops": {
-   "unmatched": 6995,
-   "trivial": 814,
-   "ambiguous": 30,
+   "unmatched": 7126,
+   "trivial": 824,
+   "ambiguous": 31,
    "noSheet": 0,
    "noUser": 0
   },
   "rates": {
-   "coerced": 0.005508998713884315,
-   "partial": 0.013467351502789314,
-   "unmatched": 0.02865088922202289
+   "coerced": 0.005545219804012767,
+   "partial": 0.013343811646966368,
+   "unmatched": 0.02857211592436368
   },
   "shares_pct": {
-   "clean": 94.89158126694683,
-   "partial": 1.3467351502789315,
-   "coerced": 0.5508998713884316,
-   "unreadable": 3.21078371138581
+   "clean": 94.9110679860788,
+   "partial": 1.3343811646966368,
+   "coerced": 0.5545219804012766,
+   "unreadable": 3.2000288688232748
   },
-  "seconds": 205.2
+  "seconds": 290.2
  },
  "raw_protocol_arm": {
-  "coverage": 0.6647084903569054,
+  "coverage": 0.6722643553629469,
   "coverage_note": "data/games.ots.jsonl is an external archive with no raw-log file beside it. The gap is one SOURCE, not a random sample, which is why the recoverable clicks below are counted and not taken.",
-  "games_with_log": 5997,
+  "games_with_log": 6205,
   "cant_by_reason": {
-   "flinch": 3637,
-   "slp": 1379,
-   "ability: Armor Tail": 248,
-   "move: Taunt": 60,
-   "recharge": 151,
+   "flinch": 3760,
+   "slp": 1418,
+   "ability: Armor Tail": 258,
+   "move: Taunt": 63,
+   "recharge": 156,
    "Disable": 58,
-   "frz": 119,
-   "par": 194,
-   "ability: Queenly Majesty": 40,
+   "frz": 126,
+   "par": 198,
+   "ability: Queenly Majesty": 41,
    "move: Throat Chop": 7,
    "move: Imprison": 4,
    "move: Heal Block": 5,
    "Attract": 4
   },
-  "erased_actions": 5340,
-  "not_a_decision_recharge": 151,
-  "recoverable_clicks_not_taken": 127,
+  "erased_actions": 5513,
+  "not_a_decision_recharge": 156,
+  "recoverable_clicks_not_taken": 130,
   "recoverable_by_reason": {
-   "move: Taunt": 60,
+   "move: Taunt": 63,
    "Disable": 58,
    "move: Imprison": 4,
    "move: Heal Block": 5
   },
-  "priority_blocked": 288,
-  "priority_blocked_naming_attacker": 288,
-  "drag_lines": 87,
-  "encore_starts": 782,
-  "menu_sealed_actions": 2312,
+  "priority_blocked": 299,
+  "priority_blocked_naming_attacker": 299,
+  "drag_lines": 92,
+  "encore_starts": 814,
+  "menu_sealed_actions": 2374,
   "menu_sealed_by_volatile": {
-   "throatchop": 380,
-   "encore": 1294,
-   "taunt": 332,
-   "disable": 242,
+   "throatchop": 388,
+   "encore": 1337,
+   "taunt": 341,
+   "disable": 246,
    "healblock": 97
   },
-  "actions_seen_in_log": 141706,
-  "menu_sealed_rate": 0.01631547005772515,
+  "actions_seen_in_log": 146413,
+  "menu_sealed_rate": 0.01621440719061832,
   "examples": {
    "cant:flinch": "|cant|p2b: Primarina|flinch",
    "encore": "|-start|p1b: Charizard|Encore",
@@ -169,28 +169,28 @@
  },
  "agreement": {
   "encore": {
-   "truth": 627,
-   "found": 650,
-   "hit": 625
+   "truth": 655,
+   "found": 678,
+   "hit": 653
   },
   "drag": {
-   "truth": 87,
-   "found": 87,
-   "hit": 84
+   "truth": 92,
+   "found": 92,
+   "hit": 89
   }
  },
  "agreement_pct": {
   "encore": {
-   "recall": 99.68102073365232,
-   "precision": 96.15384615384616
+   "recall": 99.69465648854961,
+   "precision": 96.3126843657817
   },
   "drag": {
-   "recall": 96.55172413793103,
-   "precision": 96.55172413793103
+   "recall": 96.73913043478261,
+   "precision": 96.73913043478261
   }
  },
  "limits": [
   "The event-stream arm cannot see any class that leaves no event: the whole |cant| family. That is a property of engine/durable-ingest.js, not of the classifier.",
-  "The raw-protocol arm covers 66.47% of the fit corpus and the gap is one store, so it can validate and it cannot be fitted on without reweighting the sample."
+  "The raw-protocol arm covers 67.23% of the fit corpus and the gap is one store, so it can validate and it cannot be fitted on without reweighting the sample."
  ]
 }

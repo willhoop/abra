@@ -1,6 +1,14 @@
 # ABRA — Technical Documentation
 
-**Version 3.46.0 · Last updated 2026-08-05**
+**Version 3.49.0 · Last updated 2026-08-05**
+
+**Change record for 3.47.0.** Two artifacts were computed from an engine that then changed. Do not
+quote such an artifact. First measure whether the change moved the feature function: run every
+feature column through the old engine and the new engine on the same rows. All 58 columns were
+identical on 1,751,688 rows from 9,230 games. Then the two artifacts were computed again with the
+new engine. The result is the same: the model puts less probability on an action no human chose,
+**-0.002613, 95% CI [-0.003650, -0.001672]**, on 48,274 held-out decisions. `board.js` gives the
+priority rule a body with no type list. This is wrong for 0 of 1,751,688 rows. Do not change it yet.
 
 **Change record for 3.42.0.** The fit checks whether a recorded action was a click. 1,336 of
 241,927 actions were not clicks. Encore replaced 1,116 of them. A phazing move dragged in 220 of

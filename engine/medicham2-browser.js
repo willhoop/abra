@@ -1836,6 +1836,144 @@ if((side==='A'?field.twA:field.twB)>0)s*=2;
      }
    }}
   if(m.status==='par')s*=0.5;return s;}
+
+/* ===== WHO MOVES FIRST — ONE IMPLEMENTATION, AND EVERY ENGINE CALLS IT ==========================
+ *
+ * WIRE 118. There were TWO answers to this question and they had measurably diverged.
+ *   - HERE: `acts` was sorted once, at the top of the turn, and then walked as a frozen list. This
+ *     engine had NO dynamic speed at all.
+ *   - board.js:2791 wrote its own `(slowFirst ? mySpe < thSpe : mySpe > thSpe)` — the Trick Room
+ *     inversion and the speed comparison, restated by hand, twelve lines below a call it already
+ *     makes into this file (`D2.priorityRefusedAbove`). MAG's `speedSwing` and
+ *     `speedSetupHelpsPartner` therefore believe a Tailwind speeds the partner up THIS turn
+ *     (board.js:466 says so in words, and is right), while the rollout the search actually believes
+ *     said it did nothing. Tailwind is the dominant strategy in this format.
+ * Two implementations of a FACT is the failure CLAUDE.md names. board.js's copy is deleted; it calls
+ * compareTurnOrder below. Its EXPECTED-speed wrapper stays, because the opponent's spread is hidden
+ * and expected-speed-across-a-distribution is a legitimately different question from this engine's
+ * exact speed for a built body — what must not be duplicated is the ORDERING RULE underneath.
+ *
+ * THE RULE IS SHOWDOWN'S OWN, in Showdown's own words at the pinned commit
+ * (sim/battle-queue.ts, file header):
+ *     "Actions are sorted based on order (lower first) followed by priority (higher first)
+ *      followed by speed (higher first). Ties are broken with Fischer-Yates."
+ * and the re-sort is sim/battle.ts, gated on gen >= 8 and run after every action:
+ *     "In gen 8, speed is updated dynamically so update the queue's speed properties and sort it."
+ *         this.updateSpeed(); ...getActionSpeed(queueAction)...; this.queue.sort();
+ * It re-derives the SPEED only. `order` and `priority` are resolved once when the action is queued,
+ * which is why `_pri` is frozen at the top of the turn below rather than recomputed on each re-sort —
+ * a Grassy Terrain set halfway through the turn does not retroactively give Grassy Glide priority.
+ *
+ * `order` is the field After You and Quash write in Showdown's own data (`action.order = 3` for
+ * next, `= 201` for last, against 200 for a plain move action). It is what makes those two survive a
+ * re-sort; splicing the array did not, and under a dynamic order it silently would not have.
+ *
+ * MEASURED, not remembered, against the official engine at the pinned commit — L50 / 0 EV / 31 IV /
+ * Serious, Whimsicott 136, Garchomp 122, Milotic 101, Incineroar 80 (160 under Tailwind):
+ *     control : Whimsicott -> Garchomp -> Milotic -> Incineroar
+ *     tailwind: Whimsicott -> Incineroar -> Garchomp -> Milotic
+ * Incineroar overtakes INSIDE the turn. Pinned by the `doublesSideSpeed` probe
+ * "Tailwind speeds the PARTNER up inside the same turn", which was shown RED on the frozen list
+ * (115 damage taken in both arms — identical arms across a varied knob).
+ */
+const TURN_ORDER = { move: 200, next: 3, last: 201 };
+/* The bracket, lifted out of battleTurn so the comparator is one module-level function rather than a
+ * closure nothing outside the turn could reach. Behaviour is unchanged from the closure it replaces. */
+function actionPriority(it, field){
+  const k=it.a.kind;
+  /* WIRE 93 -- `priorityMod` read by SHAPE. Prankster was the hardcoded name here; Gale Wings
+     (765 uses) carried the same tag and had no consumer at all, so a full-HP Talonflame's Brave
+     Bird went in speed order. `movesOfClass` is the tag's own discriminator: 'status' shifts the
+     status kinds below, a TYPE name shifts attacks of that type. The one `condition` string in
+     the artifact ('only at full HP') is evaluated; any OTHER condition fails closed and is
+     counted, because silently applying a conditional shift points a wrong number in an unknown
+     direction. */
+  const _pmOf=(mon,cls,isAtk,moveId)=>{
+    const _pm=TAGS.param('ability',mon.ability,'priorityMod');
+    if(!_pm||!_pm.shift)return 0;
+    if(_pm.condition){
+      if(/full hp/i.test(String(_pm.condition))){ if(mon.curHP<mon.st.hp)return 0; }
+      else{
+        MEDFAILS.priorityModUnknownCond++;
+        if(!MEDFAILS.priorityModUnknownCondFirst)MEDFAILS.priorityModUnknownCondFirst=mon.ability+':'+_pm.condition;
+        return 0;
+      }
+    }
+    if(_pm.movesOfClass==='status')return isAtk?0:+_pm.shift;
+    if(isAtk&&moveId){const _mvR=MC.moves[moveId];
+      if(_mvR&&String(_mvR.t||'').toLowerCase()===String(_pm.movesOfClass||'').toLowerCase())return +_pm.shift;}
+    return 0;
+  };
+  if(k==='attack')    return movePriority(it.a.move.id, field)+_pmOf(it.mon,null,true,it.a.move.id);
+  /* PRANKSTER, +1 TO ANY STATUS CLICK (now via the tag above). Every kind below is a status
+     move; only 'attack' is not, and it returns above. The Dark-type immunity stays in
+     pranksterBlocked -- that half is Prankster-specific in the real engine too. */
+  const pk=_pmOf(it.mon,null,false,null);
+  /* A VOLUNTARY SWITCH RESOLVES BEFORE ANY MOVE. Not a priority bracket in the real game -- it
+     is a separate phase that happens first (Showdown expresses it as `order` 103, below a move's
+     200) -- but this engine orders everything through one comparator, so it sits above Protect's
+     +4. That ordering is the whole reason switching out of a predicted attack works, and getting
+     it wrong would make every switch eat the hit it was meant to dodge. Prankster does not touch
+     it. Left in the PRIORITY key rather than moved to `order`, because no move in this format
+     reaches +6 and re-expressing it would be a behaviour change smuggled into a refactor. */
+  if(k==='switch')    return 6;
+  if(k==='protect')   return 4+pk;
+  if(k==='wideguard') return 3+pk;
+  /* Read from each move's own data, which is what makes Trick Room -7 and Rage Powder +2 without
+     either being written here. `tail` and `trickroom` carry no mv on the action, so they name
+     their move; the rest already do. */
+  if(k==='tail')      return movePriority('tailwind', field)+pk;
+  if(k==='trickroom') return movePriority('trickroom', field)+pk;
+  return movePriority(it.a.mv, field)+pk;
+}
+/* The sort key for one queued action. `_pri` frozen at turn start, `_qc` rolled once per turn
+ * (WIRE 101), `_order` written only by After You / Quash, `_tie` rolled once on first demand. SPEED
+ * is the one field re-read on every re-sort, which is exactly what makes the order dynamic. */
+function turnOrderKey(it, field){
+  return { order: it._order==null?TURN_ORDER.move:it._order,
+           pri:   it._pri==null?actionPriority(it,field):it._pri,
+           qc:    it._qc||0,
+           spe:   effSpeed(it.mon,field,it.side),
+           tie:   it._tie==null?0:it._tie };
+}
+/* THE ORDERING RULE ITSELF. Pure, deterministic, consumes no RNG, and takes plain keys rather than
+ * bodies — which is what lets board.js ask it about an EXPECTED speed it computed from a hidden
+ * spread. Negative means `a` resolves first. Every field defaults, so a caller that knows only the
+ * two speeds passes only the two speeds; a genuine tie returns 0 and the caller decides what that
+ * means (board.js reads 0 as "not first", which is what its hand-rolled `>` did). */
+function compareTurnOrder(a, b, field){
+  const A=a||{}, B=b||{};
+  const oa=A.order==null?TURN_ORDER.move:A.order, ob=B.order==null?TURN_ORDER.move:B.order;
+  if(oa!==ob)return oa-ob;                                   // order: LOWER first
+  const dp=(B.pri||0)-(A.pri||0); if(dp)return dp;            // priority: HIGHER first
+  const dq=(B.qc||0)-(A.qc||0);   if(dq)return dq;            // Quick Claw, inside the bracket
+  let sp=(B.spe||0)-(A.spe||0);                               // speed: HIGHER first
+  if(field&&field.tr>0)sp=-sp;                                // Trick Room inverts the SPEED key only
+  if(sp)return sp;
+  return (B.tie||0)-(A.tie||0);
+}
+/* Sorts a live action list into resolution order, in place. Called at the top of the turn and again
+ * before every remaining action.
+ *
+ * THE TIE IS ROLLED ONCE PER ACTION, ON FIRST DEMAND, AND STORED — the same shape as `_qc`. The old
+ * comparator ended `sp||(rng()<0.5?-1:1)`, a coin flipped INSIDE the sort: re-sorting each iteration
+ * would re-draw it, the RNG stream would diverge, and every seeded run in the repo would change for
+ * reasons that have nothing to do with speed. Rolling lazily also means a turn with no speed tie
+ * draws exactly as many numbers as it did before this wire, so the existing seeded probes are
+ * untouched rather than merely "close". */
+function sortTurnOrder(acts, field, rng){
+  /* Keys built once per ACTION, not once per comparison: effSpeed is not free and this now runs
+   * before every action instead of once a turn. */
+  const K=new Map(); for(const it of acts)K.set(it,turnOrderKey(it,field));
+  const tie=it=>{ if(it._tie==null)it._tie=rng?rng():0; return it._tie; };
+  acts.sort((x,y)=>{
+    const c=compareTurnOrder(K.get(x),K.get(y),field);
+    if(c)return c;
+    return tie(y)-tie(x);
+  });
+  return acts;
+}
+
 /* ---- SECONDARY AND PRIMARY MOVE EFFECTS -------------------------------------------------------
  * Read from the SHARED rulebook (CHOMP/data/move-effects.json, exposed here as window.MOVE_EFFECTS
  * by build/build_browser_data.js). Before this, the rollout had its own rules and they were wrong:
@@ -2380,53 +2518,6 @@ function battleTurn(S,rng,actsForA,actsForB){
       move:(it.a.move&&it.a.move.id)||it.a.mv||null,
       target:(it.a.target&&it.a.target.name)||null}));
     for(const it of acts){if(it.a.kind==='protect'){it.mon.protect=(it.mon.tookProtectTurns===0||rng()<Math.pow(1/3,it.mon.tookProtectTurns));it.mon.tookProtectTurns++;it.mon._lastMove=it.a.mv||'protect';it.mon._protectMove=it.a.mv||null;}else if(it.a.kind==='wideguard'){if(it.side==='A')field.wgA=true;else field.wgB=true;it.mon.tookProtectTurns=0;}else it.mon.tookProtectTurns=0;}
-    /* Bracket first, then speed. Protect-likes are +4 and Wide Guard is +3 in the real game; a status
-     * move sits in its own move's bracket (Thunder Wave 0, Trick Room -7), not a blanket 0. */
-    const prio=it=>{
-      const k=it.a.kind;
-      /* WIRE 93 -- `priorityMod` read by SHAPE. Prankster was the hardcoded name here; Gale Wings
-         (765 uses) carried the same tag and had no consumer at all, so a full-HP Talonflame's Brave
-         Bird went in speed order. `movesOfClass` is the tag's own discriminator: 'status' shifts the
-         status kinds below, a TYPE name shifts attacks of that type. The one `condition` string in
-         the artifact ('only at full HP') is evaluated; any OTHER condition fails closed and is
-         counted, because silently applying a conditional shift points a wrong number in an unknown
-         direction. */
-      const _pmOf=(mon,cls,isAtk,moveId)=>{
-        const _pm=TAGS.param('ability',mon.ability,'priorityMod');
-        if(!_pm||!_pm.shift)return 0;
-        if(_pm.condition){
-          if(/full hp/i.test(String(_pm.condition))){ if(mon.curHP<mon.st.hp)return 0; }
-          else{
-            MEDFAILS.priorityModUnknownCond++;
-            if(!MEDFAILS.priorityModUnknownCondFirst)MEDFAILS.priorityModUnknownCondFirst=mon.ability+':'+_pm.condition;
-            return 0;
-          }
-        }
-        if(_pm.movesOfClass==='status')return isAtk?0:+_pm.shift;
-        if(isAtk&&moveId){const _mvR=MC.moves[moveId];
-          if(_mvR&&String(_mvR.t||'').toLowerCase()===String(_pm.movesOfClass||'').toLowerCase())return +_pm.shift;}
-        return 0;
-      };
-      if(k==='attack')    return movePriority(it.a.move.id, field)+_pmOf(it.mon,null,true,it.a.move.id);
-      /* PRANKSTER, +1 TO ANY STATUS CLICK (now via the tag above). Every kind below is a status
-         move; only 'attack' is not, and it returns above. The Dark-type immunity stays in
-         pranksterBlocked -- that half is Prankster-specific in the real engine too. */
-      const pk=_pmOf(it.mon,null,false,null);
-      /* A VOLUNTARY SWITCH RESOLVES BEFORE ANY MOVE. Not a priority bracket in the real game -- it
-         is a separate phase that happens first -- but this engine orders everything through one
-         sort, so it sits above Protect's +4. That ordering is the whole reason switching out of a
-         predicted attack works, and getting it wrong would make every switch eat the hit it was
-         meant to dodge. Prankster does not touch it. */
-      if(k==='switch')    return 6;
-      if(k==='protect')   return 4+pk;
-      if(k==='wideguard') return 3+pk;
-      /* Read from each move's own data, which is what makes Trick Room -7 and Rage Powder +2 without
-         either being written here. `tail` and `trickroom` carry no mv on the action, so they name
-         their move; the rest already do. */
-      if(k==='tail')      return movePriority('tailwind', field)+pk;
-      if(k==='trickroom') return movePriority('trickroom', field)+pk;
-      return movePriority(it.a.mv, field)+pk;
-    };
     /* WIRE 101 -- QUICK CLAW (`fractionalPriority`): 20% of turns the holder jumps its own priority
        bracket, decided ONCE per turn per holder before the sort (a roll inside a comparator would be
        re-drawn per comparison). The rng is consumed only for a body that actually carries the tag, so
@@ -2436,11 +2527,20 @@ function battleTurn(S,rng,actsForA,actsForB){
       const _fp=TAGS.param('item',it.mon.item,'fractionalPriority');
       it._qc=(_fp&&_fp.chance&&rng()<+_fp.chance)?1:0;
     }
-    acts.sort((x,y)=>{const dp=prio(y)-prio(x);if(dp)return dp;const dq=(y._qc||0)-(x._qc||0);if(dq)return dq;let sp=effSpeed(y.mon,field,y.side)-effSpeed(x.mon,field,x.side);if(field.tr>0)sp=-sp;return sp||(rng()<0.5?-1:1);});
-    /* Move order is needed to resolve flinch correctly: a flinch only stops a target that has NOT
-     * yet acted this turn. `acts` is already sorted into resolution order, so position in it IS the
-     * move order. Without this, a slow Rock Slide would "flinch" a foe that had already attacked. */
-    const actedAt=new Map(); acts.forEach((it,i)=>actedAt.set(it.mon,i));
+    /* WIRE 118 -- the bracket is FROZEN here, once, exactly as Showdown resolves an action's priority
+       when it is queued and never again. The comparator, the Trick Room inversion and the tie now
+       live in compareTurnOrder/sortTurnOrder at module scope, next to movePriority and effSpeed,
+       because board.js calls the same rule. See the block above effSpeed. */
+    for(const it of acts) it._pri=actionPriority(it,field);
+    sortTurnOrder(acts,field,rng);
+    /* WIRE 118 -- "HAS THIS BODY ALREADY ACTED?" IS NOW "HAS IT RESOLVED?", AND THAT IS THE POINT.
+     * A flinch only stops a body that has not yet moved. That used to be an INDEX into a list frozen
+     * at the top of the turn (`actedAt`), which stops meaning anything once the list can re-sort
+     * under it. A set of the actions still outstanding is the same question asked directly, and it
+     * keeps the half the index was quietly also answering: a body with NO action this turn (dragged
+     * in by Roar, or switched in mid-turn) is not in this set either, so it cannot be given a flinch
+     * that would then leak into the next turn. */
+    const unresolved=new Set(acts.map(it=>it.mon));
     /* WIRE 82 -- THE PRE-TURN MOVE CLASS. Will: "BEAK BLAST IS LIKE SPICY SPRAY FOCUS PUNCH OR
      * SOMETHING." He is naming a real class: Focus Punch and Beak Blast (and Shell Trap, which this
      * format bans) commit at the START of the turn and then react to what happened while they waited.
@@ -2458,7 +2558,20 @@ function battleTurn(S,rng,actsForA,actsForB){
       const _pt=_pid&&TAGS.param('move',_pid,'preTurnShield');
       it.mon._preTurn=_pt?{id:_pid,p:_pt,hit:false,hitSide:null}:null;
     }
-    for(const [actIdx,it] of acts.entries()){const m=it.mon;if(m.fainted||m.curHP<=0)continue;
+    /* WIRE 118 -- DYNAMIC SPEED. THE REMAINING ACTIONS ARE RE-SORTED BEFORE EACH ONE RESOLVES, which
+       is what the official engine does after every action (sim/battle.ts, gen >= 8: "speed is updated
+       dynamically so update the queue's speed properties and sort it"). Only the tail [i..] is
+       touched: what has already resolved cannot be reordered, and every index below i stays valid.
+       Costs one sort of at most four keys per action and consumes no RNG -- see sortTurnOrder. */
+    for(let actIdx=0;actIdx<acts.length;actIdx++){
+      if(actIdx>0&&actIdx<acts.length-1){
+        const _rest=sortTurnOrder(acts.slice(actIdx),field,rng);
+        for(let _k=0;_k<_rest.length;_k++)acts[actIdx+_k]=_rest[_k];
+      }
+      const it=acts[actIdx];const m=it.mon;
+      /* Marked BEFORE the body runs, so a move cannot flinch the Pokemon using it. */
+      unresolved.delete(m);
+      if(m.fainted||m.curHP<=0)continue;
       if(m._flinch){m._flinch=false;continue;}
       if(m.status==='par'&&rng()<0.125)continue;   // Champions: 12.5% full-para (was 25%)
       if(m.status==='frz'){m.frzTurns=(m.frzTurns||0)+1;if(m.frzTurns>=3||rng()<0.25)m.status='';else continue;}   // Champions: 25%/attempt, guaranteed thaw turn 3
@@ -2808,12 +2921,13 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         continue;
       }
-      /* WIRE 109 -- AFTER YOU / QUASH rewrite the rest of THIS turn's queue. The target's still-
-         pending action is spliced to immediately-next ({sends:'next'}) or to the back
-         ({sends:'last'}); a target that already acted makes the move fail, which is the real rule.
-         actedAt is recomputed so the flinch bookkeeping keeps meaning "position in resolution
-         order". Mutating `acts` mid-iteration is safe here: the array iterator walks by index and
-         every splice touches only positions after actIdx. */
+      /* WIRE 109 -- AFTER YOU / QUASH rewrite the rest of THIS turn's queue. A target that has
+         already resolved makes the move fail, which is the real rule.
+         WIRE 118 -- IT WRITES THE ACTION'S `order`, IT NO LONGER SPLICES THE ARRAY. A splice is
+         undone by the next re-sort, so under dynamic speed the whole mechanic would have gone
+         silently dead. `order` is the field Showdown's own After You and Quash write for exactly this
+         reason (`action.order = 3` / `= 201` against 200 for a plain move), and it is the FIRST key
+         compareTurnOrder reads, so it survives every later re-sort. */
       if(a.kind==='reorder'){
         m._lastMove=a.mv;
         const _ro=TAGS.param('move',a.mv,'reordersTurn')||{};
@@ -2822,13 +2936,9 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _isFoe=m._sf&&t._sf!==m._sf;
           const _ok=!_isFoe||(!(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
             &&!TAGS.has('ability',t.ability,'refusesStatusMoves')&&!pranksterBlocked(m,t,a.mv));
-          if(_ok){
-            const _j=acts.findIndex((x,ix)=>ix>actIdx&&x.mon===t);
-            if(_j>=0){
-              const _entry=acts.splice(_j,1)[0];
-              if(_ro.sends==='next')acts.splice(actIdx+1,0,_entry);else acts.push(_entry);
-              acts.forEach((x,ix)=>actedAt.set(x.mon,ix));
-            }
+          if(_ok&&unresolved.has(t)){
+            const _entry=acts.find(x=>x.mon===t);
+            if(_entry)_entry._order=(_ro.sends==='next')?TURN_ORDER.next:TURN_ORDER.last;
           }
         }
         continue;
@@ -3789,12 +3899,13 @@ function battleTurn(S,rng,actsForA,actsForB){
               }
               else if(s.volatile==='flinch'){
                 /* Flinch needs BOTH conditions: the target must not have moved yet this turn, and
-                 * Inner Focus blocks it outright. Position in `acts` is the move order. */
-                const ti=actedAt.has(tg)?actedAt.get(tg):-1;
+                 * Inner Focus blocks it outright. WIRE 118: "not yet moved" is the target still
+                 * being in `unresolved`, which is the same question the frozen index used to answer
+                 * and the only one that still means anything once the queue re-sorts. */
                 /* Counted on all three branches so a zero is DIAGNOSTIC rather than merely absent:
                  * "never fired" and "always blocked by Inner Focus" and "the target had already
                  * moved" are three different states and only the first is a defect. */
-                if(ti<=actIdx) MEDSEEN.flinchTooLate++;
+                if(!unresolved.has(tg)) MEDSEEN.flinchTooLate++;
                 else if(tgAb==='innerfocus') MEDSEEN.flinchBlockedByInnerFocus++;
                 else { tg._flinch=true; MEDSEEN.flinch++; }
               }
@@ -3811,8 +3922,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            if(_kr&&_kr.pFlinch&&!suppressed&&!tg.fainted
               &&!(fx&&fx.secondary&&fx.secondary.some(s=>s&&s.volatile==='flinch'))
               &&rng()<+_kr.pFlinch){
-             const ti=actedAt.has(tg)?actedAt.get(tg):-1;
-             if(ti<=actIdx) MEDSEEN.flinchTooLate++;
+             if(!unresolved.has(tg)) MEDSEEN.flinchTooLate++;
              else if(tgAb==='innerfocus') MEDSEEN.flinchBlockedByInnerFocus++;
              else { tg._flinch=true; MEDSEEN.flinch++; }
            }}
@@ -3829,8 +3939,8 @@ function battleTurn(S,rng,actsForA,actsForB){
              applyStatus(tg,CODE_OF_STATUS[_ps.oneOf[_i]]||_ps.oneOf[_i]);
            }}
           // Fake Out still flinches: it is a guaranteed flinch, and it always moves first (+3 priority)
-          if(a.move.id==='fakeout'){ const ti=actedAt.has(tg)?actedAt.get(tg):-1;
-            if(ti<=actIdx) MEDSEEN.flinchTooLate++;
+          if(a.move.id==='fakeout'){
+            if(!unresolved.has(tg)) MEDSEEN.flinchTooLate++;
             else if(tgAb==='innerfocus') MEDSEEN.flinchBlockedByInnerFocus++;
             else { tg._flinch=true; MEDSEEN.flinch++; } }
           /* WIRE 50 -- POISON TOUCH / TOXIC CHAIN, 985 sheets and nothing at all. Lesson 3 bites
@@ -4580,6 +4690,11 @@ root.futureSight=futureSight;
 /* the tag lookup, exported so exposure.js prices risk off the SAME adapter the wires read —
  * a second adapter over window.ABRA_TAGS would be a place for the two to disagree */
 root.ABRA_TAG_LOOKUP=TAGS; root.canTakeStatus=canTakeStatus; root.effSpeed=effSpeed;
+/* WIRE 118 -- ON THE ROOT AS WELL AS IN module.exports, because board.js reaches this engine through
+   the GLOBAL object in a browser (damageEngine() returns `window`) and through require() in node. A
+   module-only export would have left the Battle Tower page falling back on a hand-rolled order --
+   which is the duplicate this wire deletes, reappearing in the one environment nothing tests. */
+root.compareTurnOrder=compareTurnOrder; root.turnOrderKey=turnOrderKey; root.sortTurnOrder=sortTurnOrder;
 root.punishExposure=punishExposure; root.clickFragility=clickFragility;
 root.battleInit=battleInit; root.battleTurn=battleTurn; root.battleOver=battleOver; root.battleResult=battleResult; root.playerAction=playerAction;
 root.parsePaste=parsePaste; root.buildMonFromSet=buildMonFromSet; root.weatherId=weatherId; root.terrainId=terrainId;
@@ -4588,6 +4703,11 @@ root.parsePaste=parsePaste; root.buildMonFromSet=buildMonFromSet; root.weatherId
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,
   punishExposure,clickFragility,statusCostOf,physicalShare,speedFlipShare,EXPOSURE_HORIZON,bestMoveVs,battleInit,battleTurn,battleOver,battleResult,playerAction,parsePaste,buildMonFromSet,
   moveFx,movePriority,priorityRefusedAbove,isGrounded,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors,
+  /* WIRE 118 -- THE ORDERING RULE, exported because board.js had a second copy of it. It is one
+     function, it is pure, and it consumes no RNG, so a feature vector can ask it the same question a
+     turn asks. `turnOrderKey`/`sortTurnOrder` come with it so a caller cannot have to rebuild the
+     key by hand and get the Trick Room inversion subtly wrong -- which is how there came to be two. */
+  compareTurnOrder,turnOrderKey,sortTurnOrder,actionPriority,TURN_ORDER,
   /* Exported so a caller can ask THIS engine what counts as a protect rather than keeping a second
    * list that drifts from it: the live bot tracks consecutive uses to seed tookProtectTurns. */
   PROTECTMOVES,

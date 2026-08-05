@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 3.46.0 · Last updated 2026-08-05.**
+**Version 3.49.0 · Last updated 2026-08-05.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
@@ -263,10 +263,12 @@ than Pelipper plus Archaludon** — the same expressiveness failure as DODUO, on
 ## MEDICHAM — Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves
 
 **MECHANICS STATE, 2026-08-05 (3.41.0), read from the artifact rather than typed:**
-`data/mechanics-census.json` reads **210 live of 213 probed, 3 missing, 0 hollow** (wires 82–89 at
+`data/mechanics-census.json` reads **211 live of 214 probed, 3 missing, 0 hollow** (wires 82–89 at
 3.40.0, then the Layer 0 pass — wires 90–112 — at 3.41.0; Marvel Scale and After You/Quash came
 off the missing list, the second because the "cannot tell it from Instruct" blocker was false:
-Instruct carries `instructsTarget {extraAction:true}`, a shape read). The three remaining are each
+Instruct carries `instructsTarget {extraAction:true}`, a shape read; then the scope pass, WIRE 117's
+grounded-ness, and WIRE 118 — **dynamic speed**, where the queue re-sorts before every action and
+board.js's hand-rolled copy of the ordering rule was deleted in favour of the engine's). The three remaining are each
 declared with a reason in [ENGINE.md](ENGINE.md) — two on the `moveAccuracy(id, field)` signature
 (a change that crosses into the refit edge MEASURE owns), one by DECISION (Avalanche asks for turn
 state `dmgRange` is not given).
@@ -549,8 +551,8 @@ hand-check + shipped-artifact invariants), gated in CI.
 > **Residual, measured not assumed: 1.7% of damaging events are still dropped**, and 1,613 of the
 > 1,625 are one species. `MC.mons` carries `floette-mega` with `base: "floette"`, the store's bring
 > lists hold `floetteeternal`, and there is no `floette` row — so the chain does not close. The rest
-> are in-battle formes the mega table does not cover (`mimikyubusted` 274, `morpekohangry` 48,
-> `castformsnowy`/`castformrainy` 11). Both are dex-data gaps and are filed, not patched here:
+> are in-battle formes the mega table does not cover (`mimikyubusted` 274, `morpekohangry` 48, and
+> the two Castform weather formes). Both are dex-data gaps and are filed, not patched here:
 > reaching for the Showdown dex to close them would make `train_value.py` produce different numbers
 > depending on whether `SHOWDOWN_PATH` is set, which is this project's named failure in a new place.
 **self-play:** `sim/generate-dataset.js` writes engine games into the store schema (unlimited, unbiased data).
@@ -754,11 +756,12 @@ improvement is not yet shown.
 `data/partial-label-em.json`, `data/censoring-value.json`.
 
 Of **241,927 recorded human actions over 8,942 games** (`data/policy-weights.json` — the FIT corpus;
-the census sweeps 9,022 games because it reads every stored game while the fit takes only those it
-can build a board for), **1,336 were never clicks** — 1,116 Encore application turns, where the move
+`data/click-censoring-census.json` sweeps 9,230 games because it reads every stored game while the
+fit takes only those it can build a board for, and its three class shares have held to a hundredth of
+a point across every re-run as the store grew), **1,336 were never clicks** — 1,116 Encore application turns, where the move
 Encore forces out is on the victim's own menu so the matcher accepted it, and 220 `|drag|` arrivals,
 which `engine/durable-ingest.js` stores with the same shape as a voluntary switch. All 1,336 were
-being fitted as human choices. A further **3,260 (1.3475%)** are redirected attacks whose recorded
+being fitted as human choices. A further **3,260** are redirected attacks whose recorded
 target is the redirector; those are now fitted under the marginal likelihood over a two-member
 candidate set instead of as a confident wrong label.
 
@@ -767,12 +770,14 @@ train / 46,321 held out). `‖new − old‖₂ = 0.8030`, 9 of 58 weights past 
 movement is `stallIntoEncore` — *"I am about to Protect and something across from me can Encore me
 for it"* — at **−1.0502 → −1.6281**, which is the direction the mechanism predicts.
 
-**The measured value, and the half that did not work.** 47,195 paired held-out decisions over 1,809
-games, bootstrapped over GAMES (`engine/censoring_value.js`): on **COERCED** turns the model now puts
-**−0.002614 [−0.003663, −0.001637]** less probability on the action no human chose — the poison
+**The measured value, and the half that did not work.** 48,274 paired held-out decisions over 1,851
+games, bootstrapped over GAMES (`engine/censoring_value.js`, re-run 2026-08-05 under the current
+engine on a corpus grown to 9,230 games; the 3.42.0 run measured 47,195 decisions over 1,809 games
+and every figure below is inside that run's interval): on **COERCED** turns the model now puts
+**−0.002613 [−0.003650, −0.001672]** less probability on the action no human chose — the poison
 unlearned. On **REDIRECTION** turns there is **no improvement**: mass on the true candidate set
-+0.000109 [−0.000286, +0.000491], and the log-likelihood on the set is very slightly worse. Corpus
-top-1 is flat (+0.002 points, contains zero), which the spec disclaimed in advance. The estimator
++0.000122 [−0.000261, +0.000514], and the log-likelihood on the set is very slightly worse. Corpus
+top-1 is flat (−0.008 points, contains zero), which the spec disclaimed in advance. The estimator
 itself is sound — it recovers **97.4%** of a planted censoring bias when censoring is heavy — and at
 the corpus's real rate the bias is **inside its own noise floor**, which is why nothing moved. Every
 effect here is smaller than its class's split-half floor and resolves only because it is paired.

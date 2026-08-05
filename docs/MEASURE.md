@@ -1,8 +1,8 @@
 # MEASURE — can we believe a number
 
 **Owns:** `engine/mew.js`, `engine/sprt.js`, `engine/provenance.js`, `engine/status.js`,
-`engine/backtest_winrate.js`, `engine/paired_h2h.js`, the noise floor, the corpus stamps, and the
-MAG refit.
+`engine/backtest_winrate.js`, `engine/paired_h2h.js`, `engine/feature_engine_contrast.js`, the noise
+floor, the corpus stamps, and the MAG refit.
 
 **Its one number:** leaf calibration — when the leaf says 90%, is it 90%.
 
@@ -19,21 +19,23 @@ MEASURE — can we believe a number
     powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835
     PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/abra-tags.js
     (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
-  provenance: 2 unsafe, 1 void (declared), 42 possibly stale, 55 ok, 0 missing
-  click censoring: 1,345 of 244,146 recorded actions were NOT clicks (0.551%) and left the labeled set; 3,288 (1.347%) are kept under a candidate set
-    classifier vs the raw protocol on 5,997 games (66.5% of the corpus): encore recall 99.7% precision 96.2%, drag recall 96.6% precision 96.6%
+  provenance: 3 unsafe, 1 void (declared), 43 possibly stale, 54 ok, 0 missing
+  click censoring: 1,383 of 249,404 recorded actions were NOT clicks (0.555%) and left the labeled set; 3,328 (1.334%) are kept under a candidate set
+    classifier vs the raw protocol on 6,205 games (67.2% of the corpus): encore recall 99.7% precision 96.3%, drag recall 96.7% precision 96.7%
     EM recovers 91.4% of a planted censoring bias of 0.957 against a 0.326 noise floor (amplified regime)
     behaviour on the OUTPLAYED turns, after - before, paired and game-bootstrapped:
-      redirection turns, mass on the candidate set  +0.000109 [-0.000286, 0.000491] (contains zero)   n=643
-      coerced turns, P(the coerced action)          -0.002614 [-0.003663, -0.001637]   n=284  (lower is better)
-      CONTROL, clean turns, logL                    +0.000447 [0.000142, 0.000743]   n=46268
-  refit edge: CLEAN — feature_fixture --check passes: all 58 columns hash-identical to fit time
-    (engine/medicham2-browser.js moved 2026-08-05 17:37, but the feature function did not)
-    (data/engine-data.js moved 2026-08-05 16:52, but the feature function did not)
-    (data/abra-tags.js moved 2026-08-05 17:44, but the feature function did not)
+      redirection turns, mass on the candidate set  +0.000122 [-0.000261, 0.000514] (contains zero)   n=650
+      coerced turns, P(the coerced action)          -0.002613 [-0.003650, -0.001672]   n=293  (lower is better)
+      CONTROL, clean turns, logL                    +0.000485 [0.000189, 0.000777]   n=47331
+  REFIT OWED — weights fitted 2026-08-05 04:00
+    feature_fixture --check passes on its frozen boards, but data/feature-engine-contrast.json says 3 column(s) MOVED on 1,136,845 corpus rows: deadNoLastMove, movesFirst, diesBeforeMoving (live vs 09acd3b404ef)
+    moved after the fit: engine/medicham2-browser.js  2026-08-05 19:43
+    moved after the fit: engine/board.js  2026-08-05 19:44
+    moved after the fit: data/engine-data.js  2026-08-05 16:52
+    moved after the fit: data/abra-tags.js  2026-08-05 17:44
 ```
 
-_stamped 2026-08-05 17:47_
+_stamped 2026-08-05 20:46_
 
 <!-- /GENERATED -->
 
@@ -1309,6 +1311,13 @@ and only one moved:
 `engine/censoring_value.js`. The spec disclaims a corpus-wide top-1 improvement in advance and none
 is claimed here; the CLEAN row is a control.
 
+> **RE-MEASURED 2026-08-05 on the current engine and a corpus grown to 9,230 games — every figure in
+> this section reproduces inside its interval.** The table above is the 3.42.0 run and is kept as
+> published; the artifact on disk now holds **n=48,274 over 1,851 held-out games**, COERCED
+> **−0.002613 [−0.003650, −0.001672]**, PARTIAL mass **+0.000122 [−0.000261, +0.000514]**, CLEAN logL
+> **+0.000485 [0.000189, 0.000777]**. §17 has the full comparison and the reason the engine move
+> could not have touched it.
+
 **Say the negative result plainly: Stage C bought nothing measurable, and the reason was predicted by
 Stage C's own validation before the refit ran.** The EM harness recovers **97.4%** of a planted
 censoring bias when the censoring is heavy, and at the rate the corpus actually censors, the bias in
@@ -1317,7 +1326,9 @@ is right in principle, and the class is 1.35% of actions with a candidate set of
 there was almost nothing to recover. Both instruments agree, which is the only reason to believe
 either.
 
-**Stage A — the census.** 241,927 recorded human actions over 8,942 clean open-sheet games:
+**Stage A — the census.** 241,927 recorded human actions over 8,942 clean open-sheet games (the FIT
+corpus; the census artifact has since been re-run twice with the store, at 9,022 and then **9,230**
+games, and the shares are stable to a hundredth of a point — see §17):
 
 | class | n | share | mechanism |
 |---|---|---|---|
@@ -1612,6 +1623,12 @@ bit-for-bit and leaves the row file byte-identical.
 
 ## §16 — `censoring-value.json` is UNSAFE, and re-running it is not a repeat
 
+> **ANSWERED IN §17, 2026-08-05 — and by none of the three options below.** The confound was measured
+> instead of argued: all 58 feature columns are identical across the engine bundles on all 1,751,688
+> corpus rows, so the fitting environment and the playing environment are the same FUNCTION here. Both
+> artifacts were re-run against the live tree and both are `ok`. The section below is kept as what was
+> true before that was measured; do not read its three options as open.
+
 *2026-08-05.* `provenance.js` flags it: `medicham2-browser.js` was `e2bcff0db96f` when it was
 measured and is `80fe43fba1a9` now, because WIRES 114–116 landed underneath it. The flag is
 correct and the artifact should not be quoted.
@@ -1646,6 +1663,193 @@ change plus three wires* as one quantity. The options, none free:
 
 Not chosen here. `engine/censoring_value.js` refuses to run without `WEIGHTS_OLD` and now points at
 the preserved baseline and at this section, so whoever picks it up is choosing rather than guessing.
+
+## §17 — THE CONFOUND WAS MEASURED AND IT IS EMPTY. Both artifacts re-run, both `ok`. 2026-08-05.
+
+**None of the three options in §16 was taken, and the reason is a measurement rather than an
+argument.** The blocking question — *"the vectors were fitted under one engine and would be scored
+through another"* — is a claim about the FEATURE FUNCTION, and a feature function is a function from
+a board to a number. Two versions of it are the same function if they agree on every board. So they
+were run against each other on every board the fit actually uses.
+
+**Result: all 58 feature columns are hash-identical across the three engine bundles, over
+1,751,688 candidate feature vectors from all 9,230 clean open-sheet games.**
+
+| bundle | `medicham2-browser.js` | `data/tags.json` | what read it | 58 column hashes |
+|---|---|---|---|---|
+| release `09acd3b404ef` | `e2bcff0db96f` | `c0bb781f47a8` | `censoring-value.json` | identical |
+| release `032b4a2979dd` | `80fe43fba1a9` | `c0bb781f47a8` | `click-censoring-census.json` | identical |
+| live | `0cb911437fed` | `73c81e6421b8` | the re-runs below | identical |
+
+The three bundles were loaded from the frozen releases and registered under the live module paths, so
+`board.js`, `fit_policy.js` and `click_match.js` are the same bytes in every arm and only the
+simulator and the tag dex move. `engine/quality.js` is deliberately NOT swapped — a snapshot copy of
+it resolves the store inside the release directory and the walk would have had no rows to disagree
+about.
+
+**A null result from an instrument that cannot see is worth nothing, so the instrument was shown
+seeing.** Under a Psychic Terrain with a Levitate body, the two frozen engines return `0` — priority
+refused — and the live one returns `Infinity`. The harness reads the same call the feature code
+reads, so a difference of that kind would have moved a column.
+
+**Why the change is real in the simulator and invisible in the features:** across the whole corpus
+`board.js` makes **173,478** guarded calls to `priorityRefusedAbove`, of which **424** are under a
+Psychic Terrain, and in **0** of them is every live defender airborne. WIRE 117 can only change an
+answer when no grounded body is left to hold the bar up.
+
+**Both artifacts were then re-run against the live tree, and both reproduce.** The corpus had grown
+8,942 → 9,022 → **9,230** clean open-sheet games in between, so this is a fresh measurement on a
+superset rather than a replay — which makes the agreement evidence rather than tautology:
+
+| held-out class | published 3.42.0 (n=47,195, 1,809 games) | **re-run (n=48,274, 1,851 games)** |
+|---|---|---|
+| **COERCED** P(the coerced action), lower is better | −0.002614 [−0.003663, −0.001637] | **−0.002613 [−0.003650, −0.001672]** |
+| **PARTIAL** mass on the candidate set | +0.000109 [−0.000286, +0.000491] | **+0.000122 [−0.000261, +0.000514]** |
+| PARTIAL log-likelihood of the set | −0.002646 [−0.004037, −0.001377] | **−0.002662 [−0.004002, −0.001368]** |
+| CONTROL, CLEAN log-likelihood | +0.000447 [0.000142, 0.000743] | **+0.000485 [0.000189, 0.000777]** |
+| CONTROL, CLEAN top-1 | +0.002 [−0.094, 0.098] | **−0.008 [−0.107, 0.085]** |
+
+Every verdict in §14 stands, including the negative one: the redirection correction still buys
+nothing measurable, and **every effect is still smaller than its own class's split-half floor**
+(COERCED 0.002613 against 0.011909; CLEAN logL 0.000485 against 0.004820). They resolve because the
+comparison is paired per decision, and that sentence must keep travelling with the numbers.
+
+The census moved with the corpus and its shares did not: **249,404 actions over 9,230 games — CLEAN
+94.9111%, PARTIAL 1.3344% (3,328), COERCED 0.5545% (1,383: Encore 1,152, `|drag|` 231)**, against
+94.8916 / 1.3467 / 0.5509 at 9,022 games. The classifier still scores against the raw protocol at
+**encore recall 99.69% precision 96.31%, drag 96.74% / 96.74%** on the 67.23% of games that have a
+raw log.
+
+`node engine/provenance.js --strict` **exited 0 at that point: 0 UNSAFE, 1 declared VOID
+(`exploitability.json`), 57 ok.** Both files carry `source_digests` over the tree they were computed
+on, so a next engine move flags them again by CONTENT rather than by mtime — **and one did, forty
+minutes later. See §17b, which is the more important half of this section.**
+
+**What this does NOT license.** It says the four wires moved no feature on THIS corpus — it does not
+say the engine did not change, and it is not a general permit to score old weights through a new
+simulator. The next engine move gets the same treatment: run the columns, then decide.
+
+**The harness is `engine/feature_engine_contrast.js` and it is in the repository, not in a session
+scratchpad — which is §16's own lesson applied to §17's evidence.** It writes
+`data/feature-engine-contrast.json` with `source_digests`, and it costs about four minutes per bundle
+over the whole corpus:
+
+```bash
+SHOWDOWN_PATH=… BUNDLES=live,09acd3b404ef,032b4a2979dd node engine/feature_engine_contrast.js
+```
+
+Each bundle runs in its own child process, because a module-cache swap cannot be undone in one. Two
+properties are worth more than the number it prints:
+
+- **It refuses to report agreement unless its positive control disagreed.** `BUNDLES=live,live`
+  returns *NOT A RESULT — the positive control did not separate the bundles*, verified before this
+  was believed. A harness that silently loaded the same bytes twice would otherwise publish a
+  confident "identical", which is the exact shape of every failure in this project's history.
+- **It is not `engine/feature_fixture.js` and does not replace it.** The fixture hashes ~50 frozen
+  boards so a weight file can *carry* the hashes, and its own header states the limit: a guard only
+  guards what it exercises. This runs the same question over every board the fit actually uses, so a
+  branch no fixture board stands on cannot hide in it. Both were green here, which is the first time
+  they have been asked the same question on the same day.
+
+### §17b — AND THEN THE TREE MOVED AGAIN, AND THIS TIME THREE COLUMNS MOVED WITH IT. A REFIT IS OWED.
+
+**The instrument built in §17 found a real feature change forty minutes after it was written, and
+`engine/feature_fixture.js --check` — the guard `status.js` prints the refit edge from — is BLIND to
+it.** That is the finding of this session, and it outranks everything above.
+
+Between 15:40 and 15:44 on 2026-08-05, while this division was measuring, three files moved:
+
+| file | was | is | what it did |
+|---|---|---|---|
+| `engine/fit_policy.js` | `45f545425420` | `caeeec21c560` | `loadCorpus()` went **9,230 → 6,055** clean open-sheet games |
+| `engine/medicham2-browser.js` | `0cb911437fed` | `82bed8cdcf6b` | — |
+| `engine/board.js` | `54e3d2ca9f85` | `5bdaa3923958` | the feature file itself |
+
+Re-run with the sample pinned — **1,136,845 candidate vectors over the same 6,055 games, identical
+`row_key_hash` in all three arms** — the verdict is no longer IDENTICAL:
+
+> **MOVED — `deadNoLastMove`, `movesFirst`, `diesBeforeMoving` differ on identical rows. This is a
+> REFIT, not a restamp.**
+
+Both frozen bundles (`e2bcff0db96f`, `80fe43fba1a9`) agree with each other and disagree with the live
+tree in the same three columns, which is what a single new change looks like — **and it is: CHANGELOG
+3.49.0, *"There were two implementations of who moves first. One is deleted, and the survivor is
+dynamic."*** Speed order is now re-sorted mid-turn, so `movesFirst` and everything downstream of it
+answers a different question than the weights were fitted against. The columns name the change
+without anyone having to guess, which is what a per-column hash is for.
+
+**`node engine/feature_fixture.js --check data/policy-weights.json` says
+*"feature semantics OK — agrees with board.js on every fixture board"* on that same tree.** Both
+instruments are working; they are answering the question on different boards, and the ~50 frozen
+fixture boards do not stand on the branch that moved. The fixture's own header says a guard only
+guards what it exercises — this is the first time that limit has been shown with a number rather
+than stated. **`status.js` prints `refit edge: CLEAN` from that check, so the refit edge is currently
+reported clean and is not.** Two consequences, in order:
+
+1. **A refit is owed on the 15:43–15:44 change** — three of the 58 columns changed meaning under
+   weights fitted against the old ones. That is not WIRES 114–117; those were measured empty above.
+2. **The refit edge needs both instruments.** The fixture is what a weight file can CARRY, and it
+   should stay; the corpus contrast is what can DETECT. Wiring `feature-engine-contrast.json` into
+   `status.js` beside `feature_fixture --check` is the obvious next move, and it is deliberately not
+   done in this pass — a status line added at the end of a session that watched three files move is
+   a line nobody has watched behave.
+
+**`data/click-censoring-census.json` and `data/censoring-value.json` are therefore UNSAFE again**, now
+through `engine/fit_policy.js` rather than through the simulator, together with
+`data/partial-label-em.json`, which is the same cause and was not touched here.
+`node engine/provenance.js --strict` **exits 1 with 3 UNSAFE.** That is stated, not filed: the
+re-runs in §17 were valid photographs of the tree at 14:26–14:40 and they say so in their own
+digests; the tree they photographed no longer exists.
+
+**They were not re-run a third time, deliberately.** The corpus definition changed by a third
+(9,230 → 6,055 open-sheet games) inside the same twenty minutes, so a third run would publish a
+different population under the same headline, attributable to neither the engine nor the censoring
+change. Re-run both against a still tree — the loader digest is in every artifact — and the numbers
+in §17 are the ones to compare against.
+
+**A measurement cannot be taken while the lens is being changed, and `engine_release.js` does not
+cover this case.** A release freezes 23 files; it does not freeze `engine/fit_policy.js`, and it
+cannot freeze the store. That is why `feature_engine_contrast.js` pins its sample by game id and
+refuses when one goes missing: the first version of it reported **all 58 columns moved** purely
+because the corpus shrank between two children, which is a REFIT verdict manufactured out of
+somebody else's edit.
+
+### §17a — the `board.js` partial-body over-refusal is worth 0 rows, and here is the number
+
+ENGINE filed it rather than fixing it: `engine/board.js:2565` and `engine/position_features.js:231`
+map their priority defenders to `{ability, fainted}`, so `isGrounded()` sees no type list and no
+item and a Flying-type foe is still over-refused **in the feature vector**. Widening that signature
+moves the feature vector, which is a refit, which is why it came here. Measured on the fit's own
+decisions over all 9,230 games, rebuilding every defender twice — once the way `board.js` does it,
+once with the types and item the board already holds:
+
+| | n | of |
+|---|---|---|
+| candidate feature vectors | 1,751,688 | — |
+| with a priority move | 332,030 | 19.0% of candidates |
+| aimed at a body, i.e. reaching `board.js:2560`'s guard | 135,552 | 40.8% of those |
+| **under a Psychic Terrain** | **362** | **0.27%** of guarded priority candidates |
+| **where a complete body changes the answer** | **0** | — |
+
+The artifact on disk carries the same measurement over the post-15:40 corpus (6,055 games,
+1,136,845 vectors, 220,932 with priority, 91,240 reaching the guard, **273** under a Psychic Terrain,
+**0** changed, upper bound 5). Two corpora a third apart give the same answer, which is the strongest
+thing that can be said about it without more Psychic Terrain in the metagame.
+
+The only five rows in the entire corpus where types and item flip the bar are `protect` ×4 and
+`ragepowder` ×1 — **self-targeted moves, which `board.js` never routes through
+`priorityRefusedAbove` at all**, because the branch is guarded on `cand.targetMon`. Counting them as
+exposure would have overstated it by five rows out of 1.75 million; both counts are recorded here so
+the guard is visible rather than assumed.
+
+**So: NOT WORTH A REFIT, and the exposure is 0 rows in 1,751,688 (upper bound 5, of which 0 are
+reachable).** Two things keep it from being closed. `fails.groundedBodyIncomplete` fires on **100% of
+173,478** calls — every single feature-path call is made with a body that cannot answer — so the
+defect is total and only its consequence is nil; and the consequence is a property of THIS corpus,
+where 0.27% of guarded priority candidates stand on a Psychic Terrain. A metagame that pairs Psychic
+Surge with Flying bodies moves that number without anything in the code changing. The right time to
+widen the signature is the next refit, when the feature vector is moving anyway and the change is
+free. `engine/position_features.js`'s copy is a separate call site and is NOT measured here.
 
 ## Reading a run
 

@@ -104,7 +104,16 @@ const MINUS = '[-\\u2212\\u2013\\u2010\\u2011]';
  * of a thousands-separated number, which the first alternative already handles whole, so excluding it
  * cannot lose a real figure. Same family as the typographic-minus fix: the regex was right about what
  * a figure looks like and wrong about where one can START. */
-const FIGURE_RE = new RegExp(`(?<![\\w./,])(${MINUS}?)(\\d{1,3}(?:,\\d{3})+|\\d+(?:\\.\\d+)?)\\s*(%?)`, 'g');
+/* AN IDENTIFIER IS NOT A MEASUREMENT. "WIRE 117", "ADR-002", "LESSON 2", "R4" and "§7" are NAMES that
+ * happen to be spelled with digits, and this scan accused docs/MODELS.md of citing a mechanics-census
+ * figure of 117 when the sentence said "WIRE 117's scope pass". A check that fires on a wire number is
+ * a check somebody edits the prose to silence, which is worse than the drift it was guarding.
+ *
+ * Matched on the WORD BEFORE, so it cannot swallow a real figure: "wires 82-116 landed" is still prose
+ * about identifiers, and "the fit used 117 games" still counts, because `games` is not in this list. */
+const ID_WORD = '(?:wire|wires|adr|lesson|lessons|axis|layer|round|phase|step|trap|item|§|no\\.|#)';
+const FIGURE_RE = new RegExp(
+  `(?<![\\w./,])(?<!\\b${ID_WORD}\\s)(${MINUS}?)(\\d{1,3}(?:,\\d{3})+|\\d+(?:\\.\\d+)?)\\s*(%?)`, 'gi');
 
 function figuresIn(line) {
   /* Strip the things that contain digits but assert nothing: inline code, links, paths, dates. */

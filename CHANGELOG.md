@@ -10,6 +10,252 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.49.0] — 2026-08-05
+
+### There were two implementations of "who moves first". One is deleted, and the survivor is dynamic.
+
+Will, three times now: modern VGC uses **dynamic speed** — the remaining actions are re-sorted
+mid-turn, so a Tailwind speeds the partner up in the SAME turn if the partner has not yet moved. The
+previous answers were the wrong shape (a consistency test, a ratchet, a proposed shared module).
+**A test that checks two copies agree is a workaround for having two copies.**
+
+| | before | after |
+|---|---|---|
+| `engine/medicham2-browser.js` | sorted the action list ONCE per turn and walked it frozen — no dynamic speed at all | freezes the bracket, then **re-sorts the remaining actions before each one resolves** |
+| `engine/board.js:2791` | `(slowFirst ? mySpe < thSpe : mySpe > thSpe) ? 1 : 0` — the Trick Room inversion and the speed comparison restated by hand, twelve lines below a call it already makes into that same engine | asks `compareTurnOrder` |
+
+They had measurably diverged. `board.js:466` says in words that a Tailwind lets the partner move first
+THIS turn, so MAG's `speedSwing` and `speedSetupHelpsPartner` believe in dynamic speed, while the
+rollout that checks MAG's opinion said the Tailwind did nothing — and **the search believes the
+simulator.** Tailwind is the dominant strategy in this format.
+
+The rule is Showdown's own, quoted from Showdown at the pinned commit: *"Actions are sorted based on
+order (lower first) followed by priority (higher first) followed by speed (higher first)"*, and
+*"In gen 8, speed is updated dynamically so update the queue's speed properties and sort it."* The
+re-sort re-derives the **speed** only; `order` and `priority` are resolved once when the action is
+queued, so the bracket is frozen at the top of the turn here too.
+
+### Added
+
+- `compareTurnOrder`, `turnOrderKey`, `sortTurnOrder` and `actionPriority` in
+  `engine/medicham2-browser.js`, exported on `module.exports` **and** on the global root — board.js
+  reaches this engine through `window` in a browser, and a module-only export would have left the
+  Battle Tower page falling back on a hand-rolled order, which is the duplicate reappearing in the one
+  environment nothing tests.
+- Census probe `move doublesSideSpeed — "Tailwind speeds the PARTNER up inside the same turn"`, armed.
+  The tag's existing probe reads the partner's speed AFTER the turn and structurally cannot see when
+  the boost starts counting.
+
+### Fixed
+
+- After You and Quash write the action's `order` (Showdown's own `3` / `201` against `200`) instead of
+  splicing the array. A splice is undone by the next re-sort, so WIRE 109 would have gone silently
+  dead under dynamic speed.
+- The speed tie is rolled **once per action, on first demand, and stored**, not flipped inside the
+  comparator. A coin inside a comparator is re-drawn on every re-sort, which would have diverged the
+  RNG stream of every seeded run in the repo for reasons that have nothing to do with speed. Rolled
+  lazily, so a turn with no speed tie draws exactly as many numbers as before.
+- The flinch bookkeeping is a set of actions **not yet resolved** rather than an index into a list
+  frozen at the top of the turn. It keeps the half the index was quietly also answering: a body with no
+  action this turn cannot be handed a flinch that would leak into the next turn.
+
+### Notes
+
+- **Census 210 → 211 live / 213 → 214 probed**; missing still 3, hollow 0, threw 0, unarmed 145.
+  Differential **1/150**, the same pre-existing `chesnaught woodhammer -> mimikyu` row.
+  `tests/test-game-diff.js` agrees on every turn of all five scripted games.
+- **The RED is permanent.** `tests/probe_red_demo.js` gained a `demoSource` arm whose known-bad engine
+  is exactly the frozen queue and nothing else — the three-line re-sort deleted, everything else left
+  in place — so the one thing that flips is the thing the wire is about. 29 demonstrations, 0 failed.
+- **The probe was shown RED first**, and its first staging was wrong before the engine was — the 0-EV
+  Garchomp/Incineroar pair the analysis named does not overtake at `buildMon`'s USAGE spreads
+  (Garchomp 161 vs a Tailwind Incineroar's 160), so it would have printed identical arms on a FIXED
+  engine and read as agreement. Milotic (101) and Incineroar (80) are the two bodies whose `MC` lines
+  are exactly the reference's own 0-EV lines.
+- **The board.js edit is measured, not argued.** A direct A/B — the WIRE 118 hunk reverted and compiled
+  in memory at board.js's own path — is **IDENTICAL on all 58 feature columns over 1,136,845 candidate
+  vectors from 6,055 clean games**, with the same row keys, and the instrument's positive control
+  (the same rule INVERTED) moves `movesFirst`, `deadNoLastMove` and `diesBeforeMoving`. Separately,
+  `battleTurn` — the only existing function this change touched — is called **0 times** by the feature
+  path over a 300-game walk.
+- **`engine/feature_engine_contrast.js` says MOVED, and it is reported as it came out.** Three columns
+  differ against both frozen bundles on identical pinned rows: `movesFirst`, `deadNoLastMove`,
+  `diesBeforeMoving`. It holds board.js FIXED in every arm and swaps only the engine, so the release
+  arms run the **live** board.js against an engine with no `compareTurnOrder` and trip board.js's own
+  loud unavailable branch — measured in that arrangement: `dmgFailures.unavailable` fires **2,110**
+  times over 20 games and mean `movesFirst` falls from **0.5212 to 0.2302**, while the like-for-like
+  A/B above is identical on every row. The consequence is real and is MEASURE's call, not ENGINE's:
+  live board.js now requires a post-118 engine, and the alternative — letting board.js fall back on the
+  hand-rolled comparison — is the duplicate this pass deletes, restored for cross-version convenience.
+  **No refit was started here.**
+- **What the re-sort costs, measured:** `sortTurnOrder` on a four-action list is **1.96 µs** against the
+  old inline comparator's **2.38 µs** (keys are built once per action, not once per comparison), so two
+  extra sorts add about **4 µs** to a turn that takes 800–1,100 µs. The whole-turn benchmark cannot
+  resolve that — five interleaved pairs ran 760–3,327 turns/sec inside a single arm — and is recorded
+  as noise rather than as a win.
+- **FILED, NOT FIXED, and not caused by this pass: the fit corpus moved three times in one hour.**
+  `fit_policy.loadCorpus()` returned **9,361** clean open-sheet games at 19:48Z, **6,055** at 19:52Z
+  when this pass measured, and **8,957** at 20:35Z; 3.47.0 recorded 9,230 this morning. An earlier
+  `data/feature-engine-contrast.json` was written straight across that — arms of 9,361 and 6,055 games
+  — and published `MOVED — this is a REFIT, not a restamp` off a `same_rows: false` comparison, which
+  is the corpus moving and not a feature-function change. The instrument now pins the sample of game
+  ids before any bundle runs and `provenance.js` has a CORPUS DRIFT check; both landed in the same hour
+  and are somebody else's work. This pass's own A/B is a photograph of the 6,055-game moment and its
+  row-key hash proves both arms walked it. Why the corpus moves is MEASURE's.
+
+---
+
+## [3.48.0] — 2026-08-05
+
+### The two-arm gate was discarding 74 real disagreements between the engines
+
+Will: *"why dont we compare medicham to showdown while testing? that would be the easiest way to
+catch? instead of the dumb way of comparing it to itself."*
+
+We do compare them — that is the 1,614/1,634 headline. The two-arm test is a second, different check
+and it is not the dumb half: a mechanic MISSING from medicham2, in a staging that also stops it
+firing in Showdown, makes both engines produce identical states and scores as **AGREE**. An absent
+capability would pass. That is this project's signature failure and the reason the check exists.
+
+**But it was being used as a GATE.** A case whose reference arms matched was bucketed INERT and
+discarded *before* its medicham2-vs-Showdown result was ever read. The comparison was computed and
+thrown away. Measured across the run: **74 discarded cases have the two engines in different states.**
+
+**INERT means "an AGREEMENT here proves nothing". It never meant "a DISAGREEMENT here does not
+count".** The label suppresses the positive claim only. These are now reported and recorded in
+`data/interaction-matrix.json` as `off_gate` / `off_gate_rows`, and deliberately kept OUT of the
+agreement rate, because that rate is a claim about pairs where the reactor demonstrably fired.
+
+### What was hiding there
+
+| reactor | cases | uses | what it says |
+|---|---|---|---|
+| `taunt` | 12 | 11,042 | **medicham2 does not implement Taunt blocking status moves.** A Taunted body still lands Hypnosis, Stun Spore, Decorate, Screech, Disable, Feather Dance, Strength Sap, Trick-or-Treat |
+| `beakblast` | 7 | 9,652 | |
+| `weakarmor` | 7 | 8,044 | |
+| `quickclaw` / `prankster` / `suckerpunch` / `upperhand` | 11 | — | Simple Beam and Worry Seed do not change the target's ability |
+| `toxicdebris` | 4 | 572 | medicham2 sets Toxic Spikes where Showdown does not |
+
+Full list in the artifact. Every one is medicham2's fault by construction — Showdown is the
+authority.
+
+### Added
+
+- `data/interaction-matrix.json` records `off_gate` and `off_gate_rows`, and the run prints them
+  under their own heading rather than silently dropping them.
+
+### Notes
+
+- **Two corrections from Will on the AXIS-4 spec, both taken.** Sucker Punch is NOT a turn-denier —
+  it requires the target to be clicking an attacking move and fails otherwise; it moves first, it
+  does not cost the target its turn. And modern VGC uses **dynamic speed**: the remaining actions are
+  re-sorted mid-turn, so a Tailwind speeds the partner up in the SAME turn if the partner has not yet
+  moved. The AXIS-4 measurement was specified against turn 2 and is wrong; it belongs on turn 1.
+- **Dynamic speed is confirmed in Showdown and absent from medicham2.** Staged at L50/0EV: Whimsicott
+  136, Garchomp 122, Incineroar 80 (160 under Tailwind). Control order is
+  `Whimsicott → Garchomp → Milotic → Incineroar`; with Tailwind it is
+  `Whimsicott → Incineroar → Garchomp → Milotic` — Incineroar overtakes inside the turn.
+  `engine/medicham2-browser.js:2439` sorts the action list ONCE and never re-sorts. Filed for ENGINE.
+- **The 3,401 battles/sec figure is a July quote, not a measurement.** ADR-002 says so itself about
+  the 117× ratio. medicham2 has gained roughly 35 mechanics since it was taken, and nothing measures
+  its speed on any run — so "are the new rules slowing us down" is currently a matter of opinion,
+  which this repo treats as a defect. A benchmark and a floor are filed.
+
+---
+
+## [3.47.0] — 2026-08-05
+
+### Two artifacts were computed from an engine that moved. The confound was measured instead of argued, and it is empty.
+
+`engine/provenance.js --strict` was red on `data/click-censoring-census.json` and
+`data/censoring-value.json`: `engine/medicham2-browser.js` and `data/tags.json` both moved under them
+(WIRES 114–116 in 3.42.0, WIRE 117 in 3.44.0, the tag dex regeneration in 3.45.0). `MEASURE.md` §16
+listed three options — refit both weight vectors, re-measure through a frozen release, or leave the
+artifact UNSAFE and unquotable. **None of the three was taken.**
+
+The blocking rule is CLAUDE.md's *fitting environment and playing environment must match*, and that
+is a claim about the FEATURE FUNCTION. A feature function is a function from a board to a number, and
+two versions of it are the same function if they agree on every board — so they were run against each
+other on every board the fit uses.
+
+**All 58 feature columns are hash-identical across the three engine bundles, on 1,751,688 candidate
+feature vectors from all 9,230 clean open-sheet games.** The bundles were loaded out of the frozen
+releases `09acd3b404ef` (`medicham2` `e2bcff0db96f`, the engine `censoring-value.json` read) and
+`032b4a2979dd` (`80fe43fba1a9`, the census's) and registered under the live module paths, so only the
+simulator and the tag dex differ between arms. The harness was shown SEEING a difference first: under
+a Psychic Terrain with a Levitate body the frozen engines return `0` and the live one returns
+`Infinity`.
+
+### Added
+
+- **`engine/feature_engine_contrast.js` → `data/feature-engine-contrast.json`.** The measurement above
+  is not left in a session scratchpad — that is §16's own lesson, where a published contrast's baseline
+  vector lived in `%TEMP%` and was not reproducible by anyone. It contrasts any set of engine bundles
+  (release ids or `live`) column by column over the whole corpus, records the exposure of the
+  incomplete-defender-body input, and stamps `source_digests`.
+- **It refuses to report agreement unless its positive control disagreed.** `BUNDLES=live,live`
+  returns **NOT A RESULT — the positive control did not separate the bundles**, seen failing before
+  the passing run was believed. A harness that silently loaded the same bytes twice would otherwise
+  publish a confident "identical", which is this project's signature failure mode.
+- It is **not** a replacement for `engine/feature_fixture.js`. The fixture hashes ~50 frozen boards so
+  a weight file can carry the hashes, and its own header states the limit — a guard only guards what
+  it exercises. This asks the same question on every board the fit actually uses. Both are green.
+
+### Changed
+
+- **`data/click-censoring-census.json` re-run on the current engine and corpus** — 249,404 actions
+  over **9,230** games (was 244,146 over 9,022): CLEAN **94.9111%**, PARTIAL **1.3344%** (3,328),
+  COERCED **0.5545%** (1,383 — Encore 1,152, `|drag|` 231). Classifier against the raw protocol:
+  encore recall **99.69%** precision **96.31%**, drag **96.74% / 96.74%**, on the 67.23% of games
+  that carry a raw log. The three class shares have now held to a hundredth of a point across
+  censuses at 8,942, 9,022 and 9,230 games.
+- **`data/censoring-value.json` re-run against `data/policy-weights-pre-censoring.json`** (sha12
+  `01bc43936324`, the preserved incumbent) — **48,274 held-out decisions over 1,851 games**, and
+  every 3.42.0 figure reproduces inside its interval: COERCED P(the coerced action)
+  **−0.002613 [−0.003650, −0.001672]**, PARTIAL mass **+0.000122 [−0.000261, +0.000514]** (still
+  contains zero — the redirection correction still buys nothing), CLEAN logL
+  **+0.000485 [0.000189, 0.000777]**. Every effect is still smaller than its own class's split-half
+  floor and resolves only because the comparison is paired per decision.
+- Both artifacts now stamp `source_digests` over the tree they were computed on. **`node
+  engine/provenance.js --strict` exited 0 at that point — 0 UNSAFE, 1 declared VOID
+  (`exploitability.json`), 57 ok — and is RED again forty minutes later. See the second section
+  below; it is the more important half of this release.**
+- `docs/ABRA-whitepaper.md`, `docs/SUMMARY.md`, `docs/MODELS.md`, `docs/ABRA-technical-docs.md` and
+  `docs/ABRA-deck-plain-english.md` carry the re-measured figures; the 3.42.0 run is stated beside
+  them rather than overwritten, because a prior conclusion is never silently rewritten.
+
+### Notes
+
+- **The `board.js` over-refusal ENGINE filed is worth 0 rows, and the number is now on the record.**
+  `board.js:2565` and `position_features.js:231` hand `priorityRefusedAbove` a `{ability, fainted}`
+  body, so `isGrounded()` cannot see types or item. Over the whole corpus: 1,751,688 candidate
+  vectors, 332,030 with a priority move, **135,552** reaching `board.js:2560`'s `cand.targetMon`
+  guard, **362** of those under a Psychic Terrain, and **0** where a complete body changes the
+  answer. The only five rows in the corpus that flip are `protect` ×4 and `ragepowder` ×1 — self-
+  targeted moves that never reach the call site at all. **It does not justify a refit**; it should
+  ride along with the next one, because `fails.groundedBodyIncomplete` fires on 100% of 173,478 calls
+  and the nil consequence is a property of this corpus, not of the code.
+- **WIRE 117 could not have moved a feature here and the counter says why:** of 173,478 guarded
+  calls, 424 are under a Psychic Terrain and in none of them is every live defender airborne. The bar
+  only lifts when no grounded body is left to hold it up.
+- **This is not a general licence to score old weights through a new simulator.** It says these four
+  wires moved no feature on this corpus. The next engine move gets the same treatment: run the
+  columns, then decide.
+- **AND THE NEXT ENGINE MOVE CAME BEFORE THIS ENTRY WAS FINISHED, AND IT DID MOVE THREE COLUMNS.**
+  While this was being written, `engine/fit_policy.js` (15:40, corpus **9,230 → 6,055** open-sheet
+  games), `engine/medicham2-browser.js` (15:43) and `engine/board.js` (15:44) all changed. Re-run with
+  the sample pinned — 1,136,845 vectors, identical `row_key_hash` in all three arms — the verdict is
+  **MOVED: `deadNoLastMove`, `movesFirst`, `diesBeforeMoving`.** That is 3.49.0's dynamic-speed
+  unification, and **a refit is owed to it.** `engine/feature_fixture.js --check` reports *feature
+  semantics OK* on the same tree, because no fixture board stands on the branch that moved — so
+  `status.js`'s `refit edge: CLEAN` is currently reporting an edge that is not clean. Both instruments
+  work; only one of them can see this. Full account in `docs/MEASURE.md` §17b.
+- **Consequently the two artifacts above are UNSAFE again**, now through `engine/fit_policy.js`,
+  alongside `data/partial-label-em.json` (same cause, another division's file, untouched).
+  `provenance.js --strict` exits 1 with 3 UNSAFE. They were deliberately NOT re-run a third time: the
+  corpus definition changed by a third in the same twenty minutes, so a third run would publish a
+  different population under the same headline. Re-run both against a still tree.
+
 ## [3.46.0] — 2026-08-05
 
 ### The harness was defending against its own experiment: 379 of 2,300 cases gave the holder Protect

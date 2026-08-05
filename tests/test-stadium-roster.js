@@ -196,6 +196,14 @@ const NOT_A_MODEL = {
    *     SPECIES SETS, COUNTERS), and arm (a) accounts for them now. --- */
   'engine/click_census.js':          'labels every human action in OUR fit corpus CLEAN / PARTIAL / COERCED / ERASED (docs/CLICK-CENSORING-FIX.md Stage A). A census of what our own data can and cannot see; more games raise its coverage and do not move any claim about the game',
   'engine/em_validation.js':         'plants a known weight vector, censors it the way the real corpus is censored, and asks whether EM recovers it (Stage C). A validation of OUR fitting procedure against a synthetic truth — its own `reading` field says neither number is a win rate or a held-out accuracy',
+  /* --- Added 2026-08-05 (docs/MEASURE.md §17). It asks whether two BUILDS OF OUR OWN CODE are the
+   *     same function on our own corpus, which is the question that decides whether an artifact
+   *     computed through an older engine may still be quoted. It fits nothing, predicts nothing and
+   *     names no Champions fact: every figure it emits is a hash of our feature columns or a count of
+   *     our own call sites. Settling question — if it is wrong, the people misled are US, while
+   *     deciding whether to spend a refit. Same class as feature_audit.js and leaf_position_contrast.js
+   *     above; its home is docs/MEASURE.md. --- */
+  'engine/feature_engine_contrast.js': 'did an engine change move the FEATURE FUNCTION or only the simulator — hashes all 58 board.js columns under two or more frozen engine bundles over the whole fit corpus, with a positive control that makes it refuse to report agreement it could not have seen. A statement about our own builds, not about Champions',
 
   'engine/bring_bias.js':            'does require_full_bring\'s length-conditioning move any bring rate — a diagnosis of OUR OWN corpus rule, and its answer is no (84 species tested, 12 clear a raw z, 0 survive BH against 4.2 expected). Its sibling engine/bring_priors.js is the model; this measures the filter, and nothing but itself reads data/bring-bias.json',
 };
