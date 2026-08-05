@@ -304,7 +304,7 @@ not buried. `docs/ABRA-whitepaper.md` puts one in its opening framing at line 20
 this format — even a player-Elo model ties a coin. ABRA therefore does not sell..."* — and returns to it
 in the conclusion at line 287. The role-level winner prediction is reported as log-loss 0.7122 against a
 coin's 0.6931, i.e. **worse than a coin**, and described as "ties a coin", which is if anything generous
-to itself in wording while being accurate about significance. `docs/HANDOFF-2026-07-27.md` §7 leads with
+to itself in wording while being accurate about significance. `docs/archive/HANDOFF-2026-07-27.md` §7 leads with
 "the honest headline" and reports that the largest measured improvement all session was not a feature at
 all. The retraction discipline is real: prior conclusions are struck through with reasons rather than
 edited away, and CHANGELOG 3.1.2 retracts a root-cause diagnosis explicitly.
@@ -346,7 +346,7 @@ verification machinery is what failed.
 ## 6. Construct validity
 
 **The central problem is stated by the thesis itself and then not resolved.** The model is fitted to
-*human clicks* and evaluated on *wins*. Those are different objectives, and `HANDOFF-2026-07-27.md` §7
+*human clicks* and evaluated on *wins*. Those are different objectives, and `archive/HANDOFF-2026-07-27.md` §7
 says so plainly: "fitting to human clicks and winning games are different objectives, and this model is
 fitted to the first one." Good. But the results chapter then reports win rates as evidence of model
 quality, which re-blurs exactly what that sentence separates.

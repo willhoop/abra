@@ -8,7 +8,7 @@
  * ---------------
  * R1, R2 and R3 each leave an artifact. R4 — the gate that actually decided, and the only one anybody
  * quotes — left prose. `node engine/status.js` printed "NO ARTIFACT — the verdict is prose only, not
- * a file", and the 55.5% in docs/HANDOFF-2026-08-04-r4-decided.md was a number somebody remembered.
+ * a file", and the 55.5% in docs/archive/HANDOFF-2026-08-04-r4-decided.md was a number somebody remembered.
  *
  * That is not a filing problem. The same handoff records the run as "5,248 games"; the corpus holds
  * 2,624. Prose cannot track a corpus — it is off by exactly a factor of two here — and the rule is
@@ -110,7 +110,7 @@ function stamps(rel) {
   };
   let rows = 0, miltankArm = null, greedy = null, greedy2 = null, searchKnobs = new Set();
   /* THE LINE COUNT IS NOT THE SAMPLE SIZE, AND THAT MISTAKE HAS ALREADY BEEN MADE OFF THIS FILE.
-   * docs/HANDOFF-2026-08-04-r4-decided.md calls this run "5,248 games". `wc -l` agrees with the
+   * docs/archive/HANDOFF-2026-08-04-r4-decided.md calls this run "5,248 games". `wc -l` agrees with the
    * handoff and both are wrong: the store writes TWO records per game under ONE id — the full game
    * record, which carries .selfplay, and a log-only companion {id, uploadtime, log}. So the file is
    * 5,248 lines, 2,624 games, 1,312 seed pairs and 535 decisive pairs, and only the last of those

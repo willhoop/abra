@@ -116,7 +116,13 @@ node engine/status.js
 That output is the handoff. `--write` also stamps it into the four ledgers. The rules live in
 CLAUDE.md and do not change; the lessons live in `docs/LESSONS.md` and are written once.
 
-The fourteen `HANDOFF-*.md` files in `docs/` are history now, not state. Read the newest one for
-narrative if you want it, but do not take a number out of it — the 2026-08-04 handoff says
-"172 tags, 118 unprobed" and the artifact says 176 and 123. Nobody mistyped anything. Prose cannot
-track a corpus.
+The `HANDOFF-*.md` files are history now, not state. Most of them moved to `docs/archive/` on
+2026-08-05, each carrying a header saying what it claimed, what replaced it, and which of its figures
+are retracted; `docs/archive/INDEX.md` is generated from those headers by
+`build/build_archive_index.js`. Read one for narrative if you want it, but do not take a number out
+of it — the 2026-08-04 handoff says "172 tags, 118 unprobed" and the artifact says 176 and 123.
+Nobody mistyped anything. Prose cannot track a corpus.
+
+**Archiving does not launder a document.** `tests/test-docs-current.js` scans `docs/archive/` exactly
+as it scans a live document unless the file declares a named replacement, and the sixteen archived on
+2026-08-05 deliberately declare none — so a retracted figure inside one is still caught.

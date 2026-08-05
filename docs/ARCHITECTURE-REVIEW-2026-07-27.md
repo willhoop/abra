@@ -128,7 +128,7 @@ games **100%** sheeted; `games.bo3.jsonl` 2,160 games **99.5%** sheeted; `games.
 games **1.2%** sheeted. A 5.2% sheet rate is the signature of the ladder store, not of either
 open-sheet corpus.
 
-**What it could have put in front of a reader.** It did: the whole of `docs/HANDOFF-2026-07-27.md` §4,
+**What it could have put in front of a reader.** It did: the whole of `docs/archive/HANDOFF-2026-07-27.md` §4,
 whose premise is "open team sheets (all four moves public, no revelation bias) from 2,245 clean games".
 The sample was 1,392 sets from 116 games, and the "no revelation bias" guarantee held for 5% of the
 population it claimed.
@@ -409,17 +409,17 @@ Every location was checked, not just the changelog. `grep -rl` across `docs/*.md
 
 | Figure | Was | Is | Appears in | Status |
 |---|---|---|---|---|
-| Held-out top-1, popularity dropped | 35.2% / 34.6% ("better") | **28.7%** (worse) | `HANDOFF-2026-07-27.md`, `MAG-VARIABLES.md` | **Retracted.** F1 |
-| Held-out top-1, full model | 34.6% | **30.9%** | `HANDOFF-2026-07-27.md`, `MAG-VARIABLES.md` | Corrected (gated refit) |
+| Held-out top-1, popularity dropped | 35.2% / 34.6% ("better") | **28.7%** (worse) | `archive/HANDOFF-2026-07-27.md`, `MAG-VARIABLES.md` | **Retracted.** F1 |
+| Held-out top-1, full model | 34.6% | **30.9%** | `archive/HANDOFF-2026-07-27.md`, `MAG-VARIABLES.md` | Corrected (gated refit) |
 | `priorLogP` in the no-pop fit | −1.73, SE 0.05 | **0** (as intended) | `data/policy-weights-nopop.json` | Fixed |
-| No-pop greedy vs random | 35.4% of decisive pairs | **90.8%** [89.6, 91.8] | `HANDOFF-2026-07-27.md`, `CHANGELOG.md` | Re-run clean |
-| Pairs in that run | 4,847 (contaminated) | **4,823** (2,814 decisive) | `HANDOFF-2026-07-27.md` | Re-run clean |
-| Same-type-attack gap | +6.2 points | **+9.9** [8.8, 11.0] bo3 / **+9.4** [8.6, 10.2] ots | `CHANGELOG.md`, `HANDOFF-2026-07-27.md` | Corrected. F2 |
-| Ground-truth sample | "2,245 clean games" | **1,059 / 2,114 games; 12,619 / 25,284 sets** | `CHANGELOG.md`, `HANDOFF-2026-07-27.md` | Corrected. F2 |
-| Incineroar same-type rate | 0.0% human → 22.5% gen (n≈40) | **0.3% → 23.7%** (n=630) | `HANDOFF-2026-07-27.md` | Corrected |
-| `deadNoLastMove` weight | −2.943 (ungated) | **−3.434** (gated) | `HANDOFF-2026-07-27.md`, `CHANGELOG.md` | Corrected |
+| No-pop greedy vs random | 35.4% of decisive pairs | **90.8%** [89.6, 91.8] | `archive/HANDOFF-2026-07-27.md`, `CHANGELOG.md` | Re-run clean |
+| Pairs in that run | 4,847 (contaminated) | **4,823** (2,814 decisive) | `archive/HANDOFF-2026-07-27.md` | Re-run clean |
+| Same-type-attack gap | +6.2 points | **+9.9** [8.8, 11.0] bo3 / **+9.4** [8.6, 10.2] ots | `CHANGELOG.md`, `archive/HANDOFF-2026-07-27.md` | Corrected. F2 |
+| Ground-truth sample | "2,245 clean games" | **1,059 / 2,114 games; 12,619 / 25,284 sets** | `CHANGELOG.md`, `archive/HANDOFF-2026-07-27.md` | Corrected. F2 |
+| Incineroar same-type rate | 0.0% human → 22.5% gen (n≈40) | **0.3% → 23.7%** (n=630) | `archive/HANDOFF-2026-07-27.md` | Corrected |
+| `deadNoLastMove` weight | −2.943 (ungated) | **−3.434** (gated) | `archive/HANDOFF-2026-07-27.md`, `CHANGELOG.md` | Corrected |
 | Real-ladder mega rate | 92.9% (raw store) | **98.3%** (1,725 clean) | `CHANGELOG.md`, `validate_selfplay.js` header | Corrected. F4 |
-| Browser re-implementation | "still 21-feature" | **21 of 47 implemented; bundle was 46** | `HANDOFF-2026-07-27.md`, `CHANGELOG.md` | Confirmed — see note |
+| Browser re-implementation | "still 21-feature" | **21 of 47 implemented; bundle was 46** | `archive/HANDOFF-2026-07-27.md`, `CHANGELOG.md` | Confirmed — see note |
 | Store duplications | "three times" / "the fourth" | **at least 5 events across 2 stores** | `CLAUDE.md`, `.gitattributes`, `CHANGELOG.md` | See section 5 |
 
 **A correction to this review.** I first reported the handoff's "21-feature" claim as wrong, on the
@@ -427,7 +427,7 @@ grounds that the bundle carried 46 features. Both statements are true about diff
 generated bundle was 46, the page's *implementation* is 21. The handoff was right and my first reading
 was not. Recorded because a review that hides its own corrections is asking to be trusted on faith.
 
-Two figures in `HANDOFF-2026-07-27.md` were **verified unchanged**: `deadNoLastMove` on 5.34% of teams,
+Two figures in `archive/HANDOFF-2026-07-27.md` were **verified unchanged**: `deadNoLastMove` on 5.34% of teams,
 and the 91.8%/55.5%/81.9% clean h2h cells, which I did not re-run (section 6).
 
 ---
