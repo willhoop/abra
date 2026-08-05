@@ -584,6 +584,62 @@ for (const [name, fn] of Object.entries(SECTIONS)) {
   say('');
 }
 
+/* ---- HOW MUCH WORK IS ONLY ON THIS DISK -------------------------------------------------------
+ *
+ * On 2026-08-05 this repository accumulated 99 changed files, 5,469 insertions and 23 untracked
+ * files across more than six hours with ZERO commits. Nothing warned. If the machine had died, an
+ * entire night — the matrix re-run, the click-censoring fix, the MILTANK release fix, ADR-002 —
+ * would have gone with it, and the only reason it did not is that nothing went wrong.
+ *
+ * Will: "we need to be pushing way more often man." Correct, and a sentence in CLAUDE.md would not
+ * have helped: this file's own doctrine is that a rule with no check is a preference, and the docs
+ * currency rule was written down, given a guard, and broken anyway for two days.
+ *
+ * So it goes HERE, in the one command every session is required to run first. This file already
+ * reports how stale every ARTIFACT is. The working tree is the artifact nothing was watching.
+ *
+ * It reports rather than blocks. A pre-commit hook would collide with the auto-commit timer the
+ * rules at the top of CLAUDE.md exist to keep clear of, and a status tool that refuses to print is
+ * a status tool people stop running. Loud is enough — being unmissable is the whole job. */
+function uncommitted() {
+  const git = a => execFileSync('git', a, { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 24 }).trim();
+  try {
+    const porcelain = git(['status', '--porcelain']).split('\n').filter(Boolean);
+    const untracked = porcelain.filter(l => l.startsWith('??')).length;
+    const changed = porcelain.length - untracked;
+    const lastIso = git(['log', '-1', '--format=%cI']);
+    const hours = (Date.now() - new Date(lastIso).getTime()) / 3600000;
+    let ahead = 0;
+    try { ahead = +git(['rev-list', '--count', '@{u}..HEAD']); } catch (e) { ahead = -1; }  // no upstream
+    return { changed, untracked, hours, ahead };
+  } catch (e) { logUnreadable('git (working tree age)', e); return null; }
+}
+{
+  const u = uncommitted();
+  if (u) {
+    const dirty = u.changed + u.untracked;
+    /* Two independent thresholds, because they fail differently. A long quiet gap loses a session;
+     * a large diff loses a session AND is too big to review, which is how a bad change hides in a
+     * good one. Either alone is enough to say something. */
+    const bad = dirty >= 40 || u.hours >= 4;
+    const warn = dirty >= 15 || u.hours >= 2;
+    const line = `  ${dirty} file${dirty === 1 ? '' : 's'} uncommitted (${u.changed} changed, ${u.untracked} new)`
+      + `, last commit ${u.hours < 1 ? Math.round(u.hours * 60) + ' min' : u.hours.toFixed(1) + ' h'} ago`
+      + (u.ahead > 0 ? `, ${u.ahead} commit${u.ahead === 1 ? '' : 's'} unpushed` : '');
+    if (bad || warn) {
+      say('');
+      say(bad ? 'WORK THAT EXISTS ONLY ON THIS DISK — COMMIT BEFORE STARTING ANYTHING ELSE'
+              : 'Uncommitted work');
+      say(line);
+      if (bad) say('  A night of work was six hours from being lost on 2026-08-05. Nothing warned then.');
+    } else if (dirty || u.ahead > 0) {
+      say('');
+      say('Working tree');
+      say(line);
+    }
+  }
+}
+
 console.log('');
 console.log('ABRA STATUS — generated ' + day(new Date()) + ' by engine/status.js');
 console.log('Every figure is read from an artifact. NOT DERIVED means no artifact says it. Times are UTC.');
