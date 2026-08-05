@@ -283,6 +283,17 @@ const RAW = /\.(ability|baseStats|weighthg|weightkg)\b/g;
  * #40b — it read the PRE-mega ability to decide whether a mon is a weather setter, and a mega's
  * weather ability is precisely what differs from its base). It was fixed rather than declared. */
 const DECLARED = {
+  'engine/click_class.js':
+    'Two reads, both of a FOE\'S ability, to detect Lightning Rod / Storm Drain redirection when '
+    + 'classifying a human click. Declared rather than waved through, because the format DOES contain '
+    + 'megas that gain a redirecting ability and would therefore need the effective one: Sceptile-Mega '
+    + '(Lightning Rod) and all three Tatsugiri-Megas (Storm Drain) are legal here, checked against '
+    + 'Dex.forFormat on 2026-08-05. Base Sceptile is Overgrow/Unburden, so a pre-mega read would miss '
+    + 'a genuine redirection. EXPOSURE IS ZERO TODAY: neither Sceptilite nor Tatsugirite appears in '
+    + 'data/games.ladder.jsonl at all, and Tatsugiri appears 3 times in any form. THE TRIGGER THAT '
+    + 'MAKES THIS WRONG is one of those four megas appearing in the corpus, at which point the read '
+    + 'must resolve the effective ability — this is a declared gap with a named cause, not a claim '
+    + 'that the code is right in general.',
   'engine/medicham2-browser.js':
     'BUILDS its own bodies and materialises the EFFECTIVE ability into .ability at build time, '
     + 'keeping the pre-mega one in .baseAbility. It is a browser file with no require and board.js '
