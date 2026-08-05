@@ -12,9 +12,9 @@ mid-run silently invalidates the run, and the run still prints a result.
 
 ```
 SEARCH — does MILTANK choose better than MAG
-  R1 leaf accuracy   PASS_ON_BASELINE — rollout 67.971% against material's 65.265% on 9,201 positions: +2.706 points, 95% CI 1.596 to 3.817   [explore=1.0 — THE ARM MILTANK RUNS]   (2026-08-04 07:34)
+  R1 leaf accuracy   PASS_OUTRIGHT — rollout 69.84% against material's 65.265% on 9,201 positions: +4.576 points, 95% CI 3.473 to 5.678   [explore=1.0 — THE ARM MILTANK RUNS]   (2026-08-05 03:22)
     RECORDED, not inferred: n=40, explore=1, key "40@1", stamped by the run that wrote the rows.
-    SUPERSEDED 2026-08-04 by this artifact. That sentence was written when only the explore=0 dump existed, and it is TRUE OF THAT DUMP ONLY. This file IS the explore=1.0 arm, dumped over the same 9,201 positions and verified row for row, and on it the published figure reproduces: 67.971% against material 65.265%, +2.706 [1.596, 3.817] against the published +2.91 [1.79, 4.04]. The retraction was correct about PROVENANCE -- nothing committed could reproduce it at the time -- and wrong about the ARM. R1 is UNDECIDED on the incumbent greedy playout and PASSES on the arm engine/miltank.js:44 actually runs.
+    This is the arm engine/miltank.js runs (explore=1), so the verdict above is R1's status and not a statement about a configuration nothing ships. The deterministic-greedy incumbent is kept beside it in data/rollout-r1.json; deleting it would repeat the original mistake in the other direction.
   R2 leaf cost       477 boards over 200 games   (2026-08-03 08:22)
     STAMP RECONSTRUCTED, NOT OBSERVED — inferred from commit 05248f23d306; HIGH — written 25s before the commit that carried it
       explore: NOT RECORDED AND NOT PASSED.
@@ -24,7 +24,7 @@ SEARCH — does MILTANK choose better than MAG
   R3 divergence      80.2% over 121 decisions (24 agreed, 29 skipped)   (2026-08-04 07:55)
     stamped: n=600@explore=1  (TREE WAS DIRTY — trust source_digests, not the commit)
   R4 does it win     ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]   (2026-08-04 08:43)
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-05 02:07):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-05 05:07):
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41
     PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-04 02:36
     PRE-CHANGE games.r4.jsonl  2026-08-04 02:33
@@ -32,7 +32,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-04 00:45
 ```
 
-_stamped 2026-08-05 02:19_
+_stamped 2026-08-05 06:01_
 
 <!-- /GENERATED -->
 
@@ -632,7 +632,12 @@ no longer exists.
 already `PRE-CHANGE` against the engine; they are now `PRE-CHANGE` against the leaf as well, and the
 leaf is SEARCH's own file. Do not start a wide run until the boundary is cut.
 
-## P0.5 — THE FROZEN ENGINE RELEASE. DESIGNED AND PREPARED 2026-08-04. NOT CUT.
+## P0.5 — THE FROZEN ENGINE RELEASE. BUILT AND CUT. THE RESOLVER WAS FALSE-GREEN UNTIL 2026-08-05.
+
+> **STATUS, 2026-08-05.** The heading used to read *"DESIGNED AND PREPARED 2026-08-04. NOT CUT."*
+> Both halves are now out of date: `engine/engine_release.js` exists, freezes **23 files** as a real
+> byte SNAPSHOT rather than a digest list, and release `09acd3b404ef` is cut and pointed at. What was
+> *not* true until 2026-08-05 is that MILTANK could tell you whether it was running it — see §3.
 
 `docs/DIVISIONS.md` rule 1 says SEARCH plays a frozen, named engine release and never HEAD.
 **There is no such release and there never has been**, so the rule has been a sentence rather than a
@@ -643,27 +648,39 @@ without moving code.
 This section is the mechanism, the freeze list, the re-run order and the commands. **Cutting it is
 Will's call**, because the cut triggers the refit and seven restamps.
 
-### 1. What identifies a release: a DIGEST SET in a file, not a tag
+### 1. What identifies a release: a SNAPSHOT plus its manifest, not a tag and not the pointer
 
-`data/engine-release.json`, written by a cut and never hand-edited:
+> **THE JSON THAT USED TO BE PRINTED HERE WAS THE SECOND SCHEMA, AND IT COST A FALSE GREEN.**
+> This section showed `data/engine-release.json` as `{release, cut, supersedes, commit, dirty,
+> digests{5 files}, claims}` and called it "written by a cut and never hand-edited". **Nothing has
+> ever written that.** `miltank.js` read `.digests` and `.release` from the real pointer, found
+> neither, compared zero files and stamped `ON_RELEASE` on every artifact it produced. The schema
+> below is what is actually on disk. Struck and replaced 2026-08-05; see §3 for the receipt.
+
+**Two files, and the difference between them is the whole trap.**
+
+`data/engine-release.json` — **the POINTER. It carries NO digests.** It only says which release is
+current, plus that release's first and latest cut times, for a human reading `cat`:
 
 ```json
 {
-  "release": "E1-2026-08-05",
-  "cut": "2026-08-05T00:00:00.000Z",
-  "supersedes": null,
-  "commit": "<sha>",
-  "dirty": false,
-  "digests": {
-    "engine/rollout_leaf.js": "02c57b55e929",
-    "engine/medicham2-browser.js": "7649d0760a88",
-    "engine/board.js": "bcf2dab9dc6f",
-    "data/engine-data.js": "96a94b7fadf7",
-    "data/abra-tags.js": "ea5b89c2afcd"
-  },
-  "claims": { "census_live": 115, "differential": "1/400 @ seed 20260804", "tests": "run-all green" }
+  "current": "09acd3b404ef",
+  "cut": "2026-08-05T02:12:57Z",
+  "why": "h60 log leg of the R1 explore-sweep re-run",
+  "cuts": 2,
+  "latest_cut": "2026-08-05T02:26:04.945Z",
+  "latest_why": "R10/click-censoring parallel session"
 }
 ```
+
+`data/releases/<id>/release.json` — **the MANIFEST, which is where the digests live**, beside
+`data/releases/<id>/<every frozen file>`, which are the actual bytes. `<id>` is the digest of the
+digests, so an identical tree always yields an identical id.
+
+**Ask the tool, never the file.** `require('engine/engine_release.js').open()` resolves the pointer,
+verifies the snapshot against its own manifest, and hands back `stamp()` and `drift()`. Any code that
+opens `data/engine-release.json` and looks for a key other than `current` is reading the schema that
+never existed.
 
 **Why a digest set and not a git tag.** A tag names a commit, and this repo has already published a
 result whose own stamp reads *"TREE WAS DIRTY — trust source_digests, not the commit"* (R3, in the
@@ -680,8 +697,16 @@ describe" is the `choiceLock` failure in a new costume. `miltank.js buildStamp()
 
 ### 2. What exactly is frozen, and why each file
 
-The release freezes **every file whose bytes can change a rollout's value.** That is
-`run_stamp.LEAF_SOURCES`, which already exists and already has the right membership:
+The release freezes **every file whose bytes can change a rollout's value.**
+
+> **CORRECTED 2026-08-05.** This section said that list was `run_stamp.LEAF_SOURCES` — five files —
+> and that it "already has the right membership". **The authority is `engine_release.js SOURCES`,
+> which is 23 files**, and the extra eighteen are not padding: the loader closure (`mc_key`,
+> `lookup`, `set_priors`, `smogon_priors`, `quality`, `showdown_path`), the lazy data reads
+> (`move-effects`, `ability-blocks`, `smogon-priors`, `regulations`, `quality-filter`), the tag and
+> dex artifacts, and **`data/policy-weights.json`**, which is the byte that actually moved on
+> 2026-08-04. Read `SOURCES` in that file; do not read the table below as the list. The five rows
+> below are kept because their *reasons* are still the clearest statement of why a file qualifies.
 
 | file | why it is in |
 |---|---|
@@ -695,8 +720,13 @@ The release freezes **every file whose bytes can change a rollout's value.** Tha
 
 - **`engine/miltank.js` is NOT frozen.** It is the thing under test. Freezing the player inside the
   release would make an H2H between two players impossible to name.
-- **`data/policy-weights.json` is NOT frozen.** MAG's fit is a different invalidation edge with a
-  different authority, and conflating them is why this needed writing down.
+- ~~**`data/policy-weights.json` is NOT frozen.**~~ **REVERSED 2026-08-05, and the reversal is the
+  whole point of the release.** The argument was that MAG's fit is a different invalidation edge.
+  It is — and on 2026-08-04 that edge moved *between the two legs of one measurement*, at 22:15:24,
+  so the 7,100-game WOBBUFFET run defended with two different weight vectors. A measurement of "can
+  anything beat MAG" is a claim about ONE specific vector; leaving it out of the release meant the
+  claim could not be named. It is in `SOURCES` and `exploit.js` reads the defender out of the
+  snapshot.
 - **`engine/mew.js`, `engine/sprt.js` are NOT frozen.** DIVISIONS: MEASURE's tools sit beside the
   graph and invalidate nobody.
 
@@ -705,46 +735,103 @@ The release freezes **every file whose bytes can change a rollout's value.** Tha
 | question | authority | what it answers |
 |---|---|---|
 | is the **fit** stale? | `node engine/feature_fixture.js --check data/policy-weights.json` | do the fitted weights still mean what `board.js` computes. Ran clean 2026-08-04: *"agrees with board.js on every fixture board"* |
-| is a **rollout** comparable? | `data/engine-release.json` digests | did the simulator move under the run |
+| is a **rollout** comparable? | `node engine/engine_release.js list` — the release MANIFEST, not the pointer | did the simulator move under the run. **The pointer has no digests; asking it was the §3 bug** |
 
 They overlap on `board.js` only, and they can disagree in both directions: the fit is currently
 **clean** while every rollout on disk is **not comparable**. Reporting one as the other is the
 silent-default failure DIVISIONS names as the cost of a boundary.
 
-### 3. How a run declares its release, and how `status.js` marks `PRE-RELEASE`
+### 3. How a run declares its release, and how `status.js` marks drift
 
-**Implemented and proved, in SEARCH's own file.** `miltank.js buildStamp()` hashes its own worktree
-at module load — not at the first row, so it cannot describe a file edited underneath a running
-process — and resolves three states against `data/engine-release.json`:
+> **CORRECTED 2026-08-05. Everything this section said before was written against a pointer schema
+> that never existed, and the resolver built from it was a green that could not be false.** Read the
+> receipt below before reading the table.
+
+#### THE FALSE GREEN, AND THE TWO SCHEMAS THAT CAUSED IT
+
+`engine/miltank.js:145` read `rel.digests` and `rel.release` out of `data/engine-release.json`.
+**`engine/engine_release.js` has never written either field.** A cut writes `current`, `cut`, `why`,
+`cuts`, `latest_cut`, `latest_why`; the digest set lives in the release's own manifest at
+`data/releases/<id>/release.json`, one directory down, which the resolver never opened.
+
+So `want` was always `{}`. Zero files were compared, zero were found moved, and **every MILTANK
+stamp ever written reads `release: "UNNAMED", release_status: "ON_RELEASE"`.** Reproduced against the
+live pointer on 2026-08-05: feeding the old resolver a digest set in which *every file is wrong*
+still returned `ON_RELEASE`, because there was nothing for it to be wrong about. A green produced by
+an empty comparison — structurally incapable of reporting drift, and therefore incapable of being
+false, in the one field whose entire job is to say which bytes a number describes. Found by ENGINE,
+who filed it rather than patching SEARCH's file.
+
+**It survived because there were two pointer schemas.** The real one, written by
+`engine_release.js cut`; and a hand-rolled `node -e` recipe that used to sit in step 0 of §6 below
+and would have written `{release, digests, commit, dirty}`. The resolver was coded correctly against
+the recipe, and the recipe was never what ran. **The recipe is struck.** There is one way to answer
+"which release am I on" and it is `engine/engine_release.js` — `open()`, `verify()`, `drift()`,
+`stamp()`. `miltank.js` now CALLS those rather than re-implementing the comparison; a second
+implementation of a fact is what CLAUDE.md forbids and this is what one costs.
+
+#### The states, as they now read
+
+`miltank.js buildStamp()` runs at module load — not at the first row, so it cannot describe a file
+edited underneath a running process — and resolves **five** states, because absent evidence and
+positive evidence are different events:
 
 | stamp reads | meaning |
 |---|---|
-| `release: "E1-…", release_status: "ON_RELEASE"` | every frozen file hashes to the release |
-| `release: "E1-…", release_status: "PRE-RELEASE"`, `release_moved: [files]` | **the run is not on the release, and it names which files differ** |
-| `release: "UNRELEASED"` | no cut has ever happened — what every stamp reads today |
+| `release_status: "ON_RELEASE"`, `release_files: 23` | *n* frozen files hashed against the live tree, none moved. **The only green, and it now carries the count it rests on.** |
+| `release_status: "OFF_RELEASE"`, `release_moved: [files]` | the live tree has moved off the release, and it names which files. (Was `PRE-RELEASE`; renamed because it is drift *after* a cut.) |
+| `release_status: "NO_RELEASE"` | no release has ever been cut — rule 1 **unenforced**, not satisfied |
+| `release_status: "RELEASE_UNUSABLE"` | a release store exists but the pointer or the snapshot is broken. Never collapsed into `NO_RELEASE`, which would read as a fresh install |
+| `release_status: "UNKNOWN"` | the comparison could not be made — **including a manifest that names zero files**, which is exactly the state that used to read `ON_RELEASE` |
 
-Both non-trivial branches were exercised rather than assumed: with a synthetic release file the
-resolver returned `ON_RELEASE`, and with one digest perturbed it returned
-`PRE-RELEASE  release_moved: ["data/abra-tags.js"]`.
+Every non-green state also prints to stderr at load and carries a `release_why` a person can read.
+The stamp additionally carries `engine_release`, `engine_release_cut`, `engine_release_cuts`,
+`showdown_commit` and `engine_release_digests` — the same answers `REL.stamp()` gives, from the same
+object, so a MILTANK shard and a gate artifact are read with one set of eyes. `engine_release_digests`
+is `REL.stamp().source_digests` renamed on the way in, because the stamp already has a
+`source_digests` (the live four-file player hash that `reduce()` keys its mixed-build check on) and
+overwriting a live hash with a frozen one would be a quieter version of the same bug.
+
+**Proved by `tests/test-miltank-release.js` (25 assertions, green 2026-08-05), which shows the check
+failing on known-bad input before believing its green:**
+
+- the **old** resolver, replayed verbatim against the pointer schema that is actually on disk with
+  *every* digest deliberately wrong, still stamps `ON_RELEASE` off 0 files compared;
+- a manifest naming **zero files** now reads `UNKNOWN`, not `ON_RELEASE`;
+- a genuine release with an unmoved tree reads `ON_RELEASE` off 24 files;
+- a **genuinely modified** live file the manifest names reads `OFF_RELEASE` and names it — and the
+  mutation is asserted to have actually changed content, so a skipped edit cannot pass.
+
+The drift arm mutates a probe file the test writes itself (`data/.miltank-release-probe-<pid>.jsonl`,
+ignored by `.gitignore`'s `data/.*.jsonl`), **never a frozen engine source**: four divisions write to
+this repo and a frozen source being different for even a moment voids somebody else's run. Every
+release is cut into a throwaway store; the real pointer is never written by a test.
 
 **The change `status.js` needs — SPECIFIED, NOT APPLIED, because `status.js` is MEASURE's file.**
 Today `status.js:315-331` finds the newest engine-source **mtime** and prints `PRE-CHANGE` for any
 run file older than it. Replace the comparison, keep the line:
 
-1. read `data/engine-release.json`; if absent, print `NO RELEASE CUT — rule 1 of DIVISIONS.md is
-   unenforced` and fall back to today's mtime inference **labelled as an inference**;
+1. call `require('./engine_release.js').open()`. **Do not read `data/engine-release.json` by hand and
+   do not look for a `digests` key on it — there isn't one, and believing there was is the whole of
+   the bug above.** If `open()` throws and `list()` is empty, print `NO RELEASE CUT — rule 1 of
+   DIVISIONS.md is unenforced` and fall back to today's mtime inference **labelled as an inference**;
+   if `list()` is non-empty, the store is broken and that is a finding, not a fresh install;
 2. for each run, read its stamp (`*.meta.json` sidecar for a gate artifact, the `_stamp` row for a
    `MILTANK_TIMING` shard, `_stamp` in the games jsonl for a mew run) and compare its `engine_digests`
-   to the release's `digests`;
-3. print one of **`ON <release>`**, **`PRE-RELEASE (<files that moved>)`**, or **`NO STAMP`**.
+   to `REL.manifest.files` — or, better, read the run's own `engine_release` and `release_status`,
+   which `miltank.js` now writes and which already carry the answer;
+3. print one of **`ON <release>`**, **`OFF-RELEASE (<files that moved>)`**, or **`NO STAMP`**.
 
 **`NO STAMP` must be its own state and must not read as current.** An unstamped run is not evidence
 about any build, which is strictly worse than a run known to be old — that is the whole finding
-behind `run_stamp.js` existing.
+behind `run_stamp.js` existing. The same rule now applies one level in: **a green that compared zero
+files is `UNKNOWN`, not `ON_RELEASE`.**
 
-The resolver in `miltank.js` is written to be **lifted into `engine/engine_release.js`** when
-MEASURE lands the `status.js` half, so `status.js`, `run_stamp.js` and `miltank.js` share one
-implementation. **Do not write a second one.**
+**One implementation, and it is `engine/engine_release.js`.** `miltank.js` no longer holds a
+comparison of its own — it calls `open()`, `verify()` (via `open`), `drift()` and `stamp()`, and adds
+only the classification of the result into the five states above. When MEASURE lands the `status.js`
+half it should call the same four. **Do not write a second one; a second one is what this section is
+a retraction of.**
 
 ### 4. What must be re-run once the cut lands, ordered by cost
 
@@ -816,23 +903,30 @@ node tests/run-all.js                  # the census must not be down
 SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown \
   node engine/feature_fixture.js --check data/policy-weights.json
 
-# write data/engine-release.json from run_stamp's digests — this is the cut
-node -e "const RS=require('./engine/run_stamp.js'),cp=require('child_process'),fs=require('fs');
-  const d=RS.sourceDigests(); delete d.note;
-  const commit=cp.execSync('git rev-parse HEAD').toString().trim();
-  const dirty=cp.execSync('git status --porcelain -- '+Object.keys(d).join(' ')).toString().trim();
-  if(dirty) throw new Error('REFUSING TO CUT A DIRTY TREE:\n'+dirty);
-  fs.writeFileSync('data/engine-release.json', JSON.stringify({
-    release:'E1-'+new Date().toISOString().slice(0,10), cut:new Date().toISOString(),
-    supersedes:null, commit, dirty:false, digests:d}, null, 2)+'\n');
-  console.log('cut', require('./data/engine-release.json').release);"
+# THE CUT. One command. It copies the frozen bytes, appends a cut event, and repoints the pointer.
+node engine/engine_release.js cut "<why this release exists>"
+node engine/engine_release.js list     # must read: 0 of N files have moved since
 
 git tag engine/E1-$(date +%F)          # the human handle, NOT the authority
 node engine/status.js --write
 ```
 
-**The dirty-tree refusal is a feature, and it fires today.** Dry-run 2026-08-04 21:01 UTC: the guard
-refused, and in the eight minutes either side of it `engine/medicham2-browser.js` went
+> **STRUCK 2026-08-05 — the hand-rolled `node -e` recipe that used to be step 0.** It wrote
+> `data/engine-release.json` as `{release, cut, supersedes, commit, dirty, digests}`. That is **not
+> the schema `engine_release.js` writes**, it snapshots no bytes, and it was never what ran. It is
+> the second of the two pointer schemas named in §3, and `miltank.js`'s release resolver was coded
+> against *it* — which is why every MILTANK stamp on disk claims `ON_RELEASE` off an empty
+> comparison. A documented recipe that competes with the tool is not a convenience; it is a second
+> implementation of a fact wearing a shell prompt. **There is one way to cut and one way to ask.**
+>
+> Its one good idea is preserved where it belongs: the dirty-tree refusal below is now the
+> **`git status --porcelain`** precondition on the line above the cut, checked by the person cutting.
+> `engine_release.js` freezes CONTENT, so a dirty tree does not corrupt a release — it only makes the
+> release harder to name against a commit, which is why the tag is a convenience and the digests are
+> the authority.
+
+**The dirty-tree observation stands even though the recipe that made it is struck.** Dry-run
+2026-08-04 21:01 UTC: the guard refused, and in the eight minutes either side of it `engine/medicham2-browser.js` went
 `7649d0760a88 → 3653b857dc29`, `engine/board.js` went `bcf2dab9dc6f → 88506029c850` and
 `data/abra-tags.js` went `ea5b89c2afcd → facd3f2f50b4`. **Three of the five frozen files moved while
 this section was being written**, which is the entire argument for the boundary, observed rather than
@@ -1706,10 +1800,247 @@ Size the run to the question: an H2H decides in roughly 420 games, not 200,000.
 An opponent-aware playout is the first step toward an equilibrium player; ship it only if the A/B
 says so.
 
-### R10 status note (the router, 2026-08-05, at the 3.41.0 close)
+### R10 status note (the router, 2026-08-05, at the 3.41.0 close) — CLOSED by R11 below
 
 The explore-sweep re-run was STOPPED MID-FLIGHT by Will's order to close the session — its A/B
 row dumps and per-release shards are committed as evidence, its final artifact was not
 regenerated, and `data/rollout-r1-explore-sweep.json` therefore REMAINS UNSAFE in provenance,
 named and not hidden. Finishing it is the first SEARCH item next session. The R10 memo above was
 complete before the stop; nothing in it depends on the unfinished run.
+
+**Correction of fact, 2026-08-05.** Two of the three sentences above were already false when they
+were written, and the reason is worth keeping: the run was ordered stopped, the ORDER did not stop
+the process. The `MAXTURNS=60` leg kept going after the session closed and finished at 02:27:41Z;
+`engine/rollout_explore_sweep.js` then ran at 02:27:42Z and wrote the final artifact. All of that
+landed in the working tree UNCOMMITTED, so the committed evidence — which is what the note was
+written against — still showed a half-finished run. **An order to a person is not a signal to a
+process.** A stopped session and a stopped run are different events and this file recorded the
+first as the second.
+
+## R11 — the explore-sweep re-run is FINISHED, at a release, and it PASSES OUTRIGHT. 2026-08-05.
+
+**`data/rollout-r1-explore-sweep.json` is no longer UNSAFE.** `node engine/provenance.js` now reads
+it as *"pinned to engine release `3932186b59ef` — `engine/medicham2-browser.js` matches the frozen
+copy"*, verified by CONTENT and not by mtime. Of the two artifacts the dispatch named UNSAFE, this
+one is cleared; the other, `exploitability.json`, is self-declared void by its own generator (R8)
+and is a separate item that no re-run of this gate touches. **At the close of this session
+`exploitability.json` is the only UNSAFE artifact in the repository.**
+
+A third, `conformance-baseline.json`, went UNSAFE *during* the session when ENGINE moved
+`engine/conformance.js` underneath it, and had cleared again before the session ended. Recorded
+because it is a live demonstration of the thing this whole exercise is about: **the UNSAFE list is
+a photograph of a moving tree, so read it once, at the end, and say when you read it.**
+
+### The verdict, on the arm MILTANK actually runs
+
+Both arms out of **one process and one walk** (`DUMP0`), so the artifact's own `build_caveat` reads
+`SAME BUILD, BY CONSTRUCTION` rather than the cross-build hedge the 2026-08-04 version carried.
+There is no between-run window for ENGINE to land in — which is the defect that killed the first
+attempt at this pairing and is why `DUMP0` exists.
+
+| judge, 9,201 positions, n=40, horizon 20 | 2026-08-04 (pre-boundary) | **R11, release `3932186b59ef`** |
+|---|---|---|
+| explore = 1.0 — **the shipped default** | 67.971% | **69.840%** |
+| explore = 0.5 | 67.58% | 68.91% |
+| explore = 0 (deterministic greedy) | 65.721% | 66.645% |
+| material, porygon2 form | 65.265% | 65.265% |
+| paired, 1.0 over greedy | +2.25 [1.31, 3.19] | **+3.195 [2.237, 4.153]** |
+| lift over material | +2.706 [1.596, 3.817] | **+4.576 [3.473, 5.678]** |
+| R1 gate | `PASS_ON_BASELINE` | **`PASS_OUTRIGHT`** |
+
+**The gate upgraded, and the upgrade is the news.** R1's threshold is PORYGON2's published +3.42
+lift over the same baseline. The pre-boundary interval contained it; the post-boundary **lower
+bound clears it** (3.473 > 3.42), so the rollout now carries more than the learned model adds over
+counting bodies. `data/rollout-r1-explore1.json` was regenerated from the new rows and reads
+`PASS_OUTRIGHT`; `status.js` picks the R1 line up from that file.
+
+Read the size honestly: the material column is **unchanged to three decimals**, exactly as it must
+be — it never touches the leaf. Every point of movement is in the playout, and both playout arms
+rose. The mega-weather and terrain fixes this file predicted would *"move the point estimate and
+very unlikely move the sign"* did precisely that, in the predicted direction.
+
+The effect clears this run's own noise floor: split-half spread 0.941 to 1.913 points against an
+effect of 4.576.
+
+### The second horizon, on the NEWER release, agrees
+
+`data/rollout-r1-explore-sweep-h60-09acd3b404ef.txt`, 4,586 positions at `MAXTURNS=60` — the horizon
+the live leaf actually runs — quoted verbatim in the artifact: explore=1.0 **69.86%**, 0.5 68.80%,
+greedy 66.16%, material 64.24%, lift **+5.63 [4.06, 7.19]**, `R1 PASSES OUTRIGHT`. Two horizons, two
+samples, two releases, same verdict and the same ordering of arms.
+
+### How much does the release boundary actually matter? MEASURED, at zero cost
+
+The two committed explore=1 dumps (`6e43710396db` and `3932186b59ef`) walk the identical 9,201
+positions with identical seeds and differ only in `engine/medicham2-browser.js` and `data/tags.json`
+— one ENGINE landing. Pairing them row for row (0 misaligned witnesses on all five):
+
+| what an ENGINE landing did to the leaf | |
+|---|---|
+| rows whose leaf value moved at all | **1,882 of 9,201 (20.5%)** |
+| mean \|Δ\| on the rows that moved | **5.06 pt**, max 35.0 pt |
+| rows whose ≥0.5 CALL flipped | 148 (1.61%) |
+| the headline accuracy | 69.688% → 69.840%, **+0.152 pt** |
+
+**Per position the leaf is volatile; in aggregate it is stable.** That is the quantitative case for
+the release boundary and against panic about it in the same table: one ENGINE landing moves a fifth
+of all positions by five points, so any *per-position* claim must name its release — and it moves
+the headline by a seventh of the interval's half-width, so the aggregate verdict is not being
+carried by which release it ran on. It is also the reason the paragraph below is a footnote rather
+than a retraction.
+
+### THE BAD NEWS: the run I was told to do was killed, and the artifact is on the PREVIOUS release
+
+I was dispatched to measure against release **`09acd3b404ef`** and the paired A/B on disk is stamped
+**`3932186b59ef`** — the cut before it. Stated plainly rather than papered over:
+
+- I launched exactly the run asked for (one process, `RELEASE=09acd3b404ef`, `GAMES=2500 EVERY=2
+  N_LIST=40 EXPLORE_LIST=0,0.5,1`, both dumps). It started clean — release drift `0 of 23`, leaf
+  self-check 73.3% sane — ran for **40 minutes and was killed**: exit 1, no stack, no stderr, no
+  partial dump. Free physical memory fell **4.03 GB → 1.73 GB → 0.62 GB** across the run while four
+  foreign `node.exe` processes (peak 3.46 GB and 1.36 GB) held the box. That is an OOM kill by
+  memory pressure from concurrent work, not a defect in the gate.
+- **I did not relaunch it.** At 0.62 GB free it would die the same way, and a second dead 40 minutes
+  is not evidence. Handing the command over is the correct end of this task.
+- **I did NOT restamp the artifact to `09acd3b404ef`.** `rollout_explore_sweep.js` takes the release
+  from the arm's own sidecar, which is `REL.stamp()` written by the process that rolled the playouts.
+  Editing it to name a release the playouts never ran on would be the precise failure the release
+  boundary exists to prevent, and it would have looked completely fine.
+
+**What it costs, bounded by the table above:** `09acd3b404ef` differs from `3932186b59ef` in the
+simulator and `tags.json` — one landing's worth. The h60 leg *is* on `09acd3b404ef` and lands within
+0.02 pt of the h20 leg's explore=1.0 figure. So the expected cost of the misalignment is on the
+order of 0.15 points and the verdict is 4.576 with a 1.10-point half-width.
+
+**The command, when the box is quiet.** One process. Check `FreePhysicalMemory` is above ~5 GB
+first; this needs ~2.5 GB resident for ~35 minutes and it is the only thing that should be running.
+
+```
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown \
+  RELEASE=09acd3b404ef \
+  GAMES=2500 EVERY=2 N_LIST=40 EXPLORE_LIST=0,0.5,1 \
+  DUMP=rollout-r1-explore1-rows-09acd3b404ef.jsonl \
+  DUMP0=rollout-r1-greedy-rows-09acd3b404ef.jsonl \
+  node --max-old-space-size=4096 engine/rollout_r1.js \
+  > data/rollout-r1-explore-sweep-h20-09acd3b404ef.txt 2>&1
+
+node engine/rollout_explore_sweep.js \
+  --greedy  data/rollout-r1-greedy-rows-09acd3b404ef.jsonl \
+  --explore data/rollout-r1-explore1-rows-09acd3b404ef.jsonl \
+  data/rollout-r1-explore-sweep-h20-09acd3b404ef.txt \
+  data/rollout-r1-explore-sweep-h60-09acd3b404ef.txt
+
+node engine/rollout_r1_artifact.js --print \
+  data/rollout-r1-explore1-rows-09acd3b404ef.jsonl > data/rollout-r1-explore1.json
+```
+
+`rollout_r1.js` refuses to start if the live tree has moved off the named release, so a stale
+`RELEASE=` fails loudly rather than quietly — the refusal text is on disk twice already
+(`rollout-r1-explore-sweep-h60-3932186b59ef.txt`, `rollout-r1-greedy-h20-6e43710396db.txt`) and both
+times it was the guard working.
+
+### Two defects the regeneration exposed. ONE FIXED, ONE FILED — and the fixed one was hiding.
+
+**Defect 1 — `rollout_r1_artifact.js` hardcoded a sentence that `status.js` prints as fact. FIXED.**
+
+`which_rollout_is_this.consequence` was a string constant reading *"The published +2.91 gate result
+cannot be recomputed from anything committed… on it R1 is UNDECIDED."* True of the 2026-08-04 greedy
+dump and of nothing since. `status.js:325-329` prints it **verbatim, directly under the gate line**,
+so regenerating the gate produced a handoff that read `PASS_OUTRIGHT … +4.576 [3.473, 5.678]` and
+then, on the very next line, `R1 is UNDECIDED`.
+
+**It had been patched by HAND into `data/rollout-r1-explore1.json` instead of in the generator.**
+That is why nobody saw it for a day: the screen was right, the generator was wrong, and the two only
+disagreed the moment somebody re-ran it. A hand edit inside a *generated artifact* is the failure
+CLAUDE.md names for the `<!-- GENERATED -->` blocks, one layer down, where there is no marker to warn
+you that you are editing an output. **The generated block is the only place this could surface, and
+it surfaced by being regenerated — which is the argument for regenerating things.**
+
+The sentence is now derived from the sidecar's recorded `explore` and from the verdict this run
+computed, so it cannot go stale without the number going with it.
+
+**Also fixed in the same pass, because it is the same file and the same reader:** the sidecar loader
+whitelisted `p_column`, `sweep` and `source_digests` and **filtered `engine_release` out**. It
+predates `engine_release.js`. So a release-aware run handed the gate its release id and the gate
+dropped it. `data/rollout-r1-explore1.json` now carries `engine_release: "3932186b59ef"`,
+`engine_release_cut`, `showdown_commit` and all 25 `source_digests` at the top level.
+
+The order was: fix the generator, **then** regenerate. Doing it the other way round makes the
+artifact read stale against its own generator the instant it is written.
+
+**Defect 2 — `provenance.js` DOES NOT SEE `data/rollout-r1-explore1.json` AT ALL. FILED.**
+
+The R1 headline the handoff prints is **not in provenance's enumeration**. Confirmed by reading the
+full listing: `rollout-r1.json`, `rollout-r1-withdrawn-join.json` and `rollout-r1-explore-sweep.json`
+are all there and this one is absent. The mechanism is the one `rollout_r1_artifact.js` documents
+about itself — provenance credits a generator with an output when the filename **sits beside a write
+verb**, and this file is produced by `--print` redirected by the shell, so no generator names it.
+
+So the gate now carries a release stamp that nothing checks. Fixing it means giving the generator a
+real `--out` that names the path in a `writeFileSync` — small, but it changes the generator's digest
+again and there is no test covering this file (`grep -rl rollout_r1_artifact tests/` returns
+nothing), so it should land with one. **Not done here** — changing how an artifact is enumerated is
+not a thing to land at the end of a session on the back of a run that died.
+
+### The suite, run rather than assumed: 72 passed, 6 failed, and none of the six is SEARCH's
+
+`node tests/run-all.js` after the changes above. Named, because "known failure" is banned and a list
+without owners is a filing:
+
+| red | owner | what it is |
+|---|---|---|
+| `tests/test-degradation-budgets.js` | MEASURE | four NEW counters (`fit_policy.decisionsUnreadable`, `.coercedActions`, `fit_joint.turnsUnreadable`, `.coercedTurns`) have no declared ceiling. The refit landed them today. The six counters that DO have ceilings all pass |
+| `tests/test-effective-identity.js` | ENGINE | `.ability` read directly in `tests/test-interaction-matrix.js` and `tests/test-paste.js` |
+| `tests/test-no-silent-failure.js` | ENGINE + MEASURE (baseline drift) | new empty catches at `em_validation.js:64,257`, `engine_release.js:202`, `miltank.js:182,188,218` and three release tests. All of it is the release machinery landed today; it needs re-baselining with `--update`, which is a deliberate act and not mine to perform on another division's code |
+| `tests/test-web-status.js` | WEB, caused by ENGINE | the board is older than `data/engine-diff.json` and `data/mechanics-census.json`, which ENGINE rewrote **while the suite was running**. It will go red again the next time ENGINE lands; rebuilding it now buys minutes |
+| `engine/provenance.js` | R8 | exits non-zero while ANY artifact is UNSAFE, and one is: `exploitability.json`, deliberately void by its own generator. It stays red until the WOBBUFFET re-run happens, and R9 says do not run that in its current shape. Red for a reason that is written down, owned and dated — which is not the same as filed |
+| `engine/em_validation.js` | MEASURE | the EM censoring validation did not clear its own noise floor and records no source digests |
+
+A **seventh** went red between the suite finishing and this section being written:
+`tests/test-docs-current.js` (16 passed, 1 failed) on `docs/CLICK-CENSORING-FIX.md` — a document
+MEASURE created mid-session, carrying 3 untraceable figures — plus `docs/MODELS.md` moving 28 → 29.
+**`docs/SEARCH.md` is not among the ten documents it names**, which is the check I care about here
+and the reason it is quoted rather than summarised. That a guard's colour changed twice in one hour
+without anyone touching the guard is the same lesson as the UNSAFE list above.
+
+**I changed `engine/rollout_r1_artifact.js` and `data/rollout-r1-explore1.json` and nothing else in
+`engine/`. No red test names either file.** I did not touch the six: four of them are being actively
+written by the two agents running beside me, and re-baselining another division's guard is how a
+guard stops meaning anything. This is a report with owners, not a filing — it says which agent each
+one is waiting on.
+
+### FILED FOR MEASURE — `node engine/status.js` CRASHES. The handoff command is down.
+
+Found at 03:41Z, after the ledgers had been stamped, so `docs/SEARCH.md`'s generated block above is
+current at `_stamped 2026-08-05 03:39_` and this does not affect it.
+
+```
+TypeError: Cannot read properties of undefined (reading 'toFixed')
+    at measure (engine/status.js:368:79)
+```
+
+`status.js:367-368` reads `data/partial-label-em.json` and formats
+`A.censoring_bias.toFixed(3)` / `A.noise_floor_oracle_spread.toFixed(3)` after guarding only on
+`em.regimes.amplified` **existing**. The artifact is brand new, still untracked, and was being
+written by MEASURE while this session ran; its `amplified` regime is present without those two keys,
+so the guard passes and the format throws.
+
+**Every one of the other ~40 reads in that function is written defensively** — `(cen.raw_protocol_arm
+|| {}).games_with_log || 0` three lines above it. This one is not, and it is the only unguarded read
+in the block. **CLAUDE.md's own instruction is `node engine/status.js`, so a throw here takes the
+whole handoff down, including four ledgers that have nothing to do with EM.** It is a one-line guard
+and it belongs to MEASURE (`status.js` and `em_validation.js` are both theirs); SEARCH does not patch
+another division's file mid-result. `engine/em_validation.js` is red in the suite for a related
+reason — *"the artifact records no source digests"* — so the artifact is known to be incomplete and
+`status.js` is trusting it anyway.
+
+### What this does NOT say, since the caveat is the same one and has not moved
+
+This is a verdict on a **JUDGE**. It says the explore=1.0 playout scores a human position better
+than the greedy one and better than counting bodies. It does **not** say explore=1.0 wins more
+games: `engine/mew.js` still exposes no `--miltank-explore` (PRIORITIES #33), R4 was itself run at
+1.0 and cannot arbitrate its own setting, and R5 — whether the leaf ORDERS actions differently at
+all — is still unrun. Every decision MILTANK makes is an argmax over this leaf, and a leaf that
+judges 4.6 points better than material may still rank 63 candidate cells identically. **R5 is the
+measurement that decides whether any of this buys a click**, and it is now the top of SEARCH's
+queue.

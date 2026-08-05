@@ -1,6 +1,6 @@
 # OUTPLAYED TURNS ARE NOT NOISE — the click-censoring fix
 
-**Version 3.41.0 · 2026-08-05 · Ordered by Will:** *"i def dont like just tossing turns because they
+**Version 3.42.0 · 2026-08-05 · Ordered by Will:** *"i def dont like just tossing turns because they
 got outplayed with a move liek encore or follow me, these are the basis of vgc man."* He is right,
 and the literature says he is right. This document is the proposal AND the dispatch spec; MEASURE
 implements it, ENGINE consults on protocol detection.
@@ -117,6 +117,74 @@ bot plays outplayed turns, that is the point, proven.
 - The `turnsDropped` ceiling question (5.49%) is superseded rather than resolved: Stages B–C
   change what "dropped" means, so the budget gets re-derived from the new counters with its
   granularity stated — the re-cut Will already has on his desk folds into this.
+
+## 4a. IMPLEMENTATION RECORD — MEASURE, 2026-08-05. Two things above are wrong; here is what is true.
+
+The spec is kept as written; corrections are added, never substituted. Artifacts:
+`data/click-censoring-census.json` (Stage A), `data/partial-label-em.json` (Stage C),
+`data/censoring-value.json` (Stage D).
+
+**CORRECTION 1 — §1's first row is wrong, and `engine/redirect_audit.js` said so on 2026-08-02.**
+Redirection does **not** drop the turn and is **not** counted in `unmatchedClicks`. The redirector is
+a perfectly legal candidate target, so the matcher finds it, matches it and is happy — the click
+enters the fit with a CONFIDENT WRONG TARGET. So redirection belongs in row two of that table, not
+row one: it is label noise, the class §2 calls strictly worse than missingness. That makes Stage C a
+poison fix as much as a recovery, and it makes the MNAR framing stronger rather than weaker, because
+the mislabel lands exactly on the turns where the opponent's play worked. The 2.92% `unmatchedClicks`
+figure is a real number about a different population.
+
+**CORRECTION 2 — a `|drag|` is a third coerced class, and §1 does not list it.**
+`engine/durable-ingest.js:67` parses `|switch|`, `|drag|` and `|replace|` with ONE regex, so a mon
+phazed in by Roar / Whirlwind / Dragon Tail / Circle Throw is stored as `t:'s'`, identical to a
+click. `engine/fit_policy.js`'s `forcedSlot` guard only excludes a switch that follows a faint, so
+every drag was being fitted as a voluntary switch decision. **220 of them in the corpus.**
+
+**THE FARIGIRAF QUESTION IS ANSWERED: PARTIAL, NOT ERASED.** Read from real logs, as Stage A asks:
+
+```
+|cant|p1a: Farigiraf|ability: Armor Tail|Aqua Jet|[of] p2b: Basculegion
+|cant|p2b: Tsareena|ability: Queenly Majesty|Sucker Punch|[of] p1a: Kingambit
+```
+
+The blocker is named first, the attempted **move** is named, and `[of]` names the **attacker**.
+**284 of 284 priority-block lines carry the attacker slot (100.0%).** So the user and the move are
+exact and only the target is ambiguous — and only between the blocker and its ally, because the
+ability blocks nothing aimed elsewhere. Candidate set of at most two.
+
+**It is counted and NOT recovered, deliberately.** Showdown emits no `|move|` line for a blocked
+attempt (the `TryMove` event returns false before `addMove`), so the class leaves no event and is
+invisible to the extracted stream. It exists only in the raw logs, and the raw logs cover **66.17%
+of the fit corpus** — the gap is one SOURCE, `data/games.ots.jsonl`, an external archive with no log
+file beside it. Recovering these clicks would add outplayed turns from two stores and none from the
+third, which is a corpus reweighting wearing a bug fix's clothes. The same applies to the 126
+`|cant|` lines that state the click outright (Taunt 59, Disable 58, Heal Block 5, Imprison 4).
+Closing it means re-ingesting the ots archive with its logs, which is OPS work.
+
+**The mechanism sets are read from the running format, not typed** — moves with
+`condition.onOverrideAction` (`{encore}`), moves with `forceSwitch` (`{roar, whirlwind, dragontail,
+circlethrow}`), abilities with `onFoeTryMove` (`{armortail, dazzling, queenlymajesty}`), items
+assigning `switchFlag`/`forceSwitchFlag` (**empty in this format**: Eject Button, Eject Pack and Red
+Card are all `isNonstandard: 'Past'`), and `data/tags.json`'s `redirects` / `redirectsType`. Every
+set refuses to be empty.
+
+**THE CLASSIFIER'S OWN ERROR RATE, measured against the protocol rather than asserted.** The census
+scores the event-stream classifier per (game, turn, slot) against the raw log on the 5,917 games that
+have one:
+
+| class | protocol says | classifier flagged | both | recall | precision |
+|---|---|---|---|---|---|
+| Encore application | 619 | 642 | 617 | 99.68% | 96.11% |
+| drag | 86 | 86 | 83 | 96.51% | 96.51% |
+
+The 25 Encore false positives are ~0.01% of all actions, and the asymmetry is the right way round: a
+false positive deletes a real click, a false negative keeps a poisoned one, and there are two of
+those. The most likely cause is an Encore blocked by Protect — `|-activate|…|move: Protect` is not
+captured by the extractor, so the move event carries no failure flag. Not chased: fixing it means
+editing the classifier, and the classifier was frozen while the refit that depends on it ran.
+
+**Known limit, stated rather than discovered later:** the Encore rule looks for the victim on the
+FOE side. Encore aimed at one's own ally would be missed. The recall figure above is the measurement
+of how much that costs, and it is at most 2 turns in 619.
 
 ## 5. References
 

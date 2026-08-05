@@ -212,13 +212,39 @@ function artifactRates() {
     }
   };
 
+  /* ---- "DROPPED" MEANT TWO DIFFERENT THINGS AND NOW SAYS WHICH ------------------------------
+   *
+   * `fit_policy.decisionsDropped` and `fit_joint.turnsDropped` were both `seen - kept`. After
+   * docs/CLICK-CENSORING-FIX.md Stage B that total silently absorbed a THIRD thing: actions removed
+   * because the protocol showed they were never clicks (Encore's application turn, a `|drag|`
+   * stored as a switch). Those used to be inside `kept`, carrying a WRONG LABEL.
+   *
+   * So the totals would have gone UP while the artifact got strictly better, and a budget that can
+   * only tighten would have gone red for an improvement. That is why the spec rules the 5.49%
+   * question SUPERSEDED rather than answering it with a bigger or a smaller number: the unit
+   * changed. Three counters now, each with its granularity stated:
+   *
+   *   *.unreadable   the click existed and could not be recovered. A LOSS. Successor to the old
+   *                  total, and directly comparable to it because it is the same quantity minus a
+   *                  term that used to be misfiled as kept.
+   *   *.coerced      the recorded action was not a click and was removed. A CORRECTION, not a loss.
+   *                  Its own ceiling, because it is a rate that should track the metagame's use of
+   *                  Encore and phazing and nothing else.
+   *   *.dropped      retained as the TOTAL so nothing vanishes from the ledger, and explicitly
+   *                  marked superseded in data/degradation-budgets.json.
+   */
   const pw = read('policy-weights.json');
   if (pw && pw.matching && pw.matching.seen) {
     const m = pw.matching;
-    out['fit_policy.unmatchedClicks'] = { hits: m.unmatched, of: m.seen,
+    const coerced = m.coerced || 0;
+    out['fit_policy.unmatchedClicks'] = { from: 'artifact', artifact: 'policy-weights.json', unit: 'human actions seen by fit_policy', hits: m.unmatched, of: m.seen,
       what: 'human clicks the move fit could not match to a candidate, so the decision was dropped from training' };
-    out['fit_policy.decisionsDropped'] = { hits: m.seen - m.kept, of: m.seen,
-      what: 'decisions discarded for any reason before fitting' };
+    out['fit_policy.decisionsUnreadable'] = { from: 'artifact', artifact: 'policy-weights.json', unit: 'human actions seen by fit_policy', hits: m.seen - m.kept - coerced, of: m.seen,
+      what: 'decisions discarded because the CLICK could not be read (unmatched, ambiguous, trivial, no sheet, no user). '
+          + 'Excludes coerced actions, which are not clicks at all. Successor to decisionsDropped.' };
+    out['fit_policy.coercedActions'] = { from: 'artifact', artifact: 'policy-weights.json', unit: 'human actions seen by fit_policy', hits: coerced, of: m.seen,
+      what: 'recorded actions the protocol shows were NOT clicks — Encore overrode the choice, or a phazing move '
+          + 'dragged the mon in — removed from the labeled set rather than fitted with a wrong label' };
   } else if (pw) {
     out['fit_policy.unmatchedClicks'] = { pending: true,
       what: 'policy-weights.json predates the `matching` block — it will populate on the next fit' };
@@ -227,13 +253,17 @@ function artifactRates() {
   const jw = read('policy-weights-joint.json');
   if (jw && jw.matching && jw.matching.turnsSeen) {
     const m = jw.matching;
-    out['fit_joint.turnsDropped'] = { hits: m.turnsSeen - m.kept, of: m.turnsSeen,
-      what: 'joint turns the pair fit could not use — the defect that had it fitting 74 weights on 30% of the data' };
+    const coerced = m.coerced || 0;
+    out['fit_joint.turnsUnreadable'] = { from: 'artifact', artifact: 'policy-weights-joint.json', unit: 'joint turns (both slots acting) seen by fit_joint', hits: m.turnsSeen - m.kept - coerced, of: m.turnsSeen,
+      what: 'joint turns the pair fit could not use because a CLICK could not be read — the defect that had it '
+          + 'fitting 74 weights on 30% of the data. Successor to turnsDropped; excludes coerced turns.' };
+    out['fit_joint.coercedTurns'] = { from: 'artifact', artifact: 'policy-weights-joint.json', unit: 'joint turns (both slots acting) seen by fit_joint', hits: coerced, of: m.turnsSeen,
+      what: 'joint turns voided because at least one of the two recorded actions was not a click' };
   }
 
   const ce = read('chomp-ev.json');
   if (ce && ce.n_human_games) {
-    out['chomp_ev.unbuildableGames'] = { hits: ce.n_skipped_unbuildable || 0, of: ce.n_human_games,
+    out['chomp_ev.unbuildableGames'] = { from: 'artifact', artifact: 'chomp-ev.json', unit: 'human games in the CHOMP evaluation set', hits: ce.n_skipped_unbuildable || 0, of: ce.n_human_games,
       what: 'human games CHOMP could not build a board for, so they left the evaluation set' };
   }
   return out;
@@ -247,17 +277,38 @@ if (process.argv.includes('--ratchet')) {
     if (m.pending) continue;
     const measured = Math.ceil(rate(m) * 10000) / 10000;
     const old = prev.budgets && prev.budgets[k] ? prev.budgets[k].max_rate : Infinity;
+    /* THE GRANULARITY IS PART OF THE CEILING. Every row used to say "over 120 corpus games", which
+     * was true of the three board.js counters and FALSE of every fitter rate — those come out of an
+     * artifact written over the whole corpus. A ceiling whose denominator is misdescribed cannot be
+     * re-derived by anyone, which is the thing this pass exists to fix. */
     budgets[k] = {
       max_rate: Math.min(measured, old),          // may only tighten
-      measured_at: `${m.hits}/${m.of} over ${GAMES} corpus games`,
+      measured_at: m.from === 'artifact'
+        ? `${m.hits}/${m.of} read from data/${m.artifact} (written over the whole fit corpus)`
+        : `${m.hits}/${m.of} over ${GAMES} corpus games + ${SELFPLAY_GAMES} self-play games`,
+      granularity: m.from === 'artifact' ? m.unit : 'candidate scorings / sheet entries',
       what: m.what,
       target: (prev.budgets && prev.budgets[k] && prev.budgets[k].target) || null,
     };
+  }
+  /* A RETIRED BUDGET IS RECORDED, NOT DELETED. `--ratchet` rebuilds `budgets` from what the run can
+   * measure, so a counter that stops being emitted would simply vanish and its history with it —
+   * which is how "we used to hold this to 5.49%" becomes folklore. Anything the previous file held
+   * that this run cannot measure is carried into `superseded` with its old ceiling intact. */
+  const superseded = Object.assign({}, prev.superseded || {});
+  for (const [k, v] of Object.entries(prev.budgets || {})) {
+    if (budgets[k]) continue;
+    superseded[k] = Object.assign({}, v, {
+      retired_because: v.retired_because ||
+        'the unit changed under it — see tests/test-degradation-budgets.js artifactRates() and '
+        + 'docs/CLICK-CENSORING-FIX.md §4. Kept as history; it is no longer checked.',
+    });
   }
   fs.writeFileSync(FILE, JSON.stringify({
     note: 'Ceilings on how often each degradation path may fire. Measured, never chosen. A budget may only be TIGHTENED — loosening one is a decision that must be argued for here, not edited quietly. See tests/test-degradation-budgets.js.',
     workload: `first ${GAMES} clean open-sheet corpus games, scored as fit_policy scores them`,
     budgets,
+    superseded,
   }, null, 2) + '\n');
   console.log('  ratcheted:');
   for (const [k, v] of Object.entries(budgets)) console.log(`    ${k.padEnd(36)} <= ${pct(v.max_rate)}`);

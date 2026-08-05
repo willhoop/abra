@@ -22,6 +22,9 @@ const path = require('path');
 const B = require('./board.js');
 const FP = require('./fit_policy.js');
 const CM = require('./click_match.js');
+/* "is the recorded action a CLICK at all" — docs/CLICK-CENSORING-FIX.md. Same module fit_policy
+ * uses, so the two layers cannot disagree about which turns were coerced. */
+const CC = require('./click_class.js');
 const SC = require('./sheet_channels.js');
 /* Taken from fit_policy rather than re-read from the environment. Both files are loaded into the
  * SAME process by engine/fit_joint.js, and two independent parses of one environment variable is a
@@ -80,6 +83,7 @@ function build(games, dex, opts) {
 
   const rows = [];
   const tally = { turns: 0, kept: 0, oneSlot: 0, unmatched: 0, ambiguous: 0, chosenOutsideK: 0,
+                  coerced: 0, partial: 0,
                   /* rankHist[r] = turns whose WORSE slot ranked the human's click at r (0-based).
                    * slotRankHist[r] counts slots, not turns. candCount lets a reader tell a low
                    * truncation rate caused by a good ranker from one caused by a short candidate
@@ -125,6 +129,13 @@ function build(games, dex, opts) {
       const ev = t.ev || [];
       for (const e of ev) if (e.t === 'mega' && e.s) { const mn = board.slot(e.s.slice(0, 2), e.s.slice(2)); if (mn) mn.species = norm(e.mon); }
 
+      /* Which recorded actions are not clicks — Encore's application turn and a `|drag|` stored as
+       * a `t:'s'`. A PAIR needs both slots to be real choices, so one coerced slot voids the turn;
+       * that is counted as COERCED rather than as unmatched, because they are different facts and
+       * adding them together is exactly what made `turnsDropped` unreadable. */
+      const coerced = CC.coercedSlots(ev, dex);
+      const redirect = CC.redirectorsUp(ev, dex);
+
       /* What each side actually did with BOTH slots this turn, before anything resolves. */
       for (const side of ['p1', 'p2']) {
         /* A SWITCH IS ONE OF THE TWO THINGS A SLOT CAN DO, and looking only for move events threw away
@@ -145,8 +156,16 @@ function build(games, dex, opts) {
         }
         if (!acted.a || !acted.b) { tally.oneSlot++; continue; }
         tally.turns++;
+        const co = coerced.get(side + 'a') || coerced.get(side + 'b');
+        if (co) {
+          tally.coerced++;
+          tally.coercedWhy = tally.coercedWhy || {};
+          tally.coercedWhy[co.why] = (tally.coercedWhy[co.why] || 0) + 1;
+          continue;
+        }
 
         const foeSide = side === 'p1' ? 'p2' : 'p1';
+        const liveFoes = board.field().filter(f => f.side === foeSide && !f.mon.fainted);
         const slots = ['a', 'b'].map(L => {
           const user = board.slot(side, L);
           if (!user || user.fainted) return null;
@@ -172,7 +191,26 @@ function build(games, dex, opts) {
            * remaining cause of a failed match at 44.37% (engine/redirect_audit.js, 2026-08-02). */
           const m = CM.matchClick(cands, want, dex,
             want.kind === 'move' ? CM.targetAtDecision(ev, actedAt[L], foeSide, want.tgt, board) : undefined);
-          return { cands, feats, chosen: m.chosen, ambiguous: m.ambiguous, scores: feats.map(score1) };
+          /* THE PARTIAL LABEL, per slot. A redirected attack's true target is any of the live foes;
+           * the pair's candidate set is then the CROSS of the two slots' sets, built below. */
+          let cset = null;
+          if (want.kind === 'move' && m.chosen >= 0) {
+            const evt = ev[actedAt[L]];
+            const pt = CC.partialTarget(evt, actedAt[L], redirect, liveFoes, dex, board);
+            if (pt) {
+              const mvId = norm((dex.moves.get(want.mv) && dex.moves.get(want.mv).id) || want.mv);
+              const foeSp = new Set(liveFoes.map(f => base(f.mon.species)));
+              const set = [];
+              for (let i = 0; i < cands.length; i++) {
+                const c = cands[i];
+                if (!c.move || norm(c.move.id) !== mvId) continue;
+                if (!c.targetMon || !foeSp.has(base(c.targetMon.species))) continue;
+                set.push(i);
+              }
+              if (set.length > 1 && set.includes(m.chosen)) cset = set;
+            }
+          }
+          return { cands, feats, chosen: m.chosen, ambiguous: m.ambiguous, scores: feats.map(score1), cset };
         });
         if (slots[0] && slots[1] && (slots[0].ambiguous || slots[1].ambiguous)) { tally.ambiguous++; continue; }
         if (!slots[0] || !slots[1] || slots[0].chosen < 0 || slots[1].chosen < 0) { tally.unmatched++; continue; }
@@ -190,8 +228,14 @@ function build(games, dex, opts) {
           const full = s.scores.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]).map(p => p[1]);
           const rank = full.indexOf(s.chosen);      /* 0-based; the chosen index is always a candidate */
           const order = full.slice(0, TOPK);
-          if (!order.includes(s.chosen)) { order.push(s.chosen); return { order, outside: true, rank }; }
-          return { order, outside: false, rank };
+          let outside = false;
+          if (!order.includes(s.chosen)) { order.push(s.chosen); outside = true; }
+          /* EVERY MEMBER OF A PARTIAL SET IS FORCED IN, for the same reason the chosen candidate is:
+           * a candidate set that the top-K silently truncated would turn a marginal likelihood back
+           * into a pick, and the truncation would fall on exactly the alternatives the model already
+           * rates low — which is the bias this stage exists to remove. */
+          if (s.cset) for (const c of s.cset) if (!order.includes(c)) order.push(c);
+          return { order, outside, rank };
         };
         const pa = pick(slots[0]), pb = pick(slots[1]);
         if (pa.outside || pb.outside) tally.chosenOutsideK++;
@@ -208,6 +252,9 @@ function build(games, dex, opts) {
 
         const alts = [];
         let chosenPair = -1;
+        const setA = slots[0].cset ? new Set(slots[0].cset) : null;
+        const setB = slots[1].cset ? new Set(slots[1].cset) : null;
+        const pairSet = (setA || setB) ? [] : null;
         for (const ia of pa.order) for (const ib of pb.order) {
           const xa = slots[0].feats[ia], xb = slots[1].feats[ib];
           const j = B.jointFeaturesFor(slots[0].cands[ia], slots[1].cands[ib], xa, xb);
@@ -215,10 +262,19 @@ function build(games, dex, opts) {
           for (let k = 0; k < NF; k++) v[k] = xa[k] + xb[k];
           for (let k = 0; k < NJ; k++) v[NF + k] = j[k];
           if (ia === slots[0].chosen && ib === slots[1].chosen) chosenPair = alts.length;
+          if (pairSet &&
+              (setA ? setA.has(ia) : ia === slots[0].chosen) &&
+              (setB ? setB.has(ib) : ib === slots[1].chosen)) pairSet.push(alts.length);
           alts.push(v);
         }
         if (chosenPair < 0 || alts.length < 2) { tally.unmatched++; continue; }
         const row = { game: g.id || '', alts, chosen: chosenPair };
+        if (pairSet && pairSet.length > 1 && pairSet.includes(chosenPair)) {
+          row.cset = pairSet;
+          tally.partial++;
+          tally.partialSetSize = tally.partialSetSize || {};
+          tally.partialSetSize[pairSet.length] = (tally.partialSetSize[pairSet.length] || 0) + 1;
+        }
         if (onRow) onRow(row); else rows.push(row);
         tally.kept++;
       }

@@ -78,7 +78,15 @@ const GATES = ['engine/selftest.js', 'engine/conformance.js', 'engine/artifact_a
    * tie the docs to the artifacts ran only when somebody typed the command by hand. That is how a
    * published PORY log-loss of 0.567 survived while the artifact said 0.6321. Whole-repo review,
    * 2026-07-31. */
-  'engine/sanity_check.py'];
+  'engine/sanity_check.py',
+  /* engine/em_validation.js — the Stage C estimator gate, docs/CLICK-CENSORING-FIX.md. It is run
+   * with --check, which VERIFIES the recorded verdict and re-hashes every source the measurement
+   * depended on, rather than re-running tens of minutes of conditional-logit fits inside the suite.
+   * Editing engine/click_class.js or engine/fit_policy.js therefore turns this red until the
+   * measurement is re-run, which is the hash-not-mtime rule engine/status.js already applies to the
+   * leaf. Listing it without --check would put a 25-minute fit in the suite; not listing it at all
+   * would leave a gate that nothing runs, which the assertion below exists to forbid. */
+  'engine/em_validation.js'];
 
 /* COVERAGE ASSERTION. Any file in engine/ that reports its own pass/fail summary is a check, and a
  * check that nothing runs is worse than no check — it reads as coverage in a review. If one turns up
@@ -127,16 +135,20 @@ function plan(rel) {
   /* Per-check extra arguments. provenance.js reports by default and only GATES with --strict, so the
    * runner must ask for the strict behaviour or it would list unsafe artifacts and exit 0 — a gate
    * that reads as a pass, which is the failure this file exists to prevent. */
-  /* conformance.js was registered as a gate and run WITHOUT --strict, so its exit(1) at :301
-   * could never fire. It reported two findings on every run and exited 0 -- a registered gate
-   * that always passes, which is the exact thing this file exists to prevent, sitting in this
-   * file. Found by OPS 2026-08-04. */
-  const EXTRA = { 'engine/provenance.js': ['--strict'] };
-  /* conformance.js is a registered gate that runs WITHOUT --strict, so its exit(1) can never
-   * fire -- it reports findings and exits 0. That is a gate that always passes, which is the
-   * thing this file exists to prevent, sitting in this file. It is NOT switched on here yet:
-   * doing so today makes run-all red on 42 findings that are mostly legitimate. Triage first,
-   * then flip it. PRIORITIES #46b. (OPS, 2026-08-04.) */
+  /* conformance.js is the same shape and was the worse case: it was registered as a gate here and
+   * run WITHOUT --strict, so its exit(1) could never fire. It printed findings on every run and
+   * exited 0. Two near-identical comment blocks sat at this exact spot documenting that defect, and
+   * it was acted on zero times — the write-up became the substitute for the fix.
+   *
+   * It is switched on now, and it is a RATCHET rather than a switch, because flipping --strict as
+   * it stood turned the suite red on ~a hundred findings that are mostly legitimate. A red board
+   * gets normalised: tests/test-docs-current.js sat red for two days across ~40 commits as a "known
+   * failure", the phrase CLAUDE.md bans. So what already existed is recorded in
+   * data/conformance-baseline.json — the count lives in that artifact and is deliberately not typed
+   * here — and the gate fails only on a finding that is NOT in there. The baseline may shrink and
+   * may never grow. PRIORITIES #46b, closed 2026-08-04. */
+  const EXTRA = { 'engine/provenance.js': ['--strict'], 'engine/conformance.js': ['--strict'],
+                  'engine/em_validation.js': ['--check'] };
   return { cmd: rel.endsWith('.py') ? PY : process.execPath, args: [D(rel), ...(EXTRA[rel] || [])] };
 }
 

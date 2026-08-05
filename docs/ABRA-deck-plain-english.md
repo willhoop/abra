@@ -1,6 +1,6 @@
 # ABRA — the plain-English deck
 
-**Version 3.41.0 · 2026-08-05 · Will Hooper**
+**Version 3.42.0 · 2026-08-05 · Will Hooper**
 
 A slide-by-slide, jargon-light tour. The white paper (linked on the last slide) has the math and sources.
 
@@ -183,9 +183,12 @@ rarely click it. A bot told to avoid its own best plays will avoid them.
   is the single most promising thing on the list.
 - **Fix a small unfairness in the training data.** When a Pokémon is locked into one move, we were
   still showing the bot all four as if it had a choice. It affects about 1 in 15 items.
-- **Find out how readable it is.** A rival bot built only to beat ours won 63% of the time. That was
-  measured a long time ago and never repeated. A bot can get better on average while staying just as
-  easy to read — those are different questions, and only one of them has been checked lately.
+- **Find out how readable it is.** We have no answer to this. An old figure said a rival bot built to
+  beat ours won 63% of the time; that number is **withdrawn** — it was measured on a third of the
+  features the bot now uses, on a dirty set of games, before most of the engine was fixed. The re-run
+  was ruined when the thing being tested got rebuilt halfway through. So the honest position is that
+  the question is open, not that the answer is bad. A bot can get better on average while staying
+  just as easy to read; those are different questions and only one has been checked.
 - **Then, looking ahead.** Right now the bot only thinks about *this* turn. Looking one turn further
   is a real project, but it's now measured rather than guessed: there are only **72** sensible
   combinations to consider each turn, not the trillions people assume.
@@ -271,6 +274,42 @@ coverage grew again (202 of 205 probed mechanics, 3 remaining, each with a writt
 mirror-match test hit 100% agreement with the official engine, and two real bugs — one in how
 Intimidate interacts with certain abilities, one where Sheer Force was hurting its own holder —
 were found and fixed with proof.
+
+**Update (version 3.42.0) — we were teaching the bot moves nobody ever picked.**
+
+Will said it first: *"i def dont like just tossing turns because they got outplayed with a move like
+Encore or Follow Me, these are the basis of VGC."* He was right, and it turned out to be worse than
+tossing them.
+
+When Encore hits you, the game **takes the controls away** and makes you repeat your last move. The
+replay just shows you using that move. Because it is a move you legitimately own, every check we had
+said "looks like a normal choice" and the model dutifully learned it as one. The same thing happened
+whenever Roar or Whirlwind blew a Pokémon in — the replay writes that arrival exactly like a
+voluntary switch, so we were teaching the bot to make switches the player never made. **1,336 of
+241,927 recorded actions across 8,942 games were things no human chose.** That is not a small
+rounding error being fed to the model; it is a small amount of outright fiction, and it was
+concentrated on the turns where the opponent had just outplayed the player. Those are gone now, and
+counted, so we can see the number.
+
+The other half — Follow Me and Rage Powder — is subtler. The replay only records where an attack
+*landed*, so when a Pokémon soaks the hit we could not tell which target the player was aiming at.
+We used to write down "they aimed at the soaker", confidently, which was usually false. Now the
+model is told the honest thing: it was one of these two, we do not know which, learn accordingly.
+There is a standard statistical method for exactly this, and we tested it first on data where we had
+hidden the right answer ourselves — it recovers 97% of the damage when the problem is severe.
+
+**And here is the part we are not going to round up.** Removing the fiction worked: on those turns
+the model now puts measurably less confidence in the move nobody picked. The Follow Me fix bought
+**nothing we can measure** — and our own test had predicted that before we ran it, because those
+turns are only about 1.3% of the data and the ambiguity is only ever between two targets. Overall
+accuracy did not move at all. We are doing it anyway, because a wrong label is a wrong label and the
+model has no way to tell us which of its mistakes came from one.
+
+One more thing we found and did **not** fix: when a Pokémon is Taunted or Encored its menu shrinks,
+sometimes to a single legal option, and we were still scoring the player as though they had picked
+that move out of nine. That is about 1.6% of actions. It is a real problem, it is a different
+problem, and fixing it means retraining everything again — so it is written down with a number
+attached rather than quietly bundled in here.
 
 
 ---

@@ -1,14 +1,14 @@
 {
-  "generated": "2026-08-04T07:46:23.730Z",
+  "generated": "2026-08-05T02:27:42.056Z",
   "by": "engine/rollout_explore_sweep.js",
   "question": "Should --rollout-explore default to 1.0? The default shipped citing an R1 figure that was retracted on 2026-08-04 as uncheckable. This re-earns or falsifies it.",
-  "verdict": "RE-EARNED — at the R1 harness settings the explore=1.0 playout judges a position at 67.971% against 65.721% for the deterministic-greedy playout on the same 9,201 positions: +2.25 points, 95% CI 1.313 to 3.187. The interval clears zero, so 1.0 is the better JUDGE and the default stands on evidence again.",
+  "verdict": "RE-EARNED — at the R1 harness settings the explore=1.0 playout judges a position at 69.84% against 66.645% for the deterministic-greedy playout on the same 9,201 positions: +3.195 points, 95% CI 2.237 to 4.153. The interval clears zero, so 1.0 is the better JUDGE and the default stands on evidence again.",
   "verdict_code": "EXPLORE_1_BETTER",
   "what_this_is_not": "It is NOT a verdict on whether explore=1.0 makes MILTANK WIN more games. Judging a position and choosing an action are different jobs and this project has measured that gap before. R4 (data/rollout-r4.json) was itself run at explore=1.0, so it cannot arbitrate its own setting; engine/mew.js exposes no --miltank-explore, so the A/B that would settle the ACTION question is not currently runnable. Filed.",
   "the_retraction_this_answers": {
     "what_was_retracted": "docs/ROLLOUT-design.md §5 and data/rollout-r1.json: the published R1 result (rollout 68.18% vs material 65.26%, +2.91 [1.79, 4.04]) could not be recomputed because the only committed dump held the explore=0 arm.",
-    "was_it_wrong": "NO. It was UNCHECKABLE, and this run checks it. Re-measured on the identical sample the published figure describes, explore=1 scores 67.971% against the published 68.18%, and its lift over the same material baseline is +2.706 against the published +2.91. The retraction was correct as a provenance judgement and the underlying claim survives it.",
-    "what_stays_retracted": "The \"64.42% for greedy\" half of the comparison quoted in engine/rollout_leaf.js:147 and engine/mag_bot.js:145 does NOT reproduce. The greedy arm measures 65.721% in the committed dump, and the sweep re-measured it on the current engine in the same process as explore=1 — see the embedded judge table, which is the only place that column survives. Both land near 65.7, not 64.4. So the comments overstate the gap: they claim 3.76 points, the gap that reproduces is 2.25. Same sign, smaller. The two comments should be restated against this artifact rather than left citing a figure no run reproduces."
+    "was_it_wrong": "NO. It was UNCHECKABLE, and this run checks it. Re-measured on the identical sample the published figure describes, explore=1 scores 69.84% against the published 68.18%, and its lift over the same material baseline is +4.575 against the published +2.91. The retraction was correct as a provenance judgement and the underlying claim survives it.",
+    "what_stays_retracted": "The \"64.42% for greedy\" half of the comparison quoted in engine/rollout_leaf.js:147 and engine/mag_bot.js:145 does NOT reproduce. The greedy arm measures 66.645% in the committed dump, and the sweep re-measured it on the current engine in the same process as explore=1 — see the embedded judge table, which is the only place that column survives. Both land near 65.7, not 64.4. So the comments overstate the gap: they claim 3.76 points, the gap that reproduces is 3.195. Same sign, smaller. The two comments should be restated against this artifact rather than left citing a figure no run reproduces."
   },
   "sample": {
     "positions": 9201,
@@ -21,153 +21,161 @@
   "arms": {
     "explore_1.0": {
       "what": "every mon clicks a uniformly random legal move",
-      "dump": "data/rollout-r1-explore1-rows.jsonl",
-      "sha256_12": "34a85999b7e5",
+      "dump": "data/rollout-r1-explore1-rows-3932186b59ef.jsonl",
+      "sha256_12": "4e54c59cb2b8",
       "stamped_by_the_run": {
         "key": "40@1",
         "n_rollouts": 40,
         "explore": 1,
-        "note": "The dump carries ONE rollout column and this names it. It is the same key the VERDICT in this run uses, so the artifact and the printed verdict describe the same thing."
+        "max_turns": 20,
+        "max_turns_source": "engine default (20) — MAXTURNS unset",
+        "note": "The dump carries ONE rollout column and this names it. Both dumps of a DUMP0 run come from ONE process and ONE walk, so their rows pair by construction."
       },
-      "accuracy_pct": 67.971,
-      "brier": 0.2128,
-      "logloss": 0.8632,
-      "ece": 0.1039,
-      "saturated_share": 0.294,
+      "accuracy_pct": 69.84,
+      "brier": 0.206,
+      "logloss": 0.8445,
+      "ece": 0.0927,
+      "saturated_share": 0.2959,
       "reliability_curve": [
         {
           "bin": "0-10%",
-          "n": 1290,
+          "n": 1309,
           "predicted": 0.025,
-          "observed": 0.166
+          "observed": 0.151
         },
         {
           "bin": "10-20%",
-          "n": 754,
-          "predicted": 0.14,
-          "observed": 0.301
+          "n": 743,
+          "predicted": 0.137,
+          "observed": 0.299
         },
         {
           "bin": "20-30%",
-          "n": 775,
-          "predicted": 0.24,
-          "observed": 0.378
+          "n": 780,
+          "predicted": 0.241,
+          "observed": 0.362
         },
         {
           "bin": "30-40%",
-          "n": 798,
-          "predicted": 0.34,
-          "observed": 0.437
+          "n": 792,
+          "predicted": 0.342,
+          "observed": 0.431
         },
         {
           "bin": "40-50%",
-          "n": 830,
-          "predicted": 0.44,
-          "observed": 0.514
+          "n": 791,
+          "predicted": 0.439,
+          "observed": 0.461
         },
         {
           "bin": "50-60%",
-          "n": 773,
+          "n": 806,
           "predicted": 0.538,
-          "observed": 0.519
+          "observed": 0.582
         },
         {
           "bin": "60-70%",
-          "n": 807,
+          "n": 821,
           "predicted": 0.64,
-          "observed": 0.592
+          "observed": 0.608
         },
         {
           "bin": "70-80%",
-          "n": 783,
+          "n": 807,
           "predicted": 0.74,
-          "observed": 0.642
+          "observed": 0.657
         },
         {
           "bin": "80-90%",
-          "n": 799,
-          "predicted": 0.842,
-          "observed": 0.745
+          "n": 777,
+          "predicted": 0.84,
+          "observed": 0.727
         },
         {
           "bin": "90-100%",
-          "n": 1592,
-          "predicted": 0.967,
-          "observed": 0.842
+          "n": 1575,
+          "predicted": 0.968,
+          "observed": 0.861
         }
       ]
     },
     "explore_0": {
       "what": "the deterministic-greedy playout — MEDICHAM chooseAction, both sides. This is the INCUMBENT the default was chosen over.",
-      "dump": "data/rollout-r1-rows.jsonl",
-      "sha256_12": "f4ac29914058",
-      "stamped_by_the_run": null,
-      "why_unstamped": "This dump predates the sidecar. data/rollout-r1.json identifies it as the greedy arm from its calibration shape, which reproduces the greedy saturation table in docs/ROLLOUT-design.md §4.2.1 count for count.",
-      "accuracy_pct": 65.721,
-      "brier": 0.2573,
-      "logloss": 1.7674,
-      "ece": 0.1955,
-      "saturated_share": 0.5071,
+      "dump": "data/rollout-r1-greedy-rows-3932186b59ef.jsonl",
+      "sha256_12": "4ec8bb543631",
+      "stamped_by_the_run": {
+        "key": "40@0",
+        "n_rollouts": 40,
+        "explore": 0,
+        "max_turns": 20,
+        "max_turns_source": "engine default (20) — MAXTURNS unset",
+        "note": "The dump carries ONE rollout column and this names it. Both dumps of a DUMP0 run come from ONE process and ONE walk, so their rows pair by construction."
+      },
+      "accuracy_pct": 66.645,
+      "brier": 0.2489,
+      "logloss": 1.7309,
+      "ece": 0.1935,
+      "saturated_share": 0.5292,
       "reliability_curve": [
         {
           "bin": "0-10%",
-          "n": 2245,
+          "n": 2359,
           "predicted": 0.018,
-          "observed": 0.26
+          "observed": 0.251
         },
         {
           "bin": "10-20%",
-          "n": 670,
-          "predicted": 0.136,
-          "observed": 0.43
+          "n": 627,
+          "predicted": 0.135,
+          "observed": 0.411
         },
         {
           "bin": "20-30%",
-          "n": 516,
-          "predicted": 0.238,
-          "observed": 0.473
+          "n": 539,
+          "predicted": 0.237,
+          "observed": 0.453
         },
         {
           "bin": "30-40%",
-          "n": 504,
+          "n": 478,
           "predicted": 0.34,
-          "observed": 0.502
+          "observed": 0.519
         },
         {
           "bin": "40-50%",
-          "n": 509,
-          "predicted": 0.441,
-          "observed": 0.479
-        },
-        {
-          "bin": "50-60%",
-          "n": 499,
-          "predicted": 0.538,
+          "n": 460,
+          "predicted": 0.438,
           "observed": 0.513
         },
         {
+          "bin": "50-60%",
+          "n": 457,
+          "predicted": 0.537,
+          "observed": 0.495
+        },
+        {
           "bin": "60-70%",
-          "n": 494,
+          "n": 456,
           "predicted": 0.639,
-          "observed": 0.605
+          "observed": 0.553
         },
         {
           "bin": "70-80%",
-          "n": 538,
+          "n": 500,
           "predicted": 0.74,
-          "observed": 0.569
+          "observed": 0.576
         },
         {
           "bin": "80-90%",
-          "n": 614,
-          "predicted": 0.841,
-          "observed": 0.604
+          "n": 637,
+          "predicted": 0.84,
+          "observed": 0.615
         },
         {
           "bin": "90-100%",
-          "n": 2612,
-          "predicted": 0.977,
-          "observed": 0.759
+          "n": 2688,
+          "predicted": 0.978,
+          "observed": 0.778
         }
       ]
     },
@@ -245,102 +253,123 @@
   },
   "paired_comparison": {
     "what": "explore=1.0 minus explore=0, McNemar on the discordant positions",
-    "explore1_only_right": 1070,
-    "explore0_only_right": 863,
-    "discordant": 1933,
-    "diff_points": 2.25,
+    "explore1_only_right": 1158,
+    "explore0_only_right": 864,
+    "discordant": 2022,
+    "diff_points": 3.195,
     "ci95_pts": [
-      1.313,
-      3.187
+      2.237,
+      4.153
     ],
     "method": "Normal approximation to the sign test on discordant pairs; half-width 1.96*sqrt(b+c)/n in points. Same formula as engine/rollout_r1.js:262-272.",
-    "build_caveat": "The explore=0 column was rolled out on the 2026-08-03 engine and the explore=1 column on the current one. The sweep re-measured explore=0 on the CURRENT engine in the same process as explore=1 — see the embedded judge table — and it lands within a tenth of a point of the committed dump, so the build is not carrying this effect. The cross-build pairing is used only because the older run dumped one column."
+    "build_caveat": "SAME BUILD, BY CONSTRUCTION: both dumps are stamped against engine release 3932186b59ef, so the paired difference cannot be carrying an engine change."
   },
   "unfinished_playouts": {
     "why_measured": "engine/medicham2-browser.js:1802 battleResult scores bodies-then-HP UNCONDITIONALLY — it never asks whether a side was wiped or whether the turn cap simply expired. So a playout that ran out of clock is a material count returned as a win probability. If that were common it would explain a flat reliability curve and it would explain why the leaf tracks the material baseline it is supposed to beat.",
-    "finding": "IT IS NOT COMMON AND IT IS NOT THE MECHANISM. Measured by wrapping battleResult and reading S._explore at the moment of scoring: at the R1 horizon of 20 turns, 99.5% to 99.7% of playouts end by an actual wipeout at every explore setting, and the cap-hit share is 0.3% to 0.5%. Raising the horizon to the live 60 can only lower that further. Exact counts are in the embedded termination tables.",
+    "finding": "IT IS NOT COMMON AND IT IS NOT THE MECHANISM. Measured 2026-08-04 by wrapping battleResult and reading S._explore at the moment of scoring: at the R1 horizon of 20 turns, 99.5% to 99.7% of playouts end by an actual wipeout at every explore setting, and the cap-hit share is 0.3% to 0.5%. Raising the horizon to the live 60 can only lower that further. That instrumentation was scratch and was never committed, so logs from later re-runs carry no termination table (termination_table: null below); the 2026-08-04 finding stands as a one-time measurement of the mechanism, not of the current build.",
     "the_real_asymmetry": "Exploration makes playouts LONGER (mean 4.4 turns at explore=0 against 6.1 at explore=1) and produces more exact ties, but it does not push them into the cap."
   },
   "saturation": {
     "what": "the share of positions the judge places in the 0-10% or 90-100% bin",
-    "explore_0": 0.5071,
-    "explore_1.0": 0.294,
-    "reading": "The greedy playout saturates on 50.71% of positions — the pathology docs/ROLLOUT-design.md §4.2.1 describes at 53% — and is wrong in those bins by 20+ points. Exploration cuts that to 29.4% and roughly halves the expected calibration error, from 0.1955 to 0.1039. That is the literature's predicted effect, observed: a deterministic playout replays one line, so N samples carry the information of about one."
+    "explore_0": 0.5292,
+    "explore_1.0": 0.2959,
+    "reading": "The greedy playout saturates on 52.92% of positions — the pathology docs/ROLLOUT-design.md §4.2.1 describes at 53% — and is wrong in those bins by 20+ points. Exploration cuts that to 29.59% and roughly halves the expected calibration error, from 0.1935 to 0.0927. That is the literature's predicted effect, observed: a deterministic playout replays one line, so N samples carry the information of about one."
   },
   "by_position_difficulty": [
     {
       "subset": "all positions",
       "n": 9201,
       "majority_class_pct": 52.462,
-      "explore_1.0_pct": 67.971,
-      "explore_0_pct": 65.721,
+      "explore_1.0_pct": 69.84,
+      "explore_0_pct": 66.645,
       "material_pct": 65.265
     },
     {
       "subset": "no bodies down (aliveDiff == 0)",
       "n": 4222,
       "majority_class_pct": 52.605,
-      "explore_1.0_pct": 59.64,
-      "explore_0_pct": 57.342,
+      "explore_1.0_pct": 62.648,
+      "explore_0_pct": 58.314,
       "material_pct": 52.605
     },
     {
       "subset": "turn <= 2",
       "n": 3777,
       "majority_class_pct": 52.714,
-      "explore_1.0_pct": 60.312,
-      "explore_0_pct": 58.512,
+      "explore_1.0_pct": 63.013,
+      "explore_0_pct": 60.312,
       "material_pct": 58.009
     },
     {
       "subset": "no bodies down AND turn <= 2 — the nearest thing here to a turn-0 board",
       "n": 2207,
       "majority_class_pct": 52.062,
-      "explore_1.0_pct": 57.408,
-      "explore_0_pct": 55.143,
+      "explore_1.0_pct": 60.263,
+      "explore_0_pct": 55.822,
       "material_pct": 52.062
     },
     {
       "subset": "someone is down (aliveDiff != 0)",
       "n": 4979,
       "majority_class_pct": 52.34,
-      "explore_1.0_pct": 75.035,
-      "explore_0_pct": 72.826,
+      "explore_1.0_pct": 75.939,
+      "explore_0_pct": 73.71,
       "material_pct": 75.999
     }
   ],
   "reading_against_the_leaf_calibration": "On boards with NO material asymmetry the material baseline collapses to the majority class — it is not a judge there at all — while the explore=1.0 playout still separates. That is the subset where a leaf earns its cost, and it is also the subset MEASURE's turn-0 backtest says the leaf cannot rank at all (50.99%, 95% CI 48.3 to 53.7). The two do not agree and neither is obviously wrong: this is human games, mid-game boards after a real bring, n=40 and a 20-turn horizon; that is self-play games, turn 0, n=200 and a 60-turn horizon. Whichever way it resolves, \"explore=1.0 spent the signal\" should not be treated as established while a second measurement of the same leaf disagrees with it.",
-  "horizon_note": "engine/rollout_r1.js passes NO maxTurns, so every R1 number ever published — including this one — was measured at MEDICHAM's default horizon of 20 turns. The live leaf runs at 60 (engine/miltank.js DEFAULTS.turns). The second embedded log re-runs the sweep with the horizon injected at 60 so the two can be compared. Filed as a gap: the gate and the shipped player disagree about a parameter neither states.",
+  "horizon_note": "The paired verdict above was measured at a playout horizon of 20 turns — now a RECORDED parameter (p_column.max_turns in the sidecar, MAXTURNS env in engine/rollout_r1.js) rather than an unstated default, which closes the gap the 2026-08-04 artifact filed. The live leaf runs at 60 (engine/miltank.js DEFAULTS.turns); where a second embedded log is present it re-runs the sweep at MAXTURNS=60 so the two horizons can be compared. Its FILENAME carries the release id it ran on, which may be a later cut than the dumps' if ENGINE landed between runs — the h60 leg is quoted verbatim for scale, and only the paired dumps carry the verdict.",
+  "engine_release": "3932186b59ef",
+  "engine_release_cut": "2026-08-05T01:35:33.350Z",
+  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/rollout_r1.js": "2e42e264f784",
-    "engine/rollout_leaf.js": "a0749e081402",
-    "engine/medicham2-browser.js": "0710a325219e",
-    "engine/board.js": "bcf2dab9dc6f",
+    "engine/medicham2-browser.js": "17afcf76bfff",
+    "engine/board.js": "54e3d2ca9f85",
+    "engine/rollout_leaf.js": "7a2311756ab8",
+    "engine/position_features.js": "7927ccb7f5af",
+    "engine/tags.js": "145a3cc9ce2f",
+    "engine/champions_sim.js": "084a836be5ef",
+    "engine/mc_key.js": "37c42eb69363",
+    "engine/lookup.js": "d2a03e8adcc5",
+    "engine/set_priors.js": "f8a81445ee3a",
+    "engine/smogon_priors.js": "5c039f9ebdbc",
+    "engine/quality.js": "e397e99ef257",
+    "engine/showdown_path.js": "0efe29f4245d",
+    "data/move-effects.js": "b651bc4c4836",
+    "data/ability-blocks.json": "86741fd35452",
+    "data/smogon-priors.json": "3168f98a24dd",
+    "data/regulations.json": "6c1995e9a9fb",
+    "data/quality-filter.json": "e675d10477c8",
     "data/engine-data.js": "96a94b7fadf7",
-    "data/abra-tags.js": "2f491183a4ff",
-    "note": "Content, not mtime. A checkout moves an mtime without moving code."
+    "data/abra-tags.js": "3bc02c068657",
+    "data/tags.json": "55347ea228ad",
+    "data/policy-weights.json": "01bc43936324",
+    "data/policy-weights-joint.json": "e2aca467ff04",
+    "data/move-priors.json": "a64314db056b",
+    "engine/rollout_r1.js": "99d6d8b14520",
+    "note": "Frozen-release digests plus the generator. Content, not mtime."
   },
   "runs": [
     {
-      "file": "rollout-r1-explore-sweep-h20.txt",
-      "header": "  corpus  8,520 clean open-sheet games, first 2500 sampled\n  leaf    MEDICHAM seeded mid-game, 40 rollouts per position, every 2th turn",
-      "judge_table": "    judge                              accuracy     Brier    log-loss\n  ------------------------------------------------------------------\n   coin                               52.46%    0.2500    0.6931\n   material: bodies then HP (hard)    66.81%    0.3231    6.5244\n   material: porygon2 form (graded)   65.26%    0.2127    0.6124\n   ROLLOUT n=40 explore=0             65.66%    0.2589    1.8220\n   ROLLOUT n=40 explore=0.5           67.58%    0.2215    1.0278\n   ROLLOUT n=40 explore=1             67.97%    0.2128    0.8632",
-      "verdict": "  VERDICT\n  ------------------------------------------------------------------\n  rollout minus material (porygon2 form): +2.71 points  (95% CI 1.60 to 3.82)\n  discordant positions: rollout-only-right 1483, material-only-right 1234, of 9201\n  PORYGON2 is 63.70% on human games (data/porygon2c.json) and beats material by 3.42 there.\n  -> R1 PASSES ON THE BASELINE. The rollout is significantly better than counting\n     bodies, and PORYGON2's published +3.42 sits INSIDE this interval — so the two\n     are not separated by this sample, and the rollout is at least its equal here.\n     Not the same claim as beating it. Said separately because they are separate.",
-      "termination_table": "  PLAYOUT TERMINATION  (probe, not part of the gate)\n  horizon: 20 turns (MEDICHAM default — rollout_r1.js passes none)\n  --------------------------------------------------------------------------\n   explore   playouts    ended by wipeout    hit the cap    scored 0.5   mean turns\n   0          368100               99.7%           0.3%         0.8%          4.4\n   0.5        368040               99.7%           0.3%         1.3%          5.0\n   1          368040               99.5%           0.5%         1.6%          6.1\n  A playout that HIT THE CAP is scored by bodies-then-HP. On those rows the leaf is\n  not a win probability at all — it is the material baseline it is being compared to.",
+      "file": "rollout-r1-explore-sweep-h20-3932186b59ef.txt",
+      "header": "  corpus  8,942 clean open-sheet games, first 2500 sampled\n  leaf    MEDICHAM seeded mid-game, 40 rollouts per position, every 2th turn",
+      "judge_table": "    judge                              accuracy     Brier    log-loss\n  ------------------------------------------------------------------\n   coin                               52.46%    0.2500    0.6931\n   material: bodies then HP (hard)    66.81%    0.3231    6.5244\n   material: porygon2 form (graded)   65.26%    0.2127    0.6124\n   ROLLOUT n=40 explore=0             66.64%    0.2489    1.7309\n   ROLLOUT n=40 explore=0.5           68.91%    0.2111    0.8878\n   ROLLOUT n=40 explore=1             69.84%    0.2060    0.8445",
+      "verdict": "  VERDICT\n  ------------------------------------------------------------------\n  rollout minus material (porygon2 form): +4.58 points  (95% CI 3.47 to 5.68)\n  discordant positions: rollout-only-right 1550, material-only-right 1129, of 9201\n  PORYGON2 is 63.70% on human games (data/porygon2c.json) and beats material by 3.42 there.\n  -> R1 PASSES OUTRIGHT. The lower bound clears PORYGON2's published +3.42 lift,\n     so the rollout carries more than the learned model adds over the same baseline.",
+      "termination_table": null,
       "note": "Copied whole from the run that printed it, not retyped. engine/rollout_r1.js dumps ONE rollout column per run, so the explore=0.5 arm and the playout-termination counts exist nowhere else."
     },
     {
-      "file": "rollout-r1-explore-sweep-h60.txt",
-      "header": "  corpus  8,520 clean open-sheet games, first 1200 sampled\n  leaf    MEDICHAM seeded mid-game, 40 rollouts per position, every 2th turn",
-      "judge_table": "    judge                              accuracy     Brier    log-loss\n  ------------------------------------------------------------------\n   coin                               51.04%    0.2500    0.6931\n   material: bodies then HP (hard)    65.90%    0.3337    6.7462\n   material: porygon2 form (graded)   63.78%    0.2164    0.6207\n   ROLLOUT n=40 explore=0             64.21%    0.2681    1.8843\n   ROLLOUT n=40 explore=0.5           66.50%    0.2291    1.0545\n   ROLLOUT n=40 explore=1             67.46%    0.2177    0.8854",
-      "verdict": "  VERDICT\n  ------------------------------------------------------------------\n  rollout minus material (porygon2 form): +3.68 points  (95% CI 2.05 to 5.31)\n  discordant positions: rollout-only-right 779, material-only-right 614, of 4487\n  PORYGON2 is 63.70% on human games (data/porygon2c.json) and beats material by 3.42 there.\n  -> R1 PASSES ON THE BASELINE. The rollout is significantly better than counting\n     bodies, and PORYGON2's published +3.42 sits INSIDE this interval — so the two\n     are not separated by this sample, and the rollout is at least its equal here.\n     Not the same claim as beating it. Said separately because they are separate.",
-      "termination_table": "  PLAYOUT TERMINATION  (probe, not part of the gate)\n  horizon: 60 turns (injected)\n  --------------------------------------------------------------------------\n   explore   playouts    ended by wipeout    hit the cap    scored 0.5   mean turns\n   0          179540               99.8%           0.2%         0.8%          4.6\n   0.5        179480               99.8%           0.2%         1.4%          5.2\n   1          179480               99.8%           0.2%         1.8%          6.4\n  A playout that HIT THE CAP is scored by bodies-then-HP. On those rows the leaf is\n  not a win probability at all — it is the material baseline it is being compared to.",
+      "file": "rollout-r1-explore-sweep-h60-09acd3b404ef.txt",
+      "header": "  corpus  8,942 clean open-sheet games, first 2500 sampled\n  leaf    MEDICHAM seeded mid-game, 40 rollouts per position, every 4th turn",
+      "judge_table": "    judge                              accuracy     Brier    log-loss\n  ------------------------------------------------------------------\n   coin                               52.18%    0.2500    0.6931\n   material: bodies then HP (hard)    66.33%    0.3282    6.6247\n   material: porygon2 form (graded)   64.24%    0.2148    0.6167\n   ROLLOUT n=40 explore=0             66.16%    0.2512    1.7109\n   ROLLOUT n=40 explore=0.5           68.80%    0.2127    0.8922\n   ROLLOUT n=40 explore=1             69.86%    0.2065    0.8431",
+      "verdict": "  VERDICT\n  ------------------------------------------------------------------\n  rollout minus material (porygon2 form): +5.63 points  (95% CI 4.06 to 7.19)\n  discordant positions: rollout-only-right 800, material-only-right 542, of 4586\n  PORYGON2 is 63.70% on human games (data/porygon2c.json) and beats material by 3.42 there.\n  -> R1 PASSES OUTRIGHT. The lower bound clears PORYGON2's published +3.42 lift,\n     so the rollout carries more than the learned model adds over the same baseline.",
+      "termination_table": null,
       "note": "Copied whole from the run that printed it, not retyped. engine/rollout_r1.js dumps ONE rollout column per run, so the explore=0.5 arm and the playout-termination counts exist nowhere else."
     }
   ],
   "caveats": [
     "THIS MEASURES A JUDGE, NOT A PLAYER. Every number here is position-judging accuracy on human games. It does not say MILTANK wins more at explore=1.0, and docs/MILTANK.md §3.2 records a direct measurement in the other direction on one mechanic (Protect priced at -4.3pt at explore 1.0 against -5.2pt at 0.0).",
     "THE MATERIAL BASELINE IS FLATTERED BY ITS TIES on this early-game-heavy sample, where it returns exactly 0.5 on nearly half of positions and the >= 0.5 rule scores every one as a p1 call. The arm-versus-arm comparison does not depend on it; the lift over it does.",
-    "ONE SAMPLE, ONE CORPUS. 2,500 human open-sheet games, mean turn 3.744, base rate 52.5% p1. The split-half spread of the R1 comparison on this sample runs 0.58 to 1.54 points (data/rollout-r1-explore1.json noise_floor), so an effect has to clear that to be an effect."
+    "ONE SAMPLE, ONE CORPUS. 2,500 human open-sheet games, mean turn 3.744, base rate 52.462% p1. The split-half spread of the R1 comparison on the 2026-08-04 sample ran 0.58 to 1.54 points (data/rollout-r1-explore1.json noise_floor), so an effect has to clear that order of spread to be an effect."
   ]
 }

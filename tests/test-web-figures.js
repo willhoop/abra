@@ -49,13 +49,27 @@ const { audit } = require(path.join(ROOT, 'web', 'figure-audit.js'));
  * Set a little under the measurement, so that ordinary copy-editing does not turn the guard red and
  * a real regression does.
  * RAISE THIS whenever the real number rises. Never lower it without saying why in the same commit.
+ *
+ * RAISED 88.0 -> 96.0 on 2026-08-05, measured at 100% (125 of 125). The last eight untraced figures
+ * on web/index.html and the last six on web/stadium.html were closed by SPLITTING them rather than
+ * by citing them all: five had a real artifact nobody had named (85,992 open-sheet entries is
+ * data/species-sets.json's `sheet_entries`; Flame Body's 30% is the punishesAttacker param in
+ * data/tags.json; the 50% Solar Beam retention is what clickFragility returns; the mirror control's
+ * 49.7% [46.2, 53.2] at n=782 is data/exploitability-holdout.json's `mirror` field, quoted under
+ * that artifact's own void_reason, which names it as the one figure its void run leaves standing),
+ * and the rest had NONE and now render NOT MEASURED: the 90%/12% DITTO honesty anecdote, self-play
+ * throughput (~45 a second and the 160,000 an hour that was that rate times 3600 on the page), and a
+ * 47.5% mirror control that matches no artifact anywhere under data/. One more was neither — the
+ * "2.7x per point of score" was e, rounded on the page, and now reads as e.
+ * The floor is set under the measurement so ordinary copy-editing does not turn it red.
  * ============================================================================================== */
-const FLOOR_PCT = 88.0;
-/* THE PER-PAGE FLOOR, AND WHY IT IS LOWER. web/index.html is the front door, the largest page and
- * the worst-traced at 80.5%; every other page with figures is at 100%. A per-page floor exists so a
- * new room cannot ship with nothing cited while the site-wide number rides on the good pages, so it
- * is pinned just under the genuine worst page rather than at the site average. */
-const PAGE_FLOOR_PCT = 75.0;
+const FLOOR_PCT = 96.0;
+/* THE PER-PAGE FLOOR. It used to be lower than the site floor because web/index.html was the front
+ * door, the largest page and the worst-traced at 80.5% while every other page sat at 100%. That gap
+ * closed on 2026-08-05 and index.html is now 44/44, so the per-page floor is raised to sit just
+ * under the site floor rather than under the worst page. Its job is unchanged: a new room must not
+ * be able to ship with nothing cited while the site-wide number rides on the good pages. */
+const PAGE_FLOOR_PCT = 90.0;
 /* Withdrawn figures are struck out on the page and out of the denominator. If that count DROPS, a
  * retracted claim was quietly deleted or quietly un-struck, which is the failure the strike exists
  * to prevent. Measured 2026-08-04: 26 — 19 from the twin-test paragraph in web/index.html, plus 7
@@ -66,8 +80,13 @@ const PAGE_FLOOR_PCT = 75.0;
  * carried `class="wd"` inside a double-quoted JS string, which was a SyntaxError that killed the
  * whole Stadium script (see tests/test-web-parses.js) and also truncated the strike as far as this
  * scanner was concerned, so two withdrawn figures were being counted as ordinary text. Fixing the
- * quoting revealed them. */
-const MIN_WITHDRAWN = 28;
+ * quoting revealed them.
+ * RAISED 28 -> 38 on 2026-08-05, measured at 40. The twelve new strikes are the figures no artifact
+ * supports, struck rather than deleted so the page still shows it once made the claim: DITTO's
+ * 90%/12% honesty anecdote, MEW's ~45-a-second / 160,000-an-hour throughput, and the 47.5% mirror
+ * control on MEW's cabinet. A strike is the record that a claim was withdrawn; deleting one hides
+ * that it was ever made, which is why this may only go up. */
+const MIN_WITHDRAWN = 38;
 
 let P = 0, F = 0;
 const ok = (c, m) => { if (c) { P++; console.log('  ok   ' + m); } else { F++; console.log('  FAIL ' + m); } };

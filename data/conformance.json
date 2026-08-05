@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-05T02:02:58.998Z",
+ "generated": "2026-08-05T06:41:29.406Z",
  "by": "engine/conformance.js",
- "files": 284,
+ "files": 296,
  "findings": [
   {
    "std": "convention",
@@ -13,7 +13,10 @@
    "std": "S12",
    "file": "engine/backtest_winrate.js",
    "what": "names 1 Pokemon thing(s) in code: move:detect",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:detect"
+   ]
   },
   {
    "std": "convention",
@@ -31,37 +34,64 @@
    "std": "S12",
    "file": "engine/corpus_shift.js",
    "what": "names 1 Pokemon thing(s) in code: move:protect",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:protect"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/double_protect.js",
    "what": "names 2 Pokemon thing(s) in code: move:protect, move:detect",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:detect",
+    "move:protect"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/dynamics.js",
    "what": "names 8 Pokemon thing(s) in code: move:fakeout, move:followme, move:ragepowder, move:protect, move:detect, ...",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:detect",
+    "move:fakeout",
+    "move:followme",
+    "move:helpinghand",
+    "move:protect",
+    "move:ragepowder",
+    "move:tailwind",
+    "move:trickroom"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/feature_fixture.js",
    "what": "names 2 Pokemon thing(s) in code: move:reflect, move:tailwind",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:reflect",
+    "move:tailwind"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/fit_joint.js",
    "what": "names 1 Pokemon thing(s) in code: move:detect",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:detect"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/fit_policy.js",
    "what": "names 1 Pokemon thing(s) in code: move:detect",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:detect"
+   ]
   },
   {
    "std": "convention",
@@ -73,19 +103,33 @@
    "std": "S12",
    "file": "engine/game-spec.js",
    "what": "names 2 Pokemon thing(s) in code: move:tailwind, move:trickroom",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:tailwind",
+    "move:trickroom"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/graveyard/medicham-v2-singles.js",
    "what": "names 3 Pokemon thing(s) in code: move:tailwind, move:trickroom, move:protect",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:protect",
+    "move:tailwind",
+    "move:trickroom"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/h2h_stats.js",
    "what": "names 3 Pokemon thing(s) in code: move:protect, move:detect, move:endure",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:detect",
+    "move:endure",
+    "move:protect"
+   ]
   },
   {
    "std": "convention",
@@ -109,31 +153,71 @@
    "std": "S12",
    "file": "engine/ko_calibration.js",
    "what": "names 7 Pokemon thing(s) in code: move:protect, move:followme, move:ragepowder, move:reflect, move:lightscreen, ...",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "ability:intimidate",
+    "move:auroraveil",
+    "move:followme",
+    "move:lightscreen",
+    "move:protect",
+    "move:ragepowder",
+    "move:reflect"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/magnemite.js",
    "what": "names 3 Pokemon thing(s) in code: move:reflect, move:lightscreen, move:auroraveil",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:auroraveil",
+    "move:lightscreen",
+    "move:reflect"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/mechanics_coverage.js",
    "what": "names 1 Pokemon thing(s) in code: ability:prankster",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "ability:prankster"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/medicham2-browser.js",
    "what": "names 17 Pokemon thing(s) in code: move:earthquake, move:blizzard, move:protect, move:detect, move:tailwind, ...",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "ability:intimidate",
+    "ability:levitate",
+    "ability:lightningrod",
+    "ability:prankster",
+    "ability:technician",
+    "item:assaultvest",
+    "item:choiceband",
+    "item:lifeorb",
+    "move:blizzard",
+    "move:detect",
+    "move:earthquake",
+    "move:fakeout",
+    "move:helpinghand",
+    "move:protect",
+    "move:ragepowder",
+    "move:tailwind",
+    "move:trickroom"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/medicham_coverage.js",
    "what": "names 2 Pokemon thing(s) in code: move:protect, move:tailwind",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:protect",
+    "move:tailwind"
+   ]
   },
   {
    "std": "S12",
@@ -145,67 +229,121 @@
    "std": "S12",
    "file": "engine/miltank.js",
    "what": "names 2 Pokemon thing(s) in code: move:trickroom, move:tailwind",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:tailwind",
+    "move:trickroom"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/moves-meta.js",
    "what": "names 7 Pokemon thing(s) in code: move:tailwind, move:trickroom, move:protect, move:detect, move:followme, ...",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:detect",
+    "move:followme",
+    "move:protect",
+    "move:ragepowder",
+    "move:tailwind",
+    "move:trickroom",
+    "move:uturn"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/playstyle.js",
    "what": "names 1 Pokemon thing(s) in code: move:tailwind",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:tailwind"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/position_features.js",
    "what": "names 5 Pokemon thing(s) in code: move:tailwind, move:trickroom, move:reflect, move:lightscreen, move:auroraveil",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:auroraveil",
+    "move:lightscreen",
+    "move:reflect",
+    "move:tailwind",
+    "move:trickroom"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/preflight.js",
    "what": "names 1 Pokemon thing(s) in code: move:protect",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:protect"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/rollout_r1.js",
    "what": "names 2 Pokemon thing(s) in code: move:trickroom, move:tailwind",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:tailwind",
+    "move:trickroom"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/rollout_r2.js",
    "what": "names 2 Pokemon thing(s) in code: move:trickroom, move:tailwind",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:tailwind",
+    "move:trickroom"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/rollout_r3.js",
    "what": "names 2 Pokemon thing(s) in code: move:trickroom, move:tailwind",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:tailwind",
+    "move:trickroom"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/selftest.js",
    "what": "names 4 Pokemon thing(s) in code: move:protect, move:detect, move:tailwind, item:choicescarf",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "item:choicescarf",
+    "move:detect",
+    "move:protect",
+    "move:tailwind"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/sets.js",
    "what": "names 1 Pokemon thing(s) in code: move:protect",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:protect"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/set_priors.js",
    "what": "names 5 Pokemon thing(s) in code: move:protect, move:detect, move:tailwind, move:trickroom, move:fakeout",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:detect",
+    "move:fakeout",
+    "move:protect",
+    "move:tailwind",
+    "move:trickroom"
+   ]
   },
   {
    "std": "convention",
@@ -217,19 +355,44 @@
    "std": "S12",
    "file": "engine/tag_dex.js",
    "what": "names 17 Pokemon thing(s) in code: move:reflect, move:protect, move:followme, move:ragepowder, move:trickroom, ...",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "ability:friendguard",
+    "ability:intimidate",
+    "ability:levitate",
+    "ability:lightningrod",
+    "ability:technician",
+    "item:assaultvest",
+    "item:choiceband",
+    "item:choicescarf",
+    "item:leftovers",
+    "move:auroraveil",
+    "move:followme",
+    "move:lightscreen",
+    "move:protect",
+    "move:ragepowder",
+    "move:reflect",
+    "move:tailwind",
+    "move:trickroom"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/validate_damage.js",
    "what": "names 1 Pokemon thing(s) in code: move:earthquake",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:earthquake"
+   ]
   },
   {
    "std": "S12",
    "file": "engine/validate_selfplay.js",
    "what": "names 1 Pokemon thing(s) in code: move:protect",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:protect"
+   ]
   },
   {
    "std": "convention",
@@ -241,13 +404,20 @@
    "std": "S12",
    "file": "build/build_board_browser.js",
    "what": "names 1 Pokemon thing(s) in code: item:focussash",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "item:focussash"
+   ]
   },
   {
    "std": "S12",
    "file": "build/build_mag_data.js",
    "what": "names 2 Pokemon thing(s) in code: move:tailwind, move:protect",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:protect",
+    "move:tailwind"
+   ]
   },
   {
    "std": "convention",
@@ -259,7 +429,10 @@
    "std": "S12",
    "file": "build/gen_items_doc.js",
    "what": "names 1 Pokemon thing(s) in code: item:lifeorb",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "item:lifeorb"
+   ]
   },
   {
    "std": "convention",
@@ -271,7 +444,10 @@
    "std": "S8",
    "file": "tests/test-prng.js",
    "what": "CHI_LIMIT = 27.877 with no stated derivation",
-   "why": "a constant that decides must say where it came from"
+   "why": "a constant that decides must say where it came from",
+   "detail": [
+    "27.877"
+   ]
   },
   {
    "std": "S12",
@@ -374,12 +550,6 @@
    "file": "data/eval-report.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
-   "file": "data/exploitability-holdout.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
   },
   {
    "std": "S13",
@@ -509,6 +679,12 @@
   },
   {
    "std": "S13",
+   "file": "data/rollout-r1-explore1-rows-3932186b59ef.meta.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
    "file": "data/rollout-r1-explore1-rows-6e43710396db.meta.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie"
@@ -516,6 +692,12 @@
   {
    "std": "S13",
    "file": "data/rollout-r1-explore1-rows.meta.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
+   "file": "data/rollout-r1-greedy-rows-3932186b59ef.meta.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie"
   },

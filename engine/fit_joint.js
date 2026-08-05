@@ -82,6 +82,20 @@ const { rows, tally } = JR.build(games, dex, { topK: TOPK, w1 });
 console.log(`  joint turns seen ${tally.turns.toLocaleString()} -> ${tally.kept.toLocaleString()} usable`);
 console.log(`  dropped: ${tally.oneSlot.toLocaleString()} had only one slot acting, ${tally.unmatched.toLocaleString()} could not be matched, `
   + `${tally.ambiguous.toLocaleString()} target ambiguous (mirror)`);
+/* THE TWO CENSORING COUNTERS, SEPARATE FROM THE DROPS, AND A ZERO IS FATAL.
+ * `coerced` is a removal of WRONG LABELS; `partial` is a set of turns kept that used to carry a
+ * wrong one. Summing either into `turnsDropped` is what made that budget mean two things at once. */
+console.log(`  censoring: ${(tally.coerced || 0).toLocaleString()} joint turns voided as COERCED `
+  + `(${JSON.stringify(tally.coercedWhy || {})}), ${(tally.partial || 0).toLocaleString()} kept as PARTIAL `
+  + `under the marginal likelihood`);
+for (const [k, n] of [['coerced', tally.coerced || 0], ['partial', tally.partial || 0]]) {
+  if (!n) {
+    console.error(`\nZERO ${k.toUpperCase()} JOINT TURNS over ${games.length.toLocaleString()} games. ` +
+      'engine/click_class.js derives its mechanisms from the running format, so a zero means the ' +
+      'classifier never fired. Refusing to fit — docs/CLICK-CENSORING-FIX.md Stage A/B.');
+    process.exit(1);
+  }
+}
 console.log(`  the chosen pair fell outside the top ${TOPK} on at least one slot: ` +
             `${tally.chosenOutsideK.toLocaleString()} (${(100 * tally.chosenOutsideK / Math.max(1, tally.kept)).toFixed(1)}%)`);
 
@@ -116,18 +130,30 @@ const held = rows.filter(r => heldGames.has(r.game));
 console.log(`  split ${train.length.toLocaleString()} train / ${held.length.toLocaleString()} held out (by game)\n`);
 if (!train.length) { console.error('nothing to fit'); process.exit(1); }
 
-function logLik(w, set) {
+/* A PARTIAL PAIR SCORES THE MARGINAL OVER ITS CANDIDATE SET, not a pick — the same treatment
+ * engine/fit_policy.js gives a redirected single click, applied to the cross of the two slots'
+ * sets. docs/CLICK-CENSORING-FIX.md Stage C. With no partial rows this reduces exactly to the
+ * previous arithmetic, so nothing published before is re-scored by the change. */
+function logLik(w, set, opts) {
+  const asPick = !!(opts && opts.pick);
   let ll = 0;
   for (const r of set) {
     let max = -Infinity;
     const s = r.alts.map(v => { let t = 0; for (let k = 0; k < NW; k++) t += w[k] * v[k]; if (t > max) max = t; return t; });
     let sum = 0; for (const t of s) sum += Math.exp(t - max);
-    ll += s[r.chosen] - max - Math.log(sum);
+    const cset = (!asPick && r.cset && r.cset.length > 1) ? r.cset : null;
+    if (cset) {
+      let num = 0; for (const c of cset) num += Math.exp(s[c] - max);
+      ll += Math.log(num) - Math.log(sum);
+    } else {
+      ll += s[r.chosen] - max - Math.log(sum);
+    }
   }
   return ll / Math.max(1, set.length);
 }
 
-function fit(set, lambda) {
+function fit(set, lambda, opts) {
+  const asPick = !!(opts && opts.pick);
   const w = new Array(NW).fill(0);
   const g = new Array(NW).fill(0);
   const m = new Array(NW).fill(0), v = new Array(NW).fill(0);
@@ -138,8 +164,13 @@ function fit(set, lambda) {
       let max = -Infinity;
       const s = r.alts.map(vec => { let t = 0; for (let k = 0; k < NW; k++) t += w[k] * vec[k]; if (t > max) max = t; return t; });
       let sum = 0; const e = s.map(t => { const q = Math.exp(t - max); sum += q; return q; });
+      /* E-step: responsibility over the candidate set under the current weights. `q` is 1 on the
+       * chosen alternative for an ordinary row, so the two branches are one formula. */
+      const cset = (!asPick && r.cset && r.cset.length > 1) ? r.cset : null;
+      let qz = 0; if (cset) for (const c of cset) qz += e[c];
       for (let i = 0; i < r.alts.length; i++) {
-        const p = e[i] / sum, vec = r.alts[i], ind = (i === r.chosen) ? 1 : 0;
+        const p = e[i] / sum, vec = r.alts[i];
+        const ind = cset ? (r.cset.includes(i) ? e[i] / qz : 0) : ((i === r.chosen) ? 1 : 0);
         for (let k = 0; k < NW; k++) g[k] += (ind - p) * vec[k];
       }
     }
@@ -169,7 +200,10 @@ const acc = (w, set) => {
   for (const r of set) {
     let bi = 0, bs = -Infinity;
     r.alts.forEach((v, i) => { let t = 0; for (let k = 0; k < NW; k++) t += w[k] * v[k]; if (t > bs) { bs = t; bi = i; } });
-    if (bi === r.chosen) ok++;
+    /* For a partial row "right" means the argmax landed inside the candidate set — the strongest
+     * statement the evidence supports, and it is stated rather than quietly scored against the
+     * arbitrary member the matcher happened to pick. */
+    if (r.cset && r.cset.length > 1 ? r.cset.includes(bi) : bi === r.chosen) ok++;
   }
   return 100 * ok / Math.max(1, set.length);
 };
@@ -205,7 +239,9 @@ const payload = JSON.stringify({
   features: B.FEATURES, jointFeatures: B.JOINT_FEATURES,
   weights: best.w, lambda: best.lam, topK: TOPK,
   corpus: { games: games.length, pairs: rows.length, heldOut: H.length },
-  matching: { turnsSeen: tally.turns, kept: tally.kept, unmatched: tally.unmatched, ambiguous: tally.ambiguous },
+  matching: { turnsSeen: tally.turns, kept: tally.kept, unmatched: tally.unmatched, ambiguous: tally.ambiguous,
+              coerced: tally.coerced || 0, coercedWhy: tally.coercedWhy || {},
+              partial: tally.partial || 0, partialSetSize: tally.partialSetSize || {} },
   /* WHAT THE BOARD KNEW WHILE THIS WAS FITTED — see engine/fit_policy.js's block of the same name.
    * Written into the artifact so that a fit/play mismatch is readable from the file rather than only
    * from a diff of two source lines, which is how the 2026-08-04 gap survived a week. */

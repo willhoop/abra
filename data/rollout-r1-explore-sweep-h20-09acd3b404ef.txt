@@ -1,0 +1,21 @@
+ROLLOUT R1 — is playing it out a better judge than the k-NN?
+
+  corpus  8,942 clean open-sheet games, first 2500 sampled
+  leaf    MEDICHAM seeded mid-game, 40 rollouts per position, every 2th turn
+
+  self-check: 2 healthy + bench vs 1 at 5% HP  ->  p1 73.3%  (8 bodies, dropped {"fainted":0,"unbuildable":0,"threw":0})  sane
+
+
+  ################################################################################
+  THIS RUN DIED. IT IS NOT A RESULT AND MUST NOT BE FED TO rollout_explore_sweep.js.
+
+  Launched 2026-08-05 02:31Z on release 09acd3b404ef (drift 0 of 23, self-check sane).
+  Killed at ~03:11Z after ~40 minutes: node exit 1, no stack, no stderr, no dump
+  written. Free physical memory fell 4.03 GB -> 1.73 GB -> 0.62 GB during the run
+  while four foreign node.exe processes (peak 3.46 GB and 1.36 GB) held the box.
+  An OOM kill by concurrent work, not a defect in the gate.
+
+  The file is kept because the header records that the release guard PASSED and the
+  leaf self-check was sane at 09acd3b404ef, which is evidence for the re-run.
+  The command to finish it is in docs/SEARCH.md, section R11.
+  ################################################################################

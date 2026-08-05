@@ -103,6 +103,23 @@ const CHECKS = [
   ['engine.live', 'data/mechanics-census.json', 'live'],
   ['engine.probed', 'data/mechanics-census.json', 'probed'],
   ['engine.missing_n', 'data/mechanics-census.json', 'missing'],
+  /* THE INTERACTION MATRIX, PINNED TO ITS ARTIFACT AND NOT TO A LITERAL. Added 2026-08-05 because
+   * four living documents were quoting this result at "899 of 899, 100%" while the artifact read
+   * 1012 live / 1011 agreeing / 1 parting. Pinning the value here would have made the site agree
+   * with a number rather than with a file; these are relations, so MEASURE's queued re-run moves
+   * them together and only a board that was not rebuilt goes red. */
+  ['engine.matrix_live', 'data/interaction-matrix.json', 'live'],
+  ['engine.matrix_agree', 'data/interaction-matrix.json', 'agree'],
+  ['engine.matrix_part', 'data/interaction-matrix.json', 'part'],
+  ['engine.matrix_ran', 'data/interaction-matrix.json', 'ran'],
+  ['engine.matrix_commit', 'data/interaction-matrix.json', 'showdown_commit'],
+  /* The explore sweep — the artifact that re-earns the --rollout-explore default after the figure it
+   * originally shipped on was retracted as uncheckable. The two ARM accuracies live under a key with
+   * a dot in it (`arms.explore_1.0`) and cannot be addressed by this dotted path walker, so the two
+   * pinned here are the paired difference and the sample size; the arm figures are still emitted
+   * verbatim by build-status.js and are covered by check 1 (every value carries its source). */
+  ['search.explore.figs.2', 'data/rollout-r1-explore-sweep.json', 'paired_comparison.diff_points'],
+  ['search.explore.figs.3', 'data/rollout-r1-explore-sweep.json', 'sample.positions'],
   ['measure.headline', 'data/winrate-backtest.json', 'verdict'],
   ['measure.n_games', 'data/winrate-backtest.json', 'n_games_scored'],
   ['measure.rollouts', 'data/winrate-backtest.json', 'rollouts_per_game'],

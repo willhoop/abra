@@ -255,7 +255,12 @@ const sidecar = (() => {
       why: `it describes ${m && m.describes} with ${m && m.rows} rows, not ${ROWS} with ${n}. A `
         + 'stamp from a different run is worse than no stamp, so it is not read.' };
   }
-  return { file: rel, usable: true, p_column: m.p_column, sweep: m.sweep, source_digests: m.source_digests };
+  /* THE RELEASE FIELDS ARE CARRIED, not dropped. This whitelist predates engine_release.js, so a
+   * sidecar written by a release-aware run arrived here with its release id silently filtered out —
+   * and an artifact that cannot name its build is the whole reason the sidecar exists. */
+  return { file: rel, usable: true, p_column: m.p_column, sweep: m.sweep,
+    engine_release: m.engine_release || null, engine_release_cut: m.engine_release_cut || null,
+    showdown_commit: m.showdown_commit || null, source_digests: m.source_digests };
 })();
 const doc = docsSay();
 const standing = engineStanding(ROWS);
@@ -363,11 +368,41 @@ const artifact = {
         + 'from. Two different runs over the same positions: `mpy` is deterministic given a position, '
         + 'so an identical material accuracy proves the same SAMPLE, never the same run.'
       : 'NOT DERIVED — the calibration comparison did not run, so nothing here identifies the column.',
-    consequence: 'The published +2.91 gate result cannot be recomputed from anything committed. What '
-      + 'survives is the incumbent arm of that comparison, and on it R1 is UNDECIDED.',
+    /* THIS SENTENCE USED TO BE A CONSTANT, AND THE CONSTANT OUTLIVED THE FACT IT STATED.
+     *
+     * It read "the published +2.91 cannot be recomputed... R1 is UNDECIDED" — true of the 2026-08-04
+     * greedy dump and of nothing since. engine/status.js prints it VERBATIM under the gate line, so
+     * once the explore=1 arm existed the handoff read `PASS_ON_BASELINE` and then, on the next line,
+     * `R1 is UNDECIDED`. It was patched by HAND into data/rollout-r1-explore1.json rather than here,
+     * which fixed the screen, left the defect, and made it invisible for as long as nobody
+     * regenerated — a hand edit inside a generated file, the failure CLAUDE.md names for the
+     * GENERATED blocks, one layer down where there is no marker to warn you.
+     *
+     * So it is DERIVED from the arm and the verdict this run actually computed. A sentence that
+     * cannot go stale is one that is recomputed. */
+    consequence: (sidecar && sidecar.usable && sidecar.p_column.explore > 0)
+      ? `This is the arm engine/miltank.js runs (explore=${sidecar.p_column.explore}), so the verdict `
+        + 'above is R1\'s status and not a statement about a configuration nothing ships. The '
+        + 'deterministic-greedy incumbent is kept beside it in data/rollout-r1.json; deleting it '
+        + 'would repeat the original mistake in the other direction.'
+      : (sidecar && sidecar.usable)
+      ? `This is the DETERMINISTIC-GREEDY incumbent (explore=${sidecar.p_column.explore}), which `
+        + 'engine/miltank.js does not run — miltank.js:44 sets explore 1.0. Read the verdict above as '
+        + 'a fact about the incumbent arm, and take R1\'s status from the explore=1 artifact.'
+      : 'THE ARM IS UNRECORDED. Without a sidecar this file cannot say which of two columns four '
+        + 'accuracy points apart it counted, so the verdict above names no configuration.',
   },
 
   docs_say: doc,
+
+  /* THE RELEASE RIDES UP TO THE TOP LEVEL, so provenance.js can verify this gate against a frozen
+   * release the way it already verifies data/rollout-r1-explore-sweep.json. It was reachable only
+   * inside which_rollout_is_this.recorded_in_the_dump, which no checker looks in — so the gate named
+   * its build in a place nothing reads. Same values, same sidecar, one hop up. */
+  engine_release: (sidecar && sidecar.usable && sidecar.engine_release) || null,
+  engine_release_cut: (sidecar && sidecar.usable && sidecar.engine_release_cut) || null,
+  showdown_commit: (sidecar && sidecar.usable && sidecar.showdown_commit) || null,
+  source_digests: (sidecar && sidecar.usable && sidecar.source_digests) || null,
 
   standing: {
     valid_as_measured: 'YES as arithmetic. Both columns are scored on identical positions with '

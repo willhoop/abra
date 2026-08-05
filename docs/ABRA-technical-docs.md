@@ -1,6 +1,16 @@
 # ABRA — Technical Documentation
 
-**Version 3.41.0 · Last updated 2026-08-05**
+**Version 3.42.0 · Last updated 2026-08-05**
+
+**Change record for 3.42.0.** The fit checks whether a recorded action was a click. 1,336 of
+241,927 actions were not clicks. Encore replaced 1,116 of them. A phazing move dragged in 220 of
+them. These actions are removed from the training labels. They are counted. 3,260 redirected
+attacks are kept. They are fitted over a set of two possible targets, not one certain target. The
+estimator was tested on data with known answers first. It recovers 97.4% of a planted error. The
+model now puts less probability on an action no human chose: -0.002614, 95% CI [-0.003647,
+-0.001610]. The redirection change did not improve anything that can be measured. The overall
+top-1 accuracy did not change. Two budget counters were replaced. The old counter measured two
+different things at once.
 
 **Change record for 3.41.0.** The simulator covers 202 of 205 probed mechanics. Three are missing.
 Each has a written reason. The interaction matrix agrees with the official engine on 899 of 899

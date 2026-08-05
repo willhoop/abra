@@ -363,6 +363,44 @@ if (en.diff_worst && en.diff_worst.state === 'bad'){
 } else {
   out.push('<div class="row">' + figCard(en.diff_worst, {label:'open Showdown differentials'}) + '</div>');
 }
+
+/* ---- THE INTERACTION MATRIX. A third question, and until 2026-08-05 it was on no page at all while
+   four living documents quoted it at "899 of 899, 100%". The artifact says 1012 live, 1011 agreeing,
+   1 parting, and names the pair. The two counts are printed side by side and NOT divided: 1011/1012
+   is arithmetic, and this page does not do arithmetic. ---- */
+out.push('<div class="row">'
+  + figCard(en.matrix_live) + figCard(en.matrix_agree) + figCard(en.matrix_part) + figCard(en.matrix_ran)
+  + '</div>');
+if (en.matrix_parting && en.matrix_parting.state === 'bad'){
+  out.push('<div class="fig bad wide"><div class="lab" style="font-size:13px;margin:0 0 8px">'
+    + 'Interaction pairs where MEDICHAM and Showdown PART — a carrier move played into a reactor '
+    + 'ability, item or type, compared on the resulting STATE rather than on damage.</div>'
+    + '<table><tr><th>CARRIER</th><th>REACTOR</th><th>KIND</th><th>SIDE</th><th>AXIS</th><th>LAYER</th><th>USES</th></tr>'
+    + en.matrix_parting.rows.map(function(p){
+        return '<tr><td class="mono">' + E(p.carrier) + '</td><td class="mono">' + E(p.reactor)
+             + '</td><td class="k">' + E(p.kind) + '</td><td class="mono">' + E(p.side)
+             + '</td><td class="k">' + E(p.axis) + '</td><td class="k">' + E(p.layer)
+             + '</td><td class="mono">' + E(p.uses) + '</td></tr>';
+      }).join('')
+    + '</table>' + srcChip(en.matrix_parting) + '</div>');
+} else if (en.matrix_parting && en.matrix_parting.state === 'ok'){
+  out.push('<div class="fig wide"><div class="lab" style="font-size:13px;margin:0">'
+    + 'No interaction pair parts from Showdown in this run.</div>' + srcChip(en.matrix_parting) + '</div>');
+} else {
+  out.push('<div class="row">' + figCard(en.matrix_parting, {label:'the parting pairs, named'}) + '</div>');
+}
+/* WHAT THE MATRIX DOES NOT COMPARE IS PART OF THE RESULT. A high agreement rate over a narrowed
+   comparison is not the same claim as a high rate over a wide one, so the artifact's own exclusion
+   list is printed rather than summarised. */
+if (en.matrix_not_compared && en.matrix_not_compared.state === 'ok'){
+  out.push('<div class="fig wide"><div class="lab" style="font-size:13px;margin:0 0 8px">'
+    + 'What the matrix deliberately does NOT compare — the artifact’s own list, verbatim. '
+    + 'Agreement is a claim about what was compared.</div>'
+    + '<div style="font-size:13px;line-height:1.7">'
+    + en.matrix_not_compared.rows.map(function(s){ return '<code class="mono">' + E(s) + '</code>'; }).join(' &middot; ')
+    + '</div>' + srcChip(en.matrix_not_compared) + '</div>');
+}
+out.push('<div class="row">' + figCard(en.matrix_generated) + figCard(en.matrix_commit) + '</div>');
 out.push('</div>');
 
 /* ============================== MEASURE ============================== */
@@ -432,6 +470,37 @@ se.ladder.forEach(function(g){
     + (g.generated ? '<span class="when">generated ' + E(when(g.generated)) + '</span>' : '') + '</div>'
     + '</div></div>');
 });
+
+/* ---- THE EXPLORE SWEEP. Not a rung: it re-earns a DEFAULT whose original justification was
+   retracted. It is also the first result on this board measured against a STAMPED ENGINE RELEASE
+   rather than whatever was on disk, so its release id is printed where every other row prints only
+   a time. ---- */
+var sw = se.explore;
+if (sw && sw.state === 'ok'){
+  out.push('<div class="fig wide" style="margin-top:12px">'
+    + '<div class="lab" style="font-size:13px;margin:0 0 6px">The <span class="mono">--rollout-explore</span> default, re-earned</div>'
+    + '<div class="note" style="margin-bottom:8px">' + E(sw.question) + '</div>'
+    + '<div class="v small">' + E(sw.verdict_code || '') + '</div>'
+    + '<div class="note" style="color:var(--bone);font-weight:700;font-size:12.5px">' + E(sw.verdict) + '</div>'
+    + '<div class="figs" style="margin-top:9px">' + sw.figs.map(function(f){
+        if (f.state === 'notmeasured'){
+          return '<div><b style="color:var(--nm);font-size:14px;letter-spacing:.03em">NOT MEASURED</b>'
+               + E(f.label || 'field') + ' &mdash; ' + E(f.why || 'no value in the artifact') + '</div>';
+        }
+        return '<div class="hot"><b>' + E(f.v + (f.unit || '')) + '</b>' + E(f.label)
+             + (f.note ? '<span style="display:block;font-weight:400">' + E(f.note) + '</span>' : '') + '</div>';
+      }).join('') + '</div>'
+    + '<div class="note" style="margin-top:9px"><b>What this is not.</b> ' + E(sw.what_this_is_not) + '</div>'
+    + (sw.caveats && sw.caveats.length
+        ? '<div class="note" style="margin-top:6px">' + sw.caveats.map(function(c){ return E(c); }).join('<br><br>') + '</div>'
+        : '')
+    + '<div class="note" style="margin-top:6px">Measured against engine release <span class="mono">'
+      + E(sw.release || 'NOT STAMPED') + '</span>, cut ' + E(when(sw.release_cut) || 'NOT STAMPED')
+      + ' — the release is a copy of the bytes, so this row cannot be PRE-CHANGE the way the corpora below can.</div>'
+    + srcChip(sw) + '</div>');
+} else {
+  out.push('<div class="row" style="margin-top:12px">' + figCard(sw, {label:'the --rollout-explore default', wide:true}) + '</div>');
+}
 
 /* ---- the handoff checking itself ---- */
 if (se.handoff_drift && se.handoff_drift.rows && se.handoff_drift.rows.length){

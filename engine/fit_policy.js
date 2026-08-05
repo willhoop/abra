@@ -52,6 +52,8 @@ const B = require('./board.js');
 /* One reader for "whose moveset is this, and which candidate did they press". See its header and
  * docs/ARTIFACT-ACCESS-RULES.md R1/R6. */
 const CM = require('./click_match.js');
+/* ...and one reader for "is the recorded action a CLICK at all". docs/CLICK-CENSORING-FIX.md. */
+const CC = require('./click_class.js');
 
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
@@ -414,7 +416,54 @@ const SEES = new Set(SHEET_CHANNELS);
  *
  * One process, one require cache, one tag DB, both arms. Defaulted, so all seven existing callers are
  * unaffected. */
-function decisionsFor(g, tally, channels) {
+/* THE CENSORING COUNTERS. A capability that cannot prove it ran is assumed broken, and this one is
+ * a REMOVAL — the easiest kind to have never fired. Both are broken out by mechanism so a zero on
+ * one arm is visible rather than hidden inside a total. */
+function bumpCoerced(tally, why, by) {
+  if (!tally) return;
+  tally.coerced = (tally.coerced || 0) + 1;
+  tally.coercedWhy = tally.coercedWhy || {};
+  tally.coercedWhy[why] = (tally.coercedWhy[why] || 0) + 1;
+  tally.coercedBy = tally.coercedBy || {};
+  tally.coercedBy[by] = (tally.coercedBy[by] || 0) + 1;
+}
+function bumpPartial(tally, why, drawnBy, size) {
+  if (!tally) return;
+  tally.partial = (tally.partial || 0) + 1;
+  tally.partialWhy = tally.partialWhy || {};
+  tally.partialWhy[why] = (tally.partialWhy[why] || 0) + 1;
+  tally.partialBy = tally.partialBy || {};
+  tally.partialBy[drawnBy] = (tally.partialBy[drawnBy] || 0) + 1;
+  tally.partialSetSize = tally.partialSetSize || {};
+  tally.partialSetSize[size] = (tally.partialSetSize[size] || 0) + 1;
+}
+
+/* `opts.keepCoerced` EMITS the coerced rows instead of dropping them, tagged `row.coerced`.
+ *
+ * It exists for exactly one caller — engine/censoring_value.js, which has to score the BEFORE arm
+ * (coerced rows fitted with their wrong label) and the AFTER arm (coerced rows gone) on rows built
+ * in ONE pass of ONE process. Building them twice would be two replays and two chances to differ;
+ * building the before-arm in a separate process would let something move in between, which is the
+ * failure the engine release exists to prevent. A PARAMETER, never a second copy.
+ * Every other caller gets the default and never sees a coerced row. */
+/* `CENSORING=off` FITS THE OLD WAY ON THE NEW CORPUS, and it exists for one reason: a control.
+ *
+ * The incumbent vector and the post-fix vector were fitted on corpora 86 games apart, because the
+ * collector never stops. So "the new weights behave differently on coerced turns" has FOUR possible
+ * causes — the coerced removal, the partial-label EM, the extra games, and the refit itself — and
+ * docs/MEASURE.md keeps finding exactly that confound in other people's work. With this set, an arm
+ * exists that differs from the shipped one ONLY in the treatment of the censoring.
+ *
+ * It is a MEASUREMENT SETTING, in the same shape as SHEET_CHANNELS, and it is recorded in the
+ * artifact so a control arm can never be mistaken for a shipped one. */
+const CENSORING_OFF = process.env.CENSORING === 'off';
+if (CENSORING_OFF) {
+  console.log('CENSORING=off — coerced actions are KEPT with their recorded label and partial rows');
+  console.log('  are fitted as certain. This is the CONTROL ARM, not a shippable fit.\n');
+}
+
+function decisionsFor(g, tally, channels, opts) {
+  const keepCoerced = !!(opts && opts.keepCoerced) || CENSORING_OFF;
   const chan = channels || SHEET_CHANNELS;
   const out = [];
   const board = new B.Board();
@@ -500,6 +549,17 @@ function decisionsFor(g, tally, channels) {
       else if (e.t === 's' && e.s && forcedSlot.has(e.s)) forcedSlot.add(e.s + '|used');
     }
 
+    /* ---- WHICH RECORDED ACTIONS ARE NOT CLICKS ------------------------------------------------
+     * docs/CLICK-CENSORING-FIX.md Stage B. Two classes are today KEPT WITH A WRONG LABEL, which is
+     * strictly worse than dropping them (Natarajan et al. 2013): the Encore application turn, whose
+     * forced move is on the victim's own menu so the matcher is happy; and a `|drag|`, which
+     * engine/durable-ingest.js stores with the same `t:'s'` shape as a click, so the voluntary-switch
+     * branch below scores a phazed arrival as a decision. `forcedSlot` only knows about faints.
+     *
+     * Derived from the running format (onOverrideAction / forceSwitch), never a typed list. */
+    const coerced = CC.coercedSlots(ev, dex);
+    const redirect = CC.redirectorsUp(ev, dex);
+
     /* INDEXED, because resolving a recorded target needs to know which switches had already
      * happened when this event went off. */
     for (let evIx = 0; evIx < ev.length; evIx++) {
@@ -509,6 +569,8 @@ function decisionsFor(g, tally, channels) {
          * the whole point is that "bring Torkoal in" competes with "click Earthquake" rather than
          * being decided separately by a coin, which is what happens today. */
         tally.seen++;
+        const co = coerced.get(e.s);
+        if (co && !keepCoerced) { bumpCoerced(tally, co.why, co.by); continue; }
         const side = e.s.slice(0, 2), letter = e.s.slice(2);
         const user = board.slot(side, letter);
         if (!user || user.fainted) { tally.noUser++; continue; }
@@ -520,12 +582,16 @@ function decisionsFor(g, tally, channels) {
         if (idx < 0) { tally.unmatched++; continue; }
         probeLive(tally, board, side, user);
         const feats = featsFor(cands, user, board, side);
-        out.push({ game: g.id || '', turn: turnIx, side, slot: letter, sp: base(user.species), feats, chosen: idx, mvs: candIds(cands) });
+        const srow = { game: g.id || '', turn: turnIx, side, slot: letter, sp: base(user.species), feats, chosen: idx, mvs: candIds(cands) };
+        if (co) { srow.coerced = co.why; bumpCoerced(tally, co.why, co.by); }
+        out.push(srow);
         tally.kept++;
         continue;
       }
       if (e.t !== 'm' || !e.s || !e.mon || !e.mv) continue;
       tally.seen++;
+      const co = coerced.get(e.s);
+      if (co && !keepCoerced) { bumpCoerced(tally, co.why, co.by); continue; }
       const side = e.s.slice(0, 2), letter = e.s.slice(2);
       const user = board.slot(side, letter);
       if (!user || user.fainted) { tally.noUser++; continue; }
@@ -552,7 +618,44 @@ function decisionsFor(g, tally, channels) {
 
       probeLive(tally, board, side, user);
       const feats = featsFor(cands, user, board, side);
-      out.push({ game: g.id || '', turn: turnIx, side, slot: letter, sp: base(e.mon), feats, chosen: m.chosen, mvs: candIds(cands) });
+      const row = { game: g.id || '', turn: turnIx, side, slot: letter, sp: base(e.mon), feats, chosen: m.chosen, mvs: candIds(cands) };
+      if (co) { row.coerced = co.why; bumpCoerced(tally, co.why, co.by); }
+
+      /* ---- STAGE C: THE OUTPLAYED TURNS KEEP THEIR HONEST UNCERTAINTY ------------------------
+       * A redirected attack's recorded target is the redirector; the click was aimed at ONE of the
+       * live foes and the protocol does not say which. Today that enters the fit as a CERTAIN label
+       * on the redirector — MNAR mislabelling concentrated exactly on the turns where the opponent's
+       * play worked. Cour, Sapp & Taskar (2011): the correct likelihood contribution is the marginal
+       * over the candidate set, not a pick and not a drop.
+       *
+       * NOTE the correction to the spec's §1 table, measured rather than assumed: redirection does
+       * NOT drop the turn. engine/redirect_audit.js established on 2026-08-02 that the redirector is
+       * a perfectly legal candidate target, so the matcher finds it and is happy. It is a MISLABEL,
+       * which makes this stage a poison fix as much as a recovery. */
+      const liveFoes = board.field().filter(f => f.side === foe && !f.mon.fainted);
+      const pt = CC.partialTarget(e, evIx, redirect, liveFoes, dex, board);
+      if (pt) {
+        const mvId = norm((dex.moves.get(e.mv) && dex.moves.get(e.mv).id) || e.mv);
+        const foeSp = new Set(liveFoes.map(f => base(f.mon.species)));
+        const set = [];
+        for (let i = 0; i < cands.length; i++) {
+          const c = cands[i];
+          if (!c.move || norm(c.move.id) !== mvId) continue;
+          if (!c.targetMon || !foeSp.has(base(c.targetMon.species))) continue;
+          set.push(i);
+        }
+        /* A set of one is a certain label, not a partial. A set that lost the matched candidate
+         * would be a bug rather than a partial, so it is refused rather than silently narrowed. */
+        if (set.length > 1 && set.includes(m.chosen)) {
+          /* Counted either way — the artifact must say how big the class is even in the control —
+           * but the fit only SEES the candidate set when the treatment is on. */
+          if (!CENSORING_OFF) row.cset = set;
+          bumpPartial(tally, pt.why, pt.drawnBy, set.length);
+        } else {
+          tally.partialDegenerate = (tally.partialDegenerate || 0) + 1;
+        }
+      }
+      out.push(row);
       tally.kept++;
     }
 
@@ -623,7 +726,19 @@ function decisionsFor(g, tally, channels) {
 /* ---------------------------------------------------------------------------------------------
  * CONDITIONAL LOGIT
  * ------------------------------------------------------------------------------------------- */
-function logLik(rows, w) {
+/* PARTIAL ROWS SCORE THE MARGINAL, NOT A PICK.
+ *
+ * For a row carrying `cset` — a candidate set guaranteed to contain the true click — the likelihood
+ * contribution is log Σ_{c∈cset} P(c), and "top-1" means the argmax landed INSIDE the set. For an
+ * ordinary row cset is absent and both reduce to the usual quantities exactly, so every existing
+ * caller and every previously published number is unchanged on a corpus with no partial rows.
+ *
+ * `PARTIAL_MODE='pick'` scores a partial row the OLD way — as a certain label on the matched
+ * candidate. That is the control arm: it is how a comparison of two weight vectors can be run on
+ * identical rows with only the treatment of the censoring differing. A control that requires editing
+ * this file is not a control. */
+function logLik(rows, w, opts) {
+  const asPick = !!(opts && opts.pick);
   let ll = 0, correct = 0;
   for (const r of rows) {
     let max = -Infinity, bestI = 0;
@@ -636,8 +751,16 @@ function logLik(rows, w) {
     }
     let z = 0;
     for (let j = 0; j < s.length; j++) z += Math.exp(s[j] - max);
-    ll += (s[r.chosen] - max) - Math.log(z);
-    if (bestI === r.chosen) correct++;
+    const cset = (!asPick && r.cset && r.cset.length > 1) ? r.cset : null;
+    if (cset) {
+      let num = 0;
+      for (const c of cset) num += Math.exp(s[c] - max);
+      ll += Math.log(num) - Math.log(z);
+      if (cset.includes(bestI)) correct++;
+    } else {
+      ll += (s[r.chosen] - max) - Math.log(z);
+      if (bestI === r.chosen) correct++;
+    }
   }
   return { ll: ll / Math.max(1, rows.length), acc: correct / Math.max(1, rows.length) };
 }
@@ -709,7 +832,22 @@ function standardErrors(rows, w, nf) {
   return Array.from({ length: nf }, (_, k) => Math.sqrt(Math.max(0, A[k][n + k])));
 }
 
-function fit(rows, nf, lambda, iters, useIW) {
+/* EM OVER THE PARTIAL LABELS (Dempster, Laird & Rubin 1977; Cour, Sapp & Taskar 2011).
+ *
+ * The marginal log-likelihood of a partial row is log Σ_{c∈C} p_c, whose gradient is
+ *
+ *     Σ_{c∈C} q_c x_c  −  E_p[x]        with  q_c = p_c / Σ_{c'∈C} p_{c'}
+ *
+ * — the E-step (recompute q under the current w) and the M-step (one gradient step of the ordinary
+ * conditional logit on rows weighted by q) are literally these two lines. Because the M-step here is
+ * itself iterative, running one gradient step per E-step is Generalized EM (Neal & Hinton 1998), and
+ * it has the same fixed point as the nested version at a fraction of the cost.
+ *
+ * `opts.pick` fits partial rows the OLD way, as a certain label on the matched candidate. That is
+ * the control arm and it is a PARAMETER, not a second copy of this function.
+ */
+function fit(rows, nf, lambda, iters, useIW, opts) {
+  const asPick = !!(opts && opts.pick);
   const w = new Array(nf).fill(0);
   const m = new Array(nf).fill(0), v = new Array(nf).fill(0);
   const lr = 0.05, b1 = 0.9, b2 = 0.999, eps = 1e-8;
@@ -728,8 +866,19 @@ function fit(rows, nf, lambda, iters, useIW) {
       }
       let z = 0;
       for (let j = 0; j < s.length; j++) { s[j] = Math.exp(s[j] - max); z += s[j]; }
-      const fc = r.feats[r.chosen];
-      for (let k = 0; k < nf; k++) g[k] += iw * fc[k];
+      const cset = (!asPick && r.cset && r.cset.length > 1) ? r.cset : null;
+      if (cset) {
+        /* E-step: responsibilities over the candidate set, under the CURRENT weights. */
+        let qz = 0;
+        for (const c of cset) qz += s[c];
+        for (const c of cset) {
+          const q = s[c] / qz, fc2 = r.feats[c];
+          for (let k = 0; k < nf; k++) g[k] += iw * q * fc2[k];
+        }
+      } else {
+        const fc = r.feats[r.chosen];
+        for (let k = 0; k < nf; k++) g[k] += iw * fc[k];
+      }
       for (let j = 0; j < s.length; j++) {
         const p = s[j] / z, f = r.feats[j];
         for (let k = 0; k < nf; k++) g[k] -= iw * p * f[k];
@@ -773,7 +922,8 @@ function main() {
   console.log(`  corpus     ${games.length.toLocaleString()} clean open-sheet games`);
   console.log(`  rejected   ${rej}`);
 
-  const tally = { seen: 0, kept: 0, noUser: 0, noSheet: 0, trivial: 0, unmatched: 0, ambiguous: 0 };
+  const tally = { seen: 0, kept: 0, noUser: 0, noSheet: 0, trivial: 0, unmatched: 0, ambiguous: 0,
+                  coerced: 0, partial: 0 };
   let rows = [];
   /* WHEN each game was played, kept beside the decisions so a TIME-based holdout is possible at all.
    * A decision row carries a game id and no date; this loop is the one place both are in scope. */
@@ -786,6 +936,21 @@ function main() {
   console.log(`             dropped: ${tally.trivial.toLocaleString()} had only one candidate (no information), ` +
               `${tally.noSheet.toLocaleString()} species not on a sheet, ${tally.unmatched.toLocaleString()} click not matched, ` +
               `${tally.ambiguous.toLocaleString()} target ambiguous (mirror), ${tally.noUser.toLocaleString()} no active user`);
+  /* ---- THE CENSORING COUNTERS, PRINTED, AND A ZERO CALLED OUT ------------------------------- */
+  const nPartialRows = rows.filter(r => r.cset && r.cset.length > 1).length;
+  console.log(`  censoring  ${(tally.coerced || 0).toLocaleString()} COERCED actions removed from the labeled set ` +
+    `(${JSON.stringify(tally.coercedWhy || {})}), ` +
+    `${nPartialRows.toLocaleString()} PARTIAL rows kept under the marginal likelihood ` +
+    `(${JSON.stringify(tally.partialWhy || {})})`);
+  for (const [k, n] of [['coerced', tally.coerced || 0], ['partial', CENSORING_OFF ? (tally.partial || 0) : nPartialRows]]) {
+    if (!n) {
+      console.error(`\n  ZERO ${k.toUpperCase()} ACTIONS OVER ${games.length.toLocaleString()} GAMES.`);
+      console.error('  engine/click_class.js derives its mechanism sets from the running format, so a zero here');
+      console.error('  means the classifier never fired, not that the metagame stopped using Encore and Follow Me.');
+      console.error('  Refusing to fit — see docs/CLICK-CENSORING-FIX.md Stage A/B.');
+      process.exit(1);
+    }
+  }
   if (rows.length < 500) { console.error('too few decisions to fit'); process.exit(1); }
 
   /* THE FITTING ENVIRONMENT, PROVED RATHER THAN ASSERTED, AND IT REFUSES TO FIT IF THE PROOF FAILS.
@@ -986,6 +1151,10 @@ function main() {
     standardErrors: SE,
     spread,
     lambda: best.lambda,
+    /* WHICH ARM THIS IS. `off` means the coerced actions were fitted with their recorded (wrong)
+     * label and the partial rows as certain — the CONTROL for docs/CLICK-CENSORING-FIX.md Stage D.
+     * A control arm that does not say so in its own file is one commit away from being shipped. */
+    censoring: CENSORING_OFF ? 'off (CONTROL ARM — not shippable)' : 'on',
     corpus: { games: games.length, decisions: rows.length, train: train.length, test: test.length },
     /* HOW MUCH OF THE CORPUS THIS FIT ACTUALLY SAW, recorded rather than only printed.
      *
@@ -999,6 +1168,17 @@ function main() {
     matching: {
       seen: tally.seen, kept: tally.kept, noUser: tally.noUser, noSheet: tally.noSheet,
       trivial: tally.trivial, unmatched: tally.unmatched, ambiguous: tally.ambiguous,
+      /* docs/CLICK-CENSORING-FIX.md. `coerced` is a REMOVAL of wrong labels, not a drop of good
+       * ones, and it has its own ceiling in data/degradation-budgets.json so the two can never
+       * again be added together into one "turnsDropped" number that means two different things. */
+      coerced: tally.coerced || 0,
+      coercedWhy: tally.coercedWhy || {},
+      coercedBy: tally.coercedBy || {},
+      partial: nPartialRows,
+      partialWhy: tally.partialWhy || {},
+      partialBy: tally.partialBy || {},
+      partialSetSize: tally.partialSetSize || {},
+      partialDegenerate: tally.partialDegenerate || 0,
     },
     heldOut: {
       uniform: base0, behaviourCloneOnly: baseBot, boardAware: best.te,
@@ -1050,9 +1230,13 @@ function main() {
     caveat: 'Fitted on open-team-sheet games, the only corpus where the CHOICE SET is known rather ' +
             'than guessed. Known unmodelled gaps: ability-based immunity and priority-blocking ' +
             'abilities (Armor Tail, Queenly Majesty) are invisible to the feature set, which ' +
-            'computes immunity from TYPES only; and ~11% of clicks were dropped as unmatched, ' +
-            'mostly redirection (Follow Me, Rage Powder). Open-sheet players also average ~185 ' +
-            'rating points lower, though measured move quality is close to flat in rating.',
+            'computes immunity from TYPES only. Open-sheet players also average ~185 ' +
+            'rating points lower, though measured move quality is close to flat in rating. ' +
+            'THE OLD CAVEAT HERE — "~11% of clicks were dropped as unmatched, mostly redirection" — ' +
+            'was wrong twice and is retracted: engine/redirect_audit.js measured redirection at ' +
+            '1.60% of failed matches, and redirection does not DROP a click at all (the redirector ' +
+            'is a legal candidate target, so it MISLABELS one). Both halves are now counted: ' +
+            'matching.coerced and matching.partial. See docs/CLICK-CENSORING-FIX.md.',
   };
   out.covariateShift.reweighted_max_weight_change = { feature: whichMove, delta: maxMove };
   out.covariateShift.effective_sample_size = { ess: Math.round(ess), of: train.length };

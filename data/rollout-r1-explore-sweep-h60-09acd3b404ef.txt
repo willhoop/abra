@@ -5,3 +5,29 @@ ROLLOUT R1 — is playing it out a better judge than the k-NN?
 
   self-check: 2 healthy + bench vs 1 at 5% HP  ->  p1 73.3%  (8 bodies, dropped {"fainted":0,"unbuildable":0,"threw":0})  sane
 
+  positions scored 4,586  (414 unbuildable, 0 unlabelled)  in 875.2s  -> 191 ms per position
+
+    judge                              accuracy     Brier    log-loss
+  ------------------------------------------------------------------
+   coin                               52.18%    0.2500    0.6931
+   material: bodies then HP (hard)    66.33%    0.3282    6.6247
+   material: porygon2 form (graded)   64.24%    0.2148    0.6167
+   ROLLOUT n=40 explore=0             66.16%    0.2512    1.7109
+   ROLLOUT n=40 explore=0.5           68.80%    0.2127    0.8922
+   ROLLOUT n=40 explore=1             69.86%    0.2065    0.8431
+
+  VERDICT
+  ------------------------------------------------------------------
+  rollout minus material (porygon2 form): +5.63 points  (95% CI 4.06 to 7.19)
+  discordant positions: rollout-only-right 800, material-only-right 542, of 4586
+  PORYGON2 is 63.70% on human games (data/porygon2c.json) and beats material by 3.42 there.
+  -> R1 PASSES OUTRIGHT. The lower bound clears PORYGON2's published +3.42 lift,
+     so the rollout carries more than the learned model adds over the same baseline.
+
+  NOT A LIKE-FOR-LIKE TEST OF THE REAL QUESTION, said plainly: the incumbent is
+  PORYGON2, and PORYGON2 is a Python k-NN that has not been scored on THESE positions.
+  Material is the honest local stand-in, and Brier/log-loss below flatter the rollout
+  against it because a sign function emits hard 0/1 and is punished for it.
+
+  Both columns are scored on identical positions with identical labels, per
+  docs/DATA-LAW.md case 2. The only thing that differs is which judge was asked.

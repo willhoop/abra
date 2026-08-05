@@ -113,42 +113,143 @@ function parseInactive(line) {
 let _STAMP = null;
 /* WHICH NAMED ENGINE RELEASE THIS PROCESS IS RUNNING, resolved by CONTENT and not by a tag.
  *
- * docs/DIVISIONS.md rule 1 — SEARCH plays a frozen, named engine release, never HEAD — has never had
- * a mechanism, so every run to date is attributed by `status.js` comparing MTIMES, which a checkout
- * moves without moving code. `data/engine-release.json` is that mechanism: a cut writes the release
- * name beside the sha256 of every file whose bytes can change a rollout's value, and any run can
- * then answer "which release did you play" by hashing its own worktree and comparing.
+ * docs/DIVISIONS.md rule 1 — SEARCH plays a frozen, named engine release, never HEAD. `data/
+ * engine-release.json` plus `data/releases/<id>/` are that mechanism: a cut freezes every file whose
+ * bytes can change a rollout's value, and a run answers "which bytes did you play" by comparing its
+ * own worktree against the frozen manifest.
  *
- * THE DIGESTS COME FROM `run_stamp.sourceDigests`, NOT FROM THE FOUR-FILE sha1 SET BELOW. Those two
- * lists disagreed — `run_stamp.LEAF_SOURCES` is 5 files hashed with sha256 and this file hashed 4
- * with sha1, so `data/abra-tags.js` (which ENGINE rewrites constantly) was invisible to a MILTANK
- * stamp and visible to every other gate's. FACTS ARE GLOBAL: there is one definition of "the engine
- * these numbers describe" and it lives in run_stamp.
+ * ============================ THE BUG THIS REPLACES, WITH THE RECEIPT ============================
+ * Until 2026-08-05 this function read `rel.digests` and `rel.release` out of the pointer file.
+ * `engine/engine_release.js` HAS NEVER WRITTEN EITHER FIELD. A cut writes `current`, `cut`, `why`,
+ * `cuts`, `latest_cut`, `latest_why` — and the digests live in the release's OWN manifest, one
+ * directory down, which this function never opened.
  *
- * INERT UNTIL THE CUT. With no release file this records `UNRELEASED`, which is the honest answer and
- * is exactly what every run on disk should read. When the cut lands, this resolver moves to
- * `engine/engine_release.js` so `status.js` and `run_stamp.js` share it — DO NOT WRITE A SECOND ONE.
- * `source_digests` is kept unchanged beside it because `reduce()`'s mixed-build check keys on it and
- * because a TIMING artifact is legitimately about the player as well as the engine. */
-function resolveRelease(engineDigests) {
-  let rel = null;
-  try { rel = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'engine-release.json'), 'utf8')); }
-  catch (e) {
-    /* An absent file IS the documented state ("no cut has ever happened"); a file that exists but
-     * cannot be parsed is a finding, and collapsing the two is how a corrupt release would read as
-     * merely uncut. The reason rides in the stamp, where reduce()'s reader can see it. */
-    const errWhy = (e && e.code === 'ENOENT') ? null : String((e && e.message) || e);
-    return Object.assign(
-      { release: 'UNRELEASED', release_status: 'NO RELEASE HAS EVER BEEN CUT — docs/DIVISIONS.md rule 1 is unenforced' },
-      errWhy ? { release_read_error: errWhy } : {});
-  }
-  const want = (rel && rel.digests) || {};
-  const moved = Object.keys(want).filter(k => k !== 'note' && engineDigests[k] !== want[k]);
-  return {
-    release: rel.release || 'UNNAMED',
-    release_status: moved.length ? 'PRE-RELEASE' : 'ON_RELEASE',
-    release_moved: moved.length ? moved : undefined,
+ * So `want` was always `{}`. The filter compared ZERO files. `moved.length` was therefore always 0,
+ * and every MILTANK stamp ever written reads `release: 'UNNAMED', release_status: 'ON_RELEASE'`.
+ * Reproduced 2026-08-05 against the live pointer: feeding the old resolver a digest set in which
+ * EVERY FILE IS WRONG still returned `ON_RELEASE`, because there was nothing to be wrong about.
+ *
+ * That is a green attribution produced by an empty comparison — a field structurally incapable of
+ * being false, sitting in the one slot whose entire job is to say which bytes a number describes.
+ * It is this project's signature failure (a capability that reports success while doing nothing)
+ * inside the mechanism built to stop that failure. Found by ENGINE, who filed it rather than
+ * patching SEARCH's file.
+ *
+ * TWO POINTER SCHEMAS EXISTED, AND THAT IS WHY THIS SURVIVED REVIEW. The real one, written by
+ * `engine_release.js cut`; and a hand-rolled `node -e` recipe in docs/SEARCH.md §P0.5 that would
+ * have written `{release, digests, commit, dirty}`. This resolver was coded correctly against the
+ * recipe and the recipe was never the thing that ran. The recipe is struck from SEARCH.md in the
+ * same pass: there is ONE way to answer "which release am I on".
+ * ================================================================================================
+ *
+ * NO SECOND IMPLEMENTATION, WHICH IS ALSO WHAT WENT WRONG. `open()` resolves the pointer and proves
+ * the snapshot has not itself rotted; `drift()` compares the manifest against the live tree. Both
+ * are CALLED here and neither is re-written — a second implementation of a FACT is what CLAUDE.md
+ * forbids, and the hand-rolled comparison above is what one costs.
+ *
+ * ABSENT EVIDENCE AND POSITIVE EVIDENCE ARE DIFFERENT EVENTS. `ON_RELEASE` is now reachable from
+ * exactly one path: a manifest naming at least one file, hashed against the live tree, with an empty
+ * drift set. Everything else gets its own loud value and a `release_why` a person can read:
+ *
+ *   ON_RELEASE          n frozen files hashed, none moved. The only green.
+ *   OFF_RELEASE         the live tree has moved off the release; `release_moved` names the files.
+ *                       (Called PRE-RELEASE before; it is drift AFTER a cut, so the name was wrong.)
+ *   NO_RELEASE          no release has ever been cut — rule 1 is unenforced, not satisfied.
+ *   RELEASE_UNUSABLE    a release store exists but the pointer or the snapshot is broken.
+ *   UNKNOWN             the comparison could not be made — INCLUDING a manifest that names zero
+ *                       files, which is precisely the state that used to read ON_RELEASE.
+ *
+ * `opts` exists only so the test can point at a throwaway store. Repointing the real pointer while
+ * another division is measuring through it is the exact hazard this fix exists to prevent, so the
+ * test never touches it, and `engine_release.js` prints a line on stderr whenever an override is in
+ * play. `source_digests` (the four-file sha1 set below) is untouched: `reduce()`'s mixed-build check
+ * keys on it and it must stay a hash of the LIVE bytes this process loaded, not of the release. */
+function resolveRelease(opts) {
+  const REL_API = require('./engine_release.js');
+  /* A NON-GREEN RELEASE STATE IS SAID OUT LOUD AT LOAD, not only written into a shard nobody opens
+   * until the run is over. The whole cost of this bug was that it was silent. */
+  const say = (o) => {
+    if (o.release_status !== 'ON_RELEASE') {
+      console.error('MILTANK release: ' + o.release_status + ' — ' + (o.release_why || 'no reason recorded'));
+    }
+    return o;
   };
+  const none = { engine_release: null, engine_release_cut: null, engine_release_cuts: 0,
+                 showdown_commit: null, engine_release_digests: null };
+
+  let REL;
+  try { REL = REL_API.open(undefined, opts); }
+  catch (e) {
+    const errWhy = String((e && e.message) || e);
+    /* "nothing was ever cut" and "something was cut and is broken" are opposite findings and only
+     * the first is benign. Decided by asking the release store how many releases it holds rather
+     * than by matching on open()'s error text, which would be a third schema to keep in sync. */
+    let cutCount = null, errList = null;
+    /* AN UNREADABLE RELEASES DIRECTORY IS ITS OWN THIRD ANSWER and it reaches the stamp. `list()`
+     * already returns [] for a store that does not exist, so anything thrown here is a real defect
+     * (permissions, a half-deleted store) and swallowing it would let a broken store be reported
+     * with the same words as a working one. */
+    try { cutCount = REL_API.list(opts).length; }
+    catch (e2) { errList = String((e2 && e2.message) || e2); cutCount = null; }
+    if (cutCount === 0) {
+      return say(Object.assign({}, none, {
+        release: 'UNRELEASED', release_status: 'NO_RELEASE', release_files: 0,
+        release_why: 'no engine release has ever been cut — docs/DIVISIONS.md rule 1 is UNENFORCED, not satisfied. '
+                   + 'Run: node engine/engine_release.js cut "<why>"',
+      }));
+    }
+    return say(Object.assign({}, none, {
+      release: 'UNKNOWN', release_status: 'RELEASE_UNUSABLE', release_files: 0,
+      release_why: 'a release store exists (' + (cutCount == null ? 'UNREADABLE: ' + errList : cutCount + ' release(s)')
+                 + ') but this process could not open one: ' + errWhy,
+    }));
+  }
+
+  const files = (REL.manifest && REL.manifest.files) || null;
+  const nFiles = files ? Object.keys(files).length : 0;
+  /* THE FIX, IN ONE BRANCH. An empty or absent digest set is the old bug's exact input, and it must
+   * never again produce a green. Zero files compared is zero evidence. */
+  if (!nFiles) {
+    return say(Object.assign({}, none, {
+      release: REL.id, release_status: 'UNKNOWN', release_files: 0,
+      release_why: 'release ' + REL.id + ' names ZERO frozen files, so nothing was compared. An empty comparison '
+                 + 'cannot find drift and therefore cannot be false — reporting ON_RELEASE off one is the bug '
+                 + 'this branch exists to refuse.',
+    }));
+  }
+
+  let moved;
+  try { moved = REL_API.drift(REL.id, opts); }
+  catch (e) {
+    const errWhy = String((e && e.message) || e);
+    return say(Object.assign({}, none, {
+      release: REL.id, release_status: 'UNKNOWN', release_files: nFiles,
+      release_why: 'could not compare the live tree against release ' + REL.id + ': ' + errWhy,
+    }));
+  }
+
+  /* WHICH BYTES WAS THIS MEASURED AGAINST — answered the same way `REL.stamp()` answers it, from the
+   * same object, so a MILTANK shard and a gate artifact are read with one set of eyes.
+   * `source_digests` is renamed to `engine_release_digests` on the way in for one reason: the stamp
+   * ALREADY has a `source_digests`, it is the live four-file player hash, and `reduce()` keys its
+   * mixed-build check on it. Merging REL.stamp() whole would have silently replaced a live hash with
+   * a frozen one, which is a quieter version of the bug being fixed. */
+  const st = REL.stamp();
+  return say({
+    release: REL.id,
+    release_status: moved.length ? 'OFF_RELEASE' : 'ON_RELEASE',
+    release_files: nFiles,
+    release_moved: moved.length ? moved : undefined,
+    release_why: moved.length
+      ? moved.length + ' of ' + nFiles + ' frozen files have moved since release ' + REL.id
+        + ' was cut — this process is NOT running that release: ' + moved.join(', ')
+      : undefined,
+    engine_release: st.engine_release,
+    engine_release_cut: st.engine_release_cut,
+    engine_release_cuts: st.engine_release_cuts,
+    showdown_commit: st.showdown_commit,
+    engine_release_digests: st.source_digests,
+  });
 }
 function buildStamp() {
   if (_STAMP) return _STAMP;
@@ -172,7 +273,7 @@ function buildStamp() {
     engine_digests: engineDigests,
     player_digest: digests['miltank.js'],
     source_digests: digests,
-  }, resolveRelease(engineDigests), {
+  }, resolveRelease(), {
     node: process.version,
     host: os.hostname(),
     cpu: (os.cpus()[0] || {}).model || 'unknown',
@@ -1469,4 +1570,10 @@ if (require.main === module) {
   }
 }
 
-module.exports = { install, DEFAULTS, reduce, horizon, parseInactive, CLK };
+/* `_resolveRelease` and `_buildStamp` are exported for `tests/test-miltank-release.js` and for no
+ * other caller. The underscore is the contract: a measurement asks `engine_release.js` directly.
+ * They are exported at all because the alternative is a test that can only exercise the resolver
+ * through the REAL release pointer — and repointing that while another division measures through it
+ * is the precise hazard this whole mechanism exists to prevent. */
+module.exports = { install, DEFAULTS, reduce, horizon, parseInactive, CLK,
+                   _resolveRelease: resolveRelease, _buildStamp: buildStamp };

@@ -99,7 +99,20 @@ function statusLines(re) {
 /* ================================================================= ENGINE ====================== */
 function engine() {
   const CENSUS = 'data/mechanics-census.json', DIFF = 'data/engine-diff.json';
-  const c = readJson(CENSUS), d = readJson(DIFF);
+  const MX = 'data/interaction-matrix.json';
+  const c = readJson(CENSUS), d = readJson(DIFF), mx = readJson(MX);
+
+  /* THE INTERACTION MATRIX WAS ON NO PAGE AT ALL, WHILE FOUR LIVING DOCUMENTS QUOTED IT AT
+   * "899 of 899, 100%". The artifact says live 1012, agree 1011, part 1, and it names the parting
+   * pair. Nothing here recomputes any of that: `agree` and `part` are read as scalars and the parting
+   * row is passed through, so when MEASURE's queued re-run lands, `node web/build-status.js` restamps
+   * it and the page cannot be the last place carrying the old figure. There is deliberately no
+   * "1011/1012 = 99.9%" — dividing two counts is arithmetic and this division does not do arithmetic;
+   * the two counts are shown side by side and a reader can see the one that parts. */
+  const parting = mx && Array.isArray(mx.parting) ? mx.parting.map(p => ({
+    carrier: p.carrier, reactor: p.reactor, kind: p.kind, side: p.side,
+    axis: p.axis, layer: p.layer, uses: p.uses,
+  })) : null;
 
   const missing = c ? c.results.filter(r => !r.live).map(r => ({ kind: r.kind, tag: r.tag, label: r.label })) : null;
 
@@ -130,6 +143,31 @@ function engine() {
       ? { state: 'bad', src: DIFF, at: mtimeIso(DIFF), rows: d.worst.slice(0, 8) }
       : gap('no engine-diff.json', 'ENGINE', 'open differentials'),
     diff_generated: d ? fig(d.generated, DIFF, { label: 'differential run' }) : gap('no engine-diff.json', 'ENGINE'),
+
+    /* --- the interaction matrix. A different question from the census and from the differential:
+     *     the census asks "does this mechanic fire", the differential compares DAMAGE against
+     *     Showdown, and this walks pairs — a carrier move against a reactor ability/item/type — and
+     *     compares the resulting STATE. --- */
+    matrix_live: mx ? fig(mx.live, MX, { label: 'interaction pairs compared live' })
+      : gap('data/interaction-matrix.json absent — run tests/test-interaction-matrix.js', 'ENGINE', 'interaction matrix'),
+    matrix_agree: mx ? fig(mx.agree, MX, {
+      label: 'of those, agree with Showdown',
+      note: 'not a percentage: 1011 of 1012 is shown as two counts because dividing them here would be WEB computing a result',
+    }) : gap('no interaction matrix', 'ENGINE', 'agreeing pairs'),
+    matrix_part: mx ? fig(mx.part, MX, {
+      state: mx.part > 0 ? 'bad' : 'ok', label: 'pairs where the two engines PART',
+    }) : gap('no interaction matrix', 'ENGINE', 'parting pairs'),
+    matrix_ran: mx ? fig(mx.ran, MX, { label: 'pairs actually run', note: 'of ' + (mx.theoretical && mx.theoretical.total) + ' theoretically enumerable; the generator drops a pair it cannot measure and says why' })
+      : gap('no interaction matrix', 'ENGINE', 'pairs run'),
+    matrix_generated: mx ? fig(mx.generated, MX, { label: 'matrix run' }) : gap('no interaction matrix', 'ENGINE'),
+    matrix_commit: mx ? fig(mx.showdown_commit, MX, { label: 'Showdown commit compared against' }) : gap('no interaction matrix', 'ENGINE'),
+    matrix_parting: parting && parting.length
+      ? { state: 'bad', src: MX, at: mtimeIso(MX), rows: parting }
+      : (mx ? { state: 'ok', src: MX, at: mtimeIso(MX), rows: [] }
+            : gap('no interaction matrix to list from', 'ENGINE', 'the parting pairs')),
+    matrix_not_compared: mx && Array.isArray(mx.not_compared)
+      ? { state: 'ok', src: MX, at: mtimeIso(MX), rows: mx.not_compared }
+      : gap('no interaction matrix', 'ENGINE', 'what the matrix does not compare'),
 
     tags: tc
       ? fig(tc[1] + '/' + tc[2], SRC_STATUS, {
@@ -301,8 +339,37 @@ function search() {
    * WEB may not fix status.js. It can render the fact, and does, at full weight. */
   const broken = statusLines(/^ {2}(R\d[^\n]*undefined[^\n]*)$/m).map(m => m[1].trim());
 
+  /* THE EXPLORE SWEEP. Its own artifact and its own row, because it is not a gate on the ladder — it
+   * re-earns a DEFAULT that shipped citing a figure retracted on 2026-08-04 as uncheckable. It is the
+   * first result on this board carrying a stamped engine release rather than an mtime, so the release
+   * id is printed beside the verdict: unlike every PRE-CHANGE row below it, this one can say which
+   * bytes it was measured against. Every value verbatim; the two arm accuracies sit side by side and
+   * the difference is taken from the artifact's own paired_comparison rather than subtracted here. */
+  const SW = 'data/rollout-r1-explore-sweep.json';
+  const sw = readJson(SW);
+  const a1 = sw && sw.arms && sw.arms['explore_1.0'], a0 = sw && sw.arms && sw.arms['explore_0'];
+  const pc = sw && sw.paired_comparison;
+  const explore = sw ? {
+    state: 'ok', src: SW, at: mtimeIso(SW), generated: sw.generated,
+    verdict: sw.verdict, verdict_code: sw.verdict_code,
+    question: sw.question, what_this_is_not: sw.what_this_is_not,
+    release: sw.engine_release, release_cut: sw.engine_release_cut,
+    figs: [
+      fig(a1 && a1.accuracy_pct, SW, { label: 'explore = 1.0 — position-judging accuracy', unit: '%' }),
+      fig(a0 && a0.accuracy_pct, SW, { label: 'explore = 0, deterministic greedy', unit: '%' }),
+      fig(pc && pc.diff_points, SW, {
+        label: 'paired difference, points',
+        note: pc && pc.ci95_pts ? '95% CI ' + pc.ci95_pts[0] + ' to ' + pc.ci95_pts[1]
+          + ' — McNemar on ' + pc.discordant + ' discordant positions. ' + pc.build_caveat : undefined,
+      }),
+      fig(sw.sample && sw.sample.positions, SW, { label: 'positions, both arms, paired' }),
+    ],
+    caveats: sw.caveats,
+  } : gap(SW + ' absent — nothing has re-earned the --rollout-explore default', 'SEARCH', 'the explore default');
+
   return {
     ladder,
+    explore,
     handoff_drift: broken.length
       ? { state: 'bad', src: SRC_STATUS, rows: broken }
       : { state: 'ok', src: SRC_STATUS, rows: [] },

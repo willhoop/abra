@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-05T06:26:07.470Z",
+  "generated": "2026-08-05T06:39:31.096Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
   "changelog_top_at_baseline": "3.42.0",
@@ -262,7 +262,7 @@
       "docs/SUMMARY.md|999|data/mechanics-census.json,data/interaction-matrix.json,data/rulebook-collision.json"
     ],
     "untraceable_by_doc": {
-      "docs/ABRA-technical-docs.md": 3,
+      "docs/ABRA-technical-docs.md": 2,
       "docs/ABRA-whitepaper.md": 31,
       "docs/ADR-002-showdown-is-the-authority.md": 1,
       "docs/ARCHITECTURE.md": 4,

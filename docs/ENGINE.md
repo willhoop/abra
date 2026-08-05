@@ -23,12 +23,12 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  208/211 probed mechanics live, 3 missing   (census 2026-08-05 05:23)
+  208/211 probed mechanics live, 3 missing   (census 2026-08-05 05:56)
   missing:
     move    needsTargetToAttack    Avalanche doubles after being hit
     ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll
     ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit
-  1/150 differential comparisons disagree with Showdown   (2026-08-05 05:16)
+  1/150 differential comparisons disagree with Showdown   (2026-08-05 05:56)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (56 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -41,7 +41,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 155/181 probed, 26 unprobed
 ```
 
-_stamped 2026-08-05 05:26_
+_stamped 2026-08-05 06:01_
 
 <!-- /GENERATED -->
 
