@@ -283,6 +283,16 @@ const RAW = /\.(ability|baseStats|weighthg|weightkg)\b/g;
  * #40b — it read the PRE-mega ability to decide whether a mon is a weather setter, and a mega's
  * weather ability is precisely what differs from its base). It was fixed rather than declared. */
 const DECLARED = {
+  'engine/dusk_size_gate.js':
+    'One read, and it is this test\'s own stated legitimate case. The DUSK size gate counts how many '
+    + 'DISTINCT 1v1 positions a tablebase would need, and the axis it counts along is the DECLARED '
+    + 'SET — what the open team sheet said at preview. That is precisely the pre-mega ability, and it '
+    + 'is the correct one here: two Charizard sheets differing only in stone are two different table '
+    + 'entries whether or not either ever mega-evolves, because the table is keyed on what a player '
+    + 'BROUGHT. Routing it through effAbility() would collapse a base forme and its mega onto one key '
+    + 'and UNDERSTATE the position count — which is the direction that flatters DUSK, on the one '
+    + 'measurement whose whole job was to say the table is too big. The file loads no engine module '
+    + 'at all (it declares engine_release: none) and touches no live body anywhere.',
   'engine/feature_engine_contrast.js':
     'The two `.types` touches are on bodies THIS FILE just built, and the whole subject of the file is '
     + 'whether such a body carries a type list at all. Every ability and every type it puts ON those '
