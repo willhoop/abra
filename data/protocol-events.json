@@ -1,7 +1,13 @@
 {
-  "generated": "2026-08-06 23:17:20",
+  "generated": "2026-08-06 23:51:54",
+  "source": "engine/derive_protocol_events.js",
+  "source_digests": {
+    "engine/derive_protocol_events.js": "bfa8c755dfc9",
+    "engine/medicham2-browser.js": "f7dff7676ad6"
+  },
+  "showdown_pinned_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "derivedFrom": {
-    "showdown": "C:/Users/willj/Projects/Pokemon/pokemon-showdown",
+    "showdown": "C:\\Users\\willj\\Projects\\Pokemon\\pokemon-showdown",
     "scanned": [
       "sim/battle.ts",
       "sim/battle-actions.ts",
@@ -24,6 +30,7 @@
     "note": "the champions mod OVERRIDES two of the core emits (-supereffective, -resisted); its arity wins."
   },
   "showdownEvents": 91,
+  "emittedCount": 36,
   "emitted": [
     "-ability",
     "-activate",
@@ -62,6 +69,7 @@
     "turn",
     "upkeep"
   ],
+  "notEmittedCount": 58,
   "notEmitted": [
     {
       "event": "-anim",
@@ -296,6 +304,7 @@
       "reason": "battleResult() returns 1/0/0.5 and no side has a NAME to print."
     }
   ],
+  "partialCount": 10,
   "partial": [
     {
       "event": "*",

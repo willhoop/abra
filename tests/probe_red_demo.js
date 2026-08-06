@@ -397,7 +397,11 @@ demoSource('WIRE 117 Psychic Terrain refuses priority only against a GROUNDED ta
  * for a whole pass. The reverted line is the shipped one: the TYPE half applied, the ability half
  * counted and healed anyway. */
 demoSource('WIRE 117 Grassy Terrain does not heal a Levitate body',
-  [[`         if(isGrounded(m)) m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/_th.per));
+  /* ROADMAP #68 re-anchored: the shipped line now carries the `|-heal|` trace emit beside it. The
+   * REVERSAL is unchanged -- the Flying-only predicate, healing a Levitate body -- so this
+   * demonstration still tests exactly what it tested. */
+  [[`         if(isGrounded(m)){const _h0=m.curHP;m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/_th.per));
+           if(TR&&m.curHP>_h0)TR.heal(m,'[from] Grassy Terrain');}
          else MEDSEEN.terrainHealSkippedAirborne++;`,
     `         if(m.types.indexOf('Flying')<0) m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/_th.per));`]],
   (E) => {
@@ -676,7 +680,7 @@ demoSource('WIRE 125 the fallen count survives the turn after the death',
  * reversal is still exactly one argument — the attacker dropped from the type resolution — so it
  * remains WIRE 126's defect and not WIRE 128's. */
 demoSource('WIRE 126 an -ate-converted move is judged on the type it BECAME',
-  [['          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field, m)) === 0) continue;',
+  [['          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field, m)) === 0){if(TR)TR.imm(tg);continue;}',
     '          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field)) === 0) continue;']],
   (E) => {
     const dealt = (ab) => {
@@ -705,7 +709,7 @@ demoSource('WIRE 126 an -ate-converted move is judged on the type it BECAME',
  * that stopped enforcing Normal-into-Ghost at all, which is a worse bug and would read as the fix
  * working — the same trap WIRE 126's demo names one section up. */
 demoSource('WIRE 128 the loop asks about the ATTACKER before calling a type immunity',
-  [['          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field, m)) === 0) continue;',
+  [['          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field, m)) === 0){if(TR)TR.imm(tg);continue;}',
     '          if (mcEff(effMoveType(mv, a.move.id, field, m), tg.types) === 0) continue;']],
   (E) => {
     const dealt = (ab) => {
@@ -743,7 +747,7 @@ demoSource('WIRE 128 a Mold Breaker is not absorbed by the ability it suppresses
   });
 
 demoSource('WIRE 128 a Mold Breaker goes through Bulletproof, which Showdown marks breakable',
-  [['        if(moveClassBlocked(tg,a.move.id,m))continue;   // WIRE 128 -- Mold Breaker suppresses Bulletproof too',
+  [["        if(moveClassBlocked(tg,a.move.id,m)){if(TR)TR.imm(tg,'[from] ability: '+tg.ability);continue;}   // WIRE 128 -- Mold Breaker suppresses Bulletproof too",
     '        if(moveClassBlocked(tg,a.move.id))continue;']],
   (E) => {
     const dealt = (defAb, attAb) => {
@@ -1088,7 +1092,12 @@ demoSource('WIRE 130 the Substitute that was paid for is actually built',
  * an Infiltrator body walled by a doll it ignores. The Ice Beam arm still passes there, so only the
  * bypass arm can see it. */
 demoSource('WIRE 130 a sound move and an Infiltrator go THROUGH the doll',
-  [['        if(subBlocks(m,tg,a.move.id)){tg._sub=Math.max(0,tg._sub-dmg);continue;}',
+  /* ROADMAP #68 re-anchored: the shipped branch now emits `|-activate|` for the doll and `|-end|`
+   * when it breaks. The REVERSAL is unchanged -- the bare `_sub > 0` test, which is the bypass
+   * defect this demonstration exists to show red. */
+  [[`        if(subBlocks(m,tg,a.move.id)){const _s0=tg._sub;tg._sub=Math.max(0,tg._sub-dmg);
+          if(TR){TR.act(tg,'move: Substitute','[damage]');if(_s0>0&&tg._sub<=0)TR.vend(tg,'Substitute');}
+          continue;}`,
     '        if(tg._sub>0){tg._sub=Math.max(0,tg._sub-dmg);continue;}']],
   (E) => {
     const beam = twoOn(E, { setupFoe: 'substitute', move: 'icebeam' });
@@ -1102,7 +1111,7 @@ demoSource('WIRE 130 a sound move and an Infiltrator go THROUGH the doll',
  * max HP and grantSubstitute refuses to replace the doll, so the click is a pure loss -- the same
  * shape as the bug this wire fixed, one turn later. */
 demoSource('WIRE 130 a second Substitute costs nothing',
-  [['          if(m._sub>0&&TAGS.has(\'move\',a.mv||a.move.id,\'substitute\')){m._lastMove=a.mv||a.move.id;continue;}\n', '']],
+  [['          if(m._sub>0&&TAGS.has(\'move\',a.mv||a.move.id,\'substitute\')){m._lastMove=a.mv||a.move.id;if(TR)TR.fail(m);continue;}\n', '']],
   (E) => {
     const twice = twoOn(E, { setupFoe: 'substitute', foeMove: 'substitute' });
     const once = twoOn(E, { setupFoe: 'howl', foeMove: 'substitute' });

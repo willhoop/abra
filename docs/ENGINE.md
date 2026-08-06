@@ -4,9 +4,10 @@
 `tests/test-mechanics.js`, `tests/walk_tags.js`, `tests/test-engine-diff.js`,
 `tests/test-game-diff.js`, `tests/interaction_matrix.js`, `tests/test-interaction-matrix.js`,
 `tests/mechanics_rank.js`, `tests/mutation_harness.js`, `tests/test-mutation-coverage.js`,
-`tests/test-medicham-coverage.js`, `tests/regulation_usage.js`, `tests/probe_red_demo.js`
+`tests/test-medicham-coverage.js`, `tests/regulation_usage.js`, `tests/probe_red_demo.js`,
+`tests/test-protocol-trace.js`, `engine/derive_protocol_events.js`, `data/protocol-events.json`
 
-**Five instruments, and none substitutes for another:**
+**Six instruments, and none substitutes for another:**
 
 | file | asks | structurally cannot see |
 |---|---|---|
@@ -14,6 +15,7 @@
 | `test-engine-diff.js` | is ONE HIT's damage right | every turn counter |
 | `test-game-diff.js` | do the two engines hold the same STATE after every turn | damage magnitude |
 | `test-interaction-matrix.js` | does every carrier x reactor pair resolve the way the official engine says | anything the generator refuses to emit — printed on every run |
+| `test-protocol-trace.js` | does the engine EMIT what it did, in Showdown's own protocol shapes, and does every event it claims actually FIRE | whether a MECHANIC is right — it is a stream, not an oracle; the comparison driver over two streams is ROADMAP #68's next step |
 | `mutation_harness.js` | does the handler MATTER, or does it only FIRE — change the FACT, watch the BEHAVIOUR | a fact derived WRONG upstream (it is propagated and consumed faithfully and scores LIVE); anything outside `medicham2-browser.js`; a branch no scripted turn reaches, which it counts rather than hides |
 
 **Its one number:** mechanics live. **It must never go down.**
@@ -25,10 +27,10 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  234/235 probed mechanics live, 1 missing   (census 2026-08-06 21:47)
+  234/235 probed mechanics live, 1 missing   (census 2026-08-06 23:36)
   missing:
     move    needsTargetToAttack    Avalanche doubles after the target hits it this turn
-  1/150 differential comparisons disagree with Showdown   (2026-08-06 21:49)
+  1/150 differential comparisons disagree with Showdown   (2026-08-06 23:33)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -47,7 +49,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 162/181 probed, 19 unprobed
 ```
 
-_stamped 2026-08-06 22:10_
+_stamped 2026-08-06 23:54_
 
 <!-- /GENERATED -->
 
@@ -60,6 +62,135 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
+
+## MEDICHAM EMITS A SHOWDOWN-SHAPED PROTOCOL TRACE. ROADMAP #68, STEP ONE. 2026-08-06.
+
+Census **234 live / 235 probed → 234 live / 235 probed**, unchanged and re-measured twice: once
+against the `data/tags.json` that was in the tree at the start of the session, and again after another
+division committed `5da0b0d` and regenerated it mid-pass. `unarmed` 0, `directCall` 0, `hollow` 0,
+`threw` 0. Differential **1/150**, the same `chesnaught woodhammer -> mimikyu` row.
+`tests/probe_red_demo.js` **122 demonstrations, 0 failed** (five re-anchored — see below).
+`tests/test-game-diff.js --all` AGREES on every turn of all five scripted games and on 0 of 40
+generated pairs parting. `tests/test-engine-consistency.js` all passed. Accuracy conformance 500/500,
+accuracy-modifier 12 handlers / 13 rows / 0 disagree, substitute-bypass 51 carried / 0 missing / 0
+invented.
+
+**No mechanic changed. This pass adds an INSTRUMENT.** `docs/GAME-DIFFERENTIAL-DESIGN.md` §5 compares
+two engines by diffing their EVENT STREAMS rather than their end-of-turn state, because Showdown's
+protocol log is already a step-level trace *labelled with the mechanism that made each decision*.
+Showdown emits one. **MEDICHAM emitted nothing, so there was nothing to diff.**
+
+| | |
+|---|---|
+| `TRACE_EVENTS` in `engine/medicham2-browser.js` | the 36 event types this engine claims it can emit |
+| `data/protocol-events.json` | 91 events Showdown can emit; 36 emitted, 58 declared with a reason, 10 partial shapes with a reason |
+| `engine/derive_protocol_events.js` | derives that list from Showdown's own `add()` sites, and gates on INVENTED and UNDECLARED |
+| `tests/test-protocol-trace.js` | 7 parts; the census-style guard that every claimed event actually FIRES |
+
+### THE ACCEPTANCE TEST SEPARATES, AND IT SEPARATES ON ONE LINE
+
+`docs/GAME-DIFFERENTIAL-DESIGN.md` §6's case, staged: an Intimidated Meowscarada throwing Flower
+Trick (a guaranteed crit) into an Incineroar. Showdown ignores the attacker's NEGATIVE offensive
+stages on a crit (`sim/battle-actions.ts:1683-1691`); MEDICHAM's declared limitation says it does not.
+
+```
+showdown   Intimidate 112/170   control 112/170     <- the crit ignored the -1
+medicham2  Intimidate 130/170   control 111/170     <- it did not
+  the two streams agree on all 15 lines before the divergence
+  the FIRST differing line is the |-damage| itself
+```
+
+**THE CONTROL IS THE ARM WITH INTIMIDATE SWAPPED FOR BLAZE, AND IT HAD TO BE, BECAUSE THE OBVIOUS
+TEST IS WRONG.** Asserting "the two engines' damage numbers match" is false for a reason that has
+nothing to do with crits: measured while writing this, MEDICHAM's damage RANGE for Knock Off
+Incineroar → Snorlax is **57..67, eleven integers, sampled uniformly**, and Showdown rolls **sixteen**
+indices onto the same span with unequal multiplicities. A "median" roll is therefore not the same die
+on the two sides and every damage line differs by one or two even where the rules agree. So each
+engine is compared **against itself across the control**, which is the actual rule being tested.
+
+### WHAT THE TRACE FOUND WHILE IT WAS BEING WIRED, AND NEITHER IS A CENSUS ROW
+
+1. **THE INTERMEDIATE DAMAGE ROLLS ARE NOT THE SAME DISTRIBUTION, AND NO INSTRUMENT WE OWN LOOKS AT
+   THEM.** `tests/test-engine-diff.js` calls `showdownDamage()` at `roll=0` and `roll=15` against
+   MEDICHAM's `min` and `max` — it is an **endpoint-to-endpoint** comparison, by construction. The
+   fourteen rolls in between are `d.min + floor(rng * (d.max - d.min + 1))`, a **linear interpolation
+   over an 11-wide integer range**, where Showdown applies its multipliers to sixteen separately
+   floored base values. The endpoints can agree perfectly, 149/150, while every middle roll is off by
+   one or two and every roll's PROBABILITY is wrong. That is Mode B in the design doc, and it is
+   filed rather than fixed: changing how MEDICHAM draws a damage roll moves every seeded run in the
+   repository and is a decision above ENGINE's pay grade tonight.
+2. **THE ORDER WITHIN A HIT IS NOT SHOWDOWN'S, AND THE STATE COMPARISON CANNOT SEE IT.** MEDICHAM
+   resolves the knock-off, the resist berry and the contact punish **before** subtracting the target's
+   HP, so the stream reads `-enditem`, Rough Skin's `-damage`, then the target's `-damage`; Showdown
+   subtracts first. End-of-turn state is identical, which is exactly why `tests/test-game-diff.js`
+   agrees on all five scripted games and this trace does not. Same for the pinch berries: Sitrus fires
+   in MEDICHAM's end-of-turn residual and on Showdown's `onUpdate` immediately after the hit. Both are
+   recorded in `data/protocol-events.json`'s `partial[]`, with the reason.
+3. **`|move|`'s TARGET NAMED A BODY THAT HAD LEFT THE FIELD.** The action is built before the turn is
+   sorted, so a target that switched out mid-turn has no slot identifier at all — the first version of
+   the emit produced `??` four times in sixteen games and `MEDFAILS.traceBodyOffField` caught it. It
+   now resolves through `it.tgtSlot` against the live foe array, which is what the attack branch
+   already does for `aim`. **A counter that could not have existed before this pass found a defect in
+   this pass**, which is the whole argument for `MEDSEEN`/`MEDFAILS`.
+
+### AND MY OWN PROBE WAS WRONG BEFORE THE ENGINE WAS. THAT MAKES THIRTY-NINE.
+
+The Intimidate rate floor asserted "two `|-unboost|` lines against two live foes" and read **one**.
+The engine was right: the second foe was a **Slowking with Oblivious**, which is Intimidate-immune in
+this generation, so `applyStatDrop` correctly returned `blocked` and emitted nothing. The probe was
+staged with a body that cannot take the drop it was asserting. Fixed by giving the partner
+Regenerator, not by weakening the assertion.
+
+Two more of the same shape, both in the coverage scenarios rather than the engine: Icy Wind was
+clicked with **no target**, so `playerAction` classified it as a non-attack and `-unboost` never
+fired; and White Herb never triggered because the body holding it was **Protecting on the turn the
+drop was aimed at it**. In all three cases "the event never fired" was the SCENARIO, not the trace.
+
+### THE COST, MEASURED, AND IT IS NOT RESOLVED BY THE BENCHMARK I HAVE
+
+Every emit site is `if(TR)` — one module-global load and a falsy test — and `TR` is null unless a
+caller passed `{trace: []}`. Against a build with all **188** guards compiled out (`if(TR)` →
+`if(false)`, dead-code-eliminated), two runs of 4,000 full games disagreed **in sign**: +3.9% and
+−7.0%. **The off-path cost is below the noise of this benchmark and is reported as unresolved rather
+than as free.** With the trace ON the same benchmark reads ~5% slower, which is the honest price of
+asking for it.
+
+### FIVE RED DEMONSTRATIONS WERE RE-ANCHORED, AND NOT ONE REVERSAL CHANGED
+
+`tests/probe_red_demo.js` reverts the engine by **exact source text**, so instrumenting a line breaks
+its anchor — loudly, which is the guard doing its job. Five anchors moved: the Grassy Terrain heal
+(WIRE 117), the type-immunity gate (WIRE 126 and WIRE 128, two demonstrations on one line), the
+move-class immunity (WIRE 128) and the substitute bypass (WIRE 130, two). **In every case only the
+SHIPPED half was re-anchored; the known-bad half is byte-identical to what it was**, so each
+demonstration still shows exactly the defect it was written for. 122 demonstrations, 0 failed.
+
+### FILED, NOT FIXED
+
+- **The two damage-roll findings above (1 and 2).** Neither is a census row and neither is a WIRE
+  yet — they are what the instrument exists to find, and the fix cycle is ROADMAP #68's next step.
+- **A spread move's `[spread]` attribute and its per-target effectiveness ORDER are not emitted.**
+  MEDICHAM resolves the target list after the move line is written and rolls accuracy once per move
+  rather than per target (`MEDSEEN.accSpreadNoDefender`), so a per-target attribute would not be true.
+  Declared in `data/protocol-events.json`.
+- **`-mega`, `-terastallize`, `replace`, `swap`, `-hitcount` and 53 others are not emitted**, each with
+  a written reason in `data/protocol-events.json`. `-mega` is the interesting one: mega evolution
+  happens in `buildMon`/`oneMegaPerSide` **before** `battleInit`, so there is no in-battle event to
+  emit at all.
+- **THE TREE MOVED UNDER THIS PASS, AND ONE OF THE MOVES WAS MINE.** Another division committed
+  `5da0b0d` (`tags.json` unfrozen and regenerated, `engine/tag_dex.js`, `engine/fit_policy.js`) and
+  `219ce3b` (`diff_swarm.js`, the swarm half of this same ROADMAP item) during the session. The census
+  was therefore re-run against the new artifact and reads the same 234/235. **I also ran
+  `git stash`/`git stash pop` to establish a baseline, which is a mutation of the working tree in a
+  repository another agent was committing to, and it should not have happened.** Nothing was lost —
+  the pop restored cleanly and `HEAD` is intact — but the window existed and is recorded here rather
+  than left out.
+- **`engine/status.js` throws before its ENGINE block**: `engine/mc_key.js:129 — LK.resolve is not a
+  function`, from `engine/feature_fixture.js:461` through the new `engine/lookup.js` (`eb500a1`). The
+  report still prints; the fixture verification does not. **Not this pass's file and not fixed here.**
+- **`engine/provenance.js` still reports 3 artifacts resting on mtime alone** —
+  `diff-swarm.json`, `rerun-list.json`, `store-validation.json`. `protocol-events.json` was a fourth
+  when it was first written and now carries `source_digests` and the pinned Showdown commit, so it
+  has left that list. The other three are not this pass's generators.
 
 ## `unarmed` REACHED ZERO, AND ARMING THE PROBES FOUND WIRE 131, WIRE 132 AND SIX TAGS NOTHING READS. 2026-08-06.
 

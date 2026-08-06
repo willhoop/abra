@@ -1,6 +1,6 @@
 # ABRA — Technical Documentation
 
-**Version 3.57.0 · Last updated 2026-08-06**
+**Version 3.58.0 · Last updated 2026-08-06**
 
 **Change record for 3.47.0.** Two artifacts were computed from an engine that then changed. Do not
 quote such an artifact. First measure whether the change moved the feature function: run every
@@ -370,6 +370,43 @@ The command adds only new games. It never duplicates a game and never re-fetches
 | `data/slowking-eval.json`, `slowking-playstyle-eval.json`, `slowking*.js` | `slowking_preview.py` | preview equilibrium + exploitability |
 | `data/policy-weights.json` | `fit_policy.js` | the scoring bot's fitted weights, the feature list they were fitted against, and the held-out comparison against the behaviour clone |
 | `data/meta-usage.json`, `live.js` | `analyze.js`, `refresh-site-data.py` | usage model + live site counts |
+| `data/protocol-events.json` | `derive_protocol_events.js` | every event Showdown can emit, which of them `medicham2` emits, and a written reason for each one it does not |
+
+### 3.2a Protocol trace (`engine/medicham2-browser.js`)
+
+The simulator can emit a Showdown-shaped protocol stream. It is **off by default**; nothing in the
+battle loop pays for it unless a caller asks.
+
+**To turn it on:**
+
+```js
+const trace = [];
+const S = M.battleInit(teamA, teamB, { trace });
+M.battleTurn(S, rng);
+// trace is an array of protocol lines:
+//   |move|p1a: incineroar|fakeout|p2a: garchomp
+//   |-damage|p2a: garchomp|154/175
+//   |cant|p2a: garchomp|flinch
+```
+
+**To read it:**
+
+| Export | Does |
+|---|---|
+| `M.TRACE_EVENTS` | the 36 event names this engine claims it can emit |
+| `M.traceCounts(lines)` | counts by event name, PARSED from the lines rather than kept beside them |
+| `M.traceCanon(line)` | the one normaliser — lowercase and strip whitespace **per field** |
+
+**Identifiers are ids, not display names.** The engine writes `p1a: incineroar` and `fakeout` where
+Showdown writes `p1a: Incineroar` and `Fake Out`. This engine holds no display-name table and
+inventing one would be a translation layer that can itself be wrong. `traceCanon()` is applied to
+**both** streams by any comparison driver, which makes the two agree by canonicalisation rather than
+by translation.
+
+**Do not add an event without regenerating the artifact.** `node engine/derive_protocol_events.js
+--write` fails if a name in `TRACE_EVENTS` is one Showdown never emits, and fails if a Showdown event
+is neither emitted nor given a reason. `tests/test-protocol-trace.js` fails if a claimed event never
+fires in a real game.
 
 ### 3.3 Continuous collection
 

@@ -3621,7 +3621,17 @@ function battleTurn(S,rng,actsForA,actsForB){
        * fallback is `m` rather than an empty field. */
       {
         const _mid=actionMoveId(a);
-        if(TR&&_mid&&a.kind!=='pass')TR.mv(m,_mid,a.target&&!a.target.fainted?a.target:m);
+        if(TR&&_mid&&a.kind!=='pass'){
+          /* THE TARGET IS A SLOT, NOT A BODY, and the action was built before the sort -- so the
+           * Pokemon it names can already have switched out. Resolved the same way the attack branch
+           * resolves `aim` below (by `tgtSlot` against the LIVE foe array); a body that is on the
+           * bench has no `p1a:`-style identifier at all and emitting one produced `??` four times
+           * before this line existed. */
+          const _tf=it.side==='A'?actB:actA;
+          let _tt=a.target;
+          if(_tt&&actA.indexOf(_tt)<0&&actB.indexOf(_tt)<0)_tt=(it.tgtSlot>=0?_tf[it.tgtSlot]:null);
+          TR.mv(m,_mid,_tt||m);
+        }
       }
       /* WIRE 42, the other members. Clangorous Soul (343 uses) and Shed Tail (60) pay HP for an
          effect this engine ALREADY models -- a setup and a pivot -- so they must not be captured by

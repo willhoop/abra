@@ -1,6 +1,6 @@
 # The whole-game differential — design, and the research it is taken from
 
-**Version 3.57.0 · Last updated 2026-08-06**
+**Version 3.58.0 · Last updated 2026-08-06**
 
 **ROADMAP #68.** Written 2026-08-06 from Will's specification: *"we would want to play n games with
 like a thousand different teams to really test every single mechanic in the game"*, under his bar:
@@ -202,7 +202,12 @@ to see.
 Will, 2026-08-06: *"we want swarms of all the different modes, but we also need to test the fringes,
 like upper hand, trick room (especially!) feint, ilusiion, disguise, i could go on and on."*
 
-He is right, and the arithmetic is unforgiving. Measured usage in the store:
+He is right, and the arithmetic is unforgiving. Usage below is the `uses` field of `data/tags.json`
+(sheet-declared counts); the per-team and per-game figures later in this section come from the
+open-sheet corpora `data/games.bo3.jsonl` and `data/games.ots.jsonl`, and the swarm's own composition
+is `data/diff-swarm.json`. **The two are different denominators and must not be mixed** — the same
+mistake was made and corrected on 2026-08-06 when `tags.json` counts were quoted against
+`tests/regulation_usage.js` counts, which disagree by up to 13× (ROADMAP #70).
 
 | tier | mechanic | uses | what a uniform 1,000-game sample gets |
 |---|---|---|---|
@@ -435,6 +440,57 @@ arms.
    rule apply.
 
 ---
+
+## 5a. STEP ONE IS BUILT — MEDICHAM emits the stream (3.58.0)
+
+`engine/medicham2-browser.js` emits **36 protocol event types** on request
+(`battleInit(A, B, {trace: []})`, off by default; every emit site is a falsy test against a
+module-level sink that is null unless a caller asked for one).
+
+The event list is **derived, not typed** — `engine/derive_protocol_events.js` reads Showdown's own
+`add()` call sites and writes `data/protocol-events.json`, whose `showdownEvents`, `emittedCount`,
+`notEmittedCount` and `partialCount` read **91 / 36 / 58 / 10** — every non-emitted event carries a
+written reason. Two gates fail the run:
+an INVENTED event (claimed and never emitted upstream) and an UNDECLARED one (emitted upstream and
+neither emitted nor explained here).
+
+**The scan covers `data/mods/champions/` as well as `sim/`, and it had to.** `sim/battle-actions.ts:1800`
+emits `add('-supereffective', target)` — two fields — and `data/mods/champions/scripts.ts:271`
+overrides it with `add('-supereffective', target, Math.min(typeMod, 2))` — three. A trace built from
+`sim/SIM-PROTOCOL.md` alone would have carried the wrong shape on every super-effective hit **in this
+format**, forever, and the differ would have reported it as a divergence.
+
+**§6's worked example separates, and on one line.** Measured, both arms, with the stat blocks aligned
+and both engines' dice pinned to the same die:
+
+```
+showdown   Intimidate 112/170   control 112/170     <- the crit ignored the -1
+medicham2  Intimidate 130/170   control 111/170     <- it did not
+  the two streams agree on all 15 lines before the divergence
+  the FIRST differing line is the |-damage| itself
+```
+
+**The control is the same scenario with Intimidate swapped for an inert ability, and each engine is
+compared against ITSELF across it.** The obvious test — "do the two engines' numbers match" — is
+false for a reason that has nothing to do with crits, and finding that out is §5's first result:
+
+> **MODE B IS NEEDED SOONER THAN §4 IMPLIES.** medicham2's damage range for Knock Off Incineroar →
+> Snorlax is `57..67` — **eleven integers, sampled uniformly** — and Showdown rolls **sixteen**
+> indices onto the same span, flooring each separately, so the multiplicities are unequal. The
+> ENDPOINTS agree, which is all `tests/test-engine-diff.js` ever compares (`roll=0` against `min`,
+> `roll=15` against `max`), so 149/150 is compatible with every one of the fourteen middle rolls being
+> off by one or two **and** with every roll's probability being wrong. §1's table says the damage
+> differential's 12% tolerance is free slack; this is the sharper statement — the comparison is
+> endpoint-to-endpoint by construction and the interior is unmeasured.
+
+**A second finding the state comparison cannot see.** medicham2 resolves the knock-off, the resist
+berry and the contact punish **before** subtracting the target's HP, so its stream reads `-enditem`,
+the Rough Skin `-damage`, then the target's `-damage`; Showdown subtracts first. End-of-turn state is
+identical — which is exactly why `tests/test-game-diff.js` agrees on all five scripted games and the
+trace does not. That is §5's whole argument, demonstrated on the first night it existed.
+
+**Still to build:** the comparison driver over two streams, the divergence classifier, `ddmin`, and
+the coverage report. This section records only that the stream exists and that it localises.
 
 ## 6. A worked example of what Mode A should catch on day one
 

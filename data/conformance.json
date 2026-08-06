@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-06T23:17:11.890Z",
+ "generated": "2026-08-06T23:34:25.470Z",
  "by": "engine/conformance.js",
- "files": 311,
+ "files": 312,
  "findings": [
   {
    "std": "convention",
@@ -37,20 +37,6 @@
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
    "detail": [
     "move:protect"
-   ]
-  },
-  {
-   "std": "S12",
-   "file": "engine/diff_swarm.js",
-   "what": "names 6 Pokemon thing(s) in code: move:protect, move:fakeout, move:ragepowder, move:trickroom, move:earthquake, ...",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
-   "detail": [
-    "ability:intimidate",
-    "move:earthquake",
-    "move:fakeout",
-    "move:protect",
-    "move:ragepowder",
-    "move:trickroom"
    ]
   },
   {

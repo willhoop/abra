@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 3.57.0 · Last updated 2026-08-06.**
+**Version 3.58.0 · Last updated 2026-08-06.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
@@ -278,6 +278,21 @@ than Pelipper plus Archaludon** — the same expressiveness failure as DODUO, on
 **The old verdict, kept because a prior conclusion is never silently rewritten.** Every preview-level model in this project sat at the same coin-flip ceiling — JOLTEON, preview roles, CHOMP-EV, and as of 3.2.0 WAR. The 2026-07-25 finding that the 55% skill ceiling was itself bot-contaminated (52.4% clean, CI includes 50) makes the ceiling lower than JOLTEON was built against, not higher. A low-rank non-transitive term would not change that. It survives only as a candidate shortlister for DITTO; it should make no win-probability claim anywhere.
 
 ## MEDICHAM — Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves
+
+**PROTOCOL TRACE (ROADMAP #68, step one).** `medicham2` now emits a Showdown-shaped protocol stream
+on request — `battleInit(A, B, {trace: []})`, off by default. The event set is derived from Showdown's
+own `add()` call sites, including this format's overrides, by `engine/derive_protocol_events.js`.
+
+`data/protocol-events.json`: **showdownEvents 91, emittedCount 36, notEmittedCount 58, partialCount
+10** — every non-emitted event carries a written reason. Two gates fail the run: claiming an event
+Showdown never emits, and leaving one it does emit unexplained. `tests/test-protocol-trace.js` fails
+if any claimed event never fires in a real game.
+
+It changes no mechanic. Its first finding is about our own instruments rather than about the game:
+`tests/test-engine-diff.js` compares the damage ENDPOINTS only (the reference at the lowest and the
+highest roll, against medicham2's `min` and `max`), and in between medicham2 samples an integer range
+uniformly while Showdown floors each base value separately — so endpoint agreement is compatible with
+the interior rolls disagreeing. Recorded, not fixed; see `docs/ENGINE.md`.
 
 **MECHANICS STATE, 2026-08-06 (3.56.0), read from the artifact rather than typed:**
 `data/mechanics-census.json` reads **231 live of 232 probed, 1 missing, 0 hollow**, `directCall` **0**,

@@ -10,6 +10,145 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.58.0] — 2026-08-06
+
+### Added
+- **MEDICHAM emits a Showdown-shaped protocol trace (ROADMAP #68, step one).**
+  `docs/GAME-DIFFERENTIAL-DESIGN.md` §5 compares two engines by diffing their EVENT STREAMS rather
+  than their end-of-turn state, because Showdown's protocol log is already a step-level trace
+  *labelled with the mechanism that made each decision* — a missing `|-unboost|` is Intimidate, an
+  out-of-order `|move|` pair is turn order, an absent `|-enditem|` is the Sash. Showdown emits one.
+  **MEDICHAM emitted nothing, so there was nothing to diff.**
+
+  Opt-in: `battleInit(A, B, {trace: []})`. Off by default — every emit site is `if(TR)` against a
+  module-level `let` that is null unless a caller asked, and the sink is re-bound at the top of every
+  `battleTurn` and released on the way out so a nested rollout cannot inherit one.
+
+  **36 event types emitted**, in Showdown's own grammar: `turn move cant switch drag faint -damage
+  -heal -status -curestatus -boost -unboost -clearallboost -clearnegativeboost -ability -item
+  -enditem -weather -fieldstart -fieldend -fieldactivate -sidestart -sideend -start -end -activate
+  -singleturn -fail -miss -crit -supereffective -resisted -immune -prepare -mustrecharge upkeep`.
+
+- **`engine/derive_protocol_events.js` and `data/protocol-events.json`.** The event list is DERIVED
+  from Showdown's own `add()` call sites, never typed — and the scan covers `data/mods/champions/`
+  as well as `sim/`, because **this format overrides the emit**: `sim/battle-actions.ts:1800` writes
+  `add('-supereffective', target)` and `data/mods/champions/scripts.ts:271` writes
+  `add('-supereffective', target, Math.min(typeMod, 2))`. A trace built from the generic protocol
+  would have had the wrong shape on every super-effective hit in this format. **91 events found; 36
+  emitted, 58 declared with a written reason, 10 partial shapes with a written reason.** Two gates:
+  an INVENTED event (claimed here, never emitted by Showdown) and an UNDECLARED one (Showdown emits
+  it and this engine neither emits it nor says why) both fail the run.
+
+- **`tests/test-protocol-trace.js`**, seven parts. Part 1 plays 16 real games and FAILS if any of the
+  36 claimed events never fires. Part 2 is the rate floors — every game emits `|move|`, a game that
+  ended with a hurt body emits `|-damage|`, an Intimidate lead emits `|-ability|` then exactly two
+  `|-unboost|` *in that order*. Part 3 is the off-by-default control: the same game with and without
+  a trace must end in an identical state. Part 5 is the acceptance test below.
+
+### Notes — the acceptance test, and why the obvious version of it is wrong
+`docs/GAME-DIFFERENTIAL-DESIGN.md` §6: Showdown ignores the attacker's NEGATIVE offensive stages on a
+crit (`sim/battle-actions.ts:1683-1691`) and MEDICHAM's declared limitation says it does not. Staged
+as an Intimidated Meowscarada throwing Flower Trick (a guaranteed crit) into an Incineroar:
+
+```
+showdown   Intimidate 112/170   control 112/170     <- the crit ignored the -1
+medicham2  Intimidate 130/170   control 111/170     <- it did not
+  the two streams agree on all 15 lines before the divergence
+  the FIRST differing line is the |-damage| itself
+```
+
+**The control is the same scenario with Intimidate swapped for Blaze, and each engine is compared
+against ITSELF across it.** Asserting "the two engines' numbers match" would be false for a reason
+that has nothing to do with crits: MEDICHAM's damage range for that hit is **11 integers sampled
+uniformly** and Showdown rolls **16** indices onto the same span with unequal multiplicities, so a
+"median" roll is not the same die on the two sides.
+
+### Notes — two things the instrument found on its first night, neither of them a census row
+1. **The intermediate damage rolls are a different distribution, and no instrument we own looks at
+   them.** `tests/test-engine-diff.js` compares `roll=0` and `roll=15` against MEDICHAM's `min` and
+   `max` — endpoint to endpoint, by construction. The fourteen rolls between are a linear
+   interpolation over an 11-wide integer range where Showdown floors sixteen base values separately.
+   149/150 endpoint agreement is compatible with every middle roll being off by one or two.
+2. **The order within a hit is not Showdown's.** MEDICHAM resolves the knock-off, the resist berry
+   and the contact punish *before* subtracting the target's HP. End-of-turn state is identical, which
+   is exactly why `tests/test-game-diff.js` agrees on all five scripted games and this trace does not.
+
+Both are FILED in `docs/ENGINE.md`, not fixed: changing how a damage roll is drawn moves every seeded
+run in the repository.
+
+### Changed
+- `tests/probe_red_demo.js`: five demonstrations re-anchored, because it reverts the engine by exact
+  source text and instrumenting a line breaks its anchor — loudly. **Only the SHIPPED half moved in
+  every case; each known-bad half is byte-identical**, so every demonstration still shows the defect
+  it was written for. 122 demonstrations, 0 failed.
+
+### Fixed
+- `data/protocol-events.json` ships with `source_digests` and the pinned Showdown commit, so it does
+  not join `engine/provenance.js`'s mtime-only list.
+
+### Notes — nothing about the simulator's behaviour changed
+Census **234 live / 235 probed**, unchanged and re-measured against `data/tags.json` both before and
+after `5da0b0d` regenerated it mid-session. `unarmed` 0, `directCall` 0, `hollow` 0, `threw` 0.
+Differential **1/150**. `test-game-diff.js --all` agrees on all five scripted games and 0 of 40
+generated pairs part. `test-engine-consistency.js` all passed.
+
+## [3.57.1] — 2026-08-06
+
+### Fixed
+- **`data/tags.json` is unfrozen — a CATALOGUE must not inherit a FIT's narrowing (ROADMAP #65).**
+  `engine/tag_dex.js` called `fit_policy.loadCorpus()` and silently inherited a decision made for the
+  *fit*. Under the bo3-only narrowing its `sheet_entries` fell **110,760 → 78,480**, and a
+  regeneration would have deleted **Serene Grace, Tinted Lens, Curious Medicine, Steely Spirit and
+  Leppa Berry** from the engine's knowledge — invisibly, because a missing entry looks identical to a
+  mechanic that does not exist.
+
+  The general rule, which is the part worth keeping: **a training sample deliberately narrows to the
+  distribution you want to learn; a catalogue must not, because narrowing DELETES entries rather than
+  reweighting them.**
+
+  `loadCorpus(opts)` now takes an **optional** `scope`, reports which scope and which files it
+  actually read, and throws on an unknown one. The default is unchanged, so all **46 call sites across
+  34 files** behave exactly as before and no measurement moved. `tag_dex` asks for `scope: 'all'` out
+  loud.
+
+### Notes — the regeneration, and a claim about it withdrawn the same evening
+Regenerated and **diffed** rather than trusted: **0 entries lost, 1 added (`ability|victoryStar`).**
+The zero is the result that matters and it is what #65 was about.
+
+**The addition was oversold and the correction is the entry.** It was first described as "a fifth
+accuracy modifier joining the WIRE 129 family, which the narrowed corpus had been hiding". Will:
+*"ive never heard of victory star"*, then *"i understand wanting to future proof this engine, but
+cmon man"* — both fair. **Victory Star's only carrier is Victini, which is `isNonstandard: 'Past'` in
+this format.** Nothing legal can have it, so the entry is inert, and calling it a *gain* implied a
+relevance it cannot have.
+
+Two things were also wrong in how it was investigated, and they are the more useful half. It did not
+enter from usage — it reads `uses: 0`, and `tag_dex` enumerates the DEX, so a wider corpus scope
+simply lets more of the dex through rather than discovering anything. And the three "Victini
+appearances in the store" that seemed to explain it are a **player's username, `Victini_Emil`** —
+a substring match against a person, not a Pokémon, which is the same class of error as the
+case-sensitive `Floette` scan earlier in the day.
+
+**What the diff actually established** is the thing worth keeping: the narrowing deletes real entries
+and the widening restores them, verified entity by entity. Serene Grace, Tinted Lens, Curious
+Medicine, Steely Spirit and Leppa Berry all hold their counts exactly.
+
+### Notes
+- **This unblocks the whole tagging queue.** A frozen `tags.json` was the common blocker behind the
+  hazard secondaries and hazard removal, the seven-move signature collapse, six untagged mega
+  abilities including Trace, `auraBoost`, and the Outrage-family lock-in. Every one is a derivation
+  change that only reaches the engine through a regeneration.
+- **A decision reversed after looking, recorded because the reversal is the lesson.** The first call
+  was to make `scope` REQUIRED so no caller can inherit anything. Then the call sites were counted:
+  46 across 34 files, each a judgement about what that consumer wants, every one silently moving a
+  measurement if made carelessly. That is a larger risk than the bug. The required-argument pass is
+  ROADMAP #73 and gets its own careful treatment — including checking whether `medicham_coverage`,
+  `tag_exposure`, `feature_coverage` and `click_census` are mis-scoped the same way, since all four
+  DESCRIBE the format rather than learn from it.
+- Verified read-only: `test-tag-wire` 104 checks pass and the artifact reaches the damage calculation;
+  NaN guard clean; conformance ratchet 0 new; silent-failure ratchet 0 new. **The full suite was not
+  run** — it regenerates the census and interaction matrix, which the ENGINE agent has open.
+
 ## [3.57.0] — 2026-08-06
 
 ### Added — the arming pass finishes: `unarmed` 76 → 0

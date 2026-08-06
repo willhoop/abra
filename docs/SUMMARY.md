@@ -1,6 +1,6 @@
 # ABRA — Project Summary
 
-**Version 3.57.0 · 2026-08-06 · Will Hooper**
+**Version 3.58.0 · 2026-08-06 · Will Hooper**
 
 A one-page map of the whole project and every component. For depth: the
 [white paper](ABRA-whitepaper.md) (math + sources), the [deck](ABRA-deck-plain-english.md)
@@ -93,6 +93,28 @@ carry one reconstructed from the commit that contained them, labelled inferred r
 
 **A phrasing the filter itself mandates.** `require_full_bring` conditions on game length: measured 2026-07-31, the games it keeps are **1.71x longer** on average (7.4 vs 4.3 mean turns; 19,589 kept vs 8,713 dropped). Every bring statistic in this project is therefore *"the bring, **among games long enough to show it**"*, which is not the same as "the bring". `data/quality-filter.json` states this at the point of filtering and requires it to be said downstream; this is that.
 
+
+## The engine can say WHAT it did, not only where it ended up (3.58.0)
+
+`engine/medicham2-browser.js` emits a **Showdown-shaped protocol trace** on request
+(`battleInit(A, B, {trace: []})`, off by default). The event set is derived from Showdown's own
+`add()` call sites, including this **format's** overrides, and is published in
+`data/protocol-events.json`, whose `showdownEvents`, `emittedCount`, `notEmittedCount` and
+`partialCount` read 91 / 36 / 58 / 10 — every non-emitted event carries a written reason. Two gates
+fail the run: an event claimed here that Showdown never emits, and an event Showdown emits that is
+neither emitted nor explained. `tests/test-protocol-trace.js` fails if any claimed event never fires
+in a real game.
+
+No mechanic changed: census **234 live / 235 probed**, differential **1/150**, 122 red demonstrations
+0 failed, all five scripted whole-game comparisons agree on every turn.
+
+**It immediately said something about our own instruments.** The damage differential compares only
+`roll=0` and `roll=15` — the endpoints — and in between MEDICHAM samples an 11-integer range uniformly
+where Showdown floors 16 base values separately. **149/150 endpoint agreement is compatible with every
+interior roll being off by one or two.** Separately, MEDICHAM resolves the knock-off, the resist berry
+and the contact punish *before* subtracting the target's HP; end-of-turn state is identical, which is
+why the state comparison agrees and the trace does not. Both are recorded, neither is fixed — changing
+how a damage roll is drawn moves every seeded run in the repository.
 
 ## How it fits together
 

@@ -2,7 +2,7 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.57.0 · Last updated 2026-08-06**
+**Version 3.58.0 · Last updated 2026-08-06**
 **Will Hooper · ABRA**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
@@ -87,6 +87,36 @@ ground-truth) on 31 meta scenarios: **within 5% on 100% of scenarios, median err
 (16-roll rounding). This is gated in CI (`engine/validate_damage.js` → `data/damage-validation.json`).
 Every model that reasons about damage builds on this, and "will this move KO?" is a *winnable*
 prediction, unlike "who wins the game."
+
+### 3.1 The engine can now say WHAT it did, not only what state it reached (3.58.0)
+
+The damage validation above, the 150-row differential and the five scripted whole-game comparisons all
+compare **outcomes**: a number, or a state after a turn. None of them can see an ordering, and none
+can say *which mechanism* produced a disagreement. Showdown's own protocol log can — it is a
+step-level trace already labelled with the mechanism behind each decision (`|-unboost|` is a stat
+drop, `|-enditem|` is an item being spent, the order of two `|move|` lines is turn order).
+
+`engine/medicham2-browser.js` now emits that stream on request. The event set is **derived from
+Showdown's `add()` call sites** rather than transcribed (`engine/derive_protocol_events.js` →
+`data/protocol-events.json`, whose own `showdownEvents`, `emittedCount`, `notEmittedCount` and
+`partialCount` read 91 / 36 / 58 / 10), and two gates fail the run — claiming an event Showdown never
+emits, or leaving one unexplained. The scan reads this **format's** overrides, not the generic
+protocol: Champions emits `|-supereffective|POKEMON|N` where the base engine emits two fields.
+
+It changes no mechanic, and two things it found on its first night are recorded because they are
+about **what the existing instruments cannot see**:
+
+1. **The damage differential is an endpoint comparison.** It calls the reference at `roll=0` and
+   `roll=15` against MEDICHAM's `min` and `max`. In between, MEDICHAM interpolates linearly over an
+   11-integer range and samples it uniformly; Showdown floors sixteen base values separately. 149/150
+   endpoint agreement is compatible with every interior roll being off by one or two, and with every
+   roll's *probability* being wrong. This is a limitation of the measurement, stated; it is not a
+   claim that the damage is wrong.
+2. **Order within a hit differs and end-of-turn state does not.** MEDICHAM resolves the knock-off, the
+   resist berry and the contact punish before subtracting the target's HP. The whole-game state
+   comparison agrees on every turn of all five scripted games; the trace does not agree on the order.
+
+Neither is fixed here. Changing how a damage roll is drawn moves every seeded run in the repository.
 
 ## 4. The models and their validated results
 

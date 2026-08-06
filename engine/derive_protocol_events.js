@@ -70,7 +70,16 @@ function topSplit(argstr) {
 /* The call must be found with its whole argument list, so a regex on one line is not enough --
  * several of Showdown's add() calls wrap. Scan forward from `add(` and balance the parentheses. */
 function scanFile(file, into, tag) {
-  let src; try { src = fs.readFileSync(file, 'utf8'); } catch (e) { return; }
+  /* A FILE THAT CANNOT BE READ IS THE WHOLE DERIVATION SILENTLY SHRINKING. Skipping it quietly would
+   * make every event that only lives in that file read as UNDECLARED-but-absent, i.e. the gate below
+   * would pass because the authority got smaller. So it is fatal, loudly, naming the file. */
+  let src;
+  try { src = fs.readFileSync(file, 'utf8'); }
+  catch (e) {
+    console.error('CANNOT READ ' + file + ' — the derivation would silently lose every event that '
+      + 'only appears there, and both gates would then pass on a smaller authority.\n  ' + e.message);
+    process.exit(2);
+  }
   const re = /\b(?:add|addMove)\(\s*(['"])(-?[a-z][a-zA-Z0-9]*)\1/g;
   let m;
   while ((m = re.exec(src))) {
@@ -236,8 +245,19 @@ const known = new Set(names);
 const invented = CLAIM.filter(n => !known.has(n));
 const undeclared = names.filter(n => !CLAIM.includes(n) && !(n in NOT_EMITTED));
 
+/* WHAT THIS ARTIFACT WAS DERIVED FROM, BY CONTENT. engine/provenance.js compares CONTENT rather than
+ * mtimes -- a file that is merely newer than its input proves nothing, and an unstamped artifact is
+ * counted in a ratchet that may not grow. The digests cover the two things a stale row could come
+ * from: this derivation, and medicham2's TRACE_EVENTS claim. The Showdown checkout is named rather
+ * than hashed -- it is 40,000 files at a pinned commit, and the commit id is the honest handle. */
+const SOURCES = ['engine/derive_protocol_events.js', 'engine/medicham2-browser.js'];
+const sha12 = require('./engine_release.js').sha12;
+
 const out = {
   generated: new Date().toISOString().slice(0, 19).replace('T', ' '),
+  source: 'engine/derive_protocol_events.js',
+  source_digests: SOURCES.reduce((o, f) => (o[f] = sha12(D(f)), o), {}),
+  showdown_pinned_commit: require(D('engine', 'champions_sim.js')).PINNED_COMMIT || null,
   derivedFrom: {
     showdown: SP,
     scanned: [...CORE.map(f => 'sim/' + f), ...DATA.map(f => 'data/' + f),
@@ -245,9 +265,16 @@ const out = {
     note: 'the champions mod OVERRIDES two of the core emits (-supereffective, -resisted); its arity wins.',
   },
   showdownEvents: names.length,
+  /* THE COUNTS ARE PUBLISHED, NOT LEFT TO BE COUNTED. Every figure a living document quotes about
+   * this artifact has to be IN it -- tests/test-docs-current.js check 3b(b) asserts exactly that, and
+   * a prose "36 emitted" beside an artifact that only carries the array is a figure nobody can check
+   * without recounting. Derived from the arrays in the same expression, so they cannot drift. */
+  emittedCount: CLAIM.length,
   emitted: CLAIM.slice().sort(),
+  notEmittedCount: Object.keys(NOT_EMITTED).filter(n => known.has(n)).length,
   notEmitted: Object.keys(NOT_EMITTED).filter(n => known.has(n)).sort()
     .map(n => ({ event: n, reason: NOT_EMITTED[n] })),
+  partialCount: PARTIAL.length,
   partial: PARTIAL.map(([e, r]) => ({ event: e, reason: r })),
   events: names.map(n => ({
     name: n, sites: events[n].sites, arities: events[n].arities.sort((a, b) => a - b),

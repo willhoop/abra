@@ -1,6 +1,6 @@
 # ABRA — the plain-English deck
 
-**Version 3.57.0 · 2026-08-06 · Will Hooper**
+**Version 3.58.0 · 2026-08-06 · Will Hooper**
 
 A slide-by-slide, jargon-light tour. The white paper (linked on the last slide) has the math and sources.
 
@@ -414,6 +414,35 @@ handed, so wiring it is a design decision rather than a fix, and it is written d
 being quietly patched.
 
 ---
+
+## Slide 9d — The simulator could not say what it did, only where it ended up (3.58.0)
+
+**The problem.** We check our simulator against the official one by comparing *results* — how much
+damage, what the board looked like after a turn. When they disagree, that tells you *that* something
+is wrong and almost nothing about *what*.
+
+**What the official simulator has that we did not.** A running commentary. Every decision it makes it
+writes down, labelled: *Incineroar used Fake Out. Garchomp's Attack fell. The Focus Sash broke.* It is
+a transcript with the reason attached to every line.
+
+**What changed.** Our simulator writes the same transcript now, in the same format, off by default so
+it costs nothing when nobody asks. The list of things it can write down was **read out of the official
+simulator's source code**, not typed from memory — and it checks itself two ways: it fails if we claim
+to write something the real one never writes, and it fails if the real one writes something we neither
+write nor have an explanation for. Ninety-one kinds of event exist; we write thirty-six, and the other
+fifty-eight each have a sentence saying why not.
+
+**What it caught on the first night.** Two things, and both are about our own measuring tools rather
+than about the game:
+
+- Our damage test only ever compares the *lowest* and *highest* possible rolls. It never looked at the
+  fourteen in between — and in between, the two simulators do not agree about how likely each one is.
+  We had been reporting 149 out of 150 correct on a comparison that could not see the middle.
+- Our simulator does things in a different *order* inside a single attack than the real one does. The
+  board ends up identical, which is exactly why the old test said everything was fine.
+
+**Neither is fixed yet, on purpose.** Changing how a damage roll is picked would move every measurement
+this project has ever recorded. The point of tonight was to build the instrument that can see it.
 
 ## Slide 10 — Read more
 
