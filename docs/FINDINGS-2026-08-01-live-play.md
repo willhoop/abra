@@ -48,6 +48,15 @@ Measured after fix #6: **2 of 174 Pokémon itemless (1.1%)** across 40 generated
 it was contradicting:
 
 > *"--switching  let MAG choose to switch. **Measured as a 10-point LOSS** against a random opponent,
+
+> **RETRACTED 2026-08-06 — the 10-point switching loss above is UNATTRIBUTABLE and CONFOUNDED.**
+> It was measured through medicham2 playouts on an engine that predates WIRES 123-128, and its
+> artifact carries no `engine_release` stamp, so it cannot say which build it ran on. It is also
+> confounded by design: `bringIn()` selects `live(bench)[0]`, the first healthy body, which the
+> engine itself distinguishes from a switch — *"a search that cannot say WHO it is bringing in is
+> not evaluating a switch, it is evaluating LEAVE"*. Will, 2026-08-06, names the case it cannot
+> represent: out-sped, a lethal hit incoming, and a resist sitting on the bench. See #63 and #57.
+
 > so it is off until the switch policy is worth more than not switching."*
 
 mew requires an explicit `--switching` flag and defaults it off. The bot asked for it unconditionally.

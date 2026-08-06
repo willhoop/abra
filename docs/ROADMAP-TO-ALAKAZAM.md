@@ -59,7 +59,10 @@ quantifies the test debt; it does not pay it.
 
 You're right, and it's worse than the old justification admits.
 
-The record says switching cost 10 points, so it was turned off. But look at *which* weights
+The record says switching cost 10 points, so it was turned off — **RETRACTED 2026-08-06 as
+unattributable and confounded** (medicham2 playouts predating WIRES 123-128, no `engine_release`
+stamp, and `bringIn()` picks `live(bench)[0]` so it measured switching to an arbitrary body, which
+the engine itself distinguishes from a switch; see #63). But look at *which* weights
 that was measured on — the imitation fit, where the switch features came out as
 `switchSurvives1 +0.055`, `switchFaster −0.112`, and `switchSurvives2` with an interval
 containing zero. **Weights fitted out of noise, then acted on 4.4 times a game.** "Switching

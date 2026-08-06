@@ -257,7 +257,11 @@ two hours**, more than the 47 test files had surfaced. Full evidence:
   mega, aiming and open sheets **under `--joint`** — the broken cell was the intersection of two
   capabilities each tested alone. Fourth mega defect in this project.
 - **Voluntary switching was reverted to off.** The bot had requested it since its first version,
-  against `mew.js:135`'s measured verdict of a **10-point loss**. It only took effect once the options
+  against `mew.js:135`'s measured verdict of a **10-point loss** — **RETRACTED 2026-08-06 as
+  unattributable and confounded: it ran through medicham2 playouts predating WIRES 123-128, its
+  artifact carries no `engine_release` stamp, and `bringIn()` selects `live(bench)[0]` so the
+  experiment measured switching to an ARBITRARY body, which the engine itself calls "evaluating
+  LEAVE" rather than evaluating a switch. See #63.** It only took effect once the options
   bug was fixed — an unmeasured change against a measured result.
 - **Item Clause repair could never succeed.** It resampled while telling the sampler the answer had to
   be the colliding item, so the "rare" no-item fallback fired every time.
@@ -372,7 +376,7 @@ nulls; two changes to the OBJECTIVE produced two large wins** (greedy +12 points
 pairs; self-play 55.9%). The objective is the binding constraint, and DODUO has only ever been fitted
 to the losing one.
 
-> **RECONCILED 2026-07-31.** That 55.9% was measured on the **53-feature vector with switching OFF**. Repeating the experiment on the **56-feature vector with switching ON** gives **48.1%** [46.5, 49.8] over 9,728 paired games — a interval entirely below 50, i.e. self-play training made the policy *worse*. Both numbers stand as measurements of different configurations; neither generalises to 'self-play helps'. The difference is not explained, and three candidate causes are untested: switching exploration being harmful (consistent with the older 10-point switching loss), 36.5% drift over 18 iterations, or self-play eroding imitation-fitted features that were already good.
+> **RECONCILED 2026-07-31.** That 55.9% was measured on the **53-feature vector with switching OFF**. Repeating the experiment on the **56-feature vector with switching ON** gives **48.1%** [46.5, 49.8] over 9,728 paired games — a interval entirely below 50, i.e. self-play training made the policy *worse*. Both numbers stand as measurements of different configurations; neither generalises to 'self-play helps'. The difference is not explained, and three candidate causes are untested: switching exploration being harmful (which used to be supported by the older 10-point switching loss — **that figure is RETRACTED 2026-08-06 as unattributable and confounded**: medicham2 playouts predating WIRES 123-128, no `engine_release` stamp, and `bringIn()` selects `live(bench)[0]`, so it measured switching to an ARBITRARY body rather than to a chosen one. The candidate cause stands; its supporting evidence does not. See #63), 36.5% drift over 18 iterations, or self-play eroding imitation-fitted features that were already good.
 
 > **THE WIRING IS DONE, 2026-07-31 (commit `ce5367c`).** It was wiring, as this item predicted, and
 > the arithmetic in the sentence below was wrong in its parts while right in its total: the vector is

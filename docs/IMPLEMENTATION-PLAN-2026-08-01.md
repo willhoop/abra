@@ -213,6 +213,15 @@ repository, not applied at a new call site.**
 | capability testing | `test-wiring.js` forces mega and open sheets ON | production passed neither |
 | switching | `mew.js:135`: *"measured as a 10-point LOSS … off until worth more"* | asked for it unconditionally |
 
+> **RETRACTED 2026-08-06 — the 10-point switching loss above is UNATTRIBUTABLE and CONFOUNDED.**
+> It was measured through medicham2 playouts on an engine that predates WIRES 123-128, and its
+> artifact carries no `engine_release` stamp, so it cannot say which build it ran on. It is also
+> confounded by design: `bringIn()` selects `live(bench)[0]`, the first healthy body, which the
+> engine itself distinguishes from a switch — *"a search that cannot say WHO it is bringing in is
+> not evaluating a switch, it is evaluating LEAVE"*. Will, 2026-08-06, names the case it cannot
+> represent: out-sped, a lethal hit incoming, and a resist sitting on the bench. See #63 and #57.
+
+
 The mega case is the third occurrence of the same defect (`mew.js:446` records the first, across
 199,524 games). The pattern is not carelessness at any one site; it is that **defaults are set to the
 broken value and the working value is supplied by every caller individually**, so a new caller starts

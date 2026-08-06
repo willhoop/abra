@@ -81,6 +81,55 @@ const RETRACTED = [
     why: 'measured with bots included; 52.4% with behavioural bots removed, CI includes 50',
     allowIfNear: /bot|superseded|retract|contaminat/i },
 
+  /* ---- added 2026-08-06. WILL: "THE 10 POINT LOSS WAS BASED ON A BOGUS ENGINE YOU KEEP QUOTING
+   * THINGS THAT ARE UNRELIABLE." He is right, and the failure is not that the numbers are stale —
+   * it is that NOTHING STOPPED THEM BEING QUOTED. Task #57 established the rule this same day and I
+   * then quoted six rollout-derived figures at him within the hour, because a task is a note and
+   * this list is a mechanism.
+   *
+   * WHAT MAKES THEM SUSPECT. Every figure below came out of a medicham2 PLAYOUT, and on 2026-08-06
+   * five WIREs landed in that engine: the weather resolved BACKWARDS from turn one so every damage
+   * roll after it carried the wrong multiplier (123); 78 moves could not miss (124); Last Respects
+   * reverted to 50 BP the turn after an ally died (125); a type-converted move was priced 136-162
+   * and dealt 0 (126); and every Scrappy Normal-or-Fighting click into a Ghost dealt zero in every
+   * rollout this engine has ever run (128).
+   *
+   * AND THEY CANNOT SAY WHICH ENGINE THEY MEASURED. Eight of the ten rollout-derived artifacts carry
+   * NO engine_release stamp at all — rollout-r1, rollout-r3, winrate-backtest, ladder,
+   * leaf-comparison, exploitability among them. So they are not merely from a broken era; they are
+   * UNATTRIBUTABLE, and no amount of care in prose can fix an artifact that does not record what it
+   * read. Making the stamp mandatory is #33; retracting the figures is this.
+   *
+   * THIS IS NOT A CLAIM THAT EACH IS WRONG. A paired comparison can survive a symmetric engine
+   * error — WIRE 123 hit both arms of R4 equally — while an absolute rate cannot. Establishing which
+   * is #57. Until that runs, each figure may be discussed WITH its retraction beside it and may not
+   * be stated as fact, which is exactly what `allowIfNear` encodes. */
+
+  { bad: /\b10-point (?:switching )?loss\b|switching (?:cost|lost|loses) (?:it )?10 points/i,
+    what: "the 10-point loss from voluntary switching (mew.js:135)",
+    why: 'measured through medicham2 playouts on an engine that predates WIRES 123-128, and the ' +
+         'artifact carries no engine_release stamp so it cannot say which build it ran on. It is ' +
+         'ALSO confounded by design: bringIn() selects live(bench)[0], the first healthy body, and ' +
+         'its own comment calls that "a real limitation, not a detail" — so the experiment measured ' +
+         'switching to an ARBITRARY Pokemon, which the engine itself distinguishes from a switch: ' +
+         '"a search that cannot say WHO it is bringing in is not evaluating a switch, it is ' +
+         'evaluating LEAVE". Will, 2026-08-06, gives the case it cannot represent: out-sped, lethal ' +
+         'hit incoming, a resist on the bench. See #63.',
+    allowIfNear: /retract|unattributable|no engine_release|bogus|predates|WIRE|#63|#57|confound|live\(bench\)/i },
+
+  { bad: /\b51\.0%\b/, what: "the in-game leaf naming the winner on 51.0% of decisive calls",
+    why: 'a rollout figure from data/winrate-backtest.json, which carries NO engine_release stamp ' +
+         'and predates WIRES 123-128. Its own interval [48.3, 53.7] already contains 50, so the ' +
+         'qualitative reading — indistinguishable from a coin — survives; the POINT ESTIMATE does ' +
+         'not. See #57.',
+    allowIfNear: /retract|unattributable|no engine_release|predates|WIRE|#57|CI|interval|\[48\.3/i },
+
+  { bad: /\b31\.6%\b/, what: 'R6\'s 31.6% of move decisions deferred',
+    why: 'a rollout figure measured before WIRES 123-128 and with no engine_release stamp. The ' +
+         'QUALITATIVE finding — that defer fires for two different reasons and only one is fixable ' +
+         'with compute — does not depend on the number, and #62 is the experiment that replaces it.',
+    allowIfNear: /retract|unattributable|no engine_release|predates|WIRE|#57|#62/i },
+
   /* ---- added 2026-07-25, after an adversarial review found the project had not applied its own
    * retraction mechanism to its own Critical finding on the day it made it. Every entry below was
    * live in five or more documents while the evidence said otherwise. */
