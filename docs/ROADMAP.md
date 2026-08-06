@@ -865,6 +865,7 @@ direction. And the objection that imitation is a ceiling *does not apply to the 
 | #24 | replace MILTANK's leaf with PORYGON2 + a MAG-sampled opponent | gate passed (#23) |
 | #38 | the rollout cap is 60 turns; real games end at **6** | trivial |
 | #39 | measure the `board.js` ↔ MEDICHAM translation cost | decides whether MAG-as-GARY is possible at all |
+| #61 | **MEDICHAM measures 1,606 battles/sec against the 3,401 on record — 47%.** On the measured figure the 200-rollout x 64-pair search needs **26 s** against a 20 s budget and does not fit. Nothing ratchets speed, which is why a 2x regression went unseen | — |
 | — | **parallelise the search** — 16 cores available, nothing uses more than one | unlocks K=8, which is where the miss rate reaches 1.4% |
 | #31 | the mega must be a strategic decision, not "the lead keeps it" | dual-mega teams are the case that proves it |
 | #6 | AXIS-4 reparameterisation, then WOBBUFFET in it | |
