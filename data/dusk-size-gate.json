@@ -778,5 +778,12 @@
     ],
     "reach_finding": "16.42% of clean games reach 1v1 (n=5815); 58.95% of those 1v1s are over after a single decision, so a 1v1 lasting more than one decision occurs in 6.74% of games. 1v1 turns are 3.75% of all decision points in the corpus.",
     "memoisation_finding": "Storing only OBSERVED positions does not work: once HP is in the key the held-out hit rate is 0.11% (train on the older half of the corpus, test on the newer). Even at bare species-pair level it is 34.9%. A shippable DUSK has to ENUMERATE a matchup pool, not memoise a corpus."
+  },
+  "source_digests": {
+    "data/games.bo3.jsonl": "cd4d6ffea1b8fbf5a1718864f9c4ea7bba1889d7524c4c5aff4adef9009cb935",
+    "data/games.bo3.raw-logs.jsonl": "ee48e579d7f4266d4a4433a2e52663e406b6b27b6418ed5d446c7761d655773e",
+    "note": "Content, not mtime. RE-KEYED from corpus_snapshot, which this run took BEFORE counting and re-verified after (corpus_moved: false). Not recomputed at stamping time.",
+    "taken": "before the counts, by engine/dusk_size_gate.js",
+    "algorithm": "sha256 (full file), not the sha12 run_stamp uses for source files"
   }
 }

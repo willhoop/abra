@@ -62,6 +62,150 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
 
+## WIRE 123 — ENTRY ABILITIES RESOLVED IN ARRAY ORDER, SO SIDE B'S LEAD OWNED THE SKY. 2026-08-06.
+
+Census **216 → 217 live / 219 → 220 probed**; missing still 3 (the same three), hollow 0, `threw` 0,
+`unarmed` still 145 — the new probe is armed. Differential unchanged at **1/150**, the same
+pre-existing `chesnaught woodhammer -> mimikyu` row and the same 11 not-comparable.
+`tests/test-game-diff.js` agrees on every turn of all five scripted games. The interaction matrix was
+re-run at `--full` against the changed engine and is **unchanged**: 1,624/1,643 live pairs agree
+(98.8%), the same six named disagreements, the same two `THREW`.
+
+**The generated block at the top of this file is one census behind, because this pass was dispatched
+under an explicit instruction not to run `engine/status.js --write` while two other agents held the
+docs open. THE RESTAMP IS OWED**, and the artifacts already say the right thing.
+
+Will, 2026-08-06: *"if two incins come out, which intim goes first indicates speed."*
+
+### The claim is true of the real game, and the mechanic under it is one speed-sorted event
+
+Read out of Showdown at the pinned commit `20ad99ff`, not remembered:
+
+```
+sim/battle-actions.ts:175  runSwitch(pokemon)  gathers every simultaneous switch-in off the queue
+                     :184  this.battle.fieldEvent('SwitchIn', switchersIn)
+sim/battle.ts:794          fieldEvent -> ... else { this.speedSort(handlers); }
+sim/pokemon.ts             getActionSpeed()    Trick Room inverts it (10000 - speed)
+```
+
+Faster resolves FIRST. So the **LAST** entry weather setter to run owns the field, which means the
+**SLOWER** one wins it — a real competitive fact and the sharpest possible test, because getting it
+backwards multiplies every damage roll for the rest of the battle by the wrong number.
+
+### MEASURED IN THE REFERENCE ENGINE, BOTH ARMS PRINTED, BEFORE A LINE OF ENGINE CHANGED
+
+L50, Champions SP, `gen9championsvgc2026regmb` at the pinned commit:
+
+| leads | reference | medicham2, before |
+|---|---|---|
+| Pelipper 117 Drizzle **v** Tyranitar 81 Sand Stream | **sand** | sand |
+| Pelipper 85 Drizzle **v** Tyranitar 113 Sand Stream | **rain** | **sand** |
+| Pelipper 117 + its ALLY Torkoal 40 Drought **v** Tyranitar 113 | **sun** | **sand** |
+
+`battleInit` walked `A[0], A[1], B[0], B[1]` and applied every entry effect in that order, so **side
+B's lead always won the weather**, whatever the speeds were. Three arms, one answer — *identical
+results across a varied knob mean the knob is unwired*.
+
+**THE THIRD ROW IS NOT DECORATION AND IT NEARLY WENT MISSING.** The sort is over ONE list containing
+BOTH sides, so a slow ALLY resolves after the opposing lead. A per-side implementation ("all of A,
+then all of B", or "A's lead against B's lead") passes the first two rows and fails the third, and it
+is exactly the comfortable shape to reach for. It was measured before it was implemented.
+
+### THE PROBE'S FIRST STAGING WAS WRONG BEFORE THE ENGINE WAS. THAT MAKES THIRTY-TWO.
+
+The obvious pairing is Drizzle against Drought — Pelipper and Torkoal, the two the format actually
+runs. In Champions a stat is base + SP + 20, so **Torkoal caps at 72 Speed and Pelipper floors at
+85**: the two arms printed *the same faster body* and the reference gave sun in both. The knob did not
+move, and on a FIXED engine that probe would have read as agreement. Pelipper (base 65) against
+Tyranitar (base 61) overlaps, so the speed knob genuinely flips who is faster.
+
+### One implementation of "who is faster", which is WIRE 118's whole point
+
+`effSpeed` for the number and `compareTurnOrder` for the rule. **No second copy of the comparison is
+written**, and the Trick Room inversion comes free from the comparator — which matters, because
+Showdown's `getActionSpeed` inverts under Trick Room too and a hand-rolled `>` here would not have.
+
+### MID-BATTLE SWITCHING WAS ALREADY RIGHT, AND THAT IS MEASURED RATHER THAN ASSUMED
+
+Showdown queues **one `runSwitch` per switch action** (`insertChoice`, order 101 against `switch`'s
+103), so a mid-turn double switch resolves entry abilities in the order the SWITCH ACTIONS ran — i.e.
+by the **OUTGOING** body's speed, not the incoming one's. `bringIn` is called from inside those
+already-sorted actions, so it agrees by construction. Four arms, and the knob was varied on both
+sides of the question:
+
+```
+vary the OUTGOING speeds:  Corviknight 119 v Milotic 101 -> sand    Corviknight 87 v Milotic 133 -> rain
+vary the INCOMING speeds:  Pelipper 117 v Tyranitar 81   -> sand    Pelipper 85  v Tyranitar 113 -> sand
+```
+
+medicham2 tracked the reference on all four. The incoming speed genuinely does nothing here, in BOTH
+engines — so the fix is confined to `battleInit` and touches no switch path.
+
+### WHERE THE INTIMIDATE SIGNAL ACTUALLY LIVES, because it decides where part 2 has to read from
+
+**The order of two Intimidates is NOT observable in the board state.** Measured, both engines, both
+arms, on Incineroar 112 v Arcanine-Hisui 110 and again on 80 v 142:
+
+```
+SHOWDOWN atk boosts [A0 A1 B0 B1] : [-1,-1,-1,-1]      MEDICHAM: [-1,-1,-1,-1]      both arms
+```
+
+Both drops land, on every body, whichever went first. The order is visible **only in the PROTOCOL
+STREAM**, and there it is unambiguous:
+
+```
+Incineroar faster :  |-ability|p1a: Incineroar|Intimidate|boost   then  |-ability|p2a: Arcanine|Intimidate|boost
+Arcanine   faster :  |-ability|p2a: Arcanine|Intimidate|boost     then  |-ability|p1a: Incineroar|Intimidate|boost
+```
+
+So **speed inference from duelling Intimidates must hook into the replay/live protocol parser, not
+into any board or engine state.** medicham2 emits no protocol stream at all and is the wrong place to
+read it from; `engine/durable-ingest.js` and the live client are where those lines exist. That is an
+OPS-side channel, filed here because this pass is what established it.
+
+**The weather case is the opposite and that is why it was worth the wire:** it IS in the board state,
+it persists for the whole battle, and it was wrong.
+
+### The probe, and the red is permanent
+
+`ability weatherSetter — "the SLOWER entry weather setter owns the field, across both sides"`, armed,
+three arms, the outcome (the weather standing on the field) rather than an order list. It reads the
+reference's own numbers.
+
+```
+RED    Pelipper 117 v Tyranitar 81 -> sand;  85 v 113 -> sand;  + Torkoal 40 as A's ALLY -> sand
+GREEN  Pelipper 117 v Tyranitar 81 -> sand;  85 v 113 -> rain;  + Torkoal 40 as A's ALLY -> sun
+```
+
+`tests/probe_red_demo.js` gained a `demoSource` arm whose known-bad engine is **the comparator and
+nothing else** — `entrants.sort(compareTurnOrder…)` becomes `entrants.sort(()=>0)`, leaving the
+entrants list, the interleaving and the tie counter exactly as shipped, so the one thing that flips is
+the ordering rule. **35 demonstrations, 0 failed**; `shipped-arm=true, reverted-arm=false`.
+
+### A SPEED TIE IS AN APPROXIMATION, SO IT IS COUNTED
+
+Showdown breaks a tie with a coin (`speedSort`'s Fisher-Yates). `battleInit` is handed no rng and
+inventing one would move every seeded run in the repo for a reason that has nothing to do with entry
+abilities, so it keeps declaration order — and **`MEDFAILS.entryOrderTie` counts every time it has
+to**. Measured over 2,000 random battle starts: **155 ties, 0.077 per start**. That is not zero, and
+for two Drizzle bodies on the same Speed it is the weather.
+
+### MAG's inputs did not move
+
+`engine/feature_fixture.js --check`, read through `engine/status.js`: **CLEAN — all 58 columns
+hash-identical to fit time**, with `engine/medicham2-browser.js moved 2026-08-06 06:45, and no feature
+the fixture exercises moved with it`. The changed site is inside `battleInit`, which `board.js`'s
+feature path does not call; what changed is ROLLOUT behaviour, which is the point of an engine fix and
+does not owe a refit.
+
+### Found red, NOT mine, reported rather than filed
+
+`tests/test-no-silent-failure.js` exits 1 on **two NEW silent catch blocks in
+`engine/dusk_size_gate.js:50` and `:212`**. Not this pass's file and not this pass's doing — the three
+files edited here (`medicham2-browser.js`, `tests/test-mechanics.js`, `tests/probe_red_demo.js`) added
+**zero** catch blocks between them. It is stated here for the router to place, not filed as a status.
+The related `provenance` ratchet trip on `dusk-size-gate.json` is the same file.
+
 ## WIRES 119–122 — TAUNT DID NOT EXIST, AND THE #1 ROW BY VOLUME WAS NOT A HARNESS FAULT. 2026-08-06.
 
 Census **211 → 216 live / 214 → 219 probed**; missing still 3 (the same three), hollow 0, `threw` 0,

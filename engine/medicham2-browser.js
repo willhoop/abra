@@ -186,7 +186,12 @@ const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnk
      `data/tags.json` and the generic `CHOMP/data/move-effects.json`. The format wins. Counted with
      the first offender named, because there are exactly two today (Iron Head, Toxic Thread) and a
      third arriving unannounced is the whole failure mode two rulebooks have. */
-  rulebookChanceDrift: 0, rulebookChanceDriftFirst: '' };
+  rulebookChanceDrift: 0, rulebookChanceDriftFirst: '',
+  /* WIRE 123. Two leads arriving on the same speed. Showdown breaks that with a coin (speedSort's
+     Fischer-Yates); battleInit is handed no rng, so it keeps declaration order and counts the event.
+     Non-zero is not a bug — it is the share of battle starts whose entry-ability order this engine
+     could not decide, and for two Drizzle bodies on the same speed it decides the weather. */
+  entryOrderTie: 0 };
 
 /* WIRE 15 -- the spread table is DERIVED. The 34-name set below is kept ONLY as the tags-off
  * control arm's world (pre-wire behaviour, exactly), and as the browser fallback when no artifact
@@ -2568,10 +2573,55 @@ function battleInit(teamA,teamB,opts){
    * is a flag that will be missed in a seventh. */
   teamA.concat(teamB).forEach(m=>{if(m)m._hadItem=!!m.item;});
   if(!(opts&&opts.seeded)){
-    for(const m of S.actA.concat(S.actB))applyEntryEffects(m,S.field,
-      S.actA.indexOf(m)>=0?S.actA.find(x=>x&&x!==m):S.actB.find(x=>x&&x!==m));
-    const intim=(as,fs)=>{for(const m of as)applyEntryDrops(m,fs);};   // WIRE 100a
-    intim(S.actA,S.actB);intim(S.actB,S.actA);
+    /* WIRE 123 -- THE LEADS' ENTRY ABILITIES RESOLVE IN SPEED ORDER, ACROSS BOTH SIDES.
+     *
+     * This was ARRAY ORDER: A[0], A[1], B[0], B[1], every effect then every drop. For Intimidate that
+     * is invisible -- both drops land and the board is the same either way -- which is exactly why it
+     * survived. For the WEATHER it is a live correctness bug with the largest blast radius in the
+     * file: `applyEntryEffects` OVERRIDES the standing weather, so the last setter to run owns the
+     * sky, and under array order that was always side B's lead. Every damage roll for the rest of the
+     * battle is then multiplied by the wrong number.
+     *
+     * SHOWDOWN'S RULE, read out of Showdown at the pinned commit 20ad99ff: `runSwitch` gathers every
+     * simultaneous switch-in and fires ONE field event over all of them
+     * (`sim/battle-actions.ts:184`, `this.battle.fieldEvent('SwitchIn', switchersIn)`), and
+     * `fieldEvent` speed-sorts its handlers (`sim/battle.ts:794`, `this.speedSort(handlers)`).
+     * Faster resolves FIRST, so the SLOWER weather setter wins the field.
+     *
+     * MEASURED IN THE REFERENCE ENGINE BEFORE A LINE OF THIS CHANGED (L50, Champions SP):
+     *     Pelipper 117 Drizzle  v Tyranitar  81 Sand Stream                       -> SAND
+     *     Pelipper  85 Drizzle  v Tyranitar 113 Sand Stream                       -> RAIN
+     *     Pelipper 117 + its ALLY Torkoal 40 Drought  v Tyranitar 113             -> SUN
+     * The third row is why the sort is over ONE list containing both sides rather than per side: a
+     * slow ALLY resolves after the opposing lead.
+     *
+     * ONE IMPLEMENTATION OF "WHO IS FASTER", which is WIRE 118's whole point -- `effSpeed` for the
+     * number and `compareTurnOrder` for the rule. No second copy of the comparison is written here.
+     *
+     * MID-BATTLE SWITCHING IS NOT TOUCHED AND DID NOT NEED TO BE. Showdown queues one `runSwitch` per
+     * switch action, so a mid-turn double switch resolves entry abilities in the order the SWITCH
+     * ACTIONS ran -- i.e. by the OUTGOING body's speed, not the incoming one's. `bringIn` is called
+     * from inside those already-sorted actions and therefore already agrees; measured on four arms
+     * (outgoing speed flipped, incoming speed flipped) and it tracked the reference on all four.
+     *
+     * EFFECTS AND DROPS INTERLEAVE PER BODY rather than running as two passes, because Showdown has
+     * one `onStart` handler per Pokemon and it does both. Neither reads the other's output today, so
+     * no behaviour turns on it; it is written this way so it stays true when one of them grows. */
+    const entrants=[];
+    for(const m of S.actA)if(m)entrants.push({mon:m,side:'A',ally:S.actA.find(x=>x&&x!==m),foes:S.actB});
+    for(const m of S.actB)if(m)entrants.push({mon:m,side:'B',ally:S.actB.find(x=>x&&x!==m),foes:S.actA});
+    for(const e of entrants)e.spe=effSpeed(e.mon,S.field,e.side);
+    entrants.sort((x,y)=>compareTurnOrder({spe:x.spe},{spe:y.spe},S.field));
+    /* A SPEED TIE IS A COIN FLIP IN SHOWDOWN (speedSort's Fischer-Yates) AND A STABLE ARRAY ORDER
+     * HERE, because battleInit is handed no rng and inventing one would move every seeded run in the
+     * repo for a reason that has nothing to do with entry abilities. That is an approximation, so it
+     * is COUNTED rather than silent -- a non-zero here says some fraction of leads resolved in
+     * declaration order because this engine could not break the tie. */
+    for(let i=1;i<entrants.length;i++)if(entrants[i].spe===entrants[i-1].spe)MEDFAILS.entryOrderTie++;
+    for(const e of entrants){
+      applyEntryEffects(e.mon,S.field,e.ally);
+      applyEntryDrops(e.mon,_live(e.foes));   // WIRE 100a -- membership from `onSwitchInDrop`
+    }
   }
   return S;
 }

@@ -10,6 +10,73 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.52.0] — 2026-08-06
+
+### Fixed
+- **WIRE 123 — MEDICHAM applied entry abilities in ARRAY ORDER, and the weather that resulted was
+  wrong.** This is a live correctness bug with a large blast radius, not a missing feature: side B's
+  lead always won the weather regardless of Speed, and **every damage roll for the rest of the battle
+  carried the wrong multiplier**. Found by asking a question Will asked about something else — *"if
+  two incins come out, which intim goes first indicates speed"*. Differential against the official
+  engine at pinned commit `20ad99ff`, three arms measured before any code moved:
+
+  | leads (L50, Champions SP) | Showdown | medicham2 before |
+  |---|---|---|
+  | Pelipper 117 Drizzle v Tyranitar 81 Sand Stream | sand | sand |
+  | Pelipper 85 Drizzle v Tyranitar 113 Sand Stream | **rain** | **sand** |
+  | Pelipper 117 + ally Torkoal 40 Drought v Tyranitar 113 | **sun** | **sand** |
+
+  Identical result across a varied knob — unwired, not *"it does not matter"*. The rule is
+  `sim/battle-actions.ts:184` → `sim/battle.ts:794 speedSort`: faster resolves first, so **the SLOWER
+  weather setter owns the sky**, and the sort is **global across both sides** — the third row exists
+  because a per-side implementation passes the first two and fails it.
+  `battleInit` now builds one entrants list across both sides and sorts it with the **existing**
+  `effSpeed` + `compareTurnOrder`, so there is no second copy of *"who is faster"* and Trick Room
+  inversion comes free. A Speed tie keeps declaration order — Showdown flips a coin, and `battleInit`
+  has no rng to flip one with — counted loudly as `MEDFAILS.entryOrderTie`, **155 ties over 2,000
+  random starts, 0.077 per start**.
+
+- **Two silent catch blocks in `engine/dusk_size_gate.js`.** One would have discarded the whole
+  forme map, which is the gate's matchup axis — Charizard-Mega-Y stops folding onto Charizard and the
+  headline species-pair count silently inflates. The other skipped unparsable raw-log lines, which
+  drops a game from the AUTHORITATIVE protocol arm while leaving it in the cross-check arm, so a
+  corpus defect would have read as a reconstruction problem. Both now speak.
+  `tests/test-no-silent-failure.js` re-baselined: **9 previously-baselined blocks now speak**, 0 new.
+
+### Added
+- **The DUSK size gate (#40) — verdict TOO BIG, and the reach rate kills it before the size does.**
+  See the 3.51.0 note for the framing; the numbers are in `data/dusk-size-gate.json`.
+  **16.42%** of 5,815 clean open-sheet games reach 1v1 and **58.95%** of those end in one decision, so
+  the positions DUSK exists to answer are **3.75% of all decision points**. Independently re-derived
+  off the stored turn events at 16.18% against the protocol's 16.42%.
+  A memo cannot work at all: trained on the older half and tested on the newer, the hit rate is 34.9%
+  at species-pair and **0.11%** once HP is bucketed; at DUSK's needed fidelity saturation is 0.86, so
+  the distinct-position count measures the corpus rather than the state space.
+  Enumerated instead, the shippable table (1.58M entries, 36 MB) **cannot see a Choice Scarf, a burn
+  or a Swords Dance**; sets cost 25× on the matchup axis and open sheets are DUSK's whole premise.
+  **Consequence:** DUSK no longer carries the argument for the Python→JavaScript bridge (#41), and a
+  better successor is filed (#47) — a 1v1 under open sheets needs **one solve**, not a table.
+
+### Notes
+- **`data/dusk-size-gate.json` tripped the provenance ratchet and was not actually unstamped.** It
+  recorded sha256 of both inputs **before** counting and re-verified them after (`corpus_moved:
+  false`) — stronger evidence than `source_digests` normally carries — but under a private key, which
+  is indistinguishable from unstamped to anything automated. The generator now emits both. The
+  existing artifact was re-keyed from its own snapshot; nothing was hashed at stamping time, because
+  a digest taken afterwards proves only that the file is unchanged *since*, which is not what the
+  ratchet asks.
+- **Census 216/219 → 217/220 live**, armed 74 → 75, unarmed unchanged at 145. Differential unchanged
+  at 1/150. Interaction matrix re-run at `--full` against the changed engine: **unchanged**, 1,624 of
+  1,643, same six disagreements. `engine/feature_fixture.js --check` **CLEAN — all 58 columns
+  hash-identical to fit time. No refit owed.**
+- **The Intimidate signal lives in the PROTOCOL STREAM, not the board.** Measured both ways
+  (Incineroar 112 v Arcanine-H 110, then 80 v 142): final boosts are `[-1,-1,-1,-1]` either way, so
+  the order is unobservable in the resulting state. **#43 part 2 must hook into the replay/live
+  protocol parser**, not into MEDICHAM, which emits no protocol stream.
+- **The new probe was shown RED before it was shown green**, and the red is permanent:
+  `tests/probe_red_demo.js` carries a `demoSource` arm whose known-bad comparator replaces the entry
+  sort with `sort(() => 0)`. **35 demonstrations, 0 failed.**
+
 ## [3.51.0] — 2026-08-06
 
 ### Added

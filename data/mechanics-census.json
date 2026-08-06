@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-06T04:51:42.016Z",
+  "generated": "2026-08-06T06:57:09.444Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 219,
-  "live": 216,
+  "probed": 220,
+  "live": 217,
   "missing": 3,
-  "armed": 74,
+  "armed": 75,
   "unarmed": 145,
   "threw": 0,
   "hollow": 0,
@@ -711,6 +711,15 @@
       "detail": "ability none -> none, Drizzle -> rain",
       "hollow": false,
       "armed": false
+    },
+    {
+      "kind": "ability",
+      "tag": "weatherSetter",
+      "label": "the SLOWER entry weather setter owns the field, across both sides",
+      "live": true,
+      "detail": "Pelipper 117 v Tyranitar 81 -> sand (want sand); Pelipper 85 v Tyranitar 113 -> rain (want rain); + Torkoal 40 as A's ALLY -> sun (want sun)",
+      "hollow": false,
+      "armed": true
     },
     {
       "kind": "move",
@@ -1761,7 +1770,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 26.0% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.0% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true
     },

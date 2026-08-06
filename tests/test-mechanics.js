@@ -1408,6 +1408,50 @@ probe('ability', 'weatherSetter', 'Drizzle sets rain on entry', () => {
   return { works: none === 'none' && rain === 'rain', detail: 'ability none -> ' + none + ', Drizzle -> ' + rain };
 });
 
+/* WIRE 123 -- THE PROBE ABOVE ASKS WHETHER DRIZZLE SETS RAIN. IT CANNOT ASK WHOSE WEATHER WINS.
+ *
+ * Will, 2026-08-06: *"if two incins come out, which intim goes first indicates speed."* He is right
+ * about the real game, and the mechanic underneath his observation is that Showdown resolves every
+ * switch-in ability through ONE speed-sorted field event (`battle-actions.ts:184`,
+ * `fieldEvent('SwitchIn', switchersIn)` -> `battle.ts:794`, `this.speedSort(handlers)`). So the LAST
+ * entry weather setter to resolve owns the field, which means the SLOWER one wins it -- and the
+ * whole battle's damage is then computed under the wrong sky if the order is wrong.
+ *
+ * MEASURED FIRST, in the official engine at the pinned commit, both arms printed before a line of
+ * engine changed (scratchpad ref-entryorder2.js / ref-entryorder4.js). L50, Champions SP:
+ *
+ *     Pelipper 117 / Tyranitar  81   ->  SAND   (Tyranitar resolves last)
+ *     Pelipper  85 / Tyranitar 113   ->  RAIN   (Pelipper  resolves last)
+ *     Pelipper 117 / Tyranitar 113 / Torkoal 40 (Pelipper's ALLY)  ->  SUN
+ *
+ * THE THIRD ARM IS NOT DECORATION. The sort is GLOBAL across all four leads, not per side: a slow
+ * ALLY resolves after the opposing lead. A per-side implementation ("side A, then side B") passes the
+ * first two arms and fails this one, which is exactly the comfortable wrong answer to reach for.
+ *
+ * THE OUTCOME, NOT THE ORDER LIST. What is read back is the weather standing on the field after the
+ * leads arrive, because that is the thing every later damage roll multiplies by. */
+probe('ability', 'weatherSetter', 'the SLOWER entry weather setter owns the field, across both sides', () => {
+  const run = (pelSpe, tyrSpe, allySp, allyAb, allySpe) => {
+    const pel = bare('pelipper'), ally = bare(allySp);
+    const tyr = bare('tyranitar'), f2 = bare('milotic');
+    pel.ability = 'drizzle'; tyr.ability = 'sandstream';
+    ally.ability = allyAb;   /* explicit on BOTH arms — bare() blanks it, nothing is left to default */
+    f2.ability = 'none';
+    pel.st.sp = pelSpe; tyr.st.sp = tyrSpe; ally.st.sp = allySpe; f2.st.sp = 100;
+    const S = M.battleInit([pel, ally], [tyr, f2], {});   // NOT seeded: entry effects fire
+    return S.field.weather || 'none';
+  };
+  /* the two-setter arms: only the SPEEDS differ, and the fourth body carries no entry ability */
+  const pelFast = run(117, 81, 'corviknight', 'none', 100);
+  const tyrFast = run(85, 113, 'corviknight', 'none', 100);
+  /* the global-sort arm: a THIRD setter, slowest of all, and it is side A's ALLY */
+  const allyLast = run(117, 113, 'torkoal', 'drought', 40);
+  return { works: pelFast === 'sand' && tyrFast === 'rain' && allyLast === 'sun',
+           arms: { control: pelFast, test: tyrFast },
+           detail: `Pelipper 117 v Tyranitar 81 -> ${pelFast} (want sand); Pelipper 85 v Tyranitar 113 `
+                 + `-> ${tyrFast} (want rain); + Torkoal 40 as A's ALLY -> ${allyLast} (want sun)` };
+});
+
 probe('move', 'pivotStatus', 'Parting Shot switches the user out', () => {
   const me = bare('incineroar'), ally = bare('corviknight'), bench = bare('milotic');
   const f1 = bare('garchomp'), f2 = bare('garchomp');

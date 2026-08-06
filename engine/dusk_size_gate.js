@@ -46,8 +46,21 @@ function snapshot(rel) {
 // ---------------------------------------------------------------- forme normalisation
 /* Same source and same fallback as engine/durable-ingest.js:baseForme, which is not exported.
  * data/battle-formes.json is the canonical mapping; the regex is that function's documented fallback. */
+/* IT SPEAKS, because this map IS the matchup axis. If battle-formes.json fails to load, every
+ * Charizard-Mega-Y stops folding onto Charizard and the distinct-species-pair count — the headline
+ * this gate exists to produce — inflates by however many formes appear in the corpus. The regex
+ * fallback below handles the common `-mega` spellings and does NOT handle the irregular ones, so a
+ * silent catch here degrades the ANSWER rather than the run. Counted onto the state so the artifact
+ * can carry it, and printed, rather than discovered by someone re-deriving the number later. */
 let BASE_OF = {};
-try { BASE_OF = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'battle-formes.json'), 'utf8')).base_of || {}; } catch (e) { }
+let BASE_OF_ERR = null;
+try {
+  BASE_OF = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'battle-formes.json'), 'utf8')).base_of || {};
+} catch (e) {
+  BASE_OF_ERR = (e && e.message) || String(e);
+  console.error('dusk_size_gate: battle-formes.json unavailable (' + BASE_OF_ERR + ') — falling back to the '
+    + 'regex, which misses irregular formes. THE SPECIES-PAIR COUNT IS AN OVERESTIMATE.');
+}
 const norm = s => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 function baseForme(sp) {
   if (BASE_OF[sp]) return BASE_OF[sp];
@@ -207,12 +220,27 @@ function main() {
   // ---- load the raw logs we need
   const want = new Set(games.map(g => g.id));
   const logs = new Map();
+  /* A SKIPPED LINE IS COUNTED, because this gate's headline rests on the RAW PROTOCOL rather than on
+   * the stored events — the two were cross-checked at 98.55% and the protocol was chosen as the
+   * authority precisely because the events are lossy. A malformed line therefore drops a game out of
+   * the AUTHORITATIVE arm while leaving it in the cross-check arm, which would widen the disagreement
+   * and read as a reconstruction problem rather than as a parse problem. Silently continuing here is
+   * how a corpus defect gets attributed to the method. */
+  let rawUnparsable = 0, rawFirstErr = null;
   for (const line of fs.readFileSync(path.join(ROOT, RAW), 'utf8').split('\n')) {
     if (!line) continue;
-    let o; try { o = JSON.parse(line); } catch (e) { continue; }
+    let o;
+    try { o = JSON.parse(line); }
+    catch (e) { rawUnparsable++; if (!rawFirstErr) rawFirstErr = (e && e.message) || String(e); continue; }
     if (want.has(o.id)) logs.set(o.id, o.log || '');
   }
-  process.stderr.write(`raw logs matched: ${logs.size} of ${want.size}\n`);
+  if (rawUnparsable) {
+    console.error(`dusk_size_gate: ${rawUnparsable} unparsable line(s) in ${RAW} — first: ${rawFirstErr}. `
+      + 'Those games are absent from the protocol arm and present in the events arm; read the '
+      + 'reconstruction cross-check with that in mind.');
+  }
+  process.stderr.write(`raw logs matched: ${logs.size} of ${want.size}`
+    + (rawUnparsable ? `  (${rawUnparsable} unparsable)` : '') + '\n');
 
   // ---- replay
   const onev1 = [], twov1 = [];
@@ -411,6 +439,23 @@ function main() {
   art.measured_at = new Date().toISOString();
   art.corpus_snapshot = { note: 'taken BEFORE the counts. data/games.bo3.jsonl is collected hourly by OPS; everything below is measured against THIS snapshot.', ...before };
   art.corpus_snapshot_after = after;
+
+  /* THE SAME EVIDENCE, UNDER THE KEY THE RATCHET READS. engine/provenance.js looks for
+   * `source_digests` and this gate recorded its digests as `corpus_snapshot`, so the first run
+   * landed on the "ships without recording what CONTENT it read" list — a list that MAY SHRINK AND
+   * MAY NEVER GROW. The artifact was not actually unstamped; it was stamped in a private shape,
+   * which is indistinguishable from unstamped to anything automated. Emitting both is not
+   * duplication: `corpus_snapshot` carries the before/after pair that proves the corpus did not move
+   * mid-run, which is a stronger claim than a single digest and worth keeping in its own right.
+   * These values are COPIED from the snapshot taken before counting; nothing is hashed at write
+   * time, because a digest computed at the end proves only that the file is unchanged since — which
+   * is not the question the ratchet asks. */
+  art.source_digests = {
+    [before.store.file]: before.store.sha256,
+    [before.raw.file]:   before.raw.sha256,
+    note: 'Content, not mtime. Copied from corpus_snapshot, taken BEFORE the counts and re-verified after (see corpus_moved). Not recomputed at write time.',
+    algorithm: 'sha256 over the whole file, not the sha12 engine/run_stamp.js uses for source files',
+  };
   art.corpus_moved = (after.store.sha256 !== before.store.sha256) || (after.raw.sha256 !== before.raw.sha256);
 
   art.corpus = {

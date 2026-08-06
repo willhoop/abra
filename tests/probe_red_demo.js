@@ -558,5 +558,29 @@ demo('WIRE 122 refusesStatusMoves -- Good as Gold refuses Yawn',
     return run('none') === true && run('goodasgold') === false;
   });
 
+/* ---- WIRE 123, against a source-reverted engine -------------------------------------------------
+ *
+ * The known-bad engine is the ORDERING RULE and nothing else. The entrants list, the interleaving of
+ * effects with drops and the tie counter all stay exactly as shipped; only the comparator is
+ * neutered, which leaves the list in declaration order (A0, A1, B0, B1) -- the engine as it stood
+ * before this wire. So the one thing that can flip the arms is the thing the wire is about.
+ *
+ * A per-side implementation would pass the first two arms, which is why the third is here. */
+demoSource('WIRE 123 the SLOWER entry weather setter owns the field, across both sides',
+  [['    entrants.sort((x,y)=>compareTurnOrder({spe:x.spe},{spe:y.spe},S.field));',
+    '    entrants.sort((x,y)=>0);']],
+  (E) => {
+    const run = (pelSpe, tyrSpe, allySp, allyAb, allySpe) => {
+      const pel = bare('pelipper'), ally = bare(allySp);
+      const tyr = bare('tyranitar'), f2 = bare('milotic');
+      pel.ability = 'drizzle'; tyr.ability = 'sandstream'; ally.ability = allyAb; f2.ability = 'none';
+      pel.st.sp = pelSpe; tyr.st.sp = tyrSpe; ally.st.sp = allySpe; f2.st.sp = 100;
+      return E.battleInit([pel, ally], [tyr, f2], {}).field.weather || 'none';
+    };
+    return run(117, 81, 'corviknight', 'none', 100) === 'sand'
+        && run(85, 113, 'corviknight', 'none', 100) === 'rain'
+        && run(117, 113, 'torkoal', 'drought', 40) === 'sun';
+  });
+
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);
 if (failures) { console.log('  A green-and-stripped pair that did not flip means the probe does NOT watch its knob.'); process.exit(1); }
