@@ -893,6 +893,44 @@ The recurring failure of this project, kept together so the pattern stays visibl
 | #48 | 27 of 28 Python generators could write a file JavaScript cannot read — **closed, gated** |
 | #27 | three instruments built that had never written an artifact — **truncation curve now run**, two left |
 | #44 | a move that provably does nothing is a weighted preference, not a rule — needs a refit |
+| #57 | **every rollout-derived number predates a correct engine** — the leaf's 51.0%, R1's 69.84%, R4's 55.5%. Enumerate the re-run list from the release stamps; prioritise by whether the verdict could flip, not by age |
+| #58 | **two `moveAccuracy` implementations disagreed for 78 moves** and nothing compared them. `board.js` read the dex and was right; `medicham2` read a hand-typed list and was wrong. Make it one function and assert it |
+
+**What is safe and what is not, because the distinction decides what has to be re-run.** Anything
+that ranks or predicts through `board.js` never touched the broken simulator — the truncation curve,
+DODUO's top-1 figures, MAG's realism table. Anything that runs a **rollout** went through
+`medicham2`, where until 2026-08-06 the weather resolved backwards from turn one, 78 moves could not
+miss, Last Respects reverted, and a type-converted move dealt zero. **That is not a claim the numbers
+were wrong** — WIRE 123's error was symmetric across both arms of a paired comparison, so a contrast
+may survive it while an absolute rate does not. Establishing which is the work.
+
+### 5.6b Are there too many variables? — audited, and the answer is not the count
+
+76 weights on 81,515 joint turns is ~1,000 observations per parameter, and the fit is stable: handed
+15,279 further turns it flipped **none** of them. The problem is not size.
+
+`data/collinearity-joint.json` found the real shape: **8 of the 18 coordination features fire on
+under 1% of decisions** — `boostsPartnerDamage`, `boostMayConvertKill`, `weatherSetupHelpsPartner`,
+`healsPartner`, `redirectThenSetup`, `doubleKO`, `terrainSetupHelpsPartner`, `screenWhileThreatened`
+— and three of the live ones are correlated enough that their individual weights are not
+interpretable (`bothSameTarget`↔`overkill` r=0.53, `bothSameTarget`↔`focusFireKills` r=0.47).
+
+Its own honest caveat, which must travel with the finding: *"Collinear coefficients can be
+individually meaningless while the MODEL is well calibrated, because the correlated block still
+carries the right total."* So this is not evidence the pair model predicts badly. It is evidence
+about which single weights can be read, and about a third of the block that rarely does anything.
+
+### 5.6c Self-play cannot find a shared blind spot
+
+Kept in the register because it is the standing reason not to trust a head-to-head on its own.
+CLAUDE.md: *"a head-to-head, an exploitability search and a prediction score all compare two bots
+that **share the blind spot**, so a missing capability **cancels out exactly**."*
+
+**Every bug found on 2026-08-06 would be invisible in self-play** — both sides had the weather
+backwards, both believed the same 78 moves could not miss. And it is not theoretical: self-play
+training measured **48.1% [46.5, 49.8]** over 9,728 paired games, an interval entirely below 50.
+The guard that exists is MACHAMP's — every promoted champion plays **every** previous generation, not
+only the one it displaced, which is the only thing that would detect a cycle.
 
 ### 5.7 Deferred by decision — not dropped
 
