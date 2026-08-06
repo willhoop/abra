@@ -1719,9 +1719,24 @@ function dmgRange(att,def,mv,field,spread){
    * min/max range (see the comment on critChance). Only pCrit === 1 lands here, so this fires for
    * Flower Trick, Storm Throw and Frost Breath and for nothing else, and a Shell Armor / Battle
    * Armor / Disguise defender turns it back off.
-   * TWO HALVES OF A REAL CRIT ARE NOT MODELLED AND ARE STATED: a crit ignores the defender's
-   * positive defence stages and it ignores screens. Both would need dmgRange to recompute D, and the
-   * screens caveat is already carried by the DOUBLES_SCREEN comment below for the same reason. */
+   * THREE PARTS OF A REAL CRIT ARE NOT MODELLED AND ARE STATED. This comment said TWO until
+   * 2026-08-06, when Will named the missing one: *"crit also ignores attackers attack drops."*
+   * Confirmed in Showdown's `sim/battle-actions.ts:1683-1691` — `isCrit` sets BOTH
+   * `ignoreNegativeOffensive` and `ignorePositiveDefensive`, and they are applied as
+   * `ignoreOffensive = (ignoreNegativeOffensive && atkBoosts < 0)` and
+   * `ignoreDefensive = (ignorePositiveDefensive && defBoosts > 0)`. So:
+   *   1. a crit ignores the ATTACKER'S NEGATIVE offensive stages  <- the one that was missing, and
+   *      the one that matters most here: Intimidate is everywhere in this format, so an Intimidated
+   *      attacker landing a crit should hit at full Attack and this engine prices it at -1;
+   *   2. a crit ignores the DEFENDER'S POSITIVE defensive stages;
+   *   3. a crit ignores screens (carried by the DOUBLES_SCREEN comment below for the same reason).
+   * All three would need dmgRange to recompute A and D with a crit flag it does not have.
+   *
+   * AND ONE THING A CRIT DOES *NOT* IGNORE, recorded so nobody "completes" this list wrongly:
+   * BURN. Will: *"i dont think it ignores burn tho"* — correct. The three rules above operate on
+   * BOOST STAGES; burn's halving is an `onModifyAtk` multiplier and is not a stage, so it survives a
+   * critical hit. Gen 2 did ignore burn on a crit and Gen 3 onward does not, which is why this is
+   * the half people misremember. Applying it here would be a new bug wearing a fix's clothes. */
   if(mv.id&&critChance(mv.id,null,defAb)===1){
     /* WIRE 96 -- SNIPER (critDamageUp): a crit deals x1.5 ON TOP of the crit's own x1.5. Read here
      * for the certain crits; the battle loop's rolled crit reads the same param at its own site. */
