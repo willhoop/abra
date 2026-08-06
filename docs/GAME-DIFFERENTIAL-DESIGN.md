@@ -312,6 +312,29 @@ strongest single argument in this document for §3's insistence that teams come 
 
 ---
 
+**THE DRIVER AND THE SWARM COVER DIFFERENT SPACES, AND THE REPORT MUST NOT CONFLATE THEM.** Will,
+following the Quash finding: *"i mean i guess a fast mon could use quash but we never see it."* True,
+and the reason is mechanical rather than fashion — **you Quash the thing that is faster than you.** If
+you were already faster you would simply move first and would not need the move, so the use case is
+inherently *"I am slower and must act first"*, which speed cannot solve by definition and Prankster's
++1 can. The bundle is forced, not conventional.
+
+The consequence is a trap: **a coverage-seeking driver will click Quash on a fast mon**, because it is
+legal and uncovered. That is *correct for engine testing* — the mechanic resolves and both engines
+must agree on it — but it means a coverage figure cannot be read as *"we tested what happens in real
+games."* The configuration it tested is one nobody has brought.
+
+So the two instruments answer different questions and the artifact must report them separately:
+
+| | covers | answers |
+|---|---|---|
+| **the driver** (§3.3) | the **mechanic** space | does every move, item, ability and mon RESOLVE identically |
+| **the swarm** (§3, §3.2) | the **situation** space | do the positions people actually reach resolve identically |
+
+A single line reading `Quash: covered` would be true and misleading at once — the same shape as the
+damage differential's 12% tolerance (§1) and the muzzled corpus contrast, both of which passed while
+proving nothing. Two columns, always.
+
 ---
 
 ## 4. Two modes, never blurred
