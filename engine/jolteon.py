@@ -202,7 +202,7 @@ if __name__=='__main__':
         # rarity check: are rare species now shrunk toward 0?
         rare=[(sp[i],int(counts[i]),round(float(w[i]),2)) for i in np.argsort(counts)[:5]]
         print("Rarest species (count, weight -> shrunk):", rare)
-        json.dump({'species':sp,'w':[float(x) for x in w],'counts':[int(c) for c in counts],'has_dynamics':bool(SPD)}, open(WEIGHTS,'w'))
+        json.dump({'species':sp,'w':[float(x) for x in w],'counts':[int(c) for c in counts],'has_dynamics':bool(SPD)}, open(WEIGHTS,'w'), allow_nan=False)
         print(f"\nsaved model -> {WEIGHTS}")
     elif cmd=='predict':
         M=json.load(open(WEIGHTS)); sp=M['species']; idx={s:i for i,s in enumerate(sp)}; w=np.array(M['w']); n=len(sp)

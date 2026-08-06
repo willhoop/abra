@@ -188,9 +188,9 @@ def build():
         rank=RANK, n_documents=len(docs), n_moves=M, min_move_uses=MIN_USE,
         reconstruction_error_ratio=round(float(err), 4),
         factors=factors)
-    json.dump(out, open(D("data", "nmf-roles.json"), "w"), indent=1)
+    json.dump(out, open(D("data", "nmf-roles.json"), "w"), indent=1, allow_nan=False)
     with open(D("data", "nmf.js"), "w") as f:
-        f.write("window.NMF=" + json.dumps(out) + ";\n")
+        f.write("window.NMF=" + json.dumps(out, allow_nan=False) + ";\n")
 
     print(f"nmf_roles.py — rank {RANK}, {len(docs):,} team-docs, {M} moves, recon-err {err:.3f}")
     for fac in factors:

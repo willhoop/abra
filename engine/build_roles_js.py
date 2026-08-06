@@ -31,6 +31,6 @@ out = dict(
     species=species,
 )
 with open(D("data","roles.js"), "w", encoding="utf-8") as f:
-    f.write("window.ROLES=" + json.dumps(out, separators=(",",":")) + ";\n")
+    f.write("window.ROLES=" + json.dumps(out, separators=(",",":"), allow_nan=False) + ";\n")
 print(f"wrote data/roles.js — {len(species)} species, {len(out['labels'])} roles, "
       f"{os.path.getsize(D('data','roles.js')):,} bytes")

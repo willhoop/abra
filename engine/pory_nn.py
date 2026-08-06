@@ -532,7 +532,7 @@ def main():
             "states, at generation time. See docs/MEASURE.md §5f and engine/provenance.js.",
         "split": {"train": int(tr.sum()), "val": int(va.sum()), "test": int(te.sum())},
         "arms": rows,
-    }, open(OUT, "w"), indent=1)   # data/pory-nn.json
+    }, open(OUT, "w"), indent=1, allow_nan=False)   # data/pory-nn.json
     print(f"\nwrote {os.path.relpath(OUT, ROOT)}")
 
 

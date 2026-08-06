@@ -66,10 +66,10 @@ for sp in species:
         "moves": topk(mv[sp],6),
     }
 out={"generated":"engine/xatu.py — opponent belief from real replays","n_species":len(species),"n_teams":n_teams,"belief":belief}
-json.dump(out,open(os.path.join(ROOT,"data","xatu.json"),"w"),separators=(",",":"))
+json.dump(out,open(os.path.join(ROOT,"data","xatu.json"),"w"),separators=(",",":"), allow_nan=False)
 # compact browser file
 with open(os.path.join(ROOT,"data","xatu.js"),"w",encoding="utf-8") as f:
-    f.write("window.XATU="+json.dumps(belief,separators=(",",":"))+";\n")
+    f.write("window.XATU="+json.dumps(belief,separators=(",",":"), allow_nan=False)+";\n")
 print(f"XATU: belief for {len(species)} species (item/ability/moves) from real replays -> data/xatu.js")
 # show a sample
 for sp in ["garchomp","incineroar","gholdengo"]:

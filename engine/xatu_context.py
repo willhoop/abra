@@ -204,7 +204,7 @@ def build():
                 "held-out games. Context cells are shrunk toward the species prior by n/(n+K), so a "
                 "thin context cannot manufacture a signal."),
     )
-    json.dump(out, open(D("data", "xatu-context.json"), "w"), indent=1)
+    json.dump(out, open(D("data", "xatu-context.json"), "w"), indent=1, allow_nan=False)
 
     # ---- export the context-conditioned movesets so the decision models can USE this belief -----
     # CHOMP builds the opponent's Pokemon from flat population priors. These are the same species,
@@ -236,7 +236,7 @@ def build():
         "min_cell": MIN_CELL,
         "n_species_with_context_specific_sets": len(sets_out),
         "sets": sets_out,
-    }, open(D("data", "xatu-context-sets.json"), "w"), indent=1)
+    }, open(D("data", "xatu-context-sets.json"), "w"), indent=1, allow_nan=False)
     print(f"  exported context-specific movesets for {len(sets_out)} species -> data/xatu-context-sets.json")
 
     ce = out["cross_entropy"]; acc = out["top1_accuracy"]

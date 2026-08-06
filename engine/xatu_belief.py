@@ -223,7 +223,7 @@ def build():
                "tracked as possibility sets elsewhere; EVs never collapse to a value (only to an "
                "interval) and need a separate estimator."),
     )
-    json.dump(out, open(D("data", "xatu-belief.json"), "w"), indent=1)
+    json.dump(out, open(D("data", "xatu-belief.json"), "w"), indent=1, allow_nan=False)
 
     ce = out["cross_entropy"]; acc = out["top1_accuracy"]
     print(f"xatu_belief — {len(games)} games ({len(test)} held out), {n:,} move events, vocab {V}")

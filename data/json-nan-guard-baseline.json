@@ -1,0 +1,6 @@
+{
+  "unguarded": 0,
+  "note": "RATCHET: may fall, may never rise. See tests/test-json-nan-guard.js for why this exists.",
+  "updated": "2026-08-06",
+  "remaining": []
+}

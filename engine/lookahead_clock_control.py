@@ -208,7 +208,7 @@ def main():
         "caveat": "The clock forecast substitutes each row's outcome with the mean accuracy at its "
                   "turn index, which destroys any genuine lookahead signal by construction. So the "
                   "excess is a floor on the real information, not a point estimate of it.",
-    }, open(OUT, "w", encoding="utf-8"), indent=1)
+    }, open(OUT, "w", encoding="utf-8"), indent=1, allow_nan=False)
     print("\nwrote %s" % os.path.relpath(OUT, ROOT))
 
 

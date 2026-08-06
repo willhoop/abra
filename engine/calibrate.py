@@ -64,7 +64,7 @@ def main():
     print("  calibrated JOLTEON " + (", ".join(verdict) if verdict else "still does not beat baselines — needs the interaction term, not just calibration") + " in log-loss.")
     json.dump({'temperature': T, 'logloss': {'coin': ll_c, 'elo': float(ll_e),
               'uncal': float(ll_u), 'cal': float(ll_k)}},
-              open(os.path.join(HERE, '../data/calibration.json'), 'w'), indent=2)
+              open(os.path.join(HERE, '../data/calibration.json'), 'w'), indent=2, allow_nan=False)
     print("\nsaved temperature -> data/calibration.json  (apply logit/T in JOLTEON's predict path)")
 
 if __name__ == '__main__':

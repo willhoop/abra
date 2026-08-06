@@ -190,7 +190,7 @@ def main():
                "method": "within-matchup bring rate among winners vs losers; two-proportion z",
                "caveat": "brought is what the replay REVEALED and conditions on game length; species "
                          "are correlated so lift is marginal, not causal",
-               "by_opponent": report}, open(OUT, "w"), indent=1)
+               "by_opponent": report}, open(OUT, "w"), indent=1, allow_nan=False)
     print(f"\nwrote {os.path.relpath(OUT, ROOT)}")
 
 

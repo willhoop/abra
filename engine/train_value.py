@@ -202,7 +202,7 @@ def main():
     print("and the object self-play will keep improving. Point this at games.selfplay.jsonl to spin the flywheel.")
     json.dump({'w': [float(x) for x in w], 'mu': [float(x) for x in mu], 'sd': [float(x) for x in sd],
                'test_logloss': float(ll_v), 'test_brier': float(b_v)},
-              open(os.path.join(HERE, '../data/value-net.json'), 'w'), indent=2)
+              open(os.path.join(HERE, '../data/value-net.json'), 'w'), indent=2, allow_nan=False)
     print("\nsaved -> data/value-net.json")
 
 if __name__ == '__main__':

@@ -415,7 +415,35 @@ for (const a of ARTIFACTS) {
   if (!fs.existsSync(p)) { rows.push({ ...a, status: 'missing', notes: ['not generated'] }); continue; }
   const mt = fs.statSync(p).mtimeMs;
   let j = null;
-  try { j = JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) { /* mag.js is JS, not JSON */ }
+  /* A FILE THAT CANNOT BE PARSED IS NOT A FILE WITH NOTHING TO DECLARE. Those were the same `null`,
+   * and the difference is the whole point of this tool.
+   *
+   * `data/mag.js` is JavaScript and is EXPECTED to fail here, which is why the catch was empty. But
+   * the same empty catch swallowed a genuinely broken `.json`: on 2026-08-06 the first
+   * `porygon2-separation-gate.json` carried a bare `NaN` (Python's json.dump writes one by default
+   * and it is not valid JSON), so every declaration in it — including the artifact's own `void`
+   * flag, which exists precisely so a generator can condemn its own run — became invisible, and this
+   * file REPORTED IT `ok`. The tool whose job is to say which artifacts can be trusted was unable to
+   * read one and said nothing.
+   *
+   * UNPARSABLE is louder than UNSAFE, not equal to it. An UNSAFE artifact still tells you what it
+   * claims and you can judge it; an unparsable one tells you nothing at all, and every JS consumer
+   * downstream is already failing on it silently or falling back to a default. 27 of the 28 Python
+   * generators in engine/ can still emit this — see the ratchet in tests/. */
+  const expectJson = /\.json$/i.test(a.file);
+  let parseError = null;
+  try { j = JSON.parse(fs.readFileSync(p, 'utf8')); }
+  catch (e) { if (expectJson) parseError = (e && e.message) || String(e); }
+  if (parseError) {
+    rows.push({
+      ...a, status: 'bad', unparsable: true,
+      notes: ['UNPARSABLE — this is a .json file and JSON.parse throws on it: ' + parseError,
+              'Nothing in it can be checked, including a self-declared void. A bare NaN or Infinity '
+              + 'from a Python json.dump is the known cause; the generator needs allow_nan=False so '
+              + 'it RAISES where the maths went wrong instead of shipping a file nobody can open.'],
+    });
+    continue;
+  }
 
   const notes = [];
   /* VOID AND UNSAFE ARE DIFFERENT FINDINGS AND WERE THE SAME FLAG. A self-declared void is a recorded

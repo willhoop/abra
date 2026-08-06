@@ -201,7 +201,7 @@ def build():
         per_threat=per_threat,
         highest_coverage_tech_slots=tech_rows[:30],
     )
-    json.dump(out, open(D("data", "counterplay.json"), "w"), indent=1)
+    json.dump(out, open(D("data", "counterplay.json"), "w"), indent=1, allow_nan=False)
 
     print(f"counterplay.py - {len(games)} games, {n_sides} team-sides, {len(threats)} threats")
     print(f"  paired species: {len(pairs)}")

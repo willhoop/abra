@@ -280,7 +280,7 @@ def main():
                   "were dropped, not forced.",
         "the_gate_artifact_is_elsewhere": "data/rollout-r1.json, written by "
                   "engine/rollout_r1_artifact.js from data/rollout-r1-rows.jsonl.",
-    }, open(os.path.join(ROOT, "data", "rollout-r1-withdrawn-join.json"), "w", encoding="utf-8"), indent=1)
+    }, open(os.path.join(ROOT, "data", "rollout-r1-withdrawn-join.json"), "w", encoding="utf-8"), indent=1, allow_nan=False)
     print("\nwrote data/rollout-r1-withdrawn-join.json")
     if not validated:
         print("  withdrawn: true — this file is evidence of a failed join, not a gate result.")

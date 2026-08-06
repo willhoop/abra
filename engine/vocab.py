@@ -115,7 +115,7 @@ def build():
         items_top=sorted([dict(item=i, reveals=c) for i, c in reveal_it.items()],
                          key=lambda d: -d["reveals"])[:40],
     )
-    json.dump(out, open(D("data", "vocab-usage.json"), "w"), indent=1)
+    json.dump(out, open(D("data", "vocab-usage.json"), "w"), indent=1, allow_nan=False)
 
     print(f"vocab.py — {n_games} games, {total_move_events:,} move events")
     print(f"  distinct: {len(battle_mv)} moves, {len(reveal_ab)} abilities, {len(reveal_it)} items")

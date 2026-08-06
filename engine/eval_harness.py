@@ -225,7 +225,7 @@ def main():
            'power': pw,
            'logloss': {'coin': ll_c, 'elo': float(ll_e), 'usage': float(logloss(p_use,y)), 'jolteon': float(ll_j)},
            'brier': {'coin': float(brier(p_coin,y)), 'elo': float(brier(p_elo,y)), 'jolteon': float(brier(p_jolt,y))}}
-    json.dump(out, open(os.path.join(HERE, '../data/eval-report.json'), 'w'), indent=2)
+    json.dump(out, open(os.path.join(HERE, '../data/eval-report.json'), 'w'), indent=2, allow_nan=False)
     print("\nsaved -> data/eval-report.json")
 
 if __name__ == '__main__':

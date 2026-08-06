@@ -106,7 +106,7 @@ res={
      "note":"per-game prediction is expected near the coin (format ceiling); GURU's VALUE is the validated matchup STRUCTURE below."},
   "matrix":matrix,
 }
-json.dump(res,open(OUT,"w"),indent=2)
+json.dump(res,open(OUT,"w"),indent=2, allow_nan=False)
 print(f"GURU: {len(rows)} games, {len(names)} archetypes, {len(decisive)} statistically-decisive matchups (n>=30, CI excludes 50%)")
 for d in decisive[:8]:
     print(f"  {d['a']:22s} beats {d['b']:22s} {d['p']*100:4.0f}%  CI[{d['ci'][0]*100:.0f}-{d['ci'][1]*100:.0f}]  n={d['n']}")

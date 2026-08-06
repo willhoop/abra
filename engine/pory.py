@@ -306,9 +306,9 @@ def main():
             "rows, so their weights come out exactly antisymmetric and fold into alive_diff. Five "
             "features, two degrees of freedom, and no amount of extra data changes that.",
     }
-    json.dump(out,open(os.path.join(ROOT,"data","pory-eval.json"),"w"),indent=2)
+    json.dump(out,open(os.path.join(ROOT,"data","pory-eval.json"),"w"),indent=2, allow_nan=False)
     with open(os.path.join(ROOT,"data","pory.js"),"w") as f:
-        f.write("window.PORY="+json.dumps({"weights":out["weights"],"mean":out["feat_mean"],"std":out["feat_std"],"features":out["features"]},separators=(",",":"))+";\n")
+        f.write("window.PORY="+json.dumps({"weights":out["weights"],"mean":out["feat_mean"],"std":out["feat_std"],"features":out["features"]},separators=(",",":"), allow_nan=False)+";\n")
     print(f"PORY: {ng} games -> {len(Y)} board-states (test {int(te.sum())})")
     print(f"  log-loss: PORY {out['log_loss']['pory']} (CI {out['log_loss']['pory_ci95']}) | coin {out['log_loss']['coin']} | material-heuristic {out['log_loss']['material_heuristic']}")
     print(f"  Brier {out['brier']['pory']} vs coin 0.25 | accuracy {out['accuracy']*100:.1f}% | ECE {out['ece']}")

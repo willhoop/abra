@@ -199,7 +199,7 @@ def build():
                 "not settled wins. It sharpens as more games arrive."),
         leaders=war[:30], trailers=war[-15:],
     )
-    json.dump(out, open(D("data","war.json"),"w"), indent=1)
+    json.dump(out, open(D("data","war.json"),"w"), indent=1, allow_nan=False)
 
     print(f"war.py — {len(games)} games, {K} species (>= {MIN_GAMES} appearances)")
     print(f"  held-out log-loss {ll:.4f} vs coin {LN2:.4f}  acc={acc:.3f}  (replacement beta {repl:+.3f})")

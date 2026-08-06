@@ -657,7 +657,7 @@ def build():
     dex_out["capability"] = {m: sorted(rs) for m, rs in sorted(capability.items()) if rs}
     dex_out["capability_from"] = {m: cap_src[m] for m in sorted(cap_src) if cap_src[m]}
 
-    json.dump(dex_out, open(D("data","pokemon-roles.json"),"w"), indent=1)
+    json.dump(dex_out, open(D("data","pokemon-roles.json"),"w"), indent=1, allow_nan=False)
     _sys.stderr.write(
         f"  capability layer: {len(dex_out['capability'])} species reachable "
         f"({len(dex)} tagged from replays)\n")
@@ -665,7 +665,7 @@ def build():
     mm_out = dict(generated=dex_out["generated"], n_games=n_games,
                   roles={r: ROLE_SIGNALS[r]["label"] for r in ROLES},
                   role_present=dict(role_present), matrix=matrix)
-    json.dump(mm_out, open(D("data","role-matchups.json"),"w"), indent=1)
+    json.dump(mm_out, open(D("data","role-matchups.json"),"w"), indent=1, allow_nan=False)
 
     eval_out = dict(
         generated=dex_out["generated"], n_games=n_games,
@@ -678,7 +678,7 @@ def build():
         ko_credit_top=credit[:40],        # per-species KO attribution
         pooling=pooling,
     )
-    json.dump(eval_out, open(D("data","roles-eval.json"),"w"), indent=1)
+    json.dump(eval_out, open(D("data","roles-eval.json"),"w"), indent=1, allow_nan=False)
 
     # ---------------------------------------------------------------- console
     print(f"roles.py — {n_games} games, {len(dex)} species tagged, {len(ROLES)} roles")

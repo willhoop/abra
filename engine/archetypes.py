@@ -215,7 +215,7 @@ def main():
         "archetypes": arches,
     }
     with open(OUT, "w", encoding="utf-8") as f:
-        json.dump(out, f, indent=2)
+        json.dump(out, f, indent=2, allow_nan=False)
     print(f"{total} teams | K={k} (silhouette {sil:.3f}) | {len(arches)} archetypes kept")
     for a in arches:
         print(f"  {a['w_usage']*100:4.1f}%  {a['n']:16s} {a['core']}")

@@ -128,7 +128,7 @@ live={'games':games,'turns':turns,'dmgProfiles':_pairsN,
       'turnsPerGame':cleanTurns,
       'usablePct':(round(100.0*usable/games,1) if usable and games else None),
       'updated':datetime.date.today().isoformat(),'archetypes':arch}
-open(P('data','live.js'),'w',encoding='utf-8').write('window.LIVE='+json.dumps(live,separators=(',',':'))+';\n')
+open(P('data','live.js'),'w',encoding='utf-8').write('window.LIVE='+json.dumps(live,separators=(',',':'), allow_nan=False)+';\n')
 
 # 3) bundle recent replays for offline KADABRA
 recent=rawrows[-40:]
@@ -142,8 +142,8 @@ def players(log):
 m={r['id']:r['log'] for r in recent}
 idx=[{'id':r['id'],'label':players(r['log'])} for r in recent]
 with open(P('data','kad-replays.js'),'w',encoding='utf-8') as f:
-    f.write('window.KAD_REPLAYS='+json.dumps(m,separators=(',',':'))+';\n')
-    f.write('window.KAD_INDEX='+json.dumps(idx,separators=(',',':'))+';\n')
+    f.write('window.KAD_REPLAYS='+json.dumps(m,separators=(',',':'), allow_nan=False)+';\n')
+    f.write('window.KAD_INDEX='+json.dumps(idx,separators=(',',':'), allow_nan=False)+';\n')
 
 # 4) keep app/ copy of the site in sync is handled elsewhere; copy data files next to app too
 print(f'refreshed: {games} games, {turns} turns, {len(pairs)} move-dmg pairs, {len(arch)} archetypes, {len(m)} bundled replays')

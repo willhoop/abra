@@ -234,7 +234,7 @@ def main():
         caveat=("Reconstruction error falls monotonically with rank by construction and cannot select "
                 "it; it is reported beside stability, not instead of it. This selects a rank, it does "
                 "not name the factors, and it makes no claim that the selected rank is 'true'."),
-    ), open(OUT, "w", encoding="utf-8"), indent=1)
+    ), open(OUT, "w", encoding="utf-8"), indent=1, allow_nan=False)
     print(f"\nwrote {os.path.relpath(OUT, ROOT)}")
 
 

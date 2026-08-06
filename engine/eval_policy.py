@@ -153,7 +153,7 @@ def main():
     improved = res["phase_conditioned_clone"]["cross_entropy_nats"] < res["species_only_clone"]["cross_entropy_nats"]
     res["verdict"] = ("phase-conditioning improved the clone (lower CE); shipped as the policy prior"
                       if improved else "phase-conditioning did not help; species-only prior retained")
-    json.dump(res, open(OUT, "w"), indent=2)
+    json.dump(res, open(OUT, "w"), indent=2, allow_nan=False)
     s0, sp = res["species_only_clone"], res["phase_conditioned_clone"]
     print(f"scored {N} held-out clicks over {len(test_g)} games (skipped {skipped} thin-prior)")
     print(f"  species-only:      top-1 {s0['top1_accuracy']*100:.1f}%  top-3 {s0['top3_accuracy']*100:.1f}%  CE {s0['cross_entropy_nats']}")

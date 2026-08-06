@@ -242,7 +242,7 @@ def main():
                   "here, because that guarantee needs the true value of a policy and PORY is an "
                   "arbitrary approximation. A small number here is decisive against building the "
                   "search; a large one is permission to try, not a promise.",
-    }, open(OUT, "w", encoding="utf-8"), indent=1)
+    }, open(OUT, "w", encoding="utf-8"), indent=1, allow_nan=False)
     print("\nwrote %s" % os.path.relpath(OUT, ROOT))
 
 

@@ -526,7 +526,7 @@ def main():
                           "Flat. The ceiling is the FEATURE SET, not the sample size: adding data is "
                           "not the lever, adding what a position vector can see is."), flush=True)
         print("", flush=True)
-        json.dump(curve, open(os.path.join(ROOT, "data", "porygon2-curve.json"), "w"), indent=1)
+        json.dump(curve, open(os.path.join(ROOT, "data", "porygon2-curve.json"), "w"), indent=1, allow_nan=False)
 
     rows = []
     rows.append(("coin", np.full(len(Yh_e), 0.5)))
@@ -574,7 +574,7 @@ def main():
                   "play the neighbourhoods are unrepresentative and the lookup is confidently wrong; "
                   "that is why the evaluation set is HUMAN. A large gap between self-play holdout and "
                   "human holdout would be distribution shift, and the human number is the one to trust.",
-    }, open(OUT, "w", encoding="utf-8"), indent=1)
+    }, open(OUT, "w", encoding="utf-8"), indent=1, allow_nan=False)
     print("\nwrote %s" % os.path.relpath(OUT, ROOT))
 
 
