@@ -283,6 +283,19 @@ const RAW = /\.(ability|baseStats|weighthg|weightkg)\b/g;
  * #40b — it read the PRE-mega ability to decide whether a mon is a weather setter, and a mega's
  * weather ability is precisely what differs from its base). It was fixed rather than declared. */
 const DECLARED = {
+  'tests/regulation_usage.js':
+    'Two reads, and both are of a STORED SHEET ENTRY — `s.ability` off `g.sheets[side][i]` and off '
+    + '`g.sets[species]`, which are what the open team sheet declared at preview and what the '
+    + 'extractor inferred from a closed-sheet replay. That is precisely the pre-mega ability, and it '
+    + 'is this test\'s own stated legitimate case. It is correct BY CONSTRUCTION rather than by '
+    + 'inspection: the file never builds, loads or touches a live Pokemon at all — it opens '
+    + 'data/games.ladder.jsonl, counts strings, and returns maps of id -> integer. There is no body '
+    + 'for effAbility() to resolve and no dex is loaded. AND THE PRE-MEGA ONE IS THE ANSWER THE '
+    + 'QUESTION WANTS: it is computing how much USAGE each ability carries, and a Charizard that '
+    + 'megas into Drought on turn one still had Blaze declared — docs/ENGINE.md records Blaze reading '
+    + '4,585 uses for exactly that reason. Resolving to the effective ability here would move usage '
+    + 'off the declared abilities and onto the mega ones, which is a different measurement from the '
+    + 'one tests/test-medicham-coverage.js asks for. Written 2026-08-06.',
   'engine/dusk_size_gate.js':
     'One read, and it is this test\'s own stated legitimate case. The DUSK size gate counts how many '
     + 'DISTINCT 1v1 positions a tablebase would need, and the axis it counts along is the DECLARED '

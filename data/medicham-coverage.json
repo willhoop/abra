@@ -1,0 +1,62 @@
+{
+ "generated": "2026-08-06T18:50:56.633Z",
+ "by": "tests/test-medicham-coverage.js",
+ "what": "Will's 99%-of-usage coverage target plus the certainty-to-failure carve-out. Every number here is RATCHETED DOWNWARD: it may fall and may never rise. Re-stamp only after looking at why it moved — a rise is work owed whether it came from a regression or from the metagame bringing in something nobody has probed.",
+ "corpus": {
+  "bytes": 201369171,
+  "mtime": 1786032136458.9226
+ },
+ "coverFraction": 0.99,
+ "weighted": {
+  "move": {
+   "usageInSet": 1843490,
+   "tagged": 0.993940840471063,
+   "probed": 0.9847474084481066,
+   "live": 0.9672816234424922,
+   "armed": 0.6307704408486078
+  },
+  "ability": {
+   "usageInSet": 185393,
+   "tagged": 0.986774042169877,
+   "probed": 0.9353157886220084,
+   "live": 0.933195967485288,
+   "armed": 0.8176144730383563
+  },
+  "item": {
+   "usageInSet": 170491,
+   "tagged": 0.9988914370846554,
+   "probed": 0.997407487785279,
+   "live": 0.997407487785279,
+   "armed": 0.5876263263163451
+  }
+ },
+ "ratchet": {
+  "noTag": 14,
+  "noTagNonMove": 12,
+  "noProbe": 17,
+  "notLive": 3,
+  "notArmed": 62,
+  "carveNotOk": 0,
+  "carveNoProbeOrDead": 0,
+  "noProbeKeys": [
+   "ability|amplifiesBoosts",
+   "ability|auraBoost",
+   "ability|boostsFromFallen",
+   "ability|randomBoostEachTurn",
+   "ability|survivesFromFull",
+   "ability|switchInForme",
+   "ability|terrainSetter",
+   "item|accuracyMod",
+   "move|accuracyMod",
+   "move|dualPurpose",
+   "move|instructsTarget",
+   "move|ohko",
+   "move|passesState",
+   "move|punishesBoostedTarget",
+   "move|readsOwnItem",
+   "move|substitute",
+   "move|swapsAbilities"
+  ],
+  "carveNotOkKeys": []
+ }
+}

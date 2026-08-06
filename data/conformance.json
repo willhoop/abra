@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-06T04:53:24.353Z",
+ "generated": "2026-08-06T19:12:42.072Z",
  "by": "engine/conformance.js",
- "files": 299,
+ "files": 307,
  "findings": [
   {
    "std": "convention",
@@ -435,6 +435,22 @@
    ]
   },
   {
+   "std": "S12",
+   "file": "build/strong_player_baseline.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "build/strong_player_baseline.js",
+   "what": "names 2 Pokemon thing(s) in code: move:protect, move:detect",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:detect",
+    "move:protect"
+   ]
+  },
+  {
    "std": "convention",
    "file": "tests/test-dynamics.js",
    "what": "header is one line",
@@ -541,6 +557,12 @@
   },
   {
    "std": "S13",
+   "file": "data/dusk-size-gate.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
    "file": "data/engine-release.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
@@ -566,6 +588,12 @@
   {
    "std": "S13",
    "file": "data/jolteon-weights.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/json-nan-guard-baseline.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
   },

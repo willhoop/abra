@@ -10,6 +10,89 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.55.0] — 2026-08-06
+
+### Fixed
+- **WIRE 128 — the battle loop and the damage calculator had two different answers to three
+  questions, and all three probes were GREEN because they only ever asked the half that was right.**
+  Measured before a line of engine changed:
+
+  | | `dmgRange` said | a real turn dealt |
+  |---|---|---|
+  | Scrappy Incineroar, Body Slam → Gengar | **88** | **0** |
+  | Mold Breaker Tinkaton, Earthquake → Levitate | **60** | **0** |
+
+  Three gates inside `battleTurn` were each a second implementation of a fact `dmgRange` already
+  owned: the type gate was a bare `mcEff(...)` that knew nothing about Scrappy, Mind's Eye or
+  Freeze-Dry's `overridesEffectiveness`; the absorb gate read `tg.ability` raw, so a Mold Breaker was
+  absorbed by ten `breakable` abilities; and `moveClassBlocked()` read it raw while `dmgRange` carried
+  its own private copy that did not.
+  **Consequence: every Scrappy Normal-or-Fighting click into a Ghost dealt zero, in every rollout and
+  every self-play game this engine has ever run.** One owner each now — `suppressedAbility`,
+  `typeEffAgainst`, `absorbedBy` — and all ten `moveClassBlocked` call sites pass the attacker.
+
+### Added
+- **`tests/test-medicham-coverage.js` — Will's bar is now a gate rather than a sentence.** It names
+  no entity; `tests/regulation_usage.js` derives the 99%-of-usage set at runtime, so a threshold
+  cannot go stale when the metagame moves. Red-proven: `--selftest` plants three faults and all three
+  are rejected.
+  **It reads the UNION of the raw and clean corpora, and the first version was wrong about why** —
+  `engine/selftest.js` caught the new file, and measuring showed the raw corpus sees *more* entities
+  while demanding a *smaller* prefix (abilities: raw asks 78, clean asks 98). Picking either alone
+  would have quietly relaxed the bar.
+- **`directCall` is a first-class census field**, computed structurally from each probe's own source,
+  printed with offenders named, and **ratcheted downward** — the thing #42 said `unarmed` could never
+  be.
+- **Two Stadium cabinets, GARY and DUSK**, closing a gate that went red *because* those two models
+  were added to the ledger this session.
+
+### Notes — the arming pass is done and the numbers moved a long way
+```
+                        session start      now
+direct-call probes            47             0      every probe spends a real turn or entry
+unarmed                      145            76
+armed                         74           145
+red demonstrations            35            65      0 failed
+mechanics live           216/219        218/221
+```
+**Usage-weighted armed coverage**, over 807 entities with any usage, 495 in the union 99% set:
+
+| | LIVE | ARMED |
+|---|---|---|
+| moves (288) | 96.7% | **63.1%** — was 9.2% |
+| abilities (98) | 93.3% | **81.8%** |
+| items (109) | 99.7% | **58.8%** |
+
+**The carve-out is 17 of 17 live and armed** — the things that turn a certainty into a failure, armed
+regardless of usage, which was the condition attached to the 99% target.
+
+### Notes — three probes were wrong before the engine was, and that is now thirty-six
+Arms 34, 35 and 36: a burn-chip confound, a Thunder fired at a Ground type, and an "ally holds it"
+arm that was the same body relabelled. Nine further probes were tightened — `Sacred Sword` had been
+accepting what an engine ignoring *all* stat stages would print, and `privateWeather` asserted its
+"private" half **in a comment**.
+
+### Notes — corrections to my own instructions, recorded because both were wrong in the same way
+- **I told WEB that DUSK's cell counts (1v1 = 16, 2v1 = 96, 2v2 = ~1,296) trace to
+  `data/dusk-size-gate.json`. They do not.** I derived them in conversation; they live in
+  `docs/ROADMAP.md` §5.4, and `~5,738` is `docs/SEARCH.md`'s. WEB checked each against the JSON,
+  found the mismatch, and cited them where they actually live. `grep 1296 data/dusk-size-gate.json`
+  returns one hit and it is a coverage percentile.
+- **`docs/MODELS.md`'s DUSK entry still says the size question is "NOT MEASURED".** The gate answered
+  it at 06:49 the same day. The cabinet quotes the artifact rather than the ledger, which is the
+  right precedence and the wrong reason to need it.
+
+### Notes — routed, not fixed
+- `docs/MODELS.md`'s MACHAMP entry says *"2 of 6 generations on a 17-FEATURE vector"* and *"the
+  vector is now 48"*; `data/ladder.json` records `gensRequested: 8`, 2 generations, **48** features,
+  and `data/policy-weights.json` is **58**.
+- `docs/MODELS.md`'s MEDICHAM entry quotes 1,634 live / 1,614 agree; the artifact reads
+  **1,643 / 1,624**.
+- **A concurrent writer was active during the arming pass** and both agents said so unprompted.
+  `tests/test-stadium-roster.js` flipped FAIL→PASS between two runs of a suite that was not editing
+  it. Nothing overlapped, but **a `run-all` taken while another agent is writing is not a
+  photograph** — the same lesson as the frozen release, one level up.
+
 ## [3.54.0] — 2026-08-06
 
 ### Fixed — three real bugs, every one of them under a probe the census graded LIVE

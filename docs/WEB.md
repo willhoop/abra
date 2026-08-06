@@ -18,7 +18,7 @@ rather than tools:
 | Page | What it is | State |
 |---|---|---|
 | `web/index.html` | **ABRA WORLD** — the Champions modelling town. The front door. | live |
-| `web/stadium.html` | **ABRA STADIUM** — model select screen, one **playable minigame** per model. 13 cabinets; GURU added 2026-08-04. Each cabinet is the Pokémon's identity and the model's real finding at the same time: Wobbuffet is a punching bag that returns your hit harder, Miltank's Rollout grows every lap and drops the 777 unscorable pairs through a trapdoor, Doduo's two heads can be aimed apart to waste the turn, Machamp's bar cannot be lifted. | rebuilt 2026-08-04 |
+| `web/stadium.html` | **ABRA STADIUM** — model select screen, one **playable minigame** per model. 15 cabinets; GURU added 2026-08-04, GARY and DUSK 2026-08-06. Each cabinet is the Pokémon's identity and the model's real finding at the same time: Wobbuffet is a punching bag that returns your hit harder, Miltank's Rollout grows every lap and drops the 777 unscorable pairs through a trapdoor, Doduo's two heads can be aimed apart to waste the turn, Machamp's bar cannot be lifted. | rebuilt 2026-08-04 |
 | `web/models.html` | the model map — inputs and outputs per model | live |
 | `web/scoreboard.html` | watch MAG think | live |
 | `web/tower.html` / `web/futuresight.html` | ALAKAZAM's Battle Tower | live |
@@ -41,8 +41,9 @@ guard is covered the moment the file lands and there is no list to forget to edi
 pass recorded that `test-web-figures.js` was unregistered; it never was. Only the engine-side gates
 are hand-listed, because other tooling imports them and they cannot be globbed out of `tests/`.
 
-**What counts as a MODEL, for the roster guard's third direction.** 57 store-derived generators
-against 13 cabinets is a large gap and most of it is legitimate — a build script is not a model. The
+**What counts as a MODEL, for the roster guard's third direction.** 88 generators (70 of the 103
+artifacts counted off the game store) against 15 cabinets is a large gap and most of it is
+legitimate — a build script is not a model. The
 exception list is the dangerous half, so the rule is written down in the test rather than remembered:
 
 > A generator is a **MODEL** when its artifact states something about **Champions** — the game, its
@@ -262,6 +263,22 @@ roster, which is what the Open item below used to ask for.
   `data/pory-nn.json` declares 6,008 games against 7,228 clean now (16.9% corpus drift), and
   `data/engine-data.js` is a day behind `build/rebuild_sets_from_sheets.js`. Routed, not filed:
   the first is MEASURE, the second is OPS/ENGINE's bundle rebuild.
+- **THE MODEL MAP'S DUSK BOX WAS CONTRADICTED BY AN ARTIFACT THAT LANDED THE SAME DAY IT WAS DRAWN.
+  Fixed 2026-08-06.** The box read *"planned — table SIZE not yet measured"* and named DUSK as the
+  route that gets the Python Nash solver to the JavaScript bot. `engine/dusk_size_gate.js` then
+  measured the size and moved BOTH claims: the table is **TOO BIG**, and `docs/SEARCH.md` retires
+  the bridge argument in the same breath — *"that justification is gone … #41 should not be argued
+  for on DUSK's back."* The box now leads with the **reach rate**, because it kills the tablebase
+  independently of the size (16.42% of games reach 1v1, 45.93% reach 2v1, both read off
+  `data/dusk-size-gate.json`), and the language-boundary strip says *"DUSK was the bridge — the
+  table is TOO BIG"* instead of asserting the bridge. This is the third page-versus-artifact drift
+  this room has had in two days and all three had the same shape: a sentence that was true when it
+  was typed.
+- **`docs/MODELS.md`'s own DUSK entry still predates its gate**, and it is not this division's file.
+  The entry says the size question is *"NOT MEASURED — and that number decides whether DUSK is a
+  weekend or a year (#40)"*; `data/dusk-size-gate.json` answered it at 06:49 the same day and
+  `docs/SEARCH.md` carries the whole verdict. The Stadium cabinet therefore quotes the **artifact**
+  and not the ledger. **Routed to MEASURE, not fixed here.**
 - **`data/mechanics-census.json` moved three times during one WEB pass** — 102/144, then 107/147,
   then 108/148 within about an hour. The Stadium's MEDICHAM card carries the current value and says
   out loud that it moves. A page that hardcodes a live census will always be a little behind; the
@@ -282,27 +299,44 @@ roster, which is what the Open item below used to ask for.
   and `tower.html` cites `data/damage-validation.json` and takes its species count off
   `data/engine-data.js` instead of a typed 289. The eight left on the front door are the ones with
   no artifact behind them at all, not ones missing a citation.
-- **`tests/test-stadium-roster.js` IS RED RIGHT NOW, on two things, and neither is the five it used
-  to be red on.** *(The five — `analyze.js`, `porygon2.py`, `state_encoder.py`, `derive_sets.js`,
-  `counters.py` — were closed the right way by MEASURE, with ledger entries. That half is done.)*
-  Re-measured 2026-08-06, 13 cabinets against 36 ledger headings and 88 generators:
+- **`tests/test-stadium-roster.js` WAS RED ON TWO THINGS AND IS NOW ALL PASS. Closed 2026-08-06**,
+  15 cabinets against 36 ledger headings and 88 generators. *(The five it used to be red on —
+  `analyze.js`, `porygon2.py`, `state_encoder.py`, `derive_sets.js`, `counters.py` — were closed the
+  right way by MEASURE, with ledger entries, and that half was already done.)*
 
-  1. **GARY and DUSK have `docs/MODELS.md` headings and no Stadium cabinet.** Both were added to the
-     ledger on 2026-08-06 by another division. Neither can be given a truthful `NOT_A_CABINET` entry:
-     GARY decides the imagined opponent's move on every rollout turn, and DUSK is scoped. **The
-     honest fix is two cabinets, which is a distinct piece of WEB work** — one verb, canvas art, a
-     receipt line each, on a 114 KB page that has already shipped dead once from a quoting error. It
-     is named here rather than filed, and it is the next thing this division should be asked for.
-  2. **Three generators are in neither file and in no exception table** —
-     `build/strong_player_baseline.js` → `data/strong-player-baseline.json`,
-     `engine/dusk_size_gate.js` → `data/dusk-size-gate.json`,
-     `engine/porygon2_separation_gate.py` → `data/porygon2-separation-gate.json`. All three landed
-     today from divisions still working. Two read as GATE-class by the rule above (a declared-
-     threshold check on OUR OWN search and OUR OWN value function), and the third is genuinely
-     borderline — `strong_player_baseline.js` publishes whether measured move quality rises with
-     rating, which is a statement about Champions PLAYERS as well as a justification for our own
-     corpus rule. **Guessing wrong here writes a false judgement into the exception table**, which
-     is the one thing that table must never carry, so it is routed to MEASURE rather than declared.
+  1. **GARY and DUSK now have cabinets**, because neither could take a truthful `NOT_A_CABINET`
+     entry — GARY decides the imagined opponent's move on every rollout turn and DUSK is scoped.
+     **GARY** (`SHIPS OFF`, quarantine colour, no sprite) is a spinner over each foe slot: press
+     TAKE THEIR TURN and the move is drawn from four equal sectors, the target from a second wheel,
+     and the two slots are drawn separately, so the caption reads *"BOTH HIT ONE SLOT — BY LUCK, NOT
+     BY PLAN"* when they collide. The secondary button swaps the move wheel for the behaviour clone
+     and stamps it **SHIPS OFF** — the toggle exists, and the target wheel deliberately does not
+     change, because in `rollout_leaf.js` it does not either. **DUSK** (`PLANNED`, slate, no sprite)
+     draws four squares whose **area is the cell count** — 1v1, 2v1, 2v2 and a whole turn — so the
+     comparison is the drawing rather than a caption on it; SOLVE IT walks up the ladder and the
+     fourth press draws Will's retrograde step, a 3v2 feeding into two cells of a solved 2v2. Its
+     secondary button is the retired plan: BUILD THE TABLE runs off the end of its own declared
+     ceiling and stamps **TOO BIG**. Both statuses are new (`off`, `planned`) rather than folded
+     into `stale`: a model that ran and aged is not the same thing as one that has never been
+     switched on, or never built.
+  2. **The three generators are declared, each with its own reason** — a shared reason would have
+     been the shape-based excuse this table forbids. `engine/dusk_size_gate.js` and
+     `engine/porygon2_separation_gate.py` are GATE-class outright: their artifacts state how big
+     **our** table would be and whether **our** value function separates, against ceilings that are
+     a GitHub file limit, a V8 heap budget and this project's own 0.43-point split-half floor —
+     none of which is a fact about Champions. `build/strong_player_baseline.js` is **the borderline
+     one and the caveat is written into the declaration**, so the next reader can reverse the call
+     with the reasoning visible: its headline is that our own per-turn realism metric cannot
+     separate the rating bands it was built to separate, which is a statement about the power of our
+     instrument — but it also publishes real Champions-facing material (species usage at four Smogon
+     cutoffs, the within-species build gradient) whose home is `docs/MEASURE.md` §19a-d, and if
+     anything is ever built that DECIDES off that gradient the declaration is wrong and owes
+     `docs/MODELS.md` an entry instead.
+  3. **`BRING PRIORS` now carries its own expiry.** It is declared off the rack because the thing
+     that would draw on it is GARY and GARY's default is the coin — a reason with a known end date,
+     so the `TRIGGER` is written into the declaration text and into `web/models.html`'s own
+     *not on this map* note rather than left to be noticed. `tests/test-model-map.js` already
+     carried it; the roster guard and the page did not.
 - **Owed and not written by this division:** `CHANGELOG.md`, the white paper, the deck, the
   technical docs and `docs/SUMMARY.md` all still describe the pre-2026-08-04 state of the site.
   WEB's boundary is `web/`, `app/`, this file and its own tests.

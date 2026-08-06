@@ -1,6 +1,6 @@
 # ABRA — Technical Documentation
 
-**Version 3.54.0 · Last updated 2026-08-06**
+**Version 3.55.0 · Last updated 2026-08-06**
 
 **Change record for 3.47.0.** Two artifacts were computed from an engine that then changed. Do not
 quote such an artifact. First measure whether the change moved the feature function: run every

@@ -3,7 +3,8 @@
 **Owns:** `engine/medicham2-browser.js`, `engine/tag_dex.js`, `data/abra-tags.js`,
 `tests/test-mechanics.js`, `tests/walk_tags.js`, `tests/test-engine-diff.js`,
 `tests/test-game-diff.js`, `tests/interaction_matrix.js`, `tests/test-interaction-matrix.js`,
-`tests/mechanics_rank.js`, `tests/mutation_harness.js`, `tests/test-mutation-coverage.js`
+`tests/mechanics_rank.js`, `tests/mutation_harness.js`, `tests/test-mutation-coverage.js`,
+`tests/test-medicham-coverage.js`, `tests/regulation_usage.js`, `tests/probe_red_demo.js`
 
 **Five instruments, and none substitutes for another:**
 
@@ -24,16 +25,16 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  218/221 probed mechanics live, 3 missing   (census 2026-08-06 08:07)
+  218/221 probed mechanics live, 3 missing   (census 2026-08-06 19:07)
   missing:
-    move    needsTargetToAttack    Avalanche doubles after being hit
+    move    needsTargetToAttack    Avalanche doubles after the target hits it this turn
     ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll
     ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit
-  1/150 differential comparisons disagree with Showdown   (2026-08-06 08:08)
+  1/150 differential comparisons disagree with Showdown   (2026-08-06 19:02)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 08:01)
+  interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 18:42)
     2300 of 8795 theoretical pairs staged — agreement is a claim about the 2300 that ran, not about the 8795
       530 inert      not scored — the reference engine behaves identically with and without the reactor
       109 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
@@ -48,7 +49,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 156/181 probed, 25 unprobed
 ```
 
-_stamped 2026-08-06 08:10_
+_stamped 2026-08-06 19:10_
 
 <!-- /GENERATED -->
 
@@ -61,6 +62,262 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
+
+## THE DIRECT-CALL COUNT REACHED ZERO, AND THE LAST NINE CONVERSIONS FOUND WIRE 128. 2026-08-06.
+
+Census **218 live / 221 probed**, unchanged; missing still 3 (the same three), hollow 0, `threw` 0.
+**`directCall` 37 → 0** and it is now a FIELD IN THE CENSUS, computed structurally and ratcheted.
+`unarmed` **116 → 76**. `tests/probe_red_demo.js` **38 → 65 demonstrations, 0 failed**. Differential
+unchanged at **1/150** (the same pre-existing `chesnaught woodhammer -> mimikyu` row, the same 11 not
+comparable, accuracy conformance 500/500). `tests/test-game-diff.js` agrees on every turn of all five
+scripted games. The interaction matrix re-run at `--full` against the changed engine is
+**byte-for-byte unchanged**: 1,624/1,643 live pairs agree (98.8%), the same 530 inert / 109 saturated
+/ 16 ko-timing / 2 threw / 53 off-gate. `engine/feature_fixture.js --check` is **CLEAN — all 58
+columns hash-identical to fit time**, so no refit is owed.
+
+**The generated block at the top of this file is one census behind**, because this pass was
+dispatched under an explicit instruction not to run `engine/status.js --write`. **THE RESTAMP IS
+OWED**; the artifacts already say the right thing.
+
+### WIRE 128 — THE BATTLE LOOP AND THE DAMAGE CALC HAD TWO DIFFERENT ANSWERS TO THREE QUESTIONS
+
+Found by converting `ignoresTypeImmunity`, `ignoresDefenderAbility` and `immuneToMoveClass`, which
+are the three probes on the ranked list that ask about an ATTACKER changing a DEFENDER's refusal.
+All three were green. All three were asking `dmgRange`, which was the half that was already right.
+
+Measured before a line of engine changed, both arms printed:
+
+| | `dmgRange` said | a real turn dealt |
+|---|---|---|
+| Scrappy Incineroar, Body Slam → Gengar | **88** | **0** |
+| Mold Breaker Tinkaton, Earthquake → a Levitate body | **60** | **0** |
+| Mold Breaker Tyranitar, Rock Blast → Bulletproof | (blocked at the calc too) | blocked |
+
+Three separate gates in `battleTurn`, each a second implementation of a fact `dmgRange` already owned:
+
+- the stage-5 type gate was a bare `mcEff(effMoveType(...), tg.types)`. It knew nothing about
+  **Scrappy / Mind's Eye** (so every Normal and Fighting click from a Scrappy body into a Ghost dealt
+  zero in every rollout and every self-play game this engine has ever run) and nothing about
+  **Freeze-Dry / Thousand Arrows**' `overridesEffectiveness`, which can turn a chart zero into a hit.
+- the absorb gate read `tg.ability` **raw**, so a Mold Breaker, Teravolt or Turboblaze click was
+  absorbed by Levitate, Volt Absorb, Water Absorb, Flash Fire, Sap Sipper, Motor Drive, Earth Eater,
+  Well-Baked Body, Lightning Rod and Storm Drain — every one of which Showdown marks `breakable`.
+- `moveClassBlocked()` read `tg.ability` raw as well, while **dmgRange carried its own private copy
+  of the same check** that used the suppressed ability. Two implementations of one rule, in one file,
+  already disagreeing.
+
+Three functions now, one owner each — `suppressedAbility`, `typeEffAgainst`, `absorbedBy` — and
+`dmgRange`'s inline `immuneToMoveClass` block is deleted in favour of `moveClassBlocked(def, id, att)`.
+Every one of the ten `moveClassBlocked` call sites in the file now passes the acting mon.
+
+**THE SUPPRESSION SET WAS PRINTED BEFORE IT WAS TRUSTED, per docs/LESSONS.md 4.** Every ability in
+`data/tags.json` carrying `typeImmunity` or `immuneToMoveClass` was checked against
+`Dex.forFormat('gen9championsvgc2026regmb')` at the pinned commit `20ad99ff`: **32 of 35 relevant
+abilities are `breakable`, and all of the typeImmunity and immuneToMoveClass carriers are.** So the
+fix cannot over-match on the two gates it touches. **The three that are NOT breakable —
+`prismarmor`, `shadowshield`, `ripen` — all carry `damageReduce`, which `dmgRange` was ALREADY
+suppressing before this pass. That is a pre-existing over-match, it is FILED below, and it is latent:
+Prism Armor and Shadow Shield have zero corpus usage and Ripen has 14.**
+
+`tests/probe_red_demo.js` gained three source-reverted demonstrations, one per gate, each reverting
+exactly the one argument that carries the attacker and nothing else. Each asserts its control in
+BOTH engines, so "Scrappy landed" cannot be reached by an engine that stopped enforcing
+Normal-into-Ghost altogether.
+
+### `directCall` IS A CENSUS FIELD NOW, AND IT IS THE RATCHET
+
+`unarmed` falls as paperwork and says nothing about coverage. `directCall` only falls when a probe
+starts spending a real turn, which is the class of probe that can catch a wiring bug — and WIRE 123,
+WIRE 126 and now WIRE 128 are all wiring bugs that sat green under a direct-call probe.
+
+It is computed **structurally over each probe's own source** (`String(fn)` against
+`/battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bturnDamageBig\(/`), written to
+`data/mechanics-census.json` as `directCall`, printed with the offending probes named, and
+**ratcheted: it may fall and may never rise**. The helper list is explicit rather than a loose
+pattern, and that cost two probes their credit the first time `turnDamageBig` was used — which is the
+strictness working: a new helper has to be declared, and cannot sneak a direct-call probe past.
+
+### THE OTHER 29 CONVERSIONS, AND WHAT CHANGED BESIDES THE ROUTE
+
+Nine of them were made STRICTER because the conversion exposed that they had no control at all:
+
+| probe | what it used to accept |
+|---|---|
+| `ignoresStatStages` Sacred Sword | `a.max === b.max` — what an engine ignoring stat stages for EVERY move prints. Close Combat is now the control and must fall |
+| `alwaysCrit` / `preventsCrit` Flower Trick | a synthetic id-renamed copy, which **cannot be clicked** — Knock Off at rng 0.99 is the control now |
+| `untagged` Marvel Scale | it burned BOTH bodies and varied only the ability, which cannot tell "hardens while statused" from "hardens always" |
+| `halvesTypeDamage` Dry Skin | one arm. Body Slam must not move |
+| `weatherSuppression` Air Lock | `control > test`. The suppressed number must EQUAL the clear-sky number, not merely be smaller |
+| `setsTerrainEveryMember` | `playerAction(...).kind === 'terrain'` — a CLASSIFICATION. It now reads the terrain standing on the board |
+| `privateWeather` Mega Sol | the "private" half was asserted in a COMMENT. The field is now read after the turn and an ALLY holding it must not benefit |
+| `recoil` / `spreadFoes` / `secondaryStatEffect` / `statusInflict` | one arm each: "the user lost HP", "both foes took damage", "the stat dropped", "it burned" — all true of engines with much worse bugs |
+| `multiAccuracy` Triple Axel | the previous pass declined this as a pricing question `dmgRange` owns, and that was right about the ratio. The turn asks something new: the discount is 1+p+p²=2.71, the CONDITIONAL expectation, and the loop then rolls to hit on top of it — measured, it misses at rng 0.99 and lands at 0.5, so the 90% is not counted twice |
+
+**`needsTargetToAttack` STAYS MISSING AND THE REASON IS NOW RECORDED RATHER THAN GUESSED AT.** The
+old probe set `curHP = half` and called that "already hit", which is a HP LEVEL and not an event; the
+real rule is *damaged by the target this turn*, and Avalanche is -4 priority so a foe clicking in the
+same turn always lands first. Staged that way it is still flat. The tag carries
+`{needs: "target attacking"}` for **all nine** of its members, and those nine do four completely
+different things with that condition — double the power, reflect the damage, fail outright, go first.
+Sucker Punch's half IS wired, through the separate and much sharper `failsIfTargetNotAttacking`.
+**The fix is a tag before it is any code.**
+
+### AND MY OWN PROBES WERE WRONG BEFORE THE ENGINE WAS, THREE TIMES. THAT MAKES THIRTY-SIX.
+
+- **34.** `untagged` Marvel Scale, first cut: arms were the STATUS at a fixed ability, and it read
+  `clean 92 → burned 147` — the ability apparently making the body softer. It was the end-of-turn
+  **burn chip**, which lands inside the same HP-loss reading. Both burned arms carry the identical
+  chip on the identical body, so comparing them cancels it; comparing a burned arm against a clean
+  one does not.
+- **35.** `weatherAccuracy` Thunder fired at a **Garchomp**, which is Dragon/GROUND and takes
+  literally nothing from an Electric move. Every arm read 0 including the winning-roll control, and
+  on a perfectly correct engine the probe reported the mechanic MISSING. A never-miss claim means
+  nothing against a target the move cannot damage.
+- **36.** `privateWeather`, first cut: the "ally holds it" arm put the ability on the ally **and then
+  had the ally shoot** — the same body wearing a different label. It read 179 both ways and looked
+  exactly like a private sun leaking across the side.
+
+### THE COVERAGE GATE — WILL'S 99%-OF-USAGE BAR, DERIVED AND RED-PROVEN
+
+`tests/test-medicham-coverage.js`, auto-discovered by `tests/run-all.js`. Will approved the target on
+2026-08-06: **99% of usage, plus a carve-out for anything that can turn a CERTAINTY into a FAILURE
+regardless of usage.** Nothing in the file names a Pokemon, a move, an ability or an item —
+`tests/regulation_usage.js` derives the set at runtime from the store (a ~8s scan, cached on the
+corpus's own size and mtime so a changed store re-derives). **A threshold is a list and goes stale; a
+coverage target is a mechanism and re-derives itself**, which is the whole reason Will picked a target.
+
+**IT IS THE UNION OF THE RAW AND THE CLEAN CORPUS, AND THE FIRST VERSION WAS WRONG ABOUT WHY.** The
+gate initially read the raw store only, with the comfortable story that raw is the conservative
+direction because bot spam can only ADD junk entities. `engine/selftest.js`'s clean-data check caught
+the new file, and measuring rather than declaring showed the story is wrong in one of the two
+directions:
+
+| | distinct with any usage | the 99%-of-usage prefix |
+|---|---|---|
+| raw, 46,211 games | moves 486, ab 175, items 146 | moves 277, ab 78, items 100 — **455** |
+| clean, 8,193 games (`engine/quality.js`) | moves 462, ab 167, items 142 | moves 283, ab **98**, items 107 — **488** |
+
+The raw store SEES MORE distinct things and demands a SMALLER prefix, because repeated bot clicks
+concentrate the distribution. The clean corpus sees fewer and demands a LARGER one. **Neither
+dominates, so picking either would have quietly relaxed the bar** — and on abilities the raw-only
+version was asking for 78 where the clean corpus asks for 98. The gate takes the **union**, which is
+strictly more demanding than both and cannot be moved by the mix of games in the store. `RAW-STORE-OK`
+was NOT declared; the clean filter is applied, which is the honest way to satisfy that rule.
+
+**807 things carry real usage in this regulation and 495 are in the union of the two 99% sets**
+(moves 288 of 486, abilities 98 of 175, items 109 of 146). Usage for weighting is raw + clean, so an
+entity only one corpus saw still carries weight.
+
+| | count in the 99% set | | | | usage-weighted | | | |
+|---|---|---|---|---|---|---|---|---|
+| | tagged | probed | LIVE | armed | tagged | probed | LIVE | armed |
+| moves (288) | 286 | 272 | 269 | 151 | 99.4% | 98.5% | **96.7%** | **63.1%** |
+| abilities (98) | 87 | 80 | 78 | 53 | 98.7% | 93.5% | **93.3%** | **81.8%** |
+| items (109) | 108 | 107 | 107 | 88 | 99.9% | 99.7% | **99.7%** | **58.8%** |
+
+**Move-armed was 9.2% of usage when the gate was first run**, against 260 of 277 moves LIVE — the
+count read respectably and the weighted figure did not, which is exactly the pair of numbers the gate
+exists to put side by side. The gap was that the handful of tags the biggest moves carry
+(`statusInflict` 585,893, `contact` 444,874, `priority` 359,331, `statChange`, `spreadFoes`,
+`stalling`) were the ones nobody had declared arms on. **Those ten were armed, chosen by the weighted
+number rather than by eye, and it moved to 63.1%.**
+
+**"NO PROBE" IS REPORTED SEPARATELY FROM "UNARMED", because it is a worse state.** 17 tags carried by
+the union set have no probe at all: `move|accuracyMod` (5,986), `ability|auraBoost` (5,620),
+`move|substitute`, `move|instructsTarget`, `move|swapsAbilities`, `ability|terrainSetter`,
+`move|passesState`, `move|ohko`, `move|readsOwnItem`, `move|punishesBoostedTarget`,
+`ability|randomBoostEachTurn`, `ability|switchInForme`, `move|dualPurpose`, `ability|amplifiesBoosts`,
+`ability|boostsFromFallen`, `item|accuracyMod`, `ability|survivesFromFull`. **That is the ranked next
+job.**
+
+**THE CARVE-OUT IS 17 TAGS AND IT IS FULLY COVERED: 17 of 17 live and armed.** It is a set of TAG
+SHAPES, never of entities — naming Queenly Majesty would leave Dazzling and Armor Tail out, and
+naming `blocksMove` picks up all three plus the fourth that ships next generation. Every tag is
+asserted to exist in `data/tags.json`, so an upstream rename fails the file loudly instead of quietly
+emptying the carve-out. Three are excluded and the two REASONS are printed apart, because they are
+different: `item|blocksPowder` and `item|blocksSecondary` have **no row in the artifact at all**
+(Safety Goggles and Covert Cloak are `isNonstandard` in this format), while `ability|preventsSwitch`
+has **three real carriers at zero usage** and could become live tomorrow with no code change.
+
+**IT IS A RATCHET, NOT A BAR AT 100%.** A permanently red gate is what this repository has already
+learned gets called a "known failure" and ignored. The counts may fall and may never rise, the
+baseline is `data/medicham-coverage.json`, and **a rise fails whether it came from a regression or
+from the metagame bringing in something unprobed** — both are work owed — with the new-since-baseline
+rows named so the reader can tell them apart.
+
+**AND IT IS SHOWN RED BEFORE IT IS TRUSTED.** `--selftest` plants three faults in memory and asserts
+rejection on each: a tag nothing probes bolted onto the single highest-usage move in the corpus
+(derived, not named — it picked `protect`, 175,476 uses), every probe of a tag that move carries
+marked MISSING, and every probe of `ability|blocksMove` killed. All three are caught, by the three
+different clauses.
+
+**(a) IS SPLIT BY KIND AND THE SPLIT IS LOAD-BEARING.** 14 entities in the union set carry only
+`untagged`. Two are MOVES — Power Gem (6,371) and Hydro Pump (4,799) — and a move with no mechanic is
+a **vanilla attack the generic damage path covers completely**, so counting it as a gap would be
+counting the engine working. Twelve are abilities and one item, and every ability does *something*:
+`pressure` (962), `telepathy` (462), `berserk` (245), `moxie` (204), `raindish` (119), `naturalcure`
+(115), `trace` (100), `magician` (95), `aromaveil` (71), `frisk` (45), `magicguard` (34), and
+`item ironball` (189). **That is a tag_dex job, not an engine one.**
+
+**AND `ability|accuracyMod` JOINED THE MISSING LIST WHEN THE UNION LANDED**, which is the gate doing
+exactly what it is for: Sand Veil is in the CLEAN corpus's 99% ability set and was not in the raw
+one, so a mechanic the census has reported MISSING all along became visible as a coverage gap. It is
+one of the three census misses and is not new work discovered by this pass — it is the same hole,
+now counted.
+
+### THREE RED TESTS WERE MINE AND ALL THREE ARE FIXED IN THIS PASS
+
+`tests/run-all.js` went **75 passed / 8 failed → 78 / 5**. Named rather than filed, because
+"KNOWN FAILURE" is a banned phrase here:
+
+- **`engine/selftest.js` — "every raw reader of the ladder store declares why".** The new files read
+  the store and neither filtered nor declared. **Fixed by MEASURING rather than by declaring**, and
+  the measurement changed the gate: `RAW-STORE-OK` would have been a claim that raw is the
+  conservative direction, and it is not. `tests/regulation_usage.js` now calls `engine/quality.js`'s
+  own `loadGames()` and the gate reads the union. 25 passed, 0 failed.
+- **`tests/test-no-silent-failure.js` — 3 NEW silent catch blocks, all mine.** An unparseable store
+  line is now COUNTED and printed (`unparsed`, currently 0); a cache that will not read says so, and
+  is told apart from a cache that does not exist yet; the coverage ratchet's missing baseline is told
+  apart from a corrupt one. 0 new.
+- **`tests/test-effective-identity.js` — `tests/regulation_usage.js: 0 -> 2` raw reads of a
+  transforming field.** DECLARED with a construction reason rather than re-baselined: the file never
+  builds, loads or touches a live Pokemon — it opens the store, counts strings and returns
+  `id -> integer` maps — and the PRE-mega ability is the answer the question wants, because it is
+  measuring how much usage each declared ability carries. 18 passed, 0 failed.
+
+**THE FIVE THAT REMAIN ARE NOT MINE, and one of them appeared mid-session from another writer.**
+`tests/test-site-data-fresh.js` (eleven site bundles ~1.1 days behind the newest game data),
+`engine/conformance.js` (`build/strong_player_baseline.js` ×2, `data/dusk-size-gate.json`,
+`data/json-nan-guard-baseline.json`), `engine/provenance.js` (the pre-existing declared-void
+`exploitability.json`), `engine/em_validation.js` (`board.js` and `fit_policy.js` digests moved, and
+this pass touched neither). **`tests/test-site-sync.js` — `web/stadium.html` vs `app/stadium.html`,
+137,656 against 114,884 bytes — was PASSING at 14:00 and failing by 15:06.**
+
+**A CONCURRENT WRITER WAS ACTIVE IN THE TREE DURING THIS PASS AND THE DISPATCH SAID THERE WAS NOT.**
+`web/stadium.html` (15:06) and `docs/MODELS.md` (14:34) both moved and this pass touched neither;
+`tests/test-stadium-roster.js` flipped from FAIL to PASS between two of my runs because somebody
+added the three missing ledger entries. **Nothing of mine overlaps** — every file this pass wrote is
+`engine/medicham2-browser.js`, `tests/*`, `docs/ENGINE.md` and three `data/` artifacts it generated —
+and the engine-side instruments (census, red demos, differential, game-diff, interaction matrix,
+feature fixture, coverage gate) all read files this pass owns. It is stated because a run-all result
+taken while somebody else is writing is not a photograph, and this repository has already lost 7,100
+games to exactly that assumption.
+
+### FILED, NOT FIXED
+
+- **`dmgRange` suppresses `damageReduce` for a Mold Breaker on three abilities Showdown marks NOT
+  breakable** — `prismarmor`, `shadowshield`, `ripen`. Pre-existing (WIRE 37's `defAb` shadow), and
+  latent: 0, 0 and 14 corpus uses. The clean fix needs the artifact to carry Showdown's `breakable`
+  flag, which is `tag_dex` work.
+- **`STATUS_IMMUNE_ABIL` is a hand table and the red demo proves it.** Stripping `statusImmune` off
+  Insomnia does not stop it refusing Spore. That deviation is already declared — the artifact's param
+  is a bare `{immune: true}` on all twelve carriers and does not say WHICH status, so consuming it by
+  shape would make Leaf Guard (sun only) and Pastel Veil (poison only) refuse everything always. The
+  demonstration is now a **source reversion** rather than a tag strip, so the declared thing is shown
+  to be the thing running.
+- Everything below this section from the previous passes is unchanged, including
+  **`clickFragility` pricing an -ate click against the raw move type** (routed to MEASURE, #50) and
+  **`data/move-effects.js` disagreeing with the format dex on four accuracies**.
 
 ## THE DIRECT-CALL PROBES WERE ARMED, AND THREE OF THEM WERE HIDING A BUG. WIRES 124–126. 2026-08-06.
 
@@ -1808,6 +2065,14 @@ itself does not depend on it, and the census probe carries the mechanic today.
 
 **EMPTY except for Rivalry, and Rivalry has never been probeable.** Everything else that was on this
 list has become a probe and the census now carries it. That is the list doing its job.
+
+**AND IT HAS A SUCCESSOR THAT CANNOT GO STALE, 2026-08-06.** A hand list is prose, and prose cannot
+track a corpus — the same reason `docs/HANDOFF-*.md` are history. The open-work list is now DERIVED:
+`node tests/test-medicham-coverage.js` prints, every run, the tags carried by the 99%-of-usage set
+that have **no probe at all** (17 today, led by `move|accuracyMod` at 5,986 uses and
+`ability|auraBoost` at 5,620), the abilities and items the artifact derived **no mechanic** for (12),
+and the usage-weighted coverage beside the count. Work the list below; then work that one, because it
+re-derives itself when the metagame moves and this section does not.
 
 - **Rivalry** — x1.25 into the same gender, x0.75 into the opposite, x1.0 if either is genderless.
   Wholly absent. Blocked on data, not on will: `MC.mons` carries no gender and `buildMon` returns

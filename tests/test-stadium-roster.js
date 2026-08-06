@@ -76,7 +76,14 @@ const NOT_A_CABINET = {
   'PORYGON2':                 'a value LOOKUP with no measured verdict and no live caller; NOT MEASURED, so there is nothing to exhibit',
   'SPECIES SETS':             'the observed set distribution — data the builders read, not a decision-maker',
   'COUNTERS':                 'a report over the field, like COUNTERPLAY; and its headline is a null',
-  'BRING PRIORS':             'a prior the opponent model draws from, consumed rather than deciding',
+  /* A DECLARATION WITH A KNOWN EXPIRY CARRIES ITS OWN TRIGGER, or it goes stale silently — which is
+   * the failure every other entry in this table is written to prevent, arriving from the inside. */
+  'BRING PRIORS':             'a prior the opponent model draws from, consumed rather than deciding. '
+                            + 'The thing that would draw from it is GARY, and GARY\'s default foePolicy is the '
+                            + 'coin (docs/SEARCH.md R11, tasks #32-#36) — so today nothing acts on p_lead or '
+                            + 'p_bring at all. TRIGGER: this reason is FALSE the day GARY ships with a policy '
+                            + 'that reads bring priors. At that point something DECIDES off this artifact and it '
+                            + 'earns a cabinet. Re-check whenever #32 closes; do not let this entry outlive it',
   'CORES':                    'a matchup matrix at a grain the corpus cannot support; do not put a cell on a page',
   'DYNAMICS':                 'observed physics — evidence the engine is checked against, not a rule it follows',
 };
@@ -204,6 +211,13 @@ const NOT_A_MODEL = {
    *     deciding whether to spend a refit. Same class as feature_audit.js and leaf_position_contrast.js
    *     above; its home is docs/MEASURE.md. --- */
   'engine/feature_engine_contrast.js': 'did an engine change move the FEATURE FUNCTION or only the simulator — hashes all 58 board.js columns under two or more frozen engine bundles over the whole fit corpus, with a positive control that makes it refuse to report agreement it could not have seen. A statement about our own builds, not about Champions',
+
+  /* --- Added 2026-08-06. THREE GATES THAT LANDED IN ONE DAY, each declared with ITS OWN reason.
+   *     Writing one reason and reusing it three times would be the pattern this table forbids: a
+   *     shape-based excuse stops checking, and the third of these is genuinely borderline. --- */
+  'engine/dusk_size_gate.js':        'GATE #40 (docs/SEARCH.md) — would an offline-solved endgame tablebase FIT. Its threshold block was written to disk before a single count was run, and its verdict, TOO BIG, is a statement about a DESIGN WE MIGHT BUILD: how many entries OUR lookup table would hold, against a GitHub per-file limit and a V8 heap budget. Neither ceiling is a fact about Champions, and no player or bot reads the artifact. Settling question — if the entry count is wrong, the people misled are US, while deciding whether to spend a month on DUSK. The reach and coverage rates it measures over the store are INPUTS to that decision, not claims anyone plays on. DUSK itself IS a model, has a docs/MODELS.md entry and now has a cabinet; this file sizes it',
+  'engine/porygon2_separation_gate.py': 'GATE #23 (docs/MEASURE.md §18) — can PORYGON2\'s position vector tell two boards apart, tell SAME-GAME boards apart more sharply than unrelated ones, and point the right way. Thresholds declared before the run, judged against this project\'s own 0.43-point split-half noise floor, and its verdict (PASS) answers whether the MILTANK leaf redesign is BUILDABLE — a property of our own value function and our own search plan. The artifact refuses the model-shaped reading itself: its `what_this_gate_does_not_say` field states it does NOT show the 17 features earn their keep. PORYGON2 is the model and already carries a ledger entry; an evaluation of a model is not itself a model',
+  'build/strong_player_baseline.js': 'GATE for #46 (docs/MEASURE.md §19) — AND THE BORDERLINE ONE, declared with the reasoning visible so the next reader can REVERSE this call rather than re-derive it. Its headline is that OUR OWN per-turn realism metric cannot separate the rating bands it was built to separate: the whole between-band spread on failed moves sits inside the spread from cutting a single band eight ways, and the design was only powered for a 31% relative change, so §1.3\'s "flat in rating" is NOT MEASURED rather than confirmed. That is a statement about the POWER OF OUR INSTRUMENT, which is why it belongs here. THE CAVEAT, stated rather than buried: it ALSO publishes Champions-facing material — species usage at four Smogon cutoffs, and the ability/item/spread/move gradient within a species — and that material is real. Its home is docs/MEASURE.md §19a-d, because nothing DECIDES off it. If something is ever built that does, this entry is wrong and owes docs/MODELS.md a ledger entry instead',
 
   'engine/bring_bias.js':            'does require_full_bring\'s length-conditioning move any bring rate — a diagnosis of OUR OWN corpus rule, and its answer is no (84 species tested, 12 clear a raw z, 0 survive BH against 4.2 expected). Its sibling engine/bring_priors.js is the model; this measures the filter, and nothing but itself reads data/bring-bias.json',
 };

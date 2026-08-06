@@ -360,15 +360,19 @@ svg{width:100%;height:auto;display:block}
 <text x="424" y="1507" class="st" fill="#9a2b2b">No artifact records which one ran</text>
 
 <rect class="box" x="780" y="1368" width="340" height="150" fill="#f1e8fc"/>
-<text x="794" y="1392" class="t" fill="#4a2482">DUSK — endgame tablebase</text>
-<text x="794" y="1410" class="io">in: 1v1 positions solved once, offline</text>
-<text x="794" y="1423" class="io">out: the exact answer, looked up</text>
-<text x="794" y="1436" class="io">not searched — Syzygy for VGC</text>
-<text x="794" y="1456" class="st" fill="#4a2482">OPEN SHEETS MAKE IT EXACT: at 1v1</text>
-<text x="794" y="1468" class="st" fill="#4a2482">nothing is hidden but their next click</text>
-<text x="794" y="1486" class="st" fill="#4a2482">also the only route that lets the Python</text>
-<text x="794" y="1498" class="st" fill="#4a2482">Nash solver reach the JavaScript bot</text>
-<text x="794" y="1510" class="st" fill="#8a5a1a">planned — table SIZE not yet measured</text>
+<!-- REWRITTEN 2026-08-06, LATER THE SAME DAY, and the rewrite is the point rather than the numbers.
+     This box said "planned — table SIZE not yet measured" and named DUSK as the language bridge.
+     engine/dusk_size_gate.js then measured the size, and BOTH claims moved: the table is TOO BIG,
+     and docs/SEARCH.md retires the bridge argument in the same breath. The reach rate is put first
+     because it kills the tablebase independently of how big the table is. -->
+<text x="794" y="1392" class="t" fill="#4a2482">DUSK — solve the ending exactly</text>
+<text x="794" y="1410" class="io">in: an endgame position, open sheets</text>
+<text x="794" y="1423" class="io">out: the exact answer, not a rollout</text>
+<text x="794" y="1436" class="io">PLANNED — nothing is built</text>
+<text x="794" y="1456" class="st" fill="#4a2482">AS A TABLE IT IS TOO BIG, and the reach</text>
+<text x="794" y="1468" class="st" fill="#4a2482">rate killed it first: 16.42% reach 1v1<tspan x="794" dy="11" class="src">measured — data/dusk-size-gate.json</tspan></text>
+<text x="794" y="1492" class="st" fill="#4a2482">successor: SOLVE, do not tabulate —</text>
+<text x="794" y="1504" class="st" fill="#8a5a1a">2v1 reaches 45.93% <tspan class="src">data/dusk-size-gate.json</tspan></text>
 
 <!-- the search calls the imagined foe on every imagined turn; that is the edge, and it is the one
      that is currently a coin. (This replaces an arrow that started inside DITTO's old column and
@@ -384,7 +388,7 @@ svg{width:100%;height:auto;display:block}
      figure with no artifact behind it AND one that changes every time somebody adds a file — the
      same shape as the "3k good games" drift this page already had to fix once. The BOUNDARY is the
      fact; the census of it is not. Counts live in docs/ROADMAP.md §4.4 where prose can date them. -->
-<text x="34" y="1556" class="st" fill="#4a2482">THE LANGUAGE BOUNDARY — everything that can PLAY a battle is JavaScript, because Showdown is; everything that does the MATH is Python, because numpy is. SLOWKING's Nash solver is verified, and on the wrong side of this line. DUSK is the bridge across it.</text>
+<text x="34" y="1556" class="st" fill="#4a2482">THE LANGUAGE BOUNDARY — everything that can PLAY a battle is JavaScript, because Showdown is; everything that does the MATH is Python, because numpy is. SLOWKING's Nash solver is verified, on the wrong side of it. DUSK was the bridge — the table is TOO BIG.</text>
 
 <!-- ================= BAND 7: THE CAPSTONE ================= -->
 <text x="20" y="1609" class="band">THE CAPSTONE</text>
@@ -455,6 +459,11 @@ svg{width:100%;height:auto;display:block}
   Each one is declared by name with its reason in <b>tests/test-model-map.js</b>, which fails if a
   model is added to the ledger and left off this picture, and fails just as hard if one of these is
   quietly dropped from the ledger instead. The full ledger is the place to read them.
+  <br><b>One of the twelve carries an expiry date, and it is written into the declaration rather
+  than left to be noticed.</b> BRING PRIORS is off this map only because the one thing that would
+  draw on it is GARY, and GARY's default opponent policy is the coin — so today nothing acts on
+  p_lead or p_bring at all (<b>docs/SEARCH.md</b> R11). The day GARY is switched on, something
+  decides off that artifact, it earns a box, and this paragraph becomes wrong.
 </div>
 <!-- Bundled artifacts, loaded as globals with <script src> rather than fetch(), because this page
      is opened from file:// and a local fetch() is blocked there and fails silently (docs/WEB.md). -->

@@ -670,9 +670,14 @@ demoSource('WIRE 125 the fallen count survives the turn after the death',
  * a Ghost in BOTH engines, or "Aerilate landed" would be indistinguishable from an engine that had
  * simply stopped enforcing the Normal-into-Ghost immunity altogether -- which is a worse bug than the
  * one being fixed and would otherwise read as the fix working. */
+/* RE-TARGETED BY WIRE 128, WHICH IS THE GUARD DOING ITS JOB. This reversal used to strip the `m`
+ * out of a bare `mcEff(effMoveType(...), tg.types)`; that call site is now `typeEffAgainst`, so the
+ * patch stopped matching and `revertedEngine()` threw rather than quietly testing nothing. The
+ * reversal is still exactly one argument — the attacker dropped from the type resolution — so it
+ * remains WIRE 126's defect and not WIRE 128's. */
 demoSource('WIRE 126 an -ate-converted move is judged on the type it BECAME',
-  [['          if (mcEff(effMoveType(mv, a.move.id, field, m), tg.types) === 0) continue;',
-    '          if (mcEff(effMoveType(mv, a.move.id, field), tg.types) === 0) continue;']],
+  [['          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field, m)) === 0) continue;',
+    '          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field)) === 0) continue;']],
   (E) => {
     const dealt = (ab) => {
       const me = bare('staraptor'), ally = bare('incineroar');
@@ -687,6 +692,251 @@ demoSource('WIRE 126 an -ate-converted move is judged on the type it BECAME',
       return before - f1.curHP;
     };
     return dealt('none') === 0 && dealt('aerilate') > 0;
+  });
+
+/* ---- WIRE 128, three source-reverted engines ----------------------------------------------------
+ *
+ * There is no tag to strip for any of these. Every tag was present and every tag was READ — by
+ * dmgRange, which was the half that was already right. The defect was that the battle loop asked the
+ * same three questions with its own code, and its code did not take an attacker. So each reversal is
+ * the ONE argument or the ONE call that carries the attacker into the gate, and nothing else.
+ *
+ * EACH ONE ASSERTS THE CONTROL IN BOTH ENGINES. "Scrappy landed" must not be reachable by an engine
+ * that stopped enforcing Normal-into-Ghost at all, which is a worse bug and would read as the fix
+ * working — the same trap WIRE 126's demo names one section up. */
+demoSource('WIRE 128 the loop asks about the ATTACKER before calling a type immunity',
+  [['          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field, m)) === 0) continue;',
+    '          if (mcEff(effMoveType(mv, a.move.id, field, m), tg.types) === 0) continue;']],
+  (E) => {
+    const dealt = (ab) => {
+      const me = bare('incineroar'), ally = bare('corviknight');
+      const f1 = bare('gengar'), f2 = bare('garchomp');
+      me.ability = ab;
+      const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+      f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 8 }); f1.curHP = f1.st.hp;
+      const before = f1.curHP;
+      E.battleTurn(S, rng5,
+        new Map([[me, E.playerAction(me, 'bodyslam', f1, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+      return before - f1.curHP;
+    };
+    return dealt('none') === 0 && dealt('scrappy') > 0;
+  });
+
+demoSource('WIRE 128 a Mold Breaker is not absorbed by the ability it suppresses',
+  [['        const _ab=absorbedBy(m,tg,effMoveType(mv,a.move.id,field,m));',
+    '        const _ab=absorbedBy(null,tg,effMoveType(mv,a.move.id,field,m));']],
+  (E) => {
+    const dealt = (ab) => {
+      const me = bare('tinkaton'), ally = bare('corviknight');
+      const f1 = bare('hydreigon'), f2 = bare('garchomp');
+      me.ability = ab; f1.ability = 'levitate';
+      const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+      f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 8 }); f1.curHP = f1.st.hp;
+      const before = f1.curHP;
+      E.battleTurn(S, rng5,
+        new Map([[me, E.playerAction(me, 'earthquake', f1, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+      return before - f1.curHP;
+    };
+    return dealt('none') === 0 && dealt('moldbreaker') > 0;
+  });
+
+demoSource('WIRE 128 a Mold Breaker goes through Bulletproof, which Showdown marks breakable',
+  [['        if(moveClassBlocked(tg,a.move.id,m))continue;   // WIRE 128 -- Mold Breaker suppresses Bulletproof too',
+    '        if(moveClassBlocked(tg,a.move.id))continue;']],
+  (E) => {
+    const dealt = (defAb, attAb) => {
+      const me = bare('tyranitar'), ally = bare('corviknight');
+      const f1 = bare('kommoo'), f2 = bare('garchomp');
+      me.ability = attAb; f1.ability = defAb;
+      const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+      f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 8 }); f1.curHP = f1.st.hp;
+      const before = f1.curHP;
+      E.battleTurn(S, rng5,
+        new Map([[me, E.playerAction(me, 'rockblast', f1, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+      return before - f1.curHP;
+    };
+    return dealt('none', 'none') > 0 && dealt('bulletproof', 'none') === 0
+        && dealt('bulletproof', 'moldbreaker') > 0;
+  });
+
+
+/* ---- THE #42/#45 CONVERSIONS, EACH AGAINST ITS OWN STRIPPED TAG ---------------------------------
+ *
+ * 2026-08-06. Thirty-two probes in tests/test-mechanics.js stopped calling their mechanic's function
+ * and started spending a REAL TURN, which took the direct-call count to zero. A conversion is only
+ * worth anything if the converted probe still fails when the mechanic is taken away -- a turn is a
+ * lot of moving parts, and "the damage changed" has many more ways to be true than a direct call
+ * does. So each row below strips the ONE tag the converted probe is about and asserts the probe's own
+ * comparison flips.
+ *
+ * EVERY ASSERTION HERE SPENDS A TURN, exactly like the probe it stands behind. A demo that reverted
+ * to dmgRange would be showing that a DIFFERENT test watches the knob.
+ *
+ * The rows are a table because they are all the same shape and a table is checkable: `strip` names
+ * the tag, `run` is the two-armed comparison, and the harness above asserts green-then-red without
+ * any per-row judgement. Anything that is NOT this shape -- the three WIRE 128 demos, the source
+ * reversions -- stays written out longhand above. */
+const rngLoseD = () => 0.99;
+const turnHit = (E, sps, stage, moveId, rngIn) => {
+  const me = bare(sps[0]), ally = bare(sps[1]), f1 = bare(sps[2]), f2 = bare(sps[3]);
+  const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+  f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 8 }); f1.curHP = f1.st.hp;
+  f2.st = Object.assign({}, f2.st, { hp: f2.st.hp * 8 }); f2.curHP = f2.st.hp;
+  if (stage) stage({ me, ally, f1, f2, S });
+  const before = f1.curHP;
+  E.battleTurn(S, rngIn || rng5,
+    new Map([[me, E.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+    new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  return before - f1.curHP;
+};
+const CONVERSIONS = [
+  { name: 'damageReduce -- Filter cuts a super-effective hit', strip: ['ability', 'filter', 'damageReduce'],
+    run: () => { const h = (ab) => turnHit(M, ['garchomp', 'incineroar', 'charizard', 'milotic'],
+      (B) => { B.f1.ability = ab; }, 'rockslide');
+      return h('filter') < h('none'); } },
+  { name: 'damageReduce -- Ice Scales halves a special hit', strip: ['ability', 'icescales', 'damageReduce'],
+    run: () => { const h = (ab) => turnHit(M, ['garchomp', 'incineroar', 'milotic', 'corviknight'],
+      (B) => { B.f1.ability = ab; }, 'earthpower');
+      return h('icescales') < h('none'); } },
+  { name: 'boostsMoveClass -- Iron Fist raises a punch and not a kick', strip: ['ability', 'ironfist', 'boostsMoveClass'],
+    run: () => { const h = (ab, mv) => turnHit(M, ['incineroar', 'corviknight', 'garchomp', 'milotic'],
+      (B) => { B.me.ability = ab; }, mv);
+      return h('ironfist', 'drainpunch') > h('none', 'drainpunch')
+          && h('ironfist', 'closecombat') === h('none', 'closecombat'); } },
+  { name: 'boostsSuperEffective -- Expert Belt only on a super-effective hit', strip: ['item', 'expertbelt', 'boostsSuperEffective'],
+    run: () => { const h = (it, foe) => turnHit(M, ['incineroar', 'milotic', foe, 'garchomp'],
+      (B) => { B.me.item = it; }, 'flamethrower');
+      return h('expertbelt', 'corviknight') > h('', 'corviknight')
+          && h('expertbelt', 'garchomp') === h('', 'garchomp'); } },
+  { name: 'halvesTypeDamage -- Thick Fat halves Fire and not Fighting', strip: ['ability', 'thickfat', 'halvesTypeDamage'],
+    run: () => { const h = (ab, mv) => turnHit(M, ['incineroar', 'corviknight', 'milotic', 'garchomp'],
+      (B) => { B.f1.ability = ab; }, mv);
+      return h('thickfat', 'flamethrower') < h('none', 'flamethrower')
+          && h('thickfat', 'closecombat') === h('none', 'closecombat'); } },
+  { name: 'halvesTypeDamage -- Dry Skin takes MORE from Fire', strip: ['ability', 'dryskin', 'halvesTypeDamage'],
+    run: () => { const h = (ab) => turnHit(M, ['incineroar', 'corviknight', 'heliolisk', 'garchomp'],
+      (B) => { B.f1.ability = ab; }, 'flamethrower');
+      return h('dryskin') > h('none'); } },
+  { name: 'halvesTypeDamage -- Purifying Salt halves a Ghost move only', strip: ['ability', 'purifyingsalt', 'halvesTypeDamage'],
+    run: () => { const h = (ab, mv) => turnHit(M, ['gengar', 'incineroar', 'garganacl', 'garchomp'],
+      (B) => { B.f1.ability = ab; }, mv);
+      return h('purifyingsalt', 'shadowball') < h('none', 'shadowball')
+          && h('purifyingsalt', 'sludgebomb') === h('none', 'sludgebomb'); } },
+  { name: 'preventsCrit -- Shell Armor removes a certain crit', strip: ['ability', 'shellarmor', 'preventsCrit'],
+    run: () => { const h = (ab, mv) => turnHit(M, ['meowscarada', 'corviknight', 'garchomp', 'milotic'],
+      (B) => { B.f1.ability = ab; }, mv, rngLoseD);
+      return h('shellarmor', 'flowertrick') < h('none', 'flowertrick')
+          && h('shellarmor', 'knockoff') === h('none', 'knockoff'); } },
+  { name: 'alwaysCrit -- Flower Trick carries a crit at a roll nothing else can', strip: ['move', 'flowertrick', 'alwaysCrit'],
+    run: () => { const h = (ab) => turnHit(M, ['meowscarada', 'corviknight', 'garchomp', 'milotic'],
+      (B) => { B.f1.ability = ab; }, 'flowertrick', rngLoseD);
+      return h('none') > h('shellarmor'); } },
+  { name: 'ignoresBoosts -- Sacred Sword ignores a Defence boost', strip: ['move', 'sacredsword', 'ignoresBoosts'],
+    run: () => { const h = (df, mv) => turnHit(M, ['garchomp', 'incineroar', 'corviknight', 'milotic'],
+      (B) => { B.f1.boosts.df = df; }, mv);
+      return h(4, 'sacredsword') === h(0, 'sacredsword') && h(4, 'closecombat') < h(0, 'closecombat'); } },
+  { name: "ignoresStatStages -- Unaware ignores the attacker's +6", strip: ['ability', 'unaware', 'ignoresStatStages'],
+    run: () => { const h = (ab, at) => turnHit(M, ['garchomp', 'incineroar', 'milotic', 'corviknight'],
+      (B) => { B.f1.ability = ab; B.me.boosts.at = at; }, 'earthquake');
+      return h('unaware', 6) < h('none', 6); } },
+  { name: "critDamageUp -- Sniper multiplies a certain crit", strip: ['ability', 'sniper', 'critDamageUp'],
+    run: () => { const h = (ab, mv) => turnHit(M, ['meowscarada', 'corviknight', 'milotic', 'garchomp'],
+      (B) => { B.me.ability = ab; }, mv, rngLoseD);
+      return h('sniper', 'flowertrick') > h('none', 'flowertrick')
+          && h('sniper', 'closecombat') === h('none', 'closecombat'); } },
+  { name: 'hitsTwice -- Parental Bond, and not on a spread move', strip: ['ability', 'parentalbond', 'hitsTwice'],
+    run: () => { const h = (ab, mv) => turnHit(M, ['kangaskhan', 'corviknight', 'milotic', 'garchomp'],
+      (B) => { B.me.ability = ab; }, mv);
+      return h('parentalbond', 'doubleedge') > h('none', 'doubleedge')
+          && h('parentalbond', 'earthquake') === h('none', 'earthquake'); } },
+  { name: 'removesOwnSecondaries -- Sheer Force raises a secondary-carrying move', strip: ['ability', 'sheerforce', 'removesOwnSecondaries'],
+    run: () => { const h = (ab, mv) => turnHit(M, ['incineroar', 'corviknight', 'milotic', 'garchomp'],
+      (B) => { B.me.ability = ab; }, mv);
+      return h('sheerforce', 'rockslide') > h('none', 'rockslide')
+          && h('sheerforce', 'doubleedge') === h('none', 'doubleedge'); } },
+  { name: 'multiAccuracy -- Triple Axel is priced below three full hits', strip: ['move', 'tripleaxel', 'multiAccuracy'],
+    run: () => { const att = bare('weavile'), def = bare('garchomp');
+      const ta = MC.moves['tripleaxel'];
+      const one = M.dmgRange(att, def, Object.assign({}, ta, { id: '__ta_flat' }), FIELD(), false).max;
+      const all = M.dmgRange(att, def, ta, FIELD(), false).max;
+      return all / one < 2.95 && turnHit(M, ['weavile', 'incineroar', 'garchomp', 'milotic'], null, 'tripleaxel') > 0; } },
+  { name: 'weatherScaled -- Weather Ball changes type with the sky', strip: ['move', 'weatherball', 'weatherScaled'],
+    run: () => { const h = (w) => turnHit(M, ['alakazam', 'incineroar', 'gengar', 'milotic'],
+      (B) => { B.S.field.weather = w; }, 'weatherball');
+      return h('') === 0 && h('rain') > 0 && h('sand') > 0; } },
+  { name: 'weatherScaled -- Thunder cannot miss in rain', strip: ['move', 'thunder', 'weatherScaled'],
+    run: () => { const h = (w) => turnHit(M, ['pikachu', 'incineroar', 'milotic', 'garchomp'],
+      (B) => { B.S.field.weather = w; }, 'thunder', rngLoseD);
+      return h('rain') > 0 && h('') === 0; } },
+  { name: 'convertsMoveType -- Liquid Voice makes a sound move Water', strip: ['ability', 'liquidvoice', 'convertsMoveType'],
+    run: () => { const h = (ab) => turnHit(M, ['primarina', 'incineroar', 'venusaur', 'milotic'],
+      (B) => { B.me.ability = ab; }, 'psychicnoise');
+      return h('liquidvoice') !== h('none'); } },
+  { name: 'privateWeather -- Mega Sol sees a sun nobody else does', strip: ['ability', 'megasol', 'privateWeather'],
+    run: () => { const h = (mine, allies) => turnHit(M, ['meganium', 'meganium', 'corviknight', 'milotic'],
+      (B) => { B.me.ability = mine; B.ally.ability = allies; }, 'flamethrower');
+      return h('megasol', 'none') > h('none', 'none') && h('none', 'megasol') === h('none', 'none'); } },
+  { name: 'weatherSuppression -- Air Lock returns the sun to clear', strip: ['ability', 'airlock', 'weatherSuppression'],
+    run: () => { const h = (ab, w) => turnHit(M, ['charizard', 'incineroar', 'garchomp', 'milotic'],
+      (B) => { B.f1.ability = ab; B.S.field.weather = w; }, 'flamethrower');
+      return h('airlock', 'sun') === h('none', '') && h('none', 'sun') > h('none', ''); } },
+  { name: 'boostsWhenLowered -- Intimidate into Defiant is net +1', strip: ['ability', 'defiant', 'boostsWhenLowered'],
+    run: () => { const entry = (ab) => {
+        const me = bare('incineroar'), ally = bare('corviknight');
+        const f1 = bare('milotic'), f2 = bare('garchomp');
+        me.ability = 'intimidate'; f1.ability = ab;
+        M.battleInit([me, ally], [f1, f2], {});
+        return f1.boosts.at;
+      };
+      return entry('defiant') === 1 && entry('none') === -1; } },
+  { name: 'condStatMult -- Marvel Scale hardens a burned body', strip: ['ability', 'marvelscale', 'condStatMult'],
+    run: () => { const h = (ab, st) => turnHit(M, ['garchomp', 'incineroar', 'milotic', 'corviknight'],
+      (B) => { B.f1.ability = ab; B.f1.status = st; }, 'earthquake');
+      return h('marvelscale', 'brn') < h('none', 'brn') && h('marvelscale', '') === h('none', ''); } },
+  { name: 'setsTerrain -- every member of the tag lands a terrain', strip: ['move', 'grassyterrain', 'setsTerrain'],
+    run: () => { const landed = (id) => {
+        const me = bare('venusaur'), ally = bare('incineroar');
+        const f1 = bare('garchomp'), f2 = bare('milotic');
+        const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+        M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, id, null, S.field)], [ally, { kind: 'pass' }]]),
+          new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+        return S.field.terrain || 'none';
+      };
+      return ['psychicterrain', 'electricterrain', 'grassyterrain', 'mistyterrain']
+        .every(id => landed(id) !== 'none') && landed('swordsdance') === 'none'; } },
+];
+for (const c of CONVERSIONS) demo('#42/#45  ' + c.name, shipped, without(c.strip[0], c.strip[1], c.strip[2]), c.run);
+
+/* INSOMNIA IS NOT A TAG-STRIP DEMO, AND FINDING THAT OUT IS WHY THE DEMO IS WORTH WRITING.
+ *
+ * It was written as one row of the table above and it FAILED: strip `statusImmune` off Insomnia and
+ * the Spore is still refused. The tag is not the knob, and the engine says so at the line --
+ * `STATUS_IMMUNE_ABIL` is a hand table, kept deliberately, because the artifact's `statusImmune`
+ * param is a bare `{immune:true}` on all twelve carriers and does not say WHICH status. Consuming it
+ * by shape would make Leaf Guard (sun only) and Pastel Veil (poison only) refuse everything always.
+ * That deviation is already declared in docs/ENGINE.md; what was missing is a demonstration that the
+ * declared thing is the thing actually running.
+ *
+ * So the known-bad engine is the TABLE with Insomnia taken out of the sleep row and nothing else --
+ * `vitalspirit` and `sweetveil` stay, so the reversion is one ability rather than the mechanism. */
+demoSource('#42/#45  statusImmune -- Insomnia refuses a Spore and takes a burn (a hand table, not the tag)',
+  [["                           slp:['insomnia','vitalspirit','sweetveil'] };",
+    "                           slp:['vitalspirit','sweetveil'] };"]],
+  (E) => {
+    const st = (ab, mv) => {
+      const me = bare('venusaur'), ally = bare('corviknight');
+      const f1 = bare('gholdengo'), f2 = bare('garchomp');
+      f1.ability = ab;
+      const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+      E.battleTurn(S, rng5, new Map([[me, E.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+      return f1.status || 'none';
+    };
+    return st('insomnia', 'spore') === 'none' && st('none', 'spore') === 'slp'
+        && st('insomnia', 'willowisp') === 'brn';
   });
 
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);

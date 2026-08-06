@@ -1391,78 +1391,19 @@ function dmgRange(att,def,mv,field,spread){
     if(_h2&&_h2.hits>1&&!spread&&mv.id&&expectedHitsOf(mv.id)<=1)
       base=Math.floor(base*(1+(+_h2.secondHitMult||0.25)));
   }
-  /* WIRE 38 -- SCRAPPY / MIND'S EYE. The tag names both halves of the rule: `movesOfType` is the
-   * slash-joined pair of types the ability applies to (Fighting/Normal) and `nowHits` is the type
-   * that stops being immune (Ghost). NOT a blanket "ignore immunities" -- a Scrappy Incineroar's
-   * Flare Blitz is still nothing to nothing, and its Earthquake is still nothing to a Flying type.
-   * The recomputation DROPS the named type from the defender's list rather than forcing eff to 1,
-   * which is the difference that matters on a dual type: Normal into Gengar (Ghost/Poison) must come
-   * out x1, not x1 forced over a 0. */
-  let eff=mcEff(mvT,def.types);
-  /* WIRE 60 -- FREEZE-DRY (1,286 uses), P0 #7, and independently confirmed against Showdown:
-   * `mrrime freezedry -> araquanid` reads 96-114 there and 24-28 here. Ice is RESISTED by Water in
-   * every chart there is; Freeze-Dry is super effective on it, so the error is the full 4x and it is
-   * the move's entire identity.
-   * THE OVERRIDE IS THE ARTIFACT'S NOW. The param used to be a bare `{overrides:true}` -- it said the
-   * chart was wrong and not how -- and the derivation now reads the handler's own
-   * `if (type === "Water") return 1`, which is Showdown's per-type MODIFIER: +1 is one step super
-   * effective, replacing the chart's -1. So the recomputation drops the named type out of mcEff and
-   * multiplies 2^mod back in, which is exactly right on a dual type -- Swampert is Water/Ground and
-   * takes 4x, not 2x.
-   * FLYING PRESS carries the tag with `perType: null` because it ADDS a type rather than overriding
-   * one, and stays visibly unwired rather than being given a number it does not have. */
-  {
-    const _oe=mv.id?TAGS.param('move',mv.id,'overridesEffectiveness'):null;
-    if(_oe&&_oe.perType){
-      let _hit=false,_e2=1;
-      for(const t of def.types){
-        if(Object.prototype.hasOwnProperty.call(_oe.perType,t)){_hit=true;_e2*=Math.pow(2,+_oe.perType[t]);}
-        else{const r=MC.C[mvT];_e2*=(r&&r[t]!=null)?r[t]:1;}
-      }
-      if(_hit)eff=_e2;
-    }
-  }
-  {
-    const _iti=TAGS.param('ability',attAb,'ignoresTypeImmunity');
-    if(_iti&&_iti.nowHits&&_iti.movesOfType
-       &&String(_iti.movesOfType).split('/').indexOf(mvT)>=0
-       &&def.types.indexOf(_iti.nowHits)>=0)
-      eff=mcEff(mvT,def.types.filter(t=>t!==_iti.nowHits));
-  }
+  /* WIRE 128 -- THE TYPE CHART, THE OVERRIDES AND SCRAPPY ARE ONE FUNCTION NOW (see typeEffAgainst).
+   * They used to live inline here, and the battle loop's own immunity gate re-derived the same
+   * question as a bare `mcEff(effMoveType(...), tg.types)` -- so a Scrappy body's Body Slam was
+   * priced at 88 by this calc and refused outright by the loop that executes it. */
+  let eff=typeEffAgainst(att,def,mv,mvT);
   if(eff===0)return{min:0,max:0,eff:0};
   // type-immunity abilities (defender absorbs the type)
-  /* WIRE 11 -- typeImmunity, from the artifact instead of a 12-name table. The tag carries the
-   * TYPE (checked against the weather-effective type computed above, so sand Weather Ball sails
-   * past Volt Absorb) and the GAIN, which the old table never knew existed -- the battle loop
-   * feeds the absorber below. Levitate/Eelevate ride the artifact's one documented name-exception. */
-  const _imm=TAGS.param('ability',defAb,'typeImmunity');
-  if(_imm&&_imm.type===mvT)return{min:0,max:0,eff:0};
-  /* WIRE 22 -- immuneToMoveClass. The ability names a FLAG and refuses every move carrying it, which
-   * is the exact mirror of the boostsMoveClass join below and had no counterpart on the defensive
-   * side. Soundproof (349 sheets) ate Boomburst and Hyper Voice at full price; Bulletproof (85) ate
-   * Rock Blast; Wind Rider ate every wind move.
-   *
-   * MEMBERSHIP PRINTED BEFORE WIRING, per docs/LESSONS.md 4. Five abilities carry the tag and each
-   * names a different flag: bulletproof/bullet, soundproof/sound, overcoat/powder, windrider/wind,
-   * MAGICBOUNCE/REFLECTABLE. That last one is why this is a five-line block and not a one-liner --
-   * Magic Bounce does not grant damage immunity, it BOUNCES status moves, and `reflectable` is not a
-   * moveClass this corpus carries at all. It therefore matches nothing here, which is the right
-   * outcome reached for the right reason rather than by luck; if `reflectable` ever becomes a class,
-   * this block would start making Magic Bounce holders immune to damage and that would be wrong.
-   *
-   * POWDER IS DELIBERATELY NOT DUPLICATED. powderBlocked() already answers Overcoat, Safety Goggles
-   * and the Grass immunity for powder moves and is the single owner of that question; adding it here
-   * would be a second implementation of one fact, which is the rule CLAUDE.md cares most about. */
-  {
-    const _imc=TAGS.param('ability',defAb,'immuneToMoveClass');
-    const _flag=_imc&&_imc.blocksFlag;
-    if(_flag&&_flag!=='reflectable'&&_flag!=='powder'&&mv.id){
-      const _carries=_flag==='sound'?TAGS.has('move',mv.id,'sound')
-                    :(()=>{const c=TAGS.param('move',mv.id,'moveClass');
-                           return !!(c&&c.classes&&c.classes.indexOf(_flag)>=0);})();
-      if(_carries)return{min:0,max:0,eff:0};
-    }
-  }
+  const _imm=absorbedBy(att,def,mvT);
+  if(_imm)return{min:0,max:0,eff:0};
+  /* WIRE 22 -- immuneToMoveClass, and WIRE 128 collapsed it: this block was a second, independent
+   * copy of moveClassBlocked() sitting inside the damage calc, and the two had already drifted --
+   * that one honoured Mold Breaker through `defAb` and the shared function did not. One owner. */
+  if(mv.id&&moveClassBlocked(def,mv.id,att))return{min:0,max:0,eff:0};
   /* WIRE 21 -- fixedDamage. These moves have NO BASE POWER, so hasPower() rejected them and dmgRange
    * returned a flat zero: Super Fang (578 uses), Final Gambit (251), Endeavor (93) and the OHKO moves
    * were worth LITERALLY NOTHING to every rollout and every score.
@@ -2285,9 +2226,87 @@ const POWDER=new Set(['spore','sleeppowder','stunspore','poisonpowder','cottonsp
  * SAME EXCLUSIONS AS WIRE 22, for the same reasons: `powder` belongs to powderBlocked(), which is the
  * single owner of that question, and `reflectable` is Magic Bounce, which BOUNCES rather than refuses
  * and is handled by bounceOff(). */
-function moveClassBlocked(t,moveId){
+/* WIRE 128 -- ONE ANSWER TO "WHICH ABILITY DOES THE DEFENDER EFFECTIVELY HAVE".
+ *
+ * Mold Breaker, Teravolt and Turboblaze suppress the defender's ability for the duration of the
+ * move. dmgRange has known that since WIRE 37 and shadowed `defAb` at the top of the calc; the
+ * BATTLE LOOP did not, and read `tg.ability` raw at three separate gates. So the damage half and the
+ * execution half disagreed on the same fact, which is the FACTS-ARE-GLOBAL failure CLAUDE.md names.
+ * One function, four callers.
+ *
+ * `att` IS OPTIONAL AND THE ABSENCE IS NOT A SILENT DEFAULT -- a caller with no attacker (a chooser
+ * scoring a hypothetical, board.js pricing a click) genuinely has nobody to suppress with, and
+ * returning the raw ability is the right answer for that question rather than a fallback. */
+function suppressedAbility(att,def){
+  if(!def)return 'none';
+  return (att&&TAGS.param('ability',att.ability,'ignoresDefenderAbility'))?'none':def.ability;
+}
+/* WIRE 128 -- ONE ANSWER TO "HOW EFFECTIVE IS THIS MOVE AGAINST THIS BODY", AND IT TAKES THE ATTACKER.
+ *
+ * There were two. dmgRange computed the chart, then Freeze-Dry's override, then Scrappy's immunity
+ * exemption; the battle loop's stage-5 gate computed `mcEff(effMoveType(...), tg.types)` and nothing
+ * else. So the calc said a Scrappy Incineroar's Body Slam into Gengar was 88 and the loop that
+ * executes the click refused it as a type immunity -- MEASURED, both arms, before this was written.
+ * Thousand Arrows into a Flying type is the same shape through the override half.
+ *
+ * WIRE 38 -- SCRAPPY / MIND'S EYE. The tag names both halves of the rule: `movesOfType` is the
+ * slash-joined pair of types the ability applies to (Fighting/Normal) and `nowHits` is the type
+ * that stops being immune (Ghost). NOT a blanket "ignore immunities" -- a Scrappy Incineroar's
+ * Flare Blitz is still nothing to nothing, and its Earthquake is still nothing to a Flying type.
+ * The recomputation DROPS the named type from the defender's list rather than forcing eff to 1,
+ * which is the difference that matters on a dual type: Normal into Gengar (Ghost/Poison) must come
+ * out x1, not x1 forced over a 0.
+ *
+ * WIRE 60 -- FREEZE-DRY (1,286 uses), P0 #7, and independently confirmed against Showdown:
+ * `mrrime freezedry -> araquanid` reads 96-114 there and 24-28 here. Ice is RESISTED by Water in
+ * every chart there is; Freeze-Dry is super effective on it, so the error is the full 4x and it is
+ * the move's entire identity.
+ * THE OVERRIDE IS THE ARTIFACT'S NOW. The param used to be a bare `{overrides:true}` -- it said the
+ * chart was wrong and not how -- and the derivation now reads the handler's own
+ * `if (type === "Water") return 1`, which is Showdown's per-type MODIFIER: +1 is one step super
+ * effective, replacing the chart's -1. So the recomputation drops the named type out of mcEff and
+ * multiplies 2^mod back in, which is exactly right on a dual type -- Swampert is Water/Ground and
+ * takes 4x, not 2x.
+ * FLYING PRESS carries the tag with `perType: null` because it ADDS a type rather than overriding
+ * one, and stays visibly unwired rather than being given a number it does not have.
+ *
+ * `mvT` IS PASSED IN RATHER THAN DERIVED, because dmgRange has already resolved the click's real
+ * type (conversion, then weather) alongside a base-power multiplier it needs from the same read.
+ * The loop hands it effMoveType(mv,id,field,att), which is that same resolution. */
+function typeEffAgainst(att,def,mv,mvT){
+  if(!def||!mv)return 1;
+  let eff=mcEff(mvT,def.types);
+  const _oe=mv.id?TAGS.param('move',mv.id,'overridesEffectiveness'):null;
+  if(_oe&&_oe.perType){
+    let _hit=false,_e2=1;
+    for(const t of def.types){
+      if(Object.prototype.hasOwnProperty.call(_oe.perType,t)){_hit=true;_e2*=Math.pow(2,+_oe.perType[t]);}
+      else{const r=MC.C[mvT];_e2*=(r&&r[t]!=null)?r[t]:1;}
+    }
+    if(_hit)eff=_e2;
+  }
+  const _iti=att&&TAGS.param('ability',att.ability,'ignoresTypeImmunity');
+  if(_iti&&_iti.nowHits&&_iti.movesOfType
+     &&String(_iti.movesOfType).split('/').indexOf(mvT)>=0
+     &&def.types.indexOf(_iti.nowHits)>=0)
+    eff=mcEff(mvT,def.types.filter(t=>t!==_iti.nowHits));
+  return eff;
+}
+/* WIRE 11 -- typeImmunity, from the artifact instead of a 12-name table. The tag carries the
+ * TYPE (checked against the weather-effective type, so a sand Weather Ball sails past Volt Absorb)
+ * and the GAIN, which the old table never knew existed -- the battle loop feeds the absorber.
+ * Levitate/Eelevate ride the artifact's one documented name-exception.
+ *
+ * WIRE 128 -- and it is asked of the SUPPRESSED ability, which the loop was not doing: a Mold
+ * Breaker Tinkaton's Earthquake was priced at 60 by dmgRange and absorbed by Levitate in the loop.
+ * Returns the PARAM so the absorber's gain is read from one place too. */
+function absorbedBy(att,def,mvT){
+  const _imm=TAGS.param('ability',suppressedAbility(att,def),'typeImmunity');
+  return (_imm&&_imm.type===mvT)?_imm:null;
+}
+function moveClassBlocked(t,moveId,att){
   if(!t||!moveId)return false;
-  const _imc=TAGS.param('ability',t.ability,'immuneToMoveClass');
+  const _imc=TAGS.param('ability',suppressedAbility(att,t),'immuneToMoveClass');
   const _flag=_imc&&_imc.blocksFlag;
   if(!_flag||_flag==='reflectable'||_flag==='powder')return false;
   if(_flag==='sound')return TAGS.has('move',moveId,'sound');
@@ -2996,7 +3015,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * tests category !== 'Status' and blocks an ALLY'S DAMAGE, and Wonder Guard, which tests
          * for Status and then bare-returns to ALLOW it. */
         if(TAGS.has('ability',_t.ability,'refusesStatusMoves')&&_t!==m) continue;
-        if(moveClassBlocked(_t,a.mv)) continue;                 // WIRE 66 -- Soundproof, Bulletproof
+        if(moveClassBlocked(_t,a.mv,m)) continue;               // WIRE 66 -- Soundproof, Bulletproof
         if(powderBlocked(_t,a.mv)) continue;
         if(pranksterBlocked(m,_t,a.mv)) continue;
         const _acc=moveAccuracy(a.mv,field);
@@ -3143,7 +3162,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            field where medicham2 had already dragged it out. Protect does not stop Roar (it carries
            ignoresProtect) and that half was already right. */
         if(_i>=0&&!_t.fainted&&!(_t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
-           &&!moveClassBlocked(_t,a.mv)&&!TAGS.has('ability',_t.ability,'refusesStatusMoves')){
+           &&!moveClassBlocked(_t,a.mv,m)&&!TAGS.has('ability',_t.ability,'refusesStatusMoves')){
           const _lb=_live(_fb);
           switchOut(_foes,_i,_fb,_own,_fsf,field,_lb.length?_lb[Math.floor(rng()*_lb.length)]:null);
         }
@@ -3218,7 +3237,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         const who=_isFoe?_tgt:(_tgt&&_tgt!==m?_tgt:(it.side==='A'?actA:actB).find(x=>x&&x!==m&&!x.fainted&&x.curHP>0));
         const _blocked=_isFoe&&((_tgt.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
           ||TAGS.has('ability',_tgt.ability,'refusesStatusMoves')
-          ||moveClassBlocked(_tgt,a.mv)||powderBlocked(_tgt,a.mv)||pranksterBlocked(m,_tgt,a.mv));
+          ||moveClassBlocked(_tgt,a.mv,m)||powderBlocked(_tgt,a.mv)||pranksterBlocked(m,_tgt,a.mv));
         const BK={atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp'};
         if(who&&bt.boosts&&!_blocked)for(const k in bt.boosts){
           const kk=BK[k]; if(kk)who.boosts[kk]=clamp((who.boosts[kk]||0)+bt.boosts[k],-6,6);
@@ -3238,7 +3257,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(t&&t!==m
            &&!(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
            &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
-           &&!moveClassBlocked(t,a.mv)&&!pranksterBlocked(m,t,a.mv)
+           &&!moveClassBlocked(t,a.mv,m)&&!pranksterBlocked(m,t,a.mv)
            &&!TAGS.has('item',m.item,'megaStone')&&!TAGS.has('item',t.item,'megaStone')){
           if(_ti.swaps){const _mi=m.item;m.item=t.item;t.item=_mi;}
           else if(_ti.removes){t.item='';}
@@ -3256,7 +3275,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(t&&_ty
            &&!(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
            &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
-           &&!moveClassBlocked(t,a.mv)&&!powderBlocked(t,a.mv)&&!pranksterBlocked(m,t,a.mv)){
+           &&!moveClassBlocked(t,a.mv,m)&&!powderBlocked(t,a.mv)&&!pranksterBlocked(m,t,a.mv)){
           if(_ct.adds){ if(t.types.indexOf(_ty)<0)t.types=[...t.types,_ty]; }
           else if(_ct.replaces){ t.types=[_ty]; }
         }
@@ -3295,7 +3314,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _isFoe=m._sf&&t._sf!==m._sf;
           const _ok=!_isFoe||(!(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
             &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
-            &&!moveClassBlocked(t,a.mv)&&!pranksterBlocked(m,t,a.mv));
+            &&!moveClassBlocked(t,a.mv,m)&&!pranksterBlocked(m,t,a.mv));
           if(_ok){const _ab=m.ability;m.ability=t.ability;t.ability=_ab;}
         }
         continue;
@@ -3421,7 +3440,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            blocks. */
         if(a.mv&&a.target&&!a.target.fainted
            &&((a.target.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
-              ||moveClassBlocked(a.target,a.mv)                                   // WIRE 66
+              ||moveClassBlocked(a.target,a.mv,m)                                 // WIRE 66
               ||TAGS.has('ability',a.target.ability,'refusesStatusMoves'))){m._lastMove=a.mv;continue;}
         /* WIRE 67 -- PARTING SHOT ACTUALLY DROPS THE TARGET. This engine has modelled the switch and
            not the -1 Attack / -1 Special Attack since pivotStatus was wired, and said so in a comment
@@ -3554,7 +3573,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(a.kind==='status'){
         const t=bounceOff(m,a.target,a.mv); if(!t||t.fainted||t.protect) continue;
         if(TAGS.has('ability',t.ability,'refusesStatusMoves')&&t!==m) continue;   // Good as Gold
-        if(moveClassBlocked(t,a.mv)) continue;                                    // WIRE 66
+        if(moveClassBlocked(t,a.mv,m)) continue;                                  // WIRE 66
         const fx=moveFx(a.mv);
         const st=(fx&&fx.status)||null;
         /* WIRE 8 -- perTurnHP, the drain half. Leech Seed carries no major status, so this branch
@@ -3805,8 +3824,13 @@ function battleTurn(S,rng,actsForA,actsForB){
         {
           /* effMoveType, not mv.t: the -ate abilities rewrite a Normal move to Flying or Fairy, and
            * a converted move DOES hit a Ghost. Using the raw type would trade one wrong immunity for
-           * another. It is the same helper the typeImmunity check below already uses. */
-          if (mcEff(effMoveType(mv, a.move.id, field, m), tg.types) === 0) continue;
+           * another. It is the same helper the typeImmunity check below already uses.
+           *
+           * WIRE 128 -- and typeEffAgainst, not a bare mcEff: this gate was the SECOND implementation
+           * of "how effective is this", and it did not know about Scrappy or about Freeze-Dry's
+           * override. dmgRange priced a Scrappy Body Slam into Gengar at 88 and this line refused it
+           * as an immunity, so every rollout and every self-play game had Scrappy dealing zero. */
+          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field, m)) === 0) continue;
         }
         /* WIRE 76 -- AND immuneToMoveClass IS AN IMMUNITY TOO, so it short-circuits stage 5 exactly
          * as the type chart above does. `moveClassBlocked` had two consumers -- dmgRange (WIRE 22,
@@ -3819,7 +3843,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * docs/TAGS.md: "an immune target takes nothing -- not the damage, and not the secondary".
          * That rule was already written down and had one implementation per stage-3 mechanism instead
          * of one per stage. */
-        if(moveClassBlocked(tg,a.move.id))continue;
+        if(moveClassBlocked(tg,a.move.id,m))continue;   // WIRE 128 -- Mold Breaker suppresses Bulletproof too
         /* OFF THE FIELD. A Pokemon in the charge turn of Fly, Dig, Dive, Bounce or Phantom Force
          * cannot be hit at all. Without this the charge is pure cost and those five become strictly
          * worse than reality -- the same one-directional error as the unmodelled charge, reversed. */
@@ -3849,8 +3873,12 @@ function battleTurn(S,rng,actsForA,actsForB){
          * none of this: an absorbed hit was merely zero, never a gift. Flash Fire's volatile has no
          * state to land on -- carried, unconsumed, stated. The whole hit ends here: no secondaries,
          * no punishment, no berry, exactly as onTryHit returning null ends it in the real engine. */
-        const _ab=TAGS.param('ability',tg.ability,'typeImmunity');
-        if(_ab&&_ab.type===effMoveType(mv,a.move.id,field,m)){   // WIRE 126 -- Volt Absorb eats a GALVANIZED Body Slam
+        /* WIRE 126 -- Volt Absorb eats a GALVANIZED Body Slam (the effective type, not mv.t).
+         * WIRE 128 -- and it does NOT eat a Mold Breaker's, which this line read raw off `tg` while
+         * dmgRange had honoured the suppression since WIRE 37. Measured before the fix: a Mold
+         * Breaker Tinkaton's Earthquake into a Levitate body was priced 60 and dealt 0. */
+        const _ab=absorbedBy(m,tg,effMoveType(mv,a.move.id,field,m));
+        if(_ab){
           if(_ab.gain&&!tg.fainted){
             const _h=_ab.gain.heal&&String(_ab.gain.heal).match(/1\/(\d+)/);
             if(_h)tg.curHP=Math.min(tg.st.hp,tg.curHP+Math.floor(tg.st.hp/(+_h[1])));
@@ -3887,7 +3915,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * that have nothing to do with crits.
          * A rate of exactly 1 is skipped because dmgRange has ALREADY applied that 1.5 to the range;
          * multiplying again here would price Flower Trick at 2.25x. */
-        {const _cc=critChance(a.move.id,m,TAGS.param('ability',m.ability,'ignoresDefenderAbility')?'none':tg.ability),_cr=rng();
+        {const _cc=critChance(a.move.id,m,suppressedAbility(m,tg)),_cr=rng();   // WIRE 128 -- one owner
          /* WIRE 96 -- Sniper (`critDamageUp`) multiplies the crit it just rolled, same param the
           * certain-crit path in dmgRange reads. */
          if(_cc>0&&_cc<1&&_cr<_cc){

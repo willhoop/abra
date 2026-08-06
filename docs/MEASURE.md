@@ -28,13 +28,13 @@ MEASURE — can we believe a number
       coerced turns, P(the coerced action)          -0.002613 [-0.003650, -0.001672]   n=293  (lower is better)
       CONTROL, clean turns, logL                    +0.000485 [0.000189, 0.000777]   n=47331
   refit edge: CLEAN — feature_fixture --check passes: all 58 columns hash-identical to fit time
-    (engine/medicham2-browser.js moved 2026-08-06 07:58, and no feature the fixture exercises moved with it)
+    (engine/medicham2-browser.js moved 2026-08-06 18:13, and no feature the fixture exercises moved with it)
     (engine/board.js moved 2026-08-05 19:44, and no feature the fixture exercises moved with it)
     (data/engine-data.js moved 2026-08-05 16:52, and no feature the fixture exercises moved with it)
     (data/abra-tags.js moved 2026-08-05 17:44, and no feature the fixture exercises moved with it)
 ```
 
-_stamped 2026-08-06 08:10_
+_stamped 2026-08-06 19:10_
 
 <!-- /GENERATED -->
 

@@ -87,6 +87,10 @@
   .chip.div{ background:var(--bone); }
   .chip.s-live{ background:var(--ok); } .chip.s-stale{ background:var(--warn); }
   .chip.s-open{ background:var(--bad); color:#fff; } .chip.s-parked{ background:var(--idle); }
+  /* GARY is the quarantine end of the rack, not the green end: it is built, wired and switched off.
+     DUSK has never been built at all, so it gets the neutral slate rather than a warning colour —
+     an unbuilt plan is not a failing model. */
+  .chip.s-off{ background:var(--bad); color:#fff; } .chip.s-planned{ background:var(--slate); color:#fff; }
 
   /* ---- detail ---- */
   .detail{
@@ -349,10 +353,10 @@
       job:"The simulator. A real Gen-9 doubles Monte-Carlo rollout — damage formula with boosts, spread ×0.75, crits, rolls, STAB, weather, Trick Room, Tailwind, priority, Protect, items and a validated ability layer, all of it implemented in <code>engine/medicham2-browser.js</code>. Everything else on this screen is downstream of it being right.",
       why:"Medicham's whole identity is <em>Pure Power</em> — an ability that does nothing but double the Attack stat. It is the Pokémon that exists to make the damage number correct, which is exactly this model's one job.",
       stats:[
-        {k:"Mechanics live", v:"114 / 154", n:"40 missing. <code>data/mechanics-census.json</code>, and ENGINE is actively regenerating it — this cabinet read 102/144 when it was written, then 107/147, 108/148 and 114/154 inside one hour. Take the artifact over this card."},
+        {k:"Mechanics live", v:"218 / 221", n:"3 missing. <code>data/mechanics-census.json</code>, and ENGINE is actively regenerating it — this cabinet read 102/144 when it was written, then 107/147, 108/148, 114/154 and now 218/221. A page that hardcodes a live census will always be a little behind it. Take the artifact over this card."},
         {k:"Damage vs Smogon calc", v:"100%", n:"Within 5% on all 36 scenarios, worst 3%. <code>data/damage-validation.json</code>."},
         {k:"Showdown differentials", v:"1 / 150", n:"149 agreed, seed 20260804. <code>data/engine-diff.json</code>."},
-        {k:"Tag coverage", v:"137 / 176", n:"39 tags never probed. <code>node engine/status.js</code>."}
+        {k:"Tag coverage", v:"156 / 181", n:"25 tags never probed. <code>node engine/status.js</code>, read 2026-08-06 19:05; it was 137/176 earlier the same day."}
       ],
       honest:"Its win% does not beat a coin. On the held-out fifth the live in-game leaf is <em>worse</em> than a coin on Brier — paired +0.0502, 95% CI [0.0371, 0.0628], where lower is better — and it names the winner on 51.0% of 1,314 decisive calls, 95% CI [48.3, 53.7], an interval that contains chance, with ECE 0.1811 (<code>data/winrate-backtest.json</code>). This cabinet previously read <s class='wd' title='Withdrawn 2026-08-04 — the 2026-07-23 reading, superseded by data/winrate-backtest.json measured 2026-08-04, which puts accuracy at 51.0% with a CI containing 50%.'>log-loss 1.2 against 0.69 and ~44% of decisive calls, which is below chance and therefore systematically inverted</s>; the current artifact does not support the inversion, so it is struck out here rather than quietly deleted. The damage math is validated. The win probability is a matchup heuristic wearing a probability's clothes."
     },
@@ -381,6 +385,39 @@
         {k:"Divergence from MAG", v:"80.2%", n:"Over 121 decisions. <code>data/rollout-r3.json</code>."}
       ],
       honest:"The run stopped at an SPRT boundary, so 55.5% is <em>biased high</em> by the stopping rule — the verdict carries the error rate, the point estimate does not. There is no A/A noise floor for this comparison; three split-half cuts (0.2, 3.9, 1.3 points against an effect of 5.5) stand in for one and are labelled a substitute, and all four figures are carried by <code>data/rollout-r4.json</code> itself. And the engine moved after the games were played, so transfer to the current build is an assumption the artifact states rather than tests."
+    },
+    {
+      /* GARY sits immediately after MILTANK because it is the thing MILTANK's search plays AGAINST on
+         every imagined turn. It is a SEAT, not a separate model — the same scorer as MAG and DODUO,
+         pointed the other way — and it is drawn in the quarantine colour because what sits in the seat
+         today is a coin. No Pokemon, so no sprite, exactly like GURU. */
+      key:"gary", mon:"GARY", sprite:false, game:"Spin The Opponent", div:"SEARCH", status:"off",
+      role:"Plays the other side in every imagined game",
+      job:"The opponent inside the search. MILTANK ranks a move by imagining the rest of the battle ~200 times (<code>ROLLOUT_N</code>, <code>engine/miltank.js</code>) and counting wins; GARY is whoever plays the foe in those imagined battles. It answers an ACTION-shaped question, so it is a MAG relative and deliberately not a member of the PORY value-function family — those score a POSITION with no action attached.",
+      why:"There is no Pokémon here and no sprite, the same as GURU. GARY is the rival seat — one setting deep in <code>engine/rollout_leaf.js</code>, not a model of its own — and what is sitting in it is a spinner. So the spinner is the artwork, because the spinner is the finding.",
+      stats:[
+        {k:"Default opponent policy", v:"a coin", n:"<code>foePolicy: 'uniform'</code> — every imagined Pokémon draws one of its four moves at random, in the library and in the live bot. <code>engine/miltank.js</code> and <code>engine/mag_bot.js</code>, per <code>docs/SEARCH.md</code> R11."},
+        {k:"Clicks the clone could draw on", v:"128,548", n:"Over 295 species. The <code>'prior'</code> path is wired end to end and switched off. <code>data/move-priors.json</code>, per <code>docs/MODELS.md</code>."},
+        {k:"Humans aiming both attacks at one foe", v:"23.4%", n:"Against ~50% under independent choice (<code>engine/board.js</code>, quoted in <code>docs/MODELS.md</code>). GARY picks its two slots independently (<code>docs/ROADMAP.md</code> #55), so it can only reach the first number by luck."},
+        {k:"Which GARY ran, in any result", v:null, n:"Unrecorded. <code>data/rollout-r1.json</code> and <code>data/rollout-r1-explore-sweep.json</code> carry no <code>foePolicy</code> key at all, so neither R1's leaf verdict nor R4's head-to-head can say whether its opponent was a person or a coin."}
+      ],
+      honest:"Five things are wrong with it and not one of them is measured. <b>(1)</b> The default is the coin, in the library and in the live bot, and the behaviour-clone alternative is wired end to end with nothing turning it on (task #32). <b>(2)</b> The same flag steers BOTH sides, so one setting governs the search's model of itself and of the opponent — the name is wrong and the two must be split before any \"better opponent\" result is interpretable (#34). <b>(3)</b> The TARGET is drawn uniformly in both modes, so even the clone fixes <em>which move</em> and never <em>who it hits</em> (#35). <b>(4)</b> GARY has two seats and they disagree: <code>rolloutAfterActions</code>'s own comment is <em>\"The opponent is NOT modelled\"</em> — deterministic greedy on the turn being ranked, a coin on every turn after (#36). <b>(5)</b> It picks its two Pokémon independently (<code>docs/ROADMAP.md</code> #55), so the imagined opponent never focus-fires and never Protects while its partner removes the threat — the plays that actually beat us are the ones it is structurally incapable of making. That last one has a direction: our own independence costs us quality symmetrically, and GARY's makes the foe we practise against weaker than the ones we meet."
+    },
+    {
+      /* DUSK is PLANNED and nothing is built. It follows GARY because both are the search's future,
+         and because the gate that sized it landed the same day GARY was named. The cabinet's job is
+         to carry the ORDER of the finding: the reach rate killed the tablebase before the size did. */
+      key:"dusk", mon:"DUSK", sprite:false, game:"Solve The Ending", div:"SEARCH", status:"planned",
+      role:"Solves the ending exactly instead of guessing it",
+      job:"At 1v1 under open team sheets there is no hidden information left — species, set, item, ability and nature are all declared — so the position is a small simultaneous-move matrix game with known payoffs, which is exactly what <code>engine/slowking/nash.py</code> already solves and is verified to solve. DUSK is the plan to answer those endings <em>exactly</em> instead of rolling them out. It was scoped as a precomputed lookup TABLE, Syzygy for VGC; the size gate says that table is TOO BIG (<code>data/dusk-size-gate.json</code>), and the successor is to solve and not tabulate.",
+      why:"No Pokémon and no sprite: DUSK is a plan, not a player. The artwork is the matrix that would have to be solved, drawn to scale beside the one a whole turn needs — the size of that square is the entire argument, and it is the only thing on this cabinet that was not measured today.",
+      stats:[
+        {k:"Games that reach 1v1", v:"16.42%", n:"95% CI [15.49, 17.40] over 5,815 clean open-sheet games, and 58.95% of those 1v1s are over after a single decision. <code>data/dusk-size-gate.json</code>."},
+        {k:"Games that reach 2v1", v:"45.93%", n:"2,671 of 5,815, 95% CI [44.66, 47.22] — which is why the successor aims higher than 1v1. <code>data/dusk-size-gate.json</code>."},
+        {k:"A table at the fidelity DUSK claims", v:"1.56e13 entries", n:"TOO BIG, against a ceiling of 2,700,000 declared before the counts were run. The largest design that fits knows nothing but two species and two HP bars: 1,575,300 entries, 36.1 MB packed. <code>data/dusk-size-gate.json</code>."},
+        {k:"Whether an online solve is affordable", v:null, n:"Solving turns the size question into a latency question, and <code>data/rollout-cost.json</code> is the file that would have to answer it — <code>docs/SEARCH.md</code> records that R2 is re-run or it is nothing. Nothing here is built."}
+      ],
+      honest:"NOT BUILT — the gate is the only thing that exists. Read the reach rate before the size, because it is the finding that outranks it: five games in six never reach 1v1 at all, three in five of the ones that do are finished in a single decision, and the positions a 1v1 table exists for are 3.75% of the 46,909 decision points in the corpus (<code>data/dusk-size-gate.json</code>). A tablebase is also the least useful exactly where it is affordable — at 1v1 the candidate set is at its smallest for the same reason the matrix is. The size verdict then cost DUSK its second job: it was the route that let the verified Python Nash solver reach the JavaScript bot without a second implementation of the maths, and <code>docs/SEARCH.md</code> retires that argument in the same breath — the precomputed table is too big at every fidelity that would make it worth having. What survives is Will's retrograde point, and it is why this cabinet is not a headstone: with 2v2 solved, a 3v2 stops being a position to play and becomes a CHOICE of which solved 2v2 to steer into, which is how chess tablebases are built (<code>docs/ROADMAP.md</code> §5.4 #47)."
     },
     {
       key:"doduo", mon:"DODUO", game:"Two Heads, One Turn", div:"SEARCH", status:"stale", pos:[50,64,124],
@@ -508,7 +545,11 @@
   ];
 
   var DIVLABEL = { ENGINE:"ENGINE", MEASURE:"MEASURE", SEARCH:"SEARCH", OPS:"OPS", "THE SEAM":"THE SEAM" };
-  var STATUSLABEL = { live:"LIVE", stale:"STALE", open:"OPEN BUG", parked:"PARKED" };
+  /* SHIPS OFF and PLANNED are their own states and must not be flattened into STALE. A stale model
+     ran and its number has aged; GARY has never been switched on and DUSK has never been built, and
+     a rack that calls all three "STALE" hides which of them ever produced a result. */
+  var STATUSLABEL = { live:"LIVE", stale:"STALE", open:"OPEN BUG", parked:"PARKED",
+                      off:"SHIPS OFF", planned:"PLANNED" };
 
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -712,6 +753,13 @@
                 ece:"0.1811", acc:"51.0%", accn:"1,314", accci:"[48.3, 53.7]", brier:"+0.0502", brierci:"[0.0371, 0.0628]", src:"data/engine-diff.json, data/damage-validation.json and data/winrate-backtest.json" },
     mag:      { stops:["Guess","Habit","Read the board"], top1:["20.0%","23.1%","32.3%"], what:["a uniform guess over the legal menu","what this species usually clicks","the board in front of it"], gain:"+9.2 points", feats:"58", games:"8,414", dec:"220,613", held:"44,033", greedy:"79.7%", src:"data/policy-weights.json heldOut and docs/MODELS.md" },
     miltank:  { arm1:"297", split:"777", arm2:"238", pairs:"1,312", games:"2,624", dec:"535", win:"55.5%", ci:"[51.3, 59.7]", div:"80.2%", floor:"31.4%", divn:"121", src:"data/rollout-r4.json and data/rollout-r3.json" },
+    /* gary: the two numbers a person could mistake for GARY's OWN result are deliberately absent —
+       it has no win rate and no accuracy, and nothing should appear here that could be read as one. */
+    gary:     { rollouts:"200", clicks:"128,548", species:"295", focus:"23.4%", indep:"~50%", src:"data/move-priors.json; the two defaults in engine/miltank.js + engine/mag_bot.js are quoted in docs/SEARCH.md R11; the coordination figures in docs/MODELS.md and docs/ROADMAP.md #55" },
+    /* dusk: THE CELL COUNTS ARE NOT IN THE SIZE GATE. 16 / 96 / ~1,296 and the ~5,738 for a general
+       turn come from docs/ROADMAP.md §5.4 #47 and docs/SEARCH.md; the reach rates, the entry counts
+       and the verdict come from data/dusk-size-gate.json. Both citations ride on this line. */
+    dusk:     { cells:["16","96","1,296"], labels:["1v1","2v1","2v2"], turn:"5,738", reach:["16.42%","45.93%"], reachci:["[15.49, 17.40]","[44.66, 47.22]"], one:"58.95%", pts:"3.75%", allpts:"46,909", games:"5,815", entries:"1.56e13", ceiling:"2,700,000", fits:"1,575,300", mb:"36.1", src:"data/dusk-size-gate.json for the reach rates, the entry counts and the TOO BIG verdict; docs/ROADMAP.md §5.4 #47 for the cell counts and the retrograde idea; docs/SEARCH.md for the ~5,738 joint actions in a general turn" },
     doduo:    { pairFeats:"18", apart:"10.1%", zeroed:"9.4%", joint:"12.2%", turns:"81,515", held:"14,995", games:"7,454", src:"docs/MODELS.md" },
     /* wobbuffet.back is what the counter-punch RETURNS, and on the current build it returns nothing:
        engine/provenance.js --strict marks data/exploitability.json UNSAFE. `was` is the figure it
@@ -780,6 +828,49 @@
     /* DODUO — aim each head, then commit. Two heads that disagree spend the turn twice. The
        WASTED TURN is the argument and is not measured; what IS measured is which PAIR a human
        clicked, and the coordination terms carry the whole gain. */
+    /* GARY — the spinner. Press it and the foe's move comes off a wheel of four equal sectors, and
+       so does its target, and the two foe slots are drawn separately. The toggle swaps the MOVE
+       wheel for the behaviour clone and stamps it SHIPS OFF, which is the whole point: the
+       alternative is built, it is wired end to end, and the default is the coin. The TARGET wheel
+       does not change when you press the toggle, because in the code it does not change either. */
+    gary: { init:{ turns:0, mode:0, a:0, b:0, ta:0, tb:0 },
+      go:function(st){ return { label:"TAKE THEIR TURN",
+        hint: st.mode ? "the clone is switched on here — and it ships switched off" : "the foe draws a move at random, and a target at random", cls:"hot" }; },
+      /* Math.random is not this division authoring a number: it is the model. A uniform draw is
+         exactly what foePolicy:'uniform' does, and watching it is the finding. */
+      press:function(st){ st.turns=(st.turns||0)+1;
+        st.a=Math.floor(Math.random()*4); st.b=Math.floor(Math.random()*4);
+        st.ta=Math.floor(Math.random()*2); st.tb=Math.floor(Math.random()*2); },
+      alts:function(st){ return [{ label: st.mode ? "PUT THE COIN BACK" : "SWAP IN THE BEHAVIOUR CLONE",
+        on: !!st.mode, act:function(s){ s.mode = s.mode ? 0 : 1; s.turns = Math.max(1, s.turns||0); } }]; },
+      read:function(st){ var D=CTRLDATA.gary;
+        return st.mode
+          ? "The alternative is real, it is finished, and it is off. <code>'prior'</code> draws each move weighted by what that species actually clicks — <b>"+D.clicks+"</b> recorded clicks over <b>"+D.species+"</b> species — and nothing turns it on. Now watch the lower wheel while you press: the TARGET is drawn uniformly in BOTH modes, so even the clone fixes <em>which move</em> and never <em>who it hits</em>. Whether it plays better is "+NM+", and worse than that, no artifact records which of the two ran in any result we quote. <code>"+D.src+"</code>"
+          : "Every imagined Pokémon draws one of its four moves at random, and its target at random, and MILTANK ranks a real move by imagining the rest of the battle <b>"+D.rollouts+"</b> times against exactly this. Press it a few times and watch the two foe slots: they are drawn separately, so they focus-fire only by accident. Humans aim both attacks at one foe <b>"+D.focus+"</b> of the time against <b>"+D.indep+"</b> under independent choice — the plays that beat us are the ones this opponent cannot make. <code>"+D.src+"</code>"; } },
+
+    /* DUSK — solve the ending. The primary verb walks UP the ladder of exactly-solvable positions,
+       drawn to scale against the matrix a whole turn needs. The secondary button is the retired
+       plan: build the table instead, and watch it overrun its own declared ceiling. */
+    dusk: { init:{ step:0, table:0, built:0 },
+      go:function(st){ var D=CTRLDATA.dusk;
+        if (st.table) return { label:"BUILD THE TABLE", hint:"every position precomputed once, loaded at startup", cls:"hot" };
+        if (st.step>=4) return { label:"START AGAIN", hint:"back to the 1v1", cls:"cool" };
+        if (st.step>=3) return { label:"NOW STEER A 3v2 INTO IT", hint:"retrograde — a solved 2v2 turns a 3v2 into a choice" };
+        return { label: st.step ? "SOLVE THE NEXT ONE UP" : "SOLVE IT",
+                 hint: st.step ? "2v1, then 2v2 — the matrix grows, and so does how often it happens" : "one exact matrix, "+D.cells[0]+" cells, no rollout" }; },
+      press:function(st){ if (st.table) { st.built=(st.built||0)+1; return; }
+        st.step = (st.step>=4) ? 1 : (st.step||0)+1; },
+      alts:function(st){ return [{ label: st.table ? "BACK TO SOLVING" : "BUILD THE TABLE INSTEAD",
+        on: !!st.table, act:function(s){ s.table = s.table ? 0 : 1; s.built = 0; } }]; },
+      read:function(st){ var D=CTRLDATA.dusk;
+        if (st.table)
+          return "Nothing fits. Keyed on what DUSK actually claims to look up — the declared set on both sides, HP, status and boosts — the table is <b>"+D.entries+"</b> entries against a ceiling of <b>"+D.ceiling+"</b> that was written to disk before a single count was run. It becomes shippable only by throwing the set, the status, the boosts and the field away: <b>"+D.fits+"</b> entries, <b>"+D.mb+"</b> MB packed, and it cannot tell a Choice Scarf Garchomp from a Life Orb one. <code>"+D.src+"</code>";
+        if (st.step>=4)
+          return "This is Will's point and it is the reason the plan survives its own size gate. With the <b>"+D.labels[2]+"</b> solved, a 3v2 stops being a position you play and becomes a CHOICE of which solved ending to steer into — which is how chess tablebases are built, backwards from the endings. Nothing here is built: DUSK is "+NM+" as a latency, as a win rate and as anything else. <code>"+D.src+"</code>";
+        if (st.step)
+          return "Solved exactly, no rollout: <b>"+D.labels[0]+"</b> is <b>"+D.cells[0]+"</b> cells, <b>"+D.labels[1]+"</b> is <b>"+D.cells[1]+"</b>, <b>"+D.labels[2]+"</b> is about <b>"+D.cells[2]+"</b> — against roughly <b>"+D.turn+"</b> joint actions in a general turn. And the reach rate is what decides whether any of it is worth having: <b>"+D.reach[0]+"</b> "+D.reachci[0]+" of games reach 1v1 and <b>"+D.one+"</b> of those end in one decision, while <b>"+D.reach[1]+"</b> "+D.reachci[1]+" reach 2v1. <code>"+D.src+"</code>";
+        return "Under open sheets a 1v1 has nothing hidden but their next click, so it is a matrix game with known payoffs — <b>"+D.cells[0]+"</b> cells, which is the smallest thing the verified Nash solver already solves. Press the big button and walk up the ladder; the pale square is what a general turn asks for instead, about <b>"+D.turn+"</b> joint actions. <code>"+D.src+"</code>"; } },
+
     doduo: { init:{ L:1, R:1, went:0 },
       go:function(st){ return { label:"GO — CLICK BOTH HEADS", hint: st.L===st.R ? "both heads are on the same target" : "the heads disagree", cls: st.L===st.R ? "" : "hot" }; },
       press:function(st){ st.went = 1; },
@@ -930,6 +1021,7 @@
      something has HAPPENED — a rack of thirteen idle screens says nothing about thirteen models. */
   var PREVIEW = {
     medicham:{ mode:1 }, mag:{ stop:2, pulls:1 }, miltank:{ roll:1 }, doduo:{ L:0, R:2, went:1 },
+    gary:{ turns:1, mode:0, a:2, b:0, ta:1, tb:1 }, dusk:{ step:3, table:0, built:0 },
     wobbuffet:{ hits:1, mode:0 }, machamp:{ tries:1, bar:0 }, guru:{ run:1, corrected:0 },
     slowking:{ stop:0, counter:1 }, xatu:{ k:4 }, mew:{ hatch:1 }, jolteon:{ asked:1 },
     ditto:{ n:2 }, kadabra:{ rew:1, from:0 }
@@ -1097,6 +1189,146 @@
         label(c,"BIASED HIGH · SPRT STOPPING RULE",w/2,base-mh*0.62+37,9,BALL);
       }
       label(c,on?"1,312 SEED PAIRS":"PRESS ROLL IT OUT",w/2,17,12,on?BONE:BOLT);
+    },
+
+    /* ============ GARY — spin the opponent =================================================
+       The far side of the field, with a spinner over each foe slot. Four EQUAL sectors, because
+       the default draws uniformly; a second small wheel under each one for the target, because
+       the target is uniform in both modes and that is the defect the toggle does NOT fix. The
+       two slots are drawn separately and the caption says so whichever way they land. */
+    gary: function(c,w,h,t,st){
+      var D=CTRLDATA.gary, turns=(st&&st.turns)||0, mode=(st&&st.mode)?1:0;
+      var picks=[(st&&st.a)||0,(st&&st.b)||0], tgs=[(st&&st.ta)||0,(st&&st.tb)||0];
+      var gapx=Math.min(196,w*0.46), cy=76, r=Math.min(34,gapx*0.26), slotY=h-40;
+      var p=turns?clamp01(t*0.6):0, e=ez(p), done=(turns&&p>0.82);
+
+      /* my two slots, along the bottom — what the arrows land on */
+      for(var s=0;s<2;s++){
+        var sx=w/2+(s?1:-1)*gapx/2;
+        bev(c,sx-46,slotY,92,24,"#2b3f9e");
+        label(c,s?"MY SLOT B":"MY SLOT A",sx,slotY+12,10,BONE);
+      }
+
+      for(var i=0;i<2;i++){
+        var x=w/2+(i?1:-1)*gapx/2;
+        var ang=turns?((1-e)*Math.PI*2*4 + picks[i]*Math.PI/2):0;
+        c.save(); c.translate(x,cy); c.rotate(ang);
+        for(var k=0;k<4;k++){
+          c.beginPath(); c.moveTo(0,0);
+          c.arc(0,0,r,(k-0.5)*Math.PI/2-Math.PI/2,(k+0.5)*Math.PI/2-Math.PI/2);
+          c.closePath();
+          c.fillStyle=(k%2)?"#2b3f9e":"#38427e"; c.fill();
+          c.lineWidth=2; c.strokeStyle=INK; c.stroke();
+        }
+        c.restore();
+        blob(c,x,cy,r*0.30,mode?GRAPE:BOLT,3);
+        c.beginPath(); c.moveTo(x-7,cy-r-11); c.lineTo(x+7,cy-r-11); c.lineTo(x,cy-r+3); c.closePath();
+        c.fillStyle=BONE; c.fill(); c.lineWidth=2; c.strokeStyle=INK; c.stroke();
+        label(c,i?"FOE SLOT B":"FOE SLOT A",x,cy-r-20,10,"#8fa0e0");
+
+        /* the TARGET wheel — always four equal sectors, in both modes */
+        var ty=cy+r+18, tr=11;
+        c.save(); c.translate(x,ty); c.rotate(turns?((1-e)*Math.PI*2*6+(tgs[i]?Math.PI:0)):0);
+        for(var q=0;q<4;q++){
+          c.beginPath(); c.moveTo(0,0);
+          c.arc(0,0,tr,q*Math.PI/2,(q+1)*Math.PI/2); c.closePath();
+          c.fillStyle=(q%2)?"#54609e":"#38427e"; c.fill();
+          c.lineWidth=1.5; c.strokeStyle=INK; c.stroke();
+        }
+        c.restore();
+
+        if(done){
+          var sx2=w/2+(tgs[i]?1:-1)*gapx/2;
+          c.strokeStyle=BALL; c.lineWidth=3; c.setLineDash([6,4]);
+          c.beginPath(); c.moveTo(x,ty+tr+3); c.lineTo(sx2,slotY-7); c.stroke(); c.setLineDash([]);
+          blob(c,sx2,slotY-7,4,BALL,2);
+        }
+      }
+
+      /* the clone, stamped off — it covers the MOVE wheels and deliberately not the target ones */
+      if(mode){
+        c.save(); c.translate(w/2,cy-2); c.rotate(-0.16);
+        bev(c,-96,-15,192,30,"#4a2a6e");
+        label(c,"CLONE · "+D.clicks,0,-1,13,BONE);
+        label(c,"SHIPS OFF",0,12,10,BALL);
+        c.restore();
+      }
+
+      label(c,turns?(mode?"WIRED END TO END, AND SWITCHED OFF":"IT DRAWS ITS MOVE AT RANDOM")
+                   :"PRESS TAKE THEIR TURN",w/2,17,12,turns?(mode?GRAPE:BALL):BOLT);
+      if(done){
+        label(c,(tgs[0]===tgs[1])?"BOTH HIT ONE SLOT — BY LUCK, NOT BY PLAN"
+                                 :"ONE EACH — THE TWO SLOTS NEVER COORDINATE",w/2,h-9,10,BONE);
+        label(c,"TARGET: UNIFORM IN BOTH MODES",w/2,cy+r+40,9,BALL);
+      }
+    },
+
+    /* ============ DUSK — solve the ending ==================================================
+       Four squares whose AREA is the number of cells that would have to be solved, so the
+       comparison is the drawing rather than a caption on it: a 1v1 is a speck beside a whole
+       turn. Walk up the ladder and they light; press the small button and the retired plan —
+       precompute the lot — runs off the end of its own declared ceiling. */
+    dusk: function(c,w,h,t,st){
+      var D=CTRLDATA.dusk, step=(st&&st.step)||0, table=(st&&st.table)?1:0, built=(st&&st.built)||0;
+
+      if(table){
+        var x0=34, x1=w-34, y=64, gate=x0+(x1-x0)*0.55;
+        label(c,built?"IT DOES NOT FIT":"PRESS BUILD THE TABLE",w/2,17,12,built?BALL:BOLT);
+        c.setLineDash([8,6]); c.lineWidth=3; c.strokeStyle=BALL;
+        c.beginPath(); c.moveTo(gate,y-14); c.lineTo(gate,y+92); c.stroke(); c.setLineDash([]);
+        label(c,"CEILING "+D.ceiling,Math.min(w-70,gate),y-24,10,BALL);
+        var fw=(gate-x0)*0.58;
+        bev(c,x0,y,fw,24,"#38427e");
+        label(c,D.fits,x0+fw/2,y+12,11,BONE);
+        label(c,"ALL IT KNOWS IS TWO SPECIES AND TWO HP BARS",x0+fw/2+70,y+36,9,"#8fa0e0");
+        var g=built?ez(clamp01(t*0.85)):0;
+        bev(c,x0,y+58,Math.max(5,(x1-x0)*g),24,BALL);
+        if(built&&g>0.55) label(c,D.entries,Math.min(x1-46,x0+(x1-x0)*g*0.5),y+70,13,"#fff");
+        label(c,"WHAT DUSK ACTUALLY ASKS FOR",x0+96,y+94,9,"#8fa0e0");
+        if(built&&g>0.94) label(c,"TOO BIG",w/2,h-20,26,BALL);
+        return;
+      }
+
+      /* AREA = CELLS. side = sqrt(cells) x k, so the four squares are honestly to scale. */
+      var N=[16,96,1296,5738], K=1.56, baseY=h-44, gapS=14;
+      var sides=N.map(function(n){ return Math.sqrt(n)*K; });
+      var total=sides.reduce(function(a,b){ return a+b; },0)+gapS*3;
+      var x=Math.max(24,(w-total)/2);
+      for(var i=0;i<4;i++){
+        var sd=sides[i], yTop=baseY-sd, lit=(i<3&&step>i);
+        if(i===3){
+          c.setLineDash([5,4]); c.lineWidth=2; c.strokeStyle="#54609e";
+          c.strokeRect(x,yTop,sd,sd); c.setLineDash([]);
+        } else {
+          c.fillStyle=lit?"#2f8f4e":"#232c60"; c.fillRect(x,yTop,sd,sd);
+          c.lineWidth=2; c.strokeStyle=INK; c.strokeRect(x,yTop,sd,sd);
+          if(lit&&sd>20){
+            var cells=Math.round(Math.sqrt(N[i])), cs=sd/cells;
+            c.strokeStyle="rgba(13,17,48,.45)"; c.lineWidth=0.6;
+            for(var g2=1;g2<cells;g2++){
+              c.beginPath(); c.moveTo(x+g2*cs,yTop); c.lineTo(x+g2*cs,yTop+sd); c.stroke();
+              c.beginPath(); c.moveTo(x,yTop+g2*cs); c.lineTo(x+sd,yTop+g2*cs); c.stroke();
+            }
+          }
+        }
+        label(c,(i===3?"A WHOLE TURN":D.labels[i]),x+sd/2,baseY+12,10,(i===3?"#8fa0e0":(lit?LEAF:"#8fa0e0")));
+        label(c,(i===3?D.turn:D.cells[i]),x+sd/2,baseY+24,11,(i===3?"#8fa0e0":(lit?BONE:"#54609e")));
+        /* retrograde: a 3v2 hanging over the solved 2v2, feeding into two of its cells */
+        if(i===2&&step>=4){
+          var hx=x+sd/2, hy=yTop-30;
+          bev(c,hx-26,hy-11,52,22,"#4a2a6e");
+          label(c,"3v2",hx,hy,12,BONE);
+          c.strokeStyle=GRAPE; c.lineWidth=2.5;
+          c.beginPath(); c.moveTo(hx-14,hy+13); c.lineTo(x+sd*0.28,yTop-2); c.stroke();
+          c.beginPath(); c.moveTo(hx+14,hy+13); c.lineTo(x+sd*0.72,yTop-2); c.stroke();
+        }
+        x+=sd+gapS;
+      }
+      label(c,step>=4?"A 3v2 IS A CHOICE OF WHICH SOLVED ENDING TO STEER INTO"
+                     :(step?"SOLVED EXACTLY — NO ROLLOUT":"PRESS SOLVE IT"),
+            w/2,17,12,step?(step>=4?GRAPE:LEAF):BOLT);
+      label(c,D.reach[0]+" OF GAMES REACH 1v1 · "+D.reach[1]+" REACH 2v1",w/2,h-10,10,"#8fa0e0");
+      if(step&&step<4) label(c,D.one+" OF 1v1s END IN ONE DECISION",w/2,32,10,BALL);
     },
 
     /* ============ DODUO — two heads, one turn =============================================
