@@ -68,7 +68,27 @@ let F_GAMES = null;                 /* kept so the mega-reachable sweep can reus
 function usage() {
   const out = { move: {}, item: {}, ability: {}, entries: 0 };
   let F; try { F = require('./fit_policy.js'); } catch (e) { return out; }
-  let games; try { games = F.loadCorpus().games; } catch (e) { return out; }
+  /* SCOPE 'all', STATED, BECAUSE THIS IS A CATALOGUE AND NOT A FIT. data/tags.json records WHAT
+   * EXISTS in the format — every move, ability and item, with how often the corpus has seen it. A
+   * training sample deliberately narrows to the distribution you want to learn; a catalogue must not,
+   * because a narrowing DELETES entries rather than reweighting them.
+   *
+   * This line used to inherit fit_policy's default. When that default became bo3-only (for the fit,
+   * correctly), this file's sheet_entries fell 110,760 -> 78,480 and a regeneration would have removed
+   * SERENE GRACE, TINTED LENS, CURIOUS MEDICINE, STEELY SPIRIT and LEPPA BERRY from the engine's
+   * knowledge entirely — silently, because a missing entry looks the same as a mechanic that does not
+   * exist. ROADMAP #65. Asking out loud is the fix; inheriting was the bug.
+   *
+   * The catch stays because a missing corpus must not stop the dex being derived from Showdown — but
+   * it now says so instead of returning an empty usage map that reads like "nothing is used". */
+  let games;
+  try { games = F.loadCorpus({ scope: 'all' }).games; }
+  catch (e) {
+    console.error('tag_dex: loadCorpus({scope:"all"}) failed, so USAGE COUNTS WILL BE ZERO for every '
+      + 'entry in this run — the tag SHAPES are still derived from Showdown and are unaffected. '
+      + 'Reason: ' + String((e && e.message) || e).split('\n')[0].slice(0, 120));
+    return out;
+  }
   F_GAMES = games;
   for (const g of games) {
     for (const side of ['p1', 'p2']) {

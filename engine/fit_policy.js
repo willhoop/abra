@@ -215,7 +215,7 @@ function speciesShares(corpus) {
   return { ratio, openGames: O.n, closedGames: C.n };
 }
 
-function loadCorpus() {
+function loadCorpus(opts) {
   const cfg = Q.config();
   /* THE BEHAVIOURAL BOT SET, WHICH THIS USED TO PASS AS `null`.
    *
@@ -301,16 +301,44 @@ function loadCorpus() {
    *
    * REVERSIBLE, and the way back is measured rather than remembered: put ots back only once
    * corpus_shift.js has written an artifact saying how far its metagame sits from ours. */
-  for (const f of ['games.bo3.jsonl']) {
+  /* THE SCOPE IS NOW NAMED, DECLARED IN THE RETURN, AND OVERRIDABLE — because the narrowing above is
+   * a decision made FOR THE FIT, and it was silently inherited by a consumer that wanted the opposite.
+   *
+   * `engine/tag_dex.js` calls this same function to derive data/tags.json, which is a catalogue of
+   * WHAT EXISTS rather than a training sample of what a good player does. Narrowing to bo3 cut its
+   * sheet_entries 110,760 -> 78,480 and would have DELETED five entities from the engine's knowledge
+   * — Serene Grace, Tinted Lens, Curious Medicine, Steely Spirit and Leppa Berry. Caught only because
+   * a regeneration was DIFFED instead of accepted (ROADMAP #65).
+   *
+   * A CORPUS DECISION IS NOT LOCAL TO THE MODEL IT WAS MADE FOR. The default is unchanged, so all 46
+   * existing call sites behave exactly as before and this carries no measurement risk; what changes is
+   * that the choice is no longer invisible — the caller can ask for a different one, and the RESULT
+   * says which one it got and which files it actually read.
+   *
+   * NOT DONE HERE, deliberately: making `scope` REQUIRED so every one of the 46 callers must state its
+   * intent. That is the shape that ends this class of bug for good, and it is 46 judgement calls that
+   * each silently move a measurement if made carelessly. It is its own careful pass, not a side effect
+   * of this one. */
+  const SCOPES = {
+    fit: ['games.bo3.jsonl'],                                          /* the default: see the reasoning above */
+    all: ['games.bo3.jsonl', 'games.ots.jsonl', 'games.ladder.jsonl'], /* everything on disk — for CATALOGUES, not fits */
+  };
+  const scope = (opts && opts.scope) || 'fit';
+  const files = SCOPES[scope];
+  if (!files) throw new Error(`fit_policy.loadCorpus: unknown scope "${scope}". Known: ${Object.keys(SCOPES).join(', ')}`);
+
+  const read = [];
+  for (const f of files) {
     const p = D('data', f);
     if (!fs.existsSync(p)) continue;
+    read.push(f);
     for (const line of fs.readFileSync(p, 'utf8').split('\n')) {
       if (!line.trim()) continue;
       let g; try { g = JSON.parse(line); } catch (e) { continue; }
       add(g);
     }
   }
-  return { games, rejected };
+  return { games, rejected, scope, files: read };
 }
 
 /* ---------------------------------------------------------------------------------------------
