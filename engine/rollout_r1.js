@@ -100,6 +100,27 @@ const EVERY = parseInt(process.env.EVERY || '2', 10);
  * whichever value applies is stamped into the sidecar. */
 const MAXTURNS = process.env.MAXTURNS ? parseInt(process.env.MAXTURNS, 10) : 0;
 
+/* GARY — WHO PLAYS THE OPPONENT INSIDE THE IMAGINED GAME. Named 2026-08-06 (Will).
+ *
+ * 'uniform' is a coin over the mon's four moves. 'prior' samples data/move-priors.json — 128,548
+ * recorded clicks over 295 species — so the imagined opponent clicks Protect and Fake Out at the
+ * rate people actually do. Both are implemented in engine/rollout_leaf.js and 'uniform' is what has
+ * always shipped.
+ *
+ * THE DEFAULT IS UNCHANGED ON PURPOSE. This knob exists so the choice is RECORDED, not so it moves:
+ * changing what R1 measures in the same commit that makes it measurable would leave nobody able to
+ * say which of the two caused a difference. Flipping it is task #32 and is a separate, measured run.
+ *
+ * Note the target is drawn uniformly in BOTH settings (rollout_leaf.js), so this fixes which move
+ * the opponent clicks and never who it hits — task #35. */
+const FOE_POLICY = process.env.FOE_POLICY || 'uniform';
+if (!['uniform', 'prior'].includes(FOE_POLICY)) {
+  console.error(`rollout_r1: FOE_POLICY='${FOE_POLICY}' is not a policy rollout_leaf implements `
+    + `(uniform | prior). Refusing rather than silently falling back — a run that measured a `
+    + `different opponent than its artifact claims is the defect this knob exists to prevent.`);
+  process.exit(1);
+}
+
 let w1;
 try { w1 = JR.loadRanker(); } catch (e) { console.error(e.message); process.exit(1); }
 const { games } = FP.loadCorpus();
@@ -234,8 +255,16 @@ JR.build(games, dex, {
     const ps = {};
     for (const ee of EXPLORE_LIST) for (const nn of N_LIST) {
       const key = EXPLORE_LIST.length > 1 ? `${nn}@${ee}` : nn;
+      /* GARY IS PASSED EXPLICITLY, NOT INHERITED. This call named `explore` and NOT `foePolicy`, so
+       * it silently took rollout_leaf's default of 'uniform' — every imagined Pokemon drawing one of
+       * its four moves by coin flip. The result was then written to data/rollout-r1.json with the
+       * explore value stamped and the opponent unrecorded, so R1's leaf verdict describes a
+       * configuration nobody wrote down and cannot be transferred to a run whose opponent differs.
+       * That is the "a capability that cannot prove it ran is assumed broken" rule applied to GARY,
+       * and it had no name to be missing under until 2026-08-06. Naming it here does not CHANGE the
+       * default; it makes the default a recorded decision instead of an inherited accident. */
       const rr = RL.rolloutWinProb(board, 'p1', Object.assign(
-        { n: nn, dex, seed: gi * 7919 + sampled, field, explore: ee },
+        { n: nn, dex, seed: gi * 7919 + sampled, field, explore: ee, foePolicy: FOE_POLICY },
         MAXTURNS ? { maxTurns: MAXTURNS } : {}));
       if (!rr) { nulls++; return; }
       ps[key] = rr.p;
@@ -415,6 +444,16 @@ if (DUMP) {
           ? `${N_LIST[N_LIST.length - 1]}@${exploreVal}` : N_LIST[N_LIST.length - 1]),
         n_rollouts: N_LIST[N_LIST.length - 1],
         explore: exploreVal,
+        /* STAMPED BESIDE `explore`, because they are the same kind of fact and only one of them was
+         * ever recorded. Without this, "R1's leaf names the winner on X% of positions" is a claim
+         * about an opponent nobody wrote down, and it silently transfers to runs it does not
+         * describe. See engine/rollout_leaf.js and docs/SEARCH.md R11. */
+        foe_policy: FOE_POLICY,
+        foe_policy_note: FOE_POLICY === 'uniform'
+          ? 'GARY is a coin over the mon\'s four moves. The behaviour-clone alternative (prior) is '
+            + 'built and was not selected for this run.'
+          : 'GARY samples data/move-priors.json — what each species really clicks. The TARGET is '
+            + 'still drawn uniformly (task #35).',
         max_turns: MAXTURNS || 20,
         max_turns_source: MAXTURNS ? 'MAXTURNS env, passed to rolloutWinProb' : 'engine default (20) — MAXTURNS unset',
         note: 'The dump carries ONE rollout column and this names it. Both dumps of a DUMP0 run come '
