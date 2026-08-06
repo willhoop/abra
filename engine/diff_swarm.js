@@ -81,20 +81,20 @@ const SKIPS = []; let UNREADABLE = 0;
  * to the format later joins the right family without editing this file. That is the same rule the
  * engine follows and the same one the hand-maintained ban list failed. */
 function featureSets() {
-  const T = JSON.parse(fs.readFileSync(D('data', 'tags.json'), 'utf8'));
-  const byTag = (sec, rx) => new Set(Object.entries(T[sec] || {})
-    .filter(([, o]) => (o.tags || []).some(t => rx.test(typeof t === 'string' ? t : t.tag)))
-    .map(([id]) => id));
+  /* THROUGH engine/lookup.js, WHICH THROWS ON A TAG NAME THAT DOES NOT EXIST. Both of the vacuous
+   * configs described below were a guessed tag name silently producing an empty set; lookup.byTag
+   * makes that a crash at the call site instead of a confident zero in the report. */
+  const { byTag } = require('./lookup.js');
   const F = {
-    protect:     byTag('moves', /^(stalling|oneTurnGuard)$/),
-    protectBust: byTag('moves', /^ignoresProtect$/),
-    priority:    byTag('moves', /^priority$/),
-    redirect:    byTag('moves', /^redirects$/),
-    weather:     byTag('moves', /^setsWeather$/),
-    weatherAb:   byTag('abilities', /^weatherSetter$/),
-    speedCtrl:   byTag('moves', /^(reversesSpeed|doublesSideSpeed|reordersTurn)$/),
-    intimidate:  byTag('abilities', /^onSwitchInDrop$/),
-    spread:      byTag('moves', /^spread(All|Foes)$/),
+    protect:     byTag('moves', 'stalling', 'oneTurnGuard'),
+    protectBust: byTag('moves', 'ignoresProtect'),
+    priority:    byTag('moves', 'priority'),
+    redirect:    byTag('moves', 'redirects'),
+    weather:     byTag('moves', 'setsWeather'),
+    weatherAb:   byTag('abilities', 'weatherSetter'),
+    speedCtrl:   byTag('moves', 'reversesSpeed', 'doublesSideSpeed', 'reordersTurn'),
+    intimidate:  byTag('abilities', 'onSwitchInDrop'),
+    spread:      byTag('moves', 'spreadAll', 'spreadFoes'),
   };
   /* AN EMPTY FEATURE SET MAKES ITS CONFIG VACUOUS, AND THAT IS HOW THIS FILE WAS WRONG ON ITS FIRST
    * REAL RUN. `intimidate` was derived as /^lowersOnEntry$/, which matches nothing — the tag is
@@ -115,6 +115,24 @@ function featureSets() {
   }
   return F;
 }
+
+/* THE DECLARED EXCEPTION, per conformance S12b. Two Pokemon names appear in this file — `protect`
+ * and `intimidate` — and neither is a lookup. They are CONFIGURATION IDENTIFIERS (`omit-protect`,
+ * `pair-protect-bust`, `omit-intimidate`) and the prose that explains why each config exists. A
+ * config needs a name a human can read in a report; "omit-cfg-3" would be worse in every way.
+ *
+ * EVERY ACTUAL MEMBERSHIP TEST GOES THROUGH `lookup.byTag`, which throws on a tag name that does not
+ * exist. That is the distinction S12b is protecting: a typed name that DECIDES something is a
+ * hardcode and rots silently; a typed name that LABELS something is documentation. If Protect were
+ * renamed tomorrow the labels would read oddly and the behaviour would be unchanged, because the set
+ * is derived from `stalling`/`oneTurnGuard`.
+ *
+ * This block is the declaration S12b asks for. If a THIRD name appears here, check it is a label
+ * before adding it — a lookup hiding in this list is exactly what the check exists to catch. */
+const GAME_RULES = {
+  'move:protect':      'label only — config ids omit-protect / pair-protect-bust; the set comes from byTag(stalling, oneTurnGuard)',
+  'ability:intimidate': 'label only — config id omit-intimidate; the set comes from byTag(onSwitchInDrop)',
+};
 
 /* A team is {species, ability, item, moves[]}. These read only what a sheet declares. */
 const teamHas = (team, set, field) => team.some(p => {
@@ -152,20 +170,24 @@ function configs(F) {
  * config must REJECT a team carrying only one half. A config that accepts everything is not a
  * configuration, it is the baseline wearing a label. */
 if (process.argv.includes('--selftest')) {
-  const F = { protect: new Set(['protect']), protectBust: new Set(['feint']), priority: new Set(['fakeout']),
-              redirect: new Set(['ragepowder']), weather: new Set(['sunnyday']), weatherAb: new Set(['drought']),
-              speedCtrl: new Set(['trickroom']), intimidate: new Set(['intimidate']), spread: new Set(['earthquake']) };
+  /* ABSTRACT FIXTURE NAMES ON PURPOSE. Naming real moves here would (a) trip conformance S12, which is
+   * right to object — a Pokemon fact typed into code is a fact that can go stale — and (b) weaken the
+   * test, because what is under test is the PREDICATE LOGIC, not whether Protect is spelled correctly.
+   * The real names are asserted by engine/lookup.js's own selftest, which is where they belong. */
+  const F = { protect: new Set(['feata']), protectBust: new Set(['featb']), priority: new Set(['featc']),
+              redirect: new Set(['featd']), weather: new Set(['feate']), weatherAb: new Set(['featf']),
+              speedCtrl: new Set(['featg']), intimidate: new Set(['feath']), spread: new Set(['feati']) };
   const C = Object.fromEntries(configs(F).map(c => [c.id, c]));
   const mon = (o = {}) => ({ species: o.s || 'x', ability: o.ab || '', item: '', moves: o.mv || [] });
   const cases = [
-    ['omit-protect REJECTS a team with Protect',        'omit-protect', [mon({ mv: ['Protect'] })], false],
-    ['omit-protect ACCEPTS a team without it',          'omit-protect', [mon({ mv: ['Earthquake'] })], true],
-    ['omit-intimidate reads the ABILITY, not moves',    'omit-intimidate', [mon({ ab: 'Intimidate' })], false],
-    ['omit-weather rejects a weather ABILITY too',      'omit-weather', [mon({ ab: 'Drought' })], false],
-    ['pair-protect-bust REJECTS Protect alone',         'pair-protect-bust', [mon({ mv: ['Protect'] })], false],
-    ['pair-protect-bust REJECTS the buster alone',      'pair-protect-bust', [mon({ mv: ['Feint'] })], false],
-    ['pair-protect-bust ACCEPTS both together',         'pair-protect-bust', [mon({ mv: ['Protect', 'Feint'] })], true],
-    ['pair-protect-bust ACCEPTS them on DIFFERENT mons','pair-protect-bust', [mon({ mv: ['Protect'] }), mon({ mv: ['Feint'] })], true],
+    ['omit-protect REJECTS a team with Protect',        'omit-protect', [mon({ mv: ['feata'] })], false],
+    ['omit-protect ACCEPTS a team without it',          'omit-protect', [mon({ mv: ['feati'] })], true],
+    ['omit-intimidate reads the ABILITY, not moves',    'omit-intimidate', [mon({ ab: 'feath' })], false],
+    ['omit-weather rejects a weather ABILITY too',      'omit-weather', [mon({ ab: 'featf' })], false],
+    ['pair-protect-bust REJECTS Protect alone',         'pair-protect-bust', [mon({ mv: ['feata'] })], false],
+    ['pair-protect-bust REJECTS the buster alone',      'pair-protect-bust', [mon({ mv: ['featb'] })], false],
+    ['pair-protect-bust ACCEPTS both together',         'pair-protect-bust', [mon({ mv: ['feata', 'featb'] })], true],
+    ['pair-protect-bust ACCEPTS them on DIFFERENT mons','pair-protect-bust', [mon({ mv: ['feata'] }), mon({ mv: ['featb'] })], true],
     ['baseline accepts anything',                       'baseline', [mon()], true],
   ];
   let bad = 0;
@@ -178,7 +200,7 @@ if (process.argv.includes('--selftest')) {
   /* THE REGRESSION THAT WOULD MAKE THE WHOLE THING POINTLESS: a config that accepts every team is
    * the baseline with a different name, and would report coverage it never bought. */
   const trivial = configs(F).filter(c => c.id !== 'baseline')
-    .filter(c => c.ok([mon({ mv: ['Protect', 'Feint', 'Fake Out', 'Rage Powder', 'Sunny Day', 'Trick Room', 'Earthquake'], ab: 'Intimidate' })])
+    .filter(c => c.ok([mon({ mv: ['feata','featb','featc','featd','feate','featg','feati'], ab: 'feath' })])
               && c.ok([mon()]));
   if (trivial.length) { bad++; console.log('  FAIL these configs accept everything: ' + trivial.map(c => c.id).join(', ')); }
   else console.log('  ok   no config accepts every team — each one actually constrains');
@@ -215,7 +237,14 @@ for (const f of ['data/games.bo3.jsonl', 'data/games.ots.jsonl']) {
 const per = Math.max(1, Math.floor(N / CFG.length));
 const out = [];
 for (const c of CFG) {
-  const matching = teams.filter(x => { try { return c.ok(x.team); } catch (e) { return false; } });
+  /* COUNTED, NOT SWALLOWED. A predicate that throws on a malformed sheet drops that team from the
+   * config, and a config quietly missing teams is exactly the starvation this file reports on. */
+  let threw = 0;
+  const matching = teams.filter(x => {
+    try { return c.ok(x.team); }
+    catch (e) { threw++; if (threw === 1) SKIPS.push(`config ${c.id}: predicate threw on a team (${String((e && e.message) || e).slice(0, 60)}) — counted, not hidden`); return false; }
+  });
+  if (threw) SKIPS.push(`config ${c.id}: ${threw} team(s) dropped because the predicate threw`);
   /* DETERMINISTIC STRIDE, not a random draw — this file must produce the same swarm twice or the
    * differential's inputs move under it, and a measurement whose inputs move is the 2026-08-04 void. */
   const step = Math.max(1, Math.floor(matching.length / per));

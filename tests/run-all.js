@@ -119,7 +119,16 @@ const GATES = ['engine/selftest.js', 'engine/conformance.js', 'engine/artifact_a
    * nine were wrong that way (`lowersOnEntry` for `onSwitchInDrop`, `setsWeather` for `weatherSetter`)
    * and both looked like the best-covered configs in the swarm. The selftest asserts no config accepts
    * everything; the derivation asserts no feature set is empty. Synthetic input, milliseconds. */
-  'engine/diff_swarm.js'];
+  'engine/diff_swarm.js',
+  /* engine/lookup.js --selftest — the one place that answers "what is this thing called", and it
+   * exists because seven lookups were typed instead of derived in a single evening. Excadrill's stone
+   * is EXCADRITE not Excadrillite; Floette-Eternal's mega is `floettemega` not base+'mega' (the same
+   * wrong assumption as WIRE 132, made again a day later in a measurement); Intimidate's tag is
+   * `onSwitchInDrop` not lowersOnEntry; weather abilities are `weatherSetter` not setsWeather. Every
+   * one matched NOTHING, returned an empty result, and read as a real measurement of zero. The rule
+   * this enforces: A LOOKUP THAT MATCHES NOTHING IS AN ERROR, NOT AN EMPTY SET. Its own selftest
+   * caught a typed assumption too — it asserted Garchomp has no mega, and Garchomp megas here. */
+  'engine/lookup.js'];
 
 /* COVERAGE ASSERTION. Any file in engine/ that reports its own pass/fail summary is a check, and a
  * check that nothing runs is worse than no check — it reads as coverage in a review. If one turns up
@@ -183,7 +192,7 @@ function plan(rel) {
   const EXTRA = { 'engine/provenance.js': ['--strict'], 'engine/conformance.js': ['--strict'],
                   'engine/em_validation.js': ['--check'], 'engine/status.js': ['--selftest'],
                   'engine/rerun_list.js': ['--selftest'], 'engine/validate_store.js': ['--selftest'],
-                  'engine/diff_swarm.js': ['--selftest'] };
+                  'engine/diff_swarm.js': ['--selftest'], 'engine/lookup.js': ['--selftest'] };
   return { cmd: rel.endsWith('.py') ? PY : process.execPath, args: [D(rel), ...(EXTRA[rel] || [])] };
 }
 
