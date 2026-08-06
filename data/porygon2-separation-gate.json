@@ -1,0 +1,1273 @@
+{
+ "generated": "2026-08-06T06:56:06Z",
+ "run_started": "2026-08-06T06:48:31Z",
+ "by": "engine/porygon2_separation_gate.py",
+ "status": "RUN",
+ "what": "Gate for docs/PRIORITIES #23: can PORYGON2's position vector tell apart two positions two turns apart, more than it tells apart two unrelated positions, and in the right direction. Decides whether the MILTANK leaf redesign (#24) is buildable at all.",
+ "verdict": "PASS",
+ "verdict_of": "17f weighted k=50",
+ "gate_can_fail": true,
+ "what_this_gate_does_not_say": "It says the leaf is BUILDABLE \u2014 the score separates, it separates locally, and it points the right way. It does NOT say the 17 features earn their keep. Compare the primary arm against `BASELINE material sign` in results: a bare material count is not a broken leaf, and if it separates about as well then #24 gains a value function that is mostly alive_diff wearing a k-NN. That comparison is reported and is not part of the verdict, because no threshold was declared for it before the run.",
+ "gate_can_fail_note": "The two deliberately-broken leaves were scored through the identical pipeline. constant-0.5 -> FAIL, uniform-random -> FAIL. A gate that passes a constant is measuring nothing; a gate that passes noise is measuring spread rather than structure.",
+ "declaration_written": "2026-08-06T05:59:44Z",
+ "declaration": {
+  "declared_before_the_run": true,
+  "reference_scale": {
+   "value": 0.0043,
+   "what": "0.43 accuracy points, the smallest split-half noise floor published by MEASURE (docs/MEASURE.md \u00a75f), expressed in probability units.",
+   "why": "It is this project's demonstrated detection limit. A leaf difference below it has never been distinguishable from a re-draw of the same arm, so no threshold here is set below it."
+  },
+  "primary_arm": "weighted k=50, 17 features",
+  "why_primary": "docs/MODELS.md headlines weighted k=50 at 63.59% as PORYGON2's best arm, and data/porygon2.json names 17 features. The live engine/porygon2.py has since grown to 19 (hp_min_diff, hp_min_mine); that variant is run as a secondary so the discrepancy is measured rather than argued.",
+  "T1_separation": {
+   "metric": "median |score(t+2) - score(t)| over same-game pairs two turns apart",
+   "pass_if": "median >= 0.02 AND fraction of pairs below the 0.0043 reference floor < 0.50",
+   "why": "0.02 is ~4.6x the reference floor. A search argmaxes over branches that differ by one or two turns; if the median move across two whole turns is under two probability points, the ordering the search reads is inside the noise this project can measure. The second clause stops a fat tail carrying a median of near-zeros."
+  },
+  "T2_locality": {
+   "metric": "mean |dscore| for same-game 2-turn-apart pairs, against mean |dscore| for TURN-MATCHED pairs whose second element comes from an unrelated game. D = unrelated - same. R = same / unrelated.",
+   "pass_if": "the 95% game-clustered bootstrap CI on D has lower bound > 0.0043 AND R <= 0.75",
+   "why": "THIS IS THE DECIDING TEST. Separation on its own is satisfied by pure noise. If two positions from the same game two turns apart are no closer in score than two positions from different games, the feature space has no local structure and the model is spreading positions rather than separating them. The CI clause says the difference is detectable at this project's own floor; the R clause says it is big enough to matter \u2014 a leaf whose local pairs are only 10% tighter than unrelated pairs cannot rank sibling branches, because the between-branch signal is swamped. 0.75 is a stated magnitude bar (local pairs at least a quarter tighter), chosen for roundness before any number was seen, not tuned to the data. TURN-MATCHED, because same-game pairs sit at adjacent turn numbers and an unmatched control would be measuring the turn feature instead of locality."
+  },
+  "T3_direction": {
+   "metric": "agreement of sign(score(t+2)-score(t)) with sign(material gained over those two turns), where material = alive_diff + hp_total_diff from p1's side, on pairs where |dmaterial| >= 0.10",
+   "pass_if": "the 95% game-clustered bootstrap CI has lower bound > 0.50 AND the point estimate >= 0.60",
+   "why": "Separation that points the wrong way is worse than no separation. Clearing 50 is necessary and nowhere near sufficient: the leaf being REPLACED already names the winner on 51.0% of decisive calls, so an agreement rate of 51% would buy nothing. 0.60 is set at roughly the level PORYGON2's own (un-intervalled) 63.6% accuracy claim implies, so the gate asks the model to be as directional as it is accurate. The 0.10 material cut exists because on pairs where nothing material happened the phrase 'the right way' has no referent. STATED LIMITATION: alive_diff and hp_total_diff are two of PORYGON2's own 17 features, so this asks whether the model respects its strongest inputs. A k-NN guarantees no such thing, so the test is not vacuous \u2014 but it is not independent either, and a second direction test anchored only on the eventual WINNER is reported beside it."
+  },
+  "verdict_rule": "PASS only if T1 and T2 and T3 all pass on the primary arm. Otherwise FAIL. NO RESULT if the population or the model could not be assembled.",
+  "negative_controls": {
+   "constant_0.5": "must fail T1, T2 and T3",
+   "uniform_random": "must fail T2 and T3 (it is expected to PASS T1, which is the point: T1 alone cannot tell a value function from noise)",
+   "if_a_control_passes": "the gate is declared VOID and no verdict about PORYGON2 is reported"
+  }
+ },
+ "disclosure_smoke_run": "A 150-game smoke run of this exact pipeline was executed at 2026-08-06T06:02Z, after the declaration was written and before the full run, to find bugs. Its numbers were therefore seen before the headline sample was scored. NO THRESHOLD WAS CHANGED \u2014 the --run guard refuses to proceed if the declaration on disk differs by one character from the block in the generator, and that check passed. Disclosed rather than omitted because the smoke run's T2 ratio landed at 0.735 against a 0.75 bar, close enough that silence about it would be the kind of omission this division exists to prevent.",
+ "n_measured": 39843,
+ "n_unit": "same-game position pairs two turns apart, clustered by game for every interval",
+ "corpus": {
+  "clean_games": 6328,
+  "population_ceiling": 6328,
+  "population_ceiling_note": "NOT the clean corpus (7,992 at read time). This gate's population is the strict subset of clean ladder games whose RAW LOG is present, names a winner and runs at least 3 turns. Declared per docs/MEASURE.md \u00a75f so the drift check measures this against the denominator it can actually reach \u2014 the same false positive that made pory-eval.json permanently 21% behind.",
+  "clean_games_in_store": 7992
+ },
+ "population": {
+  "source": "clean HUMAN ladder replays \u2014 data/games.ladder.raw-logs.jsonl",
+  "clean_ids_from": "the FROZEN quality.js + quality-filter.json in release 4c73f9cafa4b",
+  "clean_games_in_store": 7992,
+  "clean_ids_sha256": "4ccc0afcfa8b5dc3cb521b22abc1a952d11af018a800f0671312091b9153bafe",
+  "population_ceiling": 6328,
+  "population_ceiling_note": "clean ladder games whose raw log is present AND names a winner AND has at least 3 turns \u2014 a strict subset of the clean corpus, declared per docs/MEASURE.md \u00a75f so the drift check does not measure this artifact against the wrong denominator.",
+  "games_sampled": 6328,
+  "games_requested": 0,
+  "positions_scored": 52501,
+  "held_out": "PORYGON2 trains on self-play only, so every human game here is held out by construction. This is the human evaluation its own caveat demands; a self-play-only evaluation would have been NO RESULT."
+ },
+ "train": {
+  "source": "data\\games.selfplay.porygon2.raw-logs.jsonl",
+  "games": 3898,
+  "positions": 73368
+ },
+ "results": {
+  "17f plain k=50": {
+   "n_pairs": 39843,
+   "n_games": 6328,
+   "T1_separation": {
+    "median_abs_dscore": 0.140588,
+    "ci95": [
+     0.138539,
+     0.142886
+    ],
+    "mean_abs_dscore": 0.170231,
+    "p10_p25_p75_p90": [
+     0.025004,
+     0.064437,
+     0.245478,
+     0.357854
+    ],
+    "frac_below_reference_floor": 0.0188,
+    "pass": true
+   },
+   "T2_locality": {
+    "mean_abs_dscore_same_game_2_turns": 0.170231,
+    "mean_abs_dscore_unrelated_turn_matched": 0.232493,
+    "mean_abs_dscore_unrelated_any_turn": 0.224291,
+    "D_unrelated_minus_same": 0.062261,
+    "D_ci95_game_clustered": [
+     0.05966,
+     0.064808
+    ],
+    "R_same_over_unrelated": 0.7322,
+    "R_undefined_because": null,
+    "R_ci95_game_clustered": [
+     0.7229,
+     0.7418
+    ],
+    "pass": true
+   },
+   "T3_direction": {
+    "n_pairs_with_material_change": 30952,
+    "agreement_with_material_sign": 0.8087,
+    "ci95_game_clustered": [
+     0.8042,
+     0.8134
+    ],
+    "secondary_moves_toward_eventual_winner": 0.6089,
+    "secondary_ci95": [
+     0.6043,
+     0.6135
+    ],
+    "n_pairs_score_moved": 39814,
+    "pass": true
+   },
+   "verdict": "PASS",
+   "failed": []
+  },
+  "17f weighted k=50": {
+   "n_pairs": 39843,
+   "n_games": 6328,
+   "T1_separation": {
+    "median_abs_dscore": 0.162847,
+    "ci95": [
+     0.159962,
+     0.165319
+    ],
+    "mean_abs_dscore": 0.198526,
+    "p10_p25_p75_p90": [
+     0.02572,
+     0.072548,
+     0.290369,
+     0.426026
+    ],
+    "frac_below_reference_floor": 0.0277,
+    "pass": true
+   },
+   "T2_locality": {
+    "mean_abs_dscore_same_game_2_turns": 0.198526,
+    "mean_abs_dscore_unrelated_turn_matched": 0.280074,
+    "mean_abs_dscore_unrelated_any_turn": 0.269097,
+    "D_unrelated_minus_same": 0.081548,
+    "D_ci95_game_clustered": [
+     0.078566,
+     0.084497
+    ],
+    "R_same_over_unrelated": 0.7088,
+    "R_undefined_because": null,
+    "R_ci95_game_clustered": [
+     0.6998,
+     0.718
+    ],
+    "pass": true
+   },
+   "T3_direction": {
+    "n_pairs_with_material_change": 30952,
+    "agreement_with_material_sign": 0.8558,
+    "ci95_game_clustered": [
+     0.8516,
+     0.8598
+    ],
+    "secondary_moves_toward_eventual_winner": 0.6159,
+    "secondary_ci95": [
+     0.6112,
+     0.6207
+    ],
+    "n_pairs_score_moved": 39696,
+    "pass": true
+   },
+   "verdict": "PASS",
+   "failed": []
+  },
+  "17f plain k=200": {
+   "n_pairs": 39843,
+   "n_games": 6328,
+   "T1_separation": {
+    "median_abs_dscore": 0.105968,
+    "ci95": [
+     0.104443,
+     0.107596
+    ],
+    "mean_abs_dscore": 0.132278,
+    "p10_p25_p75_p90": [
+     0.017808,
+     0.047549,
+     0.190824,
+     0.283646
+    ],
+    "frac_below_reference_floor": 0.026,
+    "pass": true
+   },
+   "T2_locality": {
+    "mean_abs_dscore_same_game_2_turns": 0.132278,
+    "mean_abs_dscore_unrelated_turn_matched": 0.188039,
+    "mean_abs_dscore_unrelated_any_turn": 0.179128,
+    "D_unrelated_minus_same": 0.05576,
+    "D_ci95_game_clustered": [
+     0.053656,
+     0.057803
+    ],
+    "R_same_over_unrelated": 0.7035,
+    "R_undefined_because": null,
+    "R_ci95_game_clustered": [
+     0.6945,
+     0.7131
+    ],
+    "pass": true
+   },
+   "T3_direction": {
+    "n_pairs_with_material_change": 30952,
+    "agreement_with_material_sign": 0.8535,
+    "ci95_game_clustered": [
+     0.8491,
+     0.8575
+    ],
+    "secondary_moves_toward_eventual_winner": 0.6219,
+    "secondary_ci95": [
+     0.6173,
+     0.627
+    ],
+    "n_pairs_score_moved": 39843,
+    "pass": true
+   },
+   "verdict": "PASS",
+   "failed": []
+  },
+  "17f weighted k=200": {
+   "n_pairs": 39843,
+   "n_games": 6328,
+   "T1_separation": {
+    "median_abs_dscore": 0.147426,
+    "ci95": [
+     0.144951,
+     0.149592
+    ],
+    "mean_abs_dscore": 0.179905,
+    "p10_p25_p75_p90": [
+     0.022313,
+     0.064347,
+     0.261707,
+     0.385922
+    ],
+    "frac_below_reference_floor": 0.0259,
+    "pass": true
+   },
+   "T2_locality": {
+    "mean_abs_dscore_same_game_2_turns": 0.179905,
+    "mean_abs_dscore_unrelated_turn_matched": 0.262851,
+    "mean_abs_dscore_unrelated_any_turn": 0.250376,
+    "D_unrelated_minus_same": 0.082945,
+    "D_ci95_game_clustered": [
+     0.080073,
+     0.085866
+    ],
+    "R_same_over_unrelated": 0.6844,
+    "R_undefined_because": null,
+    "R_ci95_game_clustered": [
+     0.6752,
+     0.6939
+    ],
+    "pass": true
+   },
+   "T3_direction": {
+    "n_pairs_with_material_change": 30952,
+    "agreement_with_material_sign": 0.907,
+    "ci95_game_clustered": [
+     0.9034,
+     0.9103
+    ],
+    "secondary_moves_toward_eventual_winner": 0.6246,
+    "secondary_ci95": [
+     0.6196,
+     0.6296
+    ],
+    "n_pairs_score_moved": 39805,
+    "pass": true
+   },
+   "verdict": "PASS",
+   "failed": []
+  },
+  "19f plain k=50": {
+   "n_pairs": 39843,
+   "n_games": 6328,
+   "T1_separation": {
+    "median_abs_dscore": 0.136517,
+    "ci95": [
+     0.13474,
+     0.138579
+    ],
+    "mean_abs_dscore": 0.165539,
+    "p10_p25_p75_p90": [
+     0.02443,
+     0.062804,
+     0.238855,
+     0.347515
+    ],
+    "frac_below_reference_floor": 0.0188,
+    "pass": true
+   },
+   "T2_locality": {
+    "mean_abs_dscore_same_game_2_turns": 0.165539,
+    "mean_abs_dscore_unrelated_turn_matched": 0.224017,
+    "mean_abs_dscore_unrelated_any_turn": 0.216233,
+    "D_unrelated_minus_same": 0.058478,
+    "D_ci95_game_clustered": [
+     0.055939,
+     0.060973
+    ],
+    "R_same_over_unrelated": 0.739,
+    "R_undefined_because": null,
+    "R_ci95_game_clustered": [
+     0.7296,
+     0.7487
+    ],
+    "pass": true
+   },
+   "T3_direction": {
+    "n_pairs_with_material_change": 30952,
+    "agreement_with_material_sign": 0.8034,
+    "ci95_game_clustered": [
+     0.7988,
+     0.8081
+    ],
+    "secondary_moves_toward_eventual_winner": 0.6112,
+    "secondary_ci95": [
+     0.6067,
+     0.6159
+    ],
+    "n_pairs_score_moved": 39821,
+    "pass": true
+   },
+   "verdict": "PASS",
+   "failed": []
+  },
+  "19f weighted k=50": {
+   "n_pairs": 39843,
+   "n_games": 6328,
+   "T1_separation": {
+    "median_abs_dscore": 0.163493,
+    "ci95": [
+     0.160717,
+     0.165958
+    ],
+    "mean_abs_dscore": 0.19813,
+    "p10_p25_p75_p90": [
+     0.025766,
+     0.072779,
+     0.288266,
+     0.423995
+    ],
+    "frac_below_reference_floor": 0.0272,
+    "pass": true
+   },
+   "T2_locality": {
+    "mean_abs_dscore_same_game_2_turns": 0.19813,
+    "mean_abs_dscore_unrelated_turn_matched": 0.279191,
+    "mean_abs_dscore_unrelated_any_turn": 0.268355,
+    "D_unrelated_minus_same": 0.08106,
+    "D_ci95_game_clustered": [
+     0.078009,
+     0.084
+    ],
+    "R_same_over_unrelated": 0.7097,
+    "R_undefined_because": null,
+    "R_ci95_game_clustered": [
+     0.7007,
+     0.7191
+    ],
+    "pass": true
+   },
+   "T3_direction": {
+    "n_pairs_with_material_change": 30952,
+    "agreement_with_material_sign": 0.8558,
+    "ci95_game_clustered": [
+     0.8516,
+     0.8597
+    ],
+    "secondary_moves_toward_eventual_winner": 0.6185,
+    "secondary_ci95": [
+     0.6138,
+     0.6232
+    ],
+    "n_pairs_score_moved": 39698,
+    "pass": true
+   },
+   "verdict": "PASS",
+   "failed": []
+  },
+  "19f plain k=200": {
+   "n_pairs": 39843,
+   "n_games": 6328,
+   "T1_separation": {
+    "median_abs_dscore": 0.102467,
+    "ci95": [
+     0.100871,
+     0.103755
+    ],
+    "mean_abs_dscore": 0.127686,
+    "p10_p25_p75_p90": [
+     0.017407,
+     0.045973,
+     0.183085,
+     0.274248
+    ],
+    "frac_below_reference_floor": 0.0248,
+    "pass": true
+   },
+   "T2_locality": {
+    "mean_abs_dscore_same_game_2_turns": 0.127686,
+    "mean_abs_dscore_unrelated_turn_matched": 0.180196,
+    "mean_abs_dscore_unrelated_any_turn": 0.171886,
+    "D_unrelated_minus_same": 0.05251,
+    "D_ci95_game_clustered": [
+     0.050393,
+     0.054503
+    ],
+    "R_same_over_unrelated": 0.7086,
+    "R_undefined_because": null,
+    "R_ci95_game_clustered": [
+     0.6993,
+     0.7183
+    ],
+    "pass": true
+   },
+   "T3_direction": {
+    "n_pairs_with_material_change": 30952,
+    "agreement_with_material_sign": 0.8453,
+    "ci95_game_clustered": [
+     0.8411,
+     0.8493
+    ],
+    "secondary_moves_toward_eventual_winner": 0.6228,
+    "secondary_ci95": [
+     0.6182,
+     0.628
+    ],
+    "n_pairs_score_moved": 39843,
+    "pass": true
+   },
+   "verdict": "PASS",
+   "failed": []
+  },
+  "19f weighted k=200": {
+   "n_pairs": 39843,
+   "n_games": 6328,
+   "T1_separation": {
+    "median_abs_dscore": 0.147293,
+    "ci95": [
+     0.144753,
+     0.149146
+    ],
+    "mean_abs_dscore": 0.179634,
+    "p10_p25_p75_p90": [
+     0.022217,
+     0.065262,
+     0.259823,
+     0.384907
+    ],
+    "frac_below_reference_floor": 0.026,
+    "pass": true
+   },
+   "T2_locality": {
+    "mean_abs_dscore_same_game_2_turns": 0.179634,
+    "mean_abs_dscore_unrelated_turn_matched": 0.262239,
+    "mean_abs_dscore_unrelated_any_turn": 0.249882,
+    "D_unrelated_minus_same": 0.082605,
+    "D_ci95_game_clustered": [
+     0.079696,
+     0.085491
+    ],
+    "R_same_over_unrelated": 0.685,
+    "R_undefined_because": null,
+    "R_ci95_game_clustered": [
+     0.6758,
+     0.6942
+    ],
+    "pass": true
+   },
+   "T3_direction": {
+    "n_pairs_with_material_change": 30952,
+    "agreement_with_material_sign": 0.9072,
+    "ci95_game_clustered": [
+     0.9036,
+     0.9105
+    ],
+    "secondary_moves_toward_eventual_winner": 0.6245,
+    "secondary_ci95": [
+     0.6195,
+     0.6295
+    ],
+    "n_pairs_score_moved": 39803,
+    "pass": true
+   },
+   "verdict": "PASS",
+   "failed": []
+  },
+  "CONTROL constant 0.5": {
+   "n_pairs": 39843,
+   "n_games": 6328,
+   "T1_separation": {
+    "median_abs_dscore": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "mean_abs_dscore": 0.0,
+    "p10_p25_p75_p90": [
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "frac_below_reference_floor": 1.0,
+    "pass": false
+   },
+   "T2_locality": {
+    "mean_abs_dscore_same_game_2_turns": 0.0,
+    "mean_abs_dscore_unrelated_turn_matched": 0.0,
+    "mean_abs_dscore_unrelated_any_turn": 0.0,
+    "D_unrelated_minus_same": 0.0,
+    "D_ci95_game_clustered": [
+     0.0,
+     0.0
+    ],
+    "R_same_over_unrelated": null,
+    "R_undefined_because": "the unrelated-pair mean is 0, so the ratio is 0/0 \u2014 a leaf with no spread at all",
+    "R_ci95_game_clustered": null,
+    "pass": false
+   },
+   "T3_direction": {
+    "n_pairs_with_material_change": 30952,
+    "agreement_with_material_sign": 0.0,
+    "ci95_game_clustered": [
+     0.0,
+     0.0
+    ],
+    "secondary_moves_toward_eventual_winner": null,
+    "secondary_ci95": [
+     null,
+     null
+    ],
+    "n_pairs_score_moved": 0,
+    "pass": false
+   },
+   "verdict": "FAIL",
+   "failed": [
+    "T1_separation",
+    "T2_locality",
+    "T3_direction"
+   ]
+  },
+  "CONTROL uniform random": {
+   "n_pairs": 39843,
+   "n_games": 6328,
+   "T1_separation": {
+    "median_abs_dscore": 0.292401,
+    "ci95": [
+     0.288474,
+     0.296209
+    ],
+    "mean_abs_dscore": 0.332166,
+    "p10_p25_p75_p90": [
+     0.051224,
+     0.133564,
+     0.49888,
+     0.684307
+    ],
+    "frac_below_reference_floor": 0.009,
+    "pass": true
+   },
+   "T2_locality": {
+    "mean_abs_dscore_same_game_2_turns": 0.332166,
+    "mean_abs_dscore_unrelated_turn_matched": 0.333963,
+    "mean_abs_dscore_unrelated_any_turn": 0.33279,
+    "D_unrelated_minus_same": 0.001797,
+    "D_ci95_game_clustered": [
+     -0.001231,
+     0.004919
+    ],
+    "R_same_over_unrelated": 0.9946,
+    "R_undefined_because": null,
+    "R_ci95_game_clustered": [
+     0.9854,
+     1.0037
+    ],
+    "pass": false
+   },
+   "T3_direction": {
+    "n_pairs_with_material_change": 30952,
+    "agreement_with_material_sign": 0.5028,
+    "ci95_game_clustered": [
+     0.4972,
+     0.5087
+    ],
+    "secondary_moves_toward_eventual_winner": 0.5012,
+    "secondary_ci95": [
+     0.4977,
+     0.5049
+    ],
+    "n_pairs_score_moved": 39843,
+    "pass": false
+   },
+   "verdict": "FAIL",
+   "failed": [
+    "T2_locality",
+    "T3_direction"
+   ]
+  },
+  "BASELINE material sign": {
+   "n_pairs": 39843,
+   "n_games": 6328,
+   "T1_separation": {
+    "median_abs_dscore": 0.15,
+    "ci95": [
+     0.15,
+     0.15
+    ],
+    "mean_abs_dscore": 0.099025,
+    "p10_p25_p75_p90": [
+     0.0,
+     0.0,
+     0.15,
+     0.3
+    ],
+    "frac_below_reference_floor": 0.4485,
+    "pass": true
+   },
+   "T2_locality": {
+    "mean_abs_dscore_same_game_2_turns": 0.099025,
+    "mean_abs_dscore_unrelated_turn_matched": 0.14084,
+    "mean_abs_dscore_unrelated_any_turn": 0.129697,
+    "D_unrelated_minus_same": 0.041815,
+    "D_ci95_game_clustered": [
+     0.039796,
+     0.043747
+    ],
+    "R_same_over_unrelated": 0.7031,
+    "R_undefined_because": null,
+    "R_ci95_game_clustered": [
+     0.6918,
+     0.7152
+    ],
+    "pass": true
+   },
+   "T3_direction": {
+    "n_pairs_with_material_change": 30952,
+    "agreement_with_material_sign": 0.71,
+    "ci95_game_clustered": [
+     0.7047,
+     0.7157
+    ],
+    "secondary_moves_toward_eventual_winner": 0.6477,
+    "secondary_ci95": [
+     0.6428,
+     0.6529
+    ],
+    "n_pairs_score_moved": 21975,
+    "pass": true
+   },
+   "verdict": "PASS",
+   "failed": []
+  }
+ },
+ "incidental_accuracy": {
+  "17f plain k=50": {
+   "accuracy_pct": 62.74,
+   "ci95_pct": [
+    62.02,
+    63.4
+   ],
+   "brier": 0.2236
+  },
+  "17f weighted k=50": {
+   "accuracy_pct": 63.11,
+   "ci95_pct": [
+    62.32,
+    63.81
+   ],
+   "brier": 0.2249
+  },
+  "17f plain k=200": {
+   "accuracy_pct": 63.45,
+   "ci95_pct": [
+    62.69,
+    64.15
+   ],
+   "brier": 0.2184
+  },
+  "17f weighted k=200": {
+   "accuracy_pct": 63.33,
+   "ci95_pct": [
+    62.57,
+    64.03
+   ],
+   "brier": 0.2199
+  },
+  "19f plain k=50": {
+   "accuracy_pct": 62.75,
+   "ci95_pct": [
+    62.04,
+    63.41
+   ],
+   "brier": 0.2229
+  },
+  "19f weighted k=50": {
+   "accuracy_pct": 63.27,
+   "ci95_pct": [
+    62.5,
+    63.97
+   ],
+   "brier": 0.2248
+  },
+  "19f plain k=200": {
+   "accuracy_pct": 63.41,
+   "ci95_pct": [
+    62.66,
+    64.12
+   ],
+   "brier": 0.2186
+  },
+  "19f weighted k=200": {
+   "accuracy_pct": 63.47,
+   "ci95_pct": [
+    62.69,
+    64.22
+   ],
+   "brier": 0.2199
+  },
+  "CONTROL constant 0.5": {
+   "accuracy_pct": 50.89,
+   "ci95_pct": [
+    49.5,
+    52.27
+   ],
+   "brier": 0.25
+  },
+  "CONTROL uniform random": {
+   "accuracy_pct": 49.82,
+   "ci95_pct": [
+    49.36,
+    50.25
+   ],
+   "brier": 0.3342
+  },
+  "BASELINE material sign": {
+   "accuracy_pct": 61.02,
+   "ci95_pct": [
+    60.06,
+    61.96
+   ],
+   "brier": 0.2253
+  }
+ },
+ "incidental_accuracy_note": "These are properly-intervalled, game-clustered accuracies that fell out of the gate. docs/MODELS.md's 63.59% carries no interval and is marked NOT MEASURED; these numbers SUPERSEDE NOTHING until that ledger is updated deliberately. They are on a different sample (this gate's games) from data/porygon2.json's 2,274.",
+ "feature_weights": {
+  "17f": {
+   "alive_diff": 5.121,
+   "hp_active_diff": 2.208,
+   "hp_total_diff": 1.481,
+   "my_alive": 2.42,
+   "foe_alive": 2.419,
+   "turn": 0.002,
+   "status_diff": 0.576,
+   "boost_diff": 0.391,
+   "tailwind_diff": 0.292,
+   "screen_diff": 0.184,
+   "hazard_diff": 0.376,
+   "trickroom": 0.001,
+   "weather_on": 0.0,
+   "terrain_on": 0.0,
+   "matchup_edge": 1.172,
+   "speed_edge": 0.334,
+   "type_threat": 0.022
+  },
+  "19f": {
+   "alive_diff": 5.354,
+   "hp_active_diff": 2.921,
+   "hp_total_diff": 1.524,
+   "my_alive": 2.531,
+   "foe_alive": 2.529,
+   "turn": 0.001,
+   "hp_min_diff": 0.612,
+   "hp_min_mine": 0.005,
+   "status_diff": 0.607,
+   "boost_diff": 0.415,
+   "tailwind_diff": 0.3,
+   "screen_diff": 0.197,
+   "hazard_diff": 0.396,
+   "trickroom": 0.001,
+   "weather_on": 0.0,
+   "terrain_on": 0.0,
+   "matchup_edge": 1.233,
+   "speed_edge": 0.351,
+   "type_threat": 0.023
+  }
+ },
+ "engine_release_note": "NONE of PORYGON2's own sources are in the engine release's frozen set: not engine/porygon2.py, not data/porygon2-species.json, not either corpus. PORYGON2 is a Python model and REL.require is a JavaScript shim, so it cannot be loaded through the release at all. What the release DID supply is the clean-game predicate (engine/quality.js + data/quality-filter.json), read through REL.require. The files the release cannot cover were photographed by this script instead \u2014 see unfrozen_sources.",
+ "unfrozen_sources": {
+  "digest_before": {
+   "engine/porygon2.py": "97b22470c3a7",
+   "engine/isotime.py": "8130f705fe3f",
+   "data/porygon2-species.json": "18560116993e",
+   "data/games.selfplay.porygon2.raw-logs.jsonl": "02efa41ead30"
+  },
+  "digest_after": {
+   "engine/porygon2.py": "97b22470c3a7",
+   "engine/isotime.py": "8130f705fe3f",
+   "data/porygon2-species.json": "18560116993e",
+   "data/games.selfplay.porygon2.raw-logs.jsonl": "02efa41ead30"
+  },
+  "moved_during_run": [],
+  "method": "copied into a private tree and imported from the copy, then the live originals re-digested. The two append-only stores are pinned by the clean id set instead, because a whole-file digest of a file the hourly collector appends to would void every run longer than an hour."
+ },
+ "engine_release": "4c73f9cafa4b",
+ "engine_release_cut": "2026-08-06T05:49:55.593Z",
+ "engine_release_cuts": 1,
+ "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+ "source_digests": {
+  "engine/medicham2-browser.js": "eaa42b53cab9",
+  "engine/board.js": "5bdaa3923958",
+  "engine/rollout_leaf.js": "7a2311756ab8",
+  "engine/position_features.js": "7927ccb7f5af",
+  "engine/tags.js": "145a3cc9ce2f",
+  "engine/champions_sim.js": "fa5b8af6513a",
+  "engine/mc_key.js": "37c42eb69363",
+  "engine/lookup.js": "d2a03e8adcc5",
+  "engine/set_priors.js": "f8a81445ee3a",
+  "engine/smogon_priors.js": "5c039f9ebdbc",
+  "engine/quality.js": "e397e99ef257",
+  "engine/showdown_path.js": "0efe29f4245d",
+  "data/move-effects.js": "b651bc4c4836",
+  "data/ability-blocks.json": "86741fd35452",
+  "data/smogon-priors.json": "3168f98a24dd",
+  "data/regulations.json": "6c1995e9a9fb",
+  "data/quality-filter.json": "e675d10477c8",
+  "data/engine-data.js": "96a94b7fadf7",
+  "data/abra-tags.js": "f00efc78a481",
+  "data/tags.json": "73c81e6421b8",
+  "data/policy-weights.json": "626c1d240782",
+  "data/policy-weights-joint.json": "e2aca467ff04",
+  "data/move-priors.json": "a64314db056b"
+ },
+ "robustness_lag1_NOT_GATED": {
+  "generated": "2026-08-06T07:00:58Z",
+  "lag_turns": 1,
+  "why": "The gate above is declared at a two-turn gap, which is what #23 asked for. A search does not compare positions two turns apart \u2014 it compares SIBLING branches one action apart, where the boards are far more alike. A leaf can pass at two turns and be flat at one, and that leaf is useless in a search. This is the finer-granularity check.",
+  "NOT_GATED": "No threshold was declared for this lag, so none is applied. These are descriptive numbers with intervals. Reading a pass/fail into them after the fact is the thing the declaration block exists to forbid.",
+  "n_pairs": 46171,
+  "games": 6328,
+  "positions_scored": 52501,
+  "arms": {
+   "17f plain k=50": {
+    "n_pairs": 46171,
+    "n_games": 6328,
+    "T1_separation": {
+     "median_abs_dscore": 0.101829,
+     "ci95": [
+      0.100396,
+      0.103554
+     ],
+     "mean_abs_dscore": 0.131974,
+     "p10_p25_p75_p90": [
+      0.015681,
+      0.041403,
+      0.193148,
+      0.292764
+     ],
+     "frac_below_reference_floor": 0.0382
+    },
+    "T2_locality": {
+     "mean_abs_dscore_same_game_1_turns": 0.131974,
+     "mean_abs_dscore_unrelated_turn_matched": 0.228688,
+     "mean_abs_dscore_unrelated_any_turn": 0.2298,
+     "D_unrelated_minus_same": 0.096714,
+     "D_ci95_game_clustered": [
+      0.094521,
+      0.099102
+     ],
+     "R_same_over_unrelated": 0.5771,
+     "R_undefined_because": null,
+     "R_ci95_game_clustered": [
+      0.5693,
+      0.584
+     ]
+    },
+    "T3_direction": {
+     "n_pairs_with_material_change": 29234,
+     "agreement_with_material_sign": 0.8015,
+     "ci95_game_clustered": [
+      0.7966,
+      0.8063
+     ],
+     "secondary_moves_toward_eventual_winner": 0.5768,
+     "secondary_ci95": [
+      0.5731,
+      0.5806
+     ],
+     "n_pairs_score_moved": 46092
+    }
+   },
+   "17f weighted k=50": {
+    "n_pairs": 46171,
+    "n_games": 6328,
+    "T1_separation": {
+     "median_abs_dscore": 0.115393,
+     "ci95": [
+      0.11357,
+      0.116809
+     ],
+     "mean_abs_dscore": 0.150776,
+     "p10_p25_p75_p90": [
+      0.010813,
+      0.043676,
+      0.223431,
+      0.342575
+     ],
+     "frac_below_reference_floor": 0.0694
+    },
+    "T2_locality": {
+     "mean_abs_dscore_same_game_1_turns": 0.150776,
+     "mean_abs_dscore_unrelated_turn_matched": 0.27595,
+     "mean_abs_dscore_unrelated_any_turn": 0.275011,
+     "D_unrelated_minus_same": 0.125175,
+     "D_ci95_game_clustered": [
+      0.12253,
+      0.127936
+     ],
+     "R_same_over_unrelated": 0.5464,
+     "R_undefined_because": null,
+     "R_ci95_game_clustered": [
+      0.5392,
+      0.5534
+     ]
+    },
+    "T3_direction": {
+     "n_pairs_with_material_change": 29234,
+     "agreement_with_material_sign": 0.8444,
+     "ci95_game_clustered": [
+      0.8401,
+      0.8486
+     ],
+     "secondary_moves_toward_eventual_winner": 0.5765,
+     "secondary_ci95": [
+      0.5725,
+      0.5804
+     ],
+     "n_pairs_score_moved": 45846
+    }
+   },
+   "17f plain k=200": {
+    "n_pairs": 46171,
+    "n_games": 6328,
+    "T1_separation": {
+     "median_abs_dscore": 0.073918,
+     "ci95": [
+      0.072734,
+      0.074926
+     ],
+     "mean_abs_dscore": 0.098137,
+     "p10_p25_p75_p90": [
+      0.009549,
+      0.028578,
+      0.142448,
+      0.220865
+     ],
+     "frac_below_reference_floor": 0.0478
+    },
+    "T2_locality": {
+     "mean_abs_dscore_same_game_1_turns": 0.098137,
+     "mean_abs_dscore_unrelated_turn_matched": 0.184686,
+     "mean_abs_dscore_unrelated_any_turn": 0.18508,
+     "D_unrelated_minus_same": 0.086549,
+     "D_ci95_game_clustered": [
+      0.084747,
+      0.088425
+     ],
+     "R_same_over_unrelated": 0.5314,
+     "R_undefined_because": null,
+     "R_ci95_game_clustered": [
+      0.5243,
+      0.5381
+     ]
+    },
+    "T3_direction": {
+     "n_pairs_with_material_change": 29234,
+     "agreement_with_material_sign": 0.8551,
+     "ci95_game_clustered": [
+      0.8509,
+      0.8592
+     ],
+     "secondary_moves_toward_eventual_winner": 0.5866,
+     "secondary_ci95": [
+      0.5828,
+      0.5906
+     ],
+     "n_pairs_score_moved": 46171
+    }
+   },
+   "17f weighted k=200": {
+    "n_pairs": 46171,
+    "n_games": 6328,
+    "T1_separation": {
+     "median_abs_dscore": 0.09939,
+     "ci95": [
+      0.097727,
+      0.100697
+     ],
+     "mean_abs_dscore": 0.130959,
+     "p10_p25_p75_p90": [
+      0.007904,
+      0.034037,
+      0.195192,
+      0.299503
+     ],
+     "frac_below_reference_floor": 0.0732
+    },
+    "T2_locality": {
+     "mean_abs_dscore_same_game_1_turns": 0.130959,
+     "mean_abs_dscore_unrelated_turn_matched": 0.25874,
+     "mean_abs_dscore_unrelated_any_turn": 0.256824,
+     "D_unrelated_minus_same": 0.127781,
+     "D_ci95_game_clustered": [
+      0.125265,
+      0.130324
+     ],
+     "R_same_over_unrelated": 0.5061,
+     "R_undefined_because": null,
+     "R_ci95_game_clustered": [
+      0.4994,
+      0.5131
+     ]
+    },
+    "T3_direction": {
+     "n_pairs_with_material_change": 29234,
+     "agreement_with_material_sign": 0.9064,
+     "ci95_game_clustered": [
+      0.9031,
+      0.9095
+     ],
+     "secondary_moves_toward_eventual_winner": 0.5865,
+     "secondary_ci95": [
+      0.5826,
+      0.5904
+     ],
+     "n_pairs_score_moved": 46075
+    }
+   },
+   "CONTROL constant 0.5": {
+    "n_pairs": 46171,
+    "n_games": 6328,
+    "T1_separation": {
+     "median_abs_dscore": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "mean_abs_dscore": 0.0,
+     "p10_p25_p75_p90": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "frac_below_reference_floor": 1.0
+    },
+    "T2_locality": {
+     "mean_abs_dscore_same_game_1_turns": 0.0,
+     "mean_abs_dscore_unrelated_turn_matched": 0.0,
+     "mean_abs_dscore_unrelated_any_turn": 0.0,
+     "D_unrelated_minus_same": 0.0,
+     "D_ci95_game_clustered": [
+      0.0,
+      0.0
+     ],
+     "R_same_over_unrelated": null,
+     "R_undefined_because": "the unrelated-pair mean is 0, so the ratio is 0/0 \u2014 a leaf with no spread at all",
+     "R_ci95_game_clustered": null
+    },
+    "T3_direction": {
+     "n_pairs_with_material_change": 29234,
+     "agreement_with_material_sign": 0.0,
+     "ci95_game_clustered": [
+      0.0,
+      0.0
+     ],
+     "secondary_moves_toward_eventual_winner": null,
+     "secondary_ci95": [
+      null,
+      null
+     ],
+     "n_pairs_score_moved": 0
+    }
+   },
+   "CONTROL uniform random": {
+    "n_pairs": 46171,
+    "n_games": 6328,
+    "T1_separation": {
+     "median_abs_dscore": 0.293463,
+     "ci95": [
+      0.290592,
+      0.296502
+     ],
+     "mean_abs_dscore": 0.333197,
+     "p10_p25_p75_p90": [
+      0.051266,
+      0.134428,
+      0.498188,
+      0.683253
+     ],
+     "frac_below_reference_floor": 0.0088
+    },
+    "T2_locality": {
+     "mean_abs_dscore_same_game_1_turns": 0.333197,
+     "mean_abs_dscore_unrelated_turn_matched": 0.332779,
+     "mean_abs_dscore_unrelated_any_turn": 0.33391,
+     "D_unrelated_minus_same": -0.000418,
+     "D_ci95_game_clustered": [
+      -0.00319,
+      0.002546
+     ],
+     "R_same_over_unrelated": 1.0013,
+     "R_undefined_because": null,
+     "R_ci95_game_clustered": [
+      0.9924,
+      1.0096
+     ]
+    },
+    "T3_direction": {
+     "n_pairs_with_material_change": 29234,
+     "agreement_with_material_sign": 0.5062,
+     "ci95_game_clustered": [
+      0.5004,
+      0.5119
+     ],
+     "secondary_moves_toward_eventual_winner": 0.5006,
+     "secondary_ci95": [
+      0.4976,
+      0.5036
+     ],
+     "n_pairs_score_moved": 46171
+    }
+   },
+   "BASELINE material sign": {
+    "n_pairs": 46171,
+    "n_games": 6328,
+    "T1_separation": {
+     "median_abs_dscore": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "mean_abs_dscore": 0.068387,
+     "p10_p25_p75_p90": [
+      0.0,
+      0.0,
+      0.15,
+      0.15
+     ],
+     "frac_below_reference_floor": 0.5845
+    },
+    "T2_locality": {
+     "mean_abs_dscore_same_game_1_turns": 0.068387,
+     "mean_abs_dscore_unrelated_turn_matched": 0.135692,
+     "mean_abs_dscore_unrelated_any_turn": 0.134136,
+     "D_unrelated_minus_same": 0.067305,
+     "D_ci95_game_clustered": [
+      0.06559,
+      0.069065
+     ],
+     "R_same_over_unrelated": 0.504,
+     "R_undefined_because": null,
+     "R_ci95_game_clustered": [
+      0.4955,
+      0.5128
+     ]
+    },
+    "T3_direction": {
+     "n_pairs_with_material_change": 29234,
+     "agreement_with_material_sign": 0.6563,
+     "ci95_game_clustered": [
+      0.6508,
+      0.6621
+     ],
+     "secondary_moves_toward_eventual_winner": 0.6274,
+     "secondary_ci95": [
+      0.6235,
+      0.6312
+     ],
+     "n_pairs_score_moved": 19185
+    }
+   }
+  },
+  "incidental_accuracy": {
+   "17f plain k=50": {
+    "accuracy_pct": 62.74,
+    "ci95_pct": [
+     62.02,
+     63.4
+    ],
+    "brier": 0.2236
+   },
+   "17f weighted k=50": {
+    "accuracy_pct": 63.11,
+    "ci95_pct": [
+     62.32,
+     63.81
+    ],
+    "brier": 0.2249
+   },
+   "17f plain k=200": {
+    "accuracy_pct": 63.45,
+    "ci95_pct": [
+     62.69,
+     64.15
+    ],
+    "brier": 0.2184
+   },
+   "17f weighted k=200": {
+    "accuracy_pct": 63.33,
+    "ci95_pct": [
+     62.57,
+     64.03
+    ],
+    "brier": 0.2199
+   },
+   "CONTROL constant 0.5": {
+    "accuracy_pct": 50.89,
+    "ci95_pct": [
+     49.5,
+     52.27
+    ],
+    "brier": 0.25
+   },
+   "CONTROL uniform random": {
+    "accuracy_pct": 49.82,
+    "ci95_pct": [
+     49.36,
+     50.25
+    ],
+    "brier": 0.3342
+   },
+   "BASELINE material sign": {
+    "accuracy_pct": 61.02,
+    "ci95_pct": [
+     60.06,
+     61.96
+    ],
+    "brier": 0.2253
+   }
+  },
+  "unfrozen_sources": {
+   "digest_before": {
+    "engine/porygon2.py": "97b22470c3a7",
+    "engine/isotime.py": "8130f705fe3f",
+    "data/porygon2-species.json": "18560116993e",
+    "data/games.selfplay.porygon2.raw-logs.jsonl": "02efa41ead30"
+   },
+   "digest_after": {
+    "engine/porygon2.py": "97b22470c3a7",
+    "engine/isotime.py": "8130f705fe3f",
+    "data/porygon2-species.json": "18560116993e",
+    "data/games.selfplay.porygon2.raw-logs.jsonl": "02efa41ead30"
+   },
+   "moved_during_run": []
+  }
+ }
+}

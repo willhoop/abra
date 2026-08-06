@@ -1888,6 +1888,116 @@ Three things to check before quoting any of it:
 `writeStamp()` is the only mode worth trusting, because only the run knows its own settings.
 `reconstruct()` exists for the artifacts that predate it and labels itself on every line.
 
+### 18. THE PORYGON2 SEPARATION GATE — PRIORITIES #23. **PASS**, and the interesting number is the one that is not in the verdict. 2026-08-06
+
+`engine/porygon2_separation_gate.py` → `data/porygon2-separation-gate.json`. **The MILTANK leaf
+redesign (#24) is buildable.** PORYGON2 does not collapse a subtree to one number.
+
+**39,843 same-game position pairs two turns apart, across 6,328 clean HUMAN ladder games**, every
+interval bootstrapped with the GAME as the cluster. Thresholds were written to disk at
+**05:59:44Z**, the run wrote at **06:56:06Z**, and `--run` refuses to start unless the declaration
+on disk matches the block in the generator character for character.
+
+| | measured | declared bar | |
+|---|---|---|---|
+| **T1 separation** median \|Δscore\| over 2 turns | **0.1628** [0.1600, 0.1653] | ≥ 0.02 | PASS |
+| **T2 locality** same-game 0.1985 vs unrelated 0.2801; D | **+0.0815** [0.0786, 0.0845] | CI lower > 0.0043 | PASS |
+| **T2 locality** ratio R = same / unrelated | **0.709** [0.700, 0.718] | ≤ 0.75 | PASS |
+| **T3 direction** agrees with the material sign | **85.58%** [85.16, 85.98] | CI lower > 50, point ≥ 60 | PASS |
+| T3 secondary, moves toward the eventual winner | 61.59% [61.12, 62.07] | reported, not gated | |
+
+All eight PORYGON2 arms pass — 17 and 19 features, plain and weighted, k=50 and k=200 — with R
+between 0.684 and 0.739. The verdict is read off **17f weighted k=50**, which is what
+`docs/MODELS.md` headlines.
+
+**THE NEGATIVE CONTROLS DID THEIR JOB, AND THE SECOND ONE IS THE ONE THAT MATTERS.** A constant 0.5
+leaf fails all three (median 0, R undefined, direction 0%). That was the required control and it is
+the weaker one. A **uniform-random** leaf **PASSES T1 with a median of 0.2924 — nearly twice
+PORYGON2's separation** — and fails T2 (R = 0.995 [0.985, 1.004], D CI [−0.0012, +0.0049] straddling
+zero) and T3 (50.28% [49.72, 50.87]). So separation alone cannot tell a value function from noise,
+which is precisely why T2 was written as the deciding test. A gate proved only against a constant
+would have been passed by static.
+
+**AND THE FINDING THE VERDICT DOES NOT CONTAIN.** A bare material count — `0.5 + 0.15·alive_diff`,
+the same rule `porygon2.py` scores itself against — was run through the identical pipeline as a
+BASELINE rather than a control. At a two-turn gap **it passes the gate too**: R = 0.703
+[0.692, 0.715], statistically indistinguishable from PORYGON2's 0.709. Read alone, that says the 17
+features buy no locality at all.
+
+It is not read alone, because the addendum below settles it. **At the ONE-turn gap the search
+actually operates at, the material count goes flat: its median \|Δ\| is 0.000 and it returns the
+identical number on 58% of adjacent positions**, while PORYGON2 moves on 99.3% of them with a median
+of 0.1154 and its locality gets *better*, R = 0.5464 [0.5392, 0.5534]. Every branch a material leaf
+cannot separate is a branch the argmax decides by tie-break. That is the case for #24, and it is a
+different case from the one the headline makes.
+
+Two comparisons in that block that look like findings and are not, stated so nobody quotes them:
+
+- the material baseline's *toward-the-eventual-winner* rate (64.77%) is **higher** than PORYGON2's
+  (61.59%) — but its score moves on only 21,975 of 39,843 pairs, i.e. only where a Pokemon actually
+  fainted. It is scoring the easy subset. The two rates are computed on different populations and
+  are not comparable.
+- the gate produces properly-intervalled accuracies for free: **17f weighted k=50 at 63.11%
+  [62.32, 63.81]** against the material sign's 61.02% [60.06, 61.96] on the same 52,501 positions.
+  These are **separate** game-clustered intervals, **not a paired test**. `docs/MODELS.md`'s 63.59%
+  is still marked **NOT MEASURED** and this **supersedes nothing** — a paired difference with a
+  split-half floor is what would close it, and nobody has run one.
+
+**WHAT WAS FROZEN, AND WHAT COULD NOT BE.** The gate is stamped to engine release `4c73f9cafa4b` and
+that stamp is honest about its own limits: **none of PORYGON2's sources are in the frozen set** —
+not `engine/porygon2.py`, not `data/porygon2-species.json`, not either corpus. PORYGON2 is a Python
+model and `REL.require` is a JavaScript shim, so it cannot be loaded through a release at all. What
+the release *did* supply, through `REL.require`, is the thing that decides the population: the
+frozen `engine/quality.js` + `data/quality-filter.json`. For the rest the generator takes its own
+photograph — sources copied into a private tree and imported from the copy, live originals
+re-digested afterwards (none moved) — and the two append-only stores are pinned by the **clean id
+set** (7,992 ids, sha256 `4ccc0afc…`) rather than by a whole-file digest, because the collector
+appends hourly and a file digest would void any run longer than an hour.
+
+**A DEFECT FOUND ON THE WAY, AND IT IS THIS REPOSITORY'S SIGNATURE SHAPE.** The first artifact
+carried `"R_same_over_unrelated": NaN` — Python's `json.dump` writes a bare `NaN`, which every
+Python reader accepts and which **is not valid JSON**. `JSON.parse` throws on it. The effect was that
+`engine/provenance.js` **could not read one field of the file and reported it `ok`**: a clean bill of
+health issued over a document it had never parsed, including the `void` flag that exists precisely so
+a generator can condemn its own run. Both dumps now pass `allow_nan=False`, so it raises instead of
+shipping. Worth a sweep: any Python generator here can emit this, and the artifact still looks fine
+from Python.
+
+Three smaller things the gate needed and now does:
+
+- it writes `corpus.clean_games` and `corpus.population_ceiling` **spelled the way
+  `provenance.js` reads them**. Its prose `population` block was invisible to `declaredGamesFrom()`,
+  which is the §5e state where an artifact "records no game count".
+- the declaration timestamp survives every re-run. `--run` overwrites the file, so reading
+  `generated` would report the last run as the moment the thresholds were fixed — drifting later
+  than the numbers, every time.
+- a `--run` re-run used to silently delete the `--addendum` block. It is carried forward now, each
+  block keeping its own timestamp and digests.
+
+**Disclosed rather than omitted:** a 150-game smoke run of this pipeline executed at 06:02Z, after
+the declaration and before the headline sample, to find bugs. Its numbers were seen first. No
+threshold changed — the equality check enforces that — but the smoke run's R landed at 0.735 against
+a 0.75 bar, close enough that saying nothing about it would be the omission this division exists to
+prevent.
+
+**What this gate does NOT establish**, and #24 should not be read as having it:
+
+- it says the leaf **separates**, not that swapping it in **wins**. The unit that answers that is the
+  decisive pair, and it needs an SPRT against the incumbent playout.
+- the pairs are consecutive positions from *real games*, not **sibling branches from one node**.
+  Siblings differ by one action from an identical board and are more alike than anything measured
+  here. The lag-1 addendum is the closest available proxy and it is a proxy.
+- T3's ground truth is `alive_diff + hp_total_diff`, which are two of PORYGON2's own inputs
+  (`alive_diff` carries a learned weight of 5.12 against a mean of 1.0). It asks whether the model
+  respects its strongest features. A k-NN guarantees no such thing, so it is not vacuous — but it is
+  not independent, which is why the outcome-anchored secondary is reported beside it.
+- **no split-half was run.** The noise floor here is built into the design instead: T2's
+  unrelated-pair arm *is* the floor for the effect claimed, and every interval is game-clustered.
+  The estimator is deterministic given the game set, so a split-half would re-measure what the
+  bootstrap already reports. The one stochastic input — how the unrelated partner is drawn — was
+  checked by a second mechanism: the any-turn control gives R ≈ 0.74 against the turn-matched 0.709,
+  so the conclusion does not depend on the draw.
+
 ## Running the backtest
 
 ```bash
