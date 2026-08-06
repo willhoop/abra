@@ -222,3 +222,68 @@ console.log('   of those, counted ABOVE as fully-modelled attacks   ' + pivotAsA
   '  (' + (100 * pivotAsAttack / total).toFixed(2) + '%)');
 console.log('   MEDICHAM has no voluntary switching, so the user never leaves. The damage is right');
 console.log('   and the momentum — the reason the move is played — is missing entirely.');
+
+/* ---- WRITE THE ARTIFACT ------------------------------------------------------------------------
+ *
+ * THIS FILE PRINTED AND NEVER WROTE, WHICH IS WHY IT HAS NO ARTIFACT. It was on the "three
+ * instruments built that have never written an artifact" list (#27) and the reason turned out not to
+ * be that nobody ran it — IT STRUCTURALLY COULD NOT PRODUCE ONE. Zero writeFileSync calls. The
+ * number reached a terminal and stopped there.
+ *
+ * WHAT THAT COST, and it is not tidiness. A figure that lives only in stdout cannot be checked by
+ * engine/provenance.js, cannot be compared against a later run, cannot be ratcheted, and cannot be
+ * cited by a document — tests/test-docs-current.js attributes a figure to the artifact that holds
+ * it, so an unwritten number is permanently unciteable. The 15.3% quoted in
+ * engine/lookahead_divergence.js has no artifact behind it for exactly this reason, and it is now
+ * badly stale: it was measured when playerAction handled FOUR action kinds and it now handles
+ * twelve-plus.
+ *
+ * STAMPED, so the next reader knows what it measured. The engine is the whole subject here, so the
+ * digest of medicham2-browser.js is the load-bearing field — a coverage figure is a statement about
+ * one specific build of the simulator and transfers to no other. */
+const _crypto = require('crypto');
+const _sha = (rel) => {
+  try { return _crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname, '..', rel))).digest('hex').slice(0, 12); }
+  catch (e) { return 'UNREADABLE: ' + ((e && e.message) || e); }
+};
+const OUT = process.argv[2] || path.join(__dirname, '..', 'data', 'medicham-represented-clicks.json');
+const art = {
+  generated: new Date().toISOString(),
+  by: 'engine/medicham_coverage.js',
+  what: 'What fraction of REAL HUMAN CLICKS MEDICHAM can represent as an action at all. Anything '
+      + 'playerAction does not recognise becomes {kind:"pass"} — a no-op turn — so an unmodelled '
+      + 'move is not noise, it is a ONE-DIRECTIONAL bias against exactly the utility and multi-turn '
+      + 'moves that decide doubles games.',
+  not_what_it_says: 'It counts a click as covered when it maps to a KIND. It does NOT check that the '
+      + 'engine then does the right thing with that kind — that is the interaction matrix and the '
+      + 'differential test. A move can be counted here and still be wrong.',
+  corpus: { games: games.length, clicks: total },
+  covered_clicks: covered,
+  pass_clicks: pass,
+  covered_fraction: +(covered / total).toFixed(6),
+  pass_fraction: +(pass / total).toFixed(6),
+  by_kind: kinds,
+  unmodelled_moves_ranked: ranked.map(([id, n]) => ({ move: id, clicks: n, share: +(n / total).toFixed(6) })),
+  distinct_unmodelled: ranked.length,
+  moves_needed_to_reach: marks,
+  verified_partial_coverage: {
+    what: 'The switch half of pivot moves. MEDICHAM has NO voluntary switching — refill() replaces a '
+        + 'fainted mon and nothing else moves — so U-turn and friends arrive as `attack`, are counted '
+        + 'as fully covered above, and lose the momentum that is the whole reason they are clicked. '
+        + 'This is the one partial-coverage figure here that is verified by reading the engine rather '
+        + 'than inferred.',
+    pivot_moves: PIVOTS,
+    clicks: pivotClicks,
+    counted_above_as_attack: pivotAsAttack,
+    share_of_all_clicks: +(pivotClicks / total).toFixed(6),
+  },
+  source_digests: {
+    'engine/medicham2-browser.js': _sha('engine/medicham2-browser.js'),
+    'data/abra-tags.js': _sha('data/abra-tags.js'),
+    'data/engine-data.js': _sha('data/engine-data.js'),
+    note: 'Content, not mtime. A coverage figure is a statement about ONE BUILD of the simulator and '
+        + 'transfers to no other — five WIREs landed on 2026-08-06 alone.',
+  },
+};
+fs.writeFileSync(OUT, JSON.stringify(art, null, 2) + '\n');
+console.log('\n  wrote ' + path.relative(path.join(__dirname, '..'), OUT).replace(/\\/g, '/'));
