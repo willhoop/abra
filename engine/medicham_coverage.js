@@ -267,11 +267,24 @@ const art = {
   distinct_unmodelled: ranked.length,
   moves_needed_to_reach: marks,
   verified_partial_coverage: {
-    what: 'The switch half of pivot moves. MEDICHAM has NO voluntary switching — refill() replaces a '
-        + 'fainted mon and nothing else moves — so U-turn and friends arrive as `attack`, are counted '
-        + 'as fully covered above, and lose the momentum that is the whole reason they are clicked. '
-        + 'This is the one partial-coverage figure here that is verified by reading the engine rather '
-        + 'than inferred.',
+    what: 'The switch half of pivot moves. U-turn and friends carry base power, so they arrive as '
+        + '`attack`, are counted as fully covered above, and the momentum — the reason the move is '
+        + 'clicked — is not counted at all. This is the one partial-coverage figure here that is '
+        + 'verified by reading the engine rather than inferred.',
+    correction_2026_08_06: 'THIS ENTRY PREVIOUSLY READ "MEDICHAM has NO voluntary switching" AND '
+        + 'THAT IS STALE. The ENGINE gained it: medicham2-browser.js bringIn() is documented as '
+        + '"shared by faint replacement and by voluntary/pivot switching" and takes a `wanted` '
+        + 'argument so a caller can name WHO comes in, and battleTurn handles kind===\'switch\'. What '
+        + 'is true is narrower and lives one level up: THE ROLLOUT never switches. '
+        + 'rollout_leaf.js\'s playout picks from mon.moves and has no switch branch at all, so after '
+        + 'the stepped turn nobody switches for the rest of the imagined game. The search can offer a '
+        + 'switch as a ROOT candidate and then simulates a future in which switching does not exist.',
+    what_the_rollout_gap_costs: 'One-directional, like the pass gap. A future with no switching '
+        + 'misprices preserving a Pokemon, punishing a switch, and the whole "switch out of a '
+        + 'predicted attack" pattern the engine models priority order for. Separately, the LIVE BOT '
+        + 'has voluntary switching OFF against a measured 10-point loss (mew.js:135) — three '
+        + 'different states (engine capability, rollout behaviour, live setting) that must not be '
+        + 'quoted for each other.',
     pivot_moves: PIVOTS,
     clicks: pivotClicks,
     counted_above_as_attack: pivotAsAttack,

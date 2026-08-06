@@ -866,7 +866,15 @@ direction. And the objection that imitation is a ceiling *does not apply to the 
 | #38 | the rollout cap is 60 turns; real games end at **6** | trivial |
 | #39 | measure the `board.js` ↔ MEDICHAM translation cost | decides whether MAG-as-GARY is possible at all |
 | #61 | **MEDICHAM measures 1,606 battles/sec against the 3,401 on record — 47%.** On the measured figure the 200-rollout x 64-pair search needs **26 s** against a 20 s budget and does not fit. Nothing ratchets speed, which is why a 2x regression went unseen | — |
-| #62 | **GATE, and it comes first: play MILTANK untimed against MILTANK on the clock.** R6 measured **31.6% of move decisions deferred** — handed back to MAG unsearched, consuming 30.5% of the spend.  fires both when the clock runs out *and* when the search cannot separate its options, and only the first is fixable with compute. This decides whether #25/#37/#61 are worth doing at all | #45 |
+| #62 | **GATE, and it comes first: play MILTANK untimed against MILTANK on the clock.** R6 measured **31.6% of move decisions deferred** — handed back to MAG unsearched, consuming 30.5% of the spend. `defer` fires both when the clock runs out *and* when the search cannot separate its options, and only the first is fixable with compute. This decides whether #25/#37/#61 are worth doing at all | #45 |
+| #63 | **the rollout never switches.** The engine *can*, and the search can offer a switch as a root candidate — but the playout has no switch branch at all, so **every imagined future is a game where nobody ever leaves**. Misprices preserving a Pokémon, punishing a switch, and the *switch out of a predicted attack* pattern the engine models priority order for | #45, #61 |
+
+**Four different states get quoted for each other here and only one is broken.** The engine can
+switch; the search can offer it; **the rollout never does**; and the live bot has it **off** against
+a measured **10-point loss**. That loss is real — but `bringIn()` picks `live(bench)[0]`, the first
+healthy body, and its own comment calls that *"a real limitation, not a detail"*. **A switch to an
+arbitrary Pokémon is not a switch, it is a *leave*** — and a 10-point loss is precisely what
+evaluating "leave" would produce. Test that before concluding switching is bad.
 | — | **parallelise the search** — 16 cores available, nothing uses more than one | unlocks K=8, which is where the miss rate reaches 1.4% |
 | #31 | the mega must be a strategic decision, not "the lead keeps it" | dual-mega teams are the case that proves it |
 | #6 | AXIS-4 reparameterisation, then WOBBUFFET in it | |
