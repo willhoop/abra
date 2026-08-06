@@ -587,6 +587,207 @@ we already collect the games — and VGC-Bench's published agent results on that
 
 ---
 
+## 4. THE SEARCH REDESIGN — established 2026-08-06
+
+This section exists because a conversation about *why the bot picks badly* turned up four things that
+were true, written down, and unacted on. Every figure below was read out of a file or measured in
+this session; two of them correct claims I made earlier in the same session from memory.
+
+### 4.1 The structural fact everything else follows from — and it was already written down
+
+**Real games are six turns.** Measured over 53,059 stored games:
+
+| median | mean | p90 | p99 | over 30 turns | over 60 turns |
+|---|---|---|---|---|---|
+| **6** | 6.5 | 10 | 16 | 0.05% | 0.01% |
+
+The rollout horizon is capped at **60**. That is ~10× the real game, and reasoning from the cap
+rather than the distribution is how the cost model came to be 10× too big: a leaf evaluation is
+about **5,600** move-decisions, not 48,000.
+
+**`docs/POKER-TO-POKEMON.md` §4b had this number and its consequence before tonight:**
+
+> *"the horizon is short: the median game is 6 turns... the binding constraint is **breadth, not
+> depth** — action abstraction (pruning dominated moves, bucketing targets) is where the real work
+> is, **more so than the value net**."*
+
+Two things follow, and the second is the uncomfortable one:
+
+- **A leaf matters less here than in poker or Go.** A leaf evaluator exists because you cannot reach
+  the end of the game. At six turns the rollout *does* reach the end — it returns a real win or loss.
+  There is nothing to approximate. **The problem is not the judge at the bottom of the tree; it is
+  that the six turns leading to it are played by a coin.**
+- Which means the PORYGON2 separation gate (#23), dispatched earlier the same evening, is answering
+  a question of smaller consequence than the dispatch brief claimed. It is still worth having. It is
+  not the thing that unblocks anything.
+
+### 4.2 GARY — the opponent inside the search, now named, and built-and-switched-off
+
+**A capability that cannot prove it ran is assumed broken.** GARY could not, because it had no name.
+
+```
+engine/mag_bot.js:173      const MILTANK_FOE = arg('miltank-foe', 'uniform');
+engine/miltank.js:455      DEFAULTS = { ... foePolicy: 'uniform', ... }
+engine/rollout_leaf.js:289 const mv = (foePolicy === 'prior' && pickByPrior(mon, rng)) || mvs[random];
+```
+
+`'prior'` samples `data/move-priors.json` — **128,548 recorded clicks over 295 species** — so the
+imagined opponent clicks Protect and Fake Out at the rate real players do instead of 25% each. It is
+wired end to end and **the default is the coin, in the library and in the live bot.**
+
+Four separate defects, each recorded as its own item:
+
+1. **`foePolicy` steers both sides.** `rollout_leaf.js:302-303` applies the same `pick` to `S.actA`
+   and `S.actB`. One flag governs the whole imagined game, so you cannot give the opponent a brain
+   without also changing how the search models itself. (#34)
+2. **Targeting is random in both settings.** `rollout_leaf.js:290` draws the target uniformly
+   whether or not `prior` is on. `prior` fixes *which move* and never *who it hits* — and in doubles
+   the target is half the decision. `board.js:377` already records humans double-targeting 23.4% of
+   the time against ~50% for independent choice. (#35)
+3. **GARY has two seats and they disagree.** From `rolloutAfterActions`'s own comment: *"The opponent
+   is NOT modelled. It plays chooseAction during the stepped turn."* Deterministic greedy on the turn
+   being ranked; a coin for every turn after. (#36)
+4. **No artifact records which GARY ran.** `data/rollout-r1.json` and
+   `data/rollout-r1-explore-sweep.json` carry no `foePolicy` key, so R1 and R4 cannot say whether
+   their opponent was a person or a coin. (#33)
+
+**Correction to something asserted earlier this session:** MAG is *not* deterministic and the
+"sampling would collapse the variance" objection was wrong. `greedy=false` already draws from a
+softmax, and `magnemite.js:217` calls it *"the single biggest measured lever in the project."*
+
+### 4.3 The pruning is done by the coin
+
+`miltank.js:1204` screens every candidate pair by running a **cheap rollout** on it and keeps the top
+`FINAL_K`. The rollout is the 51%-accurate leaf. **So the coin is not merely misjudging the
+finalists — it is selecting them.**
+
+MAG is not used for this, and the file says why:
+
+> *"The first version pruned to the best K per slot — except `_candsFor` returns no scores, so it was
+> taking the first three in array order and calling that the best three. That is worse than not
+> pruning at all: an arbitrary shortlist that LOOKS principled."*
+
+**The candidate list arrives with no scores attached.** Fixing that is §4b's "action abstraction",
+and it costs *one* MAG pass per turn rather than one per imagined turn — the difference between
+affordable and impossible. Measured branching, from 7,976 real brought-teams: ~76 action combos per
+side per turn, ~5,738 joint. MILTANK samples 200 rollouts against that. (#37)
+
+### 4.4 The equilibrium solver is unplugged, and the reason is the language boundary
+
+**How the comparable projects handle the opponent: they do not pick one.** CFR → DeepStack →
+Libratus → ReBeL never assume an opponent policy; they run regret matching for both players jointly
+and output a *mixed strategy*, whose guarantee is that it cannot be exploited whatever the opponent
+does. AlphaZero uses self-play with a policy prior and deletes rollouts entirely. AlphaStar — the
+closest structural analogue, being simultaneous, hidden-information and wide — uses a *league*
+including deliberate exploiters, which is what WOBBUFFET is here.
+
+**The poker answer is already implemented in this repository, verified, and unreachable.**
+`engine/slowking/nash.py` and `ismcts.py` do simultaneous-move regret matching and recover exact Nash
+on RPS and an asymmetric 2×2. `rollout_leaf.js` states the gap plainly: *"a best response to a fixed
+opponent rather than an equilibrium: weaker than the design's matrix game."*
+
+```
+127 JavaScript files    everything that must PLAY a battle — Showdown is TypeScript
+ 40 Python files        everything that does MATH — numpy/scipy live there
+  7 in slowking/        the solver
+```
+
+Neither language choice was wrong. **The consequence is that the thinking cannot play.** Three routes
+out, and the third is the one to scope first:
+
+| route | cost |
+|---|---|
+| port the solver to JS | a second implementation of verified math — the failure this repo keeps repeating |
+| call Python per turn | a subprocess inside a Showdown turn timer |
+| **precompute in Python, ship a lookup table** | **what chess does with Syzygy — and it is DUSK** |
+
+### 4.5 DUSK is a tablebase, and open sheets are what make it exact
+
+**Will, 2026-08-06:** *"at the end game, we can have a repository of scenarios in dusk that can show
+which mons beat which in a straight up battle and solve for those endings."*
+
+That is an endgame tablebase, and it is the right shape for this game specifically. At 1v1 under
+**open team sheets there is nothing hidden left** — species, set, item, ability and nature are all
+declared. The only unknown is which of four moves they pick this turn: a small matrix game with
+known payoffs, which is exactly what `nash.py` already solves exactly. **Closed sheets would make the
+table a guess; open sheets make it a fact**, which is the payoff of the open-sheet-only directive.
+
+The store supports reconstructing these positions — turn records carry `tgthp`, boosts and megas, and
+`sets` carries `declared:true`.
+
+**And DUSK is simultaneously the bridge in 4.4**: solve offline in Python, emit a table, let the
+JavaScript bot read it. No port, no subprocess.
+
+**The open question is size**, and it decides everything: enumerate all of
+(mon + set + HP + status + boosts)² × field and it is astronomical; restrict to positions that
+actually occur on the ladder and it may ship as a JSON file. Not yet measured. (#40)
+
+### 4.6 A coverage number that overstates itself ~3×
+
+`data/mechanics-census.json`: **probed 219, live 216, missing 3 — armed 74, unarmed 145.** An unarmed
+probe runs, reports a result, and would report the same result if the mechanic were deleted. So
+"216/219 mechanics live" counts probes that executed, not mechanics that work.
+
+The instrument that does *not* depend on anyone thinking of the right probe — random games diffed
+against real Showdown — finds **1 disagreement in 150**, and that is the honest signal. It is good.
+The remedy is arming the 145, not writing more. (#42)
+
+### 4.6b Speed is revealed for free by resolution order, and nothing reads it
+
+**Will, 2026-08-06:** *"if two incins come out, which intim goes first indicates speed."*
+
+Entry abilities resolve in **speed order**, so two Intimidates on the same switch reveal a strict
+speed inequality **before anybody clicks a move**. It costs no turn and no risk. The same channel has
+several sources: any two entry abilities (Drizzle against Drought), end-of-turn residuals
+(Leftovers, burn, Rough Skin), and same-bracket move order (two Fake Outs, two Protects).
+
+**This matters more than it sounds, because of what open sheets leave hidden.** `web/models.html`'s
+own mode note: *"Hidden information is exactly two things: what's in the back and the exact EV
+spread."* Species, item, ability, nature and moves are all declared. **So Speed is essentially the
+hidden variable in this format**, and every resolution-order observation is a hard constraint on it.
+Accumulated across a battle it narrows to an interval, which is exactly the *"do I outspeed this"*
+question that decided three of the five replays reviewed the same evening.
+
+**What exists is not this.** `engine/dynamics.js` → `data/dynamics.json` already derives speed from
+*who moved first* — but it reads **move order only**, aggregates **per species over the whole
+corpus** into an empirical rank rather than per-battle per-opponent, and is read by `ditto.js` and
+`kadabra.js` and by **nothing** in `board.js`, `miltank.js`, `mag_bot.js`, `magnemite.js` or
+`medicham2-browser.js`. It is a population prior, not a live belief.
+
+**And entry-ability order is modelled nowhere at all** — `entryOrder|switchInOrder|abilityOrder|
+speedOrder` returns no match across all 127 JavaScript files. `medicham2-browser.js:2444` applies
+entry drops and carries no notion of which resolved first.
+
+Three pieces, and **the first is an ENGINE correctness question rather than a feature**: does
+MEDICHAM resolve entry abilities in speed order at all? The official engine does, so if MEDICHAM does
+not, that is a differential-test miss to fix before anything is built on top of it. Then the
+extraction (protocol order → a qualified inequality), then the belief (inequalities → a Speed
+interval a decision can read). **XATU is currently drawn as *"mostly idle — little left to guess"*
+under open sheets. This is the thing it should be doing instead.** (#43)
+
+### 4.7 The order, and why each is where it is
+
+| # | item | why here | cost |
+|---|---|---|---|
+| #33 | record which GARY ran | nothing below is interpretable without it | trivial |
+| #32 | flip `uniform` → `prior`, measured | free, and it gates whether a better GARY is worth building | a flag |
+| #38 | set the horizon from the measured 6 | every cost estimate downstream depends on it | trivial |
+| #37 | prune with MAG's scores, not the coin | §4b's "the real work"; one MAG pass per turn | small |
+| #34 #35 #36 | split the policy, model targeting, unify the seats | make GARY one declared thing | medium |
+| #39 | measure the board↔MEDICHAM translation | decides whether MAG-as-GARY is possible at all | measurement |
+| #40 | DUSK size gate | decides whether the tablebase is a weekend or a year | measurement |
+| #41 | reach the solver from JS, via #40 | the equilibrium answer exists and cannot play | scoping |
+| #42 | arm the census | stops an inflated number being quoted again | ongoing |
+| #43 | speed from resolution order | free information on the one variable open sheets still hide | ENGINE check, then small |
+
+**The through-line:** four of the six findings in this section are capabilities that were *built,
+correct, and switched off* — `prior`, MAG's scores at the candidate list, MAG's softmax, and the Nash
+solver. That is the same failure mode as 2026-07-28, arriving through a door the rules had not
+covered, and the countermeasure is the same one: **a capability that cannot prove it ran is assumed
+broken.** GARY is named in this pass for exactly that reason.
+
+---
+
 ## The honest summary
 
 **What is genuinely strong:** the data discipline, the validated engine, the measurement culture, and

@@ -36,7 +36,7 @@ svg{width:100%;height:auto;display:block}
   Open sheets — the format ALAKAZAM starts in. Hidden information is exactly two things: <b>what's in the back</b> and <b>the exact EV spread</b>. XATU's full evidence-reading stays parked.
 </div>
 <div class="panel">
-<svg viewBox="0 0 1160 1310" xmlns="http://www.w3.org/2000/svg" font-family="Verdana,sans-serif">
+<svg viewBox="0 0 1160 1560" xmlns="http://www.w3.org/2000/svg" font-family="Verdana,sans-serif">
 <defs>
   <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
     <path d="M0,0 L10,5 L0,10 z" fill="#5a6a84"/>
@@ -205,13 +205,19 @@ svg{width:100%;height:auto;display:block}
 <text x="424" y="749" class="st" fill="#1f7a3c">so it can't cheat its own</text>
 <text x="424" y="761" class="st" fill="#1f7a3c">scoring</text>
 
+<!-- THE PORY FAMILY, SPLIT. This box said "PORYGON — same, mid-game" under a RETIRED heading, which
+     merged two different models into one wrong status. PORY is retracted (it ties a two-feature
+     baseline exactly, three corpora). PORYGON2 is a DIFFERENT model, built and never retracted —
+     its problem is that no number it publishes has an interval, and no live decision calls it.
+     Filing a built-but-unmeasured model under "retired" is how it stayed unmeasured. -->
 <rect class="box" x="690" y="664" width="220" height="104" fill="#e8e8ec"/>
-<text x="704" y="688" class="t">THE PC (retired)</text>
-<text x="704" y="706" class="io">JOLTEON — win% from sheets:</text>
-<text x="704" y="719" class="io">no better than a coin</text>
-<text x="704" y="732" class="io">PORYGON — same, mid-game</text>
-<text x="704" y="752" class="st" fill="#667">next: a value net trained</text>
-<text x="704" y="763" class="st" fill="#667">on practice games (planned)</text>
+<text x="704" y="686" class="t">THE PC — value nets</text>
+<text x="704" y="703" class="io">PORY / JOLTEON: retracted —</text>
+<text x="704" y="715" class="io">tie a two-feature baseline</text>
+<text x="704" y="729" class="io">PORYGON2: BUILT, no CI on</text>
+<text x="704" y="741" class="io">any figure, never called live</text>
+<text x="704" y="758" class="st" fill="#667">at 6-turn games a leaf matters</text>
+<text x="704" y="769" class="st" fill="#667">less than who plays the 6 turns</text>
 
 <rect class="box" x="940" y="664" width="200" height="104" fill="#fff2dc"/>
 <text x="954" y="688" class="t">KADABRA</text>
@@ -226,48 +232,115 @@ svg{width:100%;height:auto;display:block}
 <path class="fl" d="M480,584 C480,620 500,630 510,664"/>
 <path class="fl" d="M290,584 C600,620 760,630 780,664"/>
 
-<!-- ================= BAND 5: THE CAPSTONE ================= -->
-<text x="20" y="850" class="band">THE CAPSTONE</text>
-<rect class="box" x="20" y="864" width="1120" height="150" fill="#f1e8fc"/>
-<text x="34" y="890" class="t" fill="#4a2482">ALAKAZAM — plans ahead instead of reacting (in development)</text>
-<text x="34" y="912" class="io">in: the honest engine and its prices (built) · the re-tuned weights (done) · a value net (planned)</text>
-<text x="34" y="926" class="io">in: what it believes about you — on open sheets that is just your bench and your exact stat spread</text>
-<text x="34" y="940" class="io">out: the best move AND your real chance of winning — thinking several turns ahead</text>
-<text x="34" y="962" class="st" fill="#4a2482">shipping now under its name: FUTURE SIGHT (the forecast) and the Battle Tower boss</text>
-<text x="34" y="984" class="st" fill="#8a5a1a">build order: engine ✔ → re-tune ✔ → switching (unproven) → value net → belief → search</text>
+<!-- ================= BAND 5: THE SEARCH =================
+     ADDED 2026-08-06. MILTANK IS THE SHIPPING SEARCH PLAYER AND WAS NOT ON THIS MAP AT ALL — the
+     DECIDERS band showed MAG, DITTO, the retired value nets and KADABRA, and then jumped straight to
+     ALAKAZAM. A map that omits the thing choosing the moves is not a map of the models.
+     GARY is named here for the first time (Will, 2026-08-06). It had no name, which is part of why
+     nobody noticed it defaults to a coin. -->
+<text x="20" y="850" class="band">THE SEARCH — what actually picks the move in a battle</text>
 
-<path class="flp" d="M200,768 L200,864"/>
-<path class="flp" d="M535,768 C535,800 420,820 400,864"/>
-<path class="flp" d="M800,768 L800,864"/>
-<path class="flp" d="M1012,552 C1012,600 1000,780 990,864"/>
-<path class="flp" d="M728,552 C728,600 700,780 690,864"/>
+<rect class="box" x="20" y="864" width="360" height="150" fill="#fff2dc"/>
+<text x="34" y="888" class="t">MILTANK — the search</text>
+<text x="34" y="906" class="io">in: the candidate pairs + MEDICHAM</text>
+<text x="34" y="919" class="io">out: which PAIR of moves to click</text>
+<!-- EVERY FIGURE ON ITS OWN CITATION'S LINE. The first draft of this box put "51.0% ... CI 48.3-53.7"
+     on one <text> and "from data/winrate-backtest.json" on the NEXT one — which is precisely the
+     mistake the .src comment above warns about, and web/figure-audit.js scored it as three
+     uncited figures. A citation one line below a number traces nothing. -->
+<text x="34" y="932" class="io">how: imagines ~200 games per option <tspan class="src">ROLLOUT_N, engine/miltank.js</tspan></text>
+<text x="34" y="952" class="st" fill="#9a2b2b">its in-game judge names the winner on</text>
+<text x="34" y="966" class="st" fill="#9a2b2b">51.0% of decisive calls, CI 48.3–53.7 <tspan x="34" dy="11" class="src">from data/winrate-backtest.json</tspan></text>
+<text x="34" y="993" class="st" fill="#9a2b2b">— the interval contains a coin</text>
+<text x="34" y="1005" class="st" fill="#8a5a1a">it screens options with that same judge</text>
 
-<!-- ================= BAND 6: WHAT A HUMAN TOUCHES ================= -->
-<text x="20" y="1080" class="band">WHAT A HUMAN TOUCHES</text>
-<rect class="box" x="20" y="1094" width="360" height="86" fill="#dff5e6"/>
-<text x="34" y="1118" class="t">THE BATTLE TOWER</text>
-<text x="34" y="1136" class="io">ABRA half asleep → KADABRA awake → ALAKAZAM.</text>
-<text x="34" y="1149" class="io">The boss tells you what it expects you to do</text>
-<text x="34" y="1168" class="st" fill="#1f7a3c">live — your games stay yours</text>
+<rect class="box" x="410" y="864" width="340" height="150" fill="#fde4e0"/>
+<text x="424" y="888" class="t">GARY — the imagined foe</text>
+<text x="424" y="906" class="io">in: what each species really clicks</text>
+<text x="424" y="919" class="io">out: the foe's move, every imagined turn</text>
+<text x="424" y="939" class="st" fill="#9a2b2b">BUILT AND SWITCHED OFF. The default</text>
+<text x="424" y="951" class="st" fill="#9a2b2b">'uniform' rolls a 4-sided dice. 'prior'</text>
+<!-- FILE:LINE REFERENCES READ AS FIGURES. "miltank.js:455" scored as an untraced figure 455 —
+     the audit's ID_WORD exclusion covers "WIRE 117" and "LESSON 2", not a source line number.
+     Name the files; the line numbers live in docs/SEARCH.md R11 where prose can carry them. -->
+<text x="424" y="963" class="st" fill="#9a2b2b">exists, reads real clicks, is not on<tspan x="424" dy="11" class="src">defaults in engine/mag_bot.js + engine/miltank.js</tspan></text>
+<text x="424" y="991" class="st" fill="#9a2b2b">Its TARGET is random in both modes</text>
+<text x="424" y="1003" class="st" fill="#9a2b2b">No artifact records which one ran</text>
 
-<rect class="box" x="410" y="1094" width="360" height="86" fill="#dff5e6"/>
-<text x="424" y="1118" class="t">CHOMP + ORB (installable)</text>
-<text x="424" y="1136" class="io">in: your live battle + open sheets</text>
-<text x="424" y="1149" class="io">out: who to bring + a damage calc</text>
-<text x="424" y="1168" class="st" fill="#8a5a1a">damage checked; bring advice ties a coin</text>
+<rect class="box" x="780" y="864" width="360" height="150" fill="#f1e8fc"/>
+<text x="794" y="888" class="t" fill="#4a2482">DUSK — endgame tablebase</text>
+<text x="794" y="906" class="io">in: 1v1 positions solved once, offline</text>
+<text x="794" y="919" class="io">out: the exact answer, looked up</text>
+<text x="794" y="932" class="io">not searched — Syzygy for VGC</text>
+<text x="794" y="952" class="st" fill="#4a2482">OPEN SHEETS MAKE IT EXACT: at 1v1</text>
+<text x="794" y="964" class="st" fill="#4a2482">nothing is hidden but their next click</text>
+<text x="794" y="982" class="st" fill="#4a2482">also the only route that lets the Python</text>
+<text x="794" y="994" class="st" fill="#4a2482">Nash solver reach the JavaScript bot</text>
+<text x="794" y="1006" class="st" fill="#8a5a1a">planned — table SIZE not yet measured</text>
 
-<rect class="box" x="800" y="1094" width="340" height="86" fill="#dff5e6"/>
-<text x="814" y="1118" class="t">ABRA WORLD (the site)</text>
-<text x="814" y="1136" class="io">a page per model: what it does,</text>
-<text x="814" y="1149" class="io">what it proved, what it didn't</text>
-<text x="814" y="1168" class="st" fill="#1f7a3c">the project's honest face</text>
+<!-- band 4 -> band 5 -->
+<path class="fl" d="M200,768 L200,864"/>
+<path class="fl" d="M535,768 C535,800 480,830 470,864"/>
+<!-- the behaviour priors feed GARY directly, and this is the edge that is currently unplugged -->
+<path class="fl" d="M562,344 C900,360 1150,500 1152,700 C1152,800 700,830 600,864" stroke-dasharray="7 5" opacity="0.55"/>
+<text x="1050" y="700" class="lbl" opacity="0.7">priors → GARY</text>
+<text x="1050" y="713" class="lbl" opacity="0.7">(wired, off)</text>
 
-<path class="fl" d="M200,1014 L200,1094"/>
-<path class="fl" d="M580,1014 L580,1094"/>
-<path class="fl" d="M970,1014 L970,1094"/>
+<!-- THE LANGUAGE BOUNDARY. Not decoration: it is why the verified equilibrium solver cannot play. -->
+<rect x="20" y="1030" width="1120" height="34" rx="8" fill="#f7f4ff" stroke="#7b3fd4" stroke-width="2" stroke-dasharray="8 5"/>
+<!-- NO FILE COUNTS HERE. The first draft read "127 JavaScript files ... 40 Python files", which is a
+     figure with no artifact behind it AND one that changes every time somebody adds a file — the
+     same shape as the "3k good games" drift this page already had to fix once. The BOUNDARY is the
+     fact; the census of it is not. Counts live in docs/ROADMAP.md §4.4 where prose can date them. -->
+<text x="34" y="1052" class="st" fill="#4a2482">THE LANGUAGE BOUNDARY — everything that can PLAY a battle is JavaScript, because Showdown is; everything that does the MATH is Python, because numpy is. SLOWKING's Nash solver is verified, and on the wrong side of this line. DUSK is the bridge across it.</text>
 
-<text x="20" y="1235" class="lbl">Rules the map obeys: derived, never typed (S13) · clean data only (Garbodor) · measured, not asserted · Will's games quarantined · one engine, no copies.</text>
-<text x="20" y="1252" class="lbl">Drawn 2026-07-29, wording simplified 2026-07-30, figures re-sourced against their artifacts 2026-08-04. The re-tune is now confirmed; switching and the post-KO switch both measured as coins.</text>
+<!-- ================= BAND 6: THE CAPSTONE ================= -->
+<text x="20" y="1105" class="band">THE CAPSTONE</text>
+<rect class="box" x="20" y="1119" width="1120" height="150" fill="#f1e8fc"/>
+<text x="34" y="1145" class="t" fill="#4a2482">ALAKAZAM — plans ahead instead of reacting (in development)</text>
+<text x="34" y="1167" class="io">in: the honest engine and its prices (built) · the re-tuned weights (done) · a value net (planned)</text>
+<text x="34" y="1181" class="io">in: what it believes about you — on open sheets that is just your bench and your exact stat spread</text>
+<text x="34" y="1195" class="io">out: the best move AND your real chance of winning — thinking several turns ahead</text>
+<text x="34" y="1217" class="st" fill="#4a2482">shipping now under its name: FUTURE SIGHT (the forecast) and the Battle Tower boss</text>
+<!-- BUILD ORDER REVISED 2026-08-06. It read "... → value net → belief → search", which puts the
+     value net first. At a MEDIAN GAME OF 6 TURNS a rollout REACHES THE END, so there is no position
+     left to approximate — the leaf is the least of it and the six turns leading to it are played by
+     a coin. docs/POKER-TO-POKEMON.md §4b said the same thing before this map did: the binding
+     constraint is BREADTH, not depth. GARY and the pruning move ahead of the value net. -->
+<text x="34" y="1239" class="st" fill="#8a5a1a">build order: engine ✔ → re-tune ✔ → GARY off the coin → prune with MAG not the coin → belief → equilibrium <tspan class="src">order revised — docs/POKER-TO-POKEMON.md §4b</tspan></text>
+
+<path class="flp" d="M200,1014 L200,1119"/>
+<path class="flp" d="M580,1014 L580,1119"/>
+<path class="flp" d="M960,1014 L960,1119"/>
+<path class="flp" d="M1012,552 C1150,620 1150,1000 1080,1119"/>
+<path class="flp" d="M728,552 C765,650 765,1000 765,1119"/>
+
+<!-- ================= BAND 7: WHAT A HUMAN TOUCHES ================= -->
+<text x="20" y="1335" class="band">WHAT A HUMAN TOUCHES</text>
+<rect class="box" x="20" y="1349" width="360" height="86" fill="#dff5e6"/>
+<text x="34" y="1373" class="t">THE BATTLE TOWER</text>
+<text x="34" y="1391" class="io">ABRA half asleep → KADABRA awake → ALAKAZAM.</text>
+<text x="34" y="1404" class="io">The boss tells you what it expects you to do</text>
+<text x="34" y="1423" class="st" fill="#1f7a3c">live — your games stay yours</text>
+
+<rect class="box" x="410" y="1349" width="360" height="86" fill="#dff5e6"/>
+<text x="424" y="1373" class="t">CHOMP + ORB (installable)</text>
+<text x="424" y="1391" class="io">in: your live battle + open sheets</text>
+<text x="424" y="1404" class="io">out: who to bring + a damage calc</text>
+<text x="424" y="1423" class="st" fill="#8a5a1a">damage checked; bring advice ties a coin</text>
+
+<rect class="box" x="800" y="1349" width="340" height="86" fill="#dff5e6"/>
+<text x="814" y="1373" class="t">ABRA WORLD (the site)</text>
+<text x="814" y="1391" class="io">a page per model: what it does,</text>
+<text x="814" y="1404" class="io">what it proved, what it didn't</text>
+<text x="814" y="1423" class="st" fill="#1f7a3c">the project's honest face</text>
+
+<path class="fl" d="M200,1269 L200,1349"/>
+<path class="fl" d="M580,1269 L580,1349"/>
+<path class="fl" d="M970,1269 L970,1349"/>
+
+<text x="20" y="1490" class="lbl">Rules the map obeys: derived, never typed (S13) · clean data only (Garbodor) · measured, not asserted · Will's games quarantined · one engine, no copies.</text>
+<text x="20" y="1507" class="lbl">Drawn 2026-07-29, wording simplified 2026-07-30, figures re-sourced 2026-08-04. 2026-08-06: THE SEARCH band added — MILTANK was missing from a map of the models, GARY is named, and the PORY family was split from "retired".</text>
 </svg>
 </div>
 <!-- Bundled artifacts, loaded as globals with <script src> rather than fetch(), because this page

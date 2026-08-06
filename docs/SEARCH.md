@@ -36,6 +36,67 @@ _stamped 2026-08-06 05:00_
 
 <!-- /GENERATED -->
 
+## R11 — GARY, and the four things wrong with the imagined opponent. FOUND 2026-08-06, NOT MEASURED.
+
+**Everything below is read out of the source. Nothing here was run.** It is filed the day it was
+found because the last time this division found a built-and-unwired capability it went unrecorded and
+a division ledger is the place that stops happening.
+
+**The opponent inside the search is a coin, by default, in the library and in the live bot.**
+
+```
+engine/miltank.js:455      DEFAULTS = { defer: true, budgetMs: 20000, foePolicy: 'uniform', ... }
+engine/mag_bot.js:173      const MILTANK_FOE = arg('miltank-foe', 'uniform');
+engine/rollout_leaf.js:289 const mv = (foePolicy === 'prior' && pickByPrior(mon, rng)) || mvs[random];
+```
+
+`'prior'` samples `data/move-priors.json` — 128,548 recorded clicks over 295 species — and is wired
+end to end. Nothing turns it on. `engine/rollout_leaf.js:209` says outright that *"which is better"*
+was never measured.
+
+Four defects, each its own task:
+
+| # | defect | evidence |
+|---|---|---|
+| #32 | `'prior'` exists and is off | the two defaults above |
+| #33 | no artifact records which policy ran | `data/rollout-r1.json`, `data/rollout-r1-explore-sweep.json` have no `foePolicy` key |
+| #34 | the flag steers **my** side too | `rollout_leaf.js:302-303` — same `pick` over `S.actA` and `S.actB` |
+| #35 | the **target** is uniform in both modes | `rollout_leaf.js:290` |
+| #36 | two seats, two different opponents | `rolloutAfterActions`: *"The opponent is NOT modelled. It plays chooseAction during the stepped turn."* |
+
+**#33 is the one that makes R1 and R4 harder to read than they look.** Neither artifact states its
+opponent, so *"MILTANK beats MAG on 55.5% of 535 decisive pairs"* is a statement about an unrecorded
+configuration. That is not a retraction — the arms were paired and the comparison is internally valid
+— but the result cannot be transferred to a run whose GARY differs, and nothing currently prevents
+that transfer.
+
+### And the screen is run by the same coin
+
+`engine/miltank.js:1204` evaluates every candidate pair with a **cheap rollout** and keeps the top
+`FINAL_K`. The rollout is the leaf that `data/winrate-backtest.json` measures at 51.0% of 1,314
+decisive calls, CI [48.3, 53.7]. **So the coin is not only scoring the finalists, it is choosing
+them.** MAG is not used for the screen and `miltank.js:1008-1012` records why: `_candsFor` returns
+candidates **with no scores attached**, so an earlier top-K attempt silently sorted by array order —
+*"an arbitrary shortlist that LOOKS principled."* (#37)
+
+This is the cheap fix, because MAG runs **once per turn** at the screen rather than once per imagined
+turn inside a playout. Measured branching, over 7,976 real brought-teams: ~76 action combos per side
+per turn, ~5,738 joint, against `ROLLOUT_N = 200`.
+
+### The horizon this division has been reasoning from is ~10× too long
+
+Measured over 53,059 stored games: **median 6 turns, mean 6.5, p90 10, p99 16**; 0.05% exceed 30 and
+0.01% exceed 60. `maxTurns` is **60**. Two consequences: a leaf evaluation is ~5,600 move-decisions
+rather than ~48,000, which puts MAG-as-GARY back on the table pending #39 (the `board.js` ↔ MEDICHAM
+translation cost, never measured); and **the value-net-first build order is wrong for this game** — at
+six turns a rollout reaches a real terminal state, so there is no position left to approximate.
+`docs/POKER-TO-POKEMON.md` §4b said this before today: *"the binding constraint is breadth, not
+depth."* (#38)
+
+**Correction to a claim made while diagnosing this:** MAG is **not** deterministic. `greedy=false`
+draws from a softmax and `magnemite.js:217` calls it *"the single biggest measured lever in the
+project"*, so "sampling MAG would collapse the playout variance" is false and was never a reason.
+
 ## R8 — WOBBUFFET re-run, 2026-08-04. **VOID. THE TREE MOVED UNDER IT. DO NOT QUOTE THE NUMBERS.**
 
 The re-run was authorised (*"rerun wobba"* … *"yes do the search once engine is all wrapped up"*),

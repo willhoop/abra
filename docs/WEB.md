@@ -184,6 +184,28 @@ roster, which is what the Open item below used to ask for.
 
 ## Open
 
+- **THE MODEL MAP WAS MISSING THE MODEL THAT PICKS THE MOVES. Fixed 2026-08-06, and it is worth
+  recording why it was possible.** `web/models.html` went from THE DECIDERS (MAG, DITTO, the value
+  nets, KADABRA) straight to the ALAKAZAM capstone. **MILTANK — the shipping search player — was not
+  on the map at all**, so nothing on the page showed that a search exists, that it imagines ~200
+  games per option, or that its judge names the winner on 51.0% of decisive calls with a CI of
+  [48.3, 53.7]. A map that omits the thing choosing the moves is not a map of the models.
+  Added in this pass: a **THE SEARCH** band carrying MILTANK, **GARY** (the imagined opponent, named
+  2026-08-06 and drawn in the quarantine colour because it defaults to a coin) and **DUSK** (planned,
+  the endgame tablebase), plus a drawn **language boundary** — 127 JavaScript files must play because
+  Showdown is TypeScript, 40 Python files do the maths, and the verified Nash solver is on the wrong
+  side of the line. viewBox grew 1310 → 1560; layout re-checked for bounds and overlaps.
+  Two corrections travelled with it: the retired-value-net box read *"PORYGON — same, mid-game"*,
+  which filed **PORYGON2 — built, never retracted, and never called by a live decision** under
+  RETIRED alongside PORY, which genuinely is retracted; and ALAKAZAM's build order read
+  *"… → value net → belief → search"*, which is the wrong order for a game whose median length is 6
+  turns, because a rollout that reaches a real terminal state has no position left to approximate.
+  **WEB still authors no number here** — the 51.0% is cited to `data/winrate-backtest.json`, the two
+  defaults to their source lines, and the 6-turn median to `docs/POKER-TO-POKEMON.md` §4b.
+  *Open part:* the SEARCH band's figures are **typed, not wired**. `web/status-data.js` carries no
+  scalar for the leaf's accuracy or for `foePolicy`, so these will drift exactly the way *"3k good
+  games"* and *"5,368 real teams"* did. Wiring them is the follow-up, and it needs MEASURE to stamp
+  `foePolicy` into the artifacts first (task #33).
 - **`data/exploitability.json` is UNSAFE and WOBBUFFET's headline is unquotable.** 17 features
   against the 58 in `data/policy-weights.json`, older than the quality filter and older than its own
   input; `engine/provenance.js --strict` says so and `tests/run-all.js` gates on it. The Stadium

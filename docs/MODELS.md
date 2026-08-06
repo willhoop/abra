@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 3.50.0 · Last updated 2026-08-06.**
+**Version 3.51.0 · Last updated 2026-08-06.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
@@ -944,6 +944,93 @@ Division ledger: `docs/SEARCH.md`. Paper: `docs/MILTANK.md`.
 > `CLAUDE.md` itself calls *"the model CHOMP reads"*, and `data/move-priors.json`, which nine files
 > load. Every figure below is read out of the artifact named in its **Code** line. Where a model has
 > **no measured verdict**, it says **NOT MEASURED** rather than describing itself as working.
+
+## GARY — the opponent inside the search (named 2026-08-06)
+**Job:** decide what the OTHER side clicks on every turn of an imagined game. MILTANK ranks a move by
+imagining the rest of the battle ~200 times and counting wins; GARY is whoever plays the foe in those
+imagined battles. It answers an ACTION-shaped question, so it is a MAG relative and deliberately
+**not** a member of the PORY value-function family — those score a POSITION with no action attached,
+and mixing the two would be the category error `CLAUDE.md` names.
+
+**Why it is named at all.** It had no name, and *a capability that cannot prove it ran is assumed
+broken* needs something to be missing under. Naming it makes its counter, its artifact stamp and its
+ledger row obligatory.
+
+**Method:** a `foePolicy` setting read by `engine/rollout_leaf.js:289` inside `runPlayout`, with two
+implementations:
+
+| setting | what it does |
+|---|---|
+| `'uniform'` **(the default, and what ships)** | every mon draws one of its four moves with equal probability |
+| `'prior'` | draws weighted by `pickByPrior` over `data/move-priors.json` — what that species really clicks |
+
+**Honest status: BUILT AND SWITCHED OFF, and four things are wrong with it. NOT MEASURED.**
+1. **The default is the coin, in the library and in the live bot** —
+   `engine/miltank.js:455 DEFAULTS = { ... foePolicy: 'uniform' }` and
+   `engine/mag_bot.js:173 arg('miltank-foe', 'uniform')`. The `'prior'` path is wired end to end and
+   nothing turns it on. (task #32)
+2. **The flag steers BOTH sides.** `rollout_leaf.js:302-303` applies the same `pick` to `S.actA` and
+   `S.actB`, so one setting governs the search's model of itself and of the opponent. The name is
+   wrong and the two must be split before any "better opponent" result is interpretable. (#34)
+3. **The target is drawn uniformly in both settings** (`rollout_leaf.js:290`). `'prior'` fixes *which
+   move* and never *who it hits* — and `board.js:377` already records humans aiming both attacks at
+   the same foe 23.4% of the time against ~50% for independent choice. (#35)
+4. **GARY has two seats and they disagree.** `rolloutAfterActions`'s own comment: *"The opponent is
+   NOT modelled. It plays chooseAction during the stepped turn."* Deterministic greedy on the turn
+   being ranked, a coin on every turn after. (#36)
+
+**And no artifact records which GARY ran.** `data/rollout-r1.json` and
+`data/rollout-r1-explore-sweep.json` carry no `foePolicy` key at all. Neither R1's leaf verdict nor
+R4's head-to-head can therefore say whether their opponent was a person or a coin. That is not a
+retraction — the arms were paired and each comparison is internally valid — but neither result can be
+transferred to a run whose GARY differs, and nothing currently prevents that transfer. (#33)
+
+**What it is not, corrected in the same pass.** The objection *"MAG cannot be sampled because it is
+deterministic"* is **false**: `greedy=false` already draws from a softmax and `magnemite.js:217` calls
+it *"the single biggest measured lever in the project."* The real obstacle to GARY-as-MAG is the
+`board.js` ↔ MEDICHAM translation, which happens once per imagined game today and would have to
+happen every turn — and which **has never been measured** (#39). At a measured median game length of
+6 turns a leaf evaluation is ~5,600 decisions, not the ~48,000 a 60-turn cap implies, so this is an
+open question rather than a closed one.
+
+**Code:** `engine/rollout_leaf.js` (`runPlayout`, `pickByPrior`, `rolloutAfterActions`),
+`engine/miltank.js`, `engine/mag_bot.js`, reading `data/move-priors.json`.
+**Related:** MOVE PRIORS is GARY's current brain and is *board-blind* by construction —
+`engine/paired_h2h.js:165` describes it as *"behaviour clone — clicks what people click, blind to the
+board."* A board-aware GARY is unbuilt.
+
+## DUSK — the endgame tablebase (scoped 2026-08-06, unbuilt)
+**Job:** solve small endgame positions exhaustively **once, offline**, store the answers, and look
+them up in a live battle instead of searching them. Syzygy for VGC. **Will, 2026-08-06:** *"at the
+end game, we can have a repository of scenarios in dusk that can show which mons beat which in a
+straight up battle and solve for those endings."*
+
+**Why this game admits it, and why open sheets are the precondition.** At 1v1 under **open team
+sheets there is no hidden information left** — species, set, item, ability and nature are all
+declared. The only unknown is which of four moves they pick this turn, which is a small
+simultaneous-move matrix game with known payoffs: exactly what `engine/slowking/nash.py` already
+solves and is verified to solve (RPS → uniform at zero exploitability; an asymmetric 2×2 → the LP's
+exact mixed equilibrium). **Under closed sheets the table would be a guess.** The open-sheet-only
+directive is what makes DUSK exact rather than approximate.
+
+**Second job, and arguably the larger one: it is the language bridge.** The verified equilibrium
+solver is Python; everything that can play a battle is JavaScript, because Showdown is TypeScript
+(127 `.js` against 40 `.py`). `rollout_leaf.js` states the resulting gap: *"a best response to a
+fixed opponent rather than an equilibrium: weaker than the design's matrix game."* Of the three ways
+to close it — port the solver (a second implementation of verified math), call Python per turn inside
+a Showdown turn timer, or **precompute offline and ship a lookup table** — DUSK is the third, and it
+is what chess engines do.
+
+**Input exists.** The store can reconstruct these positions: turn records carry `tgthp`, boosts and
+mega events, and `sets` carries `declared: true`.
+
+**Honest status: NOT BUILT, and the gating question is SIZE, not feasibility.** Enumerate all of
+(mon + set + HP + status + boosts)² × field and it is astronomical; restrict to positions that
+actually occur on the ladder and it may ship as a JSON file. How often games reach 1v1 and 2v1, how
+many distinct matchups occur and how concentrated they are is **NOT MEASURED** — and that number
+decides whether DUSK is a weekend or a year (#40).
+**Related:** task #30 in the backlog scoped DUSK as *"solves endgames"* on ABRA WORLD without naming
+the tablebase framing or the bridge role; this entry supersedes that description.
 
 ## META-USAGE — the metagame model CHOMP reads (added to this ledger 2026-08-04)
 **Job:** say what this format actually plays — who is on teams, who gets brought, who leads, who

@@ -10,6 +10,96 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.51.0] — 2026-08-06
+
+### Added
+- **GARY is named** — the opponent inside the search, the model that decides what the *other* side
+  clicks on every turn of an imagined game (Will, 2026-08-06). It answers an ACTION-shaped question,
+  so it is a MAG relative and deliberately **not** a member of the PORY value-function family, which
+  scores a POSITION with no action attached. Naming it is the point: *a capability that cannot prove
+  it ran is assumed broken* needs something to be missing under, and GARY had no name. New entry in
+  `docs/MODELS.md`, new section R11 in `docs/SEARCH.md`, new box on the model map.
+- **DUSK is re-scoped as an endgame tablebase and as the language bridge** (Will, 2026-08-06:
+  *"a repository of scenarios in dusk that can show which mons beat which… and solve for those
+  endings"*). Solve 1v1 positions once offline, look them up live — Syzygy for VGC. **Open team
+  sheets are the precondition that makes it exact:** at 1v1 nothing is hidden but their next click, a
+  small matrix game with known payoffs, which `engine/slowking/nash.py` already solves and is
+  verified to solve. It is simultaneously the only route that lets the Python solver reach the
+  JavaScript bot without a second implementation. Supersedes task #30's description.
+- **`docs/ROADMAP.md` §4 — THE SEARCH REDESIGN**, and **a THE SEARCH band on `web/models.html`**.
+- Tasks #32–#43.
+
+### Fixed
+- **The model map was missing the model that picks the moves.** `web/models.html` went from THE
+  DECIDERS straight to the ALAKAZAM capstone with **MILTANK — the shipping search player — not on it
+  at all**. Added, with GARY and DUSK, plus a drawn **language boundary**. viewBox 1310 → 1560;
+  layout re-verified for bounds and overlaps.
+- **The map filed PORYGON2 under "retired".** The box read *"PORYGON — same, mid-game"* beside
+  JOLTEON, which merged a **retracted** model (PORY, which ties a two-feature baseline across three
+  corpora) with a **built, never-retracted, never-live** one. Filing an unmeasured model under
+  RETIRED is how it stayed unmeasured. Split.
+- **ALAKAZAM's build order put the value net before the search.** At a **median game of 6 turns** a
+  rollout reaches a real terminal state, so there is no position left to approximate — the leaf is
+  the least of it, and the six turns leading to it are played by a coin.
+  `docs/POKER-TO-POKEMON.md` §4b already said the binding constraint is **breadth, not depth**.
+  Reordered to `GARY off the coin → prune with MAG not the coin → belief → equilibrium`.
+
+### Notes — four capabilities that are built, correct, and switched off
+This is the 2026-07-28 failure mode arriving through a door the rules had not covered. **Nothing
+below was measured in this pass; all of it was read out of the source and is filed the day it was
+found.**
+- **GARY defaults to a coin, in the library and in the live bot.** `engine/miltank.js:455` and
+  `engine/mag_bot.js:173` both default `foePolicy` to `'uniform'` — every imagined Pokémon draws one
+  of its four moves with equal probability. The `'prior'` path at `engine/rollout_leaf.js:289`
+  samples `data/move-priors.json` (128,548 clicks, 295 species) and is wired end to end. (#32)
+- **The flag steers *both* sides** (`rollout_leaf.js:302-303`), so the opponent cannot be improved
+  without also changing how the search models itself (#34); **the target is drawn uniformly in both
+  modes** (`:290`), so `'prior'` fixes which move and never who it hits (#35); and **GARY has two
+  seats that disagree** — `rolloutAfterActions`: *"The opponent is NOT modelled. It plays
+  chooseAction during the stepped turn."* (#36)
+- **No artifact records which GARY ran.** `data/rollout-r1.json` and
+  `data/rollout-r1-explore-sweep.json` carry no `foePolicy` key, so R1's leaf verdict and R4's 55.5%
+  describe an unrecorded configuration. Not a retraction — the arms were paired — but the result
+  cannot be transferred to a run whose GARY differs, and nothing prevents that transfer today. (#33)
+- **The candidate screen is run by the coin.** `miltank.js:1204` ranks every pair with a cheap
+  rollout, the leaf measured at 51.0% of 1,314 decisive calls, CI [48.3, 53.7]. So the coin is not
+  only scoring the finalists, it is **selecting** them. MAG is unused there because `_candsFor`
+  returns candidates **with no scores attached** (`:1008-1012`). (#37)
+- **The equilibrium solver is in the wrong language.** `engine/slowking/nash.py` and `ismcts.py` do
+  simultaneous-move regret matching and recover exact Nash on RPS and an asymmetric 2×2. 127 JS files
+  must play because Showdown is TypeScript; 40 Python files do the maths. `rollout_leaf.js` states
+  the gap: *"a best response to a fixed opponent rather than an equilibrium."* (#41)
+
+### Notes — two figures corrected, and both were mine
+- **The rollout horizon is ~10× the real game.** `maxTurns` is 60; measured over **53,059 stored
+  games the median is 6**, mean 6.5, p90 10, p99 16, with 0.01% over 60. A leaf evaluation is
+  therefore ~5,600 move-decisions, not ~48,000 — which puts MAG-as-GARY back as an open question
+  pending #39, the `board.js` ↔ MEDICHAM translation cost, which has never been measured. (#38)
+- **MAG is not deterministic**, and *"sampling it would collapse the playout variance"* was never a
+  reason. `greedy=false` draws from a softmax and `magnemite.js:217` calls it *"the single biggest
+  measured lever in the project."*
+
+### Notes — coverage, stated honestly
+- **`data/mechanics-census.json`: probed 219, live 216, missing 3 — armed 74, unarmed 145.** An
+  unarmed probe runs, reports a result, and would report the same result if the mechanic were
+  deleted. **"216/219 mechanics live" counts probes that executed, not mechanics that work, and
+  overstates coverage by roughly 3×.** The instrument that does not depend on anyone thinking of the
+  right probe — random games diffed against real Showdown — finds **1 disagreement in 150**, and that
+  is the honest signal. The remedy is arming the 145, not writing more. (#42)
+
+### Notes — the free information nobody reads
+- **Speed is revealed by resolution order** (Will, 2026-08-06: *"if two incins come out, which intim
+  goes first indicates speed"*). Entry abilities resolve in speed order, so two Intimidates on one
+  switch give a strict inequality before a move is clicked. Under open sheets the hidden information
+  is *"what's in the back and the exact EV spread"*, so **Speed is essentially the only hidden
+  variable** and each observation is a hard constraint on it. `engine/dynamics.js` already derives
+  speed from who moved first, but reads **move order only**, aggregates **per species over the whole
+  corpus**, and is read by `ditto.js` and `kadabra.js` and by nothing in `board.js`, `miltank.js`,
+  `mag_bot.js`, `magnemite.js` or `medicham2-browser.js`. Entry-ability **order** is modelled
+  nowhere: `entryOrder|switchInOrder|abilityOrder|speedOrder` matches no line in any of the 127 JS
+  files. First question is an ENGINE correctness one — does MEDICHAM order entry abilities by speed
+  at all. (#43)
+
 ## [3.50.0] — 2026-08-06
 
 ### Taunt did not exist, and the #1 disagreement by volume was not a harness fault
