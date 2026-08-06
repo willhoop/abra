@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-05T20:46:15.040Z",
+  "generated": "2026-08-06T04:51:42.016Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 214,
-  "live": 211,
+  "probed": 219,
+  "live": 216,
   "missing": 3,
-  "armed": 69,
+  "armed": 74,
   "unarmed": 145,
   "threw": 0,
   "hollow": 0,
@@ -411,9 +411,36 @@
       "tag": "forbidsStatusMoves",
       "label": "Taunt stops the target using a status move",
       "live": true,
-      "detail": "volatile=true, free choice was nothing",
+      "detail": "volatile=true, free choice was moonblast",
       "hollow": false,
       "armed": false
+    },
+    {
+      "kind": "move",
+      "tag": "forbidsStatusMoves",
+      "label": "Taunt FAILS a status move the target had already chosen (execution time)",
+      "live": true,
+      "detail": "foe attacked -> foe ends up Taunted true;  foe Taunted first -> foe ends up Taunted false",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "forbidsStatusMoves",
+      "label": "Taunt takes every status move off the menu (selection time)",
+      "live": true,
+      "detail": "status clicks in 40 draws: untaunted 16, Taunted 0",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "refusesStatusMoves",
+      "label": "Good as Gold refuses Yawn",
+      "live": true,
+      "detail": "drowsed? plain ability true, Good as Gold false",
+      "hollow": false,
+      "armed": true
     },
     {
       "kind": "move",
@@ -696,12 +723,30 @@
     },
     {
       "kind": "move",
+      "tag": "pivotStatus",
+      "label": "Parting Shot does NOT jump the queue — the user eats the hit before it leaves",
+      "live": true,
+      "detail": "pivot user (80 spe) took 115, its replacement took 0, pivoted=true",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
       "tag": "pivotDamaging",
       "label": "U-turn damages and then switches the user out",
       "live": true,
       "detail": "foe took 47, active side A: milotic, corviknight",
       "hollow": false,
       "armed": false
+    },
+    {
+      "kind": "move",
+      "tag": "pivotDamaging",
+      "label": "Volt Switch does NOT pivot out of a Lightning Rod that absorbed it",
+      "live": true,
+      "detail": "slot 0 after the turn — plain ability garchomp, Lightning Rod pikachu",
+      "hollow": false,
+      "armed": true
     },
     {
       "kind": "move",
@@ -1716,7 +1761,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 26.0% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true
     },

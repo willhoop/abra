@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-05T20:50:26.141Z",
+ "generated": "2026-08-06T04:53:24.353Z",
  "by": "engine/conformance.js",
  "files": 299,
  "findings": [
@@ -187,7 +187,7 @@
   {
    "std": "S12",
    "file": "engine/medicham2-browser.js",
-   "what": "names 17 Pokemon thing(s) in code: move:earthquake, move:blizzard, move:protect, move:detect, move:tailwind, ...",
+   "what": "names 17 Pokemon thing(s) in code: move:earthquake, move:blizzard, move:protect, move:tailwind, move:detect, ...",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
    "detail": [
     "ability:intimidate",

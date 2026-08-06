@@ -7,7 +7,7 @@
  "source_digests_scope": "The RULE inputs only. The findings are computed over all source files; a change to any of them shows up as a finding entering or leaving, not as a stamp mismatch.",
  "files_scanned": 299,
  "rule": "This list may SHRINK and may NEVER grow. Every entry is a conformance finding that already existed when the gate was switched on. `node engine/conformance.js --strict` fails on any finding whose key is not in here. Fix one and it leaves this file on the next run, and can never return. The KEY is stored rather than a count: one finding disappearing while another appears nets to zero and slips a count comparison silently.",
- "generated": "2026-08-05T20:38:07.070Z",
+ "generated": "2026-08-06T04:41:01.416Z",
  "by": "engine/conformance.js",
  "count": 96,
  "findings": [
@@ -182,7 +182,7 @@
    "key": "S12 | engine/medicham2-browser.js | names Pokemon things in code",
    "std": "S12",
    "file": "engine/medicham2-browser.js",
-   "what": "names 17 Pokemon thing(s) in code: move:earthquake, move:blizzard, move:protect, move:detect, move:tailwind, ...",
+   "what": "names 17 Pokemon thing(s) in code: move:earthquake, move:blizzard, move:protect, move:tailwind, move:detect, ...",
    "detail": [
     "ability:intimidate",
     "ability:levitate",

@@ -752,6 +752,93 @@ probe('move', 'forbidsStatusMoves', 'Taunt stops the target using a status move'
            detail: 'volatile=' + tainted + ', free choice was ' + (picked || 'nothing') };
 });
 
+/* WIRE 119 -- THE TWO PROBES THE ONE ABOVE COULD NOT BE. The probe above checks that a Taunted body's
+ * free pick is not a status move, with NO CONTROL showing that an untaunted one would have picked
+ * one -- so it passed for as long as Taunt did nothing at all, which is the whole of this engine's
+ * history until 2026-08-06. Showdown answers Taunt in TWO handlers and each needs its own probe:
+ * `onBeforeMove` (a move already chosen FAILS when it runs) and `onDisableMove` (the move cannot be
+ * chosen next turn). Every expected value below was played at the pinned Showdown commit first. */
+probe('move', 'forbidsStatusMoves', 'Taunt FAILS a status move the target had already chosen (execution time)', () => {
+  /* Alakazam (181) resolves before Incineroar (80), so the Taunt Incineroar had ALREADY chosen must
+   * fail and Alakazam must not end the turn Taunted. Reference, gen9championsvgc2026regmb at
+   * 20ad99ff: foe Taunts -> foe NOT taunted; foe attacks instead -> foe taunted. The outcome is read
+   * off the FOE's volatile, not off a classification. */
+  const run = (foeMove) => {
+    const me = bare('incineroar'), ally = bare('corviknight');
+    const f1 = bare('alakazam'), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'taunt', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, foeMove, me, S.field)], [f2, { kind: 'pass' }]]));
+    return !!(f1._vol && f1._vol.taunt > 0);
+  };
+  const control = run('expandingforce'), test = run('taunt');
+  return { works: control === true && test === false,
+           detail: 'foe attacked -> foe ends up Taunted ' + control
+                 + ';  foe Taunted first -> foe ends up Taunted ' + test,
+           arms: { control, test } };
+});
+
+probe('move', 'forbidsStatusMoves', 'Taunt takes every status move off the menu (selection time)', () => {
+  /* Reference, same commit: the turn after a Taunt lands, the target's request marks every
+   * Status-category move `disabled: true` and leaves its attacks alone. Measured here as an OUTCOME
+   * over the CHOOSER -- 40 independent seeded draws, the same stream in both arms, counting how many
+   * of them clicked a status move. Milotic is the body because its priors actually reach Protect,
+   * Hypnosis and Coil; a body that never clicks a status move would make both arms 0 and the probe
+   * would pass on a dead engine, which is the defect the probe above has. */
+  const TAGS = require(D('engine', 'tags.js'));
+  const KINDMV = { protect: 'protect', wideguard: 'wideguard', tail: 'tailwind' };
+  const run = (taunted) => {
+    let n = 0;
+    for (let i = 0; i < 40; i++) {
+      const me = bare('milotic'), ally = bare('corviknight');
+      const f1 = bare('garchomp'), f2 = bare('weavile');
+      const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+      if (taunted) (me._vol = me._vol || {}).taunt = 3;
+      /* mulberry32, the generator engine/chomp_ev.js settled on: every step goes through Math.imul
+       * and >>>, so the state stays inside 32-bit integer range. The textbook LCG this replaced
+       * overflows float53 in JavaScript and cycles after ~16k draws — tests/test-prng.js forbids the
+       * constant outright and caught the first version of this probe using it. */
+      let s = 1000 + i * 7919;
+      const rng = () => { s = (s + 0x6D2B79F5) | 0; let t = s;
+        t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+      M.battleTurn(S, rng, null, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+      const act = (S.lastActs || []).find(x => x.side === 'A' && x.name === me.name);
+      const id = act && (act.move || KINDMV[act.kind]);
+      if (id && TAGS.has('move', id, 'statusCategory')) n++;
+    }
+    return n;
+  };
+  const control = run(false), test = run(true);
+  return { works: control > 0 && test === 0,
+           detail: 'status clicks in 40 draws: untaunted ' + control + ', Taunted ' + test,
+           arms: { control, test } };
+});
+
+/* WIRE 122 -- Good as Gold (2,461 sheets) refuses every foe-aimed status move, and the Yawn branch
+ * was the one route in this engine that never asked, so Gholdengo took a drowse it is immune to.
+ * Reference at 20ad99ff, both arms on the SAME Gholdengo so the body is not the variable:
+ * Good as Gold -> `vol=[]`, a Honey Gather control -> `vol=[yawn]`. */
+probe('ability', 'refusesStatusMoves', 'Good as Gold refuses Yawn', () => {
+  const run = (ab) => {
+    const me = bare('milotic'), ally = bare('corviknight');
+    const f1 = bare('gholdengo'), f2 = bare('weavile');
+    f1.ability = ab;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'yawn', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return f1._yawn != null;
+  };
+  /* The control must TAKE the drowse, or "Gholdengo was not drowsed" is satisfied by an engine in
+   * which Yawn does nothing at all. */
+  const control = run('none'), test = run('goodasgold');
+  return { works: control === true && test === false,
+           detail: 'drowsed? plain ability ' + control + ', Good as Gold ' + test,
+           arms: { control, test } };
+});
+
 probe('move', 'ignoresProtect', 'Feint goes through Protect', () => {
   const run = (mv) => {
     const me = bare('incineroar'), ally = bare('corviknight');
@@ -1331,6 +1418,32 @@ probe('move', 'pivotStatus', 'Parting Shot switches the user out', () => {
            detail: 'active side A after the turn: ' + S.actA.map(x => x && x.name).join(', ') };
 });
 
+/* WIRE 120 -- THE PROBE ABOVE ASKS WHETHER THE PIVOT FIRES; THIS ONE ASKS WHETHER IT FIRES AT THE
+ * RIGHT MOMENT, which is the scope question this division keeps finding on the wrong side of. A
+ * `kind:'switch'` action was given priority +6 whether or not it carried a MOVE, so Parting Shot --
+ * 7,475 corpus clicks -- was the fastest action in the game and its user dodged every hit.
+ * Reference, gen9championsvgc2026regmb at 20ad99ff: Milotic (101) Scalds an Incineroar (80) that
+ * clicked Parting Shot; the Scald lands FIRST and the pivot USER takes it (54/170), identically to a
+ * Knock Off control. The replacement takes nothing. */
+probe('move', 'pivotStatus', 'Parting Shot does NOT jump the queue — the user eats the hit before it leaves', () => {
+  const me = bare('incineroar'), ally = bare('corviknight');
+  const rep = bare('garchomp'), rep2 = bare('pangoro');
+  const f1 = bare('milotic'), f2 = bare('weavile');
+  const S = M.battleInit([me, ally, rep, rep2], [f1, f2], { seeded: true });
+  const hp0 = me.curHP, rep0 = rep.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'partingshot', f1, S.field)], [ally, { kind: 'pass' }]]),
+    new Map([[f1, M.playerAction(f1, 'scald', me, S.field)], [f2, { kind: 'pass' }]]));
+  const user = hp0 - me.curHP, replacement = rep0 - rep.curHP;
+  /* The pivot MUST still have happened, or "the user took the hit" is satisfied by an engine in which
+   * Parting Shot does not switch at all. */
+  const pivoted = S.actA.indexOf(rep) >= 0 && S.actA.indexOf(me) < 0;
+  return { works: pivoted && user > 0 && replacement === 0,
+           detail: 'pivot user (80 spe) took ' + user + ', its replacement took ' + replacement
+                 + ', pivoted=' + pivoted,
+           arms: { control: replacement, test: user } };
+});
+
 probe('move', 'pivotDamaging', 'U-turn damages and then switches the user out', () => {
   const me = bare('incineroar'), ally = bare('corviknight'), bench = bare('milotic');
   const f1 = bare('garchomp'), f2 = bare('garchomp');
@@ -1340,6 +1453,33 @@ probe('move', 'pivotDamaging', 'U-turn damages and then switches the user out', 
     new Map([[me, M.playerAction(me, 'uturn', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
   return { works: (before - f1.curHP) > 0 && S.actA.indexOf(bench) >= 0 && S.actA.indexOf(me) < 0,
            detail: 'foe took ' + (before - f1.curHP) + ', active side A: ' + S.actA.map(x => x && x.name).join(', ') };
+});
+
+/* WIRE 121 -- SCOPE AGAIN: the probe above asks whether U-turn pivots, not whether it pivots only
+ * when it CONNECTED. Showdown fires `selfSwitch` only if `moveHit` did not fail, so a Volt Switch
+ * into an Electric-immune ability leaves its user standing. Reference at 20ad99ff, all three arms:
+ * Lightning Rod -> `p1 slot0 after = pikachu`, Volt Absorb -> `pikachu`, Marvel Scale control ->
+ * `garchomp`. 1,459 x 2,108 by pair volume — the largest remaining row on the matrix. */
+probe('move', 'pivotDamaging', 'Volt Switch does NOT pivot out of a Lightning Rod that absorbed it', () => {
+  const run = (ab) => {
+    const me = bare('pikachu'), ally = bare('corviknight');
+    const rep = bare('garchomp'), rep2 = bare('incineroar');
+    const f1 = bare('milotic'), f2 = bare('weavile');
+    f1.ability = ab;
+    const S = M.battleInit([me, ally, rep, rep2], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'voltswitch', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    /* IDENTITY, NOT A NAME: buildMon's `name` casing is not this probe's business, and comparing to a
+     * typed string is how the first version read false on a correct engine. */
+    return { stayed: S.actA.indexOf(me) >= 0, slot0: S.actA[0] && S.actA[0].name };
+  };
+  /* The control MUST pivot, or "the user is still there" is satisfied by an engine in which Volt
+   * Switch never switches at all. */
+  const c = run('marvelscale'), t = run('lightningrod');
+  return { works: c.stayed === false && t.stayed === true,
+           detail: 'slot 0 after the turn — plain ability ' + c.slot0 + ', Lightning Rod ' + t.slot0,
+           arms: { control: c.stayed, test: t.stayed } };
 });
 
 probe('move', 'reversesSpeed', 'Trick Room lets the slow user move first', () => {

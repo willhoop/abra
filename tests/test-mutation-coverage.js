@@ -69,7 +69,15 @@ if (A) {
   ok(!!A.engine_release, 'the artifact names the engine release it measured (' + (A.engine_release || 'NONE') + ')');
 
   const R = A.ratchet || {};
-  ok(!R.broken, 'the open-defect ceiling holds — ' + (R.ceilingNote || 'no ceiling recorded'));
+  ok(!R.broken, 'the class A ceiling holds — ' + (R.ceilingNote || 'no ceiling recorded'));
+
+  /* THE TRIAGE IS A CHECK AND IS GATED LIKE ONE. Three cases were decided by hand — Taunt A, Light
+   * Screen B, Life Orb C — and the A/B/C/D rule must reproduce all three. The harness refuses to sweep
+   * when it cannot; this asserts the artifact on disk was produced by a rule that could. */
+  const cal = ((A.triage || {}).defectClass || {}).calibration || null;
+  ok(!!cal && cal.length >= 3 && cal.every(c => c.ok),
+    'the A/B/C/D rule reproduces all ' + (cal ? cal.length : 0) + ' hand-decided cases ('
+    + (cal ? cal.map(c => c.tag + '=' + c.got).join(', ') : 'NO CALIBRATION RECORDED') + ')');
   ok(!(R.regressions || []).length, 'no operator that was LIVE has stopped moving the engine ('
     + (R.regressions || []).length + ' regressions)');
 
@@ -104,10 +112,16 @@ if (A) {
   const s = A.summary || {};
   console.log('\n  ' + s.operators + ' operators over ' + s.tagsSwept + ' tags: ' + s.live + ' LIVE, '
     + s.readAndIgnored + ' READ-AND-IGNORED');
-  console.log('  OPEN: ' + s.noConsumerInSource + ' NO-CONSUMER-IN-SOURCE + ' + s.tagNotConsumed + ' TAG-NOT-CONSUMED + '
-    + s.defectCandidates + ' DEFECT-CANDIDATE = '
-    + ((s.noConsumerInSource || 0) + (s.tagNotConsumed || 0) + (s.defectCandidates || 0))
-    + '   ceiling ' + ((R.ceiling || {}).value));
+  /* WHAT THE MUTATION FOUND, THEN WHAT THE SOURCE SAYS IT MEANS. The three numbers on the first line
+   * used to be summed and called OPEN, and the top two rows of the list that produced were both false
+   * positives — a deliberate doubles-override (Light Screen) and a name-branched recoil (Life Orb).
+   * Only class A is a defect and only class A is ratcheted. */
+  console.log('  mutation: ' + s.noConsumerInSource + ' NO-CONSUMER-IN-SOURCE, ' + s.tagNotConsumed + ' TAG-NOT-CONSUMED, '
+    + s.defectCandidates + ' DEFECT-CANDIDATE');
+  console.log('  source:   ' + s.classA_tagNeverRead + ' A tag-never-read (' + s.classArows + ' rows, ceiling '
+    + ((R.ceiling || {}).value) + '), ' + s.classB_paramOverridden + ' B param-overridden, '
+    + s.classC_hardcodedByName + ' C hardcoded-by-name, ' + s.classD_batteryGap + ' D battery-gap');
+  console.log('            ' + s.classAofDefectCandidates + ' of the ' + s.defectCandidates + ' DEFECT-CANDIDATEs are class A');
   console.log('  ' + (s.tagsWithNoLookupInSimulator || []).length + ' of ' + s.tagsInArtifact
     + ' tags are named by NO lookup in the simulator');
   console.log('  not a result: ' + s.unreachedByThisBattery + ' UNREACHED-BY-THIS-BATTERY, '

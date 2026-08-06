@@ -24,20 +24,20 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  211/214 probed mechanics live, 3 missing   (census 2026-08-05 20:39)
+  216/219 probed mechanics live, 3 missing   (census 2026-08-06 04:51)
   missing:
     move    needsTargetToAttack    Avalanche doubles after being hit
     ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll
     ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit
-  1/150 differential comparisons disagree with Showdown   (2026-08-05 20:44)
+  1/150 differential comparisons disagree with Showdown   (2026-08-06 04:51)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1614/1634 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-05 19:07)
+  interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 04:38)
     2300 of 8795 theoretical pairs staged — agreement is a claim about the 2300 that ran, not about the 8795
       530 inert      not scored — the reference engine behaves identically with and without the reactor
       109 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
-       25 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
+       16 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
     DISAGREES  stoneaxe -> roughskin  (secondary, 63 uses)
     DISAGREES  stoneaxe -> wanderingspirit  (secondary, 63 uses)
@@ -48,7 +48,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 156/181 probed, 25 unprobed
 ```
 
-_stamped 2026-08-05 20:46_
+_stamped 2026-08-06 05:00_
 
 <!-- /GENERATED -->
 
@@ -62,7 +62,313 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
 
+## WIRES 119–122 — TAUNT DID NOT EXIST, AND THE #1 ROW BY VOLUME WAS NOT A HARNESS FAULT. 2026-08-06.
+
+Census **211 → 216 live / 214 → 219 probed**; missing still 3 (the same three), hollow 0, `threw` 0,
+`unarmed` still 145 — all five new probes are armed. Differential unchanged at **1/150**, the same
+pre-existing `chesnaught woodhammer -> mimikyu` row and the same 11 not-comparable.
+`tests/test-game-diff.js` agrees on every turn of all five scripted games.
+
+**The interaction matrix, before and after, at `--full` against the pinned commit `20ad99ff`:**
+
+| | before | after |
+|---|---|---|
+| live cases | 1,634 | 1,643 — nine cases became judgeable because a fix stopped the harness reading them as inert |
+| live disagreements | 20 | **19** |
+| off-gate disagreements (real, but in a bucket the gate discards) | 74 | **53** |
+| **TOTAL KNOWN DISAGREEMENTS** | **94** | **72** |
+
+Every expected value below was played at the pinned commit FIRST, both arms printed, before a line of
+engine changed. Every probe was shown RED on a known-bad engine — `tests/probe_red_demo.js`, now 34
+demonstrations, 0 failed.
+
+### WIRE 119 — `forbidsStatusMoves`. TAUNT, 1,503 CLICKS, AND THE ENGINE DID NOT IMPLEMENT IT.
+
+Will: *"Start with TAUNT — it is the biggest and it is the Incineroar mirror."* He is right, and the
+state of it was worse than "partial": the volatile was written onto the target by the generic
+`statusInflict` applier, decremented in the chooser, and **read by nothing**. A Taunted body still
+landed Hypnosis, Stun Spore, Decorate, Screech, Disable, Feather Dance, Strength Sap, Trick-or-Treat
+and another Taunt — twelve separate `X -> taunt` rows on the matrix.
+
+**AND THE FILE SAID THE OPPOSITE IN WORDS.** The comment at `chooseAction` read *"Taunt forbids status
+moves, so the mon falls through to the normal chooser with its status options removed"*, sitting
+directly above a line that only did `me._vol.taunt--`. That is this repository's signature failure —
+a capability that is absent while everything reports success — arriving through a comment.
+
+**Showdown answers Taunt in TWO handlers off ONE condition, and both are wired:**
+
+| | Showdown | where it lives here |
+|---|---|---|
+| **SELECTION** | `onDisableMove` — every Status move on the request is `disabled: true` | `illegalMoveNow`, hoisted to module scope so the **priors sampler** asks the identical question |
+| **EXECUTION** | `onBeforeMove` — a status move already chosen FAILS when it runs | one gate **above the kind dispatch**, WIRE 77's place for WIRE 77's reason |
+
+**THE EXECUTION GATE IS WIRE 77's PLACE BECAUSE TAUNT REFUSES A STATUS MOVE OF ANY KIND.** `affect`,
+`status`, `setup`, `tail`, `haze`, `hazard`, `sub` and `phaze` are all status moves and all separate
+branches; a copy per branch is exactly what let Roar through the Throat Chop silence. Protect and Wide
+Guard are pre-resolved above the loop and are gated there instead — correctly, because Protect is +4
+and Taunt is +0, so a Taunt landing *this* turn does not stop a shield that has already gone up.
+
+**DERIVED FROM THE TAG, NOT BY NAMING TAUNT.** The table is `volatile -> the CATEGORY that volatile
+refuses`, built from `forbidsStatusMoves.forbids` plus the same move's `statusInflict` volatile.
+Membership was printed before it was trusted and is exactly one entry:
+`taunt -> forbids "Status" via volatile taunt, turns 3`. **And the category predicate was checked
+against the format dex before being trusted**: over every move in `data/tags.json`, `statusCategory`
+agrees with Showdown's own `move.category === 'Status'` on all of them — zero tagged-and-not-Status,
+zero Status-and-not-tagged. A category the artifact names and this engine cannot decide is COUNTED
+(`fails.forbidCategoryUnknown`), never silently allowed.
+
+**THREE THINGS IT HAD TO NOT GET WRONG:**
+
+- **THE TICK MOVED TO END OF TURN**, beside Disable's, for Disable's own written reason: a duration
+  that only counts down on turns the engine happens to be CHOOSING lasts forever in a rollout driven
+  from outside (the WIRE 24 rule).
+- **TAUNT LASTS THREE OF THE TARGET'S TURNS, NOT THREE TURNS.** Showdown's condition bumps its own
+  duration when the target has already moved (`target.activeTurns && !this.queue.willMove(target)`).
+  Measured both ways at the pinned commit: a **faster** taunter blocks turns 1(exec), 2, 3; a
+  **slower** one blocks 2, 3, 4 — three refusals either way. Without the bump the slow case gets two.
+  WIRE 118's `unresolved` set answers Showdown's exact pair of clauses, including the `activeTurns`
+  half: a body dragged in mid-turn is in neither set and is correctly not bumped. medicham2 now
+  reproduces both rows.
+- **`_lastMove` IS DELIBERATELY NOT SET**, unlike WIRE 77 one line above. `runMove` calls
+  `pokemon.moveUsed()` — the only writer of `lastMove` — AFTER the BeforeMove event, so a move
+  refused by Taunt cannot become what an Encore repeats.
+
+**AND THE PROBE THAT ALREADY EXISTED WAS THE PROBLEM, NOT THE ENGINE'S ONLY ONE.** `forbidsStatusMoves`
+was in the census as LIVE and **UNARMED**: it checked that a Taunted body's free pick was not a status
+move, with **no control arm** showing an untaunted one would have picked one. It passed for the whole
+history of the engine not implementing Taunt. Two armed probes replace what it could not ask:
+
+```
+execution  foe attacked   -> foe ends up Taunted true      (reference: true)
+           foe Taunted first -> foe ends up Taunted false   (reference: false)
+selection  status clicks in 40 seeded draws: untaunted 16, Taunted 0
+```
+
+**A SIDE FINDING, FILED NOT FIXED.** The selection probe's first run leaked 5 Tailwinds through the
+gate, and the cause is not Taunt: the priors label is a coarse INTENT and `pick.kind==='speed'`
+converts *whatever move carried it* into `{kind:'tail'}` — **Milotic's priors label ICY WIND as
+`speed`**, so a sampled Icy Wind came out of the chooser as a Tailwind. The gate now asks about the
+action the branch PRODUCES rather than the move that was sampled, which is correct for Taunt (Icy
+Wind is Special and stays legal). That the mapping fabricates a Tailwind at all is a separate
+pre-existing defect in `MC.priors` handling.
+
+### WIRE 120 — `partingshot -> throatchop` IS THE #1 ROW BY PAIR VOLUME AND IT IS **NOT** A HARNESS FAULT
+
+The dispatch flagged it as smelling like a staging fault, on the strength of a `species` mismatch in
+slot 0, and said to check before touching the engine. **Checked, and it is the engine.**
+
+`kind:'switch'` serves two completely different actions and both were given priority **+6**: a BARE
+switch, which really is a separate phase that happens first, and a **pivot MOVE** (`a.mv` present —
+Parting Shot at **7,475 clicks**, Chilly Reception at 27), which is an ordinary status move. So
+Parting Shot was the fastest action in the game. It dodged every hit aimed at its user, it out-sped
+the Taunt and the Throat Chop that exist to stop it, and **the replacement, not the pivot user, ate
+the attack.**
+
+```
+reference, 20ad99ff:  |move|p2a: Milotic|Scald  ->  |-damage|p1a: Incineroar|54/170  ->  |move|p1a: Incineroar|Parting Shot
+                      identical damage against a Knock Off control — the pivot changes nothing about when the user is hit
+medicham2, before:    pivot user took 0, its replacement took 54
+medicham2, after:     pivot user took 115, its replacement took 0
+```
+
+Every `partingshot -> *` row left the matrix.
+
+### WIRE 121 — `voltswitch -> lightningrod`, THE LARGEST REMAINING ROW (1,459 x 2,108)
+
+Showdown fires `selfSwitch` only when `moveHit` did not fail, so a Volt Switch into **Lightning Rod,
+Volt Absorb or Motor Drive** leaves its user standing. medicham2 pivoted anyway, which turns the three
+abilities built to punish an Electric click into a free escape.
+
+```
+reference, all three arms:  Lightning Rod -> p1 slot0 = pikachu    Volt Absorb -> pikachu
+                            Marvel Scale control -> garchomp        (the arms genuinely differ)
+```
+
+The gate is `dealt > 0`, the same one WIRE 46 puts on `userFaints`, and it is an **approximation
+stated rather than discovered**: it would also refuse a pivot on a hit that legitimately deals zero,
+of which this format's `pivotDamaging` set has no member. It also removed the `flipturn ->
+spikyshield / banefulbunker / kingsshield` rows, because a blocked Flip Turn deals nothing either.
+
+### WIRE 122 — Good as Gold refuses Yawn, and the Yawn branch was the one route that never asked
+
+`refusesStatusMoves` is checked in **nine** places in this file. The `yawn` branch was the tenth site
+and had no check, so Gholdengo (2,461 sheets) took a drowse it is immune to. Reference, both arms on
+the SAME body so the body is not the variable: Good as Gold `vol=[]`, Honey Gather control
+`vol=[yawn]`.
+
+**A TENTH HAND-WRITTEN COPY IS EXACTLY WHAT CLAUDE.md's FACTS-ARE-GLOBAL RULE FORBIDS, and it is
+written anyway — with the reason.** Each of the nine sits beside a *different* set of companion gates
+(`bounceOff`, `moveClassBlocked`, `powderBlocked`, `pranksterBlocked`), so collapsing them is a
+consolidation this pass is not scoped to make. **FILED: `refusesStatusMoves` wants one predicate and
+has ten call sites.**
+
+### THE ROWS THAT ARE GENUINELY HARNESS, NAMED
+
+- **`taunt -> taunt`** — the generator picks `usersOf('taunt')[0]` for BOTH the carrier user and the
+  reactor holder, so it is **Alakazam against Alakazam**: a pure speed tie, and the two engines flip
+  their own coins. Still off-gate; not an engine fault.
+- **`yawn -> insomnia`** — already filed as harness by the dispatch and confirmed: the two engines
+  have different bodies in slot 0, so the comparison means nothing.
+- **`voltswitch -> lightningrod` STAGED TWICE** — the dispatch's generator fault is real and is
+  **still there**: the same (key, carrier, reactor) triple appears twice under `moveType:Electric`.
+  The row is now fixed so it no longer disagrees, but the duplicate staging is untouched and remains
+  open in `tests/interaction_matrix.js`.
+
+### MAG'S INPUTS DID NOT MOVE, AND THAT IS MEASURED RATHER THAN ARGUED
+
+Every site these four wires touch is inside `battleTurn`, `chooseAction` or `actionPriority`. Counters
+were wrapped around every relevant engine export and the fit's OWN decision walk was run —
+`fit_policy.decisionsFor` into `board.featuresFor`, **57,275 candidate vectors over 300 clean games**:
+
+```
+battleTurn 0    actionPriority 0    playerAction 0    sortTurnOrder 0    turnOrderKey 0
+compareTurnOrder 37,084   priorityRefusedAbove 5,555   dmgRange 262,737   buildMon 265,221
+```
+
+The feature path calls **none** of the changed functions. `compareTurnOrder` is the one turn-order
+function it does call and it is byte-identical. `board.js` reaches this engine through exactly six
+exports (`buildMon`, `dmgRange`, `clickFragility`, `punishExposure`, `priorityRefusedAbove`,
+`compareTurnOrder`) and not one of them was edited.
+
+**`engine/feature_engine_contrast.js` WAS NOT RUN, AND THAT IS A DELIBERATE CALL RATHER THAN A SKIP.**
+It contrasts LIVE against a FROZEN RELEASE, and every frozen release predates WIRE 118 — so it
+already reports `MOVED (deadNoLastMove, movesFirst, diesBeforeMoving)` for a documented reason that
+has nothing to do with this pass. Quoting it here would be a null from an instrument that cannot
+isolate the question. The counter walk above can, and does.
+
+**WHAT DID CHANGE IS ROLLOUT BEHAVIOUR.** `rollout_leaf.js` calls `battleTurn`, so MILTANK's rollouts
+now play Taunt, Parting Shot and Volt Switch correctly. That is the point of an engine fix; it is not
+a feature-vector move and it does not owe a refit.
+
+## THE 97 DEFECT CANDIDATES WERE TRIAGED. NOUGHT OF THEM IS A DEFECT. 2026-08-06.
+
+The sweep below reported **97 DEFECT-CANDIDATE** operators and they were handed on as 97 bugs. Will
+asked what the top two actually were. **Both are false positives**, and neither is a close call:
+
+| row | what the source does |
+|---|---|
+| `damageMultAll / lifeorb` — 10,791 uses, the **highest row in the list** | the DAMAGE half is read straight off the tag at `medicham2:1216`. Only the **recoil** branches on `m.item==='lifeorb'`, so mutating `costsPerAttack` cannot move behaviour. A *derive, never name* violation that is **LATENT** — Life Orb is the only carrier of `costsPerAttack` today — not a live defect |
+| `halvesDamage / lightscreen` — 3,404 uses | **NOT A DEFECT AT ALL, and the engine is deliberately right.** `medicham2:2924` keeps separate P/S counters and honours the category the tag declares. It ignores the tag's `mult` **on purpose**: the tag carries the SINGLES 0.5 and this is a doubles engine where the reduction is 2732/4096. Using 0.5 would overvalue every screen click by a third |
+
+The harness's header has said since it was written that *"READ-AND-IGNORED IS NOT THE SAME THING AS A
+DEFECT, AND THE RULE THAT SEPARATES THEM IS WRITTEN DOWN RATHER THAN APPLIED BY FEEL"*. The rule it
+had could not see a **DELIBERATE OVERRIDE**. That was the gap.
+
+### The classification, and it is a PARSE of the source — never a comment
+
+A comment is prose and this repo has been burned by trusting prose, so nothing here is graded on one.
+The classifier parses every `TAGS.param / has / withTag / reactorsTo` call in the frozen engine with a
+balanced-paren argument scan (a loose regex over a 220-char window conflates the tag argument with its
+neighbours, and the B/C split turns on which argument a literal sits in), then asks two questions:
+**is this param dereferenced off the variable the lookup was bound to**, and **does the carrier's id
+drive a branch by name**.
+
+| | | of the 97 | of all 340 open |
+|---|---|---|---|
+| **A** | **TAG NEVER READ.** No lookup names the tag (or none for this carrier's KIND), and the id drives no branch either. **Nothing in the simulator implements this fact.** The real-defect class | **0** | **163** ops, 56 rows |
+| **B** | **PARAM OVERRIDDEN.** The tag IS read; the param is dereferenced nowhere. The engine consumes membership and substitutes its own value. Not a defect — the site is printed so a human can check the substitution | 40 | 73 |
+| **C** | **HARDCODED BY NAME.** As B, and the id drives a branch. **LATENT**: correct while the simulator names the only carrier, wrong the moment a second arrives — so the tag's carrier count is printed as the risk | 5 | 52 |
+| **D** | **BATTERY GAP.** The param IS dereferenced in the source, so the fact is consumed and this battery could not move it (an unreached branch, or an equivalent/saturated mutant). The same kind of answer as UNREACHED-BY-THIS-BATTERY | 52 | 52 |
+
+**Nought of the 97 is a defect.** Every class A operator came out of the NO-CONSUMER-IN-SOURCE bucket
+instead — which is where Taunt has been sitting.
+
+### The triage is a check, so it is gated like one
+
+Three cases were decided BY HAND, by reading the engine, before the rule existed. The sweep refuses to
+run and writes no artifact unless the rule reproduces all three, and `tests/test-mutation-coverage.js`
+asserts the artifact on disk was produced by a rule that could:
+
+```
+MATCH   forbidsStatusMoves / taunt          expected A, got A
+MATCH   halvesDamage / lightscreen          expected B, got B
+MATCH   damageMultAll / lifeorb             expected C, got C
+```
+
+### THREE FALSE MATCHES WERE IN THE RULE BEFORE THE ENGINE WAS, AND ALL THREE HID A DEFECT
+
+Every one demotes a row OUT of the defect class, which is the dangerous direction, and every one was
+found by printing what the rule matched before trusting it (LESSONS §4):
+
+- **Comments quote code.** `'encore'` appears at 2478 inside *``kept reading `vol medi=["encore"]` ``*
+  and `'trickroom'` at 2296 inside a sentence about actions. Both read as the engine branching on that
+  name. Comments are stripped before any name is looked for.
+- **`{kind:'protect'}` writes an ACTION KIND** and decides nothing about the move. Only an equality, a
+  `.has/.includes/.indexOf`, or membership of a name set counts; anything else is recorded as `other`.
+- **`SPREAD_LEGACY` at line 166 is LIVE CODE** (line 169 uses it as the spread fallback) and it holds
+  `'blizzard'`, `'rockslide'` and `'heatwave'`. A plain "is the name in a set" test moved
+  `blizzard / inflictsFreeze`, `rockslide / flinches` and `heatwave / inflictsBurn` out of the defect
+  class on the strength of a set about something else entirely. **A name-set match now requires half
+  the set's members to carry the tag** — POWDER scores **0.88** against `powder` and counts,
+  SPREAD_LEGACY scores **0.03** against `flinches` and does not. Derived from the artifact, not from an
+  opinion about which set is which.
+
+A fourth was the opposite error and was fixed in the same pass: requiring an ID-SHAPED left side on an
+equality rejected `_e.volatile==='encore'`, which is exactly how Encore is implemented, and put a
+4,695-use row in the defect class on a technicality. This engine names its actions and volatiles after
+their moves, so an equality counts whatever is on the left of it.
+
+### The ratchet is class A only
+
+`defectCandidates + tagNotConsumed + noConsumerInSource` = 340 is retired as a ceiling. **A number
+that counts false positives is a number people learn to ignore.** The ceiling is 163 and carries its
+own scope, which hashes **the text of the classifier** — for exactly the reason the battery scope
+hashes the script text, and it earned that: the rule was tightened three times during calibration and
+each tightening moved class A (139 → 167 → 163). The per-operator ratchet keeps the BATTERY scope
+alone, because its verdicts are LIVE / READ-AND-IGNORED and are untouched by how they are classified.
+
+### CLASS A IS NOT "163 MISSING MECHANICS" AND THE ARTIFACT SAYS SO
+
+It means the fact reaches the simulator **neither as a tag nor through the carrier's name**. A THIRD
+route can still carry it — `mv.rc` for recoil, `data/move-effects.js` for every secondary, an action
+`{kind:'weather'}` — and this instrument cannot see any of those. The census can, and it is the second
+sort key: **49 of the 56 rows have no ARMED census probe**, and that is the number that is a defect
+claim. The top of the fix order, ranked by what the census can prove and then by usage:
+
+```
+   uses   share   cum   carrier / tag                          census
+  11895   2.78%   2.8%  move:rockslide / flinches              UNARMED-LIVE
+   7297   1.70%   4.5%  move:partingshot / lowersTarget        UNARMED-LIVE
+   7162   1.67%   6.1%  move:heatwave / inflictsBurn           UNARMED-LIVE
+   7109   1.66%   7.8%  move:moonblast / secondaryStatEffect   UNARMED-LIVE
+   6660   1.55%   9.4%  move:flareblitz / inflictsBurn         UNARMED-LIVE
+   6660   1.55%   9.4%  move:flareblitz / recoil               UNARMED-LIVE
+   6180   1.44%  10.8%  move:wavecrash / recoil                UNARMED-LIVE
+   5504   1.28%  12.1%  move:shadowball / secondaryStatEffect  UNARMED-LIVE
+   5491   1.28%  13.4%  move:kowtowcleave / neverMissesAttack  UNARMED-LIVE
+   4774   1.11%  14.5%  move:lastrespects / needsUntrackedState UNARMED-LIVE
+   6802   1.59%  24.9%  move:suckerpunch / needsTargetToAttack  NO-LIVE-PROBE
+    690   0.64%   0.6%  item:widelens / accuracyMod             NO-LIVE-PROBE
+```
+
+Share is **within the carrier KIND** — a move's uses is a click count and an item's is a sheet count,
+and adding them would be the Blaze error with an extra step — so the item rows carry their own
+cumulative column. **Two of the three mechanics the census itself lists as MISSING land in class A** —
+`needsTargetToAttack` (4 operators) and `accuracyMod` (8) — which is the closest thing this pass has to
+a positive control: the classifier found them by a route that knows nothing about the census. **The
+third does not, and the reason is stated rather than rounded off**: `writesAccuracy` emits **no
+operators at all** — it is UNSTAGEABLE in this battery, so it is absent from the letters rather than
+graded by them. A claim of "all three" was written here first and was wrong; the artifact says
+otherwise and the artifact wins.
+
+**AND THE LIST IS ALREADY ONE ROW OUT OF DATE, WHICH IS THE MECHANISM WORKING RATHER THAN FAILING.**
+`move:taunt / forbidsStatusMoves` is class A against release `032b4a2979dd` and sorts **last** in the
+fix order, because the census — read from the LIVE tree — now grades it **ARMED-LIVE**: a second ENGINE
+agent landed the Taunt wire while this swept. Against the frozen bytes the verdict is still true, and
+the census column is a POINTER for ordering work and never evidence about those bytes; the artifact
+says so in `triage.census.note`. Class A will fall at the next release cut, and it will fall because a
+mechanic landed rather than because a rule was loosened.
+
+Sweep: 182 tags, 785 operators, 58s, peak RSS 413 MB, frozen release **`032b4a2979dd`**. **No engine
+file was edited by this pass**, and none was read for behaviour — a second ENGINE agent held
+`medicham2-browser.js` open for the Taunt work while it ran.
+
 ## COVERAGE LAYER 2 SWEPT ALL 182 TAGS, AND 52 OF THEM THE SIMULATOR NEVER LOOKS UP. 2026-08-05.
+
+**Superseded in part, 2026-08-06** — see the section above. This pass's `open defects: 340` counted
+false positives and is retired as a number; its 206 / 37 / 97 split is still what the MUTATION found
+and is unchanged. What changed is what the split MEANS.
+
 
 Will: *"i bet there are 100s like taunt just sitting there man"* … *"okay fix it."* He is right. The
 count is **206 operators**, and the shape of them is worse than the number.

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-05T19:07:20.546Z",
+  "generated": "2026-08-06T04:38:33.207Z",
   "by": "tests/test-interaction-matrix.js",
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "depth": "full",
@@ -67,14 +67,14 @@
     "field-setter-self-switches: the case would be about the replacement, not the field": 1,
     "field-not-in-projection: persists, but neither engine projection carries it": 4
   },
-  "live": 1634,
-  "agree": 1614,
-  "part": 20,
+  "live": 1643,
+  "agree": 1624,
+  "part": 19,
   "agreement_pct": 98.8,
   "staged_pct_of_theoretical": 26.2,
   "inert": 530,
   "saturated": 109,
-  "ko_timing": 25,
+  "ko_timing": 16,
   "threw": 2,
   "not_compared": [
     "hp amount",
@@ -7263,30 +7263,6 @@
     },
     {
       "axis": "flag",
-      "key": "statusMove",
-      "layer": "legality",
-      "carrier": "yawn",
-      "reactor": "goodasgold",
-      "kind": "ability",
-      "side": "def",
-      "uses": 840,
-      "evaluator": "state",
-      "medi_witness": [],
-      "sd_witness": [
-        ".B.active[0].vol"
-      ],
-      "turn": null,
-      "diffs": [
-        [
-          ".B.active[0].vol",
-          "[\"yawn\"]",
-          "[]"
-        ]
-      ],
-      "detail": null
-    },
-    {
-      "axis": "flag",
       "key": "physicalMove",
       "layer": "secondary",
       "carrier": "scaleshot",
@@ -7561,7 +7537,7 @@
       "why": "1352/test turn 1: p1 choice rejected — \"move 1 1, move 1\"  (Can't move: You can't choose a target for Curse)"
     }
   ],
-  "off_gate": 74,
+  "off_gate": 53,
   "off_gate_rows": [
     {
       "key": "contact",
@@ -7810,36 +7786,6 @@
     },
     {
       "key": "contact",
-      "bucket": "ko",
-      "carrier": "flipturn",
-      "reactor": "spikyshield",
-      "kind": "move",
-      "uses": 2739,
-      "diffs": [
-        {
-          "path": ".A.active[0].species",
-          "medi": "\"incineroar\"",
-          "sd": "\"blastoise\""
-        },
-        {
-          "path": ".A.active[0].hurt",
-          "medi": "false",
-          "sd": "true"
-        },
-        {
-          "path": ".A.active[0].types",
-          "medi": "[\"Dark\",\"Fire\"]",
-          "sd": "[\"Water\"]"
-        },
-        {
-          "path": ".A.benched",
-          "medi": "[\"blastoise\",\"garchomp\"]",
-          "sd": "[\"garchomp\",\"incineroar\"]"
-        }
-      ]
-    },
-    {
-      "key": "contact",
       "bucket": "inert",
       "carrier": "lastresort",
       "reactor": "spikyshield",
@@ -7875,36 +7821,6 @@
           "path": ".B.benched",
           "medi": "[\"chesnaught\",\"corviknight\"]",
           "sd": "[\"corviknight\",\"weavile\"]"
-        }
-      ]
-    },
-    {
-      "key": "contact",
-      "bucket": "ko",
-      "carrier": "flipturn",
-      "reactor": "banefulbunker",
-      "kind": "move",
-      "uses": 2739,
-      "diffs": [
-        {
-          "path": ".A.active[0].species",
-          "medi": "\"incineroar\"",
-          "sd": "\"blastoise\""
-        },
-        {
-          "path": ".A.active[0].hurt",
-          "medi": "false",
-          "sd": "true"
-        },
-        {
-          "path": ".A.active[0].status",
-          "medi": "\"\"",
-          "sd": "\"psn\""
-        },
-        {
-          "path": ".A.active[0].types",
-          "medi": "[\"Dark\",\"Fire\"]",
-          "sd": "[\"Water\"]"
         }
       ]
     },
@@ -7965,36 +7881,6 @@
           "path": ".A.active[0].vol",
           "medi": "[\"mustrecharge\"]",
           "sd": "[]"
-        }
-      ]
-    },
-    {
-      "key": "contact",
-      "bucket": "ko",
-      "carrier": "flipturn",
-      "reactor": "kingsshield",
-      "kind": "move",
-      "uses": 2739,
-      "diffs": [
-        {
-          "path": ".A.active[0].species",
-          "medi": "\"incineroar\"",
-          "sd": "\"blastoise\""
-        },
-        {
-          "path": ".A.active[0].boosts.atk",
-          "medi": "0",
-          "sd": "-1"
-        },
-        {
-          "path": ".A.active[0].types",
-          "medi": "[\"Dark\",\"Fire\"]",
-          "sd": "[\"Water\"]"
-        },
-        {
-          "path": ".A.benched",
-          "medi": "[\"blastoise\",\"garchomp\"]",
-          "sd": "[\"garchomp\",\"incineroar\"]"
         }
       ]
     },
@@ -8236,36 +8122,6 @@
     {
       "key": "sound",
       "bucket": "inert",
-      "carrier": "partingshot",
-      "reactor": "throatchop",
-      "kind": "move",
-      "uses": 7475,
-      "diffs": [
-        {
-          "path": ".A.active[0].species",
-          "medi": "\"incineroar\"",
-          "sd": "\"pangoro\""
-        },
-        {
-          "path": ".A.active[0].types",
-          "medi": "[\"Dark\",\"Fire\"]",
-          "sd": "[\"Dark\",\"Fighting\"]"
-        },
-        {
-          "path": ".A.benched",
-          "medi": "[\"garchomp\",\"pangoro\"]",
-          "sd": "[\"garchomp\",\"incineroar\"]"
-        },
-        {
-          "path": ".B.active[0].boosts.atk",
-          "medi": "-1",
-          "sd": "0"
-        }
-      ]
-    },
-    {
-      "key": "sound",
-      "bucket": "inert",
       "carrier": "screech",
       "reactor": "throatchop",
       "kind": "move",
@@ -8441,225 +8297,20 @@
     {
       "key": "statusMove",
       "bucket": "inert",
-      "carrier": "partingshot",
-      "reactor": "taunt",
-      "kind": "move",
-      "uses": 7475,
-      "diffs": [
-        {
-          "path": ".A.active[0].species",
-          "medi": "\"incineroar\"",
-          "sd": "\"pangoro\""
-        },
-        {
-          "path": ".A.active[0].vol",
-          "medi": "[]",
-          "sd": "[\"taunt\"]"
-        },
-        {
-          "path": ".A.active[0].types",
-          "medi": "[\"Dark\",\"Fire\"]",
-          "sd": "[\"Dark\",\"Fighting\"]"
-        },
-        {
-          "path": ".A.benched",
-          "medi": "[\"garchomp\",\"pangoro\"]",
-          "sd": "[\"garchomp\",\"incineroar\"]"
-        }
-      ]
-    },
-    {
-      "key": "statusMove",
-      "bucket": "inert",
       "carrier": "taunt",
       "reactor": "taunt",
       "kind": "move",
       "uses": 1503,
       "diffs": [
         {
-          "path": ".B.active[0].vol",
-          "medi": "[\"taunt\"]",
-          "sd": "[]"
-        }
-      ]
-    },
-    {
-      "key": "statusMove",
-      "bucket": "inert",
-      "carrier": "disable",
-      "reactor": "taunt",
-      "kind": "move",
-      "uses": 730,
-      "diffs": [
-        {
-          "path": ".B.active[0].vol",
-          "medi": "[\"disable\"]",
-          "sd": "[]"
-        }
-      ]
-    },
-    {
-      "key": "statusMove",
-      "bucket": "inert",
-      "carrier": "strengthsap",
-      "reactor": "taunt",
-      "kind": "move",
-      "uses": 655,
-      "diffs": [
-        {
-          "path": ".B.active[0].boosts.atk",
-          "medi": "-1",
-          "sd": "0"
-        }
-      ]
-    },
-    {
-      "key": "statusMove",
-      "bucket": "inert",
-      "carrier": "hypnosis",
-      "reactor": "taunt",
-      "kind": "move",
-      "uses": 533,
-      "diffs": [
-        {
-          "path": ".B.active[0].status",
-          "medi": "\"slp\"",
-          "sd": "\"\""
-        }
-      ]
-    },
-    {
-      "key": "statusMove",
-      "bucket": "inert",
-      "carrier": "memento",
-      "reactor": "taunt",
-      "kind": "move",
-      "uses": 37,
-      "diffs": [
-        {
-          "path": ".A.active[0].species",
-          "medi": "\"incineroar\"",
-          "sd": "\"ninetales\""
-        },
-        {
           "path": ".A.active[0].vol",
           "medi": "[]",
           "sd": "[\"taunt\"]"
         },
         {
-          "path": ".A.active[0].types",
-          "medi": "[\"Dark\",\"Fire\"]",
-          "sd": "[\"Fire\"]"
-        },
-        {
-          "path": ".A.benched",
-          "medi": "[\"garchomp\"]",
-          "sd": "[\"garchomp\",\"incineroar\"]"
-        }
-      ]
-    },
-    {
-      "key": "statusMove",
-      "bucket": "inert",
-      "carrier": "decorate",
-      "reactor": "taunt",
-      "kind": "move",
-      "uses": 36,
-      "diffs": [
-        {
-          "path": ".B.active[0].boosts.atk",
-          "medi": "2",
-          "sd": "0"
-        },
-        {
-          "path": ".B.active[0].boosts.spa",
-          "medi": "2",
-          "sd": "0"
-        }
-      ]
-    },
-    {
-      "key": "statusMove",
-      "bucket": "inert",
-      "carrier": "stunspore",
-      "reactor": "taunt",
-      "kind": "move",
-      "uses": 24,
-      "diffs": [
-        {
-          "path": ".B.active[0].status",
-          "medi": "\"par\"",
-          "sd": "\"\""
-        }
-      ]
-    },
-    {
-      "key": "statusMove",
-      "bucket": "inert",
-      "carrier": "whirlwind",
-      "reactor": "taunt",
-      "kind": "move",
-      "uses": 20,
-      "diffs": [
-        {
-          "path": ".B.active[0].species",
-          "medi": "\"weavile\"",
-          "sd": "\"alakazam\""
-        },
-        {
-          "path": ".B.active[0].types",
-          "medi": "[\"Dark\",\"Ice\"]",
-          "sd": "[\"Psychic\"]"
-        },
-        {
-          "path": ".B.benched",
-          "medi": "[\"alakazam\",\"corviknight\"]",
-          "sd": "[\"corviknight\",\"weavile\"]"
-        }
-      ]
-    },
-    {
-      "key": "statusMove",
-      "bucket": "inert",
-      "carrier": "featherdance",
-      "reactor": "taunt",
-      "kind": "move",
-      "uses": 17,
-      "diffs": [
-        {
-          "path": ".B.active[0].boosts.atk",
-          "medi": "-2",
-          "sd": "0"
-        }
-      ]
-    },
-    {
-      "key": "statusMove",
-      "bucket": "inert",
-      "carrier": "trickortreat",
-      "reactor": "taunt",
-      "kind": "move",
-      "uses": 8,
-      "diffs": [
-        {
-          "path": ".B.active[0].types",
-          "medi": "[\"Ghost\",\"Psychic\"]",
-          "sd": "[\"Psychic\"]"
-        }
-      ]
-    },
-    {
-      "key": "statusMove",
-      "bucket": "inert",
-      "carrier": "screech",
-      "reactor": "taunt",
-      "kind": "move",
-      "uses": 4,
-      "diffs": [
-        {
-          "path": ".B.active[0].boosts.def",
-          "medi": "-2",
-          "sd": "0"
+          "path": ".B.active[0].vol",
+          "medi": "[\"taunt\"]",
+          "sd": "[]"
         }
       ]
     },
@@ -9015,156 +8666,6 @@
           "path": ".A.active[0].boosts.spe",
           "medi": "0",
           "sd": "1"
-        }
-      ]
-    },
-    {
-      "key": "moveType:Electric",
-      "bucket": "ko",
-      "carrier": "voltswitch",
-      "reactor": "lightningrod",
-      "kind": "ability",
-      "uses": 1459,
-      "diffs": [
-        {
-          "path": ".A.active[0].species",
-          "medi": "\"incineroar\"",
-          "sd": "\"pikachu\""
-        },
-        {
-          "path": ".A.active[0].types",
-          "medi": "[\"Dark\",\"Fire\"]",
-          "sd": "[\"Electric\"]"
-        },
-        {
-          "path": ".A.benched",
-          "medi": "[\"garchomp\",\"pikachu\"]",
-          "sd": "[\"garchomp\",\"incineroar\"]"
-        }
-      ]
-    },
-    {
-      "key": "moveType:Electric",
-      "bucket": "ko",
-      "carrier": "voltswitch",
-      "reactor": "lightningrod",
-      "kind": "ability",
-      "uses": 1459,
-      "diffs": [
-        {
-          "path": ".A.active[0].species",
-          "medi": "\"incineroar\"",
-          "sd": "\"pikachu\""
-        },
-        {
-          "path": ".A.active[0].types",
-          "medi": "[\"Dark\",\"Fire\"]",
-          "sd": "[\"Electric\"]"
-        },
-        {
-          "path": ".A.benched",
-          "medi": "[\"garchomp\",\"pikachu\"]",
-          "sd": "[\"garchomp\",\"incineroar\"]"
-        }
-      ]
-    },
-    {
-      "key": "moveType:Water",
-      "bucket": "ko",
-      "carrier": "flipturn",
-      "reactor": "dryskin",
-      "kind": "ability",
-      "uses": 2739,
-      "diffs": [
-        {
-          "path": ".A.active[0].species",
-          "medi": "\"incineroar\"",
-          "sd": "\"blastoise\""
-        },
-        {
-          "path": ".A.active[0].types",
-          "medi": "[\"Dark\",\"Fire\"]",
-          "sd": "[\"Water\"]"
-        },
-        {
-          "path": ".A.benched",
-          "medi": "[\"blastoise\",\"garchomp\"]",
-          "sd": "[\"garchomp\",\"incineroar\"]"
-        }
-      ]
-    },
-    {
-      "key": "moveType:Electric",
-      "bucket": "ko",
-      "carrier": "voltswitch",
-      "reactor": "voltabsorb",
-      "kind": "ability",
-      "uses": 1459,
-      "diffs": [
-        {
-          "path": ".A.active[0].species",
-          "medi": "\"incineroar\"",
-          "sd": "\"pikachu\""
-        },
-        {
-          "path": ".A.active[0].types",
-          "medi": "[\"Dark\",\"Fire\"]",
-          "sd": "[\"Electric\"]"
-        },
-        {
-          "path": ".A.benched",
-          "medi": "[\"garchomp\",\"pikachu\"]",
-          "sd": "[\"garchomp\",\"incineroar\"]"
-        }
-      ]
-    },
-    {
-      "key": "moveType:Electric",
-      "bucket": "ko",
-      "carrier": "voltswitch",
-      "reactor": "motordrive",
-      "kind": "ability",
-      "uses": 1459,
-      "diffs": [
-        {
-          "path": ".A.active[0].species",
-          "medi": "\"incineroar\"",
-          "sd": "\"pikachu\""
-        },
-        {
-          "path": ".A.active[0].types",
-          "medi": "[\"Dark\",\"Fire\"]",
-          "sd": "[\"Electric\"]"
-        },
-        {
-          "path": ".A.benched",
-          "medi": "[\"garchomp\",\"pikachu\"]",
-          "sd": "[\"garchomp\",\"incineroar\"]"
-        }
-      ]
-    },
-    {
-      "key": "moveType:Water",
-      "bucket": "ko",
-      "carrier": "flipturn",
-      "reactor": "waterabsorb",
-      "kind": "ability",
-      "uses": 2739,
-      "diffs": [
-        {
-          "path": ".A.active[0].species",
-          "medi": "\"incineroar\"",
-          "sd": "\"blastoise\""
-        },
-        {
-          "path": ".A.active[0].types",
-          "medi": "[\"Dark\",\"Fire\"]",
-          "sd": "[\"Water\"]"
-        },
-        {
-          "path": ".A.benched",
-          "medi": "[\"blastoise\",\"garchomp\"]",
-          "sd": "[\"garchomp\",\"incineroar\"]"
         }
       ]
     }

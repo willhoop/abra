@@ -649,6 +649,263 @@ function sourceConsumers(src) {
   return set;
 }
 
+/* ---- THE DEFECT CLASSIFIER — A/B/C/D, DERIVED FROM THE SOURCE, NEVER FROM A COMMENT -------------
+ *
+ * THE 97 WERE PRESENTED AS 97 BUGS AND THE TOP TWO WERE BOTH FALSE POSITIVES. 2026-08-06.
+ *
+ *   damageMultAll / lifeorb (11,186 uses, the highest row) — the DAMAGE half is read straight off the
+ *   tag. Only the RECOIL branches on `m.item==='lifeorb'`, so mutating `costsPerAttack` cannot move
+ *   anything. A "derive, never name" violation that is LATENT, not a live defect.
+ *
+ *   halvesDamage / lightscreen (3,463 uses) — NOT A DEFECT AT ALL. The engine keeps separate counters,
+ *   respects the category the tag declares, and IGNORES the tag's `mult` ON PURPOSE: the artifact
+ *   carries the SINGLES 0.5 and this is a doubles engine where the reduction is 2732/4096. Using the
+ *   tag's number would overvalue every screen click by a third.
+ *
+ * READ-AND-IGNORED and DEFECT are different findings — the header of this file has said so since it
+ * was written — and the triage above still could not see a DELIBERATE OVERRIDE. That is the gap this
+ * closes. The grading is on what the SOURCE DOES, because a comment is prose and this repo has been
+ * burned by trusting prose; every rule below is a parse of `engine/medicham2-browser.js`.
+ *
+ *   A  TAG NEVER READ        no TAGS.param/has/withTag/reactorsTo call in the simulator names this tag
+ *                            (or none does for this carrier's KIND). THE REAL-DEFECT CLASS. Taunt's
+ *                            `forbidsStatusMoves` is the confirmed member — the interaction matrix
+ *                            independently found a Taunted body still lands Hypnosis.
+ *   B  PARAM OVERRIDDEN      the tag IS looked up for this kind and the mutated param is dereferenced
+ *                            NOWHERE in the simulator: the engine consumes membership and substitutes
+ *                            its own value. NOT a defect. The lookup sites are reported so a human can
+ *                            check the substitution is right.
+ *   C  HARDCODED BY NAME     as B, and the carrier's id appears as a STRING LITERAL in the simulator,
+ *                            so the behaviour branches on the name instead of on the tag. LATENT:
+ *                            correct while there is one carrier, wrong the moment there are two. The
+ *                            carrier count comes out of the artifact, so the risk is a number.
+ *   D  BATTERY GAP           the param IS dereferenced in the source, so the fact is consumed — this
+ *                            battery's mutation of it moved nothing (an unreached branch, or an
+ *                            equivalent/saturated mutant). NOT a defect; it is this battery's own gap,
+ *                            the same kind of answer as UNREACHED-BY-THIS-BATTERY and UNSTAGEABLE.
+ *
+ * WHAT THE LETTERS CANNOT SEPARATE, said rather than hidden: D cannot tell "the branch was never
+ * reached" from "the value is read into a variable and then discarded". Where another operator on the
+ * SAME param came back LIVE the first reading is proven, and that is recorded as `provenLive`; where
+ * it did not, the row is still D and still open to a human. B cannot tell a DELIBERATE override from
+ * an accidental one — that is why it prints the site instead of a verdict.
+ *
+ * ONLY CLASS A IS RATCHETED. A number that counts false positives is a number people learn to ignore. */
+function tagLookupSites(src) {
+  const out = [];
+  const re = /TAGS\.(param|has|withTag|reactorsTo)\(/g;
+  let m;
+  while ((m = re.exec(src))) {
+    /* Balanced-paren scan, string-aware. The old loose regex took EVERY string literal in a 220-char
+     * window, which conflates a tag argument with a neighbouring one; the class B/C split turns on
+     * WHICH argument a literal sits in, so the arguments are parsed. */
+    let i = m.index + m[0].length, depth = 1;
+    const start = i;
+    while (i < src.length && depth > 0) {
+      const c = src[i];
+      if (c === '(') depth++;
+      else if (c === ')') depth--;
+      else if (c === "'" || c === '"' || c === '`') { const q = c; i++; while (i < src.length && src[i] !== q) { if (src[i] === '\\') i++; i++; } }
+      i++;
+    }
+    const argstr = src.slice(start, i - 1);
+    const args = []; let d = 0, cur = '';
+    for (let j = 0; j < argstr.length; j++) {
+      const c = argstr[j];
+      if (c === "'" || c === '"' || c === '`') { const q = c; cur += c; j++; while (j < argstr.length && argstr[j] !== q) { cur += argstr[j]; j++; } cur += argstr[j]; continue; }
+      if (c === '(' || c === '[' || c === '{') d++;
+      else if (c === ')' || c === ']' || c === '}') d--;
+      if (c === ',' && d === 0) { args.push(cur.trim()); cur = ''; continue; }
+      cur += c;
+    }
+    args.push(cur.trim());
+    const lit = a => (/^['"`][^'"`]*['"`]$/.test(a || '')) ? a.slice(1, -1) : null;
+    let kind = null, tag = null;
+    if (m[1] === 'param' || m[1] === 'has') { kind = lit(args[0]); tag = lit(args[2]); }
+    else if (m[1] === 'withTag') { kind = lit(args[0]); tag = lit(args[1]); }
+    else if (m[1] === 'reactorsTo') { tag = lit(args[0]); }   // no kind argument: matches every kind
+    if (!tag) continue;
+    const lineStart = src.lastIndexOf('\n', m.index) + 1;
+    const vm = /(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=[^=]*$/.exec(src.slice(lineStart, m.index));
+    const nl = src.indexOf('\n', i);
+    out.push({
+      fn: m[1], kind, tag, varName: vm ? vm[1] : null,
+      line: src.slice(0, m.index).split('\n').length, end: i,
+      text: src.slice(lineStart, nl < 0 ? src.length : nl).trim().slice(0, 160),
+    });
+  }
+  return out;
+}
+
+/* COMMENTS ARE STRIPPED BEFORE ANY NAME IS LOOKED FOR, and this is not tidiness. `engine/medicham2-
+ * browser.js` is a heavily commented file whose comments QUOTE CODE: 'encore' appears at 2478 inside
+ * `kept reading vol medi=["encore"]`, and 'trickroom' at 2296 inside a sentence about actions. Both
+ * would have been read as the engine branching on that name, which demotes a row out of the defect
+ * class on the strength of a sentence. Grading on prose is exactly what this rule exists not to do. */
+function stripComments(src) {
+  let out = '', i = 0;
+  while (i < src.length) {
+    const c = src[i], n = src[i + 1];
+    if (c === '/' && n === '/') { while (i < src.length && src[i] !== '\n') i++; continue; }
+    if (c === '/' && n === '*') { i += 2; while (i < src.length && !(src[i] === '*' && src[i + 1] === '/')) { if (src[i] === '\n') out += '\n'; i++; } i += 2; continue; }
+    if (c === "'" || c === '"' || c === '`') { const q = c; out += c; i++; while (i < src.length && src[i] !== q) { if (src[i] === '\\') { out += src[i]; i++; } out += src[i]; i++; } out += src[i]; i++; continue; }
+    out += c; i++;
+  }
+  return out;
+}
+
+function defectClassifier(src, db) {
+  const sites = tagLookupSites(src);
+  const CODE = stripComments(src);
+  const byTag = new Map();
+  for (const s of sites) { if (!byTag.has(s.tag)) byTag.set(s.tag, []); byTag.get(s.tag).push(s); }
+  const carrierCount = tag => ['moves', 'items', 'abilities']
+    .reduce((n, k) => n + Object.keys(db[k]).filter(id => (db[k][id].tags || []).includes(tag)).length, 0);
+  const esc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  /* Is this param dereferenced off anything bound to a lookup of this tag? Two shapes, both real in
+   * this engine: `const _pf=TAGS.param(...); _pf.base` and an inline `(TAGS.param(...)||{}).turns`. */
+  function paramReadSites(tag, param) {
+    const hits = [];
+    for (const s of (byTag.get(tag) || [])) {
+      if (s.varName) {
+        const re = new RegExp('\\b' + esc(s.varName) + '\\s*(?:\\.\\s*' + esc(param) + '\\b|\\[\\s*[\'"`]' + esc(param) + '[\'"`]\\s*\\])');
+        if (re.test(src)) hits.push(s.line + ' ' + s.varName + '.' + param);
+      }
+      const tail = src.slice(s.end, s.end + 140);
+      if (new RegExp('^\\s*(?:\\|\\|\\s*\\{\\s*\\}\\s*\\))?\\s*\\.\\s*' + esc(param) + '\\b').test(tail)) hits.push(s.line + ' inline .' + param);
+    }
+    return hits;
+  }
+  /* EVERY LITERAL LIST OF STRINGS IN THE SIMULATOR, so a name found inside one can be asked WHICH list
+   * it is in. Without this the check cannot tell PROTECTMOVES from SPREAD_LEGACY — see below. */
+  const LISTS = [];
+  {
+    const g = /\[\s*(['"`][a-z0-9_]+['"`]\s*(?:,\s*['"`][a-z0-9_]+['"`]\s*)+),?\s*\]/g;
+    let m;
+    while ((m = g.exec(CODE))) {
+      LISTS.push({ start: m.index, end: m.index + m[0].length, members: (m[1].match(/['"`][a-z0-9_]+['"`]/g) || []).map(s => s.slice(1, -1)) });
+    }
+  }
+  const carriersOfTag = tag => new Set(['moves', 'items', 'abilities']
+    .flatMap(k => Object.keys(db[k]).filter(id => (db[k][id].tags || []).includes(tag))));
+
+  /* DOES THE SIMULATOR BRANCH ON THIS CARRIER'S NAME? Not "does the string appear" — three shapes of
+   * false match were in the first cut of this rule and each one DEMOTES A ROW OUT OF THE DEFECT CLASS,
+   * which is the dangerous direction:
+   *
+   *   `{kind:'protect'}`                       an ACTION KIND written into an object, deciding
+   *                                            nothing. Recorded as `other` and does not count.
+   *   SPREAD_LEGACY has 'blizzard' at line 166 and it is LIVE CODE (line 169 uses it as the spread
+   *   fallback) — so a plain "is the name in a set" test moved `blizzard / inflictsFreeze`,
+   *   `rockslide / flinches` and `heatwave / inflictsBurn` out of the defect class on the strength of
+   *   a set about something else entirely.
+   *
+   * So a `member` site counts only when THE SET LOOKS LIKE AN IMPLEMENTATION OF THIS TAG: at least
+   * half of its members carry the tag. POWDER is 8 names against `powder`'s 7 carriers and passes;
+   * SPREAD_LEGACY's 20 names against `flinches`'s carriers do not. That is derived from the artifact,
+   * not from an opinion about which set is which, and every match is printed.
+   *
+   * AN EQUALITY COUNTS WHATEVER IS ON THE LEFT OF IT, and a narrower version of this rule was tried
+   * first and was wrong: requiring an ID-SHAPED left side (id / mv / item / ability) rejected
+   * `_e.volatile==='encore'`, which is exactly how Encore is implemented, and put a 4,695-use row in
+   * the defect class on a technicality. Every one of the shapes that looked like a coincidence —
+   * `it.a.kind==='protect'`, `k==='trickroom'` — turns out to be the engine branching on a string that
+   * IS the carrier's name, because this engine names its actions and volatiles after their moves. */
+  function nameBranchSites(id, tag) {
+    const g = new RegExp('[\'"`]' + esc(id) + '[\'"`]', 'g');
+    const out = []; let m;
+    while ((m = g.exec(CODE))) {
+      const before = CODE.slice(Math.max(0, m.index - 60), m.index);
+      const after = CODE.slice(m.index + m[0].length, m.index + m[0].length + 8);
+      const line = CODE.slice(0, m.index).split('\n').length;
+      if (/\.(has|includes|indexOf)\(\s*$/.test(before)) { out.push({ line, ctx: 'call', counts: true }); continue; }
+      const eqBefore = /(?:===|!==|==|!=)\s*$/.test(before);
+      if (eqBefore || /^\s*(?:===|!==|==|!=)/.test(after)) {
+        out.push({ line, ctx: 'eq', counts: true });
+        continue;
+      }
+      const L = LISTS.find(l => m.index > l.start && m.index < l.end);
+      if (L) {
+        const car = tag ? carriersOfTag(tag) : new Set();
+        const overlap = L.members.filter(x => car.has(x)).length / L.members.length;
+        out.push({ line, ctx: 'member', counts: overlap >= 0.5, setSize: L.members.length, overlapOfSetWithTagCarriers: +overlap.toFixed(2) });
+        continue;
+      }
+      out.push({ line, ctx: 'other', counts: false });
+    }
+    return out;
+  }
+  const branching = (id, tag) => nameBranchSites(id, tag).filter(s => s.counts);
+
+  function classify(op) {
+    const ss = byTag.get(op.tag) || [];
+    const kindSites = ss.filter(s => s.kind === null || s.kind === op.kind);
+    const nb = branching(op.id, op.tag);
+    const nameEv = {
+      nameBranchAt: nb.slice(0, 8).map(s => s.line + ' ' + s.ctx + (s.overlapOfSetWithTagCarriers !== undefined ? ' set' + s.setSize + ' overlap' + s.overlapOfSetWithTagCarriers : '')),
+      nameSitesRejected: nameBranchSites(op.id, op.tag).filter(s => !s.counts).slice(0, 6).map(s => s.line + ' ' + s.ctx + (s.overlapOfSetWithTagCarriers !== undefined ? ' set' + s.setSize + ' overlap' + s.overlapOfSetWithTagCarriers : '') + (s.lhs ? ' lhs=' + s.lhs : '')),
+      carriersOfTag: carrierCount(op.tag),
+    };
+    /* THE TAG IS NOT READ FOR THIS CARRIER. Two very different findings, and collapsing them is what
+     * produced a "206 defects" headline the file's own docs had to walk back in the next paragraph:
+     * Protect's `stalling` is not read AS A TAG, and PROTECTMOVES branches on the name, so the
+     * mechanic WORKS and the tag is a second, unread copy — latent, not broken. Taunt's
+     * `forbidsStatusMoves` is not read as a tag AND the string "taunt" appears nowhere in the
+     * simulator's code, so nothing implements it at all. Only the second is a defect. */
+    if (!kindSites.length) {
+      const scope = ss.length
+        ? 'the simulator looks "' + op.tag + '" up only for ' + [...new Set(ss.map(s => s.kind))].join('/') + ', and this carrier is a ' + op.kind
+        : 'no TAGS.param/has/withTag/reactorsTo call in the simulator names "' + op.tag + '"';
+      if (nb.length) {
+        return { cls: 'C', why: 'HARDCODED BY NAME — ' + scope + ', and "' + op.id
+          + '" drives a branch by NAME instead (a name set or an id comparison). The mechanic can work; the tag is a second, unread copy of the fact',
+          evidence: { ...nameEv, tagReadAt: ss.map(s => s.line + ' ' + s.kind) } };
+      }
+      return { cls: 'A', why: 'TAG NEVER READ — ' + scope + ', and "' + op.id
+        + '" drives no id comparison and sits in no name set that looks like an implementation of this tag. Nothing in the simulator implements this fact.',
+        evidence: { ...nameEv, tagReadAt: ss.map(s => s.line + ' ' + s.kind) } };
+    }
+    if (op.param) {
+      const pr = paramReadSites(op.tag, op.param);
+      if (pr.length) {
+        return { cls: 'D', why: 'BATTERY GAP — the simulator DOES dereference .' + op.param + '; this battery\'s mutation of it moved nothing (unreached branch, or an equivalent/saturated mutant)',
+          evidence: { paramReadAt: pr } };
+      }
+    }
+    if (nb.length) {
+      return { cls: 'C', why: 'HARDCODED BY NAME — the tag is read, ' + (op.param ? 'the param .' + op.param + ' is dereferenced nowhere' : 'removing the tag from this carrier moved nothing')
+        + ', and "' + op.id + '" drives a branch by NAME',
+        evidence: { ...nameEv, tagReadAt: kindSites.map(s => s.line) } };
+    }
+    return { cls: 'B', why: (op.param
+      ? 'PARAM OVERRIDDEN — the tag is read for this kind and .' + op.param + ' is dereferenced nowhere in the simulator: it consumes membership and substitutes its own value'
+      : 'TAG READ, CARRIER REACHED OTHERWISE — the tag is read for this kind, no name branch for this carrier exists, and removing the tag moved nothing: the fact has a second source'),
+      evidence: { tagReadAt: kindSites.map(s => s.line + '  ' + s.text) } };
+  }
+  return { sites, byTag, classify, paramReadSites, nameBranchSites, carrierCount };
+}
+
+/* THE STANDING GATE APPLIES TO THE TRIAGE ITSELF. A new check does not ship until it has been shown
+ * producing the KNOWN answers on KNOWN input, and these three were decided BY HAND, by reading the
+ * engine, before the rule existed. If the rule cannot reproduce them the RULE is wrong — the three
+ * answers are not adjusted to fit it. The sweep refuses to run if any of them moves. */
+const TRIAGE_CALIBRATION = [
+  { kind: 'move', id: 'taunt', tag: 'forbidsStatusMoves', param: 'forbids', mustBe: 'A',
+    decidedByHand: 'the interaction matrix found a Taunted body still lands Hypnosis; no lookup for the tag exists' },
+  { kind: 'move', id: 'lightscreen', tag: 'halvesDamage', param: 'mult', mustBe: 'B',
+    decidedByHand: 'the engine keeps separate P/S counters and substitutes the DOUBLES 2732/4096 for the tag\'s SINGLES 0.5, on purpose' },
+  { kind: 'item', id: 'lifeorb', tag: 'damageMultAll', param: 'costsPerAttack', mustBe: 'C',
+    decidedByHand: 'the damage half reads the tag; only the RECOIL branches on m.item===\'lifeorb\'' },
+];
+function runTriageCalibration(cf) {
+  const rows = TRIAGE_CALIBRATION.map(c => {
+    const got = cf.classify(c);
+    return { ...c, got: got.cls, why: got.why, ok: got.cls === c.mustBe };
+  });
+  return { rows, failures: rows.filter(r => !r.ok).length };
+}
+
 /* Which (tag, param) pairs restate the tag: identical STRING value on every carrier. Computed over
  * the WHOLE artifact, not over the two carriers this sweep sampled, so a tag whose 47th carrier
  * disagrees is not downgraded on the strength of the two most-used ones. */
@@ -861,8 +1118,11 @@ function rankDefects(allOps, db, census) {
   for (const kind of ['move', 'item', 'ability']) {
     denom[kind] = Object.values(db[TABLE[kind]]).reduce((s, r) => s + (r.uses || 0), 0);
   }
-  const OPEN = new Set(['DEFECT-CANDIDATE', 'TAG-NOT-CONSUMED', 'NO-CONSUMER-IN-SOURCE']);
-  const defects = allOps.filter(o => OPEN.has(o.class));
+  /* CLASS A ONLY. This list used to be the whole OPEN set — NO-CONSUMER-IN-SOURCE + TAG-NOT-CONSUMED +
+   * DEFECT-CANDIDATE — and its top two rows were both false positives (see defectClassifier above),
+   * so the ranking's own headline was arguing for work that did not exist. A/B/C/D is the split; only
+   * A is a defect, and only A is ranked, ratcheted or reported as a fix order. */
+  const defects = allOps.filter(o => o.defectClass === 'A');
   /* One ROW per carrier x tag, because twelve ignored params on one ability is one thing to go and
    * look at, not twelve. The count of ignored operators rides along as `ops`. */
   const byCarrier = new Map();
@@ -976,6 +1236,23 @@ function main() {
   console.log('  every verdict below describes THOSE bytes, not the live tree.');
 
   const t0 = Date.now();
+  /* THE TRIAGE IS A CHECK TOO, SO IT IS GATED LIKE ONE. Three cases were decided BY HAND — by reading
+   * the engine, before the A/B/C/D rule existed — and the rule must reproduce all three. It runs first
+   * because it is instant and because a wrong classifier makes every number after it meaningless. */
+  const cfGate = defectClassifier(SHIPPED_SRC, SHIPPED_DB);
+  const cal = runTriageCalibration(cfGate);
+  console.log('\n  THE TRIAGE CALIBRATION — the A/B/C/D rule against three cases decided by hand.\n');
+  for (const r of cal.rows) {
+    console.log(`  ${r.ok ? 'MATCH  ' : 'WRONG  '} ${(r.tag + ' / ' + r.id).padEnd(34)} expected ${r.mustBe}, got ${r.got}`);
+    console.log(`           by hand: ${r.decidedByHand}`);
+    console.log(`           by rule: ${r.why}`);
+  }
+  if (cal.failures) {
+    console.log('\n  THE TRIAGE CALIBRATION FAILED. The sweep is NOT run and no artifact is written.');
+    console.log('  If the rule cannot reproduce the three known answers, the RULE is wrong — the answers are not');
+    console.log('  adjusted to fit it.\n');
+    process.exit(1);
+  }
   const gate = runGate();
   if (gate.failures) {
     console.log('\n  THE GATE FAILED. The sweep is NOT run and no artifact is written.');
@@ -1011,6 +1288,24 @@ function main() {
   const noConsumerTags = allTagNames.filter(t => !consumers.has(t));
   const census = censusCrossRef();
   const allOps = rows.flatMap(r => (r.operators || []).map(o => ({ ...o, tag: r.tag })));
+
+  /* ---- A/B/C/D, over EVERY open operator ------------------------------------------------------
+   * The three OPEN classes are graded together, because the letter is a fact about the SOURCE and the
+   * class was a fact about the mutation — a NO-CONSUMER-IN-SOURCE and a DEFECT-CANDIDATE can be the
+   * same shape and were being ranked as though they were not. Everything already downgraded (banned,
+   * zero-use, presence-only, restates, unreached) keeps its class and gets no letter. */
+  const OPEN_CLASSES = new Set(['DEFECT-CANDIDATE', 'TAG-NOT-CONSUMED', 'NO-CONSUMER-IN-SOURCE']);
+  const cf = defectClassifier(SHIPPED_SRC, SHIPPED_DB);
+  for (const o of allOps) {
+    if (!OPEN_CLASSES.has(o.class)) continue;
+    const g = cf.classify({ kind: o.kind, id: o.id, tag: o.tag, param: o.param || null });
+    o.defectClass = g.cls; o.defectWhy = g.why; o.defectEvidence = g.evidence;
+  }
+  /* A PARAM PROVEN LIVE ELSEWHERE IS THE BATTERY'S GAP AND NOT A READ THAT WAS DISCARDED, and that is
+   * the one thing class D cannot tell apart on its own. Recorded per operator rather than assumed. */
+  const liveParams = new Set(allOps.filter(o => o.verdict === 'LIVE' && o.param).map(o => o.tag + '.' + o.param));
+  for (const o of allOps) if (o.defectClass === 'D' && o.param) o.provenLiveElsewhere = liveParams.has(o.tag + '.' + o.param);
+
   const ranked = rankDefects(allOps, SHIPPED_DB, census);
 
   /* PRINT WHAT EVERY DOWNGRADE MATCHED BEFORE ANY OF IT IS TRUSTED. LESSONS §4 — `refusesStatusMoves`
@@ -1054,8 +1349,26 @@ function main() {
     threwUnderMutation: allOps.filter(o => o.threw).length,
     inertCases: rows.reduce((s, r) => s + (r.cases || []).filter(c => c.inert).length, 0),
     liveCases: rows.reduce((s, r) => s + (r.cases || []).filter(c => !c.inert).length, 0),
+    /* THE ONLY NUMBER IN HERE THAT IS A DEFECT COUNT. The three above it (defectCandidates,
+     * noConsumerInSource, tagNotConsumed) are kept because they say what the MUTATION found, and they
+     * are no longer summed into anything called "open". */
+    classA_tagNeverRead: allOps.filter(o => o.defectClass === 'A').length,
+    classB_paramOverridden: allOps.filter(o => o.defectClass === 'B').length,
+    classC_hardcodedByName: allOps.filter(o => o.defectClass === 'C').length,
+    classD_batteryGap: allOps.filter(o => o.defectClass === 'D').length,
+    classD_provenLiveElsewhere: allOps.filter(o => o.defectClass === 'D' && o.provenLiveElsewhere).length,
+    classAofDefectCandidates: allOps.filter(o => o.class === 'DEFECT-CANDIDATE' && o.defectClass === 'A').length,
   };
   summary.defectRows = ranked.rows.length;
+  /* CLASS A IS NOT "N MISSING MECHANICS" AND MUST NOT BE READ AS IF IT WERE. It says the fact reaches
+   * the simulator NEITHER as a tag NOR through the carrier's name. A THIRD route can still carry it —
+   * `mv.rc` for recoil, `data/move-effects.js` for every secondary, an action `{kind:'weather'}` — and
+   * this instrument cannot see those. The census can: an ARMED probe structurally proves the mechanic
+   * and an UNARMED one asserts it in a prose string. So the count that is actually a defect claim is
+   * the one the census cannot prove, and it is printed beside the raw class A count rather than
+   * instead of it. */
+  summary.classArows = ranked.rows.length;
+  summary.classArowsCensusCannotProve = ranked.rows.filter(r => r.censusProbe !== 'ARMED-LIVE').length;
 
   /* ---- the ratchet ------------------------------------------------------------------------------
    * TWO RATCHETS, and they answer different questions.
@@ -1096,20 +1409,39 @@ function main() {
       if (w === 'LIVE' && o.verdict !== 'LIVE') regressions.push({ key: o.key, was: w, now: o.verdict });
     }
   }
-  const openDefects = summary.defectCandidates + summary.tagNotConsumed + summary.noConsumerInSource;
+  /* THE CEILING IS CLASS A ONLY, AND THAT IS WHY IT CARRIES ITS OWN SCOPE.
+   *
+   * It used to be DEFECT-CANDIDATE + TAG-NOT-CONSUMED + NO-CONSUMER-IN-SOURCE = 340, and the top two
+   * rows of the list it produced were both false positives. A number that counts false positives is a
+   * number people learn to ignore, and a ratchet nobody believes is worse than no ratchet.
+   *
+   * The ceiling scope is the BATTERY scope plus THE TEXT OF THE CLASSIFIER, for exactly the reason the
+   * battery scope contains the text of the script: changing what is counted makes two counts
+   * incomparable, and silently ratcheting one against the other either waves through a regression or
+   * blocks every run forever. A hand-typed version number would have been wrong within the hour — this
+   * rule was tightened three times while it was being calibrated, and each tightening moved class A.
+   * The per-operator ratchet keeps the BATTERY scope alone: its verdicts are LIVE / READ-AND-IGNORED
+   * and are untouched by how they are classified afterwards, so a triage change must not reset it. */
+  const TRIAGE_VERSION = 2;
+  const ceilingScope = require('crypto').createHash('sha256')
+    .update(JSON.stringify({ scope, triageVersion: TRIAGE_VERSION, counts: 'classA',
+      rule: String(defectClassifier) + String(tagLookupSites) + String(stripComments) })).digest('hex').slice(0, 12);
+  const openDefects = summary.classA_tagNeverRead;
   const prevCeil = (prev && prev.ratchet && prev.ratchet.ceiling) || null;
   let ceiling, ceilingNote;
-  if (prevCeil && prevCeil.scope === scope) {
-    ceiling = { scope, value: Math.min(prevCeil.value, openDefects), setAt: openDefects < prevCeil.value ? new Date().toISOString() : prevCeil.setAt };
+  if (prevCeil && prevCeil.scope === ceilingScope) {
+    ceiling = { scope: ceilingScope, value: Math.min(prevCeil.value, openDefects), setAt: openDefects < prevCeil.value ? new Date().toISOString() : prevCeil.setAt, counts: 'class A (TAG NEVER READ) operators' };
     ceilingNote = openDefects > prevCeil.value
-      ? 'RATCHET BROKEN — open defects rose from ' + prevCeil.value + ' to ' + openDefects
-      : 'ok — ' + openDefects + ' open against a ceiling of ' + prevCeil.value;
+      ? 'RATCHET BROKEN — class A (tag never read) rose from ' + prevCeil.value + ' to ' + openDefects
+      : 'ok — ' + openDefects + ' class A against a ceiling of ' + prevCeil.value;
   } else {
-    ceiling = { scope, value: openDefects, setAt: new Date().toISOString() };
-    ceilingNote = 'NEW SCOPE — no comparable ceiling existed' + (prevCeil ? ' (previous scope ' + prevCeil.scope + ' at ' + prevCeil.value + ')' : '')
+    ceiling = { scope: ceilingScope, value: openDefects, setAt: new Date().toISOString(), counts: 'class A (TAG NEVER READ) operators' };
+    ceilingNote = 'NEW SCOPE — the ceiling now counts CLASS A ONLY (was DEFECT-CANDIDATE + TAG-NOT-CONSUMED + '
+      + 'NO-CONSUMER-IN-SOURCE, whose top two rows were both false positives)'
+      + (prevCeil ? '. Previous scope ' + prevCeil.scope + ' at ' + prevCeil.value : '')
       + '. Recorded ' + openDefects + ' as the ceiling; it may fall and may never rise.';
   }
-  const ceilingBroken = !!(prevCeil && prevCeil.scope === scope && openDefects > prevCeil.value);
+  const ceilingBroken = !!(prevCeil && prevCeil.scope === ceilingScope && openDefects > prevCeil.value);
 
   const artifact = Object.assign({
     generated: new Date().toISOString(),
@@ -1133,7 +1465,25 @@ function main() {
         'RESTATES-THE-TAG — a STRING param identical on every carrier of the tag (>=2 carriers), on a tag whose removal is LIVE. NOT extended to numbers: extendsDuration.toTurns is 8 on every carrier, and a number-shaped version of this rule would triage away WIRE 71, the defect this file exists to catch.',
         'TAG-NOT-CONSUMED — removing the tag from the carrier changed nothing. Never downgraded; counted as an open defect. The previous cut of this file gave these no class at all, so the largest findings in the sweep were absent from the defect count.',
         'anything none of these decides stays DEFECT-CANDIDATE. "I could not decide" and "it does not matter" are different answers.',
+        'THEN EVERY ONE OF THOSE THREE OPEN CLASSES IS GRADED A/B/C/D FROM THE SOURCE — see defectClass below. A mutation verdict says what MOVED; the letter says WHY, and only A is a defect.',
       ],
+      /* THE A/B/C/D RULE, ITS CALIBRATION, AND WHAT IT DELIBERATELY CANNOT SEPARATE. */
+      defectClass: {
+        rule: [
+          'A  TAG NEVER READ — no TAGS.param/has/withTag/reactorsTo call in engine/medicham2-browser.js names this tag, or none does for this carrier KIND. THE REAL-DEFECT CLASS, and the only one ratcheted.',
+          'B  PARAM OVERRIDDEN — the tag IS looked up for this kind and the mutated param is dereferenced NOWHERE: the engine consumes membership and substitutes its own value. NOT a defect. Light Screen is the exemplar: the tag carries the SINGLES 0.5 and this doubles engine uses 2732/4096 on purpose. The lookup sites are reported so a human can check the substitution.',
+          'C  HARDCODED BY NAME — as B, and the carrier id appears as a string literal in the simulator, so the behaviour branches on the NAME. Life Orb is the exemplar: the damage half reads damageMultAll, only the recoil branches on m.item===lifeorb. LATENT — correct with one carrier, wrong with two — so the carrier count of the tag is reported as the risk number.',
+          'D  BATTERY GAP — the param IS dereferenced in the source, so the fact is consumed and this battery could not move it (unreached branch, or an equivalent/saturated mutant). NOT a defect; the same kind of answer as UNREACHED-BY-THIS-BATTERY.',
+        ],
+        gradedOn: 'a PARSE of the frozen engine source — balanced-paren argument extraction from every TAGS lookup, then a dataflow-lite check for the param being dereferenced off the bound variable. NEVER on a comment: a comment is prose, and this repo has been burned by trusting prose.',
+        cannotSeparate: [
+          'D cannot tell "the branch was never reached" from "the value is read into a variable and then discarded". provenLiveElsewhere is true when another operator on the SAME tag.param came back LIVE, which settles it in the battery\'s favour; where it is false the row is still open to a human.',
+          'B cannot tell a DELIBERATE override from an accidental one. That is why it prints the site instead of a verdict.',
+          'C says the id appears as a literal SOMEWHERE in the simulator, not that the literal is what implements this param.',
+        ],
+        calibration: cal.rows.map(r => ({ tag: r.tag, carrier: r.kind + ':' + r.id, param: r.param, mustBe: r.mustBe, got: r.got, ok: r.ok, decidedByHand: r.decidedByHand, ruleSaid: r.why })),
+        counts: { A: summary.classA_tagNeverRead, B: summary.classB_paramOverridden, C: summary.classC_hardcodedByName, D: summary.classD_batteryGap },
+      },
       formatOracle: { consulted: oracle.consulted, format: oracle.format || null, legalAbilityCount: oracle.legalAbilityCount || null },
       simulatorTagLookups: [...consumers].sort(),
       census: Object.assign({}, census.available ? { available: true, generated: census.generated, probed: census.probed, live: census.live, armed: census.armedCount, note: census.note } : { available: false },
@@ -1154,22 +1504,34 @@ function main() {
     summary,
     ranked: { denominators: ranked.denom, rows: ranked.rows },
     ratchet: {
-      rule: 'An operator that was LIVE may never come back anything else. Separately, the OPEN count '
-        + '(NO-CONSUMER-IN-SOURCE + TAG-NOT-CONSUMED + DEFECT-CANDIDATE) may fall and may never rise. '
-        + 'BOTH are scoped: a verdict measured under one battery is not comparable with one measured '
-        + 'under another, and comparing them across scopes produced a false regression the first time '
-        + 'the script changed.',
-      scope, scopeComparedWithPrevious: scopeMatches, ceiling, ceilingNote, openDefects, broken: ceilingBroken,
+      rule: 'An operator that was LIVE may never come back anything else. Separately, the CLASS A count '
+        + '(TAG NEVER READ) may fall and may never rise. BOTH are scoped: a verdict measured under one '
+        + 'battery is not comparable with one measured under another, and comparing them across scopes '
+        + 'produced a false regression the first time the script changed. The ceiling carries the '
+        + 'TRIAGE VERSION on top of the battery scope, because changing WHAT IS COUNTED makes two '
+        + 'counts incomparable in exactly the same way. It counted 340 open defects until 2026-08-06, '
+        + 'when the top two rows of the list it produced were both shown to be false positives.',
+      scope, scopeComparedWithPrevious: scopeMatches, ceilingScope, triageVersion: TRIAGE_VERSION,
+      ceiling, ceilingNote, openDefects, broken: ceilingBroken,
       regressions,
     },
     tags: rows,
-    operators: allOps.map(o => ({ key: o.key, tag: o.tag, kind: o.kind, id: o.id, uses: o.uses, family: o.family, verdict: o.verdict, class: o.class, classWhy: o.classWhy, changed: o.changed, same: o.same, note: o.note })),
+    operators: allOps.map(o => ({ key: o.key, tag: o.tag, kind: o.kind, id: o.id, uses: o.uses, family: o.family, verdict: o.verdict, class: o.class, classWhy: o.classWhy, defectClass: o.defectClass, defectWhy: o.defectWhy, defectEvidence: o.defectEvidence, provenLiveElsewhere: o.provenLiveElsewhere, changed: o.changed, same: o.same, note: o.note })),
   });
 
   console.log('\n  ' + summary.operators + ' operators over ' + summary.tagsSwept + ' tags: '
     + summary.live + ' LIVE, ' + summary.readAndIgnored + ' READ-AND-IGNORED');
   console.log('    of the ignored:  ' + summary.noConsumerInSource + ' NO-CONSUMER-IN-SOURCE, ' + summary.tagNotConsumed
-    + ' TAG-NOT-CONSUMED, ' + summary.defectCandidates + ' DEFECT-CANDIDATE  ->  ' + openDefects + ' OPEN');
+    + ' TAG-NOT-CONSUMED, ' + summary.defectCandidates + ' DEFECT-CANDIDATE');
+  console.log('    graded A/B/C/D:  ' + summary.classA_tagNeverRead + ' A tag-never-read (THE DEFECTS), '
+    + summary.classB_paramOverridden + ' B param-overridden, ' + summary.classC_hardcodedByName
+    + ' C hardcoded-by-name (latent), ' + summary.classD_batteryGap + ' D battery-gap ('
+    + summary.classD_provenLiveElsewhere + ' of them proven live by another operator on the same param)');
+  console.log('    of the ' + summary.defectCandidates + ' DEFECT-CANDIDATEs, ' + summary.classAofDefectCandidates
+    + ' are class A. The rest are B, C or D and are NOT defects.');
+  console.log('    class A is ' + summary.classArows + ' carrier x tag rows, of which ' + summary.classArowsCensusCannotProve
+    + ' have no ARMED census probe. A means "neither by tag nor by name"; a THIRD route (mv.rc,');
+  console.log('    data/move-effects.js, an action kind) can still carry the fact and this instrument cannot see it.');
   console.log('    not a result:    ' + summary.unreachedByThisBattery + ' UNREACHED-BY-THIS-BATTERY (a consumer exists '
     + 'and no scripted turn reached it — this battery\'s gap, not the engine\'s)');
   console.log('    downgraded:      ' + summary.bannedByFormat + ' banned-by-format, ' + summary.noLegalCarrier
@@ -1183,16 +1545,50 @@ function main() {
   console.log('  cost: gate ' + (gateMs / 1000).toFixed(1) + 's, sweep ' + (sweepMs / 1000).toFixed(1)
     + 's (' + artifact.cost.ms_per_tag + ' ms/tag), peak rss ' + artifact.cost.peak_rss_mb + ' MB');
 
-  console.log('\n  TOP 20 OPEN DEFECTS — graded first, then by usage. (Share is within the carrier KIND: a move');
-  console.log('  click count and an ability sheet count are different denominators and adding them would be');
-  console.log('  the Blaze error. `cum` is cumulative down THIS list, which is the fix order.)\n');
+  /* THE B AND C LISTS ARE PRINTED BEFORE THE A LIST, because they are what changed: 2026-08-06's
+   * finding is that most of what was called a defect is not one, and a reader who only sees the A list
+   * cannot check that. C is printed in full with its carrier count, which is what makes the latency a
+   * NUMBER rather than a worry. */
+  const cRows = new Map();
+  for (const o of allOps.filter(x => x.defectClass === 'C')) {
+    const k = o.kind + ':' + o.id + ' / ' + o.tag;
+    if (!cRows.has(k)) cRows.set(k, { k, uses: o.uses, carriers: (o.defectEvidence || {}).carriersOfTag, ops: 0 });
+    cRows.get(k).ops++;
+  }
+  console.log('\n  CLASS C — HARDCODED BY NAME. Latent, not live: correct while the tag has ONE carrier the');
+  console.log('  simulator names, wrong the moment a second one arrives. `carriers` is that risk as a number.\n');
+  console.log('     uses  carriers  carrier / tag');
+  for (const r of [...cRows.values()].sort((a, b) => b.uses - a.uses)) {
+    console.log('    ' + String(r.uses).padStart(6) + '  ' + String(r.carriers).padStart(8) + '  ' + r.k);
+  }
+
+  const bRows = new Map();
+  for (const o of allOps.filter(x => x.defectClass === 'B')) {
+    const k = o.kind + ':' + o.id + ' / ' + o.tag;
+    if (!bRows.has(k)) bRows.set(k, { k, uses: o.uses, params: new Set(), at: ((o.defectEvidence || {}).tagReadAt || []).map(s => String(s).split(/\s+/)[0]) });
+    if (o.param) bRows.get(k).params.add(o.param);
+  }
+  console.log('\n  CLASS B — PARAM OVERRIDDEN. The tag is read; the param is not. Printed so a human can check the');
+  console.log('  substitution, which is the one thing no rule here can decide.\n');
+  console.log('     uses  carrier / tag                                 param(s) ignored   tag read at line');
+  for (const r of [...bRows.values()].sort((a, b) => b.uses - a.uses)) {
+    console.log('    ' + String(r.uses).padStart(6) + '  ' + r.k.padEnd(44) + [...r.params].join(',').padEnd(18)
+      + ' ' + r.at.slice(0, 6).join(','));
+  }
+
+  console.log('\n  CLASS A — THE DEFECTS. The simulator contains no lookup for this tag at all. Ordered by what');
+  console.log('  the census can PROVE (an UNARMED probe asserts the mechanic in a prose string and proves');
+  console.log('  nothing), then by usage. Share is within the carrier KIND — a move click count and an ability');
+  console.log('  sheet count are different denominators and adding them would be the Blaze error. `cum` is');
+  console.log('  cumulative down THIS list, which is the fix order.\n');
   console.log('     uses   share   cum    carrier / tag                                  grade');
-  for (const r of ranked.rows.slice(0, 20)) {
+  for (const r of ranked.rows.slice(0, 40)) {
     console.log('    ' + String(r.uses).padStart(6) + '  ' + (r.shareOfKind * 100).toFixed(2).padStart(5) + '%  '
       + (r.cumShareOfKind * 100).toFixed(1).padStart(5) + '%  ' + (r.carrier + ' / ' + r.tag).padEnd(46)
       + r.grade + (r.censusProbe ? ' / census ' + r.censusProbe : '')
       + (r.params.length ? '  params:' + r.params.join(',') : ''));
   }
+  if (ranked.rows.length > 40) console.log('    … ' + (ranked.rows.length - 40) + ' more class A rows in the artifact');
 
   console.log('\n  ' + ceilingNote);
   if (regressions.length) {
@@ -1205,4 +1601,5 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { sweepTag, loadEngine, runGate, allTags, SHIPPED_DB, SHIPPED_SRC, REL };
+module.exports = { sweepTag, loadEngine, runGate, allTags, SHIPPED_DB, SHIPPED_SRC, REL,
+  tagLookupSites, defectClassifier, runTriageCalibration, TRIAGE_CALIBRATION };

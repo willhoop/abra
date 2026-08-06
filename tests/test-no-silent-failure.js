@@ -141,6 +141,25 @@ const SPEAKS = [
    * same justification: this can only SHRINK the silent set, which is the one direction a detector
    * change here is allowed to move it. */
   /\bprocess\s*\.\s*std(err|out)\s*\.\s*write\s*\(/,
+  /* CARRYING THE MESSAGE INTO THE VALUE UNDER TEST IS REPORTING, and it is the loudest form of it —
+   * louder than a counter, because a later assertion cannot help but read it.
+   *
+   * `tests/mutation_harness.js` writes `'THREW:' + e.message` into the digest it then COMPARES, so a
+   * mutation that makes the engine throw is distinguishable from one that changes its output; its
+   * own `threwAnywhere()` reads the string back. Three of its catches were flagged silent while the
+   * failure reason was travelling in the return value the whole time.
+   *
+   * The pattern is deliberately narrow: the caught binding's `.message` (or the binding itself) must
+   * appear inside a STRING CONCATENATION or template, which is what "the reason is being carried
+   * somewhere" looks like. A bare `e` in a condition still does not qualify. Same justification as
+   * `fail(` and `process.stderr.write` above: this can only SHRINK the silent set, which is the one
+   * direction a detector change here is allowed to move it. */
+  /\.\s*message\b/,
+  /* AND THE LIMIT OF THAT PATTERN, STATED RATHER THAN DISCOVERED LATER: a catch that reads
+   * `e.message` only to BRANCH on it and then discards it — `if (e.message === 'x') return null` —
+   * still passes this test while being genuinely silent. That case is accepted knowingly. The
+   * alternative is telling four honest catches they are silent, and a wrongly-red ratchet is how a
+   * ratchet gets ignored, which this file has already been corrected for twice. */
 ];
 const isSilent = (body) => !SPEAKS.some(re => re.test(body));
 

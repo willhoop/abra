@@ -106,8 +106,25 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * the Levitate and Air Balloon halves of this test were known-wrong and applied anyway. The gap is
    * wired, so the failure counter is replaced by a capability counter rather than deleted
    * (docs/ENGINE.md rule -- a counter must not merely vanish). */
-  terrainHealSkippedAirborne: 0 };
+  terrainHealSkippedAirborne: 0,
+  /* WIRE 119 -- a move REFUSED at execution time by a category-forbidding volatile (Taunt). This is
+   * the half the interaction matrix was failing on: the holder clicks Taunt in the same turn, so the
+   * target's already-chosen status move has to FAIL when it runs. A zero here after games with a
+   * Taunt in them is the finding. */
+  tauntRefusedAtExecution: 0,
+  /* WIRE 119 -- a status move taken OFF THE MENU before it could be chosen, the other half of the
+   * same mechanic (Showdown's `onDisableMove`). Counted apart from the execution refusal because the
+   * two fire in different places and a merged counter cannot say which one is dead. */
+  tauntRefusedAtSelection: 0 };
 const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnknownFirst: '',
+  /* WIRE 119 -- the artifact named a forbidden move CATEGORY this engine has no predicate for, so the
+   * move was allowed through. Today the only member is Taunt's "Status" and this must read 0; a
+   * non-zero means `forbidsStatusMoves` grew a category and the gate is silently passing it. */
+  forbidCategoryUnknown: 0, forbidCategoryUnknownFirst: '',
+  /* WIRE 119 -- the forbid table itself could not be built. It would return EMPTY, which is
+   * indistinguishable from the pre-wire engine in which Taunt did nothing at all, so the failure is
+   * counted rather than swallowed. */
+  forbidTableFailed: 0, forbidTableFailedFirst: '',
   /* A heal whose SIZE no artifact this engine reads can state — Rest (full, plus sleep), Synthesis /
    * Moonlight / Morning Sun (weather-dependent), Wish (delayed a turn), Healing Wish (the user
    * faints), Swallow (needs Stockpile), Strength Sap (scales off the TARGET's Attack). The tag says
@@ -248,6 +265,79 @@ function priorityBlockAbilities(){
     }
   }catch(e){}
   return _prioBar;
+}
+/* WIRE 119 -- A VOLATILE THAT FORBIDS A WHOLE CATEGORY OF MOVE. TAUNT, 1,503 corpus clicks, and this
+ * engine did not implement it: the volatile was written onto the target by the generic `statusInflict`
+ * applier, decremented in the chooser, and read by NOTHING. A Taunted body still landed Hypnosis,
+ * Stun Spore, Decorate, Screech, Disable, Feather Dance, Strength Sap, Trick-or-Treat and another
+ * Taunt. `tests/test-interaction-matrix.js` found it as twelve separate `X -> taunt` rows, and the
+ * comment at chooseAction claimed the opposite in words ("Taunt forbids status moves, so the mon
+ * falls through to the normal chooser with its status options removed") beside a line that only
+ * decremented a counter. A constraint that nothing reads is not a constraint.
+ *
+ * THE TABLE IS volatile -> the move CATEGORY that volatile refuses, and BOTH halves come out of the
+ * artifact: `forbidsStatusMoves.forbids` says WHICH category, and the same move's `statusInflict`
+ * says which volatile carries it. No move is named here, so a second member arriving in a later
+ * regulation is picked up without an edit. Membership was PRINTED before this was wired
+ * (docs/LESSONS §4) and it is exactly one entry:
+ *
+ *     taunt  ->  forbids "Status"   via volatile `taunt`, sealsMoves.turns = 3
+ *
+ * AND THE CATEGORY TEST IS THE ARTIFACT'S TOO. `statusCategory` was checked against the format dex
+ * before being trusted as the category predicate: over every move in data/tags.json it agrees with
+ * Showdown's own `move.category === 'Status'` on ALL of them -- zero moves tagged and not Status,
+ * zero Status and not tagged. A category this table names that no predicate here can decide is
+ * COUNTED, not silently allowed (MEDFAILS.forbidCategoryUnknown). */
+let _forbidVol=null;
+function forbidByVolatile(){
+  if(_forbidVol) return _forbidVol;
+  _forbidVol=new Map();
+  try{
+    for(const id of (TAGS.withTag?TAGS.withTag('move','forbidsStatusMoves'):[])){
+      const f=TAGS.param('move',id,'forbidsStatusMoves');
+      const si=TAGS.param('move',id,'statusInflict');
+      if(!f||!f.forbids||!si||!Array.isArray(si.effects)) continue;
+      for(const e of si.effects) if(e.volatile) _forbidVol.set(e.volatile,String(f.forbids));
+    }
+  }catch(e){
+    /* IT SPEAKS. An empty catch here would return an EMPTY TABLE, and an empty table is exactly what
+     * the engine looked like before this wire -- Taunt silently doing nothing again, reported as
+     * success. tests/test-no-silent-failure.js caught the first version of this block swallowing it. */
+    MEDFAILS.forbidTableFailed++;
+    if(!MEDFAILS.forbidTableFailedFirst) MEDFAILS.forbidTableFailedFirst=String((e&&e.message)||e);
+  }
+  return _forbidVol;
+}
+/* The mutation harness swaps the artifact in memory (`TAGS.__setDB`), and a table built once at first
+ * demand would keep serving the old membership and score this wire READ-AND-IGNORED -- the false-DEAD
+ * direction. tags.js publishes the hook for exactly this; `SPREAD` and the terrain tables do not
+ * register one, which is a separate pre-existing gap and is not fixed here. */
+if(TAGS&&typeof TAGS.__onSetDB==='function') TAGS.__onSetDB(function(){ _forbidVol=null; });
+/* WIRE 119 -- THREE ACTION KINDS CARRY NO MOVE ID, and every one of them is a status move: the
+ * chooser returns a bare `{kind:'protect'}`, `{kind:'wideguard'}` and `{kind:'tail'}`. This is
+ * playerAction's own map (see the bottom of this file) read backwards, and it exists so the gate
+ * below can ask the ARTIFACT what category the action is rather than assuming one. */
+const KIND_MOVE={protect:'protect',wideguard:'wideguard',tail:'tailwind'};
+function actionMoveId(a){
+  if(!a) return null;
+  return a.mv||(a.move&&a.move.id)||KIND_MOVE[a.kind]||null;
+}
+/* Does a volatile this body is carrying refuse this move? One function, called by the SELECTION-time
+ * menu filter and by the EXECUTION-time gate above the kind dispatch, because they are the same
+ * question asked at two moments (Showdown answers them in two handlers -- `onDisableMove` and
+ * `onBeforeMove` -- off one condition). */
+function volatileForbidsMove(me,id){
+  if(!me||!me._vol||!id) return false;
+  const tbl=forbidByVolatile();
+  for(const [vol,cat] of tbl){
+    if(!(me._vol[vol]>0)) continue;
+    if(cat==='Status'){ if(TAGS.has('move',id,'statusCategory')) return true; continue; }
+    /* A SILENT DEFAULT LOOKS EXACTLY LIKE A WORKING FEATURE. If the artifact ever names a category
+     * this engine has no predicate for, the move is allowed through AND the event is counted. */
+    MEDFAILS.forbidCategoryUnknown++;
+    if(!MEDFAILS.forbidCategoryUnknownFirst) MEDFAILS.forbidCategoryUnknownFirst=vol+':'+cat;
+  }
+  return false;
 }
 /* WIRE 117 -- IS THIS BODY ON THE GROUND. ONE FUNCTION, because the fact was written by hand in
  * THREE places and none of them was the one that mattered.
@@ -1705,13 +1795,23 @@ function setPurePriors(v){ PURE_PRIORS = !!v; }
  *
  * NEVER LEAVES A MON WITH NOTHING: if every move is illegal the filter is abandoned whole, the same
  * rule the Disable version already carried. */
+/* WIRE 119 RIDES IT TOO -- TAUNT IS "WHICH OF MY MOVES ARE ILLEGAL THIS TURN" WITH A CATEGORY
+ * INSTEAD OF A NAME, which is why it belongs in this filter and not in a branch of its own. Hoisted
+ * to module scope for one reason: the PRIORS SAMPLER picks a move by NAME out of MC.priors and never
+ * consults `me.moves`, so it needs to ask the identical question. It had a hand-copied Disable clause
+ * and nothing else -- exactly the three-copies shape the comment above warns about -- and that clause
+ * is now this call, so Throat Chop's silence and the Gigaton Hammer lockout stop leaking through the
+ * single most-used path in the chooser as well. */
+function illegalMoveNow(me,id){
+  if(!me||!id) return false;
+  if(me._vol&&me._vol.disable>0&&me._sealed===id)return true;
+  if(me._noSound>0&&TAGS.has('move',id,'sound'))return true;
+  if(me._noRepeat===id)return true;
+  if(volatileForbidsMove(me,id)){ MEDSEEN.tauntRefusedAtSelection++; return true; }
+  return false;
+}
 function chooseAction(me,foes,ally,field,side,rng){
-  const _illegal=id=>{
-    if(me._vol&&me._vol.disable>0&&me._sealed===id)return true;
-    if(me._noSound>0&&TAGS.has('move',id,'sound'))return true;
-    if(me._noRepeat===id)return true;
-    return false;
-  };
+  const _illegal=id=>illegalMoveNow(me,id);
   if(me&&me.moves&&me.moves.length>1&&me.moves.some(_illegal)){
     const _save=me.moves;
     const _keep=_save.filter(id=>!_illegal(id));
@@ -1739,7 +1839,14 @@ function _chooseAction(me,foes,ally,field,side,rng){
    *
    * Encore repeats the last move. Taunt forbids status moves, so the mon falls through to the normal
    * chooser with its status options removed rather than being handed a specific click. Both decrement
-   * and expire, because a lock that never ends is its own bug. */
+   * and expire, because a lock that never ends is its own bug.
+   *
+   * WIRE 119 -- AND THAT SENTENCE WAS FALSE FOR TAUNT UNTIL 2026-08-06. What stood here was
+   * `if(me._vol.taunt>0)me._vol.taunt--;` and nothing else: no option was ever removed. The filter
+   * is now `illegalMoveNow`, which runs above this function on every path into it, and the TICK has
+   * moved to end-of-turn beside Disable's -- for Disable's own stated reason, that a duration which
+   * only counts down on turns the engine happens to be CHOOSING lasts forever in a rollout driven
+   * from outside (the WIRE 24 rule). */
   if(me._vol){
     if(me._vol.encore>0){
       me._vol.encore--;
@@ -1751,7 +1858,6 @@ function _chooseAction(me,foes,ally,field,side,rng){
         try{const _a=playerAction(me,_mv,_t,field); if(_a&&_a.kind!=='pass')return _a;}catch(e){ MEDFAILS.encoreAction++; }
       }
     }
-    if(me._vol.taunt>0)me._vol.taunt--;
   }
   if(me._lock){
     const chosen=targetForMove(me,me._lock,live,field);
@@ -1781,12 +1887,26 @@ function _chooseAction(me,foes,ally,field,side,rng){
      * like a working seal. The sampler picks a move by NAME out of MC.priors and never consults
      * `me.moves`, so taking the sealed move out of the list left the single most-used path in this
      * function untouched. Caught by the probe printing BOTH arms: control and disabled arm each
-     * clicked Dragon Claw. A banned pick falls through to the best attack over the filtered list. */
-    if(pick&&me._vol&&me._vol.disable>0&&me._sealed===pick.mv)pick=null;
+     * clicked Dragon Claw. A banned pick falls through to the best attack over the filtered list.
+     * WIRE 119 -- AND SO DOES TAUNT, through the SAME call the move-list filter uses. The hand-copied
+     * Disable clause that stood here is gone: a second copy of "which moves are illegal" is how a
+     * fourth constraint gets added to one of them and not the other, which is what happened to Throat
+     * Chop and Gigaton Hammer, both of which were filtered out of `me.moves` and then sampled straight
+     * back in by name. */
+    if(pick&&illegalMoveNow(me,pick.mv))pick=null;
     if(pick){
       if(pick.kind==='protect'&&!me.protect&&me.tookProtectTurns<2)return{kind:'protect'};
       if(pick.kind==='setup'&&!inDanger&&(me.boosts.at+me.boosts.sa+me.boosts.sp)<4)return{kind:'setup',mv:pick.mv};
-      if(pick.kind==='speed'&&((side==='A'?field.twA:field.twB)<=0))return{kind:'tail'};
+      /* WIRE 119 -- ASK ABOUT THE ACTION THIS BRANCH PRODUCES, NOT ABOUT THE MOVE THAT WAS SAMPLED.
+       * The `speed` prior is a coarse INTENT label and this branch converts it into a Tailwind
+       * whatever move carried it: Milotic's priors label ICY WIND as `speed`, so a sampled Icy Wind
+       * came out of here as `{kind:'tail'}`. Under a Taunt that mattered -- Icy Wind is a Special move
+       * and is legal, a Tailwind is not -- and the gate five lines up, which asks about `pick.mv`,
+       * correctly let Icy Wind through. Refusing the produced action instead makes the body fall
+       * through to the attack below, which is the click the reference engine makes.
+       * (That the label converts a damaging move into Tailwind at all is a SEPARATE pre-existing
+       * defect in the priors mapping, filed rather than fixed here.) */
+      if(pick.kind==='speed'&&((side==='A'?field.twA:field.twB)<=0)&&!illegalMoveNow(me,'tailwind'))return{kind:'tail'};
       // carry the MOVE through, not just the intent: which status lands depends on which move it is
       if(pick.kind==='status'&&live.some(f=>!f.status))return{kind:'status',mv:pick.mv,target:live.find(f=>!f.status)};
       const chosen=targetForMove(me,pick.mv,live,field);            // the sampled damaging move
@@ -1916,7 +2036,22 @@ function actionPriority(it, field){
      it wrong would make every switch eat the hit it was meant to dodge. Prankster does not touch
      it. Left in the PRIORITY key rather than moved to `order`, because no move in this format
      reaches +6 and re-expressing it would be a behaviour change smuggled into a refactor. */
-  if(k==='switch')    return 6;
+  /* WIRE 120 -- A PIVOT MOVE IS A MOVE, AND IT WAS JUMPING THE QUEUE AT +6. `kind:'switch'` serves
+     two completely different actions in this engine: a BARE switch, which really is a separate phase
+     that happens first, and a pivot MOVE (`a.mv` present -- Parting Shot at 7,475 corpus clicks and
+     Chilly Reception at 27), which is an ordinary status move that switches the user out AFTER it
+     resolves. Giving both +6 made Parting Shot the fastest action in the game: it dodged every hit
+     aimed at its user, it out-sped the Taunt and the Throat Chop that are supposed to stop it, and
+     the replacement -- not the pivot user -- ate the attack.
+     MEASURED AT THE PINNED COMMIT, both arms printed before this line changed: Milotic (101) Scalds
+     an Incineroar (80) that clicked Parting Shot, and the Scald lands FIRST -- `|move|p2a: Milotic|
+     Scald` then `|-damage|p1a: Incineroar|54/170` then `|move|p1a: Incineroar|Parting Shot`. Against
+     a Knock Off control the damage is identical, which is the point: the pivot changes nothing about
+     when the user is hit. medicham2 had the user take 0 and the replacement take 54.
+     This is the #1 disagreement by pair volume in data/interaction-matrix.json
+     (`partingshot -> throatchop`, 7475 x 2946) and the cause of `partingshot -> taunt` (7475 x 1503)
+     too -- both read as a species mismatch in slot 0 because medicham2 had already pivoted. */
+  if(k==='switch')    return it.a.mv?movePriority(it.a.mv,field)+pk:6;
   if(k==='protect')   return 4+pk;
   if(k==='wideguard') return 3+pk;
   /* Read from each move's own data, which is what makes Trick Room -7 and Rage Powder +2 without
@@ -2517,7 +2652,13 @@ function battleTurn(S,rng,actsForA,actsForB){
     S.lastActs=acts.map(it=>({side:it.side,name:it.mon.name,kind:it.a.kind,
       move:(it.a.move&&it.a.move.id)||it.a.mv||null,
       target:(it.a.target&&it.a.target.name)||null}));
-    for(const it of acts){if(it.a.kind==='protect'){it.mon.protect=(it.mon.tookProtectTurns===0||rng()<Math.pow(1/3,it.mon.tookProtectTurns));it.mon.tookProtectTurns++;it.mon._lastMove=it.a.mv||'protect';it.mon._protectMove=it.a.mv||null;}else if(it.a.kind==='wideguard'){if(it.side==='A')field.wgA=true;else field.wgB=true;it.mon.tookProtectTurns=0;}else it.mon.tookProtectTurns=0;}
+    /* WIRE 119 -- THE SHIELD IS RAISED BEFORE ANY MOVE RESOLVES, so a body Taunted on an EARLIER turn
+     * would otherwise still get its Protect up: the gate above the kind dispatch fires too late for
+     * this pre-pass. It is asked here as well, and only here, because a body Taunted THIS turn is
+     * correctly still allowed to Protect -- Protect is +4 and Taunt is +0 (+1 under Prankster), so
+     * the shield has already resolved by the time the Taunt lands, which is the real rule. A refused
+     * shield falls into the same branch as any other action and resets the stall counter. */
+    for(const it of acts){if(it.a.kind==='protect'&&!volatileForbidsMove(it.mon,actionMoveId(it.a))){it.mon.protect=(it.mon.tookProtectTurns===0||rng()<Math.pow(1/3,it.mon.tookProtectTurns));it.mon.tookProtectTurns++;it.mon._lastMove=it.a.mv||'protect';it.mon._protectMove=it.a.mv||null;}else if(it.a.kind==='wideguard'&&!volatileForbidsMove(it.mon,actionMoveId(it.a))){if(it.side==='A')field.wgA=true;else field.wgB=true;it.mon.tookProtectTurns=0;}else it.mon.tookProtectTurns=0;}
     /* WIRE 101 -- QUICK CLAW (`fractionalPriority`): 20% of turns the holder jumps its own priority
        bracket, decided ONCE per turn per holder before the sort (a roll inside a comparator would be
        re-drawn per comparison). The rng is consumed only for a body that actually carries the tag, so
@@ -2595,6 +2736,27 @@ function battleTurn(S,rng,actsForA,actsForB){
          through. It binds a caller-SUPPLIED action too, which is the WIRE 24 rule. */
       if(m._noSound>0&&(a.mv||(a.move&&a.move.id))&&TAGS.has('move',a.mv||a.move.id,'sound')){
         m._lastMove=a.mv||a.move.id;continue;
+      }
+      /* WIRE 119 -- TAUNT AT EXECUTION TIME, AND THIS IS WIRE 77's PLACE FOR WIRE 77's REASON.
+       * Showdown answers Taunt in TWO handlers off one condition: `onDisableMove` takes the status
+       * moves off next turn's menu, and `onBeforeMove` FAILS a status move that was already chosen
+       * when the Taunt lands in the same turn. The menu filter is in chooseAction (illegalMoveNow);
+       * this is the other half, and it is the half every one of the twelve `X -> taunt` rows in the
+       * interaction matrix was hitting -- the holder clicks Taunt, moves first, and medicham2 landed
+       * Hypnosis / Stun Spore / Decorate / Screech / Disable / Feather Dance / Strength Sap /
+       * Trick-or-Treat anyway.
+       *
+       * ABOVE THE KIND DISPATCH, because Taunt refuses a status move of ANY kind: `affect` (Charm),
+       * `status` (Will-O-Wisp), `setup` (Swords Dance), `tail` (Tailwind), `haze`, `hazard`, `sub`
+       * and `phaze` (Roar) are all status moves in this engine and all of them are separate branches.
+       * A copy of this line per branch is exactly the shape that let Roar through Throat Chop.
+       *
+       * `_lastMove` IS DELIBERATELY NOT SET, unlike WIRE 77 one line above. Showdown's `runMove`
+       * calls `pokemon.moveUsed()` -- the only writer of `lastMove` -- AFTER the BeforeMove event, so
+       * a move refused by Taunt never becomes the last move and cannot be what an Encore repeats. */
+      {
+        const _fid=actionMoveId(a);
+        if(_fid&&volatileForbidsMove(m,_fid)){ MEDSEEN.tauntRefusedAtExecution++; continue; }
       }
       /* WIRE 42, the other members. Clangorous Soul (343 uses) and Shed Tail (60) pay HP for an
          effect this engine ALREADY models -- a setup and a pivot -- so they must not be captured by
@@ -2722,7 +2884,20 @@ function battleTurn(S,rng,actsForA,actsForB){
                kept reading `vol medi=["encore"] sd=[]` and the fix looked landed. */
             if(_e.volatile==='encore'&&!_who._lastMove) continue;
             const _sm=TAGS.param('move',a.mv,'sealsMoves');
-            const _tn=(_sm&&+_sm.turns)||1;
+            let _tn=(_sm&&+_sm.turns)||1;
+            /* WIRE 119 -- TAUNT LASTS THREE OF THE TARGET'S TURNS, NOT THREE TURNS. Showdown's taunt
+             * condition bumps its own duration when the target has ALREADY MOVED this turn
+             * (`if (target.activeTurns && !this.queue.willMove(target)) this.effectState.duration++`),
+             * because the turn it just spent must not be one of the three. Measured at the pinned
+             * commit both ways -- a faster Taunter blocks the target on turns 1(exec), 2, 3; a slower
+             * one blocks turns 2, 3, 4 -- three refusals either way, and without this bump the slow
+             * case gets two.
+             * `unresolved` is this turn's outstanding actions (WIRE 118), so "was queued to move and
+             * no longer will" is `acts.some(...) && !unresolved.has(...)` -- the same pair of clauses
+             * Showdown asks, including the `activeTurns` half: a body dragged or switched in mid-turn
+             * is in neither set and is correctly NOT bumped. Applied only to a volatile in the forbid
+             * table, which is where the rule lives. */
+            if(forbidByVolatile().has(_e.volatile)&&!unresolved.has(_who)&&acts.some(x=>x.mon===_who)) _tn++;
             (_who._vol=_who._vol||{})[_e.volatile]=_tn;
             /* `_sealed` is Disable's alone. Encore carries its move in `_encoreMove` and `_lock`, and
              * one field serving two volatiles is a field that expires the wrong one. */
@@ -2991,7 +3166,18 @@ function battleTurn(S,rng,actsForA,actsForB){
            tested only `!t.status`, which is one clause of canTakeStatus, so the counter landed on
            bodies that could never fall asleep. One function answers "can this body be slept" for both
            routes now, which is CLAUDE.md's facts-are-global rule one field over. */
-        if(t&&!t.fainted&&!t.protect&&t._yawn==null&&canTakeStatus(t,'slp')&&!pranksterBlocked(m,t,a.mv))
+        /* WIRE 122 -- GOOD AS GOLD REFUSES YAWN, and this branch was the ONE foe-aimed status route
+           that never asked. `refusesStatusMoves` is checked in nine other places in this file --
+           `affect`, `phaze`, the pivot switch, the status branch and five more -- and a tenth copy is
+           exactly the shape CLAUDE.md's facts-are-global rule forbids; it is written here anyway
+           rather than hoisted because each of those nine sits beside a DIFFERENT set of companion
+           gates (bounceOff, moveClassBlocked, powderBlocked), and collapsing them is a consolidation
+           this pass is not scoped to make. It is FILED in docs/ENGINE.md as such.
+           MEASURED AT THE PINNED COMMIT, both arms on the same Gholdengo: Good as Gold -> `vol=[]`,
+           a Honey Gather control -> `vol=[yawn]`. Found by the generated matrix as
+           `yawn -> goodasgold` (840 x 2,461), where medicham2's own two arms were IDENTICAL. */
+        if(t&&!t.fainted&&!t.protect&&t._yawn==null&&canTakeStatus(t,'slp')&&!pranksterBlocked(m,t,a.mv)
+           &&!(TAGS.has('ability',t.ability,'refusesStatusMoves')&&t!==m))
           /* +1 because the end-of-turn tick below fires on the APPLICATION turn too. Without it a
              delay of 1 puts the target to sleep on the turn Yawn was clicked, which is a turn early
              and turns a telegraphed threat into an instant one. Same correction the sealsMoves wire
@@ -4018,7 +4204,19 @@ function battleTurn(S,rng,actsForA,actsForB){
          and its item are the outgoing mon's. Switching first would fire the move off the replacement.
          A user that fainted to recoil or to a contact punish does not leave, and an empty bench
          makes it a plain attack. */
-      if(!m.fainted&&m.curHP>0&&TAGS.has('move',a.move.id,'pivotDamaging')){
+      /* WIRE 121 -- AND ONLY IF THE MOVE ACTUALLY CONNECTED. Showdown fires `selfSwitch` inside
+         `useMoveInner` only when `moveHit` did not fail, so a Volt Switch into a LIGHTNING ROD, VOLT
+         ABSORB or MOTOR DRIVE body leaves its user exactly where it stood. medicham2 pivoted anyway,
+         which turns the three abilities built to punish an Electric click into a free escape.
+         MEASURED AT THE PINNED COMMIT, all three arms printed: into Lightning Rod and into Volt
+         Absorb `p1 slot0 after = pikachu`; into a Marvel Scale control `p1 slot0 after = garchomp`.
+         `dealt > 0` is the same gate WIRE 46 puts on `userFaints`, and it is an APPROXIMATION stated
+         rather than discovered: it also refuses the pivot on a hit that legitimately deals zero, of
+         which this format's `pivotDamaging` set (U-turn, Volt Switch, Flip Turn, Chilly Reception's
+         damaging cousins) has no member -- all are 100% accurate with base power. Found by the
+         generated matrix as `voltswitch -> lightningrod` / `-> voltabsorb` / `-> motordrive`, the
+         largest remaining pair-volume disagreement (1,459 x 2,108). */
+      if(!m.fainted&&m.curHP>0&&dealt>0&&TAGS.has('move',a.move.id,'pivotDamaging')){
         const own=it.side==='A'?actA:actB, foes=it.side==='A'?actB:actA;
         const bench=it.side==='A'?benchA:benchB, sf=it.side==='A'?sfA:sfB;
         const idx=own.indexOf(m);
@@ -4371,7 +4569,11 @@ function battleTurn(S,rng,actsForA,actsForB){
       /* Disable ticks HERE and not in chooseAction, so a turn where the caller supplied the action
        * still spends one — a duration that only counts down when the engine happens to be the one
        * choosing is a duration that lasts forever in a rollout driven from outside. */
-      if(m&&m._vol&&m._vol.disable>0&&--m._vol.disable<=0)m._sealed=null;});
+      if(m&&m._vol&&m._vol.disable>0&&--m._vol.disable<=0)m._sealed=null;
+      /* WIRE 119 -- AND SO DOES TAUNT, for the identical reason and beside it rather than in the
+       * chooser where it used to sit. The set of volatiles is the forbid table's keys, so this ticks
+       * whatever the artifact says forbids a category and names no move. */
+      if(m&&m._vol)for(const _fv of forbidByVolatile().keys())if(m._vol[_fv]>0)m._vol[_fv]--;});
     /* THE DEATH COUNTERS update at turn end, before replacements enter: the live side count for
      * Last Respects (a mid-turn kill is seen one action late — an approximation, stated), and the
      * entrant's frozen snapshot for Supreme Overlord. Derived from the actual fainted flags every

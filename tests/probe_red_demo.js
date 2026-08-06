@@ -449,5 +449,114 @@ demoSource('WIRE 118 Tailwind speeds the PARTNER up inside the same turn (dynami
     return took(false) > 0 && took(true) === 0;
   });
 
+/* ---- WIRE 119, TAUNT, both halves against a STRIPPED TAG ----------------------------------------
+ *
+ * The artifact is the right known-bad input here: the defect was that NOTHING consumed
+ * `forbidsStatusMoves`, and the whole gate -- selection and execution -- is built off the table that
+ * tag feeds. Stripping it empties the table, which is exactly the engine as it stood before this
+ * wire. `demo` restores the on-disk artifact afterwards, and medicham2 registers a __setDB rebuild
+ * hook for its forbid table so the stripped arm is genuinely running on the stripped membership
+ * rather than on a set memoised at first demand. */
+demo('WIRE 119 forbidsStatusMoves -- Taunt FAILS an already-chosen status move (execution time)',
+  shipped, without('move', 'taunt', 'forbidsStatusMoves'), () => {
+    const run = (foeMove) => {
+      const me = bare('incineroar'), ally = bare('corviknight');
+      const f1 = bare('alakazam'), f2 = bare('garchomp');
+      const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+      M.battleTurn(S, rng5,
+        new Map([[me, M.playerAction(me, 'taunt', f1, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, M.playerAction(f1, foeMove, me, S.field)], [f2, { kind: 'pass' }]]));
+      return !!(f1._vol && f1._vol.taunt > 0);
+    };
+    /* The control MUST land its Taunt, or "the foe was not Taunted" is satisfied by an engine in
+     * which Taunt never lands at all. */
+    return run('expandingforce') === true && run('taunt') === false;
+  });
+
+demo('WIRE 119 forbidsStatusMoves -- Taunt empties the status menu (selection time)',
+  shipped, without('move', 'taunt', 'forbidsStatusMoves'), () => {
+    const KINDMV = { protect: 'protect', wideguard: 'wideguard', tail: 'tailwind' };
+    const run = (taunted) => {
+      let n = 0;
+      for (let i = 0; i < 40; i++) {
+        const me = bare('milotic'), ally = bare('corviknight');
+        const f1 = bare('garchomp'), f2 = bare('weavile');
+        const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+        if (taunted) (me._vol = me._vol || {}).taunt = 3;
+        let s = 1000 + i * 7919;
+        /* mulberry32 — see the note in tests/test-mechanics.js; tests/test-prng.js forbids the
+         * overflowing textbook LCG outright and caught the first version of this using it. */
+        const rng = () => { s = (s + 0x6D2B79F5) | 0; let t = s;
+          t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+        M.battleTurn(S, rng, null, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+        const act = (S.lastActs || []).find(x => x.side === 'A' && x.name === me.name);
+        const id = act && (act.move || KINDMV[act.kind]);
+        /* `statusCategory` is read off the LIVE artifact deliberately: the stripped arm removes only
+         * `forbidsStatusMoves`, so the classifier used to score both arms is identical. */
+        if (id && TAGS.has('move', id, 'statusCategory')) n++;
+      }
+      return n;
+    };
+    return run(false) > 0 && run(true) === 0;
+  });
+
+/* ---- WIRE 120, against a source-reverted engine -------------------------------------------------
+ *
+ * There is no tag to strip: the defect is one clause in actionPriority that gave a pivot MOVE the
+ * bare-switch bracket. The revert is exactly that clause and nothing else. */
+demoSource('WIRE 120 Parting Shot does not jump the queue (a pivot MOVE is a MOVE)',
+  [['  if(k===\'switch\')    return it.a.mv?movePriority(it.a.mv,field)+pk:6;',
+    '  if(k===\'switch\')    return 6;']],
+  (E) => {
+    const me = bare('incineroar'), ally = bare('corviknight');
+    const rep = bare('garchomp'), rep2 = bare('pangoro');
+    const f1 = bare('milotic'), f2 = bare('weavile');
+    const S = E.battleInit([me, ally, rep, rep2], [f1, f2], { seeded: true });
+    const hp0 = me.curHP, rep0 = rep.curHP;
+    E.battleTurn(S, rng5,
+      new Map([[me, E.playerAction(me, 'partingshot', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, E.playerAction(f1, 'scald', me, S.field)], [f2, { kind: 'pass' }]]));
+    /* The pivot must still have happened in BOTH arms, or this would pass on an engine where Parting
+     * Shot simply stopped switching. */
+    const pivoted = S.actA.indexOf(rep) >= 0 && S.actA.indexOf(me) < 0;
+    return pivoted && (hp0 - me.curHP) > 0 && (rep0 - rep.curHP) === 0;
+  });
+
+/* ---- WIRE 121, against a source-reverted engine ------------------------------------------------- */
+demoSource('WIRE 121 Volt Switch does not pivot out of an absorbed hit',
+  [['      if(!m.fainted&&m.curHP>0&&dealt>0&&TAGS.has(\'move\',a.move.id,\'pivotDamaging\')){',
+    '      if(!m.fainted&&m.curHP>0&&TAGS.has(\'move\',a.move.id,\'pivotDamaging\')){']],
+  (E) => {
+    const run = (ab) => {
+      const me = bare('pikachu'), ally = bare('corviknight');
+      const rep = bare('garchomp'), rep2 = bare('incineroar');
+      const f1 = bare('milotic'), f2 = bare('weavile');
+      f1.ability = ab;
+      const S = E.battleInit([me, ally, rep, rep2], [f1, f2], { seeded: true });
+      E.battleTurn(S, rng5,
+        new Map([[me, E.playerAction(me, 'voltswitch', f1, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+      return S.actA.indexOf(me) >= 0;
+    };
+    return run('marvelscale') === false && run('lightningrod') === true;
+  });
+
+/* ---- WIRE 122, against a STRIPPED TAG ----------------------------------------------------------- */
+demo('WIRE 122 refusesStatusMoves -- Good as Gold refuses Yawn',
+  shipped, without('ability', 'goodasgold', 'refusesStatusMoves'), () => {
+    const run = (ab) => {
+      const me = bare('milotic'), ally = bare('corviknight');
+      const f1 = bare('gholdengo'), f2 = bare('weavile');
+      f1.ability = ab;
+      const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+      M.battleTurn(S, rng5,
+        new Map([[me, M.playerAction(me, 'yawn', f1, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+      return f1._yawn != null;
+    };
+    return run('none') === true && run('goodasgold') === false;
+  });
+
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);
 if (failures) { console.log('  A green-and-stripped pair that did not flip means the probe does NOT watch its knob.'); process.exit(1); }

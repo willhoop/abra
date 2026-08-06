@@ -1,6 +1,6 @@
 # ABRA — the plain-English deck
 
-**Version 3.49.0 · 2026-08-05 · Will Hooper**
+**Version 3.50.0 · 2026-08-06 · Will Hooper**
 
 A slide-by-slide, jargon-light tour. The white paper (linked on the last slide) has the math and sources.
 
@@ -351,6 +351,31 @@ two days. The new check has five arms, and one of them exists purely to catch a 
 made: Orthworm's Earth Eater makes it immune to Ground attacks, which looks in our data exactly like
 Levitate, and Orthworm is very much on the floor. We asked the official game engine and it told us
 so.
+
+---
+
+## Slide 9b — We said we had 97 bugs. We had none of them.
+
+A tool of ours changes a fact the simulator is supposed to read, then watches whether the simulator's
+behaviour moves. If nothing moves, the simulator was not really reading that fact. It flagged **97**
+of these, and they were passed on as 97 bugs.
+
+Will asked what the top two actually were. **Both were fine.** Life Orb's damage boost *is* read from
+the data; only its recoil is written against the item's name, which is untidy but not wrong today.
+Light Screen's number is ignored **deliberately** — the data file carries the singles-format value,
+and this is a doubles engine where the real number is different. Using the data file's number would
+have made every Light Screen look a third better than it is.
+
+The tool could see that nothing moved. It could not see **why**. It now answers that too, by reading
+the simulator's own source code rather than anybody's comments about it, and sorts every finding into
+four boxes: nothing implements this at all (the real bugs), the engine substitutes its own value on
+purpose, the engine works off the name instead of the data, and the test simply never reached that
+branch. **None of the 97 is in the first box.** The count we now track is that first box only — 163
+items, none of them from the 97 — because a number that includes false alarms is a number people stop
+reading.
+
+The rule was checked against three cases we had already worked out by hand, and it refuses to publish
+anything if it cannot reproduce all three.
 
 ---
 

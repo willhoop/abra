@@ -2,7 +2,7 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.49.0 · Last updated 2026-08-05**
+**Version 3.50.0 · Last updated 2026-08-06**
 **Will Hooper · ABRA**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
@@ -416,6 +416,37 @@ optimum showed one accepted step is worth 0.202 win-rate points against a 4.77-p
 the affordable budget, so the search moves to a 4–8-parameter reparameterization first. The full
 argument is `docs/COVERAGE-PLAN-REVIEW.md`. ABRA continues to have **no exploitability number**;
 `data/exploitability.json` remains void.
+
+**Taunt was not implemented, and the largest disagreement by pair volume was an engine fault rather
+than a harness one (3.50.0).** The generated interaction matrix's disagreements were ranked by CARRIER
+uses x REACTOR uses — the pair's real frequency, not the carrier's — and the head of that list was
+`Taunt`, which appeared in twelve rows. The engine wrote the volatile, decremented it, and read it
+nowhere, so a Taunted body still landed Hypnosis, Decorate, Strength Sap and another Taunt; Showdown's
+two handlers (`onDisableMove` at selection, `onBeforeMove` at execution) are now both wired off one
+derived table, `volatile -> the move category it refuses`. The row ranked #1 by volume,
+`partingshot -> throatchop`, had been filed as a probable staging artifact on the strength of a
+species mismatch; it was the engine — a pivot MOVE was given the bare-switch priority, so Parting Shot
+out-sped everything and its replacement, not its user, took the incoming attack. Known disagreements
+fell from 94 to 72 (19 inside the scored set, 53 in buckets the gate discards). The census rose
+211 -> 216 live of 219 probed; the damage differential did not move.
+
+**The mutation tier's defect count was wrong in the direction that inflates it, and the correction is
+recorded rather than quietly applied (3.49.1).** The full sweep reported 97 DEFECT-CANDIDATE operators
+and an open total of 340; the two highest-usage rows were checked by hand and **both were false
+positives**. `damageMultAll / lifeorb` reads the tag for the damage and branches on the item's *name*
+only for the recoil — latent, not live. `halvesDamage / lightscreen` is not a defect at all: the engine
+ignores the tag's `mult` deliberately, because the artifact carries the singles value 0·5 and this is a
+doubles engine where the reduction is 2732/4096. A mutation verdict says what *moved*; it cannot see a
+deliberate override. The triage now grades every open operator **A/B/C/D from a parse of the frozen
+engine source** — A, no lookup for the tag and no branch on the carrier's name; B, the param is
+overridden by the engine's own constant; C, the behaviour is hardcoded by name; D, the param is read
+and this battery could not move it. **Nought of the 97 is class A.** The ratchet counts class A only
+(163 operators, 56 carrier × tag rows), because a number that counts false positives is a number
+people learn to ignore. Class A is *not* a count of missing mechanics — it says the fact reaches the
+simulator neither as a tag nor by name, and a third route (`mv.rc`, `data/move-effects.js`, an action
+kind) can still carry it — so the census's `armed` field is the second sort key and 49 of the 56 rows
+have no armed probe. The rule is gated on three cases decided by hand before it existed (Taunt A,
+Light Screen B, Life Orb C) and refuses to publish if it cannot reproduce them.
 
 ## Outplayed turns are not noise: the click-censoring fix (3.42.0)
 

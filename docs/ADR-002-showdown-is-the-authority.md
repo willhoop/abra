@@ -1,6 +1,6 @@
 # ADR-002 — Showdown is the authority, MEDICHAM is the runtime
 
-**Version 3.49.0 · 2026-08-05 · Status: ACCEPTED · Supersedes the migration half of
+**Version 3.50.0 · 2026-08-06 · Status: ACCEPTED · Supersedes the migration half of
 [ADR-001](ADR-001-use-the-champions-mod.md), which stands as a record and is not deleted.**
 
 ---
@@ -48,8 +48,8 @@ converged. Read at the moment of the decision, from artifacts, not prose:
 | instrument | agreement with the official engine |
 |---|---|
 | `data/engine-diff.json` (damage, seed 20260804) | **149 / 150** — the one residual is a documented harness-layer boundary, both engines right |
-| `data/interaction-matrix.json` (carrier × reactor) | **1,614 / 1,634 — 98.8%** of 2,300 staged from a theoretical 8,795. The 17 are filed individually; the four oldest are UNWIRED knobs (Shield Dust ×3, Steadfast ×1) rather than wrong arithmetic |
-| `data/mechanics-census.json` | **211 / 214 live**, 3 missing with written reasons |
+| `data/interaction-matrix.json` (carrier × reactor) | **1,624 / 1,643 — 98.8%** of 2,300 staged from a theoretical 8,795, PLUS the artifact's own `off_gate` count of **53** disagreements in buckets the gate discards. The agreement RATE excludes those and the count fell at 3.50.0 while the rate did not move; read both fields. The four oldest are UNWIRED knobs (Shield Dust ×3, Steadfast ×1) rather than wrong arithmetic |
+| `data/mechanics-census.json` | **216 / 219 live**, 3 missing with written reasons |
 
 *(Those are a snapshot, and the census in particular moves — it read 202/211 four hours before this
 was written and 211/214 when it was checked. That is the point rather than a caveat: the number
@@ -77,6 +77,14 @@ the authority. Every disagreement remains MEDICHAM's fault by construction.
 engine on the 2,300 pairs that ran"*, never *"the engine is correct"*. That coverage fraction **is** the answer
 to how much of the law we actually follow, and raising it is the entire point of the coverage
 programme (mutation → unified generator → registry → differential).
+
+**And a coverage instrument can inflate its own findings.** The mutation tier reported 97 defect
+candidates in 3.49.0; the two largest were a deliberate doubles override (Light Screen) and a
+name-branched recoil (Life Orb), and neither is a defect. A mutation verdict says what MOVED and
+cannot see intent, so 3.49.1 grades every open operator A/B/C/D from a **parse of the frozen engine
+source** — nought of the 97 is class A — and ratchets class A alone. Same guard as above, pointed at
+ourselves: the classifier is calibrated on three cases decided by hand before it existed and refuses
+to publish if it cannot reproduce them.
 
 **The failure mode to watch is the quiet one.** When a differential row goes red there are two ways
 to make it green: fix the engine, or fix the test. Both are sometimes correct — when the engine

@@ -1,8 +1,8 @@
 {
-  "generated": "2026-08-05T20:53:17.353Z",
+  "generated": "2026-08-06T04:49:23.382Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "3.49.0",
+  "changelog_top_at_baseline": "3.50.0",
   "version_pins": {
     "docs/ARCHITECTURE-NOTES.md": {
       "version": "1.0",

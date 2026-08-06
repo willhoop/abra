@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 3.49.0 · Last updated 2026-08-05.**
+**Version 3.50.0 · Last updated 2026-08-06.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
@@ -262,16 +262,36 @@ than Pelipper plus Archaludon** — the same expressiveness failure as DODUO, on
 
 ## MEDICHAM — Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves
 
-**MECHANICS STATE, 2026-08-05 (3.41.0), read from the artifact rather than typed:**
-`data/mechanics-census.json` reads **211 live of 214 probed, 3 missing, 0 hollow** (wires 82–89 at
+**MECHANICS STATE, 2026-08-06 (3.50.0), read from the artifact rather than typed:**
+`data/mechanics-census.json` reads **216 live of 219 probed, 3 missing, 0 hollow** (wires 82–89 at
 3.40.0, then the Layer 0 pass — wires 90–112 — at 3.41.0; Marvel Scale and After You/Quash came
 off the missing list, the second because the "cannot tell it from Instruct" blocker was false:
 Instruct carries `instructsTarget {extraAction:true}`, a shape read; then the scope pass, WIRE 117's
 grounded-ness, and WIRE 118 — **dynamic speed**, where the queue re-sorts before every action and
-board.js's hand-rolled copy of the ordering rule was deleted in favour of the engine's). The three remaining are each
+board.js's hand-rolled copy of the ordering rule was deleted in favour of the engine's; then WIRES
+119-122 at 3.50.0, driven off the interaction matrix's disagreement list ranked by CARRIER x REACTOR
+usage — **TAUNT, 1,503 clicks, was not implemented at all** (the volatile was written, decremented
+and read by nothing, while the comment beside it claimed the opposite), a pivot MOVE was resolving at
+the bare-switch priority so **Parting Shot was the fastest action in the game**, Volt Switch pivoted
+out of a hit Lightning Rod had absorbed, and the Yawn branch was the one foe-aimed status route that
+never asked about Good as Gold). The three remaining are each
 declared with a reason in [ENGINE.md](ENGINE.md) — two on the `moveAccuracy(id, field)` signature
 (a change that crosses into the refit edge MEASURE owns), one by DECISION (Avalanche asks for turn
 state `dmgRange` is not given).
+
+**THE MUTATION TIER'S DEFECT COUNT WAS RETRACTED DOWNWARD AND THE RETRACTION IS THE ENTRY, 3.49.1.**
+`data/mutation-coverage.json` reported **97 DEFECT-CANDIDATE** operators inside an open total of 340,
+and the two highest-usage rows were both false positives when read by hand: Life Orb reads its damage
+tag and branches on the item NAME only for the recoil (latent), and Light Screen's `mult` is ignored
+**deliberately**, because the artifact carries the singles 0·5 and this doubles engine uses 2732/4096.
+A mutation verdict says what MOVED and structurally cannot see a deliberate override. Every open
+operator is now graded **A/B/C/D from a parse of the frozen engine source** — never from a comment —
+and **nought of the 97 is class A**. The ratchet counts class A only: **163 operators over 56 carrier ×
+tag rows**, all of them from the NO-CONSUMER-IN-SOURCE bucket. Class A means the fact reaches the
+simulator neither as a tag nor through the carrier's name; it is **not** a count of missing mechanics,
+because `mv.rc`, `data/move-effects.js` and the action kinds can still carry it — so the census's
+`armed` field is the second sort key and **49 of the 56 rows have no armed probe**. The rule is gated
+on three cases decided by hand before it existed (Taunt A, Light Screen B, Life Orb C).
 
 **THE INTERACTION MATRIX IS NOW A SEPARATE, GENERATED CLAIM** and it is the one that says whether the
 mechanics work TOGETHER. `data/interaction-matrix.json`: a theoretical cross product of **8,795**

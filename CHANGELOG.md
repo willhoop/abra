@@ -10,6 +10,144 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.50.0] — 2026-08-06
+
+### Taunt did not exist, and the #1 disagreement by volume was not a harness fault
+
+Four wires against the top of `data/interaction-matrix.json`'s disagreement list, ranked by CARRIER
+uses × REACTOR uses. Every expected value was played at the pinned Showdown commit `20ad99ff` FIRST,
+both arms printed, before a line of engine changed; every probe was shown RED on a known-bad engine.
+
+**WIRE 119 — Taunt (1,503 clicks).** The volatile was written, decremented, and **read by nothing**,
+so a Taunted body still landed Hypnosis, Stun Spore, Decorate, Screech, Disable, Feather Dance,
+Strength Sap, Trick-or-Treat and another Taunt — twelve matrix rows. The comment at `chooseAction`
+claimed the opposite in words. Both of Showdown's halves are now wired: **SELECTION** (`onDisableMove`)
+through a module-scope `illegalMoveNow` that the priors sampler asks too, and **EXECUTION**
+(`onBeforeMove`) through one gate **above the kind dispatch** — WIRE 77's place, because Taunt refuses
+a status move of *any* kind. Derived from the tag (`forbidsStatusMoves.forbids` + the same move's
+`statusInflict` volatile), membership printed before it was trusted, and `statusCategory` verified
+against the format dex as an exact match for `move.category === 'Status'`. The duration tick moved to
+end-of-turn beside Disable's, and Showdown's *"the target already moved"* +1 bump is wired off WIRE
+118's `unresolved` set — measured both ways, three refusals either way.
+
+**WIRE 120 — `partingshot -> throatchop`, the largest row (7,475 × 2,946), is an ENGINE fault.** It
+was filed as a probable harness staging fault; it is not. `kind:'switch'` was given priority +6
+whether or not it carried a MOVE, so **Parting Shot was the fastest action in the game** — it dodged
+every hit aimed at its user and the replacement ate the attack. A pivot move now resolves in its own
+bracket.
+
+**WIRE 121 — `voltswitch -> lightningrod` (1,459 × 2,108).** Showdown fires `selfSwitch` only when the
+move connected, so Volt Switch into Lightning Rod / Volt Absorb / Motor Drive leaves its user
+standing. medicham2 pivoted anyway, turning the three abilities built to punish an Electric click into
+a free escape. Also removed the three `flipturn -> <protect variant>` rows.
+
+**WIRE 122 — Good as Gold refuses Yawn.** `refusesStatusMoves` is checked in nine places; the `yawn`
+branch was the tenth site and had no check.
+
+### Changed
+- `engine/medicham2-browser.js` — WIRES 119–122. New derived table `forbidByVolatile()` (with a
+  `TAGS.__onSetDB` rebuild hook so the mutation harness can perturb it), `volatileForbidsMove`,
+  `actionMoveId`, and `illegalMoveNow` hoisted to module scope. The hand-copied Disable clause in the
+  priors sampler is gone — it is now the same call the move-list filter uses, so Throat Chop's silence
+  and the Gigaton Hammer lockout stop leaking through the sampler as well.
+- `engine/medicham2-browser.js` — `pick.kind==='speed'` now asks about the action it PRODUCES rather
+  than the move that was sampled. Milotic's priors label **Icy Wind** as `speed`, so a sampled Icy
+  Wind was coming out of the chooser as a Tailwind; that mapping defect is **filed, not fixed**.
+
+### Added
+- `tests/test-mechanics.js` — five armed probes: Taunt at execution time, Taunt at selection time,
+  Parting Shot not jumping the queue, Volt Switch not pivoting out of an absorbed hit, Good as Gold
+  refusing Yawn. Each names the reference figures it was measured against.
+- `tests/probe_red_demo.js` — five new demonstrations, three by stripped tag and two by source
+  revert. **34 demonstrations, 0 failed.**
+- `engine/medicham2-browser.js` — counters `seen.tauntRefusedAtExecution`,
+  `seen.tauntRefusedAtSelection`, `fails.forbidCategoryUnknown` (+`…First`).
+
+### Fixed
+- The seeded LCG in the two new probes overflowed float53. `tests/test-prng.js` forbids the constant
+  outright and caught it; both now use mulberry32, the generator `engine/chomp_ev.js` settled on.
+
+### Notes
+- **Mechanics census 211 → 216 live of 214 → 219 probed.** Missing still 3 (the same three), hollow 0,
+  `threw` 0, `unarmed` still 145 — every new probe is armed.
+- **Interaction matrix, `--full`: total known disagreements 94 → 72.** Live disagreements 20 → 19;
+  off-gate 74 → 53; live cases 1,634 → 1,643 (nine became judgeable once a fix stopped the harness
+  reading them as inert). Agreement 98.8%, unchanged as a rate.
+- Damage differential unchanged at **1/150** — the same pre-existing `chesnaught woodhammer ->
+  mimikyu` row. `tests/test-game-diff.js` agrees on every turn of all five scripted games.
+- **MAG's inputs did not move, and it is measured.** Counters over the fit's own decision walk —
+  57,275 candidate vectors from 300 clean games — record `battleTurn` 0, `actionPriority` 0,
+  `playerAction` 0, against `compareTurnOrder` 37,084 and `dmgRange` 262,737. Every site these wires
+  touch is inside a function the feature path never calls. `engine/feature_engine_contrast.js` was
+  deliberately NOT quoted: it contrasts live against a frozen release and every release predates WIRE
+  118, so its verdict is a documented `MOVED` about something else. **No refit is owed.**
+- **Still open, named rather than filed quietly:** `taunt -> taunt` is a harness speed tie (the
+  generator gives both sides Alakazam); `voltswitch -> lightningrod` is still STAGED TWICE under one
+  key; `refusesStatusMoves` wants one predicate and has ten call sites.
+
+## [3.49.1] — 2026-08-06
+
+### The 97 "defect candidates" were triaged. Nought of them is a defect.
+
+`tests/mutation_harness.js` reported **97 DEFECT-CANDIDATE** operators and they were presented as 97
+bugs. The top two, checked by hand, were **both false positives**:
+
+- `damageMultAll / lifeorb` (10,791 uses, the highest row) — the DAMAGE half is read straight off the
+  tag at `medicham2:1216`. Only the **recoil** branches on `m.item==='lifeorb'`, so mutating
+  `costsPerAttack` cannot move behaviour. A *derive, never name* violation that is **latent**, not live.
+- `halvesDamage / lightscreen` (3,404 uses) — **not a defect at all.** The engine keeps separate P/S
+  counters, honours the category the tag declares, and ignores the tag's `mult` **on purpose**: the
+  artifact carries the SINGLES 0.5 and this is a doubles engine where the reduction is 2732/4096.
+
+The harness's own header already said READ-AND-IGNORED is not the same thing as a defect. Its triage
+could not see a **deliberate override**, and that was the gap.
+
+### Added
+
+- **An A/B/C/D classifier, graded on what the SOURCE DOES**, not on comments — a comment is prose.
+  It parses every `TAGS.param/has/withTag/reactorsTo` call in the frozen engine (balanced-paren
+  argument extraction), then asks whether the mutated param is dereferenced off the bound variable and
+  whether the carrier's id drives a branch by name.
+  **A** tag never read (the defect class) · **B** param overridden with the engine's own constant ·
+  **C** hardcoded by name (latent — the carrier count of the tag is printed as the risk) ·
+  **D** the param IS read and this battery could not move it.
+- **The triage is gated like any other check.** Three cases decided by hand — Taunt **A**, Light Screen
+  **B**, Life Orb **C** — must all be reproduced or the sweep refuses to run and writes no artifact.
+  `tests/test-mutation-coverage.js` asserts the artifact on disk was produced by a rule that could.
+
+### Changed
+
+- **The ratchet moves from `defectCandidates + tagNotConsumed + noConsumerInSource` (340) to CLASS A
+  ONLY (163).** A number that counts false positives is a number people learn to ignore. The ceiling
+  carries its own scope, hashing **the text of the classifier**, for the same reason the battery scope
+  hashes the script text: changing what is counted makes two counts incomparable. The per-operator
+  ratchet keeps the battery scope alone — a triage change must not reset it.
+- The ranked list is class A only, and prints the B and C lists above it so a reader can check the
+  demotions rather than take them.
+
+### Fixed
+
+- **Three false-match shapes in the classifier, each found by printing the membership before trusting
+  it, and each of which DEMOTES a row out of the defect class — the dangerous direction.** Comments
+  quote code (`'encore'` inside a sentence at 2478), so comments are stripped before any name is looked
+  for. `{kind:'protect'}` writes an action kind and decides nothing. And `SPREAD_LEGACY` at line 166 is
+  live code holding `'blizzard'`, `'rockslide'` and `'heatwave'` — a plain "is the name in a set" test
+  moved `blizzard / inflictsFreeze`, `rockslide / flinches` and `heatwave / inflictsBurn` out of the
+  defect class on the strength of a set about something else. A name-set match now requires **half the
+  set's members to carry the tag** (POWDER scores 0.88 against `powder` and passes; SPREAD_LEGACY
+  scores 0.03 against `flinches` and does not).
+
+### Notes
+
+- **0 of the 97 survive as class A** — 40 B, 5 C, 52 D. Class A is 163 operators over 56 carrier x tag
+  rows, and every one of them came from the NO-CONSUMER-IN-SOURCE bucket, not from the 97.
+- **Class A is not "163 missing mechanics" and the artifact says so.** It means the fact reaches the
+  simulator neither as a tag nor through the carrier's name; a third route — `mv.rc`,
+  `data/move-effects.js`, an action kind — can still carry it, and this instrument cannot see those.
+  49 of the 56 rows have no ARMED census probe, and that is the number that is a defect claim.
+- No engine file was read for behaviour and none was edited. Measured against frozen release
+  **`032b4a2979dd`** and stamped with it, while a second ENGINE agent held `medicham2-browser.js` open.
+
 ## [3.49.0] — 2026-08-05
 
 ### There were two implementations of "who moves first". One is deleted, and the survivor is dynamic.

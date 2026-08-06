@@ -1,6 +1,6 @@
 # ABRA — Technical Documentation
 
-**Version 3.49.0 · Last updated 2026-08-05**
+**Version 3.50.0 · Last updated 2026-08-06**
 
 **Change record for 3.47.0.** Two artifacts were computed from an engine that then changed. Do not
 quote such an artifact. First measure whether the change moved the feature function: run every
@@ -44,8 +44,9 @@ The harness no longer uses Protect for this. It uses any move that the Pokémon 
 that does not block. If no such move exists, the test is not built, and the reason is recorded. A
 check stops the run if a Pokémon is given a Protect for this purpose.
 
-From `data/interaction-matrix.json`: 1,634 of the 2,300 tests can occur, and the matrix agrees with
-the official engine on 1,614 of these.
+From `data/interaction-matrix.json`: 1,643 of the 2,300 tests can occur, and the matrix agrees with
+the official engine on 1,624 of these. The artifact also records 53 more disagreements in buckets the
+gate discards. These are real. Read `off_gate` and `off_gate_rows`, not the agreement rate alone.
 
 Many tests that showed no result now show one. The count of these is in `CHANGELOG.md`. Three new
 faults in the simulator are recorded. One new fault in the harness is also recorded. The harness fault
@@ -85,6 +86,32 @@ now uses all four team-sheet channels. A counter proves the channels reached the
 231,722 decisions). The pair-layer fit does not use them yet. The coverage plan changed: mutation
 tests come before the handler registry. See `COVERAGE-PLAN-REVIEW.md` for the reasons. ABRA has no
 exploitability number.
+
+**Change record for 3.50.0.** The simulator did not do Taunt. It recorded the Taunt condition. It did
+not read the condition. A Pokemon with Taunt could still use a status move. The simulator now refuses
+a status move at two times. The first time is move selection. The second time is move execution. The
+rule comes from the tag data. It does not use the move name.
+
+A pivot move had the priority of a switch. Parting Shot moved before all other moves. This is not
+correct. A pivot move is a move. It now uses its own priority.
+
+Volt Switch changed the user when the target absorbed the move. This is not correct. The user now
+stays if the move does no damage.
+
+Yawn worked against Good as Gold. This is not correct. Good as Gold refuses all status moves from an
+opponent. The Yawn code now asks.
+
+The count of known differences with the official engine went from 94 to 72.
+
+**Change record for 3.49.1.** The mutation harness reported 97 defect candidates. The two largest were
+not defects. The engine reads the Life Orb tag for the damage. The engine uses the item name only for
+the recoil. This is latent. The engine ignores the Light Screen tag value on purpose. The tag holds the
+singles value. This is a doubles engine. The doubles value is different. The harness now grades each
+open operator. It uses four classes. Class A means no lookup and no name branch. Class B means the
+engine substitutes its own value. Class C means the engine uses the name. Class D means the test could
+not move the value. The grade comes from a parse of the engine source. It does not come from a comment.
+No defect candidate is class A. The ratchet counts class A only. Class A is 163 operators. Three known
+cases test the rule. The harness stops if the rule fails these cases.
 
 *Written in ASD-STE100 Simplified Technical English. Sentences are short. The voice is active. One
 word has one meaning. The document follows the Diátaxis structure: Tutorial, How-to, Reference,

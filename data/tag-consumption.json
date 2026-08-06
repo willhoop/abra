@@ -4,8 +4,9 @@
   "total_tags": 177,
   "live": 82,
   "staged": 21,
-  "unreached": 36,
+  "unreached": 38,
   "unreached_this_run": [
+    "statusCategory",
     "priority",
     "stalling",
     "statChange",
@@ -26,6 +27,7 @@
     "healsSelf",
     "takesTargetItem",
     "healsAlly",
+    "forbidsStatusMoves",
     "failsWithoutWeather",
     "perishClock",
     "boostsTarget",
@@ -44,7 +46,6 @@
     "preventsSwitch"
   ],
   "dead": [
-    "statusCategory",
     "neverMisses",
     "flinches",
     "inflictsBurn",
@@ -67,7 +68,6 @@
     "accuracyMod",
     "inflictsSleep",
     "setsWeather",
-    "forbidsStatusMoves",
     "writesAccuracy",
     "inflictsToxic",
     "substitute",
@@ -84,11 +84,6 @@
     "auraBoost"
   ],
   "dead_by_uses": [
-    {
-      "tag": "statusCategory",
-      "uses": 169468,
-      "carriers": 175
-    },
     {
       "tag": "neverMisses",
       "uses": 145504,
@@ -200,11 +195,6 @@
       "carriers": 5
     },
     {
-      "tag": "forbidsStatusMoves",
-      "uses": 1503,
-      "carriers": 1
-    },
-    {
       "tag": "writesAccuracy",
       "uses": 1163,
       "carriers": 8
@@ -298,5 +288,5 @@
     "failsWithoutTerrain",
     "amplifiesBoosts"
   ],
-  "generated": "2026-08-05T20:48:10.977Z"
+  "generated": "2026-08-06T04:52:43.135Z"
 }
