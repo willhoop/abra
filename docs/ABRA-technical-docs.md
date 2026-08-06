@@ -1,6 +1,6 @@
 # ABRA — Technical Documentation
 
-**Version 3.55.0 · Last updated 2026-08-06**
+**Version 3.56.0 · Last updated 2026-08-06**
 
 **Change record for 3.47.0.** Two artifacts were computed from an engine that then changed. Do not
 quote such an artifact. First measure whether the change moved the feature function: run every
@@ -86,6 +86,31 @@ now uses all four team-sheet channels. A counter proves the channels reached the
 231,722 decisions). The pair-layer fit does not use them yet. The coverage plan changed: mutation
 tests come before the handler registry. See `COVERAGE-PLAN-REVIEW.md` for the reasons. ABRA has no
 exploitability number.
+
+**Change record for 3.56.0.** The simulator did not use the accuracy of a move correctly. Four rules
+change accuracy. The rules are Coil, Wide Lens, Sand Veil and No Guard. We measured each rule two
+times. The first measurement had the rule. The second measurement did not have the rule. The two
+measurements were the same for all four rules. This shows that no rule had an effect.
+
+There are three causes. The first cause is a table that changed the words `accuracy` and `evasion`
+into an empty value. Eleven parts of the simulator read that table. The second cause is that the
+simulator did not read items and did not read abilities for accuracy. The third cause is that the
+function which makes the accuracy decision does not receive the attacker and does not receive the
+target. A function cannot use an item on a body that it does not have.
+
+The simulator now has one function for accuracy. The name of the function is `hitChance`. The
+function receives the attacker, the target, the move and the field. Four parts of the simulator call
+this function. The accuracy decision now happens after the target is known.
+
+The simulator also did not make a Substitute. It removed one quarter of the health of the user. It
+did not give a Substitute to the user. A player made this move 1,976 times. The move was worse than
+doing nothing. The simulator now gives a Substitute. A second use of the move fails and does not
+remove health. One function decides if a move goes through a Substitute. The damage rules and the
+status rules both use that function.
+
+The count of tested mechanics is 231 of 232. One mechanic is missing. The mechanic has a written
+reason. Five more rules are known to be absent. Each of the five has a written reason and a usage
+count. The largest is Aura, which needs information the damage function does not receive.
 
 **Change record for 3.50.0.** The simulator did not do Taunt. It recorded the Taunt condition. It did
 not read the condition. A Pokemon with Taunt could still use a status move. The simulator now refuses

@@ -49,10 +49,10 @@ converged. Read at the moment of the decision, from artifacts, not prose:
 |---|---|
 | `data/engine-diff.json` (damage, seed 20260804) | **149 / 150** — the one residual is a documented harness-layer boundary, both engines right |
 | `data/interaction-matrix.json` (carrier × reactor) | **1,624 / 1,643 — 98.8%** of 2,300 staged from a theoretical 8,795, PLUS the artifact's own `off_gate` count of **53** disagreements in buckets the gate discards. The agreement RATE excludes those and the count fell at 3.50.0 while the rate did not move; read both fields. The four oldest are UNWIRED knobs (Shield Dust ×3, Steadfast ×1) rather than wrong arithmetic |
-| `data/mechanics-census.json` | **218 / 221 live**, 3 missing with written reasons |
+| `data/mechanics-census.json` | **231 / 232 live**, 1 missing with a written reason |
 
 *(Those are a snapshot, and the census in particular moves — it read 202/211 four hours before this
-was written, 211/214 when it was checked, 216/219 after WIRES 119–122 and 217/220 after WIRE 123.
+was written, 211/214 when it was checked, 216/219 after WIRES 119–122, 217/220 after WIRE 123, 218/221 after WIRE 128 and 231/232 after WIRES 129–130.
 That is the point rather than a caveat: the number climbs because the instruments exist. Read it from
 the artifact, never from this table.)*
 

@@ -615,3 +615,144 @@ console.log('\n  wrote data/engine-diff.json');
     process.exitCode = 1;
   }
 }
+
+/* ---- WIRE 129 — THE ACCURACY-MODIFIER TABLE, RE-DERIVED RATHER THAN REMEMBERED ------------------
+ *
+ * `ACCMOD` in engine/medicham2-browser.js carries the MULTIPLIER and the DIRECTION for every ability
+ * and item that touches a to-hit roll. It has to be a table in the engine and not a read of
+ * data/abra-tags.js, because the artifact's `writesAccuracy.scope` is INVERTED on every carrier:
+ * tag_dex put `onModifyAccuracy` under "its own moves" and `onSourceModifyAccuracy` under "moves
+ * aimed at it", and Showdown fires the first on the TARGET and the second on the ATTACKER. So the
+ * artifact records Sand Veil as sharpening its own moves and Compound Eyes as sharpening the foe's.
+ *
+ * A table nobody re-derives is the hand list it replaced one layer down — WIRE 124's whole lesson —
+ * so this block reads the handlers straight out of the live format and fails on any row the engine
+ * has wrong, missing or invented. The DIRECTION is read from the HOOK NAME, which is the fact:
+ *
+ *     onModifyAccuracy        the handler is on the TARGET      -> side 'def'
+ *     onSourceModifyAccuracy  the handler is on the ATTACKER    -> side 'att'
+ *     onAnyAccuracy           neither end may miss              -> side 'both', never
+ *     onAnyModifyAccuracy     the whole SIDE, ally included     -> not expressible in hitChance
+ *
+ * A row the engine deliberately does NOT apply carries `off:` with the reason, and that is accepted
+ * — but only if the dex still HAS the entity, so an `off` row cannot be used to hide a deletion. */
+{
+  const HOOKS = { onModifyAccuracy: 'def', onSourceModifyAccuracy: 'att',
+                  onAnyAccuracy: 'both', onAnyModifyAccuracy: 'side' };
+  const derived = new Map();
+  for (const kind of ['abilities', 'items']) {
+    for (const e of dex[kind].all()) {
+      const hook = Object.keys(HOOKS).find(h => e[h]);
+      if (!hook) continue;
+      const src = String(e[hook]);
+      const m = src.match(/chainModify\(\[?\s*([\d.]+)/);
+      const mult = m ? (+m[1] > 100 ? +(+m[1] / 4096).toFixed(2) : +m[1]) : null;
+      const setTo = (src.match(/return\s+(\d+)\s*;/) || [])[1];
+      derived.set((kind === 'abilities' ? 'ability' : 'item') + ':' + e.id, {
+        side: HOOKS[hook], hook, mult, setTo: setTo == null ? null : +setTo,
+        never: /return\s+true\s*;/.test(src), past: e.isNonstandard === 'Past' });
+    }
+  }
+  const T = MEDI.ACCMOD || {};
+  const bad = [];
+  for (const [k, d] of derived) {
+    const row = T[k];
+    if (!row) { bad.push(`${k}: the format has it (${d.hook}) and ACCMOD has NO ROW`); continue; }
+    /* An `off` row is a declared non-implementation. It still has to name the right direction and the
+     * right number, so turning it back on later is a one-word change and not a re-derivation. */
+    if (d.never !== !!row.never) bad.push(`${k}: never-miss format=${d.never} engine=${!!row.never}`);
+    if (d.side !== 'side' && d.side !== row.side)
+      bad.push(`${k}: DIRECTION format=${d.side} (${d.hook}) engine=${row.side}`);
+    if (d.side === 'side' && !row.off)
+      bad.push(`${k}: ${d.hook} covers the whole SIDE and hitChance has no side — it must be declared off`);
+    if (d.mult != null && row.mult != null && Math.abs(d.mult - row.mult) > 0.005)
+      bad.push(`${k}: MULTIPLIER format=${d.mult} engine=${row.mult}`);
+    if (d.mult != null && row.mult == null && row.setTo == null && !row.never)
+      bad.push(`${k}: the format scales by ${d.mult} and ACCMOD carries no number`);
+    if (d.setTo != null && row.setTo !== d.setTo && !d.never)
+      bad.push(`${k}: SET-TO format=${d.setTo} engine=${row.setTo}`);
+  }
+  const invented = [];
+  for (const k of Object.keys(T)) {
+    if (derived.has(k)) continue;
+    /* An INVENTED row that FIRES is as bad as a missing one — it applies a modifier the real game does
+     * not have. One that is declared `off` is a NOTE rather than a failure, and `skilllink` is the
+     * live example and the reason the clause is split: data/abra-tags.js tags it `writesAccuracy`
+     * because tag_dex matches /accuracy/ against `delete move.multiaccuracy`, so the row exists to
+     * stop MEDFAILS.accModUntabled counting a false positive forever. It applies nothing. */
+    if (T[k].off) invented.push(`${k}: no accuracy handler in the format — declared off: ${T[k].off}`);
+    else bad.push(`${k}: ACCMOD has a row that FIRES and the format has no accuracy handler for it`);
+  }
+  console.log(`\n  ACCURACY-MODIFIER CONFORMANCE — ${derived.size} accuracy handlers in ${CS.FORMAT} `
+    + `against ${Object.keys(T).length} ACCMOD rows`);
+  for (const [k, d] of derived)
+    console.log(`    ${k.padEnd(24)} ${String(d.side).padEnd(5)} ${d.hook.padEnd(24)} `
+      + `${d.never ? 'never-miss' : (d.setTo != null ? 'set ' + d.setTo : 'x' + d.mult)}`
+      + `${d.past ? '   [isNonstandard: Past — banned in this format]' : ''}`
+      + `${T[k] && T[k].off ? '   ENGINE: OFF — ' + T[k].off : ''}`);
+  for (const n of invented) console.log('    note  ' + n);
+  console.log(`    disagree: ${bad.length}`);
+  for (const b of bad) console.log('    !! ' + b);
+  const untabled = (MEDI.fails && MEDI.fails.accModUntabled) || 0;
+  console.log(`    carriers the artifact tags and ACCMOD has no row for (MEDFAILS.accModUntabled): `
+    + `${untabled}${untabled ? '   first: ' + MEDI.fails.accModUntabledFirst : ''}`);
+  {
+    const diffPath = D('data', 'engine-diff.json');
+    const art = JSON.parse(fs.readFileSync(diffPath, 'utf8'));
+    art.accuracy_modifier_conformance = { handlers: derived.size, rows: Object.keys(T).length,
+                                          disagreed: bad.length, problems: bad };
+    fs.writeFileSync(diffPath, JSON.stringify(art, null, 2) + '\n');
+  }
+  if (bad.length) {
+    console.log('\n  FAILED: ACCMOD no longer matches the format. A wrong DIRECTION here is silent and');
+    console.log('  expensive — it hands the attacker the defender\'s evasion bonus and vice versa,');
+    console.log('  which is exactly the inversion data/abra-tags.js still carries.');
+    process.exitCode = 1;
+  }
+}
+
+/* ---- WIRE 130 — WHAT GOES THROUGH A SUBSTITUTE, RE-DERIVED RATHER THAN REMEMBERED ---------------
+ *
+ * Showdown's fact is the move flag `bypasssub`, and NO artifact this engine reads carries it:
+ * data/move-effects.js has no flags block at all and data/abra-tags.js has no tag for it. So the set
+ * lives in the engine as `SUBPASS` and is re-derived here over every move in MC.moves against the
+ * live format, exactly as ACC_FIX is.
+ *
+ * IT IS A HARD FAILURE AND THE DIRECTION IS THE REASON. A move missing from SUBPASS is BLOCKED by a
+ * substitute that should not stop it, and the three biggest ones in this format are Encore (4,848
+ * corpus uses), Taunt (1,503) and Disable (730) — all of which really do bypass. Getting this list
+ * short is a worse engine than having no substitute at all. */
+{
+  const missing = [], extra = [];
+  let considered = 0;
+  const SUBPASS = MEDI.SUBPASS || new Set();
+  for (const id of Object.keys(MC.moves)) {
+    const dm = dex.moves.get(id);
+    if (!dm || !dm.exists) continue;
+    considered++;
+    const should = !!(dm.flags && dm.flags.bypasssub);
+    const has = SUBPASS.has(id);
+    const uses = ((tags.moves[id] || {}).uses) || 0;
+    if (should && !has) missing.push({ id, uses });
+    if (!should && has) extra.push({ id, uses });
+  }
+  console.log(`\n  SUBSTITUTE-BYPASS CONFORMANCE — ${considered} moves in MC.moves against ${CS.FORMAT}`);
+  console.log(`    SUBPASS carries ${SUBPASS.size};  missing from it: ${missing.length};  in it and not bypasssub: ${extra.length}`);
+  for (const r of missing.sort((a, b) => b.uses - a.uses).slice(0, 20))
+    console.log(`    !! MISSING  ${r.id.padEnd(20)} bypasses a substitute in the real game  (${r.uses} uses)`);
+  for (const r of extra.sort((a, b) => b.uses - a.uses).slice(0, 20))
+    console.log(`    !! EXTRA    ${r.id.padEnd(20)} does NOT bypass, and the engine lets it through  (${r.uses} uses)`);
+  {
+    const diffPath = D('data', 'engine-diff.json');
+    const art = JSON.parse(fs.readFileSync(diffPath, 'utf8'));
+    art.substitute_bypass_conformance = { compared: considered, inSet: SUBPASS.size,
+                                          missing, extra };
+    fs.writeFileSync(diffPath, JSON.stringify(art, null, 2) + '\n');
+  }
+  if (missing.length || extra.length) {
+    console.log('\n  FAILED: SUBPASS no longer matches the format. A move MISSING from it is silently');
+    console.log('  blocked by every substitute in every rollout, and Encore/Taunt/Disable are the ones');
+    console.log('  that would go first.');
+    process.exitCode = 1;
+  }
+}

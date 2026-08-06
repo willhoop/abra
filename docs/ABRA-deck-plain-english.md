@@ -1,6 +1,6 @@
 # ABRA — the plain-English deck
 
-**Version 3.55.0 · 2026-08-06 · Will Hooper**
+**Version 3.56.0 · 2026-08-06 · Will Hooper**
 
 A slide-by-slide, jargon-light tour. The white paper (linked on the last slide) has the math and sources.
 
@@ -376,6 +376,42 @@ reading.
 
 The rule was checked against three cases we had already worked out by hand, and it refuses to publish
 anything if it cannot reproduce all three.
+
+---
+
+## Slide 9c — Everything that changes accuracy was switched off, and one move was charged for and never delivered (3.56.0)
+
+Some moves miss. Some things make you miss less: Coil sharpens your aim, a Wide Lens is an item that
+does the same. Some things make you miss more: Sand Veil hides a Pokémon in a sandstorm. And No Guard
+means nobody ever misses at all. All four are in the game we are modelling, and together they show up
+about five thousand times in our replay store.
+
+We measured each of them the boring way — play it out with the thing, play it out without the thing,
+compare. **All four returned exactly the same number both ways.** Not close, not within noise:
+identical, to the digit. Something that changes nothing at all is not a subtle bug. Every one of them
+was simply not connected.
+
+Three separate reasons, which is the part worth noticing. A translation table turned the words
+"accuracy" and "evasion" into nothing, so a move that was supposed to raise three of your stats
+quietly raised two. Items and abilities were never consulted for accuracy anywhere. And the function
+that decided whether you hit **was not given the attacker or the target** — it was handed a move name
+and asked to answer a question that depends on who is holding what. It could not have got that right
+even in principle.
+
+In the same pass: **Substitute took a quarter of your health and gave you nothing.** The doll was
+paid for and never built. That is 1,976 clicks in the store of a move that was strictly worse than
+doing nothing — the simulator would tell you the cost and then hand you an empty box.
+
+The tempting fix for Substitute was the bigger bug, and we measured it before writing it. Some moves
+go *through* a Substitute — sound-based ones do, famously. It would have been natural to write the
+rule as "sound gets through". We checked: the three moves that most often need to get through in this
+format are Encore, Taunt and Disable, together about seven thousand uses, and **not one of them is a
+sound move.** A tidy rule would have walled all three.
+
+Coverage is now 231 of 232 probed mechanics. The one that remains has a written reason, as do five
+more rules we know are absent — the largest of those needs information the damage function is never
+handed, so wiring it is a design decision rather than a fix, and it is written down as one instead of
+being quietly patched.
 
 ---
 

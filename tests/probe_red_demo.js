@@ -604,7 +604,7 @@ demoSource('WIRE 124 a 90% move can miss — accuracy is derived, not a 35-name 
   try{ fx=moveFx(key); }
   catch(e){ MEDFAILS.accuracyNoTable++;
             if(!MEDFAILS.accuracyNoTableFirst)MEDFAILS.accuracyNoTableFirst=String(e.message).slice(0,80); }
-  if(fx&&fx.accuracy!=null)return fx.accuracy===true?100:+fx.accuracy;
+  if(fx&&fx.accuracy!=null)return fx.accuracy===true?true:+fx.accuracy;
   MEDFAILS.accuracyUnknown++;
   if(!MEDFAILS.accuracyUnknownFirst)MEDFAILS.accuracyUnknownFirst=key;
   return 100;`,
@@ -937,6 +937,239 @@ demoSource('#42/#45  statusImmune -- Insomnia refuses a Spore and takes a burn (
     };
     return st('insomnia', 'spore') === 'none' && st('none', 'spore') === 'slp'
         && st('insomnia', 'willowisp') === 'brn';
+  });
+
+/* ---- WIRE 129, ACCURACY MODIFICATION -------------------------------------------------------------
+ *
+ * FIVE DEMONSTRATIONS, ONE REVERTED ARGUMENT EACH, because this wire has five separable parts and a
+ * single coarse reversion (turn the whole of hitChance back into moveAccuracy) would go red on all
+ * five at once and prove nothing about any of them.
+ *
+ * THE STAGING IS ONE HELPER, exactly as it is in tests/test-mechanics.js, and for the same reason:
+ * two hand-rolled accuracy comparisons in one repository is WIRE 124's defect, and writing one here
+ * would reintroduce it in the file whose whole job is to prove the probes watch their knob. */
+const hitOn = (E, roll, moveId, opt) => {
+  const o = opt || {};
+  const me = bare('milotic'), ally = bare('incineroar');
+  const f1 = bare('garchomp'), f2 = bare('incineroar');
+  const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+  f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 8 }); f1.curHP = f1.st.hp;
+  if (o.stage) o.stage({ me, ally, f1, f2, S });
+  const rng = () => roll;
+  const mine = (mv) => new Map([[me, mv ? E.playerAction(me, mv, f1, S.field) : { kind: 'pass' }],
+                                [ally, { kind: 'pass' }]]);
+  const theirs = (mv) => new Map([[f1, mv ? E.playerAction(f1, mv, me, S.field) : { kind: 'pass' }],
+                                  [f2, { kind: 'pass' }]]);
+  if (o.setupMe || o.setupFoe) E.battleTurn(S, rng, mine(o.setupMe || null), theirs(o.setupFoe || null));
+  const before = f1.curHP;
+  E.battleTurn(S, rng, mine(moveId), theirs(null));
+  return before - f1.curHP;
+};
+
+/* THE KNOWN-BAD ENGINE IS THE STAT-NAME MAP AND NOTHING ELSE. `accuracy:null, evasion:null` is
+ * verbatim what this file said before the wire, and it is the whole bug for the MOVE door: eleven
+ * boost appliers all key off SD2ENG, so Coil's +1 accuracy and Minimize's +2 evasion were read out of
+ * data/move-effects.js, mapped to null, and dropped on the floor. hitChance, ACCMOD and the relocated
+ * roll all stay exactly as shipped. */
+demoSource('WIRE 129 an accuracy stage and an evasion stage exist at all (SD2ENG dropped both)',
+  [["const SD2ENG={atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp',accuracy:'acc',evasion:'eva'};",
+    "const SD2ENG={atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp',accuracy:null,evasion:null};"]],
+  (E) => {
+    /* Howl is the control on both engines: a setup click that raises Attack and not accuracy. If the
+     * control ever LANDS the staging is wrong and the whole row is meaningless, so it is asserted on
+     * the shipped engine too rather than inferred. */
+    const howl = hitOn(E, 0.85, 'hydropump', { setupMe: 'howl' });
+    const coil = hitOn(E, 0.85, 'hydropump', { setupMe: 'coil' });
+    const plain = hitOn(E, 0.85, 'icebeam', { setupFoe: 'protect' });
+    const mini = hitOn(E, 0.85, 'icebeam', { setupFoe: 'minimize' });
+    return howl === 0 && coil > 0 && plain > 0 && mini === 0;
+  });
+
+/* THE KNOWN-BAD ENGINE IS TWO TABLE ROWS. Everything else about the item door — the tag gate, the
+ * untabled counter, hitChance itself — is left standing, so what goes red is specifically "the engine
+ * knows Wide Lens is x1.1 and Bright Powder is x0.9", in the right DIRECTIONS. */
+demoSource('WIRE 129 Wide Lens and Bright Powder are in the table, on the right sides',
+  [["  'item:widelens':      {side:'att',mult:1.1},", "  'item:__nolens':      {side:'att',mult:1.1},"],
+   ["  'item:brightpowder':  {side:'def',mult:0.9},", "  'item:__nopowder':  {side:'def',mult:0.9},"]],
+  (E) => {
+    const at = (roll, stage) => hitOn(E, roll, 'hydropump', stage ? { stage } : null);
+    return at(0.85) === 0 && at(0.85, (B) => { B.me.item = 'widelens'; }) > 0
+        && at(0.75) > 0 && at(0.75, (B) => { B.f1.item = 'brightpowder'; }) === 0;
+  });
+
+/* THE KNOWN-BAD ENGINE IS THE WEATHER GATE, AND IT IS REVERTED IN THE DIRECTION THAT STILL "WORKS".
+ * `return true` leaves Sand Veil firing — the mechanic looks live, the sand arm still misses — and
+ * only the CLEAR-SKY control catches it. That is the shape a one-armed probe cannot see, and the
+ * reason this probe has three arms: a permanent 20% evasion bonus on every Garchomp in the format
+ * would otherwise have printed as a working feature. */
+demoSource('WIRE 129 Sand Veil fires ONLY in sand (the gate, not the ability)',
+  [["  if(w==='sand')return ctx.weather==='sand';", "  if(w==='sand')return true;"]],
+  (E) => {
+    const at = (ab, wx) => hitOn(E, 0.70, 'hydropump',
+      { stage: (B) => { B.f1.ability = ab; B.S.field.weather = wx; } });
+    return at('sandveil', '') > 0 && at('none', 'sand') > 0 && at('sandveil', 'sand') === 0;
+  });
+
+/* THE KNOWN-BAD ENGINE IS ONE OPERAND. No Guard's handler is onAnyAccuracy — it does not care which
+ * end of the move it is on — and an attacker-only implementation is the half a reasonable person
+ * ships. Dropping `||_neverMissAb(def)` leaves the attacker half working, so the row goes red only on
+ * the direction that was dropped. */
+demoSource('WIRE 129 No Guard works from the TARGET as well as from the attacker',
+  [['  if(_neverMissAb(att)||_neverMissAb(def))return Infinity;', '  if(_neverMissAb(att))return Infinity;']],
+  (E) => {
+    const at = (mine, theirs) => hitOn(E, 0.99, 'hydropump',
+      { stage: (B) => { B.me.ability = mine; B.f1.ability = theirs; } });
+    return at('none', 'none') === 0 && at('noguard', 'none') > 0 && at('none', 'noguard') > 0;
+  });
+
+/* THE KNOWN-BAD ENGINE IS THE DEFENDER ARGUMENT AT THE ATTACK SITE — the relocation itself. Before
+ * this wire the to-hit roll happened ABOVE target resolution, so there was no defender to ask about.
+ * `null` is exactly that engine, with hitChance, ACCMOD and the stage table all intact.
+ *
+ * IT ASSERTS THE ATTACKER SIDE STILL WORKS ON THE REVERTED BUILD, and that is the point: "accuracy
+ * modification is on" is TRUE there. What is missing is only the half that needs a body on the other
+ * side, which is where every evasion item and ability in this format lives. */
+demoSource('WIRE 129 the attack-site roll knows WHO it is aimed at',
+  [["      const _accDef=(!a.move.spread&&targets.length===1)?targets[0]:null;",
+    "      const _accDef=null;"]],
+  (E) => {
+    const at = (roll, stage) => hitOn(E, roll, 'hydropump', stage ? { stage } : null);
+    const lens = at(0.85, (B) => { B.me.item = 'widelens'; }) > 0;   // attacker side: TRUE on both engines
+    const powder = at(0.75, (B) => { B.f1.item = 'brightpowder'; }) === 0;
+    const veil = at(0.70, (B) => { B.f1.ability = 'sandveil'; B.S.field.weather = 'sand'; }) === 0;
+    return lens && powder && veil;
+  });
+
+/* ---- WIRE 130 AND THE #51 BATCH -----------------------------------------------------------------
+ *
+ * ONE STAGING, shared, for the same reason as hitOn above. `setupFoe` is clicked by the body that is
+ * then attacked, which is what a Substitute probe needs and what a hand-rolled version keeps getting
+ * backwards. */
+const twoOn = (E, opt) => {
+  const o = opt || {};
+  const me = bare('milotic'), ally = bare('incineroar');
+  const f1 = bare('garchomp'), f2 = bare('incineroar');
+  const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+  if (o.big) { f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 8 }); f1.curHP = f1.st.hp; }
+  if (o.stage) o.stage({ me, ally, f1, f2, S });
+  const rng = () => (o.roll == null ? 0.5 : o.roll);
+  const mine = (mv) => new Map([[me, mv ? E.playerAction(me, mv, f1, S.field) : { kind: 'pass' }],
+                                [ally, { kind: 'pass' }]]);
+  const theirs = (mv) => new Map([[f1, mv ? E.playerAction(f1, mv, me, S.field) : { kind: 'pass' }],
+                                  [f2, { kind: 'pass' }]]);
+  let paid = 0;
+  if (o.setupMe || o.setupFoe) {
+    const h = f1.curHP;
+    E.battleTurn(S, rng, mine(o.setupMe || null), theirs(o.setupFoe || null));
+    paid = h - f1.curHP;
+  }
+  const before = f1.curHP;
+  if (o.move || o.foeMove) E.battleTurn(S, rng, mine(o.move || null), theirs(o.foeMove || null));
+  return { paid, dmg: before - f1.curHP, sub: f1._sub || 0, hp: f1.curHP,
+           fainted: !!f1.fainted, status: f1.status || '-', me, f1 };
+};
+
+/* THE KNOWN-BAD ENGINE IS THE ENGINE AS SHIPPED BEFORE THIS PASS: the generic costsUserHP block paid
+ * for the doll and the call that BUILDS it was not there. Nothing else moves -- subBlocks, SUBPASS
+ * and the absorb site all stay -- so the row goes red on exactly the missing half. */
+demoSource('WIRE 130 the Substitute that was paid for is actually built',
+  [['          grantSubstitute(m,a.mv||a.move.id);\n', '']],
+  (E) => {
+    const ctrl = twoOn(E, { setupFoe: 'howl', move: 'icebeam' });
+    const sub = twoOn(E, { setupFoe: 'substitute', move: 'icebeam' });
+    /* The COST is asserted on both engines: the pre-wire build really did pay it, so "Substitute did
+     * nothing" cannot be reached by an engine in which the click failed outright. */
+    return ctrl.dmg > 0 && sub.paid > 0 && sub.dmg === 0;
+  });
+
+/* THE KNOWN-BAD ENGINE IS THE BYPASS, AND IT IS REVERTED IN THE DIRECTION THAT STILL "WORKS".
+ * `tg._sub>0` is what the absorb site said for its whole life, and it makes the substitute STRONGER
+ * than the real game's -- Hyper Voice, Boomburst, Snarl and every other sound move stopped dead, and
+ * an Infiltrator body walled by a doll it ignores. The Ice Beam arm still passes there, so only the
+ * bypass arm can see it. */
+demoSource('WIRE 130 a sound move and an Infiltrator go THROUGH the doll',
+  [['        if(subBlocks(m,tg,a.move.id)){tg._sub=Math.max(0,tg._sub-dmg);continue;}',
+    '        if(tg._sub>0){tg._sub=Math.max(0,tg._sub-dmg);continue;}']],
+  (E) => {
+    const beam = twoOn(E, { setupFoe: 'substitute', move: 'icebeam' });
+    const sound = twoOn(E, { setupFoe: 'substitute', move: 'hypervoice' });
+    const inf = twoOn(E, { setupFoe: 'substitute', move: 'icebeam',
+                           stage: (B) => { B.me.ability = 'infiltrator'; } });
+    return beam.dmg === 0 && sound.dmg > 0 && inf.dmg > 0;
+  });
+
+/* THE KNOWN-BAD ENGINE IS THE EARLY FAIL. Without it the second Substitute pays another quarter of
+ * max HP and grantSubstitute refuses to replace the doll, so the click is a pure loss -- the same
+ * shape as the bug this wire fixed, one turn later. */
+demoSource('WIRE 130 a second Substitute costs nothing',
+  [['          if(m._sub>0&&TAGS.has(\'move\',a.mv||a.move.id,\'substitute\')){m._lastMove=a.mv||a.move.id;continue;}\n', '']],
+  (E) => {
+    const twice = twoOn(E, { setupFoe: 'substitute', foeMove: 'substitute' });
+    const once = twoOn(E, { setupFoe: 'howl', foeMove: 'substitute' });
+    return once.dmg > 0 && twice.dmg === 0;
+  });
+
+demo('#51  swapsAbilities -- Skill Swap exchanges the two abilities',
+  shipped, without('move', 'skillswap', 'swapsAbilities'), () => {
+    const r = twoOn(M, { move: 'skillswap',
+      stage: (B) => { B.me.ability = 'blaze'; B.f1.ability = 'intimidate'; } });
+    return r.me.ability === 'intimidate' && r.f1.ability === 'blaze';
+  });
+
+demo('#51  variablePower -- Acrobatics doubles with an empty hand',
+  shipped, without('move', 'acrobatics', 'variablePower'), () => {
+    const at = (item) => twoOn(M, { big: true, move: 'acrobatics',
+                                    stage: (B) => { B.me.item = item; } }).dmg;
+    const held = at('leftovers'), empty = at('');
+    return held > 0 && empty >= 2 * held - 2;
+  });
+
+demo('#51  fixedDamage(ohko) -- Fissure kills a body no roll could reach',
+  shipped, without('move', 'fissure', 'fixedDamage'), () => {
+    const hit = twoOn(M, { big: true, move: 'fissure', roll: 0.1 });
+    const normal = twoOn(M, { big: true, move: 'icebeam', roll: 0.1 });
+    return hit.fainted && !normal.fainted && normal.dmg > 0;
+  });
+
+demo('#51  survivesFromFull -- Sturdy holds at 1 from full and not from 90%',
+  shipped, without('ability', 'sturdy', 'survivesFromFull'), () => {
+    const at = (frac) => twoOn(M, { move: 'icebeam', stage: (B) => {
+      B.f1.ability = 'sturdy';
+      B.me.st = Object.assign({}, B.me.st, { sa: 400 });
+      B.f1.curHP = Math.floor(B.f1.st.hp * frac);
+    } });
+    const full = at(1), chipped = at(0.9);
+    return !full.fainted && full.hp === 1 && chipped.fainted;
+  });
+
+demo('#51  ignoresScreensAndSubs -- Infiltrator hits the body behind the doll',
+  shipped, without('ability', 'infiltrator', 'ignoresScreensAndSubs'), () => {
+    const blocked = twoOn(M, { setupFoe: 'substitute', move: 'icebeam' });
+    const through = twoOn(M, { setupFoe: 'substitute', move: 'icebeam',
+                               stage: (B) => { B.me.ability = 'infiltrator'; } });
+    return blocked.dmg === 0 && through.dmg > 0;
+  });
+
+demo('#51  boostsFromFallen -- Supreme Overlord counts the dead at switch-in',
+  shipped, without('ability', 'supremeoverlord', 'boostsFromFallen'), () => {
+    const run = (dead, ab) => {
+      const lead = bare('milotic'), ally = bare('incineroar');
+      const f1 = bare('garchomp'), f2 = bare('incineroar');
+      const king = bare('kingambit'); king.ability = ab;
+      const d = [bare('milotic'), bare('milotic'), bare('milotic')];
+      const S = M.battleInit([lead, ally, king].concat(d), [f1, f2], { seeded: true });
+      f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 8 }); f1.curHP = f1.st.hp;
+      for (let i = 0; i < dead; i++) { d[i].fainted = true; d[i].curHP = 0; }
+      const P2 = (a, b) => new Map([[a, { kind: 'pass' }], [b, { kind: 'pass' }]]);
+      M.battleTurn(S, rng5, P2(lead, ally), P2(f1, f2));
+      M.battleTurn(S, rng5, new Map([[lead, { kind: 'switch', to: king }], [ally, { kind: 'pass' }]]), P2(f1, f2));
+      const before = f1.curHP;
+      M.battleTurn(S, rng5, new Map([[king, M.playerAction(king, 'ironhead', f1, S.field)], [ally, { kind: 'pass' }]]),
+        P2(f1, f2));
+      return before - f1.curHP;
+    };
+    const zero = run(0, 'supremeoverlord'), three = run(3, 'supremeoverlord'), none3 = run(3, 'none');
+    return zero > 0 && none3 === zero && three > zero;
   });
 
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);

@@ -2,9 +2,9 @@
   "note": "RATCHET. `dead` may shrink and may never grow. A tag here is one NO line of engine code looks for — decisive, and independent of how the sweep was staged. `staged` is a property of the sweep and is recorded for information only, never ratcheted.",
   "method": "engine/tags.js counts ASKED (any lookup) and FOUND (the entity carried it). ASKED=0 is the decisive reading. FOUND>0 is necessary and NOT sufficient — proving the read changes behaviour is the mutation tier in docs/TAG-COVERAGE.md.",
   "total_tags": 177,
-  "live": 81,
-  "staged": 23,
-  "unreached": 37,
+  "live": 84,
+  "staged": 22,
+  "unreached": 38,
   "unreached_this_run": [
     "statusCategory",
     "priority",
@@ -33,6 +33,7 @@
     "healsOnSwitchOut",
     "delayedSleep",
     "curesVolatile",
+    "substitute",
     "formeChange",
     "clearsBoosts",
     "reordersTurn",
@@ -64,12 +65,9 @@
     "oneTurnGuard",
     "inflictsConfusion",
     "readsTargetItem",
-    "accuracyMod",
     "inflictsSleep",
     "setsWeather",
-    "writesAccuracy",
     "inflictsToxic",
-    "substitute",
     "randomBoostEachTurn",
     "statusImmune",
     "punishesBoostedTarget",
@@ -179,11 +177,6 @@
       "carriers": 2
     },
     {
-      "tag": "accuracyMod",
-      "uses": 2682,
-      "carriers": 14
-    },
-    {
       "tag": "inflictsSleep",
       "uses": 1921,
       "carriers": 4
@@ -194,18 +187,8 @@
       "carriers": 5
     },
     {
-      "tag": "writesAccuracy",
-      "uses": 1163,
-      "carriers": 8
-    },
-    {
       "tag": "inflictsToxic",
       "uses": 889,
-      "carriers": 2
-    },
-    {
-      "tag": "substitute",
-      "uses": 640,
       "carriers": 2
     },
     {
@@ -267,19 +250,18 @@
   "staged_this_run": [
     "thawsTarget",
     "extendsDuration",
+    "accuracyMod",
     "refusesStatusMoves",
-    "speedOnItemLoss",
     "punishesContact",
     "blocksBerries",
     "disablesAttacker",
-    "poisonsOnMyContact",
+    "writesAccuracy",
     "costsUserHP",
     "reducesAllyDamage",
     "blocksExplosion",
     "forcesSwitch",
     "crashOnMiss",
     "curesStatus",
-    "reflectsStatusMoves",
     "weatherSuppression",
     "addsFlinch",
     "boostsFromFallen",
@@ -289,5 +271,5 @@
     "failsWithoutTerrain",
     "amplifiesBoosts"
   ],
-  "generated": "2026-08-06T19:12:03.679Z"
+  "generated": "2026-08-06T20:47:11.647Z"
 }

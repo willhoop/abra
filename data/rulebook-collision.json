@@ -1,6 +1,6 @@
 {
   "note": "RATCHET. `clashes` may fall and may never rise. Two rulebooks state the same move facts; this counts where they DISAGREE today. Which one wins is an architecture decision and is not settled here.",
-  "generated": "2026-08-06 19:11",
+  "generated": "2026-08-06 20:45",
   "compared": 151,
   "agree": 149,
   "clashes": 2,

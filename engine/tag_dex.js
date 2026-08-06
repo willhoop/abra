@@ -2261,19 +2261,46 @@ const ABILITY_TAGS = [
     why: 'No Guard (1,133 fields) drives it to certainty in BOTH directions, so its own Hydro Pump '
        + 'never misses and neither does anything aimed at it. Compound Eyes, Wide Lens and Bright '
        + 'Powder scale the same number. One term, twelve writers, no branch needed',
+    /* THE DIRECTION WAS BACKWARDS ON EVERY CARRIER, AND NOTHING CAUGHT IT BECAUSE NOTHING CONSUMED
+     * `scope`. 2026-08-06, found while wiring WIRE 129.
+     *
+     * Showdown runs `runEvent('ModifyAccuracy', target, source, move, accuracy)`. Handlers on the
+     * TARGET are `onModifyAccuracy`; handlers on the SOURCE are `onSourceModifyAccuracy`. This
+     * derivation had them the other way round, so the artifact recorded SAND VEIL as sharpening its
+     * own moves and COMPOUND EYES as sharpening the foe's — precisely inverted, on all nine.
+     *
+     * `onModifyMove` is no longer folded in. It matched Skill Link's `delete move.multiaccuracy` on
+     * the substring `accuracy` and gave a multihit ability a writesAccuracy tag it does not deserve;
+     * every real accuracy writer in gen 9 uses one of the three hooks below.
+     *
+     * `onAnyModifyAccuracy` is its own scope because it is its own thing: Victory Star's guard is
+     * `source.isAlly(...)`, so it covers the whole SIDE and not one attacker.
+     *
+     * THE MULTIPLIER IS READ FROM THE HOOK THAT MATCHED rather than from the three concatenated, so
+     * an ability with handlers on both ends cannot hand back the wrong one's number.
+     *
+     * NOT YET IN data/tags.json. The artifact could not be regenerated on 2026-08-06 — the corpus
+     * fit_policy.loadCorpus() returns had shrunk 29% and a regeneration DROPPED five entities,
+     * including Serene Grace and Tinted Lens. See docs/ENGINE.md. No consumer reads `scope`. */
     of: o => {
-      const own  = String(o.onModifyAccuracy || '') + String(o.onModifyMove || '');
-      const foe  = String(o.onSourceModifyAccuracy || '');
-      const both = String(o.onAnyAccuracy || '');
-      const src = own + foe + both;
+      const def  = String(o.onModifyAccuracy || '');         // handler sits on the TARGET
+      const att  = String(o.onSourceModifyAccuracy || '');   // handler sits on the ATTACKER
+      const both = String(o.onAnyAccuracy || '');            // No Guard: neither end may miss
+      const side = String(o.onAnyModifyAccuracy || '');      // Victory Star: the whole side
+      const src = def + att + both + side;
       if (!/accuracy/i.test(src)) return null;
-      const always = /accuracy\s*=\s*true/.test(src);
-      const m = src.match(/chainModify\(\[?\s*([\d.]+)/);
+      const always = /accuracy\s*=\s*true/.test(src) || /return\s+true\s*;/.test(both);
+      /* The hook that actually matched owns the number. */
+      const from = both || side || att || def;
+      const m = from.match(/chainModify\(\[?\s*([\d.]+)/);
       const mult = m ? (+m[1] > 100 ? +(m[1] / 4096).toFixed(2) : +m[1]) : null;
+      const setTo = (from.match(/return\s+(\d+)\s*;/) || [])[1];
       const scope = both ? 'every move, both directions'
-                  : (own && foe) ? 'both directions'
-                  : own ? 'its own moves' : 'moves aimed at it';
-      return { setsTo: always ? 1 : null, mult: always ? null : mult, scope };
+                  : side ? 'every move on its own side, ally included'
+                  : (def && att) ? 'both directions'
+                  : att ? 'its own moves' : 'moves aimed at it';
+      return { setsTo: always ? 1 : (setTo == null ? null : +setTo),
+               mult: always ? null : mult, scope };
     } },
   { tag: 'auraBoost', param: 'multiplies one TYPE for every Pokemon on the field, friend and foe', probe: 'onAnyBasePower',
     why: 'Fairy Aura (1,455 fields) makes every Fairy move 1.33x -- including the foe\'s. A '

@@ -2,7 +2,7 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.55.0 · Last updated 2026-08-06**
+**Version 3.56.0 · Last updated 2026-08-06**
 **Will Hooper · ABRA**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
@@ -529,6 +529,67 @@ the missing third is one archive, so recovering them would reweight the sample b
 `board.js` narrows the choice set for a Choice item and not for the `onDisableMove` family, so
 **2,374 of 146,413 logged actions (1.6214%)** were priced against a menu that had already shrunk —
 a wrong denominator rather than a wrong label, and a separate refit.
+
+## A degenerate signature: when every arm of a controlled probe returns the same integer (3.56.0)
+
+The accuracy subsystem was probed with the instrument this division already had — stage the mechanic,
+stage its absence, run both, difference the result. Six arms over four mechanics, ~5,000 combined uses
+in the store:
+
+| arm | with | without |
+|---|---|---|
+| Coil (`+1 accuracy`) | 0 | 0 |
+| Minimize (`+2 evasion` on the target) | 258 | 258 |
+| Wide Lens (`×1.1`) | 0 | 0 |
+| Bright Powder (`×0.9`) | 116 | 116 |
+| Sand Veil, in sand (`×0.8`) | 115 | 115 |
+| No Guard (`accuracy → true`) | 0 | 0 |
+
+**Exact equality across every arm is a stronger signal than a wrong number, and it is a different
+one.** A miscalibrated modifier produces a difference of the wrong size; a difference of *identically
+zero*, repeated over four independently-implemented mechanics, is evidence about the **path**, not the
+**parameters**. Section *"A mechanic that fires everywhere"* (3.44.0) records the mirror-image
+signature — a rule firing on 100% of a population it should split — and both are instances of the same
+diagnostic: read the *distribution* of the controlled difference, not its mean.
+
+Three unrelated defects were on that path, which is why no single hypothesis explained all six arms.
+(i) The Showdown→engine stat map sent `accuracy` and `evasion` to `null`; eleven boost appliers key
+off that map, so a payload of `{atk:+1, def:+1, accuracy:+1}` applied two of its three components and
+reported success. (ii) No item or ability was consulted for accuracy at any call site. (iii) The roll
+called `moveAccuracy(id, field)` — **a signature that admits no attacker and no defender**. Defects
+(i) and (ii) are omissions and are ordinary; (iii) is a *type-level* impossibility, and it is the one
+worth generalising from: a function whose parameters cannot express the question is unfalsifiable by
+any test that only checks its output. The census had graded the accuracy family LIVE on exactly that
+basis for as long as it had existed.
+
+The repair is one authority, `hitChance(att, def, id, field, ctx)`, called at all four to-hit sites,
+with `printedAccuracy` preserving `true` (never-miss) as distinct from `100`, the standard (3+n)/3
+Gen-III+ stage table [Bulbapedia, *Accuracy*], and the roll relocated **below** target resolution so a
+defender exists to interrogate. Direction is not hand-typed: `ACCURACY-MODIFIER CONFORMANCE` re-derives
+all 12 handlers from the live format object and takes sign from the hook name — 12 handlers, 13 rows,
+**0 disagreements**.
+
+Separately, `Substitute` deducted 25% of the user's HP through the generic `costsUserHP` path and
+created no substitute: `playerAction` resolves the move to `kind:'affect'`, so the `kind==='sub'`
+branch added in WIRE 42 was unreachable at the time it was written. 1,976 clicks in the store of an
+action **strictly dominated by passing** — a rare case where the correct baseline is not "a slightly
+worse policy" but "a negative-value action no rational agent takes", which makes any policy fitted
+over those turns miscalibrated in a *direction*, not merely in magnitude.
+
+The bypass rule is likewise derived rather than reasoned. The intuitive encoding — *sound moves pass
+through a substitute* — is true and insufficient: the three highest-usage bypassing moves in this
+format are **Encore (4,848), Taunt (1,503) and Disable (730), and none carries the `sound` flag.**
+`SUBSTITUTE-BYPASS CONFORMANCE` re-derives `bypasssub` across all 500 moves: **51 carried, 0 missing,
+0 invented.** The general principle is the one this project states as *flags feed tags; match on tag
+shape, never on a name* — a semantic proxy for a mechanical flag will be right on the examples that
+motivated it and wrong on the tail that matters.
+
+**Reported rather than closed.** Five tags are *absent*, not unprobed, and are declared with usage
+counts instead of being probed red — gate (c) ratchets on "every probe MISSING", so a red probe would
+have broken a ratchet to record a fact the (b) column already records. The largest, `ability|auraBoost`
+(5,663 uses), is a **representational** limitation rather than a missing branch: the multiplier is
+field-wide over the full roster and `dmgRange` is given two bodies and a field. Wiring it changes a
+`board.js`-facing input and is therefore a design decision, routed as one.
 
 ## A mechanic that fires everywhere is not a mechanic that works (3.44.0)
 

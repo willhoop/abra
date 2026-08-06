@@ -1,8 +1,8 @@
 {
- "generated": "2026-08-06T07:54:22.246Z",
+ "generated": "2026-08-06T20:40:09.504Z",
  "generator": "build/strong_player_baseline.js",
  "void": false,
- "n_measured": 171801,
+ "n_measured": 177247,
  "n_unit": "protocol moves on the corpus side; weighted team slots on the Smogon side",
  "what_this_is": "A baseline for what STRONG players do, built from Smogon aggregate ladder statistics plus this repository's own stores. It reads no leaf, no policy weights and no simulator, so an engine release or a MAG refit does not invalidate it. A new Smogon month or a change to data/quality-filter.json does.",
  "scope": {
@@ -1651,54 +1651,54 @@
   "corpora": {
    "clean_ladder_closed_sheet": {
     "store": "data/games.ladder.jsonl",
-    "clean_games": 8047,
-    "team_slots": 16094,
+    "clean_games": 8272,
+    "team_slots": 16544,
     "date_range": [
      "2026-07-22 10:11",
-     "2026-08-06 07:00"
+     "2026-08-06 19:01"
     ],
     "rating": {
-     "n": 11852,
+     "n": 12182,
      "p10": 1067,
      "median": 1266,
-     "mean": 1286.3,
-     "p90": 1550,
+     "mean": 1285.8,
+     "p90": 1549,
      "max": 1892,
-     "pct_ge_1400": 26.2,
-     "pct_ge_1500": 14.36
+     "pct_ge_1400": 26.11,
+     "pct_ge_1500": 14.26
     },
     "l1_to_smogon": {
      "2026-06": {
-      "0": 237.9,
-      "1500": 259.36,
-      "1630": 280.55,
-      "1760": 302.34
+      "0": 237.92,
+      "1500": 259.31,
+      "1630": 280.66,
+      "1760": 302.31
      },
      "2026-07": {
-      "0": 138.56,
-      "1500": 174.88,
-      "1630": 230.93,
-      "1760": 274.63
+      "0": 139.08,
+      "1500": 175.06,
+      "1630": 230.84,
+      "1760": 274.71
      }
     },
     "split_half_noise_floor_l1": {
      "cuts": 12,
-     "min": 36.88,
-     "median": 53.41,
-     "max": 75.77,
+     "min": 37.19,
+     "median": 54.98,
+     "max": 77.02,
      "all": [
-      36.88,
-      38.69,
-      40.92,
-      45.98,
-      48.74,
-      48.85,
-      53.41,
-      59.77,
-      59.89,
-      60.38,
-      63.34,
-      75.77
+      37.19,
+      37.54,
+      41.38,
+      44.23,
+      48.45,
+      49.16,
+      54.98,
+      60.47,
+      60.49,
+      60.92,
+      62.94,
+      77.02
      ]
     },
     "nearest_cutoff_by_month": {
@@ -1770,25 +1770,25 @@
    "store": "data/games.bo3.jsonl",
    "what": "The Bo3 open-team-sheet ladder — MAG's fitting corpus. Rating summary only; it is a different information regime and its composition is not pooled with the others.",
    "rating_unfiltered": {
-    "n": 14539,
+    "n": 15097,
     "p10": 1043,
     "median": 1175,
     "p90": 1355,
     "max": 1707,
-    "pct_ge_1400": 5.33,
+    "pct_ge_1400": 5.21,
     "pct_ge_1500": 0.72
    }
   },
   "unfiltered_ladder_reference": {
    "store": "data/games.ladder.jsonl (NO quality filter)",
    "rating_unfiltered": {
-    "n": 83668,
+    "n": 86671,
     "p10": 1043,
     "median": 1130,
-    "p90": 1333,
+    "p90": 1332,
     "max": 1892,
-    "pct_ge_1400": 6.21,
-    "pct_ge_1500": 3.09
+    "pct_ge_1400": 6.14,
+    "pct_ge_1500": 3.05
    },
    "why": "The clean filter removes a large low-and-flat-rated block, so the benchmark population is materially stronger than the raw ladder. Any sentence of the form \"the ladder is median X\" has to say which of the two it means."
   }
@@ -1922,20 +1922,20 @@
    },
    "any_protection": {
     "0": {
-     "expected_carriers_per_team_of_six": 4.0011,
-     "n_eff_carrier_slots": 15778816
+     "expected_carriers_per_team_of_six": 4.0122,
+     "n_eff_carrier_slots": 15823517
     },
     "1500": {
-     "expected_carriers_per_team_of_six": 4.1351,
-     "n_eff_carrier_slots": 8197070
+     "expected_carriers_per_team_of_six": 4.1428,
+     "n_eff_carrier_slots": 8212434
     },
     "1630": {
-     "expected_carriers_per_team_of_six": 4.3418,
-     "n_eff_carrier_slots": 1121544
+     "expected_carriers_per_team_of_six": 4.3472,
+     "n_eff_carrier_slots": 1122954
     },
     "1760": {
-     "expected_carriers_per_team_of_six": 4.3896,
-     "n_eff_carrier_slots": 41576
+     "expected_carriers_per_team_of_six": 4.3945,
+     "n_eff_carrier_slots": 41623
     }
    }
   },
@@ -1944,245 +1944,245 @@
  "flat_in_rating": {
   "the_claim": "engine/fit_policy.js:1264 — \"measured move quality is close to flat in rating\". docs/DEFENSE.md §1 gives failed moves 2.59% under 1100 against 2.30% at 1400-1600.",
   "no_artifact_exists": "Neither figure has a generator in this repository. engine/realism_report.js counts the same protocol lines but POOLS both players and never bands by rating, and no data/*.json carries a rating-banded rate.",
-  "population": "clean closed-sheet ladder, 8047 clean games / 7040 raw logs matched / 14078 player-slots / 171801 protocol moves, attributed to the ACTING side",
+  "population": "clean closed-sheet ladder, 8272 clean games / 7265 raw logs matched / 14528 player-slots / 177247 protocol moves, attributed to the ACTING side",
   "bands": {
    "<1100": {
-    "player_slots": 1666,
-    "moves": 21098,
-    "failed_pct": 2.218,
+    "player_slots": 1723,
+    "moves": 21775,
+    "failed_pct": 2.172,
     "failed_ci95": [
-     1.925,
-     2.567
+     1.916,
+     2.506
     ],
-    "immune_pct": 2.318,
+    "immune_pct": 2.305,
     "immune_ci95": [
-     2.014,
-     2.629
+     2.003,
+     2.628
     ],
-    "supereffective_pct": 20.841,
+    "supereffective_pct": 20.941,
     "supereffective_ci95": [
-     20.023,
-     21.592
+     20.236,
+     21.847
     ]
    },
    "1100-1199": {
-    "player_slots": 2232,
-    "moves": 27390,
-    "failed_pct": 2.472,
+    "player_slots": 2321,
+    "moves": 28339,
+    "failed_pct": 2.41,
     "failed_ci95": [
-     2.077,
-     3.032
+     2.019,
+     3.041
     ],
-    "immune_pct": 2.234,
+    "immune_pct": 2.227,
     "immune_ci95": [
-     1.984,
-     2.474
+     2.005,
+     2.464
     ],
-    "supereffective_pct": 20.621,
+    "supereffective_pct": 20.823,
     "supereffective_ci95": [
-     19.974,
-     21.328
+     20.146,
+     21.457
     ]
    },
    "1200-1299": {
-    "player_slots": 1854,
-    "moves": 22699,
-    "failed_pct": 2.291,
+    "player_slots": 1903,
+    "moves": 23373,
+    "failed_pct": 2.246,
     "failed_ci95": [
-     1.99,
-     2.585
+     1.948,
+     2.601
     ],
-    "immune_pct": 2.071,
+    "immune_pct": 2.041,
     "immune_ci95": [
-     1.825,
-     2.306
+     1.803,
+     2.29
     ],
-    "supereffective_pct": 20.622,
+    "supereffective_pct": 20.571,
     "supereffective_ci95": [
-     19.903,
-     21.321
+     19.896,
+     21.374
     ]
    },
    "1300-1399": {
-    "player_slots": 1882,
-    "moves": 22577,
-    "failed_pct": 2.197,
+    "player_slots": 1941,
+    "moves": 23271,
+    "failed_pct": 2.204,
     "failed_ci95": [
-     1.945,
-     2.48
+     1.958,
+     2.479
     ],
-    "immune_pct": 2.21,
+    "immune_pct": 2.196,
     "immune_ci95": [
-     1.975,
-     2.463
+     1.97,
+     2.441
     ],
-    "supereffective_pct": 20.835,
+    "supereffective_pct": 20.932,
     "supereffective_ci95": [
-     20.16,
-     21.559
+     20.26,
+     21.677
     ]
    },
    "1400-1599": {
-    "player_slots": 2116,
-    "moves": 24669,
-    "failed_pct": 2.165,
+    "player_slots": 2178,
+    "moves": 25449,
+    "failed_pct": 2.157,
     "failed_ci95": [
-     1.831,
-     2.531
+     1.841,
+     2.584
     ],
-    "immune_pct": 2.027,
+    "immune_pct": 2.008,
     "immune_ci95": [
-     1.811,
-     2.25
+     1.813,
+     2.233
     ],
-    "supereffective_pct": 21.237,
+    "supereffective_pct": 21.187,
     "supereffective_ci95": [
-     20.553,
-     21.91
+     20.602,
+     21.823
     ]
    },
    "1600+": {
-    "player_slots": 652,
-    "moves": 7486,
-    "failed_pct": 2.658,
+    "player_slots": 666,
+    "moves": 7655,
+    "failed_pct": 2.704,
     "failed_ci95": [
-     1.927,
-     3.521
+     1.967,
+     3.584
     ],
-    "immune_pct": 2.151,
+    "immune_pct": 2.155,
     "immune_ci95": [
-     1.723,
-     2.565
+     1.778,
+     2.594
     ],
-    "supereffective_pct": 19.156,
+    "supereffective_pct": 19.203,
     "supereffective_ci95": [
-     17.952,
-     20.364
+     17.843,
+     20.521
     ]
    }
   },
   "contrast_DEFENSE_bands": {
    "failed": {
-    "lo_moves": 21098,
-    "hi_moves": 24669,
-    "lo_pct": 2.218,
-    "hi_pct": 2.165,
-    "delta": -0.054,
+    "lo_moves": 21775,
+    "hi_moves": 25449,
+    "lo_pct": 2.172,
+    "hi_pct": 2.157,
+    "delta": -0.015,
     "ci95": [
-     -0.539,
-     0.403
+     -0.417,
+     0.475
     ],
-    "se_clustered": 0.241,
-    "mde_80pct_power": 0.674,
+    "se_clustered": 0.225,
+    "mde_80pct_power": 0.631,
     "contains_zero": true
    },
    "immune": {
-    "lo_moves": 21098,
-    "hi_moves": 24669,
-    "lo_pct": 2.318,
-    "hi_pct": 2.027,
-    "delta": -0.291,
+    "lo_moves": 21775,
+    "hi_moves": 25449,
+    "lo_pct": 2.305,
+    "hi_pct": 2.008,
+    "delta": -0.297,
     "ci95": [
-     -0.679,
-     0.057
+     -0.681,
+     0.069
     ],
-    "se_clustered": 0.184,
-    "mde_80pct_power": 0.517,
+    "se_clustered": 0.187,
+    "mde_80pct_power": 0.525,
     "contains_zero": true
    },
    "supereffective": {
-    "lo_moves": 21098,
-    "hi_moves": 24669,
-    "lo_pct": 20.841,
-    "hi_pct": 21.237,
-    "delta": 0.396,
+    "lo_moves": 21775,
+    "hi_moves": 25449,
+    "lo_pct": 20.941,
+    "hi_pct": 21.187,
+    "delta": 0.246,
     "ci95": [
-     -0.606,
-     1.461
+     -0.721,
+     1.199
     ],
-    "se_clustered": 0.545,
-    "mde_80pct_power": 1.527,
+    "se_clustered": 0.515,
+    "mde_80pct_power": 1.444,
     "contains_zero": true
    }
   },
   "contrast_lt1100_vs_ge1400": {
    "failed": {
-    "lo_moves": 21098,
-    "hi_moves": 32155,
-    "lo_pct": 2.218,
-    "hi_pct": 2.28,
-    "delta": 0.061,
+    "lo_moves": 21775,
+    "hi_moves": 33104,
+    "lo_pct": 2.172,
+    "hi_pct": 2.284,
+    "delta": 0.111,
     "ci95": [
-     -0.41,
-     0.49
+     -0.258,
+     0.567
     ],
-    "se_clustered": 0.231,
-    "mde_80pct_power": 0.646,
+    "se_clustered": 0.219,
+    "mde_80pct_power": 0.614,
     "contains_zero": true
    },
    "immune": {
-    "lo_moves": 21098,
-    "hi_moves": 32155,
-    "lo_pct": 2.318,
-    "hi_pct": 2.056,
-    "delta": -0.262,
+    "lo_moves": 21775,
+    "hi_moves": 33104,
+    "lo_pct": 2.305,
+    "hi_pct": 2.042,
+    "delta": -0.263,
     "ci95": [
-     -0.629,
-     0.098
+     -0.628,
+     0.08
     ],
-    "se_clustered": 0.177,
-    "mde_80pct_power": 0.496,
+    "se_clustered": 0.183,
+    "mde_80pct_power": 0.513,
     "contains_zero": true
    },
    "supereffective": {
-    "lo_moves": 21098,
-    "hi_moves": 32155,
-    "lo_pct": 20.841,
-    "hi_pct": 20.753,
-    "delta": -0.088,
+    "lo_moves": 21775,
+    "hi_moves": 33104,
+    "lo_pct": 20.941,
+    "hi_pct": 20.729,
+    "delta": -0.213,
     "ci95": [
-     -1.037,
-     1.015
+     -1.208,
+     0.725
     ],
-    "se_clustered": 0.528,
-    "mde_80pct_power": 1.48,
+    "se_clustered": 0.497,
+    "mde_80pct_power": 1.391,
     "contains_zero": true
    }
   },
   "noise_floor_split_half_within_band": {
    "unit": "percentage points; ONE band cut eight ways. An effect smaller than this spread is not an effect.",
    "lt1100_failed": [
-    0.085,
-    0.089,
-    0.281,
-    0.131,
-    -0.361,
-    0.448,
-    0.489,
-    -0.025
+    0.203,
+    -0.058,
+    0.444,
+    0.185,
+    -0.288,
+    0.472,
+    0.497,
+    -0.217
    ],
    "ge1400_failed": [
-    0.365,
-    -0.113,
-    0.806,
-    0.498,
-    -0.109,
-    -0.348,
-    0.518,
-    -0.489
+    0.342,
+    -0.12,
+    0.751,
+    0.512,
+    -0.136,
+    -0.395,
+    0.431,
+    -0.569
    ]
   },
   "moves_by_rating": {
-   "unrated": 45882,
-   "lt1400": 93764,
-   "ge1400": 32155,
-   "ge1500": 17551,
-   "ge1600": 7486
+   "unrated": 47385,
+   "lt1400": 96758,
+   "ge1400": 33104,
+   "ge1500": 18011,
+   "ge1600": 7655
   },
   "pooled_rates_current_corpus": {
-   "failed_pct": 2.275,
-   "immune_pct": 2.074,
-   "supereffective_pct": 21.005,
+   "failed_pct": 2.261,
+   "immune_pct": 2.062,
+   "supereffective_pct": 21.034,
    "note": "Attributed to the acting side, so protocol lines with no preceding move in the turn are dropped; realism_report.js pools and does not drop them. Stated so the population and the count travel with the numbers, NOT as a substitute for re-running realism_report.js."
   },
   "verdict": "NOT MEASURED — not false.",
@@ -2201,12 +2201,12 @@
   "engine/provenance.js classifies this artifact's corpus as \"opensheet\" because this generator names data/games.ots.jsonl. Its PRIMARY corpus is the clean CLOSED ladder, so drift is judged against the wrong ceiling — the same class as the named exception docs/MEASURE.md §5 already records for data/winrate-backtest.json. Harmless today (8,047 declared against an open-sheet ceiling near 8,173 is under 2%) and wrong in principle. Needs a named exception in provenance.js, which is engine/ and was in flight."
  ],
  "corpus": {
-  "clean_games": 8047,
+  "clean_games": 8272,
   "store": "data/games.ladder.jsonl",
   "note": "The PRIMARY corpus is the clean CLOSED-sheet ladder. This generator also reads data/games.ots.jsonl and data/games.bo3.jsonl for their rating and composition summaries, and provenance.js classifies the artifact \"opensheet\" on that ground — see filed_not_fixed."
  },
  "source_digests": {
-  "build/strong_player_baseline.js": "71d5f344975f",
+  "build/strong_player_baseline.js": "ab68e94f1be9",
   "engine/quality.js": "e397e99ef257",
   "data/quality-filter.json": "e675d10477c8",
   "data/smogon-stats/2026-06/usage/gen9championsvgc2026regmb-0.txt": "711a56d8fa1e",
@@ -2257,12 +2257,13 @@
    "data/games.ots.jsonl": "Bo1 open-sheet store",
    "data/games.bo3.jsonl": "Bo3 open-sheet store (rating summary only)"
   },
-  "clean_games": 8047,
-  "raw_logs_matched": 7040,
+  "clean_games": 8272,
+  "raw_logs_matched": 7265,
   "quality_js_sha256": "e397e99ef257ebe9",
   "quality_filter_json_sha256": "e675d10477c853a1",
   "reads_no_engine": true,
-  "commit": "cc3e7e5b7130e33ef53802178c73e22044e15d7a",
-  "dirty_tree": true
+  "commit": "baf8fd9eb3386ccc5f886e04e1d68bf46ae7e110",
+  "dirty_tree": true,
+  "git_why_null": null
  }
 }

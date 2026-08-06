@@ -82,6 +82,10 @@ const TAGS = (function(){
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
 const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+  /* WIRE 129 -- a SPREAD move rolled to hit with no defender in hand, so the target's evasion stage,
+   * Bright Powder and Sand Veil did not apply to it. A declared divergence from Showdown, which rolls
+   * per target; counted rather than commented so the size of it is readable rather than argued. */
+  accSpreadNoDefender: 0,
   /* WIRE 92 -- a voluntary switch refused because a live foe carries `preventsSwitch` (Shadow Tag on
    * Gengar-Mega). A zero here after real games with a Mega Gengar on the field is the finding. */
   trapBlockedSwitch: 0,
@@ -126,6 +130,15 @@ const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnk
    * whole game becomes never-missing. A different and much larger failure than the row above, so it
    * is a different counter and it keeps the exception's own message. */
   accuracyNoTable: 0, accuracyNoTableFirst: '',
+  /* WIRE 129 -- an ability or item that data/abra-tags.js says TOUCHES ACCURACY and ACCMOD has no row
+   * for. It is applied as nothing, which is exactly what the pre-wire engine did for all of them, so
+   * the fallback is indistinguishable from the bug and has to announce itself. Reads 0 across every
+   * accuracyMod / writesAccuracy carrier in the artifact today; a non-zero means the format grew a
+   * carrier and its evasion or accuracy bonus is silently absent. */
+  accModUntabled: 0, accModUntabledFirst: '',
+  /* WIRE 129 -- an ACCMOD row named a CONDITION _accWhen cannot evaluate. It resolves to false (the
+   * modifier does not fire), which is the safe direction and the invisible one, so it is counted. */
+  accModUnknownWhen: 0,
   /* WIRE 125 -- the side's ROSTER was not available at the end-of-turn death recount, so the count
    * fell back to the active+bench arrays, which is the expression that lost the dead in the first
    * place. battleInit always stamps `sf.team`, so this must read 0; a non-zero means a battle state
@@ -509,7 +522,12 @@ const PROTECTMOVES = new Set(['protect','detect','spikyshield','kingsshield','ba
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 /* Showdown spells stats atk/def/spa/spd/spe; this engine uses at/df/sa/sd/sp. A naming convention,
  * not a mechanic, so the map lives here rather than in data/tags.json. */
-const SD2ENG={atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp',accuracy:null,evasion:null};
+/* WIRE 129 -- accuracy and evasion were mapped to NULL, so every boost applier in this file (there
+ * are eleven, all keyed off this map) silently DISCARDED them. Coil's +1 accuracy, Minimize's +2
+ * evasion, Double Team, Sweet Scent and every accuracy/evasion secondary went in and vanished --
+ * `data/move-effects.js` carried `targetBoostsAlways:{atk:1,def:1,accuracy:1}` the whole time and
+ * two thirds of it landed. They are real stages now, on their own table (see accStageMul). */
+const SD2ENG={atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp',accuracy:'acc',evasion:'eva'};
 /* Same species of map as SD2ENG: the artifact speaks Showdown's names ("paralysis", "sandstorm"),
  * this engine speaks its own ('par', 'sand'). Naming conventions, not mechanics, so they live here. */
 const CODE_OF_STATUS={paralysis:'par',burn:'brn',poison:'psn','bad poison':'tox',sleep:'slp',freeze:'frz'};
@@ -755,7 +773,7 @@ function buildMon(name,ov){ const m=MC.mons[name]; if(!m)return null;
      Beat Up asks the species standing on the field. */
   const _bsAtk=((mf&&mf.bs&&mf.bs.atk)||(m.bs&&m.bs.atk)||0);
   return {name,types,st,item,wt:m.wt||null,_bsAtk,ability:normAb(megaAbility(name,item,m.ab||'')),baseAbility:normAb(m.ab||''),moves:m.mv.slice(),
-    curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false,_seededBy:null,
+    curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0,acc:0,eva:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false,_seededBy:null,
     /* THE DEATH COUNTER (Will: "the supreme overlord needs a count of the dead like last
      * respects"). _sf is a per-SIDE live counter shared by reference — Last Respects reads it at
      * each use. _fallenStuck is the SNAPSHOT taken when this mon entered — Supreme Overlord's
@@ -854,7 +872,7 @@ function buildMonFromSet(set){
   return {name:key,types,st,item,wt:m.wt||null,
     ability:(becameMega&&rowAb)?rowAb:(declaredAb||rowAb),baseAbility:normAb(m.ab||''),
     moves:usable,droppedMoves:ids.filter(id=>usable.indexOf(id)<0),
-    curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,
+    curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0,acc:0,eva:0},status:'',slp:0,fainted:false,protect:false,
     tookProtectTurns:0,_turnsOut:0,_flinch:false,_seededBy:null,_sf:null,_fallenStuck:0};
 }
 
@@ -921,7 +939,14 @@ function stampMoveIds(){
  * Blizzard is 100 in snow; the ACC table alone said 70/70/70 in every sky. The artifact names the
  * weather and the number; this helper is the single accuracy authority for both the battle loop's
  * to-hit roll and chooseAction's expected-value scoring. */
-function moveAccuracy(id,field){
+/* WIRE 129 -- THE PRINTED ACCURACY, WITH `true` KEPT AS `true`. moveAccuracy() collapses "cannot
+ * miss" and "prints 100" onto the same number, and for a to-hit ROLL that is the same thing. It is
+ * NOT the same thing once evasion exists: Showdown skips the boost table and every ModifyAccuracy
+ * handler when `accuracy === true`, so Swift is unaffected by a +6 Minimize while Ice Beam is cut to
+ * 3/9 of its 100. This is the one function that can tell them apart; moveAccuracy is now its wrapper,
+ * unchanged in signature and in every value it returns, because it is one of the exports board.js and
+ * engine/position_features.js read and its meaning may not move under them. */
+function printedAccuracy(id,field){
   stampMoveIds();
   const _ws=TAGS.param('move',id,'weatherScaled');
   /* WIRE 78 — Thunder is 70 again under Air Lock. `field.wSup` is the only reader available here:
@@ -929,7 +954,11 @@ function moveAccuracy(id,field){
      accuracyMod are blocked on (see docs/ENGINE.md). */
   if(_ws&&_ws.byWeather&&field&&field.weather&&!field.wSup){
     const w=_ws.byWeather[field.weather];
-    if(w&&w.accuracy!=null)return w.accuracy;
+    /* THE ARTIFACT WRITES 100 WHERE SHOWDOWN WRITES `true`. Thunder's onModifyMove in rain is
+     * `move.accuracy = true`, and data/abra-tags.js records it as the number 100 -- a lossy step in
+     * tag_dex's derivation, not a rule. Read back as "cannot miss", which is what the real move does:
+     * a rain Thunder goes through a Double Team. Stated rather than silently rounded. */
+    if(w&&w.accuracy!=null)return w.accuracy>=100?true:w.accuracy;
   }
   /* WIRE 124 -- the printed accuracy, from the generated artifact rather than a hand list. `true` is
    * how the dex spells "cannot miss"; a number is the number. A move neither source knows is the one
@@ -945,10 +974,207 @@ function moveAccuracy(id,field){
   try{ fx=moveFx(key); }
   catch(e){ MEDFAILS.accuracyNoTable++;
             if(!MEDFAILS.accuracyNoTableFirst)MEDFAILS.accuracyNoTableFirst=String(e.message).slice(0,80); }
-  if(fx&&fx.accuracy!=null)return fx.accuracy===true?100:+fx.accuracy;
+  if(fx&&fx.accuracy!=null)return fx.accuracy===true?true:+fx.accuracy;
   MEDFAILS.accuracyUnknown++;
   if(!MEDFAILS.accuracyUnknownFirst)MEDFAILS.accuracyUnknownFirst=key;
   return 100;
+}
+/* THE UNCHANGED EXPORT. Same signature, same numbers, `true` folded back to 100 exactly as before --
+ * so board.js, position_features.js and chooseAction see nothing move. */
+function moveAccuracy(id,field){const a=printedAccuracy(id,field);return a===true?100:a;}
+
+/* ---- WIRE 129 — ACCURACY MODIFICATION -----------------------------------------------------------
+ *
+ * ~5,000 corpus uses of "does this move actually hit" reaching the engine through FOUR doors, none
+ * of them wired and none of them probed: move|accuracyMod (Coil 2,351 / Minimize 1,050 / Gravity
+ * 616), item|accuracyMod (Wide Lens 757 / Bright Powder 208 / Zoom Lens 43), ability|accuracyMod
+ * (Sand Veil 307 / Snow Cloak 353 / Compound Eyes / Hustle) and ability|writesAccuracy (No Guard).
+ *
+ * THE STAGE TABLE IS NOT THE STAT TABLE, and this is the half a hand-rolled version gets wrong.
+ * Stat stages are (2+n)/2; accuracy and evasion stages are (3+n)/3 -- sim/battle-actions.ts,
+ * `const boostTable = [1, 4/3, 5/3, 2, 7/3, 8/3, 3]`. Reusing boostMul would price +1 accuracy at
+ * 1.5x instead of 1.33x and +6 at 4x instead of 3x. */
+const ACC_STAGE=[3/9,3/8,3/7,3/6,3/5,3/4,1,4/3,5/3,2,7/3,8/3,3];
+const accStageMul=(n)=>ACC_STAGE[clamp(Math.round(+n||0),-6,6)+6];
+
+/* THE MODIFIER TABLE, AND WHY THE ARTIFACT CANNOT SUPPLY IT.
+ *
+ * Membership is asked of the TAG -- an entity carrying accuracyMod or writesAccuracy with NO row
+ * here is COUNTED and named (MEDFAILS.accModUntabled), which is the difference between a table and a
+ * hand list. What the table adds is the NUMBER and the DIRECTION, and data/abra-tags.js has the
+ * direction BACKWARDS on every carrier: tag_dex derives `scope` by putting onModifyAccuracy under
+ * "its own moves" and onSourceModifyAccuracy under "moves aimed at it", and Showdown fires
+ * onModifyAccuracy on the TARGET and onSourceModifyAccuracy on the ATTACKER. So the artifact records
+ * Sand Veil as boosting its own moves and Compound Eyes as boosting the foe's. tag_dex.js is
+ * corrected in this pass; the artifact could not be regenerated (see docs/ENGINE.md), so NOTHING here
+ * reads `scope` and the correction is checked instead:
+ *
+ * tests/test-engine-diff.js re-derives every accuracy-touching ability and item out of the live
+ * format dex and FAILS on a row this table has wrong, missing or invented -- the same treatment
+ * ACC_FIX gets, and the only thing that makes a table different in kind from a literal. */
+const ACCMOD={
+  'item:widelens':      {side:'att',mult:1.1},
+  'item:zoomlens':      {side:'att',mult:1.2,when:'targetAlreadyMoved'},
+  'item:brightpowder':  {side:'def',mult:0.9},
+  'item:laxincense':    {side:'def',mult:0.9},
+  'ability:compoundeyes':{side:'att',mult:1.3},
+  'ability:hustle':      {side:'att',mult:0.8,when:'physical'},
+  'ability:sandveil':    {side:'def',mult:0.8,when:'sand'},
+  'ability:snowcloak':   {side:'def',mult:0.8,when:'snow'},
+  'ability:wonderskin':  {side:'def',setTo:50,when:'status'},
+  'ability:noguard':     {side:'both',never:true},
+  /* DECLARED NO-OPS, so they are not counted as untabled and not silently applied either.
+   * `tangledfeet` needs the CONFUSION volatile and this engine has no confusion at all -- there is
+   * no state for it to read, so it is off rather than half-on (4 corpus uses).
+   * `skilllink` is a FALSE POSITIVE in the artifact: tag_dex's writesAccuracy probe matches /accuracy/
+   * and Skill Link's onModifyMove says `delete move.multiaccuracy`. It writes multihit, not accuracy. */
+  'ability:tangledfeet': {side:'def',mult:0.5,off:'no confusion volatile exists in this engine'},
+  'ability:skilllink':   {side:'att',off:'artifact false positive — it writes multihit, not accuracy'},
+  /* Victory Star's hook is onAnyModifyAccuracy and its guard is `source.isAlly(...)` -- it boosts the
+   * WHOLE SIDE's accuracy, its partner's as well as its own. hitChance sees one attacker and one
+   * defender and has no side in its hands, so wiring it as a self-only 1.1x would be half the
+   * mechanic. Victini has no usage in this regulation, so the honest state is off-with-a-reason
+   * rather than half-on: a tag consumed half-right is how the 20-mechanic batch went wrong. */
+  'ability:victorystar': {side:'att',mult:1.1,off:'its onAnyModifyAccuracy boosts the whole SIDE and hitChance has no side'},
+};
+/* A CARRIER WITH NO ROW IS LOUD. A silent default here looks exactly like a working feature, which is
+ * this project's signature failure -- and the tag set is generated, so a new Gen-10 evasion ability
+ * arrives in the artifact and has to announce itself rather than quietly doing nothing. */
+function accModRow(kind,id){
+  const key=String(id||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(!key||key==='none')return null;
+  const row=ACCMOD[kind+':'+key];
+  if(row)return row.off?null:row;
+  if(TAGS.has(kind,key,'accuracyMod')||TAGS.has(kind,key,'writesAccuracy')){
+    MEDFAILS.accModUntabled++;
+    if(!MEDFAILS.accModUntabledFirst)MEDFAILS.accModUntabledFirst=kind+':'+key;
+  }
+  return null;
+}
+/* Does an entity refuse to miss in BOTH directions? No Guard is the only one, and it is asked by
+ * SHAPE (`never`) rather than by name so a second one needs a table row and no code. */
+const _neverMissAb=(mon)=>{
+  if(!mon)return false;
+  const r=accModRow('ability',mon.ability);
+  return !!(r&&r.never);
+};
+/* THE ONE PLACE A CONDITION ON A MODIFIER IS EVALUATED. Each `when` is a real gate in the reference
+ * engine, and getting one wrong is invisible -- Sand Veil outside sand is a 20% evasion bonus that
+ * never appears in a log. */
+function _accWhen(w,ctx){
+  if(!w)return true;
+  if(w==='sand')return ctx.weather==='sand';
+  if(w==='snow')return ctx.weather==='snow';
+  if(w==='physical')return ctx.cat==='Physical';
+  if(w==='status')return ctx.cat==='Status';
+  /* Zoom Lens: Showdown asks `!this.queue.willMove(target)` -- the holder is slower, so the target
+   * has already gone. `unresolved` is this turn's outstanding actions and is the same set WIRE 118's
+   * flinch timing reads, so there is one answer to "has this body acted yet" and not two. */
+  if(w==='targetAlreadyMoved')return ctx.targetAlreadyMoved===true;
+  MEDFAILS.accModUnknownWhen++;
+  return false;
+}
+
+/* ---- WIRE 130 — THE SUBSTITUTE WAS PAID FOR AND NEVER BUILT ------------------------------------
+ *
+ * `playerAction` resolves Substitute to kind `affect` (it carries statusInflict with a
+ * volatile), so the `kind==='sub'` branch WIRE 42 wrote for it is unreachable and always was. What
+ * ran instead was the generic costsUserHP deduction at the top of the resolution loop: the click paid
+ * a quarter of max HP and produced nothing at all. Measured before a line changed, a Garchomp on 183:
+ *
+ *     clicked Howl       then took Ice Beam ->  turn-1 cost 0    turn-2 damage 183
+ *     clicked Substitute then took Ice Beam ->  turn-1 cost 45   turn-2 damage 138   _sub 0
+ *
+ * That is 1,976 corpus clicks of a move that is STRICTLY WORSE THAN PASSING — the exact
+ * one-directional error WIRE 42's own comment says it was landed to avoid, sitting under no probe.
+ *
+ * MEMBERSHIP PRINTED BEFORE IT WAS WIRED, per docs/LESSONS.md 4. `move|substitute` matches exactly
+ * two rows and both are real: substitute (buffer 0.25) and shedtail (buffer 0.25, and it pays HALF
+ * for the same quarter-size doll — the buffer is read from the tag, never from the cost). */
+function grantSubstitute(m,moveId){
+  const _sb=TAGS.param('move',moveId,'substitute');
+  if(!_sb||m._sub>0||!m.st)return;
+  m._sub=Math.max(1,Math.floor(m.st.hp*(+_sb.buffer||0.25)));
+}
+/* WHAT GOES THROUGH A SUBSTITUTE. Showdown's flag is `bypasssub` and NO artifact this engine reads
+ * carries it -- data/move-effects.js has no flags block and data/abra-tags.js has no tag for it. So
+ * it is a SET here, derived once over MC.moves against the format at the pinned commit and re-derived
+ * on every run by the SUBSTITUTE-BYPASS CONFORMANCE block in tests/test-engine-diff.js, which fails
+ * on a single row it does not agree with. That is the ACC_FIX pattern and the only thing that makes a
+ * list different in kind from a memory.
+ *
+ * GETTING IT WRONG IN THE OTHER DIRECTION WOULD HAVE BEEN THE BIGGER BUG, and it was measured before
+ * anything was written: the three most-clicked status moves that reach a substitute in this format --
+ * ENCORE (4,848), TAUNT (1,503) and DISABLE (730) -- all carry `bypasssub` in the real game. A
+ * "substitute blocks status moves" rule built on the `sound` tag alone would have blocked all three,
+ * which is a worse engine than the one that blocks nothing. */
+const SUBPASS=new Set(["round","snore","bugbuzz","uproar","snarl","alluringvoice","psychicnoise",
+  "hypervoice","eeriespell","boomburst","sparklingaria","clangingscales","torchsong","dragoncheer",
+  "encore","howl","afteryou","aromaticmist","attract","coaching","curse","defog","destinybond",
+  "disable","fairylock","guardswap","haze","healbell","helpinghand","imprison","instruct","lifedew",
+  "magneticflux","metalsound","nobleroar","partingshot","perishsong","powerswap","psychup",
+  "reflecttype","roar","roleplay","screech","sing","skillswap","speedswap","spite","taunt","teatime",
+  "torment","whirlwind"]);
+/* Does the doll eat this? One implementation, asked by the damage path and by every status path, so
+ * "a substitute is up" cannot mean two different things in one turn. Infiltrator comes from the
+ * artifact's own `ignoresScreensAndSubs.ignoresSubstitute`, never from its name. */
+function subBlocks(att,def,mvId){
+  if(!def||!(def._sub>0)||def===att)return false;
+  if(SUBPASS.has(String(mvId||'').toLowerCase().replace(/[^a-z0-9]/g,'')))return false;
+  const _inf=att&&TAGS.param('ability',att.ability,'ignoresScreensAndSubs');
+  if(_inf&&_inf.ignoresSubstitute)return false;
+  return true;
+}
+
+/* THE ONE TO-HIT AUTHORITY. Every roll in the battle loop goes through it; a second implementation
+ * of any part of this is WIRE 124 arriving again.
+ *
+ * Order follows sim/battle-actions.ts `hitStepAccuracy`: the printed accuracy, then the attacker's
+ * accuracy stage and the defender's evasion stage (both skipped entirely when the move cannot miss),
+ * then the modifiers. Returns a PERCENTAGE, or Infinity for "cannot miss" so that every caller's
+ * `acc<100` guard reads the same and nobody has to remember a sentinel. */
+function hitChance(att,def,id,field,ctx){
+  const c=ctx||{};
+  const raw=printedAccuracy(id,field);
+  /* NO GUARD IS CHECKED FIRST AND ON BOTH BODIES. Its handler is onAnyAccuracy -- it does not care
+   * which end of the move it is on, so a Machamp's Stone Edge cannot miss and nothing aimed at it
+   * can miss either. Half of that is the half an attacker-only version would ship. */
+  if(_neverMissAb(att)||_neverMissAb(def))return Infinity;
+  if(raw===true)return Infinity;
+  let acc=+raw;
+  if(!(acc>0))return Infinity;
+  /* Stages. `ignoreAccuracy`/`ignoreEvasion` are not modelled here and neither is in this format's
+   * corpus; a move that carried one would read as an ordinary move and is not silently special-cased. */
+  const _ab=(att&&att.boosts&&att.boosts.acc)||0;
+  const _eb=(def&&def.boosts&&def.boosts.eva)||0;
+  if(_ab)acc*=accStageMul(_ab);
+  if(_eb)acc/=accStageMul(_eb);
+  const _mv=(typeof MC!=='undefined'&&MC&&MC.moves&&MC.moves[id])||null;
+  /* THE CATEGORY, AND THE FAILURE IS COUNTED RATHER THAN SWALLOWED. Only Hustle and Wonder Skin gate
+   * on it today, so a miss here silently turns two conditional modifiers off — which is exactly the
+   * shape of an absent capability reporting success. moveAccuracy already keeps its own reason for
+   * the same throw; this one reuses that counter because it is the same failure. */
+  let _cat=null;
+  try{const _fx=moveFx(id); _cat=(_fx&&_fx.category)||null;}
+  catch(e){ MEDFAILS.accuracyNoTable++;
+            if(!MEDFAILS.accuracyNoTableFirst)MEDFAILS.accuracyNoTableFirst=String(e.message).slice(0,80); }
+  if(!_cat&&_mv)_cat=(_mv.bp>0)?(_mv.cat==='phy'?'Physical':'Special'):'Status';
+  const cond={weather:(field&&!field.wSup)?field.weather:'',cat:_cat,
+              targetAlreadyMoved:c.targetAlreadyMoved};
+  for(const [who,mon] of [['att',att],['def',def]]){
+    if(!mon)continue;
+    for(const kind of ['ability','item']){
+      const r=accModRow(kind,kind==='ability'?mon.ability:mon.item);
+      if(!r||r.never)continue;
+      if(r.side!=='both'&&r.side!==who)continue;
+      if(!_accWhen(r.when,cond))continue;
+      /* Wonder Skin RETURNS 50 rather than scaling -- `return 50`, not a chainModify -- so a hard set
+       * is what the reference does and Math.min would be a second, quieter rule. */
+      if(r.setTo!=null)acc=r.setTo;
+      else if(r.mult!=null)acc*=r.mult;
+    }
+  }
+  return acc;
 }
 /* the type a move actually HAS under the current sky — one authority for the damage calc, the
  * absorb check in the battle loop, and the fragility pricer, so sand Weather Ball is a Rock move
@@ -2614,7 +2840,7 @@ function switchOut(act,i,bench,foes,sf,field,wanted){
    * setting it, which would have made the whole mechanic silently never fire. */
   out._wasOut=true;
   out._lock=null; out._lockT=0; out._flinch=false;
-  out.boosts={at:0,df:0,sa:0,sd:0,sp:0};
+  out.boosts={at:0,df:0,sa:0,sd:0,sp:0,acc:0,eva:0};
   /* WIRE 27 -- healsOnSwitchOut. Regenerator, 845 uses, and the strongest argument for pivoting that
    * exists: leaving the field is a THIRD of max HP back. The engine did nothing at all, so every
    * Regenerator pivot in every rollout was priced as a plain switch.
@@ -2978,9 +3204,16 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(a.kind!=='sub'&&(a.mv||(a.move&&a.move.id))){
         const _cu=TAGS.param('move',a.mv||a.move.id,'costsUserHP');
         if(_cu&&_cu.costsFraction&&m.st){
+          /* WIRE 130 -- A SECOND SUBSTITUTE FAILS AND COSTS NOTHING. Showdown's Substitute returns
+             early when the volatile is already up, so the HP is never paid. Checked BEFORE the
+             deduction, because paying for a doll you do not get is worse than either outcome. */
+          if(m._sub>0&&TAGS.has('move',a.mv||a.move.id,'substitute')){m._lastMove=a.mv||a.move.id;continue;}
           if(m.curHP<=Math.floor(m.st.hp*(+_cu.failsBelow||+_cu.costsFraction))){m._lastMove=a.mv||a.move.id;continue;}
           m.curHP-=Math.floor(m.st.hp*+_cu.costsFraction);
           if(m.curHP<=0){m.curHP=0;m.fainted=true;continue;}
+          /* WIRE 130 -- AND THE DOLL IS ACTUALLY BUILT. See grantSubstitute: the paying half of this
+             move ran and the granting half did not, on 1,976 corpus clicks. */
+          grantSubstitute(m,a.mv||a.move.id);
         }
       }
       /* WIRE 19 -- REAL setup boosts. This applied a generic +1 to Attack, SpA AND Speed for every
@@ -3009,6 +3242,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         let _t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
         _t=bounceOff(m,_t,a.mv);
         if(!_t||_t.protect) continue;
+        if(subBlocks(m,_t,a.mv)) continue;                  // WIRE 130 -- the doll takes the status move
         /* GOOD AS GOLD REFUSES A STATUS MOVE OUTRIGHT. Gholdengo was taking Charm for -2, which
          * makes it a different Pokemon to the one people build around. The tag is derived from the
          * ability's own onTryHit -- and tightened after the first version caught Telepathy, which
@@ -3018,7 +3252,9 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(moveClassBlocked(_t,a.mv,m)) continue;               // WIRE 66 -- Soundproof, Bulletproof
         if(powderBlocked(_t,a.mv)) continue;
         if(pranksterBlocked(m,_t,a.mv)) continue;
-        const _acc=moveAccuracy(a.mv,field);
+        /* WIRE 129 -- hitChance, not moveAccuracy: a Minimize'd target dodges a Will-O-Wisp exactly
+         * as it dodges an Ice Beam, and No Guard lands one exactly as it lands a Stone Edge. */
+        const _acc=hitChance(m,_t,a.mv,field,{targetAlreadyMoved:!unresolved.has(_t)});
         if(_acc<100&&rng()*100>_acc) continue;
         /* Stat changes. Contrary flips them and Clear Body refuses drops, both already modelled for
          * Intimidate -- asked here the same way so one ability does not behave differently by route. */
@@ -3138,7 +3374,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          it is the answer to a sweeper you cannot outstat, and it costs you your own setup too. A
          version that only wiped the foe would be a strictly better move than the one in the game. */
       if(a.kind==='haze'){
-        for(const x of [...actA,...actB])if(x&&!x.fainted&&x.boosts)x.boosts={at:0,df:0,sa:0,sd:0,sp:0};
+        for(const x of [...actA,...actB])if(x&&!x.fainted&&x.boosts)x.boosts={at:0,df:0,sa:0,sd:0,sp:0,acc:0,eva:0};
         m._lastMove=a.mv;continue;
       }
       /* WIRE 40 -- ROAR / WHIRLWIND, the phazing half. The drag goes through switchOut, the ONE
@@ -3190,7 +3426,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _need=Math.floor(m.st.hp*(+_cu.failsBelow||+_cu.costsFraction||0.25));
         if(!m._sub&&m.curHP>_need){
           m.curHP-=Math.floor(m.st.hp*(+_cu.costsFraction||0.25));
-          m._sub=Math.floor(m.st.hp*(+_cu.costsFraction||0.25));
+          grantSubstitute(m,a.mv);                        // WIRE 130 -- one authority for the doll's size
           if(m.curHP<=0){m.curHP=0;m.fainted=true;m._sub=0;}
         }
         m._lastMove=a.mv;continue;
@@ -3586,8 +3822,8 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _pt=TAGS.param('move',a.mv,'perTurnHP');
           if(_pt&&_pt.effect==='drain'&&_pt.on==='target'&&_pt.per&&!t._seededBy
              &&!(_pt.immuneType&&t.types.includes(_pt.immuneType))
-             &&!pranksterBlocked(m,t,a.mv)){
-            const acc=moveAccuracy(a.mv,field);   // WIRE 124 -- one accuracy authority, not a second copy
+             &&!pranksterBlocked(m,t,a.mv)&&!subBlocks(m,t,a.mv)){
+            const acc=hitChance(m,t,a.mv,field,{targetAlreadyMoved:!unresolved.has(t)});   // WIRE 124/129 -- one accuracy authority, not a second copy
             if(rng()*100<=acc) t._seededBy={by:m,per:_pt.per};
           }
           /* WIRE 20's sealsMoves consumer USED TO BE HERE AND WAS UNREACHABLE. Encore, Disable and
@@ -3599,9 +3835,10 @@ function battleTurn(S,rng,actsForA,actsForB){
           continue;                                             // no major status to apply
         }
         m._lastMove=a.mv;
+        if(subBlocks(m,t,a.mv)) continue;                       // WIRE 130 -- the doll takes the status move
         if(powderBlocked(t,a.mv)) continue;                     // Grass / Overcoat / Safety Goggles
         if(pranksterBlocked(m,t,a.mv)) continue;                // Prankster does not touch Dark types
-        const acc=moveAccuracy(a.mv,field);   // WIRE 124 -- one accuracy authority, not a second copy
+        const acc=hitChance(m,t,a.mv,field,{targetAlreadyMoved:!unresolved.has(t)});   // WIRE 124/129 -- one accuracy authority, not a second copy
         if(rng()*100>acc) continue;                              // status moves miss (T-Wave 90, W-o-W 85)
         applyStatus(t,st);                                       // applyStatus enforces the immunities
         continue;
@@ -3724,19 +3961,6 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _aim=(a.target&&_foes.indexOf(a.target)>=0&&!a.move.spread)?a.target:null;
         if(movePriority(a.move.id,field)>priorityRefusedAbove(_foes,field,_aim)) continue;
       }
-      /* WIRE 47 -- CRASH ON MISS. High Jump Kick, Axe Kick and Supercell Slam (209 uses) missed
-         correctly and cost the user nothing, so a 90%-accurate 130 BP move had no downside at all --
-         the same "priority move with no drawback" shape that made the search reach for Sucker Punch.
-         The fraction is the tag's (`crashOnMiss.fraction`, half of max HP), not a number typed here. */
-      const _mvAcc=moveAccuracy(a.move.id,field);
-      if(_mvAcc<100&&rng()*100>_mvAcc){
-        const _cm=TAGS.param('move',a.move.id,'crashOnMiss');
-        if(_cm&&_cm.fraction&&m.st){
-          m.curHP-=Math.floor(m.st.hp*+_cm.fraction);
-          if(m.curHP<=0){m.curHP=0;m.fainted=true;}
-        }
-        continue;
-      }
       const foes=it.side==='A'?actB:actA;
       /* Resolve the aim to whoever is in that slot NOW. `foes` is the live slot array, so an object
          that is no longer in it has left the field and cannot be hit. */
@@ -3779,6 +4003,35 @@ function battleTurn(S,rng,actsForA,actsForB){
           });
           if(_rod)targets=[_rod];
         }
+      }
+      /* WIRE 47 -- CRASH ON MISS. High Jump Kick, Axe Kick and Supercell Slam (209 uses) missed
+         correctly and cost the user nothing, so a 90%-accurate 130 BP move had no downside at all --
+         the same "priority move with no drawback" shape that made the search reach for Sucker Punch.
+         The fraction is the tag's (`crashOnMiss.fraction`, half of max HP), not a number typed here.
+
+         WIRE 129 -- MOVED DOWN HERE, BELOW TARGET RESOLUTION AND REDIRECTION, and the move is the
+         whole point: accuracy now depends on the DEFENDER (its evasion stage, its Bright Powder, its
+         Sand Veil, its No Guard) and above this line there is no defender yet. Nothing between the
+         old site and this one consumes rng, so the random stream is unchanged and the interaction
+         matrix stays byte-identical -- checked, not assumed.
+
+         ONE ROLL PER MOVE, NOT PER TARGET, AND THAT IS A DECLARED DIVERGENCE. Showdown rolls
+         accuracy separately against each target of a spread move. Rolling per target here would
+         change how much rng every existing seeded run consumes, which is a far larger change than
+         this wire is buying; so a SPREAD move rolls once, against no defender, and gets the
+         attacker's modifiers only. Single-target moves -- where every evasion item and ability in
+         this format actually lives -- get the real defender. */
+      const _accDef=(!a.move.spread&&targets.length===1)?targets[0]:null;
+      if(a.move.spread)MEDSEEN.accSpreadNoDefender++;
+      const _mvAcc=hitChance(m,_accDef,a.move.id,field,
+                             {targetAlreadyMoved:!!(_accDef&&!unresolved.has(_accDef))});
+      if(_mvAcc<100&&rng()*100>_mvAcc){
+        const _cm=TAGS.param('move',a.move.id,'crashOnMiss');
+        if(_cm&&_cm.fraction&&m.st){
+          m.curHP-=Math.floor(m.st.hp*+_cm.fraction);
+          if(m.curHP<=0){m.curHP=0;m.fainted=true;}
+        }
+        continue;
       }
       if(!targets.length)targets=live(foes).slice(0,1);
       /* spreadAll hits the PARTNER too -- Earthquake beside your own Archaludon costs it the same
@@ -3933,7 +4186,10 @@ function battleTurn(S,rng,actsForA,actsForB){
            a real substitute and are not tracked at the hit site. Both are divergences in the same
            direction (a substitute here is slightly better than the game's) and both are small. */
         connected=true;
-        if(tg._sub>0){tg._sub=Math.max(0,tg._sub-dmg);continue;}
+        /* WIRE 130 -- a SOUND move and an Infiltrator go straight through, which was named as a
+           divergence here and is now the rule: subBlocks owns it for the damage path and for every
+           status path, so one substitute cannot mean two things inside one turn. */
+        if(subBlocks(m,tg,a.move.id)){tg._sub=Math.max(0,tg._sub-dmg);continue;}
         /* THE BERRY IS CONSUMED HERE AND ONLY HERE. dmgRange applied the halve as a pure read --
          * it is called dozens of times per turn on hypothetical moves and must never mutate -- so
          * the one-shot is spent at the point a real hit lands, exactly like the Sitrus line below. */
@@ -5099,6 +5355,12 @@ root.parsePaste=parsePaste; root.buildMonFromSet=buildMonFromSet; root.weatherId
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,
   punishExposure,clickFragility,statusCostOf,physicalShare,speedFlipShare,EXPOSURE_HORIZON,bestMoveVs,battleInit,battleTurn,battleOver,battleResult,playerAction,parsePaste,buildMonFromSet,
   moveFx,movePriority,priorityRefusedAbove,isGrounded,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors,
+  /* WIRE 129 -- exported for the ACCURACY-MODIFIER CONFORMANCE block in tests/test-engine-diff.js,
+   * which re-derives the whole table out of the live format dex. A table nobody checks is the literal
+   * it replaced; this is the only thing that makes it different in kind. */
+  hitChance,printedAccuracy,accStageMul,ACCMOD,
+  /* WIRE 130 -- exported for the SUBSTITUTE-BYPASS CONFORMANCE block in tests/test-engine-diff.js. */
+  SUBPASS,
   /* WIRE 118 -- THE ORDERING RULE, exported because board.js had a second copy of it. It is one
      function, it is pure, and it consumes no RNG, so a feature vector can ask it the same question a
      turn asks. `turnOrderKey`/`sortTurnOrder` come with it so a caller cannot have to rebuild the

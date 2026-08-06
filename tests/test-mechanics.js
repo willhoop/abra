@@ -163,7 +163,10 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * `turnDamageBig(`, which is correct behaviour for a strict pattern and cost two probes their credit
  * the first time the helper was used — so a new helper must be added HERE, deliberately, and cannot
  * sneak a direct-call probe past the ratchet by being named something plausible. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bturnDamageBig\(/;
+/* `hitOnRoll(` added 2026-08-06 with the accuracy family. It is declared HERE, deliberately, exactly
+ * as the paragraph above requires: it stages a real board, spends a real setup turn and a real attack
+ * turn through battleTurn, and reads the aimed foe's HP loss. */
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -4961,6 +4964,265 @@ probe('move', 'partialTrap', 'a partial trap holds a voluntary switch, and Ghost
            detail: `who stands after the switch click -- Infestation then a bare switch: ${control}; `
                  + `no trap: ${free}; Ghost: ${ghost}; Shed Shell: ${shed}; Parting Shot (a pivot `
                  + `MOVE): ${piv}` };
+});
+
+/* ---- ACCURACY: ONE MECHANIC, THREE DOORS, AND ONE STAGING FOR ALL OF THEM ----------------------
+ *
+ * `move|accuracyMod` (Coil, Gravity, Minimize, Double Team, Sweet Scent), `item|accuracyMod` (Wide
+ * Lens, Bright Powder, Zoom Lens), `ability|accuracyMod` (Sand Veil, Snow Cloak, Compound Eyes,
+ * Hustle) and `ability|writesAccuracy` (No Guard) are the SAME question — does this move land —
+ * arriving at the engine through four different doors. ~5,000 corpus uses between them and not one
+ * axis had a probe of any kind.
+ *
+ * EVERY ACCURACY PROBE IN THIS FILE GOES THROUGH THE ONE HELPER BELOW, and that is not tidiness.
+ * Three separately hand-rolled accuracy comparisons is exactly how WIRE 124 happened — two
+ * implementations of `moveAccuracy` in one file, disagreeing on 78 moves for 35,608 corpus clicks,
+ * under a green probe that asserted its own answer.
+ *
+ * THE OUTCOME IS DAMAGE, NEVER A CLASSIFICATION AND NEVER A RETURNED PROBABILITY. `roll` is the ONLY
+ * random number the staged turn ever sees, and the battle loop's to-hit test is `rng()*100 > acc`. So
+ * a roll of 0.85 misses everything printed below 85 and lands everything at or above it, and ZERO
+ * damage against an unfaintable target is a MISS and nothing else.
+ *
+ * MOVE LEGALITY IS NOT THE QUESTION HERE and is deliberately not respected: one body carries every
+ * arm so that the varied knob is the accuracy layer rather than the attacker. A probe that swapped
+ * species between arms would be WIRE 124's sibling — see the `weightBased` and `needsUntrackedState`
+ * corrections above, both of which compared two different Pokemon and called the difference a result. */
+const hitOnRoll = (sps, roll, moveId, opt) => {
+  const o = opt || {};
+  const B = board(sps[0], sps[1], sps[2], sps[3]);
+  unfaintable(B.f1);
+  if (o.stage) o.stage(B);
+  const rng = () => roll;
+  const mine = (mv) => new Map([[B.me, mv ? M.playerAction(B.me, mv, B.f1, B.S.field) : { kind: 'pass' }],
+                                [B.ally, { kind: 'pass' }]]);
+  const theirs = (mv) => new Map([[B.f1, mv ? M.playerAction(B.f1, mv, B.me, B.S.field) : { kind: 'pass' }],
+                                  [B.f2, { kind: 'pass' }]]);
+  /* A SETUP TURN IS SPENT ON BOTH ARMS OR ON NEITHER. Coil against "no setup at all" would vary the
+   * number of turns, and every end-of-turn effect in the engine rides on that. */
+  if (o.setupMe || o.setupFoe) M.battleTurn(B.S, rng, mine(o.setupMe || null), theirs(o.setupFoe || null));
+  const before = B.f1.curHP;
+  M.battleTurn(B.S, rng, mine(moveId), theirs(null));
+  return before - B.f1.curHP;
+};
+/* Milotic into Garchomp for every accuracy arm: Garchomp is GROUND, so the sandstorm the Sand Veil
+ * arms need cannot chip the body whose HP loss is the measurement. */
+const ACCSPS = ['milotic', 'incineroar', 'garchomp', 'incineroar'];
+
+probe('move', 'accuracyMod', 'Coil lands an 80% move on a losing roll; Minimize makes a 100% one miss', () => {
+  /* Coil is +1 Atk / +1 Def / +1 ACCURACY -> 80 x 4/3 = 106.7, which cannot miss. Howl is the control
+   * because it is also a setup click that also boosts Attack and does NOT touch accuracy — so "a
+   * setup turn happened" and "Attack went up" are both true on both arms. */
+  const howl = hitOnRoll(ACCSPS, 0.85, 'hydropump', { setupMe: 'howl' });
+  const coil = hitOnRoll(ACCSPS, 0.85, 'hydropump', { setupMe: 'coil' });
+  /* The evasion half, in the other direction and on the FOE. Minimize is +2 evasion -> 100 x 3/5 = 60. */
+  const plain = hitOnRoll(ACCSPS, 0.85, 'icebeam', { setupFoe: 'protect' });
+  const minim = hitOnRoll(ACCSPS, 0.85, 'icebeam', { setupFoe: 'minimize' });
+  return { works: howl === 0 && coil > 0 && plain > 0 && minim === 0,
+           arms: { control: [howl, plain], test: [coil, minim] },
+           detail: `Hydro Pump (80) at roll 0.85 after Howl ${howl} / after Coil ${coil}; `
+                 + `Ice Beam (100) at roll 0.85 into a foe that clicked Protect ${plain} / Minimize ${minim}` };
+});
+
+probe('item', 'accuracyMod', 'Wide Lens lands an 80% move on a losing roll; Bright Powder makes it miss on a winning one', () => {
+  const at = (roll, stage) => hitOnRoll(ACCSPS, roll, 'hydropump', stage ? { stage } : null);
+  /* 80 x 1.1 = 88, so roll 0.85 flips from miss to hit. */
+  const noLens = at(0.85), lens = at(0.85, (B) => { B.me.item = 'widelens'; });
+  /* 80 x 0.9 = 72, so roll 0.75 flips from hit to miss — and it is the TARGET's item, which is the
+   * half a one-sided implementation gets wrong. */
+  const noPowder = at(0.75), powder = at(0.75, (B) => { B.f1.item = 'brightpowder'; });
+  return { works: noLens === 0 && lens > 0 && noPowder > 0 && powder === 0,
+           arms: { control: [noLens, noPowder], test: [lens, powder] },
+           detail: `Hydro Pump (80) at roll 0.85 — no item ${noLens}, Wide Lens ${lens}; `
+                 + `at roll 0.75 — no item ${noPowder}, foe's Bright Powder ${powder}` };
+});
+
+probe('ability', 'accuracyMod', 'Sand Veil makes the attacker miss a roll it would have hit, and only in sand', () => {
+  const at = (ab, wx) => hitOnRoll(ACCSPS, 0.70, 'hydropump',
+    { stage: (B) => { B.f1.ability = ab; B.S.field.weather = wx; } });
+  /* 80 x 0.8 = 64, so roll 0.70 flips from hit to miss — and BOTH halves of the condition are
+   * cleared: the ability without the sand must not fire, and the sand without the ability must not. */
+  const clear = at('sandveil', ''), sand = at('sandveil', 'sand'), noAbil = at('none', 'sand');
+  return { works: clear > 0 && noAbil > 0 && sand === 0,
+           arms: { control: [clear, noAbil], test: [sand, 0] },
+           detail: `Hydro Pump (80) at roll 0.70 into a Garchomp — Sand Veil, clear sky ${clear}; `
+                 + `no ability, sand ${noAbil}; Sand Veil, SAND ${sand}` };
+});
+
+probe('ability', 'writesAccuracy', 'No Guard makes an 80% move land on a losing roll, in BOTH directions', () => {
+  const at = (mine, theirs) => hitOnRoll(ACCSPS, 0.99, 'hydropump',
+    { stage: (B) => { B.me.ability = mine; B.f1.ability = theirs; } });
+  const control = at('none', 'none'), attacker = at('noguard', 'none'), defender = at('none', 'noguard');
+  return { works: control === 0 && attacker > 0 && defender > 0,
+           arms: { control, test: [attacker, defender] },
+           detail: `Hydro Pump (80) at roll 0.99 — neither side ${control}; No Guard on the ATTACKER `
+                 + `${attacker}; No Guard on the TARGET ${defender}` };
+});
+
+/* ---- THE #51 BATCH, IN CORPUS-USAGE ORDER ------------------------------------------------------
+ *
+ * Every tag below was on tests/test-medicham-coverage.js's "(b) NO PROBE AT ALL" list -- a worse
+ * state than unarmed, because nothing had ever asked whether the engine does the thing.
+ * `boostsFromFallen` came off that same list on 2026-08-06 and WIRE 125 was underneath it,
+ * undercounting for every body that entered after the first death. Each of these carries more corpus
+ * usage than that one did, and the first one probed had WIRE 130 under it. */
+
+/* ONE STAGING FOR THE WHOLE BATCH: a real setup turn for the body that needs one, then a real attack
+ * turn, and the aimed foe's HP loss. Same shape as hitOnRoll above and for the same reason -- a probe
+ * that hand-rolls its own turn loop is a second implementation of the thing being tested. */
+const twoTurn = (sps, opt) => {
+  const o = opt || {};
+  const B = board(sps[0], sps[1], sps[2], sps[3]);
+  if (o.big) unfaintable(B.f1);
+  if (o.stage) o.stage(B);
+  const rng = () => (o.roll == null ? 0.5 : o.roll);
+  const mine = (mv) => new Map([[B.me, mv ? M.playerAction(B.me, mv, B.f1, B.S.field) : { kind: 'pass' }],
+                                [B.ally, { kind: 'pass' }]]);
+  const theirs = (mv) => new Map([[B.f1, mv ? M.playerAction(B.f1, mv, B.me, B.S.field) : { kind: 'pass' }],
+                                  [B.f2, { kind: 'pass' }]]);
+  let paid = 0;
+  if (o.setupMe || o.setupFoe) {
+    const h = B.f1.curHP;
+    M.battleTurn(B.S, rng, mine(o.setupMe || null), theirs(o.setupFoe || null));
+    paid = h - B.f1.curHP;
+  }
+  const before = B.f1.curHP;
+  if (o.move || o.foeMove) M.battleTurn(B.S, rng, mine(o.move || null), theirs(o.foeMove || null));
+  return { paid, dmg: before - B.f1.curHP, sub: B.f1._sub || 0, hp: B.f1.curHP,
+           fainted: !!B.f1.fainted, status: B.f1.status || '-', B };
+};
+const SUBSPS = ['milotic', 'incineroar', 'garchomp', 'incineroar'];
+
+probe('move', 'substitute', 'the doll absorbs the hit, a sound move goes through it, and a second click fails free', () => {
+  /* THE CONTROL IS A SETUP CLICK THAT COSTS NOTHING AND DOES NOTHING TO THE INCOMING MOVE. Howl, not
+   * "no setup turn at all" -- both arms then spend the same number of turns, which is the correction
+   * the accuracy family above needed too. */
+  const ctrl = twoTurn(SUBSPS, { setupFoe: 'howl', move: 'icebeam' });
+  const sub = twoTurn(SUBSPS, { setupFoe: 'substitute', move: 'icebeam' });
+  /* Hyper Voice is `bypasssub` in the real game, so it must reach the BODY while the doll still
+   * stands. Without this arm "the substitute ate it" and "the engine stopped resolving moves" print
+   * the same zero. */
+  const sound = twoTurn(SUBSPS, { setupFoe: 'substitute', move: 'hypervoice' });
+  /* A status move is refused by the doll -- and Will-O-Wisp is not on the bypass list, so it is the
+   * honest half of that rule rather than the comfortable one. */
+  const wisp = twoTurn(SUBSPS, { setupFoe: 'substitute', move: 'willowisp' });
+  const wispNo = twoTurn(SUBSPS, { setupFoe: 'howl', move: 'willowisp' });
+  /* A SECOND SUBSTITUTE MUST COST NOTHING. This is the arm that catches "pay first, ask later", which
+   * is what the engine did on the FIRST click for its whole life. */
+  const twice = twoTurn(SUBSPS, { setupFoe: 'substitute', foeMove: 'substitute' });
+  return { works: ctrl.dmg > 0 && sub.dmg === 0 && sub.paid > 0
+                  && sound.dmg > 0 && sound.sub > 0
+                  && wisp.status === '-' && wispNo.status === 'brn'
+                  && twice.dmg === 0,
+           arms: { control: [ctrl.dmg, wispNo.status], test: [sub.dmg, wisp.status] },
+           detail: `Ice Beam into a Garchomp -- after Howl ${ctrl.dmg}, after Substitute ${sub.dmg} `
+                 + `(the doll cost ${sub.paid}); Hyper Voice (bypasssub) through the doll ${sound.dmg} `
+                 + `with ${sound.sub} doll left; Will-O-Wisp -- with a sub ${wisp.status}, without `
+                 + `${wispNo.status}; a SECOND Substitute costs ${twice.dmg}` };
+});
+
+probe('ability', 'ignoresScreensAndSubs', 'Infiltrator hits the body behind a substitute', () => {
+  const blocked = twoTurn(SUBSPS, { setupFoe: 'substitute', move: 'icebeam' });
+  const through = twoTurn(SUBSPS, { setupFoe: 'substitute', move: 'icebeam',
+                                    stage: (B) => { B.me.ability = 'infiltrator'; } });
+  return { works: blocked.dmg === 0 && through.dmg > 0 && through.sub > 0,
+           arms: { control: blocked.dmg, test: through.dmg },
+           detail: `Ice Beam into a substituted Garchomp -- no ability ${blocked.dmg}, Infiltrator `
+                 + `${through.dmg} with the doll still standing at ${through.sub}` };
+});
+
+probe('move', 'swapsAbilities', 'Skill Swap exchanges the two abilities, and Good as Gold refuses it', () => {
+  const run = (foeAb) => {
+    const r = twoTurn(SUBSPS, { move: 'skillswap',
+      stage: (B) => { B.me.ability = 'blaze'; B.f1.ability = foeAb; } });
+    return [r.B.me.ability, r.B.f1.ability];
+  };
+  const swapped = run('intimidate');
+  /* Good as Gold refuses a status move outright, so the abilities must be exactly where they started
+   * -- which is a different assertion from "nothing happened", because the control arm proves the
+   * click otherwise lands. */
+  const refused = run('goodasgold');
+  return { works: swapped[0] === 'intimidate' && swapped[1] === 'blaze'
+                  && refused[0] === 'blaze' && refused[1] === 'goodasgold',
+           arms: { control: refused, test: swapped },
+           detail: `[attacker ability, target ability] after Skill Swap -- into Intimidate ${swapped}; `
+                 + `into Good as Gold ${refused} (refused, unchanged)` };
+});
+
+probe('move', 'readsOwnItem', 'Acrobatics doubles when the user holds nothing', () => {
+  const at = (item) => twoTurn(SUBSPS, { big: true, move: 'acrobatics',
+                                         stage: (B) => { B.me.item = item; } }).dmg;
+  const held = at('leftovers'), empty = at('');
+  return { works: held > 0 && empty >= 2 * held - 2,
+           arms: { control: held, test: empty },
+           detail: `Acrobatics -- holding Leftovers ${held}, holding nothing ${empty} (the tag says x2)` };
+});
+
+probe('move', 'ohko', 'Fissure kills a body no damage roll could reach, and misses on a losing roll', () => {
+  /* THE MECHANISM, NOT A LUCKY ROLL. The target is given EIGHT TIMES its max HP, so no damage
+   * formula in this engine can take it down -- a faint here can only be the OHKO rule. `roll` is the
+   * only random number the turn sees and Fissure prints 30, so 0.1 wins and 0.9 loses. */
+  const hit = twoTurn(SUBSPS, { big: true, move: 'fissure', roll: 0.1 });
+  const miss = twoTurn(SUBSPS, { big: true, move: 'fissure', roll: 0.9 });
+  /* THE CONTROL IS A REAL ATTACK ON THE SAME WINNING ROLL. Without it "Fissure faints it" cannot be
+   * told from "the staging faints it", and an 8x body is exactly the staging that makes that visible. */
+  const normal = twoTurn(SUBSPS, { big: true, move: 'icebeam', roll: 0.1 });
+  return { works: hit.fainted && !miss.fainted && miss.dmg === 0 && !normal.fainted && normal.dmg > 0,
+           arms: { control: [normal.fainted, normal.dmg], test: [hit.fainted, miss.dmg] },
+           detail: `into a Garchomp on 8x max HP -- Fissure at roll 0.1 fainted=${hit.fainted}; at `
+                 + `roll 0.9 dealt ${miss.dmg}; Ice Beam at roll 0.1 fainted=${normal.fainted} `
+                 + `dealing ${normal.dmg}` };
+});
+
+probe('ability', 'survivesFromFull', 'Sturdy holds at 1 HP from full and does not from chipped', () => {
+  const at = (ab, frac) => twoTurn(SUBSPS, { move: 'icebeam', stage: (B) => {
+    B.f1.ability = ab;
+    B.me.st = Object.assign({}, B.me.st, { sa: 400 });        // a certain kill either way
+    B.f1.curHP = Math.floor(B.f1.st.hp * frac);
+  } });
+  const full = at('sturdy', 1), chipped = at('sturdy', 0.9), none = at('none', 1);
+  return { works: !full.fainted && full.hp === 1 && chipped.fainted && none.fainted,
+           arms: { control: [none.fainted, chipped.fainted], test: [full.fainted, full.hp] },
+           detail: `an overkill Ice Beam -- Sturdy at full HP fainted=${full.fainted} hp=${full.hp}; `
+                 + `Sturdy at 90% fainted=${chipped.fainted}; no ability at full fainted=${none.fainted}` };
+});
+
+/* SUPREME OVERLORD IS THE REASON THIS WHOLE BATCH EXISTS. WIRE 125 found the death counter falling
+ * back to zero one turn after every death, and it found it because `powerFromFallen` (Last Respects)
+ * had a probe. `boostsFromFallen` did NOT, and it reads the same field.
+ *
+ * THE SNAPSHOT IS TAKEN AT SWITCH-IN, which the artifact says (`countedAt: "switch-in"`) and which
+ * makes the staging three turns rather than one: the deaths are planted, a turn is spent so the
+ * end-of-turn recount runs, the body switches IN, and only then does it click. A probe that put the
+ * Kingambit on the field at battleInit reads 97 in every arm on a perfectly correct engine -- it was
+ * written that way first, and it is the thirty-seventh time a probe here was wrong before the engine. */
+probe('ability', 'boostsFromFallen', 'Supreme Overlord reads the dead at the moment its body walks in', () => {
+  const run = (dead, ab) => {
+    const lead = bare('milotic'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('incineroar');
+    const king = bare('kingambit'); king.ability = ab;
+    const d = [bare('milotic'), bare('milotic'), bare('milotic')];
+    const S = M.battleInit([lead, ally, king].concat(d), [f1, f2], { seeded: true });
+    unfaintable(f1);
+    for (let i = 0; i < dead; i++) { d[i].fainted = true; d[i].curHP = 0; }
+    M.battleTurn(S, rng5, PASS2(lead, ally), PASS2(f1, f2));
+    M.battleTurn(S, rng5, new Map([[lead, { kind: 'switch', to: king }], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const before = f1.curHP;
+    M.battleTurn(S, rng5, new Map([[king, M.playerAction(king, 'ironhead', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return before - f1.curHP;
+  };
+  /* THREE ARMS, because two of them separate hypotheses the pair cannot. `none/3` proves the extra
+   * damage is the ABILITY and not the three deaths (a switch-in after losses could plausibly be
+   * cheaper or dearer for a dozen other reasons), and `overlord/0` proves it is the DEATHS and not
+   * the ability. The tag says +10% per fallen, capped at 5 -- three of them is x1.3. */
+  const none3 = run(3, 'none'), zero = run(0, 'supremeoverlord'), three = run(3, 'supremeoverlord');
+  return { works: zero > 0 && none3 === zero && three > zero
+                  && Math.abs(three - Math.floor(zero * 1.3)) <= 2,
+           arms: { control: [zero, none3], test: three },
+           detail: `Iron Head from a Kingambit that switched in -- no ability with 3 fallen ${none3}; `
+                 + `Supreme Overlord with 0 fallen ${zero}; Supreme Overlord with 3 fallen ${three} `
+                 + `(the tag says +10% each, so x1.3)` };
 });
 
 const works = results.filter(r => r.works);

@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 3.55.0 · Last updated 2026-08-06.**
+**Version 3.56.0 · Last updated 2026-08-06.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
@@ -279,8 +279,23 @@ than Pelipper plus Archaludon** — the same expressiveness failure as DODUO, on
 
 ## MEDICHAM — Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves
 
-**MECHANICS STATE, 2026-08-06 (3.50.0), read from the artifact rather than typed:**
-`data/mechanics-census.json` reads **218 live of 221 probed, 3 missing, 0 hollow** (wires 82–89 at
+**MECHANICS STATE, 2026-08-06 (3.56.0), read from the artifact rather than typed:**
+`data/mechanics-census.json` reads **231 live of 232 probed, 1 missing, 0 hollow**, `directCall` **0**,
+red demonstrations **79 / 0 failed**. **WIRES 129–130 at 3.56.0 closed two of the three remaining
+missing mechanics.** WIRE 129: *"does this move hit"* had four doors — Coil, Wide Lens, Sand Veil,
+No Guard — and a before-touching measurement returned an **identical number in every arm of all six**
+(`0/0`, `258/258`, `0/0`, `116/116`, `115/115`, `0/0`, ~5,000 uses). Three unrelated causes: `SD2ENG`
+mapped `accuracy` and `evasion` to **null**, so every boost applier keying off it dropped a third of
+`{atk,def,accuracy}`; items and abilities were read **nowhere**; and the roll called
+`moveAccuracy(id, field)`, a function **handed no bodies**, so it could not consult an attacker or a
+defender even in principle. One authority now — `hitChance(att, def, id, field, ctx)` at all four
+to-hit sites, with the roll moved below target resolution so a defender exists to ask about.
+WIRE 130: **Substitute was charged for and never built** — 1,976 clicks of a move strictly worse than
+passing, because `playerAction` resolves it to `kind:'affect'` and WIRE 42's `kind==='sub'` branch is
+unreachable **and always was**. The comfortable fix would have been the bigger bug: Encore (4,848),
+Taunt (1,503) and Disable (730) all carry `bypasssub` and **none is a sound move**, so a `sound`-tag
+rule would have walled all three. `subBlocks` is one answer for the damage path and every status path.
+The prior state was 218 live of 221 (wires 82–89 at
 3.40.0, then the Layer 0 pass — wires 90–112 — at 3.41.0; Marvel Scale and After You/Quash came
 off the missing list, the second because the "cannot tell it from Instruct" blocker was false:
 Instruct carries `instructsTarget {extraAction:true}`, a shape read; then the scope pass, WIRE 117's
@@ -291,10 +306,23 @@ usage — **TAUNT, 1,503 clicks, was not implemented at all** (the volatile was 
 and read by nothing, while the comment beside it claimed the opposite), a pivot MOVE was resolving at
 the bare-switch priority so **Parting Shot was the fastest action in the game**, Volt Switch pivoted
 out of a hit Lightning Rod had absorbed, and the Yawn branch was the one foe-aimed status route that
-never asked about Good as Gold). The three remaining are each
-declared with a reason in [ENGINE.md](ENGINE.md) — two on the `moveAccuracy(id, field)` signature
-(a change that crosses into the refit edge MEASURE owns), one by DECISION (Avalanche asks for turn
-state `dmgRange` is not given).
+never asked about Good as Gold). **The two `moveAccuracy(id, field)` entries are gone** — that
+signature was the blocker and WIRE 129 replaced it. **The one remaining** is declared with a reason in
+[ENGINE.md](ENGINE.md): `move|needsTargetToAttack` (Avalanche asks for turn state `dmgRange` is not
+given), a DECISION, not an omission.
+
+**Five tags are ABSENT rather than merely unprobed, and are reported as such.** They sit in the
+coverage gate's (b) column instead of being probed red, because gate (c) ratchets on *"every probe
+MISSING"* and a red probe would have failed it — filing them honestly was the only option that did not
+either lie or break the ratchet. The largest, **`ability|auraBoost` at 5,663 uses**, needs state
+`dmgRange` **cannot see**: the multiplier is field-wide over every body, and `dmgRange` holds two
+bodies and a field with no roster. Measured 79 with Fairy Aura on the attacker, the ally, the foe and
+nobody. **Wiring it changes a `board.js`-facing input, so it is a design call and is routed rather than
+patched.** The other four: `instructsTarget` (2,222) is absent *by construction* — it needs re-entrant
+action resolution; `passesState` (1,793) — `switchOut` clears `out.boosts` unconditionally;
+`punishesBoostedTarget` (604) needs a per-turn *was boosted* flag **and the confusion volatile, which
+this engine has nowhere**; `randomBoostEachTurn` (Moody, 590) is stochastic, so a probe must assert the
+mechanism rather than a stat.
 
 **THE MUTATION TIER'S DEFECT COUNT WAS RETRACTED DOWNWARD AND THE RETRACTION IS THE ENTRY, 3.49.1.**
 `data/mutation-coverage.json` reported **97 DEFECT-CANDIDATE** operators inside an open total of 340,

@@ -10,6 +10,96 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.56.0] — 2026-08-06
+
+### Fixed
+- **WIRE 129 — "does this move hit" had four doors and every one of them was dead.** ~5,000 uses.
+  Measured into a Garchomp before anything was touched, and the giveaway is that every arm is
+  identical:
+
+  | | with | without |
+  |---|---|---|
+  | Coil | 0 | 0 |
+  | Minimize | 258 | 258 |
+  | Wide Lens | 0 | 0 |
+  | Bright Powder | 116 | 116 |
+  | Sand Veil in sand | 115 | 115 |
+  | No Guard | 0 | 0 |
+
+  **Three unrelated root causes.** `SD2ENG` mapped `accuracy` and `evasion` to **null**, and all
+  eleven boost appliers key off it — so `targetBoostsAlways:{atk:1,def:1,accuracy:1}` landed
+  two-thirds of itself. Items and abilities were read **nowhere**. And the loop's roll called
+  `moveAccuracy(id, field)`, which **is handed no bodies at all**, so it could not have consulted an
+  attacker or a defender even in principle. One authority now — `hitChance(att, def, id, field, ctx)`
+  at all four to-hit sites — plus `printedAccuracy` so `true` survives as `true`, the (3+n)/3 stage
+  table, and the roll **moved below target resolution** so there is a defender to ask about.
+- **WIRE 130 — Substitute was charged for and never built. 1,976 clicks of a move strictly worse
+  than passing.** `playerAction` resolves it to `kind:'affect'`, so WIRE 42's `kind==='sub'` branch
+  is unreachable **and always was**; the generic `costsUserHP` block took 25% of the user's HP and
+  produced nothing. `_sub` read 0 and the body took full damage. Fixed with `grantSubstitute`, a
+  free-fail on a second click, and `subBlocks` as **one** answer for the damage path and every status
+  path.
+  **The comfortable fix would have been the bigger bug, and it was measured first:** Encore (4,848),
+  Taunt (1,503) and Disable (730) all carry `bypasssub` and **none is a sound move**, so a
+  `sound`-tag rule would have walled all three.
+- **`engine/tag_dex.js`'s `writesAccuracy` derivation was inverted on all nine carriers.**
+  `onModifyAccuracy` fires on the **target** and was labelled "its own moves", so the artifact records
+  Sand Veil as sharpening its own attacks. Derivation fixed; nothing consumes `scope`, so the engine
+  was correct either way.
+
+### Added
+- **Two conformance gates, so the tables are checked rather than remembered.**
+  **ACCURACY-MODIFIER** re-derives all 12 accuracy handlers from the live format and takes direction
+  from the hook name — 12 handlers, 13 rows, **0 disagree**, and it caught its own key-casing bug on
+  first run. **SUBSTITUTE-BYPASS** re-derives `bypasssub` across all 500 moves: **51 carried, 0
+  missing, 0 invented.**
+- Eleven new probes, all through `battleInit` + `battleTurn`, all armed, each with a reverted or
+  tag-stripped demonstration. **Two of them revert in the direction that still *works*** — so only
+  the control arm catches them.
+
+### Notes
+```
+                        before      after
+mechanics live         218/221    231/232
+declared missing             3          1
+red demonstrations          65         79      0 failed
+coverage gate (b) NO PROBE  17          9
+directCall                   0          0      held
+unarmed                     76         76      all 11 new probes armed
+```
+**Two of the three declared-missing mechanics are gone** — Sand Veil and No Guard. Differential holds
+at 1/150, accuracy conformance 500/500, interaction matrix **byte-for-byte identical**,
+`feature_fixture --check` **CLEAN — no refit owed**.
+
+**A probe was wrong before the engine was, and that is thirty-seven.** The first `boostsFromFallen`
+probe put Kingambit on the field at `battleInit` — but Supreme Overlord snapshots at **switch-in**,
+so it read 97 in every arm and reported the mechanic missing on a **correct** engine.
+
+### Notes — reported honestly rather than faked
+Five tags are **absent, not merely unprobed**, and were left in the coverage gate's (b) column rather
+than probed red, because (c) ratchets on "every probe MISSING" and a red probe would have failed it:
+- **`auraBoost` (5,663 uses — the largest)** needs state `dmgRange` cannot see. The multiplier is
+  field-wide over every body; `dmgRange` holds two bodies and a field with no roster. Measured 79
+  with Fairy Aura on attacker, ally, foe and nobody. **Wiring it changes a `board.js`-facing input,
+  so it is a design call and is routed rather than patched.**
+- `instructsTarget` (2,222) is absent **by construction** — needs re-entrant action resolution.
+- `passesState` (1,793) — `switchOut` clears `out.boosts` unconditionally.
+- `punishesBoostedTarget` (604) needs a per-turn "was boosted" flag **and the confusion volatile,
+  which this engine has nowhere.**
+- `randomBoostEachTurn` (Moody, 590) is stochastic; a probe must assert the mechanism, not a stat.
+
+### Notes — a consequence of MY OWN corpus change, traced by comparing rather than trusting
+**`data/tags.json` cannot be safely regenerated today.** A regeneration was run and **diffed** rather
+than accepted: tag membership and every param are **identical** (0 diffs across 500/262/146), but
+`sheet_entries` falls **110,760 → 78,480** and **five entities drop out** — including **Serene Grace
+and Tinted Lens**. Regenerating would silently delete them from the engine's knowledge. The artifact
+was restored byte-identical.
+
+The cause is `engine/fit_policy.js:304`, which I narrowed to `['games.bo3.jsonl']` earlier in this
+same session on Will's open-sheet directive, dropping `games.ots.jsonl` — **41.5% of the corpus.**
+That was the right call for the *fit*; nobody traced that `tag_dex.js` reads the same `loadCorpus()`
+and would lose entities by it. **A corpus decision is not local to the model it was made for.**
+
 ## [3.55.0] — 2026-08-06
 
 ### Fixed

@@ -25,16 +25,14 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  218/221 probed mechanics live, 3 missing   (census 2026-08-06 19:07)
+  231/232 probed mechanics live, 1 missing   (census 2026-08-06 20:12)
   missing:
     move    needsTargetToAttack    Avalanche doubles after the target hits it this turn
-    ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll
-    ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit
-  1/150 differential comparisons disagree with Showdown   (2026-08-06 19:02)
+  1/150 differential comparisons disagree with Showdown   (2026-08-06 20:14)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 18:42)
+  interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 20:07)
     2300 of 8795 theoretical pairs staged — agreement is a claim about the 2300 that ran, not about the 8795
       530 inert      not scored — the reference engine behaves identically with and without the reactor
       109 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
@@ -46,10 +44,10 @@ ENGINE — does the simulator do what Pokémon does
     DISAGREES  stoneaxe -> gooey  (secondary, 63 uses)
     DISAGREES  gigaimpact -> spikyshield  (secondary, 38 uses)
     DISAGREES  supercellslam -> kingsshield  (secondary, 85 uses)
-  tag coverage: 156/181 probed, 25 unprobed
+  tag coverage: 162/181 probed, 19 unprobed
 ```
 
-_stamped 2026-08-06 19:10_
+_stamped 2026-08-06 20:22_
 
 <!-- /GENERATED -->
 
@@ -62,6 +60,264 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
+
+## ACCURACY MODIFICATION LANDS AS ONE UNIT, AND THE FIRST TAG PROBED AFTER IT HAD WIRE 130 UNDER IT. 2026-08-06.
+
+Census **218 live / 221 probed → 231 live / 232 probed**. Missing **3 → 1** — `ability|accuracyMod`
+(Sand Veil) and `ability|writesAccuracy` (No Guard) were two of the three declared-missing mechanics
+and both are live; only `move|needsTargetToAttack` remains, unchanged and for the reason recorded
+below. `hollow` 0, `threw` 0, **`directCall` 0 and it did not rise** — the two new staging helpers
+(`hitOnRoll`, `twoTurn`) are declared in `REALTURN` by name, exactly as that ratchet's comment
+requires. `unarmed` **76 and unchanged**: all eleven new probes are armed.
+`tests/probe_red_demo.js` **65 → 79 demonstrations, 0 failed**.
+
+Every other instrument held. Differential **1/150**, the same pre-existing
+`chesnaught woodhammer -> mimikyu` row and the same 11 not comparable; accuracy conformance
+**500/500**. `tests/test-game-diff.js` agrees on every turn of all five scripted games. The
+interaction matrix re-run at `--full` against the changed engine is **byte-for-byte identical to the
+pre-pass artifact** — 1,624/1,643 (98.8%), the same 530 inert / 109 saturated / 16 ko-timing / 2
+threw. `engine/feature_fixture.js --check` is **CLEAN — all 58 columns hash-identical to fit time**,
+so **no refit is owed**. `tests/test-engine-consistency.js` all passed.
+`tests/test-no-silent-failure.js` **0 new** (one was mine and it now speaks — see below).
+
+**The coverage ratchet moved forward and was re-stamped.** `tests/test-medicham-coverage.js`
+(b) "tags with NO PROBE AT ALL" **17 → 9**; (c) "tags whose every probe reports MISSING" **3 → 1**;
+(a) 14, (d) 17 of 17, `notArmed` 62 — none of them rose. New baseline in
+`data/medicham-coverage.json`.
+
+**The generated block at the top of this file is one census behind**, because this pass was dispatched
+under an explicit instruction not to run `engine/status.js --write`. **THE RESTAMP IS OWED**; the
+artifacts already say the right thing.
+
+### WIRE 129 — ~5,000 CORPUS USES OF "DOES THIS MOVE HIT" AND NOT ONE AXIS OF IT WAS WIRED
+
+The dispatch was right that the four doors are one mechanic, and right that all four were open. What
+the measurement added is that they were open in three *different* ways, so a single fix would not
+have closed them:
+
+| door | what was actually wrong |
+|---|---|
+| `move\|accuracyMod` (Coil 2,351, Minimize 1,050) | `SD2ENG` mapped `accuracy` and `evasion` to **null**. Eleven boost appliers in this file key off that map, so `data/move-effects.js`'s own `targetBoostsAlways:{atk:1,def:1,accuracy:1}` landed two thirds of the time and the accuracy stage was dropped on the floor |
+| `item\|accuracyMod` (Wide Lens 757, Bright Powder 208) | nothing read the item at all |
+| `ability\|accuracyMod` (Sand Veil 307, Snow Cloak 353) | nothing read the ability at all |
+| `ability\|writesAccuracy` (No Guard) | nothing read the ability at all |
+| **all four** | the battle loop's to-hit roll called `moveAccuracy(id, field)`, which **is handed no bodies** — the signature gap the census had been reporting as three separate misses since WIRE 78 |
+
+Measured before a line of engine changed, both arms on each axis, into a Garchomp on 183 HP:
+
+```
+Hydro Pump (80) at roll 0.85 after Howl 0 / after Coil 0        <- Coil's +1 accuracy did nothing
+Ice Beam  (100) at roll 0.85 into Protect 258 / Minimize 258    <- +2 evasion did nothing
+Hydro Pump (80) at roll 0.85 no item 0 / Wide Lens 0            <- x1.1 did nothing
+Hydro Pump (80) at roll 0.75 no item 116 / Bright Powder 116    <- x0.9 did nothing
+Hydro Pump (80) at roll 0.70 sand + Sand Veil 115 / clear 115   <- x0.8 did nothing
+Hydro Pump (80) at roll 0.99 no ability 0 / No Guard 0          <- never-miss did nothing
+```
+
+**Identical results across a varied knob mean the knob is unwired**, six times over.
+
+**ONE AUTHORITY, `hitChance(att, def, id, field, ctx)`, AND ALL FOUR TO-HIT SITES CALL IT.** The
+`affect` branch, the Leech Seed branch, the status branch and the attack branch each had their own
+`moveAccuracy(...)` line; there are now four calls to one function. `printedAccuracy` is split out
+underneath it so `true` survives as `true` — Showdown skips the boost table and every ModifyAccuracy
+handler when a move cannot miss, so a +6 Minimize does nothing to Swift and cuts Ice Beam to 3/9.
+**`moveAccuracy` keeps its exact signature and every value it returns**, because it is on the export
+list `board.js` and `engine/position_features.js` read and its meaning may not move under them.
+
+**THE STAGE TABLE IS NOT THE STAT TABLE**, and reusing `boostMul` is the comfortable mistake: stat
+stages are (2+n)/2, accuracy and evasion stages are (3+n)/3, so +1 accuracy is 1.33x and not 1.5x and
++6 is 3x and not 4x.
+
+**THE ARTIFACT'S DIRECTION IS INVERTED ON EVERY CARRIER, AND THAT IS A REAL BUG IN AN ENGINE-OWNED
+FILE.** `engine/tag_dex.js`'s `writesAccuracy` derivation puts `onModifyAccuracy` under
+*"its own moves"* and `onSourceModifyAccuracy` under *"moves aimed at it"*. Showdown fires the first
+on the **TARGET** and the second on the **ATTACKER**. So `data/abra-tags.js` records **Sand Veil as
+sharpening its own moves and Compound Eyes as sharpening the foe's** — precisely backwards, on all
+nine carriers. Nothing had ever consumed `scope`, which is why it survived.
+
+**The derivation is corrected in `engine/tag_dex.js`. The ARTIFACT is NOT regenerated, and the reason
+is measured rather than assumed** — see the separate section below. So **nothing in the engine reads
+`scope`**: membership comes from the tag (`accuracyMod` / `writesAccuracy`), and the number and the
+direction come from `ACCMOD`, a table **re-derived on every run** by a new
+`ACCURACY-MODIFIER CONFORMANCE` block in `tests/test-engine-diff.js`. It reads the handlers straight
+out of `gen9championsvgc2026regmb` and takes the direction from the **hook name**, which is the fact:
+
+```
+onModifyAccuracy        handler on the TARGET     -> side 'def'    sandveil snowcloak tangledfeet wonderskin brightpowder laxincense
+onSourceModifyAccuracy  handler on the ATTACKER   -> side 'att'    compoundeyes hustle widelens zoomlens
+onAnyAccuracy           neither end may miss      -> both, never   noguard
+onAnyModifyAccuracy     the whole SIDE            -> not expressible in hitChance
+```
+
+**12 handlers in the format, 13 rows in the table, 0 disagreements.** The block failed on its own
+first run over a key-casing bug and named every row — which is the check working before it was
+trusted.
+
+**A CARRIER WITH NO ROW IS LOUD.** `MEDFAILS.accModUntabled` counts any entity the artifact tags as
+touching accuracy that `ACCMOD` has no row for, and it reads **0**. A silent default here is
+indistinguishable from the bug this wire fixes.
+
+**THREE ROWS ARE DECLARED OFF WITH THEIR REASONS, RATHER THAN HALF-WIRED**, because a tag consumed
+half-right is how the 20-mechanic batch went wrong:
+- `tangledfeet` — needs the confusion volatile and **this engine has no confusion at all** (4 uses);
+- `victorystar` — its `onAnyModifyAccuracy` guard is `source.isAlly(...)`, so it boosts the whole
+  SIDE, and `hitChance` holds one attacker and one defender and no side (0 uses in this regulation);
+- `skilllink` — a **FALSE POSITIVE in `data/abra-tags.js`**: `tag_dex`'s probe matches `/accuracy/i`
+  against Skill Link's `delete move.multiaccuracy`. It writes multihit, not accuracy. The row exists
+  so the untabled counter does not report it forever, and it applies nothing.
+
+**THE ATTACK-SITE ROLL MOVED BELOW TARGET RESOLUTION, AND THAT IS THE HALF THAT NEEDED A DEFENDER.**
+It used to happen above `const foes=...`, where no defender exists — so the whole `def` side of
+accuracy was unreachable there whatever `hitChance` did. Nothing between the old site and the new one
+consumes rng, and that is **verified rather than argued**: the interaction matrix is byte-for-byte
+identical.
+
+**ONE ROLL PER MOVE, NOT PER TARGET, IS A DECLARED DIVERGENCE AND IT IS COUNTED.** Showdown rolls
+accuracy separately against each target of a spread move. Rolling per target here would change how
+much rng every seeded run in the repository consumes, which is a much larger change than this wire is
+buying — so a spread move rolls once with the attacker's modifiers only and increments
+`MEDSEEN.accSpreadNoDefender`. Single-target moves, where every evasion item and ability in this
+format actually lives, get the real defender.
+
+### WIRE 130 — SUBSTITUTE WAS PAID FOR AND NEVER BUILT. 1,976 CORPUS CLICKS OF A MOVE STRICTLY WORSE THAN PASSING.
+
+Found by writing the probe for `move|substitute`, the second-biggest tag on the coverage gate's
+"NO PROBE AT ALL" list. Measured before anything changed, a Garchomp on 183:
+
+| the foe clicked | it paid | then took Ice Beam for | `_sub` |
+|---|---|---|---|
+| Howl | 0 | **183** | – |
+| **Substitute** | **45** | **138** | **0** |
+
+`playerAction` resolves Substitute to `kind:'affect'` — it carries `statusInflict` with a volatile,
+and that branch is checked long before the `costsUserHP` fallback. So **the `kind==='sub'` branch
+WIRE 42 wrote for it is unreachable and always was**, and what ran instead was the generic
+`costsUserHP` deduction at the top of the resolution loop. The click bought a quarter of the user's
+max HP worth of nothing. WIRE 42's own comment says it modelled both halves *"on purpose"* because
+charging the cost without granting the doll *"would make the most-clicked defensive setup move in the
+format strictly worse than doing nothing"*. That is exactly what shipped.
+
+**MEMBERSHIP PRINTED BEFORE IT WAS WIRED.** `move|substitute` matches exactly two rows and both are
+real: `substitute` (buffer 0.25) and `shedtail` (buffer 0.25, and it pays **half** for the same
+quarter-size doll — so the buffer is read from the tag and never inferred from the cost).
+
+Three fixes, one authority each:
+- `grantSubstitute(m, moveId)` builds the doll from the tag's `buffer`, called from the generic cost
+  block and from the `sub` branch, so the doll has one size and not two;
+- a **second** Substitute now fails **before** the deduction. Showdown returns early when the volatile
+  is up and never charges; paying for a doll you do not get is worse than either outcome;
+- `subBlocks(att, def, moveId)` is the one answer to "does the doll eat this", asked by the damage
+  path **and** by every status path.
+
+**AND IT CLOSED THE DECLARED DIVERGENCE THAT SAT AT THE ABSORB SITE.** That line said, in a comment,
+that sound moves and Infiltrator go through a real substitute and this engine did not track either.
+They do now — and the fix went in the direction the measurement chose, not the comfortable one:
+
+**THE COMFORTABLE VERSION WOULD HAVE BEEN A BIGGER BUG THAN THE ONE IT FIXED.** The obvious rule is
+"a substitute blocks status moves, except sound ones", built on the `sound` tag the artifact already
+has. Measured against the format first: the three most-clicked status moves that reach a substitute
+in this regulation — **Encore (4,848), Taunt (1,503), Disable (730)** — all carry `bypasssub` and
+**none of them is a sound move**. That rule would have walled all three.
+
+The real fact is Showdown's `bypasssub` flag and **no artifact this engine reads carries it**:
+`data/move-effects.js` has no flags block and `data/abra-tags.js` has no tag for it. So it is a
+51-entry `SUBPASS` set in the engine, re-derived over all 500 moves in `MC.moves` on every run by a
+new `SUBSTITUTE-BYPASS CONFORMANCE` block in `tests/test-engine-diff.js`: **51 carried, 0 missing, 0
+invented.** Infiltrator comes from the artifact's own `ignoresScreensAndSubs.ignoresSubstitute`, never
+from its name.
+
+After: Ice Beam into a substituted Garchomp deals 0, Hyper Voice deals 45 with the doll still
+standing, an Infiltrator's Ice Beam deals 138, Will-O-Wisp burns nothing through a doll and burns
+without one, and a second Substitute costs nothing.
+
+### THE ELEVEN NEW PROBES, AND THE FIVE THINGS THEY MEASURE THAT NOTHING DID
+
+`move|accuracyMod`, `item|accuracyMod`, `ability|accuracyMod`, `ability|writesAccuracy`,
+`move|substitute`, `ability|ignoresScreensAndSubs`, `move|swapsAbilities`, `move|readsOwnItem`,
+`move|ohko`, `ability|survivesFromFull`, `ability|boostsFromFallen`. All eleven spend real turns, all
+eleven are armed, and each has a demonstration in `tests/probe_red_demo.js` — **fourteen new
+demonstrations, each reverting exactly one argument, one table row or one operand.** Two of them are
+reverted in the direction that still "works", which is the shape a one-armed probe cannot see:
+`_accWhen('sand') -> return true` leaves Sand Veil firing and only the CLEAR-SKY control catches it;
+`subBlocks -> tg._sub>0` leaves the doll eating Ice Beams and only the sound arm catches it.
+
+**`move|ohko` IS STOCHASTIC AND THE PROBE ASSERTS THE MECHANISM.** The target is given **eight times**
+its max HP, so no damage formula in this engine can reach it — a faint can only be the OHKO rule. The
+control is Ice Beam at the *same winning roll*, which must NOT faint it, so "Fissure kills it" cannot
+be reached by a staging that kills it anyway.
+
+**`ability|boostsFromFallen` IS SUPREME OVERLORD AND IT IS WHY THIS BATCH EXISTS.** WIRE 125 found the
+death counter falling back to zero one turn after every death, and found it because Last Respects had
+a probe; Supreme Overlord reads the same field and had none. It is live and correct: Iron Head 97 with
+0 fallen, **126** with 3 (the tag says +10% each, capped at 5). The staging is three turns because the
+snapshot is taken at **switch-in** (`countedAt: "switch-in"`), and the third arm — no ability, three
+fallen, 97 — separates "the ability" from "the deaths".
+
+### AND MY OWN PROBE WAS WRONG BEFORE THE ENGINE WAS. THAT MAKES THIRTY-SEVEN.
+
+The first `boostsFromFallen` probe put the Kingambit on the field at `battleInit` and killed three
+bench bodies, then clicked. It read **97 in every arm** and reported the mechanic missing. Supreme
+Overlord snapshots at switch-in and that body never switched in, so on a perfectly correct engine the
+probe was asking a question with one answer. The fix is a real switch action after a real end-of-turn
+recount — and the same staging then showed the counter is right for a *faint replacement* in the same
+turn as the death, which was worth knowing and is now measured rather than assumed.
+
+### `data/tags.json` CANNOT BE SAFELY REGENERATED TODAY, AND THE REASON IS NOT ENGINE'S — ROADMAP #65
+
+The `tag_dex` fix above only reaches the engine through a regeneration, so a regeneration was tried
+and measured against the current artifact rather than trusted. **Tag membership and every param are
+identical — 0 differences across 500 moves, 262 abilities and 146 items.** What moved is usage, and
+it moved a long way:
+
+```
+sheet_entries  110,760 -> 78,480      (fit_policy.loadCorpus(), the corpus tag_dex counts over)
+move:priority   134,174 -> 96,911     move:contact 129,222 -> 90,974     and so on, uniformly
+```
+
+**Five entities DROP OUT of the artifact entirely**, because their usage fell to zero:
+`ability curiousmedicine`, `ability serenegrace`, `ability steelyspirit`, `ability tintedlens`,
+`item leppaberry`. `data/abra-tags.js` is what the engine reads params from, so regenerating would
+**silently delete Serene Grace and Tinted Lens from the engine's knowledge**. That is a regression and
+this pass did not make it. `data/tags.json` was restored byte-identical (`git status` clean on it).
+
+**This is not an ENGINE finding and it is not ENGINE's to fix.** The corpus `fit_policy.loadCorpus()`
+returns shrank by 29% at some point since the artifact was last generated. **Routed out: MEASURE or
+OPS should say whether that is a deliberate re-filter or a store problem.** Until it is answered, the
+`writesAccuracy` scope correction sits in `engine/tag_dex.js` and not in the artifact — which costs
+nothing, because nothing consumes `scope`.
+
+### WHAT IS STILL UNPROBED, WITH THE REASON, RATHER THAN A PROBE THAT PASSES ON A DELETED MECHANIC
+
+Nine tags remain on the coverage gate's (b) list. Four of them are **absent from the engine**, and a
+probe for those would go red — which is the honest state and is exactly what the (c) ratchet counts.
+They are reported here rather than staged, because writing a probe that passes on a deleted mechanic
+is what created the 47 direct-call probes in the first place:
+
+| tag | measured state |
+|---|---|
+| `ability\|auraBoost` (Fairy/Dark Aura, the biggest at 5,663) | **absent, and it needs state `dmgRange` cannot see.** Measured: Dazzling Gleam deals 79 with Fairy Aura on the attacker, on its ally, on the foe, and on nobody. The multiplier is field-wide over **every body on the field**, and `dmgRange(att, def, mv, field, spread)` is handed two bodies and a field that holds no roster. Wiring it means putting the active abilities on `field` — which changes an input `board.js`'s six exports read. **A design call, not a patch; routed for a decision — ROADMAP #64.** |
+| `move\|instructsTarget` (Instruct, 2,222) | **absent by construction and declared at the line**: `playerAction` excludes `instructsTarget` from the `reorder` branch, so Instruct resolves to `pass`. Making the target take an extra action means re-entering action resolution from inside the resolution loop. |
+| `move\|passesState` (Baton Pass 1,793, Shed Tail) | **absent.** Needs boosts and volatiles to survive a switch; `switchOut` clears `out.boosts` unconditionally. Shed Tail's substitute half now works, its pass half does not. |
+| `move\|punishesBoostedTarget` (Alluring Voice 604, Burning Jealousy) | **absent and it needs a fact nothing tracks.** Measured: Burning Jealousy leaves a +2 target unburned. The tag is `onlyIfTargetBoostedThisTurn` and no per-turn "was boosted" flag exists. Alluring Voice's half also needs the **confusion volatile**, which this engine does not have at all — the same missing state Tangled Feet is off for. |
+| `ability\|randomBoostEachTurn` (Moody, 590) | **STOCHASTIC and staged only against a seeded rng.** Not attempted this pass. The probe must assert the mechanism — a stat moved up two and another down one — and not a particular stat. |
+| `ability\|terrainSetter` (2,044), `ability\|switchInForme` (511), `ability\|amplifiesBoosts` (309), `move\|dualPurpose` (363) | not measured this pass. |
+
+### FILED, NOT FIXED
+
+- **`data/tags.json` / `data/abra-tags.js` carry an INVERTED `writesAccuracy.scope` on all nine
+  carriers.** The derivation is fixed in `engine/tag_dex.js`; the artifact is not, for the corpus
+  reason above. Nothing reads it, so the engine is correct either way — but any *other* consumer that
+  starts reading `scope` inherits the inversion.
+- **`ability|skilllink` carries `writesAccuracy` in the artifact and should not.** `tag_dex`'s probe
+  matches `/accuracy/i` against `delete move.multiaccuracy`. Same regeneration blocker.
+- **A spread move's to-hit roll ignores the defender**, counted as `MEDSEEN.accSpreadNoDefender`.
+- **`engine/medicham_coverage.js` and `data/provenance-stamp.json` were modified in the tree during
+  this pass and this pass touched neither.** `medicham_coverage.js` gained a 65-line artifact-writing
+  block. **Reported, left alone**, per the do-not-delete rule — but it means a concurrent writer was
+  active, and a `run-all` result taken while somebody else is writing is not a photograph.
+- Everything below this section from the previous passes is unchanged, including
+  **`clickFragility` pricing an -ate click against the raw move type** (routed to MEASURE, #50) and
+  the **`dmgRange` `damageReduce` over-match on `prismarmor` / `shadowshield` / `ripen`**.
 
 ## THE DIRECT-CALL COUNT REACHED ZERO, AND THE LAST NINE CONVERSIONS FOUND WIRE 128. 2026-08-06.
 
