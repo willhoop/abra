@@ -39,7 +39,21 @@ predict a human click, including all 18 pair terms — the objective this projec
 binding constraint twice. `train_policy.js --joint` now moves the pair block by whether the game was
 **won**. The gradient of the pair softmax is the concatenation `[xa + xb, jf]`: the two single
 vectors summed (both are scored by the same single block `wS = wj.slice(0, 56)`), then the 18 pair
-terms. Vector length **74 = 56 + 18**.
+terms. Vector length **76 = 58 + 18** — verified against `data/policy-weights-joint.json` on
+2026-08-06, whose single-move block is `data/policy-weights.json`'s feature list **identically, all
+58**. *(This read `74 = 56 + 18` until 2026-08-06. The single-move block grew by two features and the
+ledger did not follow. A vector length that is silently wrong is how a refit comes to be fitted
+against the wrong shape, so it is read from the artifact here rather than remembered.)*
+
+**DODUO does not replace MAG, it CONTAINS it** — a question worth answering in the ledger because it
+is the natural one to ask (Will, 2026-08-06: *"SO WILL DODUO JUST TAKE OVER FROM MAG?"*). The first
+58 weights **are** MAG, applied to both slots by the same block; the 18 pair terms sit on top. Force
+those 18 to zero and the model measures **9.4%** against MAG's **10.1%** — the same player. MAG is
+still needed alone in three places and they are not edge cases: a **1v1**, where there is no partner
+and the 18 coordination features are meaningless (DUSK's entire territory); a **forced replacement**,
+which is one decision; and **GARY**, which samples one opposing Pokemon's move at a time. It is also
+the cheap filter — MAG scores ~8–16 options per slot where DODUO scores ~64–100 pairs, so the
+intended shape is MAG cutting the list and DODUO ranking what survives.
 
 Wiring notes that matter to anyone touching it: `--joint` is **per arm**, so a training run needs
 `--joint --joint2` and `mew.js` refuses `--learn` without the pair; each iteration's checkpoint

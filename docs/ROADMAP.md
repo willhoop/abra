@@ -838,6 +838,13 @@ Four defects in one place, all found by reading the source. See §4.2.
 | #34 | the flag steers **my** side too — split it | — |
 | #35 | targeting is drawn uniformly in **both** modes | — |
 | #36 | GARY has two seats and they disagree | — |
+| #55 | **GARY does not coordinate either** — the imagined opponent picks its two Pokémon independently, so it never focus-fires, never Protects while its partner kills, never redirects. **DODUO *is* GARY**, pointed at the other side | #39, #45 |
+
+**The fifth defect is the largest and it collapses two workstreams into one.** MAG choosing
+independently costs us our own quality — a symmetric loss. **GARY choosing independently makes the
+imagined opponent structurally incapable of the plays that actually beat us**, which is bias with a
+direction. And the objection that imitation is a ceiling *does not apply to the opponent model*: we
+**want** the imagined foe to behave like a human, because humans are who we play.
 
 ### 5.3 The search redesign
 
@@ -846,6 +853,7 @@ Four defects in one place, all found by reading the source. See §4.2.
 | #37 | prune with MAG's scores, not with the coin | Will approved with a condition: *"make sure it doesnt toss moves a VGC pro would make"* |
 | #25 | prune by **PAIR** score, not single-move | the truncation curve says single-move ranking **cannot** meet that condition at any affordable K |
 | #53 | **DODUO** — the pair model is fitted, better, and **the search never reads it** | the fix is wiring, not building |
+| #56 | **extract what MAG actually prunes that DODUO wants** — the truncation misses *are* the catalogue, and reading them out beats reasoning from examples | needs a frozen release |
 | #24 | replace MILTANK's leaf with PORYGON2 + a MAG-sampled opponent | gate passed (#23) |
 | #38 | the rollout cap is 60 turns; real games end at **6** | trivial |
 | #39 | measure the `board.js` ↔ MEDICHAM translation cost | decides whether MAG-as-GARY is possible at all |
