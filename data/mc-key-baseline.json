@@ -2,7 +2,7 @@
   "note": "Files still doing their own species -> MC.mons lookup. New entries are a FAILURE; this list may only shrink. See engine/mc_key.js.",
   "allowed": {
     "engine/artifact_audit.js": 1,
-    "engine/medicham2-browser.js": 5,
+    "engine/medicham2-browser.js": 1,
     "engine/merge_mega_into_engine.js": 14,
     "engine/position_features.js": 2,
     "engine/type_coverage.js": 1,

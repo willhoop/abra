@@ -25,14 +25,14 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  231/232 probed mechanics live, 1 missing   (census 2026-08-06 20:12)
+  234/235 probed mechanics live, 1 missing   (census 2026-08-06 21:47)
   missing:
     move    needsTargetToAttack    Avalanche doubles after the target hits it this turn
-  1/150 differential comparisons disagree with Showdown   (2026-08-06 20:14)
+  1/150 differential comparisons disagree with Showdown   (2026-08-06 21:49)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 20:07)
+  interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
     2300 of 8795 theoretical pairs staged — agreement is a claim about the 2300 that ran, not about the 8795
       530 inert      not scored — the reference engine behaves identically with and without the reactor
       109 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
@@ -47,7 +47,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 162/181 probed, 19 unprobed
 ```
 
-_stamped 2026-08-06 20:22_
+_stamped 2026-08-06 22:10_
 
 <!-- /GENERATED -->
 
@@ -60,6 +60,250 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
+
+## `unarmed` REACHED ZERO, AND ARMING THE PROBES FOUND WIRE 131, WIRE 132 AND SIX TAGS NOTHING READS. 2026-08-06.
+
+Census **231 live / 232 probed → 234 live / 235 probed**. Missing still **1** — the same
+`move|needsTargetToAttack`, unchanged and for the reason recorded below. `hollow` 0, `threw` 0,
+**`directCall` 0 and it did not rise**. **`unarmed` 76 → 0**: every probe in the file now returns
+`{control, test}` and the harness checks the pair structurally.
+`tests/probe_red_demo.js` **79 → 122 demonstrations, 0 failed**.
+
+Every other instrument held. Differential **1/150**, the same pre-existing
+`chesnaught woodhammer -> mimikyu` row and the same 11 not comparable; accuracy conformance
+**500/500 · 0 disagree**; accuracy-modifier conformance **12 handlers / 13 rows / 0 disagree**,
+`accModUntabled` **0**; substitute-bypass conformance **51 carried / 0 missing / 0 invented**.
+`tests/test-game-diff.js` agrees on every turn of all five scripted games.
+`tests/test-interaction-matrix.js --full`, re-run against the changed engine: **1,624/1,643 (98.8%)**,
+the same 530 inert / 109 saturated / 16 ko-timing / 2 threw and the same 19 parting rows.
+`tests/test-engine-consistency.js` all passed.
+
+**THE COVERAGE GATE'S ARMED NUMBERS ARE WHERE THIS PASS SHOWS UP, AND THEY WERE THE WORST NUMBERS ON
+THE PAGE.** Weighted by corpus usage, inside the union 99% set:
+
+| | armed before | armed after |
+|---|---|---|
+| moves (289 in the set, 1,859,794 uses) | **63.4%** | **97.4%** |
+| abilities (99 in the set, 186,879 uses) | **82.2%** | **93.8%** |
+| items (108 in the set, 171,843 uses) | **58.9%** | **99.9%** |
+
+Nothing else in that gate moved: (a) 14, (b) 9, (c) 1, (d) 17 of 17, and **`tags probed and live but
+with no ARMED probe: 62 → 0`**. Re-stamped into `data/medicham-coverage.json` with `--stamp`.
+
+### WIRE 131 — THE ENGINE DODGED WITH SAND VEIL AND THE BOT PRICED EVERY CLICK AS IF IT DID NOT EXIST
+
+Found by Will, from domain knowledge, and routed in mid-pass. WIRE 129 converted the five
+**RESOLUTION** sites (the to-hit rolls) to `hitChance`. It did not convert the four **VALUATION**
+sites — the places that answer *what is this click worth* — and those kept calling the bodiless
+`moveAccuracy(id, field)` with a hand-written `att.ability === 'noguard'` beside it.
+
+Measured before a line of engine changed, Hydro Pump (80 printed) out of a Milotic, all seven arms:
+
+```
+plain defender            bestMoveVs.acc 0.8   playerAction.acc 0.8   hitChance 80
+defender has NO GUARD     bestMoveVs.acc 0.8   playerAction.acc 0.8   hitChance Infinity
+ATTACKER has No Guard     bestMoveVs.acc 1     playerAction.acc 0.8   hitChance Infinity
+defender Bright Powder    bestMoveVs.acc 0.8   playerAction.acc 0.8   hitChance 72
+defender at +6 evasion    bestMoveVs.acc 0.8   playerAction.acc 0.8   hitChance 26.7
+attacker at +6 accuracy   bestMoveVs.acc 0.8   playerAction.acc 0.8   hitChance 240
+attacker Wide Lens        bestMoveVs.acc 0.8   playerAction.acc 0.8   hitChance 88
+```
+
+**Identical results across a varied knob mean the knob is unwired, six times over** — and the one arm
+that did move, the attacker-only No Guard, was the **fifth copy** of a rule `ACCMOD` already owns and
+was **half the ability**: No Guard's hook is `onAnyAccuracy`, so a move aimed AT a No Guard body
+cannot miss either, and all four sites priced that at 80%. This format gives No Guard to Pidgeot-Mega,
+Raichu-Mega-Y, Machamp, Golurk, Hawlucha-Mega and Lycanroc-Midnight.
+
+`hitProb(att, def, id, field, ctx)` is the valuation wrapper — `hitChance` clamped into [0,1] with
+Infinity reading as 1 — and **all four sites call it**: `bestMoveVs`, the KO scan's per-foe weight,
+`bestKOsNow`, and the `acc` field on `playerAction`'s action object. After the fix every one of the
+seven arms above moves and agrees with the resolution path.
+
+**ZOOM LENS IS DECLARED OFF AT VALUATION TIME RATHER THAN GUESSED.** Its `when` is
+`targetAlreadyMoved`, a fact about an order that does not exist when a click is priced. Passing no ctx
+makes `_accWhen` return false, which is the honest answer; the resolution site still applies it.
+
+**IT DOES NOT MOVE A `board.js`-FACING NUMBER, AND THAT IS STRUCTURAL RATHER THAN OBSERVED.**
+`board.js` imports exactly two things from this file — `M.dmgRange` and `M.buildMon` (board.js:885) —
+and neither changed. Its own `accuracy` feature is computed from the Showdown dex at board.js:2439 and
+never from `moveAccuracy`. `engine/position_features.js:197` calls `M.moveAccuracy(id, field)`, whose
+signature and every returned value are untouched. **No refit is owed by this wire.**
+
+**AND THE `acc` FIELD ON THE ACTION OBJECT IS READ BY NOBODY.** A repo-wide search for a consumer of
+`playerAction(...).move.acc` finds none — not `board.js`, not `miltank.js`, not `rollout_leaf.js`, not
+the site. It is now correct rather than wrong, which costs nothing, but it is **filed** below: a field
+that is written and never read is a silent default waiting for a reader.
+
+**TWO OF THE FOUR SITES COULD NOT BE DEMONSTRATED RED AND ARE DECLARED, NOT FAKED.** The KO scan and
+`bestKOsNow` live inside `_chooseAction`, which is not exported. The only external route is letting the
+bot pick freely and reading which foe lost HP, and **every arm of that experiment printed the same two
+numbers** because the partner, the priors sampler and the to-hit roll all move underneath it. A
+demonstration that cannot isolate its knob is the hollow shape `probe_red_demo.js` exists to reject.
+Both lines are still pinned: the two `demoSource` rows assert their own text applied, and two new
+census probes assert the two exported numbers.
+
+### THE TWO NEW PROBES ASK WHAT THE BOT *THINKS*, NEVER WHETHER THE MOVE LANDS
+
+`ability|writesAccuracy` — *"the bot VALUES a click into a No Guard body as certain, not at its printed
+80"* — and `ability|accuracyMod` — *"the bot PRICES an evasive body, and not only dodges around it"*.
+Every accuracy probe written before this pass reads DAMAGE ON THE BOARD, which is exactly why all of
+them stayed green through WIRE 131: the resolution path was already right. The new pair reads
+`bestMoveVs(...).acc` and `playerAction(...).move.acc` off bodies staged through `battleInit`.
+
+`valuedAcc(` is declared by name in `REALTURN` **with its reason**, exactly as that ratchet's comment
+requires, and it is the one helper in the file that deliberately does not spend a turn: spending one
+would be the wrong instrument for a valuation bug.
+
+### WIRE 132 — MEGA FLOETTE THREATENED NOTHING, ON 10.5% OF LADDER SIDES, AND THE RIGHT KEY WAS IN THE ARTIFACT
+
+Found from a question Will asked about Fairy Aura and routed in mid-pass. `buildMonFromSet` built the
+mega forme by CONCATENATION — `key + '-mega'` — while `data/abra-tags.js` has carried the real mapping
+all along in `item|megaStone.into`.
+
+**MEMBERSHIP PRINTED BEFORE ANYTHING WAS WIRED, over all 76 into-pairs in the artifact:**
+
+```
+76 into-pairs;  the concatenated guess agrees on 74;  it DIFFERS on exactly 2:
+  floettite     base floette-eternal   guess floette-eternal-mega [row exists]  artifact floette-mega
+  meowsticite   base meowstic          guess meowstic-mega  [NO ROW]            artifact meowstic-m-mega
+```
+
+So reading the artifact cannot over-match: 74 of 76 are the same string either way. What the two cost:
+
+| | before | after |
+|---|---|---|
+| `buildMonFromSet` Floette-Eternal @ Floettite | `floette-eternal-mega` · ability **''** · SpA 175 | `floette-mega` · **fairyaura** · SpA 192 |
+| `buildMon('floette-mega')` | 4 moves? **no — `mv: []`, it threatened nothing** | 4 moves, its Dazzling Gleam dealt **160** |
+| `buildMonFromSet` Meowstic @ Meowsticite | **`meowstic`** — the mega branch never fired at all | `meowstic-m-mega` · trace · SpA 163 |
+
+`floette-eternal-mega` is the **one row in the whole 318-row table with `ab: null`**, and it also
+carries `mv: []`. The artifact's own answer, `floette-mega`, carries Fairy Aura and the right base
+stats and was sitting beside it. **Six of the 81 mega rows carry `mv: []`** — salamence-mega,
+latios-mega, latias-mega, diancie-mega and both Floettes — and of the six, only Floette has a base row
+in this dataset to recover from; the other four have **6, 0, 0 and 0** ladder sides between them.
+
+**THE HAND-TYPED `MEGA_ABIL` KEYS FLOETTE AS `floette:'fairyaura'`, WHICH IS NEITHER KEY.** That is
+`merge_mega_into_engine.js`'s failure from CLAUDE.md verbatim — *"the builder keyed `venusaurmega`
+while the artifact keyed `venusaur-mega`, so zero of its 67 writes ever matched"* — the same shape on a
+new pair. It is left in place as the fallback for a stone the artifact has not derived, and the
+artifact is asked first.
+
+Three functions, one owner each: **`megaKeyFor(baseKey, item)`** (the forme, from the artifact, with
+the suffix guess as a COUNTED fallback), **`megaRowMoves(key, m)`** (a mega never changes its moveset,
+so an empty `mv` inherits the base's — found through the INVERTED into-map, because no string surgery
+gets from `floette-mega` to `floette-eternal`), and **`megaRowAbility(key, m)`** (a mega row with no
+ability takes its SIBLING forme's, never its base's — a mega's whole point is that the ability
+changes). Six counters, three recoveries and three failures, all named:
+`megaKeyFromSuffix` **0**, `megaMovesFromBase` (floette-mega ← floette-eternal),
+`megaAbilityFromSibling`, `megaRowNoMoves` (**5**, first `floette-eternal-mega`), `megaRowNoAbility`
+(**1**, `floette-eternal-mega`), `megaIntoNoTable` **0**.
+
+**THIS ONE DOES MOVE A `board.js`-FACING NUMBER, AND THE SIZE OF IT IS MEASURED RATHER THAN ASSUMED.**
+`board.js` imports `M.buildMon`. Diffed over **all 318 rows**, old engine against new: **exactly ONE
+row changes** — `floette-mega`, which gains its four moves. Ability, base ability and moves are
+byte-identical on the other 317. `buildMonFromSet` also changes for a Floettite and a Meowsticite set,
+and board.js does not import it. **So any MAG feature computed on a board containing a Mega Floette
+moves, and nothing else does. MEASURE was told.**
+
+**`floette-eternal-mega` IS LEFT BROKEN ON PURPOSE.** It is an orphan: the artifact names no stone that
+produces it, and base `floette` is `isNonstandard: 'Past'` in this format, so the row is unreachable by
+construction. Making it work by stripping `-mega` off its own name would legitimise a row that should
+not be reached and would hand it its BASE's ability. It is counted instead, loudly, and reported.
+
+**THE `artifact_audit.js` GAP IS REPORTED AND NOT PATCHED.** A mega row with `mv: []` is never
+legitimate and the audit passes cleanly over all six, because its duplicate check normalises
+`floette-mega` and `floette-eternal-mega` to genuinely different strings. Adding that assertion today
+would make a registered GATE red with no way to close it from here — the fix is in
+`data/engine-data.js`, which ENGINE may not edit. **Routed out.**
+
+### ARMING 76 PROBES FOUND SIX TAGS THE ENGINE DOES NOT READ AT ALL
+
+Declaring arms is paperwork; **the demonstration is what makes an arm worth anything**, and 41 new
+rows in `tests/probe_red_demo.js` re-run each newly-armed probe's own two-arm assertion against a
+known-bad artifact or a reverted source. **Ten of the first forty-one stayed GREEN on a strip of the
+tag the census row is named for**, which is the file working:
+
+| census row | what the engine actually reads |
+|---|---|
+| `move\|inflictsBurn` (24,070), `move\|inflictsSleep`, `move\|inflictsParalysis` | `data/move-effects.js`'s **`fx.status`** — classified at medicham2:5269, applied at 3857. Neither the per-status tag nor `statusInflict` is consulted |
+| `move\|inflictsFreeze` | **`fx.secondary`** — the secondary loop walks move-effects; `statusInflict` supplies only the format's CHANCE |
+| `move\|readsTargetItem` (3,405), `move\|takesTargetItem` (3,709) | **`removesItem`** (and `removesItem.steals`) — the comment at medicham2:4243 says so in as many words |
+| `move\|locksTarget` (5,583) | **`statusInflict`** — Encore's volatile arrives the same way Substitute's does |
+| `move\|setsWeather` (1,607) | **`fx.weather`** out of move-effects; the tag is never consulted |
+| `move\|doublesSideSpeed` (11,944) | **a hard-coded id**: `if(id==='tailwind')return {kind:'tail'}` |
+| `move\|thawsTarget` (13,772) | for Flare Blitz, **the Fire TYPE clause**, not the tag |
+
+None of these is a broken mechanic — every one of them works — but **the census row names a tag the
+engine does not consume**, so a future regeneration that dropped that tag would move nothing and a
+future consumer would inherit a dead name. Each demonstration now targets the fact that is actually
+read, and says so at the line.
+
+**`move|thawsTarget` GOT A THIRD ARM OUT OF IT.** The engine thaws on
+`effMoveType === 'Fire' || TAGS.has(...,'thawsTarget')`, so Flare Blitz satisfies the first clause and
+the artifact is never asked. **Matcha Gotcha (5,352 uses) is GRASS and carries the tag**, so the probe
+now runs Crunch (no thaw) / Flare Blitz (thaws by TYPE) / Matcha Gotcha (thaws by TAG) and the
+demonstration strips the tag off the carrier it actually drives.
+
+**ONE TAG CANNOT BE DEMONSTRATED THIS WAY AND IS NAMED RATHER THAN FAKED.** `move|spreadAll` is read
+through `const HITS_ALLY = new Set(TAGS.withTag('move','spreadAll'))` at medicham2:230, which is
+evaluated when the module is required — `__setDB` afterwards cannot reach it. The probe is armed (Rock
+Slide, a `spreadFoes` move, must leave my own partner untouched); the red demonstration is absent and
+that is stated here.
+
+**THE ARMS THAT WERE ADDED ARE CONTROLS, NOT ANNOTATIONS.** The rule applied throughout: the control
+spends the SAME turn on a click that must NOT do the thing, so "a turn happened" is true on both arms.
+Drain Punch against **Close Combat** (same type, same contact flag, no drain); Spiky Shield against
+**Protect** (blocks identically, tolls nothing); Covet against **Knock Off** (empties the hand, does
+not fill mine); Earthquake against **Rock Slide** (spreads to the foes, not to my partner); Life Dew
+against **Recover** (heals, but not the partner); Tailwind read on **the foe's side as well as mine**;
+Will-O-Wisp against **Spore** (so "a status move stamps one status" fails). Fourteen probes gained a
+third arm on top, because two could not attribute the effect.
+
+### AND MY OWN PROBE WAS WRONG BEFORE THE ENGINE WAS. THAT MAKES THIRTY-EIGHT.
+
+The re-armed `forbidsStatusMoves` probe read the freed foe's pick out of `S.lastActs` and got
+**"nothing"** in the control arm, reporting a working Taunt as MISSING. Two separate staging errors,
+both found by looking at the record rather than at the engine:
+
+- handing side B a **`null`** action map instead of a partial one leaves no side-B row in `lastActs`
+  at all — the Disable probe next door already stages it as `new Map([[f2, {kind:'pass'}]])` and that
+  is where the correct form came from;
+- **a status click does not always carry a move NAME.** `chooseAction` emits Tailwind as
+  `{kind:'tail'}` with `move: null`, so the reading is the KIND: every non-attack kind in this engine
+  is a status click, which is exactly the set Taunt forbids.
+
+### ONE RED TEST WAS MINE AND IT IS FIXED IN THIS PASS, AND IT LEFT A RATCHET SMALLER THAN IT FOUND IT
+
+`tests/test-mc-key.js` went **13 passed / 2 failed → 15 / 0**. WIRE 132 added four computed
+`MC.mons[...]` lookups to `medicham2-browser.js` and one to `probe_red_demo.js`, and that file's
+whole point is that four separate callers wrote their own doorway into the species table and two of
+them were silently broken for 8.17% of the metagame. The exception medicham2 holds — it is a browser
+file and cannot `require('./mc_key.js')` — is not a licence to grow.
+
+**Fixed by routing EVERY computed index in the file through one line**, `monRow(key)`, rather than by
+re-baselining upward: `engine/medicham2-browser.js` **5 → 1**, and `tests/probe_red_demo.js` drops off
+the list entirely because its WIRE 132 revert now targets the single line that asks the artifact
+instead of embedding the old call site. The baseline was re-stamped **downward**, 17 → 16.
+
+### FILED, NOT FIXED
+
+- **`playerAction(...).move.acc` is written and read by nothing** in the whole repository.
+- **`move|doublesSideSpeed`, and the weather and major-status families, are routed by a hard-coded id
+  or by `data/move-effects.js` rather than by the tag the census names.** Listed in full above.
+- **`move|spreadAll` is consumed at module-load time**, so no artifact mutation can produce a
+  known-bad engine for it.
+- **`data/engine-data.js` still has five mega rows with `mv: []` and one with `ab: null`** —
+  `floette-eternal-mega` (orphan, unreachable), `salamence-mega`, `latios-mega`, `latias-mega`,
+  `diancie-mega`. WIRE 132 recovers the one that has a base row and COUNTS the rest; the data fix is
+  not ENGINE's. **`engine/artifact_audit.js` has no assertion for it**, and adding one would open a
+  gate that cannot be closed from here.
+- **`ability|auraBoost` is still absent, so a correctly-built Mega Floette carries Fairy Aura and the
+  ability does nothing.** ROADMAP #64, untouched by this pass as instructed.
+- **`tests/test-no-silent-failure.js` reports 3 NEW silent catch blocks, all in
+  `engine/rerun_list.js` (lines 60, 136, 145). This pass did not touch that file** — its mtime moved
+  during the session, so a concurrent writer was active. Reported, left alone.
+- Everything below this section from the previous passes is unchanged.
 
 ## ACCURACY MODIFICATION LANDS AS ONE UNIT, AND THE FIRST TAG PROBED AFTER IT HAD WIRE 130 UNDER IT. 2026-08-06.
 

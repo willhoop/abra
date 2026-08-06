@@ -82,6 +82,13 @@ const TAGS = (function(){
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
 const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+  /* WIRE 132 -- the three recoveries the mega path now makes, each named so a ZERO is readable.
+   * megaKeyFromSuffix: the artifact's `megaStone.into` had no answer and the concatenated guess was
+   * taken; megaMovesFromBase: a mega row with `mv: []` inherited the base row's moves; 
+   * megaAbilityFromSibling: a mega row with no ability took its sibling forme's. */
+  megaKeyFromSuffix: 0, megaKeyFromSuffixFirst: '',
+  megaMovesFromBase: 0, megaMovesFromBaseFirst: '',
+  megaAbilityFromSibling: 0, megaAbilityFromSiblingFirst: '',
   /* WIRE 129 -- a SPREAD move rolled to hit with no defender in hand, so the target's evasion stage,
    * Bright Powder and Sand Veil did not apply to it. A declared divergence from Showdown, which rolls
    * per target; counted rather than commented so the size of it is readable rather than argued. */
@@ -121,6 +128,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * two fire in different places and a merged counter cannot say which one is dead. */
   tauntRefusedAtSelection: 0 };
 const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnknownFirst: '',
+  /* WIRE 132 -- a mega row this dataset cannot complete. megaRowNoMoves is a body that threatens
+   * NOTHING and reads to every scorer as harmless; megaRowNoAbility is a mega with no ability at
+   * all; megaIntoNoTable means the tag artifact could not be asked and every mega key is a guess. */
+  megaRowNoMoves: 0, megaRowNoMovesFirst: '',
+  megaRowNoAbility: 0, megaRowNoAbilityFirst: '',
+  megaIntoNoTable: 0, megaIntoNoTableFirst: '',
   /* WIRE 124 -- a move whose accuracy NEITHER data/move-effects.js NOR the ACC_FIX correction list
    * knows. It falls back to 100, which is indistinguishable from a never-miss move, and that
    * indistinguishability is the whole bug this wire fixed: for 78 moves the fallback WAS the answer.
@@ -741,11 +754,125 @@ function megaForme(item){
   if(!F||!item) return null;
   return F[String(item).toLowerCase().replace(/[^a-z0-9]/g,'')]||null;
 }
+/* ---- WIRE 132 — THE MEGA FORME KEY IS IN THE ARTIFACT AND THE ENGINE WAS GUESSING IT --------------
+ *
+ * `buildMonFromSet` built the mega key by CONCATENATION -- `key + '-mega'` -- and `data/abra-tags.js`
+ * has carried the real mapping all along in `item|megaStone.into`. Measured over all 76 pairs in the
+ * artifact before a line was written, per docs/LESSONS.md 4:
+ *
+ *     76 into-pairs;  the suffix guess agrees on 74;  it DIFFERS on exactly 2:
+ *       floettite     base floette-eternal   guess floette-eternal-mega [row exists]  artifact floette-mega
+ *       meowsticite   base meowstic          guess meowstic-mega  [NO ROW]            artifact meowstic-m-mega
+ *
+ * So this cannot over-match: 74 of 76 are the same string either way. What the two that differ cost:
+ *
+ *   FLOETTE. Floettite is held on 2,747 sheet lines and Floette-Eternal is on ~10.5% of ladder sides.
+ *   The guess resolves to `floette-eternal-mega`, which is the ONE row in the whole mon table with
+ *   `ab: null`, and which also carries `mv: []`. The artifact's own answer, `floette-mega`, carries
+ *   Fairy Aura and the right base stats. The engine was reaching the empty twin of a row that was
+ *   correct beside it.
+ *
+ *   MEOWSTIC. `meowstic-mega` does not exist at all, so the mega branch simply did not fire and a
+ *   Meowsticite set built the BASE forme -- a silent no-op, which is this project's signature failure.
+ *
+ * THE HAND-TYPED `MEGA_ABIL` KEYS FLOETTE AS `floette:'fairyaura'`, WHICH IS NEITHER KEY. That is the
+ * merge_mega_into_engine.js failure from CLAUDE.md verbatim ("the builder keyed venusaurmega while the
+ * artifact keyed venusaur-mega, so zero of its 67 writes ever matched"), the same shape on a new pair.
+ * It is left in place -- it is the fallback for a stone the artifact has not derived -- and the
+ * artifact is asked FIRST.
+ *
+ * THE TABLE IS BUILT ONCE AND CACHED, and that is stated rather than hidden: a `TAGS.__setDB` swap
+ * after the first call will not be seen, so the red demonstration for this wire is a SOURCE revert
+ * and not an artifact strip. */
+let _MEGA_INTO=null;
+function megaIntoTable(){
+  if(_MEGA_INTO)return _MEGA_INTO;
+  const K=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  const fwd=Object.create(null);   // 'itemid|basekey' -> mega key
+  const forBase=Object.create(null);
+  const rev=Object.create(null);   // mega key -> base key
+  let ids=[];
+  try{ ids=(TAGS.withTag&&TAGS.withTag('item','megaStone'))||[]; }
+  catch(e){ MEDFAILS.megaIntoNoTable++; if(!MEDFAILS.megaIntoNoTableFirst)MEDFAILS.megaIntoNoTableFirst=String(e.message).slice(0,60); }
+  for(const id of ids){
+    const p=TAGS.param('item',id,'megaStone');
+    if(!p||!p.into)continue;
+    for(const from of Object.keys(p.into)){
+      const b=K(from), t=K(p.into[from]);
+      fwd[K(id)+'|'+b]=t; forBase[b]=t; rev[t]=b;
+    }
+  }
+  _MEGA_INTO={fwd,forBase,rev};
+  return _MEGA_INTO;
+}
+/* The one answer to "what forme does THIS stone make of THIS body". The suffix guess stays as the
+ * OR-fallback for a stone the artifact has not derived, and taking it is COUNTED -- a silent default
+ * here is exactly the shape that made a Meowsticite set build a base Meowstic. */
+function megaKeyFor(baseKey,item){
+  const K=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  const T=megaIntoTable();
+  const named=T.fwd[K(item)+'|'+K(baseKey)];
+  if(named&&monRow(named))return named;
+  const suffix=/itex$/.test(item)?'-mega-x':(/itey$/.test(item)?'-mega-y':'-mega');
+  const guess=baseKey+suffix;
+  if(monRow(guess)){
+    MEDSEEN.megaKeyFromSuffix++;
+    if(!MEDSEEN.megaKeyFromSuffixFirst)MEDSEEN.megaKeyFromSuffixFirst=item+' -> '+guess;
+    return guess;
+  }
+  return null;
+}
+/* A MEGA NEVER CHANGES ITS MOVESET, so a mega row with `mv: []` is never legitimate -- it is a hole in
+ * data/engine-data.js and the body it produces THREATENS NOTHING, which every scorer in this project
+ * reads as a harmless Pokemon. Six of the 81 mega rows are empty and the base is found through the
+ * INVERTED `into` map rather than by stripping the suffix, because `floette-mega`'s base is
+ * `floette-eternal` and no string surgery gets there. Both outcomes are counted: recovering the base's
+ * moves, and failing to (salamence-mega, latios-mega, latias-mega and diancie-mega have no base row in
+ * this dataset at all -- 6, 0, 0 and 0 ladder sides between them). */
+function megaRowMoves(key,m){
+  const mv=(m&&m.mv)||[];
+  if(mv.length||!/-mega(-x|-y)?$/.test(String(key)))return mv;
+  const base=megaIntoTable().rev[key];
+  const b=monRow(base);
+  if(b&&(b.mv||[]).length){
+    MEDSEEN.megaMovesFromBase++;
+    if(!MEDSEEN.megaMovesFromBaseFirst)MEDSEEN.megaMovesFromBaseFirst=key+' <- '+base;
+    return b.mv;
+  }
+  MEDFAILS.megaRowNoMoves++;
+  if(!MEDFAILS.megaRowNoMovesFirst)MEDFAILS.megaRowNoMovesFirst=key;
+  return mv;
+}
+/* A mega row with NO ABILITY OF ITS OWN. Exactly one exists (`floette-eternal-mega`), and the answer
+ * is NOT its base's ability -- a mega's whole point is that the ability changes. It is the SIBLING
+ * forme the artifact names for the same base (`floette-mega`, Fairy Aura). Counted either way. */
+function megaRowAbility(key,m){
+  if(m&&m.ab)return m.ab;
+  if(!/-mega(-x|-y)?$/.test(String(key)))return (m&&m.ab)||'';
+  const T=megaIntoTable();
+  const sib=T.forBase[T.rev[key]||''];
+  const s=(sib&&sib!==key)?monRow(sib):null;
+  if(s&&s.ab){
+    MEDSEEN.megaAbilityFromSibling++;
+    if(!MEDSEEN.megaAbilityFromSiblingFirst)MEDSEEN.megaAbilityFromSiblingFirst=key+' <- '+sib;
+    return s.ab;
+  }
+  MEDFAILS.megaRowNoAbility++;
+  if(!MEDFAILS.megaRowNoAbilityFirst)MEDFAILS.megaRowNoAbilityFirst=String(key);
+  return '';
+}
 // level-50 stat line, identical convention to champ-model's statL50/hpL50 (Champions SP system)
 function l50(bs,sp){ const S=(b,v)=>Math.floor((Math.floor((2*b+31)*50/100)+5+(+v||0)));
   return { hp:Math.floor((2*bs.hp+31)*50/100)+50+10, at:S(bs.atk,sp&&sp.at), df:S(bs.def,sp&&sp.df),
            sa:S(bs.spa,sp&&sp.sa), sd:S(bs.spd,sp&&sp.sd), sp:S(bs.spe,sp&&sp.sp) }; }
-function buildMon(name,ov){ const m=MC.mons[name]; if(!m)return null;
+/* ONE DOORWAY INTO MC.mons FROM THIS FILE, and it is a ratchet rather than a preference.
+ * tests/test-mc-key.js bans a computed index into the species table because four separate callers
+ * wrote their own and two of them were silently broken for 8.17% of the metagame. This file is
+ * BASELINED as an exception -- it is a browser file and cannot `require('./mc_key.js')` -- but an
+ * exception is not a licence to grow, and WIRE 132 needed four more lookups. So every computed index
+ * in this file now goes through this one line, which is what the exception was for. */
+function monRow(key){ return (key&&MC.mons[key])||null; }
+function buildMon(name,ov){ const m=monRow(name); if(!m)return null;
   /* AN EXPLICIT EMPTY STRING MEANS NO ITEM, and `||` could not express that: buildMon(n,{n:''})
    * fell through to the table item, so an item-less mon was unbuildable. Every with-item/without-item
    * ratio was therefore item vs THE TABLE'S ITEM, not item vs nothing -- it only looked right while
@@ -772,7 +899,11 @@ function buildMon(name,ov){ const m=MC.mons[name]; if(!m)return null;
      which is exactly what tests/test-mc-key.js ratchets against. A mega's base stats win, because
      Beat Up asks the species standing on the field. */
   const _bsAtk=((mf&&mf.bs&&mf.bs.atk)||(m.bs&&m.bs.atk)||0);
-  return {name,types,st,item,wt:m.wt||null,_bsAtk,ability:normAb(megaAbility(name,item,m.ab||'')),baseAbility:normAb(m.ab||''),moves:m.mv.slice(),
+  /* WIRE 132 -- a mega ROW is allowed to be incomplete in data/engine-data.js and the body built
+   * from it is not: an empty `mv` means this Pokemon threatens nothing, which is invisible to
+   * every scorer in the project. Both recoveries are counted. */
+  const _rowAb=megaRowAbility(name,m);
+  return {name,types,st,item,wt:m.wt||null,_bsAtk,ability:normAb(megaAbility(name,item,_rowAb||'')),baseAbility:normAb(_rowAb||''),moves:megaRowMoves(name,m).slice(),
     curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0,acc:0,eva:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false,_seededBy:null,
     /* THE DEATH COUNTER (Will: "the supreme overlord needs a count of the dead like last
      * respects"). _sf is a per-SIDE live counter shared by reference — Last Respects reads it at
@@ -822,7 +953,7 @@ function parsePaste(text){
 function pasteKey(name){
   let n=String(name||'').toLowerCase().trim().replace(/[’'.]/g,'').replace(/\s+/g,'-');
   n=n.replace(/-mega(-[xy])?$/,'');
-  if(MC.mons[n])return n;
+  if(monRow(n))return n;
   const flat=n.replace(/-/g,'');
   for(const k in MC.mons)if(k.replace(/-/g,'')===flat)return k;
   return null;
@@ -839,11 +970,14 @@ function buildMonFromSet(set){
    * name-shape regex. The regex stays as the OR-fallback so a stone the artifact has not derived yet
    * still megas, and because the X/Y SUFFIX genuinely lives in the item name -- the tag's `into`
    * table does not distinguish the two Charizardites' formes by shape. */
+  /* WIRE 132 -- the forme comes from the artifact's `megaStone.into`, not from a concatenated
+   * suffix. Both differing pairs are named at megaIntoTable(); the suffix stays as the counted
+   * fallback inside megaKeyFor. */
   if((TAGS.has('item',item,'megaStone')||/ite(x|y)?$/.test(item))&&!/-mega/.test(key)){
-    const suffix=/itex$/.test(item)?'-mega-x':(/itey$/.test(item)?'-mega-y':'-mega');
-    if(MC.mons[key+suffix]){key=key+suffix;becameMega=true;}
+    const mk=megaKeyFor(key,item);
+    if(mk){key=mk;becameMega=true;}
   }
-  const m=MC.mons[key];
+  const m=monRow(key);
   if(!m||!m.bs)return null;
   const bs=m.bs;
   const types=m.t.slice();
@@ -868,7 +1002,7 @@ function buildMonFromSet(set){
    * board.js. `becameMega` is true only on the branch that just swapped the key to a mega row, so a
    * NON-mega set keeps the old precedence and a declared Rough Skin still beats the dataset's Sand
    * Veil. If the mega row has no ability of its own the sheet is still better than nothing. */
-  const rowAb=normAb(megaAbility(key,item,m.ab||''));
+  const rowAb=normAb(megaAbility(key,item,megaRowAbility(key,m)||''));
   return {name:key,types,st,item,wt:m.wt||null,
     ability:(becameMega&&rowAb)?rowAb:(declaredAb||rowAb),baseAbility:normAb(m.ab||''),
     moves:usable,droppedMoves:ids.filter(id=>usable.indexOf(id)<0),
@@ -1175,6 +1309,43 @@ function hitChance(att,def,id,field,ctx){
     }
   }
   return acc;
+}
+/* ---- WIRE 131 — THE VALUATION PATH ASKED A BODILESS ACCURACY ------------------------------------
+ *
+ * WIRE 129 converted the five RESOLUTION sites (the to-hit rolls) to hitChance. It did not convert
+ * the VALUATION sites — the four places that ask "what is this click WORTH" — and those kept calling
+ * moveAccuracy(id,field), which is handed no bodies, plus a hand-written `att.ability==='noguard'`
+ * check beside it. So the engine DODGED with Sand Veil while the bot PRICED every click as if Sand
+ * Veil, Bright Powder, Minimize, Wide Lens and the defender's No Guard did not exist. Measured before
+ * a line changed, Hydro Pump (80 printed) out of a Milotic, all seven arms:
+ *
+ *   plain defender            bestMoveVs.acc 0.8   playerAction.acc 0.8   hitChance 80
+ *   defender has NO GUARD     bestMoveVs.acc 0.8   playerAction.acc 0.8   hitChance Infinity
+ *   ATTACKER has No Guard     bestMoveVs.acc 1     playerAction.acc 0.8   hitChance Infinity
+ *   defender Bright Powder    bestMoveVs.acc 0.8   playerAction.acc 0.8   hitChance 72
+ *   defender at +6 evasion    bestMoveVs.acc 0.8   playerAction.acc 0.8   hitChance 26.7
+ *   attacker at +6 accuracy   bestMoveVs.acc 0.8   playerAction.acc 0.8   hitChance 240
+ *   attacker Wide Lens        bestMoveVs.acc 0.8   playerAction.acc 0.8   hitChance 88
+ *
+ * Identical results across a varied knob mean the knob is unwired — and the ONE arm that moved is the
+ * hand-written attacker-only No Guard, which is the fifth copy of a rule ACCMOD already owns. Note
+ * that even that copy is HALF the ability: No Guard's hook is onAnyAccuracy, so a move aimed AT a
+ * No Guard body cannot miss either, and every one of the four sites priced that at 80%. This format
+ * gives No Guard to Pidgeot-Mega, Raichu-Mega-Y, Machamp, Golurk, Hawlucha-Mega and Lycanroc-Midnight.
+ *
+ * hitProb IS THE VALUATION WRAPPER AND NOT A SECOND RULE: it is hitChance, clamped into [0,1], with
+ * Infinity reading as 1. Every valuation site calls it, so the number a click is scored at and the
+ * number it is rolled at come from one function.
+ *
+ * ZOOM LENS IS DECLARED OFF AT VALUATION TIME, RATHER THAN GUESSED. Its `when` is
+ * `targetAlreadyMoved`, which is a fact about an order that does not exist yet when a click is being
+ * priced — the valuation happens before the turn is queued. Passing no ctx makes _accWhen return
+ * false, which is the honest answer ("we do not know that we are slower yet") rather than a coin
+ * flip; the RESOLUTION site still applies it, so the mechanic is not lost, only unpriced. */
+function hitProb(att,def,id,field,ctx){
+  const h=hitChance(att,def,id,field,ctx||{});
+  if(!isFinite(h))return 1;
+  return Math.max(0,Math.min(1,h/100));
 }
 /* the type a move actually HAS under the current sky — one authority for the damage calc, the
  * absorb check in the battle loop, and the fragility pricer, so sand Weather Ball is a Rock move
@@ -2008,7 +2179,9 @@ function bestMoveVs(att,def,field){ let best=null,bs=-1e18;
      * but nothing stopped the bot CLICKING one -- a silent no-op turn, sampled constantly off
      * Incineroar's priors. Found by Will asking whether Fake Out was modeled at all. */
     if(id==='fakeout'&&att._turnsOut>0)continue;
-    const acc=att.ability==='noguard'?1:moveAccuracy(id,field)/100;const d=dmgRange(att,def,mv,field,SPREAD.has(id));
+    /* WIRE 131 — hitProb, not moveAccuracy: bestMoveVs has both bodies in its own signature, and the
+     * bodiless call plus a hand-written attacker-only No Guard check was the bug. */
+    const acc=hitProb(att,def,id,field);const d=dmgRange(att,def,mv,field,SPREAD.has(id));
     /* value = expected damage MINUS the priced cost of the click (Will: "that actually get priced
      * into decisions"). The old line multiplied recoil moves by a flat 0.85 — a fudge that charged
      * Brave Bird and Head Smash identically and charged Rough Skin nothing. Both costs are now in
@@ -2131,9 +2304,13 @@ function _chooseAction(me,foes,ally,field,side,rng){
   }
   // strongest option + is a KO available?
   let bestAtk=null,bestKO=-1,tgt=null;
-  for(const f of live){const b=bestMoveVs(me,f,field);if(!b)continue;const acc=me.ability==='noguard'?1:moveAccuracy(b.id,field)/100;const ko=(b.d.min>=f.curHP?1:(b.d.max>=f.curHP?0.5:0))*acc;const sc=ko*1e4+b.d.max*acc;if(sc>bestKO){bestKO=sc;bestAtk=b;tgt=f;}}
+  /* WIRE 131 — hitProb against the FOE BEING SCANNED, not moveAccuracy against nobody. The old line
+   * priced a Sand Veil / Bright Powder / Minimize body exactly like a bare one. */
+  for(const f of live){const b=bestMoveVs(me,f,field);if(!b)continue;const acc=hitProb(me,f,b.id,field);const ko=(b.d.min>=f.curHP?1:(b.d.max>=f.curHP?0.5:0))*acc;const sc=ko*1e4+b.d.max*acc;if(sc>bestKO){bestKO=sc;bestAtk=b;tgt=f;}}
   // a KO is only "guaranteed" if the move is accurate too — no relying on a 70% nuke
-  const bestKOsNow=bestAtk&&tgt&&bestAtk.d.min>=tgt.curHP&&(moveAccuracy(bestAtk.id,field)>=100||me.ability==='noguard');
+  /* WIRE 131 — hitChance>=100 covers the never-miss case (it returns Infinity) AND the evasion case
+   * the old moveAccuracy read could not see, so the attacker-only No Guard clause is gone. */
+  const bestKOsNow=bestAtk&&tgt&&bestAtk.d.min>=tgt.curHP&&hitChance(me,tgt,bestAtk.id,field,{})>=100;
   const incoming=live.reduce((mx,f)=>{const b=bestMoveVs(f,me,field);return b?Math.max(mx,b.d.max):mx;},0);
   const inDanger=incoming>=me.curHP*0.8;
   const canProtect=me.moves.some(id=>PROTECTMOVES.has(id));
@@ -5079,7 +5256,9 @@ function playerAction(me,moveId,target,field){
   const mv=MC.moves[id];
   if(mv&&hasPower(mv)&&target){
     const spread=SPREAD.has(id);
-    return {kind:'attack',move:{id,mv,spread,d:dmgRange(me,target,mv,field,spread),acc:moveAccuracy(id,field)/100},target};
+    /* WIRE 131 — `acc` is the chance THIS click lands on THIS target, not the move's printed number.
+     * Both bodies are in hand here and the old line used neither. */
+    return {kind:'attack',move:{id,mv,spread,d:dmgRange(me,target,mv,field,spread),acc:hitProb(me,target,id,field)},target};
   }
   const fx=moveFx(id);
   /* HEAL, from the rulebook's own `heal` fraction rather than a list of move names — so Roost,
@@ -5272,7 +5451,7 @@ function playerAction(me,moveId,target,field){
   return {kind:'pass'};
 }
 function winProb2(nA,nB,N,ov){
-  const A0=nA.slice(0,4).filter(n=>MC.mons[n]),B0=nB.slice(0,4).filter(n=>MC.mons[n]);
+  const A0=nA.slice(0,4).filter(n=>monRow(n)),B0=nB.slice(0,4).filter(n=>monRow(n));
   if(!A0.length||!B0.length)return null;
   let w=0;for(let i=0;i<N;i++){w+=battle(A0.map(n=>buildMon(n,ov)),B0.map(n=>buildMon(n,ov)),ov);}return w/N;
 }
@@ -5358,7 +5537,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
   /* WIRE 129 -- exported for the ACCURACY-MODIFIER CONFORMANCE block in tests/test-engine-diff.js,
    * which re-derives the whole table out of the live format dex. A table nobody checks is the literal
    * it replaced; this is the only thing that makes it different in kind. */
-  hitChance,printedAccuracy,accStageMul,ACCMOD,
+  hitChance,hitProb,printedAccuracy,accStageMul,ACCMOD,
   /* WIRE 130 -- exported for the SUBSTITUTE-BYPASS CONFORMANCE block in tests/test-engine-diff.js. */
   SUBPASS,
   /* WIRE 118 -- THE ORDERING RULE, exported because board.js had a second copy of it. It is one

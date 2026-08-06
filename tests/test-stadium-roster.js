@@ -138,6 +138,10 @@ const NOT_A_MODEL = {
    * GURU entry names it, so arm (a) accounts for it and check 7 fires on the leftover excuse.
    * Keeping it would have read as "the project decided this is not a model", beside a ledger
    * entry saying the opposite. */
+  /* --- AUDITORS. Neither makes a claim ABOUT the game; each makes a claim about our own artifacts,
+   *     which is why no model owns them and why neither belongs on the Stadium. --- */
+  'engine/rerun_list.js':         'an auditor, not a model: it reads every artifact\'s own engine_release stamp and reports which published numbers were measured on an engine since corrected. It asserts nothing about Pokemon and fits nothing — ROADMAP #57',
+  'engine/validate_store.js':     'an auditor, not a model: it hands every stored set to Showdown\'s own TeamValidator and reports which games contain something the format refuses. The judgement is Showdown\'s; this file only classifies the errors it gets back, separating illegality from a partial closed-sheet reveal',
   'build/build_mag_data.js':      'wraps MAGNEMITE\'s weights and priors as data/mag.js; the claim is MAG\'s',
   'build/build_meta_js.js':       'the Tower\'s threat list, ranked out of data/meta-usage.json; the claim is the usage model\'s',
   'build/build_mew_bundle.js':    'a handful of self-play games trimmed to what the MEW viewer draws',

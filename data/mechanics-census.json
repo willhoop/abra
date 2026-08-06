@@ -1,12 +1,12 @@
 {
-  "generated": "2026-08-06T20:45:07.693Z",
+  "generated": "2026-08-06T22:10:46.752Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 232,
-  "live": 231,
+  "probed": 235,
+  "live": 234,
   "missing": 1,
-  "armed": 156,
-  "unarmed": 76,
+  "armed": 235,
+  "unarmed": 0,
   "directCall": 0,
   "threw": 0,
   "hollow": 0,
@@ -26,9 +26,9 @@
       "tag": "passiveHeal",
       "label": "Leftovers heals at end of turn",
       "live": true,
-      "detail": "no item 0 hp  ->  leftovers 10 hp",
+      "detail": "no item 0 hp  ->  leftovers 10 hp (the control must be exactly 0 — an engine that healed everybody every turn passes \"leftovers > none\")",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -37,6 +37,16 @@
       "label": "a mega stone builds the mega body",
       "live": true,
       "detail": "[name, ability, SpA, weather after the leads arrive] — no item charizard,blaze,141,none; Charizardite Y charizard-mega-y,drought,196,sun (the sheet declared Blaze in BOTH arms)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "megaStone",
+      "label": "the stone names the forme, and the mega body still threatens something",
+      "live": true,
+      "detail": "[forme, ability, SpA] — no stone floette-eternal,flowerveil,159; Floettite floette-mega,fairyaura,192 (the artifact's into-map says Floette-Mega; the concatenated guess is floette-eternal-mega, which carries ab:null and mv:[]). buildMon('floette-mega') by NAME now holds 4 moves and its dazzlinggleam dealt 160",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -126,9 +136,9 @@
       "tag": "boostsUser",
       "label": "Swords Dance raises Attack",
       "live": true,
-      "detail": "atk stage 2",
+      "detail": "[user atk, foe atk, partner atk] — after Recover 0,0,0; after Swords Dance 2,0,0 (the user must move by 2 and nobody else at all)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -136,9 +146,9 @@
       "tag": "lowersTarget",
       "label": "Charm drops the target Attack",
       "live": true,
-      "detail": "target atk stage after the turn: -2",
+      "detail": "[aimed foe atk, other foe atk, own atk] — after Tailwind 0,0,0; after Charm -2,0,0 (only the aimed body may move)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -146,9 +156,9 @@
       "tag": "inflictsBurn",
       "label": "Will-O-Wisp burns",
       "live": true,
-      "detail": "target status after the turn: brn (wanted brn)",
+      "detail": "target status — no click none (must be none); willowisp brn (wanted brn); spore slp (wanted slp, so the engine is not stamping ONE status on every status click)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -156,9 +166,9 @@
       "tag": "inflictsParalysis",
       "label": "Thunder Wave paralyses",
       "live": true,
-      "detail": "target status after the turn: par (wanted par)",
+      "detail": "target status — no click none (must be none); thunderwave par (wanted par); willowisp brn (wanted brn, so the engine is not stamping ONE status on every status click)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -166,9 +176,9 @@
       "tag": "locksTarget",
       "label": "Encore locks the target in",
       "live": true,
-      "detail": "committed rockslide, volatile set=true, free choice next turn was rockslide",
+      "detail": "committed rockslide; left alone the foe then clicked earthquake (must differ, or the lock proves nothing); after Encore (volatile=true) it clicked rockslide",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -198,7 +208,7 @@
       "live": true,
       "detail": "Icicle Crash into the Reflect user: ability none 118, Prankster 78 (the doubles screen is x0.667, so 118 -> 78 is the screen landing first)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -268,7 +278,7 @@
       "live": true,
       "detail": "attacker lost 0 vs none, 20 vs Rough Skin",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -278,7 +288,7 @@
       "live": true,
       "detail": "first entry from bench: palafin 154 Atk (must stay base)  |  out and back: palafin-hero 233 Atk",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -296,9 +306,9 @@
       "tag": "inflictsFreeze",
       "label": "Ice Beam can freeze",
       "live": true,
-      "detail": "target survived at 89, status: frz",
+      "detail": "at the same forced roll 0.01 — Surf (no secondary) left the target none, Ice Beam left it frz",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -306,9 +316,9 @@
       "tag": "inflictsPoison",
       "label": "Toxic poisons",
       "live": true,
-      "detail": "target status: tox",
+      "detail": "[aimed foe, other foe] — no click none,none; after Toxic tox,none (the unaimed body must stay clean)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -316,9 +326,9 @@
       "tag": "inflictsConfusion",
       "label": "Confuse Ray confuses",
       "live": true,
-      "detail": "volatiles on target: {\"confusion\":1}",
+      "detail": "[aimed foe confused, other foe confused] — no click false,false; after Confuse Ray true,false",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -366,9 +376,9 @@
       "tag": "readsTargetItem",
       "label": "Knock Off removes the item",
       "live": true,
-      "detail": "target item after Knock Off: \"\"",
+      "detail": "[aimed foe item, other foe item] -- after Crunch [\"lifeorb\",\"lifeorb\"]; after Knock Off [\"\",\"lifeorb\"]",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -376,9 +386,9 @@
       "tag": "healsAlly",
       "label": "Life Dew heals the partner",
       "live": true,
-      "detail": "partner 85 -> 127 hp",
+      "detail": "[partner gained, user gained, foe gained] -- after Recover 0,85,0 (the partner must gain nothing); after Life Dew 42,42,0",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -408,7 +418,7 @@
       "live": true,
       "detail": "target atk stage after Charm: ability none -2, Good as Gold 0 (0 = refused)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -418,7 +428,7 @@
       "live": true,
       "detail": "sand, Milotic: ability none -10 (a sixteenth is 10), Sand Veil -0; sand, Archaludon (Steel) -0; snow, Milotic -0",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -426,9 +436,9 @@
       "tag": "speedOnItemLoss",
       "label": "Unburden doubles Speed once the item is gone",
       "live": true,
-      "detail": "holding 187  ->  item gone 374",
+      "detail": "[speed holding, speed once the item is gone] — ability none 187,187 (must not move); Unburden 187,374",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -436,9 +446,9 @@
       "tag": "takesTargetItem",
       "label": "Covet steals the item",
       "live": true,
-      "detail": "attacker item \"lifeorb\", target item \"\"",
+      "detail": "[my item, target item] -- after Knock Off [\"\",\"\"] (removed, not taken); after Covet [\"lifeorb\",\"\"]",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -446,9 +456,9 @@
       "tag": "setsWeather",
       "label": "Sandstorm sets the weather",
       "live": true,
-      "detail": "weather after the turn: sand",
+      "detail": "weather after the turn — Howl none; Sandstorm sand; Sunny Day sun (the third arm is what separates the move from \"any weather click\")",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -456,9 +466,9 @@
       "tag": "inflictsSleep",
       "label": "Spore puts the target to sleep",
       "live": true,
-      "detail": "spore -> target status: slp",
+      "detail": "[aimed foe, other foe] — Will-O-Wisp brn,none; spore slp,none",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -466,9 +476,9 @@
       "tag": "forbidsStatusMoves",
       "label": "Taunt stops the target using a status move",
       "live": true,
-      "detail": "volatile=true, free choice was moonblast",
+      "detail": "left alone the foe freely clicked tail (status=true, and it MUST be, or the Taunt proves nothing); after Taunt it clicked moonblast (status=false)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -558,7 +568,7 @@
       "live": true,
       "detail": "partner hp change: ability none 0, Hospitality 43 (a quarter is 43)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -578,7 +588,7 @@
       "live": true,
       "detail": "foe hit with earthquake; next free pick: ability none earthquake, Cursed Body dragonclaw (sealed=\"earthquake\")",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -586,9 +596,9 @@
       "tag": "restoresStats",
       "label": "White Herb undoes a stat drop",
       "live": true,
-      "detail": "dropped to -1, after the turn 0 (0 = restored)",
+      "detail": "[stage after Intimidate, stage after the turn] — no item -1,-1 (the drop must survive the turn); White Herb -1,0",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -606,9 +616,9 @@
       "tag": "proceduralStatus",
       "label": "Tri Attack can burn, freeze or paralyse",
       "live": true,
-      "detail": "target status with the roll forced low: brn",
+      "detail": "at the same forced roll 0.01 — Shadow Ball left the target none, Tri Attack left it brn",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -646,9 +656,9 @@
       "tag": "spreadAll",
       "label": "Earthquake hits your own partner too",
       "live": true,
-      "detail": "own partner (Milotic, no Ground immunity) took 92",
+      "detail": "[own partner, foe 1, foe 2] — Rock Slide (spreadFoes) 0,85,85 (my partner must take 0); Earthquake (spreadAll) 92,167,167",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -666,9 +676,9 @@
       "tag": "thawsTarget",
       "label": "Flare Blitz thaws a frozen target",
       "live": true,
-      "detail": "target survived, status now none",
+      "detail": "a frozen Garchomp — Crunch (Dark, no thaw) dealt 80 and left it frz; Flare Blitz (Fire, thaws by TYPE) dealt 59 and left it none; Matcha Gotcha (Grass, thaws by TAG) dealt 22 and left it none",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -678,7 +688,7 @@
       "live": true,
       "detail": "no item: FAINTED  ->  Sash: 1 hp",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -688,7 +698,7 @@
       "live": true,
       "detail": "no item ended on 28 hp  ->  Sitrus ended on 71",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -698,7 +708,7 @@
       "live": true,
       "detail": "no item took 175  ->  Chople took 131",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -726,9 +736,9 @@
       "tag": "doublesSideSpeed",
       "label": "Tailwind doubles the side Speed",
       "live": true,
-      "detail": "partner speed 80  ->  160",
+      "detail": "[partner speed x, FOE speed x] after the turn — Recover 1,1; Tailwind 2,1 (the foe's side must not move)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -748,7 +758,7 @@
       "live": true,
       "detail": "committed earthquake; free choice repeated earthquake, after Disable it clicked dragonclaw",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -756,9 +766,9 @@
       "tag": "drain",
       "label": "Drain Punch heals the user",
       "live": true,
-      "detail": "move dealt 51 to the foe; user 85 -> 110 hp",
+      "detail": "Close Combat dealt 80 and returned 0 hp (must be 0); Drain Punch dealt 51 and returned 25 hp",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -788,7 +798,7 @@
       "live": true,
       "detail": "took 167 with no screen  ->  111 behind Reflect",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -816,9 +826,9 @@
       "tag": "pivotStatus",
       "label": "Parting Shot switches the user out",
       "live": true,
-      "detail": "active side A after the turn: milotic, corviknight",
+      "detail": "active side A after the turn — after Charm incineroar,corviknight (the user must stay); after Parting Shot milotic,corviknight",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -836,9 +846,9 @@
       "tag": "pivotDamaging",
       "label": "U-turn damages and then switches the user out",
       "live": true,
-      "detail": "foe took 47, active side A: milotic, corviknight",
+      "detail": "Crunch dealt 80 and left incineroar,corviknight standing; U-turn dealt 47 and left milotic,corviknight",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -858,7 +868,7 @@
       "live": true,
       "detail": "field.tr=3; slow user took 125 normally, 0 under Trick Room",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -868,7 +878,7 @@
       "live": true,
       "detail": "Brave Bird turn 1 dealt 123; Fly dealt 0 on the charge turn and 92 on the next",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -878,7 +888,7 @@
       "live": true,
       "detail": "turn-1 damage: no sun 0 (must be 0), sun 133 (must be > 0)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -888,7 +898,7 @@
       "live": true,
       "detail": "foe attacking: 70, foe idle: 0 (must be 0)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -896,9 +906,9 @@
       "tag": "choiceLock",
       "label": "Choice Scarf locks the holder into its first move",
       "live": true,
-      "detail": "turn 1 used crunch, turn 2 asked for closecombat and used crunch",
+      "detail": "[turn 1, turn 2 after asking for closecombat] — no item crunch,closecombat (the second click must be honoured); Choice Scarf crunch,crunch",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -906,9 +916,9 @@
       "tag": "healsSelf",
       "label": "Recover restores the user",
       "live": true,
-      "detail": "user 56 -> 141 hp",
+      "detail": "[user hp gained, partner hp gained] — after Tailwind 0,0; after Recover 85,0 (the partner must gain nothing)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -978,7 +988,7 @@
       "live": true,
       "detail": "took 80 with a plain partner  ->  59 with Friend Guard",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -988,7 +998,7 @@
       "live": true,
       "detail": "no ability -> none, Poison Touch -> psn",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1018,7 +1028,7 @@
       "live": true,
       "detail": "roll 0.9 vs 80% accuracy: no ability dealt 0, No Guard dealt 119",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1028,7 +1038,7 @@
       "live": true,
       "detail": "roll 0.7 in sand: no ability took 115, Sand Veil took 0",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1036,9 +1046,9 @@
       "tag": "boostsEachTurn",
       "label": "Speed Boost raises Speed every turn",
       "live": true,
-      "detail": "speed stage after one turn: 1",
+      "detail": "[speed stage after turn 1, after turn 2] — no ability 0,0; Speed Boost 1,2 (it must keep going, not fire once)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1048,7 +1058,7 @@
       "live": true,
       "detail": "on the bench, hp change: ability none 0, Regenerator 56 (a third is 56)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1058,7 +1068,7 @@
       "live": true,
       "detail": "no ability atk stage 0, Justified 1",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1076,9 +1086,9 @@
       "tag": "perishClock",
       "label": "Perish Song faints the target three turns later",
       "live": true,
-      "detail": "target after four turns: FAINTED",
+      "detail": "fainted after four turns — Howl false; Perish Song true; and after only two turns Perish Song false (must still be false)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1086,9 +1096,9 @@
       "tag": "costsUserHP",
       "label": "Substitute costs the user a quarter",
       "live": true,
-      "detail": "resolved to kind affect; user 170 -> 128 hp (a quarter is 42)",
+      "detail": "Howl (kind boostally) cost 0; Substitute (kind affect) cost 42 (a quarter is 42)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1098,7 +1108,7 @@
       "live": true,
       "detail": "same turn: none (must not be slp), next turn: slp",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1106,9 +1116,9 @@
       "tag": "partialTrap",
       "label": "Infestation chips at the end of each turn",
       "live": true,
-      "detail": "the move dealt 30; after the hit 153, after an idle turn 131",
+      "detail": "Bug Bite dealt 41 then chipped 0 on the idle turn (must be 0); Infestation dealt 30 then chipped 22",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1128,7 +1138,7 @@
       "live": true,
       "detail": "screen up 53  ->  after Brick Break 80",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1158,7 +1168,7 @@
       "live": true,
       "detail": "took 167 after Aurora Veil in clear weather (must be unreduced), 111 in snow",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1166,9 +1176,9 @@
       "tag": "punishesContact",
       "label": "Spiky Shield hurts the attacker it blocked",
       "live": true,
-      "detail": "the shield blocked; blocked attacker lost 22 hp",
+      "detail": "Protect blocked=true and tolled 0 (must be 0); Spiky Shield blocked=true and tolled 22",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1178,7 +1188,7 @@
       "live": true,
       "detail": "roll 0.1 (above 1/24, below 1/8): Night Slash plain 100 / Shell Armor 67   |   Crunch plain 77 / Shell Armor 77 (must be equal)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1238,7 +1248,7 @@
       "live": true,
       "detail": "no ability took 92, Disguise took 16 (must be exactly maxhp/8 = 16)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1306,9 +1316,9 @@
       "tag": "removesItem",
       "label": "a knocked-off Life Orb stops boosting the target damage",
       "live": true,
-      "detail": "holding a Life Orb it dealt 319, after Knock Off 246 (item field now \"\")",
+      "detail": "what the victim then deals -- after Crunch 319 -> 319 (item kept); after Knock Off 319 -> 246 (item gone)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1318,7 +1328,7 @@
       "live": true,
       "detail": "turn 7 damage: no item 167  ->  Light Clay 111",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1328,7 +1338,7 @@
       "live": true,
       "detail": "no ability -> par, Good as Gold -> none",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1338,7 +1348,7 @@
       "live": true,
       "detail": "status tox, chip per turn: 22, 34, 45, 57",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1348,7 +1358,7 @@
       "live": true,
       "detail": "flier speed 159 vs attacker 130; on the ground took 62, on the Fly charge turn took 0",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1398,7 +1408,7 @@
       "live": true,
       "detail": "no ability lost 40 to recoil, Rock Head lost 0",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1416,9 +1426,9 @@
       "tag": "forcesSwitch",
       "label": "Dragon Tail drags the target out",
       "live": true,
-      "detail": "the move dealt 69; foe actives after Dragon Tail: whimsicott, milotic",
+      "detail": "Dragon Claw dealt 92 and left incineroar,milotic; Dragon Tail dealt 69 and left whimsicott,milotic",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1426,9 +1436,9 @@
       "tag": "crashOnMiss",
       "label": "High Jump Kick hurts the user when it misses",
       "live": true,
-      "detail": "foe took 0 (must be 0, it missed), user lost 85",
+      "detail": "landed (roll 0.5): dealt 87, user lost 0 (must be 0); missed (roll 0.99): dealt 0, user lost 85",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1436,9 +1446,9 @@
       "tag": "userFaints",
       "label": "Explosion faints its user",
       "live": true,
-      "detail": "user after Explosion: FAINTED",
+      "detail": "user after Crunch: 170 hp; after Explosion: FAINTED",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1458,7 +1468,7 @@
       "live": true,
       "detail": "no item -> brn, Lum Berry -> none",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1466,9 +1476,9 @@
       "tag": "typeBecomesMoveType",
       "label": "Protean makes the user the type it just used",
       "live": true,
-      "detail": "types Grass/Dark  ->  Ground after using a Ground move",
+      "detail": "[types before, types after a Ground move] — no ability Grass/Dark,Grass/Dark (must not move); Protean Grass/Dark,Ground",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1476,9 +1486,9 @@
       "tag": "invertsBoosts",
       "label": "Contrary turns a self-drop into a boost",
       "live": true,
-      "detail": "own def stage after Close Combat with Contrary: 1 (must be positive)",
+      "detail": "own def stage after Close Combat — no ability -1 (must fall), Contrary 1 (must rise)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1496,9 +1506,9 @@
       "tag": "hazard",
       "label": "Stealth Rock chips what comes in afterwards",
       "live": true,
-      "detail": "the switch happened; the switch-in (Staraptor, 4x weak to Rock) came in on 160 and is on 120",
+      "detail": "the switch-in (Staraptor, 4x weak to Rock) lost 0 after Howl (came in=true, must be 0) and 40 after Stealth Rock (came in=true)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1508,7 +1518,7 @@
       "live": true,
       "detail": "healed 85 normally, 0 after Psychic Noise",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1538,7 +1548,7 @@
       "live": true,
       "detail": "no item taunted=true, Mental Herb taunted=false",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1628,7 +1638,7 @@
       "live": true,
       "detail": "Hyper Voice (sound): none 30, Soundproof 0; Moonblast (not sound): none 64, Soundproof 64 (must still land)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1638,7 +1648,7 @@
       "live": true,
       "detail": "Waterfall (contact): none 0 -> Rough Skin 21; Surf (special): none 0 -> Rough Skin 0 (must stay 0)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1658,7 +1668,7 @@
       "live": true,
       "detail": "hp change: ability none -34, Volt Absorb 35 (a quarter is 35)",
       "hollow": false,
-      "armed": false,
+      "armed": true,
       "directCall": false
     },
     {
@@ -1976,7 +1986,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.0% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2257,6 +2267,26 @@
       "label": "No Guard makes an 80% move land on a losing roll, in BOTH directions",
       "live": true,
       "detail": "Hydro Pump (80) at roll 0.99 — neither side 0; No Guard on the ATTACKER 120; No Guard on the TARGET 120",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "writesAccuracy",
+      "label": "the bot VALUES a click into a No Guard body as certain, not at its printed 80",
+      "live": true,
+      "detail": "[bestMoveVs.acc, playerAction.acc] for Hydro Pump (80 printed) — neither side 0.8,0.8; No Guard on the ATTACKER 1,1; No Guard on the TARGET 1,1",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "accuracyMod",
+      "label": "the bot PRICES an evasive body, and not only dodges around it",
+      "live": true,
+      "detail": "[bestMoveVs.acc, playerAction.acc] for Hydro Pump — bare 0.8,0.8; the foe's Bright Powder 0.72,0.72; the foe at +6 evasion 0.2667,0.2667; my Wide Lens 0.88,0.88",
       "hollow": false,
       "armed": true,
       "directCall": false

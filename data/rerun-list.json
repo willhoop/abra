@@ -1,0 +1,265 @@
+{
+  "generated": "2026-08-06T21:28:49.265Z",
+  "by": "engine/rerun_list.js",
+  "note": "ROADMAP #57. Derived, never typed. UNSTAMPED means the number cannot be dated and is not evidence.",
+  "live_digests": {
+    "engine/medicham2-browser.js": "50def15ac8f0",
+    "engine/board.js": "5bdaa3923958",
+    "engine/champions_sim.js": "fa5b8af6513a"
+  },
+  "game_sources": [
+    "engine/medicham2-browser.js",
+    "engine/board.js",
+    "engine/champions_sim.js"
+  ],
+  "counts": {
+    "unstamped": 16,
+    "void": 2,
+    "stale": 11,
+    "current": 0
+  },
+  "rows": [
+    {
+      "artifact": "engine-diff.json",
+      "games": null,
+      "verdict": "UNSTAMPED",
+      "why": "no engine_release — this number cannot be dated, so it cannot be compared to anything"
+    },
+    {
+      "artifact": "exploitability-machamp.json",
+      "games": null,
+      "verdict": "UNSTAMPED",
+      "why": "no engine_release — this number cannot be dated, so it cannot be compared to anything"
+    },
+    {
+      "artifact": "exploitability-mag.json",
+      "games": null,
+      "verdict": "UNSTAMPED",
+      "why": "no engine_release — this number cannot be dated, so it cannot be compared to anything"
+    },
+    {
+      "artifact": "game-diff.json",
+      "games": null,
+      "verdict": "UNSTAMPED",
+      "why": "no engine_release — this number cannot be dated, so it cannot be compared to anything"
+    },
+    {
+      "artifact": "ladder.json",
+      "games": null,
+      "verdict": "UNSTAMPED",
+      "why": "no engine_release — this number cannot be dated, so it cannot be compared to anything"
+    },
+    {
+      "artifact": "leaf-comparison.json",
+      "games": null,
+      "verdict": "UNSTAMPED",
+      "why": "no engine_release — this number cannot be dated, so it cannot be compared to anything"
+    },
+    {
+      "artifact": "miltank-timing-r6.json",
+      "games": null,
+      "verdict": "UNSTAMPED",
+      "why": "no engine_release — this number cannot be dated, so it cannot be compared to anything"
+    },
+    {
+      "artifact": "rollout-cost.json",
+      "games": 200,
+      "verdict": "UNSTAMPED",
+      "why": "no engine_release — this number cannot be dated, so it cannot be compared to anything"
+    },
+    {
+      "artifact": "rollout-cost.meta.json",
+      "games": null,
+      "verdict": "UNSTAMPED",
+      "why": "no engine_release — this number cannot be dated, so it cannot be compared to anything"
+    },
+    {
+      "artifact": "rollout-r1-explore1-rows.meta.json",
+      "games": null,
+      "verdict": "UNSTAMPED",
+      "why": "no engine_release — this number cannot be dated, so it cannot be compared to anything"
+    },
+    {
+      "artifact": "rollout-r1-withdrawn-join.json",
+      "games": null,
+      "verdict": "UNSTAMPED",
+      "why": "no engine_release — this number cannot be dated, so it cannot be compared to anything"
+    },
+    {
+      "artifact": "rollout-r1.json",
+      "games": null,
+      "verdict": "UNSTAMPED",
+      "why": "no engine_release — this number cannot be dated, so it cannot be compared to anything"
+    },
+    {
+      "artifact": "rollout-r3.json",
+      "games": 60,
+      "verdict": "UNSTAMPED",
+      "why": "no engine_release — this number cannot be dated, so it cannot be compared to anything"
+    },
+    {
+      "artifact": "rollout-r3.meta.json",
+      "games": null,
+      "verdict": "UNSTAMPED",
+      "why": "no engine_release — this number cannot be dated, so it cannot be compared to anything"
+    },
+    {
+      "artifact": "rollout-r4.json",
+      "games": 2624,
+      "verdict": "UNSTAMPED",
+      "why": "no engine_release — this number cannot be dated, so it cannot be compared to anything"
+    },
+    {
+      "artifact": "winrate-backtest.json",
+      "games": null,
+      "verdict": "UNSTAMPED",
+      "why": "no engine_release — this number cannot be dated, so it cannot be compared to anything"
+    },
+    {
+      "artifact": "exploitability-holdout.json",
+      "games": null,
+      "verdict": "VOID",
+      "why": "VOID — DO NOT QUOTE. Same run as data/exploitability.json; see its void_reason. The mirror control inside it (49.7% [46.2,53.2] at n=782) is the one figure that survives, because both of its legs fall inside a single stable window."
+    },
+    {
+      "artifact": "exploitability.json",
+      "games": null,
+      "verdict": "VOID",
+      "why": "VOID — DO NOT QUOTE. The tree moved while this was being measured. data/policy-weights.json (MAG itself, the DEFENDER) was refitted at 22:15:24 while the search had frozen the defender at 21:41 and the held-out replay reloaded it at 22:17 — the two legs defended with DIFFERENT vectors. engine/medicham2-browser.js showed four distinct content digests between 22:29 and 22:37, and engine/board.js was rewritten mid-search. Cause: three division agents were run against one live working tree at once, which CLAUDE.md forbids for exactly this reason. exploit.js stamps no engine digest and no digest of the target vector it reads, so it could not detect any of it. The PRIOR figure (63.2% [56.6, 69.3]) is separately RETRACTED: 17 features against the 58 shipped, an engine 25 wire-fixes old, and computed before the quality filter existed. ABRA therefore has NO exploitability number. Blocked on data/engine-release.json (a frozen engine) and on a step rule that survives 58 dimensions — the hill-climb accepted 1 of 24 steps here against 10 of 18 at 17 features, so even on a still tree this would have returned an uninformative null."
+    },
+    {
+      "artifact": "exploit-step-probe-reparam.json",
+      "games": null,
+      "verdict": "STALE",
+      "release": "6e43710396db",
+      "moved": [
+        "engine/medicham2-browser.js",
+        "engine/board.js",
+        "engine/champions_sim.js"
+      ],
+      "why": "measured on medicham2-browser.js ae012bdf2b3a, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 50def15ac8f0, 5bdaa3923958, fa5b8af6513a"
+    },
+    {
+      "artifact": "exploit-step-probe.json",
+      "games": null,
+      "verdict": "STALE",
+      "release": "d3d04b669e18",
+      "moved": [
+        "engine/medicham2-browser.js",
+        "engine/board.js",
+        "engine/champions_sim.js"
+      ],
+      "why": "measured on medicham2-browser.js 645b93a3878f, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 50def15ac8f0, 5bdaa3923958, fa5b8af6513a"
+    },
+    {
+      "artifact": "leaf-position-contrast.json",
+      "games": null,
+      "verdict": "STALE",
+      "release": "6b0e4117d964",
+      "moved": [
+        "engine/medicham2-browser.js",
+        "engine/board.js"
+      ],
+      "why": "measured on medicham2-browser.js 80fe43fba1a9, board.js 54e3d2ca9f85; live is 50def15ac8f0, 5bdaa3923958"
+    },
+    {
+      "artifact": "mutation-coverage.json",
+      "games": null,
+      "verdict": "STALE",
+      "release": "032b4a2979dd",
+      "moved": [
+        "engine/medicham2-browser.js",
+        "engine/board.js"
+      ],
+      "why": "measured on medicham2-browser.js 80fe43fba1a9, board.js 54e3d2ca9f85; live is 50def15ac8f0, 5bdaa3923958"
+    },
+    {
+      "artifact": "porygon2-separation-gate.json",
+      "games": null,
+      "verdict": "STALE",
+      "release": "4c73f9cafa4b",
+      "moved": [
+        "engine/medicham2-browser.js"
+      ],
+      "why": "measured on medicham2-browser.js eaa42b53cab9; live is 50def15ac8f0"
+    },
+    {
+      "artifact": "rollout-r1-explore-sweep.json",
+      "games": null,
+      "verdict": "STALE",
+      "release": "3932186b59ef",
+      "moved": [
+        "engine/medicham2-browser.js",
+        "engine/board.js",
+        "engine/champions_sim.js"
+      ],
+      "why": "measured on medicham2-browser.js 17afcf76bfff, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 50def15ac8f0, 5bdaa3923958, fa5b8af6513a"
+    },
+    {
+      "artifact": "rollout-r1-explore1-rows-3932186b59ef.meta.json",
+      "games": null,
+      "verdict": "STALE",
+      "release": "3932186b59ef",
+      "moved": [
+        "engine/medicham2-browser.js",
+        "engine/board.js",
+        "engine/champions_sim.js"
+      ],
+      "why": "measured on medicham2-browser.js 17afcf76bfff, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 50def15ac8f0, 5bdaa3923958, fa5b8af6513a"
+    },
+    {
+      "artifact": "rollout-r1-explore1-rows-6e43710396db.meta.json",
+      "games": null,
+      "verdict": "STALE",
+      "release": "6e43710396db",
+      "moved": [
+        "engine/medicham2-browser.js",
+        "engine/board.js",
+        "engine/champions_sim.js"
+      ],
+      "why": "measured on medicham2-browser.js ae012bdf2b3a, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 50def15ac8f0, 5bdaa3923958, fa5b8af6513a"
+    },
+    {
+      "artifact": "rollout-r1-explore1.json",
+      "games": null,
+      "verdict": "STALE",
+      "release": "3932186b59ef",
+      "moved": [
+        "engine/medicham2-browser.js",
+        "engine/board.js",
+        "engine/champions_sim.js"
+      ],
+      "why": "measured on medicham2-browser.js 17afcf76bfff, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 50def15ac8f0, 5bdaa3923958, fa5b8af6513a"
+    },
+    {
+      "artifact": "rollout-r1-greedy-rows-3932186b59ef.meta.json",
+      "games": null,
+      "verdict": "STALE",
+      "release": "3932186b59ef",
+      "moved": [
+        "engine/medicham2-browser.js",
+        "engine/board.js",
+        "engine/champions_sim.js"
+      ],
+      "why": "measured on medicham2-browser.js 17afcf76bfff, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 50def15ac8f0, 5bdaa3923958, fa5b8af6513a"
+    },
+    {
+      "artifact": "sheet-channel-value.json",
+      "games": null,
+      "verdict": "STALE",
+      "release": "6e43710396db",
+      "moved": [
+        "engine/medicham2-browser.js",
+        "engine/board.js",
+        "engine/champions_sim.js"
+      ],
+      "why": "measured on medicham2-browser.js ae012bdf2b3a, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 50def15ac8f0, 5bdaa3923958, fa5b8af6513a"
+    },
+    {
+      "artifact": "dusk-size-gate.json",
+      "games": null,
+      "verdict": "DECLARED N/A",
+      "why": "none — this is pure store analysis and loads no engine module. Species identity, HP, status, boosts and field come out of the stored turn events written by engine/durable-ingest.js at collection time."
+    }
+  ]
+}

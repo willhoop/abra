@@ -283,6 +283,20 @@ const RAW = /\.(ability|baseStats|weighthg|weightkg)\b/g;
  * #40b — it read the PRE-mega ability to decide whether a mon is a weather setter, and a mega's
  * weather ability is precisely what differs from its base). It was fixed rather than declared. */
 const DECLARED = {
+  'engine/validate_store.js':
+    'Two reads, both of a STORED SET — `s.ability` and `s.item` off `g.sets[species]` — handed to '
+    + 'Showdown\'s TeamValidator. A validator judges a DECLARATION, so the pre-mega ability is not '
+    + 'merely acceptable here, it is the only thing the question accepts: `Charizard` with `Drought` '
+    + 'is an invalid team, `Charizard` with `Blaze` plus a Charizardite Y is the legal one people '
+    + 'actually submit. Resolving to the effective ability would make every mega user read as an '
+    + 'illegal team. No body is built and no dex is loaded — the file reads JSONL, constructs plain '
+    + 'objects and calls validateTeam. '
+    + 'AND THE CASE WHERE THE FIELD IS *NOT* PRE-MEGA IS HANDLED RATHER THAN ASSUMED AWAY: a '
+    + 'closed-sheet replay sometimes reveals the POST-mega ability and the extractor writes it onto '
+    + 'the base row, which is why the validator returns "meowstic (Meowstic) can\'t have Intimidate" '
+    + '9 times and "gardevoir (Gardevoir) can\'t have Pixilate" 7 times. Those are classified '
+    + 'OBSERVED, not ILLEGAL, by the OBSERVED table in that file — the store holds what the battle '
+    + 'showed, not what the player typed. Written 2026-08-06.',
   'tests/regulation_usage.js':
     'Two reads, and both are of a STORED SHEET ENTRY — `s.ability` off `g.sheets[side][i]` and off '
     + '`g.sets[species]`, which are what the open team sheet declared at preview and what the '

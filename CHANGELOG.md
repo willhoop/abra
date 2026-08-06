@@ -10,6 +10,167 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.57.0] — 2026-08-06
+
+### Added — the arming pass finishes: `unarmed` 76 → 0
+Every probed mechanic now has a probe that has been shown RED. Coverage **armed, weighted by corpus
+usage**: moves **63.4% → 97.4%**, abilities **82.2% → 93.8%**, items **58.9% → 99.9%**. Tags probed and
+live with no ARMED probe: **62 → 0**.
+
+```
+                      before      after
+probed / live        232/231    235/234    same single miss, needsTargetToAttack
+armed / unarmed       156/76     235/0
+directCall                 0          0    held
+red demonstrations   79, 0 fail  122, 0 fail
+differential           1/150      1/150    same row
+interaction matrix   1624/1643   identical
+```
+
+### Fixed
+- **WIRE 131 — the VALUATION path was blind while resolution was correct.** WIRE 129 fixed whether a
+  move HITS. It did not fix what the bot thinks a move is WORTH. Measured over seven arms of Hydro
+  Pump, `bestMoveVs.acc` and `playerAction.acc` read **0.8 against a bare defender, a No Guard
+  defender, Bright Powder, +6 evasion, +6 accuracy and a Wide Lens alike**. The only arm that moved was
+  a hand-written attacker-only No Guard check — a fifth copy of a rule the accuracy table already owns,
+  and **half the ability**, since No Guard works in BOTH directions. Found because Will said so:
+  *"no guard also makes it so your opponents cant miss."* All four sites now call `hitProb`.
+  **Declared, not faked:** the KO scan and `bestKOsNow` sit inside the unexported `_chooseAction` and
+  could not be demonstrated red.
+- **WIRE 132 — Mega Floette threatened nothing, on 10.5% of ladder sides.** `data/abra-tags.js` maps
+  `Floettite → {Floette-Eternal: Floette-Mega}`; the builder instead concatenated `'-mega'` and reached
+  `floette-eternal-mega`, the one row in 318 with **both `ab: null` and `mv: []`**. Membership printed
+  before the fix: **74 of 76 into-pairs agree with the concatenation guess, exactly 2 differ.**
+  Before → after: ability `''` → `fairyaura`, SpA 175 → 192, `buildMon` from **0 moves to 4**, its
+  Dazzling Gleam dealing 160. Found from Will asking what Fairy Aura actually does.
+
+### Added — three instruments, each shown RED on known-bad input before being committed
+- **`engine/status.js --selftest`** (6 cases). The board printed `refit edge: CLEAN` for two days over a
+  contrast that had measured three feature columns MOVING on 1,136,845 rows. Third verdict added:
+  **FIXTURE ONLY**. Red on the pre-fix behaviour at 4 of 6.
+- **`engine/rerun_list.js --selftest`** (8 cases), ROADMAP #57. Of **30** artifacts reporting a number
+  produced by playing games: **16 UNSTAMPED, 2 VOID, 11 STALE, 1 DECLARED N/A, 0 CURRENT.** Not one is
+  quotable against the current engine. UNSTAMPED vs STALE is the distinction that matters — a stale
+  number can be re-run and compared, an unstamped one cannot be compared to anything.
+- **`engine/validate_store.js --selftest`** (11 cases). Will: *"it shouldnt be this hard, lets just
+  filter all the games through showdowns valid team check if we have to."* 46,612 games in **23 s**.
+
+### Removed
+- **`engine/format_drift.js`, deleted the same night it was written.** It discriminated on a COUNT: a
+  rejected species appearing often meant our dex was stale, rarely meant the game was anomalous. Will
+  killed it on sight — *"legal = common is the worst possible logic i could think of."* The confound is
+  specific: this format hands out mega evolutions, so a Pokémon with no mega is rare BECAUSE it is
+  outclassed, not because it is illegal. A real check — the TeamValidator — existed the whole time.
+
+### Notes — what the validator found, largest first
+**The store's `sets` are OBSERVATIONS, not DECLARATIONS, and a team validator only speaks declaration.**
+The first run flagged **12.15%** of games and almost none was illegality: mid-battle formes
+(Palafin-Hero, Aegislash-Blade, Mimikyu-Busted), post-mega abilities recorded against the base row
+(Meowstic/Intimidate, Gardevoir/Pixilate), moves Imposter copied, long nicknames, and **Struggle**,
+which nobody declares because it is what zero PP forces. Separated: **1.549%**.
+
+**What remains is a real bug that species-checking would never have found.** `whimsicott` is credited
+with **Bitter Malice** in 14 games and **13 of the 14 have a Zoroark on the team**. The signature runs
+down the whole list — hatterene/Parting Shot, farigiraf/Round, sylveon/Boomburst, overqwil/Memento —
+the popular DISGUISE TARGETS, each credited with a move it cannot learn. **Illusion mis-attributes
+every move to the body being imitated**, and `g.sets` carries that into `data/meta-usage.json` (what
+CHOMP reads), into XATU's opponent model, and into the sheet channels.
+
+**`engine/illusion.js` already exists, and `engine/durable-ingest.js` requires it ZERO times** (Will:
+*"we addressed this before where if a pokemon uses a move not on its learnset, its zoroark"*). It is
+wired into `data/board-data.js` and nowhere near ingest — built, correct, and not connected at the
+place that decides what gets stored. ROADMAP #67.
+
+**Identified and NOT yet excluded: the custom-rules games.** 19–21 games carry player-typed rules that
+unban the format's `Past` class — `+past`, `!obtainable`, and in ten of them `+jirachi` by name.
+Showdown keeps the base format id on a custom challenge and the marker is a `|raw|` HTML infobox that
+`extract()` has no branch for, so **the fact is destroyed at ingest and the store cannot answer the
+question**. The pipeline's only acceptance test is that both sides have at least 4 Pokémon. ~14 survive
+into the clean corpus of ~8,100; `data/meta-usage.json` carries `amoonguss` at `teamRate 0.0002`. The
+live bot is unaffected — it builds from `data/species-sets.json`, which holds none of them.
+
+**A larger version of the same hole, pointing the other way:** 393 archived logs carry custom-rules
+infoboxes and some REMOVED legal species (`-Sneasler, -Garchomp`). Those bias usage DOWNWARD and no
+legality check can ever see them, because everything in them is legal.
+
+### Notes — corrections on the record
+- **My ordering rationale for the refit was wrong.** I held 3.56.0 so the refit would follow the engine
+  fixes; `git show --stat 9ad0d15` contains neither `board.js` nor `fit_policy.js`. Will then superseded
+  the question entirely — *"dont we only want refits once medicham is done"* — which is his own standing
+  bar. The refit is **correctly blocked**, not overdue.
+- **I claimed Mega Floette was the most-used mega. It is third.** Charizard-Mega-Y 9,843 sets,
+  Staraptor-Mega 5,600, Floette-Mega 4,981. I compared *sides with it in the six* against *sets*.
+  Will: *"no zard should be the most used."*
+- **I claimed auraBoost had essentially zero exposure.** My scan was case-sensitive against a store that
+  keys `floettemega`. It is 10.5% of sides.
+- Two more probes were wrong before the engine was, making **39**: `forbidsStatusMoves` (a status click
+  does not always carry a move name — Tailwind emits `{kind:'tail', move:null}`) and the `megaStone`
+  valuation probe, which clicked `moves[0]` and got Protect.
+- **Ten red demonstrations stayed GREEN under a tag strip** — `inflictsBurn` (24,070 uses),
+  `inflictsSleep`, `inflictsParalysis`, `inflictsFreeze`, `readsTargetItem`, `takesTargetItem`,
+  `locksTarget`, `setsWeather`, `doublesSideSpeed`, `thawsTarget`. Those census rows name tags **the
+  engine never reads**; the mechanics run off `fx.status`, `fx.secondary`, `fx.weather`, `removesItem`
+  and a hard-coded `id==='tailwind'`. Every demonstration now targets the fact actually read.
+- `tests/test-mc-key.js` went red from WIRE 132 and was **fixed, not re-baselined upward**: 13/2 → 15/0,
+  `medicham2-browser.js` lookups 5 → 1, baseline re-stamped **downward** 17 → 16.
+- Six silent-catch blocks introduced by tonight's new files were made to speak before commit.
+
+### Fixed — carried from 3.56.1
+- **The board printed `refit edge: CLEAN` for two days over a measured three-column change.** Found by
+  MEASURE while checking whether the refit was owed, and it outranks the gate counts it was sent to
+  fix. `data/feature-engine-contrast.json` had measured `deadNoLastMove`, `movesFirst` and
+  `diesBeforeMoving` MOVING on **1,136,845 corpus rows**. `engine/status.js:117` then muzzles the
+  contrast whenever medicham2's digest differs from the artifact's — correct, because an artifact
+  measured on another tree must not speak. **The defect is what the muzzle returned:** a bare `null`,
+  which is also what a contrast that was *never run* returns. Two opposite facts arrived as one value,
+  and the caller reported the fixture's answer as the whole answer.
+
+  It is not a gap but the **steady state**: ENGINE lands on medicham2 roughly every half hour and the
+  contrast takes far longer than that to re-run, so the second instrument is muzzled essentially
+  always. `feature_fixture --check` genuinely passes — it hashes ~50 frozen boards, and its own header
+  says a guard only guards what it exercises. 3.49.0 made speed order dynamic; no fixture board stands
+  on that branch.
+
+  A muzzled instrument now returns `{muzzled: why}` carrying the reason, and the verdict has a third
+  state. **Only the both-spoke case earns the word CLEAN:**
+
+  ```
+  refit edge: FIXTURE ONLY — not clean, and not owed either; only one of the two instruments spoke
+    feature_fixture --check passes: all 58 columns hash-identical to fit time — but the corpus
+    contrast is MUZZLED (it was measured on medicham2 82bed8cdcf6b, live is 50def15ac8f0), so
+    nothing checked the branches no fixture board stands on
+  ```
+
+### Added
+- **`node engine/status.js --selftest`, registered as a GATE in `tests/run-all.js`.** Six cases over
+  synthetic artifacts, no filesystem and no dex, so it costs milliseconds. Shown RED on the pre-fix
+  behaviour — **4 of 6 fail** — before being committed, per the standing rule.
+  `status.js` is a *reporter* and was not otherwise gated, which is precisely how this survived.
+
+  **The first draft of the selftest crashed instead of failing**, reading `r.muzzled` off the pre-fix
+  `null`. That is the shape CLAUDE.md already records for two ratchets that crashed rather than failed
+  and stayed invisible for it. The predicates are null-safe by construction now.
+
+### Notes
+- **A correction to my own ordering, made on the record because it changed the schedule.** 3.56.0 was
+  held back on the reasoning that a refit should follow the engine fixes. `git show --stat 9ad0d15`
+  contains **neither `engine/board.js` nor `engine/fit_policy.js`** — both last moved at `3be3f3b`
+  (3.47.0–3.49.0, 2026-08-05 16:47), whose own commit message already announced the refit as owed. The
+  refit is **~28 hours overdue, not newly due**, and waiting for 3.56.0 bought nothing.
+- **The refit did not run, and the blocker is architectural rather than scheduling.** `fit_policy.js`
+  and `fit_joint.js` contain **zero references to `engine_release.js`**, and `fit_policy.js` is not
+  among the 23 frozen `SOURCES` — so the fitter reads the live tree by construction and cannot be run
+  from inside a snapshot either. **The one expensive operation on the one expensive edge is the one
+  thing that cannot take a photograph.** With ENGINE's arming pass in flight and `medicham2-browser.js`
+  uncommitted, a fit started now reproduces the 2026-08-04 void exactly. Held, with the reason named.
+- `em_validation` re-ran and is **GREEN** (bias 0.9567 > floor 0.3259, EM recovers 91.4%, 31,940 rows
+  over 1,200 games). Reported against itself: medicham2 moved *inside* that run's window, and
+  `em_validation.js` does not list medicham2 in its `SOURCES`, so provenance cannot see it. It is owed
+  a re-run once ENGINE settles.
+- `provenance --strict` **6 UNSAFE → 5** (`strong-player-baseline.json` cleared by re-running it under
+  the conformance fixes). The remaining five are named in `docs/MEASURE.md`; three sit on the refit
+  path, two do not.
+
 ## [3.56.0] — 2026-08-06
 
 ### Fixed

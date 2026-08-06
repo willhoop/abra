@@ -19,7 +19,9 @@ MEASURE — can we believe a number
     powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835
     PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/abra-tags.js
     (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
-  provenance: 7 unsafe, 1 void (declared), 44 possibly stale, 52 ok, 0 missing
+  provenance: 5 unsafe, 1 void (declared), 46 possibly stale, 54 ok, 0 missing
+    RATCHET TRIPPED — the unstamped list grew; provenance.js exited non-zero: rerun-list.json, store-validation.json
+    their generators ship without recording what CONTENT they read — stamp source_digests
   click censoring: 1,383 of 249,404 recorded actions were NOT clicks (0.555%) and left the labeled set; 3,328 (1.334%) are kept under a candidate set
     classifier vs the raw protocol on 6,205 games (67.2% of the corpus): encore recall 99.7% precision 96.3%, drag recall 96.7% precision 96.7%
     EM recovers 91.4% of a planted censoring bias of 0.957 against a 0.326 noise floor (amplified regime)
@@ -27,14 +29,15 @@ MEASURE — can we believe a number
       redirection turns, mass on the candidate set  +0.000122 [-0.000261, 0.000514] (contains zero)   n=650
       coerced turns, P(the coerced action)          -0.002613 [-0.003650, -0.001672]   n=293  (lower is better)
       CONTROL, clean turns, logL                    +0.000485 [0.000189, 0.000777]   n=47331
-  refit edge: CLEAN — feature_fixture --check passes: all 58 columns hash-identical to fit time
-    (engine/medicham2-browser.js moved 2026-08-06 20:06, and no feature the fixture exercises moved with it)
-    (engine/board.js moved 2026-08-05 19:44, and no feature the fixture exercises moved with it)
-    (data/engine-data.js moved 2026-08-06 19:20, and no feature the fixture exercises moved with it)
-    (data/abra-tags.js moved 2026-08-06 19:19, and no feature the fixture exercises moved with it)
+  refit edge: FIXTURE ONLY — not clean, and not owed either; only one of the two instruments spoke
+    feature_fixture --check passes: all 58 columns hash-identical to fit time — but the corpus contrast is MUZZLED (it was measured on medicham2 82bed8cdcf6b, live is ea02311862e4), so nothing checked the branches no fixture board stands on
+    moved after the fit: engine/medicham2-browser.js  2026-08-06 21:47
+    moved after the fit: engine/board.js  2026-08-05 19:44
+    moved after the fit: data/engine-data.js  2026-08-06 19:20
+    moved after the fit: data/abra-tags.js  2026-08-06 19:19
 ```
 
-_stamped 2026-08-06 20:22_
+_stamped 2026-08-06 22:10_
 
 <!-- /GENERATED -->
 

@@ -1,11 +1,11 @@
 {
- "generated": "2026-08-05T06:37:44.101Z",
+ "generated": "2026-08-06T21:03:16.776Z",
  "source": "engine/em_validation.js",
  "source_digests": {
-  "engine/fit_policy.js": "45f545425420",
+  "engine/fit_policy.js": "caeeec21c560",
   "engine/click_class.js": "011bb621fe76",
   "engine/click_match.js": "e266c98ffb47",
-  "engine/board.js": "54e3d2ca9f85",
+  "engine/board.js": "5bdaa3923958",
   "engine/em_validation.js": "0dda9b036dd9"
  },
  "what": "Planted-weight recovery under the real censoring process. docs/CLICK-CENSORING-FIX.md Stage C.",
@@ -13,7 +13,7 @@
  "corpus": {
   "games": 1200,
   "games_requested": 1200,
-  "of_total": 9022,
+  "of_total": 6540,
   "rows": 31940
  },
  "iters": 300,

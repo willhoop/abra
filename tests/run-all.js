@@ -89,7 +89,30 @@ const GATES = ['engine/selftest.js', 'engine/conformance.js', 'engine/artifact_a
    * measurement is re-run, which is the hash-not-mtime rule engine/status.js already applies to the
    * leaf. Listing it without --check would put a 25-minute fit in the suite; not listing it at all
    * would leave a gate that nothing runs, which the assertion below exists to forbid. */
-  'engine/em_validation.js'];
+  'engine/em_validation.js',
+  /* engine/status.js --selftest — the refit edge's own verdict logic, on synthetic artifacts.
+   * status.js is a REPORTER and is not otherwise gated, which is exactly how it printed
+   * `refit edge: CLEAN` for two days over a corpus contrast that had measured three feature columns
+   * MOVING. The muzzle case and the never-run case both returned a bare null, so the caller could not
+   * tell "the second instrument disagrees with this tree" from "the second instrument has never been
+   * run" and reported the fixture's answer as the whole answer. Six cases, no filesystem, no dex —
+   * it costs milliseconds, and it is red on the pre-fix behaviour with 4 of 6 failing. */
+  'engine/status.js',
+  /* engine/rerun_list.js --selftest — ROADMAP #57's verdict logic. It reports which published numbers
+   * were measured on an engine we now know was wrong, and the distinction it must never lose is
+   * UNSTAMPED vs STALE: a stale number can be re-run and compared, an unstamped one cannot be compared
+   * to anything. Eight cases, synthetic input, no filesystem. The DECLARED N/A case is in there because
+   * the first version read dusk-size-gate.json's prose explanation as a release id. */
+  'engine/rerun_list.js',
+  /* engine/validate_store.js --selftest — legality comes from Showdown's own TeamValidator, which is
+   * the authority the SERVER uses. It replaced a count-based heuristic (a rejected species that is
+   * RARE means the game is anomalous, COMMON means our dex is stale). Will killed that on sight and
+   * he was right: "legal = common is the worst possible logic i could think of". In a format that
+   * hands out mega evolutions, a Pokemon with no mega is rare BECAUSE it is outclassed, not because
+   * it is illegal — so the heuristic's whole discriminator is confounded, and a real check existed
+   * the entire time. The selftest pins the error CLASSIFIER, which is the only hard part: a
+   * closed-sheet replay yields a partial team, and incompleteness must not read as illegality. */
+  'engine/validate_store.js'];
 
 /* COVERAGE ASSERTION. Any file in engine/ that reports its own pass/fail summary is a check, and a
  * check that nothing runs is worse than no check — it reads as coverage in a review. If one turns up
@@ -151,7 +174,8 @@ function plan(rel) {
    * here — and the gate fails only on a finding that is NOT in there. The baseline may shrink and
    * may never grow. PRIORITIES #46b, closed 2026-08-04. */
   const EXTRA = { 'engine/provenance.js': ['--strict'], 'engine/conformance.js': ['--strict'],
-                  'engine/em_validation.js': ['--check'] };
+                  'engine/em_validation.js': ['--check'], 'engine/status.js': ['--selftest'],
+                  'engine/rerun_list.js': ['--selftest'], 'engine/validate_store.js': ['--selftest'] };
   return { cmd: rel.endsWith('.py') ? PY : process.execPath, args: [D(rel), ...(EXTRA[rel] || [])] };
 }
 

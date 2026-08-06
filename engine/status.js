@@ -105,24 +105,46 @@ function engineInputs() {
 }
 
 /* THE SECOND INSTRUMENT ON THE REFIT EDGE, read rather than re-derived — engine/status.js shells out
- * to engine/provenance.js for the same reason. Returns null unless the artifact is present, carries a
- * contrast whose ROWS matched (a contrast over different rows says nothing), and was measured against
- * the CURRENT board.js and medicham2 — otherwise it is describing some other tree and must not speak.
- * Written by engine/feature_engine_contrast.js. */
+ * to engine/provenance.js for the same reason. It may only speak when the artifact is present, carries
+ * a contrast whose ROWS matched (a contrast over different rows says nothing), and was measured against
+ * the CURRENT board.js and medicham2 — otherwise it is describing some other tree.
+ * Written by engine/feature_engine_contrast.js.
+ *
+ * A MUZZLED INSTRUMENT IS NOT A CLEAN RESULT, AND THIS FUNCTION USED TO REPORT IT AS ONE.
+ * Every rejection below returned a bare `null`, which is the same value the caller gets when the
+ * artifact was never generated — so "the contrast disagrees with the tree it was measured on" and
+ * "nobody has ever run the contrast" arrived as one fact, and the caller printed CLEAN over both.
+ * That is not hypothetical: `feature-engine-contrast.json` measured three columns MOVING on
+ * 1,136,845 corpus rows, medicham2 then moved, this function went quiet, and the board read
+ * `refit edge: CLEAN` across the whole of 2026-08-05 and 2026-08-06. ENGINE lands on medicham2
+ * roughly every half hour and the contrast takes far longer than that to re-run, so the silence was
+ * not a gap — it was the STEADY STATE. A `{muzzled}` return now carries the reason out. */
+/* The digests are ARGUMENTS with live defaults so `--selftest` can drive every branch without
+ * touching data/ — swapping the real artifact aside while ENGINE is mid-pass is exactly the
+ * collision the release mechanism exists to avoid. */
+function classifyContrast(j, liveMedi, liveBoard) {
+  const muzzled = (why) => ({ muzzled: why });
+  const live = (j.bundles || []).find(b => b.eng === 'live');
+  if (!live) return muzzled('the artifact carries no `live` bundle');
+  if (live.medicham2 !== liveMedi) {
+    return muzzled(`it was measured on medicham2 ${live.medicham2}, live is ${liveMedi}`);
+  }
+  const d = j.source_digests || {};
+  if (d['engine/board.js'] && d['engine/board.js'] !== liveBoard) {
+    return muzzled(`it was measured on board.js ${d['engine/board.js']}, live is ${liveBoard}`);
+  }
+  const usable = (j.contrasts || []).filter(c => c.same_rows);
+  if (!usable.length) return muzzled('no contrast in it compared the same rows');
+  const moved = [...new Set([].concat(...usable.map(c => c.columns_that_moved || [])))];
+  const worst = usable.find(c => (c.columns_that_moved || []).length) || usable[0];
+  return { moved, rows: live.rows, a: worst.a, b: worst.b, fixtureNote: 'frozen boards' };
+}
+
 function readContrast() {
+  const muzzled = (why) => ({ muzzled: why });
   try {
     const j = JSON.parse(fs.readFileSync(D('data', 'feature-engine-contrast.json'), 'utf8'));
-    const live = (j.bundles || []).find(b => b.eng === 'live');
-    if (!live) return null;
-    if (live.medicham2 !== sha12(D('engine', 'medicham2-browser.js'))) return null;
-    const d = j.source_digests || {};
-    if (d['engine/board.js'] && d['engine/board.js'] !== sha12(D('engine', 'board.js'))) return null;
-    const usable = (j.contrasts || []).filter(c => c.same_rows);
-    if (!usable.length) return null;
-    const moved = [...new Set([].concat(...usable.map(c => c.columns_that_moved || [])))];
-    const worst = usable.find(c => (c.columns_that_moved || []).length) || usable[0];
-    return { moved, rows: live.rows, a: worst.a, b: worst.b,
-             fixtureNote: 'frozen boards' };
+    return classifyContrast(j, sha12(D('engine', 'medicham2-browser.js')), sha12(D('engine', 'board.js')));
   } catch (e) {
     /* IT SPEAKS, and only when there is something to say. A missing artifact is the normal state —
      * nobody has run the contrast yet — and shouting about it every run is how a note stops being
@@ -130,9 +152,10 @@ function readContrast() {
      * silently falling back to the fixture alone is exactly the blindness this function was added to
      * cover. */
     if (fs.existsSync(D('data', 'feature-engine-contrast.json'))) {
-      return logUnreadable('data/feature-engine-contrast.json (refit edge falls back to the fixture alone)', e);
+      logUnreadable('data/feature-engine-contrast.json (refit edge falls back to the fixture alone)', e);
+      return muzzled('the artifact exists and could not be parsed');
     }
-    return null;
+    return null;   /* NEVER RUN — the only case where the fixture standing alone is the whole truth */
   }
 }
 
@@ -166,15 +189,27 @@ function refitOwed() {
      * never better — an artifact that is missing, stale or inconclusive leaves the fixture's answer
      * exactly as it was. docs/MEASURE.md §17b. */
     const c = readContrast();
-    if (c && c.moved.length) {
+    if (c && c.moved && c.moved.length) {
       return { verdict: 'REFIT OWED', weights: w, newer,
                how: `feature_fixture --check passes on its ${c.fixtureNote}, but data/feature-engine-contrast.json `
                   + `says ${c.moved.length} column(s) MOVED on ${c.rows.toLocaleString()} corpus rows: ${c.moved.join(', ')}`
                   + ` (${c.a} vs ${c.b})` };
     }
+    /* ONE INSTRUMENT AGREEING WITH ITSELF IS NOT TWO INSTRUMENTS AGREEING. Only the both-spoke case
+     * earns the word CLEAN. A muzzled contrast returns a THIRD verdict rather than borrowing the
+     * fixture's — the fixture hashes ~50 frozen boards and its own header says a guard only guards
+     * what it exercises, which is exactly how 3.49.0's dynamic speed order slipped past it. */
+    if (c && c.muzzled) {
+      NOTES.push('data/feature-engine-contrast.json could not speak on the refit edge (' + c.muzzled
+               + '), so the edge rests on ~50 frozen fixture boards alone. Re-run engine/feature_engine_contrast.js.');
+      return { verdict: 'FIXTURE ONLY', weights: w, newer,
+               how: `feature_fixture --check passes: all 58 columns hash-identical to fit time — but the corpus `
+                  + `contrast is MUZZLED (${c.muzzled}), so nothing checked the branches no fixture board stands on` };
+    }
     const how = 'feature_fixture --check passes: all 58 columns hash-identical to fit time'
-      + (c ? ` — and data/feature-engine-contrast.json agrees on ${c.rows.toLocaleString()} corpus rows` : '');
-    return { verdict: 'CLEAN', weights: w, newer, how };
+      + (c ? ` — and data/feature-engine-contrast.json agrees on ${c.rows.toLocaleString()} corpus rows` : '')
+      + (c ? '' : ' — the corpus contrast has NEVER BEEN RUN, so this rests on frozen boards alone');
+    return { verdict: c ? 'CLEAN' : 'FIXTURE ONLY', weights: w, newer, how };
   } catch (e) {
     const all = ((e.stdout || '') + '\n' + (e.stderr || '') + '\n' + (e.message || '')).toString();
     const msg = all.split('\n').filter(Boolean).slice(-3).join(' | ');
@@ -466,6 +501,10 @@ function measure() {
     say(`  REFIT OWED — weights fitted ${day(r.weights)}`);
     say(`    ${r.how}`);
     for (const n of r.newer) say(`    moved after the fit: ${n.src}  ${day(n.at)}`);
+  } else if (r.verdict === 'FIXTURE ONLY') {
+    say(`  refit edge: FIXTURE ONLY — not clean, and not owed either; only one of the two instruments spoke`);
+    say(`    ${r.how}`);
+    for (const n of r.newer) say(`    moved after the fit: ${n.src}  ${day(n.at)}`);
   } else {
     say(`  refit edge: CLEAN — ${r.how}`);
     for (const n of r.newer) say(`    (${n.src} moved ${day(n.at)}, and no feature the fixture exercises moved with it)`);
@@ -641,6 +680,48 @@ function ops() {
   for (const [f, tag] of stores) {
     say(`  ${f.padEnd(28)} last written ${day(mtime(f))}${tag}`);
   }
+}
+
+/* ---- SELFTEST -------------------------------------------------------------------------------- */
+/* THE STANDING RULE: no check is committed until it has been shown FAILING on known-bad input.
+ * `refit edge` printed CLEAN for two days over a contrast that had measured three columns moving,
+ * and nothing caught it because the muzzle and the never-run case returned the same value. These
+ * five cases drive every branch, and case 2 is the one that was live and wrong. */
+if (process.argv.includes('--selftest')) {
+  const MEDI = 'aaaaaaaaaaaa', BOARD = 'bbbbbbbbbbbb';
+  const mk = (o = {}) => ({
+    bundles: [{ eng: 'live', medicham2: o.medi || MEDI, rows: 1136845 }],
+    source_digests: { 'engine/board.js': o.board || BOARD },
+    contrasts: [{ same_rows: o.sameRows !== false, a: 'A', b: 'B', columns_that_moved: o.moved || [] }],
+  });
+  const cases = [
+    ['agrees, nothing moved        -> speaks, 0 moved', mk(), r => r.moved && r.moved.length === 0],
+    ['MEDICHAM2 MOVED (the live bug) -> MUZZLED, not silent', mk({ medi: 'zzzzzzzzzzzz' }),
+      r => !!r.muzzled && /medicham2/.test(r.muzzled)],
+    ['board.js moved               -> MUZZLED', mk({ board: 'zzzzzzzzzzzz' }),
+      r => !!r.muzzled && /board\.js/.test(r.muzzled)],
+    ['rows did not match           -> MUZZLED', mk({ sameRows: false }),
+      r => !!r.muzzled && /same rows/.test(r.muzzled)],
+    ['agrees, columns moved        -> speaks, names them', mk({ moved: ['movesFirst'] }),
+      r => r.moved && r.moved[0] === 'movesFirst'],
+  ];
+  let bad = 0;
+  for (const [name, art, ok] of cases) {
+    /* NULL-SAFE BY CONSTRUCTION. The first draft of these predicates read `r.muzzled` directly and
+     * CRASHED instead of failing when handed the pre-fix null — the same shape CLAUDE.md records for
+     * two ratchets that crashed rather than failed and stayed invisible for it. A check that dies is
+     * not a check that reports. */
+    const r = classifyContrast(art, MEDI, BOARD) || {};
+    const pass = ok(r);
+    if (!pass) bad++;
+    console.log(`  ${pass ? 'ok  ' : 'FAIL'} ${name}${pass ? '' : '   got ' + JSON.stringify(r)}`);
+  }
+  /* THE REGRESSION ITSELF: a muzzled contrast must not be confusable with one that never ran. */
+  const muzzledIsNotNull = classifyContrast(mk({ medi: 'zzzzzzzzzzzz' }), MEDI, BOARD) != null;
+  if (!muzzledIsNotNull) bad++;
+  console.log(`  ${muzzledIsNotNull ? 'ok  ' : 'FAIL'} a muzzled contrast is distinguishable from one that never ran`);
+  console.log(`\nSTATUS REFIT-EDGE SELFTEST: ${cases.length + 1 - bad} passed, ${bad} failed`);
+  process.exit(bad ? 1 : 0);
 }
 
 /* ---- EMIT ------------------------------------------------------------------------------------ */

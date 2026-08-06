@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-06T20:05:21.068Z",
+ "generated": "2026-08-06T21:41:45.630Z",
  "by": "tests/test-medicham-coverage.js",
  "what": "Will's 99%-of-usage coverage target plus the certainty-to-failure carve-out. Every number here is RATCHETED DOWNWARD: it may fall and may never rise. Re-stamp only after looking at why it moved — a rise is work owed whether it came from a regression or from the metagame bringing in something nobody has probed.",
  "corpus": {
@@ -13,21 +13,21 @@
    "tagged": 0.9939482544840987,
    "probed": 0.9912694631771045,
    "live": 0.973793871794403,
-   "armed": 0.6338927859752209
+   "armed": 0.973793871794403
   },
   "ability": {
    "usageInSet": 186879,
    "tagged": 0.986729381043349,
    "probed": 0.9379438032095634,
    "live": 0.9379438032095634,
-   "armed": 0.8222432697092771
+   "armed": 0.9379438032095634
   },
   "item": {
    "usageInSet": 171843,
    "tagged": 0.9989001588659416,
    "probed": 0.9989001588659416,
    "live": 0.9989001588659416,
-   "armed": 0.5888223552894212
+   "armed": 0.9989001588659416
   }
  },
  "ratchet": {
@@ -35,7 +35,7 @@
   "noTagNonMove": 12,
   "noProbe": 9,
   "notLive": 1,
-  "notArmed": 62,
+  "notArmed": 0,
   "carveNotOk": 0,
   "carveNoProbeOrDead": 0,
   "noProbeKeys": [
