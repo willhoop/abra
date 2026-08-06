@@ -36,8 +36,25 @@ const crypto = require('crypto'), cp = require('child_process');
 const ROOT = path.resolve(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
 const STATS = D('data', 'smogon-stats');
-const FMT = 'gen9championsvgc2026regmb';
-const BO3 = 'gen9championsvgc2026regmbbo3';
+/* S12 — READ THE FORMAT, DO NOT TYPE IT. These were two string literals, and the standard exists
+ * because CLAUDE.md's own worked example is exactly this: "The ban is a MECHANISM, not a list, so
+ * read it from the format rather than from memory... A hand-maintained list of four went stale
+ * without anybody noticing. One command cannot." A hardcoded format id is the same hazard with a
+ * longer fuse — it survives a regulation change silently and then reads the wrong Smogon files.
+ * data/regulations.json is the artifact that owns this, and it is already a frozen-release SOURCE. */
+const REGS = JSON.parse(fs.readFileSync(D('data', 'regulations.json'), 'utf8'));
+const _ACTIVE = (REGS.regulations || {})[REGS.active];
+const FMT = _ACTIVE && _ACTIVE.showdownFormat;
+/* BO3 IS READ TOO, NOT DERIVED. The first fix computed it as FMT + 'bo3', which is true today and is
+ * a guess — the artifact states `bo3Format` in its own right, and a rule inferred from a spelling is
+ * the thing this whole standard is against. */
+const BO3 = _ACTIVE && _ACTIVE.bo3Format;
+if (!FMT || !BO3) {
+  console.error(`strong_player_baseline: data/regulations.json active='${REGS.active}' does not `
+    + 'resolve to both a showdownFormat and a bo3Format. Refusing rather than falling back to a '
+    + 'literal, which is the failure this read exists to prevent.');
+  process.exit(1);
+}
 const CUTOFFS = [0, 1500, 1630, 1760];
 const OUT = D('data', 'strong-player-baseline.json');
 
@@ -231,6 +248,28 @@ function cellMovers(section, minEff = 500) {
     n_also_exceeds_month_noise: sig.filter(r => r.month_noise_at_cut0 != null && Math.abs(r.delta) > r.month_noise_at_cut0).length,
     largest_12: rows.slice(0, 12) };
 }
+
+/* THE PROTECTION FAMILY, DERIVED. `stalling` is the self-protect family (Protect, Detect, Spiky
+ * Shield, Baneful Bunker, King's Shield, Endure — all of which fail on a repeat, which is the
+ * property this figure is about); `oneTurnGuard` is the side-protect one (Wide Guard, Quick Guard).
+ * Smogon's moveset keys are DISPLAY names, so the tag artifact's own `name` field does the mapping
+ * rather than a second table. Refuses rather than silently returning a short list, because a
+ * quietly-empty family would read as "nobody runs protection". */
+const PROTECTION_FAMILY = (() => {
+  const T = JSON.parse(fs.readFileSync(D('data', 'tags.json'), 'utf8'));
+  const want = new Set(['stalling', 'oneTurnGuard']);
+  const out = Object.values(T.moves || {})
+    .filter(m => (m.tags || []).some(x => want.has(typeof x === 'string' ? x : x.tag)))
+    .map(m => m.name)
+    .filter(Boolean);
+  if (out.length < 4) {
+    console.error(`strong_player_baseline: the protection family derived to ${out.length} move(s) `
+      + '— data/tags.json is not carrying `stalling`/`oneTurnGuard` as expected. Refusing: a short '
+      + 'family would read as "nobody runs protection", which is the wrong answer stated confidently.');
+    process.exit(1);
+  }
+  return out;
+})();
 
 /* Expected carriers PER TEAM OF SIX, not a percentage — see the header note. */
 function carried(moveNames) {
@@ -559,7 +598,14 @@ function scanProtocol(games) {
               'over species of Usage% x P(move | species) / 100. For a union it is an upper bound, ' +
               'because the moveset file gives marginals and one set can carry two.',
         fake_out: carried('Fake Out'), protect: carried('Protect'), detect: carried('Detect'),
-        any_protection: carried(['Protect', 'Detect', 'Spiky Shield', 'Baneful Bunker', 'Wide Guard', 'Quick Guard']),
+        /* S12 — DERIVED FROM THE TAG, NOT TYPED. This read
+         *   ['Protect','Detect','Spiky Shield','Baneful Bunker','Wide Guard','Quick Guard']
+         * and THE TYPED LIST WAS ALREADY WRONG: it missed King's Shield and Endure, both of which
+         * carry `stalling` and both of which fail on a repeat exactly like Protect — which is the
+         * whole reason this figure is being computed. Six names typed, eight in the tag.
+         * `stalling` is the self-protect family, `oneTurnGuard` the side-protect one; a move added in
+         * a future regulation joins whichever it belongs to with no edit here. */
+        any_protection: carried(PROTECTION_FAMILY),
       },
       implication_for_task_44_part_1:
         'NOT ATTEMPTED HERE — the knowable-at-click-time versus resolved-against split needs the ' +

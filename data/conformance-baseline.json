@@ -5,9 +5,9 @@
   "data/regulations.json": "6c1995e9a9fb"
  },
  "source_digests_scope": "The RULE inputs only. The findings are computed over all source files; a change to any of them shows up as a finding entering or leaving, not as a stamp mismatch.",
- "files_scanned": 299,
+ "files_scanned": 307,
  "rule": "This list may SHRINK and may NEVER grow. Every entry is a conformance finding that already existed when the gate was switched on. `node engine/conformance.js --strict` fails on any finding whose key is not in here. Fix one and it leaves this file on the next run, and can never return. The KEY is stored rather than a count: one finding disappearing while another appears nets to zero and slips a count comparison silently.",
- "generated": "2026-08-06T04:41:01.416Z",
+ "generated": "2026-08-06T19:18:44.769Z",
  "by": "engine/conformance.js",
  "count": 96,
  "findings": [

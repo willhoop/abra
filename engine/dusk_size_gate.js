@@ -437,6 +437,11 @@ function main() {
     engine_release: prev.engine_release, void: false
   };
   art.measured_at = new Date().toISOString();
+  /* S13 — A GENERATED FILE MUST SAY SO, IN THE KEY THE CHECK READS. This artifact carried
+   * `written_by` and `declared_at` and no `generated`, so engine/conformance.js scored it as
+   * HAND-MAINTAINED STATE — the one category this whole file exists to be the opposite of. Being
+   * generated is not enough; saying it in the agreed word is the part that is checkable. */
+  art.generated = art.measured_at;
   art.corpus_snapshot = { note: 'taken BEFORE the counts. data/games.bo3.jsonl is collected hourly by OPS; everything below is measured against THIS snapshot.', ...before };
   art.corpus_snapshot_after = after;
 

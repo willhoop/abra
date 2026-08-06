@@ -194,6 +194,9 @@ broken.length ? bad('shipped artifact(s) carry a bare NaN/Infinity and cannot be
  * the tree, which is the failure the block above is loud about. Never write when we could not read. */
 if (baselineError == null && (base == null || unguarded.length < base)) {
   fs.writeFileSync(BASELINE, JSON.stringify({
+    /* S13 — a generated file must SAY so, in the key conformance reads. */
+    generated: new Date().toISOString().slice(0, 10),
+    by: 'tests/test-json-nan-guard.js',
     unguarded: unguarded.length,
     note: 'RATCHET: may fall, may never rise. See tests/test-json-nan-guard.js for why this exists.',
     updated: new Date().toISOString().slice(0, 10),
