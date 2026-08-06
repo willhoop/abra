@@ -1,5 +1,7 @@
 # The whole-game differential — design, and the research it is taken from
 
+**Version 3.57.0 · Last updated 2026-08-06**
+
 **ROADMAP #68.** Written 2026-08-06 from Will's specification: *"we would want to play n games with
 like a thousand different teams to really test every single mechanic in the game"*, under his bar:
 *"i dont care if it takes a while, i just want it done correctly so we can trust it before using it
