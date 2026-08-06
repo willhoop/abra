@@ -143,8 +143,59 @@ each. Candidate omission axes, each of which unblocks something it currently sup
 | KO-capable attackers | long games, which is where residual damage, sleep counters and field expiry live |
 | single-target moves | spread damage, Wide Guard, redirection |
 
+**OMISSION IS NOT THE ONLY AXIS, AND WILL NAMED THE CASE THAT PROVES IT** — *"some moves hit thru
+protect, like feint or unseen fist."* A mechanic that exists only as an *interaction with* a feature
+cannot be reached by omitting that feature. Drop Protect from every team and you have made Feint
+(397 uses), Phantom Force (424) and Unseen Fist untestable, because there is nothing left for them to
+punch through.
+
+So the swarm needs **paired configurations** alongside the omitting ones: Protect present *and*
+concentrated with its breakers, redirection present *and* concentrated with the moves that ignore it,
+weather present *and* concentrated with the abilities that overwrite it. Swarm Testing's own framing
+supports this — the paper's claim is about *variance* in which features are present, not a
+monotonic preference for fewer. Omission is what buys **depth** in the features that remain; pairing
+is what buys the **interaction** surface, which is precisely where this project's bugs have actually
+lived (the interaction matrix found twelve that no single-mechanic probe could reach).
+
+The check on whether the swarm is working is §5's coverage report, not intuition: if a configuration
+never produced a turn where a Protect was broken, it did not test breaking Protect, and it must say so
+rather than being counted as a run.
+
 Report the swarm's composition in the artifact. A configuration that produced no games is a
 configuration that tested nothing, and must say so.
+
+### 3.1 A blind spot the swarm must not inherit: we only read the BASE form's ability
+
+Will, 2026-08-06: *"you seem to miss a lot of mega abilities because you only read the base form
+ability."* That is the root cause of two separate findings from the same evening, and it is one
+broken assumption rather than a list of missing tags.
+
+`uses` in `data/tags.json` counts **sheet-declared** abilities. A team sheet declares what a Pokemon
+starts with. A mega's ability exists only **after** it evolves. So every ability that is mega-only
+reads `uses: 0`, never clears the 99%-of-usage coverage bar, and is therefore never scheduled to be
+wired — **by construction, silently, forever.**
+
+Measured: of the 63 entries in `MEGA_ABIL`, twelve read `uses = 0` or are absent from `tags.json`
+entirely, and six have no mechanic derived at all — `trace` on Mega Alakazam and Mega Meowstic (207
+declared uses, none of them the mega's), `berserk` on Mega Drampa, `stalwart` on Mega Skarmory,
+`unseenfist` on Mega Golurk, `piercingdrill` on Mega Excadrill. Fairy Aura on Mega Floette is the
+same bug and reaches **10.5% of ladder sides** (ROADMAP #64); Unseen Fist is ROADMAP #69.
+
+This is CLAUDE.md's *prefer OBSERVED over DECLARED* failing **inside the instrument that decides what
+gets wired**, which is the worst place for it: the bar cannot report a gap it is structurally unable
+to see.
+
+**Consequence for this harness.** Two, and the second is the one that generalises:
+
+1. Team sampling must draw from **observed post-mega state**, which the store already records
+   directly — `floettemega ab=Fairy Aura`, `golurkmega ab=Unseen Fist` — rather than from sheet
+   declarations. A swarm built on declared abilities will faithfully reproduce the blind spot.
+2. **The coverage report in §5 must count the ability a body actually had when it acted**, not the one
+   its sheet declared. Otherwise the harness reports "Trace exercised: 0" when it megaed into Trace on
+   turn one and used it, and reads as a clean sweep of something it never touched — the exact failure
+   §5 exists to prevent, arriving through the door §3 left open.
+
+---
 
 ---
 
