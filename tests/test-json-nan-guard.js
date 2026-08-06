@@ -136,10 +136,30 @@ const { unguarded, total, files } = scan(ROOT);
 console.log('  ' + total + ' json.dump/dumps call(s) across ' + files + ' Python file(s)');
 console.log('  ' + (total - unguarded.length) + ' guarded, ' + unguarded.length + ' unguarded\n');
 
+/* A MISSING BASELINE AND AN UNREADABLE ONE ARE NOT THE SAME EVENT, and collapsing them would have
+ * let this file silently RESET ITS OWN RATCHET — which is the precise hazard it was written to stop,
+ * arriving in the check rather than in the thing checked. First run with no file is legitimate and
+ * writes one. A file that EXISTS and will not parse means the ratchet's memory is gone, and a gate
+ * that quietly rebaselines to whatever today's count happens to be is not a ratchet at all. That is
+ * loud, and it does not write. (Caught by tests/test-no-silent-failure.js on this very file, one
+ * commit after that gate found the same shape in engine/dusk_size_gate.js.) */
 let base = null;
-try { base = JSON.parse(fs.readFileSync(BASELINE, 'utf8')).unguarded; } catch (e) { base = null; }
+const baselineExists = fs.existsSync(BASELINE);
+let baselineError = null;
+if (baselineExists) {
+  try { base = JSON.parse(fs.readFileSync(BASELINE, 'utf8')).unguarded; }
+  catch (e) { baselineError = (e && e.message) || String(e); }
+}
+if (baselineError != null) {
+  bad('the baseline EXISTS and does not parse (' + baselineError + '). The ratchet has lost its '
+    + 'memory, so this run cannot tell an improvement from a regression. Restore '
+    + 'data/json-nan-guard-baseline.json from git rather than deleting it — deleting it rebaselines '
+    + 'to today and silently forgives every unguarded call currently in the tree.');
+}
 
-if (base == null) {
+if (baselineError != null) {
+  /* judged above; do not also rebaseline */
+} else if (base == null) {
   console.log('  NOTE: no baseline on disk — writing one. The count may fall and may never rise.');
 } else if (unguarded.length > base) {
   bad('unguarded json.dump calls ' + base + ' -> ' + unguarded.length + '. A NEW one can ship an '
@@ -169,7 +189,10 @@ for (const f of fs.readdirSync(dataDir).filter(x => x.endsWith('.json'))) {
 broken.length ? bad('shipped artifact(s) carry a bare NaN/Infinity and cannot be parsed: ' + broken.join(', '))
               : ok('no shipped artifact in data/ carries a bare NaN or Infinity');
 
-if (base == null || unguarded.length < base) {
+/* `baselineError == null` IS LOAD-BEARING. Without it a corrupt baseline leaves `base` null, falls
+ * into this branch, and REWRITES the ratchet to today's count — forgiving every unguarded call in
+ * the tree, which is the failure the block above is loud about. Never write when we could not read. */
+if (baselineError == null && (base == null || unguarded.length < base)) {
   fs.writeFileSync(BASELINE, JSON.stringify({
     unguarded: unguarded.length,
     note: 'RATCHET: may fall, may never rise. See tests/test-json-nan-guard.js for why this exists.',

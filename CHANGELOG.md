@@ -10,6 +10,86 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.53.0] — 2026-08-06
+
+### Added
+- **The PORYGON2 separation gate (#23) — PASS. The MILTANK leaf redesign is buildable.** 39,843
+  same-game position pairs two turns apart over 6,328 clean HUMAN ladder games; thresholds written to
+  disk at 05:59:44Z against a run at 06:56:06Z, and `--run` refuses to start unless the on-disk
+  declaration matches the generator character for character.
+
+  | | measured | bar |
+  |---|---|---|
+  | T1 separation, median \|Δ\| | 0.1628 [0.1600, 0.1653] | ≥ 0.02 |
+  | T2 locality, R = same/unrelated | 0.709 [0.700, 0.718] | ≤ 0.75 |
+  | T3 direction | 85.58% [85.16, 85.98] | ≥ 60 |
+
+  **The second negative control is the finding.** A constant 0.5 fails all three — that was the
+  mandated control and it is the weak one. **Uniform random PASSES T1** with a median of 0.2924,
+  nearly twice PORYGON2's separation, and fails T2 and T3. **Separation alone cannot tell a value
+  function from static**, and a gate proved only against a constant would have been passed by noise.
+
+  **The caveat, stated first:** a material count through the identical pipeline also passes at two
+  turns (R = 0.703), indistinguishable from PORYGON2's 0.709. **The 1-turn addendum settles it** —
+  at the granularity a search actually uses, material goes flat (median \|Δ\| = 0.000, identical
+  score on 58% of adjacent positions) while PORYGON2 moves on 99.3% and its locality improves to
+  R = 0.5464. **Every branch material cannot separate is one the argmax decides by tie-break.**
+  It says the leaf SEPARATES, not that it WINS. `MODELS.md`'s 63.59% stays **NOT MEASURED**.
+
+- **`tests/test-json-nan-guard.js`**, auto-discovered by `run-all`, ratcheted, and **shown red on
+  planted input before it was trusted** (`--selftest`, 3/3, including the multi-line-across-a-nested-
+  dict shape a regex implementation gets wrong).
+
+### Fixed
+- **`engine/provenance.js` reported `ok` on a file it could not parse.** Python's `json.dump` writes
+  a bare `NaN` by default — not valid JSON — and the first `porygon2-separation-gate.json` carried
+  one. Every declaration in it became invisible **including the artifact's own `void` flag, the field
+  that exists so a generator can condemn its own run.** The tool whose job is to say which artifacts
+  can be trusted was unable to open one and said nothing.
+  `data/mag.js` is JavaScript and is *expected* to fail the parse, which is why the catch was empty;
+  a `.json` that fails is now `bad` + **UNPARSABLE**, which is **louder than UNSAFE** — an unsafe
+  artifact still tells you what it claims, an unparsable one tells you nothing. Proven by planting a
+  bare NaN in a real artifact, confirming `bad UNPARSABLE` where it previously said `ok`, and
+  restoring byte-identically (sha256 verified).
+- **`allow_nan=False` on all 39 unguarded `json.dump` calls across 27 Python files.** Transformed by
+  paren-matching rather than regex, because six open `json.dump({` and span a nested dict a regex
+  would land inside; all 27 compile clean. Repo now: **42 calls, 42 guarded, 0 unguarded**, and no
+  shipped artifact carries a bare NaN or Infinity.
+- Two silent catch blocks in `engine/dusk_size_gate.js`; `source_digests` emitted by the generator
+  rather than re-keyed by hand.
+
+### Notes — the coverage bar Will set, and what sizing it actually found
+- **819 distinct moves, abilities and items carry real usage in this regulation** (derived over
+  53,796 games / 117,588 sheet entries, counting declared sheet entries AND moves actually clicked).
+  That is the denominator for *"fully wired and tested on every move and ability and item… with any
+  usage at all"*, and nobody had computed it. **This is also why "216/219 mechanics live" is the
+  wrong number — it counts probes that executed.**
+- **The 1.8% that number produces is as misleading as 216/219, in the other direction.** `armed` is
+  set when a probe *returns* `arms: {control, test}`, and **the arms protocol is two days old**, so
+  almost every probe predates it. The Choice Scarf probe is counted unarmed and builds two
+  Basculegion, gives one the item, and asserts `sb > sa * 1.4` — **delete the item and it goes red.**
+  It has a control; it does not declare one.
+- **Measured across all 142 unarmed-and-live probes: 93 spend a real turn (test the WIRING), 47 call
+  the mechanic directly (test the FUNCTION only), and 111 have a control variant anyway.** The class
+  worth fixing is **47, not 482**.
+- **WIRE 123 proves which diagnostic is right.** The entry-drop handlers were all correct and the
+  ORDER was not — and the Intimidate probe calls `M.applyIntimidate(foe)` **directly, never through a
+  switch-in**, so it would not have caught it. It is `live`, and it covers the most-used ability in
+  the format. **Ratchet on direct-call, not on `unarmed`** (#42).
+- **The cutoff question, answered with the curve rather than a guess.** 0.5% per entity was rejected:
+  it keeps 49 moves covering **70.8%** of move usage, because moves have a far fatter tail than
+  abilities (86.3%) or items (89.2%) and one threshold cannot serve all three. **A 99%-of-usage
+  coverage target** — moves 267, abilities 117, items 100, **484 of 819** — is the cliff; 99.5% costs
+  73 more entities for half a point. A target is a mechanism and re-derives itself as the meta moves;
+  a threshold is a list and goes stale. **Plus a carve-out**, because usage-weighting weights by
+  notional and not by tail risk: anything that turns a **certainty into a failure** gets armed
+  regardless of usage. Queenly Majesty is **0.361%, rank 50**, and it blocked a Sucker Punch in a
+  real game the same day.
+- **A figure corrected in the same pass.** Armor Tail was first cited as that carve-out case at 0.36%
+  — a misread of the wrong table row. It is **3,403 uses, 2.894%, rank 8 of 185**, and Smogon's
+  1630-cutoff file has Farigiraf running it **99.06%** of the time. It needs no carve-out; it clears
+  any threshold on usage alone. That it is unarmed at rank 8 makes the gap worse, not more excusable.
+
 ## [3.52.0] — 2026-08-06
 
 ### Fixed

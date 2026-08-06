@@ -24,16 +24,16 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  216/219 probed mechanics live, 3 missing   (census 2026-08-06 04:51)
+  217/220 probed mechanics live, 3 missing   (census 2026-08-06 06:57)
   missing:
     move    needsTargetToAttack    Avalanche doubles after being hit
     ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll
     ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit
-  1/150 differential comparisons disagree with Showdown   (2026-08-06 04:51)
+  1/150 differential comparisons disagree with Showdown   (2026-08-06 06:46)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 04:38)
+  interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 06:52)
     2300 of 8795 theoretical pairs staged — agreement is a claim about the 2300 that ran, not about the 8795
       530 inert      not scored — the reference engine behaves identically with and without the reactor
       109 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
@@ -48,7 +48,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 156/181 probed, 25 unprobed
 ```
 
-_stamped 2026-08-06 05:00_
+_stamped 2026-08-06 07:14_
 
 <!-- /GENERATED -->
 
@@ -205,6 +205,87 @@ does not owe a refit.
 files edited here (`medicham2-browser.js`, `tests/test-mechanics.js`, `tests/probe_red_demo.js`) added
 **zero** catch blocks between them. It is stated here for the router to place, not filed as a status.
 The related `provenance` ratchet trip on `dusk-size-gate.json` is the same file.
+
+## "UNARMED" IS MEASURING A CONVENTION THAT IS TWO DAYS OLD. MEASURED 2026-08-06.
+
+**Will set the bar (2026-08-06):** *"i still want medicham to be fully wired and tested on every move
+and ability and item in the regulation (with any usage at all) before we start taking its output and
+using them."* Sizing that job produced a number that looked catastrophic, and the number is measuring
+the wrong thing.
+
+### The denominator Will asked for, which nobody had computed
+
+Derived over 53,796 games / 117,588 sheet entries, counting both DECLARED sheet entries and moves
+actually CLICKED in the turn stream. **819 distinct things carry real usage in this regulation.**
+
+| | any usage | has a tag | every tag probed | every probe ARMED |
+|---|---|---|---|---|
+| moves | 491 | 99.2% | 93.3% | **9 (1.8%)** |
+| abilities | 185 | 100.0% | 95.1% | **61 (33.0%)** |
+| items | 143 | 98.6% | 89.5% | **7 (4.9%)** |
+
+Usage-weighted armed: moves **0.8%**, abilities **3.7%**, items **2.2%**. Tagging is done, probing is
+good, and the collapse is at arming — and it is the TOP of the distribution that is missing, not the
+tail: `protect` 198,900 uses, `fakeout` 43,495, `intimidate` 10,754, `armortail` 3,403 (rank **8** of
+185 — Smogon's 1630-cutoff file has Farigiraf running it **99.06%** of the time), `focussash` 15,037.
+
+**This is also why "216/219 mechanics live" is the wrong number.** It counts probes that EXECUTED.
+Will's question counts things people CLICK, and there are 819 of those.
+
+### But `armed` is a declaration, not a capability — and here is the count
+
+`armed` is set by `tests/test-mechanics.js` when a probe **returns `arms: {control, test}`**. The arms
+protocol was added **2026-08-04, two days before this measurement**, so almost every probe predates
+it. `armed: false` therefore means *"written before the convention"* at least as often as it means
+*"weak"*.
+
+The Choice Scarf probe is the proof. It is counted unarmed, and it builds **two** Basculegion, gives
+one the item, and asserts `sb > sa * 1.4`. Delete Choice Scarf from the engine and `sb === sa`, the
+assertion is false, **the probe goes red.** It has a control. It just does not declare it in the
+machine-readable shape.
+
+Classifying all **142** unarmed-and-live probes structurally:
+
+| | count | what it means |
+|---|---|---|
+| spends a REAL TURN (`battleTurn`) | **93** | tests the **wiring** |
+| calls the mechanic **directly** | **47** | tests the **function** only |
+| has a control variant anyway | **111** | 78% — the flag is measuring declaration |
+
+### The better diagnostic, and tonight's bug proves it
+
+**A probe that calls the mechanic directly cannot catch a wiring bug.** WIRE 123 above is exactly
+that bug: `applyIntimidate` and every entry-drop handler were CORRECT, and the ORDER they were called
+in was not — so side B's lead owned the weather and every subsequent damage roll carried the wrong
+multiplier.
+
+And the Intimidate probe is on the direct-call list:
+
+```js
+probe('ability', 'onSwitchInDrop', 'Intimidate drops Attack', () => {
+  const foe = bare('garchomp');
+  const before = foe.boosts.at;
+  M.applyIntimidate(foe);                       // <- called DIRECTLY, never through a switch-in
+  return { works: foe.boosts.at < before, detail: `atk ${before} -> ${foe.boosts.at}` };
+});
+```
+
+**It would not have caught WIRE 123**, and it is `live`, and it is about the single most-used ability
+in the format. That is the class worth fixing, and it is **47**, not 482.
+
+### What this changes about the work
+
+- The job is **not** "write hundreds of tests". For 111 of 142 it is declaring a control the probe
+  already computes — mechanical.
+- The real work is the **47 direct-call probes**, converted to spend a real turn. That is the class
+  that catches wiring, and wiring is where this engine's expensive bugs have actually been.
+- **Ratchet on the direct-call count, not on `unarmed`.** `unarmed` will fall as a paperwork exercise
+  and will not tell you whether coverage improved. Filed as #42 / #45.
+- The cutoff for Will's gate is a **99%-of-usage coverage target** (moves 267, abilities 117, items
+  100 — 484 of 819) rather than a per-entity threshold: a threshold is a list and goes stale when the
+  meta moves, a coverage target is a mechanism and re-derives itself. **Plus a carve-out** for
+  anything that turns a certainty into a failure regardless of usage — Queenly Majesty is 0.361%,
+  rank 50, and it blocked a Sucker Punch in a real game on 2026-08-06.
 
 ## WIRES 119–122 — TAUNT DID NOT EXIST, AND THE #1 ROW BY VOLUME WAS NOT A HARNESS FAULT. 2026-08-06.
 

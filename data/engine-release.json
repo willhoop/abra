@@ -1,10 +1,10 @@
 {
-  "current": "032b4a2979dd",
-  "cut": "2026-08-05T17:05:59.726Z",
-  "why": "3.43.0 matrix arithmetic closed — frozen so the probability/draw-count work can measure while ENGINE edits medicham2 for Psychic Terrain grounded-ness",
+  "current": "4c73f9cafa4b",
+  "cut": "2026-08-06T05:49:55.593Z",
+  "why": "PORYGON2 separation gate: can the 17 features tell positions 2 turns apart",
   "cuts": 1,
-  "latest_cut": "2026-08-05T17:05:59.726Z",
-  "latest_why": "3.43.0 matrix arithmetic closed — frozen so the probability/draw-count work can measure while ENGINE edits medicham2 for Psychic Terrain grounded-ness",
-  "pointer_written": "2026-08-05T17:05:59.732Z",
+  "latest_cut": "2026-08-06T05:49:55.593Z",
+  "latest_why": "PORYGON2 separation gate: can the 17 features tell positions 2 turns apart",
+  "pointer_written": "2026-08-06T05:49:55.600Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

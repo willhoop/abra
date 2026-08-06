@@ -19,7 +19,7 @@ MEASURE — can we believe a number
     powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835
     PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/abra-tags.js
     (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
-  provenance: 4 unsafe, 1 void (declared), 43 possibly stale, 53 ok, 0 missing
+  provenance: 5 unsafe, 1 void (declared), 45 possibly stale, 52 ok, 0 missing
   click censoring: 1,383 of 249,404 recorded actions were NOT clicks (0.555%) and left the labeled set; 3,328 (1.334%) are kept under a candidate set
     classifier vs the raw protocol on 6,205 games (67.2% of the corpus): encore recall 99.7% precision 96.3%, drag recall 96.7% precision 96.7%
     EM recovers 91.4% of a planted censoring bias of 0.957 against a 0.326 noise floor (amplified regime)
@@ -28,13 +28,13 @@ MEASURE — can we believe a number
       coerced turns, P(the coerced action)          -0.002613 [-0.003650, -0.001672]   n=293  (lower is better)
       CONTROL, clean turns, logL                    +0.000485 [0.000189, 0.000777]   n=47331
   refit edge: CLEAN — feature_fixture --check passes: all 58 columns hash-identical to fit time
-    (engine/medicham2-browser.js moved 2026-08-06 04:47, and no feature the fixture exercises moved with it)
+    (engine/medicham2-browser.js moved 2026-08-06 06:45, and no feature the fixture exercises moved with it)
     (engine/board.js moved 2026-08-05 19:44, and no feature the fixture exercises moved with it)
     (data/engine-data.js moved 2026-08-05 16:52, and no feature the fixture exercises moved with it)
     (data/abra-tags.js moved 2026-08-05 17:44, and no feature the fixture exercises moved with it)
 ```
 
-_stamped 2026-08-06 05:00_
+_stamped 2026-08-06 07:14_
 
 <!-- /GENERATED -->
 
