@@ -265,6 +265,53 @@ starved; the directed phase feeds them. Nobody has to remember Upper Hand.
 
 ---
 
+### 3.3 DECIDED: the driver is scripted, and it is coverage-seeking rather than skilful
+
+Will, 2026-08-06: *"yes i agree lets do scripted to make sure we test every move, item, ability, and
+mon."*
+
+The two candidates were **replay** (feed both engines the decisions real humans made, reconstructed
+from the store's turn events) and **scripted** (drive both from a policy this harness controls).
+Scripted wins for Mode A, for a reason that is about isolation rather than convenience: Mode A's
+claim is *"the engines are deterministic functions of the same input, so any difference is a bug."*
+A replay driver puts a **reconstruction step** inside that claim — if the stored events do not pin a
+targeting choice or a switch unambiguously, a divergence might be the reconstruction rather than
+either engine, and the oracle weakens exactly where it is supposed to be absolute. Replay is worth
+adding *after* the harness is trusted, as a second corpus; it is the wrong thing to debug against
+first.
+
+**But "scripted" here does not mean a policy that plays well. It means a driver that plays to
+COVER.** Will's phrasing is the specification — *every* move, item, ability and mon. So the action
+rule is:
+
+> at each decision, prefer the legal action that exercises the census mechanic furthest below its
+> floor; break ties toward the entity (move / item / ability / species) least exercised so far.
+
+This is §3.2's directed loop pulled inside the driver rather than bolted on around it. The swarm
+chooses *which teams take the field*; the driver chooses *which clicks happen* — and both are steered
+by the same coverage report. A skilful policy would be actively counterproductive: good play converges
+on a narrow set of strong lines, which is the uniform-sampling failure one level down.
+
+**Three consequences worth writing down before any code exists:**
+
+1. **A coverage-seeking driver will produce bad games, and that is correct.** It will click Quash into
+   an empty slot and Trick Room on turn six. Nobody is scoring these games; they exist to make the two
+   engines disagree.
+2. **Legality is still the constraint.** The driver picks among *legal* actions only, or it tests a
+   position the game cannot reach and any divergence is meaningless.
+3. **Mode B keeps a separate driver.** Distribution comparison needs unbiased sampling over actions,
+   not coverage-biased selection, or the rates being measured are the driver's and not the engine's.
+
+**And the fringe arrives in BUNDLES, which the driver must not break apart.** Measured: **252 of 252
+declared Quash carriers in the open-sheet corpus are Sableye with Prankster — 100%.** Quash is
+priority 0 and therefore fails whenever the target has already moved; Prankster's +1 is the entire
+reason the move is playable. So "test Quash" without Prankster tests a configuration **nobody in
+46,987 games has ever brought**. Real teams carry these bundles for free; a team generator would have
+scattered Quash across random bodies and produced only the version that does not exist. It is the
+strongest single argument in this document for §3's insistence that teams come from the store.
+
+---
+
 ---
 
 ## 4. Two modes, never blurred
