@@ -1,0 +1,782 @@
+{
+  "gate": "DUSK size gate (task #40)",
+  "status": "MEASURED",
+  "written_by": "engine/dusk_size_gate.js",
+  "declared_at": "2026-08-06T00:00:00Z",
+  "question": "Is an offline-solved 1v1 endgame tablebase for Champions Reg M-B a weekend or a year? Sized against positions that ACTUALLY OCCUR in the open-team-sheet corpus, not against the full enumerated state space.",
+  "threshold": {
+    "note": "DECLARED BEFORE THE COUNTS WERE RUN. A threshold picked after seeing the number is not a gate. This block is written to disk first and is not edited by the measurement pass; the measurement appends its results beside it.",
+    "shippable_means": "A table the JavaScript bot loads at startup and holds in memory for the whole session, beside the engine, the tags, the weights and the meta prior it already loads.",
+    "disk_ceiling_bytes": 52428800,
+    "disk_ceiling_source": "GitHub warns at 50 MB per file and hard-rejects at 100 MB, and this table has to live in this repository like every other artifact. The largest file currently tracked in data/ is data/games.r4-decided.jsonl at 44.9 MB, so 50 MB is also consistent with what this repo already carries. 100 MB is the hard external wall; 50 MB is the budget.",
+    "resident_ceiling_bytes": 67108864,
+    "resident_ceiling_source": "CLAUDE.md caps this box at six concurrent processes and fit_policy.js / fit_joint.js run at --max-old-space-size=4096, so a process budget of roughly 680 MB is the working assumption. A lookup table that exists to REPLACE search must not take more than ~10% of the process it is helping. 64 MB.",
+    "bytes_per_entry": {
+      "packed": 24,
+      "packed_reasoning": "At 1v1 there is no switch and no target choice, so each side's action set is exactly its <=4 declared moves (plus mega if unused). An entry is therefore: a packed uint64 key (8 B) + game value quantised to uint8 (1 B) + two 4-move mixed strategies as uint8 probabilities (8 B) = 17 B, rounded to 24 B for index and alignment overhead in a typed-array hash.",
+      "json_map": 200,
+      "json_map_reasoning": "The same entry as a string-keyed JS Map holding small arrays costs roughly 100-250 B resident in V8 once key string, map slot and array headers are counted. 200 B is the working figure for the naive encoding — a plain JSON file parsed into a Map, which is what every other data file in this repo actually does."
+    },
+    "verdict_bands": {
+      "SHIPPABLE": "<= 335,000 entries. Fits 64 MB even in the naive JSON-into-a-Map encoding every other artifact here uses. No new machinery needed.",
+      "SHIPPABLE_PACKED": "335,000 to 2,700,000 entries. Fits 64 MB only in the packed binary encoding above. Real, but it is a new file format and a new loader — an engineering job, not a JSON drop.",
+      "TOO_BIG": "> 2,700,000 entries. Exceeds 64 MB resident even packed, and past ~4.4M entries it exceeds the 100 MB GitHub wall on disk. At that point DUSK is not a lookup table the bot loads at startup."
+    },
+    "also_gated": "Size is necessary and not sufficient. A table is worthless if games do not reach the positions it covers, or if the positions it covers carry no real decision. Two further findings are reported and either can kill DUSK independently of size: (a) the rate at which games actually reach 1v1, and (b) whether the 1v1, when reached, is already decided."
+  },
+  "engine_release": "none — this is pure store analysis and loads no engine module. Species identity, HP, status, boosts and field come out of the stored turn events written by engine/durable-ingest.js at collection time. No type chart, no damage table, no speed maths is consulted, so there is nothing here for engine/engine_release.js to freeze.",
+  "void": false,
+  "measured_at": "2026-08-06T06:49:46.867Z",
+  "corpus_snapshot": {
+    "note": "taken BEFORE the counts. data/games.bo3.jsonl is collected hourly by OPS; everything below is measured against THIS snapshot.",
+    "store": {
+      "file": "data/games.bo3.jsonl",
+      "bytes": 74837892,
+      "lines": 9191,
+      "mtime": "2026-08-06T04:03:28.900Z",
+      "sha256": "cd4d6ffea1b8fbf5a1718864f9c4ea7bba1889d7524c4c5aff4adef9009cb935"
+    },
+    "raw": {
+      "file": "data/games.bo3.raw-logs.jsonl",
+      "bytes": 63571683,
+      "lines": 9059,
+      "mtime": "2026-08-06T04:03:28.708Z",
+      "sha256": "ee48e579d7f4266d4a4433a2e52663e406b6b27b6418ed5d446c7761d655773e"
+    }
+  },
+  "corpus_snapshot_after": {
+    "store": {
+      "file": "data/games.bo3.jsonl",
+      "bytes": 74837892,
+      "lines": 9191,
+      "mtime": "2026-08-06T04:03:28.900Z",
+      "sha256": "cd4d6ffea1b8fbf5a1718864f9c4ea7bba1889d7524c4c5aff4adef9009cb935"
+    },
+    "raw": {
+      "file": "data/games.bo3.raw-logs.jsonl",
+      "bytes": 63571683,
+      "lines": 9059,
+      "mtime": "2026-08-06T04:03:28.708Z",
+      "sha256": "ee48e579d7f4266d4a4433a2e52663e406b6b27b6418ed5d446c7761d655773e"
+    }
+  },
+  "corpus_moved": false,
+  "corpus": {
+    "store": "data/games.bo3.jsonl",
+    "raw_logs": "data/games.bo3.raw-logs.jsonl",
+    "games_total": 9191,
+    "games_clean": 6022,
+    "clean_filter": "engine/quality.js loadGames(): bots, behavioural bots, action-less forfeits, short games and partial brings excluded. require_full_bring is what makes \"4 alive at the start\" safe to assume.",
+    "raw_logs_matched": 5815,
+    "games_without_raw_log": 207,
+    "games_replayed_from_protocol": 5815,
+    "open_sheet_share": 1
+  },
+  "reconstruction_crosscheck": {
+    "what": "The stored turn events and the raw protocol were replayed independently and asked the same yes/no question: did this game reach 1v1?",
+    "both_say_yes": 900,
+    "raw_only": 55,
+    "events_only": 30,
+    "both_say_no": 4860,
+    "agreement": 98.55,
+    "note": "Disagreements are expected and are not a defect in either: the stored events drop a slot on spread damage, and games with no raw log can only be judged by one of the two. The headline uses the protocol."
+  },
+  "reach": {
+    "n_games": 5815,
+    "reached_1v1": 955,
+    "reached_1v1_pct": 16.42,
+    "reached_1v1_ci95": [
+      15.49,
+      17.4
+    ],
+    "reached_2v1": 2671,
+    "reached_2v1_pct": 45.93,
+    "reached_2v1_ci95": [
+      44.66,
+      47.22
+    ],
+    "reached_either": 3188,
+    "reached_either_pct": 54.82,
+    "all_decision_points": 46909,
+    "decision_points_1v1": 1758,
+    "decision_points_1v1_share_of_all_pct": 3.75,
+    "decision_points_2v1": 3644,
+    "decision_points_2v1_share_of_all_pct": 7.77,
+    "mean_1v1_decision_points_per_reaching_game": 1.84,
+    "anomalous_positions_skipped": 0,
+    "anomalous_note": "a side down to <=2 alive whose field did not hold exactly that many. Not early-game bench positions — those are legitimate and are not counted here."
+  },
+  "decidedness": {
+    "what": "Measured at the FIRST 1v1 decision point of each game that reaches one. A tablebase for positions nobody has a real choice in is worth nothing. No solver was run — these are proxies and are labelled as such.",
+    "n": 955,
+    "ends_within_one_decision": 563,
+    "ends_within_one_decision_pct": 58.95,
+    "ends_within_two_decisions_pct": 83.77,
+    "mean_decision_points_from_entry": 1.84,
+    "remaining_decision_points_histogram": {
+      "1": 563,
+      "2": 237,
+      "3": 81,
+      "4": 35,
+      "5": 13,
+      "6": 6,
+      "7": 4,
+      "8": 5,
+      "9": 3,
+      "10+": 8
+    },
+    "higher_hp_side_wins": {
+      "n": 904,
+      "correct": 594,
+      "pct": 65.71,
+      "ci95": [
+        62.55,
+        68.73
+      ]
+    },
+    "lopsided_hp_entries_pct": 8.48,
+    "entries_with_a_status": 113,
+    "entries_with_a_boost": 446,
+    "forfeit_share_pct": 9.01,
+    "games_with_a_1v1_worth_more_than_one_decision": 392,
+    "games_with_a_1v1_worth_more_than_one_decision_pct_of_corpus": 6.74,
+    "reading": "the HP-ahead side losing about a third of the time says the 1v1 is genuinely contested rather than a formality. The volume is the problem, not the decidedness."
+  },
+  "fidelity_levels": {
+    "L0_species": {
+      "label": "species pair only (no state — not a solvable position, shown as the matchup count)",
+      "distinct_positions": 648,
+      "positions_observed": 1758,
+      "saturation": 0.3686,
+      "coverage": {
+        "p50": 111,
+        "p80": 326,
+        "p95": 561,
+        "p99": 631
+      },
+      "singletons": 294,
+      "top_share": 0.0205,
+      "held_out_hit_rate": 0.3493,
+      "held_out_n": 879
+    },
+    "L1_species_item": {
+      "label": "species + item",
+      "distinct_positions": 799,
+      "positions_observed": 1758,
+      "saturation": 0.4545,
+      "coverage": {
+        "p50": 163,
+        "p80": 448,
+        "p95": 712,
+        "p99": 782
+      },
+      "singletons": 411,
+      "top_share": 0.0205,
+      "held_out_hit_rate": 0.165,
+      "held_out_n": 879
+    },
+    "L2_species_set": {
+      "label": "species + full declared set (item/ability/nature/4 moves)",
+      "distinct_positions": 927,
+      "positions_observed": 1758,
+      "saturation": 0.5273,
+      "coverage": {
+        "p50": 220,
+        "p80": 576,
+        "p95": 840,
+        "p99": 910
+      },
+      "singletons": 535,
+      "top_share": 0.0165,
+      "held_out_hit_rate": 0.0193,
+      "held_out_n": 879
+    },
+    "L3_set_hp10": {
+      "label": "set + HP in 10% buckets",
+      "distinct_positions": 1383,
+      "positions_observed": 1758,
+      "saturation": 0.7867,
+      "coverage": {
+        "p50": 504,
+        "p80": 1032,
+        "p95": 1296,
+        "p99": 1366
+      },
+      "singletons": 1120,
+      "top_share": 0.0063,
+      "held_out_hit_rate": 0.0011,
+      "held_out_n": 879
+    },
+    "L3b_set_hp5": {
+      "label": "set + HP in 5% buckets",
+      "distinct_positions": 1467,
+      "positions_observed": 1758,
+      "saturation": 0.8345,
+      "coverage": {
+        "p50": 588,
+        "p80": 1116,
+        "p95": 1380,
+        "p99": 1450
+      },
+      "singletons": 1258,
+      "top_share": 0.0057,
+      "held_out_hit_rate": 0,
+      "held_out_n": 879
+    },
+    "L4_set_hp10_status": {
+      "label": "set + HP10 + status",
+      "distinct_positions": 1407,
+      "positions_observed": 1758,
+      "saturation": 0.8003,
+      "coverage": {
+        "p50": 528,
+        "p80": 1056,
+        "p95": 1320,
+        "p99": 1390
+      },
+      "singletons": 1151,
+      "top_share": 0.0057,
+      "held_out_hit_rate": 0,
+      "held_out_n": 879
+    },
+    "L5_set_hp10_status_boost": {
+      "label": "set + HP10 + status + boost stages",
+      "distinct_positions": 1456,
+      "positions_observed": 1758,
+      "saturation": 0.8282,
+      "coverage": {
+        "p50": 577,
+        "p80": 1105,
+        "p95": 1369,
+        "p99": 1439
+      },
+      "singletons": 1223,
+      "top_share": 0.0057,
+      "held_out_hit_rate": 0,
+      "held_out_n": 879
+    },
+    "L6_set_hp10_status_boost_field": {
+      "label": "set + HP10 + status + boosts + field (weather/room/Tailwind)",
+      "distinct_positions": 1519,
+      "positions_observed": 1758,
+      "saturation": 0.8641,
+      "coverage": {
+        "p50": 640,
+        "p80": 1168,
+        "p95": 1432,
+        "p99": 1502
+      },
+      "singletons": 1336,
+      "top_share": 0.0057,
+      "held_out_hit_rate": 0,
+      "held_out_n": 879
+    },
+    "C3_species_hp10": {
+      "label": "SETS COLLAPSED: species + HP10",
+      "distinct_positions": 1362,
+      "positions_observed": 1758,
+      "saturation": 0.7747,
+      "coverage": {
+        "p50": 483,
+        "p80": 1011,
+        "p95": 1275,
+        "p99": 1345
+      },
+      "singletons": 1093,
+      "top_share": 0.0068,
+      "held_out_hit_rate": 0.0125,
+      "held_out_n": 879
+    },
+    "C4_species_hp10_status": {
+      "label": "SETS COLLAPSED: species + HP10 + status",
+      "distinct_positions": 1389,
+      "positions_observed": 1758,
+      "saturation": 0.7901,
+      "coverage": {
+        "p50": 510,
+        "p80": 1038,
+        "p95": 1302,
+        "p99": 1372
+      },
+      "singletons": 1128,
+      "top_share": 0.0068,
+      "held_out_hit_rate": 0.0068,
+      "held_out_n": 879
+    },
+    "C5_species_hp10_status_boost": {
+      "label": "SETS COLLAPSED: species + HP10 + status + boosts",
+      "distinct_positions": 1445,
+      "positions_observed": 1758,
+      "saturation": 0.822,
+      "coverage": {
+        "p50": 566,
+        "p80": 1094,
+        "p95": 1358,
+        "p99": 1428
+      },
+      "singletons": 1207,
+      "top_share": 0.0068,
+      "held_out_hit_rate": 0.0057,
+      "held_out_n": 879
+    },
+    "C6_species_full": {
+      "label": "SETS COLLAPSED: species + HP10 + status + boosts + field",
+      "distinct_positions": 1515,
+      "positions_observed": 1758,
+      "saturation": 0.8618,
+      "coverage": {
+        "p50": 636,
+        "p80": 1164,
+        "p95": 1428,
+        "p99": 1498
+      },
+      "singletons": 1329,
+      "top_share": 0.0057,
+      "held_out_hit_rate": 0.0023,
+      "held_out_n": 879
+    }
+  },
+  "fidelity_levels_note": "distinct_positions here counts positions that WERE OBSERVED. Read `saturation` beside it: at saturation near 1 the count is measuring the size of the corpus, not the size of the state space, and it must not be read as a table size. `held_out_hit_rate` is the number that matters — build the key set from the older half of the corpus and ask how often the newer half lands on a key you already have.",
+  "axes": {
+    "what": "per-axis cardinality of the state actually seen at 1v1. These are the multipliers an ENUMERATED table pays.",
+    "distinct_species_formes_at_1v1": 177,
+    "distinct_species_set_sides_at_1v1": 885,
+    "sets_per_species_at_1v1": 5,
+    "distinct_statuses_seen": [
+      "-",
+      "brn",
+      "frz",
+      "par",
+      "psn",
+      "slp",
+      "tox"
+    ],
+    "distinct_boost_vectors_seen": 213,
+    "boost_vectors_covering_95pct_of_sides": 90,
+    "boost_vectors_covering_99pct_of_sides": 178,
+    "share_of_sides_at_neutral_boosts": 0.667,
+    "distinct_field_states_seen": 24,
+    "field_states_covering_95pct": 9,
+    "distinct_hp_percentages_seen": 100,
+    "hp_bucket_choice": "10% of max HP. Reasoning: a damage roll in this game spans 85-100% of its own mean, so consecutive rolls of one move already smear a target across roughly 15% of a bar; a bucket finer than 10% is finer than the resolution of the thing the tablebase would be reasoning about. 5% is reported beside it so the tradeoff is visible rather than asserted."
+  },
+  "two_v_one": {
+    "decision_points": 3644,
+    "distinct_species_configurations_observed": 2476,
+    "distinct_set_configurations_observed": 2689,
+    "saturation_species": 0.6795,
+    "coverage_species": {
+      "p50": 695,
+      "p80": 1748,
+      "p95": 2294,
+      "p99": 2440
+    },
+    "coverage_sets": {
+      "p50": 867,
+      "p80": 1961,
+      "p95": 2507,
+      "p99": 2653
+    },
+    "distinct_species_formes_seen": 269,
+    "enumerated_species_configurations": 9768735,
+    "enumerated_note": "one mon against an unordered pair: S x S(S+1)/2. NOT halvable the way 1v1 is — the two seats are structurally different, so the mirror trick does not apply.",
+    "enumerated_with_hp10": 9768735000,
+    "reading": "the 2v1 matchup axis alone, before any HP or status, is already larger than the entire shippable 1v1 table. 2v1 is out of reach at any fidelity in this budget."
+  },
+  "enumerated_designs": [
+    {
+      "design": "A1  species pool, ALL pairs, HP 25% (4 buckets), nothing else",
+      "matchups": 15753,
+      "per_side_states": 4,
+      "entries": 252048,
+      "mb_packed": 5.8,
+      "mb_json_map": 48.1,
+      "axes": {
+        "hp_buckets": 4,
+        "statuses": 1,
+        "boost_states": 1,
+        "field_states": 1
+      },
+      "note": "coarsest HP that is still HP",
+      "band": "SHIPPABLE"
+    },
+    {
+      "design": "A2  species pool, ALL pairs, HP 20% (5 buckets), nothing else",
+      "matchups": 15753,
+      "per_side_states": 5,
+      "entries": 393825,
+      "mb_packed": 9,
+      "mb_json_map": 75.1,
+      "axes": {
+        "hp_buckets": 5,
+        "statuses": 1,
+        "boost_states": 1,
+        "field_states": 1
+      },
+      "note": null,
+      "band": "SHIPPABLE_PACKED"
+    },
+    {
+      "design": "A3  species pool, ALL pairs, HP 10% (10 buckets), nothing else",
+      "matchups": 15753,
+      "per_side_states": 10,
+      "entries": 1575300,
+      "mb_packed": 36.1,
+      "mb_json_map": 300.5,
+      "axes": {
+        "hp_buckets": 10,
+        "statuses": 1,
+        "boost_states": 1,
+        "field_states": 1
+      },
+      "note": "the declared default HP resolution",
+      "band": "SHIPPABLE_PACKED"
+    },
+    {
+      "design": "A4  species pool, ALL pairs, HP 5% (20 buckets), nothing else",
+      "matchups": 15753,
+      "per_side_states": 20,
+      "entries": 6301200,
+      "mb_packed": 144.2,
+      "mb_json_map": 1201.9,
+      "axes": {
+        "hp_buckets": 20,
+        "statuses": 1,
+        "boost_states": 1,
+        "field_states": 1
+      },
+      "note": null,
+      "band": "TOO_BIG"
+    },
+    {
+      "design": "B1  A3 + status restricted to none/brn/par",
+      "matchups": 15753,
+      "per_side_states": 30,
+      "entries": 14177700,
+      "mb_packed": 324.5,
+      "mb_json_map": 2704.2,
+      "axes": {
+        "hp_buckets": 10,
+        "statuses": 3,
+        "boost_states": 1,
+        "field_states": 1
+      },
+      "note": null,
+      "band": "TOO_BIG"
+    },
+    {
+      "design": "B2  A3 + all 7 statuses",
+      "matchups": 15753,
+      "per_side_states": 70,
+      "entries": 77189700,
+      "mb_packed": 1766.7,
+      "mb_json_map": 14722.8,
+      "axes": {
+        "hp_buckets": 10,
+        "statuses": 7,
+        "boost_states": 1,
+        "field_states": 1
+      },
+      "note": null,
+      "band": "TOO_BIG"
+    },
+    {
+      "design": "B3  A3 + 7 statuses + boosts covering 95% of observed 1v1 sides",
+      "matchups": 15753,
+      "per_side_states": 6300,
+      "entries": 625236570000,
+      "mb_packed": 14310529.4,
+      "mb_json_map": 119254411.7,
+      "axes": {
+        "hp_buckets": 10,
+        "statuses": 7,
+        "boost_states": 90,
+        "field_states": 1
+      },
+      "note": null,
+      "band": "TOO_BIG"
+    },
+    {
+      "design": "B4  A3 + 7 statuses + every observed boost vector + field states covering 95%",
+      "matchups": 15753,
+      "per_side_states": 14910,
+      "entries": 31518175493700,
+      "mb_packed": 721393787.2,
+      "mb_json_map": 6011614893.7,
+      "axes": {
+        "hp_buckets": 10,
+        "statuses": 7,
+        "boost_states": 213,
+        "field_states": 9
+      },
+      "note": null,
+      "band": "TOO_BIG"
+    },
+    {
+      "design": "B5  A3 + 7 statuses + full analytic boost space (13^5 per side)",
+      "matchups": 15753,
+      "per_side_states": 25990510,
+      "entries": 10641255628276754000,
+      "mb_packed": 243559012488023.9,
+      "mb_json_map": 2029658437400198.8,
+      "axes": {
+        "hp_buckets": 10,
+        "statuses": 7,
+        "boost_states": 371293,
+        "field_states": 1
+      },
+      "note": "the naive enumeration DUSK exists to avoid",
+      "band": "TOO_BIG"
+    },
+    {
+      "design": "C1  SET pool, ALL pairs, HP 10% only",
+      "matchups": 392055,
+      "per_side_states": 10,
+      "entries": 39205500,
+      "mb_packed": 897.3,
+      "mb_json_map": 7477.9,
+      "axes": {
+        "hp_buckets": 10,
+        "statuses": 1,
+        "boost_states": 1,
+        "field_states": 1
+      },
+      "note": null,
+      "band": "TOO_BIG"
+    },
+    {
+      "design": "C2  SET pool, ALL pairs, HP 10% + 7 statuses",
+      "matchups": 392055,
+      "per_side_states": 70,
+      "entries": 1921069500,
+      "mb_packed": 43969.8,
+      "mb_json_map": 366414.9,
+      "axes": {
+        "hp_buckets": 10,
+        "statuses": 7,
+        "boost_states": 1,
+        "field_states": 1
+      },
+      "note": null,
+      "band": "TOO_BIG"
+    },
+    {
+      "design": "C3  SET pool, ALL pairs, HP 10% + 7 statuses + boosts 95%",
+      "matchups": 392055,
+      "per_side_states": 6300,
+      "entries": 15560662950000,
+      "mb_packed": 356155310.4,
+      "mb_json_map": 2967960920.3,
+      "axes": {
+        "hp_buckets": 10,
+        "statuses": 7,
+        "boost_states": 90,
+        "field_states": 1
+      },
+      "note": null,
+      "band": "TOO_BIG"
+    },
+    {
+      "design": "C4  SET pool restricted to the top 3 sets per species, ALL pairs, HP 10% only",
+      "matchups": 141246,
+      "per_side_states": 10,
+      "entries": 14124600,
+      "mb_packed": 323.3,
+      "mb_json_map": 2694.1,
+      "axes": {
+        "hp_buckets": 10,
+        "statuses": 1,
+        "boost_states": 1,
+        "field_states": 1
+      },
+      "note": null,
+      "band": "TOO_BIG"
+    },
+    {
+      "design": "D1  the 95%-coverage species pairs only, HP 10% + 7 statuses",
+      "matchups": 561,
+      "per_side_states": 70,
+      "entries": 2748900,
+      "mb_packed": 62.9,
+      "mb_json_map": 524.3,
+      "axes": {
+        "hp_buckets": 10,
+        "statuses": 7,
+        "boost_states": 1,
+        "field_states": 1
+      },
+      "note": "561 pairs cover 95% of the 1v1 positions observed IN SAMPLE; out of sample this shrinks - see held_out_hit_rate",
+      "band": "TOO_BIG"
+    },
+    {
+      "design": "D2  the 95%-coverage species pairs only, HP 10% + 7 statuses + boosts 95%",
+      "matchups": 561,
+      "per_side_states": 6300,
+      "entries": 22266090000,
+      "mb_packed": 509630.4,
+      "mb_json_map": 4246919.6,
+      "axes": {
+        "hp_buckets": 10,
+        "statuses": 7,
+        "boost_states": 90,
+        "field_states": 1
+      },
+      "note": null,
+      "band": "TOO_BIG"
+    },
+    {
+      "design": "D3  the observed SET pairs only, HP 10% + 7 statuses",
+      "matchups": 927,
+      "per_side_states": 70,
+      "entries": 4542300,
+      "mb_packed": 104,
+      "mb_json_map": 866.4,
+      "axes": {
+        "hp_buckets": 10,
+        "statuses": 7,
+        "boost_states": 1,
+        "field_states": 1
+      },
+      "note": null,
+      "band": "TOO_BIG"
+    }
+  ],
+  "enumerated_designs_note": "entries = matchups x (hp_buckets x statuses x boost_states)^2 x field_states. Matchups are unordered pairs INCLUDING mirrors, n(n+1)/2, because solving one simultaneous-move matrix returns both seats' equilibrium strategies at once — engine/slowking/nash.py already does this. Halving here is real, not optimistic.",
+  "limitations": {
+    "reconstruction": "headline figures come from the raw Showdown protocol, which states HP absolutely per slot on every damage line, and which carries |-curestatus|, |-weather|none, |-fieldend| and |-sidestart|. The stored-event reconstruction lacks all four and is reported only as a cross-check on the reach rate.",
+    "onfield_completeness": "a 1v1 or 2v1 position is read off the FIELD. In doubles both slots stay filled while a bench exists, so at 2-or-fewer alive every survivor is on the field. Positions where the field and the faint count disagree are skipped and counted (positions_skipped_onfield_incomplete).",
+    "ev_spreads_absent": "sheets carry evs: null in this corpus, so two identical declared sets on different Champions SP spreads collapse to one entry. If spreads were public and varied, the set axis would be LARGER than measured. This is the one bias that flatters DUSK and it is stated first.",
+    "illusion": "|replace| is honoured, so a Zoroark that was lying is corrected at the point the protocol corrects it — but every position recorded before the reveal carries the species the opponent believed. That is arguably the right state for a tablebase keyed on what a player can see, and it is not corrected retroactively.",
+    "decidedness_is_a_proxy": "no equilibrium solver was run over these positions. \"already decided\" is proxied by how many 1v1 decision points remain and by whether the HP-ahead side goes on to win. Neither is a game value.",
+    "bo3_series": "each record is one game of a best-of-three, not a series. Reach rates are per GAME."
+  },
+  "counters": {
+    "no_log": 207,
+    "parsed": 5815,
+    "slot_unknown": 0,
+    "faints_over_four": 0
+  },
+  "verdict": {
+    "overall": "TOO BIG",
+    "headline_design": "C3  SET pool, ALL pairs, HP 10% + 7 statuses + boosts 95%",
+    "headline_entries": 15560662950000,
+    "headline_band": "TOO_BIG",
+    "largest_design_that_fits": {
+      "design": "A3  species pool, ALL pairs, HP 10% (10 buckets), nothing else",
+      "matchups": 15753,
+      "per_side_states": 10,
+      "entries": 1575300,
+      "mb_packed": 36.1,
+      "mb_json_map": 300.5,
+      "axes": {
+        "hp_buckets": 10,
+        "statuses": 1,
+        "boost_states": 1,
+        "field_states": 1
+      },
+      "note": "the declared default HP resolution",
+      "band": "SHIPPABLE_PACKED"
+    },
+    "where_it_becomes_shippable": "A3  species pool, ALL pairs, HP 10% (10 buckets), nothing else — 1,575,300 entries, 36.1 MB packed. Everything above that fidelity is TOO BIG.",
+    "bands": [
+      {
+        "design": "A1  species pool, ALL pairs, HP 25% (4 buckets), nothing else",
+        "entries": 252048,
+        "mb_packed": 5.8,
+        "band": "SHIPPABLE"
+      },
+      {
+        "design": "A2  species pool, ALL pairs, HP 20% (5 buckets), nothing else",
+        "entries": 393825,
+        "mb_packed": 9,
+        "band": "SHIPPABLE_PACKED"
+      },
+      {
+        "design": "A3  species pool, ALL pairs, HP 10% (10 buckets), nothing else",
+        "entries": 1575300,
+        "mb_packed": 36.1,
+        "band": "SHIPPABLE_PACKED"
+      },
+      {
+        "design": "A4  species pool, ALL pairs, HP 5% (20 buckets), nothing else",
+        "entries": 6301200,
+        "mb_packed": 144.2,
+        "band": "TOO_BIG"
+      },
+      {
+        "design": "B1  A3 + status restricted to none/brn/par",
+        "entries": 14177700,
+        "mb_packed": 324.5,
+        "band": "TOO_BIG"
+      },
+      {
+        "design": "B2  A3 + all 7 statuses",
+        "entries": 77189700,
+        "mb_packed": 1766.7,
+        "band": "TOO_BIG"
+      },
+      {
+        "design": "B3  A3 + 7 statuses + boosts covering 95% of observed 1v1 sides",
+        "entries": 625236570000,
+        "mb_packed": 14310529.4,
+        "band": "TOO_BIG"
+      },
+      {
+        "design": "B4  A3 + 7 statuses + every observed boost vector + field states covering 95%",
+        "entries": 31518175493700,
+        "mb_packed": 721393787.2,
+        "band": "TOO_BIG"
+      },
+      {
+        "design": "B5  A3 + 7 statuses + full analytic boost space (13^5 per side)",
+        "entries": 10641255628276754000,
+        "mb_packed": 243559012488023.9,
+        "band": "TOO_BIG"
+      },
+      {
+        "design": "C1  SET pool, ALL pairs, HP 10% only",
+        "entries": 39205500,
+        "mb_packed": 897.3,
+        "band": "TOO_BIG"
+      },
+      {
+        "design": "C2  SET pool, ALL pairs, HP 10% + 7 statuses",
+        "entries": 1921069500,
+        "mb_packed": 43969.8,
+        "band": "TOO_BIG"
+      },
+      {
+        "design": "C3  SET pool, ALL pairs, HP 10% + 7 statuses + boosts 95%",
+        "entries": 15560662950000,
+        "mb_packed": 356155310.4,
+        "band": "TOO_BIG"
+      },
+      {
+        "design": "C4  SET pool restricted to the top 3 sets per species, ALL pairs, HP 10% only",
+        "entries": 14124600,
+        "mb_packed": 323.3,
+        "band": "TOO_BIG"
+      },
+      {
+        "design": "D1  the 95%-coverage species pairs only, HP 10% + 7 statuses",
+        "entries": 2748900,
+        "mb_packed": 62.9,
+        "band": "TOO_BIG"
+      },
+      {
+        "design": "D2  the 95%-coverage species pairs only, HP 10% + 7 statuses + boosts 95%",
+        "entries": 22266090000,
+        "mb_packed": 509630.4,
+        "band": "TOO_BIG"
+      },
+      {
+        "design": "D3  the observed SET pairs only, HP 10% + 7 statuses",
+        "entries": 4542300,
+        "mb_packed": 104,
+        "band": "TOO_BIG"
+      }
+    ],
+    "reach_finding": "16.42% of clean games reach 1v1 (n=5815); 58.95% of those 1v1s are over after a single decision, so a 1v1 lasting more than one decision occurs in 6.74% of games. 1v1 turns are 3.75% of all decision points in the corpus.",
+    "memoisation_finding": "Storing only OBSERVED positions does not work: once HP is in the key the held-out hit rate is 0.11% (train on the older half of the corpus, test on the newer). Even at bare species-pair level it is 34.9%. A shippable DUSK has to ENUMERATE a matchup pool, not memoise a corpus."
+  }
+}

@@ -2105,3 +2105,191 @@ all — is still unrun. Every decision MILTANK makes is an argmax over this leaf
 judges 4.6 points better than material may still rank 63 candidate cells identically. **R5 is the
 measurement that decides whether any of this buys a click**, and it is now the top of SEARCH's
 queue.
+
+## DUSK SIZE GATE (#40) — TOO BIG, and the reach rate is the finding that outranks the size
+
+Run 2026-08-06. Artifact: `data/dusk-size-gate.json`. Generator: `engine/dusk_size_gate.js`.
+**The threshold block was written to disk before any count was run**, and the generator refuses to
+write a gate whose declared threshold is missing. Pure store analysis — no engine module is loaded,
+so no release is stamped and none is needed.
+
+**Verdict: TOO BIG.** A tablebase keyed on what DUSK actually claims to look up — the declared set
+on both sides, HP, status and boosts — is **1.6 x 10^13 entries**. It becomes shippable only by
+throwing away the set, the status, the boosts and the field, at which point it is
+**1,575,300 entries / 36.1 MB packed** and knows nothing except two species and two HP bars.
+
+### The declared threshold, and where it came from
+
+SHIPPABLE means a table the JavaScript bot loads at startup and holds in memory. Budget **64 MB
+resident** — six processes on this box against `--max-old-space-size=4096` gives ~680 MB a process,
+and a table that exists to *replace* search must not take more than ~10% of the process it helps —
+and **50 MB on disk**, which is GitHub's per-file warning (100 MB is its hard reject) and is also
+what this repo already lives inside: the largest tracked file in `data/` is 44.9 MB. At 24 B/entry
+packed that is 2.7M entries; at the ~200 B/entry a plain JSON-into-a-Map actually costs in V8 —
+which is what every other data file here does — it is 335,000.
+
+| band | entries |
+|---|---|
+| SHIPPABLE | <= 335,000 |
+| SHIPPABLE_PACKED | 335,000 - 2,700,000 |
+| TOO BIG | > 2,700,000 |
+
+### THE REACH RATE COMES FIRST, BECAUSE IT CAN KILL DUSK ON ITS OWN
+
+Measured on **5,815 clean open-sheet Bo3 games** (6,022 clean of 9,191 stored; 207 have no raw log).
+
+| | |
+|---|---|
+| games reaching **1v1** | **955 — 16.42%**, 95% CI [15.49, 17.40] |
+| games reaching **2v1** | 2,671 — 45.93% [44.66, 47.22] |
+| 1v1 decision points | 1,758 — **3.75% of all 46,909 decision points in the corpus** |
+| mean 1v1 decision points per game that reaches one | 1.84 |
+| 1v1s **over after a single decision** | 563 — **58.95%** |
+| games with a 1v1 lasting more than one decision | 392 — **6.74% of the corpus** |
+
+**Five games in six never reach 1v1 at all, and three in five of the ones that do are finished in a
+single turn.** The positions DUSK exists to solve are 3.75% of the turns played, and the subset
+where more than one decision is taken is 6.74% of games. That is the ceiling on its value and it is
+independent of how big the table is.
+
+**But when a 1v1 does happen it is genuinely contested, so this is a volume problem and not a
+formality problem.** The side ahead on HP at 1v1 entry goes on to win **65.71%** of the time
+[62.55, 68.73] — a third of these are won from behind, which is not what a decided position looks
+like. Only 8.48% of entries are lopsided (one side >=90% HP, the other <=20%). 9.01% of them end in
+a forfeit. The longest 1v1 in the corpus ran 29 turns.
+
+### Concentration — the coverage curve
+
+Distinct **species pairs** at 1v1: **648** over 1,758 observed positions, from a pool of **177
+distinct on-field formes**. Canonicalised as unordered pairs, because solving one simultaneous-move
+matrix returns both seats' equilibrium strategies at once — `engine/slowking/nash.py` already does
+that, so the halving is real rather than optimistic.
+
+| to cover | species pairs | species+item | species+full set |
+|---|---|---|---|
+| 50% | 111 | 163 | 220 |
+| 80% | 326 | 448 | 576 |
+| 95% | 561 | 712 | 840 |
+| 99% | 631 | 782 | 910 |
+| all observed | 648 | 799 | 927 |
+
+**It is not concentrated.** The most common 1v1 species pair is 2.97% of positions; 298 of the 648
+pairs occur exactly once. There is no small head to cache.
+
+### Adding state — and why the observed distinct-position count must NOT be read as a table size
+
+| level | distinct observed | saturation | held-out hit rate |
+|---|---|---|---|
+| species pair | 648 | 0.37 | **34.9%** |
+| + item | 799 | 0.45 | 16.5% |
+| + full declared set | 927 | 0.53 | **1.9%** |
+| + HP 10% buckets | 1,383 | 0.79 | **0.11%** |
+| + HP 5% buckets | 1,467 | 0.83 | 0% |
+| + status | 1,407 | 0.80 | 0% |
+| + boost stages | 1,456 | 0.83 | 0% |
+| + field (weather/room/Tailwind) | 1,519 | 0.86 | 0% |
+
+Sets collapsed to species, same axes: 1,362 / 1,389 / 1,445 / 1,515, held-out 1.25% / 0.68% / 0.57% /
+0.23%.
+
+Two things have to be read together here, and reading either alone gives the wrong answer.
+
+**The distinct counts look tiny and they are meaningless.** `saturation` is distinct / observed. At
+0.86 the count is measuring the size of the corpus, not the size of the state space — 1,519 distinct
+positions out of 1,758 observed is a near-bijection, and adding data would add positions roughly
+one for one. **Anyone quoting "1,456 entries, ships as JSON" is quoting the sample size.**
+
+**The held-out hit rate says a memo of observed positions cannot work.** Build the key set from the
+older half of the 1v1 positions, test on the newer half: once HP is in the key the newer half lands
+on a key you already have **0.11% of the time**, and past that, never. Even at bare species-pair
+level it is 34.9%. **A shippable DUSK has to ENUMERATE a matchup pool. It cannot memoise a corpus.**
+
+### The enumerated designs — where the wall is
+
+`entries = matchups x (HP buckets x statuses x boost states)^2 x field states`. HP is bucketed at
+**10% of max**: a damage roll in this game spans 85-100% of its own mean, so consecutive rolls of one
+move already smear a target across ~15% of a bar, and a bucket finer than 10% is finer than the
+resolution of the thing being reasoned about. 5% is reported beside it so the tradeoff is visible.
+
+| design | matchups | entries | MB packed | band |
+|---|---|---|---|---|
+| A1 species pool, all pairs, HP 25% | 15,753 | 252,048 | 5.8 | **SHIPPABLE** |
+| A2 species pool, all pairs, HP 20% | 15,753 | 393,825 | 9.0 | SHIPPABLE_PACKED |
+| **A3 species pool, all pairs, HP 10%** | **15,753** | **1,575,300** | **36.1** | **SHIPPABLE_PACKED** |
+| A4 species pool, all pairs, HP 5% | 15,753 | 6,301,200 | 144 | TOO BIG |
+| B1 A3 + status restricted to none/brn/par | 15,753 | 14,177,700 | 325 | TOO BIG |
+| B2 A3 + all 7 statuses | 15,753 | 77,189,700 | 1,767 | TOO BIG |
+| B3 A3 + statuses + boosts covering 95% of sides | 15,753 | 6.25e11 | 14 TB | TOO BIG |
+| B5 A3 + statuses + full analytic boosts (13^5/side) | 15,753 | 1.06e19 | — | TOO BIG |
+| C1 SET pool, all pairs, HP 10% only | 392,055 | 39,205,500 | 897 | TOO BIG |
+| C3 SET pool, all pairs, HP 10% + status + boosts 95% | 392,055 | **1.56e13** | — | **TOO BIG (headline)** |
+| C4 top-3 sets per species, all pairs, HP 10% only | 141,246 | 14,124,600 | 323 | TOO BIG |
+| D1 only the 95%-coverage species pairs, HP 10% + status | 561 | 2,748,900 | 62.9 | TOO BIG (just) |
+
+**The set axis is what breaks it, and that is the painful part.** Open team sheets are DUSK's whole
+premise — the set is declared, so the game is perfect-information. Measured at 1v1 there are **885
+distinct species+set sides over 177 species, 5.0 sets per species**, which turns 15,753 matchups into
+**392,055**. Paying for the information OTS gives you is a **25x** multiplier on the matchup axis
+before a single HP bucket is added, and C1 — set pool with nothing but HP — is already 897 MB.
+
+**The boost axis is what makes it hopeless.** 66.7% of 1v1 sides are at neutral stages, but 213
+distinct boost vectors occur and 90 are needed to cover 95% of sides. As a squared multiplier that is
+8,100x. The full analytic space (13^5 per side) is 25,990,510 states per side.
+
+**So the only shippable table is A3: 177 species x 177 species x HP bucket, and nothing else.** It
+cannot tell a Choice Scarf Garchomp from a Life Orb one, cannot see a burn, cannot see a Swords
+Dance. Every one of those decides a 1v1.
+
+### 2v1 is not a fallback
+
+3,644 2v1 decision points, 2,476 distinct species configurations observed (saturation 0.68), from a
+pool of 269 formes. One mon against an unordered pair is `S x S(S+1)/2` = **9,768,735 matchups**, and
+the mirror halving does not apply because the two seats are structurally different. The matchup axis
+alone, before any HP or status, is six times the entire shippable 1v1 table. Coverage is worse than
+1v1's: 695 configurations for 50%, 2,294 for 95%.
+
+### How this was measured, and what is wrong with it
+
+Two independent reconstructions, reported against each other rather than one asserted. The stored
+turn events from `engine/durable-ingest.js` and the raw Showdown protocol were each replayed and
+asked "did this game reach 1v1": **98.55% agreement** (900 both yes, 4,860 both no, 55 protocol-only,
+30 events-only). Headline figures come from the protocol, because the stored events are lossy in
+three ways that all inflate the position count — a spread move overwrites its own target field so
+`tgthp` names the last victim, `|-curestatus|` is not captured so a status never heals, and
+`|-weather|none` is filtered so weather never ends.
+
+The protocol replay reads a 1v1 off the field and checks rather than assumes that it may: in doubles
+both slots stay filled while a bench exists, so at <=2 alive every survivor is on the field.
+**Anomalies where the faint count and the field disagreed: 0 of 46,909 positions.**
+
+Stated limitations, the first of which flatters DUSK: sheets carry `evs: null` in this corpus, so two
+identical declared sets on different Champions SP spreads collapse to one entry — **the set axis is
+larger than measured, not smaller**. Illusion is corrected at `|replace|` and not retroactively.
+"Already decided" is a proxy — no equilibrium solver was run over these positions.
+
+Corpus snapshot, taken before the counts and re-checked after: `data/games.bo3.jsonl` 9,191 lines,
+sha256 `cd4d6ffea1b8fbf5...`; `data/games.bo3.raw-logs.jsonl` 9,059 lines, sha256
+`ee48e579d7f4266d...`. **It did not move during the run.**
+
+### What this means for #41, the Python-to-JavaScript bridge
+
+DUSK was the route that let `engine/slowking/nash.py` reach the JavaScript bot without a second
+implementation of the solver. **That justification is gone: the precomputed table is TOO BIG at every
+fidelity that would make it worth having.** #41 should not be argued for on DUSK's back.
+
+The measurement points somewhere better, and this is SEARCH's call rather than MEASURE's to make.
+**A 1v1 under open sheets does not need a table — it needs one solve.** With one mon a side there is
+no switch and no target choice, so the action set is exactly the <=4 declared moves: a 4x4
+simultaneous-move matrix with known payoffs, which is the smallest thing `nash.py` solves. There are
+1,758 such decision points in 5,815 games, **3.75% of all turns**, so an online solve is paid for on
+one turn in twenty-seven. The size question becomes a latency question, and latency is an R-rung
+measurement this gate did not run and should not guess at — `data/rollout-cost.json` is the file that
+would have to answer it, and MEASURE has already recorded that R2 is re-run or it is nothing.
+
+Two further consequences worth stating plainly:
+
+- **The turns DUSK would accelerate are the turns MILTANK's search is already cheapest on.** At 1v1
+  the candidate set is at its smallest for exactly the reason that makes the matrix small. A lookup
+  table buys the least time precisely where it is affordable.
+- **If the bridge is built as an online solver it needs no corpus at all**, so none of the coverage
+  or held-out numbers above constrain it. They only constrain the table.
