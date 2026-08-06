@@ -197,6 +197,74 @@ to see.
 
 ---
 
+### 3.2 The swarm alone will never reach the fringe — directed swarm testing
+
+Will, 2026-08-06: *"we want swarms of all the different modes, but we also need to test the fringes,
+like upper hand, trick room (especially!) feint, ilusiion, disguise, i could go on and on."*
+
+He is right, and the arithmetic is unforgiving. Measured usage in the store:
+
+| tier | mechanic | uses | what a uniform 1,000-game sample gets |
+|---|---|---|---|
+| dominant | Protect | 74,245 | saturated |
+| | Fake Out | 13,292 | saturated |
+| **global** | **Trick Room** | **7,423** | plenty of games, few of the interactions that matter |
+| | Prankster | 7,460 | fine |
+| | Sucker Punch | 7,029 | fine |
+| | Wide Guard | 3,353 | fine |
+| **fringe** | Phantom Force | 424 | ~9 |
+| | Feint | 397 | ~9 |
+| | Trace | 207 | ~4 — and **untagged**, so 0 |
+| | Illusion | 204 | ~4 |
+| | Ally Switch | 175 | ~4 |
+| | Instruct | 170 | ~4 |
+| | Quash | 156 | ~3 |
+| | Disguise | 125 | ~3 |
+| | **Upper Hand** | **76** | **~1.6** |
+
+**One and a half exercises is not coverage, it is an accident.** And the fringe is where the bugs are:
+Upper Hand and Sucker Punch share a tag and have *different* conditions (ROADMAP #60); Illusion
+mis-attributes every move it disguises (#67); Instruct is absent by construction; Ally Switch fails on
+consecutive uses. Every one is a mechanic that decides a game outright when it fires.
+
+**TRICK ROOM IS A DIFFERENT CASE AND EARNS ITS EMPHASIS.** At 7,423 uses it is not rare — a uniform
+swarm sees it constantly. It is dangerous because it is the only mechanic that **inverts the meaning
+of every speed comparison on the field for five turns**, and 3.49.0 made speed order *dynamic*, re-sorted
+before every action (WIRE 118). So Trick Room does not add one branch; it doubles the meaning of every
+existing ordering branch, and it multiplies with priority brackets (which it does **not** invert),
+with Prankster, with Quash and After You, with dynamic re-sorting, and with speed control that expires
+mid-turn. Sampling teams that *run* Trick Room is easy; reaching the ordering interactions *inside* it
+is the hard part, and no amount of uniform sampling does it on purpose.
+
+**The technique is directed swarm testing** — Groce, Alipour, Zhang, Chen, Regehr, ISSTA 2016,
+*Generating Focused Random Tests Using Directed Swarm Testing*
+([PDF](https://agroce.github.io/issta16.pdf)). Its result is the natural sequel to the 2012 paper:
+you can use the statistics a swarm run already produced to learn **which configurations correlate
+with hitting a rarely-covered target**, then bias generation toward those configurations to hit it far
+more often — without hand-writing a test for it.
+
+**So the harness runs a loop, not a pass:**
+
+1. **Swarm** for breadth — §3.
+2. **Read the coverage report** — §5, which already counts exercises per census mechanic. This is not
+   a new instrument; it is the one already required, used as the feedback signal.
+3. **Direct** at every mechanic under its floor. Bias team sampling toward the configurations the
+   swarm's own statistics show correlate with reaching it.
+4. **Repeat until every mechanic clears its floor**, and report the floor each one cleared.
+
+**The floor is not uniform, and the rule for it already exists in this project.** The coverage bar in
+`tests/test-medicham-coverage.js` carries Will's carve-out — *anything that can turn a CERTAINTY into
+a FAILURE, regardless of usage.* Upper Hand at 76 uses belongs to that class: a bot that thinks Upper
+Hand beats an Earthquake makes a confident, wrong, game-losing click. Usage sets the floor for
+ordinary mechanics; the carve-out sets it for the ones that flip outcomes.
+
+This is also what makes Will's *"i could go on and on"* a non-problem. **The list must not be
+hand-written**, or it inherits every weakness of the hand-maintained ban list this project already
+replaced with a mechanism. The 235-row census IS the list; the coverage report says which rows are
+starved; the directed phase feeds them. Nobody has to remember Upper Hand.
+
+---
+
 ---
 
 ## 4. Two modes, never blurred
@@ -347,6 +415,7 @@ then MEDICHAM's output is not trusted for decisions — which is exactly the bar
 - McKeeman, *Differential Testing for Software* — https://www.cs.tufts.edu/comp/150FP/archive/bill-mckeeman/DifferentailTesting.pdf
 - Yang, Chen, Eide, Regehr, *Finding and Understanding Bugs in C Compilers* (PLDI 2011) — https://users.cs.utah.edu/~regehr/papers/pldi11-preprint.pdf
 - Groce, Zhang, Eide, Chen, Regehr, *Swarm Testing* (ISSTA 2012) — https://agroce.github.io/issta12.pdf
+- Groce, Alipour, Zhang, Chen, Regehr, *Generating Focused Random Tests Using Directed Swarm Testing* (ISSTA 2016) — https://agroce.github.io/issta16.pdf
 - Zeller & Hildebrandt, *Simplifying and Isolating Failure-Inducing Input* (delta debugging / `ddmin`) — https://www.computer.org/csdl/journal/ts/2025/03/10859156/23X97jMgYjm
 - Groce et al., *Randomized Differential Testing as a Prelude to Formal Verification* (ICSE 2007) — https://agroce.github.io/icse07.pdf
 - Reducing failure-inducing inputs, The Fuzzing Book — https://www.fuzzingbook.org/html/Reducer.html
