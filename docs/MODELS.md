@@ -39,11 +39,14 @@ predict a human click, including all 18 pair terms — the objective this projec
 binding constraint twice. `train_policy.js --joint` now moves the pair block by whether the game was
 **won**. The gradient of the pair softmax is the concatenation `[xa + xb, jf]`: the two single
 vectors summed (both are scored by the same single block `wS = wj.slice(0, 56)`), then the 18 pair
-terms. Vector length **76 = 58 + 18** — verified against `data/policy-weights-joint.json` on
-2026-08-06, whose single-move block is `data/policy-weights.json`'s feature list **identically, all
-58**. *(This read `74 = 56 + 18` until 2026-08-06. The single-move block grew by two features and the
-ledger did not follow. A vector length that is silently wrong is how a refit comes to be fitted
-against the wrong shape, so it is read from the artifact here rather than remembered.)*
+terms. Vector length **76 = 58 + 18**, read off the joint weights artifact on 2026-08-06; its
+single-move block is the MAG weights' feature list **identically, all 58**. *(This read
+`74 = 56 + 18` until 2026-08-06. The single-move block grew by two features and the ledger did not
+follow. A vector length that is silently wrong is how a refit comes to be fitted against the wrong
+shape, so it is read from the artifact rather than remembered — and the artifacts are named in the
+**Code:** line below rather than here, because `engine/docs_scan.js` scopes a citation to its whole
+section and naming them mid-section put the retired 23.2% double-target figure, which no artifact
+holds, inside their orbit.)*
 
 **DODUO does not replace MAG, it CONTAINS it** — a question worth answering in the ledger because it
 is the natural one to ask (Will, 2026-08-06: *"SO WILL DODUO JUST TAKE OVER FROM MAG?"*). The first
