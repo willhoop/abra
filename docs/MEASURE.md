@@ -1998,6 +1998,294 @@ prevent.
   checked by a second mechanism: the any-turn control gives R ≈ 0.74 against the turn-matched 0.709,
   so the conclusion does not depend on the draw.
 
+### 19. THE STRONG-PLAYER BASELINE — the cutoff gradient exists and is free; §1.3's "real humans" column cannot be compared to it; and "flat in rating" is NOT MEASURED. 2026-08-06
+
+`data/strong-player-baseline.json`, written by `build/strong_player_baseline.js` (one process, ~2
+minutes). Built for task #46 out of `data/smogon-stats/` and this repository's own stores. **It reads
+no simulator, no leaf, no feature layer and no policy weights**, so it is not invalidated by an engine
+release or by a MAG refit and does not need re-running when either happens. It is invalidated by a new
+Smogon month or by a change to `data/quality-filter.json`.
+
+**The generator exists because of §19e.** The claim this section retracts — *"measured move quality is
+close to flat in rating"* — has been quoted in a fitted model's own caveat block for weeks with no
+generator behind it. Shipping an artifact with the same defect would have been the same mistake in a
+new file. It lives in `build/` rather than `engine/` for a dated reason: it was written on 2026-08-06
+while an ENGINE agent was rewriting the simulator, and this division does not add files to another
+agent's directory mid-flight. If that reason expires, `engine/` is the better home.
+
+The question it was built for is Will's, 2026-08-06, reading `docs/ROADMAP.md` §1.3: *"'outright
+failed' could be incompetence or a high level play and we dont know the difference."*
+
+#### 19a. What the 1630 weighting can and cannot support — stated before it is used
+
+**It CAN support what strong players BRING and RUN.** Species usage at four skill weightings, and
+ability / item / spread / move frequencies within a species.
+
+**It CANNOT support what strong players CLICK.** The files are team-composition aggregates. There is
+no turn, no board, no opponent and no click in them. All three of §1.3's metrics — *moves that
+outright failed*, *moves that hit an immune target*, *moves that were super effective* — are per-turn
+rates and **have no Smogon counterpart at any cutoff**. A 1630 column added to that table would look
+comparable and would not be, which is worse than a missing column.
+
+**"Cutoffs are weightings, not subsets" is now MEASURED rather than quoted.** Across both months and
+both formats, every species' `Raw count` is identical at all four cutoffs — **3,117 of 3,117
+species-cutoff pairs**, and 310 of 310 rows of the usage table's `Raw` column. Only `Avg. weight`
+moves. So no cutoff describes a *set of players*; each describes the same battles seen through a
+different lens.
+
+**And no rating number is mapped onto a cutoff number anywhere in this work.** Nothing in this
+repository or in the Smogon files establishes that `1630` is the same ruler as the Showdown
+`|player|` rating field. The corpus is located on the cutoff axis by **composition**, which is
+scale-free.
+
+#### 19b. The gradient exists, and it was free
+
+Four cutoffs (0 / 1500 / 1630 / 1760) × two months (2026-06, 2026-07) × two formats (Bo1, Bo3) are
+already on disk: 16 usage files and 16 moveset files. Nothing was collected.
+
+Effective sample size is `Raw count × Avg. weight` per species per cutoff. Smogon weights lie in
+[0,1], so `Σw² ≤ Σw` and the true effective sample `(Σw)²/Σw²` is **at least** `Σw` — the intervals
+below are therefore too WIDE, not too narrow. The offsetting hazard is stated and not corrected for:
+the independent unit is a PLAYER, one strong player contributes many battles, and the files cannot
+measure that.
+
+The 1760 column costs almost everything. Effective team slots, 2026-07 Bo1:
+
+| cutoff | avg weight/team | effective team slots | share of raw |
+|---|---|---|---|
+| 0 | 1.000 | 3,529,372 | 100% |
+| 1500 | 0.512 | 1,807,038 | 51.2% |
+| 1630 | 0.068 | 239,997 | 6.8% |
+| 1760 | 0.002 | 7,059 | **0.2%** |
+
+**The noise floor is the same cutoff across two months**, which is an *upper* bound because it
+contains real metagame drift as well as sampling. Total absolute species-usage difference, summed
+over 310 ranked species, 2026-07:
+
+| contrast | L1 (points) | vs the cutoff-0 month floor of 140.9 |
+|---|---|---|
+| cutoff 0 vs 1500 | 69.4 | **inside it — 1500 is not distinguishable from the whole ladder** |
+| cutoff 0 vs 1630 | 151.6 | above |
+| cutoff 0 vs 1760 | 195.0 | above |
+| cutoff 1630 vs 1760 | 70.6 | inside |
+
+**83 of the 104 species at ≥1% base usage** have a 0→1760 usage change whose 95% interval excludes
+zero, and the large ones are monotone across all four cutoffs. Charizard-Mega-Y 15.69% → 18.75% →
+23.46% → **30.58%** (Δ +14.89 [13.81, 15.96]); Kingambit 23.40 → 36.79 (+13.39 [12.27, 14.52]);
+Sableye 6.52 → 3.36 (−3.17 [−3.59, −2.74]). *(Population: Smogon 2026-07
+`gen9championsvgc2026regmb`, 1,764,686 battles, reweighted.)*
+
+Within a species, the gradient is real for **moves and spreads**, marginal for **items**, and absent
+for **abilities**. Mean total-variation distance over the top 20 species by raw count, cutoff 0 vs
+1760, computed over the **intersection** of the two listed key sets:
+
+| section | cutoff gradient | month noise at cutoff 0 |
+|---|---|---|
+| moves | **17.89** | 11.52 |
+| spreads | **9.17** | 3.72 |
+| items | 6.98 | 4.99 |
+| abilities | 1.63 | 5.12 |
+
+The abilities row is the honest negative, and it needs one species named: the 5.12 month-noise is
+dominated by **Sneasler**, whose Unburden/Poison Touch split really did move 15.3 points between June
+and July. Excluding it, abilities barely move with skill either — the format's abilities are
+near-locked at every cutoff.
+
+**A correction made mid-run, recorded because a first pass shipped it.** A key absent from a Smogon
+moveset list is **not 0%** — the file lists the top few plus `Other`, so an absent key is below that
+list's reporting floor. Treating it as zero manufactured an 18-point "gradient" on Venusaur/Energy
+Ball. Every distance here is over the intersection, with the unlisted mass reported separately.
+
+#### 19c. Where our corpora sit on that axis — and there are THREE of them, not one
+
+They must never share a sentence with only one population named.
+
+| corpus | store | filter | rated slots | median | ≥1400 | ≥1500 |
+|---|---|---|---|---|---|---|
+| clean **closed** ladder | `games.ladder.jsonl` | clean, 8,047 games | 11,852 | **1266** | 26.2% | 14.4% |
+| Bo3 **open sheet** | `games.bo3.jsonl` | none | 14,539 | **1175** | 5.33% | 0.72% |
+| Bo1 open sheet | `games.ots.jsonl` | clean, 2,860 games | 3,414 | **1087** | 0.23% | 0.09% |
+| **unfiltered** ladder | `games.ladder.jsonl` | none, 45,006 lines | 83,668 | 1130 | 6.21% | 3.09% |
+
+Two things fall out of that table.
+
+**The dispatch's figures are confirmed and they belong to the Bo3 store.** 14,465 rated slots at p10
+1043 / median 1175 / p90 1355 / max 1707, ≥1400 5.3%, ≥1500 0.7% is `data/games.bo3.jsonl`, which now
+holds 14,539 slots at exactly those quantiles. Same file, 74 slots of growth.
+
+**The clean filter moves the population a long way, and that is the population §1.3 benchmarks
+against.** Unfiltered ladder median 1130 with 6.21% ≥1400; clean ladder median **1266** with **26.2%**
+≥1400. The bot and behavioural-bot rules remove a large low-and-flat block. So §1.3's "real humans"
+are not the median-1175 population — that is the corpus MAG was *fitted* on. Any sentence of the form
+"the ladder is median X" has to say which of the two it means.
+
+On the cutoff axis, by composition (L1 between the corpus's team-preview species vector and each
+cutoff, mega formes collapsed to base on both sides):
+
+| corpus | vs cutoff 0 | 1500 | 1630 | 1760 | own split-half floor |
+|---|---|---|---|---|---|
+| clean closed ladder, vs 2026-07 | **138.6** | 174.9 | 230.9 | 274.6 | 36.9 – 75.8 (median 53.4) |
+| Bo1 open sheet, vs 2026-06 | 211.2 | 184.0 | 159.2 | **157.1** | 45.9 – 91.8 (median 67.3) |
+
+The closed ladder is nearest cutoff 0 and moves monotonically away from every higher one. Its 138.6
+is about one month of drift at cutoff 0 (140.9) and its games run 2026-07-22 to 2026-08-06 — later
+than the newest published month — so cutoff 0 is a fit and 1630/1760 are not. **The Bo1 open-sheet
+corpus cannot be placed at all**: its four distances span 157.1–211.2 against its own split-half floor
+of 45.9–91.8, so the cutoff ordering is inside its noise. NOT MEASURED for that store, and the
+apparent preference for 1760 is not a finding.
+
+#### 19d. The Fake Out / Armor Tail case, answered as far as it can be
+
+Farigiraf runs Armor Tail on **97.80%** of sets at cutoff 0 [97.77, 97.83] and **99.11%** at 1760
+[98.59, 99.45] — a real +1.31-point gradient [0.89, 1.73] against a month noise of 0.11, and
+**completely useless for the question**, because the ability was already near-universal everywhere.
+Incineroar carries Fake Out on 98.89% of sets at cutoff 0 and 99.82% at 1760. Expected Fake Out
+carriers per team of six: 0.728 at cutoff 0 → 0.751 at 1760.
+
+So the collision is **at least as available** at the top as at the bottom. The aggregate can say the
+two sides are both brought slightly more by strong players; it cannot say who clicked, because there
+is no turn in the file.
+
+**What this implies for task #44 part 1, which is owned elsewhere and NOT attempted here.** The
+denominator of a failed-move rate is composition-confounded, and the split has to condition on it.
+Protection is the largest single source of a `|-fail|` line — a repeated Protect fails by rule — and
+it moves with the cutoff: expected protection carriers per team of six run **4.00 → 4.14 → 4.34 →
+4.39** across the four cutoffs, and Detect alone runs 0.103 → 0.144 (+39% relative). A raw failed-move
+rate therefore rises with how much protection the population runs, independently of anybody playing
+better or worse.
+
+#### 19e. `fit_policy.js:1264`'s "flat in rating" — NOT MEASURED, not false
+
+The claim: *"Open-sheet players also average ~185 rating points lower, though measured move quality is
+close to flat in rating."* `docs/DEFENSE.md` §1 gives the numbers — failed moves 2.59% under 1100
+against 2.30% at 1400–1600; blocked actions 4.66% to 3.43%.
+
+**Neither figure has a generator in this repository.** `engine/realism_report.js` counts the same
+protocol lines but **pools both players of a game and never bands by rating**, and no `data/*.json`
+carries a rating-banded rate. The claim has sat in a fitted model's own caveat block with nothing
+behind it that can be re-run. That is the P1 class this division already named for PORY's
+coefficients.
+
+Recomputed here from the protocol, attributed to the **acting** side, on the clean closed ladder —
+8,047 clean games / 7,040 raw logs matched / 14,078 player-slots / **171,801 moves**. Intervals are a
+game-clustered bootstrap, 400 resamples.
+
+| rating band | moves | failed % [95%] | immune % [95%] | super-effective % [95%] |
+|---|---|---|---|---|
+| <1100 | 21,098 | 2.218 [1.93, 2.57] | 2.318 [2.01, 2.63] | 20.84 [20.02, 21.59] |
+| 1100–1199 | 27,390 | 2.472 [2.08, 3.03] | 2.234 [1.98, 2.47] | 20.62 [19.97, 21.33] |
+| 1200–1299 | 22,699 | 2.291 [1.99, 2.59] | 2.071 [1.83, 2.31] | 20.62 [19.90, 21.32] |
+| 1300–1399 | 22,577 | 2.197 [1.95, 2.48] | 2.210 [1.98, 2.46] | 20.84 [20.16, 21.56] |
+| 1400–1599 | 24,669 | 2.165 [1.83, 2.53] | 2.027 [1.81, 2.25] | 21.24 [20.55, 21.91] |
+| 1600+ | 7,486 | 2.658 [1.93, 3.52] | 2.151 [1.72, 2.57] | 19.16 [17.95, 20.36] |
+
+**The direction reproduces.** <1100 against 1400–1599 on failed moves: **−0.054 points, 95% CI
+[−0.539, +0.403]**. Nothing here contradicts "close to flat".
+
+**But the design was powered for a 0.674-point difference at 80% power on a 2.2% base rate — a 31%
+RELATIVE change.** Anything smaller was never detectable, so *"flat"* and *"an effect up to 30% of the
+base rate"* are the same observation in this corpus. Immunity, same two bands: −0.291 [−0.679,
++0.057], MDE 0.517 on a 2.32% base. Super effective: +0.396 [−0.606, +1.461], MDE 1.527 on a 20.8%
+base. All three contrasts contain zero.
+
+**And the whole between-band spread is inside the within-band noise floor.** Failed-move rate across
+all six bands spans 2.165% to 2.658% — 0.49 points. Cutting a *single* band eight ways produces
+spreads from **−0.489 to +0.806** points. The observed effect *is* the noise floor.
+
+**The binding constraint is not the rating range, which is what the dispatch expected.** The clean
+closed ladder holds 32,155 moves at ≥1400, 17,551 at ≥1500 and 7,486 at ≥1600. The binding constraint
+is that the metric is a ~2% event: 25,000 moves is only ~530 failures, and separating two bands by a
+fifth of a point on that needs far more.
+
+**So the verdict is NOT MEASURED.** The claim is not shown false and it should not be repeated as
+though it were established. `fit_policy.js:1264` and `docs/DEFENSE.md` §1 should say *not measured at
+this power* — filed, not edited, because `engine/` is being rewritten in parallel.
+
+What would settle it is not more games at this metric. Either a metric with a higher event rate
+(super-effective is 21%, so its 1.53-point MDE is **7.3% relative** against failed-move's 31% — four
+times better), or a paired design that holds the board fixed, which is what a click-level model gives
+and a rate does not.
+
+#### 19f. What §1.3 should say instead
+
+The gap §1.3 reports between MAG and humans is **3.87 points** (6.34% against 2.47%). The entire
+measurable rating effect inside the human population is at most **0.67 points** and its point estimate
+is **0.05**. The gap is ~5.7× anything skill does to this metric within the corpus. **Closing it makes
+MAG resemble a human; it cannot make MAG resemble a strong human, because on this metric strong and
+weak humans are not separated at all.**
+
+Five changes, in order:
+
+1. **Name the population on the same line as every figure.** The column is *clean closed-sheet ladder
+   games, both players pooled, no rating condition*. It was 1,905 clean games when written; the same
+   predicate now selects 8,047 clean games / 7,040 raw logs / 171,801 moves at median rating 1266 with
+   26.2% of rated slots ≥1400. It is **not** the open-sheet corpus MAG was fitted on.
+2. **Give an interval.** A bare percentage invites a comparison it cannot support.
+3. **Say the human column is a REALISM target, not a skill target** — and give the reason rather than
+   the assertion: within this corpus the same rate does not separate a sub-1100 player from a
+   1400–1599 player at a detectable size (−0.054, 95% CI [−0.539, +0.403], MDE 0.674).
+4. **Do not add a Smogon 1630 column to that table.** It has no per-turn rate at any cutoff.
+5. **If a strong-player column is wanted, it belongs in a different table about bring and build** —
+   where 1630 and 1760 genuinely answer the question. That table is what this artifact provides.
+
+For reference, the human column recomputed on the current corpus with attribution to the acting side
+(*clean closed ladder, 171,801 moves over 7,040 logs, 2026-08-06*): failed **2.275%**, immune
+**2.074%**, super-effective **21.005%**, against §1.3's 2.47 / 1.91 / 21.37 on 1,905 games. Close, and
+stated so the population and the count travel with the numbers — not as a substitute for re-running
+`realism_report.js`, which pools rather than attributes.
+
+#### 19g. Filed, not fixed — a real defect found on the way
+
+**`data/smogon-priors.json`'s `teammates` array is polluted on 275 of its 284 species.** Kingambit's
+holds 32 entries where the source file lists 10, and the extras are `intimidate`, `blaze`,
+`sitrusberry`, `passhoberry` — the *next* species' Abilities and Items rows. The cause is
+`engine/smogon_priors.js:160`: `grab('Teammates', 'Checks and Counters')` terminates on a section
+these moveset files **do not contain**, so the regex falls through to `$` and swallows the rest of a
+14-chunk window that already spans into the following species block. The same file's `abilities`,
+`items`, `spreads` and `moves` are unaffected — each has a section that really does follow it.
+
+**Blast radius today: zero.** Nothing in the repository reads `teammates` out of that file; the only
+occurrence is the writer. It is latent, not live. Not fixed here because `engine/` is being rewritten
+in parallel and this division does not patch another agent's file mid-flight.
+
+**`provenance.js` classes this artifact's corpus as open-sheet, and it is closed.** `provenance.js:268`
+is `/games\.(ots|bo3)\.jsonl/.test(withDeps) ? 'opensheet' : 'ladder'`, and the generator names both
+open-sheet stores because it reads their rating summaries. Its **primary** corpus is the clean CLOSED
+ladder, so drift is judged against the wrong ceiling and the artifact prints *CORPUS DRIFT — declares
+8,047 games; 9,177 are clean open-sheet now, 12.3%*. That is the same class as the named exception §5
+already records for `winrate-backtest.json`, and it needs the same treatment in `provenance.js`, which
+is `engine/` and was in flight.
+
+**It is left flagged on purpose.** `provenance.js` honours a declared `population_ceiling`, and
+declaring one here would set the ceiling equal to the count and silence this artifact's drift check
+permanently — which is §5e's `--fix` failure exactly: refitting the world so a check goes green. A
+false-positive warning that says why is better than a real check switched off.
+
+#### 19h. What this artifact does and does not stamp
+
+`source_digests` is at the **top level**, because `provenance.js:685` reads `j.source_digests` and not
+`j.provenance.source_digests` — a first run put it in the wrong place and broke the content-digest
+ratchet in `data/provenance-stamp.json`, which may fall and may never rise. It is closed now; the
+artifact is one of the **2 of 93** verified by content rather than by mtime.
+
+**Only the stable inputs are stamped, deliberately.** The generator, `engine/quality.js`,
+`data/quality-filter.json` and all 32 Smogon monthly dump files — every input that is supposed to be
+frozen, so a change in one is a real event. The three game stores are **not** stamped and the artifact
+lists them under `provenance.unstamped_inputs` with the reason: they are append-only, the collector
+runs hourly, and their digest changes every hour by construction. Stamping them would hang a permanent
+mismatch on the artifact, which is §5a's "mtime cries wolf" wearing a hash. The instrument for an
+append-only corpus is the declared count, and that is what `corpus.clean_games` is for.
+
+One more small trap, recorded because it is generic: `run_stamp.sourceDigests()` adds a prose `note`
+key to the map it returns, and `provenance.js` iterates every key of `source_digests` as a path to
+re-hash. Left in, it prints *"stamped input note cannot be read to verify"* on every run. The
+generator deletes it and carries the prose in `source_digests_note` instead.
+
+**Living-docs obligations this pass did NOT discharge**, because the dispatch scoped the write to two
+files and forbade `status.js --write`: the CHANGELOG entry and version bump, and whether `SUMMARY.md`
+or the white paper should carry the §1.3 correction. `docs/ROADMAP.md` §1.3 itself is unedited — the
+rewrite is specified in 19f and is the router's call to place.
+
 ## Running the backtest
 
 ```bash

@@ -1,0 +1,2268 @@
+{
+ "generated": "2026-08-06T07:54:22.246Z",
+ "generator": "build/strong_player_baseline.js",
+ "void": false,
+ "n_measured": 171801,
+ "n_unit": "protocol moves on the corpus side; weighted team slots on the Smogon side",
+ "what_this_is": "A baseline for what STRONG players do, built from Smogon aggregate ladder statistics plus this repository's own stores. It reads no leaf, no policy weights and no simulator, so an engine release or a MAG refit does not invalidate it. A new Smogon month or a change to data/quality-filter.json does.",
+ "scope": {
+  "supports": [
+   "What strong players BRING: species usage at four skill weightings of the same battles.",
+   "What strong players RUN: ability, item, spread and move frequencies WITHIN a species.",
+   "Composition-level comparison against our own stores; both sides are team-level frequencies."
+  ],
+  "cannot_support": [
+   "Any per-turn behaviour rate. These files hold no turn, no position, no opponent and no click. ROADMAP §1.3's three metrics — outright failed, hit an immune target, super effective — are per-turn rates and have NO Smogon counterpart at any cutoff.",
+   "Any individual game or any single decision.",
+   "Any statement about a SUBSET of players — see weighting_not_subset below.",
+   "A rating-scale mapping. Nothing here establishes that the cutoff numbers are the same ruler as the Showdown |player| rating field, so no number-to-number comparison is made. The corpora are located on the cutoff axis by COMPOSITION, which is scale-free."
+  ],
+  "consequence_for_ROADMAP_1_3": "The 1630 weighting cannot supply §1.3's \"real humans\" column at any cutoff. The baseline it CAN supply is a different question — bring and build, not click — reported below in its own terms rather than fudged onto §1.3's axis."
+ },
+ "weighting_not_subset": {
+  "species_cutoff_pairs_checked": 3117,
+  "raw_count_mismatches": 0,
+  "usage_rows_checked": 3720,
+  "usage_raw_mismatches": 0,
+  "verdict": "CONFIRMED — every cutoff of a month reports identical raw counts; only Avg. weight moves."
+ },
+ "cutoff_gradient": {
+  "exists": true,
+  "inventory": [
+   {
+    "month": "2026-06",
+    "format": "gen9championsvgc2026regmb",
+    "cutoff": 0,
+    "total_battles": 1163315,
+    "avg_weight_per_team": 1,
+    "effective_team_slots": 2326630,
+    "species_in_moveset": 305
+   },
+   {
+    "month": "2026-06",
+    "format": "gen9championsvgc2026regmb",
+    "cutoff": 1500,
+    "total_battles": 1163315,
+    "avg_weight_per_team": 0.533,
+    "effective_team_slots": 1240094,
+    "species_in_moveset": 299
+   },
+   {
+    "month": "2026-06",
+    "format": "gen9championsvgc2026regmb",
+    "cutoff": 1630,
+    "total_battles": 1163315,
+    "avg_weight_per_team": 0.078,
+    "effective_team_slots": 181477,
+    "species_in_moveset": 283
+   },
+   {
+    "month": "2026-06",
+    "format": "gen9championsvgc2026regmb",
+    "cutoff": 1760,
+    "total_battles": 1163315,
+    "avg_weight_per_team": 0.004,
+    "effective_team_slots": 9307,
+    "species_in_moveset": 275
+   },
+   {
+    "month": "2026-06",
+    "format": "gen9championsvgc2026regmbbo3",
+    "cutoff": 0,
+    "total_battles": 119911,
+    "avg_weight_per_team": 1,
+    "effective_team_slots": 239822,
+    "species_in_moveset": 299
+   },
+   {
+    "month": "2026-06",
+    "format": "gen9championsvgc2026regmbbo3",
+    "cutoff": 1500,
+    "total_battles": 119911,
+    "avg_weight_per_team": 0.605,
+    "effective_team_slots": 145092,
+    "species_in_moveset": 281
+   },
+   {
+    "month": "2026-06",
+    "format": "gen9championsvgc2026regmbbo3",
+    "cutoff": 1630,
+    "total_battles": 119911,
+    "avg_weight_per_team": 0.167,
+    "effective_team_slots": 40050,
+    "species_in_moveset": 224
+   },
+   {
+    "month": "2026-06",
+    "format": "gen9championsvgc2026regmbbo3",
+    "cutoff": 1760,
+    "total_battles": 119911,
+    "avg_weight_per_team": 0.021,
+    "effective_team_slots": 5036,
+    "species_in_moveset": 198
+   },
+   {
+    "month": "2026-07",
+    "format": "gen9championsvgc2026regmb",
+    "cutoff": 0,
+    "total_battles": 1764686,
+    "avg_weight_per_team": 1,
+    "effective_team_slots": 3529372,
+    "species_in_moveset": 308
+   },
+   {
+    "month": "2026-07",
+    "format": "gen9championsvgc2026regmb",
+    "cutoff": 1500,
+    "total_battles": 1764686,
+    "avg_weight_per_team": 0.512,
+    "effective_team_slots": 1807038,
+    "species_in_moveset": 302
+   },
+   {
+    "month": "2026-07",
+    "format": "gen9championsvgc2026regmb",
+    "cutoff": 1630,
+    "total_battles": 1764686,
+    "avg_weight_per_team": 0.068,
+    "effective_team_slots": 239997,
+    "species_in_moveset": 284
+   },
+   {
+    "month": "2026-07",
+    "format": "gen9championsvgc2026regmb",
+    "cutoff": 1760,
+    "total_battles": 1764686,
+    "avg_weight_per_team": 0.002,
+    "effective_team_slots": 7059,
+    "species_in_moveset": 282
+   },
+   {
+    "month": "2026-07",
+    "format": "gen9championsvgc2026regmbbo3",
+    "cutoff": 0,
+    "total_battles": 200850,
+    "avg_weight_per_team": 1,
+    "effective_team_slots": 401700,
+    "species_in_moveset": 300
+   },
+   {
+    "month": "2026-07",
+    "format": "gen9championsvgc2026regmbbo3",
+    "cutoff": 1500,
+    "total_battles": 200850,
+    "avg_weight_per_team": 0.668,
+    "effective_team_slots": 268336,
+    "species_in_moveset": 280
+   },
+   {
+    "month": "2026-07",
+    "format": "gen9championsvgc2026regmbbo3",
+    "cutoff": 1630,
+    "total_battles": 200850,
+    "avg_weight_per_team": 0.252,
+    "effective_team_slots": 101228,
+    "species_in_moveset": 225
+   },
+   {
+    "month": "2026-07",
+    "format": "gen9championsvgc2026regmbbo3",
+    "cutoff": 1760,
+    "total_battles": 200850,
+    "avg_weight_per_team": 0.04,
+    "effective_team_slots": 16068,
+    "species_in_moveset": 184
+   }
+  ],
+  "effective_sample_size": {
+   "rule": "n_eff = Raw count x Avg. weight, per species per cutoff.",
+   "why_conservative": "Smogon weights are in [0,1], so sum(w^2) <= sum(w) and the true effective sample (sum w)^2 / sum(w^2) is at least sum(w). Intervals are too WIDE, not too narrow.",
+   "offsetting_hazard": "The independent unit is a PLAYER, and one strong player contributes many battles. That pushes the other way and the files cannot measure it. Not corrected for."
+  },
+  "usage_l1_within_month": {
+   "0_vs_1500": 69.39,
+   "0_vs_1630": 151.57,
+   "0_vs_1760": 194.98,
+   "1630_vs_1760": 70.58
+  },
+  "usage_l1_noise_floor_same_cutoff_across_month": {
+   "cutoff0_2026-06_vs_2026-07": 140.92,
+   "cutoff1500_2026-06_vs_2026-07": 156.01,
+   "cutoff1630_2026-06_vs_2026-07": 171.94,
+   "cutoff1760_2026-06_vs_2026-07": 188.46
+  },
+  "noise_floor_note": "The month-to-month figure at a FIXED cutoff is an UPPER bound on a noise floor: it contains real metagame drift as well as sampling. A cutoff contrast that exceeds it is real a fortiori; one that does not is NOT distinguishable from the whole ladder.",
+  "n_eff_team_slots": {
+   "0": 3529372,
+   "1500": 1807038,
+   "1630": 239997,
+   "1760": 7059
+  },
+  "largest_movers": [
+   {
+    "species": "Charizard-Mega-Y",
+    "usage_by_cutoff": [
+     15.69,
+     18.75,
+     23.46,
+     30.58
+    ],
+    "delta_0_to_1760": 14.89,
+    "ci95": [
+     13.81,
+     15.96
+    ],
+    "monotone": true
+   },
+   {
+    "species": "Kingambit",
+    "usage_by_cutoff": [
+     23.4,
+     27.61,
+     33.84,
+     36.79
+    ],
+    "delta_0_to_1760": 13.39,
+    "ci95": [
+     12.27,
+     14.52
+    ],
+    "monotone": true
+   },
+   {
+    "species": "Basculegion",
+    "usage_by_cutoff": [
+     21.2,
+     23.85,
+     26.95,
+     30.22
+    ],
+    "delta_0_to_1760": 9.02,
+    "ci95": [
+     7.95,
+     10.09
+    ],
+    "monotone": true
+   },
+   {
+    "species": "Garchomp",
+    "usage_by_cutoff": [
+     25.75,
+     28.36,
+     29.9,
+     33.19
+    ],
+    "delta_0_to_1760": 7.44,
+    "ci95": [
+     6.34,
+     8.54
+    ],
+    "monotone": true
+   },
+   {
+    "species": "Floette-Mega",
+    "usage_by_cutoff": [
+     8.1,
+     9.3,
+     12.15,
+     15.02
+    ],
+    "delta_0_to_1760": 6.92,
+    "ci95": [
+     6.08,
+     7.75
+    ],
+    "monotone": true
+   },
+   {
+    "species": "Incineroar",
+    "usage_by_cutoff": [
+     27.07,
+     28.35,
+     31.47,
+     33.95
+    ],
+    "delta_0_to_1760": 6.88,
+    "ci95": [
+     5.77,
+     7.98
+    ],
+    "monotone": true
+   },
+   {
+    "species": "Aerodactyl-Mega",
+    "usage_by_cutoff": [
+     5.13,
+     6.23,
+     8.68,
+     9.9
+    ],
+    "delta_0_to_1760": 4.77,
+    "ci95": [
+     4.08,
+     5.47
+    ],
+    "monotone": true
+   },
+   {
+    "species": "Sylveon",
+    "usage_by_cutoff": [
+     12.71,
+     14.99,
+     15.56,
+     17.47
+    ],
+    "delta_0_to_1760": 4.76,
+    "ci95": [
+     3.87,
+     5.64
+    ],
+    "monotone": true
+   },
+   {
+    "species": "Sneasler",
+    "usage_by_cutoff": [
+     16.78,
+     17.44,
+     19.53,
+     20.9
+    ],
+    "delta_0_to_1760": 4.12,
+    "ci95": [
+     3.17,
+     5.07
+    ],
+    "monotone": true
+   },
+   {
+    "species": "Blastoise-Mega",
+    "usage_by_cutoff": [
+     5.18,
+     6.02,
+     8.33,
+     8.51
+    ],
+    "delta_0_to_1760": 3.34,
+    "ci95": [
+     2.68,
+     3.99
+    ],
+    "monotone": true
+   },
+   {
+    "species": "Sableye",
+    "usage_by_cutoff": [
+     6.52,
+     5.41,
+     3.76,
+     3.36
+    ],
+    "delta_0_to_1760": -3.17,
+    "ci95": [
+     -3.59,
+     -2.74
+    ],
+    "monotone": true
+   },
+   {
+    "species": "Venusaur",
+    "usage_by_cutoff": [
+     4.55,
+     4.9,
+     6.07,
+     7.37
+    ],
+    "delta_0_to_1760": 2.82,
+    "ci95": [
+     2.21,
+     3.43
+    ],
+    "monotone": true
+   },
+   {
+    "species": "Torkoal",
+    "usage_by_cutoff": [
+     8.42,
+     8.27,
+     7.25,
+     6.07
+    ],
+    "delta_0_to_1760": -2.35,
+    "ci95": [
+     -2.91,
+     -1.79
+    ],
+    "monotone": true
+   },
+   {
+    "species": "Delphox-Mega",
+    "usage_by_cutoff": [
+     6.29,
+     7.07,
+     8.86,
+     8.65
+    ],
+    "delta_0_to_1760": 2.35,
+    "ci95": [
+     1.7,
+     3.01
+    ],
+    "monotone": false
+   },
+   {
+    "species": "Archaludon",
+    "usage_by_cutoff": [
+     12.11,
+     12.51,
+     13.38,
+     14.27
+    ],
+    "delta_0_to_1760": 2.17,
+    "ci95": [
+     1.35,
+     2.98
+    ],
+    "monotone": true
+   }
+  ],
+  "n_significant": "83 of 104 species at >=1% base usage have a 0->1760 interval excluding zero",
+  "composition_within_species": {
+   "unit": "total variation distance in percentage points, cutoff 0 vs 1760, over the INTERSECTION of the two listed key sets. A key absent from one list is below that list's reporting floor and folded into \"Other\"; scoring it as 0% manufactures a spurious gradient.",
+   "means_over_top20_by_raw_count": {
+    "abilities": {
+     "cutoff_gradient": 1.63,
+     "month_noise": 5.12,
+     "mass_unlisted_at_1760": 0
+    },
+    "items": {
+     "cutoff_gradient": 6.98,
+     "month_noise": 4.99,
+     "mass_unlisted_at_1760": 3.14
+    },
+    "moves": {
+     "cutoff_gradient": 17.89,
+     "month_noise": 11.52,
+     "mass_unlisted_at_1760": 10.82
+    },
+    "spreads": {
+     "cutoff_gradient": 9.17,
+     "month_noise": 3.72,
+     "mass_unlisted_at_1760": 8.66
+    }
+   },
+   "top20_by_raw_count": [
+    {
+     "species": "Sinistcha",
+     "raw_count": 1088092,
+     "n_eff_cut0": 1088092,
+     "n_eff_cut1760": 2470,
+     "abilities": {
+      "cutoff_gradient": 0.48,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0.23
+     },
+     "items": {
+      "cutoff_gradient": 14.41,
+      "mass_unlisted_at_1760": 3.42,
+      "month_noise": 9.46
+     },
+     "moves": {
+      "cutoff_gradient": 20.74,
+      "mass_unlisted_at_1760": 12.94,
+      "month_noise": 8.72
+     },
+     "spreads": {
+      "cutoff_gradient": 9.27,
+      "mass_unlisted_at_1760": 8.9,
+      "month_noise": 3.85
+     }
+    },
+    {
+     "species": "Incineroar",
+     "raw_count": 1064474,
+     "n_eff_cut0": 1064474,
+     "n_eff_cut1760": 3199,
+     "abilities": {
+      "cutoff_gradient": 0.61,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0.18
+     },
+     "items": {
+      "cutoff_gradient": 7.69,
+      "mass_unlisted_at_1760": 4.91,
+      "month_noise": 6.99
+     },
+     "moves": {
+      "cutoff_gradient": 11.79,
+      "mass_unlisted_at_1760": 7.74,
+      "month_noise": 9.22
+     },
+     "spreads": {
+      "cutoff_gradient": 4.57,
+      "mass_unlisted_at_1760": 6.97,
+      "month_noise": 1.57
+     }
+    },
+    {
+     "species": "Garchomp",
+     "raw_count": 1009423,
+     "n_eff_cut0": 1009423,
+     "n_eff_cut1760": 3143,
+     "abilities": {
+      "cutoff_gradient": 2.27,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0.88
+     },
+     "items": {
+      "cutoff_gradient": 4.87,
+      "mass_unlisted_at_1760": 5.82,
+      "month_noise": 6.85
+     },
+     "moves": {
+      "cutoff_gradient": 11.75,
+      "mass_unlisted_at_1760": 10.43,
+      "month_noise": 8.9
+     },
+     "spreads": {
+      "cutoff_gradient": 8.45,
+      "mass_unlisted_at_1760": 3.83,
+      "month_noise": 3.09
+     }
+    },
+    {
+     "species": "Kingambit",
+     "raw_count": 917610,
+     "n_eff_cut0": 917610,
+     "n_eff_cut1760": 3495,
+     "abilities": {
+      "cutoff_gradient": 5.28,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 2.71
+     },
+     "items": {
+      "cutoff_gradient": 4.83,
+      "mass_unlisted_at_1760": 1.88,
+      "month_noise": 4.91
+     },
+     "moves": {
+      "cutoff_gradient": 13.05,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 9
+     },
+     "spreads": {
+      "cutoff_gradient": 13.17,
+      "mass_unlisted_at_1760": 3.25,
+      "month_noise": 2.78
+     }
+    },
+    {
+     "species": "Whimsicott",
+     "raw_count": 915119,
+     "n_eff_cut0": 915119,
+     "n_eff_cut1760": 2134,
+     "abilities": {
+      "cutoff_gradient": 0.81,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0.59
+     },
+     "items": {
+      "cutoff_gradient": 5.46,
+      "mass_unlisted_at_1760": 4.25,
+      "month_noise": 1.69
+     },
+     "moves": {
+      "cutoff_gradient": 24.58,
+      "mass_unlisted_at_1760": 19.78,
+      "month_noise": 14.82
+     },
+     "spreads": {
+      "cutoff_gradient": 9.91,
+      "mass_unlisted_at_1760": 7.22,
+      "month_noise": 5.84
+     }
+    },
+    {
+     "species": "Basculegion",
+     "raw_count": 829761,
+     "n_eff_cut0": 829761,
+     "n_eff_cut1760": 2855,
+     "abilities": {
+      "cutoff_gradient": 3.18,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 2.5
+     },
+     "items": {
+      "cutoff_gradient": 12.44,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 7.53
+     },
+     "moves": {
+      "cutoff_gradient": 16.44,
+      "mass_unlisted_at_1760": 9.47,
+      "month_noise": 8.47
+     },
+     "spreads": {
+      "cutoff_gradient": 13.4,
+      "mass_unlisted_at_1760": 2.7,
+      "month_noise": 5.78
+     }
+    },
+    {
+     "species": "Farigiraf",
+     "raw_count": 797507,
+     "n_eff_cut0": 797507,
+     "n_eff_cut1760": 1935,
+     "abilities": {
+      "cutoff_gradient": 1.31,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0.2
+     },
+     "items": {
+      "cutoff_gradient": 17.51,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 4.19
+     },
+     "moves": {
+      "cutoff_gradient": 29.61,
+      "mass_unlisted_at_1760": 17.34,
+      "month_noise": 17.68
+     },
+     "spreads": {
+      "cutoff_gradient": 4.36,
+      "mass_unlisted_at_1760": 5.82,
+      "month_noise": 1.11
+     }
+    },
+    {
+     "species": "Sneasler",
+     "raw_count": 661585,
+     "n_eff_cut0": 661585,
+     "n_eff_cut1760": 1983,
+     "abilities": {
+      "cutoff_gradient": 13.75,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 15.3
+     },
+     "items": {
+      "cutoff_gradient": 13.88,
+      "mass_unlisted_at_1760": 3.47,
+      "month_noise": 14.18
+     },
+     "moves": {
+      "cutoff_gradient": 27.97,
+      "mass_unlisted_at_1760": 10.4,
+      "month_noise": 22.4
+     },
+     "spreads": {
+      "cutoff_gradient": 11.99,
+      "mass_unlisted_at_1760": 7.63,
+      "month_noise": 5.78
+     }
+    },
+    {
+     "species": "Charizard-Mega-Y",
+     "raw_count": 611903,
+     "n_eff_cut0": 611903,
+     "n_eff_cut1760": 2893,
+     "abilities": {
+      "cutoff_gradient": 0,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0
+     },
+     "items": {
+      "cutoff_gradient": 0,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0
+     },
+     "moves": {
+      "cutoff_gradient": 10.55,
+      "mass_unlisted_at_1760": 8.09,
+      "month_noise": 6.8
+     },
+     "spreads": {
+      "cutoff_gradient": 16.71,
+      "mass_unlisted_at_1760": 12.09,
+      "month_noise": 5.74
+     }
+    },
+    {
+     "species": "Pelipper",
+     "raw_count": 537939,
+     "n_eff_cut0": 537939,
+     "n_eff_cut1760": 1212,
+     "abilities": {
+      "cutoff_gradient": 0.4,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0.21
+     },
+     "items": {
+      "cutoff_gradient": 11.85,
+      "mass_unlisted_at_1760": 4.78,
+      "month_noise": 10.5
+     },
+     "moves": {
+      "cutoff_gradient": 9.84,
+      "mass_unlisted_at_1760": 15.88,
+      "month_noise": 9.47
+     },
+     "spreads": {
+      "cutoff_gradient": 5.83,
+      "mass_unlisted_at_1760": 10.38,
+      "month_noise": 4.73
+     }
+    },
+    {
+     "species": "Sylveon",
+     "raw_count": 498178,
+     "n_eff_cut0": 498178,
+     "n_eff_cut1760": 1658,
+     "abilities": {
+      "cutoff_gradient": 0.46,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0.42
+     },
+     "items": {
+      "cutoff_gradient": 11.91,
+      "mass_unlisted_at_1760": 1.48,
+      "month_noise": 9.18
+     },
+     "moves": {
+      "cutoff_gradient": 32.86,
+      "mass_unlisted_at_1760": 13.84,
+      "month_noise": 12.29
+     },
+     "spreads": {
+      "cutoff_gradient": 1.02,
+      "mass_unlisted_at_1760": 23.36,
+      "month_noise": 2.07
+     }
+    },
+    {
+     "species": "Archaludon",
+     "raw_count": 474260,
+     "n_eff_cut0": 474260,
+     "n_eff_cut1760": 1340,
+     "abilities": {
+      "cutoff_gradient": 2.25,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0.85
+     },
+     "items": {
+      "cutoff_gradient": 8.15,
+      "mass_unlisted_at_1760": 10.86,
+      "month_noise": 3.64
+     },
+     "moves": {
+      "cutoff_gradient": 16.91,
+      "mass_unlisted_at_1760": 12.92,
+      "month_noise": 5.61
+     },
+     "spreads": {
+      "cutoff_gradient": 3.88,
+      "mass_unlisted_at_1760": 7.04,
+      "month_noise": 2.54
+     }
+    },
+    {
+     "species": "Grimmsnarl",
+     "raw_count": 451109,
+     "n_eff_cut0": 451109,
+     "n_eff_cut1760": 968,
+     "abilities": {
+      "cutoff_gradient": 0.13,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0.31
+     },
+     "items": {
+      "cutoff_gradient": 5.71,
+      "mass_unlisted_at_1760": 8.32,
+      "month_noise": 5.36
+     },
+     "moves": {
+      "cutoff_gradient": 20.26,
+      "mass_unlisted_at_1760": 14.97,
+      "month_noise": 10.32
+     },
+     "spreads": {
+      "cutoff_gradient": 9.39,
+      "mass_unlisted_at_1760": 7.79,
+      "month_noise": 1.02
+     }
+    },
+    {
+     "species": "Staraptor-Mega",
+     "raw_count": 416683,
+     "n_eff_cut0": 416683,
+     "n_eff_cut1760": 1074,
+     "abilities": {
+      "cutoff_gradient": 0,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 40.69
+     },
+     "items": {
+      "cutoff_gradient": 0,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0
+     },
+     "moves": {
+      "cutoff_gradient": 15.26,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 13.04
+     },
+     "spreads": {
+      "cutoff_gradient": 6.49,
+      "mass_unlisted_at_1760": 16.74,
+      "month_noise": 6.29
+     }
+    },
+    {
+     "species": "Gholdengo",
+     "raw_count": 363450,
+     "n_eff_cut0": 363450,
+     "n_eff_cut1760": 872,
+     "abilities": {
+      "cutoff_gradient": 0,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0
+     },
+     "items": {
+      "cutoff_gradient": 6.42,
+      "mass_unlisted_at_1760": 5.27,
+      "month_noise": 3.95
+     },
+     "moves": {
+      "cutoff_gradient": 8.01,
+      "mass_unlisted_at_1760": 19.62,
+      "month_noise": 6.03
+     },
+     "spreads": {
+      "cutoff_gradient": 8.82,
+      "mass_unlisted_at_1760": 8.26,
+      "month_noise": 3.37
+     }
+    },
+    {
+     "species": "Torkoal",
+     "raw_count": 335414,
+     "n_eff_cut0": 335414,
+     "n_eff_cut1760": 590,
+     "abilities": {
+      "cutoff_gradient": 0.36,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0.16
+     },
+     "items": {
+      "cutoff_gradient": 6.14,
+      "mass_unlisted_at_1760": 2.4,
+      "month_noise": 2.9
+     },
+     "moves": {
+      "cutoff_gradient": 22.35,
+      "mass_unlisted_at_1760": 7.21,
+      "month_noise": 12.5
+     },
+     "spreads": {
+      "cutoff_gradient": 15,
+      "mass_unlisted_at_1760": 2.02,
+      "month_noise": 2.23
+     }
+    },
+    {
+     "species": "Milotic",
+     "raw_count": 325142,
+     "n_eff_cut0": 325142,
+     "n_eff_cut1760": 667,
+     "abilities": {
+      "cutoff_gradient": 1.39,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0.47
+     },
+     "items": {
+      "cutoff_gradient": 8.33,
+      "mass_unlisted_at_1760": 5.91,
+      "month_noise": 8.42
+     },
+     "moves": {
+      "cutoff_gradient": 23.07,
+      "mass_unlisted_at_1760": 6.5,
+      "month_noise": 18.62
+     },
+     "spreads": {
+      "cutoff_gradient": 10.62,
+      "mass_unlisted_at_1760": 7.76,
+      "month_noise": 2.38
+     }
+    },
+    {
+     "species": "Raichu-Mega-Y",
+     "raw_count": 319261,
+     "n_eff_cut0": 319261,
+     "n_eff_cut1760": 658,
+     "abilities": {
+      "cutoff_gradient": 0,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 36.76
+     },
+     "items": {
+      "cutoff_gradient": 0,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0
+     },
+     "moves": {
+      "cutoff_gradient": 12.98,
+      "mass_unlisted_at_1760": 8.59,
+      "month_noise": 14.19
+     },
+     "spreads": {
+      "cutoff_gradient": 15.34,
+      "mass_unlisted_at_1760": 13.32,
+      "month_noise": 8.68
+     }
+    },
+    {
+     "species": "Floette-Mega",
+     "raw_count": 316361,
+     "n_eff_cut0": 316361,
+     "n_eff_cut1760": 1412,
+     "abilities": {
+      "cutoff_gradient": 0,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0
+     },
+     "items": {
+      "cutoff_gradient": 0,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0
+     },
+     "moves": {
+      "cutoff_gradient": 17.85,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 8.83
+     },
+     "spreads": {
+      "cutoff_gradient": 10.13,
+      "mass_unlisted_at_1760": 5.43,
+      "month_noise": 0.98
+     }
+    },
+    {
+     "species": "Swampert-Mega",
+     "raw_count": 305085,
+     "n_eff_cut0": 305085,
+     "n_eff_cut1760": 794,
+     "abilities": {
+      "cutoff_gradient": 0,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0
+     },
+     "items": {
+      "cutoff_gradient": 0,
+      "mass_unlisted_at_1760": 0,
+      "month_noise": 0
+     },
+     "moves": {
+      "cutoff_gradient": 11.88,
+      "mass_unlisted_at_1760": 20.68,
+      "month_noise": 13.58
+     },
+     "spreads": {
+      "cutoff_gradient": 5.13,
+      "mass_unlisted_at_1760": 12.66,
+      "month_noise": 4.52
+     }
+    }
+   ]
+  },
+  "cells": {
+   "items": {
+    "n_cells": 89,
+    "n_ci_excludes_zero": 56,
+    "n_also_exceeds_month_noise": 46,
+    "largest_12": [
+     {
+      "species": "Ninetales-Alola",
+      "key": "Never-Melt Ice",
+      "by_cutoff": [
+       29.717,
+       35.292,
+       44.322,
+       52.807
+      ],
+      "delta": 23.09,
+      "ci95": [
+       19.14,
+       27.04
+      ],
+      "month_noise_at_cut0": 10.35,
+      "n_eff_cut0": 233714,
+      "n_eff_cut1760": 615
+     },
+     {
+      "species": "Venusaur",
+      "key": "Life Orb",
+      "by_cutoff": [
+       36.637,
+       41.641,
+       47.365,
+       55.327
+      ],
+      "delta": 18.69,
+      "ci95": [
+       14.99,
+       22.39
+      ],
+      "month_noise_at_cut0": 12.35,
+      "n_eff_cut0": 178078,
+      "n_eff_cut1760": 696
+     },
+     {
+      "species": "Farigiraf",
+      "key": "Sitrus Berry",
+      "by_cutoff": [
+       55.505,
+       60.076,
+       67.54,
+       73.056
+      ],
+      "delta": 17.55,
+      "ci95": [
+       15.57,
+       19.53
+      ],
+      "month_noise_at_cut0": 4.92,
+      "n_eff_cut0": 797507,
+      "n_eff_cut1760": 1935
+     },
+     {
+      "species": "Sneasler",
+      "key": "Focus Sash",
+      "by_cutoff": [
+       34.949,
+       38.53,
+       48.51,
+       49.788
+      ],
+      "delta": 14.84,
+      "ci95": [
+       12.64,
+       17.04
+      ],
+      "month_noise_at_cut0": 12.86,
+      "n_eff_cut0": 661585,
+      "n_eff_cut1760": 1983
+     },
+     {
+      "species": "Ninetales-Alola",
+      "key": "Light Clay",
+      "by_cutoff": [
+       28.462,
+       23.203,
+       14.52,
+       13.643
+      ],
+      "delta": -14.82,
+      "ci95": [
+       -17.54,
+       -12.1
+      ],
+      "month_noise_at_cut0": 11.29,
+      "n_eff_cut0": 233714,
+      "n_eff_cut1760": 615
+     },
+     {
+      "species": "Sylveon",
+      "key": "Fairy Feather",
+      "by_cutoff": [
+       78.494,
+       77.262,
+       90.801,
+       91.985
+      ],
+      "delta": 13.49,
+      "ci95": [
+       12.18,
+       14.8
+      ],
+      "month_noise_at_cut0": 8.28,
+      "n_eff_cut0": 498178,
+      "n_eff_cut1760": 1658
+     },
+     {
+      "species": "Pelipper",
+      "key": "Sitrus Berry",
+      "by_cutoff": [
+       32.393,
+       36.091,
+       45.798,
+       45.081
+      ],
+      "delta": 12.69,
+      "ci95": [
+       9.88,
+       15.49
+      ],
+      "month_noise_at_cut0": 9.23,
+      "n_eff_cut0": 537939,
+      "n_eff_cut1760": 1212
+     },
+     {
+      "species": "Archaludon",
+      "key": "Leftovers",
+      "by_cutoff": [
+       76.582,
+       81.986,
+       87.4,
+       88.679
+      ],
+      "delta": 12.1,
+      "ci95": [
+       10.4,
+       13.8
+      ],
+      "month_noise_at_cut0": 3.3,
+      "n_eff_cut0": 474260,
+      "n_eff_cut1760": 1340
+     },
+     {
+      "species": "Basculegion",
+      "key": "Choice Scarf",
+      "by_cutoff": [
+       49.054,
+       52.052,
+       44.583,
+       37.271
+      ],
+      "delta": -11.78,
+      "ci95": [
+       -13.56,
+       -10.01
+      ],
+      "month_noise_at_cut0": 7.7,
+      "n_eff_cut0": 829761,
+      "n_eff_cut1760": 2855
+     },
+     {
+      "species": "Sneasler",
+      "key": "White Herb",
+      "by_cutoff": [
+       56.29,
+       53.956,
+       45.245,
+       44.713
+      ],
+      "delta": -11.58,
+      "ci95": [
+       -13.77,
+       -9.39
+      ],
+      "month_noise_at_cut0": 13.82,
+      "n_eff_cut0": 661585,
+      "n_eff_cut1760": 1983
+     },
+     {
+      "species": "Milotic",
+      "key": "Sitrus Berry",
+      "by_cutoff": [
+       19.914,
+       23.143,
+       31.676,
+       31.088
+      ],
+      "delta": 11.17,
+      "ci95": [
+       7.66,
+       14.69
+      ],
+      "month_noise_at_cut0": 8.1,
+      "n_eff_cut0": 325142,
+      "n_eff_cut1760": 667
+     },
+     {
+      "species": "Sylveon",
+      "key": "Life Orb",
+      "by_cutoff": [
+       15.948,
+       18.425,
+       5.772,
+       5.62
+      ],
+      "delta": -10.33,
+      "ci95": [
+       -11.44,
+       -9.21
+      ],
+      "month_noise_at_cut0": 9.32,
+      "n_eff_cut0": 498178,
+      "n_eff_cut1760": 1658
+     }
+    ]
+   },
+   "moves": {
+    "n_cells": 194,
+    "n_ci_excludes_zero": 165,
+    "n_also_exceeds_month_noise": 131,
+    "largest_12": [
+     {
+      "species": "Ninetales-Alola",
+      "key": "Aurora Veil",
+      "by_cutoff": [
+       58.734,
+       48.98,
+       35.55,
+       37.126
+      ],
+      "delta": -21.61,
+      "ci95": [
+       -25.43,
+       -17.78
+      ],
+      "month_noise_at_cut0": 10.29,
+      "n_eff_cut0": 233714,
+      "n_eff_cut1760": 615
+     },
+     {
+      "species": "Sylveon",
+      "key": "Detect",
+      "by_cutoff": [
+       44.358,
+       47,
+       60.687,
+       63.836
+      ],
+      "delta": 19.48,
+      "ci95": [
+       17.16,
+       21.79
+      ],
+      "month_noise_at_cut0": 0.23,
+      "n_eff_cut0": 498178,
+      "n_eff_cut1760": 1658
+     },
+     {
+      "species": "Torkoal",
+      "key": "Weather Ball",
+      "by_cutoff": [
+       51.052,
+       61.194,
+       71.65,
+       69.525
+      ],
+      "delta": 18.47,
+      "ci95": [
+       14.75,
+       22.19
+      ],
+      "month_noise_at_cut0": 4.47,
+      "n_eff_cut0": 335414,
+      "n_eff_cut1760": 590
+     },
+     {
+      "species": "Whimsicott",
+      "key": "Protect",
+      "by_cutoff": [
+       53.324,
+       56.56,
+       64.338,
+       71.174
+      ],
+      "delta": 17.85,
+      "ci95": [
+       15.93,
+       19.77
+      ],
+      "month_noise_at_cut0": 4.32,
+      "n_eff_cut0": 915119,
+      "n_eff_cut1760": 2134
+     },
+     {
+      "species": "Sylveon",
+      "key": "Protect",
+      "by_cutoff": [
+       52.744,
+       51.336,
+       37.906,
+       35.054
+      ],
+      "delta": -17.69,
+      "ci95": [
+       -19.99,
+       -15.39
+      ],
+      "month_noise_at_cut0": 1.3,
+      "n_eff_cut0": 498178,
+      "n_eff_cut1760": 1658
+     },
+     {
+      "species": "Farigiraf",
+      "key": "Thunderbolt",
+      "by_cutoff": [
+       42.006,
+       48.502,
+       56.24,
+       59.176
+      ],
+      "delta": 17.17,
+      "ci95": [
+       14.98,
+       19.36
+      ],
+      "month_noise_at_cut0": 14.01,
+      "n_eff_cut0": 797507,
+      "n_eff_cut1760": 1935
+     },
+     {
+      "species": "Sneasler",
+      "key": "Quick Guard",
+      "by_cutoff": [
+       14.379,
+       18.056,
+       27.725,
+       30.355
+      ],
+      "delta": 15.98,
+      "ci95": [
+       13.95,
+       18
+      ],
+      "month_noise_at_cut0": null,
+      "n_eff_cut0": 661585,
+      "n_eff_cut1760": 1983
+     },
+     {
+      "species": "Ninetales-Alola",
+      "key": "Encore",
+      "by_cutoff": [
+       30.788,
+       36.337,
+       46.586,
+       46.697
+      ],
+      "delta": 15.91,
+      "ci95": [
+       11.96,
+       19.86
+      ],
+      "month_noise_at_cut0": 2.3,
+      "n_eff_cut0": 233714,
+      "n_eff_cut1760": 615
+     },
+     {
+      "species": "Sneasler",
+      "key": "Dire Claw",
+      "by_cutoff": [
+       78.848,
+       74.156,
+       65.777,
+       63.042
+      ],
+      "delta": -15.81,
+      "ci95": [
+       -17.93,
+       -13.68
+      ],
+      "month_noise_at_cut0": 13.19,
+      "n_eff_cut0": 661585,
+      "n_eff_cut1760": 1983
+     },
+     {
+      "species": "Ninetales-Alola",
+      "key": "Moonblast",
+      "by_cutoff": [
+       33.749,
+       31.142,
+       22.955,
+       18.135
+      ],
+      "delta": -15.61,
+      "ci95": [
+       -18.67,
+       -12.56
+      ],
+      "month_noise_at_cut0": 7.96,
+      "n_eff_cut0": 233714,
+      "n_eff_cut1760": 615
+     },
+     {
+      "species": "Staraptor-Mega",
+      "key": "Tailwind",
+      "by_cutoff": [
+       23.387,
+       26.365,
+       34.375,
+       38.307
+      ],
+      "delta": 14.92,
+      "ci95": [
+       12.01,
+       17.83
+      ],
+      "month_noise_at_cut0": 12.99,
+      "n_eff_cut0": 416683,
+      "n_eff_cut1760": 1074
+     },
+     {
+      "species": "Metagross-Mega",
+      "key": "Body Press",
+      "by_cutoff": [
+       23.709,
+       27.463,
+       32.994,
+       38.506
+      ],
+      "delta": 14.8,
+      "ci95": [
+       11.1,
+       18.5
+      ],
+      "month_noise_at_cut0": 2.24,
+      "n_eff_cut0": 283164,
+      "n_eff_cut1760": 666
+     }
+    ]
+   },
+   "abilities": {
+    "n_cells": 56,
+    "n_ci_excludes_zero": 34,
+    "n_also_exceeds_month_noise": 30,
+    "largest_12": [
+     {
+      "species": "Sneasler",
+      "key": "Poison Touch",
+      "by_cutoff": [
+       29.037,
+       32.958,
+       42.277,
+       42.791
+      ],
+      "delta": 13.75,
+      "ci95": [
+       11.57,
+       15.93
+      ],
+      "month_noise_at_cut0": 15.3,
+      "n_eff_cut0": 661585,
+      "n_eff_cut1760": 1983
+     },
+     {
+      "species": "Sneasler",
+      "key": "Unburden",
+      "by_cutoff": [
+       68.922,
+       65.514,
+       56.842,
+       56.471
+      ],
+      "delta": -12.45,
+      "ci95": [
+       -14.64,
+       -10.27
+      ],
+      "month_noise_at_cut0": 14.34,
+      "n_eff_cut0": 661585,
+      "n_eff_cut1760": 1983
+     },
+     {
+      "species": "Kingambit",
+      "key": "Defiant",
+      "by_cutoff": [
+       93.888,
+       98.436,
+       98.938,
+       99.168
+      ],
+      "delta": 5.28,
+      "ci95": [
+       4.97,
+       5.59
+      ],
+      "month_noise_at_cut0": 2.71,
+      "n_eff_cut0": 917610,
+      "n_eff_cut1760": 3495
+     },
+     {
+      "species": "Kingambit",
+      "key": "Supreme Overlord",
+      "by_cutoff": [
+       6.052,
+       1.545,
+       1.051,
+       0.832
+      ],
+      "delta": -5.22,
+      "ci95": [
+       -5.53,
+       -4.91
+      ],
+      "month_noise_at_cut0": 2.71,
+      "n_eff_cut0": 917610,
+      "n_eff_cut1760": 3495
+     },
+     {
+      "species": "Basculegion",
+      "key": "Adaptability",
+      "by_cutoff": [
+       90.145,
+       92.297,
+       93.136,
+       93.327
+      ],
+      "delta": 3.18,
+      "ci95": [
+       2.26,
+       4.1
+      ],
+      "month_noise_at_cut0": 2.5,
+      "n_eff_cut0": 829761,
+      "n_eff_cut1760": 2855
+     },
+     {
+      "species": "Basculegion",
+      "key": "Swift Swim",
+      "by_cutoff": [
+       9.667,
+       7.591,
+       6.75,
+       6.656
+      ],
+      "delta": -3.01,
+      "ci95": [
+       -3.93,
+       -2.09
+      ],
+      "month_noise_at_cut0": 2.46,
+      "n_eff_cut0": 829761,
+      "n_eff_cut1760": 2855
+     },
+     {
+      "species": "Garchomp",
+      "key": "Rough Skin",
+      "by_cutoff": [
+       95.386,
+       96.409,
+       97.562,
+       97.651
+      ],
+      "delta": 2.27,
+      "ci95": [
+       1.73,
+       2.8
+      ],
+      "month_noise_at_cut0": 0.88,
+      "n_eff_cut0": 1009423,
+      "n_eff_cut1760": 3143
+     },
+     {
+      "species": "Garchomp",
+      "key": "Sand Veil",
+      "by_cutoff": [
+       4.614,
+       3.591,
+       2.438,
+       2.349
+      ],
+      "delta": -2.27,
+      "ci95": [
+       -2.8,
+       -1.73
+      ],
+      "month_noise_at_cut0": 0.88,
+      "n_eff_cut0": 1009423,
+      "n_eff_cut1760": 3143
+     },
+     {
+      "species": "Archaludon",
+      "key": "Stalwart",
+      "by_cutoff": [
+       3.111,
+       2.644,
+       1.646,
+       0.861
+      ],
+      "delta": -2.25,
+      "ci95": [
+       -2.75,
+       -1.75
+      ],
+      "month_noise_at_cut0": 0.3,
+      "n_eff_cut0": 474260,
+      "n_eff_cut1760": 1340
+     },
+     {
+      "species": "Archaludon",
+      "key": "Stamina",
+      "by_cutoff": [
+       92.981,
+       93.057,
+       93.484,
+       94.593
+      ],
+      "delta": 1.61,
+      "ci95": [
+       0.4,
+       2.83
+      ],
+      "month_noise_at_cut0": 0.85,
+      "n_eff_cut0": 474260,
+      "n_eff_cut1760": 1340
+     },
+     {
+      "species": "Milotic",
+      "key": "Competitive",
+      "by_cutoff": [
+       97.616,
+       98.521,
+       99.035,
+       99.009
+      ],
+      "delta": 1.39,
+      "ci95": [
+       0.64,
+       2.15
+      ],
+      "month_noise_at_cut0": 0.47,
+      "n_eff_cut0": 325142,
+      "n_eff_cut1760": 667
+     },
+     {
+      "species": "Farigiraf",
+      "key": "Armor Tail",
+      "by_cutoff": [
+       97.803,
+       98.49,
+       99.062,
+       99.114
+      ],
+      "delta": 1.31,
+      "ci95": [
+       0.89,
+       1.73
+      ],
+      "month_noise_at_cut0": 0.11,
+      "n_eff_cut0": 797507,
+      "n_eff_cut1760": 1935
+     }
+    ]
+   }
+  }
+ },
+ "where_our_corpora_sit": {
+  "method": "L1 between a corpus's team-composition vector (% of clean player-slots whose team-preview six contains the species; mega formes collapsed to base on BOTH sides) and each Smogon cutoff weighting. Scale-free — it never compares a rating to a cutoff number.",
+  "caveat": "Each corpus carries its own split-half L1 noise floor from twelve cuts of the store. A cutoff difference smaller than that spread is not a difference.",
+  "corpora": {
+   "clean_ladder_closed_sheet": {
+    "store": "data/games.ladder.jsonl",
+    "clean_games": 8047,
+    "team_slots": 16094,
+    "date_range": [
+     "2026-07-22 10:11",
+     "2026-08-06 07:00"
+    ],
+    "rating": {
+     "n": 11852,
+     "p10": 1067,
+     "median": 1266,
+     "mean": 1286.3,
+     "p90": 1550,
+     "max": 1892,
+     "pct_ge_1400": 26.2,
+     "pct_ge_1500": 14.36
+    },
+    "l1_to_smogon": {
+     "2026-06": {
+      "0": 237.9,
+      "1500": 259.36,
+      "1630": 280.55,
+      "1760": 302.34
+     },
+     "2026-07": {
+      "0": 138.56,
+      "1500": 174.88,
+      "1630": 230.93,
+      "1760": 274.63
+     }
+    },
+    "split_half_noise_floor_l1": {
+     "cuts": 12,
+     "min": 36.88,
+     "median": 53.41,
+     "max": 75.77,
+     "all": [
+      36.88,
+      38.69,
+      40.92,
+      45.98,
+      48.74,
+      48.85,
+      53.41,
+      59.77,
+      59.89,
+      60.38,
+      63.34,
+      75.77
+     ]
+    },
+    "nearest_cutoff_by_month": {
+     "2026-06": "0",
+     "2026-07": "0"
+    },
+    "nearest_cutoff_caveat": "Only meaningful when the gap between the best and second-best cutoff exceeds the corpus's own split_half_noise_floor_l1. Check it before quoting nearest_cutoff_by_month."
+   },
+   "clean_open_sheet_bo1": {
+    "store": "data/games.ots.jsonl",
+    "clean_games": 2860,
+    "team_slots": 5720,
+    "date_range": [
+     "2026-06-17 23:23",
+     "2026-06-20 22:51"
+    ],
+    "rating": {
+     "n": 3414,
+     "p10": 1000,
+     "median": 1087,
+     "mean": 1094.2,
+     "p90": 1186,
+     "max": 1540,
+     "pct_ge_1400": 0.23,
+     "pct_ge_1500": 0.09
+    },
+    "l1_to_smogon": {
+     "2026-06": {
+      "0": 211.21,
+      "1500": 184.03,
+      "1630": 159.18,
+      "1760": 157.13
+     },
+     "2026-07": {
+      "0": 262.85,
+      "1500": 249.07,
+      "1630": 254.74,
+      "1760": 266.06
+     }
+    },
+    "split_half_noise_floor_l1": {
+     "cuts": 12,
+     "min": 45.91,
+     "median": 67.33,
+     "max": 91.85,
+     "all": [
+      45.91,
+      46.29,
+      46.95,
+      56.42,
+      57.67,
+      64.61,
+      67.33,
+      67.95,
+      73.42,
+      78.35,
+      87.54,
+      91.85
+     ]
+    },
+    "nearest_cutoff_by_month": {
+     "2026-06": "1760",
+     "2026-07": "1500"
+    },
+    "nearest_cutoff_caveat": "Only meaningful when the gap between the best and second-best cutoff exceeds the corpus's own split_half_noise_floor_l1. Check it before quoting nearest_cutoff_by_month."
+   }
+  },
+  "bo3_open_sheet_reference": {
+   "store": "data/games.bo3.jsonl",
+   "what": "The Bo3 open-team-sheet ladder — MAG's fitting corpus. Rating summary only; it is a different information regime and its composition is not pooled with the others.",
+   "rating_unfiltered": {
+    "n": 14539,
+    "p10": 1043,
+    "median": 1175,
+    "p90": 1355,
+    "max": 1707,
+    "pct_ge_1400": 5.33,
+    "pct_ge_1500": 0.72
+   }
+  },
+  "unfiltered_ladder_reference": {
+   "store": "data/games.ladder.jsonl (NO quality filter)",
+   "rating_unfiltered": {
+    "n": 83668,
+    "p10": 1043,
+    "median": 1130,
+    "p90": 1333,
+    "max": 1892,
+    "pct_ge_1400": 6.21,
+    "pct_ge_1500": 3.09
+   },
+   "why": "The clean filter removes a large low-and-flat-rated block, so the benchmark population is materially stronger than the raw ladder. Any sentence of the form \"the ladder is median X\" has to say which of the two it means."
+  }
+ },
+ "the_case_that_prompted_this": {
+  "question": "Will, 2026-08-06: \"'outright failed' could be incompetence or a high level play and we dont know the difference.\"",
+  "answer": "The aggregate can say what is BROUGHT and RUN. It cannot say who clicked what — there is no turn in the file. Both sides of the Fake Out / Armor Tail collision are brought slightly MORE at higher cutoffs, so a raw collision count is not an incompetence rate at any skill level.",
+  "farigiraf_armor_tail": {
+   "0": {
+    "pct": 97.803,
+    "n_eff": 797507,
+    "ci95": [
+     97.77,
+     97.83
+    ]
+   },
+   "1500": {
+    "pct": 98.49,
+    "n_eff": 435096,
+    "ci95": [
+     98.45,
+     98.53
+    ]
+   },
+   "1630": {
+    "pct": 99.062,
+    "n_eff": 57360,
+    "ci95": [
+     98.98,
+     99.14
+    ]
+   },
+   "1760": {
+    "pct": 99.114,
+    "n_eff": 1935,
+    "ci95": [
+     98.59,
+     99.45
+    ]
+   }
+  },
+  "incineroar_fake_out": {
+   "0": {
+    "pct": 98.89,
+    "n_eff": 1064474,
+    "ci95": [
+     98.87,
+     98.91
+    ]
+   },
+   "1500": {
+    "pct": 99.296,
+    "n_eff": 561561,
+    "ci95": [
+     99.27,
+     99.32
+    ]
+   },
+   "1630": {
+    "pct": 99.777,
+    "n_eff": 81116,
+    "ci95": [
+     99.74,
+     99.81
+    ]
+   },
+   "1760": {
+    "pct": 99.821,
+    "n_eff": 3199,
+    "ci95": [
+     99.6,
+     99.92
+    ]
+   }
+  },
+  "carried_across_the_ladder": {
+   "unit": "expected number of slots per team of six carrying the move, by cutoff. Derived as sum over species of Usage% x P(move | species) / 100. For a union it is an upper bound, because the moveset file gives marginals and one set can carry two.",
+   "fake_out": {
+    "0": {
+     "expected_carriers_per_team_of_six": 0.7281,
+     "n_eff_carrier_slots": 2874312
+    },
+    "1500": {
+     "expected_carriers_per_team_of_six": 0.73,
+     "n_eff_carrier_slots": 1448043
+    },
+    "1630": {
+     "expected_carriers_per_team_of_six": 0.7434,
+     "n_eff_carrier_slots": 191878
+    },
+    "1760": {
+     "expected_carriers_per_team_of_six": 0.7507,
+     "n_eff_carrier_slots": 7096
+    }
+   },
+   "protect": {
+    "0": {
+     "expected_carriers_per_team_of_six": 3.6287,
+     "n_eff_carrier_slots": 14311778
+    },
+    "1500": {
+     "expected_carriers_per_team_of_six": 3.747,
+     "n_eff_carrier_slots": 7428370
+    },
+    "1630": {
+     "expected_carriers_per_team_of_six": 3.915,
+     "n_eff_carrier_slots": 1011296
+    },
+    "1760": {
+     "expected_carriers_per_team_of_six": 3.9283,
+     "n_eff_carrier_slots": 37210
+    }
+   },
+   "detect": {
+    "0": {
+     "expected_carriers_per_team_of_six": 0.1032,
+     "n_eff_carrier_slots": 408535
+    },
+    "1500": {
+     "expected_carriers_per_team_of_six": 0.1112,
+     "n_eff_carrier_slots": 221054
+    },
+    "1630": {
+     "expected_carriers_per_team_of_six": 0.1276,
+     "n_eff_carrier_slots": 33140
+    },
+    "1760": {
+     "expected_carriers_per_team_of_six": 0.1438,
+     "n_eff_carrier_slots": 1365
+    }
+   },
+   "any_protection": {
+    "0": {
+     "expected_carriers_per_team_of_six": 4.0011,
+     "n_eff_carrier_slots": 15778816
+    },
+    "1500": {
+     "expected_carriers_per_team_of_six": 4.1351,
+     "n_eff_carrier_slots": 8197070
+    },
+    "1630": {
+     "expected_carriers_per_team_of_six": 4.3418,
+     "n_eff_carrier_slots": 1121544
+    },
+    "1760": {
+     "expected_carriers_per_team_of_six": 4.3896,
+     "n_eff_carrier_slots": 41576
+    }
+   }
+  },
+  "implication_for_task_44_part_1": "NOT ATTEMPTED HERE — the knowable-at-click-time versus resolved-against split needs the protocol stream and is owned elsewhere. What this work implies for it: the DENOMINATOR is composition-confounded. Protection is the largest single source of a |-fail| line (a repeated Protect fails by rule) and it moves with the cutoff, so a raw failed-move rate tracks how much protection the population runs, independently of anybody playing better. Any per-band or per-arm comparison must hold the carried-move mix fixed or it is measuring team-building."
+ },
+ "flat_in_rating": {
+  "the_claim": "engine/fit_policy.js:1264 — \"measured move quality is close to flat in rating\". docs/DEFENSE.md §1 gives failed moves 2.59% under 1100 against 2.30% at 1400-1600.",
+  "no_artifact_exists": "Neither figure has a generator in this repository. engine/realism_report.js counts the same protocol lines but POOLS both players and never bands by rating, and no data/*.json carries a rating-banded rate.",
+  "population": "clean closed-sheet ladder, 8047 clean games / 7040 raw logs matched / 14078 player-slots / 171801 protocol moves, attributed to the ACTING side",
+  "bands": {
+   "<1100": {
+    "player_slots": 1666,
+    "moves": 21098,
+    "failed_pct": 2.218,
+    "failed_ci95": [
+     1.925,
+     2.567
+    ],
+    "immune_pct": 2.318,
+    "immune_ci95": [
+     2.014,
+     2.629
+    ],
+    "supereffective_pct": 20.841,
+    "supereffective_ci95": [
+     20.023,
+     21.592
+    ]
+   },
+   "1100-1199": {
+    "player_slots": 2232,
+    "moves": 27390,
+    "failed_pct": 2.472,
+    "failed_ci95": [
+     2.077,
+     3.032
+    ],
+    "immune_pct": 2.234,
+    "immune_ci95": [
+     1.984,
+     2.474
+    ],
+    "supereffective_pct": 20.621,
+    "supereffective_ci95": [
+     19.974,
+     21.328
+    ]
+   },
+   "1200-1299": {
+    "player_slots": 1854,
+    "moves": 22699,
+    "failed_pct": 2.291,
+    "failed_ci95": [
+     1.99,
+     2.585
+    ],
+    "immune_pct": 2.071,
+    "immune_ci95": [
+     1.825,
+     2.306
+    ],
+    "supereffective_pct": 20.622,
+    "supereffective_ci95": [
+     19.903,
+     21.321
+    ]
+   },
+   "1300-1399": {
+    "player_slots": 1882,
+    "moves": 22577,
+    "failed_pct": 2.197,
+    "failed_ci95": [
+     1.945,
+     2.48
+    ],
+    "immune_pct": 2.21,
+    "immune_ci95": [
+     1.975,
+     2.463
+    ],
+    "supereffective_pct": 20.835,
+    "supereffective_ci95": [
+     20.16,
+     21.559
+    ]
+   },
+   "1400-1599": {
+    "player_slots": 2116,
+    "moves": 24669,
+    "failed_pct": 2.165,
+    "failed_ci95": [
+     1.831,
+     2.531
+    ],
+    "immune_pct": 2.027,
+    "immune_ci95": [
+     1.811,
+     2.25
+    ],
+    "supereffective_pct": 21.237,
+    "supereffective_ci95": [
+     20.553,
+     21.91
+    ]
+   },
+   "1600+": {
+    "player_slots": 652,
+    "moves": 7486,
+    "failed_pct": 2.658,
+    "failed_ci95": [
+     1.927,
+     3.521
+    ],
+    "immune_pct": 2.151,
+    "immune_ci95": [
+     1.723,
+     2.565
+    ],
+    "supereffective_pct": 19.156,
+    "supereffective_ci95": [
+     17.952,
+     20.364
+    ]
+   }
+  },
+  "contrast_DEFENSE_bands": {
+   "failed": {
+    "lo_moves": 21098,
+    "hi_moves": 24669,
+    "lo_pct": 2.218,
+    "hi_pct": 2.165,
+    "delta": -0.054,
+    "ci95": [
+     -0.539,
+     0.403
+    ],
+    "se_clustered": 0.241,
+    "mde_80pct_power": 0.674,
+    "contains_zero": true
+   },
+   "immune": {
+    "lo_moves": 21098,
+    "hi_moves": 24669,
+    "lo_pct": 2.318,
+    "hi_pct": 2.027,
+    "delta": -0.291,
+    "ci95": [
+     -0.679,
+     0.057
+    ],
+    "se_clustered": 0.184,
+    "mde_80pct_power": 0.517,
+    "contains_zero": true
+   },
+   "supereffective": {
+    "lo_moves": 21098,
+    "hi_moves": 24669,
+    "lo_pct": 20.841,
+    "hi_pct": 21.237,
+    "delta": 0.396,
+    "ci95": [
+     -0.606,
+     1.461
+    ],
+    "se_clustered": 0.545,
+    "mde_80pct_power": 1.527,
+    "contains_zero": true
+   }
+  },
+  "contrast_lt1100_vs_ge1400": {
+   "failed": {
+    "lo_moves": 21098,
+    "hi_moves": 32155,
+    "lo_pct": 2.218,
+    "hi_pct": 2.28,
+    "delta": 0.061,
+    "ci95": [
+     -0.41,
+     0.49
+    ],
+    "se_clustered": 0.231,
+    "mde_80pct_power": 0.646,
+    "contains_zero": true
+   },
+   "immune": {
+    "lo_moves": 21098,
+    "hi_moves": 32155,
+    "lo_pct": 2.318,
+    "hi_pct": 2.056,
+    "delta": -0.262,
+    "ci95": [
+     -0.629,
+     0.098
+    ],
+    "se_clustered": 0.177,
+    "mde_80pct_power": 0.496,
+    "contains_zero": true
+   },
+   "supereffective": {
+    "lo_moves": 21098,
+    "hi_moves": 32155,
+    "lo_pct": 20.841,
+    "hi_pct": 20.753,
+    "delta": -0.088,
+    "ci95": [
+     -1.037,
+     1.015
+    ],
+    "se_clustered": 0.528,
+    "mde_80pct_power": 1.48,
+    "contains_zero": true
+   }
+  },
+  "noise_floor_split_half_within_band": {
+   "unit": "percentage points; ONE band cut eight ways. An effect smaller than this spread is not an effect.",
+   "lt1100_failed": [
+    0.085,
+    0.089,
+    0.281,
+    0.131,
+    -0.361,
+    0.448,
+    0.489,
+    -0.025
+   ],
+   "ge1400_failed": [
+    0.365,
+    -0.113,
+    0.806,
+    0.498,
+    -0.109,
+    -0.348,
+    0.518,
+    -0.489
+   ]
+  },
+  "moves_by_rating": {
+   "unrated": 45882,
+   "lt1400": 93764,
+   "ge1400": 32155,
+   "ge1500": 17551,
+   "ge1600": 7486
+  },
+  "pooled_rates_current_corpus": {
+   "failed_pct": 2.275,
+   "immune_pct": 2.074,
+   "supereffective_pct": 21.005,
+   "note": "Attributed to the acting side, so protocol lines with no preceding move in the turn are dropped; realism_report.js pools and does not drop them. Stated so the population and the count travel with the numbers, NOT as a substitute for re-running realism_report.js."
+  },
+  "verdict": "NOT MEASURED — not false.",
+  "verdict_reasoning": [
+   "The direction reproduces: <1100 against 1400-1599 on failed moves is -0.054 points, 95% CI [-0.539, +0.403], game-clustered bootstrap over 400 resamples. Nothing contradicts \"flat\".",
+   "But the design was powered for a 0.674-point difference at 80% power on a 2.2% base rate — a 31% RELATIVE change. \"Flat\" and \"an effect up to 30% of the base rate\" are the same observation in this corpus.",
+   "And the entire between-band spread (2.165% to 2.658%, 0.49 points over six bands) is inside the within-band split-half noise floor (-0.489 to +0.806). The observed effect IS the floor.",
+   "The binding constraint is NOT the rating range. The clean closed ladder holds 32,155 moves at >=1400, 17,551 at >=1500 and 7,486 at >=1600. It is that the metric is a ~2% event, so 25,000 moves is only ~530 failures."
+  ],
+  "what_would_settle_it": "Not more games at this metric. Either a metric with a higher event rate (super-effective is 21%, so its 1.48-point MDE is 7% relative — four times better), or a paired design holding the position fixed, which a click-level model gives and a rate does not.",
+  "consequence_for_ROADMAP_1_3": "The gap §1.3 reports between MAG and humans is 3.87 points (6.34% against 2.47%). The whole measurable rating effect inside the human population is at most 0.67 points with a point estimate of 0.05 — about 5.7x smaller. Closing the gap makes MAG resemble a HUMAN; it cannot make MAG resemble a STRONG human, because on this metric strong and weak humans are not separated."
+ },
+ "filed_not_fixed": [
+  "data/smogon-priors.json: the `teammates` array is polluted on 275 of its 284 species. Kingambit holds 32 entries where the source lists 10, and the extras are the NEXT species' Abilities and Items rows (intimidate, blaze, sitrusberry, passhoberry). Cause: engine/smogon_priors.js:160 grabs Teammates terminating on \"Checks and Counters\", a section these moveset files do not contain, so the regex falls through to $ and swallows the rest of a 14-chunk window that already spans the following species block. abilities/items/spreads/moves are unaffected — each is followed by a section that really exists. BLAST RADIUS TODAY: ZERO, nothing in the repository reads that key. Latent, not live. Not fixed here because engine/ was being rewritten in parallel on 2026-08-06.",
+  "engine/fit_policy.js:1264 and docs/DEFENSE.md §1 should read \"not measured at this power\" rather than \"close to flat in rating\". Same reason — engine/ was in flight.",
+  "engine/provenance.js classifies this artifact's corpus as \"opensheet\" because this generator names data/games.ots.jsonl. Its PRIMARY corpus is the clean CLOSED ladder, so drift is judged against the wrong ceiling — the same class as the named exception docs/MEASURE.md §5 already records for data/winrate-backtest.json. Harmless today (8,047 declared against an open-sheet ceiling near 8,173 is under 2%) and wrong in principle. Needs a named exception in provenance.js, which is engine/ and was in flight."
+ ],
+ "corpus": {
+  "clean_games": 8047,
+  "store": "data/games.ladder.jsonl",
+  "note": "The PRIMARY corpus is the clean CLOSED-sheet ladder. This generator also reads data/games.ots.jsonl and data/games.bo3.jsonl for their rating and composition summaries, and provenance.js classifies the artifact \"opensheet\" on that ground — see filed_not_fixed."
+ },
+ "source_digests": {
+  "build/strong_player_baseline.js": "71d5f344975f",
+  "engine/quality.js": "e397e99ef257",
+  "data/quality-filter.json": "e675d10477c8",
+  "data/smogon-stats/2026-06/usage/gen9championsvgc2026regmb-0.txt": "711a56d8fa1e",
+  "data/smogon-stats/2026-06/moveset/gen9championsvgc2026regmb-0.txt": "a164c1e7df3c",
+  "data/smogon-stats/2026-06/usage/gen9championsvgc2026regmb-1500.txt": "28bf2719e4dd",
+  "data/smogon-stats/2026-06/moveset/gen9championsvgc2026regmb-1500.txt": "135cce84b548",
+  "data/smogon-stats/2026-06/usage/gen9championsvgc2026regmb-1630.txt": "e5d1df93aef8",
+  "data/smogon-stats/2026-06/moveset/gen9championsvgc2026regmb-1630.txt": "7601f13e4e8c",
+  "data/smogon-stats/2026-06/usage/gen9championsvgc2026regmb-1760.txt": "f017cfe21052",
+  "data/smogon-stats/2026-06/moveset/gen9championsvgc2026regmb-1760.txt": "aa6ceb84161d",
+  "data/smogon-stats/2026-06/usage/gen9championsvgc2026regmbbo3-0.txt": "5c45433f7c5f",
+  "data/smogon-stats/2026-06/moveset/gen9championsvgc2026regmbbo3-0.txt": "f2963f533f1c",
+  "data/smogon-stats/2026-06/usage/gen9championsvgc2026regmbbo3-1500.txt": "df39cc8f6e8e",
+  "data/smogon-stats/2026-06/moveset/gen9championsvgc2026regmbbo3-1500.txt": "67368b992877",
+  "data/smogon-stats/2026-06/usage/gen9championsvgc2026regmbbo3-1630.txt": "6968166a6af6",
+  "data/smogon-stats/2026-06/moveset/gen9championsvgc2026regmbbo3-1630.txt": "25700f2a9399",
+  "data/smogon-stats/2026-06/usage/gen9championsvgc2026regmbbo3-1760.txt": "bb0771e3534c",
+  "data/smogon-stats/2026-06/moveset/gen9championsvgc2026regmbbo3-1760.txt": "723131c71087",
+  "data/smogon-stats/2026-07/usage/gen9championsvgc2026regmb-0.txt": "86a594d23ae4",
+  "data/smogon-stats/2026-07/moveset/gen9championsvgc2026regmb-0.txt": "6895023193fd",
+  "data/smogon-stats/2026-07/usage/gen9championsvgc2026regmb-1500.txt": "da3fd425ea59",
+  "data/smogon-stats/2026-07/moveset/gen9championsvgc2026regmb-1500.txt": "8a14bae27bb3",
+  "data/smogon-stats/2026-07/usage/gen9championsvgc2026regmb-1630.txt": "6137ffca6e63",
+  "data/smogon-stats/2026-07/moveset/gen9championsvgc2026regmb-1630.txt": "ac6a89f75fd3",
+  "data/smogon-stats/2026-07/usage/gen9championsvgc2026regmb-1760.txt": "27a09f827f22",
+  "data/smogon-stats/2026-07/moveset/gen9championsvgc2026regmb-1760.txt": "645642f14faf",
+  "data/smogon-stats/2026-07/usage/gen9championsvgc2026regmbbo3-0.txt": "7cf70de770ee",
+  "data/smogon-stats/2026-07/moveset/gen9championsvgc2026regmbbo3-0.txt": "d9993de9f129",
+  "data/smogon-stats/2026-07/usage/gen9championsvgc2026regmbbo3-1500.txt": "4067846e4241",
+  "data/smogon-stats/2026-07/moveset/gen9championsvgc2026regmbbo3-1500.txt": "afb3e626f2fd",
+  "data/smogon-stats/2026-07/usage/gen9championsvgc2026regmbbo3-1630.txt": "df68990521cd",
+  "data/smogon-stats/2026-07/moveset/gen9championsvgc2026regmbbo3-1630.txt": "e881f1e52c6f",
+  "data/smogon-stats/2026-07/usage/gen9championsvgc2026regmbbo3-1760.txt": "d4d0c077b8e8",
+  "data/smogon-stats/2026-07/moveset/gen9championsvgc2026regmbbo3-1760.txt": "ed7180e7a4f1"
+ },
+ "source_digests_note": "Content, not mtime. The append-only game stores are deliberately NOT stamped — see the comment in the generator. Their instrument is corpus.clean_games.",
+ "provenance": {
+  "unstamped_inputs": [
+   "data/games.ladder.jsonl",
+   "data/games.ladder.raw-logs.jsonl",
+   "data/games.ots.jsonl",
+   "data/games.bo3.jsonl"
+  ],
+  "inputs": {
+   "data/smogon-stats/*": "16 usage+moveset file pairs across 2026-06, 2026-07, cutoffs 0/1500/1630/1760, Bo1 and Bo3",
+   "data/games.ladder.jsonl": "clean closed-sheet ladder store, read through engine/quality.js",
+   "data/games.ladder.raw-logs.jsonl": "protocol logs for the same ids",
+   "data/games.ots.jsonl": "Bo1 open-sheet store",
+   "data/games.bo3.jsonl": "Bo3 open-sheet store (rating summary only)"
+  },
+  "clean_games": 8047,
+  "raw_logs_matched": 7040,
+  "quality_js_sha256": "e397e99ef257ebe9",
+  "quality_filter_json_sha256": "e675d10477c853a1",
+  "reads_no_engine": true,
+  "commit": "cc3e7e5b7130e33ef53802178c73e22044e15d7a",
+  "dirty_tree": true
+ }
+}
