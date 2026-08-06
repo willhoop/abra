@@ -788,6 +788,119 @@ broken.** GARY is named in this pass for exactly that reason.
 
 ---
 
+## 5. THE REGISTER — everything we intend to build, and why it is not built yet
+
+**Will, 2026-08-06:** *"I WANT THE ROADMAP TO BE COMPREHENSIVE AND UNABLE TO LOSE TRACK OF THE THINGS
+WE WANT TO BUILD LATER."*
+
+**The rules, because a list that is not checked is a wish-list.**
+
+1. An item leaves this register in exactly two ways: **it is done**, or **Will kills it by name**.
+   Nothing leaves by being forgotten, superseded in conversation, or quietly reprioritised.
+2. Every item names **what unblocks it**. "Later" is not a status; "blocked by #45" is.
+3. Every item carries a **task number**, and the task holds the detail. The register is the index —
+   it exists so that nothing is only in someone's head, or only in a conversation, or only in a
+   division ledger nobody opens.
+4. **A deferred item stays here with its reason.** HYPNO is deferred by decision, not dropped, and it
+   says so.
+
+### 5.1 MEDICHAM completeness — the current gate, and everything below waits on it
+
+**Will's bar, 2026-08-06:** *"i still want medicham to be fully wired and tested on every move and
+ability and item in the regulation (with any usage at all) before we start taking its output and
+using them."* Target agreed the same day: **99% of usage — 484 of the 819 things that carry real
+usage** — plus a carve-out for anything that turns a certainty into a failure regardless of usage.
+
+| # | item | status |
+|---|---|---|
+| #45 | the gate itself: 99%-of-usage coverage, enforced not remembered | **being built** |
+| #42 | ratchet on DIRECT-CALL probes, not on `unarmed` — 37 left of 47 | in progress |
+| #51 | 23 tags with real usage and **no probe at all**; accuracy modification is the top | queued behind 42 |
+| — | 3 declared-missing mechanics: Avalanche, No Guard, Sand Veil | queued behind 42 |
+| — | 1 live differential: `chesnaught woodhammer -> mimikyu` (Disguise, unimplemented) | queued behind 42 |
+| — | 6 interaction-matrix disagreements: stone axe ×4, giga impact, supercell slam | queued behind 42 |
+| #27 | **the represented-clicks number** — what % of real clicks the engine can even perform. Last measured 15.3% failing when it handled 4 action kinds; it now handles 12 | needs a settled engine + fresh release |
+| #49 | delete the 77 hand-typed mega abilities; the derived path exists and is proven equal | queued behind 42 |
+| #9 | harden `pranksterBlocked` to check the move's target | latent, not live |
+| #20 | a TYPE cannot be a reactor, so Grass-blocks-powder is untestable | — |
+| #21 | AXIS 4 — DENIAL: a move that costs a turn also denies a field effect | — |
+| #28 | resist berries: the one staged pair is physically impossible | — |
+| #7 | Coverage Layer 2 — the mutation harness | — |
+
+### 5.2 GARY — the opponent inside the search, named 2026-08-06
+
+Four defects in one place, all found by reading the source. See §4.2.
+
+| # | item | blocked by |
+|---|---|---|
+| #33 | every artifact records which GARY ran — **`rollout_r1.js` done, 3 callers left** | — |
+| #32 | flip `uniform` → `prior` and measure it | 33, and a fresh release |
+| #34 | the flag steers **my** side too — split it | — |
+| #35 | targeting is drawn uniformly in **both** modes | — |
+| #36 | GARY has two seats and they disagree | — |
+
+### 5.3 The search redesign
+
+| # | item | note |
+|---|---|---|
+| #37 | prune with MAG's scores, not with the coin | Will approved with a condition: *"make sure it doesnt toss moves a VGC pro would make"* |
+| #25 | prune by **PAIR** score, not single-move | the truncation curve says single-move ranking **cannot** meet that condition at any affordable K |
+| #53 | **DODUO** — the pair model is fitted, better, and **the search never reads it** | the fix is wiring, not building |
+| #24 | replace MILTANK's leaf with PORYGON2 + a MAG-sampled opponent | gate passed (#23) |
+| #38 | the rollout cap is 60 turns; real games end at **6** | trivial |
+| #39 | measure the `board.js` ↔ MEDICHAM translation cost | decides whether MAG-as-GARY is possible at all |
+| — | **parallelise the search** — 16 cores available, nothing uses more than one | unlocks K=8, which is where the miss rate reaches 1.4% |
+| #31 | the mega must be a strategic decision, not "the lead keeps it" | dual-mega teams are the case that proves it |
+| #6 | AXIS-4 reparameterisation, then WOBBUFFET in it | |
+
+### 5.4 Solving — DUSK, and the retrograde idea
+
+| # | item | note |
+|---|---|---|
+| #47 | **solve exactly whenever switching is off the table** — 1v1 is 16 cells, 2v1 is 96, 2v2 is ~1,296 | 2v1 alone reaches **45.9%** of games |
+| #47 | **retrograde analysis** (Will): with 2v2 solved, a 3v2 reduces to *which solved 2v2 do I steer into* | this is how chess tablebases are built |
+| #29 | **THE SACK** — a planned sacrifice is invisible to a material-weighted leaf | it is the same idea: the sacrifice is the move that reaches a won position |
+| #41 | reach the Python equilibrium solver from the JavaScript bot | a small-case port is verifiable against `nash.py`; a full port is not |
+| #30 | DUSK as a **goal** — nothing in the project represents a goal, only positions and actions | |
+
+### 5.5 Built, measured, and never used in a live decision
+
+The recurring failure of this project, kept together so the pattern stays visible.
+
+| model | state |
+|---|---|
+| **DODUO** | fitted, refitted, +2.1 top-1 over independent choice, **never read by the search** (#53) |
+| **PORYGON2** | built, separation gate passed, **never called by a live decision** (#24) |
+| **GARY `prior`** | wired end to end, **default is a coin** (#32) |
+| **MAG's scores at the candidate list** | not attached, so the screen prunes with the rollout instead (#37) |
+| **MACHAMP** | *"half-run and stale — the single largest untested lever in the project"*; artifact deleted 2026-08-02 |
+| **the Nash solver** | verified on RPS and a 2×2, in Python, unreachable from the bot (#41) |
+
+### 5.6 Measurement integrity
+
+| # | item |
+|---|---|
+| #26 | refit MAG on bo3 only — the corpus change is in code and unrun |
+| #50 | WIRE 124 moved a position feature; models fitted on it predate the correct number |
+| #48 | 27 of 28 Python generators could write a file JavaScript cannot read — **closed, gated** |
+| #27 | three instruments built that had never written an artifact — **truncation curve now run**, two left |
+| #44 | a move that provably does nothing is a weighted preference, not a rule — needs a refit |
+
+### 5.7 Deferred by decision — not dropped
+
+| # | item | why it is here |
+|---|---|---|
+| #52 | **HYPNO** — rates the opponent, sets how hard to exploit | Will, 2026-08-06: *"NAH LETS HOLD OFF ON HYPNO BUT I DONT WANT TO FORGET ABOUT IT."* Worth remembering that it is the **only model on the board whose inputs do not include MEDICHAM**, so it is never blocked by §5.1 and never needs re-running when the engine changes. |
+
+### 5.8 The paper
+
+| # | item |
+|---|---|
+| #54 | position against **VGC-Bench** (AAMAS 2026) — the field is not empty, and the benchmark is new |
+| — | the candidate contributions are the **truncation curve**, the **represented-clicks curve**, the **armed-coverage critique**, and the negative results — a separation gate that uniform noise passes, a tablebase killed by reach rate, and per-turn metrics that cannot separate a 1043 player from a 1600 |
+
+---
+
 ## The honest summary
 
 **What is genuinely strong:** the data discipline, the validated engine, the measurement culture, and
