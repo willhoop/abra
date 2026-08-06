@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 3.53.0 · Last updated 2026-08-06.**
+**Version 3.54.0 · Last updated 2026-08-06.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
@@ -263,7 +263,7 @@ than Pelipper plus Archaludon** — the same expressiveness failure as DODUO, on
 ## MEDICHAM — Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves
 
 **MECHANICS STATE, 2026-08-06 (3.50.0), read from the artifact rather than typed:**
-`data/mechanics-census.json` reads **216 live of 219 probed, 3 missing, 0 hollow** (wires 82–89 at
+`data/mechanics-census.json` reads **218 live of 221 probed, 3 missing, 0 hollow** (wires 82–89 at
 3.40.0, then the Layer 0 pass — wires 90–112 — at 3.41.0; Marvel Scale and After You/Quash came
 off the missing list, the second because the "cannot tell it from Instruct" blocker was false:
 Instruct carries `instructsTarget {extraAction:true}`, a shape read; then the scope pass, WIRE 117's

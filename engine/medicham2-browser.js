@@ -117,6 +117,20 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * two fire in different places and a merged counter cannot say which one is dead. */
   tauntRefusedAtSelection: 0 };
 const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnknownFirst: '',
+  /* WIRE 124 -- a move whose accuracy NEITHER data/move-effects.js NOR the ACC_FIX correction list
+   * knows. It falls back to 100, which is indistinguishable from a never-miss move, and that
+   * indistinguishability is the whole bug this wire fixed: for 78 moves the fallback WAS the answer.
+   * Reads 0 over all 500 moves in MC.moves today. */
+  accuracyUnknown: 0, accuracyUnknownFirst: '',
+  /* WIRE 124 -- data/move-effects.js could not be loaded AT ALL, so no move has an accuracy and the
+   * whole game becomes never-missing. A different and much larger failure than the row above, so it
+   * is a different counter and it keeps the exception's own message. */
+  accuracyNoTable: 0, accuracyNoTableFirst: '',
+  /* WIRE 125 -- the side's ROSTER was not available at the end-of-turn death recount, so the count
+   * fell back to the active+bench arrays, which is the expression that lost the dead in the first
+   * place. battleInit always stamps `sf.team`, so this must read 0; a non-zero means a battle state
+   * was built by some other route and its Last Respects / Supreme Overlord numbers are undercounts. */
+  fallenNoRoster: 0,
   /* WIRE 119 -- the artifact named a forbidden move CATEGORY this engine has no predicate for, so the
    * move was allowed through. Today the only member is Taunt's "Status" and this must read 0; a
    * non-zero means `forbidsStatusMoves` grew a category and the gate is silently passing it. */
@@ -462,7 +476,34 @@ function priorityRefusedAbove(defenders, field, aimedAt){
   return out;
 }
 
-const ACC = {hydropump:80,hurricane:70,fireblast:85,focusblast:70,thunder:70,blizzard:70,stoneedge:80,megahorn:85,gunkshot:80,iciclecrash:90,playrough:90,dynamicpunch:50,zapcannon:50,highjumpkick:90,drillrun:95,crosschop:80,sleeppowder:75,willowisp:85,thunderwave:90,hypnosis:60,irontail:75,dragonrush:75,inferno:50,fissure:30,sheercold:30,rockslide:90,airslash:95,gigaimpact:90,overheat:90,leafstorm:90,powerwhip:85,meteorbeam:90,muddywater:85,darkvoid:50,sing:55};
+/* WIRE 124 -- ACCURACY IS DERIVED. `const ACC = {hydropump:80, ...}` was a hand-typed 35-move literal
+ * and `moveAccuracy` ended `return ACC[id]||100`, so every move NOT on the list could not miss. Of
+ * the 500 moves in this engine's own table, 78 carry an accuracy below 100 in
+ * gen9championsvgc2026regmb and 78 of them were absent -- HEAT WAVE (7,405 corpus clicks, 90%),
+ * Matcha Gotcha (5,352, 90%), Dual Wingbeat, Draco Meteor, Hyper Beam, Icy Wind, Toxic, Rock Tomb,
+ * Triple Axel, Population Bomb. 35,608 clicks of never-missing moves that miss in the real game.
+ *
+ * The source is data/move-effects.js, which this file ALREADY reads for every secondary and which
+ * already carries `accuracy` for all 954 moves in it -- and which two other sites in this same file
+ * were already using for exactly this purpose (`(fx&&fx.accuracy===true)?100:...`, the status
+ * branches). So the defect was also a FACTS-ARE-GLOBAL violation: two accuracy engines in one file,
+ * one derived and one hand-typed, disagreeing on 78 moves. All three sites now call moveAccuracy().
+ *
+ * ACC_FIX IS NOT THE OLD LIST SHRUNK. It is the set of rows where the GENERATED artifact disagrees
+ * with the format dex, measured over all 500 moves at the pinned commit 20ad99ff on 2026-08-06, and
+ * it is exactly four. The 35 hand-typed entries all AGREED with the dex and are simply redundant now.
+ * data/move-effects.js is generated from CHOMP's move-effects.json and is not ENGINE's to correct, so
+ * the deviation is carried here, named, with the dex's number:
+ *
+ *     crabhammer      artifact 90  -> dex 95
+ *     makeitrain      artifact 100 -> dex 95     (2,443 clicks — the one that matters)
+ *     syrupbomb       artifact 85  -> dex 90
+ *     clangoroussoul  artifact 100 -> dex true (never misses)
+ *
+ * tests/test-engine-diff.js re-derives the whole comparison against the live format dex and FAILS on
+ * a fifth row, so this list is checked rather than remembered -- which is the only thing that makes
+ * it different in kind from the literal it replaces. */
+const ACC_FIX = {crabhammer:95,makeitrain:95,syrupbomb:90,clangoroussoul:100};
 const PROTECTMOVES = new Set(['protect','detect','spikyshield','kingsshield','banefulbunker','burningbulwark','silktrap','maxguard']);
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -890,16 +931,81 @@ function moveAccuracy(id,field){
     const w=_ws.byWeather[field.weather];
     if(w&&w.accuracy!=null)return w.accuracy;
   }
-  return ACC[id]||100;
+  /* WIRE 124 -- the printed accuracy, from the generated artifact rather than a hand list. `true` is
+   * how the dex spells "cannot miss"; a number is the number. A move neither source knows is the one
+   * case that still defaults to 100, and it COUNTS ITSELF: a silent default here reads exactly like a
+   * never-miss move, which is the bug this wire is fixing. */
+  const key=String(id||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(ACC_FIX[key]!=null)return ACC_FIX[key];
+  let fx=null;
+  /* THE ONLY WAY moveFx THROWS is data/move-effects.js not being loaded at all, and the reason is
+   * KEPT rather than discarded: without it every move in the game silently becomes 100% accurate,
+   * which is the exact defect this wire exists to remove, and a caller looking at `fails` afterwards
+   * needs to be able to tell that from "the table was there and this move was not in it". */
+  try{ fx=moveFx(key); }
+  catch(e){ MEDFAILS.accuracyNoTable++;
+            if(!MEDFAILS.accuracyNoTableFirst)MEDFAILS.accuracyNoTableFirst=String(e.message).slice(0,80); }
+  if(fx&&fx.accuracy!=null)return fx.accuracy===true?100:+fx.accuracy;
+  MEDFAILS.accuracyUnknown++;
+  if(!MEDFAILS.accuracyUnknownFirst)MEDFAILS.accuracyUnknownFirst=key;
+  return 100;
 }
 /* the type a move actually HAS under the current sky — one authority for the damage calc, the
  * absorb check in the battle loop, and the fragility pricer, so sand Weather Ball is a Rock move
  * to all three or to none */
-function effMoveType(mv,moveId,field){
+/* WIRE 126 -- "WHAT TYPE IS THIS MOVE REALLY" HAD TWO IMPLEMENTATIONS AND ONE OF THEM WAS HALF DONE.
+ *
+ * The -ate abilities (Aerilate, Pixilate, Galvanize, Refrigerate, Dragonize, Normalize) and Liquid
+ * Voice rewrite a move's type. That rewrite lived INSIDE dmgRange and nowhere else, while
+ * effMoveType -- the helper the battle loop calls, and which is handed no attacker -- knew only about
+ * Weather Ball. So the loop's own type-immunity gate read the RAW type.
+ *
+ * AND THE COMMENT AT THAT GATE SAID THE OPPOSITE, in as many words: *"effMoveType, not mv.t: the
+ * -ate abilities rewrite a Normal move to Flying or Fairy, and a converted move DOES hit a Ghost."*
+ * That is WIRE 119's Taunt failure exactly -- a capability absent while a comment reports success --
+ * and it is the second time in three days this file has been caught by one.
+ *
+ * WHAT IT COST: an Aerilate Staraptor's Body Slam into a Ghost. dmgRange priced it at 136-162 and the
+ * battle loop dealt ZERO, so every rollout played the ability's headline interaction as a whiffed
+ * turn. Four more sites read the same helper and were wrong the same way -- the Lightning Rod draw, a
+ * typeImmunity absorb, the Fire thaw and Protean's own retype -- so a Galvanized Body Slam was not
+ * drawn by a Rod, not absorbed by Volt Absorb, and did not make a Protean body Electric.
+ *
+ * ONE IMPLEMENTATION NOW. The conversion is this function; dmgRange calls it for the type and keeps
+ * only the POWER half (`damageMult`), which is a power question and belongs where the power lives. */
+function convertsMoveTypeTo(mv,moveId,att,curT){
+  const _cm=att&&TAGS.param('ability',att.ability,'convertsMoveType');
+  if(!_cm||!_cm.into)return null;
+  /* WIRE 75 -- `converts` NAMES EITHER A TYPE OR A FLAG. Liquid Voice's param is `converts: "sound
+   * moves"` -- a FLAG, not a type -- and reading only the type half left it unwired. The flag half is
+   * the same join `immuneToMoveClass` and `reflectsStatusMoves` already use: the ability names a
+   * flag, the move carries it as its own tag, so a future ability that converts punch moves arrives
+   * with no edit here. The discriminator is CASE, which is the artifact's own convention (`Normal
+   * moves` is a type, `sound moves` is a flag), and a `converts` matching neither shape is COUNTED
+   * rather than silently treated as "does not apply". */
+  const _from=String(_cm.converts||'').trim();
+  let _applies=false;
+  if(/^its moves$/i.test(_from)) _applies=true;
+  else{
+    const _m=/^(\S+)\s+moves$/.exec(_from);
+    if(!_m){MEDFAILS.convertsUnparsed++;if(!MEDFAILS.convertsUnparsedFirst)MEDFAILS.convertsUnparsedFirst=_from;}
+    else if(/^[A-Z]/.test(_m[1])) _applies=(curT===_m[1]);
+    else _applies=!!(moveId&&TAGS.has('move',moveId,_m[1].toLowerCase()));
+  }
+  return (_applies&&curT!==_cm.into)?_cm:null;
+}
+/* THE ATTACKER IS OPTIONAL AND ITS ABSENCE IS NOT SILENT: a caller that cannot supply one gets the
+ * weather answer only, which is what every caller got before this wire. The one caller that
+ * deliberately does not pass it is clickFragility -- see the note at its call site. */
+function effMoveType(mv,moveId,field,att){
+  let t=mv?mv.t:'';
+  const _cm=convertsMoveTypeTo(mv,moveId,att,t);
+  if(_cm)t=_cm.into;
   const w=moveId&&TAGS.param('move',moveId,'weatherScaled');
-  /* WIRE 78 — a suppressed sky leaves Weather Ball NORMAL. */
+  /* WIRE 78 — a suppressed sky leaves Weather Ball NORMAL. The weather override runs AFTER the
+   * conversion, matching dmgRange's own order, so Weather Ball in sand is Rock on a Pixilate body. */
   if(w&&w.byWeather&&field&&field.weather&&!field.wSup){const x=w.byWeather[field.weather];if(x&&x.type)return x.type;}
-  return mv?mv.t:'';
+  return t;
 }
 /* WIRE 21 -- variablePower: does this move have power AT ALL, and what is it right now?
  * Low Kick and Grass Knot carry bp 0 in the table (the power IS the calculation), so the old
@@ -991,35 +1097,16 @@ function dmgRange(att,def,mv,field,spread){
    * Applied HERE, before STAB and effectiveness, because the whole point is that the move becomes a
    * DIFFERENT TYPE -- so everything downstream must see the new one. Normalize converts in the other
    * direction and the tag says so, hence the check on what it converts FROM. */
+  /* WIRE 126 -- THE TYPE HALF MOVED OUT, to convertsMoveTypeTo(), because the battle loop needed the
+   * identical answer and had been getting the raw type. What stays here is the POWER half: the -ate
+   * abilities are worth x1.2 as well as a retype, and a base-power multiplier belongs where the base
+   * power is. Two copies of "what type is this move" is what let an Aerilate Body Slam be priced at
+   * 162 by this function and dealt as 0 by the loop. */
   {
-    const _cm=TAGS.param('ability',att.ability,'convertsMoveType');
-    if(_cm&&_cm.into){
-      /* WIRE 75 -- `converts` NAMES EITHER A TYPE OR A FLAG, and reading only the type half left
-       * LIQUID VOICE (346 uses) completely unwired. Its param is `converts: "sound moves"` -- a FLAG,
-       * not a type -- so the old `indexOf('normal')` test was false and the `'its moves'` fallback was
-       * false, and Primarina's Psychic Noise stayed Psychic. The reference engine makes it WATER:
-       * measured on the matrix as `ratio medi 1.000 vs sd 0.375`, and 1.000 across a varied knob is
-       * the definition of unwired.
-       *
-       * THE FLAG HALF IS THE SAME JOIN `immuneToMoveClass` AND `reflectsStatusMoves` ALREADY USE:
-       * the ability names a flag, the move carries it as its own tag. So a future ability that
-       * converts, say, punch moves arrives with no edit here. The discriminator is CASE, which is the
-       * artifact's own convention -- a type is capitalised (`Normal moves`) and a flag is not
-       * (`sound moves`) -- and a `converts` that matches neither shape is COUNTED rather than
-       * silently treated as "does not apply". */
-      const _from=String(_cm.converts||'').trim();
-      let _applies=false;
-      if(/^its moves$/i.test(_from)) _applies=true;
-      else{
-        const _m=/^(\S+)\s+moves$/.exec(_from);
-        if(!_m){MEDFAILS.convertsUnparsed++;if(!MEDFAILS.convertsUnparsedFirst)MEDFAILS.convertsUnparsedFirst=_from;}
-        else if(/^[A-Z]/.test(_m[1])) _applies=(mvT===_m[1]);
-        else _applies=!!(mv.id&&TAGS.has('move',mv.id,_m[1].toLowerCase()));
-      }
-      if(_applies&&mvT!==_cm.into){
-        mvT=_cm.into;
-        if(_cm.damageMult&&_cm.damageMult!==1)mvBP=Math.floor(mvBP*_cm.damageMult);
-      }
+    const _cm=convertsMoveTypeTo(mv,mv.id,att,mvT);
+    if(_cm){
+      mvT=_cm.into;
+      if(_cm.damageMult&&_cm.damageMult!==1)mvBP=Math.floor(mvBP*_cm.damageMult);
     }
   }
   const _ws=mv.id&&TAGS.param('move',mv.id,'weatherScaled');
@@ -1731,6 +1818,12 @@ function clickFragility(att,moveId,tgt,benchFoes,field){
       consider(flipped.max/base.max,b.name,'flips the sky to '+ws.weather);
     }
     const im=TAGS.param('ability',b.ability,'typeImmunity');
+    /* WIRE 126 -- NO ATTACKER IS PASSED HERE, AND THAT IS A DECLARED HOLD RATHER THAN AN OVERSIGHT.
+     * clickFragility is one of the six exports board.js reaches this engine through, so its output is
+     * a MAG FEATURE INPUT: passing `att` would change the fitted vector and owe a refit, which is
+     * MEASURE's expensive edge and not ENGINE's to spend. The consequence is stated: an -ate body's
+     * click is priced against its RAW type here while the battle loop resolves it as the converted
+     * one. FILED in docs/ENGINE.md. */
     const mvType=effMoveType(mv,moveId,field);  // the type the click has UNDER the current sky
     if(im&&im.type===mvType)
       consider(0,b.name,'absorbs '+mvType+' entirely',im.gain?{feedsIt:im.gain}:null);
@@ -2369,6 +2462,29 @@ function applyEntryEffects(m,field,ally){
  * gate tests hold because nothing about a rollout changed. actsForA is a Map(mon -> action) built
  * by playerAction(); absent, side A plays itself exactly as before. */
 const _live=arr=>arr.filter(m=>m&&!m.fainted&&m.curHP>0);
+/* WIRE 125 -- THE DEATH COUNTER FORGOT THE DEAD, ONE TURN AFTER THEY DIED.
+ *
+ * The end-of-turn recount was `[...act,...bench].filter(x=>x.fainted).length`, and bringIn() -- the
+ * one path a replacement arrives through -- does `bench.splice(...)` and then `act[i]=nx`. The
+ * fainted body is overwritten in the active slot and is in neither array afterwards. So the count was
+ * right for exactly the turn of the death and fell back to ZERO at the end of the next one.
+ *
+ * WHAT IT COST. Last Respects (19,299 corpus uses, and a move whose entire identity is that it grows
+ * as your team dies) read `att._sf.fainted` at every use: correct on the turn the ally died, back to
+ * 50 BP forever after. Supreme Overlord's `_fallenStuck` is stamped from the same field at bringIn,
+ * so every body that entered later than the turn of a death got an undercount too -- and the deeper
+ * into a game, the more of the roster is dead and the wronger it gets, which is precisely the phase
+ * both mechanics exist for.
+ *
+ * THE ROSTER IS THE RIGHT DENOMINATOR and it was already there: battleInit stamps `sf.team` with the
+ * full side. Still derived from the live `fainted` flags every turn -- no tally to drift -- and the
+ * one case where the roster is absent is COUNTED rather than falling silently back to the arrays that
+ * caused this, because a quiet fallback here is indistinguishable from the bug. */
+function fallenCount(sf,act,bench){
+  if(sf&&sf.team&&sf.team.length)return sf.team.filter(x=>x&&x.fainted).length;
+  MEDFAILS.fallenNoRoster++;
+  return [...act,...bench].filter(x=>x&&x.fainted).length;
+}
 /* BRING A BENCHED POKEMON IN. Shared by faint replacement and by voluntary/pivot switching.
    WHICH mon: live(bench)[0], the same choice refill() has always made. A rollout needs SOME policy
    and the honest first version reuses the existing one rather than inventing a matchup heuristic
@@ -3452,7 +3568,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_pt&&_pt.effect==='drain'&&_pt.on==='target'&&_pt.per&&!t._seededBy
              &&!(_pt.immuneType&&t.types.includes(_pt.immuneType))
              &&!pranksterBlocked(m,t,a.mv)){
-            const acc=(fx&&fx.accuracy===true)?100:((fx&&fx.accuracy)||ACC[a.mv]||100);
+            const acc=moveAccuracy(a.mv,field);   // WIRE 124 -- one accuracy authority, not a second copy
             if(rng()*100<=acc) t._seededBy={by:m,per:_pt.per};
           }
           /* WIRE 20's sealsMoves consumer USED TO BE HERE AND WAS UNREACHABLE. Encore, Disable and
@@ -3466,7 +3582,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         m._lastMove=a.mv;
         if(powderBlocked(t,a.mv)) continue;                     // Grass / Overcoat / Safety Goggles
         if(pranksterBlocked(m,t,a.mv)) continue;                // Prankster does not touch Dark types
-        const acc=(fx&&fx.accuracy===true)?100:((fx&&fx.accuracy)||ACC[a.mv]||100);
+        const acc=moveAccuracy(a.mv,field);   // WIRE 124 -- one accuracy authority, not a second copy
         if(rng()*100>acc) continue;                              // status moves miss (T-Wave 90, W-o-W 85)
         applyStatus(t,st);                                       // applyStatus enforces the immunities
         continue;
@@ -3636,7 +3752,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * which is the same helper the immunity below uses -- one implementation of "what type is
          * this move really", not two. */
         if(targets.length&&!(drawer&&targets[0]===drawer)){
-          const _t=effMoveType(mv,a.move.id,field);
+          const _t=effMoveType(mv,a.move.id,field,m);      // WIRE 126 -- the attacker, so an -ate move is drawn as what it BECAME
           const _rod=live(foes).find(f=>{
             if(!f||f===targets[0])return false;
             const _rt=TAGS.param('ability',f.ability,'redirectsType');
@@ -3690,7 +3806,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           /* effMoveType, not mv.t: the -ate abilities rewrite a Normal move to Flying or Fairy, and
            * a converted move DOES hit a Ghost. Using the raw type would trade one wrong immunity for
            * another. It is the same helper the typeImmunity check below already uses. */
-          if (mcEff(effMoveType(mv, a.move.id, field), tg.types) === 0) continue;
+          if (mcEff(effMoveType(mv, a.move.id, field, m), tg.types) === 0) continue;
         }
         /* WIRE 76 -- AND immuneToMoveClass IS AN IMMUNITY TOO, so it short-circuits stage 5 exactly
          * as the type chart above does. `moveClassBlocked` had two consumers -- dmgRange (WIRE 22,
@@ -3734,7 +3850,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * state to land on -- carried, unconsumed, stated. The whole hit ends here: no secondaries,
          * no punishment, no berry, exactly as onTryHit returning null ends it in the real engine. */
         const _ab=TAGS.param('ability',tg.ability,'typeImmunity');
-        if(_ab&&_ab.type===effMoveType(mv,a.move.id,field)){
+        if(_ab&&_ab.type===effMoveType(mv,a.move.id,field,m)){   // WIRE 126 -- Volt Absorb eats a GALVANIZED Body Slam
           if(_ab.gain&&!tg.fainted){
             const _h=_ab.gain.heal&&String(_ab.gain.heal).match(/1\/(\d+)/);
             if(_h)tg.curHP=Math.min(tg.st.hp,tg.curHP+Math.floor(tg.st.hp/(+_h[1])));
@@ -3996,7 +4112,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * rule since Gen VI), and the artifact's thawsTarget carries the non-Fire exceptions the
          * flag exists for -- Scald, Matcha Gotcha. Cleared BEFORE the damage lands so the thawed
          * target acts normally next turn. */
-        if(tg.status==='frz'&&(effMoveType(mv,a.move.id,field)==='Fire'||TAGS.has('move',a.move.id,'thawsTarget')))tg.status='';
+        if(tg.status==='frz'&&(effMoveType(mv,a.move.id,field,m)==='Fire'||TAGS.has('move',a.move.id,'thawsTarget')))tg.status='';
         tg.curHP-=dmg;if(tg.curHP<=0){tg.curHP=0;tg.fainted=true;
           /* WIRE 104 -- `boostsOnKO` (Eelevate on Eelektross-Mega; Beast Boost's carriers are not in
            * the format's usage but the read is by shape). +1 to the attacker's HIGHEST raw stat on a
@@ -4390,7 +4506,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       {
         const _tb=TAGS.param('ability',m.ability,'typeBecomesMoveType');
         if(_tb&&!m.fainted&&!(_tb.oncePerSwitchIn&&m._proteanUsed)){
-          const _nt=effMoveType(a.move.mv,a.move.id,field);
+          const _nt=effMoveType(a.move.mv,a.move.id,field,m);   // WIRE 126 -- Protean becomes the CONVERTED type
           if(_nt&&!(m.types.length===1&&m.types[0]===_nt)){m.types=[_nt];m._proteanUsed=true;}
         }
       }
@@ -4628,8 +4744,8 @@ function battleTurn(S,rng,actsForA,actsForB){
      * Last Respects (a mid-turn kill is seen one action late — an approximation, stated), and the
      * entrant's frozen snapshot for Supreme Overlord. Derived from the actual fainted flags every
      * turn — no hand-maintained tally to drift. */
-    sfA.fainted=[...actA,...benchA].filter(x=>x&&x.fainted).length;
-    sfB.fainted=[...actB,...benchB].filter(x=>x&&x.fainted).length;
+    sfA.fainted=fallenCount(sfA,actA,benchA);
+    sfB.fainted=fallenCount(sfB,actB,benchB);
     /* ONE SWITCH-IN PATH. Will's point: voluntary switching is not new machinery, it is the body
        refill() already had -- take the mon off the bench, reset its turn counter, stamp the fallen
        count, apply entry effects and Intimidate. Extracted to bringIn() at module scope so a faint

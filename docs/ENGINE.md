@@ -24,16 +24,16 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  217/220 probed mechanics live, 3 missing   (census 2026-08-06 06:57)
+  218/221 probed mechanics live, 3 missing   (census 2026-08-06 08:07)
   missing:
     move    needsTargetToAttack    Avalanche doubles after being hit
     ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll
     ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit
-  1/150 differential comparisons disagree with Showdown   (2026-08-06 06:46)
+  1/150 differential comparisons disagree with Showdown   (2026-08-06 08:08)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 06:52)
+  interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 08:01)
     2300 of 8795 theoretical pairs staged — agreement is a claim about the 2300 that ran, not about the 8795
       530 inert      not scored — the reference engine behaves identically with and without the reactor
       109 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
@@ -48,7 +48,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 156/181 probed, 25 unprobed
 ```
 
-_stamped 2026-08-06 07:14_
+_stamped 2026-08-06 08:10_
 
 <!-- /GENERATED -->
 
@@ -61,6 +61,198 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
+
+## THE DIRECT-CALL PROBES WERE ARMED, AND THREE OF THEM WERE HIDING A BUG. WIRES 124–126. 2026-08-06.
+
+Census **217 → 218 live / 220 → 221 probed**; missing still 3 (the same three), hollow 0, `threw` 0.
+`unarmed` **145 → 116**. **28 of the 47 direct-call probes were converted to spend a real turn** —
+the whole ranked top 30 bar two, each named below with its reason. Differential unchanged at **1/150**
+(the same pre-existing `chesnaught woodhammer -> mimikyu` row, the same 11 not comparable).
+`tests/test-game-diff.js` agrees on every turn of all five scripted games. The interaction matrix was
+re-run at `--full` against the changed engine and is **byte-for-byte unchanged**: 1,624/1,643 live
+pairs agree (98.8%), the same 530 inert / 109 saturated / 16 ko-timing / 2 threw, the same six named
+disagreements. `tests/probe_red_demo.js` is **38 demonstrations, 0 failed** (was 35).
+
+**Every one of the three bugs below was invisible to the probe that covered it**, and that is the
+finding this pass was dispatched to test. All three sat under a probe the census graded **LIVE**.
+
+**The generated block at the top of this file is one census behind**, because this pass was dispatched
+under an explicit instruction not to run `engine/status.js --write`. **THE RESTAMP IS OWED**; the
+artifacts already say the right thing.
+
+**AND THE RED-DEMO GUARD EARNED ITS KEEP MID-PASS.** WIRE 124's reversal patch was written, then the
+engine block it reverts was edited again (the `moveFx` catch was given a counter so
+`tests/test-no-silent-failure.js` would stop flagging it). `revertedEngine()` threw
+`reversal did not apply — the source no longer contains:` and printed the stale text. That is the
+alternative to a known-bad engine quietly becoming the shipped one, which would have made every
+demonstration below it meaningless while still printing OK.
+
+### WIRE 124 — 78 MOVES COULD NOT MISS, AND THE PROBE ASSERTED THE ANSWER
+
+`moveAccuracy` ended `return ACC[id]||100` over a **hand-typed 35-move literal**. Every move not on
+that list was never-missing. Measured over all 500 moves in `MC.moves` against the format dex at the
+pinned commit `20ad99ff`:
+
+| | |
+|---|---|
+| moves with accuracy below 100 in `gen9championsvgc2026regmb` | **78** |
+| of those, present in `ACC` | **0** |
+| corpus clicks on them | **35,608** |
+
+Led by **Heat Wave 90% (7,405 clicks)**, Matcha Gotcha 90% (5,352), Dual Wingbeat, Make It Rain,
+High Horsepower, Draco Meteor, Hyper Beam, Icy Wind, Toxic, Rock Tomb, Triple Axel, Population Bomb.
+
+**THE PROBE COULD NOT HAVE SEEN IT, AND SAID SO IN ITS OWN SHAPE.** It read
+`moveAccuracy('aerialace') >= 100` — which is exactly what an engine where *everything* is 100 also
+returns. A never-miss set means nothing unless the moves outside it can miss, and nothing asked.
+
+**The source was already in the tree and two other sites in this same file were already using it.**
+`data/move-effects.js` carries `accuracy` for all 954 of its moves (`true` for a never-miss), it is
+already a frozen release SOURCE, and the two status branches in the battle loop already read
+`(fx&&fx.accuracy===true)?100:...` for this exact purpose. So the defect was **also a
+FACTS-ARE-GLOBAL violation**: two accuracy engines in one file, one derived and one typed, disagreeing
+on 78 moves. All three sites now call `moveAccuracy`.
+
+**`ACC_FIX` IS NOT THE OLD LIST SHRUNK.** It is the rows where the GENERATED artifact disagrees with
+the format dex, derived over all 500 moves rather than remembered, and it is exactly four —
+`crabhammer 90→95`, `makeitrain 100→95` (2,443 clicks), `syrupbomb 85→90`,
+`clangoroussoul 100→never-misses`. `data/move-effects.js` is generated from CHOMP's JSON and is not
+ENGINE's to correct, so the deviation is carried at the engine with the dex's number beside it.
+**The 35 hand-typed entries all AGREED with the dex** and are simply redundant now — the list was not
+wrong, it was absent.
+
+**AND THE CORRECTION LIST IS CHECKED, WHICH IS THE ONLY THING THAT MAKES IT DIFFERENT IN KIND FROM
+THE LITERAL IT REPLACES.** `tests/test-engine-diff.js` gained an ACCURACY CONFORMANCE block that
+re-derives every move's accuracy against the live format and exits 1 on a fifth row. It reads
+**500 compared, 0 disagree, 0 unknown**. That harness compares DAMAGE and calls `dmgRange`, which
+never rolls to hit — so it had been structurally blind to this for its whole life, and the new block
+is the cheapest place to give it eyes.
+
+### WIRE 125 — THE DEATH COUNTER FORGOT THE DEAD, ONE TURN AFTER THEY DIED
+
+Found by converting `powerFromFallen`, whose old body contained its own confession:
+
+```js
+S.sfA.fainted = 3;      // the input, not the effect: three of ours are down
+```
+
+It wrote the counter by hand and asked whether `dmgRange` read it. Nothing had ever asked whether
+anything **increments** it. The end-of-turn recount was
+`[...act,...bench].filter(x=>x.fainted).length`, and `bringIn()` — the one path a replacement arrives
+through — does `bench.splice(...)` then `act[i]=nx`. **The fainted body is in neither array
+afterwards.** So the count was right for exactly the turn of the death and fell back to **zero** at
+the end of the next one.
+
+Last Respects (**19,299 uses**, a move whose entire identity is that it grows as your team dies) read
+50 BP forever after the turn its ally fell. Supreme Overlord's `_fallenStuck` is stamped from the same
+field, so every body entering later than the turn of a death carried an undercount — and the deeper
+into a game, the more of the roster is dead and the wronger it got, which is precisely the phase both
+mechanics exist for.
+
+The roster was already on the side object (`battleInit` stamps `sf.team`). Still derived from the live
+`fainted` flags every turn — no tally to drift — and a missing roster is **counted**
+(`MEDFAILS.fallenNoRoster`, 0 over 40 random games), because a quiet fallback to the arrays that
+caused this is indistinguishable from the bug.
+
+### WIRE 126 — A COMMENT SAID THE -ATE ABILITIES WERE HONOURED. THE FUNCTION IT NAMED TAKES NO ATTACKER.
+
+Found by converting `convertsMoveType`. The battle loop's type-immunity gate reads:
+
+```js
+/* effMoveType, not mv.t: the -ate abilities rewrite a Normal move to Flying or Fairy, and
+ * a converted move DOES hit a Ghost. */
+if (mcEff(effMoveType(mv, a.move.id, field), tg.types) === 0) continue;
+```
+
+`effMoveType(mv, moveId, field)` is handed **no attacker** and knew only about Weather Ball. The -ate
+rewrite lived inside `dmgRange` and nowhere else. **This is WIRE 119's Taunt failure exactly — a
+capability absent while a comment reports success — and it is the second time in three days this file
+has been caught by one.**
+
+Measured, both arms, before the fix: an Aerilate Staraptor's **Body Slam into a Ghost was priced by
+`dmgRange` at 136–162 and dealt 0 by the battle loop.** Four more sites read the same helper and were
+wrong the same way, so a Galvanized Body Slam was **not drawn by a Lightning Rod, not absorbed by Volt
+Absorb, did not thaw, and did not make a Protean body Electric**.
+
+One implementation now: `convertsMoveTypeTo()` owns the conversion, `effMoveType` calls it, and
+`dmgRange` keeps only the POWER half (`damageMult`), which is a power question and belongs where the
+power is.
+
+**ONE CALL SITE DELIBERATELY STILL PASSES NO ATTACKER, AND IT IS DECLARED AT THE LINE.**
+`clickFragility` is one of the six exports `board.js` reaches this engine through, so its output is a
+**MAG feature input** — passing `att` would move the fitted vector and owe a refit, which is MEASURE's
+expensive edge and not ENGINE's to spend. The consequence is stated rather than discovered: an -ate
+body's click is priced against its RAW type there while the battle loop resolves it as the converted
+one. **FILED below.**
+
+### WHAT WAS CONVERTED, AND THE TWO THAT WERE NOT
+
+28 of the ranked 47, which is the top 30 minus two, each judged rather than skipped:
+
+- **`weatherSetter` "Drizzle sets rain on entry"** — the ranked list counts it because it spends no
+  `battleTurn`, but the mechanic IS an entry effect and `battleInit` with entry effects on is the real
+  path. WIRE 123's bug lived in that function and was caught by the three-armed probe beside it.
+  Spending a turn adds nothing. **Armed instead** — it always computed a real control.
+- **`multiAccuracy` "Triple Axel is priced below three full hits"** — an EXPECTED-HITS pricing
+  question that `dmgRange` owns by design (WIRE 20's declared divergence: multi-hit damage is one
+  packet). A real turn re-derives the same number through one more layer and asks nothing new.
+
+**THE RATCHET IS THE DIRECT-CALL COUNT, NOT `unarmed`**, which is what #42/#45 asked for and the
+reason is in the section below: `unarmed` falls as paperwork and says nothing about coverage.
+Structurally — a probe body that mentions `battleTurn`, `battleInit`, `board(` or `turnDamage(`
+against one that does not — the file now reads **182 spend a real turn or a real entry, 37 call the
+mechanic directly**. It may fall and it may never rise.
+
+Everything else in the top 30 now spends a real turn: the four accuracy probes, Intimidate through
+**both** entry routes, Clear Body and Defiant through a real switch-in, Choice Scarf and Chlorophyll
+as **turn ORDER** rather than a speed number, the mega stone through `battleInit` to the sun on the
+field, and the whole damage family.
+
+**FOUR PROBES WERE MADE STRICTER IN THE SAME PASS, BECAUSE THE CONVERSION EXPOSED THAT THEY HAD NO
+CONTROL AT ALL:**
+
+| probe | what it used to accept |
+|---|---|
+| `ignoresBoosts` Darkest Lariat | `a.max === b.max` — which is what an engine that ignores stat stages for EVERY move prints. Crunch is now the control and must fall |
+| `needsUntrackedState` Gyro Ball | an Archaludon against a **Weavile** — different Attack, types and everything; "the numbers differ" was guaranteed. One body now, only Speed varied, and the DIRECTION asserted |
+| `weightBased` Grass Knot | a Whimsicott against an **Archaludon**. One species now with `wt` overridden |
+| `damageBoost` Aerilate | `b.max !== a.max`, which passes on an engine that made the move weaker |
+
+### AND MY OWN PROBE WAS WRONG BEFORE THE ENGINE WAS. THAT MAKES THIRTY-THREE.
+
+The `overridesEffectiveness` control arm was written *"Freeze-Dry must equal Ice Beam against a
+non-Water body"*. **Freeze-Dry is 70 BP and Ice Beam is 90**, so the correct answer off a Water target
+is that Freeze-Dry is LOWER, and the probe would have failed on a perfectly correct engine. The
+comfortable shape was "a control arm should be a null result"; the honest one is the direction the
+base powers dictate, and it separates the two hypotheses just as well.
+
+### MAG'S INPUTS DID NOT MOVE — MEASURED, NOT ARGUED
+
+`engine/feature_fixture.js --check`: **CLEAN — all 58 columns hash-identical to fit time.** None of
+the three wires is on `board.js`'s six-export path: `moveAccuracy` is not one of them and is not
+called by `clickFragility` or `punishExposure`; `fallenCount` is inside `battleTurn`; and
+`effMoveType`'s one feature-path caller was deliberately left unchanged for that reason. What changed
+is ROLLOUT behaviour, which is the point of an engine fix and does not owe a refit.
+
+**`engine/position_features.js` IS A DIFFERENT MATTER AND IT IS OWED A LOOK.** Line 197 reads
+`1 - (M.moveAccuracy(id, field) / 100)` as a `risk` feature, so **that column really did move for 78
+moves** — it was constant-zero for all of them and is now the true miss chance. Features are per-model
+(CLAUDE.md), so this is not MAG's vector and `feature_fixture` correctly reports clean; but any model
+fitted on position features predates the correct number. **Routed to MEASURE, not decided here.**
+
+### FILED, NOT FIXED
+
+- **`clickFragility` prices an -ate click against the raw move type.** Fixing it means passing the
+  attacker into `effMoveType` at `medicham2-browser.js:1782`, which moves a MAG feature and owes a
+  refit. Declared in a comment at the line.
+- **`data/move-effects.js` disagrees with the format dex on four accuracies** (`crabhammer`,
+  `makeitrain`, `syrupbomb`, `clangoroussoul`). It is generated by `build/build_browser_data.js` from
+  CHOMP's `move-effects.json` — not ENGINE's file. The engine corrects them locally in `ACC_FIX`; the
+  upstream artifact is still wrong and anything else reading it inherits that.
+- **Found red, NOT mine.** `tests/test-no-silent-failure.js` reports **four NEW silent catch blocks in
+  `build/strong_player_baseline.js`** (:300, :323, :425, :426). Not a file this pass touched. The two
+  in `engine/dusk_size_gate.js` reported on 2026-08-06 are gone. Stated for the router to place, not
+  filed as a status.
 
 ## WIRE 123 — ENTRY ABILITIES RESOLVED IN ARRAY ORDER, SO SIDE B'S LEAD OWNED THE SKY. 2026-08-06.
 
@@ -1868,10 +2060,11 @@ arms.**
   the dex, and it has now been wrong twice in one session — here and for Air Lock.**
 - **A KO the two engines time differently is a DAMAGE question**, and `tests/test-engine-diff.js` owns
   it. One pair (`bitterblade -> sharpness`) is excluded on that basis and COUNTED, never dropped.
-- **The `moveAccuracy` table in `medicham2-browser.js` is a hand-typed 35-move literal** and carries
-  neither Triple Axel nor Population Bomb, so it returns 100 for both. WIRE 59 reads the per-hit
-  accuracy out of the `multiAccuracy` tag instead and says why in place, but the TABLE is the same
-  class of hand list this file has spent the session deleting and it should be derived.
+- ~~**The `moveAccuracy` table in `medicham2-browser.js` is a hand-typed 35-move literal**~~ **LANDED
+  as WIRE 124, and the filing understated it by an order of magnitude.** It was not two missing moves;
+  it was **78 of the 500** in this engine's own table, led by Heat Wave at 7,405 clicks. The census now
+  carries it (`move neverMisses — "a move the artifact does NOT tag neverMisses can still miss"`) and
+  `tests/test-engine-diff.js` re-derives all 500 accuracies against the live format dex on every run.
 - **Strength Sap's HEAL is still absent (WIRE 79 landed only the Attack drop)**, and the receipt for it
   moved: the move used to be counted in `fails.healProcedural` because it resolved to `kind:'heal'`
   with `heal: true`, and it now resolves to `affect`, so that counter no longer sees it. The heal

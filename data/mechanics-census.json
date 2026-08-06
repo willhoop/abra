@@ -1,12 +1,12 @@
 {
-  "generated": "2026-08-06T06:57:09.444Z",
+  "generated": "2026-08-06T08:07:42.700Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 220,
-  "live": 217,
+  "probed": 221,
+  "live": 218,
   "missing": 3,
-  "armed": 75,
-  "unarmed": 145,
+  "armed": 105,
+  "unarmed": 116,
   "threw": 0,
   "hollow": 0,
   "results": [
@@ -15,9 +15,9 @@
       "tag": "speedMult",
       "label": "Choice Scarf raises Speed",
       "live": true,
-      "detail": "no item 135  ->  scarf 202.5",
+      "detail": "[own Speed, damage taken from a 130-Speed foe on 1 HP] — no item 100,117 (slower, so it got hit), Choice Scarf 150,0 (faster, so the foe never acted)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "item",
@@ -33,9 +33,9 @@
       "tag": "megaStone",
       "label": "a mega stone builds the mega body",
       "live": true,
-      "detail": "built charizard-mega-y",
+      "detail": "[name, ability, SpA, weather after the leads arrive] — no item charizard,blaze,141,none; Charizardite Y charizard-mega-y,drought,196,sun (the sheet declared Blaze in BOTH arms)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "ability",
@@ -58,11 +58,20 @@
     {
       "kind": "move",
       "tag": "neverMisses",
-      "label": "Aerial Ace cannot miss",
+      "label": "Tailwind resolves on a roll that Sleep Powder loses",
       "live": true,
-      "detail": "accuracy=100",
+      "detail": "Sleep Powder (75%) on a winning roll: true; on a LOSING roll: false; Tailwind on that same losing roll: true",
       "hollow": false,
-      "armed": false
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "neverMisses",
+      "label": "a move the artifact does NOT tag neverMisses can still miss",
+      "live": true,
+      "detail": "on a LOSING roll — Heat Wave (90%) 0, Matcha Gotcha (90%) 0 (both must be 0), Aerial Ace 44 (must land); on a winning roll the two 90% moves deal 18 and 22",
+      "hollow": false,
+      "armed": true
     },
     {
       "kind": "move",
@@ -159,9 +168,9 @@
       "tag": "onSwitchInDrop",
       "label": "Intimidate drops Attack",
       "live": true,
-      "detail": "atk 0 -> -1",
+      "detail": "both foes' atk stage — LEADS: ability none 0,0, Intimidate -1,-1; MID-BATTLE SWITCH: none 0,0, Intimidate -1,-1",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "ability",
@@ -177,9 +186,9 @@
       "tag": "damageBoost",
       "label": "Aerilate converts and boosts",
       "live": true,
-      "detail": "none 94  ->  aerilate 114",
+      "detail": "Body Slam into Garchomp — ability none 87  ->  Aerilate 105 (Normal becomes Flying, STAB, and x1.2)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "ability",
@@ -213,18 +222,18 @@
       "tag": "preventsStatDrop",
       "label": "Clear Body refuses Intimidate",
       "live": true,
-      "detail": "atk stage after Intimidate: ability none -1, Clear Body 0",
+      "detail": "atk stage after a real Intimidate switch-in — holder: none -1, Clear Body 0 (must be 0); its PARTNER, no ability either way: -1 / -1 (must both be -1, or the Intimidate never fired)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "ability",
       "tag": "boostsWhenLowered",
       "label": "Defiant raises Attack when dropped",
       "live": true,
-      "detail": "atk stage 1",
+      "detail": "Kingambit's atk stage after a real Intimidate switch-in: none -1, Defiant 1 (-1 then +2 is net +1); its partner -1 / -1",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "ability",
@@ -249,9 +258,9 @@
       "tag": "neverMissesAttack",
       "label": "Aura Sphere cannot miss",
       "live": true,
-      "detail": "accuracy=100",
+      "detail": "Focus Blast (70%) on a winning roll 97, on a LOSING roll 0 (must be 0); Aura Sphere on that same losing roll 70 (must land)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "move",
@@ -294,18 +303,18 @@
       "tag": "weightBased",
       "label": "Grass Knot scales with target weight",
       "live": true,
-      "detail": "vs light 14  ->  vs heavy 29",
+      "detail": "same Garchomp, only its weight moves -- 5 kg takes 23, 400 kg takes 133",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "move",
       "tag": "swapsStat",
       "label": "Body Press attacks with Defense",
       "live": true,
-      "detail": "def 125 deals 40, def 250 deals 78",
+      "detail": "Body Press: base Def 37 -> double Def 72; Iron Head, which reads Attack: 74 -> 74 (must not move)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "move",
@@ -339,18 +348,18 @@
       "tag": "stabBoost",
       "label": "Adaptability raises same-type damage",
       "live": true,
-      "detail": "none 127  ->  adaptability 170",
+      "detail": "Wave Crash (STAB Water off a Water body): none 118 -> Adaptability 157; Crunch (not this body's type): 53 -> 53 (must not move)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "ability",
       "tag": "speedCond",
       "label": "Chlorophyll doubles Speed in sun",
       "live": true,
-      "detail": "no sun 125  ->  sun 250",
+      "detail": "[own Speed, damage taken from a 130-Speed foe on 1 HP] — Chlorophyll no sun 90,97, Chlorophyll in sun 180,0; NO ability in sun 90,97 (must still be hit, or the sun itself is doing it)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "ability",
@@ -474,9 +483,9 @@
       "tag": "needsUntrackedState",
       "label": "Gyro Ball scales with the speed gap",
       "live": true,
-      "detail": "slow user 22  vs  fast user 17",
+      "detail": "same Archaludon, only its Speed moves — 30 Spe deals 82, 150 Spe deals 18 (Gyro Ball must get WEAKER as the user gets faster)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "ability",
@@ -582,9 +591,9 @@
       "tag": "weatherScaled",
       "label": "Blizzard cannot miss in snow",
       "live": true,
-      "detail": "no weather 70  ->  snow 100",
+      "detail": "Blizzard on a LOSING roll — clear sky 0 (70%, must be 0), snow 20 (the tag says 100, must land)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "move",
@@ -627,18 +636,18 @@
       "tag": "damageMultAll",
       "label": "Life Orb raises damage",
       "live": true,
-      "detail": "no item 86  ->  Life Orb 111",
+      "detail": "Close Combat into Garchomp -- no item 80  ->  Life Orb 103",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "item",
       "tag": "damageMultType",
       "label": "Black Glasses raises Dark damage only",
       "live": true,
-      "detail": "Dark 87->104, Fighting 86->86 (must not move)",
+      "detail": "Dark 80->96, Fighting 80->80 (must not move)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "move",
@@ -708,9 +717,9 @@
       "tag": "weatherSetter",
       "label": "Drizzle sets rain on entry",
       "live": true,
-      "detail": "ability none -> none, Drizzle -> rain",
+      "detail": "weather after the leads arrive: ability none -> none, Drizzle -> rain",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "ability",
@@ -825,45 +834,45 @@
       "tag": "typeImmunity",
       "label": "Levitate takes nothing from Earthquake",
       "live": true,
-      "detail": "no ability 123  ->  Levitate 0",
+      "detail": "Earthquake: no ability 84 -> Levitate 0 (must be 0); Dragon Claw: 183 -> 183 (must not move)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "ability",
       "tag": "convertsMoveType",
       "label": "Aerilate makes Body Slam hit a Ghost",
       "live": true,
-      "detail": "no ability 0 (Normal vs Ghost)  ->  Aerilate 162",
+      "detail": "Body Slam into a Ghost -- no ability 0 (Normal cannot touch it)  ->  Aerilate 149",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "move",
       "tag": "multiHit",
       "label": "Rock Blast lands more than one hit",
       "live": true,
-      "detail": "one hit 17  ->  Rock Blast as the engine prices it 52 (real average is about 3.2 hits)",
+      "detail": "one hit 16  ->  Rock Blast as the engine prices it 48 (real average is about 3.2 hits)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "move",
       "tag": "powerFromFallen",
       "label": "Last Respects grows with fallen allies",
       "live": true,
-      "detail": "0 fallen 37  ->  3 fallen 143",
+      "detail": "[fallen allies, Last Respects damage] — nobody died 0,51, one ally really fainted first 1,101",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "move",
       "tag": "overridesEffectiveness",
       "label": "Freeze-Dry beats Ice Beam into a Water type",
       "live": true,
-      "detail": "Ice Beam 15  ->  Freeze-Dry 50 (must be higher)",
+      "detail": "into a WATER body -- Ice Beam 14, Freeze-Dry 46 (must be HIGHER, the override); into a non-Water body -- Ice Beam 11, Freeze-Dry 9 (must be LOWER, 70 BP against 90 with no override)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "ability",
@@ -951,9 +960,9 @@
       "tag": "fixedDamage",
       "label": "Seismic Toss deals the level, whoever it hits",
       "live": true,
-      "detail": "mv.bp=0; vs frail 50, vs bulky 50 (both must be 50)",
+      "detail": "Seismic Toss vs frail 50 and vs bulky 50 (both must be 50); Close Combat vs the same two 70 and 74 (must differ)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "move",
@@ -1023,9 +1032,9 @@
       "tag": "ignoresBoosts",
       "label": "Darkest Lariat ignores a Defense boost",
       "live": true,
-      "detail": "unboosted 85 vs +4 Def 85 (equal = ignored)",
+      "detail": "into a +4 Def Corviknight -- Darkest Lariat 79 -> 79 (equal = ignored); Crunch 74 -> 26 (must fall, or nothing reads boosts)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "move",
@@ -1086,18 +1095,18 @@
       "tag": "terrainScaled",
       "label": "Expanding Force gains power on Psychic Terrain",
       "live": true,
-      "detail": "Expanding Force max: no terrain 105, 'psychic' 157, 'psychicterrain' 157, 'electric' 105 (must equal no terrain)",
+      "detail": "Expanding Force dealt: no terrain 97, 'psychic' 145, 'psychicterrain' 145 (the board's own word), 'electric' 97 (must equal no terrain)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "move",
       "tag": "swapsStat",
       "label": "Foul Play attacks with the TARGET Attack",
       "live": true,
-      "detail": "target atk 63 -> 34, target atk 189 -> 100",
+      "detail": "Foul Play: target at base Attack 31 -> at triple Attack 92; Crunch, same user and type: 47 -> 47 (must not move)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "ability",
@@ -1140,9 +1149,9 @@
       "tag": "variablePower",
       "label": "Acrobatics doubles with no item held",
       "live": true,
-      "detail": "holding an item 79  ->  empty-handed 121",
+      "detail": "holding a Life Orb (which is itself worth 1.3x) 73  ->  empty-handed 112",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "move",
@@ -1158,9 +1167,9 @@
       "tag": "statSwap",
       "label": "Psyshock is scored against the target Defense",
       "live": true,
-      "detail": "def 99 takes 111, def 297 takes 39",
+      "detail": "target Defence tripled -- Psyshock 102 -> 36 (must fall); Psychic, which reads Sp. Def: 62 -> 62 (must not move)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "move",
@@ -1437,9 +1446,9 @@
       "tag": "moveClass",
       "label": "Iron Fist boosts a punch and leaves a non-punch alone",
       "live": true,
-      "detail": "Mach Punch (punch): none 30 -> Iron Fist 36; Flare Blitz (not punch): none 64 -> Iron Fist 64 (must not move)",
+      "detail": "Mach Punch (punch): none 28 -> Iron Fist 33; Flare Blitz (not punch): none 59 -> Iron Fist 59 (must not move)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "move",
@@ -1770,7 +1779,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.0% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 26.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true
     },

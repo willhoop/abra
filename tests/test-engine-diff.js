@@ -565,3 +565,53 @@ fs.writeFileSync(D('data', 'engine-diff.json'), JSON.stringify({
   touched,
 }, null, 2) + '\n');
 console.log('\n  wrote data/engine-diff.json');
+
+/* ---- WIRE 124 — THE ACCURACY TABLE, CHECKED AGAINST THE FORMAT RATHER THAN REMEMBERED -----------
+ *
+ * This harness compares DAMAGE and structurally cannot see accuracy: it calls dmgRange, which never
+ * rolls to hit. So a move the engine believed could never miss compared clean here for the whole life
+ * of the file, and 78 of the 500 moves in MC.moves were exactly that — `moveAccuracy` ended
+ * `ACC[id]||100` over a hand-typed 35-move literal, and Heat Wave (7,405 clicks) could not miss.
+ *
+ * The fix derives accuracy from data/move-effects.js, with a four-row ACC_FIX list for the places
+ * that GENERATED artifact disagrees with the dex. A correction list nobody re-derives is the same
+ * hand list one layer down, so it is re-derived here, over every move, against the live format —
+ * which is the one authority in this repo that cannot go stale (ADR-002).
+ *
+ * IT IS A HARD FAILURE, unlike the damage residual above. A damage disagreement is a magnitude and
+ * gets a tolerance; an accuracy disagreement is a number that is simply wrong, and the whole point of
+ * the list is that a fifth row must not be able to arrive silently. */
+{
+  const cleanField = { weather: '', terrain: '', twA: 0, twB: 0, tr: 0, wgA: false, wgB: false };
+  const accBad = [];
+  let accCompared = 0;
+  for (const id of Object.keys(MC.moves)) {
+    const dm = dex.moves.get(id);
+    if (!dm || !dm.exists) continue;
+    accCompared++;
+    const expect = dm.accuracy === true ? 100 : dm.accuracy;
+    const got = MEDI.moveAccuracy(id, cleanField);
+    if (got !== expect) accBad.push({ move: id, medicham: got, showdown: expect,
+                                      uses: ((tags.moves[id] || {}).uses) || 0 });
+  }
+  const unknown = (MEDI.fails && MEDI.fails.accuracyUnknown) || 0;
+  console.log(`\n  ACCURACY CONFORMANCE — ${accCompared} moves in MC.moves against ${CS.FORMAT}`);
+  console.log(`    disagree: ${accBad.length}`);
+  console.log(`    moves whose accuracy NEITHER source knows (fell back to 100): ${unknown}`
+    + (unknown ? '   first: ' + MEDI.fails.accuracyUnknownFirst : ''));
+  for (const b of accBad.sort((a, c) => c.uses - a.uses).slice(0, 20)) {
+    console.log(`    ${b.move.padEnd(20)} medicham ${String(b.medicham).padStart(4)}   `
+      + `showdown ${String(b.showdown).padStart(4)}   (${b.uses} uses)`);
+  }
+  const diffPath = D('data', 'engine-diff.json');
+  const art = JSON.parse(fs.readFileSync(diffPath, 'utf8'));
+  art.accuracy_conformance = { compared: accCompared, disagreed: accBad.length,
+                               unknown_accuracy: unknown, worst: accBad.slice(0, 20) };
+  fs.writeFileSync(diffPath, JSON.stringify(art, null, 2) + '\n');
+  if (accBad.length || unknown) {
+    console.log('\n  FAILED: the accuracy table no longer matches the format. Either data/move-effects.js');
+    console.log('  moved under the engine, or ACC_FIX in engine/medicham2-browser.js needs a row — and');
+    console.log('  a move the engine thinks is 100%% is a move that can never miss in any rollout.');
+    process.exitCode = 1;
+  }
+}

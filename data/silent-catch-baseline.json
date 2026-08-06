@@ -2,7 +2,7 @@
  "generated": "2026-08-06",
  "by": "tests/test-no-silent-failure.js --update",
  "note": "GENERATED. Silent catch blocks that existed when the ratchet was set. Never hand-edit: re-run with --update after FIXING some, so this number only ever goes down.",
- "count": 221,
+ "count": 220,
  "entries": {
   "build/build_ability_blocks.js#8ed85277ffd4": 1,
   "build/build_engine_data.js#0c3b2986fd6f": 1,
@@ -118,7 +118,6 @@
   "engine/preflight.js#8adf98dba67d": 1,
   "engine/prior_player.js#22d2b6d9b371": 1,
   "engine/provenance.js#8adf98dba67d": 5,
-  "engine/provenance.js#8ae90e5305f0": 1,
   "engine/provenance.js#ae7ff32960f9": 1,
   "engine/provenance.js#afcc77770f0d": 1,
   "engine/provenance.js#da39a3ee5e6b": 2,

@@ -10,6 +10,60 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.54.0] — 2026-08-06
+
+### Fixed — three real bugs, every one of them under a probe the census graded LIVE
+- **WIRE 124 — 78 moves could not miss.** `moveAccuracy` ended `return ACC[id] || 100` over a
+  **hand-typed 35-move literal**. Of the 500 moves in `MC.moves`, **78 sit below 100% accuracy in this
+  format and not one was on the list** — Heat Wave at 90% and **7,405 clicks**, Matcha Gotcha 5,352,
+  Draco Meteor, Hyper Beam, Icy Wind, Toxic, Triple Axel. **35,608 clicks of moves that never missed.**
+  The old probe asserted `moveAccuracy('aerialace') >= 100`, which is exactly what an engine where
+  *everything* is 100% also returns. It was also a FACTS-ARE-GLOBAL violation: two other sites in the
+  same file already read `data/move-effects.js` for this. Now derived from that artifact, and
+  `tests/test-engine-diff.js` re-derives **all 500 against the live format every run — 0 disagree, 0
+  unknown**. Independently confirmed against the dex: 112 moves in the format are below 100%.
+- **WIRE 125 — the death counter forgot the dead, one turn later.** The end-of-turn recount ran over
+  `act + bench`, and `bringIn()` overwrites the active slot and splices the bench, so a fainted body
+  is in neither. **Last Respects (19,299 uses) dropped back to 50 BP the turn after its ally died**,
+  and Supreme Overlord's snapshot undercounted for every later entrant. Now counted over the roster
+  `battleInit` already stamps. Found while converting the probe whose old body read
+  `S.sfA.fainted = 3;  // the input, not the effect`.
+- **WIRE 126 — a comment claimed the -ate abilities were honoured; the function it named takes no
+  attacker.** **An Aerilate Body Slam into a Ghost was priced at 136–162 by `dmgRange` and dealt 0 in
+  the battle loop.** Four more sites were wrong the same way: a Galvanized Body Slam was not drawn by
+  Lightning Rod, not absorbed by Volt Absorb, did not thaw, did not retype a Protean body.
+  **This is WIRE 119's Taunt failure again, arriving through a comment, twice in three days.**
+- Four silent catch blocks in `build/strong_player_baseline.js`. Two dropped records out of the
+  corpus a rating distribution is computed over; two turned "git could not be asked" into an
+  unrecorded null — the mistake `engine/run_stamp.js` documents in its own comments. `git_why_null`
+  now travels with the stamp so a reader of the **artifact** can tell the two apart.
+
+### Notes
+- **Census 217/220 → 218/221 live. `unarmed` 145 → 116. Direct-call probes 47 → 37** (182 now spend a
+  real turn or entry). **Red demonstrations 35 → 38, 0 failed.** Differential unchanged at 1/150.
+  Interaction matrix re-run at `--full`: **byte-identical**, 1,624/1,643. `feature_fixture --check`
+  **CLEAN — no refit owed.**
+- **The red-demo guard earned its keep mid-pass.** WIRE 124's reversal stopped matching after that
+  block was edited again, and `revertedEngine()` **threw and printed the stale text** rather than let
+  a known-bad arm quietly become the shipped one.
+- 28 of 47 converted, the whole ranked top 30 bar two, each judged rather than skipped and the reason
+  written at the probe. Stopped at `multiAccuracy`, where converting re-derives the same expected-hits
+  number through one more layer and asks nothing new.
+- **The agent's own probe was wrong before the engine was — the thirty-third time this has happened.**
+  Its `overridesEffectiveness` control read "Freeze-Dry equals Ice Beam off-type"; Freeze-Dry is 70 BP
+  against Ice Beam's 90, so it would have failed a **correct** engine.
+
+### Notes — routed, not fixed
+- **`engine/position_features.js:197` reads `moveAccuracy` as a `risk` feature**, and that column
+  genuinely moved for 78 moves — constant zero to a true miss chance. Not MAG's vector, so
+  `feature_fixture` is correctly clean, but **any model fitted on position features predates the
+  correct number.** MEASURE's call.
+- `clickFragility` still prices an -ate click on the raw type; fixing it moves a MAG feature and owes
+  a refit. Declared at the line.
+- `data/move-effects.js` disagrees with the format dex on four accuracies (crabhammer, makeitrain,
+  syrupbomb, clangoroussoul). Corrected locally; the generator is `build/build_browser_data.js` over
+  CHOMP's JSON and is still wrong upstream.
+
 ## [3.53.0] — 2026-08-06
 
 ### Added

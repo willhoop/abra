@@ -41,6 +41,56 @@ const fresh = () => Object.assign({}, FIELD);
 /* Mid-roll rng: 0.5 defeats nothing and triggers nothing at the extremes, so a probe that needs a
  * chance effect forces it explicitly rather than hoping. */
 const rng5 = () => 0.5;
+/* A LOSING ROLL, and it is the only lever an accuracy probe has. The battle loop's to-hit test is
+ * `moveAccuracy(id,field)<100 && rng()*100>acc`, so 0.99 loses every printed accuracy in this format
+ * (the lowest above 99 is nothing; the highest below is 95) and wins nothing. A move that still lands
+ * on this roll is one the engine believes cannot miss -- which is the ONLY way to tell a real
+ * never-miss from `ACC[id]||100` handing back 100 because nobody listed the move.
+ *
+ * It triggers no other chance effect: every secondary, crit and status roll in the loop is `rng()<p`
+ * with p well under 0.99, and full-paralysis is 0.125. So the only thing 0.99 changes is the miss. */
+const rngLose = () => 0.99;
+
+/* One standard doubles board, so the staging is identical across probes and a difference between two
+ * arms is the varied knob and not the setup. seeded:true skips entry effects -- a probe that wants
+ * Intimidate or Drizzle must ask for them, exactly like every other input here.
+ *
+ * HOISTED TO THE TOP, 2026-08-06. probe() runs its function IMMEDIATELY, so a probe defined above
+ * this line could not reach it -- which is why the first eighty probes in this file were all
+ * direct-call and the ones after it were not. That was an accident of declaration order, not a
+ * judgement about what those mechanics needed. */
+const board = (meSp, allySp, f1Sp, f2Sp) => {
+  const me = bare(meSp), ally = bare(allySp), f1 = bare(f1Sp), f2 = bare(f2Sp);
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  return { me, ally, f1, f2, S };
+};
+const PASS2 = (a, b) => new Map([[a, { kind: 'pass' }], [b, { kind: 'pass' }]]);
+
+/* SPEND A REAL TURN AND READ WHAT THE TARGET ACTUALLY LOST.
+ *
+ * A direct `dmgRange(att, def, mv, field)` tests the FORMULA. This tests the PATH: the type and
+ * ability immunity gates, the priority refusal, Protect, redirection, the to-hit roll and the
+ * post-hit reactions all sit between a click and the damage, and every expensive bug this engine has
+ * had lived in that gap rather than in the formula (WIRE 123 is the current example -- every
+ * entry-drop handler was correct and the ORDER they ran in was not).
+ *
+ * `stage` gets the whole board before the click, so a probe sets the one thing it varies and nothing
+ * else. The number is the AIMED foe's HP loss; a probe that needs the other foe reads it itself. */
+/* A TARGET THAT CANNOT FAINT, and it is not a convenience — it is the difference between a probe and
+ * a hollow one. A KO clamps the HP loss at the body's own maximum, so "strong" and "much stronger"
+ * print the SAME number, the two arms agree, and this file marks that HOLLOW at the bottom. Only max
+ * HP moves; every input to the damage formula is left exactly as `bare` built it. */
+const unfaintable = (m) => { m.st = Object.assign({}, m.st, { hp: m.st.hp * 8 }); m.curHP = m.st.hp; };
+
+const turnDamage = (sps, stage, moveId, rngIn) => {
+  const B = board(sps[0], sps[1], sps[2], sps[3]);
+  if (stage) stage(B);
+  const before = B.f1.curHP;
+  M.battleTurn(B.S, rngIn || rng5,
+    new Map([[B.me, M.playerAction(B.me, moveId, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    PASS2(B.f1, B.f2));
+  return before - B.f1.curHP;
+};
 
 const results = [];
 /* A PROBE THAT THREW IS NOT THE SAME AS A MECHANIC THAT IS ABSENT, and until 2026-08-04 the census
@@ -98,11 +148,33 @@ const probe = (kind, tag, label, fn) => {
 
 /* ---- ITEMS -------------------------------------------------------------------------------------- */
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). This is the probe CLAUDE.md and the header
+ * above both hold up as the example of a real control, and the control was never the problem — what
+ * it could not ask is whether the number it computes is the one that ORDERS THE TURN. `effSpeed` is
+ * a function; the turn order is a comparator over it, and this engine has had the comparator wrong
+ * (WIRE 118, WIRE 123) while every speed number was right.
+ *
+ * THE OUTCOME IS WHO GOT THERE FIRST, and the only way to see that in a battle state is to make
+ * going first MATTER: the foe is left on 1 HP, so if the Scarf holder really moved first the foe
+ * never acts and takes nothing back. Both Basculegion, both handed an explicit Speed, and the item is
+ * the one varied thing. */
 probe('item', 'speedMult', 'Choice Scarf raises Speed', () => {
-  const a = bare('basculegion'), b = bare('basculegion');
-  b.item = 'choicescarf';
-  const sa = M.effSpeed(a, fresh(), 'A'), sb = M.effSpeed(b, fresh(), 'A');
-  return { works: sb > sa * 1.4, detail: `no item ${sa}  ->  scarf ${sb}` };
+  const run = (item) => {
+    const { me, ally, f1, f2, S } = board('basculegion', 'incineroar', 'basculegion', 'garchomp');
+    me.st = Object.assign({}, me.st, { sp: 100 });
+    f1.st = Object.assign({}, f1.st, { sp: 130 });
+    me.item = item; f1.curHP = 1;
+    const before = me.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'wavecrash', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'wavecrash', me, S.field)], [f2, { kind: 'pass' }]]));
+    return [M.effSpeed(me, S.field, 'A'), before - me.curHP];
+  };
+  const control = run(''), test = run('choicescarf');
+  return { works: control[0] === 100 && test[0] > 140 && control[1] > 0 && test[1] === 0,
+           arms: { control, test },
+           detail: `[own Speed, damage taken from a 130-Speed foe on 1 HP] — no item ${control} `
+                 + `(slower, so it got hit), Choice Scarf ${test} (faster, so the foe never acted)` };
 });
 
 probe('item', 'passiveHeal', 'Leftovers heals at end of turn', () => {
@@ -121,9 +193,39 @@ probe('item', 'passiveHeal', 'Leftovers heals at end of turn', () => {
   return { works: left > none, detail: `no item ${none} hp  ->  leftovers ${left} hp` };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). It read `buildMon('charizard-mega-y')` and
+ * matched /mega/ on the NAME — which is a test of the string it was handed, not of the stone. It
+ * would have passed on an engine where the item did nothing at all, because the mega name was typed
+ * into the probe.
+ *
+ * THE STONE IS THE ONLY VARIED THING NOW, and the chain is followed all the way onto the field: the
+ * item picks the FORME, the forme picks the ABILITY over the sheet's declared Blaze (a team sheet
+ * lists the PRE-mega ability, which is the gap tests/test-effective-identity.js exists for), and the
+ * ability fires as a real entry effect through battleInit. The receipt is the WEATHER standing on the
+ * board and the Special Attack the body carries — two independent halves, because a forme swap that
+ * forgot the ability and an ability swap that forgot the stats would each pass on one of them.
+ *
+ * `mega` does not fire from an ITEM under node — megaForme() reads window.MEGA_FORMES and returns
+ * null server-side, which tests/test-mega-timing.js asserts deliberately. buildMonFromSet is the path
+ * that does the swap off the artifact's `megaStone` tag, and it is the path a pasted team takes. */
 probe('item', 'megaStone', 'a mega stone builds the mega body', () => {
-  const z = M.buildMon('charizard-mega-y', {});
-  return { works: !!z && /mega/.test(z.name), detail: 'built ' + (z && z.name) };
+  const set = (item) => ({ species: 'Charizard', item, ability: 'Blaze', nature: 'Modest',
+                           sp: { hp: 0, at: 0, df: 0, sa: 0, sd: 0, sp: 0 },
+                           moves: ['Heat Wave', 'Protect'] });
+  const run = (item) => {
+    const me = M.buildMonFromSet(set(item));
+    if (!me) return ['NO BODY', '', 0];
+    const ally = bare('corviknight'), f1 = bare('garchomp'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], {});          // NOT seeded: entry abilities fire
+    return [me.name, me.ability, me.st.sa, S.field.weather || 'none'];
+  };
+  const control = run(''), test = run('Charizardite Y');
+  return { works: String(control) === 'charizard,blaze,141,none'
+                  && test[0] === 'charizard-mega-y' && test[1] === 'drought'
+                  && test[2] > control[2] && test[3] === 'sun',
+           arms: { control, test },
+           detail: `[name, ability, SpA, weather after the leads arrive] — no item ${control}; `
+                 + `Charizardite Y ${test} (the sheet declared Blaze in BOTH arms)` };
 });
 
 /* THE MEGA ROW'S OWN ABILITY MUST BE COMPARABLE, NOT MERELY PRESENT.
@@ -184,9 +286,52 @@ probe('ability', 'megaSheetAbility', "a sheet's pre-mega ability does not overri
 
 /* ---- MOVES -------------------------------------------------------------------------------------- */
 
-probe('move', 'neverMisses', 'Aerial Ace cannot miss', () => {
-  const acc = M.moveAccuracy('aerialace', fresh());
-  return { works: acc >= 100, detail: 'accuracy=' + acc };
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). It read `moveAccuracy('aerialace') >= 100` and
+ * asserted the answer, which passes on an engine whose accuracy lookup is `ACC[id] || 100` -- i.e. on
+ * an engine where EVERYTHING is 100 and nothing can ever miss. The tag's carriers are the 124 status
+ * moves (`pHit: 1, note: "default for status"`), so the mechanic is "a never-missing move RESOLVES on
+ * a roll that a missable move loses", and the only way to see it is to spend the turn.
+ *
+ * THREE ARMS, because two cannot separate "Tailwind never misses" from "the control move never
+ * works": the same Sleep Powder is run on a WINNING roll first and must land, or the control arm is
+ * evidence about nothing. */
+probe('move', 'neverMisses', 'Tailwind resolves on a roll that Sleep Powder loses', () => {
+  const run = (moveId, rng) => {
+    const { me, ally, f1, f2, S } = board('whimsicott', 'incineroar', 'garchomp', 'garchomp');
+    M.battleTurn(S, rng,
+      new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return moveId === 'tailwind' ? S.field.twA > 0 : f1.status === 'slp';
+  };
+  const canLand = run('sleeppowder', rng5);        // 0.50 beats 75 — the control arm is capable
+  const control = run('sleeppowder', rngLose);     // 0.99 loses 75 — a missable move misses
+  const test = run('tailwind', rngLose);           // the same losing roll, a never-miss move
+  return { works: canLand === true && control === false && test === true,
+           arms: { control, test },
+           detail: `Sleep Powder (75%) on a winning roll: ${canLand}; on a LOSING roll: ${control}; `
+                 + `Tailwind on that same losing roll: ${test}` };
+});
+
+/* THE OTHER HALF OF neverMisses, AND IT WAS RED WHEN IT WAS WRITTEN. A never-miss set only means
+ * anything if the moves OUTSIDE it can miss. `moveAccuracy` resolved every id through a hand-typed
+ * 35-entry `ACC` literal and fell back to 100, so 78 of the 500 moves in this engine's own table --
+ * Heat Wave at 7,405 corpus clicks, Matcha Gotcha at 5,352, Draco Meteor, Icy Wind, Hyper Beam --
+ * were NEVER-MISSING while carrying no such tag. The gap was already filed on ENGINE's hand list
+ * ("the TABLE is the same class of hand list this file has spent the session deleting and it should
+ * be derived") and nothing failed on it, because the only probe pointed at it asserted `>= 100`.
+ *
+ * The expected numbers are the FORMAT's, read out of gen9championsvgc2026regmb at the pinned commit
+ * 20ad99ff: heatwave 90, matchagotcha 90. Both must miss on a roll Aerial Ace survives. */
+probe('move', 'neverMisses', 'a move the artifact does NOT tag neverMisses can still miss', () => {
+  const hit = (mv) => turnDamage(['incineroar', 'corviknight', 'garchomp', 'garchomp'], null, mv, rngLose);
+  const land = (mv) => turnDamage(['incineroar', 'corviknight', 'garchomp', 'garchomp'], null, mv, rng5);
+  const control = [hit('heatwave'), hit('matchagotcha')];      // the format says 90% — both must be 0
+  const test = hit('aerialace');                               // tagged neverMissesAttack — must land
+  const capable = [land('heatwave'), land('matchagotcha')];    // and both must work on a winning roll
+  return { works: control[0] === 0 && control[1] === 0 && test > 0 && capable[0] > 0 && capable[1] > 0,
+           arms: { control, test },
+           detail: `on a LOSING roll — Heat Wave (90%) ${control[0]}, Matcha Gotcha (90%) ${control[1]} `
+                 + `(both must be 0), Aerial Ace ${test} (must land); on a winning roll the two 90% `
+                 + `moves deal ${capable.join(' and ')}` };
 });
 
 probe('move', 'stalling', 'repeated Protect starts failing', () => {
@@ -348,11 +493,46 @@ probe('move', 'conditionalPower', 'Facade doubles when statused, and ignores its
 
 /* ---- ABILITIES ---------------------------------------------------------------------------------- */
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45), AND THIS IS THE PROBE THE WHOLE PASS IS ABOUT.
+ *
+ * It used to be `M.applyIntimidate(foe)` — the handler called by hand, never through a switch-in. It
+ * was LIVE, it is the most-used ability in the format (10,754 sheets), and on 2026-08-06 WIRE 123
+ * found that every entry-drop handler in this engine was CORRECT and the ORDER they were called in
+ * was not, so side B's lead owned the weather for every battle ever rolled out. This probe could not
+ * have seen that, because it never went near the code that calls the handler.
+ *
+ * BOTH ROUTES, because they are different code. `battleInit` walks the leads (that is where WIRE 123
+ * lived) and `bringIn` runs from inside a switch action; a fix to one has twice not been a fix to the
+ * other in this file's history.
+ *
+ * THREE ARMS. The control is the SAME board with the ability off — Intimidate landing is only
+ * evidence if a Garchomp that met no Intimidate is still at 0, which is also what an engine that
+ * never fired any entry effect prints. */
 probe('ability', 'onSwitchInDrop', 'Intimidate drops Attack', () => {
-  const foe = bare('garchomp');
-  const before = foe.boosts.at;
-  M.applyIntimidate(foe);
-  return { works: foe.boosts.at < before, detail: `atk ${before} -> ${foe.boosts.at}` };
+  const onEntry = (ab) => {
+    const me = bare('incineroar'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    me.ability = ab;
+    M.battleInit([me, ally], [f1, f2], {});          // NOT seeded: the leads really arrive
+    return [f1.boosts.at, f2.boosts.at];
+  };
+  const midBattle = (ab) => {
+    const me = bare('corviknight'), ally = bare('milotic');
+    const inc = bare('incineroar');                  // on the bench, switched in on the turn
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    inc.ability = ab;
+    const S = M.battleInit([me, ally, inc], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: inc }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return [f1.boosts.at, f2.boosts.at];
+  };
+  const control = onEntry('none'), test = onEntry('intimidate');
+  const swControl = midBattle('none'), swTest = midBattle('intimidate');
+  return { works: String(control) === '0,0' && String(test) === '-1,-1'
+                  && String(swControl) === '0,0' && String(swTest) === '-1,-1',
+           arms: { control, test },
+           detail: `both foes' atk stage — LEADS: ability none ${control}, Intimidate ${test}; `
+                 + `MID-BATTLE SWITCH: none ${swControl}, Intimidate ${swTest}` };
 });
 
 /* THIS PROBE WAS HOLLOW — `/isPrankster/.test(src)` — LIVE by SOURCE GREP, not by behaviour. It would
@@ -390,13 +570,17 @@ probe('ability', 'priorityMod', 'Prankster puts a status move in front of a fast
                  + `(the doubles screen is x0.667, so ${off} -> ${Math.floor(off * 2732 / 4096)} is the screen landing first)` };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). Also tightened: `b.max !== a.max` passes on an
+ * engine that made the move WEAKER, which a conversion-plus-boost never should. Real turn, and the
+ * direction is asserted. */
 probe('ability', 'damageBoost', 'Aerilate converts and boosts', () => {
-  const on = bare('staraptor'), off = bare('staraptor');
-  on.ability = 'aerilate';
-  const def = bare('garchomp'), mv = MC.moves['bodyslam'];
-  const a = M.dmgRange(off, def, mv, fresh(), false);
-  const b = M.dmgRange(on, def, mv, fresh(), false);
-  return { works: b.max !== a.max, detail: `none ${a.max}  ->  aerilate ${b.max}` };
+  const hit = (ab) => turnDamage(['staraptor', 'incineroar', 'garchomp', 'garchomp'],
+    (B) => { B.me.ability = ab; unfaintable(B.f1); }, 'bodyslam');
+  const control = hit('none'), test = hit('aerilate');
+  return { works: test > control && control > 0,
+           arms: { control, test },
+           detail: `Body Slam into Garchomp — ability none ${control}  ->  Aerilate ${test} `
+                 + `(Normal becomes Flying, STAB, and x1.2)` };
 });
 
 probe('ability', 'damageReduce', 'Filter cuts super-effective damage', () => {
@@ -428,16 +612,41 @@ probe('ability', 'statusImmune', 'Insomnia refuses sleep', () => {
 /* ONE-ARMED UNTIL 2026-08-04, AND FOUND BY THE IDENTICAL-ARMS SCAN AT THE BOTTOM OF THIS FILE. It read
  * `atk 0 -> 0` and called that a refusal — which is also what an engine with no Intimidate at all
  * prints. Exactly the shape that made the Disable probe a false LIVE. */
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). `applyIntimidate(m)` by hand proves the
+ * REFUSAL lives in the handler; it cannot prove the handler is the one a switch-in reaches. The foe
+ * really walks in with Intimidate now, and the ONE varied thing is the defender's ability. */
 probe('ability', 'preventsStatDrop', 'Clear Body refuses Intimidate', () => {
-  const run = (ab) => { const m = bare('garchomp'); m.ability = ab; M.applyIntimidate(m); return m.boosts.at; };
-  const off = run('none'), on = run('clearbody');
-  return { works: off < 0 && on === 0, detail: `atk stage after Intimidate: ability none ${off}, Clear Body ${on}` };
+  const run = (ab) => {
+    const me = bare('incineroar'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    me.ability = 'intimidate'; f1.ability = ab;
+    M.battleInit([me, ally], [f1, f2], {});
+    return [f1.boosts.at, f2.boosts.at];             // f2 has no ability and must ALWAYS drop
+  };
+  const control = run('none'), test = run('clearbody');
+  return { works: control[0] === -1 && test[0] === 0 && control[1] === -1 && test[1] === -1,
+           arms: { control, test },
+           detail: `atk stage after a real Intimidate switch-in — holder: none ${control[0]}, `
+                 + `Clear Body ${test[0]} (must be 0); its PARTNER, no ability either way: `
+                 + `${control[1]} / ${test[1]} (must both be -1, or the Intimidate never fired)` };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). One arm, no control, and `atk stage 1` is also
+ * what an engine that applied no drop and then a flat +1 would print. Now: a real Intimidate switch-
+ * in, and the answer asked for is the NET stage, which is the number that decides the damage. */
 probe('ability', 'boostsWhenLowered', 'Defiant raises Attack when dropped', () => {
-  const m = bare('kingambit'); m.ability = 'defiant';
-  M.applyIntimidate(m);
-  return { works: m.boosts.at > 0, detail: 'atk stage ' + m.boosts.at };
+  const run = (ab) => {
+    const me = bare('incineroar'), ally = bare('corviknight');
+    const f1 = bare('kingambit'), f2 = bare('milotic');
+    me.ability = 'intimidate'; f1.ability = ab;
+    M.battleInit([me, ally], [f1, f2], {});
+    return [f1.boosts.at, f2.boosts.at];
+  };
+  const control = run('none'), test = run('defiant');
+  return { works: control[0] === -1 && test[0] === 1 && control[1] === -1 && test[1] === -1,
+           arms: { control, test },
+           detail: `Kingambit's atk stage after a real Intimidate switch-in: none ${control[0]}, `
+                 + `Defiant ${test[0]} (-1 then +2 is net +1); its partner ${control[1]} / ${test[1]}` };
 });
 
 probe('ability', 'contactPunish', 'Rough Skin hurts a contact attacker', () => {
@@ -494,9 +703,21 @@ probe('ability', 'formeChange', 'Zero to Hero upgrades Palafin on return', () =>
  * and treat identical results across a varied knob as proof the knob is not wired.
  */
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). Same defect as the neverMisses probe above:
+ * `moveAccuracy('aurasphere') >= 100` is what an engine with no accuracy system at all also prints.
+ * Focus Blast is the honest control -- the same type, the same user, the same target, 70% against
+ * Aura Sphere's guarantee, which is the exact trade the real game asks a Fighting special attacker to
+ * make -- and it is run on a winning roll too so that "it missed" is distinguishable from "it does
+ * nothing here". */
 probe('move', 'neverMissesAttack', 'Aura Sphere cannot miss', () => {
-  const acc = M.moveAccuracy('aurasphere', fresh());
-  return { works: acc >= 100, detail: 'accuracy=' + acc };
+  const shot = (mv, rng) => turnDamage(['alakazam', 'incineroar', 'garchomp', 'garchomp'], null, mv, rng);
+  const capable = shot('focusblast', rng5);       // 0.50 beats 70
+  const control = shot('focusblast', rngLose);    // 0.99 loses 70 — must be 0
+  const test = shot('aurasphere', rngLose);       // must land anyway
+  return { works: capable > 0 && control === 0 && test > 0,
+           arms: { control, test },
+           detail: `Focus Blast (70%) on a winning roll ${capable}, on a LOSING roll ${control} `
+                 + `(must be 0); Aura Sphere on that same losing roll ${test} (must land)` };
 });
 
 probe('move', 'inflictsFreeze', 'Ice Beam can freeze', () => {
@@ -552,27 +773,34 @@ probe('move', 'oneTurnGuard', 'Wide Guard blocks a spread move', () => {
   return { works: on < off, detail: 'ally took ' + off + ' without  ->  ' + on + ' behind Wide Guard' };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45), AND THE OLD STAGING VARIED EVERYTHING. It fired
+ * at a WHIMSICOTT and then at an ARCHALUDON -- different Defence, different types, different weight --
+ * and asked only whether the two numbers differed, which they would have on an engine that read no
+ * weight at all. One species now, with `wt` overridden on the body, so weight is the only thing that
+ * moves; and the DIRECTION is asserted, because heavier must mean stronger. */
 probe('move', 'weightBased', 'Grass Knot scales with target weight', () => {
-  const me = bare('venusaur');
-  const light = bare('whimsicott'), heavy = bare('archaludon');
-  const mv = MC.moves['grassknot'];
-  if (!mv) return { works: false, detail: 'grassknot not in MC.moves' };
-  const a = M.dmgRange(me, light, mv, fresh(), false);
-  const b = M.dmgRange(me, heavy, mv, fresh(), false);
-  return { works: a.max !== b.max, detail: 'vs light ' + a.max + '  ->  vs heavy ' + b.max };
+  const hit = (kg) => turnDamage(['venusaur', 'incineroar', 'garchomp', 'garchomp'],
+    (B) => { B.f1.wt = kg; unfaintable(B.f1); }, 'grassknot');
+  const control = hit(5), test = hit(400);
+  return { works: test > control && control > 0,
+           arms: { control, test },
+           detail: `same Garchomp, only its weight moves -- 5 kg takes ${control}, 400 kg takes ${test}` };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). Two identical bodies but for the stat that
+ * should matter; if Body Press reads Attack instead, the high-Defence one deals the SAME damage and
+ * that equality is the null result. A THIRD ARM was added with the conversion: the same two bodies
+ * clicking a move that reads Attack normally, which must NOT move -- otherwise "Defence changed the
+ * damage" is also what an engine that mixed the two stats everywhere would print. */
 probe('move', 'swapsStat', 'Body Press attacks with Defense', () => {
-  /* Two identical bodies but for the stat that should matter. If Body Press reads Attack instead,
-   * the high-Defense one deals the SAME damage -- that equality is the null result to look for. */
-  const lowDef = bare('corviknight'), highDef = bare('corviknight');
-  highDef.st = Object.assign({}, highDef.st, { df: highDef.st.df * 2 });
-  const def = bare('garchomp'), mv = MC.moves['bodypress'];
-  if (!mv) return { works: false, detail: 'bodypress not in MC.moves' };
-  const a = M.dmgRange(lowDef, def, mv, fresh(), false);
-  const b = M.dmgRange(highDef, def, mv, fresh(), false);
-  return { works: b.max > a.max,
-           detail: 'def ' + lowDef.st.df + ' deals ' + a.max + ', def ' + highDef.st.df + ' deals ' + b.max };
+  const hit = (mult, mv) => turnDamage(['corviknight', 'incineroar', 'garchomp', 'garchomp'],
+    (B) => { B.me.st = Object.assign({}, B.me.st, { df: B.me.st.df * mult }); unfaintable(B.f1); }, mv);
+  const control = [hit(1, 'bodypress'), hit(1, 'ironhead')];
+  const test = [hit(2, 'bodypress'), hit(2, 'ironhead')];
+  return { works: test[0] > control[0] && test[1] === control[1] && control[1] > 0,
+           arms: { control, test },
+           detail: `Body Press: base Def ${control[0]} -> double Def ${test[0]}; Iron Head, which `
+                 + `reads Attack: ${control[1]} -> ${test[1]} (must not move)` };
 });
 
 probe('move', 'ignoresStatStages', 'Sacred Sword ignores a Defense boost', () => {
@@ -607,22 +835,46 @@ probe('move', 'healsAlly', 'Life Dew heals the partner', () => {
   return { works: ally.curHP > before, detail: 'partner ' + before + ' -> ' + ally.curHP + ' hp' };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45), AND GIVEN THE ARM ITS NAME DEMANDS: it is
+ * SAME-TYPE damage, and the old probe only ever fired a Water move off a Water body. The control is
+ * Crunch -- a Dark move this body gets no STAB on, so Adaptability must leave it exactly alone. */
 probe('ability', 'stabBoost', 'Adaptability raises same-type damage', () => {
-  const on = bare('basculegion'), off = bare('basculegion');
-  on.ability = 'adaptability';
-  const def = bare('garchomp');
-  const mv = MC.moves['wavecrash'] || MC.moves['surf'] || MC.moves['liquidation'];
-  if (!mv) return { works: false, detail: 'no water move in MC.moves' };
-  const a = M.dmgRange(off, def, mv, fresh(), false);
-  const b = M.dmgRange(on, def, mv, fresh(), false);
-  return { works: b.max > a.max, detail: 'none ' + a.max + '  ->  adaptability ' + b.max };
+  const hit = (ab, mv) => turnDamage(['basculegion', 'incineroar', 'garchomp', 'garchomp'],
+    (B) => { B.me.ability = ab; unfaintable(B.f1); }, mv);
+  const control = [hit('none', 'wavecrash'), hit('none', 'crunch')];
+  const test = [hit('adaptability', 'wavecrash'), hit('adaptability', 'crunch')];
+  return { works: test[0] > control[0] && test[1] === control[1] && control[1] > 0,
+           arms: { control, test },
+           detail: `Wave Crash (STAB Water off a Water body): none ${control[0]} -> Adaptability `
+                 + `${test[0]}; Crunch (not this body's type): ${control[1]} -> ${test[1]} (must not move)` };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). Two effSpeed reads prove the multiplier; they
+ * cannot prove the battle loop orders the turn by it. Same staging as the Choice Scarf probe — the
+ * foe on 1 HP, so being faster is visible as damage NOT taken — and the sky is the only varied thing.
+ * A third arm runs the sun WITHOUT the ability, because "it was faster in sun" is also what a body
+ * with any other sun-speed ability, or a mis-scoped weather multiplier, would produce. */
 probe('ability', 'speedCond', 'Chlorophyll doubles Speed in sun', () => {
-  const m = bare('venusaur'); m.ability = 'chlorophyll';
-  const dry = M.effSpeed(m, Object.assign(fresh(), { weather: '' }), 'A');
-  const sun = M.effSpeed(m, Object.assign(fresh(), { weather: 'sun' }), 'A');
-  return { works: sun > dry * 1.8, detail: 'no sun ' + dry + '  ->  sun ' + sun };
+  const run = (ab, weather) => {
+    const { me, ally, f1, f2, S } = board('venusaur', 'incineroar', 'garchomp', 'garchomp');
+    me.ability = ab; S.field.weather = weather;
+    me.st = Object.assign({}, me.st, { sp: 90 });
+    f1.st = Object.assign({}, f1.st, { sp: 130 });
+    f1.curHP = 1;
+    const before = me.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'gigadrain', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'dragonclaw', me, S.field)], [f2, { kind: 'pass' }]]));
+    return [M.effSpeed(me, S.field, 'A'), before - me.curHP];
+  };
+  const control = run('chlorophyll', ''), test = run('chlorophyll', 'sun');
+  const noAbility = run('none', 'sun');
+  return { works: control[0] === 90 && test[0] === 180 && control[1] > 0 && test[1] === 0
+                  && noAbility[1] > 0,
+           arms: { control, test },
+           detail: `[own Speed, damage taken from a 130-Speed foe on 1 HP] — Chlorophyll no sun `
+                 + `${control}, Chlorophyll in sun ${test}; NO ability in sun ${noAbility} (must still `
+                 + `be hit, or the sun itself is doing it)` };
 });
 
 /* ONE-ARMED UNTIL 2026-08-04, AND FOUND BY THE IDENTICAL-ARMS SCAN AT THE BOTTOM OF THIS FILE. It read
@@ -903,14 +1155,20 @@ probe('move', 'needsTargetToAttack', 'Avalanche doubles after being hit', () => 
   return { works: b.max > a.max, detail: 'untouched ' + a.max + '  ->  already hit ' + b.max };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45), AND THE OLD STAGING VARIED TWO THINGS AT ONCE.
+ * It compared an Archaludon against a WEAVILE — different Attack, different types, different
+ * everything — so "the numbers differ" was guaranteed whether or not Gyro Ball read a speed at all.
+ * One body now, one stat varied, through a real turn; and the DIRECTION is asserted, because Gyro
+ * Ball gets WEAKER as its user gets faster and an engine that read the ratio upside down would pass
+ * a not-equal test. */
 probe('move', 'needsUntrackedState', 'Gyro Ball scales with the speed gap', () => {
-  const mv = MC.moves['gyroball'];
-  if (!mv) return { works: false, detail: 'gyroball not in MC.moves' };
-  const slow = bare('archaludon'), fast = bare('weavile');
-  const def = bare('garchomp');
-  const a = M.dmgRange(slow, def, mv, fresh(), false);
-  const b = M.dmgRange(fast, def, mv, fresh(), false);
-  return { works: a.max !== b.max, detail: 'slow user ' + a.max + '  vs  fast user ' + b.max };
+  const hit = (spe) => turnDamage(['archaludon', 'incineroar', 'garchomp', 'garchomp'],
+    (B) => { B.me.st = Object.assign({}, B.me.st, { sp: spe }); unfaintable(B.f1); }, 'gyroball');
+  const control = hit(30), test = hit(150);
+  return { works: control > test && test > 0,
+           arms: { control, test },
+           detail: `same Archaludon, only its Speed moves — 30 Spe deals ${control}, 150 Spe deals `
+                 + `${test} (Gyro Ball must get WEAKER as the user gets faster)` };
 });
 
 probe('ability', 'redirectsType', 'Lightning Rod pulls an Electric move', () => {
@@ -1092,15 +1350,8 @@ probe('move', 'proceduralStatus', 'Tri Attack can burn, freeze or paralyse', () 
  * Nothing in this batch touches engine source. A probe reads; it does not change.
  */
 
-/* One standard doubles board, so the staging is identical across probes and a difference between two
- * arms is the varied knob and not the setup. seeded:true skips entry effects -- a probe that wants
- * Intimidate or Drizzle must ask for them, exactly like every other input here. */
-const board = (meSp, allySp, f1Sp, f2Sp) => {
-  const me = bare(meSp), ally = bare(allySp), f1 = bare(f1Sp), f2 = bare(f2Sp);
-  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
-  return { me, ally, f1, f2, S };
-};
-const PASS2 = (a, b) => new Map([[a, { kind: 'pass' }], [b, { kind: 'pass' }]]);
+/* `board` and `PASS2` used to be declared HERE, and were hoisted to the top of the file on
+ * 2026-08-06 so that a probe written above this line can also spend a real turn. */
 
 probe('move', 'priority', 'Bullet Punch moves before a faster foe', () => {
   /* THE OUTCOME, NOT THE BRACKET. Asking movePriority() what number it returns tests a lookup
@@ -1155,10 +1406,24 @@ probe('move', 'spreadAll', 'Earthquake hits your own partner too', () => {
            detail: 'own partner (Milotic, no Ground immunity) took ' + (bAlly - ally.curHP) };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). The two `moveAccuracy` reads proved the LOOKUP
+ * returns 70 and 100; they could not prove the battle loop asks it, and the loop is where the roll
+ * actually happens. Same board, same click, same losing roll — only the sky moves, and the outcome
+ * read back is damage on the board rather than a number out of a table.
+ *
+ * Milotic is the target because it RESISTS Ice: a Garchomp is 4x weak and would faint, and a fainted
+ * target saturates both arms at its own max HP, which is Lesson 5's "stage it against a body that can
+ * show the effect" one field over. Snow raises the Defence of ICE types only, so it does not move
+ * Milotic's side of the calculation. */
 probe('move', 'weatherScaled', 'Blizzard cannot miss in snow', () => {
-  const dry = M.moveAccuracy('blizzard', fresh());
-  const snow = M.moveAccuracy('blizzard', Object.assign(fresh(), { weather: 'snow' }));
-  return { works: snow >= 100 && dry < 100, detail: 'no weather ' + dry + '  ->  snow ' + snow };
+  const shot = (weather) => turnDamage(['alakazam', 'incineroar', 'milotic', 'garchomp'],
+    (B) => { B.S.field.weather = weather; }, 'blizzard', rngLose);
+  const control = shot('');        // 70% on a losing roll — must miss
+  const test = shot('snow');       // the tag says 100 in snow — must land
+  return { works: control === 0 && test > 0,
+           arms: { control, test },
+           detail: `Blizzard on a LOSING roll — clear sky ${control} (70%, must be 0), snow ${test} `
+                 + `(the tag says 100, must land)` };
 });
 
 probe('move', 'thawsTarget', 'Flare Blitz thaws a frozen target', () => {
@@ -1209,25 +1474,30 @@ probe('item', 'resistBerry', 'Chople Berry halves a super-effective Fighting hit
   return { works: berry < none, detail: 'no item took ' + none + '  ->  Chople took ' + berry };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). The item is now read where the battle loop
+ * reads it rather than only where dmgRange does -- which matters here more than most, because Life
+ * Orb's other half (the recoil) IS in the loop, and the mutation sweep's top row is `damageMultAll /
+ * lifeorb` precisely because the two halves are wired at different layers. */
 probe('item', 'damageMultAll', 'Life Orb raises damage', () => {
-  const on = bare('incineroar'), off = bare('incineroar');
-  on.item = 'lifeorb';
-  const def = bare('garchomp');
-  const a = M.dmgRange(off, def, MC.moves['closecombat'], fresh(), false);
-  const b = M.dmgRange(on, def, MC.moves['closecombat'], fresh(), false);
-  return { works: b.max > a.max, detail: 'no item ' + a.max + '  ->  Life Orb ' + b.max };
+  const hit = (item) => turnDamage(['incineroar', 'corviknight', 'garchomp', 'garchomp'],
+    (B) => { B.me.item = item; unfaintable(B.f1); }, 'closecombat');
+  const control = hit(''), test = hit('lifeorb');
+  return { works: test > control && control > 0,
+           arms: { control, test },
+           detail: `Close Combat into Garchomp -- no item ${control}  ->  Life Orb ${test}` };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). THE SECOND ARM IS THE ONE THAT MATTERS. An
+ * item that raised every move would pass a probe that only looked at Crunch, and would be a worse bug
+ * than doing nothing. Four real turns now, same board, same target, only the item moves. */
 probe('item', 'damageMultType', 'Black Glasses raises Dark damage only', () => {
-  /* THE SECOND ARM IS THE ONE THAT MATTERS. An item that raised every move would pass a probe that
-   * only looked at Crunch, and would be a worse bug than doing nothing. */
-  const on = bare('incineroar'), off = bare('incineroar');
-  on.item = 'blackglasses';
-  const def = bare('garchomp');
-  const dk = (m) => M.dmgRange(m, def, MC.moves['crunch'], fresh(), false).max;
-  const fi = (m) => M.dmgRange(m, def, MC.moves['closecombat'], fresh(), false).max;
-  return { works: dk(on) > dk(off) && fi(on) === fi(off),
-           detail: 'Dark ' + dk(off) + '->' + dk(on) + ', Fighting ' + fi(off) + '->' + fi(on) + ' (must not move)' };
+  const hit = (item, mv) => turnDamage(['incineroar', 'corviknight', 'garchomp', 'garchomp'],
+    (B) => { B.me.item = item; unfaintable(B.f1); }, mv);
+  const control = [hit('', 'crunch'), hit('', 'closecombat')];
+  const test = [hit('blackglasses', 'crunch'), hit('blackglasses', 'closecombat')];
+  return { works: test[0] > control[0] && test[1] === control[1] && control[1] > 0,
+           arms: { control, test },
+           detail: `Dark ${control[0]}->${test[0]}, Fighting ${control[1]}->${test[1]} (must not move)` };
 });
 
 probe('move', 'doublesSideSpeed', 'Tailwind doubles the side Speed', () => {
@@ -1404,8 +1674,16 @@ probe('ability', 'weatherSetter', 'Drizzle sets rain on entry', () => {
     const S = M.battleInit([me, ally], [bare('garchomp'), bare('garchomp')], {});   // NOT seeded: entry effects fire
     return S.field.weather || 'none';
   };
-  const none = run('none'), rain = run('drizzle');
-  return { works: none === 'none' && rain === 'rain', detail: 'ability none -> ' + none + ', Drizzle -> ' + rain };
+  /* NOT CONVERTED IN THE 2026-08-06 PASS, AND THAT IS A JUDGEMENT WITH A REASON RATHER THAN A SKIP.
+   * The ranked direct-call list counts this probe because it spends no battleTurn, but the mechanic
+   * IS an entry effect and `battleInit` with entry effects on is the real path it takes -- WIRE 123's
+   * bug lived in that exact function and was caught by the probe below, which is the same route with
+   * three arms. Spending a turn here would add nothing the entry already exercises. It is ARMED
+   * instead, since it always computed a real control. */
+  const control = run('none'), test = run('drizzle');
+  return { works: control === 'none' && test === 'rain',
+           arms: { control, test },
+           detail: 'weather after the leads arrive: ability none -> ' + control + ', Drizzle -> ' + test };
 });
 
 /* WIRE 123 -- THE PROBE ABOVE ASKS WHETHER DRIZZLE SETS RAIN. IT CANNOT ASK WHOSE WEATHER WINS.
@@ -1636,64 +1914,122 @@ probe('ability', 'blocksMove', 'Armor Tail refuses a priority move', () => {
   return { works: none > 0 && tail === 0, detail: 'no ability took ' + none + ', Armor Tail took ' + tail };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45), AND THE ROUTE IS THE POINT HERE. dmgRange
+ * returning 0 and the battle loop refusing the hit are different claims: WIRE 20's own note records
+ * that a nullification the loop applies while dmgRange reports raw damage is a real shape in this
+ * engine (Disguise), and this probe was asking the half that cannot see it. Dragon Claw is the added
+ * arm -- Levitate must not blunt anything that is not Ground. */
 probe('ability', 'typeImmunity', 'Levitate takes nothing from Earthquake', () => {
-  const atk = bare('garchomp');
-  const off = bare('hydreigon'), on = bare('hydreigon');
-  on.ability = 'levitate';
-  const a = M.dmgRange(atk, off, MC.moves['earthquake'], fresh(), false);
-  const b = M.dmgRange(atk, on, MC.moves['earthquake'], fresh(), false);
-  return { works: a.max > 0 && b.max === 0, detail: 'no ability ' + a.max + '  ->  Levitate ' + b.max };
+  const hit = (ab, mv) => turnDamage(['garchomp', 'incineroar', 'hydreigon', 'milotic'],
+    (B) => { B.f1.ability = ab; unfaintable(B.f1); }, mv);
+  const control = [hit('none', 'earthquake'), hit('none', 'dragonclaw')];
+  const test = [hit('levitate', 'earthquake'), hit('levitate', 'dragonclaw')];
+  return { works: control[0] > 0 && test[0] === 0 && test[1] === control[1] && control[1] > 0,
+           arms: { control, test },
+           detail: `Earthquake: no ability ${control[0]} -> Levitate ${test[0]} (must be 0); `
+                 + `Dragon Claw: ${control[1]} -> ${test[1]} (must not move)` };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). THE SHARPEST FORM OF THIS TEST, and the
+ * conversion makes it sharper still: Normal does exactly ZERO to a Ghost, and a type immunity is
+ * enforced in the battle loop as well as inside dmgRange, so a conversion that reached one and not
+ * the other would read as working here and do nothing in a game. Turning a 0 into a number through a
+ * real turn is what no partial implementation can fake. */
 probe('ability', 'convertsMoveType', 'Aerilate makes Body Slam hit a Ghost', () => {
-  /* THE SHARPEST FORM OF THIS TEST. Normal does exactly ZERO to a Ghost; Flying does not. So a
-   * working conversion turns a 0 into a number, which no partial implementation can fake. The
-   * existing damageBoost probe only asked whether the number MOVED. */
-  const on = bare('staraptor'), off = bare('staraptor');
-  on.ability = 'aerilate';
-  const def = bare('gengar');
-  const a = M.dmgRange(off, def, MC.moves['bodyslam'], fresh(), false);
-  const b = M.dmgRange(on, def, MC.moves['bodyslam'], fresh(), false);
-  return { works: a.max === 0 && b.max > 0, detail: 'no ability ' + a.max + ' (Normal vs Ghost)  ->  Aerilate ' + b.max };
+  const hit = (ab) => turnDamage(['staraptor', 'incineroar', 'gengar', 'garchomp'],
+    (B) => { B.me.ability = ab; unfaintable(B.f1); }, 'bodyslam');
+  const control = hit('none'), test = hit('aerilate');
+  return { works: control === 0 && test > 0,
+           arms: { control, test },
+           detail: `Body Slam into a Ghost -- no ability ${control} (Normal cannot touch it)  ->  `
+                 + `Aerilate ${test}` };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). THE CONTROL IS STILL A COPY OF THE MOVE WITH
+ * ITS ID CHANGED, so the tag lookup misses and the copy is a single 25-BP hit by construction -- an
+ * identical result across that knob would mean multiHit is unwired, not that it does not matter
+ * (Lesson 5). What changes is that both arms are now CLICKED: the action is assembled in exactly the
+ * shape playerAction emits and resolved by battleTurn, so the hit count is priced on the path a
+ * rollout takes.
+ *
+ * ONE SIDE EFFECT, STATED: the synthetic id is in no accuracy source, so the census run ticks
+ * `fails.accuracyUnknown` once per arm. That counter reading non-zero after THIS file is expected and
+ * is the counter working; what it must read over MC.moves is zero, and tests/test-engine-diff.js
+ * asserts exactly that over all 500. */
 probe('move', 'multiHit', 'Rock Blast lands more than one hit', () => {
-  /* THE CONTROL IS A COPY OF THE MOVE WITH ITS ID CHANGED, so the tag lookup misses and the copy is
-   * a single 25-BP hit by construction. If the engine returns the same number for both, multiHit is
-   * not wired -- that is Lesson 5's rule: an identical result across a varied knob means the knob is
-   * unwired, not that it does not matter. dmgRange stamps ids onto MC.moves entries only, so this
-   * local copy is untouched by it. */
-  const att = bare('tyranitar'), def = bare('garchomp');
-  const real = MC.moves['rockblast'];
-  if (!real) return { works: false, detail: 'rockblast not in MC.moves' };
-  const oneHit = Object.assign({}, real, { id: '__rockblast_onehit' });
-  const a = M.dmgRange(att, def, oneHit, fresh(), false);
-  const b = M.dmgRange(att, def, real, fresh(), false);
-  return { works: b.max > a.max * 1.5,
-           detail: 'one hit ' + a.max + '  ->  Rock Blast as the engine prices it ' + b.max
-                 + ' (real average is about 3.2 hits)' };
+  const run = (fake) => {
+    const { me, ally, f1, f2, S } = board('tyranitar', 'incineroar', 'garchomp', 'garchomp');
+    unfaintable(f1);
+    const real = MC.moves['rockblast'];
+    if (!real) return -1;
+    const id = fake ? '__rockblast_onehit' : 'rockblast';
+    const mv = fake ? Object.assign({}, real, { id }) : real;
+    const act = { kind: 'attack', target: f1,
+                  move: { id, mv, spread: false, d: M.dmgRange(me, f1, mv, S.field, false), acc: 1 } };
+    const before = f1.curHP;
+    M.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return before - f1.curHP;
+  };
+  const control = run(true), test = run(false);
+  return { works: control > 0 && test > control * 1.5,
+           arms: { control, test },
+           detail: `one hit ${control}  ->  Rock Blast as the engine prices it ${test} `
+                 + `(real average is about 3.2 hits)` };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45), AND THE OLD ONE SAID SO IN ITS OWN COMMENT:
+ * `S.sfA.fainted = 3;   // the input, not the effect`. It wrote the counter by hand and then asked
+ * whether dmgRange read it — so it tested the FORMULA and left the whole question of whether
+ * anything ever INCREMENTS that counter unasked. A move whose entire identity is "it grows as your
+ * team dies" would have scored LIVE on an engine where nothing counted a death.
+ *
+ * The ally really faints now, killed by a real attack on a real turn, and the same Houndstone clicks
+ * the same move into the same target in both arms. The counter is read back beside the damage, so
+ * "the count moved but the damage did not" is distinguishable from "neither moved". */
 probe('move', 'powerFromFallen', 'Last Respects grows with fallen allies', () => {
-  const me = bare('incineroar'), ally = bare('corviknight');
-  const f1 = bare('garchomp'), f2 = bare('garchomp');
-  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
-  const mv = MC.moves['lastrespects'];
-  if (!mv) return { works: false, detail: 'lastrespects not in MC.moves' };
-  const a = M.dmgRange(me, f1, mv, S.field, false);
-  S.sfA.fainted = 3;                                   // the input, not the effect: three of ours are down
-  const b = M.dmgRange(me, f1, mv, S.field, false);
-  return { works: b.max > a.max, detail: '0 fallen ' + a.max + '  ->  3 fallen ' + b.max };
+  const run = (killAlly) => {
+    const me = bare('houndstone'), ally = bare('corviknight');
+    const sp1 = bare('milotic'), sp2 = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('tyranitar');
+    const S = M.battleInit([me, ally, sp1, sp2], [f1, f2], { seeded: true });
+    unfaintable(f1);
+    if (killAlly) ally.curHP = 1;                       // the ONLY varied thing
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'dragonclaw', ally, S.field)], [f2, { kind: 'pass' }]]));
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'lastrespects', f1, S.field)], [S.actA[1], { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return [S.sfA.fainted, before - f1.curHP];
+  };
+  const control = run(false), test = run(true);
+  return { works: control[0] === 0 && test[0] === 1 && test[1] > control[1] && control[1] > 0,
+           arms: { control, test },
+           detail: `[fallen allies, Last Respects damage] — nobody died ${control}, one ally really `
+                 + `fainted first ${test}` };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). THE MOVE'S ENTIRE IDENTITY, and found by the
+ * differential test rather than by anyone reading a list. Ice is normally RESISTED by Water;
+ * Freeze-Dry is super effective on it. The added arm fires both moves at a NON-Water body, where the
+ * override must not apply -- otherwise "Freeze-Dry hit harder" is also what a Freeze-Dry that is
+ * simply stronger than Ice Beam everywhere would print.
+ *
+ * THE OFF-TYPE ARM WAS WRITTEN "MUST BE EQUAL" AND THAT WAS WRONG BEFORE THE ENGINE WAS. THIRTY-THREE.
+ * Freeze-Dry is 70 BP and Ice Beam is 90, so off a Water target the correct answer is that Freeze-Dry
+ * is LOWER, and asking for equality would have failed on a perfectly correct engine. The comfortable
+ * shape here was "the control arm should be a null result"; the honest one is the direction the base
+ * powers dictate, and it separates the two hypotheses just as well. */
 probe('move', 'overridesEffectiveness', 'Freeze-Dry beats Ice Beam into a Water type', () => {
-  /* THE MOVE'S ENTIRE IDENTITY, and found by the differential test rather than by anyone reading a
-   * list. Ice is normally RESISTED by Water; Freeze-Dry is super effective on it. So the correct
-   * answer is not "different", it is FOUR TIMES Ice Beam, and the probe asks for the direction. */
-  const att = bare('weavile'), def = bare('vaporeon');
-  const ib = M.dmgRange(att, def, MC.moves['icebeam'], fresh(), false);
-  const fd = M.dmgRange(att, def, MC.moves['freezedry'], fresh(), false);
-  return { works: fd.max > ib.max, detail: 'Ice Beam ' + ib.max + '  ->  Freeze-Dry ' + fd.max + ' (must be higher)' };
+  const hit = (defSp, mv) => turnDamage(['weavile', 'incineroar', defSp, 'garchomp'],
+    (B) => { unfaintable(B.f1); }, mv);
+  const control = [hit('vaporeon', 'icebeam'), hit('incineroar', 'icebeam')];
+  const test = [hit('vaporeon', 'freezedry'), hit('incineroar', 'freezedry')];
+  return { works: test[0] > control[0] && test[1] < control[1] && control[1] > 0,
+           arms: { control, test },
+           detail: `into a WATER body -- Ice Beam ${control[0]}, Freeze-Dry ${test[0]} (must be HIGHER, `
+                 + `the override); into a non-Water body -- Ice Beam ${control[1]}, Freeze-Dry `
+                 + `${test[1]} (must be LOWER, 70 BP against 90 with no override)` };
 });
 
 probe('ability', 'reducesAllyDamage', 'Friend Guard cuts what the partner takes', () => {
@@ -1815,14 +2151,20 @@ probe('ability', 'buffsHolderOnHit', 'Justified raises Attack when hit by a Dark
   return { works: none === 0 && j > 0, detail: 'no ability atk stage ' + none + ', Justified ' + j };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). Fifty is the level and it must survive the
+ * whole turn path -- the damage roll, the spread modifier, STAB, the type chart -- none of which apply
+ * to a fixed-damage move and any one of which would show up as a number that is not 50. Close Combat
+ * is the added arm on the same two bodies, so "both took 50" is separable from "this board flattens
+ * every number". */
 probe('move', 'fixedDamage', 'Seismic Toss deals the level, whoever it hits', () => {
-  const att = bare('incineroar');
-  const mv = MC.moves['seismictoss'];
-  if (!mv) return { works: false, detail: 'seismictoss not in MC.moves' };
-  const soft = M.dmgRange(att, bare('alakazam'), mv, fresh(), false);
-  const hard = M.dmgRange(att, bare('corviknight'), mv, fresh(), false);
-  return { works: soft.max === hard.max && soft.max === 50,
-           detail: 'mv.bp=' + mv.bp + '; vs frail ' + soft.max + ', vs bulky ' + hard.max + ' (both must be 50)' };
+  const hit = (defSp, mv) => turnDamage(['incineroar', 'milotic', defSp, 'garchomp'],
+    (B) => { unfaintable(B.f1); }, mv);
+  const control = [hit('alakazam', 'seismictoss'), hit('alakazam', 'closecombat')];
+  const test = [hit('corviknight', 'seismictoss'), hit('corviknight', 'closecombat')];
+  return { works: control[0] === 50 && test[0] === 50 && control[1] !== test[1],
+           arms: { control, test },
+           detail: `Seismic Toss vs frail ${control[0]} and vs bulky ${test[0]} (both must be 50); `
+                 + `Close Combat vs the same two ${control[1]} and ${test[1]} (must differ)` };
 });
 
 probe('move', 'perishClock', 'Perish Song faints the target three turns later', () => {
@@ -1920,15 +2262,19 @@ probe('move', 'blocksSoundMoves', 'Throat Chop stops the target using a sound mo
   return { works: free > 0 && chopped === 0, detail: 'sound move dealt ' + free + ' normally, ' + chopped + ' after Throat Chop' };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45), AND IT HAD NO CONTROL AT ALL: `a.max === b.max`
+ * is exactly what an engine that ignores stat stages for EVERY move prints, which is a much worse bug
+ * than this one. Crunch is the control -- same user, same type, same category -- and it must be cut by
+ * the +4, or "Darkest Lariat ignored it" means nothing. */
 probe('move', 'ignoresBoosts', 'Darkest Lariat ignores a Defense boost', () => {
-  const atk = bare('incineroar');
-  const plain = bare('corviknight'), boosted = bare('corviknight');
-  boosted.boosts.df = 4;
-  const mv = MC.moves['darkestlariat'];
-  if (!mv) return { works: false, detail: 'darkestlariat not in MC.moves' };
-  const a = M.dmgRange(atk, plain, mv, fresh(), false);
-  const b = M.dmgRange(atk, boosted, mv, fresh(), false);
-  return { works: a.max === b.max, detail: 'unboosted ' + a.max + ' vs +4 Def ' + b.max + ' (equal = ignored)' };
+  const hit = (df, mv) => turnDamage(['incineroar', 'milotic', 'corviknight', 'garchomp'],
+    (B) => { B.f1.boosts.df = df; unfaintable(B.f1); }, mv);
+  const control = [hit(0, 'darkestlariat'), hit(0, 'crunch')];
+  const test = [hit(4, 'darkestlariat'), hit(4, 'crunch')];
+  return { works: test[0] === control[0] && test[1] < control[1] && control[0] > 0,
+           arms: { control, test },
+           detail: `into a +4 Def Corviknight -- Darkest Lariat ${control[0]} -> ${test[0]} (equal = `
+                 + `ignored); Crunch ${control[1]} -> ${test[1]} (must fall, or nothing reads boosts)` };
 });
 
 probe('move', 'failsWithoutWeather', 'Aurora Veil fails when it is not snowing', () => {
@@ -2054,32 +2400,37 @@ probe('move', 'cantUseTwice', 'Gigaton Hammer cannot be clicked twice in a row',
                  + 'still land), second consecutive Gigaton Hammer dealt ' + test + ' (must be 0)' };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). FOUR REAL TURNS, and the arms are unchanged
+ * because they were already the right ones: BOTH VOCABULARIES for the terrain, and the WRONG terrain
+ * as a third, since a wire that multiplied under ANY terrain would pass a two-armed probe and be
+ * wrong on every Electric Terrain board. What the conversion adds is that the terrain is now read off
+ * the field the battle loop is running on rather than a literal handed straight to the formula. */
 probe('move', 'terrainScaled', 'Expanding Force gains power on Psychic Terrain', () => {
-  const att = bare('alakazam'), def = bare('garchomp');
-  const mv = MC.moves['expandingforce'];
-  if (!mv) return { works: false, detail: 'expandingforce not in MC.moves' };
-  const at = (t) => M.dmgRange(att, def, mv, Object.assign(fresh(), { terrain: t }), false).max;
-  /* BOTH VOCABULARIES, and the WRONG terrain as a third arm. A wire that multiplied under ANY terrain
-   * would pass a two-armed probe and would be wrong on every Electric Terrain board. */
-  const none = at(''), eng = at('psychic'), boardWord = at('psychicterrain'), wrong = at('electric');
-  return { works: eng > none && boardWord === eng && wrong === none,
-           detail: `Expanding Force max: no terrain ${none}, 'psychic' ${eng}, 'psychicterrain' ${boardWord}, `
-                 + `'electric' ${wrong} (must equal no terrain)` };
+  const hit = (t) => turnDamage(['alakazam', 'incineroar', 'garchomp', 'garchomp'],
+    (B) => { B.S.field.terrain = t; unfaintable(B.f1); }, 'expandingforce');
+  const control = hit(''), test = hit('psychic');
+  const boardWord = hit('psychicterrain'), wrong = hit('electric');
+  return { works: test > control && boardWord === test && wrong === control && control > 0,
+           arms: { control, test },
+           detail: `Expanding Force dealt: no terrain ${control}, 'psychic' ${test}, `
+                 + `'psychicterrain' ${boardWord} (the board's own word), 'electric' ${wrong} `
+                 + `(must equal no terrain)` };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). Two identical targets but for their Attack; if
+ * Foul Play reads the USER's Attack the two are equal, and that equality is the null result.
+ * Confirmed against Showdown independently: spiritomb foulplay -> pelipper reads 28-34 there and
+ * 51-61 here. The added third arm is Crunch, the same type and category off the same user, which must
+ * NOT care what the target's Attack is. */
 probe('move', 'swapsStat', 'Foul Play attacks with the TARGET Attack', () => {
-  /* Two identical targets but for their Attack. If Foul Play reads the USER's Attack the two are
-   * equal, and that equality is the null result. Confirmed against Showdown independently:
-   * spiritomb foulplay -> pelipper reads 28-34 there and 51-61 here. */
-  const att = bare('spiritomb');
-  const weak = bare('pelipper'), strong = bare('pelipper');
-  strong.st = Object.assign({}, strong.st, { at: strong.st.at * 3 });
-  const mv = MC.moves['foulplay'];
-  if (!mv) return { works: false, detail: 'foulplay not in MC.moves' };
-  const a = M.dmgRange(att, weak, mv, fresh(), false);
-  const b = M.dmgRange(att, strong, mv, fresh(), false);
-  return { works: b.max > a.max,
-           detail: 'target atk ' + weak.st.at + ' -> ' + a.max + ', target atk ' + strong.st.at + ' -> ' + b.max };
+  const hit = (mult, mv) => turnDamage(['spiritomb', 'incineroar', 'pelipper', 'garchomp'],
+    (B) => { B.f1.st = Object.assign({}, B.f1.st, { at: B.f1.st.at * mult }); unfaintable(B.f1); }, mv);
+  const control = [hit(1, 'foulplay'), hit(1, 'crunch')];
+  const test = [hit(3, 'foulplay'), hit(3, 'crunch')];
+  return { works: test[0] > control[0] && test[1] === control[1] && control[1] > 0,
+           arms: { control, test },
+           detail: `Foul Play: target at base Attack ${control[0]} -> at triple Attack ${test[0]}; `
+                 + `Crunch, same user and type: ${control[1]} -> ${test[1]} (must not move)` };
 });
 
 probe('ability', 'formeChange', 'Disguise eats the first hit', () => {
@@ -2134,16 +2485,18 @@ probe('move', 'statusInflict', 'Scald burns as a secondary of a damaging move', 
            detail: 'target ' + (f1.fainted ? 'FAINTED' : 'survived') + ', status ' + (f1.status || 'none') };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). Life Orb is deliberately the control item
+ * rather than "some item": it raises the held arm by 1.3x, so a working Acrobatics has to beat a
+ * BOOSTED number to pass, and an implementation that merely noticed the item slot was empty and did
+ * nothing with it fails. The click is now a real turn, so the item is read where the battle loop
+ * reads it and not only where dmgRange does. */
 probe('move', 'variablePower', 'Acrobatics doubles with no item held', () => {
-  const held = bare('staraptor'), empty = bare('staraptor');
-  held.item = 'lifeorb'; empty.item = '';
-  const def = bare('garchomp');
-  const mv = MC.moves['acrobatics'];
-  if (!mv) return { works: false, detail: 'acrobatics not in MC.moves' };
-  /* Life Orb would raise the held arm by 1.3x, so a working Acrobatics must still beat it. */
-  const a = M.dmgRange(held, def, mv, fresh(), false);
-  const b = M.dmgRange(empty, def, mv, fresh(), false);
-  return { works: b.max > a.max, detail: 'holding an item ' + a.max + '  ->  empty-handed ' + b.max };
+  const hit = (item) => turnDamage(['staraptor', 'incineroar', 'garchomp', 'garchomp'],
+    (B) => { B.me.item = item; unfaintable(B.f1); }, 'acrobatics');
+  const control = hit('lifeorb'), test = hit('');
+  return { works: test > control,
+           arms: { control, test },
+           detail: `holding a Life Orb (which is itself worth 1.3x) ${control}  ->  empty-handed ${test}` };
 });
 
 /* ---- BATCH 5 — the rest of the walk, down to about 800 corpus uses ------------------------------ */
@@ -2166,18 +2519,19 @@ probe('move', 'statusCategory', 'Thunder Wave paralyses without dealing damage',
                  + ';  Thunder Wave: damage ' + test[0] + ' (must be 0) status ' + test[1] };
 });
 
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). Psyshock is a SPECIAL move that hits the
+ * PHYSICAL side, so raising Defence must lower the damage; if the engine reads Special Defence the
+ * two are equal and that equality is the null result. Psychic is the added control -- the same user,
+ * type and category -- and it must be UNMOVED by the same Defence change. */
 probe('move', 'statSwap', 'Psyshock is scored against the target Defense', () => {
-  /* Two identical targets but for physical Defense. Psyshock is a SPECIAL move that hits the
-   * PHYSICAL side, so raising Defense must lower the damage; if the engine reads Special Defense the
-   * two are equal and that equality is the null result. */
-  const att = bare('alakazam');
-  const soft = bare('milotic'), hard = bare('milotic');
-  hard.st = Object.assign({}, hard.st, { df: hard.st.df * 3 });
-  const mv = MC.moves['psyshock'];
-  if (!mv) return { works: false, detail: 'psyshock not in MC.moves' };
-  const a = M.dmgRange(att, soft, mv, fresh(), false);
-  const b = M.dmgRange(att, hard, mv, fresh(), false);
-  return { works: b.max < a.max, detail: 'def ' + soft.st.df + ' takes ' + a.max + ', def ' + hard.st.df + ' takes ' + b.max };
+  const hit = (mult, mv) => turnDamage(['alakazam', 'incineroar', 'milotic', 'garchomp'],
+    (B) => { B.f1.st = Object.assign({}, B.f1.st, { df: B.f1.st.df * mult }); unfaintable(B.f1); }, mv);
+  const control = [hit(1, 'psyshock'), hit(1, 'psychic')];
+  const test = [hit(3, 'psyshock'), hit(3, 'psychic')];
+  return { works: test[0] < control[0] && test[1] === control[1] && control[1] > 0,
+           arms: { control, test },
+           detail: `target Defence tripled -- Psyshock ${control[0]} -> ${test[0]} (must fall); `
+                 + `Psychic, which reads Sp. Def: ${control[1]} -> ${test[1]} (must not move)` };
 });
 
 probe('move', 'removesItem', 'a knocked-off Life Orb stops boosting the target damage', () => {
@@ -2772,15 +3126,20 @@ probe('move', 'perTurnHP', 'Grassy Terrain heals a grounded body and not an airb
  * FOUR ARMS, because two would not separate "Iron Fist does nothing" from "Iron Fist boosts
  * EVERYTHING", which is the more likely bug in a wire that reads a multiplier and forgets the class.
  * Same body, same target, same two moves; only the ability moves. */
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). Four dmgRange calls became four real turns:
+ * same board, same target, same two moves, and the ability is the only thing that moves. A class
+ * multiplier read in dmgRange and dropped on the way through the battle loop would have passed the
+ * old version, and "the handler is right and the path around it is not" is this engine's most
+ * expensive bug shape (WIRE 123). */
 probe('move', 'moveClass', 'Iron Fist boosts a punch and leaves a non-punch alone', () => {
-  const def = bare('garchomp');
-  const hit = (ab, mv) => { const a = bare('incineroar'); a.ability = ab;
-    return M.dmgRange(a, def, MC.moves[mv], fresh(), false).max; };
-  const pOff = hit('none', 'machpunch'), pOn = hit('ironfist', 'machpunch');
-  const oOff = hit('none', 'flareblitz'), oOn = hit('ironfist', 'flareblitz');
-  return { works: pOn > pOff && oOn === oOff,
-           detail: `Mach Punch (punch): none ${pOff} -> Iron Fist ${pOn}; `
-                 + `Flare Blitz (not punch): none ${oOff} -> Iron Fist ${oOn} (must not move)` };
+  const hit = (ab, mv) => turnDamage(['incineroar', 'corviknight', 'garchomp', 'garchomp'],
+    (B) => { B.me.ability = ab; unfaintable(B.f1); }, mv);
+  const control = [hit('none', 'machpunch'), hit('none', 'flareblitz')];
+  const test = [hit('ironfist', 'machpunch'), hit('ironfist', 'flareblitz')];
+  return { works: test[0] > control[0] && test[1] === control[1],
+           arms: { control, test },
+           detail: `Mach Punch (punch): none ${control[0]} -> Iron Fist ${test[0]}; `
+                 + `Flare Blitz (not punch): none ${control[1]} -> Iron Fist ${test[1]} (must not move)` };
 });
 
 /* `statChange` — 64,869 uses, second largest unprobed. The param carries the exact table

@@ -295,10 +295,21 @@ function splitHalfL1(games) {
 }
 function rawRatings(file) {
   const ratings = [];
+  /* A SKIPPED LINE IS A DROPPED GAME, and this function's output is a RATING DISTRIBUTION — the
+   * quantiles that decide which population every figure in this artifact describes. Silently
+   * continuing means the median is computed over a corpus nobody can reconstruct, and a parse defect
+   * would present as a shifted population rather than as a broken file. Counted and surfaced. */
+  let unparsable = 0, firstErr = null;
   for (const line of fs.readFileSync(D(file), 'utf8').split('\n')) {
     if (!line.trim()) continue;
-    let g; try { g = JSON.parse(line); } catch { continue; }
+    let g;
+    try { g = JSON.parse(line); }
+    catch (e) { unparsable++; if (!firstErr) firstErr = (e && e.message) || String(e); continue; }
     for (const s of ['p1', 'p2']) if (g[s] && g[s].rating) ratings.push(g[s].rating);
+  }
+  if (unparsable) {
+    console.error(`strong_player_baseline: ${unparsable} unparsable line(s) in ${file} — first: `
+      + `${firstErr}. Those games are absent from this rating distribution.`);
   }
   ratings.sort((a, b) => a - b);
   const q = p => ratings[Math.floor(p * (ratings.length - 1))];
@@ -316,11 +327,18 @@ const bandOf = r => (r == null ? null : BANDS.find(b => r >= b[1] && r < b[2])[0
 function scanProtocol(games) {
   const meta = new Map(games.map(g => [g.id, { p1: (g.p1 || {}).rating || null, p2: (g.p2 || {}).rating || null }]));
   const rows = []; let logs = 0;
+  let logUnparsable = 0, logFirstErr = null;
   return new Promise(res => {
     const rl = readline.createInterface({ input: fs.createReadStream(D('data', 'games.ladder.raw-logs.jsonl')) });
     rl.on('line', line => {
       const t = line.trim(); if (!t) return;
-      let r; try { r = JSON.parse(t); } catch { return; }
+      /* COUNTED, because this stream IS the measurement. Every figure in the flat-in-rating result is
+       * computed from these protocol logs, so a dropped line is a dropped set of moves out of a
+       * rating band — and the headline is a null whose whole claim is that the bands do not differ.
+       * Silently skipping is how a parse defect would masquerade as evidence for that null. */
+      let r;
+      try { r = JSON.parse(t); }
+      catch (e) { logUnparsable++; if (!logFirstErr) logFirstErr = (e && e.message) || String(e); return; }
       if (!r.log) return;
       const m = meta.get(r.id); if (!m) return;
       logs++;
@@ -341,7 +359,14 @@ function scanProtocol(games) {
       }
       for (const side of ['p1', 'p2']) if (tl[side].moves) rows.push({ id: r.id, rating: m[side], band: bandOf(m[side]), ...tl[side] });
     });
-    rl.on('close', () => res({ rows, logs }));
+    rl.on('close', () => {
+      if (logUnparsable) {
+        console.error(`strong_player_baseline: ${logUnparsable} unparsable line(s) in `
+          + `games.ladder.raw-logs.jsonl — first: ${logFirstErr}. Those logs contributed no moves to `
+          + `any rating band.`);
+      }
+      res({ rows, logs, logUnparsable, logFirstErr });
+    });
   });
 }
 
@@ -421,9 +446,18 @@ function scanProtocol(games) {
   const tot = agg(() => true, ids);
 
   const sha = f => crypto.createHash('sha256').update(fs.readFileSync(D(f))).digest('hex').slice(0, 16);
-  let commit = null, dirty = null;
-  try { commit = cp.execSync('git rev-parse HEAD', { cwd: ROOT }).toString().trim(); } catch {}
-  try { dirty = cp.execSync('git status --porcelain', { cwd: ROOT }).toString().trim().length > 0; } catch {}
+  /* WHY IT IS NULL, NOT JUST THAT IT IS. engine/run_stamp.js already learned this one: a null commit
+   * beside a null dirty flag is indistinguishable from "git said the tree is clean", and a clean
+   * commit id over a dirty tree is the exact lie a provenance stamp exists to stop. An index lock, an
+   * interrupted rebase (this repository has reached one) or git being off PATH all land here, and the
+   * artifact should say which rather than present an absence as an answer. */
+  let commit = null, dirty = null, gitWhyNull = null;
+  try { commit = cp.execSync('git rev-parse HEAD', { cwd: ROOT }).toString().trim(); }
+  catch (e) { gitWhyNull = 'git rev-parse failed: ' + ((e && e.message) || String(e)); }
+  try { dirty = cp.execSync('git status --porcelain', { cwd: ROOT }).toString().trim().length > 0; }
+  catch (e) { gitWhyNull = (gitWhyNull ? gitWhyNull + '; ' : '') + 'git status failed: ' + ((e && e.message) || String(e)); }
+  if (gitWhyNull) console.error('strong_player_baseline: ' + gitWhyNull
+    + ' — commit/dirty are UNKNOWN in this stamp, not clean.');
 
   const A = {
     generated: new Date().toISOString(),
@@ -664,6 +698,9 @@ function scanProtocol(games) {
       quality_filter_json_sha256: sha('data/quality-filter.json'),
       reads_no_engine: true,
       commit, dirty_tree: dirty,
+      /* Travels with the stamp so a reader of the ARTIFACT, not just of the console, can tell
+       * "git said clean" from "git could not be asked". Null when git answered normally. */
+      git_why_null: gitWhyNull,
     },
   };
 

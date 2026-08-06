@@ -582,5 +582,112 @@ demoSource('WIRE 123 the SLOWER entry weather setter owns the field, across both
         && run(117, 113, 'torkoal', 'drought', 40) === 'sun';
   });
 
+/* ---- WIRE 124, against a source-reverted engine -------------------------------------------------
+ *
+ * There is no tag to strip. `neverMisses` was never the thing that was broken -- what was broken is
+ * that EVERY move was never-missing, because `moveAccuracy` ended `return ACC[id]||100` over a
+ * hand-typed 35-move literal. So the known-bad engine is that literal, restored verbatim, and
+ * nothing else: the weatherScaled branch above it, the two status-branch call sites and the battle
+ * loop's roll all stay exactly as shipped.
+ *
+ * The assertion is the OUTCOME on a board. Heat Wave is 90% in this format and 7,405 clicks in the
+ * corpus, and on a losing roll it must deal nothing; Aerial Ace, on the same roll, must land. The
+ * reverted engine lands both, which is what it did for the whole life of the file. */
+demoSource('WIRE 124 a 90% move can miss — accuracy is derived, not a 35-name list',
+  [[`  const key=String(id||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(ACC_FIX[key]!=null)return ACC_FIX[key];
+  let fx=null;
+  /* THE ONLY WAY moveFx THROWS is data/move-effects.js not being loaded at all, and the reason is
+   * KEPT rather than discarded: without it every move in the game silently becomes 100% accurate,
+   * which is the exact defect this wire exists to remove, and a caller looking at \`fails\` afterwards
+   * needs to be able to tell that from "the table was there and this move was not in it". */
+  try{ fx=moveFx(key); }
+  catch(e){ MEDFAILS.accuracyNoTable++;
+            if(!MEDFAILS.accuracyNoTableFirst)MEDFAILS.accuracyNoTableFirst=String(e.message).slice(0,80); }
+  if(fx&&fx.accuracy!=null)return fx.accuracy===true?100:+fx.accuracy;
+  MEDFAILS.accuracyUnknown++;
+  if(!MEDFAILS.accuracyUnknownFirst)MEDFAILS.accuracyUnknownFirst=key;
+  return 100;`,
+    `  return ({hydropump:80,hurricane:70,fireblast:85,focusblast:70,thunder:70,blizzard:70,stoneedge:80,megahorn:85,gunkshot:80,iciclecrash:90,playrough:90,dynamicpunch:50,zapcannon:50,highjumpkick:90,drillrun:95,crosschop:80,sleeppowder:75,willowisp:85,thunderwave:90,hypnosis:60,irontail:75,dragonrush:75,inferno:50,fissure:30,sheercold:30,rockslide:90,airslash:95,gigaimpact:90,overheat:90,leafstorm:90,powerwhip:85,meteorbeam:90,muddywater:85,darkvoid:50,sing:55})[id]||100;`]],
+  (E) => {
+    const rngLose = () => 0.99;
+    const dealt = (mv, rng) => {
+      const me = bare('incineroar'), ally = bare('corviknight');
+      const f1 = bare('garchomp'), f2 = bare('garchomp');
+      const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+      const before = f1.curHP;
+      E.battleTurn(S, rng,
+        new Map([[me, E.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+      return before - f1.curHP;
+    };
+    /* The winning-roll arm keeps this honest in BOTH engines: a Heat Wave that deals nothing because
+     * the staging is wrong would otherwise read as the mechanic working. */
+    return dealt('heatwave', rng5) > 0 && dealt('heatwave', rngLose) === 0 && dealt('aerialace', rngLose) > 0;
+  });
+
+/* ---- WIRE 125, against a source-reverted engine -------------------------------------------------
+ *
+ * The known-bad engine is the end-of-turn death recount and nothing else: `sf.team` back to
+ * `[...act,...bench]`, which is the expression that lost the dead the moment bringIn() overwrote the
+ * active slot. Everything about the faint, the replacement and Last Respects itself stays as shipped.
+ *
+ * A LATER TURN IS THE WHOLE POINT. Both engines get the count right on the turn of the death, so an
+ * assertion made on that turn passes on both and proves nothing — the ally is killed on turn 1 and
+ * the move is clicked on turn 2. */
+demoSource('WIRE 125 the fallen count survives the turn after the death',
+  [['    sfA.fainted=fallenCount(sfA,actA,benchA);\n    sfB.fainted=fallenCount(sfB,actB,benchB);',
+    '    sfA.fainted=[...actA,...benchA].filter(x=>x&&x.fainted).length;\n    sfB.fainted=[...actB,...benchB].filter(x=>x&&x.fainted).length;']],
+  (E) => {
+    const run = (killAlly) => {
+      const me = bare('houndstone'), ally = bare('corviknight');
+      const sp1 = bare('milotic'), sp2 = bare('incineroar');
+      const f1 = bare('garchomp'), f2 = bare('tyranitar');
+      const S = E.battleInit([me, ally, sp1, sp2], [f1, f2], { seeded: true });
+      f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 8 }); f1.curHP = f1.st.hp;
+      if (killAlly) ally.curHP = 1;
+      E.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+        new Map([[f1, E.playerAction(f1, 'dragonclaw', ally, S.field)], [f2, { kind: 'pass' }]]));
+      const before = f1.curHP;
+      E.battleTurn(S, rng5,
+        new Map([[me, E.playerAction(me, 'lastrespects', f1, S.field)], [S.actA[1], { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+      return [S.sfA.fainted, before - f1.curHP];
+    };
+    const control = run(false), test = run(true);
+    return control[0] === 0 && test[0] === 1 && test[1] > control[1] && control[1] > 0;
+  });
+
+/* ---- WIRE 126, against a source-reverted engine -------------------------------------------------
+ *
+ * There is no tag to strip: `convertsMoveType` was on Aerilate and dmgRange was reading it correctly.
+ * The defect was that the battle loop asked a DIFFERENT function for the move's type, and that
+ * function is handed no attacker. So the revert is the one argument -- the attacker dropped from the
+ * loop's type-immunity gate -- and nothing else. Everything about the conversion, the damage and the
+ * ability stays exactly as shipped.
+ *
+ * THE CONTROL ARM IS THE ONE THAT MAKES THIS EVIDENCE. A Body Slam with NO ability must deal zero to
+ * a Ghost in BOTH engines, or "Aerilate landed" would be indistinguishable from an engine that had
+ * simply stopped enforcing the Normal-into-Ghost immunity altogether -- which is a worse bug than the
+ * one being fixed and would otherwise read as the fix working. */
+demoSource('WIRE 126 an -ate-converted move is judged on the type it BECAME',
+  [['          if (mcEff(effMoveType(mv, a.move.id, field, m), tg.types) === 0) continue;',
+    '          if (mcEff(effMoveType(mv, a.move.id, field), tg.types) === 0) continue;']],
+  (E) => {
+    const dealt = (ab) => {
+      const me = bare('staraptor'), ally = bare('incineroar');
+      const f1 = bare('gengar'), f2 = bare('garchomp');
+      me.ability = ab;
+      const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+      f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 8 }); f1.curHP = f1.st.hp;
+      const before = f1.curHP;
+      E.battleTurn(S, rng5,
+        new Map([[me, E.playerAction(me, 'bodyslam', f1, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+      return before - f1.curHP;
+    };
+    return dealt('none') === 0 && dealt('aerilate') > 0;
+  });
+
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);
 if (failures) { console.log('  A green-and-stripped pair that did not flip means the probe does NOT watch its knob.'); process.exit(1); }
