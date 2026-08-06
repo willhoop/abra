@@ -29,6 +29,7 @@ rather than tools:
 
 | Test | What it prevents |
 |---|---|
+| `tests/test-model-map.js` | **`web/models.html` drifting from `docs/MODELS.md`** — the same rule as the roster guard, applied to the map. It parses the ledger's model headings (`## NAME — job`, ALL-CAPS name, em dash required, so the prose sections are excluded), asserts each is named INSIDE the `<svg>`, and runs the reverse direction over the box titles that have the ledger's own shape. Short names are an explicit `ALIASES` table with a reason each, never a loose substring: `MAG` for MAGNEMITE, `META USAGE` for META-USAGE, `BEHAVIOUR PRIORS` for MOVE PRIORS. Matching is **case-sensitive and bounded on both sides**, because a case-insensitive match would let the ordinary words *counters*, *cores*, *roles* and *war* in body prose stand in for four models that are not there. Every deliberate omission is `DECLARED` with a reason AND must be named in the page's own `#notonmap` note — a declaration only the test can read is an exemption. `--selftest` plants a model with no box, a box with no model, a name glued inside a longer word and a lowercase occurrence, and asserts all four are rejected. |
 | `tests/test-stadium-roster.js` | The Stadium's cabinet rack drifting from `docs/MODELS.md`, **and a model that is in neither of them.** Two directions catch a model that is in ONE file; GURU was in NEITHER, so both passed while the front door rendered its matrix daily. The third direction reads `engine/provenance.js --graph` — the set of things that actually generate a `data/*` artifact, which is a fact about the code rather than a claim about it — and requires every generator to be named in the ledger or declared with a reason. Judgement gaps in all three directions are declared by name **with a reason**, never by a pattern that would also swallow a real model added later. |
 | `tests/test-web-parses.js` | **A room that does not run.** `web/stadium.html` shipped with `class="wd"` inside a double-quoted JS string; the whole inline block was a SyntaxError and the Stadium rendered its header and nothing else. The roster guard passed and the figure audit scored the page 100% traced, because both read the page as **text**. This parses it. |
 | `tests/test-web-figures.js` | **This division's own number going unmeasured, and then going down.** It calls `web/figure-audit.js` — the one implementation of *what is a figure* and *what counts as traced* — and asserts a FLOOR on the fraction of hardcoded figures whose source line cites an artifact. It also asserts the **withdrawn count never drops**, which is what stops a retracted claim being quietly deleted or quietly un-struck, and that every `<s class="wd">` carries a `title` saying when and why. A relation, not a pinned value: raising the floor is the intended edit, lowering it has to be justified out loud. |
@@ -184,6 +185,51 @@ roster, which is what the Open item below used to ask for.
 
 ## Open
 
+- **THE MODEL MAP NAMED 14 OF THE LEDGER'S 31 MODELS, AND NOTHING COULD SEE IT. Fixed and GUARDED
+  2026-08-06.** (Will: *"i want to make sure nothing is left out, this project is massive and has so
+  many different parts i cant keep track of all them."*) A missing box leaves **no gap on screen**,
+  which is why the page could be titled THE MODEL MAP and be less than half a map without ever
+  looking wrong — the same shape as the Stadium roster hole, one page over.
+
+  **The gate came first and was red on exactly the five it should have been.** `tests/test-model-map.js`
+  was written before the fix and reported DODUO, MACHAMP, WOBBUFFET, GURU and CHAMPIONS_SIM. All five
+  are now drawn: **CHAMPIONS_SIM** beside MEDICHAM in THE ENGINE (ADR-001; the authority MEDICHAM is
+  graded against, and the two-engine agreement counts are **WIRED out of `web/status-data.js`**, not
+  typed — see below, this one caught the page mid-drift);
+  **GURU** above SLOWKING, because SLOWKING's box says *"in: how each matchup scores"* and the thing
+  that scores the matchups had no box anywhere; **DODUO** beside MAG in THE DECIDERS; and a new band,
+  **MAKING MAG BETTER**, carrying **MACHAMP** and **WOBBUFFET** — they are not deciders, nothing in a
+  battle calls them, they are what would make the decider better.
+
+  **The three statuses are the point of the pass, not the boxes.** DODUO renders **NOT MEASURED FOR
+  WINNING** and quotes `data/policy-weights-joint.json`'s own `caveat` field verbatim — *"Not evidence
+  that the pair wins more games."* Its 12.2% top-1 is deliberately **not** on the page: it predicts a
+  human click, and a percentage beside a box on a decision map reads as how good the model is.
+  MACHAMP renders `data/ladder.json`'s own record — **2 of the 8 generations it asked for, no
+  verdict, 48-feature vector** — and that its champion was deleted, 48 against the **58** in
+  `data/policy-weights.json`. WOBBUFFET renders the ABSENCE: `data/exploitability.json` carries
+  `void: true`, so **there is no exploitability number** and the retracted 63.2% appears nowhere, not
+  even struck through.
+  Layout re-checked by script before and after: viewBox 1560 → **2040**, 28 boxes, **no rect out of
+  bounds, no two rects overlapping, no routed arrow through a box interior** (47 straight segments
+  and 6 beziers sampled at 1% steps), and no new text run exceeding its box.
+
+  **AND THE ONE FIGURE THIS PASS TYPED WENT STALE INSIDE THE PASS, WHICH IS THE LESSON.**
+  CHAMPIONS_SIM's box first read *"agrees on 98.8% of 1,643 live pairs"*, taken from
+  `data/interaction-matrix.json` at 08:01:07. ENGINE regenerated that artifact at **18:42:48** while
+  this page was being written — the same shape as *"3k good games"* and *"5,368 real teams"* before
+  it, and the third time this page has been caught by it. Both counts are now **read from
+  `web/status-data.js`** the way the mechanics census beside them already was, so `test-web-status.js`
+  is the guard and the page inherits it. The **percentage is deliberately not rendered at all**:
+  dividing `matrix_agree` by `matrix_live` in the browser would be this division authoring a number,
+  and both counts side by side say the same thing without one.
+  `web/models.html` stays at **100%** traced — 5/5 → 10/10 → **8/8** once the two figures became
+  reads; site-wide **100% of 132**.
+  *Open part:* twelve ledger entries are DECLARED off the map with a reason — ROLES, WAR, NMF,
+  COUNTERPLAY, COUNTERS, CORES, DYNAMICS, MEGA DEX, ILLUSION, SPECIES SETS, BRING PRIORS, SMOGON
+  PRIORS. **BRING PRIORS is the one to revisit**: it is declared out because the thing that would draw
+  from it is GARY and GARY is off, so the day GARY is switched on it earns a box and the declaration
+  becomes false.
 - **THE MODEL MAP WAS MISSING THE MODEL THAT PICKS THE MOVES. Fixed 2026-08-06, and it is worth
   recording why it was possible.** `web/models.html` went from THE DECIDERS (MAG, DITTO, the value
   nets, KADABRA) straight to the ALAKAZAM capstone. **MILTANK — the shipping search player — was not
@@ -225,7 +271,10 @@ roster, which is what the Open item below used to ask for.
 - ABRA STADIUM is not yet linked from ABRA WORLD's front door.
 - No page yet renders the four division ledgers or `node engine/status.js` output for a visitor;
   the project's own state is currently legible only from a terminal.
-- **`web/index.html` at 80.5% (33 of 41) is now the only page below 100%.** Overall is **91.8%**
+- *Superseded 2026-08-06 — every page is now at 100% and the site total is **100% of 134** (`index`
+  44/44, `models` 10/10, `stadium` 78/78, `tower` 2/2, 40 struck out as withdrawn). Kept because a
+  prior reading is never silently rewritten.* **`web/index.html` at 80.5% (33 of 41) is now the only
+  page below 100%.** Overall is **91.8%**
   (90 of 98), from 84.3% (70 of 83) and 27.4% (17 of 62) earlier the same day. `models.html` and
   `tower.html` are closed: `models.html` cites `data/quality-filter.json` beside its bot share and
   now **reads** the mechanics census out of `web/status-data.js` rather than carrying it — it moved
@@ -233,17 +282,27 @@ roster, which is what the Open item below used to ask for.
   and `tower.html` cites `data/damage-validation.json` and takes its species count off
   `data/engine-data.js` instead of a typed 289. The eight left on the front door are the ones with
   no artifact behind them at all, not ones missing a citation.
-- **`tests/test-stadium-roster.js` is RED, deliberately, on five generators.** Each writes a
-  `data/*` artifact, appears in neither `docs/MODELS.md` nor the Stadium, and is a MODEL by the rule
-  above, so none of them can be given a truthful entry in `NOT_A_MODEL`. **The fix is a ledger
-  entry and `docs/MODELS.md` is MEASURE's file**, so this is routed, not filed:
-  `engine/analyze.js` → `data/meta-usage.json` (the artifact CHOMP and `engine/mag_bot.js` read);
-  `engine/porygon2.py` → `data/porygon2*.json` (read by `mew.js`, `player_digest.js`);
-  `engine/state_encoder.py` → `data/move-priors.json` (read by `board.js`,
-  `medicham2-browser.js`, `fit_policy.js`, `prior_player.js`); `engine/derive_sets.js` →
-  `data/species-sets.json` (read by `showdown_bot.js`); `engine/counters.py` →
-  `data/counters.json` (read by nothing, and the same class of thing as `COUNTERPLAY`, which the
-  ledger already carries).
+- **`tests/test-stadium-roster.js` IS RED RIGHT NOW, on two things, and neither is the five it used
+  to be red on.** *(The five — `analyze.js`, `porygon2.py`, `state_encoder.py`, `derive_sets.js`,
+  `counters.py` — were closed the right way by MEASURE, with ledger entries. That half is done.)*
+  Re-measured 2026-08-06, 13 cabinets against 36 ledger headings and 88 generators:
+
+  1. **GARY and DUSK have `docs/MODELS.md` headings and no Stadium cabinet.** Both were added to the
+     ledger on 2026-08-06 by another division. Neither can be given a truthful `NOT_A_CABINET` entry:
+     GARY decides the imagined opponent's move on every rollout turn, and DUSK is scoped. **The
+     honest fix is two cabinets, which is a distinct piece of WEB work** — one verb, canvas art, a
+     receipt line each, on a 114 KB page that has already shipped dead once from a quoting error. It
+     is named here rather than filed, and it is the next thing this division should be asked for.
+  2. **Three generators are in neither file and in no exception table** —
+     `build/strong_player_baseline.js` → `data/strong-player-baseline.json`,
+     `engine/dusk_size_gate.js` → `data/dusk-size-gate.json`,
+     `engine/porygon2_separation_gate.py` → `data/porygon2-separation-gate.json`. All three landed
+     today from divisions still working. Two read as GATE-class by the rule above (a declared-
+     threshold check on OUR OWN search and OUR OWN value function), and the third is genuinely
+     borderline — `strong_player_baseline.js` publishes whether measured move quality rises with
+     rating, which is a statement about Champions PLAYERS as well as a justification for our own
+     corpus rule. **Guessing wrong here writes a false judgement into the exception table**, which
+     is the one thing that table must never carry, so it is routed to MEASURE rather than declared.
 - **Owed and not written by this division:** `CHANGELOG.md`, the white paper, the deck, the
   technical docs and `docs/SUMMARY.md` all still describe the pre-2026-08-04 state of the site.
   WEB's boundary is `web/`, `app/`, this file and its own tests.

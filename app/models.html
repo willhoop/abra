@@ -6,7 +6,13 @@
      models to decisions. Every box says what goes IN, what comes OUT, and its honest status.
      Statuses are the project's own claims from its tests and writeups, colour-coded:
      green = live and measured, amber = live but weak/unproven, grey = retired (ties a coin),
-     purple = planned. KADABRA is marked "role open" per Will, 2026-07-29. -->
+     purple = planned, red = quarantined by rule. KADABRA is marked "role open" per Will, 2026-07-29.
+
+     AND THE MAP IS NOW GUARDED. tests/test-model-map.js compares this picture against the model
+     headings in docs/MODELS.md, fails on a model that is in the ledger and not here, and requires
+     every deliberate omission to be declared BY NAME WITH A REASON — in the test AND in the
+     "not on this map" note below the picture. It was written before the 2026-08-06 fix and was red
+     on exactly the five models that fix added, which is the only way to know a gate works. -->
 <style>
 :root{--bg:#eceff5;--line:#22303f;--ink:#1a2233;--dim:#5a6a84}
 *{box-sizing:border-box}
@@ -19,6 +25,9 @@ h1{font-size:24px;letter-spacing:2px;margin:0 0 2px}
 svg{width:100%;height:auto;display:block}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;font-weight:700;color:var(--dim);margin:10px 2px}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px;border:1.5px solid var(--line)}
+.omit{margin:12px 2px 0;font-size:12px;font-weight:600;color:var(--dim);line-height:1.55;
+  border-left:4px solid #c8d0de;padding-left:10px}
+.omit b{color:var(--ink)}
 </style></head><body><div class="wrap">
 <h1>THE MODEL MAP</h1>
 <div class="sub">What every model eats, what it produces, and its honest status — data flows top to bottom. Nothing here claims more than its own tests do.</div>
@@ -36,7 +45,7 @@ svg{width:100%;height:auto;display:block}
   Open sheets — the format ALAKAZAM starts in. Hidden information is exactly two things: <b>what's in the back</b> and <b>the exact EV spread</b>. XATU's full evidence-reading stays parked.
 </div>
 <div class="panel">
-<svg viewBox="0 0 1160 1310" xmlns="http://www.w3.org/2000/svg" font-family="Verdana,sans-serif">
+<svg viewBox="0 0 1160 2040" xmlns="http://www.w3.org/2000/svg" font-family="Verdana,sans-serif">
 <defs>
   <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
     <path d="M0,0 L10,5 L0,10 z" fill="#5a6a84"/>
@@ -59,6 +68,9 @@ svg{width:100%;height:auto;display:block}
   .band{font-size:11px;font-weight:bold;fill:#8a97ad;letter-spacing:2px}
   .fl{stroke:#5a6a84;stroke-width:2;fill:none;marker-end:url(#arr)}
   .flp{stroke:#7b3fd4;stroke-width:2.2;fill:none;marker-end:url(#arrP);stroke-dasharray:6 4}
+  /* the same purple line WITHOUT a head: a feeder onto a shared rail, where only the rail's end is
+     an arrival. Two arrowheads for one arrival would read as two edges. */
+  .flpx{stroke:#7b3fd4;stroke-width:2.2;fill:none;stroke-dasharray:6 4;opacity:.7}
   .lbl{font-size:9px;fill:#5a6a84;font-weight:700}
 </style>
 
@@ -136,14 +148,19 @@ svg{width:100%;height:auto;display:block}
 
 <path class="fl" d="M145,234 L145,304"/>
 <path class="fl" d="M435,126 C435,220 435,240 435,304"/>
-<path class="fl" d="M1015,126 L1015,180 L148,180 L148,304" opacity="0"/>
 <path class="fl" d="M1015,126 C1015,220 200,240 180,304"/>
 <path class="fl" d="M270,210 C420,240 700,260 720,304"/>
 <path class="fl" d="M435,126 C700,200 990,240 1000,304"/>
 
-<!-- ================= BAND 3: THE ENGINE ================= -->
+<!-- ================= BAND 3: THE ENGINE =================
+     CHAMPIONS_SIM ADDED 2026-08-06. The OFFICIAL engine — ADR-001, ADR-002 — was on no box of a
+     page titled THE MODEL MAP, while the map showed the engine we wrote ourselves. A map of the
+     models without the rules authority on it is not a map: MEDICHAM's whole claim to be trusted is
+     that it AGREES with this, and the agreement fraction is the number that says so.
+     GURU ADDED 2026-08-06 for the same reason — SLOWKING's box says "in: how each matchup scores",
+     and the thing that scores the matchups had no box anywhere. -->
 <text x="20" y="450" class="band">THE ENGINE — one source of truth for every number</text>
-<rect class="box" x="20" y="464" width="540" height="120" fill="#dff5e6"/>
+<rect class="box" x="20" y="464" width="420" height="124" fill="#dff5e6"/>
 <text x="34" y="488" class="t">MEDICHAM — damage and battle engine</text>
 <text x="34" y="507" class="io">in: stats, the tags, the rulebook</text>
 <text x="34" y="521" class="io">out: damage — checked against the standard calculator</text>
@@ -159,116 +176,285 @@ svg{width:100%;height:auto;display:block}
      page inherits that guard instead of needing its own. -->
 <text x="34" y="570" class="st" fill="#1f7a3c"><tspan id="mCensus">NOT MEASURED</tspan><tspan x="34" dy="11" class="src">from data/mechanics-census.json, via web/status-data.js</tspan></text>
 
+<rect class="box" x="470" y="464" width="290" height="124" fill="#dff5e6"/>
+<text x="484" y="488" class="t">CHAMPIONS_SIM — the rules</text>
+<text x="484" y="506" class="io">in: Showdown's own code, pinned commit</text>
+<text x="484" y="519" class="io">out: the authoritative answer</text>
+<text x="484" y="532" class="io">offline only — never in the browser</text>
+<text x="484" y="552" class="st" fill="#1f7a3c">ADR-001 — the rules authority, not ours</text>
+<!-- THIS IS THE PAIR THAT MAKES MEDICHAM CHECKABLE rather than merely asserted: the two engines are
+     run against each other over every co-occurring mechanic pair, and the artifact records how many
+     were LIVE and how many AGREED.
+     WIRED, NOT TYPED — and it had to be. The first draft typed "98.8% of 1,643", read off
+     data/interaction-matrix.json at 08:01. ENGINE regenerated that artifact at 18:42 while this
+     page was being written, which is the same drift as the mechanics census one box to the left and
+     the same drift as the "3k good games" this page already had to fix once. The AGREEMENT PERCENT
+     is deliberately absent rather than computed here: dividing agree by live in the browser would be
+     this division authoring a number. Both counts are read, and the reader can see the gap. -->
+<text x="484" y="566" class="st" fill="#1f7a3c"><tspan id="mMatrix">NOT MEASURED</tspan><tspan x="484" dy="10" class="src">from data/interaction-matrix.json, via web/status-data.js</tspan></text>
+<!-- the verification link. Not a data flow: nothing of CHAMPIONS_SIM's runs inside MEDICHAM, it is
+     the thing MEDICHAM is graded against, which is why it points at it and carries no payload. -->
+<path class="fl" d="M468,526 L444,526"/>
+
+<rect class="box" x="780" y="464" width="340" height="124" fill="#fff2dc"/>
+<text x="794" y="488" class="t">GURU — archetype matchups</text>
+<text x="794" y="506" class="io">in: clean games, labelled by archetype</text>
+<text x="794" y="519" class="io">out: a 12x12 matrix, 144 cells + Wilson CIs<tspan x="794" dy="10" class="src">from data/guru-matchups.json</tspan></text>
+<text x="794" y="548" class="st" fill="#8a5a1a">0 of 6 decisive matchups survive multiplicity</text>
+<text x="794" y="560" class="st" fill="#8a5a1a">loses to a coin per game — 0.7124 vs 0.6931 <tspan class="src">data/guru.js</tspan></text>
+<text x="794" y="576" class="st" fill="#8a5a1a">descriptive structure, not a ranking</text>
+
 <g id="xatuBox">
-<rect class="box" x="600" y="464" width="256" height="88" fill="#fff2dc"/>
-<text x="614" y="486" class="t">XATU — reads the foe</text>
+<rect class="box" x="470" y="612" width="290" height="116" fill="#fff2dc"/>
+<text x="484" y="636" class="t">XATU — reads the foe</text>
 <g id="xatuOpen">
-<text x="614" y="503" class="io">in: the team sheet (all public)</text>
-<text x="614" y="516" class="io">out: guesses bench and stats</text>
-<text x="614" y="536" class="st" fill="#8a5a1a">mostly idle — little left to guess</text>
-<text x="614" y="548" class="st" fill="#8a5a1a">SLOWKING already covers the bench</text>
+<text x="484" y="653" class="io">in: the team sheet (all public)</text>
+<text x="484" y="666" class="io">out: guesses bench and stats</text>
+<text x="484" y="686" class="st" fill="#8a5a1a">mostly idle — little left to guess</text>
+<text x="484" y="698" class="st" fill="#8a5a1a">SLOWKING already covers the bench</text>
 </g>
 <g id="xatuClosed" style="display:none">
-<text x="614" y="503" class="io">in: everything they reveal</text>
-<text x="614" y="516" class="io">moves, damage, speed, abilities</text>
-<text x="614" y="536" class="st" fill="#8a5a1a">central here — guesses their team</text>
-<text x="614" y="548" class="st" fill="#8a5a1a">your double-weather idea fits here</text>
+<text x="484" y="653" class="io">in: everything they reveal</text>
+<text x="484" y="666" class="io">moves, damage, speed, abilities</text>
+<text x="484" y="686" class="st" fill="#8a5a1a">central here — guesses their team</text>
+<text x="484" y="698" class="st" fill="#8a5a1a">your double-weather idea fits here</text>
 </g>
 </g>
 
-<rect class="box" x="884" y="464" width="256" height="88" fill="#dff5e6"/>
-<text x="898" y="486" class="t">SLOWKING — preview</text>
-<text x="898" y="503" class="io">in: how each matchup scores</text>
-<text x="898" y="516" class="io">out: which 4 to bring, 2 to lead</text>
-<text x="898" y="536" class="st" fill="#1f7a3c">the team preview answer —</text>
-<text x="898" y="548" class="st" fill="#1f7a3c">feeds ALAKAZAM later</text>
+<rect class="box" x="780" y="612" width="340" height="116" fill="#dff5e6"/>
+<text x="794" y="636" class="t">SLOWKING — preview</text>
+<text x="794" y="653" class="io">in: how each matchup scores</text>
+<text x="794" y="666" class="io">out: which 4 to bring, 2 to lead</text>
+<text x="794" y="686" class="st" fill="#1f7a3c">the team preview answer —</text>
+<text x="794" y="698" class="st" fill="#1f7a3c">feeds ALAKAZAM later</text>
+<path class="fl" d="M950,588 L950,612"/>
+<text x="784" y="604" class="lbl">the matrix SLOWKING solves</text>
 
 <path class="fl" d="M148,384 L148,464"/>
 <path class="fl" d="M435,384 C435,420 300,430 290,464"/>
-<path class="fl" d="M720,384 C720,420 500,430 480,464"/>
+<path class="fl" d="M720,384 C720,420 500,430 400,464"/>
 
 <!-- ================= BAND 4: THE DECIDERS ================= -->
-<text x="20" y="650" class="band">THE DECIDERS — models that pick something</text>
-<rect class="box" x="20" y="664" width="360" height="104" fill="#dff5e6"/>
-<text x="34" y="688" class="t">MAG — picks the move</text>
-<text x="34" y="706" class="io">in: the live board + team sheets</text>
-<text x="34" y="719" class="io">in: MEDICHAM's damage + the weights</text>
-<text x="34" y="732" class="io">out: which move to click</text>
-<text x="34" y="752" class="st" fill="#1f7a3c">live and measured. Switching is</text>
-<text x="34" y="763" class="st" fill="#1f7a3c">still unproven — see the to-do list</text>
+<text x="20" y="794" class="band">THE DECIDERS — models that pick something</text>
+<rect class="box" x="20" y="808" width="360" height="136" fill="#dff5e6"/>
+<text x="34" y="832" class="t">MAG — picks the move</text>
+<text x="34" y="850" class="io">in: the live board + team sheets</text>
+<text x="34" y="863" class="io">in: MEDICHAM's damage + the weights</text>
+<text x="34" y="876" class="io">out: which move to click</text>
+<text x="34" y="896" class="st" fill="#1f7a3c">live and measured. Switching is</text>
+<text x="34" y="907" class="st" fill="#1f7a3c">still unproven — see the to-do list</text>
 
-<rect class="box" x="410" y="664" width="250" height="104" fill="#dff5e6"/>
-<text x="424" y="688" class="t">DITTO — tunes teams</text>
-<text x="424" y="706" class="io">in: the meta + a starting team</text>
-<text x="424" y="719" class="io">out: a tuned team</text>
-<text x="424" y="737" class="st" fill="#1f7a3c">MEDICHAM replays every option</text>
-<text x="424" y="749" class="st" fill="#1f7a3c">so it can't cheat its own</text>
-<text x="424" y="761" class="st" fill="#1f7a3c">scoring</text>
+<!-- DODUO ADDED 2026-08-06, and its STATUS is the point of adding it. It was absent from the map
+     while being the answer to the pruning question, so the page showed MAG pricing one move and
+     nothing showing that the PAIR is a separate model with a separate objective.
+     ITS NUMBER IS DELIBERATELY NOT HERE. data/policy-weights-joint.json reports a top-1 on human
+     PAIRS, and rendering that beside a box on a decision map reads as "how good it is". The
+     artifact's own caveat field says what it is not, and the ledger says "do not quote a win rate
+     for trained DODUO — none exists", so the box says that instead. -->
+<rect class="box" x="400" y="808" width="360" height="136" fill="#fff2dc"/>
+<text x="414" y="832" class="t">DODUO — scores the PAIR</text>
+<text x="414" y="850" class="io">in: both slots' options, together</text>
+<text x="414" y="863" class="io">out: which PAIR of moves to click</text>
+<text x="414" y="876" class="io">MAG prices one move; DODUO prices the pair</text>
+<text x="414" y="896" class="st" fill="#8a5a1a">NOT MEASURED FOR WINNING. It is fitted to</text>
+<text x="414" y="908" class="st" fill="#8a5a1a">predict which PAIR a human CLICKED, and its</text>
+<text x="414" y="920" class="st" fill="#8a5a1a">own artifact's caveat says what that is not:<tspan x="414" dy="10" class="src">"Not evidence that the pair wins more games." — data/policy-weights-joint.json</tspan></text>
 
-<rect class="box" x="690" y="664" width="220" height="104" fill="#e8e8ec"/>
-<text x="704" y="688" class="t">THE PC (retired)</text>
-<text x="704" y="706" class="io">JOLTEON — win% from sheets:</text>
-<text x="704" y="719" class="io">no better than a coin</text>
-<text x="704" y="732" class="io">PORYGON — same, mid-game</text>
-<text x="704" y="752" class="st" fill="#667">next: a value net trained</text>
-<text x="704" y="763" class="st" fill="#667">on practice games (planned)</text>
+<rect class="box" x="780" y="808" width="340" height="136" fill="#dff5e6"/>
+<text x="794" y="832" class="t">DITTO — tunes teams</text>
+<text x="794" y="850" class="io">in: the meta + a starting team</text>
+<text x="794" y="863" class="io">out: a tuned team</text>
+<text x="794" y="883" class="st" fill="#1f7a3c">MEDICHAM replays every option</text>
+<text x="794" y="895" class="st" fill="#1f7a3c">so it can't cheat its own</text>
+<text x="794" y="907" class="st" fill="#1f7a3c">scoring</text>
 
-<rect class="box" x="940" y="664" width="200" height="104" fill="#fff2dc"/>
-<text x="954" y="688" class="t">KADABRA</text>
-<text x="954" y="706" class="io">was: replay coach —</text>
-<text x="954" y="719" class="io">win% each key turn</text>
-<text x="954" y="739" class="st" fill="#8a5a1a">ROLE OPEN — your call:</text>
-<text x="954" y="751" class="st" fill="#8a5a1a">"can be (2026-07-29)</text>
-<text x="954" y="763" class="st" fill="#8a5a1a">something else"</text>
+<!-- THE PORY FAMILY, SPLIT. This box said "PORYGON — same, mid-game" under a RETIRED heading, which
+     merged two different models into one wrong status. PORY is retracted (it ties a two-feature
+     baseline exactly, three corpora). PORYGON2 is a DIFFERENT model, built and never retracted —
+     its problem is that no number it publishes has an interval, and no live decision calls it.
+     Filing a built-but-unmeasured model under "retired" is how it stayed unmeasured. -->
+<rect class="box" x="20" y="968" width="525" height="112" fill="#e8e8ec"/>
+<text x="34" y="992" class="t">THE PC — value nets</text>
+<text x="34" y="1010" class="io">PORY / JOLTEON: retracted — they tie a two-feature baseline</text>
+<text x="34" y="1023" class="io">PORYGON2: BUILT, no CI on any figure, never called by a live decision</text>
+<text x="34" y="1044" class="st" fill="#667">at 6-turn games a leaf matters less than who plays the 6 turns</text>
+<text x="34" y="1058" class="st" fill="#667">the shelf, not the graveyard — each has its own ledger entry</text>
 
-<path class="fl" d="M290,584 L290,664"/>
-<path class="fl" d="M1012,384 C1012,420 1090,430 1060,464" opacity="0"/>
-<path class="fl" d="M480,584 C480,620 500,630 510,664"/>
-<path class="fl" d="M290,584 C600,620 760,630 780,664"/>
+<rect class="box" x="595" y="968" width="525" height="112" fill="#fff2dc"/>
+<text x="609" y="992" class="t">KADABRA</text>
+<text x="609" y="1010" class="io">was: replay coach — win% each key turn</text>
+<text x="609" y="1023" class="io">walks you to the turns that decided the game</text>
+<text x="609" y="1044" class="st" fill="#8a5a1a">ROLE OPEN — your call: "can be something else" (2026-07-29)</text>
 
-<!-- ================= BAND 5: THE CAPSTONE ================= -->
-<text x="20" y="850" class="band">THE CAPSTONE</text>
-<rect class="box" x="20" y="864" width="1120" height="150" fill="#f1e8fc"/>
-<text x="34" y="890" class="t" fill="#4a2482">ALAKAZAM — plans ahead instead of reacting (in development)</text>
-<text x="34" y="912" class="io">in: the honest engine and its prices (built) · the re-tuned weights (done) · a value net (planned)</text>
-<text x="34" y="926" class="io">in: what it believes about you — on open sheets that is just your bench and your exact stat spread</text>
-<text x="34" y="940" class="io">out: the best move AND your real chance of winning — thinking several turns ahead</text>
-<text x="34" y="962" class="st" fill="#4a2482">shipping now under its name: FUTURE SIGHT (the forecast) and the Battle Tower boss</text>
-<text x="34" y="984" class="st" fill="#8a5a1a">build order: engine ✔ → re-tune ✔ → switching (unproven) → value net → belief → search</text>
+<path class="fl" d="M200,588 L200,808"/>
+<path class="fl" d="M420,588 L420,752 L580,752 L580,808"/>
+<path class="fl" d="M300,588 L300,770 L900,770 L900,808"/>
+<path class="fl" d="M240,588 L240,780 L390,780 L390,968"/>
 
-<path class="flp" d="M200,768 L200,864"/>
-<path class="flp" d="M535,768 C535,800 420,820 400,864"/>
-<path class="flp" d="M800,768 L800,864"/>
-<path class="flp" d="M1012,552 C1012,600 1000,780 990,864"/>
-<path class="flp" d="M728,552 C728,600 700,780 690,864"/>
+<!-- ================= BAND 5: MAKING MAG BETTER =================
+     ADDED 2026-08-06. MACHAMP and WOBBUFFET are a matched pair — one promotes a champion by
+     WINNING, the other searches for that champion's leak — and neither was on this map. They are
+     not deciders: nothing in a battle calls them. They are what would make the decider better, and
+     the honest thing the map now shows is that BOTH ARE CURRENTLY UNMEASURED. -->
+<text x="20" y="1122" class="band">MAKING MAG BETTER — nothing here plays a turn; both change the player</text>
 
-<!-- ================= BAND 6: WHAT A HUMAN TOUCHES ================= -->
-<text x="20" y="1080" class="band">WHAT A HUMAN TOUCHES</text>
-<rect class="box" x="20" y="1094" width="360" height="86" fill="#dff5e6"/>
-<text x="34" y="1118" class="t">THE BATTLE TOWER</text>
-<text x="34" y="1136" class="io">ABRA half asleep → KADABRA awake → ALAKAZAM.</text>
-<text x="34" y="1149" class="io">The boss tells you what it expects you to do</text>
-<text x="34" y="1168" class="st" fill="#1f7a3c">live — your games stay yours</text>
+<rect class="box" x="20" y="1160" width="525" height="134" fill="#fff2dc"/>
+<text x="34" y="1184" class="t">MACHAMP — promote a champion by WINNING</text>
+<text x="34" y="1203" class="io">in: MAG's own weights · out: a vector that beat the last champion</text>
+<text x="34" y="1216" class="io">every other model here is fitted to predict a human CLICK; this one is not</text>
+<text x="34" y="1236" class="st" fill="#8a5a1a">HALF-RUN AND NO VERDICT: the run on disk stopped after 2 of the 8</text>
+<text x="34" y="1248" class="st" fill="#8a5a1a">generations it asked for, on a 48-feature vector<tspan x="34" dy="10" class="src">generations / gensRequested / features in data/ladder.json</tspan></text>
+<text x="34" y="1276" class="st" fill="#9a2b2b">its champion vector was DELETED — 48 features against MAG's 58<tspan x="34" dy="10" class="src">features in data/policy-weights.json · docs/MODELS.md calls it the largest untested lever here</tspan></text>
 
-<rect class="box" x="410" y="1094" width="360" height="86" fill="#dff5e6"/>
-<text x="424" y="1118" class="t">CHOMP + ORB (installable)</text>
-<text x="424" y="1136" class="io">in: your live battle + open sheets</text>
-<text x="424" y="1149" class="io">out: who to bring + a damage calc</text>
-<text x="424" y="1168" class="st" fill="#8a5a1a">damage checked; bring advice ties a coin</text>
+<!-- WOBBUFFET'S HEADLINE IS NOT ON THIS PAGE, DELIBERATELY. data/exploitability.json carries
+     void:true and a void_reason naming what moved under the measurement; docs/MEASURE.md and
+     docs/SEARCH.md R8 record the figure as retracted. Rendering it struck through would still put
+     it on a decision map, so the box renders the ABSENCE, which is the finding. -->
+<rect class="box" x="595" y="1160" width="525" height="134" fill="#fde4e0"/>
+<text x="609" y="1184" class="t">WOBBUFFET — searches for MAG's leak</text>
+<text x="609" y="1203" class="io">in: MAG's own weights · out: how badly a prepared counter beats it</text>
+<text x="609" y="1216" class="io">the only measurement here that grades READABILITY, not average win rate</text>
+<text x="609" y="1236" class="st" fill="#9a2b2b">THERE IS NO EXPLOITABILITY NUMBER. The artifact on disk declares</text>
+<text x="609" y="1248" class="st" fill="#9a2b2b">ITSELF void — the defender was refitted mid-search<tspan x="609" dy="10" class="src">void and void_reason in data/exploitability.json</tspan></text>
+<text x="609" y="1276" class="st" fill="#9a2b2b">the old headline is retracted and is not shown here<tspan x="609" dy="10" class="src">docs/MODELS.md · docs/SEARCH.md R8 has the timeline</tspan></text>
 
-<rect class="box" x="800" y="1094" width="340" height="86" fill="#dff5e6"/>
-<text x="814" y="1118" class="t">ABRA WORLD (the site)</text>
-<text x="814" y="1136" class="io">a page per model: what it does,</text>
-<text x="814" y="1149" class="io">what it proved, what it didn't</text>
-<text x="814" y="1168" class="st" fill="#1f7a3c">the project's honest face</text>
+<!-- MAG's own weights are what both of these hill-climb, and the same trunk carries MAG into the
+     search that screens with it. One line, three arrivals. -->
+<path class="fl" d="M200,944 L200,956 L570,956 L570,1324 L200,1324 L200,1368"/>
+<path class="fl" d="M570,1140 L300,1140 L300,1160"/>
+<path class="fl" d="M570,1140 L860,1140 L860,1160"/>
 
-<path class="fl" d="M200,1014 L200,1094"/>
-<path class="fl" d="M580,1014 L580,1094"/>
-<path class="fl" d="M970,1014 L970,1094"/>
+<!-- ================= BAND 6: THE SEARCH =================
+     ADDED 2026-08-06. MILTANK IS THE SHIPPING SEARCH PLAYER AND WAS NOT ON THIS MAP AT ALL — the
+     DECIDERS band showed MAG, DITTO, the retired value nets and KADABRA, and then jumped straight to
+     ALAKAZAM. A map that omits the thing choosing the moves is not a map of the models.
+     GARY is named here for the first time (Will, 2026-08-06). It had no name, which is part of why
+     nobody noticed it defaults to a coin. -->
+<text x="20" y="1354" class="band">THE SEARCH — what actually picks the move in a battle</text>
 
-<text x="20" y="1235" class="lbl">Rules the map obeys: derived, never typed (S13) · clean data only (Garbodor) · measured, not asserted · Will's games quarantined · one engine, no copies.</text>
-<text x="20" y="1252" class="lbl">Drawn 2026-07-29, wording simplified 2026-07-30, figures re-sourced against their artifacts 2026-08-04. The re-tune is now confirmed; switching and the post-KO switch both measured as coins.</text>
+<rect class="box" x="20" y="1368" width="360" height="150" fill="#fff2dc"/>
+<text x="34" y="1392" class="t">MILTANK — the search</text>
+<text x="34" y="1410" class="io">in: the candidate pairs + MEDICHAM</text>
+<text x="34" y="1423" class="io">out: which PAIR of moves to click</text>
+<!-- EVERY FIGURE ON ITS OWN CITATION'S LINE. The first draft of this box put "51.0% ... CI 48.3-53.7"
+     on one <text> and "from data/winrate-backtest.json" on the NEXT one — which is precisely the
+     mistake the .src comment above warns about, and web/figure-audit.js scored it as three
+     uncited figures. A citation one line below a number traces nothing. -->
+<text x="34" y="1436" class="io">how: imagines ~200 games per option <tspan class="src">ROLLOUT_N, engine/miltank.js</tspan></text>
+<text x="34" y="1456" class="st" fill="#9a2b2b">its in-game judge names the winner on</text>
+<text x="34" y="1470" class="st" fill="#9a2b2b">51.0% of decisive calls, CI 48.3–53.7 <tspan x="34" dy="11" class="src">from data/winrate-backtest.json</tspan></text>
+<text x="34" y="1497" class="st" fill="#9a2b2b">— the interval contains a coin</text>
+<text x="34" y="1509" class="st" fill="#8a5a1a">it screens options with that same judge</text>
+
+<rect class="box" x="410" y="1368" width="330" height="150" fill="#fde4e0"/>
+<text x="424" y="1392" class="t">GARY — the imagined foe</text>
+<text x="424" y="1410" class="io">in: what each species really clicks</text>
+<text x="424" y="1423" class="io">out: the foe's move, every imagined turn</text>
+<text x="424" y="1443" class="st" fill="#9a2b2b">BUILT AND SWITCHED OFF. The default</text>
+<text x="424" y="1455" class="st" fill="#9a2b2b">'uniform' rolls a 4-sided dice. 'prior'</text>
+<!-- FILE:LINE REFERENCES READ AS FIGURES. "miltank.js:455" scored as an untraced figure 455 —
+     the audit's ID_WORD exclusion covers "WIRE 117" and "LESSON 2", not a source line number.
+     Name the files; the line numbers live in docs/SEARCH.md R11 where prose can carry them. -->
+<text x="424" y="1467" class="st" fill="#9a2b2b">exists, reads real clicks, is not on<tspan x="424" dy="11" class="src">defaults in engine/mag_bot.js + engine/miltank.js</tspan></text>
+<text x="424" y="1495" class="st" fill="#9a2b2b">Its TARGET is random in both modes</text>
+<text x="424" y="1507" class="st" fill="#9a2b2b">No artifact records which one ran</text>
+
+<rect class="box" x="780" y="1368" width="340" height="150" fill="#f1e8fc"/>
+<text x="794" y="1392" class="t" fill="#4a2482">DUSK — endgame tablebase</text>
+<text x="794" y="1410" class="io">in: 1v1 positions solved once, offline</text>
+<text x="794" y="1423" class="io">out: the exact answer, looked up</text>
+<text x="794" y="1436" class="io">not searched — Syzygy for VGC</text>
+<text x="794" y="1456" class="st" fill="#4a2482">OPEN SHEETS MAKE IT EXACT: at 1v1</text>
+<text x="794" y="1468" class="st" fill="#4a2482">nothing is hidden but their next click</text>
+<text x="794" y="1486" class="st" fill="#4a2482">also the only route that lets the Python</text>
+<text x="794" y="1498" class="st" fill="#4a2482">Nash solver reach the JavaScript bot</text>
+<text x="794" y="1510" class="st" fill="#8a5a1a">planned — table SIZE not yet measured</text>
+
+<!-- the search calls the imagined foe on every imagined turn; that is the edge, and it is the one
+     that is currently a coin. (This replaces an arrow that started inside DITTO's old column and
+     pointed at GARY, which asserted an input DITTO does not provide.) -->
+<path class="fl" d="M382,1442 L406,1442"/>
+<!-- the behaviour priors feed GARY directly, and this is the edge that is currently unplugged -->
+<path class="fl" d="M435,384 L435,396 L1132,396 L1132,1332 L600,1332 L600,1368" stroke-dasharray="7 5" opacity="0.55"/>
+<text x="620" y="1322" class="lbl" opacity="0.8">priors → GARY (wired, off)</text>
+
+<!-- THE LANGUAGE BOUNDARY. Not decoration: it is why the verified equilibrium solver cannot play. -->
+<rect x="20" y="1534" width="1120" height="34" rx="8" fill="#f7f4ff" stroke="#7b3fd4" stroke-width="2" stroke-dasharray="8 5"/>
+<!-- NO FILE COUNTS HERE. The first draft read "127 JavaScript files ... 40 Python files", which is a
+     figure with no artifact behind it AND one that changes every time somebody adds a file — the
+     same shape as the "3k good games" drift this page already had to fix once. The BOUNDARY is the
+     fact; the census of it is not. Counts live in docs/ROADMAP.md §4.4 where prose can date them. -->
+<text x="34" y="1556" class="st" fill="#4a2482">THE LANGUAGE BOUNDARY — everything that can PLAY a battle is JavaScript, because Showdown is; everything that does the MATH is Python, because numpy is. SLOWKING's Nash solver is verified, and on the wrong side of this line. DUSK is the bridge across it.</text>
+
+<!-- ================= BAND 7: THE CAPSTONE ================= -->
+<text x="20" y="1609" class="band">THE CAPSTONE</text>
+<rect class="box" x="20" y="1623" width="1120" height="150" fill="#f1e8fc"/>
+<text x="34" y="1649" class="t" fill="#4a2482">ALAKAZAM — plans ahead instead of reacting (in development)</text>
+<text x="34" y="1671" class="io">in: the honest engine and its prices (built) · the re-tuned weights (done) · a value net (planned)</text>
+<text x="34" y="1685" class="io">in: what it believes about you — on open sheets that is just your bench and your exact stat spread</text>
+<text x="34" y="1699" class="io">out: the best move AND your real chance of winning — thinking several turns ahead</text>
+<text x="34" y="1721" class="st" fill="#4a2482">shipping now under its name: FUTURE SIGHT (the forecast) and the Battle Tower boss</text>
+<!-- BUILD ORDER REVISED 2026-08-06. It read "... → value net → belief → search", which puts the
+     value net first. At a MEDIAN GAME OF 6 TURNS a rollout REACHES THE END, so there is no position
+     left to approximate — the leaf is the least of it and the six turns leading to it are played by
+     a coin. docs/POKER-TO-POKEMON.md §4b said the same thing before this map did: the binding
+     constraint is BREADTH, not depth. GARY and the pruning move ahead of the value net. -->
+<text x="34" y="1743" class="st" fill="#8a5a1a">build order: engine ✔ → re-tune ✔ → GARY off the coin → prune with MAG not the coin → belief → equilibrium <tspan class="src">order revised — docs/POKER-TO-POKEMON.md §4b</tspan></text>
+
+<path class="flp" d="M200,1518 L200,1623"/>
+<path class="flp" d="M570,1518 L570,1623"/>
+<path class="flp" d="M950,1518 L950,1623"/>
+<!-- ONE RAIL, TWO FEEDERS. XATU and SLOWKING both arrive at the capstone and neither passes through
+     the search on the way, so they share a rail down the right margin and only the rail carries the
+     arrowhead. Two heads for one arrival would read as two separate edges. -->
+<path class="flpx" d="M600,728 L600,742 L1150,742"/>
+<path class="flpx" d="M950,728 L950,758 L1150,758"/>
+<path class="flp" d="M1150,742 L1150,1592 L1080,1592 L1080,1623"/>
+
+<!-- ================= BAND 8: WHAT A HUMAN TOUCHES ================= -->
+<text x="20" y="1839" class="band">WHAT A HUMAN TOUCHES</text>
+<rect class="box" x="20" y="1853" width="360" height="86" fill="#dff5e6"/>
+<text x="34" y="1877" class="t">THE BATTLE TOWER</text>
+<text x="34" y="1895" class="io">ABRA half asleep → KADABRA awake → ALAKAZAM.</text>
+<text x="34" y="1908" class="io">The boss tells you what it expects you to do</text>
+<text x="34" y="1927" class="st" fill="#1f7a3c">live — your games stay yours</text>
+
+<rect class="box" x="410" y="1853" width="360" height="86" fill="#dff5e6"/>
+<text x="424" y="1877" class="t">CHOMP + ORB (installable)</text>
+<text x="424" y="1895" class="io">in: your live battle + open sheets</text>
+<text x="424" y="1908" class="io">out: who to bring + a damage calc</text>
+<text x="424" y="1927" class="st" fill="#8a5a1a">damage checked; bring advice ties a coin</text>
+
+<rect class="box" x="800" y="1853" width="340" height="86" fill="#dff5e6"/>
+<text x="814" y="1877" class="t">ABRA WORLD (the site)</text>
+<text x="814" y="1895" class="io">a page per model: what it does,</text>
+<text x="814" y="1908" class="io">what it proved, what it didn't</text>
+<text x="814" y="1927" class="st" fill="#1f7a3c">the project's honest face</text>
+
+<path class="fl" d="M200,1773 L200,1853"/>
+<path class="fl" d="M580,1773 L580,1853"/>
+<path class="fl" d="M970,1773 L970,1853"/>
+
+<text x="20" y="1994" class="lbl">Rules the map obeys: derived, never typed (S13) · clean data only (Garbodor) · measured, not asserted · Will's games quarantined · one engine, no copies.</text>
+<text x="20" y="2011" class="lbl">Drawn 2026-07-29, wording simplified 2026-07-30, figures re-sourced 2026-08-04. 2026-08-06: THE SEARCH band added, then CHAMPIONS_SIM, GURU, DODUO, MACHAMP and WOBBUFFET — and a guard so the map cannot drift from docs/MODELS.md again.</text>
 </svg>
+</div>
+<!-- WHAT THE PICTURE LEAVES OUT, SAID OUT LOUD.
+     tests/test-model-map.js asserts that every name declared absent in its DECLARED table appears
+     HERE, in visible page text. A declaration only the test can read is an exemption, not a
+     judgement — and the omission this whole pass exists to fix survived because nothing on screen
+     showed a gap where a model should have been. This note is outside the <svg> on purpose: the
+     guard looks for a model INSIDE the map, so a name listed here cannot satisfy the check it is
+     the exception to. -->
+<div id="notonmap" class="omit">
+  <b>NOT ON THIS MAP, and that is a decision rather than an oversight.</b>
+  ROLES, WAR, NMF, COUNTERPLAY, COUNTERS, CORES, DYNAMICS, MEGA DEX, ILLUSION, SPECIES SETS,
+  BRING PRIORS and SMOGON PRIORS each have their own entry in <b>docs/MODELS.md</b> and none of them
+  has a box here. They are censuses, reports, data repairs and outside sources — they describe the
+  format, or fix the dex, and in every case the thing that <i>acts</i> on them is already drawn.
+  Each one is declared by name with its reason in <b>tests/test-model-map.js</b>, which fails if a
+  model is added to the ledger and left off this picture, and fails just as hard if one of these is
+  quietly dropped from the ledger instead. The full ledger is the place to read them.
 </div>
 <!-- Bundled artifacts, loaded as globals with <script src> rather than fetch(), because this page
      is opened from file:// and a local fetch() is blocked there and fails silently (docs/WEB.md). -->
@@ -302,6 +488,16 @@ svg{width:100%;height:auto;display:block}
     var live = E.live && E.live.v, probed = E.probed && E.probed.v, miss = E.missing_n && E.missing_n.v;
     if (typeof live !== 'number' || typeof probed !== 'number' || typeof miss !== 'number') return;
     el.textContent = live + ' of ' + probed + ' mechanics probes live — ' + miss + ' declared and not firing';
+  })();
+  /* The two-engine agreement, on the same terms and for the same reason. BOTH counts or NEITHER:
+     "agrees on 1,624 pairs" with no denominator is a bigger claim than the artifact makes, and the
+     percentage is not computed here — see the comment beside the box. */
+  (function(){
+    var E = window.ABRA_BOARD && window.ABRA_BOARD.engine, el = document.getElementById('mMatrix');
+    if (!el || !E) return;
+    var ag = E.matrix_agree && E.matrix_agree.v, lv = E.matrix_live && E.matrix_live.v;
+    if (typeof ag !== 'number' || typeof lv !== 'number') return;
+    el.textContent = 'medicham2 agrees on ' + ag.toLocaleString() + ' of ' + lv.toLocaleString() + ' live pairs';
   })();
   put('nTeams',  window.ABRA_META && window.ABRA_META.sampledTeams);
   /* UNIQUE tags, not rows. data/tags.json carries 184 rows over 176 distinct tag names, and
