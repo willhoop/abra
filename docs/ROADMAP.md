@@ -826,6 +826,14 @@ usage** — plus a carve-out for anything that turns a certainty into a failure 
 | #21 | AXIS 4 — DENIAL: a move that costs a turn also denies a field effect | — |
 | #28 | resist berries: the one staged pair is physically impossible | — |
 | #7 | Coverage Layer 2 — the mutation harness | — |
+| #59 | **the protection counter has three behaviours and our tags carry two.** Protect *checks* the shared 1/X counter; Wide Guard *feeds it and never checks*; Ally Switch has its own private one and carries neither tag. **The engine implements none of it** — `grep allyswitch` and `grep stalling` both come back empty | — |
+| #60 | **Upper Hand and Sucker Punch share a tag and have different conditions** — Sucker Punch needs the target attacking, Upper Hand needs it attacking *with priority*. Modelled the broad way, the bot thinks Upper Hand beats an ordinary Earthquake | — |
+
+**Both came from Will reading the rules, not from any instrument**, and both are the same shape: a
+tag derived from Showdown's flags is only as complete as the flag. Ally Switch's stalling lives in
+`onPrepareHit` with no flag on it, so the deriver never saw it. **Showdown does not have tags — it
+has code**, and every mechanic here is a re-implementation of a handler, which is the entire reason
+`engine/tag_dex.js`, the differential test and the arming work all exist.
 
 ### 5.2 GARY — the opponent inside the search, named 2026-08-06
 
