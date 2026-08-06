@@ -1,0 +1,1616 @@
+{
+  "generated": "2026-08-06 23:17:20",
+  "derivedFrom": {
+    "showdown": "C:/Users/willj/Projects/Pokemon/pokemon-showdown",
+    "scanned": [
+      "sim/battle.ts",
+      "sim/battle-actions.ts",
+      "sim/pokemon.ts",
+      "sim/side.ts",
+      "sim/field.ts",
+      "sim/battle-queue.ts",
+      "data/moves.ts",
+      "data/abilities.ts",
+      "data/items.ts",
+      "data/conditions.ts",
+      "data/scripts.ts",
+      "data/mods/champions/moves.ts",
+      "data/mods/champions/abilities.ts",
+      "data/mods/champions/items.ts",
+      "data/mods/champions/conditions.ts",
+      "data/mods/champions/scripts.ts",
+      "sim/SIM-PROTOCOL.md"
+    ],
+    "note": "the champions mod OVERRIDES two of the core emits (-supereffective, -resisted); its arity wins."
+  },
+  "showdownEvents": 91,
+  "emitted": [
+    "-ability",
+    "-activate",
+    "-boost",
+    "-clearallboost",
+    "-clearnegativeboost",
+    "-crit",
+    "-curestatus",
+    "-damage",
+    "-end",
+    "-enditem",
+    "-fail",
+    "-fieldactivate",
+    "-fieldend",
+    "-fieldstart",
+    "-heal",
+    "-immune",
+    "-item",
+    "-miss",
+    "-mustrecharge",
+    "-prepare",
+    "-resisted",
+    "-sideend",
+    "-sidestart",
+    "-singleturn",
+    "-start",
+    "-status",
+    "-supereffective",
+    "-unboost",
+    "-weather",
+    "cant",
+    "drag",
+    "faint",
+    "move",
+    "switch",
+    "turn",
+    "upkeep"
+  ],
+  "notEmitted": [
+    {
+      "event": "-anim",
+      "reason": "animation only; carries no rule."
+    },
+    {
+      "event": "-block",
+      "reason": "the blockers this engine models announce themselves as `-immune` or `-activate`; nothing in it reaches Showdown's `-block` path (Aroma Veil, Dynamax, Crafty Shield)."
+    },
+    {
+      "event": "-burst",
+      "reason": "Ultra Burst does not exist in this format."
+    },
+    {
+      "event": "-candynamax",
+      "reason": "Dynamax does not exist in this format."
+    },
+    {
+      "event": "-center",
+      "reason": "no triples."
+    },
+    {
+      "event": "-clearboost",
+      "reason": "Clear Smog and Haze are the two carriers; Haze wipes BOTH sides and emits `-clearallboost`, which this engine does emit. Clear Smog is not in this engine's move set as a boost-wiper — it resolves as an ordinary attack — so emitting a per-body clear would claim a mechanic that is not wired."
+    },
+    {
+      "event": "-clearpositiveboost",
+      "reason": "Spectral Thief is not modelled."
+    },
+    {
+      "event": "-combine",
+      "reason": "no combined moves."
+    },
+    {
+      "event": "-copyboost",
+      "reason": "Psych Up is not modelled."
+    },
+    {
+      "event": "-cureteam",
+      "reason": "Heal Bell / Aromatherapy are not modelled."
+    },
+    {
+      "event": "-endability",
+      "reason": "ability SUPPRESSION (Gastro Acid, Neutralizing Gas) is not modelled; Mummy and Wandering Spirit REWRITE the ability and emit `-ability` instead, which is what Showdown does."
+    },
+    {
+      "event": "-fieldactivate",
+      "reason": "EMITTED for Perish Song only — see partial[]."
+    },
+    {
+      "event": "-fieldstart",
+      "reason": "EMITTED — see emitted[]."
+    },
+    {
+      "event": "-formechange",
+      "reason": "as `detailschange`."
+    },
+    {
+      "event": "-hint",
+      "reason": "client hint text; carries no rule."
+    },
+    {
+      "event": "-hitcount",
+      "reason": "multi-hit damage is ONE packet in this engine (WIRE 20, declared). The reaction COUNT is right (WIRE 84) and the hit count is not, so emitting one would be an invented number."
+    },
+    {
+      "event": "-invertboost",
+      "reason": "Topsy-Turvy is not modelled."
+    },
+    {
+      "event": "-mega",
+      "reason": "mega evolution happens in buildMon/oneMegaPerSide BEFORE battleInit, so there is no in-battle event to emit. That is a real modelling limit (docs/ENGINE.md) and it is why `|detailschange|` is absent too."
+    },
+    {
+      "event": "-message",
+      "reason": "flavour text; carries no rule."
+    },
+    {
+      "event": "-notarget",
+      "reason": "gen 5+ emits `-fail` instead (sim/battle-actions.ts:456), which this engine does emit."
+    },
+    {
+      "event": "-nothing",
+      "reason": "removed from the protocol in gen 5."
+    },
+    {
+      "event": "-ohko",
+      "reason": "no OHKO move is in this format."
+    },
+    {
+      "event": "-primal",
+      "reason": "Primal Reversion does not exist in this format."
+    },
+    {
+      "event": "-setboost",
+      "reason": "no move in this engine SETS a stage; Belly Drum adds +12 half-stages through statChangeInCode and is emitted as `-boost`, which is what Showdown's gen-9 bellydrum does too."
+    },
+    {
+      "event": "-sethp",
+      "reason": "Pain Split is not modelled."
+    },
+    {
+      "event": "-singlemove",
+      "reason": "Destiny Bond / Grudge are not modelled."
+    },
+    {
+      "event": "-swapboost",
+      "reason": "Heart Swap / Power Swap are not modelled."
+    },
+    {
+      "event": "-swapsideconditions",
+      "reason": "Court Change is not modelled."
+    },
+    {
+      "event": "-terastallize",
+      "reason": "Terastal is not in Champions Reg M-B and this engine has no tera state."
+    },
+    {
+      "event": "-transform",
+      "reason": "Imposter/Transform is not modelled; `formeChange` carriers are listed unconsumed."
+    },
+    {
+      "event": "-waiting",
+      "reason": "no move that waits on a partner is modelled."
+    },
+    {
+      "event": "-zbroken",
+      "reason": "Z-moves do not exist in this format."
+    },
+    {
+      "event": "-zpower",
+      "reason": "Z-moves do not exist in this format."
+    },
+    {
+      "event": "bigerror",
+      "reason": "server-side error channel."
+    },
+    {
+      "event": "clearpoke",
+      "reason": "no team preview."
+    },
+    {
+      "event": "debug",
+      "reason": "no debug channel."
+    },
+    {
+      "event": "detailschange",
+      "reason": "no in-battle forme change is modelled except Zero to Hero, which rewrites the body silently in bringIn(); emitting a details line there would claim a capability the rest of the engine does not have."
+    },
+    {
+      "event": "error",
+      "reason": "failures are counted in MEDFAILS, not logged."
+    },
+    {
+      "event": "gametype",
+      "reason": "always doubles; the constant is not a decision this engine makes."
+    },
+    {
+      "event": "gen",
+      "reason": "not modelled — there is one generation."
+    },
+    {
+      "event": "inactive",
+      "reason": "no timer."
+    },
+    {
+      "event": "message",
+      "reason": "no chat."
+    },
+    {
+      "event": "player",
+      "reason": "no players. medicham2 is handed two teams of built bodies and knows no user, avatar or rating."
+    },
+    {
+      "event": "poke",
+      "reason": "no team preview."
+    },
+    {
+      "event": "rated",
+      "reason": "no ladder."
+    },
+    {
+      "event": "replace",
+      "reason": "Illusion is not modelled (ROADMAP #67), so nothing is ever revealed."
+    },
+    {
+      "event": "request",
+      "reason": "no choice request loop — the caller hands actions in."
+    },
+    {
+      "event": "rule",
+      "reason": "no rulesets; legality is the caller's problem."
+    },
+    {
+      "event": "showteam",
+      "reason": "open team sheets are an INPUT to this engine (buildMonFromSet), never an output."
+    },
+    {
+      "event": "start",
+      "reason": "battleInit IS the start; there is no separate protocol frame for it."
+    },
+    {
+      "event": "swap",
+      "reason": "Ally Switch is not modelled."
+    },
+    {
+      "event": "t",
+      "reason": "no wall clock."
+    },
+    {
+      "event": "teampreview",
+      "reason": "no team preview."
+    },
+    {
+      "event": "teamsize",
+      "reason": "no team preview. battleInit is handed the four that are already on the field plus a bench."
+    },
+    {
+      "event": "tie",
+      "reason": "as `win`."
+    },
+    {
+      "event": "tier",
+      "reason": "the format id lives in data/regulations.json, not in the simulator."
+    },
+    {
+      "event": "upkeep",
+      "reason": "EMITTED — see emitted[]."
+    },
+    {
+      "event": "win",
+      "reason": "battleResult() returns 1/0/0.5 and no side has a NAME to print."
+    }
+  ],
+  "partial": [
+    {
+      "event": "*",
+      "reason": "IDENTIFIERS AND NAMES ARE IDS, NOT DISPLAY NAMES. `p1a: incineroar` for `p1a: Incineroar`, `fakeout` for `Fake Out`, `sunnyday` for `SunnyDay`. medicham2 has no display-name table and inventing one would be a translation layer that can itself be wrong. `M.traceCanon(line)` is the ONE normaliser and the comparison driver applies it to BOTH streams."
+    },
+    {
+      "event": "switch",
+      "reason": "DETAILS carries species and level only (`incineroar, L50`). This engine tracks no gender and no shininess, and Level 50 is a constant of the format rather than a field."
+    },
+    {
+      "event": "-supereffective",
+      "reason": "the third argument is this FORMAT's (data/mods/champions/scripts.ts:271, `Math.min(typeMod, 2)`), derived here from the multiplier rather than from a stored typeMod."
+    },
+    {
+      "event": "-resisted",
+      "reason": "as `-supereffective`."
+    },
+    {
+      "event": "-sidestart",
+      "reason": "SIDE is emitted as `p1: ` — the id with an empty player name, because this engine has no players. traceCanon reduces Showdown's `p1: A` to `p1:a` and this to `p1:`; a driver comparing the side field must compare the id, which is the part that carries the rule."
+    },
+    {
+      "event": "-sideend",
+      "reason": "as `-sidestart`, and additionally: this engine keeps TWO screen counters keyed by damage category where Showdown keeps three named side conditions, so an Aurora Veil ends as both `Reflect` and `Light Screen`. A representation limit already recorded in docs/ENGINE.md."
+    },
+    {
+      "event": "-damage",
+      "reason": "ORDER WITHIN A HIT DIFFERS. medicham2 resolves the knock-off, the resist berry and the contact punish BEFORE subtracting the target's HP, so `-enditem` and the Rough Skin `-damage` precede the target's `-damage`; Showdown subtracts first. No state differs at end of turn, which is exactly why tests/test-game-diff.js cannot see it and this trace can."
+    },
+    {
+      "event": "-heal",
+      "reason": "the pinch berries (Sitrus) fire in the END-OF-TURN residual here and on the `onUpdate` immediately after the hit in Showdown. Same turn, different position in the stream."
+    },
+    {
+      "event": "move",
+      "reason": "a SPREAD move emits no `[spread] ...` attribute: the target list is resolved after the move line is written, and this engine rolls accuracy ONCE for a spread move rather than per target (MEDSEEN.accSpreadNoDefender), so a per-target attribute would not be true anyway."
+    },
+    {
+      "event": "-crit",
+      "reason": "a spread move's per-target effectiveness and crit lines INTERLEAVE with its damage lines here; Showdown batches all of them ahead of the damages (trySpreadMoveHit)."
+    }
+  ],
+  "events": [
+    {
+      "name": "-ability",
+      "sites": 37,
+      "arities": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "where": [
+        "sim:battle.ts",
+        "sim:battle-actions.ts",
+        "sim:pokemon.ts",
+        "sim:field.ts",
+        "data:abilities.ts",
+        "data:items.ts",
+        "mod:scripts.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": true,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-activate",
+      "sites": 136,
+      "arities": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "where": [
+        "sim:battle.ts",
+        "sim:battle-actions.ts",
+        "sim:pokemon.ts",
+        "data:moves.ts",
+        "data:abilities.ts",
+        "data:items.ts",
+        "data:conditions.ts",
+        "mod:abilities.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": true,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-anim",
+      "sites": 7,
+      "arities": [
+        4
+      ],
+      "where": [
+        "sim:battle-actions.ts",
+        "data:moves.ts",
+        "data:items.ts",
+        "mod:scripts.ts"
+      ],
+      "champions": true,
+      "medicham": "declared"
+    },
+    {
+      "name": "-block",
+      "sites": 12,
+      "arities": [
+        3,
+        4
+      ],
+      "where": [
+        "data:moves.ts",
+        "data:abilities.ts",
+        "data:items.ts",
+        "data:conditions.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-boost",
+      "sites": 0,
+      "arities": [],
+      "where": [
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-burst",
+      "sites": 2,
+      "arities": [
+        4
+      ],
+      "where": [
+        "sim:pokemon.ts",
+        "mod:scripts.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": true,
+      "medicham": "declared"
+    },
+    {
+      "name": "-candynamax",
+      "sites": 1,
+      "arities": [
+        2
+      ],
+      "where": [
+        "sim:battle.ts"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-center",
+      "sites": 1,
+      "arities": [
+        1
+      ],
+      "where": [
+        "sim:battle.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-clearallboost",
+      "sites": 2,
+      "arities": [
+        1
+      ],
+      "where": [
+        "data:moves.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-clearboost",
+      "sites": 2,
+      "arities": [
+        2,
+        4
+      ],
+      "where": [
+        "data:moves.ts",
+        "data:abilities.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-clearnegativeboost",
+      "sites": 3,
+      "arities": [
+        3
+      ],
+      "where": [
+        "sim:battle-actions.ts",
+        "data:items.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-clearpositiveboost",
+      "sites": 1,
+      "arities": [
+        4
+      ],
+      "where": [
+        "sim:battle-actions.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-combine",
+      "sites": 3,
+      "arities": [
+        1
+      ],
+      "where": [
+        "data:moves.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-copyboost",
+      "sites": 2,
+      "arities": [
+        4
+      ],
+      "where": [
+        "data:moves.ts",
+        "data:abilities.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-crit",
+      "sites": 2,
+      "arities": [
+        2
+      ],
+      "where": [
+        "sim:battle-actions.ts",
+        "mod:scripts.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": true,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-curestatus",
+      "sites": 4,
+      "arities": [
+        4,
+        5
+      ],
+      "where": [
+        "sim:pokemon.ts",
+        "data:abilities.ts",
+        "data:conditions.ts",
+        "mod:abilities.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": true,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-cureteam",
+      "sites": 0,
+      "arities": [],
+      "where": [
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-damage",
+      "sites": 9,
+      "arities": [
+        3,
+        4,
+        5
+      ],
+      "where": [
+        "sim:battle.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-end",
+      "sites": 58,
+      "arities": [
+        3,
+        4,
+        5
+      ],
+      "where": [
+        "sim:pokemon.ts",
+        "data:moves.ts",
+        "data:abilities.ts",
+        "data:items.ts",
+        "data:conditions.ts",
+        "mod:conditions.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": true,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-endability",
+      "sites": 1,
+      "arities": [
+        2
+      ],
+      "where": [
+        "data:moves.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-enditem",
+      "sites": 38,
+      "arities": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "where": [
+        "sim:pokemon.ts",
+        "data:moves.ts",
+        "data:abilities.ts",
+        "data:items.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-fail",
+      "sites": 73,
+      "arities": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "where": [
+        "sim:battle-actions.ts",
+        "sim:pokemon.ts",
+        "sim:field.ts",
+        "data:moves.ts",
+        "data:abilities.ts",
+        "data:items.ts",
+        "data:conditions.ts",
+        "mod:moves.ts",
+        "mod:scripts.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": true,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-fieldactivate",
+      "sites": 5,
+      "arities": [
+        2
+      ],
+      "where": [
+        "data:moves.ts",
+        "data:conditions.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-fieldend",
+      "sites": 10,
+      "arities": [
+        2,
+        3
+      ],
+      "where": [
+        "data:moves.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-fieldstart",
+      "sites": 18,
+      "arities": [
+        2,
+        3,
+        4
+      ],
+      "where": [
+        "data:moves.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-formechange",
+      "sites": 6,
+      "arities": [
+        4,
+        5
+      ],
+      "where": [
+        "sim:pokemon.ts",
+        "mod:scripts.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": true,
+      "medicham": "declared"
+    },
+    {
+      "name": "-heal",
+      "sites": 15,
+      "arities": [
+        3,
+        4,
+        5
+      ],
+      "where": [
+        "sim:battle.ts",
+        "sim:pokemon.ts",
+        "data:moves.ts",
+        "data:conditions.ts",
+        "mod:abilities.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": true,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-hint",
+      "sites": 4,
+      "arities": [
+        2
+      ],
+      "where": [
+        "sim:battle.ts",
+        "sim:battle-actions.ts",
+        "data:moves.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-hitcount",
+      "sites": 2,
+      "arities": [
+        3
+      ],
+      "where": [
+        "sim:battle-actions.ts",
+        "mod:scripts.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": true,
+      "medicham": "declared"
+    },
+    {
+      "name": "-immune",
+      "sites": 60,
+      "arities": [
+        2,
+        3,
+        4
+      ],
+      "where": [
+        "sim:battle-actions.ts",
+        "sim:pokemon.ts",
+        "data:moves.ts",
+        "data:abilities.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-invertboost",
+      "sites": 1,
+      "arities": [
+        3
+      ],
+      "where": [
+        "data:moves.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-item",
+      "sites": 15,
+      "arities": [
+        3,
+        4,
+        5
+      ],
+      "where": [
+        "data:moves.ts",
+        "data:abilities.ts",
+        "data:items.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-mega",
+      "sites": 2,
+      "arities": [
+        4
+      ],
+      "where": [
+        "sim:pokemon.ts",
+        "mod:scripts.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": true,
+      "medicham": "declared"
+    },
+    {
+      "name": "-message",
+      "sites": 14,
+      "arities": [
+        2
+      ],
+      "where": [
+        "sim:battle.ts",
+        "data:abilities.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-miss",
+      "sites": 5,
+      "arities": [
+        2,
+        3
+      ],
+      "where": [
+        "sim:battle-actions.ts",
+        "data:moves.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-mustrecharge",
+      "sites": 1,
+      "arities": [
+        2
+      ],
+      "where": [
+        "data:conditions.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-notarget",
+      "sites": 0,
+      "arities": [],
+      "where": [
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-nothing",
+      "sites": 1,
+      "arities": [
+        1
+      ],
+      "where": [
+        "data:moves.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-ohko",
+      "sites": 3,
+      "arities": [
+        1
+      ],
+      "where": [
+        "sim:battle-actions.ts",
+        "data:moves.ts",
+        "mod:scripts.ts"
+      ],
+      "champions": true,
+      "medicham": "declared"
+    },
+    {
+      "name": "-prepare",
+      "sites": 18,
+      "arities": [
+        3,
+        4
+      ],
+      "where": [
+        "data:moves.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-primal",
+      "sites": 4,
+      "arities": [
+        3
+      ],
+      "where": [
+        "sim:pokemon.ts",
+        "mod:scripts.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": true,
+      "medicham": "declared"
+    },
+    {
+      "name": "-resisted",
+      "sites": 2,
+      "arities": [
+        2,
+        3
+      ],
+      "where": [
+        "sim:battle-actions.ts",
+        "mod:scripts.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": true,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-setboost",
+      "sites": 1,
+      "arities": [
+        5
+      ],
+      "where": [
+        "sim:battle.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-sethp",
+      "sites": 2,
+      "arities": [
+        4,
+        5
+      ],
+      "where": [
+        "data:moves.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-sideend",
+      "sites": 24,
+      "arities": [
+        3,
+        4,
+        5
+      ],
+      "where": [
+        "data:moves.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-sidestart",
+      "sites": 23,
+      "arities": [
+        3,
+        4
+      ],
+      "where": [
+        "data:moves.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-singlemove",
+      "sites": 4,
+      "arities": [
+        3,
+        4
+      ],
+      "where": [
+        "data:moves.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-singleturn",
+      "sites": 28,
+      "arities": [
+        3,
+        4
+      ],
+      "where": [
+        "data:moves.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-start",
+      "sites": 85,
+      "arities": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "where": [
+        "sim:battle.ts",
+        "data:moves.ts",
+        "data:abilities.ts",
+        "data:conditions.ts",
+        "mod:moves.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": true,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-status",
+      "sites": 20,
+      "arities": [
+        3,
+        4,
+        5
+      ],
+      "where": [
+        "data:conditions.ts",
+        "mod:conditions.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": true,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-supereffective",
+      "sites": 2,
+      "arities": [
+        2,
+        3
+      ],
+      "where": [
+        "sim:battle-actions.ts",
+        "mod:scripts.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": true,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-swapboost",
+      "sites": 3,
+      "arities": [
+        4,
+        5
+      ],
+      "where": [
+        "data:moves.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-swapsideconditions",
+      "sites": 1,
+      "arities": [
+        1
+      ],
+      "where": [
+        "data:moves.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-terastallize",
+      "sites": 1,
+      "arities": [
+        3
+      ],
+      "where": [
+        "sim:battle-actions.ts"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-transform",
+      "sites": 2,
+      "arities": [
+        3,
+        4
+      ],
+      "where": [
+        "sim:pokemon.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-unboost",
+      "sites": 0,
+      "arities": [],
+      "where": [
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-waiting",
+      "sites": 3,
+      "arities": [
+        3
+      ],
+      "where": [
+        "data:moves.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "-weather",
+      "sites": 29,
+      "arities": [
+        2,
+        3,
+        4
+      ],
+      "where": [
+        "data:conditions.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "-zbroken",
+      "sites": 3,
+      "arities": [
+        2
+      ],
+      "where": [
+        "sim:battle-actions.ts",
+        "data:moves.ts",
+        "mod:scripts.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": true,
+      "medicham": "declared"
+    },
+    {
+      "name": "-zpower",
+      "sites": 1,
+      "arities": [
+        2
+      ],
+      "where": [
+        "sim:battle-actions.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "bigerror",
+      "sites": 2,
+      "arities": [
+        2
+      ],
+      "where": [
+        "sim:battle.ts"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "cant",
+      "sites": 30,
+      "arities": [
+        3,
+        4,
+        5
+      ],
+      "where": [
+        "sim:battle-actions.ts",
+        "data:moves.ts",
+        "data:abilities.ts",
+        "data:conditions.ts",
+        "mod:conditions.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": true,
+      "medicham": "emitted"
+    },
+    {
+      "name": "clearpoke",
+      "sites": 1,
+      "arities": [
+        1
+      ],
+      "where": [
+        "sim:battle.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "debug",
+      "sites": 2,
+      "arities": [
+        2
+      ],
+      "where": [
+        "sim:battle.ts"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "detailschange",
+      "sites": 3,
+      "arities": [
+        3,
+        4
+      ],
+      "where": [
+        "sim:battle.ts",
+        "sim:pokemon.ts",
+        "mod:scripts.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": true,
+      "medicham": "declared"
+    },
+    {
+      "name": "drag",
+      "sites": 0,
+      "arities": [],
+      "where": [
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "error",
+      "sites": 0,
+      "arities": [],
+      "where": [
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "faint",
+      "sites": 1,
+      "arities": [
+        2
+      ],
+      "where": [
+        "sim:battle.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "gametype",
+      "sites": 1,
+      "arities": [
+        2
+      ],
+      "where": [
+        "sim:battle.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "gen",
+      "sites": 1,
+      "arities": [
+        2
+      ],
+      "where": [
+        "sim:battle.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "inactive",
+      "sites": 0,
+      "arities": [],
+      "where": [
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "message",
+      "sites": 15,
+      "arities": [
+        2
+      ],
+      "where": [
+        "sim:battle.ts"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "move",
+      "sites": 3,
+      "arities": [
+        3,
+        4
+      ],
+      "where": [
+        "sim:battle-actions.ts",
+        "data:abilities.ts",
+        "data:conditions.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "player",
+      "sites": 1,
+      "arities": [
+        5
+      ],
+      "where": [
+        "sim:battle.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "poke",
+      "sites": 0,
+      "arities": [],
+      "where": [
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "rated",
+      "sites": 1,
+      "arities": [
+        2
+      ],
+      "where": [
+        "sim:battle.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "replace",
+      "sites": 1,
+      "arities": [
+        3
+      ],
+      "where": [
+        "data:abilities.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "request",
+      "sites": 0,
+      "arities": [],
+      "where": [
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "rule",
+      "sites": 0,
+      "arities": [],
+      "where": [
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "showteam",
+      "sites": 1,
+      "arities": [
+        3
+      ],
+      "where": [
+        "sim:battle.ts"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "start",
+      "sites": 1,
+      "arities": [
+        1
+      ],
+      "where": [
+        "sim:battle.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "swap",
+      "sites": 1,
+      "arities": [
+        4
+      ],
+      "where": [
+        "sim:battle.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "switch",
+      "sites": 0,
+      "arities": [],
+      "where": [
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "t",
+      "sites": 0,
+      "arities": [],
+      "where": [
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "teampreview",
+      "sites": 0,
+      "arities": [],
+      "where": [
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "teamsize",
+      "sites": 1,
+      "arities": [
+        3
+      ],
+      "where": [
+        "sim:battle.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "tie",
+      "sites": 1,
+      "arities": [
+        1
+      ],
+      "where": [
+        "sim:battle.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "tier",
+      "sites": 1,
+      "arities": [
+        2
+      ],
+      "where": [
+        "sim:battle.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    },
+    {
+      "name": "turn",
+      "sites": 1,
+      "arities": [
+        2
+      ],
+      "where": [
+        "sim:battle.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "upkeep",
+      "sites": 1,
+      "arities": [
+        1
+      ],
+      "where": [
+        "sim:battle.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "emitted"
+    },
+    {
+      "name": "win",
+      "sites": 2,
+      "arities": [
+        2
+      ],
+      "where": [
+        "sim:battle.ts",
+        "SIM-PROTOCOL.md"
+      ],
+      "champions": false,
+      "medicham": "declared"
+    }
+  ],
+  "gates": {
+    "invented": [],
+    "undeclared": []
+  }
+}

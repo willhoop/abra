@@ -1,0 +1,283 @@
+/* derive_protocol_events.js — WHAT SHOWDOWN CAN EMIT, READ OUT OF SHOWDOWN. ROADMAP #68, step one.
+ *
+ *   SHOWDOWN_PATH=... node engine/derive_protocol_events.js            check
+ *   SHOWDOWN_PATH=... node engine/derive_protocol_events.js --write    regenerate data/protocol-events.json
+ *
+ * WHY IT EXISTS
+ * -------------
+ * docs/GAME-DIFFERENTIAL-DESIGN.md §5 asks MEDICHAM to emit Showdown's protocol so the two engines
+ * can be diffed line for line. The instruction that came with it was *"DERIVE THE EVENT LIST, DO NOT
+ * TYPE IT"*, and the reason is not tidiness: a hand-typed list of protocol events is the ban list
+ * this project already replaced with a mechanism (CLAUDE.md), and it goes stale the same way.
+ *
+ * AND THE GENERIC PROTOCOL IS NOT THE AUTHORITY -- THE FORMAT IS. Measured while this file was being
+ * written: `sim/battle-actions.ts:1800` emits `add('-supereffective', target)`, two fields, and
+ * `data/mods/champions/scripts.ts:271` OVERRIDES it with `add('-supereffective', target,
+ * Math.min(typeMod, 2))`, three. A trace built from `sim/SIM-PROTOCOL.md` alone would have emitted
+ * the wrong shape on every super-effective hit in this format and the differ would have reported it
+ * as a divergence forever. So the scan covers `sim/` AND `data/mods/champions/`, and the mod's
+ * arities WIN where the two disagree.
+ *
+ * WHAT IT PRODUCES
+ * ----------------
+ * `data/protocol-events.json`:
+ *   events[]        every event name Showdown can emit, with the arities seen at its call sites,
+ *                   how many sites, and whether the champions mod overrides it
+ *   emitted[]       the names medicham2 claims (its own TRACE_EVENTS)
+ *   notEmitted[]    every remaining name WITH A WRITTEN REASON -- the declared list §5 asks for
+ *   partial[]       names medicham2 emits in a SHAPE that is knowably not Showdown's, with the reason
+ *
+ * TWO GATES, and both are the point rather than decoration:
+ *   INVENTED   a name in TRACE_EVENTS that Showdown never emits. An approximated event is a false
+ *              agreement; the differ would align two streams on a line only one of them can produce.
+ *   UNDECLARED a Showdown event that medicham2 neither emits nor gives a reason for. That is the
+ *              silent gap -- the differ sees a missing line and cannot tell "this engine does not
+ *              model it" from "this engine got it wrong".
+ */
+'use strict';
+require('./showdown_path.js');
+const fs = require('fs');
+const path = require('path');
+const D = (...p) => path.join(__dirname, '..', ...p);
+
+if (!process.env.SHOWDOWN_PATH) { console.error('NOT RUN — set SHOWDOWN_PATH'); process.exit(2); }
+const SP = process.env.SHOWDOWN_PATH;
+
+/* ---- THE SCAN ---------------------------------------------------------------------------------
+ * Every `add('name', ...)` / `addMove('name', ...)` in the simulator core and in this format's mod.
+ * The arity is counted by splitting the argument list at top level -- good enough to record the
+ * SHAPE, and it is recorded rather than asserted, because a template literal or a spread makes an
+ * exact count meaningless and a wrong number in an artifact is worse than a range. */
+const CORE = ['battle.ts', 'battle-actions.ts', 'pokemon.ts', 'side.ts', 'field.ts', 'battle-queue.ts'];
+const MOD_DIR = path.join(SP, 'data', 'mods', 'champions');
+const DATA = ['moves.ts', 'abilities.ts', 'items.ts', 'conditions.ts', 'scripts.ts'];
+
+function topSplit(argstr) {
+  const out = []; let depth = 0, cur = '', q = null;
+  for (let i = 0; i < argstr.length; i++) {
+    const c = argstr[i];
+    if (q) { if (c === q && argstr[i - 1] !== '\\') q = null; cur += c; continue; }
+    if (c === "'" || c === '"' || c === '`') { q = c; cur += c; continue; }
+    if ('([{'.includes(c)) depth++;
+    if (')]}'.includes(c)) depth--;
+    if (c === ',' && depth === 0) { out.push(cur.trim()); cur = ''; continue; }
+    cur += c;
+  }
+  if (cur.trim()) out.push(cur.trim());
+  return out;
+}
+
+/* The call must be found with its whole argument list, so a regex on one line is not enough --
+ * several of Showdown's add() calls wrap. Scan forward from `add(` and balance the parentheses. */
+function scanFile(file, into, tag) {
+  let src; try { src = fs.readFileSync(file, 'utf8'); } catch (e) { return; }
+  const re = /\b(?:add|addMove)\(\s*(['"])(-?[a-z][a-zA-Z0-9]*)\1/g;
+  let m;
+  while ((m = re.exec(src))) {
+    const name = m[2];
+    const open = src.lastIndexOf('(', m.index + m[0].length);
+    let depth = 0, end = -1;
+    for (let i = open; i < src.length && i < open + 4000; i++) {
+      if (src[i] === '(') depth++;
+      else if (src[i] === ')') { depth--; if (depth === 0) { end = i; break; } }
+    }
+    if (end < 0) continue;
+    const args = topSplit(src.slice(open + 1, end));
+    const rec = into[name] || (into[name] = { name, sites: 0, arities: [], where: [] });
+    rec.sites++;
+    if (!rec.arities.includes(args.length)) rec.arities.push(args.length);
+    const w = tag + ':' + path.basename(file);
+    if (!rec.where.includes(w)) rec.where.push(w);
+    if (tag === 'mod') rec.champions = true;
+  }
+}
+
+const events = {};
+for (const f of CORE) scanFile(path.join(SP, 'sim', f), events, 'sim');
+for (const f of DATA) scanFile(path.join(SP, 'data', f), events, 'data');
+for (const f of DATA) scanFile(path.join(MOD_DIR, f), events, 'mod');
+
+/* `|turn|`, `|upkeep|`, `|faint|` and the battle-start furniture are pushed rather than added in a
+ * couple of places; SIM-PROTOCOL.md is the second source and is UNIONED in, never used alone. */
+const PROTO_MD = path.join(SP, 'sim', 'SIM-PROTOCOL.md');
+try {
+  const md = fs.readFileSync(PROTO_MD, 'utf8');
+  for (const line of md.split('\n')) {
+    const m = /^`\|(-?[a-z][a-zA-Z0-9]*)\|?/.exec(line.trim());
+    if (!m) continue;
+    const rec = events[m[1]] || (events[m[1]] = { name: m[1], sites: 0, arities: [], where: [] });
+    if (!rec.where.includes('SIM-PROTOCOL.md')) rec.where.push('SIM-PROTOCOL.md');
+    rec.documented = true;
+  }
+} catch (e) { console.error('SIM-PROTOCOL.md unreadable: ' + e.message); process.exit(2); }
+
+/* ---- WHAT MEDICHAM CLAIMS ---------------------------------------------------------------------- */
+require(D('data', 'engine-data.js'));
+const M = require(D('engine', 'medicham2-browser.js'));
+const CLAIM = M.TRACE_EVENTS.slice();
+
+/* ---- THE DECLARED LIST ------------------------------------------------------------------------
+ * Every Showdown event medicham2 does NOT emit, with the reason. §5's rule: *"where MEDICHAM
+ * genuinely cannot produce an event, record it in a declared list with the reason rather than
+ * emitting an approximation."* A reason is a fact about this engine, never "not done yet". */
+const NOT_EMITTED = {
+  /* ---- battle furniture: this engine is a rules engine, not a server ---- */
+  player: 'no players. medicham2 is handed two teams of built bodies and knows no user, avatar or rating.',
+  teamsize: 'no team preview. battleInit is handed the four that are already on the field plus a bench.',
+  gametype: 'always doubles; the constant is not a decision this engine makes.',
+  gen: 'not modelled — there is one generation.',
+  tier: 'the format id lives in data/regulations.json, not in the simulator.',
+  rated: 'no ladder.', rule: 'no rulesets; legality is the caller\'s problem.',
+  clearpoke: 'no team preview.', poke: 'no team preview.', teampreview: 'no team preview.',
+  start: 'battleInit IS the start; there is no separate protocol frame for it.',
+  request: 'no choice request loop — the caller hands actions in.',
+  inactive: 'no timer.', inactiveoff: 'no timer.',
+  win: 'battleResult() returns 1/0/0.5 and no side has a NAME to print.',
+  tie: 'as `win`.', t: 'no wall clock.', init: 'no room.', title: 'no room.',
+  split: 'no hidden information — a caller holds both teams, so there is no secret/shared pair to split.',
+  message: 'no chat.', debug: 'no debug channel.', error: 'failures are counted in MEDFAILS, not logged.',
+  uhtml: 'client furniture.', uhtmlchange: 'client furniture.', html: 'client furniture.',
+  chat: 'client furniture.', c: 'client furniture.', j: 'client furniture.', l: 'client furniture.',
+  n: 'client furniture.', b: 'client furniture.', join: 'client furniture.', leave: 'client furniture.',
+  name: 'client furniture.', popup: 'client furniture.', pm: 'client furniture.',
+  usercount: 'client furniture.', nametaken: 'client furniture.', challstr: 'client furniture.',
+  updateuser: 'client furniture.', formats: 'client furniture.', updatesearch: 'client furniture.',
+  updatechallenges: 'client furniture.', queryresponse: 'client furniture.',
+  tournament: 'client furniture.', notify: 'client furniture.', users: 'client furniture.',
+  askreg: 'client furniture.', expire: 'client furniture.', unlink: 'client furniture.',
+  formatslist: 'client furniture.', deinit: 'client furniture.', noinit: 'client furniture.',
+  refresh: 'client furniture.', selectorhtml: 'client furniture.', queryresponsetype: 'client furniture.',
+
+  /* ---- mechanics medicham2 does not model AT ALL ---- */
+  '-terastallize': 'Terastal is not in Champions Reg M-B and this engine has no tera state.',
+  '-zpower': 'Z-moves do not exist in this format.', '-zbroken': 'Z-moves do not exist in this format.',
+  '-burst': 'Ultra Burst does not exist in this format.',
+  '-primal': 'Primal Reversion does not exist in this format.',
+  '-mega': 'mega evolution happens in buildMon/oneMegaPerSide BEFORE battleInit, so there is no '
+    + 'in-battle event to emit. That is a real modelling limit (docs/ENGINE.md) and it is why '
+    + '`|detailschange|` is absent too.',
+  '-transform': 'Imposter/Transform is not modelled; `formeChange` carriers are listed unconsumed.',
+  detailschange: 'no in-battle forme change is modelled except Zero to Hero, which rewrites the body '
+    + 'silently in bringIn(); emitting a details line there would claim a capability the rest of the '
+    + 'engine does not have.',
+  '-formechange': 'as `detailschange`.',
+  replace: 'Illusion is not modelled (ROADMAP #67), so nothing is ever revealed.',
+  swap: 'Ally Switch is not modelled.',
+  '-swapsideconditions': 'Court Change is not modelled.',
+  '-invertboost': 'Topsy-Turvy is not modelled.',
+  '-copyboost': 'Psych Up is not modelled.',
+  '-swapboost': 'Heart Swap / Power Swap are not modelled.',
+  '-setboost': 'no move in this engine SETS a stage; Belly Drum adds +12 half-stages through '
+    + 'statChangeInCode and is emitted as `-boost`, which is what Showdown\'s gen-9 bellydrum does too.',
+  '-clearpositiveboost': 'Spectral Thief is not modelled.',
+  '-cureteam': 'Heal Bell / Aromatherapy are not modelled.',
+  '-sethp': 'Pain Split is not modelled.',
+  '-endability': 'ability SUPPRESSION (Gastro Acid, Neutralizing Gas) is not modelled; Mummy and '
+    + 'Wandering Spirit REWRITE the ability and emit `-ability` instead, which is what Showdown does.',
+  '-hitcount': 'multi-hit damage is ONE packet in this engine (WIRE 20, declared). The reaction COUNT '
+    + 'is right (WIRE 84) and the hit count is not, so emitting one would be an invented number.',
+  '-anim': 'animation only; carries no rule.',
+  '-combine': 'no combined moves.', '-center': 'no triples.',
+  '-waiting': 'no move that waits on a partner is modelled.',
+  '-notarget': 'gen 5+ emits `-fail` instead (sim/battle-actions.ts:456), which this engine does emit.',
+  '-block': 'the blockers this engine models announce themselves as `-immune` or `-activate`; nothing '
+    + 'in it reaches Showdown\'s `-block` path (Aroma Veil, Dynamax, Crafty Shield).',
+  '-hint': 'client hint text; carries no rule.',
+  '-nothing': 'removed from the protocol in gen 5.',
+  '-singlemove': 'Destiny Bond / Grudge are not modelled.',
+  '-fieldactivate': 'EMITTED for Perish Song only — see partial[].',
+  '-ohko': 'no OHKO move is in this format.',
+  '-fieldstart': 'EMITTED — see emitted[].',
+  upkeep: 'EMITTED — see emitted[].',
+  '-candynamax': 'Dynamax does not exist in this format.',
+  '-clearboost': 'Clear Smog and Haze are the two carriers; Haze wipes BOTH sides and emits '
+    + '`-clearallboost`, which this engine does emit. Clear Smog is not in this engine\'s move set '
+    + 'as a boost-wiper — it resolves as an ordinary attack — so emitting a per-body clear would '
+    + 'claim a mechanic that is not wired.',
+  '-message': 'flavour text; carries no rule.',
+  bigerror: 'server-side error channel.',
+  showteam: 'open team sheets are an INPUT to this engine (buildMonFromSet), never an output.',
+};
+
+/* Shapes medicham2 emits that are knowably NOT Showdown's, with the reason. Declared rather than
+ * silently different, so the comparison driver can decide whether to score the row. */
+const PARTIAL = [
+  ['*', 'IDENTIFIERS AND NAMES ARE IDS, NOT DISPLAY NAMES. `p1a: incineroar` for `p1a: Incineroar`, '
+    + '`fakeout` for `Fake Out`, `sunnyday` for `SunnyDay`. medicham2 has no display-name table and '
+    + 'inventing one would be a translation layer that can itself be wrong. `M.traceCanon(line)` is '
+    + 'the ONE normaliser and the comparison driver applies it to BOTH streams.'],
+  ['switch', 'DETAILS carries species and level only (`incineroar, L50`). This engine tracks no '
+    + 'gender and no shininess, and Level 50 is a constant of the format rather than a field.'],
+  ['-supereffective', 'the third argument is this FORMAT\'s (data/mods/champions/scripts.ts:271, '
+    + '`Math.min(typeMod, 2)`), derived here from the multiplier rather than from a stored typeMod.'],
+  ['-resisted', 'as `-supereffective`.'],
+  ['-sidestart', 'SIDE is emitted as `p1: ` — the id with an empty player name, because this engine '
+    + 'has no players. traceCanon reduces Showdown\'s `p1: A` to `p1:a` and this to `p1:`; a driver '
+    + 'comparing the side field must compare the id, which is the part that carries the rule.'],
+  ['-sideend', 'as `-sidestart`, and additionally: this engine keeps TWO screen counters keyed by '
+    + 'damage category where Showdown keeps three named side conditions, so an Aurora Veil ends as '
+    + 'both `Reflect` and `Light Screen`. A representation limit already recorded in docs/ENGINE.md.'],
+  ['-damage', 'ORDER WITHIN A HIT DIFFERS. medicham2 resolves the knock-off, the resist berry and the '
+    + 'contact punish BEFORE subtracting the target\'s HP, so `-enditem` and the Rough Skin `-damage` '
+    + 'precede the target\'s `-damage`; Showdown subtracts first. No state differs at end of turn, '
+    + 'which is exactly why tests/test-game-diff.js cannot see it and this trace can.'],
+  ['-heal', 'the pinch berries (Sitrus) fire in the END-OF-TURN residual here and on the `onUpdate` '
+    + 'immediately after the hit in Showdown. Same turn, different position in the stream.'],
+  ['move', 'a SPREAD move emits no `[spread] ...` attribute: the target list is resolved after the '
+    + 'move line is written, and this engine rolls accuracy ONCE for a spread move rather than per '
+    + 'target (MEDSEEN.accSpreadNoDefender), so a per-target attribute would not be true anyway.'],
+  ['-crit', 'a spread move\'s per-target effectiveness and crit lines INTERLEAVE with its damage '
+    + 'lines here; Showdown batches all of them ahead of the damages (trySpreadMoveHit).'],
+];
+
+/* ---- THE TWO GATES ----------------------------------------------------------------------------- */
+const names = Object.keys(events).sort();
+const known = new Set(names);
+const invented = CLAIM.filter(n => !known.has(n));
+const undeclared = names.filter(n => !CLAIM.includes(n) && !(n in NOT_EMITTED));
+
+const out = {
+  generated: new Date().toISOString().slice(0, 19).replace('T', ' '),
+  derivedFrom: {
+    showdown: SP,
+    scanned: [...CORE.map(f => 'sim/' + f), ...DATA.map(f => 'data/' + f),
+      ...DATA.map(f => 'data/mods/champions/' + f), 'sim/SIM-PROTOCOL.md'],
+    note: 'the champions mod OVERRIDES two of the core emits (-supereffective, -resisted); its arity wins.',
+  },
+  showdownEvents: names.length,
+  emitted: CLAIM.slice().sort(),
+  notEmitted: Object.keys(NOT_EMITTED).filter(n => known.has(n)).sort()
+    .map(n => ({ event: n, reason: NOT_EMITTED[n] })),
+  partial: PARTIAL.map(([e, r]) => ({ event: e, reason: r })),
+  events: names.map(n => ({
+    name: n, sites: events[n].sites, arities: events[n].arities.sort((a, b) => a - b),
+    where: events[n].where, champions: !!events[n].champions,
+    medicham: CLAIM.includes(n) ? 'emitted' : (n in NOT_EMITTED ? 'declared' : 'UNDECLARED'),
+  })),
+  gates: { invented, undeclared },
+};
+
+const dest = D('data', 'protocol-events.json');
+if (process.argv.includes('--write')) {
+  fs.writeFileSync(dest, JSON.stringify(out, null, 2));
+  console.log('wrote ' + dest);
+}
+
+console.log('SHOWDOWN PROTOCOL EVENTS  ' + names.length + ' distinct, from '
+  + out.derivedFrom.scanned.length + ' files');
+console.log('  medicham2 emits   ' + CLAIM.length);
+console.log('  declared, with a reason  ' + out.notEmitted.length);
+console.log('  partial shapes, with a reason  ' + PARTIAL.length);
+let bad = 0;
+if (invented.length) {
+  bad = 1;
+  console.log('\nINVENTED — in TRACE_EVENTS and Showdown never emits it:');
+  for (const n of invented) console.log('    |' + n + '|');
+}
+if (undeclared.length) {
+  bad = 1;
+  console.log('\nUNDECLARED — Showdown emits it, medicham2 neither emits it nor says why:');
+  for (const n of undeclared) console.log('    |' + n + '|   ' + events[n].where.join(' '));
+}
+if (!bad) console.log('\nBOTH GATES PASS.');
+process.exit(bad);

@@ -112,7 +112,14 @@ const GATES = ['engine/selftest.js', 'engine/conformance.js', 'engine/artifact_a
    * it is illegal — so the heuristic's whole discriminator is confounded, and a real check existed
    * the entire time. The selftest pins the error CLASSIFIER, which is the only hard part: a
    * closed-sheet replay yields a partial team, and incompleteness must not read as illegality. */
-  'engine/validate_store.js'];
+  'engine/validate_store.js',
+  /* engine/diff_swarm.js --selftest — team selection for the whole-game differential (ROADMAP #68 §3).
+   * The case that matters is the one it caught on its own first real run: a config whose feature set
+   * derives EMPTY accepts every team, reports 100% of the pool, and does no work at all. Two of the
+   * nine were wrong that way (`lowersOnEntry` for `onSwitchInDrop`, `setsWeather` for `weatherSetter`)
+   * and both looked like the best-covered configs in the swarm. The selftest asserts no config accepts
+   * everything; the derivation asserts no feature set is empty. Synthetic input, milliseconds. */
+  'engine/diff_swarm.js'];
 
 /* COVERAGE ASSERTION. Any file in engine/ that reports its own pass/fail summary is a check, and a
  * check that nothing runs is worse than no check — it reads as coverage in a review. If one turns up
@@ -175,7 +182,8 @@ function plan(rel) {
    * may never grow. PRIORITIES #46b, closed 2026-08-04. */
   const EXTRA = { 'engine/provenance.js': ['--strict'], 'engine/conformance.js': ['--strict'],
                   'engine/em_validation.js': ['--check'], 'engine/status.js': ['--selftest'],
-                  'engine/rerun_list.js': ['--selftest'], 'engine/validate_store.js': ['--selftest'] };
+                  'engine/rerun_list.js': ['--selftest'], 'engine/validate_store.js': ['--selftest'],
+                  'engine/diff_swarm.js': ['--selftest'] };
   return { cmd: rel.endsWith('.py') ? PY : process.execPath, args: [D(rel), ...(EXTRA[rel] || [])] };
 }
 
