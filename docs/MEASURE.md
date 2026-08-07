@@ -19,9 +19,7 @@ MEASURE — can we believe a number
     powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835
     PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/abra-tags.js
     (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
-  provenance: 7 unsafe, 1 void (declared), 47 possibly stale, 54 ok, 0 missing
-    RATCHET TRIPPED — the unstamped list grew; provenance.js exited non-zero: diff-swarm.json, rerun-list.json, store-validation.json
-    their generators ship without recording what CONTENT they read — stamp source_digests
+  provenance: 8 unsafe, 1 void (declared), 49 possibly stale, 51 ok, 0 missing
   click censoring: 1,383 of 249,404 recorded actions were NOT clicks (0.555%) and left the labeled set; 3,328 (1.334%) are kept under a candidate set
     classifier vs the raw protocol on 6,205 games (67.2% of the corpus): encore recall 99.7% precision 96.3%, drag recall 96.7% precision 96.7%
     EM recovers 91.4% of a planted censoring bias of 0.957 against a 0.326 noise floor (amplified regime)
@@ -37,7 +35,7 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-08-06 19:19
 ```
 
-_stamped 2026-08-07 01:30_
+_stamped 2026-08-07 01:48_
 
 <!-- /GENERATED -->
 

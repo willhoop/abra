@@ -10,6 +10,74 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.60.0] — 2026-08-06
+
+### Added
+- **THE WHOLE-GAME DIFFERENTIAL RUNS (ROADMAP #68).** `engine/game_differential.js` plays a real
+  stored team through MEDICHAM and through the official Showdown engine, step for step, and reports
+  where the two part. 160 games, 14 turns, 1.5s, 0 throws, stamped `engine_release 9491abe09f54` +
+  `showdown 20ad99ffc9a5` so it reads a photograph rather than a live tree. The instrument is
+  **armed**: `planted_divergence_proof_ok = true`, and a plant is now asserted CAUGHT *and* EARLIER
+  THAN CLEAN *and* AT EXACTLY THE PLANTED LINE, because an earlier version of that proof passed for
+  the wrong reason.
+- **A semantic normaliser, with every equivalence proved in both directions.** Seven rules collapse
+  4,627 lines of protocol-shape difference — the `|move|` target field, effect namespacing, display
+  flags, the `|-ability|` announcement, `[of]` source tags, switch causes, stat attribution. Each
+  carries an `equal` pair that MUST collapse and a `distinct` pair that must NOT, and
+  `tests/test-game-differential.js` fails on either. **An equivalence with no red demonstration is a
+  silencer, not a normaliser.** The unifying argument: every rule drops an announcement or an
+  attribution, never a state change.
+
+### Fixed
+- **The provenance ratchet, which three artifacts written the same evening had BROKEN.**
+  `diff-swarm.json`, `rerun-list.json` and `store-validation.json` recorded no digest of what they
+  read, so they rested on mtime alone — and the ratchet may shrink and may never grow. All three now
+  stamp `source_digests` by CONTENT. `rerun_list.js`, whose entire job is to say which artifacts are
+  stale, resting on mtime alone would have been the joke telling itself.
+- **`diff_swarm.js` read the raw ladder store undeclared**; now `RAW-STORE-OK` with its reason. The
+  teams there are TEST CONFIGURATIONS, not evidence about play: every quality filter we have selects
+  on WHO PLAYED, which would narrow the pool toward one ladder segment and remove precisely the tail
+  a swarm exists to reach.
+- **#71, #78, #79 and #80 were unregistered in `docs/ROADMAP.md` §5**, so the register gate failed on
+  any ledger citing them.
+
+### Changed
+- **The normalised divergence rate is 159/160, and it barely moved from run one's 160/160.** That is
+  the honest finding and it is the opposite of the comfortable one: **the protocol-shape noise was
+  HIDING real classes, not inflating a small number.** Two limits travel with the rate and must not be
+  separated from it — the median game still parts after **one completed turn**, so nothing past turn 1
+  is tested; and **zero mega bodies were tested**, 460 stone sets stripped, ~26% of format usage, now
+  a top-level `rate_excludes` field rather than a line buried in `declared_gaps`.
+- **Ten confirmed WIREs, ranked by usage.** Protect success disagrees (80,328 uses). Trick Room emits
+  no `|move|` line at all, because `playerAction` returns `kind:'trickroom'` and never reaches the
+  emitter — 8,077 uses, and **the same shape for every non-attack kind**. Intimidate ordering between
+  two Intimidate bodies. Turn order, 9 distinct causes. Damage off by one under a **pinned MAXIMUM
+  roll**, one case `H/H` vs `0 fnt` — one engine kills and the other does not. Intimidate blockers
+  announce nothing. Mirror Armor does not reflect; we unboost our own side. Illusion announces the
+  real body.
+
+### Notes
+- **THE FIRST THING THIS INSTRUMENT CAUGHT WAS A CLAIM MADE IN THIS REPOSITORY HOURS EARLIER.**
+  ROADMAP #80 was filed on 2026-08-06 asserting that because MEDICHAM strips the item before damage,
+  *"Colbur Berry can never fire for us — we deal full super-effective damage where Showdown deals
+  half, a KO/no-KO difference on 11.19% of games."* Staged arms under a pinned MAX roll: no item
+  204/204, Leftovers 300/302, **Colbur Berry 150/151**. The boost half reads 1.471/1.480 and the
+  reduction half 0.500/0.500, asserted separately precisely so cancellation could not hide a fault.
+  **Colbur fires for us** — `playerAction` computes the damage RANGE at click time, before the item
+  is stripped, so the emit ordering costs no damage. Showdown's `moves.ts:9962` was read correctly and
+  MEDICHAM's consequence was then INFERRED from the order of its output lines instead of measured.
+  **A diagnosis from one side of a differential is a guess.**
+- **A narrower real bug survives, and it is the more interesting one.** Showdown records `[eat]` — the
+  berry ate ITSELF and `takeItem()` found nothing — where we record `[from] move: knockoff`. Same HP,
+  different FACT, and *"was it eaten"* is what Harvest, Recycle, Belch, Cud Chew and Unburden read.
+  Invisible to a one-turn comparison, which is exactly the horizon this instrument currently has.
+- **`docs/ROADMAP.md` §5.6b is retracted.** It answered *"are there too many variables"* using
+  collinearity correlations and weight magnitudes from a fit stamped `2026-08-05T04:00:43Z` — twelve
+  hours before `3be3f3b` rewrote `movesFirst` in `board.js`, and nine engine commits before WIRES
+  123–132. The SHAPE of the finding stands; every magnitude is withdrawn pending the refit.
+
+---
+
 ## [3.59.0] — 2026-08-06
 
 ### Changed

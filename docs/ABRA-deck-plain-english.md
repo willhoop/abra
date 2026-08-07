@@ -1,6 +1,21 @@
 # ABRA — the plain-English deck
 
-**Version 3.59.0 · 2026-08-06 · Will Hooper**
+**Version 3.60.0 · 2026-08-06 · Will Hooper**
+
+**What changed (3.60.0): we built the thing that tells us whether our engine is right.**
+
+It plays the same real game twice — once in our engine, once in Pokémon Showdown's own — and stops at
+the first place they disagree. On the first proper run, **159 of 160 games disagreed somewhere**, and
+most of them within a single turn. That sounds alarming and it is exactly what we wanted: for the
+first time we can see the gap instead of guessing at it, and every disagreement is a specific,
+fixable thing rather than a worry.
+
+Two honest caveats we keep attached to that number. It has not yet tested anything past the first
+turn. And it tested **no mega evolutions at all**, which is about a quarter of what this format
+actually plays — that is the next job, not a footnote.
+
+The first thing it caught was a claim we had made ourselves a few hours earlier, and it proved us
+wrong. That is the whole point of building it.
 
 A slide-by-slide, jargon-light tour. The white paper (linked on the last slide) has the math and sources.
 
@@ -444,7 +459,7 @@ than about the game:
 **Neither is fixed yet, on purpose.** Changing how a damage roll is picked would move every measurement
 this project has ever recorded. The point of tonight was to build the instrument that can see it.
 
-## Slide 9e — Somebody built a bot that beats a pro. Any strong human learns to beat it in five games. (3.59.0)
+## Slide 9e — Somebody built a bot that beats a pro. Any strong human learns to beat it in five games. (3.60.0)
 
 **The result.** A university team (Angliss, Cui, Hu, Rahman and Stone, published at AAMAS 2026) built
 a Pokémon doubles bot the proper modern way: show it 700,000 human games so it learns to imitate
@@ -481,7 +496,7 @@ Being wrong here would be a real finding about Pokémon, not a failure.
 
 ---
 
-## Slide 9f — We had a number that justified two years of work, and it was wrong by five times (3.59.0)
+## Slide 9f — We had a number that justified two years of work, and it was wrong by five times (3.60.0)
 
 **The claim.** We wrote our own Pokémon simulator instead of using the official one, and the reason
 written down in every document was: **the official one is 117 times slower.** That number decided the
