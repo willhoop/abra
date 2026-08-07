@@ -2179,5 +2179,69 @@ demoSource('ROADMAP #81 WIRE 2  a Protect holding the LAST action of the turn fa
     return slowFoe > 0 && fastFoe === 0;
   });
 
+/* ---- ROADMAP #81 WIRE 3, two source-reverted engines --------------------------------------------
+ *
+ * TWO INDEPENDENT CLAIMS, SO TWO KNOWN-BAD ENGINES. The refusal of a stat drop turned out to be two
+ * different bugs wearing one `-fail` divergence, and measuring them apart was the whole first half of
+ * the wire: the STATE was wrong for the scoped refusers (a Charm into Inner Focus was blocked here and
+ * lands in Showdown) and the PROTOCOL was missing for all of them (a refused drop announced nothing).
+ * A single reversal cannot show both, and a single demo would let one half ride on the other. */
+
+/* Claim 1 — SCOPE. The reversal restores the blanket reading: every member of `preventsStatDrop`
+ * refuses whatever `blocks` names, from any source. That IS the engine as it stood, and the arms
+ * separate on the ability that is scoped to Intimidate. */
+demoSource('ROADMAP #81 WIRE 3  Inner Focus refuses INTIMIDATE only — a Charm still drops it',
+  [[`  const only=p.onlyFrom||(INTIM_ONLY_BRIDGE.indexOf(ab)>=0?'Intimidate':null);
+  if(only&&String(only).toLowerCase().replace(/[^a-z0-9]/g,'')!==_eid)return null;`,
+    `  const only=null;
+  if(only&&false)return null;`]],
+  (E) => {
+    const intimidated = () => {
+      const me = bare('incineroar'), ally = bare('corviknight');
+      const f1 = bare('gallade'), f2 = bare('milotic');
+      me.ability = 'intimidate'; f1.ability = 'innerfocus';
+      E.battleInit([me, ally], [f1, f2], {});
+      return [f1.boosts.at, f2.boosts.at];
+    };
+    const charmed = () => {
+      const me = bare('milotic'), ally = bare('corviknight');
+      const f1 = bare('gallade'), f2 = bare('milotic');
+      f1.ability = 'innerfocus';
+      const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+      E.battleTurn(S, rng5,
+        new Map([[me, E.playerAction(me, 'charm', f1, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+      return f1.boosts.at;
+    };
+    /* The no-ability partner MUST take the Intimidate in both engines, or "Inner Focus refused it"
+     * would be satisfied by an engine in which Intimidate stopped firing at all. */
+    return intimidated()[0] === 0 && intimidated()[1] === -1 && charmed() === -2;
+  });
+
+/* Claim 2 — THE ANNOUNCEMENT. The reversal silences the one emit and changes no state at all, which
+ * is why it needs its own demonstration: the reverted engine's stat stages are IDENTICAL to the
+ * shipped engine's, and only the protocol stream parts. */
+demoSource('ROADMAP #81 WIRE 3  a refused stat drop is ANNOUNCED, and the state alone cannot see it',
+  [['  if(TR&&r.announce)TR.failUnboost(target,r.label,r.ab);\n  return true;',
+    '  if(false)TR.failUnboost(target,r.label,r.ab);\n  return true;']],
+  (E) => {
+    const run = (ab1, ab2) => {
+      const me = bare('incineroar'), ally = bare('corviknight');
+      const f1 = bare('metagross'), f2 = bare('gallade');
+      me.ability = 'intimidate'; f1.ability = ab1; f2.ability = ab2;
+      const trace = [];
+      E.battleInit([me, ally], [f1, f2], { trace });
+      return { lines: trace.filter(l => /^\|-(fail|unboost)\|/.test(l)).map(E.traceCanon),
+               stages: [f1.boosts.at, f2.boosts.at] };
+    };
+    const ctl = run('none', 'none'), tst = run('clearbody', 'innerfocus');
+    /* the STATE arm is asserted too, and it holds on BOTH engines — that is the point: this claim is
+     * invisible to a probe that reads stat stages, which is how the family survived WIRE 1 and 2. */
+    return ctl.stages.join() === '-1,-1' && tst.stages.join() === '0,0'
+      && ctl.lines.length === 2 && ctl.lines.every(l => /^\|-unboost\|/.test(l))
+      && tst.lines[0] === '|-fail|p2a:metagross|unboost|[from]ability:clearbody|[of]p2a:metagross'
+      && tst.lines[1] === '|-fail|p2b:gallade|unboost|attack|[from]ability:innerfocus|[of]p2b:gallade';
+  });
+
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);
 if (failures) { console.log('  A green-and-stripped pair that did not flip means the probe does NOT watch its knob.'); process.exit(1); }

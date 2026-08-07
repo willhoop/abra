@@ -1154,6 +1154,73 @@ probe('ability', 'preventsStatDrop', 'Clear Body refuses Intimidate', () => {
                  + `${control[1]} / ${test[1]} (must both be -1, or the Intimidate never fired)` };
 });
 
+/* ROADMAP #81 WIRE 3 — THE SCOPE OF THE REFUSAL, WHICH THE PROBE ABOVE CANNOT SEE.
+ *
+ * `Clear Body refuses Intimidate` is green on an engine that refuses EVERY drop from EVERY ability
+ * carrying the tag, which is what this engine did: `TAGS.has(...,'preventsStatDrop')` was read as a
+ * boolean at both move-inflicted sites, so Inner Focus, Oblivious, Own Tempo and Scrappy — whose
+ * handlers in data/abilities.ts open `if (effect.name === 'Intimidate' && boost.atk)` — refused a
+ * Charm as well. Confirmed in the official engine before this was written: Charm into a Gallade with
+ * Inner Focus is `|-unboost|p2b: Gallade|atk|2` there and was atk stage 0 here.
+ *
+ * THE TWO ARMS ARE THE SAME ABILITY AND A DIFFERENT SOURCE OF THE DROP, which is the only pair that
+ * separates a scoped refusal from a blanket one. An engine reading the tag as a boolean returns
+ * `[0, 0]`; an engine with no refusal at all returns `[-1, -2]`. Only the real rule reads `[0, -2]`. */
+probe('ability', 'preventsStatDrop', 'Inner Focus refuses INTIMIDATE and nothing else — a Charm still lands', () => {
+  const intimidated = () => {
+    const me = bare('incineroar'), ally = bare('corviknight');
+    const f1 = bare('gallade'), f2 = bare('milotic');
+    me.ability = 'intimidate'; f1.ability = 'innerfocus';
+    M.battleInit([me, ally], [f1, f2], {});
+    return [f1.boosts.at, f2.boosts.at];
+  };
+  const charmed = () => {
+    const B = board('milotic', 'corviknight', 'gallade', 'milotic');
+    B.f1.ability = 'innerfocus';
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'charm', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return B.f1.boosts.at;
+  };
+  const control = charmed(), test = intimidated()[0];
+  return { works: control === -2 && test === 0 && intimidated()[1] === -1,
+           arms: { control, test },
+           detail: `one Gallade, one Inner Focus, two sources of an Attack drop — Charm ${control} `
+                 + `(must be -2, the official engine lands it) vs Intimidate ${test} (must be 0); `
+                 + `the no-ability partner takes ${intimidated()[1]} from the same Intimidate` };
+});
+
+/* ROADMAP #81 WIRE 3, THE OTHER HALF — THE REFUSAL IS AN ANNOUNCEMENT AND THE ENGINE MADE NONE.
+ *
+ * This is a claim about the PROTOCOL, not about the state, and it is why the two halves needed
+ * measuring apart: the state above was already right for Clear Body and the whole-game differential
+ * still parted on 81 first divergences mentioning `-fail`, because Showdown writes
+ *   |-fail|p2a: Metagross|unboost|[from] ability: Clear Body|[of] p2a: Metagross
+ * for a blanket refuser and names the stat for a scoped one, and medicham2 emitted nothing at all.
+ * Both shapes are read off a live Champions battle, not off SIM-PROTOCOL.md.
+ *
+ * THE ARMS ARE THE EMITTED LINES, so an engine that blocks silently fails this and an engine that
+ * announces a drop it did not refuse fails it too. */
+probe('ability', 'preventsStatDrop', 'a refused stat drop is ANNOUNCED, naming the ability and (when scoped) the stat', () => {
+  const lines = (ab1, ab2) => {
+    const me = bare('incineroar'), ally = bare('corviknight');
+    const f1 = bare('metagross'), f2 = bare('gallade');
+    me.ability = 'intimidate'; f1.ability = ab1; f2.ability = ab2;
+    const trace = [];
+    M.battleInit([me, ally], [f1, f2], { trace });
+    return trace.filter(l => /^\|-(fail|unboost)\|/.test(l)).map(M.traceCanon);
+  };
+  const control = lines('none', 'none'), test = lines('clearbody', 'innerfocus');
+  return { works: control.length === 2 && control.every(l => /^\|-unboost\|/.test(l))
+                  && test.length === 2
+                  && test[0] === '|-fail|p2a:metagross|unboost|[from]ability:clearbody|[of]p2a:metagross'
+                  && test[1] === '|-fail|p2b:gallade|unboost|attack|[from]ability:innerfocus|[of]p2b:gallade',
+           arms: { control, test },
+           detail: `one Intimidate switch-in, canonised — no abilities: ${JSON.stringify(control)}; `
+                 + `Clear Body + Inner Focus: ${JSON.stringify(test)} (the blanket refuser names no `
+                 + `stat, the scoped one names Attack — Showdown's own two shapes)` };
+});
+
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). One arm, no control, and `atk stage 1` is also
  * what an engine that applied no drop and then a flat +1 would print. Now: a real Intimidate switch-
  * in, and the answer asked for is the NET stage, which is the number that decides the damage. */

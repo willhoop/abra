@@ -27,10 +27,10 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  244/245 probed mechanics live, 1 missing   (census 2026-08-07 04:33)
+  246/247 probed mechanics live, 1 missing   (census 2026-08-07 05:48)
   missing:
     move    needsTargetToAttack    Avalanche doubles after the target hits it this turn
-  1/150 differential comparisons disagree with Showdown   (2026-08-07 03:50)
+  1/150 differential comparisons disagree with Showdown   (2026-08-07 05:50)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -49,7 +49,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 162/181 probed, 19 unprobed
 ```
 
-_stamped 2026-08-07 04:42_
+_stamped 2026-08-07 05:52_
 
 <!-- /GENERATED -->
 
@@ -302,11 +302,144 @@ coverage figure that fell should never be left to be rediscovered as a counter t
 6. **`total_lines_collapsed` IS QUADRATIC IN GAME DEPTH AND IS REPORTED AS A LINE COUNT.** Detailed
    above. Either count the reduction once per game or rename the field; every before/after in this
    ledger that quotes it is quoting a square.
-7. **THE OTHER FOUR-FIFTHS OF `-fail` IS NOT PROTECT.** 81 first divergences still mention `-fail` after
-   this wire, and the two largest remaining shapes are `|-fail|X|unboost|[from]clearbody` /
-   `[from]innerfocus` / `[from]hypercutter` / `[from]scrappy` / `[from]oblivious` — Showdown announces a
-   REFUSED stat drop as a `-fail` with an attribution and medicham2 emits nothing — and
-   `|-fail|X <> |-sidestart|X|tailwind`. Neither is the stall counter. Same neighbourhood, different wire.
+7. ~~**THE OTHER FOUR-FIFTHS OF `-fail` IS NOT PROTECT.**~~ **THE STAT-DROP HALF LANDED AS WIRE 3, below**
+   — and it was two bugs, not one. `|-fail|X <> |-sidestart|X|tailwind` is untouched and stays open.
+
+## ROADMAP #81 WIRE 3 — THE REFUSED STAT DROP WAS SILENT *AND*, FOR FOUR ABILITIES, NOT ACTUALLY A REFUSAL. 2026-08-07.
+
+Census **244 live / 245 probed → 246 live / 247 probed**, `unarmed` 0, `directCall` 0, `hollow` 0,
+`threw` 0. Red demonstrations **134 → 136, 0 failed** (two new, a different broken engine each). The
+target family — a first divergence of the shape `|-fail|X|unboost|…` — **16 games → 1**, and the whole
+`-fail` mention count **81 → 67**.
+
+**THE FIRST QUESTION WAS WHICH BUG IT WAS, AND THE ARTIFACT CANNOT TELL YOU.** A `-fail` divergence is
+consistent with the drop being blocked-but-unannounced (a protocol bug, cosmetic to the game state)
+and with the drop being applied (a -1 Attack for the rest of the game). **Measured on STATE — the
+target's `boosts.at` after the switch-in — before a line of the engine changed:**
+
+| | medicham2 | Showdown | verdict |
+|---|---|---|---|
+| Intimidate → Clear Body | atk stage **0** | atk stage **0** | **BLOCKED, and silent.** A protocol bug. |
+| Charm (−2 atk) → Inner Focus | atk stage **0** | atk stage **−2** | **REFUSED HERE AND APPLIED THERE.** A state bug. |
+
+So it is **both**, and the second half is the expensive one — it was invisible to the differential
+because those games part earlier, and invisible to the census because the existing probe
+(`Clear Body refuses Intimidate`) is green on an engine that refuses everything from everyone.
+
+**THREE SITES DECIDED THIS QUESTION AND NONE OF THEM READ THE TAG'S OWN `blocks` PARAMETER**, which
+`tag_dex` has derived from `onTryBoost` since the day Will asked *"do we need to specify that clear
+body is just a better hyper cutter"*:
+
+| site | what it did | what `data/abilities.ts` says |
+|---|---|---|
+| `applyStatDrop`'s `INTIM_IMMUNE` | a ten-name list | — |
+| the `statChange` + `statChangeInCode` pair | `TAGS.has(…,'preventsStatDrop')` — a **boolean** | Keen Eye / Illuminate / Mind's Eye delete `boost.accuracy` only; Big Pecks `boost.def` only; Inner Focus / Oblivious / Own Tempo / Scrappy fire only on `effect.name === 'Intimidate'` |
+| the secondary `targetBoosts` block | a hardcoded `clearbody‖whitesmoke‖fullmetalbody` triple | Hyper Cutter deletes Breaking Swipe's −1 Attack; Big Pecks deletes Crunch's −1 Defense |
+
+Measured membership of the over-block, before the fix: **Charm into Keen Eye, Illuminate, Big Pecks,
+Flower Veil (on a Garchomp), Inner Focus, Oblivious, Own Tempo and Scrappy all read atk stage 0** and
+Showdown lands −2 on every one of them. All eight now read −2. Exposure in the store: Clear Body 1,834,
+Inner Focus 863, Scrappy 543, Oblivious 514, Own Tempo 61, and Intimidate itself 31,129.
+
+**ONE GATE, FOUR CALLERS.** `statDropRefusal()` / `refuseStatDrop()` in `engine/medicham2-browser.js`
+is the single reader of `preventsStatDrop` — CLAUDE.md's *"one implementation, everyone calls it"*,
+and the reason the fix could not be split: emitting a `-fail` from three sites that disagree about who
+refuses would have produced the *wrong* announcement in a new place. `blocks` comes from the artifact;
+`accuracy` maps to no stage this engine has, so an accuracy-only blocker refuses **nothing** here,
+which is the right answer rather than a skipped one. **The INTIMIDATE-ONLY scoping did not exist in the
+artifact** — `engine/tag_dex.js` now derives `preventsStatDrop.onlyFrom` from
+`effect.name === '…'`, and the engine reads that first with a named five-name bridge for the
+pre-regeneration artifact, the same pattern WIRE 113's Simple/Defiant numbers use.
+
+**THE ANNOUNCEMENT IS SUPPRESSED FOR A SECONDARY AND FOR OCTOLOCK; THE BLOCK IS NOT.** Every one of
+these handlers guards its `this.add` with `!(effect as ActiveMove).secondaries`. Backwards, this would
+have fired a `-fail` on every Icy Wind and parted the streams in a new place instead of an old one.
+Verified on a live Champions battle rather than off SIM-PROTOCOL.md — both shapes, and the `-unboost`
+that must still land:
+
+```
+|-ability|p1a: Incineroar|Intimidate|boost
+|-fail|p2a: Metagross|unboost|[from] ability: Clear Body|[of] p2a: Metagross     blanket: no stat named
+|-fail|p2b: Gallade|unboost|Attack|[from] ability: Inner Focus|[of] p2b: Gallade  scoped: the stat named
+|move|p1a: Incineroar|Charm|p2b: Gallade
+|-unboost|p2b: Gallade|atk|2                                                     Inner Focus does NOT refuse this
+```
+
+**TWO PROBES, EACH SHOWN RED ON ITS OWN BROKEN ENGINE** (`tests/probe_red_demo.js`, `demoSource` —
+there is no tag to strip, the artifact was innocent), because these are two independent claims and one
+demonstration would let either half ride on the other:
+
+| probe | what separates the engines | the broken engine it is red on |
+|---|---|---|
+| `Inner Focus refuses INTIMIDATE and nothing else — a Charm still lands` | `[Intimidate, Charm]` = **`[0, −2]`** against `[0, 0]` | the `onlyFrom` scoping deleted — the blanket boolean read |
+| `a refused stat drop is ANNOUNCED, naming the ability and (when scoped) the stat` | the canonised emit list, `[-fail, -fail]` against `[]` | the one `TR.failUnboost` call silenced |
+
+**THE SECOND DEMO ASSERTS THE STAT STAGES TOO, AND THEY HOLD ON BOTH ENGINES.** That is the point of
+it: the reverted build's state is byte-identical and only the protocol parts, which is exactly why this
+family survived WIRE 1 and WIRE 2 and why the state had to be measured separately from the output.
+
+**WHAT THE DIFFERENTIAL SAYS, BEFORE AND AFTER, ON THE SAME 395 GAMES** (`--games 450`; before-arm the
+frozen release `6b6f898f136f`, after-arm `128a1ca28d34`). `data/games.ladder.jsonl` (206,789,118 B @
+04:03:19.248Z), `data/games.bo3.jsonl`, `data/tags.json` and `data/diff-swarm.json` were asserted
+identical in size and mtime **before, between and after both arms** — filed item (4) is still unfixed
+and this is the workaround it demands.
+
+| | before | after |
+|---|---|---|
+| **the target family — a first divergence `\|-fail\|X\|unboost\|…`** | **16 games** | **1** |
+| all first divergences mentioning `-fail` | 81 | **67** |
+| diverged | 393 / 395 | 393 / 395 — **unchanged** |
+| whole-run control arm, every stone stripped | 394 / 395 | **393 / 395** |
+| the same pairs with the stones removed | 392 / 393 | **391 / 393** |
+| median completed turns before divergence | 1 | 1 — unchanged |
+| classes | 13 | 13 |
+| `event missing from medicham2` | 145 | **134** |
+| `unrelated event mismatch` | 100 | 106 |
+| `-damage field 3` | 44 | 48 |
+| `extra event emitted by medicham2` | 37 | 38 |
+| `turn order` | 13 | 14 |
+| `ordering` | 41 | 41 |
+| `-heal field 3` | 2 | **1** |
+| **distinct moves the driver got to CONNECT** | 173 → 169 (WIRE 2) | **174** |
+| `not_exercised` | 7 | 7 — the identical seven |
+| census mechanics reached by a connecting move | 104 | 104 |
+| mega evolutions issued and executed in both engines | 504 | **518** |
+
+**THE COVERAGE COST WENT THE OTHER WAY THIS TIME, AND IT IS STILL WORTH STATING.** WIRE 2 cost four
+connected moves (173 → 169) because a correctly-resetting shield goes up more often. This wire **buys
+five back, 169 → 174**, and `not_exercised` is the same list of seven — a scoped refusal means a Charm,
+a Parting Shot and a Breaking Swipe now *do something* instead of being silently eaten. Distinct species
+fell 257 → 256, which is the same mechanism working against it and is reported rather than omitted.
+
+**THE DEPTH NUMBER IS `mega evolutions`, NOT `total_lines_collapsed`.** Filed item (6) stands:
+`total_lines_collapsed` is quadratic in depth (54,773 → 56,906 here) and is not a line count. Mega
+evolutions are individual in-game events counted once each, agreed by both engines, and 504 → 518 is a
+2.8% deeper run on the same 395 games.
+
+**THE ONE SURVIVOR OF THE FAMILY IS NOT A REFUSAL BUG.** It reads
+`extra event emitted by medicham2 :: |-fail|p2a|unboost|[from]clearbody <> |-heal|p1a|H/H|[from]hospitality`
+— the `-fail` is correct and is landing at the wrong point in the ENTRY-EFFECT ORDER, beside the
+already-present `|turn|1 <> |-heal|p2a|H/H|[from]hospitality` (9 games → 10). Filed as (10).
+
+**THREE THINGS FOUND ON THE WAY, FILED AND NOT FIXED:**
+
+8. **GUARD DOG DOES NOT REFUSE INTIMIDATE — IT REVERSES IT, AND THIS ENGINE STILL BLOCKS.** Measured in
+   the authority: an Okidogi met by Intimidate emits `|-ability|p2a: Okidogi|Guard Dog|boost` then
+   `|-boost|p2a: Okidogi|atk|1` and ends at **atk stage +1**; medicham2 leaves it at 0. It is the same
+   `onTryBoost` family and the same one gate, but it is a BOOST rather than a refusal and needs its own
+   probe, so it was left at its pre-wire behaviour rather than guessed at. Exposure in the store is
+   small — Guard Dog does not appear in `data/games.ladder.jsonl` at all — which is why it is filed
+   rather than bundled.
+9. **MIRROR ARMOR REFLECTS THE DROP BACK AT THE SOURCE AND ANNOUNCES `|-ability|X|Mirror Armor|`.**
+   `data/abilities.ts` deletes the boost, adds the ability line, and applies the negative boost to the
+   SOURCE. medicham2 blocks it, which is right about the holder and wrong about the attacker; the new
+   gate deliberately suppresses the `-fail` for it (`REFLECTS_DROP`) rather than inventing a line
+   Showdown does not write. ~390 mentions in the store, on Corviknight.
+10. **THE ENTRY-EFFECT ORDER PUTS HOSPITALITY'S HEAL IN THE WRONG PLACE.** Two shapes, both present
+    before this wire and both grown by one game as games run deeper: `|turn|1 <> |-heal|…hospitality`
+    (9 → 10) and the surviving `-fail` above. WIRE 123 ordered the entry ABILITIES by Speed; the heal
+    itself appears to resolve after the announcement block rather than inside it. Not measured further —
+    it is a different wire.
 
 ## MEGA EVOLUTION IS A CHOICE NOW, MADE MID-TURN, AND THE DIFFERENTIAL HAS ITS MEGAS BACK. ROADMAP #31 + #68. 2026-08-07.
 

@@ -2200,7 +2200,15 @@ const ABILITY_TAGS = [
     of: a => {
       const src = String(a.onTryBoost || '') + String(a.onAllyTryBoost || '');
       if (!src) return null;
+      /* WHICH EFFECT the refusal is scoped to, and it is the difference between a real block and an
+       * invented one. Inner Focus, Oblivious, Own Tempo, Scrappy and Guard Dog all open
+       * `if (effect.name === 'Intimidate' && boost.atk)` -- they refuse INTIMIDATE and nothing else,
+       * so `blocks: 'atk'` alone said they stop Charm, Parting Shot and Breaking Swipe as well.
+       * Measured against the official engine before this was added: Charm into Inner Focus is
+       * `|-unboost|p2b: Gallade|atk|2` in Showdown and was stage 0 in medicham2. WIRE 3. */
+      const only = (src.match(/effect\.name\s*===?\s*['"]([^'"]+)['"]/) || [])[1] || null;
       return { blocks: statsBlockedIn(src) || 'all stats',
+               onlyFrom: only,
                onlyGrassTypes: /hasType\("Grass"\)/.test(src) || null,
                protectsAllies: !!a.onAllyTryBoost || null };
     } },

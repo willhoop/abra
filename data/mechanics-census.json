@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-07T04:33:47.208Z",
+  "generated": "2026-08-07T05:48:53.679Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 245,
-  "live": 244,
+  "probed": 247,
+  "live": 246,
   "missing": 1,
-  "armed": 245,
+  "armed": 247,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -337,6 +337,26 @@
       "label": "Clear Body refuses Intimidate",
       "live": true,
       "detail": "atk stage after a real Intimidate switch-in — holder: none -1, Clear Body 0 (must be 0); its PARTNER, no ability either way: -1 / -1 (must both be -1, or the Intimidate never fired)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "preventsStatDrop",
+      "label": "Inner Focus refuses INTIMIDATE and nothing else — a Charm still lands",
+      "live": true,
+      "detail": "one Gallade, one Inner Focus, two sources of an Attack drop — Charm -2 (must be -2, the official engine lands it) vs Intimidate 0 (must be 0); the no-ability partner takes -1 from the same Intimidate",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "preventsStatDrop",
+      "label": "a refused stat drop is ANNOUNCED, naming the ability and (when scoped) the stat",
+      "live": true,
+      "detail": "one Intimidate switch-in, canonised — no abilities: [\"|-unboost|p2a:metagross|atk|1\",\"|-unboost|p2b:gallade|atk|1\"]; Clear Body + Inner Focus: [\"|-fail|p2a:metagross|unboost|[from]ability:clearbody|[of]p2a:metagross\",\"|-fail|p2b:gallade|unboost|attack|[from]ability:innerfocus|[of]p2b:gallade\"] (the blanket refuser names no stat, the scoped one names Attack — Showdown's own two shapes)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2086,7 +2106,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 26.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.4% (format 20, generic 30), control Rock Slide 26.5% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

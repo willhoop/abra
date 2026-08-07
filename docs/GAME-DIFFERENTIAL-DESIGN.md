@@ -1,8 +1,8 @@
 # The whole-game differential — design, and the research it is taken from
 
-**Version 3.61.2 · Last updated 2026-08-07**
+**Version 3.61.3 · Last updated 2026-08-07**
 
-**THE DIFFERENTIAL HAS RUN, AND MEGAS ARE IN IT (3.61.2).** `engine/game_differential.js` plays a real
+**THE DIFFERENTIAL HAS RUN, AND MEGAS ARE IN IT (3.61.3).** `engine/game_differential.js` plays a real
 stored team through MEDICHAM and through the official Showdown engine, step for step, against a stamped
 frozen release. **Read every figure from `data/game-differential.json`, never from this sentence** — the
 first version of this paragraph quoted a run that a later one replaced within the day, which is the
@@ -224,7 +224,7 @@ is `data/diff-swarm.json`. **The two are different denominators and must not be 
 mistake was made and corrected on 2026-08-06 when `tags.json` counts were quoted against
 `tests/regulation_usage.js` counts, which disagree by up to 13× (ROADMAP #70).
 
-**Re-derived 2026-08-06 (3.61.2) from the current `data/tags.json`** (`sheet_entries` 119,616). The
+**Re-derived 2026-08-06 (3.61.3) from the current `data/tags.json`** (`sheet_entries` 119,616). The
 column below used to hold a stale snapshot and `tests/test-docs-current.js` could only see two cells
 of it — Trick Room and Wide Guard, whose old values 7,423 and 3,353 appear in no artifact. **The other
 thirteen passed by coincidence**: 74,245, 13,292, 424 and 76 all happen to occur in unrelated files

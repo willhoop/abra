@@ -10,6 +10,55 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.61.3] — 2026-08-07
+
+### Fixed
+- **WIRE 3 — REFUSED STAT DROPS. IT WAS TWO BUGS, NOT ONE, AND THE SECOND IS THE EXPENSIVE ONE.** The
+  spec asked which of the two it was; the answer, measured on STATE (`boosts.at` after switch-in) before
+  a line changed, is **both**:
+
+  | | medicham2 | Showdown | |
+  |---|---|---|---|
+  | Intimidate → Clear Body | atk **0** | atk **0** | blocked-but-silent — a protocol bug |
+  | Charm (−2) → Inner Focus | atk **0** | atk **−2** | **refused here, applied there — a STATE bug** |
+
+  **We were refusing stat drops that should land.** Inner Focus blocks *Intimidate*, not Charm. Three
+  separate sites decided "is this drop refused" and **none read the tag's `blocks` param** — a ten-name
+  `INTIM_IMMUNE` list, `TAGS.has(…,'preventsStatDrop')` used as a **boolean** at both move-inflicted
+  sites, and a hardcoded `clearbody‖whitesmoke‖fullmetalbody` triple in the secondary block. From
+  `data/abilities.ts`: Keen Eye / Illuminate / Mind's Eye delete `boost.accuracy` **only**, Big Pecks
+  `boost.def` **only**, and Inner Focus / Oblivious / Own Tempo / Scrappy fire **only** on
+  `effect.name === 'Intimidate'`. **All eight took a Charm at stage 0 and now take −2.** One gate, four
+  callers, with `preventsStatDrop.onlyFrom` added to `engine/tag_dex.js`.
+
+### Changed
+- Target family `|-fail|X|unboost|…` **16 games → 1**. All `-fail` mentions **81 → 67**.
+  `event missing from medicham2` 145 → 134.
+- Census **244/245 → 246/247 live**. Red demonstrations **134 → 136**, 0 failed.
+- **Coverage went UP this time: distinct moves connected 169 → 174.** A scoped refusal means Charm,
+  Parting Shot and Breaking Swipe now *do* something instead of being eaten. Distinct species fell
+  257 → 256 — the same mechanism working the other way, reported rather than omitted.
+- Divergence unchanged at 393/395; median unchanged at 1 turn.
+- `docs/ADR-002` no longer quotes the census count. **That figure moved four times in one night and was
+  hand-corrected three of them**; it now points at the artifact, like the store counts in
+  `docs/GAME-DIFFERENTIAL-DESIGN.md`.
+
+### Notes
+- **A THIRD PROBE FOUND ENCODING ITS BUG.** `Clear Body refuses Intimidate` was green — on an engine
+  that refused *everything* from *everyone*. WIRE 2 found the same shape (a probe that stopped one turn
+  before the turn that separates the engines). **Three in three wires.** A probe that only ever asserts
+  the behaviour the engine already has cannot fail, and "armed" does not fix that — the red
+  demonstration proves the probe detects *a* break, not that it watches the *right* case.
+- Three WIREs filed: **Guard Dog REVERSES Intimidate** — measured in the authority, Okidogi ends at
+  **atk +1** with `|-ability|…|Guard Dog|boost`, where we leave it at 0; **Mirror Armor reflects the
+  drop back at the source** (~390 store mentions) and the new gate deliberately suppresses `-fail`
+  for it rather than inventing a line Showdown never writes; and **Hospitality's heal sits at the wrong
+  point in the entry-effect order**, which is also the one survivor of the target family.
+- Depth reported as **mega evolutions 504 → 518**, real counted events. `total_lines_collapsed` is not
+  quoted, per 3.61.2 — it is quadratic in depth.
+
+---
+
 ## [3.61.2] — 2026-08-07
 
 ### Fixed

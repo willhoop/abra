@@ -2,9 +2,9 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.61.2 · Last updated 2026-08-07**
+**Version 3.61.3 · Last updated 2026-08-07**
 
-**THE DIFFERENTIAL HAS RUN, AND MEGAS ARE IN IT (3.61.2).** `engine/game_differential.js` plays a real
+**THE DIFFERENTIAL HAS RUN, AND MEGAS ARE IN IT (3.61.3).** `engine/game_differential.js` plays a real
 stored team through MEDICHAM and through the official Showdown engine, step for step, against a stamped
 frozen release. **Read every figure from `data/game-differential.json`, never from this sentence** — the
 first version of this paragraph quoted a run that a later one replaced within the day, which is the
@@ -34,7 +34,7 @@ empirical finding governs its design: **predicting the winner of a game from the
 near-impossible in this format — even a player-Elo model ties a coin.** ABRA therefore does not sell
 outcome prediction. It follows the recipe that worked in poker, Diplomacy, and sports analytics:
 *support decisions, don't predict outcomes*, and judge every model by a proper score against an honest
-baseline with a confidence interval. **As of 3.61.2 the headline metric is exploitability rather than
+baseline with a confidence interval. **As of 3.61.3 the headline metric is exploitability rather than
 win rate** (§0, ADR-003): VGC is formally an imperfect-information game, the only prior work in this
 exact format measures its own agents at approximately 100% exploitable despite beating a
 professional, and the thesis under test is that a per-turn re-solving agent is harder to exploit than
@@ -43,7 +43,7 @@ states that thesis and its metric, the empirical ceiling, the data model, each m
 validated result (including two honest negatives), the mathematics, the limits, and the road to the
 in-battle engine (ALAKAZAM).
 
-## 0. The thesis, and the metric that follows from it (3.61.2)
+## 0. The thesis, and the metric that follows from it (3.61.3)
 
 **This project's headline metric is exploitability, not win rate.** The change is recorded in
 ADR-003 and it is forced by a measurement somebody else made.
@@ -226,7 +226,7 @@ ground-truth) on 31 meta scenarios: **within 5% on 100% of scenarios, median err
 Every model that reasons about damage builds on this, and "will this move KO?" is a *winnable*
 prediction, unlike "who wins the game."
 
-### 3.0 Why a hand-written engine exists at all, and the corrected speed figure (3.61.2)
+### 3.0 Why a hand-written engine exists at all, and the corrected speed figure (3.61.3)
 
 **ADR-001 decided this architecture on a benchmark of 29 against 3,401 battles/sec/core — a ratio of
 117x — and that ratio does not reproduce.** Re-measured on the same machine, both engines on the same
@@ -474,7 +474,7 @@ cores beat which" and for quantifying how cyclic the meta really is.
    contained them, labelled as inferred rather than observed on every field.
 
 7. **The headline metric has no current value, and that is the largest limitation in this paper**
-   (added 3.61.2). §0 makes exploitability the number this project is judged on, and
+   (added 3.61.3). §0 makes exploitability the number this project is judged on, and
    `data/exploitability.json` is declared void: the 2026-07-26 figure was fitted on 17 features
    against the 58 shipped, on an engine 25 wire-fixes old and before the quality filter existed, and
    the 2026-08-04 re-run had `data/policy-weights.json` — the defender itself — refitted at 22:15:24
@@ -485,7 +485,7 @@ cores beat which" and for quantifying how cyclic the meta really is.
    rather than a hypothetical one.
 
 8. **Two speed readings of the same engine differ by an order of magnitude and nothing caught it**
-   (added 3.61.2, §3.0). 3,401, 1,606 and 13,041 are three measurements of MEDICHAM's throughput
+   (added 3.61.3, §3.0). 3,401, 1,606 and 13,041 are three measurements of MEDICHAM's throughput
    taken over two weeks; the first two are battles/sec and the third is turns/sec, and no ratchet,
    test or artifact compares any of them. A project whose central architectural decision rests on a
    speed ratio should measure that ratio the way it measures a win rate. It does not, yet.
@@ -503,7 +503,7 @@ millions of human + self-play games and a rented cloud GPU. It is judged on deci
 self-play/ladder win-rate with CIs — never on predicting the winner. A self-play data engine (MEW) is
 the pacing item toward the millions of games that path needs.
 
-**Sequenced by the four phases (3.61.2, §0.3).** ALAKAZAM as described above is phase 3. It is
+**Sequenced by the four phases (3.61.3, §0.3).** ALAKAZAM as described above is phase 3. It is
 reached only through phase 1 (MEDICHAM complete — a search needs an engine that is both fast and
 correct) and phase 2 (the gate: MILTANK untimed against MILTANK on the clock, ROADMAP #62, which
 decides whether compute buys anything at all). If phase 2 says no, phase 4 replaces this road with
