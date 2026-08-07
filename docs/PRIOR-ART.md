@@ -72,20 +72,29 @@ defines the observation dimensions) and lets it learn its own representation.
 
 Collinearity is a pathology of the first design only. When two named columns say nearly the same
 thing, the fit cannot attribute credit and may hand one a negative weight to cancel the other's
-overshoot — which is `data/collinearity-audit.json` exactly:
+overshoot. **That this HAPPENS in our model is established; every MAGNITUDE we had for it is
+withdrawn.**
 
-| feature | alone | in company | humans prefer it |
-|---|---|---|---|
-| `koTarget` | +1.01 | +0.014 | 1.57× |
-| `koFirst` | +1.09 | +0.143 | 1.92× |
-| `killsThreat` | +0.75 | **−0.057** | 1.62× |
+> **RETRACTED 2026-08-06.** `data/collinearity-audit.json` and `data/policy-weights.json` were both
+> produced against an engine that has since been corrected. The weights are stamped
+> `2026-08-05T04:00:43Z`; commit `3be3f3b` at **16:47 the same day** rewrote `movesFirst` in
+> `engine/board.js` — *"MAG stops re-deriving turn order"* — because the old path carried **no dynamic
+> speed at all**, so a Tailwind that speeds you up this turn was invisible. Nine further engine commits
+> followed on 2026-08-06, including WIRES 123–132 and the whole accuracy family. **No weight, standard
+> error, held-out likelihood or top-1 accuracy from that fit may be quoted.**
+>
+> `engine/feature_fixture.js` reports all 76 feature hashes UNCHANGED across that commit, including
+> `movesFirst`. **The guard is blind, and this is the proof** — its 10 scenarios never construct a live
+> speed inversion, so a rewrite of the feature it is watching moves no hash (ROADMAP #78).
 
 A net has nothing to audit because nothing was named. **The trade is interpretability against a
 diagnosis burden**, and both halves are real — we can argue about a weight and they cannot, and they
 have no collinearity problem and we do.
 
-**Statistical capacity is not why our set is 58.** 186,494 training decisions over 58 weights is 3,215
-per weight, against a conventional bar of 10–20. The count is limited by SPEED — every feature is
+**Statistical capacity is not why our set is 58.** The corpus holds ~186k training decisions against
+58 weights — roughly 3,000 per weight, against a conventional bar of 10–20. (Approximate on purpose:
+the decision count depends on legal-action enumeration, which is engine code.) The count is limited by
+SPEED — every feature is
 recomputed per candidate, per rollout — not by data. See ROADMAP #79 for how the set actually came
 about, which is: four hand-written batches, no admission rule, no duplication check.
 

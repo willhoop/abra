@@ -122,7 +122,7 @@ this one move, turn 1", it is a WIRE.
 
 ## 3. Team selection — a swarm, not a sample
 
-Teams come from **`data/games.ladder.jsonl`**, 46,612 real games with real items, spreads and
+Teams come from **`data/games.ladder.jsonl`** — the whole ladder store, real games with real items, spreads and
 movesets. Real teams matter because a generated team is a team nobody would bring, and the mechanics
 that matter are the ones people actually click.
 
@@ -323,11 +323,14 @@ on a narrow set of strong lines, which is the uniform-sampling failure one level
 3. **Mode B keeps a separate driver.** Distribution comparison needs unbiased sampling over actions,
    not coverage-biased selection, or the rates being measured are the driver's and not the engine's.
 
-**And the fringe arrives in BUNDLES, which the driver must not break apart.** Measured: **252 of 252
+**And the fringe arrives in BUNDLES, which the driver must not break apart.** *(Corpus sizes are
+deliberately not printed in this document. Two hand-typed store counts here had already drifted apart
+from each other and from the file — `node engine/status.js` prints the live figure.)* Measured:
+**252 of 252
 declared Quash carriers in the open-sheet corpus are Sableye with Prankster — 100%.** Quash is
 priority 0 and therefore fails whenever the target has already moved; Prankster's +1 is the entire
-reason the move is playable. So "test Quash" without Prankster tests a configuration **nobody in
-46,987 games has ever brought**. Real teams carry these bundles for free; a team generator would have
+reason the move is playable. So "test Quash" without Prankster tests a configuration **that
+nobody in the entire ladder store has ever brought**. Real teams carry these bundles for free; a team generator would have
 scattered Quash across random bodies and produced only the version that does not exist. It is the
 strongest single argument in this document for §3's insistence that teams come from the store.
 
