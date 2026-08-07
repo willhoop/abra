@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-07T08:12:34.767Z",
+  "generated": "2026-08-07T10:52:11.493Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 252,
-  "live": 251,
+  "probed": 259,
+  "live": 258,
   "missing": 1,
-  "armed": 252,
+  "armed": 259,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2136,7 +2136,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 26.3% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 28.1% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2446,7 +2446,7 @@
       "tag": "substitute",
       "label": "the doll absorbs the hit, a sound move goes through it, and a second click fails free",
       "live": true,
-      "detail": "Ice Beam into a Garchomp -- after Howl 183, after Substitute 0 (the doll cost 45); Hyper Voice (bypasssub) through the doll 45 with 45 doll left; Will-O-Wisp -- with a sub -, without brn; a SECOND Substitute costs 0",
+      "detail": "Ice Beam into a Garchomp -- after Howl 183, after Substitute 0 (the doll cost 45); Hyper Voice (bypasssub) through the doll 45 with 46 doll left; Will-O-Wisp -- with a sub -, without brn; a SECOND Substitute costs 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2456,7 +2456,7 @@
       "tag": "ignoresScreensAndSubs",
       "label": "Infiltrator hits the body behind a substitute",
       "live": true,
-      "detail": "Ice Beam into a substituted Garchomp -- no ability 0, Infiltrator 138 with the doll still standing at 45",
+      "detail": "Ice Beam into a substituted Garchomp -- no ability 0, Infiltrator 138 with the doll still standing at 46",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2527,6 +2527,76 @@
       "label": "every action kind the engine can resolve announces its |move| line",
       "live": true,
       "detail": "27/27 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "healsAllyOnSwitchIn",
+      "label": "Hospitality at a FULL-HP partner announces nothing at all",
+      "live": true,
+      "detail": "entry lines emitted — partner on a third 1 [|-heal|p1b: corviknight|101/173|[from] ability: hospitality|[of] p1a: sinistcha]; partner at FULL 0 [none] and its hp did not move (173/173); no ability at all 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "removesItem",
+      "label": "Knock Off cannot take the Focus Sash that just saved the target",
+      "live": true,
+      "detail": "a lethal Knock Off into a full-HP Gengar — no item FAINTED; Focus Sash 1 hp, item \"\"",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "takesTargetItem",
+      "label": "a mega stone cannot be knocked off the body it belongs to",
+      "live": true,
+      "detail": "Knock Off a Gengarite — off a GARCHOMP it leaves \"\" (must be empty, it is not that body's stone); off a GENGAR it leaves \"gengarite\" (must still be there)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "healsAtThreshold",
+      "label": "the Sitrus is eaten BETWEEN the two attackers, so the second hit is survived",
+      "live": true,
+      "detail": "a Corviknight on 81% taking TWO Scalds in one turn — no item FAINTED; Sitrus 23 hp, berry spent",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "substitute",
+      "label": "the doll is a ROUNDED-UP quarter, and the cost is not",
+      "live": true,
+      "detail": "a 183 HP Garchomp clicking Substitute — it PAID 45 (floor, 45) and the doll is 46 (ceil, 46); the two roundings differ here and agree on a 200 HP body, which is why the two arms are the cost and the doll",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "typeBecomesMoveType",
+      "label": "Protean gives the move it converts into its STAB",
+      "live": true,
+      "detail": "Earthquake (Ground — a type Meowscarada does not have) into an unfaintable Ceruledge: no ability 123, Protean 184 (must be ~x1.5, the STAB the conversion buys)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "redirects",
+      "label": "a Follow Me redirect adds no line, and a Lightning Rod redirect adds an -activate",
+      "live": true,
+      "detail": "announcement lines on a redirected Thunderbolt — no redirector 0; Follow Me 0 [none] (Showdown writes none); Lightning Rod 1 [|-activate|p2b: milotic|ability: lightningrod]",
       "hollow": false,
       "armed": true,
       "directCall": false

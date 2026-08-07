@@ -10,6 +10,68 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.64.0] — 2026-08-07
+
+### Fixed
+- **WIRE 7 — a BATCH of seven targets, and TWO OF THEM HAD NO DEFECT.** That is half the result and it
+  is reported first.
+  - **FOCUS SASH: nothing was wired, because nothing was wrong.** Staged in both engines, Showdown
+    writes `|-enditem|Focus Sash` then `|-damage|1/103`; so does `medicham2` — same order, same 1 HP,
+    same spent item. **It was ranked by ITEM USAGE (14,668), not by divergence.** The ladder's top rung
+    carries exactly ONE `focussash` cause and it is the Knock Off bug wearing a Sash.
+  - **REDIRECTION vs IMMUNITY: the diagnosis was wrong and INVERTED.** `onFoeRedirectTarget` is already
+    gated on `validTarget` and, for Rage Powder, `runStatusImmunity('powder')`, both of which this
+    engine asks. The real defect was the *announcement*, the other way round: we emitted an
+    `|-activate|move: followme` Showdown never writes, and omitted the `|-activate|ability: Lightning
+    Rod` it does.
+  - **SHED TAIL: the claim was stale** — WIRE 130 already builds the doll. Wrong were the order and the
+    rounding.
+- **The six that landed:** Hospitality's full-HP gate and its phantom `|-ability|`; Knock Off stripping
+  before the damage and taking mega stones (**75 legal items declare `onTakeItem` in this format and all
+  75 are mega stones**); a self-eaten resist berry recorded as knocked off, writing one line where
+  Showdown writes two; pinch and status berries firing at the residual instead of `eachEvent('Update')`;
+  the Substitute doll floored instead of `ceil(maxhp/4)`, with its `-start` after the `-damage`; and
+  **Protean converting after the move resolved** — measured, Meowscarada's Earthquake into an
+  unfaintable Ceruledge reads **123 with no ability, 123 with Protean, 184 after the fix.** The
+  ability's entire offensive half was worth exactly zero.
+
+### Changed
+- Census **251/252 → 258/259 live**. Red demonstrations **142 → 151**, 0 failed, each shown red on a
+  source-reverted engine.
+- **THE MEDIAN FIRST-DIVERGENCE LINE MOVED FOR THE FIRST TIME IN THE SERIES — 14 → 16**, and the paired
+  `median_delta_lines` against the baseline is **1**, the first non-zero. p90 **55 → 89**, mean
+  **23.36 → 27.75**. Whole games agreeing **33 → 64** (baseline 6).
+- **THE MEDIAN COMPLETED TURN IS STILL 1.** Seven wires have not moved it.
+- Net vs baseline **1,060 later / 178 earlier / +882**; vs WIRE 6 **533 later / 174 earlier / +359**.
+- Per-family, both arms re-run alone and asserted COMPARABLE: `hospitality` **251 → 0**; `knockoff`
+  90 → 21; redirect 63 → 15; `protean` 39 → 19; `sitrusberry` 38 → 6; `substitute` 31 → 3; `focussash`
+  7 → 3 (nothing wired — a consequence of the Knock Off fix); `shedtail` 6 → 2.
+- `-damage field 3` went **UP** 169 → 257: games surviving 16 lines reach bugs the earlier arms could
+  not get to.
+
+### Notes
+- **MY RANKING HEURISTIC WAS WRONG, AND THIS IS THE THIRD CORRECTION TO IT IN ONE NIGHT.** I first
+  picked targets because they were interesting to read (Shed Tail, 64 uses), then over-corrected to
+  entity usage (Focus Sash, 14,668) — and **entity usage is not bug frequency.** A Sash appears in a
+  seventh of all games and diverges in one cause. The correct rank is by the DIVERGENCE's own weight —
+  how many games it parts, times how often the entity occurs — which is what the per-family table above
+  actually measures and what the next batch will be chosen on.
+- **THREE INSTRUMENTS WENT RED BECAUSE THE ENGINE GOT BETTER, AND THE BAR WAS NOT LOWERED.** Two §5a
+  directed scenarios stopped diverging and now declare `expect: 'agree'` + `closed_by`, failing loudly
+  if they re-open. A scripted game ran past the end of its one-turn script and reported a FIXED engine
+  as `THREW`. The `ordering` acceptance test needed a live case, and one was staged **from the ladder's
+  own surviving causes** rather than by relaxing the assertion. `wire_ladder.js` refused to publish the
+  arm at all ("1994 games vs 1995") — a recharging body's `recharge` pseudo-move is not a dex entry, so
+  the driver answered `pass` and Showdown rejected it; now counted as `declared_gaps.forced_first_slot`.
+- Declared and not fixed: Hospitality's `onSwitchInPriority: -2` (16 abilities carry one, `tags.json`
+  carries none); Shed Tail's missing self-switch and `ceil(maxhp/2)` cost; Lightning Rod not drawing its
+  own ally's move (10 rows); and Protean now converting on ~9 moves Showdown fails at `Try`, traded
+  against 20 it previously missed.
+- **`status.js` still opens FEATURE SEMANTICS CHECK FAILED on eight features. This wire adds to it and
+  cannot close it** — a refit is MEASURE's and stays gated behind MEDICHAM per Will's standing call.
+
+---
+
 ## [3.63.0] — 2026-08-07
 
 ### Added

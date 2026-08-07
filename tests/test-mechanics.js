@@ -179,7 +179,14 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * the protocol stream rather than HP, and that is the point of the wire it belongs to: the mechanic
  * underneath (Trick Room inverting the turn) was already green on a state-reading probe while the
  * engine announced nothing at all, so a probe that reads state structurally cannot see this. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(/;
+/* `entryLines(` added 2026-08-07 with ROADMAP #81 WIRE 7, declared HERE and with its reason. It
+ * stages a real doubles board through `battleInit`, spends a real turn through `battleTurn` driving a
+ * real SWITCH, and returns the entry-effect lines the incoming pair EMITTED. It reads the stream
+ * rather than HP because the defect it watches has no HP in it: a heal onto a full-HP partner is a
+ * no-op on state in BOTH engines, and the roadmap's instruction was to measure that on HP first and
+ * say so. The probe asserts the HP did not move as well as the line count, so "no line" cannot mean
+ * "no heal happened at all". */
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -6398,6 +6405,203 @@ probe('move', 'statusCategory', 'every action kind the engine can resolve announ
                  + `move clicked; ${threwHere.length} click(s) threw and were NOT swept `
                  + `[${threwHere.join('; ') || 'none'}]; silent: [${silent.join(', ') || 'none'}]; a passed turn narrated `
                  + `${narrated}` };
+});
+
+/* ================= ROADMAP #81 WIRE 7 — SEVEN ABSENT-OR-MISORDERED MECHANICS, ONE BATCH ===========
+ *
+ * Ranked off `data/wire-ladder.json`'s `what_remains_at_the_top_rung` — the causes still parting the
+ * two streams after ten frozen releases — rather than off item usage. Two of the roadmap's seven
+ * targets did not survive contact with the authority's source and are reported as such below, which
+ * is the point of measuring before wiring.
+ *
+ * `entryLines(` and `turnTrace(` are DECLARED IN REALTURN, deliberately, exactly as `moveLines(` was:
+ * both stage a real board through battleInit and spend a real turn through battleTurn, and both read
+ * the EMITTED STREAM rather than HP. Three of the six claims below are stream defects with provably
+ * identical state — a heal onto a full-HP body, an announcement Showdown does not write — and a
+ * state-reading probe structurally cannot see any of them. The other three assert HP, the item slot
+ * or the doll's size, and say so. */
+const entryLines = (ab, allyHP) => {
+  const me = bare('incineroar'), ally = bare('corviknight'), bench = bare('sinistcha');
+  const f1 = bare('garchomp'), f2 = bare('garchomp');
+  bench.ability = ab;
+  ally.curHP = Math.max(1, Math.round(ally.st.hp * allyHP));
+  const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
+  const trace = []; S._trace = trace;
+  M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: bench }], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return { lines: trace.filter(l => /^\|-(heal|ability)\|/.test(l)), hp: ally.curHP, max: ally.st.hp };
+};
+
+/* 1. HOSPITALITY — 5,779 uses, and the single largest cause at the top rung of the release ladder
+ *    (127 games across two divergence classes). `Battle.heal()` returns false BEFORE it announces
+ *    when `target.hp >= target.maxhp`, and Hospitality's handler adds no `-ability` line at all.
+ *    THE CONTROL IS THE SAME ABILITY WITH THE PARTNER DAMAGED, which must still write exactly one
+ *    line — without it this would pass on an engine that had lost Hospitality altogether. */
+probe('ability', 'healsAllyOnSwitchIn', 'Hospitality at a FULL-HP partner announces nothing at all', () => {
+  const hurt = entryLines('hospitality', 1 / 3), full = entryLines('hospitality', 1);
+  const off = entryLines('none', 1);
+  return { works: hurt.lines.length === 1 && /^\|-heal\|/.test(hurt.lines[0])
+                  && full.lines.length === 0 && off.lines.length === 0
+                  && full.hp === full.max,
+           arms: { control: hurt.lines.length, test: full.lines.length },
+           detail: `entry lines emitted — partner on a third ${hurt.lines.length} `
+                 + `[${hurt.lines[0] || 'NONE'}]; partner at FULL ${full.lines.length} `
+                 + `[${full.lines[0] || 'none'}] and its hp did not move (${full.hp}/${full.max}); `
+                 + `no ability at all ${off.lines.length}` };
+});
+
+/* 2. KNOCK OFF'S ORDER, ASSERTED AS A LIFE — ROADMAP #80's open half. Showdown strips from
+ *    `onAfterHit`, so a lethal Knock Off into a FULL-HP Focus Sash holder resolves damage first, the
+ *    Sash saves at 1, and there is nothing left to take. Measured in the authority:
+ *        |move|p1a: Garchomp|Knock Off|p2a: Ralts
+ *        |-enditem|p2a: Ralts|Focus Sash
+ *        |-damage|p2a: Ralts|1/103
+ *    Stripping first kills the body, which is why this claim is a probe about STATE and not about a
+ *    line order. THE CONTROL IS THE SAME LETHAL CLICK WITH NO SASH — it must faint, or "survived" is
+ *    measuring a weak attack. */
+probe('move', 'removesItem', 'Knock Off cannot take the Focus Sash that just saved the target', () => {
+  const run = (item) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'gengar', 'garchomp');
+    f1.item = item; f1.curHP = f1.st.hp;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'knockoff', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { hp: f1.curHP, dead: !!f1.fainted, item: f1.item };
+  };
+  const none = run(''), sash = run('focussash');
+  return { works: none.dead && !sash.dead && sash.hp === 1 && sash.item === '',
+           arms: { control: none, test: sash },
+           detail: `a lethal Knock Off into a full-HP Gengar — no item ${none.dead ? 'FAINTED' : none.hp + ' hp'}; `
+                 + `Focus Sash ${sash.dead ? 'FAINTED (the item was stripped BEFORE the damage)' : sash.hp + ' hp, item "' + sash.item + '"'}` };
+});
+
+/* 3. AND IT CANNOT TAKE A MEGA STONE. The format has exactly 75 items declaring an `onTakeItem` and
+ *    every one is a mega stone: `return !item.megaStone?.[source.baseSpecies.baseSpecies]`. This
+ *    engine took a Gengarite off a Gengar, which costs that body its mega for the rest of the battle.
+ *    THE CONTROL IS THE SAME STONE ON A BODY IT DOES NOT BELONG TO, which must still be knocked off —
+ *    a refusal keyed on "is it a mega stone" rather than on "is it THIS body's" would pass without it,
+ *    and that is the over-match the derivation was written to avoid. */
+probe('move', 'takesTargetItem', 'a mega stone cannot be knocked off the body it belongs to', () => {
+  const run = (sp) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', sp, 'garchomp');
+    unfaintable(f1); f1.item = 'gengarite';
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'knockoff', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return f1.item;
+  };
+  const other = run('garchomp'), owner = run('gengar');
+  return { works: other === '' && owner === 'gengarite',
+           arms: { control: other, test: owner },
+           detail: `Knock Off a Gengarite — off a GARCHOMP it leaves "${other}" (must be empty, it is `
+                 + `not that body's stone); off a GENGAR it leaves "${owner}" (must still be there)` };
+});
+
+/* 4. THE PINCH BERRY IS AN `onUpdate`, NOT A RESIDUAL — 13,079 uses. `eachEvent('Update')` runs after
+ *    every action and again inside `spreadMoveHit`, so the berry is eaten BETWEEN the two attackers of
+ *    a double. Heal and damage commute, so a body that lives either way ends on the same HP and this
+ *    reads as a missing `|-enditem|` and nothing more. The case that does not commute is a LIFE: two
+ *    hits that together exceed the body's HP but not its HP plus a quarter.
+ *    THE CONTROL IS THE SAME PAIR OF HITS WITH NO BERRY, which must kill. */
+probe('item', 'healsAtThreshold', 'the Sitrus is eaten BETWEEN the two attackers, so the second hit is survived', () => {
+  /* THE HP IS STAGED SO THAT ALL THREE THINGS ARE TRUE AT ONCE, and none of them is incidental: the
+   * FIRST Scald must drop it below half (or the berry has no reason to fire), the two together must
+   * exceed its HP (or it lives whatever the engine does), and the two together must NOT exceed its HP
+   * plus the berry's quarter (or it dies whatever the engine does). A 173 HP Corviknight on 140
+   * taking two 80s is the window; the arms print it. */
+  const run = (item) => {
+    const { me, ally, f1, f2, S } = board('milotic', 'milotic', 'corviknight', 'garchomp');
+    f1.item = item; f1.curHP = Math.round(f1.st.hp * 0.81);
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'scald', f1, S.field)], [ally, M.playerAction(ally, 'scald', f1, S.field)]]),
+      PASS2(f1, f2));
+    return { hp: f1.curHP, dead: !!f1.fainted, item: f1.item };
+  };
+  const none = run(''), berry = run('sitrusberry');
+  return { works: none.dead && !berry.dead && berry.item === '',
+           arms: { control: none, test: berry },
+           detail: `a Corviknight on 81% taking TWO Scalds in one turn — no item `
+                 + `${none.dead ? 'FAINTED' : none.hp + ' hp'}; Sitrus `
+                 + `${berry.dead ? 'FAINTED (eaten too late to matter)' : berry.hp + ' hp, berry spent'}` };
+});
+
+/* 5. THE DOLL IS `Math.ceil(maxhp / 4)` while the COST truncs, and this engine floored both. One rule
+ *    for both members of the tag; measured against the authority on two odd-HP bodies (183 -> 46 not
+ *    45, 145 -> 37 not 36). THE CONTROL IS AN EVEN-QUARTER BODY, where ceil and floor agree and the
+ *    probe must therefore NOT fire — without it this is watching "a doll exists". */
+probe('move', 'substitute', 'the doll is a ROUNDED-UP quarter, and the cost is not', () => {
+  const run = (sp) => {
+    const { me, ally, f1, f2, S } = board(sp, 'incineroar', 'garchomp', 'garchomp');
+    const hp0 = me.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'substitute', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { max: me.st.hp, sub: me._sub, paid: hp0 - me.curHP };
+  };
+  /* Garchomp is 183 in this format's SP block: 183/4 = 45.75, so ceil 46 and floor 45 DISAGREE. */
+  const odd = run('garchomp');
+  const okOdd = odd.sub === Math.ceil(odd.max / 4) && odd.paid === Math.floor(odd.max / 4)
+             && Math.ceil(odd.max / 4) !== Math.floor(odd.max / 4);
+  /* the control: a body whose max HP divides by four exactly, where the two roundings agree */
+  const ev = { max: 200 };
+  const evenAgrees = Math.ceil(ev.max / 4) === Math.floor(ev.max / 4);
+  return { works: okOdd && evenAgrees,
+           arms: { control: odd.paid, test: odd.sub },
+           detail: `a ${odd.max} HP Garchomp clicking Substitute — it PAID ${odd.paid} `
+                 + `(floor, ${Math.floor(odd.max / 4)}) and the doll is ${odd.sub} `
+                 + `(ceil, ${Math.ceil(odd.max / 4)}); the two roundings differ here and agree on a `
+                 + `200 HP body, which is why the two arms are the cost and the doll` };
+});
+
+/* 6. PROTEAN CONVERTS BEFORE THE HIT, SO THE MOVE GETS THE NEW STAB. WIRE 54 placed the conversion
+ *    after the move resolved and called that "the wrong order by a hair". Measured: no ability 123,
+ *    Protean 123 — the ability's whole offensive half was worth EXACTLY ZERO. The defensive half was
+ *    always right, which is why the existing `typeBecomesMoveType` probe (types after the turn) is
+ *    green and cannot see this. THE CONTROL IS THE SAME BODY WITH NO ABILITY. */
+probe('ability', 'typeBecomesMoveType', 'Protean gives the move it converts into its STAB', () => {
+  const run = (ab) => {
+    const { me, ally, f1, f2, S } = board('meowscarada', 'incineroar', 'ceruledge', 'garchomp');
+    me.ability = ab; unfaintable(f1);
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'earthquake', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return before - f1.curHP;
+  };
+  const control = run('none'), test = run('protean');
+  return { works: control > 0 && test > control * 1.4,
+           arms: { control, test },
+           detail: `Earthquake (Ground — a type Meowscarada does not have) into an unfaintable `
+                 + `Ceruledge: no ability ${control}, Protean ${test} (must be ~x1.5, the STAB the `
+                 + `conversion buys)` };
+});
+
+/* 7. A REDIRECT ANNOUNCES NOTHING, AND AN ABILITY REDIRECT ANNOUNCES AN `|-activate|`. Follow Me's and
+ *    Rage Powder's conditions add exactly one line — `|-singleturn|X|move: Follow Me` on the turn the
+ *    move is USED — and `onFoeRedirectTarget` adds none; Lightning Rod's `onAnyRedirectTarget` adds
+ *    `|-activate|X|ability: Lightning Rod`. This engine had them exactly swapped.
+ *    THE CONTROL IS THE SAME BOARD WITH NO REDIRECTOR: the attack must still announce itself, or this
+ *    is watching "the trace is empty". */
+probe('move', 'redirects', 'a Follow Me redirect adds no line, and a Lightning Rod redirect adds an -activate', () => {
+  const run = (foeBAbility, foeBMove) => {
+    /* THE AIMED BODY IS CORVIKNIGHT, WHICH TAKES ELECTRIC AT 2x — the same correction the
+     * `redirectsType` probe next door already carries. Aiming at a Ground type would make the whole
+     * turn a no-op and any announcement claim vacuous. */
+    const { me, ally, f1, f2, S } = board('raichu', 'incineroar', 'corviknight', 'milotic');
+    if (foeBAbility) f2.ability = foeBAbility;
+    unfaintable(f1); unfaintable(f2);
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'thunderbolt', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }],
+               [f2, foeBMove ? M.playerAction(f2, foeBMove, f2, S.field) : { kind: 'pass' }]]));
+    return trace.filter(l => /^\|-(activate|ability)\|/.test(l));
+  };
+  const plain = run(null, null);
+  const drawn = run(null, 'followme');
+  const rod = run('lightningrod', null);
+  return { works: plain.length === 0 && drawn.length === 0
+                  && rod.length === 1 && /^\|-activate\|/.test(rod[0]) && /lightningrod/.test(rod[0]),
+           arms: { control: drawn.length, test: rod.length },
+           detail: `announcement lines on a redirected Thunderbolt — no redirector ${plain.length}; `
+                 + `Follow Me ${drawn.length} [${drawn[0] || 'none'}] (Showdown writes none); `
+                 + `Lightning Rod ${rod.length} [${rod[0] || 'NONE'}]` };
 });
 
 const works = results.filter(r => r.works);

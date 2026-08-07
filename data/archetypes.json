@@ -1,7 +1,7 @@
 {
   "generated": "auto from data/games.ladder.jsonl",
-  "n_team_sides": 17218,
-  "n_games": 8609,
+  "n_team_sides": 17474,
+  "n_games": 8737,
   "unit_note": "The clustering runs on TEAM SIDES, up to two per game. n_team_sides is the sample size for every share and silhouette below; n_games is the number of clean games they were drawn from.",
   "k_selected": 10,
   "silhouette": 0.12,
@@ -9,7 +9,7 @@
   "archetypes": [
     {
       "n": "Talonflame-Aerodactyl",
-      "share": 0.253,
+      "share": 0.266,
       "core": [
         "talonflame",
         "aerodactyl",
@@ -17,35 +17,47 @@
         "grimmsnarl"
       ],
       "signature": [],
-      "w_usage": 0.253
+      "w_usage": 0.267
     },
     {
-      "n": "Whimsicott-Garchomp",
+      "n": "Trick Room",
       "share": 0.116,
       "core": [
-        "whimsicott",
-        "garchomp",
-        "staraptor",
-        "kingambit"
+        "farigiraf",
+        "torkoal",
+        "incineroar",
+        "mawile"
       ],
       "signature": [],
       "w_usage": 0.116
     },
     {
-      "n": "Farigiraf-Kingambit",
-      "share": 0.1,
+      "n": "Incineroar-Gengar",
+      "share": 0.113,
       "core": [
-        "farigiraf",
-        "kingambit",
-        "sylveon",
-        "staraptor"
+        "incineroar",
+        "gengar",
+        "sinistcha",
+        "politoed"
       ],
       "signature": [],
-      "w_usage": 0.1
+      "w_usage": 0.113
+    },
+    {
+      "n": "Whimsicott-Garchomp",
+      "share": 0.111,
+      "core": [
+        "whimsicott",
+        "garchomp",
+        "staraptor",
+        "delphox"
+      ],
+      "signature": [],
+      "w_usage": 0.111
     },
     {
       "n": "Rain",
-      "share": 0.095,
+      "share": 0.096,
       "core": [
         "pelipper",
         "archaludon",
@@ -53,81 +65,69 @@
         "basculegion"
       ],
       "signature": [],
-      "w_usage": 0.095
-    },
-    {
-      "n": "Incineroar-Gengar",
-      "share": 0.092,
-      "core": [
-        "incineroar",
-        "gengar",
-        "politoed",
-        "archaludon"
-      ],
-      "signature": [],
-      "w_usage": 0.092
+      "w_usage": 0.096
     },
     {
       "n": "Kingambit-Basculegion",
-      "share": 0.083,
+      "share": 0.09,
       "core": [
         "kingambit",
         "basculegion",
         "sneasler",
-        "froslass"
+        "whimsicott"
       ],
       "signature": [],
-      "w_usage": 0.083
-    },
-    {
-      "n": "Charizard-Garchomp",
-      "share": 0.078,
-      "core": [
-        "charizard",
-        "garchomp",
-        "sylveon",
-        "kingambit"
-      ],
-      "signature": [
-        "basculegion"
-      ],
-      "w_usage": 0.078
-    },
-    {
-      "n": "Sinistcha-Incineroar",
-      "share": 0.072,
-      "core": [
-        "sinistcha",
-        "incineroar",
-        "sneasler",
-        "delphox"
-      ],
-      "signature": [],
-      "w_usage": 0.072
+      "w_usage": 0.09
     },
     {
       "n": "Sand",
-      "share": 0.061,
+      "share": 0.06,
       "core": [
         "tyranitar",
         "excadrill",
-        "milotic",
-        "sinistcha"
+        "sinistcha",
+        "milotic"
       ],
       "signature": [],
-      "w_usage": 0.061
+      "w_usage": 0.06
     },
     {
-      "n": "Trick Room",
-      "share": 0.051,
+      "n": "Kingambit-Garchomp",
+      "share": 0.059,
       "core": [
-        "torkoal",
-        "farigiraf",
-        "mawile",
-        "vileplume"
+        "kingambit",
+        "garchomp",
+        "sylveon",
+        "charizard"
+      ],
+      "signature": [
+        "garchomp"
+      ],
+      "w_usage": 0.059
+    },
+    {
+      "n": "Charizard-Garchomp",
+      "share": 0.05,
+      "core": [
+        "charizard",
+        "garchomp",
+        "incineroar",
+        "venusaur"
       ],
       "signature": [],
-      "w_usage": 0.051
+      "w_usage": 0.05
+    },
+    {
+      "n": "Sneasler-Sinistcha",
+      "share": 0.037,
+      "core": [
+        "sneasler",
+        "sinistcha",
+        "incineroar",
+        "delphox"
+      ],
+      "signature": [],
+      "w_usage": 0.037
     }
   ]
 }

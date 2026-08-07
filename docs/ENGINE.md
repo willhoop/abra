@@ -27,10 +27,10 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  251/252 probed mechanics live, 1 missing   (census 2026-08-07 08:12)
+  258/259 probed mechanics live, 1 missing   (census 2026-08-07 10:52)
   missing:
     move    needsTargetToAttack    Avalanche doubles after the target hits it this turn
-  1/150 differential comparisons disagree with Showdown   (2026-08-07 08:12)
+  1/150 differential comparisons disagree with Showdown   (2026-08-07 10:47)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -46,15 +46,15 @@ ENGINE — does the simulator do what Pokémon does
     DISAGREES  stoneaxe -> gooey  (secondary, 63 uses)
     DISAGREES  gigaimpact -> spikyshield  (secondary, 38 uses)
     DISAGREES  supercellslam -> kingsshield  (secondary, 85 uses)
-  release ladder: 10 frozen releases x 1995 games, one pinned census   (2026-08-07 08:58)
+  release ladder: 11 frozen releases x 1995 games, one pinned census   (2026-08-07 10:35)
     median completed turns before divergence: 1 at the baseline, 1 at the top rung  <-- UNMOVED by the whole series
-    whole-game agreement 2/1995 -> 22/1995; first-divergence line, mean 15.01 -> 23.97
-    paired against the baseline: 742 games part later, 141 EARLIER, 1112 unchanged
+    whole-game agreement 6/1995 -> 64/1995; first-divergence line, mean 14.83 -> 27.75
+    paired against the baseline: 1060 games part later, 178 EARLIER, 757 unchanged
     the baseline ran first and last and reproduced exactly; comparability: every arm cleared
   tag coverage: 162/181 probed, 19 unprobed
 ```
 
-_stamped 2026-08-07 09:11_
+_stamped 2026-08-07 10:52_
 
 <!-- /GENERATED -->
 
@@ -67,6 +67,209 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
+
+## ROADMAP #81 WIRE 7 — SIX MECHANICS IN ONE BATCH, AND THE MEDIAN FIRST-DIVERGENCE LINE MOVED FOR THE FIRST TIME. 2026-08-07.
+
+Census **251 live / 252 probed → 258 live / 259 probed.** Seven new probes, all LIVE; the one MISSING
+row (`needsTargetToAttack`) is unchanged. 0 hollow, 0 unarmed, 0 direct-call, 0 threw — every ratchet
+held. `tests/probe_red_demo.js` **142 → 151 demonstrations, 0 failed**, nine of them new.
+
+**A BATCH BECAUSE SIX SEPARATE WIRES WERE NOT PAYING.** `data/wire-ladder.json` replayed all six of
+the night's wires over 1,995 games under one pinned census and the median completed turn before
+divergence never moved off 1 at any rung. These seven targets are ABSENT OR MISORDERED MECHANICS
+rather than roots to be found, so they went together and were measured once.
+
+### What was measured BEFORE anything was wired, and what the measurement changed
+
+**Two of the roadmap's seven targets did not survive contact with the authority's source, and saying
+so is half the result.**
+
+| # | roadmap's claim | what the authority actually says |
+|---|---|---|
+| 2 | **FOCUS SASH NEVER ENDS** — 14,668 uses, "the heaviest entity in the whole artifact" | **NO DEFECT. Not wired, and nothing was changed for it.** Staged in both engines: Showdown writes `\|-enditem\|Focus Sash` then `\|-damage\|1/103`, and so does medicham2 — same order, same 1 HP, same spent item. Ranked by ITEM USAGE, not by divergence: the ladder's own cause list carries **one** `focussash` row at the top rung and it is `ordering :: \|-damage\| <> \|-enditem\|focussash\|[from]knockoff` — the Knock Off bug wearing a Sash. It fell 7 → 3 anyway, as a consequence of the Knock Off ordering fix |
+| 5 | **RAGE POWDER / FOLLOW ME BEATING A TYPE IMMUNITY** | **THE DIAGNOSIS IS WRONG.** `onFoeRedirectTarget` (data/moves.ts) is gated on `validTarget` and, for Rage Powder alone, on `runStatusImmunity('powder')` — which this engine already asks. Redirection is not gated on type immunity in either engine and both draw correctly. The defect was the ANNOUNCEMENT, and it was the opposite of what was filed: medicham2 wrote an `\|-activate\|move: followme` that Showdown never writes, and did NOT write the `\|-activate\|ability: Lightning Rod` that it does |
+| 7 | **SHED TAIL** — "Showdown starts a Substitute; we take the HP loss and make none" | **STALE.** WIRE 130 landed `grantSubstitute` and the doll has been built since. What was wrong was the ORDER and the ROUNDING, and what is still wrong is the SELF-SWITCH — see the boundaries below |
+
+### The six that landed, each with the source line it was read from
+
+| | defect | authority |
+|---|---|---|
+| **1** | **Hospitality announced a heal onto a full-HP partner, and announced an `\|-ability\|` it never has.** 5,779 uses and the single largest cause at the top rung — 127 games across two divergence classes | `Battle.heal()` returns **before** it announces: `if (target.hp >= target.maxhp) return false;`. And `hospitality`'s handler is a bare `for (const ally of pokemon.adjacentAllies()) this.heal(...)` with no `this.add('-ability')` in it, unlike Intimidate |
+| **2** | **Knock Off stripped the item BEFORE the damage** — ROADMAP #80's open half, whose damage claim was retracted | `onAfterHit` runs after. Staged: `\|-damage\|p2a: Gengar\|0 fnt` → `\|-enditem\|Life Orb\|[from] move: Knock Off` → `\|faint\|`. `takeItem` has **no hp test at all**, so a body reduced to 0 still loses it — the faint is announced last |
+| **3** | **A mega stone could be knocked off the body it belongs to** | `onTakeItem(item, source) { return !item.megaStone?.[source.baseSpecies.baseSpecies] }`. **MEASURED over the format**: exactly **75** legal items declare an `onTakeItem` and **all 75 are mega stones** — no Z-crystal, no plate, no Griseous Orb in Champions. This is a STATE bug: the body could not mega for the rest of the battle |
+| **4** | **A self-eaten resist berry was recorded as KNOCKED OFF, and wrote one line where Showdown writes two** | Colbur is `onSourceModifyDamage` — it fires INSIDE the calculation, so `onAfterHit` finds nothing. `eatItem()` writes `[eat]` and the handler then writes `[weaken]`. Harvest, Recycle, Belch, Cud Chew and Unburden all read that difference |
+| **5** | **The pinch and status berries fired only at the RESIDUAL** — Sitrus is 13,079 uses | They are `onUpdate`, and `Battle.eachEvent('Update')` runs after **every action** plus once inside `spreadMoveHit` right after the damage. So the berry is eaten BETWEEN the two attackers of a double |
+| **6** | **The substitute doll was a floored quarter, its `-start` came after the `-damage`, and a second `-start` was emitted** | `this.effectState.hp = Math.ceil(target.maxhp / 4)` while the cost is `directDamage(maxhp / 4)`, which truncs — **ceil for the doll, floor for the cost, one rule for both members**. `moveHit` adds `volatileStatus` and only then calls `onHit`, where the `directDamage` lives |
+| **7** | **Protean converted AFTER the move resolved, so it was worth exactly zero on offence** | `onPrepareHit` fires at `battle-actions.ts:591`, **above the whole eight-step hit list** — before invulnerability, before the TryHit that Protect answers, before type immunity and before the accuracy roll |
+
+**PROTEAN'S OFFENSIVE HALF WAS WORTH NOTHING AND THE OLD COMMENT SAID SO WITHOUT MEANING IT.** WIRE 54
+placed the conversion below every branch of the resolved move and called it "the wrong order by a
+hair", on the belief that moving it would mean re-pricing `d`. `d` is recomputed at the hit site per
+target, so it cost nothing. Measured, Meowscarada's Earthquake into an unfaintable Ceruledge:
+
+| | no ability | Protean |
+|---|---|---|
+| before | 123 | **123** |
+| after | 123 | **184** |
+
+### The one derivation that needed measuring before it was wired
+
+`itemRefusesTake` reads the artifact's own `megaStone.into` table — **and deliberately not through
+`megaKeyFor`**, whose suffix fallback would answer `garchomp-mega` for a Gengarite on a Garchomp and
+refuse a knock-off that is legal. Checked against Showdown's own predicate over **47,064 (item ×
+body) pairs**: **156 refusals, 5 disagreements**, and all five are the same axis — Showdown compares
+against `baseSpecies.baseSpecies` (the family) and this reads the exact forme key.
+
+| pair | Showdown | here |
+|---|---|---|
+| `floette-eternal @ floettite` (and its mega) | allows | refuses |
+| `raichu-alola @ raichunitex` / `raichunitey` | refuses | allows |
+| `slowbro-galar @ slowbronite` | refuses | allows |
+
+All five are a regional forme holding its family's stone, which this engine cannot mega with anyway
+(`megaKeyFor` finds no row). **Declared, with the number, rather than left to be discovered.**
+
+### THE CONTROLLED TABLE — 11 arms × 1,995 games, one pinned census, every arm COMPARABLE
+
+`node engine/wire_ladder.js --write`. Census pinned to `data/wire-ladder-census.pin.json`
+(`f63179105d3c`); **the baseline ran first and last with nine arms between and reproduced EXACTLY —
+every measured field identical AND the per-game divergence depth identical game for game.**
+
+| arm | div/1995 | agreed whole | classes | causes | moves | **median line** | p90 | mean |
+|---|---|---|---|---|---|---|---|---|
+| baseline (pre-WIRE-1) | 1989 | 6 | 22 | 1129 | 224 | 13 | 30 | 14.83 |
+| WIRE 1 | 1986 | 9 | 21 | 1069 | 228 | 13 | 31 | 15.92 |
+| WIRE 2 | 1976 | 19 | 24 | 1153 | 233 | 13 | 44 | 20.94 |
+| WIRE 3 | 1975 | 20 | 24 | 1187 | 237 | 14 | 44 | 21.62 |
+| WIRE 4 (complete) | 1965 | 30 | 23 | 1151 | 237 | 14 | 46 | 21.93 |
+| WIRE 6 | 1962 | 33 | 25 | 1174 | 263 | 14 | 55 | 23.36 |
+| **WIRE 7** | **1931** | **64** | 25 | 1261 | **267** | **16** | **89** | **27.75** |
+| baseline, REPEATED | 1989 | 6 | 22 | 1129 | 224 | 13 | 30 | 14.83 |
+
+- **THE MEDIAN COMPLETED TURN IS STILL 1, AT EVERY RUNG INCLUDING THIS ONE.** Seven wires have not
+  moved it. That is the headline the ladder was built to refuse to soften.
+- **THE MEDIAN FIRST-DIVERGENCE LINE MOVED BY TWO, WHICH NO PREVIOUS RUNG DID.** 14 → 16, and p90
+  55 → 89. Paired against the baseline, `median_delta_lines` is **1** — the first rung in the series
+  where the median paired shift is not zero.
+- **NET, WHICH IS THE ONLY HONEST FORM.** Against the baseline: **1,060 games part LATER, 178
+  EARLIER, 757 unchanged — net +882**. Against WIRE 6: **533 later, 174 earlier, 1,288 unchanged —
+  net +359**. Games parting earlier is a trajectory reaching a different pre-existing bug sooner,
+  not a regression, and the count is printed rather than netted away.
+- **WHOLE-GAME AGREEMENT 33 → 64**, and 6 at the baseline.
+- **DISTINCT MOVES CONNECTED 263 → 267**; census rows reached by a connecting move unchanged at 113.
+- **`-damage field 3` 169 → 257 and distinct causes 1174 → 1261, both UP.** That is the trajectory
+  working: games that survive 16 lines instead of 14 reach bugs the earlier arms never got to.
+
+### WHICH OF THE SEVEN ACTUALLY MOVED ANYTHING — attributed, not assumed
+
+Both arms re-run alone at 1,995 games under the same pinned census and asserted COMPARABLE by
+`engine/arms_comparable.js`. Occurrences in the artifact's cause list, by family:
+
+| family | WIRE 6 | WIRE 7 |
+|---|---|---|
+| `hospitality` | 251 | **0** |
+| `knockoff` | 90 | 21 |
+| redirect (`followme` / `ragepowder` / `lightningrod`) | 63 | 15 |
+| `protean` / `typechange` | 39 | 19 |
+| `sitrusberry` | 38 | 6 |
+| `substitute` | 31 | 3 |
+| `[eat]` dispositions | 35 | 6 |
+| `focussash` | 7 | **3 — and NOTHING WAS WIRED FOR IT** |
+| `shedtail` | 6 | 2 |
+
+**Hospitality reaches zero.** Nothing else does, and what is left is named below rather than rounded
+off.
+
+### The boundaries — measured, declared, NOT fixed
+
+- **Hospitality carries `onSwitchInPriority: -2`** and this engine speed-sorts entrants with no
+  priority term, so it resolves too early against a priority-0 entry ability. Sixteen abilities in
+  this format carry a switch-in priority and **`data/tags.json` carries none of them** — wiring it
+  means typing sixteen names. It can only bite when a partner is ALREADY DAMAGED as the pair enters,
+  which turn-1 leads never are; the family reads **0** occurrences in 1,995 games after the full-HP
+  gate. Reported, not filed.
+- **Shed Tail does not switch its user out.** `selfSwitch: 'shedtail'` passes the doll to the
+  incoming body; `playerAction` classifies the move as `affect` (it carries a `statusInflict`
+  volatile) and no pivot happens. The `passesState` tag is read by nothing. 64 uses.
+- **Shed Tail's cost is `Math.ceil(maxhp / 2)` and this engine pays `floor`** — one HP on an odd-HP
+  body. `costsUserHP.costsFraction` is `0.5` with no rounding hint in the artifact, so closing it
+  means keying on the move's name. The DOLL's rounding was closed because `ceil(maxhp/4)` is one rule
+  for both members of the tag and needs no name.
+- **Lightning Rod does not draw a move aimed by the rod's OWN ALLY.** Showdown registers
+  `onAnyRedirectTarget`, which fires for a move from either side; this engine looks for the rod among
+  the ATTACKER's foes. Ten occurrences remain at the top rung, all `\|-activate\|lightningrod` present
+  in Showdown and absent here.
+- **Protean now converts on some moves Showdown fails outright.** `singleEvent('Try', ...)` runs
+  BEFORE `PrepareHit`, so a move whose own `onTry` refuses never converts. The engine's `onTry`
+  equivalents that emit `-fail` sit above the new conversion site for Sucker Punch and Steel Roller
+  but not for everything; about nine of the nineteen surviving `typechange` rows are this shape, and
+  some of those are Reflect Type rather than Protean. Traded a larger error for a smaller one and
+  said so.
+- **Libero is UNREACHABLE in this format — 0 legal carriers — and was not wired.** Confirmed against
+  the roadmap's own instruction.
+
+### Three instruments went red BECAUSE the engine got better, and all three are fixed here
+
+**`tests/test-game-differential.js` — 4 FAILURES, every one of them good news.**
+
+1. Two of the three §5a directed scenarios (`knock-off order`, `resist berry`) stopped diverging.
+   Each `DIRECTED` entry now declares `expect: 'agree' | 'diverge'` with a `closed_by`, and the test
+   fails just as loudly if a closed case RE-OPENS. A prediction that came true is a claim, not a mute.
+2. **A scripted game ran past the end of its script.** Every `DIRECTED` entry carries a ONE-turn
+   script and the loop only ever ran one turn because every scenario diverged on turn 1. When two
+   started agreeing the loop ran on, `scripted()` returned `pass` for a slot with no step, and
+   Showdown rejected the choice — so a FIXED ENGINE reported as `THREW: … Can't pass`. A scripted
+   game now ends when its script does.
+3. The `ordering` acceptance test needs TWO scenarios and WIRE 7 closed one of them. **The bar was
+   not lowered.** A replacement was staged from the ladder's own surviving causes — Electro Shot's
+   `\|-prepare\|` against the `\|-boost\|spa\|1` it grants, 2,579 corpus uses, Archaludon its only
+   carrier here — and it parts exactly as predicted.
+4. PART 3c asserted that medicham2 records Colbur as KNOCKED OFF. It records it as EATEN now; the
+   assertion is inverted and KNOCKED-OFF is the failure.
+
+**`engine/wire_ladder.js` REFUSED TO PUBLISH THE WIRE 7 ARM, and it was right.** *"the verbose stream
+carries 1994 games and the artifact says 1995"* — one game THREW. Root-caused rather than worked
+around: Showdown's request for a **recharging** body carries one pseudo-move, `recharge`, which is not
+a dex entry, so `chooseAction` dropped every candidate, `trapped: true` left no switch, and the driver
+answered `pass` — which Showdown rejects. A pre-existing hole in the driver that WIRE 7's deeper
+trajectory reached first. The fallback is `move 1`, and it is COUNTED as
+`declared_gaps.forced_first_slot` (**1** in 1,995 games) because a silent one looks exactly like a
+working feature.
+
+**`engine/conformance.js` RATCHET BROKEN — 1 new finding, `engine/wire_ladder.js` names
+`move:protect`.** It had typed the starved swarm configurations into a prose field
+(`omit-protect: 84 teams available`). S12b matched a diff_swarm CONFIG ID rather than a move, and it
+was still right for its own reason: a name typed there goes stale the moment the swarm's configuration
+list changes. Read off the baseline arm's own `swarm` block now. **RATCHET — 96 baselined, 0 new.**
+
+### Red on the runner and NOT this wire's
+
+- `tests/test-prng.js` — `tests/test-protocol-trace.js`'s LCG. Documented as red before this wire,
+  MEASURE's rule, untouched.
+- `tests/test-stadium-roster.js` — the GURU hole, `docs/MODELS.md` is MEASURE's. Untouched.
+- `engine/provenance.js --strict` — `exploitability.json`, DECLARED VOID by its own generator and
+  ratcheted. Pre-existing.
+- `tests/test-site-data-fresh.js` — every site bundle behind the game store by 0.6d, plus three stale
+  fits. OPS appends continuously; untouched by this wire.
+- `tests/test-wiring.js`, `tests/test-forced-switch.js`, `tests/test-team-preview-race.js` — FAIL
+  under `run-all` and PASS standalone (`test-wiring` reports mega 5.33/game alone and 0.00 under the
+  runner). That is filed as 18 and is a property of the runner.
+- **`node engine/status.js` opens with FEATURE SEMANTICS CHECK FAILED on eight features.** Three of
+  them (`switchSurvives1`, `switchKOSlow`, `switchDiesFirst`) are ROADMAP #31's, recorded below with
+  the identical digests; the other five are damage-shaped and moved with WIRE 4's fixed point. **This
+  wire adds to it and cannot close it: a refit is MEASURE's.** Routed, not filed.
+- `tests/test-interaction-matrix.js --full` runs and the SHRINK GUARD refuses to publish — 1,574 live
+  cases against the artifact's 1,643, so the generated block above still quotes 2026-08-06. The
+  shrink is **structurally not this wire's**: the LIVE/INERT split is decided by the REFERENCE
+  engine's two arms and the emitted count by `data/tags.json` × `MC.mons`, neither of which medicham2
+  can touch. Agreement on what DID run: **1,557/1,574 (98.9%)**.
+
+### A NOTE ON `tests/test-mechanics.js` AND THE PIN
+
+It was run — landing seven probes requires it — and **it did not invalidate the ladder**, because
+`engine/wire_ladder.js` steers from `data/wire-ladder-census.pin.json` and never from the live census.
+The pinned digest is `f63179105d3c` and the live one is now `acf001302733`; the artifact records both
+and says they differ. That separation is exactly what WIRE 5 built.
 
 ## ROADMAP #81 WIRE 5 — THE INSTRUMENT WAS STEERED BY A FILE NOBODY HAD LISTED, AND WIRE 4's TABLE DOES NOT REPRODUCE. 2026-08-07.
 

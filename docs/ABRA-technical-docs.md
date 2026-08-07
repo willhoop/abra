@@ -1,16 +1,18 @@
 # ABRA — Technical Documentation
 
-**Version 3.63.0 · Last updated 2026-08-07**
+**Version 3.64.0 · Last updated 2026-08-07**
 
-**THE RELEASE LADDER — SIX FIXES DID NOT MOVE THE MEDIAN (3.63.0).** `engine/wire_ladder.js` plays
-every frozen release of the 2026-08-06/07 wire night through the differential. It uses one pinned
-census and one team pool, so all nine arms compare with each other and not only with their neighbour.
-**Read every figure from `data/wire-ladder.json`.** On 1,995 games for each arm, the median game stops
-after **one completed turn at every rung**. The number does not change. 22 games of 1,995 agree
-completely, against 2 games at the baseline. The depth of the first disagreement does change: the mean
-goes from 15.0 to 24.0 protocol lines and the 90th percentile from 30 to 57. The baseline arm ran first
-and last, with eight arms between them, and gave the same result. Therefore the table shows the engine
-change and not the run.
+**THE RELEASE LADDER — SEVEN FIXES DID NOT MOVE THE MEDIAN TURN (3.64.0, re-run 2026-08-07).**
+`engine/wire_ladder.js` plays every frozen release of the wire series through the differential. It uses
+one pinned census and one team pool, so all eleven arms compare with each other and not only with their
+neighbour. **Read every figure from `data/wire-ladder.json`** — the figures below moved when ROADMAP
+#81 WIRE 7 was added and the whole ladder was replayed, so any earlier quotation of them is retracted.
+On 1,995 games for each arm, the median game stops after **one completed turn at every rung**. That
+number does not change. 64 games of 1,995 agree completely, against 6 games at the baseline. The depth
+of the first disagreement does change: the mean goes from 14.8 to 27.8 protocol lines, the 90th
+percentile from 30 to 89, and the MEDIAN first-divergence line from 13 to 16 — the first rung in the
+series to move it. The baseline arm ran first and last, with nine arms between them, and gave the same
+result. Therefore the table shows the engine change and not the run.
 
 **THE DIFFERENTIAL HAS RUN, AND MEGAS ARE IN IT (3.62.2).** `engine/game_differential.js` plays a real
 stored team through MEDICHAM and through the official Showdown engine, step for step, against a stamped

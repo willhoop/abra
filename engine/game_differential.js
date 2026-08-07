@@ -751,6 +751,15 @@ const DRIVER_AXES = {
   'pair-speedctrl':    { prefer: FEATS.speedCtrl },
 };
 let BAN_FALLBACKS = 0;   // a config banned everything this body could click — LOUD, never silent
+/* ROADMAP #81 WIRE 7 — A REQUEST THIS DRIVER CANNOT BUILD A CANDIDATE FOR. Showdown's request for a
+ * RECHARGING body carries one pseudo-move, `recharge`, which is not a dex entry — `dex.moves.get`
+ * says it does not exist, every candidate was dropped, and `trapped: true` left no switch either. The
+ * driver then answered `pass`, Showdown rejected the whole choice (`Can't pass: Your Raichu must make
+ * a move`) and the game THREW. It cost the WIRE 7 arm of the release ladder, which refuses to publish
+ * when the verbose stream and the artifact disagree about how many games ran — the guard working.
+ * The fallback is `move 1`, which is what Showdown expects for a locked or recharging body, and it is
+ * COUNTED because a silent one looks exactly like a working feature. */
+let FORCED_FIRST_SLOT = 0;
 
 /* How badly does the run still need this entity? Lower count = more wanted. A move is scored by the
  * least-exercised census mechanic it can reach, then by its own click count. */
@@ -859,6 +868,15 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
     for (let t = 0; t < MAXTURNS && !firstDiv; t++) {
       if (battle.ended || M.battleOver(S)) break;
       if (battle.requestState !== 'move') break;
+      /* ROADMAP #81 WIRE 7 — A DIRECTED SCENARIO ENDS WHEN ITS SCRIPT DOES.
+       *
+       * Every entry in DIRECTED carries a ONE-turn script, and the loop only ever ran one turn because
+       * every one of them diverged on turn 1. When WIRE 7 made two of them AGREE the loop ran on,
+       * `scripted()` returned `{pass:true}` for a slot that had no step, and Showdown rejected the
+       * whole choice — `Can't pass: Your Incineroar must make a move (or switch)`. The scenario then
+       * reported as THREW, which reads exactly like a broken harness and was in fact a FIXED ENGINE.
+       * A scripted game is over when the script is over; that is not a failure and it is not a pass. */
+      if (opts.script && !opts.script[t]) break;
       const chosen = { p1: [], p2: [] };
       for (const sd of ['p1', 'p2']) {
         const side = sd === 'p1' ? battle.p1 : battle.p2;
@@ -910,7 +928,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
         own.forEach((mon, i) => {
           if (!mon) return;
           const a = acts[i];
-          if (!a || a.pass) { map.set(mon, { kind: 'pass' }); return; }
+          if (!a || a.pass || a.forced) { map.set(mon, { kind: 'pass' }); return; }
           if (a.switchTo != null) {
             const want = bench.find(x => x && !x.fainted && id(x.name) === a.switchTo);
             if (want) { map.set(mon, { kind: 'switch', to: want }); return; }
@@ -1055,7 +1073,18 @@ function chooseAction(battle, side, i, act, axis) {
                    clicks: (CLICKS.get('switch:' + id(q.species.id)) || 0) * 6 });
     });
   }
-  if (!cands.length) return { pass: true };
+  if (!cands.length) {
+    /* ROADMAP #81 WIRE 7 — see FORCED_FIRST_SLOT. `pass` is not a legal answer to a request that
+     * offers a move, and answering it throws the game away. `move 1` is. The medicham side is given a
+     * bare `{kind:'pass'}` for the same decision: its own recharge gate refuses the turn before any
+     * action is dispatched, so there is one decision here and two spellings of it, exactly as the mega
+     * choice is one decision and two spellings. */
+    if (act.moves && act.moves.length) {
+      FORCED_FIRST_SLOT++;
+      return { move: id(act.moves[0].id), slot: 1, target: null, foeSlot: null, forced: true };
+    }
+    return { pass: true };
+  }
   const allowed = cands.filter(c => !c.banned);
   let pool = allowed;
   if (!pool.length) {
@@ -1227,24 +1256,48 @@ const stage = (rows) => rows.map(r => ({ species: r[0], item: r[1] || '', abilit
  * Agility is the same shape with the stat swapped for one no damage formula here reads. */
 const TAKE_IT = 'Agility';
 const BENCH = (...names) => names.map(n => ({ species: n, item: '', ability: '', moves: ['Protect'] }));
+/* ROADMAP #81 WIRE 7 — EACH SCENARIO NOW SAYS WHETHER IT IS STILL EXPECTED TO PART.
+ *
+ * `predicts` names the CLASS a divergence should land in. It could not say whether there should be a
+ * divergence at all, and until tonight there always was — so `tests/test-game-differential.js` read
+ * "no longer diverges" as a failure for every one of them. WIRE 7 closed two of the three §5a
+ * predictions, and a fixed engine reported as a broken instrument is the worst reading available.
+ * `expect: 'agree'` is a CLAIM, not a mute: the test fails just as loudly if one of these parts
+ * again. */
 const DIRECTED = [
   { name: 'knock-off order — the item leaves before the HP is subtracted (§5a)',
-    predicts: 'ordering',
+    predicts: 'ordering', expect: 'agree',
+    closed_by: 'ROADMAP #81 WIRE 7 — the strip moved below `tg.curHP -= dmg`, which is where '
+             + 'Showdown\'s onAfterHit runs it',
     A: stage([['incineroar', '', 'Blaze', ['Knock Off', 'Protect']]]).concat(BENCH('clefable', 'milotic', 'garchomp')),
     B: stage([['snorlax', 'Leftovers', 'Thick Fat', [TAKE_IT, 'Protect']]]).concat(BENCH('toxapex', 'corviknight', 'weavile')),
     script: [{ p1: [{ m: 'knockoff', t: 0 }, { m: 'protect' }], p2: [{ m: 'agility' }, { m: 'protect' }] }] },
   { name: 'contact punish — Rough Skin resolves against the attacker (§5a)',
-    predicts: 'ordering',
+    predicts: 'ordering', expect: 'diverge',
     A: stage([['incineroar', '', 'Blaze', ['Close Combat', 'Protect']]]).concat(BENCH('clefable', 'milotic', 'weavile')),
     B: stage([['garchomp', '', 'Rough Skin', [TAKE_IT, 'Protect']]]).concat(BENCH('toxapex', 'corviknight', 'snorlax')),
     script: [{ p1: [{ m: 'closecombat', t: 0 }, { m: 'protect' }], p2: [{ m: 'agility' }, { m: 'protect' }] }] },
   { name: 'resist berry — the berry is spent against the hit it resists (§5a)',
-    predicts: 'ordering',
+    predicts: 'ordering', expect: 'agree',
+    closed_by: 'ROADMAP #81 WIRE 7 — the berry is consumed above the strip and writes Showdown\'s '
+             + 'own two lines, `[eat]` then `[weaken]`',
     A: stage([['garchomp', '', 'Sand Veil', ['Stomping Tantrum', 'Protect']]]).concat(BENCH('clefable', 'milotic', 'weavile')),
     B: stage([['incineroar', 'Shuca Berry', 'Blaze', [TAKE_IT, 'Protect']]]).concat(BENCH('toxapex', 'corviknight', 'snorlax')),
     script: [{ p1: [{ m: 'stompingtantrum', t: 0 }, { m: 'protect' }], p2: [{ m: 'agility' }, { m: 'protect' }] }] },
+  /* THE REPLACEMENT ORDERING CASE, staged because the acceptance test below needs TWO and WIRE 7
+   * closed one of the original two. It is NOT invented for the purpose: `|-prepare|electroshot <>
+   * |-boost|spa|1` is the largest surviving ordering cause in data/wire-ladder.json's own
+   * `what_remains_at_the_top_rung` (2,579 corpus uses), and Archaludon is its only carrier in this
+   * format. Showdown announces the charge and only then the +1 Special Attack; this engine does it
+   * the other way round. Lowering the requirement to one instead would have been weakening the
+   * acceptance test to fit the news. */
+  { name: 'Electro Shot — the charge is announced before the boost it grants',
+    predicts: 'ordering', expect: 'diverge',
+    A: stage([['archaludon', '', 'Stamina', ['Electro Shot', 'Protect']]]).concat(BENCH('clefable', 'milotic', 'weavile')),
+    B: stage([['snorlax', '', 'Thick Fat', [TAKE_IT, 'Protect']]]).concat(BENCH('toxapex', 'corviknight', 'garchomp')),
+    script: [{ p1: [{ m: 'electroshot', t: 0 }, { m: 'protect' }], p2: [{ m: 'agility' }, { m: 'protect' }] }] },
   { name: 'Intimidate x guaranteed crit — the crit ignores the attacker\'s -1 (§6)',
-    predicts: '-damage field',
+    predicts: '-damage field', expect: 'diverge',
     A: stage([['meowscarada', '', 'Overgrow', ['Flower Trick', 'Protect']]]).concat(BENCH('clefable', 'milotic', 'weavile')),
     B: stage([['incineroar', '', 'Intimidate', [TAKE_IT, 'Protect']]]).concat(BENCH('toxapex', 'corviknight', 'snorlax')),
     script: [{ p1: [{ m: 'flowertrick', t: 0 }, { m: 'protect' }], p2: [{ m: 'agility' }, { m: 'protect' }] }] },
@@ -1255,7 +1308,8 @@ function runDirected() {
     const a = buildPair(sc.A), b = buildPair(sc.B);
     if (!a || !b) return { name: sc.name, predicts: sc.predicts, staged: false };
     const r = playGame(a, b, 'directed', sc.name, { script: sc.script });
-    return { name: sc.name, predicts: sc.predicts, staged: true, turns: r.turns, err: r.err,
+    return { name: sc.name, predicts: sc.predicts, expect: sc.expect || 'diverge',
+             closed_by: sc.closed_by || null, staged: true, turns: r.turns, err: r.err,
              diverged: !!r.div, at: r.div ? r.div.index : null, agreed: r.div ? r.div.agreedLines : null,
              cls: r.div ? classify(r.div).cls : null,
              showdown: r.div ? r.div.sdRaw : null, medicham: r.div ? r.div.meRaw : null,
@@ -1826,6 +1880,7 @@ console.log('      `|-activate|...|ability: Zero to Hero` on the way back in; me
 console.log('      RETURN, inside bringIn(), and emits neither. Different moment AND two missing lines.');
 console.log('    ' + TEAMS_UNBUILDABLE + ' teams and ' + MONS_UNBUILDABLE + ' individual sets could not be built in both engines.');
 console.log('    ' + BAN_FALLBACKS + ' clicks where the configuration had banned every legal action (fell through, counted).');
+console.log('    ' + FORCED_FIRST_SLOT + ' requests this driver could build no candidate for (a recharge or a lock) — answered `move 1`, counted.');
 console.log('    MEDFAILS.traceBodyOffField = ' + M.fails.traceBodyOffField
   + (M.fails.traceBodyOffField ? '  <-- a `??` identifier reached the stream, first: ' + M.fails.traceBodyOffFieldFirst
                                  + '. tests/test-protocol-trace.js PART 6 says this must read 0.' : ' (must read 0)'));
@@ -1968,7 +2023,8 @@ if (WRITE) {
       control_arm_stones_stripped: STONES_STRIPPED,
       align_had_to_move_a_stat: ALIGN_MOVED,
       teams_unbuildable: TEAMS_UNBUILDABLE, sets_unbuildable: MONS_UNBUILDABLE,
-      ban_fallbacks: BAN_FALLBACKS, undeclared_event_drops: UNDECLARED_DROPS,
+      ban_fallbacks: BAN_FALLBACKS, forced_first_slot: FORCED_FIRST_SLOT,
+      undeclared_event_drops: UNDECLARED_DROPS,
       trace_body_off_field: M.fails.traceBodyOffField,
       trace_body_off_field_first: M.fails.traceBodyOffFieldFirst,
       undeclared_events: [...UNDECLARED_SEEN],

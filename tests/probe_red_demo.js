@@ -2370,5 +2370,183 @@ demoSource('ROADMAP #81 WIRE 6  the announcement is gated on THE MOVE, not on th
   [['        if(TR&&_mid){', "        if(TR&&_mid&&a.kind!=='pass'){"]],
   (E) => W6.controls(E) && W6.says(E, 'trickroom') && W6.says(E, 'quickguard'));
 
+/* ================= ROADMAP #81 WIRE 7 — SEVEN TARGETS, EIGHT REVERTS ==============================
+ *
+ * A BATCH, so every claim gets its own known-bad engine and its own flip. Two of the eight are STREAM
+ * claims and the rest read HP, the item slot or the doll's size; that split is stated in each case
+ * rather than left to be inferred, because WIRE 1's cases were forbidden from reading the stream and
+ * WIRE 6's were required to — the instrument follows the defect, not a house style.
+ *
+ * EVERY CASE CLEARS ITS CONTROL ON BOTH ENGINES. A revert that also breaks the control would produce
+ * a green/red flip for the wrong reason, which is the hollow shape one level up. */
+const W7 = {
+  bare(E, s) { const b = E.buildMon(s, {}); if (!b) throw new Error('no MC row for ' + s); b.item = ''; b.ability = 'none'; return b; },
+  board(E, a, b, c, d) {
+    const me = W7.bare(E, a), ally = W7.bare(E, b), f1 = W7.bare(E, c), f2 = W7.bare(E, d);
+    const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+    return { me, ally, f1, f2, S };
+  },
+  pass2: (a, b) => new Map([[a, { kind: 'pass' }], [b, { kind: 'pass' }]]),
+  big(m) { m.st = Object.assign({}, m.st, { hp: m.st.hp * 8 }); m.curHP = m.st.hp; },
+  /* the entry stream a Hospitality body writes, with the partner at a chosen fraction of its HP */
+  entry(E, ab, frac) {
+    const me = W7.bare(E, 'incineroar'), ally = W7.bare(E, 'corviknight'), bench = W7.bare(E, 'sinistcha');
+    const f1 = W7.bare(E, 'garchomp'), f2 = W7.bare(E, 'garchomp');
+    bench.ability = ab; ally.curHP = Math.max(1, Math.round(ally.st.hp * frac));
+    const S = E.battleInit([me, ally, bench], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    E.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: bench }], [ally, { kind: 'pass' }]]),
+      W7.pass2(f1, f2));
+    return { lines: trace.filter(l => /^\|-(heal|ability)\|/.test(l)), hp: ally.curHP, max: ally.st.hp };
+  },
+  /* one Knock Off from a full-HP body; returns what the target has left and what it is holding */
+  knock(E, target, item) {
+    const { me, ally, f1, f2, S } = W7.board(E, 'incineroar', 'corviknight', target, 'garchomp');
+    f1.item = item; f1.curHP = f1.st.hp;
+    E.battleTurn(S, rng5,
+      new Map([[me, E.playerAction(me, 'knockoff', f1, S.field)], [ally, { kind: 'pass' }]]), W7.pass2(f1, f2));
+    return { hp: f1.curHP, dead: !!f1.fainted, item: f1.item };
+  },
+};
+
+/* 1. THE FULL-HP GATE. `Battle.heal()` returns false before it announces when the target is already
+ *    at max, so a Sinistcha beside an untouched partner writes nothing. STREAM CLAIM, and the case
+ *    asserts the partner's HP did not move on EITHER engine — the defect has no state in it, which is
+ *    exactly what the roadmap asked to be established rather than assumed. */
+demoSource('ROADMAP #81 WIRE 7  Hospitality at a full-HP partner announces nothing',
+  [['&&ally.curHP>0&&ally.st&&ally.curHP<ally.st.hp){', '&&ally.curHP>0&&ally.st){']],
+  (E) => { const hurt = W7.entry(E, 'hospitality', 1 / 3), full = W7.entry(E, 'hospitality', 1);
+           return hurt.lines.length === 1 && full.hp === full.max && full.lines.length === 0; });
+
+/* 2. AND IT NEVER WRITES AN `|-ability|`. Hospitality's handler is a bare heal loop with no
+ *    `this.add('-ability', ...)` in it, unlike Intimidate two lines away. Separate revert, because
+ *    this one is wrong even on the entries where the heal itself is correct — the control here is the
+ *    DAMAGED partner, which must still write exactly one line and it must be the heal. */
+demoSource('ROADMAP #81 WIRE 7  Hospitality writes a -heal and never an -ability',
+  [["    if(TR)TR.heal(ally,'[from] ability: '+m.ability,m);",
+    "    if(TR){TR.ab(m,m.ability);TR.heal(ally,'[from] ability: '+m.ability,m);}"]],
+  (E) => { const hurt = W7.entry(E, 'hospitality', 1 / 3);
+           return hurt.lines.length === 1 && /^\|-heal\|/.test(hurt.lines[0]); });
+
+/* 3. KNOCK OFF STRIPS AFTER THE DAMAGE — ROADMAP #80's open half, ASSERTED AS A LIFE. The revert puts
+ *    the two damage lines back above the strip, which is where they were. A full-HP Focus Sash holder
+ *    taking a lethal Knock Off survives at 1 in the authority and DIES on the reverted engine, because
+ *    the Sash it needed was taken first. The control is the same click with no item: it must faint on
+ *    both engines, or "survived" is measuring a weak attack. */
+demoSource('ROADMAP #81 WIRE 7  Knock Off cannot take the Sash that just saved the target',
+  /* THE REVERT PUTS THE WHOLE BLOCK BACK WHERE IT WAS, not just the two damage lines — the first cut
+   * of this case moved the `-damage` below the strip and DID NOT FLIP, because the Focus Sash block
+   * sits above both and still fired. That is the probe catching the demonstration, one level up from
+   * where it usually catches the engine: a reversal that leaves the defect unreachable proves nothing.
+   * The old site is above the resist berry, which is above the Sash. */
+  [["        {\n          const _ri=TAGS.param('move',a.move.id,'removesItem');\n          if(_ri&&tg.item&&!itemRefusesTake(tg)){\n            const _taken=tg.item; tg.item='';\n            if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);\n            if(_ri.steals&&!m.item){m.item=_taken;if(TR)TR.item(m,_taken,'[from] move: '+a.move.id);}\n          }\n        }\n", ''],
+   ["        const _rbHit=TAGS.param('item',tg.item,'resistBerry');",
+    "        {\n          const _ri=TAGS.param('move',a.move.id,'removesItem');\n          if(_ri&&tg.item&&!tg.fainted){\n            const _taken=tg.item; tg.item='';\n            if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);\n            if(_ri.steals&&!m.item){m.item=_taken;if(TR)TR.item(m,_taken,'[from] move: '+a.move.id);}\n          }\n        }\n        const _rbHit=TAGS.param('item',tg.item,'resistBerry');"]],
+  (E) => { const none = W7.knock(E, 'gengar', ''), sash = W7.knock(E, 'gengar', 'focussash');
+           return none.dead && !sash.dead && sash.hp === 1; });
+
+/* 4. AND IT CANNOT TAKE A MEGA STONE. The control is the SAME stone on a body it does not belong to,
+ *    which must still be knocked off on both engines — a refusal keyed on "is this a mega stone"
+ *    rather than on "is it THIS body's" would pass the test arm and fail the control, and that
+ *    over-match is what `itemRefusesTake` was measured against 47,064 (item x body) pairs to avoid. */
+demoSource('ROADMAP #81 WIRE 7  a mega stone cannot be knocked off the body it belongs to',
+  [['if(_ri&&tg.item&&!itemRefusesTake(tg)){', 'if(_ri&&tg.item){']],
+  (E) => { const owner = W7.knock(E, 'gengar', 'gengarite'), other = W7.knock(E, 'garchomp', 'gengarite');
+           return other.item === '' && owner.item === 'gengarite'; });
+
+/* 5. THE PINCH BERRY IS AN `onUpdate`. The revert removes both Update passes, which puts the berry
+ *    back where this engine had it — the residual. STATE CLAIM, and the state is a life: two Scalds
+ *    that together exceed a Corviknight's HP but not its HP plus a quarter. */
+demoSource('ROADMAP #81 WIRE 7  the Sitrus is eaten between the two attackers, not at the residual',
+  [['      _updateAll();\n      const it=acts[actIdx];', '      const it=acts[actIdx];'],
+   ['    _updateAll();   // ROADMAP #81 WIRE 7 -- after the LAST action',
+    '    if(0)_updateAll();   // reverted -- after the LAST action']],
+  (E) => {
+    const run = (item) => {
+      const { me, ally, f1, f2, S } = W7.board(E, 'milotic', 'milotic', 'corviknight', 'garchomp');
+      f1.item = item; f1.curHP = Math.round(f1.st.hp * 0.81);
+      E.battleTurn(S, rng5,
+        new Map([[me, E.playerAction(me, 'scald', f1, S.field)], [ally, E.playerAction(ally, 'scald', f1, S.field)]]),
+        W7.pass2(f1, f2));
+      return { dead: !!f1.fainted, item: f1.item };
+    };
+    const none = run(''), berry = run('sitrusberry');
+    return none.dead && !berry.dead && berry.item === '';
+  });
+
+/* 6. THE DOLL IS CEIL AND THE COST IS NOT. One rule for both members of the `substitute` tag; the
+ *    control is the COST, which must stay floor on both engines — a revert that moved both would
+ *    otherwise read as a fix. */
+demoSource('ROADMAP #81 WIRE 7  the substitute doll is a rounded-UP quarter',
+  [['m._sub=Math.max(1,Math.ceil(m.st.hp*(+_sb.buffer||0.25)));',
+    'm._sub=Math.max(1,Math.floor(m.st.hp*(+_sb.buffer||0.25)));']],
+  (E) => {
+    const { me, ally, f1, f2, S } = W7.board(E, 'garchomp', 'incineroar', 'garchomp', 'garchomp');
+    const hp0 = me.curHP;
+    E.battleTurn(S, rng5,
+      new Map([[me, E.playerAction(me, 'substitute', f1, S.field)], [ally, { kind: 'pass' }]]), W7.pass2(f1, f2));
+    return me._sub === Math.ceil(me.st.hp / 4) && (hp0 - me.curHP) === Math.floor(me.st.hp / 4)
+        && Math.ceil(me.st.hp / 4) !== Math.floor(me.st.hp / 4);
+  });
+
+/* 7. AND IT IS RAISED BEFORE THE HP IS PAID. `moveHit` adds `volatileStatus` and only then calls
+ *    `onHit`, where the `directDamage` lives. STREAM CLAIM — the doll and the HP are identical either
+ *    way, and only the two lines' order moves. The control is that BOTH lines are present on both
+ *    engines, so a revert that lost one would not read as a pass. */
+demoSource('ROADMAP #81 WIRE 7  the Substitute -start precedes the -damage that pays for it',
+  [['grantSubstitute(m,a.mv||a.move.id);\n          m.curHP-=Math.floor(m.st.hp*+_cu.costsFraction);\n          if(TR)TR.dmg(m);\n          if(m.curHP<=0){m.curHP=0;m.fainted=true;m._sub=0;if(TR)TR.faint(m);continue;}',
+    'm.curHP-=Math.floor(m.st.hp*+_cu.costsFraction);\n          if(TR)TR.dmg(m);\n          if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);continue;}\n          grantSubstitute(m,a.mv||a.move.id);']],
+  (E) => {
+    const { me, ally, f1, f2, S } = W7.board(E, 'garchomp', 'incineroar', 'garchomp', 'garchomp');
+    const trace = []; S._trace = trace;
+    E.battleTurn(S, rng5,
+      new Map([[me, E.playerAction(me, 'substitute', f1, S.field)], [ally, { kind: 'pass' }]]), W7.pass2(f1, f2));
+    const ls = trace.filter(l => /^\|(-start|-damage)\|p1a:/.test(l));
+    return ls.length === 2 && /^\|-start\|/.test(ls[0]) && /^\|-damage\|/.test(ls[1]);
+  });
+
+/* 8. PROTEAN CONVERTS BEFORE THE HIT. The revert puts the block back where WIRE 54 left it — below
+ *    every branch of the resolved move — which is a real engine that existed until tonight, not a
+ *    deletion. The control is the SAME body with no ability, which must deal the same 123 on both. */
+demoSource('ROADMAP #81 WIRE 7  Protean gives the move it converts into its STAB',
+  [['      if(_hadTargets){\n        const _tb=', '      if(false){\n        const _tb='],
+   ["      /* WIRE 54's PROTEAN BLOCK USED TO SIT HERE, below every branch of the resolved move, and\n         ROADMAP #81 WIRE 7 moved it up to the PrepareHit position -- see the block just under\n         `_hadTargets`. The old comment called the placement \"the wrong order by a hair\"; it was worth\n         the whole of the ability's offensive half. */\n    }",
+    "      {\n        const _tbOld=TAGS.param('ability',m.ability,'typeBecomesMoveType');\n        if(_tbOld&&!m.fainted&&!(_tbOld.oncePerSwitchIn&&m._proteanUsed)){\n          const _ntOld=effMoveType(a.move.mv,a.move.id,field,m);\n          if(_ntOld&&!(m.types.length===1&&m.types[0]===_ntOld)){m.types=[_ntOld];m._proteanUsed=true;\n            if(TR)TR.vstart(m,'typechange',_ntOld+'|[from] ability: '+m.ability);}\n        }\n      }\n    }"]],
+  (E) => {
+    const run = (ab) => {
+      const { me, ally, f1, f2, S } = W7.board(E, 'meowscarada', 'incineroar', 'ceruledge', 'garchomp');
+      me.ability = ab; W7.big(f1);
+      const before = f1.curHP;
+      E.battleTurn(S, rng5,
+        new Map([[me, E.playerAction(me, 'earthquake', f1, S.field)], [ally, { kind: 'pass' }]]), W7.pass2(f1, f2));
+      return before - f1.curHP;
+    };
+    const control = run('none'), test = run('protean');
+    return control > 0 && test > control * 1.4;
+  });
+
+/* 9. A REDIRECT ANNOUNCES NOTHING AND AN ABILITY REDIRECT ANNOUNCES AN `-activate`. Two reverts in one
+ *    case because the engine had them SWAPPED: silence where Showdown writes a line, and a line where
+ *    it writes silence. STREAM CLAIM — the redirect itself has been live since WIRE 25 and the draw is
+ *    right in both engines, which is why the case reads announcement lines and not damage. */
+demoSource('ROADMAP #81 WIRE 7  Follow Me announces nothing when it draws, Lightning Rod announces an -activate',
+  [['if(TR)TR.retarget(drawer);}', "if(TR){TR.act(drawer,'move: '+drawer._redirect);TR.retarget(drawer);}}"],
+   ["TR.act(_rod,'ability: '+_rod.ability)", 'TR.ab(_rod,_rod.ability)']],
+  (E) => {
+    const run = (ab, mv) => {
+      const { me, ally, f1, f2, S } = W7.board(E, 'raichu', 'incineroar', 'corviknight', 'milotic');
+      if (ab) f2.ability = ab;
+      W7.big(f1); W7.big(f2);
+      const trace = []; S._trace = trace;
+      E.battleTurn(S, rng5,
+        new Map([[me, E.playerAction(me, 'thunderbolt', f1, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'pass' }], [f2, mv ? E.playerAction(f2, mv, f2, S.field) : { kind: 'pass' }]]));
+      return trace.filter(l => /^\|-(activate|ability)\|/.test(l));
+    };
+    const plain = run(null, null), drawn = run(null, 'followme'), rod = run('lightningrod', null);
+    return plain.length === 0 && drawn.length === 0
+        && rod.length === 1 && /^\|-activate\|/.test(rod[0]) && /lightningrod/.test(rod[0]);
+  });
+
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);
 if (failures) { console.log('  A green-and-stripped pair that did not flip means the probe does NOT watch its knob.'); process.exit(1); }

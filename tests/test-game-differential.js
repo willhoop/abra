@@ -109,18 +109,42 @@ const DIR = G.runDirected();
 for (const d of DIR) {
   if (!d.staged) { fail('the scenario could not be built at all: ' + d.name); continue; }
   if (d.err) { fail('THREW: ' + d.name + ' — ' + d.err); continue; }
+  /* ROADMAP #81 WIRE 7 — THE EXPECTATION IS THE SCENARIO'S OWN, AND IT IS A CLAIM IN BOTH DIRECTIONS.
+   *
+   * §5a filed three predictions and all three parted, so "no longer diverges" was unconditionally a
+   * failure. WIRE 7 closed two of them, and an engine that got BETTER then read as an instrument that
+   * had broken — the least useful reading available. Each scenario now declares `expect`, and this
+   * loop fails on the OPPOSITE of what it declares, so a closed case that re-opens is caught exactly
+   * as loudly as an open case that stops being reached. */
+  if (d.expect === 'agree') {
+    if (d.diverged)
+      fail('"' + d.name + '" PARTS AGAIN, at line ' + d.at + ' (class "' + d.cls + '"). It was closed '
+        + 'by: ' + (d.closed_by || 'an earlier wire') + '.\n          showdown  ' + d.showdown
+        + '\n          medicham  ' + d.medicham);
+    else
+      pass(d.name + '\n          AGREES for the whole scripted turn — closed by ' + (d.closed_by || '?'));
+    continue;
+  }
   if (!d.diverged) {
-    /* NOT A PASS. §5a says these two DO diverge today; if they stopped, either the engine was fixed
-     * (good news, and this file must then be rewritten) or the alignment stopped reaching them. */
-    fail('"' + d.name + '" no longer diverges. Either the wire landed — in which case rewrite this '
-      + 'case — or the aligner stopped reaching it. Do not read this as agreement.');
+    /* NOT A PASS. This scenario declares it still parts; if it stopped, either the engine was fixed
+     * (good news — flip its `expect` to 'agree' and say what closed it) or the alignment stopped
+     * reaching it. */
+    fail('"' + d.name + '" no longer diverges. Either the wire landed — in which case set '
+      + '`expect: \'agree\'` on it with a `closed_by` — or the aligner stopped reaching it. Do not '
+      + 'read this as agreement.');
     continue;
   }
   pass(d.name + '\n          ' + d.agreed + ' lines agreed, class "' + d.cls + '"'
     + '\n          showdown  ' + d.showdown + '\n          medicham  ' + d.medicham);
 }
 /* THE ORDERING CLASS IS THE ONE THE TASK NAMES: if the harness does not surface it, the alignment is
- * wrong and that is the first thing to debug. Asserted by CLASS, not by scenario name. */
+ * wrong and that is the first thing to debug. Asserted by CLASS, not by scenario name.
+ *
+ * THE REQUIREMENT STAYS AT TWO. WIRE 7 closed the knock-off ordering case, which was one of the two,
+ * and the cheap move would have been to drop the bar to one. A replacement was staged instead —
+ * Electro Shot's charge announcement against the boost it grants, the largest surviving ordering
+ * cause in the release ladder's own top rung. Lowering a bar to fit the news is how a check stops
+ * being one. */
 {
   const ord = DIR.filter(d => d.cls === 'ordering');
   if (ord.length < 2) fail('only ' + ord.length + ' of the staged scenarios classified as "ordering". '
@@ -181,13 +205,26 @@ console.log('\nPART 3c — ROADMAP #80: the boost half and the reduction half, i
   const col = KO.arms.find(a => /colbur/i.test(a.item));
   const sdEaten = col && col.showdown_enditem.some(l => /\[eat\]/.test(l));
   const meEaten = col && col.medicham_enditem.some(l => /\[eat\]/.test(l));
-  if (sdEaten && !meEaten)
-    pass('FINDING, and it is not the predicted one: Showdown records Colbur as EATEN BY ITSELF, '
-      + 'medicham2 as KNOCKED OFF. Same end state, different fact — Harvest, Recycle, Belch, Cud Chew '
-      + 'and Unburden all read "was it eaten".');
-  else if (sdEaten && meEaten)
-    fail('medicham2 now records Colbur as EATEN too. Good news, and this case must be rewritten.');
-  else fail('SHOWDOWN did not record Colbur as eaten — the scenario is not staging the berry at all.');
+  /* REWRITTEN 2026-08-07, ROADMAP #81 WIRE 7, and the previous text is left directly below so the
+   * change of claim is readable rather than silent. This case USED to pass on the two engines
+   * DISAGREEING — Showdown recording Colbur as eaten by itself, medicham2 as knocked off — and it
+   * failed with "Good news, and this case must be rewritten" the moment they agreed. They agree now:
+   * Knock Off's strip moved below the damage, so the berry's own `onSourceModifyDamage` gets first
+   * refusal exactly as it does in the authority. The assertion is inverted, and the KNOCKED-OFF
+   * disposition is now the failure. */
+  const sdKnocked = col && col.showdown_enditem.some(l => /move:\s*knock ?off/i.test(l));
+  const meKnocked = col && col.medicham_enditem.some(l => /move:\s*knock ?off/i.test(l));
+  if (!sdEaten)
+    fail('SHOWDOWN did not record Colbur as eaten — the scenario is not staging the berry at all.');
+  else if (meKnocked || sdKnocked)
+    fail('Colbur is recorded as KNOCKED OFF (showdown ' + sdKnocked + ', medicham ' + meKnocked
+      + '). The strip must sit below the damage, or the berry never gets to eat itself — and Harvest, '
+      + 'Recycle, Belch, Cud Chew and Unburden all read "was it eaten".');
+  else if (!meEaten)
+    fail('medicham2 does not record Colbur as EATEN at all. Showdown writes two lines for a resist '
+      + 'berry, `[eat]` then `[weaken]`; neither reached the stream.');
+  else pass('both engines record Colbur as EATEN BY ITSELF and neither as knocked off — the '
+      + 'disposition, not just the end state');
   if (KO.sitrus_half.staged && KO.sitrus_half.showdown_healed)
     fail('Showdown HEALED from Sitrus through a Knock Off. items.ts says onUpdate runs after takeItem; '
       + 'the scenario is not staging what it claims.');

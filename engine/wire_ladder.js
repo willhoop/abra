@@ -16,9 +16,9 @@
  * to an actual 59/56->38/35: the finding was REAL AND LARGER, the numbers were wrong.
  *
  * A pairwise before/after also cannot answer the question anybody actually has, which is what the
- * NIGHT bought. Nine releases were frozen along the way, so the ladder is replayable rather than a
- * re-do: every rung is run under ONE pinned census and ONE team pool, which makes all nine arms
- * mutually comparable instead of only adjacent.
+ * NIGHT bought. TEN releases are frozen along the way (nine from 2026-08-06/07 plus WIRE 7's), so the
+ * ladder is replayable rather than a re-do: every rung is run under ONE pinned census and ONE team
+ * pool, which makes all eleven arms mutually comparable instead of only adjacent.
  *
  * ================= WHAT THIS FILE IS AND IS NOT ===================================================
  *
@@ -41,7 +41,7 @@
  *    unauditable the moment that session ends. `data/wire-ladder-census.pin.json` is a copy of the
  *    live census taken at 2026-08-07T08:21Z and is checked in beside the result.
  *
- * 2. THE BASELINE IS RUN TWICE, FIRST AND LAST. Eight arms sit between the two, so a drift anywhere
+ * 2. THE BASELINE IS RUN TWICE, FIRST AND LAST. Nine arms sit between the two, so a drift anywhere
  *    in the ladder — the team store appending, a stray regeneration — shows up as the two baselines
  *    disagreeing. If they disagree the whole ladder is uninterpretable AND THAT IS THE FINDING; this
  *    file says so rather than averaging them.
@@ -51,11 +51,12 @@
  *
  * ================= WHICH RELEASES, AND WHY EACH INTERMEDIATE IS IN ================================
  *
- * The six named wires left six releases. Three more cuts sit between them, and all three carry a REAL
- * ENGINE CHANGE rather than a re-cut — verified by diffing the manifests, which show exactly one file
- * moving anywhere in the ladder (`engine/medicham2-browser.js`; the other 22 frozen files are
- * byte-identical across all nine releases). Excluding them would silently attribute their effect to
- * the named wire that follows, which is the same misattribution WIRE 5 was written to stop.
+ * The seven named wires left seven releases (WIRE 5 changed the INSTRUMENT and cut none). Three more
+ * cuts sit between them, and all three carry a REAL ENGINE CHANGE rather than a re-cut — verified by
+ * diffing the manifests, which show exactly one file moving anywhere in the ladder
+ * (`engine/medicham2-browser.js`; the other 22 frozen files are byte-identical across all ten
+ * releases). Excluding them would silently attribute their effect to the named wire that follows,
+ * which is the same misattribution WIRE 5 was written to stop.
  */
 'use strict';
 require('./showdown_path.js');
@@ -109,8 +110,15 @@ const ARMS = [
     change: '+ recoil is Math.round clamped to >= 1 on the RATIO, and drain is rounded not floored' },
   { id: 'a09-wire6', release: '3fd06d865427', label: 'WIRE 6',
     change: 'two of 27 action kinds announced nothing; four priority brackets wrong' },
-  { id: 'a10-baseline-run2', release: 'cf6a68fa412c', label: 'pre-WIRE-1 baseline, REPEATED',
-    change: 'the same frozen bytes as a01, run last with eight arms in between — the drift check' },
+  { id: 'a10-wire7', release: '0aa54cb1a9de', label: 'WIRE 7',
+    change: 'six absent-or-misordered mechanics in one batch: Hospitality announces nothing onto a '
+          + 'full-HP partner and never an -ability; Knock Off strips AFTER the damage and cannot take '
+          + 'a mega stone; the pinch and status berries are onUpdate rather than residual; the '
+          + 'substitute doll is ceil(maxhp/4) and its -start precedes the -damage; Protean converts '
+          + 'before the hit so the move gets its STAB; a move redirect announces nothing and an '
+          + 'ability redirect announces an -activate' },
+  { id: 'a11-baseline-run2', release: 'cf6a68fa412c', label: 'pre-WIRE-1 baseline, REPEATED',
+    change: 'the same frozen bytes as a01, run last with nine arms in between — the drift check' },
 ];
 /* WIRE 5 HAS NO RUNG AND THAT IS CORRECT. It changed the INSTRUMENT (engine/steering.js,
  * engine/arms_comparable.js), not the engine, so it cut no release and there is nothing to play. */
@@ -233,9 +241,9 @@ const stripVolatile = (o) => {
   return JSON.stringify(c);
 };
 const baselineReproduces = stripVolatile(RUNS['a01-baseline-run1'].artifact)
-                        === stripVolatile(RUNS['a10-baseline-run2'].artifact);
+                        === stripVolatile(RUNS['a11-baseline-run2'].artifact);
 const baselineDepthIdentical = JSON.stringify(RUNS['a01-baseline-run1'].depth)
-                            === JSON.stringify(RUNS['a10-baseline-run2'].depth);
+                            === JSON.stringify(RUNS['a11-baseline-run2'].depth);
 
 /* ---- THE TABLE ------------------------------------------------------------------------------------ */
 const rows = ARMS.map((arm, i) => {
@@ -307,8 +315,15 @@ if (WRITE) {
      * exactly the kind that gets a checker ignored. Each arm carries the frozen digest it actually
      * played, in `arms[].medicham2_sha12`. */
     source_digests: RS.sourceDigests(WATCHED),
-    sample_size_reason: 'the largest sample the swarm sustains before the starved configurations '
-        + '(omit-protect: 84 teams available, omit-priority: 7) stop contributing marginal games, and '
+    /* THE STARVED CONFIGURATIONS ARE NAMED BY THE ARTIFACT, NOT BY THIS FILE. The first version typed
+     * them into the sentence, and `engine/conformance.js` S12b flagged it — correctly, even though it
+     * had matched a diff_swarm CONFIG ID rather than a move: a name typed here goes stale the moment
+     * the swarm's configuration list changes, which is the whole defect S12 exists to catch. Read off
+     * the baseline arm's own `swarm` block, so the sentence describes the run that was played. */
+    sample_size_reason: 'the largest sample the swarm sustains before the starved configurations ('
+        + (RUNS[BASE.id].artifact.swarm || []).slice().sort((a, b) => a.available - b.available)
+            .slice(0, 2).map(s => s.config + ': ' + s.available + ' teams available').join(', ')
+        + ') stop contributing marginal games, and '
         + 'small enough that all ten arms finish inside one photograph window. Identical for every arm '
         + 'by construction: only engine/medicham2-browser.js differs across the nine releases, so '
         + 'buildPair reaches the same teams in every arm.',

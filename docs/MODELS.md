@@ -1,16 +1,19 @@
 # ABRA — the model family (living reference)
 
-**Version 3.63.0 · Last updated 2026-08-07.**
+**Version 3.64.0 · Last updated 2026-08-07.**
 
-**MEDICHAM'S DISTANCE FROM THE AUTHORITY, MEASURED ACROSS NINE FROZEN RELEASES (3.63.0).**
-`engine/wire_ladder.js` → `data/wire-ladder.json`. **Read every figure from that artifact.** On 1,995
-games per arm, one pinned census and one pinned team pool, MEDICHAM after six wires still diverges from
-Showdown on **1,973 of 1,995 games** and the median game still parts after **one completed turn** —
-unchanged at every rung of the night. 22 games agree completely, against 2 at the pre-wire baseline. The
-divergence rate is saturated and grades nothing; the depth does move (mean first-divergence line 15.01 →
-23.97). Two attribution corrections that only a ladder can make: an intermediate cut never published as
-a wire outranks WIRE 1, whose pairwise before/after had absorbed it, and one unambiguously correct
-arithmetic fix moved **zero** of 1,995 games. Distinct moves connected 224 → 261, controlled.
+**MEDICHAM'S DISTANCE FROM THE AUTHORITY, MEASURED ACROSS TEN FROZEN RELEASES (3.64.0, re-run
+2026-08-07 after ROADMAP #81 WIRE 7).** `engine/wire_ladder.js` → `data/wire-ladder.json`. **Read every
+figure from that artifact** — the figures below moved when WIRE 7 was added as an eleventh arm and the
+whole ladder was replayed, so any earlier quotation of them is retracted. On 1,995 games per arm, one
+pinned census and one pinned team pool, MEDICHAM after seven wires still diverges from Showdown on
+**1,931 of 1,995 games** and the median game still parts after **one completed turn** — unchanged at
+every rung. 64 games agree completely, against 6 at the pre-wire baseline. The divergence rate is
+saturated and grades nothing; the depth does move (mean first-divergence line 14.83 → 27.75, and the
+MEDIAN first-divergence line 13 → 16, which no rung before WIRE 7 had shifted). Two attribution
+corrections that only a ladder can make: an intermediate cut never published as a wire outranks WIRE 1,
+whose pairwise before/after had absorbed it, and one unambiguously correct arithmetic fix moved **zero**
+of 1,995 games. Distinct moves connected 224 → 267, controlled.
 
 **THE DIFFERENTIAL HAS RUN, AND MEGAS ARE IN IT (3.62.2).** `engine/game_differential.js` plays a real
 stored team through MEDICHAM and through the official Showdown engine, step for step, against a stamped
