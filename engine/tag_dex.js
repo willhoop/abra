@@ -583,13 +583,20 @@ const MOVE_TAGS = [
     why: 'Substitute (247 uses) 1/4, Clangorous Soul (190) 1/3, Shed Tail (41) 1/2. The cost is '
        + 'unpriced and the failure condition is unchecked -- and you can have the HP when you choose '
        + 'and not when you act',
+    /* ROADMAP #81 WIRE 12 -- THE THREE MEMBERS DO NOT ROUND THE SAME WAY, and the consumer floored
+     * all of them. `substitute` and `clangoroussoul` pay `directDamage(maxhp / n)`, which reaches
+     * `clampIntRange` and TRUNCS; `shedtail` pays `directDamage(Math.ceil(target.maxhp / 2))` and is
+     * the one member that rounds UP. Measured against the authority on a 137 HP Heliolisk: Shed Tail
+     * costs 69 there and this engine charged 68. Read from the handler so a fourth member arrives
+     * with its own rounding instead of inheriting somebody else's. */
     of: m => {
       const src = String(m.onTry || '') + String(m.onTryHit || '') + String(m.onHit || '');
       if (!/maxhp/i.test(src)) return null;
       const frac = /clangoroussoul/.test(norm(m.id)) ? 1 / 3
                  : /shedtail/.test(norm(m.id)) ? 1 / 2
                  : /substitute/.test(norm(m.id)) ? 1 / 4 : null;
-      return frac ? { costsFraction: frac, failsBelow: frac } : null;
+      const rounds = /directDamage\(\s*Math\.ceil\(/.test(src.replace(/\s+/g, ' ')) ? 'ceil' : 'trunc';
+      return frac ? { costsFraction: frac, failsBelow: frac, rounds } : null;
     } },
   /* Will asked whether Triple Axel's ascending power is recorded. The escalation is in the move's
    * basePowerCallback, so it IS derivable -- but the thing that actually changes the maths is
@@ -1067,12 +1074,35 @@ const MOVE_TAGS = [
   { tag: 'pivotStatus', param: 'no damage, an effect, then the user leaves', probe: 'partingshot',
     why: 'Parting Shot (4,782 uses, the most common pivot in the format) and Chilly Reception. The '
        + 'switch is the point and the effect is the payment',
-    of: m => (m.selfSwitch && m.category === 'Status' && !/batonpass|shedtail/.test(norm(m.id)))
+    /* ROADMAP #81 WIRE 12 -- THE EXCLUSION IS BY SHAPE NOW, NOT BY THE TWO NAMES.
+     * `!/batonpass|shedtail/` and `typeof m.selfSwitch === 'string'` pick out the SAME two moves
+     * today (measured: `boolean true` is chillyreception/flipturn/partingshot/uturn/voltswitch plus
+     * two Past moves; `copyvolatile` is batonpass and `shedtail` is shedtail, and there is no third
+     * string). The shape survives a move being added; the names do not, and CLAUDE.md opens on the
+     * hand-maintained list of four that went stale. Membership is unchanged by this edit, which is
+     * the point of making it here rather than after something slipped through. */
+    of: m => (m.selfSwitch && m.category === 'Status' && typeof m.selfSwitch !== 'string')
              ? { selfSwitch: m.selfSwitch } : null },
-  { tag: 'passesState', param: 'the incoming Pokemon INHERITS something', probe: 'batonpass',
+  /* ROADMAP #81 WIRE 12 -- `passes: true` NAMED NOTHING A CONSUMER COULD APPLY, and the engine had
+   * no consumer at all: Baton Pass and Shed Tail both resolved to a click that never switched, so
+   * Heliolisk paid half its HP for a Substitute and then STOOD THERE. The two are not the same
+   * move and the authority splits them on the same field this tag now reads:
+   *
+   *     Pokemon#copyVolatileFrom(pokemon, switchCause)          (sim/pokemon.ts:1252)
+   *       if (switchCause !== 'shedtail') this.boosts = pokemon.boosts;
+   *       for (const i in pokemon.volatiles) {
+   *         if (switchCause === 'shedtail' && i !== 'substitute') continue;
+   *
+   * -- so `copyvolatile` hands over the BOOSTS AND EVERY COPYABLE VOLATILE, and `shedtail` hands
+   * over the SUBSTITUTE AND NOTHING ELSE (explicitly not the boosts). `switchCause` is the move's
+   * own `selfSwitch` string, which is why this derivation reads that field rather than the id. */
+  { tag: 'passesState', param: 'the incoming Pokemon INHERITS something — `mode` is the authority\'s own switchCause', probe: 'batonpass',
     why: 'Baton Pass hands over the stat boosts, Shed Tail hands over a Substitute. Nothing in the '
        + 'model represents a switch that carries state across',
-    of: m => /batonpass|shedtail/.test(norm(m.id)) ? { passes: true } : null },
+    of: m => typeof m.selfSwitch === 'string'
+             ? { passes: true, mode: m.selfSwitch,
+                 passesBoosts: m.selfSwitch !== 'shedtail',
+                 passesVolatiles: m.selfSwitch === 'shedtail' ? ['substitute'] : 'all' } : null },
   /* Will: "is substitute its own class". Yes -- it is not a Protect (it does not block, it ABSORBS)
    * and not a side condition (it is on one body). It is an HP buffer that eats damage until it
    * breaks, and it also blanks status and most secondary effects while it stands. Shed Tail above is
@@ -1080,7 +1110,26 @@ const MOVE_TAGS = [
   { tag: 'substitute', param: 'an HP buffer that absorbs hits and blanks status until it breaks', probe: 'substitute',
     why: 'Its own class. Sound moves go through it, and the damage needed to break it is a real '
        + 'number the kill calculation would have to clear first',
-    of: m => /^(substitute|shedtail)$/.test(norm(m.id)) ? { buffer: 0.25 } : null },
+    /* ROADMAP #81 WIRE 12 -- THE DOLL'S ROUNDING IS DERIVED NOW, AND IT IS `floor`. ROADMAP #81
+     * WIRE 7 read this line as `Math.ceil(target.maxhp / 4)` and moved the consumer from floor to
+     * ceil; `data/moves.ts:18328` says `Math.floor(target.maxhp / 4)`, and the authority staged
+     * directly agrees -- a 137 HP Heliolisk's Shed Tail doll is 34 there and this engine built 35, a
+     * 195 HP Farigiraf's Substitute doll is 48 against ceil's 49. So WIRE 7 was a REGRESSION on a
+     * mechanic that had been right, taken on a misquoted source line. It is read from the source
+     * here rather than restated in either direction, which is the only thing that stops a third
+     * reading of the same line.
+     *
+     * BOTH MEMBERS SHARE ONE FORMULA because both declare `volatileStatus: 'substitute'` -- the doll
+     * belongs to the CONDITION, not to the move -- so the condition is looked up through the
+     * volatile's own move rather than off `m`, which is why Shed Tail (`condition` undefined) gets
+     * the same number as Substitute. */
+    of: m => {
+      if (!/^(substitute|shedtail)$/.test(norm(m.id))) return null;
+      const cond = String(((dex.moves.get(m.volatileStatus || 'substitute') || {}).condition || {}).onStart || '')
+        .replace(/\s+/g, ' ');
+      const hp = cond.match(/effectState\.hp\s*=\s*Math\.(floor|ceil|round)\(\s*\w+\.maxhp\s*\/\s*(\d+)/);
+      return { buffer: hp ? 1 / +hp[2] : 0.25, rounds: hp ? hp[1] : null };
+    } },
   { tag: 'forcesSwitch', param: 'the TARGET is removed from the field', probe: 'forceSwitch',
     why: 'Whirlwind, Dragon Tail, Roar. Undoes setup and changes who is in front of you',
     of: m => m.forceSwitch ? { forceSwitch: true } : null },
@@ -1366,6 +1415,53 @@ const MOVE_TAGS = [
       if (dd) p.costFraction = 1 / +dd[1];
       return p;
     } },
+  /* ROADMAP #81 WIRE 12 -- CURSE IS TWO MOVES AND NO TAG SAID SO.
+   *
+   * Will, 2026-08-07: "CURSE HAS TWO USES, MOSTLY BY NON GHOST TYPES TO BOOST ATTACK AND DEFENSE AND
+   * LOWER SPEED. GHOST TYPES USES IT TO CUT SOME OF THEIR HP AND THEN THE TARGET TAKES RESIDUAL
+   * DAMAGE EACH TURN". Both halves are in data/moves.ts and NEITHER was reachable:
+   *
+   *   - `statChangeInCode` above reads `onHit` and `onModifyMove` only. Curse's boosts are assigned
+   *     in `onTryHit`, as `move.self = { boosts: { spe: -1, atk: 1, def: 1 } }`, which is neither of
+   *     those hooks NOR a `this.boost({...})` call -- so the move came back with no stat tag at all
+   *     and Farigiraf read 0/0/0 against the authority's +1/+1/-1.
+   *   - the GHOST half's own cost, `this.directDamage(source.maxhp / 2)`, was likewise unread, so the
+   *     engine had the 1/4-per-turn chip (via `perTurnHP`) and NOTHING that paid for it. A free
+   *     permanent quarter-per-turn is STRICTLY BETTER than the real move and a search learns to spam
+   *     it, which makes an unpriced half worse than an absent one.
+   *
+   * THE SPLIT IS A DEX FIELD, NOT A NAME. `nonGhostTarget: 'self'` is declared data and it is what
+   * `onModifyMove` branches on -- so this tag keys off the field's PRESENCE and reads both branches
+   * out of the handlers beside it. MEMBERSHIP PRINTED BEFORE WIRING (docs/LESSONS.md 4): exactly ONE
+   * move in this format carries `nonGhostTarget`, and it is Curse. Nothing over-matched.
+   *
+   * THE BRANCH IS ON THE USER'S TYPE AT THE MOMENT OF USE, which is `source.hasType('Ghost')` and
+   * NOT the species -- a Protean body that has already converted to Ghost takes the Ghost branch.
+   * `elseTarget` is carried because the TARGET changes with the branch too, and a consumer that
+   * applied the boosts to the declared `normal` target would hand a foe a free +1/+1. */
+  { tag: 'typeSplitMove', param: 'the move does something DIFFERENT depending on the USER\'s TYPE when it is clicked', probe: 'nonGhostTarget',
+    why: 'Curse (1,058 uses). A non-Ghost gets +1 Atk / +1 Def / -1 Spe on ITSELF; a Ghost pays half '
+       + 'its own max HP and hangs a 1/4-per-turn chip on the foe. One move id, two moves',
+    of: m => {
+      if (!m.nonGhostTarget) return null;
+      const p = { splitsOnType: 'Ghost', elseTarget: m.nonGhostTarget, elseBoosts: null,
+                  hasTypeVolatile: m.volatileStatus || null, hasTypeCostFraction: null };
+      /* `move.self = { boosts: {...} }` -- the NON-Ghost branch, assigned inside onTryHit. */
+      const h = String(m.onTryHit || '').replace(/\s+/g, ' ');
+      const bo = h.match(/move\.self\s*=\s*\{\s*boosts:\s*\{([^}]*)\}/);
+      if (bo) {
+        const b = {};
+        for (const kv of bo[1].split(',')) {
+          const mm = kv.match(/([a-z]+)\s*:\s*(-?\d+)/); if (mm) b[mm[1]] = +mm[2];
+        }
+        if (Object.keys(b).length) p.elseBoosts = b;
+      }
+      /* `this.directDamage(source.maxhp / 2)` -- what the GHOST branch pays. */
+      const dd = String(m.onHit || '').replace(/\s+/g, ' ')
+        .match(/directDamage\(\s*\w+\.maxhp\s*\/\s*(\d+)/);
+      if (dd) p.hasTypeCostFraction = 1 / +dd[1];
+      return p;
+    } },
   { tag: 'lowersUser', param: 'WHICH of my own stats drop, as the price of the move', probe: 'movesLowerMe',
     why: 'Close Combat (5,487 uses) pays -1 Def and -1 SpD; Draco Meteor, Overheat and Make It Rain '
        + 'pay -2 SpA. movesBoostMe only fires on a POSITIVE change, so all of them read as having no '
@@ -1483,10 +1579,28 @@ const MOVE_TAGS = [
     of: m => m.volatileStatus === 'yawn' ? { delay: 1 } : null },
   /* Will: "perish song needs its own probably". It does -- it is the only effect in the format that
    * ignores HP, typing, items and abilities entirely and kills on a three-turn timer. 560 uses. */
-  { tag: 'perishClock', param: 'everything on the field dies in 3 turns unless it switches', probe: 'perishsong',
+  /* ROADMAP #81 WIRE 12 -- `turns: 3` WAS TYPED, AND THE AUTHORITY SAYS 4.
+   *
+   * `perishsong.condition.duration` is 4 (data/moves.ts). Showdown's `residualEvent` decrements a
+   * duration at the END of every turn INCLUDING the turn the volatile was added, so the board reads
+   *
+   *     set 4 -> tick -> 3 at the end of turn 1, 2 at turn 2, 1 at turn 3, 0 AND FAINT at turn 4
+   *
+   * and this engine set 3 and ticked to 2, which faints every affected body A FULL TURN EARLY. Both
+   * halves have to be right together: setting 4 and skipping the first tick agrees on turn 1 and
+   * drifts afterwards, so `turns` alone is not the fix and the consumer's tick is probed beside it.
+   *
+   * READ FROM `m.condition.duration`, not typed, so the constant cannot drift again -- and the
+   * name is kept honest: `turns` is now the value the clock STARTS at, which is one more than the
+   * number of turns the body survives. The 3 in the param string above was the old number and is
+   * gone with it. If the dex ever stops declaring a duration the tag comes back with `turns: null`
+   * and the consumer refuses it loudly; there is no fallback constant, which is what this was. */
+  { tag: 'perishClock', param: 'everything on the field dies unless it switches; `turns` is what the clock is SET to, and it ticks at the end of the turn it was set', probe: 'perishsong',
     why: 'Perish Song, 560 uses. Ignores HP, typing, items and abilities. No damage feature can see '
        + 'it and no kill calculation applies',
-    of: m => /perishsong/.test(norm(m.id)) ? { turns: 3 } : null },
+    of: m => /perishsong/.test(norm(m.id))
+             ? { turns: (m.condition && m.condition.duration) != null ? +m.condition.duration : null,
+                 ticksOnTheTurnItIsSet: true } : null },
   /* Will: "dire claw gets all the status inflictors" ... "but sleep para poison", "well not
    * freeze", "or burn?". Exactly right, and the dex confirms it -- Dire Claw's handler is
    * `this.sample(["psn","par","slp"])`, so 30% overall is 10% each of poison, paralysis and sleep.
@@ -2206,7 +2320,26 @@ const ABILITY_TAGS = [
        * so `blocks: 'atk'` alone said they stop Charm, Parting Shot and Breaking Swipe as well.
        * Measured against the official engine before this was added: Charm into Inner Focus is
        * `|-unboost|p2b: Gallade|atk|2` in Showdown and was stage 0 in medicham2. WIRE 3. */
-      const only = (src.match(/effect\.name\s*===?\s*['"]([^'"]+)['"]/) || [])[1] || null;
+      /* ROADMAP #81 WIRE 12 -- THE OLD PATTERN COULD NOT TELL AN INCLUDE FROM AN EXCLUDE, AND IT
+       * WAS ONE REGENERATION AWAY FROM DELETING MIRROR ARMOR.
+       *
+       * The five Intimidate blockers open with an INCLUSION whose body is the refusal:
+       *     if (effect.name === 'Intimidate' && boost.atk) { delete boost.atk; ... }
+       * Mirror Armor opens with the same substring inside an EARLY-RETURN GUARD, meaning the exact
+       * opposite -- "if this drop is my own reflection, do nothing":
+       *     if (!source || target === source || !boost || effect.name === 'Mirror Armor') return;
+       * A bare `effect.name === '...'` match read the second as `onlyFrom: 'Mirror Armor'`, and
+       * `statDropRefusal` gates on exactly that field -- so a regenerated artifact would have made
+       * Mirror Armor block ONLY drops named "Mirror Armor" and therefore block nothing at all. The
+       * ability would have gone silently dead with no probe on it and no line changed in the engine.
+       * Found by DIFFING a candidate regeneration rather than accepting one (ROADMAP #65's method).
+       *
+       * The shape, not the name: a match counts only when its `if (...)` closes onto a BLOCK. An
+       * early-return guard closes onto `return`, so it no longer matches, and Mirror Armor comes
+       * back `onlyFrom: null` -- which is what the consumer's pre-regeneration bridge already gives
+       * it, so this changes no behaviour today and stops one tomorrow. */
+      const only = (src.replace(/\s+/g, ' ')
+        .match(/effect\.name\s*===?\s*['"]([^'"]+)['"][^;{]*\)\s*\{/) || [])[1] || null;
       return { blocks: statsBlockedIn(src) || 'all stats',
                onlyFrom: only,
                onlyGrassTypes: /hasType\("Grass"\)/.test(src) || null,
@@ -2333,6 +2466,26 @@ const ABILITY_TAGS = [
   { tag: 'auraBoost', param: 'multiplies one TYPE for every Pokemon on the field, friend and foe', probe: 'onAnyBasePower',
     why: 'Fairy Aura (1,455 fields) makes every Fairy move 1.33x -- including the foe\'s. A '
        + 'field-wide multiplier that helps both sides is unlike any other boost in the taxonomy',
+    /* ROADMAP #81 WIRE 12 -- THE MULTIPLIER IS A CONDITIONAL PAIR AND THE OLD REGEX COULD NOT SEE IT,
+     * SO EVERY CARRIER FELL THROUGH TO A HAND-TYPED 1.33. The handler is
+     *
+     *     return this.chainModify([move.hasAuraBreak ? 3072 : 5448, 4096]);
+     *
+     * and `/chainModify\(\[?\s*(\d+)/` needs a DIGIT straight after the bracket, so it matched
+     * nothing on all three members and `mult` came out of the `: 1.33` fallback on the same line --
+     * a silent default that looked exactly like a derivation (CLAUDE.md). The cost is not cosmetic:
+     * `md4096(v, 1.33)` truncs to 5447/4096 and the authority is 5448/4096, so a wired float would
+     * have been wrong by one 4096th on every Fairy move in the format and the differential would
+     * have said the wire failed.
+     *
+     * THE PAIR IS CARRIED AS [num, den], which is the form `md4096` already takes for exactly this
+     * reason (Tough Claws' 5325 against a float's 5324). NOTHING IS INVENTED WHEN THE HANDLER CANNOT
+     * BE READ: `mult` comes back null, the tag is still present, and the consumer must refuse it
+     * loudly rather than reach for a number nobody derived -- the statChangeInCode precedent.
+     *
+     * AURA BREAK INVERTS RATHER THAN CANCELS, and the number for that is IN THIS SAME HANDLER (3072
+     * = 0.75), not in Aura Break's. So `breakMult` is derived here, from the aura's own source,
+     * rather than typed into the consumer. */
     of: a => {
       /* Showdown writes the guard as an EARLY RETURN -- `move.type !== "Fairy"` -- so a probe
        * looking for `===` matched nothing. Third time tonight a handler said the opposite of the
@@ -2340,9 +2493,37 @@ const ABILITY_TAGS = [
       const src = String(a.onAnyBasePower || '');
       const t = (src.match(/move\.type\s*!==?\s*"(\w+)"/) || src.match(/move\.type\s*===?\s*"(\w+)"/) || [])[1];
       if (!t) return null;
-      const m = src.match(/chainModify\(\[?\s*(\d+)/);
-      return { type: t, mult: m ? +(m[1] / 4096).toFixed(2) : 1.33, appliesToEveryone: true };
+      const pair = src.match(/chainModify\(\[\s*move\.hasAuraBreak\s*\?\s*(\d+)\s*:\s*(\d+)\s*,\s*(\d+)\s*\]/);
+      if (pair) {
+        return { type: t, mult: [+pair[2], +pair[3]], breakMult: [+pair[1], +pair[3]],
+                 appliesToEveryone: true };
+      }
+      const m = src.match(/chainModify\(\[\s*(\d+)\s*,\s*(\d+)\s*\]/);
+      return { type: t, mult: m ? [+m[1], +m[2]] : null, breakMult: null, appliesToEveryone: true };
     } },
+  /* ROADMAP #81 WIRE 12 -- AURA BREAK IS ITS OWN RELATION AND HAD NO TAG AT ALL.
+   *
+   * It is not an aura and it is not a `damageReduce`: it carries no type, no number and no side --
+   * it sets `move.hasAuraBreak = true` on every non-status move on the field, and the AURA's own
+   * handler then reads that flag and picks its OTHER numerator. So the only thing this tag has to
+   * say is "somebody on this field flips the auras", which is exactly its param.
+   *
+   * IT INVERTS RATHER THAN CANCELS -- 0.75, not 1.0 -- and that number is deliberately NOT here: it
+   * lives on `auraBoost.breakMult`, read off the aura's source, because a consumer that took the
+   * value from the breaker would have to know which aura it was breaking.
+   *
+   * MEMBERSHIP, printed before wiring (docs/LESSONS.md 4): `ability aurabreak` and nothing else --
+   * `hasAuraBreak` appears in exactly two handlers in data/abilities.ts, one WRITING it (Aura Break)
+   * and two READING it (the two auras, which match `auraBoost` and are excluded by the hook name).
+   *
+   * ZERO EXPOSURE IN THIS FORMAT, STATED RATHER THAN DISCOVERED: the only carriers are Zygarde and
+   * Zygarde-10% (`isNonstandard: 'Past'`) and Zygarde-Mega (`'Future'`), so no legal Champions team
+   * can field one. It is derived and wired anyway because the tag SHAPE is what the engine matches
+   * on, and leaving one member of a three-member family out is how a family becomes a list. */
+  { tag: 'auraBreak', param: 'INVERTS every aura on the field instead of cancelling it', probe: 'hasAuraBreak',
+    why: 'Aura Break turns Fairy Aura and Dark Aura from x1.33 into x0.75 for EVERYONE. No legal '
+       + 'Champions carrier exists today, so its exposure is zero and its shape is not',
+    of: a => /hasAuraBreak\s*=\s*true/.test(String(a.onAnyTryPrimaryHit || '')) ? { inverts: true } : null },
   { tag: 'halvesTypeDamage', param: 'incoming damage of specific types uses a HALVED attacking stat', probe: 'onSourceModifyAtk',
     why: 'Thick Fat (480 fields) halves Fire and Ice. It is not a resistance and does not show in '
        + 'the type chart, so the defensive calculation misses it entirely',

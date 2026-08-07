@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-07T19:16:44.831Z",
+  "generated": "2026-08-07T23:17:01.211Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 282,
-  "live": 281,
+  "probed": 294,
+  "live": 293,
   "missing": 1,
-  "armed": 282,
+  "armed": 294,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -46,7 +46,7 @@
       "tag": "megaStone",
       "label": "the stone names the forme, and the mega body still threatens something",
       "live": true,
-      "detail": "[forme, ability, SpA] — no stone floette-eternal,flowerveil,159; Floettite floette-mega,fairyaura,192 (the artifact's into-map says Floette-Mega; the concatenated guess is floette-eternal-mega, which carries ab:null and mv:[]). buildMon('floette-mega') by NAME now holds 4 moves and its dazzlinggleam dealt 160",
+      "detail": "[forme, ability, SpA] — no stone floette-eternal,flowerveil,159; Floettite floette-mega,fairyaura,192 (the artifact's into-map says Floette-Mega; the concatenated guess is floette-eternal-mega, which carries ab:null and mv:[]). buildMon('floette-mega') by NAME now holds 4 moves and its dazzlinggleam dealt 210",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2176,7 +2176,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 26.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2486,7 +2486,7 @@
       "tag": "substitute",
       "label": "the doll absorbs the hit, a sound move goes through it, and a second click fails free",
       "live": true,
-      "detail": "Ice Beam into a Garchomp -- after Howl 183, after Substitute 0 (the doll cost 45); Hyper Voice (bypasssub) through the doll 45 with 46 doll left; Will-O-Wisp -- with a sub -, without brn; a SECOND Substitute costs 0",
+      "detail": "Ice Beam into a Garchomp -- after Howl 183, after Substitute 0 (the doll cost 45); Hyper Voice (bypasssub) through the doll 45 with 45 doll left; Will-O-Wisp -- with a sub -, without brn; a SECOND Substitute costs 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2496,7 +2496,7 @@
       "tag": "ignoresScreensAndSubs",
       "label": "Infiltrator hits the body behind a substitute",
       "live": true,
-      "detail": "Ice Beam into a substituted Garchomp -- no ability 0, Infiltrator 138 with the doll still standing at 46",
+      "detail": "Ice Beam into a substituted Garchomp -- no ability 0, Infiltrator 138 with the doll still standing at 45",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2566,7 +2566,7 @@
       "tag": "statusCategory",
       "label": "every action kind the engine can resolve announces its |move| line",
       "live": true,
-      "detail": "27/27 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
+      "detail": "29/29 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2614,9 +2614,9 @@
     {
       "kind": "move",
       "tag": "substitute",
-      "label": "the doll is a ROUNDED-UP quarter, and the cost is not",
+      "label": "the doll is a ROUNDED-DOWN quarter, and Shed Tail's cost is rounded UP",
       "live": true,
-      "detail": "a 183 HP Garchomp clicking Substitute — it PAID 45 (floor, 45) and the doll is 46 (ceil, 46); the two roundings differ here and agree on a 200 HP body, which is why the two arms are the cost and the doll",
+      "detail": "a 183 HP Garchomp clicking Substitute — PAID 45 and the doll is 45 (floor is 45, ceil 46; the authority builds the FLOOR). A 137 HP Heliolisk clicking Shed Tail — PAID 69 (ceil(max/2) = 69) and the doll it leaves behind is 34 (floor(max/4) = 34)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2827,6 +2827,126 @@
       "label": "a crit does NOT ignore a burn",
       "live": true,
       "detail": "Meowscarada into Garchomp — Knock Off 70 healthy / 35 burned; Flower Trick 113 / 56 (the crit must STILL be halved — burn is a multiplier, not a stage)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "auraBoost",
+      "label": "Fairy Aura raises the HOLDER own Fairy move by 5448/4096",
+      "live": true,
+      "detail": "Floette-Mega Moonblast into an unfaintable Swampert — no ability 122, Fairy Aura 161, ratio 1.320 (5448/4096 = 1.3301). Checked against the authority at pinned rolls: 111-132 -> 147-174, exact on both ends",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "auraBoost",
+      "label": "Fairy Aura on the FOE raises MY Fairy move by the same amount",
+      "live": true,
+      "detail": "Moonblast into Swampert — nobody has the aura 122; the AURA IS ON THE TARGET 161; the aura is on the attacker 161. The last two must be EQUAL: the field does not care which side the carrier stands on",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "auraBoost",
+      "label": "an aura touches ONLY its own type, and Dark Aura is the second member",
+      "live": true,
+      "detail": "DARK Aura on the attacker — its Moonblast (Fairy) is 122 -> 122 (must NOT move) and Tyranitar Crunch is 193 -> 255, ratio 1.321",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "auraBreak",
+      "label": "Aura Break INVERTS the aura to 0.75 instead of cancelling it to 1.0",
+      "live": true,
+      "detail": "Moonblast into Swampert — no aura 122, Fairy Aura 161, Fairy Aura WITH an Aura Break body on the foe side 92; 92/122 = 0.754. Cancelling would give 122; the rule is 0.75, not 1.0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "passesState",
+      "label": "Shed Tail pays HP, leaves a Substitute AND switches — all three",
+      "live": true,
+      "detail": "Heliolisk (137 max) — Shed Tail: slot 0 is now \"emolga\", the user paid 69 (ceil(max/2) = 69) and EMOLGA arrives holding a 34 doll (floor(max/4) = 34). U-turn control: slot 0 \"emolga\", paid 0, doll 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "passesState",
+      "label": "Baton Pass carries the BOOSTS across and Shed Tail deliberately does not",
+      "live": true,
+      "detail": "Heliolisk at +2 Attack — Baton Pass: Emolga arrives at atk 2 with a 0 doll and the user paid 0; Shed Tail: Emolga arrives at atk 0 with a 34 doll. The authority passes boosts on one and explicitly not on the other",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "typeSplitMove",
+      "label": "a NON-Ghost Curse is +1 Atk / +1 Def / -1 Spe on ITSELF, free",
+      "live": true,
+      "detail": "Farigiraf (Normal/Psychic) clicks Curse — atk 1, def 1, spe -1, paid 0 HP, foe lost 0 and is at atk 0 (the branch retargets to SELF). Gengar, the Ghost arm, takes NO stat change: 0/0/0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "typeSplitMove",
+      "label": "a GHOST Curse costs the user half its max HP and chips the foe 1/4 a turn",
+      "live": true,
+      "detail": "Gengar (135 max) clicks Curse at a 183 HP Garchomp — the user paid 67 (max/2 = 67) and the foe lost 45 on the click turn and 45 on the NEXT one (max/4 = 45). Farigiraf non-Ghost arm pays 0 and chips 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "perishClock",
+      "label": "the perish counter reads 3 / 2 / 1 at the ends of turns 1, 2 and 3",
+      "live": true,
+      "detail": "Primarina clicks Perish Song on turn 1 — the four bodies read [3 3 3 3] [2 2 2 2] [1 1 1 1] at the ends of turns 1, 2, 3, and NONE has fainted yet; withholding the click on the same board reads [x x x x] [x x x x] [x x x x]. The authority reads perish3 / perish2 / perish1 over the same three turns",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "perishClock",
+      "label": "every affected body faints at the end of turn 4 — both sides, at once",
+      "live": true,
+      "detail": "bodies fainted to the perish clock — after 3 turns 0/4, after 4 turns 4/4 (the user OWN side included), after 5 turns 4/4. Alive at 3 and dead at 4 is the pair; either alone is satisfied by an engine that is a turn out in one direction or the other",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "perishClock",
+      "label": "a body that switches out loses the clock and does NOT faint",
+      "live": true,
+      "detail": "Primarina clicks Perish Song on turn 1 — staying in, it is fainted=true at the end of turn 4; switching out on turn 2 it is fainted=false with _perish=null. Its PARTNER, which stayed, is fainted=true, so the clock did not simply stop running",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "damageMultAll",
+      "label": "the Life Orb toll is refused by a move that MISSED",
+      "live": true,
+      "detail": "Pelipper holding a Life Orb — Scald LANDS (121 dealt) and it pays 13; Hydro Pump MISSES (0 dealt) and it pays 0; Thunderbolt into a Ground type reaches nobody and pays 0; with no item at all a landed Scald costs 0. The authority pays 13 / 0 / 0",
       "hollow": false,
       "armed": true,
       "directCall": false

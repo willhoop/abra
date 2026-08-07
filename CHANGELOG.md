@@ -10,6 +10,167 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.71.0] — 2026-08-07
+
+### Added
+- **The AURAS, at the base-power stage and field-wide.** Fairy Aura, Dark Aura and Aura Break are
+  `onAny*` handlers — they multiply one TYPE for every body on the field, the holder's moves and the
+  foe's alike — and nothing in the engine read `auraBoost` at all. `field.aura` is now recomputed at
+  the top of every turn from all four actives, exactly beside `field.wSup`, so `dmgRange` asks one
+  place and no signature widens (this answers ROADMAP #64's open question the way WIRE 78 answered
+  it). Applied to BASE POWER through a `ch4096` chain spent once, which is where `onAnyBasePower`
+  runs; the multiplier is the derived pair `[5448, 4096]`, not the float 1.33 (`md4096(v, 1.33)`
+  truncs to 5447 and would have been one 4096th low on every Fairy move in the format). **Aura Break
+  INVERTS to `[3072, 4096]` = x0.75 rather than cancelling to 1.0.** Verified against the official
+  engine on 12 arms — attacker-side, defender-side and under a break, across Moonblast, Light of Ruin
+  and Crunch — **exact at both ends of the roll on all 12**.
+- **New derived tag `auraBreak`** and a new derived tag **`typeSplitMove`** (Curse), both keyed on
+  dex facts (`hasAuraBreak` in the handler; the `nonGhostTarget` FIELD) rather than on names.
+  Membership printed before wiring: `auraBreak` matches exactly `aurabreak`, `typeSplitMove` matches
+  exactly one move in this format.
+- **Baton Pass and Shed Tail switch, and carry what the authority says they carry.** `passesState`
+  had been derived since the pivot family was split three ways and read `used: false, uses: 0` — the
+  engine had no consumer, so Baton Pass resolved to a NO-OP TURN and Shed Tail paid half its user's
+  HP, built the doll and left the user standing there. Both now resolve through a `passstate` branch
+  that runs the authority's checks in the authority's ORDER (an empty bench fails FREE, before the HP
+  is charged). `passesState` carries `mode`, `passesBoosts` and `passesVolatiles` read off the move's
+  own `selfSwitch` string, which is the same field `Pokemon#copyVolatileFrom` branches on.
+- **Curse, both halves.** A non-Ghost gets +1 Atk / +1 Def / −1 Spe on ITSELF and pays nothing; a
+  Ghost pays half its own max HP and hangs a 1/4-per-turn chip on the foe. Before this the move did
+  literally nothing. The chip and the price land together on purpose: wired apart, Curse would have
+  been a free permanent quarter-per-turn — strictly better than the real move.
+
+### Fixed
+- **Perish Song counted from the wrong number and killed a full turn early**, on both sides, on 1,141
+  corpus uses. `perishsong.condition.duration` is 4 and the residual decrements at the end of every
+  turn including the one it was set on, so the board reads 3 / 2 / 1 and everything faints at the end
+  of turn 4. The engine set 3 and ticked to 2. Read from the authority's own `condition.duration` now,
+  with no fallback constant. **The KO itself always fired** — that was checked before it was reported.
+- **A body that switches out no longer keeps its perish clock.** `_perish` was never cleared on the
+  way out, so the clock FROZE on the bench instead of ending and the body died to a count it had
+  already escaped. This is the move's only counter-play. `_yawn` is cleared beside it for the same
+  reason.
+- **WIRE 10's board regression: the Life Orb toll was paid by a move that MISSED.** That rung moved
+  the accuracy roll into the per-target step walk (correctly — `hitStepAccuracy` really is step 5),
+  and the `continue` the old whole-move roll carried went with it. The drain, the self stat drop, the
+  recoil, the crash and the pivot all have their own gates and are all still right on a miss; the Life
+  Orb line never had one. Gated on `_reached > 0`. **Not a spread defect** — it is every missed move
+  by a Life Orb holder (12,804 corpus sheets), which is why WIRE 10's own "36/36 single-target clicks
+  are byte-identical" control could not see it: all 36 landed.
+- **`Math.ceil` on the substitute doll, introduced by WIRE 7, reverted to the authority's `floor`.**
+  That wire quoted `this.effectState.hp = Math.ceil(target.maxhp / 4)`; `data/moves.ts:18328` says
+  `Math.floor`, and the volatile read out of a staged authority game agrees (137 HP → 34, 195 HP →
+  48). The probe written for it asserted the misquote and went green. Both the doll's rounding and the
+  three different COST roundings (Shed Tail is `Math.ceil(maxhp / 2)`; Substitute and Clangorous Soul
+  trunc) are now derived per member rather than shared.
+- **`preventsStatDrop` would have deleted Mirror Armor on the next regeneration.** Its derivation
+  matched a bare `effect.name === '...'` and could not tell an INCLUSION (`if (effect.name ===
+  'Intimidate' && boost.atk) { … }`) from an EARLY-RETURN GUARD (`… || effect.name === 'Mirror Armor')
+  return;`), so the artifact would have said `onlyFrom: 'Mirror Armor'` and the ability would have
+  blocked only drops named "Mirror Armor" — that is, nothing. Found by diffing a candidate
+  regeneration rather than accepting one. Derived membership now matches the consumer's bridge exactly.
+
+### Changed
+- **`data/tags.json` regenerated, and `data/abra-tags.js` rebuilt from it.** It had been frozen since
+  ROADMAP #65 because a regeneration silently dropped five entities; that cause (a bo3-only corpus
+  scope inherited from `fit_policy`) is fixed and stated at the call site. The candidate was DIFFED
+  before it was accepted: **0 entities lost**, `sheet_entries` 119,616 → 125,340, +3 entities
+  (`aurabreak` plus the inert `receiver` and `persimberry`), 23 entity diffs and every one accounted
+  for.
+- Census **281 live / 282 probed → 293 live / 294 probed**; tag coverage 162/181 → 166/183.
+  `tests/probe_red_demo.js` 177 → 185 demonstrations, 0 failed.
+
+### Notes
+- **Two of the five briefed diagnoses were wrong before the engine was**, and both are recorded in
+  `docs/ENGINE.md`: the tagger does NOT test `selfSwitch === true` (it tests truthiness and routes the
+  two string-valued moves to `passesState` deliberately), and the substitute doll was not confounded —
+  it was a regression this project introduced.
+- **`tests/test-effective-identity.js` is RED** on one new raw read, `engine/leaf_engine_contrast.js:
+  0 -> 1`. That file is MEASURE's and was not touched here. Reported, not fixed — the routing rule.
+- **`tests/test-roadmap-register.js` is RED** on `#87`, cited by an earlier section of
+  `docs/ENGINE.md` and absent from the register. Not this change's citation.
+- **`tests/test-wiring.js` was not run and cannot be from ENGINE** — it spawns self-play. Ten counters
+  were added for the capabilities armed here and every one is proven non-zero by a probe that spends a
+  real turn.
+
+---
+
+## [3.70.0] — 2026-08-07
+
+### Added
+- **`engine/board_state.js` — THE STATE DIFFERENTIAL.** The board is now read out of BOTH engines'
+  live bodies at every turn boundary and compared field by field: per active body HP, status with its
+  toxic stage and turns slept, item, all seven stat stages, fainted and species; every party member's
+  HP and aliveness; weather / terrain / Trick Room / Tailwind / each screen WITH ITS COUNTER; hazard
+  layer counts; and the persistent volatiles (Substitute with its HP, Taunt, Encore, Disable, Leech
+  Seed, confusion, Perish, move-trapping with its counter). **Neither engine's log is opened** —
+  deriving a board from the protocol would reproduce the bug this exists to escape. The boundary is
+  **after the entire residual phase**, which is the only place Leftovers, chip, the toxic stage, Leech
+  Seed, Perish and every clock touch the board.
+- **A per-FIELD diff, not a boolean.** Every differing leaf is located to the slot, the body and the
+  field, bucketed by magnitude (off-by-one / off-by-2-or-3 / off-by-4-or-more / present-in-one-engine /
+  different-value), aggregated by field across the run, and written out in plain English with the two
+  clicks each side made. The off-by-one HP bucket is kept apart on purpose: it is WIRE 4's fixed-point
+  residue and is different work from a missing mechanic.
+- **`data/state-ladder.json`** — all fourteen frozen releases replayed under the board comparison, one
+  pinned census, one frozen team store, 1,998 games per arm.
+
+### Notes
+- **THE HEADLINE: the board at the end of turn 1 is identical in 56.0% of games at the pre-WIRE-1
+  baseline (1119/1998) and 66.9% at the top rung (1337/1998), peaking at 69.3% at WIRE 9.** Turn 1 is
+  the headline because it is the only turn that begins from a board both engines agree on; every later
+  turn starts from wherever the run had already drifted. `agreement_by_turn` states its denominator at
+  each turn and the pooled `turn_boundary_agreement` is kept beside it so the contamination is visible.
+- **THE MEDIAN WAS THE WRONG STATISTIC.** The median first-divergence turn read 1 at all ten rungs and
+  was reported ten times as "nothing moved". The distribution is bimodal — whole-game protocol
+  agreement went 7 → 134 of 1,997 over the same series — and a median cannot move on a bimodal
+  distribution until half the mass crosses. The bounded turn-1 rate has no such blind spot.
+- **THE WIRES WERE REAL BUT THE PROTOCOL NUMBER OVERSTATED THEM.** Protocol whole-game agreement rose
+  5.9x (1.8% → 10.3%); the turn-1 board rose 1.19x (56.0% → 66.9%). Whole-game board agreement went
+  6.4% → 15.6%.
+- **WIRE 10 IS A REGRESSION AND ONLY THE STATE INSTRUMENT SAW IT.** WIRE 9 → WIRE 10 loses 47 clean
+  turn-1 boards and 56 clean games; diffed per field it is one field, **end-of-turn-1 HP wrong in 427
+  → 473 games (+46)**, with several fields improving. The protocol instrument scored the same rung as
+  an improvement. The drift check resolves to ZERO — the baseline release ran first and last, fourteen
+  arms apart, and reproduced every measured field exactly — so 47 games is far above the instrument's
+  resolution and is not noise.
+- **IS IT JUST SEMANTICS: at the top rung 422 of 1,030 games (41.0%) whose narration parted inside
+  turn 1 reached an identical board anyway.** By protocol class at the baseline, `ordering` is
+  announcement-only in 179 of 257 games while `turn order` is only 2 of 73 — turn order is real,
+  ordering mostly is not.
+- **THE LIGHTNING ROD CASE WAS AN ANNOUNCEMENT DIFFERENCE, NOT A BOARD ONE.** Staged for real, the two
+  reported protocol lines reproduce exactly and the board is 131 of 131 fields identical — Raichu is at
+  +1 Special Attack in both engines. This engine emits an extra `|-immune|` the authority does not. The
+  same probe then suppresses the boost in this engine's board and the comparator reports
+  `p2a raichu boosts.spa SD 1 US 0`, localised, so the null rests on a comparator shown catching the
+  exact field it was doubted on.
+- **THE COMPARATOR PROVES ITSELF FIRST:** 7 representation mappings each red-demonstrated in both
+  directions, and 25 planted state divergences — one per compared field family, written into the LIVE
+  medicham board at a boundary the clean arm agreed at, each of which must be applied, caught, at
+  exactly that boundary, and localised to the planted field. **25/25 on all fourteen arms**, with
+  `reader_failures` empty on every one. Gated by `tests/test-state-differential.js`.
+- **THREE LADDERS WERE RUN AND TWO WERE THROWN AWAY.** Ladder 1 had `engine/game_differential.js` and
+  `engine/diff_swarm.js` edited under it between arms 11 and 14 (ROADMAP #87's pool cache landing
+  mid-flight); its own `inputs_that_moved` and drift check caught it, the edit was proven
+  measurement-neutral by re-running arm 1 under both instrument versions, and it was re-run anyway.
+  Ladder 2 ran clean and its **drift check reproduced exactly**. Ladder 3 added `agreement_by_turn`
+  and is the published artifact. **Ladders 2 and 3 are two independent fourteen-arm runs and are
+  IDENTICAL on every measured field, arm by arm.**
+- **THE PUBLISHED LADDER'S DRIFT CHECK IS RED, AND IT IS NOT WAIVED.** The two baseline arms differ in
+  exactly one field and it is not a measurement: `declared_gaps.tags_release_matches_live` went
+  `true` → `false` because **`data/tags.json` was rewritten by something outside the run at 18:14:50**
+  (476,130 → 452,721 bytes), mid-ladder. Every arm read the release's frozen tags for the engine, all
+  fourteen reported the same team-pool digest `32b2abcbfeb7`, all thirteen cleared comparability, and
+  per-game depth is identical — and ladder 2, which ran before the rewrite, was green with the same
+  numbers. The gate is right to fire; the fix belongs to whatever regenerated `data/tags.json` against
+  a live tree while a measurement was in frame (CLAUDE.md's photograph rule). Routed, not held.
+- **NOT MEASURED, AND SAID SO:** ability trapping (medicham2 stores no trapped flag; MOVE trapping IS
+  compared, with its counter), item disposition, PP, and the stall counter behind consecutive Protect.
+  `NOT_COMPARED` ships with every artifact.
+- **FILED, NOT FIXED:** `engine/status.js` reads `data/wire-ladder.json` and knows nothing about
+  `data/state-ladder.json`, so its generated block still reports the protocol ladder alone. `status.js`
+  belongs to MEASURE.
+
 ## [3.69.0] — 2026-08-07
 
 ### Notes

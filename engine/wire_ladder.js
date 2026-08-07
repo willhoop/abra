@@ -414,6 +414,29 @@ const rows = ARMS.map((arm, i) => {
      * protocol side collapses causes, so a rung that fixed HP and a rung that fixed a clock do not
      * read as one number. */
     state: !j.state ? null : {
+      /* THE HEADLINE COLUMN, FIRST IN THE OBJECT AS IT IS FIRST IN THE REPORT. Will, 2026-08-07:
+       * *"I ONLY CARE ABOUT TURN 1 TO START."* Bounded, target 100%, and — unlike the median first
+       * divergence turn, which read 1 at all ten rungs — it cannot be blinded by a bimodal
+       * distribution. `identical_at_end_of_turn` carries turns 2 and 3 beside it so the decay shows. */
+      turn1: j.state.turn1 ? {
+        games: j.state.turn1.games,
+        identical: j.state.turn1.identical,
+        rate_of_all_games: j.state.turn1.rate_of_all_games,
+        reached_a_turn1_boundary: j.state.turn1.reached_a_turn1_boundary,
+        rate_of_games_that_reached_it: j.state.turn1.rate_of_games_that_reached_it,
+        protocol_parted_during_turn1: j.state.turn1.protocol_parted_during_turn1,
+        protocol_parted_during_turn1_board_identical_anyway:
+          j.state.turn1.protocol_parted_during_turn1_board_identical_anyway,
+        by_field: j.state.turn1.by_field,
+        by_cause: j.state.turn1.by_cause,
+        by_protocol_class: j.state.turn1.by_protocol_class,
+      } : null,
+      turn1_boards_identical: j.state.turn1_boards_identical,
+      turn1_boards_identical_fraction: j.state.turn1_boards_identical_fraction,
+      identical_at_end_of_turn: j.state.identical_at_end_of_turn || null,
+      /* TURNS 1..12 SEPARATELY, each with its own denominator. `turn_boundary_agreement` below pools
+       * them and is kept precisely so the contamination is visible by comparison. */
+      agreement_by_turn: j.state.agreement_by_turn || null,
       turn_boundaries_compared: j.state.turn_boundaries_compared,
       turn_boundaries_identical: j.state.turn_boundaries_identical,
       turn_boundary_agreement: j.state.turn_boundary_agreement,
@@ -452,6 +475,35 @@ for (const r of rows) console.log('  ' + pad(r.arm, 28) + pad(r.diverged + '/' +
  * questions and the whole reason this ladder was re-run is that only one of them was ever asked. */
 if (STATE) {
   const pct = v => (v == null ? '  n/a' : (100 * v).toFixed(1) + '%');
+  /* PRINTED FIRST AND ON ITS OWN, because it is the one number this ladder is now for. */
+  console.log('\n  ============================================================================');
+  console.log('  THE HEADLINE — FRACTION OF GAMES WHOSE BOARD IS IDENTICAL AT THE END OF TURN 1');
+  console.log('  ============================================================================');
+  console.log('  arm                          turn 1            turn 2            turn 3        protoDiv-in-T1 -> same board');
+  for (const r of rows) {
+    const s = r.state;
+    if (!s || !s.turn1) { console.log('  ' + pad(r.arm, 28) + 'NOT MEASURED'); continue; }
+    const d = s.identical_at_end_of_turn || [];
+    const cell = e => (e ? pad(e.identical + '/' + e.games + '  ' + pct(e.rate_of_all_games), 18) : pad('n/a', 18));
+    console.log('  ' + pad(r.arm, 28) + cell(d[0]) + cell(d[1]) + cell(d[2])
+      + s.turn1.protocol_parted_during_turn1_board_identical_anyway + '/' + s.turn1.protocol_parted_during_turn1);
+  }
+  /* THE FULL DECAY AT THE TWO ENDS OF THE LADDER. Printing all twelve turns for all fourteen arms
+   * would be 168 rows; the artifact carries every one of them per arm, and the console shows the two
+   * rungs anybody compares. */
+  {
+    const show = (arm) => {
+      const s = (RUNS[arm.id].artifact.state || {}).agreement_by_turn;
+      if (!s) return;
+      console.log('  ' + arm.id + '  (' + arm.label + ')');
+      console.log('    turn      1     2     3     4     5     6     7     8     9    10    11    12');
+      console.log('    ident %' + s.map(e => (e.reached ? (100 * e.rate_given_it_reached_this_turn).toFixed(0) + '%' : '  -').padStart(6)).join(''));
+      console.log('    reached ' + s.map(e => String(e.reached).padStart(5) + ' ').join('').slice(0, 72));
+    };
+    console.log('\n  THE DECAY, TURN BY TURN, denominator = games that REACHED that turn:');
+    show(BASE); show(TOP);
+    console.log('  (every arm carries the full array in the artifact as arms[].state.agreement_by_turn)');
+  }
   console.log('\n  THE SAME LADDER, SCORED ON THE BOARD AT THE TURN BOUNDARY:');
   console.log('  arm                          turns identical      games clean        medTurn  protoDiv->sameBoard  proof');
   for (const r of rows) {
@@ -573,6 +625,20 @@ if (WRITE) {
       }));
     })(),
     arm_artifacts: KEEP ? ARM_DIR : 'not kept — re-run this file to regenerate them',
+    /* THE NEXT WIRE QUEUE, AND IT IS THE FIRST ONE THIS PROJECT HAS CHOSEN BY WHAT CHANGES A BOARD.
+     * `what_remains_at_the_top_rung` above ranks by protocol CLASS, which is a ranking of narration.
+     * This ranks the fields the end-of-turn-1 BOARD actually parted on at the same rung, with the
+     * magnitude buckets kept apart — an HP off by one and an HP off by forty are different work. */
+    turn1_queue_at_the_top_rung: !STATE ? null : (() => {
+      const s = (RUNS[TOP.id].artifact.state || {}).turn1;
+      if (!s) return null;
+      return { arm: TOP.id, release: TOP.release, by_field: s.by_field, by_cause: s.by_cause.slice(0, 25),
+               by_protocol_class: s.by_protocol_class,
+               /* THE PLAIN-ENGLISH TURNS. Will: *"OR YOU CAN TELL ME."* Each one names the four bodies,
+                * the four clicks, what the authority says, what this engine says, and the field diff.
+                * Kept in the artifact so the report and the file cannot drift apart. */
+               cases: s.cases };
+    })(),
   };
   artifact.mode = STATE ? 'protocol + end-of-turn BOARD state' : 'protocol only';
   artifact.state_instrument = STATE ? {

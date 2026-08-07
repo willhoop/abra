@@ -210,7 +210,21 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * SWITCH-IN and a turn spent afterwards would let the residual — which already restores stats — do
  * the work and hide the defect. Seven read HP, two read a stat stage and the item slot, and
  * `punishOrder(` reads the stream with both bodies' HP asserted beside it. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(/;
+/* `auraHit(`, `passMove(`, `curseTurn(` and `perishRun(` added 2026-08-07 with ROADMAP #81 WIRE 12,
+ * declared HERE and with their reasons, exactly as the paragraph above requires. Every one of them
+ * stages a real doubles board through `battleInit` and spends at least one real turn through
+ * `battleTurn`, and each is a helper rather than an inline body because the mechanic it watches needs
+ * a board a pure call cannot express: `auraHit(` needs a FOURTH body on the field (the aura is a
+ * property of the field, so a two-body `dmgRange` is structurally blind to a carrier standing on the
+ * partner slot); `passMove(` needs a BENCH, since the whole defect is that nothing ever left the
+ * field; `curseTurn(` spends TWO turns because the Ghost half's chip is a residual and a one-turn
+ * probe cannot tell it from a one-off hit; `perishRun(` spends up to FIVE, because the claim being
+ * tested is WHICH turn the KO lands on and no single turn contains that. */
+/* `orbToll(` added 2026-08-07 with ROADMAP #81 WIRE 12's fifth item, declared HERE and with its
+ * reason: it stages a real doubles board through `battleInit` and spends a real turn through
+ * `battleTurn` on the LOSING accuracy roll, because the whole defect is a branch that only exists
+ * when a move MISSES — and nothing below the turn loop can miss. */
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -6692,31 +6706,58 @@ probe('item', 'healsAtThreshold', 'the Sitrus is eaten BETWEEN the two attackers
                  + `${berry.dead ? 'FAINTED (eaten too late to matter)' : berry.hp + ' hp, berry spent'}` };
 });
 
-/* 5. THE DOLL IS `Math.ceil(maxhp / 4)` while the COST truncs, and this engine floored both. One rule
- *    for both members of the tag; measured against the authority on two odd-HP bodies (183 -> 46 not
- *    45, 145 -> 37 not 36). THE CONTROL IS AN EVEN-QUARTER BODY, where ceil and floor agree and the
- *    probe must therefore NOT fire — without it this is watching "a doll exists". */
-probe('move', 'substitute', 'the doll is a ROUNDED-UP quarter, and the cost is not', () => {
-  const run = (sp) => {
-    const { me, ally, f1, f2, S } = board(sp, 'incineroar', 'garchomp', 'garchomp');
+/* 5. THE DOLL AND THE COST ROUND DIFFERENTLY, AND THIS PROBE ASSERTED THE WRONG ONE.
+ *
+ * ROADMAP #81 WIRE 12 — INVERTED. WIRE 7 wrote this probe against a quoted source line reading
+ * `this.effectState.hp = Math.ceil(target.maxhp / 4)`. **data/moves.ts:18328 says `Math.floor`.**
+ * Staged against the authority and read straight out of the live volatile rather than inferred from
+ * how many hits broke it: a 137 HP Heliolisk's Shed Tail doll is **34** and a 195 HP Farigiraf's
+ * Substitute doll is **48** — floor in both, where ceil would give 35 and 49. So WIRE 7 moved a
+ * mechanic that had been RIGHT, and this probe went green on the move because it asserted the same
+ * misquote. Both roundings now come out of `tag_dex` (`substitute.rounds`, `costsUserHP.rounds`), so
+ * a third reading of that line by hand cannot happen.
+ *
+ * THE TWO ARMS ARE STILL THE COST AND THE DOLL, and they still have to DIFFER — for Substitute they
+ * are maxhp/4 and maxhp/4 under two different roundings, which agree on an even-quarter body. That is
+ * why the arms are taken from SHED TAIL, whose cost is ceil(maxhp/2) and whose doll is
+ * floor(maxhp/4): two genuinely different numbers, from two derivations, on one click.
+ * THE CONTROL IS AN EVEN-QUARTER BODY, where the roundings agree and the probe must NOT fire. */
+probe('move', 'substitute', 'the doll is a ROUNDED-DOWN quarter, and Shed Tail\'s cost is rounded UP', () => {
+  /* ROADMAP #81 WIRE 12 -- the doll is read off WHOEVER HOLDS IT. Shed Tail hands it to the body
+     that comes in, so reading `me._sub` would report 0 for one of the two members and look like the
+     doll was never built. `board()` seeds a bench so the Shed Tail arm has somewhere to go. */
+  const run = (sp, moveId) => {
+    const me = bare(sp), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    const benchA = bare('emolga');
+    const S = M.battleInit([me, ally, benchA], [f1, f2], { seeded: true });
     const hp0 = me.curHP;
     M.battleTurn(S, rng5,
-      new Map([[me, M.playerAction(me, 'substitute', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
-    return { max: me.st.hp, sub: me._sub, paid: hp0 - me.curHP };
+      new Map([[me, M.playerAction(me, moveId || 'substitute', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const holder = S.actA[0];
+    return { max: me.st.hp, sub: holder ? holder._sub : 0, paid: hp0 - me.curHP };
   };
-  /* Garchomp is 183 in this format's SP block: 183/4 = 45.75, so ceil 46 and floor 45 DISAGREE. */
+  /* Garchomp is 183 in this format's SP block: 183/4 = 45.75, so ceil 46 and floor 45 DISAGREE and
+     an engine that rounded the doll the other way is caught rather than tied. */
   const odd = run('garchomp');
-  const okOdd = odd.sub === Math.ceil(odd.max / 4) && odd.paid === Math.floor(odd.max / 4)
+  const okOdd = odd.sub === Math.floor(odd.max / 4) && odd.paid === Math.floor(odd.max / 4)
              && Math.ceil(odd.max / 4) !== Math.floor(odd.max / 4);
+  /* SHED TAIL, whose two numbers are genuinely different: ceil(max/2) paid against floor(max/4) held.
+     Heliolisk is 137 — 68.5 and 34.25, so both roundings bite and in OPPOSITE directions. */
+  const shed = run('heliolisk', 'shedtail');
+  const okShed = shed.paid === Math.ceil(shed.max / 2) && shed.sub === Math.floor(shed.max / 4)
+              && Math.ceil(shed.max / 2) !== Math.floor(shed.max / 2);
   /* the control: a body whose max HP divides by four exactly, where the two roundings agree */
   const ev = { max: 200 };
   const evenAgrees = Math.ceil(ev.max / 4) === Math.floor(ev.max / 4);
-  return { works: okOdd && evenAgrees,
-           arms: { control: odd.paid, test: odd.sub },
-           detail: `a ${odd.max} HP Garchomp clicking Substitute — it PAID ${odd.paid} `
-                 + `(floor, ${Math.floor(odd.max / 4)}) and the doll is ${odd.sub} `
-                 + `(ceil, ${Math.ceil(odd.max / 4)}); the two roundings differ here and agree on a `
-                 + `200 HP body, which is why the two arms are the cost and the doll` };
+  return { works: okOdd && okShed && evenAgrees,
+           arms: { control: shed.paid, test: shed.sub },
+           detail: `a ${odd.max} HP Garchomp clicking Substitute — PAID ${odd.paid} and the doll is `
+                 + `${odd.sub} (floor is ${Math.floor(odd.max / 4)}, ceil ${Math.ceil(odd.max / 4)}; `
+                 + `the authority builds the FLOOR). A ${shed.max} HP Heliolisk clicking Shed Tail — `
+                 + `PAID ${shed.paid} (ceil(max/2) = ${Math.ceil(shed.max / 2)}) and the doll it `
+                 + `leaves behind is ${shed.sub} (floor(max/4) = ${Math.floor(shed.max / 4)})` };
 });
 
 /* 6. PROTEAN CONVERTS BEFORE THE HIT, SO THE MOVE GETS THE NEW STAB. WIRE 54 placed the conversion
@@ -7446,6 +7487,314 @@ probe('move', 'alwaysCrit', 'a crit does NOT ignore a burn', () => {
            arms: { control: [p0, p1], test: [c0, c1] },
            detail: `Meowscarada into Garchomp — Knock Off ${p0} healthy / ${p1} burned; Flower Trick `
                  + `${c0} / ${c1} (the crit must STILL be halved — burn is a multiplier, not a stage)` };
+});
+
+
+/* ================================================================================================
+ * ROADMAP #81 WIRE 12 — the four state defects the turn-1 board comparison named, plus the
+ * substitute-doll regression that resolving one of them turned up.
+ * ================================================================================================ */
+
+/* 1a. FAIRY AURA ON THE ATTACKER. 5448/4096 on the BASE POWER, not 1.33 on the damage — the float
+ *     truncs to 5447 and would have been one 4096th low on every Fairy move in the format.
+ *     The CONTROL is the same body with the ability blanked, so "Floette hits hard" cannot pass this. */
+const auraHit = (attAb, defAb, partnerAb, moveId, attSp, defSp) => {
+  const me = bare(attSp || 'floette-mega'); me.ability = attAb;
+  const ally = bare('corviknight');
+  const f1 = bare(defSp || 'swampert'); f1.ability = defAb; unfaintable(f1);
+  const f2 = bare('gengar'); f2.ability = partnerAb; unfaintable(f2);
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const h1 = f1.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return h1 - f1.curHP;
+};
+probe('ability', 'auraBoost', 'Fairy Aura raises the HOLDER own Fairy move by 5448/4096', () => {
+  const off = auraHit('none', 'none', 'none', 'moonblast');
+  const on = auraHit('fairyaura', 'none', 'none', 'moonblast');
+  const r = off ? on / off : 0;
+  return { works: off > 0 && on > off && r > 1.30 && r < 1.36,
+           arms: { control: off, test: on },
+           detail: `Floette-Mega Moonblast into an unfaintable Swampert — no ability ${off}, Fairy `
+                 + `Aura ${on}, ratio ${r.toFixed(3)} (5448/4096 = 1.3301). Checked against the `
+                 + `authority at pinned rolls: 111-132 -> 147-174, exact on both ends` };
+});
+
+/* 1b. AND THE HALF THAT HELPS THE OPPONENT, WHICH IS THE ONE A FLATTERING FIX WOULD DROP.
+ *     `onAnyBasePower` fires for every move on the field regardless of whose body carries the
+ *     ability, so a Fairy Aura standing on the FOE'S side raises MY Moonblast by the same 1.33. An
+ *     implementation that boosted only the holder's moves passes 1a and fails this, and it would
+ *     measure as an improvement — which is the dangerous kind of wrong. */
+probe('ability', 'auraBoost', 'Fairy Aura on the FOE raises MY Fairy move by the same amount', () => {
+  const off = auraHit('none', 'none', 'none', 'moonblast');
+  const onMe = auraHit('fairyaura', 'none', 'none', 'moonblast');
+  const onThem = auraHit('none', 'fairyaura', 'none', 'moonblast');
+  return { works: off > 0 && onThem > off && onThem === onMe,
+           arms: { control: off, test: onThem },
+           detail: `Moonblast into Swampert — nobody has the aura ${off}; the AURA IS ON THE TARGET `
+                 + `${onThem}; the aura is on the attacker ${onMe}. The last two must be EQUAL: the `
+                 + `field does not care which side the carrier stands on` };
+});
+
+/* 1c. SCOPE. The aura names ONE type and must leave everything else alone — otherwise "the multiplier
+ *     is wired" is satisfied by a multiplier applied to every move. Dark Aura is the second member
+ *     and is staged on the same body, so this also shows the tag is read per-type rather than by a
+ *     name that happens to be Fairy. */
+probe('ability', 'auraBoost', 'an aura touches ONLY its own type, and Dark Aura is the second member', () => {
+  const fairyPlain = auraHit('none', 'none', 'none', 'moonblast');
+  const fairyUnderDark = auraHit('darkaura', 'none', 'none', 'moonblast');
+  const darkPlain = auraHit('none', 'none', 'none', 'crunch', 'tyranitar', 'gholdengo');
+  const darkUnderDark = auraHit('darkaura', 'none', 'none', 'crunch', 'tyranitar', 'gholdengo');
+  const r = darkPlain ? darkUnderDark / darkPlain : 0;
+  return { works: fairyPlain > 0 && fairyUnderDark === fairyPlain
+                  && darkPlain > 0 && darkUnderDark > darkPlain && r > 1.30 && r < 1.36,
+           arms: { control: [fairyPlain, fairyUnderDark], test: [darkPlain, darkUnderDark] },
+           detail: `DARK Aura on the attacker — its Moonblast (Fairy) is ${fairyPlain} -> `
+                 + `${fairyUnderDark} (must NOT move) and Tyranitar Crunch is ${darkPlain} -> `
+                 + `${darkUnderDark}, ratio ${r.toFixed(3)}` };
+});
+
+/* 1d. AURA BREAK INVERTS RATHER THAN CANCELS, and the two are only distinguishable against the
+ *     NO-AURA baseline — a probe that compared "aura" against "aura + break" would be satisfied by a
+ *     break that merely turned the aura off. 3072/4096 = 0.75, so a Fairy move under BOTH is WEAKER
+ *     than one under neither. `hasAuraBreak` is read off the aura's own handler, so the number is the
+ *     artifact's. Zero legal carriers in this format (Zygarde is Past, Zygarde-Mega is Future), which
+ *     is why it is staged on a body directly and stated here rather than left to look like coverage. */
+probe('ability', 'auraBreak', 'Aura Break INVERTS the aura to 0.75 instead of cancelling it to 1.0', () => {
+  const none = auraHit('none', 'none', 'none', 'moonblast');
+  const aura = auraHit('fairyaura', 'none', 'none', 'moonblast');
+  const both = auraHit('fairyaura', 'none', 'aurabreak', 'moonblast');
+  const r = none ? both / none : 0;
+  return { works: none > 0 && aura > none && both < none && r > 0.72 && r < 0.78,
+           arms: { control: none, test: both },
+           detail: `Moonblast into Swampert — no aura ${none}, Fairy Aura ${aura}, Fairy Aura WITH `
+                 + `an Aura Break body on the foe side ${both}; ${both}/${none} = ${r.toFixed(3)}. `
+                 + `Cancelling would give ${none}; the rule is 0.75, not 1.0` };
+});
+
+/* 2a. SHED TAIL ACTUALLY SWITCHES, AND ALL THREE OF ITS EFFECTS FIRE. Will: "SHED TAIL NEEDS A SUB"
+ *     and "AND HP LOSS". Measured before the fix: Heliolisk paid 68 HP, built a doll, and STOOD
+ *     THERE — the pivot half did not exist, because `passesState` had no consumer anywhere in the
+ *     engine. The control is U-turn, which pivots and pays nothing and builds nothing, so "the slot
+ *     changed" cannot be satisfied by the switch machinery alone. */
+const passMove = (moveId, boostFirst) => {
+  const me = bare('heliolisk'), ally = bare('corviknight');
+  const f1 = bare('garchomp'), f2 = bare('swampert');
+  const benchA = bare('emolga');
+  const S = M.battleInit([me, ally, benchA], [f1, f2], { seeded: true });
+  if (boostFirst) me.boosts.at = 2;
+  const hp0 = me.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  const now = S.actA[0];
+  return { slot0: now && now.name, paid: hp0 - me.curHP, max: me.st.hp,
+           incomingSub: now ? (now._sub || 0) : -1, incomingAtk: now ? now.boosts.at : -99 };
+};
+probe('move', 'passesState', 'Shed Tail pays HP, leaves a Substitute AND switches — all three', () => {
+  const shed = passMove('shedtail', false), pivot = passMove('uturn', false);
+  const wantPaid = Math.ceil(shed.max / 2), wantSub = Math.floor(shed.max / 4);
+  return { works: shed.slot0 === 'emolga' && shed.paid === wantPaid && shed.incomingSub === wantSub
+                  && pivot.slot0 === 'emolga' && pivot.paid === 0 && pivot.incomingSub === 0,
+           arms: { control: [pivot.slot0, pivot.paid, pivot.incomingSub],
+                   test: [shed.slot0, shed.paid, shed.incomingSub] },
+           detail: `Heliolisk (${shed.max} max) — Shed Tail: slot 0 is now "${shed.slot0}", the user `
+                 + `paid ${shed.paid} (ceil(max/2) = ${wantPaid}) and EMOLGA arrives holding a `
+                 + `${shed.incomingSub} doll (floor(max/4) = ${wantSub}). U-turn control: slot 0 `
+                 + `"${pivot.slot0}", paid ${pivot.paid}, doll ${pivot.incomingSub}` };
+});
+
+/* 2b. BATON PASS HANDS OVER THE BOOSTS AND SHED TAIL DOES NOT, which is the whole difference between
+ *     the two and is `switchCause !== 'shedtail'` in `Pokemon#copyVolatileFrom`. Both arms are the
+ *     same body at the same +2, so the only varied thing is which of the two moves is clicked — and
+ *     "the incoming mon is at +2" and "the incoming mon is at 0" are the two answers a single-armed
+ *     probe could not tell apart from the switch simply not happening. */
+probe('move', 'passesState', 'Baton Pass carries the BOOSTS across and Shed Tail deliberately does not', () => {
+  const bp = passMove('batonpass', true), shed = passMove('shedtail', true);
+  return { works: bp.slot0 === 'emolga' && bp.incomingAtk === 2 && bp.paid === 0 && bp.incomingSub === 0
+                  && shed.slot0 === 'emolga' && shed.incomingAtk === 0 && shed.incomingSub > 0,
+           arms: { control: [shed.incomingAtk, shed.incomingSub], test: [bp.incomingAtk, bp.incomingSub] },
+           detail: `Heliolisk at +2 Attack — Baton Pass: Emolga arrives at atk ${bp.incomingAtk} with `
+                 + `a ${bp.incomingSub} doll and the user paid ${bp.paid}; Shed Tail: Emolga arrives `
+                 + `at atk ${shed.incomingAtk} with a ${shed.incomingSub} doll. The authority passes `
+                 + `boosts on one and explicitly not on the other` };
+});
+
+/* 3a. CURSE, THE NON-GHOST HALF. Will: "MOSTLY BY NON GHOST TYPES TO BOOST ATTACK AND DEFENSE AND
+ *     LOWER SPEED." Measured before the fix: Farigiraf clicked Curse and finished the turn at
+ *     0/0/0 having lost no HP, with the foe untouched — the move did NOTHING. The FOE'S HP is
+ *     asserted too, because the branch also RETARGETS (`nonGhostTarget: 'self'`) and a version that
+ *     kept the declared `normal` target would hand a foe the boosts. */
+const curseTurn = (userSp) => {
+  const me = bare(userSp), ally = bare('corviknight');
+  const f1 = bare('garchomp'), f2 = bare('swampert');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const h0 = me.curHP, g0 = f1.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'curse', f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  const out = { at: me.boosts.at, df: me.boosts.df, sp: me.boosts.sp,
+                paid: h0 - me.curHP, foeLost: g0 - f1.curHP,
+                foeAt: f1.boosts.at, max: me.st.hp, foeMax: f1.st.hp };
+  const g1 = f1.curHP;
+  M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+  out.foeLostNextTurn = g1 - f1.curHP;
+  return out;
+};
+probe('move', 'typeSplitMove', 'a NON-Ghost Curse is +1 Atk / +1 Def / -1 Spe on ITSELF, free', () => {
+  const nonGhost = curseTurn('farigiraf'), ghost = curseTurn('gengar');
+  return { works: nonGhost.at === 1 && nonGhost.df === 1 && nonGhost.sp === -1
+                  && nonGhost.paid === 0 && nonGhost.foeLost === 0 && nonGhost.foeAt === 0
+                  && ghost.at === 0 && ghost.df === 0 && ghost.sp === 0,
+           arms: { control: [ghost.at, ghost.df, ghost.sp], test: [nonGhost.at, nonGhost.df, nonGhost.sp] },
+           detail: `Farigiraf (Normal/Psychic) clicks Curse — atk ${nonGhost.at}, def ${nonGhost.df}, `
+                 + `spe ${nonGhost.sp}, paid ${nonGhost.paid} HP, foe lost ${nonGhost.foeLost} and is `
+                 + `at atk ${nonGhost.foeAt} (the branch retargets to SELF). Gengar, the Ghost arm, `
+                 + `takes NO stat change: ${ghost.at}/${ghost.df}/${ghost.sp}` };
+});
+
+/* 3b. AND THE GHOST HALF, WHICH IS THE ONE THAT PAYS. The chip (`perTurnHP`, 1/4 of the target's max
+ *     per turn) was in the artifact all along with nothing reading it, and NOTHING took the user's
+ *     half. Wired apart, Curse would have been a free permanent quarter-per-turn — strictly better
+ *     than the real move, which is what a search learns to spam. Both numbers are asserted, and the
+ *     chip is read on the FOLLOWING turn as well so "it happened once at the click" cannot pass. */
+probe('move', 'typeSplitMove', 'a GHOST Curse costs the user half its max HP and chips the foe 1/4 a turn', () => {
+  const ghost = curseTurn('gengar'), nonGhost = curseTurn('farigiraf');
+  const wantPaid = Math.trunc(ghost.max / 2), wantChip = Math.trunc(ghost.foeMax / 4);
+  return { works: ghost.paid === wantPaid && ghost.foeLost === wantChip
+                  && ghost.foeLostNextTurn === wantChip
+                  && nonGhost.paid === 0 && nonGhost.foeLostNextTurn === 0,
+           arms: { control: [nonGhost.paid, nonGhost.foeLost, nonGhost.foeLostNextTurn],
+                   test: [ghost.paid, ghost.foeLost, ghost.foeLostNextTurn] },
+           detail: `Gengar (${ghost.max} max) clicks Curse at a ${ghost.foeMax} HP Garchomp — the `
+                 + `user paid ${ghost.paid} (max/2 = ${wantPaid}) and the foe lost ${ghost.foeLost} `
+                 + `on the click turn and ${ghost.foeLostNextTurn} on the NEXT one (max/4 = `
+                 + `${wantChip}). Farigiraf non-Ghost arm pays ${nonGhost.paid} and chips `
+                 + `${nonGhost.foeLostNextTurn}` };
+});
+
+/* 4a. THE PERISH COUNTER READS 3 / 2 / 1, NOT 2 / 1 / 0. `perishsong.condition.duration` is 4 and
+ *     `residualEvent` decrements at the end of EVERY turn including the one it was set on, so the
+ *     board reads 3 at the end of turn 1. This engine set 3 and ticked to 2 — one turn early, on
+ *     both sides, on 1,141 corpus uses. Staged against the authority in a real doubles game:
+ *     `|-start|...|perish3` / `perish2` / `perish1` / `perish0` + faint at the ends of turns 1..4.
+ *     The FULL SEQUENCE is asserted, because setting 4 and skipping the first tick agrees on turn 1
+ *     and drifts afterwards — which is a fix that would pass a one-turn probe. */
+const perishRun = (turns, switchOnTurn, noClick) => {
+  const me = bare('primarina'), ally = bare('corviknight');
+  const f1 = bare('garchomp'), f2 = bare('swampert');
+  const benchA = bare('emolga'), benchB = bare('pelipper');
+  const S = M.battleInit([me, ally, benchA], [f1, f2, benchB], { seeded: true });
+  const seq = [];
+  for (let t = 1; t <= turns; t++) {
+    const mine = (t === 1 && !noClick) ? M.playerAction(me, 'perishsong', f1, S.field)
+      : (t === switchOnTurn) ? { kind: 'switch', to: benchA } : { kind: 'pass' };
+    M.battleTurn(S, rng5, new Map([[me, mine], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    seq.push([me, ally, f1, f2].map(x => (x._perish == null ? 'x' : x._perish) + (x.fainted ? 'F' : '')).join(' '));
+  }
+  return { seq, me, ally, f1, f2, slot0: S.actA[0] && S.actA[0].name };
+};
+probe('move', 'perishClock', 'the perish counter reads 3 / 2 / 1 at the ends of turns 1, 2 and 3', () => {
+  const r = perishRun(3);
+  /* THE CONTROL IS A REAL ARM, NOT THE EXPECTED VALUE. Comparing the sequence against the string it
+     is supposed to be makes both arms the same object when the probe passes, which the arms detector
+     correctly calls hollow — and it would be satisfied by an engine that hard-coded the answer. The
+     control is the SAME BOARD with the click withheld: no clock exists at all, so the varied knob is
+     the click and the difference is the whole mechanic. */
+  const none = perishRun(3, 0, true);
+  const want = ['3 3 3 3', '2 2 2 2', '1 1 1 1'];
+  const wantNone = ['x x x x', 'x x x x', 'x x x x'];
+  const alive = !r.me.fainted && !r.ally.fainted && !r.f1.fainted && !r.f2.fainted;
+  return { works: JSON.stringify(r.seq) === JSON.stringify(want)
+                  && JSON.stringify(none.seq) === JSON.stringify(wantNone) && alive,
+           arms: { control: none.seq, test: r.seq },
+           detail: `Primarina clicks Perish Song on turn 1 — the four bodies read [${r.seq.join('] [')}] `
+                 + `at the ends of turns 1, 2, 3, and NONE has fainted yet; withholding the click on `
+                 + `the same board reads [${none.seq.join('] [')}]. The authority reads perish3 / `
+                 + `perish2 / perish1 over the same three turns` };
+});
+
+/* 4b. AND THE KO AT THE END OF IT, WHICH IS THE WHOLE POINT OF THE MOVE AND WHICH NOTHING IN THIS
+ *     REPO HAD EVER ASSERTED. Will: "MAKE A NOTE TO TEST THAT PERISH SONG ACTUALLY KOS AT THE END OF
+ *     IT". Three claims in one, and the middle one is what an off-by-one breaks: everything is ALIVE
+ *     at the end of turn 3, everything is DEAD at the end of turn 4, and it is SIMULTANEOUS across
+ *     both sides — Perish Song hits the user's own team too, so a version that killed only the foes
+ *     would be a win condition the move does not have. */
+probe('move', 'perishClock', 'every affected body faints at the end of turn 4 — both sides, at once', () => {
+  const three = perishRun(3), four = perishRun(4), five = perishRun(5);
+  const dead = (r) => [r.me, r.ally, r.f1, r.f2].filter(x => x.fainted).length;
+  return { works: dead(three) === 0 && dead(four) === 4 && dead(five) === 4,
+           arms: { control: dead(three), test: dead(four) },
+           detail: `bodies fainted to the perish clock — after 3 turns ${dead(three)}/4, after 4 turns `
+                 + `${dead(four)}/4 (the user OWN side included), after 5 turns ${dead(five)}/4. `
+                 + `Alive at 3 and dead at 4 is the pair; either alone is satisfied by an engine that `
+                 + `is a turn out in one direction or the other` };
+});
+
+/* 4c. THE ESCAPE, WHICH IS THE MOVE'S ONLY COUNTER-PLAY. `perishsong` is an ordinary volatile, so
+ *     `Pokemon#clearVolatile` takes it on the way out and a body that switches before zero never
+ *     faints. Staged against the authority: a Primarina that clicks Perish Song on turn 1 and
+ *     switches on turn 2 finishes at 105/155 alive while its partner, which stayed, keeps counting.
+ *     This engine kept `_perish` on the benched body — invisible, because a benched mon does not
+ *     tick, so the clock FROZE rather than resetting and only bit if the body came back. */
+probe('move', 'perishClock', 'a body that switches out loses the clock and does NOT faint', () => {
+  const stayed = perishRun(4), left = perishRun(4, 2);
+  return { works: stayed.me.fainted && !left.me.fainted && left.me._perish == null
+                  && left.ally.fainted && left.f1.fainted && left.f2.fainted,
+           arms: { control: [stayed.me.fainted, stayed.me._perish],
+                   test: [left.me.fainted, left.me._perish] },
+           detail: `Primarina clicks Perish Song on turn 1 — staying in, it is fainted=${stayed.me.fainted} `
+                 + `at the end of turn 4; switching out on turn 2 it is fainted=${left.me.fainted} `
+                 + `with _perish=${left.me._perish}. Its PARTNER, which stayed, is `
+                 + `fainted=${left.ally.fainted}, so the clock did not simply stop running` };
+});
+
+
+/* 5. ROADMAP #81 WIRE 12 — THE LIFE ORB TOLL IS PAID BY A MOVE THAT LANDED, AND WIRE 10 STOPPED
+ *    CHECKING. This is that rung's board regression, found by staging the path it altered.
+ *
+ * WIRE 10 rewrote the hit loop into Showdown's `for (step) for (target)` shape and put the ACCURACY
+ * roll inside the walk — correctly, `hitStepAccuracy` is step 5, below TryHit and the immunities.
+ * What went with it was the `continue` the old whole-move roll carried, which had skipped everything
+ * below the loop. The drain, the self-drop and the pivot all have their own `dealt`/`connected`
+ * gates; the Life Orb line never had one, so from WIRE 10 onward a Life Orb holder paid a tenth of
+ * its max HP for a move that MISSED. Life Orb is 12,804 corpus sheets.
+ *
+ * WHY WIRE 10's OWN CONTROL COULD NOT SEE IT: that rung validated itself on "36/36 single-target
+ * clicks are byte-identical". Every one of the 36 LANDED, so none of them exercised the branch the
+ * change deleted — and this is not a spread defect at all, it is every missed move.
+ *
+ * FOUR ARMS, and the two that are NOT the fix are what make it a probe rather than an assertion: the
+ * toll must still be paid on a hit, and must still be refused on a type immunity (where it always
+ * was, because `dmgRange` returns 0 and the old gate happened to hold). Measured against the
+ * authority at the differential's own pin: Scald 13 / Hydro Pump 0 / Thunderbolt-into-Ground 0. */
+const orbToll = (moveId, item, defSp) => {
+  const me = bare('pelipper'); me.item = item;
+  const ally = bare('corviknight');
+  const f1 = bare(defSp || 'garchomp'), f2 = bare('milotic');
+  unfaintable(f1); unfaintable(f2);
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const h0 = me.curHP, a0 = f1.curHP;
+  /* rngLose is the harness's own losing roll: every printed accuracy in this format below 100 misses
+   * on it and nothing at 100 does, which is exactly the knob this probe varies. */
+  M.battleTurn(S, rngLose,
+    new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return { paid: h0 - me.curHP, dealt: a0 - f1.curHP };
+};
+probe('item', 'damageMultAll', 'the Life Orb toll is refused by a move that MISSED', () => {
+  const hit = orbToll('scald', 'lifeorb');            // 100 accuracy: lands on the losing roll
+  const miss = orbToll('hydropump', 'lifeorb');       //  80 accuracy: misses on it
+  const immune = orbToll('thunderbolt', 'lifeorb');   // Electric into a Ground type: reaches nobody
+  const noItem = orbToll('scald', '');
+  return { works: hit.dealt > 0 && hit.paid > 0 && miss.dealt === 0 && miss.paid === 0
+                  && immune.dealt === 0 && immune.paid === 0 && noItem.paid === 0,
+           arms: { control: [hit.dealt, hit.paid], test: [miss.dealt, miss.paid] },
+           detail: `Pelipper holding a Life Orb — Scald LANDS (${hit.dealt} dealt) and it pays `
+                 + `${hit.paid}; Hydro Pump MISSES (${miss.dealt} dealt) and it pays ${miss.paid}; `
+                 + `Thunderbolt into a Ground type reaches nobody and pays ${immune.paid}; with no `
+                 + `item at all a landed Scald costs ${noItem.paid}. The authority pays 13 / 0 / 0` };
 });
 
 const works = results.filter(r => r.works);

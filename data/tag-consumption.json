@@ -1,10 +1,10 @@
 {
   "note": "RATCHET. `dead` may shrink and may never grow. A tag here is one NO line of engine code looks for — decisive, and independent of how the sweep was staged. `staged` is a property of the sweep and is recorded for information only, never ratcheted.",
   "method": "engine/tags.js counts ASKED (any lookup) and FOUND (the entity carried it). ASKED=0 is the decisive reading. FOUND>0 is necessary and NOT sufficient — proving the read changes behaviour is the mutation tier in docs/TAG-COVERAGE.md.",
-  "total_tags": 177,
-  "live": 89,
-  "staged": 20,
-  "unreached": 37,
+  "total_tags": 179,
+  "live": 87,
+  "staged": 23,
+  "unreached": 40,
   "unreached_this_run": [
     "statusCategory",
     "priority",
@@ -13,8 +13,8 @@
     "spreadFoes",
     "secondaryStatEffect",
     "recoil",
-    "thawsTarget",
     "doublesSideSpeed",
+    "sealsMoves",
     "spreadAll",
     "statChangeInCode",
     "powder",
@@ -27,6 +27,7 @@
     "takesTargetItem",
     "healsAlly",
     "setsWeather",
+    "forbidsStatusMoves",
     "failsWithoutWeather",
     "perishClock",
     "healsOnSwitchOut",
@@ -37,9 +38,11 @@
     "clearsBoosts",
     "reordersTurn",
     "hazard",
+    "passesState",
     "switchInForme",
     "instructsTarget",
     "changesTargetType",
+    "typeSplitMove",
     "ohko",
     "swapsAbilities",
     "preventsSwitch"
@@ -68,144 +71,137 @@
     "randomBoostEachTurn",
     "statusImmune",
     "punishesBoostedTarget",
-    "passesState",
     "readsOwnItem",
     "dualPurpose",
     "swapsDefences",
     "sideBuff",
     "suppressesItems",
-    "setsRoom",
-    "auraBoost"
+    "setsRoom"
   ],
   "dead_by_uses": [
     {
       "tag": "neverMisses",
-      "uses": 157419,
+      "uses": 165131,
       "carriers": 124
     },
     {
       "tag": "flinches",
-      "uses": 39670,
+      "uses": 41514,
       "carriers": 19
     },
     {
       "tag": "inflictsBurn",
-      "uses": 25941,
+      "uses": 27072,
       "carriers": 15
     },
     {
       "tag": "lowersUser",
-      "uses": 19426,
+      "uses": 20380,
       "carriers": 13
     },
     {
       "tag": "damageBoost",
-      "uses": 13785,
+      "uses": 14546,
       "carriers": 44
     },
     {
       "tag": "boostsUser",
-      "uses": 12147,
+      "uses": 12769,
       "carriers": 23
     },
     {
       "tag": "lowersTarget",
-      "uses": 11332,
+      "uses": 11791,
       "carriers": 22
     },
     {
       "tag": "neverMissesAttack",
-      "uses": 7949,
+      "uses": 8380,
       "carriers": 8
     },
     {
       "tag": "needsTargetToAttack",
-      "uses": 7888,
+      "uses": 8305,
       "carriers": 9
     },
     {
       "tag": "inflictsParalysis",
-      "uses": 7413,
+      "uses": 7796,
       "carriers": 13
     },
     {
       "tag": "inflictsFreeze",
-      "uses": 7378,
+      "uses": 7782,
       "carriers": 4
     },
     {
       "tag": "inflictsPoison",
-      "uses": 7092,
+      "uses": 7558,
       "carriers": 11
     },
     {
       "tag": "untagged",
-      "uses": 6166,
-      "carriers": 66
+      "uses": 6489,
+      "carriers": 68
     },
     {
       "tag": "locksTarget",
-      "uses": 6066,
+      "uses": 6295,
       "carriers": 3
     },
     {
       "tag": "needsUntrackedState",
-      "uses": 5792,
+      "uses": 6016,
       "carriers": 4
     },
     {
       "tag": "weightBased",
-      "uses": 4810,
+      "uses": 5032,
       "carriers": 4
     },
     {
       "tag": "inflictsConfusion",
-      "uses": 3769,
+      "uses": 3927,
       "carriers": 9
     },
     {
       "tag": "readsTargetItem",
-      "uses": 3668,
+      "uses": 3813,
       "carriers": 2
     },
     {
       "tag": "inflictsSleep",
-      "uses": 2067,
+      "uses": 2195,
       "carriers": 4
     },
     {
       "tag": "inflictsToxic",
-      "uses": 969,
+      "uses": 1046,
       "carriers": 2
     },
     {
       "tag": "randomBoostEachTurn",
-      "uses": 536,
+      "uses": 605,
       "carriers": 1
     },
     {
       "tag": "statusImmune",
-      "uses": 474,
+      "uses": 503,
       "carriers": 12
     },
     {
       "tag": "punishesBoostedTarget",
-      "uses": 210,
-      "carriers": 2
-    },
-    {
-      "tag": "passesState",
-      "uses": 189,
+      "uses": 219,
       "carriers": 2
     },
     {
       "tag": "readsOwnItem",
-      "uses": 165,
+      "uses": 190,
       "carriers": 1
     },
     {
       "tag": "dualPurpose",
-      "uses": 125,
+      "uses": 139,
       "carriers": 2
     },
     {
@@ -227,20 +223,17 @@
       "tag": "setsRoom",
       "uses": 0,
       "carriers": 1
-    },
-    {
-      "tag": "auraBoost",
-      "uses": 0,
-      "carriers": 2
     }
   ],
   "staged_this_run": [
+    "thawsTarget",
     "extendsDuration",
     "accuracyMod",
     "refusesStatusMoves",
+    "weatherChipImmune",
     "punishesContact",
+    "disablesAttacker",
     "writesAccuracy",
-    "poisonsOnMyContact",
     "reducesAllyDamage",
     "substitute",
     "blocksExplosion",
@@ -254,7 +247,8 @@
     "condStatMult",
     "preTurnShield",
     "failsWithoutTerrain",
+    "auraBreak",
     "amplifiesBoosts"
   ],
-  "generated": "2026-08-07T18:54:25.141Z"
+  "generated": "2026-08-07T23:19:09.450Z"
 }

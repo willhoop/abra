@@ -2497,18 +2497,24 @@ demoSource('ROADMAP #81 WIRE 7  the Sitrus is eaten between the two attackers, n
     return none.dead && !berry.dead && berry.item === '';
   });
 
-/* 6. THE DOLL IS CEIL AND THE COST IS NOT. One rule for both members of the `substitute` tag; the
- *    control is the COST, which must stay floor on both engines — a revert that moved both would
- *    otherwise read as a fix. */
-demoSource('ROADMAP #81 WIRE 7  the substitute doll is a rounded-UP quarter',
-  [['m._sub=Math.max(1,Math.ceil(m.st.hp*(+_sb.buffer||0.25)));',
-    'm._sub=Math.max(1,Math.floor(m.st.hp*(+_sb.buffer||0.25)));']],
+/* 6. THE DOLL IS A ROUNDED-DOWN QUARTER — AND THIS DEMONSTRATION USED TO SAY THE OPPOSITE.
+ *
+ * ROADMAP #81 WIRE 12 — INVERTED, because WIRE 7's claim was a misquote of the source. That wire
+ * moved `grantSubstitute` from floor to ceil against a quoted line reading `Math.ceil(target.maxhp
+ * / 4)`; data/moves.ts:18328 says `Math.floor`, and the authority staged directly agrees (a 137 HP
+ * Heliolisk's doll is 34, a 195 HP Farigiraf's is 48). So the reversal here now puts the CEIL back
+ * and the demonstration goes red on it — which is the same test, aimed the right way round.
+ * The control is the COST, which is floor on both engines, so a revert that moved both would not
+ * read as a pass. */
+demoSource('ROADMAP #81 WIRE 12  the substitute doll is a rounded-DOWN quarter',
+  [['const _rd=_sb.rounds===\'ceil\'?Math.ceil:_sb.rounds===\'round\'?Math.round:Math.floor;',
+    'const _rd=Math.ceil;   // reverted to WIRE 7\'s misquoted rounding']],
   (E) => {
     const { me, ally, f1, f2, S } = W7.board(E, 'garchomp', 'incineroar', 'garchomp', 'garchomp');
     const hp0 = me.curHP;
     E.battleTurn(S, rng5,
       new Map([[me, E.playerAction(me, 'substitute', f1, S.field)], [ally, { kind: 'pass' }]]), W7.pass2(f1, f2));
-    return me._sub === Math.ceil(me.st.hp / 4) && (hp0 - me.curHP) === Math.floor(me.st.hp / 4)
+    return me._sub === Math.floor(me.st.hp / 4) && (hp0 - me.curHP) === Math.floor(me.st.hp / 4)
         && Math.ceil(me.st.hp / 4) !== Math.floor(me.st.hp / 4);
   });
 
@@ -2517,8 +2523,10 @@ demoSource('ROADMAP #81 WIRE 7  the substitute doll is a rounded-UP quarter',
  *    way, and only the two lines' order moves. The control is that BOTH lines are present on both
  *    engines, so a revert that lost one would not read as a pass. */
 demoSource('ROADMAP #81 WIRE 7  the Substitute -start precedes the -damage that pays for it',
-  [['grantSubstitute(m,a.mv||a.move.id);\n          m.curHP-=Math.floor(m.st.hp*+_cu.costsFraction);\n          if(TR)TR.dmg(m);\n          if(m.curHP<=0){m.curHP=0;m.fainted=true;m._sub=0;if(TR)TR.faint(m);continue;}',
-    'm.curHP-=Math.floor(m.st.hp*+_cu.costsFraction);\n          if(TR)TR.dmg(m);\n          if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);continue;}\n          grantSubstitute(m,a.mv||a.move.id);']],
+  /* ROADMAP #81 WIRE 12 -- the reversal text follows the cost line's rounding, which is now read
+     from `costsUserHP.rounds` rather than hard-floored. Nothing about the ORDER claim changed. */
+  [['grantSubstitute(m,a.mv||a.move.id);\n          m.curHP-=_rnd(m.st.hp*+_cu.costsFraction);\n          if(TR)TR.dmg(m);\n          if(m.curHP<=0){m.curHP=0;m.fainted=true;m._sub=0;if(TR)TR.faint(m);continue;}',
+    'm.curHP-=_rnd(m.st.hp*+_cu.costsFraction);\n          if(TR)TR.dmg(m);\n          if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);continue;}\n          grantSubstitute(m,a.mv||a.move.id);']],
   (E) => {
     const { me, ally, f1, f2, S } = W7.board(E, 'garchomp', 'incineroar', 'garchomp', 'garchomp');
     const trace = []; S._trace = trace;
@@ -3463,6 +3471,184 @@ demoSource('ROADMAP #81 WIRE 11  a crit ignores a POSITIVE Defence stage and Ref
     + (streamShouldMatch.length ? '   STREAM MOVED WITH NO REACTOR: ' + [...new Set(streamShouldMatch)].join(', ') : '')
     + (streamShouldDiffer.length ? '   TOLL ROW DID NOT REORDER: ' + [...new Set(streamShouldDiffer)].join(', ') : ''));
 }
+
+
+/* ---- ROADMAP #81 WIRE 12 -- six source reversals, one per landed defect --------------------------
+ *
+ * Each reversal puts back EXACTLY the line that was there before this wire, so a demonstration that
+ * goes green on both arms means the probe beside it is watching something other than the fix. */
+
+const W12 = {
+  bare(E, s) { const b = E.buildMon(s, {}); if (!b) throw new Error('no MC row for ' + s); b.item = ''; b.ability = 'none'; return b; },
+  pass2: (a, b) => new Map([[a, { kind: 'pass' }], [b, { kind: 'pass' }]]),
+  big(m) { m.st = Object.assign({}, m.st, { hp: m.st.hp * 8 }); m.curHP = m.st.hp; },
+  /* one Moonblast into an unfaintable Swampert, with the three ability slots settable */
+  aura(E, attAb, defAb, partnerAb) {
+    const me = W12.bare(E, 'floette-mega'); me.ability = attAb;
+    const ally = W12.bare(E, 'corviknight');
+    const f1 = W12.bare(E, 'swampert'); f1.ability = defAb; W12.big(f1);
+    const f2 = W12.bare(E, 'gengar'); f2.ability = partnerAb; W12.big(f2);
+    const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+    const h1 = f1.curHP;
+    E.battleTurn(S, rng5,
+      new Map([[me, E.playerAction(me, 'moonblast', f1, S.field)], [ally, { kind: 'pass' }]]),
+      W12.pass2(f1, f2));
+    return h1 - f1.curHP;
+  },
+  /* one click of a pivot that carries state, with a bench to leave to */
+  pass(E, moveId) {
+    const me = W12.bare(E, 'heliolisk'), ally = W12.bare(E, 'corviknight');
+    const f1 = W12.bare(E, 'garchomp'), f2 = W12.bare(E, 'swampert');
+    const benchA = W12.bare(E, 'emolga');
+    const S = E.battleInit([me, ally, benchA], [f1, f2], { seeded: true });
+    me.boosts.at = 2;
+    const hp0 = me.curHP;
+    E.battleTurn(S, rng5,
+      new Map([[me, E.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+      W12.pass2(f1, f2));
+    const now = S.actA[0];
+    return { slot0: now && now.name, paid: hp0 - me.curHP, sub: now ? (now._sub || 0) : 0,
+             atk: now ? now.boosts.at : -99 };
+  },
+  /* one Curse, and what it did to the user and to the foe */
+  curse(E, sp) {
+    const me = W12.bare(E, sp), ally = W12.bare(E, 'corviknight');
+    const f1 = W12.bare(E, 'garchomp'), f2 = W12.bare(E, 'swampert');
+    const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+    const h0 = me.curHP, g0 = f1.curHP;
+    E.battleTurn(S, rng5,
+      new Map([[me, E.playerAction(me, 'curse', f1, S.field)], [ally, { kind: 'pass' }]]),
+      W12.pass2(f1, f2));
+    return { at: me.boosts.at, df: me.boosts.df, sp: me.boosts.sp,
+             paid: h0 - me.curHP, foeLost: g0 - f1.curHP };
+  },
+  /* N turns of a perish clock, optionally switching the user out on a chosen turn */
+  perish(E, turns, switchOnTurn) {
+    const me = W12.bare(E, 'primarina'), ally = W12.bare(E, 'corviknight');
+    const f1 = W12.bare(E, 'garchomp'), f2 = W12.bare(E, 'swampert');
+    const benchA = W12.bare(E, 'emolga'), benchB = W12.bare(E, 'pelipper');
+    const S = E.battleInit([me, ally, benchA], [f1, f2, benchB], { seeded: true });
+    const seq = [];
+    for (let t = 1; t <= turns; t++) {
+      const mine = (t === 1) ? E.playerAction(me, 'perishsong', f1, S.field)
+        : (t === switchOnTurn) ? { kind: 'switch', to: benchA } : { kind: 'pass' };
+      E.battleTurn(S, rng5, new Map([[me, mine], [ally, { kind: 'pass' }]]), W12.pass2(f1, f2));
+      seq.push(me._perish == null ? 'x' : String(me._perish));
+    }
+    return { seq, dead: [me, ally, f1, f2].filter(x => x.fainted).length, me };
+  },
+};
+
+/* 1. THE AURA REACHES THE BASE POWER AT ALL. The reversal blanks the lookup, which is exactly the
+ *    state the engine was in: the tag was derived, `used: false, uses: 0`, and nothing read it. */
+demoSource('ROADMAP #81 WIRE 12  Fairy Aura multiplies a Fairy move by 5448/4096',
+  [['    const _au=(att!==def)?auraFor(field,att,def):null;',
+    '    const _au=null;   // reverted -- nothing consumed auraBoost']],
+  (E) => {
+    const off = W12.aura(E, 'none', 'none', 'none'), on = W12.aura(E, 'fairyaura', 'none', 'none');
+    const r = off ? on / off : 0;
+    return off > 0 && r > 1.30 && r < 1.36;
+  });
+
+/* 2. AND IT IS FIELD-WIDE, WHICH IS THE HALF A FLATTERING FIX DROPS. The reversal restricts the
+ *    lookup to the ATTACKER's own body -- the shape of the wrong fix -- and the foe-side arm dies
+ *    while the holder-side arm survives, so this cannot be passed by turning the aura off. */
+demoSource('ROADMAP #81 WIRE 12  an aura on the FOE raises MY Fairy move too',
+  [['    const _au=(att!==def)?auraFor(field,att,def):null;',
+    '    const _au=(att!==def)?auraStateOf([att]):null;   // reverted -- holder-only, the flattering fix']],
+  (E) => {
+    const off = W12.aura(E, 'none', 'none', 'none');
+    const mine = W12.aura(E, 'fairyaura', 'none', 'none');
+    const theirs = W12.aura(E, 'none', 'fairyaura', 'none');
+    return off > 0 && mine > off && theirs === mine;
+  });
+
+/* 3. AURA BREAK INVERTS RATHER THAN CANCELS. The reversal makes it cancel -- the natural
+ *    mis-statement -- and the demonstration is the difference between 0.75 and 1.0. */
+demoSource('ROADMAP #81 WIRE 12  Aura Break inverts the aura to 0.75 rather than cancelling it',
+  [['      const _m=_au.brk?_ae.breakMult:_ae.mult;',
+    '      const _m=_au.brk?null:_ae.mult;   // reverted -- Aura Break merely cancels']],
+  (E) => {
+    const none = W12.aura(E, 'none', 'none', 'none');
+    const both = W12.aura(E, 'fairyaura', 'none', 'aurabreak');
+    const r = none ? both / none : 0;
+    return none > 0 && r > 0.72 && r < 0.78;
+  });
+
+/* 4. THE PIVOT HALF OF `passesState` EXISTS. The reversal removes the classifier branch, which puts
+ *    Baton Pass back to `kind: 'pass'` (a no-op turn) and Shed Tail back to paying half its HP for a
+ *    doll and then standing there. BOTH moves are asserted, and the boost pass with them. */
+demoSource('ROADMAP #81 WIRE 12  Baton Pass and Shed Tail actually leave the field',
+  [["  if(TAGS.has('move',id,'passesState'))return {kind:'passstate',mv:id,target};",
+    "  if(false)return {kind:'passstate',mv:id,target};   // reverted -- passesState had no consumer"]],
+  (E) => {
+    const bp = W12.pass(E, 'batonpass'), shed = W12.pass(E, 'shedtail');
+    return bp.slot0 === 'emolga' && bp.atk === 2 && bp.paid === 0
+        && shed.slot0 === 'emolga' && shed.atk === 0 && shed.sub > 0 && shed.paid > 0;
+  });
+
+/* 5. CURSE IS TWO MOVES. The reversal removes the classifier branch, which sends Curse back down the
+ *    `perTurnHP` status path where it matched nothing and did NOTHING at all -- measured before the
+ *    fix as `at0 df0 sp0`, no HP paid, foe untouched. Both halves are asserted here, because a fix
+ *    that landed only the Ghost branch would leave the common case broken. */
+demoSource('ROADMAP #81 WIRE 12  Curse boosts a non-Ghost and costs a Ghost half its HP',
+  [["  if(TAGS.param('move',id,'typeSplitMove'))return {kind:'typesplit',mv:id,target};",
+    "  if(false)return {kind:'typesplit',mv:id,target};   // reverted -- Curse fell through to perTurnHP"]],
+  (E) => {
+    const n = W12.curse(E, 'farigiraf'), g = W12.curse(E, 'gengar');
+    return n.at === 1 && n.df === 1 && n.sp === -1 && n.paid === 0 && n.foeLost === 0
+        && g.at === 0 && g.paid > 0 && g.foeLost > 0;
+  });
+
+/* 6. THE PERISH CLOCK STARTS AT 4 AND KILLS ON TURN 4. The reversal restores the typed `||3`, which
+ *    is the number that fainted every affected body a full turn early. The KO TURN is what is
+ *    asserted, not the counter -- alive at 3 and dead at 4 -- because that is the consequence. */
+demoSource('ROADMAP #81 WIRE 12  the perish clock kills at the end of turn 4, not turn 3',
+  [["        const _pc=TAGS.param('move',a.mv,'perishClock');\n        const tn=_pc&&_pc.turns!=null?+_pc.turns:null;",
+    "        const tn=3;   // reverted -- the artifact ALSO said 3, so `||3` would now read the fixed 4"],
+   ["        if(!tn){MEDFAILS.perishTurnsMissing++;m._lastMove=a.mv;mvFail(m);continue;}\n", ""]],
+  (E) => {
+    const three = W12.perish(E, 3), four = W12.perish(E, 4);
+    return JSON.stringify(three.seq) === JSON.stringify(['3', '2', '1'])
+        && three.dead === 0 && four.dead === 4;
+  });
+
+/* 7. AND THE ESCAPE. The reversal leaves `_perish` on the body that walked off, which is what this
+ *    engine did -- the clock FROZE on the bench rather than ending, so the body came back still
+ *    counting. The control is the PARTNER, which stayed and must still die: without it, "nobody
+ *    fainted" would pass. */
+demoSource('ROADMAP #81 WIRE 12  switching out ends the perish clock',
+  [['  if(out._perish!=null){out._perish=null;MEDSEEN.perishClearedOnSwitch++;}',
+    '  if(false){out._perish=null;MEDSEEN.perishClearedOnSwitch++;}   // reverted -- the clock froze on the bench']],
+  (E) => {
+    const left = W12.perish(E, 4, 2);
+    return !left.me.fainted && left.me._perish == null && left.dead === 3;
+  });
+
+/* 8. ROADMAP #81 WIRE 12's FIFTH ITEM — WIRE 10's BOARD REGRESSION. The reversal removes the
+ *    `_reached > 0` gate, which is exactly the state WIRE 10 left the engine in, and the toll is then
+ *    paid by a move that MISSED. A control sits in the same assertion, because the fix is one line
+ *    away from turning Life Orb off entirely: a LANDED move must still pay on both builds. */
+demoSource('ROADMAP #81 WIRE 12  the Life Orb toll is refused by a move that MISSED',
+  [["      if(m.item==='lifeorb'&&a.move.d.max>0&&_reached>0){",
+    "      if(m.item==='lifeorb'&&a.move.d.max>0){   // reverted to WIRE 10 -- no connection gate"]],
+  (E) => {
+    const lose = () => 0.99;
+    const toll = (moveId, item) => {
+      const me = W12.bare(E, 'pelipper'); me.item = item;
+      const ally = W12.bare(E, 'corviknight');
+      const f1 = W12.bare(E, 'garchomp'), f2 = W12.bare(E, 'milotic');
+      W12.big(f1); W12.big(f2);
+      const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+      const h0 = me.curHP, a0 = f1.curHP;
+      E.battleTurn(S, lose,
+        new Map([[me, E.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+        W12.pass2(f1, f2));
+      return { paid: h0 - me.curHP, dealt: a0 - f1.curHP };
+    };
+    const hit = toll('scald', 'lifeorb'), miss = toll('hydropump', 'lifeorb');
+    return hit.dealt > 0 && hit.paid > 0 && miss.dealt === 0 && miss.paid === 0;
+  });
 
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);
 if (failures) { console.log('  A green-and-stripped pair that did not flip means the probe does NOT watch its knob.'); process.exit(1); }

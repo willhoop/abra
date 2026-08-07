@@ -159,6 +159,25 @@ const id = N.id;
  * as clear skies and would agree with a Showdown that also had none. */
 const STATE_FAILS = {};
 const BS_CTX = { id, weatherId: M.weatherId, terrainId: M.terrainId, fails: STATE_FAILS };
+/* THE AUTHORITY'S OWN DISPLAY NAME FOR AN ID, so the plain-English report says "Sitrus Berry" and not
+ * `sitrusberry`. It is passed INTO board_state.js rather than duplicated there — one naming table,
+ * and it is the dex's. A name the dex does not know falls back to the id, LOUDLY (counted), because a
+ * silent fallback to a raw id is how a report starts looking like protocol again. */
+let PRETTY_MISSES = 0;
+const pretty = (x) => {
+  const s = String(x || '');
+  if (!s) return s;
+  for (const t of [dex.species, dex.items, dex.moves, dex.abilities]) {
+    const e = t.get(s); if (e && e.exists) return e.name;
+  }
+  PRETTY_MISSES++;
+  return s;
+};
+/* HOW MANY TURN BOUNDARIES ARE KEPT IN FULL. Will, 2026-08-07: *"I ONLY CARE ABOUT TURN 1 TO START"* —
+ * so boundary 1 is the headline and 2 and 3 are kept beside it to show the decay. Boundary 0 is the
+ * leads, before any choice, and is kept because a game that has already parted there never had a
+ * turn 1 and must not be counted as one that agreed. */
+const EARLY_BOUNDARIES = 3;
 
 /* tags.json is IN the release, so the coverage sets and the swarm's feature sets are the same bytes
  * the engine was frozen with. Asserted rather than assumed — if a tag file moved under the run the
@@ -874,6 +893,12 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
    * discipline the protocol side uses, because "parted at turn 1" and "parted at turn 9" are different
    * events and a last-write-wins field would erase the distinction. */
   let boundaries = 0, boundariesAgreed = 0, firstStateDiv = null, stateShape = null;
+  /* THE EARLY BOARDS, KEPT IN FULL AND NOT ONLY AS A FLAG. The whole-game rate answers "did these two
+   * engines ever part"; the turn-1 rate answers "is the board the search plans from correct", and only
+   * the second one is bounded, has a target of 100%, and cannot be blinded by a bimodal distribution
+   * the way a median is. Each record carries the LOCATED diffs — slot, body, field, both values and a
+   * magnitude bucket — because "the boards differ" is the boolean this pass exists to replace. */
+  const earlyBoards = [];
   const stateCheck = (turnIdx) => {
     if (!STATE) return null;
     /* `opts.statePlant` corrupts the MEDICHAM board and only the medicham board, at one named
@@ -891,9 +916,38 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
     boundaries++;
     if (!stateShape) stateShape = { screens_shape_medicham: snap.screens_shape_medicham,
                                     screens_named_comparable: snap.screens_named_comparable };
+    if (turnIdx <= EARLY_BOUNDARIES && !earlyBoards[turnIdx]) {
+      /* THE ACTIVE SPECIES PER SIDE, taken from BOTH engines, so the report can tell a party row that
+       * is a second view of a standing body from one about a body on the bench. The union is
+       * deliberate — on a species divergence the two engines disagree about who is standing. */
+      const act = {};
+      for (const s of ['p1', 'p2']) act[s] = [...new Set([...snap.medi.sides[s].active, ...snap.sd.sides[s].active]
+        .filter(Boolean).map(x => x.species))];
+      earlyBoards[turnIdx] = { turn: turnIdx, identical: snap.identical,
+                               leaves_compared: snap.leaves_compared, active_species: act,
+                               diffs: snap.identical ? [] : snap.diffs.map(d => BS.locate(d, snap)) };
+    }
     if (snap.identical) { boundariesAgreed++; return null; }
     if (!firstStateDiv) firstStateDiv = { turn: turnIdx, diffs: snap.diffs };
     return firstStateDiv;
+  };
+  /* WHAT WAS CLICKED, kept for the early turns only. Will: *"SAY WHAT WAS CLICKED. A board difference
+   * without the two clicks that produced it cannot be judged."* Read off the choice that was actually
+   * issued to BOTH engines — `chosen` is the single decision both of them received, so this cannot
+   * describe a turn only one of them played. */
+  const earlyClicks = [];
+  const describeClicks = (sd, acts) => {
+    const side = sd === 'p1' ? battle.p1 : battle.p2;
+    const foes = (side.foe && side.foe.active) || [];
+    return side.active.map((p, i) => {
+      const a = acts[i], who = p ? pretty(p.species.id) : '(empty)';
+      if (!p || p.fainted) return { body: who, did: 'is not on the field' };
+      if (!a || a.pass) return { body: who, did: 'does nothing' };
+      if (a.switchTo != null) return { body: who, did: 'switches out to ' + pretty(a.switchTo) };
+      const mv = pretty(a.move);
+      const tgt = a.foeSlot != null && foes[a.foeSlot] ? pretty(foes[a.foeSlot].species.id) : null;
+      return { body: who, did: 'clicks ' + mv + (tgt ? ' at ' + tgt : '') + (a.mega ? ', and mega evolves' : '') };
+    });
   };
 
   const alignAndCheck = () => {
@@ -993,6 +1047,11 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
         }
       }
 
+      /* RECORDED BEFORE EITHER ENGINE RESOLVES THE TURN, so the bodies named are the ones that were
+       * standing when the choice was made rather than whatever survived it. */
+      if (STATE && t < EARLY_BOUNDARIES) earlyClicks[t + 1] = { p1: describeClicks('p1', chosen.p1),
+                                                                p2: describeClicks('p2', chosen.p2) };
+
       /* --- medicham2 --- */
       const mk = (own, foes, bench, acts) => {
         const map = new Map();
@@ -1082,6 +1141,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
             * same game rather than across two runs. `stateDiv === null` with `boundaries > 1` is a game
             * whose boards never parted. */
            boundaries, boundariesAgreed, stateDiv: firstStateDiv, stateShape, divTurn,
+           earlyBoards, earlyClicks,
            megaMedi: megaMedi.length, megaSd: megaSd.length, megaCapableSides: capable, megaChoices,
            megaSlotA: megaMedi.filter(l => /\|p[12]a:/.test(l)).length,
            megaSlotB: megaMedi.filter(l => /\|p[12]b:/.test(l)).length,
@@ -1997,7 +2057,177 @@ const STATE_SUMMARY = (() => {
     for (const f of seen) famGames.set(f, (famGames.get(f) || 0) + 1);
   }
   const turnsOf = results.map(r => (r.stateDiv ? r.stateDiv.turn : null)).filter(x => x != null).sort((a, b) => a - b);
+
+  /* ---- THE HEADLINE: IS THE BOARD IDENTICAL AT THE END OF TURN 1 ---------------------------------
+   *
+   * Will, 2026-08-07, after a more correct engine failed to predict better: *"I ONLY CARE ABOUT TURN 1
+   * TO START."* One number, bounded, target 100%.
+   *
+   * AND IT REPLACES A STATISTIC THAT WAS STRUCTURALLY BLIND. The median first-divergence TURN read 1 at
+   * all ten rungs and was reported ten times as "nothing moved", while games agreeing start to finish
+   * went 7 -> 134 of 1,997 on the protocol side. The distribution is BIMODAL and a median cannot move on
+   * one until half the mass crosses; 6.7% is nowhere near 50%. A turn-1 rate has no such blind spot.
+   *
+   * TWO DENOMINATORS, BOTH PRINTED, because they answer different questions and picking one silently is
+   * how a rate flatters itself. `rate_of_all_games` counts a game that never reached a turn-1 boundary
+   * (its board parted at the LEADS, or the battle was already over) AGAINST the engine — that is the
+   * honest headline. `rate_of_games_that_reached_it` is the conditional one, and it is strictly larger. */
+  const earlyRate = (n) => {
+    const reached = results.filter(r => ((r.earlyBoards || [])[n]));
+    const ident = reached.filter(r => r.earlyBoards[n].identical);
+    return { turn: n, games: results.length, reached: reached.length, identical: ident.length,
+             rate_of_all_games: results.length ? +(ident.length / results.length).toFixed(4) : null,
+             rate_of_games_that_reached_it: reached.length ? +(ident.length / reached.length).toFixed(4) : null };
+  };
+  const identicalAtEndOfTurn = [1, 2, 3].map(earlyRate);
+
+  /* ---- THE DECAY, TURN BY TURN, WITH THE DENOMINATOR STATED AT EACH ENTRY -----------------------
+   *
+   * `turn_boundary_agreement` POOLS every turn-ending in the run and is kept, but it is not the
+   * headline and the reason is structural: TURN 1 IS THE ONLY TURN THAT BEGINS FROM A BOARD BOTH
+   * ENGINES AGREE ON. Every later turn in a pooled count begins from wherever the run had already
+   * drifted, so a pooled rate is contaminated by earlier error — it reads worse than the engine is on
+   * turn 1 and better than it is on turn 6, and it hides which of the two moved between two arms.
+   *
+   * HERE THE DENOMINATOR IS STATED PER TURN: games that REACHED that turn. Under this driver's stop
+   * rule — the game halts at the first divergent board — reaching turn N means the board was identical
+   * through turn N-1, so `rate_given_it_reached_this_turn` is exactly the conditional question: GIVEN
+   * the two engines still agree entering this turn, do they still agree after it. A game that ended
+   * early is not counted as agreement anywhere.
+   *
+   * DERIVED FROM `boundaries` AND `stateDiv.turn`, WHICH IS A SECOND, INDEPENDENT ROUTE TO THE SAME
+   * NUMBER — `identicalAtEndOfTurn` above reads the kept board records instead. They are cross-checked
+   * against each other below and a disagreement is printed rather than resolved, because two
+   * derivations that quietly differ is how a rate stops meaning anything. */
+  const agreementByTurn = [];
+  for (let n = 1; n <= MAXTURNS; n++) {
+    const reached = results.filter(r => (r.boundaries || 0) >= n + 1);
+    const agreed = reached.filter(r => !r.stateDiv || r.stateDiv.turn > n);
+    agreementByTurn.push({ turn: n, reached: reached.length, identical: agreed.length,
+      rate_given_it_reached_this_turn: reached.length ? +(agreed.length / reached.length).toFixed(4) : null,
+      rate_of_all_games: results.length ? +(agreed.length / results.length).toFixed(4) : null });
+  }
+  const decayCrossCheck = identicalAtEndOfTurn.map((e, i) => ({
+    turn: e.turn, from_kept_boards: e.identical, from_the_counters: agreementByTurn[i].identical,
+    agree: e.identical === agreementByTurn[i].identical }));
+  if (decayCrossCheck.some(x => !x.agree)) {
+    console.log('  THE TWO DERIVATIONS OF THE TURN-1..3 RATE DISAGREE — one of them is wrong and no '
+      + 'number below can be trusted: ' + JSON.stringify(decayCrossCheck));
+  }
+
+  /* ---- WHAT EXACTLY IS DIFFERENT AT THE END OF TURN 1 -------------------------------------------
+   * Aggregated by FIELD and by CAUSE across every game, because Will asked for a queue chosen by what
+   * changes a board rather than by which protocol line happened to be first. */
+  const T1 = results.filter(r => (r.earlyBoards || [])[1]);
+  const T1BAD = T1.filter(r => !r.earlyBoards[1].identical);
+  /* THE ACTIVE BODY IS IN THE PARTY TOO, AND IT IS ONE FACT. `sides.p1.party.mamoswine.hp` and
+   * `sides.p1.active[0].hp` read the SAME body when Mamoswine is standing, so every active-HP
+   * divergence was arriving as two rows and every cause string read `active[].hp + party.hp`. Both
+   * leaves are genuinely compared and stay in the leaf counts; what is suppressed here is the DUPLICATE
+   * in the queue, because a wire queue that lists one defect twice is a worse queue.
+   *
+   * DROPPED ONLY WHEN THE BODY IS ACTIVE IN EITHER ENGINE, and COUNTED. On a species divergence the two
+   * engines disagree about who is standing, and the union is the safe side of that: the active row is
+   * compared regardless, so nothing can be lost by this — only de-duplicated. */
+  const fieldAgg = new Map(), causeAgg = new Map();
+  let PARTY_DUPES = 0;
+  const isDuplicateOfActive = (d, board) => String(d.field).indexOf('party.') === 0 && d.side
+    && ((board.active_species || {})[d.side] || []).indexOf(d.body) >= 0;
+  for (const r of T1BAD) {
+    const ds = r.earlyBoards[1].diffs.filter(d => {
+      if (isDuplicateOfActive(d, r.earlyBoards[1])) { PARTY_DUPES++; return false; }
+      return true;
+    });
+    const seenField = new Set(), tags = new Set();
+    for (const d of ds) {
+      const key = d.family;
+      if (!fieldAgg.has(key)) fieldAgg.set(key, { field: key, games: 0, leaves: 0, buckets: new Map() });
+      const e = fieldAgg.get(key);
+      e.leaves++; e.buckets.set(d.bucket, (e.buckets.get(d.bucket) || 0) + 1);
+      seenField.add(key);
+      tags.add(key + ' (' + d.bucket + ')');
+    }
+    for (const f of seenField) fieldAgg.get(f).games++;
+    /* THE CAUSE IS THE SET OF FIELD+MAGNITUDE PAIRS THE BOARD PARTED ON, not the first one. A turn that
+     * parts on HP and on an item is ONE event with two symptoms, and picking either arbitrarily would
+     * hide the other — the same rule the protocol side applies to its causes. Capped at four so a
+     * cascade does not become its own unique cause and defeat the grouping. */
+    const list = [...tags].sort();
+    const cause = list.slice(0, 4).join(' + ') + (list.length > 4 ? ' + ' + (list.length - 4) + ' more' : '');
+    if (!causeAgg.has(cause)) causeAgg.set(cause, { cause, games: 0, example: null });
+    const c = causeAgg.get(cause); c.games++; if (!c.example) c.example = r;
+  }
+  const byField = [...fieldAgg.values()].sort((a, b) => b.games - a.games)
+    .map(e => ({ field: e.field, games: e.games, differing_leaves: e.leaves,
+                 buckets: Object.fromEntries([...e.buckets].sort((a, b) => b[1] - a[1])) }));
+  const byCause = [...causeAgg.values()].sort((a, b) => b.games - a.games);
+
+  /* THE PLAIN-ENGLISH CASE. Will: *"OR YOU CAN TELL ME."* — no replay file, no player, no protocol.
+   * The turn, the four bodies, the four clicks, what the authority says, what we say, and the field
+   * diff. It describes; it does not judge which one is right. */
+  const narrate = (r) => {
+    const b0 = r.earlyBoards[1], cl = r.earlyClicks[1] || { p1: [], p2: [] };
+    /* THE SAME DE-DUPLICATION THE QUEUE USES. A case that listed `Mamoswine hp` and `Mamoswine
+     * party.hp` as two findings would be telling a reader there are two problems. */
+    const b = Object.assign({}, b0, { diffs: b0.diffs.filter(d => !isDuplicateOfActive(d, b0)) });
+    const leads = s => (cl[s] || []).map(x => x.body).join(' + ');
+    return {
+      seed: r.seed, config: r.config,
+      /* THE SEED IS ONLY REPRODUCIBLE WITH THE POOL BESIDE IT. Until ROADMAP #87 `diff_swarm` read the
+       * team store LIVE and a stored seed no longer resolved to a game — the pool had moved under it.
+       * Recording the digest is what makes any of these cases replayable at all. */
+      engine_release: REL.stamp().engine_release, team_pool_digest: STEER_STAMP.team_pool_digest || null,
+      turn: 1,
+      leads: { p1: leads('p1'), p2: leads('p2') },
+      clicks: ['p1', 'p2'].flatMap(s => (cl[s] || []).map(x => x.body + ' ' + x.did)),
+      showdown_says: b.diffs.map(d => BS.explain(d, d.sd, pretty)),
+      we_say: b.diffs.map(d => BS.explain(d, d.us, pretty)),
+      field_diff: b.diffs.map(d => ({
+        slot: d.slot || d.side || 'field', body: d.body ? pretty(d.body) : '',
+        field: d.field, showdown: d.sd, ours: d.us, how_wrong: d.bucket })),
+      fields_compared: b.leaves_compared, fields_identical: b.leaves_compared - b.diffs.length,
+      protocol_diverged_at_turn: r.divTurn,
+    };
+  };
+  const turn1Cases = byCause.slice(0, 15).map(c => ({ cause: c.cause, games: c.games, case: narrate(c.example) }));
+
+  /* THE SEMANTICS QUESTION, SCOPED TO THE TURN WILL CARES ABOUT: of the games whose NARRATION parted
+   * inside turn 1, how many reached an identical BOARD at the end of it anyway. */
+  const protoT1 = results.filter(r => r.divTurn === 1 && (r.earlyBoards || [])[1]);
+  const protoT1SameBoard = protoT1.filter(r => r.earlyBoards[1].identical);
+  /* AND THE SAME QUESTION BY PROTOCOL CLASS — which classes are pure announcement and which move a
+   * board. `_cls` is stamped on every diverged result above; it is read, never recomputed. */
+  const clsTab = new Map();
+  for (const r of results) {
+    if (!r._cls || !(r.earlyBoards || [])[1]) continue;
+    const k = r._cls.cls;
+    if (!clsTab.has(k)) clsTab.set(k, { cls: k, games: 0, board_identical_at_end_of_turn1: 0 });
+    const e = clsTab.get(k); e.games++; if (r.earlyBoards[1].identical) e.board_identical_at_end_of_turn1++;
+  }
+
   return {
+    /* THE HEADLINE, NAMED SO IT CANNOT BE MISTAKEN FOR THE POOLED RATE BELOW. */
+    turn1_boards_identical: identicalAtEndOfTurn[0].identical,
+    turn1_boards_identical_fraction: identicalAtEndOfTurn[0].rate_of_all_games,
+    identical_at_end_of_turn: identicalAtEndOfTurn,
+    agreement_by_turn: agreementByTurn,
+    agreement_by_turn_cross_check: decayCrossCheck,
+    turn1: {
+      what: 'THE HEADLINE. The board at the end of turn 1, after the whole residual phase — the board '
+          + 'the turn-2 decision is actually made from. Target 100%.',
+      games: results.length, reached_a_turn1_boundary: T1.length,
+      identical: T1.length - T1BAD.length,
+      rate_of_all_games: identicalAtEndOfTurn[0].rate_of_all_games,
+      rate_of_games_that_reached_it: identicalAtEndOfTurn[0].rate_of_games_that_reached_it,
+      never_reached_turn1: results.length - T1.length,
+      protocol_parted_during_turn1: protoT1.length,
+      protocol_parted_during_turn1_board_identical_anyway: protoT1SameBoard.length,
+      by_field: byField, by_cause: byCause.map(({ example, ...c }) => c),
+      by_protocol_class: [...clsTab.values()].sort((a, b) => b.games - a.games),
+      cases: turn1Cases,
+      party_rows_suppressed_as_a_second_view_of_a_standing_body: PARTY_DUPES,
+      display_name_lookups_that_missed: PRETTY_MISSES,
+    },
     turn_boundaries_compared: bTot, turn_boundaries_identical: bAgr,
     turn_boundary_agreement: bTot ? +(bAgr / bTot).toFixed(4) : null,
     games: gamesWithABoundary.length, games_board_never_diverged: neverParted.length,
@@ -2024,6 +2254,83 @@ const STATE_SUMMARY = (() => {
 })();
 if (STATE_SUMMARY) {
   const S2 = STATE_SUMMARY, pc = (a, b) => (b ? (100 * a / b).toFixed(1) + '%' : 'n/a');
+  const T1 = S2.turn1;
+  /* ---- PRINTED FIRST, AND IT IS THE ONLY NUMBER ON ITS OWN LINE --------------------------------- */
+  console.log('  ============================================================================');
+  console.log('  THE BOARD AT THE END OF TURN 1 IS IDENTICAL IN   '
+    + T1.identical + ' / ' + T1.games + '   ' + pc(T1.identical, T1.games) + '   OF GAMES');
+  console.log('  ============================================================================');
+  console.log('    the target is 100%. Denominator is EVERY game: ' + T1.never_reached_turn1
+    + ' never reached a turn-1 boundary (the board parted at the leads, or the battle ended) and');
+  console.log('    those count against. Of the ' + T1.reached_a_turn1_boundary + ' that did reach one, '
+    + T1.identical + ' agreed — ' + pc(T1.identical, T1.reached_a_turn1_boundary) + '.');
+  console.log('');
+  console.log('    THE DECAY, TURN BY TURN. The denominator is stated at each entry: games that REACHED');
+  console.log('    that turn. Under the stop rule, reaching turn N means the board was identical through');
+  console.log('    N-1, so the right-hand column is "given we still agree entering this turn, do we');
+  console.log('    still agree after it". A game that ended early counts as agreement nowhere.');
+  console.log('      turn   identical / reached      of all games    given it reached this turn');
+  for (const e of S2.agreement_by_turn) {
+    if (!e.reached) continue;
+    console.log('      ' + String(e.turn).padStart(4) + '   ' + String(e.identical).padStart(5) + ' / '
+      + String(e.reached).padEnd(10) + '       ' + pc(e.identical, results.length).padStart(6)
+      + '          ' + pc(e.identical, e.reached).padStart(6));
+  }
+  console.log('      (the pooled `turn_boundary_agreement` is kept below and is NOT this. It mixes every');
+  console.log('       turn-ending together, and only turn 1 starts from a board both engines agree on.)');
+  if (S2.agreement_by_turn_cross_check.some(x => !x.agree))
+    console.log('      THE TWO DERIVATIONS OF TURNS 1-3 DISAGREE — see agreement_by_turn_cross_check.');
+  else console.log('      turns 1-3 agree between two independent derivations (kept boards vs counters).');
+  console.log('');
+  console.log('    IS IT JUST SEMANTICS, scoped to turn 1: of the ' + T1.protocol_parted_during_turn1
+    + ' games whose NARRATION parted');
+  console.log('    inside turn 1, ' + T1.protocol_parted_during_turn1_board_identical_anyway
+    + ' reached an IDENTICAL BOARD anyway  '
+    + pc(T1.protocol_parted_during_turn1_board_identical_anyway, T1.protocol_parted_during_turn1));
+  console.log('');
+  console.log('    WHICH FIELD PARTED AT THE END OF TURN 1 — this is the wire queue, and it is the first');
+  console.log('    one chosen by what changes a BOARD rather than by which protocol line came first:');
+  console.log('      (' + T1.party_rows_suppressed_as_a_second_view_of_a_standing_body + ' party rows are '
+    + 'suppressed below: an ACTIVE body is in its own party list, so its HP parted as two leaves and one fact.)');
+  console.log('      games  leaves  field                          how wrong');
+  for (const f of T1.by_field.slice(0, 18)) console.log('      ' + String(f.games).padStart(5) + '  '
+    + String(f.differing_leaves).padStart(6) + '  ' + f.field.padEnd(30)
+    + Object.entries(f.buckets).map(([k, v]) => k + ' x' + v).join(', '));
+  console.log('');
+  console.log('    THE TOP CAUSES AT THE END OF TURN 1, ranked by games:');
+  for (const c of T1.by_cause.slice(0, 15)) console.log('      ' + String(c.games).padStart(5) + '  ' + c.cause);
+  console.log('');
+  console.log('    OF THE PROTOCOL CLASSES, HOW MANY STILL REACHED AN IDENTICAL TURN-1 BOARD:');
+  console.log('      games  same board  class');
+  for (const c of T1.by_protocol_class) console.log('      ' + String(c.games).padStart(5) + '  '
+    + String(c.board_identical_at_end_of_turn1).padStart(10) + '  ' + c.cls);
+  console.log('');
+  /* ---- THE PLAIN-ENGLISH CASES ------------------------------------------------------------------
+   * Will: *"OR YOU CAN TELL ME."* Fifteen turns written out, so a human can scan them in a couple of
+   * minutes and say which are real. No protocol lines appear here by construction. */
+  console.log('    THE TOP ' + T1.cases.length + ' TURNS, WRITTEN OUT. Say which of these are wrong;'
+    + ' that is the next wire queue.');
+  console.log('');
+  let ci = 0;
+  for (const k of T1.cases) {
+    const c = k.case; ci++;
+    console.log('    --- ' + ci + '.  ' + k.games + ' games have this shape  ---------------------------------');
+    console.log('    Turn 1.  Side 1: ' + c.leads.p1 + '.   Side 2: ' + c.leads.p2 + '.');
+    for (const l of c.clicks) console.log('      ' + l + '.');
+    console.log('      SHOWDOWN: ' + c.showdown_says.join('; ') + '.');
+    console.log('      OURS:     ' + c.we_say.join('; ') + '.');
+    console.log('      Board at the end of the turn: ' + c.fields_identical + ' of '
+      + c.fields_compared + ' fields identical. Differs on:');
+    for (const d of c.field_diff) console.log('        ' + String(d.slot).padEnd(5)
+      + String(d.body).padEnd(16) + String(d.field).padEnd(22)
+      + 'SD ' + JSON.stringify(d.showdown).padEnd(14) + 'US ' + JSON.stringify(d.ours).padEnd(14) + d.how_wrong);
+    console.log('      seed ' + c.seed + '   config ' + c.config
+      + '   release ' + c.engine_release + '   pool ' + c.team_pool_digest);
+    console.log('');
+  }
+  if (T1.display_name_lookups_that_missed) console.log('    NOTE: ' + T1.display_name_lookups_that_missed
+    + ' id(s) had no display name in the dex and were printed raw — counted, not hidden.');
+  console.log('');
   console.log('  THE STATE DIFFERENTIAL — the BOARD at the turn boundary, after the whole residual phase');
   console.log('  (Leftovers, chip, the toxic stage, Leech Seed, Perish, and every clock ticking down):');
   console.log('    TURNS whose end-of-turn board is IDENTICAL   ' + S2.turn_boundaries_identical + '/'

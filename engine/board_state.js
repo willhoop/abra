@@ -209,8 +209,35 @@ function sdBoosts(p) {
  * them. Which shape each engine had is recorded on every snapshot and printed with the run: a reader
  * that silently fell back would be the silent default this project keeps finding.
  */
-const PHYSICAL_SCREENS = new Set(['reflect', 'auroraveil']);
-const SPECIAL_SCREENS = new Set(['lightscreen', 'auroraveil']);
+/* THE DECLARED BLOCK conformance.js S12 asks for, and it is a REPRESENTATION BRIDGE rather than a
+ * mechanic. Every other name in this repo should be derived from the artifact; these cannot be, and
+ * the reason is specific rather than general:
+ *
+ * A COMPARATOR MUST NAME BOTH REPRESENTATIONS IT IS RECONCILING. medicham2 holds screens as CATEGORY
+ * counters (`sf.scrP` / `sf.scrS`) before WIRE 8 and as NAMED conditions (`sf.sc.reflect`) after it;
+ * Showdown holds them as named `sideConditions` always. Mapping one onto the other is exactly the
+ * knowledge "which names are physical, which are special, and which is both" — so deriving the list
+ * from tags would not remove the naming, it would move it somewhere the ladder cannot see it. Aurora
+ * Veil being in BOTH sets is the whole content of the bridge.
+ *
+ * Tailwind and Trick Room are here for the same reason one level down: they are SLOTS IN THE BOARD
+ * SCHEMA this file compares, read out of `sd.sideConditions` and `F.pseudoWeather` by their upstream
+ * keys. The key is Showdown's spelling, not our choice, and a comparator that invented its own name
+ * for it would compare nothing.
+ *
+ * WHAT THIS BLOCK IS NOT: a licence to decide behaviour by name. Nothing below asks whether a screen
+ * HALVES anything, when it expires, or whether a move sets it — those are the engine's business and
+ * the engine derives them from tags. This file only reads state and says whether two boards match. */
+const GAME_RULES = {
+  PHYSICAL_SCREENS: new Set(['reflect', 'auroraveil']),
+  SPECIAL_SCREENS: new Set(['lightscreen', 'auroraveil']),
+  /* the order the named comparison walks, and the keys both engines spell the same */
+  SCREEN_KEYS: ['reflect', 'lightscreen', 'auroraveil'],
+  SIDE_SLOTS: ['tailwind'],
+  FIELD_SLOTS: ['trickroom'],
+};
+const PHYSICAL_SCREENS = GAME_RULES.PHYSICAL_SCREENS;
+const SPECIAL_SCREENS = GAME_RULES.SPECIAL_SCREENS;
 
 function mediScreens(sf) {
   if (sf && sf.sc && typeof sf.sc === 'object') {
@@ -233,7 +260,7 @@ function sdScreens(side) {
   const sc = side.sideConditions || {};
   const named = {};
   let phys = 0, spec = 0;
-  for (const k of ['reflect', 'lightscreen', 'auroraveil']) {
+  for (const k of GAME_RULES.SCREEN_KEYS) {
     const t = dur(sc[k]);
     if (t <= 0) continue;
     named[k] = t;
@@ -388,36 +415,41 @@ function readShowdown(battle, ctx) {
  * A flat walk that yields ONE ROW PER DIFFERING LEAF, each carrying the path that names it, so the
  * report can say WHICH part of the board parted rather than only that it did. The screens' `named`
  * block is compared only when BOTH engines can express it — see mediScreens. */
-function walk(a, b, path, out) {
+/* `stats.compared` COUNTS EVERY LEAF THAT WAS ACTUALLY LOOKED AT, matching ones included. Will,
+ * 2026-08-07: *"PRINT ONLY WHAT DIFFERS, but COUNT what matched, so a diff of one field out of ninety
+ * reads differently from one out of three."* Without it a board report is a numerator with no
+ * denominator, and "the boards differ" is exactly the boolean this instrument was built to replace. */
+function walk(a, b, path, out, stats) {
   if (a === undefined && b === undefined) return;
   if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') {
+    if (stats) stats.compared++;
     if (a !== b) out.push({ path, medicham: a === undefined ? null : a, showdown: b === undefined ? null : b });
     return;
   }
   if (Array.isArray(a) || Array.isArray(b)) {
     const n = Math.max((a || []).length, (b || []).length);
-    for (let i = 0; i < n; i++) walk(a[i], b[i], path + '[' + i + ']', out);
+    for (let i = 0; i < n; i++) walk(a[i], b[i], path + '[' + i + ']', out, stats);
     return;
   }
   const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
-  for (const k of keys) walk(a[k], b[k], path ? path + '.' + k : k, out);
+  for (const k of keys) walk(a[k], b[k], path ? path + '.' + k : k, out, stats);
 }
 
-function compare(medi, sd) {
+function compare(medi, sd, stats) {
   const out = [];
-  walk(medi.field, sd.field, 'field', out);
+  walk(medi.field, sd.field, 'field', out, stats);
   for (const s of ['p1', 'p2']) {
     const A = medi.sides[s], B = sd.sides[s];
-    walk(A.screens.physical, B.screens.physical, s + '.screens.physical', out);
-    walk(A.screens.special, B.screens.special, s + '.screens.special', out);
+    walk(A.screens.physical, B.screens.physical, s + '.screens.physical', out, stats);
+    walk(A.screens.special, B.screens.special, s + '.screens.special', out, stats);
     /* THE STRICTLY STRONGER CHECK, AVAILABLE ONLY WHEN THE ENGINE CAN EXPRESS IT. A pre-WIRE-8
      * medicham2 holds two category counters and genuinely cannot say WHICH screen is up, so asking it
      * would be measuring the reader. Skipped LOUDLY: `screens_named_comparable` on every snapshot. */
-    if (A.screens.named && B.screens.named) walk(A.screens.named, B.screens.named, s + '.screens.named', out);
-    walk(A.tailwind, B.tailwind, s + '.tailwind', out);
-    walk(A.hazards, B.hazards, s + '.hazards', out);
-    walk(A.party, B.party, s + '.party', out);
-    walk(A.active, B.active, s + '.active', out);
+    if (A.screens.named && B.screens.named) walk(A.screens.named, B.screens.named, s + '.screens.named', out, stats);
+    walk(A.tailwind, B.tailwind, s + '.tailwind', out, stats);
+    walk(A.hazards, B.hazards, s + '.hazards', out, stats);
+    walk(A.party, B.party, s + '.party', out, stats);
+    walk(A.active, B.active, s + '.active', out, stats);
   }
   return out;
 }
@@ -440,16 +472,122 @@ function family(path) {
   return m[2] ? 'party.' + m[2] : 'party.MISSING-OR-EXTRA-MEMBER';
 }
 
+/* ---- WHAT EXACTLY IS DIFFERENT — SLOT, BODY, FIELD --------------------------------------------
+ *
+ * Will, 2026-08-07: *"DOES OUR HARNESS IDENTIFY WHAT EXACTLY IS DIFFERENT BETWEEN BOARDS?"* Until
+ * this function existed the answer was no: `compare()` returned a path string and a reader had to know
+ * that `p2.active[0].boosts.spa` means *their left body is at +1 Special Attack in one world and 0 in
+ * the other.* A path is a location; a finding needs the BODY standing there.
+ *
+ * `locate` splits one differing leaf into the four things a person needs — which side, which slot,
+ * WHICH POKEMON, and which field — plus the two values, labelled SD (the authority) and US.
+ *
+ * THE BODY IS READ FROM WHICHEVER ENGINE HAS ONE. On a `species` divergence the two engines disagree
+ * about who is standing there, so both names are carried and the caller can print both; naming only
+ * medicham2's would silently pick the wrong body on exactly the rows where it matters most. */
+const SLOT_LETTER = ['a', 'b'];
+function locate(d, snap) {
+  const p = String(d.path);
+  const out = { path: p, side: '', slot: '', body: '', body_showdown: '', field: p,
+                us: d.medicham, sd: d.showdown, bucket: bucket(d), family: family(p) };
+  let m = /^(p[12])\.active\[(\d+)\]\.(.+)$/.exec(p);
+  if (m) {
+    const i = +m[2];
+    const mb = snap && snap.medi.sides[m[1]].active[i], sb = snap && snap.sd.sides[m[1]].active[i];
+    out.side = m[1]; out.slot = m[1] + SLOT_LETTER[i]; out.field = m[3];
+    out.body = (mb && mb.species) || (sb && sb.species) || '';
+    out.body_showdown = (sb && sb.species) || '';
+    out.maxhp = (sb && sb.maxhp) || (mb && mb.maxhp) || 0;
+    return out;
+  }
+  m = /^(p[12])\.party\.([^.]+)(?:\.(.+))?$/.exec(p);
+  if (m) { out.side = m[1]; out.body = m[2]; out.body_showdown = m[2];
+           out.field = 'party.' + (m[3] || 'MISSING-OR-EXTRA-MEMBER'); return out; }
+  m = /^(p[12])\.(.+)$/.exec(p);
+  if (m) { out.side = m[1]; out.field = m[2]; return out; }
+  return out;
+}
+
+/* ---- HOW WRONG, NOT JUST WHETHER -------------------------------------------------------------
+ * Will, 2026-08-07: *"SEPARATE 'WRONG VALUE' FROM 'WRONG BY ONE'. An HP off by one is a rounding bug;
+ * an HP off by 40 is a missing mechanic; a stat stage off by one is neither."*
+ *
+ * The one-HP bucket has a known owner: WIRE 4 found Showdown does every damage multiplier in fixed
+ * point on 4096ths with a round-half-up where this engine used floats, and the residue of that class
+ * of error is exactly a one-HP difference. Mixing it in with the mechanics is how `-damage field 3`
+ * stayed one opaque class for ten wires. */
+function bucket(d) {
+  const a = d.medicham, b = d.showdown;
+  const empty = v => v === null || v === undefined || v === '' || v === 0 || v === false;
+  if (typeof a === 'number' && typeof b === 'number') {
+    const g = Math.abs(a - b);
+    if (g === 1) return 'off-by-one';
+    if (g <= 3) return 'off-by-2-or-3';
+    return 'off-by-4-or-more';
+  }
+  if (typeof a === 'boolean' || typeof b === 'boolean') return 'one-says-yes-one-says-no';
+  if (empty(a) !== empty(b)) return 'present-in-one-engine-only';
+  return 'different-value';
+}
+
+/* ---- THE SAME DIFFERENCE, IN ENGLISH ----------------------------------------------------------
+ * Will, 2026-08-07: *"NO PROTOCOL LINES IN THE PROSE. If a reader has to parse `|-boost|p2a: Raichu|
+ * spa|1` you have not done the job."*
+ *
+ * `pretty` is supplied by the caller and is the SHOWDOWN DEX's display name for an id. It is a
+ * parameter and not a require, because this file must not grow a second naming table beside the one
+ * the authority already owns.
+ *
+ * IT DESCRIBES, IT DOES NOT JUDGE. Will: *"DO NOT INTERPRET WHETHER IT MATTERS."* Every clause below
+ * restates a value; none of them says a value is wrong. */
+const BOOST_NAME = { atk: 'Attack', def: 'Defence', spa: 'Special Attack', spd: 'Special Defence',
+                     spe: 'Speed', accuracy: 'accuracy', evasion: 'evasion' };
+const STATUS_NAME = { '': 'no status', brn: 'burned', par: 'paralysed', psn: 'poisoned',
+                      tox: 'badly poisoned', slp: 'asleep', frz: 'frozen', fnt: 'fainted' };
+const stage = n => (n > 0 ? '+' + n : String(n));
+function explain(loc, v, pretty) {
+  const P = pretty || (x => String(x));
+  const who = loc.body ? P(loc.body) : '';
+  const f = loc.field;
+  if (f === 'hp') return who + ' is on ' + v + (loc.maxhp ? ' of ' + loc.maxhp : '') + ' HP';
+  if (f === 'maxhp') return who + ' has ' + v + ' maximum HP';
+  if (f === 'fainted') return who + (v ? ' has fainted' : ' is still standing');
+  if (f === 'status') return who + ' is ' + (STATUS_NAME[String(v || '')] || String(v));
+  if (f === 'status_counter') return who + ' is on status counter ' + v;
+  if (f === 'item') return who + (v ? ' is holding ' + P(v) : ' is holding nothing');
+  if (f === 'species') return 'the body in that slot is ' + P(v);
+  if (f.indexOf('boosts.') === 0) return who + ' is at ' + stage(v) + ' ' + (BOOST_NAME[f.slice(7)] || f.slice(7));
+  if (f === 'vol.substitute') return who + (v ? ' has a Substitute on ' + v + ' HP' : ' has no Substitute');
+  if (f === 'vol.leechseed') return who + (v ? ' is seeded' : ' is not seeded');
+  if (f.indexOf('vol.') === 0) { const k = f.slice(4);
+    return who + (v ? ' has ' + k + ' with ' + v + ' turn(s) left' : ' has no ' + k); }
+  if (f === 'party.hp') return P(loc.body) + ' on the team is on ' + v + ' HP';
+  if (f === 'party.maxhp') return P(loc.body) + ' on the team has ' + v + ' maximum HP';
+  if (f === 'party.fainted') return P(loc.body) + ' on the team ' + (v ? 'has fainted' : 'is still standing');
+  if (f.indexOf('party.') === 0) return P(loc.body) + ' on the team: ' + f.slice(6) + ' is ' + v;
+  if (f === 'tailwind') return v ? 'Tailwind has ' + v + ' turn(s) left' : 'there is no Tailwind';
+  if (f.indexOf('hazards.') === 0) return v ? v + ' layer(s) of ' + f.slice(8) : 'no ' + f.slice(8);
+  if (f.indexOf('screens.') === 0) return f.slice(8) + ' screen cover has ' + v + ' turn(s) left';
+  if (f === 'field.weather') return v ? 'the weather is ' + v : 'the sky is clear';
+  if (f === 'field.terrain') return v ? 'the terrain is ' + v : 'there is no terrain';
+  if (f === 'field.weather_turns') return 'the weather has ' + v + ' turn(s) left';
+  if (f === 'field.terrain_turns') return 'the terrain has ' + v + ' turn(s) left';
+  if (f === 'field.trickroom_turns') return v ? 'Trick Room has ' + v + ' turn(s) left' : 'there is no Trick Room';
+  return f + ' is ' + JSON.stringify(v);
+}
+
 /* ---- THE SNAPSHOT PAIR, WHICH IS WHAT A CALLER WANTS ------------------------------------------- */
 function snapshot(S, battle, ctx) {
   const medi = readMedi(S, ctx), sd = readShowdown(battle, ctx);
-  const diffs = compare(medi, sd);
+  const stats = { compared: 0 };
+  const diffs = compare(medi, sd, stats);
   return { medi, sd, diffs,
            identical: diffs.length === 0,
+           leaves_compared: stats.compared,
            screens_shape_medicham: medi.sides.p1.screens.shape,
            screens_named_comparable: !!(medi.sides.p1.screens.named && sd.sides.p1.screens.named) };
 }
 
-module.exports = { readMedi, readShowdown, compare, snapshot, family, mappingProof,
-                   MAPPINGS, NOT_COMPARED, PHYSICAL_SCREENS, SPECIAL_SCREENS,
+module.exports = { readMedi, readShowdown, compare, snapshot, family, mappingProof, locate, bucket,
+                   explain, MAPPINGS, NOT_COMPARED, PHYSICAL_SCREENS, SPECIAL_SCREENS,
                    _internals: { num, layers, dur, sleptTurns, mediBoosts, sdBoosts, mediScreens, sdScreens } };

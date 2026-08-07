@@ -336,6 +336,22 @@ const RAW = /\.(ability|baseStats|weighthg|weightkg)\b/g;
  * #40b — it read the PRE-mega ability to decide whether a mon is a weather setter, and a mega's
  * weather ability is precisely what differs from its base). It was fixed rather than declared. */
 const DECLARED = {
+  'engine/leaf_engine_contrast.js':
+    'One read, in a helper literally named `sheet()`, and it is this test\'s own stated legitimate '
+    + 'case. The line BUILDS A DECLARATION rather than reading a live body: `M.buildMon(k, {})` is '
+    + 'called one statement earlier and its `.ability` is copied straight into a `{species, item, '
+    + 'ability, moves}` row, which is the shape a team sheet has. There is no battle, no turn and no '
+    + 'stone spent between the construction and the read — the two lines are adjacent. A sheet entry\'s '
+    + '`.ability` IS the pre-mega one, which this file wants: it is assembling the pre-battle '
+    + 'declaration the leaf contrast plays FROM. Routing it through effAbility() would write the '
+    + 'POST-mega ability into a sheet, so a Charizard row would declare Drought and the arm would start '
+    + 'from a board no player could have brought. AND THE CLAIM IS PINNED RATHER THAN ASSERTED: the '
+    + 'first two checks in this same file already prove buildMon\'s `.ability` is the BASE forme\'s on '
+    + 'all 62 buildable stone-holders before the choice, and the MEGA\'s on all 62 after a real turn in '
+    + 'which it evolves — so the value being read here is exactly the one those checks pin, and if that '
+    + 'ever stops being true this exception fails beside them rather than laundering the change. '
+    + 'Appeared 2026-08-07 when MEASURE added the arm; the count moved 0 -> 1 and nothing else in the '
+    + 'file changed.',
   'engine/mega_decision_census.js':
     'Four reads of the slot-0 ability off DEX SPECIES ROWS, a mega forme and its base, and THE '
     + 'QUESTION THE FILE ASKS IS THAT DECLARATION. It censuses what the dex says changes on evolving, '

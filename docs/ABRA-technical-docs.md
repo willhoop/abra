@@ -1,6 +1,33 @@
 # ABRA — Technical Documentation
 
-**Version 3.69.0 · Last updated 2026-08-07**
+**ROADMAP #81 WIRE 12 — FIVE ENGINE DEFECTS OFF THE TURN-1 BOARD, TWO OF THEM MIS-DIAGNOSED BEFORE
+THEY WERE FIXED (3.71.0).** The auras (Fairy, Dark, Aura Break) are wired FIELD-WIDE at the base-power
+stage — they multiply one type for every body on the field, the foe's moves included, and Aura Break
+INVERTS to x0.75 rather than cancelling; exact against the official engine on 12 of 12 staged arms.
+Baton Pass and Shed Tail switch for the first time (`passesState` had been derived and never
+consumed, so Baton Pass was a no-op turn and Shed Tail paid half its user's HP to stand still). Curse
+is two moves and the engine had neither. Perish Song counted from 3 instead of 4 and therefore fainted
+every affected body on both sides a full turn early, on 1,141 corpus uses — the KO itself had always
+fired. And ROADMAP #81 WIRE 10's measured board regression is one line: the Life Orb toll was being
+paid by a move that MISSED. **Two of the five briefed diagnoses were wrong** — the tagger was not
+testing `selfSwitch === true`, and the substitute doll was not confounded, it was a regression this
+project introduced at WIRE 7 on a misquoted source line. Census 281/282 → 293/294 live.
+
+**Version 3.71.0 · Last updated 2026-08-07**
+
+**THE INSTRUMENT WAS MEASURING ANNOUNCEMENTS, AND THE HEADLINE IS NOW THE BOARD AT THE END OF
+TURN 1 (3.70.0).** `engine/board_state.js` reads HP, status with its counters, items, all seven stat
+stages, aliveness, every field condition WITH ITS CLOCK and the persistent volatiles out of BOTH
+engines' live bodies at every turn boundary, after the whole residual phase. Read every figure from
+`data/state-ladder.json`. **The board at the end of turn 1 is identical in 56.0% of games at the
+pre-WIRE-1 baseline (1119/1998) and 66.9% at the top rung (1337/1998)**, peaking at 69.3% at WIRE 9;
+whole-game board agreement went 6.4% -> 15.6% against a protocol number that read 1.8% -> 10.3%, so
+the wires were real and the protocol number overstated them. **WIRE 10 is a regression the protocol
+instrument scored as an improvement** — 47 fewer clean turn-1 boards, and diffed per field it is one
+field, end-of-turn-1 HP wrong in 427 -> 473 games. **41.0% of games whose narration parted inside
+turn 1 reached an identical board anyway.** The comparator proves itself first: 7 representation
+mappings red-demonstrated in both directions and 25 planted state divergences, each of which must be
+caught at the planted boundary and localised to the planted field — 25/25 on all fourteen arms.
 
 **ENGINE CORRECTNESS DOES NOT CHANGE THE LEAF (3.69.0).**
 

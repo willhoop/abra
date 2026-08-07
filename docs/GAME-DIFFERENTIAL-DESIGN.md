@@ -1,6 +1,20 @@
 # The whole-game differential — design, and the research it is taken from
 
-**Version 3.69.0 · Last updated 2026-08-07**
+**Version 3.71.0 · Last updated 2026-08-07**
+
+**THE INSTRUMENT WAS MEASURING ANNOUNCEMENTS, AND THE HEADLINE IS NOW THE BOARD AT THE END OF
+TURN 1 (3.70.0).** `engine/board_state.js` reads HP, status with its counters, items, all seven stat
+stages, aliveness, every field condition WITH ITS CLOCK and the persistent volatiles out of BOTH
+engines' live bodies at every turn boundary, after the whole residual phase. Read every figure from
+`data/state-ladder.json`. **The board at the end of turn 1 is identical in 56.0% of games at the
+pre-WIRE-1 baseline (1119/1998) and 66.9% at the top rung (1337/1998)**, peaking at 69.3% at WIRE 9;
+whole-game board agreement went 6.4% -> 15.6% against a protocol number that read 1.8% -> 10.3%, so
+the wires were real and the protocol number overstated them. **WIRE 10 is a regression the protocol
+instrument scored as an improvement** — 47 fewer clean turn-1 boards, and diffed per field it is one
+field, end-of-turn-1 HP wrong in 427 -> 473 games. **41.0% of games whose narration parted inside
+turn 1 reached an identical board anyway.** The comparator proves itself first: 7 representation
+mappings red-demonstrated in both directions and 25 planted state divergences, each of which must be
+caught at the planted boundary and localised to the planted field — 25/25 on all fourteen arms.
 
 **THIS INSTRUMENT'S OUTPUT DOES NOT PREDICT THE LEAF, AND THAT IS NOW MEASURED (3.69.0).**
 `data/leaf-engine-contrast.json` joins this file's first-divergence depth, per position, to MILTANK's
@@ -454,6 +468,13 @@ debugging instrument from a scoreboard, and it changes what gets compared.
 causes — a damage multiplier, a missed residual, an item that should have triggered, a mis-ordered
 action — and it puts the reader back at the start.
 
+> **THE PARAGRAPH ABOVE IS SUPERSEDED BY §5b (3.70.0) AND IS KEPT BECAUSE IT WAS ACTED ON.** It is
+> right that a state diff is a poor *localiser* and wrong that it should therefore not exist. Taken as
+> "compare the stream INSTEAD of the board" it left the project with no board comparison at all, and
+> **ten wires were aimed with an instrument that could not see whether a fix changed anything a search
+> can act on.** The correction is not to replace one with the other: the stream localises, the board
+> decides whether there was anything to localise. Both run, on the same games, in the same process.
+
 **Diff the EVENT STREAM, and use Showdown's own vocabulary as the common format.** The official
 simulator already emits a structured, ordered protocol log:
 
@@ -567,6 +588,73 @@ trace does not. That is §5's whole argument, demonstrated on the first night it
 
 **Still to build:** the comparison driver over two streams, the divergence classifier, `ddmin`, and
 the coverage report. This section records only that the stream exists and that it localises.
+
+## 5b. THE BOARD AT THE TURN BOUNDARY — the correction to §5 (3.70.0)
+
+Will: *"ALL WE CARE ABOUT IS HP/ STATUS, ITEMS, MONS ALIVE AT THE END OF THE TURN? ANNOUNCING IT
+DOESNT REALLY MATTER RIGHT?"*, then *"AND STAT BOOSTS/ DROPS"*, *"AND FIELD CONDITIONS"*, *"TRAPPED
+STATUS"*, *"LEFTOVERS FIRING"*. Then, after a more correct engine failed to predict better: ***"I ONLY
+CARE ABOUT TURN 1 TO START."***
+
+**The two instruments answer different questions and neither substitutes for the other.**
+
+| | the protocol stream (§5) | the board (`engine/board_state.js`) |
+|---|---|---|
+| asks | do the two engines tell the same story | do they reach the same position |
+| good at | naming the wired-wrong mechanism | saying whether anything a search can act on changed |
+| blind to | whether a difference matters | which of a dozen causes produced it |
+
+**WHAT IS COMPARED.** Per active body: HP, status with the toxic stage and turns slept, item, all
+seven stat stages, fainted, species. Per side: every party member's HP and aliveness, hazards as LAYER
+COUNTS, each screen with its counter, Tailwind with its counter. Field: weather, terrain and Trick
+Room, each with its counter. Volatiles: Substitute with its HP, Taunt, Encore, Disable, Leech Seed,
+confusion, Perish, and MOVE trapping with its counter. **Counters are not optional — Tailwind with 3
+turns left is not Tailwind with 1, and a search that cannot tell them apart plans the wrong turn.**
+
+**WHERE THE BOUNDARY IS DECIDES WHAT IS MEASURED.** It is taken **after the entire residual phase**,
+at the instant the next turn's choices are made. Leftovers, burn and poison chip, Toxic's escalating
+stage, sand and hail, Leech Seed draining off two bodies, Perish counting down, Wish landing and every
+field counter ticking only touch the board there. A boundary taken earlier measures a board nobody
+plays from.
+
+**REAL STATE, NEVER NARRATION.** medicham2 is read off `S.actA[i].curHP`, `.boosts`, `._sub`,
+`S.field.weatherT`, `S.sfA.sc`; Showdown off `battle.sides[i].active[j]`, `side.sideConditions`,
+`battle.field`. **Neither engine's log is opened.** Deriving a board from the protocol would reproduce
+the original defect one level down: if our stream omits an `-enditem`, a stream-derived board keeps the
+item and reports a divergence the ENGINES do not have.
+
+**TURN 1 IS THE HEADLINE, AND THE MEDIAN WAS THE WRONG STATISTIC.** Turn 1 is the only turn that begins
+from a board both engines agree on; every later turn begins from wherever the run had already drifted,
+so a pooled per-turn rate is contaminated by earlier error and hides which turn moved. Both are
+published — `agreement_by_turn` states its denominator at each turn, `turn_boundary_agreement` pools
+and is kept beside it so the contamination is visible. The median first-divergence turn read 1 at all
+ten rungs and was reported ten times as "nothing moved"; the distribution is **bimodal** and a median
+cannot move on one until half the mass crosses.
+
+**MAGNITUDE IS BUCKETED, BECAUSE OFF-BY-ONE AND OFF-BY-FORTY ARE DIFFERENT WORK.** An HP off by one is
+the residue of §WIRE 4's fixed-point arithmetic; an HP off by forty is a missing mechanic. Lumping them
+is how `-damage field 3` stayed one opaque class for ten wires.
+
+**REPRESENTATION MAPPINGS ARE DECLARED AND RED-DEMONSTRATED.** Two engines can hold one fact in two
+shapes — `at`/`atk`, `floette-eternal`/`floetteeternal`, a hazard as presence or as layers, an absent
+key as zero, `sand`/`sandstorm`, a faint as `fainted:true` or as `status:'fnt'`, sleep counted up or
+down. Each is declared with a pair it MUST collapse and a pair it must NOT, and both directions run
+before any board is read. A mapping that collapses its `distinct` pair is a **silencer** and the run
+says so. The weather and terrain translation is **the engine's own exported function**, not a second
+copy of it.
+
+**WHAT IS DELIBERATELY NOT COMPARED** ships with every artifact as `NOT_COMPARED`: ability trapping
+(medicham2 stores no flag and evaluates the tag at switch time — a comparator would have to reimplement
+its rule and would then be checking its own belief), item DISPOSITION, PP, and the stall counter behind
+consecutive Protect. An absent field reads exactly like an agreeing one, so each is named with its
+reason.
+
+**THE COMPARATOR PROVES ITSELF FIRST.** 25 planted state divergences, one per compared field family,
+written into the LIVE medicham board at a boundary the clean arm agreed at. Each must be APPLIED
+(an unapplied plant reads exactly like a comparator that found nothing), CAUGHT, at EXACTLY that
+boundary, and LOCALISED to the planted field. Gated by `tests/test-state-differential.js`, which also
+proves the party is keyed by species rather than index — Showdown reorders `side.pokemon` on every
+switch-in, and index matching manufactured 123 party divergences in 179 games.
 
 ## 6. A worked example of what Mode A should catch on day one
 

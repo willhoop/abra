@@ -269,6 +269,7 @@ if (require.main === module && process.argv.includes('--selftest')) {
  * A MISS NEVER REBUILDS SILENTLY. It says so, loudly, and rebuilds — because the alternative is a
  * measurement that changes its own sample without telling anyone, which is ROADMAP #82 and the WIRE 5
  * failure. `--rebuild-pool` forces one. */
+const POOL_SOURCES = ['engine/diff_swarm.js', 'data/games.bo3.jsonl', 'data/games.ots.jsonl'];
 let POOL_FROM_CACHE = false;
 const POOL_CACHE = D('data', 'diff-team-pool.json');
 
@@ -303,6 +304,12 @@ function writePoolCache(key, teams, storeDir) {
   try {
     fs.writeFileSync(POOL_CACHE, JSON.stringify({
       generated: new Date().toISOString(), by: 'engine/diff_swarm.js loadTeams',
+      /* STAMPED, because provenance.js ratchets on artifacts resting on mtime alone and this file
+       * broke that ratchet within an hour of being written -- the same mistake three artifacts made
+       * on 2026-08-06. A cache is still an artifact: something downstream reads it and needs to know
+       * what produced it. The store digests below are the CONTENT of what was read; `key` is the
+       * fast size+mtime path and is documented above as a deliberate exception. */
+      source_digests: RS.sourceDigests(POOL_SOURCES),
       what: 'The deduped team pool the whole-game differential draws from. Cached because rebuilding it '
           + 'read 110 MB and cost ~41 s on EVERY process start (ROADMAP #87).',
       key, source_content_digests: digests, pool_digest: pool, teams: teams.length,
