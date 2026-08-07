@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-07T04:15:42.885Z",
+  "generated": "2026-08-07T04:33:47.208Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 244,
-  "live": 243,
+  "probed": 245,
+  "live": 244,
   "missing": 1,
-  "armed": 244,
+  "armed": 245,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -154,9 +154,19 @@
     {
       "kind": "move",
       "tag": "stalling",
-      "label": "repeated Protect starts failing",
+      "label": "consecutive Protect decays, and a FAILED Protect resets the counter to fresh",
       "live": true,
-      "detail": "damage taken per consecutive Protect: 0, 167, 167",
+      "detail": "damage taken per consecutive Protect at a fixed roll of 0.2: 0, 0, 158, 0 — turn 3 must be the FAILURE and turn 4 must be blocked again",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "stalling",
+      "label": "Protect FAILS outright when its user holds the LAST action of the turn",
+      "live": true,
+      "detail": "damage taken on turn 2 behind a shield at roll 0.99 — foe Speed 50 (me acts before it, turn-1 shield succeeded, counter armed) 182; foe Speed 150 (me acts LAST, turn-1 shield failed, counter never armed) 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2076,7 +2086,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 26.1% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

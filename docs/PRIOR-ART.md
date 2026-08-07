@@ -1,6 +1,6 @@
 # Prior art — every Pokémon AI project we know of, and what each one means for us
 
-**Version 3.61.1 · Last updated 2026-08-07**
+**Version 3.61.2 · Last updated 2026-08-07**
 
 Will, 2026-08-06: *"can you scour the internet for all similar or related projects, we have done this
 several times but i keep finding more."* **That recurrence is the problem this file exists to end.**

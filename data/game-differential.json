@@ -1,10 +1,10 @@
 {
-  "generated": "2026-08-07T04:13:42.850Z",
+  "generated": "2026-08-07T04:35:05.404Z",
   "by": "engine/game_differential.js",
   "mode": "A",
   "games": 395,
   "turns_cap": 12,
-  "elapsed_s": 7.5,
+  "elapsed_s": 11,
   "planted_divergence_proof": [
     {
       "what": "a wrong FIELD on the last agreeing line",
@@ -45,11 +45,11 @@
     "rates": {
       "with_megas": {
         "games": 393,
-        "diverged": 392
+        "diverged": 391
       },
       "control_same_pairs_no_stones": {
         "games": 393,
-        "diverged": 393
+        "diverged": 392
       },
       "pairs_with_no_stone_at_all": {
         "games": 2,
@@ -57,16 +57,16 @@
       },
       "whole_control_arm": {
         "games": 395,
-        "diverged": 395,
+        "diverged": 394,
         "note": "every stone stripped — this is what the 2026-08-06 run measured"
       }
     },
     "pairing_broken": 0,
     "cost_of_the_megas": {
       "stone_carrying_pairs": 393,
-      "mega_arm_parted_earlier": 36,
-      "mega_arm_parted_later": 260,
-      "parted_at_the_same_line": 97,
+      "mega_arm_parted_earlier": 42,
+      "mega_arm_parted_later": 256,
+      "parted_at_the_same_line": 95,
       "first_divergence_is_a_mega_line": 0,
       "first_divergence_is_a_detailschange_line": 1,
       "on_a_mega_line": [],
@@ -94,14 +94,14 @@
         }
       ]
     },
-    "evolutions_medicham": 503,
-    "evolutions_showdown": 503,
+    "evolutions_medicham": 504,
+    "evolutions_showdown": 504,
     "engines_agree_on_the_count": true,
     "sides_capable": 732,
-    "sides_evolved": 503,
-    "from_left_slot": 369,
-    "from_right_slot": 134,
-    "choices_issued": 503,
+    "sides_evolved": 504,
+    "from_left_slot": 366,
+    "from_right_slot": 138,
+    "choices_issued": 504,
     "every_issued_choice_evolved_in_both_engines": true,
     "stones_kept": 1077,
     "stones_stripped_from_control_arm": 1077
@@ -113,7 +113,7 @@
       {
         "id": "ability-announcement",
         "why": "Showdown's `|-ability|` is a COSMETIC announcement that an ability activated (SIM-PROTOCOL). Every consequence of it is a separate line and is kept, so dropping the announcement cannot hide an ability that did not fire — its effect would still be missing.",
-        "lines_collapsed": 2055,
+        "lines_collapsed": 2626,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -128,7 +128,7 @@
       {
         "id": "stat-attribution",
         "why": "a stat line's meaning is (body, stat, direction, amount). `[from] ability: X` and `[of] Y` say WHICH effect moved it, which the two engines tag inconsistently; the four fields that decide the board are kept.",
-        "lines_collapsed": 126,
+        "lines_collapsed": 366,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -143,7 +143,7 @@
       {
         "id": "source-tag",
         "why": "`[of] pXy` names the BODY behind an effect whose name is already carried by `[from]`. The two engines tag it inconsistently on -heal, -activate and -damage.",
-        "lines_collapsed": 1920,
+        "lines_collapsed": 2628,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -158,7 +158,7 @@
       {
         "id": "effect-namespace",
         "why": "Showdown writes an effect sometimes bare and sometimes namespaced — `|-sidestart|p1: A|Reflect` against this engine's `move: reflect`. The NAME is kept; only the namespace goes.",
-        "lines_collapsed": 3839,
+        "lines_collapsed": 6451,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -173,7 +173,7 @@
       {
         "id": "display-flags",
         "why": "`[silent]`, `[still]`, `[miss]` and `[spread]` are rendering hints. The state each one decorates is a separate event — `-miss` for a miss, `-prepare` for a charge, one `-damage` per body actually hit for a spread — and all of those are kept.",
-        "lines_collapsed": 2025,
+        "lines_collapsed": 10833,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -188,7 +188,7 @@
       {
         "id": "move-target-field",
         "why": "THE BIGGEST ONE, AND THE ONE THAT NEEDS THE ARGUMENT. A `|move|` line means \"this body used this move\". Showdown additionally names ONE nominal target plus `[spread]`; this engine names its own user on a spread move. WHO WAS ACTUALLY HIT is not in this field on either side — it is in the `-damage` / `-status` / `-unboost` / `-enditem` lines that follow, which are kept and compared body by body. A redirection bug is therefore caught one line later rather than not at all, and the `distinct` pair below is exactly that case.",
-        "lines_collapsed": 11137,
+        "lines_collapsed": 31714,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -203,7 +203,7 @@
       {
         "id": "switch-cause",
         "why": "a pivot switch is tagged `[from] U-turn` by Showdown; the pivot itself is the `|move|` line immediately before it, which is kept. The species and the HP on the switch line are kept.",
-        "lines_collapsed": 112,
+        "lines_collapsed": 155,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -216,7 +216,7 @@
         ]
       }
     ],
-    "total_lines_collapsed": 21214
+    "total_lines_collapsed": 54773
   },
   "directed": [
     {
@@ -435,7 +435,7 @@
     },
     "verdict": "the predicted DAMAGE bug does not reproduce — medicham2 prices both halves correctly because playerAction computes the range at CLICK time, before the item is stripped. What differs is the item DISPOSITION: Showdown records Colbur as EATEN BY ITSELF, medicham2 as KNOCKED OFF."
   },
-  "diverged": 394,
+  "diverged": 393,
   "threw": 0,
   "pin": [
     "a 100-accuracy move HITS",
@@ -451,7 +451,7 @@
   "classes": [
     {
       "cls": "ordering",
-      "games": 40,
+      "games": 41,
       "causes": [
         {
           "cause": "ordering :: |-damage|p1a|H/H <> |-enditem|p1a|lifeorb|[from]knockoff",
@@ -478,39 +478,19 @@
           "n": 2
         },
         {
-          "cause": "ordering :: |-damage|p1a|H/H <> |-sidestart|p2:|toxicspikes",
+          "cause": "ordering :: |move|p2a|bodyslam <> |move|p1a|bodypress",
           "n": 1
         },
         {
-          "cause": "ordering :: |-damage|p2a|H/H <> |-enditem|p2a|focussash|[from]knockoff",
-          "n": 3
+          "cause": "ordering :: |-damage|p1a|H/H <> |-sidestart|p2:|toxicspikes",
+          "n": 1
         },
         {
           "cause": "ordering :: |-start|p2b|substitute <> |-damage|p2b|H/H",
           "n": 1
         },
         {
-          "cause": "ordering :: |move|p2a|drainpunch <> |move|p1b|solarbeam",
-          "n": 1
-        },
-        {
-          "cause": "ordering :: |-damage|p2a|H/H <> |-unboost|p1b|spe|1",
-          "n": 1
-        },
-        {
           "cause": "ordering :: |move|p1b|tailwind <> |move|p2b|tripleaxel",
-          "n": 1
-        },
-        {
-          "cause": "ordering :: |move|p2a|solarbeam <> |move|p1a|heatwave",
-          "n": 2
-        },
-        {
-          "cause": "ordering :: |move|p2a|encore <> |move|p1a|roost",
-          "n": 1
-        },
-        {
-          "cause": "ordering :: |move|p2a|knockoff <> |move|p1a|discharge",
           "n": 1
         },
         {
@@ -519,14 +499,6 @@
         },
         {
           "cause": "ordering :: |-damage|p2a|H/H <> |-enditem|p2a|chopleberry|[from]knockoff",
-          "n": 1
-        },
-        {
-          "cause": "ordering :: |-enditem|p2a|sitrusberry|[eat] <> |move|p2b|lowkick",
-          "n": 1
-        },
-        {
-          "cause": "ordering :: |-damage|p1a|H/H <> |-enditem|p1a|sitrusberry|[from]knockoff",
           "n": 1
         },
         {
@@ -543,7 +515,11 @@
         },
         {
           "cause": "ordering :: |-prepare|p1a|electroshot <> |-boost|p1a|spa|1",
-          "n": 1
+          "n": 2
+        },
+        {
+          "cause": "ordering :: |-start|p1a|typechange|grass|[from]protean <> |-resisted|p2a|1",
+          "n": 2
         },
         {
           "cause": "ordering :: |-enditem|p2a|sitrusberry|[eat] <> |move|p2a|grassknot",
@@ -563,10 +539,22 @@
         },
         {
           "cause": "ordering :: |-start|p1a|substitute <> |-damage|p1a|H/H",
-          "n": 1
+          "n": 3
+        },
+        {
+          "cause": "ordering :: |-damage|p2a|H/H <> |-enditem|p2a|focussash|[from]knockoff",
+          "n": 2
         },
         {
           "cause": "ordering :: |-damage|p2a|H/H|[from]sandstorm <> |-heal|p1b|H/H|[from]leftovers",
+          "n": 1
+        },
+        {
+          "cause": "ordering :: |-damage|p2a|H/H|[from]sandstorm <> |-boost|p1a|spe|1",
+          "n": 1
+        },
+        {
+          "cause": "ordering :: |-damage|p1b|H/H|[from]sandstorm <> |-damage|p1a|H/H|[from]sandstorm",
           "n": 1
         },
         {
@@ -574,21 +562,33 @@
           "n": 2
         },
         {
+          "cause": "ordering :: |-damage|p2a|H/H <> |-enditem|p2a|leftovers|[from]knockoff",
+          "n": 1
+        },
+        {
           "cause": "ordering :: |move|p2b|tailwind <> |move|p1a|tailwind",
+          "n": 1
+        },
+        {
+          "cause": "ordering :: |-damage|p1a|H/H <> |-enditem|p1a|magnet|[from]knockoff",
           "n": 1
         }
       ]
     },
     {
       "cls": "turn order",
-      "games": 12,
+      "games": 13,
       "causes": [
         {
           "cause": "turn order :: |move|p2b|earthquake <> |move|p1a|disable",
           "n": 1
         },
         {
-          "cause": "turn order :: |move|p1a|earthquake <> |move|p2b|knockoff",
+          "cause": "turn order :: |move|p1a|earthquake <> |move|p1b|solarbeam",
+          "n": 1
+        },
+        {
+          "cause": "turn order :: |move|p1b|dazzlinggleam <> |move|p1a|solarbeam",
           "n": 1
         },
         {
@@ -597,14 +597,6 @@
         },
         {
           "cause": "turn order :: |move|p1b|earthquake <> |move|p1a|thunderbolt",
-          "n": 1
-        },
-        {
-          "cause": "turn order :: |move|p2b|earthquake <> |move|p1b|taunt",
-          "n": 1
-        },
-        {
-          "cause": "turn order :: |move|p1b|earthquake <> |move|p1a|hurricane",
           "n": 1
         },
         {
@@ -617,6 +609,14 @@
         },
         {
           "cause": "turn order :: |move|p1b|risingvoltage <> |move|p2a|perishsong",
+          "n": 1
+        },
+        {
+          "cause": "turn order :: |move|p1b|earthquake <> |move|p2b|sludgebomb",
+          "n": 1
+        },
+        {
+          "cause": "turn order :: |move|p1b|allyswitch <> |move|p1a|yawn",
           "n": 1
         },
         {
@@ -635,7 +635,7 @@
     },
     {
       "cls": "-damage field 3",
-      "games": 43,
+      "games": 44,
       "causes": [
         {
           "cause": "-damage field 3 :: |-damage|p1b|H/H|[from]recoil <> |-damage|p1b|H/H|[from]recoil  [values differ: |-damage|p1b:incineroar|150/170|[from]recoil vs |-damage|p1b:incineroar|151/170|[from]recoil]",
@@ -646,7 +646,7 @@
           "n": 1
         },
         {
-          "cause": "-damage field 3 :: |-damage|p1a|H/H|[from]recoil <> |-damage|p1a|H/H|[from]recoil  [values differ: |-damage|p1a:staraptor|155/160|[from]recoil vs |-damage|p1a:staraptor|156/160|[from]recoil]",
+          "cause": "-damage field 3 :: |-damage|p1a|H/H|[from]recoil <> |-damage|p1a|H/H|[from]recoil  [values differ: |-damage|p1a:staraptor|115/160|[from]recoil vs |-damage|p1a:staraptor|116/160|[from]recoil]",
           "n": 1
         },
         {
@@ -658,7 +658,11 @@
           "n": 1
         },
         {
-          "cause": "-damage field 3 :: |-damage|p2a|H/H|[from]recoil <> |-damage|p2a|H/H|[from]recoil  [values differ: |-damage|p2a:charizard|126/153|[from]recoil vs |-damage|p2a:charizard|127/153|[from]recoil]",
+          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|0fnt",
+          "n": 1
+        },
+        {
+          "cause": "-damage field 3 :: |-damage|p2a|H/H|[from]recoil <> |-damage|p2a|H/H|[from]recoil  [values differ: |-damage|p2a:charizard|125/153|[from]recoil vs |-damage|p2a:charizard|126/153|[from]recoil]",
           "n": 1
         },
         {
@@ -666,31 +670,19 @@
           "n": 1
         },
         {
-          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:blaziken|100/155 vs |-damage|p2a:blaziken|101/155]",
-          "n": 1
-        },
-        {
           "cause": "-damage field 3 :: |-damage|p1a|H/H|[from]recoil <> |-damage|p1a|H/H|[from]recoil  [values differ: |-damage|p1a:hawlucha|114/153|[from]recoil vs |-damage|p1a:hawlucha|115/153|[from]recoil]",
           "n": 1
         },
         {
-          "cause": "-damage field 3 :: |-damage|p2b|H/H|[from]recoil <> |-damage|p2b|H/H|[from]recoil  [values differ: |-damage|p2b:pelipper|57/135|[from]recoil vs |-damage|p2b:pelipper|58/135|[from]recoil]",
+          "cause": "-damage field 3 :: |-damage|p2b|H/H|[from]recoil <> |-damage|p2b|H/H|[from]recoil  [values differ: |-damage|p2b:pelipper|55/135|[from]recoil vs |-damage|p2b:pelipper|56/135|[from]recoil]",
           "n": 1
         },
         {
-          "cause": "-damage field 3 :: |-damage|p2b|H/H <> |-damage|p2b|H/H  [values differ: |-damage|p2b:toxicroak|79/158 vs |-damage|p2b:toxicroak|80/158]",
+          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:arcanine|26/170 vs |-damage|p2a:arcanine|27/170]",
           "n": 1
         },
         {
-          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:staraptor|117/160 vs |-damage|p2a:staraptor|118/160]",
-          "n": 1
-        },
-        {
-          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:raichu|77/135 vs |-damage|p2a:raichu|76/135]",
-          "n": 1
-        },
-        {
-          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:whimsicott|84/135 vs |-damage|p2a:whimsicott|85/135]",
+          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:staraptor|102/160 vs |-damage|p2a:staraptor|103/160]",
           "n": 1
         },
         {
@@ -706,12 +698,8 @@
           "n": 1
         },
         {
-          "cause": "-damage field 3 :: |-damage|p1b|H/H|[from]recoil <> |-damage|p1b|H/H|[from]recoil  [values differ: |-damage|p1b:blaziken|112/155|[from]recoil vs |-damage|p1b:blaziken|113/155|[from]recoil]",
-          "n": 1
-        },
-        {
-          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:whimsicott|51/135 vs |-damage|p1a:whimsicott|72/135]",
-          "n": 1
+          "cause": "-damage field 3 :: |-damage|p1b|H/H|[from]recoil <> |-damage|p1b|H/H|[from]recoil  [values differ: |-damage|p1b:blaziken|110/155|[from]recoil vs |-damage|p1b:blaziken|111/155|[from]recoil]",
+          "n": 2
         },
         {
           "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:floette|8/149 vs |-damage|p2a:floette|10/149]",
@@ -719,6 +707,10 @@
         },
         {
           "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:blastoise|94/154 vs |-damage|p2a:blastoise|109/154]",
+          "n": 1
+        },
+        {
+          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:kingambit|144/175 vs |-damage|p2a:kingambit|143/175]",
           "n": 1
         },
         {
@@ -742,15 +734,15 @@
           "n": 1
         },
         {
-          "cause": "-damage field 3 :: |-damage|p1b|H/H|[from]recoil <> |-damage|p1b|H/H|[from]recoil  [values differ: |-damage|p1b:talonflame|102/153|[from]recoil vs |-damage|p1b:talonflame|103/153|[from]recoil]",
-          "n": 1
-        },
-        {
-          "cause": "-damage field 3 :: |-damage|p2a|H/H|[from]recoil <> |-damage|p2a|H/H|[from]recoil  [values differ: |-damage|p2a:staraptor|112/160|[from]recoil vs |-damage|p2a:staraptor|113/160|[from]recoil]",
+          "cause": "-damage field 3 :: |-damage|p2a|H/H|[from]recoil <> |-damage|p2a|H/H|[from]recoil  [values differ: |-damage|p2a:staraptor|128/160|[from]recoil vs |-damage|p2a:staraptor|129/160|[from]recoil]",
           "n": 1
         },
         {
           "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:swampert|124/175 vs |-damage|p2a:swampert|121/175]",
+          "n": 1
+        },
+        {
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:swampert|66/175 vs |-damage|p1a:swampert|65/175]",
           "n": 1
         },
         {
@@ -766,15 +758,19 @@
           "n": 1
         },
         {
-          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:charizard|118/153 vs |-damage|p2a:charizard|125/153]",
-          "n": 1
-        },
-        {
           "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:metagross|139/155 vs |-damage|p2a:metagross|140/155]",
           "n": 1
         },
         {
-          "cause": "-damage field 3 :: |-damage|p1a|H/H|[from]recoil <> |-damage|p1a|H/H|[from]recoil  [values differ: |-damage|p1a:incineroar|150/170|[from]recoil vs |-damage|p1a:incineroar|151/170|[from]recoil]",
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:gardevoir|87/143 vs |-damage|p1a:gardevoir|86/143]",
+          "n": 1
+        },
+        {
+          "cause": "-damage field 3 :: |-damage|p1a|H/H|[from]recoil <> |-damage|p1a|H/H|[from]recoil  [values differ: |-damage|p1a:incineroar|155/170|[from]recoil vs |-damage|p1a:incineroar|156/170|[from]recoil]",
+          "n": 1
+        },
+        {
+          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:whimsicott|84/135 vs |-damage|p2a:whimsicott|85/135]",
           "n": 1
         },
         {
@@ -782,7 +778,7 @@
           "n": 1
         },
         {
-          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:steelix|125/150 vs |-damage|p2a:steelix|126/150]",
+          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:steelix|122/150 vs |-damage|p2a:steelix|121/150]",
           "n": 1
         },
         {
@@ -802,6 +798,10 @@
           "n": 1
         },
         {
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:pelipper|32/135 vs |-damage|p1a:pelipper|33/135]",
+          "n": 1
+        },
+        {
           "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:staraptor|140/160 vs |-damage|p1a:staraptor|150/160]",
           "n": 1
         },
@@ -813,7 +813,7 @@
     },
     {
       "cls": "unrelated event mismatch",
-      "games": 125,
+      "games": 100,
       "causes": [
         {
           "cause": "unrelated event mismatch :: |-supereffective|p1b|2 <> |-fail|p2b",
@@ -825,7 +825,7 @@
         },
         {
           "cause": "unrelated event mismatch :: |-miss|p2b|p1a <> |-fail|p2b",
-          "n": 3
+          "n": 6
         },
         {
           "cause": "unrelated event mismatch :: |-crit|p2a <> |-damage|p2a|H/H",
@@ -837,7 +837,7 @@
         },
         {
           "cause": "unrelated event mismatch :: |-miss|p1b|p2a <> |-fail|p1b",
-          "n": 6
+          "n": 4
         },
         {
           "cause": "unrelated event mismatch :: |-immune|p2b|[from]soundproof <> |-start|p2b|perish3",
@@ -848,6 +848,10 @@
           "n": 3
         },
         {
+          "cause": "unrelated event mismatch :: |-supereffective|p2a|1 <> |-fail|p1b",
+          "n": 1
+        },
+        {
           "cause": "unrelated event mismatch :: |move|p2b|sleeppowder <> |-miss|p1b|p2a",
           "n": 1
         },
@@ -856,23 +860,15 @@
           "n": 9
         },
         {
-          "cause": "unrelated event mismatch :: |-miss|p2b|p1b <> |-fail|p2b",
-          "n": 1
-        },
-        {
-          "cause": "unrelated event mismatch :: |-boost|p2a|spa|1 <> |-fail|p2b",
+          "cause": "unrelated event mismatch :: |-activate|p2a|lightningrod <> |-supereffective|p1a|1",
           "n": 1
         },
         {
           "cause": "unrelated event mismatch :: |-fieldstart|gravity <> |-fail|p2b",
-          "n": 2
-        },
-        {
-          "cause": "unrelated event mismatch :: |-start|p1a|typechange|poison|[from]protean <> |-miss|p1a|p2a",
           "n": 1
         },
         {
-          "cause": "unrelated event mismatch :: |-fail|p2a|unboost|[from]clearbody <> |switch|p1b|talonflame,l50|H/H",
+          "cause": "unrelated event mismatch :: |-start|p1a|typechange|poison|[from]protean <> |-miss|p1a|p2a",
           "n": 1
         },
         {
@@ -881,7 +877,7 @@
         },
         {
           "cause": "unrelated event mismatch :: |-miss|p1a|p2a <> |-fail|p1a",
-          "n": 1
+          "n": 2
         },
         {
           "cause": "unrelated event mismatch :: |-status|p1a|tox <> |-miss|p2b|p1a",
@@ -892,7 +888,11 @@
           "n": 1
         },
         {
-          "cause": "unrelated event mismatch :: |move|p1b|hypervoice <> |-fieldstart|trickroom",
+          "cause": "unrelated event mismatch :: |-fail|p1b <> |-start|p2a|encore",
+          "n": 1
+        },
+        {
+          "cause": "unrelated event mismatch :: |-boost|p2a|spa|1 <> |-fail|p2b",
           "n": 1
         },
         {
@@ -908,12 +908,20 @@
           "n": 1
         },
         {
-          "cause": "unrelated event mismatch :: |-fail|p2a <> |-start|p1a|disable",
+          "cause": "unrelated event mismatch :: |-immune|p2b <> |-fail|p2a",
           "n": 1
         },
         {
           "cause": "unrelated event mismatch :: |-fail|p1b <> |-sidestart|p1:|tailwind",
           "n": 2
+        },
+        {
+          "cause": "unrelated event mismatch :: |-fail|p2b <> |-sidestart|p2:|reflect",
+          "n": 1
+        },
+        {
+          "cause": "unrelated event mismatch :: |-activate|p1b|telepathy <> |-fail|p1a",
+          "n": 1
         },
         {
           "cause": "unrelated event mismatch :: |-fail|p2a|unboost|[from]clearbody <> |-heal|p1a|H/H|[from]hospitality",
@@ -934,14 +942,6 @@
         {
           "cause": "unrelated event mismatch :: |-enditem|p1b|whiteherb <> |-heal|p2a|H/H|[from]hospitality",
           "n": 1
-        },
-        {
-          "cause": "unrelated event mismatch :: |-fail|p1b <> |-damage|p2a|H/H",
-          "n": 1
-        },
-        {
-          "cause": "unrelated event mismatch :: |-prepare|p1b|electroshot <> |-damage|p2a|H/H",
-          "n": 2
         },
         {
           "cause": "unrelated event mismatch :: |-damage|p1a|H/H <> |-enditem|p1a|dragoninite|[from]knockoff",
@@ -976,15 +976,11 @@
           "n": 1
         },
         {
-          "cause": "unrelated event mismatch :: |-fail|p2a <> |-start|p1a|taunt",
+          "cause": "unrelated event mismatch :: |-boost|p1b|spa|1 <> |-fail|p1a",
           "n": 1
         },
         {
           "cause": "unrelated event mismatch :: |-fail|p1b <> |-fieldactivate|perishsong",
-          "n": 1
-        },
-        {
-          "cause": "unrelated event mismatch :: |-unboost|p1b|spd|2 <> |-immune|p1a",
           "n": 1
         },
         {
@@ -996,8 +992,12 @@
           "n": 1
         },
         {
+          "cause": "unrelated event mismatch :: |-prepare|p1b|electroshot <> |-damage|p2a|H/H",
+          "n": 1
+        },
+        {
           "cause": "unrelated event mismatch :: |-fail|p2b <> |-sidestart|p2:|tailwind",
-          "n": 4
+          "n": 5
         },
         {
           "cause": "unrelated event mismatch :: |-damage|p2a|H/H <> |-enditem|p2a|staraptite|[from]knockoff",
@@ -1008,15 +1008,7 @@
           "n": 1
         },
         {
-          "cause": "unrelated event mismatch :: |-singleturn|p1a|protect <> |-fail|p1a",
-          "n": 8
-        },
-        {
-          "cause": "unrelated event mismatch :: |-singleturn|p2a|protect <> |-fail|p2a",
-          "n": 8
-        },
-        {
-          "cause": "unrelated event mismatch :: |-activate|p2a|protect <> |-fail|p1b",
+          "cause": "unrelated event mismatch :: |-fail|p1a <> |-singleturn|p1a|protect",
           "n": 1
         },
         {
@@ -1040,27 +1032,19 @@
           "n": 1
         },
         {
-          "cause": "unrelated event mismatch :: |-fail|p2b <> |-singleturn|p2b|protect",
-          "n": 4
-        },
-        {
-          "cause": "unrelated event mismatch :: |-fail|p1b <> |-singleturn|p1b|protect",
-          "n": 3
-        },
-        {
           "cause": "unrelated event mismatch :: |-fail|p1b <> |-singleturn|p1b|wideguard",
           "n": 2
         },
         {
-          "cause": "unrelated event mismatch :: |-singleturn|p2b|protect <> |-fail|p2b",
-          "n": 5
+          "cause": "unrelated event mismatch :: |-fail|p1a <> |-start|p2a|encore",
+          "n": 1
         },
         {
           "cause": "unrelated event mismatch :: |-activate|p1b|protect <> |-fail|p2b",
           "n": 1
         },
         {
-          "cause": "unrelated event mismatch :: |-damage|p2a|H/H <> |-enditem|p2a|gengarite|[from]knockoff",
+          "cause": "unrelated event mismatch :: |-singleturn|p2a|protect <> |-fail|p2a",
           "n": 1
         },
         {
@@ -1068,20 +1052,36 @@
           "n": 1
         },
         {
-          "cause": "unrelated event mismatch :: |-fail|p1a <> |-singleturn|p1a|protect",
-          "n": 2
+          "cause": "unrelated event mismatch :: |-singleturn|p1a|protect <> |-fail|p1a",
+          "n": 1
+        },
+        {
+          "cause": "unrelated event mismatch :: |move|p1a|dazzlinggleam <> |-heal|p2a|H/H|[from]leftovers",
+          "n": 1
         },
         {
           "cause": "unrelated event mismatch :: |-immune|p2a <> |-unboost|p2a|atk|1",
           "n": 1
         },
         {
-          "cause": "unrelated event mismatch :: |-fail|p2a <> |-singleturn|p2a|protect",
-          "n": 2
+          "cause": "unrelated event mismatch :: |-fail|p1b <> |-sidestart|p1:|reflect",
+          "n": 1
         },
         {
-          "cause": "unrelated event mismatch :: |-singleturn|p1b|protect <> |-fail|p1b",
-          "n": 2
+          "cause": "unrelated event mismatch :: |turn|12 <> |-heal|p1b|H/H|[from]hospitality",
+          "n": 1
+        },
+        {
+          "cause": "unrelated event mismatch :: |-immune|p1a <> |-unboost|p1a|atk|1",
+          "n": 1
+        },
+        {
+          "cause": "unrelated event mismatch :: |-immune|p2b|[from]goodasgold <> |-start|p2b|perish3",
+          "n": 1
+        },
+        {
+          "cause": "unrelated event mismatch :: |-unboost|p2b|atk|1 <> |-activate|p2a|protect",
+          "n": 1
         },
         {
           "cause": "unrelated event mismatch :: |-miss|p2a|p1a <> |-boost|p1a|atk|2",
@@ -1092,11 +1092,11 @@
           "n": 1
         },
         {
-          "cause": "unrelated event mismatch :: |-fail|p2b <> |-singleturn|p2b|wideguard",
+          "cause": "unrelated event mismatch :: |-singleturn|p1b|protect <> |-fail|p1b",
           "n": 1
         },
         {
-          "cause": "unrelated event mismatch :: |move|p1b|allyswitch <> |upkeep",
+          "cause": "unrelated event mismatch :: |-fail|p2b <> |-singleturn|p2b|wideguard",
           "n": 1
         },
         {
@@ -1111,7 +1111,7 @@
     },
     {
       "cls": "event missing from medicham2",
-      "games": 129,
+      "games": 145,
       "causes": [
         {
           "cause": "event missing from medicham2 :: |move|p1b|earthquake <> |move|p1a|hurricane",
@@ -1122,11 +1122,15 @@
           "n": 1
         },
         {
+          "cause": "event missing from medicham2 :: |move|p1b|hypervoice <> |move|p1a|lowkick",
+          "n": 1
+        },
+        {
           "cause": "event missing from medicham2 :: |-fail|p2b <> |move|p1a|icepunch",
           "n": 1
         },
         {
-          "cause": "event missing from medicham2 :: |-fail|p1a <> |move|p2b|taunt",
+          "cause": "event missing from medicham2 :: |move|p1a|earthquake <> |move|p2b|lowkick",
           "n": 1
         },
         {
@@ -1142,16 +1146,12 @@
           "n": 1
         },
         {
-          "cause": "event missing from medicham2 :: |-singleturn|p1a|roost <> |move|p2b|dracometeor",
+          "cause": "event missing from medicham2 :: |-singleturn|p1a|roost <> |move|p2b|earthpower",
           "n": 1
         },
         {
           "cause": "event missing from medicham2 :: |move|p1a|earthquake <> |move|p2a|flipturn",
           "n": 1
-        },
-        {
-          "cause": "event missing from medicham2 :: |-prepare|p1b|electroshot <> |-supereffective|p2a|1",
-          "n": 2
         },
         {
           "cause": "event missing from medicham2 :: |-singleturn|p2a|roost <> |-weather|raindance|[upkeep]",
@@ -1162,6 +1162,10 @@
           "n": 7
         },
         {
+          "cause": "event missing from medicham2 :: |move|p2b|earthquake <> |move|p1a|noretreat",
+          "n": 1
+        },
+        {
           "cause": "event missing from medicham2 :: |-prepare|p1a|electroshot <> |-supereffective|p2a|1",
           "n": 1
         },
@@ -1170,7 +1174,7 @@
           "n": 2
         },
         {
-          "cause": "event missing from medicham2 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:raichu|99/135 vs |-damage|p1a:raichu|63/135]",
+          "cause": "event missing from medicham2 :: |-damage|p1a|H/H <> |-damage|p1a|0fnt",
           "n": 1
         },
         {
@@ -1182,11 +1186,19 @@
           "n": 1
         },
         {
+          "cause": "event missing from medicham2 :: |-fail|p1b <> |move|p2a|suckerpunch",
+          "n": 1
+        },
+        {
           "cause": "event missing from medicham2 :: |move|p2a|psychup <> |move|p2b|sunnyday",
           "n": 1
         },
         {
           "cause": "event missing from medicham2 :: |-immune|p1a|[from]goodasgold <> |-fieldstart|trickroom",
+          "n": 1
+        },
+        {
+          "cause": "event missing from medicham2 :: |-immune|p2b|[from]goodasgold <> |-weather|sandstorm|[upkeep]",
           "n": 1
         },
         {
@@ -1222,7 +1234,15 @@
           "n": 1
         },
         {
-          "cause": "event missing from medicham2 :: |-unboost|p1a|atk|1 <> |switch|p2b|sinistcha,l50|H/H",
+          "cause": "event missing from medicham2 :: |-heal|p2b|H/H|[from]dryskin <> |upkeep",
+          "n": 1
+        },
+        {
+          "cause": "event missing from medicham2 :: |move|p2a|earthquake <> |move|p1b|knockoff",
+          "n": 1
+        },
+        {
+          "cause": "event missing from medicham2 :: |move|p2b|healpulse <> |upkeep",
           "n": 1
         },
         {
@@ -1230,16 +1250,20 @@
           "n": 1
         },
         {
-          "cause": "event missing from medicham2 :: |-fail|p2a <> |move|p1a|zapcannon",
+          "cause": "event missing from medicham2 :: |move|p2a|hypervoice <> |move|p1a|acrobatics",
+          "n": 1
+        },
+        {
+          "cause": "event missing from medicham2 :: |-damage|p2b|H/H|[from]lifeorb <> |switch|p2b|garchomp,l50|H/H",
+          "n": 1
+        },
+        {
+          "cause": "event missing from medicham2 :: |move|p1a|protect <> |move|p2b|closecombat",
           "n": 1
         },
         {
           "cause": "event missing from medicham2 :: |-fail|p1a|unboost|attack|[from]hypercutter <> |-unboost|p1b|atk|1",
           "n": 2
-        },
-        {
-          "cause": "event missing from medicham2 :: |-prepare|p2b|solarbeam <> |-resisted|p1a|2",
-          "n": 1
         },
         {
           "cause": "event missing from medicham2 :: |-fail|p1a|unboost|attack|[from]innerfocus <> |-unboost|p1b|atk|1",
@@ -1250,16 +1274,16 @@
           "n": 1
         },
         {
-          "cause": "event missing from medicham2 :: |-fail|p1a <> |move|p2a|calmmind",
-          "n": 1
-        },
-        {
           "cause": "event missing from medicham2 :: |-prepare|p2b|solarbeam <> |-damage|p1a|H/H",
           "n": 2
         },
         {
           "cause": "event missing from medicham2 :: |move|p1a|trickroom <> |-fieldstart|trickroom",
-          "n": 3
+          "n": 2
+        },
+        {
+          "cause": "event missing from medicham2 :: |-fail|p1a <> |move|p1b|calmmind",
+          "n": 1
         },
         {
           "cause": "event missing from medicham2 :: |move|p2b|hypervoice <> |upkeep",
@@ -1270,12 +1294,20 @@
           "n": 1
         },
         {
-          "cause": "event missing from medicham2 :: |-prepare|p1a|solarbeam <> |-resisted|p2a|1",
-          "n": 2
-        },
-        {
           "cause": "event missing from medicham2 :: |-enditem|p1b|whiteherb <> |turn|1",
           "n": 1
+        },
+        {
+          "cause": "event missing from medicham2 :: |move|p2a|encore <> |move|p1a|closecombat",
+          "n": 1
+        },
+        {
+          "cause": "event missing from medicham2 :: |-prepare|p1b|solarbeam <> |-damage|p2a|H/H",
+          "n": 1
+        },
+        {
+          "cause": "event missing from medicham2 :: |move|p2b|trickroom <> |-fieldstart|trickroom",
+          "n": 8
         },
         {
           "cause": "event missing from medicham2 :: |-boost|p1a|atk|0 <> |move|p2b|populationbomb",
@@ -1322,11 +1354,19 @@
           "n": 1
         },
         {
+          "cause": "event missing from medicham2 :: |-enditem|p2a|sitrusberry|[eat] <> |move|p1a|hyperbeam",
+          "n": 1
+        },
+        {
           "cause": "event missing from medicham2 :: |move|p2a|makeitrain <> |move|p2b|haze",
           "n": 1
         },
         {
           "cause": "event missing from medicham2 :: |-fail|p2a <> |move|p1b|sludgebomb",
+          "n": 1
+        },
+        {
+          "cause": "event missing from medicham2 :: |-enditem|p1a|sitrusberry|[eat] <> |move|p2a|knockoff",
           "n": 1
         },
         {
@@ -1346,7 +1386,7 @@
           "n": 1
         },
         {
-          "cause": "event missing from medicham2 :: |-prepare|p1b|electroshot <> |-supereffective|p2b|2",
+          "cause": "event missing from medicham2 :: |-prepare|p1b|electroshot <> |-resisted|p2a|1",
           "n": 1
         },
         {
@@ -1374,10 +1414,6 @@
           "n": 1
         },
         {
-          "cause": "event missing from medicham2 :: |move|p2b|trickroom <> |-fieldstart|trickroom",
-          "n": 5
-        },
-        {
           "cause": "event missing from medicham2 :: |-immune|p1a <> |move|p1a|partingshot",
           "n": 1
         },
@@ -1387,6 +1423,10 @@
         },
         {
           "cause": "event missing from medicham2 :: |move|p2a|healpulse <> |move|p1b|scald",
+          "n": 1
+        },
+        {
+          "cause": "event missing from medicham2 :: |-prepare|p1b|electroshot <> |-supereffective|p2a|1",
           "n": 1
         },
         {
@@ -1438,11 +1478,19 @@
           "n": 1
         },
         {
+          "cause": "event missing from medicham2 :: |move|p1b|dazzlinggleam <> |move|p2b|sludgebomb",
+          "n": 1
+        },
+        {
           "cause": "event missing from medicham2 :: |move|p2b|psychup <> |-weather|sunnyday|[upkeep]",
           "n": 1
         },
         {
           "cause": "event missing from medicham2 :: |move|p1b|meanlook <> |move|p2a|curse",
+          "n": 1
+        },
+        {
+          "cause": "event missing from medicham2 :: |-boost|p1b|evasion|0 <> |-weather|sunnyday|[upkeep]",
           "n": 1
         },
         {
@@ -1455,6 +1503,10 @@
         },
         {
           "cause": "event missing from medicham2 :: |move|p2b|earthquake <> |move|p1a|afteryou",
+          "n": 1
+        },
+        {
+          "cause": "event missing from medicham2 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:torkoal|112/145 vs |-damage|p1a:torkoal|104/145]",
           "n": 1
         },
         {
@@ -1474,7 +1526,27 @@
           "n": 1
         },
         {
+          "cause": "event missing from medicham2 :: |-singleturn|p1a|roost <> |move|p1b|darkestlariat",
+          "n": 1
+        },
+        {
+          "cause": "event missing from medicham2 :: |-boost|p1a|atk|0 <> |upkeep",
+          "n": 1
+        },
+        {
+          "cause": "event missing from medicham2 :: |-end|p2a|throatchop <> |-boost|p2a|spe|1",
+          "n": 1
+        },
+        {
+          "cause": "event missing from medicham2 :: |move|p1b|dazzlinggleam <> |move|p1a|icepunch",
+          "n": 1
+        },
+        {
           "cause": "event missing from medicham2 :: |-boost|p2a|atk|1 <> |detailschange|p2a|malamarmega,l50",
+          "n": 1
+        },
+        {
+          "cause": "event missing from medicham2 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:raichu|41/135 vs |-damage|p1a:raichu|22/135]",
           "n": 1
         },
         {
@@ -1486,15 +1558,11 @@
           "n": 1
         },
         {
-          "cause": "event missing from medicham2 :: |-damage|p2b|H/H|[from]lifeorb <> |switch|p2b|garchomp,l50|H/H",
-          "n": 1
-        },
-        {
           "cause": "event missing from medicham2 :: |move|p1a|dazzlinggleam <> |move|p2b|iciclecrash",
           "n": 1
         },
         {
-          "cause": "event missing from medicham2 :: |-start|p1a|charge|lowkick|[from]electromorphosis <> |move|p2a|dragondance",
+          "cause": "event missing from medicham2 :: |-prepare|p1a|solarbeam <> |-resisted|p2a|1",
           "n": 1
         },
         {
@@ -1510,19 +1578,15 @@
           "n": 1
         },
         {
-          "cause": "event missing from medicham2 :: |move|p2a|earthquake <> |move|p1b|solarbeam",
-          "n": 1
-        },
-        {
-          "cause": "event missing from medicham2 :: |-prepare|p1b|solarbeam <> |-damage|p2a|H/H",
-          "n": 1
-        },
-        {
-          "cause": "event missing from medicham2 :: |-prepare|p2a|solarbeam <> |-damage|p1a|H/H",
+          "cause": "event missing from medicham2 :: |move|p2a|earthquake <> |move|p1a|moonblast",
           "n": 1
         },
         {
           "cause": "event missing from medicham2 :: |move|p1b|earthquake <> |move|p2b|knockoff",
+          "n": 1
+        },
+        {
+          "cause": "event missing from medicham2 :: |move|p1a|makeitrain <> |move|p1b|darkestlariat",
           "n": 1
         },
         {
@@ -1537,7 +1601,7 @@
     },
     {
       "cls": "extra event emitted by medicham2",
-      "games": 32,
+      "games": 37,
       "causes": [
         {
           "cause": "extra event emitted by medicham2 :: |-unboost|p1a|atk|1 <> |-heal|p2b|H/H|[from]hospitality",
@@ -1560,6 +1624,10 @@
           "n": 3
         },
         {
+          "cause": "extra event emitted by medicham2 :: |-heal|p2a|H/H|[from]leftovers <> |-damage|p1a|H/H|[from]partiallytrapped",
+          "n": 1
+        },
+        {
           "cause": "extra event emitted by medicham2 :: |move|p2b|hurricane <> |move|p1a|hurricane",
           "n": 1
         },
@@ -1569,10 +1637,10 @@
         },
         {
           "cause": "extra event emitted by medicham2 :: |-damage|p2b|H/H <> |-activate|p2b|followme",
-          "n": 2
+          "n": 3
         },
         {
-          "cause": "extra event emitted by medicham2 :: |-miss|p1a|p2b <> |-activate|p2b|ragepowder",
+          "cause": "extra event emitted by medicham2 :: |-supereffective|p2b|1 <> |-activate|p2b|ragepowder",
           "n": 1
         },
         {
@@ -1596,6 +1664,10 @@
           "n": 1
         },
         {
+          "cause": "extra event emitted by medicham2 :: |-damage|p1b|H/H <> |-activate|p1b|followme",
+          "n": 3
+        },
+        {
           "cause": "extra event emitted by medicham2 :: |-unboost|p1a|atk|1 <> |-heal|p1b|H/H|[from]hospitality",
           "n": 1
         },
@@ -1604,11 +1676,15 @@
           "n": 1
         },
         {
-          "cause": "extra event emitted by medicham2 :: |-damage|p1b|H/H <> |-activate|p1b|followme",
-          "n": 2
+          "cause": "extra event emitted by medicham2 :: |-damage|p2a|0fnt <> |-enditem|p2a|gengarite|[from]knockoff",
+          "n": 1
         },
         {
           "cause": "extra event emitted by medicham2 :: |-unboost|p1a|atk|1 <> |-heal|p2a|H/H|[from]hospitality",
+          "n": 1
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-miss|p1b|p2b <> |-activate|p2b|followme",
           "n": 1
         },
         {
@@ -1639,11 +1715,11 @@
     },
     {
       "cls": "-immune field 3",
-      "games": 2,
+      "games": 1,
       "causes": [
         {
           "cause": "-immune field 3 :: |-immune|p1a|[from]goodasgold <> |-immune|p1a",
-          "n": 2
+          "n": 1
         }
       ]
     },
@@ -1663,11 +1739,7 @@
       "causes": [
         {
           "cause": "-start: a different body :: |-start|p2b|perish3 <> |-start|p1a|perish2",
-          "n": 1
-        },
-        {
-          "cause": "-start: a different body :: |-start|p2a|perish3 <> |-start|p1a|perish2",
-          "n": 1
+          "n": 2
         }
       ]
     },
@@ -1677,6 +1749,16 @@
       "causes": [
         {
           "cause": "-damage field 4 :: |-damage|p2a|H/H|[from]infestation|[partiallytrapped] <> |-damage|p2a|H/H|[from]partiallytrapped",
+          "n": 1
+        }
+      ]
+    },
+    {
+      "cls": "-start field 3",
+      "games": 1,
+      "causes": [
+        {
+          "cause": "-start field 3 :: |-start|p1a|perish3 <> |-start|p1a|perish2",
           "n": 1
         }
       ]
@@ -1708,21 +1790,15 @@
       ]
     },
     {
-      "cls": "-start field 3",
-      "games": 1,
+      "cls": "-heal field 3",
+      "games": 2,
       "causes": [
         {
-          "cause": "-start field 3 :: |-start|p1a|perish3 <> |-start|p1a|perish2",
+          "cause": "-heal field 3 :: |-heal|p1a|H/H|[from]drain <> |-heal|p1a|H/H|[from]drain  [values differ: |-heal|p1a:raichu|63/135|[from]drain vs |-heal|p1a:raichu|62/135|[from]drain]",
           "n": 1
-        }
-      ]
-    },
-    {
-      "cls": "-unboost: a different body",
-      "games": 1,
-      "causes": [
+        },
         {
-          "cause": "-unboost: a different body :: |-unboost|p2b|atk|1 <> |-unboost|p2a|atk|1",
+          "cause": "-heal field 3 :: |-heal|p2a|H/H|[from]drain <> |-heal|p2a|H/H|[from]drain  [values differ: |-heal|p2a:floette|122/149|[from]drain vs |-heal|p2a:floette|121/149|[from]drain]",
           "n": 1
         }
       ]
@@ -1822,8 +1898,8 @@
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2655596563 vs gen9championsvgc2026regmbbo3-2655628408",
-      "index": 41,
-      "agreed_lines": 41,
+      "index": 28,
+      "agreed_lines": 28,
       "cls": "-damage field 3",
       "cause": "-damage field 3 :: |-damage|p1b|H/H|[from]recoil <> |-damage|p1b|H/H|[from]recoil  [values differ: |-damage|p1b:staraptor|129/160|[from]recoil vs |-damage|p1b:staraptor|130/160|[from]recoil]",
       "showdown": "|-damage|p1b: Staraptor|129/160|[from] Recoil",
@@ -1842,12 +1918,12 @@
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2656190362 vs gen9championsvgc2026regmbbo3-2656025353",
-      "index": 13,
-      "agreed_lines": 13,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-miss|p2b|p1a <> |-fail|p2b",
-      "showdown": "|-miss|p2b: Charizard|p1a: Kingambit",
-      "medicham": "|-fail|p2b: Charizard"
+      "index": 14,
+      "agreed_lines": 14,
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |move|p1b|hypervoice <> |move|p1a|lowkick",
+      "showdown": "|move|p1b: Gardevoir|Hyper Voice|p2b: Charizard|[spread] p2a,p2b",
+      "medicham": "|move|p1a: Kingambit|lowkick|p2a: Venusaur"
     },
     {
       "config": "baseline",
@@ -1862,12 +1938,12 @@
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2656433238 vs gen9championsvgc2026regmbbo3-2656687529",
-      "index": 15,
-      "agreed_lines": 15,
-      "cls": "turn order",
-      "cause": "turn order :: |move|p1a|earthquake <> |move|p2b|knockoff",
-      "showdown": "|move|p1a: Mamoswine|Earthquake|p2b: Tyranitar|[spread] p2a,p2b",
-      "medicham": "|move|p2b: Tyranitar|knockoff|p1a: Mamoswine"
+      "index": 30,
+      "agreed_lines": 30,
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |move|p1a|earthquake <> |move|p2b|lowkick",
+      "showdown": "|move|p1a: Mamoswine|Earthquake|p2b: Tyranitar|[spread] p1b,p2b",
+      "medicham": "|move|p2b: Tyranitar|lowkick|p1a: Mamoswine"
     },
     {
       "config": "baseline",
@@ -1902,12 +1978,12 @@
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2657372056 vs gen9championsvgc2026regmbbo3-2657267360",
-      "index": 28,
-      "agreed_lines": 28,
+      "index": 17,
+      "agreed_lines": 17,
       "cls": "-damage field 3",
-      "cause": "-damage field 3 :: |-damage|p1a|H/H|[from]recoil <> |-damage|p1a|H/H|[from]recoil  [values differ: |-damage|p1a:staraptor|155/160|[from]recoil vs |-damage|p1a:staraptor|156/160|[from]recoil]",
-      "showdown": "|-damage|p1a: Staraptor|155/160|[from] Recoil",
-      "medicham": "|-damage|p1a: Staraptor|156/160|[from] Recoil"
+      "cause": "-damage field 3 :: |-damage|p1a|H/H|[from]recoil <> |-damage|p1a|H/H|[from]recoil  [values differ: |-damage|p1a:staraptor|115/160|[from]recoil vs |-damage|p1a:staraptor|116/160|[from]recoil]",
+      "showdown": "|-damage|p1a: Staraptor|115/160|[from] Recoil",
+      "medicham": "|-damage|p1a: Staraptor|116/160|[from] Recoil"
     },
     {
       "config": "baseline",
@@ -1932,8 +2008,8 @@
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2657946235 vs gen9championsvgc2026regmbbo3-2658347573",
-      "index": 8,
-      "agreed_lines": 8,
+      "index": 25,
+      "agreed_lines": 25,
       "cls": "-immune field 3",
       "cause": "-immune field 3 :: |-immune|p1a|[from]goodasgold <> |-immune|p1a",
       "showdown": "|-immune|p1a: Gholdengo|[from] ability: Good as Gold",
@@ -1962,12 +2038,12 @@
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2658731303 vs gen9championsvgc2026regmbbo3-2658910576",
-      "index": 10,
-      "agreed_lines": 10,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-fail|p1a <> |move|p2b|taunt",
-      "showdown": "|-fail|p1a: Gardevoir",
-      "medicham": "|move|p2b: Mimikyu|taunt|p1a: Gardevoir"
+      "index": 9,
+      "agreed_lines": 9,
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-supereffective|p2a|1 <> |-fail|p1b",
+      "showdown": "|-supereffective|p2a: Tsareena|1",
+      "medicham": "|-fail|p1b: Froslass"
     },
     {
       "config": "baseline",
@@ -2005,9 +2081,9 @@
       "index": 29,
       "agreed_lines": 29,
       "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-singleturn|p1a|roost <> |move|p2b|dracometeor",
+      "cause": "event missing from medicham2 :: |-singleturn|p1a|roost <> |move|p2b|earthpower",
       "showdown": "|-singleturn|p1a: Staraptor|move: Roost",
-      "medicham": "|move|p2b: Garchomp|dracometeor|p1a: Staraptor"
+      "medicham": "|move|p2b: Garchomp|earthpower|p1a: Staraptor"
     },
     {
       "config": "baseline",
@@ -2022,12 +2098,22 @@
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2660335898 vs gen9championsvgc2026regmbbo3-2660440956",
-      "index": 11,
-      "agreed_lines": 11,
+      "index": 14,
+      "agreed_lines": 14,
       "cls": "unrelated event mismatch",
       "cause": "unrelated event mismatch :: |-miss|p2b|p1a <> |-fail|p2b",
       "showdown": "|-miss|p2b: Garchomp|p1a: Venusaur",
       "medicham": "|-fail|p2b: Garchomp"
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2660483708 vs gen9championsvgc2026regmbbo3-2660722208",
+      "index": 56,
+      "agreed_lines": 56,
+      "cls": "-damage field 3",
+      "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|0fnt",
+      "showdown": "|-damage|p2a: Metagross|2/155",
+      "medicham": "|-damage|p2a: Metagross|0 fnt"
     },
     {
       "config": "baseline",
@@ -2072,12 +2158,12 @@
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmb-2634409842 vs gen9championsvgc2026regmbbo3-2635599100",
-      "index": 15,
-      "agreed_lines": 15,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-prepare|p1b|electroshot <> |-supereffective|p2a|1",
-      "showdown": "|-prepare|p1b: Archaludon|Electro Shot",
-      "medicham": "|-supereffective|p2a: Staraptor|1"
+      "index": 13,
+      "agreed_lines": 13,
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-miss|p2b|p1a <> |-fail|p2b",
+      "showdown": "|-miss|p2b: Garchomp|p1a: Pelipper",
+      "medicham": "|-fail|p2b: Garchomp"
     },
     {
       "config": "baseline",
@@ -2132,8 +2218,8 @@
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2635873723 vs gen9championsvgc2026regmbbo3-2635269579",
-      "index": 17,
-      "agreed_lines": 17,
+      "index": 18,
+      "agreed_lines": 18,
       "cls": "event missing from medicham2",
       "cause": "event missing from medicham2 :: |move|p1b|trickroom <> |-fieldstart|trickroom",
       "showdown": "|move|p1b: Farigiraf|Trick Room|p1b: Farigiraf",
@@ -2142,12 +2228,12 @@
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2634350204 vs gen9championsvgc2026regmbbo3-2635957252",
-      "index": 17,
-      "agreed_lines": 17,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-miss|p2b|p1b <> |-fail|p2b",
-      "showdown": "|-miss|p2b: Garchomp|p1b: Grimmsnarl",
-      "medicham": "|-fail|p2b: Garchomp"
+      "index": 13,
+      "agreed_lines": 13,
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |move|p2b|earthquake <> |move|p1a|noretreat",
+      "showdown": "|move|p2b: Garchomp|Earthquake|p1b: Grimmsnarl|[spread] p1a,p1b",
+      "medicham": "|move|p1a: Falinks|noretreat|p1a: Falinks"
     },
     {
       "config": "baseline",
@@ -2175,9 +2261,9 @@
       "index": 12,
       "agreed_lines": 12,
       "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-boost|p2a|spa|1 <> |-fail|p2b",
-      "showdown": "|-boost|p2a: Sceptile|spa|1",
-      "medicham": "|-fail|p2b: Heliolisk"
+      "cause": "unrelated event mismatch :: |-activate|p2a|lightningrod <> |-supereffective|p1a|1",
+      "showdown": "|-activate|p2a: Sceptile|ability: Lightning Rod",
+      "medicham": "|-supereffective|p1a: Staraptor|1"
     },
     {
       "config": "baseline",
@@ -2192,12 +2278,12 @@
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2635249755 vs gen9championsvgc2026regmbbo3-2635828201",
-      "index": 11,
-      "agreed_lines": 11,
+      "index": 22,
+      "agreed_lines": 22,
       "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:raichu|99/135 vs |-damage|p1a:raichu|63/135]",
-      "showdown": "|-damage|p1a: Raichu|99/135",
-      "medicham": "|-damage|p1a: Raichu|63/135"
+      "cause": "event missing from medicham2 :: |-damage|p1a|H/H <> |-damage|p1a|0fnt",
+      "showdown": "|-damage|p1a: Raichu|19/135",
+      "medicham": "|-damage|p1a: Raichu|0 fnt"
     },
     {
       "config": "baseline",
@@ -2232,12 +2318,12 @@
     {
       "config": "omit-protect",
       "seed": "gen9championsvgc2026regmbbo3-2654493789 vs gen9championsvgc2026regmbbo3-2654492312",
-      "index": 18,
-      "agreed_lines": 18,
+      "index": 17,
+      "agreed_lines": 17,
       "cls": "-damage field 3",
-      "cause": "-damage field 3 :: |-damage|p2a|H/H|[from]recoil <> |-damage|p2a|H/H|[from]recoil  [values differ: |-damage|p2a:charizard|126/153|[from]recoil vs |-damage|p2a:charizard|127/153|[from]recoil]",
-      "showdown": "|-damage|p2a: Charizard|126/153|[from] Recoil",
-      "medicham": "|-damage|p2a: Charizard|127/153|[from] Recoil"
+      "cause": "-damage field 3 :: |-damage|p2a|H/H|[from]recoil <> |-damage|p2a|H/H|[from]recoil  [values differ: |-damage|p2a:charizard|125/153|[from]recoil vs |-damage|p2a:charizard|126/153|[from]recoil]",
+      "showdown": "|-damage|p2a: Charizard|125/153|[from] Recoil",
+      "medicham": "|-damage|p2a: Charizard|126/153|[from] Recoil"
     },
     {
       "config": "omit-protect",
@@ -2312,30 +2398,20 @@
     {
       "config": "omit-protect",
       "seed": "gen9championsvgc2026regmbbo3-2656306216 vs gen9championsvgc2026regmbbo3-2656306168",
-      "index": 10,
-      "agreed_lines": 10,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-fieldstart|gravity <> |-fail|p2b",
-      "showdown": "|-fieldstart|move: Gravity",
-      "medicham": "|-fail|p2b: Sableye"
-    },
-    {
-      "config": "omit-protect",
-      "seed": "gen9championsvgc2026regmbbo3-2656298037 vs gen9championsvgc2026regmbbo3-2656285275",
-      "index": 37,
-      "agreed_lines": 37,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-fail|p2a|unboost|[from]clearbody <> |switch|p1b|talonflame,l50|H/H",
-      "showdown": "|-fail|p2a: Metagross|unboost|[from] ability: Clear Body|[of] p2a: Metagross",
-      "medicham": "|switch|p1b: Talonflame|talonflame, L50|153/153"
+      "index": 8,
+      "agreed_lines": 8,
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-fail|p1b <> |move|p2a|suckerpunch",
+      "showdown": "|-fail|p1b: Whimsicott",
+      "medicham": "|move|p2a: Flapple|suckerpunch||[still]"
     }
   ],
   "errors": [],
   "coverage": {
-    "measurable": 199,
+    "measurable": 200,
     "exercised": 193,
     "exercised_by_a_connected_move": 104,
-    "move_targets": 109,
+    "move_targets": 110,
     "present_on_the_field_only": 89,
     "ability_or_item_targets": 90,
     "median_completed_turns_before_divergence": 1,
@@ -2522,6 +2598,7 @@
       }
     ],
     "not_exercised": [
+      "move:recharge",
       "move:reversesSpeed",
       "move:inflictsToxic",
       "move:blocksHealing",
@@ -2573,8 +2650,8 @@
       "wavecrash",
       "zapcannon"
     ],
-    "distinct_moves_connected": 173,
-    "distinct_abilities": 161,
+    "distinct_moves_connected": 169,
+    "distinct_abilities": 160,
     "distinct_items": 124,
     "distinct_species": 257
   },
@@ -2649,12 +2726,12 @@
     "gender_neutralised": true,
     "tags_release_matches_live": true
   },
-  "engine_release": "41e28311e591",
-  "engine_release_cut": "2026-08-07T03:56:37.305Z",
-  "engine_release_cuts": 8,
+  "engine_release": "6b6f898f136f",
+  "engine_release_cut": "2026-08-07T04:34:51.959Z",
+  "engine_release_cuts": 1,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "26201c077125",
+    "engine/medicham2-browser.js": "42e988f68773",
     "engine/board.js": "5bdaa3923958",
     "engine/rollout_leaf.js": "7a2311756ab8",
     "engine/position_features.js": "7927ccb7f5af",

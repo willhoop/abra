@@ -640,25 +640,86 @@ probe('move', 'neverMisses', 'a move the artifact does NOT tag neverMisses can s
  * `contact` 444,874, `priority` 359,331. Move coverage read 9.3% of USAGE armed against 260 of 277
  * moves LIVE, and the gap is entirely that the handful of tags the biggest moves carry were the
  * ones nobody had declared arms on. Every control below was already being computed. */
-probe('move', 'stalling', 'repeated Protect starts failing', () => {
+/* ROADMAP #81 WIRE 2 -- THIS PROBE USED TO ENCODE THE BUG. Its previous form spent three turns and
+ * asserted only `dealt[0] === 0 && dealt[last] > 0`: "the counter decays". It does, and that half was
+ * never wrong. What it could not see is that in the real game THE COUNTER IS DELETED THE INSTANT THE
+ * ROLL FAILS -- Showdown's `stall` condition (data/conditions.ts) is
+ *     onStallMove(pokemon) { const success = this.randomChance(1, counter);
+ *                            if (!success) delete pokemon.volatiles['stall']; return success; }
+ * so the Protect AFTER a failed one is back to a guaranteed shield. medicham2 incremented forever, so
+ * a shield that lost once kept decaying 1/27, 1/81 and never recovered. A three-turn probe stops one
+ * turn before the only turn that can tell the two engines apart, which is why it passed on a wrong
+ * engine for as long as it existed. Four turns at a FIXED roll of 0.2 walk the whole rule:
+ *     turn 1  counter absent   guaranteed                       blocked
+ *     turn 2  counter 3        0.2 < 1/3   -> succeeds, ctr 9   blocked
+ *     turn 3  counter 9        0.2 < 1/9?  -> FAILS, ctr GONE   HIT   <- the decay half
+ *     turn 4  counter absent   guaranteed                       blocked   <- the reset half
+ * The old engine reads turn 4 as 1/27 at the same roll and takes the hit again. */
+probe('move', 'stalling', 'consecutive Protect decays, and a FAILED Protect resets the counter to fresh', () => {
   /* RE-DERIVING THE RULE IS NOT TESTING IT. The first version computed (1/3)^n here and asserted its
    * own arithmetic -- it would have passed with the engine deleted. This spends real turns and asks
-   * whether the third consecutive Protect actually stops blocking. */
+   * whether the shield actually stops blocking, and then whether it starts again. */
   const me = bare('incineroar'), ally = bare('incineroar');
   const f1 = bare('garchomp'), f2 = bare('garchomp');
   const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  /* Four turns of Earthquake would faint the body, and a faint clamps the HP loss so turns 3 and 4
+   * would print the same number whatever the engine did. Both Garchomp are Ground and take none. */
+  unfaintable(me); unfaintable(ally);
+  const rng2 = () => 0.2;
   const dealt = [];
-  for (let t = 0; t < 3; t++) {
+  for (let t = 0; t < 4; t++) {
     const fa = new Map([[me, M.playerAction(me, 'protect', null, S.field)], [ally, { kind: 'pass' }]]);
     const fb = new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]);
     const before = me.curHP;
-    M.battleTurn(S, rng5, fa, fb);
+    M.battleTurn(S, rng2, fa, fb);
     dealt.push(before - me.curHP);
-    me.curHP = me.st.hp;                       // heal back so turn 3 is not a faint
   }
-  return { works: dealt[0] === 0 && dealt[dealt.length - 1] > 0,
-           arms: { control: dealt[0], test: dealt[dealt.length - 1] },
-           detail: `damage taken per consecutive Protect: ${dealt.join(', ')}` };
+  return { works: dealt[0] === 0 && dealt[1] === 0 && dealt[2] > 0 && dealt[3] === 0,
+           arms: { control: dealt[2], test: dealt[3] },
+           detail: `damage taken per consecutive Protect at a fixed roll of 0.2: ${dealt.join(', ')} `
+                 + `— turn 3 must be the FAILURE and turn 4 must be blocked again` };
+});
+
+/* ROADMAP #81 WIRE 2, THE SECOND HALF. Every shield in data/moves.ts opens with
+ *     onPrepareHit(pokemon) { return !!this.queue.willAct() && this.runEvent('StallMove', pokemon); }
+ * `BattleQueue.willAct()` (sim/battle-queue.ts:310) returns the first remaining `move`/`switch`/
+ * `instaswitch`/`shift` action IN THE QUEUE BEHIND THIS ONE. So a Protect whose user holds the LAST
+ * action of the turn fails outright, draws no die, and never adds `stall`. medicham2 did not model it
+ * at all. It is short-circuited before the roll, which is why the reset half above cannot see it.
+ *
+ * THE KNOB IS THE FOE'S SPEED AND NOTHING ELSE. Every body clicks a shield on turn 1, so no damage is
+ * dealt in either arm and the only thing the Speed changes is WHERE `me` lands in the +4 bracket.
+ * ASSERTED ON THE NEXT TURN, because a Protect that fails when nothing is left to act blocks nothing
+ * either way -- the observable is that the failed shield never armed the counter, so the shield on
+ * turn 2 is a fresh 100% instead of a 1/3 that a losing roll takes down. */
+probe('move', 'stalling', 'Protect FAILS outright when its user holds the LAST action of the turn', () => {
+  const SH = { kind: 'protect', mv: 'protect' };
+  const run = (foeSpe) => {
+    const me = bare('incineroar'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(me); unfaintable(ally);
+    me.st = Object.assign({}, me.st, { sp: 100 });
+    ally.st = Object.assign({}, ally.st, { sp: 150 });
+    f2.st = Object.assign({}, f2.st, { sp: 150 });
+    f1.st = Object.assign({}, f1.st, { sp: foeSpe });
+    /* turn 1 — four shields, all at +4, so the order inside the bracket is pure Speed. */
+    M.battleTurn(S, rng5, new Map([[me, SH], [ally, SH]]), new Map([[f1, SH], [f2, SH]]));
+    /* turn 2 — the same shield at a LOSING roll, with a real attack behind it so this one is not
+     * last either. Earthquake is 100% accurate, so 0.99 costs it nothing but the stall roll. */
+    const before = me.curHP;
+    M.battleTurn(S, rngLose,
+      new Map([[me, SH], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+    return before - me.curHP;
+  };
+  const control = run(50);    // a SLOWER foe acts after `me`, so turn 1's shield goes up and arms 1/3
+  const test = run(150);      // a FASTER foe leaves `me` holding the last action: turn 1's shield FAILS
+  return { works: control > 0 && test === 0,
+           arms: { control, test },
+           detail: `damage taken on turn 2 behind a shield at roll 0.99 — foe Speed 50 (me acts before `
+                 + `it, turn-1 shield succeeded, counter armed) ${control}; foe Speed 150 (me acts LAST, `
+                 + `turn-1 shield failed, counter never armed) ${test}` };
 });
 
 /* ROADMAP #81 WIRE 1 -- A SHIELD PREEMPTS THE TO-HIT ROLL. Showdown runs TryHit as step 1 and

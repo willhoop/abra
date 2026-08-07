@@ -10,6 +10,59 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.61.2] — 2026-08-07
+
+### Fixed
+- **WIRE 2 — THE `stall` VOLATILE HAD THREE RULES IN SHOWDOWN AND ONE IN OURS.** Protect and its family
+  carry `onPrepareHit(p) { return !!this.queue.willAct() && this.runEvent('StallMove', p); }`, and the
+  `stall` condition carries `onStallMove(p) { const ok = this.randomChance(1, counter); if (!ok) delete
+  p.volatiles['stall']; return ok; }`.
+  1. **The counter is deleted the instant the roll fails**, so the shield after a failed one is a clean
+     100% again. `medicham2` incremented on every attempt and never brought it down — a body that lost
+     one roll decayed 1/27, 1/81, 1/243 **for the rest of its life on the field.**
+  2. **A shield fails outright when its user holds the last action of the turn**, short-circuited before
+     the die is drawn. We did not model it at all. **Protect is on 99.30% of declared teams**, so four
+     bodies clicking a shield means the slowest one simply fails.
+- The pre-pass had to move **below `sortTurnOrder`** — rule 2 is only answerable from resolution order.
+- `docs/ADR-002` carried a census figure this change staled; fixed in the same session.
+
+### Changed
+- Target family (`|-singleturn|X|protect` ⇄ `|-fail|X`, both directions) **37 games → 7**.
+  `unrelated event mismatch` 125 → 100. `-unboost: a different body` 1 → 0.
+- Divergence **394/395 → 393/395**, and the stripped-stone control arm 395 → 394. **That is one game.**
+  The instrument is deterministic and corpus-pinned so it is a real game, but the honest reading is
+  still WIRE 1's: a game stops at its first divergence, so clearing a cause makes games run ON and part
+  deeper — which is why three classes GREW while the target family emptied.
+- Census **243/244 → 244/245 live**. Red demonstrations **132 → 134**, 0 failed.
+- **THE COST, STATED RATHER THAN OMITTED:** distinct moves connected fell **173 → 169** and
+  `not_exercised` rose 6 → 7. That is the fix working in the direction that hurts coverage — a
+  correctly-resetting shield goes up more often, so fewer clicks connect.
+
+### Notes
+- **A PROBE THAT ENCODED THE BUG, REPLACED.** `repeated Protect starts failing` spent three turns and
+  asserted `dealt[0]===0 && dealt[last]>0` — the decay half, which was never wrong. **It stopped one
+  turn before the only turn that separates the two engines**, so it scored LIVE on a wrong engine for
+  as long as it existed. A probe can be green, armed, and still be watching the wrong turn.
+- **WIRE 1's DEPTH HEADLINE WAS WRONG AND IS CORRECTED HERE RATHER THAN REPEATED.**
+  `total_lines_collapsed` is not "protocol lines compared": `alignAndCheck()` re-reduces the whole
+  stream once per turn and `bumpNorm` counts every invocation, so a T-turn game contributes ~T²/2 ×
+  lines-per-turn. **The metric is quadratic in depth.** WIRE 1's reported "+6.6% lines compared" was
+  nearer **+3% of turns**, and 21,214 → 54,773 here is roughly **1.6× the turns played**, not 2.6× the
+  protocol. Filed as its own item. The direction of both findings survives; the magnitudes do not.
+- Three WIREs filed and not fixed: **Wide Guard and Quick Guard share the `stall` volatile and this
+  engine RESETS it** — they carry `onTry() { return !!this.queue.willAct(); }` and
+  `onHitSide(s, src) { src.addVolatile('stall'); }`, so they never *roll* the counter but they *arm*
+  it, and we do the opposite (`tookProtectTurns = 0`); the quadratic metric above; and **four-fifths of
+  the remaining `-fail` is not Protect** — 81 first divergences still mention it, mostly
+  `|-fail|X|unboost|[from] clearbody / innerfocus / hypercutter / scrappy / oblivious`, where Showdown
+  announces a refused stat drop and we emit nothing.
+- Ran lean, per Will (*"BRO ITS ONE WIRE IT SHOULDNT TAKE 45 MINS"*): no release cut by hand, no
+  living-docs pass, no version bump, and **two** broken engines rather than four. **25 minutes against
+  WIRE 1's 45.** What was kept is what earned its time — the red demonstrations, and asserting the team
+  corpus identical before, between and after both differential arms.
+
+---
+
 ## [3.61.1] — 2026-08-07
 
 ### Fixed

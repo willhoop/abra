@@ -27,7 +27,7 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  243/244 probed mechanics live, 1 missing   (census 2026-08-07 03:47)
+  244/245 probed mechanics live, 1 missing   (census 2026-08-07 04:33)
   missing:
     move    needsTargetToAttack    Avalanche doubles after the target hits it this turn
   1/150 differential comparisons disagree with Showdown   (2026-08-07 03:50)
@@ -49,7 +49,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 162/181 probed, 19 unprobed
 ```
 
-_stamped 2026-08-07 04:15_
+_stamped 2026-08-07 04:42_
 
 <!-- /GENERATED -->
 
@@ -169,13 +169,8 @@ does not cover: 23 files are frozen and the INPUT CORPUS is not one of them.** F
 
 **FOUR THINGS FOUND ON THE WAY, FILED AND NOT FIXED — they are WIRE 2+, not this one:**
 
-1. **The stall counter never resets, and it is now the largest single class in the differential.**
-   Showdown deletes `volatiles['stall']` the moment the 1/X roll fails, so the very next Protect
-   succeeds outright; medicham2 increments `tookProtectTurns` forever, so its shields decay 1/3, 1/9,
-   1/27 and never recover. Showdown also fails Protect outright when the user moves LAST in the turn
-   (`!!this.queue.willAct()`), which medicham2 does not model at all. Together these are
-   `|-singleturn|X|protect <> |-fail|X` and its mirror, the largest single family of causes left in
-   the table and the top of `unrelated event mismatch`. Same neighbourhood as ROADMAP #59.
+1. ~~**The stall counter never resets…**~~ **LANDED AS WIRE 2, below.** The census carries both halves
+   now, so this line is closed rather than carried.
 2. **The shield's own two emits are one field off.** Showdown writes
    `|-damage|…|[from] Spiky Shield|[of] p2a: X` and `|-singleturn|X|move: Protect` for the punishing
    shields; medicham2 writes `[from] move: spikyshield` and a bare `|-singleturn|X|Protect`. The
@@ -198,6 +193,120 @@ does not cover: 23 files are frozen and the INPUT CORPUS is not one of them.** F
    are already in `data/diff-swarm.json`) or have the swarm read the corpus through `REL`. Until then
    **any before/after on this instrument must assert the store's size and mtime unchanged across both
    arms**, which is what the numbers in the table above did.
+
+## ROADMAP #81 WIRE 2 — THE `stall` VOLATILE HAD ONE OF ITS THREE RULES. 2026-08-07.
+
+Census **243 live / 244 probed → 244 live / 245 probed**, `unarmed` 0, `directCall` 0, `hollow` 0.
+Red demonstrations **132 → 134, 0 failed** (two new, a different broken engine each). The whole-game
+differential's target family — `|-singleturn|X|protect <> |-fail|X` and its mirror — **37 games → 7**,
+and the seven that remain are named below.
+
+**WHAT WAS WRONG.** Every shield in Showdown's `data/moves.ts` — protect, detect, spikyshield,
+kingsshield, banefulbunker, and both Guards — opens with the same two lines, and medicham2 implemented
+the middle third of them:
+
+```ts
+onPrepareHit(pokemon) { return !!this.queue.willAct() && this.runEvent('StallMove', pokemon); }
+onHit(pokemon)        { pokemon.addVolatile('stall'); }
+// data/conditions.ts, stall:
+onStallMove(pokemon) { const success = this.randomChance(1, counter);
+                       if (!success) delete pokemon.volatiles['stall']; return success; }
+```
+
+1. **THE COUNTER IS DELETED THE INSTANT THE ROLL FAILS**, so the shield after a failed one is a
+   guaranteed 100% again. medicham2 incremented `tookProtectTurns` on every attempt and never brought
+   it back down: a body that lost one roll kept decaying 1/27, 1/81, 1/243 for the rest of its life on
+   the field. `counterMax: 729` is 3^6, so the depth caps at six and now does here too.
+2. **A SHIELD FAILS OUTRIGHT WHEN ITS USER HOLDS THE LAST ACTION OF THE TURN.**
+   `BattleQueue.willAct()` (`sim/battle-queue.ts:310`) returns the first `move`/`switch`/`instaswitch`/
+   `shift` still IN THE QUEUE BEHIND the current action, and the shield fails if there is none. It is
+   **short-circuited before `runEvent('StallMove')`**, so a shield that moves last draws no die and does
+   not touch the counter at all. medicham2 did not model it in any form. In a format where Protect is on
+   99.30% of declared teams this is not an edge case: four bodies clicking a shield in the same turn
+   means the slowest one fails, every time.
+
+**THE POSITION OF THE PRE-PASS IS NOW PART OF THE MECHANIC.** WIRE 119's shield pre-pass ran ABOVE
+`sortTurnOrder`, which was fine while the only question a shield asked was "how many in a row". Rule 2
+can only be answered by the RESOLUTION ORDER, so the pre-pass moved below the sort. Nothing between the
+two points reads `protect` or `tookProtectTurns` — Protect's +4 comes from the move table and the Quick
+Claw roll is per-item — so this is a move and not a re-ordering of the mechanic. It does shift the RNG
+stream for a turn carrying BOTH a Quick Claw holder or a speed tie AND a repeated shield; the census is
+the guard on that and it did not move.
+
+**TWO PROBES, EACH SHOWN RED ON ITS OWN BROKEN ENGINE** (`tests/probe_red_demo.js`, `demoSource` — the
+`stalling` tag is already consumed, so there is nothing to strip and the breakage has to be the
+behaviour). Both read HP, never a `-singleturn` line:
+
+| probe | what separates the engines | the broken engine it is red on |
+|---|---|---|
+| `consecutive Protect decays, and a FAILED Protect resets the counter to fresh` | turn **4** of four Protects at a fixed roll of 0.2: `0, 0, 158, 0` fixed against `0, 0, 158, 158` | the counter increments on every attempt and is never deleted |
+| `Protect FAILS outright when its user holds the LAST action of the turn` | turn 2 behind a shield at a losing roll: **`182` / `0`** fixed against **`182` / `182`** | the `willAct()` gate replaced by `if(false)` |
+
+**THE FIRST PROBE REPLACED ONE THAT ENCODED THE BUG.** `repeated Protect starts failing` spent three
+turns and asserted `dealt[0] === 0 && dealt[last] > 0` — the decay half, which was never wrong. It
+stopped **one turn before the only turn that can tell the two engines apart**, so it scored LIVE on a
+wrong engine for as long as it existed. The second probe's `182` against `182` is the other shape this
+ledger keeps warning about: identical results across a varied knob mean the knob is unwired.
+
+**WHAT THE DIFFERENTIAL SAYS, BEFORE AND AFTER, ON THE SAME 395 GAMES** (`--games 450`; the before-arm
+is the frozen release `41e28311e591` and reproduces WIRE 1's after-arm figure for figure, the after-arm
+is `6b6f898f136f`). `data/games.ladder.jsonl` and `data/games.bo3.jsonl` were asserted identical in size
+and mtime before, between and after both arms, which is filed item (4) below still being unfixed.
+
+| | before | after |
+|---|---|---|
+| **the target family, both directions** | **37 games** | **7** |
+| diverged | 394 / 395 | **393 / 395** |
+| whole-run control arm, every stone stripped | 395 / 395 | **394 / 395** |
+| median completed turns before divergence | 1 | 1 — unchanged |
+| `unrelated event mismatch` | 125 games | **100** |
+| `event missing from medicham2` | 129 | 145 |
+| `extra event emitted by medicham2` | 32 | 37 |
+| `ordering` | 40 | 41 |
+| `turn order` | 12 | 13 |
+| `-damage field 3` | 43 | 44 |
+| `-immune field 3` | 2 | 1 |
+| `-unboost: a different body` | 1 | **0** |
+| classes | 13 | 13 |
+| normaliser invocations (see below) | 21,214 | 54,773 |
+| distinct moves the driver got to CONNECT | 173 | **169** |
+| census mechanics reached by a connecting move | 104 / 109 | 104 / 110 |
+
+**THE RATE MOVED, AND IT IS ONE GAME.** 394 → 393 diverged, and the stripped control arm 395/395 →
+394/395. This instrument is deterministic and pinned, so one game is a real game and not noise — but it
+is one game, and the honest reading is the same as WIRE 1's: a game stops at its FIRST divergence, so
+clearing a cause makes games run ON and part deeper at whatever was behind it. That is why
+`event missing`, `extra event` and `ordering` all grew while the target family emptied.
+
+**AND THE DEPTH HEADLINE WIRE 1 USED IS THE WRONG NUMBER — filed as (5).** `total_lines_collapsed` is
+not "protocol lines compared". `alignAndCheck()` (`engine/game_differential.js:791`) re-reduces the
+WHOLE stream from scratch once per turn and `bumpNorm` counts every normaliser invocation, so a game of
+T turns contributes about T²/2 × lines-per-turn. The quantity is monotone in depth and the direction is
+real; the NAME and the PERCENTAGE are not. 21,214 → 54,773 is roughly **1.6x the turns played**, not
+2.6x the protocol, and WIRE 1's "+6.6% lines compared" was nearer +3% of turns.
+
+**THE COST, STATED.** `distinct moves connected` fell 173 → 169 and `not_exercised` rose 6 → 7. That is
+the fix working in the direction that hurts coverage: a correctly-resetting shield goes UP more often,
+so fewer clicks connect. It is not a regression to chase — it is what the real game does — but a
+coverage figure that fell should never be left to be rediscovered as a counter that quietly went down.
+
+**THREE THINGS FOUND ON THE WAY, FILED AND NOT FIXED:**
+
+5. **WIDE GUARD AND QUICK GUARD SHARE THE `stall` VOLATILE AND THIS ENGINE RESETS IT.** Showdown's
+   `wideguard`/`quickguard` carry `onTry() { return !!this.queue.willAct(); }` and
+   `onHitSide(side, source) { source.addVolatile('stall'); }` — they never ROLL the counter, but they
+   ARM it, so a Protect after a Wide Guard is already at 1/3, and they fail when their user acts last.
+   medicham2's pre-pass does the opposite: `it.mon.tookProtectTurns=0` on a Wide Guard. Two of the seven
+   remaining target-family causes are `|-fail|X <> |-singleturn|X|wideguard`. Deliberately left: it is a
+   third rule needing its own probe, and this dispatch was one wire.
+6. **`total_lines_collapsed` IS QUADRATIC IN GAME DEPTH AND IS REPORTED AS A LINE COUNT.** Detailed
+   above. Either count the reduction once per game or rename the field; every before/after in this
+   ledger that quotes it is quoting a square.
+7. **THE OTHER FOUR-FIFTHS OF `-fail` IS NOT PROTECT.** 81 first divergences still mention `-fail` after
+   this wire, and the two largest remaining shapes are `|-fail|X|unboost|[from]clearbody` /
+   `[from]innerfocus` / `[from]hypercutter` / `[from]scrappy` / `[from]oblivious` — Showdown announces a
+   REFUSED stat drop as a `-fail` with an attribution and medicham2 emits nothing — and
+   `|-fail|X <> |-sidestart|X|tailwind`. Neither is the stall counter. Same neighbourhood, different wire.
 
 ## MEGA EVOLUTION IS A CHOICE NOW, MADE MID-TURN, AND THE DIFFERENTIAL HAS ITS MEGAS BACK. ROADMAP #31 + #68. 2026-08-07.
 

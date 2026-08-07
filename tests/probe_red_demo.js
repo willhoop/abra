@@ -2107,5 +2107,77 @@ const TRACE=(function(){`]],
     return open[1] === 0 && shielded[1] === 0 && shielded[0] - open[0] === eighth;
   });
 
+/* ================= ROADMAP #81 WIRE 2 - THE `stall` VOLATILE ======================================
+ *
+ * TWO INDEPENDENT CLAIMS, TWO BROKEN ENGINES. Both live in the same pre-pass, so a single revert
+ * would red both probes and prove only that the block was edited. Each edit below leaves a complete,
+ * running engine that simply gets ONE of the two rules wrong -- and each is the literal historical
+ * behaviour, not an invented mutation:
+ *   1. the counter incremented on every attempt and was never deleted on a failure (shipped until
+ *      today, and the reason the old three-turn probe passed on a wrong engine);
+ *   2. `willAct()` was not modelled at all, so a shield that held the last action still went up.
+ *
+ * READ ON HP, never on a `-singleturn` line: the whole observable is whether the NEXT shield holds. */
+const WIRE82 = {
+  board(E) {
+    const me = E.buildMon('incineroar', {}), ally = E.buildMon('incineroar', {});
+    const f1 = E.buildMon('garchomp', {}), f2 = E.buildMon('garchomp', {});
+    for (const b of [me, ally, f1, f2]) { b.item = ''; b.ability = 'none'; }
+    const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+    /* a body that cannot faint: a KO clamps the HP loss and both arms would print the same number */
+    for (const b of [me, ally]) { b.st = Object.assign({}, b.st, { hp: b.st.hp * 8 }); b.curHP = b.st.hp; }
+    return { me, ally, f1, f2, S };
+  },
+  /* FOUR consecutive Protects at a fixed 0.2, against a real Earthquake. Returns the HP lost per turn. */
+  streak(E) {
+    const { me, ally, f1, f2, S } = WIRE82.board(E);
+    const out = [];
+    for (let t = 0; t < 4; t++) {
+      const before = me.curHP;
+      E.battleTurn(S, () => 0.2,
+        new Map([[me, E.playerAction(me, 'protect', null, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, E.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+      out.push(before - me.curHP);
+    }
+    return out;
+  },
+  /* turn 1: four shields, so the foe's Speed alone decides whether `me` holds the last action.
+   * turn 2: the same shield at a losing roll behind a real attack. Returns turn 2's HP loss. */
+  lastAction(E, foeSpe) {
+    const SH = { kind: 'protect', mv: 'protect' };
+    const { me, ally, f1, f2, S } = WIRE82.board(E);
+    me.st = Object.assign({}, me.st, { sp: 100 });
+    ally.st = Object.assign({}, ally.st, { sp: 150 });
+    f2.st = Object.assign({}, f2.st, { sp: 150 });
+    f1.st = Object.assign({}, f1.st, { sp: foeSpe });
+    E.battleTurn(S, rng5, new Map([[me, SH], [ally, SH]]), new Map([[f1, SH], [f2, SH]]));
+    const before = me.curHP;
+    E.battleTurn(S, () => 0.99,
+      new Map([[me, SH], [ally, { kind: 'pass' }]]),
+      new Map([[f1, E.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+    return before - me.curHP;
+  },
+};
+
+demoSource('ROADMAP #81 WIRE 2  a FAILED Protect resets the counter, so the next one is a certainty again',
+  [['          it.mon.tookProtectTurns=_ok?Math.min(6,it.mon.tookProtectTurns+1):0;',
+    '          it.mon.tookProtectTurns=it.mon.tookProtectTurns+1;']],
+  (E) => {
+    const d = WIRE82.streak(E);
+    /* turns 1-2 blocked and turn 3 taken on BOTH engines -- that is the decay half, which was never
+     * wrong. Only turn 4 separates them, and it is the only turn the old probe never spent. */
+    return d[0] === 0 && d[1] === 0 && d[2] > 0 && d[3] === 0;
+  });
+
+demoSource('ROADMAP #81 WIRE 2  a Protect holding the LAST action of the turn fails and arms nothing',
+  [['        if(i+1>=acts.length){it.mon.protect=false;it.mon.tookProtectTurns=0;}   // willAct() === null',
+    '        if(false){it.mon.protect=false;it.mon.tookProtectTurns=0;}']],
+  (E) => {
+    const slowFoe = WIRE82.lastAction(E, 50);    // `me` acts before it: turn-1 shield holds, counter armed
+    const fastFoe = WIRE82.lastAction(E, 150);   // `me` acts LAST: turn-1 shield fails, counter untouched
+    /* the broken engine returns the SAME number for both, which is the unwired-knob signature. */
+    return slowFoe > 0 && fastFoe === 0;
+  });
+
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);
 if (failures) { console.log('  A green-and-stripped pair that did not flip means the probe does NOT watch its knob.'); process.exit(1); }

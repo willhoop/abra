@@ -1,8 +1,8 @@
 # ABRA — the plain-English deck
 
-**Version 3.61.1 · 2026-08-07 · Will Hooper**
+**Version 3.61.2 · 2026-08-07 · Will Hooper**
 
-**What changed (3.61.0): we built the thing that tells us whether our engine is right.**
+**What changed (3.61.2): we built the thing that tells us whether our engine is right.**
 
 It plays the same real game twice — once in our engine, once in Pokémon Showdown's own — and stops at
 the first place they disagree. On the first proper run, **159 of 160 games disagreed somewhere**, and
@@ -459,7 +459,7 @@ than about the game:
 **Neither is fixed yet, on purpose.** Changing how a damage roll is picked would move every measurement
 this project has ever recorded. The point of tonight was to build the instrument that can see it.
 
-## Slide 9e — Somebody built a bot that beats a pro. Any strong human learns to beat it in five games. (3.61.0)
+## Slide 9e — Somebody built a bot that beats a pro. Any strong human learns to beat it in five games. (3.61.2)
 
 **The result.** A university team (Angliss, Cui, Hu, Rahman and Stone, published at AAMAS 2026) built
 a Pokémon doubles bot the proper modern way: show it 700,000 human games so it learns to imitate
@@ -496,7 +496,7 @@ Being wrong here would be a real finding about Pokémon, not a failure.
 
 ---
 
-## Slide 9f — We had a number that justified two years of work, and it was wrong by five times (3.61.0)
+## Slide 9f — We had a number that justified two years of work, and it was wrong by five times (3.61.2)
 
 **The claim.** We wrote our own Pokémon simulator instead of using the official one, and the reason
 written down in every document was: **the official one is 117 times slower.** That number decided the

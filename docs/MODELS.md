@@ -1,8 +1,8 @@
 # ABRA — the model family (living reference)
 
-**Version 3.61.1 · Last updated 2026-08-07.**
+**Version 3.61.2 · Last updated 2026-08-07.**
 
-**THE DIFFERENTIAL HAS RUN, AND MEGAS ARE IN IT (3.61.0).** `engine/game_differential.js` plays a real
+**THE DIFFERENTIAL HAS RUN, AND MEGAS ARE IN IT (3.61.2).** `engine/game_differential.js` plays a real
 stored team through MEDICHAM and through the official Showdown engine, step for step, against a stamped
 frozen release. **Read every figure from `data/game-differential.json`, never from this sentence** — the
 first version of this paragraph quoted a run that a later one replaced within the day, which is the
@@ -1319,7 +1319,7 @@ from this file, which is correct — this is evidence, not a rule.
 **Status:** wired and **verified**. `engine/validate_damage_sim.js` runs the 31-scenario golden master through the official engine against `@smogon/calc`: **31/31 within 2%**. That clears ADR-001 migration step 3.
 **Why the check mattered:** it is a test of OUR WIRING, not of Showdown. ADR-001 records four engine comparisons of which three produced confident wrong numbers from mis-wiring, none of which crashed. It caught two more on its first run — a forced maximum roll that also forced a critical hit, and the discovery that `battle.randomChance()` bypasses `battle.random()` entirely.
 **Speed:** 29 battles/sec/core against the hand-written engine's 3,401. Offline only; the browser must never simulate.
-**Speed, corrected 2026-08-06 (3.61.0):** that pair is ADR-001's July benchmark and it does not reproduce. Re-run on this machine, same four teams (derived from the store, not typed), 8-second runs at a 60-turn cap: MEDICHAM **13,041** turns/sec and 217 battles/sec, `champions_sim` **523** turns/sec and 28 battles/sec — a ratio of **24.9x**, not 117x. **turns/sec is the comparable unit and battles/sec is not**, because MEDICHAM was driven to its 60-turn cap and Showdown with `choose('default')` to a natural end, so a "battle" is not the same amount of work on the two sides. The July figures are kept above because a prior conclusion is never silently rewritten. A third reading exists and is neither of these: ROADMAP #61 measured MEDICHAM at 1,606 battles/sec. **Nothing ratchets engine speed**, which is the reason three readings of one quantity can disagree by an order of magnitude without anything failing. The conclusion is unaffected — offline only, and the browser still must never simulate.
+**Speed, corrected 2026-08-06 (3.61.2):** that pair is ADR-001's July benchmark and it does not reproduce. Re-run on this machine, same four teams (derived from the store, not typed), 8-second runs at a 60-turn cap: MEDICHAM **13,041** turns/sec and 217 battles/sec, `champions_sim` **523** turns/sec and 28 battles/sec — a ratio of **24.9x**, not 117x. **turns/sec is the comparable unit and battles/sec is not**, because MEDICHAM was driven to its 60-turn cap and Showdown with `choose('default')` to a natural end, so a "battle" is not the same amount of work on the two sides. The July figures are kept above because a prior conclusion is never silently rewritten. A third reading exists and is neither of these: ROADMAP #61 measured MEDICHAM at 1,606 battles/sec. **Nothing ratchets engine speed**, which is the reason three readings of one quantity can disagree by an order of magnitude without anything failing. The conclusion is unaffected — offline only, and the browser still must never simulate.
 **Code:** `engine/champions_sim.js`, pinned commit `20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4`.
 
 ## SMOGON PRIORS — official population statistics (added 2026-07-25)
