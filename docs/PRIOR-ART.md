@@ -60,6 +60,39 @@ overlap: 4,167 of 4,167 — 100% ALREADY IN OUR STORE, as data/games.ots.jsonl
 **700,000 figure is Reg M-A**, the previous regulation — 600 MB of a different metagame, no more
 current than the M-B slice. There is nothing to go and get.
 
+### The sharpest structural difference: we have features, they have a tensor
+
+Will, 2026-08-06: *"SO DID VGC BENCH TRY A COLLINEARITY VARIABLE WHATEVER WE HAVE WITH MAG"* — no, and
+the reason is architectural rather than an omission on their part.
+
+**MAG is a conditional logit over 58 hand-named features.** `P(pick j) = exp(w·x_j) / Σ exp(w·x_k)`,
+fitted by gradient ascent on 186,494 real human clicks. Every column is something a person chose to
+name. **VGC-Bench feeds a raw observation tensor to a neural network** (`vgc_bench/src/utils.py`
+defines the observation dimensions) and lets it learn its own representation.
+
+Collinearity is a pathology of the first design only. When two named columns say nearly the same
+thing, the fit cannot attribute credit and may hand one a negative weight to cancel the other's
+overshoot — which is `data/collinearity-audit.json` exactly:
+
+| feature | alone | in company | humans prefer it |
+|---|---|---|---|
+| `koTarget` | +1.01 | +0.014 | 1.57× |
+| `koFirst` | +1.09 | +0.143 | 1.92× |
+| `killsThreat` | +0.75 | **−0.057** | 1.62× |
+
+A net has nothing to audit because nothing was named. **The trade is interpretability against a
+diagnosis burden**, and both halves are real — we can argue about a weight and they cannot, and they
+have no collinearity problem and we do.
+
+**Statistical capacity is not why our set is 58.** 186,494 training decisions over 58 weights is 3,215
+per weight, against a conventional bar of 10–20. The count is limited by SPEED — every feature is
+recomputed per candidate, per rollout — not by data. See ROADMAP #79 for how the set actually came
+about, which is: four hand-written batches, no admission rule, no duplication check.
+
+**And MAG's objective is theirs.** Fitting to predict a human click IS behaviour cloning; the function
+class differs and the target does not. It inherits BC's ceiling by construction — their own spread,
+BC alone winning **0.130** against BC-then-PPO, is the size of what sits above that ceiling.
+
 **The error was inferring coverage from a NAME.** The HuggingFace file is called
 `logs_gen9championsvgc2026regmb.json`, which is our format's id, and it holds three days of it. Same
 shape as reading "Excadrillite" off a pattern or counting a player called `Victini_Emil` as a Victini.
