@@ -10,6 +10,52 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.67.0] — 2026-08-07
+
+### Notes
+- **THE STOP TEST RETURNED A NEGATIVE. THE MEDIAN COMPLETED TURN IS STILL 1, AT THE TENTH CONSECUTIVE
+  RUNG.** WIRE 10 restructured the hit loop from per-target to per-step — the largest structural target
+  in the file, and the one WIRE 9 predicted was "worth more than the next five mechanics." **That
+  prediction was wrong.** It bought **+103 net games, the smallest rung of the last five**, with **265
+  games parting EARLIER — the largest such count anywhere in the ladder.**
+- **`ordering` fell 440 → 315 (−125) and `extra event emitted by medicham2` rose 140 → 266 (+126).**
+  Near enough the same count that the honest reading is **reclassification, not removal.** The +103
+  paired and the +5 whole-game agreement are the only figures here that cannot be reclassified.
+- **RECOMMENDATION, FROM THE AGENT AND ACCEPTED: STOP GRINDING THE DIFFERENTIAL.** 1,863 of 1,997 games
+  still diverge across **1,421 distinct causes, the largest worth 36 games.** That is a long tail with
+  no head; the next mechanic is worth ~0.1% of the corpus.
+- **AND THE INSTRUMENT ITSELF IS NOW IN QUESTION.** Line depth moved 13 → 19 across the series while the
+  median turn never moved once. **Nobody has measured which of the two predicts rollout fidelity** — the
+  thing the engine actually exists to serve. Ten rungs were steered by a number whose relevance is
+  unvalidated. That is the next question, and it is MEASURE's.
+
+### Fixed
+- **WIRE 10 — the hit loop resolves in STEPS across all targets, not target at a time.** The load-bearing
+  line is `for (const _step of _STEPS) for (const R of _rows) { if (R.out) continue; _step(R); }`;
+  reversing the two `for`s is the entire known-bad engine and is what the demonstrations revert to.
+- **THE CONTROL BAR WAS CORRECTED MID-FLIGHT BY WILL AND IT CAUGHT A REAL BUG.** The dispatch said
+  single-target must be *byte-identical before and after* — which assumes yesterday was right. Restated
+  as *must agree with the AUTHORITY*: **`medicham2` already had one path**, and what was not unified was
+  the step structure inside it, indistinguishable at N=1. **The accuracy roll was our step 0 and is
+  Showdown's step 4.** A Normal move at a Ghost on a losing roll is `-immune` upstream and was `-miss`
+  here — **at one target as much as four.** Byte-identical-to-yesterday would have preserved it.
+  Controls after the fix: `test-engine-diff` 1/150 on the same row; 36 single-target clicks × 3 rolls,
+  step driver against a reverted per-target driver, **36/36 byte-identical**.
+
+### Changed
+- Census **267/268 → 270/271 live**. Red demonstrations at 167, 0 failed; five reversals threw and had to
+  be re-anchored, which is the guard working.
+- Ladder, 14 arms × 1,997, baseline reproduced exactly, all arms comparable, all eleven watched inputs
+  and all three game stores byte-identical around the run. Whole games agreeing **129 → 134**, median
+  line **18 → 19**, mean 33.24 → 33.98.
+- New top surviving cause unchanged from WIRE 9: `|-end|throatchop <> |upkeep`, **36 games**.
+- Filed and not fixed, all three staged in the authority: contact punish paid before the damage where
+  Showdown pays it after the secondaries (16 games); a move-level `self` drop emitted after the faint
+  rather than before; and a resist berry spent in the apply step where Showdown eats it inside
+  `getDamage`.
+
+---
+
 ## [3.66.0] — 2026-08-07
 
 ### Fixed

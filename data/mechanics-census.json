@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-07T13:27:07.155Z",
+  "generated": "2026-08-07T17:50:55.342Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 268,
-  "live": 267,
+  "probed": 271,
+  "live": 270,
   "missing": 1,
-  "armed": 268,
+  "armed": 271,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2176,7 +2176,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 27.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2677,6 +2677,36 @@
       "label": "a quake resolves against your own partner FIRST, then the foes",
       "live": true,
       "detail": "-damage order — Earthquake (spreadAll) [p1b,p2a,p2b] dealing 403 in total; Rock Slide (spreadFoes, no ally packet) [p2a,p2b] dealing 83",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "spreadFoes",
+      "label": "a spread move prices every target before any of them faints",
+      "live": true,
+      "detail": "Make It Rain into two Milotic — first foe SURVIVES: second takes 33, KO boost 0; first foe DIES: second takes 33, KO boost 1 (the boost fired and must not have reached the second target); same kill with no ability: 33",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "spreadFoes",
+      "label": "a spread move runs each step over every target before the next step",
+      "live": true,
+      "detail": "Icy Wind into two foes emitted [eff,eff,dmg,dmg,sec,sec] dealing 148/10 — Showdown's own order is eff,eff,dmg,dmg,sec,sec; into ONE foe [eff,dmg,sec] dealing 196",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "spreadFoes",
+      "label": "a target that faints to a spread hit does not interrupt the other target",
+      "live": true,
+      "detail": "Dazzling Gleam into a 1 HP Milotic beside a healthy one — [dmg,dmg,faint], the survivor taking 30; with both healthy [dmg,dmg], the same body taking 30",
       "hollow": false,
       "armed": true,
       "directCall": false

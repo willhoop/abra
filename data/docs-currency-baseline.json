@@ -1,8 +1,8 @@
 {
-  "generated": "2026-08-07T13:29:08.647Z",
+  "generated": "2026-08-07T17:52:18.097Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "3.66.0",
+  "changelog_top_at_baseline": "3.67.0",
   "version_pins": {
     "docs/ADR-002-showdown-is-the-authority.md": {
       "version": "3.50.0",
@@ -242,7 +242,6 @@
       "docs/MODELS.md|66.92%|data/archetypes.json",
       "docs/MODELS.md|67.97%|data/archetypes.json",
       "docs/MODELS.md|7,228|data/guru-matchups.json,data/core-matchups.json",
-      "docs/MODELS.md|88.9%|data/archetypes.json",
       "docs/MODELS.md|90|data/counterplay.json",
       "docs/MODELS.md|96.5%|data/archetypes.json",
       "docs/MODELS.md|97.6%|data/archetypes.json",

@@ -137,8 +137,21 @@ const ARMS = [
           + 'sleep, freeze, Taunt, Throat Chop, a miss, a type immunity), null (recharge, a fully '
           + 'shielded move) and true — so Stomping Tantrum and Temper Flare double after a failure '
           + 'and NOT after a recharge. Two things the family reached only once it started resolving are fixed in the same pass: Wide Guard NAMES each body it shielded (it wrote one line with an empty body field), and a quake resolves against your own partner FIRST, which is getMoveTargets\'s own allies-then-foes order' },
-  { id: 'a13-baseline-run2', release: 'cf6a68fa412c', label: 'pre-WIRE-1 baseline, REPEATED',
-    change: 'the same frozen bytes as a01, run last with nine arms in between — the drift check' },
+  { id: 'a13-wire10', release: 'dc3c43336539', label: 'WIRE 10',
+    change: 'ROADMAP #81 WIRE 10 — THE SHAPE, NOT A MECHANIC. Showdown resolves a move as a STEP LIST '
+          + 'over the whole target array: trySpreadMoveHit runs eight steps and each one walks every '
+          + 'target before the next begins, and spreadMoveHit numbers six more inside the last. This '
+          + 'engine ran ONE loop over the targets with the whole move inside it, so every effectiveness '
+          + 'line, damage line, secondary and faint for target A was written before target B was even '
+          + 'priced. The loop is now `for (step) for (target)`; the blocks did not move and the ORDER is '
+          + 'data. Two consequences beyond the stream: the accuracy roll was step 0 here and is step 4 '
+          + 'in the authority, so an immune body was announced as a MISS rather than as -immune whenever '
+          + 'the die lost; and a KO scored on the first body of a spread move was handing the attacker '
+          + 'its Beast Boost before the second body was priced, which is HP and not a protocol line. '
+          + 'Single-target output is unchanged by construction — at one target the two loop orders are '
+          + 'the same permutation, and 36/36 staged single-target clicks are byte-identical.' },
+  { id: 'a14-baseline-run2', release: 'cf6a68fa412c', label: 'pre-WIRE-1 baseline, REPEATED',
+    change: 'the same frozen bytes as a01, run last with ten arms in between — the drift check' },
 ];
 /* WIRE 5 HAS NO RUNG AND THAT IS CORRECT. It changed the INSTRUMENT (engine/steering.js,
  * engine/arms_comparable.js), not the engine, so it cut no release and there is nothing to play. */

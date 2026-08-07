@@ -682,9 +682,13 @@ demoSource('WIRE 125 the fallen count survives the turn after the death',
 demoSource('WIRE 126 an -ate-converted move is judged on the type it BECAME',
 /* AND RE-TARGETED AGAIN BY ROADMAP #84, for the same reason and with the same result: the immunity
  * gate now also raises `_explicitFail`, the pattern stopped matching and this file threw. The
- * reversal below is still exactly one argument. */
-  [['          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field, m)) === 0){_explicitFail=true;if(TR)TR.imm(tg);continue;}',
-    '          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field)) === 0){_explicitFail=true;continue;}']],
+ * reversal below is still exactly one argument.
+ *
+ * AND AGAIN BY ROADMAP #81 WIRE 10, third time, same guard: the gate is now a STEP closure, so it
+ * drops its row and returns instead of `continue`-ing a loop it no longer sits in. The reversal is
+ * still exactly one argument — the attacker dropped from the type resolution. */
+  [['          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field, m)) === 0){_explicitFail=true;if(TR)TR.imm(tg);R.out=true;return;}',
+    '          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field)) === 0){_explicitFail=true;R.out=true;return;}']],
   (E) => {
     const dealt = (ab) => {
       const me = bare('staraptor'), ally = bare('incineroar');
@@ -712,10 +716,11 @@ demoSource('WIRE 126 an -ate-converted move is judged on the type it BECAME',
  * that stopped enforcing Normal-into-Ghost at all, which is a worse bug and would read as the fix
  * working — the same trap WIRE 126's demo names one section up. */
 demoSource('WIRE 128 the loop asks about the ATTACKER before calling a type immunity',
-/* RE-TARGETED BY ROADMAP #84, which added `_explicitFail` to this same gate. The reversal is still
- * exactly the one call that carries the attacker into the immunity question. */
-  [['          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field, m)) === 0){_explicitFail=true;if(TR)TR.imm(tg);continue;}',
-    '          if (mcEff(effMoveType(mv, a.move.id, field, m), tg.types) === 0){_explicitFail=true;continue;}']],
+/* RE-TARGETED BY ROADMAP #84, which added `_explicitFail` to this same gate, and again by ROADMAP
+ * #81 WIRE 10, which made the gate a STEP closure so it returns instead of `continue`-ing. The
+ * reversal is still exactly the one call that carries the attacker into the immunity question. */
+  [['          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field, m)) === 0){_explicitFail=true;if(TR)TR.imm(tg);R.out=true;return;}',
+    '          if (mcEff(effMoveType(mv, a.move.id, field, m), tg.types) === 0){_explicitFail=true;R.out=true;return;}']],
   (E) => {
     const dealt = (ab) => {
       const me = bare('incineroar'), ally = bare('corviknight');
@@ -752,9 +757,10 @@ demoSource('WIRE 128 a Mold Breaker is not absorbed by the ability it suppresses
   });
 
 demoSource('WIRE 128 a Mold Breaker goes through Bulletproof, which Showdown marks breakable',
-/* RE-TARGETED BY ROADMAP #84, which added `_explicitFail` to this gate too. */
-  [["        if(moveClassBlocked(tg,a.move.id,m)){_explicitFail=true;if(TR)TR.imm(tg,'[from] ability: '+tg.ability);continue;}   // WIRE 128 -- Mold Breaker suppresses Bulletproof too",
-    '        if(moveClassBlocked(tg,a.move.id)){_explicitFail=true;continue;}']],
+/* RE-TARGETED BY ROADMAP #84, which added `_explicitFail` to this gate too, and by ROADMAP #81
+ * WIRE 10, which made it a step closure. The reversal is still the one dropped attacker argument. */
+  [["        if(moveClassBlocked(tg,a.move.id,m)){_explicitFail=true;if(TR)TR.imm(tg,'[from] ability: '+tg.ability);R.out=true;return;}   // WIRE 128 -- Mold Breaker suppresses Bulletproof too",
+    '        if(moveClassBlocked(tg,a.move.id)){_explicitFail=true;R.out=true;return;}']],
   (E) => {
     const dealt = (defAb, attAb) => {
       const me = bare('tyranitar'), ally = bare('corviknight');
@@ -1039,9 +1045,12 @@ demoSource('WIRE 129 No Guard works from the TARGET as well as from the attacker
  * IT ASSERTS THE ATTACKER SIDE STILL WORKS ON THE REVERTED BUILD, and that is the point: "accuracy
  * modification is on" is TRUE there. What is missing is only the half that needs a body on the other
  * side, which is where every evasion item and ability in this format lives. */
+/* RE-TARGETED BY ROADMAP #81 WIRE 10, which moved the roll from above the immunity gates into step 4
+ * of the step list and therefore made it read its surviving-row count instead of `targets`. The
+ * reversal is still exactly the defender argument, at its new home. */
 demoSource('WIRE 129 the attack-site roll knows WHO it is aimed at',
-  [["      const _accDef=(!a.move.spread&&targets.length===1)?targets[0]:null;",
-    "      const _accDef=null;"]],
+  [["          const _accDef=(!a.move.spread&&_acc1.length===1)?_acc1[0].tg:null;",
+    "          const _accDef=null;"]],
   (E) => {
     const at = (roll, stage) => hitOn(E, roll, 'hydropump', stage ? { stage } : null);
     const lens = at(0.85, (B) => { B.me.item = 'widelens'; }) > 0;   // attacker side: TRUE on both engines
@@ -1099,12 +1108,13 @@ demoSource('WIRE 130 the Substitute that was paid for is actually built',
  * bypass arm can see it. */
 demoSource('WIRE 130 a sound move and an Infiltrator go THROUGH the doll',
   /* ROADMAP #68 re-anchored: the shipped branch now emits `|-activate|` for the doll and `|-end|`
-   * when it breaks. The REVERSAL is unchanged -- the bare `_sub > 0` test, which is the bypass
-   * defect this demonstration exists to show red. */
+   * when it breaks. ROADMAP #81 WIRE 10 re-anchored again: the branch sits in a step closure, so it
+   * drops its row rather than `continue`-ing. The REVERSAL is unchanged in substance -- the bare
+   * `_sub > 0` test, which is the bypass defect this demonstration exists to show red. */
   [[`        if(subBlocks(m,tg,a.move.id)){const _s0=tg._sub;tg._sub=Math.max(0,tg._sub-dmg);
           if(TR){TR.act(tg,'move: Substitute','[damage]');if(_s0>0&&tg._sub<=0)TR.vend(tg,'Substitute');}
-          continue;}`,
-    '        if(tg._sub>0){tg._sub=Math.max(0,tg._sub-dmg);continue;}']],
+          R.out=true;return;}`,
+    '        if(tg._sub>0){tg._sub=Math.max(0,tg._sub-dmg);R.out=true;return;}']],
   (E) => {
     const beam = twoOn(E, { setupFoe: 'substitute', move: 'icebeam' });
     const sound = twoOn(E, { setupFoe: 'substitute', move: 'hypervoice' });
@@ -2804,9 +2814,14 @@ demoSource('ROADMAP #81 WIRE 9  a spread move clicked with NO named target still
  *    all still writes `-fail` and no `-miss`. Fake Out on turn 2 is the cleanest impossible move in
  *    the format, and the two shapes must stay distinguishable — a fix that turned every failure into
  *    a `-miss` would pass a `-miss`-only assertion. */
+/*    RE-ANCHORED BY ROADMAP #81 WIRE 10. The announcement is no longer reconstructed inside the
+ *    damage loop — it IS step 4, so it is written once per surviving row and the reversal has to put
+ *    the single bare line back by hand. `_mvMissed` is the step's own cached roll and carrying a
+ *    third state on it is what makes the reverted build emit exactly one `|-miss|` with an empty
+ *    target field, which is what this engine did before WIRE 9. */
 demoSource('ROADMAP #81 WIRE 9  a MISS names its targets and an impossible move still writes -fail',
-  [['        if(TR){ if(targets.length)for(const _mt of targets)TR.miss(m,_mt); else TR.miss(m,_accDef); }',
-    '        if(TR)TR.miss(m,_accDef);']],
+  [['        if(TR)TR.miss(m,tg);\n        _explicitFail=true;R.out=true;',
+    "        if(TR&&_mvMissed!=='said'){_mvMissed='said';TR.miss(m,null);}\n        _explicitFail=true;R.out=true;"]],
   (E) => {
     /* THE TARGET IS NAMED FOR THE SINGLE-TARGET ARM AND WITHHELD FOR THE SPREAD ONE, which is what
      * each of them is legal as. Handing Fake Out a null target would test WIRE 9's refusal branch
@@ -2956,6 +2971,137 @@ demoSource('ROADMAP #84  the variablePower gate lets a KINDLESS member through, 
     const clean = W84_TANTRUM(E, W84_CLEAN), flinched = W84_TANTRUM(E, W84_FLINCH);
     return flinched > clean && acro('') > acro('leftovers') * 1.5;
   });
+
+/* ---- ROADMAP #81 WIRE 10 — THE SHAPE, AND THE KNOWN-BAD ENGINE IS ONE LINE -----------------------
+ *
+ * `medicham2` now holds a `_STEPS` array and drives it with two nested loops, step outside and target
+ * inside, which is `trySpreadMoveHit`'s own shape. The reverted build below swaps the two `for`s and
+ * nothing else: that IS the engine as it stood through WIRE 9 — a target at a time — so every
+ * demonstration here is against the real previous behaviour rather than against a caricature of it.
+ *
+ * `break` rather than `continue` in the reverted arm, because in a per-target loop a row that drops
+ * out has to stop this target's remaining steps, not skip to the next step. That is what a `continue`
+ * inside the old single loop did. */
+const W10_REVERT = [['      for(const _step of _STEPS)for(const R of _rows){if(R.out)continue;_step(R);}',
+                     '      for(const R of _rows)for(const _step of _STEPS){if(R.out)break;_step(R);}']];
+const W10 = {
+  /* two identical Milotic, the first optionally left on 1 HP so the spread click kills it */
+  board(E, ability, killFirst, mv) {
+    const me = W7.bare(E, 'gholdengo'); me.ability = ability;
+    const ally = W7.bare(E, 'incineroar'); W7.big(ally);
+    const f1 = W7.bare(E, 'milotic'), f2 = W7.bare(E, 'milotic');
+    W7.big(f2);
+    if (killFirst) f1.curHP = 1; else W7.big(f1);
+    const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    const h2 = f2.curHP;
+    E.battleTurn(S, rng5,
+      new Map([[me, E.playerAction(me, mv, null, S.field)], [ally, { kind: 'pass' }]]), W7.pass2(f1, f2));
+    return { trace: trace.map(String), b: h2 - f2.curHP, died: f1.fainted };
+  },
+};
+
+/* 1. THE STATE HALF, and it is the one that is not a protocol string. `AfterFaint` runs from
+ *    `faintMessages` (sim/battle.ts:2598), which `hitStepMoveHitLoop` calls after the WHOLE loop
+ *    (battle-actions.ts:972) — so a KO on the first body cannot be holding a Beast Boost when the
+ *    second body is priced. Reverted, this engine faints, boosts, and only then prices: 50 instead of
+ *    33. The no-ability arm is carried so this cannot pass by the KO having stopped happening. */
+demoSource('ROADMAP #81 WIRE 10  a KO on the first target cannot boost the hit on the second',
+  W10_REVERT,
+  (E) => {
+    const koB = W10.board(E, 'eelevate', true, 'makeitrain');
+    const noKO = W10.board(E, 'eelevate', false, 'makeitrain');
+    const plain = W10.board(E, 'none', true, 'makeitrain');
+    const fired = koB.trace.filter(l => /^\|-boost\|.*eelevate/.test(l)).length;
+    return koB.died && !noKO.died && fired === 1 && noKO.b > 0
+        && koB.b === noKO.b && plain.b === noKO.b;
+  });
+
+/* 2. THE STREAM HALF — every step over every target before the next step begins. Staged in the
+ *    authority first (Gholdengo Icy Wind into two Milotic): `-resisted -resisted -damage -damage
+ *    -unboost -unboost`. The single-target arm is carried BECAUSE it must NOT flip: it is the control
+ *    for the whole restructure and it is asserted equal below on its own. */
+demoSource('ROADMAP #81 WIRE 10  a spread move runs each step over every target before the next',
+  W10_REVERT,
+  (E) => {
+    const me = W7.bare(E, 'gholdengo'), ally = W7.bare(E, 'incineroar'); W7.big(ally);
+    const f1 = W7.bare(E, 'garchomp'), f2 = W7.bare(E, 'milotic'); W7.big(f1); W7.big(f2);
+    const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    const h1 = f1.curHP, h2 = f2.curHP;
+    E.battleTurn(S, rng5,
+      new Map([[me, E.playerAction(me, 'icywind', null, S.field)], [ally, { kind: 'pass' }]]),
+      W7.pass2(f1, f2));
+    const shape = trace.map(String).map(l => /^\|-(supereffective|resisted)\|/.test(l) ? 'eff'
+      : /^\|-damage\|/.test(l) ? 'dmg' : /^\|-unboost\|p2/.test(l) ? 'sec' : null).filter(Boolean).join(',');
+    return shape === 'eff,eff,dmg,dmg,sec,sec' && h1 - f1.curHP > 0 && h2 - f2.curHP > 0;
+  });
+
+/* 3. THE SHARP ONE. A target that FAINTS to the first damage packet does not interrupt the rest:
+ *    `spreadDamage` only queues the faint, and every remaining `-damage` is written before the
+ *    `|faint|` line appears. Reverted, the stream reads `dmg,faint,dmg`. The survivor's HP loss is
+ *    asserted identical in both arms so "the right order" cannot come to mean "the second body
+ *    stopped being hit". */
+demoSource('ROADMAP #81 WIRE 10  a target that faints mid-spread does not interrupt the other target',
+  W10_REVERT,
+  (E) => {
+    const kill = W10.board(E, 'none', true, 'dazzlinggleam');
+    const live = W10.board(E, 'none', false, 'dazzlinggleam');
+    const sh = (r) => r.trace.map(l => /^\|-damage\|p2/.test(l) ? 'dmg' : /^\|faint\|p2/.test(l) ? 'faint' : null)
+      .filter(Boolean).join(',');
+    return sh(kill) === 'dmg,dmg,faint' && sh(live) === 'dmg,dmg' && kill.b > 0 && kill.b === live.b;
+  });
+
+/* ---- AND THE CONTROL, WHICH IS THE OPPOSITE CLAIM AND THEREFORE CANNOT BE A `demoSource` ----------
+ *
+ * A restructure of the hit path is only attributable if the SINGLE-TARGET path did not move, and the
+ * two arms here must AGREE — which is exactly the shape `demo`/`demoSource` reject. So it is asserted
+ * directly: a batch of single-target clicks, each played through the shipped build and through the
+ * reverted per-target build, must produce byte-identical streams and identical HP.
+ *
+ * At one target the two loop orders are the same permutation, so this is arithmetic rather than luck
+ * — and it is measured anyway, because "it must be identical" is precisely the kind of claim this
+ * repository has been wrong about while sounding certain. */
+{
+  const bad = revertedEngine(W10_REVERT);
+  /* THE LIST IS CHECKED, NOT TRUSTED. The first cut of this control put `makeitrain` and
+   * `earthquake` in it and reported five single-target clicks "moving" — both are spread moves, so
+   * the control was measuring the very thing it exists to hold constant. That is this project's
+   * standing failure mode arriving inside the guard against it, so single-targetness is now ASSERTED
+   * per row (the partner slot must take nothing and no `p2b` line may appear) rather than claimed by
+   * the name of the list. */
+  const SINGLE = [['garchomp', 'milotic', 'earthpower'], ['gholdengo', 'garchomp', 'shadowball'],
+                  ['incineroar', 'milotic', 'flareblitz'], ['garchomp', 'corviknight', 'dragonclaw'],
+                  ['milotic', 'garchomp', 'scald'], ['gholdengo', 'mimikyu', 'shadowball'],
+                  ['incineroar', 'garchomp', 'knockoff'], ['garchomp', 'gholdengo', 'ironhead'],
+                  ['chesnaught', 'mimikyu', 'woodhammer'], ['incineroar', 'milotic', 'fakeout'],
+                  ['tyranitar', 'gholdengo', 'crunch'], ['corviknight', 'garchomp', 'bravebird']];
+  const play = (E, att, def, mv, roll) => {
+    const me = W7.bare(E, att), ally = W7.bare(E, 'corviknight');
+    const f1 = W7.bare(E, def), f2 = W7.bare(E, 'tyranitar');
+    const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    const h = [f1.curHP, f2.curHP, me.curHP];
+    E.battleTurn(S, roll, new Map([[me, E.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      W7.pass2(f1, f2));
+    const t = trace.map(String);
+    return { key: JSON.stringify({ t, d: [h[0] - f1.curHP, h[1] - f2.curHP, h[2] - me.curHP] }),
+             single: (h[1] - f2.curHP) === 0 && !t.some(l => /^\|-(damage|supereffective|resisted|immune|miss)\|p2b/.test(l)) };
+  };
+  let same = 0, diff = [], notSingle = [];
+  for (const [att, def, mv] of SINGLE) for (const roll of [rng5, () => 0.99, () => 0]) {
+    const A = play(M, att, def, mv, roll), B = play(bad, att, def, mv, roll);
+    if (!A.single) notSingle.push(att + ' ' + mv);
+    if (A.key === B.key) same++; else diff.push(att + ' ' + mv + ' -> ' + def);
+  }
+  ran++;
+  const ok = diff.length === 0 && notSingle.length === 0 && same === SINGLE.length * 3;
+  if (!ok) failures++;
+  console.log(`  ${ok ? 'OK   ' : 'FAIL '} ROADMAP #81 WIRE 10  CONTROL: ${same}/${SINGLE.length * 3} single-target `
+    + `clicks byte-identical under the step driver and the reverted per-target driver`
+    + (diff.length ? '   MOVED: ' + diff.join(', ') : '')
+    + (notSingle.length ? '   NOT ACTUALLY SINGLE-TARGET: ' + [...new Set(notSingle)].join(', ') : ''));
+}
 
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);
 if (failures) { console.log('  A green-and-stripped pair that did not flip means the probe does NOT watch its knob.'); process.exit(1); }

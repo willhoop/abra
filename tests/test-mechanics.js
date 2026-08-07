@@ -193,7 +193,15 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * with it, so a direct call to `dmgRange` is structurally blind to both halves. `tantrumAfter(` spends
  * TWO OR THREE real turns, because the mechanic is a fact carried ACROSS a turn boundary: what a base
  * power reads this turn depends on how the previous turn ended, and no single-turn probe can see it. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(/;
+/* `spreadKOLeak(`, `stepShape(` and `spreadFaintOrder(` added 2026-08-07 with ROADMAP #81 WIRE 10,
+ * declared HERE and with their reasons. All three stage a real doubles board through `battleInit` and
+ * spend a real turn through `battleTurn`, because the thing they watch is the SHAPE of the hit loop
+ * and nothing below the turn loop has a shape at all: `dmgRange` is handed one attacker and one
+ * defender, so a direct call cannot see an order across targets even in principle. `spreadKOLeak(`
+ * reads HP, `stepShape(` and `spreadFaintOrder(` read the emitted stream — and each of the two stream
+ * probes asserts HP beside the order, so "the right order" cannot come to mean "the move stopped
+ * hitting somebody". */
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -6914,6 +6922,131 @@ probe('move', 'spreadAll', 'a quake resolves against your own partner FIRST, the
            detail: `-damage order — Earthquake (spreadAll) [${quake.order.join(',')}] dealing `
                  + `${quake.dealt} in total; Rock Slide (spreadFoes, no ally packet) `
                  + `[${slide.order.join(',')}] dealing ${slide.dealt}` };
+});
+
+/* ---- ROADMAP #81 WIRE 10 — THE SHAPE OF A HIT, NOT A MECHANIC IN IT ------------------------------
+ *
+ * Showdown resolves a move in STEPS ACROSS THE WHOLE TARGET ARRAY. `trySpreadMoveHit`
+ * (sim/battle-actions.ts:550-578) runs eight named steps and EACH ONE walks every target before the
+ * next begins; inside the last of them `spreadMoveHit` (:1023) is itself numbered 0-6 — substitute,
+ * getSpreadDamage, spreadDamage, runMoveEffects, selfDrops, secondaries, forceSwitch — and every one
+ * of those is a loop over the array too. This engine resolved a move TARGET AT A TIME.
+ *
+ * STAGED IN THE AUTHORITY BEFORE A LINE MOVED, Gholdengo's Icy Wind into two Milotic:
+ *     |-resisted|p2a: Milotic|1        <- every effectiveness line
+ *     |-resisted|p2b: Milotic2|1
+ *     |-damage|p2a: Milotic|160/170    <- then every damage line
+ *     |-damage|p2b: Milotic2|161/170
+ *     |-unboost|p2a: Milotic|spe|1     <- then every secondary
+ *     |-unboost|p2b: Milotic2|spe|1
+ * against this engine's `-resisted(a) -damage(a) -unboost(a) -resisted(b) -damage(b) -unboost(b)`.
+ *
+ * IT IS NOT ONLY A STREAM CLAIM, WHICH IS WHY THE FIRST PROBE BELOW READS HP. A per-target loop lets
+ * everything that happens to target A land before target B's damage is even PRICED — so the first
+ * probe measures a KO boost leaking forward, which is a number, not a line. */
+
+/* 1. THE STATE HALF. `beastboost`/`eelevate` fire from `onSourceAfterFaint`, and `AfterFaint` is run
+ *    by `faintMessages` (sim/battle.ts:2598) — which `hitStepMoveHitLoop` calls AFTER the whole hit
+ *    loop (battle-actions.ts:972). So a spread move that kills its first target CANNOT be holding a
+ *    +1 by the time it prices its second. This engine faints, boosts and then prices, and the second
+ *    foe took 50 where it should take 33.
+ *
+ * THE ARMS ARE NOT THE TWO DAMAGE FIGURES — the probe asserts those are EQUAL, and the harness would
+ * rightly call that hollow. They are [second foe's damage, KO boost that actually fired], so the
+ * varied knob is shown to have MOVED something (0 -> +1 stage) while the damage it must not reach
+ * stayed put. A third arm runs the same kill with NO ability, proving the faint alone is not what
+ * this measures. */
+const spreadKOLeak = (ability, killFirst) => {
+  const me = bare('gholdengo'); me.ability = ability;
+  const ally = bare('incineroar'); unfaintable(ally);
+  const f1 = bare('milotic'), f2 = bare('milotic');
+  unfaintable(f2);
+  if (killFirst) f1.curHP = 1; else unfaintable(f1);
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const trace = []; S._trace = trace;
+  const h2 = f2.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'makeitrain', null, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  /* THE KO BOOST IS COUNTED OFF THE STREAM, NOT OFF `boosts`. Eelevate raises the HIGHEST raw stat,
+   * which on Gholdengo is Special Attack — the same stat Make It Rain drops by two — so a stage read
+   * off the body cannot tell "+1 fired and was cancelled" from "+1 never fired", and the first cut of
+   * this probe reported 0 on the arm where the boost demonstrably happened. */
+  return { b: h2 - f2.curHP, died: f1.fainted,
+           ko: trace.filter(l => /^\|-boost\|.*eelevate/.test(l)).length };
+};
+probe('move', 'spreadFoes', 'a spread move prices every target before any of them faints', () => {
+  const koBoost = spreadKOLeak('eelevate', true);
+  const noKO = spreadKOLeak('eelevate', false);
+  const plainKO = spreadKOLeak('none', true);
+  return { works: noKO.b > 0 && koBoost.died && !noKO.died
+                  && koBoost.ko === 1 && noKO.ko === 0
+                  && koBoost.b === noKO.b && plainKO.b === noKO.b,
+           arms: { control: [noKO.b, noKO.ko], test: [koBoost.b, koBoost.ko] },
+           detail: `Make It Rain into two Milotic — first foe SURVIVES: second takes ${noKO.b}, KO `
+                 + `boost ${noKO.ko}; first foe DIES: second takes ${koBoost.b}, KO boost `
+                 + `${koBoost.ko} (the boost fired and must not have reached the second target); `
+                 + `same kill with no ability: ${plainKO.b}` };
+});
+
+/* 2. THE STREAM HALF, AND IT IS THE WHOLE STEP LIST IN ONE READING. The control is the SAME click on
+ *    a single target, whose shape must stay `eff,dmg,sec` — without it this passes on an engine that
+ *    simply stopped emitting effectiveness lines, which satisfies "every eff precedes every dmg"
+ *    vacuously. */
+const stepShape = (moveId, twoFoes) => {
+  const me = bare('gholdengo'), ally = bare('incineroar'); unfaintable(ally);
+  const f1 = bare('garchomp'), f2 = bare('milotic');
+  unfaintable(f1); unfaintable(f2);
+  if (!twoFoes) { f2.fainted = true; f2.curHP = 0; }
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const trace = []; S._trace = trace;
+  const h1 = f1.curHP, h2 = f2.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, moveId, null, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  const tagOf = (l) => /^\|-(supereffective|resisted)\|/.test(l) ? 'eff'
+                     : /^\|-damage\|/.test(l) ? 'dmg'
+                     : /^\|-unboost\|p2/.test(l) ? 'sec' : null;
+  return { shape: trace.map(tagOf).filter(Boolean).join(','), a: h1 - f1.curHP, b: h2 - f2.curHP };
+};
+probe('move', 'spreadFoes', 'a spread move runs each step over every target before the next step', () => {
+  const both = stepShape('icywind', true);
+  const one = stepShape('icywind', false);
+  return { works: both.shape === 'eff,eff,dmg,dmg,sec,sec' && one.shape === 'eff,dmg,sec'
+                  && both.a > 0 && both.b > 0 && one.a > 0 && one.b === 0,
+           arms: { control: one.shape, test: both.shape },
+           detail: `Icy Wind into two foes emitted [${both.shape}] dealing ${both.a}/${both.b} — `
+                 + `Showdown's own order is eff,eff,dmg,dmg,sec,sec; into ONE foe [${one.shape}] `
+                 + `dealing ${one.a}` };
+});
+
+/* 3. AND THE SHARP ONE. A target that FAINTS to the first damage packet must not interrupt the
+ *    remaining steps: `spreadDamage` writes every `-damage` line and the faint is only ANNOUNCED
+ *    later, by `faintMessages` after the loop. A per-target engine writes `dmg,faint,dmg`.
+ *    The control is the same click with the first foe healthy — the shape must lose the faint and
+ *    NOTHING else, and the second foe's damage must be identical in both. */
+const spreadFaintOrder = (killFirst) => {
+  const me = bare('gholdengo'), ally = bare('incineroar'); unfaintable(ally);
+  const f1 = bare('milotic'), f2 = bare('milotic');
+  unfaintable(f2);
+  if (killFirst) f1.curHP = 1; else unfaintable(f1);
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const trace = []; S._trace = trace;
+  const h2 = f2.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'dazzlinggleam', null, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  const tagOf = (l) => /^\|-damage\|p2/.test(l) ? 'dmg' : /^\|faint\|p2/.test(l) ? 'faint' : null;
+  return { shape: trace.map(tagOf).filter(Boolean).join(','), b: h2 - f2.curHP };
+};
+probe('move', 'spreadFoes', 'a target that faints to a spread hit does not interrupt the other target', () => {
+  const kill = spreadFaintOrder(true), live = spreadFaintOrder(false);
+  return { works: kill.shape === 'dmg,dmg,faint' && live.shape === 'dmg,dmg'
+                  && kill.b > 0 && kill.b === live.b,
+           arms: { control: live.shape, test: kill.shape },
+           detail: `Dazzling Gleam into a 1 HP Milotic beside a healthy one — [${kill.shape}], the `
+                 + `survivor taking ${kill.b}; with both healthy [${live.shape}], the same body `
+                 + `taking ${live.b}` };
 });
 
 /* ---- ROADMAP #84 — SHOWDOWN SPLITS "MY MOVE DID NOT HAPPEN" IN TWO, AND THIS ENGINE HAD NEITHER ---
