@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-07T05:48:53.679Z",
+  "generated": "2026-08-07T06:57:42.036Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 247,
-  "live": 246,
+  "probed": 250,
+  "live": 249,
   "missing": 1,
-  "armed": 247,
+  "armed": 250,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -16,7 +16,7 @@
       "tag": "speedMult",
       "label": "Choice Scarf raises Speed",
       "live": true,
-      "detail": "[own Speed, damage taken from a 130-Speed foe on 1 HP] — no item 100,117 (slower, so it got hit), Choice Scarf 150,0 (faster, so the foe never acted)",
+      "detail": "[own Speed, damage taken from a 130-Speed foe on 1 HP] — no item 100,79 (slower, so it got hit), Choice Scarf 150,0 (faster, so the foe never acted)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -146,7 +146,7 @@
       "tag": "neverMisses",
       "label": "a move the artifact does NOT tag neverMisses can still miss",
       "live": true,
-      "detail": "on a LOSING roll — Heat Wave (90%) 0, Matcha Gotcha (90%) 0 (both must be 0), Aerial Ace 44 (must land); on a winning roll the two 90% moves deal 18 and 22",
+      "detail": "on a LOSING roll — Heat Wave (90%) 0, Matcha Gotcha (90%) 0 (both must be 0), Aerial Ace 44 (must land); on a winning roll the two 90% moves deal 19 and 22",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -196,7 +196,17 @@
       "tag": "recoil",
       "label": "Brave Bird hurts its user and Drill Peck does not",
       "live": true,
-      "detail": "user lost 40 hp to Brave Bird's recoil, 0 to Drill Peck (no recoil)",
+      "detail": "user lost 41 hp to Brave Bird's recoil, 0 to Drill Peck (no recoil)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "recoil",
+      "label": "the recoil charged is Showdown's ROUND of the damage dealt, not a floor",
+      "live": true,
+      "detail": "Drill Peck (no rc) 0; Brave Bird dealt 123 -> user paid 41 (round 41, a truncating engine 40); Flare Blitz dealt 41 -> user paid 14 (round 14, a truncating engine 13); Wave Crash dealt 82 -> user paid 27 (round 27, a truncating engine 27) — the first two MUST separate the two rules, the third must not",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -286,7 +296,7 @@
       "tag": "priorityMod",
       "label": "Prankster puts a status move in front of a faster foe",
       "live": true,
-      "detail": "Icicle Crash into the Reflect user: ability none 118, Prankster 78 (the doubles screen is x0.667, so 118 -> 78 is the screen landing first)",
+      "detail": "Icicle Crash into the Reflect user: ability none 118, Prankster 79 (the doubles screen is x0.667, so 118 -> 78 is the screen landing first)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -306,7 +316,7 @@
       "tag": "damageReduce",
       "label": "Filter cuts super-effective damage and leaves neutral damage alone",
       "live": true,
-      "detail": "[Rock Slide (x4, super-effective), Aerial Ace (neutral)] — no ability 188,51, Filter 141,51 (only the first may move)",
+      "detail": "[Rock Slide (x4, super-effective), Aerial Ace (neutral)] — no ability 192,51, Filter 144,51 (only the first may move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -506,7 +516,7 @@
       "tag": "speedCond",
       "label": "Chlorophyll doubles Speed in sun",
       "live": true,
-      "detail": "[own Speed, damage taken from a 130-Speed foe on 1 HP] — Chlorophyll no sun 90,97, Chlorophyll in sun 180,0; NO ability in sun 90,97 (must still be hit, or the sun itself is doing it)",
+      "detail": "[own Speed, damage taken from a 130-Speed foe on 1 HP] — Chlorophyll no sun 90,96, Chlorophyll in sun 180,0; NO ability in sun 90,96 (must still be hit, or the sun itself is doing it)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -763,6 +773,16 @@
     },
     {
       "kind": "move",
+      "tag": "spreadFoes",
+      "label": "a spread move takes Showdown's x0.75 rounded half up, not a truncation",
+      "live": true,
+      "detail": "Garchomp -> Kingambit, item cleared: single-target Flamethrower 64 (must be 64, the authority's 58-70 at this roll — identical on a truncating engine), spread Heat Wave 51 (must be 51; the authority is 46-56, a truncating x0.75 gives 44-54 and reads 49)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "weatherScaled",
       "label": "Blizzard cannot miss in snow",
       "live": true,
@@ -816,7 +836,17 @@
       "tag": "damageMultAll",
       "label": "Life Orb raises damage",
       "live": true,
-      "detail": "Close Combat into Garchomp -- no item 80  ->  Life Orb 103",
+      "detail": "Close Combat into Garchomp -- no item 80  ->  Life Orb 104",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "damageMultAll",
+      "label": "Life Orb is 5324/4096 rounded half up, not a float 1.3",
+      "live": true,
+      "detail": "Close Combat into Garchomp: no item 80 (must be 80, the authority's 73-86 at this roll — identical on a truncating engine), Life Orb 104 (must be 104; the authority is 95-112, a float x1.3 gives 94-111 and reads 103)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -866,7 +896,7 @@
       "tag": "drain",
       "label": "Drain Punch heals the user",
       "live": true,
-      "detail": "Close Combat dealt 80 and returned 0 hp (must be 0); Drain Punch dealt 51 and returned 25 hp",
+      "detail": "Close Combat dealt 80 and returned 0 hp (must be 0); Drain Punch dealt 51 and returned 26 hp",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1086,7 +1116,7 @@
       "tag": "reducesAllyDamage",
       "label": "Friend Guard cuts what the partner takes",
       "live": true,
-      "detail": "took 80 with a plain partner  ->  59 with Friend Guard",
+      "detail": "took 80 with a plain partner  ->  60 with Friend Guard",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1366,7 +1396,7 @@
       "tag": "untagged",
       "label": "Marvel Scale raises Defense while statused",
       "live": true,
-      "detail": "Earthquake into a Milotic, [no ability, Marvel Scale] — clean 92,92 (must be equal: the ability does nothing on a healthy body), burned 177,147 (the Marvel Scale one must take less; both readings carry the same burn chip)",
+      "detail": "Earthquake into a Milotic, [no ability, Marvel Scale] — clean 92,92 (must be equal: the ability does nothing on a healthy body), burned 177,149 (the Marvel Scale one must take less; both readings carry the same burn chip)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1426,7 +1456,7 @@
       "tag": "removesItem",
       "label": "a knocked-off Life Orb stops boosting the target damage",
       "live": true,
-      "detail": "what the victim then deals -- after Crunch 319 -> 319 (item kept); after Knock Off 319 -> 246 (item gone)",
+      "detail": "what the victim then deals -- after Crunch 320 -> 320 (item kept); after Knock Off 320 -> 246 (item gone)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1516,7 +1546,7 @@
       "tag": "noRecoil",
       "label": "Rock Head takes no recoil",
       "live": true,
-      "detail": "no ability lost 40 to recoil, Rock Head lost 0",
+      "detail": "no ability lost 41 to recoil, Rock Head lost 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1836,7 +1866,7 @@
       "tag": "weatherDefenceMult",
       "label": "sand raises a Rock SpD and snow raises an Ice Def",
       "live": true,
-      "detail": "Shadow Ball into Rock clear/sand 29/19 (into Water 123/123, must not move);  Earthquake into Ice clear/snow 108/73 (into Fire 167/167, must not move)",
+      "detail": "Shadow Ball into Rock clear/sand 29/19 (into Water 123/123, must not move);  Earthquake into Ice clear/snow 109/73 (into Fire 167/167, must not move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1866,7 +1896,7 @@
       "tag": "speedCondWrongWeather",
       "label": "Swift Swim moves a slower body first in rain and not in sun",
       "live": true,
-      "detail": "[own Speed, damage taken from a 130-Speed foe on 1 HP] — no ability in rain 100,176 (slower, so it got hit), Swift Swim in rain 200,0 (faster, so the foe never acted), Swift Swim in SUN 100,58 (the wrong sky: back to slower)",
+      "detail": "[own Speed, damage taken from a 130-Speed foe on 1 HP] — no ability in rain 100,119 (slower, so it got hit), Swift Swim in rain 200,0 (faster, so the foe never acted), Swift Swim in SUN 100,39 (the wrong sky: back to slower)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1876,7 +1906,7 @@
       "tag": "solarPower",
       "label": "Solar Power raises a special move in sun and not a physical one",
       "live": true,
-      "detail": "in sun, Flamethrower 78 -> 116; Earthquake 25 -> 25 (must not move); no sun, Flamethrower 52 -> 52 (must not move)",
+      "detail": "in sun, Flamethrower 78 -> 116; Earthquake 26 -> 26 (must not move); no sun, Flamethrower 52 -> 52 (must not move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2106,7 +2136,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.4% (format 20, generic 30), control Rock Slide 26.5% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 26.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2246,7 +2276,7 @@
       "tag": "ignoresStatStages",
       "label": "Unaware ignores the attacker's +6 when defending and the defender's +6 when attacking",
       "live": true,
-      "detail": "+6 attacker into: plain wall 370, Unaware wall 92 (equals unboosted 92); into a +6 Def wall: plain attacker 25, Unaware attacker 92",
+      "detail": "+6 attacker into: plain wall 371, Unaware wall 92 (equals unboosted 92); into a +6 Def wall: plain attacker 25, Unaware attacker 92",
       "hollow": false,
       "armed": true,
       "directCall": false

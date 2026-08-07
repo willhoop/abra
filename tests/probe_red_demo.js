@@ -2243,5 +2243,80 @@ demoSource('ROADMAP #81 WIRE 3  a refused stat drop is ANNOUNCED, and the state 
       && tst.lines[1] === '|-fail|p2b:gallade|unboost|attack|[from]ability:innerfocus|[of]p2b:gallade';
   });
 
+/* ROADMAP #81 WIRE 4 -- SHOWDOWN'S FIXED-POINT ARITHMETIC. Two claims, two reverts, because they are
+ * two DIFFERENT multipliers reached down two different paths and one demonstration would let either
+ * ride on the other. Each revert restores exactly the line that stood there before the wire.
+ *
+ * BOTH ASSERT THE CONTROL ARM TOO, AND IT IS EQUAL ON BOTH ENGINES BY CONSTRUCTION. That is what
+ * makes an off-by-one legible: a demonstration that watched only the second number would also flip
+ * on an engine that had simply stopped applying the modifier altogether. */
+demoSource('ROADMAP #81 WIRE 4  a spread move takes x0.75 rounded half up on 4096ths, not a truncation',
+  [['  if(spread)base=md4096(base,0.75);', '  if(spread)base=Math.floor(base*0.75);']],
+  (E) => {
+    const run = (mv) => {
+      const B = (s) => { const b = E.buildMon(s, {}); b.item = ''; b.ability = 'none'; return b; };
+      const me = B('garchomp'), ally = B('milotic'), f1 = B('kingambit'), f2 = B('incineroar');
+      f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 8 }); f1.curHP = f1.st.hp;
+      const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+      const before = f1.curHP;
+      E.battleTurn(S, rng5,
+        new Map([[me, E.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+      return before - f1.curHP;
+    };
+    /* The authority, same bodies, same rolls: Flamethrower 58-70 single, Heat Wave 46-56 spread. */
+    return run('flamethrower') === 64 && run('heatwave') === 51;
+  });
+
+demoSource('ROADMAP #81 WIRE 4  Life Orb is chainModify([5324,4096]), not Math.floor(d * 1.3)',
+  [['    const _ch=lo>1?ch4096(mod,lo):mod;\n    return mdChain(d,_ch);',
+    '    if(mod!==CH_ONE)d=Math.floor(d*mod/4096);\n    if(lo>1)d=Math.floor(d*lo);\n    return d;']],
+  (E) => {
+    const run = (item) => {
+      const B = (s) => { const b = E.buildMon(s, {}); b.item = ''; b.ability = 'none'; return b; };
+      const me = B('incineroar'), ally = B('corviknight'), f1 = B('garchomp'), f2 = B('garchomp');
+      f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 8 }); f1.curHP = f1.st.hp;
+      me.item = item;
+      const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+      const before = f1.curHP;
+      E.battleTurn(S, rng5,
+        new Map([[me, E.playerAction(me, 'closecombat', f1, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+      return before - f1.curHP;
+    };
+    /* The authority, same bodies, same rolls: 73-86 bare, 95-112 holding a Life Orb. */
+    return run('') === 80 && run('lifeorb') === 104;
+  });
+
+/* ROADMAP #81 WIRE 4, THE THIRD CLAIM — RECOIL. Same root as the two above (an integer rule written
+ * as float arithmetic) reached down a completely different path: this one is not `modify` at all,
+ * it is `clampIntRange(Math.round(dealt * rc[0] / rc[1]), 1)` in `applyRecoilDamage`. The revert
+ * restores the pre-wire line exactly, floor and pre-divided float together, because those were one
+ * expression and separating them would demonstrate half a bug. */
+demoSource('ROADMAP #81 WIRE 4  recoil is Math.round of the damage dealt, not a floor of a float ratio',
+  [['      const _rc=a.move.mv&&a.move.mv.rc;\n      const _rcMul=(_nr&&_nr.recoil!=null)?+_nr.recoil:1;\n      const _rcDmg=(_rc&&_rcMul)?Math.max(1,Math.round(dealt*_rc[0]*_rcMul/_rc[1])):0;\n      if(_rcF&&dealt>0){m.curHP-=_rcDmg;',
+    '      if(_rcF&&dealt>0){m.curHP-=Math.floor(dealt*_rcF);']],
+  (E) => {
+    const run = (mv) => {
+      const B = (s) => { const b = E.buildMon(s, {}); b.item = ''; b.ability = 'none'; return b; };
+      const me = B('staraptor'), ally = B('incineroar'), f1 = B('garchomp'), f2 = B('garchomp');
+      const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+      f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 8 }); f1.curHP = f1.st.hp;
+      const m0 = me.curHP, f0 = f1.curHP;
+      E.battleTurn(S, rng5,
+        new Map([[me, E.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+      return { lost: m0 - me.curHP, dealt: f0 - f1.curHP };
+    };
+    /* Brave Bird 33/100 and Flare Blitz 33/100 both land on values where round and floor differ;
+     * Wave Crash lands on one where they agree, and it must read the SAME on both engines. */
+    const bb = run('bravebird'), fb = run('flareblitz'), wc = run('wavecrash');
+    const rd = (d, mv) => Math.round(d * MC.moves[mv].rc[0] / MC.moves[mv].rc[1]);
+    const fl = (d, mv) => Math.floor(d * (MC.moves[mv].rc[0] / MC.moves[mv].rc[1]));
+    return bb.lost === rd(bb.dealt, 'bravebird') && rd(bb.dealt, 'bravebird') !== fl(bb.dealt, 'bravebird')
+        && fb.lost === rd(fb.dealt, 'flareblitz') && rd(fb.dealt, 'flareblitz') !== fl(fb.dealt, 'flareblitz')
+        && wc.lost === rd(wc.dealt, 'wavecrash');
+  });
+
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);
 if (failures) { console.log('  A green-and-stripped pair that did not flip means the probe does NOT watch its knob.'); process.exit(1); }

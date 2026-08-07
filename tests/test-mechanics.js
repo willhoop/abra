@@ -204,7 +204,15 @@ probe('item', 'speedMult', 'Choice Scarf raises Speed', () => {
     me.item = item; f1.curHP = 1;
     const before = me.curHP;
     M.battleTurn(S, rng5,
-      new Map([[me, M.playerAction(me, 'wavecrash', f1, S.field)], [ally, { kind: 'pass' }]]),
+      /* MY CLICK IS RECOIL-FREE AND THE FOE'S IS NOT, and that asymmetry is the point (WIRE 4).
+       * Both sides used to click Wave Crash, whose recoil is 33/100 — and Showdown's
+       * `applyRecoilDamage` CLAMPS recoil to a minimum of 1 (battle-actions.ts:1384), so killing a
+       * 1 HP foe with it costs the killer exactly 1. This probe reads "damage taken must be 0" as
+       * its proof that the foe never acted, and until WIRE 4 corrected the rounding this engine
+       * floored 1/3 of 1 to zero — so the probe was green because of a bug that made a real cost
+       * disappear. Liquidation is the same type, same category, 100% accurate and carries no `rc`,
+       * so the only thing that can move my HP is the foe getting a turn. */
+      new Map([[me, M.playerAction(me, 'liquidation', f1, S.field)], [ally, { kind: 'pass' }]]),
       new Map([[f1, M.playerAction(f1, 'wavecrash', me, S.field)], [f2, { kind: 'pass' }]]));
     return [M.effSpeed(me, S.field, 'A'), before - me.curHP];
   };
@@ -805,6 +813,56 @@ probe('move', 'recoil', 'Brave Bird hurts its user and Drill Peck does not', () 
   const control = run('drillpeck'), test = run('bravebird');
   return { works: test > 0 && control === 0, arms: { control, test },
            detail: `user lost ${test} hp to Brave Bird's recoil, ${control} to Drill Peck (no recoil)` };
+});
+
+/* ROADMAP #81 WIRE 4 -- RECOIL IS `Math.round(dealt * rc[0] / rc[1])`, AND IT WAS A FLOOR OF A
+ * PRE-DIVIDED FLOAT. The probe above proves the user pays SOMETHING. It cannot see the amount, and
+ * the amount was one point low on roughly half of all hits -- recoil was three of the four largest
+ * `-damage field 3` causes in the whole-game differential.
+ *
+ * MEASURED IN THE AUTHORITY, by calling `battle.actions.applyRecoilDamage` directly rather than by
+ * reading `sim/battle-actions.ts:1379-1384`:
+ *
+ *     dealt   1     2     3     4     5    100   101   102   103
+ *     SD      1     1     1     1     2     33    33    34    34      <- Math.round, floor 1
+ *     naive   0     0     0     1     1     33    33    33    33      <- Math.floor(dealt * 0.33)
+ *
+ * THE EXPECTED VALUE IS COMPUTED FROM AN OBSERVED QUANTITY, NOT PINNED. The probe reads how much the
+ * FOE lost and asserts the user paid `round` of it -- so it is a statement of the rule rather than a
+ * magic constant that a future staging change would quietly invalidate.
+ *
+ * AND IT ASSERTS THAT THE TWO RULES DISAGREE HERE. Wave Crash's 82 lands on a value where round and
+ * floor give the same 27, which is the right kind of third arm: it shows the probe is not simply
+ * "any number moved". The two that DO discriminate carry an explicit `round !== floor` assertion, so
+ * if the staging ever drifts onto a value where they agree this probe goes RED rather than hollow. */
+probe('move', 'recoil', 'the recoil charged is Showdown\'s ROUND of the damage dealt, not a floor', () => {
+  const run = (mv) => {
+    const me = bare('staraptor'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    me.item = ''; me.ability = 'none'; f1.item = ''; f1.ability = 'none';
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 8 }); f1.curHP = f1.st.hp;
+    const beforeMe = me.curHP, beforeFoe = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    const rc = MC.moves[mv].rc;
+    return { lost: beforeMe - me.curHP, dealt: beforeFoe - f1.curHP,
+             round: rc ? Math.round((beforeFoe - f1.curHP) * rc[0] / rc[1]) : 0,
+             floor: rc ? Math.floor((beforeFoe - f1.curHP) * (rc[0] / rc[1])) : 0 };
+  };
+  const control = run('drillpeck');
+  const bb = run('bravebird'), fb = run('flareblitz'), wc = run('wavecrash');
+  const test = [bb, fb, wc];
+  return { works: control.lost === 0
+                  && bb.lost === bb.round && bb.round !== bb.floor
+                  && fb.lost === fb.round && fb.round !== fb.floor
+                  && wc.lost === wc.round && wc.round === wc.floor,
+           arms: { control: control.lost, test: test.map(t => t.lost) },
+           detail: `Drill Peck (no rc) ${control.lost}; ` + test.map((t, i) =>
+             `${['Brave Bird', 'Flare Blitz', 'Wave Crash'][i]} dealt ${t.dealt} -> user paid ${t.lost} `
+             + `(round ${t.round}, a truncating engine ${t.floor})`).join('; ')
+             + ' — the first two MUST separate the two rules, the third must not' };
 });
 
 /* ARMED, 2026-08-04. `def -1 spd -1` is also what an engine that dropped the user on EVERY attack
@@ -2224,6 +2282,38 @@ probe('move', 'spreadAll', 'Earthquake hits your own partner too', () => {
                  + `take 0); Earthquake (spreadAll) ${test}` };
 });
 
+/* ROADMAP #81 WIRE 4 -- THE SPREAD MULTIPLIER IS x0.75 ROUNDED HALF UP ON 4096ths, NOT A TRUNCATION.
+ *
+ * `spreadFoes` above proves a spread move hits two foes. It says nothing about the NUMBER, and the
+ * number was wrong on about half of all base-damage values: Showdown's `modifyDamage` spends the
+ * multi-target modifier through `modify(baseDamage, 0.75)` (battle-actions.ts:1738), which is
+ * `tr((tr(v * 3072) + 2047) / 4096)` -- a ROUND-HALF-UP. `Math.floor(base * 0.75)` truncates, so the
+ * two agree only when `0.75 * base` lands on a quarter that does not round up, i.e. base % 4 === 0
+ * or 3. Measured before the fix on 300 sampled real matchups: 226/300 exact with a spread move
+ * against 293/300 with no modifier at all.
+ *
+ * THE EXACT NUMBERS CAME OUT OF THE AUTHORITY, with these two bodies, at these two rolls
+ * (scratchpad/verify_staging.js, SHOWDOWN_PATH pinned):
+ *
+ *     garchomp(roughskin) Flamethrower -> kingambit(defiant)            58-70   single target
+ *     garchomp(roughskin) Heat Wave    -> kingambit(defiant)  SPREAD    46-56   the naive float: 44-54
+ *
+ * so the seeded turn (rng 0.5 picks min + floor(span/2)) must read 64 and 51, and a truncating
+ * engine reads 64 and 49. THE CONTROL IS IDENTICAL ON BOTH ENGINES BY CONSTRUCTION -- a single-target
+ * Fire special move on the same board -- which is what makes the second arm the multiplier and
+ * nothing else. The item is cleared on both arms because buildMon hands out a usage item and a
+ * Life Orb underneath this would be a second modifier in the same chain. */
+probe('move', 'spreadFoes', 'a spread move takes Showdown\'s x0.75 rounded half up, not a truncation', () => {
+  const run = (mv) => turnDamageBig(['garchomp', 'milotic', 'kingambit', 'incineroar'],
+    (B) => { B.me.item = ''; B.f1.item = ''; }, mv);
+  const control = run('flamethrower'), test = run('heatwave');
+  return { works: control === 64 && test === 51,
+           arms: { control, test },
+           detail: `Garchomp -> Kingambit, item cleared: single-target Flamethrower ${control} (must be 64, `
+                 + `the authority's 58-70 at this roll — identical on a truncating engine), spread Heat Wave `
+                 + `${test} (must be 51; the authority is 46-56, a truncating x0.75 gives 44-54 and reads 49)` };
+});
+
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). The two `moveAccuracy` reads proved the LOOKUP
  * returns 70 and 100; they could not prove the battle loop asks it, and the loop is where the roll
  * actually happens. Same board, same click, same losing roll — only the sky moves, and the outcome
@@ -2327,6 +2417,33 @@ probe('item', 'damageMultAll', 'Life Orb raises damage', () => {
   return { works: test > control && control > 0,
            arms: { control, test },
            detail: `Close Combat into Garchomp -- no item ${control}  ->  Life Orb ${test}` };
+});
+
+/* ROADMAP #81 WIRE 4 -- THE OTHER HALF OF THE SAME TAG, AND IT IS THE ARITHMETIC. The probe above
+ * proves Life Orb raises damage. It cannot see WHETHER BY HOW MUCH, and "1.3" is not the number:
+ * `data/items.ts` spells Life Orb `onModifyDamage ... this.chainModify([5324, 4096])`, which is
+ * 1.29980469 rounded half up, and this engine spent `Math.floor(d * 1.3)`. Measured before the fix
+ * on 300 sampled real matchups: 107/300 exact with a Life Orb against 293/300 with no modifier --
+ * i.e. TWO THIRDS OF EVERY LIFE ORB DAMAGE IN THIS ENGINE WAS OFF BY ONE, in both directions.
+ *
+ * THE EXACT NUMBERS CAME OUT OF THE AUTHORITY, with these two bodies, at these two rolls
+ * (scratchpad/verify_staging.js):
+ *
+ *     incineroar(intimidate) Close Combat -> garchomp(roughskin)             73-86
+ *     the same click holding a Life Orb                                      95-112   the naive float: 94-111
+ *
+ * so the seeded turn must read 80 and 104, where the truncating engine reads 80 and 103. THE CONTROL
+ * IS IDENTICAL ON BOTH ENGINES BY CONSTRUCTION, which is the whole point: an off-by-one is only
+ * legible against an arm that does not move. */
+probe('item', 'damageMultAll', 'Life Orb is 5324/4096 rounded half up, not a float 1.3', () => {
+  const hit = (item) => turnDamageBig(['incineroar', 'corviknight', 'garchomp', 'garchomp'],
+    (B) => { B.me.item = item; B.f1.item = ''; }, 'closecombat');
+  const control = hit(''), test = hit('lifeorb');
+  return { works: control === 80 && test === 104,
+           arms: { control, test },
+           detail: `Close Combat into Garchomp: no item ${control} (must be 80, the authority's 73-86 at `
+                 + `this roll — identical on a truncating engine), Life Orb ${test} (must be 104; the `
+                 + `authority is 95-112, a float x1.3 gives 94-111 and reads 103)` };
 });
 
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). THE SECOND ARM IS THE ONE THAT MATTERS. An
@@ -4760,7 +4877,10 @@ probe('ability', 'speedCondWrongWeather', 'Swift Swim moves a slower body first 
     B.S.field.weather = w; B.f1.curHP = 1;
     const before = B.me.curHP;
     M.battleTurn(B.S, rng5,
-      new Map([[B.me, M.playerAction(B.me, 'wavecrash', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      /* RECOIL-FREE ON MY SIDE — see the identical note on the Choice Scarf probe (WIRE 4). Wave
+       * Crash's recoil is clamped to a minimum of 1 in the real game, so a 1 HP kill with it costs
+       * the killer a point and "damage taken === 0" stops meaning "the foe never acted". */
+      new Map([[B.me, M.playerAction(B.me, 'liquidation', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
       new Map([[B.f1, M.playerAction(B.f1, 'wavecrash', B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
     return [M.effSpeed(B.me, B.S.field, 'A'), before - B.me.curHP];
   };

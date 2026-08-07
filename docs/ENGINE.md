@@ -27,10 +27,10 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  246/247 probed mechanics live, 1 missing   (census 2026-08-07 05:48)
+  249/250 probed mechanics live, 1 missing   (census 2026-08-07 06:45)
   missing:
     move    needsTargetToAttack    Avalanche doubles after the target hits it this turn
-  1/150 differential comparisons disagree with Showdown   (2026-08-07 05:50)
+  1/150 differential comparisons disagree with Showdown   (2026-08-07 06:47)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -49,7 +49,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 162/181 probed, 19 unprobed
 ```
 
-_stamped 2026-08-07 05:52_
+_stamped 2026-08-07 06:57_
 
 <!-- /GENERATED -->
 
@@ -304,6 +304,190 @@ coverage figure that fell should never be left to be rediscovered as a counter t
    ledger that quotes it is quoting a square.
 7. ~~**THE OTHER FOUR-FIFTHS OF `-fail` IS NOT PROTECT.**~~ **THE STAT-DROP HALF LANDED AS WIRE 3, below**
    — and it was two bugs, not one. `|-fail|X <> |-sidestart|X|tailwind` is untouched and stays open.
+
+## ROADMAP #81 WIRE 4 — THE HYPOTHESIS HELD: SHOWDOWN'S MULTIPLIERS ARE FIXED POINT AND THIS ENGINE'S WERE FLOATS. 2026-08-07.
+
+Census **246 live / 247 probed → 249 live / 250 probed**, `unarmed` 0, `directCall` 0, `hollow` 0,
+`threw` 0. Red demonstrations **136 → 139, 0 failed** (three new, a different broken engine each). The
+target family — a first divergence of class `-damage field 3` — **46 games / 45 distinct causes →
+31 / 31**, which drops it from the third-largest class in the artifact to the fifth.
+
+**THE HYPOTHESIS WAS NOT ASSUMED, AND OUR SIDE WAS MEASURED FIRST.** The dispatch characterised
+Showdown's arithmetic and explicitly did not establish that medicham2 gets it wrong. A new exact
+comparison does: `dmgRange`'s two endpoints against `battle.actions.getDamage` at rolls 15 and 0,
+**tolerance zero**, 300 sampled real matchups per arm with both engines given the species' slot-0
+ability and the same stats. `tests/test-engine-diff.js` cannot see this — its stated bar is
+"midpoints within 12%", which was chosen so that rounding would not read as a bug, and it is exactly
+the bug.
+
+| what was on the field | exact agreement, BEFORE | AFTER |
+|---|---|---|
+| **no modifier at all — the CONTROL** | 293 / 300 (97.7%) | 293 / 300 — **unchanged** |
+| **a SPREAD move** | **226 / 300 (75.3%)** | **291 / 300 (97.0%)** |
+| **a LIFE ORB holder** | **107 / 300 (35.7%)** | **293 / 300 (97.7%)** |
+| an attacker at −1 / +2, a defender at +1 | 293 / 292 / 292 | unchanged |
+
+The control's 7 residual rows are the same species and moves in every arm — Flash Fire, Gravity
+Apple, Illusion, Water Bubble — i.e. **other bugs, not arithmetic**, and both fixed arms land exactly
+on that floor. Two thirds of every Life Orb damage number this engine has ever produced was off by
+one, in both directions.
+
+**AND ONE LIMB OF THE HYPOTHESIS WAS FALSE, WHICH IS WHY IT WAS MEASURED.** `boostMul(-1)` returns
+`2/3` where Showdown divides by 1.5, and `3 * (2/3) === 1.9999999999999998` — a genuine float defect,
+and it is **NOT** part of this family: the three boosted arms read 293/292/292 against a control of
+293. Real stats are large enough that the ulp almost never crosses an integer. It is left alone and
+recorded rather than "fixed" on the strength of the argument.
+
+**THE ROOT, AND IT IS ONE FUNCTION** (`sim/battle.ts:2318-2340`). `md4096` is Showdown's `modify`,
+`ch4096` is its `chain`, `mdChain` spends an accumulated chain the way `runEvent` spends
+`this.event.modifier`. `+2047` is a round-half-up baked into integer arithmetic; `Math.floor(v * m)`
+is a truncation. **They agree exactly on ×2, ×1.5, ×0.5 and the type chart** — which is why no probe
+in this file had ever caught it — and disagree on everything else: ×0.75 on ~50% of values, ×1.3 on
+~64%. Thirty-odd call sites now route through the one function, and **the float argument is not an
+approximation**: `tr(1.3 * 4096) = 5324` IS Life Orb's literal `[5324, 4096]`, and 1.2 → 4915,
+1.1 → 4505, 4/3 → 5461, 0.75 → 3072 all land exactly. `md4096` also takes an explicit `[num, den]`
+pair, which is what the two 5461/4096 ability sites now pass.
+
+**A SECOND ROOT OF THE SAME FAMILY, FOUND BY LOOKING AT WHAT THE DIFFERENTIAL ACTUALLY NAMED.** Three
+of the four largest `-damage field 3` causes in the before-arm were `[from]recoil`, and recoil does
+not go through `modify` at all:
+
+```
+sim/battle-actions.ts:1384   clampIntRange(Math.round(damageDealt * move.recoil[0] / move.recoil[1]), 1)
+sim/battle.ts:2168           Math.round(targetDamage * effect.drain[0] / effect.drain[1])
+medicham2, before            Math.floor(dealt * (rc[0] / rc[1]))
+```
+
+Two errors on one line: a floor where the rule is `Math.round`, **and** a pre-divided float, so a 1/3
+recoil arrived as `0.3333333333333333` and fell an ulp short of `dealt/3` on every multiple of three.
+Measured in the authority by CALLING `applyRecoilDamage`, not by reading it:
+
+```
+dealt   1     2     3     4     5    100   101   102   103
+SD      1     1     1     1     2     33    33    34    34     <- Math.round, floored at 1
+naive   0     0     0     1     1     33    33    33    33
+```
+
+Drain is the same rule with the opposite sign — 8,553 corpus clicks, each half a point of health
+short.
+
+**THIS CORRECTION TURNED TWO GREEN PROBES RED, AND THAT IS THE FINDING, NOT AN INCONVENIENCE.** The
+Choice Scarf and Swift Swim probes both prove "the foe never acted" by asserting the killer took
+**zero** damage — and both had the killer click **Wave Crash**, whose recoil is clamped to a minimum
+of 1. So killing a 1 HP foe really does cost the killer a point, and those two probes had been green
+**because of** a bug that made a real cost vanish. Fixed at the probe: my click is now Liquidation
+(same type, same category, 100%, no `rc`) and the foe still clicks Wave Crash, so the only thing that
+can move my HP is the foe getting a turn.
+
+**THREE PROBES, EACH SHOWN RED ON ITS OWN BROKEN ENGINE** (`tests/probe_red_demo.js`, `demoSource` —
+there is no tag to strip, the artifact was innocent in all three). **Every one asserts its CONTROL arm
+too, and the control is equal on both engines by construction** — an off-by-one is only legible
+against an arm that does not move, and a demo watching only the second number would also flip on an
+engine that had stopped applying the modifier altogether.
+
+| probe | census row | what separates the engines |
+|---|---|---|
+| a spread move takes ×0.75 rounded half up, not a truncation | `move spreadFoes` | Garchomp → Kingambit: single-target Flamethrower **64 on both**, spread Heat Wave **51** against **49** |
+| Life Orb is 5324/4096 rounded half up, not a float 1.3 | `item damageMultAll` | Incineroar → Garchomp: no item **80 on both**, Life Orb **104** against **103** |
+| the recoil charged is Showdown's ROUND of the damage dealt | `move recoil` | Brave Bird **41** against **40**, Flare Blitz **14** against **13**, Wave Crash **27 on both** |
+
+**THE THIRD ARM OF THE RECOIL PROBE IS A CASE WHERE THE TWO RULES AGREE**, and the expected value is
+COMPUTED from an observed quantity — the probe reads what the foe lost and asserts the user paid
+`round` of it — so it states the rule rather than pinning a magic constant. It also asserts
+`round !== floor` on the two discriminating moves, so a staging that ever drifts onto a
+non-discriminating value goes **RED rather than hollow**.
+
+The four exact damage numbers above came out of the authority with those exact bodies at those exact
+rolls: Flamethrower 58-70, Heat Wave 46-56 spread, Close Combat 73-86, Close Combat + Life Orb 95-112.
+
+**WHAT THE DIFFERENTIAL SAYS, BEFORE AND AFTER, ON THE SAME 395 GAMES.** Before-arm the frozen release
+`128a1ca28d34`, after-arm the live tree. `data/games.ladder.jsonl` (206,789,118 B @ 04:03:19.248Z),
+`data/games.bo3.jsonl`, `data/tags.json`, `data/diff-swarm.json` and `engine/diff_swarm.js` were
+asserted identical in size and mtime **before, between and after both arms**, and the driver's own
+content digest (`9438fce…`) was asserted equal across both — filed item (4) is still unfixed and this
+is the workaround it demands.
+
+| | before | after |
+|---|---|---|
+| **the target family, `-damage field 3`** | **46 games / 45 distinct causes** | **31 / 31** |
+| of those, causes that are `[from]recoil` | 4 | **2** |
+| diverged | 391 / 395 | **390 / 395** |
+| whole-run control arm, every stone stripped | 391 / 395 | **389 / 395** |
+| the same pairs with the stones removed | 389 / 393 | **387 / 393** |
+| median completed turns before divergence | 1 | 1 — unchanged |
+| classes | 12 | 12 |
+| `event missing from medicham2` | 132 | **127** |
+| `unrelated event mismatch` | 101 | 110 |
+| `ordering` | 45 | 50 |
+| `turn order` | 15 | 19 |
+| `-heal field 3` | 2 | **0** |
+| `-immune field 3` | 1 | **0** |
+| mega evolutions issued and executed in both engines | 519 | 519 — unchanged |
+| **distinct moves the driver got to CONNECT** | **177** | **176 — A LOSS OF ONE** |
+| distinct abilities / items / species | 160 / 124 / 257 | **161** / 124 / 257 |
+| census mechanics reached by a connecting move | 107 / 112 | 107 / 112 |
+
+**THE COVERAGE DIRECTION IS DOWN BY ONE AND IS REPORTED AS SUCH.** 177 → 176 connected moves. WIRE 2
+cost four, WIRE 3 bought five back, this one costs one; distinct abilities gained one in the same
+run. `not_exercised` is 6. It is not worth chasing — a recoil that now rounds up kills its own user
+slightly sooner, so a few clicks that used to happen do not — but a coverage figure that fell must
+never be left to be rediscovered as a counter that quietly went down.
+
+**THE RATE MOVED BY ONE GAME AND THAT IS NOT THE HEADLINE.** The headline is that a family of 45
+distinct causes lost a third of its members to ONE arithmetic rule plus ONE rounding rule, with no
+per-cause patching. Two classes grew, which is the same shape WIREs 1-3 recorded: a game stops at its
+FIRST divergence, so clearing a cause makes the game run on and part deeper at whatever was behind it.
+`total_lines_collapsed` is deliberately not quoted — filed item (6) — and the depth proxies here
+(megas 519 → 519, median 1 → 1) did not move.
+
+**THE INSTRUMENT'S OWN INPUT SET IS STILL WRONG, AND THIS WIRE FOUND THE SPECIFIC LEAK.** The first
+before/after pair of this session read `-damage field 3` at **51 games / 50 causes**; a second run of
+**the identical frozen release** over a **byte-identical store** read **46 / 45**. The run is
+deterministic — a third run reproduced the second exactly — so something outside the 23-file
+photograph reached the games. It is `data/mechanics-census.json`:
+
+```js
+/* How badly does the run still need this entity? Lower count = more wanted. A move is scored by the
+ * least-exercised census mechanic it can reach, then by its own click count. */
+const covWant = (sec, key) => { ... for (const t of COV_TARGETS) ... }   // COV_TARGETS := the census
+```
+
+**The driver STEERS its move choice by census coverage, and the census is a live file.** Landing a
+probe in `tests/test-mechanics.js` therefore changes which moves the differential clicks and which
+games it plays — so every before/after on this instrument is void unless both arms see the same
+census. That is why both arms above were re-run after the census settled. Filed as (8) below.
+
+**FOUR THINGS FILED AND NOT FIXED — they are WIRE 5+, not this one:**
+
+8. **`data/mechanics-census.json` STEERS THE DIFFERENTIAL AND IS NOT IN THE PHOTOGRAPH.** Detailed
+   above, with the mechanism named. It belongs in `SOURCES` beside the other 23, or `covWant` needs a
+   frozen copy. Until then a before/after must assert the census unchanged as well as the store.
+9. **RECOIL IS CHARGED ON UNCAPPED DAMAGE.** Showdown passes `move.totalDamage` — the HP actually
+   removed — to `applyRecoilDamage`; medicham2 passes its raw roll. Killing a body on 1 HP with Brave
+   Bird costs 1 in the real game and 21 here. **This is the whole of what remains of the recoil half
+   of the family**: both surviving `[from]recoil` causes in the after-arm now have medicham *higher*
+   by one, which is this and not the rounding. Not fixed because it needs the pre-hit HP threaded to
+   the recoil site and this dispatch was one root.
+10. **THE BASE-POWER MODIFIERS ARE APPLIED TO THE WRONG QUANTITY.** Technician, Tough Claws, the
+    terrains, Muscle Band, the type-boost items and Dry Skin are all `onBasePower` in Showdown —
+    they chain into ONE modifier applied to `basePower` before the damage formula. medicham2 applies
+    them to the computed base damage (terrain, Technician) or folds them into the final ModifyDamage
+    chain (the items). The ARITHMETIC is now right at both sites; the PLACEMENT is not, and the two
+    differ by a truncation. Unmeasured — it needs its own sweep arm.
+11. **`board.js` STILL DOES ITS MULTIPLIERS IN FLOAT.** `md4096`/`ch4096`/`mdChain` are exported from
+    `medicham2-browser.js` precisely so there is one implementation, and board.js is not this
+    division's file. It computes an EXPECTATION rather than an exact hit, so this may well be the
+    legitimate exception CLAUDE.md already names — but nobody has checked, and "probably fine" is how
+    the priority-blocking duplicate survived.
+
+**ONE UNRELATED RED TEST WAS FOUND AND FIXED RATHER THAN FILED.** `tests/test-no-silent-failure.js`
+was red on four NEW silent catch blocks in `engine/game_differential.js` — the format-standing
+lookups added earlier the same day, none of them mine. Each hands a plausible value downstream on a
+throw (an empty tag table, an empty carrier map, a null dex row) and every one of those reads exactly
+like a legitimate absence, which destroys the `uses: 0` vs `uses: null` distinction the whole block
+exists for. They now count and print themselves (`format-standing lookups that threw and fell back:
+… (must all read 0)`), and the ratchet reads 219 against a baseline of 220 with 0 new. **It is not
+re-baselined** — `--update` rewrites a shared artifact and that is not this dispatch's call to make.
 
 ## ROADMAP #81 WIRE 3 — THE REFUSED STAT DROP WAS SILENT *AND*, FOR FOUR ABILITIES, NOT ACTUALLY A REFUSAL. 2026-08-07.
 
@@ -911,7 +1095,12 @@ of this file applies.
 - **Illusion announces the wrong body** on switch-in — filed in docs/GAME-DIFFERENTIAL-DESIGN.md §3.2
   and now with a reproducing game rather than a citation. The register entry belongs to whoever owns
   that item; this ledger does not schedule it, so it does not name its number.
-- **damage is off by one under a pinned maximum roll**, on recoil and on direct damage, five games.
+- ~~**damage is off by one under a pinned maximum roll**, on recoil and on direct damage, five
+  games.~~ **CLOSED AS A HAND-LIST ITEM — ROADMAP #81 WIRE 4.** It was one root twice over: Showdown
+  does every damage multiplier in fixed point on 4096ths with a round-half-up, and recoil/drain are
+  `Math.round` of a RATIO. The census carries three probes for it now (`move spreadFoes`,
+  `item damageMultAll`, `move recoil`) so this line is no longer a claim nothing checks. What is left
+  of it is narrower and is filed as (9) on that wire: recoil is still charged on UNCAPPED damage.
 - **the Intimidate x guaranteed-crit case is still open** (§6): `107/170` against `128/170`. It has a
   probe in `tests/test-protocol-trace.js` PART 5 and is still the declared limitation.
 - **`data/diff-swarm.json`, `data/rerun-list.json` and `data/store-validation.json` trip the

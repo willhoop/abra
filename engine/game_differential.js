@@ -93,9 +93,21 @@ if (!process.env.SHOWDOWN_PATH) {
  * CLAUDE.md: a measurement reads a FROZEN RELEASE, not the live tree. Cut one over the current bytes
  * (a re-cut of an identical tree appends and returns the same id) and load medicham2 out of the
  * snapshot, so another division may keep editing while this runs. */
+/* `--release <id>` RUNS THE BEFORE-ARM WITHOUT TOUCHING THE TREE. ROADMAP #81 WIRE 4.
+ *
+ * WIREs 1-3 each measured before/after by hand-cutting a release, landing the change, and cutting
+ * again -- which works, and which also means the before-arm can only ever be run BEFORE the change.
+ * Once the edit is in the working copy the earlier arm is unreachable except by swapping the file
+ * back, and a file swap under a measurement is the exact hazard `engine_release.js` exists to
+ * remove. Naming an EXISTING release reads the frozen bytes it already holds: the two arms then
+ * differ in one file and in nothing else, and neither arm reads the live engine.
+ *
+ * IT DOES NOT CUT. A named release is a photograph somebody already took; re-cutting under it would
+ * append a cut event describing a tree this run never used. */
 const ER = require('./engine_release.js');
-ER.cut('game differential mode A — the comparison driver, ROADMAP #68 step two');
-const REL = ER.open();
+const REL_ID = flag('--release', null);
+if (!REL_ID) ER.cut('game differential mode A — the comparison driver, ROADMAP #68 step two');
+const REL = ER.open(REL_ID);
 REL.require('data/engine-data.js');
 const M = REL.require('engine/medicham2-browser.js');
 const CS = require('./champions_sim.js');
@@ -129,7 +141,21 @@ const TAGS_MATCH = TAGS_LIVE === TAGS_REL;
  * USES COMES FROM tags.json, WHICH IS IN THE RELEASE, so the number is the frozen one and cannot drift
  * under the run. Entities tags.json does not carry report `uses: null` -- UNKNOWN, not zero. Those are
  * different claims and collapsing them is how a real mechanic gets dismissed as unused. */
-const TAGS_OBJ = (() => { try { return JSON.parse(TAGS_REL || TAGS_LIVE); } catch (e) { return {}; } })();
+/* THE FOUR FORMAT-STANDING LOOKUPS COUNT THEIR OWN FAILURES (ROADMAP #81 WIRE 4). Each of them hands
+ * a plausible value downstream on a throw — an empty tag table, an empty carrier map, a null dex row
+ * — and every one of those reads EXACTLY like a legitimate "this entity is not in that section". The
+ * standing block's whole purpose is the difference between `uses: 0` and `uses: null`, and that
+ * distinction is worthless if the reason something is UNKNOWN was discarded. Flagged by
+ * tests/test-no-silent-failure.js; printed with the run so a zero is a receipt rather than silence. */
+const STANDING_FAILS = { tagsParse: 0, carrierMap: 0, dexLookup: 0, speciesLookup: 0 };
+const TAGS_OBJ = (() => {
+  try { return JSON.parse(TAGS_REL || TAGS_LIVE); }
+  catch (e) {
+    STANDING_FAILS.tagsParse++;
+    console.error('  standing: tags.json did not parse — every uses figure below is UNKNOWN: ' + e.message);
+    return {};
+  }
+})();
 const STANDING_KINDS = [['moves', 'moves'], ['abilities', 'abilities'], ['items', 'items']];
 
 /* LEGAL IS NOT THE SAME AS REACHABLE, AND THE DIFFERENCE IS EXACTLY THE CASE WILL CAUGHT.
@@ -145,7 +171,10 @@ const ABILITY_CARRIERS = (() => {
         const k = N.id(a); m.set(k, (m.get(k) || 0) + 1);
       }
     }
-  } catch (e) { /* the map stays empty and carriers reads null — UNKNOWN, never a false zero */ }
+  } catch (e) { /* the map stays empty and carriers reads null — UNKNOWN, never a false zero */
+    STANDING_FAILS.carrierMap++;
+    console.error('  standing: the ability-carrier map could not be built — every carriers figure is UNKNOWN: ' + e.message);
+  }
   return m;
 })();
 
@@ -153,7 +182,7 @@ function entityStanding(id) {
   for (const [sec, dexKind] of STANDING_KINDS) {
     const row = TAGS_OBJ[sec] && TAGS_OBJ[sec][id];
     let d = null;
-    try { d = dex[dexKind].get(id); } catch (e) { d = null; }
+    try { d = dex[dexKind].get(id); } catch (e) { d = null; STANDING_FAILS.dexLookup++; }
     if (row || (d && d.exists)) {
       const legal = !!(d && d.exists && !d.isNonstandard);
       /* An ability nothing legal can carry is unreachable even though it is legal. `null` when the
@@ -166,7 +195,7 @@ function entityStanding(id) {
                uses: row && typeof row.uses === 'number' ? row.uses : null };
     }
   }
-  const sp = (() => { try { return dex.species.get(id); } catch (e) { return null; } })();
+  const sp = (() => { try { return dex.species.get(id); } catch (e) { STANDING_FAILS.speciesLookup++; return null; } })();
   if (sp && sp.exists) {
     const legal = !sp.isNonstandard && sp.tier !== 'Illegal';
     return { kind: 'species', id, legal, carriers: null, reachable: legal,
@@ -1716,6 +1745,11 @@ console.log('    MEDFAILS.traceBodyOffField = ' + M.fails.traceBodyOffField
                                  + '. tests/test-protocol-trace.js PART 6 says this must read 0.' : ' (must read 0)'));
 console.log('    undeclared Showdown events dropped before alignment: ' + UNDECLARED_DROPS
   + (UNDECLARED_DROPS ? '  <-- ' + [...UNDECLARED_SEEN].join(', ') : ' (must read 0)'));
+/* The standing block's own swallowed failures. A zero here is the CLAIM that every `uses: null` and
+ * `carriers: null` printed above means "not in that table" and not "the lookup threw". */
+console.log('    format-standing lookups that threw and fell back: '
+  + Object.entries(STANDING_FAILS).map(([k, v]) => k + ' ' + v).join(', ')
+  + (Object.values(STANDING_FAILS).some(v => v) ? '  <-- a UNKNOWN above is a FAILURE, not an absence' : ' (must all read 0)'));
 console.log('');
 
 if (WRITE) {

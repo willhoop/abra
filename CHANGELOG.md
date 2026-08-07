@@ -10,6 +10,76 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.62.0] — 2026-08-07
+
+### Fixed
+- **WIRE 4 — THE FIXED-POINT HYPOTHESIS HELD, AND LIFE ORB DAMAGE WAS WRONG 64% OF THE TIME.** Showdown
+  does every damage multiplier in fixed point on 4096ths with a round-half-up baked into integer
+  arithmetic (`sim/battle.ts:2329`). `medicham2` multiplied in floating point. Exact comparison against
+  `battle.actions.getDamage` at rolls 15 and 0, **tolerance zero**, 300 sampled real matchups per arm:
+
+  | arm | before | after |
+  |---|---|---|
+  | no modifier — the CONTROL | 293/300 | 293/300 unchanged |
+  | a SPREAD move | **226/300 (75.3%)** | **291/300 (97.0%)** |
+  | a **LIFE ORB** holder | **107/300 (35.7%)** | **293/300 (97.7%)** |
+
+  Both fixed arms land exactly on the control's floor. `md4096` / `ch4096` / `mdChain` are Showdown's
+  `modify`/`chain`, exported, and ~30 sites route through them — **one implementation of a FACT**, per
+  `CLAUDE.md`, not 30 patched call sites. The float argument is not an approximation:
+  `trunc(1.3 × 4096) = 5324` **is** Life Orb's literal `[5324, 4096]`.
+- **A SECOND ROOT THE DIFFERENTIAL NAMED: recoil never went through `modify` at all.** Three of the
+  four largest before-arm causes were `[from]recoil`.
+  ```
+  showdown   clampIntRange(Math.round(dealt * recoil[0] / recoil[1]), 1)
+  medicham2  Math.floor(dealt * (recoil[0] / recoil[1]))
+  ```
+  **Two errors on one line** — the wrong rounding *and* no minimum of 1. Measured by calling it: dealt
+  1 → 1 vs 0; 5 → 2 vs 1; 102 → 34 vs 33. Drain is the same rule.
+- **`tests/test-engine-diff.js` structurally could not see any of this.** Its stated bar is *"midpoints
+  within 12%"*, chosen so rounding would not read as a bug. A 12% tolerance cannot find a 1-point error.
+
+### Changed
+- `-damage field 3` **46 games / 45 causes → 31 / 31**. `-heal field 3` 2 → **0**. `-immune field 3`
+  1 → **0**. Diverged 391/395 → 390/395. Census **246/247 → 249/250 live**. Red demonstrations
+  **136 → 139**, 0 failed.
+- Coverage **down one** — distinct moves connected 177 → 176, because a recoil that rounds up kills its
+  user sooner. Abilities reached 160 → 161. Reported, not omitted.
+- `engine/game_differential.js` gained `--release <id>`, so a before-arm runs from an existing frozen
+  release without hand-cutting or swapping files in the tree.
+
+### Notes
+- **A FALSE LIMB OF THE HYPOTHESIS, FOUND ONLY BY MEASURING IT.** `boostMul(-1)` returns `2/3` where
+  Showdown divides by 1.5, and `3 * (2/3) === 1.9999999999999998`. A genuine float defect — and **not
+  part of this family**: the boosted arms read 293/292/292 against a control of 293. Left alone and
+  recorded rather than swept in. The instruction was to test the hypothesis rather than assume it, and
+  this is what that bought.
+- **THE RECOIL FIX TURNED TWO GREEN PROBES RED, AND THAT IS THE FINDING.** The Choice Scarf and Swift
+  Swim probes both prove *"the foe never acted"* by asserting the killer took **zero** damage — and both
+  had the killer click **Wave Crash**, whose recoil clamps to a minimum of 1. **They were green BECAUSE
+  OF the bug**, which made a real cost vanish. That is the fourth probe in four wires found resting on
+  the defect it was meant to watch, and the first where the probe was green *because* the engine was
+  wrong. It is also the argument for grinding wires over auditing probes: the differential surfaces
+  these for free, attached to a real bug, with the fix already in hand.
+- **WIRE 8 FILED AND IT IS A MEASUREMENT-INTEGRITY BUG, NOT A MECHANIC.**
+  `data/mechanics-census.json` **STEERS** the differential and sits outside the photograph. `covWant()`
+  scores a move by the least-exercised census mechanic it can reach, and `COV_TARGETS` is the **live**
+  census — so **landing a probe changes which games the differential plays.** Found because the
+  before-arm moved 51/50 → 46/45 across two runs of the *identical frozen release* over a byte-identical
+  store; a third run reproduced the second exactly, so the instrument is deterministic and the input was
+  not. Both arms above were re-run after the census settled.
+- Also filed: recoil is charged on **uncapped** damage (Showdown passes `move.totalDamage`; a 1 HP kill
+  with Brave Bird costs 1 there and 21 here); base-power modifiers are applied to the wrong quantity
+  (Technician, Tough Claws, terrains and the type items are `onBasePower` upstream — arithmetic now
+  right, placement not); and `board.js` still multiplies in float, with the exports now in place for it
+  to call the one implementation.
+- One unrelated red gate **fixed rather than filed**: `tests/test-no-silent-failure.js` was red on four
+  new silent catches in `engine/game_differential.js` — the format-standing lookups added earlier today.
+  They now count and print themselves. **Not re-baselined**, because `--update` rewrites a shared
+  artifact.
+
+---
+
 ## [3.61.3] — 2026-08-07
 
 ### Fixed
