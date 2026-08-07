@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-07T03:21:40.185Z",
+  "generated": "2026-08-07T04:15:42.885Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 241,
-  "live": 240,
+  "probed": 244,
+  "live": 243,
   "missing": 1,
-  "armed": 241,
+  "armed": 244,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -157,6 +157,16 @@
       "label": "repeated Protect starts failing",
       "live": true,
       "detail": "damage taken per consecutive Protect: 0, 167, 167",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "stalling",
+      "label": "a shield answers before the accuracy roll, so a MISSING die is still blocked",
+      "live": true,
+      "detail": "a 90% move at roll 0.99 — no shield: line |-miss|p1a: incineroar|p2a: garchomp, user lost 85; Spiky Shield up: line |-activate|p2a: garchomp|move: Protect, user lost 106 (the difference must be the shield's 1/8 = 21)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1243,6 +1253,16 @@
     },
     {
       "kind": "move",
+      "tag": "punishesContact",
+      "label": "a Spiky Shield answers before the type chart, so it tolls a move the body is immune to",
+      "live": true,
+      "detail": "immune, no shield: line |-immune|p2a: gengar, attacker lost 0 (must be 0); immune, Spiky Shield up: line |-activate|p2a: gengar|move: Protect, attacker lost 19 (must be 19)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "critRatioUp",
       "label": "Night Slash crits on a roll Crunch does not",
       "live": true,
@@ -1497,6 +1517,16 @@
       "label": "High Jump Kick hurts the user when it misses",
       "live": true,
       "detail": "landed (roll 0.5): dealt 87, user lost 0 (must be 0); missed (roll 0.99): dealt 0, user lost 85",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "crashOnMiss",
+      "label": "High Jump Kick crashes when PROTECT blocks it, not only when it misses",
+      "live": true,
+      "detail": "shield down: dealt 87, user lost 0 (must be 0); shield up: dealt 0, user lost 85 (must be 85) and the block line was |-activate|p2a: garchomp|move: Protect",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2046,7 +2076,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 26.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

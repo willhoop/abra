@@ -27,10 +27,10 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  240/241 probed mechanics live, 1 missing   (census 2026-08-07 03:08)
+  243/244 probed mechanics live, 1 missing   (census 2026-08-07 03:47)
   missing:
     move    needsTargetToAttack    Avalanche doubles after the target hits it this turn
-  1/150 differential comparisons disagree with Showdown   (2026-08-07 03:07)
+  1/150 differential comparisons disagree with Showdown   (2026-08-07 03:50)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -49,7 +49,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 162/181 probed, 19 unprobed
 ```
 
-_stamped 2026-08-07 03:08_
+_stamped 2026-08-07 04:15_
 
 <!-- /GENERATED -->
 
@@ -62,6 +62,142 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
+
+## ROADMAP #81 WIRE 1 — A PROTECT BLOCK WAS BEING RESOLVED AS A TYPE IMMUNITY AND AS A MISS, AND THE CRASH IT OWES WAS NEVER PAID. 2026-08-07.
+
+Census **240 live / 241 probed → 243 live / 244 probed**, `unarmed` 0, `directCall` 0, `hollow` 0.
+Red demonstrations **128 → 132, 0 failed** (four new, a different broken engine each).
+Whole-game differential, the same 395 games against two frozen releases that differ in exactly one
+file: **394/395 diverged → 394/395. THE RATE DID NOT MOVE AND NEITHER DID THE MEDIAN.** What moved is
+that the target cause is gone — **6 games' first divergence → 0** — and that 6.6% more protocol was
+compared for the same games.
+
+**ONE ROOT, THREE SITES: THE HIT STEPS WERE IN THE WRONG ORDER.** Showdown's `trySpreadMoveHit`
+(`sim/battle-actions.ts:553-576`) runs 0 invulnerability, **1 TryHit — where Protect lives** — 2 type
+immunity, 3 move-specific immunity, **4 accuracy**. medicham2 rolled accuracy first, then checked the
+type chart, and only then the shield. So a shield lost two races it always wins in the real game:
+
+```
+supercellslam -> a Protecting Garchomp      SD |-activate|p2a|move: Protect     MC |-immune|p2a
+a 90%-accuracy move -> a Protecting body     SD |-activate|p2a|move: Protect     MC |-miss|p1a|p2a
+```
+
+**THE EXPENSIVE HALF IS NOT THE PROTOCOL LINE.** `crashOnMiss` was consumed at exactly one site — the
+accuracy roll — and Showdown fires the crash from `singleEvent('MoveFail', ...)`
+(`battle-actions.ts:526`), which runs on ANY falsy move result. High Jump Kick's crash is an
+`onMoveFail` handler, so **a shield makes the hit fail and the crash lands.** Measured in the
+authority, both dice pinned, before a line of this changed:
+
+```
+High Jump Kick -> a Protecting Garchomp   |-activate|p2a|move: Protect
+                                          |-damage|p1a: Hitmonlee|63/125|[from] highjumpkick
+High Jump Kick -> Gengar (Ghost)          |-immune|p2a
+                                          |-damage|p1a: Hitmonlee|0 fnt|[from] highjumpkick
+Supercell Slam -> Ground behind a Spiky Shield
+                                          |-activate|p2a|move: Protect
+                                          |-damage|p1a: Bellibolt|97/184|[from] Spiky Shield|[of] p2a
+                                          |-damage|p1a: Bellibolt|5/184|[from] supercellslam
+```
+
+medicham2 charged nothing in any of the three. High Jump Kick is on **146 sets**, Supercell Slam
+**88**, Axe Kick carries the same tag: a 130 BP move with no downside against the most-clicked move in
+the format is the "priority move with no drawback" shape that WIRE 47 was written to remove, left open
+on the half nobody had measured. The `[from]` field was wrong too — `Recoil`, where the authority
+prints the move's own id — and that was one game of the differential on its own.
+
+**THE PROTECTION-COUNTER CLAIM IN THE SPEC IS WRONG, AND IT IS CORRECTED RATHER THAN WORKED AROUND.**
+ROADMAP #81 asked for an assertion that *the protection counter increments on a block and not on an
+immunity*. It does not: Showdown's counter is the `stall` volatile, added by Protect's own
+`onHit` — i.e. by consecutive USE — and it is indifferent to whether anything was blocked. Measured in
+a real battle: a Protect that blocked nothing still carries `stall {counter: 3}`. What genuinely
+separates the two states is the **contact toll**, so that is what the probe asserts, on HP:
+
+```
+Body Slam (Normal, contact) -> Gengar behind a Spiky Shield   |-activate| + 1/8 of the attacker
+the same click with the shield down                           |-immune|   + nothing
+```
+
+**FOUR PROBES, EACH SHOWN RED ON ITS OWN BROKEN ENGINE** (`tests/probe_red_demo.js`, `demoSource` —
+there is no tag to strip, because `crashOnMiss` and `punishesContact` were both already consumed and
+what changed is the ORDER):
+
+| probe | census row | the broken engine it is red on |
+|---|---|---|
+| a blocked High Jump Kick still pays its crash | `move crashOnMiss` | the crash paid only off the accuracy roll |
+| a High Jump Kick that hits nothing but a type immunity pays its crash | `move crashOnMiss` | the post-loop MoveFail test removed |
+| a Spiky Shield answers before the type chart | `move punishesContact` | the old gate order, immunity first |
+| a shield blocks a move whose accuracy die missed | `move stalling` | the roll hoisted back above the shield |
+
+**WHAT THE DIFFERENTIAL SAYS, BEFORE AND AFTER, ON THE SAME 395 GAMES.** The two arms are the frozen
+releases `0771dc47b5f6` and `41e28311e591`, whose manifests differ in `engine/medicham2-browser.js`
+and in nothing else — a controlled experiment rather than two runs.
+
+| | before | after |
+|---|---|---|
+| diverged | 394 / 395 | 394 / 395 — **unchanged** |
+| median completed turns before divergence | 1 | 1 — **unchanged** |
+| **`-activate protect <> -miss` / `<> -immune` as the FIRST divergence** | **6 games** | **0** |
+| classes | 14 | 13 |
+| `-miss field 3` | 1 game | **0** |
+| `-damage field 4` (the crash's `[from] recoil`) | 2 games | **1** — only the unrelated Infestation cause left |
+| `-start field 3` | 2 games | 1 |
+| `ordering` | 43 games | 40 |
+| `extra event emitted by medicham2` | 37 games | 32 |
+| `unrelated event mismatch` | 116 games | **125** |
+| `event missing from medicham2` | 128 games | **129** |
+| normalised protocol lines compared | 19,906 | **21,214** (+6.6%) |
+| distinct moves the driver got to CONNECT | 171 | 173 |
+| census mechanics reached by a connecting move | 103 / 109 | 104 / 109 |
+
+**THE RATE DID NOT MOVE, THE MEDIAN DID NOT MOVE, AND TWO CLASSES GOT BIGGER. That is the correct
+shape of this result and it is not a disappointment.** A game stops at its FIRST divergence, so
+removing a first-turn cause does not make the game agree — it makes the game run on and part deeper,
+at whatever was behind it. That is why `unrelated event mismatch` and `event missing` grew while the
+target cause emptied, and it is why the only aggregate that can show the gain is DEPTH: 6.6% more
+protocol compared for the same 395 games, two more moves connected, one more census mechanic reached.
+The median stays at one turn because the causes that dominate it — the Hospitality heal, the Trick
+Room field line, and the consecutive-Protect failure filed as (1) below — are untouched by this wire.
+
+**AND THE FIRST VERSION OF THIS TABLE WAS WRONG, IN THE FLATTERING DIRECTION.** It read
+`395/395 → 394/395` and called that game the first this instrument had ever seen agree. It was not
+the wire. **`engine/diff_swarm.js` draws its teams from the LIVE store, and the store is not in the
+frozen release** — `data/games.ladder.jsonl` and `data/games.bo3.jsonl` were both appended to at
+04:03, between the two arms, which changes the deterministic stride and therefore which 395 games get
+played. Re-run back to back with the store's size and mtime asserted identical before, between and
+after, both arms read 394/395. **This is the 2026-08-04 void arriving through a door the release rule
+does not cover: 23 files are frozen and the INPUT CORPUS is not one of them.** Filed as (4) below.
+
+**FOUR THINGS FOUND ON THE WAY, FILED AND NOT FIXED — they are WIRE 2+, not this one:**
+
+1. **The stall counter never resets, and it is now the largest single class in the differential.**
+   Showdown deletes `volatiles['stall']` the moment the 1/X roll fails, so the very next Protect
+   succeeds outright; medicham2 increments `tookProtectTurns` forever, so its shields decay 1/3, 1/9,
+   1/27 and never recover. Showdown also fails Protect outright when the user moves LAST in the turn
+   (`!!this.queue.willAct()`), which medicham2 does not model at all. Together these are
+   `|-singleturn|X|protect <> |-fail|X` and its mirror, the largest single family of causes left in
+   the table and the top of `unrelated event mismatch`. Same neighbourhood as ROADMAP #59.
+2. **The shield's own two emits are one field off.** Showdown writes
+   `|-damage|…|[from] Spiky Shield|[of] p2a: X` and `|-singleturn|X|move: Protect` for the punishing
+   shields; medicham2 writes `[from] move: spikyshield` and a bare `|-singleturn|X|Protect`. The
+   canoniser folds case and spaces but not the colon, so both part the streams on a line the differ
+   compares. Reachable far more often now that blocks resolve properly.
+3. **`data/interaction-matrix.json` is stale against `data/tags.json`** — tags.json moved at 23:33 on
+   2026-08-06, after the matrix was published at 21:50, so the generator now emits 1,574 LIVE cases
+   against the artifact's 1,643 and the shrink guard correctly refuses to publish. Re-run at `--full`
+   on this engine reads **1,557 / 1,574 (98.9%)** and the parting list loses exactly two rows —
+   `gigaimpact -> spikyshield` and `supercellslam -> kingsshield`, the pair this ledger already had as
+   *"crash damage on a blocked move"* — with nothing new appearing. Whether to republish under a
+   declared reason is MEASURE's call, not this dispatch's.
+4. **THE DIFFERENTIAL'S INPUT CORPUS IS NOT IN THE PHOTOGRAPH.** `engine/diff_swarm.js` calls
+   `loadTeams()` against the live `data/games.*.jsonl`, and the 23 frozen files do not include them.
+   The store grew mid-session — an ingest appending, which is OPS working normally and not a
+   violation of anything — and the two arms of a before/after therefore played different games. It
+   cost nothing here only because the discrepancy was large enough to notice and the run is cheap
+   enough to repeat; a slower measurement would have published the difference. The fix belongs to
+   whoever owns `engine_release.js`'s `SOURCES`: either freeze a team MANIFEST (the picked team ids
+   are already in `data/diff-swarm.json`) or have the swarm read the corpus through `REL`. Until then
+   **any before/after on this instrument must assert the store's size and mtime unchanged across both
+   arms**, which is what the numbers in the table above did.
 
 ## MEGA EVOLUTION IS A CHOICE NOW, MADE MID-TURN, AND THE DIFFERENTIAL HAS ITS MEGAS BACK. ROADMAP #31 + #68. 2026-08-07.
 
@@ -3186,8 +3322,9 @@ re-derives itself when the metagame moves and this section does not.
 
 **AND A SECOND DERIVED LIST LANDED 2026-08-06:** `data/game-differential.json`'s `classes` block. The
 coverage list above says which mechanics have NO PROBE; that one says which mechanics have a probe and
-still resolve differently from the authority IN A REAL GAME. **Eleven classes** over 139 games today
-(2026-08-07, with the megas in), each with its count and its distinct causes, regenerated by
+still resolve differently from the authority IN A REAL GAME. **Thirteen classes** over 395 games today
+(2026-08-07, with the megas in and ROADMAP #81 WIRE 1 landed), each with its count and its distinct
+causes, regenerated by
 `node engine/game_differential.js --write`. Neither list is typed and neither can go stale, which is
 the whole reason the section below is nine lines long — and the count moving from nineteen to eleven
 is the artifact doing exactly that, not a claim anybody typed twice.

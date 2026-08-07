@@ -1,6 +1,6 @@
 # ABRA — Project Summary
 
-**Version 3.61.0 · 2026-08-06 · Will Hooper**
+**Version 3.61.1 · 2026-08-07 · Will Hooper**
 
 **THE DIFFERENTIAL HAS RUN, AND MEGAS ARE IN IT (3.61.0).** `engine/game_differential.js` plays a real
 stored team through MEDICHAM and through the official Showdown engine, step for step, against a stamped

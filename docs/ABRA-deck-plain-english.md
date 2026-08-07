@@ -1,6 +1,6 @@
 # ABRA — the plain-English deck
 
-**Version 3.61.0 · 2026-08-06 · Will Hooper**
+**Version 3.61.1 · 2026-08-07 · Will Hooper**
 
 **What changed (3.61.0): we built the thing that tells us whether our engine is right.**
 

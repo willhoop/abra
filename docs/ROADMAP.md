@@ -874,6 +874,10 @@ usage** — plus a carve-out for anything that turns a certainty into a failure 
 | #49 | delete the 77 hand-typed mega abilities; the derived path exists and is proven equal | queued behind 42 |
 | #9 | harden `pranksterBlocked` to check the move's target | latent, not live |
 | #71 | seven moves share one tag signature — Pain Split, Recycle, Copycat resolve identically | — |
+| #81 | **THE WIRE QUEUE.** The whole-game differential's divergences, ranked and verified against Showdown's source. **ONE at a time, re-run between each** (Will, 2026-08-06). WIRE 1 (Protect is not an immunity, and a shielded High Jump Kick still crashes) landed in 3.61.1 | in progress |
+| #84 | "my move didn't happen" is TWO states in Showdown — `false` counts as a failure for Stomping Tantrum, `null` does not, and flinch returns `false`. Get Faked Out, and your Stomping Tantrum doubles | WIRE 2 |
+| #83 | the mirror-symmetry gate false-alarms ~1 run in 20 by construction — n=300 gives a ±5.6 point half-width | — |
+| #82 | the differential's BRING is a run parameter, not the accident of sheet order | — |
 | #80 | Knock Off records the wrong DISPOSITION for a self-eaten berry — `[eat]` vs move-attribution, which Harvest/Recycle/Belch/Cud Chew/Unburden read. **The damage claim originally filed here was measured FALSE and is retracted; Colbur fires correctly for us** | found by the differential |
 | #20 | a TYPE cannot be a reactor, so Grass-blocks-powder is untestable | — |
 | #21 | AXIS 4 — DENIAL: a move that costs a turn also denies a field effect | — |

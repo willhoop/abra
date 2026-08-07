@@ -10,6 +10,69 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.61.1] — 2026-08-07
+
+### Fixed
+- **ROADMAP #81 WIRE 1 — A PROTECT BLOCK WAS RESOLVED AS A TYPE IMMUNITY AND AS A MISS, AND THE CRASH
+  IT OWES WAS NEVER PAID.** Showdown's hit steps (`sim/battle-actions.ts:553-576`) run TryHit — where
+  Protect lives — as step 1, the type chart as step 2 and **accuracy as step 4**. `medicham2` rolled
+  accuracy first and checked the type chart before the shield, so a shielded body emitted `|-miss|`
+  or a bare `|-immune|` where the authority emits `|-activate|X|move: Protect`. One root, three sites.
+- **The crash is an `onMoveFail`, not an `onMiss`.** `crashOnMiss` was consumed at exactly one site —
+  the accuracy roll — and Showdown fires it from `singleEvent('MoveFail', …)`, which runs on ANY falsy
+  move result. Measured in the authority with both dice pinned: High Jump Kick into a Protect prints
+  `|-activate|` then `|-damage|…|[from] highjumpkick`; into a Ghost it prints `|-immune|` then the
+  same crash. `medicham2` charged nothing in either. **High Jump Kick is on 146 sets, Supercell Slam
+  88**, and Axe Kick carries the same tag — a 130 BP move with no downside against the most-clicked
+  move in the format. The `[from]` field said `Recoil` and now says the move's own id, as upstream does.
+- **A Spiky Shield now tolls a contact move its holder is immune to**, because the shield answers
+  before the type chart: `|-activate|` plus 1/8 of the attacker, verified against a real Champions
+  battle log on Body Slam into Gengar and on Supercell Slam into Garchomp.
+
+### Changed
+- **Mechanics census 240/241 → 243/244 live**, `unarmed` 0, `directCall` 0, `hollow` 0. Red
+  demonstrations **128 → 132, 0 failed** — four new, each red on a *different* deliberately broken
+  engine, because a single "delete the wire" revert would only prove the wire exists.
+- **Whole-game differential: the rate and the median BOTH UNCHANGED at 394/395 and one completed
+  turn.** Measured as a controlled experiment — the same 395 games against the frozen releases
+  `0771dc47b5f6` and `41e28311e591`, whose manifests differ in `engine/medicham2-browser.js` and in
+  nothing else. What moved is the target cause: **`-activate protect <> -miss` / `<> -immune` as a
+  first divergence, 6 games → 0**; classes 14 → 13; `-miss field 3` 1 → 0; the crash's
+  `[from] recoil` cause gone from `-damage field 4`; `ordering` 43 → 40; `extra event` 37 → 32.
+
+### Notes
+- **THE RATE DID NOT MOVE, THE MEDIAN DID NOT MOVE, AND TWO CLASSES GOT BIGGER — that is the correct
+  shape of the result.** A game stops at its FIRST divergence, so removing a first-turn cause makes
+  the game run on and part deeper rather than agree; `unrelated event mismatch` 116 → 125 and
+  `event missing` 128 → 129 are those games reappearing further in. The only aggregate that can show
+  the gain is DEPTH: **19,906 → 21,214 normalised protocol lines compared** for the same 395 games
+  (+6.6%), 173 distinct moves connected against 171, 104 of 109 census mechanics reached by a
+  connecting move against 103.
+- **A FIRST VERSION OF THESE NUMBERS WAS WRONG IN THE FLATTERING DIRECTION AND IS RETRACTED HERE
+  RATHER THAN QUIETLY FIXED.** It read `395/395 → 394/395`. That game was not the wire:
+  `engine/diff_swarm.js` draws its teams from the LIVE store, `data/games.ladder.jsonl` and
+  `data/games.bo3.jsonl` were both appended to between the two arms, and a different corpus is a
+  different 395 games. Re-run back to back with the store's size and mtime asserted identical before,
+  between and after, both arms read 394/395.
+- **ROADMAP #81's stated first consequence is corrected rather than worked around.** The spec asked
+  for an assertion that the protection counter increments on a block and not on an immunity. It does
+  not: Showdown's counter is the `stall` volatile added by Protect's own `onHit`, i.e. by consecutive
+  USE, and a Protect that blocked nothing still carries `stall {counter: 3}`. The state difference
+  that IS real — the contact toll — is what the probe asserts, on HP rather than on a protocol line.
+- **THE DIFFERENTIAL'S INPUT CORPUS IS NOT IN THE PHOTOGRAPH, and that is a hole in the release rule
+  rather than a mistake by anyone.** Twenty-three files are frozen and the team store is not one of
+  them, so `loadTeams()` reads whatever the ingest has appended. Until it is fixed, any before/after
+  on this instrument must assert the store unchanged across both arms. Filed for whoever owns
+  `engine_release.js`'s `SOURCES`.
+- **Filed, not fixed (WIRE 2+):** (1) the stall counter never resets — Showdown deletes the volatile
+  the moment the 1/X roll fails and also fails Protect outright when its user moves last, neither of
+  which `medicham2` models; the largest single family of causes left in the table;
+  (2) the punishing shields' own emits are one field off (`[from] move: spikyshield` against
+  `[from] Spiky Shield`, and `|-singleturn|X|Protect` against `|-singleturn|X|move: Protect`);
+  (3) `data/interaction-matrix.json` is stale against `data/tags.json`, which moved after it was
+  published, so the shrink guard correctly refuses a re-publish — a re-run at `--full` on this engine
+  reads 1,557 / 1,574 and loses exactly the two "crash damage on a blocked move" rows.
+
 ## [3.61.0] — 2026-08-06
 
 ### Added

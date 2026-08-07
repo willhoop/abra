@@ -661,6 +661,43 @@ probe('move', 'stalling', 'repeated Protect starts failing', () => {
            detail: `damage taken per consecutive Protect: ${dealt.join(', ')}` };
 });
 
+/* ROADMAP #81 WIRE 1 -- A SHIELD PREEMPTS THE TO-HIT ROLL. Showdown runs TryHit as step 1 and
+ * accuracy as step 4 (sim/battle-actions.ts:553-576), so a move aimed into a Protect is BLOCKED and
+ * never rolls at all. medicham2 rolled first, and printed `|-miss|` where the authority prints
+ * `|-activate|X|move: Protect` -- five games of the 2026-08-07 whole-game differential.
+ *
+ * ASSERTED ON HP, NOT ON THE LINE, because a protocol string proves nothing about what happened: the
+ * measurement below is a Spiky Shield's 1/8 toll, which an engine that MISSED could never pay.
+ * Showdown, 90%-accuracy High Jump Kick at a missing die:
+ *     shield up    |-activate|p2a|move: Protect   |-damage|p1a|110/125|[from] Spiky Shield   (15 = 1/8)
+ *     shield down  |-miss|p1a|p2a                 and no toll
+ * THE ROLL IS THE LOSING ONE IN BOTH ARMS -- that is the whole probe. At a winning roll the block
+ * happens either way and an engine with the order wrong passes. */
+probe('move', 'stalling', 'a shield answers before the accuracy roll, so a MISSING die is still blocked', () => {
+  const run = (shield) => {
+    const me = bare('incineroar'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    unfaintable(f1);
+    const meBefore = me.curHP, foeBefore = f1.curHP;
+    M.battleTurn(S, rngLose,                     // 0.99 -- High Jump Kick is 90, so the die MISSES
+      new Map([[me, M.playerAction(me, 'highjumpkick', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, shield ? { kind: 'protect', mv: shield } : { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    /* the CRASH is paid in both arms (it is an onMoveFail, and a miss is a fail too), so what is
+     * compared is the DIFFERENCE, which can only be the shield's toll. */
+    return { lost: meBefore - me.curHP, dealt: foeBefore - f1.curHP, eighth: Math.floor(me.st.hp / 8),
+             line: (trace.find(l => /^\|-(activate|immune|miss)\|/.test(l)) || '(none)') };
+  };
+  const control = run(null), test = run('spikyshield');
+  return { works: control.dealt === 0 && test.dealt === 0 && /-miss/.test(control.line)
+                  && /move: Protect/.test(test.line) && test.lost - control.lost === test.eighth,
+           arms: { control: control.lost, test: test.lost },
+           detail: 'a 90% move at roll 0.99 — no shield: line ' + control.line + ', user lost '
+                 + control.lost + '; Spiky Shield up: line ' + test.line + ', user lost ' + test.lost
+                 + ' (the difference must be the shield\'s 1/8 = ' + test.eighth + ')' };
+});
+
 /* ARMS DECLARED, 2026-08-06 (#42/#45 part 3), AND THESE TEN WERE PICKED BY A NUMBER RATHER THAN BY
  * EYE. tests/test-medicham-coverage.js weights every tag by the corpus usage of the entities in
  * the 99% set that carry it, and these are the top of that list -- `statusInflict` 585,893,
@@ -3151,6 +3188,44 @@ probe('move', 'punishesContact', 'Spiky Shield hurts the attacker it blocked', (
                  + 'Spiky Shield blocked=' + test.blocked + ' and tolled ' + test.toll };
 });
 
+/* ROADMAP #81 WIRE 1 -- A SHIELD AND A TYPE IMMUNITY ARE DIFFERENT STATES, AND THE SHIELD ANSWERS
+ * FIRST. This is the consequence that does NOT live in the protocol line, so it is asserted on HP.
+ *
+ * Showdown's hit steps (sim/battle-actions.ts:553-576) run TryHit -- where Protect lives, at
+ * `onTryHitPriority: 3` -- as step 1, and the type chart as step 2. medicham2 ran them the other way
+ * round, so a contact move the target happened to be IMMUNE to was reported as a bare `|-immune|` and
+ * the shield never bit. Measured in the authority, both dice pinned:
+ *     Body Slam (Normal, contact) -> Gengar behind Spiky Shield
+ *       |-activate|p2a: Gengar|move: Protect
+ *       |-damage|p1a: Tauros|132/150|[from] Spiky Shield|[of] p2a: Gengar     <- 1/8, on a GHOST
+ *     the same click with the shield down
+ *       |-immune|p2a: Gengar                                                  <- and nothing else
+ *
+ * THE CONTROL IS THE SAME IMMUNE TARGET WITH NO SHIELD. "The attacker lost HP" is also what an engine
+ * that tolls on any blocked-looking outcome prints, and the toll must be exactly the shield's 1/8. */
+probe('move', 'punishesContact', 'a Spiky Shield answers before the type chart, so it tolls a move the body is immune to', () => {
+  const run = (shield) => {
+    const me = bare('tauros'), ally = bare('corviknight');
+    const f1 = bare('gengar'), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    unfaintable(f1);
+    const meBefore = me.curHP, foeBefore = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'bodyslam', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, shield ? { kind: 'protect', mv: shield } : { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { toll: meBefore - me.curHP, dealt: foeBefore - f1.curHP, eighth: Math.floor(me.st.hp / 8),
+             line: (trace.find(l => /^\|-(activate|immune|miss)\|/.test(l)) || '(none)') };
+  };
+  const control = run(null), test = run('spikyshield');
+  return { works: control.dealt === 0 && control.toll === 0 && /-immune/.test(control.line)
+                  && test.dealt === 0 && test.toll === test.eighth && /move: Protect/.test(test.line),
+           arms: { control: control.toll, test: test.toll },
+           detail: 'immune, no shield: line ' + control.line + ', attacker lost ' + control.toll
+                 + ' (must be 0); immune, Spiky Shield up: line ' + test.line + ', attacker lost '
+                 + test.toll + ' (must be ' + test.eighth + ')' };
+});
+
 /* THIS PROBE ASKED dmgRange THE WRONG QUESTION AND WAS REWRITTEN, 2026-08-04.
  *
  * It used to read `dmgRange(Night Slash) > dmgRange(the same move with its id changed)` -- i.e. it
@@ -3704,6 +3779,44 @@ probe('move', 'crashOnMiss', 'High Jump Kick hurts the user when it misses', () 
            arms: { control: control.lost, test: test.lost },
            detail: 'landed (roll 0.5): dealt ' + control.dealt + ', user lost ' + control.lost
                  + ' (must be 0); missed (roll 0.99): dealt ' + test.dealt + ', user lost ' + test.lost };
+});
+
+/* ROADMAP #81 WIRE 1 -- THE CRASH IS AN onMoveFail AND A MISS IS ONLY ONE WAY TO FAIL.
+ *
+ * Showdown fires `singleEvent('MoveFail', ...)` (sim/battle-actions.ts:526) whenever the move result
+ * is falsy, and High Jump Kick's crash is an `onMoveFail` handler (data/moves.ts). A Protect makes
+ * the hit fail, so the crash lands -- measured in the authority, both dice pinned:
+ *     |-activate|p2a: Garchomp|move: Protect
+ *     |-damage|p1a: Hitmonlee|63/125|[from] highjumpkick
+ * This engine paid it only off the accuracy roll, so High Jump Kick (146 sets) into a shield was
+ * free. THE ROLL IS THE WINNING ONE (0.5) IN BOTH ARMS, which is the point of the probe: at a losing
+ * roll the old accuracy-bound crash fires too and an engine with the wire missing would pass.
+ *
+ * THE CONTROL IS THE SAME CLICK AT THE SAME ROLL WITH THE SHIELD DOWN -- it must connect and cost
+ * the user nothing, or "the user lost half its HP" would also be what an engine that crashes on
+ * every High Jump Kick prints. */
+probe('move', 'crashOnMiss', 'High Jump Kick crashes when PROTECT blocks it, not only when it misses', () => {
+  const run = (shielded) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'garchomp', 'garchomp');
+    if (!MC.moves['highjumpkick']) return { dealt: -1, lost: -1, line: 'NO-MOVE' };
+    unfaintable(f1);
+    const trace = [];
+    S._trace = trace;
+    const before = me.curHP, foeBefore = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'highjumpkick', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, shielded ? { kind: 'protect', mv: 'protect' } : { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { dealt: foeBefore - f1.curHP, lost: before - me.curHP, half: Math.floor(me.st.hp / 2),
+             line: (trace.find(l => /^\|-(activate|immune|miss)\|/.test(l)) || '(no block line)') };
+  };
+  const control = run(false), test = run(true);
+  const half = test.half;
+  return { works: control.dealt > 0 && control.lost === 0
+                  && test.dealt === 0 && test.lost === half && /move: Protect/.test(test.line),
+           arms: { control: control.lost, test: test.lost },
+           detail: 'shield down: dealt ' + control.dealt + ', user lost ' + control.lost + ' (must be 0); '
+                 + 'shield up: dealt ' + test.dealt + ', user lost ' + test.lost + ' (must be ' + half
+                 + ') and the block line was ' + test.line };
 });
 
 probe('move', 'userFaints', 'Explosion faints its user', () => {

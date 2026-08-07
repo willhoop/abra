@@ -1,65 +1,51 @@
 {
   "generated": "auto from data/games.ladder.jsonl",
-  "n_team_sides": 16784,
-  "n_games": 8392,
+  "n_team_sides": 17218,
+  "n_games": 8609,
   "unit_note": "The clustering runs on TEAM SIDES, up to two per game. n_team_sides is the sample size for every share and silhouette below; n_games is the number of clean games they were drawn from.",
-  "k_selected": 9,
-  "silhouette": 0.121,
+  "k_selected": 10,
+  "silhouette": 0.12,
   "note": "Archetypes are DISCOVERED from live ladder teams, not hand-listed. Re-run engine/archetypes.py to refresh as the meta shifts; K (how many distinct archetypes exist) is chosen from the data, so new ones appear and faded ones drop below the 3% floor automatically.",
   "archetypes": [
     {
-      "n": "Sneasler-Raichu",
-      "share": 0.267,
+      "n": "Talonflame-Aerodactyl",
+      "share": 0.253,
       "core": [
-        "sneasler",
-        "raichu",
+        "talonflame",
         "aerodactyl",
-        "sableye"
+        "sableye",
+        "grimmsnarl"
       ],
       "signature": [],
-      "w_usage": 0.267
+      "w_usage": 0.253
     },
     {
       "n": "Whimsicott-Garchomp",
-      "share": 0.137,
+      "share": 0.116,
       "core": [
         "whimsicott",
         "garchomp",
-        "kingambit",
-        "basculegion"
+        "staraptor",
+        "kingambit"
       ],
       "signature": [],
-      "w_usage": 0.137
+      "w_usage": 0.116
     },
     {
-      "n": "Garchomp-Charizard",
-      "share": 0.132,
+      "n": "Farigiraf-Kingambit",
+      "share": 0.1,
       "core": [
-        "garchomp",
-        "charizard",
+        "farigiraf",
         "kingambit",
-        "incineroar"
-      ],
-      "signature": [
-        "sylveon"
-      ],
-      "w_usage": 0.132
-    },
-    {
-      "n": "Incineroar-Sinistcha",
-      "share": 0.101,
-      "core": [
-        "incineroar",
-        "sinistcha",
-        "sneasler",
-        "delphox"
+        "sylveon",
+        "staraptor"
       ],
       "signature": [],
-      "w_usage": 0.101
+      "w_usage": 0.1
     },
     {
       "n": "Rain",
-      "share": 0.097,
+      "share": 0.095,
       "core": [
         "pelipper",
         "archaludon",
@@ -67,23 +53,61 @@
         "basculegion"
       ],
       "signature": [],
-      "w_usage": 0.097
+      "w_usage": 0.095
     },
     {
-      "n": "Farigiraf-Kingambit",
+      "n": "Incineroar-Gengar",
       "share": 0.092,
       "core": [
-        "farigiraf",
-        "kingambit",
-        "staraptor",
-        "sylveon"
+        "incineroar",
+        "gengar",
+        "politoed",
+        "archaludon"
       ],
       "signature": [],
       "w_usage": 0.092
     },
     {
+      "n": "Kingambit-Basculegion",
+      "share": 0.083,
+      "core": [
+        "kingambit",
+        "basculegion",
+        "sneasler",
+        "froslass"
+      ],
+      "signature": [],
+      "w_usage": 0.083
+    },
+    {
+      "n": "Charizard-Garchomp",
+      "share": 0.078,
+      "core": [
+        "charizard",
+        "garchomp",
+        "sylveon",
+        "kingambit"
+      ],
+      "signature": [
+        "basculegion"
+      ],
+      "w_usage": 0.078
+    },
+    {
+      "n": "Sinistcha-Incineroar",
+      "share": 0.072,
+      "core": [
+        "sinistcha",
+        "incineroar",
+        "sneasler",
+        "delphox"
+      ],
+      "signature": [],
+      "w_usage": 0.072
+    },
+    {
       "n": "Sand",
-      "share": 0.064,
+      "share": 0.061,
       "core": [
         "tyranitar",
         "excadrill",
@@ -91,23 +115,11 @@
         "sinistcha"
       ],
       "signature": [],
-      "w_usage": 0.064
-    },
-    {
-      "n": "Gengar-Incineroar",
-      "share": 0.055,
-      "core": [
-        "gengar",
-        "incineroar",
-        "politoed",
-        "archaludon"
-      ],
-      "signature": [],
-      "w_usage": 0.055
+      "w_usage": 0.061
     },
     {
       "n": "Trick Room",
-      "share": 0.054,
+      "share": 0.051,
       "core": [
         "torkoal",
         "farigiraf",
@@ -115,7 +127,7 @@
         "vileplume"
       ],
       "signature": [],
-      "w_usage": 0.054
+      "w_usage": 0.051
     }
   ]
 }

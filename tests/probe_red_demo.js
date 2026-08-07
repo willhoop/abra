@@ -2008,5 +2008,104 @@ demoSource('ROADMAP #31  the second stone-holder on a side is refused',
     return a0.name === 'gengar-mega' && a1.name === 'mawile';
   });
 
+/* ================= ROADMAP #81 WIRE 1 - A PROTECT BLOCK IS NOT A TYPE IMMUNITY ====================
+ *
+ * Three probes landed in tests/test-mechanics.js and each gets its OWN breakage, aimed at the site it
+ * names. A single "delete the wire" revert would red all three and would only prove the wire exists.
+ *
+ * Every case below spends a real turn and reads HP, never a protocol line, because the whole finding
+ * is that end-state and protocol disagreed: `tests/test-game-diff.js` agreed on all five scripted
+ * games while the trace parted, and a probe that watches only the string would have inherited that.
+ *
+ * These are demoSource cases: `crashOnMiss` and `punishesContact` are both CONSUMED already, so
+ * stripping either tag reds the pre-existing probes as well and proves nothing about the ORDER, which
+ * is what this wire changed. */
+const WIRE81 = {
+  board(E, meSp, foeSp) {
+    const me = E.buildMon(meSp, {}), ally = E.buildMon('corviknight', {});
+    const f1 = E.buildMon(foeSp, {}), f2 = E.buildMon('garchomp', {});
+    for (const b of [me, ally, f1, f2]) { b.item = ''; b.ability = 'none'; }
+    const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+    f1.st = Object.assign({}, f1.st, { hp: 9999 }); f1.curHP = 9999;   // the foe cannot faint
+    return { me, ally, f1, f2, S };
+  },
+  /* returns [what the ATTACKER lost, what the FOE lost] */
+  click(E, meSp, foeSp, mv, shield, roll) {
+    const { me, ally, f1, f2, S } = WIRE81.board(E, meSp, foeSp);
+    const a = f1.curHP, b = me.curHP;
+    E.battleTurn(S, () => roll,
+      new Map([[me, E.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, shield ? { kind: 'protect', mv: shield } : { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return [b - me.curHP, a - f1.curHP];
+  },
+};
+
+/* 1. THE CRASH IS AN onMoveFail. The broken engine keeps the whole reordering and pays the crash ONLY
+ *    off the accuracy roll, which is exactly what shipped until today. The control arm - the same
+ *    click at the same WINNING roll with the shield down - must connect and cost nothing on BOTH
+ *    engines, or this would be watching "High Jump Kick hurts its user" rather than "it hurts its
+ *    user when a shield stops it". */
+demoSource('ROADMAP #81  a blocked High Jump Kick still pays its crash',
+  [['      if(_hadTargets&&!targets.length){_crashOnFail();continue;}',
+    '      if(_hadTargets&&!targets.length){continue;}'],
+   ['      if(_hadTargets&&!_reached)_crashOnFail();',
+    '      if(_hadTargets&&!_reached)void 0;']],
+  (E) => {
+    const blocked = WIRE81.click(E, 'incineroar', 'garchomp', 'highjumpkick', 'protect', 0.5);
+    const open    = WIRE81.click(E, 'incineroar', 'garchomp', 'highjumpkick', null, 0.5);
+    return blocked[1] === 0 && blocked[0] > 0 && open[1] > 0 && open[0] === 0;
+  });
+
+/* 2. THE SAME RULE ON THE IMMUNITY SIDE, and it needs its own breakage because the site is a
+ *    different one - the post-loop test rather than the pre-loop one. High Jump Kick into a GHOST.
+ *    The control is the identical click into a body that is NOT immune: it must land and cost
+ *    nothing, so "the user lost half its HP" cannot come from a blanket crash. */
+demoSource('ROADMAP #81  a High Jump Kick that hits nothing but a type immunity pays its crash',
+  [['      if(_hadTargets&&!_reached)_crashOnFail();',
+    '      if(_hadTargets&&!_reached)void 0;']],
+  (E) => {
+    const ghost = WIRE81.click(E, 'incineroar', 'gengar', 'highjumpkick', null, 0.5);
+    const open  = WIRE81.click(E, 'incineroar', 'garchomp', 'highjumpkick', null, 0.5);
+    return ghost[1] === 0 && ghost[0] > 0 && open[1] > 0 && open[0] === 0;
+  });
+
+/* 3. THE SHIELD ANSWERS BEFORE THE TYPE CHART. The broken engine restores the OLD gate order for
+ *    exactly this case - a type-immune target falls straight through the shield to the damage loop's
+ *    immunity gate - which is what medicham2 did until today and is why Supercell Slam into a
+ *    Protecting Garchomp printed a bare `|-immune|`. Read as a TOLL (Spiky Shield's 1/8), not as a
+ *    line, and the control is the same immune body with no shield up: it must toll nothing on both
+ *    engines. */
+demoSource('ROADMAP #81  a Spiky Shield tolls a contact move its holder is immune to',
+  [[`          if(!(tg.protect&&!_thruProtect&&!(m.ability==='piercingdrill'&&mv.c==='P'))){_through.push(tg);continue;}`,
+    `          if(!(tg.protect&&!_thruProtect&&!(m.ability==='piercingdrill'&&mv.c==='P'))||typeEffAgainst(m,tg,mv,effMoveType(mv,a.move.id,field,m))===0){_through.push(tg);continue;}`]],
+  (E) => {
+    const shielded = WIRE81.click(E, 'tauros', 'gengar', 'bodyslam', 'spikyshield', 0.5);
+    const open     = WIRE81.click(E, 'tauros', 'gengar', 'bodyslam', null, 0.5);
+    return shielded[1] === 0 && shielded[0] > 0 && open[1] === 0 && open[0] === 0;
+  });
+
+/* 4. THE SHIELD ANSWERS BEFORE THE ACCURACY ROLL. The broken engine puts the roll back in front of
+ *    the shield, which is the literal historical defect: a 90%-accuracy move at a losing die printed
+ *    `|-miss|` where Showdown prints `|-activate|move: Protect`. Read as the DIFFERENCE in what the
+ *    attacker lost, because the crash is paid on both arms and only the shield's 1/8 separates them.
+ *    The reversal is written as a hoist rather than a deletion so the broken engine is still a
+ *    complete, running engine - it simply asks the two questions in the wrong order. */
+demoSource('ROADMAP #81  a shield blocks a move whose accuracy die missed',
+  [['      if(targets.length){\n        const _through=[];',
+    '      if(_mvAccEARLY(m,a,field,targets,unresolved)){for(const _x of targets)void _x;targets=[];}\n      if(targets.length){\n        const _through=[];'],
+   ['const TRACE=(function(){',
+    `function _mvAccEARLY(m,a,field,targets,unresolved){
+  const _d=(!a.move.spread&&targets.length===1)?targets[0]:null;
+  const _a=hitChance(m,_d,a.move.id,field,{targetAlreadyMoved:!!(_d&&!unresolved.has(_d))});
+  return _a<100 && 0.99*100>_a;
+}
+const TRACE=(function(){`]],
+  (E) => {
+    const shielded = WIRE81.click(E, 'incineroar', 'garchomp', 'highjumpkick', 'spikyshield', 0.99);
+    const open     = WIRE81.click(E, 'incineroar', 'garchomp', 'highjumpkick', null, 0.99);
+    const eighth = Math.floor(E.buildMon('incineroar', {}).st.hp / 8);
+    return open[1] === 0 && shielded[1] === 0 && shielded[0] - open[0] === eighth;
+  });
+
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);
 if (failures) { console.log('  A green-and-stripped pair that did not flip means the probe does NOT watch its knob.'); process.exit(1); }
