@@ -10,6 +10,44 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.60.1] — 2026-08-06
+
+### Fixed
+- **THE AUTO-COMMIT IS DEAD AND `CLAUDE.md` DESCRIBED IT IN THE PRESENT TENSE FOR TWELVE DAYS.**
+  Will: *"WHY DO WE STILL HAVE AN AUTO COMMIT"* — we do not. It was real: **513 `auto: <date>` commits
+  between 2026-07-22 and 2026-07-25, the last at 16:51 on the 25th.** Nothing has fired since. Measured:
+  no scheduled task matches commit/push/git, `.git/hooks` holds only `.sample` files, and the working
+  tree sat modified for over an hour on 2026-08-06 without an unattended commit — a natural experiment
+  a ~2-minute timer could not have survived. CHANGELOG 2.8.1 was right that `push-all.bat` was not the
+  source; it writes `manual push …`.
+- **A pre-commit hook on the living-docs rule, whose stated blocker no longer existed.** `CLAUDE.md`
+  said *"No pre-commit hook enforces this, deliberately… a blocking hook would collide with the
+  auto-commit timer."* `.githooks/pre-commit` now runs the docs-currency and roadmap-register gates
+  (~2s) on any commit touching `docs/`, `engine/`, `tests/`, `web/` or top-level markdown. It skips
+  mid-rebase — this repository has reached a detached HEAD 43 commits into a 45-commit rebase, and a
+  hook that blocks a replay turns a recoverable rebase into a wedged one — and skips data-only
+  commits, because demanding a version bump for an artifact regeneration trains everyone to pass
+  `--no-verify`.
+
+### Notes
+- **THE HOOK WAS SHOWN RED BEFORE IT WAS TRUSTED**, per the arming rule that governs every probe here.
+  A deliberate break — bump the CHANGELOG, leave the nine version-headed documents behind — was
+  BLOCKED, and `HEAD` was verified unmoved. The skip path was proved separately: a data-only commit
+  landed without the gate running. A hook that has never been demonstrated failing is the same thing
+  as no hook.
+- **THE COST OF THE STALE RULE WAS NOT ZERO, WHICH IS THE POINT.** On 2026-08-06 a session committed
+  early *specifically* to avoid a partial auto-push — a real decision taken against a hazard twelve
+  days dead. And the rule the missing hook was protecting broke the same evening: commit `f60b01c`
+  stamped `3.60.0` in its message with no CHANGELOG entry, written by the session that had just quoted
+  the rule, and caught only because a test happened to run afterwards.
+- **The hook does not replace the sentence.** The original failure was NORMALISATION — a red gate
+  reported as *"one of the two known failures"* for two days — and no hook catches a report. *Say the
+  test is red and what you are doing about it, or fix it. Never file it.* Same shape as the fourteen
+  stale handoffs and the hand-maintained ban list of four: an observation written as prose and kept
+  past the thing it described.
+
+---
+
 ## [3.60.0] — 2026-08-06
 
 ### Added

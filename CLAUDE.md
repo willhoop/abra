@@ -72,7 +72,7 @@ Three agents can touch these files. Only one may touch git.
 |---|---|---|
 | **Claude Code** (runs on the machine, has the credentials) | yes | **yes — only this one** |
 | **Cowork** (isolated VM, no git credentials, `push` cannot authenticate) | no — it has no real store | **never** |
-| **The workspace auto-commit** (fires ~2 min after a file changes, commits AND pushes) | n/a | it will anyway — see below |
+| ~~**The workspace auto-commit**~~ — **DEAD since 2026-07-25 16:51. See below before reasoning from it.** | n/a | no longer fires |
 
 **Cowork proposes; Claude Code applies and pushes.** Cowork must not run a git command at all. Not a
 trust judgement — its shell cannot authenticate a push, so it fails partway and leaves state behind.
@@ -155,10 +155,25 @@ self-declared `void: true`. A stamped release is the first thing in this repo th
 rather than assumed; the count of artifacts still resting on mtime alone is printed on every run and
 is ratcheted downward in `data/provenance-stamp.json`.
 
-**The auto-commit is the real collision risk, not Cowork.** It is an unattended publisher that pushes
-on a timer (confirmed in CHANGELOG 2.8.1 — an earlier diagnosis blaming a `push-all.bat` timer was
-wrong and was retracted). An auto-commit landing while a rebase is half-finished is what wedges the
-repository. Therefore:
+**THE AUTO-COMMIT IS DEAD, AND THIS PARAGRAPH DESCRIBED IT IN THE PRESENT TENSE FOR TWELVE DAYS.**
+(Will, 2026-08-06: *"WHY DO WE STILL HAVE AN AUTO COMMIT"* — we do not.) It was real: **513 `auto: <date>`
+commits between 2026-07-22 and 2026-07-25, the last at 16:51 on the 25th**, and CHANGELOG 2.8.1 was
+right that `push-all.bat` was not the source (it writes `manual push …`). **Nothing has fired since.**
+Measured 2026-08-06: no scheduled task matches commit/push/git, `.git/hooks` holds only `.sample`
+files, and this working tree sat modified for over an hour that evening without a single unattended
+commit — a natural experiment a ~2-minute timer could not have survived.
+
+**THE COST OF LEAVING IT IN THE PRESENT TENSE WAS NOT ZERO.** On 2026-08-06 a session committed early
+*specifically* to avoid a partial auto-push — a real decision taken against a hazard that had not
+existed for twelve days. Worse, this paragraph was the stated reason there was **no pre-commit hook on
+the living-docs rule**, and that rule broke that same evening: commit `f60b01c` stamped `3.60.0` in its
+message with no CHANGELOG entry, written by the session that had just quoted the rule. **A hook now
+exists** (`.githooks/pre-commit`, armed with `git config core.hooksPath .githooks`); it skips during a
+rebase and on data-only commits, and it has been shown RED on a deliberate break before being trusted.
+
+This is the same shape as the fourteen stale handoffs and the hand-maintained ban list of four: **an
+observation written down as prose, kept past the thing it described.** What follows still stands on its
+own merits — a half-finished rebase is dangerous whoever interrupts it:
 
 - **Before any git work, `git status` must be clean AND no rebase may be in progress.** Check first,
   every time. If a rebase is in progress, FINISH it (`git rebase --continue`) — do not `git checkout`
@@ -329,10 +344,16 @@ This is the same lesson as `engine/artifact_audit.js`: **a check nobody acts on 
 new gate was registered on 2026-07-30 to prevent silent regression while an existing gate sat red
 beside it.
 
-No pre-commit hook enforces this, deliberately. The failure was normalisation, not invisibility, and
-a blocking hook would collide with the auto-commit timer described at the top of this file — the
-exact hazard that section exists to prevent. The enforcement is this sentence: **say the test is red
-and what you are doing about it, or fix it. Never file it.**
+~~No pre-commit hook enforces this, deliberately.~~ **REVERSED 2026-08-06.** The stated reason — that
+a blocking hook would collide with the auto-commit timer — rested on a timer that had not fired since
+2026-07-25. `.githooks/pre-commit` now runs the docs-currency and roadmap-register gates (~2s) on any
+commit touching `docs/`, `engine/`, `tests/`, `web/` or the top-level markdown; it skips mid-rebase and
+on data-only commits, and it was demonstrated RED on a deliberate break before being armed.
+
+**The hook does not replace the sentence, because a hook cannot read a report.** The original failure
+was normalisation — a red gate reported as "one of the two known failures" for two days — and no hook
+catches that. So this still governs: **say the test is red and what you are doing about it, or fix it.
+Never file it.** And do not pass `--no-verify`; if the gate is wrong, fix the gate and say so.
 
 ## Living docs — update these EVERY change (do not let them drift)
 Any change to a model, a result, or the site updates ALL of the following in the **same pass**, each

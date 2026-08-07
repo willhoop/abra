@@ -1,0 +1,72 @@
+#!/bin/sh
+# pre-commit — the living-docs rule, enforced instead of remembered.
+#
+# WHY THIS EXISTS, AND WHY IT DID NOT UNTIL 2026-08-06.
+# CLAUDE.md said, for months: "No pre-commit hook enforces this, deliberately. The failure was
+# normalisation, not invisibility, and a blocking hook would collide with the auto-commit timer."
+# THE AUTO-COMMIT TIMER IS DEAD. 513 `auto: <date>` commits ran between 2026-07-22 and 2026-07-25,
+# the last at 16:51 on the 25th, and nothing has fired since -- no scheduled task matches
+# commit/push/git, .git/hooks holds only samples, and this working tree sat modified for over an hour
+# on 2026-08-06 without a single unattended commit. The stated blocker no longer exists.
+#
+# And the rule it was protecting broke that same evening: commit f60b01c stamped "3.60.0" in its
+# message and wrote no CHANGELOG entry, in the same session whose author had just quoted the rule.
+# It was caught only because a test happened to be run afterwards. That is the definition of a rule
+# that needs a gate rather than a reader.
+#
+# INSTALL (once, per clone):  git config core.hooksPath .githooks
+# The hook lives in the repo so it travels; core.hooksPath is what arms it.
+
+# NEVER FIRE MID-REBASE. CLAUDE.md documents this repository reaching a detached HEAD 43 commits into
+# a 45-commit rebase. A hook that blocks a replay step turns a recoverable rebase into a wedged one,
+# and the replayed commits were already reviewed when they were first made.
+if [ -d "$(git rev-parse --git-dir)/rebase-merge" ] || [ -d "$(git rev-parse --git-dir)/rebase-apply" ]; then
+  echo "pre-commit: rebase in progress — skipping (replayed commits were checked when first made)"
+  exit 0
+fi
+
+# SCOPE. A pure artifact regeneration is not a documentation event -- data/*.json moves every time a
+# generator runs, and demanding a version bump for that would train everyone to pass --no-verify,
+# which is worse than no hook. Fire only when something a reader could read has changed.
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR)
+echo "$STAGED" | grep -qE '^(docs/|engine/|tests/|web/|CHANGELOG\.md|README\.md|CLAUDE\.md)' || {
+  exit 0
+}
+
+echo "pre-commit: living-docs gate (~2s)"
+FAILED=0
+
+for t in tests/test-docs-current.js tests/test-roadmap-register.js; do
+  [ -f "$t" ] || continue
+  if ! OUT=$(node "$t" 2>&1); then
+    echo ""
+    echo "  BLOCKED by $t"
+    echo "$OUT" | grep -iE 'FAIL|undeclared|stale|untraceable' | head -12 | sed 's/^/    /'
+    FAILED=1
+  fi
+done
+
+if [ "$FAILED" -ne 0 ]; then
+  cat <<'MSG'
+
+  ------------------------------------------------------------------
+  The living-docs rule: a change to a model, a result or the site moves
+  the white paper, the deck, the technical docs, SUMMARY, MODELS, the
+  division ledger, and CHANGELOG.md -- IN THE SAME PASS, with a version
+  bump. Not later, not "next commit".
+
+  Usually one of:
+    - CHANGELOG.md bumped, but a version-headed document still trails
+    - a figure added that no artifact backs (generate it, cite it, or cut it)
+    - a ROADMAP item cited that section 5 does not register
+
+  DO NOT PASS --no-verify. This hook exists because the rule was broken
+  by the person quoting it, in the session that quoted it. If the gate is
+  wrong, fix the gate and say so in the commit; do not step around it.
+  ------------------------------------------------------------------
+MSG
+  exit 1
+fi
+
+echo "pre-commit: green"
+exit 0

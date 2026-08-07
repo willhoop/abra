@@ -1,6 +1,6 @@
 # Glossary — the field's vocabulary, and which of it we may honestly claim
 
-**Version 3.60.0 · Last updated 2026-08-06**
+**Version 3.60.1 · Last updated 2026-08-06**
 
 Will, 2026-08-06: *"INCORPORATE THIS FANCY TERMINOLOGY IN OUR DOCUMENTS SO WE KNOW TO USE IT IN OUR
 PAPER."*
