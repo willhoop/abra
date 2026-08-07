@@ -1,15 +1,21 @@
 # The whole-game differential — design, and the research it is taken from
 
-**Version 3.60.1 · Last updated 2026-08-06**
+**Version 3.61.0 · Last updated 2026-08-06**
 
-**THE DIFFERENTIAL HAS RUN (3.60.1).** `engine/game_differential.js` plays a real stored team through
-MEDICHAM and through the official Showdown engine, step for step. First measured result, against a
-stamped frozen release (`9491abe09f54`, showdown `20ad99ffc9a5`): **159 of 160 games diverge**, and
-the median game parts after **one completed turn**. Seven proved equivalence rules collapsed 4,627
-lines of protocol-shape difference first, and **the rate barely moved** from the un-normalised 160/160
-— the shape noise was hiding real classes rather than inflating a small number. Two limits travel with
-that figure and must never be quoted without it: **nothing past turn 1 is tested**, and **zero mega
-bodies were tested** (460 stone sets stripped; mega usage in this format is ~26%).
+**THE DIFFERENTIAL HAS RUN, AND MEGAS ARE IN IT (3.61.0).** `engine/game_differential.js` plays a real
+stored team through MEDICHAM and through the official Showdown engine, step for step, against a stamped
+frozen release. **Read every figure from `data/game-differential.json`, never from this sentence** — the
+first version of this paragraph quoted a run that a later one replaced within the day, which is the
+drift this whole document set keeps having to correct.
+
+At the time of writing it reports every measured game diverging, with the median parting after a single
+completed turn. **Mega bodies are now tested** (ROADMAP #31): no stone is stripped from the measured arm,
+and every mega choice Showdown offered was taken by both engines.
+
+**Two limits travel with any rate this instrument prints and must never be separated from it.** Nothing
+past the first turn is exercised, because a game stops at its first divergence. And both sides are built
+Serious / 0 EVs / 31 IVs so the two engines compute the same stat line before *and* after a forme change
+— **this tests RULES, not the spreads the ladder actually brings.**
 
 **ROADMAP #68.** Written 2026-08-06 from Will's specification: *"we would want to play n games with
 like a thousand different teams to really test every single mechanic in the game"*, under his bar:
@@ -218,7 +224,7 @@ is `data/diff-swarm.json`. **The two are different denominators and must not be 
 mistake was made and corrected on 2026-08-06 when `tags.json` counts were quoted against
 `tests/regulation_usage.js` counts, which disagree by up to 13× (ROADMAP #70).
 
-**Re-derived 2026-08-06 (3.60.1) from the current `data/tags.json`** (`sheet_entries` 119,616). The
+**Re-derived 2026-08-06 (3.61.0) from the current `data/tags.json`** (`sheet_entries` 119,616). The
 column below used to hold a stale snapshot and `tests/test-docs-current.js` could only see two cells
 of it — Trick Room and Wide Guard, whose old values 7,423 and 3,353 appear in no artifact. **The other
 thirteen passed by coincidence**: 74,245, 13,292, 424 and 76 all happen to occur in unrelated files
@@ -477,8 +483,11 @@ module-level sink that is null unless a caller asked for one).
 
 The event list is **derived, not typed** — `engine/derive_protocol_events.js` reads Showdown's own
 `add()` call sites and writes `data/protocol-events.json`, whose `showdownEvents`, `emittedCount`,
-`notEmittedCount` and `partialCount` read **91 / 36 / 58 / 10** — every non-emitted event carries a
-written reason. Two gates fail the run:
+`notEmittedCount` and `partialCount` read **91 / 38 / 56 / 10** — every non-emitted event carries a
+written reason. *(Those four move. `-mega` and `detailschange` were on the declared-not-emitted list
+with the reason "mega evolution happens before `battleInit`, so there is no in-battle event to emit",
+and they moved into `TRACE_EVENTS` on 2026-08-07 when mega evolution became a mid-turn choice — read
+the counts from the artifact, never from this sentence.)* Two gates fail the run:
 an INVENTED event (claimed and never emitted upstream) and an UNDECLARED one (emitted upstream and
 neither emitted nor explained here).
 

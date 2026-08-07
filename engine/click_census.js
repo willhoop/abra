@@ -67,7 +67,15 @@ const SOURCES = ['engine/click_class.js', 'engine/click_match.js', 'engine/fit_p
 const norm = B.norm, base = B.baseSpecies;
 const LIMIT = (() => { const a = process.argv.find(s => s.startsWith('--games=')); return a ? +a.slice(8) : 0; })();
 
-const { games: allGames } = FP.loadCorpus();
+/* SCOPE IS EXPLICIT BECAUSE INHERITING IT IS THE BUG. This census's whole point is that it reads
+ * EVERY stored game while the fit reads only the open-sheet slice -- docs/MODELS.md says so in
+ * words. On 2026-08-06 a change to loadCorpus's DEFAULT (ROADMAP #65) silently narrowed this from
+ * 9,230 games to 6,675, and nothing failed: the census ran, wrote a smaller artifact, and the
+ * documents quoting the old figures went stale. Caught only by test-docs-current, and only because
+ * a doc happened to cite a number the new artifact no longer contained. THIS IS ROADMAP #73 --
+ * make the scope required at all 46 call sites -- arriving as a live regression rather than a
+ * hypothetical. */
+const { games: allGames } = FP.loadCorpus({ scope: 'all' });
 const games = LIMIT ? allGames.slice(0, LIMIT) : allGames;
 console.log(`CLICK CENSORING CENSUS — ${games.length.toLocaleString()} clean open-sheet games` +
   (LIMIT ? ` (of ${allGames.length.toLocaleString()}; --games=${LIMIT})` : '') + '\n');

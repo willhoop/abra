@@ -394,6 +394,196 @@ probe('ability', 'megaSheetAbility', "a sheet's pre-mega ability does not overri
                  + `same body with no ability ${off}` };
 });
 
+/* ================= ROADMAP #31 — MEGA EVOLUTION IS A CHOICE, MADE MID-TURN ========================
+ *
+ * The four probes above all describe a mega that was ALREADY EVOLVED before the battle started, which
+ * is what this engine did: buildMonFromSet resolved "Gengar @ Gengarite" straight to the mega row, and
+ * buildMon handed a base-forme Gengar the MEGA's ability while leaving it the BASE's stats. Showdown
+ * evolves on a CHOICE, at order 104 inside the turn. That difference parted the two protocol streams
+ * on line one of every game carrying a stone, and engine/game_differential.js had to strip 460 sets to
+ * run at all.
+ *
+ * WHAT EACH OF THE SIX BELOW WOULD MISS IF IT WERE THE ONLY ONE, which is why there are six:
+ *   - built-base-then-evolves: the timing. Passes on an engine that megas at build if you only look
+ *     at the end state, so BOTH ends are read.
+ *   - the OVERWRITE: an engine that never touches the ability after a Skill Swap looks identical to a
+ *     correct one on the 8 megas whose ability does not change. Asserted as EQUALITY to the mega
+ *     forme's ability, never as "it changed".
+ *   - either slot: mega has already passed an at-least-one check in this project at 56% of sides,
+ *     because the base class could only evolve from the LEFT slot.
+ *   - the new SPEED: an engine that evolves after the turn order is frozen is right about everything
+ *     except who moved, which surfaces later as unattributable noise.
+ *   - the entry ability: WIRE 123 was entry abilities resolving in the wrong order, so this path has
+ *     history.
+ *   - one per side: the format's strictest rule, and the one an auto-mega policy would break silently.
+ */
+
+/* A NOTE ON WHY THIS USES SKILL SWAP AND NOT WORRY SEED. The acceptance case Will named is "Worry Seed
+ * a Tyranitar to Insomnia, then mega it". MEASURED FIRST: `worryseed` carries only `moveClass` and
+ * `statusCategory` in data/tags.json — no ability-writing tag — so this engine does not implement it
+ * and the move is inert. Writing the probe around it would have produced a green result proving
+ * nothing, because the control and the test would both start from Sand Stream. Skill Swap is the same
+ * mechanism (it WRITES the body's ability from outside) and is wired, so it is the honest instrument.
+ * That Worry Seed is unimplemented is reported as a finding, not hidden inside a passing probe. */
+probe('ability', 'megaAbilityOverwrite', 'a mega OVERWRITES whatever ability the body has, and the new one fires', () => {
+  const run = (mega) => {
+    const me = M.buildMon('tyranitar', {}); me.item = 'tyranitarite';
+    const ally = bare('clefable'), f1 = bare('garchomp'), f2 = bare('milotic');
+    f1.ability = 'roughskin';
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, autoMega: false });
+    /* TURN 1 — the foe writes a DIFFERENT ability onto the body. Skill Swap exchanges, so the
+     * Tyranitar ends the turn holding Rough Skin and no longer sets any weather at all. */
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'skillswap', me, S.field)], [f2, { kind: 'pass' }]]));
+    const swapped = me.ability;
+    /* A DIFFERENT WEATHER IS PUT UP IN BETWEEN, so "the sandstorm returned" cannot be satisfied by a
+     * sandstorm that was simply never cleared. Showdown's setWeather refuses to re-set the weather
+     * already standing, so starting from sand would make the strongest half of this probe untestable. */
+    S.field.weather = M.weatherId('rain'); S.field.weatherT = 5;
+    const act = M.playerAction(me, 'rockslide', f1, S.field); if (mega) act.mega = true;
+    M.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return [swapped, me.name, me.ability, S.field.weather];
+  };
+  const control = run(false), test = run(true);
+  /* EQUALITY AGAINST THE MEGA ROW'S OWN ABILITY, never "it is different from what it was". 8 of the
+   * 74 megas in this format keep their base slot-0 ability (Tyranitar-Mega is one of them), so an
+   * inequality assertion would fail on a correct engine. */
+  const want = String((MC.mons['tyranitar-mega'] || {}).ab || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  return { works: control[0] === 'roughskin' && control[2] === 'roughskin' && control[3] === 'rain'
+                  && test[0] === 'roughskin' && test[1] === 'tyranitar-mega'
+                  && test[2] === want && test[3] === 'sand',
+           arms: { control, test },
+           detail: `[ability after Skill Swap, forme, ability, weather] — no mega ${control} (it keeps `
+                 + `the swapped ability and the rain stands); mega ${test} (the ability EQUALS the mega `
+                 + `row's ${JSON.stringify(want)} and the Sand Stream re-set the sky over the rain)` };
+});
+
+probe('item', 'megaStone', 'a stone-holder is built as its BASE forme and evolves on a CHOICE, mid-turn', () => {
+  const run = (mega) => {
+    /* THE STONE IS THE ONLY VARIED THING IN THE BUILD and it is the row's own item, so the control
+     * arm is the SAME body that simply is never told to evolve — not a different Pokemon. */
+    const me = M.buildMon('gengar', {}); me.item = 'gengarite';
+    const ally = bare('clefable'), f1 = bare('garchomp'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, autoMega: false });
+    const built = [me.name, me.ability, me.st.sa];
+    unfaintable(f1);
+    const act = M.playerAction(me, 'shadowball', f1, S.field); if (mega) act.mega = true;
+    const before = f1.curHP;
+    M.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { built, after: [me.name, me.ability, me.st.sa], dealt: before - f1.curHP };
+  };
+  const control = run(false), test = run(true);
+  /* THE BUILD IS ASSERTED AS WELL AS THE END STATE. An engine that megas at BUILD time reaches the
+   * same `after` on the test arm and fails here, which is the whole point of the change. */
+  return { works: String(control.built) === 'gengar,cursedbody,200'
+                  && String(control.after) === 'gengar,cursedbody,200'
+                  && test.after[0] === 'gengar-mega' && test.after[1] === 'shadowtag'
+                  && test.after[2] > control.after[2] && test.dealt > control.dealt,
+           arms: { control: [control.built, control.after, control.dealt],
+                   test: [test.built, test.after, test.dealt] },
+           detail: `[forme, ability, SpA] as BUILT ${control.built} (base forme, base ability, holding `
+                 + `the stone); never told to mega ${control.after} dealing ${control.dealt}; told to `
+                 + `mega ${test.after} dealing ${test.dealt}` };
+});
+
+probe('item', 'megaStone', 'mega evolution fires from EITHER active slot', () => {
+  const run = (slot) => {
+    const me = M.buildMon('gengar', {}); me.item = 'gengarite';
+    const ally = bare('clefable');
+    const A = slot === 0 ? [me, ally] : [ally, me];
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    const S = M.battleInit(A, [f1, f2], { seeded: true, autoMega: false });
+    unfaintable(f1);
+    const act = M.playerAction(me, 'shadowball', f1, S.field); act.mega = true;
+    M.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return [slot, me.name, me.ability];
+  };
+  const control = run(0), test = run(1);
+  return { works: control[1] === 'gengar-mega' && test[1] === 'gengar-mega'
+                  && control[2] === 'shadowtag' && test[2] === 'shadowtag',
+           arms: { control, test },
+           detail: `[slot, forme, ability] — LEFT slot ${control}; RIGHT slot ${test}. The last mega `
+                 + `defect in this project passed an at-least-one check while firing on 56% of sides, `
+                 + `because the base class could only evolve from the left slot` };
+});
+
+probe('item', 'megaStone', "the mega's NEW Speed governs that turn's move order", () => {
+  /* THE OUTCOME IS WHO GOT THERE FIRST, read the way tests/test-mechanics.js's Choice Scarf probe
+   * reads it: the foe is left on 1 HP, so if the mega really out-sped it the foe never acts and deals
+   * nothing back. Gengar 110 base Speed becomes 130, and the explicit stat block puts the foe exactly
+   * between the two — 100 before, 120 after, against a foe on 110. */
+  const run = (mega) => {
+    const me = M.buildMon('gengar', {}); me.item = 'gengarite';
+    const ally = bare('clefable'), f1 = bare('garchomp'), f2 = bare('milotic');
+    me.st = Object.assign({}, me.st, { sp: 100 });
+    f1.st = Object.assign({}, f1.st, { sp: 110 });
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, autoMega: false });
+    f1.curHP = 1;
+    const before = me.curHP;
+    const act = M.playerAction(me, 'shadowball', f1, S.field); if (mega) act.mega = true;
+    M.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+    return [M.effSpeed(me, S.field, 'A'), before - me.curHP];
+  };
+  const control = run(false), test = run(true);
+  return { works: control[0] === 100 && test[0] === 120 && control[1] > 0 && test[1] === 0,
+           arms: { control, test },
+           detail: `[own Speed, damage taken from a 110-Speed foe on 1 HP] — no mega ${control} `
+                 + `(slower, so it got hit); mega ${test} (the evolution resolved BEFORE the moves and `
+                 + `the turn re-sorted around the new Speed, so the foe never acted)` };
+});
+
+probe('ability', 'megaEntryAbility', 'an entry ability on the MEGA forme fires on evolution', () => {
+  /* Manectric is Lightning Rod and Manectric-Mega is Intimidate, so the drop cannot leak in from the
+   * base forme. Read as an OUTCOME as well as a stage: the foe's Attack stage AND what its physical
+   * move then deals. */
+  const run = (mega) => {
+    const me = M.buildMon('manectric', {}); me.item = 'manectite';
+    const ally = bare('clefable'), f1 = bare('garchomp'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, autoMega: false });
+    unfaintable(me);
+    const act = M.playerAction(me, 'thunder', f1, S.field); if (mega) act.mega = true;
+    const before = me.curHP;
+    M.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+    return [me.ability, f1.boosts.at, f2.boosts.at, before - me.curHP];
+  };
+  const control = run(false), test = run(true);
+  return { works: control[0] === 'lightningrod' && control[1] === 0 && control[2] === 0
+                  && test[0] === 'intimidate' && test[1] === -1 && test[2] === -1
+                  && test[3] < control[3] && control[3] > 0,
+           arms: { control, test },
+           detail: `[ability, foe A atk stage, foe B atk stage, Earthquake taken] — no mega ${control}; `
+                 + `mega ${test} (Intimidate arrived WITH the evolution and both foes are at -1, so the `
+                 + `Earthquake that follows in the same turn hits softer)` };
+});
+
+probe('item', 'megaStone', 'ONE mega per side per battle — a second stone-holder on the same side cannot', () => {
+  const stoned = (key, item) => { const b = M.buildMon(key, {}); b.item = item; return b; };
+  const run = (secondOnTheSameSide) => {
+    const a0 = stoned('gengar', 'gengarite'), a1 = stoned('mawile', 'mawilite');
+    const b0 = stoned('scizor', 'scizorite'), b1 = bare('milotic');
+    /* The SECOND evolution is attempted by a1 (same side) or by b0 (the other side). Everything else
+     * about the two arms is identical, so the only varied thing is WHOSE mega it would be. */
+    const second = secondOnTheSameSide ? a1 : b0;
+    const S = M.battleInit([a0, a1], [b0, b1], { seeded: true, autoMega: false });
+    const t1 = M.playerAction(a0, 'shadowball', b0, S.field); t1.mega = true;
+    M.battleTurn(S, rng5, new Map([[a0, t1], [a1, { kind: 'pass' }]]), PASS2(b0, b1));
+    const mv = secondOnTheSameSide ? 'ironhead' : 'bulletpunch';
+    const t2 = M.playerAction(second, mv, secondOnTheSameSide ? b0 : a0, S.field); t2.mega = true;
+    const sideA = new Map([[a0, { kind: 'pass' }], [a1, secondOnTheSameSide ? t2 : { kind: 'pass' }]]);
+    const sideB = new Map([[b0, secondOnTheSameSide ? { kind: 'pass' } : t2], [b1, { kind: 'pass' }]]);
+    M.battleTurn(S, rng5, sideA, sideB);
+    return [a0.name, second.name];
+  };
+  const control = run(false), test = run(true);
+  return { works: String(control) === 'gengar-mega,scizor-mega' && String(test) === 'gengar-mega,mawile',
+           arms: { control, test },
+           detail: `[first evolver, second evolver] — the second on the OTHER side ${control} (both `
+                 + `evolve); the second on the SAME side ${test} (the Mawile is refused, so the side's `
+                 + `one mega is genuinely spent)` };
+});
+
 /* ---- MOVES -------------------------------------------------------------------------------------- */
 
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). It read `moveAccuracy('aerialace') >= 100` and

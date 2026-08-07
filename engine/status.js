@@ -818,9 +818,18 @@ if (WRITE) {
     const f = D('docs', name + '.md');
     if (!fs.existsSync(f)) { console.log('  skip ' + name + '.md (not present)'); continue; }
     const src = fs.readFileSync(f, 'utf8');
-    const re = /(<!-- GENERATED: engine\/status\.js -->\n)[\s\S]*?(<!-- \/GENERATED -->)/;
+    /* CRLF, AND THE `\n` HERE SILENTLY SKIPPED A WHOLE LEDGER. `core.autocrlf` is `true` on this
+     * machine, so every checkout writes CRLF into the working tree; a marker followed by `\r\n` does
+     * not match `-->\n` and docs/ENGINE.md reported `skip ... (no GENERATED block)` while its block
+     * sat frozen at an older run's numbers. It printed the skip, which is the only reason it was
+     * caught at all — but a ledger going stale is exactly what this writer exists to prevent, so the
+     * newline is matched either way and the file is REWRITTEN IN THE ENDING IT ARRIVED IN rather than
+     * converted, which would turn a two-line stamp into a whole-file diff. Found 2026-08-07. */
+    const re = /(<!-- GENERATED: engine\/status\.js -->\r?\n)[\s\S]*?(<!-- \/GENERATED -->)/;
     if (!re.test(src)) { console.log('  skip ' + name + '.md (no GENERATED block)'); continue; }
-    const stamped = src.replace(re, `$1\n\`\`\`\n${body}\n\`\`\`\n\n_stamped ${day(new Date())}_\n\n$2`);
+    const nl = /\r\n/.test(src) ? '\r\n' : '\n';
+    const stamped = src.replace(re, `$1\n\`\`\`\n${body}\n\`\`\`\n\n_stamped ${day(new Date())}_\n\n$2`)
+      .split(/\r\n|\n/).join(nl);
     fs.writeFileSync(f, stamped);
     console.log('  stamped docs/' + name + '.md');
   }

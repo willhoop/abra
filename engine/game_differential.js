@@ -393,36 +393,81 @@ function harvest(stream, S) {
 }
 
 /* ---- TEAM BUILDING ------------------------------------------------------------------------------
- * The sheet is what the player DECLARED, six deep. Four are brought. Both engines are handed the same
- * four, and the Showdown bodies then take medicham2's Champions SP stat block (alignStats), exactly
- * as tests/test-game-diff.js does and for the same reason: unaligned, the engines disagree about
- * speed order and about who survives a hit, and both read as rule divergences.
+ * The sheet is what the player DECLARED, six deep. Four are brought, and both engines are handed the
+ * same four.
  *
- * MEGA STONES ARE STRIPPED, AND IT IS A DECLARED GAP RATHER THAN A CONVENIENCE. medicham2 builds a
- * stone-holder AS THE MEGA at build time; Showdown megas on a CHOICE, mid-turn. So a stone would
- * diverge on the `|switch|` line of turn zero in every game that carries one, which is one modelling
- * difference wearing a thousand hats. tests/test-mega-timing.js owns that question. Counted here so
- * the size of the hole is visible: this run tests no mega body at all. */
-let STONES_STRIPPED = 0, TEAMS_UNBUILDABLE = 0, MONS_UNBUILDABLE = 0;
+ * MEGA STONES ARE NO LONGER STRIPPED (ROADMAP #31, 2026-08-07). They were, and the reason was a real
+ * modelling difference rather than laziness: medicham2 built a stone-holder AS THE MEGA before the
+ * battle started and Showdown evolves on a CHOICE, mid-turn, so a stone parted the streams on line
+ * one of every game carrying one. 460 sets were stripped and the first run tested ZERO mega bodies in
+ * a format whose mega usage is ~26%. `megaEvolveNow` closed that, so the stone stays on, the driver
+ * issues the SAME choice to both engines, and the run is paired: every team pair is played TWICE,
+ * once with the stones removed and once with them kept, so what megas cost is a MEASUREMENT and not a
+ * difference between two runs of different things.
+ *
+ * THE STAT BLOCKS ARE NOT ALIGNED ANY MORE — THEY AGREE, AND THAT IS A STRICTLY STRONGER POSITION.
+ * This used to build each body from data/engine-data.js (which bakes the dataset's average spread and
+ * nature into `st`) and then COPY those numbers onto the Showdown body, which papered over any
+ * disagreement rather than removing it. It also could not survive a mega: `formeChange` calls
+ * `setSpecies`, which RECOMPUTES `storedStats` from the new base stats and the SET — so the moment a
+ * body evolved, Showdown went back to the set's own numbers mid-turn, with no seam for a harness to
+ * re-align in (`battle.choose` runs the whole turn), and `updateMaxHp` emitted a silent `-heal` on top.
+ *
+ * So both bodies are now the SAME Pokemon by construction: Serious, 0 EVs, 31 IVs on the Showdown
+ * side, and a flat level-50 stat line computed from the row's own base stats on the medicham side.
+ * Those two formulas are identical arithmetic —
+ *     showdown  statModify: trunc((2b + 31 + max(2e-1,0)) * 50/100) + 5   [levelclausemod, e = 0]
+ *     medicham  l50:        floor((2b + 31) * 50/100) + 5 + sp            [sp = 0]
+ * — and `alignStats` below is kept only to assert that, plus to carry the staged hpBoost arms. The
+ * cost is stated rather than hidden: these bodies do not carry the ladder's spreads, so this
+ * instrument tests RULES and not the stat lines people actually bring. */
+let STONES_STRIPPED = 0, STONES_KEPT = 0, TEAMS_UNBUILDABLE = 0, MONS_UNBUILDABLE = 0;
+let ALIGN_MOVED = 0;   // a stat the alignment had to CHANGE — must be 0 outside the hpBoost arms
+/* ROADMAP #31 — THE EVOLUTION COUNTERS, PRINTED EVERY RUN AND A ZERO CALLED OUT LOUDLY. Mega has
+ * already passed an at-least-one check in this project while firing on 56% of the sides it should
+ * have, so a bare count is not enough and a RATE with a real denominator is reported beside it. Both
+ * engines are counted SEPARATELY off their own streams: if the driver's choice reached one engine and
+ * not the other, one number would be zero while the other was not, and a single merged counter could
+ * not say which. */
+let MEGA_CHOICES = 0, MEGA_SIDES_CAPABLE = 0, MEGA_SIDES_EVOLVED = 0;
+let MEGA_MEDI = 0, MEGA_SD = 0, MEGA_SLOT_A = 0, MEGA_SLOT_B = 0;
+let MEGA_PREFER_B = false;   // alternates, so the driver does not mega out of the left slot every time
 /* DERIVED ONCE, AND ALLOWED TO THROW. A `catch { return false }` here would keep every mega stone on
  * every team and part the streams on line one of a quarter of the games, while the report cheerfully
  * said `mega stones stripped: 0` — the exact shape names.js was written to remove. */
 const STONES = N.byTag('items', 'megaStone');
 const isStone = it => STONES.has(id(it));
 
+/* THE SPECIES KEY COMES FROM THE PROJECT'S OWN RESOLVER, and it used to be `id(p.species)` — which
+ * strips hyphens, so `Floette-Eternal` became `floetteeternal` and data/engine-data.js keys it
+ * `floette-eternal`. Every such body counted as UNBUILDABLE and left the run silently. That mattered
+ * most for exactly the bodies this pass is about: Floette-Eternal is ~10.5% of ladder sides and megas
+ * 96.1% of the time. `mcKey` is the one thing allowed to know how that table is keyed
+ * (tests/test-mc-key.js), and it is read out of the RELEASE so the photograph rule holds. */
+const { mcKey } = REL.require('engine/mc_key.js');
+/* The flat level-50 line, no SP and no nature — see the block header for why both engines must
+ * compute the same one. Written here rather than imported because medicham2 does not export `l50`,
+ * and the two are pinned to each other by the ASSERTION in alignStats rather than by faith. */
+function flatL50(bs) {
+  const S = b => Math.floor((2 * b + 31) * 50 / 100) + 5;
+  return { hp: Math.floor((2 * bs.hp + 31) * 50 / 100) + 50 + 10,
+           at: S(bs.atk), df: S(bs.def), sa: S(bs.spa), sd: S(bs.spd), sp: S(bs.spe) };
+}
+
 function buildPair(sheet, opts) {
   const hpx = (opts && opts.hpBoost) || 1;
+  const strip = !!(opts && opts.stripStones);
   const picked = [];
   for (const p of sheet) {
     if (picked.length >= 4) break;
     if (!p || !p.species) continue;
-    const key = id(p.species);
+    const key = mcKey(p.species) || id(p.species);
     const b = M.buildMon(key, {});
     if (!b) { MONS_UNBUILDABLE++; continue; }
     const sp = dex.species.get(key);
     if (!sp || !sp.exists) { MONS_UNBUILDABLE++; continue; }
     let item = id(p.item || '');
-    if (item && isStone(item)) { STONES_STRIPPED++; item = ''; }
+    if (item && isStone(item)) { if (strip) { STONES_STRIPPED++; item = ''; } else STONES_KEPT++; }
     if (item && !dex.items.get(item).exists) item = '';
     const moves = [];
     for (const mv of (p.moves || [])) {
@@ -438,7 +483,9 @@ function buildPair(sheet, opts) {
     b.moves = moves.map(m2 => m2.id);
     b.item = item;
     b.ability = ability;
-    picked.push({ medi: b, spec: { key, moves: b.moves.slice(), item, ability, hpx }, sd: {
+    b._ident = sp.baseSpecies || sp.name;
+    picked.push({ medi: b, spec: { key, moves: b.moves.slice(), item, ability, hpx, bs: sp.baseStats,
+                                   ident: sp.baseSpecies || sp.name }, sd: {
       name: sp.name, species: sp.name,
       /* GENDER IS 'N' ON BOTH SIDES. Showdown writes the gender into the `|switch|` details field
        * (`Incineroar, L50, F`) and medicham2 has no gender at all, so a declared gender would part
@@ -464,6 +511,29 @@ function freshBodies(pair) {
     const b = M.buildMon(x.spec.key, {});
     if (!b) return null;
     b.moves = x.spec.moves.slice(); b.item = x.spec.item; b.ability = x.spec.ability;
+    /* THE FLAT LEVEL-50 LINE, so the two engines are the same Pokemon rather than one being copied
+     * onto the other — see the buildPair header. `sp.baseStats` is the DEX's, and it was MEASURED to
+     * equal data/engine-data.js's `bs` on all 318 rows before this was wired, which is what makes
+     * medicham2's own mega stat swap (megaEvolveNow computes `megaL50 + (st - baseL50)`) come out at
+     * a delta of exactly zero and land on Showdown's recomputed numbers. */
+    if (x.spec.bs) { b.st = flatL50(x.spec.bs); b.curHP = b.st.hp; }
+    /* THE PROTOCOL IDENTIFIER IS SHOWDOWN'S NICKNAME, AND SHOWDOWN DEFAULTS IT TO `baseSpecies`.
+     *
+     * A set whose name equals its species is renamed to the BASE species when the battle loads it, so
+     * a Floette-Eternal is `|switch|p1a: Floette|Floette-Eternal, L50|` — the identifier is the base,
+     * the DETAILS field is the forme. medicham2 has no nicknames and keyed the identifier off the
+     * body's own name, so every non-base forme parted the streams on its own switch line.
+     *
+     * IT WAS INVISIBLE UNTIL THIS PASS and that is worth recording: `id(p.species)` strips hyphens, so
+     * `Floette-Eternal` looked up as `floetteeternal`, data/engine-data.js keys it `floette-eternal`,
+     * and every forme in the format counted as UNBUILDABLE and left the run. Fixing the key surfaced
+     * the naming difference on 35 games in one run — a class that had been there all along behind a
+     * silent drop.
+     *
+     * STAMPED BY THE HARNESS AND NOT BY THE ENGINE, deliberately: this file AUTHORS both sides' team
+     * representations, and `baseSpecies` is the dex's own field rather than string arithmetic on a
+     * forme name. medicham2 keeps its own convention when nobody stamps one. */
+    if (x.spec.ident) b._ident = x.spec.ident;
     /* HP BOOST — opt-in, staged measurements only, and it exists for one reason: A DAMAGE RATIO
      * CANNOT BE READ OFF A BODY THAT DIED. Showdown clamps the recorded HP loss at the target's max,
      * so the first run of the Knock Off arms read 135 / 135 / 135 — three different multipliers all
@@ -535,18 +605,33 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
    * already-damaged HP against a freshly built Showdown side. A proof that passes for the wrong reason
    * is worse than one that fails. */
   const A = freshBodies(pairA), B = freshBodies(pairB);
-  const S = M.battleInit(A, B, { trace });
+  /* ROADMAP #31 — `autoMega: false`. medicham2's own policy would evolve at the first opportunity,
+   * which is right for a rollout and wrong here: this driver has to issue the SAME choice to both
+   * engines, so the choice is the driver's and the engine is told. An engine deciding for itself
+   * beside a Showdown that was told is two different games. */
+  const S = M.battleInit(A, B, { trace, autoMega: false });
 
   const battle = new Battle({ formatid: CS.FORMAT, seed: [1, 2, 3, 4] });
   battle.setPlayer('p1', { name: 'A', team: Teams.pack(pairA.map(x => x.sd)) });
   battle.setPlayer('p2', { name: 'B', team: Teams.pack(pairB.map(x => x.sd)) });
   /* ALIGN BEFORE THE LEADS ARE ANNOUNCED. The `|switch|` line carries the body's max HP, so aligning
-   * after the team-preview choice would part the two streams on the very first line. */
+   * after the team-preview choice would part the two streams on the very first line.
+   *
+   * AND THIS IS NOW AN ASSERTION AS MUCH AS AN ACTION. Since ROADMAP #31 both engines compute the
+   * same flat level-50 line (see the buildPair header), so outside the staged hpBoost arms every
+   * write below must be a no-op — and a write that MOVES something is counted and printed, because a
+   * silent copy is exactly how the old alignment hid a real disagreement. It has to stay for the
+   * hpBoost arms, which deliberately inflate the pool so a damage ratio can be read off a body that
+   * would otherwise have died. */
   for (const [side, pair, built] of [[battle.p1, pairA, A], [battle.p2, pairB, B]]) {
     for (const p of side.pokemon) {
       const k = pair.findIndex(x => id(x.sd.species) === id(p.species.id));
       if (k < 0) continue;
       const st = built[k].st;      /* the FRESHLY built body, never a previous game's leftovers */
+      if (!(pair[k].spec.hpx > 1)) {
+        if (p.storedStats.atk !== st.at || p.storedStats.def !== st.df || p.storedStats.spa !== st.sa
+            || p.storedStats.spd !== st.sd || p.storedStats.spe !== st.sp || p.maxhp !== st.hp) ALIGN_MOVED++;
+      }
       p.storedStats.atk = st.at; p.storedStats.def = st.df; p.storedStats.spa = st.sa;
       p.storedStats.spd = st.sd; p.storedStats.spe = st.sp;
       p.baseStoredStats.atk = st.at; p.baseStoredStats.def = st.df; p.baseStoredStats.spa = st.sa;
@@ -559,7 +644,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
   if (battle.requestState === 'teampreview') { battle.choose('p1', 'team 1234'); battle.choose('p2', 'team 1234'); }
 
   const bodiesSeen = [];
-  let firstDiv = null, turns = 0, err = null;
+  let firstDiv = null, turns = 0, err = null, megaChoices = 0;
 
   const alignAndCheck = () => {
     /* `opts.plant` corrupts the MEDICHAM side and only the medicham side. It exists for the
@@ -613,6 +698,34 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
       }
       if (!chosen.p1 || !chosen.p2) break;
 
+      /* ROADMAP #31 — THE MEGA CHOICE, MADE ONCE AND ISSUED TO BOTH ENGINES.
+       *
+       * LEGALITY COMES FROM SHOWDOWN'S OWN REQUEST, exactly as the move legality above does:
+       * `activeRequest.active[i].canMegaEvo` already knows about the stone, the species and whether
+       * this side has spent its mega. A driver that decided for itself would be a second copy of the
+       * rule, and this instrument would then be comparing its own belief against the authority.
+       *
+       * THE POLICY IS AT THE FIRST OPPORTUNITY, and it is a COVERAGE policy rather than a good one —
+       * §3.3. The point is to get mega bodies onto the field and acting, not to mega well. One per
+       * side per turn, because Showdown rejects a second (`Can't mega evolve: You can only
+       * mega-evolve once per battle`) and a rejected choice is a thrown game. */
+      for (const sd of ['p1', 'p2']) {
+        const side = sd === 'p1' ? battle.p1 : battle.p2;
+        const req = side.activeRequest;
+        if (!req || !req.active || opts.script) continue;
+        /* WHICH SLOT, WHEN BOTH COULD: alternate. Taking the first offer every time would mega out of
+         * the LEFT slot on almost every side, and "the base class could only mega from the LEFT slot"
+         * is the historical defect this instrument is supposed to be able to see. Alternating is the
+         * coverage-seeking rule of §3.3 applied to a second axis. */
+        const order = MEGA_PREFER_B ? [1, 0] : [0, 1];
+        for (const i of order) {
+          const a = chosen[sd][i];
+          if (!a || a.pass || a.switchTo != null) continue;
+          if (!req.active[i] || !req.active[i].canMegaEvo) continue;
+          a.mega = true; megaChoices++; MEGA_PREFER_B = !MEGA_PREFER_B; break;
+        }
+      }
+
       /* --- medicham2 --- */
       const mk = (own, foes, bench, acts) => {
         const map = new Map();
@@ -626,7 +739,11 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
             map.set(mon, { kind: 'pass' }); return;
           }
           const tgt = a.foeSlot != null ? foes[a.foeSlot] : null;
-          map.set(mon, M.playerAction(mon, a.move, tgt, S.field));
+          const pa = M.playerAction(mon, a.move, tgt, S.field);
+          /* the SAME flag Showdown gets as ` mega` on the choice string below — one decision, two
+           * spellings, never two decisions */
+          if (a.mega && pa) pa.mega = true;
+          map.set(mon, pa);
         });
         return map;
       };
@@ -642,7 +759,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
             const j = side.pokemon.findIndex(q => !q.isActive && !q.fainted && id(q.species.id) === a.switchTo);
             return j >= 0 ? 'switch ' + (j + 1) : 'pass';
           }
-          return 'move ' + a.slot + (a.target != null ? ' ' + a.target : '');
+          return 'move ' + a.slot + (a.target != null ? ' ' + a.target : '') + (a.mega ? ' mega' : '');
         }).join(', ');
       };
       const c1 = str('p1', chosen.p1), c2 = str('p2', chosen.p2);
@@ -678,7 +795,19 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
   _lastSdLog = battle.log.slice();
   harvest(trace, S);
   for (const m of bodiesSeen) { bump(OBSERVED.species, id(m.name)); bump(OBSERVED.abilities, id(m.ability)); if (m.item) bump(OBSERVED.items, id(m.item)); }
-  return { config: cfgId, seed: seedTag, turns, lines: trace.length, err, div: firstDiv, mediTrace: trace };
+  /* ROADMAP #31 — READ OFF THE TWO STREAMS, not off a counter kept beside them, for the same reason
+   * traceCounts parses rather than tallies: a counter maintained next to the thing it counts is a
+   * second implementation of "what happened" and will eventually disagree with it. Both engines are
+   * counted so a choice that reached one and not the other is visible as an ASYMMETRY rather than as
+   * a divergence somewhere downstream. */
+  const megaMedi = trace.filter(l => /^\|-mega\|/.test(String(l)));
+  const megaSd = battle.log.filter(l => /^\|-mega\|/.test(String(l)));
+  const capable = [pairA, pairB].filter(p => p.some(x => isStone(x.spec.item))).length;
+  return { config: cfgId, seed: seedTag, turns, lines: trace.length, err, div: firstDiv, mediTrace: trace,
+           megaMedi: megaMedi.length, megaSd: megaSd.length, megaCapableSides: capable, megaChoices,
+           megaSlotA: megaMedi.filter(l => /\|p[12]a:/.test(l)).length,
+           megaSlotB: megaMedi.filter(l => /\|p[12]b:/.test(l)).length,
+           megaSidesEvolved: new Set(megaMedi.map(l => String(l).split('|')[2].slice(0, 2))).size };
 }
 
 /* A scripted click, resolved against Showdown's own request so an illegal one is impossible. `null`
@@ -1151,13 +1280,26 @@ function oneHitDamage(pairA, pairB, script, opt) {
 /* ---- RUN ----------------------------------------------------------------------------------------- */
 const SW = SWARM.buildSwarm(Math.max(GAMES * 2, 18));
 
+/* ROADMAP #31 — EVERY PAIR IS BUILT TWICE, AND THE TWO BUILDS DIFFER ONLY IN THE STONES.
+ *
+ * `stones` is the measured arm; `nostones` is the paired control and is exactly what this instrument
+ * measured on 2026-08-06, when 460 stone sets were stripped and it tested zero mega bodies. Reporting
+ * one rate over a mixed population would let the two absorb each other, and the whole point is to see
+ * WHAT MEGAS COST — so the same teams, the same seeds and the same driver state are played both ways
+ * and the two rates are published apart. A pair carrying no stone at all produces two IDENTICAL games,
+ * which is a free consistency check and is asserted rather than assumed. */
 function pairsFor(cfgId) {
   const cfg = SW.out.find(c => c.config === cfgId);
   const out = [];
   const pool = (cfg && cfg.picked_teams) || [];
   for (let i = 0; i + 1 < pool.length; i += 2) {
     const a = buildPair(pool[i].team), b = buildPair(pool[i + 1].team);
-    if (a && b) out.push({ a, b, tag: pool[i].id + ' vs ' + pool[i + 1].id });
+    if (!a || !b) continue;
+    const aN = buildPair(pool[i].team, { stripStones: true });
+    const bN = buildPair(pool[i + 1].team, { stripStones: true });
+    if (!aN || !bN) continue;
+    out.push({ a, b, aN, bN, tag: pool[i].id + ' vs ' + pool[i + 1].id,
+               stones: [...a, ...b].filter(x => isStone(x.spec.item)).length });
   }
   return out;
 }
@@ -1201,17 +1343,45 @@ for (const p of PROOF) console.log('    ' + (p.what === 'the CLEAN arm of the sa
                    : 'NOT CAUGHT — ' + p.what))));
 if (!PROOF_OK) console.log('    THE COMPARATOR FAILED ITS OWN PROOF — everything below is worthless.');
 
-const results = [];
+const results = [];      // the MEASURED arm — stones kept
+const control = [];      // the PAIRED CONTROL — the same pair with the stones removed
+/* A pair carrying no stone produces two identical games; when it does not, the harness is not paired
+ * and the two rates below are not comparable. Counted, printed, must read 0. */
+let PAIRING_BROKEN = 0;
 const t0 = Date.now();
 if (!has('--proof')) {
   const live = SW.out.filter(c => !ONLY || c.config === ONLY);
   const perConfig = Math.max(1, Math.floor(GAMES / live.length));
+  /* THE DRIVER IS STATEFUL ON PURPOSE (`CLICKS`, `COV_HITS` carry across games so the swarm keeps
+   * reaching new mechanics), which is fatal for a PAIRED comparison — the second arm of a pair would
+   * deliberately click something else and stop being the same game. Frozen across the two arms and
+   * released afterwards, exactly as withFrozenDriver does for the planted proof. */
+  const snap = () => ({ c: new Map(CLICKS), h: new Map(COV_HITS) });
+  const restore = (s) => { CLICKS.clear(); for (const [k, v] of s.c) CLICKS.set(k, v);
+                           COV_HITS.clear(); for (const [k, v] of s.h) COV_HITS.set(k, v); };
   for (const cfg of live) {
     let made = 0;
     for (const pr of pairsFor(cfg.config)) {
       if (made >= perConfig) break;
+      const s0 = snap();
+      const c = playGame(pr.aN, pr.bN, cfg.config, pr.tag + ' [stones removed]');
+      restore(s0);
       const r = playGame(pr.a, pr.b, cfg.config, pr.tag);
-      results.push(r); made++;
+      r.stones = pr.stones; c.stones = 0;
+      if (!pr.stones) {
+        const same = (!!r.div === !!c.div) && (!r.div || r.div.index === c.div.index) && r.turns === c.turns;
+        if (!same) PAIRING_BROKEN++;
+      }
+      results.push(r); control.push(c); made++;
+      /* SUMMED OVER THE MEASURED ARM ONLY, and that is not fussiness. `playGame` is also called by
+       * the planted-divergence proof (four extra games on the baseline pair) and by the directed
+       * scenarios, so a module-level counter incremented inside it would count offers from games
+       * whose EVOLUTIONS are not in `results` — and the report would then show 44 choices against 40
+       * evolutions and look like a lost choice. It did, on the first run of this. */
+      MEGA_CHOICES += r.megaChoices;
+      MEGA_MEDI += r.megaMedi; MEGA_SD += r.megaSd;
+      MEGA_SIDES_CAPABLE += r.megaCapableSides; MEGA_SIDES_EVOLVED += r.megaSidesEvolved;
+      MEGA_SLOT_A += r.megaSlotA; MEGA_SLOT_B += r.megaSlotB;
       if (VERBOSE) console.log('   ' + cfg.config.padEnd(24) + (r.err ? 'THREW ' + r.err
         : r.div ? 'DIVERGES at line ' + r.div.index + '  ' + classify(r.div).cls : 'agrees, ' + r.turns + ' turns'));
     }
@@ -1269,10 +1439,76 @@ for (const [w] of PIN_CLAIMS) console.log('    ok  ' + w);
 console.log('');
 console.log('  DIVERGED: ' + diverged.length + ' of ' + results.length + ' games'
   + (threw.length ? '   (' + threw.length + ' threw)' : ''));
-console.log('  READ THAT RATE WITH THIS BESIDE IT: ' + STONES_STRIPPED + ' mega-stone sets were stripped, so');
-console.log('  THIS RUN TESTED ZERO MEGA BODIES in a format whose mega usage is ~26%. The rate is a claim');
-console.log('  about non-mega play only. See DECLARED GAPS at the foot of this report.');
 console.log('');
+/* ROADMAP #31 — THE TWO RATES, PUBLISHED APART. One number over a mixed population would let the mega
+ * games and the non-mega games absorb each other, and the whole reason the stones came back is to see
+ * what they cost. Same teams, same seeds, same driver state; the ONLY difference is the stone. */
+{
+  const withStone = results.filter(r => r.stones);
+  const withStoneCtl = control.filter((c, i) => results[i].stones);
+  const noStone = results.filter(r => !r.stones);
+  const pct = (a, b) => b ? (100 * a / b).toFixed(1) + '%' : 'n/a';
+  const dv = arr => arr.filter(r => r.div).length;
+  console.log('  THE TWO RATES — the same pairs played twice, and the stone is the only difference:');
+  console.log('    with megas, on the pairs that CARRY a stone     '
+    + dv(withStone) + '/' + withStone.length + '  ' + pct(dv(withStone), withStone.length));
+  console.log('    the SAME pairs with the stones removed          '
+    + dv(withStoneCtl) + '/' + withStoneCtl.length + '  ' + pct(dv(withStoneCtl), withStoneCtl.length));
+  console.log('    pairs that carry no stone at all (unaffected)   '
+    + dv(noStone) + '/' + noStone.length + '  ' + pct(dv(noStone), noStone.length));
+  console.log('    whole-run control arm, every stone stripped     '
+    + dv(control) + '/' + control.length + '  ' + pct(dv(control), control.length)
+    + '   <- this is what the 2026-08-06 run measured');
+  console.log('    stoneless pairs whose two arms were NOT the same game: ' + PAIRING_BROKEN
+    + (PAIRING_BROKEN ? '  <-- THE PAIRING IS BROKEN and the two rates are not comparable' : ' (must read 0)'));
+  console.log('');
+  /* A RATE ALREADY AT 100% CANNOT ANSWER "WHAT DID MEGAS COST", and saying it did would be the
+   * 12%-tolerance mistake in a new place. So the paired arms are compared on WHERE they part and on
+   * WHETHER the mega itself is what parted them — two questions a saturated rate cannot reach. */
+  console.log('  WHAT THE MEGAS ACTUALLY COST, measured pairwise (the rate above is saturated and');
+  console.log('  therefore says nothing on its own):');
+  const at = r => (r.div ? r.div.index : Infinity);
+  const paired = results.map((r, i) => ({ r, c: control[i] })).filter(x => x.r.stones);
+  const earlier = paired.filter(x => at(x.r) < at(x.c)).length;
+  const later = paired.filter(x => at(x.r) > at(x.c)).length;
+  const same = paired.filter(x => at(x.r) === at(x.c)).length;
+  /* `-mega` AND `detailschange` ARE COUNTED APART, and that is not pedantry: `detailschange` is
+   * Showdown's line for ANY permanent forme change, and Zero to Hero is one. Merging them would have
+   * reported this run's single hit as a mega wire when it is a Palafin. */
+  const isMega = l => /^\|-mega\|/.test(String(l || ''));
+  const isDetails = l => /^\|detailschange\|/.test(String(l || ''));
+  const megaFirst = results.filter(r => r.div && (isMega(r.div.sdRaw) || isMega(r.div.meRaw))).length;
+  const detFirst = results.filter(r => r.div && (isDetails(r.div.sdRaw) || isDetails(r.div.meRaw))).length;
+  console.log('    of ' + paired.length + ' stone-carrying pairs, the mega arm parted EARLIER on '
+    + earlier + ', LATER on ' + later + ', at the SAME line on ' + same);
+  console.log('    games whose FIRST divergence is a |-mega| line: ' + megaFirst
+    + (megaFirst ? '  <-- MEGA WIRES, listed in mega.cost_of_the_megas.on_a_mega_line'
+                 : '  — nothing in this run is attributable to the evolution itself'));
+  console.log('    games whose FIRST divergence is a |detailschange| line: ' + detFirst
+    + '  (any permanent forme change, NOT only megas — Zero to Hero is one)');
+  console.log('');
+  console.log('  MEGA EVOLUTION — the counter, and a RATE beside it because non-zero is not a bar:');
+  console.log('    ' + MEGA_MEDI + ' evolutions in medicham2, ' + MEGA_SD + ' in showdown'
+    + (MEGA_MEDI === MEGA_SD ? '  (they agree)' : '  <-- ASYMMETRIC: the choice reached one engine and not the other'));
+  /* THE FLOOR IS ON THE CHOICE, NOT ON THE SIDE, and the difference matters. Every choice this driver
+   * issues came from Showdown's own `canMegaEvo`, so every one of them MUST produce exactly one
+   * evolution in each engine — that is a hard 100% and a real floor. "Sides that brought a stone" is
+   * reported beside it and is deliberately NOT the floor: a game stops at its FIRST divergence, the
+   * median game here lasts one completed turn, and a stone-holder sitting on the bench is never
+   * offered the choice at all. Making that the floor would be measuring the harness's early stop. */
+  const choiceFloor = MEGA_CHOICES && MEGA_MEDI === MEGA_CHOICES && MEGA_SD === MEGA_CHOICES;
+  console.log('    ' + MEGA_CHOICES + ' mega choices issued (from Showdown\'s own `canMegaEvo`) -> '
+    + MEGA_MEDI + ' medicham / ' + MEGA_SD + ' showdown evolutions   '
+    + (choiceFloor ? 'FLOOR MET: every choice evolved in both engines'
+                   : '<-- A CHOICE DID NOT EVOLVE. The floor is 100% of issued choices.'));
+  console.log('    ' + MEGA_SIDES_EVOLVED + ' of ' + MEGA_SIDES_CAPABLE + ' sides that BROUGHT a stone evolved  '
+    + pct(MEGA_SIDES_EVOLVED, MEGA_SIDES_CAPABLE)
+    + '   (not a floor: a game stops at its first divergence, so a benched stone-holder is never offered)');
+  console.log('    from the LEFT slot ' + MEGA_SLOT_A + ', from the RIGHT slot ' + MEGA_SLOT_B
+    + (MEGA_SLOT_A && MEGA_SLOT_B ? '' : '  <-- ONE SLOT ONLY, which is the literal historical defect'));
+  if (!MEGA_MEDI) console.log('    ZERO EVOLUTIONS. The capability cannot prove it ran, so it is assumed broken.');
+  console.log('');
+}
 console.log('  WHAT THE SEMANTIC NORMALISER COLLAPSED, per rule — a normaliser whose effect is invisible');
 console.log('  is how a 100% divergence rate becomes 2% with nobody able to say which half moved:');
 {
@@ -1377,9 +1613,16 @@ console.log('    swarm  / situation space:  ' + [...new Set(results.map(r => r.c
   + results.length + ' team pairs');
 console.log('');
 console.log('  DECLARED GAPS, printed every run so they cannot quietly grow:');
-console.log('    mega stones stripped from ' + STONES_STRIPPED + ' sets — medicham2 megas at BUILD time and');
-console.log('      Showdown megas on a CHOICE, so a stone parts the streams on line one. This run tests NO mega body.');
+console.log('    mega stones stripped from the MEASURED arm: ' + STONES_KEPT + ' sets kept, 0 stripped'
+  + '  (' + STONES_STRIPPED + ' stripped from the paired CONTROL arm, on purpose)');
+console.log('    both engines are built Serious / 0 EVs / 31 IVs, so the ladder\'s SPREADS are not tested;');
+console.log('      the alignment had to MOVE a stat ' + ALIGN_MOVED + ' times outside the staged hpBoost arms'
+  + (ALIGN_MOVED ? '  <-- the two engines are NOT the same Pokemon' : ' (must read 0)'));
 console.log('    gender is N on both sides, so Attract / Rivalry / Cute Charm are not exercised.');
+console.log('    ZERO TO HERO IS SILENT — found by this run, not assumed. Showdown transforms Palafin on');
+console.log('      SWITCH-OUT (`|detailschange|p1a: Palafin|Palafin-Hero, L50`) and announces');
+console.log('      `|-activate|...|ability: Zero to Hero` on the way back in; medicham2 transforms on the');
+console.log('      RETURN, inside bringIn(), and emits neither. Different moment AND two missing lines.');
 console.log('    ' + TEAMS_UNBUILDABLE + ' teams and ' + MONS_UNBUILDABLE + ' individual sets could not be built in both engines.');
 console.log('    ' + BAN_FALLBACKS + ' clicks where the configuration had banned every legal action (fell through, counted).');
 console.log('    MEDFAILS.traceBodyOffField = ' + M.fails.traceBodyOffField
@@ -1396,10 +1639,71 @@ if (WRITE) {
     planted_divergence_proof: PROOF, planted_divergence_proof_ok: PROOF_OK,
     /* THE HEADLINE RATE IS NOT READABLE WITHOUT THIS. Stated at the top level, not buried in
      * declared_gaps, because a reader who takes `diverged / games` and nothing else has taken a
-     * number about a format with the megas removed. */
-    rate_excludes: 'ZERO mega bodies were tested — ' + STONES_STRIPPED + ' stone-holding sets were '
-      + 'stripped because medicham2 megas at BUILD time and Showdown megas on a CHOICE. Mega usage in '
-      + 'this format is ~26%.',
+     * number about a population it does not know the shape of.
+     *
+     * IT USED TO SAY "ZERO MEGA BODIES WERE TESTED". ROADMAP #31 closed that; what remains is the
+     * SPREADS, which is a smaller and differently-shaped hole and is named rather than inherited. */
+    rate_excludes: 'both engines are built Serious / 0 EVs / 31 IVs so that they compute the same '
+      + 'stat line before AND after a forme change, so this instrument tests RULES and not the '
+      + 'spreads the ladder actually brings. Mega bodies ARE tested as of ROADMAP #31 ('
+      + STONES_KEPT + ' stone sets kept, 0 stripped from the measured arm).',
+    /* ROADMAP #31 — THE TWO RATES, NEVER ONE. Same pairs, same seeds, same driver state; the stone is
+     * the only difference between `with_megas` and `control_same_pairs_no_stones`. */
+    mega: (() => {
+      const withStone = results.filter(r => r.stones);
+      const withStoneCtl = control.filter((c, i) => results[i].stones);
+      const noStone = results.filter(r => !r.stones);
+      const dv = arr => arr.filter(r => r.div).length;
+      return {
+        why: 'the 2026-08-06 run stripped 460 stone sets and tested ZERO mega bodies in a ~26%-mega '
+           + 'format. medicham2 now evolves on a CHOICE mid-turn, so the stones stay on and every '
+           + 'pair is played TWICE — the difference between the two arms IS what megas cost.',
+        rates: {
+          with_megas: { games: withStone.length, diverged: dv(withStone) },
+          control_same_pairs_no_stones: { games: withStoneCtl.length, diverged: dv(withStoneCtl) },
+          pairs_with_no_stone_at_all: { games: noStone.length, diverged: dv(noStone) },
+          whole_control_arm: { games: control.length, diverged: dv(control),
+                               note: 'every stone stripped — this is what the 2026-08-06 run measured' },
+        },
+        pairing_broken: PAIRING_BROKEN,
+        /* THE RATE IS SATURATED, SO THE PAIRED COMPARISON IS THE ANSWER. Where each arm parts, and
+         * whether the evolution itself is what parted it. */
+        cost_of_the_megas: (() => {
+          const at = r => (r.div ? r.div.index : Infinity);
+          const pr = results.map((r, i) => ({ r, c: control[i] })).filter(x => x.r.stones);
+          /* COUNTED APART. `detailschange` is Showdown's line for ANY permanent forme change and Zero
+           * to Hero is one, so merging the two would file a Palafin as a mega wire — which is exactly
+           * what the first cut of this did. */
+          const isMega = l => /^\|-mega\|/.test(String(l || ''));
+          const isDetails = l => /^\|detailschange\|/.test(String(l || ''));
+          const row = r => ({ config: r.config, seed: r.seed, index: r.div.index,
+                              showdown: r.div.sdRaw, medicham: r.div.meRaw,
+                              sdAfter: r.div.sdAfterRaw.slice(0, 5), meAfter: r.div.meAfterRaw.slice(0, 5) });
+          return { stone_carrying_pairs: pr.length,
+                   mega_arm_parted_earlier: pr.filter(x => at(x.r) < at(x.c)).length,
+                   mega_arm_parted_later: pr.filter(x => at(x.r) > at(x.c)).length,
+                   parted_at_the_same_line: pr.filter(x => at(x.r) === at(x.c)).length,
+                   first_divergence_is_a_mega_line:
+                     results.filter(r => r.div && (isMega(r.div.sdRaw) || isMega(r.div.meRaw))).length,
+                   first_divergence_is_a_detailschange_line:
+                     results.filter(r => r.div && (isDetails(r.div.sdRaw) || isDetails(r.div.meRaw))).length,
+                   /* LISTED IN FULL, not sampled. `first_divergences` above is capped at 60 games and
+                    * the forme-change ones are the actionable output of this pass — a finding that
+                    * falls off the end of a slice is a finding nobody acts on. */
+                   on_a_mega_line: results.filter(r => r.div && (isMega(r.div.sdRaw) || isMega(r.div.meRaw))).map(row),
+                   on_a_detailschange_line:
+                     results.filter(r => r.div && (isDetails(r.div.sdRaw) || isDetails(r.div.meRaw))).map(row) };
+        })(),
+        evolutions_medicham: MEGA_MEDI, evolutions_showdown: MEGA_SD,
+        engines_agree_on_the_count: MEGA_MEDI === MEGA_SD,
+        sides_capable: MEGA_SIDES_CAPABLE, sides_evolved: MEGA_SIDES_EVOLVED,
+        from_left_slot: MEGA_SLOT_A, from_right_slot: MEGA_SLOT_B,
+        choices_issued: MEGA_CHOICES,
+        every_issued_choice_evolved_in_both_engines:
+          !!MEGA_CHOICES && MEGA_MEDI === MEGA_CHOICES && MEGA_SD === MEGA_CHOICES,
+        stones_kept: STONES_KEPT, stones_stripped_from_control_arm: STONES_STRIPPED,
+      };
+    })(),
     normalisation: {
       why: 'every rule drops an ANNOUNCEMENT or an ATTRIBUTION and never a STATE CHANGE; each carries '
          + 'a red demonstration in both directions and they run before any game does',
@@ -1443,7 +1747,10 @@ if (WRITE) {
     swarm: SW.out.map(c => ({ config: c.config, available: c.available, picked: c.picked,
                               games: results.filter(r => r.config === c.config).length })),
     declared_gaps: {
-      mega_stones_stripped: STONES_STRIPPED,
+      mega_stones_stripped: 0,
+      mega_stones_kept: STONES_KEPT,
+      control_arm_stones_stripped: STONES_STRIPPED,
+      align_had_to_move_a_stat: ALIGN_MOVED,
       teams_unbuildable: TEAMS_UNBUILDABLE, sets_unbuildable: MONS_UNBUILDABLE,
       ban_fallbacks: BAN_FALLBACKS, undeclared_event_drops: UNDECLARED_DROPS,
       trace_body_off_field: M.fails.traceBodyOffField,

@@ -134,5 +134,63 @@ console.log('\n== 2. arriving vs retaliating ==');
     `${base} ${JSON.stringify(bBuild && bBuild.st)} vs ${JSON.stringify(mBuild && mBuild.st)}`);
 }
 
+/* ---- 3. ROADMAP #31 — THE EVOLVED ABILITY EQUALS THE DEX'S, ON EVERY MEGA IN THE FORMAT --------
+ *
+ * The census probes in tests/test-mechanics.js assert the ability on ONE body each, against the
+ * artifact this engine reads. That is circular on its own: if data/engine-data.js were wrong, the
+ * engine and the probe would agree with each other and both be wrong. This block closes it by
+ * comparing the engine's answer to `Dex.forFormat('gen9championsvgc2026regmb')` for EVERY mega, and
+ * the cast is derived from `item.megaStone` rather than typed — the umbrella rule, "the ban is a
+ * MECHANISM, read it from the format".
+ *
+ * IT IS AN EQUALITY, NEVER AN INEQUALITY, and that is the point of doing it over the whole set: a
+ * test asserting "the ability changed" fails on every mega that legitimately keeps its base one, and
+ * this format has several. The count of those is PRINTED and never maintained by hand. */
+console.log('\n== 3. the evolved ability equals the dex, over every mega in the format ==');
+{
+  const N = require(path.join(ROOT, 'engine', 'names.js'));
+  const { mcKey } = require(path.join(ROOT, 'engine', 'mc_key.js'));
+  const id = N.id;
+  const table = N.megaTable();
+  let checked = 0, keptBase = 0;
+  const wrongAbility = [], noBody = [], wrongForme = [], neverEvolved = [];
+  const bare = (sp) => { const b = M.buildMon(sp, {}); b.item = ''; b.ability = 'none'; return b; };
+  for (const [base, m] of Object.entries(table)) {
+    const sp = dex.species.get(base), forme = dex.species.get(m.formeName);
+    if (!sp.exists || !forme.exists) continue;
+    /* THE MC KEY COMES FROM THE PROJECT'S OWN RESOLVER, not from the dex id. `names.megaTable()` keys
+     * by `id()` — `floetteeternal`, `meowsticf` — and data/engine-data.js keys by
+     * `floette-eternal`, `meowstic-f`, so `buildMon(base)` returned null on exactly those two and the
+     * first run of this block reported "2 megas this engine cannot build". That was the TEST being
+     * wrong, not the engine, and it is the same hyphen this file's own header is about — which is
+     * why the fix is `mcKey`, the one thing allowed to know how that table is keyed, rather than a
+     * hand-rolled normalisation here. */
+    const me = M.buildMon(mcKey(sp.name) || base, {});
+    if (!me) { noBody.push(base + ' (' + sp.name + ')'); continue; }
+    me.item = m.stone;
+    /* A REAL TURN, not a call to megaEvolveNow — the whole finding of ROADMAP #31 is that the
+     * evolution is a step INSIDE the turn, so a check that skips the turn cannot see it move. */
+    const ally = bare('clefable'), f1 = bare('garchomp'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, autoMega: false });
+    const act = M.playerAction(me, me.moves.find(x => MC.moves[x]) || 'protect', f1, S.field);
+    if (act) act.mega = true;
+    M.battleTurn(S, () => 0.5, new Map([[me, act], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    checked++;
+    if (!/-mega(-[xyz])?$/.test(String(me.name))) { neverEvolved.push(base + ' @ ' + m.stone); continue; }
+    if (id(me.name) !== id(m.forme)) { wrongForme.push(base + ' -> ' + me.name + ' want ' + m.forme); continue; }
+    const want = id(forme.abilities['0']);
+    if (id(me.ability) !== want) wrongAbility.push(`${m.formeName}: engine ${me.ability} dex ${forme.abilities['0']}`);
+    if (id(sp.abilities['0']) === want) keptBase++;
+  }
+  console.log(`        ${checked} megas driven through a real turn; ${keptBase} of them KEEP their base `
+            + `slot-0 ability, which is why this is an equality and not "it changed"`);
+  ok(!noBody.length, 'every mega base in the format has a body this engine can build', `${noBody.length} could not`);
+  ok(!neverEvolved.length, 'every stone-holder told to mega DID', neverEvolved.slice(0, 4).join('; '));
+  ok(!wrongForme.length, 'every evolution reached the forme the dex names', wrongForme.slice(0, 4).join('; '));
+  ok(!wrongAbility.length, "and the ability EQUALS the dex's slot-0 ability for that forme",
+    wrongAbility.length ? wrongAbility.slice(0, 6).join('; ') : `all ${checked} agree`);
+}
+
 console.log(fails ? `\nMEGA TIMING: ${fails} FAILED` : '\nMEGA TIMING: all checks passed');
 process.exit(fails ? 1 : 0);

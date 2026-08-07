@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-06 23:51:54",
+  "generated": "2026-08-07 02:22:13",
   "source": "engine/derive_protocol_events.js",
   "source_digests": {
-    "engine/derive_protocol_events.js": "bfa8c755dfc9",
-    "engine/medicham2-browser.js": "f7dff7676ad6"
+    "engine/derive_protocol_events.js": "944b901e2fd7",
+    "engine/medicham2-browser.js": "e6c9fab1fc05"
   },
   "showdown_pinned_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "derivedFrom": {
-    "showdown": "C:\\Users\\willj\\Projects\\Pokemon\\pokemon-showdown",
+    "showdown": "C:/Users/willj/Projects/Pokemon/pokemon-showdown",
     "scanned": [
       "sim/battle.ts",
       "sim/battle-actions.ts",
@@ -30,7 +30,7 @@
     "note": "the champions mod OVERRIDES two of the core emits (-supereffective, -resisted); its arity wins."
   },
   "showdownEvents": 91,
-  "emittedCount": 36,
+  "emittedCount": 38,
   "emitted": [
     "-ability",
     "-activate",
@@ -49,6 +49,7 @@
     "-heal",
     "-immune",
     "-item",
+    "-mega",
     "-miss",
     "-mustrecharge",
     "-prepare",
@@ -62,6 +63,7 @@
     "-unboost",
     "-weather",
     "cant",
+    "detailschange",
     "drag",
     "faint",
     "move",
@@ -69,7 +71,7 @@
     "turn",
     "upkeep"
   ],
-  "notEmittedCount": 58,
+  "notEmittedCount": 56,
   "notEmitted": [
     {
       "event": "-anim",
@@ -125,7 +127,7 @@
     },
     {
       "event": "-formechange",
-      "reason": "as `detailschange`."
+      "reason": "the only other forme change this engine models is Zero to Hero, which rewrites the body silently in bringIn(). Mega evolution is a PERMANENT forme change and emits `detailschange`, which is what Showdown does; `-formechange` is the non-permanent shape and has no carrier here."
     },
     {
       "event": "-hint",
@@ -138,10 +140,6 @@
     {
       "event": "-invertboost",
       "reason": "Topsy-Turvy is not modelled."
-    },
-    {
-      "event": "-mega",
-      "reason": "mega evolution happens in buildMon/oneMegaPerSide BEFORE battleInit, so there is no in-battle event to emit. That is a real modelling limit (docs/ENGINE.md) and it is why `|detailschange|` is absent too."
     },
     {
       "event": "-message",
@@ -214,10 +212,6 @@
     {
       "event": "debug",
       "reason": "no debug channel."
-    },
-    {
-      "event": "detailschange",
-      "reason": "no in-battle forme change is modelled except Zero to Hero, which rewrites the body silently in bringIn(); emitting a details line there would claim a capability the rest of the engine does not have."
     },
     {
       "event": "error",
@@ -855,7 +849,7 @@
         "SIM-PROTOCOL.md"
       ],
       "champions": true,
-      "medicham": "declared"
+      "medicham": "emitted"
     },
     {
       "name": "-message",
@@ -1303,7 +1297,7 @@
         "SIM-PROTOCOL.md"
       ],
       "champions": true,
-      "medicham": "declared"
+      "medicham": "emitted"
     },
     {
       "name": "drag",

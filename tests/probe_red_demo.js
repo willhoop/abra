@@ -1882,11 +1882,130 @@ demoSource('WIRE 132 the stone names the forme (the guess reaches the EMPTY twin
  * in this project ever noticed. The control is a mega row whose own `mv` is populated, which must be
  * unaffected by the fix in either direction. */
 demoSource('WIRE 132 a mega row with mv:[] inherits the base moveset',
-  [['  return {name,types,st,item,wt:m.wt||null,_bsAtk,ability:normAb(megaAbility(name,item,_rowAb||\'\')),baseAbility:normAb(_rowAb||\'\'),moves:megaRowMoves(name,m).slice(),',
-    '  return {name,types,st,item,wt:m.wt||null,_bsAtk,ability:normAb(megaAbility(name,item,_rowAb||\'\')),baseAbility:normAb(_rowAb||\'\'),moves:m.mv.slice(),']],
+  /* NARROWED TO THE ONE FIELD, 2026-08-07. This used to pin the whole `return {...}` line, which is
+   * shared with every other property buildMon sets — so ROADMAP #31 adding `_ident` and the mega
+   * CAPABILITY to that line broke a reversal that has nothing to do with either, and the file THREW
+   * instead of reporting. `moves:megaRowMoves(name,m).slice(),` occurs exactly once in the engine and
+   * is the whole of what WIRE 132 changed here. */
+  [['moves:megaRowMoves(name,m).slice(),', 'moves:m.mv.slice(),']],
   (E) => {
     const holds = (name) => { const b = E.buildMon(name, {}); return b ? b.moves.length : -1; };
     return holds('floette-mega') === 4 && holds('scizor-mega') > 0;
+  });
+
+/* ================= ROADMAP #31 - MEGA EVOLUTION AS A MID-TURN CHOICE ==============================
+ *
+ * Six probes landed in tests/test-mechanics.js and each gets its own broken engine below. They are
+ * deliberately DIFFERENT breakages rather than one switch turned off six times: a single "mega does
+ * nothing" revert would red all six and would tell you only that the feature exists, not that each
+ * probe watches the thing it names. The one that matters most is the LEFT-SLOT revert - that is the
+ * literal historical defect in this project, which passed an at-least-one check for weeks.
+ *
+ * These are demoSource cases and not `demo` cases because there is no tag to strip: the defect lives
+ * in the engine's own control flow. The `megaStone` tag IS consumed here, but stripping it would only
+ * fall through to the `/ite(x|y)?$/` name-shape branch that WIRE 111 deliberately kept, so a tag
+ * mutation would prove nothing about any of this. */
+const MEGA_BODY = (E, key, item) => { const b = E.buildMon(key, {}); b.item = item; return b; };
+const MEGA_PASS2 = (a, b) => new Map([[a, { kind: 'pass' }], [b, { kind: 'pass' }]]);
+
+/* 1. THE BODY IS BASE AT BUILD TIME. The known-bad engine is the ENGINE AS IT SHIPPED UNTIL TODAY:
+ *    buildMon ran megaAbility() on a base-forme stone-holder, so a Gengar carrying a Gengarite was
+ *    built with Shadow Tag and Gengar's BASE stats - a chimera neither engine models. */
+demoSource('ROADMAP #31  a stone-holder is BASE at build (the pre-change engine megaed the ABILITY)',
+  [["ability:normAb(_canMega?(_rowAb||''):megaAbility(name,item,_rowAb||'')),",
+    "ability:normAb(megaAbility(name,item,_rowAb||'')),"]],
+  (E) => {
+    const me = MEGA_BODY(E, 'gengar', 'gengarite');
+    return me.name === 'gengar' && me.ability === 'cursedbody';
+  });
+
+/* 2. THE EVOLUTION ITSELF. Every probe's test arm depends on this, so it is reverted at the single
+ *    point that performs it rather than at the caller - a caller revert would also disable the phase
+ *    placement, and the next case needs that placement intact to be meaningful. */
+demoSource('ROADMAP #31  the evolution resolves inside the turn',
+  [['function megaEvolveNow(S,m,auto){\n  if(!m||m.fainted||m.curHP<=0)return false;',
+    'function megaEvolveNow(S,m,auto){\n  return false;']],
+  (E) => {
+    const me = MEGA_BODY(E, 'gengar', 'gengarite');
+    const ally = bare('clefable'), f1 = bare('garchomp'), f2 = bare('milotic');
+    const S = E.battleInit([me, ally], [f1, f2], { seeded: true, autoMega: false });
+    const act = E.playerAction(me, 'shadowball', f1, S.field); act.mega = true;
+    E.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]), MEGA_PASS2(f1, f2));
+    return me.name === 'gengar-mega' && me.ability === 'shadowtag';
+  });
+
+/* 3. EITHER SLOT. THIS IS THE HISTORICAL DEFECT, REPRODUCED: the base class could only mega from the
+ *    LEFT slot, and the capability passed an at-least-one check at 56% of sides for as long as
+ *    nobody asked which slot. The assertion is deliberately two-sided - an engine that megaed only
+ *    from the RIGHT slot must fail it too. */
+demoSource('ROADMAP #31  mega fires from the RIGHT slot as well as the left',
+  [['  if(slot<0)return false;                       // a benched body cannot mega',
+    '  if(slot!==0)return false;                     // a benched body cannot mega']],
+  (E) => {
+    const run = (slot) => {
+      const me = MEGA_BODY(E, 'gengar', 'gengarite');
+      const ally = bare('clefable'), f1 = bare('garchomp'), f2 = bare('milotic');
+      const S = E.battleInit(slot === 0 ? [me, ally] : [ally, me], [f1, f2],
+                             { seeded: true, autoMega: false });
+      const act = E.playerAction(me, 'shadowball', f1, S.field); act.mega = true;
+      E.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]), MEGA_PASS2(f1, f2));
+      return me.name;
+    };
+    return run(0) === 'gengar-mega' && run(1) === 'gengar-mega';
+  });
+
+/* 4. THE NEW SPEED GOVERNS THE TURN. The broken engine still evolves, at the right point, with the
+ *    right stats - it simply does not re-sort what is left of the turn afterwards, so the order was
+ *    frozen on the PRE-mega Speed. Nothing about the end state gives this away; only who moved does,
+ *    which is why the probe reads damage taken by a body whose foe was left on 1 HP. */
+demoSource('ROADMAP #31  the turn re-sorts around the new Speed the mega brought',
+  [['      const _rest=sortTurnOrder(acts.slice(from),field,rng);\n      for(let _k=0;_k<_rest.length;_k++)acts[from+_k]=_rest[_k];',
+    '      void from;']],
+  (E) => {
+    const me = MEGA_BODY(E, 'gengar', 'gengarite');
+    const ally = bare('clefable'), f1 = bare('garchomp'), f2 = bare('milotic');
+    me.st = Object.assign({}, me.st, { sp: 100 });
+    f1.st = Object.assign({}, f1.st, { sp: 110 });
+    const S = E.battleInit([me, ally], [f1, f2], { seeded: true, autoMega: false });
+    f1.curHP = 1;
+    const before = me.curHP;
+    const act = E.playerAction(me, 'shadowball', f1, S.field); act.mega = true;
+    E.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]),
+      new Map([[f1, E.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+    return me.name === 'gengar-mega' && before - me.curHP === 0;
+  });
+
+/* 5. THE ENTRY ABILITY FIRES ON EVOLUTION. The broken engine sets the mega's ability correctly and
+ *    never runs its onStart, so Mega Manectric arrives with Intimidate written on it and nothing
+ *    dropped - which is exactly the shape WIRE 123 had. */
+demoSource('ROADMAP #31  an entry ability on the mega forme fires when it evolves',
+  [['  applyEntryEffects(m,S.field,own.find(x=>x&&x!==m));\n  applyEntryDrops(m,_live(foes));\n  sf.megaUsed=true;',
+    '  void own; void foes;\n  sf.megaUsed=true;']],
+  (E) => {
+    const me = MEGA_BODY(E, 'manectric', 'manectite');
+    const ally = bare('clefable'), f1 = bare('garchomp'), f2 = bare('milotic');
+    const S = E.battleInit([me, ally], [f1, f2], { seeded: true, autoMega: false });
+    const act = E.playerAction(me, 'thunder', f1, S.field); act.mega = true;
+    E.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]), MEGA_PASS2(f1, f2));
+    return me.ability === 'intimidate' && f1.boosts.at === -1 && f2.boosts.at === -1;
+  });
+
+/* 6. ONE MEGA PER SIDE PER BATTLE. The broken engine drops only the per-side flag test, so both
+ *    stone-holders on one side evolve. The probe's CONTROL - a second evolution on the OTHER side -
+ *    must still succeed on both engines, or the probe would be testing "megas are rationed" rather
+ *    than "megas are rationed PER SIDE". */
+demoSource('ROADMAP #31  the second stone-holder on a side is refused',
+  [['  if(sf.megaUsed)return false;\n  const megRow=monRow(key), baseRow=monRow(m.name);',
+    '  const megRow=monRow(key), baseRow=monRow(m.name);']],
+  (E) => {
+    const a0 = MEGA_BODY(E, 'gengar', 'gengarite'), a1 = MEGA_BODY(E, 'mawile', 'mawilite');
+    const b0 = MEGA_BODY(E, 'scizor', 'scizorite'), b1 = bare('milotic');
+    const S = E.battleInit([a0, a1], [b0, b1], { seeded: true, autoMega: false });
+    const t1 = E.playerAction(a0, 'shadowball', b0, S.field); t1.mega = true;
+    E.battleTurn(S, rng5, new Map([[a0, t1], [a1, { kind: 'pass' }]]), MEGA_PASS2(b0, b1));
+    const t2 = E.playerAction(a1, 'ironhead', b0, S.field); t2.mega = true;
+    E.battleTurn(S, rng5, new Map([[a0, { kind: 'pass' }], [a1, t2]]), MEGA_PASS2(b0, b1));
+    return a0.name === 'gengar-mega' && a1.name === 'mawile';
   });
 
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);

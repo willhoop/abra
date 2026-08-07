@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-07T01:39:13.615Z",
+  "generated": "2026-08-07T03:21:40.185Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 235,
-  "live": 234,
+  "probed": 241,
+  "live": 240,
   "missing": 1,
-  "armed": 235,
+  "armed": 241,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -67,6 +67,66 @@
       "label": "a sheet's pre-mega ability does not override the mega's",
       "live": true,
       "detail": "sheet says Swarm -> scizor-mega ability=\"technician\" 62; sheet silent -> ability=\"technician\" 62; same body with no ability 41",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "megaAbilityOverwrite",
+      "label": "a mega OVERWRITES whatever ability the body has, and the new one fires",
+      "live": true,
+      "detail": "[ability after Skill Swap, forme, ability, weather] — no mega roughskin,tyranitar,roughskin,rain (it keeps the swapped ability and the rain stands); mega roughskin,tyranitar-mega,sandstream,sand (the ability EQUALS the mega row's \"sandstream\" and the Sand Stream re-set the sky over the rain)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "megaStone",
+      "label": "a stone-holder is built as its BASE forme and evolves on a CHOICE, mid-turn",
+      "live": true,
+      "detail": "[forme, ability, SpA] as BUILT gengar,cursedbody,200 (base forme, base ability, holding the stone); never told to mega gengar,cursedbody,200 dealing 95; told to mega gengar-mega,shadowtag,240 dealing 113",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "megaStone",
+      "label": "mega evolution fires from EITHER active slot",
+      "live": true,
+      "detail": "[slot, forme, ability] — LEFT slot 0,gengar-mega,shadowtag; RIGHT slot 1,gengar-mega,shadowtag. The last mega defect in this project passed an at-least-one check while firing on 56% of sides, because the base class could only evolve from the left slot",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "megaStone",
+      "label": "the mega's NEW Speed governs that turn's move order",
+      "live": true,
+      "detail": "[own Speed, damage taken from a 110-Speed foe on 1 HP] — no mega 100,135 (slower, so it got hit); mega 120,0 (the evolution resolved BEFORE the moves and the turn re-sorted around the new Speed, so the foe never acted)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "megaEntryAbility",
+      "label": "an entry ability on the MEGA forme fires on evolution",
+      "live": true,
+      "detail": "[ability, foe A atk stage, foe B atk stage, Earthquake taken] — no mega lightningrod,0,0,232; mega intimidate,-1,-1,124 (Intimidate arrived WITH the evolution and both foes are at -1, so the Earthquake that follows in the same turn hits softer)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "megaStone",
+      "label": "ONE mega per side per battle — a second stone-holder on the same side cannot",
+      "live": true,
+      "detail": "[first evolver, second evolver] — the second on the OTHER side gengar-mega,scizor-mega (both evolve); the second on the SAME side gengar-mega,mawile (the Mawile is refused, so the side's one mega is genuinely spent)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1986,7 +2046,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 27.0% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 26.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

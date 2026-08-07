@@ -114,3 +114,35 @@ filter landed. Nothing on the file said so. Re-run on clean data the cycle disap
 
 A JSON file on disk looks equally authoritative whether it was generated this morning or before the
 filter that made it wrong.
+
+## 11. `git checkout -- <path>` is a DELETE, and it belongs to whoever holds that file
+
+Uncommitted work under that path is gone. There is no reflog for a working-tree overwrite. It has the
+same permanence as deleting an untracked file, reached through a command that reads like a revert.
+
+**2026-08-06.** An ENGINE agent had rewritten `tests/test-effective-identity.js` — section 2b, which
+used to assert that a stone-holder materialises the mega's ability at BUILD time. ROADMAP #31 made
+that false by design, so the agent rewrote it to assert the contract at BOTH moments: the base
+forme's ability before the choice, the mega's after a real turn. Uncommitted.
+
+The router, fixing a mangled edit of its own in the same file, ran `git checkout --` on it. That
+discarded the rewrite and two `DECLARED` entries. The file went back to asserting the chimera and
+failed 49 megas — **the test was wrong and the engine was right**, which is the direction that gets
+"fixed" by editing the engine if nobody notices what happened.
+
+**Two rules, and the second is the one that generalises.**
+
+**A file has one holder. That includes the router.** The same session had spent the evening enforcing
+one-writer-per-file on subagents, refusing to touch `engine/game_differential.js` because an agent
+held it, and then wrote three new files into that agent's tree and reverted a fourth. The rule is not
+about who is careful; it is about who is in the tree. See CLAUDE.md on a measuring agent beside a
+writing agent — the invariant is the same one, and the router is not exempt from it.
+
+**Ask the author to restore, do not reconstruct.** The agent rebuilt it verbatim from its own working
+context and the assertion counts came back identical — 62/62, 62/62, 61/61 — which is what proves the
+restoration faithful rather than merely green. A reconstruction by the person who destroyed it would
+have been a guess at somebody else's design, and it would have passed.
+
+**Why this cost twenty minutes and not a day:** it went red LOUDLY, against a correct engine. The
+expensive version is the one where the stale contract lands quietly and goes green again on some
+future engine that happens to satisfy it.

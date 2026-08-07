@@ -74,7 +74,13 @@ function play(teamA, teamB, script, seed) {
           if (want) map.set(mm, { kind: 'switch', to: want });
           return;
         }
-        map.set(mm, M.playerAction(mm, act.m, act.t != null ? foes[act.t] : null, S.field));
+        /* ROADMAP #31 — `mega: true` on a scripted click is Showdown's `move N mega`. The engine's
+         * own auto-mega policy is left ON in this file (battleInit's default), so a scenario can
+         * reach the events either way; the flag exists so the EXPLICIT path is exercised too and a
+         * dead explicit door cannot hide behind a live automatic one. */
+        const _a = M.playerAction(mm, act.m, act.t != null ? foes[act.t] : null, S.field);
+        if (act.mega && _a) _a.mega = true;
+        map.set(mm, _a);
       });
       return map;
     };
@@ -146,6 +152,29 @@ const SCENARIOS = [
      { a: [{ m: 'trick', t: 1 }, { m: 'scald', t: 0 }], b: [{ m: 'bodyslam', t: 0 }, { m: 'recover' }] },
      { a: [{ m: 'protect' }, { m: 'scald', t: 0 }], b: [{ m: 'bodyslam', t: 0 }, { m: 'recover' }] },
      { a: null, b: null }, { a: null, b: null }]],
+
+  /* ROADMAP #31 — MEGA EVOLUTION, BOTH DOORS. `|detailschange|` and `|-mega|` were declared
+   * not-emitted until 2026-08-07 with the reason "mega evolution happens in buildMon BEFORE
+   * battleInit"; the evolution is a mid-turn choice now, so the claim moved into TRACE_EVENTS and
+   * part 1 above is what holds it to it.
+   *
+   * TWO SIDES, TWO DOORS, ON PURPOSE. Side A is told explicitly (`mega: true`, Showdown's
+   * `move N mega`); side B holds a stone and says nothing, so the engine's own policy has to reach
+   * it. A single-sided scenario would let a dead door hide behind a live one — which is exactly how
+   * the joint layer silently disabled mega evolution in this project on 2026-08-01.
+   *
+   * AND THE RIGHT-HAND SLOT MEGAS, not the left, because "the base class could only mega from the
+   * LEFT slot" is the defect this file's rate floors exist for. */
+  ['mega evolution: an explicit choice on one side, the engine\'s own policy on the other',
+    () => [mon('clefable', ['moonblast', 'protect', 'followme', 'helpinghand'], 'unaware', ''),
+           mon('tyranitar', ['rockslide', 'crunch', 'protect', 'lowkick'], 'sandstream', 'tyranitarite'),
+           mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', '')],
+    () => [mon('manectric', ['thunderbolt', 'protect', 'snarl', 'voltswitch'], 'lightningrod', 'manectite'),
+           mon('milotic', ['scald', 'protect', 'icywind', 'haze'], 'marvelscale', ''),
+           mon('garchomp', ['earthquake', 'protect', 'dragonclaw', 'rockslide'], 'roughskin', '')],
+    [{ a: [{ m: 'moonblast', t: 0 }, { m: 'rockslide', mega: true }], b: [{ m: 'thunderbolt', t: 0 }, { m: 'scald', t: 0 }] },
+     { a: [{ m: 'moonblast', t: 0 }, { m: 'crunch', t: 0 }], b: [{ m: 'thunderbolt', t: 0 }, { m: 'scald', t: 0 }] },
+     { a: null, b: null }, { a: null, b: null }, { a: null, b: null }]],
 ];
 
 const seen = {};
@@ -191,6 +220,52 @@ if (noMove) fail(noMove + '/' + perGame.length + ' games emitted NO |move| — e
 else pass('every one of the ' + perGame.length + ' games emitted |move| (floor: 100%)');
 if (hurtNoDamage) fail(hurtNoDamage + ' games ended with a hurt body and emitted no |-damage|');
 else pass('every game that ended with a hurt body emitted |-damage| (floor: 100%)');
+
+/* ROADMAP #31 — THE MEGA FLOOR, AND IT IS A RATE AND NOT A COUNT.
+ *
+ * Will's standing rule: "IT SHOULD BE TRULY RARE TO SEE A GAME THAT DIDN'T HAVE A MEGA IN THIS
+ * FORMAT." Mega has already passed an at-least-one check in this project while firing on 56% of the
+ * sides it should have, because the base class could only evolve from the LEFT slot. So the
+ * denominator here is SIDES THAT COULD HAVE MEGAED, not games, and the floor is 100% of them:
+ * `megaTargetFor` answers on a body that is still capable, so a side whose stone-holder never
+ * evolved still reads as capable at the end of the game and is counted as a miss.
+ *
+ * BOTH SLOTS ARE ASSERTED SEPARATELY, for the same reason. */
+{
+  let capable = 0, evolved = 0, fromLeft = 0, fromRight = 0;
+  for (const g of perGame) {
+    /* THE DENOMINATOR IS THE ROSTER, NOT THE FIELD, and the first version of this got it wrong in a
+     * way worth recording: it scanned `actA + benchA`, and WIRE 125 already documents that a fainted
+     * body is OVERWRITTEN in its active slot by bringIn() and ends up in neither array. So a side
+     * whose mega evolved and then died read as "never had a stone" and left the denominator — the
+     * floor quietly measured 4 sides instead of 8 and still printed 100%. `sf.team` is stamped by
+     * battleInit with the whole side and is never spliced. */
+    for (const sf of [g.S.sfA, g.S.sfB]) {
+      const roster = (sf.team || []).filter(Boolean);
+      const didMega = roster.some(x => /-mega(-[xyz])?$/.test(String(x.name)));
+      const stillCould = roster.some(x => M.megaTargetFor(x));
+      if (!didMega && !stillCould) continue;               // no stone on this side at all
+      capable++;
+      if (didMega) evolved++;
+    }
+    /* WHICH SLOT is read off the STREAM rather than off the end state, for the same reason: the
+     * `|-mega|` line names the slot the evolution happened in, and it survives the body dying. */
+    for (const l of g.trace) {
+      const m = /^\|-mega\|p[12]([ab]):/.exec(l);
+      if (m) (m[1] === 'a' ? fromLeft++ : fromRight++);
+    }
+  }
+  console.log('  mega: ' + evolved + '/' + capable + ' capable sides evolved   '
+    + 'left slot ' + fromLeft + ', right slot ' + fromRight);
+  if (!capable) fail('NO side in any scenario could mega — the floor below is vacuous, which is worse '
+    + 'than a red one. A scenario carrying a mega stone must exist.');
+  else if (evolved < capable) fail(evolved + '/' + capable + ' capable sides megaed — the floor is 100%, '
+    + 'and 56%-of-sides is the exact shape this project has already shipped once');
+  else pass('every side that could mega DID (' + evolved + '/' + capable + ')');
+  if (!fromRight || !fromLeft) fail('mega fired from only one slot (' + fromLeft + ' left, ' + fromRight
+    + ' right) — "the base class could only mega from the LEFT slot" is the literal historical defect');
+  else pass('mega fired from BOTH slots (' + fromLeft + ' left, ' + fromRight + ' right)');
+}
 
 /* The Intimidate floor is the sharpest of the three because the ORDER is part of the claim: Showdown
  * emits `|-ability|X|Intimidate|boost` and then one `|-unboost|` per live foe, and a trace that got

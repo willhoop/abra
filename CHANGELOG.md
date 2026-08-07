@@ -10,6 +10,92 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.61.0] — 2026-08-06
+
+### Added
+- **MEGA EVOLUTION IS A CHOICE, NOT A BUILD-TIME FACT (ROADMAP #31).** `buildMon` on a stone-holder
+  returned the mega forme already evolved, so a stone parted the two engines on line one of every game
+  carrying one and the differential had been stripping **460 stone sets** — ~26% of this format's usage,
+  untested. Evolution is now an action the engine is told to take mid-turn. Will chose this over
+  covering megas in a separate staged suite, on the grounds that the same change is what #31 needs
+  anyway: a search cannot choose *whether* to mega against an engine that has already done it.
+- **Mega bodies are in the differential.** `mega_stones_stripped` **460 → 0**, 372 stone sets kept, and
+  the driver plays every pair **twice** — with the stone and without — so the arms are paired rather
+  than compared across runs.
+
+### Changed
+- **Census 234/235 → 240/241 live**, red demonstrations **122 → 128** with 0 failed, protocol events
+  36 → 38 (`-mega`, `detailschange`), differential sets unbuildable **117 sets / 3 teams → 0 / 0**,
+  divergence classes 19 → 11.
+- **THE RATE IS SATURATED AND THE ARTIFACT REFUSES TO PRETEND OTHERWISE.** Every measured game diverges
+  in both arms, so the rate cannot answer *"what did megas cost"*. The **paired** comparison answers it:
+  the mega arm parted LATER on 96 games, EARLIER on 15, at the same line on 28, and **zero games have a
+  `|-mega|` line as their first divergence.** The mega implementation is not a source of divergence — it
+  pushed the horizon out.
+- **The evolution floor is on the CHOICE, not on the stone.** **181 evolutions in MEDICHAM, 181 in
+  Showdown, from 181 offered choices — 100%.** Not 181/255 sides-that-brought-a-stone: a game stops at
+  its first divergence, so a benched stone-holder is never offered. `tests/test-protocol-trace.js` PART 2
+  carries the other floor on games that run to the end — **8/8 capable sides, 4 left slot / 4 right**.
+  That right-slot half is not decoration: the historical defect was a base class that could only evolve
+  from the left, which passed "at least one happened" while firing on 56% of sides against a correct 85%.
+- **A new caveat now travels with every rate this instrument prints**, beside the turn-1 horizon: both
+  sides are built Serious / 0 EVs / 31 IVs so the two engines compute the same stat line before *and*
+  after a forme change. **It tests RULES, not the spreads the ladder brings.**
+
+### Fixed
+- **`buildMon` returned a chimera** — base stats carrying the mega's ability (`gengar` → `shadowtag`).
+- **Knock Off's ×1.5 kept the half.** Showdown's `chainModify` truncates 65 × 1.5 to **97**; we used
+  97.5 and dealt 103 where the real game deals 105. **3,341 uses.**
+- **Re-setting the standing weather is a no-op, not a refresh** — announced every time, constant after
+  every mega weather setter.
+- **The protocol identifier followed the FORME**, so a pivot parted every later line. Already live for
+  Palafin.
+- **`id()` stripped hyphens**, dropping **117 sets from every differential run** and hiding a 35-game
+  naming class.
+- **Zero to Hero is silent** — Showdown transforms on switch-OUT and announces on the way in; we did
+  neither. Emitter now exists.
+- **`engine/status.js` had been silently skipping `docs/ENGINE.md`.** Its GENERATED-block regex required
+  `-->
+` and `core.autocrlf` is `true`, so the ledger printed `skip` while its block stayed frozen at an
+  older run. Now newline-agnostic and rewritten in whatever ending the file arrived in.
+- Two conformance findings, both from this session's own new files: the mega census hardcoded the format
+  id (S12 — it lives in `champions_sim.js` and nowhere else), and `diff_swarm.js` lost its opening block
+  comment when a `RAW-STORE-OK` note was prepended above it rather than folded into it.
+
+### Notes
+- **THE ROUTER BROKE ITS OWN INVARIANT TWICE, AND THE SECOND TIME DESTROYED WORK.** See
+  `docs/LESSONS.md` #11. Three new files were written into a tree an ENGINE agent was holding, turning
+  two of its gates red and costing it part of a report defending work that was clean when it started.
+  Then, fixing a mangled edit, `git checkout -- tests/test-effective-identity.js` **discarded that
+  agent's uncommitted rewrite** of the file — section 2b, which it had corrected to assert the mega
+  contract at *both* moments, plus two `DECLARED` entries. The file reverted to asserting the chimera
+  and failed 49 megas: **the test was wrong and the engine was right**, which is the direction that gets
+  "fixed" by editing the engine if nobody notices. The agent restored it verbatim and the assertion
+  counts came back identical — 62/62, 62/62, 61/61 — which is what proves a restoration faithful rather
+  than merely green.
+- **The rule that earned:** `git checkout -- <path>` is a DELETE of whatever is uncommitted under it,
+  with no reflog, reached through a command that reads like a revert. **A file has one holder, and that
+  includes the router** — the same session had spent the evening enforcing one-writer-per-file on
+  subagents while exempting itself. And **ask the author to restore; do not reconstruct** — a
+  reconstruction by whoever destroyed it is a guess at someone else's design, and it would have passed.
+- `engine/mega_decision_census.js` + `data/mega-decision.json` + `docs/MEGA-FEATURES-SPEC.md`: whether
+  "when do I mega" is an observed, timed, varying decision, written because Will asked what adding mega
+  to MAG's weights would look like. It is: **59.53% of clean megas are held past turn 1**, which is what
+  kills the current "the lead keeps it" default. His constraint reorganised the design — *"it needs to be
+  a separate score than the move selection or switching because you can mega and act at the same turn"* —
+  so mega is modelled as a **board transformation**, scoring the same moves twice on two boards, rather
+  than as a row in a softmax that assumes you pick one thing.
+- **Three corrections the census forced on claims made in conversation before it was run:** weather-setting
+  is **4 of 98** mega formes and not a family; conditional speed abilities are **one** (Swampert, Swift
+  Swim); and **Charizard-Mega-Y gains ZERO base Speed** while being the most-used mega in the format — the
+  biggest counter-example to *"if mega I outspeed"* sits at the top of the usage table.
+- **MAG's weights are invalidated by this release.** `switchSurvives1`, `switchKOSlow` and
+  `switchDiesFirst` changed digest, because a stone-holder's static build changed. That is #31 and nothing
+  else — the tree was clean when the work started. The refit is MEASURE's and remains gated behind
+  MEDICHAM being finished, per Will's standing call.
+
+---
+
 ## [3.60.1] — 2026-08-06
 
 ### Fixed

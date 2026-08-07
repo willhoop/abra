@@ -2,17 +2,22 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.60.1 · Last updated 2026-08-06**
+**Version 3.61.0 · Last updated 2026-08-06**
 
-**THE DIFFERENTIAL HAS RUN (3.60.1).** `engine/game_differential.js` plays a real stored team through
-MEDICHAM and through the official Showdown engine, step for step. First measured result, against a
-stamped frozen release (`9491abe09f54`, showdown `20ad99ffc9a5`): **159 of 160 games diverge**, and
-the median game parts after **one completed turn**. Seven proved equivalence rules collapsed 4,627
-lines of protocol-shape difference first, and **the rate barely moved** from the un-normalised 160/160
-— the shape noise was hiding real classes rather than inflating a small number. Two limits travel with
-that figure and must never be quoted without it: **nothing past turn 1 is tested**, and **zero mega
-bodies were tested** (460 stone sets stripped; mega usage in this format is ~26%).
-**Will Hooper · ABRA**
+**THE DIFFERENTIAL HAS RUN, AND MEGAS ARE IN IT (3.61.0).** `engine/game_differential.js` plays a real
+stored team through MEDICHAM and through the official Showdown engine, step for step, against a stamped
+frozen release. **Read every figure from `data/game-differential.json`, never from this sentence** — the
+first version of this paragraph quoted a run that a later one replaced within the day, which is the
+drift this whole document set keeps having to correct.
+
+At the time of writing it reports every measured game diverging, with the median parting after a single
+completed turn. **Mega bodies are now tested** (ROADMAP #31): no stone is stripped from the measured arm,
+and every mega choice Showdown offered was taken by both engines.
+
+**Two limits travel with any rate this instrument prints and must never be separated from it.** Nothing
+past the first turn is exercised, because a game stops at its first divergence. And both sides are built
+Serious / 0 EVs / 31 IVs so the two engines compute the same stat line before *and* after a forme change
+— **this tests RULES, not the spreads the ladder actually brings.**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
 > deck and the technical documentation. A prior conclusion is never silently rewritten; new
@@ -29,7 +34,7 @@ empirical finding governs its design: **predicting the winner of a game from the
 near-impossible in this format — even a player-Elo model ties a coin.** ABRA therefore does not sell
 outcome prediction. It follows the recipe that worked in poker, Diplomacy, and sports analytics:
 *support decisions, don't predict outcomes*, and judge every model by a proper score against an honest
-baseline with a confidence interval. **As of 3.60.1 the headline metric is exploitability rather than
+baseline with a confidence interval. **As of 3.61.0 the headline metric is exploitability rather than
 win rate** (§0, ADR-003): VGC is formally an imperfect-information game, the only prior work in this
 exact format measures its own agents at approximately 100% exploitable despite beating a
 professional, and the thesis under test is that a per-turn re-solving agent is harder to exploit than
@@ -38,7 +43,7 @@ states that thesis and its metric, the empirical ceiling, the data model, each m
 validated result (including two honest negatives), the mathematics, the limits, and the road to the
 in-battle engine (ALAKAZAM).
 
-## 0. The thesis, and the metric that follows from it (3.60.1)
+## 0. The thesis, and the metric that follows from it (3.61.0)
 
 **This project's headline metric is exploitability, not win rate.** The change is recorded in
 ADR-003 and it is forced by a measurement somebody else made.
@@ -221,7 +226,7 @@ ground-truth) on 31 meta scenarios: **within 5% on 100% of scenarios, median err
 Every model that reasons about damage builds on this, and "will this move KO?" is a *winnable*
 prediction, unlike "who wins the game."
 
-### 3.0 Why a hand-written engine exists at all, and the corrected speed figure (3.60.1)
+### 3.0 Why a hand-written engine exists at all, and the corrected speed figure (3.61.0)
 
 **ADR-001 decided this architecture on a benchmark of 29 against 3,401 battles/sec/core — a ratio of
 117x — and that ratio does not reproduce.** Re-measured on the same machine, both engines on the same
@@ -258,7 +263,7 @@ drop, `|-enditem|` is an item being spent, the order of two `|move|` lines is tu
 `engine/medicham2-browser.js` now emits that stream on request. The event set is **derived from
 Showdown's `add()` call sites** rather than transcribed (`engine/derive_protocol_events.js` →
 `data/protocol-events.json`, whose own `showdownEvents`, `emittedCount`, `notEmittedCount` and
-`partialCount` read 91 / 36 / 58 / 10), and two gates fail the run — claiming an event Showdown never
+`partialCount` read 91 / 38 / 56 / 10), and two gates fail the run — claiming an event Showdown never
 emits, or leaving one unexplained. The scan reads this **format's** overrides, not the generic
 protocol: Champions emits `|-supereffective|POKEMON|N` where the base engine emits two fields.
 
@@ -469,7 +474,7 @@ cores beat which" and for quantifying how cyclic the meta really is.
    contained them, labelled as inferred rather than observed on every field.
 
 7. **The headline metric has no current value, and that is the largest limitation in this paper**
-   (added 3.60.1). §0 makes exploitability the number this project is judged on, and
+   (added 3.61.0). §0 makes exploitability the number this project is judged on, and
    `data/exploitability.json` is declared void: the 2026-07-26 figure was fitted on 17 features
    against the 58 shipped, on an engine 25 wire-fixes old and before the quality filter existed, and
    the 2026-08-04 re-run had `data/policy-weights.json` — the defender itself — refitted at 22:15:24
@@ -480,7 +485,7 @@ cores beat which" and for quantifying how cyclic the meta really is.
    rather than a hypothetical one.
 
 8. **Two speed readings of the same engine differ by an order of magnitude and nothing caught it**
-   (added 3.60.1, §3.0). 3,401, 1,606 and 13,041 are three measurements of MEDICHAM's throughput
+   (added 3.61.0, §3.0). 3,401, 1,606 and 13,041 are three measurements of MEDICHAM's throughput
    taken over two weeks; the first two are battles/sec and the third is turns/sec, and no ratchet,
    test or artifact compares any of them. A project whose central architectural decision rests on a
    speed ratio should measure that ratio the way it measures a win rate. It does not, yet.
@@ -498,7 +503,7 @@ millions of human + self-play games and a rented cloud GPU. It is judged on deci
 self-play/ladder win-rate with CIs — never on predicting the winner. A self-play data engine (MEW) is
 the pacing item toward the millions of games that path needs.
 
-**Sequenced by the four phases (3.60.1, §0.3).** ALAKAZAM as described above is phase 3. It is
+**Sequenced by the four phases (3.61.0, §0.3).** ALAKAZAM as described above is phase 3. It is
 reached only through phase 1 (MEDICHAM complete — a search needs an engine that is both fast and
 correct) and phase 2 (the gate: MILTANK untimed against MILTANK on the clock, ROADMAP #62, which
 decides whether compute buys anything at all). If phase 2 says no, phase 4 replaces this road with
@@ -668,17 +673,17 @@ The policy fits learn from human clicks reconstructed out of replay logs. The lo
 **happened**; the fit needs what was **clicked**. Across all **241,927 recorded human actions over
 8,942 clean open-sheet games** (`data/policy-weights.json`, the fit corpus), **1,336 (0.5522%) were
 never clicks at all** and were being fitted as though they were. The classifier that decides which
-is which is measured separately, against the protocol's own annotations over 9,230 games
+is which is measured separately, against the protocol's own annotations over 10,009 games
 (`data/click-censoring-census.json`, re-run 2026-08-05 on the current engine) — a slightly larger
 sweep than the fit, because the census reads every stored game while the fit takes only those it can
 build a board for:
 
 | class | n | share | mechanism |
 |---|---|---|---|
-| CLEAN | 236,712 | 94.9111% | the recorded action is the click |
-| PARTIAL | 3,328 | 1.3344% | a redirector soaked the attack; the true target is one of two live foes |
-| **COERCED** | **1,383** | **0.5545%** | Encore replaced the action (1,152); a phazing move dragged the mon in (231) |
-| unreadable | 7,126 + 824 + 31 | 3.2000% | unmatched, trivial, ambiguous |
+| CLEAN | 256,394 | 94.9530% | the recorded action is the click |
+| PARTIAL | 3,559 | 1.3180% | a redirector soaked the attack; the true target is one of two live foes |
+| **COERCED** | **1,475** | **0.5463%** | Encore replaced the action (1,243); a phazing move dragged the mon in (232) |
+| unreadable | 7,668 + 888 + 38 | 3.1827% | unmatched, trivial, ambiguous |
 
 The shares are the reason this table can be re-run without re-arguing the fit: the census has now been
 taken three times as the store grew, and the three class shares agree to a hundredth of a point across
@@ -741,8 +746,13 @@ attempts (Armor Tail, Queenly Majesty) are recoverable — the protocol names th
 move in **299 of 299 cases (100.0%)** — but live only in raw logs covering 67.23% of the corpus, and
 the missing third is one archive, so recovering them would reweight the sample by source. (iii)
 `board.js` narrows the choice set for a Choice item and not for the `onDisableMove` family, so
-**2,374 of 146,413 logged actions (1.6214%)** were priced against a menu that had already shrunk —
-a wrong denominator rather than a wrong label, and a separate refit.
+**a measured fraction of logged actions** were priced against a menu that had already shrunk — a wrong
+denominator rather than a wrong label, and a separate refit. *(The counts once printed here were from a
+census superseded on 2026-08-06 when `engine/click_census.js` was given an explicit corpus scope. They
+are NOT restated, because the artifact that would restate them — `data/censoring-value.json` — refuses
+to regenerate: both weight vectors were fitted under the pre-WIRE-114 engine, so re-scoring them
+through the current one would measure the censoring change plus three wires at once. It clears with the
+refit. Read `data/click-censoring-census.json` for the current class counts.)*
 
 ## A degenerate signature: when every arm of a controlled probe returns the same integer (3.56.0)
 
@@ -934,8 +944,11 @@ so the night's fits stand unre-run.
 The feature function was wrong about the weather on 10.72% of turn-boards: `engine/board.js` carried a
 private weather map that recognised Desolate Land and Primordial Sea — neither of which this format can
 produce — and did not recognise **sandstorm or snowscape**. Routing both reads through the engine's own
-exported `weatherId` moves **14 of 58 feature columns**, 1,768 of 234,873 vectors (0.75%), 892 of 32,054
-decisions (2.78%), and touches 238 of 1,200 games (19.83%) — consistent with the 18.5% sand/snow census.
+exported `weatherId` moves **14 of 58 feature columns**, and touches a small single-digit percentage of
+vectors and decisions — consistent with the sand/snow share of the corpus. *(Exact counts withdrawn
+2026-08-06: they were computed against a corpus superseded the same day, and the vectors they describe
+are among the three whose MEANING changed under the mega work — `switchSurvives1`, `switchKOSlow`,
+`switchDiesFirst`. They come back with the refit, measured, not restated from here.)*
 
 Paired per decision on the same 46,162 held-out decisions across 1,772 games, bootstrapped over 10,000
 game resamples:

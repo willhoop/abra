@@ -27,10 +27,10 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  234/235 probed mechanics live, 1 missing   (census 2026-08-07 01:06)
+  240/241 probed mechanics live, 1 missing   (census 2026-08-07 03:08)
   missing:
     move    needsTargetToAttack    Avalanche doubles after the target hits it this turn
-  1/150 differential comparisons disagree with Showdown   (2026-08-07 01:07)
+  1/150 differential comparisons disagree with Showdown   (2026-08-07 03:07)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -49,7 +49,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 162/181 probed, 19 unprobed
 ```
 
-_stamped 2026-08-07 01:12_
+_stamped 2026-08-07 03:08_
 
 <!-- /GENERATED -->
 
@@ -62,6 +62,223 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
+
+## MEGA EVOLUTION IS A CHOICE NOW, MADE MID-TURN, AND THE DIFFERENTIAL HAS ITS MEGAS BACK. ROADMAP #31 + #68. 2026-08-07.
+
+Census **234 live / 235 probed → 240 live / 241 probed**. `unarmed` 0, `directCall` 0, `hollow` 0,
+red demonstrations **128 / 0 failed** (six new, one broken engine each). `data/game-differential.json`
+re-run: **`mega_stones_stripped` 0**, 372 stone sets kept, **181 evolutions in each engine**.
+
+**WHAT WAS WRONG, MEASURED BEFORE ANYTHING CHANGED.** `buildMon('gengar', {})` returned a body that
+neither engine models:
+
+```
+stats  135/76/80/200/95/170   <- BASE Gengar
+ability  shadowtag            <- MEGA Gengar
+```
+
+The two halves failed in opposite directions and cancelled. `megaForme()` resolves through
+`window.MEGA_FORMES`, which does not exist under node, so the STATS never swapped; `megaAbility()`
+reads a module-level table, which always works, so the ABILITY always did. Showdown's Gengar has
+Cursed Body until it evolves **on a choice, mid-turn**, so a stone parted the two protocol streams on
+line one of every game carrying one — which is why the first whole-game differential had to strip 460
+sets and test **zero mega bodies** in a ~26%-mega format.
+
+**WHAT IT IS NOW.** `buildMon` returns the BASE forme holding the stone. `megaTargetFor(mon)` DERIVES
+the capability from the body's own name and item every time it is asked — never a flag stamped at
+build time, because the item moves (Knock Off, Trick, `b.item = x` after the build, which is what the
+harness and every probe do) and a stamp that did not happen looks exactly like a body that cannot
+mega. `megaEvolveNow(S, mon)` performs the evolution inside the turn.
+
+**THE POSITION IN THE TURN IS THE MECHANIC.** Showdown queues it at ORDER 104 —
+`sim/battle-queue.ts:184` — below `switch` (103) and above every move (200). This engine orders
+everything through one comparator and a bare switch sits at priority 6, above the format's ceiling of
++5, so "after the switches, before the moves" is exactly "the first action with priority below 6". A
+pre-pass before the loop would be wrong and observably so: a Pelipper switching in sets rain at 103,
+and a Charizard megaing into Drought at 104 must paint over it rather than the other way round.
+
+**AND THE TAIL IS RE-SORTED, BECAUSE THE MEGA'S NEW SPEED GOVERNS THE TURN IT ARRIVES IN.** Showdown
+gets that for free (gen ≥ 8 re-sorts the queue before every `move` action, which is after the megaEvo
+actions have run); WIRE 118's re-sort here only fires for `actIdx > 0`, so a mega on the first action
+would have left the whole turn ordered on PRE-mega Speed.
+
+**TWO MEGAS IN ONE TURN RESOLVE IN SPEED ORDER AND ONLY SPEED ORDER.** The first cut walked the
+already-sorted action list, which is (priority, speed) — and megaEvo actions carry no priority;
+`comparePriority` breaks the tie at order 104 on `speed` alone. So a slow body clicking Protect (+4)
+megaed before a fast body clicking an attack. **The differential caught it**, as
+`|detailschange|p1b: Glimmora-Mega <> |detailschange|p2b: Drampa-Mega` — the same two bodies evolving
+in opposite orders — and the ordering class fell from 26 games to 19 when it was fixed.
+
+**THE ABILITY IS AN OVERWRITE, AND THE TEST FOR IT IS AN EQUALITY.** `setAbility(species.abilities[0],
+null, null, true)` still fires the ability's `Start` handler, so an entry-style ability on the mega
+forme fires ON EVOLUTION — that is `applyEntryEffects` + `applyEntryDrops`, the same two calls
+`battleInit` makes for a lead, so a mechanic wired for a switch-in cannot be missing for an evolution.
+**Asserting "the ability changed" would fail on a correct engine**: measured against
+`Dex.forFormat('gen9championsvgc2026regmb')`, **8 of the 74 megas in this format keep their base
+slot-0 ability** (Tyranitar-Mega Sand Stream, Medicham-Mega Pure Power, Abomasnow-Mega Snow Warning,
+Malamar-Mega Contrary, Barbaracle-Mega Tough Claws, Drampa-Mega Berserk, Chimecho-Mega Levitate,
+Audino-Mega Healer). That list is read from the dex, never maintained here.
+`tests/test-mega-timing.js` drives **all 74** through a real turn and asserts the evolved `.ability`
+EQUALS the dex's value for that forme; the count of ability-keepers is printed so the equality can
+never become vacuous.
+
+### The six proofs, each red on its own broken engine
+
+| proof | where | the broken engine it was shown red on |
+|---|---|---|
+| the body is BASE at build and evolves on a CHOICE | census `item:megaStone` | `buildMon` runs `megaAbility()` again — the pre-change engine |
+| the ability is OVERWRITTEN and the new one FIRES | census `ability:megaAbilityOverwrite` | `megaEvolveNow` returns false at entry |
+| either slot | census `item:megaStone` + `test-protocol-trace` PART 2 | `if (slot !== 0) return false` — the literal historical defect |
+| the new Speed governs the turn | census `item:megaStone` | the tail re-sort removed; it still evolves, correctly, too late |
+| an entry ability fires on evolution | census `ability:megaEntryAbility` | the two `applyEntry*` calls removed |
+| one mega per side per battle | census `item:megaStone` | the `sf.megaUsed` test removed |
+
+**THE OVERWRITE PROOF USES SKILL SWAP, NOT WORRY SEED, AND THAT IS A FINDING RATHER THAN A
+SUBSTITUTION.** Will's acceptance case is *"Worry Seed a Tyranitar to Insomnia, then mega it"*.
+Measured first: **`worryseed` carries only `moveClass` and `statusCategory` in `data/tags.json` — no
+ability-writing tag — so this engine does not implement it and the move is inert.** A probe built on
+it would have been green while proving nothing, because both arms would have started from Sand
+Stream. Skill Swap is the same mechanism and is wired. The probe swaps Sand Stream away, puts RAIN on
+the field so "the sandstorm returned" cannot be satisfied by a sandstorm nobody cleared, and then
+megas: ability back to `sandstream`, sky back to `sand`.
+
+**THE RATE FLOOR IS ON THE CHOICE, NOT ON THE SIDE.** Every choice the differential's driver issues
+came from Showdown's own `canMegaEvo`, so **every one must produce exactly one evolution in each
+engine** — 181 / 181 / 181, a hard 100%. "Sides that brought a stone" reads 181 / 255 (71.0%) and is
+deliberately **not** the floor: a game stops at its first divergence, the median game lasts one
+completed turn, and a benched stone-holder is never offered the choice. Making that the floor would
+be measuring the harness's early stop. `tests/test-protocol-trace.js` PART 2 carries the other floor —
+every side that COULD mega DID (8/8), from both slots (4 left, 4 right) — because its games run to the
+end.
+
+### Three things the same-weather rule and the identifier fixed, each found rather than assumed
+
+- **RE-SETTING THE WEATHER THAT IS ALREADY STANDING IS A NO-OP, AND NOT A REFRESH EITHER.**
+  `sim/field.ts setWeather()` returns false when `this.weather === status.id` for an Ability source in
+  gen > 5; `setTerrain()` does the same unconditionally. This engine set and announced it every time.
+  It was reachable before (two weather setters, one arriving under the other's sky) and ROADMAP #31
+  makes it constant — a Tyranitar sets sand on entry then megas into Sand Stream on turn one, so
+  **every mega weather setter emitted a `-weather` line Showdown does not, on the line straight after
+  the `-mega`.**
+- **THE PROTOCOL IDENTIFIER IS THE NICKNAME AND MUST NOT FOLLOW THE FORME.** Showdown's `|switch|p1a:
+  X` field is `pokemon.name`, which `formeChange` never touches: a Tyranitar that megas keeps emitting
+  `p1a: Tyranitar` for the rest of the battle and the new forme appears only in `|detailschange|`.
+  This engine keyed it off `m.name`, which IS the forme. Unreachable before mega existed in-battle —
+  **with one exception that was already live: Zero to Hero rewrites `m.name` to `palafin-hero`, so a
+  Palafin that pivoted parted the streams on every later line it appeared in.** `_ident` is stamped by
+  `buildMon` and re-stamped for anything `battleInit` is handed without one.
+- **SHOWDOWN DEFAULTS THE NICKNAME TO `baseSpecies`.** A set whose name equals its species is renamed
+  when the battle loads it, so a Floette-Eternal is `|switch|p1a: Floette|Floette-Eternal, L50|`. That
+  parted 35 games in one run — **a class that had been there all along behind a silent drop**, because
+  the harness keyed species with `id()`, which strips hyphens, so `floetteeternal` missed
+  `data/engine-data.js`'s `floette-eternal` and **117 sets counted as unbuildable and left the run**.
+  Routing that through `mcKey` took `sets_unbuildable` **117 → 0** and `teams_unbuildable` **3 → 0**.
+
+### What the differential says now, and what it still cannot say
+
+`mega_stones_stripped` reads **0**. Both engines are built Serious / 0 EVs / 31 IVs from the same base
+stats, so `alignStats` had to move a stat **0 times** in 139 games — the two are literally the same
+Pokemon rather than one being copied onto the other, which is what makes a forme change survivable at
+all (`setSpecies` RECOMPUTES `storedStats` mid-turn from the SET, and `battle.choose` runs the whole
+turn, so there is no seam for a harness to re-align in). The cost is stated and is new: **the ladder's
+SPREADS are no longer tested.**
+
+**THE RATE IS SATURATED, SO IT CANNOT ANSWER "WHAT DID MEGAS COST" AND THE ARTIFACT DOES NOT PRETEND
+IT CAN.** Every pair is played TWICE, same seeds, same frozen driver state, stones the only
+difference:
+
+```
+with megas, on the pairs that carry a stone   139/139
+the SAME pairs with the stones removed        139/139
+stoneless pairs whose two arms differed          0   (the pairing is sound)
+```
+
+So the paired comparison is reported instead: of 139 stone-carrying pairs the mega arm parted EARLIER
+on 15, LATER on 96 and at the same line on 28, and **0 games have a `|-mega|` line as their first
+divergence** — nothing in this run is attributable to the evolution itself. `|detailschange|` is
+first on exactly 1, and it is a **Palafin**, not a mega, which is why the two are counted apart.
+
+**FILED, NOT FIXED — ZERO TO HERO IS SILENT.** Showdown transforms Palafin on **switch-OUT**
+(`|detailschange|p1a: Palafin|Palafin-Hero, L50`) and announces `|-activate|…|ability: Zero to Hero`
+on the way back in. medicham2 transforms on the RETURN, inside `bringIn()`, and emits neither. That is
+a different moment and two missing lines, and the emitter for it now exists.
+
+### WIRE — KNOCK OFF'S ×1.5 KEPT THE HALF, AND SHOWDOWN TRUNCATES IT. FOUND AND FIXED IN THIS PASS.
+
+The first re-run read `showdown 87..103` against `medicham 88..105` on the knock-off scenario, while
+the contact-punish scenario on the same page agreed at both ends. The only difference between them is
+Knock Off's item multiplier, and the arithmetic is exact:
+
+```
+showdown  chainModify(1.5) is FIXED POINT — tr(tr(65 * 6144) / 4096) = 97
+          22*97   * 135/85 /50 + 2 = 69   -> STAB x1.5 -> 103
+medicham  65 * 1.5 = 97.5, and the half survived every later floor
+          22*97.5 * 135/85 /50 + 2 = 70   -> STAB x1.5 -> 105
+```
+
+Two points, on **3,341 corpus uses**. `mvBP=Math.floor(mvBP*_vp.mult)` in the `targetHasItem` branch,
+and ONLY that branch: the other two variable-power multipliers are ×2 on integer base powers (Hex 65,
+Infernal Parade 20, Acrobatics 55) and two of the three reach it through `basePowerCallback` returning
+`bp * 2`, which is a plain multiply upstream and does NOT truncate — flooring them would assert a
+rounding rule Showdown does not apply. Knock Off is the only member carrying a non-integer `mult`.
+
+**IT HAD BEEN INVISIBLE, AND THE REASON IS THE LESSON.** The staged bodies used to carry the dataset's
+spread and the two engines happened to land on the same integer, so `endpoints_agree` read **true for
+a reason that had nothing to do with the arithmetic being right**. Flattening the harness's stat line
+for ROADMAP #31 moved it off that coincidence. `tests/test-engine-diff.js` compares exactly these two
+endpoints at 149/150 and did not see it either — it stages its own pairs and never hit the pairing.
+After the fix: interior endpoints AGREE on both scenarios, `test-engine-diff` unchanged at 1/150, and
+`tests/test-game-differential.js` back to ALL PASSED (its ordering assertion had gone red too, because
+the knock-off scenario was parting on the DAMAGE line before the ordering line could show).
+
+### THIS INVALIDATES MAG'S WEIGHTS, AND THAT IS THE INVALIDATION GRAPH WORKING RATHER THAN A BUG
+
+`node engine/status.js` now opens with:
+
+```
+FEATURE SEMANTICS CHECK FAILED — data/policy-weights.json
+    switchSurvives1  (0e94b1687aa4 -> 54d70a9e6ad9)
+    switchKOSlow     (2045dd8d8175 -> 9c9d7efd0c30)
+    switchDiesFirst  (83f864ebe7e8 -> c22f00eb026f)
+```
+
+It was clean at the start of this session, so this is ROADMAP #31 and nothing else. The three
+features are computed on a STATIC build of a bench body, and a stone-holder's static build changed:
+it used to carry the mega's ABILITY with the base's STATS and now carries the base forme's ability
+plus the capability to evolve. **That is CLAUDE.md's own case — the weights were fitted against the
+old definition and no longer describe these quantities.** ENGINE cannot close it: a refit is MEASURE's
+and running one from here is out of bounds. **Routed, not filed.**
+
+### `tests/test-effective-identity.js` — GREEN, AND THE WAY IT GOT THERE IS THE RECORD
+
+**19 passed, 0 failed.** Section 2b was rewritten to pin the new contract at BOTH moments — `.ability`
+is the base forme's before the choice (62/62) and the mega forme's after a real turn (62/62), and an
+evolved body agrees with the mega row (61/61). That is a STRONGER claim than the one it replaced, not
+a weaker one: the old assertion was green on a chimera.
+
+Two of the ratchet's three growers are now DECLARED with construction reasons —
+`engine/game_differential.js` (the harness AUTHORS both engines' teams, so the reads are assignments
+of the sheet's DECLARED ability, which is exactly what a mega must evolve *from*) and
+`tests/test-mega-timing.js` (two dex reads, which are the authority, and one read of the value under
+test). The third, `engine/mega_decision_census.js`, is another division's and they declared it
+themselves. `tests/test-no-silent-failure.js`: **0 new**.
+
+**THAT FILE WAS OVER THE IDENTITY RATCHET FROM THE MOMENT `engine/game_differential.js` WAS WRITTEN,
+and neither ROADMAP #31 nor anybody's regression caused it.** `data/effective-identity-baseline.json`
+is dated **2026-08-02**; every read in a file newer than the baseline counts as new, and the
+differential harness was written on 2026-08-06. It had been red for a day waiting for someone to look.
+Recorded in the DECLARED entry itself so the next reader does not spend the time working it out again.
+
+**AND A PROCESS LESSON THAT COST REAL WORK, WRITTEN DOWN BECAUSE IT IS CHEAP TO WRITE AND EXPENSIVE TO
+REPEAT.** This section's changes were destroyed once and rebuilt by hand. A second agent, clearing an
+unrelated syntax error in the same file, ran `git checkout -- tests/test-effective-identity.js` while
+the ROADMAP #31 edits sat UNCOMMITTED. **A working-tree overwrite has no reflog and git cannot bring
+it back** — the same permanence CLAUDE.md already records for deleting an untracked file, reached
+through a command that looks like a revert rather than a delete. The old contract came back and went
+RED against a correct engine, asserting the chimera again, which is precisely what the rewrite exists
+to stop. It is restored verbatim rather than approximately, and the block says so in its own header.
+**The rule this earns: `git checkout --` on a path is a DELETE of whatever is uncommitted under it,
+and belongs to whoever holds that file.**
 
 ## THE COMPARISON DRIVER RUNS. 159 OF 160 REAL GAMES DIVERGE, AFTER A NORMALISER THAT PROVES ITSELF. ROADMAP #68, STEP TWO. 2026-08-06.
 
@@ -82,6 +299,11 @@ BODIES in a format whose mega usage is ~26%.** It is stated at the top level of 
 nothing else has taken a number about a format with the megas removed. Closing it is the next job and
 it is the same change ROADMAP #31 already requires — mega must become a CHOICE, not a build-time
 default, or a search can never decide whether to mega.
+
+> **CLOSED 2026-08-07 — see the ROADMAP #31 section at the top of this file.** Everything from here to
+> the end of the 2026-08-06 section is the record of the run that had no megas in it, kept as written.
+> `mega_stones_stripped` reads **0** now and the stone-holding sets are on the field; the figures below
+> are that run's and are not restated.
 
 ### THE FIRST RUN'S RATE WAS NOT A RATE, AND SAYING SO IS THE POINT
 
@@ -274,7 +496,8 @@ protocol.
 - **NO MEGA BODY WAS TESTED AT ALL.** 460 stone-holding sets were stripped, because medicham2 megas at
   BUILD time and Showdown megas on a CHOICE — a stone parts the streams on the `|switch|` line of turn
   zero in every game that carries one. `tests/test-mega-timing.js` owns that question; this instrument
-  cannot answer it until they agree on WHEN.
+  cannot answer it until they agree on WHEN. **(CLOSED 2026-08-07, ROADMAP #31: 0 stripped, 372 kept,
+  181 evolutions in each engine.)**
 - **Gender is `N` on both sides**, so Attract, Rivalry and Cute Charm are not exercised. Same control,
   same reason, as CONTROL FIX 6 in the damage differential.
 - **`MEDFAILS.traceBodyOffField = 2`** across 160 games — a `??` identifier reached the stream (first:
@@ -425,10 +648,13 @@ demonstration still shows exactly the defect it was written for. 122 demonstrati
   MEDICHAM resolves the target list after the move line is written and rolls accuracy once per move
   rather than per target (`MEDSEEN.accSpreadNoDefender`), so a per-target attribute would not be true.
   Declared in `data/protocol-events.json`.
-- **`-mega`, `-terastallize`, `replace`, `swap`, `-hitcount` and 53 others are not emitted**, each with
-  a written reason in `data/protocol-events.json`. `-mega` is the interesting one: mega evolution
-  happens in `buildMon`/`oneMegaPerSide` **before** `battleInit`, so there is no in-battle event to
-  emit at all.
+- **`-terastallize`, `replace`, `swap`, `-hitcount` and 52 others are not emitted**, each with a
+  written reason in `data/protocol-events.json`. **`-mega` and `detailschange` USED to be on that list**
+  with the reason *"mega evolution happens in `buildMon`/`oneMegaPerSide` before `battleInit`, so there
+  is no in-battle event to emit at all"*. That was an honest declaration of a real modelling limit and
+  the limit is gone: both are in `TRACE_EVENTS` as of ROADMAP #31 (2026-08-07), emitted by
+  `megaEvolveNow` in Showdown's own order, and `tests/test-protocol-trace.js` PART 1 holds them to it.
+  The counts moved 36 → **38** emitted and 58 → **56** declared.
 - **THE TREE MOVED UNDER THIS PASS, AND ONE OF THE MOVES WAS MINE.** Another division committed
   `5da0b0d` (`tags.json` unfrozen and regenerated, `engine/tag_dex.js`, `engine/fit_policy.js`) and
   `219ce3b` (`diff_swarm.js`, the swarm half of this same ROADMAP item) during the session. The census
@@ -2960,9 +3186,11 @@ re-derives itself when the metagame moves and this section does not.
 
 **AND A SECOND DERIVED LIST LANDED 2026-08-06:** `data/game-differential.json`'s `classes` block. The
 coverage list above says which mechanics have NO PROBE; that one says which mechanics have a probe and
-still resolve differently from the authority IN A REAL GAME. Nineteen classes today, each with its
-count and its distinct causes, regenerated by `node engine/game_differential.js --write`. Neither list
-is typed and neither can go stale, which is the whole reason the section below is nine lines long.
+still resolve differently from the authority IN A REAL GAME. **Eleven classes** over 139 games today
+(2026-08-07, with the megas in), each with its count and its distinct causes, regenerated by
+`node engine/game_differential.js --write`. Neither list is typed and neither can go stale, which is
+the whole reason the section below is nine lines long — and the count moving from nineteen to eleven
+is the artifact doing exactly that, not a claim anybody typed twice.
 
 - **Rivalry** — x1.25 into the same gender, x0.75 into the opposite, x1.0 if either is genderless.
   Wholly absent. Blocked on data, not on will: `MC.mons` carries no gender and `buildMon` returns

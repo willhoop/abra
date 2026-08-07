@@ -1,11 +1,13 @@
-// RAW-STORE-OK: the teams here are TEST CONFIGURATIONS, not evidence about play. This file reads the
-// raw ladder store on purpose. Every quality filter we have selects on WHO PLAYED — rating, bot
-// tags, forfeits — and none of that changes whether a team is a valid input to the engine. A bot's
-// Trick Room team exercises Trick Room exactly as well as a 1600 player's, and filtering to clean
-// games would narrow the team pool toward one ladder segment, which is the OPPOSITE of what a swarm
-// is for: docs/GAME-DIFFERENTIAL-DESIGN.md §3.2 wants rarely-covered configurations, and the rare
-// ones live in the tail this filter would remove. Nothing derived here is a claim about the meta.
 /* diff_swarm.js — TEAM SELECTION FOR THE WHOLE-GAME DIFFERENTIAL. ROADMAP #68, docs/GAME-DIFFERENTIAL-DESIGN.md §3.
+ *
+ * RAW-STORE-OK: the teams here are TEST CONFIGURATIONS, not evidence about play. This file reads
+ * the raw ladder store on purpose. Every quality filter we have selects on WHO PLAYED — rating,
+ * bot tags, forfeits — and none of that changes whether a team is a valid input to the engine. A
+ * bot's Trick Room team exercises Trick Room exactly as well as a 1600 player's, and filtering to
+ * clean games would narrow the pool toward one ladder segment, which is the OPPOSITE of what a
+ * swarm is for: docs/GAME-DIFFERENTIAL-DESIGN.md §3.2 wants rarely-covered configurations, and the
+ * rare ones live in the tail that filter would remove. Nothing derived here is a claim about the
+ * meta.
  *
  *   node engine/diff_swarm.js                 print the swarm's composition
  *   node engine/diff_swarm.js --n 1000        target that many teams

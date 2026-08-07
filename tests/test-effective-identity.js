@@ -212,12 +212,35 @@ if (C) {
     if (/z$/.test(st)) continue;
     for (const b of Object.keys(hand)) if (B.megaFormeOf(b, st, dex)) stoneFor[b] = st;
   }
-  const wrong = [], unnormalised = [];
+  /* ---- REWRITTEN 2026-08-07 FOR ROADMAP #31, AND THE CLAIM GOT STRONGER RATHER THAN WEAKER ------
+   *
+   * This used to assert that `buildMon(base, {base: stone}).ability` is the MEGA's ability — i.e.
+   * that medicham2 materialises the effective ability AT BUILD TIME. That was true and it was true
+   * for the wrong reason: the engine handed a base-forme body the mega's ABILITY while leaving it the
+   * base's STATS, which is a Pokemon neither engine models and is why the whole-game differential had
+   * to strip 460 stone sets. Mega evolution is now a CHOICE resolved inside the turn.
+   *
+   * SO THE CONTRACT THE DECLARED EXCEPTION RESTS ON IS RESTATED, NOT DROPPED: medicham2's `.ability`
+   * is THE ABILITY THE BODY HAS AT THAT MOMENT — the base forme's before it evolves, the mega forme's
+   * after. That is what a raw `.ability` read inside that engine needs to be safe, and it is a
+   * stronger claim than the old one because it is pinned at BOTH moments instead of one.
+   *
+   * A LOOKUP AT THE WRONG MOMENT IS NOW THE FAILURE, and both halves are asserted, so an engine that
+   * megaed at build time fails the first and an engine that never megas fails the second.
+   *
+   * THIS BLOCK WAS RESTORED BY HAND ON 2026-08-07 AFTER A `git checkout --` DISCARDED IT. It was
+   * uncommitted at the time, a second agent reverted the file to clear an unrelated syntax error, and
+   * a working-tree overwrite has no reflog — the old contract came back and went RED against a
+   * correct engine, asserting the chimera again. That is the failure mode the restored version exists
+   * to prevent, arriving through the file that prevents it. Nothing below is approximate; it is the
+   * same text, re-applied. */
+  const wrongBefore = [], wrongAfter = [], unnormalised = [];
   /* A SPECIES THAT WOULD NOT BUILD IS NOT A SPECIES THAT PASSED. `built` is asserted to be > 20
    * precisely so this loop cannot quietly shrink to nothing and report success, and these throws are
    * collected rather than discarded so a shrunken denominator has a reason attached. */
   const unbuildable = [];
   let built = 0;
+  const bare = (sp) => { const b = MED.buildMon(sp, {}); b.item = ''; b.ability = 'none'; return b; };
   for (const [base, ab] of Object.entries(hand)) {
     const stone = stoneFor[base];
     if (!stone) continue;
@@ -226,30 +249,60 @@ if (C) {
     catch (e) { unbuildable.push(base + ': ' + String((e && e.message) || e).slice(0, 40)); body = null; }
     if (!body) continue;                       // no MC row for this species; nothing to claim
     built++;
-    if (body.ability !== String(body.ability).toLowerCase().replace(/[^a-z0-9]/g, '')) unnormalised.push(base);
-    else if (body.ability !== ab) wrong.push(`${base}: .ability=${body.ability} want ${ab}`);
+    if (body.ability !== String(body.ability).toLowerCase().replace(/[^a-z0-9]/g, '')) { unnormalised.push(base); continue; }
+    /* BEFORE: the BASE forme's own ability, which is what Showdown has on the field until the choice
+     * is made. `baseAbility` is the row's, so the two must agree here and only here. */
+    if (body.ability !== body.baseAbility) wrongBefore.push(`${base}: .ability=${body.ability} baseAbility=${body.baseAbility}`);
+    /* AFTER: a real turn in which the body is told to mega. The hand-written MEGA_ABIL entry is what
+     * section 2 above just proved correct against board.js's derivation, so it is the right thing to
+     * compare to — and this is the assertion the old one has become. */
+    let after = null;
+    try {
+      const ally = bare('clefable'), f1 = bare('garchomp'), f2 = bare('milotic');
+      const S = MED.battleInit([body, ally], [f1, f2], { seeded: true, autoMega: false });
+      const act = MED.playerAction(body, (body.moves || []).find(x => MC.moves[x]) || 'protect', f1, S.field);
+      if (act) act.mega = true;
+      MED.battleTurn(S, () => 0.5, new Map([[body, act], [ally, { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+      after = body.ability;
+    } catch (e) { unbuildable.push('evolve ' + base + ': ' + String((e && e.message) || e).slice(0, 40)); }
+    if (after !== ab) wrongAfter.push(`${base}: after the mega .ability=${after} want ${ab}`);
   }
-  ok(built > 20 && wrong.length === 0 && unnormalised.length === 0,
-    `medicham2 materialises the EFFECTIVE ability into .ability for all ${built} buildable megas`
-    + (wrong.length ? ` — ${wrong.length} wrong: ${wrong.slice(0, 4).join('; ')}` : '')
+  ok(built > 20 && wrongBefore.length === 0 && unnormalised.length === 0,
+    `BEFORE the choice, .ability is the BASE forme's on all ${built} buildable stone-holders`
+    + (wrongBefore.length ? ` — ${wrongBefore.length} wrong: ${wrongBefore.slice(0, 4).join('; ')}` : '')
     + (unnormalised.length ? ` — ${unnormalised.length} not normalised: ${unnormalised.slice(0, 4).join(', ')}` : '')
     + (unbuildable.length ? ` — ${unbuildable.length} THREW while building: ${unbuildable.slice(0, 3).join('; ')}` : ''));
+  ok(built > 20 && wrongAfter.length === 0,
+    `AFTER a real turn in which it megas, .ability is the MEGA's on all ${built}`
+    + (wrongAfter.length ? ` — ${wrongAfter.length} wrong: ${wrongAfter.slice(0, 4).join('; ')}` : ''));
 
   /* AND THE MEGA-KEYED DOOR, which is the one that was broken: buildMon called with the mega's own
-   * row rather than base + stone. Both doors must agree or half the callers are wrong. */
+   * row rather than a base that evolved. Both doors must agree or half the callers are wrong — and
+   * since ROADMAP #31 the first door only reaches the mega ability by actually EVOLVING, so this now
+   * compares an evolved body against a body built straight from the mega row. */
   const both = Object.keys(hand).map(b => [b, stoneFor[b]]).filter(([, s]) => s)
     .map(([b, s]) => {
       let viaStone = null, viaRow = null;
-      try { viaStone = MED.buildMon(b, { [b]: s }); }
-      catch (e) { unbuildable.push('viaStone ' + b + ': ' + String((e && e.message) || e).slice(0, 40)); viaStone = null; }
+      try {
+        viaStone = MED.buildMon(b, { [b]: s });
+        if (viaStone) {
+          const ally = bare('clefable'), f1 = bare('garchomp'), f2 = bare('milotic');
+          const S = MED.battleInit([viaStone, ally], [f1, f2], { seeded: true, autoMega: false });
+          const act = MED.playerAction(viaStone, (viaStone.moves || []).find(x => MC.moves[x]) || 'protect', f1, S.field);
+          if (act) act.mega = true;
+          MED.battleTurn(S, () => 0.5, new Map([[viaStone, act], [ally, { kind: 'pass' }]]),
+            new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+        }
+      } catch (e) { unbuildable.push('viaStone ' + b + ': ' + String((e && e.message) || e).slice(0, 40)); viaStone = null; }
       try { viaRow = MED.buildMon(b + '-mega', {}) || MED.buildMon(b + '-mega-y', {}); }
       catch (e) { unbuildable.push('viaRow ' + b + ': ' + String((e && e.message) || e).slice(0, 40)); viaRow = null; }
       return { b, viaStone, viaRow };
     }).filter(x => x.viaStone && x.viaRow);
   const disagree = both.filter(x => x.viaStone.ability !== x.viaRow.ability)
-    .map(x => `${x.b}: stone=${x.viaStone.ability} row=${x.viaRow.ability}`);
+    .map(x => `${x.b}: evolved=${x.viaStone.ability} row=${x.viaRow.ability}`);
   ok(both.length > 10 && disagree.length === 0,
-    `base+stone and the mega row agree on the ability for all ${both.length} checkable megas`
+    `an EVOLVED body and the mega row agree on the ability for all ${both.length} checkable megas`
     + (disagree.length ? ` — ${disagree.length} differ: ${disagree.slice(0, 4).join('; ')}` : '')
     + (unbuildable.length ? ` — ${unbuildable.length} build attempt(s) THREW` : ''));
 }
@@ -283,6 +336,21 @@ const RAW = /\.(ability|baseStats|weighthg|weightkg)\b/g;
  * #40b — it read the PRE-mega ability to decide whether a mon is a weather setter, and a mega's
  * weather ability is precisely what differs from its base). It was fixed rather than declared. */
 const DECLARED = {
+  'engine/mega_decision_census.js':
+    'Four reads of the slot-0 ability off DEX SPECIES ROWS, a mega forme and its base, and THE '
+    + 'QUESTION THE FILE ASKS IS THAT DECLARATION. It censuses what the dex says changes on evolving, '
+    + 'written to establish whether "the ability changed" is a safe test. It is not: 21 of 98 megas '
+    + 'keep their base slot-0 ability (Tyranitar, Medicham, Latias), so the correct invariant is that '
+    + 'the post-evolution ability EQUALS the dex value for the mega forme. Routing these through an '
+    + 'effective-ability resolver would be CIRCULAR BY CONSTRUCTION: that resolver computes the '
+    + 'post-mega ability, which is the very quantity this census exists to establish, so the file '
+    + 'would agree with itself and report every mega as correct whatever the dex holds. No body is '
+    + 'built, no battle state loaded, no sheet read; it walks Dex.species.all() and counts JSONL '
+    + 'events. PINNED rather than trusted, per rule 2 above: it throws if the forme table is empty or '
+    + 'the weather map is empty, so a name lookup matching nothing cannot be published as a 0. '
+    + 'Written 2026-08-06, and written WHILE AN ENGINE AGENT HELD THIS TREE, which is how it turned '
+    + 'this gate red at all. That was a routing failure, not a code one. See CLAUDE.md on a measuring '
+    + 'agent running beside a writing one.',
   'engine/validate_store.js':
     'Two reads, both of a STORED SET — `s.ability` and `s.item` off `g.sets[species]` — handed to '
     + 'Showdown\'s TeamValidator. A validator judges a DECLARATION, so the pre-mega ability is not '
@@ -360,13 +428,43 @@ const DECLARED = {
     + 'must resolve the effective ability — this is a declared gap with a named cause, not a claim '
     + 'that the code is right in general.',
   'engine/medicham2-browser.js':
-    'BUILDS its own bodies and materialises the EFFECTIVE ability into .ability at build time, '
-    + 'keeping the pre-mega one in .baseAbility. It is a browser file with no require and board.js '
-    + 'is downstream of it, so effAbility() is not reachable. Every match was walked on 2026-08-04 — '
+    'BUILDS its own bodies, and `.ability` on one of them is THE ABILITY THAT BODY HAS AT THAT '
+    + 'MOMENT — the base forme\'s until it mega-evolves, the mega forme\'s afterwards — with the row\'s '
+    + 'own ability kept in .baseAbility. It is a browser file with no require and board.js is '
+    + 'downstream of it, so effAbility() is not reachable. Every match was walked on 2026-08-04 — '
     + '67 in code (the rest are this comment and the ones beside the fix, since the regex reads '
     + 'prose too): 66 of the 67 are live battle bodies this engine constructed, and the one '
     + 'exception (norm2(set.ability) in buildMonFromSet) reads a parsed SHEET, which is the case '
-    + 'this test names as correct. PINNED by section 2b.',
+    + 'this test names as correct. PINNED by section 2b. '
+    + 'RESTATED 2026-08-07 (ROADMAP #31): this used to say "materialises the EFFECTIVE ability at '
+    + 'BUILD time", which was true of a body that was a chimera — base stats carrying the mega\'s '
+    + 'ability, a Pokemon neither engine models. Mega evolution is a mid-turn CHOICE now, so the '
+    + 'claim is pinned at BOTH moments instead of one and section 2b asserts each separately.',
+  'engine/game_differential.js':
+    'The whole-game differential harness (ROADMAP #68). It AUTHORS both engines\' team '
+    + 'representations from one sheet, so 5 of its 8 matches are ASSIGNMENTS — writing the chosen '
+    + 'ability onto the medicham body and into the Showdown set — and the value written is the '
+    + 'sheet\'s DECLARED ability, which is correct by construction: a mega\'s ability must arrive by '
+    + 'EVOLVING inside the turn, and the whole point of this instrument is that both engines start '
+    + 'from the same declaration and evolve from it. Resolving to the effective ability here would '
+    + 'hand Showdown an illegal set (Charizard with Drought) and would pre-mega the medicham body, '
+    + 'which is the exact bug ROADMAP #31 removed. The 2 remaining reads are `id(m.ability)` in the '
+    + 'COVERAGE bookkeeping, and §3.1 of docs/GAME-DIFFERENTIAL-DESIGN.md requires those to be '
+    + 'OBSERVED off the live body rather than declared — a body that megaed into Trace and used it '
+    + 'must not read as "Trace exercised: 0". The last is `sp.baseStats`, read off the DEX to build '
+    + 'a stat line both engines compute identically. Declared 2026-08-07; this file has been over '
+    + 'the ratchet SINCE THE MOMENT IT WAS WRITTEN on 2026-08-06, because '
+    + 'data/effective-identity-baseline.json is dated 2026-08-02 and every read in a file newer than '
+    + 'the baseline counts as new. That red was not caused by ROADMAP #31 and was not anybody\'s '
+    + 'regression — it was waiting for someone to look, and it is recorded here so the next reader '
+    + 'does not spend the time working that out again.',
+  'tests/test-mega-timing.js':
+    'Three matches, all in the ROADMAP #31 block that compares the engine\'s answer to the DEX\'s. '
+    + 'Two are dex reads (`forme.abilities[0]`, `sp.abilities[0]`) — the AUTHORITY this file exists '
+    + 'to check against, not a live body. The third is `me.ability` on a body this file built and '
+    + 'then drove through a real turn, and it is the value UNDER TEST: routing it through '
+    + 'effAbility() would compare board.js\'s answer to the dex instead of medicham2\'s, which is the '
+    + 'same reasoning tests/test-interaction-matrix.js is declared under further down.',
   'tests/test-weather-duration.js':
     'Four weather setters — Torkoal, Pelipper, Tyranitar, Ninetales-Alola — built with a ROCK or '
     + 'Leftovers and never a mega stone, so the effective ability IS the base one and there is no '

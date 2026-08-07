@@ -162,14 +162,16 @@ const NOT_EMITTED = {
   '-zpower': 'Z-moves do not exist in this format.', '-zbroken': 'Z-moves do not exist in this format.',
   '-burst': 'Ultra Burst does not exist in this format.',
   '-primal': 'Primal Reversion does not exist in this format.',
-  '-mega': 'mega evolution happens in buildMon/oneMegaPerSide BEFORE battleInit, so there is no '
-    + 'in-battle event to emit. That is a real modelling limit (docs/ENGINE.md) and it is why '
-    + '`|detailschange|` is absent too.',
+  /* `-mega` and `detailschange` MOVED OUT OF THIS LIST, 2026-08-07 (ROADMAP #31). They used to read
+   * "mega evolution happens in buildMon/oneMegaPerSide BEFORE battleInit, so there is no in-battle
+   * event to emit" -- an honest declaration of a real modelling limit, and the limit is gone:
+   * megaEvolveNow() performs the evolution inside the turn and emits both lines in Showdown's own
+   * order. They are in TRACE_EVENTS now, so leaving them here would double-count. */
   '-transform': 'Imposter/Transform is not modelled; `formeChange` carriers are listed unconsumed.',
-  detailschange: 'no in-battle forme change is modelled except Zero to Hero, which rewrites the body '
-    + 'silently in bringIn(); emitting a details line there would claim a capability the rest of the '
-    + 'engine does not have.',
-  '-formechange': 'as `detailschange`.',
+  '-formechange': 'the only other forme change this engine models is Zero to Hero, which rewrites the '
+    + 'body silently in bringIn(). Mega evolution is a PERMANENT forme change and emits '
+    + '`detailschange`, which is what Showdown does; `-formechange` is the non-permanent shape and has '
+    + 'no carrier here.',
   replace: 'Illusion is not modelled (ROADMAP #67), so nothing is ever revealed.',
   swap: 'Ally Switch is not modelled.',
   '-swapsideconditions': 'Court Change is not modelled.',

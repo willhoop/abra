@@ -139,7 +139,10 @@ function main() {
   console.log(`  |new - old|_2 = ${l2.toFixed(4)}`);
   if (l2 === 0) { console.error('the two vectors are IDENTICAL — nothing to measure. Refusing.'); process.exit(1); }
 
-  const { games } = FP.loadCorpus();
+  /* EXPLICIT SCOPE -- see the note in engine/click_census.js. This measures the VALUE of the
+   * censoring fix against the same population the census counted, so it must not inherit a
+   * narrower default than the census used. */
+  const { games } = FP.loadCorpus({ scope: 'all' });
   let held = games.filter(g => g.id && isHeldOut(g.id));
   if (MAXG) held = held.slice(0, MAXG);
   console.log(`  corpus ${games.length.toLocaleString()} clean open-sheet games -> ${held.length.toLocaleString()} held out\n`);

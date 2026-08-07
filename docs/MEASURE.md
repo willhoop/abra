@@ -19,23 +19,23 @@ MEASURE — can we believe a number
     powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835
     PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/abra-tags.js
     (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
-  provenance: 8 unsafe, 1 void (declared), 49 possibly stale, 51 ok, 0 missing
-  click censoring: 1,383 of 249,404 recorded actions were NOT clicks (0.555%) and left the labeled set; 3,328 (1.334%) are kept under a candidate set
-    classifier vs the raw protocol on 6,205 games (67.2% of the corpus): encore recall 99.7% precision 96.3%, drag recall 96.7% precision 96.7%
-    EM recovers 91.4% of a planted censoring bias of 0.957 against a 0.326 noise floor (amplified regime)
+  provenance: 8 unsafe, 1 void (declared), 49 possibly stale, 52 ok, 0 missing
+  click censoring: 1,475 of 270,022 recorded actions were NOT clicks (0.546%) and left the labeled set; 3,559 (1.318%) are kept under a candidate set
+    classifier vs the raw protocol on 6,988 games (69.8% of the corpus): encore recall 99.7% precision 96.2%, drag recall 96.7% precision 96.7%
+    EM recovers 91.4% of a planted censoring bias of 0.958 against a 0.328 noise floor (amplified regime)
     behaviour on the OUTPLAYED turns, after - before, paired and game-bootstrapped:
       redirection turns, mass on the candidate set  +0.000122 [-0.000261, 0.000514] (contains zero)   n=650
       coerced turns, P(the coerced action)          -0.002613 [-0.003650, -0.001672]   n=293  (lower is better)
       CONTROL, clean turns, logL                    +0.000485 [0.000189, 0.000777]   n=47331
-  refit edge: FIXTURE ONLY — not clean, and not owed either; only one of the two instruments spoke
-    feature_fixture --check passes: all 58 columns hash-identical to fit time — but the corpus contrast is MUZZLED (it was measured on medicham2 82bed8cdcf6b, live is 0f7dbdfe35f7), so nothing checked the branches no fixture board stands on
-    moved after the fit: engine/medicham2-browser.js  2026-08-07 00:55
+  REFIT OWED — weights fitted 2026-08-05 04:00
+    feature_fixture --check FAILED:   The weights were fitted against the old definition and no longer describe these quantities. |   Refit (node engine/fit_policy.js, then node engine/fit_joint.js), or if a derived table was |   merely re-ingested, restamp with: node engine/feature_fixture.js --stamp <file>
+    moved after the fit: engine/medicham2-browser.js  2026-08-07 02:55
     moved after the fit: engine/board.js  2026-08-05 19:44
     moved after the fit: data/engine-data.js  2026-08-06 19:20
     moved after the fit: data/abra-tags.js  2026-08-06 19:19
 ```
 
-_stamped 2026-08-07 01:48_
+_stamped 2026-08-07 03:08_
 
 <!-- /GENERATED -->
 

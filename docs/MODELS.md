@@ -1,15 +1,21 @@
 # ABRA — the model family (living reference)
 
-**Version 3.60.1 · Last updated 2026-08-06.**
+**Version 3.61.0 · Last updated 2026-08-06.**
 
-**THE DIFFERENTIAL HAS RUN (3.60.1).** `engine/game_differential.js` plays a real stored team through
-MEDICHAM and through the official Showdown engine, step for step. First measured result, against a
-stamped frozen release (`9491abe09f54`, showdown `20ad99ffc9a5`): **159 of 160 games diverge**, and
-the median game parts after **one completed turn**. Seven proved equivalence rules collapsed 4,627
-lines of protocol-shape difference first, and **the rate barely moved** from the un-normalised 160/160
-— the shape noise was hiding real classes rather than inflating a small number. Two limits travel with
-that figure and must never be quoted without it: **nothing past turn 1 is tested**, and **zero mega
-bodies were tested** (460 stone sets stripped; mega usage in this format is ~26%).
+**THE DIFFERENTIAL HAS RUN, AND MEGAS ARE IN IT (3.61.0).** `engine/game_differential.js` plays a real
+stored team through MEDICHAM and through the official Showdown engine, step for step, against a stamped
+frozen release. **Read every figure from `data/game-differential.json`, never from this sentence** — the
+first version of this paragraph quoted a run that a later one replaced within the day, which is the
+drift this whole document set keeps having to correct.
+
+At the time of writing it reports every measured game diverging, with the median parting after a single
+completed turn. **Mega bodies are now tested** (ROADMAP #31): no stone is stripped from the measured arm,
+and every mega choice Showdown offered was taken by both engines.
+
+**Two limits travel with any rate this instrument prints and must never be separated from it.** Nothing
+past the first turn is exercised, because a game stops at its first divergence. And both sides are built
+Serious / 0 EVs / 31 IVs so the two engines compute the same stat line before *and* after a forme change
+— **this tests RULES, not the spreads the ladder actually brings.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
@@ -295,7 +301,7 @@ than Pelipper plus Archaludon** — the same expressiveness failure as DODUO, on
 on request — `battleInit(A, B, {trace: []})`, off by default. The event set is derived from Showdown's
 own `add()` call sites, including this format's overrides, by `engine/derive_protocol_events.js`.
 
-`data/protocol-events.json`: **showdownEvents 91, emittedCount 36, notEmittedCount 58, partialCount
+`data/protocol-events.json`: **showdownEvents 91, emittedCount 38, notEmittedCount 56, partialCount
 10** — every non-emitted event carries a written reason. Two gates fail the run: claiming an event
 Showdown never emits, and leaving one it does emit unexplained. `tests/test-protocol-trace.js` fails
 if any claimed event never fires in a real game.
@@ -849,7 +855,7 @@ improvement is not yet shown.
 `data/partial-label-em.json`, `data/censoring-value.json`.
 
 Of **241,927 recorded human actions over 8,942 games** (`data/policy-weights.json` — the FIT corpus;
-`data/click-censoring-census.json` sweeps 9,230 games because it reads every stored game while the
+`data/click-censoring-census.json` sweeps 10,009 games because it reads every stored game while the
 fit takes only those it can build a board for, and its three class shares have held to a hundredth of
 a point across every re-run as the store grew), **1,336 were never clicks** — 1,116 Encore application turns, where the move
 Encore forces out is on the victim's own menu so the matcher accepted it, and 220 `|drag|` arrivals,
@@ -865,7 +871,7 @@ for it"* — at **−1.0502 → −1.6281**, which is the direction the mechanis
 
 **The measured value, and the half that did not work.** 48,274 paired held-out decisions over 1,851
 games, bootstrapped over GAMES (`engine/censoring_value.js`, re-run 2026-08-05 under the current
-engine on a corpus grown to 9,230 games; the 3.42.0 run measured 47,195 decisions over 1,809 games
+engine on a corpus grown to 10,009 games; the 3.42.0 run measured 47,195 decisions over 1,809 games
 and every figure below is inside that run's interval): on **COERCED** turns the model now puts
 **−0.002613 [−0.003650, −0.001672]** less probability on the action no human chose — the poison
 unlearned. On **REDIRECTION** turns there is **no improvement**: mass on the true candidate set
@@ -1313,7 +1319,7 @@ from this file, which is correct — this is evidence, not a rule.
 **Status:** wired and **verified**. `engine/validate_damage_sim.js` runs the 31-scenario golden master through the official engine against `@smogon/calc`: **31/31 within 2%**. That clears ADR-001 migration step 3.
 **Why the check mattered:** it is a test of OUR WIRING, not of Showdown. ADR-001 records four engine comparisons of which three produced confident wrong numbers from mis-wiring, none of which crashed. It caught two more on its first run — a forced maximum roll that also forced a critical hit, and the discovery that `battle.randomChance()` bypasses `battle.random()` entirely.
 **Speed:** 29 battles/sec/core against the hand-written engine's 3,401. Offline only; the browser must never simulate.
-**Speed, corrected 2026-08-06 (3.60.1):** that pair is ADR-001's July benchmark and it does not reproduce. Re-run on this machine, same four teams (derived from the store, not typed), 8-second runs at a 60-turn cap: MEDICHAM **13,041** turns/sec and 217 battles/sec, `champions_sim` **523** turns/sec and 28 battles/sec — a ratio of **24.9x**, not 117x. **turns/sec is the comparable unit and battles/sec is not**, because MEDICHAM was driven to its 60-turn cap and Showdown with `choose('default')` to a natural end, so a "battle" is not the same amount of work on the two sides. The July figures are kept above because a prior conclusion is never silently rewritten. A third reading exists and is neither of these: ROADMAP #61 measured MEDICHAM at 1,606 battles/sec. **Nothing ratchets engine speed**, which is the reason three readings of one quantity can disagree by an order of magnitude without anything failing. The conclusion is unaffected — offline only, and the browser still must never simulate.
+**Speed, corrected 2026-08-06 (3.61.0):** that pair is ADR-001's July benchmark and it does not reproduce. Re-run on this machine, same four teams (derived from the store, not typed), 8-second runs at a 60-turn cap: MEDICHAM **13,041** turns/sec and 217 battles/sec, `champions_sim` **523** turns/sec and 28 battles/sec — a ratio of **24.9x**, not 117x. **turns/sec is the comparable unit and battles/sec is not**, because MEDICHAM was driven to its 60-turn cap and Showdown with `choose('default')` to a natural end, so a "battle" is not the same amount of work on the two sides. The July figures are kept above because a prior conclusion is never silently rewritten. A third reading exists and is neither of these: ROADMAP #61 measured MEDICHAM at 1,606 battles/sec. **Nothing ratchets engine speed**, which is the reason three readings of one quantity can disagree by an order of magnitude without anything failing. The conclusion is unaffected — offline only, and the browser still must never simulate.
 **Code:** `engine/champions_sim.js`, pinned commit `20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4`.
 
 ## SMOGON PRIORS — official population statistics (added 2026-07-25)

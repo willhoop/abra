@@ -1,17 +1,23 @@
 # ABRA — Technical Documentation
 
-**Version 3.60.1 · Last updated 2026-08-06**
+**Version 3.61.0 · Last updated 2026-08-06**
 
-**THE DIFFERENTIAL HAS RUN (3.60.1).** `engine/game_differential.js` plays a real stored team through
-MEDICHAM and through the official Showdown engine, step for step. First measured result, against a
-stamped frozen release (`9491abe09f54`, showdown `20ad99ffc9a5`): **159 of 160 games diverge**, and
-the median game parts after **one completed turn**. Seven proved equivalence rules collapsed 4,627
-lines of protocol-shape difference first, and **the rate barely moved** from the un-normalised 160/160
-— the shape noise was hiding real classes rather than inflating a small number. Two limits travel with
-that figure and must never be quoted without it: **nothing past turn 1 is tested**, and **zero mega
-bodies were tested** (460 stone sets stripped; mega usage in this format is ~26%).
+**THE DIFFERENTIAL HAS RUN, AND MEGAS ARE IN IT (3.61.0).** `engine/game_differential.js` plays a real
+stored team through MEDICHAM and through the official Showdown engine, step for step, against a stamped
+frozen release. **Read every figure from `data/game-differential.json`, never from this sentence** — the
+first version of this paragraph quoted a run that a later one replaced within the day, which is the
+drift this whole document set keeps having to correct.
 
-**Change record for 3.60.1.** The headline metric changed. It was the win rate. It is now the
+At the time of writing it reports every measured game diverging, with the median parting after a single
+completed turn. **Mega bodies are now tested** (ROADMAP #31): no stone is stripped from the measured arm,
+and every mega choice Showdown offered was taken by both engines.
+
+**Two limits travel with any rate this instrument prints and must never be separated from it.** Nothing
+past the first turn is exercised, because a game stops at its first divergence. And both sides are built
+Serious / 0 EVs / 31 IVs so the two engines compute the same stat line before *and* after a forme change
+— **this tests RULES, not the spreads the ladder actually brings.**
+
+**Change record for 3.61.0.** The headline metric changed. It was the win rate. It is now the
 exploitability. Read ADR-003 for the decision. Read `docs/POKER-TO-POKEMON.md` for the theory.
 
 The reason is a measurement from other persons. VGC-Bench is the only published work in this format.
@@ -211,10 +217,10 @@ describe what ran; use `source_digests` instead. `source_digests` holds hashes o
 and `git.blobs` holds git object names. Do not compare the two. On Windows they differ because git
 changes the line endings.
 
-**Do not quote an engine-speed figure from a document (added 3.60.1).**
+**Do not quote an engine-speed figure from a document (added 3.61.0).**
 There is no script in this repository that measures the speed of the two engines. Three figures are on
 record for MEDICHAM — 3,401 battles/sec in ADR-001, 1,606 battles/sec in ROADMAP #61 and 13,041
-turns/sec in the 3.60.1 correction. No artifact holds any of them. No test compares them. No ratchet
+turns/sec in the 3.61.0 correction. No artifact holds any of them. No test compares them. No ratchet
 fails when one of them moves. If you need a speed figure, measure it, record the method beside it, and
 state the unit: `turns/sec` compares the two engines and `battles/sec` does not, because the two
 engines end a battle under different rules.
@@ -461,7 +467,7 @@ separate tests workflow runs the test suite and the damage validation on every p
 
 ## 4. Explanation
 
-### 4.-2 Why the exploitability is the headline metric (added 3.60.1)
+### 4.-2 Why the exploitability is the headline metric (added 3.61.0)
 
 **This section explains a decision. It does not give instructions.** For the decision itself, read
 ADR-003.
