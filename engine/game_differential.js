@@ -83,6 +83,18 @@ const MAXTURNS = +flag('--turns', 12);
 const ONLY = flag('--config', null);
 const WRITE = has('--write');
 const VERBOSE = has('--verbose');
+/* ROADMAP #81 WIRE 5 — THE SELECTION POLICY IS AN ARGUMENT NOW.
+ *   --census <file>     steer from THESE bytes rather than the live census, so two arms of a
+ *                       before/after are handed the same sample-selector.
+ *   --baseline <file>   a previous artifact this run is meant to be COMPARED WITH. The run REFUSES
+ *                       to start if the two steerings differ — an incomparable pair costs a whole
+ *                       run either way, and finding out afterwards costs the conclusion too. */
+const CENSUS_PIN = flag('--census', null);
+const BASELINE = flag('--baseline', null);
+/* `--out <file>` writes the artifact somewhere other than data/game-differential.json. It exists so
+ * the steering test can take two arms WITHOUT clobbering the published artifact — a test that
+ * overwrites the run everybody quotes is a worse bug than the one it checks. */
+const OUT = flag('--out', null);
 
 if (!process.env.SHOWDOWN_PATH) {
   console.error('NOT RUN — the official simulator is absent. Set SHOWDOWN_PATH. This is not a pass.');
@@ -115,6 +127,10 @@ const { Dex, Teams, Battle } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
 const N = require('./names.js');
 const SWARM = require('./diff_swarm.js');
+/* NOT loaded from the release, deliberately. This decides what the run MEASURES WITH, not what it
+ * measures — it is part of the instrument, like the pin and the equivalence rules, and freezing it
+ * would mean an old release could never be re-run under the corrected steering discipline. */
+const STEERING = require('./steering.js');
 const id = N.id;
 
 /* tags.json is IN the release, so the coverage sets and the swarm's feature sets are the same bytes
@@ -449,7 +465,15 @@ function equivProof() {
  * `drainThenPunishOrder`) that describe an INTERACTION rather than a taggable entity. Those are
  * reported as UNMEASURABLE BY THIS INSTRUMENT and never as uncovered — a zero on them would read as
  * a failure of the run rather than a limit of the measurement. */
-const CENSUS = JSON.parse(fs.readFileSync(D('data', 'mechanics-census.json'), 'utf8'));
+/* THE CENSUS IS THIS RUN'S SELECTION POLICY AND IS READ THROUGH `engine/steering.js`, WHICH DIGESTS
+ * IT (ROADMAP #81 WIRE 5). It is NOT a passive coverage report: `covWant` below scores every legal
+ * action by the least-exercised census row it can reach, so THE CENSUS DECIDES WHICH GAMES THIS RUN
+ * PLAYS. Landing one probe in tests/test-mechanics.js therefore changes the sample — which is how a
+ * before-arm read 51 games / 50 causes and a re-run of the identical frozen release over a
+ * byte-identical store read 46 / 45. See engine/steering.js's header for why the fix is a DECLARED,
+ * PINNABLE, DIGESTED policy rather than another entry in the release manifest. */
+const STEER = STEERING.resolve({ censusPath: CENSUS_PIN });
+const CENSUS = STEER.census;
 const SECTION = { item: 'items', move: 'moves', ability: 'abilities' };
 const COV_TARGETS = [];      // { key, kind, tag, label, entities:Set }
 const COV_UNMEASURABLE = []; // { key, kind, tag, label }
@@ -466,6 +490,45 @@ for (const r of CENSUS.results) {
   if (set && set.size) COV_TARGETS.push({ key, kind: r.kind, tag: r.tag, label: r.label, sec, entities: set });
   else COV_UNMEASURABLE.push({ key, kind: r.kind, tag: r.tag, label: r.label,
                                why: why || 'the tag exists but no ' + sec + ' row carries it' });
+}
+/* THE STEERING BLOCK THAT GOES IN THE ARTIFACT. The census OBJECT is dropped — the digest is the
+ * claim, and 250 rows of it in every artifact would bury the numbers. */
+const { census: _c, ...STEER_STAMP } = STEER;
+STEER_STAMP.selects_from = COV_TARGETS.length;
+STEER_STAMP.unmeasurable = COV_UNMEASURABLE.length;
+
+/* SAID OUT LOUD, BEFORE A GAME RUNS. A selection policy nobody can see is indistinguishable from no
+ * selection policy, which is how four before/after pairs came to rest on a moving sample. */
+console.log('\n  THE SELECTION POLICY — what decides which games this run plays:');
+console.log('    ' + STEER_STAMP.policy + '   ' + (STEER_STAMP.pinned ? 'PINNED to ' + STEER_STAMP.input_read_from : 'live ' + STEER_STAMP.input));
+console.log('    digest ' + STEER_STAMP.input_digest + '  ' + STEER_STAMP.input_rows + ' rows, generated ' + STEER_STAMP.input_generated);
+console.log('    ' + (STEER_STAMP.matches_live === null ? 'UNKNOWN whether it matches the live census'
+  : STEER_STAMP.matches_live ? 'identical to the live census' : 'DIFFERENT from the live census (' + STEER_STAMP.input_live_digest + ')'));
+console.log('    it steers ' + COV_TARGETS.length + ' entity sets; ' + COV_UNMEASURABLE.length + ' census rows steer nothing');
+
+/* THE `--baseline` GUARD RUNS LATER — see `baselineGuard()` below the swarm build. It cannot run here
+ * because the SECOND steering input (which teams the swarm picked) is not known yet, and a guard that
+ * clears a pair on half its inputs is worse than no guard. */
+let BASELINE_CHECK = null;
+function baselineGuard() {
+  if (!BASELINE) return;
+  let prev;
+  try { prev = JSON.parse(fs.readFileSync(BASELINE, 'utf8')); }
+  catch (e) { console.error('--baseline ' + BASELINE + ' cannot be read: ' + e.message); process.exit(3); }
+  const cmp = STEERING.comparable(prev.steering, STEER_STAMP);
+  BASELINE_CHECK = { artifact: BASELINE, baseline_release: prev.engine_release || null,
+                     baseline_steering: prev.steering || null, ok: cmp.ok, reasons: cmp.reasons };
+  console.log('\n  BASELINE COMPARABILITY vs ' + BASELINE + '  (release ' + (prev.engine_release || 'UNSTAMPED') + ')');
+  if (cmp.ok) {
+    console.log('    COMPARABLE — same selection policy, census ' + STEER_STAMP.input_digest
+      + ', team pool ' + STEER_STAMP.team_pool_digest);
+  } else {
+    console.error('    NOT COMPARABLE — this run would not be a controlled before/after:');
+    for (const r of cmp.reasons) console.error('      - ' + r);
+    console.error('    REFUSING TO RUN. Pin both arms to the same census with --census <file>, and take'
+      + '\n    both arms without the ingest appending to the game store in between.');
+    process.exit(3);
+  }
 }
 
 /* ---- COVERAGE BOOKKEEPING -----------------------------------------------------------------------
@@ -1395,6 +1458,29 @@ function oneHitDamage(pairA, pairB, script, opt) {
 /* ---- RUN ----------------------------------------------------------------------------------------- */
 const SW = SWARM.buildSwarm(Math.max(GAMES * 2, 18));
 
+/* THE SECOND STEERING INPUT, AND IT IS NOT FROZEN EITHER (ROADMAP #81 WIRE 5).
+ *
+ * `buildSwarm` reads data/games.bo3.jsonl and data/games.ots.jsonl LIVE, dedupes to distinct teams and
+ * picks by a STRIDE over the matching set — so ONE appended game shifts the stride and changes which
+ * teams get played. OPS appends to that store continuously (both files moved during this wire's own
+ * test runs). WIRE 4 controlled it by asserting size and mtime by hand before, between and after both
+ * arms; this asserts the thing that actually matters instead — the TEAM KEYS actually picked.
+ *
+ * THE KEY, NOT THE GAME ID. `diff_swarm`'s own dedupe key is (species + sorted moves) per side, so two
+ * ladder games with the same team collapse to one entry; digesting ids would report a difference where
+ * the sample is identical. Digesting the keys per configuration says exactly what was played. */
+{
+  const crypto = require('crypto');
+  const pool = SW.out.map(c => c.config + '\t' + ((c.picked_teams || []).map(p => p.key).join('\t'))).join('\n');
+  STEER_STAMP.team_pool_digest = crypto.createHash('sha256').update(pool).digest('hex').slice(0, 12);
+  STEER_STAMP.team_pool_teams = SW.teams.length;
+  STEER_STAMP.team_pool_picked = SW.out.reduce((a, c) => a + c.picked, 0);
+  console.log('  the OTHER half of the sample: team pool ' + STEER_STAMP.team_pool_digest + '  ('
+    + STEER_STAMP.team_pool_picked + ' teams picked from a corpus of ' + STEER_STAMP.team_pool_teams
+    + ' — read LIVE from the game store, which OPS appends to)');
+}
+baselineGuard();
+
 /* ROADMAP #31 — EVERY PAIR IS BUILT TWICE, AND THE TWO BUILDS DIFFER ONLY IN THE STONES.
  *
  * `stones` is the measured arm; `nostones` is the paired control and is exactly what this instrument
@@ -1888,7 +1974,13 @@ if (WRITE) {
       undeclared_events: [...UNDECLARED_SEEN],
       gender_neutralised: true, tags_release_matches_live: TAGS_MATCH,
     },
+    /* ROADMAP #81 WIRE 5 — THE STEERING INPUT'S DIGEST, so a future reader can TELL whether two arms
+     * were comparable rather than having to trust that they were. `engine/arms_comparable.js` reads
+     * exactly this block; an artifact without one fails that check CLOSED. */
+    steering: STEER_STAMP,
+    baseline_comparability: BASELINE_CHECK,
   }, REL.stamp());
-  fs.writeFileSync(D('data', 'game-differential.json'), JSON.stringify(artifact, null, 2) + '\n');
-  console.log('  -> data/game-differential.json');
+  const outPath = OUT ? path.resolve(OUT) : D('data', 'game-differential.json');
+  fs.writeFileSync(outPath, JSON.stringify(artifact, null, 2) + '\n');
+  console.log('  -> ' + (OUT ? outPath : 'data/game-differential.json'));
 }

@@ -10,6 +10,67 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.62.1] — 2026-08-07
+
+### Fixed
+- **WIRE 5 — THE DIFFERENTIAL'S SAMPLE WAS STEERED BY A FILE OUTSIDE THE PHOTOGRAPH, AND NOTHING
+  CHECKED IT.** `covWant()` prefers the legal action reaching the **least-exercised** census row, and
+  `COV_TARGETS` read the LIVE `data/mechanics-census.json`. **Landing a probe changes which games the
+  differential plays.** Every before/after pair reported tonight was therefore uncontrolled.
+- **`engine/steering.js` + `engine/arms_comparable.js`.** The selection policy is now declared, its
+  inputs digested, and **an incomparable pair is REFUSED rather than reported** — `--baseline` exits 3
+  having written no artifact and played no game, and an arm with no `steering` block fails closed.
+- **A SECOND, UNLISTED STEERING INPUT FOUND WHILE FIXING THE FIRST.** `diff_swarm.buildSwarm` reads the
+  bo3/ots stores live and picks teams by a **stride**, so one appended game shifts which teams play —
+  and OPS appends continuously. Now digested as `team_pool_digest` (the keys actually picked), which
+  replaces WIRE 4's hand-written size+mtime assertion with something the instrument checks itself.
+
+### Changed
+- **EVERY ABSOLUTE FIGURE IN WIRE 4's BEFORE/AFTER TABLE IS RETRACTED. THE CONCLUSION IS LARGER THAN WAS
+  CLAIMED.** Both arms re-run at 395 games under one pinned census (`c6be796631be`) and one team pool
+  (`19174ee16416`), asserted comparable by the instrument; the before-arm run a **third** time
+  reproduced the first exactly, so this is input and not noise.
+
+  | | published 3.62.0 | controlled |
+  |---|---|---|
+  | `-damage field 3` | 46/45 → 31/31 | **59/56 → 38/35** |
+  | the effect | −33% / −31% | **−36% / −37.5%** |
+  | `[from]recoil` causes | 4 → 2 | **8 → 0** |
+  | diverged | 391 → 390 | **392 → 389** |
+  | moves connected | 177 → 176 | **175 → 173** |
+
+  Receipts: WIRE 4's after-arm was written 06:51:15 and the census regenerated at 06:57:42 — **six
+  minutes later** — so the census those arms ran under no longer exists. The store also grew,
+  206,789,118 → 207,410,186 bytes.
+- **By the same reasoning, the before/after numbers published for WIREs 1, 2 and 3 are also
+  uncontrolled and should not be quoted as magnitudes.** Each landed probes into the census in the same
+  session that measured with it. Their *findings* stand — they rest on red demonstrations and on
+  Showdown's source, not on the differential's deltas — but their deltas do not.
+- Census **249/250 live, unchanged and deliberately so**: no mechanic moved, and `test-mechanics.js` was
+  not run, because running it regenerates the very file this wire pins.
+
+### Notes
+- **WHY OPTION 3 AND NOT "PUT IT IN THE RELEASE".** Freezing the census into the release is not merely
+  bigger, it is **wrong for the only case that matters**: a before-arm runs as `--release <old-id>`, so
+  the before-arm would read the OLD census and the after-arm the NEW one — **the two arms would steer
+  differently by construction.** It is also unworkable, measured rather than argued: the census carries
+  a `generated` stamp, so its bytes change on every `test-mechanics.js` run even when no mechanic moves
+  (content digest `28203348a7ff` stable, file digest `c6be796631be` not), and every test run would fork
+  a release id.
+- **THE CONTROL WAS CLEARED BEFORE THE KNOB WAS TURNED.** Two arms, same release, byte-identical census
+  → identical numbers, guard exit 0. Only then the knob: same frozen release, census minus 43 move rows
+  → `unrelated event mismatch` 20→16, `ordering` 6→9, `-damage field 3` 2→1, moves connected 76→80 —
+  **on a byte-identical engine.** That is the bug demonstrated, not asserted.
+- Three more filed: `game_differential.js` itself is digested nowhere; `data/protocol-events.json` is a
+  **third** unlisted input that moves every class count; and `COV_TARGETS`' comment says 235/192/43
+  where the run prints 250/205/45.
+- Not ours, reported not filed: `status.js` now shows **eight** features whose meaning changed since the
+  fit (was three) — `koTarget`, `dmgFrac`, `killIsRoll`, `killsThreat`, `switchSurvives1`, `switchKOSlow`,
+  `switchDiesFirst`, `screenValue`. That is WIRE 4's `md4096` propagating into board features. **It is
+  MEASURE's refit**, still gated behind MEDICHAM per Will's standing call.
+
+---
+
 ## [3.62.0] — 2026-08-07
 
 ### Fixed

@@ -1,10 +1,10 @@
 {
-  "generated": "2026-08-07T06:51:15.792Z",
+  "generated": "2026-08-07T07:15:02.349Z",
   "by": "engine/game_differential.js",
   "mode": "A",
   "games": 395,
   "turns_cap": 12,
-  "elapsed_s": 9.4,
+  "elapsed_s": 9.1,
   "planted_divergence_proof": [
     {
       "what": "a wrong FIELD on the last agreeing line",
@@ -39,21 +39,21 @@
     }
   ],
   "planted_divergence_proof_ok": true,
-  "rate_excludes": "both engines are built Serious / 0 EVs / 31 IVs so that they compute the same stat line before AND after a forme change, so this instrument tests RULES and not the spreads the ladder actually brings. Mega bodies ARE tested as of ROADMAP #31 (1077 stone sets kept, 0 stripped from the measured arm).",
+  "rate_excludes": "both engines are built Serious / 0 EVs / 31 IVs so that they compute the same stat line before AND after a forme change, so this instrument tests RULES and not the spreads the ladder actually brings. Mega bodies ARE tested as of ROADMAP #31 (1079 stone sets kept, 0 stripped from the measured arm).",
   "mega": {
     "why": "the 2026-08-06 run stripped 460 stone sets and tested ZERO mega bodies in a ~26%-mega format. medicham2 now evolves on a CHOICE mid-turn, so the stones stay on and every pair is played TWICE — the difference between the two arms IS what megas cost.",
     "rates": {
       "with_megas": {
-        "games": 393,
-        "diverged": 388
+        "games": 391,
+        "diverged": 385
       },
       "control_same_pairs_no_stones": {
-        "games": 393,
-        "diverged": 387
+        "games": 391,
+        "diverged": 385
       },
       "pairs_with_no_stone_at_all": {
-        "games": 2,
-        "diverged": 2
+        "games": 4,
+        "diverged": 4
       },
       "whole_control_arm": {
         "games": 395,
@@ -63,69 +63,26 @@
     },
     "pairing_broken": 0,
     "cost_of_the_megas": {
-      "stone_carrying_pairs": 393,
-      "mega_arm_parted_earlier": 56,
-      "mega_arm_parted_later": 252,
-      "parted_at_the_same_line": 85,
+      "stone_carrying_pairs": 391,
+      "mega_arm_parted_earlier": 47,
+      "mega_arm_parted_later": 263,
+      "parted_at_the_same_line": 81,
       "first_divergence_is_a_mega_line": 0,
-      "first_divergence_is_a_detailschange_line": 2,
+      "first_divergence_is_a_detailschange_line": 0,
       "on_a_mega_line": [],
-      "on_a_detailschange_line": [
-        {
-          "config": "omit-weather",
-          "seed": "gen9championsvgc2026regmbbo3-2655596040 vs gen9championsvgc2026regmbbo3-2655625935",
-          "index": 5,
-          "showdown": "|detailschange|p1a: Gengar|Gengar-Mega, L50",
-          "medicham": "|detailschange|p2a: Raichu|raichu-mega-y, L50",
-          "sdAfter": [
-            "|detailschange|p1a: Gengar|Gengar-Mega, L50",
-            "|-mega|p1a: Gengar|Gengar|Gengarite",
-            "|detailschange|p2a: Raichu|Raichu-Mega-Y, L50",
-            "|-mega|p2a: Raichu|Raichu|Raichunite Y",
-            "|move|p2a: Raichu|Fake Out|p1a: Gengar"
-          ],
-          "meAfter": [
-            "|detailschange|p2a: Raichu|raichu-mega-y, L50",
-            "|-mega|p2a: Raichu|Raichu|raichunitey",
-            "|detailschange|p1a: Gengar|gengar-mega, L50",
-            "|-mega|p1a: Gengar|Gengar|gengarite",
-            "|move|p2a: Raichu|fakeout|p1a: Gengar"
-          ]
-        },
-        {
-          "config": "pair-redirect-priority",
-          "seed": "gen9championsvgc2026regmbbo3-2634159872 vs gen9championsvgc2026regmbbo3-2636047380",
-          "index": 9,
-          "showdown": "|-boost|p2a: Malamar|atk|1",
-          "medicham": "|detailschange|p2a: Malamar|malamar-mega, L50",
-          "sdAfter": [
-            "|-boost|p2a: Malamar|atk|1",
-            "|-unboost|p2b: Incineroar|atk|1",
-            "|detailschange|p2a: Malamar|Malamar-Mega, L50",
-            "|-mega|p2a: Malamar|Malamar|Malamarite",
-            "|move|p1b: Espathra|Protect|p1b: Espathra"
-          ],
-          "meAfter": [
-            "|detailschange|p2a: Malamar|malamar-mega, L50",
-            "|-mega|p2a: Malamar|Malamar|malamarite",
-            "|move|p1b: Espathra|protect|p1b: Espathra",
-            "|-singleturn|p1b: Espathra|Protect",
-            "|move|p2a: Malamar|protect|p2a: Malamar"
-          ]
-        }
-      ]
+      "on_a_detailschange_line": []
     },
-    "evolutions_medicham": 519,
-    "evolutions_showdown": 519,
+    "evolutions_medicham": 518,
+    "evolutions_showdown": 518,
     "engines_agree_on_the_count": true,
-    "sides_capable": 732,
-    "sides_evolved": 519,
-    "from_left_slot": 378,
-    "from_right_slot": 141,
-    "choices_issued": 519,
+    "sides_capable": 726,
+    "sides_evolved": 518,
+    "from_left_slot": 387,
+    "from_right_slot": 131,
+    "choices_issued": 518,
     "every_issued_choice_evolved_in_both_engines": true,
-    "stones_kept": 1077,
-    "stones_stripped_from_control_arm": 1077
+    "stones_kept": 1079,
+    "stones_stripped_from_control_arm": 1079
   },
   "normalisation": {
     "why": "every rule drops an ANNOUNCEMENT or an ATTRIBUTION and never a STATE CHANGE; each carries a red demonstration in both directions and they run before any game does",
@@ -134,7 +91,7 @@
       {
         "id": "ability-announcement",
         "why": "Showdown's `|-ability|` is a COSMETIC announcement that an ability activated (SIM-PROTOCOL). Every consequence of it is a separate line and is kept, so dropping the announcement cannot hide an ability that did not fire — its effect would still be missing.",
-        "lines_collapsed": 2880,
+        "lines_collapsed": 2591,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -149,7 +106,7 @@
       {
         "id": "stat-attribution",
         "why": "a stat line's meaning is (body, stat, direction, amount). `[from] ability: X` and `[of] Y` say WHICH effect moved it, which the two engines tag inconsistently; the four fields that decide the board are kept.",
-        "lines_collapsed": 401,
+        "lines_collapsed": 356,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -164,7 +121,7 @@
       {
         "id": "source-tag",
         "why": "`[of] pXy` names the BODY behind an effect whose name is already carried by `[from]`. The two engines tag it inconsistently on -heal, -activate and -damage.",
-        "lines_collapsed": 2930,
+        "lines_collapsed": 2484,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -179,7 +136,7 @@
       {
         "id": "effect-namespace",
         "why": "Showdown writes an effect sometimes bare and sometimes namespaced — `|-sidestart|p1: A|Reflect` against this engine's `move: reflect`. The NAME is kept; only the namespace goes.",
-        "lines_collapsed": 6895,
+        "lines_collapsed": 6933,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -194,7 +151,7 @@
       {
         "id": "display-flags",
         "why": "`[silent]`, `[still]`, `[miss]` and `[spread]` are rendering hints. The state each one decorates is a separate event — `-miss` for a miss, `-prepare` for a charge, one `-damage` per body actually hit for a spread — and all of those are kept.",
-        "lines_collapsed": 12108,
+        "lines_collapsed": 11903,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -209,7 +166,7 @@
       {
         "id": "move-target-field",
         "why": "THE BIGGEST ONE, AND THE ONE THAT NEEDS THE ARGUMENT. A `|move|` line means \"this body used this move\". Showdown additionally names ONE nominal target plus `[spread]`; this engine names its own user on a spread move. WHO WAS ACTUALLY HIT is not in this field on either side — it is in the `-damage` / `-status` / `-unboost` / `-enditem` lines that follow, which are kept and compared body by body. A redirection bug is therefore caught one line later rather than not at all, and the `distinct` pair below is exactly that case.",
-        "lines_collapsed": 36017,
+        "lines_collapsed": 35652,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -224,7 +181,7 @@
       {
         "id": "switch-cause",
         "why": "a pivot switch is tagged `[from] U-turn` by Showdown; the pivot itself is the `|move|` line immediately before it, which is kept. The species and the HP on the switch line are kept.",
-        "lines_collapsed": 206,
+        "lines_collapsed": 159,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -237,7 +194,7 @@
         ]
       }
     ],
-    "total_lines_collapsed": 61437
+    "total_lines_collapsed": 60078
   },
   "directed": [
     {
@@ -456,7 +413,7 @@
     },
     "verdict": "the predicted DAMAGE bug does not reproduce — medicham2 prices both halves correctly because playerAction computes the range at CLICK time, before the item is stripped. What differs is the item DISPOSITION: Showdown records Colbur as EATEN BY ITSELF, medicham2 as KNOCKED OFF."
   },
-  "diverged": 390,
+  "diverged": 389,
   "threw": 0,
   "pin": [
     "a 100-accuracy move HITS",
@@ -472,7 +429,7 @@
   "classes": [
     {
       "cls": "ordering",
-      "games": 50,
+      "games": 52,
       "causes": [
         {
           "cause": "ordering :: |-damage|p1a|H/H <> |-enditem|p1a|lifeorb|[from]knockoff",
@@ -524,51 +481,60 @@
         },
         {
           "cause": "ordering :: |-unboost|p1a|atk|1 <> |-unboost|p2a|atk|1",
-          "n": 5,
+          "n": 3,
           "mentions": []
         },
         {
-          "cause": "ordering :: |move|p2a|supercellslam <> |move|p1a|gigadrain",
+          "cause": "ordering :: |move|p1b|grassknot <> |move|p2a|tailwind",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "supercellslam",
+              "id": "grassknot",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 88
+              "uses": 427
             },
             {
               "kind": "moves",
-              "id": "gigadrain",
+              "id": "tailwind",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 1430
+              "uses": 12889
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 1430
+          "max_uses": 12889
         },
         {
-          "cause": "ordering :: |-start|p1b|substitute <> |-damage|p1b|H/H",
+          "cause": "ordering :: |move|p2a|solarbeam <> |move|p1a|hyperbeam",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "substitute",
+              "id": "solarbeam",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 657
+              "uses": 4621
+            },
+            {
+              "kind": "moves",
+              "id": "hyperbeam",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 1974
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 657
+          "max_uses": 4621
         },
         {
           "cause": "ordering :: |-enditem|p2a|sitrusberry|[eat] <> |move|p2b|psyshock",
@@ -598,7 +564,7 @@
         },
         {
           "cause": "ordering :: |-start|p1b|typechange|grass|[from]protean <> |-crit|p2a",
-          "n": 2,
+          "n": 1,
           "mentions": [
             {
               "kind": "abilities",
@@ -614,21 +580,47 @@
           "max_uses": 276
         },
         {
-          "cause": "ordering :: |-start|p1a|substitute <> |-damage|p1a|H/H",
-          "n": 3,
+          "cause": "ordering :: |move|p2a|bodyslam <> |move|p1a|bodypress",
+          "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "substitute",
+              "id": "bodyslam",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 657
+              "uses": 139
+            },
+            {
+              "kind": "moves",
+              "id": "bodypress",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 1016
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 657
+          "max_uses": 1016
+        },
+        {
+          "cause": "ordering :: |-damage|p2a|H/H|[from]sandstorm <> |-boost|p2a|spe|1",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "sandstorm",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 11
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 11
         },
         {
           "cause": "ordering :: |-damage|p1a|H/H <> |-sidestart|p2:|toxicspikes",
@@ -646,6 +638,32 @@
           ],
           "cannot_occur_in_format": false,
           "max_uses": 34
+        },
+        {
+          "cause": "ordering :: |-damage|p2a|H/H <> |-enditem|p2a|focussash|[from]knockoff",
+          "n": 3,
+          "mentions": [
+            {
+              "kind": "items",
+              "id": "focussash",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 14668
+            },
+            {
+              "kind": "moves",
+              "id": "knockoff",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 3341
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 14668
         },
         {
           "cause": "ordering :: |-damage|p1a|H/H <> |-enditem|p1a|ironball|[from]knockoff",
@@ -691,59 +709,24 @@
           "max_uses": 657
         },
         {
-          "cause": "ordering :: |move|p2a|bodyslam <> |move|p1b|solarbeam",
+          "cause": "ordering :: |-start|p1a|substitute <> |-damage|p1a|H/H",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "bodyslam",
+              "id": "substitute",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 139
-            },
-            {
-              "kind": "moves",
-              "id": "solarbeam",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 4621
+              "uses": 657
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 4621
+          "max_uses": 657
         },
         {
-          "cause": "ordering :: |move|p1b|tailwind <> |move|p2b|tripleaxel",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "tailwind",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 12889
-            },
-            {
-              "kind": "moves",
-              "id": "tripleaxel",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 625
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 12889
-        },
-        {
-          "cause": "ordering :: |move|p2a|solarbeam <> |move|p1a|solarbeam",
+          "cause": "ordering :: |move|p2b|solarbeam <> |move|p2a|roost",
           "n": 1,
           "mentions": [
             {
@@ -754,49 +737,6 @@
               "reachable": true,
               "nonstandard": null,
               "uses": 4621
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 4621
-        },
-        {
-          "cause": "ordering :: |detailschange|p1a|gengarmega,l50 <> |detailschange|p2a|raichumegay,l50",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "species",
-              "id": "gengarmega",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": null
-            },
-            {
-              "kind": "species",
-              "id": "raichumegay",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": null
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": null
-        },
-        {
-          "cause": "ordering :: |move|p2a|encore <> |move|p1a|roost",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "encore",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 5290
             },
             {
               "kind": "moves",
@@ -809,41 +749,32 @@
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 5290
+          "max_uses": 4621
         },
         {
-          "cause": "ordering :: |move|p2a|knockoff <> |move|p1a|discharge",
+          "cause": "ordering :: |-damage|p1a|0fnt <> |-damage|p2b|H/H|[from]roughskin",
           "n": 1,
           "mentions": [
             {
-              "kind": "moves",
-              "id": "knockoff",
+              "kind": "abilities",
+              "id": "roughskin",
               "legal": true,
-              "carriers": null,
+              "carriers": 2,
               "reachable": true,
               "nonstandard": null,
-              "uses": 3341
-            },
-            {
-              "kind": "moves",
-              "id": "discharge",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 553
+              "uses": 6499
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 3341
+          "max_uses": 6499
         },
         {
-          "cause": "ordering :: |switch|p2a|kingambit,l50|H/H <> |switch|p1a|froslass,l50|H/H",
+          "cause": "ordering :: |switch|p2b|sneasler,l50|H/H <> |switch|p2a|kingambit,l50|H/H",
           "n": 1,
           "mentions": [
             {
               "kind": "species",
-              "id": "kingambit",
+              "id": "sneasler",
               "legal": true,
               "carriers": null,
               "reachable": true,
@@ -852,7 +783,7 @@
             },
             {
               "kind": "species",
-              "id": "froslass",
+              "id": "kingambit",
               "legal": true,
               "carriers": null,
               "reachable": true,
@@ -864,40 +795,61 @@
           "max_uses": null
         },
         {
+          "cause": "ordering :: |move|p1b|flareblitz <> |move|p1a|dualwingbeat",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "flareblitz",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 7396
+            },
+            {
+              "kind": "moves",
+              "id": "dualwingbeat",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 3232
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 7396
+        },
+        {
           "cause": "ordering :: |-unboost|p1a|atk|1 <> |faint|p2a",
           "n": 1,
           "mentions": []
         },
         {
-          "cause": "ordering :: |move|p2a|heatwave <> |move|p1a|solarbeam",
+          "cause": "ordering :: |switch|p2a|archaludon,l50|H/H <> |switch|p1a|milotic,l50|H/H",
           "n": 1,
           "mentions": [
             {
-              "kind": "moves",
-              "id": "heatwave",
+              "kind": "species",
+              "id": "archaludon",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 7995
+              "uses": null
             },
             {
-              "kind": "moves",
-              "id": "solarbeam",
+              "kind": "species",
+              "id": "milotic",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 4621
+              "uses": null
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 7995
-        },
-        {
-          "cause": "ordering :: |-heal|p1a|H/Hpar|[from]drain <> |faint|p2a",
-          "n": 1,
-          "mentions": []
+          "max_uses": null
         },
         {
           "cause": "ordering :: |-damage|p2a|H/H <> |-enditem|p2a|chopleberry|[from]knockoff",
@@ -926,7 +878,7 @@
           "max_uses": 3341
         },
         {
-          "cause": "ordering :: |-enditem|p2a|sitrusberry|[eat] <> |move|p2b|lowkick",
+          "cause": "ordering :: |-enditem|p2a|sitrusberry|[eat] <> |move|p2a|roar",
           "n": 1,
           "mentions": [
             {
@@ -940,29 +892,29 @@
             },
             {
               "kind": "moves",
-              "id": "lowkick",
+              "id": "roar",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 4106
+              "uses": 434
             }
           ],
           "cannot_occur_in_format": false,
           "max_uses": 13079
         },
         {
-          "cause": "ordering :: |-damage|p1a|H/H <> |-enditem|p1a|sitrusberry|[from]knockoff",
+          "cause": "ordering :: |-damage|p2a|H/H <> |-enditem|p2a|leftovers|[from]knockoff",
           "n": 1,
           "mentions": [
             {
               "kind": "items",
-              "id": "sitrusberry",
+              "id": "leftovers",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 13079
+              "uses": 7533
             },
             {
               "kind": "moves",
@@ -975,29 +927,64 @@
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 13079
+          "max_uses": 7533
         },
         {
-          "cause": "ordering :: |-start|p2a|substitute <> |-damage|p2a|H/H",
+          "cause": "ordering :: |-enditem|p1a|sitrusberry|[eat] <> |move|p2a|yawn",
           "n": 1,
           "mentions": [
             {
-              "kind": "moves",
-              "id": "substitute",
+              "kind": "items",
+              "id": "sitrusberry",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 657
+              "uses": 13079
+            },
+            {
+              "kind": "moves",
+              "id": "yawn",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 910
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 657
+          "max_uses": 13079
         },
         {
-          "cause": "ordering :: |move|p2a|flipturn <> |move|p1b|knockoff",
+          "cause": "ordering :: |-damage|p1b|H/H|[from]sandstorm <> |-damage|p1a|H/H|[from]sandstorm",
+          "n": 2,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "sandstorm",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 11
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 11
+        },
+        {
+          "cause": "ordering :: |move|p2a|rockslide <> |move|p1a|flipturn",
           "n": 1,
           "mentions": [
+            {
+              "kind": "moves",
+              "id": "rockslide",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 13246
+            },
             {
               "kind": "moves",
               "id": "flipturn",
@@ -1006,22 +993,13 @@
               "reachable": true,
               "nonstandard": null,
               "uses": 2913
-            },
-            {
-              "kind": "moves",
-              "id": "knockoff",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 3341
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 3341
+          "max_uses": 13246
         },
         {
-          "cause": "ordering :: |-start|p2b|typechange|grass|[from]protean <> |-resisted|p1a|2",
+          "cause": "ordering :: |-start|p1a|typechange|grass|[from]protean <> |-resisted|p2a|1",
           "n": 1,
           "mentions": [
             {
@@ -1036,49 +1014,6 @@
           ],
           "cannot_occur_in_format": false,
           "max_uses": 276
-        },
-        {
-          "cause": "ordering :: |-prepare|p1a|electroshot <> |-boost|p1a|spa|1",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "electroshot",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 2579
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 2579
-        },
-        {
-          "cause": "ordering :: |-enditem|p2a|sitrusberry|[eat] <> |move|p2a|grassknot",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "items",
-              "id": "sitrusberry",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 13079
-            },
-            {
-              "kind": "moves",
-              "id": "grassknot",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 427
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 13079
         },
         {
           "cause": "ordering :: |-start|p2a|throatchop <> |-boost|p2a|def|1",
@@ -1098,25 +1033,68 @@
           "max_uses": 3167
         },
         {
-          "cause": "ordering :: |move|p2b|hurricane <> |move|p1b|hurricane",
-          "n": 1,
+          "cause": "ordering :: |-prepare|p1b|electroshot <> |-boost|p1b|spa|1",
+          "n": 2,
           "mentions": [
             {
               "kind": "moves",
-              "id": "hurricane",
+              "id": "electroshot",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 3590
+              "uses": 2579
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 3590
+          "max_uses": 2579
         },
         {
-          "cause": "ordering :: |-damage|p2a|H/H <> |-enditem|p2a|focussash|[from]knockoff",
+          "cause": "ordering :: |-prepare|p2b|electroshot <> |-boost|p2b|spa|1",
           "n": 2,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "electroshot",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 2579
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 2579
+        },
+        {
+          "cause": "ordering :: |move|p2a|knockoff <> |move|p1b|icepunch",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "knockoff",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 3341
+            },
+            {
+              "kind": "moves",
+              "id": "icepunch",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 2538
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 3341
+        },
+        {
+          "cause": "ordering :: |-damage|p2b|H/H <> |-enditem|p2b|focussash|[from]knockoff",
+          "n": 1,
           "mentions": [
             {
               "kind": "items",
@@ -1139,6 +1117,49 @@
           ],
           "cannot_occur_in_format": false,
           "max_uses": 14668
+        },
+        {
+          "cause": "ordering :: |move|p2a|drainingkiss <> |move|p1a|volttackle",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "drainingkiss",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 943
+            },
+            {
+              "kind": "moves",
+              "id": "volttackle",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 220
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 943
+        },
+        {
+          "cause": "ordering :: |cant|p2a|flinch <> |move|p1a|blazekick",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "blazekick",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 140
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 140
         },
         {
           "cause": "ordering :: |-enditem|p1a|sitrusberry|[eat] <> |-damage|p2b|H/H|[from]recoil",
@@ -1201,51 +1222,8 @@
           "max_uses": 11
         },
         {
-          "cause": "ordering :: |-damage|p1b|H/H|[from]sandstorm <> |-damage|p1a|H/H|[from]sandstorm",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "sandstorm",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 11
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 11
-        },
-        {
-          "cause": "ordering :: |move|p2b|earthpower <> |move|p2a|drainingkiss",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "earthpower",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 4858
-            },
-            {
-              "kind": "moves",
-              "id": "drainingkiss",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 943
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 4858
-        },
-        {
           "cause": "ordering :: |move|p2a|protect <> |move|p1a|protect",
-          "n": 2,
+          "n": 3,
           "mentions": [
             {
               "kind": "moves",
@@ -1261,30 +1239,9 @@
           "max_uses": 80328
         },
         {
-          "cause": "ordering :: |-damage|p2a|H/H <> |-enditem|p2a|leftovers|[from]knockoff",
+          "cause": "ordering :: |faint|p2a <> |faint|p1a",
           "n": 1,
-          "mentions": [
-            {
-              "kind": "items",
-              "id": "leftovers",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 7533
-            },
-            {
-              "kind": "moves",
-              "id": "knockoff",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 3341
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 7533
+          "mentions": []
         },
         {
           "cause": "ordering :: |move|p2b|tailwind <> |move|p1a|tailwind",
@@ -1302,12 +1259,55 @@
           ],
           "cannot_occur_in_format": false,
           "max_uses": 12889
+        },
+        {
+          "cause": "ordering :: |-heal|p2a|H/H|[from]leftovers <> |-boost|p1a|spe|1",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "items",
+              "id": "leftovers",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 7533
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 7533
+        },
+        {
+          "cause": "ordering :: |move|p2a|zapcannon <> |move|p2b|psychicfangs",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "zapcannon",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 2129
+            },
+            {
+              "kind": "moves",
+              "id": "psychicfangs",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 1911
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 2129
         }
       ]
     },
     {
       "cls": "turn order",
-      "games": 19,
+      "games": 18,
       "causes": [
         {
           "cause": "turn order :: |move|p2b|earthquake <> |move|p1a|disable",
@@ -1388,7 +1388,7 @@
           "max_uses": 7913
         },
         {
-          "cause": "turn order :: |move|p2b|earthquake <> |move|p1b|electroshot",
+          "cause": "turn order :: |move|p1b|earthquake <> |move|p2a|electroshot",
           "n": 1,
           "mentions": [
             {
@@ -1414,59 +1414,7 @@
           "max_uses": 7913
         },
         {
-          "cause": "turn order :: |move|p1b|earthquake <> |move|p2a|blazekick",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "earthquake",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 7913
-            },
-            {
-              "kind": "moves",
-              "id": "blazekick",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 140
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 7913
-        },
-        {
-          "cause": "turn order :: |move|p2b|earthquake <> |move|p1b|coil",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "earthquake",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 7913
-            },
-            {
-              "kind": "moves",
-              "id": "coil",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 554
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 7913
-        },
-        {
-          "cause": "turn order :: |move|p2a|earthquake <> |move|p2b|solarbeam",
+          "cause": "turn order :: |move|p2b|earthquake <> |move|p2a|solarbeam",
           "n": 1,
           "mentions": [
             {
@@ -1486,32 +1434,6 @@
               "reachable": true,
               "nonstandard": null,
               "uses": 4621
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 7913
-        },
-        {
-          "cause": "turn order :: |move|p1b|earthquake <> |move|p1a|psychic",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "earthquake",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 7913
-            },
-            {
-              "kind": "moves",
-              "id": "psychic",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 3888
             }
           ],
           "cannot_occur_in_format": false,
@@ -1570,7 +1492,7 @@
           "max_uses": 7913
         },
         {
-          "cause": "turn order :: |move|p1a|earthquake <> |move|p1b|lowkick",
+          "cause": "turn order :: |move|p2b|earthquake <> |move|p1b|coil",
           "n": 1,
           "mentions": [
             {
@@ -1584,19 +1506,19 @@
             },
             {
               "kind": "moves",
-              "id": "lowkick",
+              "id": "coil",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 4106
+              "uses": 554
             }
           ],
           "cannot_occur_in_format": false,
           "max_uses": 7913
         },
         {
-          "cause": "turn order :: |move|p1b|earthquake <> |move|p2b|electroshot",
+          "cause": "turn order :: |move|p1a|earthquake <> |move|p2a|lifedew",
           "n": 1,
           "mentions": [
             {
@@ -1610,42 +1532,16 @@
             },
             {
               "kind": "moves",
-              "id": "electroshot",
+              "id": "lifedew",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 2579
+              "uses": 2531
             }
           ],
           "cannot_occur_in_format": false,
           "max_uses": 7913
-        },
-        {
-          "cause": "turn order :: |move|p1b|risingvoltage <> |move|p2a|perishsong",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "risingvoltage",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 121
-            },
-            {
-              "kind": "moves",
-              "id": "perishsong",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 1141
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 1141
         },
         {
           "cause": "turn order :: |move|p1b|earthquake <> |move|p2b|sludgebomb",
@@ -1778,7 +1674,7 @@
           "max_uses": 7913
         },
         {
-          "cause": "turn order :: |move|p2b|earthquake <> |move|p1a|icepunch",
+          "cause": "turn order :: |move|p2b|earthquake <> |move|p1a|lowkick",
           "n": 1,
           "mentions": [
             {
@@ -1792,22 +1688,100 @@
             },
             {
               "kind": "moves",
-              "id": "icepunch",
+              "id": "lowkick",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 2538
+              "uses": 4106
             }
           ],
           "cannot_occur_in_format": false,
           "max_uses": 7913
+        },
+        {
+          "cause": "turn order :: |move|p1b|earthquake <> |move|p2b|electroshot",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "earthquake",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 7913
+            },
+            {
+              "kind": "moves",
+              "id": "electroshot",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 2579
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 7913
+        },
+        {
+          "cause": "turn order :: |move|p1a|instruct <> |move|p1b|partingshot",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "instruct",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 173
+            },
+            {
+              "kind": "moves",
+              "id": "partingshot",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 7982
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 7982
+        },
+        {
+          "cause": "turn order :: |move|p2b|earthquake <> |move|p1b|tailwind",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "earthquake",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 7913
+            },
+            {
+              "kind": "moves",
+              "id": "tailwind",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 12889
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 12889
         }
       ]
     },
     {
       "cls": "event missing from medicham2",
-      "games": 127,
+      "games": 124,
       "causes": [
         {
           "cause": "event missing from medicham2 :: |-prepare|p1a|solarbeam <> |-damage|p2a|0fnt",
@@ -1991,72 +1965,89 @@
           "max_uses": 2326
         },
         {
-          "cause": "event missing from medicham2 :: |-singleturn|p2a|roost <> |-weather|raindance|[upkeep]",
+          "cause": "event missing from medicham2 :: |-fail|p1b <> |move|p1a|zapcannon",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "roost",
+              "id": "zapcannon",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 2326
+              "uses": 2129
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 2129
+        },
+        {
+          "cause": "event missing from medicham2 :: |-damage|p1a|H/H <> |-damage|p2a|H/H|[from]roughskin",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "abilities",
+              "id": "roughskin",
+              "legal": true,
+              "carriers": 2,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 6499
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 6499
+        },
+        {
+          "cause": "event missing from medicham2 :: |-unboost|p1a|atk|1 <> |move|p1a|nastyplot",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "nastyplot",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 3458
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 3458
+        },
+        {
+          "cause": "event missing from medicham2 :: |move|p1b|explosion <> |move|p2a|nastyplot",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "explosion",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 36
             },
             {
               "kind": "moves",
-              "id": "raindance",
+              "id": "nastyplot",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 980
+              "uses": 3458
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 2326
+          "max_uses": 3458
         },
         {
-          "cause": "event missing from medicham2 :: |move|p1b|trickroom <> |-fieldstart|trickroom",
-          "n": 6,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "trickroom",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 8077
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 8077
-        },
-        {
-          "cause": "event missing from medicham2 :: |-prepare|p1a|electroshot <> |-supereffective|p2a|1",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "electroshot",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 2579
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 2579
-        },
-        {
-          "cause": "event missing from medicham2 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:raichu|99/135 vs |-damage|p1a:raichu|63/135]",
+          "cause": "event missing from medicham2 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:staraptor|78/160 vs |-damage|p2a:staraptor|58/160]",
           "n": 1,
           "mentions": [
             {
               "kind": "species",
-              "id": "raichu",
+              "id": "staraptor",
               "legal": true,
               "carriers": null,
               "reachable": true,
@@ -2094,21 +2085,21 @@
           "max_uses": 165
         },
         {
-          "cause": "event missing from medicham2 :: |-fail|p1b <> |move|p2b|gravity",
+          "cause": "event missing from medicham2 :: |-fail|p1b <> |move|p2a|cottonspore",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "gravity",
+              "id": "cottonspore",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 82
+              "uses": 26
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 82
+          "max_uses": 26
         },
         {
           "cause": "event missing from medicham2 :: |move|p2a|psychup <> |move|p2b|sunnyday",
@@ -2232,6 +2223,23 @@
           "max_uses": 107
         },
         {
+          "cause": "event missing from medicham2 :: |-fail|p2b <> |move|p1a|substitute",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "substitute",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 657
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 657
+        },
+        {
           "cause": "event missing from medicham2 :: |move|p1a|makeitrain <> |move|p2a|hurricane",
           "n": 1,
           "mentions": [
@@ -2285,7 +2293,7 @@
         },
         {
           "cause": "event missing from medicham2 :: |-prepare|p2a|solarbeam <> |-resisted|p1a|1",
-          "n": 3,
+          "n": 4,
           "mentions": [
             {
               "kind": "moves",
@@ -2351,23 +2359,6 @@
           ],
           "cannot_occur_in_format": false,
           "max_uses": 327
-        },
-        {
-          "cause": "event missing from medicham2 :: |-damage|p2a|H/H <> |-sidestart|p1:|toxicspikes",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "toxicspikes",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 34
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 34
         },
         {
           "cause": "event missing from medicham2 :: |-heal|p2b|H/H|[from]dryskin <> |upkeep",
@@ -2465,38 +2456,141 @@
           "max_uses": 107
         },
         {
-          "cause": "event missing from medicham2 :: |-fail|p2a <> |move|p1a|haze",
+          "cause": "event missing from medicham2 :: |move|p2a|drainpunch <> |move|p1b|solarbeam",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "haze",
+              "id": "drainpunch",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 597
+              "uses": 1039
+            },
+            {
+              "kind": "moves",
+              "id": "solarbeam",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 4621
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 597
+          "max_uses": 4621
         },
         {
-          "cause": "event missing from medicham2 :: |-fail|p2a <> |move|p1b|dragondance",
+          "cause": "event missing from medicham2 :: |move|p2a|hypervoice <> |move|p1b|acrobatics",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "dragondance",
+              "id": "hypervoice",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 703
+              "uses": 4449
+            },
+            {
+              "kind": "moves",
+              "id": "acrobatics",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 165
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 703
+          "max_uses": 4449
+        },
+        {
+          "cause": "event missing from medicham2 :: |move|p1a|taunt <> |-start|p2b|taunt",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "taunt",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 1626
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 1626
+        },
+        {
+          "cause": "event missing from medicham2 :: |move|p2b|trickroom <> |-fieldstart|trickroom",
+          "n": 6,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "trickroom",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 8077
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 8077
+        },
+        {
+          "cause": "event missing from medicham2 :: |-end|p1a|throatchop <> |upkeep",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "throatchop",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 3167
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 3167
+        },
+        {
+          "cause": "event missing from medicham2 :: |-fail|p2b <> |move|p2a|sludgebomb",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "sludgebomb",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 4092
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 4092
+        },
+        {
+          "cause": "event missing from medicham2 :: |-fail|p1b <> |move|p2a|dualwingbeat",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "dualwingbeat",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 3232
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 3232
         },
         {
           "cause": "event missing from medicham2 :: |-fail|p1b <> |move|p2a|zapcannon",
@@ -2516,42 +2610,8 @@
           "max_uses": 2129
         },
         {
-          "cause": "event missing from medicham2 :: |-fail|p2a <> |move|p1a|direclaw",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "direclaw",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 2547
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 2547
-        },
-        {
-          "cause": "event missing from medicham2 :: |-prepare|p2b|solarbeam <> |-damage|p1a|H/H",
-          "n": 2,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "solarbeam",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 4621
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 4621
-        },
-        {
-          "cause": "event missing from medicham2 :: |move|p1a|trickroom <> |-fieldstart|trickroom",
-          "n": 2,
+          "cause": "event missing from medicham2 :: |move|p1b|trickroom <> |-fieldstart|trickroom",
+          "n": 4,
           "mentions": [
             {
               "kind": "moves",
@@ -2567,106 +2627,141 @@
           "max_uses": 8077
         },
         {
-          "cause": "event missing from medicham2 :: |-fail|p1a <> |move|p1b|calmmind",
+          "cause": "event missing from medicham2 :: |-fail|p2a <> |move|p1a|trick",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "calmmind",
+              "id": "trick",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 2199
+              "uses": 384
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 2199
+          "max_uses": 384
         },
         {
-          "cause": "event missing from medicham2 :: |move|p2b|hypervoice <> |upkeep",
+          "cause": "event missing from medicham2 :: |-fail|p2b <> |move|p1b|tailwind",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "hypervoice",
+              "id": "tailwind",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 4449
+              "uses": 12889
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 4449
+          "max_uses": 12889
         },
         {
-          "cause": "event missing from medicham2 :: |-prepare|p1a|solarbeam <> |-resisted|p2a|1",
-          "n": 2,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "solarbeam",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 4621
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 4621
-        },
-        {
-          "cause": "event missing from medicham2 :: |-enditem|p1b|whiteherb <> |turn|1",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "items",
-              "id": "whiteherb",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 2380
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 2380
-        },
-        {
-          "cause": "event missing from medicham2 :: |-prepare|p1b|solarbeam <> |-damage|p2a|H/H",
-          "n": 2,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "solarbeam",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 4621
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 4621
-        },
-        {
-          "cause": "event missing from medicham2 :: |-boost|p1a|atk|0 <> |move|p2b|populationbomb",
+          "cause": "event missing from medicham2 :: |-fail|p1a <> |move|p2a|zapcannon",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "populationbomb",
+              "id": "zapcannon",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 419
+              "uses": 2129
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 419
+          "max_uses": 2129
+        },
+        {
+          "cause": "event missing from medicham2 :: |move|p1a|earthquake <> |move|p2b|heavyslam",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "earthquake",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 7913
+            },
+            {
+              "kind": "moves",
+              "id": "heavyslam",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 267
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 7913
+        },
+        {
+          "cause": "event missing from medicham2 :: |-immune|p2a <> |-weather|sunnyday|[upkeep]",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "sunnyday",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 653
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 653
+        },
+        {
+          "cause": "event missing from medicham2 :: |move|p1a|grassknot <> |move|p1b|closecombat",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "grassknot",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 427
+            },
+            {
+              "kind": "moves",
+              "id": "closecombat",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 10455
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 10455
+        },
+        {
+          "cause": "event missing from medicham2 :: |-fail|p1b <> |move|p1a|focusblast",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "focusblast",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 2260
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 2260
         },
         {
           "cause": "event missing from medicham2 :: |-boost|p1b|atk|1 <> |move|p2b|freezedry",
@@ -2712,23 +2807,6 @@
           "max_uses": 7913
         },
         {
-          "cause": "event missing from medicham2 :: |-prepare|p1b|electroshot <> |-immune|p2a",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "electroshot",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 2579
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 2579
-        },
-        {
           "cause": "event missing from medicham2 :: |-start|p1a|curse <> |move|p1b|earthpower",
           "n": 1,
           "mentions": [
@@ -2753,6 +2831,23 @@
           ],
           "cannot_occur_in_format": false,
           "max_uses": 4858
+        },
+        {
+          "cause": "event missing from medicham2 :: |move|p1a|trickroom <> |-fieldstart|trickroom",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "trickroom",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 8077
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 8077
         },
         {
           "cause": "event missing from medicham2 :: |-prepare|p1a|solarbeam <> |-damage|p2a|H/H",
@@ -2823,7 +2918,7 @@
           "max_uses": 7982
         },
         {
-          "cause": "event missing from medicham2 :: |-activate|p1b|megasol <> |move|p2a|sacredsword",
+          "cause": "event missing from medicham2 :: |-activate|p1b|megasol <> |move|p2a|tripleaxel",
           "n": 1,
           "mentions": [
             {
@@ -2837,16 +2932,16 @@
             },
             {
               "kind": "moves",
-              "id": "sacredsword",
+              "id": "tripleaxel",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 259
+              "uses": 625
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 259
+          "max_uses": 625
         },
         {
           "cause": "event missing from medicham2 :: |move|p1b|earthquake <> |move|p1a|calmmind",
@@ -2892,150 +2987,21 @@
           "max_uses": 653
         },
         {
-          "cause": "event missing from medicham2 :: |move|p2a|makeitrain <> |move|p2b|haze",
+          "cause": "event missing from medicham2 :: |-fail|p2b <> |move|p1b|calmmind",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "makeitrain",
+              "id": "calmmind",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 2614
-            },
-            {
-              "kind": "moves",
-              "id": "haze",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 597
+              "uses": 2199
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 2614
-        },
-        {
-          "cause": "event missing from medicham2 :: |-fail|p2a <> |move|p1b|sludgebomb",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "sludgebomb",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 4092
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 4092
-        },
-        {
-          "cause": "event missing from medicham2 :: |-fail|p1b <> |move|p2b|suckerpunch",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "suckerpunch",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 7704
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 7704
-        },
-        {
-          "cause": "event missing from medicham2 :: |-prepare|p2a|electroshot <> |-resisted|p1a|1",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "electroshot",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 2579
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 2579
-        },
-        {
-          "cause": "event missing from medicham2 :: |move|p1a|topsyturvy <> |move|p2b|toxicspikes",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "topsyturvy",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 16
-            },
-            {
-              "kind": "moves",
-              "id": "toxicspikes",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 34
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 34
-        },
-        {
-          "cause": "event missing from medicham2 :: |-item|p1a|charizarditey|[from]frisk <> |turn|1",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "items",
-              "id": "charizarditey",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 4311
-            },
-            {
-              "kind": "abilities",
-              "id": "frisk",
-              "legal": true,
-              "carriers": 11,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 107
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 4311
-        },
-        {
-          "cause": "event missing from medicham2 :: |-prepare|p1b|electroshot <> |-resisted|p2a|1",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "electroshot",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 2579
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 2579
+          "max_uses": 2199
         },
         {
           "cause": "event missing from medicham2 :: |move|p2a|healpulse <> |upkeep",
@@ -3055,7 +3021,55 @@
           "max_uses": 126
         },
         {
-          "cause": "event missing from medicham2 :: |-enditem|p1a|sitrusberry|[eat] <> |move|p2b|scald",
+          "cause": "event missing from medicham2 :: |-singleturn|p1a|roost <> |move|p2b|ragefist",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "roost",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 2326
+            },
+            {
+              "kind": "moves",
+              "id": "ragefist",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 491
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 2326
+        },
+        {
+          "cause": "event missing from medicham2 :: |-fail|p2b <> |move|p1a|perishsong",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "perishsong",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 1141
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 1141
+        },
+        {
+          "cause": "event missing from medicham2 :: |-boost|p1a|spe|2 <> |upkeep",
+          "n": 1,
+          "mentions": []
+        },
+        {
+          "cause": "event missing from medicham2 :: |-enditem|p1a|sitrusberry|[eat] <> |move|p1b|aurasphere",
           "n": 1,
           "mentions": [
             {
@@ -3069,38 +3083,42 @@
             },
             {
               "kind": "moves",
-              "id": "scald",
+              "id": "aurasphere",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 1506
+              "uses": 1407
             }
           ],
           "cannot_occur_in_format": false,
           "max_uses": 13079
         },
         {
-          "cause": "event missing from medicham2 :: |-boost|p1a|spe|2 <> |upkeep",
+          "cause": "event missing from medicham2 :: |-singleturn|p2a|roost <> |move|p1a|dualwingbeat",
           "n": 1,
-          "mentions": []
-        },
-        {
-          "cause": "event missing from medicham2 :: |move|p2b|trickroom <> |-fieldstart|trickroom",
-          "n": 7,
           "mentions": [
             {
               "kind": "moves",
-              "id": "trickroom",
+              "id": "roost",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 8077
+              "uses": 2326
+            },
+            {
+              "kind": "moves",
+              "id": "dualwingbeat",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 3232
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 8077
+          "max_uses": 3232
         },
         {
           "cause": "event missing from medicham2 :: |-immune|p1a <> |move|p1a|partingshot",
@@ -3163,21 +3181,30 @@
           "max_uses": 1506
         },
         {
-          "cause": "event missing from medicham2 :: |-prepare|p1b|electroshot <> |-supereffective|p2a|1",
+          "cause": "event missing from medicham2 :: |-enditem|p2a|sitrusberry|[eat] <> |move|p2a|partingshot",
           "n": 1,
           "mentions": [
             {
-              "kind": "moves",
-              "id": "electroshot",
+              "kind": "items",
+              "id": "sitrusberry",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 2579
+              "uses": 13079
+            },
+            {
+              "kind": "moves",
+              "id": "partingshot",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 7982
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 2579
+          "max_uses": 13079
         },
         {
           "cause": "event missing from medicham2 :: |-fail|p2b <> |move|p2a|psychicfangs",
@@ -3197,21 +3224,55 @@
           "max_uses": 1911
         },
         {
-          "cause": "event missing from medicham2 :: |-fail|p1b <> |move|p2a|tripleaxel",
+          "cause": "event missing from medicham2 :: |-fail|p2b <> |move|p1b|expandingforce",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "tripleaxel",
+              "id": "expandingforce",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 625
+              "uses": 197
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 625
+          "max_uses": 197
+        },
+        {
+          "cause": "event missing from medicham2 :: |-start|p2a|confusion <> |upkeep",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "confusion",
+              "legal": false,
+              "carriers": null,
+              "reachable": false,
+              "nonstandard": "Past",
+              "uses": null
+            }
+          ],
+          "cannot_occur_in_format": true,
+          "max_uses": null
+        },
+        {
+          "cause": "event missing from medicham2 :: |-fail|p1b <> |move|p1a|swordsdance",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "swordsdance",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 2627
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 2627
         },
         {
           "cause": "event missing from medicham2 :: |move|p2a|quickguard <> |move|p2b|feint",
@@ -3482,13 +3543,25 @@
           "max_uses": 122
         },
         {
-          "cause": "event missing from medicham2 :: |-boost|p1b|evasion|0 <> |upkeep",
+          "cause": "event missing from medicham2 :: |-end|p2a|throatchop <> |upkeep",
           "n": 1,
-          "mentions": []
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "throatchop",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 3167
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 3167
         },
         {
           "cause": "event missing from medicham2 :: |move|p2a|trickroom <> |-fieldstart|trickroom",
-          "n": 2,
+          "n": 4,
           "mentions": [
             {
               "kind": "moves",
@@ -3521,49 +3594,6 @@
           "max_uses": 19
         },
         {
-          "cause": "event missing from medicham2 :: |move|p2b|earthquake <> |move|p1a|afteryou",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "earthquake",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 7913
-            },
-            {
-              "kind": "moves",
-              "id": "afteryou",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 179
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 7913
-        },
-        {
-          "cause": "event missing from medicham2 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:torkoal|112/145 vs |-damage|p1a:torkoal|104/145]",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "species",
-              "id": "torkoal",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": null
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": null
-        },
-        {
           "cause": "event missing from medicham2 :: |-activate|p1a|feint <> |-damage|p1a|H/H",
           "n": 1,
           "mentions": [
@@ -3581,47 +3611,56 @@
           "max_uses": 437
         },
         {
-          "cause": "event missing from medicham2 :: |-activate|p1b|megasol <> |move|p2a|leechlife",
-          "n": 1,
+          "cause": "event missing from medicham2 :: |move|p1b|earthquake <> |-weather|raindance|[upkeep]",
+          "n": 2,
           "mentions": [
             {
-              "kind": "abilities",
-              "id": "megasol",
+              "kind": "moves",
+              "id": "earthquake",
               "legal": true,
-              "carriers": 1,
+              "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 0
+              "uses": 7913
             },
             {
               "kind": "moves",
-              "id": "leechlife",
+              "id": "raindance",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 151
+              "uses": 980
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 151
+          "max_uses": 7913
         },
         {
-          "cause": "event missing from medicham2 :: |-activate|p1a|protect <> |upkeep",
+          "cause": "event missing from medicham2 :: |-enditem|p1a|sitrusberry|[eat] <> |move|p1b|coil",
           "n": 1,
           "mentions": [
             {
-              "kind": "moves",
-              "id": "protect",
+              "kind": "items",
+              "id": "sitrusberry",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 80328
+              "uses": 13079
+            },
+            {
+              "kind": "moves",
+              "id": "coil",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 554
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 80328
+          "max_uses": 13079
         },
         {
           "cause": "event missing from medicham2 :: |-boost|p1a|spa|1 <> |move|p2b|rockslide",
@@ -3669,123 +3708,54 @@
         },
         {
           "cause": "event missing from medicham2 :: |-boost|p1a|atk|0 <> |upkeep",
-          "n": 1,
+          "n": 2,
           "mentions": []
         },
         {
-          "cause": "event missing from medicham2 :: |-end|p2a|throatchop <> |-boost|p2a|spe|1",
+          "cause": "event missing from medicham2 :: |-miss|p1b|p2b <> |-weather|sunnyday|[upkeep]",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "throatchop",
+              "id": "sunnyday",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 3167
+              "uses": 653
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 3167
+          "max_uses": 653
         },
         {
-          "cause": "event missing from medicham2 :: |move|p1a|earthquake <> |move|p2a|hurricane",
+          "cause": "event missing from medicham2 :: |-enditem|p1a|sitrusberry|[eat] <> |move|p1b|ragefist",
           "n": 1,
           "mentions": [
             {
-              "kind": "moves",
-              "id": "earthquake",
+              "kind": "items",
+              "id": "sitrusberry",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 7913
+              "uses": 13079
             },
             {
               "kind": "moves",
-              "id": "hurricane",
+              "id": "ragefist",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 3590
+              "uses": 491
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 7913
+          "max_uses": 13079
         },
         {
-          "cause": "event missing from medicham2 :: |-boost|p2a|atk|1 <> |detailschange|p2a|malamarmega,l50",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "species",
-              "id": "malamarmega",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": null
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": null
-        },
-        {
-          "cause": "event missing from medicham2 :: |-activate|p2a|forewarn|eruption <> |turn|1",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "forewarn",
-              "legal": true,
-              "carriers": 1,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 4
-            },
-            {
-              "kind": "moves",
-              "id": "eruption",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 962
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 962
-        },
-        {
-          "cause": "event missing from medicham2 :: |-start|p2a|typechange|water|[from]protean <> |-activate|p1a|protect",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "protean",
-              "legal": true,
-              "carriers": 3,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 276
-            },
-            {
-              "kind": "moves",
-              "id": "protect",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 80328
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 80328
-        },
-        {
-          "cause": "event missing from medicham2 :: |move|p1b|allyswitch <> |move|p2a|flashcannon",
+          "cause": "event missing from medicham2 :: |move|p2b|allyswitch <> |upkeep",
           "n": 1,
           "mentions": [
             {
@@ -3796,19 +3766,67 @@
               "reachable": true,
               "nonstandard": null,
               "uses": 190
-            },
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 190
+        },
+        {
+          "cause": "event missing from medicham2 :: |-enditem|p1a|sitrusberry|[eat] <> |move|p2a|playrough",
+          "n": 1,
+          "mentions": [
             {
-              "kind": "moves",
-              "id": "flashcannon",
+              "kind": "items",
+              "id": "sitrusberry",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 2801
+              "uses": 13079
+            },
+            {
+              "kind": "moves",
+              "id": "playrough",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 1441
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 2801
+          "max_uses": 13079
+        },
+        {
+          "cause": "event missing from medicham2 :: |-damage|p2b|H/H|[from]lifeorb <> |switch|p2b|garchomp,l50|H/H",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "items",
+              "id": "lifeorb",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 12155
+            },
+            {
+              "kind": "species",
+              "id": "garchomp",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": null
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 12155
+        },
+        {
+          "cause": "event missing from medicham2 :: |-damage|p2b|H/H <> |faint|p2a",
+          "n": 1,
+          "mentions": []
         },
         {
           "cause": "event missing from medicham2 :: |-start|p1a|charge|lowkick|[from]electromorphosis <> |move|p2a|dragondance",
@@ -3907,7 +3925,7 @@
           "max_uses": 7913
         },
         {
-          "cause": "event missing from medicham2 :: |move|p2a|earthquake <> |move|p1b|solarbeam",
+          "cause": "event missing from medicham2 :: |move|p2a|earthquake <> |move|p2b|tailwind",
           "n": 1,
           "mentions": [
             {
@@ -3921,108 +3939,56 @@
             },
             {
               "kind": "moves",
-              "id": "solarbeam",
+              "id": "tailwind",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 4621
+              "uses": 12889
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 7913
+          "max_uses": 12889
         },
         {
-          "cause": "event missing from medicham2 :: |-prepare|p2a|solarbeam <> |-damage|p1a|H/H",
+          "cause": "event missing from medicham2 :: |-prepare|p1b|electroshot <> |-supereffective|p2a|1",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "solarbeam",
+              "id": "electroshot",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 4621
+              "uses": 2579
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 4621
+          "max_uses": 2579
         },
         {
-          "cause": "event missing from medicham2 :: |move|p1b|earthquake <> |move|p2b|knockoff",
+          "cause": "event missing from medicham2 :: |-fail|p1a <> |move|p2a|roost",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "earthquake",
+              "id": "roost",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 7913
-            },
-            {
-              "kind": "moves",
-              "id": "knockoff",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 3341
+              "uses": 2326
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 7913
-        },
-        {
-          "cause": "event missing from medicham2 :: |move|p1a|makeitrain <> |move|p1b|darkestlariat",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "makeitrain",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 2614
-            },
-            {
-              "kind": "moves",
-              "id": "darkestlariat",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 2107
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 2614
-        },
-        {
-          "cause": "event missing from medicham2 :: |-fail|p2b <> |move|p1a|closecombat",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "closecombat",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 10455
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 10455
+          "max_uses": 2326
         }
       ]
     },
     {
       "cls": "unrelated event mismatch",
-      "games": 110,
+      "games": 106,
       "causes": [
         {
           "cause": "unrelated event mismatch :: |-supereffective|p1b|2 <> |-fail|p2b",
@@ -4031,7 +3997,7 @@
         },
         {
           "cause": "unrelated event mismatch :: |turn|1 <> |-heal|p1b|H/H|[from]hospitality",
-          "n": 2,
+          "n": 1,
           "mentions": [
             {
               "kind": "abilities",
@@ -4048,7 +4014,7 @@
         },
         {
           "cause": "unrelated event mismatch :: |-miss|p2b|p1a <> |-fail|p2b",
-          "n": 3,
+          "n": 7,
           "mentions": []
         },
         {
@@ -4080,7 +4046,7 @@
         },
         {
           "cause": "unrelated event mismatch :: |move|p1b|earthquake <> |upkeep",
-          "n": 1,
+          "n": 2,
           "mentions": [
             {
               "kind": "moves",
@@ -4119,7 +4085,7 @@
         },
         {
           "cause": "unrelated event mismatch :: |-miss|p1b|p2a <> |-fail|p1b",
-          "n": 4,
+          "n": 5,
           "mentions": []
         },
         {
@@ -4157,6 +4123,11 @@
           "max_uses": 1493
         },
         {
+          "cause": "unrelated event mismatch :: |-unboost|p1a|spe|2 <> |-fail|p2a",
+          "n": 1,
+          "mentions": []
+        },
+        {
           "cause": "unrelated event mismatch :: |turn|1 <> |-heal|p2a|H/H|[from]hospitality",
           "n": 10,
           "mentions": [
@@ -4174,35 +4145,25 @@
           "max_uses": 5779
         },
         {
-          "cause": "unrelated event mismatch :: |-miss|p1a|p2a <> |-fail|p1a",
-          "n": 2,
-          "mentions": []
-        },
-        {
-          "cause": "unrelated event mismatch :: |-miss|p2b|p1b <> |-fail|p2b",
-          "n": 1,
-          "mentions": []
-        },
-        {
-          "cause": "unrelated event mismatch :: |-activate|p2a|lightningrod <> |-supereffective|p1a|1",
-          "n": 1,
+          "cause": "unrelated event mismatch :: |turn|1 <> |-heal|p1a|H/H|[from]hospitality",
+          "n": 3,
           "mentions": [
             {
               "kind": "abilities",
-              "id": "lightningrod",
+              "id": "hospitality",
               "legal": true,
-              "carriers": 5,
+              "carriers": 2,
               "reachable": true,
               "nonstandard": null,
-              "uses": 2353
+              "uses": 5779
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 2353
+          "max_uses": 5779
         },
         {
           "cause": "unrelated event mismatch :: |-fieldstart|gravity <> |-fail|p2b",
-          "n": 1,
+          "n": 2,
           "mentions": [
             {
               "kind": "moves",
@@ -4219,11 +4180,6 @@
         },
         {
           "cause": "unrelated event mismatch :: |-immune|p2a <> |-resisted|p2a|1",
-          "n": 1,
-          "mentions": []
-        },
-        {
-          "cause": "unrelated event mismatch :: |-immune|p1a <> |-fail|p2a",
           "n": 1,
           "mentions": []
         },
@@ -4260,179 +4216,147 @@
           "mentions": []
         },
         {
-          "cause": "unrelated event mismatch :: |-start|p1a|futuresight <> |-damage|p2a|H/H",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "futuresight",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 7
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 7
-        },
-        {
-          "cause": "unrelated event mismatch :: |-unboost|p2a|spe|1 <> |-fail|p2a",
+          "cause": "unrelated event mismatch :: |-immune|p1a <> |-miss|p2a|p1a",
           "n": 1,
           "mentions": []
         },
         {
-          "cause": "unrelated event mismatch :: |move|p1b|hypervoice <> |-fieldstart|trickroom",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "hypervoice",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 4449
-            },
-            {
-              "kind": "moves",
-              "id": "trickroom",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 8077
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 8077
-        },
-        {
-          "cause": "unrelated event mismatch :: |-supereffective|p1b|1 <> |-fail|p1a",
-          "n": 1,
-          "mentions": []
-        },
-        {
-          "cause": "unrelated event mismatch :: |turn|1 <> |-heal|p1a|H/H|[from]hospitality",
+          "cause": "unrelated event mismatch :: |-activate|p1b|protect <> |-fail|p2b",
           "n": 2,
           "mentions": [
             {
-              "kind": "abilities",
-              "id": "hospitality",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 5779
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 5779
-        },
-        {
-          "cause": "unrelated event mismatch :: |-fail|p1b <> |-start|p2a|taunt",
-          "n": 1,
-          "mentions": [
-            {
               "kind": "moves",
-              "id": "taunt",
+              "id": "protect",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 1626
+              "uses": 80328
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 1626
+          "max_uses": 80328
         },
         {
-          "cause": "unrelated event mismatch :: |-immune|p2b <> |-fail|p2a",
+          "cause": "unrelated event mismatch :: |-activate|p2a|lightningrod <> |-resisted|p1a|1",
           "n": 1,
+          "mentions": [
+            {
+              "kind": "abilities",
+              "id": "lightningrod",
+              "legal": true,
+              "carriers": 5,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 2353
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 2353
+        },
+        {
+          "cause": "unrelated event mismatch :: |-activate|p1b|lightningrod <> |-immune|p1b|[from]lightningrod",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "abilities",
+              "id": "lightningrod",
+              "legal": true,
+              "carriers": 5,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 2353
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 2353
+        },
+        {
+          "cause": "unrelated event mismatch :: |-fail|p1b <> |-sidestart|p1:|lightscreen",
+          "n": 2,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "lightscreen",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 3724
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 3724
+        },
+        {
+          "cause": "unrelated event mismatch :: |-miss|p2a|p1a <> |-fail|p2a",
+          "n": 4,
           "mentions": []
         },
         {
-          "cause": "unrelated event mismatch :: |move|p2a|roost <> |-heal|p2a|H/H|[from]hospitality",
+          "cause": "unrelated event mismatch :: |-fail|p1b <> |-start|p2a|disable",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "roost",
+              "id": "disable",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 2326
-            },
-            {
-              "kind": "abilities",
-              "id": "hospitality",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 5779
+              "uses": 771
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 5779
+          "max_uses": 771
         },
         {
-          "cause": "unrelated event mismatch :: |-start|p2a|substitute|[from]shedtail <> |-damage|p2a|H/H",
+          "cause": "unrelated event mismatch :: |-fail|p2b <> |-start|p1a|encore",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "substitute",
+              "id": "encore",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 657
-            },
-            {
-              "kind": "moves",
-              "id": "shedtail",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 64
+              "uses": 5290
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 657
+          "max_uses": 5290
         },
         {
-          "cause": "unrelated event mismatch :: |turn|1 <> |-unboost|p2b|atk|1",
-          "n": 1,
-          "mentions": []
-        },
-        {
-          "cause": "unrelated event mismatch :: |-enditem|p1b|whiteherb <> |-heal|p2a|H/H|[from]hospitality",
+          "cause": "unrelated event mismatch :: |-damage|p1a|H/H <> |-enditem|p1a|charizarditey|[from]knockoff",
           "n": 1,
           "mentions": [
             {
               "kind": "items",
-              "id": "whiteherb",
+              "id": "charizarditey",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 2380
+              "uses": 4311
             },
             {
-              "kind": "abilities",
-              "id": "hospitality",
+              "kind": "moves",
+              "id": "knockoff",
               "legal": true,
-              "carriers": 2,
+              "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 5779
+              "uses": 3341
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 5779
+          "max_uses": 4311
+        },
+        {
+          "cause": "unrelated event mismatch :: |-fail|p1b <> |-damage|p2a|H/H",
+          "n": 1,
+          "mentions": []
         },
         {
           "cause": "unrelated event mismatch :: |-prepare|p1b|electroshot <> |-damage|p2a|H/H",
@@ -4478,35 +4402,25 @@
           "max_uses": 3341
         },
         {
-          "cause": "unrelated event mismatch :: |-supereffective|p1a|1 <> |-fail|p2a",
-          "n": 1,
-          "mentions": []
-        },
-        {
-          "cause": "unrelated event mismatch :: |-activate|p1b|protect <> |-fail|p2b",
+          "cause": "unrelated event mismatch :: |-fail|p2a <> |-start|p1a|taunt",
           "n": 2,
           "mentions": [
             {
               "kind": "moves",
-              "id": "protect",
+              "id": "taunt",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 80328
+              "uses": 1626
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 80328
-        },
-        {
-          "cause": "unrelated event mismatch :: |-miss|p2a|p1a <> |-fail|p2a",
-          "n": 2,
-          "mentions": []
+          "max_uses": 1626
         },
         {
           "cause": "unrelated event mismatch :: |-damage|p2a|H/H <> |-enditem|p2a|metagrossite|[from]knockoff",
-          "n": 1,
+          "n": 2,
           "mentions": [
             {
               "kind": "items",
@@ -4531,55 +4445,9 @@
           "max_uses": 3341
         },
         {
-          "cause": "unrelated event mismatch :: |-activate|p1a|wideguard <> |-fail|p2a",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "wideguard",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 3568
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 3568
-        },
-        {
-          "cause": "unrelated event mismatch :: |-activate|p1a|lightningrod <> |-resisted|p2a|1",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "lightningrod",
-              "legal": true,
-              "carriers": 5,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 2353
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 2353
-        },
-        {
-          "cause": "unrelated event mismatch :: |-activate|p1b|lightningrod <> |-resisted|p2a|1",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "lightningrod",
-              "legal": true,
-              "carriers": 5,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 2353
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 2353
+          "cause": "unrelated event mismatch :: |-immune|p2a <> |-unboost|p2a|atk|1",
+          "n": 2,
+          "mentions": []
         },
         {
           "cause": "unrelated event mismatch :: |-immune|p1a <> |-miss|p2b|p1a",
@@ -4621,25 +4489,23 @@
           "max_uses": 1550
         },
         {
-          "cause": "unrelated event mismatch :: |-fieldstart|gravity <> |-fail|p1a",
-          "n": 2,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "gravity",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 82
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 82
+          "cause": "unrelated event mismatch :: |-unboost|p1b|spd|2 <> |-immune|p1a",
+          "n": 1,
+          "mentions": []
         },
         {
-          "cause": "unrelated event mismatch :: |-fail|p2b <> |-sidestart|p2:|tailwind",
-          "n": 6,
+          "cause": "unrelated event mismatch :: |-status|p1a|tox <> |-miss|p2a|p1a",
+          "n": 1,
+          "mentions": []
+        },
+        {
+          "cause": "unrelated event mismatch :: |-damage|p1a|H/H <> |-status|p2a|brn",
+          "n": 1,
+          "mentions": []
+        },
+        {
+          "cause": "unrelated event mismatch :: |-fail|p1b <> |-sidestart|p1:|tailwind",
+          "n": 3,
           "mentions": [
             {
               "kind": "moves",
@@ -4655,91 +4521,55 @@
           "max_uses": 12889
         },
         {
-          "cause": "unrelated event mismatch :: |-unboost|p1b|spd|2 <> |-immune|p1a",
-          "n": 1,
-          "mentions": []
-        },
-        {
-          "cause": "unrelated event mismatch :: |-status|p1a|tox <> |-miss|p2a|p1a",
-          "n": 1,
-          "mentions": []
-        },
-        {
-          "cause": "unrelated event mismatch :: |-start|p2b|ingrain <> |-fail|p2b",
+          "cause": "unrelated event mismatch :: |-fieldstart|gravity <> |-fail|p2a",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "ingrain",
+              "id": "gravity",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 0
+              "uses": 82
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 0
+          "max_uses": 82
         },
         {
-          "cause": "unrelated event mismatch :: |-prepare|p2b|electroshot <> |-damage|p1a|H/H",
-          "n": 2,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "electroshot",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 2579
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 2579
-        },
-        {
-          "cause": "unrelated event mismatch :: |-damage|p2a|H/H <> |-enditem|p2a|staraptite|[from]knockoff",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "items",
-              "id": "staraptite",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 3797
-            },
-            {
-              "kind": "moves",
-              "id": "knockoff",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 3341
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 3797
-        },
-        {
-          "cause": "unrelated event mismatch :: |-fail|p1b <> |-sidestart|p1:|reflect",
+          "cause": "unrelated event mismatch :: |-fail|p2b <> |-start|p1a|disable",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "reflect",
+              "id": "disable",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 2926
+              "uses": 771
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 2926
+          "max_uses": 771
+        },
+        {
+          "cause": "unrelated event mismatch :: |-fail|p2b <> |-sidestart|p2:|tailwind",
+          "n": 3,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "tailwind",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 12889
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 12889
         },
         {
           "cause": "unrelated event mismatch :: |-fail|p1a <> |-singleturn|p1a|protect",
@@ -4776,23 +4606,6 @@
           "max_uses": 179
         },
         {
-          "cause": "unrelated event mismatch :: |-fail|p1b <> |-sidestart|p1:|lightscreen",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "lightscreen",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 3724
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 3724
-        },
-        {
           "cause": "unrelated event mismatch :: |move|p1a|earthquake <> |upkeep",
           "n": 1,
           "mentions": [
@@ -4827,25 +4640,25 @@
           "max_uses": 437
         },
         {
-          "cause": "unrelated event mismatch :: |-fail|p1b <> |-singleturn|p1b|wideguard",
-          "n": 2,
+          "cause": "unrelated event mismatch :: |-fieldstart|gravity <> |-fail|p1a",
+          "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "wideguard",
+              "id": "gravity",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 3568
+              "uses": 82
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 3568
+          "max_uses": 82
         },
         {
-          "cause": "unrelated event mismatch :: |-fail|p1a <> |-start|p2a|encore",
-          "n": 1,
+          "cause": "unrelated event mismatch :: |-fail|p1b <> |-start|p2a|encore",
+          "n": 2,
           "mentions": [
             {
               "kind": "moves",
@@ -4861,25 +4674,42 @@
           "max_uses": 5290
         },
         {
-          "cause": "unrelated event mismatch :: |-enditem|p1a|chopleberry|[weaken] <> |-damage|p1a|H/H",
+          "cause": "unrelated event mismatch :: |-fail|p2b <> |-sidestart|p2:|reflect",
           "n": 1,
           "mentions": [
             {
-              "kind": "items",
-              "id": "chopleberry",
+              "kind": "moves",
+              "id": "reflect",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 2645
+              "uses": 2926
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 2645
+          "max_uses": 2926
+        },
+        {
+          "cause": "unrelated event mismatch :: |-fail|p1b <> |-singleturn|p1b|wideguard",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "wideguard",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 3568
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 3568
         },
         {
           "cause": "unrelated event mismatch :: |-singleturn|p2a|protect <> |-fail|p2a",
-          "n": 2,
+          "n": 1,
           "mentions": [
             {
               "kind": "moves",
@@ -4893,6 +4723,23 @@
           ],
           "cannot_occur_in_format": false,
           "max_uses": 80328
+        },
+        {
+          "cause": "unrelated event mismatch :: |-prepare|p2b|electroshot <> |-damage|p1a|H/H",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "electroshot",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 2579
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 2579
         },
         {
           "cause": "unrelated event mismatch :: |-damage|p2a|H/H <> |-enditem|p2a|gengarite|[from]knockoff",
@@ -4938,11 +4785,6 @@
           "max_uses": 3724
         },
         {
-          "cause": "unrelated event mismatch :: |-immune|p2a <> |-unboost|p2a|atk|1",
-          "n": 1,
-          "mentions": []
-        },
-        {
           "cause": "unrelated event mismatch :: |turn|12 <> |-heal|p1b|H/H|[from]hospitality",
           "n": 1,
           "mentions": [
@@ -4982,7 +4824,29 @@
           "max_uses": 2632
         },
         {
-          "cause": "unrelated event mismatch :: |-miss|p2a|p1a <> |-boost|p1a|atk|2",
+          "cause": "unrelated event mismatch :: |-fail|p1b <> |-sidestart|p1:|reflect",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "reflect",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 2926
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 2926
+        },
+        {
+          "cause": "unrelated event mismatch :: |-resisted|p1b|1 <> |-fail|p1a",
+          "n": 1,
+          "mentions": []
+        },
+        {
+          "cause": "unrelated event mismatch :: |-resisted|p1b|1 <> |-damage|p1a|H/H",
           "n": 1,
           "mentions": []
         },
@@ -5004,109 +4868,19 @@
           "max_uses": 12889
         },
         {
-          "cause": "unrelated event mismatch :: |-singleturn|p1b|protect <> |-fail|p1b",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "protect",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 80328
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 80328
-        },
-        {
-          "cause": "unrelated event mismatch :: |-singleturn|p1a|protect <> |-fail|p1a",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "protect",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 80328
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 80328
-        },
-        {
-          "cause": "unrelated event mismatch :: |-fail|p2b <> |-singleturn|p2b|wideguard",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "wideguard",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 3568
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 3568
-        },
-        {
-          "cause": "unrelated event mismatch :: |-resisted|p1b|1 <> |-fail|p1a",
+          "cause": "unrelated event mismatch :: |-miss|p1a|p2a <> |-fail|p1a",
           "n": 1,
           "mentions": []
-        },
-        {
-          "cause": "unrelated event mismatch :: |-resisted|p1b|1 <> |-damage|p1a|H/H",
-          "n": 1,
-          "mentions": []
-        },
-        {
-          "cause": "unrelated event mismatch :: |-fail|p1b <> |-sidestart|p1:|tailwind",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "tailwind",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 12889
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 12889
-        },
-        {
-          "cause": "unrelated event mismatch :: |turn|3 <> |-heal|p2b|H/H|[from]hospitality",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "hospitality",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 5779
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 5779
         }
       ]
     },
     {
       "cls": "extra event emitted by medicham2",
-      "games": 40,
+      "games": 41,
       "causes": [
         {
           "cause": "extra event emitted by medicham2 :: |-unboost|p1a|atk|1 <> |-heal|p2b|H/H|[from]hospitality",
-          "n": 3,
+          "n": 2,
           "mentions": [
             {
               "kind": "abilities",
@@ -5127,320 +4901,8 @@
           "mentions": []
         },
         {
-          "cause": "extra event emitted by medicham2 :: |faint|p2b <> |-damage|p2b|0fnt",
-          "n": 1,
-          "mentions": []
-        },
-        {
-          "cause": "extra event emitted by medicham2 :: |-unboost|p2a|atk|1 <> |-heal|p2b|H/H|[from]hospitality",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "hospitality",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 5779
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 5779
-        },
-        {
-          "cause": "extra event emitted by medicham2 :: |move|p1a|bodypress <> |switch|p1b|primarina,l50|H/H",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "bodypress",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 1016
-            },
-            {
-              "kind": "species",
-              "id": "primarina",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": null
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 1016
-        },
-        {
-          "cause": "extra event emitted by medicham2 :: |-damage|p2a|H/H <> |-enditem|p2a|sablenite|[from]thief",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "items",
-              "id": "sablenite",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 53
-            },
-            {
-              "kind": "moves",
-              "id": "thief",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 8
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 53
-        },
-        {
           "cause": "extra event emitted by medicham2 :: |-unboost|p1a|atk|1 <> |-heal|p1a|H/H|[from]hospitality",
-          "n": 3,
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "hospitality",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 5779
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 5779
-        },
-        {
-          "cause": "extra event emitted by medicham2 :: |-damage|p1b|H/H <> |-activate|p1b|followme",
           "n": 4,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "followme",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 1550
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 1550
-        },
-        {
-          "cause": "extra event emitted by medicham2 :: |-damage|p2b|H/H <> |-activate|p2b|followme",
-          "n": 4,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "followme",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 1550
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 1550
-        },
-        {
-          "cause": "extra event emitted by medicham2 :: |-damage|p2a|H/H <> |-status|p1a|brn",
-          "n": 1,
-          "mentions": []
-        },
-        {
-          "cause": "extra event emitted by medicham2 :: |-fail|p2a|unboost|[from]clearbody <> |-heal|p1a|H/H|[from]hospitality",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "clearbody",
-              "legal": true,
-              "carriers": 3,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 1834
-            },
-            {
-              "kind": "abilities",
-              "id": "hospitality",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 5779
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 5779
-        },
-        {
-          "cause": "extra event emitted by medicham2 :: |-supereffective|p1b|1 <> |-activate|p1b|ragepowder",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "ragepowder",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 6848
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 6848
-        },
-        {
-          "cause": "extra event emitted by medicham2 :: |-miss|p1a|p2b <> |-activate|p2b|ragepowder",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "ragepowder",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 6848
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 6848
-        },
-        {
-          "cause": "extra event emitted by medicham2 :: |-damage|p2a|H/H <> |-activate|p2a|mummy",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "mummy",
-              "legal": true,
-              "carriers": 1,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 51
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 51
-        },
-        {
-          "cause": "extra event emitted by medicham2 :: |-damage|p1a|H/H <> |-enditem|p1a|lifeorb|[from]bugbite",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "items",
-              "id": "lifeorb",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 12155
-            },
-            {
-              "kind": "moves",
-              "id": "bugbite",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 264
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 12155
-        },
-        {
-          "cause": "extra event emitted by medicham2 :: |-damage|p1a|H/H <> |-status|p2a|brn",
-          "n": 1,
-          "mentions": []
-        },
-        {
-          "cause": "extra event emitted by medicham2 :: |upkeep <> |move|??:farigiraf|roar",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "species",
-              "id": "farigiraf",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": null
-            },
-            {
-              "kind": "moves",
-              "id": "roar",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 434
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 434
-        },
-        {
-          "cause": "extra event emitted by medicham2 :: |-unboost|p2b|atk|1 <> |-unboost|p2a|atk|1",
-          "n": 1,
-          "mentions": []
-        },
-        {
-          "cause": "extra event emitted by medicham2 :: |-unboost|p1a|atk|1 <> |-heal|p1b|H/H|[from]hospitality",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "hospitality",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 5779
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 5779
-        },
-        {
-          "cause": "extra event emitted by medicham2 :: |-weather|raindance|[upkeep] <> |-heal|p1b|H/H|[from]hospitality",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "raindance",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 980
-            },
-            {
-              "kind": "abilities",
-              "id": "hospitality",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 5779
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 5779
-        },
-        {
-          "cause": "extra event emitted by medicham2 :: |-unboost|p1a|atk|1 <> |-heal|p2a|H/H|[from]hospitality",
-          "n": 1,
           "mentions": [
             {
               "kind": "abilities",
@@ -5489,6 +4951,438 @@
           ],
           "cannot_occur_in_format": false,
           "max_uses": 5779
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-start|p1b|typechange|ice|[from]protean <> |-damage|p2a|H/H",
+          "n": 2,
+          "mentions": [
+            {
+              "kind": "abilities",
+              "id": "protean",
+              "legal": true,
+              "carriers": 3,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 276
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 276
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-unboost|p2a|atk|1 <> |-heal|p2b|H/H|[from]hospitality",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "abilities",
+              "id": "hospitality",
+              "legal": true,
+              "carriers": 2,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 5779
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 5779
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-damage|p2a|H/H <> |-enditem|p2a|sablenite|[from]thief",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "items",
+              "id": "sablenite",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 53
+            },
+            {
+              "kind": "moves",
+              "id": "thief",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 8
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 53
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-damage|p2a|H/H <> |-status|p1b|brn",
+          "n": 1,
+          "mentions": []
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-fail|p2a|unboost|[from]clearbody <> |-heal|p2a|H/H|[from]hospitality",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "abilities",
+              "id": "clearbody",
+              "legal": true,
+              "carriers": 3,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 1834
+            },
+            {
+              "kind": "abilities",
+              "id": "hospitality",
+              "legal": true,
+              "carriers": 2,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 5779
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 5779
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-boost|p2b|atk|1 <> |-damage|p2b|H/H",
+          "n": 1,
+          "mentions": []
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |move|p2b|hurricane <> |move|p1a|hurricane",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "hurricane",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 3590
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 3590
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-supereffective|p1b|1 <> |-activate|p1b|ragepowder",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "ragepowder",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 6848
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 6848
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-damage|p2b|H/H <> |-activate|p2b|ragepowder",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "ragepowder",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 6848
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 6848
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-damage|p2b|H/H <> |-activate|p2b|followme",
+          "n": 2,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "followme",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 1550
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 1550
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-miss|p1a|p2b <> |-activate|p2b|ragepowder",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "ragepowder",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 6848
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 6848
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-damage|p2a|0fnt <> |-activate|p2a|mummy",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "abilities",
+              "id": "mummy",
+              "legal": true,
+              "carriers": 1,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 51
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 51
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-damage|p1a|H/H <> |-enditem|p1a|lifeorb|[from]bugbite",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "items",
+              "id": "lifeorb",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 12155
+            },
+            {
+              "kind": "moves",
+              "id": "bugbite",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 264
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 12155
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |upkeep <> |move|??:farigiraf|roar",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "species",
+              "id": "farigiraf",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": null
+            },
+            {
+              "kind": "moves",
+              "id": "roar",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 434
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 434
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-unboost|p2b|atk|1 <> |-unboost|p2a|atk|1",
+          "n": 1,
+          "mentions": []
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-damage|p1b|H/H <> |-activate|p1b|followme",
+          "n": 2,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "followme",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 1550
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 1550
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-unboost|p1a|atk|1 <> |-heal|p1b|H/H|[from]hospitality",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "abilities",
+              "id": "hospitality",
+              "legal": true,
+              "carriers": 2,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 5779
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 5779
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-unboost|p1a|atk|1 <> |-heal|p2a|H/H|[from]hospitality",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "abilities",
+              "id": "hospitality",
+              "legal": true,
+              "carriers": 2,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 5779
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 5779
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-damage|p1a|H/H <> |-status|p2a|brn",
+          "n": 1,
+          "mentions": []
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-weather|sandstorm|[from]sandstream <> |-heal|p1a|H/H|[from]hospitality",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "sandstorm",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 11
+            },
+            {
+              "kind": "abilities",
+              "id": "sandstream",
+              "legal": true,
+              "carriers": 3,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 2063
+            },
+            {
+              "kind": "abilities",
+              "id": "hospitality",
+              "legal": true,
+              "carriers": 2,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 5779
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 5779
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |move|p2b|reflect <> |-heal|p1a|H/H|[from]hospitality",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "reflect",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 2926
+            },
+            {
+              "kind": "abilities",
+              "id": "hospitality",
+              "legal": true,
+              "carriers": 2,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 5779
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 5779
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-unboost|p2a|atk|1 <> |-heal|p2a|H/H|[from]hospitality",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "abilities",
+              "id": "hospitality",
+              "legal": true,
+              "carriers": 2,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 5779
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 5779
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |move|p2b|darkestlariat <> |-heal|p1a|H/H|[from]hospitality",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "darkestlariat",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 2107
+            },
+            {
+              "kind": "abilities",
+              "id": "hospitality",
+              "legal": true,
+              "carriers": 2,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 5779
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 5779
+        },
+        {
+          "cause": "extra event emitted by medicham2 :: |-supereffective|p1b|1 <> |-activate|p1b|followme",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "followme",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 1550
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 1550
         },
         {
           "cause": "extra event emitted by medicham2 :: |-weather|raindance|[from]drizzle <> |-heal|p1a|H/H|[from]hospitality",
@@ -5543,23 +5437,6 @@
           "max_uses": 5779
         },
         {
-          "cause": "extra event emitted by medicham2 :: |-damage|p2b|H/H <> |-activate|p2b|ragepowder",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "ragepowder",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 6848
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 6848
-        },
-        {
           "cause": "extra event emitted by medicham2 :: |-damage|p1a|0fnt <> |-enditem|p1a|raichunitey|[from]knockoff",
           "n": 1,
           "mentions": [
@@ -5586,26 +5463,26 @@
           "max_uses": 3341
         },
         {
-          "cause": "extra event emitted by medicham2 :: |-weather|sandstorm|[from]sandstream <> |-heal|p2a|H/H|[from]hospitality",
+          "cause": "extra event emitted by medicham2 :: |-weather|raindance|[from]drizzle <> |-heal|p1b|H/H|[from]hospitality",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "sandstorm",
+              "id": "raindance",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 11
+              "uses": 980
             },
             {
               "kind": "abilities",
-              "id": "sandstream",
+              "id": "drizzle",
               "legal": true,
-              "carriers": 3,
+              "carriers": 2,
               "reachable": true,
               "nonstandard": null,
-              "uses": 2063
+              "uses": 3415
             },
             {
               "kind": "abilities",
@@ -5619,17 +5496,12 @@
           ],
           "cannot_occur_in_format": false,
           "max_uses": 5779
-        },
-        {
-          "cause": "extra event emitted by medicham2 :: |-boost|p2b|atk|1 <> |-damage|p2b|H/H",
-          "n": 1,
-          "mentions": []
         }
       ]
     },
     {
       "cls": "-damage field 3",
-      "games": 31,
+      "games": 38,
       "causes": [
         {
           "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:farigiraf|32/195 vs |-damage|p2a:farigiraf|71/195]",
@@ -5649,17 +5521,51 @@
           "max_uses": null
         },
         {
-          "cause": "-damage field 3 :: |-damage|p1a|0fnt <> |-damage|p1a|H/H",
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:politoed|124/165 vs |-damage|p1a:politoed|125/165]",
           "n": 1,
+          "mentions": [
+            {
+              "kind": "species",
+              "id": "politoed",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": null
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:grimmsnarl|103/170 vs |-damage|p1a:grimmsnarl|102/170]",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "species",
+              "id": "grimmsnarl",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": null
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "cause": "-damage field 3 :: |-damage|p1a|0fnt <> |-damage|p1a|H/H",
+          "n": 2,
           "mentions": []
         },
         {
-          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:raichu|115/135 vs |-damage|p1a:raichu|81/135]",
+          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:malamar|62/161 vs |-damage|p2a:malamar|63/161]",
           "n": 1,
           "mentions": [
             {
               "kind": "species",
-              "id": "raichu",
+              "id": "malamar",
               "legal": true,
               "carriers": null,
               "reachable": true,
@@ -5671,12 +5577,12 @@
           "max_uses": null
         },
         {
-          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:charizard|123/153 vs |-damage|p2a:charizard|131/153]",
-          "n": 1,
+          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:dragalge|58/140 vs |-damage|p2a:dragalge|79/140]",
+          "n": 2,
           "mentions": [
             {
               "kind": "species",
-              "id": "charizard",
+              "id": "dragalge",
               "legal": true,
               "carriers": null,
               "reachable": true,
@@ -5688,97 +5594,131 @@
           "max_uses": null
         },
         {
-          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:froslass|101/145 vs |-damage|p1a:froslass|111/145]",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "species",
-              "id": "froslass",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": null
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": null
-        },
-        {
-          "cause": "-damage field 3 :: |-damage|p1b|H/H|[from]recoil <> |-damage|p1b|H/H|[from]recoil  [values differ: |-damage|p1b:blaziken|66/155|[from]recoil vs |-damage|p1b:blaziken|65/155|[from]recoil]",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "species",
-              "id": "blaziken",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": null
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": null
-        },
-        {
-          "cause": "-damage field 3 :: |-damage|p2b|H/H|[from]recoil <> |-damage|p2b|H/H|[from]recoil  [values differ: |-damage|p2b:arcanine|121/165|[from]recoil vs |-damage|p2b:arcanine|120/165|[from]recoil]",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "species",
-              "id": "arcanine",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": null
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": null
-        },
-        {
-          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:floette|8/149 vs |-damage|p2a:floette|10/149]",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "species",
-              "id": "floette",
-              "legal": false,
-              "carriers": null,
-              "reachable": false,
-              "nonstandard": "Past",
-              "uses": null
-            }
-          ],
-          "cannot_occur_in_format": true,
-          "max_uses": null
-        },
-        {
-          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:blastoise|94/154 vs |-damage|p2a:blastoise|109/154]",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "species",
-              "id": "blastoise",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": null
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": null
-        },
-        {
-          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:venusaur|92/155 vs |-damage|p2a:venusaur|93/155]",
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:venusaur|41/155 vs |-damage|p1a:venusaur|44/155]",
           "n": 1,
           "mentions": [
             {
               "kind": "species",
               "id": "venusaur",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": null
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:grimmsnarl|124/170 vs |-damage|p1a:grimmsnarl|123/170]",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "species",
+              "id": "grimmsnarl",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": null
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:gyarados|86/170 vs |-damage|p1a:gyarados|88/170]",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "species",
+              "id": "gyarados",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": null
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:mimikyu|130/130 vs |-damage|p2a:mimikyu|114/130]",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "species",
+              "id": "mimikyu",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": null
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:corviknight|64/173 vs |-damage|p1a:corviknight|118/173]",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "species",
+              "id": "corviknight",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": null
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:eelektross|37/160 vs |-damage|p1a:eelektross|39/160]",
+          "n": 2,
+          "mentions": [
+            {
+              "kind": "species",
+              "id": "eelektross",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": null
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:venusaur|113/155 vs |-damage|p2a:venusaur|114/155]",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "species",
+              "id": "venusaur",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": null
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:charizard|99/153 vs |-damage|p1a:charizard|111/153]",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "species",
+              "id": "charizard",
               "legal": true,
               "carriers": null,
               "reachable": true,
@@ -5841,6 +5781,91 @@
           "max_uses": null
         },
         {
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:venusaur|80/155 vs |-damage|p1a:venusaur|79/155]",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "species",
+              "id": "venusaur",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": null
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:venusaur|113/155 vs |-damage|p1a:venusaur|114/155]",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "species",
+              "id": "venusaur",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": null
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:swampert|119/175 vs |-damage|p1a:swampert|120/175]",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "species",
+              "id": "swampert",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": null
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:metagross|121/155 vs |-damage|p1a:metagross|122/155]",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "species",
+              "id": "metagross",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": null
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:raichu|49/135 vs |-damage|p2a:raichu|50/135]",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "species",
+              "id": "raichu",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": null
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
           "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:swampert|124/175 vs |-damage|p2a:swampert|121/175]",
           "n": 1,
           "mentions": [
@@ -5875,12 +5900,12 @@
           "max_uses": null
         },
         {
-          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:swampert|57/175 vs |-damage|p2a:swampert|56/175]",
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:raichu|27/135 vs |-damage|p1a:raichu|29/135]",
           "n": 1,
           "mentions": [
             {
               "kind": "species",
-              "id": "swampert",
+              "id": "raichu",
               "legal": true,
               "carriers": null,
               "reachable": true,
@@ -5892,29 +5917,12 @@
           "max_uses": null
         },
         {
-          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:serperior|74/150 vs |-damage|p2a:serperior|73/150]",
+          "cause": "-damage field 3 :: |-damage|p1b|H/H <> |-damage|p1b|H/H  [values differ: |-damage|p1b:pelipper|32/135 vs |-damage|p1b:pelipper|33/135]",
           "n": 1,
           "mentions": [
             {
               "kind": "species",
-              "id": "serperior",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": null
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": null
-        },
-        {
-          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:clefable|66/170 vs |-damage|p2a:clefable|2/170]",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "species",
-              "id": "clefable",
+              "id": "pelipper",
               "legal": true,
               "carriers": null,
               "reachable": true,
@@ -5977,12 +5985,12 @@
           "max_uses": null
         },
         {
-          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:orthworm|22/145 vs |-damage|p2a:orthworm|46/145]",
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:staraptor|62/160 vs |-damage|p1a:staraptor|86/160]",
           "n": 1,
           "mentions": [
             {
               "kind": "species",
-              "id": "orthworm",
+              "id": "staraptor",
               "legal": true,
               "carriers": null,
               "reachable": true,
@@ -6011,46 +6019,12 @@
           "max_uses": null
         },
         {
-          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:raichu|60/135 vs |-damage|p1a:raichu|59/135]",
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:metagross|138/155 vs |-damage|p1a:metagross|150/155]",
           "n": 1,
           "mentions": [
             {
               "kind": "species",
-              "id": "raichu",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": null
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": null
-        },
-        {
-          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:whimsicott|84/135 vs |-damage|p2a:whimsicott|85/135]",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "species",
-              "id": "whimsicott",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": null
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": null
-        },
-        {
-          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:dragalge|58/140 vs |-damage|p2a:dragalge|79/140]",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "species",
-              "id": "dragalge",
+              "id": "metagross",
               "legal": true,
               "carriers": null,
               "reachable": true,
@@ -6079,7 +6053,7 @@
           "max_uses": null
         },
         {
-          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:steelix|125/150 vs |-damage|p2a:steelix|126/150]",
+          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:steelix|122/150 vs |-damage|p2a:steelix|121/150]",
           "n": 1,
           "mentions": [
             {
@@ -6096,17 +6070,12 @@
           "max_uses": null
         },
         {
-          "cause": "-damage field 3 :: |-damage|p2a|0fnt <> |-damage|p2a|H/H",
-          "n": 1,
-          "mentions": []
-        },
-        {
-          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:staraptor|140/160 vs |-damage|p1a:staraptor|150/160]",
+          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:charizard|27/153 vs |-damage|p2a:charizard|29/153]",
           "n": 1,
           "mentions": [
             {
               "kind": "species",
-              "id": "staraptor",
+              "id": "charizard",
               "legal": true,
               "carriers": null,
               "reachable": true,
@@ -6116,106 +6085,6 @@
           ],
           "cannot_occur_in_format": false,
           "max_uses": null
-        },
-        {
-          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:staraptor|16/160 vs |-damage|p1a:staraptor|50/160]",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "species",
-              "id": "staraptor",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": null
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": null
-        }
-      ]
-    },
-    {
-      "cls": "-sideend field 3",
-      "games": 1,
-      "causes": [
-        {
-          "cause": "-sideend field 3 :: |-sideend|p2:|auroraveil <> |-sideend|p2:|reflect",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "auroraveil",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 1415
-            },
-            {
-              "kind": "moves",
-              "id": "reflect",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 2926
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 2926
-        }
-      ]
-    },
-    {
-      "cls": "-start: a different body",
-      "games": 2,
-      "causes": [
-        {
-          "cause": "-start: a different body :: |-start|p2b|perish3 <> |-start|p1a|perish2",
-          "n": 1,
-          "mentions": []
-        },
-        {
-          "cause": "-start: a different body :: |-start|p1b|encore <> |-start|p1a|encore",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "encore",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 5290
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 5290
-        }
-      ]
-    },
-    {
-      "cls": "-damage field 4",
-      "games": 2,
-      "causes": [
-        {
-          "cause": "-damage field 4 :: |-damage|p2a|H/H|[from]infestation|[partiallytrapped] <> |-damage|p2a|H/H|[from]partiallytrapped",
-          "n": 2,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "infestation",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 882
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 882
         }
       ]
     },
@@ -6297,15 +6166,41 @@
     },
     {
       "cls": "switch: a different body",
-      "games": 5,
+      "games": 6,
       "causes": [
         {
-          "cause": "switch: a different body :: |switch|p2b|kingambit,l50|H/H <> |switch|p2b|zoroarkhisui,l50|H/H",
+          "cause": "switch: a different body :: |switch|p2a|simisear,l50|H/H <> |switch|p2a|zoroark,l50|H/H",
           "n": 1,
           "mentions": [
             {
               "kind": "species",
-              "id": "kingambit",
+              "id": "simisear",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": null
+            },
+            {
+              "kind": "species",
+              "id": "zoroark",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": null
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "cause": "switch: a different body :: |switch|p1a|sinistcha,l50|H/H <> |switch|p1a|zoroarkhisui,l50|H/H",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "species",
+              "id": "sinistcha",
               "legal": true,
               "carriers": null,
               "reachable": true,
@@ -6432,13 +6327,57 @@
       ]
     },
     {
-      "cls": "-start field 3",
+      "cls": "-damage field 4",
       "games": 1,
       "causes": [
         {
-          "cause": "-start field 3 :: |-start|p1a|perish3 <> |-start|p1a|perish2",
+          "cause": "-damage field 4 :: |-damage|p2a|H/H|[from]infestation|[partiallytrapped] <> |-damage|p2a|H/H|[from]partiallytrapped",
           "n": 1,
-          "mentions": []
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "infestation",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 882
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 882
+        }
+      ]
+    },
+    {
+      "cls": "move field 3",
+      "games": 1,
+      "causes": [
+        {
+          "cause": "move field 3 :: |move|p1a|zapcannon <> |move|p1a|focusblast",
+          "n": 1,
+          "mentions": [
+            {
+              "kind": "moves",
+              "id": "zapcannon",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 2129
+            },
+            {
+              "kind": "moves",
+              "id": "focusblast",
+              "legal": true,
+              "carriers": null,
+              "reachable": true,
+              "nonstandard": null,
+              "uses": 2260
+            }
+          ],
+          "cannot_occur_in_format": false,
+          "max_uses": 2260
         }
       ]
     }
@@ -6756,183 +6695,183 @@
     },
     {
       "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2661063885 vs gen9championsvgc2026regmb-2635830491",
+      "seed": "gen9championsvgc2026regmbbo3-2661063885 vs gen9championsvgc2026regmb-2635736943",
+      "index": 8,
+      "agreed_lines": 8,
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-fail|p1b <> |move|p1a|zapcannon",
+      "showdown": "|-fail|p1b: Whimsicott",
+      "medicham": "|move|p1a: Raichu|zapcannon|p2a: Whimsicott"
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmb-2635699335 vs gen9championsvgc2026regmb-2634946391",
+      "index": 13,
+      "agreed_lines": 13,
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-unboost|p1a|spe|2 <> |-fail|p2a",
+      "showdown": "|-unboost|p1a: Archaludon|spe|2",
+      "medicham": "|-fail|p2a: Whimsicott"
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmb-2634822080 vs gen9championsvgc2026regmb-2634984493",
+      "index": 8,
+      "agreed_lines": 8,
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-damage|p1a|H/H <> |-damage|p2a|H/H|[from]roughskin",
+      "showdown": "|-damage|p1a: Garchomp|114/183",
+      "medicham": "|-damage|p2a: Metagross|136/155|[from] ability: roughskin|[of] p1a: Garchomp"
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmb-2634206863 vs gen9championsvgc2026regmbbo3-2635897892",
+      "index": 14,
+      "agreed_lines": 14,
+      "cls": "-damage field 3",
+      "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:politoed|124/165 vs |-damage|p1a:politoed|125/165]",
+      "showdown": "|-damage|p1a: Politoed|124/165",
+      "medicham": "|-damage|p1a: Politoed|125/165"
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2635400881 vs gen9championsvgc2026regmbbo3-2635065988",
+      "index": 13,
+      "agreed_lines": 13,
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-miss|p2b|p1a <> |-fail|p2b",
+      "showdown": "|-miss|p2b: Hydreigon|p1a: Barbaracle",
+      "medicham": "|-fail|p2b: Hydreigon"
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2635545562 vs gen9championsvgc2026regmbbo3-2634214467",
+      "index": 14,
+      "agreed_lines": 14,
+      "cls": "ordering",
+      "cause": "ordering :: |move|p1b|grassknot <> |move|p2a|tailwind",
+      "showdown": "|move|p1b: Raichu|Grass Knot|p2a: Staraptor",
+      "medicham": "|move|p2a: Staraptor|tailwind|p2a: Staraptor"
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2634835452 vs gen9championsvgc2026regmbbo3-2635955383",
       "index": 6,
       "agreed_lines": 6,
       "cls": "unrelated event mismatch",
       "cause": "unrelated event mismatch :: |turn|1 <> |-heal|p2a|H/H|[from]hospitality",
       "showdown": "|turn|1",
-      "medicham": "|-heal|p2a: Staraptor|160/160|[from] ability: hospitality|[of] p2b: Sinistcha"
+      "medicham": "|-heal|p2a: Raichu|135/135|[from] ability: hospitality|[of] p2b: Sinistcha"
     },
     {
       "config": "baseline",
-      "seed": "gen9championsvgc2026regmb-2635827111 vs gen9championsvgc2026regmb-2635062402",
-      "index": 4,
-      "agreed_lines": 4,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |turn|1 <> |-heal|p2a|H/H|[from]hospitality",
-      "showdown": "|turn|1",
-      "medicham": "|-heal|p2a: Gengar|135/135|[from] ability: hospitality|[of] p2b: Sinistcha"
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmb-2634630612 vs gen9championsvgc2026regmb-2634204211",
-      "index": 9,
-      "agreed_lines": 9,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-miss|p1a|p2a <> |-fail|p1a",
-      "showdown": "|-miss|p1a: Garchomp|p2a: Swampert",
-      "medicham": "|-fail|p1a: Garchomp"
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmb-2634409842 vs gen9championsvgc2026regmbbo3-2635599100",
-      "index": 12,
-      "agreed_lines": 12,
-      "cls": "turn order",
-      "cause": "turn order :: |move|p2b|earthquake <> |move|p1b|electroshot",
-      "showdown": "|move|p2b: Garchomp|Earthquake|p1b: Archaludon|[spread] p1b",
-      "medicham": "|move|p1b: Archaludon|electroshot|p2a: Staraptor"
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2635840455 vs gen9championsvgc2026regmbbo3-2634856648",
-      "index": 21,
-      "agreed_lines": 21,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-singleturn|p2a|roost <> |-weather|raindance|[upkeep]",
-      "showdown": "|-singleturn|p2a: Staraptor|move: Roost",
-      "medicham": "|-weather|raindance|[upkeep]"
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2635873643 vs gen9championsvgc2026regmbbo3-2634535224",
-      "index": 16,
-      "agreed_lines": 16,
-      "cls": "-sideend field 3",
-      "cause": "-sideend field 3 :: |-sideend|p2:|auroraveil <> |-sideend|p2:|reflect",
-      "showdown": "|-sideend|p2: B|move: Aurora Veil",
-      "medicham": "|-sideend|p2: |move: Reflect"
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2635915111 vs gen9championsvgc2026regmbbo3-2636032836",
-      "index": 4,
-      "agreed_lines": 4,
-      "cls": "ordering",
-      "cause": "ordering :: |-unboost|p1a|atk|1 <> |-unboost|p2a|atk|1",
-      "showdown": "|-unboost|p1a: Staraptor|atk|1",
-      "medicham": "|-unboost|p2a: Staraptor|atk|1"
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2635830967 vs gen9championsvgc2026regmbbo3-2635069104",
-      "index": 4,
-      "agreed_lines": 4,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |turn|1 <> |-heal|p2b|H/H|[from]hospitality",
-      "showdown": "|turn|1",
-      "medicham": "|-heal|p2b: Milotic|170/170|[from] ability: hospitality|[of] p2a: Sinistcha"
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2634774301 vs gen9championsvgc2026regmbbo3-2634979071",
-      "index": 15,
-      "agreed_lines": 15,
-      "cls": "ordering",
-      "cause": "ordering :: |move|p2a|supercellslam <> |move|p1a|gigadrain",
-      "showdown": "|move|p2a: Eelektross|Supercell Slam|p1a: Eelektross|[miss]",
-      "medicham": "|move|p1a: Eelektross|gigadrain|p2a: Eelektross"
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2635873723 vs gen9championsvgc2026regmbbo3-2635269579",
-      "index": 17,
-      "agreed_lines": 17,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |move|p1b|trickroom <> |-fieldstart|trickroom",
-      "showdown": "|move|p1b: Farigiraf|Trick Room|p1b: Farigiraf",
-      "medicham": "|-fieldstart|move: Trick Room|[of] p1b: Farigiraf"
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2634350204 vs gen9championsvgc2026regmbbo3-2635957252",
-      "index": 17,
-      "agreed_lines": 17,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-miss|p2b|p1b <> |-fail|p2b",
-      "showdown": "|-miss|p2b: Garchomp|p1b: Grimmsnarl",
-      "medicham": "|-fail|p2b: Garchomp"
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2635585286 vs gen9championsvgc2026regmbbo3-2635726572",
-      "index": 19,
-      "agreed_lines": 19,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-prepare|p1a|electroshot <> |-supereffective|p2a|1",
-      "showdown": "|-prepare|p1a: Archaludon|Electro Shot",
-      "medicham": "|-supereffective|p2a: Staraptor|1"
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2635111093 vs gen9championsvgc2026regmbbo3-2635849707",
-      "index": 12,
-      "agreed_lines": 12,
-      "cls": "ordering",
-      "cause": "ordering :: |-start|p1b|substitute <> |-damage|p1b|H/H",
-      "showdown": "|-start|p1b: Delphox|Substitute",
-      "medicham": "|-damage|p1b: Delphox|113/150"
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2634492695 vs gen9championsvgc2026regmbbo3-2634773349",
-      "index": 12,
-      "agreed_lines": 12,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-activate|p2a|lightningrod <> |-supereffective|p1a|1",
-      "showdown": "|-activate|p2a: Sceptile|ability: Lightning Rod",
-      "medicham": "|-supereffective|p1a: Staraptor|1"
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2635990839 vs gen9championsvgc2026regmbbo3-2635767208",
-      "index": 24,
-      "agreed_lines": 24,
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p2b|perish3 <> |-start|p1a|perish2",
-      "showdown": "|-start|p2b: Gengar|perish3",
-      "medicham": "|-start|p1a: Whimsicott|perish2"
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2635249755 vs gen9championsvgc2026regmbbo3-2635828201",
+      "seed": "gen9championsvgc2026regmbbo3-2634828209 vs gen9championsvgc2026regmbbo3-2634159872",
       "index": 11,
       "agreed_lines": 11,
       "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:raichu|99/135 vs |-damage|p1a:raichu|63/135]",
-      "showdown": "|-damage|p1a: Raichu|99/135",
-      "medicham": "|-damage|p1a: Raichu|63/135"
+      "cause": "event missing from medicham2 :: |-unboost|p1a|atk|1 <> |move|p1a|nastyplot",
+      "showdown": "|-unboost|p1a: Delphox|atk|1",
+      "medicham": "|move|p1a: Delphox|nastyplot|p1a: Delphox"
     },
     {
       "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2634229210 vs gen9championsvgc2026regmbbo3-2635322376",
-      "index": 15,
-      "agreed_lines": 15,
+      "seed": "gen9championsvgc2026regmbbo3-2635878516 vs gen9championsvgc2026regmbbo3-2635872910",
+      "index": 23,
+      "agreed_lines": 23,
+      "cls": "ordering",
+      "cause": "ordering :: |move|p2a|solarbeam <> |move|p1a|hyperbeam",
+      "showdown": "|move|p2a: Pyroar|Solar Beam||[still]",
+      "medicham": "|move|p1a: Pyroar|hyperbeam|p2a: Pyroar"
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2635434852 vs gen9championsvgc2026regmbbo3-2635928117",
+      "index": 7,
+      "agreed_lines": 7,
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |turn|1 <> |-heal|p1a|H/H|[from]hospitality",
+      "showdown": "|turn|1",
+      "medicham": "|-heal|p1a: Staraptor|160/160|[from] ability: hospitality|[of] p1b: Sinistcha"
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2635881613 vs gen9championsvgc2026regmbbo3-2635451055",
+      "index": 22,
+      "agreed_lines": 22,
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |move|p1b|earthquake <> |upkeep",
+      "showdown": "|move|p1b: Garchomp|Earthquake|p2b: Incineroar|[spread] p1a,p2b",
+      "medicham": "|upkeep"
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2634285158 vs gen9championsvgc2026regmbbo3-2635158496",
+      "index": 13,
+      "agreed_lines": 13,
+      "cls": "turn order",
+      "cause": "turn order :: |move|p1b|earthquake <> |move|p2a|electroshot",
+      "showdown": "|move|p1b: Garchomp|Earthquake|p2b: Sableye|[spread] p1a,p2a,p2b",
+      "medicham": "|move|p2a: Archaludon|electroshot|p1a: Metagross"
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2635039505 vs gen9championsvgc2026regmbbo3-2635310275",
+      "index": 4,
+      "agreed_lines": 4,
       "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |faint|p2b <> |-damage|p2b|0fnt",
-      "showdown": "|faint|p2b: Staraptor",
-      "medicham": "|-damage|p2b: Staraptor|0 fnt"
+      "cause": "extra event emitted by medicham2 :: |-unboost|p1a|atk|1 <> |-heal|p1a|H/H|[from]hospitality",
+      "showdown": "|-unboost|p1a: Gengar|atk|1",
+      "medicham": "|-heal|p1a: Gengar|135/135|[from] ability: hospitality|[of] p1b: Sinistcha"
     },
     {
       "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2635819894 vs gen9championsvgc2026regmbbo3-2635844279",
-      "index": 20,
-      "agreed_lines": 20,
-      "cls": "-damage field 4",
-      "cause": "-damage field 4 :: |-damage|p2a|H/H|[from]infestation|[partiallytrapped] <> |-damage|p2a|H/H|[from]partiallytrapped",
-      "showdown": "|-damage|p2a: Incineroar|101/170|[from] move: Infestation|[partiallytrapped]",
-      "medicham": "|-damage|p2a: Incineroar|101/170|[from] partiallytrapped"
+      "seed": "gen9championsvgc2026regmbbo3-2634447992 vs gen9championsvgc2026regmbbo3-2635750337",
+      "index": 9,
+      "agreed_lines": 9,
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |move|p1b|explosion <> |move|p2a|nastyplot",
+      "showdown": "|move|p1b: Metagross|Explosion|p2b: Aerodactyl|[spread] p1a",
+      "medicham": "|move|p2a: Gholdengo|nastyplot|p2a: Gholdengo"
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2635761989 vs gen9championsvgc2026regmbbo3-2635690514",
+      "index": 14,
+      "agreed_lines": 14,
+      "cls": "-damage field 3",
+      "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:grimmsnarl|103/170 vs |-damage|p1a:grimmsnarl|102/170]",
+      "showdown": "|-damage|p1a: Grimmsnarl|103/170",
+      "medicham": "|-damage|p1a: Grimmsnarl|102/170"
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2635612029 vs gen9championsvgc2026regmbbo3-2634717185",
+      "index": 4,
+      "agreed_lines": 4,
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |-weather|raindance|[from]drizzle <> |-heal|p2a|H/H|[from]hospitality",
+      "showdown": "|-weather|RainDance|[from] ability: Drizzle|[of] p1a: Pelipper",
+      "medicham": "|-heal|p2a: Incineroar|170/170|[from] ability: hospitality|[of] p2b: Sinistcha"
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2635339841 vs gen9championsvgc2026regmbbo3-2635465592",
+      "index": 17,
+      "agreed_lines": 17,
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:staraptor|78/160 vs |-damage|p2a:staraptor|58/160]",
+      "showdown": "|-damage|p2a: Staraptor|78/160",
+      "medicham": "|-damage|p2a: Staraptor|58/160"
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2634993998 vs gen9championsvgc2026regmbbo3-2635827654",
+      "index": 10,
+      "agreed_lines": 10,
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |-start|p1b|typechange|ice|[from]protean <> |-damage|p2a|H/H",
+      "showdown": "|-start|p1b: Greninja|typechange|Ice|[from] ability: Protean",
+      "medicham": "|-damage|p2a: Gardevoir|102/143"
     },
     {
       "config": "omit-protect",
@@ -6947,8 +6886,8 @@
     {
       "config": "omit-protect",
       "seed": "gen9championsvgc2026regmbbo3-2654493789 vs gen9championsvgc2026regmbbo3-2654492312",
-      "index": 45,
-      "agreed_lines": 45,
+      "index": 40,
+      "agreed_lines": 40,
       "cls": "-activate field 4",
       "cause": "-activate field 4 :: |-activate|p2a|skillswap|intimidate|purepower <> |-activate|p2a|skillswap",
       "showdown": "|-activate|p2a: Medicham|Skill Swap|Intimidate|Pure Power|[of] p1a: Incineroar",
@@ -6967,8 +6906,8 @@
     {
       "config": "omit-protect",
       "seed": "gen9championsvgc2026regmbbo3-2654679618 vs gen9championsvgc2026regmbbo3-2654707953",
-      "index": 11,
-      "agreed_lines": 11,
+      "index": 12,
+      "agreed_lines": 12,
       "cls": "event missing from medicham2",
       "cause": "event missing from medicham2 :: |move|p1a|wish <> |move|p2a|acrobatics",
       "showdown": "|move|p1a: Floette|Wish|p1a: Floette",
@@ -7007,12 +6946,12 @@
     {
       "config": "omit-protect",
       "seed": "gen9championsvgc2026regmbbo3-2655994658 vs gen9championsvgc2026regmbbo3-2656079283",
-      "index": 12,
-      "agreed_lines": 12,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-immune|p1a <> |-fail|p2a",
-      "showdown": "|-immune|p1a: Houndoom",
-      "medicham": "|-fail|p2a: Whimsicott"
+      "index": 10,
+      "agreed_lines": 10,
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-fail|p1b <> |move|p2a|cottonspore",
+      "showdown": "|-fail|p1b: Whimsicott",
+      "medicham": "|move|p2a: Whimsicott|cottonspore|p2a: Whimsicott"
     },
     {
       "config": "omit-protect",
@@ -7029,20 +6968,20 @@
       "seed": "gen9championsvgc2026regmbbo3-2656306216 vs gen9championsvgc2026regmbbo3-2656306168",
       "index": 8,
       "agreed_lines": 8,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-fail|p1b <> |move|p2b|gravity",
-      "showdown": "|-fail|p1b: Whimsicott",
-      "medicham": "|move|p2b: Sableye|gravity|p2b: Sableye"
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-fieldstart|gravity <> |-fail|p2b",
+      "showdown": "|-fieldstart|move: Gravity",
+      "medicham": "|-fail|p2b: Sableye"
     },
     {
       "config": "omit-protect",
       "seed": "gen9championsvgc2026regmbbo3-2656298037 vs gen9championsvgc2026regmbbo3-2656285275",
-      "index": 25,
-      "agreed_lines": 25,
-      "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |move|p1a|bodypress <> |switch|p1b|primarina,l50|H/H",
-      "showdown": "|move|p1a: Metagross|Body Press|p2a: Metagross",
-      "medicham": "|switch|p1b: Primarina|primarina, L50|155/155"
+      "index": 12,
+      "agreed_lines": 12,
+      "cls": "ordering",
+      "cause": "ordering :: |move|p2a|bodyslam <> |move|p1a|bodypress",
+      "showdown": "|move|p2a: Metagross|Body Slam|p1a: Metagross",
+      "medicham": "|move|p1a: Metagross|bodypress|p2a: Metagross"
     }
   ],
   "errors": [],
@@ -7251,29 +7190,28 @@
       "dragontail",
       "drillrun",
       "dualwingbeat",
-      "firespin",
+      "fissure",
+      "flipturn",
       "focusblast",
       "gigaimpact",
       "guillotine",
       "gunkshot",
+      "hammerarm",
       "highjumpkick",
       "hurricane",
       "hyperbeam",
       "hypnosis",
       "icefang",
-      "icepunch",
       "iciclecrash",
       "knockoff",
       "leafstorm",
       "leechseed",
-      "lightofruin",
-      "meteormash",
       "overheat",
       "pinmissile",
       "playrough",
+      "poisonjab",
       "poltergeist",
       "populationbomb",
-      "rocktomb",
       "sandtomb",
       "scaleshot",
       "sheercold",
@@ -7285,19 +7223,18 @@
       "thunderwave",
       "toxic",
       "tripleaxel",
-      "willowisp",
       "zapcannon",
       "zenheadbutt"
     ],
-    "distinct_moves_connected": 176,
-    "distinct_abilities": 161,
-    "distinct_items": 124,
-    "distinct_species": 257
+    "distinct_moves_connected": 173,
+    "distinct_abilities": 162,
+    "distinct_items": 127,
+    "distinct_species": 258
   },
   "swarm": [
     {
       "config": "baseline",
-      "available": 7340,
+      "available": 7360,
       "picked": 100,
       "games": 50
     },
@@ -7315,59 +7252,99 @@
     },
     {
       "config": "omit-weather",
-      "available": 3991,
+      "available": 4003,
       "picked": 100,
       "games": 50
     },
     {
       "config": "omit-intimidate",
-      "available": 3615,
+      "available": 3626,
       "picked": 100,
       "games": 50
     },
     {
       "config": "omit-spread",
-      "available": 300,
+      "available": 301,
       "picked": 100,
       "games": 50
     },
     {
       "config": "pair-protect-bust",
-      "available": 758,
+      "available": 760,
       "picked": 100,
       "games": 50
     },
     {
       "config": "pair-redirect-priority",
-      "available": 2956,
+      "available": 2963,
       "picked": 100,
       "games": 50
     },
     {
       "config": "pair-speedctrl",
-      "available": 5940,
+      "available": 5957,
       "picked": 100,
       "games": 50
     }
   ],
   "declared_gaps": {
     "mega_stones_stripped": 0,
-    "mega_stones_kept": 1077,
-    "control_arm_stones_stripped": 1077,
+    "mega_stones_kept": 1079,
+    "control_arm_stones_stripped": 1079,
     "align_had_to_move_a_stat": 0,
     "teams_unbuildable": 0,
     "sets_unbuildable": 0,
     "ban_fallbacks": 0,
     "undeclared_event_drops": 0,
-    "trace_body_off_field": 11,
+    "trace_body_off_field": 10,
     "trace_body_off_field_first": "farigiraf",
     "undeclared_events": [],
     "gender_neutralised": true,
     "tags_release_matches_live": true
   },
+  "steering": {
+    "policy": "census-coverage-seeking/v1",
+    "rule": "at every decision the driver prefers the legal action reaching the least-exercised row of data/mechanics-census.json, ties broken toward the least-clicked entity (game_differential.js covWant/creditClick). The census therefore SELECTS THE SAMPLE this run measures.",
+    "input": "data/mechanics-census.json",
+    "input_read_from": "../../../AppData/Local/Temp/claude/C--Users-willj-Projects-Pokemon-ABRA/74b990e2-3b69-4349-a3f3-cd3b3778e5db/scratchpad/census-pinned.json",
+    "input_digest": "c6be796631be",
+    "input_rows": 250,
+    "input_generated": "2026-08-07T06:57:42.036Z",
+    "input_live_digest": "c6be796631be",
+    "pinned": true,
+    "matches_live": true,
+    "selects_from": 205,
+    "unmeasurable": 45,
+    "team_pool_digest": "19174ee16416",
+    "team_pool_teams": 7360,
+    "team_pool_picked": 791
+  },
+  "baseline_comparability": {
+    "artifact": "C:/Users/willj/AppData/Local/Temp/claude/C--Users-willj-Projects-Pokemon-ABRA/74b990e2-3b69-4349-a3f3-cd3b3778e5db/scratchpad/w5-before.json",
+    "baseline_release": "128a1ca28d34",
+    "baseline_steering": {
+      "policy": "census-coverage-seeking/v1",
+      "rule": "at every decision the driver prefers the legal action reaching the least-exercised row of data/mechanics-census.json, ties broken toward the least-clicked entity (game_differential.js covWant/creditClick). The census therefore SELECTS THE SAMPLE this run measures.",
+      "input": "data/mechanics-census.json",
+      "input_read_from": "../../../AppData/Local/Temp/claude/C--Users-willj-Projects-Pokemon-ABRA/74b990e2-3b69-4349-a3f3-cd3b3778e5db/scratchpad/census-pinned.json",
+      "input_digest": "c6be796631be",
+      "input_rows": 250,
+      "input_generated": "2026-08-07T06:57:42.036Z",
+      "input_live_digest": "c6be796631be",
+      "pinned": true,
+      "matches_live": true,
+      "selects_from": 205,
+      "unmeasurable": 45,
+      "team_pool_digest": "19174ee16416",
+      "team_pool_teams": 7360,
+      "team_pool_picked": 791
+    },
+    "ok": true,
+    "reasons": []
+  },
   "engine_release": "45485dee6a43",
   "engine_release_cut": "2026-08-07T06:46:42.560Z",
-  "engine_release_cuts": 3,
+  "engine_release_cuts": 6,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
     "engine/medicham2-browser.js": "882d60c80a3e",
