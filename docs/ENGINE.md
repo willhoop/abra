@@ -27,10 +27,10 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  249/250 probed mechanics live, 1 missing   (census 2026-08-07 06:57)
+  251/252 probed mechanics live, 1 missing   (census 2026-08-07 08:02)
   missing:
     move    needsTargetToAttack    Avalanche doubles after the target hits it this turn
-  1/150 differential comparisons disagree with Showdown   (2026-08-07 06:57)
+  1/150 differential comparisons disagree with Showdown   (2026-08-07 08:02)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -49,7 +49,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 162/181 probed, 19 unprobed
 ```
 
-_stamped 2026-08-07 07:19_
+_stamped 2026-08-07 08:11_
 
 <!-- /GENERATED -->
 
@@ -163,6 +163,231 @@ carry a `steering` block and a `baseline_comparability` verdict.
 14. **THE COMMENT ABOVE `COV_TARGETS` IS STALE AND SAYS `235 rows / 192 measurable / 43`.** The run
     prints 250 / 205 / 45. Cosmetic, but it is a number in prose describing a corpus, which is the
     thing this project has already learned prose cannot do.
+
+## ROADMAP #81 WIRE 6 — TWO ACTION KINDS OUT OF TWENTY-SEVEN NEVER SAID WHAT THEY DID, AND EVERY RULE KEYED OFF THE MOVE ID SKIPPED THEM. 2026-08-07.
+
+Census **249 live / 250 probed → 251 live / 252 probed**, `unarmed` 0, `directCall` 0, `hollow` 0,
+`threw` 0. Red demonstrations **139 → 142, 0 failed** (three new, a different broken engine each).
+
+**THE DEFECT, AND IT IS A FAMILY RATHER THAN A MOVE.** `playerAction` resolves a click to one of
+**27 action kinds**. Every rule that sits above the kind dispatch — the Taunt refusal (WIRE 119), the
+Throat Chop silence (WIRE 77), the priority bracket, and the `|move|USER|MOVE|TARGET` line the
+protocol trace emits — asks `actionMoveId(a)` which move was clicked. `actionMoveId` read `a.mv`, and
+for the kinds that carried none it fell back to `KIND_MOVE`, **three hand-written rows**. Two kinds
+were not in those three rows:
+
+| kind | moves | corpus uses | what it announced |
+|---|---|---|---|
+| `trickroom` | 1 | **8,077** | nothing |
+| `pass` — the engine models no effect for the click | **46** (Quick Guard 803, Ally Switch 190, Instruct 173, Heal Pulse 126…) | 2,145 | nothing |
+| the other 25 kinds | 454 | — | correctly |
+
+Trick Room's *mechanic* has been green for weeks — `reversesSpeed` has a probe, the turn really does
+invert. What was missing was the **announcement**, and no probe in `tests/test-mechanics.js` could
+tell those two apart because every probe in it reads state.
+
+### The fix is at the root: an action carries the move that made it
+
+`playerAction` now stamps `mv` on every action it builds, including `{kind:'pass',mv:id}` — an
+unmodelled click is still a click — and the emit gate's `&& a.kind!=='pass'` is gone. `KIND_MOVE`
+stays as the backstop for a bare action a **caller** hand-built; a bare `{kind:'pass'}` (the idle ally
+in ~200 probes, `game_differential`'s empty slot) still has no `mv` and still announces nothing, so the
+two meanings are distinguishable, which they were not.
+
+**AND IT MOVED THREE OTHER RULES, WHICH IS THE POINT OF FIXING A ROOT AND ALSO THE RISK.** Measured
+directly against the frozen release rather than argued:
+
+| move | real bracket | before | after |
+|---|---|---|---|
+| Quick Guard | +3 | **0** | +3 |
+| Ally Switch | +2 | **0** | +2 |
+| Counter | −5 | **0** | −5 |
+| Mirror Coat | −5 | **0** | −5 |
+
+Taunt and Throat Chop now refuse these 46 moves as well, which is correct (45 of them are
+`statusCategory`) and emits `|cant|` where the engine used to emit nothing at all. The one hazard is
+named rather than assumed: the `costsUserHP` charge sits above the kind dispatch too, and **no move
+that lands on `pass` carries that tag** (checked over the whole of `MC.moves` against
+`data/tags.json`). If one ever does it would pay HP for an effect the engine does not grant, which is
+WIRE 130's exact shape.
+
+### How much of the family this actually explains — 27 of 133, and the honest bound
+
+The target was the largest class in the controlled artifact, `event missing from medicham2`. In the
+**before-arm taken for this wire** it is 133 games / 107 distinct causes. Sorting its causes by the
+corpus usage of the entities they mention, and asking the **frozen before-engine** which of them
+resolve to a silent action kind:
+
+| | games |
+|---|---|
+| the family | 133 |
+| first divergence is a missing `\|move\|` line | **56** |
+| …of those, the move resolves to a **silent action kind** — the root above | **27** (Trick Room 20, Heal Pulse 3, Quick Guard 2, Wish 1, Role Play 1) |
+| …of those, the move resolves to a LOUD kind and the line was lost for another reason | 29 |
+| first divergence is some other event entirely | 77 |
+
+**So the root explains 27 of 133 — 20% of the family — and not one game more.** The other 106 are
+led by `-fail` (22), `-activate` (15), `-immune` (15), `-prepare` (15) and `-enditem` (11); the 29
+loud-kind ones are a **turn-order / spread-target** shape, not this one — `|move|p1b: Garchomp|Earthquake|p2b: Venusaur|[spread] p2b`
+against our `|move|p1a: Dragonite|hurricane|p2a: Charizard`, where Showdown's line never reappears in
+our stream *identically* because the target field differs, so the classifier files an ordering fault
+as a missing event. **That is a separate WIRE and it is filed below.**
+
+After the wire the **whole** `|move|`-head sub-family is empty (56 → 0), which is more than the 27 the
+root accounts for; the rest is the priority correction above reordering turns that were parting for
+ordering reasons. Both effects are the same change and neither is separable from the other in this
+instrument, so **27 is what is claimed and 56 is what is observed**.
+
+### Before / after, and the instrument's own verdict
+
+Both arms 346 games, mode A, `turns_cap` 12, `--census` pinned to one file (`c6be796631be`), taken
+back-to-back so the live game store could not move between them. `node engine/arms_comparable.js`:
+
+> **COMPARABLE.** Both arms selected their sample the same way, so a difference between their numbers
+> is the change under test.
+> before release `45485dee6a43`, steering `c6be796631be`, 346 games — after release `3fd06d865427`,
+> steering `c6be796631be`, 346 games.
+
+| class | before | after | |
+|---|---|---|---|
+| **event missing from medicham2** | **133 / 107** | **120 / 113** | the target |
+| …of which a missing `\|move\|` line | **56** | **0** | |
+| unrelated event mismatch | 84 / 57 | 91 / 60 | |
+| ordering | 49 / 41 | 50 / 41 | |
+| extra event emitted by medicham2 | 39 / 32 | 42 / 35 | |
+| `-damage field 3` | 19 / 19 | 24 / 23 | |
+| **turn order** | **9 / 9** | **0 / 0** | |
+| `switch: a different body` | 4 / 4 | 4 / 4 | |
+| `-start field 4` | 2 / 2 | 2 / 2 | |
+| `-activate field 4` | 2 / 2 | 2 / 2 | |
+| `-status field 4` | 1 / 1 | 3 / 3 | |
+| `-start: a different body` | 1 / 1 | 2 / 2 | |
+| `-heal field 3` | 0 | 1 / 1 | |
+| diverged | 343 | **341** | of 346 |
+| classes | 11 | 11 | |
+| threw | 1 | 1 | |
+
+**THE FAMILY FELL BY 13 AND ITS DISTINCT CAUSES ROSE BY 6, AND THAT IS THE WIRE WORKING RATHER THAN
+HALF-WORKING.** Emitting a line the engine owed pushes the first divergence LATER into the game, so
+games leave this class and games arrive in it from elsewhere. `diverged` moved 343 → 341, which is the
+only number here that says two whole games now agree end to end. **A class count is a
+first-divergence count and nothing else; it is not a bug count.**
+
+`data/game-differential.json` is the after-arm above, verbatim.
+
+### Coverage direction — the largest gain of the series
+
+| | before | after |
+|---|---|---|
+| **distinct moves connected** | 177 | **197 (+20)** |
+| distinct species | 258 | 260 |
+| distinct abilities | 161 | 162 |
+| census rows reached by a connecting move | 108 / 112 | 108 / 112 |
+| `not_exercised` | 5 | 5 — **membership swapped**: `move:reversesSpeed` left, `move:inflictsToxic` arrived |
+| clicked but always missed (the Mode A pin) | 47 | 46 |
+
+WIRE 3 gained five distinct moves and WIRE 4 lost one. This gains twenty, because 46 moves the engine
+had been resolving into silence now register as connected.
+
+### The three red demonstrations, one per site
+
+| broken engine | what it must break |
+|---|---|
+| `{kind:'trickroom',mv:id}` → `{kind:'trickroom'}` | Trick Room announces the move that set it |
+| `{kind:'pass',mv:id}` → `{kind:'pass'}` | Quick Guard and Psych Up announce themselves |
+| the emit gate `if(TR&&_mid)` → `if(TR&&_mid&&a.kind!=='pass')` | the gate is on THE MOVE, not on the kind being liked |
+
+Each carries the same two controls, asserted on **both** engines: an ordinary Earthquake announces
+itself, and a body that PASSED announces nothing. Without the second one these would be watching "the
+trace emits `|move|` at all". A **fourth** reversal had to be repaired rather than added —
+`ARM doublesSideSpeed` reverts `if(id==='tailwind')return {kind:'tail'};` and that line now carries an
+`mv`; `revertedEngine` refused to apply the patch and threw, which is that guard doing its job.
+
+### AND MY OWN PROBE WAS WRONG BEFORE THE ENGINE WAS. THAT MAKES FORTY.
+
+The first `moveLines()` helper filtered the trace on `l.split('|')[3] === (mv || ' ')` — so the
+no-click **control** compared the move name against nothing and could only ever return zero. A control
+that cannot fail is the hollow shape this whole file exists to catch, written straight into the probe
+meant to catch it. The helper now returns every `|move|` line the acting body emitted and the probe
+does the naming.
+
+**AND THE RATCHET CAUGHT BOTH NEW PROBES AS DIRECT CALLS ON THEIR FIRST RUN** — `directCall` went
+0 → 2 and the file went red — because `REALTURN` matches the probe's own source and `moveLines(` was
+not in it. It is declared there now, with its reason, exactly as that comment requires. That is a gate
+that could have been softened by renaming a helper, and was not.
+
+### THE SKIP LIST MOVED UNDER THE TABLE, AND THE TABLE REPRODUCED EXACTLY
+
+`data/protocol-events.json` is derived from `medicham2-browser.js`'s `add()` claims, so changing the
+engine staled it — `engine/provenance.js` read it UNSAFE, *COMPUTED FROM DIFFERENT CONTENT*. It was
+regenerated (`derive_protocol_events.js --write`, both gates pass, 38 emitted / 56 declared-not-emitted
+/ 10 partial, unchanged) **and both arms were then re-taken under the new file**, because it is WIRE
+5's filed item 13 — the skip list decides which Showdown lines are removed before alignment, so a
+change to it can move every count in the table above.
+
+**Every figure in the table reproduced to the digit** — all twelve class counts, all twelve cause
+counts, `diverged` 343 → 341, connected 177 → 197, `not_exercised` membership, `threw`. So the
+regeneration was stamp-only in effect, the pair is comparable both to itself and across the change,
+and the instrument has now been shown deterministic across a third input as well. `arms_comparable.js`
+returns COMPARABLE on the re-taken pair, and `data/game-differential.json` is that after-arm.
+
+### Three tests were red beside this work. One was ENGINE's and is FIXED here; two are not ENGINE's
+
+**FIXED — `tests/test-tag-wire.js`, and it was WIRE 4's, not this one's.** `rain Solar Beam lands at
+x0.545 of clear-sky` against a `< 0.03` tolerance. The probe aimed a Grass move into a Fire/Dark
+Incineroar, where it is resisted twice over and the top roll is **22 points** — so a single damage
+point is 4.5% and no engine could meet a 3% ratio. Showdown's base-damage formula ends `floor(…) + 2`,
+so halving the BASE POWER cannot halve the DAMAGE; the flat +2 survives. Measured against the frozen
+releases: `cf6a68fa412c` (pre-WIRE-4) 22 → **11**, an exact 0.500 — **the probe was passing because
+the engine truncated a float**. `45485dee6a43` (post-WIRE-4) 22 → **12**. WIRE 4 corrected the
+arithmetic and the probe went red on the better engine, and it stayed red through WIRE 5. The arm now
+aims at a Milotic, where the +2 is 1.4% and the ratio reads 0.514. **The tolerance was not widened and
+the claim was not weakened** — with `weatherScaled` stripped from the artifact the same assertion
+reads x1.000 and still fails, checked.
+
+**RED, NOT ENGINE's, NOT FIXED — reported.**
+- `tests/test-prng.js` — *no file multiplies its state by 1103515245 in float arithmetic — found in:
+  `tests/test-protocol-trace.js`*. That constant is inside a file this division owns but the check
+  belongs to MEASURE's PRNG rule; the LCG there is a fixture generator, not a sampler feeding a
+  bootstrap. Untouched by this wire and red before it.
+- `tests/test-stadium-roster.js` — `engine/diff_swarm.js` and `engine/mega_decision_census.js` are in
+  neither `docs/MODELS.md` nor the `NOT_A_MODEL` table. **The GURU hole**, and the file says in as
+  many words that `docs/MODELS.md` is MEASURE's. Untouched by this wire.
+- `engine/provenance.js --strict` — exit 1 on `exploitability.json`, **DECLARED VOID by its own
+  generator**, which is a recorded decision and is ratcheted. Pre-existing.
+
+**AND `tests/run-all.js` REPORTS FAILURES ITS OWN TESTS DO NOT REPRODUCE.** Across two full runs,
+`test-forced-switch`, `test-team-preview-race`, `test-wiring` and `engine/validate_selfplay` failed
+under the runner and pass standalone (exit 0, 16/16 and 58 features respectively); `test-wiring`
+reported *mega 0.00 per game* under the runner and its normal rate alone. The set of failures differed
+between the two runs, which is the signature. That is a property of the runner, not of the engine, and
+it means **a FAIL line in run-all is not evidence on its own** — every one above was re-run alone
+before it was believed or dismissed. Filed as 18.
+
+**CAUSED BY ME AND FIXED IN THE SAME PASS.** `tests/test-web-status.js` was red at *engine.probed =
+235 but the census says 252*; the census had moved and the board had not, so `node web/build-status.js`
+was run — the rebuild that test itself prints. That then reddened `tests/test-site-sync.js`, because
+`web/status-data.js` and `app/status-data.js` must be byte-identical and only `web/` had been written.
+`cp web/status-data.js app/status-data.js`, the procedure that test's own header documents. Both green.
+
+
+### Filed, not fixed
+
+15. **`{kind:'struggle'}` IS RETURNED AND NEVER DISPATCHED.** `chooseAction` returns it in three
+    places; no branch of the executor handles it and it carries no `mv`, so a struggling body does
+    nothing and announces nothing. Not in this wire's sweep because `playerAction` never produces it.
+    Reachable when a body has no attacking move it may click.
+16. **AN ORDERING FAULT IS BEING FILED AS A MISSING EVENT — ~29 GAMES.** `classify`'s lookahead asks
+    whether the other engine's line reappears *identically*. A spread move's `|move|` line carries
+    `[spread] p2b` and a redirected one carries a rewritten target, so a genuine turn-order difference
+    on Earthquake reports as `event missing from medicham2`. This is the largest remaining share of
+    that class and it belongs to the instrument, not to the engine.
+17. **`movePriority` READS 0 FOR METAL BURST AND COMEUPPANCE**, whose real bracket is −4. Found while
+    verifying the four brackets above; it is an artifact gap, not a `playerAction` one.
+18. **`tests/run-all.js` PRODUCES FAILURES ITS OWN TESTS DO NOT REPRODUCE**, a different set on each
+    run, on tests that spend real games. Every FAIL from it now has to be re-run alone before it means
+    anything, which is a tax on every division. Not diagnosed here; it is the runner, not a test.
+
 
 ## ROADMAP #81 WIRE 1 — A PROTECT BLOCK WAS BEING RESOLVED AS A TYPE IMMUNITY AND AS A MISS, AND THE CRASH IT OWES WAS NEVER PAID. 2026-08-07.
 
@@ -3869,9 +4094,10 @@ re-derives itself when the metagame moves and this section does not.
 
 **AND A SECOND DERIVED LIST LANDED 2026-08-06:** `data/game-differential.json`'s `classes` block. The
 coverage list above says which mechanics have NO PROBE; that one says which mechanics have a probe and
-still resolve differently from the authority IN A REAL GAME. **Thirteen classes** over 395 games today
-(2026-08-07, with the megas in and ROADMAP #81 WIRE 1 landed), each with its count and its distinct
-causes, regenerated by
+still resolve differently from the authority IN A REAL GAME. **Eleven classes** over 346 games today
+(2026-08-07, with the megas in and ROADMAP #81 WIREs 1-6 landed), each with its count and its distinct
+causes, and each cause carrying `mentions` so a class can be sorted by the corpus usage it actually
+reaches rather than by how many games happened to hit it. Regenerated by
 `node engine/game_differential.js --write`. Neither list is typed and neither can go stale, which is
 the whole reason the section below is nine lines long — and the count moving from nineteen to eleven
 is the artifact doing exactly that, not a claim anybody typed twice.

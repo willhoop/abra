@@ -297,8 +297,17 @@ console.log('\nwire 7 — weatherScaled');
   ok(members.length >= 10 && members.includes('solarbeam'),
     `${members.length} weather-scaled moves, and Solar Beam is finally a member (the old probe missed onBasePower)`);
 
-  const inWeather = (moveId, weather) => {
-    const a = M.buildMon('garchomp', {}); const d = M.buildMon('incineroar', {});
+  /* THE TARGET IS A PARAMETER, AND THE REASON IS A DEFECT THIS PROBE HAD. Incineroar is Fire/Dark,
+   * so a Grass move into it is x0.5 and lands for 22 points at the top roll — where ONE damage point
+   * is 4.5% and a 3% ratio tolerance cannot be met by any engine. Showdown's base-damage formula ends
+   * `floor(...) + 2`, so halving the BASE POWER cannot halve the DAMAGE: the flat +2 survives. Before
+   * ROADMAP #81 WIRE 4 this engine truncated a float and produced 11 (an exact 0.500) and the probe
+   * passed on a rounding bug; WIRE 4 made it 12 (0.545) and the probe went red on a CORRECTED engine.
+   * Verified against the frozen releases: `cf6a68fa412c` (pre-WIRE-4) 22 -> 11, `45485dee6a43`
+   * (post) 22 -> 12. So the Solar Beam arm aims at a body that does not resist it, where the +2 is
+   * 1.4% instead of 4.5% and the unchanged tolerance is meetable. The tolerance was NOT widened. */
+  const inWeather = (moveId, weather, foe) => {
+    const a = M.buildMon('garchomp', {}); const d = M.buildMon(foe || 'incineroar', {});
     const r = M.dmgRange(a, d, MC.moves[moveId], { terrain: '', weather, twA: 0, twB: 0 }, false);
     return r;
   };
@@ -318,11 +327,12 @@ console.log('\nwire 7 — weatherScaled');
   /* Solar Beam sheds half its power in rain — and rain ALSO does not halve it twice over: the
    * artifact's 0.5 is the whole rain penalty for a Grass move (rain halves Fire, not Grass). */
   const sb = TAGS.param('move', 'solarbeam', 'weatherScaled');
-  const sbClear = inWeather('solarbeam', ''), sbRain = inWeather('solarbeam', 'rain');
+  const sbClear = inWeather('solarbeam', '', 'milotic'), sbRain = inWeather('solarbeam', 'rain', 'milotic');
   const sbRatio = sbRain.max / sbClear.max;
   ok(sb && sb.byWeather && sb.byWeather.rain && sb.byWeather.rain.bpMult === 0.5,
     'artifact: rain halves Solar Beam');
-  ok(Math.abs(sbRatio - 0.5) < 0.03, `rain Solar Beam lands at x${sbRatio.toFixed(3)} of clear-sky`);
+  ok(Math.abs(sbRatio - 0.5) < 0.03,
+    `rain Solar Beam lands at x${sbRatio.toFixed(3)} of clear-sky (into a Milotic, ${sbClear.max} -> ${sbRain.max})`);
   ok(sb.byWeather.sun && sb.byWeather.sun.chargeSkip === true,
     'the sun charge-skip is carried (unconsumed: this engine has no charge state)');
 

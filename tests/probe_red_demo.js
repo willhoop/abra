@@ -1551,7 +1551,7 @@ demo('ARM  forbidsStatusMoves -- a Taunted foe clicks an attack and a free one c
  * That is a hard-coded id where the rest of the file reads a tag, and it is reported in
  * docs/ENGINE.md. The known-bad engine is the line removed. */
 demoSource('ARM  doublesSideSpeed -- Tailwind doubles MY side and leaves the foe alone',
-  [["  if(id==='tailwind')return {kind:'tail'};\n", '']],
+  [["  if(id==='tailwind')return {kind:'tail',mv:id};\n", '']],
   (E) => {
     const run = (mv) => {
       const B = stage4(E, ['whimsicott', 'incineroar', 'garchomp', 'garchomp']);
@@ -2317,6 +2317,58 @@ demoSource('ROADMAP #81 WIRE 4  recoil is Math.round of the damage dealt, not a 
         && fb.lost === rd(fb.dealt, 'flareblitz') && rd(fb.dealt, 'flareblitz') !== fl(fb.dealt, 'flareblitz')
         && wc.lost === rd(wc.dealt, 'wavecrash');
   });
+
+
+/* ================= ROADMAP #81 WIRE 6 - AN ACTION THAT DID NOT SAY WHAT IT WAS ====================
+ *
+ * Three breakages, three sites, because the defect had three of them and a single revert would only
+ * prove that one line exists. The probes in tests/test-mechanics.js assert the EMITTED STREAM, so
+ * every case below reads protocol lines - which is exactly what WIRE 1's cases were forbidden from
+ * doing, and for the opposite reason: there the finding was that state and stream disagreed, here the
+ * finding IS the stream. The state is provably fine (`reversesSpeed` has been green for weeks).
+ *
+ * EVERY CASE CARRIES A CONTROL THAT MUST HOLD ON BOTH ENGINES - an ordinary attack announcing itself,
+ * and a passed turn announcing nothing. Without them these would be watching "the trace emits |move|
+ * at all" rather than "it emits one for THIS action kind". */
+const W6 = {
+  /* every |move| line the acting body emitted in one real turn; `mv` null = it passed */
+  lines(E, mv) {
+    const B = (s) => { const b = E.buildMon(s, {}); b.item = ''; b.ability = 'none'; return b; };
+    const me = B('incineroar'), ally = B('corviknight'), f1 = B('garchomp'), f2 = B('milotic');
+    const S = E.battleInit([me, ally, B('clefable')], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    for (const b of [f1, me]) { b.st = Object.assign({}, b.st, { hp: b.st.hp * 8 }); b.curHP = b.st.hp; }
+    E.battleTurn(S, rng5,
+      new Map([[me, mv ? E.playerAction(me, mv, f1, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return trace.filter(l => l.startsWith('|move|p1a:'));
+  },
+  says(E, mv) { const l = W6.lines(E, mv); return l.length === 1 && l[0].split('|')[3] === mv; },
+  /* the two controls, asserted inside every case */
+  controls(E) { return W6.says(E, 'earthquake') && W6.lines(E, null).length === 0; },
+};
+
+/* 1. THE KIND THE MAP DID NOT HAVE. `playerAction` returned a bare `{kind:'trickroom'}` and
+ *    `actionMoveId` fell back to KIND_MOVE, whose three hand-written rows do not include it - so the
+ *    single most-used cause in the differential's largest family emitted nothing at all. */
+demoSource('ROADMAP #81 WIRE 6  Trick Room announces the move that set it',
+  [["  if(id==='trickroom')return {kind:'trickroom',mv:id};", "  if(id==='trickroom')return {kind:'trickroom'};"]],
+  (E) => W6.controls(E) && W6.says(E, 'trickroom'));
+
+/* 2. THE 46 MOVES THE ENGINE MODELS NOTHING FOR. `{kind:'pass'}` meant BOTH "no effect modelled" and
+ *    "I forget which move it was", and the second half is what made the stream lose the line. Quick
+ *    Guard is 803 corpus uses; the reverted engine is silent on all of them. */
+demoSource('ROADMAP #81 WIRE 6  a move the engine models NOTHING for still announces itself',
+  [['  return {kind:\'pass\',mv:id};', '  return {kind:\'pass\'};']],
+  (E) => W6.controls(E) && W6.says(E, 'quickguard') && W6.says(E, 'psychup'));
+
+/* 3. THE GATE, WHICH IS A SEPARATE SITE AND WOULD HAVE SUPPRESSED CASE 2 ON ITS OWN. The emit
+ *    condition read `_mid && a.kind!=='pass'`; restoring the kind test leaves playerAction stamping
+ *    the id correctly and the line still never reaches the stream. Trick Room must keep announcing on
+ *    BOTH engines here - that is what makes this case about the gate rather than about the id. */
+demoSource('ROADMAP #81 WIRE 6  the announcement is gated on THE MOVE, not on the kind being liked',
+  [['        if(TR&&_mid){', "        if(TR&&_mid&&a.kind!=='pass'){"]],
+  (E) => W6.controls(E) && W6.says(E, 'trickroom') && W6.says(E, 'quickguard'));
 
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);
 if (failures) { console.log('  A green-and-stripped pair that did not flip means the probe does NOT watch its knob.'); process.exit(1); }

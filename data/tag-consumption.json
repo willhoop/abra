@@ -2,9 +2,9 @@
   "note": "RATCHET. `dead` may shrink and may never grow. A tag here is one NO line of engine code looks for — decisive, and independent of how the sweep was staged. `staged` is a property of the sweep and is recorded for information only, never ratcheted.",
   "method": "engine/tags.js counts ASKED (any lookup) and FOUND (the entity carried it). ASKED=0 is the decisive reading. FOUND>0 is necessary and NOT sufficient — proving the read changes behaviour is the mutation tier in docs/TAG-COVERAGE.md.",
   "total_tags": 177,
-  "live": 84,
-  "staged": 22,
-  "unreached": 40,
+  "live": 85,
+  "staged": 23,
+  "unreached": 38,
   "unreached_this_run": [
     "statusCategory",
     "priority",
@@ -22,7 +22,6 @@
     "reversesSpeed",
     "halvesDamage",
     "pivotStatus",
-    "preventsStatDrop",
     "healsSelf",
     "oneTurnGuard",
     "takesTargetItem",
@@ -35,7 +34,6 @@
     "boostsTarget",
     "delayedSleep",
     "curesVolatile",
-    "substitute",
     "formeChange",
     "clearsBoosts",
     "reordersTurn",
@@ -242,12 +240,13 @@
     "extendsDuration",
     "accuracyMod",
     "refusesStatusMoves",
-    "proceduralStatus",
     "speedOnItemLoss",
+    "weatherChipImmune",
     "punishesContact",
+    "disablesAttacker",
     "writesAccuracy",
-    "costsUserHP",
     "reducesAllyDamage",
+    "substitute",
     "blocksExplosion",
     "forcesSwitch",
     "crashOnMiss",
@@ -261,5 +260,5 @@
     "failsWithoutTerrain",
     "amplifiesBoosts"
   ],
-  "generated": "2026-08-07T04:10:46.835Z"
+  "generated": "2026-08-07T08:03:55.597Z"
 }

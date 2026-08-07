@@ -1,8 +1,8 @@
 # ABRA — Technical Documentation
 
-**Version 3.62.1 · Last updated 2026-08-07**
+**Version 3.62.2 · Last updated 2026-08-07**
 
-**THE DIFFERENTIAL HAS RUN, AND MEGAS ARE IN IT (3.62.1).** `engine/game_differential.js` plays a real
+**THE DIFFERENTIAL HAS RUN, AND MEGAS ARE IN IT (3.62.2).** `engine/game_differential.js` plays a real
 stored team through MEDICHAM and through the official Showdown engine, step for step, against a stamped
 frozen release. **Read every figure from `data/game-differential.json`, never from this sentence** — the
 first version of this paragraph quoted a run that a later one replaced within the day, which is the
@@ -17,7 +17,7 @@ past the first turn is exercised, because a game stops at its first divergence. 
 Serious / 0 EVs / 31 IVs so the two engines compute the same stat line before *and* after a forme change
 — **this tests RULES, not the spreads the ladder actually brings.**
 
-**Change record for 3.62.1.** The headline metric changed. It was the win rate. It is now the
+**Change record for 3.62.2.** The headline metric changed. It was the win rate. It is now the
 exploitability. Read ADR-003 for the decision. Read `docs/POKER-TO-POKEMON.md` for the theory.
 
 The reason is a measurement from other persons. VGC-Bench is the only published work in this format.
@@ -217,10 +217,10 @@ describe what ran; use `source_digests` instead. `source_digests` holds hashes o
 and `git.blobs` holds git object names. Do not compare the two. On Windows they differ because git
 changes the line endings.
 
-**Do not quote an engine-speed figure from a document (added 3.62.1).**
+**Do not quote an engine-speed figure from a document (added 3.62.2).**
 There is no script in this repository that measures the speed of the two engines. Three figures are on
 record for MEDICHAM — 3,401 battles/sec in ADR-001, 1,606 battles/sec in ROADMAP #61 and 13,041
-turns/sec in the 3.62.1 correction. No artifact holds any of them. No test compares them. No ratchet
+turns/sec in the 3.62.2 correction. No artifact holds any of them. No test compares them. No ratchet
 fails when one of them moves. If you need a speed figure, measure it, record the method beside it, and
 state the unit: `turns/sec` compares the two engines and `battles/sec` does not, because the two
 engines end a battle under different rules.
@@ -467,7 +467,7 @@ separate tests workflow runs the test suite and the damage validation on every p
 
 ## 4. Explanation
 
-### 4.-2 Why the exploitability is the headline metric (added 3.62.1)
+### 4.-2 Why the exploitability is the headline metric (added 3.62.2)
 
 **This section explains a decision. It does not give instructions.** For the decision itself, read
 ADR-003.

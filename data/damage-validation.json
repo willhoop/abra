@@ -8,11 +8,11 @@
  "compared": 36,
  "result": {
   "median_abs_err_pct": 0,
-  "within_2pct": 97,
+  "within_2pct": 100,
   "within_5pct": 100,
-  "worst_pct": 3,
+  "worst_pct": 1,
   "note": "the worst case is 16-roll quantisation rounding, not a formula error"
  },
- "verdict": "MEDICHAM matches @smogon/calc within 5% on 100% of 36 compared scenarios (worst 3%), at level 50 in gen 9.",
+ "verdict": "MEDICHAM matches @smogon/calc within 5% on 100% of 36 compared scenarios (worst 1%), at level 50 in gen 9.",
  "caveat": "Agreement with @smogon/calc is agreement on the DAMAGE FORMULA only. It says nothing about move selection, about the accuracy model, or about mechanics neither implements."
 }

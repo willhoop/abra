@@ -10,6 +10,67 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.62.2] — 2026-08-07
+
+### Fixed
+- **WIRE 6 — TWO OF THE ENGINE'S 27 ACTION KINDS ANNOUNCED NOTHING.** Everything above the kind
+  dispatch — Taunt (WIRE 119), Throat Chop (WIRE 77), the priority bracket, and the `|move|` line
+  itself — asked `actionMoveId(a)`, which read `a.mv` and fell back to **three hand-written rows**. Two
+  kinds were not in them:
+
+  | kind | moves | corpus uses | announced |
+  |---|---:|---:|---|
+  | `trickroom` | 1 | 8,077 | **nothing** |
+  | `pass` | **46** — Quick Guard 803, Ally Switch 190, Instruct 173, Heal Pulse 126 | 2,145 | **nothing** |
+  | the other 25 | 454 | — | correctly |
+
+  `playerAction` now stamps `mv` on every action it builds. A bare `{kind:'pass'}` built by a *caller*
+  still carries no `mv` and still announces nothing, which is correct.
+- **It moved three other rules, measured against a frozen release rather than argued.** Quick Guard
+  **+3**, Ally Switch **+2**, Counter **−5** and Mirror Coat **−5** were all resolving at bracket **0**.
+  Taunt and Throat Chop now refuse them too.
+
+### Changed
+- Census **249/250 → 251/252 live**. Red demonstrations **139 → 142**, 0 failed.
+- **Coverage +20 — distinct moves connected 177 → 197**, the largest gain of the series (WIRE 3 +5,
+  WIRE 4 −1). Species 258 → 260, abilities 161 → 162. `not_exercised` stays 5 but its membership
+  swapped: `move:reversesSpeed` left, `move:inflictsToxic` arrived.
+- Controlled pair, the instrument's own verdict: **COMPARABLE** — before `45485dee6a43`, after
+  `3fd06d865427`, both steering `c6be796631be`, 346 games each. `event missing` 133/107 → **120/113**,
+  of which the `|move|`-head sub-family **56 → 0**; **turn order 9 → 0**; diverged **343 → 341**.
+
+### Notes
+- **THE ROOT EXPLAINS 27 OF 133 AND THE REPORT SAYS SO.** Of the family, 56 games first part on a
+  missing `|move|` line; **27** of those resolve to a silent kind (Trick Room 20, Heal Pulse 3, Quick
+  Guard 2, Wish 1, Role Play 1). The other 29 resolve to a LOUD kind and are lost for a different
+  reason; 77 are some other event entirely. Post-wire the whole `|move|`-head sub-family reads 0, which
+  is *more* than 27 — the surplus is the priority correction. **27 is claimed, 56 is observed.** A
+  partial root honestly bounded is worth more than a claimed total.
+- **A CLASS COUNT IS A FIRST-DIVERGENCE COUNT, NOT A BUG COUNT.** The class fell 13 while its causes
+  rose 6: emitting an owed line pushes first divergence later, so games leave the class and other games
+  arrive in it.
+- **A FIFTH PROBE FOUND RESTING ON THE DEFECT IT WATCHED — and this one was WIRE 4's.**
+  `tests/test-tag-wire.js` asserted `rain Solar Beam ×0.545` against a 3% tolerance. Replayed on frozen
+  releases: pre-WIRE-4 `cf6a68fa412c` gives 22 → **11**, exactly ×0.500 — **the probe passed because of
+  the float truncation**. Post-fix `45485dee6a43` gives 22 → 12, because Showdown's `floor(…) + 2` means
+  halving base power cannot halve damage when the top roll is 22. The arm now aims at a body where one
+  point is not 4.5%; the tolerance is unchanged, and stripping `weatherScaled` still reads ×1.000 and
+  fails.
+- **`tests/run-all.js` REPORTS FAILURES ITS OWN TESTS DO NOT REPRODUCE** — a different set each run, on
+  tests that play real games (`test-wiring` read *mega 0.00/game* under the runner and normal standalone).
+  Every failure this session was re-run standalone before being believed or dismissed. Filed; it means
+  the suite's verdict is not currently trustworthy on its own.
+- **The published artifact is a SINGLE arm and carries `steering` but no `baseline_comparability`** —
+  the comparable pair lives in the session scratchpad. That is the "the number lives where nobody will
+  look" problem in miniature, and it is superseded by the release-ladder replay: every frozen release
+  from WIRE 1 to WIRE 6, one pinned census, one pinned team pool, each against the next.
+- Four filed: `{kind:'struggle'}` is returned by `chooseAction` and dispatched by nothing; `classify`
+  files an ordering fault as a missing event (~29 games — the largest remaining share of that class, and
+  an instrument bug rather than an engine one); `movePriority` reads 0 for Metal Burst and Comeuppance
+  where both are −4; and the runner's non-reproducible failures.
+
+---
+
 ## [3.62.1] — 2026-08-07
 
 ### Fixed

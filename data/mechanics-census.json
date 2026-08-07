@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-07T06:57:42.036Z",
+  "generated": "2026-08-07T08:12:34.767Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 250,
-  "live": 249,
+  "probed": 252,
+  "live": 251,
   "missing": 1,
-  "armed": 250,
+  "armed": 252,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2136,7 +2136,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 26.3% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 26.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2507,6 +2507,26 @@
       "label": "Supreme Overlord reads the dead at the moment its body walks in",
       "live": true,
       "detail": "Iron Head from a Kingambit that switched in -- no ability with 3 fallen 97; Supreme Overlord with 0 fallen 97; Supreme Overlord with 3 fallen 126 (the tag says +10% each, so x1.3)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "reversesSpeed",
+      "label": "Trick Room ANNOUNCES itself, and a passed turn announces nothing",
+      "live": true,
+      "detail": "the same Incineroar on the same board, clicking Trick Room emitted 1 move line(s) [|move|p1a: incineroar|trickroom|p1a: incineroar]; passing emitted 0 [none]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statusCategory",
+      "label": "every action kind the engine can resolve announces its |move| line",
+      "live": true,
+      "detail": "27/27 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
       "hollow": false,
       "armed": true,
       "directCall": false

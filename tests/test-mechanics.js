@@ -172,7 +172,14 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * reads what the VALUATION path prices the click at. Spending a turn would be the wrong instrument:
  * the whole finding of WIRE 131 is that the resolution path was already right and the valuation path
  * was blind, so a probe that reads damage on the board cannot see it. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(/;
+/* `moveLines(` added 2026-08-07 with ROADMAP #81 WIRE 6, declared HERE and with its reason, exactly
+ * as the paragraph above requires -- the ratchet caught both new probes as direct calls on their
+ * first run, which is the guard working. It stages a real doubles board through `battleInit`, spends
+ * a real turn through `battleTurn` and returns the `|move|` lines the acting body EMITTED. It reads
+ * the protocol stream rather than HP, and that is the point of the wire it belongs to: the mechanic
+ * underneath (Trick Room inverting the turn) was already green on a state-reading probe while the
+ * engine announced nothing at all, so a probe that reads state structurally cannot see this. */
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -6319,6 +6326,78 @@ probe('ability', 'boostsFromFallen', 'Supreme Overlord reads the dead at the mom
            detail: `Iron Head from a Kingambit that switched in -- no ability with 3 fallen ${none3}; `
                  + `Supreme Overlord with 0 fallen ${zero}; Supreme Overlord with 3 fallen ${three} `
                  + `(the tag says +10% each, so x1.3)` };
+});
+
+/* ================= ROADMAP #81 WIRE 6 — DOES THE ENGINE ANNOUNCE THE ACTION IT TOOK ===============
+ *
+ * The whole-game differential's largest family (124 games / 106 causes, class `event missing from
+ * medicham2`) has `|move|p2b: X|Trick Room` as its most-used cause. The mechanic underneath it is
+ * ALREADY LIVE — `reversesSpeed` has a probe and it is green, Trick Room really does invert the turn.
+ * What is missing is the ANNOUNCEMENT: the engine did the thing and never said so, and there was no
+ * probe in this file that could tell those two apart, because every probe here reads state.
+ *
+ * A STREAM PROBE IS THE RIGHT INSTRUMENT AND IT NEEDS ITS CONTROL CLEARED LIKE ANY OTHER. The control
+ * is NOT "an attack announces" — that would test whether `|move|` exists at all, which it plainly
+ * does. It is the SAME body on the SAME board taking NO action, which must announce nothing. A body
+ * that emits a move line when it passed would be an engine narrating moves it did not make, and that
+ * failure is exactly as bad as the silent one. */
+const moveLines = (mv) => {
+  const me = bare('incineroar'), ally = bare('corviknight');
+  const f1 = bare('garchomp'), f2 = bare('milotic');
+  const S = M.battleInit([me, ally, bare('clefable')], [f1, f2], { seeded: true });
+  const trace = []; S._trace = trace;
+  unfaintable(f1); unfaintable(me);
+  M.battleTurn(S, rng5,
+    new Map([[me, mv ? M.playerAction(me, mv, f1, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return trace.filter(l => l.startsWith('|move|p1a:'));
+};
+
+probe('move', 'reversesSpeed', 'Trick Room ANNOUNCES itself, and a passed turn announces nothing', () => {
+  const test = moveLines('trickroom'), control = moveLines(null);
+  return { works: test.length === 1 && test[0].split('|')[3] === 'trickroom' && control.length === 0,
+           arms: { control: control.length, test: test.length },
+           detail: `the same Incineroar on the same board, clicking Trick Room emitted `
+                 + `${test.length} move line(s) [${test[0] || 'NONE'}]; passing emitted `
+                 + `${control.length} [${control[0] || 'none'}]` };
+});
+
+/* AND THE ROOT, RATHER THAN THE ONE MOVE THE DIFFERENTIAL HAPPENED TO NAME.
+ *
+ * `playerAction` resolves a click to one of 27 action KINDS and the announcement was gated on
+ * `actionMoveId`, which read a hand-written three-row map for the kinds that carried no id. Fixing
+ * Trick Room would have left `pass` (46 moves, 803 of them Quick Guard) silent and would have left the
+ * NEXT bare kind anybody adds silent too. So the probe sweeps every kind the engine can resolve, and
+ * the representative move for each is DERIVED from playerAction rather than typed here — a kind added
+ * tomorrow is swept without editing this file, which is the property the three-row map did not have.
+ *
+ * MEASURED RED BEFORE THE FIX: 25 of 27 kinds announced, `trickroom` and `pass` did not. */
+probe('move', 'statusCategory', 'every action kind the engine can resolve announces its |move| line', () => {
+  const reps = new Map(), threwHere = [];
+  const me0 = bare('incineroar'), tgt0 = bare('garchomp');
+  for (const id of Object.keys(MC.moves).sort()) {
+    /* A THROW IS COUNTED AND NAMED, NEVER SKIPPED. `catch { continue }` would drop a kind out of the
+     * sweep and the probe would then report full coverage of a smaller set — the silent default this
+     * file exists to refuse, and tests/test-no-silent-failure.js caught the first version doing it. */
+    let a;
+    try { a = M.playerAction(me0, id, tgt0, fresh()); }
+    catch (e) { threwHere.push(id + ': ' + e.message.slice(0, 40)); continue; }
+    if (a && a.kind && !reps.has(a.kind)) reps.set(a.kind, id);
+  }
+  const silent = [];
+  let announced = 0;
+  for (const [kind, id] of reps) {
+    const ls = moveLines(id);
+    if (ls.length === 1 && ls[0].split('|')[3] === id) announced++; else silent.push(kind + ':' + id);
+  }
+  /* the control is the same sweep with the click withheld: no kind may announce */
+  const narrated = moveLines(null).length;
+  return { works: reps.size > 20 && silent.length === 0 && narrated === 0 && threwHere.length === 0,
+           arms: { control: narrated, test: announced },
+           detail: `${announced}/${reps.size} action kinds emitted exactly one |move| line naming the `
+                 + `move clicked; ${threwHere.length} click(s) threw and were NOT swept `
+                 + `[${threwHere.join('; ') || 'none'}]; silent: [${silent.join(', ') || 'none'}]; a passed turn narrated `
+                 + `${narrated}` };
 });
 
 const works = results.filter(r => r.works);
