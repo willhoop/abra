@@ -85,10 +85,18 @@ function metaPathFor(rel) {
 /* Content, not mtime. A checkout moves an mtime without moving code — `data/engine-data.js` was newer
  * than the merge script that was supposed to have written it and had still lost every one of its 67
  * writes. */
+/* THE ONE KEY IN THIS MAP THAT IS NOT A PATH. Every other entry is `source path -> digest`, and
+ * `engine/provenance.js` verifies each one by re-digesting the file it names. `note` is documentation
+ * sitting in the same object, so a reader that treats every key as a path tries to digest a sentence,
+ * fails, and marks the artifact UNVERIFIABLE — which is exactly what happened to the first artifact to
+ * follow provenance's own printed advice to call this function (data/wire-ladder.json, 2026-08-07).
+ * The name is EXPORTED rather than spelled twice: "which key is documentation" is a FACT, and a fact
+ * with two implementations is one that eventually disagrees with itself. */
+const STAMP_NOTE_KEY = 'note';
 function sourceDigests(sources) {
   const out = {};
   for (const s of (sources || LEAF_SOURCES)) out[s] = sha12(s);
-  out.note = 'Content, not mtime. A checkout moves an mtime without moving code.';
+  out[STAMP_NOTE_KEY] = 'Content, not mtime. A checkout moves an mtime without moving code.';
   return out;
 }
 
@@ -276,7 +284,8 @@ function reconstruct(artifactRel) {
   return { path: META, stamp };
 }
 
-module.exports = { writeStamp, reconstruct, metaPathFor, sourceDigests, sha12, LEAF_SOURCES };
+module.exports = { writeStamp, reconstruct, metaPathFor, sourceDigests, sha12, LEAF_SOURCES,
+                   STAMP_NOTE_KEY };
 
 if (require.main === module) {
   const argv = process.argv.slice(2);

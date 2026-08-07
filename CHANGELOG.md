@@ -10,6 +10,83 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.63.0] — 2026-08-07
+
+### Added
+- **THE RELEASE LADDER — `engine/wire_ladder.js` → `data/wire-ladder.json`.** Every frozen release of
+  the 2026-08-06/07 wire night, replayed through `engine/game_differential.js` under **one** pinned
+  census and **one** team pool, so all nine arms are mutually comparable rather than only adjacent.
+  This replaces the pairwise before/afters retracted in 3.62.1, and it replaces WIRE 6's own artifact,
+  which pinned its census to a path inside an agent scratchpad and stopped being checkable when that
+  session ended. The pin is now `data/wire-ladder-census.pin.json`, checked in beside the result.
+- **1,995 games per arm, ten arms, identical sample by construction** — the release manifests show
+  exactly one file moving anywhere in the ladder (`engine/medicham2-browser.js`), so every arm builds
+  the same teams. `arms_comparable.compare()` cleared all nine arms against the baseline; the eleven
+  watched inputs were byte-identical before and after; the planted-divergence proof and all seven
+  equivalence rules passed on every arm.
+- **Three cuts that were never published as wires are rungs of their own, each with its reason stated
+  in the generator** — mega resolution order, the Knock Off base-power truncation, and the fixed-point
+  half of WIRE 4. Folding them into the named wire that follows is the same misattribution WIRE 5 was
+  written to stop.
+
+### Changed
+- **THE HEADLINE IS A NEGATIVE. The median game still parts after ONE completed turn, at every rung.**
+  Six wires did not move it. Whole-game agreement went **2 → 22 of 1,995**; 98.9% of games still
+  diverge. What moves is the DEPTH of the first divergence — median line 13 → 14, **mean 15.01 →
+  23.97**, p90 30 → 57. Paired over the same games, the top rung parts later on **742**, earlier on
+  **141**, and at the same line on **1,112**. More than half the sample is untouched by the whole night.
+- **Per rung, net games parting later (paired against the rung before it):** mega order +73, Knock Off
+  truncation **0**, WIRE 1 +65, WIRE 2 +156, WIRE 3 +99, WIRE 4 fixed-point +16, WIRE 4 recoil/drain
+  +48, WIRE 6 **+287**. Class effects: `-miss field 3` **18 → 1** (WIRE 1), `unrelated event mismatch`
+  **700 → 562** (WIRE 2), `-damage field 3` **216 → 141** across WIRE 4's two halves, `turn order`
+  **85 → 3** (WIRE 6), `ordering` **247 → 170** (mega order).
+- **AN UNPUBLISHED INTERMEDIATE OUTRANKS A NAMED WIRE.** The mega-resolution-order cut
+  (`28e66a7c9ab8`, 02:36) is worth more than WIRE 1 on every measure here — net **+73** against **+65**,
+  `ordering` **247 → 170** against `-miss field 3` **18 → 1**. It sits between the baseline release and
+  WIRE 1, so a pairwise baseline→WIRE-1 comparison credits WIRE 1 with all of it and reports WIRE 1 as
+  more than twice its true size. The largest rung of the night is WIRE 6 (+287); the finding here is
+  the misattribution, not a new champion.
+- **An unambiguously correct arithmetic fix was worth zero at the whole-game level.** The Knock Off
+  base-power truncation moved the divergence position in **0 of 1,995 games** and reclassified four.
+  It is right, it is not measurable by this instrument, and those are different statements.
+- **Coverage, controlled: distinct moves connected 224 → 261 (+37)**, against the **173 → 197** the
+  wires' own uncontrolled ~346-game reports claimed. Absolute levels are not comparable across a
+  different census; the controlled delta is **larger** than the claimed one — WIRE 4's pattern again.
+- **A class count can fall because a game parts EARLIER on something else.** `-damage field 3` rises
+  170 → 216 over WIREs 1-3 before falling to 141: the earlier wires push games deeper and expose damage
+  divergences that had been masked. A per-class delta is only readable beside the depth column, and
+  `event missing from medicham2` growing 604 → 627 is not a regression.
+- **141 games part EARLIER than the baseline after six correct fixes** (7.1%), most of it appearing at
+  the mega and WIRE 1 rungs. Changing a trajectory surfaces a different pre-existing bug sooner. This
+  is why "net later" is reported and never "later".
+
+### Fixed
+- **`provenance.js` penalised the workflow it recommends.** It tells every generator to stamp
+  `run_stamp.sourceDigests()` as `source_digests`, then iterates **every** key of that map as a path to
+  re-hash — including the prose `note` key that same function writes. The first artifact to take the
+  advice (`data/wire-ladder.json`) was marked *unverifiable* for having taken it. `run_stamp.js` now
+  exports `STAMP_NOTE_KEY` and `provenance.js` imports it and skips exactly that key, so one place
+  knows which key is prose. Artifacts verified by CONTENT digest **5 → 6**; the mtime-only ratchet
+  falls 92 → 91. `docs/MEASURE.md` §19's note recording the per-generator workaround is superseded in
+  place rather than deleted.
+
+### Notes
+- **`tests/test-mechanics.js` was not run at any point in this pass**, because running it regenerates
+  `data/mechanics-census.json` — the steering input the ladder pins. `tests/run-all.js` runs it, so
+  run-all was not used either; the five gates that read `provenance.js` or `run_stamp.js`
+  (`test-json-nan-guard`, `test-timestamps`, `test-site-data-fresh`, `test-engine-release`,
+  `test-quality`) plus `test-docs-current` were run standalone and pass.
+- **Carried forward to ENGINE, not fixed here:** every arm reports `trace_body_off_field` 54-69 — a
+  `??` identifier reaching the medicham2 stream, which `tests/test-protocol-trace.js` PART 6 says must
+  read **0**. It is present in all nine releases, so the night did not introduce it.
+- **What remains at the top rung**, in cause order: `[from] hospitality` heals medicham2 emits and
+  Showdown does not (127 games, the single largest cause), Illusion (`zoroarkhisui` on every
+  `switch: a different body`), `-prepare` for two-turn moves, `-activate|feint`, `-end|throatchop`.
+  Full list in `data/wire-ladder.json` → `what_remains_at_the_top_rung`.
+- **Still outside any check:** an uncommitted edit inside `SHOWDOWN_PATH`. The other two blind spots
+  `arms_comparable.js` declares — the driver itself and `data/protocol-events.json` — are now digested
+  before and after every arm and recorded in the artifact.
+
 ## [3.62.2] — 2026-08-07
 
 ### Fixed

@@ -1,6 +1,6 @@
 # Glossary — the field's vocabulary, and which of it we may honestly claim
 
-**Version 3.62.2 · Last updated 2026-08-07**
+**Version 3.63.0 · Last updated 2026-08-07**
 
 Will, 2026-08-06: *"INCORPORATE THIS FANCY TERMINOLOGY IN OUR DOCUMENTS SO WE KNOW TO USE IT IN OUR
 PAPER."*
@@ -165,6 +165,20 @@ failed.
 
 **Ratchet** — a monotone bound: a count that may shrink and may never grow. Not standard literature
 vocabulary; ours, and worth defining explicitly in the paper because it is load-bearing.
+
+**Steering input** — a file that decides WHICH tests get run, as opposed to what they check. Ours is
+`data/mechanics-census.json`: the differential's driver prefers the action reaching the least-exercised
+census row, so regenerating the census changes the sample. A steering input is inside the photograph
+even though no measuring code ever opens it, which is why `engine/steering.js` declares and digests it
+and `engine/arms_comparable.js` refuses a pair whose steering differs. Ours; the general form of the
+idea is *coverage-guided generation*, but the failure mode — an uncontrolled sample from a file nobody
+listed — is what earned it a name here.
+
+**Release ladder** — running one instrument over EVERY frozen release of a change series under a single
+pinned input, so that all arms are mutually comparable rather than only adjacent. `engine/wire_ladder.js`.
+It buys two things a chain of pairwise before/afters cannot: an effect landing between two named changes
+is attributed to itself rather than to whichever change came next, and the whole series is read against
+one baseline instead of against a moving one.
 
 ---
 

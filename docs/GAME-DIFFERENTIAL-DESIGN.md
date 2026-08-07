@@ -1,6 +1,24 @@
 # The whole-game differential — design, and the research it is taken from
 
-**Version 3.62.2 · Last updated 2026-08-07**
+**Version 3.63.0 · Last updated 2026-08-07**
+
+**THE INSTRUMENT HAS BEEN TURNED ON ITS OWN HISTORY (3.63.0).** `engine/wire_ladder.js` replays every
+frozen release of the 2026-08-06/07 wire night through this driver under **one** pinned census and
+**one** team pool, so all nine arms are mutually comparable rather than only adjacent —
+`data/wire-ladder.json`. Three results bear directly on this design:
+
+- **§5.3's median is the number that decides whether this approach terminates, and it did not move.**
+  1,995 games per arm, six wires, and the median game still parts after **one completed turn** at every
+  rung. Whole-game agreement went 2 → 22 of 1,995. The turn count is too coarse to grade a rung at all;
+  the useful unit is the PROTOCOL LINE, where the mean goes 15.01 → 23.97 and p90 goes 30 → 57.
+- **A per-class delta is not readable on its own.** `-damage field 3` RISES 170 → 216 across WIREs 1-3
+  and then falls to 141: earlier wires push games deeper and expose divergences that were masked by an
+  earlier stop. Fixing a bug can therefore make a class count go UP, and 141 of 1,995 games part
+  EARLIER than the baseline after six correct fixes. §5's "a class is a wire, an instance is not" holds;
+  "a smaller class count is progress" does not.
+- **The determinism claim is now demonstrated over ten runs, not asserted.** The pre-WIRE-1 baseline ran
+  first and last with eight arms between and reproduced byte for byte, including the per-game divergence
+  depth, and the whole ladder was run three times end to end.
 
 **THE DIFFERENTIAL HAS RUN, AND MEGAS ARE IN IT (3.62.2).** `engine/game_differential.js` plays a real
 stored team through MEDICHAM and through the official Showdown engine, step for step, against a stamped

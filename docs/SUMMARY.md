@@ -1,6 +1,16 @@
 # ABRA — Project Summary
 
-**Version 3.62.2 · 2026-08-07 · Will Hooper**
+**Version 3.63.0 · 2026-08-07 · Will Hooper**
+
+**THE RELEASE LADDER — SIX FIXES DID NOT MOVE THE MEDIAN (3.63.0).** `engine/wire_ladder.js` plays
+every frozen release of the 2026-08-06/07 wire night through the differential. It uses one pinned
+census and one team pool, so all nine arms compare with each other and not only with their neighbour.
+**Read every figure from `data/wire-ladder.json`.** On 1,995 games for each arm, the median game stops
+after **one completed turn at every rung**. The number does not change. 22 games of 1,995 agree
+completely, against 2 games at the baseline. The depth of the first disagreement does change: the mean
+goes from 15.0 to 24.0 protocol lines and the 90th percentile from 30 to 57. The baseline arm ran first
+and last, with eight arms between them, and gave the same result. Therefore the table shows the engine
+change and not the run.
 
 **THE DIFFERENTIAL HAS RUN, AND MEGAS ARE IN IT (3.62.2).** `engine/game_differential.js` plays a real
 stored team through MEDICHAM and through the official Showdown engine, step for step, against a stamped

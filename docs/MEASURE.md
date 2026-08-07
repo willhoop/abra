@@ -19,7 +19,7 @@ MEASURE — can we believe a number
     powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835
     PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/abra-tags.js
     (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
-  provenance: 9 unsafe, 1 void (declared), 46 possibly stale, 54 ok, 0 missing
+  provenance: 9 unsafe, 1 void (declared), 45 possibly stale, 56 ok, 0 missing
   click censoring: 1,475 of 270,022 recorded actions were NOT clicks (0.546%) and left the labeled set; 3,559 (1.318%) are kept under a candidate set
     classifier vs the raw protocol on 6,988 games (69.8% of the corpus): encore recall 99.7% precision 96.2%, drag recall 96.7% precision 96.7%
     EM recovers 91.4% of a planted censoring bias of 0.958 against a 0.328 noise floor (amplified regime)
@@ -35,7 +35,7 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-08-06 19:19
 ```
 
-_stamped 2026-08-07 08:11_
+_stamped 2026-08-07 09:11_
 
 <!-- /GENERATED -->
 
@@ -2362,10 +2362,115 @@ key to the map it returns, and `provenance.js` iterates every key of `source_dig
 re-hash. Left in, it prints *"stamped input note cannot be read to verify"* on every run. The
 generator deletes it and carries the prose in `source_digests_note` instead.
 
+> **FIXED IN THE READER, 2026-08-07 (§20).** Working around it in each generator is a fix that has to
+> be remembered once per generator, and the next one to follow `provenance.js`'s own printed advice
+> pays the same tax — `data/wire-ladder.json` did, on its first run. `run_stamp.js` now EXPORTS
+> `STAMP_NOTE_KEY` and `provenance.js` imports it and skips exactly that key. One place knows which
+> key is prose, which is the FACTS-ARE-GLOBAL rule applied to a two-line string. Same shape as the
+> frozen-release false positive already handled twenty lines below it in that loop: a checker that
+> penalises the workflow it recommends gets ignored.
+
 **Living-docs obligations this pass did NOT discharge**, because the dispatch scoped the write to two
 files and forbade `status.js --write`: the CHANGELOG entry and version bump, and whether `SUMMARY.md`
 or the white paper should carry the §1.3 correction. `docs/ROADMAP.md` §1.3 itself is unedited — the
 rewrite is specified in 19f and is the router's call to place.
+
+### 20. THE RELEASE LADDER — what one night of WIRE fixes bought, controlled. MEASURED 2026-08-07.
+
+`engine/wire_ladder.js` → `data/wire-ladder.json`. Nine frozen releases plus a repeat of the baseline,
+**1,995 games each**, one pinned census (`data/wire-ladder-census.pin.json`, `f63179105d3c`) and one
+team pool (`3d0112fce455`). `arms_comparable.compare()` cleared **all nine** arms against the
+baseline; the eleven watched inputs were byte-identical before and after; the planted-divergence proof
+and all seven equivalence rules passed on every arm. This replaces the pairwise before/afters
+retracted in CHANGELOG 3.62.1, and it replaces WIRE 6's own artifact, which pinned its census to a
+path inside an agent scratchpad.
+
+**The instrument is deterministic and that is now demonstrated, not assumed.** The pre-WIRE-1 baseline
+ran first and last with eight arms between: every measured field identical and the per-game divergence
+depth identical game for game. The whole ladder was then run three times end to end and reproduced.
+So every difference in the table is the engine change.
+
+**The headline is a negative and it should be read first. The median game still parts after ONE
+completed turn, at every rung.** Six wires did not move it. Whole-game agreement went **2 → 22 games
+of 1,995** — 98.9% of games still diverge. The divergence rate is saturated and says almost nothing;
+what moves is the DEPTH, and the useful unit there is the protocol line, not the turn:
+
+| | baseline | after six wires |
+|---|---|---|
+| median first-divergence line | 13 | **14** |
+| mean | 15.01 | **23.97** |
+| p90 | 30 | **57** |
+| games that never diverge | 2 | **22** |
+| median completed turns | **1** | **1** |
+
+Paired over the same 1,995 games, the top rung parts **later on 742, earlier on 141, at the same line
+on 1,112**. More than half the sample is untouched by the entire night, and the median delta is zero.
+
+**Per rung, the one number each is worth** (paired against the rung before it; "net" is games parting
+later minus games parting earlier):
+
+| rung | net later | its own class |
+|---|---|---|
+| mega resolution order (unpublished intermediate) | +73 | `ordering` 247 → 170 |
+| Knock Off base-power truncation (intermediate) | **0** | 4 games reclassified, nothing else |
+| WIRE 1 Protect/crash | +65 | `-miss field 3` **18 → 1** |
+| WIRE 2 stall counter | +156 | `unrelated event mismatch` **700 → 562** |
+| WIRE 3 refused stat drops | +99 | `event missing` 673 → 636 |
+| WIRE 4 fixed-point damage | +16 | `-damage field 3` 216 → 179 |
+| WIRE 4 recoil/drain rounding | +48 | `-damage field 3` 179 → 141 |
+| WIRE 6 priority brackets | **+287** | `turn order` **85 → 3** |
+
+Three things in that table are worth more than the ladder itself:
+
+- **An unpublished intermediate outranks a named wire.** The mega-resolution-order cut
+  (`28e66a7c9ab8`, 02:36) is worth **more than WIRE 1 on every measure here** — net +73 against +65,
+  and `ordering` 247 → 170 (−77 games) against `-miss field 3` 18 → 1 (−17). It sits between the
+  baseline release and WIRE 1, so a pairwise baseline→WIRE-1 comparison credits WIRE 1 with all of it
+  and reports WIRE 1 as more than twice its true size. (The largest rung of the night is WIRE 6 at
+  +287; the point is the misattribution, not a new champion.)
+- **An unambiguously correct arithmetic fix can be worth zero at the whole-game level.** The Knock Off
+  base-power truncation moved the divergence position in **0 of 1,995 games** and reclassified four.
+  It is right, it is not measurable here, and those are different statements.
+- **A class count can fall because a game parts EARLIER on something else.** `-damage field 3` RISES
+  170 → 216 over WIREs 1-3 and then falls to 141 — the earlier wires push games deeper, which exposes
+  damage divergences that had been masked. So a per-class delta is only readable beside the depth
+  column, and `event missing from medicham2` (604 → 627) growing is not a regression.
+
+**141 games part EARLIER than the baseline after six correct fixes**, most of it appearing at the mega
+and WIRE 1 rungs. That is not a contradiction: changing a trajectory surfaces a different pre-existing
+bug sooner. It is 7.1% of the sample and it is the reason "net later" is reported rather than "later".
+
+**Coverage, controlled: distinct moves connected 224 → 261 (+37).** The wires' own reports claimed
+173 → 197 on ~346-game uncontrolled arms. The absolute levels are not comparable — a different census
+steers a different sample — but the controlled delta is **larger** than the claimed one, which is
+WIRE 4's pattern again: the findings were real and the numbers were wrong.
+
+**What remains at the top rung, in cause order**, because a ladder should end in something actionable:
+`[from] hospitality` heals medicham2 emits and Showdown does not (127 games across two classes, the
+single largest cause in the file), Illusion (`zoroarkhisui` on every `switch: a different body`),
+`-prepare` for two-turn moves, `-activate|feint`, and `-end|throatchop`. All of it is
+`data/wire-ladder.json` → `what_remains_at_the_top_rung`, and all of it is ENGINE's.
+
+**Carried forward, not fixed here:** every arm reports `trace_body_off_field` 54-69 — a `??`
+identifier reaching the medicham2 stream, which `tests/test-protocol-trace.js` PART 6 says must read
+**0**. It is present in all nine releases including WIRE 6, so it is not something the night
+introduced. ENGINE's.
+
+**What the ladder still cannot see**, restated rather than implied: an uncommitted edit inside
+`SHOWDOWN_PATH`. The other two blind spots `arms_comparable.js` declares — the driver itself and
+`data/protocol-events.json` — are digested before and after every arm and recorded in the artifact.
+
+## Running the release ladder
+
+```bash
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown node engine/wire_ladder.js --write
+```
+
+About 7 minutes, one process, ten arms. `--keep-arms <dir>` keeps each arm's full differential
+artifact; without it they go to a temp directory and the ladder file carries the numbers. It exits
+non-zero if any arm is refused as incomparable or if the two baseline runs disagree. **It does not run
+`tests/test-mechanics.js` and neither should anything measuring beside it** — that regenerates the
+census, which is the steering input the ladder pins.
 
 ## Running the backtest
 

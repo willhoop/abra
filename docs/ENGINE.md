@@ -27,10 +27,10 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  251/252 probed mechanics live, 1 missing   (census 2026-08-07 08:02)
+  251/252 probed mechanics live, 1 missing   (census 2026-08-07 08:12)
   missing:
     move    needsTargetToAttack    Avalanche doubles after the target hits it this turn
-  1/150 differential comparisons disagree with Showdown   (2026-08-07 08:02)
+  1/150 differential comparisons disagree with Showdown   (2026-08-07 08:12)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -46,10 +46,15 @@ ENGINE — does the simulator do what Pokémon does
     DISAGREES  stoneaxe -> gooey  (secondary, 63 uses)
     DISAGREES  gigaimpact -> spikyshield  (secondary, 38 uses)
     DISAGREES  supercellslam -> kingsshield  (secondary, 85 uses)
+  release ladder: 10 frozen releases x 1995 games, one pinned census   (2026-08-07 08:58)
+    median completed turns before divergence: 1 at the baseline, 1 at the top rung  <-- UNMOVED by the whole series
+    whole-game agreement 2/1995 -> 22/1995; first-divergence line, mean 15.01 -> 23.97
+    paired against the baseline: 742 games part later, 141 EARLIER, 1112 unchanged
+    the baseline ran first and last and reproduced exactly; comparability: every arm cleared
   tag coverage: 162/181 probed, 19 unprobed
 ```
 
-_stamped 2026-08-07 08:11_
+_stamped 2026-08-07 09:11_
 
 <!-- /GENERATED -->
 

@@ -2,7 +2,19 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.62.2 · Last updated 2026-08-07**
+**Version 3.63.0 · Last updated 2026-08-07**
+
+**THE RELEASE LADDER, AND THE HONEST ANSWER IS THAT SIX FIXES DID NOT MOVE THE MEDIAN (3.63.0).**
+`engine/wire_ladder.js` replays every frozen release of the 2026-08-06/07 wire night through the
+differential under one pinned census and one team pool, so all nine arms are mutually comparable rather
+than only adjacent — the defect that retracted the pairwise before/afters in 3.62.1.
+**Read every figure from `data/wire-ladder.json`.** On 1,995 games per arm the median game parts after
+**one completed turn at every rung, unchanged**, and 22 of 1,995 games agree completely against 2 at the
+baseline. What did move is the DEPTH of the first divergence — mean 15.0 → 24.0 protocol lines, p90
+30 → 57 — and per-rung effects that a pairwise comparison had misattributed: an intermediate cut that
+was never published as a wire outranks WIRE 1, whose pairwise before/after had absorbed it, and one
+unambiguously correct arithmetic fix moved **zero** of 1,995 games. The pre-WIRE-1 baseline was run first and last
+with eight arms between and reproduced exactly, so the ladder is the engine change and not the run.
 
 **THE DIFFERENTIAL HAS RUN, AND MEGAS ARE IN IT (3.62.2).** `engine/game_differential.js` plays a real
 stored team through MEDICHAM and through the official Showdown engine, step for step, against a stamped

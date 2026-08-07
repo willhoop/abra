@@ -300,6 +300,33 @@ function engine() {
     }
   } else say('  interaction matrix: NOT DERIVED (data/interaction-matrix.json absent — run tests/test-interaction-matrix.js --full)');
 
+  /* THE RELEASE LADDER — THE ONE NUMBER THAT SAYS WHETHER THIS APPROACH TERMINATES.
+   *
+   * The three instruments above all answer "is this mechanic right". None of them answers "is a whole
+   * game right", and none can say whether a night of fixes moved that. `data/wire-ladder.json` runs
+   * every frozen release under one pinned steering input, so its rungs are mutually comparable.
+   *
+   * THE MEDIAN COMPLETED TURN IS PRINTED FIRST AND THE DIVERGENCE RATE SECOND, deliberately. The rate
+   * is saturated at ~99% and grades nothing; a flat median after six correct wires is the important
+   * negative and it must not sit below a percentage that looks like it is improving. */
+  const wl = j('wire-ladder.json');
+  if (wl && wl.arms && wl.arms.length) {
+    const first = wl.arms[0], last = wl.arms[wl.arms.length - 2] || wl.arms[wl.arms.length - 1];
+    const mt = a => a.median_completed_turns_before_divergence;
+    say(`  release ladder: ${wl.arms.length} frozen releases x ${wl.games_per_arm} games, one pinned census`
+      + `   (${day(new Date(wl.generated))})`);
+    say(`    median completed turns before divergence: ${mt(first)} at the baseline, ${mt(last)} at the top rung`
+      + (mt(first) === mt(last) ? '  <-- UNMOVED by the whole series' : ''));
+    say(`    whole-game agreement ${first.agreed_completely}/${first.games} -> ${last.agreed_completely}/${last.games};`
+      + ` first-divergence line, mean ${first.first_divergence_line.mean} -> ${last.first_divergence_line.mean}`);
+    if (last.vs_baseline) say(`    paired against the baseline: ${last.vs_baseline.parted_later} games part later,`
+      + ` ${last.vs_baseline.parted_earlier} EARLIER, ${last.vs_baseline.parted_at_the_same_line} unchanged`);
+    say(`    ${wl.determinism.reproduces && wl.determinism.per_game_depth_identical
+      ? 'the baseline ran first and last and reproduced exactly'
+      : 'THE TWO BASELINE RUNS DISAGREE — the ladder is uninterpretable'}`
+      + `; comparability: ${wl.comparability.all_ok ? 'every arm cleared' : 'AN ARM WAS REFUSED'}`);
+  } else say('  release ladder: NOT DERIVED (data/wire-ladder.json absent — run engine/wire_ladder.js --write)');
+
   if (c && t) {
     const names = [...new Set(t.tags.map(x => x.tag || x.name || x.id))];
     const probed = new Set(c.results.map(r => r.tag));

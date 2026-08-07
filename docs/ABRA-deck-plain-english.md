@@ -1,8 +1,31 @@
 # ABRA — the plain-English deck
 
-**Version 3.62.2 · 2026-08-07 · Will Hooper**
+**Version 3.63.0 · 2026-08-07 · Will Hooper**
 
-**What changed (3.62.2): we built the thing that tells us whether our engine is right.**
+**What changed (3.63.0): we went back and checked what a night of engine fixes was actually worth,
+and the honest answer is less than it looked.**
+
+One night we found and fixed six things wrong with our engine, and each fix reported a before-and-after
+number. Then we discovered the before and the after had not been measured on the same set of games, so
+none of those numbers meant anything. We had kept a frozen copy of the engine at every step, so instead
+of guessing we replayed all nine of them on one fixed set of 1,995 games.
+
+The headline is a negative one and it is the important one. **The typical game still falls apart after
+a single turn, exactly as it did before any of the six fixes.** Games that match the official engine all
+the way through went from 2 to 22 out of 1,995. What did improve is how far into a game we get before
+the first disagreement — the average roughly doubled — but "further before it breaks" is not the same as
+"it works", and we should not let the second number stand in for the first.
+
+Two things the replay found that the original before-and-afters had got wrong. **A change nobody wrote
+up as a fix at all turned out to be worth more than one of the numbered fixes** — it happened to sit
+just before it, and the pairwise comparison had quietly credited it to its neighbour, which then looked
+twice as good as it was.
+And one fix that is definitely correct — an arithmetic rounding error, real and worth fixing — changed
+**none** of the 1,995 games. Being right and being measurable here are different things, and it is worth
+saying so out loud rather than rounding it up.
+
+We ran the starting point twice, first and last, with eight replays in between. It gave identical
+answers, so the differences above are the engine and not the measurement wobbling.
 
 It plays the same real game twice — once in our engine, once in Pokémon Showdown's own — and stops at
 the first place they disagree. On the first proper run, **159 of 160 games disagreed somewhere**, and

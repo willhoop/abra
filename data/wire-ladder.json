@@ -1,0 +1,1299 @@
+{
+  "generated": "2026-08-07T08:58:19.495Z",
+  "by": "engine/wire_ladder.js",
+  "what": "every frozen release of the 2026-08-06/07 wire night, run through engine/game_differential.js under ONE pinned census and ONE team pool, so all arms are mutually comparable rather than only adjacent. Replaces the retracted pairwise before/afters of CHANGELOG 3.62.1.",
+  "games_requested": 2700,
+  "games_per_arm": 1995,
+  "source_digests": {
+    "data/games.bo3.jsonl": "e26c4d4ca29b",
+    "data/games.ots.jsonl": "cd21077a4578",
+    "data/mechanics-census.json": "f63179105d3c",
+    "data/wire-ladder-census.pin.json": "f63179105d3c",
+    "data/protocol-events.json": "9c1dfeb7973c",
+    "data/tags.json": "94eaa5a4d8e0",
+    "data/engine-data.js": "96a94b7fadf7",
+    "engine/game_differential.js": "59df9b0b231f",
+    "engine/steering.js": "738bfb3e2d53",
+    "engine/diff_swarm.js": "dae9c1d7d942",
+    "engine/champions_sim.js": "fa5b8af6513a",
+    "note": "Content, not mtime. A checkout moves an mtime without moving code."
+  },
+  "sample_size_reason": "the largest sample the swarm sustains before the starved configurations (omit-protect: 84 teams available, omit-priority: 7) stop contributing marginal games, and small enough that all ten arms finish inside one photograph window. Identical for every arm by construction: only engine/medicham2-browser.js differs across the nine releases, so buildPair reaches the same teams in every arm.",
+  "steering": {
+    "policy": "census-coverage-seeking/v1",
+    "rule": "at every decision the driver prefers the legal action reaching the least-exercised row of data/mechanics-census.json, ties broken toward the least-clicked entity (game_differential.js covWant/creditClick). The census therefore SELECTS THE SAMPLE this run measures.",
+    "input": "data/mechanics-census.json",
+    "input_read_from": "data/wire-ladder-census.pin.json",
+    "input_digest": "f63179105d3c",
+    "input_rows": 252,
+    "input_generated": "2026-08-07T08:12:34.767Z",
+    "input_live_digest": "f63179105d3c",
+    "pinned": true,
+    "matches_live": true,
+    "selects_from": 207,
+    "unmeasurable": 45,
+    "team_pool_digest": "3d0112fce455",
+    "team_pool_teams": 7360,
+    "team_pool_picked": 3992
+  },
+  "steering_note": "PINNED to a durable file checked in beside this artifact. WIRE 6's published run pinned the census to a path inside an agent scratchpad, which stops being checkable the moment that session ends.",
+  "instrument": {
+    "note": "engine/arms_comparable.js names three inputs its own check cannot see. Two are files here and are digested before and after every arm; the third is stated and remains outside.",
+    "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+    "still_outside": "an uncommitted edit inside SHOWDOWN_PATH is invisible to `showdown_commit`.",
+    "inputs_before": {
+      "data/games.bo3.jsonl": {
+        "size": 81045357,
+        "sha12": "e26c4d4ca29b"
+      },
+      "data/games.ots.jsonl": {
+        "size": 31928037,
+        "sha12": "cd21077a4578"
+      },
+      "data/mechanics-census.json": {
+        "size": 91185,
+        "sha12": "f63179105d3c"
+      },
+      "data/wire-ladder-census.pin.json": {
+        "size": 91185,
+        "sha12": "f63179105d3c"
+      },
+      "data/protocol-events.json": {
+        "size": 33923,
+        "sha12": "9c1dfeb7973c"
+      },
+      "data/tags.json": {
+        "size": 476130,
+        "sha12": "94eaa5a4d8e0"
+      },
+      "data/engine-data.js": {
+        "size": 191302,
+        "sha12": "96a94b7fadf7"
+      },
+      "engine/game_differential.js": {
+        "size": 130510,
+        "sha12": "59df9b0b231f"
+      },
+      "engine/steering.js": {
+        "size": 9856,
+        "sha12": "738bfb3e2d53"
+      },
+      "engine/diff_swarm.js": {
+        "size": 21653,
+        "sha12": "dae9c1d7d942"
+      },
+      "engine/champions_sim.js": {
+        "size": 27084,
+        "sha12": "fa5b8af6513a"
+      }
+    },
+    "inputs_after": {
+      "data/games.bo3.jsonl": {
+        "size": 81045357,
+        "sha12": "e26c4d4ca29b"
+      },
+      "data/games.ots.jsonl": {
+        "size": 31928037,
+        "sha12": "cd21077a4578"
+      },
+      "data/mechanics-census.json": {
+        "size": 91185,
+        "sha12": "f63179105d3c"
+      },
+      "data/wire-ladder-census.pin.json": {
+        "size": 91185,
+        "sha12": "f63179105d3c"
+      },
+      "data/protocol-events.json": {
+        "size": 33923,
+        "sha12": "9c1dfeb7973c"
+      },
+      "data/tags.json": {
+        "size": 476130,
+        "sha12": "94eaa5a4d8e0"
+      },
+      "data/engine-data.js": {
+        "size": 191302,
+        "sha12": "96a94b7fadf7"
+      },
+      "engine/game_differential.js": {
+        "size": 130510,
+        "sha12": "59df9b0b231f"
+      },
+      "engine/steering.js": {
+        "size": 9856,
+        "sha12": "738bfb3e2d53"
+      },
+      "engine/diff_swarm.js": {
+        "size": 21653,
+        "sha12": "dae9c1d7d942"
+      },
+      "engine/champions_sim.js": {
+        "size": 27084,
+        "sha12": "fa5b8af6513a"
+      }
+    },
+    "inputs_that_moved": [],
+    "nothing_in_frame_moved": true
+  },
+  "determinism": {
+    "what": "the pre-WIRE-1 baseline was run FIRST and LAST with eight arms in between",
+    "reproduces": true,
+    "per_game_depth_identical": true,
+    "verdict": "the instrument is deterministic across the whole ladder, so every difference in the table below is the engine change and not the run"
+  },
+  "comparability": {
+    "all_ok": true,
+    "per_arm": [
+      {
+        "arm": "a02-mega-speed-order",
+        "release": "28e66a7c9ab8",
+        "ok": true,
+        "reasons": [],
+        "repeat_of_baseline": false
+      },
+      {
+        "arm": "a03-knockoff-bp-trunc",
+        "release": "0771dc47b5f6",
+        "ok": true,
+        "reasons": [],
+        "repeat_of_baseline": false
+      },
+      {
+        "arm": "a04-wire1",
+        "release": "41e28311e591",
+        "ok": true,
+        "reasons": [],
+        "repeat_of_baseline": false
+      },
+      {
+        "arm": "a05-wire2",
+        "release": "6b6f898f136f",
+        "ok": true,
+        "reasons": [],
+        "repeat_of_baseline": false
+      },
+      {
+        "arm": "a06-wire3",
+        "release": "128a1ca28d34",
+        "ok": true,
+        "reasons": [],
+        "repeat_of_baseline": false
+      },
+      {
+        "arm": "a07-wire4-fixedpoint-only",
+        "release": "1e29ff6c431b",
+        "ok": true,
+        "reasons": [],
+        "repeat_of_baseline": false
+      },
+      {
+        "arm": "a08-wire4",
+        "release": "45485dee6a43",
+        "ok": true,
+        "reasons": [],
+        "repeat_of_baseline": false
+      },
+      {
+        "arm": "a09-wire6",
+        "release": "3fd06d865427",
+        "ok": true,
+        "reasons": [],
+        "repeat_of_baseline": false
+      },
+      {
+        "arm": "a10-baseline-run2",
+        "release": "cf6a68fa412c",
+        "ok": true,
+        "reasons": [],
+        "repeat_of_baseline": true
+      }
+    ]
+  },
+  "arms": [
+    {
+      "arm": "a01-baseline-run1",
+      "label": "pre-WIRE-1 baseline",
+      "release": "cf6a68fa412c",
+      "release_cut": "2026-08-07T02:34:46.005Z",
+      "medicham2_sha12": "795be0c58cd7",
+      "change": "the engine as it stood before any of the night's wires",
+      "included_because": null,
+      "diverged": 1993,
+      "games": 1995,
+      "agreed_completely": 2,
+      "threw": 0,
+      "classes": 21,
+      "distinct_causes": 1150,
+      "damage_field_3_games": 170,
+      "damage_field_3_causes": 157,
+      "event_missing_from_medicham2_games": 604,
+      "event_missing_from_medicham2_causes": 385,
+      "turn_order_games": 70,
+      "distinct_moves_connected": 224,
+      "census_rows_exercised_by_a_connected_move": 110,
+      "median_completed_turns_before_divergence": 1,
+      "first_divergence_line": {
+        "median": 13,
+        "mean": 15.01,
+        "p75": 18,
+        "p90": 30,
+        "max": 121
+      },
+      "vs_baseline": null,
+      "vs_previous_rung": null,
+      "class_counts": {
+        "unrelated event mismatch": 649,
+        "ordering": 247,
+        "extra event emitted by medicham2": 164,
+        "event missing from medicham2": 604,
+        "-unboost: a different body": 6,
+        "-damage field 3": 170,
+        "cant: a different body": 2,
+        "-damage field 4": 4,
+        "switch: a different body": 23,
+        "turn order": 70,
+        "-start field 3": 3,
+        "-miss field 3": 15,
+        "-start: a different body": 10,
+        "-heal field 3": 8,
+        "-status field 4": 5,
+        "-activate field 4": 8,
+        "-status: a different body": 1,
+        "-boost: a different body": 1,
+        "drag: a different body": 1,
+        "-heal field 4": 1,
+        "move field 3": 1
+      },
+      "planted_divergence_proof_ok": true,
+      "normaliser_all_rules_proved": true,
+      "declared_gaps": {
+        "mega_stones_stripped": 0,
+        "mega_stones_kept": 5563,
+        "control_arm_stones_stripped": 5563,
+        "align_had_to_move_a_stat": 0,
+        "teams_unbuildable": 0,
+        "sets_unbuildable": 0,
+        "ban_fallbacks": 0,
+        "undeclared_event_drops": 0,
+        "trace_body_off_field": 56,
+        "trace_body_off_field_first": "basculegion",
+        "undeclared_events": [],
+        "gender_neutralised": true,
+        "tags_release_matches_live": true
+      },
+      "wall_s": 33.5
+    },
+    {
+      "arm": "a02-mega-speed-order",
+      "label": "INTERMEDIATE — mega resolution order",
+      "release": "28e66a7c9ab8",
+      "release_cut": "2026-08-07T02:36:06.359Z",
+      "medicham2_sha12": "fd067cc13070",
+      "change": "two megas in one turn resolve in SPEED order alone; megaEvo actions carry no priority, so a slow body clicking Protect (+4) had been megaing before a fast body clicking an attack",
+      "included_because": "a real engine change between the baseline cut and WIRE 1. Folding it into WIRE 1 would credit WIRE 1 with an ordering fix it did not make.",
+      "diverged": 1994,
+      "games": 1995,
+      "agreed_completely": 1,
+      "threw": 0,
+      "classes": 21,
+      "distinct_causes": 1100,
+      "damage_field_3_games": 176,
+      "damage_field_3_causes": 164,
+      "event_missing_from_medicham2_games": 624,
+      "event_missing_from_medicham2_causes": 389,
+      "turn_order_games": 76,
+      "distinct_moves_connected": 228,
+      "census_rows_exercised_by_a_connected_move": 110,
+      "median_completed_turns_before_divergence": 1,
+      "first_divergence_line": {
+        "median": 13,
+        "mean": 15.64,
+        "p75": 18,
+        "p90": 30,
+        "max": 121
+      },
+      "vs_baseline": {
+        "n": 1995,
+        "parted_later": 148,
+        "parted_earlier": 75,
+        "parted_at_the_same_line": 1772,
+        "net_later": 73,
+        "median_delta_lines": 0
+      },
+      "vs_previous_rung": {
+        "n": 1995,
+        "parted_later": 148,
+        "parted_earlier": 75,
+        "parted_at_the_same_line": 1772,
+        "net_later": 73,
+        "median_delta_lines": 0
+      },
+      "class_counts": {
+        "unrelated event mismatch": 679,
+        "ordering": 170,
+        "extra event emitted by medicham2": 176,
+        "event missing from medicham2": 624,
+        "-unboost: a different body": 5,
+        "-damage field 3": 176,
+        "cant: a different body": 2,
+        "-damage field 4": 5,
+        "switch: a different body": 24,
+        "turn order": 76,
+        "-start field 3": 4,
+        "-miss field 3": 18,
+        "-start: a different body": 9,
+        "-heal field 3": 8,
+        "-status field 4": 5,
+        "-activate field 4": 8,
+        "move field 3": 1,
+        "-status: a different body": 1,
+        "-boost: a different body": 1,
+        "drag: a different body": 1,
+        "-heal field 4": 1
+      },
+      "planted_divergence_proof_ok": true,
+      "normaliser_all_rules_proved": true,
+      "declared_gaps": {
+        "mega_stones_stripped": 0,
+        "mega_stones_kept": 5563,
+        "control_arm_stones_stripped": 5563,
+        "align_had_to_move_a_stat": 0,
+        "teams_unbuildable": 0,
+        "sets_unbuildable": 0,
+        "ban_fallbacks": 0,
+        "undeclared_event_drops": 0,
+        "trace_body_off_field": 55,
+        "trace_body_off_field_first": "basculegion",
+        "undeclared_events": [],
+        "gender_neutralised": true,
+        "tags_release_matches_live": true
+      },
+      "wall_s": 34.7
+    },
+    {
+      "arm": "a03-knockoff-bp-trunc",
+      "label": "INTERMEDIATE — Knock Off base power truncated",
+      "release": "0771dc47b5f6",
+      "release_cut": "2026-08-07T02:55:52.508Z",
+      "medicham2_sha12": "a61c28e1eec0",
+      "change": "targetHasItem x1.5 is chainModify and therefore FIXED POINT: 65 x 1.5 is 97, not 97.5",
+      "included_because": "a real engine change, and the ladder is the only place its whole-game effect can be seen at all — it is the smallest rung here and that is a result.",
+      "diverged": 1994,
+      "games": 1995,
+      "agreed_completely": 1,
+      "threw": 0,
+      "classes": 21,
+      "distinct_causes": 1098,
+      "damage_field_3_games": 176,
+      "damage_field_3_causes": 164,
+      "event_missing_from_medicham2_games": 620,
+      "event_missing_from_medicham2_causes": 386,
+      "turn_order_games": 76,
+      "distinct_moves_connected": 228,
+      "census_rows_exercised_by_a_connected_move": 110,
+      "median_completed_turns_before_divergence": 1,
+      "first_divergence_line": {
+        "median": 13,
+        "mean": 15.64,
+        "p75": 18,
+        "p90": 30,
+        "max": 121
+      },
+      "vs_baseline": {
+        "n": 1995,
+        "parted_later": 148,
+        "parted_earlier": 75,
+        "parted_at_the_same_line": 1772,
+        "net_later": 73,
+        "median_delta_lines": 0
+      },
+      "vs_previous_rung": {
+        "n": 1995,
+        "parted_later": 0,
+        "parted_earlier": 0,
+        "parted_at_the_same_line": 1995,
+        "net_later": 0,
+        "median_delta_lines": 0
+      },
+      "class_counts": {
+        "unrelated event mismatch": 679,
+        "ordering": 174,
+        "extra event emitted by medicham2": 176,
+        "event missing from medicham2": 620,
+        "-unboost: a different body": 5,
+        "-damage field 3": 176,
+        "cant: a different body": 2,
+        "-damage field 4": 5,
+        "switch: a different body": 24,
+        "turn order": 76,
+        "-start field 3": 4,
+        "-miss field 3": 18,
+        "-start: a different body": 9,
+        "-heal field 3": 8,
+        "-status field 4": 5,
+        "-activate field 4": 8,
+        "move field 3": 1,
+        "-status: a different body": 1,
+        "-boost: a different body": 1,
+        "drag: a different body": 1,
+        "-heal field 4": 1
+      },
+      "planted_divergence_proof_ok": true,
+      "normaliser_all_rules_proved": true,
+      "declared_gaps": {
+        "mega_stones_stripped": 0,
+        "mega_stones_kept": 5563,
+        "control_arm_stones_stripped": 5563,
+        "align_had_to_move_a_stat": 0,
+        "teams_unbuildable": 0,
+        "sets_unbuildable": 0,
+        "ban_fallbacks": 0,
+        "undeclared_event_drops": 0,
+        "trace_body_off_field": 55,
+        "trace_body_off_field_first": "basculegion",
+        "undeclared_events": [],
+        "gender_neutralised": true,
+        "tags_release_matches_live": true
+      },
+      "wall_s": 33.3
+    },
+    {
+      "arm": "a04-wire1",
+      "label": "WIRE 1",
+      "release": "41e28311e591",
+      "release_cut": "2026-08-07T03:56:37.305Z",
+      "medicham2_sha12": "26201c077125",
+      "change": "Protect is not an immunity: the shield preempts the accuracy roll, and a shielded High Jump Kick still pays its crash through onMoveFail",
+      "included_because": null,
+      "diverged": 1989,
+      "games": 1995,
+      "agreed_completely": 6,
+      "threw": 0,
+      "classes": 21,
+      "distinct_causes": 1093,
+      "damage_field_3_games": 186,
+      "damage_field_3_causes": 172,
+      "event_missing_from_medicham2_games": 621,
+      "event_missing_from_medicham2_causes": 387,
+      "turn_order_games": 78,
+      "distinct_moves_connected": 232,
+      "census_rows_exercised_by_a_connected_move": 110,
+      "median_completed_turns_before_divergence": 1,
+      "first_divergence_line": {
+        "median": 13,
+        "mean": 16.2,
+        "p75": 19,
+        "p90": 31,
+        "max": 139
+      },
+      "vs_baseline": {
+        "n": 1995,
+        "parted_later": 264,
+        "parted_earlier": 133,
+        "parted_at_the_same_line": 1598,
+        "net_later": 131,
+        "median_delta_lines": 0
+      },
+      "vs_previous_rung": {
+        "n": 1995,
+        "parted_later": 187,
+        "parted_earlier": 122,
+        "parted_at_the_same_line": 1686,
+        "net_later": 65,
+        "median_delta_lines": 0
+      },
+      "class_counts": {
+        "unrelated event mismatch": 700,
+        "ordering": 179,
+        "event missing from medicham2": 621,
+        "-unboost: a different body": 3,
+        "-damage field 3": 186,
+        "extra event emitted by medicham2": 156,
+        "cant: a different body": 2,
+        "switch: a different body": 22,
+        "turn order": 78,
+        "-start field 3": 4,
+        "-start: a different body": 9,
+        "-damage field 4": 1,
+        "-heal field 3": 7,
+        "-status field 4": 5,
+        "-activate field 4": 9,
+        "-status: a different body": 1,
+        "-heal field 4": 2,
+        "-miss field 3": 1,
+        "-boost: a different body": 1,
+        "drag: a different body": 1,
+        "-immune field 3": 1
+      },
+      "planted_divergence_proof_ok": true,
+      "normaliser_all_rules_proved": true,
+      "declared_gaps": {
+        "mega_stones_stripped": 0,
+        "mega_stones_kept": 5563,
+        "control_arm_stones_stripped": 5563,
+        "align_had_to_move_a_stat": 0,
+        "teams_unbuildable": 0,
+        "sets_unbuildable": 0,
+        "ban_fallbacks": 0,
+        "undeclared_event_drops": 0,
+        "trace_body_off_field": 55,
+        "trace_body_off_field_first": "basculegion",
+        "undeclared_events": [],
+        "gender_neutralised": true,
+        "tags_release_matches_live": true
+      },
+      "wall_s": 34
+    },
+    {
+      "arm": "a05-wire2",
+      "label": "WIRE 2",
+      "release": "6b6f898f136f",
+      "release_cut": "2026-08-07T04:34:51.959Z",
+      "medicham2_sha12": "42e988f68773",
+      "change": "the stall counter resets on failure; a shield moving last fails",
+      "included_because": null,
+      "diverged": 1981,
+      "games": 1995,
+      "agreed_completely": 14,
+      "threw": 0,
+      "classes": 23,
+      "distinct_causes": 1182,
+      "damage_field_3_games": 209,
+      "damage_field_3_causes": 190,
+      "event_missing_from_medicham2_games": 673,
+      "event_missing_from_medicham2_causes": 429,
+      "turn_order_games": 79,
+      "distinct_moves_connected": 236,
+      "census_rows_exercised_by_a_connected_move": 111,
+      "median_completed_turns_before_divergence": 1,
+      "first_divergence_line": {
+        "median": 13,
+        "mean": 21.24,
+        "p75": 20,
+        "p90": 46,
+        "max": 146
+      },
+      "vs_baseline": {
+        "n": 1995,
+        "parted_later": 407,
+        "parted_earlier": 148,
+        "parted_at_the_same_line": 1440,
+        "net_later": 259,
+        "median_delta_lines": 0
+      },
+      "vs_previous_rung": {
+        "n": 1995,
+        "parted_later": 288,
+        "parted_earlier": 132,
+        "parted_at_the_same_line": 1575,
+        "net_later": 156,
+        "median_delta_lines": 0
+      },
+      "class_counts": {
+        "unrelated event mismatch": 562,
+        "ordering": 199,
+        "event missing from medicham2": 673,
+        "-unboost: a different body": 3,
+        "-damage field 3": 209,
+        "extra event emitted by medicham2": 175,
+        "cant: a different body": 2,
+        "switch: a different body": 26,
+        "turn order": 79,
+        "-start field 3": 4,
+        "-start: a different body": 12,
+        "-damage field 4": 2,
+        "-heal field 3": 10,
+        "-status field 4": 6,
+        "-activate field 4": 9,
+        "-status: a different body": 1,
+        "-heal field 4": 2,
+        "-miss field 3": 1,
+        "drag: a different body": 2,
+        "-fail field 3": 1,
+        "-start field 4": 1,
+        "-boost: a different body": 1,
+        "-immune field 3": 1
+      },
+      "planted_divergence_proof_ok": true,
+      "normaliser_all_rules_proved": true,
+      "declared_gaps": {
+        "mega_stones_stripped": 0,
+        "mega_stones_kept": 5563,
+        "control_arm_stones_stripped": 5563,
+        "align_had_to_move_a_stat": 0,
+        "teams_unbuildable": 0,
+        "sets_unbuildable": 0,
+        "ban_fallbacks": 0,
+        "undeclared_event_drops": 0,
+        "trace_body_off_field": 60,
+        "trace_body_off_field_first": "basculegion",
+        "undeclared_events": [],
+        "gender_neutralised": true,
+        "tags_release_matches_live": true
+      },
+      "wall_s": 42.4
+    },
+    {
+      "arm": "a06-wire3",
+      "label": "WIRE 3",
+      "release": "128a1ca28d34",
+      "release_cut": "2026-08-07T05:44:41.516Z",
+      "medicham2_sha12": "a096ce95b73a",
+      "change": "refused stat drops — scoped refusal, and they were being over-refused",
+      "included_because": null,
+      "diverged": 1979,
+      "games": 1995,
+      "agreed_completely": 16,
+      "threw": 0,
+      "classes": 23,
+      "distinct_causes": 1194,
+      "damage_field_3_games": 216,
+      "damage_field_3_causes": 200,
+      "event_missing_from_medicham2_games": 636,
+      "event_missing_from_medicham2_causes": 411,
+      "turn_order_games": 82,
+      "distinct_moves_connected": 237,
+      "census_rows_exercised_by_a_connected_move": 111,
+      "median_completed_turns_before_divergence": 1,
+      "first_divergence_line": {
+        "median": 14,
+        "mean": 22.3,
+        "p75": 21,
+        "p90": 50,
+        "max": 146
+      },
+      "vs_baseline": {
+        "n": 1995,
+        "parted_later": 475,
+        "parted_earlier": 135,
+        "parted_at_the_same_line": 1385,
+        "net_later": 340,
+        "median_delta_lines": 0
+      },
+      "vs_previous_rung": {
+        "n": 1995,
+        "parted_later": 218,
+        "parted_earlier": 119,
+        "parted_at_the_same_line": 1658,
+        "net_later": 99,
+        "median_delta_lines": 0
+      },
+      "class_counts": {
+        "unrelated event mismatch": 559,
+        "ordering": 205,
+        "event missing from medicham2": 636,
+        "-unboost: a different body": 3,
+        "-damage field 3": 216,
+        "extra event emitted by medicham2": 195,
+        "cant: a different body": 2,
+        "switch: a different body": 24,
+        "turn order": 82,
+        "-start field 3": 6,
+        "-start: a different body": 11,
+        "-damage field 4": 2,
+        "-heal field 3": 11,
+        "-status field 4": 7,
+        "-activate field 4": 10,
+        "move field 3": 1,
+        "-status: a different body": 1,
+        "-heal field 4": 2,
+        "drag: a different body": 2,
+        "-fail field 3": 1,
+        "-start field 4": 1,
+        "-boost: a different body": 1,
+        "-immune field 3": 1
+      },
+      "planted_divergence_proof_ok": true,
+      "normaliser_all_rules_proved": true,
+      "declared_gaps": {
+        "mega_stones_stripped": 0,
+        "mega_stones_kept": 5563,
+        "control_arm_stones_stripped": 5563,
+        "align_had_to_move_a_stat": 0,
+        "teams_unbuildable": 0,
+        "sets_unbuildable": 0,
+        "ban_fallbacks": 0,
+        "undeclared_event_drops": 0,
+        "trace_body_off_field": 54,
+        "trace_body_off_field_first": "basculegion",
+        "undeclared_events": [],
+        "gender_neutralised": true,
+        "tags_release_matches_live": true
+      },
+      "wall_s": 43.8
+    },
+    {
+      "arm": "a07-wire4-fixedpoint-only",
+      "label": "INTERMEDIATE — WIRE 4 first half",
+      "release": "1e29ff6c431b",
+      "release_cut": "2026-08-07T06:36:51.108Z",
+      "medicham2_sha12": "bfbc94547777",
+      "change": "every damage multiplier in fixed point on 4096ths (md4096 / ch4096), Showdown's own round-half-up rather than a float truncation",
+      "included_because": "WIRE 4 shipped as one wire and is two independent arithmetic fixes. Split, the ladder says what each half was worth; merged, it says only what the pair was worth.",
+      "diverged": 1983,
+      "games": 1995,
+      "agreed_completely": 12,
+      "threw": 0,
+      "classes": 23,
+      "distinct_causes": 1176,
+      "damage_field_3_games": 179,
+      "damage_field_3_causes": 161,
+      "event_missing_from_medicham2_games": 641,
+      "event_missing_from_medicham2_causes": 428,
+      "turn_order_games": 83,
+      "distinct_moves_connected": 236,
+      "census_rows_exercised_by_a_connected_move": 111,
+      "median_completed_turns_before_divergence": 1,
+      "first_divergence_line": {
+        "median": 14,
+        "mean": 22.35,
+        "p75": 21,
+        "p90": 47,
+        "max": 141
+      },
+      "vs_baseline": {
+        "n": 1995,
+        "parted_later": 510,
+        "parted_earlier": 146,
+        "parted_at_the_same_line": 1339,
+        "net_later": 364,
+        "median_delta_lines": 0
+      },
+      "vs_previous_rung": {
+        "n": 1995,
+        "parted_later": 169,
+        "parted_earlier": 153,
+        "parted_at_the_same_line": 1673,
+        "net_later": 16,
+        "median_delta_lines": 0
+      },
+      "class_counts": {
+        "unrelated event mismatch": 577,
+        "ordering": 222,
+        "event missing from medicham2": 641,
+        "-unboost: a different body": 5,
+        "-damage field 3": 179,
+        "extra event emitted by medicham2": 192,
+        "cant: a different body": 2,
+        "switch: a different body": 25,
+        "turn order": 83,
+        "-start field 3": 6,
+        "-start: a different body": 11,
+        "-damage field 4": 2,
+        "-heal field 3": 11,
+        "-status field 4": 7,
+        "-activate field 4": 10,
+        "-status: a different body": 1,
+        "-heal field 4": 2,
+        "-miss field 3": 1,
+        "drag: a different body": 2,
+        "-fail field 3": 1,
+        "-start field 4": 1,
+        "-boost: a different body": 1,
+        "-immune field 3": 1
+      },
+      "planted_divergence_proof_ok": true,
+      "normaliser_all_rules_proved": true,
+      "declared_gaps": {
+        "mega_stones_stripped": 0,
+        "mega_stones_kept": 5563,
+        "control_arm_stones_stripped": 5563,
+        "align_had_to_move_a_stat": 0,
+        "teams_unbuildable": 0,
+        "sets_unbuildable": 0,
+        "ban_fallbacks": 0,
+        "undeclared_event_drops": 0,
+        "trace_body_off_field": 62,
+        "trace_body_off_field_first": "basculegion",
+        "undeclared_events": [],
+        "gender_neutralised": true,
+        "tags_release_matches_live": true
+      },
+      "wall_s": 43.8
+    },
+    {
+      "arm": "a08-wire4",
+      "label": "WIRE 4 (complete)",
+      "release": "45485dee6a43",
+      "release_cut": "2026-08-07T06:46:42.560Z",
+      "medicham2_sha12": "882d60c80a3e",
+      "change": "+ recoil is Math.round clamped to >= 1 on the RATIO, and drain is rounded not floored",
+      "included_because": null,
+      "diverged": 1975,
+      "games": 1995,
+      "agreed_completely": 20,
+      "threw": 0,
+      "classes": 23,
+      "distinct_causes": 1144,
+      "damage_field_3_games": 141,
+      "damage_field_3_causes": 125,
+      "event_missing_from_medicham2_games": 653,
+      "event_missing_from_medicham2_causes": 425,
+      "turn_order_games": 85,
+      "distinct_moves_connected": 233,
+      "census_rows_exercised_by_a_connected_move": 111,
+      "median_completed_turns_before_divergence": 1,
+      "first_divergence_line": {
+        "median": 14,
+        "mean": 22.74,
+        "p75": 22,
+        "p90": 50,
+        "max": 152
+      },
+      "vs_baseline": {
+        "n": 1995,
+        "parted_later": 549,
+        "parted_earlier": 143,
+        "parted_at_the_same_line": 1303,
+        "net_later": 406,
+        "median_delta_lines": 0
+      },
+      "vs_previous_rung": {
+        "n": 1995,
+        "parted_later": 155,
+        "parted_earlier": 107,
+        "parted_at_the_same_line": 1733,
+        "net_later": 48,
+        "median_delta_lines": 0
+      },
+      "class_counts": {
+        "unrelated event mismatch": 584,
+        "ordering": 226,
+        "event missing from medicham2": 653,
+        "-unboost: a different body": 7,
+        "-damage field 3": 141,
+        "extra event emitted by medicham2": 197,
+        "cant: a different body": 2,
+        "switch: a different body": 25,
+        "turn order": 85,
+        "-start field 3": 7,
+        "-start: a different body": 11,
+        "-damage field 4": 3,
+        "-activate field 4": 11,
+        "-heal field 3": 7,
+        "-status field 4": 7,
+        "-status: a different body": 1,
+        "-heal field 4": 2,
+        "-miss field 3": 1,
+        "-fail field 3": 1,
+        "-start field 4": 1,
+        "-boost: a different body": 1,
+        "drag: a different body": 1,
+        "-immune field 3": 1
+      },
+      "planted_divergence_proof_ok": true,
+      "normaliser_all_rules_proved": true,
+      "declared_gaps": {
+        "mega_stones_stripped": 0,
+        "mega_stones_kept": 5563,
+        "control_arm_stones_stripped": 5563,
+        "align_had_to_move_a_stat": 0,
+        "teams_unbuildable": 0,
+        "sets_unbuildable": 0,
+        "ban_fallbacks": 0,
+        "undeclared_event_drops": 0,
+        "trace_body_off_field": 65,
+        "trace_body_off_field_first": "basculegion",
+        "undeclared_events": [],
+        "gender_neutralised": true,
+        "tags_release_matches_live": true
+      },
+      "wall_s": 45.7
+    },
+    {
+      "arm": "a09-wire6",
+      "label": "WIRE 6",
+      "release": "3fd06d865427",
+      "release_cut": "2026-08-07T07:39:10.881Z",
+      "medicham2_sha12": "70876e2b09ba",
+      "change": "two of 27 action kinds announced nothing; four priority brackets wrong",
+      "included_because": null,
+      "diverged": 1973,
+      "games": 1995,
+      "agreed_completely": 22,
+      "threw": 0,
+      "classes": 22,
+      "distinct_causes": 1171,
+      "damage_field_3_games": 144,
+      "damage_field_3_causes": 130,
+      "event_missing_from_medicham2_games": 627,
+      "event_missing_from_medicham2_causes": 455,
+      "turn_order_games": 3,
+      "distinct_moves_connected": 261,
+      "census_rows_exercised_by_a_connected_move": 113,
+      "median_completed_turns_before_divergence": 1,
+      "first_divergence_line": {
+        "median": 14,
+        "mean": 23.97,
+        "p75": 24,
+        "p90": 57,
+        "max": 146
+      },
+      "vs_baseline": {
+        "n": 1995,
+        "parted_later": 742,
+        "parted_earlier": 141,
+        "parted_at_the_same_line": 1112,
+        "net_later": 601,
+        "median_delta_lines": 0
+      },
+      "vs_previous_rung": {
+        "n": 1995,
+        "parted_later": 425,
+        "parted_earlier": 138,
+        "parted_at_the_same_line": 1432,
+        "net_later": 287,
+        "median_delta_lines": 0
+      },
+      "class_counts": {
+        "unrelated event mismatch": 655,
+        "ordering": 258,
+        "event missing from medicham2": 627,
+        "-unboost: a different body": 5,
+        "-damage field 3": 144,
+        "extra event emitted by medicham2": 204,
+        "cant: a different body": 2,
+        "switch: a different body": 24,
+        "-start field 3": 7,
+        "-start: a different body": 11,
+        "-damage field 4": 2,
+        "-activate field 4": 11,
+        "-heal field 3": 4,
+        "-status field 4": 7,
+        "turn order": 3,
+        "-status: a different body": 1,
+        "-heal field 4": 2,
+        "-miss field 3": 1,
+        "drag: a different body": 2,
+        "-fail field 3": 1,
+        "-start field 4": 1,
+        "-boost: a different body": 1
+      },
+      "planted_divergence_proof_ok": true,
+      "normaliser_all_rules_proved": true,
+      "declared_gaps": {
+        "mega_stones_stripped": 0,
+        "mega_stones_kept": 5563,
+        "control_arm_stones_stripped": 5563,
+        "align_had_to_move_a_stat": 0,
+        "teams_unbuildable": 0,
+        "sets_unbuildable": 0,
+        "ban_fallbacks": 0,
+        "undeclared_event_drops": 0,
+        "trace_body_off_field": 69,
+        "trace_body_off_field_first": "basculegion",
+        "undeclared_events": [],
+        "gender_neutralised": true,
+        "tags_release_matches_live": true
+      },
+      "wall_s": 46.9
+    },
+    {
+      "arm": "a10-baseline-run2",
+      "label": "pre-WIRE-1 baseline, REPEATED",
+      "release": "cf6a68fa412c",
+      "release_cut": "2026-08-07T02:34:46.005Z",
+      "medicham2_sha12": "795be0c58cd7",
+      "change": "the same frozen bytes as a01, run last with eight arms in between — the drift check",
+      "included_because": null,
+      "diverged": 1993,
+      "games": 1995,
+      "agreed_completely": 2,
+      "threw": 0,
+      "classes": 21,
+      "distinct_causes": 1150,
+      "damage_field_3_games": 170,
+      "damage_field_3_causes": 157,
+      "event_missing_from_medicham2_games": 604,
+      "event_missing_from_medicham2_causes": 385,
+      "turn_order_games": 70,
+      "distinct_moves_connected": 224,
+      "census_rows_exercised_by_a_connected_move": 110,
+      "median_completed_turns_before_divergence": 1,
+      "first_divergence_line": {
+        "median": 13,
+        "mean": 15.01,
+        "p75": 18,
+        "p90": 30,
+        "max": 121
+      },
+      "vs_baseline": {
+        "n": 1995,
+        "parted_later": 0,
+        "parted_earlier": 0,
+        "parted_at_the_same_line": 1995,
+        "net_later": 0,
+        "median_delta_lines": 0
+      },
+      "vs_previous_rung": {
+        "n": 1995,
+        "parted_later": 141,
+        "parted_earlier": 742,
+        "parted_at_the_same_line": 1112,
+        "net_later": -601,
+        "median_delta_lines": 0
+      },
+      "class_counts": {
+        "unrelated event mismatch": 649,
+        "ordering": 247,
+        "extra event emitted by medicham2": 164,
+        "event missing from medicham2": 604,
+        "-unboost: a different body": 6,
+        "-damage field 3": 170,
+        "cant: a different body": 2,
+        "-damage field 4": 4,
+        "switch: a different body": 23,
+        "turn order": 70,
+        "-start field 3": 3,
+        "-miss field 3": 15,
+        "-start: a different body": 10,
+        "-heal field 3": 8,
+        "-status field 4": 5,
+        "-activate field 4": 8,
+        "-status: a different body": 1,
+        "-boost: a different body": 1,
+        "drag: a different body": 1,
+        "-heal field 4": 1,
+        "move field 3": 1
+      },
+      "planted_divergence_proof_ok": true,
+      "normaliser_all_rules_proved": true,
+      "declared_gaps": {
+        "mega_stones_stripped": 0,
+        "mega_stones_kept": 5563,
+        "control_arm_stones_stripped": 5563,
+        "align_had_to_move_a_stat": 0,
+        "teams_unbuildable": 0,
+        "sets_unbuildable": 0,
+        "ban_fallbacks": 0,
+        "undeclared_event_drops": 0,
+        "trace_body_off_field": 56,
+        "trace_body_off_field_first": "basculegion",
+        "undeclared_events": [],
+        "gender_neutralised": true,
+        "tags_release_matches_live": true
+      },
+      "wall_s": 33
+    }
+  ],
+  "what_remains_at_the_top_rung": [
+    {
+      "cls": "unrelated event mismatch",
+      "games": 655,
+      "distinct_causes": 260,
+      "top_causes": [
+        {
+          "n": 54,
+          "cause": "unrelated event mismatch :: |turn|1 <> |-heal|p2a|H/H|[from]hospitality",
+          "cannot_occur_in_format": false,
+          "max_uses": 5779
+        },
+        {
+          "n": 54,
+          "cause": "unrelated event mismatch :: |turn|1 <> |-heal|p1a|H/H|[from]hospitality",
+          "cannot_occur_in_format": false,
+          "max_uses": 5779
+        },
+        {
+          "n": 21,
+          "cause": "unrelated event mismatch :: |-fail|p2b <> |-sidestart|p2:|tailwind",
+          "cannot_occur_in_format": false,
+          "max_uses": 12889
+        },
+        {
+          "n": 19,
+          "cause": "unrelated event mismatch :: |turn|1 <> |-heal|p2b|H/H|[from]hospitality",
+          "cannot_occur_in_format": false,
+          "max_uses": 5779
+        },
+        {
+          "n": 18,
+          "cause": "unrelated event mismatch :: |-miss|p1a|p2a <> |-fail|p1a"
+        }
+      ]
+    },
+    {
+      "cls": "event missing from medicham2",
+      "games": 627,
+      "distinct_causes": 455,
+      "top_causes": [
+        {
+          "n": 15,
+          "cause": "event missing from medicham2 :: |-activate|p1a|feint <> |-damage|p1a|H/H",
+          "cannot_occur_in_format": false,
+          "max_uses": 437
+        },
+        {
+          "n": 14,
+          "cause": "event missing from medicham2 :: |-prepare|p2a|solarbeam <> |-resisted|p1a|1",
+          "cannot_occur_in_format": false,
+          "max_uses": 4621
+        },
+        {
+          "n": 14,
+          "cause": "event missing from medicham2 :: |-end|p2a|throatchop <> |upkeep",
+          "cannot_occur_in_format": false,
+          "max_uses": 3167
+        },
+        {
+          "n": 11,
+          "cause": "event missing from medicham2 :: |-prepare|p2a|solarbeam <> |-damage|p1a|H/H",
+          "cannot_occur_in_format": false,
+          "max_uses": 4621
+        },
+        {
+          "n": 11,
+          "cause": "event missing from medicham2 :: |-enditem|p1b|whiteherb <> |turn|1",
+          "cannot_occur_in_format": false,
+          "max_uses": 2380
+        }
+      ]
+    },
+    {
+      "cls": "ordering",
+      "games": 258,
+      "distinct_causes": 153,
+      "top_causes": [
+        {
+          "n": 11,
+          "cause": "ordering :: |-prepare|p1b|electroshot <> |-boost|p1b|spa|1",
+          "cannot_occur_in_format": false,
+          "max_uses": 2579
+        },
+        {
+          "n": 10,
+          "cause": "ordering :: |-unboost|p1a|atk|1 <> |-unboost|p2a|atk|1"
+        },
+        {
+          "n": 10,
+          "cause": "ordering :: |-damage|p1b|H/H|[from]sandstorm <> |-damage|p1a|H/H|[from]sandstorm",
+          "cannot_occur_in_format": false,
+          "max_uses": 11
+        },
+        {
+          "n": 9,
+          "cause": "ordering :: |-start|p1a|substitute <> |-damage|p1a|H/H",
+          "cannot_occur_in_format": false,
+          "max_uses": 657
+        },
+        {
+          "n": 8,
+          "cause": "ordering :: |-prepare|p2b|electroshot <> |-boost|p2b|spa|1",
+          "cannot_occur_in_format": false,
+          "max_uses": 2579
+        }
+      ]
+    },
+    {
+      "cls": "extra event emitted by medicham2",
+      "games": 204,
+      "distinct_causes": 108,
+      "top_causes": [
+        {
+          "n": 10,
+          "cause": "extra event emitted by medicham2 :: |-weather|raindance|[from]drizzle <> |-heal|p2a|H/H|[from]hospitality",
+          "cannot_occur_in_format": false,
+          "max_uses": 5779
+        },
+        {
+          "n": 9,
+          "cause": "extra event emitted by medicham2 :: |-unboost|p1a|atk|1 <> |-heal|p1a|H/H|[from]hospitality",
+          "cannot_occur_in_format": false,
+          "max_uses": 5779
+        },
+        {
+          "n": 9,
+          "cause": "extra event emitted by medicham2 :: |-unboost|p2a|atk|1 <> |-heal|p2a|H/H|[from]hospitality",
+          "cannot_occur_in_format": false,
+          "max_uses": 5779
+        },
+        {
+          "n": 8,
+          "cause": "extra event emitted by medicham2 :: |-unboost|p2a|atk|1 <> |-heal|p1b|H/H|[from]hospitality",
+          "cannot_occur_in_format": false,
+          "max_uses": 5779
+        },
+        {
+          "n": 8,
+          "cause": "extra event emitted by medicham2 :: |-damage|p1b|H/H <> |-activate|p1b|followme",
+          "cannot_occur_in_format": false,
+          "max_uses": 1550
+        }
+      ]
+    },
+    {
+      "cls": "-damage field 3",
+      "games": 144,
+      "distinct_causes": 130,
+      "top_causes": [
+        {
+          "n": 5,
+          "cause": "-damage field 3 :: |-damage|p2a|0fnt <> |-damage|p2a|H/H"
+        },
+        {
+          "n": 3,
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:mimikyu|130/130 vs |-damage|p1a:mimikyu|114/130]",
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "n": 2,
+          "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:swampert|121/175 vs |-damage|p1a:swampert|132/175]",
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "n": 2,
+          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:ceruledge|27/150 vs |-damage|p2a:ceruledge|29/150]",
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "n": 2,
+          "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:staraptor|16/160 vs |-damage|p2a:staraptor|50/160]",
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        }
+      ]
+    },
+    {
+      "cls": "switch: a different body",
+      "games": 24,
+      "distinct_causes": 22,
+      "top_causes": [
+        {
+          "n": 2,
+          "cause": "switch: a different body :: |switch|p2a|incineroar,l50|H/H <> |switch|p2a|zoroarkhisui,l50|H/H",
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "n": 2,
+          "cause": "switch: a different body :: |switch|p2b|umbreon,l50|H/H <> |switch|p2b|zoroarkhisui,l50|H/H",
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "n": 1,
+          "cause": "switch: a different body :: |switch|p1a|incineroar,l50|H/H <> |switch|p1a|zoroarkhisui,l50|H/H",
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "n": 1,
+          "cause": "switch: a different body :: |switch|p2b|lucario,l50|H/H <> |switch|p2b|zoroarkhisui,l50|H/H",
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        },
+        {
+          "n": 1,
+          "cause": "switch: a different body :: |switch|p1a|corviknight,l50|H/H <> |switch|p1a|zoroarkhisui,l50|H/H",
+          "cannot_occur_in_format": false,
+          "max_uses": null
+        }
+      ]
+    }
+  ],
+  "arm_artifacts": "C:\\Users\\willj\\AppData\\Local\\Temp\\claude\\C--Users-willj-Projects-Pokemon-ABRA\\74b990e2-3b69-4349-a3f3-cd3b3778e5db\\scratchpad\\ladder-final"
+}

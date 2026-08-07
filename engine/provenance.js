@@ -36,6 +36,11 @@
 const fs = require('fs');
 const crypto = require('crypto'); /* content digests — see digestOf(), and why mtime was not enough */
 const path = require('path');
+/* ONE PLACE KNOWS WHICH KEY OF `source_digests` IS PROSE. This file tells generators to call
+ * `run_stamp.sourceDigests()`; that function reserves one key for a note, and this file has to skip
+ * exactly that key. Importing the name means the two cannot drift apart — see the block at the
+ * `stamped` loop. Safe to require: run_stamp pulls in node builtins only, so there is no cycle. */
+const RUN_STAMP_NOTE_KEY = require('./run_stamp.js').STAMP_NOTE_KEY;
 
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
@@ -687,6 +692,13 @@ for (const a of ARTIFACTS) {
     digestState = 'verified';
     for (const [src, want] of Object.entries(stamped)) {
       if (!want) continue;
+      /* `note` IS DOCUMENTATION, NOT AN INPUT, and the name is imported rather than typed here.
+       * `run_stamp.sourceDigests()` — the function the message at the bottom of this file tells every
+       * generator to call — puts a sentence in the same object as the path->digest pairs. Treating it
+       * as a path meant the FIRST artifact to take that advice (data/wire-ladder.json) was marked
+       * UNVERIFIABLE for having followed it: a checker punishing the workflow it recommends, which is
+       * the same shape as the frozen-release false positive fixed twenty lines below. */
+      if (src === RUN_STAMP_NOTE_KEY) continue;
       const got = digestOf(src);
       if (!got) { notes.push(`stamped input ${src} cannot be read to verify`); digestState = 'unverifiable'; warn = true; continue; }
       if (String(got).slice(0, 12) !== String(want).slice(0, 12)) {
