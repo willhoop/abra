@@ -10,6 +10,58 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.65.0] — 2026-08-07
+
+### Fixed
+- **WIRE 8 — both families were real, and I HAD READ THE ARTIFACT'S COLUMNS BACKWARDS.**
+  `classify()` writes `SD <> ME` (`game_differential.js:1145`), so `|-fail|p2b <> |-sidestart|Tailwind`
+  means **Showdown FAILS the second Tailwind and this engine SET it** — the opposite of what the
+  dispatch said. The agent established it by staging the case in both engines rather than by re-reading
+  the string.
+  `Side.addSideCondition` returns false on an already-present condition with no `onSideRestart`, and
+  measured across the format **none** of tailwind / reflect / lightscreen / auroraveil / safeguard /
+  stealthrock / stickyweb has one — exactly two do (Spikes cap 3, Toxic Spikes cap 2). **We reset the
+  clock, so a side re-clicking Tailwind or Reflect once a turn kept it forever.**
+- The companion `-sideend` cause was not confused state: `scrP`/`scrS` were keyed by damage **category**,
+  so the engine had no NAME to announce. Screens are now three named clocks keyed by move id, with
+  category and order derived from `halvesDamage` — no screen is named in the engine.
+- **Two-turn moves: an order bug, an announcement bug AND a state bug.** All ten `chargeTurn` moves in
+  Champions carry `this.add('-prepare')` as the FIRST line of `onTryMove`, above the boost and the
+  weather test. **A rain Electro Shot fired with no +1 SpA — Showdown 97, medicham2 65** into a Snorlax
+  under Drizzle. Power Herb is `isNonstandard: 'Past'`, so its branch was kept correct and given no probe.
+
+### Changed
+- Census **258/259 → 262/263 live**. Red demonstrations **151 → 157**, 0 failed.
+- Ladder, 12 arms × 1,995, all COMPARABLE, baseline reproduced exactly across three end-to-end runs:
+  diverged **1931 → 1893**, whole games agreeing **64 → 102**, net vs baseline **+1,029** (was +882).
+- Attribution: `|-prepare|` occurrences **141 → 0**; tailwind 94 → 27; solarbeam 107 → 26; electroshot
+  68 → 10; `-sidestart` 142 → 18.
+- **THE MEDIAN COMPLETED TURN IS STILL 1 — eight wires, never moved. And this time the median LINE did
+  not move either** (16). Mean and p90 rose, so the tail lengthened while the middle stood still.
+
+### Notes
+- **THE INSTRUMENT WAS AIMED AT THE WRONG ARM, AND MY WIRE 8 ROADMAP WAS WRITTEN OFF IT.**
+  `engine/wire_ladder.js` built `what_remains_at_the_top_rung` from a **hard-coded `'a09-wire6'`**, so
+  the surviving-cause list published with WIRE 7 was WIRE 6's — still naming the 251 hospitality rows
+  WIRE 7 had already zeroed. Now derived from the last non-baseline arm, with a `top_rung` block in the
+  artifact. **Both of my inputs to this wire were wrong — the column order and the arm — and it landed
+  anyway because the agent checked instead of trusting.**
+- **THE TAIL IS NOT FLAT. I called that wrong too.** Read off a correct top rung, the largest surviving
+  cause is **114 games** in one shape across four slot spellings:
+  `|-miss|ATTACKER|TARGET <> |-fail|ATTACKER`. It is pre-existing and **growing with depth** —
+  41 → 55 → 83 → 114 as games survive longer. Behind it: `-end|throatchop` 30, `-activate|feint` 25,
+  `-enditem|whiteherb` 10. **It is not diagnosed**, and it is the same miss-vs-fail split already filed
+  as ROADMAP #84.
+- Two instruments went red for good reasons and both are closed without lowering a bar: Electro Shot now
+  declares `expect: 'agree'` with `closed_by`, and the `ordering` acceptance test got a replacement
+  staged **from the ladder's own largest surviving ordering cause** (sandstorm residual is speed-sorted,
+  not slot-ordered).
+- Declared, not fixed: hazard duplicates (the layer cap is not in `data/tags.json`, which cannot be
+  regenerated — ROADMAP #65); side-residual sub-order; overlapping screens still apply one multiplier,
+  unchanged deliberately.
+
+---
+
 ## [3.64.0] — 2026-08-07
 
 ### Fixed

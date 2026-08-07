@@ -2529,6 +2529,41 @@ probe('move', 'doublesSideSpeed', 'Tailwind speeds the PARTNER up inside the sam
                  + 'and ' + test + ' after the ally clicked Tailwind on the same turn' };
 });
 
+/* ROADMAP #81 WIRE 8 -- A SECOND TAILWIND DOES NOT REFRESH THE FIRST, AND THE PROOF IS THE SPEED
+ * FOUR TURNS LATER.
+ *
+ * `Side.addSideCondition` (sim/side.ts:420) returns false when the condition is already present and
+ * declares no `onSideRestart`; tailwind declares none, so Showdown writes `|-fail|` and the ORIGINAL
+ * clock keeps running. This engine wrote a second `|-sidestart|` and reset the counter, which hands
+ * a doubles side a permanent Tailwind for the price of one click a turn. 12,889 corpus uses.
+ *
+ * THE ASSERTION IS AN EQUALITY, AND AN EQUALITY ALONE CANNOT TELL A REFUSED RE-SET FROM A KNOB THAT
+ * IS NOT WIRED. So the third arm clicks Tailwind on turn 2 AND NOWHERE ELSE: that click, allowed to
+ * land, keeps the side fast into turn 5. The duplicate arm contains the very same turn-2 click and
+ * must NOT get that extension. The measurement is shown able to see the extension before it is used
+ * to claim there was none. */
+probe('move', 'doublesSideSpeed', 'a second Tailwind does not extend the first', () => {
+  /* Tailwind is set to 4 and ticks at every residual, so a turn-1 click leaves the side fast through
+   * turn 4 and slow at the start of turn 5. Four turns are played and the speed is read after them. */
+  const run = (clickOn) => {
+    const { me, ally, f1, f2, S } = board('whimsicott', 'incineroar', 'garchomp', 'garchomp');
+    const base = M.effSpeed(ally, S.field, 'A');
+    for (let t = 1; t <= 4; t++) {
+      M.battleTurn(S, rng5,
+        new Map([[me, clickOn.includes(t) ? M.playerAction(me, 'tailwind', null, S.field) : { kind: 'pass' }],
+                 [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    }
+    return +(M.effSpeed(ally, S.field, 'A') / base).toFixed(2);
+  };
+  const once = run([1]), dup = run([1, 2]), lateOnly = run([2]), fresh = run([4]);
+  return { works: once === 1 && dup === once && lateOnly > 1.8 && fresh > 1.8,
+           arms: { control: lateOnly, test: dup },
+           detail: 'partner speed x at the start of turn 5 — clicked on turn 1 only: ' + once
+                 + ' (expired); clicked on turn 1 AND 2: ' + dup + ' (must equal ' + once
+                 + ' — the re-set is refused); the SAME turn-2 click alone: ' + lateOnly
+                 + ' (still fast, so the measurement can see an extension); a turn-4 click: ' + fresh };
+});
+
 probe('move', 'sealsMoves', 'Disable stops the target repeating that move', () => {
   /* Staged like Encore and Taunt: the foe commits a move on its own, is Disabled, and is then left
    * COMPLETELY FREE. What it picks is the measurement. Checking the volatile alone would pass on a
@@ -2668,6 +2703,76 @@ probe('move', 'halvesDamage', 'Reflect halves physical damage', () => {
   const off = run(false), on = run(true);
   return { works: on < off && on > 0, arms: { control: off, test: on },
            detail: 'took ' + off + ' with no screen  ->  ' + on + ' behind Reflect' };
+});
+
+/* ROADMAP #81 WIRE 8 -- A SECOND REFLECT DOES NOT EXTEND THE FIRST, AND THE PROOF IS THE DAMAGE ON
+ * TURN SIX. Same rule as the Tailwind probe above (sim/side.ts:420) and the same three-arm shape,
+ * for the same reason: the claim is an EQUALITY, so a third arm plays the identical turn-2 click on
+ * its own and must show the extension the duplicate arm must not get.
+ *
+ * A REFRESHED SCREEN IS A DAMAGE BUG FOR THE REST OF THE GAME, which is why this reads HP and not a
+ * counter. Reflect lasts five turns; a click on turn 2 that is wrongly allowed keeps it up through
+ * turn 6, so turn 6 is where the two answers part. The body is restored to full before every turn so
+ * only the LAST turn's loss is read and nothing can faint. */
+probe('move', 'halvesDamage', 'a second Reflect does not extend the first', () => {
+  const run = (clickOn) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'garchomp', 'garchomp');
+    let took = 0;
+    for (let t = 1; t <= 6; t++) {
+      me.curHP = me.st.hp;
+      const before = me.curHP;
+      M.battleTurn(S, rng5,
+        new Map([[me, clickOn.includes(t) ? M.playerAction(me, 'reflect', null, S.field) : { kind: 'pass' }],
+                 [ally, { kind: 'pass' }]]),
+        new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+      took = before - me.curHP;
+    }
+    return took;
+  };
+  const once = run([1]), dup = run([1, 2]), lateOnly = run([2]);
+  return { works: once > 0 && dup === once && lateOnly < once,
+           arms: { control: lateOnly, test: dup },
+           detail: 'turn-6 Earthquake — one Reflect on turn 1: ' + once + ' (expired); re-clicked on '
+                 + 'turn 2: ' + dup + ' (must equal ' + once + ' — the re-set is refused); the SAME '
+                 + 'turn-2 click alone: ' + lateOnly + ' (halved, so the measurement can see a screen '
+                 + 'that really is up on turn 6)' };
+});
+
+/* ROADMAP #81 WIRE 8 -- THE REFUSAL IS PER CONDITION, NOT PER DAMAGE CATEGORY, AND THIS IS THE
+ * OVER-MATCH GUARD.
+ *
+ * Showdown keeps Reflect, Light Screen and Aurora Veil as three independent side conditions, so an
+ * Aurora Veil goes up perfectly happily on a side that already has a Reflect. The obvious way to
+ * write the duplicate check — a flag per damage category, which is how this engine used to store
+ * screens at all — would refuse it, and the failure would look exactly like the fix working. So the
+ * claim here is the OPPOSITE sign: the second, different screen must LAND, and the evidence is that
+ * the SPECIAL side of the damage starts being halved while the physical screen is untouched. */
+probe('move', 'halvesDamage', 'Aurora Veil still goes up on a side that already has Reflect', () => {
+  const run = (veil) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'garchomp', 'garchomp');
+    S.field.weather = 'snow';                      // Aurora Veil fails without it
+    let special = 0, physical = 0;
+    for (let t = 1; t <= 3; t++) {
+      me.curHP = me.st.hp;
+      const before = me.curHP;
+      const click = t === 1 ? 'reflect' : (t === 2 && veil ? 'auroraveil' : null);
+      M.battleTurn(S, rng5,
+        new Map([[me, click ? M.playerAction(me, click, null, S.field) : { kind: 'pass' }],
+                 [ally, { kind: 'pass' }]]),
+        new Map([[f1, M.playerAction(f1, t === 3 ? 'earthpower' : 'earthquake', me, S.field)],
+                 [f2, { kind: 'pass' }]]));
+      if (t === 3) special = before - me.curHP; else physical = before - me.curHP;
+    }
+    return { special, physical };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.special > 0 && test.special < control.special
+                  && control.physical > 0 && test.physical === control.physical,
+           arms: { control: control.special, test: test.special },
+           detail: 'Reflect up since turn 1. Turn-3 SPECIAL hit: ' + control.special
+                 + ' with no veil -> ' + test.special + ' after an Aurora Veil on turn 2 (it must LAND '
+                 + '— a per-category refusal would have failed it). Physical unchanged at '
+                 + control.physical + '/' + test.physical };
 });
 
 probe('ability', 'weatherSetter', 'Drizzle sets rain on entry', () => {
@@ -2882,6 +2987,46 @@ probe('move', 'chargeSkippedByWeather', 'Solar Beam fires the same turn in sun a
   const dry = run(''), sun = run('sun');
   return { works: sun > 0 && dry === 0, arms: { control: dry, test: sun },
            detail: 'turn-1 damage: no sun ' + dry + ' (must be 0), sun ' + sun + ' (must be > 0)' };
+});
+
+/* ROADMAP #81 WIRE 8 -- THE WIND-UP HAPPENS EVEN WHEN THE TURN IS NOT SPENT, AND ELECTRO SHOT WAS
+ * FIRING IN RAIN WITH NO SPECIAL ATTACK BOOST AT ALL.
+ *
+ * The probe above proves the charge is SKIPPED in the right weather. It cannot see that the skipped
+ * charge still does everything the charge turn does, because Solar Beam's wind-up grants nothing.
+ * Electro Shot's grants +1 Special Attack, and data/moves.ts:4640 puts the boost ABOVE the rain test:
+ *
+ *     this.add('-prepare', attacker, move.name);
+ *     this.boost({ spa: 1 }, attacker, ...);
+ *     if (['raindance','primordialsea'].includes(attacker.effectiveWeather())) { ...; return; }
+ *
+ * This engine had both lines inside the "we are charging" branch, so a rain Electro Shot skipped the
+ * turn AND the boost. Staged against the official engine before a line was changed — Archaludon into
+ * a Snorlax under Drizzle: Showdown 97, medicham2 65.
+ *
+ * THE CONTROL IS THE SAME BODY STARTED AT −1, so the +1 nets to zero. That is the only arm that can
+ * separate "the boost was applied" from "130 base power is just large": an engine that skipped the
+ * boost would print the two arms EQUAL. 2,579 corpus uses; Archaludon is the only carrier here. */
+probe('move', 'chargeTurn', 'Electro Shot keeps its +1 Special Attack when rain skips the charge', () => {
+  const run = (weather, pre) => {
+    const { me, ally, f1, f2, S } = board('archaludon', 'incineroar', 'milotic', 'garchomp');
+    unfaintable(f1);
+    S.field.weather = weather;
+    me.boosts.sa = pre;
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'electroshot', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { dmg: before - f1.curHP, sa: me.boosts.sa };
+  };
+  const rain = run('rain', 0), flat = run('rain', -1), dry = run('', 0);
+  return { works: rain.dmg > 0 && dry.dmg === 0 && rain.sa === 1 && dry.sa === 1
+                  && flat.sa === 0 && rain.dmg > flat.dmg,
+           arms: { control: flat.dmg, test: rain.dmg },
+           detail: 'in rain the turn is NOT spent (' + rain.dmg + ' damage on turn 1) and Special '
+                 + 'Attack is +' + rain.sa + '; the same click from −1 nets 0 and deals ' + flat.dmg
+                 + ' (must be lower — equal arms would mean the boost is not applied); out of rain '
+                 + 'it charges (' + dry.dmg + ' damage) and still takes +' + dry.sa };
 });
 
 probe('move', 'failsIfTargetNotAttacking', 'Sucker Punch fails against a target that is not attacking', () => {

@@ -27,10 +27,10 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  258/259 probed mechanics live, 1 missing   (census 2026-08-07 10:52)
+  262/263 probed mechanics live, 1 missing   (census 2026-08-07 11:17)
   missing:
     move    needsTargetToAttack    Avalanche doubles after the target hits it this turn
-  1/150 differential comparisons disagree with Showdown   (2026-08-07 10:47)
+  1/150 differential comparisons disagree with Showdown   (2026-08-07 11:17)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -46,15 +46,15 @@ ENGINE — does the simulator do what Pokémon does
     DISAGREES  stoneaxe -> gooey  (secondary, 63 uses)
     DISAGREES  gigaimpact -> spikyshield  (secondary, 38 uses)
     DISAGREES  supercellslam -> kingsshield  (secondary, 85 uses)
-  release ladder: 11 frozen releases x 1995 games, one pinned census   (2026-08-07 10:35)
+  release ladder: 12 frozen releases x 1995 games, one pinned census   (2026-08-07 11:51)
     median completed turns before divergence: 1 at the baseline, 1 at the top rung  <-- UNMOVED by the whole series
-    whole-game agreement 6/1995 -> 64/1995; first-divergence line, mean 14.83 -> 27.75
-    paired against the baseline: 1060 games part later, 178 EARLIER, 757 unchanged
+    whole-game agreement 6/1995 -> 102/1995; first-divergence line, mean 14.83 -> 31
+    paired against the baseline: 1183 games part later, 154 EARLIER, 658 unchanged
     the baseline ran first and last and reproduced exactly; comparability: every arm cleared
   tag coverage: 162/181 probed, 19 unprobed
 ```
 
-_stamped 2026-08-07 10:52_
+_stamped 2026-08-07 11:55_
 
 <!-- /GENERATED -->
 
@@ -67,6 +67,232 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
+
+## ROADMAP #81 WIRE 8 — TWO FAMILIES, ONE OF THEM A REAL DAMAGE BUG, AND THE LADDER'S OWN "WHAT REMAINS" LIST WAS READING THE WRONG ARM. 2026-08-07.
+
+Census **258 live / 259 probed → 262 live / 263 probed.** Four new probes, all LIVE; `missing` is
+unchanged at 1 (`needsTargetToAttack`). 0 hollow, 0 unarmed, 0 direct-call, 0 threw — every ratchet
+held. `tests/probe_red_demo.js` **151 → 157 demonstrations, 0 failed**, six of them new.
+
+### FAMILY A WAS A STATE BUG, NOT AN ANNOUNCEMENT BUG, AND THE ARTIFACT HAD THE TWO COLUMNS THE OTHER WAY ROUND
+
+The roadmap read the cause `|-fail|p2b <> |-sidestart|p2:|tailwind` as *"we `-fail` a side condition
+Showdown sets"*. It is the opposite: `classify()` writes `SD <> ME`
+(`engine/game_differential.js:1145`), so **Showdown FAILS the second Tailwind and this engine SET
+it.** Established by staging it in both engines rather than by re-reading the string — the same
+scenario played through `playGame` shows Showdown writing `|-fail|p1a: Whimsicott` where medicham2
+writes a second `|-sidestart|p1: |move: Tailwind`.
+
+**And a second `-sidestart` is not a spare line, it is a reset clock.** `Side.addSideCondition`
+(`sim/side.ts:420`) returns `false` when the condition is already present and declares no
+`onSideRestart`; **measured over the format, none of tailwind / reflect / lightscreen / auroraveil /
+safeguard / stealthrock / stickyweb declares one, and exactly two do — spikes (cap 3) and toxicspikes
+(cap 2).** This engine wrote `field.twA=4` and `sf.scrP=turns` unconditionally, so a side that
+re-clicks Tailwind or Reflect once a turn keeps it **forever**. That is a damage and a speed bug for
+the rest of the game, which is why both probes read HP and Speed and neither reads a protocol line.
+
+### THE SCREENS BECAME THREE NAMED CONDITIONS, BECAUSE THE DUPLICATE QUESTION CANNOT BE ASKED OF A CATEGORY
+
+`sf.scrP` / `sf.scrS` were two counters keyed by damage CATEGORY. Three defects fell out of that one
+representation and only the first was on the roadmap:
+
+| | |
+|---|---|
+| **it cannot answer "is Reflect already up"** | which is the duplicate check itself |
+| **an expiring Aurora Veil announced a Reflect AND a Light Screen** | the companion cause the roadmap spotted (`\|-sideend\|p2: \|Aurora Veil <> \|-sideend\|p2: \|Reflect`). It was not "the state is confused" — it was that this engine had no name to announce |
+| **two overlapping screens with different expiries were unrepresentable** | `tests/test-game-diff.js` had to collapse the reference side with a `Math.max` and said so. Both halves of that approximation are now gone and the comparison is exact, with `auroraveil` compared as its own third clock |
+
+`sf.sc` is keyed by the MOVE ID, so the announcement is the move's own name and the category comes
+from that move's own `halvesDamage` tag. **No screen is named anywhere in the engine.** The iteration
+order is derived too: Brick Break walks `['reflect','lightscreen','auroraveil']`
+(`data/moves.ts:1833`) and the residual sub-orders are 1, 2 and 10 in that same sequence — sorting on
+`halvesDamage.category` (Physical, Special, both) reproduces it without writing a name down.
+
+**WHAT WAS DELIBERATELY NOT CHANGED:** one multiplier however many screens are up. Showdown chains a
+second `onAnyModifyDamage` when a Reflect and an Aurora Veil overlap; this engine has always applied
+the reduction once and still does. Folding a damage change into a representation change would make
+the ladder unable to say which did what.
+
+### FAMILY B WAS BOTH, AND THE STATE HALF COSTS 49% OF A HIT
+
+Every one of the **ten** `chargeTurn` moves in this format — solarbeam, electroshot, phantomforce,
+solarblade, meteorbeam, skyattack, dig, dive, bounce, fly, all `LEGAL`, checked against
+`gen9championsvgc2026regmb` rather than remembered — carries the same handler shape, and
+`this.add('-prepare', ...)` is the **first** line of it, above the boost, above the weather test and
+above the `ChargeMove` event (verified on all ten: the `-prepare` index precedes the `ChargeMove`
+index in every one). This engine had the whole wind-up inside the "we are charging" branch:
+
+| | defect | evidence |
+|---|---|---|
+| **order** | the `\|-boost\|` was written above the `\|-prepare\|` | `data/moves.ts:4644` — announce, then boost |
+| **announcement** | a SKIPPED charge announced nothing at all | Solar Beam in sun: Showdown writes `\|-prepare\|` and then hits; medicham2 just hit |
+| **state** | **a rain Electro Shot fired with NO +1 Special Attack** | staged against the official engine before a line changed — Archaludon into a Snorlax under Drizzle, **Showdown 97, medicham2 65**. After: 97 |
+
+The roadmap's framing — *"two-turn moves emit no `-prepare`"* — is true only of the skipped case.
+Staged clean, medicham2 emitted `|-prepare|solarbeam` correctly on a normal charge turn all along;
+what it never emitted was the wind-up it did not spend a turn on.
+
+**POWER HERB IS `isNonstandard: 'Past'` IN CHAMPIONS.** Asked of the format, not remembered. Its
+branch is kept correct (the `|-enditem|` now follows the announcement and the boost, which is where
+`onChargeMove` sits) and **no probe is written for it**, because a probe on an unreachable item is a
+census row that cannot fail.
+
+### THE FOUR PROBES AND THE SIX RED DEMONSTRATIONS
+
+Every demonstration was run against a **source-reverted** engine (`demoSource`), and every one flipped.
+
+| probe | what it asserts | the arm that stops it being vacuous |
+|---|---|---|
+| `move\|doublesSideSpeed` — *a second Tailwind does not extend the first* | the partner's SPEED at the start of turn 5 | the assertion is an EQUALITY, so a third arm plays **the identical turn-2 click alone** and must still be fast. Without it, "the two arms agree" is also what an engine with no Tailwind at all prints |
+| `move\|halvesDamage` — *a second Reflect does not extend the first* | the DAMAGE a turn-6 Earthquake deals | the same shape: the turn-2 click alone halves turn 6, so the measurement is shown able to see the extension before it is used to claim there was none |
+| `move\|halvesDamage` — *Aurora Veil still goes up on a side that already has Reflect* | the SPECIAL damage starts being halved and the physical does not move | **the over-match guard, and its claim has the opposite sign.** The obvious wrong fix is a check per damage CATEGORY; it passes the two probes above and stops an Aurora Veil ever landing beside a Reflect. Its known-bad engine is that wrong fix, stated as such rather than argued about |
+| `move\|chargeTurn` — *Electro Shot keeps its +1 Special Attack when rain skips the charge* | 185 damage in rain, +1 stage, and 0 on a dry turn-1 | the control is the same click **from −1**, which nets zero and deals 123. An engine that skipped the boost prints the two arms EQUAL |
+
+Two of the six demonstrations are STREAM claims and are labelled as such at the line, because the
+state really is identical either way: an expiring Aurora Veil falls on the same turn whichever name
+it announces, and Solar Beam in sun deals the same 160 with or without its `|-prepare|`.
+
+### THE CONTROLLED TABLE — 12 arms × 1,995 games, one pinned census, every arm COMPARABLE
+
+`node engine/wire_ladder.js --write`, census pinned to `data/wire-ladder-census.pin.json`
+(`f63179105d3c`), release `dd3da7c69cb0`. **The baseline ran first and last with ten arms between and
+reproduced EXACTLY** — every measured field identical AND the per-game divergence depth identical
+game for game. The whole ladder was then run a **third** time end to end after the instrument edits
+below, and every arm reproduced to the digit.
+
+| arm | div/1995 | agreed whole | classes | causes | moves | **median line** | p90 | mean |
+|---|---|---|---|---|---|---|---|---|
+| baseline (pre-WIRE-1) | 1989 | 6 | 22 | 1129 | 224 | 13 | 30 | 14.83 |
+| WIRE 6 | 1962 | 33 | 25 | 1174 | 263 | 14 | 55 | 23.36 |
+| WIRE 7 | 1931 | 64 | 25 | 1261 | 267 | 16 | 89 | 27.75 |
+| **WIRE 8** | **1893** | **102** | 27 | 1355 | **269** | **16** | **94** | **31.00** |
+| baseline, REPEATED | 1989 | 6 | 22 | 1129 | 224 | 13 | 30 | 14.83 |
+
+- **THE MEDIAN COMPLETED TURN IS STILL 1, AT EVERY RUNG INCLUDING THIS ONE.** Eight wires have not
+  moved it. That is the headline the ladder was built to refuse to soften.
+- **THE MEDIAN FIRST-DIVERGENCE LINE DID NOT MOVE EITHER — 16, the same as WIRE 7.** The mean went
+  27.75 → 31.00 and p75 28 → 35, so the tail lengthened and the middle did not. Said plainly rather
+  than quoting the mean on its own.
+- **NET, WHICH IS THE ONLY HONEST FORM.** Against the baseline: **1,183 later, 154 EARLIER, 658
+  unchanged — net +1,029** (WIRE 7 was +882). Against WIRE 7: **415 later, 182 earlier, 1,398
+  unchanged — net +233**.
+- **WHOLE-GAME AGREEMENT 64 → 102 of 1,995.** The largest single-rung gain in the series.
+- **`-damage field 3` 257 → 290 and distinct causes 1,261 → 1,355, both UP** — games that survive
+  further reach bugs the earlier arms never got to. `event missing from medicham2` fell 677 → 653,
+  which is the `-prepare` family emptying.
+
+### WHICH OF THE TWO ACTUALLY MOVED ANYTHING — counted in the arms' own cause lists
+
+Occurrences at the top rung, WIRE 7 → WIRE 8:
+
+| family | WIRE 7 | WIRE 8 |
+|---|---|---|
+| `\|-prepare\|`, any slot, any move | 141 | **0** |
+| `solarbeam` | 107 | 26 |
+| `electroshot` | 68 | 10 |
+| `tailwind` | 94 | 27 |
+| `-sidestart` | 142 | 18 |
+| `lightscreen` / `reflect` / `auroraveil` | 23 / 31 / 23 | 5 / 6 / 13 |
+| `-sideend` | 4 | **11 — UP, and named below** |
+
+**`-prepare` reaches zero.** Nothing else does. What survives in the other rows is downstream: every
+remaining `solarbeam` and `tailwind` row is an alignment offset against an unrelated `|-immune|` line,
+and the surviving `-sidestart` rows are **hazards**, not screens.
+
+### The boundaries — measured, declared, NOT fixed
+
+- **THE HAZARD HALF OF FAMILY A IS NOT DONE, and the reason is not a judgement call.** Stealth Rock
+  and Sticky Web declare no `onSideRestart`, so a second lay FAILS exactly like a Tailwind; Spikes and
+  Toxic Spikes DO, capped at 3 and 2. **The cap is not in `data/tags.json`** — the move's `hazard`
+  param carries only `{hazard:'spikes'}` — and `data/tags.json` **cannot be safely regenerated**
+  (ROADMAP #65, below: five entities would silently drop out of the engine's knowledge). Refusing all
+  four duplicates would break Spikes' second and third layer. It reads **6 games across 5 causes** at
+  the top rung (`|-fail| <> |-sidestart|p2:|stealthrock`, `…|stickyweb`) and is left alone with the
+  reason.
+- **THE SIDE RESIDUAL SUB-ORDER IS NOT MODELLED.** Showdown's are reflect 1, lightscreen 2, tailwind
+  5, auroraveil 10, and its per-Pokémon items sit at a different order entirely. This engine ticks
+  Tailwind as a FIELD counter above the per-body loop, so a Leftovers heal and a `-sideend` on the
+  same turn come out in the wrong order. That is **6 of the 11** `-sideend` occurrences — five
+  distinct causes, four of the shape `|-heal|…leftovers <> |-sideend|…` and one
+  `|-damage|…sandstorm <> |-sideend|…`; the other five rows are alignment offsets against an
+  unrelated line. Splitting the two sides' residuals apart is a restructure, not a wire. **Declared at
+  the line in the source.**
+- **AURORA VEIL AND REFLECT DO NOT STACK HERE.** One multiplier however many screens cover the
+  category, unchanged from before this wire — see above.
+
+### THE LADDER'S OWN "WHAT REMAINS" BLOCK WAS TWO RUNGS STALE, AND WIRE 7 PUBLISHED FROM IT
+
+`engine/wire_ladder.js` built `what_remains_at_the_top_rung` from a **hard-coded `'a09-wire6'`**. So
+the surviving-cause list published beside WIRE 7 was WIRE 6's, and it still named **251 hospitality
+rows that WIRE 7 had taken to zero**. The roadmap for this wire was written off that block, which is
+why it opened with a Tailwind cause at 20 games and a claim that nothing parts more than 3.
+
+Found by reading this wire's own output and noticing hospitality in it. The top rung is now
+**derived** — the last arm that is not the repeated baseline — and the artifact carries a `top_rung`
+block naming the arm, label and release it came from, so a stale read cannot happen silently again.
+This is `docs/LESSONS.md`'s own lesson wearing an instrument's hat: **a name typed into a generator
+goes stale the moment the thing it names moves.**
+
+### THE TAIL IS NOT FLAT, AND THAT WAS AN ARTEFACT OF THE STALE BLOCK
+
+The brief asked for a clear negative if the top surviving cause were still 3 games. It is not. With
+the top rung read correctly, the largest single cause at WIRE 8 is:
+
+```
+32  unrelated event mismatch :: |-miss|p1b|p2a <> |-fail|p1b
+26  unrelated event mismatch :: |-miss|p2a|p1a <> |-fail|p2a
+24  unrelated event mismatch :: |-miss|p1a|p2a <> |-fail|p1a
+23  unrelated event mismatch :: |-miss|p2b|p1a <> |-fail|p2b
+```
+
+One shape in four slot spellings, **114 games** — Showdown writes `|-miss|ATTACKER|TARGET` where
+medicham2 writes a bare `|-fail|ATTACKER` (`|-miss|p2a: Charizard|p1a: Primarina` against
+`|-fail|p2a: Charizard`). **It is pre-existing and it grows with trajectory depth: 41 games at the
+baseline, 55 at WIRE 6, 83 at WIRE 7, 114 here.** It is the single largest thing left in the file by a
+factor of two and **it is NOT diagnosed** — saying which move and which branch needs its own staging,
+and this wire did not do it. Behind it: `-end|throatchop` (30 games, 3,167 uses), `-activate|feint`
+(25, 437), `-enditem|whiteherb` (10 games, 2,380 uses — the roadmap's "also in range" item, which is
+NOT on the same code path as either family and was not taken), and the sandstorm/Intimidate residual
+orders at 10 each.
+
+**So the recommendation is to keep going, but not by ranking causes off the artifact's top-5 lists
+again.** Two of the last three wires were aimed by a block that was describing a different engine.
+The next target should be picked off a freshly-read top rung, and the `-miss <> -fail` family is it.
+
+### Instruments that moved BECAUSE the engine got better, and are fixed here
+
+- **`tests/test-game-differential.js` — 2 FAILURES, both good news, both closed.** The Electro Shot
+  DIRECTED scenario stopped diverging, so it now declares `expect: 'agree'` with a `closed_by` and
+  will fail just as loudly if it re-opens. That took the `ordering` acceptance test back to one
+  scenario, **and the bar was not lowered** — a replacement was staged from the ladder's own largest
+  surviving `ordering` cause (`|-damage|p1b|[from]sandstorm <> |-damage|p1a|[from]sandstorm`, 10
+  games): Showdown's residual is speed-sorted across every body on the field, medicham2 walks its own
+  slots, and four Protects make it deterministic. It parts exactly as predicted. This is the SECOND
+  time this scenario has had to be restaged for this reason, and that is the acceptance test working.
+- **`tests/test-game-diff.js`** now compares three named screen clocks instead of two category
+  counters, on BOTH sides. Its planted-divergence proof — which is literally an injected extra turn of
+  Tailwind — still fires at the turn it was planted, and all five scripted games agree throughout.
+
+### Green, and what was NOT re-run
+
+Run and green: `tests/probe_red_demo.js` (157/0), `tests/test-mechanics.js` (262/263), `tests/
+test-charge.js` (18/0), `tests/test-medicham.js` (5/0), `tests/test-engine-diff.js` (1/150 disagree,
+unchanged), `tests/test-game-diff.js`, `tests/test-game-differential.js` (ALL PASSED),
+`tests/test-protocol-trace.js` (ALL PASSED, `traceBodyOffField = 0`), `engine/conformance.js`
+(RATCHET 96 baselined, **0 new**).
+
+`tests/test-interaction-matrix.js --full`: **1,557/1,574 (98.9%) — identical to WIRE 7**, and the
+SHRINK GUARD still refuses to publish against the artifact's 1,643. Unchanged and still not this
+wire's: the LIVE/INERT split is decided by the REFERENCE engine's two arms.
+
+`node engine/status.js` still opens with **FEATURE SEMANTICS CHECK FAILED on the same eight features**
+— `switchSurvives1`, `switchKOSlow` and `switchDiesFirst` carry byte-identical digests to the ones
+recorded for ROADMAP #31 below, and the count did not change. A refit is MEASURE's.
+
+**NOT re-run, and named rather than inherited as passing:** `tests/test-prng.js`,
+`tests/test-stadium-roster.js`, `engine/provenance.js --strict`, `tests/test-site-data-fresh.js` and
+the three `run-all`-only failures WIRE 7 recorded. None of them is ENGINE's and none was touched, but
+this wire did not run them and does not claim their state.
 
 ## ROADMAP #81 WIRE 7 — SIX MECHANICS IN ONE BATCH, AND THE MEDIAN FIRST-DIVERGENCE LINE MOVED FOR THE FIRST TIME. 2026-08-07.
 

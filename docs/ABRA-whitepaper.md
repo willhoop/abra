@@ -2,9 +2,9 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.64.0 · Last updated 2026-08-07**
+**Version 3.65.0 · Last updated 2026-08-07**
 
-**THE RELEASE LADDER, AND THE HONEST ANSWER IS THAT SIX FIXES DID NOT MOVE THE MEDIAN (3.64.0).**
+**THE RELEASE LADDER, AND THE HONEST ANSWER IS THAT SIX FIXES DID NOT MOVE THE MEDIAN (3.65.0).**
 `engine/wire_ladder.js` replays every frozen release of the 2026-08-06/07 wire night through the
 differential under one pinned census and one team pool, so all nine arms are mutually comparable rather
 than only adjacent — the defect that retracted the pairwise before/afters in 3.62.1.

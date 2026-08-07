@@ -1,77 +1,62 @@
 {
-  "id": "0aa54cb1a9de",
-  "cut": "2026-08-07T09:52:06.400Z",
+  "id": "dd3da7c69cb0",
+  "cut": "2026-08-07T11:08:08.687Z",
   "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "cuts": [
     {
-      "at": "2026-08-07T09:52:06.400Z",
+      "at": "2026-08-07T11:08:08.687Z",
       "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
       "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
     },
     {
-      "at": "2026-08-07T10:05:10.768Z",
+      "at": "2026-08-07T11:08:18.905Z",
       "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
       "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
     },
     {
-      "at": "2026-08-07T10:07:56.281Z",
+      "at": "2026-08-07T11:08:44.738Z",
       "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
       "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
     },
     {
-      "at": "2026-08-07T10:08:32.495Z",
+      "at": "2026-08-07T11:08:56.804Z",
       "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
       "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
     },
     {
-      "at": "2026-08-07T10:10:02.287Z",
+      "at": "2026-08-07T11:09:25.208Z",
       "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
       "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
     },
     {
-      "at": "2026-08-07T10:11:55.670Z",
+      "at": "2026-08-07T11:10:15.356Z",
       "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
       "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
     },
     {
-      "at": "2026-08-07T10:12:37.680Z",
-      "why": "ROADMAP #81 WIRE 7 - hospitality full-HP gate, knock off order + mega-stone refusal, berry onUpdate, substitute ceil+order, protean before the hit, redirect announcements",
+      "at": "2026-08-07T11:18:14.925Z",
+      "why": "ROADMAP #81 WIRE 8 — duplicate side conditions fail and are not refreshed; the two-turn wind-up announces and boosts even when the charge is skipped",
       "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
     },
     {
-      "at": "2026-08-07T10:40:20.381Z",
+      "at": "2026-08-07T11:39:14.482Z",
       "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
       "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
     },
     {
-      "at": "2026-08-07T10:47:21.269Z",
+      "at": "2026-08-07T11:40:36.791Z",
       "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
       "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
     },
     {
-      "at": "2026-08-07T10:52:13.818Z",
-      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
-    },
-    {
-      "at": "2026-08-07T10:58:22.733Z",
-      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
-    },
-    {
-      "at": "2026-08-07T11:00:57.698Z",
-      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
-    },
-    {
-      "at": "2026-08-07T11:04:39.366Z",
+      "at": "2026-08-07T11:40:44.487Z",
       "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
       "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
     }
   ],
   "files": {
-    "engine/medicham2-browser.js": "0ec4315cdeea",
+    "engine/medicham2-browser.js": "824b25edc2c1",
     "engine/board.js": "5bdaa3923958",
     "engine/rollout_leaf.js": "7a2311756ab8",
     "engine/position_features.js": "7927ccb7f5af",

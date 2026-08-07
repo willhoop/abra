@@ -2548,5 +2548,194 @@ demoSource('ROADMAP #81 WIRE 7  Follow Me announces nothing when it draws, Light
         && rod.length === 1 && /^\|-activate\|/.test(rod[0]) && /lightningrod/.test(rod[0]);
   });
 
+/* ---- ROADMAP #81 WIRE 8 -------------------------------------------------------------------------
+ *
+ * Two families, five demonstrations. Every reverted arm below is an engine that ACTUALLY EXISTED
+ * this morning, except demo 3, which is stated as what it is: the plausible WRONG fix. A duplicate
+ * check written per damage CATEGORY instead of per condition passes demos 1 and 2 and breaks Aurora
+ * Veil, so the over-match needs its own known-bad input rather than an argument. */
+
+/* THE CHARGE-TURN REVERT, shared by demos 4 and 5: the wind-up's announcement and its stat boost put
+ * back INSIDE the "we are charging" branch, below the weather test, exactly where they sat until
+ * tonight. Two edits because the block was reordered as well as moved. */
+const W8_CHARGE = [
+  ['          /* `|-prepare|ATTACKER|MOVE` -- sim/SIM-PROTOCOL.md:594, and it is unconditional. */\n          if(TR)TR.prep(m,a.move.id);\n', ''],
+  ["          const _cp=TAGS.param('move',a.move.id,'chargeTurn'), _b=_cp&&_cp.boosts;\n"
+ + '          if(_b)for(const _k of Object.keys(_b)){\n'
+ + "            const _kk={spa:'sa',spd:'sd',atk:'at',def:'df',spe:'sp'}[_k]||_k;\n"
+ + '            if(m.boosts&&_kk in m.boosts){const _b0=m.boosts[_kk];\n'
+ + '              m.boosts[_kk]=Math.max(-6,Math.min(6,m.boosts[_kk]+_b[_k]));\n'
+ + '              if(TR)TR.bst(m,_kk,m.boosts[_kk]-_b0);}\n'
+ + '          }\n'
+ + "          const _sk=TAGS.param('move',a.move.id,'chargeSkippedByWeather');\n"
+ + "          const _herb=m.item==='powerherb';\n"
+ + '          if(!(_sk&&_sk.skipsIn&&!field.wSup&&field.weather===_sk.skipsIn)&&!_herb){\n'
+ + '            m._charging=a.move.id;\n'
+ + "            m._invuln=TAGS.has('move',a.move.id,'semiInvulnerable');\n"
+ + '            m._lastMove=a.move.id;\n'
+ + '            continue;                                           // the turn is spent\n'
+ + '          }',
+    "          const _sk=TAGS.param('move',a.move.id,'chargeSkippedByWeather');\n"
+ + "          const _herb=m.item==='powerherb';\n"
+ + '          if(!(_sk&&_sk.skipsIn&&!field.wSup&&field.weather===_sk.skipsIn)&&!_herb){\n'
+ + '            m._charging=a.move.id;\n'
+ + "            m._invuln=TAGS.has('move',a.move.id,'semiInvulnerable');\n"
+ + "            const _cp=TAGS.param('move',a.move.id,'chargeTurn'), _b=_cp&&_cp.boosts;\n"
+ + '            if(_b)for(const _k of Object.keys(_b)){\n'
+ + "              const _kk={spa:'sa',spd:'sd',atk:'at',def:'df',spe:'sp'}[_k]||_k;\n"
+ + '              if(m.boosts&&_kk in m.boosts){const _b0=m.boosts[_kk];\n'
+ + '                m.boosts[_kk]=Math.max(-6,Math.min(6,m.boosts[_kk]+_b[_k]));\n'
+ + '                if(TR)TR.bst(m,_kk,m.boosts[_kk]-_b0);}\n'
+ + '            }\n'
+ + '            if(TR)TR.prep(m,a.move.id);\n'
+ + '            m._lastMove=a.move.id;\n'
+ + '            continue;                                           // the turn is spent\n'
+ + '          }'],
+];
+
+/* the screen click's duplicate gate, as landed */
+const W8_SCREEN_GATE = "        if(sf&&sf.sc&&sf.sc[a.mv]>0){m._lastMove=a.mv;if(TR)TR.fail(m);continue;}\n";
+
+/* 1. A SECOND TAILWIND DOES NOT REFRESH THE FIRST. STATE claim, read off the SPEED four turns later
+ *    — never off the `|-fail|`. The control inside the assertion is the same turn-2 click ALONE,
+ *    which must still be fast at turn 5: without it, "the two arms agree" is also what an engine
+ *    that never set a Tailwind at all would print. */
+demoSource('ROADMAP #81 WIRE 8  a second Tailwind does not extend the first',
+  [["      if(a.kind==='tail'){\n        if((it.side==='A'?field.twA:field.twB)>0){if(TR)TR.fail(m);continue;}\n        if(it.side==='A')field.twA=4;else field.twB=4;if(TR)TR.sstart(m,'Tailwind');continue;}",
+    "      if(a.kind==='tail'){if(it.side==='A')field.twA=4;else field.twB=4;if(TR)TR.sstart(m,'Tailwind');continue;}"]],
+  (E) => {
+    const run = (clickOn) => {
+      const { me, ally, f1, f2, S } = W7.board(E, 'whimsicott', 'incineroar', 'garchomp', 'garchomp');
+      const base = E.effSpeed(ally, S.field, 'A');
+      for (let t = 1; t <= 4; t++) {
+        E.battleTurn(S, rng5,
+          new Map([[me, clickOn.includes(t) ? E.playerAction(me, 'tailwind', null, S.field) : { kind: 'pass' }],
+                   [ally, { kind: 'pass' }]]), W7.pass2(f1, f2));
+      }
+      return +(E.effSpeed(ally, S.field, 'A') / base).toFixed(2);
+    };
+    const once = run([1]), dup = run([1, 2]), lateOnly = run([2]);
+    return once === 1 && dup === once && lateOnly > 1.8;
+  });
+
+/* 2. A SECOND REFLECT DOES NOT EXTEND THE FIRST. STATE claim, read off the DAMAGE on turn 6 — a
+ *    refreshed screen is a damage bug for the rest of the game and that is the thing to measure. */
+demoSource('ROADMAP #81 WIRE 8  a second Reflect does not extend the first',
+  [[W8_SCREEN_GATE, '']],
+  (E) => {
+    const run = (clickOn) => {
+      const { me, ally, f1, f2, S } = W7.board(E, 'incineroar', 'corviknight', 'garchomp', 'garchomp');
+      let took = 0;
+      for (let t = 1; t <= 6; t++) {
+        me.curHP = me.st.hp; const before = me.curHP;
+        E.battleTurn(S, rng5,
+          new Map([[me, clickOn.includes(t) ? E.playerAction(me, 'reflect', null, S.field) : { kind: 'pass' }],
+                   [ally, { kind: 'pass' }]]),
+          new Map([[f1, E.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+        took = before - me.curHP;
+      }
+      return took;
+    };
+    const once = run([1]), dup = run([1, 2]), lateOnly = run([2]);
+    return once > 0 && dup === once && lateOnly < once;
+  });
+
+/* 3. THE REFUSAL IS PER CONDITION, NOT PER CATEGORY. The known-bad engine is the OBVIOUS WRONG FIX
+ *    rather than a historical build, and it is named as such: refusing any screen while any screen
+ *    covering that category is up passes demos 1 and 2 and stops an Aurora Veil ever going up beside
+ *    a Reflect. Showdown keeps three independent conditions (sim/side.ts:419), so the claim has the
+ *    OPPOSITE sign — the second, different screen must LAND. */
+demoSource('ROADMAP #81 WIRE 8  Aurora Veil still goes up on a side that already has Reflect',
+  [[W8_SCREEN_GATE,
+    "        if(sf&&(screenUp(sf,'Physical')||screenUp(sf,'Special'))){m._lastMove=a.mv;if(TR)TR.fail(m);continue;}\n"]],
+  (E) => {
+    const run = (veil) => {
+      const { me, ally, f1, f2, S } = W7.board(E, 'incineroar', 'corviknight', 'garchomp', 'garchomp');
+      S.field.weather = 'snow';
+      let special = 0, physical = 0;
+      for (let t = 1; t <= 3; t++) {
+        me.curHP = me.st.hp; const before = me.curHP;
+        const click = t === 1 ? 'reflect' : (t === 2 && veil ? 'auroraveil' : null);
+        E.battleTurn(S, rng5,
+          new Map([[me, click ? E.playerAction(me, click, null, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+          new Map([[f1, E.playerAction(f1, t === 3 ? 'earthpower' : 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+        if (t === 3) special = before - me.curHP; else physical = before - me.curHP;
+      }
+      return { special, physical };
+    };
+    const control = run(false), test = run(true);
+    return control.special > 0 && test.special < control.special
+        && control.physical > 0 && test.physical === control.physical;
+  });
+
+/* 4. AN EXPIRING AURORA VEIL ANNOUNCES AN AURORA VEIL. STREAM claim, and it is one because the state
+ *    is identical either way — the screen falls on the same turn in both builds, only its NAME moves.
+ *    The revert is the two-counter engine's own emission: a physical counter reaching zero wrote
+ *    `Reflect` and a special one wrote `Light Screen`, so a lapsing Veil wrote BOTH and never itself.
+ *    The control is that the reverted arm emits TWO lines rather than none, so a revert that simply
+ *    lost the announcement would not read as a pass. */
+demoSource('ROADMAP #81 WIRE 8  an expiring Aurora Veil announces an Aurora Veil, once',
+  [['      for(const _id of screenIds(sf)){\n        if(--sf.sc[_id]<=0){delete sf.sc[_id]; if(TR)TR.sendSide(sf.side===\'A\'?\'p1\':\'p2\',_id);}\n      }}}',
+    '      for(const _id of screenIds(sf)){\n        const _c=screenCat(_id);\n'
+  + '        if(--sf.sc[_id]<=0){delete sf.sc[_id]; if(TR){\n'
+  + "          if(_c==='Physical'||_c==='both')TR.sendSide(sf.side==='A'?'p1':'p2','Reflect');\n"
+  + "          if(_c==='Special'||_c==='both')TR.sendSide(sf.side==='A'?'p1':'p2','Light Screen');}}\n"
+  + '      }}}']],
+  (E) => {
+    const { me, ally, f1, f2, S } = W7.board(E, 'incineroar', 'corviknight', 'garchomp', 'garchomp');
+    S.field.weather = 'snow';
+    const trace = []; S._trace = trace;
+    for (let t = 1; t <= 6; t++) {
+      E.battleTurn(S, rng5,
+        new Map([[me, t === 1 ? E.playerAction(me, 'auroraveil', null, S.field) : { kind: 'pass' }],
+                 [ally, { kind: 'pass' }]]), W7.pass2(f1, f2));
+    }
+    const ends = trace.filter(l => /^\|-sideend\|/.test(String(l)));
+    return ends.length === 1 && /auroraveil/i.test(String(ends[0]));
+  });
+
+/* 5. THE WIND-UP HAPPENS EVEN WHEN THE TURN IS NOT SPENT. STATE claim, and the expensive half of the
+ *    family: data/moves.ts:4640 boosts Special Attack ABOVE the rain test, so a rain Electro Shot
+ *    fires the same turn WITH +1. This engine had the boost inside the charging branch. Measured
+ *    against the official engine before anything changed — Archaludon into Snorlax under Drizzle,
+ *    Showdown 97 and medicham2 65. The control is the same click from −1, which nets zero: an engine
+ *    that skipped the boost prints the two arms EQUAL. */
+demoSource('ROADMAP #81 WIRE 8  Electro Shot keeps its +1 Special Attack when rain skips the charge',
+  W8_CHARGE,
+  (E) => {
+    const run = (weather, pre) => {
+      const { me, ally, f1, f2, S } = W7.board(E, 'archaludon', 'incineroar', 'milotic', 'garchomp');
+      W7.big(f1); S.field.weather = weather; me.boosts.sa = pre;
+      const before = f1.curHP;
+      E.battleTurn(S, rng5,
+        new Map([[me, E.playerAction(me, 'electroshot', f1, S.field)], [ally, { kind: 'pass' }]]), W7.pass2(f1, f2));
+      return { dmg: before - f1.curHP, sa: me.boosts.sa };
+    };
+    const rain = run('rain', 0), flat = run('rain', -1), dry = run('', 0);
+    return rain.dmg > 0 && dry.dmg === 0 && rain.sa === 1 && dry.sa === 1 && flat.sa === 0 && rain.dmg > flat.dmg;
+  });
+
+/* 6. A SKIPPED CHARGE STILL ANNOUNCES THE WIND-UP, AND THE ANNOUNCEMENT COMES BEFORE THE BOOST.
+ *    STREAM claim, same revert as demo 5. Two assertions in one case because they are one defect:
+ *    `this.add('-prepare', ...)` is the FIRST line of every one of the ten handlers, above the
+ *    weather test and above the boost. Solar Beam in sun carries the announcement half (its wind-up
+ *    grants nothing, so the state is identical) and Electro Shot out of rain carries the order. */
+demoSource('ROADMAP #81 WIRE 8  a skipped charge still writes |-prepare|, and it precedes the boost',
+  W8_CHARGE,
+  (E) => {
+    const stream = (sp, mv, weather) => {
+      const { me, ally, f1, f2, S } = W7.board(E, sp, 'incineroar', 'milotic', 'garchomp');
+      W7.big(f1); S.field.weather = weather;
+      const trace = []; S._trace = trace;
+      E.battleTurn(S, rng5,
+        new Map([[me, E.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), W7.pass2(f1, f2));
+      return trace.filter(l => /^\|-(prepare|boost|damage)\|/.test(String(l)));
+    };
+    const sun = stream('venusaur', 'solarbeam', 'sun');       // charge skipped: prepare, then the hit
+    const dry = stream('archaludon', 'electroshot', '');      // charge spent: prepare, then the boost
+    return sun.length === 2 && /^\|-prepare\|/.test(sun[0]) && /^\|-damage\|/.test(sun[1])
+        && dry.length === 2 && /^\|-prepare\|/.test(dry[0]) && /^\|-boost\|/.test(dry[1]);
+  });
+
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);
 if (failures) { console.log('  A green-and-stripped pair that did not flip means the probe does NOT watch its knob.'); process.exit(1); }

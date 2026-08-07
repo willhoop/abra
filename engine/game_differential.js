@@ -1292,10 +1292,30 @@ const DIRECTED = [
    * the other way round. Lowering the requirement to one instead would have been weakening the
    * acceptance test to fit the news. */
   { name: 'Electro Shot — the charge is announced before the boost it grants',
-    predicts: 'ordering', expect: 'diverge',
+    predicts: 'ordering', expect: 'agree',
+    closed_by: 'ROADMAP #81 WIRE 8 — `|-prepare|` is written FIRST and unconditionally, above the '
+             + 'boost and above the weather test, which is the order data/moves.ts:4640 uses',
     A: stage([['archaludon', '', 'Stamina', ['Electro Shot', 'Protect']]]).concat(BENCH('clefable', 'milotic', 'weavile')),
     B: stage([['snorlax', '', 'Thick Fat', [TAKE_IT, 'Protect']]]).concat(BENCH('toxapex', 'corviknight', 'garchomp')),
     script: [{ p1: [{ m: 'electroshot', t: 0 }, { m: 'protect' }], p2: [{ m: 'agility' }, { m: 'protect' }] }] },
+  /* THE SECOND ORDERING CASE, RESTAGED FOR THE SECOND TIME AND FOR THE SAME REASON. The acceptance
+   * test below needs TWO scenarios that classify as `ordering`; WIRE 7 closed one of the original two
+   * and staged Electro Shot as its replacement, and WIRE 8 closed that one. The bar is not lowered.
+   *
+   * Like its predecessor this is NOT invented for the purpose: `|-damage|p1b|[from]sandstorm <>
+   * |-damage|p1a|[from]sandstorm` is the largest surviving cause in the `ordering` class of
+   * data/wire-ladder.json's own top rung, at 10 games. Showdown's residual is SPEED-SORTED across
+   * every body on the field (battle.ts residualEvent -> speedSort), so the faster Whimsicott takes
+   * its sand chip before the slower Incineroar; medicham2 walks its own slots in order. Tyranitar
+   * and Garchomp are Rock and Ground, so only the two bodies whose speeds differ are chipped, and
+   * every click is a Protect — nothing here rolls a die. */
+  { name: 'the sandstorm residual is speed-sorted, not slot-ordered',
+    predicts: 'ordering', expect: 'diverge',
+    A: stage([['incineroar', '', 'Blaze', ['Protect', 'Knock Off']],
+              ['whimsicott', '', 'Chlorophyll', ['Protect', 'Dazzling Gleam']]]).concat(BENCH('milotic', 'clefable')),
+    B: stage([['tyranitar', '', 'Sand Stream', ['Protect', 'Rock Slide']],
+              ['garchomp', '', 'Rough Skin', ['Protect', 'Earthquake']]]).concat(BENCH('corviknight', 'snorlax')),
+    script: [{ p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'protect' }, { m: 'protect' }] }] },
   { name: 'Intimidate x guaranteed crit — the crit ignores the attacker\'s -1 (§6)',
     predicts: '-damage field', expect: 'diverge',
     A: stage([['meowscarada', '', 'Overgrow', ['Flower Trick', 'Protect']]]).concat(BENCH('clefable', 'milotic', 'weavile')),

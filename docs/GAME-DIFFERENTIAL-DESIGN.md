@@ -1,8 +1,8 @@
 # The whole-game differential — design, and the research it is taken from
 
-**Version 3.64.0 · Last updated 2026-08-07**
+**Version 3.65.0 · Last updated 2026-08-07**
 
-**THE INSTRUMENT HAS BEEN TURNED ON ITS OWN HISTORY (3.64.0).** `engine/wire_ladder.js` replays every
+**THE INSTRUMENT HAS BEEN TURNED ON ITS OWN HISTORY (3.65.0).** `engine/wire_ladder.js` replays every
 frozen release of the 2026-08-06/07 wire night through this driver under **one** pinned census and
 **one** team pool, so all nine arms are mutually comparable rather than only adjacent —
 `data/wire-ladder.json`. Three results bear directly on this design:

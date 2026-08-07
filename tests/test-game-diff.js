@@ -149,7 +149,12 @@ function projMedi(S) {
        bookkeeping on every KO. `fainted` on the active slots is still compared, which is the part a
        rule can get wrong. */
     benched: bench.filter(x => x && !x.fainted).map(x => norm(x.name)).sort(),
-    reflect: sf.scrP | 0, lightscreen: sf.scrS | 0,
+    /* ROADMAP #81 WIRE 8 -- THREE NAMED CLOCKS, because medicham2 now keeps three. The old pair
+       `scrP`/`scrS` was keyed by damage category and the reference side had to be collapsed onto it
+       with a Math.max; both halves of that approximation are gone. */
+    reflect: (sf.sc && sf.sc.reflect) | 0,
+    lightscreen: (sf.sc && sf.sc.lightscreen) | 0,
+    auroraveil: (sf.sc && sf.sc.auroraveil) | 0,
     hazards: Object.fromEntries(Object.entries(sf.hz || {}).map(([k, v]) => [k, v | 0])),
   });
   return {
@@ -182,17 +187,16 @@ function projShowdown(battle) {
   const side = s => ({
     active: s.active.map(mon),
     benched: s.pokemon.filter(p => !p.isActive && !p.fainted).map(p => norm(p.species.id)).sort(),
-    /* MAX, NOT `||`. Showdown keeps Reflect, Light Screen and Aurora Veil as THREE independent side
-     * conditions with three timers; medicham2 keeps two counters, `scrP` and `scrS`, one per damage
-     * category. When a screen and an Aurora Veil are both up the two representations cannot be made
-     * to agree field-for-field, and `||` picked the FIRST one that existed rather than the one that is
-     * actually halving — so `lightscreen -> auroraveil` reported `medi=4 sd=2`, which is the harness
-     * comparing Light Screen's remaining turns against Aurora Veil's. MAX is the quantity medicham2
-     * models: how long a special-halving screen is up for. That medicham2 cannot represent two
-     * overlapping screens with different expiries is a real modelling limit and is recorded in
-     * docs/ENGINE.md rather than papered over here. */
-    reflect: Math.max(dur(s.sideConditions.reflect), dur(s.sideConditions.auroraveil)),
-    lightscreen: Math.max(dur(s.sideConditions.lightscreen), dur(s.sideConditions.auroraveil)),
+    /* ONE CLOCK PER NAMED CONDITION, DIRECTLY. This used to read
+     *     reflect: Math.max(dur(reflect), dur(auroraveil))
+     * because medicham2 kept two counters keyed by damage CATEGORY and could not represent two
+     * overlapping screens with different expiries — a modelling limit the harness had to absorb, and
+     * the `||` it replaced was worse still (`lightscreen -> auroraveil` reported `medi=4 sd=2`, the
+     * harness comparing one screen's turns against another's). ROADMAP #81 WIRE 8 gave medicham2
+     * three named clocks, so the collapse is gone from BOTH sides and the comparison is exact. */
+    reflect: dur(s.sideConditions.reflect),
+    lightscreen: dur(s.sideConditions.lightscreen),
+    auroraveil: dur(s.sideConditions.auroraveil),
     hazards: Object.fromEntries(['stealthrock', 'spikes', 'toxicspikes', 'stickyweb']
       .filter(h => s.sideConditions[h])
       .map(h => [h, s.sideConditions[h].layers || 1])),

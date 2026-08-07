@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-07T10:52:11.493Z",
+  "generated": "2026-08-07T11:17:39.524Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 259,
-  "live": 258,
+  "probed": 263,
+  "live": 262,
   "missing": 1,
-  "armed": 259,
+  "armed": 263,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -883,6 +883,16 @@
     },
     {
       "kind": "move",
+      "tag": "doublesSideSpeed",
+      "label": "a second Tailwind does not extend the first",
+      "live": true,
+      "detail": "partner speed x at the start of turn 5 — clicked on turn 1 only: 1 (expired); clicked on turn 1 AND 2: 1 (must equal 1 — the re-set is refused); the SAME turn-2 click alone: 2 (still fast, so the measurement can see an extension); a turn-4 click: 2",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "sealsMoves",
       "label": "Disable stops the target repeating that move",
       "live": true,
@@ -927,6 +937,26 @@
       "label": "Reflect halves physical damage",
       "live": true,
       "detail": "took 167 with no screen  ->  111 behind Reflect",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "halvesDamage",
+      "label": "a second Reflect does not extend the first",
+      "live": true,
+      "detail": "turn-6 Earthquake — one Reflect on turn 1: 167 (expired); re-clicked on turn 2: 167 (must equal 167 — the re-set is refused); the SAME turn-2 click alone: 111 (halved, so the measurement can see a screen that really is up on turn 6)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "halvesDamage",
+      "label": "Aurora Veil still goes up on a side that already has Reflect",
+      "live": true,
+      "detail": "Reflect up since turn 1. Turn-3 SPECIAL hit: 72 with no veil -> 48 after an Aurora Veil on turn 2 (it must LAND — a per-category refusal would have failed it). Physical unchanged at 111/111",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1017,6 +1047,16 @@
       "label": "Solar Beam fires the same turn in sun and not otherwise",
       "live": true,
       "detail": "turn-1 damage: no sun 0 (must be 0), sun 133 (must be > 0)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "chargeTurn",
+      "label": "Electro Shot keeps its +1 Special Attack when rain skips the charge",
+      "live": true,
+      "detail": "in rain the turn is NOT spent (185 damage on turn 1) and Special Attack is +1; the same click from −1 nets 0 and deals 123 (must be lower — equal arms would mean the boost is not applied); out of rain it charges (0 damage) and still takes +1",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2136,7 +2176,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 28.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.2% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

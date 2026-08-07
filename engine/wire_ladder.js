@@ -117,7 +117,15 @@ const ARMS = [
           + 'substitute doll is ceil(maxhp/4) and its -start precedes the -damage; Protean converts '
           + 'before the hit so the move gets its STAB; a move redirect announces nothing and an '
           + 'ability redirect announces an -activate' },
-  { id: 'a11-baseline-run2', release: 'cf6a68fa412c', label: 'pre-WIRE-1 baseline, REPEATED',
+  { id: 'a11-wire8', release: 'dd3da7c69cb0', label: 'WIRE 8',
+    change: 'two families. A side condition that is already up is NOT re-set — Showdown\'s '
+          + 'addSideCondition returns false and the move fails, where this engine wrote a second '
+          + '-sidestart and reset the clock, so a Tailwind or a screen re-clicked each turn was '
+          + 'permanent; screens are now three named conditions rather than two counters keyed by '
+          + 'damage category, so each expires under its own name. And the two-turn wind-up happens '
+          + 'even when the charge is skipped: |-prepare| is written first and unconditionally, and '
+          + 'the charge-turn stat boost is taken — a rain Electro Shot was firing with no +1 SpA' },
+  { id: 'a12-baseline-run2', release: 'cf6a68fa412c', label: 'pre-WIRE-1 baseline, REPEATED',
     change: 'the same frozen bytes as a01, run last with nine arms in between — the drift check' },
 ];
 /* WIRE 5 HAS NO RUNG AND THAT IS CORRECT. It changed the INSTRUMENT (engine/steering.js,
@@ -224,6 +232,14 @@ const moved = WATCHED.filter(f => JSON.stringify(inputs_before[f]) !== JSON.stri
 
 /* ---- COMPARABILITY, EVERY ARM AGAINST THE BASELINE ------------------------------------------------ */
 const BASE = ARMS[0];
+/* THE TOP RUNG IS DERIVED, NOT TYPED. `what_remains_at_the_top_rung` below read a hard-coded
+ * `'a09-wire6'` and was therefore TWO RUNGS STALE the moment WIRE 7 landed — the surviving-cause list
+ * published with WIRE 7 was WIRE 6's, and it still named 251 hospitality rows that WIRE 7 had taken
+ * to zero. Found by WIRE 8 while reading its own output. The top rung is the last arm that is NOT the
+ * repeated baseline, and the arm it came from is written into the artifact so a stale read cannot
+ * happen silently again. */
+const TOP = [...ARMS].reverse().find(a => a.release !== BASE.release);
+if (!TOP) { console.error('no non-baseline arm — refusing'); process.exit(4); }
 const comparability = ARMS.slice(1).map(arm => {
   const r = CMP.compare(RUNS[BASE.id].artifact, RUNS[arm.id].artifact);
   return { arm: arm.id, release: arm.release, ok: r.ok, reasons: r.reasons,
@@ -241,9 +257,9 @@ const stripVolatile = (o) => {
   return JSON.stringify(c);
 };
 const baselineReproduces = stripVolatile(RUNS['a01-baseline-run1'].artifact)
-                        === stripVolatile(RUNS['a11-baseline-run2'].artifact);
+                        === stripVolatile(RUNS['a12-baseline-run2'].artifact);
 const baselineDepthIdentical = JSON.stringify(RUNS['a01-baseline-run1'].depth)
-                            === JSON.stringify(RUNS['a11-baseline-run2'].depth);
+                            === JSON.stringify(RUNS['a12-baseline-run2'].depth);
 
 /* ---- THE TABLE ------------------------------------------------------------------------------------ */
 const rows = ARMS.map((arm, i) => {
@@ -353,8 +369,9 @@ if (WRITE) {
     comparability: { all_ok: !refused.length, per_arm: comparability },
     arms: rows,
     /* WHAT REMAINS, so the ladder ends in something actionable rather than in a score. */
+    top_rung: { arm: TOP.id, label: TOP.label, release: TOP.release },
     what_remains_at_the_top_rung: (() => {
-      const j = RUNS['a09-wire6'].artifact;
+      const j = RUNS[TOP.id].artifact;
       return [...j.classes].sort((a, b) => b.games - a.games).slice(0, 6).map(c => ({
         cls: c.cls, games: c.games, distinct_causes: c.causes.length,
         top_causes: [...c.causes].sort((a, b) => b.n - a.n).slice(0, 5).map(x => ({
