@@ -1,10 +1,10 @@
 {
-  "current": "dd3da7c69cb0",
-  "cut": "2026-08-07T11:08:08.687Z",
-  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 10,
-  "latest_cut": "2026-08-07T11:40:44.487Z",
-  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-07T11:40:44.494Z",
+  "current": "86048ca3a422",
+  "cut": "2026-08-07T13:00:52.696Z",
+  "why": "ROADMAP #81 WIRE 9 + ROADMAP #84 — targetless spread clicks resolve and hit ally-first; -miss and Wide Guard name their bodies; the move-result false/null split reaches Stomping Tantrum",
+  "cuts": 1,
+  "latest_cut": "2026-08-07T13:00:52.696Z",
+  "latest_why": "ROADMAP #81 WIRE 9 + ROADMAP #84 — targetless spread clicks resolve and hit ally-first; -miss and Wide Guard name their bodies; the move-result false/null split reaches Stomping Tantrum",
+  "pointer_written": "2026-08-07T13:00:52.701Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

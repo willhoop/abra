@@ -1,8 +1,8 @@
 # ABRA — the model family (living reference)
 
-**Version 3.65.0 · Last updated 2026-08-07.**
+**Version 3.66.0 · Last updated 2026-08-07.**
 
-**MEDICHAM'S DISTANCE FROM THE AUTHORITY, MEASURED ACROSS TEN FROZEN RELEASES (3.65.0, re-run
+**MEDICHAM'S DISTANCE FROM THE AUTHORITY, MEASURED ACROSS TEN FROZEN RELEASES (3.66.0, re-run
 2026-08-07 after ROADMAP #81 WIRE 7).** `engine/wire_ladder.js` → `data/wire-ladder.json`. **Read every
 figure from that artifact** — the figures below moved when WIRE 7 was added as an eleventh arm and the
 whole ladder was replayed, so any earlier quotation of them is retracted. On 1,995 games per arm, one

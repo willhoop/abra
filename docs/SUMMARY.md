@@ -1,8 +1,8 @@
 # ABRA — Project Summary
 
-**Version 3.65.0 · 2026-08-07 · Will Hooper**
+**Version 3.66.0 · 2026-08-07 · Will Hooper**
 
-**THE RELEASE LADDER — SEVEN FIXES DID NOT MOVE THE MEDIAN TURN (3.65.0, re-run 2026-08-07).**
+**THE RELEASE LADDER — SEVEN FIXES DID NOT MOVE THE MEDIAN TURN (3.66.0, re-run 2026-08-07).**
 `engine/wire_ladder.js` plays every frozen release of the wire series through the differential. It uses
 one pinned census and one team pool, so all eleven arms compare with each other and not only with their
 neighbour. **Read every figure from `data/wire-ladder.json`** — the figures below moved when ROADMAP

@@ -27,10 +27,10 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  262/263 probed mechanics live, 1 missing   (census 2026-08-07 11:17)
+  267/268 probed mechanics live, 1 missing   (census 2026-08-07 13:00)
   missing:
     move    needsTargetToAttack    Avalanche doubles after the target hits it this turn
-  1/150 differential comparisons disagree with Showdown   (2026-08-07 11:17)
+  1/150 differential comparisons disagree with Showdown   (2026-08-07 12:30)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -46,15 +46,15 @@ ENGINE — does the simulator do what Pokémon does
     DISAGREES  stoneaxe -> gooey  (secondary, 63 uses)
     DISAGREES  gigaimpact -> spikyshield  (secondary, 38 uses)
     DISAGREES  supercellslam -> kingsshield  (secondary, 85 uses)
-  release ladder: 12 frozen releases x 1995 games, one pinned census   (2026-08-07 11:51)
+  release ladder: 13 frozen releases x 1996 games, one pinned census   (2026-08-07 13:22)
     median completed turns before divergence: 1 at the baseline, 1 at the top rung  <-- UNMOVED by the whole series
-    whole-game agreement 6/1995 -> 102/1995; first-divergence line, mean 14.83 -> 31
-    paired against the baseline: 1183 games part later, 154 EARLIER, 658 unchanged
+    whole-game agreement 5/1996 -> 137/1996; first-divergence line, mean 15.11 -> 33.11
+    paired against the baseline: 1275 games part later, 123 EARLIER, 598 unchanged
     the baseline ran first and last and reproduced exactly; comparability: every arm cleared
   tag coverage: 162/181 probed, 19 unprobed
 ```
 
-_stamped 2026-08-07 11:55_
+_stamped 2026-08-07 13:26_
 
 <!-- /GENERATED -->
 
@@ -67,6 +67,250 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
+
+## ROADMAP #81 WIRE 9 + ROADMAP #84 — THE LARGEST SURVIVING CAUSE WAS NOT AN ANNOUNCEMENT BUG. A FIFTH OF EVERY DAMAGING CLICK IN THE FORMAT WAS A NO-OP TURN. 2026-08-07.
+
+Census **265 live / 266 probed → 267 live / 268 probed** (it opened at 262/263; the three WIRE 9
+probes and the two ROADMAP #84 ones were written RED first and are listed below). `missing` unchanged
+at 1 (`needsTargetToAttack`). 0 hollow, 0 unarmed, 0 direct-call, 0 threw. `tests/probe_red_demo.js`
+**157 → 164 demonstrations, 0 failed**, seven of them new.
+
+### THE COLUMN ORDER, STATED BACK AND THEN STAGED
+
+`classify()` returns `cause: cls + ' :: ' + gen(sdHead) + ' <> ' + gen(meHead)`
+(`engine/game_differential.js:1145`). **LEFT IS SHOWDOWN, RIGHT IS MEDICHAM2.** So
+`|-miss|p2a|p1a <> |-fail|p2a` reads *Showdown wrote `-miss` with a target; we wrote a bare `-fail`*
+— the roadmap's reading, not WIRE 8's. It was not believed off the source: a case was staged and
+`meRaw` read back as literally `|-fail|p2a: Charizard` against Showdown's
+`|-miss|p2a: Charizard|p1a: Aerodactyl`.
+
+### CLAIM 1 WAS TRUE AND WAS THE SMALL HALF. THE FAMILY IS A STATE BUG.
+
+`playerAction`'s damaging branch was `if (mv && hasPower(mv) && target)`, because `dmgRange(me,
+target, …)` needs a defender to price the click. **A spread move has no target to name.** Showdown's
+own request carries no target field for `allAdjacentFoes` or `allAdjacent`, so every driver that asks
+the authority what is legal correctly hands this engine a `null` — and the click then fell through the
+entire status chain and came out as `{kind:'affect'}` (Heat Wave, Rock Slide, Snarl: anything with a
+secondary, emitting the bare `|-fail|` the ladder saw) or `{kind:'pass'}` (Earthquake, Dazzling Gleam,
+Make It Rain: emitting nothing at all).
+
+**33 legal moves and 56,524 corpus uses — 20% of every damaging click in this format — dealing ZERO.**
+Measured against the format rather than remembered:
+
+| Showdown `target` | moves | corpus uses | this engine |
+|---|---|---|---|
+| `normal` / `any` | 282 | 237,947 | fine — the target is named |
+| **`allAdjacentFoes`** | 19 | **47,549** | **no-op turn** |
+| **`allAdjacent`** | 14 | **8,975** | **no-op turn** |
+| `randomNormal` (Outrage) | 6 | 92 | still refused, now COUNTED |
+| `scripted` (Mirror Coat) | 4 | 42 | still refused, now COUNTED |
+
+It only reached the ladder as a PROTOCOL divergence because Mode A pins every sub-100-accuracy move to
+MISS on both sides — so the 90-accuracy spread moves parted on a stream line while the 100-accuracy
+ones (Earthquake 7,913 uses, Dazzling Gleam, Make It Rain, Discharge, Surf) were quietly dealing
+nothing.
+
+**AND IT HAD BEEN SEEN ONCE AND FILED AS A SCENARIO PROBLEM.** The ROADMAP #68 session recorded
+*"Icy Wind was clicked with no target, so `playerAction` classified it as a non-attack and `-unboost`
+never fired"* — under a heading saying the fault was the SCENARIO and not the trace (this file, the
+protocol-trace section). Icy Wind is `allAdjacentFoes`. The observation was right and the diagnosis
+inverted it.
+
+**THE TURN LOOP NEVER NEEDED THE TARGET:** it resolves `targets = a.move.spread ? live(foes) : [aim]`,
+so the aim is discarded for exactly this family. The fix reaches the board through `liveFoesOf()` — the
+battle state is now stamped on the per-side object that already carries the party and the death counter
+by reference — and prices `d`/`acc` against the body the move hits hardest, which is what
+`targetForMove()` already does for the Choice lock. **A single-target click with no target is still
+refused**, because Showdown rejects that choice and aiming it would invent a decision nobody made; it
+is counted in `MEDFAILS.damagingClickWithoutTarget` rather than swallowed.
+
+**The announcement half is real too and is now per target.** `hitStepAccuracy` writes
+`add('-miss', pokemon, target)` inside the per-target loop (`sim/battle-actions.ts:738`); this engine
+wrote one line with an EMPTY target field. **The one-roll-per-move divergence is unchanged and is not
+widened** — with a single roll every target missed, so the list is complete.
+
+### CLAIM 2 — ROADMAP #84. THE ENGINE COULD NOT REPRESENT THE SPLIT, AND THE REASON IS WORSE THAN ONE BOOLEAN.
+
+**IT STORED NOTHING.** Not one boolean, not a field. `moveResult` appears in `medicham2-browser.js`
+exactly once, inside a comment. Established by reading the state, not by inferring it from output —
+grep for `moveResult|_failed|Failed|_moveOK|_didMove|_acted` returns the comment and a `forbidTableFailed`
+counter, and nothing else. So Stomping Tantrum was wrong in **one** direction only: it never doubled
+(3,545 corpus uses), and it was wrong SILENTLY, because `variablePower` was consumed under
+`if (_vp && _vp.kind)` and twelve moves carry the tag with no `kind` at all — the unknown-kind counter
+beside it is gated on the same field, so the whole family was skipped without incrementing anything.
+
+Every member was checked INDIVIDUALLY against its own handler, and the split is not "was I stopped"
+versus "did I choose":
+
+| returns | members, each with its line |
+|---|---|
+| **`false` — COUNTS** | flinch (`conditions.ts:205`), full paralysis (`:43`), freeze (`:104`), sleep (`:76`), Taunt / Throat Chop / Disable (`moves.ts`), no PP (`battle-actions.ts:285`), a `beforeMoveCallback` (`:274`), **a MISS**, a type immunity — anything reaching `trySpreadMoveHit` with an explicit failure |
+| **`null` — DOES NOT** | recharge (`conditions.ts:372`), and **PROTECT**, which is the counter-intuitive one: protect's `onTryHit` returns `this.NOT_FAIL` — the empty string (`battle.ts:272`) — which is falsy but is not `false`, so `atLeastOneFailure` stays false and `battle-actions.ts:616` writes null |
+
+So **a Stomping Tantrum thrown into a Protect does NOT double next turn and one that MISSED does.**
+Sleep is in the `false` group but a `sleepUsable` move returns `undefined`, which leaves the event's
+relayVar `true` and is a different branch entirely; that is why each was read rather than grouped.
+
+`_mvRes` / `_mvResLast` now carry the three states, roll over at the turn boundary exactly as
+`nextTurn` does (`battle.ts:1671`), and are cleared on switch-out as `clearVolatile` does
+(`pokemon.ts:1551`). **The twenty-one `if(TR)TR.fail(m)` sites became `mvFail(m)`**, because a move
+result is state and recording it inside the announcement would have made the mechanic depend on
+whether a trace was attached — this repo's own "capability that cannot prove it ran", inverted.
+
+**NAME-WIRED, AND THE MEMBERSHIP WAS PRINTED BEFORE THE NAMES WERE TYPED.** `moveLastTurnResult === false`
+appears exactly **twice** in `data/moves.ts` — `stompingtantrum` (18048) and **`temperflare`** (19184,
+48 uses), which the brief did not name and which is the same handler written twice. There is no shape
+to match on: both carry `variablePower {computed:true, note:"idiom not yet derivable"}` **and so do ten
+others** — ragefist, assurance, avalanche, **lastrespects (5,248 uses)**, payback, risingvoltage, round,
+spitup, tripleaxel, watershuriken. Matching the shape would have doubled Last Respects after any failed
+turn. Stated rather than fixed: the **Metronome item** (`items.ts:4010`, legal here) reads the same
+field as a TRUTHY test for its consecutive-use counter; this engine has no Metronome item, and the
+state it would need now exists.
+
+### TWO MORE, TAKEN BECAUSE THIS WIRE OPENED THEM
+
+Both were unreachable while the family was a no-op, and both appeared in the ladder the moment it
+started resolving:
+
+- **Wide Guard named NOBODY.** `|-activate||move: Wide Guard` — the engine emptied its target list and
+  then wrote the line. Showdown's `add('-activate', target, 'move: Wide Guard')` fires inside the
+  per-target TryHit event, so there is one line per shielded body. It opened a whole new divergence
+  class (`-activate: a different body`, 18 games) on the first WIRE 9 rung; the class is gone.
+- **A QUAKE HITS YOUR OWN PARTNER FIRST.** `getMoveTargets` (`sim/pokemon.ts:809`) builds an
+  `allAdjacent` list `push(...adjacentAllies())` and only then falls through to `push(...adjacentFoes())`.
+  Staged in the authority rather than read off the switch statement:
+  `|move|p1a: Garchomp|Earthquake|p2b: Tyranitar|[spread] p1b,p2a,p2b`. This engine appended the ally
+  LAST. `|-immune|pXX <> |-supereffective|pXX` went 0 → 20 and `|-immune|pXX <> |-damage|pXX` 4 → 21 on
+  the first rung, which is what named it.
+
+### THE FIVE PROBES AND THE SEVEN RED DEMONSTRATIONS
+
+Every demonstration is source-reverted (`demoSource`) and every one flipped.
+
+| probe | asserts | the arm that stops it being vacuous |
+|---|---|---|
+| `move\|spreadFoes` — *a targetless spread click still hits both foes* | both foes' HP | the arms are the SINGLE-target click against the spread one, both with the target withheld. The named-vs-withheld claim is an EQUALITY, so using it as the arms would be hollow; the Shadow Ball arm is the **opposite-sign guard** — an engine that started aiming every targetless click would make it non-zero |
+| `move\|spreadFoes` — *a miss names every target it missed* | the `-miss` lines' SHAPE, four fields with a foe slot in the fourth | the control is the same click on a WINNING roll — no `-miss` and real damage. A count-only assertion would pass on a bare `\|-miss\|p1a: X` |
+| `move\|oneTurnGuard` — *Wide Guard names each body it shielded* | one line per body, and zero damage beside it | the same click with no Wide Guard: no lines and real damage, so "no lines" cannot come to mean "no block" |
+| `move\|spreadAll` — *a quake resolves ally-first* | the `-damage` order `p1b,p2a,p2b` | a `spreadFoes` move on the same board must stay `p2a,p2b` — without it this passes on an engine that reversed every target list |
+| `move\|variablePower` — *a FLINCHED Tantrum doubles and a RECHARGING one does not* | the HP the turn-2 Tantrum takes: 101 / 200 / 101 | three arms, and the third is the whole of #84. Two demonstrations carry **opposite signs**: one reverts the flinch site (the flinched arm must stop doubling) and one reverts recharge from `null` to `false` (**the recharged arm must stop reading 75**) — which is the obvious wrong fix, one boolean for "my move did not happen", stated as such |
+
+### THE CONTROLLED TABLE — 13 arms × 1,996 games, one pinned census, every arm COMPARABLE
+
+`node engine/wire_ladder.js --write`, census pinned to `data/wire-ladder-census.pin.json`
+(`f63179105d3c`), release **`86048ca3a422`**. The baseline ran first and last with eleven arms between
+and **reproduced EXACTLY** — every measured field identical and the per-game divergence depth identical
+game for game.
+
+**THE WHOLE LADDER WAS RE-RUN, SO EVERY NUMBER BELOW INCLUDING WIRE 8's IS FROM THIS RUN.** Do not
+compare a figure here against the one published beside WIRE 8: the game store grew (7,375 → 7,401
+teams, 1,995 → 1,996 games) and every arm moved slightly. Comparing across the two runs is the
+uncontrolled-pair mistake `wire_ladder.js` exists to prevent.
+
+| arm | div/1996 | agreed whole | classes | causes | moves | **median line** | p75 | p90 | mean |
+|---|---|---|---|---|---|---|---|---|---|
+| baseline (pre-WIRE-1) | 1991 | 5 | 20 | 1141 | 228 | 13 | 18 | 30 | 15.11 |
+| WIRE 7 | 1943 | 53 | 21 | 1284 | 267 | 16 | 29 | 85 | 28.16 |
+| WIRE 8 | 1903 | 93 | 21 | 1363 | 268 | 16 | 37 | 95 | 31.62 |
+| **WIRE 9** | **1859** | **137** | 22 | 1292 | **269** | **18** | **41** | 95 | **33.11** |
+| baseline, REPEATED | 1991 | 5 | 20 | 1141 | 228 | 13 | 18 | 30 | 15.11 |
+
+- **THE MEDIAN COMPLETED TURN IS STILL 1, AT EVERY RUNG INCLUDING THIS ONE. NINE WIRES HAVE NOT MOVED
+  IT.** Said first, because it is the number the ladder exists to refuse to soften. What that means is
+  below.
+- **THE MEDIAN FIRST-DIVERGENCE LINE MOVED, 16 → 18** — it had stood at 16 through WIRE 8. p75 37 → 41,
+  mean 31.62 → 33.11, p90 flat at 95.
+- **NET, THE ONLY HONEST FORM.** Against the baseline: **1,275 later, 123 EARLIER, 598 unchanged — net
+  +1,152**, median delta **3** lines (WIRE 8 was +1,050 at 1 line). Against WIRE 8: **506 later, 163
+  earlier, 1,327 unchanged — net +343**, the largest single-rung net since WIRE 7.
+- **WHOLE-GAME AGREEMENT 93 → 137 of 1,996**, the largest single-rung gain in the series.
+- **`event missing from medicham2` 672 → 522.** `-damage field 3` 276 → 336 and `ordering` 243 → 451,
+  both UP: games that survive further reach bugs the earlier arms never got to, and the ordering rise
+  is named below rather than left as a shrug.
+
+### WHAT ACTUALLY MOVED — counted in the arms' own cause lists, this run
+
+| family (occurrences at the top rung) | baseline | WIRE 7 | WIRE 8 | **WIRE 9** |
+|---|---|---|---|---|
+| `\|-miss\|ATT\|TGT <> \|-fail\|ATT` | 42 | 69 | 96 | **5** |
+| anything `<>` a `-fail` of ours | 226 | 197 | 233 | **88** |
+| `wideguard` | 12 | 35 | 41 | **28** |
+| `throatchop` | 14 | 46 | 51 | 52 |
+| `feint` | 25 | 32 | 29 | 29 |
+| `whiteherb` | 29 | 36 | 37 | 35 |
+
+The target family is cleared. The five that survive are alignment offsets against an unrelated line,
+not the shape itself.
+
+### THE NEW TOP OF THE FILE, READ OFF THIS RUN'S OWN TOP RUNG
+
+Largest single named cause: **`|-end|pXX|throatchop <> |upkeep`, 37 games** (3,167 uses) — the Throat
+Chop silence expires and this engine announces nothing. Then `|-enditem|pXX|whiteherb` 30 (2,380 uses)
+and `|-activate|pXX|feint` 25 (437).
+
+**But the largest ROOT is bigger than any of them and this wire diagnosed it without fixing it.**
+`ordering :: |-supereffective|pXX|1 <> |-damage|pXX|H/H` is **45 games**, and it is one root with three
+more shapes beside it — `|-immune| <> |-miss|` 31, `|-damage| <> |-damage|…roughskin` 28,
+`|-resisted| <> |-damage|` 19, `|-immune| <> |-damage|` 17. **Showdown resolves a spread move in STEPS
+ACROSS ALL TARGETS; this engine resolves it TARGET AT A TIME.** Staged in the authority, an Earthquake
+into three bodies:
+
+```
+|-supereffective|p1b: Incineroar|1     <- every effectiveness line first
+|-supereffective|p2b: Tyranitar|1
+|-damage|p1b: Incineroar|38/170        <- then every damage line
+|-damage|p2a: Milotic|104/170
+|-damage|p2b: Tyranitar|77/175
+```
+
+medicham2 emits `SE(a) DMG(a) SE(b) DMG(b)`. That is `spreadMoveHit`'s step list
+(`sim/battle-actions.ts`) against this engine's per-target loop, and it is **a restructure of the hit
+loop, not a wire** — which is exactly why it is written here with its measurement rather than started.
+Combined the family is **>110 games**, larger than throatchop by a factor of three, and it is the
+recommended next target.
+
+### THE MEDIAN TURN, SAID PLAINLY
+
+**Nine wires, ~1,150 net games parting later, whole-game agreement 5 → 137, and the median completed
+turn has never left 1.** That is not a failure of the wires and it is not noise: the median game still
+parts inside turn one, and every one of the nine has moved the LINE the game parts on (13 → 18) while
+leaving the TURN alone. The two facts are consistent and the reading is this — **the remaining
+divergences are dominated by things that happen within the first turn's own event stream**, which is
+where the ordering family above lives. A per-target loop against a per-step one parts on turn 1 of
+almost any doubles game with a spread move in it, however many mechanics are right.
+
+**So the grind should continue, but the next item is not another mechanic.** Eight of the nine wires
+fixed a MECHANIC; the ladder says the remaining mass is a SHAPE — how a hit is sequenced — and one
+restructure of `trySpreadMoveHit`'s equivalent is worth more than the next five mechanics. If that
+lands and the median turn is still 1, that is the point to stop grinding the differential and say so.
+
+### Green, and what was NOT re-run
+
+Run and green: `tests/test-mechanics.js` (267/268), `tests/probe_red_demo.js` (164/0),
+`tests/test-charge.js` (18/0), `tests/test-medicham.js` (5/0), `tests/test-game-diff.js`,
+`tests/test-game-differential.js` (ALL PASSED), `tests/test-protocol-trace.js` (ALL PASSED),
+`tests/test-engine-consistency.js`, `tests/test-no-silent-failure.js` (0 new; 1 baselined block now
+speaks), `tests/test-engine-diff.js` (1/150 disagree, unchanged), `engine/conformance.js`
+(RATCHET 96 baselined, **0 new**).
+
+**A LADDER RUN WAS VOIDED AND IS REPORTED RATHER THAN DROPPED.** The first attempt at the WIRE 9
+table was destroyed mid-run: OPS's ingest appended to `data/games.bo3.jsonl` at 13:01:49, the team
+pool digest moved `4f9002f01f7c → deb14a3d200e` between two arms, and `arms_comparable` REFUSED all
+twelve. `data/wire-ladder.json` was written with `determinism.verdict: "THE TWO BASELINES DISAGREE. Do
+not read the table below as a ladder."` — the instrument doing its job, and the CLAUDE.md photograph
+rule arriving through the one door a frozen engine release cannot close: **the release freezes the
+engine, and the game store is not in it.** The table above is the clean re-run.
+
+**Also fixed in `engine/wire_ladder.js`:** the drift check named `'a01-baseline-run1'` and
+`'a12-baseline-run2'` as literals, and inserting a rung ahead of the repeated baseline renamed the
+second one. The two baseline arms are now DERIVED (the two arms on the baseline release, refusing if
+there are not exactly two) — the same defect WIRE 8 found in the hard-coded `'a09-wire6'`, one
+function over.
+
+**NOT re-run, and named rather than inherited as passing:** `tests/test-prng.js`,
+`tests/test-stadium-roster.js`, `engine/provenance.js --strict`, `tests/test-site-data-fresh.js`, and
+`node engine/status.js`'s FEATURE SEMANTICS CHECK, which was failing on eight features before this
+session and was not touched.
 
 ## ROADMAP #81 WIRE 8 — TWO FAMILIES, ONE OF THEM A REAL DAMAGE BUG, AND THE LADDER'S OWN "WHAT REMAINS" LIST WAS READING THE WRONG ARM. 2026-08-07.
 

@@ -29,13 +29,13 @@ MEASURE — can we believe a number
       CONTROL, clean turns, logL                    +0.000485 [0.000189, 0.000777]   n=47331
   REFIT OWED — weights fitted 2026-08-05 04:00
     feature_fixture --check FAILED:   The weights were fitted against the old definition and no longer describe these quantities. |   Refit (node engine/fit_policy.js, then node engine/fit_joint.js), or if a derived table was |   merely re-ingested, restamp with: node engine/feature_fixture.js --stamp <file>
-    moved after the fit: engine/medicham2-browser.js  2026-08-07 11:07
+    moved after the fit: engine/medicham2-browser.js  2026-08-07 12:59
     moved after the fit: engine/board.js  2026-08-05 19:44
     moved after the fit: data/engine-data.js  2026-08-06 19:20
     moved after the fit: data/abra-tags.js  2026-08-06 19:19
 ```
 
-_stamped 2026-08-07 11:55_
+_stamped 2026-08-07 13:26_
 
 <!-- /GENERATED -->
 

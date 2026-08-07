@@ -125,7 +125,19 @@ const ARMS = [
           + 'damage category, so each expires under its own name. And the two-turn wind-up happens '
           + 'even when the charge is skipped: |-prepare| is written first and unconditionally, and '
           + 'the charge-turn stat boost is taken — a rain Electro Shot was firing with no +1 SpA' },
-  { id: 'a12-baseline-run2', release: 'cf6a68fa412c', label: 'pre-WIRE-1 baseline, REPEATED',
+  { id: 'a12-wire9', release: '86048ca3a422', label: 'WIRE 9',
+    change: 'ROADMAP #81 WIRE 9 + ROADMAP #84. A SPREAD move carries no target on Showdown\'s own '
+          + 'request, and playerAction\'s damaging branch was gated on having one — so every '
+          + 'allAdjacentFoes / allAdjacent click from a driver reading the authority fell through to '
+          + 'the status chain and became a no-op turn (33 legal moves, 56,524 corpus uses, dealing '
+          + 'ZERO). It now aims off the board; a single-target click with the target withheld is '
+          + 'still refused, and counted. The accuracy miss writes one |-miss| PER TARGET, each naming '
+          + 'the body it missed, instead of one line with an empty target field. And the move RESULT '
+          + 'is now stored and split three ways as Showdown stores it — false (flinch, paralysis, '
+          + 'sleep, freeze, Taunt, Throat Chop, a miss, a type immunity), null (recharge, a fully '
+          + 'shielded move) and true — so Stomping Tantrum and Temper Flare double after a failure '
+          + 'and NOT after a recharge. Two things the family reached only once it started resolving are fixed in the same pass: Wide Guard NAMES each body it shielded (it wrote one line with an empty body field), and a quake resolves against your own partner FIRST, which is getMoveTargets\'s own allies-then-foes order' },
+  { id: 'a13-baseline-run2', release: 'cf6a68fa412c', label: 'pre-WIRE-1 baseline, REPEATED',
     change: 'the same frozen bytes as a01, run last with nine arms in between — the drift check' },
 ];
 /* WIRE 5 HAS NO RUNG AND THAT IS CORRECT. It changed the INSTRUMENT (engine/steering.js,
@@ -256,10 +268,23 @@ const stripVolatile = (o) => {
                    'engine_release_cuts', 'steering']) delete c[k];
   return JSON.stringify(c);
 };
-const baselineReproduces = stripVolatile(RUNS['a01-baseline-run1'].artifact)
-                        === stripVolatile(RUNS['a12-baseline-run2'].artifact);
-const baselineDepthIdentical = JSON.stringify(RUNS['a01-baseline-run1'].depth)
-                            === JSON.stringify(RUNS['a12-baseline-run2'].depth);
+/* THE TWO BASELINE ARMS ARE DERIVED, exactly as TOP is and for the same reason. These four lines
+ * named `a01-baseline-run1` and `a12-baseline-run2` as literals, and WIRE 9 inserting a rung ahead of
+ * the repeated baseline renamed the second one — so a typed id would have thrown on a missing key at
+ * best, and at worst compared the wrong pair. That is the SAME defect WIRE 8 found in
+ * `what_remains_at_the_top_rung`'s hard-coded 'a09-wire6', one function over: a name typed into a
+ * generator goes stale the moment the thing it names moves. */
+const BASE_ARMS = ARMS.filter(a => a.release === BASE.release);
+if (BASE_ARMS.length !== 2) {
+  console.error('the drift check needs EXACTLY two arms on the baseline release, found ' + BASE_ARMS.length
+    + ' — refusing rather than comparing an arbitrary pair');
+  process.exit(4);
+}
+const [BASE_FIRST, BASE_LAST] = BASE_ARMS;
+const baselineReproduces = stripVolatile(RUNS[BASE_FIRST.id].artifact)
+                        === stripVolatile(RUNS[BASE_LAST.id].artifact);
+const baselineDepthIdentical = JSON.stringify(RUNS[BASE_FIRST.id].depth)
+                            === JSON.stringify(RUNS[BASE_LAST.id].depth);
 
 /* ---- THE TABLE ------------------------------------------------------------------------------------ */
 const rows = ARMS.map((arm, i) => {

@@ -10,6 +10,70 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.66.0] — 2026-08-07
+
+### Fixed
+- **WIRE 9 — 33 SPREAD MOVES, 56,524 CORPUS USES, 20% OF EVERY DAMAGING CLICK IN THIS FORMAT, DEALT
+  ZERO DAMAGE. This is the largest defect found in the entire differential programme and it was hiding
+  behind a protocol line.** `playerAction`'s damaging branch was gated on `target` being non-null,
+  because `dmgRange(me, target, …)` needs a defender — **and a spread move has no target.** Showdown's
+  request carries none for `allAdjacentFoes` / `allAdjacent`, so the driver correctly hands a `null`,
+  the click fell through the entire status chain, and Heat Wave / Rock Slide / Snarl became
+  `{kind:'affect'}` while Earthquake / Dazzling Gleam / Make It Rain became `{kind:'pass'}`. **In a
+  DOUBLES format.**
+  It surfaced as a bare `-fail` only because Mode A's pin misses every sub-100-accuracy move on both
+  sides. **It had been seen once and mis-filed:** `docs/ENGINE.md` records *"Icy Wind was clicked with
+  no target, so `playerAction` classified it as a non-attack"* under a heading blaming the **scenario**.
+  Icy Wind is `allAdjacentFoes`.
+- **The engine stored NOTHING for whether a move worked — not one boolean.** `moveResult` appears in
+  `medicham2-browser.js` exactly once, in a comment. So Stomping Tantrum (3,545 uses) **never doubled**,
+  and did so silently: `variablePower` was consumed under `if (_vp && _vp.kind)` and twelve moves carry
+  the tag with no `kind`, with the unknown-kind counter gated on the same field.
+  Membership was printed before names were typed: `moveLastTurnResult === false` occurs exactly twice in
+  `data/moves.ts` — `stompingtantrum` **and `temperflare`** (48 uses, absent from the dispatch). There is
+  no tag shape to match on: both carry `variablePower {computed:true}` and **so do ten others, including
+  Last Respects at 5,248 uses.**
+  Each member read off its own handler. **false** — flinch, paralysis, freeze, sleep, Taunt, Throat Chop,
+  Disable, no PP, a `beforeMoveCallback`, **a miss**, a type immunity. **null** — recharge, and
+  **Protect**, whose `onTryHit` returns `NOT_FAIL` (`''`): falsy but not `false`. **A Tantrum into a
+  Protect does not double; one that missed does.**
+- Also taken because this wire opened them: Wide Guard announced an **empty body field** (a whole new
+  class, 18 games), and **a quake hits your own partner first** — `getMoveTargets` pushes allies before
+  falling through to foes, staged in the authority as `[spread] p1b,p2a,p2b`.
+
+### Changed
+- Census **262/263 → 267/268 live**. Red demonstrations **157 → 164**, 0 failed.
+- Ladder, 13 arms × 1,996, every arm comparable, baseline reproduces exactly:
+  diverged **1903 → 1859**, whole games agreeing **93 → 137**, **median first-divergence line 16 → 18**
+  (baseline 13), p75 37 → 41, mean 31.62 → 33.11.
+- Net vs baseline **1,275 later / 123 earlier / +1,152**; vs WIRE 8 **506 / 163 / +343**, the largest
+  single-rung net since WIRE 7.
+- `|-miss|ATT|TGT <> |-fail|ATT` **96 → 5**. All `<> -fail` 233 → 88. `event missing` 672 → 522.
+- **THE MEDIAN COMPLETED TURN DID NOT MOVE. It is 1, for the ninth wire running.**
+
+### Notes
+- **THE NEXT TARGET IS NOT A MECHANIC, AND THE AGENT DIAGNOSED IT.** `ordering :: |-supereffective| <>
+  |-damage|` is 45 games, with `|-immune| <> |-miss|` 31, Rough Skin 28, `|-resisted| <> |-damage|` 19
+  and `|-immune| <> |-damage|` 17 beside it — **>110 games, ONE root.** Showdown resolves a spread move
+  in **steps across all targets**; this engine resolves it **target at a time**. Staged: Showdown writes
+  both `-supereffective` lines *then* all three `-damage` lines; we write `SE(a) DMG(a) SE(b) DMG(b)`.
+  **A per-target loop against a per-step one parts on turn 1 of almost any doubles game containing a
+  spread move, however many mechanics are correct** — which is exactly why the LINE moves (13 → 18) and
+  the TURN never does. One restructure of the hit loop is worth more than the next five mechanics.
+  **If that lands and the median turn is still 1, that is the point to stop grinding the differential.**
+- **A LADDER RUN WAS VOIDED AND IS REPORTED, NOT DROPPED.** OPS's ingest appended to
+  `data/games.bo3.jsonl` at 13:01:49 mid-run; the team-pool digest moved between arms and
+  `arms_comparable` refused all twelve, writing `determinism.verdict: "THE TWO BASELINES DISAGREE. Do
+  not read the table below as a ladder."` The instrument worked. **But this is the photograph rule
+  arriving through the one door a frozen engine release cannot close: the release freezes the ENGINE;
+  the game store is not in it.** The published table is the clean re-run.
+- **`wire_ladder.js` carried WIRE 8's bug one function over.** The drift check named
+  `'a01-baseline-run1'` / `'a12-baseline-run2'` as literals, and inserting a rung renamed the second.
+  Both baseline arms are now derived, refusing if there are not exactly two. `top_rung` was already
+  derived and reads `a12-wire9`.
+
+---
+
 ## [3.65.0] — 2026-08-07
 
 ### Fixed

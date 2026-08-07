@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-07T11:17:39.524Z",
+  "generated": "2026-08-07T13:27:07.155Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 263,
-  "live": 262,
+  "probed": 268,
+  "live": 267,
   "missing": 1,
-  "armed": 263,
+  "armed": 268,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2176,7 +2176,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.2% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2637,6 +2637,56 @@
       "label": "a Follow Me redirect adds no line, and a Lightning Rod redirect adds an -activate",
       "live": true,
       "detail": "announcement lines on a redirected Thunderbolt — no redirector 0; Follow Me 0 [none] (Showdown writes none); Lightning Rod 1 [|-activate|p2b: milotic|ability: lightningrod]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "spreadFoes",
+      "label": "a spread move clicked with NO named target still hits both foes",
+      "live": true,
+      "detail": "Make It Rain, target NAMED -> 118/33; target WITHHELD -> 118/33 (Showdown's request names no target for allAdjacentFoes); a single-target Shadow Ball with the target withheld stays a no-op 0/0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "spreadFoes",
+      "label": "a spread move that misses names every target it missed",
+      "live": true,
+      "detail": "Heat Wave on a LOSING roll emitted 2 -miss line(s) [|-miss|p1a: gholdengo|p2a: garchomp |-miss|p1a: gholdengo|p2b: milotic] and 0 -fail, dealing 0/0; on a WINNING roll 0 -miss and 133/109 damage; with the target named 2",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "oneTurnGuard",
+      "label": "Wide Guard names each body it shielded, one line per body",
+      "live": true,
+      "detail": "Heat Wave into a Wide Guard — 2 -activate line(s) [|-activate|p2a: garchomp|move: Wide Guard |-activate|p2b: milotic|move: Wide Guard] and 0 damage dealt; with no Wide Guard 0 line(s) and 65 damage",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "spreadAll",
+      "label": "a quake resolves against your own partner FIRST, then the foes",
+      "live": true,
+      "detail": "-damage order — Earthquake (spreadAll) [p1b,p2a,p2b] dealing 403 in total; Rock Slide (spreadFoes, no ally packet) [p2a,p2b] dealing 83",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "variablePower",
+      "label": "a FLINCHED Stomping Tantrum doubles next turn and a RECHARGING one does not",
+      "live": true,
+      "detail": "Stomping Tantrum into the same Milotic — after a clean turn 101; after a Fake Out FLINCH 200 (BeforeMove returned false, so it counts); after a RECHARGE turn 101 (BeforeMove returned null, so it must not)",
       "hollow": false,
       "armed": true,
       "directCall": false

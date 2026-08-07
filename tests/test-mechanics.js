@@ -186,7 +186,14 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * no-op on state in BOTH engines, and the roadmap's instruction was to measure that on HP first and
  * say so. The probe asserts the HP did not move as well as the line count, so "no line" cannot mean
  * "no heal happened at all". */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(/;
+/* `spreadTargetless(` and `tantrumAfter(` added 2026-08-07 with ROADMAP #81 WIRE 9 / ROADMAP #84,
+ * declared HERE and with their reasons. `spreadTargetless(` stages a real doubles board through
+ * `battleInit` and spends a real turn through `battleTurn`, reading BOTH foes' HP and the emitted
+ * stream — the defect it watches lives in what `playerAction` BUILDS and what the turn loop then does
+ * with it, so a direct call to `dmgRange` is structurally blind to both halves. `tantrumAfter(` spends
+ * TWO OR THREE real turns, because the mechanic is a fact carried ACROSS a turn boundary: what a base
+ * power reads this turn depends on how the previous turn ended, and no single-turn probe can see it. */
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -6747,6 +6754,229 @@ probe('move', 'redirects', 'a Follow Me redirect adds no line, and a Lightning R
            detail: `announcement lines on a redirected Thunderbolt — no redirector ${plain.length}; `
                  + `Follow Me ${drawn.length} [${drawn[0] || 'none'}] (Showdown writes none); `
                  + `Lightning Rod ${rod.length} [${rod[0] || 'NONE'}]` };
+});
+
+/* ================= ROADMAP #81 WIRE 9 / ROADMAP #84 ================================================
+ *
+ * TWO CLAIMS, MEASURED APART, and the first one turned out not to be the claim the roadmap made.
+ *
+ * The roadmap read the release ladder's largest surviving cause — `|-miss|ATT|TGT <> |-fail|ATT`,
+ * 114 games in four slot spellings — as an ANNOUNCEMENT defect: we collapse a miss into a fail and
+ * drop the target. Staged in both engines it is a STATE defect and a much larger one.
+ * `playerAction()` prices an attack with `dmgRange(me, target, ...)`, so its damaging branch is
+ * gated on `target` being non-null — and a SPREAD move has no target to name. Showdown's own
+ * request offers none (`allAdjacentFoes` / `allAdjacent` carry no target field), so every driver
+ * that asks Showdown what is legal hands this engine a null, the click falls through the whole
+ * status chain, and Heat Wave becomes `{kind:'affect'}` — a no-op turn that emits a bare `|-fail|`.
+ * Earthquake becomes `{kind:'pass'}` and emits nothing at all.
+ *
+ * That is 56,524 corpus uses across 33 legal moves — 20% of every damaging click in the format —
+ * dealing ZERO. The `-fail` the ladder saw is the residue of it, visible only because Mode A's pin
+ * misses every sub-100-accuracy move on BOTH sides, so the 90-accuracy spread moves were the ones
+ * that reached the stream as a divergence rather than as a damage hole.
+ *
+ * `spreadTargetless(` is DECLARED IN REALTURN, deliberately and with its reason, exactly as
+ * `moveLines(` and `entryLines(` were: it stages a real doubles board through `battleInit`, spends a
+ * real turn through `battleTurn` and reads BOTH foes' HP and the emitted stream. It cannot be a
+ * direct call — the whole defect is in what `playerAction` builds and what the turn loop then does
+ * with it, and no direct call to `dmgRange` can see either half. */
+const spreadTargetless = (moveId, named, roll) => {
+  const me = bare('gholdengo'), ally = bare('incineroar');
+  const f1 = bare('garchomp'), f2 = bare('milotic');
+  unfaintable(f1); unfaintable(f2); unfaintable(ally);
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const trace = []; S._trace = trace;
+  const h1 = f1.curHP, h2 = f2.curHP;
+  M.battleTurn(S, roll || rng5,
+    new Map([[me, M.playerAction(me, moveId, named ? f1 : null, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return { a: h1 - f1.curHP, b: h2 - f2.curHP,
+           miss: trace.filter(l => l.startsWith('|-miss|')),
+           fail: trace.filter(l => l.startsWith('|-fail|')) };
+};
+
+/* THE CONTROL IS THE SAME CLICK WITH THE TARGET NAMED, on the same board, and it is not optional:
+ * "both foes took damage" is also what an engine that ignores the target argument entirely prints,
+ * and the assertion here is an EQUALITY between the two arms. So the arms are the two HP pairs, and
+ * a third reading — a SINGLE-target move with the target withheld — is asserted to still be a no-op,
+ * because Showdown rejects that choice and an engine that aimed it for you would be inventing a
+ * decision nobody made. */
+probe('move', 'spreadFoes', 'a spread move clicked with NO named target still hits both foes', () => {
+  const named = spreadTargetless('makeitrain', true);
+  const bare_ = spreadTargetless('makeitrain', false);
+  const single = spreadTargetless('shadowball', false);
+  return { works: named.a > 0 && named.b > 0 && bare_.a === named.a && bare_.b === named.b
+                  && single.a === 0 && single.b === 0,
+           /* THE ARMS ARE THE SINGLE-TARGET CLICK AGAINST THE SPREAD ONE, both with the target
+            * withheld — not the two spread arms, which this probe asserts are EQUAL and which the
+            * harness would rightly call hollow. What they clear is the wrong fix: an engine that
+            * simply aimed every targetless click at the nearest foe would also make both foes take
+            * damage, and would make the Shadow Ball arm non-zero. */
+           arms: { control: [single.a, single.b], test: [bare_.a, bare_.b] },
+           detail: `Make It Rain, target NAMED -> ${named.a}/${named.b}; target WITHHELD -> `
+                 + `${bare_.a}/${bare_.b} (Showdown's request names no target for allAdjacentFoes); `
+                 + `a single-target Shadow Ball with the target withheld stays a no-op `
+                 + `${single.a}/${single.b}` };
+});
+
+/* AND THE ANNOUNCEMENT HALF, WHICH IS THE CLAIM THE ROADMAP ACTUALLY MADE. `hitStepAccuracy` writes
+ * `this.battle.add('-miss', pokemon, target)` once PER TARGET (sim/battle-actions.ts:738), so a
+ * spread move that misses two bodies writes two lines and each NAMES the body it missed. This engine
+ * rolls once for the whole move — a declared divergence it keeps — and wrote one bare `|-miss|` with
+ * an empty target field.
+ *
+ * THE CONTROL IS THE SAME CLICK ON A WINNING ROLL, which must emit NO `-miss` and real damage. A
+ * probe asserting only "two -miss lines appear" passes on an engine that can no longer hit at all. */
+probe('move', 'spreadFoes', 'a spread move that misses names every target it missed', () => {
+  const missed = spreadTargetless('heatwave', false, rngLose);
+  const hit = spreadTargetless('heatwave', false, () => 0);
+  const named = spreadTargetless('heatwave', true, rngLose);
+  /* THE SHAPE IS ASSERTED, NOT JUST THE COUNT: `|-miss|ATTACKER|TARGET` is four fields and the
+   * fourth must NAME a foe slot. A bare `|-miss|p1a: X` is three, which is exactly what this engine
+   * emitted, and a count-only assertion would have passed on it the moment a second roll appeared. */
+  const ok = (r) => r.miss.length === 2
+    && r.miss.every(l => l.split('|').length === 4 && /^p2[ab]: /.test(l.split('|')[3]));
+  return { works: ok(missed) && ok(named)
+                  && missed.a === 0 && missed.b === 0 && hit.miss.length === 0
+                  && hit.a > 0 && hit.b > 0 && missed.fail.length === 0,
+           arms: { control: hit.miss.length, test: missed.miss.length },
+           detail: `Heat Wave on a LOSING roll emitted ${missed.miss.length} -miss line(s) `
+                 + `[${missed.miss.join(' ') || 'NONE'}] and ${missed.fail.length} -fail, dealing `
+                 + `${missed.a}/${missed.b}; on a WINNING roll ${hit.miss.length} -miss and `
+                 + `${hit.a}/${hit.b} damage; with the target named ${named.miss.length}` };
+});
+
+/* AND THE CLASS THE FIX OPENED. Making the family resolve made it reach code it had never reached:
+ * the ladder's WIRE 9 rung grew a whole new divergence class (`-activate: a different body`, 18
+ * games) because Wide Guard's announcement named NOBODY — `|-activate||move: Wide Guard`, an empty
+ * body field, because the engine emptied its target list before writing the line. Showdown's
+ * `add('-activate', target, 'move: Wide Guard')` fires inside the per-target TryHit event, so there
+ * is one line per shielded body and each names it.
+ *
+ * A STREAM PROBE, LABELLED AS ONE: the state is identical either way — both engines block the move
+ * and both deal zero — so this cannot be read off HP, and the probe asserts the zero as well so
+ * "no lines" cannot come to mean "no block". */
+probe('move', 'oneTurnGuard', 'Wide Guard names each body it shielded, one line per body', () => {
+  const run = (guard) => {
+    const me = bare('charizard'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    unfaintable(f1); unfaintable(f2);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    const h1 = f1.curHP, h2 = f2.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'heatwave', null, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, guard ? M.playerAction(f1, 'wideguard', null, S.field) : { kind: 'pass' }],
+               [f2, { kind: 'pass' }]]));
+    return { lines: trace.filter(l => /^\|-activate\|.*Wide Guard/.test(l)),
+             dealt: (h1 - f1.curHP) + (h2 - f2.curHP) };
+  };
+  const on = run(true), off = run(false);
+  return { works: on.lines.length === 2 && on.dealt === 0
+                  && on.lines.every(l => /^\|-activate\|p2[ab]: /.test(l))
+                  && off.lines.length === 0 && off.dealt > 0,
+           arms: { control: off.lines.length, test: on.lines.length },
+           detail: `Heat Wave into a Wide Guard — ${on.lines.length} -activate line(s) `
+                 + `[${on.lines.join(' ') || 'NONE'}] and ${on.dealt} damage dealt; with no Wide Guard `
+                 + `${off.lines.length} line(s) and ${off.dealt} damage` };
+});
+
+/* AND THE OTHER THING THE FAMILY REACHED FOR THE FIRST TIME: WHO A QUAKE HITS FIRST.
+ *
+ * `Pokemon.getMoveTargets` (sim/pokemon.ts:809) builds an `allAdjacent` list allies-first and falls
+ * through to the foes, so Showdown writes `[spread] p1b,p2a,p2b` — your own partner, then both
+ * opponents. This engine appended the partner LAST. Measured in the authority before the line moved,
+ * not inferred from the switch statement.
+ *
+ * A STREAM PROBE, LABELLED: the three bodies take the same damage either way, so the total is
+ * asserted beside the order and "the right order" cannot come to mean "the quake stopped hitting
+ * somebody". The CONTROL is a `spreadFoes` move on the same board, whose ally is not hit at all and
+ * whose order must therefore be foes-only — without it this passes on an engine that simply reversed
+ * every target list. */
+probe('move', 'spreadAll', 'a quake resolves against your own partner FIRST, then the foes', () => {
+  const run = (mv) => {
+    const me = bare('garchomp'), ally = bare('incineroar');
+    const f1 = bare('milotic'), f2 = bare('tyranitar');
+    unfaintable(ally); unfaintable(f1); unfaintable(f2);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    const h = [ally.curHP, f1.curHP, f2.curHP];
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, null, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { order: trace.filter(l => /^\|-damage\|/.test(l)).map(l => l.split('|')[2].split(':')[0]),
+             dealt: (h[0] - ally.curHP) + (h[1] - f1.curHP) + (h[2] - f2.curHP) };
+  };
+  const quake = run('earthquake'), slide = run('rockslide');
+  return { works: JSON.stringify(quake.order) === JSON.stringify(['p1b', 'p2a', 'p2b'])
+                  && JSON.stringify(slide.order) === JSON.stringify(['p2a', 'p2b'])
+                  && quake.dealt > 0 && slide.dealt > 0,
+           arms: { control: slide.order, test: quake.order },
+           detail: `-damage order — Earthquake (spreadAll) [${quake.order.join(',')}] dealing `
+                 + `${quake.dealt} in total; Rock Slide (spreadFoes, no ally packet) `
+                 + `[${slide.order.join(',')}] dealing ${slide.dealt}` };
+});
+
+/* ---- ROADMAP #84 — SHOWDOWN SPLITS "MY MOVE DID NOT HAPPEN" IN TWO, AND THIS ENGINE HAD NEITHER ---
+ *
+ * `sim/battle-actions.ts:255` says it in a comment that names the move it matters for:
+ *     false indicates that this counts as a move failing for the purpose of calculating
+ *       Stomping Tantrum's base power
+ *     null indicates the opposite, as the Pokemon didn't have an option to choose anything
+ * and `stompingtantrum`'s basePowerCallback tests `pokemon.moveLastTurnResult === false` — strictly
+ * false, so `null` and `undefined` both leave it at 75.
+ *
+ * EACH MEMBER WAS CHECKED INDIVIDUALLY AGAINST THE SOURCE rather than grouped from memory, because
+ * the two groups are NOT "things that stopped you" versus "things you chose":
+ *     false  flinch (conditions.ts:205), full paralysis (:43), freeze (:104), sleep (:76),
+ *            Taunt (moves.ts), Throat Chop, Disable, no PP, a beforeMoveCallback, A MISS, a type
+ *            immunity — anything that reaches trySpreadMoveHit with an explicit failure
+ *     null   recharge (conditions.ts:372) — and PROTECT, which is the counter-intuitive one:
+ *            protect's onTryHit returns `this.NOT_FAIL` (''), which is falsy but not `false`, so
+ *            `atLeastOneFailure` stays false and battle-actions.ts:616 writes null
+ *
+ * MEASURED BEFORE ANYTHING CHANGED: medicham2 stored NO move result at all — not one boolean, not a
+ * field, nothing. `moveResult` appears in the file exactly once, inside a comment. So Stomping
+ * Tantrum was wrong in ONE direction only (it never doubled, 3,545 corpus uses), and the split was
+ * not representable rather than mis-represented. */
+const tantrumAfter = (setup) => {
+  const me = bare('mudsdale'), ally = bare('incineroar');
+  const f1 = bare('milotic'), f2 = bare('milotic');
+  unfaintable(f1); unfaintable(f2); unfaintable(me); unfaintable(ally);
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  /* TURN 1 — the thing that did or did not count as a failure. */
+  setup(S, me, ally, f1, f2);
+  /* TURN 2 — Stomping Tantrum, aimed, and the HP loss is the base power made visible. */
+  const h = f1.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'stompingtantrum', f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return h - f1.curHP;
+};
+
+probe('move', 'variablePower', 'a FLINCHED Stomping Tantrum doubles next turn and a RECHARGING one does not', () => {
+  /* CLEAN: the user acted normally last turn, so the result is `true` and the move stays at 75. */
+  const clean = tantrumAfter((S, me, ally, f1, f2) => {
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'stompingtantrum', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+  });
+  /* FALSE: Fake Out flinches it. conditions.ts:205 returns false, so this counts. */
+  const flinched = tantrumAfter((S, me, ally, f1, f2) => {
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'stompingtantrum', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'fakeout', me, S.field)], [f2, { kind: 'pass' }]]));
+  });
+  /* NULL: Hyper Beam lands, the NEXT turn is the recharge. conditions.ts:372 returns null, so the
+   * turn after the recharge must still be 75 — the whole point of the split. */
+  const recharged = tantrumAfter((S, me, ally, f1, f2) => {
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'hyperbeam', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'stompingtantrum', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+  });
+  return { works: clean > 0 && flinched >= clean * 1.8 && flinched <= clean * 2.2 && recharged === clean,
+           arms: { control: clean, test: flinched },
+           detail: `Stomping Tantrum into the same Milotic — after a clean turn ${clean}; after a Fake `
+                 + `Out FLINCH ${flinched} (BeforeMove returned false, so it counts); after a RECHARGE `
+                 + `turn ${recharged} (BeforeMove returned null, so it must not)` };
 });
 
 const works = results.filter(r => r.works);
