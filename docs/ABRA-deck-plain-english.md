@@ -1,8 +1,8 @@
 # ABRA — the plain-English deck
 
-**Version 3.67.0 · 2026-08-07 · Will Hooper**
+**Version 3.68.0 · 2026-08-07 · Will Hooper**
 
-**What changed (3.67.0): we went back and checked what a night of engine fixes was actually worth,
+**What changed (3.68.0): we went back and checked what a night of engine fixes was actually worth,
 and the honest answer is less than it looked.**
 
 One night we found and fixed six things wrong with our engine, and each fix reported a before-and-after

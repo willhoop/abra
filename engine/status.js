@@ -398,6 +398,30 @@ function measure() {
     }
   } else say('  leaf calibration: NOT DERIVED (data/winrate-backtest.json absent)');
 
+  /* DOES A MORE CORRECT ENGINE MAKE BETTER PREDICTIONS? The line above says whether the leaf is
+   * calibrated. This one says whether ENGINE WORK IS WHAT WOULD FIX IT — the same positions and the
+   * same seeds through two frozen releases that differ in exactly one file, joined per position to the
+   * differential's own divergence depth. It is printed with its NOISE FLOOR and its DEPTH-INSTRUMENT
+   * RELIABILITY beside it, because both numbers here are small and a small number without its floor is
+   * how an effect gets believed and a null gets published from a ruler with no resolution. */
+  const lc = j('leaf-engine-contrast.json');
+  if (lc) {
+    const c = lc.engine_vs_engine, jt = lc.joint || {};
+    say(`  engine correctness -> leaf: ${lc.verdict}`);
+    say(`    ${c.n_paired.toLocaleString()} paired positions, ${lc.leaf_config.n_rollouts} rollouts each, ` +
+        `releases ${lc.releases.baseline.id} -> ${lc.releases.top.id}   (${day(mtime('data/leaf-engine-contrast.json'))})`);
+    say(`    Brier TOP-BASELINE ${c.brier_top_minus_baseline.mean} [${c.brier_top_minus_baseline.ci95.join(', ')}]  ` +
+        `noise floor ${c.noise_floor.split_half_delta_spread}  detectable |delta| >= ${c.observed_mde_80pct}`);
+    if (jt.lines && jt.turns) {
+      const r = jt.depth_instrument_reliability;
+      say(`    does divergence depth predict leaf error?  LINES rho ${jt.lines.top.rho} ` +
+          `[${jt.lines.top.ci95_bootstrap.join(', ')}]   TURNS rho ${jt.turns.top.rho} ` +
+          `[${jt.turns.top.ci95_bootstrap.join(', ')}]   (MDE ${jt.lines.top.mde_at_80pct_power})`);
+      say(`    the depth ruler's own reliability (same release, driver order reversed): rho ` +
+          `${r.spearman_forward_vs_reversed.rho} on n=${r.n} — the ceiling on the two rho above`);
+    }
+  } else say('  engine correctness -> leaf: NOT DERIVED (data/leaf-engine-contrast.json absent)');
+
   /* provenance is the canonical staleness authority; do not reimplement its rules here. Lesson 8. */
   let prov = null, provRan = false;
   /* A NON-ZERO EXIT IS A VERDICT, NOT A CRASH, AND THIS USED TO DISCARD IT.

@@ -1998,8 +1998,12 @@ demoSource('ROADMAP #31  the turn re-sorts around the new Speed the mega brought
  *    never runs its onStart, so Mega Manectric arrives with Intimidate written on it and nothing
  *    dropped - which is exactly the shape WIRE 123 had. */
 demoSource('ROADMAP #31  an entry ability on the mega forme fires when it evolves',
-  [['  applyEntryEffects(m,S.field,own.find(x=>x&&x!==m));\n  applyEntryDrops(m,_live(foes));\n  sf.megaUsed=true;',
-    '  void own; void foes;\n  sf.megaUsed=true;']],
+  /* ROADMAP #81 WIRE 11 -- the pattern gained the White Herb line that now sits between the entry
+   * drops and `sf.megaUsed`. The reversal is the same reversal: it removes the mega's own entry
+   * effects and leaves everything else alone, so the herb call is carried across rather than deleted
+   * (deleting it would make this demo also a herb demo, and it would then be red for two reasons). */
+  [['  applyEntryEffects(m,S.field,own.find(x=>x&&x!==m));\n  applyEntryDrops(m,_live(foes));',
+    '  void own; void foes;']],
   (E) => {
     const me = MEGA_BODY(E, 'manectric', 'manectite');
     const ally = bare('clefable'), f1 = bare('garchomp'), f2 = bare('milotic');
@@ -3101,6 +3105,363 @@ demoSource('ROADMAP #81 WIRE 10  a target that faints mid-spread does not interr
     + `clicks byte-identical under the step driver and the reverted per-target driver`
     + (diff.length ? '   MOVED: ' + diff.join(', ') : '')
     + (notSingle.length ? '   NOT ACTUALLY SINGLE-TARGET: ' + [...new Set(notSingle)].join(', ') : ''));
+}
+
+
+/* ---- ROADMAP #81 WIRE 11 — FOUR DEFECTS, EACH ON ITS OWN REVERTED ENGINE ------------------------
+ *
+ * Read from `sim/battle-actions.ts`, `sim/battle.ts`, `data/items.ts` and `data/abilities.ts`, not
+ * from a summary of them. Seven demonstrations. SIX READ STATE ONLY — HP, the item slot, a stat
+ * stage, and the Speed that decided who moved first — and the seventh reads the damage-line ORDER
+ * with both bodies' HP asserted beside it, because an order is the whole of that defect and there is
+ * no state reading that can see it.
+ *
+ * EVERY REVERSAL ASSERTS IT APPLIED (revertedEngine throws on a pattern that no longer matches), so a
+ * demo cannot go green because its known-bad engine quietly failed to be bad. */
+
+const W11_SPREAD_REVERT = [[
+  '          let d=dmgRange(m,tg,mv,field,_spreadHit,isCrit);',
+  '          let d=dmgRange(m,tg,mv,field,a.move.spread&&targets.length>1,isCrit);']];
+
+const W11_HERB_REVERT = [[
+  'function restoreStatsAll(a,b){\n  let n=0;\n  for(const x of [...(a||[]),...(b||[])])if(x&&restoreStatsUpdate(x))n++;\n  return n;\n}',
+  'function restoreStatsAll(a,b){\n  return 0;   /* WIRE 11 REVERTED: the residual keeps its own call, the other three do nothing */\n}']];
+
+const W11_ORDER_REVERT = [
+  ['        /* WIRE 11 REVERT ANCHOR -- THE OLD CALL SITE, and it is a comment on purpose. This engine ran',
+   '        _koThisHit=dmg>=tg.curHP;_damagingHit();\n        /* WIRE 11 REVERTED -- THE OLD CALL SITE. This engine ran'],
+  ['        _damagingHit();   /* ROADMAP #81 WIRE 11 -- the reactors, AFTER the damage */',
+   '        ;                 /* WIRE 11 REVERTED -- the reactors already ran, above the damage */']];
+
+const W11_CRIT_REVERT = [
+  ['  const _critIgnA=_critHere&&_aBody.boosts[_aKey]<0;\n  const _critIgnD=_critHere&&def.boosts[_dKey]>0;',
+   '  const _critIgnA=false;\n  const _critIgnD=false;   /* WIRE 11 REVERTED */'],
+  ["  if(_sf&&!_critHere&&!TAGS.has('ability',attAb,'ignoresScreensAndSubs')){",
+   "  if(_sf&&!TAGS.has('ability',attAb,'ignoresScreensAndSubs')){   /* WIRE 11 REVERTED */"]];
+
+const W11 = {
+  /* Will's live case: Dazzling Gleam into a Protecting Pelipper beside an Archaludon. `partner` is
+   * 'alive', 'protect' or 'fainted'; the number returned is what the SURVIVOR lost. */
+  gleam(E, partner) {
+    const me = W7.bare(E, 'gholdengo'), ally = W7.bare(E, 'incineroar'); W7.big(ally);
+    const f1 = W7.bare(E, 'archaludon'), f2 = W7.bare(E, 'pelipper');
+    W7.big(f1); W7.big(f2);
+    if (partner === 'fainted') { f2.fainted = true; f2.curHP = 0; }
+    const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+    const h1 = f1.curHP;
+    E.battleTurn(S, rng5,
+      new Map([[me, E.playerAction(me, 'dazzlinggleam', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }],
+               [f2, partner === 'protect' ? { kind: 'protect', mv: 'protect' } : { kind: 'pass' }]]));
+    return { d: h1 - f1.curHP, partnerLeft: f2.curHP, partnerMax: f2.st.hp };
+  },
+  /* Incineroar Intimidates a Sneasler holding `item`. NO turn is spent, so the residual — which has
+   * restored stats since WIRE 56 — cannot supply the answer and the switch-in trigger has to. */
+  intim(E, item) {
+    const me = W7.bare(E, 'incineroar'); me.ability = 'intimidate';
+    const ally = W7.bare(E, 'corviknight');
+    const f1 = W7.bare(E, 'sneasler'); f1.item = item; f1.ability = 'none';
+    const f2 = W7.bare(E, 'garchomp');
+    E.battleInit([me, ally], [f1, f2], {});
+    return { at: f1.boosts.at, item: f1.item };
+  },
+  /* The Unburden half, read as an OUTCOME. Sneasler at an explicit 100 Speed against an Intimidating
+   * Incineroar at 150 left on 1 HP: if the herb really came off mid-turn, Unburden doubles 100 to 200,
+   * Sneasler moves first, the Incineroar dies before acting and Sneasler takes nothing back. */
+  unburden(E, item) {
+    const me = W7.bare(E, 'sneasler'); me.item = item; me.ability = 'unburden';
+    me.st = Object.assign({}, me.st, { sp: 100 });
+    const ally = W7.bare(E, 'corviknight');
+    const f1 = W7.bare(E, 'incineroar'); f1.ability = 'intimidate';
+    f1.st = Object.assign({}, f1.st, { sp: 150 }); f1.curHP = 1;
+    const f2 = W7.bare(E, 'garchomp');
+    const S = E.battleInit([me, ally], [f1, f2], {});
+    const mine = me.curHP;
+    E.battleTurn(S, rng5,
+      new Map([[me, E.playerAction(me, 'closecombat', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, E.playerAction(f1, 'flareblitz', me, S.field)], [f2, { kind: 'pass' }]]));
+    return { took: mine - me.curHP, foeDead: !!f1.fainted };
+  },
+  /* Tyranitar Knock Off (contact) into a 20 HP Aftermath body. Returns what the ATTACKER paid. */
+  aftermath(E, item) {
+    const me = W7.bare(E, 'tyranitar'), ally = W7.bare(E, 'corviknight');
+    const f1 = W7.bare(E, 'milotic'); f1.ability = 'aftermath'; f1.item = item;
+    f1.st = Object.assign({}, f1.st, { hp: 20 }); f1.curHP = 20;
+    const f2 = W7.bare(E, 'garchomp');
+    const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+    const mine = me.curHP;
+    E.battleTurn(S, rng5,
+      new Map([[me, E.playerAction(me, 'knockoff', f1, S.field)], [ally, { kind: 'pass' }]]),
+      W7.pass2(f1, f2));
+    return { paid: mine - me.curHP, left: f1.curHP, dead: !!f1.fainted };
+  },
+  /* The same click into a Rough Skin body that CANNOT die, read as the order of the two damage lines
+   * with both HP deltas carried out beside them. */
+  order(E, defAbility) {
+    const me = W7.bare(E, 'tyranitar'), ally = W7.bare(E, 'corviknight');
+    const f1 = W7.bare(E, 'garchomp'); f1.ability = defAbility; W7.big(f1);
+    const f2 = W7.bare(E, 'milotic');
+    const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    const h1 = f1.curHP, hm = me.curHP;
+    E.battleTurn(S, rng5,
+      new Map([[me, E.playerAction(me, 'knockoff', f1, S.field)], [ally, { kind: 'pass' }]]),
+      W7.pass2(f1, f2));
+    return { shape: trace.map(String)
+               .map(l => /^\|-damage\|p2a/.test(l) ? 'target' : /^\|-damage\|p1a/.test(l) ? 'attacker' : null)
+               .filter(Boolean).join(','),
+             d: h1 - f1.curHP, paid: hm - me.curHP };
+  },
+  /* A REAL Intimidate from the second foe slot, so the -1 Attack arrives through the path it arrives
+   * through in a game. Flower Trick is pCrit 1; Knock Off is the plain physical control. */
+  crit(E, moveId, intimidate) {
+    const me = W7.bare(E, 'meowscarada'), ally = W7.bare(E, 'corviknight');
+    const f1 = W7.bare(E, 'garchomp'); W7.big(f1);
+    const f2 = W7.bare(E, 'incineroar'); f2.ability = intimidate ? 'intimidate' : 'none';
+    const S = E.battleInit([me, ally], [f1, f2], {});
+    const h1 = f1.curHP;
+    E.battleTurn(S, rng5,
+      new Map([[me, E.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+      W7.pass2(f1, f2));
+    return { d: h1 - f1.curHP, at: me.boosts.at };
+  },
+  /* the same click with a chosen Defence stage on the target, or a Reflect over its side */
+  critBoard(E, moveId, dfStage, reflect) {
+    const me = W7.bare(E, 'meowscarada'), ally = W7.bare(E, 'corviknight');
+    const f1 = W7.bare(E, 'garchomp'); W7.big(f1); f1.boosts.df = dfStage;
+    const f2 = W7.bare(E, 'milotic');
+    const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+    if (reflect) S.sfB.sc.reflect = 5;
+    const h1 = f1.curHP;
+    E.battleTurn(S, rng5,
+      new Map([[me, E.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+      W7.pass2(f1, f2));
+    return h1 - f1.curHP;
+  },
+};
+
+/* 1. THE SPREAD MODIFIER IS DECIDED BY TARGETS ENTERED. `if (targets.length > 1 && !move.smartTarget)
+ *    move.spreadHit = true;` is the first line of `trySpreadMoveHit` (battle-actions.ts:551), above
+ *    the whole step list — so a partner behind a Protect is still IN the array and the survivor still
+ *    eats the 0.75. Three arms, because two cannot separate "the modifier is right" from "there is no
+ *    modifier": the shielded arm must EQUAL the both-alive arm and must be 0.75 of the fainted one.
+ *    The fainted arm is carried on both engines as the control and must not move. */
+demoSource('ROADMAP #81 WIRE 11  a PROTECTING partner still costs the survivor the spread 0.75',
+  W11_SPREAD_REVERT,
+  (E) => {
+    const both = W11.gleam(E, 'alive'), shield = W11.gleam(E, 'protect'), alone = W11.gleam(E, 'fainted');
+    const r = alone.d ? shield.d / alone.d : 0;
+    return both.d > 0 && alone.d > both.d && shield.d === both.d
+        && shield.partnerLeft === shield.partnerMax   /* the Protect really held */
+        && r > 0.72 && r < 0.78;
+  });
+
+/* 2. WHITE HERB ON THE SWITCH-IN — the item slot and the stat stage, no turn spent. The reverted
+ *    engine is WIRE 56's: the herb still works at the RESIDUAL, so this arm is only red because no
+ *    turn has passed, which is exactly the defect (a whole turn played at -1). The Leftovers control
+ *    must hold on BOTH engines, so "the slot emptied" cannot mean "the body never had an item". */
+demoSource('ROADMAP #81 WIRE 11  White Herb answers Intimidate on the SWITCH-IN, not a turn later',
+  W11_HERB_REVERT,
+  (E) => {
+    const control = W11.intim(E, 'leftovers'), test = W11.intim(E, 'whiteherb');
+    return control.at === -1 && control.item === 'leftovers'
+        && test.at === 0 && test.item === '';
+  });
+
+/* 3. AND THE THIRD EFFECT IS THE ONE THAT MATTERS: losing the item procs Unburden, which is a SPEED
+ *    TIER CHANGE MID-TURN. Read as who got there first, never as a Speed number. */
+demoSource('ROADMAP #81 WIRE 11  a White Herb spent to Intimidate procs Unburden in the same turn',
+  W11_HERB_REVERT,
+  (E) => {
+    const control = W11.unburden(E, 'leftovers'), test = W11.unburden(E, 'whiteherb');
+    return control.took > 0 && control.foeDead && test.took === 0 && test.foeDead;
+  });
+
+/* 4. THE CONTACT PUNISH, ON HP. Aftermath's gate is `!target.hp` — the HP after the Sash. The
+ *    reverted engine reads the RAW damage against the pre-Sash HP, so a body that survives at 1
+ *    detonates anyway. The no-item arm must fire on BOTH engines: without it this would pass on an
+ *    engine that had simply lost Aftermath. */
+demoSource('ROADMAP #81 WIRE 11  a Focus Sash survivor does not set off Aftermath',
+  W11_ORDER_REVERT,
+  (E) => {
+    const control = W11.aftermath(E, ''), test = W11.aftermath(E, 'focussash');
+    const quarter = Math.floor(W7.bare(E, 'tyranitar').st.hp / 4);
+    return control.dead && control.paid === quarter
+        && !test.dead && test.left === 1 && test.paid === 0;
+  });
+
+/* 5. THE ORDER ITSELF, which has no state reading. `spreadDamage` is step 2 of `spreadMoveHit`
+ *    (battle-actions.ts:1079) and `runEvent('DamagingHit')` is four steps later (:1117). Both bodies'
+ *    HP is asserted equal to the no-ability control, so "the right order" cannot come to mean "the
+ *    toll stopped being paid" or "the move stopped landing". */
+demoSource('ROADMAP #81 WIRE 11  the contact punish is paid AFTER the damage lands',
+  W11_ORDER_REVERT,
+  (E) => {
+    const control = W11.order(E, 'none'), test = W11.order(E, 'roughskin');
+    const eighth = Math.floor(W7.bare(E, 'tyranitar').st.hp / 8);
+    return control.shape === 'target' && control.paid === 0 && control.d > 0
+        && test.shape === 'target,attacker' && test.paid === eighth && test.d === control.d;
+  });
+
+/* 6. A CRIT IGNORES THE ATTACKER'S NEGATIVE ATTACK STAGE. `ignoreOffensive = (moveHit.crit &&
+ *    atkBoosts < 0)` (battle-actions.ts:1683-1691). Intimidate is on 31,129 observed sets, which is
+ *    why this is the expensive member of the family. The plain-move arm must MOVE on both engines —
+ *    it is the proof that the -1 costs anything at all. */
+demoSource('ROADMAP #81 WIRE 11  an Intimidated attacker lands a guaranteed crit at FULL Attack',
+  W11_CRIT_REVERT,
+  (E) => {
+    const p0 = W11.crit(E, 'knockoff', false), p1 = W11.crit(E, 'knockoff', true);
+    const c0 = W11.crit(E, 'flowertrick', false), c1 = W11.crit(E, 'flowertrick', true);
+    return p0.at === 0 && p1.at === -1 && c1.at === -1
+        && p1.d < p0.d && c0.d > 0 && c1.d === c0.d;
+  });
+
+/* 7. THE OTHER TWO IGNORES, AND THE SIGN THAT IS *NOT* IGNORED. A crit refuses the defender's
+ *    POSITIVE Defence stage and a screen, and still takes a NEGATIVE Defence stage — an engine that
+ *    simply dropped the defender's boost multiplier on a crit would pass a two-armed version of this
+ *    and be wrong in the other direction, so the minus arm is carried. */
+demoSource('ROADMAP #81 WIRE 11  a crit ignores a POSITIVE Defence stage and Reflect, and not a negative one',
+  W11_CRIT_REVERT,
+  (E) => {
+    const p0 = W11.critBoard(E, 'knockoff', 0, false), p2 = W11.critBoard(E, 'knockoff', 2, false);
+    const c0 = W11.critBoard(E, 'flowertrick', 0, false), c2 = W11.critBoard(E, 'flowertrick', 2, false);
+    const sp = W11.critBoard(E, 'knockoff', 0, true), sc = W11.critBoard(E, 'flowertrick', 0, true);
+    const cn = W11.critBoard(E, 'flowertrick', -2, false);
+    return p2 < p0 && c0 > 0 && c2 === c0        /* the +2 is ignored by the crit and not by the plain move */
+        && sp < p0 && sc === c0                  /* Reflect likewise */
+        && cn > c0;                              /* and a MINUS still counts */
+  });
+
+/* ---- AND THE CONTROL FOR THE CRIT WIRE, WHICH IS THE OPPOSITE CLAIM AND CANNOT BE A `demoSource` --
+ *
+ * A crit that ignores NOTHING must price exactly as it did before this wire, and a BURN must survive
+ * a crit. Both arms have to AGREE, which is the shape demoSource rejects, so they are asserted
+ * directly. The burn half is the trap Will named — "i dont think it ignores burn tho" — and it is a
+ * guard against a future pass "completing" the list with a fourth member that does not exist. */
+{
+  const bad = revertedEngine(W11_CRIT_REVERT);
+  const plainCrit = (E) => W11.critBoard(E, 'flowertrick', 0, false);
+  const burned = (E) => {
+    const me = W7.bare(E, 'meowscarada'), ally = W7.bare(E, 'corviknight');
+    const f1 = W7.bare(E, 'garchomp'); W7.big(f1);
+    const f2 = W7.bare(E, 'milotic');
+    const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+    me.status = 'brn';
+    const h1 = f1.curHP;
+    E.battleTurn(S, rng5,
+      new Map([[me, E.playerAction(me, 'flowertrick', f1, S.field)], [ally, { kind: 'pass' }]]),
+      W7.pass2(f1, f2));
+    return h1 - f1.curHP;
+  };
+  const a = plainCrit(M), b = plainCrit(bad), ba = burned(M), bb = burned(bad);
+  ran++;
+  const ok = a === b && a > 0 && ba < a && ba === bb;
+  if (!ok) failures++;
+  console.log('  ' + (ok ? 'OK   ' : 'FAIL ') + 'ROADMAP #81 WIRE 11  CONTROL: a crit with nothing to '
+    + 'ignore is UNCHANGED (' + a + ' vs ' + b + ') and a crit under a BURN is still halved ('
+    + ba + ' vs ' + bb + ') — burn is a multiplier, not a stage');
+}
+
+
+/* ---- THE ATTRIBUTION CONTROL FOR THE WHOLE OF WIRE 11 --------------------------------------------
+ *
+ * The seven demonstrations above each show ONE thing moving. This shows that NOTHING ELSE did, which
+ * is the claim a wire cannot make about itself and is the reason WIRE 10's rung was attributable at
+ * all. All three reversals are applied AT ONCE, so the arm is the engine exactly as it stood before
+ * this pass, and a batch of ordinary clicks is played through both.
+ *
+ * IT IS A STATE COMPARISON AND NOT A STREAM ONE, DELIBERATELY, and the split is the finding rather
+ * than a convenience:
+ *
+ *   - the STATE of every body — HP, boosts, item, status, fainted — must be IDENTICAL on every row.
+ *     None of these rows has a crit-ignorable stage, a screen, a shielded partner or an `onFaintOnly`
+ *     reactor in it, so no rule this wire touched can reach them, and if one moves the wire has a
+ *     reach nobody declared.
+ *   - the STREAM must be identical on every row with NO reactor at all, and must DIFFER on every row
+ *     whose reactor pays an UNCONDITIONAL toll — because the contact punish moved below the damage
+ *     line and that is the whole of defect 3. Asserting only the first half would let a build that
+ *     silently stopped reordering pass; asserting only the second would not notice a reorder leaking
+ *     into rows with no reactor at all.
+ *
+ * AND A THIRD CLASS, WHICH IS A FINDING AND NOT A CONVENIENCE. The first cut of this control put
+ * Static, Stamina and Weak Armor in the "must reorder" list and it went red on all three — correctly,
+ * and for two different reasons the list could not express:
+ *   - STATIC's toll is a 30% ROLL. On the pinned median die it does not fire at all, so two of its
+ *     three rolls produce an identical stream in both engines and the row is only sometimes a
+ *     reorder. It IS one at roll 0, and that is asserted separately below.
+ *   - STAMINA and WEAK ARMOR are `buffsHolderOnHit`, which this engine resolves in `_stepEffects`,
+ *     a LATER step that WIRE 11 did not touch. In Showdown they are `onDamagingHit` — the same event
+ *     as Rough Skin — so they SHOULD move with it. They did not, and that residual is filed in
+ *     docs/ENGINE.md rather than folded in here.
+ * So they are counted, printed and asserted neither way, with the reason. A row placed in the wrong
+ * class is reported by name. */
+{
+  const bad = revertedEngine(W11_SPREAD_REVERT.concat(W11_ORDER_REVERT).concat(W11_CRIT_REVERT));
+  /* [attacker, defender, defender ability, move, class] — 'none' the stream must not move,
+     'toll' it must, 'rolled/laterstep' it is counted and printed and asserted neither way. */
+  const ROWS = [
+    ['garchomp', 'milotic', 'none', 'earthpower', 'none'],
+    ['gholdengo', 'garchomp', 'none', 'shadowball', 'none'],
+    ['incineroar', 'milotic', 'none', 'flareblitz', 'none'],
+    ['garchomp', 'corviknight', 'none', 'dragonclaw', 'none'],
+    ['milotic', 'garchomp', 'none', 'scald', 'none'],
+    ['tyranitar', 'gholdengo', 'none', 'crunch', 'none'],
+    ['gholdengo', 'milotic', 'none', 'makeitrain', 'none'],
+    ['gholdengo', 'garchomp', 'none', 'dazzlinggleam', 'none'],
+    ['garchomp', 'milotic', 'none', 'earthquake', 'none'],
+    ['tyranitar', 'garchomp', 'roughskin', 'knockoff', 'toll'],
+    ['incineroar', 'garchomp', 'roughskin', 'flareblitz', 'toll'],
+    ['garchomp', 'corviknight', 'roughskin', 'dragonclaw', 'toll'],
+    ['tyranitar', 'milotic', 'static', 'knockoff', 'rolled'],
+    ['garchomp', 'milotic', 'stamina', 'dragonclaw', 'laterstep'],
+    ['incineroar', 'milotic', 'weakarmor', 'flareblitz', 'laterstep'],
+  ];
+  const play = (E, [att, def, defAb, mv], roll) => {
+    const me = W7.bare(E, att), ally = W7.bare(E, 'corviknight');
+    const f1 = W7.bare(E, def); f1.ability = defAb;
+    const f2 = W7.bare(E, 'milotic');
+    const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    E.battleTurn(S, roll,
+      new Map([[me, E.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      W7.pass2(f1, f2));
+    const body = (x) => [x.curHP, x.item, x.status || '', !!x.fainted, JSON.stringify(x.boosts)];
+    return { state: JSON.stringify([me, ally, f1, f2].map(body)),
+             stream: JSON.stringify(trace.map(String)) };
+  };
+  let stateSame = 0, stateMoved = [], streamShouldMatch = [], streamShouldDiffer = [], n = 0;
+  let thirdClassMoved = 0, thirdClassStill = 0;
+  const name = (r) => r[0] + ' ' + r[3] + ' -> ' + r[1] + (r[2] === 'none' ? '' : '/' + r[2]);
+  for (const row of ROWS) for (const roll of [rng5, () => 0.99, () => 0]) {
+    n++;
+    const A = play(M, row, roll), B = play(bad, row, roll);
+    if (A.state === B.state) stateSame++; else stateMoved.push(name(row));
+    const streamSame = A.stream === B.stream;
+    if (row[4] === 'none' && !streamSame) streamShouldMatch.push(name(row));
+    if (row[4] === 'toll' && streamSame) streamShouldDiffer.push(name(row));
+    if (row[4] !== 'none' && row[4] !== 'toll') { if (streamSame) thirdClassStill++; else thirdClassMoved++; }
+  }
+  /* AND STATIC IS PINNED SEPARATELY AT THE ROLL THAT FIRES IT, so "sometimes" cannot quietly become
+   * "never": at roll 0 its 30% paralysis lands, and the `|-status|` on the ATTACKER must sit after
+   * the `|-damage|` on the target rather than before it. */
+  const staticRow = ['tyranitar', 'milotic', 'static', 'knockoff'];
+  const sA = JSON.parse(play(M, staticRow, () => 0).stream).filter(l => /-damage\|p2a|-status\|p1a/.test(l));
+  const sB = JSON.parse(play(bad, staticRow, () => 0).stream).filter(l => /-damage\|p2a|-status\|p1a/.test(l));
+  const staticOK = sA.length === 2 && sB.length === 2
+    && /-damage/.test(sA[0]) && /-status/.test(sA[1])
+    && /-status/.test(sB[0]) && /-damage/.test(sB[1]);
+  ran++;
+  const ok = stateSame === n && !streamShouldMatch.length && !streamShouldDiffer.length && staticOK;
+  if (!ok) failures++;
+  console.log('  ' + (ok ? 'OK   ' : 'FAIL ') + 'ROADMAP #81 WIRE 11  CONTROL: ' + stateSame + '/' + n
+    + ' ordinary clicks land in an IDENTICAL state under all three reversals; the stream moves on '
+    + 'every unconditional-toll row and on no reactorless row; a ROLLED toll reorders at the roll that '
+    + 'fires it (' + (staticOK ? 'yes' : 'NO') + '); the `buffsHolderOnHit`/rolled class moved on '
+    + thirdClassMoved + ' and held still on ' + thirdClassStill + ' of its '
+    + (thirdClassMoved + thirdClassStill) + ' cells — asserted neither way, see the header'
+    + (stateMoved.length ? '   STATE MOVED: ' + [...new Set(stateMoved)].join(', ') : '')
+    + (streamShouldMatch.length ? '   STREAM MOVED WITH NO REACTOR: ' + [...new Set(streamShouldMatch)].join(', ') : '')
+    + (streamShouldDiffer.length ? '   TOLL ROW DID NOT REORDER: ' + [...new Set(streamShouldDiffer)].join(', ') : ''));
 }
 
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);

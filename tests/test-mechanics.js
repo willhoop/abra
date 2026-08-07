@@ -201,7 +201,16 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * reads HP, `stepShape(` and `spreadFaintOrder(` read the emitted stream — and each of the two stream
  * probes asserts HP beside the order, so "the right order" cannot come to mean "the move stopped
  * hitting somebody". */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(/;
+/* `gleamAt(`, `herbIntim(`, `herbMixed(`, `herbUnburden(`, `aftermathHit(`, `punishOrder(`,
+ * `critIntim(`, `critDef(`, `critScreen(` and `critBurn(` added 2026-08-07 with ROADMAP #81 WIRE 11,
+ * declared HERE and with their reasons, exactly as the paragraph above requires — the ratchet caught
+ * all ten as direct calls on their first run, which is the guard working. Every one of them stages a
+ * real doubles board through `battleInit` and spends a real turn through `battleTurn`; `herbIntim(`
+ * is the one that stops at `battleInit`, deliberately, because the mechanic it watches fires ON THE
+ * SWITCH-IN and a turn spent afterwards would let the residual — which already restores stats — do
+ * the work and hide the defect. Seven read HP, two read a stat stage and the item slot, and
+ * `punishOrder(` reads the stream with both bodies' HP asserted beside it. */
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -7110,6 +7119,333 @@ probe('move', 'variablePower', 'a FLINCHED Stomping Tantrum doubles next turn an
            detail: `Stomping Tantrum into the same Milotic — after a clean turn ${clean}; after a Fake `
                  + `Out FLINCH ${flinched} (BeforeMove returned false, so it counts); after a RECHARGE `
                  + `turn ${recharged} (BeforeMove returned null, so it must not)` };
+});
+
+/* ---- ROADMAP #81 WIRE 11 — FOUR DEFECTS WILL READ OFF REAL DIVERGENCES, 2026-08-07 ---------------
+ *
+ * Each of the four is read from the official source, not from a summary, and each probe asserts
+ * STATE — HP, the item slot, a stat stage, the Speed that decided who moved first.
+ *
+ *   1. `move.spreadHit` is set from the array that ENTERS the hit steps
+ *      (sim/battle-actions.ts:551, before any step filters it).
+ *   2. White Herb does three things and this engine did none of them (data/items.ts whiteherb,
+ *      data/abilities.ts unburden).
+ *   3. `DamagingHit` runs AFTER `spreadDamage` (sim/battle-actions.ts:1079 then :1117), and
+ *      Aftermath's own gate is `!target.hp` — the HP AFTER the Sash, not the raw damage.
+ *   4. `moveHit.crit` sets `ignoreNegativeOffensive` and `ignorePositiveDefensive`
+ *      (sim/battle-actions.ts:1683-1691) and a crit ignores screens. It does NOT ignore burn.
+ */
+
+/* 1a. THE PROTECTING PARTNER. Will's live case exactly: Dazzling Gleam into a Protecting Pelipper
+ *     beside an Archaludon read 130/165 in the authority against 118/165 here — 35 against 47, a
+ *     ratio of 0.745. The shielded body is still ALIVE and still in `targets` when `spreadHit` is
+ *     set, so the survivor eats the 0.75 anyway.
+ *
+ * THREE ARMS, because two cannot separate "the modifier is right" from "there is no modifier".
+ * `both` is the ordinary spread hit, `shield` is the same with the partner behind a Protect and must
+ * EQUAL it, and `alone` (1b) is the partner already fainted, which must be BIGGER. */
+const gleamAt = (partner) => {
+  const me = bare('gholdengo'), ally = bare('incineroar'); unfaintable(ally);
+  const f1 = bare('archaludon'), f2 = bare('pelipper');
+  unfaintable(f1); unfaintable(f2);
+  if (partner === 'fainted') { f2.fainted = true; f2.curHP = 0; }
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const h1 = f1.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'dazzlinggleam', f1, S.field)], [ally, { kind: 'pass' }]]),
+    new Map([[f1, { kind: 'pass' }],
+             [f2, partner === 'protect' ? { kind: 'protect', mv: 'protect' } : { kind: 'pass' }]]));
+  return { d: h1 - f1.curHP, partnerHP: f2.curHP, protectHeld: !!f2.protect };
+};
+probe('move', 'spreadFoes', 'a PROTECTING partner still costs the survivor the spread 0.75', () => {
+  const both = gleamAt('alive'), shield = gleamAt('protect'), alone = gleamAt('fainted');
+  const r = alone.d ? shield.d / alone.d : 0;
+  /* The shielded partner must have taken NOTHING — otherwise "the survivor still eats the 0.75"
+   * could be satisfied by a Protect that stopped protecting. */
+  const shieldHeld = shield.protectHeld && shield.partnerHP === bare('pelipper').st.hp * 8;
+  return { works: both.d > 0 && shield.d === both.d && alone.d > both.d && shieldHeld
+                  && r > 0.72 && r < 0.78,
+           arms: { control: alone.d, test: shield.d },
+           detail: `Dazzling Gleam into Archaludon — partner alive and hit ${both.d}; partner behind `
+                 + `a PROTECT ${shield.d} (must be the same: it is still in the target array); `
+                 + `partner already FAINTED ${alone.d} (must be bigger — it was filtered out before `
+                 + `the array entered, so no modifier). shield/alone = ${r.toFixed(3)}, and 0.75 is `
+                 + `the number` };
+});
+
+/* 1b. THE OTHER HALF OF THE SAME RULE, AND IT WAS ALREADY RIGHT. `Side#allies()` filters `!!hp`
+ *     before `getMoveTargets` builds the array, so a partner that has ALREADY fainted never enters
+ *     it and the survivor takes FULL damage. This engine's `live(foes)` did the same thing for the
+ *     same reason. Probed anyway, because "already correct" is a claim the census should carry
+ *     rather than a sentence in a report — and because fix 1a is one line away from breaking it. */
+probe('move', 'spreadFoes', 'an ALREADY-FAINTED partner removes the spread modifier entirely', () => {
+  const both = gleamAt('alive'), alone = gleamAt('fainted');
+  const r = alone.d ? both.d / alone.d : 0;
+  return { works: both.d > 0 && alone.d > both.d && r > 0.72 && r < 0.78,
+           arms: { control: both.d, test: alone.d },
+           detail: `Dazzling Gleam into Archaludon — partner alive ${both.d}, partner fainted `
+                 + `${alone.d}; ratio ${r.toFixed(3)} (0.75 = the modifier applies with two bodies `
+                 + `in the array and not with one)` };
+});
+
+/* 2a. THE HERB IS CONSUMED AND THE NEGATIVE STAGE GOES *ON THE SWITCH-IN*. Observed live: Incineroar
+ *     Intimidates a Sneasler, the authority writes `|-enditem|Sneasler|White Herb` then
+ *     `|-clearnegativeboost|Sneasler|[silent]`, and this engine wrote nothing.
+ *
+ * AND THE DIAGNOSIS THAT SURVIVED THE PROBE IS NOT THE ONE IT STARTED WITH. WIRE 56 had already
+ * wired the herb — at the RESIDUAL, and only there. `data/items.ts` gives whiteherb FOUR triggers:
+ * `onAnySwitchIn` (priority -2), `onAnyAfterMega`, `onAnyAfterMove` and `onResidual`. Three of the
+ * four were missing, so the herb was a whole turn late: the Intimidate landed, the body played the
+ * entire turn at -1, and only then did the item come off. 2b below is the residual path and is LIVE
+ * on the engine as it stood; this one and 2c are the three missing triggers.
+ *
+ * REAL ENTRY EFFECTS — `seeded` is NOT passed, so battleInit runs the Intimidate, and NO turn is
+ * spent, so the residual cannot supply the answer. The control holds LEFTOVERS rather than nothing,
+ * so "the item slot emptied" is a real claim about this item and not about a body that never had
+ * one. */
+const herbIntim = (item) => {
+  const me = bare('incineroar'); me.ability = 'intimidate';
+  const ally = bare('corviknight');
+  const f1 = bare('sneasler'); f1.item = item; f1.ability = 'none';
+  const f2 = bare('garchomp');
+  M.battleInit([me, ally], [f1, f2], {});
+  return { at: f1.boosts.at, item: f1.item };
+};
+probe('item', 'restoresStats', 'White Herb clears the Intimidate drop and is consumed', () => {
+  const control = herbIntim('leftovers'), test = herbIntim('whiteherb');
+  return { works: control.at === -1 && control.item === 'leftovers'
+                  && test.at === 0 && test.item === '',
+           arms: { control: [control.at, control.item], test: [test.at, test.item] },
+           detail: `Incineroar Intimidates Sneasler — with Leftovers atk ${control.at}, still `
+                 + `holding "${control.item}"; with a White Herb atk ${test.at}, holding `
+                 + `"${test.item}" (both halves: the stage AND the slot)` };
+});
+
+/* 2b. NEGATIVE ONLY, AND THIS ONE WAS ALREADY LIVE — it is WIRE 56's residual path and it is probed
+ *     here so the census carries it while 2a and 2c move the timing underneath it. The handler walks
+ *     `pokemon.boosts` and writes a zero for every entry `< 0`; a positive stage is not in the table
+ *     it hands to `setBoost`. An implementation that cleared ALL boosts would pass 2a and would throw
+ *     away a Swords Dance, so the positive arm is the whole point of this one. */
+const herbMixed = (item) => {
+  const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'sneasler', 'garchomp');
+  f1.item = item; f1.boosts.at = 2; f1.boosts.sp = -1; f1.boosts.df = -2;
+  M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+  return { at: f1.boosts.at, sp: f1.boosts.sp, df: f1.boosts.df, item: f1.item };
+};
+probe('item', 'restoresStats', 'White Herb restores NEGATIVE stages only and leaves a positive one', () => {
+  const control = herbMixed('leftovers'), test = herbMixed('whiteherb');
+  return { works: control.at === 2 && control.sp === -1 && control.df === -2
+                  && test.at === 2 && test.sp === 0 && test.df === 0 && test.item === '',
+           arms: { control: [control.at, control.sp, control.df],
+                   test: [test.at, test.sp, test.df] },
+           detail: `Sneasler staged at atk +2 / spe -1 / def -2 — with Leftovers ${control.at},`
+                 + `${control.sp},${control.df}; with a White Herb ${test.at},${test.sp},${test.df} `
+                 + `(the +2 must SURVIVE — clearing everything would pass the other probe)` };
+});
+
+/* 2c. THE DANGEROUS HALF, AND IT IS A SPEED TIER CHANGE MID-TURN. `unburden.onAfterUseItem` adds the
+ *     volatile the moment the herb is spent, and the volatile is `onModifySpe -> chainModify(2)`. So
+ *     an Intimidate can make the body it just weakened move FIRST. A herb that only comes off at the
+ *     residual gets the Speed right for the NEXT turn and wrong for the turn that actually mattered.
+ *
+ * READ AS AN OUTCOME, not as a Speed number — the same shape the Choice Scarf probe uses and for the
+ * same reason. The Intimidator is left on 1 HP: if Sneasler really got there first it dies before it
+ * can act and Sneasler takes nothing back. Both arms are Sneasler with Unburden and an explicit
+ * Speed; the ITEM is the one varied thing. */
+const herbUnburden = (item) => {
+  const me = bare('sneasler'); me.item = item; me.ability = 'unburden';
+  me.st = Object.assign({}, me.st, { sp: 100 });
+  const ally = bare('corviknight');
+  const f1 = bare('incineroar'); f1.ability = 'intimidate';
+  f1.st = Object.assign({}, f1.st, { sp: 150 }); f1.curHP = 1;
+  const f2 = bare('garchomp');
+  const S = M.battleInit([me, ally], [f1, f2], {});
+  const mine = me.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'closecombat', f1, S.field)], [ally, { kind: 'pass' }]]),
+    new Map([[f1, M.playerAction(f1, 'flareblitz', me, S.field)], [f2, { kind: 'pass' }]]));
+  return { took: mine - me.curHP, foeDead: !!f1.fainted, at: me.boosts.at };
+};
+probe('ability', 'speedOnItemLoss', 'losing a White Herb to Intimidate procs Unburden in the same turn', () => {
+  const control = herbUnburden('leftovers'), test = herbUnburden('whiteherb');
+  return { works: control.took > 0 && test.took === 0 && test.foeDead && control.foeDead
+                  && test.at === 0 && control.at === -1,
+           arms: { control: control.took, test: test.took },
+           detail: `Sneasler 100 Speed vs an Intimidating Incineroar on 1 HP at 150 — with Leftovers `
+                 + `Sneasler took ${control.took} (it moved second) and sits at atk ${control.at}; `
+                 + `with a White Herb it took ${test.took} (the herb went, Unburden doubled 100 to `
+                 + `200, it moved first) and sits at atk ${test.at}` };
+});
+
+/* 3a. THE STATE HALF OF THE CONTACT-PUNISH ORDER, and it is not the announcement. Aftermath's gate
+ *     is `if (!target.hp && ...)` — the HP AFTER the damage landed. This engine paid the punish
+ *     BEFORE `tg.curHP -= dmg` and gated it on the RAW damage, so a Focus Sash holder that survives
+ *     at 1 detonated anyway and cost the attacker a quarter of its maximum HP.
+ *
+ * Read on the ATTACKER's HP, which is the only body Aftermath touches. */
+const aftermathHit = (item) => {
+  const me = bare('tyranitar');
+  const ally = bare('corviknight');
+  const f1 = bare('milotic'); f1.ability = 'aftermath'; f1.item = item;
+  f1.st = Object.assign({}, f1.st, { hp: 20 }); f1.curHP = 20;
+  const f2 = bare('garchomp');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const mine = me.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'knockoff', f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return { paid: mine - me.curHP, left: f1.curHP, dead: !!f1.fainted };
+};
+probe('ability', 'punishesAttacker', 'Aftermath reads the post-Sash HP, so a survivor does not detonate', () => {
+  const control = aftermathHit(''), test = aftermathHit('focussash');
+  const quarter = Math.floor(bare('tyranitar').st.hp / 4);
+  return { works: control.dead && control.paid === quarter
+                  && !test.dead && test.left === 1 && test.paid === 0,
+           arms: { control: control.paid, test: test.paid },
+           detail: `Tyranitar Knock Off into an Aftermath Milotic on 20 HP — no item: it DIES `
+                 + `(${control.left} left) and Tyranitar pays ${control.paid} (a quarter is `
+                 + `${quarter}); Focus Sash: it SURVIVES on ${test.left} and Tyranitar pays `
+                 + `${test.paid}` };
+});
+
+/* 3b. THE ORDER ITSELF. `spreadDamage` (battle-actions.ts:1079) moves the HP; `runEvent('DamagingHit')`
+ *     (:1117) is four numbered steps later. Observed live: Tyranitar Knock Offs a Garchomp and the
+ *     authority writes `|-damage|Garchomp|78/183` and THEN Rough Skin's recoil onto Tyranitar; this
+ *     engine wrote the recoil first, with no speed tie anywhere near it (106 against 161).
+ *
+ * A STREAM READING WITH THE HP ASSERTED BESIDE IT, which is the house rule for an order probe: both
+ * bodies must have lost exactly what they lost before, so "the right order" cannot come to mean "the
+ * toll stopped being paid". The control is the SAME click into a body with no punish ability, whose
+ * stream must carry the target's damage and NO attacker damage at all. */
+const punishOrder = (defAbility) => {
+  const me = bare('tyranitar'), ally = bare('corviknight');
+  const f1 = bare('garchomp'); f1.ability = defAbility; unfaintable(f1);
+  const f2 = bare('milotic');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const trace = []; S._trace = trace;
+  const h1 = f1.curHP, hm = me.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'knockoff', f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  const shape = trace.map(String)
+    .map(l => /^\|-damage\|p2a/.test(l) ? 'target' : /^\|-damage\|p1a/.test(l) ? 'attacker' : null)
+    .filter(Boolean).join(',');
+  return { shape, d: h1 - f1.curHP, paid: hm - me.curHP };
+};
+probe('ability', 'punishesAttacker', 'the contact punish is paid AFTER the damage lands, not before', () => {
+  const control = punishOrder('none'), test = punishOrder('roughskin');
+  const eighth = Math.floor(bare('tyranitar').st.hp / 8);
+  return { works: control.shape === 'target' && control.paid === 0 && control.d > 0
+                  && test.shape === 'target,attacker' && test.paid === eighth
+                  && test.d === control.d,
+           arms: { control: control.shape, test: test.shape },
+           detail: `Tyranitar Knock Off into Garchomp — no ability: damage lines [${control.shape}], `
+                 + `Tyranitar paid ${control.paid}; Rough Skin: [${test.shape}], paid ${test.paid} `
+                 + `(an eighth is ${eighth}); the target lost ${control.d} and ${test.d}, which must `
+                 + `be equal` };
+});
+
+/* 4a. A CRIT IGNORES THE ATTACKER'S NEGATIVE OFFENSIVE STAGES — the expensive one, because
+ *     Intimidate is on 31,129 observed sets. `ignoreOffensive = (ignoreNegativeOffensive &&
+ *     atkBoosts < 0)`, so an Intimidated attacker landing a crit hits at FULL Attack.
+ *
+ * A REAL INTIMIDATE, not a hand-set stage: the foe slot holds an Incineroar in BOTH arms and only
+ * its ability changes, and the probe asserts the stage actually moved so a silent no-op cannot pass.
+ * Flower Trick is pCrit 1 and Knock Off is the plain physical control from the same body, so the two
+ * differ in the crit and in nothing else. */
+const critIntim = (moveId, intimidate) => {
+  const me = bare('meowscarada'), ally = bare('corviknight');
+  const f1 = bare('garchomp'); unfaintable(f1);
+  const f2 = bare('incineroar'); f2.ability = intimidate ? 'intimidate' : 'none';
+  const S = M.battleInit([me, ally], [f1, f2], {});
+  const h1 = f1.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return { d: h1 - f1.curHP, at: me.boosts.at };
+};
+probe('move', 'alwaysCrit', 'a crit ignores the ATTACKER\'s negative Attack stages', () => {
+  const p0 = critIntim('knockoff', false), p1 = critIntim('knockoff', true);
+  const c0 = critIntim('flowertrick', false), c1 = critIntim('flowertrick', true);
+  return { works: p0.at === 0 && p1.at === -1 && c1.at === -1
+                  && p1.d < p0.d && c0.d > 0 && c1.d === c0.d,
+           arms: { control: [p0.d, p1.d], test: [c0.d, c1.d] },
+           detail: `Meowscarada into Garchomp — Knock Off (no crit) ${p0.d} unintimidated / ${p1.d} `
+                 + `Intimidated (the stage MUST cost it); Flower Trick (pCrit 1) ${c0.d} / ${c1.d} `
+                 + `(the crit must ignore the same -1). Attack stage read back as ${p1.at}` };
+});
+
+/* 4b. A CRIT IGNORES THE DEFENDER'S POSITIVE DEFENSIVE STAGES — `ignoreDefensive =
+ *     (ignorePositiveDefensive && defBoosts > 0)`. The NEGATIVE ones still count, which is why the
+ *     stage is set to +2 and not to -2: an implementation that simply dropped the defender's boost
+ *     multiplier for a crit would pass a -2 arm as well and be wrong in the other direction. */
+const critDef = (moveId, dfStage) => {
+  const { me, ally, f1, f2, S } = board('meowscarada', 'corviknight', 'garchomp', 'milotic');
+  unfaintable(f1); f1.boosts.df = dfStage;
+  const h1 = f1.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return h1 - f1.curHP;
+};
+probe('move', 'alwaysCrit', 'a crit ignores the DEFENDER\'s positive Defense stages', () => {
+  const p0 = critDef('knockoff', 0), p2 = critDef('knockoff', 2);
+  const c0 = critDef('flowertrick', 0), c2 = critDef('flowertrick', 2);
+  const n0 = critDef('flowertrick', 0), nn = critDef('flowertrick', -2);
+  return { works: p2 < p0 && c0 > 0 && c2 === c0 && nn > n0,
+           arms: { control: [p0, p2], test: [c0, c2] },
+           detail: `Meowscarada into Garchomp — Knock Off ${p0} at def+0 / ${p2} at def+2; Flower `
+                 + `Trick ${c0} / ${c2} (a crit must not see the +2). And a crit still DOES see a `
+                 + `MINUS: Flower Trick ${n0} at def+0 / ${nn} at def-2` };
+});
+
+/* 4c. A CRIT IGNORES SCREENS. `getDamage` skips the `onAnyModifyDamage` chain a screen rides when
+ *     the hit is critical; the engine's own DOUBLES_SCREEN comment has said "a critical hit ignores
+ *     screens" and applied the reduction anyway since the constant was written.
+ *
+ * The screen is put up by the SIDE STATE rather than by a click, so the two arms differ in the screen
+ * and in nothing else — a Reflect click would spend the partner's turn and change the turn order.
+ * `sfB.sc` is keyed by the move that set it, which is WIRE 8's representation. */
+const critScreen = (moveId, reflect) => {
+  const { me, ally, f1, f2, S } = board('meowscarada', 'corviknight', 'garchomp', 'milotic');
+  unfaintable(f1);
+  if (reflect) S.sfB.sc.reflect = 5;
+  const h1 = f1.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return h1 - f1.curHP;
+};
+probe('move', 'alwaysCrit', 'a crit ignores Reflect', () => {
+  const p0 = critScreen('knockoff', false), p1 = critScreen('knockoff', true);
+  const c0 = critScreen('flowertrick', false), c1 = critScreen('flowertrick', true);
+  return { works: p1 < p0 && c0 > 0 && c1 === c0,
+           arms: { control: [p0, p1], test: [c0, c1] },
+           detail: `Meowscarada into Garchomp — Knock Off ${p0} no screen / ${p1} under Reflect (the `
+                 + `screen MUST cost it); Flower Trick ${c0} / ${c1} (a crit goes through)` };
+});
+
+/* 4d. AND THE ONE A CRIT DOES *NOT* IGNORE, probed so nobody "completes" the list by adding it.
+ *     Will: "i dont think it ignores burn tho" — correct, and the reason is that the other three are
+ *     BOOST STAGES while burn's halving is an `onModifyAtk` multiplier. Gen 2 ignored it; Gen 3
+ *     onward does not. A crit under a burn must still be halved, and this probe goes RED on any
+ *     future engine that folds burn into the crit's ignore list. */
+const critBurn = (moveId, burn) => {
+  const { me, ally, f1, f2, S } = board('meowscarada', 'corviknight', 'garchomp', 'milotic');
+  unfaintable(f1); if (burn) me.status = 'brn';
+  const h1 = f1.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return h1 - f1.curHP;
+};
+probe('move', 'alwaysCrit', 'a crit does NOT ignore a burn', () => {
+  const p0 = critBurn('knockoff', false), p1 = critBurn('knockoff', true);
+  const c0 = critBurn('flowertrick', false), c1 = critBurn('flowertrick', true);
+  return { works: p1 < p0 && c0 > 0 && c1 < c0,
+           arms: { control: [p0, p1], test: [c0, c1] },
+           detail: `Meowscarada into Garchomp — Knock Off ${p0} healthy / ${p1} burned; Flower Trick `
+                 + `${c0} / ${c1} (the crit must STILL be halved — burn is a multiplier, not a stage)` };
 });
 
 const works = results.filter(r => r.works);

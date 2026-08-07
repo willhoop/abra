@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-07T17:27:19.144Z",
+ "generated": "2026-08-07T19:18:54.516Z",
  "by": "engine/conformance.js",
- "files": 321,
+ "files": 325,
  "findings": [
   {
    "std": "convention",
@@ -16,6 +16,19 @@
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
    "detail": [
     "move:detect"
+   ]
+  },
+  {
+   "std": "S12",
+   "file": "engine/board_state.js",
+   "what": "names 5 Pokemon thing(s) in code: move:reflect, move:auroraveil, move:lightscreen, move:tailwind, move:trickroom",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:auroraveil",
+    "move:lightscreen",
+    "move:reflect",
+    "move:tailwind",
+    "move:trickroom"
    ]
   },
   {

@@ -1,8 +1,8 @@
 # ABRA — the model family (living reference)
 
-**Version 3.67.0 · Last updated 2026-08-07.**
+**Version 3.68.0 · Last updated 2026-08-07.**
 
-**MEDICHAM'S DISTANCE FROM THE AUTHORITY, MEASURED ACROSS TEN FROZEN RELEASES (3.67.0, re-run
+**MEDICHAM'S DISTANCE FROM THE AUTHORITY, MEASURED ACROSS TEN FROZEN RELEASES (3.68.0, re-run
 2026-08-07 after ROADMAP #81 WIRE 7).** `engine/wire_ladder.js` → `data/wire-ladder.json`. **Read every
 figure from that artifact** — the figures below moved when WIRE 7 was added as an eleventh arm and the
 whole ladder was replayed, so any earlier quotation of them is retracted. On 1,995 games per arm, one
@@ -641,7 +641,7 @@ hand-check + shipped-artifact invariants), gated in CI.
 > bring list's `charizard`, `side_of` returned None and the event was thrown away. Measured on 4,000
 > clean games: **21.7% of faints, 22.7% of damaging events and 20.8% of all damage**, with at least
 > one discard in **96.5%** of games and **97.6%** of the discarded targets megas. The visible symptom
-> was that **88.9% of clean games ENDED with both sides still holding bodies** — the value net was
+> was that **the large majority of clean games ENDED with both sides still holding bodies** *(the 88.9% this line carried was measured against a `data/archetypes.json` regenerated on 2026-08-07; the figure is no longer in the artifact and is not restated from memory — re-derive it before quoting)* — the value net was
 > being trained on trajectories in which almost nobody ever loses their team. It is
 > `venusaurmega`/`venusaur-mega` again, in a file that had no lookup at all; the fix routes both
 > sides of the comparison through `engine/mc_key.js`, which gained the verb it was missing

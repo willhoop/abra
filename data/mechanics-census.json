@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-07T17:50:55.342Z",
+  "generated": "2026-08-07T19:16:44.831Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 271,
-  "live": 270,
+  "probed": 282,
+  "live": 281,
   "missing": 1,
-  "armed": 271,
+  "armed": 282,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2176,7 +2176,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 27.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2717,6 +2717,116 @@
       "label": "a FLINCHED Stomping Tantrum doubles next turn and a RECHARGING one does not",
       "live": true,
       "detail": "Stomping Tantrum into the same Milotic — after a clean turn 101; after a Fake Out FLINCH 200 (BeforeMove returned false, so it counts); after a RECHARGE turn 101 (BeforeMove returned null, so it must not)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "spreadFoes",
+      "label": "a PROTECTING partner still costs the survivor the spread 0.75",
+      "live": true,
+      "detail": "Dazzling Gleam into Archaludon — partner alive and hit 65; partner behind a PROTECT 65 (must be the same: it is still in the target array); partner already FAINTED 87 (must be bigger — it was filtered out before the array entered, so no modifier). shield/alone = 0.747, and 0.75 is the number",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "spreadFoes",
+      "label": "an ALREADY-FAINTED partner removes the spread modifier entirely",
+      "live": true,
+      "detail": "Dazzling Gleam into Archaludon — partner alive 65, partner fainted 87; ratio 0.747 (0.75 = the modifier applies with two bodies in the array and not with one)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "restoresStats",
+      "label": "White Herb clears the Intimidate drop and is consumed",
+      "live": true,
+      "detail": "Incineroar Intimidates Sneasler — with Leftovers atk -1, still holding \"leftovers\"; with a White Herb atk 0, holding \"\" (both halves: the stage AND the slot)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "restoresStats",
+      "label": "White Herb restores NEGATIVE stages only and leaves a positive one",
+      "live": true,
+      "detail": "Sneasler staged at atk +2 / spe -1 / def -2 — with Leftovers 2,-1,-2; with a White Herb 2,0,0 (the +2 must SURVIVE — clearing everything would pass the other probe)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "speedOnItemLoss",
+      "label": "losing a White Herb to Intimidate procs Unburden in the same turn",
+      "live": true,
+      "detail": "Sneasler 100 Speed vs an Intimidating Incineroar on 1 HP at 150 — with Leftovers Sneasler took 155 (it moved second) and sits at atk -1; with a White Herb it took 0 (the herb went, Unburden doubled 100 to 200, it moved first) and sits at atk 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "punishesAttacker",
+      "label": "Aftermath reads the post-Sash HP, so a survivor does not detonate",
+      "live": true,
+      "detail": "Tyranitar Knock Off into an Aftermath Milotic on 20 HP — no item: it DIES (0 left) and Tyranitar pays 43 (a quarter is 43); Focus Sash: it SURVIVES on 1 and Tyranitar pays 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "punishesAttacker",
+      "label": "the contact punish is paid AFTER the damage lands, not before",
+      "live": true,
+      "detail": "Tyranitar Knock Off into Garchomp — no ability: damage lines [target], Tyranitar paid 0; Rough Skin: [target,attacker], paid 21 (an eighth is 21); the target lost 79 and 79, which must be equal",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "alwaysCrit",
+      "label": "a crit ignores the ATTACKER's negative Attack stages",
+      "live": true,
+      "detail": "Meowscarada into Garchomp — Knock Off (no crit) 70 unintimidated / 47 Intimidated (the stage MUST cost it); Flower Trick (pCrit 1) 113 / 113 (the crit must ignore the same -1). Attack stage read back as -1",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "alwaysCrit",
+      "label": "a crit ignores the DEFENDER's positive Defense stages",
+      "live": true,
+      "detail": "Meowscarada into Garchomp — Knock Off 70 at def+0 / 36 at def+2; Flower Trick 113 / 113 (a crit must not see the +2). And a crit still DOES see a MINUS: Flower Trick 113 at def+0 / 224 at def-2",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "alwaysCrit",
+      "label": "a crit ignores Reflect",
+      "live": true,
+      "detail": "Meowscarada into Garchomp — Knock Off 70 no screen / 47 under Reflect (the screen MUST cost it); Flower Trick 113 / 113 (a crit goes through)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "alwaysCrit",
+      "label": "a crit does NOT ignore a burn",
+      "live": true,
+      "detail": "Meowscarada into Garchomp — Knock Off 70 healthy / 35 burned; Flower Trick 113 / 56 (the crit must STILL be halved — burn is a multiplier, not a stage)",
       "hollow": false,
       "armed": true,
       "directCall": false

@@ -359,12 +359,27 @@ if (M.fails.traceBodyOffField)
 else pass('traceBodyOffField = 0 across every game above');
 
 /* ================= PART 5 — THE ACCEPTANCE TEST ================================================= */
-/* docs/GAME-DIFFERENTIAL-DESIGN.md §6. Showdown IGNORES THE ATTACKER'S NEGATIVE OFFENSIVE STAGES ON
- * A CRIT (sim/battle-actions.ts:1683-1691, `if (isCrit) ignoreNegativeOffensive = true`) and
- * medicham2's declared limitation says it does not. An Intimidated attacker landing a GUARANTEED crit
- * -- Flower Trick, Storm Throw, Frost Breath -- is therefore a two-line scenario that separates the
- * engines exactly, and no staged pair test we own is shaped to notice, because the census asks *does
- * the mechanic fire*, not *is the number right afterwards*.
+/* ROADMAP #81 WIRE 11, 2026-08-07 -- THIS TEST HAS BEEN REWRITTEN, AND IT TOLD US TO. Its medicham
+ * assertion was `meIntim !== meCtrl` with the failure message *"either the declared crit limitation
+ * is gone (good news, and this test must then be rewritten) or the Intimidate never landed."* The
+ * limitation is gone: `dmgRange` takes a crit flag now and `_critIgnA` refuses the attacker's
+ * negative offensive stage exactly as Showdown does. So the assertion is INVERTED -- medicham must
+ * now hold still across the arms, like the authority -- and the escape hatch in that old message is
+ * closed by a CONTROL, because "the two arms agree" is satisfied just as well by a scenario that
+ * never staged the Intimidate at all. The control is the `|-unboost|` line itself: it must be present
+ * in the Intimidate arm and absent from the Blaze arm, on medicham's own stream.
+ *
+ * WHAT IS STILL NOT ASSERTED, and deliberately: that the two engines' NUMBERS agree. See below --
+ * the dice have different multiplicities and every damage line differs by one or two whatever the
+ * rules do. medicham reads 111/170 in both arms against Showdown's 112/170 in both arms; the CLAIM
+ * is the invariance, not the integer.
+ *
+ * docs/GAME-DIFFERENTIAL-DESIGN.md §6. Showdown IGNORES THE ATTACKER'S NEGATIVE OFFENSIVE STAGES ON
+ * A CRIT (sim/battle-actions.ts:1683-1691, `if (isCrit) ignoreNegativeOffensive = true`). An
+ * Intimidated attacker landing a GUARANTEED crit -- Flower Trick, Storm Throw, Frost Breath -- is
+ * therefore a two-line scenario that separates a wired engine from an unwired one exactly, and no
+ * staged pair test we own is shaped to notice, because the census asks *does the mechanic fire*, not
+ * *is the number right afterwards*.
  *
  * THE CLAIM IS NOT "THE TWO ENGINES DISAGREE ON A NUMBER", AND THAT MATTERS.
  * Measured while this test was being written: medicham2's damage RANGE for Knock Off Incineroar ->
@@ -377,9 +392,11 @@ else pass('traceBodyOffField = 0 across every game above');
  * SO EACH ENGINE IS COMPARED AGAINST ITSELF ACROSS THE CONTROL, WHICH IS THE ACTUAL RULE:
  *   arm A   the attacker is Intimidated
  *   arm B   the identical scenario with the ability swapped for an inert one
- * Showdown's `|-damage|` must be THE SAME in both arms -- the crit ignored the -1. medicham2's must
- * CHANGE -- it did not. If both engines move, the control is not isolating Intimidate. If neither
- * moves, the scenario never staged the crit.
+ * BOTH ENGINES' `|-damage|` must be THE SAME in both arms -- the crit ignored the -1. An engine that
+ * MOVES between the arms is pricing the crit at -1 Attack, which is what medicham2 did until WIRE 11.
+ * And because "the same in both arms" is also what a scenario that never staged the drop produces,
+ * the `|-unboost|` line is asserted present in one arm and absent in the other, on each engine's own
+ * stream.
  *
  * AND THE TRACE MUST LOCALISE IT: every canonical line BEFORE the `|-damage|` must be identical
  * between the two engines, so the first differing line names the wired-wrong thing directly. That is
@@ -471,18 +488,37 @@ if (!process.env.SHOWDOWN_PATH) {
   console.log('    showdown   Intimidate ' + sdIntim + '   control ' + sdCtrl);
   console.log('    medicham2  Intimidate ' + meIntim + '   control ' + meCtrl);
 
+  /* THE CONTROL, WITHOUT WHICH "BOTH ARMS AGREE" IS VACUOUS. The drop has to have LANDED on the
+   * attacker in the Intimidate arm and NOT in the Blaze arm, and it is read off each engine's own
+   * canonical stream so neither can borrow the other's evidence. */
+  const dropped = (stream) => stream.map(M.traceCanon)
+    .some(l => /^\|-unboost\|p1a:[^|]*\|atk\|/.test(l));
+  const sdDrop = [dropped(arms.intim.sd), dropped(arms.control.sd)];
+  const meDrop = [dropped(arms.intim.me), dropped(arms.control.me)];
+  console.log('    the -1 Attack landed?  showdown [intim ' + sdDrop[0] + ', control ' + sdDrop[1]
+    + ']   medicham2 [intim ' + meDrop[0] + ', control ' + meDrop[1] + ']');
   if (!sdIntim || !sdCtrl || !meIntim || !meCtrl)
     fail('the scenario did not produce a |-damage| on p2a in all four cells — nothing is being tested');
+  else if (!(sdDrop[0] && !sdDrop[1]))
+    fail('SHOWDOWN did not stage the Intimidate exactly once — the |-unboost| is ' + JSON.stringify(sdDrop)
+      + ' across [intimidate, control]. Nothing below this line means anything.');
+  else if (!(meDrop[0] && !meDrop[1]))
+    fail('MEDICHAM did not stage the Intimidate exactly once — the |-unboost| is ' + JSON.stringify(meDrop)
+      + ' across [intimidate, control]. "Both arms agree" would then be vacuous.');
   else {
+    pass('the -1 Attack landed in the Intimidate arm and in neither control, on BOTH engines');
     if (sdIntim !== sdCtrl)
       fail('SHOWDOWN moved between the arms (' + sdCtrl + ' -> ' + sdIntim + '). The crit is supposed '
         + 'to ignore the attacker\'s -1, so the control is not isolating Intimidate.');
     else pass('showdown: the crit ignores Intimidate — |-damage| is ' + sdIntim + ' in BOTH arms');
-    if (meIntim === meCtrl)
-      fail('MEDICHAM did NOT move between the arms — either the declared crit limitation is gone '
-        + '(good news, and this test must then be rewritten) or the Intimidate never landed.');
-    else pass('medicham2: the crit does NOT ignore Intimidate — ' + meCtrl + ' -> ' + meIntim
-      + ', which is the declared limitation, made visible');
+    /* ROADMAP #81 WIRE 11 -- INVERTED. This asserted `meIntim !== meCtrl` and pinned the old
+     * limitation; the limitation is wired away, so it now asserts the authority's own invariance. */
+    if (meIntim !== meCtrl)
+      fail('MEDICHAM moved between the arms (' + meCtrl + ' -> ' + meIntim + '). A crit ignores the '
+        + 'attacker\'s NEGATIVE offensive stage (battle-actions.ts:1683-1691) and this build is '
+        + 'pricing it at -1 — ROADMAP #81 WIRE 11 regressed.');
+    else pass('medicham2: the crit ignores Intimidate too — |-damage| is ' + meIntim + ' in BOTH arms '
+      + '(the integer still differs from Showdown\'s ' + sdIntim + '; the die does, see the header)');
   }
 
   /* AND IT IS LOCALISED. Walk the two canonical streams together; the FIRST index at which they part

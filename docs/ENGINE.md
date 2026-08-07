@@ -27,10 +27,10 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  270/271 probed mechanics live, 1 missing   (census 2026-08-07 17:22)
+  281/282 probed mechanics live, 1 missing   (census 2026-08-07 19:16)
   missing:
     move    needsTargetToAttack    Avalanche doubles after the target hits it this turn
-  1/150 differential comparisons disagree with Showdown   (2026-08-07 17:22)
+  1/150 differential comparisons disagree with Showdown   (2026-08-07 19:16)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -54,7 +54,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 162/181 probed, 19 unprobed
 ```
 
-_stamped 2026-08-07 17:50_
+_stamped 2026-08-07 19:17_
 
 <!-- /GENERATED -->
 
@@ -67,6 +67,207 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
+
+## ROADMAP #81 WIRE 11 — FOUR DEFECTS READ OFF REAL DIVERGENCES, AND TWO OF THE FOUR WERE NOT WHAT THEY LOOKED LIKE. 2026-08-07.
+
+Census **270 live / 271 probed → 281 live / 282 probed**, `missing` unchanged at 1 (Avalanche, which
+has its own verdict at the bottom of this file). Eleven probes added: **eight were written RED and
+went green when the engine changed**, three were written for claims that turned out to be ALREADY
+LIVE and are probed anyway so the census carries them. `armed` 282/282, `directCall` 0, `hollow` 0,
+`threw` 0. `tests/probe_red_demo.js` **168 → 177 demonstrations, 0 failed** — seven source-reverted
+demos and two controls.
+
+**Every measurement below is STATE**, in HP, an item slot, a stat stage, or the Speed that decided
+who moved first. No claim here rests on a protocol string except defect 3's order, which has no state
+reading and says so.
+
+### 1. THE SPREAD MODIFIER IS DECIDED BY TARGETS ENTERED, AND HALF OF IT WAS ALREADY RIGHT
+
+`sim/battle-actions.ts:551` sets `move.spreadHit` from the array that ENTERS `trySpreadMoveHit`,
+above the whole step list — so nothing a step does to that array can take the 0.75 back off.
+
+| staging | before | after | authority |
+|---|---:|---:|---|
+| Dazzling Gleam → Archaludon, partner alive | 65 | 65 | 0.75 applies |
+| …partner behind a **Protect** | **87** | **65** | 0.75 still applies — it is alive and still in the array |
+| …partner **already fainted** | 87 | 87 | no modifier — `Side#allies()` filtered it before the array was built |
+
+Observed live at 130/165 against our 118/165 — 35 against 47, ratio 0.745. Ours now reads 65/87 =
+0.747. **The fainted-partner half was already correct** and for exactly the right reason: `live(foes)`
+filters the same bodies `Side#allies()` does. It is probed rather than asserted, because the fix is
+one line away from breaking it.
+
+`smartTarget` (Dragon Darts) has no representation in this engine, so no exclusion for it is written.
+
+### 2. WHITE HERB WAS NOT DOING NOTHING — IT WAS A WHOLE TURN LATE
+
+The first diagnosis was wrong and the probe is what corrected it. **WIRE 56 had already wired what the
+herb DOES**; it wired it at one trigger. `data/items.ts` gives whiteherb **four** — `onAnySwitchIn`
+(priority -2), `onAnyAfterMega`, `onAnyAfterMove` and `onResidual` — and three were missing.
+
+| staging | before | after |
+|---|---|---|
+| Sneasler Intimidated, read at the switch-in | atk **-1**, holding `whiteherb` | atk **0**, holding `` |
+| same body, negative-only rule at the residual | atk +2 / spe 0 / def 0 | unchanged — this was WIRE 56's and is LIVE either way |
+| Sneasler 100 Speed vs an Intimidating Incineroar at 150 on 1 HP | Sneasler **took 155** | Sneasler **took 0** |
+
+The third row is the one Will named and it is the dangerous half: **losing the item is a SPEED TIER
+CHANGE MID-TURN**, not an announcement. `unburden.onAfterUseItem` adds the volatile the moment the
+herb is spent and the volatile is `onModifySpe -> chainModify(2)`, so 100 becomes 200, Sneasler moves
+first, and the Incineroar dies before it acts. At the residual the item came off *after* the order had
+already been spent. White Herb is **2,380** corpus sheets and Unburden **2,509**; `buildMon`'s own
+usage set for Sneasler is Unburden **holding a White Herb**, so the pair is the common case.
+
+`restoreStatsUpdate()`/`restoreStatsAll()` is the one implementation, called from the switch-in, the
+mega, the after-action pass and the residual. Membership is the artifact's and was printed before it
+was wired: **`restoresStats` matches exactly one item.**
+
+### 3. THE CONTACT PUNISH FIRED BEFORE THE DAMAGE — AND THE STATE HALF IS THE `onFaintOnly` GATE
+
+`spreadDamage` is step 2 of `spreadMoveHit` (`battle-actions.ts:1079`); `runEvent('DamagingHit')` is
+four numbered steps later (`:1117`). WIRE 10 filed this and did not fix it because it changes
+single-target order, which was that rung's control. It is fixed here.
+
+- **The order.** Tyranitar Knock Off into a Rough Skin Garchomp: the damage lines were
+  `attacker,target` and are now `target,attacker`, with the target's loss and the attacker's 1/8 toll
+  identical in both builds (79 and 21). Rough Skin is **6,499** sheets.
+- **The state.** Aftermath's own gate is `if (!target.hp && …)` — the HP **after** the packet landed.
+  Read before the damage, the gate had to compare the RAW `dmg` against `tg.curHP`, which is the
+  number **before** a Focus Sash or a busted Disguise cut it down. So:
+
+| staging | before | after |
+|---|---:|---:|
+| Knock Off into a 20 HP Aftermath body, **no item** — it dies | attacker pays 43 | attacker pays 43 |
+| same body holding a **Focus Sash** — it survives on 1 | attacker pays **43** | attacker pays **0** |
+
+  43 is a quarter of Tyranitar's 175. Aftermath is only **3** corpus sheets — the ORDER is the
+  valuable half and the Sash gate is the correct half.
+- **The third claim was real in the authority and has NO state consequence here.** A dead attacker
+  takes no further toll (`Battle#spreadDamage` returns 0 and emits nothing when `!target.hp`) and this
+  engine had no `!m.fainted` guard. `curHP` clamps at 0 either way, so nothing moved on state; the
+  guard is added because the LINE does. **Counted as a stream fix, not as a win.**
+- **What did NOT move, checked rather than assumed:** the punish is still paid when the target dies
+  to the packet. `runEvent` skips a handler whose holder is `fainted` (`sim/battle.ts:512`) and
+  `Pokemon#faint` explicitly does not set that flag until the queue resolves.
+
+### 4. A CRITICAL HIT IGNORES THREE THINGS AND MODELLED NONE. IT DOES NOT IGNORE BURN.
+
+`moveHit.crit` sets both `ignoreNegativeOffensive` and `ignorePositiveDefensive`
+(`battle-actions.ts:1683-1691`), applied as `ignoreOffensive = (… && atkBoosts < 0)` and
+`ignoreDefensive = (… && defBoosts > 0)`. The stated blocker was that `dmgRange` recomputes A and D
+without a crit flag; **`isCrit` is now its sixth parameter**, optional, and every pre-existing caller
+gets exactly what it got before.
+
+Meowscarada into Garchomp, Flower Trick (pCrit 1) against Knock Off (the plain physical control):
+
+| staging | plain move | crit before | crit after |
+|---|---:|---:|---:|
+| baseline | 70 | 113 | 113 |
+| attacker **Intimidated** (a real Intimidate, from the foe slot) | 47 | **76** | **113** |
+| defender at **+2 Defence** | 36 | **58** | **113** |
+| **Reflect** up | 47 | **76** | **113** |
+| attacker **burned** | 35 | 56 | **56 — unchanged, and it must be** |
+| defender at **-2 Defence** | — | 224 | 224 — a crit still takes a MINUS |
+
+**Will named the trap and it is now a probe.** *"i dont think it ignores burn tho"* — correct. The
+three rules operate on BOOST STAGES; burn's halving is an `onModifyAtk` multiplier and survives a
+crit. Gen 2 ignored it, Gen 3 onward does not. A probe and a demo both go RED on any future engine
+that "completes" the list with a fourth member.
+
+**The crit ODDS were already right and were not touched** — `CRIT_BY_STAGE=[1/24,1/8,1/2,1]` matches
+`critMult = [0,24,8,2,1]` for gen 7+.
+
+**THE ROLLED CRIT IS RE-PRICED WITHOUT SPENDING A NEW DIE.** One `rng()` is drawn where it was always
+drawn and is kept as an INDEX; if the crit lands, the same index is read off the crit range. So a crit
+with nothing to ignore is **byte-identical** to the old arithmetic — asserted, not claimed:
+`113 vs 113` under the reverted engine.
+
+### THE ELEVEN PROBES AND THE NINE DEMONSTRATIONS
+
+`tests/test-mechanics.js` — 8 red-first, 3 already-live:
+
+| tag | probe | was |
+|---|---|---|
+| `spreadFoes` | a PROTECTING partner still costs the survivor the spread 0.75 | RED |
+| `spreadFoes` | an ALREADY-FAINTED partner removes the modifier entirely | already live |
+| `restoresStats` | White Herb clears the Intimidate drop and is consumed | RED |
+| `restoresStats` | White Herb restores NEGATIVE stages only and leaves a positive one | already live (WIRE 56's residual) |
+| `speedOnItemLoss` | losing a White Herb to Intimidate procs Unburden in the same turn | RED |
+| `punishesAttacker` | Aftermath reads the post-Sash HP, so a survivor does not detonate | RED |
+| `punishesAttacker` | the contact punish is paid AFTER the damage lands, not before | RED |
+| `alwaysCrit` | a crit ignores the ATTACKER's negative Attack stages | RED |
+| `alwaysCrit` | a crit ignores the DEFENDER's positive Defense stages | RED |
+| `alwaysCrit` | a crit ignores Reflect | RED |
+| `alwaysCrit` | a crit does NOT ignore a burn | already live — a guard, not a gap |
+
+`tests/probe_red_demo.js` — seven `demoSource` cases plus **two controls**, and the second control is
+the attribution claim the wire cannot make about itself: **45/45 ordinary clicks land in an IDENTICAL
+state** under all three reversals applied at once, the stream moves on every unconditional-toll row
+and on no reactorless row, and a ROLLED toll reorders at the roll that fires it.
+
+### THE CONTROL FOUND A DEFECT IN ITSELF FIRST, WHICH IS THE POINT OF WRITING IT
+
+The first cut of that control listed Static, Stamina and Weak Armor as "must reorder" and went red on
+all three. Both reasons are real and neither is a probe bug in the ordinary sense:
+
+- **Static's toll is a 30% roll.** On the pinned median die it does not fire, so two of its three
+  cells are legitimately identical. It IS a reorder at roll 0, and that is now pinned on its own.
+- **Stamina and Weak Armor did not move, and in the authority they should have.** See the filed item
+  below.
+
+### FILED, NOT FIXED — one residual, staged in the authority rather than guessed
+
+**`buffsHolderOnHit` IS THE SAME EVENT AS `punishesAttacker` AND THIS ENGINE RESOLVES THEM IN TWO
+DIFFERENT STEPS.** Stamina, Weak Armor and Rough Skin are all `onDamagingHit` in Showdown, which runs
+**after** `runMoveEffects`, `selfDrops` and `secondaries` (`battle-actions.ts:1117`). WIRE 11 moved
+`punishesAttacker` below the damage — which is the divergence that was observed and filed — but not
+below the SECONDARIES, and it left `buffsHolderOnHit` where it was, at the top of `_stepEffects`.
+So two things remain out of place: the punish is one step early relative to a contact move's own
+secondary, and the buff family is in a different step from the toll family it shares an event with.
+
+Closing it properly means a NEW per-row step after `_stepEffects` carrying both families, which moves
+where every secondary on every contact move lands. That is a shape change of the same size as WIRE 10
+and it must be its own rung, or the next ladder run cannot say which change moved it. Measured
+exposure: the control above shows the buff family holding still on all 6 of its cells under a full
+WIRE 11 reversal, so nothing here has drifted — it simply has not been done.
+
+### Green, and what was NOT re-run
+
+Run and green: `tests/test-mechanics.js` (281/282), `tests/probe_red_demo.js` (177/0),
+`tests/test-engine-consistency.js`, `tests/test-medicham.js` (5/5),
+`tests/test-engine-diff.js` (**1/150 at seed 20260804, the same single SUSPECT row —
+`chesnaught woodhammer -> mimikyu`, unchanged**), `tests/test-game-diff.js` (all five scripted games
+agree on every turn, and the injected-divergence proof still catches its plant), plus
+`test-tag-wire`, `test-tag-consumed`, `test-speed-multipliers`, `test-rollout-effects`,
+`test-dead-volatile`, `test-priority-block`, `test-entry-effects`, `test-charge`, `test-choice-lock`,
+`test-weather-duration`, `test-mega-timing`, `test-forced-switch`, `test-future-sight`.
+
+**ONE GATE WENT RED BECAUSE THE ENGINE GOT BETTER, AND IT SAID SO IN ITS OWN FAILURE MESSAGE.**
+`tests/test-protocol-trace.js` PART 5 is the acceptance case for defect 4 and it asserted
+`meIntim !== meCtrl` — *"either the declared crit limitation is gone (good news, and this test must
+then be rewritten) or the Intimidate never landed."* The limitation is gone. The assertion is
+**inverted** and the escape hatch in that message is **closed by a control**: "the two arms agree" is
+satisfied just as well by a scenario that never staged the drop, so the `|-unboost|` line is now
+asserted present in the Intimidate arm and absent from the Blaze arm, **on each engine's own stream**.
+It reads `showdown 112/170 in both arms, medicham 111/170 in both arms`. The one-HP gap is the die
+multiplicity difference that test's own header documents at length and is deliberately not asserted.
+
+**THE REFIT DEBT DID NOT GROW, AND THAT IS CHECKED RATHER THAN HOPED.** `engine/feature_fixture.js`
+reports the SAME eight features with the SAME before/after digests as it did before this wire started
+(`koTarget b6902f89050e -> fc2501572a6e`, `screenValue 68d992e33616 -> b34d1b81da46`, and six more).
+So WIRE 11 moved no value on the fixture board and `REFIT OWED` is exactly the debt MEASURE already
+had. That is a fact about the fixture, not a claim that no feature can ever move: the fixture board
+carries no guaranteed-crit move, no screen under a crit and no shielded partner, which is precisely
+the surface this wire touched.
+
+**NOT RE-RUN, and the reason:** the whole-game differential and the release ladder are held by other
+divisions this session and were not touched. `tests/test-interaction-matrix.js --full` WAS run and
+reads **1557/1574 live pairs (98.9%)** against a published **1624/1643 (98.8%)** — **the artifact was
+NOT overwritten** (the shrink guard refused a smaller live count, correctly). That comparison is **not
+attributable to this wire**: the published run is dated 2026-08-06 and predates WIRE 8, 9 and 10 as
+well as this one. The one parting row that looked like it might be mine — `stoneaxe -> beakblast`,
+`.B.active[0].hurt` — was played directly against an engine with **all three of this wire's reversals
+applied** and is **byte-identical**, so it is not.
 
 ## ROADMAP #81 WIRE 10 — THE SHAPE LANDED AND THE MEDIAN TURN IS STILL 1. THE STOP TEST RETURNED A NEGATIVE. 2026-08-07.
 
@@ -226,6 +427,9 @@ Mixing these in would have made the rung unattributable, which is the misattribu
 to prevent. All three are order WITHIN a step, not the shape of the step list.
 
 1. **THE CONTACT PUNISH IS PAID BEFORE THE DAMAGE AND SHOWDOWN PAYS IT AFTER THE SECONDARIES.**
+   **CLOSED AT ROADMAP #81 WIRE 11, 2026-08-07 — the half about the DAMAGE. The half about the
+   SECONDARIES is still open and is re-filed at the top of this file, together with the discovery that
+   `buffsHolderOnHit` shares the same Showdown event and is in a different step here.**
    `runEvent('DamagingHit', …)` is the last thing `spreadMoveHit` does; this engine's punish block sits
    above `tg.curHP -= dmg`. Staged, Knock Off into a Rough Skin Garchomp:
    `|-damage|p2a: Garchomp|137/183` then `|-damage|p1a: Incineroar|149/170|[from] ability: Rough Skin`.
@@ -2350,6 +2554,8 @@ of this file applies.
   of it is narrower and is filed as (9) on that wire: recoil is still charged on UNCAPPED damage.
 - **the Intimidate x guaranteed-crit case is still open** (§6): `107/170` against `128/170`. It has a
   probe in `tests/test-protocol-trace.js` PART 5 and is still the declared limitation.
+  **CLOSED AT ROADMAP #81 WIRE 11, 2026-08-07.** `dmgRange` takes a crit flag; PART 5's assertion was
+  inverted and now reads `showdown 112/170 in both arms, medicham 111/170 in both arms`.
 - **`data/diff-swarm.json`, `data/rerun-list.json` and `data/store-validation.json` trip the
   provenance ratchet and none of them is ENGINE's.** Red on arrival; filed under the DIVISIONS rule.
 
@@ -2382,6 +2588,8 @@ Showdown emits one. **MEDICHAM emitted nothing, so there was nothing to diff.**
 `docs/GAME-DIFFERENTIAL-DESIGN.md` §6's case, staged: an Intimidated Meowscarada throwing Flower
 Trick (a guaranteed crit) into an Incineroar. Showdown ignores the attacker's NEGATIVE offensive
 stages on a crit (`sim/battle-actions.ts:1683-1691`); MEDICHAM's declared limitation says it does not.
+**HISTORICAL AS OF ROADMAP #81 WIRE 11, 2026-08-07 — the numbers below are the PRE-WIRE build's.
+MEDICHAM now reads `111/170` in BOTH arms and PART 5's medicham assertion is inverted to match.**
 
 ```
 showdown   Intimidate 112/170   control 112/170     <- the crit ignored the -1

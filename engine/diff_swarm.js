@@ -230,12 +230,25 @@ if (require.main === module && process.argv.includes('--selftest')) {
  * ids back to teams would have to re-derive the predicates, which is two implementations of "what is
  * in this configuration" and they would disagree the first time a tag moved. It returns the picked
  * TEAM OBJECTS; the CLI report below prints ids out of the same structure. */
-function loadTeams() {
+/* `opts.storeDir` PINS THE TEAM STORE, and it exists because not having it cost a run.
+ *
+ * ROADMAP #81 WIRE 5 pinned the CENSUS after finding it steered the sample from outside the
+ * photograph. The team store is the OTHER half of the same sample and was left live: OPS appends to
+ * `data/games.bo3.jsonl` continuously, the stride below is over the deduped set, so one appended game
+ * shifts which teams get played. On 2026-08-07 that happened between arm 3 and arm 4 of a 14-arm state
+ * ladder — the corpus went 7,454 -> 7,509 teams and the pool digest went `bd29c210884e` ->
+ * `32b2abcbfeb7` — and the first three rungs were sampling a different population from the rest.
+ * `engine/arms_comparable.js` would have refused the whole table at the end, which is the guard
+ * working and is also 100 minutes gone.
+ *
+ * Absent, the paths are the live ones and NOTHING CHANGES for any existing caller. */
+function loadTeams(opts) {
   const teams = [];
   const seen = new Set();
+  const storeDir = opts && opts.storeDir ? String(opts.storeDir) : null;
   for (const f of ['data/games.bo3.jsonl', 'data/games.ots.jsonl']) {
     let raw;
-    try { raw = fs.readFileSync(D(f), 'utf8'); }
+    try { raw = fs.readFileSync(storeDir ? path.join(storeDir, path.basename(f)) : D(f), 'utf8'); }
     catch (e) { SKIPS.push(`${f}: ${String((e && e.message) || e).slice(0, 80)}`); continue; }
     for (const line of raw.split('\n')) {
       if (!line.trim()) continue;
@@ -255,10 +268,10 @@ function loadTeams() {
   return teams;
 }
 
-function buildSwarm(n) {
+function buildSwarm(n, opts) {
   const F = featureSets();
   const CFG = configs(F);
-  const teams = loadTeams();
+  const teams = loadTeams(opts);
   const per = Math.max(1, Math.floor((n || N) / CFG.length));
   const out = [];
   for (const c of CFG) {
@@ -279,7 +292,8 @@ function buildSwarm(n) {
                pct_of_pool: +(100 * matching.length / Math.max(teams.length, 1)).toFixed(2),
                teams: picked.map(p => p.id), picked_teams: picked });
   }
-  return { teams, per, out, skips: SKIPS, unreadable: UNREADABLE, features: F, configs: CFG };
+  return { teams, per, out, skips: SKIPS, unreadable: UNREADABLE, features: F, configs: CFG,
+           store_dir: (opts && opts.storeDir) || null };
 }
 
 module.exports = { featureSets, configs, loadTeams, buildSwarm, teamHas, norm, GAME_RULES };
