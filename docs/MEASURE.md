@@ -19,8 +19,12 @@ MEASURE — can we believe a number
     powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835
     PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/abra-tags.js
     (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
-  engine correctness -> leaf: NOT DERIVED (data/leaf-engine-contrast.json absent)
-  provenance: 11 unsafe, 1 void (declared), 47 possibly stale, 52 ok, 0 missing
+  engine correctness -> leaf: The WIRE 10 engine's leaf is NOT SEPARATED from the pre-WIRE-1 engine's on Brier over 8,883 paired positions (+0, 95% CI -0.0007 to 0.0007; negative is better), and the effect is INSIDE its own split-half noise floor of 0.000642. Both engines' leaves remain worse than a coin: Brier vs coin 0.0325 (baseline) and 0.0325 (top). Change in divergence depth vs change in leaf error: rho -0.01151 [-0.03067, 0.0082] on n=8601.
+    8,883 paired positions, 200 rollouts each, releases cf6a68fa412c -> dc3c43336539   (2026-08-07 20:17)
+    Brier TOP-BASELINE 0 [-0.0007, 0.0007]  noise floor 0.000642  detectable |delta| >= 0.001013
+    does divergence depth predict leaf error?  LINES rho 0.00101 [-0.0186, 0.02212]   TURNS rho -0.00004 [-0.02082, 0.0226]   (MDE 0.02978)
+    the depth ruler's own reliability (same release, driver order reversed): rho 0.83612 on n=8855 — the ceiling on the two rho above
+  provenance: 11 unsafe, 1 void (declared), 48 possibly stale, 52 ok, 0 missing
   click censoring: 1,475 of 270,022 recorded actions were NOT clicks (0.546%) and left the labeled set; 3,559 (1.318%) are kept under a candidate set
     classifier vs the raw protocol on 6,988 games (69.8% of the corpus): encore recall 99.7% precision 96.2%, drag recall 96.7% precision 96.7%
     EM recovers 91.4% of a planted censoring bias of 0.958 against a 0.328 noise floor (amplified regime)
@@ -36,7 +40,7 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-08-06 19:19
 ```
 
-_stamped 2026-08-07 19:17_
+_stamped 2026-08-07 20:27_
 
 <!-- /GENERATED -->
 
@@ -54,7 +58,165 @@ restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
 
-### 0. THE HEADLINE METRIC IS NOW EXPLOITABILITY, AND THIS DIVISION DOES NOT HAVE ONE — 2026-08-06 (3.59.0)
+### 0. THE FORK IS DECIDED, AND THE ANSWER IS NO — 2026-08-07 (3.69.0)
+
+**A MORE CORRECT ENGINE DID NOT MAKE BETTER PREDICTIONS, AND NEITHER DEPTH METRIC PREDICTS LEAF
+ERROR.** `engine/leaf_engine_contrast.js` → `data/leaf-engine-contrast.json`. Read every figure from
+the artifact; the rows are in `data/leaf-engine-contrast-rows.jsonl` so the curves can be re-cut
+without replaying 74 minutes of rollouts.
+
+**What was measured.** MILTANK's live in-game leaf — `rolloutWinProb` at n=200, explore=1.0,
+foePolicy uniform, horizon 60, read from `miltank.js DEFAULTS` rather than retyped — on **8,883
+positions**, the whole clean scorable corpus at the photograph, scored through **two frozen
+releases**:
+
+| | release | `medicham2-browser.js` | cut |
+|---|---|---|---|
+| BASELINE | `cf6a68fa412c` | `795be0c58cd7` | 2026-08-07T02:34:46Z |
+| TOP | `dc3c43336539` | `d10db6714fc9` | 2026-08-07T17:27:09Z |
+
+The run **refuses to start** unless the two manifests differ in `engine/medicham2-browser.js` and in
+nothing else, and they do — same weights, same board, same damage table, same tag file, same Showdown
+commit `20ad99f`. Identical positions, identical per-position seeds. So the contrast is the simulator
+and nothing else.
+
+**1. THE TWO ENGINES ARE INDISTINGUISHABLE AT THE LEAF, AND THE NULL IS POWERED.**
+
+| | TOP − BASELINE | 95% CI | noise floor | detectable at 80% power |
+|---|---|---|---|---|
+| Brier | **0.0000** | [−0.0007, +0.0007] | 0.000642 | 0.001013 |
+| log-loss | +0.0013 | [−0.0007, +0.0033] | — | — |
+
+The confidence interval is **narrower than the smallest effect this n can detect**, so this is a tight
+null and not an underpowered one. McNemar on the 7,994 positions where both engines made a decisive
+call: **37 discordant for TOP, 36 for BASELINE**, z = 0.117, p = 0.91. The two leaves correlate
+r = 0.9881, mean |Δp| = 0.0254, max 0.175 — they are not the same function, they just score the same.
+
+**2. BOTH LEAVES ARE STILL WORSE THAN A COIN, ON A SAMPLE 6.4× THE PRIOR ONE.** Brier vs coin, paired:
+**+0.0325 [0.0281, 0.0372]** (TOP) and **+0.0325 [0.0281, 0.0371]** (BASELINE). Positive is worse. The
+2026-08-04 held-out reading of +0.0502 [0.0371, 0.0628] is reproduced in direction and sign at
+n = 1,778 held-out: **+0.0382 [0.0279, 0.0485]**.
+
+**3. DISCRIMINATION IS REAL ONLY IN-SAMPLE, AND IT SITS ON ITS OWN NOISE FLOOR.** On the full corpus
+the leaf names the winner on **52.48% of 8,320 decisive calls [51.40, 53.55], p < 1e-4** — and the
+split-half accuracy spread for that same arm is **2.49 points** against an effect of **2.48 points**.
+By this division's own rule (LESSONS §9) that is not an effect. On the **held-out newest fifth it is
+50.48%, p = 0.70** — no ranking at all, for both engines.
+
+**4. CALIBRATION IS THE FAILURE, AND IT IS A COMPRESSION.** ECE **0.1514**, MCE 0.405. The reliability
+curve is monotone and almost flat: 88 points of predicted range map onto **13 points of observed
+range**.
+
+| leaf says | 0.06 | 0.16 | 0.25 | 0.35 | 0.45 | 0.55 | 0.65 | 0.75 | 0.84 | 0.94 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| it wins | .466 | .443 | .494 | .494 | .498 | .513 | .528 | .564 | .544 | .594 |
+
+**When it says 94% it wins 59%.** A maximiser lives in that column.
+
+**5. AND THE JOINT ANSWER — NEITHER LINES NOR TURNS PREDICTS LEAF ERROR.** Per-position leaf Brier
+against that position's first-divergence depth against the official simulator, on the same bodies the
+leaf rolls out. Spearman, bootstrapped over positions; **negative rho is the hypothesis**.
+
+| predictor | BASELINE engine | TOP engine |
+|---|---|---|
+| divergence depth in **LINES** | **+0.0313** [0.0118, 0.0541] p=0.003 | **+0.0010** [−0.019, 0.022] p=0.92 |
+| divergence depth in **TURNS** | **+0.0287** [0.0072, 0.0514] p=0.007 | **−0.0000** [−0.021, 0.023] p=1.00 |
+
+MDE 0.0298 at this n. Under the engine that ships, **both are zero**. Under the baseline both are
+significant, **both have the WRONG SIGN** (more correct simulation → *larger* leaf error), and both sit
+essentially *at* the detection threshold. The sharpest form — **Δdepth against Δerror**, where every
+position-level confound constant across the two engines cancels — is **rho −0.0115 [−0.0307, +0.0082]**
+on 8,601 positions that parted in both.
+
+**6. THE TWO INSTRUMENTS THE PROJECT THOUGHT WERE DISAGREEING BEHAVE IDENTICALLY.** 0.0313 against
+0.0287; 0.0010 against −0.0000. **The turn metric is not degenerate on this sample** — 13 distinct
+values, 0 through 12, modal share 0.68 — so "turns cannot predict because it has no spread" is
+measured and rejected. Lines and turns are two readings of one thing, and neither reads on the leaf.
+
+**7. THE BINS ARE FLAT, AND THE BEST-FIDELITY BIN IS THE WORST.** TOP engine, by line depth:
+
+| depth | 0–4 | 5–9 | 10–14 | 15–19 | 20–29 | 30–49 | 50+ | NEVER PARTED |
+|---|---|---|---|---|---|---|---|---|
+| n | 130 | 1,421 | 2,165 | 1,505 | 1,474 | 1,126 | 788 | 246 |
+| mean Brier | .263 | .280 | .281 | .286 | .284 | .290 | .261 | **.321** |
+
+The 246 positions where MEDICHAM matched the authority for the whole game have the **worst** leaf
+error and the only sub-chance accuracy (46.9%). At n=228 decisive that interval spans 0.5 and the
+claim is *no trend*, not *inverted*. The largest fidelity improvement available — **241 positions that
+used to part and now never part** — moved the leaf error by **+0.00213**, one standard error, in the
+wrong direction.
+
+**8. THE FIDELITY GAIN ITSELF IS REAL, AND IT REPLICATES THE LADDER ON AN INDEPENDENT SAMPLE.** These
+are corpus positions, not the swarm's team pool, and the engine still improved: games that never part
+**13 → 246**, median first-divergence line **12 → 16**, games diverging 8,842/8,855 → 8,609/8,855.
+**Median completed turns: 1 → 1.** So the night's work was real. It simply does not reach the leaf.
+
+**9. AN INCIDENTAL, CONTROLLED SPEED NUMBER — the first this division has.** §0a says three readings
+of engine throughput disagree by an order of magnitude and none is reproducible. This one is
+like-for-like by construction: identical positions, identical seeds, identical rollout budget,
+identical 6-shard layout, same machine, back to back. **One MILTANK in-game leaf call costs 1,478 s /
+8,883 on the pre-WIRE-1 engine and 2,591 s / 8,883 on WIRE 10 — the shipping engine is 1.75× SLOWER
+per leaf call.** It is not a battles/sec or turns/sec figure and must not be quoted as one; it is the
+cost of the thing the search actually spends its budget on. Filed to §0a rather than published as the
+missing artifact.
+
+**WHAT THIS MEANS, PLAINLY.** Ten WIRE rungs made the simulator measurably more correct and bought
+**nothing** at the leaf, on the largest sample this division has ever run, with the null tighter than
+the smallest detectable effect. **Engine correctness is not what limits the leaf.** The leaf's failure
+is calibration — an 88-point predicted range compressed onto 13 observed points — and grinding the
+differential further cannot touch that. The remaining candidates are the ones §1 already lists and
+this measurement does not settle: the leaf is scored at **turn 0**, where a game-outcome label exists
+and where the position genuinely carries little information; and the **playout policy** is uniformly
+random at explore=1.0, which is a policy question rather than a mechanics one.
+
+**WHAT WOULD FALSIFY THIS.** A depth metric that is not first-divergence — the differential stops at
+the first parting, so a position scoring 16 lines has an unmeasured remainder. If somebody builds a
+*cumulative* divergence measure and it predicts leaf error where these two do not, this section is
+wrong and should say so.
+
+**Four things about the run itself, because the run nearly went wrong twice.**
+
+- **`engine/leaf_scoring.js` is new, and it is not a second implementation.** It holds the Brier,
+  log-loss, interval, reliability, ECE and noise-floor definitions that lived as private functions
+  inside `backtest_winrate.js`. `node engine/leaf_scoring.js --verify` replays
+  `data/winrate-backtest-rows.jsonl` and reproduces **749 of 749 scalars** of the published
+  `data/winrate-backtest.json`, exactly. The generator refuses to run if that fails.
+  **`backtest_winrate.js` was deliberately NOT edited to import it** — it is the generator of a
+  published artifact, it has no `--out`, and it cannot be smoke-tested without overwriting the file
+  everybody quotes. Filed below.
+- **The first full run was killed by the harness at 65 minutes** with the baseline arm finished and on
+  disk. Resume support was added and the arm recovered. The guard written while doing so **caught a
+  real hole**: a reuse check on COUNTS passes when a re-derived sample has the same size and different
+  members, and the store grew 8,887 → 9,003 during the run. It checks the id set now, and a resumed
+  run reads the photograph rather than today's store.
+- **A reused arm is REPRODUCED, not trusted.** 24 positions of each reused leaf arm are re-run by the
+  current code and must be bit-identical; they were, for both engines.
+- **The depth arm has no per-position reproduction, and that is a finding rather than an exemption.**
+  The first version of that check refused the depth arm, 16 of 24 positions disagreeing.
+  `game_differential`'s driver is coverage-seeking and its `CLICKS`/`COV_HITS` carry across games on
+  purpose, so a divergence depth is a function of the position **and of every game played before it**.
+  A 24-position slice starts from an empty click history and plays different games by construction.
+  The substitute is the **reversed-order control**, which is why it was built: same release, same
+  positions, driver history deliberately changed, **rho 0.836 [0.825, 0.846]** on 8,855 positions.
+  That is the ceiling on every correlation in §5, and it is high — the nulls above are the world, not
+  the ruler.
+
+**Filed from this pass, not fixed:**
+
+- **`backtest_winrate.js` should import `engine/leaf_scoring.js`.** One line, in the pass that next
+  re-runs it. Two copies of a scoring rule is how `data/guru.js` came to say 0 where its source said 6.
+- **`provenance.js` classes this artifact as OPEN-SHEET and it is a LADDER artifact.** The corpus
+  detection reads one require hop deep, and `engine/game_differential.js` *mentions*
+  `data/games.bo3.jsonl` in a comment — so a comment one file away picks the denominator. Drift is
+  reported as 10.7% against the open-sheet ceiling where the ladder ceiling gives ~2%. Consequence is
+  nil today because the POWER line correctly says the missing games move a proportion by at most 0.33
+  points, below the 0.43-point floor — but the mechanism is the same one §5 records for
+  `winrate-backtest.json`, recurring through comments rather than code.
+- **`docs/ABRA-whitepaper.md`'s 3.68.0 block quotes `wire-ladder` figures that the artifact does not
+  carry** — "1,995 games per arm" and "mean 15.0 → 24.0" against `data/wire-ladder.json`'s 1,997 and
+  14.78 → 33.98. Another division was mid-pass on that file while this ran. Flagged, not edited.
+
+### 0b. THE HEADLINE METRIC IS NOW EXPLOITABILITY, AND THIS DIVISION DOES NOT HAVE ONE — 2026-08-06 (3.59.0)
 
 ADR-003 is accepted and published across the docs in this pass. **Exploitability replaces win rate as
 the project's headline metric, and the published comparator is VGC-Bench's approximately 100%.** That

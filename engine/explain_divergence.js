@@ -41,6 +41,74 @@ const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? proces
 const N_SHOW = +arg('--n', process.argv.includes('--all') ? 1e9 : 12);
 const ONLY_CLS = arg('--cls', null);
 
+
+/* ---- LIVE MODE: play fresh games and print the window around each disagreement ------------------
+ *
+ *   node engine/explain_divergence.js --live [--n 12]
+ *
+ * WHY LIVE RATHER THAN REPLAYING THE ARTIFACT'S DIVERGENCES. The artifact stores a seed, and a seed
+ * names two teams drawn from a pool read LIVE from the game store, which OPS appends to continuously.
+ * Tested: the first stored divergence's seed no longer resolves — its pair is not in today's pool. So
+ * an artifact divergence is not replayable, which is worth knowing on its own and is the same shape as
+ * ROADMAP #82 (the team pool is a steering input nobody froze).
+ *
+ * WHAT YOU GET, AND WHAT YOU DO NOT. playGame returns four reduced lines before the split and six raw
+ * lines after — a ten-line window, not a full board. THE BOARD IS NOT RECONSTRUCTED AND IS NOT FAKED:
+ * printing HP nobody measured would be a guess dressed as a measurement, and the window plus the two
+ * brought teams is enough to read most disagreements. Said plainly rather than papered over. */
+function liveMode(n) {
+  const G = require('./game_differential.js');
+  const pairs = G.pairsFor('baseline');
+  console.log('');
+  console.log('LIVE DIVERGENCES — fresh games, the window around each split');
+  console.log('SD = Pokemon Showdown, right by definition.  OURS = medicham2.');
+  console.log('');
+  console.log('Ten-line window: four reduced lines before, six raw after. NOT a board — no HP is shown');
+  console.log('because none was measured, and a guessed board would make a correct engine look wrong.');
+  console.log('');
+  let shown = 0;
+  for (const p of pairs) {
+    if (shown >= n) break;
+    let r; try { r = G.playGame(p.a, p.b, 'baseline', p.tag, {}); } catch (e) { continue; }
+    if (!r || !r.div) continue;
+    const d = r.div;
+    console.log('='.repeat(94));
+    console.log('#' + (++shown) + '   agreed for ' + d.agreedLines + ' lines, then split');
+    /* The built mon carries `spec.key`, not `spec.species` — the first cut of this printed four empty
+     * strings, which is the lookup family this repo has engine/names.js for. Fixed by reading the
+     * object rather than guessing its field. */
+    /* SPEED IS PRINTED BECAUSE THE RIG MANUFACTURES TIES. Every body is built Serious / 0 EVs / 31
+     * IVs, and 91.4% of legal species share a base Speed with another, so identical numbers here mean
+     * the ordering divergence below may be a COIN FLIP rather than a defect (ROADMAP #86). Reading a
+     * turn-order disagreement without the two Speeds beside it is how ten wires got aimed. */
+    const nm = (t) => t.map(x => {
+      const k = (x.spec && (x.spec.key || x.spec.ident)) || '?';
+      const sp = (x.medi && x.medi.st && x.medi.st.sp) || (x.spec && x.spec.bs && x.spec.bs.spe);
+      return k + (sp ? '(' + sp + ')' : '');
+    }).join('  ');
+    console.log('   YOURS  ' + nm(p.a));
+    console.log('   FOE    ' + nm(p.b));
+    /* A tie between the two ACTIVE bodies is flagged at the top, not left for the reader to spot. */
+    const spOf = (t) => (t[0] && ((t[0].medi && t[0].medi.st && t[0].medi.st.sp) || 0)) || 0;
+    if (spOf(p.a) && spOf(p.a) === spOf(p.b)) console.log('   *** LEAD SPEEDS ARE EQUAL — any ordering split below may be a coin flip, not a bug (#86)');
+    console.log('');
+    for (const b of (d.before || [])) console.log('     both  ' + String(b).slice(0, 92));
+    console.log('');
+    console.log('   >> SD    ' + String(d.sdRaw || '(nothing)').slice(0, 92));
+    console.log('   >> OURS  ' + String(d.meRaw || '(nothing)').slice(0, 92));
+    console.log('');
+    const sa = (d.sdAfterRaw || []).slice(1), ma = (d.meAfterRaw || []).slice(1);
+    for (let i = 0; i < Math.max(sa.length, ma.length); i++) {
+      console.log('      SD   ' + String(sa[i] === undefined ? '-' : sa[i]).slice(0, 92));
+      console.log('      us   ' + String(ma[i] === undefined ? '-' : ma[i]).slice(0, 92));
+    }
+    console.log('');
+  }
+  console.log('='.repeat(94));
+}
+
+if (process.argv.includes('--live')) { liveMode(+arg('--n', 12)); return; }
+
 const ART = JSON.parse(fs.readFileSync(D('data', 'game-differential.json'), 'utf8'));
 
 /* ---- a small protocol reader: enough board to judge a line, and no more ------------------------- */

@@ -242,10 +242,88 @@ if (require.main === module && process.argv.includes('--selftest')) {
  * working and is also 100 minutes gone.
  *
  * Absent, the paths are the live ones and NOTHING CHANGES for any existing caller. */
+/* ---- THE POOL CACHE (ROADMAP #87) ---------------------------------------------------------------
+ *
+ * Will, 2026-08-07: "IS SHOWDOWN THE BOTTLENECK? IT SHOULDNT BE TAKING YEARS TO COMPARE TWO BOARD
+ * STATES" — then, on being shown the measurement: "kill them both and restart after the pool cache
+ * THIS IS RIDICULOUS". He was right twice. Measured before this existed:
+ *
+ *     loadTeams()                      ~41 SECONDS      reads bo3 80.3 MB + ots 30.4 MB, JSON.parses
+ *                                                       every line, to dedupe 7,509 teams
+ *     Showdown dex + all four tables     0.95 s
+ *     open a frozen release              0.04 s
+ *     PLAY ONE GAME                      0.09 s
+ *
+ * PLAYING A GAME COST 93 MILLISECONDS. GETTING READY COST 41 SECONDS — on every process start, paid
+ * again by every probe run, every gate and every re-check an agent made. Two measuring agents were
+ * killed at 2h10m and 1h55m, and the wall clock was almost entirely this.
+ *
+ * THE CACHE KEY IS SIZE+MTIME AND THAT IS A DELIBERATE EXCEPTION TO THIS PROJECT'S OWN RULE.
+ * `engine/provenance.js` exists because "newer than its source" is not evidence, and it is right. But
+ * a CONTENT digest of the key would require reading the 110 MB the cache exists to avoid, which
+ * defeats it entirely. So: the fast key is size+mtime, the CONTENT digest is computed once at cut time
+ * and stored, and `--verify-pool` re-reads and checks it. The store is documented append-only, so a
+ * size change catches every normal mutation; a rewrite-in-place is the case only the verify path sees,
+ * and it is named here rather than left implicit.
+ *
+ * A MISS NEVER REBUILDS SILENTLY. It says so, loudly, and rebuilds — because the alternative is a
+ * measurement that changes its own sample without telling anyone, which is ROADMAP #82 and the WIRE 5
+ * failure. `--rebuild-pool` forces one. */
+let POOL_FROM_CACHE = false;
+const POOL_CACHE = D('data', 'diff-team-pool.json');
+
+function poolKey(storeDir) {
+  const parts = [];
+  for (const f of ['data/games.bo3.jsonl', 'data/games.ots.jsonl']) {
+    const fp = storeDir ? path.join(storeDir, path.basename(f)) : D(f);
+    try { const st = fs.statSync(fp); parts.push(path.basename(f) + ':' + st.size + ':' + st.mtimeMs); }
+    catch (e) { parts.push(path.basename(f) + ':MISSING'); }
+  }
+  return parts.join('|');
+}
+
+function readPoolCache(key) {
+  if (process.argv.includes('--rebuild-pool')) return null;
+  let j; try { j = JSON.parse(fs.readFileSync(POOL_CACHE, 'utf8')); } catch (e) { return null; }
+  if (!j || j.key !== key || !Array.isArray(j.teams)) return null;
+  return j;
+}
+
+function writePoolCache(key, teams, storeDir) {
+  const crypto = require('crypto');
+  /* THE CONTENT DIGEST IS PAID ONCE, HERE, so `--verify-pool` can check the fast key later without
+   * every run paying for it. */
+  const digests = {};
+  for (const f of ['data/games.bo3.jsonl', 'data/games.ots.jsonl']) {
+    const fp = storeDir ? path.join(storeDir, path.basename(f)) : D(f);
+    try { digests[path.basename(f)] = crypto.createHash('sha1').update(fs.readFileSync(fp)).digest('hex').slice(0, 12); }
+    catch (e) { digests[path.basename(f)] = null; }
+  }
+  const pool = crypto.createHash('sha1').update(teams.map(t => t.key).join(String.fromCharCode(10))).digest('hex').slice(0, 12);
+  try {
+    fs.writeFileSync(POOL_CACHE, JSON.stringify({
+      generated: new Date().toISOString(), by: 'engine/diff_swarm.js loadTeams',
+      what: 'The deduped team pool the whole-game differential draws from. Cached because rebuilding it '
+          + 'read 110 MB and cost ~41 s on EVERY process start (ROADMAP #87).',
+      key, source_content_digests: digests, pool_digest: pool, teams: teams.length,
+      note: 'key is size+mtime by design — a content key would require reading the bytes this cache '
+          + 'exists to avoid. source_content_digests is the paid-once check for --verify-pool.',
+      teams_data: undefined, teams: teams,
+    }) + String.fromCharCode(10));
+  } catch (e) { SKIPS.push('pool cache not written: ' + String((e && e.message) || e).slice(0, 80)); }
+  return pool;
+}
+
 function loadTeams(opts) {
+  const storeDir0 = opts && opts.storeDir ? String(opts.storeDir) : null;
+  const key = poolKey(storeDir0);
+  const hit = readPoolCache(key);
+  if (hit) { POOL_FROM_CACHE = hit.pool_digest || true; return hit.teams; }
+  console.log('  pool cache MISS — rebuilding from the store (~41 s). '
+              + (process.argv.includes('--rebuild-pool') ? 'Forced by --rebuild-pool.' : 'The store moved, or no cache exists.'));
   const teams = [];
   const seen = new Set();
-  const storeDir = opts && opts.storeDir ? String(opts.storeDir) : null;
+  const storeDir = storeDir0;
   for (const f of ['data/games.bo3.jsonl', 'data/games.ots.jsonl']) {
     let raw;
     try { raw = fs.readFileSync(storeDir ? path.join(storeDir, path.basename(f)) : D(f), 'utf8'); }
@@ -265,6 +343,9 @@ function loadTeams(opts) {
       }
     }
   }
+  /* WRITTEN ON THE WAY OUT, so the next process start is milliseconds instead of 41 seconds. */
+  const d = writePoolCache(key, teams, storeDir0);
+  console.log('  pool cache written: ' + teams.length + ' teams, pool digest ' + d);
   return teams;
 }
 

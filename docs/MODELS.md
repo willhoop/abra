@@ -1,6 +1,21 @@
 # ABRA — the model family (living reference)
 
-**Version 3.68.0 · Last updated 2026-08-07.**
+**Version 3.69.0 · Last updated 2026-08-07.**
+
+**MEDICHAM'S CORRECTNESS DOES NOT REACH MILTANK'S LEAF (3.69.0).** The entry below records how far
+MEDICHAM sits from the authority across ten frozen releases. `data/leaf-engine-contrast.json` records
+what closing that distance was worth to the model that consumes it, and the answer is nothing
+measurable. MILTANK's in-game leaf on **8,883 identical positions with identical seeds**, through the
+pre-WIRE-1 release `cf6a68fa412c` and the WIRE 10 release `dc3c43336539` — which differ in exactly
+`engine/medicham2-browser.js` — gives a paired Brier difference of **0.0000, 95% CI [−0.0007, +0.0007]**
+against a noise floor of 0.000642 and an MDE of 0.001013. **Tight null, not an underpowered one.**
+Per-position divergence depth predicts per-position leaf error at **rho +0.0010 [−0.019, 0.022]** in
+lines and **−0.0000 [−0.021, 0.023]** in turns (MDE 0.0298); a reversed-order control puts the depth
+instrument's own reliability at **rho 0.836**, so the zeros are the world and not the ruler. Both
+leaves stay worse than a coin (**+0.0325 [0.0281, 0.0372]**) with **ECE 0.1514** and a reliability curve
+that is monotone and almost flat: the bottom bucket predicts **0.062** and observes **0.466**, the top
+bucket predicts **0.938** and observes **0.594**. **The leaf's problem is calibration, and it is not
+downstream of engine mechanics.**
 
 **MEDICHAM'S DISTANCE FROM THE AUTHORITY, MEASURED ACROSS TEN FROZEN RELEASES (3.68.0, re-run
 2026-08-07 after ROADMAP #81 WIRE 7).** `engine/wire_ladder.js` → `data/wire-ladder.json`. **Read every

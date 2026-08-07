@@ -1,6 +1,27 @@
 # The whole-game differential — design, and the research it is taken from
 
-**Version 3.68.0 · Last updated 2026-08-07**
+**Version 3.69.0 · Last updated 2026-08-07**
+
+**THIS INSTRUMENT'S OUTPUT DOES NOT PREDICT THE LEAF, AND THAT IS NOW MEASURED (3.69.0).**
+`data/leaf-engine-contrast.json` joins this file's first-divergence depth, per position, to MILTANK's
+per-position leaf error over 8,883 corpus positions. **Neither depth in LINES nor depth in TURNS
+predicts leaf error** under the shipping engine (rho +0.0010 and −0.0000, MDE 0.0298), and under the
+pre-WIRE-1 engine both are nominally significant with the **wrong sign**. That is not an argument
+against the instrument — it measures conformance to the authority, which is worth having on its own
+terms and is what ADR-002 asks for. It is an argument against **spending further engine effort in order
+to move the leaf**, and it retires "line depth is the better steering number" as an unvalidated
+assumption: the two metrics behave identically here, and neither reads.
+
+Two properties of this file were confirmed in the course of that measurement and belong here:
+
+- **The driver's statefulness is load-bearing and is not a detail.** `CLICKS` and `COV_HITS` carry
+  across games deliberately, so `playGame`'s divergence depth is a function of the position **and of
+  every game played before it**. A per-position reproduction check re-running a 24-position slice in a
+  fresh process disagreed on 16 of 24 — correctly, by construction. Any caller joining depth to a
+  per-position quantity must control for run order or measure what it costs.
+- **A reversed-order control quantifies that cost.** Same release, same positions, order reversed
+  inside each shard: the two depth readings agree at **rho 0.836 [0.825, 0.846]** over 8,855 positions,
+  5,506 of them identical. So roughly 84% of a depth reading is the position and the rest is the run.
 
 **THE INSTRUMENT HAS BEEN TURNED ON ITS OWN HISTORY (3.68.0).** `engine/wire_ladder.js` replays every
 frozen release of the 2026-08-06/07 wire night through this driver under **one** pinned census and

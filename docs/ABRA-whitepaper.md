@@ -2,7 +2,42 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.68.0 · Last updated 2026-08-07**
+**Version 3.69.0 · Last updated 2026-08-07**
+
+**A MORE CORRECT ENGINE DID NOT MAKE BETTER PREDICTIONS (3.69.0).** The release ladder below records
+that ten fixes moved the differential's first-divergence depth from 13 to 19 protocol lines while the
+median completed turn never moved off 1. Which of the two readings — if either — predicts the thing the
+engine exists to serve had never been measured. It has now.
+**Read every figure from `data/leaf-engine-contrast.json`.** MILTANK's live in-game leaf
+(`rolloutWinProb`, n=200, explore=1.0, foePolicy uniform, horizon 60) was scored on **8,883 identical
+positions with identical per-position seeds** through two frozen engine releases that differ in
+**exactly one file**, `engine/medicham2-browser.js` — same weights, same board, same damage table, same
+tag file, same pinned Showdown commit; the generator refuses to run if that is not true.
+Paired Brier, WIRE 10 minus pre-WIRE-1, is **0.0000 with a 95% CI of [−0.0007, +0.0007]**, against a
+split-half noise floor of **0.000642** and a smallest detectable effect of **0.001013**. The interval is
+narrower than the effect the sample can resolve, so this is a **tight null and not an underpowered
+one**. McNemar over the 7,994 positions where both engines made a decisive call gives 37 discordant for
+WIRE 10 and 36 for the baseline (p = 0.91).
+**Neither depth metric predicts per-position leaf error.** Spearman rho between a position's
+first-divergence depth and that position's Brier: under the shipping engine **+0.0010 [−0.019, 0.022]**
+in lines and **−0.0000 [−0.021, 0.023]** in turns, against an MDE of 0.0298. Under the pre-WIRE-1
+engine both are nominally significant, **both carry the wrong sign** (more correct simulation → larger
+leaf error, rho +0.031 and +0.029) and both sit at the detection threshold. The difference form —
+change in depth against change in error, in which every position-level confound constant across the two
+engines cancels — is **rho −0.0115 [−0.0307, +0.0082]** on 8,601 positions. The turn metric is **not**
+degenerate on this sample (13 distinct values, modal share 0.68), so the obvious escape is measured and
+rejected. A reversed-order control establishes that the null is not the ruler: re-reading the same
+positions with the coverage driver's history deliberately changed reproduces the depth at **rho 0.836
+[0.825, 0.846]**.
+**What does limit the leaf is calibration, and it is a compression.** ECE **0.1514**; 88 points of
+predicted range map onto 13 points of observed range; when the leaf says 94% it wins 59%. Both engines
+remain decisively worse than a coin (paired Brier vs coin **+0.0325 [0.0281, 0.0372]**). Discrimination
+is 52.48% of 8,320 decisive calls in sample — against a 2.49-point split-half floor for a 2.48-point
+effect, so it is not an effect by this project's own rule — and **50.48%, p = 0.70, on the held-out
+newest fifth**. The engine fidelity gain is meanwhile real and replicates on this independent sample
+(games that never part 13 → 246, median divergence line 12 → 16, median completed turns 1 → 1). It
+simply does not reach the leaf. **Engine correctness is not the bottleneck; grinding the differential
+further cannot move the number the search is an argmax over.**
 
 **THE RELEASE LADDER, AND THE HONEST ANSWER IS THAT SIX FIXES DID NOT MOVE THE MEDIAN (3.68.0).**
 `engine/wire_ladder.js` replays every frozen release of the 2026-08-06/07 wire night through the

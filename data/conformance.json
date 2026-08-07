@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-07T19:18:54.516Z",
+ "generated": "2026-08-07T20:24:07.863Z",
  "by": "engine/conformance.js",
- "files": 325,
+ "files": 326,
  "findings": [
   {
    "std": "convention",
@@ -406,6 +406,12 @@
    "detail": [
     "move:protect"
    ]
+  },
+  {
+   "std": "convention",
+   "file": "engine/_refresh_noarch_tmp.py",
+   "what": "header is one line",
+   "why": "headers explain the failure the file prevents"
   },
   {
    "std": "convention",

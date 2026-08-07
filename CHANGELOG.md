@@ -10,6 +10,74 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.69.0] — 2026-08-07
+
+### Notes
+- **THE FORK IS DECIDED AND THE ANSWER IS NO. A MORE CORRECT ENGINE DID NOT MAKE BETTER PREDICTIONS.**
+  MILTANK's live in-game leaf, at its own budget (200 rollouts, explore 1.0, horizon 60), scored on
+  **8,883 identical positions with identical seeds** through two frozen releases that differ in
+  **exactly one file** — `cf6a68fa412c` (pre-WIRE-1) against `dc3c43336539` (WIRE 10). Paired Brier
+  **TOP − BASELINE = 0.0000, 95% CI [−0.0007, +0.0007]**, against a split-half noise floor of 0.000642
+  and a detectable effect of 0.001013. **The interval is narrower than the smallest effect this sample
+  can see, so this is a tight null and not an underpowered one.** McNemar on 7,994 doubly-decisive
+  calls: 37 for TOP, 36 for BASELINE, p = 0.91.
+- **NEITHER DEPTH METRIC PREDICTS LEAF ERROR.** Per-position divergence depth against per-position
+  Brier: under the shipping engine, **lines rho +0.0010 [−0.019, 0.022]** and **turns rho −0.0000
+  [−0.021, 0.023]**, MDE 0.0298. Under the baseline both are significant, **both have the wrong sign**
+  (more correct simulation → larger leaf error) and both sit at the detection threshold. Δdepth against
+  Δerror is **rho −0.0115 [−0.031, +0.008]** on 8,601 positions.
+- **THE TWO INSTRUMENTS THE PROJECT THOUGHT WERE DISAGREEING BEHAVE IDENTICALLY**, and the turn metric
+  is **not** degenerate here — 13 distinct values, modal share 0.68. "Turns cannot predict because it
+  has no spread" is measured and rejected.
+- **THE NULL IS NOT THE RULER.** A reversed-order control re-measures the baseline depth with the
+  coverage driver's history deliberately changed: **rho 0.836 [0.825, 0.846]** on 8,855 positions. The
+  depth reading is mostly a property of the position, so the ceiling on the correlations above is high
+  and the zeros are real.
+- **THE FIDELITY GAIN IS REAL AND REPLICATES ON AN INDEPENDENT SAMPLE.** On corpus positions rather
+  than the swarm's team pool: games that never part **13 → 246**, median first-divergence line
+  **12 → 16** — and **median completed turns 1 → 1**, the ladder's own finding, reproduced. The night's
+  work was real. It does not reach the leaf.
+- **WHAT DOES LIMIT THE LEAF IS CALIBRATION.** ECE **0.1514**; 88 points of predicted range compress
+  onto **13 points of observed range**; **when it says 94% it wins 59%.** Both engines remain
+  decisively worse than a coin (Brier vs coin **+0.0325 [0.0281, 0.0372]**). Discrimination is 52.48%
+  of 8,320 decisive in-sample against a **2.49-point split-half floor for a 2.48-point effect**, and
+  **50.48%, p = 0.70, on the held-out fifth** — no ranking out of sample.
+- **RECOMMENDATION: STOP SPENDING ENGINE EFFORT ON THE LEAF.** ROADMAP #81's stop recommendation is
+  now supported by the instrument it was made without. Engine correctness is not the bottleneck.
+- **AN INCIDENTAL CONTROLLED SPEED NUMBER, the first this division has.** Identical positions, seeds,
+  budget, shard layout and machine, back to back: **one in-game leaf call is 1.75× SLOWER on WIRE 10
+  than on pre-WIRE-1** (2,591 s against 1,478 s for 8,883 calls). Not a battles/sec figure and must not
+  be quoted as one.
+
+### Added
+- `engine/leaf_engine_contrast.js` → `data/leaf-engine-contrast.json` and
+  `data/leaf-engine-contrast-rows.jsonl`. Reads two frozen releases and never the live tree; refuses to
+  start unless the two manifests differ in `engine/medicham2-browser.js` alone; stamps the live
+  instrument before and after every arm; resumable, with a reused arm **reproduced** rather than
+  trusted.
+- `engine/leaf_scoring.js` — the leaf-scoring definitions that were private functions inside
+  `backtest_winrate.js`. `--verify` replays `data/winrate-backtest-rows.jsonl` and reproduces
+  **749 of 749 scalars** of the published artifact exactly; the generator refuses to run if it does not.
+- `engine/status.js` prints the contrast, its noise floor, both depth correlations and the depth
+  ruler's own reliability. A small number without its floor is how a null gets published from a ruler
+  with no resolution.
+
+### Fixed
+- **A RESUME GUARD THAT CHECKED COUNTS INSTEAD OF MEMBERS.** Reusing a completed arm was validated by
+  row count, which passes when a re-derived sample has the same size and different members — and the
+  store grew 8,887 → 9,003 during the run that needed the resume. It checks the id set now, and a
+  resumed run reads the photograph rather than today's store.
+
+### Notes on the depth arm's reproducibility
+- The reuse-reproduction check **refused the depth arm**, 16 of 24 positions disagreeing, and that is
+  correct rather than a bug: `game_differential`'s driver is coverage-seeking and its `CLICKS` /
+  `COV_HITS` carry across games deliberately, so a divergence depth is a function of the position **and
+  of every game played before it**. The check is scoped to arms that are pure functions of the
+  position; the depth arm's substitute is the reversed-order control above. Weakening the check to make
+  it pass would have thrown that distinction away.
+
+---
+
 ## [3.68.0] — 2026-08-07
 
 ### Fixed

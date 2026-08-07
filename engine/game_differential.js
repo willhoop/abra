@@ -91,6 +91,20 @@ const VERBOSE = has('--verbose');
  *                       run either way, and finding out afterwards costs the conclusion too. */
 const CENSUS_PIN = flag('--census', null);
 const BASELINE = flag('--baseline', null);
+/* `--state` — THE STATE DIFFERENTIAL (Will, 2026-08-07). Compare the BOARD at every turn boundary, not
+ * the narration. See engine/board_state.js for what is read and why the boundary is where it is.
+ *
+ * IT ALSO CHANGES WHEN A GAME STOPS, and that is the point rather than a side effect. Without it a game
+ * ends at its FIRST PROTOCOL DIVERGENCE, and the median game in this swarm parts inside turn one — so
+ * there is no second boundary to compare a board at, and the question "do the two engines reach the
+ * same board anyway" cannot even be asked. With it a game runs to `--turns` or to its first BOARD
+ * divergence, whichever comes first; the first protocol divergence is still recorded at exactly the
+ * line it was found, so the protocol numbers are the same measurement they always were. */
+const STATE = has('--state');
+/* `--team-store <dir>` PINS THE OTHER HALF OF THE SAMPLE. The census is pinnable (WIRE 5); the team
+ * store was not, and `engine/diff_swarm.js` reads it LIVE from a file OPS appends to. See that file's
+ * `loadTeams` header for what it cost. Absent, the live store is read exactly as before. */
+const TEAM_STORE = flag('--team-store', null);
 /* `--out <file>` writes the artifact somewhere other than data/game-differential.json. It exists so
  * the steering test can take two arms WITHOUT clobbering the published artifact — a test that
  * overwrites the run everybody quotes is a worse bug than the one it checks. */
@@ -131,7 +145,20 @@ const SWARM = require('./diff_swarm.js');
  * measures — it is part of the instrument, like the pin and the equivalence rules, and freezing it
  * would mean an old release could never be re-run under the corrected steering discipline. */
 const STEERING = require('./steering.js');
+/* NOT loaded from the release either, and for the same reason as `steering.js`: this is the
+ * INSTRUMENT. It reads state out of whatever medicham2 the release froze, and it has to know both of
+ * that engine's side-condition shapes (see board_state.js's screens block) precisely so an old release
+ * can be measured under the current comparator. Freezing it would mean each rung was scored by its own
+ * contemporaneous reader, which is the one thing a ladder must not do. */
+const BS = require('./board_state.js');
 const id = N.id;
+/* THE READER'S CONTEXT. `weatherId`/`terrainId` are THE ENGINE'S OWN exported translators, taken from
+ * the frozen release rather than restated here — a second copy of "sandstorm means sand" is exactly the
+ * two-implementations-of-one-fact CLAUDE.md forbids. `fails` is a live counter: a translation that
+ * could not be made produces `UNTRANSLATABLE:<name>` rather than an empty string, because empty reads
+ * as clear skies and would agree with a Showdown that also had none. */
+const STATE_FAILS = {};
+const BS_CTX = { id, weatherId: M.weatherId, terrainId: M.terrainId, fails: STATE_FAILS };
 
 /* tags.json is IN the release, so the coverage sets and the swarm's feature sets are the same bytes
  * the engine was frozen with. Asserted rather than assumed — if a tag file moved under the run the
@@ -832,6 +859,42 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
 
   const bodiesSeen = [];
   let firstDiv = null, turns = 0, err = null, megaChoices = 0;
+  /* WHICH TURN the protocol first parted in — 0 is the leads, before a choice was made. Recorded so
+   * the state side can answer "did the parted narration still reach the same board", which needs the
+   * two events located on the SAME clock. */
+  let divTurn = null;
+
+  /* ---- THE STATE COMPARISON, AT THE TURN BOUNDARY -----------------------------------------------
+   * Taken at exactly the same instants as `alignAndCheck` — before turn 1, and after each turn once
+   * medicham2's `battleTurn` has run its residuals and its `refill` AND Showdown has answered every
+   * forced switch. That is the board the next decision is made from; see board_state.js.
+   *
+   * `boundaries` counts every comparison actually taken, `agreed` those where every compared leaf was
+   * equal. `firstStateDiv` is the FIRST boundary that parted, kept and never overwritten — the same
+   * discipline the protocol side uses, because "parted at turn 1" and "parted at turn 9" are different
+   * events and a last-write-wins field would erase the distinction. */
+  let boundaries = 0, boundariesAgreed = 0, firstStateDiv = null, stateShape = null;
+  const stateCheck = (turnIdx) => {
+    if (!STATE) return null;
+    /* `opts.statePlant` corrupts the MEDICHAM board and only the medicham board, at one named
+     * boundary. It is undefined on every real run and exists for the red demonstration: a comparator
+     * that has never been shown catching a planted STATE bug is not a comparator. It is applied to the
+     * LIVE ENGINE STATE rather than to the snapshot, so the plant travels through the reader — a plant
+     * applied to the output would prove only that `compare` can subtract. */
+    if (opts.statePlant) opts.statePlant(S, battle, turnIdx);
+    const snap = BS.snapshot(S, battle, BS_CTX);
+    /* A TEST HOOK, and the only one. `tests/test-state-differential.js` has to observe boundaries the
+     * driver does not keep — every board, not just the first divergent one — and the alternative was a
+     * second copy of the build/init/choose harness inside the test, which is how two files come to
+     * disagree about what a boundary is. Undefined on every real run. */
+    if (opts.onBoundary) opts.onBoundary(snap, turnIdx, S, battle);
+    boundaries++;
+    if (!stateShape) stateShape = { screens_shape_medicham: snap.screens_shape_medicham,
+                                    screens_named_comparable: snap.screens_named_comparable };
+    if (snap.identical) { boundariesAgreed++; return null; }
+    if (!firstStateDiv) firstStateDiv = { turn: turnIdx, diffs: snap.diffs };
+    return firstStateDiv;
+  };
 
   const alignAndCheck = () => {
     /* `opts.plant` corrupts the MEDICHAM side and only the medicham side. It exists for the
@@ -865,7 +928,15 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
 
   try {
     firstDiv = alignAndCheck();     // the leads, entry abilities and entry weather, before turn 1
-    for (let t = 0; t < MAXTURNS && !firstDiv; t++) {
+    if (firstDiv) divTurn = 0;
+    stateCheck(0);                  // the board as the leads stand, before a choice is made
+    /* THE STOP RULE, WRITTEN OUT BECAUSE IT DECIDES WHAT IS MEASURED.
+     *   protocol mode  stop at the first divergent LINE  — the game after that point is two engines
+     *                  telling different stories and every later line is downstream of the first.
+     *   state mode     stop at the first divergent BOARD — same argument one level up, and NOT at the
+     *                  first divergent line, because whether a parted narration reaches the same board
+     *                  is the whole question. */
+    for (let t = 0; t < MAXTURNS && (STATE ? !firstStateDiv : !firstDiv); t++) {
       if (battle.ended || M.battleOver(S)) break;
       if (battle.requestState !== 'move') break;
       /* ROADMAP #81 WIRE 7 — A DIRECTED SCENARIO ENDS WHEN ITS SCRIPT DOES.
@@ -984,7 +1055,14 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
       }
       turns++;
       for (const m of [...S.actA, ...S.actB]) if (m) bodiesSeen.push(m);
-      firstDiv = alignAndCheck();
+      /* THE PROTOCOL DIVERGENCE IS RECORDED ONCE AND NEVER OVERWRITTEN. In state mode the loop runs on
+       * past it, and `alignAndCheck` compares the two streams FROM THE START every time — so it would
+       * keep returning the same first divergence and re-assigning it is harmless, but a later call
+       * finding an EARLIER one is impossible and a later call finding a LATER one would be wrong.
+       * Guarded rather than argued. */
+      const pd = alignAndCheck();
+      if (!firstDiv && pd) { firstDiv = pd; divTurn = t + 1; }
+      stateCheck(t + 1);
     }
   } catch (e) { err = String((e && e.message) || e).slice(0, 160); }
 
@@ -1000,6 +1078,10 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
   const megaSd = battle.log.filter(l => /^\|-mega\|/.test(String(l)));
   const capable = [pairA, pairB].filter(p => p.some(x => isStone(x.spec.item))).length;
   return { config: cfgId, seed: seedTag, turns, lines: trace.length, err, div: firstDiv, mediTrace: trace,
+           /* THE STATE RESULT, beside the protocol one so the two can be read against each other on the
+            * same game rather than across two runs. `stateDiv === null` with `boundaries > 1` is a game
+            * whose boards never parted. */
+           boundaries, boundariesAgreed, stateDiv: firstStateDiv, stateShape, divTurn,
            megaMedi: megaMedi.length, megaSd: megaSd.length, megaCapableSides: capable, megaChoices,
            megaSlotA: megaMedi.filter(l => /\|p[12]a:/.test(l)).length,
            megaSlotB: megaMedi.filter(l => /\|p[12]b:/.test(l)).length,
@@ -1213,6 +1295,126 @@ function plantedProof(pairA, pairB) {
   }).concat([cleanRow]);
 }
 
+/* ---- THE PLANTED *STATE* DIVERGENCE PROOF ---------------------------------------------------------
+ *
+ * The plants above corrupt the PROTOCOL STREAM. They say nothing about whether the board comparator
+ * works, and the whole reason this pass exists is that an instrument nobody had shown catching the
+ * thing it claims to catch was steering ten wires. 168 red demonstrations exist in this project, 0 have
+ * failed, and FIVE probes this week were found resting on the defect they were meant to watch.
+ *
+ * So: ONE PLANT PER COMPARED FIELD FAMILY, applied to the LIVE MEDICHAM BOARD at a boundary the clean
+ * arm AGREED at, and each must be
+ *   - CAUGHT, at
+ *   - EXACTLY that boundary (or the catch might be the game's own divergence), and
+ *   - LOCALISED to the field that was planted (a comparator that detects without localising is a
+ *     scoreboard, which is what §5 of the design rejects for the protocol side too).
+ *
+ * THE PLANT GOES THROUGH THE READER. It writes `S.actA[0].curHP`, not a snapshot field, so the whole
+ * path — engine body, reader, mapping, comparator — is what gets proved. A plant applied to the
+ * comparator's output would prove only that subtraction works.
+ *
+ * EVERY PLANT IS UNCONDITIONAL. A plant that needed a Substitute to already be up would silently not
+ * run in most games and report "caught 0 times" as a pass; each one below SETS the state it is testing.
+ */
+/* EVERY MUTATION RETURNS WHETHER IT WAS APPLIED, and an unapplied plant FAILS the proof rather than
+ * quietly not counting. "The body it wanted was not on the field" reads exactly like "the comparator
+ * found nothing", and treating the two the same is the silent-default shape this whole file is
+ * defensive about. */
+const bumpVol = (m, k, v) => { if (!m) return false; (m._vol = m._vol || {})[k] = v; return true; };
+const volOf = (m, k) => ((m && m._vol && m._vol[k]) || 0);
+const STATE_PLANTS = [
+  ['HP off by one on an active body', 'active[0].hp',
+   S => !!S.actA[0] && ((S.actA[0].curHP = Math.max(0, S.actA[0].curHP - 1)), true)],
+  ['a stat stage off by one', 'active[0].boosts.atk',
+   S => !!S.actA[0] && ((S.actA[0].boosts.at += 1), true)],
+  ['a status that is not there', 'active[0].status',
+   S => !!S.actB[0] && ((S.actB[0].status = S.actB[0].status === 'brn' ? 'par' : 'brn'), true)],
+  ['the TOXIC stage off by one', 'active[0].status_counter',
+   S => !!S.actB[0] && ((S.actB[0].status = 'tox'), (S.actB[0].toxTurns = (S.actB[0].toxTurns || 0) + 3), true)],
+  ['the SLEEP counter off by one', 'active[1].status_counter',
+   S => !!S.actB[1] && ((S.actB[1].status = 'slp'), (S.actB[1].slpTurns = (S.actB[1].slpTurns || 0) + 2), true)],
+  ['an item that is not held', 'active[1].item',
+   S => !!S.actA[1] && ((S.actA[1].item = S.actA[1].item ? '' : 'leftovers'), true)],
+  ['a body marked fainted that is not', 'active[1].fainted',
+   S => !!S.actB[1] && ((S.actB[1].fainted = !S.actB[1].fainted), true)],
+  ['a different species on the field', 'active[0].species',
+   S => !!S.actA[0] && ((S.actA[0].name = S.actA[0].name === 'ditto' ? 'smeargle' : 'ditto'), true)],
+  ['the WEATHER counter off by one', 'field.weather_turns',
+   S => ((S.field.weatherT = (S.field.weatherT || 0) + 1), true)],
+  ['a weather that is not there', 'field.weather',
+   S => ((S.field.weather = S.field.weather === 'sand' ? 'rain' : 'sand'), true)],
+  ['the TERRAIN counter off by one', 'field.terrain_turns',
+   S => ((S.field.terrainT = (S.field.terrainT || 0) + 1), true)],
+  ['the TRICK ROOM counter off by one', 'field.trickroom_turns',
+   S => ((S.field.tr = (S.field.tr || 0) + 1), true)],
+  ['the TAILWIND counter off by one', 'p1.tailwind',
+   S => ((S.field.twA = (S.field.twA || 0) + 1), true)],
+  /* WRITTEN INTO WHICHEVER SHAPE THE FROZEN ENGINE HAS. Pre-WIRE-8 releases hold two category
+   * counters and later ones hold named conditions; a plant that only knew one shape would be a
+   * no-op on five of the thirteen releases and would report as caught-by-the-game. */
+  ['a SCREEN counter off by one', 'screens.physical',
+   S => { if (S.sfA.sc) S.sfA.sc.reflect = (S.sfA.sc.reflect || 0) + 1;
+          else S.sfA.scrP = (S.sfA.scrP || 0) + 1; return true; }],
+  ['a HAZARD layer off by one', 'hazards.spikes',
+   S => { S.sfA.hz = S.sfA.hz || {}; S.sfA.hz.spikes = (S.sfA.hz.spikes || 0) + 1; return true; }],
+  ['a Substitute that is not there', 'active[0].vol.substitute',
+   S => !!S.actA[0] && ((S.actA[0]._sub = (S.actA[0]._sub || 0) + 42), true)],
+  ['a Taunt counter off by one', 'active[0].vol.taunt',
+   S => bumpVol(S.actB[0], 'taunt', volOf(S.actB[0], 'taunt') + 3)],
+  ['an Encore counter off by one', 'active[0].vol.encore',
+   S => bumpVol(S.actB[0], 'encore', volOf(S.actB[0], 'encore') + 3)],
+  ['a Disable counter off by one', 'active[1].vol.disable',
+   S => bumpVol(S.actA[1], 'disable', volOf(S.actA[1], 'disable') + 4)],
+  ['a Leech Seed that is not there', 'active[1].vol.leechseed',
+   S => !!S.actA[1] && ((S.actA[1]._seededBy = S.actA[1]._seededBy ? null : { by: S.actB[0], per: 8 }), true)],
+  ['a confusion counter off by one', 'active[0].vol.confusion',
+   S => bumpVol(S.actA[0], 'confusion', volOf(S.actA[0], 'confusion') + 2)],
+  ['a Perish count off by one', 'active[1].vol.perish',
+   S => !!S.actB[1] && ((S.actB[1]._perish = (S.actB[1]._perish == null ? 0 : S.actB[1]._perish) + 2), true)],
+  ['a MOVE TRAP counter off by one', 'active[0].vol.trapped_by_move',
+   S => !!S.actA[0] && ((S.actA[0]._trap = { turns: ((S.actA[0]._trap && S.actA[0]._trap.turns) || 0) + 3,
+                                             frac: 1 / 8, by: S.actB[0] }), true)],
+  ['a BENCHED party member\'s HP off by one', 'party.',
+   S => { const t = S.sfA.team || []; const m = t[t.length - 1]; if (!m) return false;
+          m.curHP = Math.max(0, m.curHP - 1); return true; }],
+  ['a BENCHED party member marked fainted', 'party.',
+   S => { const t = S.sfB.team || []; const m = t[t.length - 1]; if (!m) return false;
+          m.fainted = !m.fainted; return true; }],
+];
+
+function plantedStateProof(pairA, pairB) {
+  /* THE CLEAN ARM FIRST, and every plant is judged against it. Its LAST AGREEING boundary is where the
+   * plants go: a board both engines produced identically, so a difference there is the plant and
+   * nothing else. Same construction as the protocol proof's agreeing prefix, one dimension over. */
+  const clean = withFrozenDriver(() => playGame(pairA, pairB, 'baseline', 'stateproof/clean'));
+  const lastAgreeing = clean.stateDiv ? clean.stateDiv.turn - 1 : clean.boundaries - 1;
+  const cleanRow = { what: 'the CLEAN arm of the same game', boundaries: clean.boundaries,
+                     boundaries_agreed: clean.boundariesAgreed,
+                     first_state_divergence_at_turn: clean.stateDiv ? clean.stateDiv.turn : null,
+                     planted_at_boundary: lastAgreeing };
+  if (lastAgreeing < 0) {
+    return { plants: [{ what: 'CANNOT PLANT — the clean game\'s very first board already differs, so '
+                            + 'there is no agreeing board to plant into', caught: false }],
+             clean: cleanRow, all_ok: false };
+  }
+  const plants = STATE_PLANTS.map(([what, wantPath, mutate]) => {
+    let applied = false;
+    const r = withFrozenDriver(() => playGame(pairA, pairB, 'baseline', 'stateproof/' + what.slice(0, 14), {
+      statePlant: (S2, b2, turnIdx) => { if (turnIdx === lastAgreeing) applied = !!mutate(S2); } }));
+    const at = r.stateDiv ? r.stateDiv.turn : null;
+    const paths = r.stateDiv ? r.stateDiv.diffs.map(d => d.path) : [];
+    return { what, planted_field: wantPath, applied, caught: !!r.stateDiv, at, expected_at: lastAgreeing,
+             at_the_planted_boundary: at === lastAgreeing,
+             localised: paths.some(p => p.indexOf(wantPath) >= 0),
+             /* WHAT IT ACTUALLY REPORTED, kept so a "localised: false" can be read rather than
+              * guessed at. Capped: one plant on an active body legitimately moves the party row too,
+              * because they are the same object. */
+             paths: paths.slice(0, 6) };
+  });
+  return { plants, clean: cleanRow,
+           all_ok: plants.every(p => p.applied && p.caught && p.at_the_planted_boundary && p.localised) };
+}
+
 /* ---- DIRECTED SCENARIOS — §3.2, and the two findings this harness was built to reproduce ---------
  *
  * The swarm alone never reaches the fringe: Upper Hand is 76 uses and a uniform 1,000-game sample
@@ -1316,8 +1518,16 @@ const DIRECTED = [
     B: stage([['tyranitar', '', 'Sand Stream', ['Protect', 'Rock Slide']],
               ['garchomp', '', 'Rough Skin', ['Protect', 'Earthquake']]]).concat(BENCH('corviknight', 'snorlax')),
     script: [{ p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'protect' }, { m: 'protect' }] }] },
+  /* CLOSED, NOT DELETED. Will named this on 2026-08-06 ("crit also ignores attackers attack drops")
+   * and it was documented-and-unfixed for a day; 3.68.0 wired it. Measured at the fix: an Intimidated
+   * Meowscarada landing Flower Trick read 76 and now reads 113, equal to the un-Intimidated 113.
+   * The scenario stays in the file with `expect: 'agree'` so it fails LOUDLY if the wire ever regresses
+   * — a scenario deleted on the day it passes is a regression nobody will catch. */
   { name: 'Intimidate x guaranteed crit — the crit ignores the attacker\'s -1 (§6)',
-    predicts: '-damage field', expect: 'diverge',
+    predicts: '-damage field', expect: 'agree',
+    closed_by: 'ROADMAP #81 / CHANGELOG 3.68.0 — a crit now ignores the attacker\'s NEGATIVE offensive '
+             + 'stages, the defender\'s POSITIVE defensive stages and screens. It still does NOT ignore '
+             + 'burn, which is a multiplier rather than a stage and is probed separately.',
     A: stage([['meowscarada', '', 'Overgrow', ['Flower Trick', 'Protect']]]).concat(BENCH('clefable', 'milotic', 'weavile')),
     B: stage([['incineroar', '', 'Intimidate', [TAKE_IT, 'Protect']]]).concat(BENCH('toxapex', 'corviknight', 'snorlax')),
     script: [{ p1: [{ m: 'flowertrick', t: 0 }, { m: 'protect' }], p2: [{ m: 'agility' }, { m: 'protect' }] }] },
@@ -1530,7 +1740,7 @@ function oneHitDamage(pairA, pairB, script, opt) {
 }
 
 /* ---- RUN ----------------------------------------------------------------------------------------- */
-const SW = SWARM.buildSwarm(Math.max(GAMES * 2, 18));
+const SW = SWARM.buildSwarm(Math.max(GAMES * 2, 18), TEAM_STORE ? { storeDir: TEAM_STORE } : null);
 
 /* THE SECOND STEERING INPUT, AND IT IS NOT FROZEN EITHER (ROADMAP #81 WIRE 5).
  *
@@ -1549,9 +1759,13 @@ const SW = SWARM.buildSwarm(Math.max(GAMES * 2, 18));
   STEER_STAMP.team_pool_digest = crypto.createHash('sha256').update(pool).digest('hex').slice(0, 12);
   STEER_STAMP.team_pool_teams = SW.teams.length;
   STEER_STAMP.team_pool_picked = SW.out.reduce((a, c) => a + c.picked, 0);
+  /* SAID OUT LOUD EITHER WAY. "Read live" is a real hazard and the reader must see which of the two
+   * this run did — an unpinned run that looks like a pinned one is the whole problem. */
+  STEER_STAMP.team_store_pinned_to = TEAM_STORE || null;
   console.log('  the OTHER half of the sample: team pool ' + STEER_STAMP.team_pool_digest + '  ('
     + STEER_STAMP.team_pool_picked + ' teams picked from a corpus of ' + STEER_STAMP.team_pool_teams
-    + ' — read LIVE from the game store, which OPS appends to)');
+    + (TEAM_STORE ? ' — PINNED to ' + TEAM_STORE + ')'
+                  : ' — read LIVE from the game store, which OPS appends to)'));
 }
 baselineGuard();
 
@@ -1582,7 +1796,8 @@ function pairsFor(cfgId) {
 module.exports = { playGame, buildPair, classify, pinRandom, PIN_CHANCE, sdStream, chooseAction,
                    plantedProof, pairsFor, COV_TARGETS, COV_UNMEASURABLE, PIN_CLAIMS, REL, SW,
                    runDirected, damageInterior, DIRECTED, EQUIV, equivProof, semantic, reduce, NORM_COUNTS,
-                   knockOffArms, KO_TARGET_ITEMS };
+                   knockOffArms, KO_TARGET_ITEMS,
+                   plantedStateProof, STATE_PLANTS, BS_CTX, BS };
 
 if (require.main !== module) return;
 
@@ -1617,6 +1832,38 @@ for (const p of PROOF) console.log('    ' + (p.what === 'the CLEAN arm of the sa
        : (p.caught ? 'CAUGHT at ' + p.at + ' but PLANTED at ' + p.expected_at + ' — ' + p.what
                    : 'NOT CAUGHT — ' + p.what))));
 if (!PROOF_OK) console.log('    THE COMPARATOR FAILED ITS OWN PROOF — everything below is worthless.');
+
+/* ---- THE STATE COMPARATOR PROVES ITSELF, BEFORE ANY BOARD IS SCORED ----------------------------- */
+let MAPPING_PROOF = null, MAPPING_OK = true, STATE_PROOF = null;
+if (STATE) {
+  MAPPING_PROOF = BS.mappingProof(N, M);
+  const bad = MAPPING_PROOF.filter(r => !r.collapses || !r.keeps_meaning);
+  MAPPING_OK = !bad.length;
+  console.log('\n  THE STATE READER\'S REPRESENTATION MAPPINGS — both directions, before any board:');
+  for (const r of MAPPING_PROOF) console.log('    ' + (r.collapses ? 'collapses' : 'DOES NOT COLLAPSE')
+    + ' / ' + (r.keeps_meaning ? 'keeps meaning' : 'SILENCER — it collapses the DISTINCT pair too')
+    + '   ' + r.id);
+  if (!MAPPING_OK) { console.log('    A MAPPING FAILED ITS OWN RED DEMONSTRATION.'); process.exitCode = 1; }
+
+  STATE_PROOF = proofPairs.length ? plantedStateProof(proofPairs[0].a, proofPairs[0].b) : null;
+  console.log('\n  PLANTED *STATE* DIVERGENCE PROOF — one plant per compared field family, written into');
+  console.log('  the LIVE medicham board at a boundary the clean arm agreed at. Caught is not enough:');
+  console.log('  it must be caught AT that boundary and LOCALISED to the field that was planted.');
+  if (!STATE_PROOF) console.log('    NOT RUN — no proof pair could be built.');
+  else {
+    console.log('    clean arm: ' + STATE_PROOF.clean.boundaries_agreed + '/' + STATE_PROOF.clean.boundaries
+      + ' boundaries agreed, plants go at boundary ' + STATE_PROOF.clean.planted_at_boundary);
+    for (const p of STATE_PROOF.plants) console.log('    '
+      + (!p.applied ? 'NOT APPLIED     '
+        : p.caught && p.at_the_planted_boundary && p.localised ? 'CAUGHT+LOCALISED'
+        : p.caught && p.at_the_planted_boundary ? 'caught, NOT LOCALISED'
+        : p.caught ? 'caught at ' + p.at + ', PLANTED AT ' + p.expected_at : 'NOT CAUGHT      ')
+      + '  ' + String(p.planted_field).padEnd(28) + p.what
+      + (p.caught && !p.localised ? '   reported: ' + p.paths.slice(0, 3).join(', ') : ''));
+    if (!STATE_PROOF.all_ok) { console.log('    THE STATE COMPARATOR FAILED ITS OWN PROOF — every state '
+      + 'number below is worthless.'); process.exitCode = 1; }
+  }
+}
 
 const results = [];      // the MEASURED arm — stones kept
 const control = [];      // the PAIRED CONTROL — the same pair with the stones removed
@@ -1715,6 +1962,92 @@ console.log('');
 console.log('  DIVERGED: ' + diverged.length + ' of ' + results.length + ' games'
   + (threw.length ? '   (' + threw.length + ' threw)' : ''));
 console.log('');
+
+/* ---- THE STATE DIFFERENTIAL, REPORTED BESIDE THE PROTOCOL NUMBER --------------------------------
+ * Two numbers, and they answer different questions. The protocol rate says whether the two engines
+ * TELL THE SAME STORY; the state rate says whether they REACH THE SAME BOARD. Ten wires were aimed
+ * with the first alone. */
+const STATE_SUMMARY = (() => {
+  if (!STATE) return null;
+  const bTot = results.reduce((a, r) => a + (r.boundaries || 0), 0);
+  const bAgr = results.reduce((a, r) => a + (r.boundariesAgreed || 0), 0);
+  const gamesWithABoundary = results.filter(r => r.boundaries > 0);
+  const neverParted = gamesWithABoundary.filter(r => !r.stateDiv);
+  /* THE CROSS-TABLE — the question the whole pass turns on. A game whose PROTOCOL parted and whose
+   * BOARD did not is a divergence the protocol instrument counted and that changes nothing a search
+   * can see. `later` is the weaker version of the same claim: the narration parted first and the
+   * board survived at least one more boundary. */
+  const P = results.filter(r => r.divTurn != null);
+  const reachedSameBoard = P.filter(r => !r.stateDiv);
+  const boardHeldLonger = P.filter(r => r.stateDiv && r.stateDiv.turn > r.divTurn);
+  const boardPartedFirst = results.filter(r => r.stateDiv && (r.divTurn == null || r.stateDiv.turn < r.divTurn));
+  /* WHICH PART OF THE BOARD PARTED, families collapsed the way the protocol side collapses causes:
+   * twelve games hitting one wire is ONE wire. Every differing leaf of the FIRST divergent board is
+   * counted, not only the first, because a turn that parts on six fields at once is one event with
+   * six symptoms and picking one of them arbitrarily would hide the other five. */
+  const fam = new Map(), famGames = new Map();
+  for (const r of results) {
+    if (!r.stateDiv) continue;
+    const seen = new Set();
+    for (const d of r.stateDiv.diffs) {
+      const f = BS.family(d.path);
+      fam.set(f, (fam.get(f) || 0) + 1);
+      seen.add(f);
+    }
+    for (const f of seen) famGames.set(f, (famGames.get(f) || 0) + 1);
+  }
+  const turnsOf = results.map(r => (r.stateDiv ? r.stateDiv.turn : null)).filter(x => x != null).sort((a, b) => a - b);
+  return {
+    turn_boundaries_compared: bTot, turn_boundaries_identical: bAgr,
+    turn_boundary_agreement: bTot ? +(bAgr / bTot).toFixed(4) : null,
+    games: gamesWithABoundary.length, games_board_never_diverged: neverParted.length,
+    game_agreement: gamesWithABoundary.length ? +(neverParted.length / gamesWithABoundary.length).toFixed(4) : null,
+    median_turn_of_first_board_divergence: turnsOf.length ? turnsOf[Math.floor(turnsOf.length / 2)] : null,
+    protocol_diverged_games: P.length,
+    protocol_diverged_board_never_did: reachedSameBoard.length,
+    protocol_diverged_board_held_longer: boardHeldLonger.length,
+    board_parted_before_the_protocol_did: boardPartedFirst.length,
+    families: [...fam].sort((a, b) => b[1] - a[1]).map(([f, n]) => ({ family: f, differing_leaves: n,
+      games: famGames.get(f) || 0 })),
+    /* WORKED EXAMPLES, so a family is actionable rather than a score. */
+    first_board_divergences: results.filter(r => r.stateDiv).slice(0, 40).map(r => ({
+      config: r.config, seed: r.seed, turn: r.stateDiv.turn, protocol_diverged_at_turn: r.divTurn,
+      diffs: r.stateDiv.diffs.slice(0, 8) })),
+    screens_shape_medicham: (results.find(r => r.stateShape) || {}).stateShape || null,
+    reader_failures: STATE_FAILS,
+    not_compared: BS.NOT_COMPARED,
+    mappings: MAPPING_PROOF,
+    planted_state_proof: STATE_PROOF,
+    planted_state_proof_ok: !!(STATE_PROOF && STATE_PROOF.all_ok),
+    mappings_all_proved: MAPPING_OK,
+  };
+})();
+if (STATE_SUMMARY) {
+  const S2 = STATE_SUMMARY, pc = (a, b) => (b ? (100 * a / b).toFixed(1) + '%' : 'n/a');
+  console.log('  THE STATE DIFFERENTIAL — the BOARD at the turn boundary, after the whole residual phase');
+  console.log('  (Leftovers, chip, the toxic stage, Leech Seed, Perish, and every clock ticking down):');
+  console.log('    TURNS whose end-of-turn board is IDENTICAL   ' + S2.turn_boundaries_identical + '/'
+    + S2.turn_boundaries_compared + '   ' + pc(S2.turn_boundaries_identical, S2.turn_boundaries_compared));
+  console.log('    GAMES whose board NEVER diverged             ' + S2.games_board_never_diverged + '/'
+    + S2.games + '   ' + pc(S2.games_board_never_diverged, S2.games));
+  console.log('    median turn of the first board divergence    ' + S2.median_turn_of_first_board_divergence);
+  console.log('    for comparison, the PROTOCOL rate           ' + (results.length - diverged.length)
+    + '/' + results.length + '   ' + pc(results.length - diverged.length, results.length) + ' of games agreed');
+  console.log('');
+  console.log('    OF THE ' + S2.protocol_diverged_games + ' GAMES WHOSE PROTOCOL PARTED:');
+  console.log('      ' + S2.protocol_diverged_board_never_did + '  reached an IDENTICAL board anyway, to the horizon   '
+    + pc(S2.protocol_diverged_board_never_did, S2.protocol_diverged_games));
+  console.log('      ' + S2.protocol_diverged_board_held_longer + '  the board survived at least one boundary past the narration');
+  console.log('      ' + S2.board_parted_before_the_protocol_did + '  games where the BOARD parted first (the protocol was late or silent)');
+  console.log('');
+  console.log('    WHICH PART OF THE BOARD PARTED — a family is a WIRE, an instance is not:');
+  for (const f of S2.families.slice(0, 14)) console.log('      ' + String(f.games).padStart(5) + ' games  '
+    + String(f.differing_leaves).padStart(6) + ' leaves  ' + f.family);
+  console.log('');
+  console.log('    the frozen engine holds its screens as: ' + JSON.stringify(S2.screens_shape_medicham));
+  console.log('    reader failures (must be empty): ' + JSON.stringify(S2.reader_failures));
+  console.log('');
+}
 /* ROADMAP #31 — THE TWO RATES, PUBLISHED APART. One number over a mixed population would let the mega
  * games and the non-mega games absorb each other, and the whole reason the stones came back is to see
  * what they cost. Same teams, same seeds, same driver state; the ONLY difference is the stone. */
@@ -2006,6 +2339,11 @@ if (WRITE) {
                               + 'before the item is stripped. What differs is the item DISPOSITION: Showdown '
                               + 'records Colbur as EATEN BY ITSELF, medicham2 as KNOCKED OFF.' },
     diverged: diverged.length, threw: threw.length,
+    /* THE STATE DIFFERENTIAL, in the same artifact as the protocol one so the two rates describe the
+     * SAME games rather than two runs somebody has to hope were comparable. `null` when the run was
+     * not asked for it, which is a different claim from zero. */
+    state: STATE_SUMMARY,
+    state_mode: STATE,
     pin: PIN_CLAIMS.map(([w]) => w),
     /* EVERY CAUSE CARRIES ITS FORMAT STANDING. See annotateCause() -- three separate times on
      * 2026-08-06/07 a WIRE was justified by a mechanic that CANNOT OCCUR in Champions (Blunder Policy,

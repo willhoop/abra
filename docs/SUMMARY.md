@@ -1,6 +1,27 @@
 # ABRA — Project Summary
 
-**Version 3.68.0 · 2026-08-07 · Will Hooper**
+**Version 3.69.0 · 2026-08-07 · Will Hooper**
+
+**THE FORK IS DECIDED — A MORE CORRECT ENGINE DID NOT MAKE BETTER PREDICTIONS (3.69.0).**
+`engine/leaf_engine_contrast.js` → `data/leaf-engine-contrast.json`. MILTANK's live in-game leaf scored
+on **8,883 identical positions with identical seeds** through two frozen releases differing in exactly
+`engine/medicham2-browser.js`.
+
+| question | answer | n |
+|---|---|---|
+| paired Brier, WIRE 10 − pre-WIRE-1 | **0.0000 [−0.0007, +0.0007]** — floor 0.000642, MDE 0.001013 | 8,883 |
+| McNemar, doubly-decisive calls | 37 vs 36, p = 0.91 | 7,994 |
+| does **line** depth predict leaf error | **rho +0.0010 [−0.019, 0.022]** (MDE 0.0298) | 8,855 |
+| does **turn** depth predict leaf error | **rho −0.0000 [−0.021, 0.023]** | 8,855 |
+| Δdepth vs Δerror | **rho −0.0115 [−0.031, +0.008]** | 8,601 |
+| is the depth ruler any good | **rho 0.836 [0.825, 0.846]** (reversed-order control) | 8,855 |
+| both leaves vs a coin | **+0.0325 [0.0281, 0.0372]** Brier — worse | 8,883 |
+| calibration | **ECE 0.1514**; says 94%, wins 59% | 8,883 |
+
+**The interval is narrower than the smallest detectable effect, so this is a tight null and not an
+underpowered one.** The engine fidelity gain is real and replicates here (never-parting games 13 → 246,
+median divergence line 12 → 16, median completed turns 1 → 1) — it just does not reach the leaf.
+**Engine correctness is not what limits the leaf; calibration is.**
 
 **THE RELEASE LADDER — SEVEN FIXES DID NOT MOVE THE MEDIAN TURN (3.68.0, re-run 2026-08-07).**
 `engine/wire_ladder.js` plays every frozen release of the wire series through the differential. It uses

@@ -1,6 +1,53 @@
 # ABRA — Technical Documentation
 
-**Version 3.68.0 · Last updated 2026-08-07**
+**Version 3.69.0 · Last updated 2026-08-07**
+
+**ENGINE CORRECTNESS DOES NOT CHANGE THE LEAF (3.69.0).**
+
+`engine/leaf_engine_contrast.js` measures the effect of engine correctness on prediction quality. It
+writes `data/leaf-engine-contrast.json`. Read all figures from that file.
+
+Procedure. The tool scores the in-game leaf on 8,883 positions. It uses 200 rollouts for each position.
+It uses the same seed for a given position in both arms. It reads the engine from two frozen releases.
+The two releases differ in one file only: `engine/medicham2-browser.js`. The tool stops if they differ
+in more than that file.
+
+Results.
+
+- The paired Brier difference is 0.0000. The 95% confidence interval is [-0.0007, +0.0007].
+- The split-half noise floor is 0.000642. The smallest detectable effect is 0.001013.
+- The confidence interval is smaller than the smallest detectable effect. The result is a null result.
+  The sample is large enough. Do not report the result as "not detected".
+- The McNemar test gives 37 correct for the new engine and 36 correct for the old engine. The p-value
+  is 0.91.
+
+Divergence depth does not predict leaf error. For the new engine, the Spearman rho is +0.0010 for
+lines and -0.0000 for turns. The minimum detectable rho is 0.0298. For the old engine, both values are
+positive (+0.031 and +0.029). A positive value is the opposite of the hypothesis.
+
+The depth instrument is reliable. A control arm reads the same positions with the driver order
+reversed. The two readings agree at rho 0.836. The null result is therefore a property of the world and
+not of the instrument.
+
+Calibration is the failure. The ECE is 0.1514. The leaf predicts values from 0.06 to 0.94. The observed
+win rate moves only from 0.466 to 0.594. When the leaf predicts 94%, it wins 59%.
+
+To run the tool:
+
+```bash
+SHOWDOWN_PATH=... node engine/leaf_engine_contrast.js --write
+```
+
+The tool can resume. Use `--work <dir>` to reuse a previous run's arms. The tool re-runs 24 positions of
+each reused arm. The values must be identical. If they are not identical, the tool stops.
+
+`engine/leaf_scoring.js` holds the scoring definitions. To check it against the published artifact:
+
+```bash
+node engine/leaf_scoring.js --verify
+```
+
+It compares 749 values. All values must match.
 
 **THE RELEASE LADDER — SEVEN FIXES DID NOT MOVE THE MEDIAN TURN (3.68.0, re-run 2026-08-07).**
 `engine/wire_ladder.js` plays every frozen release of the wire series through the differential. It uses

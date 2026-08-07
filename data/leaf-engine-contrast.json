@@ -1,0 +1,1231 @@
+{
+  "generated": "2026-08-07T20:17:57.485Z",
+  "by": "engine/leaf_engine_contrast.js",
+  "question": "DOES A MORE CORRECT ENGINE MAKE BETTER PREDICTIONS? The same positions and the same seeds scored through two frozen releases that differ in exactly one file, joined per position to that position's protocol-divergence depth against the official simulator.",
+  "releases": {
+    "baseline": {
+      "id": "cf6a68fa412c",
+      "cut": "2026-08-07T02:34:46.005Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "medicham2": "795be0c58cd7"
+    },
+    "top": {
+      "id": "dc3c43336539",
+      "cut": "2026-08-07T17:27:09.775Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "medicham2": "d10db6714fc9"
+    },
+    "differ_in": [
+      "engine/medicham2-browser.js"
+    ],
+    "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+    "note": "ASSERTED, not assumed: this run refuses to start unless the two manifests differ in engine/medicham2-browser.js and in nothing else, so a leaf difference cannot be the weights, the damage table, the board or the tag file."
+  },
+  "source_digests": {
+    "engine/leaf_engine_contrast.js": "169d0d292efd",
+    "engine/leaf_scoring.js": "cbd120beb073",
+    "engine/game_differential.js": "0a06c66ec506",
+    "engine/steering.js": "738bfb3e2d53",
+    "engine/diff_swarm.js": "170e4ed0f08f",
+    "engine/champions_sim.js": "fa5b8af6513a",
+    "engine/quality.js": "e397e99ef257",
+    "engine/miltank.js": "382f580617b4",
+    "engine/run_stamp.js": "9b44ac36f0d1",
+    "data/protocol-events.json": "9c1dfeb7973c",
+    "data/wire-ladder-census.pin.json": "f63179105d3c",
+    "note": "Content, not mtime. A checkout moves an mtime without moving code."
+  },
+  "instrument_under_the_run": {
+    "before": {
+      "engine/leaf_engine_contrast.js": "169d0d292efd",
+      "engine/leaf_scoring.js": "cbd120beb073",
+      "engine/game_differential.js": "0a06c66ec506",
+      "engine/steering.js": "738bfb3e2d53",
+      "engine/diff_swarm.js": "170e4ed0f08f",
+      "engine/champions_sim.js": "fa5b8af6513a",
+      "engine/quality.js": "e397e99ef257",
+      "engine/miltank.js": "382f580617b4",
+      "engine/run_stamp.js": "9b44ac36f0d1",
+      "data/protocol-events.json": "9c1dfeb7973c",
+      "data/wire-ladder-census.pin.json": "f63179105d3c"
+    },
+    "after": {
+      "engine/leaf_engine_contrast.js": "169d0d292efd",
+      "engine/leaf_scoring.js": "cbd120beb073",
+      "engine/game_differential.js": "0a06c66ec506",
+      "engine/steering.js": "738bfb3e2d53",
+      "engine/diff_swarm.js": "170e4ed0f08f",
+      "engine/champions_sim.js": "fa5b8af6513a",
+      "engine/quality.js": "e397e99ef257",
+      "engine/miltank.js": "382f580617b4",
+      "engine/run_stamp.js": "9b44ac36f0d1",
+      "data/protocol-events.json": "9c1dfeb7973c",
+      "data/wire-ladder-census.pin.json": "f63179105d3c"
+    },
+    "moved": [],
+    "nothing_moved": true,
+    "note": "the LIVE instrument, digested before the first arm and after the last. The 23 frozen engine files are not watched here because they are read from two immutable snapshots."
+  },
+  "positions_file_digest": "a0ac9330c130",
+  "reused_arms": {
+    "leaf/baseline": {
+      "reproducible_per_position": true,
+      "positions_reproduced": 24,
+      "all_identical": true
+    },
+    "leaf/top": {
+      "reproducible_per_position": true,
+      "positions_reproduced": 24,
+      "all_identical": true
+    },
+    "depth/baseline": {
+      "reproducible_per_position": false,
+      "why": "game_differential's driver is coverage-seeking and stateful across games, so a divergence depth is a function of the position AND of the games played before it. A slice re-run in a fresh process is a different sample by construction. The substitute is joint.depth_instrument_reliability — the same release and positions with the driver order reversed.",
+      "all_arms_of_this_kind_ran_in_one_invocation": true
+    },
+    "depth/top": {
+      "reproducible_per_position": false,
+      "why": "game_differential's driver is coverage-seeking and stateful across games, so a divergence depth is a function of the position AND of the games played before it. A slice re-run in a fresh process is a different sample by construction. The substitute is joint.depth_instrument_reliability — the same release and positions with the driver order reversed.",
+      "all_arms_of_this_kind_ran_in_one_invocation": true
+    },
+    "depth/baseline-reversed": {
+      "reproducible_per_position": false,
+      "why": "game_differential's driver is coverage-seeking and stateful across games, so a divergence depth is a function of the position AND of the games played before it. A slice re-run in a fresh process is a different sample by construction. The substitute is joint.depth_instrument_reliability — the same release and positions with the driver order reversed.",
+      "all_arms_of_this_kind_ran_in_one_invocation": true
+    }
+  },
+  "reused_arms_note": "these arms were read from a previous run's shard files. Each had a slice re-run by the code in this file and every recomputed value was bit-identical to the stored one, so the reuse is a reproduction rather than a trust.",
+  "scorer_verification": {
+    "command": "node engine/leaf_scoring.js --verify",
+    "passed": true,
+    "says": [
+      "leaf_scoring --verify: replayed data/winrate-backtest-rows.jsonl through this module",
+      "749 scalars compared against the published data/winrate-backtest.json",
+      "ALL MATCH. This module computes what backtest_winrate.js computed, to the digit."
+    ]
+  },
+  "corpus": {
+    "clean_games": 8887,
+    "n_games": 8883,
+    "scorable": 8883,
+    "dropped_no_bring": 0,
+    "dropped_no_label": 4,
+    "held_out_games": 1778,
+    "split": "sorted by date, oldest 80% / newest 20%",
+    "split_date": "2026-08-04 17:14",
+    "date_first": "2026-07-22 10:11",
+    "date_last": "2026-08-07 15:59",
+    "thinned_to": null,
+    "photographed_at": "2026-08-07T18:12:06.247Z",
+    "resumed": true,
+    "position": "turn 0: the BROUGHT four a side, real leads from g.lead, no sheets set",
+    "why_no_sheets": "g.sets is observed play from the whole replay; feeding it in would leak the outcome into its own prediction. The closed-sheet ladder is also what the bot plays."
+  },
+  "leaf_config": {
+    "n_rollouts": 200,
+    "explore": 1,
+    "foePolicy": "uniform",
+    "maxTurns": 60,
+    "source": "engine/miltank.js DEFAULTS — the live in-game leaf, read not retyped"
+  },
+  "depth_config": {
+    "instrument": "engine/game_differential.js playGame, mode A, every die pinned",
+    "census_pin": "data/wire-ladder-census.pin.json",
+    "max_turns": 12,
+    "bodies": "medicham2.buildMon of each brought species — the dataset's modal moves, item and ability, which is exactly what the leaf rolls out",
+    "caveat": "the driver is coverage-seeking and STATEFUL across games, so a per-position depth carries driver history. Both arms traverse the identical order so the CONTRAST is paired; the reversed-order control measures what the noise costs the correlation."
+  },
+  "power": {
+    "vs_coin": {
+      "test": "two-sided binomial, H0: P(leaf names the eventual winner) = 0.5",
+      "alpha": 0.05,
+      "power": 0.8,
+      "prior_effect_used_for_sizing": 0.5263,
+      "prior_effect_source": "data/winrate-backtest.json 2026-08-02: 0.5263 on 342 decisive calls",
+      "n_required_for_prior_effect": 2835,
+      "n_available_full": 8883,
+      "n_available_heldout": 1778,
+      "mde_full": 0.5149,
+      "mde_heldout": 0.5332
+    },
+    "paired_engine_vs_engine": {
+      "test": "paired two-sided t on the per-position Brier difference (TOP - BASELINE)",
+      "note": "THE MDE FOR THIS CANNOT BE COMPUTED BEFORE THE RUN. Two engines on identical positions with identical seeds produce correlated predictions, and it is the sd of their DIFFERENCE that decides what is detectable. No prior for it exists, so it is reported from this run's own observed sd, below, and is labelled as observed rather than planned."
+    },
+    "correlation": {
+      "test": "Spearman rho between per-position divergence depth and per-position Brier error",
+      "n_available": 8883,
+      "se_normal_approx": 0.01061,
+      "mde_at_80pct_power": 0.02973,
+      "note": "attenuated by measurement error in the DEPTH, which the reversed-order control measures. The reported MDE is the ceiling; divide by the square root of the depth reliability for the true detectable effect."
+    }
+  },
+  "arms": {
+    "baseline": {
+      "release": "cf6a68fa412c",
+      "medicham2": "795be0c58cd7",
+      "full": {
+        "n_games_scored": 8883,
+        "brier": {
+          "model": 0.2825,
+          "coin": 0.25,
+          "elo": 0.2566,
+          "vs_coin_paired": {
+            "mean": 0.0325,
+            "ci95": [
+              0.0281,
+              0.0371
+            ]
+          },
+          "vs_elo_paired": {
+            "mean": 0.0289,
+            "ci95": [
+              0.0231,
+              0.0347
+            ]
+          },
+          "elo_available_on": 6339
+        },
+        "log_loss": {
+          "model": 0.7867,
+          "coin": 0.6931,
+          "elo": 0.707,
+          "vs_coin_paired": {
+            "mean": 0.0936,
+            "ci95": [
+              0.0822,
+              0.1052
+            ]
+          },
+          "vs_elo_paired": {
+            "mean": 0.0879,
+            "ci95": [
+              0.074,
+              0.1019
+            ]
+          },
+          "clamp_eps": 0.02,
+          "note": "the clamp is load-bearing: a finite-rollout leaf emits exact 0 and 1, so log-loss partly reports the epsilon. Brier needs no clamp and is the primary."
+        },
+        "discrimination": {
+          "decisive_calls": 8324,
+          "correct": 4363,
+          "accuracy": 0.5241,
+          "accuracy_ci95_wilson": [
+            0.5134,
+            0.5349
+          ],
+          "p_value_two_sided": 0,
+          "fixed_n": true,
+          "note": "n was fixed by a power calculation before the run. This is not an interim look at a sequential test and must not be read as one."
+        },
+        "calibration": {
+          "ece": 0.1532,
+          "mce_buckets_over_30": 0.385,
+          "share_in_extreme_buckets": 0.0465
+        },
+        "reliability_curve": [
+          {
+            "bucket": "0.0-0.1",
+            "n": 202,
+            "mean_predicted": 0.0605,
+            "observed": 0.4455,
+            "observed_ci95": [
+              0.3787,
+              0.5145
+            ],
+            "gap": 0.385
+          },
+          {
+            "bucket": "0.1-0.2",
+            "n": 578,
+            "mean_predicted": 0.1542,
+            "observed": 0.4516,
+            "observed_ci95": [
+              0.4114,
+              0.4923
+            ],
+            "gap": 0.2974
+          },
+          {
+            "bucket": "0.2-0.3",
+            "n": 947,
+            "mean_predicted": 0.2502,
+            "observed": 0.4995,
+            "observed_ci95": [
+              0.4677,
+              0.5313
+            ],
+            "gap": 0.2493
+          },
+          {
+            "bucket": "0.3-0.4",
+            "n": 1285,
+            "mean_predicted": 0.3497,
+            "observed": 0.4911,
+            "observed_ci95": [
+              0.4638,
+              0.5184
+            ],
+            "gap": 0.1413
+          },
+          {
+            "bucket": "0.4-0.5",
+            "n": 1475,
+            "mean_predicted": 0.4493,
+            "observed": 0.5051,
+            "observed_ci95": [
+              0.4796,
+              0.5306
+            ],
+            "gap": 0.0558
+          },
+          {
+            "bucket": "0.5-0.6",
+            "n": 1437,
+            "mean_predicted": 0.5472,
+            "observed": 0.5059,
+            "observed_ci95": [
+              0.4801,
+              0.5317
+            ],
+            "gap": -0.0413
+          },
+          {
+            "bucket": "0.6-0.7",
+            "n": 1257,
+            "mean_predicted": 0.6465,
+            "observed": 0.5274,
+            "observed_ci95": [
+              0.4998,
+              0.5549
+            ],
+            "gap": -0.1191
+          },
+          {
+            "bucket": "0.7-0.8",
+            "n": 968,
+            "mean_predicted": 0.7451,
+            "observed": 0.5713,
+            "observed_ci95": [
+              0.5399,
+              0.6021
+            ],
+            "gap": -0.1738
+          },
+          {
+            "bucket": "0.8-0.9",
+            "n": 523,
+            "mean_predicted": 0.8415,
+            "observed": 0.522,
+            "observed_ci95": [
+              0.4792,
+              0.5645
+            ],
+            "gap": -0.3195
+          },
+          {
+            "bucket": "0.9-1.0",
+            "n": 211,
+            "mean_predicted": 0.9386,
+            "observed": 0.6209,
+            "observed_ci95": [
+              0.5538,
+              0.6836
+            ],
+            "gap": -0.3177
+          }
+        ],
+        "noise_floor": {
+          "split_half_brier": [
+            0.2772,
+            0.2878
+          ],
+          "split_half_brier_spread": 0.010563,
+          "split_half_accuracy": [
+            0.5317,
+            0.5166
+          ],
+          "split_half_accuracy_spread": 0.015067,
+          "note": "one arm split in half. A difference smaller than this spread is not an effect."
+        }
+      },
+      "held_out_fifth": {
+        "n_games_scored": 1778,
+        "brier": {
+          "model": 0.2885,
+          "coin": 0.25,
+          "elo": 0.2564,
+          "vs_coin_paired": {
+            "mean": 0.0385,
+            "ci95": [
+              0.0284,
+              0.0487
+            ]
+          },
+          "vs_elo_paired": {
+            "mean": 0.0365,
+            "ci95": [
+              0.0235,
+              0.0507
+            ]
+          },
+          "elo_available_on": 1259
+        },
+        "log_loss": {
+          "model": 0.8036,
+          "coin": 0.6931,
+          "elo": 0.7064,
+          "vs_coin_paired": {
+            "mean": 0.1104,
+            "ci95": [
+              0.0845,
+              0.1375
+            ]
+          },
+          "vs_elo_paired": {
+            "mean": 0.1096,
+            "ci95": [
+              0.0771,
+              0.1464
+            ]
+          },
+          "clamp_eps": 0.02,
+          "note": "the clamp is load-bearing: a finite-rollout leaf emits exact 0 and 1, so log-loss partly reports the epsilon. Brier needs no clamp and is the primary."
+        },
+        "discrimination": {
+          "decisive_calls": 1676,
+          "correct": 846,
+          "accuracy": 0.5048,
+          "accuracy_ci95_wilson": [
+            0.4809,
+            0.5287
+          ],
+          "p_value_two_sided": 0.6959,
+          "fixed_n": true,
+          "note": "n was fixed by a power calculation before the run. This is not an interim look at a sequential test and must not be read as one."
+        },
+        "calibration": {
+          "ece": 0.177,
+          "mce_buckets_over_30": 0.488,
+          "share_in_extreme_buckets": 0.0478
+        },
+        "reliability_curve": [
+          {
+            "bucket": "0.0-0.1",
+            "n": 42,
+            "mean_predicted": 0.0596,
+            "observed": 0.5476,
+            "observed_ci95": [
+              0.3995,
+              0.6878
+            ],
+            "gap": 0.488
+          },
+          {
+            "bucket": "0.1-0.2",
+            "n": 113,
+            "mean_predicted": 0.1517,
+            "observed": 0.4336,
+            "observed_ci95": [
+              0.3459,
+              0.5257
+            ],
+            "gap": 0.2819
+          },
+          {
+            "bucket": "0.2-0.3",
+            "n": 199,
+            "mean_predicted": 0.2505,
+            "observed": 0.5226,
+            "observed_ci95": [
+              0.4534,
+              0.5909
+            ],
+            "gap": 0.2721
+          },
+          {
+            "bucket": "0.3-0.4",
+            "n": 257,
+            "mean_predicted": 0.3495,
+            "observed": 0.5058,
+            "observed_ci95": [
+              0.4451,
+              0.5664
+            ],
+            "gap": 0.1564
+          },
+          {
+            "bucket": "0.4-0.5",
+            "n": 274,
+            "mean_predicted": 0.4489,
+            "observed": 0.5219,
+            "observed_ci95": [
+              0.4629,
+              0.5803
+            ],
+            "gap": 0.073
+          },
+          {
+            "bucket": "0.5-0.6",
+            "n": 273,
+            "mean_predicted": 0.5462,
+            "observed": 0.4469,
+            "observed_ci95": [
+              0.3891,
+              0.5062
+            ],
+            "gap": -0.0993
+          },
+          {
+            "bucket": "0.6-0.7",
+            "n": 257,
+            "mean_predicted": 0.6454,
+            "observed": 0.4981,
+            "observed_ci95": [
+              0.4374,
+              0.5588
+            ],
+            "gap": -0.1474
+          },
+          {
+            "bucket": "0.7-0.8",
+            "n": 202,
+            "mean_predicted": 0.7456,
+            "observed": 0.5842,
+            "observed_ci95": [
+              0.5152,
+              0.6499
+            ],
+            "gap": -0.1614
+          },
+          {
+            "bucket": "0.8-0.9",
+            "n": 118,
+            "mean_predicted": 0.8387,
+            "observed": 0.5593,
+            "observed_ci95": [
+              0.4693,
+              0.6456
+            ],
+            "gap": -0.2794
+          },
+          {
+            "bucket": "0.9-1.0",
+            "n": 43,
+            "mean_predicted": 0.9391,
+            "observed": 0.5349,
+            "observed_ci95": [
+              0.3892,
+              0.6749
+            ],
+            "gap": -0.4042
+          }
+        ],
+        "noise_floor": {
+          "split_half_brier": [
+            0.2896,
+            0.2874
+          ],
+          "split_half_brier_spread": 0.002251,
+          "split_half_accuracy": [
+            0.4934,
+            0.5161
+          ],
+          "split_half_accuracy_spread": 0.022662,
+          "note": "one arm split in half. A difference smaller than this spread is not an effect."
+        }
+      }
+    },
+    "top": {
+      "release": "dc3c43336539",
+      "medicham2": "d10db6714fc9",
+      "full": {
+        "n_games_scored": 8883,
+        "brier": {
+          "model": 0.2825,
+          "coin": 0.25,
+          "elo": 0.2566,
+          "vs_coin_paired": {
+            "mean": 0.0325,
+            "ci95": [
+              0.0281,
+              0.0372
+            ]
+          },
+          "vs_elo_paired": {
+            "mean": 0.0289,
+            "ci95": [
+              0.0232,
+              0.0348
+            ]
+          },
+          "elo_available_on": 6339
+        },
+        "log_loss": {
+          "model": 0.788,
+          "coin": 0.6931,
+          "elo": 0.707,
+          "vs_coin_paired": {
+            "mean": 0.0948,
+            "ci95": [
+              0.0834,
+              0.1066
+            ]
+          },
+          "vs_elo_paired": {
+            "mean": 0.0894,
+            "ci95": [
+              0.075,
+              0.1036
+            ]
+          },
+          "clamp_eps": 0.02,
+          "note": "the clamp is load-bearing: a finite-rollout leaf emits exact 0 and 1, so log-loss partly reports the epsilon. Brier needs no clamp and is the primary."
+        },
+        "discrimination": {
+          "decisive_calls": 8320,
+          "correct": 4366,
+          "accuracy": 0.5248,
+          "accuracy_ci95_wilson": [
+            0.514,
+            0.5355
+          ],
+          "p_value_two_sided": 0,
+          "fixed_n": true,
+          "note": "n was fixed by a power calculation before the run. This is not an interim look at a sequential test and must not be read as one."
+        },
+        "calibration": {
+          "ece": 0.1514,
+          "mce_buckets_over_30": 0.4047,
+          "share_in_extreme_buckets": 0.0492
+        },
+        "reliability_curve": [
+          {
+            "bucket": "0.0-0.1",
+            "n": 208,
+            "mean_predicted": 0.0616,
+            "observed": 0.4663,
+            "observed_ci95": [
+              0.3998,
+              0.5341
+            ],
+            "gap": 0.4047
+          },
+          {
+            "bucket": "0.1-0.2",
+            "n": 583,
+            "mean_predicted": 0.1549,
+            "observed": 0.4425,
+            "observed_ci95": [
+              0.4027,
+              0.4831
+            ],
+            "gap": 0.2877
+          },
+          {
+            "bucket": "0.2-0.3",
+            "n": 981,
+            "mean_predicted": 0.2517,
+            "observed": 0.4944,
+            "observed_ci95": [
+              0.4632,
+              0.5256
+            ],
+            "gap": 0.2427
+          },
+          {
+            "bucket": "0.3-0.4",
+            "n": 1220,
+            "mean_predicted": 0.3507,
+            "observed": 0.4943,
+            "observed_ci95": [
+              0.4663,
+              0.5223
+            ],
+            "gap": 0.1436
+          },
+          {
+            "bucket": "0.4-0.5",
+            "n": 1531,
+            "mean_predicted": 0.449,
+            "observed": 0.4984,
+            "observed_ci95": [
+              0.4734,
+              0.5234
+            ],
+            "gap": 0.0493
+          },
+          {
+            "bucket": "0.5-0.6",
+            "n": 1375,
+            "mean_predicted": 0.5472,
+            "observed": 0.5135,
+            "observed_ci95": [
+              0.487,
+              0.5398
+            ],
+            "gap": -0.0338
+          },
+          {
+            "bucket": "0.6-0.7",
+            "n": 1255,
+            "mean_predicted": 0.646,
+            "observed": 0.5283,
+            "observed_ci95": [
+              0.5006,
+              0.5558
+            ],
+            "gap": -0.1177
+          },
+          {
+            "bucket": "0.7-0.8",
+            "n": 988,
+            "mean_predicted": 0.7446,
+            "observed": 0.5638,
+            "observed_ci95": [
+              0.5327,
+              0.5944
+            ],
+            "gap": -0.1808
+          },
+          {
+            "bucket": "0.8-0.9",
+            "n": 513,
+            "mean_predicted": 0.8411,
+            "observed": 0.5439,
+            "observed_ci95": [
+              0.5006,
+              0.5865
+            ],
+            "gap": -0.2973
+          },
+          {
+            "bucket": "0.9-1.0",
+            "n": 229,
+            "mean_predicted": 0.9382,
+            "observed": 0.5939,
+            "observed_ci95": [
+              0.5292,
+              0.6554
+            ],
+            "gap": -0.3443
+          }
+        ],
+        "noise_floor": {
+          "split_half_brier": [
+            0.2769,
+            0.2881
+          ],
+          "split_half_brier_spread": 0.011204,
+          "split_half_accuracy": [
+            0.5372,
+            0.5123
+          ],
+          "split_half_accuracy_spread": 0.024881,
+          "note": "one arm split in half. A difference smaller than this spread is not an effect."
+        }
+      },
+      "held_out_fifth": {
+        "n_games_scored": 1778,
+        "brier": {
+          "model": 0.2882,
+          "coin": 0.25,
+          "elo": 0.2564,
+          "vs_coin_paired": {
+            "mean": 0.0382,
+            "ci95": [
+              0.0279,
+              0.0485
+            ]
+          },
+          "vs_elo_paired": {
+            "mean": 0.0356,
+            "ci95": [
+              0.0225,
+              0.0498
+            ]
+          },
+          "elo_available_on": 1259
+        },
+        "log_loss": {
+          "model": 0.8029,
+          "coin": 0.6931,
+          "elo": 0.7064,
+          "vs_coin_paired": {
+            "mean": 0.1098,
+            "ci95": [
+              0.0831,
+              0.137
+            ]
+          },
+          "vs_elo_paired": {
+            "mean": 0.1075,
+            "ci95": [
+              0.0745,
+              0.1441
+            ]
+          },
+          "clamp_eps": 0.02,
+          "note": "the clamp is load-bearing: a finite-rollout leaf emits exact 0 and 1, so log-loss partly reports the epsilon. Brier needs no clamp and is the primary."
+        },
+        "discrimination": {
+          "decisive_calls": 1658,
+          "correct": 837,
+          "accuracy": 0.5048,
+          "accuracy_ci95_wilson": [
+            0.4808,
+            0.5289
+          ],
+          "p_value_two_sided": 0.6944,
+          "fixed_n": true,
+          "note": "n was fixed by a power calculation before the run. This is not an interim look at a sequential test and must not be read as one."
+        },
+        "calibration": {
+          "ece": 0.1752,
+          "mce_buckets_over_30": 0.4053,
+          "share_in_extreme_buckets": 0.0506
+        },
+        "reliability_curve": [
+          {
+            "bucket": "0.0-0.1",
+            "n": 43,
+            "mean_predicted": 0.0598,
+            "observed": 0.4651,
+            "observed_ci95": [
+              0.3251,
+              0.6108
+            ],
+            "gap": 0.4053
+          },
+          {
+            "bucket": "0.1-0.2",
+            "n": 113,
+            "mean_predicted": 0.152,
+            "observed": 0.5221,
+            "observed_ci95": [
+              0.4308,
+              0.612
+            ],
+            "gap": 0.3701
+          },
+          {
+            "bucket": "0.2-0.3",
+            "n": 202,
+            "mean_predicted": 0.2513,
+            "observed": 0.5099,
+            "observed_ci95": [
+              0.4414,
+              0.578
+            ],
+            "gap": 0.2586
+          },
+          {
+            "bucket": "0.3-0.4",
+            "n": 247,
+            "mean_predicted": 0.3488,
+            "observed": 0.4939,
+            "observed_ci95": [
+              0.4321,
+              0.5559
+            ],
+            "gap": 0.1452
+          },
+          {
+            "bucket": "0.4-0.5",
+            "n": 284,
+            "mean_predicted": 0.4487,
+            "observed": 0.5106,
+            "observed_ci95": [
+              0.4527,
+              0.5682
+            ],
+            "gap": 0.0618
+          },
+          {
+            "bucket": "0.5-0.6",
+            "n": 268,
+            "mean_predicted": 0.5457,
+            "observed": 0.4403,
+            "observed_ci95": [
+              0.3821,
+              0.5002
+            ],
+            "gap": -0.1054
+          },
+          {
+            "bucket": "0.6-0.7",
+            "n": 253,
+            "mean_predicted": 0.6436,
+            "observed": 0.5178,
+            "observed_ci95": [
+              0.4564,
+              0.5786
+            ],
+            "gap": -0.1258
+          },
+          {
+            "bucket": "0.7-0.8",
+            "n": 209,
+            "mean_predicted": 0.7466,
+            "observed": 0.5694,
+            "observed_ci95": [
+              0.5016,
+              0.6347
+            ],
+            "gap": -0.1772
+          },
+          {
+            "bucket": "0.8-0.9",
+            "n": 112,
+            "mean_predicted": 0.8415,
+            "observed": 0.5446,
+            "observed_ci95": [
+              0.4525,
+              0.6339
+            ],
+            "gap": -0.2969
+          },
+          {
+            "bucket": "0.9-1.0",
+            "n": 47,
+            "mean_predicted": 0.9405,
+            "observed": 0.5957,
+            "observed_ci95": [
+              0.4534,
+              0.7236
+            ],
+            "gap": -0.3448
+          }
+        ],
+        "noise_floor": {
+          "split_half_brier": [
+            0.29,
+            0.2864
+          ],
+          "split_half_brier_spread": 0.003561,
+          "split_half_accuracy": [
+            0.492,
+            0.5172
+          ],
+          "split_half_accuracy_spread": 0.025155,
+          "note": "one arm split in half. A difference smaller than this spread is not an effect."
+        }
+      }
+    }
+  },
+  "engine_vs_engine": {
+    "n_paired": 8883,
+    "brier_top_minus_baseline": {
+      "mean": 0,
+      "ci95": [
+        -0.0007,
+        0.0007
+      ]
+    },
+    "log_loss_top_minus_baseline": {
+      "mean": 0.0013,
+      "ci95": [
+        -0.0007,
+        0.0033
+      ]
+    },
+    "negative_means": "the WIRE 10 engine predicts BETTER than the pre-WIRE-1 engine",
+    "paired_sd": 0.034089,
+    "observed_mde_80pct": 0.001013,
+    "correlation_between_the_two_leaves": 0.9881,
+    "identical_predictions": 358,
+    "mcnemar": {
+      "decisive_in_both": 7994,
+      "both_right": 4162,
+      "only_baseline_right": 36,
+      "only_top_right": 37,
+      "both_wrong": 3759,
+      "discordant": 73,
+      "z": 0.117,
+      "p_value_two_sided": 0.9068,
+      "note": "exact discordant-pair test on the positions where both engines made a decisive call."
+    },
+    "noise_floor": {
+      "split_half_delta": [
+        -0.000304,
+        0.000337
+      ],
+      "split_half_delta_spread": 0.000642,
+      "note": "the position set split in half and the paired delta computed in each. A delta smaller than this spread is not an effect."
+    }
+  },
+  "joint": {
+    "question": "does per-position ENGINE FIDELITY predict per-position LEAF ERROR — in LINES, and in TURNS?",
+    "coverage": {
+      "positions_with_a_reading_baseline": 8855,
+      "positions_with_a_reading_top": 8855,
+      "never_parted_baseline": 13,
+      "never_parted_top": 246,
+      "no_reading": 28,
+      "why_no_reading": "fewer than four buildable bodies a side, or the paired game threw"
+    },
+    "depth_instrument_reliability": {
+      "n": 8855,
+      "spearman_forward_vs_reversed": {
+        "n": 8855,
+        "rho": 0.83612,
+        "ci95_bootstrap": [
+          0.82518,
+          0.84617
+        ],
+        "se_normal_approx": 0.01063,
+        "p_value_two_sided_normal": 0,
+        "mde_at_80pct_power": 0.02978
+      },
+      "identical_readings": 5506,
+      "note": "the SAME release and the SAME positions with the driver order reversed inside each shard. This is how much of the divergence depth is a property of the POSITION rather than of the run, and it is the CEILING on any correlation below: a correlation cannot exceed the square root of its predictor's own reliability. A null here would indict the instrument, not the world, and publishing one without this control would be publishing \"my ruler cannot see it\" as \"there is nothing there\"."
+    },
+    "lines": {
+      "baseline": {
+        "n": 8855,
+        "rho": 0.03127,
+        "ci95_bootstrap": [
+          0.01182,
+          0.05412
+        ],
+        "se_normal_approx": 0.01063,
+        "p_value_two_sided_normal": 0.00326,
+        "mde_at_80pct_power": 0.02978
+      },
+      "top": {
+        "n": 8855,
+        "rho": 0.00101,
+        "ci95_bootstrap": [
+          -0.0186,
+          0.02212
+        ],
+        "se_normal_approx": 0.01063,
+        "p_value_two_sided_normal": 0.9246,
+        "mde_at_80pct_power": 0.02978
+      },
+      "binned_baseline": [
+        {
+          "depth": "0-4",
+          "n": 671,
+          "mean_brier": 0.2654,
+          "decisive": 619,
+          "accuracy": 0.5654
+        },
+        {
+          "depth": "5-9",
+          "n": 2095,
+          "mean_brier": 0.2735,
+          "decisive": 1947,
+          "accuracy": 0.528
+        },
+        {
+          "depth": "10-14",
+          "n": 3152,
+          "mean_brier": 0.2874,
+          "decisive": 2951,
+          "accuracy": 0.5249
+        },
+        {
+          "depth": "15-19",
+          "n": 1417,
+          "mean_brier": 0.2794,
+          "decisive": 1337,
+          "accuracy": 0.5273
+        },
+        {
+          "depth": "20-29",
+          "n": 918,
+          "mean_brier": 0.2938,
+          "decisive": 874,
+          "accuracy": 0.5011
+        },
+        {
+          "depth": "30-49",
+          "n": 448,
+          "mean_brier": 0.2891,
+          "decisive": 427,
+          "accuracy": 0.5059
+        },
+        {
+          "depth": "50-max",
+          "n": 141,
+          "mean_brier": 0.3114,
+          "decisive": 129,
+          "accuracy": 0.4574
+        },
+        {
+          "depth": "NEVER PARTED",
+          "n": 13,
+          "mean_brier": 0.3289,
+          "decisive": 12,
+          "accuracy": 0.4167
+        }
+      ],
+      "binned_top": [
+        {
+          "depth": "0-4",
+          "n": 130,
+          "mean_brier": 0.2634,
+          "decisive": 121,
+          "accuracy": 0.595
+        },
+        {
+          "depth": "5-9",
+          "n": 1421,
+          "mean_brier": 0.2804,
+          "decisive": 1312,
+          "accuracy": 0.5069
+        },
+        {
+          "depth": "10-14",
+          "n": 2165,
+          "mean_brier": 0.2809,
+          "decisive": 2020,
+          "accuracy": 0.5342
+        },
+        {
+          "depth": "15-19",
+          "n": 1505,
+          "mean_brier": 0.2855,
+          "decisive": 1418,
+          "accuracy": 0.5233
+        },
+        {
+          "depth": "20-29",
+          "n": 1474,
+          "mean_brier": 0.284,
+          "decisive": 1389,
+          "accuracy": 0.5198
+        },
+        {
+          "depth": "30-49",
+          "n": 1126,
+          "mean_brier": 0.2899,
+          "decisive": 1051,
+          "accuracy": 0.5167
+        },
+        {
+          "depth": "50-max",
+          "n": 788,
+          "mean_brier": 0.2614,
+          "decisive": 753,
+          "accuracy": 0.5618
+        },
+        {
+          "depth": "NEVER PARTED",
+          "n": 246,
+          "mean_brier": 0.3212,
+          "decisive": 228,
+          "accuracy": 0.4693
+        }
+      ],
+      "note": "NEGATIVE rho is the hypothesis: a position the engine simulates correctly for longer has a SMALLER leaf error. Positive rho is the opposite of the hypothesis."
+    },
+    "turns": {
+      "baseline": {
+        "n": 8855,
+        "rho": 0.02868,
+        "ci95_bootstrap": [
+          0.00723,
+          0.0514
+        ],
+        "se_normal_approx": 0.01063,
+        "p_value_two_sided_normal": 0.006974,
+        "mde_at_80pct_power": 0.02978
+      },
+      "top": {
+        "n": 8855,
+        "rho": -0.00004,
+        "ci95_bootstrap": [
+          -0.02082,
+          0.0226
+        ],
+        "se_normal_approx": 0.01063,
+        "p_value_two_sided_normal": 0.9968,
+        "mde_at_80pct_power": 0.02978
+      },
+      "spread_baseline": {
+        "distinct_values": 13,
+        "values": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "share_at_mode": 0.7905
+      },
+      "spread_top": {
+        "distinct_values": 13,
+        "values": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "share_at_mode": 0.676
+      },
+      "note": "a predictor with almost no spread cannot predict anything. The distinct-value count and the share sitting at the modal value are printed BESIDE the correlation so a null is read as a degenerate variable rather than as a measured absence of effect."
+    },
+    "change_in_depth_vs_change_in_error": {
+      "n": 8601,
+      "positions_where_depth_improved": 4681,
+      "positions_where_depth_worsened": 1153,
+      "positions_unchanged": 2767,
+      "median_depth_change": 2,
+      "spearman": {
+        "n": 8601,
+        "rho": -0.01151,
+        "ci95_bootstrap": [
+          -0.03067,
+          0.0082
+        ],
+        "se_normal_approx": 0.01078,
+        "p_value_two_sided_normal": 0.2859,
+        "mde_at_80pct_power": 0.03021
+      },
+      "mean_error_change_where_depth_improved": -0.00026,
+      "mean_error_change_where_depth_unchanged": -0.00025,
+      "mean_error_change_where_depth_worsened": 0.00154,
+      "transitions": {
+        "parted_then_never_parted": {
+          "n": 241,
+          "mean_error_change": 0.00213
+        },
+        "never_parted_then_parted": {
+          "n": 8,
+          "mean_error_change": -0.01898
+        },
+        "parted_in_both": {
+          "n": 8601,
+          "mean_error_change": -0.00002
+        },
+        "never_parted_in_either": {
+          "n": 5,
+          "mean_error_change": -0.02125
+        }
+      },
+      "note": "NEGATIVE rho is the hypothesis: pushing the divergence deeper at a position lowers the leaf error at that position."
+    }
+  },
+  "rows": "data/leaf-engine-contrast-rows.jsonl — per position: both leaf predictions, both depths, the reversed-order depth, the label and both ratings. The curves can be re-cut without replaying the rollouts.",
+  "verdict": "The WIRE 10 engine's leaf is NOT SEPARATED from the pre-WIRE-1 engine's on Brier over 8,883 paired positions (+0, 95% CI -0.0007 to 0.0007; negative is better), and the effect is INSIDE its own split-half noise floor of 0.000642. Both engines' leaves remain worse than a coin: Brier vs coin 0.0325 (baseline) and 0.0325 (top). Change in divergence depth vs change in leaf error: rho -0.01151 [-0.03067, 0.0082] on n=8601."
+}

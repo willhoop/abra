@@ -108,3 +108,8 @@ data/lookahead-divergence.jsonl
 
 # build/omnibus.py writes <out>.html beside the PDF. Build output, same class as docs/*.print.html.
 /omnibus.html
+
+# The differential's team-pool cache (ROADMAP #87). 11 MB, derived, and rebuilt in ~14 s from the
+# store on any miss — carrying it in git would add a megabyte-scale churn every time OPS appends.
+# Its DIGEST travels in the artifacts that used it, which is what makes a run checkable.
+data/diff-team-pool.json

@@ -74,6 +74,16 @@ const GAMES = +flag('--games', 2700);
 const WRITE = argv.includes('--write');
 const CENSUS = flag('--census', 'data/wire-ladder-census.pin.json');
 const KEEP = flag('--keep-arms', null);
+/* THE STATE LADDER (Will, 2026-08-07). `--state` runs every rung under `engine/board_state.js`'s
+ * end-of-turn BOARD comparison as well as the protocol one, so the table can say what each wire bought
+ * in the only currency a search spends: HP, status, items, stat stages, field conditions and who is
+ * still alive. The protocol columns are unchanged and are printed beside it, because the whole point
+ * is to compare the two instruments over the SAME games rather than across two runs.
+ *
+ * `--out` keeps the two ladders apart on disk. Writing a state ladder over data/wire-ladder.json would
+ * silently replace the published protocol result with a differently-shaped one. */
+const STATE = argv.includes('--state');
+const OUT = flag('--out', STATE ? 'data/state-ladder.json' : 'data/wire-ladder.json');
 
 if (!process.env.SHOWDOWN_PATH) {
   console.error('NOT RUN — the official simulator is absent. Set SHOWDOWN_PATH. This is not a pass.');
@@ -175,8 +185,68 @@ const stampInputs = () => {
   return o;
 };
 
-const ARM_DIR = KEEP ? path.resolve(KEEP) : fs.mkdtempSync(path.join(require('os').tmpdir(), 'abra-wire-ladder-'));
+/* `--resume <dir>` FINISHES A LADDER THAT DIED PART WAY, and it exists because one did. Fourteen arms
+ * at ~400s is over an hour of wall clock in one process, and a run that loses arm 10 of 14 has thrown
+ * away nine complete, correct, frozen-release measurements that are sitting on disk.
+ *
+ * AN ARM IS REUSED ONLY IF BOTH ITS FILES ARE THERE — the artifact AND the verbose log — because the
+ * two are one run by construction (see runArm) and half of a pair is not a rung. Every reused arm is
+ * PRINTED as reused; a resumed ladder that looked like a fresh one would be a silent default about the
+ * most important property this file has, which is that all fourteen arms are the same photograph.
+ *
+ * THE TEAM STORE IS NOT RE-COPIED. The point of the freeze is that every arm reads the SAME bytes, so
+ * a resume that took a fresh copy would hand the last arms a store the first ones never saw — exactly
+ * the failure the freeze was added for. It is re-digested and printed instead. */
+const RESUME = flag('--resume', null);
+const ARM_DIR = RESUME ? path.resolve(RESUME)
+              : KEEP ? path.resolve(KEEP)
+              : fs.mkdtempSync(path.join(require('os').tmpdir(), 'abra-wire-ladder-'));
 fs.mkdirSync(ARM_DIR, { recursive: true });
+
+/* ---- THE LADDER TAKES ITS OWN PHOTOGRAPH OF THE TEAM STORE -------------------------------------
+ *
+ * IT PINNED THE CENSUS AND LEFT THE OTHER HALF OF THE SAMPLE LIVE, and that cost a whole run.
+ * `engine/diff_swarm.js` reads `data/games.bo3.jsonl` and `data/games.ots.jsonl` LIVE and picks by a
+ * STRIDE over the deduped set, so ONE appended game shifts which teams are played. OPS appends to that
+ * file continuously. On 2026-08-07 it appended between arm 3 and arm 4 of a 14-arm state ladder — the
+ * corpus went 7,454 -> 7,509 and the pool digest went `bd29c210884e` -> `32b2abcbfeb7`. The first three
+ * rungs and the last eleven were sampling different populations. `arms_comparable.compare` would have
+ * refused the table at the end, correctly, after two hours.
+ *
+ * `stampInputs` DIGESTING THE FILE BEFORE AND AFTER WAS NOT ENOUGH, and that is the lesson worth
+ * keeping: it can only tell you afterwards that the run was wasted. CLAUDE.md says this in as many
+ * words about engine releases — "it is a COPY, not a checksum: verifying digests afterwards only tells
+ * you the run was wasted." The store is now COPIED once, before arm 1, and every arm reads the copy.
+ *
+ * `--no-pin-store` runs the old way, so the method behind data/wire-ladder.json can still be reproduced
+ * exactly rather than being retroactively rewritten. */
+const PIN_STORE = !argv.includes('--no-pin-store');
+const STORE_DIR = path.join(ARM_DIR, 'team-store');
+const STORE_FILES = ['games.bo3.jsonl', 'games.ots.jsonl'];
+let STORE_STAMP = null;
+if (PIN_STORE) {
+  fs.mkdirSync(STORE_DIR, { recursive: true });
+  STORE_STAMP = {};
+  for (const f of STORE_FILES) {
+    const src = D('data', f), dst = path.join(STORE_DIR, f);
+    try {
+      /* ON A RESUME THE EXISTING COPY IS THE PHOTOGRAPH — see the RESUME header. Overwriting it would
+       * hand the remaining arms bytes the completed arms never read. */
+      if (!(RESUME && fs.existsSync(dst))) fs.copyFileSync(src, dst);
+      const s = fs.statSync(dst);
+      STORE_STAMP[f] = { size: s.size, sha12: ER.sha12(dst), copied_from: src,
+                         reused_from_a_previous_run: !!(RESUME && fs.existsSync(dst)) };
+    } catch (e) {
+      console.error('the team store could not be frozen (' + f + '): ' + String((e && e.message) || e)
+        + '\nREFUSING — an unpinned store is how the last ladder was lost. Pass --no-pin-store to run '
+        + 'the old way on purpose.');
+      process.exit(4);
+    }
+  }
+  console.log('\n  THE TEAM STORE IS FROZEN for this ladder: ' + STORE_DIR);
+  for (const f of STORE_FILES) console.log('    ' + f.padEnd(20) + STORE_STAMP[f].sha12 + '  '
+    + STORE_STAMP[f].size.toLocaleString() + ' bytes');
+}
 
 /* ---- ONE ARM --------------------------------------------------------------------------------------
  * `--verbose --write` in the SAME invocation: the depth distribution parsed from stdout and the
@@ -184,8 +254,16 @@ fs.mkdirSync(ARM_DIR, { recursive: true });
  * not a ladder, and continuing past it would publish a table with a silent hole in it. */
 function runArm(arm) {
   const out = path.join(ARM_DIR, arm.id + '.json');
+  const logPath = path.join(ARM_DIR, arm.id + '.log');
+  if (RESUME && fs.existsSync(out) && fs.existsSync(logPath)) {
+    const j = JSON.parse(fs.readFileSync(out, 'utf8'));
+    const depth = parseDepth(fs.readFileSync(logPath, 'utf8'), arm, j);
+    return { artifact: j, depth, wall_s: null, path: out, reused: true };
+  }
   const args = ['engine/game_differential.js', '--release', arm.release, '--census', CENSUS,
-                '--games', String(GAMES), '--verbose', '--write', '--out', out];
+                '--games', String(GAMES), '--verbose', '--write', '--out', out]
+                .concat(STATE ? ['--state'] : [])
+                .concat(PIN_STORE ? ['--team-store', STORE_DIR] : []);
   const t0 = Date.now();
   let stdout;
   try {
@@ -195,23 +273,32 @@ function runArm(arm) {
       + 'incomplete and is not written.\n' + String((e && e.stderr) || (e && e.message) || e).slice(0, 4000));
     process.exit(4);
   }
-  fs.writeFileSync(path.join(ARM_DIR, arm.id + '.log'), stdout);
-  /* THE PER-GAME DEPTH, READ OFF THE DRIVER'S OWN VERBOSE LINE. `null` is a game that agreed all the
-   * way through — kept as null and never as a large number, because "never diverged" and "diverged
-   * late" are different events and a sentinel would let them average together. */
+  fs.writeFileSync(logPath, stdout);
+  const j = JSON.parse(fs.readFileSync(out, 'utf8'));
+  const depth = parseDepth(stdout, arm, j);
+  return { artifact: j, depth, wall_s: +((Date.now() - t0) / 1000).toFixed(1), path: out, reused: false };
+}
+
+/* THE PER-GAME DEPTH, READ OFF THE DRIVER'S OWN VERBOSE LINE. `null` is a game that agreed all the
+ * way through — kept as null and never as a large number, because "never diverged" and "diverged late"
+ * are different events and a sentinel would let them average together.
+ *
+ * ONE IMPLEMENTATION, because a resumed arm parses a log off disk and a fresh one parses the same text
+ * out of the child's stdout — and two copies of "how deep did this game get" would drift, which is the
+ * defect CLAUDE.md names as facts-are-global. The count check travels with it for the same reason. */
+function parseDepth(stdout, arm, j) {
   const depth = [];
-  for (const l of stdout.split(/\r?\n/)) {
+  for (const l of String(stdout).split(/\r?\n/)) {
     const m = /DIVERGES at line (\d+)/.exec(l);
     if (m) { depth.push(+m[1]); continue; }
     if (/agrees, \d+ turns/.test(l)) depth.push(null);
   }
-  const j = JSON.parse(fs.readFileSync(out, 'utf8'));
   if (depth.length !== j.games) {
     console.error('ARM ' + arm.id + ': the verbose stream carries ' + depth.length + ' games and the '
       + 'artifact says ' + j.games + '. They are the same run, so they must agree — refusing.');
     process.exit(4);
   }
-  return { artifact: j, depth, wall_s: +((Date.now() - t0) / 1000).toFixed(1), path: out };
+  return depth;
 }
 
 /* ---- SUMMARY STATISTICS, ONE IMPLEMENTATION ------------------------------------------------------ */
@@ -250,7 +337,7 @@ for (const arm of ARMS) {
   const r = runArm(arm);
   RUNS[arm.id] = r;
   console.log('  ' + arm.id.padEnd(28) + arm.release + '   ' + r.artifact.diverged + '/' + r.artifact.games
-    + ' diverged   ' + r.wall_s + 's');
+    + ' diverged   ' + (r.reused ? 'REUSED from ' + ARM_DIR : r.wall_s + 's'));
 }
 const inputs_after = stampInputs();
 const moved = WATCHED.filter(f => JSON.stringify(inputs_before[f]) !== JSON.stringify(inputs_after[f]));
@@ -322,6 +409,27 @@ const rows = ARMS.map((arm, i) => {
      * distinguish a rung that helped from one that did not. The PROTOCOL LINE index can. */
     first_divergence_line: { median: quant(d, 0.5), mean: mean(d), p75: quant(d, 0.75), p90: quant(d, 0.9),
                              max: Math.max(...finite(d)) },
+    /* THE STATE COLUMNS. `null` on a protocol-only ladder, which is a different claim from zero.
+     * `state_families` is the actionable half: WHICH part of the board parted, collapsed the way the
+     * protocol side collapses causes, so a rung that fixed HP and a rung that fixed a clock do not
+     * read as one number. */
+    state: !j.state ? null : {
+      turn_boundaries_compared: j.state.turn_boundaries_compared,
+      turn_boundaries_identical: j.state.turn_boundaries_identical,
+      turn_boundary_agreement: j.state.turn_boundary_agreement,
+      games_board_never_diverged: j.state.games_board_never_diverged,
+      game_agreement: j.state.game_agreement,
+      median_turn_of_first_board_divergence: j.state.median_turn_of_first_board_divergence,
+      protocol_diverged_games: j.state.protocol_diverged_games,
+      protocol_diverged_board_never_did: j.state.protocol_diverged_board_never_did,
+      protocol_diverged_board_held_longer: j.state.protocol_diverged_board_held_longer,
+      board_parted_before_the_protocol_did: j.state.board_parted_before_the_protocol_did,
+      screens_shape_medicham: j.state.screens_shape_medicham,
+      reader_failures: j.state.reader_failures,
+      planted_state_proof_ok: j.state.planted_state_proof_ok,
+      mappings_all_proved: j.state.mappings_all_proved,
+      families: j.state.families,
+    },
     vs_baseline: i === 0 ? null : paired(RUNS[BASE.id].depth, d),
     vs_previous_rung: prev ? paired(prev, d) : null,
     class_counts: Object.fromEntries(j.classes.map(c => [c.cls, c.games])),
@@ -340,6 +448,32 @@ for (const r of rows) console.log('  ' + pad(r.arm, 28) + pad(r.diverged + '/' +
   + pad(r.median_completed_turns_before_divergence, 9) + pad(r.first_divergence_line.median, 9)
   + r.first_divergence_line.mean);
 
+/* THE STATE TABLE, PRINTED BESIDE THE PROTOCOL ONE AND NEVER INSTEAD OF IT. The two answer different
+ * questions and the whole reason this ladder was re-run is that only one of them was ever asked. */
+if (STATE) {
+  const pct = v => (v == null ? '  n/a' : (100 * v).toFixed(1) + '%');
+  console.log('\n  THE SAME LADDER, SCORED ON THE BOARD AT THE TURN BOUNDARY:');
+  console.log('  arm                          turns identical      games clean        medTurn  protoDiv->sameBoard  proof');
+  for (const r of rows) {
+    const s = r.state;
+    if (!s) { console.log('  ' + pad(r.arm, 28) + 'NOT MEASURED'); continue; }
+    console.log('  ' + pad(r.arm, 28)
+      + pad(s.turn_boundaries_identical + '/' + s.turn_boundaries_compared + '  ' + pct(s.turn_boundary_agreement), 20)
+      + pad(s.games_board_never_diverged + '/' + r.games + '  ' + pct(s.game_agreement), 18)
+      + pad(s.median_turn_of_first_board_divergence, 9)
+      + pad(s.protocol_diverged_board_never_did + '/' + s.protocol_diverged_games, 21)
+      + (s.planted_state_proof_ok && s.mappings_all_proved ? 'ok' : 'FAILED'));
+  }
+  const bad = rows.filter(r => r.state && !(r.state.planted_state_proof_ok && r.state.mappings_all_proved));
+  if (bad.length) console.log('\n  ' + bad.length + ' ARM(S) FAILED THE STATE COMPARATOR\'S OWN PROOF — their state '
+    + 'numbers are worthless: ' + bad.map(r => r.arm).join(', '));
+  const rf = rows.filter(r => r.state && Object.keys(r.state.reader_failures || {}).length);
+  if (rf.length) console.log('  READER FAILURES on ' + rf.length + ' arm(s): '
+    + rf.map(r => r.arm + ' ' + JSON.stringify(r.state.reader_failures)).join('; '));
+  const shapes = [...new Set(rows.filter(r => r.state).map(r => JSON.stringify(r.state.screens_shape_medicham)))];
+  console.log('  side-condition shapes seen across the ladder (both must be readable): ' + shapes.join('  '));
+}
+
 console.log('\n  THE BASELINE, RUN TWICE WITH EIGHT ARMS BETWEEN: '
   + (baselineReproduces && baselineDepthIdentical
       ? 'REPRODUCES EXACTLY — every measured field identical, and the per-game divergence depth identical game for game.'
@@ -349,6 +483,14 @@ console.log('  COMPARABILITY: ' + (refused.length ? refused.length + ' ARM(S) RE
 for (const c of refused) { console.log('    REFUSED ' + c.arm); for (const x of c.reasons) console.log('      - ' + x); }
 console.log('  INPUTS UNDER THE LADDER: ' + (moved.length ? 'MOVED — ' + moved.join(', ')
   : 'all ' + WATCHED.length + ' watched files byte-identical before and after'));
+{
+  const digests = new Set(ARMS.map(a => ((RUNS[a.id].artifact.steering) || {}).team_pool_digest));
+  console.log('  THE TEAM POOL: ' + (PIN_STORE ? 'PINNED to a copy taken before arm 1' : 'read LIVE — unpinned')
+    + ', and every arm reported '
+    + (digests.size === 1 ? 'THE SAME digest ' + [...digests][0]
+       : digests.size + ' DIFFERENT digests — THE ARMS DID NOT PLAY THE SAME TEAMS: ' + [...digests].join(', ')));
+  if (digests.size !== 1) process.exitCode = 1;
+}
 console.log('');
 
 if (WRITE) {
@@ -359,6 +501,11 @@ if (WRITE) {
         + 'only adjacent. Replaces the retracted pairwise before/afters of CHANGELOG 3.62.1.',
     games_requested: GAMES,
     games_per_arm: rows[0].games,
+    /* SAID IN THE ARTIFACT, not only on the console. A resumed ladder is still one photograph — the
+     * frozen store and the pinned census are the same bytes for every arm — but a reader must be able
+     * to tell that the arms did not all run in one process. */
+    resumed_from: RESUME ? ARM_DIR : null,
+    arms_reused: ARMS.filter(a => RUNS[a.id].reused).map(a => a.id),
     /* CONTENT, NOT MTIME. `engine/provenance.js` ratchets down the count of artifacts it can only
      * check by mtime, and a new one that rests on mtime BREAKS that ratchet — which it did on this
      * file's first run, correctly.
@@ -394,6 +541,15 @@ if (WRITE) {
       still_outside: 'an uncommitted edit inside SHOWDOWN_PATH is invisible to `showdown_commit`.',
       inputs_before, inputs_after, inputs_that_moved: moved,
       nothing_in_frame_moved: moved.length === 0,
+      /* THE TEAM STORE IS COPIED, NOT WATCHED. A digest before and after can only report afterwards
+       * that the run was wasted — see the STORE_DIR block above for the ladder this cost. When it is
+       * pinned, `inputs_that_moved` naming games.bo3.jsonl is NOT a fault: the ladder read the copy. */
+      team_store_pinned: PIN_STORE, team_store_dir: PIN_STORE ? STORE_DIR : null,
+      team_store: STORE_STAMP,
+      team_pool_digest_per_arm: Object.fromEntries(ARMS.map(a =>
+        [a.id, ((RUNS[a.id].artifact.steering) || {}).team_pool_digest || null])),
+      every_arm_played_the_same_team_pool:
+        new Set(ARMS.map(a => ((RUNS[a.id].artifact.steering) || {}).team_pool_digest)).size === 1,
     },
     determinism: {
       what: 'the pre-WIRE-1 baseline was run FIRST and LAST with eight arms in between',
@@ -418,8 +574,24 @@ if (WRITE) {
     })(),
     arm_artifacts: KEEP ? ARM_DIR : 'not kept — re-run this file to regenerate them',
   };
-  fs.writeFileSync(D('data', 'wire-ladder.json'), JSON.stringify(artifact, null, 2) + '\n');
-  console.log('  -> data/wire-ladder.json');
+  artifact.mode = STATE ? 'protocol + end-of-turn BOARD state' : 'protocol only';
+  artifact.state_instrument = STATE ? {
+    what: 'engine/board_state.js — HP, status (with the toxic stage and turns slept), item, all seven '
+        + 'stat stages, fainted and species per active body; every party member\'s HP and aliveness; '
+        + 'weather / terrain / Trick Room / Tailwind / each screen with its counter; hazard layer '
+        + 'counts; and the persistent volatiles (Substitute with its HP, Taunt, Encore, Disable, Leech '
+        + 'Seed, confusion, Perish, move-trapping with its counter).',
+    boundary: 'AFTER the entire residual phase and before the next set of choices — the board the next '
+            + 'decision is actually made from. Taken any earlier and Leftovers, chip, the toxic stage, '
+            + 'Leech Seed, Perish and every ticking clock are invisible.',
+    read_from: 'the live bodies of both engines. NEITHER ENGINE\'S LOG IS OPENED — deriving a board '
+             + 'from the protocol would reproduce the bug this instrument exists to escape.',
+    not_compared: (RUNS[BASE.id].artifact.state || {}).not_compared || null,
+    mappings: (RUNS[BASE.id].artifact.state || {}).mappings || null,
+    planted_state_proof: (RUNS[BASE.id].artifact.state || {}).planted_state_proof || null,
+  } : null;
+  fs.writeFileSync(D(...OUT.split('/')), JSON.stringify(artifact, null, 2) + '\n');
+  console.log('  -> ' + OUT);
 }
 
 process.exitCode = (refused.length || !baselineReproduces) ? 1 : 0;

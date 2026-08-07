@@ -1,6 +1,33 @@
 # ABRA — the plain-English deck
 
-**Version 3.68.0 · 2026-08-07 · Will Hooper**
+**Version 3.69.0 · 2026-08-07 · Will Hooper**
+
+**What changed (3.69.0): we asked whether making the simulator more correct makes the bot predict
+better, and the answer is no.**
+
+A night of engine fixes made our simulator agree with the official one for much longer before the two
+part company. The obvious next question is whether that helps — and nobody had checked. So we took the
+one number the bot actually uses to choose a move (its guess at "how likely am I to win from here"),
+and we ran it over **8,883 real ladder games twice**: once through the old engine, once through the
+fixed one, on the same games with the same dice. The two engines differ in exactly one file, so nothing
+else can explain a difference.
+
+**They scored the same.** Not "close" — the same, to four decimal places, with an error bar tighter
+than the smallest difference the test could have spotted. On the games where both engines committed to
+a winner, the fixed engine got 37 right that the old one missed, and the old one got 36 right that the
+fixed one missed. That is a coin flip.
+
+We also checked it position by position: are the games where our simulator is most faithful the games
+where the bot predicts best? **No relationship at all** — and we proved that is a real finding rather
+than a blunt instrument, by re-measuring the faithfulness a second way and confirming it lines up with
+itself.
+
+**So what IS wrong with the bot's guess?** It is wildly overconfident. It uses the full range from 6%
+to 94%, but reality only moves between 44% and 59%. When it says "94% sure", it wins 59% of the time.
+That is the thing to fix, and no amount of further engine work touches it.
+
+The honest summary: the engine fixes were real and worth having, and they bought nothing for the
+decision the bot makes. We are saying so rather than quietly moving on.
 
 **What changed (3.68.0): we went back and checked what a night of engine fixes was actually worth,
 and the honest answer is less than it looked.**
