@@ -112,6 +112,92 @@ const TAGS_LIVE = fs.readFileSync(D('data', 'tags.json'), 'utf8');
 const TAGS_REL = REL.read('data/tags.json');
 const TAGS_MATCH = TAGS_LIVE === TAGS_REL;
 
+/* ---- FORMAT STANDING, ATTACHED TO EVERY CAUSE ---------------------------------------------------
+ *
+ * WHY THIS EXISTS. Three times on 2026-08-06/07 a WIRE was argued from a mechanic that CANNOT OCCUR in
+ * Champions. Blunder Policy justified the miss-vs-fail wire: `isNonstandard: 'Past'`, 0 of 410,780
+ * observed sets. Okidogi justified a Guard Dog wire: `tier: Illegal`, and NO legal body in this format
+ * carries Guard Dog at all. Each time, the rule "check isNonstandard before citing anything" was
+ * already written down. Each time it was read past, by a different reader.
+ *
+ * A RULE YOU HAVE TO REMEMBER IS A PREFERENCE. So the standing travels WITH the cause: whoever reads a
+ * cause sees `uses: 0, legal: false` in the same object, at the moment they read it, rather than three
+ * steps later when somebody thinks to check. Same move the project already made for the ban list
+ * (ask the format, never a hand-maintained list) and for store counts in prose (reference the
+ * artifact, never retype the number).
+ *
+ * USES COMES FROM tags.json, WHICH IS IN THE RELEASE, so the number is the frozen one and cannot drift
+ * under the run. Entities tags.json does not carry report `uses: null` -- UNKNOWN, not zero. Those are
+ * different claims and collapsing them is how a real mechanic gets dismissed as unused. */
+const TAGS_OBJ = (() => { try { return JSON.parse(TAGS_REL || TAGS_LIVE); } catch (e) { return {}; } })();
+const STANDING_KINDS = [['moves', 'moves'], ['abilities', 'abilities'], ['items', 'items']];
+
+/* LEGAL IS NOT THE SAME AS REACHABLE, AND THE DIFFERENCE IS EXACTLY THE CASE WILL CAUGHT.
+ * Guard Dog is `isNonstandard: null` — perfectly legal in Champions — and NO legal species in this
+ * format carries it, so a wire against it changes nothing a real game can reach. A legality test alone
+ * scores it `legal: true` and waves it through, which is what happened. Counted once, lazily. */
+const ABILITY_CARRIERS = (() => {
+  const m = new Map();
+  try {
+    for (const sp of dex.species.all()) {
+      if (!sp.exists || sp.isNonstandard || sp.tier === 'Illegal') continue;
+      for (const a of Object.values(sp.abilities || {})) {
+        const k = N.id(a); m.set(k, (m.get(k) || 0) + 1);
+      }
+    }
+  } catch (e) { /* the map stays empty and carriers reads null — UNKNOWN, never a false zero */ }
+  return m;
+})();
+
+function entityStanding(id) {
+  for (const [sec, dexKind] of STANDING_KINDS) {
+    const row = TAGS_OBJ[sec] && TAGS_OBJ[sec][id];
+    let d = null;
+    try { d = dex[dexKind].get(id); } catch (e) { d = null; }
+    if (row || (d && d.exists)) {
+      const legal = !!(d && d.exists && !d.isNonstandard);
+      /* An ability nothing legal can carry is unreachable even though it is legal. `null` when the
+       * map could not be built, so UNKNOWN never reads as zero. */
+      const carriers = sec === 'abilities'
+        ? (ABILITY_CARRIERS.size ? (ABILITY_CARRIERS.get(id) || 0) : null) : null;
+      return { kind: sec, id, legal, carriers,
+               reachable: legal && carriers !== 0,
+               nonstandard: (d && d.isNonstandard) || null,
+               uses: row && typeof row.uses === 'number' ? row.uses : null };
+    }
+  }
+  const sp = (() => { try { return dex.species.get(id); } catch (e) { return null; } })();
+  if (sp && sp.exists) {
+    const legal = !sp.isNonstandard && sp.tier !== 'Illegal';
+    return { kind: 'species', id, legal, carriers: null, reachable: legal,
+             nonstandard: sp.isNonstandard || (sp.tier === 'Illegal' ? 'Illegal' : null), uses: null };
+  }
+  return null;
+}
+
+/* A cause is a protocol fragment, so the entity names in it are already normalised ids sitting between
+ * pipes, colons and spaces. Split on everything that is not a letter or digit and test each token --
+ * cheap, and it cannot miss one by guessing the wrong field position. */
+function annotateCause(cause) {
+  const seen = new Set(), out = [];
+  for (const tok of String(cause).split(/[^a-z0-9]+/i)) {
+    const id = N.id(tok);
+    if (!id || id.length < 4 || seen.has(id)) continue;
+    seen.add(id);
+    const st = entityStanding(id);
+    if (st) out.push(st);
+  }
+  if (!out.length) return { mentions: [] };
+  const known = out.filter(m => typeof m.uses === 'number');
+  return {
+    mentions: out,
+    /* THE HEADLINE FIELD. If every entity a cause names is illegal in this format, fixing it changes
+     * nothing a real game can reach -- and that must be visible without a second query. */
+    cannot_occur_in_format: out.every(m => m.reachable === false),
+    max_uses: known.length ? Math.max(...known.map(m => m.uses)) : null,
+  };
+}
+
 /* ---- THE PIN ------------------------------------------------------------------------------------ */
 const MEDI_RNG_VALUE = 1 - 1e-9;
 const mediRng = () => MEDI_RNG_VALUE;
@@ -1726,7 +1812,17 @@ if (WRITE) {
                               + 'records Colbur as EATEN BY ITSELF, medicham2 as KNOCKED OFF.' },
     diverged: diverged.length, threw: threw.length,
     pin: PIN_CLAIMS.map(([w]) => w),
-    classes: [...classes].map(([cls, e]) => ({ cls, games: e.games, causes: [...e.causes].map(([cause, n]) => ({ cause, n })) })),
+    /* EVERY CAUSE CARRIES ITS FORMAT STANDING. See annotateCause() -- three separate times on
+     * 2026-08-06/07 a WIRE was justified by a mechanic that CANNOT OCCUR in Champions (Blunder Policy,
+     * `isNonstandard: 'Past'`, 0 of 410,780 sets; Okidogi, `tier: Illegal`, and no legal body in this
+     * format carries Guard Dog at all). Each time the rule "check isNonstandard before citing
+     * anything" was written down, and each time it was read past. A rule you have to remember is a
+     * preference; the standing now travels WITH the cause, so a zero is visible at the moment the
+     * cause is read rather than three steps later when somebody thinks to check. */
+    classes: [...classes].map(([cls, e]) => ({
+      cls, games: e.games,
+      causes: [...e.causes].map(([cause, n]) => Object.assign({ cause, n }, annotateCause(cause))),
+    })),
     first_divergences: diverged.slice(0, 60).map(r => ({
       config: r.config, seed: r.seed, index: r.div.index, agreed_lines: r.div.agreedLines,
       cls: r._cls.cls, cause: r._cls.cause, showdown: r.div.sdRaw, medicham: r.div.meRaw })),
