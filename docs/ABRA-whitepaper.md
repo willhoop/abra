@@ -2,7 +2,7 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.58.0 · Last updated 2026-08-06**
+**Version 3.59.0 · Last updated 2026-08-06**
 **Will Hooper · ABRA**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
@@ -20,9 +20,133 @@ empirical finding governs its design: **predicting the winner of a game from the
 near-impossible in this format — even a player-Elo model ties a coin.** ABRA therefore does not sell
 outcome prediction. It follows the recipe that worked in poker, Diplomacy, and sports analytics:
 *support decisions, don't predict outcomes*, and judge every model by a proper score against an honest
-baseline with a confidence interval. This paper states the empirical ceiling, the data model, each
-model with its validated result (including two honest negatives), the mathematics, the limits, and the
-road to the in-battle engine (ALAKAZAM).
+baseline with a confidence interval. **As of 3.59.0 the headline metric is exploitability rather than
+win rate** (§0, ADR-003): VGC is formally an imperfect-information game, the only prior work in this
+exact format measures its own agents at approximately 100% exploitable despite beating a
+professional, and the thesis under test is that a per-turn re-solving agent is harder to exploit than
+a compiled policy — *unknown*, and stated as the experiment rather than the assumption. This paper
+states that thesis and its metric, the empirical ceiling, the data model, each model with its
+validated result (including two honest negatives), the mathematics, the limits, and the road to the
+in-battle engine (ALAKAZAM).
+
+## 0. The thesis, and the metric that follows from it (3.59.0)
+
+**This project's headline metric is exploitability, not win rate.** The change is recorded in
+ADR-003 and it is forced by a measurement somebody else made.
+
+**The field has been treating VGC as a chess problem or a pure-RL problem. It is a poker problem.**
+Chess and Go are perfect-information games: there is one true state, both players see it, and
+minimax or MCTS over that state is sound. VGC is not. A player does not know which four of the
+opponent's six will be brought, their items, their abilities, or the fourth move on each set, and
+that hidden information is not noise to be averaged away — it is *strategically exploitable*. The
+correct solution concept is therefore a **Nash equilibrium in mixed strategies, not a single best
+move**, which is poker's situation verbatim and the reason RL+search methods that are sound in chess
+break in imperfect-information games (ReBeL, ref. 4). `docs/POKER-TO-POKEMON.md` works the
+correspondence through term by term and is honest about the three places it breaks — simultaneity,
+action-space and horizon scale, and the nature of chance.
+
+That argument was made from theory and had no measurement behind it. **VGC-Bench supplies the
+measurement.** Angliss, Cui, Hu, Rahman and Stone (AAMAS 2026, ref. 5) trained behaviour cloning on
+700,000+ human battle logs and fine-tuned with PPO under self-play, fictitious play and double
+oracle. In a single-team mirror match their agent **beat a World Championships competitor**. And in
+the same paper:
+
+- *"In almost all cases, **all agents are approximately 100% exploitable**"* — measured by training a
+  best-response policy against each agent.
+- Their expert tester's feedback: *"although the agent is strong on initial play, it does have
+  noticeable dips in performance in certain states. **After enough successive games, strong human
+  players can adapt and beat the agent.**"*
+- Against their *advanced* (not expert) tester the agent won **2 of 5**.
+
+**That is not a weakness of their execution. It is the predicted behaviour of a compiled policy** — a
+fixed map from state to action — in an imperfect-information game. A best response can find and drill
+its blind spots, and so can a human given five games. Poker learned this over 2007–2021 and answered
+it with equilibrium mixing and continual re-solving (CFR, DeepStack, Libratus, ReBeL; refs. 1–4).
+
+**The thesis is therefore that a re-solving agent should be harder to exploit than a compiled one.**
+A learned policy *recalls*; a search *recomputes*. A best-response exploiter attacks a fixed mapping,
+and a per-turn re-solve presents none. **Whether this survives simultaneity, stochasticity and a
+~6-turn horizon is UNKNOWN — that is the experiment of this project, not its assumption.**
+
+**Two consequences for the model family.** WOBBUFFET (§4, and `docs/MODELS.md`) moves from side-check
+to primary instrument, with VGC-Bench's ~100% as the published comparator. SLOWKING stops being
+"the preview solver" and becomes the shape of the whole agent.
+
+**And the honest state of that metric today is that we do not have one.** `data/exploitability.json`
+is declared void; the 2026-07-26 figure was fitted on 17 features against the 58 we ship and the
+2026-08-04 re-run had its defender refitted while it was running. Leading with a metric this project
+cannot currently produce is deliberate — it makes the gap a deliverable instead of a footnote.
+
+### 0.1 Why the comparison is legitimate although the agents can never meet
+
+VGC-Bench's public checkpoints are Regulation M-A; we are Regulation M-B, and their own paper shows
+policies do not transfer across team sets. A head-to-head is impossible. But **exploitability is
+intrinsic**: it is defined against a best response trained against *you*, in *your* format, so the
+two numbers live on the same scale without the two agents ever playing a game.
+
+Two further points sharpen rather than weaken the frame:
+
+- **VGC-Bench is open team sheets** — the same information setting as our Reg M-B best-of-three. They
+  had *more* information than a closed-sheet agent and were still ~100% exploitable. The
+  exploitability comes from holding a fixed policy, not from hidden teams.
+- **Their dataset is not usable by us, and this project's code already said so.** Their Reg M-B
+  holding is 4,167 games over 4 days in June 2026, and all 4,167 are already in our store as
+  `data/games.ots.jsonl`, against our own 9,701 best-of-three games over 15 days. The 700,000
+  headline is Reg M-A, the previous regulation. An earlier claim in this project that their archive
+  covered our format inferred coverage from a *filename* and is withdrawn; `docs/PRIOR-ART.md` §2
+  carries the correction.
+
+### 0.2 What we are not claiming
+
+- **Not that we will beat VGC-Bench.** Their agent beat a Worlds competitor; ours has never played a
+  human.
+- **Not that search is known to work here.** Metamon (RLC 2025, ref. 5) reached top 10% in singles
+  with no search at all, and Future Sight AI removed its machine learning entirely after finding a
+  structural method beat it on both accuracy and speed. Both are live counter-evidence.
+- **Not novelty on the format or the infrastructure.** VGC-Bench owns both, including the poke-env
+  doubles support the field now uses. We are not first, and in our own format we are behind.
+
+**If the thesis fails, the instrumentation still stands.** No project in `docs/PRIOR-ART.md`
+publishes a mechanics census that must be shown red before it counts, a step-level protocol
+differential against the official engine, ratchets on silent failure, or a record of what it
+retracted. If search loses, this remains the only account of what a hand-written VGC simulator gets
+wrong and how you would know — publishable precisely because everyone else avoided the problem by
+not having it.
+
+### 0.3 The engine is justified if and only if search pays
+
+VGC-Bench used real Showdown through poke-env and carried **no engine-correctness debt at all**,
+because behaviour cloning and PPO do not need a fast simulator: they need throughput at training
+time, not at decision time. We wrote MEDICHAM (§3) so that **per-turn re-solving is affordable**.
+That makes the engine work falsifiable rather than assumed, and it promotes one roadmap item to the
+status of a project gate.
+
+Supporting evidence that this is the real trade and not a rationalisation — every project that
+searches hits the engine-speed wall, and the pattern is clean:
+
+| project | searches? | engine | depth reached |
+|---|---|---|---|
+| VGC-Bench | no | real Showdown | n/a |
+| Future Sight AI | yes | modified Showdown | ~3 turns in 15 s on 16 cores |
+| Foul Play | yes | built its own (poke-engine) | ~10+ turns |
+
+**The plan is four phases, and the fourth is a result rather than a defeat:**
+
+```
+1  finish MEDICHAM        search needs an engine that is fast AND correct
+2  GATE #62               does compute buy anything: untimed vs on-the-clock
+3  if yes -> search, and measure EXPLOITABILITY against their ~100%
+4  if no  -> adopt their recipe: BC + PPO self-play/FP/DO, open source, reproducible
+```
+
+Phase 4 is cheap precisely because VGC-Bench made it so — the method is published, open-source and
+reproducible — and taking it would be a finding about VGC, not a failure of this project.
+
+**On compute.** Cores help the search (it is CPU-bound and root-parallelisable); GPUs help behaviour
+cloning and PPO. MILTANK currently needs **26 s against a 20 s budget on one core of sixteen**, so
+sixteen cores fixes the clock today. But root parallelisation scales **sublinearly**, so cores
+convert a failed budget into a met one rather than a shallow search into a deep one. Buying cores
+does not buy depth, and the phase-2 gate is about depth.
 
 ## 1. The empirical ceiling (why the design is what it is)
 
@@ -87,6 +211,32 @@ ground-truth) on 31 meta scenarios: **within 5% on 100% of scenarios, median err
 (16-roll rounding). This is gated in CI (`engine/validate_damage.js` → `data/damage-validation.json`).
 Every model that reasons about damage builds on this, and "will this move KO?" is a *winnable*
 prediction, unlike "who wins the game."
+
+### 3.0 Why a hand-written engine exists at all, and the corrected speed figure (3.59.0)
+
+**ADR-001 decided this architecture on a benchmark of 29 against 3,401 battles/sec/core — a ratio of
+117x — and that ratio does not reproduce.** Re-measured on the same machine, both engines on the same
+four teams (derived from the store rather than typed), 8-second runs at a 60-turn cap:
+
+```
+                 turns/sec    battles/sec
+MEDICHAM           13,041         217
+champions_sim         523          28
+ratio               24.9x         7.7x
+```
+
+**`turns/sec` is the comparable unit and `battles/sec` is not.** The two engines were driven
+differently — MEDICHAM to its 60-turn cap, Showdown with `choose('default')` to a natural end — so a
+"battle" is not the same amount of work on the two sides, and the 7.7x is not like-for-like. The
+honest statement of the gap is **24.9x**. The July figures are retained above and in ADR-001 because
+a prior conclusion in this project is never silently rewritten, and a third reading exists that is
+neither: ROADMAP #61 measured MEDICHAM at 1,606 battles/sec. **Nothing ratchets engine speed**, which
+is how three readings of one quantity can differ by an order of magnitude with no test going red.
+
+**The architectural decision survives the correction, but its justification changes.** A 24.9x gap
+still rules out live browser simulation, so ADR-001's conclusion stands. What no longer stands is
+"117x" as the reason. The reason is now the one §0.3 gives and it is falsifiable: **the engine work
+is justified if and only if search pays**, gated by ROADMAP #62.
 
 ### 3.1 The engine can now say WHAT it did, not only what state it reached (3.58.0)
 
@@ -309,6 +459,23 @@ cores beat which" and for quantifying how cyclic the meta really is.
    at the time. Artifacts predating the standard carry a stamp reconstructed from the commit that
    contained them, labelled as inferred rather than observed on every field.
 
+7. **The headline metric has no current value, and that is the largest limitation in this paper**
+   (added 3.59.0). §0 makes exploitability the number this project is judged on, and
+   `data/exploitability.json` is declared void: the 2026-07-26 figure was fitted on 17 features
+   against the 58 shipped, on an engine 25 wire-fixes old and before the quality filter existed, and
+   the 2026-08-04 re-run had `data/policy-weights.json` — the defender itself — refitted at 22:15:24
+   UTC while it was running. **So the comparison with VGC-Bench's ~100% is a comparison we have set
+   up and not yet made.** Producing one figure requires training a best response against a frozen
+   agent, which is expensive, and it requires the frozen-release discipline to hold for the whole
+   run — the 2026-08-04 void *was* an exploitability run, so this is a demonstrated failure mode
+   rather than a hypothetical one.
+
+8. **Two speed readings of the same engine differ by an order of magnitude and nothing caught it**
+   (added 3.59.0, §3.0). 3,401, 1,606 and 13,041 are three measurements of MEDICHAM's throughput
+   taken over two weeks; the first two are battles/sec and the third is turns/sec, and no ratchet,
+   test or artifact compares any of them. A project whose central architectural decision rests on a
+   speed ratio should measure that ratio the way it measures a win rate. It does not, yet.
+
 ## 7. The road to ALAKAZAM
 
 ALAKAZAM is the in-battle capstone, built last on the inputs above. Given a live position it will
@@ -322,13 +489,21 @@ millions of human + self-play games and a rented cloud GPU. It is judged on deci
 self-play/ladder win-rate with CIs — never on predicting the winner. A self-play data engine (MEW) is
 the pacing item toward the millions of games that path needs.
 
+**Sequenced by the four phases (3.59.0, §0.3).** ALAKAZAM as described above is phase 3. It is
+reached only through phase 1 (MEDICHAM complete — a search needs an engine that is both fast and
+correct) and phase 2 (the gate: MILTANK untimed against MILTANK on the clock, ROADMAP #62, which
+decides whether compute buys anything at all). If phase 2 says no, phase 4 replaces this road with
+VGC-Bench's: behaviour cloning plus PPO under self-play, fictitious play and double oracle. That
+branch is approved in advance and is a result about the game, not a defeat — and it is cheap because
+the method is published and reproducible.
+
 ## 8. References
 
 1. Zinkevich et al., *Regret Minimization in Games with Incomplete Information* (CFR), 2007.
 2. Lanctot et al., *Monte Carlo Sampling for Regret Minimization* (MCCFR), 2009.
 3. Moravčík et al., *DeepStack*, Science 2017. · Brown & Sandholm, *Libratus*, Science 2018.
 4. Brown et al., *Combining Deep RL and Search* (ReBeL), NeurIPS 2020. · Schmid et al., *Player of Games*, 2021.
-5. Angliss et al., *VGC-Bench*, arXiv 2506.10326, 2025. · UT-Austin-RPL, *Metamon* (offline RL + transformers), arXiv 2504.04395, 2025.
+5. Angliss, Cui, Hu, Rahman & Stone, *VGC-Bench: A Benchmark and Strategy Suite for Competitive Pokémon Doubles Battling*, AAMAS 2026, [arXiv 2506.10326](https://arxiv.org/abs/2506.10326) — the only published work in this exact format; the source of the ~100%-exploitable finding and of the professional-beating result quoted in §0. · Grigsby, Xie, Sasek, Zheng & Zhu, *Metamon* (offline RL + large sequence models, no search), RLC 2025, [arXiv 2504.04395](https://arxiv.org/abs/2504.04395). · Full survey of the field, with what each project implies for this one: `docs/PRIOR-ART.md`.
 6. Perolat et al., *DeepNash / R-NaD* (Stratego), Science 2022. · Vinyals et al., *AlphaStar*, 2019.
 7. Meta FAIR, *CICERO / piKL* (human-regularised RL, Diplomacy), Science 2022.
 8. Chen & Joachims, *Modeling Intransitivity in Matchup Data* (blade-chest), WSDM 2016. · Balduzzi et al., *Re-evaluating Evaluation* (Nash-averaging), NeurIPS 2018.

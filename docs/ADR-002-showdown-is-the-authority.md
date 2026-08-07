@@ -68,6 +68,21 @@ survivable under MILTANK, which decides by playing positions out thousands of ti
 cannot put a 117× slowdown beneath a rollout search. The project acquired a search player after
 ADR-001 was written, and that changes what the runtime has to be.
 
+> **CORRECTED 2026-08-06 (3.59.0). The ratio quoted in the paragraph above is not true, and this
+> ADR's conclusion does not depend on it.** Re-measured on the same machine, the same four teams
+> (derived from the store), 8-second runs at a 60-turn cap: MEDICHAM **13,041** turns/sec against
+> `champions_sim`'s **523** — a ratio of **24.9x**, not 117x. On battles/sec the figures are 217
+> against 28, but the two engines were driven differently (MEDICHAM to its 60-turn cap, Showdown with
+> `choose('default')` to a natural end), so **turns/sec is the comparable unit and battles/sec is
+> not**. The prior figures are kept above rather than rewritten. The argument here needs only that
+> the gap is large enough to sit under a per-turn rollout search, and 24.9x is: MILTANK already needs
+> **26 s against a 20 s budget** on one core, and 24.9x that is not a search, it is a forfeit.
+>
+> **What this correction does change is why ADR-001's decision was right.** It was justified with a
+> number that is not true, and the honest statement is now the one ADR-003 makes: MEDICHAM exists so
+> that per-turn re-solving is affordable, and **the engine work is justified if and only if search
+> pays**. That is a falsifiable claim with a gate attached (ROADMAP #62), which the 117x never was.
+
 **3. Nothing about this weakens the oracle.** Keeping MEDICHAM as the runtime does not promote it to
 the authority. Every disagreement remains MEDICHAM's fault by construction.
 
@@ -115,6 +130,13 @@ rests on and each traces to a file.
 must not be attributed to them. They are ADR-001's record of what was known in July, kept because a
 decision reversal is only legible beside the evidence it reverses. If any of them matters again it
 gets re-measured before it is quoted.
+
+**And one of the three has now been re-measured, which is why that sentence was written.** The
+timing was re-run on 2026-08-06 and came back at **24.9x** on turns/sec, not 117x — see the
+correction note in point 2 above. It has no artifact under `data/` either; it is a benchmark of two
+engines on one machine at one moment, and this ADR states it as such rather than citing a file that
+does not exist. **Nothing about the 31.1-point or 4.35-point figures has changed**, and neither
+should be quoted until it has been through the same treatment.
 
 *(The doc-currency check flagged those three as figures a cited artifact does not contain. It was
 right to. They are historical quotes sitting in a document that also cites live artifacts, and the

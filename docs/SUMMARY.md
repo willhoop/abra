@@ -1,6 +1,6 @@
 # ABRA — Project Summary
 
-**Version 3.58.0 · 2026-08-06 · Will Hooper**
+**Version 3.59.0 · 2026-08-06 · Will Hooper**
 
 A one-page map of the whole project and every component. For depth: the
 [white paper](ABRA-whitepaper.md) (math + sources), the [deck](ABRA-deck-plain-english.md)
@@ -12,6 +12,81 @@ A one-page map of the whole project and every component. For depth: the
 ABRA is a decision-support model family for **Pokémon Champions VGC, Reg M-B, best-of-one
 closed-sheet ladder**. It stores every public ladder replay and builds small, CPU-trainable models on
 that growing store. It runs in a browser with no build step.
+
+## The headline finding, 2026-08-06 — VGC is a poker problem, and the metric changes (3.59.0)
+
+**The field has been treating VGC as a chess problem or a pure-RL problem. It is a poker problem.**
+ABRA's headline metric is now **exploitability, not win rate** (ADR-003).
+
+**The evidence is somebody else's measurement.** VGC-Bench (Angliss, Cui, Hu, Rahman, Stone — AAMAS
+2026, [arXiv 2506.10326](https://arxiv.org/abs/2506.10326)) is the only published work in this exact
+format. They trained behaviour cloning on 700,000+ human logs, fine-tuned with PPO under self-play,
+fictitious play and double oracle, and **beat a World Championships competitor** in a single-team
+mirror. They then trained a best response against each of their own agents and found **all of them
+approximately 100% exploitable**. Their expert tester: *"after enough successive games, strong human
+players can adapt and beat the agent."* Against their *advanced* tester the agent won 2 of 5.
+
+**That is the predicted behaviour of a compiled policy in an imperfect-information game**, not a flaw
+in their execution. `docs/POKER-TO-POKEMON.md` argued from theory that the solution concept here must
+be a mixed equilibrium rather than a single best move; it now has the measurement it was missing.
+
+| what changes | to what |
+|---|---|
+| headline metric | exploitability, comparator VGC-Bench's ~100% |
+| WOBBUFFET | side-check → **primary instrument** |
+| SLOWKING | preview solver → **the shape of the whole agent** |
+| MEDICHAM's justification | "the official engine is slow" → **"the engine is justified iff search pays"**, gated by ROADMAP #62 |
+
+**The thesis under test: a re-solving agent should be harder to exploit than a compiled one.** A
+learned policy *recalls*; a search *recomputes*, and presents no fixed mapping for a best response to
+attack. **Whether that survives simultaneity, stochasticity and a ~6-turn horizon is UNKNOWN — it is
+the experiment, not the assumption.**
+
+**And ABRA has no exploitability number today.** `data/exploitability.json` is declared void. Making
+the headline a metric this project cannot currently produce is deliberate; it states the gap rather
+than hiding it.
+
+**Two more facts that make the comparison honest.** VGC-Bench is **open team sheets** — the same
+information setting as our Reg M-B best-of-three — so they had *more* information than a closed-sheet
+agent and were still ~100% exploitable; the exploitability comes from holding a fixed policy, not from
+hidden teams. And a head-to-head is impossible (their checkpoints are Reg M-A, ours Reg M-B, and their
+own paper shows policies do not transfer across team sets) — but **exploitability is intrinsic**,
+measured against a best response trained against *you* in *your* format, so the numbers compare
+although the agents can never meet.
+
+**Their dataset is not usable and the code already knew.** Their Reg M-B holding is 4,167 games over
+4 days in June 2026 and 100% of it is already in our store as `data/games.ots.jsonl`, against our own
+9,701 best-of-three games over 15 days. The 700,000 headline is Reg M-A. An earlier claim in this
+session that their archive covered our format inferred coverage from a filename and is withdrawn.
+
+### The plan, four phases
+
+```
+1  finish MEDICHAM        search needs an engine that is fast AND correct
+2  GATE #62               does compute buy anything: untimed vs on-the-clock
+3  if yes -> search, and measure EXPLOITABILITY against their ~100%
+4  if no  -> adopt their recipe: BC + PPO self-play/FP/DO, open source, reproducible
+```
+
+Branch 4 is approved in advance and is a **result, not a defeat** — the method is published and
+reproducible, so taking it would be a finding about VGC rather than a failure of this project. On
+compute: cores help the search (CPU-bound, root-parallelisable), GPUs help BC/PPO. MILTANK needs 26 s
+against a 20 s budget on one core of sixteen, so sixteen cores fixes the clock — but root
+parallelisation scales **sublinearly**, so it converts a failed budget into a met one rather than a
+shallow search into a deep one.
+
+### The correction that came with it: 117x was 24.9x
+
+ADR-001 chose to keep a hand-written simulator on a benchmark of **29 vs 3,401 battles/sec/core —
+117x**. Re-measured on this machine, same four teams (derived from the store), 8-second runs at a
+60-turn cap: MEDICHAM **13,041 turns/sec / 217 battles/sec**, `champions_sim` **523 / 28** — a ratio
+of **24.9x**. **`turns/sec` is the comparable unit and `battles/sec` is not**, because MEDICHAM ran to
+its 60-turn cap and Showdown ran with `choose('default')` to a natural end. The old figures are kept in
+ADR-001 with a dated correction beside them. **The decision stands and its stated justification does
+not** — a 24.9x gap still rules out live browser simulation, but the reason for the engine is now the
+falsifiable one above. A third reading exists that is neither: ROADMAP #61 measured 1,606 battles/sec.
+**Nothing in this repository ratchets engine speed**, which is how three readings of one quantity
+disagreed by an order of magnitude with no test going red.
 
 ## The finding that shapes everything
 
@@ -71,18 +146,18 @@ carry one reconstructed from the commit that contained them, labelled inferred r
 
 | Model | What it is | Status | Headline result |
 |---|---|---|---|
-| **MEDICHAM** | Hand-written doubles doubles-battle simulator | ⚠️ **Being replaced** | Within 5% of the Smogon calculator on 31 scenarios, but disagrees with the OFFICIAL Champions engine by 31.1 points of win probability. ADR-001: becomes a lookup over precomputed tables. **Mechanics census 231 live of 232 probed, 1 missing with a reason** (`data/mechanics-census.json`, wires 82–130 landed 3.40.0–3.56.0; **129 is the whole of accuracy** — Coil, Wide Lens, Sand Veil and No Guard all measured IDENTICAL with and without, ~5,000 uses, three unrelated causes, now one `hitChance(att,def,id,field,ctx)`; **130 is Substitute, charged for and never built**, 1,976 clicks of a move strictly worse than passing; 117 is Psychic Terrain refusing priority against airborne bodies, and the shared `isGrounded` that replaced three hand-written copies of the predicate; 118 is dynamic speed; **119 is TAUNT, which the simulator had never implemented at all** — 1,503 clicks, the volatile written and read by nothing — and 120–122 are a pivot move resolving at the bare-switch priority, Volt Switch pivoting out of an absorbed hit, and Yawn passing through Good as Gold); **generated interaction matrix 98.8% — 1,624 of 1,643 live carrier x reactor cases**, PLUS the artifact's own `off_gate` count of **53** disagreements in buckets the gate discards — read both, because 3.50.0 moved the second while the rate did not move of 2,300 staged from a theoretical 8,795, i.e. **26.2% coverage** (3.43.0 closed the generator’s own arithmetic — `theoretical = staged + dropped`, asserted per axis, which found an understated denominator, a depth-cap off-by-one and outcome buckets that were not a partition; 3.45.0 then recovered the 902 pairs dropped for “having a probability” and found that the harness’s two pinned dice were not the same die, so every sub-100-accuracy move had been MISSING in the reference engine while medicham2 hit. The agreement figure has fallen twice while the engine did not change — both falls are the denominator becoming honest), **multi-turn field axis 156/156** (`data/interaction-matrix.json`); damage differential **1/150**, the one row a documented harness-layer artifact (Disguise); two-rulebook collision ratchet **2 clashes / 151 comparable facts** (`data/rulebook-collision.json`); DEAD-tag ratchet **61 → 38**; mutation tier (`data/mutation-coverage.json`) **163 class-A operators over 56 carrier × tag rows** — the 97 "defect candidates" of 3.49.0 were triaged A/B/C/D from a parse of the engine source and **none of them is class A**, so the ratchet counts class A only |
+| **MEDICHAM** | Hand-written doubles doubles-battle simulator. **Its justification is now falsifiable (ADR-003, 3.59.0): it exists so per-turn re-solving is affordable, so the engine work is justified if and only if search pays — gated by ROADMAP #62.** The speed ratio that originally justified it is corrected in the section above | ⚠️ **Being replaced** | Within 5% of the Smogon calculator on 31 scenarios, but disagrees with the OFFICIAL Champions engine by 31.1 points of win probability. ADR-001: becomes a lookup over precomputed tables. **Mechanics census 231 live of 232 probed, 1 missing with a reason** (`data/mechanics-census.json`, wires 82–130 landed 3.40.0–3.56.0; **129 is the whole of accuracy** — Coil, Wide Lens, Sand Veil and No Guard all measured IDENTICAL with and without, ~5,000 uses, three unrelated causes, now one `hitChance(att,def,id,field,ctx)`; **130 is Substitute, charged for and never built**, 1,976 clicks of a move strictly worse than passing; 117 is Psychic Terrain refusing priority against airborne bodies, and the shared `isGrounded` that replaced three hand-written copies of the predicate; 118 is dynamic speed; **119 is TAUNT, which the simulator had never implemented at all** — 1,503 clicks, the volatile written and read by nothing — and 120–122 are a pivot move resolving at the bare-switch priority, Volt Switch pivoting out of an absorbed hit, and Yawn passing through Good as Gold); **generated interaction matrix 98.8% — 1,624 of 1,643 live carrier x reactor cases**, PLUS the artifact's own `off_gate` count of **53** disagreements in buckets the gate discards — read both, because 3.50.0 moved the second while the rate did not move of 2,300 staged from a theoretical 8,795, i.e. **26.2% coverage** (3.43.0 closed the generator’s own arithmetic — `theoretical = staged + dropped`, asserted per axis, which found an understated denominator, a depth-cap off-by-one and outcome buckets that were not a partition; 3.45.0 then recovered the 902 pairs dropped for “having a probability” and found that the harness’s two pinned dice were not the same die, so every sub-100-accuracy move had been MISSING in the reference engine while medicham2 hit. The agreement figure has fallen twice while the engine did not change — both falls are the denominator becoming honest), **multi-turn field axis 156/156** (`data/interaction-matrix.json`); damage differential **1/150**, the one row a documented harness-layer artifact (Disguise); two-rulebook collision ratchet **2 clashes / 151 comparable facts** (`data/rulebook-collision.json`); DEAD-tag ratchet **61 → 38**; mutation tier (`data/mutation-coverage.json`) **163 class-A operators over 56 carrier × tag rows** — the 97 "defect candidates" of 3.49.0 were triaged A/B/C/D from a parse of the engine source and **none of them is class A**, so the ratchet counts class A only |
 | **GURU** | Meta matchup matrix from real outcomes | ⚠️ **No decisive cells that survive multiplicity** | `data/guru-matchups.json`, 2026-07-31, **5,265 clean games / 12 archetypes / 144 cells**. **6 directed = 3 distinct** matchups clear a 95% test one at a time, and **ZERO survive FDR at q=0.05 or Bonferroni** — 66 pairs, 3.3 expected by chance, 3 observed, smallest exact p 6.1e-3 against a BH threshold of 7.6e-4. Predictive test **0.7124** vs a coin 0.6931 over 1,053 held-out games — **worse than a coin**. Descriptive structure only. (This row read *1,124 clean games, 11 archetypes, 0.735* until 2026-08-04, from a superseded run; the verdict is unchanged.) |
 | **XATU** | Opponent set + next-move belief | ✅ Built | Top-1 36% / top-3 72% on held-out human moves (beats its baselines) |
 | **PORY** | Mid-game win-probability value net | ⚠️ **Contribution unclear** | Log-loss **0.6236** 95% CI [0.6070, 0.6387] vs coin 0.6931 and vs the material heuristic 0.6428 (regenerated 2026-08-05 on 5,883 clean games; the previously published 0.567 predated the current quality filter) — but its features ARE the material state, and it **loses to a two-feature baseline** (alive_diff+hp_diff 0.5822 vs PORY 0.5840, same estimator). Report the gain over MATERIAL, not over a coin. See engine/pory_baseline.py |
 | **CHOMP** | Bring-4 / lead-2 team-preview engine | ✅ Ships (standalone) | Exact-damage picker; **CHOMP-EV proof: brings tie a coin (honest null)** |
-| **SLOWKING** | Team-preview Nash (mixed strategy) | ✅ Built | Equilibrium ≪ exploitable than uniform; playstyle cycle is **suggestive on small samples** |
+| **SLOWKING** | Team-preview Nash (mixed strategy) — **and, since ADR-003 (3.59.0), the shape of the whole agent rather than the preview solver**: equilibrium mixing plus continual re-solving is the answer poker reached for exactly this class of game | ✅ Built | Equilibrium ≪ exploitable than uniform; playstyle cycle is **suggestive on small samples** |
 | **KADABRA** | Replay coach | ✅ Works offline | Per-turn "you're at X%" from PORY |
 | **DITTO** | Team optimiser | ⚠️ Pivoting | Objective de-biased to validated damage (was optimising a backwards signal) |
 | **ALAKAZAM** | In-battle decision engine (capstone) | 🔜 In development | Belief + search + learned value; built last on the inputs above |
 | **MEW** | Self-play data engine | ✅ **Built** | Runs the OFFICIAL Champions engine against itself on real observed teams. 1,000 games, 13/13 validation checks, mirror 51.0% CI [45.4, 56.6] |
 | **MAGNEMITE** (MAG) | The in-battle policy that reads the board | **Built, and improving by self-play (3.28.0)** | Conditional logit over **58 features**, fitted to **232,815 usable human clicks of 241,927 seen** from 8,942 clean open-sheet games (`data/policy-weights.json`, 3.42.0 — this row read 53 / 146,910 / 6,091 until then, three fits behind). Held out by game: top-1 **32.9%** against the behaviour clone's 23.4%. **1,336 recorded actions that were not clicks at all have been removed from the labels** and 3,260 redirected ones are fitted over a candidate set. It now DOES decide switches and DOES run a real damage calculation — both were listed here as missing and both became false. Still one ply, still no model of the opponent's move |
-| **WOBBUFFET** | Exploitability of MAG — hill-climb a counter over MAG's own weights | ❌ **NOT MEASURED** | **There is no exploitability number for this project (2026-08-04).** The published ~~63.2% [56.6, 69.3], mirror 47.5%~~ is **retracted**: 17 features against the 58 we ship, an engine 25 wire-fixes old, computed before the quality filter existed. The 58-feature re-run is **void** — `data/policy-weights.json` was refitted at 22:15:24 UTC *while it was running* and `engine/medicham2-browser.js` changed content twice more afterwards. Separately its hill-climb accepted **1 of 24** steps and would have been uninformative anyway. `engine/exploit.js` stamps nothing about what it read, which is why none of this was visible to it. See `docs/SEARCH.md` §R8 |
+| **WOBBUFFET** | Exploitability of MAG — hill-climb a counter over MAG's own weights. **PRIMARY INSTRUMENT since ADR-003 (3.59.0)**: this produces the project's headline metric, and its published comparator is VGC-Bench's approximately-100% exploitability | ❌ **NOT MEASURED** | **There is no exploitability number for this project (2026-08-04).** The published ~~63.2% [56.6, 69.3], mirror 47.5%~~ is **retracted**: 17 features against the 58 we ship, an engine 25 wire-fixes old, computed before the quality filter existed. The 58-feature re-run is **void** — `data/policy-weights.json` was refitted at 22:15:24 UTC *while it was running* and `engine/medicham2-browser.js` changed content twice more afterwards. Separately its hill-climb accepted **1 of 24** steps and would have been uninformative anyway. `engine/exploit.js` stamps nothing about what it read, which is why none of this was visible to it. See `docs/SEARCH.md` §R8 |
 | **DUSK** | Endgame exact solver | 🔜 Roadmap | Solves small boards (≤2v2, 1v1) perfectly — sharpens ALAKAZAM's endgame and gives clean training targets for PORY |
 | **HYPNO** | Opponent read / exploitability dial | 🔜 Roadmap | Estimates opponent strength + predictability; tells ALAKAZAM when to play safe (vs strong) or exploit (vs weak/predictable) |
 | **ROLES** | Multi-label team composition (26 roles) | ✅ Built | Role-pair matrix pools data to median cell **n=20** across 1,051 cells (vs old single-label n=11–18) — the 7,971 once published was retracted in 2.7.0; preview roles tie a coin (honest null) |

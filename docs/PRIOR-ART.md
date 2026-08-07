@@ -1,6 +1,6 @@
 # Prior art — every Pokémon AI project we know of, and what each one means for us
 
-**Version 3.57.1 · Last updated 2026-08-06**
+**Version 3.59.0 · Last updated 2026-08-06**
 
 Will, 2026-08-06: *"can you scour the internet for all similar or related projects, we have done this
 several times but i keep finding more."* **That recurrence is the problem this file exists to end.**
@@ -100,6 +100,25 @@ pmariglia. [repo](https://github.com/pmariglia/foul-play) · [write-up](https://
   one most-likely set instead.
 - **Dynamax, mega evolution and Z-moves are NOT supported.** Champions is a mega format at 26% of
   usage, so **Foul Play structurally cannot play our format today.**
+
+**`poke-engine` — the engine underneath it, and the closest thing to MEDICHAM that exists.**
+[repo](https://github.com/pmariglia/poke-engine) · [crate](https://crates.io/crates/poke-engine)
+
+**Rust**, explicitly rewritten from Python *for search speed*. Generations 4–8, **singles only**, so we
+cannot use it. Its own README takes the same position ours does — *"This is not a perfect engine…
+nowhere near as complete or robust as the PokemonShowdown battle engine"* — with the difference that
+we are building a differential to quantify the gap and they are not.
+
+**The technique is worth taking.** It takes a state and a move pair, generates every possible outcome,
+and returns **instructions that can be applied to AND REVERSED from** the state. That is make/unmake,
+as chess engines do it: the position is never copied, you mutate forward, search, then undo.
+`engine/rollout_leaf.js:455` calls `battleInit` **inside** the rollout loop, so we construct fresh
+instead — ~12,800 state constructions per decision at 200 rollouts × 64 pairs. **Whether that costs us
+anything is unmeasured**, and it is ROADMAP #77, scheduled behind the differential because optimising
+a moving target means re-optimising after every WIRE.
+
+They also paid the language cost we have not: Python → Rust for speed, where we chose JavaScript
+because Showdown is JavaScript — the same reasoning Future Sight AI gives verbatim.
 
 ---
 

@@ -83,6 +83,35 @@ Both engines were benchmarked on the same machine, single core, running complete
 The official simulator is **117x slower**. That number decides the architecture, and it decides it
 cleanly, because the two uses have completely different budgets:
 
+> **CORRECTED 2026-08-06 (3.59.0). The 117x does not reproduce. The measured ratio is 24.9x, and the
+> original figures above are left in place because a prior conclusion is never silently rewritten.**
+>
+> Re-measured on this machine, both engines on the same four teams (derived from the store, not
+> typed), 8-second runs, 60-turn cap:
+>
+> ```
+>                  turns/sec    battles/sec
+> MEDICHAM           13,041         217
+> champions_sim         523          28
+> ratio               24.9x         7.7x
+> ```
+>
+> **`turns/sec` is the comparable unit and `battles/sec` is not.** The two engines were driven
+> differently — MEDICHAM to its 60-turn cap, Showdown with `choose('default')` to a natural end — so
+> a "battle" is not the same quantity of work on the two sides and the 7.7x is not a like-for-like
+> ratio. The honest statement of the gap is **24.9x**.
+>
+> **This ADR's architectural decision was justified with a number that is not true**, and that has to
+> be said plainly. The decision itself survives the correction — a 24.9x gap still rules out live
+> browser simulation, and the offline budgets below still finish in minutes — but every workload row
+> in the next table was computed at 117x and is therefore pessimistic about the official simulator by
+> roughly 4.7x. Read the rows as an ordering, not as durations.
+>
+> Two other readings of the same pair are on record and neither is this one: ROADMAP #61 measured
+> MEDICHAM at **1,606** battles/sec against the 3,401 here, and `engine/champions_sim.js`'s header
+> comment still states the 117x. The instrument, not the engine, is what moved most — nothing has
+> ever ratcheted engine speed, which is why a gap this size went unnoticed for two weeks.
+
 | Workload | Official, 1 core | Official, 8 cores | Ours, 1 core |
 |---|---|---|---|
 | One matchup, 100 rollouts (a browser click) | 3.4 s | 0.4 s | 0.03 s |
@@ -97,6 +126,9 @@ the job was going to take two minutes.
 
 **Live in the browser: not viable, and not needed.** CHOMP's budget is 50 ms. The official simulator
 manages 1.5 battles in 50 ms; our engine manages 170. No amount of tuning closes a 117x gap.
+
+> **3.59.0:** the gap is 24.9x on the comparable unit, not 117x, and the conclusion is unchanged —
+> no amount of tuning closes a 24.9x gap either.
 
 The resolution is that **the browser should not be simulating at all.** Precompute matchup values
 offline with the official simulator and ship the table. That is strictly better than today on both
@@ -170,6 +202,8 @@ difference is real and is not enough to explain a 31-point gap.
 3. Run the existing 31-scenario damage golden master against the simulator. If it disagrees with
    `@smogon/calc`, resolve that before going further.
 4. ~~Benchmark~~ **done**: 29 vs 3,401 battles/sec/core. Architecture is precompute-offline.
+   **(Corrected 3.59.0 — re-measured at 13,041 vs 523 turns/sec, a ratio of 24.9x rather than 117x.
+   See the correction note under "The speed question, measured". The architecture call stands.)**
 5. Build the offline job: official simulator produces the matchup table for the archetypes the site
    shows. Runs on a data refresh, not per request.
 6. Ship the table. `medicham2-browser.js` becomes a lookup with the current engine as fallback only

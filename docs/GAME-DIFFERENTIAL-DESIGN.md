@@ -1,6 +1,6 @@
 # The whole-game differential — design, and the research it is taken from
 
-**Version 3.58.0 · Last updated 2026-08-06**
+**Version 3.59.0 · Last updated 2026-08-06**
 
 **ROADMAP #68.** Written 2026-08-06 from Will's specification: *"we would want to play n games with
 like a thousand different teams to really test every single mechanic in the game"*, under his bar:
@@ -209,30 +209,46 @@ is `data/diff-swarm.json`. **The two are different denominators and must not be 
 mistake was made and corrected on 2026-08-06 when `tags.json` counts were quoted against
 `tests/regulation_usage.js` counts, which disagree by up to 13× (ROADMAP #70).
 
-| tier | mechanic | uses | what a uniform 1,000-game sample gets |
-|---|---|---|---|
-| dominant | Protect | 74,245 | saturated |
-| | Fake Out | 13,292 | saturated |
-| **global** | **Trick Room** | **7,423** | plenty of games, few of the interactions that matter |
-| | Prankster | 7,460 | fine |
-| | Sucker Punch | 7,029 | fine |
-| | Wide Guard | 3,353 | fine |
-| **fringe** | Phantom Force | 424 | ~9 |
-| | Feint | 397 | ~9 |
-| | Trace | 207 | ~4 — and **untagged**, so 0 |
-| | Illusion | 204 | ~4 |
-| | Ally Switch | 175 | ~4 |
-| | Instruct | 170 | ~4 |
-| | Quash | 156 | ~3 |
-| | Disguise | 125 | ~3 |
-| | **Upper Hand** | **76** | **~1.6** |
+**Re-derived 2026-08-06 (3.59.0) from the current `data/tags.json`** (`sheet_entries` 119,616). The
+column below used to hold a stale snapshot and `tests/test-docs-current.js` could only see two cells
+of it — Trick Room and Wide Guard, whose old values 7,423 and 3,353 appear in no artifact. **The other
+thirteen passed by coincidence**: 74,245, 13,292, 424 and 76 all happen to occur in unrelated files
+under `data/`. That is the honest reason this table is being rewritten whole rather than patched in
+two places.
 
-**One and a half exercises is not coverage, it is an accident.** And the fringe is where the bugs are:
+| tier | mechanic | uses | how rare, relative to Protect |
+|---|---|---|---|
+| dominant | Protect | 80,328 | the reference |
+| | Fake Out | 14,380 | saturated |
+| **global** | **Trick Room** | **8,077** | plenty of games, few of the interactions that matter |
+| | Prankster | 8,061 | fine |
+| | Sucker Punch | 7,704 | fine |
+| | Wide Guard | 3,568 | fine |
+| **fringe** | Phantom Force | 465 | ~170x rarer |
+| | Feint | 437 | ~180x rarer |
+| | Illusion | 242 | ~330x rarer |
+| | Trace | 221 | ~360x rarer — and **untagged**, so 0 |
+| | Ally Switch | 190 | ~420x rarer |
+| | Quash | 175 | ~460x rarer |
+| | Instruct | 173 | ~460x rarer |
+| | Disguise | 133 | ~600x rarer |
+| | **Upper Hand** | **80** | **~1,000x rarer** |
+
+**The last column changed meaning, and that is a correction rather than a cosmetic edit.** It used to
+read *"what a uniform 1,000-game sample gets"* and gave counts — ~9, ~4, ~3, ~1.6. **The conversion
+factor from a declared use to an expected exercise is recorded nowhere in this document, in any
+artifact, or in any script**, and it is not `uses / games`, so those counts could not be reproduced by
+anyone including their author. They are replaced by a ratio that is arithmetic on the column beside
+it. The argument is unaffected and is in fact stated more plainly: **Upper Hand is three orders of
+magnitude rarer than Protect**, so a uniform swarm sized to exercise Protect will reach Upper Hand
+about once.
+
+**A handful of exercises is not coverage, it is an accident.** And the fringe is where the bugs are:
 Upper Hand and Sucker Punch share a tag and have *different* conditions (ROADMAP #60); Illusion
 mis-attributes every move it disguises (#67); Instruct is absent by construction; Ally Switch fails on
 consecutive uses. Every one is a mechanic that decides a game outright when it fires.
 
-**TRICK ROOM IS A DIFFERENT CASE AND EARNS ITS EMPHASIS.** At 7,423 uses it is not rare — a uniform
+**TRICK ROOM IS A DIFFERENT CASE AND EARNS ITS EMPHASIS.** At 8,077 uses it is not rare — a uniform
 swarm sees it constantly. It is dangerous because it is the only mechanic that **inverts the meaning
 of every speed comparison on the field for five turns**, and 3.49.0 made speed order *dynamic*, re-sorted
 before every action (WIRE 118). So Trick Room does not add one branch; it doubles the meaning of every

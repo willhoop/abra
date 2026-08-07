@@ -1,6 +1,6 @@
 # ABRA — the plain-English deck
 
-**Version 3.58.0 · 2026-08-06 · Will Hooper**
+**Version 3.59.0 · 2026-08-06 · Will Hooper**
 
 A slide-by-slide, jargon-light tour. The white paper (linked on the last slide) has the math and sources.
 
@@ -443,6 +443,69 @@ than about the game:
 
 **Neither is fixed yet, on purpose.** Changing how a damage roll is picked would move every measurement
 this project has ever recorded. The point of tonight was to build the instrument that can see it.
+
+## Slide 9e — Somebody built a bot that beats a pro. Any strong human learns to beat it in five games. (3.59.0)
+
+**The result.** A university team (Angliss, Cui, Hu, Rahman and Stone, published at AAMAS 2026) built
+a Pokémon doubles bot the proper modern way: show it 700,000 human games so it learns to imitate
+people, then let it play itself millions of times to get better. It works. **In a mirror match it beat
+a World Championships competitor.**
+
+**And then they measured how easy it is to beat, and the answer was: completely.** They trained a
+second bot whose only job was to beat the first one, and it did — almost every time. Their human
+tester said it plainly: *the agent is strong at first, but after enough games in a row, strong players
+adapt and beat it.* Against a merely *advanced* player it won two games out of five.
+
+**We think that is the whole problem, not a bug in their work.** Here is the thing to picture. Their
+bot is a **memorised answer sheet**: for every situation, one answer, worked out in advance and then
+frozen. That is a great way to play chess, where both players can see everything. It is a terrible way
+to play poker, where they can't — because once your opponent notices you always fold in a spot, you
+lose that spot forever. **Pokémon is poker, not chess.** You cannot see which four of their six they
+brought, what they're holding, or their last move. Poker figured this out between 2007 and 2021, and
+the answer was: **don't memorise, re-think every hand.**
+
+**So our headline number changes.** We used to ask "how often do we win?" We now ask **"how easily
+can a prepared opponent read us?"** That is a harder, more honest question, and it is the one their
+number answers too — so the two projects can be compared even though the bots can never actually
+play each other. Their score is about 100% readable. **Ours is currently unknown, and saying so is
+the point** — we've made our headline a number we can't produce yet rather than a number that
+flatters us.
+
+**Our bet — and it is a bet, not a claim.** A bot that *recomputes* from scratch every turn should be
+harder to read than one that *recalls*. There is nothing to memorise about it. Whether that survives
+in a game where both players move at once, dice are rolled, and the whole thing is over in six turns,
+**nobody knows. That's the experiment.**
+
+**What we do if we're wrong.** We use their recipe. It's published, it's open source, and it works.
+Being wrong here would be a real finding about Pokémon, not a failure.
+
+---
+
+## Slide 9f — We had a number that justified two years of work, and it was wrong by five times (3.59.0)
+
+**The claim.** We wrote our own Pokémon simulator instead of using the official one, and the reason
+written down in every document was: **the official one is 117 times slower.** That number decided the
+architecture.
+
+**We measured it again. It's about 25 times slower, not 117.**
+
+**Why we're telling you rather than quietly fixing it.** Three things.
+
+1. The old number stays in the documents, with a dated correction beside it, because this project
+   does not rewrite a past conclusion as though it were never made.
+2. **The decision it justified is still right** — 25 times slower is still far too slow to think
+   during a live game. So nothing is being rebuilt.
+3. **But the reason has to be a real reason.** "117 times" was doing work it hadn't earned. The
+   honest version is now a claim you could prove us wrong about: *we wrote a fast simulator so the bot
+   can re-think every turn — so the simulator is worth building **if and only if** re-thinking
+   actually helps.* We are about to run the test that decides it.
+
+**The part that should worry a reader most.** We have three different speed measurements of our own
+simulator, taken two weeks apart, that disagree by a factor of ten — and **not one test noticed.**
+We measure win rates to three decimal places and check them against a noise floor. We had never once
+checked the speed of the thing everything else runs on.
+
+---
 
 ## Slide 10 — Read more
 

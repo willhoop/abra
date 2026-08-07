@@ -1,6 +1,35 @@
 # ABRA — Technical Documentation
 
-**Version 3.58.0 · Last updated 2026-08-06**
+**Version 3.59.0 · Last updated 2026-08-06**
+
+**Change record for 3.59.0.** The headline metric changed. It was the win rate. It is now the
+exploitability. Read ADR-003 for the decision. Read `docs/POKER-TO-POKEMON.md` for the theory.
+
+The reason is a measurement from other persons. VGC-Bench is the only published work in this format.
+Its authors trained a policy on more than 700,000 human battle logs. They then improved it with PPO,
+self-play, fictitious play and double oracle. The policy defeated a World Championships competitor in
+a mirror match. The authors then trained a best response against each of their own agents. Almost all
+of the agents were approximately 100% exploitable. Their expert tester wrote that strong human
+players adapt and defeat the agent after sufficient successive games.
+
+A fixed policy is a map from a state to an action. In a game with hidden information, a best response
+can find the weak states of such a map. This project therefore tests one claim: an agent that
+computes a new answer each turn is more difficult to exploit than an agent that recalls a stored
+answer. **This claim is not proven. It is the experiment.**
+
+The speed figure also changed. ADR-001 recorded 29 against 3,401 battles/sec/core. It gave a ratio of
+117x. The measurement was made again on this machine. Both engines used the same four teams. The
+teams are derived from the store. Each run was 8 seconds with a 60-turn limit. MEDICHAM gives 13,041
+turns/sec and 217 battles/sec. `champions_sim` gives 523 turns/sec and 28 battles/sec. The ratio is
+24.9x. Use `turns/sec`. Do not use `battles/sec`: MEDICHAM ran to its 60-turn limit and Showdown ran
+with `choose('default')` to a natural end, so a battle is not the same quantity of work in the two
+engines. The old figures stay in ADR-001. The decision in ADR-001 stays correct. The stated reason for
+that decision changed: the engine is justified if, and only if, the search gives a measured gain.
+
+The work is now in four phases. Complete MEDICHAM. Then run gate ROADMAP #62. If the gate passes,
+build the search and measure the exploitability against approximately 100%. If the gate does not
+pass, use the method of VGC-Bench: behaviour cloning, then PPO with self-play, fictitious play and
+double oracle. Phase 4 is a result. It is not a failure.
 
 **Change record for 3.47.0.** Two artifacts were computed from an engine that then changed. Do not
 quote such an artifact. First measure whether the change moved the feature function: run every
@@ -172,6 +201,14 @@ commit and not observed; read `confidence` beside it. `git.dirty: true` means th
 describe what ran; use `source_digests` instead. `source_digests` holds hashes of working-copy bytes
 and `git.blobs` holds git object names. Do not compare the two. On Windows they differ because git
 changes the line endings.
+
+**Do not quote an engine-speed figure from a document (added 3.59.0).**
+There is no script in this repository that measures the speed of the two engines. Three figures are on
+record for MEDICHAM — 3,401 battles/sec in ADR-001, 1,606 battles/sec in ROADMAP #61 and 13,041
+turns/sec in the 3.59.0 correction. No artifact holds any of them. No test compares them. No ratchet
+fails when one of them moves. If you need a speed figure, measure it, record the method beside it, and
+state the unit: `turns/sec` compares the two engines and `battles/sec` does not, because the two
+engines end a battle under different rules.
 
 **Write a stamp from a new measurement (added 3.33.0).**
 Call `require('./run_stamp.js').writeStamp({...})` at the point the run writes its numbers.
@@ -414,6 +451,46 @@ A GitHub Action (`.github/workflows/ingest.yml`) runs the pull hourly and commit
 separate tests workflow runs the test suite and the damage validation on every push and pull request.
 
 ## 4. Explanation
+
+### 4.-2 Why the exploitability is the headline metric (added 3.59.0)
+
+**This section explains a decision. It does not give instructions.** For the decision itself, read
+ADR-003.
+
+**There are two kinds of game.** In the first kind, both players see all of the state. Chess and Go
+are of this kind. A search over that state is correct, and one best move exists at each position. In
+the second kind, each player holds private information. Poker is of this kind. VGC is also of this
+kind: you do not see which four of the six the opponent brings, the items, the abilities, or the
+fourth move of a set.
+
+**In the second kind of game, one best move does not exist.** The correct object is a mixed strategy.
+If you always make the same choice in the same situation, an opponent who watches you can find that
+choice and defeat it. This is why the poker research of 2007 to 2021 produced CFR, DeepStack,
+Libratus and ReBeL, and not a larger chess search.
+
+**A fixed policy is therefore exploitable by construction.** A behaviour clone is a fixed policy. A
+PPO agent is a fixed policy. Both give one answer for one state. VGC-Bench measured this on its own
+agents: it trained a best response against each agent and found approximately 100% exploitability,
+although one of those agents defeats a professional player. The two facts are consistent. Strength on
+average and readability under study are different quantities.
+
+**A win rate cannot show this defect.** A win rate is measured against a population that does not
+adapt. An exploitability is measured against an opponent that is trained against you. Only the second
+measurement finds a policy that is strong today and readable after five games.
+
+**The claim under test in this project.** A search that computes a new answer each turn shows no
+fixed map to an opponent. It should therefore be more difficult to exploit than a compiled policy.
+Three properties of VGC can defeat this claim, and all three are open:
+
+| property | why it can defeat the claim |
+|---|---|
+| simultaneous moves | sequential CFR does not apply directly to a turn node |
+| stochastic resolution | damage rolls, accuracy and speed ties add variance to every leaf |
+| short horizon | a median game is 6 turns, so there is little depth for a search to use |
+
+**Do not read this section as a result.** The project has no exploitability figure.
+`data/exploitability.json` is declared void. The comparison with approximately 100% is prepared and
+not yet made.
 
 ### 4.-1 Why additivity is the recurring failure (added 3.28.0)
 

@@ -10,6 +10,142 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.59.0] — 2026-08-06
+
+### Changed
+- **THE HEADLINE METRIC IS EXPLOITABILITY, NOT WIN RATE (ADR-003, accepted).** The field has been
+  treating VGC as a chess problem or a pure-RL problem. It is a poker problem, and the missing
+  measurement now exists. VGC-Bench (Angliss, Cui, Hu, Rahman, Stone — AAMAS 2026,
+  [arXiv 2506.10326](https://arxiv.org/abs/2506.10326)) trained behaviour cloning on 700,000+ human
+  logs and fine-tuned with PPO under self-play, fictitious play and double oracle; their agent beat a
+  World Championships competitor in a single-team mirror, and they measured **all their agents at
+  approximately 100% exploitable**. Their expert tester's own words: *"after enough successive games,
+  strong human players can adapt and beat the agent."* Against their *advanced* tester the agent won
+  2 of 5.
+
+  That is not a weakness of their execution — it is the predicted behaviour of a **compiled policy**
+  in an imperfect-information game. `docs/POKER-TO-POKEMON.md` argued from theory that the solution
+  concept here must be a mixed equilibrium rather than a single best move; it had no measurement of
+  what happens to a project that assumes otherwise. It has one now, so ADR-003 **promotes** that
+  paper from one track among several to the project's central claim.
+
+  Consequences, all published in this pass: **WOBBUFFET moves from side-check to primary
+  instrument**; SLOWKING stops being "the preview solver" and becomes the shape of the whole agent;
+  the published comparator is VGC-Bench's ~100%.
+
+  **The thesis is that a re-solving agent should be harder to exploit than a compiled one** — a
+  learned policy *recalls*, a search *recomputes*, and a best-response exploiter attacks a fixed
+  mapping that a per-turn re-solve does not present. **Whether this survives simultaneity,
+  stochasticity and a ~6-turn horizon is UNKNOWN. That is the experiment, not the assumption.**
+
+- **THE 117x SIMULATOR SLOWDOWN IS CORRECTED TO 24.9x, AND THE OLD FIGURE IS KEPT.** ADR-001 recorded
+  **29 vs 3,401 battles/sec/core — 117x** and decided the architecture on it. Re-measured on this
+  machine, same four teams (derived from the store, not typed), 8-second runs, 60-turn cap:
+
+  ```
+                   turns/sec    battles/sec
+  MEDICHAM           13,041         217
+  champions_sim         523          28
+  ratio               24.9x         7.7x
+  ```
+
+  **`turns/sec` is the comparable unit and `battles/sec` is not**: the two engines were driven
+  differently — MEDICHAM to its 60-turn cap, Showdown with `choose('default')` to a natural end — so
+  a "battle" is not the same amount of work on the two sides. The honest statement is **24.9x**.
+
+  ROADMAP #61 had already measured MEDICHAM at **1,606** battles/sec against the 3,401 on record, so
+  the earlier ratio had been drifting for some time in one direction, and the correction runs the
+  other way once the unit is fixed. **The architectural decision in ADR-001 was justified with a
+  number that does not reproduce.** ADR-001's reasoning is left standing and is annotated in place;
+  ADR-002 and `docs/MODELS.md` carry the same annotation. The decision ADR-001 reached is not
+  disturbed by this — a 24.9x gap still rules out live browser simulation — but the number that
+  carried it has to be stated correctly wherever it is quoted.
+
+- **MEDICHAM's justification is now explicit and falsifiable.** VGC-Bench used real Showdown via
+  poke-env and carried **no engine-correctness debt at all**, because behaviour cloning and PPO do
+  not need a fast simulator. We wrote one so that per-turn re-solving is affordable. Therefore: *the
+  engine work is justified if and only if search pays.* **ROADMAP #62 stops being a MILTANK question
+  and becomes the project's gate**, and §5 of the roadmap is reordered around that.
+
+  Supporting evidence that this is a real trade rather than a rationalisation — every project that
+  searches hits the engine-speed wall, and the pattern is clean:
+
+  | project | searches? | engine | depth reached |
+  |---|---|---|---|
+  | VGC-Bench | no | real Showdown | n/a |
+  | Future Sight AI | yes | modified Showdown | ~3 turns in 15 s on 16 cores |
+  | Foul Play | yes | built poke-engine | ~10+ turns |
+
+- **The plan is four phases, and branch 4 is a result rather than a defeat.**
+
+  ```
+  1  finish MEDICHAM        search needs an engine that is fast AND correct
+  2  GATE #62               does compute buy anything: untimed vs on-the-clock
+  3  if yes -> search, and measure EXPLOITABILITY against their ~100%
+  4  if no  -> adopt their recipe: BC + PPO self-play/FP/DO, open source, reproducible
+  ```
+
+  Will, 2026-08-06, approving branch 4 explicitly: *"IM OKAY TRYING THINGS OUT LIKE SEARCH TO SEE IF
+  OUR ATTEMPT WORKS BUT IF THAT FAILS IM OKAY ALSO TRYING THEIR OTHER METHODS."*
+
+  **On compute:** cores help SEARCH (CPU-bound, root-parallelisable); GPUs help BC/PPO. MILTANK needs
+  26 s against a 20 s budget on **one core of sixteen**, so 16 cores fixes the clock today — but root
+  parallelisation scales **sublinearly**, so it converts a failed budget into a met one rather than a
+  shallow search into a deep one. Buying cores does not buy depth.
+
+### Fixed
+- **`docs/GAME-DIFFERENTIAL-DESIGN.md` §3.2's usage table was a stale snapshot of `data/tags.json`,
+  and only two of its fifteen figures were catchable.** `tests/test-docs-current.js` §3b(c) flagged
+  Trick Room at 7,423 and Wide Guard at 3,353 because those two values appear in no artifact; the
+  other thirteen passed by **coincidence** — 74,245 and 13,292 and 424 and 76 all happen to occur in
+  unrelated artifacts. The whole column is re-derived from the current `data/tags.json`
+  (`sheet_entries` 119,616, generated 2026-08-06): Protect 80,328, Fake Out 14,380, Trick Room
+  **8,077**, Prankster 8,061, Sucker Punch 7,704, Wide Guard **3,568**, Phantom Force 465, Feint 437,
+  Illusion 242, Trace 221, Ally Switch 190, Quash 175, Instruct 173, Disguise 133, Upper Hand 80.
+  The argument is unchanged — Upper Hand is three orders of magnitude rarer than Protect — and the
+  document's final column now says plainly that its conversion factor from declared uses to expected
+  exercises per 1,000 games **is not recorded anywhere**, rather than carrying an estimate nobody can
+  reproduce.
+
+### Notes
+- **Nothing in this release is a new measurement.** The speed benchmark, the VGC-Bench holdings and
+  the exploitability comparator were all measured before this pass; this is the living-docs rule
+  applied to a strategic reframe, so that the same reframe lands in the white paper, the deck, the
+  technical documentation, the summary, the model ledger, the two ADRs, the roadmap and the MEASURE
+  ledger in one pass instead of four.
+- **The VGC-Bench dataset is not usable and the code already knew.** Their Reg M-B holding is 4,167
+  games over 4 days in June 2026 and **100% of it is already in our store** as `data/games.ots.jsonl`,
+  against our own 9,701 bo3 games over 15 days. The 700,000 headline is Reg M-A, the previous
+  regulation. `fit_policy.js`'s comment was exactly right. An earlier claim in this session that their
+  archive covered our format was **wrong and is retracted**: it inferred coverage from a FILENAME
+  (`logs_gen9championsvgc2026regmb.json`) instead of opening the file. `docs/PRIOR-ART.md` §2 carries
+  the correction, and it must not be re-introduced anywhere.
+- **VGC-Bench is OPEN TEAM SHEETS** — the same information setting as our Reg M-B bo3. They had
+  *more* information than a closed-sheet agent and were still ~100% exploitable, which strengthens
+  the poker frame: the exploitability comes from having a fixed policy, not from hidden teams.
+- **Comparison does not require playing them.** Their checkpoints are Reg M-A and ours is Reg M-B,
+  and their own paper shows policies do not transfer across team sets. But **exploitability is
+  intrinsic** — measured against a best response trained against *you*, in *your* format — so the
+  numbers compare although the agents can never meet.
+- **We are not claiming we will beat them.** Their agent beat a Worlds competitor; ours has never
+  played a human. Nor that search is known to work here: Metamon (RLC 2025,
+  [arXiv 2504.04395](https://arxiv.org/abs/2504.04395)) reached top 10% in singles with **no search
+  at all**, and Future Sight AI removed its machine learning entirely after finding a structural
+  method beat it on both accuracy and speed. Both are live counter-evidence and both are in
+  `docs/PRIOR-ART.md`.
+- **ABRA has no exploitability number today.** `data/exploitability.json` is declared VOID and
+  `provenance.js --strict` exits non-zero on it. Making the headline metric one this project cannot
+  currently produce is deliberate: it converts a nice-to-have into a first-class deliverable and
+  states the gap instead of hiding it.
+- **The figures introduced by this entry, in one place**, so that every document quoting them has a
+  trace: 13,041 and 217 (MEDICHAM turns/sec and battles/sec), 523 and 28 (champions_sim), the 24.9x
+  and 7.7x ratios, the 8-second run and 60-turn cap, the prior 29 / 3,401 / 117 pair from ADR-001,
+  1,606 from ROADMAP #61, VGC-Bench's 700,000 logs and 4,167 Reg M-B games over 4 days, our 9,701 bo3
+  games over 15 days, `10^139` team configurations, Future Sight AI's ~3 turns in 15 s on 16 cores,
+  Foul Play's ~10+ turns, and MILTANK's 26 s against a 20 s budget on 1 of 16 cores.
+
+---
+
 ## [3.58.0] — 2026-08-06
 
 ### Added

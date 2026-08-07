@@ -808,7 +808,54 @@ WE WANT TO BUILD LATER."*
 4. **A deferred item stays here with its reason.** HYPNO is deferred by decision, not dropped, and it
    says so.
 
-### 5.1 MEDICHAM completeness — the current gate, and everything below waits on it
+### 5.0 THE FOUR PHASES — the ordering this register is arranged in (3.59.0, ADR-003)
+
+**This section is new and it re-orders everything under it.** It exists because ADR-003 changed what
+the project is trying to prove. The headline metric is **exploitability, not win rate**; VGC-Bench
+(AAMAS 2026) beat a professional with a compiled policy and measured all of its agents at
+approximately **100% exploitable**; and the thesis under test is that a **re-solving** agent is
+harder to exploit than a compiled one. That thesis makes MEDICHAM's existence conditional, and the
+condition is a gate that was already in this register.
+
+```
+1  finish MEDICHAM        search needs an engine that is fast AND correct
+2  GATE #62               does compute buy anything: untimed vs on-the-clock
+3  if yes -> search, and measure EXPLOITABILITY against their ~100%
+4  if no  -> adopt their recipe: BC + PPO self-play/FP/DO, open source, reproducible
+```
+
+| phase | what it is | where it lives in this register |
+|---|---|---|
+| **1** | MEDICHAM is fast **and** correct | §5.1, and #68 as the whole-engine gate |
+| **2** | **#62 — the project gate**, below | this section |
+| **3** | the search, then the exploitability measurement | §5.2, §5.3, §5.4, and #6 in §5.3 |
+| **4** | BC + PPO with self-play / fictitious play / double oracle | §5.8, as the paper's fallback result |
+
+**#62 IS PROMOTED TO THE FRONT OF THIS REGISTER. It is no longer a MILTANK tuning question; it is the
+project's gate**, and it was moved here from §5.3 in this pass.
+
+| # | item | blocked by |
+|---|---|---|
+| #62 | **GATE, AND IT COMES FIRST: play MILTANK untimed against MILTANK on the clock.** R6 measured **31.6% of move decisions deferred** — handed back to MAG unsearched, consuming 30.5% of the spend. `defer` fires both when the clock runs out *and* when the search cannot separate its options, and **only the first is fixable with compute**. This decides whether #25/#37/#61 are worth doing at all — and, since 3.59.0, whether the whole engine programme was worth doing. VGC-Bench used real Showdown through poke-env and carried **no engine-correctness debt**, because behaviour cloning and PPO do not need a fast simulator. **We wrote one so per-turn re-solving is affordable, so the engine work is justified if and only if search pays** | #45 |
+
+**Why this is the right gate rather than a proxy for one.** Every project in `docs/PRIOR-ART.md` that
+searches hits the engine-speed wall, and the pattern is clean: VGC-Bench does not search and used real
+Showdown; Future Sight AI searches, modified Showdown, and reaches about 3 turns of lookahead in 15
+seconds on 16 cores; Foul Play searches, **built** poke-engine, and reaches about 10+ turns. Building
+an engine is what searching costs. #62 asks whether the thing it buys exists.
+
+**On compute, because it is the obvious response to #62 failing.** Cores help the search — it is
+CPU-bound and root-parallelisable. GPUs help behaviour cloning and PPO. MILTANK needs **26 s against a
+20 s budget on one core of sixteen**, so sixteen cores fixes the clock today. But root parallelisation
+scales **sublinearly**, so cores convert a *failed budget into a met one*, not a *shallow search into a
+deep one*. If #62 says compute buys nothing at depth, more cores does not answer it.
+
+**Phase 4 is approved in advance and is a result, not a defeat.** Will, 2026-08-06: *"IM OKAY TRYING
+THINGS OUT LIKE SEARCH TO SEE IF OUR ATTEMPT WORKS BUT IF THAT FAILS IM OKAY ALSO TRYING THEIR OTHER
+METHODS."* Their recipe is published, open-source and reproducible, so the fallback is cheap precisely
+because they made it so.
+
+### 5.1 MEDICHAM completeness — PHASE 1, and everything below waits on it
 
 **Will's bar, 2026-08-06:** *"i still want medicham to be fully wired and tested on every move and
 ability and item in the regulation (with any usage at all) before we start taking its output and
@@ -858,7 +905,14 @@ imagined opponent structurally incapable of the plays that actually beat us**, w
 direction. And the objection that imitation is a ceiling *does not apply to the opponent model*: we
 **want** the imagined foe to behave like a human, because humans are who we play.
 
-### 5.3 The search redesign
+### 5.3 The search redesign — PHASE 3, and none of it starts until #62 answers
+
+**Reordered 3.59.0.** This whole table used to be the front of the project. It is now downstream of
+the gate in §5.0: if compute buys nothing, none of these items is worth building, and the project
+takes phase 4 instead. **#61 keeps its place here and gains a second reading** — the 3,401
+battles/sec it is measured against is itself corrected in 3.59.0 to 13,041 turns/sec against
+`champions_sim`'s 523, a ratio of 24.9x rather than the recorded 117x. Three readings of one quantity,
+no ratchet on any of them; see ADR-001's correction note.
 
 | # | item | note |
 |---|---|---|
@@ -870,7 +924,7 @@ direction. And the objection that imitation is a ceiling *does not apply to the 
 | #38 | the rollout cap is 60 turns; real games end at **6** | trivial |
 | #39 | measure the `board.js` ↔ MEDICHAM translation cost | decides whether MAG-as-GARY is possible at all |
 | #61 | **MEDICHAM measures 1,606 battles/sec against the 3,401 on record — 47%.** On the measured figure the 200-rollout x 64-pair search needs **26 s** against a 20 s budget and does not fit. Nothing ratchets speed, which is why a 2x regression went unseen | — |
-| #62 | **GATE, and it comes first: play MILTANK untimed against MILTANK on the clock.** R6 measured **31.6% of move decisions deferred** — handed back to MAG unsearched, consuming 30.5% of the spend. `defer` fires both when the clock runs out *and* when the search cannot separate its options, and only the first is fixable with compute. This decides whether #25/#37/#61 are worth doing at all | #45 |
+| #62 | **MOVED TO §5.0 IN 3.59.0 — it is the project gate, not a search-redesign item.** Everything in this table is phase 3 and does not start until #62 answers | see §5.0 |
 | #63 | **the rollout never switches.** The engine *can*, and the search can offer a switch as a root candidate — but the playout has no switch branch at all, so **every imagined future is a game where nobody ever leaves**. Misprices preserving a Pokémon, punishing a switch, and the *switch out of a predicted attack* pattern the engine models priority order for | #45, #61 |
 
 **Four different states get quoted for each other here and only one is broken.** The engine can
@@ -970,6 +1024,7 @@ only the one it displaced, which is the only thing that would detect a cycle.
 |---|---|
 | #54 | position against **THREE** comparables, because the field is not empty and none of them is playing our game. **VGC-Bench** (AAMAS 2026) — whose archive we already consume, and dropped from the fit for staleness (four days, mid-June, seven weeks old); `engine/corpus_shift.js` exists to measure the metagame distance and has never written an artifact. **Future Sight AI** — closed-source Showdown bot, reportedly top 5% of the most popular format, matches revealed attributes to the most common set, ships a win-probability browser extension; also settles a naming question, since "Future Sight" is TAKEN and this project names everything after Pokémon. **The PokeAgent Challenge** (arXiv 2603.15563, NeurIPS 2025, 100+ teams, two tracks) — by far the strongest reference of the three and **not yet read**. Add **Sarantinos** (arXiv 2212.13338, Cambridge) as the closest published method: Gen 7 Random Battles singles, peaked **33rd in the world**, regret-minimisation opponent prediction, fills unknown properties from usage statistics, and **explicitly rejects Monte Carlo sampling as too sample-inefficient** — which is what MILTANK's leaf does. It also names our #29 independently: its first "biggest challenge" is keeping the team balanced, with a worked example that is THE SACK, and it asserts *"an AI agent cannot achieve this just by looking ahead with MinMax or Monte Carlo Tree Search."* Finally, its ELO caveat is load-bearing for Will's stated goal: comparing human and AI ratings is invalid **unless they played each other** — laddering with ALAKAZAM is exactly that, so the plan is sound and should say why |
 | — | the candidate contributions are the **truncation curve**, the **represented-clicks curve**, the **armed-coverage critique**, and the negative results — a separation gate that uniform noise passes, a tablebase killed by reach rate, and per-turn metrics that cannot separate a 1043 player from a 1600 |
+| — | **PHASE 4, and it is a paper either way (3.59.0).** If §5.0's gate says compute buys nothing, the project adopts VGC-Bench's recipe — behaviour cloning plus PPO under self-play, fictitious play and double oracle — and reports that as the result. Will approved this branch in advance. Either way **the instrumentation is the honest contribution**: no project in `docs/PRIOR-ART.md` publishes a mechanics census that must be shown RED before it counts, a step-level protocol differential against the official engine, ratchets on silent failure, or a record of what it retracted. If search loses, this is still the only account of what a hand-written VGC simulator gets wrong and how you would know |
 
 ---
 

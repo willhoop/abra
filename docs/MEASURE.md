@@ -29,10 +29,15 @@ MEASURE — can we believe a number
       redirection turns, mass on the candidate set  +0.000122 [-0.000261, 0.000514] (contains zero)   n=650
       coerced turns, P(the coerced action)          -0.002613 [-0.003650, -0.001672]   n=293  (lower is better)
       CONTROL, clean turns, logL                    +0.000485 [0.000189, 0.000777]   n=47331
-  refit edge: NOT DERIVED (feature_fixture --check did not run:     at Module._compile (node:internal/modules/cjs/loader:1830:14) |  | Node.js v24.15.0)
+  refit edge: FIXTURE ONLY — not clean, and not owed either; only one of the two instruments spoke
+    feature_fixture --check passes: all 58 columns hash-identical to fit time — but the corpus contrast is MUZZLED (it was measured on medicham2 82bed8cdcf6b, live is f7dff7676ad6), so nothing checked the branches no fixture board stands on
+    moved after the fit: engine/medicham2-browser.js  2026-08-06 23:33
+    moved after the fit: engine/board.js  2026-08-05 19:44
+    moved after the fit: data/engine-data.js  2026-08-06 19:20
+    moved after the fit: data/abra-tags.js  2026-08-06 19:19
 ```
 
-_stamped 2026-08-07 00:00_
+_stamped 2026-08-07 00:43_
 
 <!-- /GENERATED -->
 
@@ -49,6 +54,86 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 0. THE HEADLINE METRIC IS NOW EXPLOITABILITY, AND THIS DIVISION DOES NOT HAVE ONE — 2026-08-06 (3.59.0)
+
+ADR-003 is accepted and published across the docs in this pass. **Exploitability replaces win rate as
+the project's headline metric, and the published comparator is VGC-Bench's approximately 100%.** That
+lands on this division, because the instrument is `engine/exploit.js` → `data/exploitability.json`,
+and that artifact is the one thing in the repository that is *declared void*.
+
+**Nothing here is a new measurement.** The reframe rests on a number somebody else published and on a
+speed benchmark run earlier tonight. This entry records what the reframe costs MEASURE.
+
+**1. The headline metric has no value.** `data/exploitability.json` is `void: true` and
+`provenance.js --strict` exits non-zero on it — §5g of this file has the full account. The 2026-07-26
+figure was fitted on 17 features against the 58 shipped, on an engine 25 wire-fixes old, before the
+quality filter existed. The 2026-08-04 re-run is void because `data/policy-weights.json` — the
+defender — was refitted at 22:15:24 UTC while it was running. **So the comparison this project now
+leads with is a comparison it has set up and not made.** Say that, in those words, until it is made.
+
+**2. It raises the bar on the frozen-release discipline, and the evidence is our own.** An
+exploitability run needs a best response trained against a *frozen* agent over thousands of games. The
+2026-08-04 void **was** an exploitability run. That is a demonstrated failure mode on this exact
+measurement, not a hypothetical, and it is why the release boundary is a precondition rather than a
+nicety. `engine/exploit.js` stamps no engine digest and no digest of the target vector, which is why
+nothing caught it at the time.
+
+**3. The comparability argument is sound and should be stated whenever the number is.** Their
+checkpoints are Reg M-A, ours Reg M-B, and their own paper shows policies do not transfer across team
+sets — a head-to-head is impossible. **Exploitability is intrinsic**: it is defined against a best
+response trained against *you*, in *your* format. So the two numbers sit on one scale although the two
+agents can never meet. This is the rare case where a comparator is legitimate without a shared
+population, and the reason has to travel with the figure or somebody will eventually read it as a
+head-to-head.
+
+**4. A noise floor for exploitability does not exist and is not obvious.** §6 of this file says the
+floor belongs to the measurement rather than to a global constant. For a hill-climb the natural
+split-half does not apply — the arms are not exchangeable. The 2026-08-04 run gives the shape of the
+problem rather than a floor: it accepted **1 of 24** steps and its step scale decayed to 0.0168, so
+from round ~10 it was perturbing a near-copy of MAG. **An attack that dies in 58 dimensions returns an
+uninformative null on a still tree too**, which means a low exploitability figure from this tool is
+not yet distinguishable from the tool failing. That is the first thing to fix, and it is upstream of
+producing any number at all.
+
+**5. What this division must NOT do with the reframe.** It must not report an exploitability number
+computed against a moving target, and it must not report an interim one. The SPRT rule applies with
+full force here: 66.7% became 44% and 57.7% became 50% in this project because somebody looked early.
+An adversarial search that is watched while it climbs is the same failure with a different name.
+
+### 0a. ENGINE SPEED IS UNMEASURED BY THIS DIVISION'S STANDARDS, AND IT DECIDED AN ARCHITECTURE
+
+**Three readings of MEDICHAM's throughput are on record and they disagree by an order of magnitude:**
+3,401 battles/sec (ADR-001, July), 1,606 battles/sec (ROADMAP #61) and 13,041 turns/sec (the 3.59.0
+re-measurement). The published ratio against `champions_sim` moves with them: **117x, corrected to
+24.9x**. All three are now stated in ADR-001, ADR-002, `docs/MODELS.md`, the white paper, the deck,
+`docs/SUMMARY.md` and the technical docs, with the July figures kept and annotated rather than
+rewritten.
+
+**Everything wrong with this is a MEASURE problem, and none of it is an ENGINE problem.**
+
+- **No artifact holds any of the three.** There is no `data/*.json` for engine speed. A figure that
+  decided the project's largest architectural decision has never been through the machinery every win
+  rate in this repository goes through.
+- **No generator exists.** There is no script in the repository that runs the comparison, so none of
+  the three can be reproduced, and the two that disagree cannot be adjudicated.
+- **No ratchet.** Nothing fails when engine speed regresses. ROADMAP #61 already recorded that a 2x
+  regression went unseen for that reason; the same hole let a 4.7x error in a published ratio survive
+  two weeks.
+- **The unit was doing damage.** `turns/sec` compares the two engines and `battles/sec` does not,
+  because MEDICHAM was driven to its 60-turn cap and Showdown with `choose('default')` to a natural
+  end — so a "battle" is not the same quantity of work on the two sides. The 7.7x battles/sec ratio
+  measured tonight is **not** a like-for-like number and must not be quoted as one. Two of the three
+  historical readings are in the wrong unit for the comparison they were used to justify.
+
+**The correct fix is a stamped artifact with a declared method, not a fourth reading**, and it is the
+same fix this division applied to the four rollout gates: a generator, a sidecar recording the machine
+and the configuration, and a floor. Filed here rather than done — it is a new measurement, and this
+pass was a publication pass.
+
+**One location is left uncorrected and is flagged rather than edited:** `engine/champions_sim.js`
+lines 10 and 26 still state the 117x in the file header. It is ENGINE's file and ENGINE is working in
+the tree tonight.
 
 ### 1. LEAF CALIBRATION — MEASURED 2026-08-04. The leaf is not calibrated, and the claim is now powered.
 
