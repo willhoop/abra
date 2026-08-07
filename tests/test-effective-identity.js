@@ -297,6 +297,16 @@ const DECLARED = {
     + '9 times and "gardevoir (Gardevoir) can\'t have Pixilate" 7 times. Those are classified '
     + 'OBSERVED, not ILLEGAL, by the OBSERVED table in that file — the store holds what the battle '
     + 'showed, not what the player typed. Written 2026-08-06.',
+  'tests/test-protocol-trace.js':
+    'One read, and it is a WRITE\'s left-hand side in disguise: `if (ability) b.ability = ability` in '
+    + 'the local `mon()` helper, which STAGES a body for a scenario. Nothing is resolved from it and '
+    + 'nothing is consumed. It is correct BY CONSTRUCTION rather than by inspection: this file builds '
+    + 'every body itself with `M.buildMon()` and then SETS the ability it wants to test, so there is '
+    + 'no sheet entry and no pre-mega/post-mega question to get wrong — the value on the body is the '
+    + 'value this file just put there. It loads no mega, stages no stone, and its one Showdown arm '
+    + 'takes the ability from the same literal. AND THE ONE PLACE THE ABILITY MATTERS TO A RESULT — '
+    + 'the Intimidate/Blaze control in PART 5 — is the ability being VARIED, which is the experiment, '
+    + 'not a lookup. Written 2026-08-06 (ROADMAP #68).',
   'tests/regulation_usage.js':
     'Two reads, and both are of a STORED SHEET ENTRY — `s.ability` off `g.sheets[side][i]` and off '
     + '`g.sets[species]`, which are what the open team sheet declared at preview and what the '

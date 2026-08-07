@@ -4,7 +4,7 @@
   "total_tags": 177,
   "live": 84,
   "staged": 23,
-  "unreached": 37,
+  "unreached": 39,
   "unreached_this_run": [
     "statusCategory",
     "priority",
@@ -17,20 +17,22 @@
     "sealsMoves",
     "spreadAll",
     "statChangeInCode",
-    "redirects",
     "powder",
-    "pivotStatus",
-    "halvesDamage",
-    "preventsStatDrop",
+    "redirects",
     "reversesSpeed",
+    "halvesDamage",
+    "pivotStatus",
+    "preventsStatDrop",
     "healsSelf",
+    "oneTurnGuard",
     "takesTargetItem",
     "healsAlly",
+    "setsWeather",
     "forbidsStatusMoves",
     "failsWithoutWeather",
     "perishClock",
-    "boostsTarget",
     "healsOnSwitchOut",
+    "boostsTarget",
     "delayedSleep",
     "curesVolatile",
     "formeChange",
@@ -61,11 +63,9 @@
     "locksTarget",
     "needsUntrackedState",
     "weightBased",
-    "oneTurnGuard",
     "inflictsConfusion",
     "readsTargetItem",
     "inflictsSleep",
-    "setsWeather",
     "inflictsToxic",
     "randomBoostEachTurn",
     "statusImmune",
@@ -82,142 +82,132 @@
   "dead_by_uses": [
     {
       "tag": "neverMisses",
-      "uses": 145504,
+      "uses": 157419,
       "carriers": 124
     },
     {
       "tag": "flinches",
-      "uses": 36742,
+      "uses": 39670,
       "carriers": 19
     },
     {
       "tag": "inflictsBurn",
-      "uses": 24070,
+      "uses": 25941,
       "carriers": 15
     },
     {
       "tag": "lowersUser",
-      "uses": 17938,
+      "uses": 19426,
       "carriers": 13
     },
     {
       "tag": "damageBoost",
-      "uses": 12672,
+      "uses": 13785,
       "carriers": 44
     },
     {
       "tag": "boostsUser",
-      "uses": 11115,
+      "uses": 12147,
       "carriers": 23
     },
     {
       "tag": "lowersTarget",
-      "uses": 10662,
+      "uses": 11332,
       "carriers": 22
     },
     {
       "tag": "neverMissesAttack",
-      "uses": 7233,
+      "uses": 7949,
       "carriers": 8
     },
     {
       "tag": "needsTargetToAttack",
-      "uses": 7207,
+      "uses": 7888,
       "carriers": 9
     },
     {
       "tag": "inflictsParalysis",
-      "uses": 6907,
+      "uses": 7413,
       "carriers": 13
     },
     {
       "tag": "inflictsFreeze",
-      "uses": 6836,
+      "uses": 7378,
       "carriers": 4
     },
     {
       "tag": "inflictsPoison",
-      "uses": 6543,
+      "uses": 7092,
       "carriers": 11
     },
     {
       "tag": "untagged",
-      "uses": 5688,
-      "carriers": 65
+      "uses": 6166,
+      "carriers": 66
     },
     {
       "tag": "locksTarget",
-      "uses": 5583,
+      "uses": 6066,
       "carriers": 3
     },
     {
       "tag": "needsUntrackedState",
-      "uses": 5408,
+      "uses": 5792,
       "carriers": 4
     },
     {
       "tag": "weightBased",
-      "uses": 4399,
+      "uses": 4810,
       "carriers": 4
     },
     {
-      "tag": "oneTurnGuard",
-      "uses": 4076,
-      "carriers": 2
-    },
-    {
       "tag": "inflictsConfusion",
-      "uses": 3533,
+      "uses": 3769,
       "carriers": 9
     },
     {
       "tag": "readsTargetItem",
-      "uses": 3405,
+      "uses": 3668,
       "carriers": 2
     },
     {
       "tag": "inflictsSleep",
-      "uses": 1921,
+      "uses": 2067,
       "carriers": 4
     },
     {
-      "tag": "setsWeather",
-      "uses": 1607,
-      "carriers": 5
-    },
-    {
       "tag": "inflictsToxic",
-      "uses": 889,
+      "uses": 969,
       "carriers": 2
     },
     {
       "tag": "randomBoostEachTurn",
-      "uses": 474,
+      "uses": 536,
       "carriers": 1
     },
     {
       "tag": "statusImmune",
-      "uses": 456,
+      "uses": 474,
       "carriers": 12
     },
     {
       "tag": "punishesBoostedTarget",
-      "uses": 200,
+      "uses": 210,
       "carriers": 2
     },
     {
       "tag": "passesState",
-      "uses": 181,
+      "uses": 189,
       "carriers": 2
     },
     {
       "tag": "readsOwnItem",
-      "uses": 158,
+      "uses": 165,
       "carriers": 1
     },
     {
       "tag": "dualPurpose",
-      "uses": 118,
+      "uses": 125,
       "carriers": 2
     },
     {
@@ -271,5 +261,5 @@
     "failsWithoutTerrain",
     "amplifiesBoosts"
   ],
-  "generated": "2026-08-06T22:12:33.768Z"
+  "generated": "2026-08-06T23:59:52.172Z"
 }

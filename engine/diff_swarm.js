@@ -81,10 +81,13 @@ const SKIPS = []; let UNREADABLE = 0;
  * to the format later joins the right family without editing this file. That is the same rule the
  * engine follows and the same one the hand-maintained ban list failed. */
 function featureSets() {
-  /* THROUGH engine/lookup.js, WHICH THROWS ON A TAG NAME THAT DOES NOT EXIST. Both of the vacuous
-   * configs described below were a guessed tag name silently producing an empty set; lookup.byTag
-   * makes that a crash at the call site instead of a confident zero in the report. */
-  const { byTag } = require('./lookup.js');
+  /* THROUGH engine/names.js, WHICH THROWS ON A TAG NAME THAT DOES NOT EXIST. Both of the vacuous
+   * configs described below were a guessed tag name silently producing an empty set; names.byTag
+   * makes that a crash at the call site instead of a confident zero in the report.
+   * (It is names.js and not lookup.js because lookup.js already existed for a different job — see
+   * that file's header, and names.js's, for why writing the second one over the first broke
+   * self-play for an hour.) */
+  const { byTag } = require('./names.js');
   const F = {
     protect:     byTag('moves', 'stalling', 'oneTurnGuard'),
     protectBust: byTag('moves', 'ignoresProtect'),

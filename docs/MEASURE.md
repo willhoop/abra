@@ -32,7 +32,7 @@ MEASURE — can we believe a number
   refit edge: NOT DERIVED (feature_fixture --check did not run:     at Module._compile (node:internal/modules/cjs/loader:1830:14) |  | Node.js v24.15.0)
 ```
 
-_stamped 2026-08-06 23:54_
+_stamped 2026-08-07 00:00_
 
 <!-- /GENERATED -->
 

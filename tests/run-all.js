@@ -120,15 +120,18 @@ const GATES = ['engine/selftest.js', 'engine/conformance.js', 'engine/artifact_a
    * and both looked like the best-covered configs in the swarm. The selftest asserts no config accepts
    * everything; the derivation asserts no feature set is empty. Synthetic input, milliseconds. */
   'engine/diff_swarm.js',
-  /* engine/lookup.js --selftest — the one place that answers "what is this thing called", and it
-   * exists because seven lookups were typed instead of derived in a single evening. Excadrill's stone
-   * is EXCADRITE not Excadrillite; Floette-Eternal's mega is `floettemega` not base+'mega' (the same
-   * wrong assumption as WIRE 132, made again a day later in a measurement); Intimidate's tag is
-   * `onSwitchInDrop` not lowersOnEntry; weather abilities are `weatherSetter` not setsWeather. Every
-   * one matched NOTHING, returned an empty result, and read as a real measurement of zero. The rule
-   * this enforces: A LOOKUP THAT MATCHES NOTHING IS AN ERROR, NOT AN EMPTY SET. Its own selftest
-   * caught a typed assumption too — it asserted Garchomp has no mega, and Garchomp megas here. */
-  'engine/lookup.js'];
+  /* engine/names.js --selftest — A NAME MUST BE DERIVED. Seven lookups were typed instead of derived
+   * in one evening: Excadrill's stone is EXCADRITE not Excadrillite; Floette-Eternal's mega is
+   * `floettemega` not base+'mega' (WIRE 132's assumption, made again a day later in a measurement);
+   * Intimidate's tag is `onSwitchInDrop` not lowersOnEntry; weather abilities are `weatherSetter` not
+   * setsWeather. Every one matched NOTHING, returned empty, and read as a measurement of zero.
+   * A LOOKUP THAT MATCHES NOTHING IS AN ERROR, NOT AN EMPTY SET. Its own selftest caught a typed
+   * assumption too — it asserted Garchomp has no mega, and Garchomp megas here.
+   *
+   * It is names.js and NOT lookup.js because lookup.js already existed, for the adjacent job of making
+   * a MISS declare itself. Writing this one over it deleted resolve(), which mc_key.js calls, and took
+   * down self-play. lookup.js = what to do when an answer is ABSENT; names.js = how to ask correctly. */
+  'engine/names.js'];
 
 /* COVERAGE ASSERTION. Any file in engine/ that reports its own pass/fail summary is a check, and a
  * check that nothing runs is worse than no check — it reads as coverage in a review. If one turns up
@@ -192,7 +195,7 @@ function plan(rel) {
   const EXTRA = { 'engine/provenance.js': ['--strict'], 'engine/conformance.js': ['--strict'],
                   'engine/em_validation.js': ['--check'], 'engine/status.js': ['--selftest'],
                   'engine/rerun_list.js': ['--selftest'], 'engine/validate_store.js': ['--selftest'],
-                  'engine/diff_swarm.js': ['--selftest'], 'engine/lookup.js': ['--selftest'] };
+                  'engine/diff_swarm.js': ['--selftest'], 'engine/names.js': ['--selftest'] };
   return { cmd: rel.endsWith('.py') ? PY : process.execPath, args: [D(rel), ...(EXTRA[rel] || [])] };
 }
 

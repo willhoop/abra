@@ -1,169 +1,97 @@
-/* lookup.js — THE ONE PLACE THAT ANSWERS "WHAT IS THIS THING CALLED".
+/* lookup.js — a miss must be DECLARED, not discovered.
  *
- *   const L = require('./lookup.js');
- *   L.mega('floette-eternal')      -> { stone:'floettite', forme:'floettemega' }   derived, never typed
- *   L.byTag('abilities','onSwitchInDrop')  -> Set of ids            THROWS on an unknown tag name
- *   L.tagsOf('moves','quash')      -> ['reordersTurn','statusCategory']
- *   L.id('Floette-Eternal')        -> 'floetteeternal'              one normaliser, everywhere
+ * THE DEFECT THIS EXISTS TO END, stated as a shape rather than as an incident
+ * ---------------------------------------------------------------------------
+ * Every expensive bug in this project has been one thing:
  *
- * WHY THIS EXISTS
- * ---------------
- * Will, 2026-08-06: *"bro apply a permanent fix to these lookups you suck at them."* He is right, and
- * the evidence is one evening's worth of the same mistake in seven different costumes:
+ *     lookup(x)  ->  null
  *
- *   Excadrill's stone is EXCADRITE, not `Excadrillite` — typed from the pattern, matched nothing, and
- *     reported "Mega Excadrill is on 0.00% of teams". It is on 78.
- *   Floette-Eternal's mega is `floettemega`, NOT base+'mega' — a string-munge reported 0% mega
- *     evolution for a body that megas 96.1% of the time. This is WIRE 132 in a measurement instead of
- *     in the engine: the SAME wrong assumption, made twice, a day apart.
- *   Intimidate's tag is `onSwitchInDrop`, not `lowersOnEntry` — the derived set came back EMPTY and
- *     the config silently accepted every team while reporting 100% coverage.
- *   Weather abilities are `weatherSetter`, not `setsWeather` — same failure, caught only because the
- *     first one had just forced a guard to exist.
- *   A case-sensitive scan for "Floette" against a store keyed `floettemega` returned 3 and I called a
- *     10.5%-of-sides mechanic "essentially zero exposure".
+ * where `null` means BOTH "this genuinely is not in the data" and "you asked the wrong question".
+ * Those two are indistinguishable at the call site, so every caller treats both as the first one and
+ * carries on. Nothing throws, nothing counts, and the answer is quietly wrong:
  *
- * EVERY ONE FAILED THE SAME WAY: a guessed name matched nothing, an empty result looked like a real
- * measurement of zero, and nothing complained. That is S13 — if a fact can be derived from an
- * artifact, no human types it — and the fix is not care, it is that the guess becomes impossible.
+ *   the forme lookup      101 of 308 keys unreachable       8.17% of the metagame, for weeks
+ *   the mirror sheet      one player's set overwrote the other's   62% of those FITTED anyway
+ *   the switched-in target   44.4% of every failed match
+ *   the browser tags      every tag lookup returned null     3 of the largest weights read 0
+ *   mc_key in a browser   an empty alias map, returned without a word
  *
- * THE RULE THIS FILE ENFORCES: A LOOKUP THAT MATCHES NOTHING IS AN ERROR, NOT AN EMPTY SET.
- * `byTag` throws on a tag name that is not in data/tags.json. `mega` throws on a species that has no
- * stone. Silence is the failure mode; loudness is the whole point.
+ * Seven of these in one session, 2026-08-02. Each was fixed, and each fix was a NEW GUARD covering
+ * ONE pathway. Will, correctly: *"each time I tell you to research it and implement a universal fix,
+ * and each time you devise more and more tests and they continually fail. Are we actually making
+ * progress or going in circles?"*
+ *
+ * The honest answer was that the guards are instrumentation, not a cure. The count of error-swallowing
+ * blocks went 233 -> 238 across the session that was supposed to be fixing them. A guard per pathway
+ * cannot finish, because there is no end to the pathways.
+ *
+ * WHAT ACTUALLY FIXES IT
+ * ----------------------
+ * Stop making the two meanings the same value. A caller that expects a miss must SAY SO:
+ *
+ *     mcKey('Rotom-Wash')                    // throws if absent — the default
+ *     mcKey(sp, { mayMiss: 'unseen forme' }) // returns null, and you have written down why
+ *
+ * The reason string is required rather than a bare `true`, because "a boolean is not a parameter"
+ * (CLAUDE.md) and because the reason is the thing a reviewer needs. It also makes the opt-outs
+ * greppable, so the number of places that tolerate a miss is a measurable quantity that can be
+ * driven DOWN — unlike a test count, which only ever goes up.
+ *
+ * WHY IT IS SAFE TO TURN ON
+ * -------------------------
+ * A miss that was always legitimate becomes one word of code. A miss that was a BUG becomes a
+ * crash, immediately, at the exact call site — which is the entire point and the opposite of the
+ * current failure mode. `ABRA_LOOKUP_SOFT=1` downgrades throws to counted warnings for one run, so a
+ * long fit already in flight can be finished and its misses read off rather than losing the run;
+ * it is a diagnostic, not a setting to leave on, and misses() reports what it saw.
  */
 'use strict';
-const fs = require('fs');
-const path = require('path');
-const ROOT = path.join(__dirname, '..');
-const D = (...p) => path.join(ROOT, ...p);
 
-/* ONE NORMALISER. The store, the dex and tags.json all key differently — `Floette-Eternal`,
- * `floetteeternal`, `Floette-Eternal`. Every comparison in this project should route through here so
- * a hyphen or a capital can never be the reason two things "differ". */
-const id = s => String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]/g, '');
+const MISSES = Object.create(null);
+const SOFT = typeof process !== 'undefined' && process && process.env && process.env.ABRA_LOOKUP_SOFT;
 
-let _T = null;
-const tags = () => (_T = _T || JSON.parse(fs.readFileSync(D('data', 'tags.json'), 'utf8')));
-
-/* Every tag name that actually exists, per section. A typo is caught HERE, at the call, instead of
- * becoming an empty set that reads as a measurement. */
-let _KNOWN = null;
-function knownTags(sec) {
-  if (!_KNOWN) {
-    _KNOWN = {};
-    const T = tags();
-    for (const s of ['moves', 'abilities', 'items']) {
-      _KNOWN[s] = new Set();
-      for (const o of Object.values(T[s] || {})) {
-        for (const t of (o.tags || [])) _KNOWN[s].add(typeof t === 'string' ? t : t.tag);
-      }
-    }
+class LookupMiss extends Error {
+  constructor(what, key, hint) {
+    super(`${what}: no entry for ${JSON.stringify(key)}${hint ? ' — ' + hint : ''}\n` +
+      `  If a miss is legitimate here, pass { mayMiss: '<why>' } and say why in one phrase.\n` +
+      `  If it is not, this is the bug: the lookup returned null and the caller could not tell.`);
+    this.name = 'LookupMiss';
+    this.what = what;
+    this.key = key;
   }
-  return _KNOWN[sec] || new Set();
 }
 
-function tagsOf(sec, key) {
-  const o = (tags()[sec] || {})[id(key)];
-  return o ? (o.tags || []).map(t => (typeof t === 'string' ? t : t.tag)) : [];
-}
-
-/* THROWS on an unknown tag name. This is the guard that would have caught `lowersOnEntry` and
- * `setsWeather` at the moment they were written instead of after a run produced a confident zero. */
-function byTag(sec, ...names) {
-  const known = knownTags(sec);
-  const bad = names.filter(n => !known.has(n));
-  if (bad.length) {
-    throw new Error(`lookup.byTag: no ${sec} tag named ${bad.map(b => `"${b}"`).join(', ')}. `
-      + `Did you mean one of: ${[...known].filter(k => bad.some(b => k.toLowerCase().includes(b.toLowerCase().slice(0, 5)) || b.toLowerCase().includes(k.toLowerCase().slice(0, 5)))).slice(0, 6).join(', ') || '(no near match — see data/tags.json)'}`);
-  }
-  const want = new Set(names);
-  return new Set(Object.entries(tags()[sec] || {})
-    .filter(([, o]) => (o.tags || []).some(t => want.has(typeof t === 'string' ? t : t.tag)))
-    .map(([k]) => k));
-}
-
-/* MEGA EVOLUTION, DERIVED FROM THE DEX. `item.megaStone` maps BASE NAME -> MEGA NAME directly, so
- * neither the stone's name nor the forme's name is ever constructed by string arithmetic.
- * base+'-mega' is WRONG for Floette-Eternal -> Floette-Mega, and that exact assumption was WIRE 132. */
-let _MEGA = null;
-function megaTable() {
-  if (_MEGA) return _MEGA;
-  require('./showdown_path.js');
-  const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-  const REGS = JSON.parse(fs.readFileSync(D('data', 'regulations.json'), 'utf8'));
-  const active = (REGS.regulations || {})[REGS.active];
-  const dex = Dex.forFormat(active && active.showdownFormat);
-  _MEGA = {};
-  for (const it of dex.items.all()) {
-    if (it.isNonstandard || !it.megaStone) continue;
-    for (const [base, forme] of Object.entries(it.megaStone)) {
-      _MEGA[id(base)] = { stone: id(it.name), forme: id(forme), stoneName: it.name, formeName: forme };
-    }
-  }
-  return _MEGA;
-}
-function mega(species) {
-  const m = megaTable()[id(species)];
-  if (!m) throw new Error(`lookup.mega: "${species}" has no mega stone in this format. `
-    + `Check the species is spelled as the dex has it, or use lookup.canMega() to test first.`);
-  return m;
-}
-const canMega = species => !!megaTable()[id(species)];
-
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename)
-    && process.argv.includes('--selftest')) {
-  /* Every case here is a mistake that was actually made on 2026-08-06. */
-  let bad = 0;
-  /* THE ASSERTION HELPER PRINTS WHY IT FAILED. A selftest that swallows the exception tells you a
-   * case failed and not what went wrong, which is the same silent-failure shape this repo ratchets on
-   * — and it would be an unusually bad place for it, since several of these cases EXPECT a throw. */
-  const t = (label, fn) => {
-    let ok = false, err = null;
-    try { ok = fn(); } catch (e) { ok = false; err = (e && e.message) || String(e); }
-    if (!ok) bad++;
-    console.log('  ' + (ok ? 'ok  ' : 'FAIL') + ' ' + label);
-    if (!ok && err) console.log('         threw: ' + String(err).split('\n')[0].slice(0, 120));
-  };
-  /* Cases that EXPECT a throw use this, so an unexpected message still surfaces. */
-  /* KEEPS THE MESSAGE. A case that expects a throw still cares WHICH throw — a TypeError from a bug
-   * would satisfy a bare `catch { return true }` and pass while proving nothing, which is the same
-   * false-agreement this whole module exists to remove. The message is recorded and printed. */
-  const thrown = [];
-  const throws = (fn) => {
-    try { fn(); return false; }
-    catch (e) { thrown.push(String((e && e.message) || e).split('\n')[0].slice(0, 90)); return true; }
-  };
-
-  t('id() makes Floette-Eternal and floetteeternal the same key', () => id('Floette-Eternal') === id('floetteeternal'));
-  t("mega('floette-eternal').forme is NOT base+'mega'", () => { const m = mega('floette-eternal'); return m.forme === 'floettemega' && m.forme !== 'floetteeternalmega'; });
-  t("mega('excadrill').stone is excadrite, not excadrillite", () => mega('excadrill').stone === 'excadrite');
-  /* THE FIXTURE IS DERIVED TOO, and the first draft was not. It asserted `mega('garchomp')` throws —
-   * on the assumption Garchomp has no mega. IT DOES in Champions, so the test failed and the module
-   * was right. That is the same mistake this file exists to prevent, made inside the file's own
-   * selftest, which is exactly why the no-mega species is now READ from the table rather than named. */
-  const noMega = (() => {
-    require('./showdown_path.js');
-    const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-    const REGS = JSON.parse(fs.readFileSync(D('data', 'regulations.json'), 'utf8'));
-    const dex = Dex.forFormat(((REGS.regulations || {})[REGS.active] || {}).showdownFormat);
-    const tbl = megaTable();
-    for (const s of dex.species.all()) if (!s.isNonstandard && !tbl[id(s.name)]) return s.name;
+/* The one decision point. Every accessor routes its miss through here.
+ *
+ * @param value  what the lookup found, or null/undefined
+ * @param what   the table being read, e.g. 'MC.mons'
+ * @param key    what was asked for, verbatim
+ * @param opts   { mayMiss: '<why>' } from the caller, if it expects misses
+ * @param hint   optional extra context for the message
+ */
+function resolve(value, what, key, opts, hint) {
+  if (value !== null && value !== undefined) return value;
+  const why = opts && opts.mayMiss;
+  if (why) {
+    /* Counted even when allowed. A declared miss that fires a million times is still worth seeing,
+     * and it is how a `mayMiss` that has quietly become wrong gets noticed. */
+    const k = `${what} (allowed: ${why})`;
+    MISSES[k] = (MISSES[k] || 0) + 1;
     return null;
-  })();
-  t(`mega() THROWS on a species with no stone (derived: ${noMega})`, () => throws(() => mega(noMega)));
-  t('canMega() answers without throwing, both ways', () => canMega('charizard') === true && canMega(noMega) === false);
-  t("byTag THROWS on 'lowersOnEntry' (the real tag is onSwitchInDrop)", () => throws(() => byTag('abilities', 'lowersOnEntry')));
-  t("byTag THROWS on 'setsWeather' for abilities (the real tag is weatherSetter)", () => throws(() => byTag('abilities', 'setsWeather')));
-  t('byTag returns a NON-EMPTY set for a real tag', () => byTag('abilities', 'onSwitchInDrop').size > 0);
-  t('byTag returns a NON-EMPTY set for weatherSetter', () => byTag('abilities', 'weatherSetter').size > 0);
-  t('tagsOf normalises its key', () => tagsOf('moves', 'Trick Room').includes('reversesSpeed'));
-  /* THE POINT OF THE WHOLE FILE: a wrong name must never come back as a quiet empty answer. */
-  t('no lookup here can return an empty result for a wrong name — it throws instead', () => {
-    return [() => byTag('moves', 'notATag'), () => byTag('items', 'alsoNot'), () => mega('notAMon')]
-      .every(f => throws(f));
-  });
-  console.log(`\nLOOKUP SELFTEST: ${11 - bad} passed, ${bad} failed`);
-  process.exit(bad ? 1 : 0);
+  }
+  const err = new LookupMiss(what, key, hint);
+  if (SOFT) {
+    const k = `${what} UNDECLARED`;
+    if (!MISSES[k]) console.error(`  ABRA_LOOKUP_SOFT: ${err.message.split('\n')[0]}`);
+    MISSES[k] = (MISSES[k] || 0) + 1;
+    return null;
+  }
+  throw err;
 }
 
-module.exports = { id, tagsOf, byTag, knownTags, mega, canMega, megaTable };
+/* What misses happened, declared and otherwise. tests/test-lookup-contract.js reads this, and any
+ * long run can print it to find out what it is tolerating. */
+function misses() { return Object.assign(Object.create(null), MISSES); }
+function resetMisses() { for (const k of Object.keys(MISSES)) delete MISSES[k]; }
+
+module.exports = { resolve, misses, resetMisses, LookupMiss, SOFT: !!SOFT };
