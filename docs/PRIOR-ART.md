@@ -45,11 +45,25 @@ Angliss, Cui, Hu, Rahman, **Peter Stone**. AAMAS 2026. [arXiv 2506.10326](https:
   named, measured trade-off between narrow optimisation and robustness — and it is exactly what
   WOBBUFFET measures on our side.
 
-**What we already had wrong.** `fit_policy.js` drops the VGC-Bench archive as a *"FOUR-DAY SNAPSHOT
-FROM MID-JUNE"* of 4,167 games. That is the slice we ingested, not the dataset — **the dataset is
-700k logs.** `engine/corpus_shift.js` exists to measure the distance between their metagame and ours
-and **has never written an artifact**, so we dropped 41.5% of a corpus on an unmeasured assumption
-about a dataset we had mis-sized. Re-examine before September (ROADMAP #26, #54).
+**THE DATASET IS NOT USABLE BY US, AND THE CODE ALREADY KNEW THAT.** This entry first claimed the
+opposite — that `fit_policy.js` had mis-sized the archive and we should re-examine it. Will:
+*"I THINK WE ALREADY LOOKED AT THEIRS AND IT DIDNT REALLY COVER REG MB / JUST A FEW DAYS."* He was
+right. Measured by downloading it:
+
+```
+their Reg M-B         324 bo1 + 3,843 bo3 = 4,167 games,  4 days, 2026-06-17 -> 06-20
+our  bo3 store        9,701 games,                       15 days, 2026-07-23 -> today
+overlap: 4,167 of 4,167 — 100% ALREADY IN OUR STORE, as data/games.ots.jsonl
+```
+
+`fit_policy.js` says *"4,167 games, 2026-06-18 -> 2026-06-21, 4 distinct days"*. Exactly right. The
+**700,000 figure is Reg M-A**, the previous regulation — 600 MB of a different metagame, no more
+current than the M-B slice. There is nothing to go and get.
+
+**The error was inferring coverage from a NAME.** The HuggingFace file is called
+`logs_gen9championsvgc2026regmb.json`, which is our format's id, and it holds three days of it. Same
+shape as reading "Excadrillite" off a pattern or counting a player called `Victini_Emil` as a Victini.
+The rule that keeps being relearned: **open the file.**
 
 ---
 
