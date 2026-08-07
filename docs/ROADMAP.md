@@ -873,6 +873,8 @@ usage** — plus a carve-out for anything that turns a certainty into a failure 
 | #27 | **the represented-clicks number** — what % of real clicks the engine can even perform. Last measured 15.3% failing when it handled 4 action kinds; it now handles 12 | needs a settled engine + fresh release |
 | #49 | delete the 77 hand-typed mega abilities; the derived path exists and is proven equal | queued behind 42 |
 | #9 | harden `pranksterBlocked` to check the move's target | latent, not live |
+| #71 | seven moves share one tag signature — Pain Split, Recycle, Copycat resolve identically | — |
+| #80 | Knock Off records the wrong DISPOSITION for a self-eaten berry — `[eat]` vs move-attribution, which Harvest/Recycle/Belch/Cud Chew/Unburden read. **The damage claim originally filed here was measured FALSE and is retracted; Colbur fires correctly for us** | found by the differential |
 | #20 | a TYPE cannot be a reactor, so Grass-blocks-powder is untestable | — |
 | #21 | AXIS 4 — DENIAL: a move that costs a turn also denies a field effect | — |
 | #28 | resist berries: the one staged pair is physically impossible | — |
@@ -985,6 +987,18 @@ were wrong** — WIRE 123's error was symmetric across both arms of a paired com
 may survive it while an absolute rate does not. Establishing which is the work.
 
 ### 5.6b Are there too many variables? — audited, and the answer is not the count
+
+> **RETRACTED 2026-08-06 — EVERY MAGNITUDE BELOW IS FROM A FIT THAT PREDATES THE ENGINE.**
+> `data/policy-weights.json` is stamped `2026-08-05T04:00:43Z`; commit `3be3f3b` at **16:47 the same
+> day** rewrote `movesFirst` in `engine/board.js` (*"MAG stops re-deriving turn order"*) because the
+> old path carried **no dynamic speed at all**. Nine further engine commits followed, including
+> WIRES 123–132. `data/collinearity-joint.json` shares that provenance. **The SHAPE of the finding
+> stands — a correlated block's individual weights are not readable — but no coefficient, correlation,
+> firing rate or observation count here may be quoted until the refit.** Registered as **#78** (the
+> feature-hash guard reports all 76 hashes unchanged across the commit that rewrote `movesFirst`, so
+> it is blind and may not clear or block the refit) and **#79** (the 58 features were hand-written in
+> four batches with no admission rule and no duplication check — reconsider the set WITH the
+> post-differential refit, on Will's invitation).
 
 76 weights on 81,515 joint turns is ~1,000 observations per parameter, and the fit is stable: handed
 15,279 further turns it flipped **none** of them. The problem is not size.

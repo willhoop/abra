@@ -19,7 +19,7 @@ MEASURE — can we believe a number
     powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835
     PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/abra-tags.js
     (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
-  provenance: 6 unsafe, 1 void (declared), 46 possibly stale, 55 ok, 0 missing
+  provenance: 7 unsafe, 1 void (declared), 47 possibly stale, 54 ok, 0 missing
     RATCHET TRIPPED — the unstamped list grew; provenance.js exited non-zero: diff-swarm.json, rerun-list.json, store-validation.json
     their generators ship without recording what CONTENT they read — stamp source_digests
   click censoring: 1,383 of 249,404 recorded actions were NOT clicks (0.555%) and left the labeled set; 3,328 (1.334%) are kept under a candidate set
@@ -30,14 +30,14 @@ MEASURE — can we believe a number
       coerced turns, P(the coerced action)          -0.002613 [-0.003650, -0.001672]   n=293  (lower is better)
       CONTROL, clean turns, logL                    +0.000485 [0.000189, 0.000777]   n=47331
   refit edge: FIXTURE ONLY — not clean, and not owed either; only one of the two instruments spoke
-    feature_fixture --check passes: all 58 columns hash-identical to fit time — but the corpus contrast is MUZZLED (it was measured on medicham2 82bed8cdcf6b, live is f7dff7676ad6), so nothing checked the branches no fixture board stands on
-    moved after the fit: engine/medicham2-browser.js  2026-08-06 23:33
+    feature_fixture --check passes: all 58 columns hash-identical to fit time — but the corpus contrast is MUZZLED (it was measured on medicham2 82bed8cdcf6b, live is 0f7dbdfe35f7), so nothing checked the branches no fixture board stands on
+    moved after the fit: engine/medicham2-browser.js  2026-08-07 00:55
     moved after the fit: engine/board.js  2026-08-05 19:44
     moved after the fit: data/engine-data.js  2026-08-06 19:20
     moved after the fit: data/abra-tags.js  2026-08-06 19:19
 ```
 
-_stamped 2026-08-07 00:43_
+_stamped 2026-08-07 01:30_
 
 <!-- /GENERATED -->
 

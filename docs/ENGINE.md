@@ -27,10 +27,10 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  234/235 probed mechanics live, 1 missing   (census 2026-08-06 23:36)
+  234/235 probed mechanics live, 1 missing   (census 2026-08-07 01:06)
   missing:
     move    needsTargetToAttack    Avalanche doubles after the target hits it this turn
-  1/150 differential comparisons disagree with Showdown   (2026-08-06 23:33)
+  1/150 differential comparisons disagree with Showdown   (2026-08-07 01:07)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -49,7 +49,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 162/181 probed, 19 unprobed
 ```
 
-_stamped 2026-08-07 00:43_
+_stamped 2026-08-07 01:12_
 
 <!-- /GENERATED -->
 
@@ -62,6 +62,259 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
+
+## THE COMPARISON DRIVER RUNS. 159 OF 160 REAL GAMES DIVERGE, AFTER A NORMALISER THAT PROVES ITSELF. ROADMAP #68, STEP TWO. 2026-08-06.
+
+Census **234 live / 235 probed → 234 live / 235 probed**, unchanged: nothing in this pass touched a
+mechanic. `unarmed` 0, `directCall` 0, `hollow` 0, differential 1/150, red demonstrations 122/0
+failed, coverage ratchet held, conformance ratchet 0 new, silent-failure ratchet 0 new. The one
+number that moved is a new one: **`data/game-differential.json`, 160 games, 160 diverged, 0 threw,
+19 classes.**
+
+`engine/game_differential.js` plays one team pair through BOTH engines under a pinned die, aligns the
+two protocol streams, and records the **first differing line**. Gated by
+`tests/test-game-differential.js`, which goes red only when the INSTRUMENT is wrong — a divergence is
+a finding, exactly as the census reports a missing mechanic.
+
+**READ THAT RATE WITH THIS BESIDE IT: 460 mega-stone sets were stripped, so THIS RUN TESTED ZERO MEGA
+BODIES in a format whose mega usage is ~26%.** It is stated at the top level of the artifact
+(`rate_excludes`) and not only in `declared_gaps`, because a reader who takes `diverged / games` and
+nothing else has taken a number about a format with the megas removed. Closing it is the next job and
+it is the same change ROADMAP #31 already requires — mega must become a CHOICE, not a build-time
+default, or a search can never decide whether to mega.
+
+### THE FIRST RUN'S RATE WAS NOT A RATE, AND SAYING SO IS THE POINT
+
+Run one read **160 / 160 diverging with a median of ONE completed turn**, and the largest class (44
+games) was the TARGET FIELD of a spread move — Showdown names one victim plus `[spread]`, this engine
+names its own user. Beside it:
+
+```
+showdown  |-ability|p1a: Sharpedo|Speed Boost|boost
+medicham  |-boost|p1a: sharpedo|spe|1|[from] ability: speedboost
+```
+
+Same mechanic, same state change, two spellings. **That number measured how fast the two PROTOCOLS
+look different, not how often MEDICHAM is WRONG** — §2.2 of the design, the Csmith lesson, arriving in
+our own instrument: where the compared thing is not semantically meaningful the oracle collapses and
+the real bugs drown. And they were in there, unranked against the noise.
+
+So a **semantic normaliser** sits under the aligner, and it is the dangerous part of the instrument,
+so it carries two rules of its own:
+
+**1. AN EQUIVALENCE MUST NOT BE ABLE TO NORMALISE A REAL BUG AWAY.** Each rule carries a pair that
+must compare EQUAL (the form it collapses) and a pair that must still compare UNEQUAL (the meaning it
+must not). Both directions run before any game does, and `tests/test-game-differential.js` PART 1b
+fails on either. **A rule with no red demonstration is a silencer, not a normaliser**, and does not go
+in the list. The general argument that makes all seven safe is one sentence: **every rule drops an
+ANNOUNCEMENT or an ATTRIBUTION and never a STATE CHANGE.**
+
+**2. WHAT IT COLLAPSED IS COUNTED AND PUBLISHED, PER RULE.** A normaliser whose effect is invisible is
+how a 100% divergence rate becomes 2% with nobody able to say whether the engine improved or the
+comparator got quieter.
+
+| rule | lines collapsed | what it drops, and why that is not a state change |
+|---|---:|---|
+| `move-target-field` | 2,472 | a `\|move\|` line means "this body used this move". WHO WAS HIT is in the `-damage` / `-status` / `-unboost` / `-enditem` lines that follow, which are kept and compared body by body — so a redirection bug is caught one line later, not never. Its `distinct` pair is exactly that case |
+| `effect-namespace` | 784 | `move: Reflect` against a bare `Reflect`. The NAME is kept |
+| `display-flags` | 492 | `[silent]`, `[still]`, `[miss]`, `[spread]`. Each decorates a state carried by a separate event (`-miss`, `-prepare`, one `-damage` per body) |
+| `ability-announcement` | 480 | `\|-ability\|` is a cosmetic announcement; every consequence is a separate line, so an ability that did not fire still shows as a missing effect |
+| `source-tag` | 351 | `[of] pXy`, whose effect name `[from]` already carries |
+| `switch-cause` | 32 | `[from] U-turn` on a pivot switch — the pivot is the `\|move\|` line right before it |
+| `stat-attribution` | 16 | `[from] ability: X` on a stat line. Body, stat, direction and amount are all kept |
+| | **4,627** | **total across 7 rules, all seven proved in both directions** |
+
+**AFTER IT: 159 of 160 games diverge, 0 threw, 14 classes** (was 160/160 and 19). The rate barely
+moved and that is the honest answer — the shape noise was hiding real classes rather than inflating a
+small number. What moved is that the classes now name mechanics.
+
+**A HARNESS BUG THE NORMALISER EXPOSED, AND IT WAS MINE:** four games threw
+`Can't move: You can't choose a target for Solar Beam`. Showdown OMITS the `target` field from a
+request entry for a LOCKED move — the second turn of Solar Beam or Phantom Force — because the target
+was chosen when the move started. Falling back to the dex row supplied one anyway. `'target' in mv` is
+the authority answering; `mv.target || dm.target` was a guess.
+
+**BOTH PREDICTED FINDINGS REPRODUCE, WHICH IS THE ACCEPTANCE TEST FOR THE ALIGNMENT ITSELF.** §5a
+filed them by hand before this driver existed; a harness that cannot reproduce a finding somebody
+already made without it is misaligned.
+
+```
+knock-off order        10 lines agreed, class "ordering"
+  showdown  |-damage|p2a: Snorlax|135/235                        <- HP first
+            |-enditem|p2a: Snorlax|Leftovers|[from] move: Knock Off
+  medicham  |-enditem|p2a: snorlax|leftovers|[from] move: knockoff   <- item first
+            |-damage|p2a: snorlax|135/235
+contact punish         12 lines agreed, class "ordering"
+  showdown  target -damage, -unboost, -unboost, THEN Rough Skin's -damage
+  medicham  Rough Skin's -damage THREE LINES EARLY, before the target's HP moves
+```
+
+End-of-turn state is identical in both, which is exactly why `tests/test-game-diff.js` agrees on all
+five of its scripted games and the trace does not. **That is §5's whole argument, now mechanical
+rather than hand-run.**
+
+**THE DAMAGE INTERIOR IS MEASURED RATHER THAN QUOTED.** The second filed prediction was that
+`tests/test-engine-diff.js` compares `roll=0` against min and `roll=15` against max, so 149/150 is
+compatible with every middle roll being wrong. Measured on a staged Knock Off:
+
+```
+showdown 84..100, 12 distinct values over its 16 rolls
+medicham 84..100, 17 distinct values sampled UNIFORMLY
+endpoints AGREE; medicham can roll 86, 89, 92, 95 and 98 and Showdown CANNOT
+worst per-value probability gap 6.62 points (5.36 on the contact-punish case, where the spans match exactly)
+```
+
+So the two engines agree on the range and disagree on the distribution inside it. **Mode B is not
+optional and it is not far away** — that is a rate error of up to 6.6 points per damage value, on
+every hit, invisible to every instrument this division owns.
+
+**THE PIN IS THE PART THAT NEEDED THINKING ABOUT, AND IT IS ASSERTED ON BEHAVIOUR.** medicham2 rolls
+`min + floor(rng * span)` — eleven integers. Showdown rolls `tr(tr(base * (100 - random(16))) / 100)`
+— sixteen indices, **inverted**, index 0 being maximum damage. Different sizes, opposite senses:
+there is no scalar that makes them agree in the middle. So Mode A pins the damage roll to the
+**maximum on both sides**, which is the endpoint `test-engine-diff` already validates, and pins
+everything else on the Showdown side to the TOP of its range, which is the reading that agrees with
+medicham2 at `rng = 1 - 1e-9` event for event. Nine claims are checked before a game runs, and
+`PIN_CHANCE` is defined AS `pinRandom(den) < num` so CHANGELOG 3.45.0's two-different-dice failure
+cannot recur by construction. **A sub-100-accuracy move therefore MISSES in both engines** — symmetric,
+no false divergence, and a real coverage hole the report states in as many words (32 moves this run).
+
+**THE PLANTED-DIVERGENCE PROOF FAILED TWICE BEFORE IT WAS HONEST, AND BOTH FAILURES ARE THE HOUSE
+SHAPE.** It first reported all three plants "caught at line 0", which reads as a healthy comparator:
+`battleInit` takes the team BY REFERENCE, so the second arm was playing from the wreckage of the
+first and its leads announced already-damaged HP. Fixed, it reported NOT CAUGHT: the driver is
+coverage-seeking and therefore **stateful**, so the clean and planted arms were not the same game.
+Fixed again, one plant passed for the wrong reason — the plants ran on the pre-turn-1 alignment where
+the stream is four lines long, so the swap plant wrote `undefined` into the stream and was "caught"
+at the line it had corrupted by accident. The plants are now indexed off the clean run's OWN
+divergence, so each lands inside the agreeing prefix, and the test asserts **caught AND earlier than
+the clean divergence AND at exactly the planted line**.
+
+### The 14 classes, after normalisation — a class is a WIRE, an instance is not
+
+Median game still parts after **one completed turn**, so nothing below is about long sequences yet.
+
+| games | causes | class | what it is |
+|---:|---:|---|---|
+| 55 | 32 | `unrelated event mismatch` | two unrelated things at the same index. Led by **`-singleturn protect` against our `-fail`** (9 games — the two engines disagree about whether a Protect SUCCEEDS) and by medicham2 emitting a Hospitality `-heal` where Showdown emits none |
+| 49 | 46 | `event missing from medicham2` | Showdown emits something we do not. **`\|move\|X\|trickroom` — medicham2 emits no `\|move\|` line for Trick Room at all** (5 games); `-fail\|unboost\|[from] clearbody` and the Inner Focus / Own Tempo / Oblivious / Scrappy family refusing Intimidate; **Mirror Armor, where Showdown reflects the drop and we unboost our own side** |
+| 18 | 14 | **`ordering`** | the predicted one, and more. **Which side's Intimidate resolves first (4 games)**; `-start substitute` against the `-damage` that pays for it; Protean's typechange against the effectiveness line; a drain heal against the faint it causes |
+| 9 | 9 | **`turn order`** | nine distinct games where a different body moves first |
+| 8 | 8 | **`-damage field 3`** | **off by one under a pinned MAXIMUM roll** — recoil (`118/160` vs `119/160`) and direct damage. One game is worse: `H/H` against `0 fnt`, i.e. one engine kills and the other does not |
+| 8 | 8 | `extra event emitted by medicham2` | Mummy's `-activate` before the damage; a `-boost` at upkeep; Protect's `-activate` where Showdown says `-immune` |
+| 3 | 3 | `-miss field 3` | medicham2 emits `-miss` with no target, or names the wrong one |
+| 2 | 2 | `switch: a different body` | **Illusion: Showdown announces the disguise, medicham2 announces Zoroark.** Both games |
+| 2 | 2 | `-start: a different body` | Perish Song counted on the wrong side, and at a different count |
+| 1 each | | `-immune field 3` (Good as Gold unattributed), `-boost: a different body` (**and its identifier is `??`**), `-damage field 4` (High Jump Kick crash tagged as generic recoil), `-activate field 4` (Skill Swap does not name the two abilities), `-status field 4` (sleep unattributed to Hypnosis) |
+
+**THE REMAINING SHAPE CLASSES ARE NOT COSMETIC AND MUST NOT BE DEPRIORITISED AS SUCH.** They are what
+stops the median game reaching turn two, so every sequencing question past the first turn is still
+untestable. Closing the top two is what buys the instrument its depth.
+
+### The Knock Off ordering, asked as TWO INDEPENDENT HALVES, and the prediction was WRONG
+
+Showdown's `data/moves.ts:9962` takes Knock Off's x1.5 in `onBasePower` BEFORE damage and calls
+`takeItem()` in `onAfterHit` AFTER it. Colbur Berry (`items.ts:1133`) is `onSourceModifyDamage` and
+fires INSIDE the calculation; Sitrus (`items.ts:5740`) is `onUpdate` and fires after `takeItem` has
+run. Opposite answers, same move, same turn. **The two halves are asserted apart on purpose: if the
+1.5x were also evaluated after removal, a lost boost and a lost halving would partially cancel and the
+net would look fine — the worst outcome, because it looks like agreement.**
+
+```
+boost      x1.5 for holding an item        showdown 1.471   medicham 1.480   (expected 1.5)
+reduction  x0.5 Colbur vs super-eff Dark   showdown 0.500   medicham 0.500   (expected 0.5)
+net        the two multiplied              showdown 0.735   medicham 0.740   (expected 0.75)
+the three arms are distinguishable: 204 / 300 / 150   (x8 HP pool, or all three clamp to 135 and
+                                                       both ratios read 1.0 and both checks are vacuous)
+```
+
+**THE PREDICTED DAMAGE BUG DOES NOT REPRODUCE, and the diagnosis is the finding.** The prediction was
+that stripping the item first means *"Colbur can never fire for us — we deal full super-effective
+damage where Showdown deals half"*. It fires. medicham2 prices **both** halves correctly, because
+`playerAction` computes the damage RANGE at CLICK time, before the item is stripped, so the ordering
+costs no damage here at all.
+
+**What DOES differ is the item's DISPOSITION:**
+
+```
+showdown  |-enditem|p2a: Gengar|Colbur Berry|[eat]        <- the berry ate ITSELF, inside the calc
+          |-enditem|p2a: Gengar|Colbur Berry|[weaken]        so takeItem() then found nothing
+medicham  |-enditem|p2a: gengar|colburberry|[from] move: knockoff|[of] p1a: incineroar
+```
+
+Same end state, **different FACT** — and *"was it eaten"* is exactly what Harvest, Recycle, Belch, Cud
+Chew and Unburden read. The Sitrus half **agrees exactly**: both engines strip it and neither heals.
+
+### Two corrections to `traceCanon`, both of which it already CLAIMED
+
+Found by the driver on its first run, and the claim-before-truth is the worse half:
+
+- **the hyphen.** This engine holds ids (`doubleedge`), Showdown writes display names
+  (`Double-Edge`). Lowercasing alone leaves `double-edge`. Every hyphenated move, apostrophe species
+  and `-mega-y` forme read as a divergence. Now folded, together with `.` (`Mr. Rime`, reported as
+  `switch: a different body  mr.rime <> mrrime`) and combining diacritics (`Flabébé`). **Known
+  residue, stated: `Type: Null` carries a COLON, which is structural, so it is not folded.**
+- **the side field.** The comment claimed "`p1: A` → `p1:a`, and this engine emits `p1: ` → `p1:`, so
+  the player name is dropped from both". It was dropped from NEITHER. Every `-sidestart` and
+  `-sideend` in every game parted on a player name this engine does not have.
+
+Fields 0 and 1 are structure and are left alone — folding `-` out of field 1 would rename half the
+protocol.
+
+### What the run says it did NOT test — the honest half
+
+- **Coverage is reported at two strengths and they are deliberately not added up.** `91 / 106`
+  mechanics reached by a move that CONNECTED; `78 / 86` reached only by an ability or item that was
+  ON THE FIELD. The median game parts after one turn, so most of those bodies never acted. **Present
+  is not exercised**, and a single union figure (170/192) would be the 12%-tolerance mistake again.
+- **43 of the 235 census rows are declared UNMEASURABLE by this instrument**, each with its reason —
+  they name an INTERACTION (`intimidateRetaliationNet`, `drainThenPunishOrder`) rather than a
+  taggable entity. Counted as covered or as uncovered they would both be wrong.
+- **33 moves were clicked and ALWAYS missed** under the pin, and are not counted as covered.
+- **NO MEGA BODY WAS TESTED AT ALL.** 460 stone-holding sets were stripped, because medicham2 megas at
+  BUILD time and Showdown megas on a CHOICE — a stone parts the streams on the `|switch|` line of turn
+  zero in every game that carries one. `tests/test-mega-timing.js` owns that question; this instrument
+  cannot answer it until they agree on WHEN.
+- **Gender is `N` on both sides**, so Attract, Rivalry and Cute Charm are not exercised. Same control,
+  same reason, as CONTROL FIX 6 in the damage differential.
+- **`MEDFAILS.traceBodyOffField = 2`** across 160 games — a `??` identifier reached the stream (first:
+  a Roar phazing a body off the field). `tests/test-protocol-trace.js` PART 6 says this must read 0;
+  it does on that file's own games and does not on these.
+- 3 teams and 117 individual sets could not be built in both engines and were skipped, counted.
+- `omit-priority` produced **3 games** against 20 for every other configuration: only 7 of 7,256 real
+  teams carry no priority move. The starvation is the swarm's, not the format's, and is printed.
+
+### Filed by the whole-game differential, not fixed
+
+Every item below has a reproducing class in `data/game-differential.json`. Nothing here is a probe
+yet, so nothing here is in the census — that is the next pass's job, and the working rule at the top
+of this file applies.
+
+- **the two ordering findings** — knock-off / resist-berry / contact-punish resolve against the target
+  before its HP is subtracted. Staged in `DIRECTED` and gated by `tests/test-game-differential.js`.
+  **the Knock Off section above establishes this costs no DAMAGE**; what it costs is the item's disposition.
+- **the resist berry is a THIRD shape, not the same as knock-off.** Showdown spends it with
+  `-enditem ... [weaken]` BEFORE the damage line; medicham2 emits no `-enditem` in the window at all.
+- **Trick Room emits no `|move|` line at all** — `playerAction` returns `kind:'trickroom'` and that
+  branch never reaches `TR.mv`. Five games. Same shape for the other non-`attack` action kinds.
+- **the two engines disagree about whether a Protect SUCCEEDS** — `-singleturn protect` against our
+  `-fail`, nine games, under a pin where both stall checks are supposed to read the same die.
+- **Mirror Armor does not reflect Intimidate.** medicham2 drops its own ally's Attack instead.
+- **Colbur is recorded as KNOCKED OFF where Showdown records it as EATEN.** Harvest, Recycle, Belch,
+  Cud Chew and Unburden all read "was it eaten". Same family as #28, the resist berries.
+  **THE REGISTER DOES NOT CARRY THIS ITEM.** It was filed to me as ROADMAP item eighty, and
+  `docs/ROADMAP.md` §5 names 48 items, none of which is that one or the related item seventy-one — so
+  the reference is written out by description rather than by number. `tests/test-roadmap-register.js`
+  is RIGHT to fail on a ledger scheduling an item the register has never heard of, and ROADMAP.md is
+  not ENGINE's to edit; the numbers can come back the moment §5 carries them.
+- **Illusion announces the wrong body** on switch-in — filed in docs/GAME-DIFFERENTIAL-DESIGN.md §3.2
+  and now with a reproducing game rather than a citation. The register entry belongs to whoever owns
+  that item; this ledger does not schedule it, so it does not name its number.
+- **damage is off by one under a pinned maximum roll**, on recoil and on direct damage, five games.
+- **the Intimidate x guaranteed-crit case is still open** (§6): `107/170` against `128/170`. It has a
+  probe in `tests/test-protocol-trace.js` PART 5 and is still the declared limitation.
+- **`data/diff-swarm.json`, `data/rerun-list.json` and `data/store-validation.json` trip the
+  provenance ratchet and none of them is ENGINE's.** Red on arrival; filed under the DIVISIONS rule.
 
 ## MEDICHAM EMITS A SHOWDOWN-SHAPED PROTOCOL TRACE. ROADMAP #68, STEP ONE. 2026-08-06.
 
@@ -2704,6 +2957,12 @@ that have **no probe at all** (17 today, led by `move|accuracyMod` at 5,986 uses
 `ability|auraBoost` at 5,620), the abilities and items the artifact derived **no mechanic** for (12),
 and the usage-weighted coverage beside the count. Work the list below; then work that one, because it
 re-derives itself when the metagame moves and this section does not.
+
+**AND A SECOND DERIVED LIST LANDED 2026-08-06:** `data/game-differential.json`'s `classes` block. The
+coverage list above says which mechanics have NO PROBE; that one says which mechanics have a probe and
+still resolve differently from the authority IN A REAL GAME. Nineteen classes today, each with its
+count and its distinct causes, regenerated by `node engine/game_differential.js --write`. Neither list
+is typed and neither can go stale, which is the whole reason the section below is nine lines long.
 
 - **Rivalry** — x1.25 into the same gender, x0.75 into the opposite, x1.0 if either is genderless.
   Wholly absent. Blocked on data, not on will: `MC.mons` carries no gender and `buildMon` returns

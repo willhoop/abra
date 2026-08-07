@@ -36,6 +36,8 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const RS = require('./run_stamp.js');
+const RERUN_SOURCES = ['engine/rerun_list.js', 'engine/engine_release.js', 'engine/medicham2-browser.js', 'engine/board.js'];
 
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
@@ -188,6 +190,9 @@ if (WRITE) {
   fs.writeFileSync(D('data', 'rerun-list.json'), JSON.stringify({
     generated: new Date().toISOString(),
     by: 'engine/rerun_list.js',
+    /* This file exists to say which artifacts are stale, so it resting on mtime alone would be the
+     * joke telling itself. CONTENT, not mtime. */
+    source_digests: RS.sourceDigests(RERUN_SOURCES),
     note: 'ROADMAP #57. Derived, never typed. UNSTAMPED means the number cannot be dated and is not evidence.',
     live_digests: live,
     game_sources: GAME_SOURCES,

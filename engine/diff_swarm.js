@@ -1,3 +1,10 @@
+// RAW-STORE-OK: the teams here are TEST CONFIGURATIONS, not evidence about play. This file reads the
+// raw ladder store on purpose. Every quality filter we have selects on WHO PLAYED — rating, bot
+// tags, forfeits — and none of that changes whether a team is a valid input to the engine. A bot's
+// Trick Room team exercises Trick Room exactly as well as a 1600 player's, and filtering to clean
+// games would narrow the team pool toward one ladder segment, which is the OPPOSITE of what a swarm
+// is for: docs/GAME-DIFFERENTIAL-DESIGN.md §3.2 wants rarely-covered configurations, and the rare
+// ones live in the tail this filter would remove. Nothing derived here is a claim about the meta.
 /* diff_swarm.js — TEAM SELECTION FOR THE WHOLE-GAME DIFFERENTIAL. ROADMAP #68, docs/GAME-DIFFERENTIAL-DESIGN.md §3.
  *
  *   node engine/diff_swarm.js                 print the swarm's composition
@@ -36,6 +43,8 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const RS = require('./run_stamp.js');
+const SWARM_SOURCES = ['engine/diff_swarm.js', 'engine/tag_dex.js', 'engine/names.js', 'data/tags.json', 'data/games.ladder.jsonl'];
 
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
@@ -172,7 +181,7 @@ function configs(F) {
  * matter are the two directions: an omit config must REJECT a team carrying the feature, and a pair
  * config must REJECT a team carrying only one half. A config that accepts everything is not a
  * configuration, it is the baseline wearing a label. */
-if (process.argv.includes('--selftest')) {
+if (require.main === module && process.argv.includes('--selftest')) {
   /* ABSTRACT FIXTURE NAMES ON PURPOSE. Naming real moves here would (a) trip conformance S12, which is
    * right to object — a Pokemon fact typed into code is a fact that can go stale — and (b) weaken the
    * test, because what is under test is the PREDICATE LOGIC, not whether Protect is spelled correctly.
@@ -211,58 +220,78 @@ if (process.argv.includes('--selftest')) {
   process.exit(bad ? 1 : 0);
 }
 
-/* ---- RUN --------------------------------------------------------------------------------------- */
-const F = featureSets();
-const CFG = configs(F);
-
-const teams = [];
-const seen = new Set();
-for (const f of ['data/games.bo3.jsonl', 'data/games.ots.jsonl']) {
-  let raw;
-  try { raw = fs.readFileSync(D(f), 'utf8'); }
-  catch (e) { SKIPS.push(`${f}: ${String((e && e.message) || e).slice(0, 80)}`); continue; }
-  for (const line of raw.split('\n')) {
-    if (!line.trim()) continue;
-    let g; try { g = JSON.parse(line); } catch (e) { UNREADABLE++; continue; }
-    const sh = g.sheets; if (!sh) continue;
-    for (const side of ['p1', 'p2']) {
-      const t = sh[side] || []; if (t.length < 4) continue;
-      /* DEDUPE ON THE TEAM, not the game. The same team laddering ten times is one configuration
-       * tested ten times, which inflates the swarm's apparent breadth without buying any. */
-      const key = t.map(p => norm((p && p.species) || '') + ':' + ((p && p.moves) || []).map(norm).sort().join('.')).sort().join('|');
-      if (seen.has(key)) continue;
-      seen.add(key);
-      teams.push({ key, team: t, id: g.id });
+/* ---- RUN ---------------------------------------------------------------------------------------
+ *
+ * EXPORTED AS A FUNCTION so the comparison driver (engine/game_differential.js) calls THIS selection
+ * rather than writing a second one. `data/diff-swarm.json` records only game IDS, and a game id does
+ * not say which SIDE was picked — both sheets of one game can be distinct teams. A driver resolving
+ * ids back to teams would have to re-derive the predicates, which is two implementations of "what is
+ * in this configuration" and they would disagree the first time a tag moved. It returns the picked
+ * TEAM OBJECTS; the CLI report below prints ids out of the same structure. */
+function loadTeams() {
+  const teams = [];
+  const seen = new Set();
+  for (const f of ['data/games.bo3.jsonl', 'data/games.ots.jsonl']) {
+    let raw;
+    try { raw = fs.readFileSync(D(f), 'utf8'); }
+    catch (e) { SKIPS.push(`${f}: ${String((e && e.message) || e).slice(0, 80)}`); continue; }
+    for (const line of raw.split('\n')) {
+      if (!line.trim()) continue;
+      let g; try { g = JSON.parse(line); } catch (e) { UNREADABLE++; continue; }
+      const sh = g.sheets; if (!sh) continue;
+      for (const side of ['p1', 'p2']) {
+        const t = sh[side] || []; if (t.length < 4) continue;
+        /* DEDUPE ON THE TEAM, not the game. The same team laddering ten times is one configuration
+         * tested ten times, which inflates the swarm's apparent breadth without buying any. */
+        const key = t.map(p => norm((p && p.species) || '') + ':' + ((p && p.moves) || []).map(norm).sort().join('.')).sort().join('|');
+        if (seen.has(key)) continue;
+        seen.add(key);
+        teams.push({ key, team: t, id: g.id, side });
+      }
     }
   }
+  return teams;
 }
 
-const per = Math.max(1, Math.floor(N / CFG.length));
-const out = [];
-for (const c of CFG) {
-  /* COUNTED, NOT SWALLOWED. A predicate that throws on a malformed sheet drops that team from the
-   * config, and a config quietly missing teams is exactly the starvation this file reports on. */
-  let threw = 0;
-  const matching = teams.filter(x => {
-    try { return c.ok(x.team); }
-    catch (e) { threw++; if (threw === 1) SKIPS.push(`config ${c.id}: predicate threw on a team (${String((e && e.message) || e).slice(0, 60)}) — counted, not hidden`); return false; }
-  });
-  if (threw) SKIPS.push(`config ${c.id}: ${threw} team(s) dropped because the predicate threw`);
-  /* DETERMINISTIC STRIDE, not a random draw — this file must produce the same swarm twice or the
-   * differential's inputs move under it, and a measurement whose inputs move is the 2026-08-04 void. */
-  const step = Math.max(1, Math.floor(matching.length / per));
-  const picked = [];
-  for (let i = 0; i < matching.length && picked.length < per; i += step) picked.push(matching[i]);
-  out.push({ config: c.id, why: c.why, available: matching.length, picked: picked.length,
-             pct_of_pool: +(100 * matching.length / Math.max(teams.length, 1)).toFixed(2),
-             teams: picked.map(p => p.id) });
+function buildSwarm(n) {
+  const F = featureSets();
+  const CFG = configs(F);
+  const teams = loadTeams();
+  const per = Math.max(1, Math.floor((n || N) / CFG.length));
+  const out = [];
+  for (const c of CFG) {
+    /* COUNTED, NOT SWALLOWED. A predicate that throws on a malformed sheet drops that team from the
+     * config, and a config quietly missing teams is exactly the starvation this file reports on. */
+    let threw = 0;
+    const matching = teams.filter(x => {
+      try { return c.ok(x.team); }
+      catch (e) { threw++; if (threw === 1) SKIPS.push(`config ${c.id}: predicate threw on a team (${String((e && e.message) || e).slice(0, 60)}) — counted, not hidden`); return false; }
+    });
+    if (threw) SKIPS.push(`config ${c.id}: ${threw} team(s) dropped because the predicate threw`);
+    /* DETERMINISTIC STRIDE, not a random draw — this file must produce the same swarm twice or the
+     * differential's inputs move under it, and a measurement whose inputs move is the 2026-08-04 void. */
+    const step = Math.max(1, Math.floor(matching.length / per));
+    const picked = [];
+    for (let i = 0; i < matching.length && picked.length < per; i += step) picked.push(matching[i]);
+    out.push({ config: c.id, why: c.why, available: matching.length, picked: picked.length,
+               pct_of_pool: +(100 * matching.length / Math.max(teams.length, 1)).toFixed(2),
+               teams: picked.map(p => p.id), picked_teams: picked });
+  }
+  return { teams, per, out, skips: SKIPS, unreadable: UNREADABLE, features: F, configs: CFG };
 }
+
+module.exports = { featureSets, configs, loadTeams, buildSwarm, teamHas, norm, GAME_RULES };
+
+if (require.main !== module) return;
+
+const SW = buildSwarm(N);
+const teams = SW.teams, per = SW.per, out = SW.out;
 
 console.log('');
 console.log('DIFF SWARM — team selection for the whole-game differential (ROADMAP #68 §3)');
 console.log('');
 console.log(`  distinct teams in the open-sheet corpus: ${teams.length.toLocaleString()}`);
-console.log(`  target ${N} teams over ${CFG.length} configurations, ${per} each`);
+console.log(`  target ${N} teams over ${SW.configs.length} configurations, ${per} each`);
 console.log('');
 console.log('  config'.padEnd(26), 'available'.padStart(10), 'picked'.padStart(8), '% of pool'.padStart(10));
 for (const r of out) {
@@ -287,9 +316,16 @@ console.log('');
 if (WRITE) {
   fs.writeFileSync(D('data', 'diff-swarm.json'), JSON.stringify({
     generated: new Date().toISOString(), by: 'engine/diff_swarm.js',
+    /* CONTENT, NOT MTIME. Without this the provenance ratchet counts this artifact as resting on
+     * mtime alone, and an artifact newer than an input it never read gets marked `ok` -- which is
+     * precisely how the 2026-08-04 void run passed. Three artifacts written on 2026-08-06 broke the
+     * ratchet the same evening it was being cited; the ratchet may shrink and may never grow. */
+    source_digests: RS.sourceDigests(SWARM_SOURCES),
     corpus_distinct_teams: teams.length, target: N, per_config: per,
     unreadable_lines: UNREADABLE, skips: SKIPS,
-    configs: out,
+    /* `picked_teams` carries the SHEETS and is for the in-process driver only — writing it here would
+     * put ~7 MB of team data into an artifact whose job is to record the swarm's SHAPE. */
+    configs: out.map(({ picked_teams, ...r }) => r),
   }, null, 2) + '\n');
   console.log('  -> data/diff-swarm.json');
 }

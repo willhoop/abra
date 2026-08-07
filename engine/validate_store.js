@@ -35,6 +35,8 @@
 require('./showdown_path.js');
 const fs = require('fs');
 const path = require('path');
+const RS = require('./run_stamp.js');
+const VALIDATE_SOURCES = ['engine/validate_store.js', 'data/games.ladder.jsonl', 'data/games.bo3.jsonl', 'data/games.ots.jsonl'];
 
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
@@ -207,6 +209,9 @@ console.log('');
 if (WRITE) {
   fs.writeFileSync(D('data', 'store-validation.json'), JSON.stringify({
     generated: new Date().toISOString(), by: 'engine/validate_store.js', format: FORMAT,
+    /* CONTENT, NOT MTIME -- the verdict depends on the Showdown rules that graded it, and a
+     * validator that cannot say which ruleset it ran under is unreadable a week later. */
+    source_digests: RS.sourceDigests(VALIDATE_SOURCES),
     judged: { games, revealed_sets: monsJudged, distinct: cache.size, seconds: +secs.toFixed(1) },
     flagged_games: flagged, by_reason: byReason, examples: flaggedGames,
   }, null, 2) + '\n');

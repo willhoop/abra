@@ -1,9 +1,16 @@
 {
-  "generated": "2026-08-06T21:28:49.265Z",
+  "generated": "2026-08-07T01:35:55.911Z",
   "by": "engine/rerun_list.js",
+  "source_digests": {
+    "engine/rerun_list.js": "458181c7093f",
+    "engine/engine_release.js": "a61b26c038a3",
+    "engine/medicham2-browser.js": "0f7dbdfe35f7",
+    "engine/board.js": "5bdaa3923958",
+    "note": "Content, not mtime. A checkout moves an mtime without moving code."
+  },
   "note": "ROADMAP #57. Derived, never typed. UNSTAMPED means the number cannot be dated and is not evidence.",
   "live_digests": {
-    "engine/medicham2-browser.js": "50def15ac8f0",
+    "engine/medicham2-browser.js": "0f7dbdfe35f7",
     "engine/board.js": "5bdaa3923958",
     "engine/champions_sim.js": "fa5b8af6513a"
   },
@@ -16,7 +23,7 @@
     "unstamped": 16,
     "void": 2,
     "stale": 11,
-    "current": 0
+    "current": 1
   },
   "rows": [
     {
@@ -137,7 +144,7 @@
         "engine/board.js",
         "engine/champions_sim.js"
       ],
-      "why": "measured on medicham2-browser.js ae012bdf2b3a, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 50def15ac8f0, 5bdaa3923958, fa5b8af6513a"
+      "why": "measured on medicham2-browser.js ae012bdf2b3a, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 0f7dbdfe35f7, 5bdaa3923958, fa5b8af6513a"
     },
     {
       "artifact": "exploit-step-probe.json",
@@ -149,7 +156,7 @@
         "engine/board.js",
         "engine/champions_sim.js"
       ],
-      "why": "measured on medicham2-browser.js 645b93a3878f, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 50def15ac8f0, 5bdaa3923958, fa5b8af6513a"
+      "why": "measured on medicham2-browser.js 645b93a3878f, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 0f7dbdfe35f7, 5bdaa3923958, fa5b8af6513a"
     },
     {
       "artifact": "leaf-position-contrast.json",
@@ -160,7 +167,7 @@
         "engine/medicham2-browser.js",
         "engine/board.js"
       ],
-      "why": "measured on medicham2-browser.js 80fe43fba1a9, board.js 54e3d2ca9f85; live is 50def15ac8f0, 5bdaa3923958"
+      "why": "measured on medicham2-browser.js 80fe43fba1a9, board.js 54e3d2ca9f85; live is 0f7dbdfe35f7, 5bdaa3923958"
     },
     {
       "artifact": "mutation-coverage.json",
@@ -171,7 +178,7 @@
         "engine/medicham2-browser.js",
         "engine/board.js"
       ],
-      "why": "measured on medicham2-browser.js 80fe43fba1a9, board.js 54e3d2ca9f85; live is 50def15ac8f0, 5bdaa3923958"
+      "why": "measured on medicham2-browser.js 80fe43fba1a9, board.js 54e3d2ca9f85; live is 0f7dbdfe35f7, 5bdaa3923958"
     },
     {
       "artifact": "porygon2-separation-gate.json",
@@ -181,7 +188,7 @@
       "moved": [
         "engine/medicham2-browser.js"
       ],
-      "why": "measured on medicham2-browser.js eaa42b53cab9; live is 50def15ac8f0"
+      "why": "measured on medicham2-browser.js eaa42b53cab9; live is 0f7dbdfe35f7"
     },
     {
       "artifact": "rollout-r1-explore-sweep.json",
@@ -193,7 +200,7 @@
         "engine/board.js",
         "engine/champions_sim.js"
       ],
-      "why": "measured on medicham2-browser.js 17afcf76bfff, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 50def15ac8f0, 5bdaa3923958, fa5b8af6513a"
+      "why": "measured on medicham2-browser.js 17afcf76bfff, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 0f7dbdfe35f7, 5bdaa3923958, fa5b8af6513a"
     },
     {
       "artifact": "rollout-r1-explore1-rows-3932186b59ef.meta.json",
@@ -205,7 +212,7 @@
         "engine/board.js",
         "engine/champions_sim.js"
       ],
-      "why": "measured on medicham2-browser.js 17afcf76bfff, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 50def15ac8f0, 5bdaa3923958, fa5b8af6513a"
+      "why": "measured on medicham2-browser.js 17afcf76bfff, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 0f7dbdfe35f7, 5bdaa3923958, fa5b8af6513a"
     },
     {
       "artifact": "rollout-r1-explore1-rows-6e43710396db.meta.json",
@@ -217,7 +224,7 @@
         "engine/board.js",
         "engine/champions_sim.js"
       ],
-      "why": "measured on medicham2-browser.js ae012bdf2b3a, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 50def15ac8f0, 5bdaa3923958, fa5b8af6513a"
+      "why": "measured on medicham2-browser.js ae012bdf2b3a, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 0f7dbdfe35f7, 5bdaa3923958, fa5b8af6513a"
     },
     {
       "artifact": "rollout-r1-explore1.json",
@@ -229,7 +236,7 @@
         "engine/board.js",
         "engine/champions_sim.js"
       ],
-      "why": "measured on medicham2-browser.js 17afcf76bfff, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 50def15ac8f0, 5bdaa3923958, fa5b8af6513a"
+      "why": "measured on medicham2-browser.js 17afcf76bfff, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 0f7dbdfe35f7, 5bdaa3923958, fa5b8af6513a"
     },
     {
       "artifact": "rollout-r1-greedy-rows-3932186b59ef.meta.json",
@@ -241,7 +248,7 @@
         "engine/board.js",
         "engine/champions_sim.js"
       ],
-      "why": "measured on medicham2-browser.js 17afcf76bfff, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 50def15ac8f0, 5bdaa3923958, fa5b8af6513a"
+      "why": "measured on medicham2-browser.js 17afcf76bfff, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 0f7dbdfe35f7, 5bdaa3923958, fa5b8af6513a"
     },
     {
       "artifact": "sheet-channel-value.json",
@@ -253,13 +260,20 @@
         "engine/board.js",
         "engine/champions_sim.js"
       ],
-      "why": "measured on medicham2-browser.js ae012bdf2b3a, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 50def15ac8f0, 5bdaa3923958, fa5b8af6513a"
+      "why": "measured on medicham2-browser.js ae012bdf2b3a, board.js 54e3d2ca9f85, champions_sim.js 084a836be5ef; live is 0f7dbdfe35f7, 5bdaa3923958, fa5b8af6513a"
     },
     {
       "artifact": "dusk-size-gate.json",
       "games": null,
       "verdict": "DECLARED N/A",
       "why": "none — this is pure store analysis and loads no engine module. Species identity, HP, status, boosts and field come out of the stored turn events written by engine/durable-ingest.js at collection time."
+    },
+    {
+      "artifact": "game-differential.json",
+      "games": 160,
+      "verdict": "CURRENT",
+      "release": "9491abe09f54",
+      "why": "every game-affecting source still matches the frozen copy"
     }
   ]
 }
