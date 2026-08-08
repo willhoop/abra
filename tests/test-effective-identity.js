@@ -497,6 +497,20 @@ const DECLARED = {
     'CONTROL FIX 5 assigns the dex slot-0 ability onto BOTH engines so the input is held equal; '
     + 'every later read is of the value this file itself just wrote, and it is the effective one '
     + '(dex.species.get() is asked for the mega forme when the row is a mega).',
+  'tests/test-damage-stages.js':
+    'FOUR MATCHES, ALL ASSIGNMENTS, AND THE ASSIGNMENT IS THE POINT OF THE FILE (ROADMAP #92). Two '
+    + 'write the scenario\'s chosen ability onto a medicham body buildMon has just returned '
+    + '(`a.ability = ... : \'none\'`), and two write the same ability onto the Showdown side through '
+    + '`setAb`. Nothing is read back. Both sides are set EXPLICITLY ON EVERY ROW, including the '
+    + 'controls, and that is a correctness requirement rather than tidiness: the first version of '
+    + 'this harness left the defender at its species default and so measured Araquanid\'s own Water '
+    + 'Bubble against a blank and Heliolisk\'s own Dry Skin against a blank — the '
+    + 'compare-a-Scarf-against-a-Scarf failure, caught before the file shipped. No stone is ever '
+    + 'given to either side and no mega evolution can occur: every body is built bare, handed one '
+    + 'ability, and hit once through `moveHit` / `dmgRange`. There is no pre-mega/post-mega '
+    + 'distinction for effAbility() to resolve, and routing the WRITE through a resolver that '
+    + 'COMPUTES an ability would defeat the whole instrument, which exists to hold every input equal '
+    + 'across two engines and vary exactly one.',
   'tests/test-effective-identity.js':
     'This file. It reads .ability to check that .ability is right.',
   'tests/walk_tags.js':

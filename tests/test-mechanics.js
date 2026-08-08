@@ -3783,6 +3783,125 @@ probe('move', 'terrainScaled', 'Expanding Force gains power on Psychic Terrain',
                  + `(must equal no terrain)` };
 });
 
+/* ROADMAP #92 -- THE FIELD TERRAIN'S OWN DAMAGE MULTIPLIERS, WHICH ARE NOT `terrainScaled`.
+ *
+ * The probe above tests a MOVE that reads the terrain (Expanding Force carries the tag). These four
+ * test the TERRAIN reading the move, which is a different handler in a different place: the terrain
+ * CONDITION carries `onBasePower` and applies to every move of the right type from anybody, tag or
+ * no tag. The engine had NOTHING for it -- the only terrain reads inside dmgRange were Hadron Engine
+ * and the per-move tag -- and the magnitudes are not small: a Grassy-Terrain Earthquake was priced at
+ * 118 here against the authority's 60, so this engine dealt exactly DOUBLE on the one move the
+ * terrain exists to blunt, and a Misty-Terrain Dragon Claw at 96 against 49.
+ *
+ * THE USAGE IS SMALL AND IS STATED RATHER THAN INFLATED. All terrain setters combined are 161 corpus
+ * uses against Fake Out's 15,106 -- about 1% of it. The reason to land it is the size of the error
+ * where it does appear, not how often it appears.
+ *
+ * EVERY ONE CARRIES A WRONG-TERRAIN ARM AND A WRONG-TYPE ARM, because the failure this shape invites
+ * is a multiplier that fires under any terrain or on any move. A boost that also fired on Dragon
+ * Claw, or a halving that also fired under Electric Terrain, would pass a two-armed probe. */
+probe('move', 'setsTerrain', 'Electric Terrain raises an ELECTRIC move and nothing else', () => {
+  /* THE DEFENDER IS A DRAGON, NOT THE GROUND TYPE THE OTHER PROBES USE. Garchomp is IMMUNE to
+   * Electric, so both arms read 0 and the probe would have "agreed" about nothing -- it did exactly
+   * that on its first run, which is the arms protocol earning its place. */
+  const hit = (t, mv) => turnDamageBig(['pikachu', 'incineroar', 'goodra', 'garchomp'],
+    (B) => { B.S.field.terrain = t; }, mv);
+  const control = hit('', 'thunderbolt'), test = hit('electricterrain', 'thunderbolt');
+  const wrongTerrain = hit('mistyterrain', 'thunderbolt');
+  const otherMove = [hit('', 'alluringvoice'), hit('electricterrain', 'alluringvoice')];
+  return { works: test > control && control > 0 && wrongTerrain === control
+                  && otherMove[0] === otherMove[1] && otherMove[0] > 0,
+           arms: { control, test },
+           detail: `Thunderbolt dealt: no terrain ${control}, Electric Terrain ${test}, `
+                 + `Misty Terrain ${wrongTerrain} (must equal no terrain); Alluring Voice, `
+                 + `a NON-Electric move off the same body: ${otherMove[0]} -> ${otherMove[1]} (must not move)` };
+});
+
+probe('move', 'setsTerrain', 'Psychic Terrain raises a PSYCHIC move and nothing else', () => {
+  const hit = (t, mv) => turnDamageBig(['hatterene', 'incineroar', 'garchomp', 'garchomp'],
+    (B) => { B.S.field.terrain = t; }, mv);
+  const control = hit('', 'psychic'), test = hit('psychicterrain', 'psychic');
+  const wrongTerrain = hit('mistyterrain', 'psychic');
+  const otherMove = [hit('', 'dazzlinggleam'), hit('psychicterrain', 'dazzlinggleam')];
+  return { works: test > control && control > 0 && wrongTerrain === control
+                  && otherMove[0] === otherMove[1] && otherMove[0] > 0,
+           arms: { control, test },
+           detail: `Psychic dealt: no terrain ${control}, Psychic Terrain ${test}, Misty Terrain `
+                 + `${wrongTerrain} (must equal no terrain); Dazzling Gleam off the same body: `
+                 + `${otherMove[0]} -> ${otherMove[1]} (must not move)` };
+});
+
+/* GRASSY TERRAIN HEALS ITS OWN TARGET AT THE RESIDUAL, AND THE PROBE HAS TO PAY FOR THAT.
+ *
+ * `turnDamage` reads HP lost across a whole turn, and Grassy Terrain restores 1/16 of the grounded
+ * defender's maximum at the end of it. So the terrain arm reads LOWER for two unrelated reasons and
+ * the probe would be green for the wrong one -- and worse, with `turnDamageBig`'s eightfold maximum
+ * the heal is half the body and BOTH arms read a flat 0, which is how this first ran.
+ *
+ * The heal is MEASURED and removed, on a move the terrain does not touch: Rock Slide is neither
+ * Grass nor one of the three the halving names, so whatever it loses to the terrain IS the heal.
+ * That number is then added back to the Earthquake arm. Nothing is assumed -- the probe asserts the
+ * heal it measured is non-zero, so a future engine that stops healing cannot make this pass by
+ * accident. */
+probe('move', 'setsTerrain', 'Grassy Terrain HALVES Earthquake and nothing else', () => {
+  const hit = (t, mv) => turnDamage(['garchomp', 'incineroar', 'goodra', 'garchomp'],
+    (B) => { B.S.field.terrain = t; }, mv);
+  const eq0 = hit('', 'earthquake'), eqG = hit('grassyterrain', 'earthquake');
+  const rs0 = hit('', 'rockslide'), rsG = hit('grassyterrain', 'rockslide');
+  const heal = rs0 - rsG;                       // the residual, read off a move the terrain ignores
+  const control = eq0, test = eqG + heal;       // Earthquake's damage with the heal put back
+  const wrongTerrain = hit('mistyterrain', 'earthquake');
+  return { works: test < control && test > 0 && heal > 0 && wrongTerrain === control,
+           arms: { control, test },
+           detail: `Earthquake HP lost: no terrain ${eq0}, Grassy Terrain ${eqG}; Rock Slide, which `
+                 + `the terrain does not touch: ${rs0} -> ${rsG}, so the residual heal is ${heal}. `
+                 + `Earthquake net of the heal: ${control} -> ${test} (must be LOWER -- this engine `
+                 + `used to deal DOUBLE the real number here). Misty Terrain ${wrongTerrain} (must `
+                 + `equal no terrain)` };
+});
+
+probe('move', 'setsTerrain', 'Misty Terrain HALVES a DRAGON move and nothing else', () => {
+  const hit = (t, mv) => turnDamageBig(['garchomp', 'incineroar', 'goodra', 'garchomp'],
+    (B) => { B.S.field.terrain = t; }, mv);
+  const control = hit('', 'dragonclaw'), test = hit('mistyterrain', 'dragonclaw');
+  const wrongTerrain = hit('electricterrain', 'dragonclaw');
+  const otherMove = [hit('', 'rockslide'), hit('mistyterrain', 'rockslide')];
+  return { works: test < control && test > 0 && wrongTerrain === control
+                  && otherMove[0] === otherMove[1] && otherMove[0] > 0,
+           arms: { control, test },
+           detail: `Dragon Claw dealt: no terrain ${control}, Misty Terrain ${test} (must be lower), `
+                 + `Electric Terrain ${wrongTerrain} (must equal no terrain); Rock Slide off the same `
+                 + `body: ${otherMove[0]} -> ${otherMove[1]} (must not move)` };
+});
+
+/* ROADMAP #92 -- THE NARROWED `damageBoost`, AND THE NARROWING IS THE POINT.
+ *
+ * 44 abilities carry this tag and nothing read it. It cannot be wired as a class: the param carries
+ * a multiplier and neither a STAGE nor a CONDITION, so the class contains Blaze (5,808 sheets,
+ * `onlyWhen: "only below 1/3 HP"` written as prose), Analytic (needs "everybody else has moved"),
+ * Rivalry (gender), Stakeout (the target switched in this turn) and nine abilities already live
+ * under a sharper tag, which the class would DOUBLE. The engine reads it only where the shape is
+ * self-describing: a multiplier, a type, no weather, no condition, and NO OTHER TAG on the ability.
+ *
+ * The membership of that shape is printed by tests/test-damage-stages.js and each member's STAGE is
+ * verified against the live dex there, rather than being remembered here. This probe is the
+ * behaviour half: Transistor is one of the five, and it multiplies the ATTACKING STAT (its handler
+ * is `onModifyAtk`/`onModifySpA`), so a Thunderbolt moves and a Fake Out off the same body does not.
+ *
+ * THE CONTROL IS SET EXPLICITLY ON BOTH ARMS. `bare()` blanks the ability, so neither arm can be
+ * handed Pikachu's own Static by the builder -- the Choice-Scarf-against-a-Choice-Scarf failure. */
+probe('ability', 'damageBoost', 'Transistor raises an ELECTRIC move and nothing else', () => {
+  const hit = (ab, mv) => turnDamageBig(['pikachu', 'incineroar', 'goodra', 'garchomp'],
+    (B) => { B.me.ability = ab; }, mv);
+  const control = hit('none', 'thunderbolt'), test = hit('transistor', 'thunderbolt');
+  const otherMove = [hit('none', 'alluringvoice'), hit('transistor', 'alluringvoice')];
+  return { works: test > control && control > 0 && otherMove[0] === otherMove[1] && otherMove[0] > 0,
+           arms: { control, test },
+           detail: `Thunderbolt dealt: no ability ${control}, Transistor ${test}; Alluring Voice, a `
+                 + `NON-Electric move off the same body: ${otherMove[0]} -> ${otherMove[1]} `
+                 + `(must not move -- the tag names a type and a wire that ignored it would boost both)` };
+});
+
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). Two identical targets but for their Attack; if
  * Foul Play reads the USER's Attack the two are equal, and that equality is the null result.
  * Confirmed against Showdown independently: spiritomb foulplay -> pelipper reads 28-34 there and

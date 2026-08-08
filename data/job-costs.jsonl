@@ -58,3 +58,12 @@
 {"job":"mutation-harness","peak_mb":138,"duration_s":2,"samples":2,"node":"v24.15.0","at":"2026-08-07T10:47:45.800Z"}
 {"job":"mutation-harness","peak_mb":192,"duration_s":7,"samples":2,"node":"v24.15.0","at":"2026-08-07T22:54:30.466Z"}
 {"job":"mutation-harness","peak_mb":194,"duration_s":7,"samples":2,"node":"v24.15.0","at":"2026-08-07T23:17:17.456Z"}
+{"job":"mutation-harness","peak_mb":195,"duration_s":7,"samples":2,"node":"v24.15.0","at":"2026-08-08T00:36:09.633Z"}
+{"job":"mutation-harness","peak_mb":200,"duration_s":8,"samples":2,"node":"v24.15.0","at":"2026-08-08T00:37:31.765Z"}
+{"job":"mutation-harness","peak_mb":199,"duration_s":15,"samples":2,"node":"v24.15.0","at":"2026-08-08T00:39:46.892Z"}
+{"job":"mutation-harness","peak_mb":200,"duration_s":7,"samples":2,"node":"v24.15.0","at":"2026-08-08T00:39:59.491Z"}
+{"job":"mutation-harness","peak_mb":202,"duration_s":7,"samples":2,"node":"v24.15.0","at":"2026-08-08T00:40:12.254Z"}
+{"job":"mutation-harness","peak_mb":52,"duration_s":0,"samples":2,"node":"v24.15.0","at":"2026-08-08T00:40:38.086Z"}
+{"job":"mutation-harness","peak_mb":193,"duration_s":4,"samples":2,"node":"v24.15.0","at":"2026-08-08T00:40:50.496Z"}
+{"job":"mutation-harness","peak_mb":192,"duration_s":6,"samples":2,"node":"v24.15.0","at":"2026-08-08T01:01:02.094Z"}
+{"job":"mutation-harness","peak_mb":191,"duration_s":7,"samples":2,"node":"v24.15.0","at":"2026-08-08T01:59:31.900Z"}

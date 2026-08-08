@@ -561,25 +561,55 @@ console.log('\nwire 13 — boostsMoveClass');
   ok(members.length >= 6 && members.every(([, r]) => r.params.boostsMoveClass.mult > 1),
     `${members.length} class-boost abilities, every one carrying its real multiplier (was flag-only)`);
 
+  /* REWRITTEN 2026-08-07, ROADMAP #92, AND THE ENGINE WAS RIGHT WHILE THIS ASSERTION WAS WRONG.
+   *
+   * It used to divide the boosted damage by the unboosted damage and demand the quotient equal the
+   * ability's multiplier within 0.04. That only holds while the multiplier is applied to the FINAL
+   * DAMAGE, and `boostsMoveClass` is `onBasePower` — a base power passes through `tr(22*bp*A/D)` and
+   * `tr(/50)` before it becomes damage, and neither floor commutes with a multiply. Moving these to
+   * the right stage turned Mega Launcher's Dragon Pulse ratio into **1.444**, and the assertion went
+   * red on a fix. It was checked against the authority before this file was touched: Garchomp Dragon
+   * Pulse into Incineroar, flat bodies, Showdown reads **54 → 78** and so do we, on all sixteen
+   * rolls — **the authority's own ratio is 1.4444.** A damage ratio is simply not the multiplier.
+   *
+   * SO IT ASSERTS THE STAGE INSTEAD, WHICH IS STRICTER AND IS THE THING THAT CHANGED: apply the
+   * multiplier to the move's BASE POWER by hand, through the same fixed-point helper the authority
+   * uses, and demand the ability produce exactly that damage. It is not circular — the hand path
+   * never touches the ability, and it fails on any engine that applies the multiplier anywhere else.
+   * `tests/test-damage-stages.js` carries the same family against Showdown itself. */
   const F = { terrain: '', weather: '', twA: 0, twB: 0 };
-  const ratioWithAbility = (ab, moveId) => {
+  const stageCheck = (ab, moveId) => {
     const a1 = M.buildMon('garchomp', {}); a1.ability = ab; a1.item = '';
     const a0 = M.buildMon('garchomp', {}); a0.ability = 'pressure'; a0.item = '';
     const d = M.buildMon('incineroar', {}); d.item = '';
     const mv = MC.moves[moveId];
     if (!mv) return null;
-    return M.dmgRange(a1, d, mv, F, false).max / M.dmgRange(a0, d, mv, F, false).max;
+    const p = TAGS.param('ability', ab, 'boostsMoveClass');
+    const mult = (M.CH_EXACT && M.CH_EXACT[ab]) || (p && p.mult);
+    /* THE HAND PATH: the same move with its base power already multiplied, on a body with NO
+     * ability. If the engine applies the boost at the base-power stage the two agree exactly. */
+    const byHand = Object.assign({}, mv, { bp: Math.max(1, M.mdChain(mv.bp, M.ch4096(M.CH_ONE, mult))) });
+    const withAbility = M.dmgRange(a1, d, mv, F, false).max;
+    const handMade = M.dmgRange(a0, d, byHand, F, false).max;
+    const plain = M.dmgRange(a0, d, mv, F, false).max;
+    return { withAbility, handMade, plain };
   };
-  const tc = ratioWithAbility('toughclaws', 'ironhead');       // contact
-  const tcRanged = ratioWithAbility('toughclaws', 'earthquake'); // no contact
-  ok(tc !== null && Math.abs(tc - db.abilities.toughclaws.params.boostsMoveClass.mult) < 0.04,
-    `Tough Claws moves a contact move by x${tc && tc.toFixed(3)} — the artifact's own ${db.abilities.toughclaws.params.boostsMoveClass.mult}`);
-  ok(tcRanged !== null && Math.abs(tcRanged - 1) < 1e-9,
-    'and leaves Earthquake alone — the flag comes from the move, not the ability\'s hopes');
-  const sj = ratioWithAbility('strongjaw', 'crunch');           // bite
-  ok(sj !== null && Math.abs(sj - 1.5) < 0.04, `Strong Jaw bites at x${sj && sj.toFixed(3)}`);
-  const ml = ratioWithAbility('megalauncher', 'dragonpulse');   // pulse
-  ok(ml !== null && Math.abs(ml - 1.5) < 0.04, `Mega Launcher pulses at x${ml && ml.toFixed(3)}`);
+  const tc = stageCheck('toughclaws', 'ironhead');            // contact
+  ok(tc && tc.withAbility === tc.handMade && tc.withAbility > tc.plain,
+    `Tough Claws applies its ${db.abilities.toughclaws.params.boostsMoveClass.mult} to BASE POWER — `
+    + `plain ${tc && tc.plain}, with the ability ${tc && tc.withAbility}, with the base power `
+    + `multiplied by hand ${tc && tc.handMade} (the last two must be EQUAL)`);
+  const tcRanged = stageCheck('toughclaws', 'earthquake');     // no contact
+  ok(tcRanged && tcRanged.withAbility === tcRanged.plain,
+    `and leaves Earthquake alone — ${tcRanged && tcRanged.plain} either way; the flag comes from the `
+    + `move, not the ability's hopes`);
+  const sj = stageCheck('strongjaw', 'crunch');               // bite
+  ok(sj && sj.withAbility === sj.handMade && sj.withAbility > sj.plain,
+    `Strong Jaw bites: plain ${sj && sj.plain}, ability ${sj && sj.withAbility}, hand ${sj && sj.handMade}`);
+  const ml = stageCheck('megalauncher', 'dragonpulse');       // pulse
+  ok(ml && ml.withAbility === ml.handMade && ml.withAbility > ml.plain,
+    `Mega Launcher pulses: plain ${ml && ml.plain}, ability ${ml && ml.withAbility}, hand ${ml && ml.handMade} `
+    + `(the DAMAGE ratio here is 1.444, not 1.5, and the authority agrees — see the comment above)`);
 }
 
 /* ---- WIRE 14: healsAtThreshold — the pinch berry reads its own label ------------------------- */

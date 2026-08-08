@@ -1,8 +1,37 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 3.71.0 — 2026-08-07.** Audited against engine release `dc3c43336539` and the Showdown
-checkout at `SHOWDOWN_PATH`. Every rate in this document was measured in the session that wrote it;
-none is carried by an artifact yet, because none of it is a probe yet.
+**Version: 3.72.0 — 2026-08-07.**
+
+> **THIS AUDIT HAS BEEN LANDED. ROADMAP #92, 3.72.0.** Everything §6 lists as open work is fixed, and
+> the numbers below are now HISTORY — they describe the engine at release `dc3c43336539`, not the
+> engine in the tree. **Read §2a and §3 as the record of what was wrong, not as a description of what
+> is wrong.** What replaced them:
+>
+> - every `onBasePower` member is folded into ONE relay spent once, and every `onModifyAtk` /
+>   `onModifySpA` / `onModifyDef` / `onModifySpD` member into two more — the STAGE and the CHAIN
+>   halves of §2's finding, which had to move together;
+> - Friend Guard is inside the ModifyDamage chain rather than beside it; Helping Hand and the ally
+>   multiplier reach `dmgRange` on a seventh argument, because what it cannot DERIVE it can be TOLD;
+> - the rolled crit's x1.5 is applied inside `dmgRange` before the randomizer, where the authority
+>   applies it, and Sniper has left that multiply for the final chain;
+> - the four field terrains exist for the first time, with the authority's own grounded subject.
+>
+> **The claim is checked rather than asserted:** `tests/test-damage-stages.js` runs 54 scenarios ×
+> 16 damage rolls × 2 crit states against Showdown's own `moveHit` and demands EXACT equality —
+> **1,728/1,728** — and it was shown RED on two deliberate reversions before being trusted. The
+> census carries five of these as probes (`move|setsTerrain` ×4, `ability|damageBoost`), which is
+> what the last paragraph of this header said it did not yet do.
+>
+> **§2c is the part that keeps its original force**: it is the list of things that were checked and
+> found CORRECT, and the gate now re-checks every one of them on every run.
+>
+> Four things are still not fixed and each is named with its reason in `docs/ENGINE.md` — Charge (no
+> volatile exists to read), `terrainScaled`'s grounded SUBJECT (the tag carries none), Rivalry (no
+> gender in `MC.mons`), and the artifact storing 1.3 as a float where the authority spells
+> `[5325,4096]` (the engine carries a four-entry override that the gate re-derives from the live dex).
+
+Audited against engine release `dc3c43336539` and the Showdown checkout at `SHOWDOWN_PATH`. Every
+rate in this document was measured in the session that wrote it.
 
 **Will, 2026-08-07:** *"LETS CHECK THE DAMAGE FORMULA FOR ALL ITS COMPONENTS AND COMPARE OURS AGAINST
 SHOWDOWN."*

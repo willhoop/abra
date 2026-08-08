@@ -2,6 +2,30 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
+**Version 3.72.0 · Last updated 2026-08-07**
+
+**ROADMAP #92 — THE DAMAGE-STAGE CLASS. FOURTEEN MULTIPLIERS WERE APPLIED AT THE WRONG STAGE AND FIVE
+WERE ABSENT (3.72.0).** Showdown applies each multiplier at a STAGE — a base power, a stat, or the
+final damage — folds every handler at that stage into ONE modifier, and spends it ONCE. This engine
+applied about a third of them a stage late, and separately: Black Glasses on the final damage where
+the authority puts it on base power reads 109 against 108. That one-point shape is why it survived
+every existing check — both engines "apply Black Glasses", so the census saw it LIVE, the interaction
+matrix compares a ratio between arms, and the damage differential allows a 12% midpoint band by
+design. LANDED: the 18 type items, Muscle Band, Wise Glasses, Technician, Tough Claws, Sharpness,
+Iron Fist, Mega Launcher, Strong Jaw, Punk Rock, Sheer Force, Supreme Overlord, Expanding Force,
+Rising Voltage, Dry Skin and the -ate x1.2 into ONE base-power relay spent once; Thick Fat (73%
+wrong), Heatproof, Purifying Salt and Water Bubble (77%) into the STAT relay, because they modify a
+stat and not the damage; Helping Hand (wrong on 5 of 5 audited rows) and Friend Guard (21.4%) off the
+hit site and into the chains they belong in; Sniper out of the crit's plain multiply and into the
+final chain; and the rolled crit's POSITION into the damage range before the randomizer, where it was
+46.5% wrong at the bottom roll and invisible at the top one every check pins. The four FIELD terrains
+were absent entirely — a Grassy-Terrain Earthquake was priced at DOUBLE the real number. New gate
+`tests/test-damage-stages.js` is **1,728 of 1,728 exact** against the authority across all sixteen
+damage rolls and both crit states, and was shown RED on two deliberate reversions before being
+trusted. `damageBoost` is still NOT wired as a class and the reason is a property of the tag: it
+carries neither the stage nor the condition, so wiring it would hand Blaze a permanent x1.5 on 5,808
+sheets. Census 293/294 → 298/299 live.
+
 **ROADMAP #81 WIRE 12 — FIVE ENGINE DEFECTS OFF THE TURN-1 BOARD, TWO OF THEM MIS-DIAGNOSED BEFORE
 THEY WERE FIXED (3.71.0).** The auras (Fairy, Dark, Aura Break) are wired FIELD-WIDE at the base-power
 stage — they multiply one type for every body on the field, the foe's moves included, and Aura Break
@@ -14,8 +38,6 @@ fired. And ROADMAP #81 WIRE 10's measured board regression is one line: the Life
 paid by a move that MISSED. **Two of the five briefed diagnoses were wrong** — the tagger was not
 testing `selfSwitch === true`, and the substitute doll was not confounded, it was a regression this
 project introduced at WIRE 7 on a misquoted source line. Census 281/282 → 293/294 live.
-
-**Version 3.71.0 · Last updated 2026-08-07**
 
 **THE INSTRUMENT WAS MEASURING ANNOUNCEMENTS, AND THE HEADLINE IS NOW THE BOARD AT THE END OF
 TURN 1 (3.70.0).** `engine/board_state.js` reads HP, status with its counters, items, all seven stat

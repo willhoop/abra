@@ -160,9 +160,35 @@ const ARMS = [
           + 'its Beast Boost before the second body was priced, which is HP and not a protocol line. '
           + 'Single-target output is unchanged by construction — at one target the two loop orders are '
           + 'the same permutation, and 36/36 staged single-target clicks are byte-identical.' },
-  { id: 'a14-baseline-run2', release: 'cf6a68fa412c', label: 'pre-WIRE-1 baseline, REPEATED',
-    change: 'the same frozen bytes as a01, run last with ten arms in between — the drift check' },
+  { id: 'a14-371-five-defects', release: '26f96c7894d7', label: '3.71.0 — the five turn-1 defects',
+    change: 'The first rung chosen by the BOARD rather than by the protocol. Five defects, each found '
+          + 'by Will reading the plain-English turn-1 case queue and each with a red demonstration. '
+          + 'FAIRY AURA was absent entirely — 215 games, the largest single turn-1 cause — and landed '
+          + 'at the BASE POWER stage through a chain spent once, with the derived pair [5448,4096]; '
+          + 'Aura Break INVERTS to [3072,4096] rather than cancelling, which a cancel-shaped fix gets '
+          + 'backwards in a direction nobody checks. CURSE was one move implemented as the other: the '
+          + 'Ghost half charged the user nothing and the non-Ghost half did not exist, so it was a '
+          + 'free permanent quarter-per-turn. SHED TAIL never switched and BATON PASS did nothing at '
+          + 'all — the engine had no consumer for passesState. PERISH SONG counted from 3 where the '
+          + 'authority counts from 4 and so KO\'d a full turn early. And LIFE ORB charged its recoil '
+          + 'on a MISS, which is WIRE 10\'s regression and is one line: the accuracy roll moved into '
+          + 'the step walk and the whole-move exit went with it, while drain, recoil, crash and pivot '
+          + 'each kept their own gate.',
+    included_because: 'WIRE 10 is the reason this rung exists. The board ladder scored it -47 turn-1 '
+          + 'boards while the protocol ladder scored the same rung an improvement, and its own control '
+          + '— "36/36 single-target clicks byte-identical" — was measured on the case where the change '
+          + 'provably does nothing, since at one target the two loop orders are the same permutation.' },
+  { id: 'a15-baseline-run2', release: 'cf6a68fa412c', label: 'pre-WIRE-1 baseline, REPEATED',
+    change: 'the same frozen bytes as a01, run last with eleven arms in between — the drift check' },
 ];
+/* THIS TABLE IS HAND-MAINTAINED, AND THAT COST TWO HOURS ON 2026-08-07. A release was cut for 3.71.0
+ * and the ladder was launched to measure it; the run reported "14 arms" and would have spent its whole
+ * length re-measuring engines whose numbers were already published, because a frozen release is
+ * invisible here until someone edits this file. Caught 70 seconds in by grepping the log for the new
+ * id rather than by anything the run itself said — it does not know which releases exist, so it cannot
+ * report one missing. It is the same shape as the ban list of four and the fourteen stale handoffs.
+ * BEFORE LAUNCHING: confirm the id you just cut appears above, or derive the list from
+ * `data/releases/` and let this table hold only the LABELS and the reasons. */
 /* WIRE 5 HAS NO RUNG AND THAT IS CORRECT. It changed the INSTRUMENT (engine/steering.js,
  * engine/arms_comparable.js), not the engine, so it cut no release and there is nothing to play. */
 

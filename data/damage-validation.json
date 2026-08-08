@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-07",
+ "generated": "2026-08-08",
  "by": "engine/validate_damage.js",
  "source": "engine/validate_damage.js compared against @smogon/calc (MIT), stats aligned to isolate the damage math",
  "gen": 9,
@@ -10,9 +10,9 @@
   "median_abs_err_pct": 0,
   "within_2pct": 100,
   "within_5pct": 100,
-  "worst_pct": 1,
+  "worst_pct": 0,
   "note": "the worst case is 16-roll quantisation rounding, not a formula error"
  },
- "verdict": "MEDICHAM matches @smogon/calc within 5% on 100% of 36 compared scenarios (worst 1%), at level 50 in gen 9.",
+ "verdict": "MEDICHAM matches @smogon/calc within 5% on 100% of 36 compared scenarios (worst 0%), at level 50 in gen 9.",
  "caveat": "Agreement with @smogon/calc is agreement on the DAMAGE FORMULA only. It says nothing about move selection, about the accuracy model, or about mechanics neither implements."
 }

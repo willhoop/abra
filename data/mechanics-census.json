@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-07T23:17:01.211Z",
+  "generated": "2026-08-08T01:59:08.711Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 294,
-  "live": 293,
+  "probed": 299,
+  "live": 298,
   "missing": 1,
-  "armed": 294,
+  "armed": 299,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -66,7 +66,7 @@
       "tag": "megaSheetAbility",
       "label": "a sheet's pre-mega ability does not override the mega's",
       "live": true,
-      "detail": "sheet says Swarm -> scizor-mega ability=\"technician\" 62; sheet silent -> ability=\"technician\" 62; same body with no ability 41",
+      "detail": "sheet says Swarm -> scizor-mega ability=\"technician\" 61; sheet silent -> ability=\"technician\" 61; same body with no ability 41",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -856,7 +856,7 @@
       "tag": "damageMultType",
       "label": "Black Glasses raises Dark damage only",
       "live": true,
-      "detail": "Dark 80->96, Fighting 80->80 (must not move)",
+      "detail": "Dark 80->95, Fighting 80->80 (must not move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1186,7 +1186,7 @@
       "tag": "boostsMoveClass",
       "label": "Iron Fist raises a punch and nothing else",
       "live": true,
-      "detail": "[Drain Punch (punch), Close Combat (not a punch)] — no ability 51,80, Iron Fist 61,80 (only the punch may move)",
+      "detail": "[Drain Punch (punch), Close Combat (not a punch)] — no ability 51,80, Iron Fist 60,80 (only the punch may move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1406,7 +1406,57 @@
       "tag": "terrainScaled",
       "label": "Expanding Force gains power on Psychic Terrain",
       "live": true,
-      "detail": "Expanding Force dealt: no terrain 97, 'psychic' 145, 'psychicterrain' 145 (the board's own word), 'electric' 97 (must equal no terrain)",
+      "detail": "Expanding Force dealt: no terrain 97, 'psychic' 188, 'psychicterrain' 188 (the board's own word), 'electric' 97 (must equal no terrain)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "setsTerrain",
+      "label": "Electric Terrain raises an ELECTRIC move and nothing else",
+      "live": true,
+      "detail": "Thunderbolt dealt: no terrain 20, Electric Terrain 26, Misty Terrain 20 (must equal no terrain); Alluring Voice, a NON-Electric move off the same body: 48 -> 48 (must not move)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "setsTerrain",
+      "label": "Psychic Terrain raises a PSYCHIC move and nothing else",
+      "live": true,
+      "detail": "Psychic dealt: no terrain 120, Psychic Terrain 155, Misty Terrain 120 (must equal no terrain); Dazzling Gleam off the same body: 160 -> 160 (must not move)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "setsTerrain",
+      "label": "Grassy Terrain HALVES Earthquake and nothing else",
+      "live": true,
+      "detail": "Earthquake HP lost: no terrain 73, Grassy Terrain 27; Rock Slide, which the terrain does not touch: 37 -> 27, so the residual heal is 10. Earthquake net of the heal: 73 -> 37 (must be LOWER -- this engine used to deal DOUBLE the real number here). Misty Terrain 73 (must equal no terrain)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "setsTerrain",
+      "label": "Misty Terrain HALVES a DRAGON move and nothing else",
+      "live": true,
+      "detail": "Dragon Claw dealt: no terrain 157, Misty Terrain 79 (must be lower), Electric Terrain 157 (must equal no terrain); Rock Slide off the same body: 37 -> 37 (must not move)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "damageBoost",
+      "label": "Transistor raises an ELECTRIC move and nothing else",
+      "live": true,
+      "detail": "Thunderbolt dealt: no ability 20, Transistor 26; Alluring Voice, a NON-Electric move off the same body: 48 -> 48 (must not move -- the tag names a type and a wire that ignored it would boost both)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1556,7 +1606,7 @@
       "tag": "halvesTypeDamage",
       "label": "Dry Skin takes 1.25x from Fire",
       "live": true,
-      "detail": "[Flamethrower (Fire, must rise about 1.25x), Body Slam (Normal, must not move)] — no ability 46,91, Dry Skin 57,91",
+      "detail": "[Flamethrower (Fire, must rise about 1.25x), Body Slam (Normal, must not move)] — no ability 46,91, Dry Skin 56,91",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1806,7 +1856,7 @@
       "tag": "moveClass",
       "label": "Iron Fist boosts a punch and leaves a non-punch alone",
       "live": true,
-      "detail": "Mach Punch (punch): none 28 -> Iron Fist 33; Flare Blitz (not punch): none 59 -> Iron Fist 59 (must not move)",
+      "detail": "Mach Punch (punch): none 28 -> Iron Fist 32; Flare Blitz (not punch): none 59 -> Iron Fist 59 (must not move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2176,7 +2226,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 26.3% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 18.9% (format 20, generic 30), control Rock Slide 26.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2296,7 +2346,7 @@
       "tag": "critDamageUp",
       "label": "Sniper multiplies a crit's damage half again",
       "live": true,
-      "detail": "Flower Trick (always crits): none 282 -> Sniper 422 (x1.5 on the crit); a non-crit move must not move: 107 -> 107",
+      "detail": "Flower Trick (always crits): none 282 -> Sniper 423 (x1.5 on the crit); a non-crit move must not move: 107 -> 107",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2376,7 +2426,7 @@
       "tag": "halvesTypeDamage",
       "label": "Purifying Salt halves a GHOST move and leaves the others alone",
       "live": true,
-      "detail": "Shadow Ball into Garganacl: no ability 92 -> Purifying Salt 46; Sludge Bomb must NOT move: 51 -> 51",
+      "detail": "Shadow Ball into Garganacl: no ability 92 -> Purifying Salt 47; Sludge Bomb must NOT move: 51 -> 51",
       "hollow": false,
       "armed": true,
       "directCall": false

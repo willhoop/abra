@@ -10,6 +10,125 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.72.0] — 2026-08-07
+
+### Fixed
+- **ROADMAP #92 — THE DAMAGE-STAGE CLASS.** Showdown applies each multiplier at a STAGE — a base
+  power, a stat, or the final damage — folds every handler at that stage into ONE `event.modifier`,
+  and spends it ONCE. This engine applied about a third of them at a different stage, and separately.
+  The truncations between stages do not commute, so the answer came out a point or two off, which
+  reads as rounding to every human and every gate:
+
+  ```
+  SHOWDOWN:  BP 85 -> x1.2 -> BP 102 -> base 72 -> STAB -> 108     Black Glasses is onBasePower
+  OURS:      BP 85 ->         base 61 -> STAB 91 -> x1.2 -> 109    we multiplied the FINAL damage
+  ```
+
+  **That disguise is why it survived.** BOTH engines "apply Black Glasses", so `test-mechanics.js`
+  saw it LIVE, the interaction matrix compares a RATIO between arms, `test-engine-diff.js` allows a
+  12% midpoint band by design, and one point of damage rarely forks a whole game. It reached the
+  surface only as an unexplained "off-by-one" bucket — 58 games at turn 1. The control residual with
+  nothing switched on is 4.1%, so none of the rates below is rounding noise.
+- **Into ONE `onBasePower` relay, spent once** (`battle-actions.ts:1650`): the 18 type items (Black
+  Glasses measured 65.0% wrong, Charcoal 40.0%), Muscle Band (39.6%) and Wise Glasses (42.2%), all
+  from the final ModifyDamage chain; Technician (40.3%), Tough Claws (34.0%), Sharpness (48.0%),
+  Iron Fist, Mega Launcher, Strong Jaw, offensive Punk Rock, Sheer Force, Supreme Overlord and
+  Expanding Force / Rising Voltage, all from the base DAMAGE; the -ate abilities' x1.2, from its own
+  `Math.floor`; Helping Hand (4,306 clicks, wrong on 5 of 5 audited rows), from the hit site; Dry
+  Skin's `onSourceBasePower` (40.0%), from the final chain.
+- **Into the two STAT relays** (`:1708-1709`): Thick Fat, Heatproof and Purifying Salt (73.1% wrong
+  between them) and Water Bubble both ways (77.3%). These modify a STAT, not the damage, which is a
+  different fix from moving a stage. The members already at this stage — Choice items, Huge Power,
+  Guts, Solar Power, Orichalcum, Hadron, Marvel Scale, the four Ruin abilities and the weather
+  defence bumps — now share the relay instead of spending twelve separate `md4096` calls.
+- **Into the final `ModifyDamage` chain:** Friend Guard (1,015 sheets; right stage, but a SECOND
+  spend beside the chain — 60 of 281 base-damage values disagreed, 21.4%) and Sniper, which is
+  `onModifyDamage` and had been folded into the crit's plain multiply (34.8% wrong at the top roll,
+  54.1% at the bottom).
+- **The rolled crit's POSITION.** The authority multiplies by 1.5 at `battle-actions.ts:1748`,
+  BEFORE the randomizer, STAB, the type chart, burn and the ModifyDamage chain. The battle loop
+  multiplied AFTER all six. It looked fine because every check in this repo pins the top damage roll,
+  where the randomizer is the identity: measured across the interior it disagreed on 46.5% of rows at
+  the bottom roll and 61.8% with a Life Orb. The crit's ARITHMETIC was already right and is unchanged.
+
+### Added
+- **The four FIELD terrain multipliers, which were absent entirely.** Electric and Psychic Terrain
+  x[5325,4096] on their own type with the ATTACKER grounded; Grassy Terrain x0.5 on
+  Earthquake/Bulldoze/Magnitude with the DEFENDER grounded and x[5325,4096] on Grass with the
+  attacker grounded; Misty Terrain x0.5 on Dragon with the defender grounded. The usage is small and
+  is stated rather than inflated — all terrain setters combined are 161 corpus uses against Fake
+  Out's 15,106 — but the magnitudes are not: a Grassy-Terrain Earthquake was priced at 118 here
+  against the authority's 60, exactly DOUBLE, and a Misty-Terrain Dragon Claw at 96 against 49.
+- **`tests/test-damage-stages.js` — the gate this class cannot hide from.** 54 scenarios x 16 damage
+  rolls x 2 crit states, EXACT equality against Showdown's own `moveHit`: **1,728/1,728**. Three
+  things it does that no existing check does: it compares the whole roll INTERIOR rather than the
+  endpoints; it checks the knob MOVES the authority's number before it checks the answer, so a row
+  that agrees because neither engine did anything fails; and it carries nine TWO-MEMBER rows, because
+  a stage fix that keeps one `Math.floor` per member passes every single-modifier test anybody would
+  write (Gallade Drain Punch into Snorlax with Iron Fist AND Muscle Band: authority 228, this engine
+  227, while each one alone agreed). It also re-derives the engine's exact-4096ths table from the
+  live dex every run and prints the narrowed `damageBoost` membership with each member's stage.
+- **Five census probes.** Four for the field terrains and one for the narrowed `damageBoost` family,
+  under `move|setsTerrain` and `ability|damageBoost`. Census **293 live / 294 probed → 298 live / 299
+  probed**; `missing` unchanged at 1 (Avalanche). `armed` 299/299, `directCall` 0, `hollow` 0,
+  `threw` 0.
+- **`dmgRange` gained a seventh argument, `hit`**, carrying the two facts only the hit site knows —
+  Helping Hand and the ally's damage multiplier — and an optional `rolls` out-array. The comment that
+  used to stand at the hit site said these "are not in dmgRange and never can be"; the premise was
+  true and the conclusion did not follow. What the function cannot DERIVE it can be TOLD, and it has
+  to be, because both belong inside chains only it spends. Every existing caller passes six arguments
+  or fewer and is unaffected.
+- **`MEDSEEN` counters** for every family that moved stage — `bpChainSpent`, `bpChainMembers`,
+  `statChainSpent`, `damageBoostStat`, `helpingHandBP`, `friendGuardChain`, `critInRange`. Moving a
+  multiplier is invisible in a head-to-head (both arms apply it, one applies it late), so a non-zero
+  here is the only receipt that the new site is on the path. `bpChainMembers` exceeding
+  `bpChainSpent` is the receipt that the CHAIN half, as against the STAGE half, is exercised at all.
+
+### Changed
+- **`tests/test-tag-wire.js`'s WIRE 13 assertions, because the engine was right and the test was
+  wrong.** They divided boosted damage by unboosted damage and demanded the quotient equal the
+  ability's multiplier within 0.04. That only holds while the multiplier is applied to the FINAL
+  damage. Moving `boostsMoveClass` to its real stage made Mega Launcher's Dragon Pulse ratio 1.444 —
+  and the authority's own ratio is 1.4444, checked before the file was touched (Garchomp Dragon Pulse
+  into Incineroar reads 54 → 78 in both engines, on all sixteen rolls). The assertions now apply the
+  multiplier to the move's BASE POWER by hand and demand the ability produce exactly that damage,
+  which is stricter and is the thing that changed.
+
+### Notes
+- **SAID FIRST, because several things in the audit turned out not to be defects.** The -ate
+  abilities' x1.2 was at the right stage AND the right value (`trunc(1.2 * 4096) = 4915`, which is
+  the authority's literal); only its separate `Math.floor` was wrong. Analytic and Sand Force do not
+  need a 4096ths override, because nothing reads them. The crit's arithmetic was correct throughout.
+  Spread, weather, the randomizer's position, STAB, the type chart, burn, Life Orb, Expert Belt, the
+  resist berries, the screens and the four Ruin abilities were all already correct — and are now
+  re-checked by the new gate so they cannot silently stop being.
+- **`damageBoost` is STILL not wired as a class, and that is the finding rather than a shortfall.**
+  44 abilities carry it. The param has no STAGE (Analytic/Reckless/Rivalry/Sand Force are
+  `onBasePower`; Steelworker/Transistor/Dragon's Maw/Rocky Payload/Stakeout/Hustle/Gorilla Tactics
+  are `onModifyAtk`) and no CONDITION — Blaze, Torrent, Overgrow and Swarm carry
+  `onlyWhen: "only below 1/3 HP"` as prose. Wiring the class hands Blaze a permanent x1.5 on 5,808
+  sheets and DOUBLES the nine members already live under a sharper tag. The engine reads it only
+  where the shape is self-describing: a multiplier, a type, no weather, no condition, and no other
+  tag on the ability — today `firemane`, `dragonsmaw`, `rockypayload`, `steelworker`, `transistor`,
+  all five verified `onModifyAtk`/`onModifySpA` against the live dex by the gate rather than by
+  memory. All five are 0 corpus uses; they are wired because they are right.
+- **NOT FIXED, named.** Charge's x2 on the user's next Electric move — the engine has no Charge
+  volatile at all, so there is no state for the multiplier to read. The grounded SUBJECT on
+  `terrainScaled` (Expanding Force reads the user's feet, Rising Voltage the target's) — the tag
+  carries no subject and the divergence is unchanged and still stated at the site. Rivalry — still
+  blocked on gender, which `MC.mons` does not carry. And `data/tags.json` still stores 1.3 as a float
+  where the authority spells it `[5325,4096]`; the engine carries a four-entry `CH_EXACT` override
+  and the gate re-derives every entry from the live dex every run, so it cannot go stale, but the
+  artifact is the right long-term home.
+- **The gate was shown RED before it was trusted.** Two deliberate reversions of this pass, each run
+  and then restored: putting the crit back to certain-crits-only took it to 864/1728; putting the type
+  items back in the ModifyDamage chain took it to 1594/1728. Independently, the frozen release
+  `dc3c43336539` — the real pre-fix engine — disagrees with the authority on **37 of 50** endpoint
+  comparisons over the same scenarios, and that UNDERSTATES the class, because the endpoints are where
+  it hides.
+
+---
+
 ## [3.71.0] — 2026-08-07
 
 ### Added

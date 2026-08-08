@@ -1,12 +1,16 @@
 {
-  "generated": "2026-08-07T23:04:46.988Z",
+  "generated": "2026-08-08T00:58:17.044Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "3.71.0",
+  "changelog_top_at_baseline": "3.72.0",
   "version_pins": {
     "docs/ADR-002-showdown-is-the-authority.md": {
       "version": "3.50.0",
       "reason": "AN ADR IS A DATED DECISION, NOT A LIVING DOCUMENT. It records that Showdown is the authority and MEDICHAM the runtime, decided and ACCEPTED at 3.50.0. Nothing in 3.51.0 revisits that decision — GARY, DUSK and the search reordering all sit downstream of it and none of them changes which engine is authoritative. Bumping the stamp would assert a review that did not happen. Unpin only when the decision itself is amended or superseded."
+    },
+    "docs/ADR-003-exploitability-is-the-headline.md": {
+      "version": "3.71.0",
+      "reason": "AN ADR IS A DATED DECISION, NOT A LIVING DOCUMENT — the same reason ADR-002 is pinned one entry up. It records that exploitability is the headline, accepted at 3.71.0. ROADMAP #92 is an engine-correctness pass and changes nothing this decision rests on."
     },
     "docs/ARCHITECTURE-NOTES.md": {
       "version": "1.0",
@@ -28,13 +32,29 @@
       "version": "3.40.0",
       "reason": "DEBT — carries the project version and sits one release behind (3.40.0 vs 3.41.0); Layer 0 landed in 3.41.0, so the plan describes work that has since moved."
     },
+    "docs/GAME-DIFFERENTIAL-DESIGN.md": {
+      "version": "3.71.0",
+      "reason": "THE DESIGN OF AN INSTRUMENT, current for the instrument as it stands. ROADMAP #92 changed the SIMULATOR, not the differential harness, and the one thing it touches in this document was already true: the header records that moveHit does not run ModifyMove/spreadHit/willCrit, which is the boundary tests/test-damage-stages.js states for itself and stages by hand."
+    },
+    "docs/GLOSSARY.md": {
+      "version": "3.71.0",
+      "reason": "A VOCABULARY, not a result. ROADMAP #92 introduced no new term — \"stage\", \"chain\" and \"modifier\" are Showdown's own words and already appear here through docs/TAGS.md. It moves when a term is added or redefined, not when the engine gets more correct."
+    },
     "docs/KADABRA-coach-spec.md": {
       "version": "0.1",
       "reason": "OWN VERSION LINE — a 0.1 SPEC for an unbuilt component. It describes intent, not a measured result."
     },
+    "docs/MEGA-FEATURES-SPEC.md": {
+      "version": "3.71.0",
+      "reason": "A SPEC FOR THE MEGA FEATURE SET, current for that feature set. ROADMAP #92 touched the damage formula and no mega feature; the one place the two meet — a mega ability that multiplies damage — reaches the engine through the same tags this spec already names."
+    },
     "docs/MEW-whitepaper.md": {
       "version": "1.0",
       "reason": "OWN VERSION LINE — a per-model paper on its own 1.x line, as SLOWKING-whitepaper.md is."
+    },
+    "docs/PRIOR-ART.md": {
+      "version": "3.71.0",
+      "reason": "A LITERATURE SURVEY. It moves when a paper is added or a claim about one is corrected. ROADMAP #92 is an internal correctness fix against Showdown and cites no external work."
     },
     "docs/ROLE-FAMILY.md": {
       "version": "2.6.0",
