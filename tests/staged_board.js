@@ -618,6 +618,166 @@ const SCENARIOS = [
                 + 'so only the FORME goes missing',
       patch: [['function megaEvolveNow(S,m,auto){', 'function megaEvolveNow(S,m,auto){if(1)return false;']] } },
 
+  /* ------------------------------------------------ 17. ability / A TRANSFORM INTO AN ARBITRARY BODY */
+  { id: 'imposter-copies-the-body-opposite',
+    kind: 'ability', shape: 'species + stats + boosts, copied off a body the table has no row about',
+    census: 'ability/imposter — "Ditto becomes the body it faces on entry"',
+    what: 'Weavile pivots out with U-turn on turn 2 and Ditto walks in. Imposter copies the body it '
+        + 'faces — Showdown reads `pokemon.side.foe.active[len - 1 - position]` (data/abilities.ts'
+        + ':2111), which in doubles is the DIAGONAL slot, so a Ditto arriving in p2 slot 0 becomes p1 '
+        + 'slot 1. Clefable has spent turn 1 on Calm Mind, so the copy has to bring the CURRENT STAT '
+        + 'STAGES across as well as the species, the types and every stat except HP.',
+    negative: 'THREE, all on the same boards. (a) The turn-1 boundaries are the entry negative — Ditto '
+            + 'is on the bench and nothing may have transformed. (b) HP IS NOT COPIED: Ditto keeps its '
+            + 'own maxhp, which is the one field that separates a real transform from a forme swap. '
+            + '(c) THE DIAGONAL IS THE SHARPEST NEGATIVE — an engine that copies the body directly '
+            + 'opposite becomes Garchomp, which parts on species, on every stat and on the boosts, '
+            + 'because Garchomp spent the same two turns on Swords Dance.',
+    A: [mon('garchomp', '', 'Rough Skin', ['Swords Dance', 'Protect']),
+        mon('clefable', '', 'Unaware', ['Calm Mind', 'Protect'])].concat(FILL('milotic', 'snorlax')),
+    /* THE BENCH IS UNAMBIGUOUS ON PURPOSE. The driver mirrors Showdown's replacement off medicham2's
+     * slot, and after a transform medicham2's body NO LONGER ANSWERS TO ITS OWN SPECIES — so the
+     * species lookup misses and the mirror falls through to the first healthy bench member. Ditto is
+     * that member on both sides, which is what keeps the two engines playing the same game. */
+    B: [mon('weavile', '', 'Pressure', ['U-turn', 'Protect']),
+        mon('corviknight', '', 'Pressure', ['Iron Defense', 'Protect']),
+        mon('ditto', '', 'Imposter', ['Protect']),
+        mon('toxapex', '', 'Regenerator', ['Protect'])],
+    /* DITTO IS SCRIPTED ONTO `Protect` AND THE BODY IT COPIES CARRIES `Protect` TOO. A transformed
+     * body holds the COPIED moveset, so a click that is legal before the transform and illegal after
+     * it would throw instead of diverging — which is a fixture fault wearing a finding's clothes. */
+    script: [
+      { p1: [{ m: 'swordsdance' }, { m: 'calmmind' }], p2: [{ m: 'protect' }, { m: 'irondefense' }] },
+      { p1: [{ m: 'swordsdance' }, { m: 'calmmind' }], p2: [{ m: 'uturn', t: 0 }, { m: 'irondefense' }] },
+      { p1: [{ m: 'swordsdance' }, { m: 'calmmind' }], p2: [{ m: 'protect' }, { m: 'irondefense' }] },
+    ],
+    break: { why: 'the entry transform is skipped — Imposter is still on the body, still named, and '
+                + 'copies nothing',
+      patch: [['function imposterCopy(m,foes,slot){', 'function imposterCopy(m,foes,slot){if(1)return false;']] } },
+
+  /* ------------------------------------ 18. mega / THE ABILITY IS REPLACED, AND SO IS WHAT IT DID */
+  { id: 'mawile-mega-swaps-the-ability',
+    kind: 'mega', shape: 'the ability the forme change overwrites, and the Attack that follows from it',
+    census: 'mega/megaAbility — "the mega forme\'s slot-0 ability replaces whatever was there"',
+    what: 'Mawile holds a Mawilite and carries INTIMIDATE; Mawile-Mega carries HUGE POWER. Staraptor '
+        + 'leads opposite with an Intimidate of its own, so there are two Intimidates and one ability '
+        + 'replacement inside a single turn. Mawile clicks Brick Break at Corviknight AND asks to mega '
+        + 'evolve on the same click, which is the order Showdown resolves (mega at queue order 104, '
+        + 'every move at 200). Both halves are on the board: the Attack STAGE says whether an entry '
+        + 'drop fired twice or landed on the wrong body, and Corviknight\'s HP says whether the '
+        + 'doubling ability the forme change installed is the one actually multiplying the hit.',
+    negative: 'turn 2 — the same click with NO mega asked for. Nothing may transform a second time, no '
+            + 'entry ability may fire again, and the damage must be the post-mega damage rather than '
+            + 'the pre-mega one. The PARTNERS are the second negative and are on every board: Clefable '
+            + 'never megas and Staraptor\'s Intimidate lands on both p1 bodies exactly once.',
+    A: [mon('mawile', 'Mawilite', 'Intimidate', ['Brick Break', 'Protect']),
+        mon('clefable', '', 'Unaware', ['Calm Mind', 'Protect'])].concat(FILL('milotic', 'snorlax')),
+    /* CORVIKNIGHT IS THE TARGET BECAUSE IT SURVIVES. Fighting is exactly neutral on Steel/Flying
+     * (2 x 0.5), so the hit is a clean damage reading rather than a KO — and a KO clamps both engines
+     * to the same number, which is the shape that makes a damage arm agree for the wrong reason. */
+    B: [mon('staraptor', '', 'Intimidate', ['Swords Dance', 'Protect']),
+        mon('corviknight', '', 'Pressure', ['Swords Dance', 'Protect'])].concat(FILL('toxapex', 'weavile')),
+    script: [
+      { p1: [{ m: 'brickbreak', t: 1, mega: true }, { m: 'calmmind' }], p2: [{ m: 'swordsdance' }, { m: 'swordsdance' }] },
+      { p1: [{ m: 'brickbreak', t: 1 }, { m: 'calmmind' }], p2: [{ m: 'swordsdance' }, { m: 'swordsdance' }] },
+    ],
+    break: { why: 'the mega forme\'s ability is NOT installed — the species, the stats and the stone '
+                + 'all change exactly as before, so only the ability replacement goes missing',
+      patch: [['m.ability=ab; m.baseAbility=ab;', '/* the ability overwrite, removed by tests/staged_board.js */;']] } },
+
+  /* ------------------------------------------- 21. ability / A FORME THAT FLIPS ON A CLOCK */
+  { id: 'hungerswitch-flips-every-turn',
+    kind: 'ability', shape: 'species, alternating at the residual with no trigger at all',
+    census: 'ability/formeCycleResidual — "Hunger Switch flips Morpeko every turn"',
+    what: 'Weavile pivots out with U-turn and MORPEKO walks in. Hunger Switch is an `onResidual` at '
+        + 'order 29 — one slot after Speed Boost\'s 28 — and it flips Morpeko to Morpeko-Hangry at the '
+        + 'END OF THE VERY TURN IT ARRIVED ON, triggered by nothing. Three boundaries are read after '
+        + 'the entry because the flip ALTERNATES: Hangry, then back to Morpeko, then Hangry again.',
+    negative: 'THREE. (a) The turn-1 boundaries are the entry negative — Morpeko is on the bench and '
+            + 'nothing may have flipped. (b) THE ALTERNATION ITSELF IS THE SHARPEST NEGATIVE: an '
+            + 'engine that transforms ONCE is green on turn 2 and parts on turn 3, so a one-shot fix '
+            + 'cannot pass this. (c) The PARTNER is on every board and carries the ability on NOTHING '
+            + '— Corviknight is not a Morpeko, and the handler\'s own `baseSpecies !== "Morpeko"` '
+            + 'guard means a flip that keyed on the tag alone would rename a body that must not move.',
+    A: [mon('garchomp', '', 'Rough Skin', ['Swords Dance', 'Protect']),
+        mon('clefable', '', 'Unaware', ['Calm Mind', 'Protect'])].concat(FILL('milotic', 'snorlax')),
+    B: [mon('weavile', '', 'Pressure', ['U-turn', 'Protect']),
+        mon('corviknight', '', 'Pressure', ['Iron Defense', 'Protect']),
+        mon('morpeko', '', 'Hunger Switch', ['Protect']),
+        mon('toxapex', '', 'Regenerator', ['Protect'])],
+    script: [
+      { p1: [{ m: 'swordsdance' }, { m: 'calmmind' }], p2: [{ m: 'uturn', t: 0 }, { m: 'irondefense' }] },
+      { p1: [{ m: 'swordsdance' }, { m: 'calmmind' }], p2: [{ m: 'protect' }, { m: 'irondefense' }] },
+      { p1: [{ m: 'swordsdance' }, { m: 'calmmind' }], p2: [{ m: 'protect' }, { m: 'irondefense' }] },
+    ],
+    break: { why: 'the residual flip is skipped — the ability is still on the body and still named, so '
+                + 'only the forme goes missing',
+      patch: [["{const _fc=TAGS.param('ability',m.ability,'formeCycleResidual');",
+               "{const _fc=null&&TAGS.param('ability',m.ability,'formeCycleResidual');"]] } },
+
+  /* =============== 19-20. ONE QUESTION, TWO MOVES: CAN THIS ITEM LEAVE THIS BODY RIGHT NOW ======
+   * Knock Off takes the TARGET'S item and Fling spends the USER'S OWN. They are staged together
+   * because they ask the same thing of the same reader, and a reader that answers one of them and
+   * not the other is exactly the two-implementations-of-one-fact breach CLAUDE.md names.
+   * ============================================================================================= */
+
+  /* -------------------------------------- 19. move / A BOOST THAT IS NOT ABOUT DAMAGE AT ALL */
+  { id: 'knockoff-refuses-the-stone',
+    kind: 'move', shape: 'base power gated on whether the item could be taken',
+    census: 'move/removesItem + move/variablePower — Knock Off, 3,535 uses',
+    what: 'Knock Off\'s x1.5 is not a damage rule, it is an ITEM rule: `data/moves.ts` asks '
+        + '`singleEvent("TakeItem", item, ...)` FIRST and returns without the boost when the item '
+        + 'refuses. Turn 1 stages the refusal — Charizard mega evolves holding its Charizardite Y and '
+        + 'Tyranitar clicks Knock Off into it, so the stone cannot be taken, the boost must not apply '
+        + 'and the stone must still be there afterwards (a stone removed here un-megas the body for '
+        + 'the rest of the battle).',
+    negative: 'turn 2 IS the negative and it is the sharpest one available: Tyranitar clicks the SAME '
+            + 'Knock Off at SNORLAX, which is holding the SAME Charizardite Y. The authority keys the '
+            + 'refusal on `source.baseSpecies.baseSpecies`, so a stone is untakeable on the body it '
+            + 'belongs to and perfectly takeable on anything else — "mega stones are immune" is the '
+            + 'wrong rule and parts here. The boost must apply and the item must go. The partner is '
+            + 'also a standing negative on turn 1: it is never hit and keeps its stone throughout.',
+    A: [mon('tyranitar', '', 'Unnerve', ['Knock Off', 'Protect']),
+        mon('clefable', '', 'Unaware', ['Calm Mind', 'Protect'])].concat(FILL('milotic', 'weavile')),
+    B: [mon('charizard', 'Charizardite Y', 'Blaze', ['Swords Dance', 'Protect']),
+        mon('snorlax', 'Charizardite Y', 'Thick Fat', ['Swords Dance', 'Protect'])].concat(FILL('toxapex', 'corviknight')),
+    script: [
+      { p1: [{ m: 'knockoff', t: 0 }, { m: 'calmmind' }], p2: [{ m: 'swordsdance', mega: true }, { m: 'swordsdance' }] },
+      { p1: [{ m: 'knockoff', t: 1 }, { m: 'calmmind' }], p2: [{ m: 'swordsdance' }, { m: 'swordsdance' }] },
+    ],
+    break: { why: 'the base-power branch stops asking whether the item could be taken and boosts off '
+                + 'the mere PRESENCE of one, which is what it did before this wire',
+      patch: [["else if(_vp.kind==='targetHasItem'&&def.item&&!itemRefusesTake(def))",
+               "else if(_vp.kind==='targetHasItem'&&def.item)"]] } },
+
+  /* ------------------------------------------- 20. move / THE USER'S OWN ITEM, IN REVERSE */
+  { id: 'fling-spends-the-users-item',
+    kind: 'move', shape: 'the item leaves the user, and the base power came OUT of it',
+    census: 'move/flingsOwnItem — Fling, 31 uses',
+    what: 'Sceptile holds a Light Ball and clicks Fling. The authority\'s `onPrepareHit` asks '
+        + '`TakeItem` FIRST, refuses outright if the item carries no `fling` entry, and only THEN '
+        + 'writes `move.basePower = item.fling.basePower` — so the power comes out of the item (30 for '
+        + 'a Light Ball), the item is spent, and the Light Ball\'s own `fling.status` PARALYSES what it '
+        + 'hits. Three separate board fields: the user\'s item, the target\'s HP and the target\'s '
+        + 'status.',
+    negative: 'TWO, and each is a different reason to fail. (a) Turn 2 — the SAME Sceptile clicks Fling '
+            + 'again with nothing left to throw, so the move must do nothing at all; an engine that '
+            + 'consumed the item but kept a fixed base power still deals damage there. (b) The PARTNER, '
+            + 'on both turns — Charizard clicks Fling while holding its own Charizardite Y, which '
+            + '`TakeItem` refuses, so the move fails outright and the stone stays. That is the SAME '
+            + 'refusal Knock Off asks about one scenario above, arriving from the other side.',
+    A: [mon('sceptile', 'Light Ball', 'Overgrow', ['Fling', 'Protect']),
+        mon('charizard', 'Charizardite Y', 'Blaze', ['Fling', 'Protect'])].concat(FILL('milotic', 'clefable')),
+    B: [mon('snorlax', '', 'Thick Fat', ['Swords Dance', 'Protect']),
+        mon('corviknight', '', 'Pressure', ['Iron Defense', 'Protect'])].concat(FILL('toxapex', 'weavile')),
+    script: [
+      { p1: [{ m: 'fling', t: 0 }, { m: 'fling', t: 1 }], p2: [{ m: 'swordsdance' }, { m: 'irondefense' }] },
+      { p1: [{ m: 'fling', t: 0 }, { m: 'fling', t: 1 }], p2: [{ m: 'swordsdance' }, { m: 'irondefense' }] },
+    ],
+    break: { why: 'the item is no longer spent — the power still comes out of it and the throw still '
+                + 'lands, so ONLY the disposition goes missing and turn 2 throws a second Light Ball',
+      patch: [['{const _it=m.item;m.item=\'\';', '{const _it=m.item;']] } },
+
   /* ============================ BEYOND THE TWELVE ==============================================
    * Two scenarios staged for a DIFFERENT question: not "does the staged board agree with the census",
    * but "does it see something the census could not". They are marked `extra: true` and are reported

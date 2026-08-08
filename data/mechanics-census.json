@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-08T05:39:45.484Z",
+  "generated": "2026-08-08T06:26:38.229Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 313,
-  "live": 313,
+  "probed": 317,
+  "live": 317,
   "missing": 0,
-  "armed": 313,
+  "armed": 317,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -397,6 +397,46 @@
       "label": "Zero to Hero upgrades Palafin on return",
       "live": true,
       "detail": "first entry from bench: palafin 154 Atk (must stay base)  |  out and back: palafin-hero 233 Atk",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "transformsOnEntry",
+      "label": "Imposter turns Ditto into the body it faces on entry",
+      "live": true,
+      "detail": "Imposter: garchomp 200 Atk / 123 HP (Ditto's own 123), +2 Atk copied, ability roughskin  |  Limber control: ditto 61 Atk +0  |  diagonal foe was Garchomp and the near foe was snorlax  |  fainted diagonal: ditto",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "formeCycleResidual",
+      "label": "Hunger Switch flips Morpeko at the end of EVERY turn",
+      "live": true,
+      "detail": "three consecutive turns, nobody clicking anything — Hunger Switch morpeko-hangry -> morpeko -> morpeko-hangry (it must ALTERNATE, so a one-shot transform fails here); ability blanked morpeko -> morpeko -> morpeko; the same ability on a Corviknight corviknight; still on its own untouched 133 max HP, so the flip is a rename and not a rebuild",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "removesItem",
+      "label": "Knock Off gets its x1.5 only when the item could actually be taken",
+      "live": true,
+      "detail": "Knock Off into the SAME Charizard — holding a Life Orb 137 and the item is gone; holding its OWN Charizardite Y 92 and the stone is still there. The identical stone on a SNORLAX: 112 against 74 for an empty-handed one, stone taken — the refusal is keyed on the body, not on the item class",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "flingsOwnItem",
+      "label": "Fling throws the held item — its power, its status, and it is gone",
+      "live": true,
+      "detail": "Fling from the same Sceptile at the same Snorlax — Light Ball 11 and the target is par (the item's own status), Iron Ball 43 (130 base power against 30, so the power IS the item), empty-handed 0 (the move fails). A Charizard throwing its OWN Charizardite Y: 0 and the stone is kept; the identical stone on a Sceptile: 27 and it is gone",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2246,7 +2286,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 25.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

@@ -1182,7 +1182,10 @@ function harvest(stream, S) {
  * cost is stated rather than hidden: these bodies do not carry the ladder's spreads, so this
  * instrument tests RULES and not the stat lines people actually bring. */
 let STONES_STRIPPED = 0, STONES_KEPT = 0, TEAMS_UNBUILDABLE = 0, MONS_UNBUILDABLE = 0;
-let MCKEY_MISSED = 0;   /* species mc_key had no row for; the raw id is tried and the body is usually skipped */
+let MCKEY_MISSED = 0;
+/* A declared switch that one engine could not resolve. MUST read 0/0: a miss means that side PASSED
+ * while the other switched, which is a different board and was previously invisible. */
+const SWITCH_LOOKUP_MISS = { medi: 0, sd: 0 };   /* species mc_key had no row for; the raw id is tried and the body is usually skipped */
 let ALIGN_MOVED = 0;   // a stat the alignment had to CHANGE — must be 0 outside the hpBoost arms
 /* ROADMAP #31 — THE EVOLUTION COUNTERS, PRINTED EVERY RUN AND A ZERO CALLED OUT LOUDLY. Mega has
  * already passed an at-least-one check in this project while firing on 56% of the sides it should
@@ -1265,6 +1268,24 @@ function buildPair(sheet, opts) {
     b.item = item;
     b.ability = ability;
     b._ident = sp.baseSpecies || sp.name;
+    /* THE SWITCH KEY IS STAMPED AT BUILD TIME AND NEVER CHANGES, and that is the whole point.
+     *
+     * The driver picks a bench member as `switchTo: id(q.species.id)` — Showdown's species id. The
+     * Showdown side then finds it with `id(q.species.id)` and the medicham side found it with
+     * `id(x.name)`. Those agree for an ordinary body and STOP AGREEING THE MOMENT A BODY IS RENAMED,
+     * which this engine started doing on 2026-08-07: Disguise renames a busted Mimikyu, Zero to Hero
+     * renames Palafin, and Hunger Switch is about to flip Morpeko every turn. After the rename
+     * `id(x.name)` is `mimikyubusted` while `switchTo` still says `mimikyu`, so THAT BODY CAN NEVER BE
+     * SWITCHED TO AGAIN.
+     *
+     * AND BOTH SIDES FAIL SILENTLY AND INDEPENDENTLY. The medicham branch answers `pass` when `find`
+     * returns undefined; the Showdown branch answers `pass` when `findIndex` returns -1. Nothing was
+     * counted, so one engine switching while the other passed produced a different board and no
+     * evidence — this project's signature failure, in the instrument rather than the engine.
+     *
+     * `_switchKey` is set from the SAME expression the driver uses to name the candidate, so the two
+     * sides ask one question. It is deliberately NOT `b.name`, which is display state and mutable. */
+    b._switchKey = id(sp.id || sp.name);
     picked.push({ medi: b, spec: { key, moves: b.moves.slice(), item, ability, hpx, bs: sp.baseStats,
                                    ident: sp.baseSpecies || sp.name }, sd: {
       name: sp.name, species: sp.name,
@@ -1784,8 +1805,13 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
           const a = acts[i];
           if (!a || a.pass || a.forced) { map.set(mon, { kind: 'pass' }); return; }
           if (a.switchTo != null) {
-            const want = bench.find(x => x && !x.fainted && id(x.name) === a.switchTo);
+            /* `_switchKey`, stamped at build time — see buildPair. NOT `x.name`, which a forme
+             * rename mutates. A miss is COUNTED, never a silent pass: one engine switching while the
+             * other passes is a different board with no evidence attached. */
+            const want = bench.find(x => x && !x.fainted && x._switchKey === a.switchTo)
+                      || bench.find(x => x && !x.fainted && id(x.name) === a.switchTo);
             if (want) { map.set(mon, { kind: 'switch', to: want }); return; }
+            SWITCH_LOOKUP_MISS.medi++;
             map.set(mon, { kind: 'pass' }); return;
           }
           const tgt = a.foeSlot != null ? foes[a.foeSlot] : null;
@@ -1807,6 +1833,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
           if (!p || p.fainted || !a || a.pass) return 'pass';
           if (a.switchTo != null) {
             const j = side.pokemon.findIndex(q => !q.isActive && !q.fainted && id(q.species.id) === a.switchTo);
+            if (j < 0) SWITCH_LOOKUP_MISS.sd++;
             return j >= 0 ? 'switch ' + (j + 1) : 'pass';
           }
           return 'move ' + a.slot + (a.target != null ? ' ' + a.target : '') + (a.mega ? ' mega' : '');
@@ -3450,6 +3477,8 @@ console.log('    ' + TEAMS_UNBUILDABLE + ' teams and ' + MONS_UNBUILDABLE + ' in
 /* PRINTED BECAUSE A COUNTER NOBODY READS IS NOT A COUNTER. Expect cosmetic formes here — Florges'
  * colours, Sinistcha's masterpiece — and nothing else. If this climbs on ORDINARY species the alias
  * table is broken, not the pool, and the bodies behind it were skipped rather than measured. */
+console.log('    switch lookups that MISSED: medicham ' + SWITCH_LOOKUP_MISS.medi + ', showdown ' + SWITCH_LOOKUP_MISS.sd
+  + ((SWITCH_LOOKUP_MISS.medi || SWITCH_LOOKUP_MISS.sd) ? '  <-- MUST READ 0. A miss means that side PASSED while the other switched.' : '  (must read 0)'));
 console.log('    ' + MCKEY_MISSED + ' set(s) had no MC.mons row for their species'
   + (MCKEY_MISSED ? '  <-- expected: cosmetic formes only. An ordinary species here is a broken alias table.' : ''));
 console.log('    ' + BAN_FALLBACKS + ' clicks where the configuration had banned every legal action (fell through, counted).');

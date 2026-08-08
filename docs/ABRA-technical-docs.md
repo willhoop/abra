@@ -1,9 +1,19 @@
 # ABRA — Technical Documentation
 
-**Version 3.75.0 · Last updated 2026-08-08**
+**Version 3.75.1 · Last updated 2026-08-08**
+
+**3.75.1 — THE DIFFERENTIAL IDENTIFIED A SWITCH TARGET BY TWO DIFFERENT KEYS.** The driver selects a
+bench member and records the species identifier. The official-engine side matched on that identifier.
+The MEDICHAM side matched on the display name. The two values are equal until a forme change alters
+the display name. Forme changes were added in the previous release. After a forme change, the values
+differ and the body cannot be selected. Neither side reported the failure: each returned "pass". One
+engine could therefore switch while the other did not. The differential now stamps one key at build
+time and both sides use it. A failed lookup is counted and printed. The count was 0 and 0 over 120
+games.
+
 
 **WIRE 138-140 — THREE BOARD FAMILIES, AND A TARGETING MODEL THAT WAS WRONG WHENEVER ANYTHING MOVED
-(3.75.0).** Aimed at the three largest surviving board-divergence families of the 1,530-game run at
+(3.75.1).** Aimed at the three largest surviving board-divergence families of the 1,530-game run at
 release `288aee2e3501`. **Speed Boost fired a turn early**: Showdown gates it on `activeTurns`, which
 is 0 on the turn a body switches in, and this engine's own comment said the gate "is not expressible
 here" — true of `_turnsOut` and untrue since WIRE 135 added `_newlySwitched`, a reason that was

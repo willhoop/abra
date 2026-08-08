@@ -10,6 +10,30 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.75.1] — 2026-08-08
+
+### Fixed
+- **THE TWO ENGINES RESOLVED A DECLARED SWITCH BY DIFFERENT KEYS, AND BOTH FAILED SILENTLY.** The driver
+  names a bench member as `switchTo: id(q.species.id)`. The Showdown side found it with
+  `id(q.species.id)`; the medicham side found it with `id(x.name)` — the DISPLAY name. Those agree for
+  an ordinary body and stop agreeing the moment one is renamed, which this engine began doing on
+  2026-08-07: Disguise renames a busted Mimikyu, Zero to Hero renames Palafin, and Hunger Switch is
+  about to flip Morpeko every turn. After a rename `id(x.name)` reads `mimikyubusted` while `switchTo`
+  still says `mimikyu`, so THAT BODY COULD NEVER BE SWITCHED TO AGAIN.
+- And the failure was invisible: `find` returning undefined answered `pass`, `findIndex` returning -1
+  answered `pass`, and nothing counted either. One engine switching while the other stood still is a
+  different board with no evidence attached — this project's signature failure, this time in the
+  INSTRUMENT rather than the engine. `_switchKey` is now stamped at build time from the same expression
+  the driver uses to name the candidate, so both sides ask one question, and a miss is COUNTED and
+  PRINTED on every run beside the other declared gaps. Verified 0/0 over 120 games.
+
+### Notes
+- **This was LATENT UNTIL YESTERDAY.** Every forme fix landed this week made it likelier to fire, and
+  the deliberate-roster build now in progress would have walked straight into it — a roster that stages
+  Disguise, Zero to Hero and Hunger Switch is a roster full of renamed bodies.
+- Instrument change, not an engine change: it alters what a measurement SEES, so a run after this is
+  not strictly comparable with one before it on any switch-heavy sample.
+
 ## [3.75.0] — 2026-08-08
 ### Added
 - **`swapsSlots`, a derived tag, and ALLY SWITCH, which this engine did not have.** The move

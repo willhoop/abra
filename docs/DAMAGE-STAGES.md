@@ -22,9 +22,22 @@ one tie value per action from a constant scalar so the sort is stable and takes 
 instrument's own header claimed the pin made them agree by construction; that claim was false and was
 repeated as fact before it was checked. `sortTurnOrder` is the live engine, not instrument code.
 
-**Version: 3.75.0 — 2026-08-08.**
+**Version: 3.75.1 — 2026-08-08.**
 
-> **NO STAGE MOVED IN 3.75.0, AND THE VERSION MOVED ANYWAY — the reason is worth stating rather than
+**3.75.1 — THE INSTRUMENT RESOLVED A SWITCH BY TWO DIFFERENT KEYS AND FAILED SILENTLY BOTH WAYS.** The
+driver names a bench member by Showdown's species id; the Showdown side looked it up by species id and
+the medicham side by the body's DISPLAY NAME. Those agree until a body is renamed — which this engine
+began doing the day before, when Disguise started renaming a busted Mimikyu, Zero to Hero started
+renaming Palafin, and Hunger Switch was queued to flip Morpeko every turn. After a rename the two keys
+part and that body can never be switched to again. Neither side raised anything: an unresolved lookup
+answered `pass` on both, so one engine could switch while the other stood still, producing a different
+board with no evidence attached. The key is now stamped at build time from the same expression the
+driver uses, and a miss is counted and printed beside the other declared gaps (0/0 over 120 games).
+This is an INSTRUMENT change rather than an engine one, so it alters what a measurement sees; it was
+also LATENT UNTIL THE FORME FIXES LANDED, and the deliberate-roster build would have walked into it.
+
+
+> **NO STAGE MOVED IN 3.75.1, AND THE VERSION MOVED ANYWAY — the reason is worth stating rather than
 > pinning.** WIRE 139 changed WHICH BODY a move resolves against (the slot, not the Pokemon, which is
 > what `Battle#getTarget` does), and WIRE 140 added Ally Switch, which moves two bodies between slots
 > mid-turn. Neither touches a multiplier or its stage, so every row in the table below still holds

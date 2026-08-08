@@ -233,7 +233,18 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * silently vanishing counter is worse than a visibly retired one. */
   statusReaimedToSlot: 0,
   moodyRolled: 0, punishBurned: 0, instructRepeat: 0, dualPurposeHeal: 0,
-  sideBuffRefused: 0, itemRoomHidden: 0, wonderRoomSwap: 0, powerDoubledOnRead: 0 };
+  sideBuffRefused: 0, itemRoomHidden: 0, wonderRoomSwap: 0, powerDoubledOnRead: 0,
+  /* WIRE 141 -- the TRANSFORM, counted apart from `formeSwapped` because it is a different mechanic
+   * wearing the same word: a forme swap becomes a KNOWN row and a transform becomes an ARBITRARY
+   * opposing body. `transformedOnEntry` is the copy landing; `transformRefusedNoBody` is the entry
+   * with nothing to copy, which is the mechanic's own negative and must not read as a failure. */
+  transformedOnEntry: 0, transformRefusedNoBody: 0, transformRefusedAlready: 0,
+  /* WIRE 141 -- a forme that flipped on the CLOCK (Hunger Switch). A zero after real games with a
+   * Morpeko in them means the residual block never reached the ability.
+   * flingThrown / flingRefused are the two halves of Fling and are counted APART because the refusal
+   * IS the mechanic on a body holding its own mega stone -- a fail that could not be told from a
+   * mechanic that never fired is exactly the silent default this project keeps meeting. */
+  formeCycled: 0, flingThrown: 0, flingRefused: 0 };
 const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnknownFirst: '',
   /* WIRE 133 -- the three ways the switch-out class can be WRONG rather than absent, each named:
    *   switchOutTriggerUnhandled  an ability declares `onSwitchOut` and the derivation could not say
@@ -258,6 +269,14 @@ const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnk
    * body on the board with the wrong stats, so it is refused and counted. Fixing it means a row in
    * `data/engine-data.js`, which is downstream of this division. */
   formeOnHitNoRow: 0, formeOnHitNoRowFirst: '',
+  /* WIRE 141 -- a `formeCycleResidual` member whose two formes are NOT identical in stats and types
+   * AND whose target forme has no row. Zero members today (Hunger Switch is the whole class and its
+   * pair is identical), so a non-zero here is a new carrier arriving, not a Morpeko. */
+  formeCycleNoRow: 0, formeCycleNoRowFirst: '',
+  /* WIRE 141 -- a flung item whose `fling.volatileStatus` is something this engine cannot land. The
+   * only volatile any legal item names is `flinch`, which IS modelled, so this reads 0 today and a
+   * non-zero means a new member arrived rather than that Fling is broken. */
+  flingEffectUnmodelled: 0, flingEffectUnmodelledFirst: '',
   /* ROADMAP #81 WIRE 12 -- an `auraBoost` row whose multiplier is not a [num,den] pair. The artifact
    * carried the lossy float `1.33` until this wire and `md4096` truncs it to 5447/4096, so applying
    * it would be one 4096th wrong on every Fairy move in the format and would look exactly like the
@@ -1370,6 +1389,28 @@ function megaTargetFor(m){
  * `baseSpecies.baseSpecies` and a Gengar-Mega's is still Gengar. `megaTargetFor` returns null for a
  * mega forme (nothing left to become), so it cannot answer this question and is not asked -- the base
  * key comes back through the inverted `into` map instead. */
+/* WIRE 141 -- WHAT IS THIS BODY'S FLING WORTH RIGHT NOW. ONE FUNCTION, TWO CALLERS.
+ *
+ * Fling has base power 0 in the dex and gets it from the held item at `onPrepareHit`
+ * (`move.basePower = item.fling.basePower`). Two places need the answer and they run at DIFFERENT
+ * MOMENTS: `dmgRange` prices the click before anything has happened, and the hit step prices the
+ * damage after the item has already been spent. Two readers would disagree the moment the item left,
+ * which is the FACTS-ARE-GLOBAL breach CLAUDE.md names, so the resolved number is stamped on the body
+ * when the throw commits and this function prefers the stamp when there is one.
+ *
+ * A body with no item, or with an item the artifact does not call `flingable`, is worth 0 -- and 0 is
+ * not a damage number here, it is the signal the CALLER uses to fail the move outright. */
+function flingBasePower(att){
+  if(!att)return 0;
+  if(att._flingBP!=null)return +att._flingBP||0;
+  /* THE REFUSAL IS PART OF THE PRICE, not only part of the turn. Without this line a Charizard
+   * holding its own Charizardite Y prices Fling at 80 base power at CLICK time and then fails it at
+   * TURN time -- the damage table would offer a searcher a move that cannot happen, which is the one
+   * direction a valuation error is not recoverable from. Same reader Knock Off's boost asks. */
+  if(itemRefusesTake(att))return 0;
+  const p=TAGS.param('item',att.item,'flingable');
+  return (p&&+p.basePower)||0;
+}
 function itemRefusesTake(m){
   if(!m||!m.item||!holdsMegaStone(m.item))return false;
   const K=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
@@ -2065,6 +2106,16 @@ function hasPower(mv){
   if(v&&(v.kind==='targetWeightKg'||v.kind==='weightRatio'||v.kind==='speedRatioLinear'
         ||v.kind==='speedRatioTable'||v.kind==='targetHPFrac'||v.kind==='userHPBrackets'
         ||v.kind==='alliesBaseAtk'))return true;
+  /* WIRE 141 -- FLING SHIPS AT BASE POWER 0 BECAUSE THE POWER IS THE HELD ITEM, and this gate is why
+   * the move was a NO-OP TURN rather than a weak one: `playerAction` fell all the way through to
+   * `{kind:'pass'}`, so the click never became an attack, never reached the hit steps, and could not
+   * have spent an item even if the disposition had been written. Exactly the shape ROADMAP #84 found
+   * on the spread moves -- a dex base power of 0 read as "this move does nothing".
+   * A body with nothing to throw is still a real failure and is refused LOUDLY in the attack branch
+   * (MEDSEEN.flingRefused), which is where the authority refuses it too. Admitting it here and
+   * failing it there is not a contradiction: `hasPower` answers "can this move deal damage at all",
+   * and "not while my hands are empty" is a turn-time question. */
+  if(mv.id&&TAGS.param('move',mv.id,'flingsOwnItem'))return true;
   /* A FIXED-DAMAGE MOVE HAS NO BASE POWER AND STILL DOES DAMAGE. Without this line dmgRange
    * short-circuits at its !hasPower guard and Super Fang is worth zero. Only the shapes dmgRange can
    * actually compute count as "has power" -- Counter and Mirror Coat need turn state and would
@@ -2234,6 +2285,13 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
    * attacker's entry. Both zero when no counter is attached (site calls, unit tests). */
   const _pf=mv.id&&TAGS.param('move',mv.id,'powerFromFallen');
   if(_pf&&att._sf&&att._sf.fainted)mvBP=_pf.base+_pf.perFallen*Math.min(att._sf.fainted,5);
+  /* WIRE 141 -- FLING'S BASE POWER *IS* THE ITEM. The dex ships it at 0 and `onPrepareHit` writes
+   * `move.basePower = item.fling.basePower`, so an engine reading the dex number prices every Fling
+   * at nothing. Through the shared `flingBasePower` so the click-time price and the hit-time damage
+   * cannot come apart once the item has been spent. `powerFromItem` is the tag's own field; nothing
+   * here names the move. */
+  {const _fo=mv.id&&TAGS.param('move',mv.id,'flingsOwnItem');
+   if(_fo&&_fo.powerFromItem)mvBP=flingBasePower(att);}
   /* WIRE 21, the power itself: weight brackets (kg, from the handler's own table), user-HP scaling
    * (a hurt Eruption is a weak Eruption), doubled-vs-status (Hex), doubled-itemless (Acrobatics),
    * and Knock Off's x1.5 when the target actually holds something -- sheet-known on open sheets. */
@@ -2269,7 +2327,33 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
      * a PLAIN multiply upstream and does not truncate. Flooring them would assert a rounding rule
      * Showdown does not apply there; it is a no-op today either way, and knockoff is the only member
      * of the three carrying a non-integer `mult` (1.5). */
-    else if(_vp.kind==='targetHasItem'&&def.item)mvBP=Math.floor(mvBP*_vp.mult);
+    /* WIRE 141 -- AND THE BOOST IS NOT ABOUT HAVING AN ITEM, IT IS ABOUT BEING ABLE TO TAKE ONE.
+     *
+     * `data/moves.ts` knockoff, in order:
+     *     const item = target.getItem();
+     *     if (!this.singleEvent('TakeItem', item, target.itemState, target, target, move, item)) return;
+     *     if (item.id) { return this.chainModify(1.5); }
+     * The refusal is asked FIRST and the boost is skipped entirely when it comes back false. This
+     * engine already honoured the refusal at the STRIP (see the removesItem block) and not here, so
+     * a Charizard holding its own Charizardite Y kept the stone -- correctly -- and still ate the
+     * x1.5. Measured on the staged board before this line changed: Showdown 84/153, ours 50/153.
+     *
+     * `itemRefusesTake` IS THE READER BOTH SITES ASK, which is the FACTS-ARE-GLOBAL rule; a second
+     * copy of "can this item leave this body" is how the two halves came apart in the first place.
+     * IT IS NOT "MEGA STONES ARE IMMUNE" and the difference is the whole care in it: the refusal is
+     * keyed on `source.baseSpecies.baseSpecies`, so a Charizardite Y on a SNORLAX is taken normally
+     * and boosts normally. MEASURED over the format rather than assumed: of every legal item in
+     * `Dex.forFormat('gen9championsvgc2026regmb')`, exactly 75 declare an `onTakeItem` and all 75 are
+     * mega stones -- there is no Z-crystal, no plate and no Griseous Orb in this format, so the item
+     * half of the refusal class IS the stones and nothing is being special-cased.
+     *
+     * STICKY HOLD IS NOT PART OF THIS QUESTION, AND THAT IS A READING RATHER THAN AN OMISSION. The
+     * line above is `singleEvent`, which runs the ITEM's handler only; the ability never sees it. It
+     * does refuse the STRIP, through `runEvent('TakeItem')` inside `Pokemon#takeItem` -- but Sticky
+     * Hold carries no row in `data/tags.json` at all (0 uses, and it is not reachable from this
+     * format's species pool), so there is no shape to match on and naming it would be the hand-typed
+     * list this project bans. Reported rather than wired. */
+    else if(_vp.kind==='targetHasItem'&&def.item&&!itemRefusesTake(def))mvBP=Math.floor(mvBP*_vp.mult);
     /* ---- WIRE 83 -----------------------------------------------------------------------------
      * GYRO BALL: floor(25 x THEIR speed / MY speed) + 1, capped at 150. Every multiplier that makes
      * a speed real belongs in it -- a Choice Scarf on the target is most of the move -- so it goes
@@ -4526,6 +4610,81 @@ function itemRoomSync(field,bodies){
   const up=field&&field.magicRoom>0;
   for(const m of bodies){ if(!m)continue; if(up)itemRoomHide(m); else itemRoomShow(m); }
 }
+/* ---- WIRE 141 -- THE TRANSFORM, AND IT IS NOT A FORME SWAP -------------------------------------
+ *
+ * `formeSwap` above turns a body into a KNOWN forme: Palafin-Hero, Mimikyu-Busted, a mega. Every one
+ * of those has a row in the mon table, so the new body is LOOKED UP. Imposter has no such target --
+ * Ditto becomes whatever is standing opposite it, which may be any of 318 species carrying any
+ * spread, any boosts and any moveset. So the new body is COPIED off the thing it faced, and that is
+ * why this is a second function rather than an extra branch in the first one. Checked before it was
+ * written, as the roadmap asked.
+ *
+ * WHICH BODY, AND THIS IS THE HALF NOBODY GUESSES. `data/abilities.ts:2111`:
+ *     const target = pokemon.side.foe.active[pokemon.side.foe.active.length - 1 - pokemon.position];
+ * In doubles that is the DIAGONAL: a Ditto arriving in slot 0 becomes the foe's slot 1, and in
+ * singles it degenerates to the body opposite. The arithmetic is READ OFF THE HANDLER by tag_dex
+ * (`transformsOnEntry.diagonal`) rather than typed here, so an engine that copied "the one opposite"
+ * is wrong on exactly half the doubles boards and the tag is what says so.
+ *
+ * WHAT CROSSES AND WHAT DOES NOT (`Pokemon#transformInto`, sim/pokemon.ts:1276):
+ *     species, types, EVERY STAT EXCEPT HP, weight, the moveset, and the CURRENT STAT STAGES cross;
+ *     HP, max HP, the item and the status DO NOT.
+ * The HP line is the one that separates this from a forme swap on the board -- a Ditto that copied
+ * a Clefable keeps Ditto's own 123 max HP -- and it is why `st.hp` is carried over the copied line
+ * rather than taken from it.
+ *
+ * THE COPIED ABILITY IS LIVE, WHICH IS NOT OBVIOUS AND IS NOT A GUESS. `transformInto` ends with
+ * `setAbility(pokemon.ability, this, null, true, true)` and `setAbility` fires the new ability's
+ * `Start` handler whenever the id actually changed (sim/pokemon.ts:1946). A Ditto that copies an
+ * Incineroar therefore Intimidates. This engine gets that for free by transforming BEFORE the
+ * entry-effect pass the caller already runs, which is why the call site is where it is.
+ *
+ * THE NEGATIVE IS AN EMPTY OR FAINTED DIAGONAL, and it is counted rather than silent: an entry with
+ * nothing to copy is the mechanic behaving, and a counter that could not tell that from a broken
+ * transform would be exactly the silent default CLAUDE.md names.
+ *
+ * DECLARED RESIDUE, written down rather than discovered later:
+ *   - NO `|-transform|` LINE IS EMITTED. The protocol side is a separate instrument with its own
+ *     claimed-event list, and adding an event that fires only when an Imposter body enters would put
+ *     `tests/test-protocol-trace.js` at the mercy of whether a random game happened to contain one.
+ *     The engine emitted nothing here before this wire and still does, so nothing regresses.
+ *   - PP IS NOT MODELLED IN THIS ENGINE AT ALL, so the copied moves' 5 PP has nowhere to land. The
+ *     tag carries `movePP: 5` for the day it does.
+ *   - THE HAZARDS BITE FIRST, on the ORIGINAL body's types, because this engine resolves them before
+ *     the entry-ability pass. Showdown speed-sorts hazards and abilities into one list, so a body
+ *     that transforms into a Rock-weak forme is a case the two engines can still part on.
+ *   - THE REFUSALS THAT ARE NOT WRITTEN HERE, each with the reason it is absent rather than left as
+ *     a gap somebody has to rediscover. `transformInto`'s guard list is Eternatus-Eternamax (not in
+ *     this format), an Illusion on either body (this engine models no Illusion), and a terastallized
+ *     Ogerpon or Terapagos (this engine models no Terastallization). The `species.name === 'Ditto'`
+ *     refusal reads as if it belonged here and DOES NOT: it is inside a
+ *     `currentMod === 'gen1stadium'` branch, so a gen-9 Ditto copying a Ditto is legal and adding
+ *     that guard would be a new bug wearing a citation. Read, not remembered. */
+function imposterCopy(m,foes,slot){
+  if(!m||m.fainted||m.curHP<=0)return false;
+  const p=TAGS.param('ability',m.ability,'transformsOnEntry');
+  if(!p)return false;
+  if(m._transformed){MEDSEEN.transformRefusedAlready++;return false;}
+  const arr=foes||[];
+  const idx=p.diagonal?(arr.length-1-slot):slot;
+  const t=arr[idx];
+  /* `transformed && gen >= 2` and `substitute && gen >= 5` are the authority's own refusals; a body
+   * that is already somebody else, or hiding behind a doll, cannot be copied. */
+  if(!t||t.fainted||t.curHP<=0){MEDSEEN.transformRefusedNoBody++;return false;}
+  if(t._transformed||t._sub>0){MEDSEEN.transformRefusedAlready++;return false;}
+  const st=Object.assign({},t.st); st.hp=m.st.hp;      // EVERY STAT EXCEPT HP
+  m.name=t.name;
+  m.types=(t.types||[]).slice();
+  m.st=st;
+  m.wt=t.wt;
+  m._bsAtk=t._bsAtk;                                    // WIRE 83, Beat Up reads the species standing
+  m.moves=(t.moves||[]).slice();
+  m.boosts=Object.assign({},t.boosts);                  // the CURRENT stages, not a clean slate
+  m.ability=t.ability; m.baseAbility=t.ability;
+  m._transformed=true;
+  MEDSEEN.transformedOnEntry++;
+  return true;
+}
 /* BRING A BENCHED POKEMON IN. Shared by faint replacement and by voluntary/pivot switching.
    WHICH mon: live(bench)[0], the same choice refill() has always made. A rollout needs SOME policy
    and the honest first version reuses the existing one rather than inventing a matchup heuristic
@@ -4649,6 +4808,10 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry){
     }
     if(nx.curHP<=0){nx.curHP=0;nx.fainted=true;if(nx._sf)nx._sf.fainted++;if(TR)TR.faint(nx);}
   }
+  /* WIRE 141 -- BEFORE the entry-effect pass, because the transform REPLACES the ability and the
+   * replacement's own Start handler is what that pass runs. Doing it afterwards would fire Imposter's
+   * (nothing) instead of the copied body's. */
+  imposterCopy(nx,foes,i);
   applyEntryEffects(nx,field,act[1-i]);
   applyEntryDrops(nx,_live(foes));   // WIRE 100a -- membership from `onSwitchInDrop`, not a name
   return nx;
@@ -4998,8 +5161,8 @@ function battleInit(teamA,teamB,opts){
      * one `onStart` handler per Pokemon and it does both. Neither reads the other's output today, so
      * no behaviour turns on it; it is written this way so it stays true when one of them grows. */
     const entrants=[];
-    for(const m of S.actA)if(m)entrants.push({mon:m,side:'A',ally:S.actA.find(x=>x&&x!==m),foes:S.actB});
-    for(const m of S.actB)if(m)entrants.push({mon:m,side:'B',ally:S.actB.find(x=>x&&x!==m),foes:S.actA});
+    for(const m of S.actA)if(m)entrants.push({mon:m,side:'A',slot:S.actA.indexOf(m),ally:S.actA.find(x=>x&&x!==m),foes:S.actB});
+    for(const m of S.actB)if(m)entrants.push({mon:m,side:'B',slot:S.actB.indexOf(m),ally:S.actB.find(x=>x&&x!==m),foes:S.actA});
     for(const e of entrants)e.spe=effSpeed(e.mon,S.field,e.side);
     entrants.sort((x,y)=>compareTurnOrder({spe:x.spe},{spe:y.spe},S.field));
     /* A SPEED TIE IS A COIN FLIP IN SHOWDOWN (speedSort's Fischer-Yates) AND A STABLE ARRAY ORDER
@@ -5009,6 +5172,11 @@ function battleInit(teamA,teamB,opts){
      * declaration order because this engine could not break the tie. */
     for(let i=1;i<entrants.length;i++)if(entrants[i].spe===entrants[i-1].spe)MEDFAILS.entryOrderTie++;
     for(const e of entrants){
+      /* WIRE 141 -- a LEAD can carry Imposter too, and it resolves inside this same speed-sorted pass
+       * because Showdown runs an ability's `onStart` AS its `onSwitchIn` (sim/battle.ts:1018). So a
+       * Ditto that leads copies whatever the diagonal foe looks like at the moment its own handler
+       * comes up in the order, boosts included. */
+      imposterCopy(e.mon,e.foes,e.slot);
       applyEntryEffects(e.mon,S.field,e.ally);
       applyEntryDrops(e.mon,_live(e.foes));   // WIRE 100a -- membership from `onSwitchInDrop`
     }
@@ -6955,6 +7123,59 @@ function battleTurn(S,rng,actsForA,actsForB){
 
          GATED ON `_hadTargets` because Showdown returns from `useMoveInner` before PrepareHit when
          there is nothing legal to aim at. */
+      /* WIRE 141 -- FLING, AND IT IS THE SAME QUESTION KNOCK OFF ASKS, FROM THE OTHER SIDE.
+       *
+       * Knock Off takes the TARGET's item; Fling spends the USER's own. Both hang off "can this item
+       * leave this body right now", and `itemRefusesTake` is the one reader both of them ask.
+       *
+       * THE AUTHORITY'S ORDER IS UNUSUAL AND IS REPRODUCED RATHER THAN GUESSED (`data/moves.ts`
+       * fling.onPrepareHit):
+       *     1. `if (source.ignoringItem(true)) return false;`
+       *     2. `if (!this.singleEvent('TakeItem', item, ...)) return false;`   -- the refusal, FIRST
+       *     3. `if (!item.fling) return false;`
+       *     4. `move.basePower = item.fling.basePower;`                        -- the power, LAST
+       * So the power is item-dependent AND the move FAILS OUTRIGHT for an item that cannot be thrown.
+       * A fix that spent the item but kept a fixed base power is wrong in a way the board shows, which
+       * is why the two halves land together.
+       *
+       * IT SITS AT `onPrepareHit`, WHICH IS ABOVE EVERY HIT STEP -- above Protect, above type
+       * immunity, above the accuracy roll -- so a Fling that gets shielded has still spent the item.
+       * That is the authority's behaviour (the `fling` volatile it adds here consumes the item
+       * regardless of what the hit does) and it is the reason this block is at this line rather than
+       * beside the damage.
+       *
+       * STEP 3 HAS NO MEMBER IN THIS FORMAT and that is measured, not assumed: all 148 legal items
+       * carry a `fling` entry. It is still written, because a format change is exactly the event that
+       * would make an unwritten branch a silent zero.
+       *
+       * MAGIC ROOM IS STEP 1 AND IS ANSWERED FOR FREE. This engine implements the room as a SWAP of
+       * the item slot (see itemRoomSync), so a body inside one is holding nothing as far as this
+       * block is concerned and the throw fails -- which is what `ignoringItem` produces upstream. */
+      m._flingFx=null; m._flingBP=null;
+      {
+        const _fo=TAGS.param('move',a.move.id,'flingsOwnItem');
+        if(_fo&&_fo.consumes){
+          const _fp=TAGS.param('item',m.item,'flingable');
+          const _refused=!m.item||itemRefusesTake(m)||!_fp||!(+_fp.basePower>0);
+          if(_refused){
+            MEDSEEN.flingRefused++;
+            m._lastMove=a.move.id;
+            if(TR)TR.attrStill();
+            mvFail(m);
+            continue;
+          }
+          /* THE POWER IS RESOLVED AND STAMPED BEFORE THE ITEM GOES, which is the authority's order
+           * inverted into this engine's shape: Showdown writes `move.basePower` off a live item and
+           * consumes it afterwards, and this engine has no per-use move object to write onto. The
+           * stamp is what `flingBasePower` prefers, so the hit step prices the throw off the item
+           * that WAS held rather than off an empty hand. */
+          m._flingBP=+_fp.basePower;
+          m._flingFx={status:_fp.status||null,volatile:_fp.volatileStatus||null};
+          {const _it=m.item;m.item='';
+           if(TR)TR.enditem(m,_it,'[from] move: '+a.move.id);}
+          MEDSEEN.flingThrown++;
+        }
+      }
       if(_hadTargets){
         const _tb=TAGS.param('ability',m.ability,'typeBecomesMoveType');
         if(_tb&&!m.fainted&&!(_tb.oncePerSwitchIn&&m._proteanUsed)){
@@ -7972,6 +8193,27 @@ function battleTurn(S,rng,actsForA,actsForB){
              else if(tgAb==='innerfocus') MEDSEEN.flinchBlockedByInnerFocus++;
              else { tg._flinch=true; MEDSEEN.flinch++; }
            }}
+          /* WIRE 141 -- FLING'S SECONDARY IS NOT IN THE RULEBOOK, BECAUSE IT COMES OUT OF THE ITEM.
+           * `data/moves.ts` pushes `{status: item.fling.status}` or
+           * `{volatileStatus: item.fling.volatileStatus}` onto `move.secondaries` at prepareHit, with
+           * NO chance field -- so it always applies. A Light Ball paralyses, a Flame Orb burns, a
+           * Toxic Orb badly poisons, a King's Rock flinches. This engine's secondary loop reads a
+           * static rulebook keyed by move id and structurally cannot carry an effect chosen at click
+           * time, so the resolved effect rides on the attacker from the prepareHit block above.
+           * It sits beside King's Rock because it is the same kind of thing -- a secondary bolted on
+           * from outside the move -- and inside the same `suppressed` gate for the same reason. */
+          {const _ff=m._flingFx;
+           if(_ff&&!suppressed&&!tg.fainted){
+             if(_ff.status)applyStatus(tg,_ff.status,m);
+             else if(_ff.volatile==='flinch'){
+               if(!unresolved.has(tg))MEDSEEN.flinchTooLate++;
+               else if(tgAb==='innerfocus')MEDSEEN.flinchBlockedByInnerFocus++;
+               else { tg._flinch=true; MEDSEEN.flinch++; }
+             } else if(_ff.volatile){
+               MEDFAILS.flingEffectUnmodelled++;
+               if(!MEDFAILS.flingEffectUnmodelledFirst)MEDFAILS.flingEffectUnmodelledFirst=_ff.volatile;
+             }
+           }}
           /* WIRE 63 -- THE PROCEDURAL SECONDARIES. Dire Claw (2,300 uses) and Tri Attack roll ONE
            * status out of a set, chosen inside the handler, so the dex's `secondaries` entry carries a
            * chance and NO status at all -- the loop above read it, found nothing to apply, and moved
@@ -8468,6 +8710,66 @@ function battleTurn(S,rng,actsForA,actsForB){
            if(TR)TR.bst(m,k,m.boosts[k]-_b0,'[from] ability: '+m.ability);};
          _apply(_plus,_up); _apply(_minus,-_dn);
          if(_plus||_minus)MEDSEEN.moodyRolled++;
+       }}
+      /* WIRE 141 -- HUNGER SWITCH. THE FORME THAT FLIPS ON A CLOCK, WITH NO TRIGGER AT ALL.
+       *
+       * Morpeko alternates with Morpeko-Hangry at the END OF EVERY TURN, for the whole battle. This
+       * engine had no consumer and `data/tags.json` read `["untagged"]` for the ability, so a Morpeko
+       * that walked in on turn 1 stayed `morpeko` while the authority's slot AND party row read
+       * `morpekohangry` from the end of that same turn. Ten games of the 1,530-game residue at
+       * release 3dd96ca88574, and it was the LARGEST single `species` cause at turn 1.
+       *
+       * IT SITS HERE, ONE BLOCK BELOW SPEED BOOST AND MOODY, BECAUSE THAT IS THE AUTHORITY'S ORDER:
+       * `onResidualOrder` is 28 for both of those and 29 for this. Read out of the dex rather than
+       * chosen -- and the adjacency is why this block is written next to them rather than anywhere
+       * else in the residual.
+       *
+       * IT IS A RENAME, AND ONLY BECAUSE THE ARTIFACT SAYS SO. `data/engine-data.js` has a `morpeko`
+       * row and NO `morpeko-hangry` row, which is exactly the Mimikyu-Busted situation WIRE 136 met:
+       * the tag carries `sameStats` and `sameTypes`, both TRUE here (58/95/58/70/58/97 and
+       * Electric/Dark on each side), so nothing this engine models changes and the flip is a name. A
+       * member with either flag false would need a real row and is REFUSED and counted rather than
+       * renamed wrongly, which is the same call Ice Face gets.
+       *
+       * BOTH DIRECTIONS, FROM THE ARTIFACT'S OWN PAIR. `alternates` is `[Morpeko, Morpeko-Hangry]`
+       * and the flip is "whichever of the two I am not" -- so a fix that transformed once would be
+       * wrong from turn 2 onward, and the staged scenario reads three consecutive boundaries for
+       * exactly that reason.
+       *
+       * THE SECOND GUARD IS UNREADABLE HERE AND IS SAID RATHER THAN SKIPPED. The handler also stops
+       * flipping for a TERASTALLIZED body (`stopsWhenTerastallized` is in the tag). This engine models
+       * no Terastallization at all, so there is no field to test; that is a declared gap, not a
+       * check that was forgotten. */
+      {const _fc=TAGS.param('ability',m.ability,'formeCycleResidual');
+       if(_fc&&Array.isArray(_fc.alternates)&&_fc.alternates.length===2){
+         const _keys=_fc.alternates.map(x=>pasteKey(x)||String(x).toLowerCase().replace(/[^a-z0-9]/g,'-'));
+         const _at=_keys.indexOf(m.name);
+         /* NOT ONE OF THE PAIR: a body carrying the ability through a Skill Swap or a Trace, which the
+          * handler's own `baseSpecies !== 'Morpeko'` guard refuses. Silent by design -- there is
+          * nothing to flip and nothing went wrong. */
+         if(_at>=0){
+           const _to=_keys[1-_at], _toName=_fc.alternates[1-_at];
+           /* THE RENAME IS TRIED FIRST, AND THAT ORDER IS THE CARE IN THIS BLOCK RATHER THAN AN
+            * OVERSIGHT. `formeSwap` REBUILDS the body from the mon table, which replaces whatever stat
+            * line this body is carrying with the dataset's own -- correct for Palafin (two different
+            * formes, two different stat lines) and CORRUPTING here, because a Morpeko flips every turn
+            * and one row exists while the other does not. A body handed a flat level-50 line by a
+            * harness would be silently re-spread on the flip back and every damage roll after it would
+            * be wrong. When the artifact states the two formes are identical in everything modelled,
+            * the flip IS a rename and rebuilding is the wrong operation even where a row exists. */
+           if(_fc.sameStats&&_fc.sameTypes){
+             m.name=_to;
+             MEDSEEN.formeRenamedNoRow++;
+             MEDSEEN.formeCycled++;
+             if(TR)TR.detailschange(m);
+           } else if(monRow(_to)){
+             formeSwap(m,_toName,'formeCycleResidual');
+             MEDSEEN.formeCycled++;
+           } else {
+             MEDFAILS.formeCycleNoRow++;
+             if(!MEDFAILS.formeCycleNoRowFirst)MEDFAILS.formeCycleNoRowFirst=m.ability+' -> '+_toName;
+           }
+         }
        }}
       /* WIRE 31 -- THE SANDSTORM RESIDUAL, WHICH THIS ENGINE DID NOT HAVE AT ALL.
        *

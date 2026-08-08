@@ -1402,6 +1402,197 @@ probe('ability', 'formeChange', 'Zero to Hero upgrades Palafin on return', () =>
                  + '  |  out and back: ' + me.name + ' ' + me.st.at + ' Atk' };
 });
 
+probe('ability', 'transformsOnEntry', 'Imposter turns Ditto into the body it faces on entry', () => {
+  /* WIRE 141. FOUR ARMS, because this mechanic has three separate ways to be wrong and only one of
+   * them is "it did not fire":
+   *   test      Imposter, with a live body on the DIAGONAL slot -- it must become that body;
+   *   control   the SAME Ditto carrying Limber instead, so the varied knob is the ability and
+   *             nothing else. Identical arms here would mean the tag is unwired, not that it
+   *             does not matter;
+   *   diagonal  the two foes are DIFFERENT species and the near one is not the one copied.
+   *             Showdown reads `foe.active[len - 1 - position]`, so a Ditto in slot 0 becomes the
+   *             foe's slot 1. An engine that took "the body opposite" passes every other assertion
+   *             here and is wrong on half of all doubles boards;
+   *   nobody    the diagonal slot is fainted -- the mechanic's own negative. It must NOT fall back
+   *             to the other slot, which is the plausible wrong answer.
+   * HP IS ASSERTED UNCHANGED on the test arm. `transformInto` copies every stat EXCEPT HP, and that
+   * single exclusion is what separates a transform from a forme swap; an implementation that copied
+   * the whole stat line would satisfy every other assertion in this probe. */
+  const run = (ab, killDiagonal) => {
+    const lead = bare('incineroar'), ally = bare('corviknight');
+    const ditto = M.buildMon('ditto', {});
+    ditto.item = ''; ditto.ability = ab;
+    const hp0 = ditto.st.hp, at0 = ditto.st.at;
+    /* slot 0 is SNORLAX and slot 1 is GARCHOMP, on purpose: the two are different species with
+     * different stats, so "which one did it copy" is answerable rather than assumed. */
+    const near = bare('snorlax'), diag = bare('garchomp');
+    diag.ability = 'roughskin';
+    const S = M.battleInit([lead, ally, ditto], [near, diag], { seeded: true });
+    diag.boosts.at = 2;                       // a CURRENT stat stage, which the copy has to bring over
+    if (killDiagonal) { diag.curHP = 0; diag.fainted = true; }
+    M.battleTurn(S, rng5, new Map([[lead, { kind: 'switch', to: ditto }], [ally, { kind: 'pass' }]]),
+                 PASS2(near, diag));
+    return { name: ditto.name, at: ditto.st.at, hp: ditto.st.hp, hp0, at0,
+             boostAt: ditto.boosts.at, ability: ditto.ability,
+             moves: (ditto.moves || []).join(','),
+             diagAt: diag.st.at, diagMoves: (diag.moves || []).join(','), nearName: near.name };
+  };
+  const test = run('imposter', false);
+  const control = run('limber', false);
+  const nobody = run('imposter', true);
+
+  const became = test.name === 'garchomp' && test.at === test.diagAt
+              && test.moves === test.diagMoves && test.ability === 'roughskin'
+              && test.boostAt === 2;
+  const hpKept = test.hp === test.hp0;                       // HP is the one stat that does NOT cross
+  const notNear = test.name !== 'snorlax';                   // the DIAGONAL, not the body opposite
+  const controlStayed = control.name === 'ditto' && control.at === control.at0 && control.boostAt === 0;
+  const nobodyStayed = nobody.name === 'ditto' && nobody.at === nobody.at0;
+  return { works: became && hpKept && notNear && controlStayed && nobodyStayed,
+           arms: { control: control.name + ' ' + control.at + ' Atk', test: test.name + ' ' + test.at + ' Atk' },
+           detail: `Imposter: ${test.name} ${test.at} Atk / ${test.hp} HP (Ditto's own ${test.hp0}), `
+                 + `+${test.boostAt} Atk copied, ability ${test.ability}  |  Limber control: `
+                 + `${control.name} ${control.at} Atk +${control.boostAt}  |  diagonal foe was Garchomp `
+                 + `and the near foe was ${test.nearName}  |  fainted diagonal: ${nobody.name}` };
+});
+
+probe('ability', 'formeCycleResidual', 'Hunger Switch flips Morpeko at the end of EVERY turn', () => {
+  /* WIRE 141. THE ALTERNATION IS THE ASSERTION, not the first change. Showdown's handler is
+   *     const targetForme = pokemon.species.name === 'Morpeko' ? 'Morpeko-Hangry' : 'Morpeko';
+   * so the forme after turn N is decided by the forme before it and NOT by a counter. An engine that
+   * transformed once satisfies "it became Hangry" and is wrong from turn 2 onward, which is why
+   * three consecutive turns are read rather than one.
+   *
+   * THREE ARMS. The control is the SAME BODY with the ability blanked, so the varied knob is the
+   * ability alone; the third arm gives Hunger Switch to a body that is NOT a Morpeko, which is the
+   * handler's own `baseSpecies !== 'Morpeko'` guard and the thing a tag-keyed flip would get wrong. */
+  const threeTurns = (species, ab) => {
+    const me = bare(species); me.ability = ab;
+    const ally = bare('corviknight'), f1 = bare('garchomp'), f2 = bare('snorlax');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const seen = [];
+    for (let i = 0; i < 3; i++) {
+      M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+      seen.push(me.name);
+    }
+    return { seen, hp: me.curHP, maxhp: me.st.hp };
+  };
+  const test = threeTurns('morpeko', 'hungerswitch');
+  const control = threeTurns('morpeko', 'none');
+  const notMorpeko = threeTurns('corviknight', 'hungerswitch');
+
+  const alternates = test.seen.join(',') === 'morpeko-hangry,morpeko,morpeko-hangry';
+  const controlStayed = control.seen.join(',') === 'morpeko,morpeko,morpeko';
+  const guardHeld = notMorpeko.seen.join(',') === 'corviknight,corviknight,corviknight';
+  /* THE HP IS ASSERTED UNCHANGED. Morpeko and Morpeko-Hangry share a stat line, so the flip is a
+   * rename; an implementation that REBUILT the body from the mon table would re-spread it and move
+   * this number, which no species assertion above would catch. */
+  const bodyIntact = test.hp === test.maxhp;
+  return { works: alternates && controlStayed && guardHeld && bodyIntact,
+           arms: { control: control.seen.join(' -> '), test: test.seen.join(' -> ') },
+           detail: `three consecutive turns, nobody clicking anything — Hunger Switch `
+                 + `${test.seen.join(' -> ')} (it must ALTERNATE, so a one-shot transform fails here); `
+                 + `ability blanked ${control.seen.join(' -> ')}; the same ability on a Corviknight `
+                 + `${notMorpeko.seen[2]}; still on its own untouched ${test.maxhp} max HP, so the `
+                 + `flip is a rename and not a rebuild` };
+});
+
+probe('move', 'removesItem', 'Knock Off gets its x1.5 only when the item could actually be taken', () => {
+  /* WIRE 141. THE BOOST AND THE STRIP ARE THE SAME QUESTION and this engine answered it at one of
+   * the two sites. `data/moves.ts` knockoff asks `singleEvent('TakeItem', ...)` BEFORE
+   * `chainModify(1.5)`, so an item that refuses the take also refuses the power.
+   *
+   * FOUR ARMS, AND THE KNOB IS DIFFERENT IN EACH PAIR:
+   *   pair 1 — the SAME Charizard, varying only WHICH item it holds. A Life Orb is takeable and a
+   *            Charizardite Y is not, so the damage must part and the disposition must part with it.
+   *            Same body, same defences, same everything else: a difference here is the gate.
+   *   pair 2 — the SAME Charizardite Y, varying only WHOSE body it is on. The authority keys the
+   *            refusal on `source.baseSpecies.baseSpecies`, so the identical stone on a SNORLAX is
+   *            taken and boosts normally. "Mega stones are immune" passes pair 1 and FAILS here,
+   *            which is the reason pair 2 exists.
+   * `autoMega:false` because the engine otherwise evolves the stone-holder during the turn, which
+   * would leave the two arms of pair 1 with different bodies and different defences — the varied
+   * knob has to be the item alone. */
+  const run = (species, item) => {
+    const me = bare('tyranitar'), ally = bare('clefable');
+    const f1 = bare(species), f2 = bare('milotic');
+    f1.item = item;
+    unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, autoMega: false });
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'knockoff', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { lost: before - f1.curHP, item: f1.item };
+  };
+  const ownStone = run('charizard', 'charizarditey');     // refused: no boost, stone kept
+  const takeable = run('charizard', 'lifeorb');           // taken: boosted, item gone
+  const elsewhere = run('snorlax', 'charizarditey');      // the SAME stone on another body
+  const bareSnorlax = run('snorlax', '');
+
+  const gateHeld = ownStone.lost < takeable.lost && ownStone.item === 'charizarditey'
+                && takeable.item === '';
+  const keyedOnTheBody = elsewhere.lost > bareSnorlax.lost && elsewhere.item === '';
+  return { works: gateHeld && keyedOnTheBody,
+           arms: { control: takeable.lost, test: ownStone.lost },
+           detail: `Knock Off into the SAME Charizard — holding a Life Orb ${takeable.lost} and the `
+                 + `item is ${takeable.item ? 'still there' : 'gone'}; holding its OWN Charizardite Y `
+                 + `${ownStone.lost} and the stone is ${ownStone.item ? 'still there' : 'gone'}. The `
+                 + `identical stone on a SNORLAX: ${elsewhere.lost} against ${bareSnorlax.lost} for an `
+                 + `empty-handed one, stone ${elsewhere.item ? 'kept' : 'taken'} — the refusal is keyed `
+                 + `on the body, not on the item class` };
+});
+
+probe('move', 'flingsOwnItem', 'Fling throws the held item — its power, its status, and it is gone', () => {
+  /* WIRE 141. FIVE ARMS, because Fling has four separate ways to be wrong and "it dealt damage" only
+   * covers one of them:
+   *   lightBall   the whole mechanic — damage, the item's own PARALYSIS, and an empty hand after;
+   *   ironBall    THE POWER COMES OUT OF THE ITEM. Iron Ball flings at 130 base power and a Light
+   *               Ball at 30, from the same body at the same target. Identical damage across this
+   *               knob would mean the base power is hard-coded and the item is decoration, which is
+   *               precisely the failure the ledger warns about;
+   *   empty       nothing to throw — the authority FAILS the move outright, so the damage must be 0.
+   *               An engine that consumed the item but kept a fixed power still hits here;
+   *   ownStone    a Charizard holding its own Charizardite Y. `TakeItem` refuses, so the move fails
+   *               AND the stone stays. This is the same reader Knock Off's x1.5 asks, arriving from
+   *               the other side, and it is the arm that would pass if the refusal were written as
+   *               "mega stones cannot be flung";
+   *   otherStone  the IDENTICAL stone on a SCEPTILE, which the refusal does not cover — it flings at
+   *               80 and the stone goes. Without this arm, refusing every stone would look correct. */
+  const run = (species, item) => {
+    const me = bare(species), ally = bare('clefable');
+    const f1 = bare('snorlax'), f2 = bare('milotic');
+    me.item = item;
+    unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, autoMega: false });
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'fling', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { lost: before - f1.curHP, status: f1.status || 'clean', item: me.item };
+  };
+  const lightBall = run('sceptile', 'lightball');
+  const ironBall = run('sceptile', 'ironball');
+  const empty = run('sceptile', '');
+  const ownStone = run('charizard', 'charizarditey');
+  const otherStone = run('sceptile', 'charizarditey');
+
+  const threw = lightBall.lost > 0 && lightBall.status === 'par' && lightBall.item === '';
+  const powerIsTheItem = ironBall.lost > lightBall.lost * 2;      // 130 BP against 30
+  const emptyFails = empty.lost === 0 && empty.status === 'clean';
+  const refusedOwnStone = ownStone.lost === 0 && ownStone.item === 'charizarditey';
+  const keyedOnTheBody = otherStone.lost > 0 && otherStone.item === '';
+  return { works: threw && powerIsTheItem && emptyFails && refusedOwnStone && keyedOnTheBody,
+           arms: { control: empty.lost, test: lightBall.lost },
+           detail: `Fling from the same Sceptile at the same Snorlax — Light Ball ${lightBall.lost} `
+                 + `and the target is ${lightBall.status} (the item's own status), Iron Ball `
+                 + `${ironBall.lost} (130 base power against 30, so the power IS the item), `
+                 + `empty-handed ${empty.lost} (the move fails). A Charizard throwing its OWN `
+                 + `Charizardite Y: ${ownStone.lost} and the stone is ${ownStone.item ? 'kept' : 'gone'}; `
+                 + `the identical stone on a Sceptile: ${otherStone.lost} and it is `
+                 + `${otherStone.item ? 'kept' : 'gone'}` };
+});
+
 /* ---- BATCH 2 — the next sixteen by corpus usage ------------------------------------------------
  *
  * Ordered by tests/mechanics_rank.js, which ranks by the clicks a tag covers rather than the number

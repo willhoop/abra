@@ -1,8 +1,17 @@
 # ABRA — the plain-English deck
 
-**Version 3.75.0 · 2026-08-08 · Will Hooper**
+**Version 3.75.1 · 2026-08-08 · Will Hooper**
 
-**THE ENGINE FOLLOWED THE POKEMON, AND THE GAME FOLLOWS THE SPOT IT WAS STANDING IN (3.75.0).** If you
+**3.75.1 — THE TEST ITSELF COULD SEND THE TWO COPIES OF THE GAME DIFFERENT POKEMON.** When the test
+tells both engines to switch, it names the Pokemon it wants. One copy looked that name up one way and
+the other looked it up another way, and the two only agreed while nothing had been renamed — which
+stopped being true the day we taught the engine that Mimikyu becomes Mimikyu-Busted and Palafin becomes
+Palafin-Hero. Worse, when either copy could not find the Pokemon it simply did nothing and said
+nothing, so one side could switch while the other stood still and the difference looked like an engine
+bug. Both now ask the same question, and any failure to find it is counted out loud.
+
+
+**THE ENGINE FOLLOWED THE POKEMON, AND THE GAME FOLLOWS THE SPOT IT WAS STANDING IN (3.75.1).** If you
 aim at the left-hand Pokemon and it switches out before your move goes off, your move hits whatever
 walked in. Our simulator kept aiming at the Pokemon — sometimes at one that was already on the bench —
 so stat drops from Charm and Parting Shot went nowhere. Ally Switch, which swaps your two Pokemon

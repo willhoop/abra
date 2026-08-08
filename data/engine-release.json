@@ -1,10 +1,10 @@
 {
-  "current": "3dd96ca88574",
-  "cut": "2026-08-08T05:19:00.576Z",
-  "why": "WIRE 140 — Ally Switch swaps the two slots (it did not exist)",
-  "cuts": 9,
-  "latest_cut": "2026-08-08T05:40:19.950Z",
+  "current": "3589f46b8efa",
+  "cut": "2026-08-08T06:25:50.749Z",
+  "why": "WIRE 141 batch B — Fling reaches the attack branch",
+  "cuts": 51,
+  "latest_cut": "2026-08-08T06:27:06.198Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-08T05:40:19.960Z",
+  "pointer_written": "2026-08-08T06:27:06.202Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

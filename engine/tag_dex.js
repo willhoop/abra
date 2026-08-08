@@ -246,6 +246,28 @@ function statusOdds(m, st) {
 }
 
 const MOVE_TAGS = [
+  /* NEW 2026-08-08 -- THE MOVE THAT SPENDS THE USER'S OWN ITEM, and it is the mirror image of
+   * `removesItem` rather than a member of it: Knock Off takes what the TARGET holds, this throws what
+   * the USER holds. One shared question underneath — can this item leave this body right now — asked
+   * from opposite sides.
+   *
+   * DERIVED ON THE HANDLER READING `item.fling`, which is the field the `flingable` item tag carries,
+   * so the move and the item are joined by the artifact rather than by a name here. Membership over
+   * the whole move table is exactly ONE move (Fling, 31 uses) and it was printed before this was
+   * wired.
+   *
+   * THE ORDER INSIDE `onPrepareHit` IS THE MECHANIC AND IS RECORDED AS PARAMS: `TakeItem` is asked
+   * FIRST and a refusal fails the whole move, THEN the item must have a fling entry, and only THEN
+   * is `move.basePower` written from the item. A consumer that spent the item but kept a fixed base
+   * power would be wrong in a way the board shows, so `powerFromItem` is stated rather than implied. */
+  { tag: 'flingsOwnItem', param: 'the USER\'s held item is thrown: it decides the power and it is spent',
+    probe: 'flingsOwnItem',
+    why: 'Fling. The engine had it `untagged` at 0 base power, so it dealt nothing, consumed nothing '
+       + 'and inflicted none of the item\'s own status',
+    of: m => /\bitem\.fling\b/.test(String(m.onPrepareHit || ''))
+      ? { powerFromItem: true, consumes: true,
+          failsIfItemRefusesTake: /singleEvent\(\s*['"]TakeItem['"]/.test(String(m.onPrepareHit)),
+          failsIfNotFlingable: /!item\.fling/.test(String(m.onPrepareHit)) } : null },
   { tag: 'multiHit', param: 'hits = n (or a distribution)', probe: 'multihit',
     why: 'total damage is n x base, and it BREAKS Focus Sash and Sturdy -- the first hit takes the holder to 1, the rest kill',
     /* HOW MANY, and until 2026-08-04 the param said only "fixed". A consumer therefore could not tell
@@ -2295,6 +2317,24 @@ const ITEM_TAGS = [
        + 'ratio is a STAGE feeding P(crit); the crit damage multiplier is always x1.5 and nothing here '
        + 'changes it -- do not read critRatio: 2 as double damage',
     of: it => it.onModifyCritRatio ? { critRatio: 2 } : null },
+  /* NEW 2026-08-08 -- WHAT THIS ITEM IS WORTH WHEN IT IS THROWN. `item.fling` is a first-class dex
+   * field, so this is a READ rather than a handler probe: `{basePower}` plus, on some members, a
+   * `status` or a `volatileStatus` that becomes the throw's secondary. Light Ball is 30 and
+   * paralyses; Iron Ball is 130 and does nothing; a mega stone is 80.
+   *
+   * MEASURED BEFORE IT WAS WIRED, and the measurement changes what the consumer has to model: of
+   * every legal item in `Dex.forFormat('gen9championsvgc2026regmb')`, ALL 148 carry a `fling` entry.
+   * So the authority's `if (!item.fling) return false` refusal — Fling failing because the held item
+   * cannot be thrown — has NO member in this format and is a branch the consumer will never take.
+   * Written down because "we did not implement that refusal" and "that refusal has nothing to
+   * refuse" look identical from the outside. */
+  { tag: 'flingable', param: 'the base power and secondary this item gives when it is thrown', probe: 'flingable',
+    why: 'Fling reads its whole identity out of the held item — 31 uses, and the engine played it as '
+       + 'a 0 BP move that consumed nothing',
+    of: it => it.fling ? { basePower: +it.fling.basePower || 0,
+                           status: it.fling.status || null,
+                           volatileStatus: it.fling.volatileStatus || null,
+                           isBerry: !!it.isBerry } : null },
   { tag: 'addsFlinch', param: 'P(flinch) += 10% on moves that do not already flinch', probe: 'kingsrock',
     why: "King's Rock and Razor Fang. Sets the same parameter the move-side flinch tag does, which is "
        + 'exactly what a parameter taxonomy is for. Derived from an onModifyMove that mentions flinch, '
@@ -2971,6 +3011,48 @@ const ABILITY_TAGS = [
       }
       return null;
     } },
+  /* NEW 2026-08-08 -- THE FORME THAT FLIPS ON A CLOCK, AND IT IS NOT `formeOnHit` AND NOT
+   * `switchInForme`. Hunger Switch alternates Morpeko <-> Morpeko-Hangry at the END OF EVERY TURN,
+   * for the whole battle, triggered by nothing at all. Its `onResidualOrder` is 29 -- one slot after
+   * Speed Boost's 28 -- so the consumer's home is the residual block that wire already built.
+   *
+   * THE WIDE PREDICATE IS WRONG AND WAS MEASURED WRONG FIRST, exactly as `formeOnHit`'s header
+   * records: `formeChange` in ANY handler matches THIRTEEN abilities in this format, and even
+   * `formeChange` inside `onResidual` still matches FOUR -- Hunger Switch, Power Construct,
+   * Schooling and Shields Down. The other three are HP-THRESHOLD abilities: they change forme when
+   * the holder crosses half or a quarter of its maximum and STAY there. That is a state machine, not
+   * a clock, and giving them an alternating flip would put a Minior back in its meteor shell every
+   * other turn.
+   *
+   * SO THE SHAPE IS THE ALTERNATION ITSELF: a ternary on the CURRENT species name choosing between
+   * two forme strings, with no `maxhp` anywhere in the handler. Membership is exactly Hunger Switch,
+   * printed before this was wired.
+   *
+   * `sameStats` / `sameTypes` ARE CARRIED FOR THE SAME REASON `formeOnHit` CARRIES THEM: the consumer
+   * has to know whether the flip is a rename or a rebuild, and `data/engine-data.js` is downstream of
+   * the division that reads this. Morpeko and Morpeko-Hangry are identical in both, which is what
+   * makes the flip safe to model as a rename. `stopsWhenTerastallized` is the handler's second guard
+   * and is recorded even though this engine models no Terastallization -- an absent fact should be
+   * visible in the artifact rather than absent from it. */
+  { tag: 'formeCycleResidual', param: 'the forme ALTERNATES at the end of every turn', probe: 'formeCycleResidual',
+    why: 'Hunger Switch, 32 uses, tagged `untagged` until 2026-08-08. Morpeko is Morpeko-Hangry by '
+       + 'the end of the turn it walks in on, and the board says so from turn 1',
+    of: (a) => {
+      const src = String(a.onResidual || '');
+      if (!/formeChange\(/.test(src)) return null;
+      /* the HP-threshold members carry `maxhp` and are a different mechanic entirely */
+      if (/maxhp/.test(src)) return null;
+      const m = src.match(/species\.name\s*===?\s*["']([^"']+)["']\s*\?\s*["']([^"']+)["']\s*:\s*["']([^"']+)["']/);
+      if (!m) return null;
+      const a1 = m[1], a2 = m[2];                     // "Morpeko" and "Morpeko-Hangry"
+      const s1 = dex.species.get(a1), s2 = dex.species.get(a2);
+      if (!s1 || !s1.exists || !s2 || !s2.exists) return null;
+      const gm = src.match(/baseSpecies\s*!==?\s*["']([^"']+)["']/);
+      return { alternates: [s1.name, s2.name], onlyBaseSpecies: gm ? gm[1] : null,
+               sameStats: JSON.stringify(s1.baseStats) === JSON.stringify(s2.baseStats),
+               sameTypes: JSON.stringify(s1.types) === JSON.stringify(s2.types),
+               stopsWhenTerastallized: /terastallized/.test(src) };
+    } },
   { tag: 'blocksBerries', param: 'their berries cannot be eaten', probe: 'unnerve',
     why: 'Unnerve, 2.03%. Turns off Sitrus (10.8% of items) and every resist berry on the other side',
     of: a => a.onFoeTryEatItem ? { blocks: true } : null },
@@ -3430,6 +3512,35 @@ const ABILITY_TAGS = [
   { tag: 'formeChange', param: 'the species changes mid-battle', probe: 'megaFormeOf',
     why: 'Zero to Hero (needs a switch), Illusion, Imposter, Disguise',
     of: a => /zerotohero|illusion|imposter|disguise|schooling|shieldsdown|powerconstruct/.test(norm(a.name)) ? { changes: true } : null },
+  /* NEW 2026-08-08 -- THE TRANSFORM, AND IT IS NOT THE SAME MECHANIC AS `formeChange`.
+   *
+   * `formeChange` above says "the species changes"; every member of it becomes a KNOWN forme with a
+   * row in data/engine-data.js (Palafin-Hero, Mimikyu-Busted, a mega). Imposter becomes an ARBITRARY
+   * OPPOSING BODY, so there is no row to look up -- the new body has to be copied off the thing it
+   * faced. That is a different consumer and it needs its own tag; a Zero to Hero handler and an
+   * Imposter handler share a word and nothing else.
+   *
+   * WHICH BODY IT COPIES IS READ OUT OF THE HANDLER and not assumed to be "the one opposite":
+   *     pokemon.side.foe.active[pokemon.side.foe.active.length - 1 - pokemon.position]
+   * In doubles that is the DIAGONAL slot -- a Ditto in slot 0 becomes the foe's slot 1 -- which is the
+   * negative the consumer's staged scenario turns on and which nobody would guess.
+   *
+   * MEMBERSHIP WAS PRINTED BEFORE THIS WAS WIRED, per docs/LESSONS.md §4: over the whole format
+   * exactly ONE ability declares `transformInto` (Imposter, 80 uses) and exactly ONE move does
+   * (Transform, 84 uses). The move is deliberately NOT given this tag -- it copies the body it was
+   * AIMED at rather than a fixed slot, which is a different rule with a different negative. */
+  { tag: 'transformsOnEntry', param: 'the body BECOMES the one it faces, on entry', probe: 'transformsOnEntry',
+    why: 'Imposter, 80 uses, and every Ditto that matters runs it. data/tags.json already declared '
+       + 'RAW-STORE-OK about the ABILITY being known; the TRANSFORM had no tag and no consumer, so '
+       + 'a Ditto stood there as a 61-Attack Ditto in every rollout',
+    of: a => {
+      const src = String(a.onSwitchIn || '') + String(a.onStart || '');
+      if (!/transformInto\s*\(/.test(src)) return null;
+      /* the SLOT arithmetic, matched on the handler's own expression */
+      const diagonal = /\.length\s*-\s*1\s*-\s*\w+\.position/.test(src);
+      return { copies: 'facing body', diagonal, copiesHP: false,
+               copiesItem: false, copiesBoosts: true, movePP: 5 };
+    } },
   { tag: 'statusImmune', param: 'a status cannot land', probe: 'statusImmune',
     why: 'Limber, Immunity, Insomnia, Vital Spirit, Water Veil, Magma Armor. onSetStatus only -- '
        + 'onImmunity also means weather-chip immunity and was over-capturing',
