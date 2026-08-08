@@ -29,7 +29,7 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  319/319 probed mechanics live, 0 missing   (census 2026-08-08 07:04)
+  319/319 probed mechanics live, 0 missing   (census 2026-08-08 07:07)
   1/150 differential comparisons disagree with Showdown   (2026-08-08 06:52)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (65 uses)
@@ -54,7 +54,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 182/190 probed, 8 unprobed
 ```
 
-_stamped 2026-08-08 07:07_
+_stamped 2026-08-08 07:20_
 
 <!-- /GENERATED -->
 
@@ -296,8 +296,120 @@ times, and each is written into `tests/roster.js` beside the code that now preve
 Nothing in that list was found by reading the code. Every one was found by the control arm, the
 fixture audit, the red demonstration or the staleness check, which is the argument for having them.
 
-**STAGES 3 AND 4 ARE OPEN**: all 316 abilities, then all 500 moves. The three unattributed
-divergences above are the first thing the moves stage should confirm.
+### THE 4x ARM, ADDED 2026-08-08 ON WILL'S ASK
+
+The 2x arm above proves the berry halves. It does not cover **4x, which is where the berry decides a
+game instead of shaving damage** — so where the format contains a body the chart puts at 4x AND the
+unhalved hit would kill it while the halved one would not, that body is now preferred. **11 of the 18
+berries run on a flipped-KO arm** (Chople into an Ice/Rock Avalugg-Hisui, 308 into 170 HP; Occa into a
+Bug/Steel Scizor; Rindo into a Ground/Rock Rhyperior; and eight more). All 18 still match.
+
+**AND A RATIO TEST ON A 4x HIT READS WRONG WHEN IT IS RIGHT — DO NOT ADD ONE.** The authority clamps
+recorded HP loss at the target's maximum, so a Chople Kingambit reads `114/175` against `175/175` and
+the naive ratio is 0.651 when the true damage is 228 and the halving is exact. **This file never
+computes a ratio.** It compares BOARDS, and the boards say `fainted` and `species` — facts the cap
+cannot distort. Seven berries stay on the 2x arm with the reason printed: Normal, Dark, Dragon, Ghost
+and Electric have **no legal 4x carrier in this format at all**, and Steel and Water have one that
+does not flip a KO.
+
+**PROTOCOL NOTE FOR WHOEVER READS THE STREAM:** one berry emits **two** `-enditem` lines, `[eat]` and
+`[weaken]`. Anything counting berry consumption off the protocol will double-count. This instrument
+reads live state and is unaffected; `data/game-differential.json`'s protocol side and ROADMAP #80's
+berry-disposition work are not.
+
+### STAGE 3 RESULT — all 316 legal abilities, release `3898951e7423`
+
+`2 FIRED-AND-BOARDS-DIFFER · 4 DID-NOT-FIRE · 31 FIRED-AND-BOARDS-MATCH · 279 COULD-NOT-STAGE`,
+3 of 3 breakable rules caught and localised.
+
+**THE BIGGEST NUMBER IN THIS STAGE IS ABOUT THE REGULATION, NOT THE SIMULATOR. 113 of the 316 legal
+abilities have NO LEGAL CARRIER** — Showdown marks the ability standard and marks every body that has
+it `isNonstandard: 'Past'`. Storm Drain's carriers are Gastrodon, Cradily and Maractus and all three
+are Past here. The effective ability roster of this format is ~203, not 316, and nothing can be staged
+for the rest at any price.
+
+**TWO ABILITIES FIRE WHEN THEY MUST NOT**, and they are the same defect twice — a conditional
+boost-on-being-hit whose condition is never checked:
+
+| | Showdown | ours |
+|---|---|---|
+| **Anger Point** (needs a CRITICAL HIT; the pin never lands one) | 0 Attack | **+6 Attack**, off an ordinary hit |
+| **Justified** (needs a DARK move; the staged hit was Poison) | 0 Attack | **+1 per hit**, off any hit |
+
+**TWO ABILITIES DO NOTHING**: **Electromorphosis** (proved by a third-ability arm — Bellibolt's Damp,
+Electromorphosis and Static control each other, and re-running each against the third gave *Damp vs
+Static: 0 leaves in both engines*, *Electromorphosis vs Damp: 6 in Showdown, 0 here*), and **Fluffy**
+— the delta sits on the carrier's OWN HP, which is a defensive damage reduction and not Sand Rush's
+signature, and no sand is present. Fluffy is stated as an inference; Electromorphosis is a measurement.
+
+**AND THE CONTROL ITSELF WAS THE SIXTH INSTRUMENT BUG, CAUGHT BEFORE IT WAS REPORTED.** 23 abilities
+have no second ability to swap in — a mega forme's ability is WRITTEN by the forme change, and
+Mimikyu, Morpeko, Palafin and Aegislash have exactly one each — so their only control is Gastro Acid.
+**Gastro Acid does not suppress an ability in this simulator.** Measured against a known-live fixture
+(Rough Skin, which scores MATCH under an ordinary control): suppressing it moves **6 board leaves in
+Showdown and 0 here**. `data/tags.json` gives `gastroacid` a `statusInflict {volatile: gastroacid}`
+and nothing reads that volatile to turn an ability off. Without that check, Fur Coat, Hunger Switch,
+Parental Bond, Fire Mane and Spicy Spray would all have been published as DID-NOT-FIRE **for the
+control's failure rather than the ability's**. The tier is closed with that as its written reason, the
+gate is a MEASUREMENT rather than a constant so it reopens by itself the day suppression is wired, and
+**the failure of the control is itself a finding** — the whole suppression class does not reach
+abilities here.
+
+**ALREADY CORRECT — 31**, including Intimidate, **Speed Boost with its entry gate**, Regenerator,
+Imposter, all four weather setters, Huge Power, Sheer Force, Adaptability, Multiscale, Weak Armor,
+Stamina, Rough Skin, Gooey, Toxic Debris, Sand Spit, Water Absorb, Water Bubble, Sticky Hold, Moody,
+Refrigerate, Corrosion, Swift Swim, Sand Force, Supersweet Syrup, Stalwart and Shell Armor.
+
+**WHAT STAGE 3 STILL CANNOT SEE, each counted and named in the artifact:** 124 abilities whose generic
+staging is INERT (Showdown's own board does not move either, so a green would be vacuous — Blaze needs
+1/3 HP, Chlorophyll needs sun, Berserk needs a threshold); 23 closed by the suppression gate; 10
+chance-gated by the pin; 5 entry abilities on a carrier whose only control is a click, which cannot
+come before boundary 0.
+
+**OPEN WORK, NAMED RATHER THAN IMPLIED.** The residual rule's prose used to claim it staged the
+`activeTurns` entry gate — the Speed Boost and Hunger Switch defect — and it does not: `--reds` proved
+it by applying a break aimed at that gate and moving no board, because a LEAD is not newly switched and
+this staging has no mid-turn entrant. The break is now aimed at what the staging can express and the
+entrant arm is owed.
+
+### ARM 1 — TWO MODIFIERS AT ONE STAGE. `--stage pairs`. 2026-08-08.
+
+Every entry above stages exactly ONE thing, which is the shape a stage-FOLDING defect survives:
+Showdown collects every handler at a damage stage into a single `event.modifier` and spends it once,
+and an engine applying two separately lands a HP or two away. **475 pairs derived** — every base-power
+item against every base-power ability one legal body can hold, restricted to moves inside both scopes,
+nothing hand-paired.
+
+`1 DIFFER · 0 DID-NOT-FIRE · 474 MATCH · 0 COULD-NOT-STAGE`.
+
+**And the singles arm says the one hit is NOT a folding bug.** A differing pair is re-run with each
+half alone, because "both together are wrong" and "one of them is wrong" are different findings:
+`Black Glasses + Hustle` parts, and `Black Glasses only -> agrees | Hustle only -> PARTS`. **HUSTLE
+does not apply its 1.5x Attack here** — 89 damage against our 60, a ratio of 1.48 — and stage 3 could
+not see it because its generic staging came back inert. The pair arm found a single-entity defect the
+single-entity stage missed, which is the argument for keeping it.
+
+So on this release **the folding hypothesis is NOT reproduced by any of the 474 clean pairs**. The
+Gallade / Iron Fist / Muscle Band case that motivated the arm is not in this membership (Iron Fist is
+`onBasePower` on a carrier the format allows, but the pair's click has to sit inside both scopes and
+Muscle Band's category scope selects a different move) — extending the membership to punch-flag moves
+specifically is the first thing to do here.
+
+### THE FIVE ARMS — WHAT IS LANDED AND WHAT IS OWED
+
+| arm | state |
+|---|---|
+| 1. two modifiers at one stage | **LANDED** — 475 pairs, found Hustle |
+| 2. threshold boundaries, AT the line | **OWED** — Sitrus at exactly 50% vs 51%, Focus Sash from exactly full vs one HP down. `HALVER` already derives a body/move pair by fraction; it needs an EXACT-HP variant that chips to the line first |
+| 3. suppression fires when it must not | **PARTLY ANSWERED, AND THE ANSWER IS THAT IT CANNOT FIRE**: Gastro Acid does not suppress at all here (6 leaves against 0), which closes 23 abilities and is itself the finding. Mold Breaker, Neutralizing Gas, Simple Beam, Magic Room, Embargo and Klutz are untested |
+| 4. 4x and 0.25x | **LANDED FOR THE BERRIES** (11 of 18 on a flipped-KO arm). Not generalised to Expert Belt, Tinted Lens or the 16 type-scoped items |
+| 5. across a switch and across a faint | **OWED** — and it is where four of the six engine bugs found tonight live. Needs the mid-turn entrant the residual rule is already missing |
+
+**STAGE 4 IS NOT STARTED**: all 500 moves. Three divergences the item stage could not attribute to any
+item are the first thing it should confirm — Toxic Thread's Speed drop never lands here, the confusion
+counter never decays, and the sleep counter and wake-up turn disagree with the authority. *(The
+confusion and sleep rows are being fixed by another agent as this is written; do not re-report them as
+new.)*
 
 ## WIRE 138–140 — THE THREE LARGEST BOARD-DIVERGENCE FAMILIES, AND WILL'S SLOT-FIRST QUESTION ANSWERED YES. 2026-08-08.
 

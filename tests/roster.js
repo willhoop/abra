@@ -559,7 +559,17 @@ function carrierFor(ab) {
   const plain = list.filter(s => !s.battleOnly);
   /* bulk first, so a staged hit is a reading rather than a KO */
   const bulk = s => s.baseStats.hp + s.baseStats.def + s.baseStats.spd;
-  const withAlt = plain.filter(s => altAbility(s, ab.id)).sort((a, b) => bulk(b) - bulk(a));
+  /* A CARRIER WHOSE CONTROL IS QUIET IS WORTH MORE THAN A BULKY ONE, and the first version ranked on
+   * bulk alone. Bellibolt carries Static, Electromorphosis and Damp and nothing quiet, so Damp was
+   * controlled by Electromorphosis and Electromorphosis by Damp — a delta between two LIVE abilities,
+   * which cannot say which of them moved the board. Both came back DID-NOT-FIRE and exactly one was
+   * real: re-run against Bellibolt's third ability, Damp moved 0 leaves in BOTH engines (it is inert
+   * without an explosion) and Electromorphosis moved 6 in Showdown and 0 here. Ranking quiet-control
+   * first picks a different body wherever the format offers one, and where it does not the caveat is
+   * printed on the finding. */
+  const withAlt = plain.filter(s => altAbility(s, ab.id))
+    .sort((a, b) => (QUIET_SET.has(idOf(altAbility(b, ab.id))) - QUIET_SET.has(idOf(altAbility(a, ab.id))))
+                 || (bulk(b) - bulk(a)));
   if (withAlt.length) return { tier: 'ALTERNATE', species: withAlt[0].id,
                                control: altAbility(withAlt[0], ab.id),
                                second: withAlt[1] ? withAlt[1].id : null };
@@ -658,6 +668,14 @@ function controlOf(sc) {
       b.ability = alt; swapped++;
     }
     if (!swapped) body.ability = sc.controlAbility;
+  } else if (sc.kind === 'pair') {
+    /* BOTH modifiers come off at once. The pair arm asks whether two handlers AT THE SAME STAGE are
+     * folded into one modifier and spent once — which is what the authority does — or applied
+     * separately, which gives a different answer by a rounding step. */
+    body.item = '';
+    const alt = altAbility(dex.species.get(body.species), sc.abilityId);
+    if (alt) body.ability = alt;
+    ignore.push((sideKey === 'A' ? 'p1' : 'p2') + '.active[' + idx + '].item');
   } else if (sc.kind === 'move') {
     for (const st of c.script) for (const side of ['p1', 'p2']) for (const a of side ? st[side] : []) {
       if (a && idOf(a.m) === idOf(sc.entityId)) { a.m = INERT; delete a.t; }
@@ -839,6 +857,65 @@ function neutralContactOn(speciesId) {
 /* ONE BUILDER FOR EVERY ABILITY SCENARIO. The four kinds differ in the SCRIPT and in nothing else,
  * because the interesting variable for an ability is WHEN it acts and the boundary is what reads it.
  * The carrier, the control and the tier come from `carrierFor`. */
+/* ---- IS THE SUPPRESSION CONTROL EVEN AVAILABLE? MEASURED, ONCE, BEFORE IT IS USED ---------------
+ *
+ * THE ANSWER IS NO, AND FINDING THAT OUT IS THE REASON THIS FUNCTION EXISTS. The SUPPRESS and MEGA
+ * tiers have no second ability to swap in, so their only control is Gastro Acid — and a control that
+ * does not work does not fail loudly. It hands back a control arm IDENTICAL to the subject arm, our
+ * delta comes out empty, and EVERY ENTITY IN BOTH TIERS READS `DID-NOT-FIRE`. Five of them did, on
+ * the first run: Fur Coat, Hunger Switch, Parental Bond, Fire Mane and Spicy Spray. Two of those are
+ * probably true and none of them was evidence.
+ *
+ * THE PROOF USES A KNOWN-LIVE ABILITY AS ITS FIXTURE — Rough Skin, which scores FIRED-AND-BOARDS-MATCH
+ * under an ordinary swapped-ability control, so both engines demonstrably have it. It is re-staged
+ * with a Gastro Acid control instead, and the two arms are compared INSIDE each engine:
+ *
+ *   SHOWDOWN moves    the fixture stages something; the suppression is real up there
+ *   OURS moves        the control is usable and both tiers open
+ *   OURS DOES NOT     `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json
+ *                     and NOTHING IN THE SIMULATOR READS THAT VOLATILE TO TURN AN ABILITY OFF.
+ *
+ * MEASURED 2026-08-08 on release 3898951e7423: Showdown 6 leaves, ours 0. So the tiers are closed
+ * with that as their written reason, and THE FAILURE OF THE CONTROL IS ITSELF A FINDING — the whole
+ * suppression class (Gastro Acid, and by the same token anything that reads that volatile) does not
+ * reach abilities here. The gate is a MEASUREMENT and not a constant, so the day suppression is wired
+ * the tiers reopen without anybody remembering to reopen them. */
+let _GASTRO = null;
+function gastroWorks() {
+  if (_GASTRO) return _GASTRO;
+  _GASTRO = { ok: false, why: 'the proof did not run' };
+  const ab = dex.abilities.get('roughskin');
+  const C = carrierFor(ab);
+  if (!C || C.tier !== 'ALTERNATE') return _GASTRO;
+  const built = abilityScenario(ab, C, 'generic');
+  if (!built || !built.scenario) return _GASTRO;
+  const sc = { ...built.scenario, id: 'proof/gastro-suppression', kind: 'ability', entityId: 'roughskin',
+    script: [turn([IDLE, IDLE], [IDLE, IDLE])].concat(built.scenario.script) };
+  const subj = play(sc, null);
+  const ctrl = play({ ...sc, id: 'proof/gastro-control',
+    A: sc.A.map((m, i) => (i === 0 ? { ...m, moves: m.moves.concat(['gastroacid']) } : m)),
+    script: sc.script.map((t, i) => (i === 0 ? { p1: [{ m: 'gastroacid', t: 0 }, t.p1[1]], p2: t.p2 } : t)) },
+    null);
+  if (subj.bad || ctrl.bad) { _GASTRO.why = 'the proof fixture did not play: '
+    + (subj.bad || ctrl.bad) + ' ' + (subj.why || ctrl.why); return _GASTRO; }
+  const moved = (key) => { let n = 0;
+    for (let i = 0; i < subj.boards.length; i++)
+      n += BS.compare(subj.boards[i][key], ctrl.boards[i][key], { compared: 0 }).length;
+    return n; };
+  const sd = moved('sd'), us = moved('medi');
+  _GASTRO = { ok: sd > 0 && us > 0, sd, us,
+    why: sd === 0 ? 'the proof fixture stages nothing even in the authority, so it proves neither way'
+       : us === 0 ? 'MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves '
+           + sd + ' board leaves in Showdown and 0 in this simulator. `gastroacid` carries '
+           + '`statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile '
+           + 'to turn an ability off, so the control arm would be IDENTICAL to the subject arm and '
+           + 'every entity in this tier would read DID-NOT-FIRE for the control\'s failure rather '
+           + 'than the ability\'s. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as '
+           + 'one; it is not a licence to publish the tier.'
+       : 'usable: ' + sd + ' leaves in Showdown and ' + us + ' here' };
+  return _GASTRO;
+}
+
 function abilityScenario(e, C, kind) {
   if (!C) return cannot('no legal species in this format carries it');
   const base = dex.species.get(C.species);
@@ -908,6 +985,12 @@ function abilityScenario(e, C, kind) {
    * already produced. */
   const suppress = C.tier === 'SUPPRESS' || C.tier === 'MEGA';
   if (suppress) {
+    const G = gastroWorks();
+    if (!G.ok) return cannot('its carrier is ' + C.tier + '-tier — the ability cannot be swapped out, '
+      + 'because ' + (C.tier === 'MEGA' ? 'the forme change WRITES it'
+                                        : 'it is the only ability its species has')
+      + ' — so the only control is suppression, and suppression does not work here. '
+      + G.why);
     script = [turn([IDLE, IDLE], [C.tier === 'MEGA' ? { m: INERT, mega: true } : IDLE, IDLE])]
       .concat(script);
   }
@@ -916,12 +999,19 @@ function abilityScenario(e, C, kind) {
     a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [hitThem.id]),
     b0: carrier, b1: partner, script });
   sc.controlAbility = C.control;
+  /* WHETHER THE CONTROL ABILITY IS ITSELF ACTIVE, carried onto the entry and printed on any finding.
+   * Bellibolt has Static, Electromorphosis and Damp and NOTHING QUIET, so Damp is controlled by
+   * Electromorphosis and Electromorphosis by Static — and a delta between two live abilities cannot
+   * say which of them moved the board. Measured: Sand Rush and Fluffy sit on Houndstone and control
+   * each other, and exactly one of that pair is a real finding. */
+  sc.controlQuiet = !C.control || QUIET_SET.has(idOf(C.control));
   sc.controlKind = suppress ? 'suppress' : 'ability';
   sc.abilityId = e.id;
   return { note: C.tier + ' carrier ' + base.name
       + (C.tier === 'MEGA' ? ' -> ' + pretty(C.forme) + ' via ' + pretty(C.stone) : '')
       + '; control = ' + (suppress ? 'Gastro Acid suppression' : C.control)
-      + '; staged as ' + kind, scenario: sc, tier: C.tier };
+      + (sc.controlQuiet ? '' : ' (NOT A QUIET ABILITY — see the caveat on any finding)')
+      + '; staged as ' + kind, scenario: sc, tier: C.tier, controlQuiet: sc.controlQuiet };
 }
 
 const RULES = [
@@ -1632,14 +1722,15 @@ const RULES = [
      + 'carrier stands for three quiet turns, so the board carries the effect ONCE PER BOUNDARY and '
      + 'an off-by-one in the schedule parts on the first of them. WHERE A SECOND LEGAL SPECIES CARRIES '
      + 'THE SAME ABILITY it is put on the bench and walked in MID-TURN behind a pivot: Showdown gates '
-     + 'this class on `activeTurns`, which a body that arrived this turn reads as 0, so the entrant '
-     + 'must gain NOTHING at the end of the turn it walked in on while the lead beside it gains its '
-     + 'normal share. That is the Speed Boost defect and the Hunger Switch one, staged as a rule '
-     + 'rather than as a scenario.',
-  break: { why: 'the per-turn boost fires UNCONDITIONALLY — the entry gate is removed, which is the '
-              + 'exact defect this family was written against',
+     + 'this class on `activeTurns`, which a body that arrived this turn reads as 0. '
+     + '**THE ENTRY-GATE ARM IS NOT STAGED YET AND THIS PROSE USED TO CLAIM IT WAS.** `--reds` is what '
+     + 'caught that: the break aimed at the gate (`!m._newlySwitched`) applied cleanly and moved NO '
+     + 'board, because a LEAD is not newly switched and this staging has no mid-turn entrant in it. '
+     + 'The break below is aimed at what the staging can actually express — the per-turn effect '
+     + 'itself — and the entrant arm is open work, named here rather than implied.',
+  break: { why: 'the per-turn boost is skipped entirely, which is what a lead-only staging can express',
     patch: [['if(_be&&_be.boosts&&m.boosts&&!m._newlySwitched)for(const k in _be.boosts){',
-             'if(_be&&_be.boosts&&m.boosts)for(const k in _be.boosts){']] },
+             'if(false&&_be&&_be.boosts&&m.boosts&&!m._newlySwitched)for(const k in _be.boosts){']] },
   match(e) { if (!e.onResidual) return null;
     return abilityScenario(e, carrierFor(e), 'residual'); } },
 
@@ -1726,7 +1817,74 @@ function population(kind) {
   return { legal: legal.sort((a, b) => a.id.localeCompare(b.id)), banned };
 }
 
+/* =================================================================================================
+ *  ARM 1 — TWO MODIFIERS AT ONE STAGE. THE ONE THING EVERY ENTRY ABOVE IS BLIND TO.
+ *
+ * Every roster entry so far stages exactly ONE thing, which is precisely the shape the defect class
+ * below survives. Showdown folds every handler registered at a damage stage into a single
+ * `event.modifier` and spends it ONCE; an engine that applies two multipliers separately gets a
+ * different number by a rounding step, and the gap is a HP or two — invisible against one modifier
+ * and real against two. CONFIRMED TONIGHT, outside this file: Gallade's Drain Punch into Snorlax with
+ * IRON FIST *and* MUSCLE BAND read 227 against the authority's 228, while each one ALONE agreed.
+ *
+ * THE MEMBERSHIP IS A CROSS PRODUCT, DERIVED: every base-power ITEM against every base-power ABILITY
+ * that one legal body can hold at the same time, restricted to the moves both of them actually scope.
+ * Nothing is hand-paired.
+ *
+ * AND THE ENTRY CARRIES ITS OWN SINGLES. A pair that DIFFERS is only interesting if each half AGREES
+ * — otherwise it is one broken modifier, not a folding bug — so a differing pair is re-run with the
+ * item alone and with the ability alone and the report says which of the three arms parted. That is
+ * the whole content of the finding and it cannot be read off the pair arm by itself.
+ * ================================================================================================= */
+function pairPopulation() {
+  const items = dex.items.all().filter(i => i.exists && !i.isNonstandard && i.onBasePower
+    && /Holder's ([A-Z][a-z]+)-type|Holder's (physical|special)/.test(i.shortDesc || ''));
+  const abils = dex.abilities.all().filter(a => a.exists && !a.isNonstandard
+    && (a.onBasePower || a.onModifyAtk || a.onModifySpA) && (CARRIERS[a.id] || []).length);
+  const out = [];
+  for (const ab of abils) {
+    const C = carrierFor(ab);
+    if (!C || C.tier !== 'ALTERNATE') continue;
+    const sp = dex.species.get(C.species);
+    for (const it of items) {
+      /* the click has to be inside BOTH scopes, or the pair is not a pair */
+      const m = /Holder's ([A-Z][a-z]+)-type attacks/.exec(it.shortDesc || '');
+      const cat = /Holder's (physical|special) attacks/.exec(it.shortDesc || '');
+      let mv = null;
+      if (m) mv = (DELIVERY[m[1]] || {}).best;
+      else if (cat) { for (const t of Object.keys(DELIVERY)) {
+        const c = DELIVERY[t][cat[1] === 'physical' ? 'physical' : 'special'];
+        if (c && dex.getImmunity(c.type, dex.species.get(CAST.BAG().species).types) !== false
+            && dex.getEffectiveness(c.type, dex.species.get(CAST.BAG().species).types) === 0) { mv = c; break; } }
+      }
+      if (!mv) continue;
+      if (dex.getImmunity(mv.type, dex.species.get(CAST.BAG().species).types) === false) continue;
+      out.push({ item: it, ability: ab, carrier: sp, control: C.control, move: mv });
+    }
+  }
+  return out;
+}
+function assignPairs() {
+  const out = [];
+  for (const p of pairPopulation()) {
+    const sc = scaffold({ hpB: 8, subject: 'A0',
+      a0: mon(p.carrier.id, p.item.id, dex.abilities.get(p.ability.id).name, [p.move.id]),
+      b0: { ...CAST.BAG(), moves: [INERT] },
+      script: [turn([click(p.move.id, 0), IDLE], [IDLE, IDLE]),
+               turn([click(p.move.id, 0), IDLE], [IDLE, IDLE])] });
+    sc.id = 'pair/' + p.item.id + '+' + p.ability.id;
+    sc.kind = 'pair'; sc.entityId = p.item.id; sc.abilityId = p.ability.id;
+    out.push({ kind: 'pair', id: p.item.id + '+' + p.ability.id,
+      name: p.item.name + ' + ' + p.ability.name, rule: 'pair/two-modifiers-at-one-stage',
+      reads: 'both entities register a base-power or attack handler, and one legal body can hold both',
+      note: p.carrier.name + ' clicks ' + p.move.name + '; control = neither, singles run on a DIFFER',
+      scenario: sc, pair: p });
+  }
+  return { entries: out, banned: [] };
+}
+
 function assign(kind) {
+  if (kind === 'pair') return assignPairs();
   const { legal, banned } = population(kind);
   const rules = RULES.filter(r => r.kind === kind);
   const out = [];
@@ -1747,7 +1905,8 @@ function assign(kind) {
     sc.id = kind + '/' + e.id;
     sc.kind = kind; sc.entityId = e.id;
     out.push({ kind, id: e.id, name: e.name, rule: hit.rule.id, ruleObj: hit.rule,
-               reads: hit.rule.reads, note: hit.m.note || '', tier: hit.m.tier || null, scenario: sc });
+               reads: hit.rule.reads, note: hit.m.note || '', tier: hit.m.tier || null,
+               controlQuiet: hit.m.controlQuiet !== false, scenario: sc });
   }
   return { entries: out, banned };
 }
@@ -1904,7 +2063,8 @@ function main() {
   }
 
   const kinds = STAGE === 'items' ? ['item'] : STAGE === 'abilities' ? ['ability']
-              : STAGE === 'moves' ? ['move'] : STAGE === 'all' ? ['item', 'ability', 'move'] : ['item'];
+              : STAGE === 'moves' ? ['move'] : STAGE === 'pairs' ? ['pair']
+              : STAGE === 'all' ? ['item', 'ability', 'move'] : ['item'];
   let entries = [], banned = [];
   for (const k of kinds) { const a = assign(k); entries = entries.concat(a.entries); banned = banned.concat(a.banned); }
 
@@ -1947,6 +2107,21 @@ function main() {
     let r;
     try { r = runEntry(e); }
     catch (err) { r = { ...e, verdict: 'COULD-NOT-STAGE', why: 'the harness threw: ' + err.message }; }
+    /* A DIFFERING PAIR IS ONLY A FOLDING BUG IF EACH HALF AGREES ON ITS OWN. Re-run the two singles
+     * and record which arms parted, because "both together are wrong" and "one of them is wrong"
+     * are different findings and the pair arm cannot tell them apart. */
+    if (e.pair && r.verdict === 'FIRED-AND-BOARDS-DIFFER') {
+      const single = (keepItem, keepAbility) => {
+        const sc = { ...e.scenario, id: e.scenario.id + (keepItem ? '/item' : '/ability'),
+          A: e.scenario.A.map((m, i) => (i === 0 ? { ...m,
+            item: keepItem ? m.item : '',
+            ability: keepAbility ? m.ability : (altAbility(dex.species.get(m.species), e.pair.ability.id) || m.ability) }
+            : m)) };
+        const got = play(sc, null);
+        return got.bad ? got.bad : (got.boards.some(b => b.diffs.length) ? 'PARTS' : 'agrees');
+      };
+      r.singles = { item_alone: single(true, false), ability_alone: single(false, true) };
+    }
     results.push(r);
     if (VERBOSE) console.log('    ' + r.verdict.padEnd(24) + r.id);
   }
@@ -2054,12 +2229,20 @@ function main() {
           console.log('      and the two engines part on NOTHING the entity does not already explain, '
             + 'so the entity itself is the whole difference.');
         }
+        if (r.controlQuiet === false) console.log('      CAVEAT: the control ability is itself ACTIVE '
+          + '— its species carries no quiet alternative — so this delta is (subject MINUS a live '
+          + 'control) and cannot on its own say which of the two moved the board.');
       } else {
         for (const d of (r.subject_diffs || []).slice(0, 6)) {
           console.log('        SHOWDOWN  ' + BS.explain(d, d.sd, pretty));
           console.log('        OURS      ' + BS.explain(d, d.us, pretty)
             + '        [' + (d.slot || d.side || 'field') + ' ' + d.field + ' / ' + d.bucket + ']');
         }
+        if (r.singles) console.log('        THE TWO HALVES ALONE:  ' + r.pair.item.name + ' only -> '
+          + r.singles.item_alone + '   |   ' + r.pair.ability.name + ' only -> ' + r.singles.ability_alone
+          + (r.singles.item_alone === 'agrees' && r.singles.ability_alone === 'agrees'
+             ? '\n        BOTH HALVES AGREE ALONE AND THE PAIR DOES NOT — this is a STAGE-FOLDING '
+               + 'defect, not a broken modifier.' : ''));
         if ((r.shared_diffs || []).length) console.log('        (and ' + r.shared_diffs.length
           + ' further leaf/leaves part in the CONTROL arm too — reported under DIFFERENCES THE '
           + 'FIXTURE TRIPPED OVER, not charged to this entity)');

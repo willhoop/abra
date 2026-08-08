@@ -22,9 +22,20 @@ one tie value per action from a constant scalar so the sort is stable and takes 
 instrument's own header claimed the pin made them agree by construction; that claim was false and was
 repeated as fact before it was checked. `sortTurnOrder` is the live engine, not instrument code.
 
-**Version: 3.76.0 — 2026-08-08.**
+**Version: 3.76.1 — 2026-08-08.**
 
-**3.76.0 — FIVE MECHANICS THAT DID NOTHING, AND ONE THAT WAS ALREADY RIGHT.** Imposter never
+**3.76.1 — ALL 316 ABILITIES STAGED DELIBERATELY, AND A FREE +6 ATTACK FELL OUT.** Anger Point and
+Justified are one defect twice: a conditional boost-on-being-hit whose condition is never checked, so
+Anger Point grants +6 Attack off an ordinary hit where it requires a crit, and Justified grants +1 off
+a Poison move where it requires Dark. Hustle applies no 1.5x Attack at all. Two facts about the
+instrument matter as much: Gastro Acid does not suppress an ability here, and since suppression is the
+ONLY control available to 23 abilities, checking that control against a known-live fixture is what
+stopped five more from being published as dead for the control's failure rather than their own. And a
+fact about the regulation rather than the simulator: 113 of 316 legal abilities have NO legal carrier,
+so the effective roster of this format is about 203.
+
+
+**3.76.1 — FIVE MECHANICS THAT DID NOTHING, AND ONE THAT WAS ALREADY RIGHT.** Imposter never
 transformed Ditto; Hunger Switch never flipped Morpeko; Knock Off took its 1.5x against an item it
 cannot remove; Fling never became an attack at all, because a base power of 0 made the click fail a
 `hasPower()` gate; and Roar's phaze branch held a Pokemon-first target, so a phaze after a pivot dragged
@@ -36,7 +47,7 @@ this engine does not have. Census 319/319 live, 0 missing; the staged harness no
 all clean and all breakable.
 
 
-**3.76.0 — THE INSTRUMENT RESOLVED A SWITCH BY TWO DIFFERENT KEYS AND FAILED SILENTLY BOTH WAYS.** The
+**3.76.1 — THE INSTRUMENT RESOLVED A SWITCH BY TWO DIFFERENT KEYS AND FAILED SILENTLY BOTH WAYS.** The
 driver names a bench member by Showdown's species id; the Showdown side looked it up by species id and
 the medicham side by the body's DISPLAY NAME. Those agree until a body is renamed — which this engine
 began doing the day before, when Disguise started renaming a busted Mimikyu, Zero to Hero started
@@ -49,7 +60,7 @@ This is an INSTRUMENT change rather than an engine one, so it alters what a meas
 also LATENT UNTIL THE FORME FIXES LANDED, and the deliberate-roster build would have walked into it.
 
 
-> **NO STAGE MOVED IN 3.76.0, AND THE VERSION MOVED ANYWAY — the reason is worth stating rather than
+> **NO STAGE MOVED IN 3.76.1, AND THE VERSION MOVED ANYWAY — the reason is worth stating rather than
 > pinning.** WIRE 139 changed WHICH BODY a move resolves against (the slot, not the Pokemon, which is
 > what `Battle#getTarget` does), and WIRE 140 added Ally Switch, which moves two bodies between slots
 > mid-turn. Neither touches a multiplier or its stage, so every row in the table below still holds

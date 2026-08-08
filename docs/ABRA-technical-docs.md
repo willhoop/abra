@@ -1,8 +1,19 @@
 # ABRA — Technical Documentation
 
-**Version 3.76.0 · Last updated 2026-08-08**
+**Version 3.76.1 · Last updated 2026-08-08**
 
-**3.76.0 — FIVE MECHANICS THAT DID NOTHING, AND ONE THAT WAS ALREADY RIGHT.** Imposter never
+**3.76.1 — ALL 316 ABILITIES STAGED DELIBERATELY, AND A FREE +6 ATTACK FELL OUT.** Anger Point and
+Justified are one defect twice: a conditional boost-on-being-hit whose condition is never checked, so
+Anger Point grants +6 Attack off an ordinary hit where it requires a crit, and Justified grants +1 off
+a Poison move where it requires Dark. Hustle applies no 1.5x Attack at all. Two facts about the
+instrument matter as much: Gastro Acid does not suppress an ability here, and since suppression is the
+ONLY control available to 23 abilities, checking that control against a known-live fixture is what
+stopped five more from being published as dead for the control's failure rather than their own. And a
+fact about the regulation rather than the simulator: 113 of 316 legal abilities have NO legal carrier,
+so the effective roster of this format is about 203.
+
+
+**3.76.1 — FIVE MECHANICS THAT DID NOTHING, AND ONE THAT WAS ALREADY RIGHT.** Imposter never
 transformed Ditto; Hunger Switch never flipped Morpeko; Knock Off took its 1.5x against an item it
 cannot remove; Fling never became an attack at all, because a base power of 0 made the click fail a
 `hasPower()` gate; and Roar's phaze branch held a Pokemon-first target, so a phaze after a pivot dragged
@@ -14,7 +25,7 @@ this engine does not have. Census 319/319 live, 0 missing; the staged harness no
 all clean and all breakable.
 
 
-**3.76.0 — THE DIFFERENTIAL IDENTIFIED A SWITCH TARGET BY TWO DIFFERENT KEYS.** The driver selects a
+**3.76.1 — THE DIFFERENTIAL IDENTIFIED A SWITCH TARGET BY TWO DIFFERENT KEYS.** The driver selects a
 bench member and records the species identifier. The official-engine side matched on that identifier.
 The MEDICHAM side matched on the display name. The two values are equal until a forme change alters
 the display name. Forme changes were added in the previous release. After a forme change, the values
@@ -25,7 +36,7 @@ games.
 
 
 **WIRE 138-140 — THREE BOARD FAMILIES, AND A TARGETING MODEL THAT WAS WRONG WHENEVER ANYTHING MOVED
-(3.76.0).** Aimed at the three largest surviving board-divergence families of the 1,530-game run at
+(3.76.1).** Aimed at the three largest surviving board-divergence families of the 1,530-game run at
 release `288aee2e3501`. **Speed Boost fired a turn early**: Showdown gates it on `activeTurns`, which
 is 0 on the turn a body switches in, and this engine's own comment said the gate "is not expressible
 here" — true of `_turnsOut` and untrue since WIRE 135 added `_newlySwitched`, a reason that was

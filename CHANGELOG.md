@@ -10,6 +10,47 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.76.1] — 2026-08-08
+
+### Added
+- **THE DELIBERATE ROSTER, STAGE 3 — all 316 legal abilities staged, plus the 4x berry arm and the
+  two-modifier pair arm.** `tests/roster.js`, `data/roster.json`. Abilities
+  `2 DIFFER · 4 DID-NOT-FIRE · 31 MATCH · 279 COULD-NOT-STAGE`; pairs `1 DIFFER · 474 MATCH`.
+
+### Reported — engine defects, not fixed here
+- **ANGER POINT AND JUSTIFIED ARE ONE DEFECT TWICE: a conditional boost-on-being-hit whose CONDITION IS
+  NEVER CHECKED.** Anger Point requires a CRIT and we grant **+6 Attack off an ordinary hit** (Showdown
+  0). Justified requires a DARK move and we grant +1 off a Poison one (Showdown 0).
+- **HUSTLE does not apply its 1.5x Attack** — 89 against our 60, ratio 1.48. Found by the PAIR arm;
+  stage 3's own staging was inert and missed it.
+- Electromorphosis does nothing. Fluffy appears to do nothing, stated as an inference rather than a
+  measurement because the delta sits on the carrier's own HP.
+
+### Notes
+- **113 OF 316 LEGAL ABILITIES HAVE NO LEGAL CARRIER.** Showdown marks the ability standard and marks
+  every body that has it `isNonstandard: 'Past'` — Storm Drain's carriers are Gastrodon, Cradily and
+  Maractus, all Past here. The effective ability roster of this format is **~203**, and that number is
+  about the REGULATION rather than the simulator.
+- **The 4x berry arm: 11 of 18 berries now run a flipped-KO arm and all 18 still match.** Chople into an
+  Ice/Rock Avalugg-Hisui is 308 into 170 HP. The pairs are swept from the type chart, none hand-picked;
+  seven stay at 2x with the reason printed — Normal, Dark, Dragon, Ghost and Electric have NO legal 4x
+  carrier in this format. **No ratio is computed**: the assertion is `fainted` and `species`, so the
+  HP-loss cap cannot distort it, and the rule says so in place so a future reader does not "fix" it.
+- **THE PAIR ARM DID NOT REPRODUCE THE FOLDING HYPOTHESIS.** 474 of 475 clean pairs match on this
+  release. The Iron Fist + Muscle Band case that motivated the arm predates the 3.72.0 stage work.
+- **THE INSTRUMENT WAS WRONG TWICE MORE AND CAUGHT ITSELF BOTH TIMES.** GASTRO ACID DOES NOT SUPPRESS AN
+  ABILITY IN THIS SIMULATOR — 23 abilities have no second ability to swap in, so suppression is their
+  ONLY control, and without checking that control against a known-live fixture (Rough Skin: 6 board
+  leaves move in Showdown, 0 here) the roster WOULD HAVE PUBLISHED Fur Coat, Hunger Switch, Parental
+  Bond, Fire Mane and Spicy Spray AS DEAD for the control's failure rather than their own. And two live
+  abilities were controlling each other on Bellibolt, so both read DID-NOT-FIRE while exactly one was
+  real. Carrier ranking now prefers a quiet control and prints the caveat where the format offers none.
+- `--reds` caught the roster's own prose: the residual rule claimed to stage Speed Boost's `activeTurns`
+  entry gate and does not — a lead is not newly switched. Corrected, and the entrant arm is named as
+  owed rather than assumed.
+- Stage 4 (500 moves) is NOT started; the agent stopped on context rather than time, which is the right
+  call — a half-built arm reporting confidently is the failure this file exists to prevent.
+
 ## [3.76.0] — 2026-08-08
 
 ### Fixed
