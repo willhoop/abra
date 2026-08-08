@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-08T05:40:07.661Z",
+  "generated": "2026-08-08T06:52:23.451Z",
   "by": "tests/test-engine-diff.js",
   "design": "Showdown is the authority. Same attacker, move and defender through both engines; a disagreement is a MEDICHAM bug, including one nobody thought to look for.",
   "scope": "damage only, no items or abilities. Turn order, status duration and switching need a different harness and are not attempted here rather than attempted badly.",

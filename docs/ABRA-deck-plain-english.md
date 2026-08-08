@@ -1,8 +1,20 @@
 # ABRA — the plain-English deck
 
-**Version 3.75.1 · 2026-08-08 · Will Hooper**
+**Version 3.76.0 · 2026-08-08 · Will Hooper**
 
-**3.75.1 — THE TEST ITSELF COULD SEND THE TWO COPIES OF THE GAME DIFFERENT POKEMON.** When the test
+**3.76.0 — FIVE MECHANICS THAT DID NOTHING, AND ONE THAT WAS ALREADY RIGHT.** Imposter never
+transformed Ditto; Hunger Switch never flipped Morpeko; Knock Off took its 1.5x against an item it
+cannot remove; Fling never became an attack at all, because a base power of 0 made the click fail a
+`hasPower()` gate; and Roar's phaze branch held a Pokemon-first target, so a phaze after a pivot dragged
+nobody — the SIXTH site missed by the slot-first sweep, and at priority -6 the worst possible place to
+hold a body rather than a slot. Mawile's mega ability swap, which had been blamed for a whole family of
+Attack-stage divergences, WAS ALREADY CORRECT: the scenario was board-identical on its first run, and
+deleting the swap deliberately parts two fields at once, so the symptoms were real symptoms of a bug
+this engine does not have. Census 319/319 live, 0 missing; the staged harness now carries 24 scenarios,
+all clean and all breakable.
+
+
+**3.76.0 — THE TEST ITSELF COULD SEND THE TWO COPIES OF THE GAME DIFFERENT POKEMON.** When the test
 tells both engines to switch, it names the Pokemon it wants. One copy looked that name up one way and
 the other looked it up another way, and the two only agreed while nothing had been renamed — which
 stopped being true the day we taught the engine that Mimikyu becomes Mimikyu-Busted and Palafin becomes
@@ -11,7 +23,7 @@ nothing, so one side could switch while the other stood still and the difference
 bug. Both now ask the same question, and any failure to find it is counted out loud.
 
 
-**THE ENGINE FOLLOWED THE POKEMON, AND THE GAME FOLLOWS THE SPOT IT WAS STANDING IN (3.75.1).** If you
+**THE ENGINE FOLLOWED THE POKEMON, AND THE GAME FOLLOWS THE SPOT IT WAS STANDING IN (3.76.0).** If you
 aim at the left-hand Pokemon and it switches out before your move goes off, your move hits whatever
 walked in. Our simulator kept aiming at the Pokemon — sometimes at one that was already on the bench —
 so stat drops from Charm and Parting Shot went nowhere. Ally Switch, which swaps your two Pokemon

@@ -10,6 +10,49 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.76.0] — 2026-08-08
+
+### Fixed
+- **IMPOSTER** never fired. Ditto now transforms on entry into the body opposite — species, types, every
+  stat EXCEPT HP (`StatIDExceptHP` excludes it by the type of the loop variable, not by a condition),
+  all seven boost stages, the moves at 5 PP each, and the ability. Before: slot read `ditto` against
+  Showdown's `clefable`, boosts.spa/spd 0 against +1.
+- **HUNGER SWITCH** never fired. Morpeko flips forme at the end of EVERY turn, `onResidualOrder: 29` —
+  adjacent to Speed Boost's 28, the other end-of-turn effect fixed this week. Before: `morpeko` against
+  `morpekohangry` on turns 1 and 3.
+- **KNOCK OFF's x1.5 now asks `TakeItem` first**, exactly as the authority does, so an item that cannot
+  leave the body grants no boost. Before: 50/153 against Showdown's 84/153 — the 34 HP the turn-1 case
+  queue reported, 15 games.
+- **FLING** spent nothing and did nothing, and it was worse than reported: base power 0 made
+  `hasPower()` reject the click, so `playerAction` returned `{kind:'pass'}` and THE MOVE NEVER BECAME AN
+  ATTACK AT ALL. Same shape as ROADMAP #84's spread moves. Power now comes from the item and the item
+  is spent.
+- **THE PHAZE BRANCH WAS THE SIXTH SITE WIRE 139 MISSED.** Roar held a POKEMON-first target
+  (`const _t=a.target; _foes.indexOf(_t)` returned -1 after the target pivoted out) and failed silently.
+  At priority -6 that is the worst place in the file to hold a body rather than a slot, because the
+  switch always resolves first. The damaging half (Dragon Tail) was already right and was CHECKED
+  rather than assumed.
+
+### Notes
+- **MAWILE WAS NOT A DEFECT.** `mawile-mega-swaps-the-ability` was board-identical on its first run —
+  two Intimidates and one ability replacement in a single turn, all 131 fields agreeing. All three
+  hypotheses in the brief are dead. The proof is the BREAK: deleting `m.ability=ab` from
+  `megaEvolveNow` parts `boosts.atk` AND `hp` together, so both symptoms named were real symptoms of a
+  bug this engine does not have. The `boosts.atk` family it was blamed for is a CASCADE — the artifact
+  row has the two engines already holding different bodies in that slot.
+- **THE ITEM-REFUSAL CLASS IS SMALLER THAN THE BRIEF ASSUMED, and it was measured rather than
+  remembered.** All 75 legal items carrying `onTakeItem` in this format are MEGA STONES — no
+  Z-crystals, no plates, no Griseous Orb. Sticky Hold does NOT gate Knock Off's boost (the authority
+  uses `singleEvent`, the item handler only) and carries no `data/tags.json` row at all. And all 148
+  legal items are flingable, so "cannot be thrown" has no member here.
+- One genuinely isolated `boosts.atk` case survives and is REPORTED not fixed: `omit-weather` turn 0,
+  `p2.active[1].boosts.atk` medi -1 / showdown 0 — a leads-time Intimidate refusal we are missing, with
+  nothing else on the board parted.
+- Census 313/313 → **319 live / 319 probed / 0 missing**. `tests/staged_board.js` 18 → 24 scenarios,
+  24/24 clean and board-identical, 24/24 breaks caught and localised.
+- The harness caught its own author: a multi-line break anchor matched 0 times because the files are
+  CRLF, and `patchedSource` REFUSED it rather than skipping.
+
 ## [3.75.1] — 2026-08-08
 
 ### Fixed

@@ -1,8 +1,20 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 3.75.1 · Last updated 2026-08-08**
+**Version 3.76.0 · Last updated 2026-08-08**
 
-**3.75.1 — THE INSTRUMENT RESOLVED A SWITCH BY TWO DIFFERENT KEYS AND FAILED SILENTLY BOTH WAYS.** The
+**3.76.0 — FIVE MECHANICS THAT DID NOTHING, AND ONE THAT WAS ALREADY RIGHT.** Imposter never
+transformed Ditto; Hunger Switch never flipped Morpeko; Knock Off took its 1.5x against an item it
+cannot remove; Fling never became an attack at all, because a base power of 0 made the click fail a
+`hasPower()` gate; and Roar's phaze branch held a Pokemon-first target, so a phaze after a pivot dragged
+nobody — the SIXTH site missed by the slot-first sweep, and at priority -6 the worst possible place to
+hold a body rather than a slot. Mawile's mega ability swap, which had been blamed for a whole family of
+Attack-stage divergences, WAS ALREADY CORRECT: the scenario was board-identical on its first run, and
+deleting the swap deliberately parts two fields at once, so the symptoms were real symptoms of a bug
+this engine does not have. Census 319/319 live, 0 missing; the staged harness now carries 24 scenarios,
+all clean and all breakable.
+
+
+**3.76.0 — THE INSTRUMENT RESOLVED A SWITCH BY TWO DIFFERENT KEYS AND FAILED SILENTLY BOTH WAYS.** The
 driver names a bench member by Showdown's species id; the Showdown side looked it up by species id and
 the medicham side by the body's DISPLAY NAME. Those agree until a body is renamed — which this engine
 began doing the day before, when Disguise started renaming a busted Mimikyu, Zero to Hero started
@@ -16,7 +28,7 @@ also LATENT UNTIL THE FORME FIXES LANDED, and the deliberate-roster build would 
 
 
 **WIRE 138-140 — THREE BOARD FAMILIES, AND A TARGETING MODEL THAT WAS WRONG WHENEVER ANYTHING MOVED
-(3.75.1).** Aimed at the three largest surviving board-divergence families of the 1,530-game run at
+(3.76.0).** Aimed at the three largest surviving board-divergence families of the 1,530-game run at
 release `288aee2e3501`. **Speed Boost fired a turn early**: Showdown gates it on `activeTurns`, which
 is 0 on the turn a body switches in, and this engine's own comment said the gate "is not expressible
 here" — true of `_turnsOut` and untrue since WIRE 135 added `_newlySwitched`, a reason that was

@@ -22,9 +22,21 @@ one tie value per action from a constant scalar so the sort is stable and takes 
 instrument's own header claimed the pin made them agree by construction; that claim was false and was
 repeated as fact before it was checked. `sortTurnOrder` is the live engine, not instrument code.
 
-**Version: 3.75.1 — 2026-08-08.**
+**Version: 3.76.0 — 2026-08-08.**
 
-**3.75.1 — THE INSTRUMENT RESOLVED A SWITCH BY TWO DIFFERENT KEYS AND FAILED SILENTLY BOTH WAYS.** The
+**3.76.0 — FIVE MECHANICS THAT DID NOTHING, AND ONE THAT WAS ALREADY RIGHT.** Imposter never
+transformed Ditto; Hunger Switch never flipped Morpeko; Knock Off took its 1.5x against an item it
+cannot remove; Fling never became an attack at all, because a base power of 0 made the click fail a
+`hasPower()` gate; and Roar's phaze branch held a Pokemon-first target, so a phaze after a pivot dragged
+nobody — the SIXTH site missed by the slot-first sweep, and at priority -6 the worst possible place to
+hold a body rather than a slot. Mawile's mega ability swap, which had been blamed for a whole family of
+Attack-stage divergences, WAS ALREADY CORRECT: the scenario was board-identical on its first run, and
+deleting the swap deliberately parts two fields at once, so the symptoms were real symptoms of a bug
+this engine does not have. Census 319/319 live, 0 missing; the staged harness now carries 24 scenarios,
+all clean and all breakable.
+
+
+**3.76.0 — THE INSTRUMENT RESOLVED A SWITCH BY TWO DIFFERENT KEYS AND FAILED SILENTLY BOTH WAYS.** The
 driver names a bench member by Showdown's species id; the Showdown side looked it up by species id and
 the medicham side by the body's DISPLAY NAME. Those agree until a body is renamed — which this engine
 began doing the day before, when Disguise started renaming a busted Mimikyu, Zero to Hero started
@@ -37,7 +49,7 @@ This is an INSTRUMENT change rather than an engine one, so it alters what a meas
 also LATENT UNTIL THE FORME FIXES LANDED, and the deliberate-roster build would have walked into it.
 
 
-> **NO STAGE MOVED IN 3.75.1, AND THE VERSION MOVED ANYWAY — the reason is worth stating rather than
+> **NO STAGE MOVED IN 3.76.0, AND THE VERSION MOVED ANYWAY — the reason is worth stating rather than
 > pinning.** WIRE 139 changed WHICH BODY a move resolves against (the slot, not the Pokemon, which is
 > what `Battle#getTarget` does), and WIRE 140 added Ally Switch, which moves two bodies between slots
 > mid-turn. Neither touches a multiplier or its stage, so every row in the table below still holds

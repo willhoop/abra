@@ -5,9 +5,10 @@
 `tests/test-game-diff.js`, `tests/interaction_matrix.js`, `tests/test-interaction-matrix.js`,
 `tests/mechanics_rank.js`, `tests/mutation_harness.js`, `tests/test-mutation-coverage.js`,
 `tests/test-medicham-coverage.js`, `tests/regulation_usage.js`, `tests/probe_red_demo.js`,
-`tests/test-protocol-trace.js`, `engine/derive_protocol_events.js`, `data/protocol-events.json`
+`tests/test-protocol-trace.js`, `engine/derive_protocol_events.js`, `data/protocol-events.json`,
+`tests/roster.js`, `data/roster.json`
 
-**Six instruments, and none substitutes for another:**
+**Seven instruments, and none substitutes for another:**
 
 | file | asks | structurally cannot see |
 |---|---|---|
@@ -17,6 +18,7 @@
 | `test-interaction-matrix.js` | does every carrier x reactor pair resolve the way the official engine says | anything the generator refuses to emit — printed on every run |
 | `test-protocol-trace.js` | does the engine EMIT what it did, in Showdown's own protocol shapes, and does every event it claims actually FIRE | whether a MECHANIC is right — it is a stream, not an oracle; the comparison driver over two streams is ROADMAP #68's next step |
 | `mutation_harness.js` | does the handler MATTER, or does it only FIRE — change the FACT, watch the BEHAVIOUR | a fact derived WRONG upstream (it is propagated and consumed faithfully and scores LIVE); anything outside `medicham2-browser.js`; a branch no scripted turn reaches, which it counts rather than hides |
+| `roster.js` | does EVERY LEGAL ENTITY IN THE FORMAT do anything, and does it do the same thing the authority does — staged from the entity's own upstream data, with a CONTROL arm that removes only it | anything the pin refuses (a sub-100% chance, a crit), anything `board_state.js` does not compare (PP, ability trapping), and anything no shape rule matches — each named, per entity, with its reason |
 
 **Its one number:** mechanics live. **It must never go down.**
 
@@ -27,8 +29,8 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  313/313 probed mechanics live, 0 missing   (census 2026-08-08 05:39)
-  1/150 differential comparisons disagree with Showdown   (2026-08-08 05:40)
+  319/319 probed mechanics live, 0 missing   (census 2026-08-08 07:04)
+  1/150 differential comparisons disagree with Showdown   (2026-08-08 06:52)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (65 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -49,12 +51,253 @@ ENGINE — does the simulator do what Pokémon does
     whole-game agreement 7/1997 -> 134/1997; first-divergence line, mean 14.78 -> 33.98
     paired against the baseline: 1295 games part later, 116 EARLIER, 586 unchanged
     the baseline ran first and last and reproduced exactly; comparability: every arm cleared
-  tag coverage: 177/185 probed, 8 unprobed
+  tag coverage: 182/190 probed, 8 unprobed
 ```
 
-_stamped 2026-08-08 05:40_
+_stamped 2026-08-08 07:07_
 
 <!-- /GENERATED -->
+
+## WIRE 141 — FIVE FIXES IN TWO ATTRIBUTABLE BATCHES, AND THE ONE WITH THE LOUDEST SYMPTOM WAS NOT A DEFECT. 2026-08-08.
+
+Census **313 → 319 live**, `missing` **0**, `probed` 319. `tests/staged_board.js` **24/24 clean and
+board-identical, 24/24 breaks caught and localised** (18 → 24 scenarios). Tag coverage 177/185 → 182/190
+probed, unprobed unchanged at 8. Aimed at the residue of the 1,530-game run at release `3dd96ca88574`.
+
+### SAID FIRST: MAWILE'S MEGA ABILITY SWAP IS NOT A DEFECT, AND THE PROOF IS THE BREAK
+
+`mawile-mega-swaps-the-ability` was **IDENTICAL on its first run**, before a line changed. Mawile
+carries Intimidate, Mawile-Mega carries Huge Power, and the staged turn puts two Intimidates and one
+ability replacement inside a single turn with a real damaging click on top. All three named
+hypotheses are dead: no entry effect fires twice, the foe's Intimidate lands on the right body at the
+right moment, and the mega forme's ability really does replace the base one.
+
+**A green here would have been worthless without the red beside it**, so the scenario's declared break
+removes exactly the hypothesised bug — `m.ability=ab; m.baseAbility=ab;` deleted from `megaEvolveNow`.
+Under it the boards part on **`boosts.atk` AND `hp` at once**: Staraptor and Corviknight sit a stage
+lower because the kept Intimidate fires a second time on the forme change, and Corviknight takes
+**22 HP less on turn 1 and 44 less on turn 2** because Huge Power was never installed. Both symptoms
+the brief named are real symptoms — of a bug this engine does not have.
+
+**The `boosts.atk` family it was blamed for is a CASCADE, not an Intimidate bug.** The artifact's own
+row shows the two engines already holding DIFFERENT BODIES in that slot (`medicham mawile` against
+`showdown kangaskhan`, with `maxhp` and `item` parted beside it); the attack stage is downstream of a
+divergence that happened earlier. **Reported, not mine:** one genuinely isolated member survives —
+`omit-weather`, turn 0, `p2.active[1].boosts.atk` medi `-1` / showdown `0`, a leads-time Intimidate
+Showdown refused and we applied, with no other field parted. Membership of `onSwitchInDrop` is exactly
+Intimidate and Super Sweet Syrup, so it is a REFUSAL we are missing rather than a drop we invented.
+A whole-format sweep of `statDropRefusal` against the authority's `TryBoost` would name it; it is one
+board and it did not ride along with five fixes.
+
+### BATCH A — TWO SPECIES FIXES THAT CANNOT BE CONFUSED WITH EACH OTHER
+
+**IMPOSTER (`transformsOnEntry`, 80 uses).** Ditto stood there as a 61-Attack Ditto in every rollout
+this project has ever run. The mechanism is NOT the `formeChange` machinery Zero to Hero and Disguise
+use, and checking that first is what made this cheap: those become a KNOWN forme with a row in
+`data/engine-data.js`, and Imposter becomes an ARBITRARY opposing body, so the new body is **copied
+off the thing it faced** rather than looked up. `imposterCopy` carries species, types, weight, the
+moveset, the boosts, the ability and **every stat except HP** — `storedStats` is typed
+`StatIDExceptHP` in `sim/pokemon.ts`, so HP is outside the loop rather than skipped by a condition,
+and the staged Ditto keeps its own 123 max HP while copying a Clefable's 170.
+
+**THE DIAGONAL IS THE HALF NOBODY GUESSES.** `foe.active[foe.active.length - 1 - pokemon.position]`
+— a Ditto in slot 0 becomes the foe's **slot 1**. It is derived from the handler
+(`transformsOnEntry.diagonal`) rather than typed, and it is the census probe's sharpest arm: an engine
+copying "the body opposite" passes every other assertion and is wrong on half of all doubles boards.
+The copied ability is LIVE (`setAbility(..., isTransform)` still fires `Start`), which this engine
+gets for free by transforming above the entry-effect pass the caller already runs.
+
+**HUNGER SWITCH (`formeCycleResidual`, 32 uses, tagged `untagged` until today).** Morpeko flips to
+Morpeko-Hangry at the end of **every** turn, triggered by nothing, and this was the largest single
+`species` cause at turn 1. `onResidualOrder` is 29 against Speed Boost's 28, so the consumer sits one
+block below the gate WIRE 138 landed. **The alternation is the assertion**: under the declared break
+turns 1 and 3 part and turn 2 AGREES, which is exactly the board a one-shot transform would produce —
+a fix that transformed once passes half the scenario.
+
+**THE DERIVATION HAD TO BE NARROW AND THE WIDE ONE WAS MEASURED FIRST.** `formeChange` in any handler
+matches 13 abilities; inside `onResidual` it still matches FOUR. Power Construct, Schooling and Shields
+Down are HP-THRESHOLD abilities — a state machine, not a clock — and giving them an alternating flip
+would put a Minior back in its shell every other turn. The shape is the ternary on the current species
+name with no `maxhp` in the handler; membership is exactly Hunger Switch.
+
+**IT IS A RENAME, AND THE RENAME IS TRIED BEFORE THE REBUILD.** Both formes are 58/95/58/70/58/97 and
+Electric/Dark, so `sameStats`/`sameTypes` are true and nothing modelled changes. `formeSwap` would have
+been the wrong operation even though a `morpeko` row exists: it REBUILDS from the mon table, so a body
+carrying a harness's flat level-50 line would be silently re-spread on the flip back and every damage
+roll after it would be wrong. **Declared and not modelled:** the handler also stops for a terastallized
+body; this engine has no Terastallization to read.
+
+### BATCH B — ONE QUESTION, TWO MOVES, AND THE REFUSAL CLASS IS SMALLER THAN IT LOOKS
+
+**KNOCK OFF'S x1.5 IS NOT A DAMAGE RULE.** `data/moves.ts` asks `singleEvent('TakeItem', …)` and
+returns WITHOUT the boost when the item refuses. This engine honoured that at the STRIP and not at the
+POWER, so a Charizard holding its own Charizardite Y correctly kept the stone and still ate the x1.5 —
+staged at Showdown **84/153 against our 50/153**, the exact 34 HP the brief reported. One line, through
+the `itemRefusesTake` reader the strip already asks, which is what stops a second copy of "can this
+item leave this body" existing at all.
+
+**AND IT IS NOT "MEGA STONES ARE IMMUNE".** The refusal is keyed on `source.baseSpecies.baseSpecies`,
+so the IDENTICAL Charizardite Y on a Snorlax is taken normally and boosts normally. That is turn 2 of
+the scenario and a separate probe arm, because the wrong rule passes every other check.
+
+**THE REFUSAL CLASS WAS MEASURED RATHER THAN GENERALISED, AND THE MEASUREMENT SHRINKS IT.** Of every
+legal item in `Dex.forFormat('gen9championsvgc2026regmb')`, exactly **75 declare an `onTakeItem` and
+all 75 are mega stones** — there is no Z-crystal, no plate and no Griseous Orb in this format, so the
+item half of the class IS the stones. The ability half is **Sticky Hold**, and two things about it are
+worth writing down: it does NOT affect Knock Off's boost (the authority uses `singleEvent`, which runs
+the item's handler only, never the ability's), and it carries **no row in `data/tags.json` at all** —
+0 uses, unreachable from this format's species pool — so there is no shape to match on and naming it
+would be the hand-typed list this project bans. Reported, not wired.
+
+**FLING WAS A NO-OP TURN, WHICH IS A BIGGER FAULT THAN THE ONE REPORTED.** The brief said the item was
+not consumed; the item was not consumed because the click never became an attack at all. Fling ships at
+**base power 0** — the power IS the held item — and `hasPower()` rejected it, so `playerAction` fell
+through to `{kind:'pass'}`. Same shape as ROADMAP #84's spread moves: a dex base power of 0 read as
+"this move does nothing". `flingsOwnItem` now admits it, `flingable` carries each item's own
+`{basePower, status, volatileStatus}`, and the throw resolves at `onPrepareHit` — above Protect, above
+type immunity, above the accuracy roll — which is where the authority puts it and why a shielded Fling
+has still spent the item.
+
+**THE POWER AND THE DISPOSITION HAD TO LAND TOGETHER.** A fix that spent the item but kept a fixed base
+power is wrong in a way the board shows, so the item's number is resolved and stamped BEFORE the item
+goes and `flingBasePower` is the one reader both the click-time price and the hit-time damage ask. It
+also returns 0 for a body whose item refuses the take, so the damage table stops offering a searcher a
+Fling that cannot happen. Staged: Light Ball 30 BP **and its own paralysis on the target**, Iron Ball
+130, empty hand 0, and a Charizard throwing its own stone fails outright while the identical stone on a
+Sceptile flings at 80 and is gone.
+
+**Step 3 of the authority's gate has no member here and is written anyway:** all 148 legal items carry
+a `fling` entry, so "the item cannot be thrown" never fires in this format. A branch that is absent and
+a branch that has nothing to refuse look identical from outside.
+
+### THE PHAZE BRANCH WAS THE SIXTH SITE, AND THAT IS THE FINDING RATHER THAN THE FIX
+
+Will: *"roar has super negative priority so switch happens first"*. Roar (454 uses), Whirlwind (25),
+Dragon Tail (105) and Circle Throw are all **priority -6**, which makes a phaze the move in this format
+most likely to find somebody else standing in the slot it named. WIRE 139 folded five branches into
+`reaimToSlot` and **missed this one**: `const _t=a.target; const _i=_foes.indexOf(_t)` is a lookup of
+the original OBJECT in the CURRENT active array, so a pivoted target scored -1 and the whole move failed
+silently — our Roar dragged nobody. Staged before a line changed: Corviknight pivots out, Snorlax walks
+in, Showdown drags Snorlax and puts Corviknight straight back while ours left Snorlax standing.
+
+The damaging half (Dragon Tail, Circle Throw) was ALREADY right and was checked rather than assumed —
+it iterates `targets`, which the attack branch has resolved through the shared reader since WIRE 139.
+**Turn 3 is the counter-intuitive negative and it is on the same board:** Corviknight clicks Protect and
+is Roared anyway, because Roar carries no `protect` flag.
+
+**THE BENCH IS ONE BODY DEEP ON PURPOSE.** The drag is a uniform die in both engines, so a two-way bench
+would part for a reason that has nothing to do with this rule; Weavile is knocked out on turn 1 and
+Toxapex replaces it so the choice is forced. The same care is in the probe.
+
+### WHAT THE HARNESS ITSELF GOT WRONG
+
+A **multi-line break anchor cannot match**, because the files on disk are CRLF and the anchor was
+written with a bare `\n`. It reported `matched 0 time(s)` — which `patchedSource` correctly refuses
+rather than skipping, so the guard caught its own author. Every anchor in `tests/staged_board.js` is
+one line for that reason now.
+
+### THE RED GATES, SAID PLAINLY
+
+`node tests/run-all.js` ends with **12 failures and not one of them is ENGINE's or new**. Named so
+nobody has to re-derive them: `test-forced-switch`, `test-team-preview-race` and
+`test-effective-identity`/`test-stadium-roster` neighbours fail on `ABRA_STRICT_SEMANTICS` — the
+**refit owed on the same eight features** as at session start, unchanged by this work and MEASURE's to
+clear. `test-no-silent-failure` names five catches in `engine/diff_swarm.js`,
+`engine/explain_divergence.js` and `engine/leaf_engine_contrast.js`. `test-prng` names
+`tests/test-protocol-trace.js`. `test-pin-arms` wants four arms in `data/game-differential.json` and
+finds two. `test-stadium-roster` names `diff_swarm`, `leaf_engine_contrast` and `mega_decision_census`
+as generators in neither ledger. `test-wiring`, `test-site-data-fresh`, `test-web-status`,
+`provenance` and `validate_selfplay` are the standing WEB/OPS/MEASURE set.
+
+**One of them has an ENGINE-owned contributor and it is reported rather than patched.**
+`test-effective-identity`'s raw-read ratchet lists `tests/staged_board.js: 0 -> 13`. Ten of those
+thirteen predate this session and all thirteen are **string literals inside break patches** — quoted
+engine source handed to `String.replace`, not reads of a live Pokemon. The declaration table that
+would say so lives in `tests/test-effective-identity.js`, which this division does not own, and the
+gate is red regardless on `tests/roster.js: 0 -> 69`.
+
+## THE DELIBERATE ROSTER — `tests/roster.js`. COVERAGE STOPS BEING A USAGE PRIOR. 2026-08-08.
+
+Will: *"lets build the deliberate roster, every move item and ability"*.
+
+**THE GAP, MEASURED FIRST.** Over the last 1,530-game differential run: 216 of 500 legal moves
+connected (43%), 179 of 316 abilities (57%), 138 of 148 items (93%), 292 of 347 species (84%). **And
+nothing decided that cutoff.** The run draws real ladder teams out of the store, so its coverage is
+whatever people happened to bring — a usage prior doing duty as a test plan. Worse: of the 207 census
+rows the artifact calls measurable, only 114 were exercised by a CONNECTED MOVE. The other 93 are
+credited `present_on_the_field_only`, which means the item or ability was on a body and nothing more.
+A Sitrus Berry sitting in a slot proves nothing about whether it fires at 50%.
+
+**THE SCENARIO IS DERIVED, BECAUSE 964 HAND-WRITTEN ONES IS THE HAND-MAINTAINED-LIST FAILURE AT THE
+LARGEST SCALE ANYBODY HAS ATTEMPTED IT.** Twenty-one SHAPE RULES read the entity's own upstream
+fields — an item's `isBerry`, `naturalGift`, `megaStone`, `itemUser`, its handler names and its
+one-line `shortDesc`; a move's `target`, `category`, `basePower`, `status`, `boosts`, `flags` — and
+stage the condition that makes that shape fire. Membership falls out. Every entry prints the rule it
+was staged by and what that rule read.
+
+**EVERY ENTRY IS PLAYED TWICE.** Subject and CONTROL, identical script, one thing removed — the item
+stripped, the ability replaced, the click replaced by an inert one. Four boards come back per
+boundary, which is what makes the two interesting outcomes expressible at all:
+
+| outcome | what it means |
+|---|---|
+| FIRED-AND-BOARDS-MATCH | Showdown's board moved, ours moved, and they agree leaf for leaf |
+| FIRED-AND-BOARDS-DIFFER | both moved and they disagree, with the field named |
+| **DID-NOT-FIRE** | **Showdown's board moved and ours did not.** The staging is known-good because the authority answered it. |
+| COULD-NOT-STAGE | with a written reason — including *Showdown's own board is identical with and without it*, which is the fixture's own negative catching the fixture |
+
+`--reds` breaks the simulator per SHAPE RULE rather than per entity, and a rule with no anchor must
+DECLARE that the simulator has no implementation — checked, so a member that fires makes the
+declaration false.
+
+### STAGE 2 RESULT — all 148 legal items, release `3898951e7423`
+
+`0 FIRED-AND-BOARDS-DIFFER · 8 DID-NOT-FIRE · 132 FIRED-AND-BOARDS-MATCH · 8 COULD-NOT-STAGE`,
+14 of 14 breakable rules caught and localised, 3 no-anchor declarations verified.
+
+**ROADMAP #28 IS CLOSED AND THE ANSWER IS THAT IT WORKS.** All eighteen resist berries halve the
+right type, on a body x2 weak to it, with a second body of a different species holding the same berry
+beside it taking a neutral hit that must NOT be halved — and both engines agree to the HP. 6,479
+holders, and this is the first time anything confirmed it.
+
+**EIGHT ITEMS DO NOTHING IN THIS SIMULATOR** (each with a Showdown board that moved and ours that did
+not): **Iron Ball** (the Speed halving — Showdown's Charizard dies to a Glimmora it outsped without
+it), **Light Ball**, **Shell Bell**, **Big Root**, **Metronome**, **Oran Berry** (its
+`healsAtThreshold` param carries `restores: null` where Sitrus carries `1/4` — a tag-derivation gap,
+not an engine one), and **Lum Berry** and **Persim Berry** (neither cures confusion).
+
+**AND THREE DIVERGENCES BELONG TO NO ITEM AT ALL**, found because the CONTROL arm parts on the same
+leaf: Toxic Thread's Speed drop never lands here; the confusion counter never decays; the sleep
+counter and the wake-up turn disagree with the authority. They are reported apart rather than charged
+to the berry that tripped over them — *a fix aimed at the wrong mechanism is still a bug*.
+
+### THE INSTRUMENT WAS WRONG FIVE TIMES BEFORE THE ENGINE WAS, AND EVERY ONE IS ON THE RECORD
+
+This division is warned that its probe fails toward a comfortable answer. It happened five more
+times, and each is written into `tests/roster.js` beside the code that now prevents it:
+
+1. **The control click restored the item under test.** `Recycle` is inert on a body that never
+   consumed anything — which is exactly what the first selftest played. The moment a scenario made a
+   body EAT something, `|-item|p2a: Goodra|Chople Berry|[from] move: Recycle` — and **all eighteen
+   resist berries reported as engine defects on the `item` field**. The engine was right.
+2. **The replacement control click manufactured guaranteed critical hits.** Focus Energy adds two
+   crit stages; two stages on a `critRatio: 2` move reaches the tier Showdown rolls as
+   `randomChance(1, 1)`, which no pin can stop. Wide Lens and Zoom Lens reported as defects on a
+   14-HP gap that was `|-crit|`.
+3. **A declared divergence was written from a report instead of from the boards** — "Showdown clears
+   the item on faint" — and its own staleness check retracted it on the next run. Showdown's slot did
+   not hold a dead Charizard; it held a live Milotic, which was the finding.
+4. **Four stagings were inert and said so**: a lethal hit that was not lethal (Focus Sash, Choice
+   Scarf), a Ghost click into a Normal body (Spell Tag), an Aurora Veil with no snow (Light Clay), a
+   Normal click into a Ghost (Wide Lens), a Steel Beam that killed its own user.
+5. **A finding was aimed at the wrong entity.** White Herb read DID-NOT-FIRE because the stat drop
+   staged against it — Toxic Thread's — never landed. The herb is wired and correct.
+
+Nothing in that list was found by reading the code. Every one was found by the control arm, the
+fixture audit, the red demonstration or the staleness check, which is the argument for having them.
+
+**STAGES 3 AND 4 ARE OPEN**: all 316 abilities, then all 500 moves. The three unattributed
+divergences above are the first thing the moves stage should confirm.
 
 ## WIRE 138–140 — THE THREE LARGEST BOARD-DIVERGENCE FAMILIES, AND WILL'S SLOT-FIRST QUESTION ANSWERED YES. 2026-08-08.
 

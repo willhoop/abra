@@ -1543,6 +1543,46 @@ probe('move', 'removesItem', 'Knock Off gets its x1.5 only when the item could a
                  + `on the body, not on the item class` };
 });
 
+probe('item', 'flingable', 'the thrown item\'s OWN base power is what lands, item by item', () => {
+  /* WIRE 141. The move-side probe proves Fling spends the item; this one proves the ARTIFACT'S
+   * NUMBER is the one the engine uses, which is a different claim. Three items are thrown by the
+   * same body at the same target and the damage must ORDER exactly as `flingable.basePower` orders
+   * them — and the expected order is READ OUT OF data/tags.json rather than typed here, so a probe
+   * that agreed with a number somebody remembered cannot pass. That is the trap this file records
+   * about the Substitute misquote: a hand-written expectation is exactly as fallible as its author.
+   *
+   * THE CONTROL IS THE EMPTY HAND, which must deal nothing at all. Without it, three arms rising
+   * together could still be three arms of an engine reading some other item field. */
+  const TAGS = require(D('data', 'tags.json'));
+  const items = ['leftovers', 'lightball', 'ironball'];
+  const declared = items.map(i => (((TAGS.items[i] || {}).params || {}).flingable || {}).basePower);
+  if (declared.some(x => !(x > 0))) throw new Error('data/tags.json carries no flingable basePower for '
+    + items[declared.findIndex(x => !(x > 0))] + ' — the probe cannot read its own expectation');
+  const throwIt = (item) => {
+    const me = bare('sceptile'), ally = bare('clefable');
+    const f1 = bare('snorlax'), f2 = bare('milotic');
+    me.item = item;
+    unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, autoMega: false });
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'fling', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return before - f1.curHP;
+  };
+  const dealt = items.map(throwIt);
+  const empty = throwIt('');
+  /* STRICTLY increasing, in the order the artifact declares, and the control is exactly 0. */
+  const ordered = dealt[0] < dealt[1] && dealt[1] < dealt[2];
+  const sorted = declared.slice().sort((a, b) => a - b).join(',') === declared.join(',');
+  return { works: ordered && sorted && empty === 0 && dealt[0] > 0,
+           arms: { control: empty, test: dealt[2] },
+           detail: `the same Sceptile throwing three different items at the same Snorlax — `
+                 + items.map((it, i) => `${it} (${declared[i]} BP declared) dealt ${dealt[i]}`).join(', ')
+                 + `; empty-handed dealt ${empty}. The order comes out of data/tags.json, not out of `
+                 + `this probe` };
+});
+
 probe('move', 'flingsOwnItem', 'Fling throws the held item — its power, its status, and it is gone', () => {
   /* WIRE 141. FIVE ARMS, because Fling has four separate ways to be wrong and "it dealt damage" only
    * covers one of them:
@@ -1591,6 +1631,53 @@ probe('move', 'flingsOwnItem', 'Fling throws the held item — its power, its st
                  + `Charizardite Y: ${ownStone.lost} and the stone is ${ownStone.item ? 'kept' : 'gone'}; `
                  + `the identical stone on a Sceptile: ${otherStone.lost} and it is `
                  + `${otherStone.item ? 'kept' : 'gone'}` };
+});
+
+probe('move', 'forcesSwitch', 'Roar drags whoever is standing in the slot, not the body it was aimed at', () => {
+  /* WIRE 141. Roar, Whirlwind, Dragon Tail and Circle Throw are all priority -6, so every switch in
+   * the turn resolves BEFORE them — which makes a phaze the move most likely of any in the format to
+   * find somebody else in the slot it named. This engine looked the aimed POKEMON up in the current
+   * active array, scored -1 when it had pivoted away, and failed the move silently.
+   *
+   * THREE ARMS AND THE FIRST TWO ARE THE SAME TURN WITH ONE THING CHANGED:
+   *   pivoted   the aimed body U-turns out and its replacement is standing there when the Roar
+   *             fires. The replacement must be the one dragged;
+   *   stood     nobody pivots. The aimed body itself is dragged, which is the ordinary case and the
+   *             control — an engine that re-aimed only when something moved, or that stopped
+   *             dragging at all, parts from this pair;
+   *   noBench   the phazed side has nothing left to bring in. The move must FAIL and leave the slot
+   *             alone rather than silently dragging nobody, which is the failure this arm exists to
+   *             tell apart from a working drag.
+   * THE BENCH IS ONE BODY DEEP in the first two arms on purpose: the replacement is a uniform die in
+   * both engines, so a two-way bench would make this probe assert a coin flip. */
+  const run = (pivot, benchDeep) => {
+    const me = bare('incineroar'), ally = bare('clefable');
+    const f1 = bare('corviknight'), f2 = bare('toxapex');
+    const spare = benchDeep ? [bare('snorlax')] : [];
+    const S = M.battleInit([me, ally], [f1, f2].concat(spare), { seeded: true });
+    const foeActs = new Map([[f1, pivot ? M.playerAction(f1, 'uturn', me, S.field) : { kind: 'pass' }],
+                             [f2, { kind: 'pass' }]]);
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'roar', f1, S.field)], [ally, { kind: 'pass' }]]), foeActs);
+    return { slot0: S.actB[0] && S.actB[0].name, bench: S.benchB.map(x => x.name).join(',') };
+  };
+  const pivoted = run(true, true);
+  const stood = run(false, true);
+  const noBench = run(false, false);
+
+  /* pivoted: Corviknight U-turns, Snorlax walks in, the Roar drags SNORLAX and the only live bench
+   * body — Corviknight, which just left — comes straight back. */
+  const reaimed = pivoted.slot0 === 'corviknight' && pivoted.bench === 'snorlax';
+  const ordinary = stood.slot0 === 'snorlax' && stood.bench === 'corviknight';
+  const failedEmpty = noBench.slot0 === 'corviknight' && noBench.bench === '';
+  return { works: reaimed && ordinary && failedEmpty,
+           arms: { control: stood.slot0, test: pivoted.slot0 },
+           detail: `Roar aimed at p2 slot 0, reported as [who stands there afterwards | who is on the `
+                 + `bench] — nobody pivots: [${stood.slot0} | ${stood.bench}], so the aimed body was `
+                 + `dragged out and the bench body walked in (the ordinary case). The aimed body `
+                 + `PIVOTS first: [${pivoted.slot0} | ${pivoted.bench}], so the REPLACEMENT was `
+                 + `dragged and the pivoter came straight back. Empty bench: [${noBench.slot0} | `
+                 + `nothing], the move fails and the slot is untouched` };
 });
 
 /* ---- BATCH 2 — the next sixteen by corpus usage ------------------------------------------------

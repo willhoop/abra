@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-08T06:26:38.229Z",
+  "generated": "2026-08-08T07:07:31.676Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 317,
-  "live": 317,
+  "probed": 319,
+  "live": 319,
   "missing": 0,
-  "armed": 317,
+  "armed": 319,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -432,11 +432,31 @@
       "directCall": false
     },
     {
+      "kind": "item",
+      "tag": "flingable",
+      "label": "the thrown item's OWN base power is what lands, item by item",
+      "live": true,
+      "detail": "the same Sceptile throwing three different items at the same Snorlax — leftovers (10 BP declared) dealt 5, lightball (30 BP declared) dealt 11, ironball (130 BP declared) dealt 43; empty-handed dealt 0. The order comes out of data/tags.json, not out of this probe",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "move",
       "tag": "flingsOwnItem",
       "label": "Fling throws the held item — its power, its status, and it is gone",
       "live": true,
       "detail": "Fling from the same Sceptile at the same Snorlax — Light Ball 11 and the target is par (the item's own status), Iron Ball 43 (130 base power against 30, so the power IS the item), empty-handed 0 (the move fails). A Charizard throwing its OWN Charizardite Y: 0 and the stone is kept; the identical stone on a Sceptile: 27 and it is gone",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "forcesSwitch",
+      "label": "Roar drags whoever is standing in the slot, not the body it was aimed at",
+      "live": true,
+      "detail": "Roar aimed at p2 slot 0, reported as [who stands there afterwards | who is on the bench] — nobody pivots: [snorlax | corviknight], so the aimed body was dragged out and the bench body walked in (the ordinary case). The aimed body PIVOTS first: [corviknight | snorlax], so the REPLACEMENT was dragged and the pivoter came straight back. Empty bench: [corviknight | nothing], the move fails and the slot is untouched",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2286,7 +2306,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.8% (format 20, generic 30), control Rock Slide 27.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

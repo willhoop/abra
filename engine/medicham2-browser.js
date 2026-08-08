@@ -5987,8 +5987,29 @@ function battleTurn(S,rng,actsForA,actsForB){
          medi=corviknight sd=weavile`) -- a policy difference reading as a rule divergence. A uniform
          pick over the live bench is the rule; which body a given seed produces is luck, exactly like
          a damage roll. */
+      /* WIRE 141 -- AND THE PHAZE BRANCH WAS THE SIXTH SITE, WHICH IS THE FINDING RATHER THAN THE FIX.
+       *
+       * Will, 2026-08-08: *"roar has super negative priority so switch happens first"* — and *"same
+       * with dragon tail"*. Both right, and the priority is what makes this branch the WORST place in
+       * the file to hold a Pokemon-first target: Roar, Whirlwind, Dragon Tail and Circle Throw are all
+       * **-6**, so every voluntary switch, every pivot and every faint replacement in the turn has
+       * already happened by the time they fire. A move that resolves last is the move most likely to
+       * find somebody else standing in the slot it named.
+       *
+       * WIRE 139 FOLDED FIVE BRANCHES INTO `reaimToSlot` AND MISSED THIS ONE. `const _t=a.target;
+       * const _i=_foes.indexOf(_t)` is a lookup of the ORIGINAL OBJECT in the CURRENT active array, so
+       * a body that pivoted out scored -1 and the whole move failed silently — our Roar dragged
+       * nobody. Measured on the staged board before this line changed: Corviknight pivots out, Snorlax
+       * walks in, Showdown drags Snorlax and puts Corviknight back while ours left Snorlax standing.
+       * 4 games of the 1,530-game residue at release 3dd96ca88574.
+       *
+       * `indexOf` STILL RUNS, and deliberately: the re-aim answers WHO, and the branch still needs
+       * WHICH SLOT to hand `switchOut`. What changed is that the body is resolved first and the index
+       * is taken of the resolved body, so the two can no longer disagree. An EMPTY aimed slot returns
+       * null and falls through to the same `mvFail` both other sites use — the declared residue WIRE
+       * 139 filed as `MEDSEEN.reaimSlotEmpty`, unchanged and still counted. */
       if(a.kind==='phaze'){
-        const _t=a.target;
+        const _t=reaimToSlot(a.target,it,actA,actB,a.mv);
         const _foes=it.side==='A'?actB:actA, _fb=it.side==='A'?benchB:benchA, _fsf=it.side==='A'?sfB:sfA;
         const _own=it.side==='A'?actA:actB;
         const _i=_t?_foes.indexOf(_t):-1;

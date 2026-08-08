@@ -778,6 +778,45 @@ const SCENARIOS = [
                 + 'lands, so ONLY the disposition goes missing and turn 2 throws a second Light Ball',
       patch: [['{const _it=m.item;m.item=\'\';', '{const _it=m.item;']] } },
 
+  /* ---------------------------------- 22. move / A PHAZE RESOLVES LAST, AND AIMS AT A SLOT */
+  { id: 'roar-drags-whoever-is-standing-there',
+    kind: 'move', shape: 'target resolution at priority -6, after the slot has changed hands',
+    census: 'move/forcesSwitch — Roar 454 uses, Dragon Tail 105, Whirlwind 25',
+    what: 'Will, 2026-08-08: *"roar has super negative priority so switch happens first"*. Roar, '
+        + 'Whirlwind, Dragon Tail and Circle Throw are all priority -6, so ANY switch in the turn '
+        + 'resolves before them and the body the Roar was aimed at is routinely gone by the time it '
+        + 'fires. Corviknight pivots out with U-turn on turn 2 and Snorlax walks into that slot; '
+        + 'Incineroar\'s Roar then resolves and must drag WHOEVER IS STANDING THERE. '
+        + 'THE BENCH IS DELIBERATELY DOWN TO ONE LIVE BODY by then — Weavile is knocked out on turn 1 '
+        + 'and Toxapex replaces it — because the drag itself is a uniform die in both engines and a '
+        + 'two-way choice would part for a reason that has nothing to do with this rule.',
+    negative: 'turn 3 — Corviknight clicks PROTECT and is Roared anyway. That is counter-intuitive and '
+            + 'it is the rule: Roar has no `protect` flag, so an engine that started gating the phaze '
+            + 'on the shield parts there. Turn 1 is the second negative: the same Incineroar clicks a '
+            + 'damaging move rather than Roar, so nothing may be dragged while the aimed slot changes '
+            + 'hands under a faint. The PARTNER is the third and is on every board: Roar is '
+            + 'single-target and p2b must sit in its slot untouched throughout.',
+    A: [mon('incineroar', '', 'Blaze', ['Close Combat', 'Roar', 'Protect']),
+        mon('clefable', '', 'Unaware', ['Calm Mind', 'Protect'])].concat(FILL('milotic', 'garchomp')),
+    B: [mon('corviknight', '', 'Pressure', ['U-turn', 'Iron Defense', 'Protect']),
+        mon('weavile', '', 'Pressure', ['Swords Dance', 'Protect']),
+        mon('toxapex', '', 'Regenerator', ['Iron Defense', 'Protect']),
+        mon('snorlax', '', 'Thick Fat', ['Iron Defense', 'Protect'])],
+    script: [
+      { p1: [{ m: 'closecombat', t: 1 }, { m: 'calmmind' }], p2: [{ m: 'irondefense' }, { m: 'swordsdance' }] },
+      { p1: [{ m: 'roar', t: 0 }, { m: 'calmmind' }], p2: [{ m: 'uturn', t: 0 }, { m: 'irondefense' }] },
+      { p1: [{ m: 'roar', t: 0 }, { m: 'calmmind' }], p2: [{ m: 'protect' }, { m: 'irondefense' }] },
+    ],
+    break: { why: 'the phaze branch stops asking the slot and looks the aimed POKEMON up in the active '
+                + 'array — the Pokemon-first model, restored exactly, which fails the move whenever '
+                + 'the target has already left',
+      /* SINGLE-LINE ANCHOR ON PURPOSE. The first version of this spanned two lines with a `\n` and
+       * matched ZERO times: the file on disk is CRLF, so a plant written with a bare newline reads
+       * exactly like a comparator that found nothing — which is the failure mode `patchedSource`
+       * refuses by demanding exactly one match. Every anchor in this file is one line for that
+       * reason. */
+      patch: [['const _t=reaimToSlot(a.target,it,actA,actB,a.mv);', 'const _t=a.target;']] } },
+
   /* ============================ BEYOND THE TWELVE ==============================================
    * Two scenarios staged for a DIFFERENT question: not "does the staged board agree with the census",
    * but "does it see something the census could not". They are marked `extra: true` and are reported

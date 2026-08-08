@@ -1,0 +1,7962 @@
+{
+ "generated": "2026-08-08T06:54:20.608Z",
+ "by": "tests/roster.js",
+ "stage": "items",
+ "engine_release": "3898951e7423",
+ "format": "gen9championsvgc2026regmb",
+ "counts": {
+  "FIRED-AND-BOARDS-DIFFER": 0,
+  "DID-NOT-FIRE": 8,
+  "FIRED-AND-BOARDS-MATCH": 132,
+  "COULD-NOT-STAGE": 8
+ },
+ "reds": [
+  {
+   "rule": "item/mega-stone",
+   "ok": true,
+   "why": "the mega transformation is skipped — the choice is still made and still accepted, so only the FORME goes missing",
+   "moved": {
+    "member": "abomasite",
+    "verdict": "DID-NOT-FIRE",
+    "fields": [
+     "party.MISSING-OR-EXTRA-MEMBER",
+     "species"
+    ]
+   }
+  },
+  {
+   "rule": "item/resist-berry",
+   "ok": true,
+   "why": "the resist berry stops halving anything — it is still held, still read, and the multiplier is dropped",
+   "moved": {
+    "member": "babiriberry",
+    "verdict": "DID-NOT-FIRE",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "item/drain-scaled",
+   "ok": true,
+   "declared": true,
+   "why": "THERE IS NOTHING IN THE SIMULATOR TO BREAK. `data/tags.json` gives the only member of this family (Big Root) the single tag `flingable`, and no code path scales a drain heal off a held item. The DID-NOT-FIRE verdict is the evidence; an invented anchor would not be, and the declaration is checked — if any member of this rule ever FIRES, the run says the claim is false and an anchor is owed."
+  },
+  {
+   "rule": "item/type-scoped-power",
+   "ok": true,
+   "why": "the type-scoped item multiplier is dropped entirely",
+   "moved": {
+    "member": "blackbelt",
+    "verdict": "DID-NOT-FIRE",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "item/accuracy-scaled",
+   "ok": true,
+   "why": "the accuracy modifier row is dropped, so every holder reads as untabled",
+   "moved": {
+    "member": "brightpowder",
+    "verdict": "DID-NOT-FIRE",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "item/status-cure",
+   "ok": true,
+   "why": "the status cure is skipped — the berry is still held",
+   "moved": {
+    "member": "cheriberry",
+    "verdict": "DID-NOT-FIRE",
+    "fields": [
+     "status",
+     "item"
+    ]
+   }
+  },
+  {
+   "rule": "item/speed-scaled",
+   "ok": true,
+   "why": "the item speed multiplier is dropped from the speed used to order the turn",
+   "moved": {
+    "member": "choicescarf",
+    "verdict": "DID-NOT-FIRE",
+    "fields": [
+     "party.hp",
+     "party.fainted",
+     "species",
+     "hp",
+     "maxhp",
+     "item"
+    ]
+   }
+  },
+  {
+   "rule": "item/extends-a-duration",
+   "ok": true,
+   "why": "the duration extension is dropped and the base length is written instead",
+   "moved": {
+    "member": "damprock",
+    "verdict": "DID-NOT-FIRE",
+    "fields": [
+     "field.weather_turns"
+    ]
+   }
+  },
+  {
+   "rule": "item/super-effective-power",
+   "ok": true,
+   "why": "the super-effective damage multiplier is dropped",
+   "moved": {
+    "member": "expertbelt",
+    "verdict": "DID-NOT-FIRE",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "item/hp-floor",
+   "ok": true,
+   "why": "the HP floor stops holding the body up — the item is still held and still read",
+   "moved": {
+    "member": "focussash",
+    "verdict": "DID-NOT-FIRE",
+    "fields": [
+     "party.hp",
+     "party.fainted",
+     "species",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "item/residual-heal",
+   "ok": true,
+   "why": "the passive heal is skipped — the item is still held and still on the board",
+   "moved": {
+    "member": "leftovers",
+    "verdict": "DID-NOT-FIRE",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "item/all-damage-and-cost",
+   "ok": true,
+   "why": "the flat damage multiplier is dropped; the self-cost is left alone, so a break that moves only the target's HP is the localisation",
+   "moved": {
+    "member": "lifeorb",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "item/species-locked-stat",
+   "ok": true,
+   "declared": true,
+   "why": "THERE IS NOTHING IN THE SIMULATOR TO BREAK. `data/tags.json` gives the only member of this family (Light Ball) the single tag `flingable`, and no code path multiplies a stat for a named species. Same argument as the heal-on-attack rule: the DID-NOT-FIRE verdict is the evidence and an invented anchor would not be."
+  },
+  {
+   "rule": "item/cures-a-volatile",
+   "ok": true,
+   "why": "the volatile cure is skipped",
+   "moved": {
+    "member": "mentalherb",
+    "verdict": "DID-NOT-FIRE",
+    "fields": [
+     "item",
+     "vol.taunt"
+    ]
+   }
+  },
+  {
+   "rule": "item/category-scoped-power",
+   "ok": true,
+   "why": "the category-scoped base-power multiplier is dropped (it is a hardcoded NAME check in the simulator, not a tag read — see the rule comment)",
+   "moved": {
+    "member": "muscleband",
+    "verdict": "DID-NOT-FIRE",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "item/heals-at-threshold",
+   "ok": true,
+   "why": "the threshold heal is skipped",
+   "moved": {
+    "member": "oranberry",
+    "verdict": "DID-NOT-FIRE",
+    "fields": [
+     "party.hp",
+     "hp",
+     "item"
+    ]
+   }
+  },
+  {
+   "rule": "item/heal-on-attack",
+   "ok": true,
+   "declared": true,
+   "why": "THERE IS NOTHING IN THE SIMULATOR TO BREAK. `data/tags.json` gives the only member of this family (Shell Bell) the single tag `flingable`, and no code path reads a heal off a held item after an attack. An anchor here would have to be invented, and a break that cannot be aimed at real code is not a demonstration. The DID-NOT-FIRE verdict is the evidence, and it is stronger than a plant."
+  },
+  {
+   "rule": "item/restores-lowered-stats",
+   "ok": true,
+   "why": "the stat restoration is skipped",
+   "moved": {
+    "member": "whiteherb",
+    "verdict": "DID-NOT-FIRE",
+    "fields": [
+     "item",
+     "boosts.atk"
+    ]
+   }
+  }
+ ],
+ "results": [
+  {
+   "kind": "item",
+   "id": "abomasite",
+   "name": "Abomasite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Abomasnow -> Abomasnow-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.abomasnowmega",
+     "with": {
+      "hp": 165,
+      "maxhp": 165,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.abomasnow",
+     "with": null,
+     "without": {
+      "hp": 165,
+      "maxhp": 165,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "abomasnowmega",
+     "without": "abomasnow"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.abomasnowmega",
+     "with": {
+      "hp": 165,
+      "maxhp": 165,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.abomasnow",
+     "with": null,
+     "without": {
+      "hp": 165,
+      "maxhp": 165,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "abomasnowmega",
+     "without": "abomasnow"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "absolite",
+   "name": "Absolite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Absol -> Absol-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.absolmega",
+     "with": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.absol",
+     "with": null,
+     "without": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "absolmega",
+     "without": "absol"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.absolmega",
+     "with": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.absol",
+     "with": null,
+     "without": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "absolmega",
+     "without": "absol"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "aerodactylite",
+   "name": "Aerodactylite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Aerodactyl -> Aerodactyl-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.aerodactylmega",
+     "with": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.aerodactyl",
+     "with": null,
+     "without": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "aerodactylmega",
+     "without": "aerodactyl"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.aerodactylmega",
+     "with": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.aerodactyl",
+     "with": null,
+     "without": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "aerodactylmega",
+     "without": "aerodactyl"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "aggronite",
+   "name": "Aggronite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Aggron -> Aggron-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.aggronmega",
+     "with": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.aggron",
+     "with": null,
+     "without": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "aggronmega",
+     "without": "aggron"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.aggronmega",
+     "with": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.aggron",
+     "with": null,
+     "without": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "aggronmega",
+     "without": "aggron"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "alakazite",
+   "name": "Alakazite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Alakazam -> Alakazam-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.alakazammega",
+     "with": {
+      "hp": 130,
+      "maxhp": 130,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.alakazam",
+     "with": null,
+     "without": {
+      "hp": 130,
+      "maxhp": 130,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "alakazammega",
+     "without": "alakazam"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.alakazammega",
+     "with": {
+      "hp": 130,
+      "maxhp": 130,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.alakazam",
+     "with": null,
+     "without": {
+      "hp": 130,
+      "maxhp": 130,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "alakazammega",
+     "without": "alakazam"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "altarianite",
+   "name": "Altarianite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Altaria -> Altaria-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.altariamega",
+     "with": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.altaria",
+     "with": null,
+     "without": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "altariamega",
+     "without": "altaria"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.altariamega",
+     "with": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.altaria",
+     "with": null,
+     "without": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "altariamega",
+     "without": "altaria"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "ampharosite",
+   "name": "Ampharosite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Ampharos -> Ampharos-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.ampharosmega",
+     "with": {
+      "hp": 165,
+      "maxhp": 165,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.ampharos",
+     "with": null,
+     "without": {
+      "hp": 165,
+      "maxhp": 165,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "ampharosmega",
+     "without": "ampharos"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.ampharosmega",
+     "with": {
+      "hp": 165,
+      "maxhp": 165,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.ampharos",
+     "with": null,
+     "without": {
+      "hp": 165,
+      "maxhp": 165,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "ampharosmega",
+     "without": "ampharos"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "aspearberry",
+   "name": "Aspear Berry",
+   "rule": "item/status-cure",
+   "reads": null,
+   "note": null,
+   "verdict": "COULD-NOT-STAGE",
+   "why": "no 100-accuracy move in this format inflicts frz outright, and the pin makes every sub-100-accuracy move miss — so the condition this berry cures cannot be put on a body at all. THE ITEM IS NOT ABSENT FROM THE ENGINE; IT IS UNREACHABLE FROM HERE.",
+   "sd_delta": [],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "audinite",
+   "name": "Audinite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Audino -> Audino-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.audinomega",
+     "with": {
+      "hp": 178,
+      "maxhp": 178,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.audino",
+     "with": null,
+     "without": {
+      "hp": 178,
+      "maxhp": 178,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "audinomega",
+     "without": "audino"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.audinomega",
+     "with": {
+      "hp": 178,
+      "maxhp": 178,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.audino",
+     "with": null,
+     "without": {
+      "hp": 178,
+      "maxhp": 178,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "audinomega",
+     "without": "audino"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "babiriberry",
+   "name": "Babiri Berry",
+   "rule": "item/resist-berry",
+   "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
+   "note": "halves Steel on rhyperior; the inverted half is a Fairy hit on florges, holding the same berry, on the same board",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.rhyperior.hp",
+     "with": 1106,
+     "without": 1072
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1106,
+     "without": 1072
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "banettite",
+   "name": "Banettite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Banette -> Banette-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.banettemega",
+     "with": {
+      "hp": 139,
+      "maxhp": 139,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.banette",
+     "with": null,
+     "without": {
+      "hp": 139,
+      "maxhp": 139,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "banettemega",
+     "without": "banette"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.banettemega",
+     "with": {
+      "hp": 139,
+      "maxhp": 139,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.banette",
+     "with": null,
+     "without": {
+      "hp": 139,
+      "maxhp": 139,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "banettemega",
+     "without": "banette"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "barbaracite",
+   "name": "Barbaracite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Barbaracle -> Barbaracle-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.barbaraclemega",
+     "with": {
+      "hp": 147,
+      "maxhp": 147,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.barbaracle",
+     "with": null,
+     "without": {
+      "hp": 147,
+      "maxhp": 147,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "barbaraclemega",
+     "without": "barbaracle"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.barbaraclemega",
+     "with": {
+      "hp": 147,
+      "maxhp": 147,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.barbaracle",
+     "with": null,
+     "without": {
+      "hp": 147,
+      "maxhp": 147,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "barbaraclemega",
+     "without": "barbaracle"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "beedrillite",
+   "name": "Beedrillite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Beedrill -> Beedrill-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.beedrillmega",
+     "with": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.beedrill",
+     "with": null,
+     "without": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "beedrillmega",
+     "without": "beedrill"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.beedrillmega",
+     "with": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.beedrill",
+     "with": null,
+     "without": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "beedrillmega",
+     "without": "beedrill"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "bigroot",
+   "name": "Big Root",
+   "rule": "item/drain-scaled",
+   "reads": "onTryHeal + shortDesc \"draining\"",
+   "note": "chipped, then draining with Bitter Blade",
+   "verdict": "DID-NOT-FIRE",
+   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 687,
+     "without": 683
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 687,
+     "without": 683
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 703,
+     "without": 695
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].hp",
+     "with": 703,
+     "without": 695
+    }
+   ],
+   "diffs": [
+    {
+     "turn": 2,
+     "slot": "",
+     "body": "kangaskhan",
+     "field": "party.hp",
+     "showdown": 687,
+     "ours": 683,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 2,
+     "slot": "p2a",
+     "body": "kangaskhan",
+     "field": "hp",
+     "showdown": 687,
+     "ours": 683,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 3,
+     "slot": "",
+     "body": "kangaskhan",
+     "field": "party.hp",
+     "showdown": 703,
+     "ours": 695,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 3,
+     "slot": "p2a",
+     "body": "kangaskhan",
+     "field": "hp",
+     "showdown": 703,
+     "ours": 695,
+     "bucket": "off-by-4-or-more"
+    }
+   ]
+  },
+  {
+   "kind": "item",
+   "id": "blackbelt",
+   "name": "Black Belt",
+   "rule": "item/type-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
+   "note": "Fighting x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 976,
+     "without": 992
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 976,
+     "without": 992
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 927,
+     "without": 943
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 927,
+     "without": 943
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "blackglasses",
+   "name": "Black Glasses",
+   "rule": "item/type-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
+   "note": "Dark x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1016,
+     "without": 1026
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1016,
+     "without": 1026
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 967,
+     "without": 977
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 967,
+     "without": 977
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "blastoisinite",
+   "name": "Blastoisinite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Blastoise -> Blastoise-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.blastoisemega",
+     "with": {
+      "hp": 154,
+      "maxhp": 154,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.blastoise",
+     "with": null,
+     "without": {
+      "hp": 154,
+      "maxhp": 154,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "blastoisemega",
+     "without": "blastoise"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.blastoisemega",
+     "with": {
+      "hp": 154,
+      "maxhp": 154,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.blastoise",
+     "with": null,
+     "without": {
+      "hp": 154,
+      "maxhp": 154,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "blastoisemega",
+     "without": "blastoise"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "blazikenite",
+   "name": "Blazikenite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Blaziken -> Blaziken-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.blazikenmega",
+     "with": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.blaziken",
+     "with": null,
+     "without": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "blazikenmega",
+     "without": "blaziken"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].boosts.spe",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.blazikenmega",
+     "with": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.blaziken",
+     "with": null,
+     "without": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "blazikenmega",
+     "without": "blaziken"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].boosts.spe",
+     "with": 2,
+     "without": 0
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "brightpowder",
+   "name": "Bright Powder",
+   "rule": "item/accuracy-scaled",
+   "reads": "onModifyAccuracy / onSourceModifyAccuracy",
+   "note": "a 100-accuracy Sludge Bomb dragged under 100 by x0.9 must MISS",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1080,
+     "without": 1031
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1080,
+     "without": 1031
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1080,
+     "without": 982
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 1080,
+     "without": 982
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "cameruptite",
+   "name": "Cameruptite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Camerupt -> Camerupt-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.cameruptmega",
+     "with": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.camerupt",
+     "with": null,
+     "without": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "cameruptmega",
+     "without": "camerupt"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.cameruptmega",
+     "with": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.camerupt",
+     "with": null,
+     "without": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "cameruptmega",
+     "without": "camerupt"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "chandelurite",
+   "name": "Chandelurite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Chandelure -> Chandelure-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.chandeluremega",
+     "with": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.chandelure",
+     "with": null,
+     "without": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "chandeluremega",
+     "without": "chandelure"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.chandeluremega",
+     "with": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.chandelure",
+     "with": null,
+     "without": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "chandeluremega",
+     "without": "chandelure"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "charcoal",
+   "name": "Charcoal",
+   "rule": "item/type-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
+   "note": "Fire x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1021,
+     "without": 1031
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1021,
+     "without": 1031
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 972,
+     "without": 982
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 972,
+     "without": 982
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "charizarditex",
+   "name": "Charizardite X",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Charizard -> Charizard-Mega-X",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.charizardmegax",
+     "with": {
+      "hp": 153,
+      "maxhp": 153,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.charizard",
+     "with": null,
+     "without": {
+      "hp": 153,
+      "maxhp": 153,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "charizardmegax",
+     "without": "charizard"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.charizardmegax",
+     "with": {
+      "hp": 153,
+      "maxhp": 153,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.charizard",
+     "with": null,
+     "without": {
+      "hp": 153,
+      "maxhp": 153,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "charizardmegax",
+     "without": "charizard"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "charizarditey",
+   "name": "Charizardite Y",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Charizard -> Charizard-Mega-Y",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "field.weather",
+     "with": "sun",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "field.weather_turns",
+     "with": 4,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.charizardmegay",
+     "with": {
+      "hp": 153,
+      "maxhp": 153,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.charizard",
+     "with": null,
+     "without": {
+      "hp": 153,
+      "maxhp": 153,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "charizardmegay",
+     "without": "charizard"
+    },
+    {
+     "turn": 2,
+     "path": "field.weather",
+     "with": "sun",
+     "without": ""
+    },
+    {
+     "turn": 2,
+     "path": "field.weather_turns",
+     "with": 3,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.charizardmegay",
+     "with": {
+      "hp": 153,
+      "maxhp": 153,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.charizard",
+     "with": null,
+     "without": {
+      "hp": 153,
+      "maxhp": 153,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "charizardmegay",
+     "without": "charizard"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "chartiberry",
+   "name": "Charti Berry",
+   "rule": "item/resist-berry",
+   "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
+   "note": "halves Rock on avalugghisui; the inverted half is a Poison hit on torkoal, holding the same berry, on the same board",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.avalugghisui.hp",
+     "with": 943,
+     "without": 866
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 943,
+     "without": 866
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "cheriberry",
+   "name": "Cheri Berry",
+   "rule": "item/status-cure",
+   "reads": "onUpdate + shortDesc \"cured if it is <status>\" / \"wakes up\" / \"confused\" / \"cures itself\"",
+   "note": "par delivered by Glare onto kangaskhan",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "par"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "par"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "chesnaughtite",
+   "name": "Chesnaughtite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Chesnaught -> Chesnaught-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.chesnaughtmega",
+     "with": {
+      "hp": 163,
+      "maxhp": 163,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.chesnaught",
+     "with": null,
+     "without": {
+      "hp": 163,
+      "maxhp": 163,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "chesnaughtmega",
+     "without": "chesnaught"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.chesnaughtmega",
+     "with": {
+      "hp": 163,
+      "maxhp": 163,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.chesnaught",
+     "with": null,
+     "without": {
+      "hp": 163,
+      "maxhp": 163,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "chesnaughtmega",
+     "without": "chesnaught"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "chestoberry",
+   "name": "Chesto Berry",
+   "rule": "item/status-cure",
+   "reads": "onUpdate + shortDesc \"cured if it is <status>\" / \"wakes up\" / \"confused\" / \"cures itself\"",
+   "note": "slp delivered by Spore onto kangaskhan",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "slp"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].status_counter",
+     "with": 0,
+     "without": 2
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "chilanberry",
+   "name": "Chilan Berry",
+   "rule": "item/resist-berry",
+   "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
+   "note": "halves Normal on kangaskhan; the inverted half is a Poison hit on snorlax, holding the same berry, on the same board",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1053,
+     "without": 1026
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1053,
+     "without": 1026
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "chimechite",
+   "name": "Chimechite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Chimecho -> Chimecho-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.chimechomega",
+     "with": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.chimecho",
+     "with": null,
+     "without": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "chimechomega",
+     "without": "chimecho"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.chimechomega",
+     "with": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.chimecho",
+     "with": null,
+     "without": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "chimechomega",
+     "without": "chimecho"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "choicescarf",
+   "name": "Choice Scarf",
+   "rule": "item/speed-scaled",
+   "reads": "onModifySpe",
+   "note": "x1.5 on scizor (85 -> 127 against 126) against liepard; each kills the other, so the ORDER decides who is standing",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p1.party.liepard.hp",
+     "with": 0,
+     "without": 139
+    },
+    {
+     "turn": 1,
+     "path": "p1.party.liepard.fainted",
+     "with": true,
+     "without": false
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].species",
+     "with": "milotic",
+     "without": "liepard"
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].hp",
+     "with": 170,
+     "without": 139
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].maxhp",
+     "with": 170,
+     "without": 139
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.scizor.hp",
+     "with": 145,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.scizor.fainted",
+     "with": false,
+     "without": true
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "scizor",
+     "without": "milotic"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 145,
+     "without": 170
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].maxhp",
+     "with": 145,
+     "without": 170
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "chopleberry",
+   "name": "Chople Berry",
+   "rule": "item/resist-berry",
+   "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
+   "note": "halves Fighting on goodrahisui; the inverted half is a Dragon hit on rhyperior, holding the same berry, on the same board",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.goodrahisui.hp",
+     "with": 904,
+     "without": 878
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 904,
+     "without": 878
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "clefablite",
+   "name": "Clefablite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Clefable -> Clefable-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.clefablemega",
+     "with": {
+      "hp": 170,
+      "maxhp": 170,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.clefable",
+     "with": null,
+     "without": {
+      "hp": 170,
+      "maxhp": 170,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "clefablemega",
+     "without": "clefable"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.clefablemega",
+     "with": {
+      "hp": 170,
+      "maxhp": 170,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.clefable",
+     "with": null,
+     "without": {
+      "hp": 170,
+      "maxhp": 170,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "clefablemega",
+     "without": "clefable"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "cobaberry",
+   "name": "Coba Berry",
+   "rule": "item/resist-berry",
+   "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
+   "note": "halves Flying on torterra; the inverted half is a Dragon hit on meganium, holding the same berry, on the same board",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.torterra.hp",
+     "with": 979,
+     "without": 938
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 979,
+     "without": 938
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "colburberry",
+   "name": "Colbur Berry",
+   "rule": "item/resist-berry",
+   "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
+   "note": "halves Dark on metagross; the inverted half is a Dragon hit on skeledirge, holding the same berry, on the same board",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.metagross.hp",
+     "with": 894,
+     "without": 858
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 894,
+     "without": 858
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "crabominite",
+   "name": "Crabominite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Crabominable -> Crabominable-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.crabominablemega",
+     "with": {
+      "hp": 172,
+      "maxhp": 172,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.crabominable",
+     "with": null,
+     "without": {
+      "hp": 172,
+      "maxhp": 172,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "crabominablemega",
+     "without": "crabominable"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.crabominablemega",
+     "with": {
+      "hp": 172,
+      "maxhp": 172,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.crabominable",
+     "with": null,
+     "without": {
+      "hp": 172,
+      "maxhp": 172,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "crabominablemega",
+     "without": "crabominable"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "damprock",
+   "name": "Damp Rock",
+   "rule": "item/extends-a-duration",
+   "reads": "shortDesc \"Holder's use of <MOVE> lasts <n> turns instead of <m>\"",
+   "note": "Rain Dance -> 8 turns instead of 5",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "field.weather_turns",
+     "with": 7,
+     "without": 4
+    },
+    {
+     "turn": 2,
+     "path": "field.weather_turns",
+     "with": 6,
+     "without": 3
+    },
+    {
+     "turn": 3,
+     "path": "field.weather_turns",
+     "with": 5,
+     "without": 2
+    },
+    {
+     "turn": 4,
+     "path": "field.weather_turns",
+     "with": 4,
+     "without": 1
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "delphoxite",
+   "name": "Delphoxite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Delphox -> Delphox-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.delphoxmega",
+     "with": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.delphox",
+     "with": null,
+     "without": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "delphoxmega",
+     "without": "delphox"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.delphoxmega",
+     "with": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.delphox",
+     "with": null,
+     "without": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "delphoxmega",
+     "without": "delphox"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "dragalgite",
+   "name": "Dragalgite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Dragalge -> Dragalge-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.dragalgemega",
+     "with": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.dragalge",
+     "with": null,
+     "without": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "dragalgemega",
+     "without": "dragalge"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.dragalgemega",
+     "with": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.dragalge",
+     "with": null,
+     "without": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "dragalgemega",
+     "without": "dragalge"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "dragonfang",
+   "name": "Dragon Fang",
+   "rule": "item/type-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
+   "note": "Dragon x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 998,
+     "without": 1011
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 998,
+     "without": 1011
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 949,
+     "without": 962
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 949,
+     "without": 962
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "dragoninite",
+   "name": "Dragoninite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Dragonite -> Dragonite-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.dragonitemega",
+     "with": {
+      "hp": 166,
+      "maxhp": 166,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.dragonite",
+     "with": null,
+     "without": {
+      "hp": 166,
+      "maxhp": 166,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "dragonitemega",
+     "without": "dragonite"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.dragonitemega",
+     "with": {
+      "hp": 166,
+      "maxhp": 166,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.dragonite",
+     "with": null,
+     "without": {
+      "hp": 166,
+      "maxhp": 166,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "dragonitemega",
+     "without": "dragonite"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "drampanite",
+   "name": "Drampanite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Drampa -> Drampa-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.drampamega",
+     "with": {
+      "hp": 153,
+      "maxhp": 153,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.drampa",
+     "with": null,
+     "without": {
+      "hp": 153,
+      "maxhp": 153,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "drampamega",
+     "without": "drampa"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.drampamega",
+     "with": {
+      "hp": 153,
+      "maxhp": 153,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.drampa",
+     "with": null,
+     "without": {
+      "hp": 153,
+      "maxhp": 153,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "drampamega",
+     "without": "drampa"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "eelektrossite",
+   "name": "Eelektrossite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Eelektross -> Eelektross-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.eelektrossmega",
+     "with": {
+      "hp": 160,
+      "maxhp": 160,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.eelektross",
+     "with": null,
+     "without": {
+      "hp": 160,
+      "maxhp": 160,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "eelektrossmega",
+     "without": "eelektross"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.eelektrossmega",
+     "with": {
+      "hp": 160,
+      "maxhp": 160,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.eelektross",
+     "with": null,
+     "without": {
+      "hp": 160,
+      "maxhp": 160,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "eelektrossmega",
+     "without": "eelektross"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "emboarite",
+   "name": "Emboarite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Emboar -> Emboar-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.emboarmega",
+     "with": {
+      "hp": 185,
+      "maxhp": 185,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.emboar",
+     "with": null,
+     "without": {
+      "hp": 185,
+      "maxhp": 185,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "emboarmega",
+     "without": "emboar"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.emboarmega",
+     "with": {
+      "hp": 185,
+      "maxhp": 185,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.emboar",
+     "with": null,
+     "without": {
+      "hp": 185,
+      "maxhp": 185,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "emboarmega",
+     "without": "emboar"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "excadrite",
+   "name": "Excadrite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Excadrill -> Excadrill-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.excadrillmega",
+     "with": {
+      "hp": 185,
+      "maxhp": 185,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.excadrill",
+     "with": null,
+     "without": {
+      "hp": 185,
+      "maxhp": 185,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "excadrillmega",
+     "without": "excadrill"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.excadrillmega",
+     "with": {
+      "hp": 185,
+      "maxhp": 185,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.excadrill",
+     "with": null,
+     "without": {
+      "hp": 185,
+      "maxhp": 185,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "excadrillmega",
+     "without": "excadrill"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "expertbelt",
+   "name": "Expert Belt",
+   "rule": "item/super-effective-power",
+   "reads": "onModifyDamage + shortDesc \"super effective\"",
+   "note": "Aura Sphere is super effective on the bag; Sludge Bomb is the neutral negative",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 74,
+     "without": 92
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 74,
+     "without": 92
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 25,
+     "without": 43
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 25,
+     "without": 43
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "fairyfeather",
+   "name": "Fairy Feather",
+   "rule": "item/type-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
+   "note": "Fairy x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1018,
+     "without": 1028
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1018,
+     "without": 1028
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 969,
+     "without": 979
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 969,
+     "without": 979
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "falinksite",
+   "name": "Falinksite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Falinks -> Falinks-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.falinksmega",
+     "with": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.falinks",
+     "with": null,
+     "without": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "falinksmega",
+     "without": "falinks"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.falinksmega",
+     "with": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.falinks",
+     "with": null,
+     "without": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "falinksmega",
+     "without": "falinks"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "feraligite",
+   "name": "Feraligite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Feraligatr -> Feraligatr-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.feraligatrmega",
+     "with": {
+      "hp": 160,
+      "maxhp": 160,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.feraligatr",
+     "with": null,
+     "without": {
+      "hp": 160,
+      "maxhp": 160,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "feraligatrmega",
+     "without": "feraligatr"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.feraligatrmega",
+     "with": {
+      "hp": 160,
+      "maxhp": 160,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.feraligatr",
+     "with": null,
+     "without": {
+      "hp": 160,
+      "maxhp": 160,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "feraligatrmega",
+     "without": "feraligatr"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "floettite",
+   "name": "Floettite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Floette-Eternal -> Floette-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.floettemega",
+     "with": {
+      "hp": 149,
+      "maxhp": 149,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.floetteeternal",
+     "with": null,
+     "without": {
+      "hp": 149,
+      "maxhp": 149,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "floettemega",
+     "without": "floetteeternal"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.floettemega",
+     "with": {
+      "hp": 149,
+      "maxhp": 149,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.floetteeternal",
+     "with": null,
+     "without": {
+      "hp": 149,
+      "maxhp": 149,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "floettemega",
+     "without": "floetteeternal"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "focusband",
+   "name": "Focus Band",
+   "rule": "item/chance-gated",
+   "reads": null,
+   "note": null,
+   "verdict": "COULD-NOT-STAGE",
+   "why": "its effect is a 10% chance, and the driver's pin makes every sub-100% roll fail in both engines (game_differential.js PRIMARY_ARM: \"no secondary fires\"). Nothing staged here could distinguish a wired mechanic from an absent one.",
+   "sd_delta": [],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "focussash",
+   "name": "Focus Sash",
+   "rule": "item/hp-floor",
+   "reads": "onDamage + shortDesc \"HP is full\"",
+   "note": "a lethal Flash Cannon (1.8x its HP) twice into avalugghisui",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.avalugghisui.hp",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.avalugghisui.fainted",
+     "with": false,
+     "without": true
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "avalugghisui",
+     "without": "milotic"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1,
+     "without": 170
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.milotic.hp",
+     "with": 170,
+     "without": 155
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 170,
+     "without": 155
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "froslassite",
+   "name": "Froslassite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Froslass -> Froslass-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "field.weather",
+     "with": "snow",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "field.weather_turns",
+     "with": 4,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.froslassmega",
+     "with": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.froslass",
+     "with": null,
+     "without": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "froslassmega",
+     "without": "froslass"
+    },
+    {
+     "turn": 2,
+     "path": "field.weather",
+     "with": "snow",
+     "without": ""
+    },
+    {
+     "turn": 2,
+     "path": "field.weather_turns",
+     "with": 3,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.froslassmega",
+     "with": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.froslass",
+     "with": null,
+     "without": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "froslassmega",
+     "without": "froslass"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "galladite",
+   "name": "Galladite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Gallade -> Gallade-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.gallademega",
+     "with": {
+      "hp": 143,
+      "maxhp": 143,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.gallade",
+     "with": null,
+     "without": {
+      "hp": 143,
+      "maxhp": 143,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "gallademega",
+     "without": "gallade"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.gallademega",
+     "with": {
+      "hp": 143,
+      "maxhp": 143,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.gallade",
+     "with": null,
+     "without": {
+      "hp": 143,
+      "maxhp": 143,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "gallademega",
+     "without": "gallade"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "garchompite",
+   "name": "Garchompite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Garchomp -> Garchomp-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.garchompmega",
+     "with": {
+      "hp": 183,
+      "maxhp": 183,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.garchomp",
+     "with": null,
+     "without": {
+      "hp": 183,
+      "maxhp": 183,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "garchompmega",
+     "without": "garchomp"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.garchompmega",
+     "with": {
+      "hp": 183,
+      "maxhp": 183,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.garchomp",
+     "with": null,
+     "without": {
+      "hp": 183,
+      "maxhp": 183,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "garchompmega",
+     "without": "garchomp"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "gardevoirite",
+   "name": "Gardevoirite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Gardevoir -> Gardevoir-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.gardevoirmega",
+     "with": {
+      "hp": 143,
+      "maxhp": 143,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.gardevoir",
+     "with": null,
+     "without": {
+      "hp": 143,
+      "maxhp": 143,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "gardevoirmega",
+     "without": "gardevoir"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.gardevoirmega",
+     "with": {
+      "hp": 143,
+      "maxhp": 143,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.gardevoir",
+     "with": null,
+     "without": {
+      "hp": 143,
+      "maxhp": 143,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "gardevoirmega",
+     "without": "gardevoir"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "gengarite",
+   "name": "Gengarite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Gengar -> Gengar-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.gengarmega",
+     "with": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.gengar",
+     "with": null,
+     "without": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "gengarmega",
+     "without": "gengar"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.gengarmega",
+     "with": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.gengar",
+     "with": null,
+     "without": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "gengarmega",
+     "without": "gengar"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "glalitite",
+   "name": "Glalitite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Glalie -> Glalie-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.glaliemega",
+     "with": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.glalie",
+     "with": null,
+     "without": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "glaliemega",
+     "without": "glalie"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.glaliemega",
+     "with": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.glalie",
+     "with": null,
+     "without": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "glaliemega",
+     "without": "glalie"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "glimmoranite",
+   "name": "Glimmoranite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Glimmora -> Glimmora-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.glimmoramega",
+     "with": {
+      "hp": 158,
+      "maxhp": 158,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.glimmora",
+     "with": null,
+     "without": {
+      "hp": 158,
+      "maxhp": 158,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "glimmoramega",
+     "without": "glimmora"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.glimmoramega",
+     "with": {
+      "hp": 158,
+      "maxhp": 158,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.glimmora",
+     "with": null,
+     "without": {
+      "hp": 158,
+      "maxhp": 158,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "glimmoramega",
+     "without": "glimmora"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "golurkite",
+   "name": "Golurkite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Golurk -> Golurk-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.golurkmega",
+     "with": {
+      "hp": 164,
+      "maxhp": 164,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.golurk",
+     "with": null,
+     "without": {
+      "hp": 164,
+      "maxhp": 164,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "golurkmega",
+     "without": "golurk"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.golurkmega",
+     "with": {
+      "hp": 164,
+      "maxhp": 164,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.golurk",
+     "with": null,
+     "without": {
+      "hp": 164,
+      "maxhp": 164,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "golurkmega",
+     "without": "golurk"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "greninjite",
+   "name": "Greninjite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Greninja -> Greninja-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.greninjamega",
+     "with": {
+      "hp": 147,
+      "maxhp": 147,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.greninja",
+     "with": null,
+     "without": {
+      "hp": 147,
+      "maxhp": 147,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "greninjamega",
+     "without": "greninja"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.greninjamega",
+     "with": {
+      "hp": 147,
+      "maxhp": 147,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.greninja",
+     "with": null,
+     "without": {
+      "hp": 147,
+      "maxhp": 147,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "greninjamega",
+     "without": "greninja"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "gyaradosite",
+   "name": "Gyaradosite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Gyarados -> Gyarados-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.gyaradosmega",
+     "with": {
+      "hp": 170,
+      "maxhp": 170,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.gyarados",
+     "with": null,
+     "without": {
+      "hp": 170,
+      "maxhp": 170,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "gyaradosmega",
+     "without": "gyarados"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.gyaradosmega",
+     "with": {
+      "hp": 170,
+      "maxhp": 170,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.gyarados",
+     "with": null,
+     "without": {
+      "hp": 170,
+      "maxhp": 170,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "gyaradosmega",
+     "without": "gyarados"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "habanberry",
+   "name": "Haban Berry",
+   "rule": "item/resist-berry",
+   "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
+   "note": "halves Dragon on dragalge; the inverted half is a Rock hit on tyrantrum, holding the same berry, on the same board",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.dragalge.hp",
+     "with": 791,
+     "without": 742
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 791,
+     "without": 742
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "hardstone",
+   "name": "Hard Stone",
+   "rule": "item/type-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
+   "note": "Rock x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1028,
+     "without": 1036
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1028,
+     "without": 1036
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 979,
+     "without": 987
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 979,
+     "without": 987
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "hawluchanite",
+   "name": "Hawluchanite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Hawlucha -> Hawlucha-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.hawluchamega",
+     "with": {
+      "hp": 153,
+      "maxhp": 153,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.hawlucha",
+     "with": null,
+     "without": {
+      "hp": 153,
+      "maxhp": 153,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "hawluchamega",
+     "without": "hawlucha"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.hawluchamega",
+     "with": {
+      "hp": 153,
+      "maxhp": 153,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.hawlucha",
+     "with": null,
+     "without": {
+      "hp": 153,
+      "maxhp": 153,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "hawluchamega",
+     "without": "hawlucha"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "heatrock",
+   "name": "Heat Rock",
+   "rule": "item/extends-a-duration",
+   "reads": "shortDesc \"Holder's use of <MOVE> lasts <n> turns instead of <m>\"",
+   "note": "Sunny Day -> 8 turns instead of 5",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "field.weather_turns",
+     "with": 7,
+     "without": 4
+    },
+    {
+     "turn": 2,
+     "path": "field.weather_turns",
+     "with": 6,
+     "without": 3
+    },
+    {
+     "turn": 3,
+     "path": "field.weather_turns",
+     "with": 5,
+     "without": 2
+    },
+    {
+     "turn": 4,
+     "path": "field.weather_turns",
+     "with": 4,
+     "without": 1
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "heracronite",
+   "name": "Heracronite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Heracross -> Heracross-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.heracrossmega",
+     "with": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.heracross",
+     "with": null,
+     "without": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "heracrossmega",
+     "without": "heracross"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.heracrossmega",
+     "with": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.heracross",
+     "with": null,
+     "without": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "heracrossmega",
+     "without": "heracross"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "houndoominite",
+   "name": "Houndoominite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Houndoom -> Houndoom-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.houndoommega",
+     "with": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.houndoom",
+     "with": null,
+     "without": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "houndoommega",
+     "without": "houndoom"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.houndoommega",
+     "with": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.houndoom",
+     "with": null,
+     "without": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "houndoommega",
+     "without": "houndoom"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "icyrock",
+   "name": "Icy Rock",
+   "rule": "item/extends-a-duration",
+   "reads": "shortDesc \"Holder's use of <MOVE> lasts <n> turns instead of <m>\"",
+   "note": "Snowscape -> 8 turns instead of 5",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "field.weather_turns",
+     "with": 7,
+     "without": 4
+    },
+    {
+     "turn": 2,
+     "path": "field.weather_turns",
+     "with": 6,
+     "without": 3
+    },
+    {
+     "turn": 3,
+     "path": "field.weather_turns",
+     "with": 5,
+     "without": 2
+    },
+    {
+     "turn": 4,
+     "path": "field.weather_turns",
+     "with": 4,
+     "without": 1
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "ironball",
+   "name": "Iron Ball",
+   "rule": "item/speed-scaled",
+   "reads": "onModifySpe",
+   "note": "x0.5 on charizard (120 -> 60 against 106) against glimmora; each kills the other, so the ORDER decides who is standing",
+   "verdict": "DID-NOT-FIRE",
+   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p1.party.glimmora.hp",
+     "with": 158,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.party.glimmora.fainted",
+     "with": false,
+     "without": true
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].species",
+     "with": "glimmora",
+     "without": "milotic"
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].hp",
+     "with": 158,
+     "without": 170
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].maxhp",
+     "with": 158,
+     "without": 170
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.charizard.hp",
+     "with": 0,
+     "without": 153
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.charizard.fainted",
+     "with": true,
+     "without": false
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "milotic",
+     "without": "charizard"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 170,
+     "without": 153
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].maxhp",
+     "with": 170,
+     "without": 153
+    }
+   ],
+   "diffs": [
+    {
+     "turn": 1,
+     "slot": "",
+     "body": "glimmora",
+     "field": "party.hp",
+     "showdown": 158,
+     "ours": 0,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 1,
+     "slot": "",
+     "body": "glimmora",
+     "field": "party.fainted",
+     "showdown": false,
+     "ours": true,
+     "bucket": "one-says-yes-one-says-no"
+    },
+    {
+     "turn": 1,
+     "slot": "p1a",
+     "body": "milotic",
+     "field": "species",
+     "showdown": "glimmora",
+     "ours": "milotic",
+     "bucket": "different-value"
+    },
+    {
+     "turn": 1,
+     "slot": "p1a",
+     "body": "milotic",
+     "field": "hp",
+     "showdown": 158,
+     "ours": 170,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 1,
+     "slot": "p1a",
+     "body": "milotic",
+     "field": "maxhp",
+     "showdown": 158,
+     "ours": 170,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 1,
+     "slot": "",
+     "body": "charizard",
+     "field": "party.hp",
+     "showdown": 0,
+     "ours": 153,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 1,
+     "slot": "",
+     "body": "charizard",
+     "field": "party.fainted",
+     "showdown": true,
+     "ours": false,
+     "bucket": "one-says-yes-one-says-no"
+    },
+    {
+     "turn": 1,
+     "slot": "p2a",
+     "body": "charizard",
+     "field": "species",
+     "showdown": "milotic",
+     "ours": "charizard",
+     "bucket": "different-value"
+    },
+    {
+     "turn": 1,
+     "slot": "p2a",
+     "body": "charizard",
+     "field": "hp",
+     "showdown": 170,
+     "ours": 153,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 1,
+     "slot": "p2a",
+     "body": "charizard",
+     "field": "maxhp",
+     "showdown": 170,
+     "ours": 153,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 1,
+     "slot": "p2a",
+     "body": "charizard",
+     "field": "item",
+     "showdown": "",
+     "ours": "ironball",
+     "bucket": "present-in-one-engine-only"
+    }
+   ]
+  },
+  {
+   "kind": "item",
+   "id": "kangaskhanite",
+   "name": "Kangaskhanite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Kangaskhan -> Kangaskhan-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhanmega",
+     "with": {
+      "hp": 180,
+      "maxhp": 180,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan",
+     "with": null,
+     "without": {
+      "hp": 180,
+      "maxhp": 180,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "kangaskhanmega",
+     "without": "kangaskhan"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhanmega",
+     "with": {
+      "hp": 180,
+      "maxhp": 180,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan",
+     "with": null,
+     "without": {
+      "hp": 180,
+      "maxhp": 180,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "kangaskhanmega",
+     "without": "kangaskhan"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "kasibberry",
+   "name": "Kasib Berry",
+   "rule": "item/resist-berry",
+   "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
+   "note": "halves Ghost on metagross; the inverted half is a Dragon hit on skeledirge, holding the same berry, on the same board",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.metagross.hp",
+     "with": 870,
+     "without": 810
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 870,
+     "without": 810
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "kebiaberry",
+   "name": "Kebia Berry",
+   "rule": "item/resist-berry",
+   "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
+   "note": "halves Poison on florges; the inverted half is a Dragon hit on chesnaught, holding the same berry, on the same board",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.florges.hp",
+     "with": 889,
+     "without": 860
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 889,
+     "without": 860
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "kingsrock",
+   "name": "King's Rock",
+   "rule": "item/chance-gated",
+   "reads": null,
+   "note": null,
+   "verdict": "COULD-NOT-STAGE",
+   "why": "its effect is a 10% chance, and the driver's pin makes every sub-100% roll fail in both engines (game_differential.js PRIMARY_ARM: \"no secondary fires\"). Nothing staged here could distinguish a wired mechanic from an absent one.",
+   "sd_delta": [],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "leftovers",
+   "name": "Leftovers",
+   "rule": "item/residual-heal",
+   "reads": "onResidual + shortDesc \"end of every turn\"",
+   "note": "both slots chipped once, then three quiet boundaries; only the left one holds it",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 716,
+     "without": 671
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 716,
+     "without": 671
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 720,
+     "without": 671
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 720,
+     "without": 671
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 720,
+     "without": 671
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].hp",
+     "with": 720,
+     "without": 671
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "leppaberry",
+   "name": "Leppa Berry",
+   "rule": "item/pp-restore",
+   "reads": null,
+   "note": null,
+   "verdict": "COULD-NOT-STAGE",
+   "why": "its whole effect is on PP, and board_state.js does not compare PP in either engine (medicham2 does not track it at all), so there is no board leaf it could move",
+   "sd_delta": [],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "lifeorb",
+   "name": "Life Orb",
+   "rule": "item/all-damage-and-cost",
+   "reads": "onModifyDamage + onAfterMoveSecondarySelf",
+   "note": "multiplier and self-cost together, over two turns",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p1.party.dragapult.hp",
+     "with": 881,
+     "without": 978
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].hp",
+     "with": 881,
+     "without": 978
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1016,
+     "without": 1031
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1016,
+     "without": 1031
+    },
+    {
+     "turn": 2,
+     "path": "p1.party.dragapult.hp",
+     "with": 784,
+     "without": 978
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 784,
+     "without": 978
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 952,
+     "without": 982
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 952,
+     "without": 982
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "lightball",
+   "name": "Light Ball",
+   "rule": "item/species-locked-stat",
+   "reads": "itemUser + onModifyAtk / onModifySpA",
+   "note": "held by Pikachu, with a different species holding the same item beside it",
+   "verdict": "DID-NOT-FIRE",
+   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p1.party.kangaskhan.hp",
+     "with": 1383,
+     "without": 1411
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].hp",
+     "with": 1383,
+     "without": 1411
+    }
+   ],
+   "diffs": [
+    {
+     "turn": 1,
+     "slot": "",
+     "body": "kangaskhan",
+     "field": "party.hp",
+     "showdown": 1383,
+     "ours": 1411,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 1,
+     "slot": "p1a",
+     "body": "kangaskhan",
+     "field": "hp",
+     "showdown": 1383,
+     "ours": 1411,
+     "bucket": "off-by-4-or-more"
+    }
+   ]
+  },
+  {
+   "kind": "item",
+   "id": "lightclay",
+   "name": "Light Clay",
+   "rule": "item/extends-a-duration",
+   "reads": "shortDesc \"Holder's use of <MOVE> lasts <n> turns instead of <m>\"",
+   "note": "Light Screen -> 8 turns instead of 5",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.screens.special",
+     "with": 7,
+     "without": 4
+    },
+    {
+     "turn": 1,
+     "path": "p2.screens.named.lightscreen",
+     "with": 7,
+     "without": 4
+    },
+    {
+     "turn": 2,
+     "path": "p2.screens.special",
+     "with": 6,
+     "without": 3
+    },
+    {
+     "turn": 2,
+     "path": "p2.screens.named.lightscreen",
+     "with": 6,
+     "without": 3
+    },
+    {
+     "turn": 3,
+     "path": "p2.screens.special",
+     "with": 5,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p2.screens.named.lightscreen",
+     "with": 5,
+     "without": 2
+    },
+    {
+     "turn": 4,
+     "path": "p2.screens.special",
+     "with": 4,
+     "without": 1
+    },
+    {
+     "turn": 4,
+     "path": "p2.screens.named.lightscreen",
+     "with": 4,
+     "without": 1
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "lopunnite",
+   "name": "Lopunnite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Lopunny -> Lopunny-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.lopunnymega",
+     "with": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.lopunny",
+     "with": null,
+     "without": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "lopunnymega",
+     "without": "lopunny"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.lopunnymega",
+     "with": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.lopunny",
+     "with": null,
+     "without": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "lopunnymega",
+     "without": "lopunny"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "lucarionite",
+   "name": "Lucarionite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Lucario -> Lucario-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.lucariomega",
+     "with": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.lucario",
+     "with": null,
+     "without": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "lucariomega",
+     "without": "lucario"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.lucariomega",
+     "with": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.lucario",
+     "with": null,
+     "without": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "lucariomega",
+     "without": "lucario"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "lumberry",
+   "name": "Lum Berry",
+   "rule": "item/status-cure",
+   "reads": "onUpdate + shortDesc \"cured if it is <status>\" / \"wakes up\" / \"confused\" / \"cures itself\"",
+   "note": "confusion delivered by Confuse Ray onto goodrahisui",
+   "verdict": "DID-NOT-FIRE",
+   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.active[0].vol.confusion",
+     "with": 0,
+     "without": 1
+    }
+   ],
+   "diffs": [
+    {
+     "turn": 1,
+     "slot": "p2a",
+     "body": "goodrahisui",
+     "field": "item",
+     "showdown": "",
+     "ours": "lumberry",
+     "bucket": "present-in-one-engine-only"
+    },
+    {
+     "turn": 1,
+     "slot": "p2a",
+     "body": "goodrahisui",
+     "field": "vol.confusion",
+     "showdown": 0,
+     "ours": 1,
+     "bucket": "off-by-one"
+    },
+    {
+     "turn": 2,
+     "slot": "p2a",
+     "body": "goodrahisui",
+     "field": "item",
+     "showdown": "",
+     "ours": "lumberry",
+     "bucket": "present-in-one-engine-only"
+    }
+   ]
+  },
+  {
+   "kind": "item",
+   "id": "magnet",
+   "name": "Magnet",
+   "rule": "item/type-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
+   "note": "Electric x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1021,
+     "without": 1031
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1021,
+     "without": 1031
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 972,
+     "without": 982
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 972,
+     "without": 982
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "malamarite",
+   "name": "Malamarite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Malamar -> Malamar-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.malamarmega",
+     "with": {
+      "hp": 161,
+      "maxhp": 161,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.malamar",
+     "with": null,
+     "without": {
+      "hp": 161,
+      "maxhp": 161,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "malamarmega",
+     "without": "malamar"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.malamarmega",
+     "with": {
+      "hp": 161,
+      "maxhp": 161,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.malamar",
+     "with": null,
+     "without": {
+      "hp": 161,
+      "maxhp": 161,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "malamarmega",
+     "without": "malamar"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "manectite",
+   "name": "Manectite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Manectric -> Manectric-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p1.active[0].boosts.atk",
+     "with": -1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[1].boosts.atk",
+     "with": -1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.manectricmega",
+     "with": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.manectric",
+     "with": null,
+     "without": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "manectricmega",
+     "without": "manectric"
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].boosts.atk",
+     "with": -1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[1].boosts.atk",
+     "with": -1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.manectricmega",
+     "with": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.manectric",
+     "with": null,
+     "without": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "manectricmega",
+     "without": "manectric"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "mawilite",
+   "name": "Mawilite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Mawile -> Mawile-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.mawilemega",
+     "with": {
+      "hp": 125,
+      "maxhp": 125,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.mawile",
+     "with": null,
+     "without": {
+      "hp": 125,
+      "maxhp": 125,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "mawilemega",
+     "without": "mawile"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.mawilemega",
+     "with": {
+      "hp": 125,
+      "maxhp": 125,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.mawile",
+     "with": null,
+     "without": {
+      "hp": 125,
+      "maxhp": 125,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "mawilemega",
+     "without": "mawile"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "medichamite",
+   "name": "Medichamite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Medicham -> Medicham-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.medichammega",
+     "with": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.medicham",
+     "with": null,
+     "without": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "medichammega",
+     "without": "medicham"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.medichammega",
+     "with": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.medicham",
+     "with": null,
+     "without": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "medichammega",
+     "without": "medicham"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "meganiumite",
+   "name": "Meganiumite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Meganium -> Meganium-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.meganiummega",
+     "with": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.meganium",
+     "with": null,
+     "without": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "meganiummega",
+     "without": "meganium"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.meganiummega",
+     "with": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.meganium",
+     "with": null,
+     "without": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "meganiummega",
+     "without": "meganium"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "mentalherb",
+   "name": "Mental Herb",
+   "rule": "item/cures-a-volatile",
+   "reads": "onUpdate + shortDesc naming Taunt / Encore / Disable / Attract / Torment / Heal Block",
+   "note": "Taunt, which is the cured volatile the board carries a counter for",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.active[0].vol.taunt",
+     "with": 0,
+     "without": 2
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].vol.taunt",
+     "with": 0,
+     "without": 1
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "meowsticite",
+   "name": "Meowsticite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Meowstic -> Meowstic-M-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.meowsticmmega",
+     "with": {
+      "hp": 149,
+      "maxhp": 149,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.meowstic",
+     "with": null,
+     "without": {
+      "hp": 149,
+      "maxhp": 149,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "meowsticmmega",
+     "without": "meowstic"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.meowsticmmega",
+     "with": {
+      "hp": 149,
+      "maxhp": 149,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.meowstic",
+     "with": null,
+     "without": {
+      "hp": 149,
+      "maxhp": 149,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "meowsticmmega",
+     "without": "meowstic"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "metagrossite",
+   "name": "Metagrossite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Metagross -> Metagross-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.metagrossmega",
+     "with": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.metagross",
+     "with": null,
+     "without": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "metagrossmega",
+     "without": "metagross"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.metagrossmega",
+     "with": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.metagross",
+     "with": null,
+     "without": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "metagrossmega",
+     "without": "metagross"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "metalcoat",
+   "name": "Metal Coat",
+   "rule": "item/type-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
+   "note": "Steel x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1019,
+     "without": 1029
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1019,
+     "without": 1029
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 970,
+     "without": 980
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 970,
+     "without": 980
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "metronome",
+   "name": "Metronome",
+   "rule": "item/held-and-nothing-more",
+   "reads": "nothing matched above — this is the residue",
+   "note": "generic: held, attacking, attacked, over three turns",
+   "verdict": "DID-NOT-FIRE",
+   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p1.party.dragapult.hp",
+     "with": 949,
+     "without": 952
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 949,
+     "without": 952
+    },
+    {
+     "turn": 3,
+     "path": "p1.party.dragapult.hp",
+     "with": 949,
+     "without": 952
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].hp",
+     "with": 949,
+     "without": 952
+    }
+   ],
+   "diffs": [
+    {
+     "turn": 2,
+     "slot": "",
+     "body": "dragapult",
+     "field": "party.hp",
+     "showdown": 949,
+     "ours": 952,
+     "bucket": "off-by-2-or-3"
+    },
+    {
+     "turn": 2,
+     "slot": "p1a",
+     "body": "dragapult",
+     "field": "hp",
+     "showdown": 949,
+     "ours": 952,
+     "bucket": "off-by-2-or-3"
+    },
+    {
+     "turn": 3,
+     "slot": "",
+     "body": "dragapult",
+     "field": "party.hp",
+     "showdown": 949,
+     "ours": 952,
+     "bucket": "off-by-2-or-3"
+    },
+    {
+     "turn": 3,
+     "slot": "p1a",
+     "body": "dragapult",
+     "field": "hp",
+     "showdown": 949,
+     "ours": 952,
+     "bucket": "off-by-2-or-3"
+    }
+   ]
+  },
+  {
+   "kind": "item",
+   "id": "miracleseed",
+   "name": "Miracle Seed",
+   "rule": "item/type-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
+   "note": "Grass x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1021,
+     "without": 1031
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1021,
+     "without": 1031
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 972,
+     "without": 982
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 972,
+     "without": 982
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "muscleband",
+   "name": "Muscle Band",
+   "rule": "item/category-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's physical|special attacks have <n>x power\"",
+   "note": "physical x1.1; the negative is a special click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 124,
+     "without": 129
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 124,
+     "without": 129
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 75,
+     "without": 80
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 75,
+     "without": 80
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "mysticwater",
+   "name": "Mystic Water",
+   "rule": "item/type-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
+   "note": "Water x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1016,
+     "without": 1026
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1016,
+     "without": 1026
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 967,
+     "without": 977
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 967,
+     "without": 977
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "nevermeltice",
+   "name": "Never-Melt Ice",
+   "rule": "item/type-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
+   "note": "Ice x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1021,
+     "without": 1031
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1021,
+     "without": 1031
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 972,
+     "without": 982
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 972,
+     "without": 982
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "occaberry",
+   "name": "Occa Berry",
+   "rule": "item/resist-berry",
+   "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
+   "note": "halves Fire on metagross; the inverted half is a Poison hit on torterra, holding the same berry, on the same board",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.metagross.hp",
+     "with": 885,
+     "without": 840
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 885,
+     "without": 840
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "oranberry",
+   "name": "Oran Berry",
+   "rule": "item/heals-at-threshold",
+   "reads": "onUpdate + shortDesc \"when at 1/2 max HP or less\"",
+   "note": "Dragon Claw takes beedrill to 10% in one blow, twice",
+   "verdict": "DID-NOT-FIRE",
+   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.beedrill.hp",
+     "with": 24,
+     "without": 14
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 24,
+     "without": 14
+    }
+   ],
+   "diffs": [
+    {
+     "turn": 1,
+     "slot": "",
+     "body": "beedrill",
+     "field": "party.hp",
+     "showdown": 24,
+     "ours": 14,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 1,
+     "slot": "p2a",
+     "body": "beedrill",
+     "field": "hp",
+     "showdown": 24,
+     "ours": 14,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 1,
+     "slot": "p2a",
+     "body": "beedrill",
+     "field": "item",
+     "showdown": "",
+     "ours": "oranberry",
+     "bucket": "present-in-one-engine-only"
+    }
+   ]
+  },
+  {
+   "kind": "item",
+   "id": "passhoberry",
+   "name": "Passho Berry",
+   "rule": "item/resist-berry",
+   "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
+   "note": "halves Water on avalugghisui; the inverted half is a Steel hit on aggron, holding the same berry, on the same board",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.avalugghisui.hp",
+     "with": 993,
+     "without": 966
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 993,
+     "without": 966
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "payapaberry",
+   "name": "Payapa Berry",
+   "rule": "item/resist-berry",
+   "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
+   "note": "halves Psychic on chesnaught; the inverted half is a Steel hit on dragalge, holding the same berry, on the same board",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.chesnaught.hp",
+     "with": 926,
+     "without": 874
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 926,
+     "without": 874
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "pechaberry",
+   "name": "Pecha Berry",
+   "rule": "item/status-cure",
+   "reads": "onUpdate + shortDesc \"cured if it is <status>\" / \"wakes up\" / \"confused\" / \"cures itself\"",
+   "note": "psn delivered by Toxic Thread onto kangaskhan",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 180,
+     "without": 158
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 180,
+     "without": 158
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "psn"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 180,
+     "without": 136
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 180,
+     "without": 136
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "psn"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "persimberry",
+   "name": "Persim Berry",
+   "rule": "item/status-cure",
+   "reads": "onUpdate + shortDesc \"cured if it is <status>\" / \"wakes up\" / \"confused\" / \"cures itself\"",
+   "note": "confusion delivered by Confuse Ray onto goodrahisui",
+   "verdict": "DID-NOT-FIRE",
+   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.active[0].vol.confusion",
+     "with": 0,
+     "without": 1
+    }
+   ],
+   "diffs": [
+    {
+     "turn": 1,
+     "slot": "p2a",
+     "body": "goodrahisui",
+     "field": "item",
+     "showdown": "",
+     "ours": "persimberry",
+     "bucket": "present-in-one-engine-only"
+    },
+    {
+     "turn": 1,
+     "slot": "p2a",
+     "body": "goodrahisui",
+     "field": "vol.confusion",
+     "showdown": 0,
+     "ours": 1,
+     "bucket": "off-by-one"
+    },
+    {
+     "turn": 2,
+     "slot": "p2a",
+     "body": "goodrahisui",
+     "field": "item",
+     "showdown": "",
+     "ours": "persimberry",
+     "bucket": "present-in-one-engine-only"
+    }
+   ]
+  },
+  {
+   "kind": "item",
+   "id": "pidgeotite",
+   "name": "Pidgeotite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Pidgeot -> Pidgeot-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.pidgeotmega",
+     "with": {
+      "hp": 158,
+      "maxhp": 158,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.pidgeot",
+     "with": null,
+     "without": {
+      "hp": 158,
+      "maxhp": 158,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "pidgeotmega",
+     "without": "pidgeot"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.pidgeotmega",
+     "with": {
+      "hp": 158,
+      "maxhp": 158,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.pidgeot",
+     "with": null,
+     "without": {
+      "hp": 158,
+      "maxhp": 158,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "pidgeotmega",
+     "without": "pidgeot"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "pinsirite",
+   "name": "Pinsirite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Pinsir -> Pinsir-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.pinsirmega",
+     "with": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.pinsir",
+     "with": null,
+     "without": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "pinsirmega",
+     "without": "pinsir"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.pinsirmega",
+     "with": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.pinsir",
+     "with": null,
+     "without": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "pinsirmega",
+     "without": "pinsir"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "poisonbarb",
+   "name": "Poison Barb",
+   "rule": "item/type-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
+   "note": "Poison x1.2 into kangaskhan; the negative is a Dragon click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1021,
+     "without": 1031
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1021,
+     "without": 1031
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 952,
+     "without": 962
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 952,
+     "without": 962
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "pyroarite",
+   "name": "Pyroarite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Pyroar -> Pyroar-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.pyroarmega",
+     "with": {
+      "hp": 161,
+      "maxhp": 161,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.pyroar",
+     "with": null,
+     "without": {
+      "hp": 161,
+      "maxhp": 161,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "pyroarmega",
+     "without": "pyroar"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.pyroarmega",
+     "with": {
+      "hp": 161,
+      "maxhp": 161,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.pyroar",
+     "with": null,
+     "without": {
+      "hp": 161,
+      "maxhp": 161,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "pyroarmega",
+     "without": "pyroar"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "quickclaw",
+   "name": "Quick Claw",
+   "rule": "item/chance-gated",
+   "reads": null,
+   "note": null,
+   "verdict": "COULD-NOT-STAGE",
+   "why": "its effect is a 20% chance, and the driver's pin makes every sub-100% roll fail in both engines (game_differential.js PRIMARY_ARM: \"no secondary fires\"). Nothing staged here could distinguish a wired mechanic from an absent one.",
+   "sd_delta": [],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "raichunitex",
+   "name": "Raichunite X",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Raichu -> Raichu-Mega-X",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "field.terrain",
+     "with": "electric",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "field.terrain_turns",
+     "with": 4,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.raichumegax",
+     "with": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.raichu",
+     "with": null,
+     "without": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "raichumegax",
+     "without": "raichu"
+    },
+    {
+     "turn": 2,
+     "path": "field.terrain",
+     "with": "electric",
+     "without": ""
+    },
+    {
+     "turn": 2,
+     "path": "field.terrain_turns",
+     "with": 3,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.raichumegax",
+     "with": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.raichu",
+     "with": null,
+     "without": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "raichumegax",
+     "without": "raichu"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "raichunitey",
+   "name": "Raichunite Y",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Raichu -> Raichu-Mega-Y",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.raichumegay",
+     "with": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.raichu",
+     "with": null,
+     "without": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "raichumegay",
+     "without": "raichu"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.raichumegay",
+     "with": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.raichu",
+     "with": null,
+     "without": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "raichumegay",
+     "without": "raichu"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "rawstberry",
+   "name": "Rawst Berry",
+   "rule": "item/status-cure",
+   "reads": null,
+   "note": null,
+   "verdict": "COULD-NOT-STAGE",
+   "why": "no 100-accuracy move in this format inflicts brn outright, and the pin makes every sub-100-accuracy move miss — so the condition this berry cures cannot be put on a body at all. THE ITEM IS NOT ABSENT FROM THE ENGINE; IT IS UNREACHABLE FROM HERE.",
+   "sd_delta": [],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "rindoberry",
+   "name": "Rindo Berry",
+   "rule": "item/resist-berry",
+   "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
+   "note": "halves Grass on avalugghisui; the inverted half is a Poison hit on blastoise, holding the same berry, on the same board",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.avalugghisui.hp",
+     "with": 934,
+     "without": 848
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 934,
+     "without": 848
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "roseliberry",
+   "name": "Roseli Berry",
+   "rule": "item/resist-berry",
+   "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
+   "note": "halves Fairy on chesnaught; the inverted half is a Poison hit on conkeldurr, holding the same berry, on the same board",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.chesnaught.hp",
+     "with": 924,
+     "without": 870
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 924,
+     "without": 870
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "sablenite",
+   "name": "Sablenite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Sableye -> Sableye-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.sableyemega",
+     "with": {
+      "hp": 125,
+      "maxhp": 125,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.sableye",
+     "with": null,
+     "without": {
+      "hp": 125,
+      "maxhp": 125,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "sableyemega",
+     "without": "sableye"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.sableyemega",
+     "with": {
+      "hp": 125,
+      "maxhp": 125,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.sableye",
+     "with": null,
+     "without": {
+      "hp": 125,
+      "maxhp": 125,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "sableyemega",
+     "without": "sableye"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "sceptilite",
+   "name": "Sceptilite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Sceptile -> Sceptile-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.sceptilemega",
+     "with": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.sceptile",
+     "with": null,
+     "without": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "sceptilemega",
+     "without": "sceptile"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.sceptilemega",
+     "with": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.sceptile",
+     "with": null,
+     "without": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "sceptilemega",
+     "without": "sceptile"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "scizorite",
+   "name": "Scizorite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Scizor -> Scizor-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.scizormega",
+     "with": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.scizor",
+     "with": null,
+     "without": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "scizormega",
+     "without": "scizor"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.scizormega",
+     "with": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.scizor",
+     "with": null,
+     "without": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "scizormega",
+     "without": "scizor"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "scolipite",
+   "name": "Scolipite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Scolipede -> Scolipede-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.scolipedemega",
+     "with": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.scolipede",
+     "with": null,
+     "without": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "scolipedemega",
+     "without": "scolipede"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.scolipedemega",
+     "with": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.scolipede",
+     "with": null,
+     "without": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "scolipedemega",
+     "without": "scolipede"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "scopelens",
+   "name": "Scope Lens",
+   "rule": "item/crit-ratio",
+   "reads": null,
+   "note": null,
+   "verdict": "COULD-NOT-STAGE",
+   "why": "it raises the critical-hit RATIO, and the pin never lets a crit land in either engine, so the ratio has nothing to act on",
+   "sd_delta": [],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "scovillainite",
+   "name": "Scovillainite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Scovillain -> Scovillain-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.scovillainmega",
+     "with": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.scovillain",
+     "with": null,
+     "without": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "scovillainmega",
+     "without": "scovillain"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.scovillainmega",
+     "with": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.scovillain",
+     "with": null,
+     "without": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "scovillainmega",
+     "without": "scovillain"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "scraftinite",
+   "name": "Scraftinite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Scrafty -> Scrafty-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p1.active[0].boosts.atk",
+     "with": -1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[1].boosts.atk",
+     "with": -1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.scraftymega",
+     "with": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.scrafty",
+     "with": null,
+     "without": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "scraftymega",
+     "without": "scrafty"
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].boosts.atk",
+     "with": -1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[1].boosts.atk",
+     "with": -1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.scraftymega",
+     "with": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.scrafty",
+     "with": null,
+     "without": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "scraftymega",
+     "without": "scrafty"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "sharpbeak",
+   "name": "Sharp Beak",
+   "rule": "item/type-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
+   "note": "Flying x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1019,
+     "without": 1029
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1019,
+     "without": 1029
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 970,
+     "without": 980
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 970,
+     "without": 980
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "sharpedonite",
+   "name": "Sharpedonite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Sharpedo -> Sharpedo-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.sharpedomega",
+     "with": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.sharpedo",
+     "with": null,
+     "without": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "sharpedomega",
+     "without": "sharpedo"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.sharpedomega",
+     "with": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.sharpedo",
+     "with": null,
+     "without": {
+      "hp": 145,
+      "maxhp": 145,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "sharpedomega",
+     "without": "sharpedo"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "shedshell",
+   "name": "Shed Shell",
+   "rule": "item/trapping-escape",
+   "reads": null,
+   "note": null,
+   "verdict": "COULD-NOT-STAGE",
+   "why": "it undoes TRAPPING, which needs a voluntary switch to observe; the script language has no switch action and board_state.js does not compare ability trapping at all",
+   "sd_delta": [],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "shellbell",
+   "name": "Shell Bell",
+   "rule": "item/heal-on-attack",
+   "reads": "onAfterMoveSecondarySelf without a damage modifier",
+   "note": "chipped on turn 1, attacking on turns 2 and 3",
+   "verdict": "DID-NOT-FIRE",
+   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1032,
+     "without": 1031
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 1032,
+     "without": 1031
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1033,
+     "without": 1031
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].hp",
+     "with": 1033,
+     "without": 1031
+    }
+   ],
+   "diffs": [
+    {
+     "turn": 2,
+     "slot": "",
+     "body": "kangaskhan",
+     "field": "party.hp",
+     "showdown": 1032,
+     "ours": 1031,
+     "bucket": "off-by-one"
+    },
+    {
+     "turn": 2,
+     "slot": "p2a",
+     "body": "kangaskhan",
+     "field": "hp",
+     "showdown": 1032,
+     "ours": 1031,
+     "bucket": "off-by-one"
+    },
+    {
+     "turn": 3,
+     "slot": "",
+     "body": "kangaskhan",
+     "field": "party.hp",
+     "showdown": 1033,
+     "ours": 1031,
+     "bucket": "off-by-2-or-3"
+    },
+    {
+     "turn": 3,
+     "slot": "p2a",
+     "body": "kangaskhan",
+     "field": "hp",
+     "showdown": 1033,
+     "ours": 1031,
+     "bucket": "off-by-2-or-3"
+    }
+   ]
+  },
+  {
+   "kind": "item",
+   "id": "shucaberry",
+   "name": "Shuca Berry",
+   "rule": "item/resist-berry",
+   "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
+   "note": "halves Ground on goodrahisui; the inverted half is a Dragon hit on avalugghisui, holding the same berry, on the same board",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.goodrahisui.hp",
+     "with": 901,
+     "without": 872
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 901,
+     "without": 872
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "silkscarf",
+   "name": "Silk Scarf",
+   "rule": "item/type-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
+   "note": "Normal x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1016,
+     "without": 1026
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1016,
+     "without": 1026
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 967,
+     "without": 977
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 967,
+     "without": 977
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "silverpowder",
+   "name": "Silver Powder",
+   "rule": "item/type-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
+   "note": "Bug x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1021,
+     "without": 1031
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1021,
+     "without": 1031
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 972,
+     "without": 982
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 972,
+     "without": 982
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "sitrusberry",
+   "name": "Sitrus Berry",
+   "rule": "item/heals-at-threshold",
+   "reads": "onUpdate + shortDesc \"when at 1/2 max HP or less\"",
+   "note": "Dragon Claw takes beedrill to 10% in one blow, twice",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.beedrill.hp",
+     "with": 49,
+     "without": 14
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 49,
+     "without": 14
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "skarmorite",
+   "name": "Skarmorite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Skarmory -> Skarmory-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.skarmorymega",
+     "with": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.skarmory",
+     "with": null,
+     "without": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "skarmorymega",
+     "without": "skarmory"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.skarmorymega",
+     "with": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.skarmory",
+     "with": null,
+     "without": {
+      "hp": 140,
+      "maxhp": 140,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "skarmorymega",
+     "without": "skarmory"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "slowbronite",
+   "name": "Slowbronite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Slowbro -> Slowbro-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.slowbromega",
+     "with": {
+      "hp": 170,
+      "maxhp": 170,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.slowbro",
+     "with": null,
+     "without": {
+      "hp": 170,
+      "maxhp": 170,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "slowbromega",
+     "without": "slowbro"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.slowbromega",
+     "with": {
+      "hp": 170,
+      "maxhp": 170,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.slowbro",
+     "with": null,
+     "without": {
+      "hp": 170,
+      "maxhp": 170,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "slowbromega",
+     "without": "slowbro"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "smoothrock",
+   "name": "Smooth Rock",
+   "rule": "item/extends-a-duration",
+   "reads": "shortDesc \"Holder's use of <MOVE> lasts <n> turns instead of <m>\"",
+   "note": "Sandstorm -> 8 turns instead of 5",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "field.weather_turns",
+     "with": 7,
+     "without": 4
+    },
+    {
+     "turn": 2,
+     "path": "field.weather_turns",
+     "with": 6,
+     "without": 3
+    },
+    {
+     "turn": 3,
+     "path": "field.weather_turns",
+     "with": 5,
+     "without": 2
+    },
+    {
+     "turn": 4,
+     "path": "field.weather_turns",
+     "with": 4,
+     "without": 1
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "softsand",
+   "name": "Soft Sand",
+   "rule": "item/type-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
+   "note": "Ground x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1021,
+     "without": 1031
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1021,
+     "without": 1031
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 972,
+     "without": 982
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 972,
+     "without": 982
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "spelltag",
+   "name": "Spell Tag",
+   "rule": "item/type-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
+   "note": "Ghost x1.2 into goodrahisui; the negative is a Dragon click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.goodrahisui.hp",
+     "with": 884,
+     "without": 891
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 884,
+     "without": 891
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.goodrahisui.hp",
+     "with": 842,
+     "without": 849
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 842,
+     "without": 849
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "staraptite",
+   "name": "Staraptite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Staraptor -> Staraptor-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.staraptormega",
+     "with": {
+      "hp": 160,
+      "maxhp": 160,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.staraptor",
+     "with": null,
+     "without": {
+      "hp": 160,
+      "maxhp": 160,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "staraptormega",
+     "without": "staraptor"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.staraptormega",
+     "with": {
+      "hp": 160,
+      "maxhp": 160,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.staraptor",
+     "with": null,
+     "without": {
+      "hp": 160,
+      "maxhp": 160,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "staraptormega",
+     "without": "staraptor"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "starminite",
+   "name": "Starminite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Starmie -> Starmie-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.starmiemega",
+     "with": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.starmie",
+     "with": null,
+     "without": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "starmiemega",
+     "without": "starmie"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.starmiemega",
+     "with": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.starmie",
+     "with": null,
+     "without": {
+      "hp": 135,
+      "maxhp": 135,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "starmiemega",
+     "without": "starmie"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "steelixite",
+   "name": "Steelixite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Steelix -> Steelix-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.steelixmega",
+     "with": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.steelix",
+     "with": null,
+     "without": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "steelixmega",
+     "without": "steelix"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.steelixmega",
+     "with": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.steelix",
+     "with": null,
+     "without": {
+      "hp": 150,
+      "maxhp": 150,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "steelixmega",
+     "without": "steelix"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "swampertite",
+   "name": "Swampertite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Swampert -> Swampert-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.swampertmega",
+     "with": {
+      "hp": 175,
+      "maxhp": 175,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.swampert",
+     "with": null,
+     "without": {
+      "hp": 175,
+      "maxhp": 175,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "swampertmega",
+     "without": "swampert"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.swampertmega",
+     "with": {
+      "hp": 175,
+      "maxhp": 175,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.swampert",
+     "with": null,
+     "without": {
+      "hp": 175,
+      "maxhp": 175,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "swampertmega",
+     "without": "swampert"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "tangaberry",
+   "name": "Tanga Berry",
+   "rule": "item/resist-berry",
+   "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
+   "note": "halves Bug on torterra; the inverted half is a Dragon hit on meganium, holding the same berry, on the same board",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.torterra.hp",
+     "with": 973,
+     "without": 926
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 973,
+     "without": 926
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "twistedspoon",
+   "name": "Twisted Spoon",
+   "rule": "item/type-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
+   "note": "Psychic x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1021,
+     "without": 1031
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1021,
+     "without": 1031
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 972,
+     "without": 982
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 972,
+     "without": 982
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "tyranitarite",
+   "name": "Tyranitarite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Tyranitar -> Tyranitar-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.tyranitarmega",
+     "with": {
+      "hp": 175,
+      "maxhp": 175,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.tyranitar",
+     "with": null,
+     "without": {
+      "hp": 175,
+      "maxhp": 175,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "tyranitarmega",
+     "without": "tyranitar"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.tyranitarmega",
+     "with": {
+      "hp": 175,
+      "maxhp": 175,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.tyranitar",
+     "with": null,
+     "without": {
+      "hp": 175,
+      "maxhp": 175,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "tyranitarmega",
+     "without": "tyranitar"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "venusaurite",
+   "name": "Venusaurite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Venusaur -> Venusaur-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.venusaurmega",
+     "with": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.venusaur",
+     "with": null,
+     "without": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "venusaurmega",
+     "without": "venusaur"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.venusaurmega",
+     "with": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.venusaur",
+     "with": null,
+     "without": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "venusaurmega",
+     "without": "venusaur"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "victreebelite",
+   "name": "Victreebelite",
+   "rule": "item/mega-stone",
+   "reads": "megaStone — the base species and the forme it becomes",
+   "note": "Victreebel -> Victreebel-Mega",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.victreebelmega",
+     "with": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.victreebel",
+     "with": null,
+     "without": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "victreebelmega",
+     "without": "victreebel"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.victreebelmega",
+     "with": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.victreebel",
+     "with": null,
+     "without": {
+      "hp": 155,
+      "maxhp": 155,
+      "fainted": false
+     }
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "victreebelmega",
+     "without": "victreebel"
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "wacanberry",
+   "name": "Wacan Berry",
+   "rule": "item/resist-berry",
+   "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
+   "note": "halves Electric on blastoise; the inverted half is a Dark hit on empoleon, holding the same berry, on the same board",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.blastoise.hp",
+     "with": 884,
+     "without": 844
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 884,
+     "without": 844
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "whiteherb",
+   "name": "White Herb",
+   "rule": "item/restores-lowered-stats",
+   "reads": "onUpdate/onStart + shortDesc \"lowered stat stages\"",
+   "note": "dropped by Baby-Doll Eyes, twice",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.active[0].boosts.atk",
+     "with": 0,
+     "without": -1
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].boosts.atk",
+     "with": -1,
+     "without": -2
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "widelens",
+   "name": "Wide Lens",
+   "rule": "item/accuracy-scaled",
+   "reads": "onModifyAccuracy / onSourceModifyAccuracy",
+   "note": "a 95-accuracy Supercell Slam lifted to 105 by x1.1 must HIT, where the pin would otherwise have made it miss",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p1.party.dragapult.hp",
+     "with": 951,
+     "without": 978
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].hp",
+     "with": 951,
+     "without": 978
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1031,
+     "without": 491
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1031,
+     "without": 491
+    },
+    {
+     "turn": 2,
+     "path": "p1.party.dragapult.hp",
+     "with": 924,
+     "without": 978
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 924,
+     "without": 978
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 982,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.fainted",
+     "with": false,
+     "without": true
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "kangaskhan",
+     "without": "milotic"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 982,
+     "without": 1020
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].maxhp",
+     "with": 1080,
+     "without": 1020
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "wiseglasses",
+   "name": "Wise Glasses",
+   "rule": "item/category-scoped-power",
+   "reads": "onBasePower + shortDesc \"Holder's physical|special attacks have <n>x power\"",
+   "note": "special x1.1; the negative is a physical click on turn 2",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 126,
+     "without": 131
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 126,
+     "without": 131
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 75,
+     "without": 80
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 75,
+     "without": 80
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "yacheberry",
+   "name": "Yache Berry",
+   "rule": "item/resist-berry",
+   "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
+   "note": "halves Ice on rhyperior; the inverted half is a Dragon hit on chesnaught, holding the same berry, on the same board",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.rhyperior.hp",
+     "with": 1075,
+     "without": 1010
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1075,
+     "without": 1010
+    }
+   ],
+   "diffs": []
+  },
+  {
+   "kind": "item",
+   "id": "zoomlens",
+   "name": "Zoom Lens",
+   "rule": "item/accuracy-scaled",
+   "reads": "onModifyAccuracy / onSourceModifyAccuracy",
+   "note": "a 95-accuracy Supercell Slam lifted to 114 by x1.2 must HIT, where the pin would otherwise have made it miss",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p1.party.dragapult.hp",
+     "with": 951,
+     "without": 978
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].hp",
+     "with": 951,
+     "without": 978
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1031,
+     "without": 491
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1031,
+     "without": 491
+    },
+    {
+     "turn": 2,
+     "path": "p1.party.dragapult.hp",
+     "with": 924,
+     "without": 978
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 924,
+     "without": 978
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 982,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.fainted",
+     "with": false,
+     "without": true
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "kangaskhan",
+     "without": "milotic"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 982,
+     "without": 1020
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].maxhp",
+     "with": 1080,
+     "without": 1020
+    }
+   ],
+   "diffs": []
+  }
+ ]
+}
