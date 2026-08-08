@@ -79,7 +79,14 @@ function rosterStage(stage) {
     tried.push('data/' + f);
     const j = readJson(D('data', f));
     if (!j) continue;
-    if (j.stage !== stage && j.stage !== 'all') continue;
+    /* AN `all` ARTIFACT SATISFIES THE THREE STAGES THE RULE NAMES, AND NOTHING ELSE. Accepting
+     * `stage: 'all'` for ANY requested name made this function answer for a stage that does not
+     * exist — so the selftest's own "a MISSING stage must FAIL" probe started matching
+     * data/roster.all.json the moment that file first landed, and went red. The probe was right and
+     * the reader was wrong: `all` is a claim about items, abilities and moves, not a wildcard. This
+     * is the one case the whole file turns on, so it is scoped to ROSTER_STAGES explicitly rather
+     * than to "any truthy stage name". */
+    if (j.stage !== stage && !(j.stage === 'all' && ROSTER_STAGES.includes(stage))) continue;
     const c = j.counts || {};
     const differ = c['FIRED-AND-BOARDS-DIFFER'] || 0;
     const silent = c['DID-NOT-FIRE'] || 0;
@@ -794,6 +801,13 @@ function citations(S) {
       for (const p of probes) if (s.includes(p.probe)) out.push({ where: rel, file: p.file });
     }
   };
-  walk('docs', 0); walk('web', 0);
+  /* `app/` IS THE DEPLOYED MIRROR AND IT WAS A BLIND SPOT IN THIS CHECKER. `tests/test-site-sync.js`
+   * asserts every page under web/ is byte-identical to its app/ twin, so app/ is the copy a visitor
+   * actually loads — and this walker looked at docs/ and web/ only. On 2026-08-08 that meant WEB
+   * closed all five leaks in `web/status-data.js`, this check went green, and `app/status-data.js`
+   * went on quoting the same five withheld verdicts to anyone opening the site. A checker whose
+   * blind spot is exactly the published copy is worse than none: it certifies the leak.
+   * Walked LAST so the web/ row is reported first when both carry it, which is the one to fix. */
+  walk('docs', 0); walk('web', 0); walk('app', 0);
   return out;
 }

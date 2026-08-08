@@ -1,10 +1,10 @@
 {
-  "current": "72e361e1bd44",
-  "cut": "2026-08-08T17:53:41.827Z",
+  "current": "0311e648fceb",
+  "cut": "2026-08-08T21:56:45.184Z",
   "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 24,
-  "latest_cut": "2026-08-08T19:05:27.524Z",
-  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-08T19:05:27.530Z",
+  "cuts": 2,
+  "latest_cut": "2026-08-08T21:57:19.170Z",
+  "latest_why": "ROADMAP #111 — the volatile duration family becomes one mechanism (taunt/encore/disable + the shared residual tick)",
+  "pointer_written": "2026-08-08T21:57:19.176Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

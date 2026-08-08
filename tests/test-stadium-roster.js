@@ -141,6 +141,12 @@ const NOT_A_MODEL = {
   /* --- AUDITORS. Neither makes a claim ABOUT the game; each makes a claim about our own artifacts,
    *     which is why no model owns them and why neither belongs on the Stadium. --- */
   'engine/rerun_list.js':         'an auditor, not a model: it reads every artifact\'s own engine_release stamp and reports which published numbers were measured on an engine since corrected. It asserts nothing about Pokemon and fits nothing — ROADMAP #57',
+  /* --- THE THREE DECLARED 2026-08-08, each read out of the file's OWN header rather than inferred
+   *     from its name. The check warns that a wrong declaration stops it asking permanently and
+   *     silently, so the evidence is quoted here and the reader can check it in one command. --- */
+  'engine/diff_swarm.js':         'a pipeline step, not a model: its own header is "TEAM SELECTION FOR THE WHOLE-GAME DIFFERENTIAL" (ROADMAP #68). It picks which team CONFIGURATIONS the differential plays and fits nothing; its RAW-STORE-OK note says outright that the teams are test inputs and not evidence about play. The claim belongs to the differential it feeds',
+  'engine/leaf_engine_contrast.js': 'a measurement, not a model: its own header asks "DOES A MORE CORRECT ENGINE MAKE BETTER PREDICTIONS?" It scores two ALREADY-FITTED leaves against each other over paired positions and returns a difference with a noise floor. Nothing is fitted here — the models it contrasts each owe their own ledger entry, and this file owes the answer',
+  'engine/mega_decision_census.js': 'a feasibility census, not a model: its own header asks "IS \'WHEN DO I MEGA\' A DECISION, AND IS IT FITTABLE?" It exists BEFORE any mega feature is written, to count whether the decision is real and separable — Will, 2026-08-06, "WHAT IF WE ADD MEGA EVOLUTION TO THE MAG WEIGHTS". If a mega model is later fitted, THAT owes docs/MODELS.md an entry and this file stays a census — ROADMAP #31',
   'engine/validate_store.js':     'an auditor, not a model: it hands every stored set to Showdown\'s own TeamValidator and reports which games contain something the format refuses. The judgement is Showdown\'s; this file only classifies the errors it gets back, separating illegality from a partial closed-sheet reveal',
   'build/build_mag_data.js':      'wraps MAGNEMITE\'s weights and priors as data/mag.js; the claim is MAG\'s',
   'build/build_meta_js.js':       'the Tower\'s threat list, ranked out of data/meta-usage.json; the claim is the usage model\'s',
@@ -224,6 +230,14 @@ const NOT_A_MODEL = {
   'build/strong_player_baseline.js': 'GATE for #46 (docs/MEASURE.md §19) — AND THE BORDERLINE ONE, declared with the reasoning visible so the next reader can REVERSE this call rather than re-derive it. Its headline is that OUR OWN per-turn realism metric cannot separate the rating bands it was built to separate: the whole between-band spread on failed moves sits inside the spread from cutting a single band eight ways, and the design was only powered for a 31% relative change, so §1.3\'s "flat in rating" is NOT MEASURED rather than confirmed. That is a statement about the POWER OF OUR INSTRUMENT, which is why it belongs here. THE CAVEAT, stated rather than buried: it ALSO publishes Champions-facing material — species usage at four Smogon cutoffs, and the ability/item/spread/move gradient within a species — and that material is real. Its home is docs/MEASURE.md §19a-d, because nothing DECIDES off it. If something is ever built that does, this entry is wrong and owes docs/MODELS.md a ledger entry instead',
 
   'engine/bring_bias.js':            'does require_full_bring\'s length-conditioning move any bring rate — a diagnosis of OUR OWN corpus rule, and its answer is no (84 species tested, 12 clear a raw z, 0 survive BH against 4.2 expected). Its sibling engine/bring_priors.js is the model; this measures the filter, and nothing but itself reads data/bring-bias.json',
+
+  /* --- Added 2026-08-08 by WEB, while closing the five withheld figures the status board was still
+   *     publishing. This is the ONE of the four undeclared generators that can be settled without
+   *     another division's judgement; the other three (engine/diff_swarm.js,
+   *     engine/leaf_engine_contrast.js, engine/mega_decision_census.js) are ENGINE's and MEASURE's
+   *     and are REPORTED rather than declared here. A wrong declaration is worse than a red row: it
+   *     stops the check asking, permanently and silently. --- */
+  'engine/quarantine.js':            'GATE (CLAUDE.md, "EVERYTHING DOWNSTREAM OF MEDICHAM IS QUARANTINED UNTIL MEDICHAM IS CORRECT") — data/quarantine-stamp.json records which of OUR artifacts are downstream of OUR simulator, whether OUR gate is open, and where a withheld figure is still cited. Every field in it is about ABRA\'s own bookkeeping; not one is about Champions, its players or the metagame, and no player, bot or team-builder reads it. Settling question — if the stamp is wrong, the people misled are US, about what we may quote. It is the sibling of engine/provenance.js, which this table has never had to consider only because provenance writes no data/* artifact of its own',
 };
 
 /* MODELS.md headings look like "## NAME — long description (added ...)". Take the part

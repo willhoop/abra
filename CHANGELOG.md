@@ -10,6 +10,58 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.81.0] — 2026-08-08
+
+### Fixed
+- **THE QUARANTINE'S OWN SELFTEST WAS RED, AND `--check` WAS EXITING 1 REGARDLESS OF CITATIONS.**
+  `rosterStage()` accepted any artifact declaring `stage: 'all'` for ANY requested stage name, so the
+  moment `data/roster.all.json` first landed (3.80.0) the selftest's own probe for a nonexistent stage
+  started matching a real file. The probe was right and the reader was wrong: `all` is a claim about
+  items, abilities and moves, not a wildcard. Now scoped to `ROSTER_STAGES` explicitly. **This is the
+  one case the whole file turns on** — "a MISSING stage is a FAILING clause, never a passing one" —
+  so it failing silently would have let absence read as success, which is the defect the gate exists
+  to prevent. 20/20 green.
+- **`app/` WAS A BLIND SPOT IN THE CITATION WALKER, AND IT IS THE DEPLOYED COPY.** `citations()`
+  walked `docs/` and `web/` only. So WEB closed all five leaks in `web/status-data.js`, the check went
+  green, and **`app/status-data.js` went on quoting the same five withheld verdicts to anyone opening
+  the site.** A checker whose blind spot is exactly the published copy is worse than none: it
+  certifies the leak. The walker now covers `app/` too, which immediately surfaced the five rows, and
+  the mirror has been re-synced from `web/` (`tests/test-site-sync.js`: 16 passed, 0 failed).
+
+### Added
+- **A WITHHELD FIGURE IS ABSENT ON THE BOARD, NOT CAPTIONED.** `web/build-status.js` now asks
+  `engine/quarantine.js` — `medichamIsCorrect()`, `classify()`, `withholder(gate, rows)` — rather than
+  carrying a hardcoded list, so the exemption lives with the rule. **13 slots withhold**: the whole
+  MEASURE headline block, the weights, R1–R4, the explore sweep. A withheld slot carries **no value
+  at all** and renders as a redaction bar at the exact size a number would be, with the artifact, why
+  it is downstream, the failing-clause count and the command that re-runs it.
+- `tests/test-web-quarantine.js` drives the shipping `buildPayload` twice over one classification,
+  changing only the gate — **no `--force-open` flag anywhere**, because anything that can silence this
+  from the command line eventually does. Shown RED first: with the pre-change behaviour the guard
+  reported `withheld slots: 0 (requires >0)` and `leaked verdict strings: 5`, by name.
+
+### Changed
+- Three generators declared NOT A MODEL in `tests/test-stadium-roster.js`, each from the file's own
+  header rather than inferred from its name — `diff_swarm.js` ("TEAM SELECTION FOR THE WHOLE-GAME
+  DIFFERENTIAL"), `leaf_engine_contrast.js` ("DOES A MORE CORRECT ENGINE MAKE BETTER PREDICTIONS?"),
+  `mega_decision_census.js` ("IS 'WHEN DO I MEGA' A DECISION, AND IS IT FITTABLE?"). The check warns
+  that a wrong declaration stops it asking permanently and silently, so the evidence is quoted in the
+  table where a reader can check it.
+- Four board slots had gone dark or silently truncated because `engine/status.js` changed its wording
+  underneath them: `provenance` rendered "did not run under status.js" (false), the store table showed
+  1 of 3 files, `refit_moved` emptied when the refit went OWED **while its caption still asserted the
+  refit was CLEAN**, and `missing_list` rendered NOT MEASURED at a census of 324/324 — telling a
+  visitor nobody had checked. Empty and absent are now different answers.
+
+### Notes
+- **Five pages under `web/` LOAD a quarantined artifact as data rather than quoting its verdict**, so
+  the citation checker never saw them: `index.html`, `replay.html`, `scoreboard.html`, `stadium.html`,
+  `models.html`. Detecting this needs a different probe — walk the `<script src>` and `fetch()`
+  targets, not the text. Filed; the Stadium's cabinets ARE those figures, so it is a design question
+  and not a mechanical edit.
+
+---
+
 ## [3.80.0] — 2026-08-08
 
 ### Added

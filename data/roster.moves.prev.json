@@ -1,13 +1,13 @@
 {
- "generated": "2026-08-08T21:58:30.049Z",
+ "generated": "2026-08-08T18:55:53.481Z",
  "by": "tests/roster.js",
  "stage": "moves",
- "engine_release": "0311e648fceb",
+ "engine_release": "72e361e1bd44",
  "format": "gen9championsvgc2026regmb",
  "counts": {
-  "FIRED-AND-BOARDS-DIFFER": 50,
+  "FIRED-AND-BOARDS-DIFFER": 52,
   "DID-NOT-FIRE": 27,
-  "FIRED-AND-BOARDS-MATCH": 332,
+  "FIRED-AND-BOARDS-MATCH": 330,
   "CONTROL-NOT-QUIET": 0,
   "COULD-NOT-STAGE": 91
  },
@@ -5135,7 +5135,7 @@
    "rule": "move/volatile",
    "reads": "volatileStatus",
    "note": "disable onto Goodra-Hisui, which clicks Dragon Pulse every turn so a move-sealing volatile has something to seal; Torterra clicks the same move and is never aimed at",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "verdict": "FIRED-AND-BOARDS-DIFFER",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
@@ -5147,7 +5147,26 @@
      "without": 0
     }
    ],
-   "diffs": []
+   "diffs": [
+    {
+     "turn": 1,
+     "slot": "p2a",
+     "body": "goodrahisui",
+     "field": "vol.disable",
+     "showdown": 0,
+     "ours": 4,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 2,
+     "slot": "p2a",
+     "body": "goodrahisui",
+     "field": "vol.disable",
+     "showdown": 3,
+     "ours": 4,
+     "bucket": "off-by-one"
+    }
+   ]
   },
   {
    "kind": "move",
@@ -6644,6 +6663,15 @@
      "showdown": 1348,
      "ours": 1384,
      "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 2,
+     "slot": "p2a",
+     "body": "goodrahisui",
+     "field": "vol.encore",
+     "showdown": 2,
+     "ours": 3,
+     "bucket": "off-by-one"
     }
    ]
   },
@@ -21591,7 +21619,7 @@
    "rule": "move/volatile",
    "reads": "volatileStatus",
    "note": "taunt onto Goodra-Hisui, which clicks Dragon Pulse every turn so a move-sealing volatile has something to seal; Torterra clicks the same move and is never aimed at",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "verdict": "FIRED-AND-BOARDS-DIFFER",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
@@ -21609,7 +21637,17 @@
      "without": 0
     }
    ],
-   "diffs": []
+   "diffs": [
+    {
+     "turn": 2,
+     "slot": "p2a",
+     "body": "goodrahisui",
+     "field": "vol.taunt",
+     "showdown": 1,
+     "ours": 2,
+     "bucket": "off-by-one"
+    }
+   ]
   },
   {
    "kind": "move",

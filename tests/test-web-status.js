@@ -23,6 +23,20 @@
  * A STALE BOARD IS A FAILURE, NOT A WARNING. If an artifact has been written since the board was
  * built, the board is describing something that has moved and the fix is one command:
  *     node web/build-status.js
+ *
+ * AND A WITHHELD FIGURE IS NOT A DRIFTING ONE (added 2026-08-08)
+ * -------------------------------------------------------------
+ * CLAUDE.md quarantines everything downstream of MEDICHAM until MEDICHAM is correct, and the board
+ * now obeys it. That inverts what a match MEANS for those slots: `measure.headline` equalling
+ * `data/winrate-backtest.json`'s verdict used to be the pass and is now the FAILURE, because it means
+ * the board published a withheld number. So every relation below asks engine/quarantine.js first and
+ * flips: a quarantined artifact must be WITHHELD, everything else must MATCH.
+ *
+ * The membership test is not reimplemented here — the module is asked, exactly as web/build-status.js
+ * asks it. Two opinions about what is downstream of the simulator is CLAUDE.md's FACTS ARE GLOBAL
+ * failure, and it would be a slow one: the two would agree today and diverge the day a model is added.
+ * The BOTH-DIRECTIONS proof (gate closed -> withheld, gate open -> the numbers return) lives in
+ * tests/test-web-quarantine.js, which drives buildPayload() twice.
  */
 'use strict';
 const fs = require('fs');
@@ -54,6 +68,29 @@ new Function('window', fs.readFileSync(DATA, 'utf8'))(sandbox.window);
 const B = sandbox.window.ABRA_BOARD;
 if (!B) { console.log('  FAIL  web/status-data.js did not set window.ABRA_BOARD'); process.exit(1); }
 pass('web/status-data.js loads and sets window.ABRA_BOARD');
+
+/* ---- the quarantine, asked rather than assumed ---- */
+let QHELD = null, QGATE = null, QERR = null;
+try {
+  const Q = require('../engine/quarantine.js');
+  QGATE = Q.medichamIsCorrect();
+  const c = Q.classify();
+  if (c.error) throw new Error(c.error);
+  const wh = Q.withholder(QGATE, c.rows);
+  QHELD = rel => wh(String(rel).replace(/^data\//, ''));
+} catch (e) { QERR = String((e && e.message) || e).split('\n')[0]; }
+if (QERR) {
+  /* NOT a silent pass-through. If the gate cannot be computed, this test cannot tell a published
+     withheld figure from a correct one, and saying nothing would be the "capability absent, everything
+     reports success" shape. */
+  fail('engine/quarantine.js could not be consulted, so no slot below can be checked for a WITHHELD '
+     + 'figure being published: ' + QERR);
+} else {
+  pass('engine/quarantine.js consulted — the gate is '
+    + (QGATE.ok ? 'OPEN, so every figure below must carry its value'
+                : 'CLOSED (' + QGATE.failing.length + ' of ' + QGATE.clauses.length
+                  + ' clauses fail), so anything downstream of the simulator must be WITHHELD'));
+}
 
 /* Every caller turns a null into a `fail()`, so the failure IS visible — what was discarded is WHY,
  * and "the artifact is missing" and "the artifact is corrupt" send a reader to different places. */
@@ -94,9 +131,16 @@ if (reasonless.length) fail('NOT MEASURED slots with no stated reason: ' + reaso
 else pass('every NOT MEASURED slot states why');
 
 /* ================================================================================================
- * 2. THE BOARD'S VALUES EQUAL THE ARTIFACTS' VALUES.
+ * 2. THE BOARD'S VALUES EQUAL THE ARTIFACTS' VALUES — OR, WHERE THE ARTIFACT IS WITHHELD, THE SLOT
+ *    CARRIES NO VALUE AT ALL.
  * Relations, never literals. Each entry names the artifact path and the JSON path inside it, so a
  * failure says which file to look at rather than "a number changed".
+ *
+ * A fourth element is the WITHHELD-AT path, and it is needed because withholding collapses a panel.
+ * `search.explore` publishes four figures under `.figs` when it is quotable and becomes a single
+ * withheld slot when it is not, so `search.explore.figs.2` simply stops existing. Checking the
+ * container in that case is the difference between "correctly withheld" and "silently vanished" —
+ * and those must not read the same, which is the whole lesson of this file.
  * ============================================================================================== */
 const get = (o, p) => p.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
 const CHECKS = [
@@ -118,11 +162,18 @@ const CHECKS = [
    * a dot in it (`arms.explore_1.0`) and cannot be addressed by this dotted path walker, so the two
    * pinned here are the paired difference and the sample size; the arm figures are still emitted
    * verbatim by build-status.js and are covered by check 1 (every value carries its source). */
-  ['search.explore.figs.2', 'data/rollout-r1-explore-sweep.json', 'paired_comparison.diff_points'],
-  ['search.explore.figs.3', 'data/rollout-r1-explore-sweep.json', 'sample.positions'],
+  ['search.explore.figs.2', 'data/rollout-r1-explore-sweep.json', 'paired_comparison.diff_points', 'search.explore'],
+  ['search.explore.figs.3', 'data/rollout-r1-explore-sweep.json', 'sample.positions', 'search.explore'],
   ['measure.headline', 'data/winrate-backtest.json', 'verdict'],
   ['measure.n_games', 'data/winrate-backtest.json', 'n_games_scored'],
   ['measure.rollouts', 'data/winrate-backtest.json', 'rollouts_per_game'],
+  /* The gate ladder, added with the quarantine. Each rung has its own artifact, and all four are
+     downstream of the simulator today — so today each of these asserts a WITHHELD rung, and the day
+     the gate opens each asserts the rung's value against its artifact. Same line, both regimes. */
+  ['search.ladder.0.figs.0', 'data/rollout-r1.json', 'positions', 'search.ladder.0'],
+  ['search.ladder.1.figs.0', 'data/rollout-cost.json', 'boards', 'search.ladder.1'],
+  ['search.ladder.2.figs.1', 'data/rollout-r3.json', 'decisions', 'search.ladder.2'],
+  ['search.ladder.3.figs.1', 'data/rollout-r4.json', 'decisive_pairs', 'search.ladder.3'],
   ['ops.games', 'data/live.js', 'games'],
   ['ops.usable', 'data/live.js', 'usable'],
   ['ops.usablePct', 'data/live.js', 'usablePct'],
@@ -136,12 +187,36 @@ function artifact(rel) {
   }
   return j(rel);
 }
-let mismatches = 0;
-for (const [boardPath, rel, jsonPath] of CHECKS) {
+let mismatches = 0, withheldOk = 0;
+for (const [boardPath, rel, jsonPath, heldAt] of CHECKS) {
   const f = get(B, boardPath);
   const a = artifact(rel);
   if (!a) { fail(boardPath + ': cannot read ' + rel); mismatches++; continue; }
   const want = get(a, jsonPath);
+
+  /* THE QUARANTINE INVERTS THIS ASSERTION, so it is asked FIRST. For a withheld artifact, equalling
+     the artifact is the failure: it means the board published a number CLAUDE.md says must not be
+     published. The withheld slot must also carry the route back, or it is a deletion rather than a
+     quarantine. */
+  const h = QHELD && QHELD(rel);
+  if (h) {
+    const w = get(B, heldAt || boardPath);
+    const where = heldAt ? heldAt + ' (which carries ' + boardPath + ' when it is quotable)' : boardPath;
+    if (!w || w.state !== 'quarantined') {
+      fail(where + ' must be WITHHELD — ' + rel + ' is downstream of the simulator (' + h.because + ')'
+        + '\n        but the board renders it as ' + JSON.stringify(w && (w.state + (w.v !== undefined ? ' = ' + JSON.stringify(w.v) : '')))
+        + '\n        Rebuild: node web/build-status.js');
+      mismatches++;
+    } else if (!(w.src && w.because && w.clause && w.rerun)) {
+      fail(where + ' is withheld but does not say which artifact, why, which clauses fail or what re-runs it');
+      mismatches++;
+    } else if (Object.prototype.hasOwnProperty.call(w, 'v') || (heldAt && f !== undefined)) {
+      fail(where + ' is marked withheld and a value survives at ' + boardPath + '. A caption is not a quarantine.');
+      mismatches++;
+    } else withheldOk++;
+    continue;
+  }
+
   if (!f || f.state === 'notmeasured') {
     if (want !== undefined && want !== null) {
       fail(boardPath + ' renders NOT MEASURED but ' + rel + ' -> ' + jsonPath + ' = ' + JSON.stringify(want));
@@ -156,13 +231,30 @@ for (const [boardPath, rel, jsonPath] of CHECKS) {
   }
   if (f.src !== rel) { fail(boardPath + ' claims source ' + f.src + ', should be ' + rel); mismatches++; }
 }
-if (!mismatches) pass(CHECKS.length + ' figures match the artifact they name, value and source');
+if (!mismatches) {
+  pass((CHECKS.length - withheldOk) + ' figures match the artifact they name, value and source; '
+    + withheldOk + ' are correctly WITHHELD as downstream of MEDICHAM');
+}
 
 /* R4 is the number the project is quoted on, so its shape gets its own check.
  * THE SPECIFIC TRAP: the corpus file holds TWO lines per game, so a line count is twice the game
  * count and four times the pair count. A page that prints 5,248 games has quoted the line count. */
 const r4 = j('data/rollout-r4.json');
-if (!r4) {
+const qr4 = QHELD && QHELD('data/rollout-r4.json');
+if (qr4) {
+  /* R4 IS THE RESULT THE PROJECT GETS QUOTED ON, which is exactly why it gets its own withheld check
+     rather than riding on the loop above. The line-count trap below is untestable while the figure is
+     absent, and that is the correct trade: a number that is not printed cannot be printed wrongly. */
+  const b4 = B.search && B.search.r4;
+  if (!b4 || b4.state !== 'quarantined') {
+    fail('data/rollout-r4.json is WITHHELD (' + qr4.because + ') but the board renders R4 as '
+      + JSON.stringify(b4 && b4.state) + '. Rebuild: node web/build-status.js');
+  } else if (r4 && r4.verdict && JSON.stringify(B).includes(String(r4.verdict).slice(0, 50))) {
+    fail('R4 is marked withheld but its verdict sentence still appears somewhere in the board payload');
+  } else {
+    pass('R4 is WITHHELD, carries no share/pairs/games, and its verdict appears nowhere on the board');
+  }
+} else if (!r4) {
   fail('data/rollout-r4.json missing — the R4 section of the board cannot be checked');
 } else {
   const b4 = B.search && B.search.r4;

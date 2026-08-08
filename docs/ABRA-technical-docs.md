@@ -1,6 +1,14 @@
 # ABRA — Technical Documentation
 
-**Version 3.80.0 · Last updated 2026-08-08**
+**Version 3.81.0 · Last updated 2026-08-08**
+
+**3.81.0 — THE QUARANTINE REACHED THE BOARD, AND THE CHECKER THAT POLICES IT WAS BLIND TO THE
+PUBLISHED COPY.** Thirteen slots on ABRA WORLD's status board now render as a redaction bar rather
+than a number, each carrying the artifact, the reason and the command that re-runs it. Two defects
+in the guard itself were found doing it: its own selftest had gone red — an `all`-stage artifact was
+matching ANY requested stage name, so "a missing stage must FAIL" stopped being enforced — and its
+citation walker looked at docs/ and web/ but never at app/, which is the copy a visitor actually
+loads. Five withheld verdicts were being published from app/ the whole time the check read green.
 
 **3.80.0 — THE DELIBERATE ROSTER'S INERT BUCKET COLLAPSED BY 94.1% OF ITS USAGE, AND A FAMILY OF
 ABILITIES WORTH 8,524 USES TURNS OUT NEVER TO HAVE FIRED.** 124 abilities were falling through a

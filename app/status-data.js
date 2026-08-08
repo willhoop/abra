@@ -3,6 +3,12 @@
  * node engine/status.js. Nothing in here was computed, rounded or averaged by the WEB division.
  * Regenerate:  node web/build-status.js
  *
+ * QUARANTINE: a slot with "state":"quarantined" carries NO value on purpose. Its artifact is
+ * downstream of engine/medicham2-browser.js and CLAUDE.md withholds it until MEDICHAM is correct.
+ * The membership test and the gate are engine/quarantine.js's, not this file's. A caption is not
+ * a quarantine, so the number is ABSENT rather than annotated -- the slot carries the artifact,
+ * the reason, the failing clauses and the command that re-runs it.
+ *
  * RAW-STORE-OK: the store figures on this board are line counts and mtimes of the RAW corpora,
  * copied verbatim from `node engine/status.js`. Filtering them for clean games would defeat the
  * point -- a visitor needs to see which stores are still COLLECTING, which is a fact about the
@@ -10,72 +16,103 @@
  * separately from live.js and labelled as such.
  */
 window.ABRA_BOARD = {
- "built_at": "2026-08-07T10:43:06.524Z",
+ "built_at": "2026-08-08T22:17:59.507Z",
  "built_by": "web/build-status.js",
  "status_js_ok": true,
  "status_js_error": null,
- "status_raw": "\nABRA STATUS — generated 2026-08-07 10:43 by engine/status.js\nEvery figure is read from an artifact. NOT DERIVED means no artifact says it. Times are UTC.\n\nENGINE — does the simulator do what Pokémon does\n  258/259 probed mechanics live, 1 missing   (census 2026-08-07 10:05)\n  missing:\n    move    needsTargetToAttack    Avalanche doubles after the target hits it this turn\n  1/150 differential comparisons disagree with Showdown   (2026-08-07 10:05)\n    seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)\n    chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (63 uses)\n    a differential hit is NOT in the census count above — the census probes what someone thought to probe\n  interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)\n    2300 of 8795 theoretical pairs staged — agreement is a claim about the 2300 that ran, not about the 8795\n      530 inert      not scored — the reference engine behaves identically with and without the reactor\n      109 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped\n       16 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it\n        2 threw      not scored — the harness could not stage it\n    DISAGREES  stoneaxe -> roughskin  (secondary, 63 uses)\n    DISAGREES  stoneaxe -> wanderingspirit  (secondary, 63 uses)\n    DISAGREES  stoneaxe -> mummy  (secondary, 63 uses)\n    DISAGREES  stoneaxe -> gooey  (secondary, 63 uses)\n    DISAGREES  gigaimpact -> spikyshield  (secondary, 38 uses)\n    DISAGREES  supercellslam -> kingsshield  (secondary, 85 uses)\n  release ladder: 11 frozen releases x 1995 games, one pinned census   (2026-08-07 10:35)\n    median completed turns before divergence: 1 at the baseline, 1 at the top rung  <-- UNMOVED by the whole series\n    whole-game agreement 6/1995 -> 64/1995; first-divergence line, mean 14.83 -> 27.75\n    paired against the baseline: 1060 games part later, 178 EARLIER, 757 unchanged\n    the baseline ran first and last and reproduced exactly; comparability: every arm cleared\n  tag coverage: 162/181 probed, 19 unprobed\n\nMEASURE — can we believe a number\n  leaf calibration: live in-game leaf is WORSE than a coin on Brier (paired +0.0502, 95% CI 0.0371 to 0.0628; negative is better). When it says 90-100% it wins 54% (n=56). Names the winner on 51.0% of 1314 decisive calls, 95% CI 48.3-53.7%. ECE 0.1811. See reliability_curve.\n    n=1378 games, 200 rollouts each   (2026-08-04 07:09)\n    when it says 90-100% it wins 54% (n=56); when it says 0-10% it wins 54% (n=52)  — ECE 0.1811\n    powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835\n    PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/abra-tags.js\n    (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)\n  provenance: 10 unsafe, 1 void (declared), 45 possibly stale, 55 ok, 0 missing\n  click censoring: 1,475 of 270,022 recorded actions were NOT clicks (0.546%) and left the labeled set; 3,559 (1.318%) are kept under a candidate set\n    classifier vs the raw protocol on 6,988 games (69.8% of the corpus): encore recall 99.7% precision 96.2%, drag recall 96.7% precision 96.7%\n    EM recovers 91.4% of a planted censoring bias of 0.958 against a 0.328 noise floor (amplified regime)\n    behaviour on the OUTPLAYED turns, after - before, paired and game-bootstrapped:\n      redirection turns, mass on the candidate set  +0.000122 [-0.000261, 0.000514] (contains zero)   n=650\n      coerced turns, P(the coerced action)          -0.002613 [-0.003650, -0.001672]   n=293  (lower is better)\n      CONTROL, clean turns, logL                    +0.000485 [0.000189, 0.000777]   n=47331\n  REFIT OWED — weights fitted 2026-08-05 04:00\n    feature_fixture --check FAILED:   The weights were fitted against the old definition and no longer describe these quantities. |   Refit (node engine/fit_policy.js, then node engine/fit_joint.js), or if a derived table was |   merely re-ingested, restamp with: node engine/feature_fixture.js --stamp <file>\n    moved after the fit: engine/medicham2-browser.js  2026-08-07 09:40\n    moved after the fit: engine/board.js  2026-08-05 19:44\n    moved after the fit: data/engine-data.js  2026-08-06 19:20\n    moved after the fit: data/abra-tags.js  2026-08-06 19:19\n\nSEARCH — does MILTANK choose better than MAG\n  R1 leaf accuracy   PASS_OUTRIGHT — rollout 69.84% against material's 65.265% on 9,201 positions: +4.576 points, 95% CI 3.473 to 5.678   [explore=1.0 — THE ARM MILTANK RUNS]   (2026-08-05 03:22)\n    RECORDED, not inferred: n=40, explore=1, key \"40@1\", stamped by the run that wrote the rows.\n    This is the arm engine/miltank.js runs (explore=1), so the verdict above is R1's status and not a statement about a configuration nothing ships. The deterministic-greedy incumbent is kept beside it in data/rollout-r1.json; deleting it would repeat the original mistake in the other direction.\n  R2 leaf cost       477 boards over 200 games   (2026-08-03 08:22)\n    STAMP RECONSTRUCTED, NOT OBSERVED — inferred from commit 05248f23d306; HIGH — written 25s before the commit that carried it\n      explore: NOT RECORDED AND NOT PASSED.\n      maxTurns: NOT RECORDED AND NOT PASSED.\n      games: The artifact's `games` field is the GAMES environment CAP, not a count of games traversed.\n      machine: A duration is a fact about a machine under a load.\n  R3 divergence      80.2% over 121 decisions (24 agreed, 29 skipped)   (2026-08-04 07:55)\n    stamped: n=600@explore=1  (TREE WAS DIRTY — trust source_digests, not the commit)\n  R4 does it win     ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]   (2026-08-04 08:43)\n  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-07 09:40):\n    PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41\n    PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-04 02:36\n    PRE-CHANGE games.r4.jsonl  2026-08-04 02:33\n    PRE-CHANGE games.r4-baseline.jsonl  2026-08-04 01:22\n    PRE-CHANGE games.r4-smoke.jsonl  2026-08-04 00:45\n\nOPS — the live bot and the store\n  store: 46987 games, 8392 usable (17.9%), 8323 teams   (live.js 2026-08-06)\n  live-games/: 34 battles recorded\n  data/games.ladder.jsonl      last written 2026-08-07 10:01\n  data/games.bo3.jsonl         last written 2026-08-07 10:01  <- the Force-OTS format, collected hourly\n  data/games.ots.jsonl         last written 2026-07-25 03:46  <- FROZEN external import, complete; date is an import, not a heartbeat\n\n\nUncommitted work\n  25 files uncommitted (24 changed, 1 new), last commit 1.5 h ago\nRules: CLAUDE.md.   Divisions and routing: docs/DIVISIONS.md.   Lessons: docs/LESSONS.md.\n\n",
+ "status_raw": "\nABRA STATUS — generated 2026-08-08 22:17 by engine/status.js\nEvery figure is read from an artifact. NOT DERIVED means no artifact says it. Times are UTC.\n\nQUARANTINE — MEDICHAM IS NOT CORRECT, SO EVERY FIGURE DOWNSTREAM OF IT IS WITHHELD\n  34 artifacts are downstream and are not printed below. The gate is computed, not set:\n    FAIL  game differential              1 of 150 comparisons disagree with Showdown — worst: chesnaught woodhammer -> \n                                         mimikyu (showdown 0-0, medicham 120-130)\n    FAIL  deliberate roster / items      0 FIRED-AND-BOARDS-DIFFER, 6 DID-NOT-FIRE\n    FAIL  deliberate roster / abilities  0 FIRED-AND-BOARDS-DIFFER, 1 DID-NOT-FIRE\n    FAIL  deliberate roster / moves      50 FIRED-AND-BOARDS-DIFFER, 27 DID-NOT-FIRE\n  Full derivation and the withheld set: node engine/quarantine.js\n\nENGINE — does the simulator do what Pokémon does\n  324/324 probed mechanics live, 0 missing   (census 2026-08-08 21:57)\n  1/150 differential comparisons disagree with Showdown   (2026-08-08 08:06)\n    seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)\n    chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (65 uses)\n    a differential hit is NOT in the census count above — the census probes what someone thought to probe\n  interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)\n    2300 of 8795 theoretical pairs staged — agreement is a claim about the 2300 that ran, not about the 8795\n      530 inert      not scored — the reference engine behaves identically with and without the reactor\n      109 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped\n       16 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it\n        2 threw      not scored — the harness could not stage it\n    DISAGREES  stoneaxe -> roughskin  (secondary, 63 uses)\n    DISAGREES  stoneaxe -> wanderingspirit  (secondary, 63 uses)\n    DISAGREES  stoneaxe -> mummy  (secondary, 63 uses)\n    DISAGREES  stoneaxe -> gooey  (secondary, 63 uses)\n    DISAGREES  gigaimpact -> spikyshield  (secondary, 38 uses)\n    DISAGREES  supercellslam -> kingsshield  (secondary, 85 uses)\n  release ladder: 14 frozen releases x 1997 games, one pinned census   (2026-08-07 17:44)\n    median completed turns before divergence: 1 at the baseline, 1 at the top rung  <-- UNMOVED by the whole series\n    whole-game agreement 7/1997 -> 134/1997; first-divergence line, mean 14.78 -> 33.98\n    paired against the baseline: 1295 games part later, 116 EARLIER, 586 unchanged\n    the baseline ran first and last and reproduced exactly; comparability: every arm cleared\n  tag coverage: 183/191 probed, 8 unprobed\n\nMEASURE — can we believe a number\n  leaf calibration: QUARANTINED — the figure is withheld, not annotated.\n    data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)\n    MEDICHAM is not correct — 4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)\n    it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js\n  engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.\n    data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)\n    MEDICHAM is not correct — 4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)\n    it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js\n  provenance: 13 unsafe, 1 void (declared), 46 possibly stale, 55 ok, 0 missing\n  click censoring: QUARANTINED — the figure is withheld, not annotated.\n    data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)\n    MEDICHAM is not correct — 4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)\n    it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js\n  the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.\n  REFIT OWED — weights fitted 2026-08-05 04:00\n    feature_fixture --check FAILED:   The weights were fitted against the old definition and no longer describe these quantities. |   Refit (node engine/fit_policy.js, then node engine/fit_joint.js), or if a derived table was |   merely re-ingested, restamp with: node engine/feature_fixture.js --stamp <file>\n    moved after the fit: engine/medicham2-browser.js  2026-08-08 21:56\n    moved after the fit: engine/board.js  2026-08-05 19:44\n    moved after the fit: data/engine-data.js  2026-08-06 19:20\n    moved after the fit: data/abra-tags.js  2026-08-08 06:23\n\nSEARCH — does MILTANK choose better than MAG\n  R1 leaf accuracy: QUARANTINED — the figure is withheld, not annotated.\n    data/rollout-r1.json is downstream of MEDICHAM: engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played\n    MEDICHAM is not correct — 4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)\n    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r1_artifact.js\n  R2 leaf cost: QUARANTINED — the figure is withheld, not annotated.\n    data/rollout-cost.json is downstream of MEDICHAM: its generator engine/rollout_r2.js is in the play layer (it reaches engine/medicham2-browser.js through require)\n    MEDICHAM is not correct — 4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)\n    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r2.js\n  R3 divergence: QUARANTINED — the figure is withheld, not annotated.\n    data/rollout-r3.json is downstream of MEDICHAM: its generator engine/rollout_r3.js is in the play layer (it reaches engine/medicham2-browser.js through require)\n    MEDICHAM is not correct — 4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)\n    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r3.js\n  R4 does it win: QUARANTINED — the figure is withheld, not annotated.\n    data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played\n    MEDICHAM is not correct — 4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)\n    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js\n  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-08 21:56):\n    PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41\n    PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-04 02:36\n    PRE-CHANGE games.r4.jsonl  2026-08-04 02:33\n    PRE-CHANGE games.r4-baseline.jsonl  2026-08-04 01:22\n    PRE-CHANGE games.r4-smoke.jsonl  2026-08-04 00:45\n\nOPS — the live bot and the store\n  store: 49392 games, 9710 usable (19.7%), 9489 teams   (live.js 2026-08-08)\n  live-games/: 34 battles recorded\n  data/games.ladder.jsonl      last written 2026-08-08 22:01\n  data/games.bo3.jsonl         last written 2026-08-08 22:02  <- the Force-OTS format, collected hourly\n  data/games.ots.jsonl         last written 2026-07-25 03:46  <- FROZEN external import, complete; date is an import, not a heartbeat\n\n\nUncommitted work\n  20 files uncommitted (17 changed, 3 new), last commit 2.3 h ago\nRules: CLAUDE.md.   Divisions and routing: docs/DIVISIONS.md.   Lessons: docs/LESSONS.md.\n\n",
+ "quarantine": {
+  "state": "bad",
+  "src": "engine/quarantine.js",
+  "open": false,
+  "clauses": [
+   {
+    "name": "game differential",
+    "ok": false,
+    "why": "1 of 150 comparisons disagree with Showdown — worst: chesnaught woodhammer -> mimikyu (showdown 0-0, medicham 120-130)"
+   },
+   {
+    "name": "deliberate roster / items",
+    "ok": false,
+    "why": "0 FIRED-AND-BOARDS-DIFFER, 6 DID-NOT-FIRE"
+   },
+   {
+    "name": "deliberate roster / abilities",
+    "ok": false,
+    "why": "0 FIRED-AND-BOARDS-DIFFER, 1 DID-NOT-FIRE"
+   },
+   {
+    "name": "deliberate roster / moves",
+    "ok": false,
+    "why": "50 FIRED-AND-BOARDS-DIFFER, 27 DID-NOT-FIRE"
+   }
+  ],
+  "failing": [
+   "game differential",
+   "deliberate roster / items",
+   "deliberate roster / abilities",
+   "deliberate roster / moves"
+  ],
+  "n_quarantined": 34,
+  "n_artifacts": 115,
+  "rule": "CLAUDE.md — EVERYTHING DOWNSTREAM OF MEDICHAM IS QUARANTINED UNTIL MEDICHAM IS CORRECT. Will, 2026-08-08: \"all engines that take medicham's output should be regarded as out of date and we should stop referencing them until medicham is up to date and we can rerun them.\"",
+  "derivation": "node engine/quarantine.js --graph"
+ },
  "engine": {
   "headline": {
    "state": "ok",
-   "v": "258/259",
+   "v": "324/324",
    "src": "data/mechanics-census.json",
-   "at": "2026-08-07T10:05:25.502Z",
+   "at": "2026-08-08T21:57:05.045Z",
    "label": "probed mechanics live",
    "note": "must never go down (docs/ENGINE.md)"
   },
   "live": {
    "state": "ok",
-   "v": 258,
+   "v": 324,
    "src": "data/mechanics-census.json",
-   "at": "2026-08-07T10:05:25.502Z",
+   "at": "2026-08-08T21:57:05.045Z",
    "label": "live"
   },
   "probed": {
    "state": "ok",
-   "v": 259,
+   "v": 324,
    "src": "data/mechanics-census.json",
-   "at": "2026-08-07T10:05:25.502Z",
+   "at": "2026-08-08T21:57:05.045Z",
    "label": "probed"
   },
   "missing_n": {
    "state": "ok",
-   "v": 1,
+   "v": 0,
    "src": "data/mechanics-census.json",
-   "at": "2026-08-07T10:05:25.502Z",
+   "at": "2026-08-08T21:57:05.045Z",
    "label": "missing"
   },
   "census_generated": {
    "state": "ok",
-   "v": "2026-08-07T10:05:25.501Z",
+   "v": "2026-08-08T21:57:05.044Z",
    "src": "data/mechanics-census.json",
-   "at": "2026-08-07T10:05:25.502Z",
+   "at": "2026-08-08T21:57:05.045Z",
    "label": "census generated"
   },
   "missing_list": {
    "state": "ok",
    "src": "data/mechanics-census.json",
-   "at": "2026-08-07T10:05:25.502Z",
-   "rows": [
-    {
-     "kind": "move",
-     "tag": "needsTargetToAttack",
-     "label": "Avalanche doubles after the target hits it this turn"
-    }
-   ]
+   "at": "2026-08-08T21:57:05.045Z",
+   "rows": []
   },
   "diff_headline": {
    "state": "bad",
    "v": "1/150",
    "src": "data/engine-diff.json",
-   "at": "2026-08-07T10:05:04.247Z",
+   "at": "2026-08-08T08:06:00.292Z",
    "label": "differential comparisons disagree with Showdown",
    "note": "a differential hit is NOT in the census count — the census probes what someone thought to probe"
   },
   "diff_worst": {
    "state": "bad",
    "src": "data/engine-diff.json",
-   "at": "2026-08-07T10:05:04.247Z",
+   "at": "2026-08-08T08:06:00.292Z",
    "rows": [
     {
      "att": "chesnaught",
@@ -84,16 +121,16 @@ window.ABRA_BOARD = {
      "showdown": "0-0",
      "medicham": "120-130",
      "rel": 125,
-     "uses": 63,
+     "uses": 65,
      "suspect": true
     }
    ]
   },
   "diff_generated": {
    "state": "ok",
-   "v": "2026-08-07T10:05:04.229Z",
+   "v": "2026-08-08T08:06:00.271Z",
    "src": "data/engine-diff.json",
-   "at": "2026-08-07T10:05:04.247Z",
+   "at": "2026-08-08T08:06:00.292Z",
    "label": "differential run"
   },
   "matrix_live": {
@@ -337,7 +374,7 @@ window.ABRA_BOARD = {
   },
   "tags": {
    "state": "ok",
-   "v": "162/181",
+   "v": "183/191",
    "src": "engine/status.js",
    "at": null,
    "live": true,
@@ -346,66 +383,90 @@ window.ABRA_BOARD = {
   },
   "tags_unprobed": {
    "state": "bad",
-   "v": "19",
+   "v": "8",
    "src": "engine/status.js",
    "at": null,
    "live": true,
    "label": "unprobed"
   },
-  "tags_at": "2026-08-06T23:33:55.673Z"
+  "tags_at": "2026-08-08T07:30:17.318Z"
  },
  "measure": {
   "headline": {
-   "state": "bad",
-   "v": "live in-game leaf is WORSE than a coin on Brier (paired +0.0502, 95% CI 0.0371 to 0.0628; negative is better). When it says 90-100% it wins 54% (n=56). Names the winner on 51.0% of 1314 decisive calls, 95% CI 48.3-53.7%. ECE 0.1811. See reliability_curve.",
+   "state": "quarantined",
+   "label": "leaf calibration — the division's one number",
    "src": "data/winrate-backtest.json",
    "at": "2026-08-04T07:09:31.398Z",
-   "label": "leaf calibration"
+   "headline": "QUARANTINED — the figure is withheld, not annotated.",
+   "because": "its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+   "clause": "4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)",
+   "rerun": "node engine/backtest_winrate.js",
+   "why": "data/winrate-backtest.json is downstream of engine/medicham2-browser.js: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)"
   },
   "n_games": {
-   "state": "ok",
-   "v": 1378,
+   "state": "quarantined",
+   "label": "games scored",
    "src": "data/winrate-backtest.json",
    "at": "2026-08-04T07:09:31.398Z",
-   "label": "games scored"
+   "headline": "QUARANTINED — the figure is withheld, not annotated.",
+   "because": "its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+   "clause": "4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)",
+   "rerun": "node engine/backtest_winrate.js",
+   "why": "data/winrate-backtest.json is downstream of engine/medicham2-browser.js: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)"
   },
   "rollouts": {
-   "state": "ok",
-   "v": 200,
+   "state": "quarantined",
+   "label": "rollouts per game",
    "src": "data/winrate-backtest.json",
    "at": "2026-08-04T07:09:31.398Z",
-   "label": "rollouts per game"
+   "headline": "QUARANTINED — the figure is withheld, not annotated.",
+   "because": "its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+   "clause": "4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)",
+   "rerun": "node engine/backtest_winrate.js",
+   "why": "data/winrate-backtest.json is downstream of engine/medicham2-browser.js: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)"
   },
   "curve": {
-   "state": "bad",
-   "v": "when it says 90-100% it wins 54% (n=56); when it says 0-10% it wins 54% (n=52)  — ECE 0.1811",
-   "src": "engine/status.js",
-   "at": null,
-   "live": true,
-   "label": "reliability, extreme buckets"
+   "state": "quarantined",
+   "label": "reliability, extreme buckets",
+   "src": "data/winrate-backtest.json",
+   "at": "2026-08-04T07:09:31.398Z",
+   "headline": "QUARANTINED — the figure is withheld, not annotated.",
+   "because": "its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+   "clause": "4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)",
+   "rerun": "node engine/backtest_winrate.js",
+   "why": "data/winrate-backtest.json is downstream of engine/medicham2-browser.js: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)"
   },
   "power": {
-   "state": "ok",
-   "v": "powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835",
-   "src": "engine/status.js",
-   "at": null,
-   "live": true,
-   "label": "power"
+   "state": "quarantined",
+   "label": "power",
+   "src": "data/winrate-backtest.json",
+   "at": "2026-08-04T07:09:31.398Z",
+   "headline": "QUARANTINED — the figure is withheld, not annotated.",
+   "because": "its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+   "clause": "4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)",
+   "rerun": "node engine/backtest_winrate.js",
+   "why": "data/winrate-backtest.json is downstream of engine/medicham2-browser.js: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)"
   },
   "build_standing": {
-   "state": "stale",
-   "v": "PRE-CHANGE",
-   "src": "engine/status.js",
-   "at": null,
-   "live": true,
-   "label": "build standing",
-   "note": "measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/abra-tags.js"
+   "state": "quarantined",
+   "label": "is the leaf result about the build that exists now?",
+   "src": "data/winrate-backtest.json",
+   "at": "2026-08-04T07:09:31.398Z",
+   "headline": "QUARANTINED — the figure is withheld, not annotated.",
+   "because": "its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+   "clause": "4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)",
+   "rerun": "node engine/backtest_winrate.js",
+   "why": "data/winrate-backtest.json is downstream of engine/medicham2-browser.js: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)"
   },
   "provenance": {
-   "state": "notmeasured",
-   "why": "engine/provenance.js did not run under status.js",
-   "owner": "MEASURE",
-   "label": "provenance"
+   "state": "bad",
+   "src": "engine/status.js",
+   "unsafe": 13,
+   "void_declared": 1,
+   "stale": 46,
+   "ok": 55,
+   "missing": 0,
+   "note": "engine/provenance.js is the canonical staleness authority; status.js prints its totals"
   },
   "refit": {
    "state": "bad",
@@ -416,200 +477,106 @@ window.ABRA_BOARD = {
    "label": "refit edge",
    "note": "weights fitted 2026-08-05 04:00"
   },
-  "refit_moved": []
+  "refit_owed": true,
+  "refit_moved": [
+   {
+    "src": "engine/medicham2-browser.js",
+    "at": "2026-08-08 21:56",
+    "reading": "moved AFTER the fit"
+   },
+   {
+    "src": "engine/board.js",
+    "at": "2026-08-05 19:44",
+    "reading": "moved AFTER the fit"
+   },
+   {
+    "src": "data/engine-data.js",
+    "at": "2026-08-06 19:20",
+    "reading": "moved AFTER the fit"
+   },
+   {
+    "src": "data/abra-tags.js",
+    "at": "2026-08-08 06:23",
+    "reading": "moved AFTER the fit"
+   }
+  ],
+  "weights": {
+   "state": "quarantined",
+   "label": "the fitted policy weights",
+   "src": "data/policy-weights.json",
+   "at": "2026-08-05T04:00:43.835Z",
+   "headline": "QUARANTINED — the figure is withheld, not annotated.",
+   "because": "its generator engine/fit_policy.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+   "clause": "4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)",
+   "rerun": "node engine/fit_policy.js",
+   "why": "data/policy-weights.json is downstream of engine/medicham2-browser.js: its generator engine/fit_policy.js is in the play layer (it reaches engine/medicham2-browser.js through require)"
+  }
  },
  "search": {
   "ladder": [
    {
     "id": "R1",
     "q": "leaf accuracy",
+    "state": "quarantined",
+    "label": "leaf accuracy",
     "src": "data/rollout-r1.json",
     "at": "2026-08-04T08:42:52.734Z",
-    "generated": "2026-08-04T08:42:52.681Z",
-    "figs": [
-     {
-      "state": "ok",
-      "v": 9201,
-      "src": "data/rollout-r1.json",
-      "at": "2026-08-04T08:42:52.734Z",
-      "label": "positions scored"
-     },
-     {
-      "state": "ok",
-      "v": 2500,
-      "src": "data/rollout-r1.json",
-      "at": "2026-08-04T08:42:52.734Z",
-      "label": "distinct games"
-     }
-    ],
-    "state": "ok",
-    "verdict": "UNDECIDED — rollout 65.721% against material's 65.265% on 9,201 positions: +0.456 points, 95% CI -0.717 to 1.63",
-    "verdict_code": "UNDECIDED",
-    "verdict_note": "UNDECIDED — the interval spans zero, so this sample cannot tell the rollout from counting bodies. Not a pass and NOT a failure."
+    "headline": "QUARANTINED — the figure is withheld, not annotated.",
+    "because": "engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played",
+    "clause": "4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)",
+    "rerun": "node engine/rollout_r1_artifact.js",
+    "why": "data/rollout-r1.json is downstream of engine/medicham2-browser.js: engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played"
    },
    {
     "id": "R2",
     "q": "leaf cost",
+    "state": "quarantined",
+    "label": "leaf cost",
     "src": "data/rollout-cost.json",
     "at": "2026-08-03T08:22:49.169Z",
-    "generated": "2026-08-03T08:22:49.161Z",
-    "figs": [
-     {
-      "state": "ok",
-      "v": 477,
-      "src": "data/rollout-cost.json",
-      "at": "2026-08-03T08:22:49.169Z",
-      "label": "boards"
-     },
-     {
-      "state": "ok",
-      "v": 200,
-      "src": "data/rollout-cost.json",
-      "at": "2026-08-03T08:22:49.169Z",
-      "label": "games"
-     }
-    ],
-    "state": "ok",
-    "verdict": null,
-    "verdict_code": null,
-    "verdict_note": null
+    "headline": "QUARANTINED — the figure is withheld, not annotated.",
+    "because": "its generator engine/rollout_r2.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+    "clause": "4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)",
+    "rerun": "node engine/rollout_r2.js",
+    "why": "data/rollout-cost.json is downstream of engine/medicham2-browser.js: its generator engine/rollout_r2.js is in the play layer (it reaches engine/medicham2-browser.js through require)"
    },
    {
     "id": "R3",
     "q": "divergence — does the search even disagree with the policy",
+    "state": "quarantined",
+    "label": "divergence — does the search even disagree with the policy",
     "src": "data/rollout-r3.json",
     "at": "2026-08-04T07:55:34.160Z",
-    "generated": "2026-08-04T07:55:34.158Z",
-    "figs": [
-     {
-      "state": "ok",
-      "v": "80.2",
-      "src": "engine/status.js",
-      "at": null,
-      "live": true,
-      "label": "divergence",
-      "note": "rounded by status.js from data/rollout-r3.json",
-      "unit": "%"
-     },
-     {
-      "state": "ok",
-      "v": 121,
-      "src": "data/rollout-r3.json",
-      "at": "2026-08-04T07:55:34.160Z",
-      "label": "decisions"
-     },
-     {
-      "state": "ok",
-      "v": 24,
-      "src": "data/rollout-r3.json",
-      "at": "2026-08-04T07:55:34.160Z",
-      "label": "agreed"
-     },
-     {
-      "state": "ok",
-      "v": 29,
-      "src": "data/rollout-r3.json",
-      "at": "2026-08-04T07:55:34.160Z",
-      "label": "skipped"
-     }
-    ],
-    "state": "ok",
-    "verdict": "R3 PASSES — divergence 80.2% against a self-disagreement floor of 31.4% on 121 decisions. These are different players, so an SPRT (R4) can tell them apart. A precondition for winning more, not evidence of it.",
-    "verdict_code": "PASS",
-    "verdict_note": null
+    "headline": "QUARANTINED — the figure is withheld, not annotated.",
+    "because": "its generator engine/rollout_r3.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+    "clause": "4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)",
+    "rerun": "node engine/rollout_r3.js",
+    "why": "data/rollout-r3.json is downstream of engine/medicham2-browser.js: its generator engine/rollout_r3.js is in the play layer (it reaches engine/medicham2-browser.js through require)"
    },
    {
     "id": "R4",
     "q": "does it win",
+    "state": "quarantined",
+    "label": "does it win",
     "src": "data/rollout-r4.json",
     "at": "2026-08-04T08:43:07.181Z",
-    "generated": "2026-08-04T08:43:07.176Z",
-    "figs": [
-     {
-      "state": "ok",
-      "v": 55.5,
-      "src": "data/rollout-r4.json",
-      "at": "2026-08-04T08:43:07.181Z",
-      "label": "arm 1 share",
-      "unit": "%"
-     },
-     {
-      "state": "ok",
-      "v": 535,
-      "src": "data/rollout-r4.json",
-      "at": "2026-08-04T08:43:07.181Z",
-      "label": "decisive pairs — THE UNIT OF THE TEST"
-     },
-     {
-      "state": "ok",
-      "v": 1312,
-      "src": "data/rollout-r4.json",
-      "at": "2026-08-04T08:43:07.181Z",
-      "label": "seed pairs"
-     },
-     {
-      "state": "ok",
-      "v": 2624,
-      "src": "data/rollout-r4.json",
-      "at": "2026-08-04T08:43:07.181Z",
-      "label": "games"
-     }
-    ],
-    "state": "ok",
-    "verdict": "ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]",
-    "verdict_code": "H1",
-    "verdict_note": null
+    "headline": "QUARANTINED — the figure is withheld, not annotated.",
+    "because": "engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played",
+    "clause": "4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)",
+    "rerun": "node engine/rollout_r4.js",
+    "why": "data/rollout-r4.json is downstream of engine/medicham2-browser.js: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played"
    }
   ],
   "explore": {
-   "state": "ok",
+   "state": "quarantined",
+   "label": "the --rollout-explore default, re-earned",
    "src": "data/rollout-r1-explore-sweep.json",
    "at": "2026-08-05T02:27:42.098Z",
-   "generated": "2026-08-05T02:27:42.056Z",
-   "verdict": "RE-EARNED — at the R1 harness settings the explore=1.0 playout judges a position at 69.84% against 66.645% for the deterministic-greedy playout on the same 9,201 positions: +3.195 points, 95% CI 2.237 to 4.153. The interval clears zero, so 1.0 is the better JUDGE and the default stands on evidence again.",
-   "verdict_code": "EXPLORE_1_BETTER",
-   "question": "Should --rollout-explore default to 1.0? The default shipped citing an R1 figure that was retracted on 2026-08-04 as uncheckable. This re-earns or falsifies it.",
-   "what_this_is_not": "It is NOT a verdict on whether explore=1.0 makes MILTANK WIN more games. Judging a position and choosing an action are different jobs and this project has measured that gap before. R4 (data/rollout-r4.json) was itself run at explore=1.0, so it cannot arbitrate its own setting; engine/mew.js exposes no --miltank-explore, so the A/B that would settle the ACTION question is not currently runnable. Filed.",
-   "release": "3932186b59ef",
-   "release_cut": "2026-08-05T01:35:33.350Z",
-   "figs": [
-    {
-     "state": "ok",
-     "v": 69.84,
-     "src": "data/rollout-r1-explore-sweep.json",
-     "at": "2026-08-05T02:27:42.098Z",
-     "label": "explore = 1.0 — position-judging accuracy",
-     "unit": "%"
-    },
-    {
-     "state": "ok",
-     "v": 66.645,
-     "src": "data/rollout-r1-explore-sweep.json",
-     "at": "2026-08-05T02:27:42.098Z",
-     "label": "explore = 0, deterministic greedy",
-     "unit": "%"
-    },
-    {
-     "state": "ok",
-     "v": 3.195,
-     "src": "data/rollout-r1-explore-sweep.json",
-     "at": "2026-08-05T02:27:42.098Z",
-     "label": "paired difference, points",
-     "note": "95% CI 2.237 to 4.153 — McNemar on 2022 discordant positions. SAME BUILD, BY CONSTRUCTION: both dumps are stamped against engine release 3932186b59ef, so the paired difference cannot be carrying an engine change."
-    },
-    {
-     "state": "ok",
-     "v": 9201,
-     "src": "data/rollout-r1-explore-sweep.json",
-     "at": "2026-08-05T02:27:42.098Z",
-     "label": "positions, both arms, paired"
-    }
-   ],
-   "caveats": [
-    "THIS MEASURES A JUDGE, NOT A PLAYER. Every number here is position-judging accuracy on human games. It does not say MILTANK wins more at explore=1.0, and docs/MILTANK.md §3.2 records a direct measurement in the other direction on one mechanic (Protect priced at -4.3pt at explore 1.0 against -5.2pt at 0.0).",
-    "THE MATERIAL BASELINE IS FLATTERED BY ITS TIES on this early-game-heavy sample, where it returns exactly 0.5 on nearly half of positions and the >= 0.5 rule scores every one as a p1 call. The arm-versus-arm comparison does not depend on it; the lift over it does.",
-    "ONE SAMPLE, ONE CORPUS. 2,500 human open-sheet games, mean turn 3.744, base rate 52.462% p1. The split-half spread of the R1 comparison on the 2026-08-04 sample ran 0.58 to 1.54 points (data/rollout-r1-explore1.json noise_floor), so an effect has to clear that order of spread to be an effect."
-   ]
+   "headline": "QUARANTINED — the figure is withheld, not annotated.",
+   "because": "engine/rollout_explore_sweep.js reads rollout-r1-explore1-rows.jsonl, rollout-r1-rows.jsonl — a dump of games MEDICHAM played",
+   "clause": "4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)",
+   "rerun": "node engine/rollout_explore_sweep.js",
+   "why": "data/rollout-r1-explore-sweep.json is downstream of engine/medicham2-browser.js: engine/rollout_explore_sweep.js reads rollout-r1-explore1-rows.jsonl, rollout-r1-rows.jsonl — a dump of games MEDICHAM played"
   },
   "handoff_drift": {
    "state": "ok",
@@ -617,140 +584,21 @@ window.ABRA_BOARD = {
    "rows": []
   },
   "r4": {
-   "state": "ok",
+   "state": "quarantined",
+   "label": "R4 — the headline result",
    "src": "data/rollout-r4.json",
    "at": "2026-08-04T08:43:07.181Z",
-   "verdict": "ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]",
-   "verdict_code": "H1",
-   "share": 55.5,
-   "ci": [
-    51.3,
-    59.7
-   ],
-   "decisive_pairs": 535,
-   "pairs": 1312,
-   "games": 2624,
-   "lines": 5248,
-   "line_note": "The store writes TWO lines per game under one id: the game record, which carries .selfplay, and a log-only companion {id, log, uploadtime}. A line count is therefore twice the game count, and the game count is twice the pair count. The UNIT OF THE TEST is the decisive pair — the last number here, not the first.",
-   "counts": {
-    "arm1_2_0": 297,
-    "split_1_1": 777,
-    "arm2_0_2": 238,
-    "unpaired_halves": 0,
-    "mismatched_pairs": 0
-   },
-   "sprt": {
-    "p0": 0.5,
-    "p1": 0.55,
-    "alpha": 0.05,
-    "beta": 0.05,
-    "bound_accept_h1": 2.94,
-    "bound_accept_h0": -2.94,
-    "llr_at_stop": 3,
-    "decided_after_decisive_pairs": 522,
-    "margin_over_bound": 0.06
-   },
-   "arms": {
-    "arm1": "MILTANK — lookahead search over MAG",
-    "arm2": "MAG — best-scoring option every time (greedy)",
-    "note": "arm 1 is the challenger (sprt.js:169). Derived from miltankArm and the greedy flags in the records — NOT from the reader output, which cannot name a MILTANK arm: sprt.js prints both arms as \"score\" and paired_h2h.js labels arm 1 by its greedy flag alone.",
-    "search_settings_in_corpus": [],
-    "search_settings_note": "mew.js stamps miltankArm but not --miltank-n, --miltank-foe, --miltank-no-defer or --miltank-preview-n, so the rollout budget this run used is NOT recoverable from the corpus. Any figure for it is prose, and is deliberately not copied in here."
-   },
-   "stamps": {
-    "engine_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
-    "player_digest": "e79996a89ed7",
-    "weights_digest": "a6a08f8f6b42",
-    "joint_weights_digest": "fd8265e1a3ee",
-    "features_digest": "1e9ed28a3e5b",
-    "damage_table_digest": "405c836793d1",
-    "format": "gen9championsvgc2026regmb@@@!Open Team Sheets,Force Open Team Sheets",
-    "distinct_configs": 1,
-    "note": "one config, one commit, one player across every record, or this file would not exist — the generator throws instead of averaging two different runs together."
-   },
-   "standing": {
-    "valid_as_measured": "YES. Both arms ran the same engine commit, the same feature builder, the same damage table and the same fitted weights (see stamps above; the generator refuses to write if any of those varies across the corpus). Whatever was wrong with the rollout model was wrong for BOTH arms, so the contrast between them is fair and this is a real measurement of that build.",
-    "transfers_to_current_build": "ASSUMPTION, NOT A RESULT. Nothing here was measured on HEAD.",
-    "engine_standing": {
-     "classed_by": "engine/status.js",
-     "standing": "PRE-CHANGE",
-     "as_printed": "PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41",
-     "newest_engine_source": "engine/medicham2-browser.js 2026-08-04 08:29",
-     "corpus_written": "2026-08-04 04:41 UTC"
-    },
-    "player_standing": {
-     "checked_by": "engine/player_digest.js",
-     "result": "NOT DERIVED",
-     "why": "player_digest.js could not run here (it loads the Showdown simulator and needs SHOWDOWN_PATH). Re-run this generator with SHOWDOWN_PATH set to fill this in."
-    },
-    "what_to_do_about_it": "Re-run the SPRT on the next frozen engine release (docs/DIVISIONS.md, the frozen-engine-release rule) before quoting this as a current figure."
-   },
-   "noise_floor": {
-    "aa_run": null,
-    "aa_note": "NOT ESTABLISHED. There is no A/A run for this comparison anywhere in data/ — nothing plays this arm against itself — so the floor below is the weaker substitute: the spread between two halves of THIS run, which measures sampling noise but cannot see a bias both halves share.",
-    "split_half_of_this_run": {
-     "cuts": [
-      {
-       "cut": "seed parity",
-       "a": {
-        "decisive": 266,
-        "pct": 55.6
-       },
-       "b": {
-        "decisive": 269,
-        "pct": 55.4
-       },
-       "spread_pts": 0.2
-      },
-      {
-       "cut": "seed pair parity",
-       "a": {
-        "decisive": 258,
-        "pct": 53.5
-       },
-       "b": {
-        "decisive": 277,
-        "pct": 57.4
-       },
-       "spread_pts": 3.9
-      },
-      {
-       "cut": "seed hash parity",
-       "a": {
-        "decisive": 286,
-        "pct": 54.9
-       },
-       "b": {
-        "decisive": 249,
-        "pct": 56.2
-       },
-       "spread_pts": 1.3
-      }
-     ],
-     "spread_pts_range": [
-      0.2,
-      3.9
-     ],
-     "note": "Three independent cuts, each by a function of the seed so both records of a pair stay together and each half draws evenly from every shard. Read through engine/sprt.js, not re-paired here. READ THE RANGE, NOT ONE CUT: the spread of a single cut is itself a draw with sd about 4.3 points at this sample size."
-    },
-    "coin_se_pts_at_this_n": 2.16,
-    "coin_se_pts_of_a_split_half": 4.32,
-    "effect_pts_over_50": 5.5,
-    "reading": "The effect is 5.5 points over a coin. Chance alone moves this number by 2.16 points (1 sd) at 535 decisive pairs, so the effect is about 2.5 sd. At HALF this sample the same effect would sit inside the split-half noise and would not be visible: that is why the run needed the size it got, and why nothing smaller should be believed."
-   },
-   "caveats": [
-    "THE POINT ESTIMATE IS BIASED HIGH. The run was stopped at the SPRT boundary, and a stopping rule that fires on a favourable excursion selects for one. The verdict carries its stated error rate; the 55.5%-style share does not, and the CI is a fixed-n formula applied to a sequentially stopped run. Quote the verdict, treat the share as an upper-ish estimate.",
-    "IT DOES NOT SAY THE BOT IS GOOD. It says one arm beat the other arm on this team pool, under self-play, with the search settings the corpus does not record.",
-    "TRANSFER TO THE CURRENT BUILD IS AN ASSUMPTION, NOT A RESULT. Both arms shared the same engine and the same model, so the contrast is fair and the run stands as a measurement. Engine source moved after the games were played; whether the edge survives that is untested. See standing.engine_standing, which is status.js's own classification of this corpus.",
-    "READ THE SPRT VERDICT, NOT A P-VALUE. This run stopped at a boundary, so an interval or a p-value computed as though n had been fixed in advance does not hold here (sprt.js:41). The CI above is recorded because paired_h2h.js prints it, and is exactly that fixed-n formula: it is context, not the inference."
-   ],
-   "corpus": "data/games.r4-decided.jsonl"
+   "headline": "QUARANTINED — the figure is withheld, not annotated.",
+   "because": "engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played",
+   "clause": "4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)",
+   "rerun": "node engine/rollout_r4.js",
+   "why": "data/rollout-r4.json is downstream of engine/medicham2-browser.js: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played"
   },
   "engine_edge": {
    "state": "ok",
    "src": "engine/status.js",
    "newest_src": "engine/medicham2-browser.js",
-   "newest_at": "2026-08-07 09:40"
+   "newest_at": "2026-08-08 21:56"
   },
   "runs": {
    "state": "ok",
@@ -787,53 +635,53 @@ window.ABRA_BOARD = {
  "ops": {
   "games": {
    "state": "ok",
-   "v": 46987,
+   "v": 49392,
    "src": "data/live.js",
-   "at": "2026-08-06T22:06:45.771Z",
+   "at": "2026-08-08T16:03:43.206Z",
    "label": "games collected"
   },
   "usable": {
    "state": "ok",
-   "v": 8392,
+   "v": 9710,
    "src": "data/live.js",
-   "at": "2026-08-06T22:06:45.771Z",
+   "at": "2026-08-08T16:03:43.206Z",
    "label": "usable games"
   },
   "usablePct": {
    "state": "ok",
-   "v": 17.9,
+   "v": 19.7,
    "src": "data/live.js",
-   "at": "2026-08-06T22:06:45.771Z",
+   "at": "2026-08-08T16:03:43.206Z",
    "label": "usable",
    "note": "the remainder is bot games, forfeits and half-finished brings — data/quality-filter.json is the single definition of a usable game",
    "unit": "%"
   },
   "teams": {
    "state": "ok",
-   "v": 8323,
+   "v": 9489,
    "src": "data/live.js",
-   "at": "2026-08-06T22:06:45.771Z",
+   "at": "2026-08-08T16:03:43.206Z",
    "label": "teams"
   },
   "turns": {
    "state": "ok",
-   "v": 61454,
+   "v": 72301,
    "src": "data/live.js",
-   "at": "2026-08-06T22:06:45.771Z",
+   "at": "2026-08-08T16:03:43.206Z",
    "label": "clean turns"
   },
   "dmgProfiles": {
    "state": "ok",
-   "v": 5716,
+   "v": 6222,
    "src": "data/live.js",
-   "at": "2026-08-06T22:06:45.771Z",
+   "at": "2026-08-08T16:03:43.206Z",
    "label": "move-damage profiles"
   },
   "updated": {
    "state": "ok",
-   "v": "2026-08-06",
+   "v": "2026-08-08",
    "src": "data/live.js",
-   "at": "2026-08-06T22:06:45.771Z",
+   "at": "2026-08-08T16:03:43.206Z",
    "label": "store updated"
   },
   "battles": {
@@ -850,7 +698,18 @@ window.ABRA_BOARD = {
    "rows": [
     {
      "file": "data/games.ladder.jsonl",
-     "at": "2026-08-07 10:01"
+     "at": "2026-08-08 22:01",
+     "note": null
+    },
+    {
+     "file": "data/games.bo3.jsonl",
+     "at": "2026-08-08 22:02",
+     "note": "the Force-OTS format, collected hourly"
+    },
+    {
+     "file": "data/games.ots.jsonl",
+     "at": "2026-07-25 03:46",
+     "note": "FROZEN external import, complete; date is an import, not a heartbeat"
     }
    ]
   }
@@ -890,7 +749,7 @@ window.ABRA_BOARD = {
     },
     {
      "file": "web/status.html",
-     "at": "2026-08-05T03:14:32.526Z"
+     "at": "2026-08-08T22:07:14.646Z"
     },
     {
      "file": "web/tower.html",
