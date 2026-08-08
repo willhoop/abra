@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-08T03:58:29.127Z",
+  "generated": "2026-08-08T05:39:45.484Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 311,
-  "live": 311,
+  "probed": 313,
+  "live": 313,
   "missing": 0,
-  "armed": 311,
+  "armed": 313,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -907,6 +907,26 @@
       "label": "Drain Punch heals the user",
       "live": true,
       "detail": "Close Combat dealt 80 and returned 0 hp (must be 0); Drain Punch dealt 51 and returned 26 hp",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "swapsSlots",
+      "label": "Ally Switch swaps the two bodies between slots",
+      "live": true,
+      "detail": "[who stands in slot 0, who stands in slot 1] — a live partner snorlax,corviknight; a FAINTED partner corviknight,snorlax. The refusal is the arm that matters: an engine that swaps unconditionally passes the positive half on its own",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "targetsASlot",
+      "label": "a stat drop lands on whoever replaced the body it was aimed at",
+      "live": true,
+      "detail": "[who is in the aimed slot, its Attack stage, the ORIGINAL target's stage] — nobody pivots weavile,-2,-2; the aimed body pivots out toxapex,-2,0. The third number is the one that catches a Pokemon-first engine: it drops a body that is no longer on the field",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2226,7 +2246,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 25.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2616,7 +2636,7 @@
       "tag": "statusCategory",
       "label": "every action kind the engine can resolve announces its |move| line",
       "live": true,
-      "detail": "32/32 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
+      "detail": "33/33 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
       "hollow": false,
       "armed": true,
       "directCall": false

@@ -99,6 +99,24 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *   passesStateBoosts / passesStateVolatiles  what the incoming body inherited;
    *   curseGhost / curseNonGhost  the two halves of a move that is two moves. */
   auraApplied: 0, perTurnDamageChip: 0,
+  /* WIRE 138 -- a per-turn boost (Speed Boost) REFUSED because the body arrived this turn, which is
+   * Showdown's `activeTurns` gate. Counted rather than silent for the usual reason and one extra: the
+   * gate reads a flag another wire owns (`_newlySwitched`, WIRE 135), so if that flag ever stopped
+   * being set this would fall to zero and the ability would quietly go back to firing a turn early. */
+  perTurnBoostGatedOnEntry: 0,
+  /* WIRE 139 -- THE SLOT-FIRST TARGET RULE, three counters because they are three different events.
+   *   reaimedToSlot     a move resolved onto a DIFFERENT body than the one it was aimed at, because
+   *                     that body left the slot. A zero after real games means the rule is not on
+   *                     the path -- doubles is full of pivots and this should be common;
+   *   reaimSlotEmpty    the aimed slot was empty and the move failed. Showdown retargets instead;
+   *                     this is the FILED gap, counted so its size is readable rather than argued;
+   *   targetTracksBody  the exception fired -- Stalwart, Propeller Tail or Snipe Shot kept its
+   *                     original body. A zero is expected on most runs (44 uses in the corpus) and
+   *                     says only that nobody brought one. */
+  reaimedToSlot: 0, reaimSlotEmpty: 0, targetTracksBody: 0,
+  /* WIRE 140 -- Ally Switch actually swapping two bodies, and the consecutive-use roll refusing one.
+   * A zero on the first after real games means the branch is not on the path (202 corpus uses). */
+  allySwitchSwapped: 0, allySwitchStalled: 0,
   /* ROADMAP #92 -- THE DAMAGE-STAGE CLASS, one counter per family that MOVED STAGE, because moving a
    * multiplier is invisible in a head-to-head (both arms apply it, one arm applies it late) and the
    * only receipt that the new site is on the path is a non-zero here.
@@ -209,7 +227,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * artifact states it is identical to the base in stats and types. Mimikyu-Busted is the one. */
   formeRenamedNoRow: 0,
   /* WIRE 137 -- a status move whose named target had left the field and was re-aimed at the body now
-   * standing in that slot. A move targets a SLOT; this counts how often that actually bites. */
+   * standing in that slot. A move targets a SLOT; this counts how often that actually bites.
+   * WIRE 139 SUBSUMED IT: the status branch now asks the shared `reaimToSlot`, which counts every
+   * branch on `reaimedToSlot`. Kept at 0 rather than deleted because it is a published figure and a
+   * silently vanishing counter is worse than a visibly retired one. */
   statusReaimedToSlot: 0,
   moodyRolled: 0, punishBurned: 0, instructRepeat: 0, dualPurposeHeal: 0,
   sideBuffRefused: 0, itemRoomHidden: 0, wonderRoomSwap: 0, powerDoubledOnRead: 0 };
@@ -5010,6 +5031,62 @@ function battleInit(teamA,teamB,opts){
 function battleOver(S){
   return S.turn>=(S.maxTurns||20)||_live(S.actA).length+_live(S.benchA).length===0||_live(S.actB).length+_live(S.benchB).length===0;
 }
+/* WIRE 139 -- A MOVE TARGETS A SLOT, AND FIVE OF THE SEVEN BRANCHES STILL TARGETED A POKEMON.
+ *
+ * Will, 2026-08-08: *"we gotta target slots, not mons, maybe that would help with things pivoting
+ * out"*. He is right, and the code already agreed with him in TWO places and nowhere else: the
+ * attack branch has re-aimed by `tgtSlot` since voluntary switching existed, WIRE 137 gave the
+ * status branch the same treatment, and the generic-effect branch, the pivot move's own stat drop
+ * and the trace announcement were each carrying their own answer or none at all. FACTS ARE GLOBAL
+ * (CLAUDE.md): "which body does this move hit" is one question about the game, not a property of
+ * whichever branch happens to be resolving it, and three copies of it had already drifted apart.
+ *
+ * THE AUTHORITY, READ RATHER THAN ASSUMED. `Battle#getTarget` (sim/battle.ts:2434) is called from
+ * `runMove` at EXECUTION time with the `targetLoc` the choice named, and its normal path is
+ * `pokemon.getAtLoc(targetLoc)` — the occupant of the SLOT, whoever that now is. The body the
+ * chooser had in mind is not consulted at all.
+ *
+ * THE ONE EXCEPTION, WHICH IS THE NEGATIVE CASE. `tracksTarget` returns the ORIGINAL body when it is
+ * still active — `move.tracksTarget` (Snipe Shot, and Pursuit against a body being called back) or
+ * the user holding Stalwart or Propeller Tail, which Showdown checks BY NAME inside getTarget
+ * (:2440) because the abilities implement it through `onModifyMove` and getTarget runs first. A
+ * blanket "resolve to whatever is in the slot" would be wrong for those, so the exception is wired
+ * with the rule rather than after somebody notices. Exposure in this format: Stalwart 44 uses;
+ * Propeller Tail and Snipe Shot have no corpus entry at all. Small, and it is the negative that
+ * proves the re-aim is a rule and not a reflex.
+ *
+ * WHAT THIS DOES NOT DO, SAID OUT LOUD. When the aimed slot is EMPTY — the occupant fainted mid-turn
+ * and the replacement has not walked in yet — Showdown falls through to `getRandomTarget`, which in
+ * a double redirects a single-target foe move to the OTHER foe. This engine fails the move instead,
+ * which is what both existing sites already did. It is COUNTED (`MEDSEEN.reaimSlotEmpty`) rather
+ * than left as a silent default, and it is filed rather than fixed here: it is a different rule with
+ * a different negative and it must not ride along with this one. */
+function tracksTargetOf(mvId,user){
+  /* Tag first, name second. `tracksTarget` is derived by tag_dex.js as of 2026-08-08 (from the dex
+   * row's own `tracksTarget` for a move, and from a handler that WRITES `move.tracksTarget` for an
+   * ability); the names below are the pre-regeneration bridge, exactly as WIRE 3's INTIM_ONLY_BRIDGE
+   * and WIRE 113's Simple/Defiant numbers are, and they stop being consulted the moment the artifact
+   * carries the tag. */
+  if(mvId&&TAGS.has('move',mvId,'tracksTarget'))return true;
+  const ab=user?String(user.ability||'').replace(/[^a-z0-9]/g,''):'';
+  if(ab&&TAGS.has('ability',ab,'tracksTarget'))return true;
+  if(mvId&&String(mvId).replace(/[^a-z0-9]/g,'')==='snipeshot')return true;
+  return ab==='stalwart'||ab==='propellertail';
+}
+/* `quiet` is passed by the TRACE site only, which asks the same question to decide whom to NAME on
+ * the `|move|` line. Counting there as well would double every figure below and make a counter that
+ * exists to be read a counter that cannot be. */
+function reaimToSlot(t,it,actA,actB,mvId,quiet){
+  /* -1 means the action named no FOE slot: a self-target, an ally-target or a spread move. Those are
+   * resolved elsewhere and must not be dragged onto the foe side by this function. */
+  if(!it||it.tgtSlot<0)return t;
+  if(t&&tracksTargetOf(mvId,it.mon)&&(actA.indexOf(t)>=0||actB.indexOf(t)>=0)){
+    if(!quiet)MEDSEEN.targetTracksBody++;return t;}
+  const foes=it.side==='A'?actB:actA;
+  const now=foes[it.tgtSlot]||null;
+  if(now!==t&&!quiet){ if(now)MEDSEEN.reaimedToSlot++; else MEDSEEN.reaimSlotEmpty++; }
+  return now;
+}
 function battleTurn(S,rng,actsForA,actsForB){
   rng=rng||Math.random;
   if(battleOver(S))return S;
@@ -5440,9 +5517,10 @@ function battleTurn(S,rng,actsForA,actsForB){
            * resolves `aim` below (by `tgtSlot` against the LIVE foe array); a body that is on the
            * bench has no `p1a:`-style identifier at all and emitting one produced `??` four times
            * before this line existed. */
-          const _tf=it.side==='A'?actB:actA;
-          let _tt=a.target;
-          if(_tt&&actA.indexOf(_tt)<0&&actB.indexOf(_tt)<0)_tt=(it.tgtSlot>=0?_tf[it.tgtSlot]:null);
+          /* WIRE 139 -- through the ONE reader now. It used to re-aim only when the body had left the
+           * field entirely, which is a weaker rule than the authority's and disagreed with the attack
+           * branch three lines of reasoning away. */
+          const _tt=reaimToSlot(a.target,it,actA,actB,_mid,true);
           TR.mv(m,_mid,_tt||m);
         }
         /* ROADMAP #84 -- THE MOVE WAS USED, SO THE DEFAULT RESULT IS SUCCESS, and it is set exactly
@@ -5559,7 +5637,14 @@ function battleTurn(S,rng,actsForA,actsForB){
        * way the existing status branch checks them, because a target-drop is a status move. */
       if(a.kind==='affect'){
         m._lastMove=a.mv;
-        let _t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
+        /* WIRE 139 -- THE SLOT, BEFORE ANYTHING ELSE LOOKS AT THE BODY. This branch is where Charm,
+         * Fake Tears, Growl, Leer, Screech, Tickle and every other generic effect resolves, and it
+         * held the Pokemon OBJECT the chooser aimed at. Measured on a board before this line existed
+         * (tests/staged_board.js --only pivot-then-the-slot-is-hit): Weavile pivots out, Toxapex walks
+         * in, and Showdown has Toxapex at -2 Attack while this engine had it at 0 and had quietly
+         * dropped a body sitting on the BENCH. */
+        let _t=reaimToSlot(a.target,it,actA,actB,a.mv);
+        _t=_t&&!_t.fainted&&_t.curHP>0?_t:null;
         _t=bounceOff(m,_t,a.mv);
         if(!_t){mvFail(m);continue;}
         if(_t.protect){if(TR)TR.act(_t,'move: Protect');continue;}
@@ -6167,6 +6252,40 @@ function battleTurn(S,rng,actsForA,actsForB){
        * fails to catch it. The volatile name is kept rather than a boolean so the attacker's side can
        * apply Rage Powder's powder immunity without asking which move set the mark. */
       if(a.kind==='redirect'){m._redirect=a.mv;m._lastMove=a.mv;if(TR)TR.st1(m,'move: '+a.mv);continue;}
+      /* WIRE 140 -- ALLY SWITCH. THE MOVE DID NOT EXIST HERE AT ALL, and it is the sharpest possible
+       * test of WIRE 139's rule: it moves two bodies between slots with NEITHER of them leaving the
+       * field, so the weaker "has my target left" question answers no and a Pokemon-first engine
+       * follows the wrong body. Measured on a staged board before this branch existed: at the end of
+       * turn 1 the two engines disagreed on TEN fields at once — both slots' species, hp, maxhp and
+       * Defence stage, plus two party rows — from a single unimplemented move. 202 corpus uses.
+       *
+       * THE RULE IS SHOWDOWN'S (data/moves.ts:302 + Battle#swapPosition:1585):
+       *   - it swaps the user with the body in the OTHER active slot and nothing else moves;
+       *   - it FAILS if that slot is empty or holds a fainted body, and the failure is a `-fail`
+       *     rather than a wasted-but-silent turn;
+       *   - CONSECUTIVE USE DECAYS exactly like Protect but on its own counter: the volatile starts
+       *     at 3 and triples per successful re-use, so the second use in a row is 1/3, the third
+       *     1/9. A first use always works. The counter is NOT the Protect counter and sharing one
+       *     would make a Protect the turn before shrink an Ally Switch.
+       * The counter and its two-turn life are on the body; `_aswDur` is ticked down with the other
+       * per-turn durations at the foot of the turn, so a gap year resets it. */
+      if(a.kind==='slotswap'){
+        m._lastMove=a.mv;
+        const own=it.side==='A'?actA:actB;
+        const me=own.indexOf(m), other=me===0?1:0;
+        const partner=me>=0?own[other]:null;
+        if(m._aswDur>0){
+          const c=m._aswCount||1;
+          if(rng()*c>=1){ m._aswDur=0; m._aswCount=0; mvFail(m); MEDSEEN.allySwitchStalled++; continue; }
+          if(m._aswCount<729)m._aswCount=(m._aswCount||3)*3;
+          m._aswDur=2;
+        } else { m._aswCount=3; m._aswDur=2; }
+        if(me<0||!partner||partner.fainted||partner.curHP<=0){ mvFail(m); continue; }
+        own[me]=partner; own[other]=m;
+        MEDSEEN.allySwitchSwapped++;
+        if(TR)TR.st1(m,'move: '+a.mv);
+        continue;
+      }
       /* VOLUNTARY SWITCH. The slot is found by identity rather than passed in, because the action
          was built before the sort and the arrays can have been rewritten by an earlier switch this
          same turn. A switch with an empty bench does nothing and still costs the turn. */
@@ -6177,11 +6296,15 @@ function battleTurn(S,rng,actsForA,actsForB){
            on the field where medicham2 had already brought Incineroar in.
            Only a move-driven switch is gated: `a.mv` is absent on a voluntary switch, which nothing
            blocks. */
-        if(a.mv&&a.target&&!a.target.fainted
-           &&((a.target.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
-              ||moveClassBlocked(a.target,a.mv,m)                                 // WIRE 66
-              ||TAGS.has('ability',a.target.ability,'refusesStatusMoves'))){m._lastMove=a.mv;
-          if(TR){if(a.target.protect)TR.act(a.target,'move: Protect');else TR.imm(a.target);}
+        /* WIRE 139 -- RESOLVED ONCE, AT THE TOP, and used by the block gate below AND by the stat
+           drop further down. Two reads of "who is the target" inside one branch is how they come to
+           disagree; this is the same argument as the shared reader itself. */
+        const _pt=reaimToSlot(a.target,it,actA,actB,a.mv);
+        if(a.mv&&_pt&&!_pt.fainted
+           &&((_pt.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
+              ||moveClassBlocked(_pt,a.mv,m)                                 // WIRE 66
+              ||TAGS.has('ability',_pt.ability,'refusesStatusMoves'))){m._lastMove=a.mv;
+          if(TR){if(_pt.protect)TR.act(_pt,'move: Protect');else TR.imm(_pt);}
           continue;}
         /* WIRE 67 -- PARTING SHOT ACTUALLY DROPS THE TARGET. This engine has modelled the switch and
            not the -1 Attack / -1 Special Attack since pivotStatus was wired, and said so in a comment
@@ -6192,24 +6315,31 @@ function battleTurn(S,rng,actsForA,actsForB){
            left, and the half that decides where the move is played.
            Confirmed against the official engine by tests/test-game-diff.js, which read
            `medi atk 0 / sd atk -1` on three separate generated pairs before this landed. */
-        if(a.mv&&a.target&&!a.target.fainted){
+        /* WIRE 139 -- AND THE PIVOT'S OWN DROP RESOLVES AT THE SLOT TOO. Parting Shot is 7,184 uses
+           and it is a PIVOT, so both bodies can be moving in the same turn: the user leaves by its own
+           move and the target can have left first by a faster one. This block read `a.target`
+           directly, which meant a Parting Shot into a body that pivoted out ahead of it dropped a
+           Pokemon on the bench and left the replacement untouched — the shape Will read off the
+           turn-1 list as "Basculegion pivots out with Flip Turn, Archaludon comes in, SHOWDOWN has
+           Archaludon at -1/-1 and we have 0/0". `_pt` is resolved once at the top of this branch. */
+        if(a.mv&&_pt&&!_pt.fainted){
           const _sc2=TAGS.param('move',a.mv,'statChangeInCode');
-          if(_sc2&&_sc2.boosts&&_sc2.on==='target'&&a.target.boosts){
-            const _sg=invSign(a.target);   // WIRE 100b
+          if(_sc2&&_sc2.boosts&&_sc2.on==='target'&&_pt.boosts){
+            const _sg=invSign(_pt);   // WIRE 100b
             let _ref2=null;                // WIRE 3 -- refuse per stat, announce once
             for(const k in _sc2.boosts){
-              const _s=SD2ENG[k]; if(!_s||a.target.boosts[_s]==null) continue;
+              const _s=SD2ENG[k]; if(!_s||_pt.boosts[_s]==null) continue;
               const _d=_sc2.boosts[k]*_sg;
-              if(_d<0){ const _r=statDropRefusal(a.target,_s,a.mv,false);
+              if(_d<0){ const _r=statDropRefusal(_pt,_s,a.mv,false);
                         if(_r){ _ref2=_ref2||_r; continue; } }
-              const _b0=a.target.boosts[_s];
-              a.target.boosts[_s]=clamp(a.target.boosts[_s]+_d,-6,6);
-              if(TR)TR.bst(a.target,_s,a.target.boosts[_s]-_b0);
+              const _b0=_pt.boosts[_s];
+              _pt.boosts[_s]=clamp(_pt.boosts[_s]+_d,-6,6);
+              if(TR)TR.bst(_pt,_s,_pt.boosts[_s]-_b0);
               /* WIRE 138 -- ONCE PER STAT LOWERED. `retaliateWhenLowered` is the shared reader; the
                  attacker is named so an ALLY's drop does not trigger it. */
-              if(_d<0&&a.target.boosts[_s]!==_b0)retaliateWhenLowered(a.target,m);
+              if(_d<0&&_pt.boosts[_s]!==_b0)retaliateWhenLowered(_pt,m);
             }
-            if(TR&&_ref2&&_ref2.announce)TR.failUnboost(a.target,_ref2.label,_ref2.ab);
+            if(TR&&_ref2&&_ref2.announce)TR.failUnboost(_pt,_ref2.label,_ref2.ab);
           }
         }
         const own=it.side==='A'?actA:actB, foes=it.side==='A'?actB:actA;
@@ -6469,14 +6599,13 @@ function battleTurn(S,rng,actsForA,actsForB){
          * PART 6 says must read 0.
          *
          * `tgtSlot` was captured before the sort, while the board was still the pre-switch one, for
-         * exactly this. An empty slot is a failed move rather than a re-aim -- there is nothing there. */
-        {
-          const _fn=it.side==='A'?actB:actA;
-          if(t&&_fn.indexOf(t)<0&&actA.indexOf(t)<0&&actB.indexOf(t)<0){
-            MEDSEEN.statusReaimedToSlot++;
-            t=(it.tgtSlot>=0?_fn[it.tgtSlot]:null)||null;
-          }
-        }
+         * exactly this. An empty slot is a failed move rather than a re-aim -- there is nothing there.
+         *
+         * WIRE 139 -- AND IT NOW ASKS THE SHARED READER. The block that stood here re-aimed only when
+         * the body had left the FIELD, so a body that merely changed SLOT (Ally Switch) was still
+         * followed by object; `reaimToSlot` is the authority's rule and is the same one the attack and
+         * effect branches use. `statusReaimedToSlot` is subsumed by `MEDSEEN.reaimedToSlot`. */
+        t=reaimToSlot(t,it,actA,actB,a.mv);
         if(!t||t.fainted){mvFail(m);continue;}
         if(t.protect){if(TR)TR.act(t,'move: Protect');continue;}
         if(TAGS.has('ability',t.ability,'refusesStatusMoves')&&t!==m){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}   // Good as Gold
@@ -6691,10 +6820,12 @@ function battleTurn(S,rng,actsForA,actsForB){
           continue;}
       }
       const foes=it.side==='A'?actB:actA;
-      /* Resolve the aim to whoever is in that slot NOW. `foes` is the live slot array, so an object
-         that is no longer in it has left the field and cannot be hit. */
-      let aim=a.target;
-      if(aim&&!foes.includes(aim))aim=(it.tgtSlot>=0?foes[it.tgtSlot]:null);
+      /* Resolve the aim to whoever is in that slot NOW. WIRE 139 -- through the shared reader, which
+         is this site's own rule generalised: it was the ONLY branch that had it, and the version here
+         re-aimed only when the body had left `foes`, so a body that changed SLOT on the same side
+         (Ally Switch) was followed by object. It also gains the `tracksTarget` exception, which this
+         site never had. */
+      let aim=reaimToSlot(a.target,it,actA,actB,a.move&&a.move.id);
       let targets=a.move.spread?live(foes):[aim].filter(t=>t&&!t.fainted&&t.curHP>0);
       /* REDIRECTION APPLIES HERE, and only to SINGLE-TARGET moves aimed at the other side. Spread
        * moves already hit everything so there is nothing to draw, and the redirector must be a live
@@ -8282,14 +8413,30 @@ function battleTurn(S,rng,actsForA,actsForB){
        * COPIES the foe), and a consumer reading the boolean would have given all three a Speed boost.
        * The derivation emits `boosts` only for a literal handler object, so the other two carry the
        * tag, get nothing, and are visibly unwired rather than silently wrong.
-       * SHOWDOWN'S `activeTurns` GATE IS NOT EXPRESSIBLE HERE AND IS LEFT OUT, with the reason. The
-       * real ability does not fire on the turn a body switches in. `_turnsOut` is incremented AFTER
-       * this residual block, so on turn 1 a lead and a body that just pivoted in both read 0 and the
-       * gate cannot tell them apart -- it would suppress the boost on every turn 1 instead. The cost
-       * of leaving it out is one turn early on a pivot turn; the cost of the wrong gate was the
-       * mechanic never firing on turn 1 at all, which is what the probe caught. */
+       * WIRE 138 -- SHOWDOWN'S `activeTurns` GATE, WHICH WAS LEFT OUT WITH A REASON AND THE REASON
+       * WAS ANSWERABLE. The comment that stood here said the gate "is not expressible": `_turnsOut`
+       * is incremented AFTER this block, so a lead on turn 1 and a body that pivoted in this turn
+       * both read 0, and gating on it would have suppressed every turn-1 boost. That was correct
+       * about `_turnsOut` and wrong about the engine — WIRE 135 had since added `_newlySwitched`,
+       * set in `bringIn` and cleared at the ONE point that opens a turn, which answers exactly the
+       * question `activeTurns` answers and distinguishes the two bodies `_turnsOut` cannot.
+       *
+       * Showdown: `onResidual(pokemon) { if (pokemon.activeTurns) this.boost({spe: 1}); }`
+       * (data/abilities.ts:4447). `activeTurns` is set to 0 by EVERY switch-in (battle-actions.ts:137,
+       * leads included) and incremented in `nextTurn` (battle.ts:1762), which runs after the leads —
+       * so a lead reads 1 during turn 1 and boosts, and a body that walked in during turn T reads 0
+       * at that turn's residual and boosts for the first time at the end of turn T+1. `!m._newlySwitched`
+       * is that rule with the same two answers, taken from the same two moments.
+       *
+       * MEASURED ON THE BOARD, not argued: `tests/staged_board.js --only speedboost-entry-gate` had
+       * Sharpedo at +1/+2/+3 against Showdown's 0/+1/+2 across three turns while the Espathra beside
+       * it — same ability, same side, on the field from the leads — agreed on every board. It is the
+       * largest single cause behind `active[].boosts.spe`, 99 games of the 1,530-game residue.
+       * The suppression is COUNTED rather than silent, because a gate that stopped matching would
+       * otherwise look exactly like an ability nobody brought. */
       {const _be=TAGS.param('ability',m.ability,'boostsEachTurn');
-       if(_be&&_be.boosts&&m.boosts)for(const k in _be.boosts){
+       if(_be&&_be.boosts&&m.boosts&&m._newlySwitched)MEDSEEN.perTurnBoostGatedOnEntry++;
+       if(_be&&_be.boosts&&m.boosts&&!m._newlySwitched)for(const k in _be.boosts){
          const _s=SD2ENG[k];if(_s&&m.boosts[_s]!=null){const _b0=m.boosts[_s];
            m.boosts[_s]=clamp(m.boosts[_s]+_be.boosts[k],-6,6);
            if(TR)TR.bst(m,_s,m.boosts[_s]-_b0,'[from] ability: '+m.ability);}
@@ -8503,6 +8650,11 @@ function battleTurn(S,rng,actsForA,actsForB){
        * still spends one — a duration that only counts down when the engine happens to be the one
        * choosing is a duration that lasts forever in a rollout driven from outside. */
       if(m&&m._vol&&m._vol.disable>0&&--m._vol.disable<=0)m._sealed=null;
+      /* WIRE 140 -- the Ally Switch volatile has `duration: 2`, so a turn where it is NOT clicked
+       * lets it lapse and the next click starts fresh at 1/1. Ticked here with the other durations
+       * rather than at the branch, for the reason the Disable comment above gives: a clock that only
+       * moves when the engine happens to be choosing is a clock that never runs out in a rollout. */
+      if(m&&m._aswDur>0&&--m._aswDur<=0)m._aswCount=0;
       /* WIRE 119 -- AND SO DOES TAUNT, for the identical reason and beside it rather than in the
        * chooser where it used to sit. The set of volatiles is the forbid table's keys, so this ticks
        * whatever the artifact says forbids a category and names no move. */
@@ -8656,6 +8808,12 @@ function playerAction(me,moveId,target,field){
    *
    * 1.78% of real clicks, and the most positional mechanic in doubles: it is how a Fake Out or a
    * Sucker Punch ends up eaten by the wrong body. */
+  /* WIRE 140 -- ALLY SWITCH, 202 uses, and it resolved to `{kind:'pass'}` -- a wasted turn -- while
+   * the real move swaps two bodies between slots. Tag first (`swapsSlots`, derived by tag_dex.js from
+   * a handler that calls `swapPosition`; membership over the whole move table is exactly one move,
+   * printed before this line was written), name second as the pre-regeneration bridge. */
+  if(TAGS.has('move',id,'swapsSlots')||String(id).replace(/[^a-z0-9]/g,'')==='allyswitch')
+    return {kind:'slotswap',mv:id};
   if(TAGS.has('move',id,'redirects'))return {kind:'redirect',mv:id};
   /* SCREENS, from the `halvesDamage` tag, which carries both the multiplier and WHICH category it
    * applies to — Light Screen Special, Reflect Physical, Aurora Veil both. One branch, three moves,

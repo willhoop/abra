@@ -145,10 +145,14 @@ const REL = require(D('engine', 'engine_release.js')).open(ARG('--release') || n
  * the other. */
 for (const [what, read] of [['the release ' + REL.id, () => REL.read('data/tags.json')],
                             ['the LIVE tree', () => require('fs').readFileSync(D('data', 'tags.json'), 'utf8')]]) {
-  let db = null;
-  try { db = JSON.parse(read() || 'null'); } catch (e) { db = null; }
+  let db = null, why = 'it parsed but carries no `moves`/`items`';
+  /* THE REASON IS KEPT AND PRINTED. `catch (e) {}` here was flagged by tests/test-no-silent-failure.js
+   * and it was right to flag it: the block below says "empty or unparseable" and, without this, could
+   * not say WHICH — a truncated write and a zero-byte file are different accidents with different
+   * answers, and the parse error names the byte offset. */
+  try { db = JSON.parse(read() || 'null'); } catch (e) { db = null; why = e.message; }
   if (!db || !db.moves || !db.items) {
-    console.log('NOT RUN — data/tags.json in ' + what + ' is empty or unparseable.');
+    console.log('NOT RUN — data/tags.json in ' + what + ' is empty or unparseable: ' + why);
     console.log('  A snapshot can be CUT, and the live tree can be READ, while `tag_dex.js` is part way'
       + ' through rewriting that file.\n  Measured 2026-08-07: release 4b1887a601d9 holds a ZERO-BYTE'
       + ' data/tags.json, frozen mid-run by a division\n  working beside this one, and the live copy was'
@@ -345,8 +349,8 @@ const SCENARIOS = [
     ],
     break: { why: 'the engine refuses to write PARALYSIS specifically — every other status still '
                 + 'applies, so this is one mechanic and not the status system',
-      patch: [['function applyStatus(t,st){if(!canTakeStatus(t,st))return false;t.status=st;',
-               "function applyStatus(t,st){if(st==='par')return false;if(!canTakeStatus(t,st))return false;t.status=st;"]] } },
+      patch: [['function applyStatus(t,st,src){',
+               "function applyStatus(t,st,src){if(st==='par')return false;"]] } },
 
   /* ---------------------------------------------------------------------------- 6. item / residual */
   { id: 'leftovers-residual',
@@ -488,8 +492,131 @@ const SCENARIOS = [
       { p1: [{ m: 'crunch', t: 0 }, { m: 'protect' }], p2: [{ m: 'swordsdance' }, { m: 'irondefense' }] },
     ],
     break: { why: 'the forme change on being hit is skipped',
-      patch: [["if(tg.ability==='disguise'&&!tg._disguiseBusted&&dmg>0){",
-               "if(false&&tg.ability==='disguise'&&!tg._disguiseBusted&&dmg>0){"]] } },
+      patch: [["if(_fh&&_fh.becomes&&!tg._disguiseBusted&&dmg>0){",
+               "if(false&&_fh&&_fh.becomes&&!tg._disguiseBusted&&dmg>0){"]] } },
+
+  /* ================= THE BOARD-RESIDUE SCENARIOS, 2026-08-08 =====================================
+   * The twelve above were written to mirror a census row. These three were written the other way
+   * round: each is aimed at one of the three largest surviving families in
+   * `data/game-differential.json`'s `state.families` — `active[].boosts.spe`, `active[].species` +
+   * `active[].maxhp`, and `active[].boosts.atk` — over 1,530 real games. They are NOT extra: each
+   * must go green, and each was RED on the release it was written against.
+   * ============================================================================================== */
+
+  /* ------------------------------------------------------------ 13. ability / a boost with an entry gate */
+  { id: 'speedboost-entry-gate',
+    kind: 'ability', shape: 'per-turn boost + the turn it may not fire on',
+    census: 'ability/boostsEachTurn — "Speed Boost raises Speed every turn"',
+    what: 'TWO Speed Boost bodies on the same side and the same board. Espathra stands in slot 1 from '
+        + 'the leads and must gain a stage at the end of every turn. Weavile pivots out with U-turn on '
+        + 'turn 1 and the Speed Boost body that replaces it arrives MID-TURN — Showdown gates the '
+        + 'ability on `activeTurns` (data/abilities.ts:4447), which a body switched in this turn reads '
+        + 'as 0, so the entrant must gain NOTHING at the end of the turn it walked in on.',
+    negative: 'the lead IS the negative and it is beside the entrant on every board: a gate that '
+            + 'over-matched — the shape this engine rejected the first time, because `_turnsOut` reads '
+            + '0 for a lead and for a mid-turn entrant alike — suppresses the lead\'s turn-1 boost too '
+            + 'and parts at the very first boundary. Turns 2 and 3 are the second negative: the '
+            + 'entrant must resume boosting once it has stood through a turn opening, so a gate that '
+            + 'latched would part there.',
+    A: [mon('garchomp', '', 'Rough Skin', ['Swords Dance', 'Protect']),
+        mon('clefable', '', 'Unaware', ['Protect'])].concat(FILL('milotic', 'snorlax')),
+    B: [mon('weavile', '', 'Pressure', ['U-turn', 'Protect']),
+        mon('espathra', '', 'Speed Boost', ['Protect']),
+        mon('sharpedo', '', 'Speed Boost', ['Protect']),
+        mon('scolipede', '', 'Speed Boost', ['Protect'])],
+    script: [
+      { p1: [{ m: 'swordsdance' }, { m: 'protect' }], p2: [{ m: 'uturn', t: 0 }, { m: 'protect' }] },
+      { p1: [{ m: 'swordsdance' }, { m: 'protect' }], p2: [{ m: 'protect' }, { m: 'protect' }] },
+      { p1: [{ m: 'swordsdance' }, { m: 'protect' }], p2: [{ m: 'protect' }, { m: 'protect' }] },
+    ],
+    /* BOTH BENCH BODIES CARRY THE ABILITY ON PURPOSE. The driver mirrors Showdown's replacement from
+     * whatever medicham2 brought in, so the scenario must not depend on WHICH of the two walks in. */
+    break: { why: 'the entry gate is removed and the per-turn boost fires unconditionally — which is '
+                + 'exactly the defect this scenario was written against, so a green above it is '
+                + 'vacuous unless this goes red',
+      patch: [['if(_be&&_be.boosts&&m.boosts&&!m._newlySwitched)for(const k in _be.boosts){',
+               'if(_be&&_be.boosts&&m.boosts)for(const k in _be.boosts){']] } },
+
+  /* ------------------------------------------- 14. move / A MOVE TARGETS A SLOT, NOT A POKEMON */
+  { id: 'pivot-then-the-slot-is-hit',
+    kind: 'move', shape: 'target resolution across a mid-turn switch',
+    census: 'no census row — this is Will\'s slot-first question asked as a BOARD question',
+    what: 'Weavile (125 Speed) pivots out with U-turn and its replacement walks in MID-TURN. Milotic '
+        + '(81 Speed) has already clicked CHARM at that slot and moves afterwards. Showdown resolves '
+        + 'a move\'s target from its `targetLoc` at EXECUTION time (`Battle#getTarget`), so the Charm '
+        + 'must land on WHOEVER IS STANDING THERE — the replacement — at -2 Attack. An engine holding '
+        + 'the Pokemon OBJECT it aimed at follows the body onto the bench and the slot shows 0.',
+    negative: 'turn 2 — the identical Charm into the same slot with NOBODY pivoting; the replacement '
+            + 'clicks Iron Defense rather than Protect so the drop is not blocked, and it must go to '
+            + '-4. A re-aim that fires when nothing moved, or that stopped landing at all, parts '
+            + 'there. THE PARTNER IS THE SECOND NEGATIVE and is on every board: Charm is '
+            + 'single-target, so p2b must never be dropped.',
+    A: [mon('milotic', '', 'Marvel Scale', ['Charm', 'Protect']),
+        mon('clefable', '', 'Unaware', ['Protect'])].concat(FILL('garchomp', 'snorlax')),
+    B: [mon('weavile', '', 'Pressure', ['U-turn', 'Protect']),
+        mon('corviknight', '', 'Pressure', ['Iron Defense', 'Protect']),
+        mon('toxapex', '', 'Regenerator', ['Iron Defense', 'Protect']),
+        mon('incineroar', '', 'Blaze', ['Iron Defense', 'Protect'])],
+    script: [
+      { p1: [{ m: 'charm', t: 0 }, { m: 'protect' }], p2: [{ m: 'uturn', t: 0 }, { m: 'irondefense' }] },
+      { p1: [{ m: 'charm', t: 0 }, { m: 'protect' }], p2: [{ m: 'irondefense' }, { m: 'irondefense' }] },
+    ],
+    break: { why: 'the generic effect branch stops re-aiming at the slot and follows the Pokemon '
+                + 'object onto the bench, which is what it did before WIRE 139',
+      patch: [['let _t=reaimToSlot(a.target,it,actA,actB,a.mv);', 'let _t=a.target;']] } },
+
+  /* ------------------------------------------ 15. move / THE SHARPEST TEST OF THE SLOT-FIRST RULE */
+  { id: 'allyswitch-follows-the-slot',
+    kind: 'move', shape: 'target resolution with NOBODY leaving the field',
+    census: 'move/priority + move/statusCategory — Ally Switch, 202 uses',
+    what: 'Ally Switch (priority +2) swaps the two bodies on p2 BETWEEN SLOTS without either leaving '
+        + 'the field, and Garchomp\'s Crunch — aimed at p2 slot 0 before the swap — resolves '
+        + 'afterwards. This is the case the two models cannot both pass by accident: a slot-first '
+        + 'engine hits the body that arrived in slot 0, a Pokemon-first engine follows Corviknight to '
+        + 'slot 1. Both bodies are on the field the whole time, so "has my target left" — the weaker '
+        + 'rule this engine carried until 2026-08-08 — answers NO and changes nothing.',
+    negative: 'turn 2 — the identical Crunch at the identical slot with NO Ally Switch clicked. The '
+            + 'hit must stay on whoever the swap left standing there, so an engine that re-aims when '
+            + 'nothing moved, or that swapped a second time, parts. The UNHIT body is the second '
+            + 'negative and is on every board: exactly one of the two may lose HP per turn.',
+    A: [mon('garchomp', '', 'Rough Skin', ['Crunch', 'Protect']),
+        mon('clefable', '', 'Unaware', ['Protect'])].concat(FILL('milotic', 'weavile')),
+    B: [mon('corviknight', '', 'Pressure', ['Ally Switch', 'Iron Defense', 'Protect']),
+        mon('snorlax', '', 'Thick Fat', ['Iron Defense', 'Protect'])].concat(FILL('toxapex', 'incineroar')),
+    script: [
+      { p1: [{ m: 'crunch', t: 0 }, { m: 'protect' }], p2: [{ m: 'allyswitch' }, { m: 'irondefense' }] },
+      { p1: [{ m: 'crunch', t: 0 }, { m: 'protect' }], p2: [{ m: 'irondefense' }, { m: 'irondefense' }] },
+    ],
+    break: { why: 'the shared target reader stops asking the slot and hands back the body it was '
+                + 'given — the Pokemon-first model, restored exactly',
+      patch: [['const now=foes[it.tgtSlot]||null;',
+               'const now=(actA.indexOf(t)>=0||actB.indexOf(t)>=0)?t:(foes[it.tgtSlot]||null);']] } },
+
+  /* ---------------------------------------------------------- 16. mega / the forme on the board */
+  { id: 'mega-forme-on-the-board',
+    kind: 'mega', shape: 'species + the stone that stays held',
+    census: 'mega/* — eleven census rows that NO staged scenario could reach until 2026-08-07',
+    what: 'Kangaskhan holds a Kangaskhanite and its click on turn 1 asks to mega evolve. The species '
+        + 'on the board must become Kangaskhan-Mega, on the ACTIVE slot and in the PARTY row, and the '
+        + 'stone must still be held afterwards. NO mega in this format changes the HP stat — measured '
+        + 'over all 76 base->mega pairs the format defines — so `maxhp` must NOT move, which makes '
+        + 'this the one forme class that can part on `species` while `maxhp` agrees.',
+    negative: 'TWO, and the first is on the same board: Gardevoir stands beside it holding a '
+            + 'Gardevoirite and NEVER asks, so it must still read `gardevoir` on every board — an '
+            + 'engine that megas whatever holds a stone parts there. The second is turn 2, where the '
+            + 'same Kangaskhan clicks again WITHOUT asking: a forme that changed twice, or reverted, '
+            + 'parts there.',
+    A: [mon('kangaskhan', 'Kangaskhanite', 'Scrappy', ['Protect', 'Swords Dance']),
+        mon('gardevoir', 'Gardevoirite', 'Synchronize', ['Calm Mind', 'Protect'])].concat(FILL('milotic', 'snorlax')),
+    B: [mon('snorlax', '', 'Thick Fat', ['Swords Dance', 'Protect']),
+        mon('corviknight', '', 'Pressure', ['Iron Defense', 'Protect'])].concat(FILL('toxapex', 'weavile')),
+    script: [
+      { p1: [{ m: 'swordsdance', mega: true }, { m: 'calmmind' }], p2: [{ m: 'swordsdance' }, { m: 'irondefense' }] },
+      { p1: [{ m: 'swordsdance' }, { m: 'calmmind' }], p2: [{ m: 'swordsdance' }, { m: 'irondefense' }] },
+    ],
+    break: { why: 'the mega transformation is skipped — the choice is still made and still accepted, '
+                + 'so only the FORME goes missing',
+      patch: [['function megaEvolveNow(S,m,auto){', 'function megaEvolveNow(S,m,auto){if(1)return false;']] } },
 
   /* ============================ BEYOND THE TWELVE ==============================================
    * Two scenarios staged for a DIFFERENT question: not "does the staged board agree with the census",
@@ -512,8 +639,8 @@ const SCENARIOS = [
       { p1: [{ m: 'uturn', t: 0 }, { m: 'protect' }], p2: [{ m: 'irondefense' }, { m: 'irondefense' }] },
     ],
     break: { why: 'the switch-in forme change is skipped entirely',
-      patch: [["const _sf=TAGS.param('ability',nx.ability,'switchInForme');",
-               "const _sf=null&&TAGS.param('ability',nx.ability,'switchInForme');"]] } },
+      patch: [["{const _sot=TAGS.param('ability',out.ability,'switchOutTrigger');",
+               "{const _sot=null&&TAGS.param('ability',out.ability,'switchOutTrigger');"]] } },
 
   { id: 'sandstorm-residual-order', extra: true,
     kind: 'move', shape: 'residual order across four bodies',
@@ -799,30 +926,44 @@ function convertibility() {
  * MAPPINGS and the driver's planted proof. A declared exception that silently swallowed everything
  * would turn every verdict below into a comparator artefact.
  *
- * It runs against `zerotohero-moment`, which parts for a REAL and already-published reason, so the
- * proof needs no fixture of its own:
+ * IT RUNS AGAINST A DELIBERATELY BROKEN ENGINE, AND IT USED TO RUN AGAINST A REAL DEFECT. Until
+ * 2026-08-08 the proof case was `zerotohero-moment`, which parted for a published reason — and then
+ * WIRE 133–137 FIXED IT, so the proof reported `the proof case no longer parts` and, by its own
+ * rule, declared every verdict below it untrustworthy. A guard whose fixture is a bug is a guard
+ * that dies the day the bug does; this project has the same shape written down as `expect: 'agree'`
+ * going stale. The fixture is now `fakeout-flinch` UNDER ITS OWN DECLARED BREAK, which is a plant
+ * rather than a defect, so nothing ENGINE lands can take it away. A break that stops parting is
+ * still a hard failure here — it means the plant no longer plants.
  *   FORWARD   the true divergence, declared -> the verdict must become IDENTICAL
  *   BACKWARD  a declaration that matches nothing -> the verdict must become STALE-ALLOW, never a pass
  *   NARROW    a declaration aimed at a DIFFERENT field -> the true divergence must still be reported
  */
 function allowProof() {
-  const base = SCENARIOS.find(s => s.id === 'zerotohero-moment');
-  const raw = runOne(base, null);
+  const base = SCENARIOS.find(s => s.id === 'fakeout-flinch');
+  const p = patchedSource(base);
+  if (p.error)
+    return [{ id: 'the proof fixture could not be planted', ok: false,
+      note: 'fakeout-flinch\'s break did not apply: ' + p.error }];
+  const raw = runOne(base, p.src);
   if (raw.verdict !== 'DIFFERS')
-    return [{ id: 'the proof case no longer parts', ok: false,
-      note: 'zerotohero-moment reports ' + raw.verdict + ', so this proof tested nothing. That is not '
-          + 'a pass — it means the machinery is unguarded (and, separately, that a published finding '
-          + 'has moved and the scenario needs restating).' }];
-  const field = raw.boards.flatMap(b => b.unexplained)[0].field;
-  const run = (allow) => runOne({ ...base, allow }, null).verdict;
+    return [{ id: 'the planted proof case does not part', ok: false,
+      note: 'fakeout-flinch under its own break reports ' + raw.verdict + ', so this proof tested '
+          + 'nothing. That is not a pass — it means the machinery below is unguarded, and separately '
+          + 'that the plant is no longer a plant.' }];
+  /* EVERY field the plant moved, not just the first: a break whose consequence lands on two fields
+   * (the flinch one lands on both the active's HP and the same body's party row) would fail the
+   * FORWARD leg for a reason that has nothing to do with the machinery being proved. */
   const why = 'declared by allowProof(), not by a scenario';
+  const fields = [...new Set(raw.boards.flatMap(b => b.unexplained.map(d => d.field)))];
+  const all = fields.map(field => ({ field, why }));
+  const run = (allow) => runOne({ ...base, allow }, p.src).verdict;
   return [
     { id: 'a TRUE divergence, declared, is quietened', ok:
-        run([{ field, why }]) === 'IDENTICAL' },
+        run(all) === 'IDENTICAL' },
     { id: 'a declaration matching NOTHING is STALE-ALLOW, not a pass', ok:
         run([{ field: 'field.weather', why }]) === 'STALE-ALLOW' },
     { id: 'a declaration aimed at another field does NOT swallow this one', ok:
-        run([{ field, why }, { field: 'vol.taunt', why }]) === 'STALE-ALLOW' },
+        run(all.concat([{ field: 'vol.taunt', why }])) === 'STALE-ALLOW' },
   ];
 }
 

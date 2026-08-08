@@ -27,8 +27,8 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  311/311 probed mechanics live, 0 missing   (census 2026-08-08 03:55)
-  1/150 differential comparisons disagree with Showdown   (2026-08-08 03:48)
+  313/313 probed mechanics live, 0 missing   (census 2026-08-08 05:39)
+  1/150 differential comparisons disagree with Showdown   (2026-08-08 05:40)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (65 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -52,9 +52,116 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 177/185 probed, 8 unprobed
 ```
 
-_stamped 2026-08-08 03:55_
+_stamped 2026-08-08 05:40_
 
 <!-- /GENERATED -->
+
+## WIRE 138–140 — THE THREE LARGEST BOARD-DIVERGENCE FAMILIES, AND WILL'S SLOT-FIRST QUESTION ANSWERED YES. 2026-08-08.
+
+Census **311 → 313 live**, `missing` **0**, `probed` 313. `tests/staged_board.js` **18/18 clean and
+board-identical, 18/18 breaks caught and localised**. Aimed at the residue of the 1,530-game run at
+release `288aee2e3501`: `active[].boosts.spe` (99 games), `active[].species` + `active[].maxhp`
+(101 + 66), `active[].boosts.atk` (80).
+
+### SAID FIRST: WHAT TURNED OUT NOT TO BE A DEFECT
+
+1. **Mega evolution is right on the board.** `mega-forme-on-the-board` was IDENTICAL on its first
+   run — species on the active slot AND the party row, `maxhp`, the stone still held, the partner
+   holding a Gardevoirite that never asked left alone, and no second transformation on turn 2. It
+   could not have been staged before the scripted mega opt-in landed the same night, which is why a
+   26%-of-usage class had never been probed on a board. **And mega cannot be the `maxhp` half:**
+   measured over all 76 base→mega pairs this format defines, **none changes the HP stat.**
+2. **Cosmetic formes are a CONTROL, not a divergence.** `buildPair` writes `mcKey(p.species)` and
+   hands the SAME resolved key to both engines, so a Sinistcha-Masterpiece is a Sinistcha on both
+   sides. The hypothesis that our board said `sinistcha` where Showdown said `sinistchamasterpiece`
+   is wrong, and it was checked before anything was written.
+3. **The rest of the `activeTurns` class has no exposure here.** Will asked for the gate to be
+   derived rather than special-cased. Every reader in the data layer: Speed Boost (854 uses), Slow
+   Start (**0**), Stakeout (**0**), Truant (**absent**), plus Taunt's duration, which this engine
+   already models, and two CAP abilities. Speed Boost is the whole live class.
+
+### WIRE 138 — SPEED BOOST FIRED A TURN EARLY, AND THE COMMENT SAYING IT COULD NOT BE FIXED WAS OUT OF DATE
+
+`if (pokemon.activeTurns) this.boost({spe: 1})` — `activeTurns` is set to 0 by every switch-in
+(`battle-actions.ts:137`, leads included) and incremented in `nextTurn` (`battle.ts:1762`), which
+runs after the leads. So a lead reads 1 during turn 1 and boosts; a body that walked in during turn
+T reads 0 at that turn's residual.
+
+The block here said the gate "IS NOT EXPRESSIBLE HERE AND IS LEFT OUT". That was **correct about
+`_turnsOut`** — incremented after the residual, so a lead and a mid-turn entrant both read 0 — and
+**wrong about the engine**, because WIRE 135 had since added `_newlySwitched`, set in `bringIn` and
+cleared at the one point that opens a turn. A reason that was true when written and false when read.
+
+`speedboost-entry-gate` puts TWO Speed Boost bodies on one side: Espathra from the leads and a
+bench pair (Sharpedo and Scolipede, both carrying the ability so the scenario does not depend on
+which one the driver brings in) behind a U-turn. Before: Sharpedo +1/+2/+3 against Showdown's
+0/+1/+2. After: identical on all four boards, with the lead agreeing throughout — **the lead IS the
+negative**, and the over-matching gate this engine rightly refused the first time parts on it.
+
+### WIRE 139 — A MOVE TARGETS A SLOT, AND THE ENGINE AGREED IN TWO PLACES OUT OF SEVEN
+
+Will, 2026-08-08: *"we gotta target slots, not mons, maybe that would help with things pivoting
+out"*. **Established on a board before anything was rewritten**, which is what he asked for:
+
+```
+pivot-then-the-slot-is-hit    Weavile pivots out with U-turn, Toxapex walks in, Milotic's Charm
+                              resolves afterwards
+    SHOWDOWN  Toxapex is at -2 Attack        OURS  Toxapex is at 0 Attack
+```
+
+`Battle#getTarget` (`sim/battle.ts:2434`) is called from `runMove` at EXECUTION time and its normal
+path is `pokemon.getAtLoc(targetLoc)`. The body the chooser had in mind is never consulted. This
+engine's attack branch had that rule and WIRE 137 gave it to the status branch; the **generic-effect
+branch, the pivot move's own stat drop, the pivot's Protect gate and the trace announcement** each
+carried their own answer or none. So Charm, Fake Tears, Growl, Leer, Tickle and **Parting Shot
+(7,184 uses)** dropped stats on a body sitting on the BENCH.
+
+One reader now answers it everywhere — the FACTS-ARE-GLOBAL rule, which three copies of "who does
+this move hit" had already broken. **The negative is `tracksTarget`**: Snipe Shot and a user holding
+Stalwart or Propeller Tail keep their original body while it is active, which Showdown checks BY
+NAME inside `getTarget` because the abilities implement it through `onModifyMove` and `getTarget`
+runs first. Wired with the rule rather than after somebody notices; 44 uses.
+
+**FILED, NOT FIXED:** an EMPTY aimed slot. Showdown falls through to `getRandomTarget` and redirects
+a single-target move to the other foe; this engine fails the move, as both existing sites already
+did. It is a different rule with a different negative and it must not ride along. Counted as
+`MEDSEEN.reaimSlotEmpty`.
+
+### WIRE 140 — ALLY SWITCH DID NOT EXIST, AND IT IS THE SHARPEST TEST OF WIRE 139
+
+202 uses, resolving to `{kind:'pass'}` — a wasted turn. It is the one move that moves a body between
+positions **without either body leaving the field**, so the weaker "has my target left" question
+answers no and changes nothing; a Pokemon-first engine follows the wrong body and a slot-first one
+does not, and neither can pass by accident.
+
+Before the wire, one unimplemented move parted **ten board fields at the end of a single turn** —
+both slots' species, hp, maxhp and Defence stage, plus two party rows. `swapsSlots` is derived from
+the handler (an `onHit` that calls `swapPosition`); **membership over the whole move table is exactly
+one move and was printed before anything read it.** The consecutive-use decay is its own counter
+starting at 3 and tripling, NOT Protect's — sharing one would let a Protect last turn shrink an Ally
+Switch this turn — and the refusal (an empty or fainted partner) is the census probe's control arm.
+
+### WHAT THE HARNESS ITSELF WAS DOING WRONG
+
+`tests/staged_board.js`'s declared-divergence proof ran against `zerotohero-moment`, **which WIRE 137
+had fixed the night before** — so it printed `the proof case no longer parts` and, by its own rule,
+declared every verdict below it untrustworthy. A guard whose fixture is a bug dies the day the bug
+does. It now runs against a deliberately PLANTED break, which nothing ENGINE lands can take away.
+Four break anchors had also gone stale and matched nothing, which reads exactly like a comparator
+that found nothing.
+
+### REPORTED, NOT MINE
+
+`engine/game_differential.js` dies at pair-build time on any pool team carrying a species with no
+`MC.mons` row: `LookupMiss: MC.mons: no entry for "florgesblue"`. `buildPair` is written
+`mcKey(p.species) || id(p.species)`, expecting null, and `mcKey` THROWS unless handed
+`{ mayMiss }`. One team in a pool of 7,635 ends an entire run. The data half (`data/engine-data.js`)
+belongs to MEASURE; the throw-versus-null half is in a file this division may not edit while a
+measurement is reading it.
+
+Five silent `catch` blocks are NEW against `tests/test-no-silent-failure.js`'s baseline and none is
+in a file this division owns: `engine/diff_swarm.js` (×2), `engine/explain_divergence.js`,
+`engine/leaf_engine_contrast.js` (×2).
 
 ## The working rule
 

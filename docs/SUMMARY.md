@@ -1,5 +1,23 @@
 # ABRA — Project Summary
 
+**Version 3.75.0 · 2026-08-08 · Will Hooper**
+
+**WIRE 138-140 — THREE BOARD FAMILIES, AND A TARGETING MODEL THAT WAS WRONG WHENEVER ANYTHING MOVED
+(3.75.0).** Aimed at the three largest surviving board-divergence families of the 1,530-game run at
+release `288aee2e3501`. **Speed Boost fired a turn early**: Showdown gates it on `activeTurns`, which
+is 0 on the turn a body switches in, and this engine's own comment said the gate "is not expressible
+here" — true of `_turnsOut` and untrue since WIRE 135 added `_newlySwitched`, a reason that was
+correct when written and stale when read. **A move targets a SLOT, not a Pokemon** (Will: *"we gotta
+target slots, not mons"*): `Battle#getTarget` resolves from `targetLoc` at execution time, and five of
+this engine's seven branches held the object they aimed at, so Charm and Parting Shot (7,184 uses)
+dropped stats on a body sitting on the BENCH. One shared reader now answers it everywhere, with
+`tracksTarget` (Snipe Shot, Stalwart) as the negative. **Ally Switch did not exist** — 202 uses
+resolving to a wasted turn — and it is the sharpest test of the slot rule, because both bodies stay on
+the field: before it, one unimplemented move parted TEN board fields at the end of a single turn.
+Each was RED on a staged board before its wire and IDENTICAL after; mega evolution, checked in the
+same pass, was already correct. Census **311 → 313 live, 0 missing**; staged boards 18/18 identical
+and 18/18 breaks caught.
+
 **WIRE 133-137 — A SPEED TIE THAT HAS BEEN RESOLVED WRONGLY SINCE THE FIRST DAY, AND IT IS THE LIVE
 ENGINE (3.74.0).** Measured on a staged pure tie under the differential's own primary pin: Showdown
 moved p2a first and medicham2 moved p1a first. The comparator was never the problem.
@@ -17,10 +35,6 @@ comparison rather than by a probe (Zero to Hero's moment and Disguise's species)
 trigger built as a CLASS after Will named it as one, and the last MISSING census row closed by
 enriching a tag that had described four different mechanics with one parameter. Census
 **298/299 → 310/310, `missing` 0 for the first time**; `MEDFAILS.traceBodyOffField` 25 → 0.
-
-**Version 3.74.0 · 2026-08-07 · Will Hooper**
-
-
 
 **ROADMAP #88 AND #91 — ONE PIN WAS ONE CORNER, AND A CLICK WAS COUNTED AS A TEST (3.73.0).** Every
 die in the differential was pinned a single way, which bought determinism — any difference is a bug,

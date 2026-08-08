@@ -22,7 +22,15 @@ one tie value per action from a constant scalar so the sort is stable and takes 
 instrument's own header claimed the pin made them agree by construction; that claim was false and was
 repeated as fact before it was checked. `sortTurnOrder` is the live engine, not instrument code.
 
-**Version: 3.74.0 — 2026-08-07.**
+**Version: 3.75.0 — 2026-08-08.**
+
+> **NO STAGE MOVED IN 3.75.0, AND THE VERSION MOVED ANYWAY — the reason is worth stating rather than
+> pinning.** WIRE 139 changed WHICH BODY a move resolves against (the slot, not the Pokemon, which is
+> what `Battle#getTarget` does), and WIRE 140 added Ally Switch, which moves two bodies between slots
+> mid-turn. Neither touches a multiplier or its stage, so every row in the table below still holds
+> exactly as measured — but both sit UPSTREAM of the whole table: a multiplier applied at the right
+> stage to the wrong defender is wrong for a reason this document cannot see. Said here so a later
+> reader does not conclude the audit was re-run.
 
 > **WIRE 133–138 ADDED ONE MULTIPLIER TO THIS AUDIT AND SETTLED THE SPEED-TIE PARAGRAPH ABOVE
 > (3.74.0).** The paragraph at the head of this file was RIGHT that the two engines disagreed about

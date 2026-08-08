@@ -2673,6 +2673,65 @@ probe('move', 'drain', 'Drain Punch heals the user', () => {
                  + `Drain Punch dealt ${test.dealt} and returned ${test.gained} hp` };
 });
 
+/* WIRE 140, 2026-08-08. ALLY SWITCH DID NOT EXIST IN THIS ENGINE. It resolved to `{kind:'pass'}` --
+ * a wasted turn -- while the real move swaps two bodies between slots, and 202 corpus uses of it were
+ * therefore played as "do nothing". Found on a staged board, not by reading the move list: the two
+ * engines disagreed on TEN fields at the end of one turn (both slots' species, hp, maxhp and Defence
+ * stage, plus two party rows) from this single omission.
+ *
+ * THE ARMS ARE THE SWAP AND ITS REFUSAL, and the refusal is the half that matters: Showdown's own
+ * onHit fails the move when the other slot is empty or holds a fainted body (data/moves.ts:323-329).
+ * An engine that swapped unconditionally passes any test that only checks the positive. */
+probe('move', 'swapsSlots', 'Ally Switch swaps the two bodies between slots', () => {
+  const run = (killPartner) => {
+    const B = board('corviknight', 'snorlax', 'garchomp', 'clefable');
+    if (killPartner) { B.ally.curHP = 0; B.ally.fainted = true; }
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'allyswitch', null, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { slot0: B.S.actA[0] && B.S.actA[0].name, slot1: B.S.actA[1] && B.S.actA[1].name };
+  };
+  const test = run(false), control = run(true);
+  return { works: test.slot0 === 'snorlax' && test.slot1 === 'corviknight'
+                  && control.slot0 === 'corviknight',
+           arms: { control, test },
+           detail: '[who stands in slot 0, who stands in slot 1] — a live partner ' + test.slot0 + ','
+                 + test.slot1 + '; a FAINTED partner ' + control.slot0 + ',' + control.slot1
+                 + '. The refusal is the arm that matters: an engine that swaps unconditionally passes '
+                 + 'the positive half on its own' };
+});
+
+/* WIRE 139, 2026-08-08. A MOVE TARGETS A SLOT, NOT A POKEMON. Will: *"we gotta target slots, not
+ * mons"*. Showdown resolves a move's target from its `targetLoc` at EXECUTION time
+ * (`Battle#getTarget`, sim/battle.ts:2434), so a body that pivots out between the choice and the
+ * resolution hands the hit to whatever replaced it. This engine held the Pokemon OBJECT in three of
+ * its branches and dropped stats on a body sitting on the BENCH.
+ *
+ * CHARM RATHER THAN AN ATTACK, deliberately: the attack branch was the ONE site that already had the
+ * rule, so probing with damage would have gone green over a broken engine. The generic-effect branch
+ * is where it was missing. THE NEGATIVE IS THE SAME CLICK WITH NOBODY PIVOTING — a re-aim that fires
+ * when nothing moved is as wrong as one that never fires. */
+probe('move', 'targetsASlot', 'a stat drop lands on whoever replaced the body it was aimed at', () => {
+  const run = (pivot) => {
+    const me = bare('milotic'), ally = bare('clefable');
+    const f1 = bare('weavile'), f2 = bare('corviknight'), f3 = bare('toxapex');
+    const S = M.battleInit([me, ally], [f1, f2, f3], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'charm', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, pivot ? { kind: 'switch', to: f3 } : { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { inSlot: S.actA && (S.actB[0] && S.actB[0].name), dropped: S.actB[0] && S.actB[0].boosts.at,
+             onTheBench: f1.boosts.at };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.dropped === -2 && test.dropped === -2 && test.onTheBench === 0,
+           arms: { control, test },
+           detail: '[who is in the aimed slot, its Attack stage, the ORIGINAL target\'s stage] — '
+                 + 'nobody pivots ' + control.inSlot + ',' + control.dropped + ',' + control.onTheBench
+                 + '; the aimed body pivots out ' + test.inSlot + ',' + test.dropped + ','
+                 + test.onTheBench + '. The third number is the one that catches a Pokemon-first '
+                 + 'engine: it drops a body that is no longer on the field' };
+});
+
 probe('move', 'redirects', 'Follow Me pulls the attack onto the partner', () => {
   /* THE FIRST VERSION AIMED ROCK SLIDE, WHICH IS A SPREAD MOVE. It hits both targets by design, so
    * both bodies took damage and the probe called a redirect broken while measuring its own staging.

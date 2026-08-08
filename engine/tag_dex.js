@@ -1108,6 +1108,18 @@ const MOVE_TAGS = [
   { tag: 'stalling', param: 'is a Protect-family move', probe: 'stallingMove',
     why: 'protectThreatened and deadStall both hang off it',
     of: m => m.stallingMove ? { stalling: true } : null },
+  /* WIRE 140 -- SWAPS THE TWO BODIES BETWEEN SLOTS. Ally Switch, 202 uses, and the engine had no
+   * word for it at all: it resolved as `{kind:'pass'}`, a wasted turn, while the real move moves two
+   * Pokemon between positions and therefore moves `species`, `hp`, `maxhp` and every boost on both
+   * slots at once. Found on a staged board (tests/staged_board.js --only allyswitch-follows-the-slot)
+   * rather than by reading the move list.
+   * DERIVED FROM THE HANDLER, not from the name: the source of the `onHit` calls `swapPosition`, and
+   * membership over this format's whole move table is exactly one move — printed by
+   * `node engine/tag_dex.js --members swapsSlots` before anything read it. */
+  { tag: 'swapsSlots', param: 'swaps the user with its ally between slots', probe: 'allyswitch',
+    why: 'Ally Switch. The only move that moves a body between positions without it leaving the '
+       + 'field, so it is the one case that tells a slot-first engine from a Pokemon-first one',
+    of: m => /swapPosition\s*\(/.test(String((m.onHit || '')) ) ? { swapsSlots: true } : null },
   { tag: 'redirects', param: 'takes the turn\'s single-target attacks', probe: 'redirect',
     why: 'Follow Me and Rage Powder. A pair feature in DODUO and nothing in the single-move vector',
     of: m => (m.volatileStatus === 'followme' || m.volatileStatus === 'ragepowder') ? { redirect: true } : null },

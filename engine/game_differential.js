@@ -1182,6 +1182,7 @@ function harvest(stream, S) {
  * cost is stated rather than hidden: these bodies do not carry the ladder's spreads, so this
  * instrument tests RULES and not the stat lines people actually bring. */
 let STONES_STRIPPED = 0, STONES_KEPT = 0, TEAMS_UNBUILDABLE = 0, MONS_UNBUILDABLE = 0;
+let MCKEY_MISSED = 0;   /* species mc_key had no row for; the raw id is tried and the body is usually skipped */
 let ALIGN_MOVED = 0;   // a stat the alignment had to CHANGE — must be 0 outside the hpBoost arms
 /* ROADMAP #31 — THE EVOLUTION COUNTERS, PRINTED EVERY RUN AND A ZERO CALLED OUT LOUDLY. Mega has
  * already passed an at-least-one check in this project while firing on 56% of the sides it should
@@ -1221,7 +1222,27 @@ function buildPair(sheet, opts) {
   for (const p of sheet) {
     if (picked.length >= 4) break;
     if (!p || !p.species) continue;
-    const key = mcKey(p.species) || id(p.species);
+    /* ONE UNRESOLVABLE SPECIES OUT OF 7,635 TEAMS KILLED THE WHOLE RUN, and the bug is that this line
+     * assumed a return where the contract is a THROW. `mcKey` is deliberately strict — engine/mc_key.js
+     * says "A MISS MUST BE DECLARED", because a lookup that quietly answers something plausible is the
+     * shape of every expensive bug this project has had — and a caller that genuinely expects misses
+     * passes `{ mayMiss: '<why>' }`. The `|| id(p.species)` fallback below was written as if a miss
+     * returned null, so it never ran: `mcKey` threw first and the process died on
+     * `LookupMiss: MC.mons: no entry for "florgesblue"`, taking an 80-game re-measure with it.
+     *
+     * DECLARING THE MISS IS THE FIX, NOT LOOSENING mcKey. The strictness is right and stays. What this
+     * caller actually wants is "skip a body I cannot build", which the three guards immediately below
+     * already express — `buildMon` returning null, the dex not knowing the species, and no legal move
+     * surviving all funnel into MONS_UNBUILDABLE. A species mc_key cannot resolve reaches them and is
+     * counted there, exactly like every other unbuildable body.
+     *
+     * COUNTED SEPARATELY ANYWAY, because "mc_key had no key and the raw id happened to work" and "the
+     * key resolved cleanly" are different facts and the artifact should not blur them. A cosmetic
+     * forme is the expected member here — Florges' colours, Sinistcha's masterpiece — and if this
+     * counter starts climbing on ORDINARY species that is a broken alias table, not a rare team. */
+    let key = mcKey(p.species, { mayMiss: 'a pool team may carry a forme MC.mons has no row for; the '
+                                        + 'body is skipped and counted, never silently substituted' });
+    if (!key) { MCKEY_MISSED++; key = id(p.species); }
     const b = M.buildMon(key, {});
     if (!b) { MONS_UNBUILDABLE++; continue; }
     const sp = dex.species.get(key);
@@ -3426,6 +3447,11 @@ console.log('      SWITCH-OUT (`|detailschange|p1a: Palafin|Palafin-Hero, L50`) 
 console.log('      `|-activate|...|ability: Zero to Hero` on the way back in; medicham2 transforms on the');
 console.log('      RETURN, inside bringIn(), and emits neither. Different moment AND two missing lines.');
 console.log('    ' + TEAMS_UNBUILDABLE + ' teams and ' + MONS_UNBUILDABLE + ' individual sets could not be built in both engines.');
+/* PRINTED BECAUSE A COUNTER NOBODY READS IS NOT A COUNTER. Expect cosmetic formes here — Florges'
+ * colours, Sinistcha's masterpiece — and nothing else. If this climbs on ORDINARY species the alias
+ * table is broken, not the pool, and the bodies behind it were skipped rather than measured. */
+console.log('    ' + MCKEY_MISSED + ' set(s) had no MC.mons row for their species'
+  + (MCKEY_MISSED ? '  <-- expected: cosmetic formes only. An ordinary species here is a broken alias table.' : ''));
 console.log('    ' + BAN_FALLBACKS + ' clicks where the configuration had banned every legal action (fell through, counted).');
 console.log('    ' + FORCED_FIRST_SLOT + ' requests this driver could build no candidate for (a recharge or a lock) — answered `move 1`, counted.');
 console.log('    MEDFAILS.traceBodyOffField = ' + M.fails.traceBodyOffField

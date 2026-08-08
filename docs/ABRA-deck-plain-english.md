@@ -1,5 +1,15 @@
 # ABRA — the plain-English deck
 
+**Version 3.75.0 · 2026-08-08 · Will Hooper**
+
+**THE ENGINE FOLLOWED THE POKEMON, AND THE GAME FOLLOWS THE SPOT IT WAS STANDING IN (3.75.0).** If you
+aim at the left-hand Pokemon and it switches out before your move goes off, your move hits whatever
+walked in. Our simulator kept aiming at the Pokemon — sometimes at one that was already on the bench —
+so stat drops from Charm and Parting Shot went nowhere. Ally Switch, which swaps your two Pokemon
+between spots, did not exist at all: the simulator treated it as a wasted turn. And Speed Boost was
+handing out its Speed one turn too early to anything that had just come in. All three are fixed, each
+proved by playing the same turn in both simulators and comparing every field of the board.
+
 **A COIN FLIP WE HAD BEEN CALLING THE SAME WAY EVERY TIME (3.74.0).** When two Pokemon are exactly as
 fast as each other, the real game flips a coin. Our simulator did not — it always let the same one go
 first, and it had done that since the day it was written. That matters more than it sounds: nine out of
@@ -12,10 +22,6 @@ the same Pokemon for the same reason. Alongside it: Palafin was transforming at 
 Mimikyu's broken disguise never changed its name on the board, and a Pokemon that switched out mid-attack
 was paying its own damage costs after it had already left. Twelve more abilities and moves that nobody
 had ever tested now have tests. Two of them turned out to have been working all along.
-
-**Version 3.74.0 · 2026-08-07 · Will Hooper**
-
-
 
 **WE WERE ONLY EVER TESTING ONE CORNER OF THE GAME (3.73.0).** To compare two engines fairly you
 freeze the luck, so both get identical dice and any difference has to be a real bug. We froze it to a

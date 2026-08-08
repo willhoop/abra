@@ -10,6 +10,58 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.75.0] — 2026-08-08
+### Added
+- **`swapsSlots`, a derived tag, and ALLY SWITCH, which this engine did not have.** The move
+  resolved to `{kind:'pass'}` — a wasted turn — while the real one swaps two bodies between slots.
+  202 corpus uses. Derived from the handler (`swapPosition` inside `onHit`) rather than by name;
+  membership over the whole move table is exactly one move and was printed before anything read it.
+- **`tracksTarget`, a derived tag**, for the one exception to the slot rule below: Snipe Shot, and a
+  user holding Stalwart (44 uses) or Propeller Tail. Both tags carry a stated name bridge in
+  `medicham2-browser.js` until `data/tags.json` is regenerated, the same pattern as WIRE 3 and 113.
+- Three staged-board scenarios, each aimed at one of the three largest board-divergence families and
+  each RED before its wire: `speedboost-entry-gate`, `pivot-then-the-slot-is-hit`,
+  `allyswitch-follows-the-slot`, plus `mega-forme-on-the-board`, which was GREEN on its first run.
+- Two census probes: `move/swapsSlots` and `move/targetsASlot`. Census **311 → 313 live, 0 missing**.
+
+### Fixed
+- **WIRE 138 — Speed Boost fired a turn early.** Showdown gates it on `activeTurns`
+  (`data/abilities.ts:4447`), which is 0 on the turn a body switches in. The engine's own comment
+  said the gate "is not expressible here" — true of `_turnsOut`, which reads 0 for a lead and a
+  mid-turn entrant alike, and untrue since WIRE 135 added `_newlySwitched`. Measured on a board:
+  the entrant at +1/+2/+3 against Showdown's 0/+1/+2 while the Espathra beside it agreed throughout.
+- **WIRE 139 — a move targets a SLOT, and five of seven branches targeted a Pokemon.** Will,
+  2026-08-08: *"we gotta target slots, not mons"*. `Battle#getTarget` resolves from `targetLoc` at
+  execution time; this engine held the object it aimed at, so Charm, Parting Shot and every generic
+  effect dropped stats on a body sitting on the BENCH. One shared reader (`reaimToSlot`) now answers
+  it for the attack, status, generic-effect, pivot-drop and trace sites — the FACTS-ARE-GLOBAL rule,
+  which three separate copies of this question had already broken.
+- **WIRE 140 — Ally Switch**, above. It is the sharpest test of WIRE 139: both bodies stay on the
+  field, so the weaker "has my target left" question changes nothing. Before it, one unimplemented
+  move parted TEN board fields at the end of one turn.
+- `tests/staged_board.js`'s declared-divergence proof rested on `zerotohero-moment`, which WIRE 137
+  FIXED — so it reported "the proof case no longer parts" and declared every verdict below it
+  untrustworthy. It now runs against a deliberately PLANTED break, which no engine fix can take away.
+- Four stale break anchors in the same file (`nuzzle-paralysis`, `disguise-forme`,
+  `zerotohero-moment`, and the new mega one) matched nothing, which reads exactly like a comparator
+  that found nothing. All 18 scenarios are now clean-identical AND caught-and-localised under break.
+- One silent `catch` in `tests/staged_board.js` now carries the parse error, clearing this file from
+  `tests/test-no-silent-failure.js`.
+
+### Notes
+- **Not a defect, said first.** Mega evolution was already correct on the board (species, party row,
+  maxhp and the stone that stays held), on the first run of a scenario that could not have existed
+  before the scripted mega opt-in landed. Cosmetic formes are a CONTROL, not a divergence —
+  `buildPair` normalises through `mcKey` before either engine sees the set. And the rest of the
+  `activeTurns` class has zero exposure in this format: Slow Start 0 uses, Stakeout 0, Truant absent.
+- **Filed, not fixed.** When the aimed slot is EMPTY, Showdown retargets via `getRandomTarget` and
+  this engine fails the move. Counted as `MEDSEEN.reaimSlotEmpty` rather than left silent.
+- **Reported, not mine.** `engine/game_differential.js` dies at pair-build time on a species with no
+  `MC.mons` row (`LookupMiss: florgesblue`) — `buildPair` writes `mcKey(p.species) || id(...)` and
+  `mcKey` THROWS rather than returning null. One team in the pool kills an entire run.
+
+---
+
 ## [3.74.0] — 2026-08-07
 
 ### Fixed

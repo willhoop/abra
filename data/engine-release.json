@@ -1,10 +1,10 @@
 {
-  "current": "288aee2e3501",
-  "cut": "2026-08-08T03:45:39.861Z",
-  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 19,
-  "latest_cut": "2026-08-08T04:46:12.439Z",
+  "current": "3dd96ca88574",
+  "cut": "2026-08-08T05:19:00.576Z",
+  "why": "WIRE 140 — Ally Switch swaps the two slots (it did not exist)",
+  "cuts": 9,
+  "latest_cut": "2026-08-08T05:40:19.950Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-08T04:46:12.445Z",
+  "pointer_written": "2026-08-08T05:40:19.960Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }
