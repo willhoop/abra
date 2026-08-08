@@ -131,7 +131,23 @@ const GATES = ['engine/selftest.js', 'engine/conformance.js', 'engine/artifact_a
    * It is names.js and NOT lookup.js because lookup.js already existed, for the adjacent job of making
    * a MISS declare itself. Writing this one over it deleted resolve(), which mc_key.js calls, and took
    * down self-play. lookup.js = what to do when an answer is ABSENT; names.js = how to ask correctly. */
-  'engine/names.js'];
+  'engine/names.js',
+  /* engine/quarantine.js --check — EVERYTHING DOWNSTREAM OF MEDICHAM IS WITHHELD UNTIL MEDICHAM IS
+   * CORRECT (CLAUDE.md; Will, 2026-08-08). It runs engine/status.js and fails if a quarantined
+   * artifact's own verdict sentence is on that screen.
+   *
+   * It is a gate rather than a report for the reason the whole rule exists: status.js ALREADY printed
+   * `PRE-CHANGE — measured against a different build of: ...` beside these numbers, and they went on
+   * being quoted for days by the sessions that printed the caption. A caption is not a quarantine, and
+   * a check nobody runs is not a check — the identical pair of lessons that produced
+   * engine/artifact_audit.js. Shown RED before it was registered: the leaf-calibration withhold was
+   * removed by hand and --check exited 1 naming data/winrate-backtest.json and the leaked sentence.
+   *
+   * It does NOT fail on docs/ or web/ citations. Those belong to other divisions and MEASURE cannot
+   * satisfy a gate it may not edit, which is how a red check becomes "one of the known failures". Those
+   * are listed every run and RATCHETED in data/quarantine-stamp.json instead: the list may shrink and
+   * may never grow while the gate is closed. */
+  'engine/quarantine.js'];
 
 /* COVERAGE ASSERTION. Any file in engine/ that reports its own pass/fail summary is a check, and a
  * check that nothing runs is worse than no check — it reads as coverage in a review. If one turns up
@@ -195,7 +211,12 @@ function plan(rel) {
   const EXTRA = { 'engine/provenance.js': ['--strict'], 'engine/conformance.js': ['--strict'],
                   'engine/em_validation.js': ['--check'], 'engine/status.js': ['--selftest'],
                   'engine/rerun_list.js': ['--selftest'], 'engine/validate_store.js': ['--selftest'],
-                  'engine/diff_swarm.js': ['--selftest'], 'engine/names.js': ['--selftest'] };
+                  'engine/diff_swarm.js': ['--selftest'], 'engine/names.js': ['--selftest'],
+                  /* --check, not --selftest: the selftest proves the classifier and the withholder on
+                   * synthetic input (and is run by --check's own first act), while --check is the part
+                   * that reads the real tree and can catch a real leak. Both directions matter, so the
+                   * gate runs the selftest itself rather than this list naming the file twice. */
+                  'engine/quarantine.js': ['--check'] };
   return { cmd: rel.endsWith('.py') ? PY : process.execPath, args: [D(rel), ...(EXTRA[rel] || [])] };
 }
 

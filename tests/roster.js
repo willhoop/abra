@@ -621,8 +621,32 @@ const turn = (p1, p2) => ({ p1, p2 });
  * only the leaves that parted — the control comparison needs boards, not a verdict. The driver's own
  * stop rule ends a state game at the first divergent board, so `identical` is neutralised AFTER the
  * diffs are copied out, exactly as `staged_board.js` does and for the same reason. */
-function play(sc, src) {
+/* THE PIN ARM IS A PARAMETER OF THE SCENARIO, NOT OF THE FILE.
+ *
+ * The primary arm (`top-tie-first`) makes every sub-100-accuracy move MISS, no crit land and no
+ * secondary below 100% fire. That is what makes two engines comparable, and for an ITEM it costs
+ * almost nothing — an item's effect is rarely an accuracy roll. FOR A MOVE IT COSTS 121 OF THE 500,
+ * because a move's own accuracy IS the move: Will-O-Wisp, Hypnosis, Thunder Wave, Toxic, Hydro Pump,
+ * every OHKO move and every raised-crit-ratio move stage NOTHING under it and would have read
+ * "identical" — the vacuous pass this whole file exists to refuse.
+ *
+ * `bottom-tie-first` is the other SHIPPED arm (game_differential.js ARMS) and its corner is the exact
+ * inverse: every sub-100 move HITS, every crit LANDS, every secondary FIRES, minimum damage. Both
+ * engines are pinned to it identically, so it is as comparable as the primary — it is a different
+ * corner of the same die, not a loosened one. `tests/staged_status_counters.js` already uses it for
+ * exactly this reason (it is "the only arm in which Will-O-Wisp lands and Ice Beam freezes").
+ *
+ * A rule DECLARES the arm it needs and the arm is PRINTED on every entry staged under it, because a
+ * result read against the wrong corner is a result nobody can compare. */
+const PRIMARY_ARM_ID = 'top-tie-first';
+function play(sc, src, armId) {
   const G = SB.harness(src);
+  let ARM = null;
+  if (armId && armId !== PRIMARY_ARM_ID) {
+    ARM = G.ARM_BY_ID.get(armId);
+    if (!ARM) return { bad: 'NO-SUCH-ARM', why: 'the scenario asks for pin arm "' + armId
+      + '" and game_differential.js publishes only ' + [...G.ARM_BY_ID.keys()].join(', ') };
+  }
   let a, b;
   try {
     a = G.buildPair(sc.A, { hpBoost: sc.hpA || 1 });
@@ -634,7 +658,7 @@ function play(sc, src) {
 
   const boards = [];
   const r = G.playGame(a, b, 'directed', 'roster:' + sc.id, {
-    script: sc.script,
+    script: sc.script, arm: ARM || undefined,
     onBoundary: (snap, turnIdx) => {
       boards.push({ turn: turnIdx, compared: snap.leaves_compared,
                     diffs: snap.diffs.map(d => BS.locate(d, snap)),
@@ -772,15 +796,54 @@ const SAY = (d, boards) => {
   return BS.explain(loc, d.with, pretty) + '   (without it: ' + BS.explain(loc, d.without, pretty) + ')';
 };
 
+/* ---- IS THE CONTROL ITSELF QUIET? THE VERDICT HAS TO CARRY THE ANSWER ---------------------------
+ *
+ * FOUND 2026-08-08, IN THIS FILE'S OWN SAVED ABILITIES ARTIFACT, AND IT IS THE REASON THIS FUNCTION
+ * EXISTS. `ability/*` controls by SWAPPING IN ANOTHER REAL ABILITY of the same species. Where the
+ * species has no quiet alternative the "control" is a second live mechanic, and the measured delta is
+ * whichever of the two the engine actually implements. `data/roster.abilities.json`:
+ *
+ *     sandrush          control Fluffy             Showdown  with 818  without 850
+ *     fluffy            control Sand Rush          Showdown  with 850  without 818   <- SWAPPED
+ *     damp              control Electromorphosis   with 955  without 933
+ *     electromorphosis  control Static             with 933  without 955             <- SWAPPED
+ *     angerpoint        control Intimidate         t0 boosts.atk  with 0  without -1
+ *     justified         control Intimidate         t0 boosts.atk  with 0  without -1
+ *
+ * The 32-HP gap is FLUFFY halving contact damage, which this engine does not implement; Sand Rush was
+ * never under test and is correct (measured directly: 100 / 200 / 100 / 100 speed across no weather,
+ * sand, sun, rain). The `-1 Attack` on BOTH Anger Point and Justified is INTIMIDATE's drop being
+ * removed by the control. Four of that stage's six findings were the control's, over 2,049 uses.
+ *
+ * THE FILE ALREADY KNEW AND SAID IT IN THE WRONG PLACE. Every one of those rows carries the note
+ * "(NOT A QUIET ABILITY — see the caveat on any finding)" — in the NOTE field, while the VERDICT
+ * field kept saying DID-NOT-FIRE. The verdict is what gets read, quoted and queued, exactly as a
+ * `PRE-CHANGE` caption under a headline number is. So the caveat is now the VERDICT:
+ *
+ *   CONTROL-NOT-QUIET   both boards moved, or ours did not, AND the control arm can move a board by
+ *                       itself — so the delta is (subject MINUS a live control) and is not
+ *                       attributable to the subject at all. NOT a finding. NOT a pass. */
+function controlIsQuiet(e) {
+  if (e.kind === 'ability' && e.controlQuiet === false)
+    return { quiet: false, why: 'the CONTROL is another LIVE ability — ' + (e.scenario.controlAbility
+        || 'unnamed') + ' — because ' + e.scenario.B[0].species + ' has no quiet alternative. The '
+      + 'measured delta is (subject MINUS that ability) and cannot say which of the two moved the '
+      + 'board. MEASURED on this instrument\'s own artifact: Sand Rush and Fluffy control each other '
+      + 'and reported THE SAME TWO NUMBERS SWAPPED, and the 32-HP gap is Fluffy.' };
+  if (e.controlNotQuiet) return { quiet: false, why: e.controlNotQuiet };
+  return { quiet: true };
+}
+
 function runEntry(e) {
   const sc = e.scenario;
   const { sc: ctrlSc, ignore } = controlOf(sc);
   const src = e.brokenSrc || null;
+  const arm = sc.arm || null;
 
-  const subject = play(sc, src);
+  const subject = play(sc, src, arm);
   if (subject.bad) return { ...e, verdict: 'COULD-NOT-STAGE',
     why: 'the SUBJECT arm did not run: ' + subject.bad + ' — ' + subject.why };
-  const control = play(ctrlSc, src);
+  const control = play(ctrlSc, src, arm);
   if (control.bad) return { ...e, verdict: 'COULD-NOT-STAGE',
     why: 'the CONTROL arm did not run: ' + control.bad + ' — ' + control.why };
 
@@ -814,6 +877,17 @@ function runEntry(e) {
     why: 'THE STAGING IS INERT. Showdown\'s own board is identical with and without it, over '
        + base.compared + ' compared leaves — so nothing here tests the entity and a green would have '
        + 'been vacuous. This is the honest coverage limit, not a pass.' };
+  /* THE ACCUSING VERDICTS ARE GATED ON THE CONTROL BEING QUIET, and the gate sits here rather than in
+   * the report so nothing downstream — the artifact, `--reds`, the exit code — can read a contaminated
+   * row as a subject failure. FIRED-AND-BOARDS-MATCH is deliberately NOT gated: agreement between the
+   * two engines over a shared control is still agreement, whatever the control was doing. */
+  const CQ = controlIsQuiet(e);
+  if (!CQ.quiet && (!usMoved.length || mine.length))
+    return { ...base, verdict: 'CONTROL-NOT-QUIET', control_why: CQ.why,
+      why: 'THE DELTA IS NOT ATTRIBUTABLE TO THIS ENTITY. ' + CQ.why + ' The subject arm '
+         + (usMoved.length ? 'moved and the two engines disagree' : 'did not move in this engine')
+         + ', which under a quiet control would read '
+         + (usMoved.length ? 'FIRED-AND-BOARDS-DIFFER' : 'DID-NOT-FIRE') + ' — it is neither.' };
   if (!usMoved.length) return { ...base, verdict: 'DID-NOT-FIRE',
     why: 'Showdown\'s board MOVED when the entity was added and ours did not move at all. The staging '
        + 'is known-good because the authority answered it.' };
@@ -882,6 +956,330 @@ function neutralContactOn(speciesId) {
     if (dex.getImmunity(t, s.types) === false) continue;
     if (dex.getEffectiveness(t, s.types) !== 0) continue;
     return CONTACT[t];
+  }
+  return null;
+}
+
+/* =================================================================================================
+ *  THE MOVE STAGE'S OWN VOCABULARY — derived, printed by `--rules`, believed afterwards
+ *
+ * A MOVE IS A CLICK AND NOT A BODY, which changes what the fixture has to supply. An item is handed
+ * to whoever the rule likes and an ability constrains its carrier; a move constrains almost nothing
+ * about WHO throws it and almost everything about WHO IT CAN BE AIMED AT and WHICH PIN CORNER LETS IT
+ * RESOLVE AT ALL.
+ * ================================================================================================= */
+
+/* WHETHER medicham2 CAN BUILD A BODY AT ALL. `buildMon` returns NULL for any species with no MC.mons
+ * row — Blissey and Ferrothorn both fail — and `buildPair` then hands back null for the whole side,
+ * so the entry reads COULD-NOT-STAGE for a reason that is about the damage table rather than about
+ * the move. Asked through `mc_key.js`, which is the project's ONE doorway into that table (four
+ * hand-rolled copies of this lookup existed and two of them were wrong). */
+const { mcKey } = require(D('engine', 'mc_key.js'));
+let _monsLoaded = false;
+function monsReady() {
+  if (_monsLoaded) return;
+  /* the SNAPSHOT's table, not the live one — `data/engine-data.js` is one of the frozen files */
+  try { REL.require('data/engine-data.js'); } catch (e) { /* the driver loads it too; either is fine */ }
+  _monsLoaded = true;
+}
+function buildableSpecies(id) { monsReady(); try { return !!mcKey(id); } catch (e) { return false; } }
+
+/* ---- WHICH BODY MAY CARRY A MOVE EXPERIMENT, AND WHY IT IS NOT `carrierAbility` -----------------
+ *
+ * `carrierAbility` is the ITEM stage's filter and it is right for that stage: it excludes anything
+ * that would corrupt a DAMAGE READING. A move stage inflicts status, volatiles, stat stages, weather
+ * and secondaries, so the same 123-species pool hands out SHIELD DUST (20 species — it deletes every
+ * secondary), AROMA VEIL (9 — it blocks Taunt, Encore, Disable and Attract), SWEET VEIL, FLOWER VEIL,
+ * CONTRARY, UNAWARE and PRANKSTER. Printed before it was believed, which is the only reason this
+ * paragraph exists rather than twenty false reds.
+ *
+ * SO THE FILTER IS THE STRICT ONE: no `on*` KEY AT ALL — not "no on* FUNCTION", which is the shape
+ * that let Shell Armor and Battle Armor through, because their handler is the literal `false`.
+ *
+ * AND THREE MEMBERS OF THAT SET ARE STILL NOT QUIET, because they act through a FIELD the engines
+ * read rather than through a handler. This is the same over-match `refusesStatusMoves` and
+ * `speedOnItemLoss` produced, arriving a third time, and it is caught the same way — by printing the
+ * membership. */
+const MOVE_FIELD_ACTORS = {
+  earlybird: 'halves the SLEEP COUNTER, which is a leaf board_state.js compares directly — putting '
+           + 'Spore on it would measure the ability',
+  dancer:    'copies a DANCE move, and this stage clicks Dragon Dance, Swords Dance and Quiver Dance',
+  corrosion: 'lets its holder poison Steel and Poison types, which is exactly the immunity the '
+           + 'status rule leans on',
+};
+/* WHAT IS LEFT IS BALL FETCH, HONEY GATHER, RUN AWAY — AND NO LEGAL BUILDABLE SPECIES CARRIES ONE.
+ * Measured: zero. The only usable bodies in this format carry BATTLE ARMOR or SHELL ARMOR, whose
+ * whole content is "cannot be struck by a critical hit". Under the PRIMARY arm no crit lands in
+ * either engine, so that is provably inert. Under `bottom-tie-first` EVERY crit lands and the armour
+ * is a live damage modifier — so whether the pool is usable there is a MEASUREMENT, taken once,
+ * below, and never a constant. */
+const CRIT_ARMOUR = new Set(['battlearmor', 'shellarmor']);
+function moveQuietAbilities(arm) {
+  return dex.abilities.all().filter(a => {
+    if (!a.exists || a.isNonstandard || a.condition) return false;
+    if (QUIET_EXCLUDE[a.id] || MOVE_FIELD_ACTORS[a.id]) return false;
+    const keys = Object.keys(a).filter(k => /^on/.test(k));
+    if (!keys.length) return true;
+    /* THE CRIT ARMOURS ARE ADMITTED BECAUSE NO CRIT LANDS, WHICH IS MEASURED RATHER THAN ASSUMED.
+     * Under the primary arm that is the pin's own guarantee; under the bottom arm it is
+     * `critsLand()`, which breaks the multiplier and watches. If a crit ever starts landing the
+     * armours become live modifiers and this reads the other way with no edit. */
+    return keys.length === 1 && keys[0] === 'onCriticalHit'
+        && (arm === PRIMARY_ARM_ID || critsLand().armourShared);
+  }).map(a => a.id);
+}
+const _MB = {};
+function moveBodies(arm) {
+  const k = arm || PRIMARY_ARM_ID;
+  if (_MB[k]) return _MB[k];
+  const ok = new Set(moveQuietAbilities(k));
+  const rows = [];
+  for (const s of dex.species.all()) {
+    if (!s.exists || s.isNonstandard || s.battleOnly || s.forme.endsWith('Mega')) continue;
+    if (!buildableSpecies(s.id)) continue;
+    const ab = Object.values(s.abilities || {}).find(n => ok.has(idOf(n)));
+    if (!ab) continue;
+    /* THE ABILITY IS NAMED, NOT LEFT TO `carrierAbility`. It is one the species really has, so
+     * `buildPair`'s silent fall-back to slot 0 cannot fire. */
+    rows.push({ sp: s, ability: ab });
+  }
+  rows.sort((a, b) => (b.sp.baseStats.hp + b.sp.baseStats.def + b.sp.baseStats.spd)
+                    - (a.sp.baseStats.hp + a.sp.baseStats.def + a.sp.baseStats.spd));
+  _MB[k] = rows;
+  return rows;
+}
+/* ---- DOES A CRITICAL HIT LAND AT ALL? MEASURED ONCE, AND THE ANSWER DECIDES TWO THINGS ----------
+ *
+ * THE FIRST VERSION OF THIS GATE WAS A CONTAMINATED CONTROL AND IS RECORDED HERE RATHER THAN
+ * DELETED. It compared a body holding Shell Armor against the SAME body holding its species'
+ * alternate ability — and every legal carrier of a crit armour in this format has Overgrow, Torrent,
+ * Sap Sipper or Defiant as that alternate, all of which are live. So the "armour's effect" it
+ * measured was whichever of the two this engine implements. That is the identical failure the
+ * abilities stage shipped (Sand Rush controlled by Fluffy, the same two numbers swapped), arriving
+ * inside the fix for it, four hours later.
+ *
+ * THE HONEST QUESTION IS NARROWER AND NEEDS NO CONTROL ABILITY: does a critical hit land in this
+ * simulator on the arm in question? It is asked the way `--reds` asks everything — BY BREAKING THE
+ * MECHANISM AND WATCHING. The crit's x1.5 is removed from the frozen release's bytes and a raised-
+ * ratio move is thrown; a board that does not move proves no crit was there to be worth 1.5x.
+ *
+ * MEASURED 2026-08-08 on release 72e361e1bd44: THE PLANT MOVES NOTHING, on `bottom-tie-first` — the
+ * arm whose own description says "every crit lands" — and the two engines agree on the damage to the
+ * point either way. So NO CRIT LANDS IN EITHER ENGINE IN EITHER ARM, and two things follow:
+ *
+ *   - BATTLE ARMOR AND SHELL ARMOR HAVE NOTHING TO BLOCK, so the five-species pool is inert on both
+ *     arms rather than only on the primary one. That is the same conclusion the broken proof reached
+ *     and it is now reached for a reason that is true.
+ *   - `move/crit` CANNOT BE STAGED AT ALL and is a refusal with this as its written reason, rather
+ *     than a green that proves nothing.
+ *
+ * A MEASUREMENT AND NOT A CONSTANT: the day a crit lands here, this reads the other way by itself. */
+const CRIT_X15 = 'if(_critHere){base=Math.floor(base*1.5);MEDSEEN.critInRange++;}';
+let _CL2 = null;
+function critsLand() {
+  if (_CL2) return _CL2;
+  _CL2 = { ok: false, why: 'the proof did not run' };
+  const mv = dex.moves.all().find(m => m.exists && !m.isNonstandard && m.critRatio > 1
+    && m.category !== 'Status' && needsIndex(m) && alwaysHits(m));
+  const tgt = dex.species.all().find(s => s.exists && !s.isNonstandard && !s.battleOnly
+    && buildableSpecies(s.id) && Object.values(s.abilities || {}).some(a => CRIT_ARMOUR.has(idOf(a))));
+  if (!mv || !tgt) { _CL2.why = 'no 100-accuracy raised-crit-ratio move, or no buildable body, exists '
+    + 'to ask the question with'; return _CL2; }
+  const src = REL.read('engine/medicham2-browser.js');
+  if (src.split(CRIT_X15).length - 1 !== 1) {
+    _CL2.why = 'the crit multiplier anchor is not in this release exactly once, so the question '
+      + 'cannot be asked of it and the answer is UNKNOWN rather than no'; return _CL2; }
+  const other = Object.values(tgt.abilities).find(a => !CRIT_ARMOUR.has(idOf(a)))
+    || Object.values(tgt.abilities)[0];
+  const build = (ab) => { const sc = scaffold({ hpA: 4, hpB: 8,
+      a0: { ...CAST.ATTACKER(), moves: [mv.id] },
+      b0: mon(tgt.id, '', ab, [INERT]),
+      script: [turn([click(mv.id, 0), IDLE], [IDLE, IDLE])] });
+    sc.id = 'proof/crit-lands/' + idOf(ab); sc.kind = 'move'; sc.entityId = mv.id; return sc; };
+  const armourAb = Object.values(tgt.abilities).find(a => CRIT_ARMOUR.has(idOf(a)));
+  const patched = src.replace(CRIT_X15, 'if(_critHere){MEDSEEN.critInRange++;}');
+  let moved = 0, arms = [], blocked = null, agree = null;
+  for (const arm of [PRIMARY_ARM_ID, BOTTOM_ARM]) {
+    const clean = play(build(other), null, arm);
+    const broke = play(build(other), patched, arm);
+    if (clean.bad || broke.bad) { _CL2.why = 'the proof fixture did not play: '
+      + (clean.bad || broke.bad); return _CL2; }
+    let d = 0;
+    for (let i = 0; i < clean.boards.length; i++)
+      d += BS.compare(clean.boards[i].medi, broke.boards[i].medi, { compared: 0 }).length;
+    arms.push(arm + ': ' + d + ' leaf/leaves');
+    moved += d;
+    /* AND THE SAME QUESTION OF THE SAME BODY WEARING THE ARMOUR, on the arm where crits land. Two
+     * things have to be true for the five-species pool to stay usable there, and neither of them is
+     * "the two abilities differ by this much" — which is the contaminated shape that produced the
+     * abilities stage's four false findings:
+     *   OURS BLOCKS      the plant moves NO leaf on the armoured body, so the x1.5 never applied
+     *   THEY AGREE       the two ENGINES part on nothing in the clean run, so Showdown blocked it too
+     * An ability BOTH engines hold cancels out of every subject-minus-control delta exactly, which is
+     * the same argument `carrierAbility` already rests on. */
+    if (arm === BOTTOM_ARM) {
+      const ac = play(build(armourAb), null, arm), ab = play(build(armourAb), patched, arm);
+      if (ac.bad || ab.bad) { _CL2.why = 'the armour fixture did not play: ' + (ac.bad || ab.bad);
+        return _CL2; }
+      blocked = 0; agree = 0;
+      for (let i = 0; i < ac.boards.length; i++) {
+        blocked += BS.compare(ac.boards[i].medi, ab.boards[i].medi, { compared: 0 }).length;
+        agree += ac.boards[i].diffs.length;
+      }
+    }
+  }
+  _CL2 = { ok: moved > 0, moved, arms, blocked, agree,
+    armourShared: moved > 0 && blocked === 0 && agree === 0,
+    why: (moved > 0
+      ? 'MEASURED on release ' + REL.id + ': removing the critical hit\'s x1.5 from ' + mv.name
+        + ' moves ' + moved + ' board leaf/leaves (' + arms.join('; ') + '), so a crit DOES land, on '
+        + BOTTOM_ARM + ' only, exactly as that arm\'s pin says.'
+      : 'MEASURED on release ' + REL.id + ': removing the critical hit\'s x1.5 from ' + mv.name
+        + ' moves NO board leaf in EITHER arm (' + arms.join('; ') + '), so no crit is landing.')
+      + '  THE ARMOUR: with ' + pretty(String(armourAb)) + ' on the same body the plant moves '
+      + blocked + ' leaf/leaves and the two engines part on ' + agree + ' — so the armour is '
+      + (moved > 0 && blocked === 0 && agree === 0
+          ? 'ONE FACT BOTH ENGINES HOLD and cancels out of every subject-minus-control delta; the '
+            + 'five-species pool stays usable on both arms'
+          : 'NOT a fact both engines hold, so the pool is closed on ' + BOTTOM_ARM) + '.' };
+  return _CL2;
+}
+
+function quietBodies(arm) { return moveBodies(arm).map(r => r.sp); }
+/* o = { arm, type: not immune to it, neutralTo: the chart reads exactly 0, hasType, status: the body
+ *       must be able to CARRY it, powder: the body must not be a Grass type, not: [species...] } */
+function quietBody(o) {
+  o = o || {};
+  for (const r of moveBodies(o.arm)) {
+    const s = r.sp;
+    if ((o.not || []).some(x => x && idOf(x) === idOf(s.id))) continue;
+    if (o.type && dex.getImmunity(o.type, s.types) === false) continue;
+    if (o.neutralTo && (dex.getEffectiveness(o.neutralTo, s.types) !== 0
+                        || dex.getImmunity(o.neutralTo, s.types) === false)) continue;
+    /* A STATUS HAS ITS OWN IMMUNITY TABLE AND IT IS NOT THE TYPE CHART. Poison Powder came back "THE
+     * STAGING IS INERT" on the first run because the bulkiest quiet body is Goodra-HISUI, which is
+     * STEEL. Asked of the dex — `getImmunity('psn', types)` — rather than typed out here. */
+    if (o.status && dex.getImmunity(o.status === 'tox' ? 'psn' : o.status, s.types) === false) continue;
+    if (o.powder && s.types.includes('Grass')) continue;
+    if (o.hasType && !s.types.some(t => t === o.hasType)) continue;
+    if (o.minHP && flatL50(s.baseStats).hp < o.minHP) continue;
+    return mon(s.id, '', r.ability, []);
+  }
+  return null;
+}
+/* A MOVE THAT DISABLES ITSELF CANNOT BE CLICKED TWICE, and a script that does hands Showdown a
+ * choice it REJECTS — a thrown game, which is this file's fixture being wrong rather than a finding.
+ * Measured on the first full run: Gigaton Hammer and Struggle both threw. `deliveryOf` already
+ * refuses these as CARRIERS for the same reason; this is the same fact on the subject side. */
+const repeatable = m => !(m.flags && m.flags.cantusetwice) && !m.onDisableMove && !m.selfdestruct;
+const twice = (m, a, b) => (repeatable(m) ? [a, b] : [a]);
+
+/* THE ITEM STAGE'S POOL, REACHABLE BY NAME. Two move rules need it and both say why on the entry:
+ * `move/crit` needs a defender that CANNOT block a critical hit (`carrierAbility` lists
+ * `onCriticalHit` in INTERFERES, so one chosen by it provably cannot), and `move/type-changing`
+ * needs a GHOST, which the five-species move pool does not contain. It is wider and therefore
+ * weaker — Shield Dust, Aroma Veil and Prankster all live in it — so nothing that stages a status, a
+ * volatile or a stat stage may use it, and the ability chosen is printed on every entry that does. */
+function carrierBody(o) {
+  o = o || {};
+  const rows = CANDIDATES.filter(sp => buildableSpecies(sp.id) && carrierAbility(sp))
+    .sort((a, b) => (b.baseStats.hp + b.baseStats.def + b.baseStats.spd)
+                  - (a.baseStats.hp + a.baseStats.def + a.baseStats.spd));
+  for (const sp of rows) {
+    if ((o.not || []).some(x => x && idOf(x) === idOf(sp.id))) continue;
+    if (o.type && dex.getImmunity(o.type, sp.types) === false) continue;
+    if (o.immuneTo && dex.getImmunity(o.immuneTo, sp.types) !== false) continue;
+    if (o.hasType && !sp.types.some(t => t === o.hasType)) continue;
+    return mon(sp.id, '', carrierAbility(sp), []);
+  }
+  return null;
+}
+
+/* the sentence a rule prints when it cannot find a body — it names the pool rather than shrugging */
+function noBodyWhy(o) {
+  return 'the move stage\'s body pool is ' + moveBodies((o || {}).arm).length + ' species deep (every '
+    + 'legal, buildable body carrying an ability with no `on*` key at all, plus the two crit armours), '
+    + 'and none of them satisfies ' + JSON.stringify(o || {}) + '. This is a limit of the FORMAT\'s '
+    + 'ability list, not of the engine: printed by --rules.';
+}
+/* THE MOVE STAGE'S AGGRESSOR IS NOT `CAST.ATTACKER`, AND THE REASON IS ON THE BOARD. Dragapult carries
+ * INFILTRATOR, which the cast header defends as harmless because "a screen or a Substitute" is
+ * "neither of which any derived scenario raises". THE MOVE STAGE RAISES BOTH — Reflect, Light Screen
+ * and Aurora Veil are `sideCondition` moves and Substitute is a `volatileStatus` one — and an
+ * attacker that IGNORES the thing under test reads as "the screen did nothing". Derived: the quiet
+ * body with the largest attacking stat that the damage table can build. */
+const _CL = {};
+function CLICKER(arm) {
+  const k = arm || PRIMARY_ARM_ID;
+  if (_CL[k]) return _CL[k];
+  const best = moveBodies(k).slice()
+    .sort((a, b) => Math.max(b.sp.baseStats.atk, b.sp.baseStats.spa)
+                  - Math.max(a.sp.baseStats.atk, a.sp.baseStats.spa))[0];
+  _CL[k] = best ? mon(best.sp.id, '', best.ability, []) : { ...CAST.ATTACKER() };
+  return _CL[k];
+}
+
+/* WHICH PIN CORNER A MOVE NEEDS, READ OFF THE MOVE'S OWN accuracy AND critRatio.
+ *
+ * The primary arm makes every sub-100-accuracy move MISS and never lets a crit land. For an ITEM that
+ * costs almost nothing. For a MOVE it silences 121 of the 500 — Will-O-Wisp, Hypnosis, Thunder Wave,
+ * Toxic, Hydro Pump, every OHKO move, every raised-crit-ratio move — and each of them would have read
+ * "identical" on two boards where nothing happened. `bottom-tie-first` is the other SHIPPED arm and
+ * its corner is the exact inverse; both engines are pinned to it identically, so it is a different
+ * corner of the same die and not a loosened one. */
+const BOTTOM_ARM = 'bottom-tie-first';
+const alwaysHits = m => (m.accuracy === true || m.accuracy === 100);
+function armFor(m) { return (alwaysHits(m) && !(m.critRatio > 1) && !m.willCrit) ? PRIMARY_ARM_ID : BOTTOM_ARM; }
+function armNote(m) {
+  if (armFor(m) === PRIMARY_ARM_ID) return '';
+  return '  [pinned to ' + BOTTOM_ARM + ' — '
+    + (!alwaysHits(m) ? 'it is ' + m.accuracy + '-accurate and the primary arm makes it MISS' : '')
+    + (!alwaysHits(m) && (m.critRatio > 1 || m.willCrit) ? '; ' : '')
+    + ((m.critRatio > 1 || m.willCrit) ? 'its crit ratio is raised and the control click adds two '
+        + 'stages, which manufactures a one-sided crit on the primary arm' : '')
+    + '. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH '
+    + 'engines; the RATIO itself is therefore not what is under test]';
+}
+/* a click that declares `mayMiss` when and only when the arm is what lands it */
+function mclick(m, t) {
+  const o = (t == null) ? { m: m.id } : { m: m.id, t };
+  if (!alwaysHits(m)) o.mayMiss = 'THE ARM IS THE ANSWER AND NOT AN EXEMPTION: this click is '
+    + m.accuracy + '-accurate and the scenario is pinned to ' + BOTTOM_ARM + ', where every sub-100 '
+    + 'roll LANDS in both engines. Under the primary arm it would stage nothing at all and the two '
+    + 'boards would agree for the wrong reason.';
+  return o;
+}
+/* WHO THROWS IT, read off the move's own `target`. A move aimed at a foe is thrown BY the aggressor AT
+ * the subject slot; a move aimed at the user, the user's side or the whole field is thrown by the
+ * subject body itself. Getting this from the field rather than from a list is the whole point. */
+const FOE_TARGETS = new Set(['normal', 'any', 'adjacentFoe', 'allAdjacentFoes', 'allAdjacent',
+                             'randomNormal', 'foeSide', 'scripted']);
+const aimsAtFoe = m => FOE_TARGETS.has(m.target);
+const needsIndex = m => (m.target === 'normal' || m.target === 'any' || m.target === 'adjacentFoe');
+function throwIt(m, idx) { return mclick(m, needsIndex(m) ? (idx == null ? 0 : idx) : null); }
+
+/* THE SMALLEST NEUTRAL DELIVERY MOVE THAT IS NOT THE MOVE UNDER TEST — used wherever a body has to be
+ * taken off full HP before the thing being staged has anywhere to act. Excluding the entity is not
+ * fussiness: `controlOf` replaces EVERY click of the move under test, so a chip that happened to be
+ * the same move would vanish from the control arm and the two arms would differ in two things. */
+function neutralHit2(speciesId, notIds) {
+  const sp = dex.species.get(speciesId);
+  for (const t of Object.keys(DELIVERY))
+    for (const mv of [DELIVERY[t].best, DELIVERY[t].physical, DELIVERY[t].special]) {
+      if (!mv || (notIds || []).some(x => idOf(mv.id) === idOf(x))) continue;
+      if (dex.getImmunity(mv.type, sp.types) === false) continue;
+      if (dex.getEffectiveness(mv.type, sp.types) !== 0) continue;
+      return mv;
+    }
+  return null;
+}
+function neutralHit(speciesId, notId) {
+  const sp = dex.species.get(speciesId);
+  for (const t of Object.keys(DELIVERY)) {
+    const mv = hitOfType(t);
+    if (!mv || (notId && idOf(mv.id) === idOf(notId))) continue;
+    if (dex.getImmunity(t, sp.types) === false || dex.getEffectiveness(t, sp.types) !== 0) continue;
+    return mv;
   }
   return null;
 }
@@ -1830,6 +2228,911 @@ const RULES = [
      + 'STAGING IS INERT, which is the honest answer and not a pass.',
   match(e) { return abilityScenario(e, carrierFor(e), 'generic'); } },
 
+/* ------------------------------------------------------------------------------ moves ----------
+ *
+ * ORDERED, AND THE ORDER IS THE SPECIFICATION. The first rule whose `match` returns a scenario owns
+ * the move, so a narrow shape sits above the general one it would otherwise be swallowed by. The
+ * residue at the bottom (`move/plain-attack`, `move/generic-status`) is REPORTED WITH ITS SIZE AND
+ * ITS USAGE on every run, because `ability/generic` swallowing 124 abilities and calling them inert
+ * is how a coverage hole last disguised itself as a completed stage.
+ */
+
+{ id: 'move/is-the-control-click', kind: 'move',
+  reads: 'the move id, against this file\'s own INERT click',
+  why: 'THE CONTROL ARM REPLACES THE CLICK UNDER TEST WITH ' + INERT + '. For that one move the '
+     + 'control script is IDENTICAL to the subject script by construction, the delta is empty, and '
+     + 'the entry would read THE STAGING IS INERT for a reason that is about this file rather than '
+     + 'about the engine. Said out loud instead.',
+  match(e) { if (idOf(e.id) !== idOf(INERT)) return null;
+    return cannot('this move IS the control arm\'s inert click (' + pretty(INERT) + '), so subject '
+      + 'and control would be the same script and the comparison would be vacuous. Its effect — two '
+      + 'critical-hit stages — is also not a leaf board_state.js compares.'); } },
+
+{ id: 'move/self-switch', kind: 'move',
+  reads: 'selfSwitch',
+  why: 'THE USER LEAVING THE FIELD IS THE ONLY EFFECT IN THIS FAMILY THAT IS UNAMBIGUOUSLY ON THE '
+     + 'BOARD — `sides.pN.active[i].species` — which is what makes it stageable at all. The PARTNER IS '
+     + 'THE NEGATIVE and stands in the other slot on every board: a pivot that moved the wrong slot '
+     + '(the defect WIRE 139 was written against) shows up there and nowhere else. This rule sits '
+     + 'ABOVE the weather one deliberately: Chilly Reception sets snow AND pivots, and staged as a '
+     + 'weather setter it scripts a second click for a body that has already left, which Showdown '
+     + 'rejects as an illegal pass and throws.',
+  break: { why: 'a move-driven switch is never classified as one, so the user stays on the field',
+    patch: [["if(TAGS.has('move',id,'pivotStatus'))return {kind:'switch',mv:id,target};",
+             "if(false&&TAGS.has('move',id,'pivotStatus'))return {kind:'switch',mv:id,target};"]] },
+  match(e) {
+    if (!e.selfSwitch) return null;
+    const arm = armFor(e);
+    const b0 = quietBody({ arm }), b1 = quietBody({ arm, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm }));
+    return { arm, note: pretty(b0.species) + ' pivots on turn 1; ' + pretty(b1.species)
+        + ' is in the other slot and must NOT move' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 4,
+        a0: { ...CLICKER(arm), moves: [INERT] },
+        b0: { ...b0, moves: [e.id] }, b1: { ...b1, moves: [INERT] },
+        script: [turn([IDLE, IDLE], [throwIt(e, 0), IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/force-switch', kind: 'move',
+  reads: 'forceSwitch',
+  why: 'the TARGET leaves instead of the user, so the leaf that moves is the FOE slot\'s species. The '
+     + 'partner is the negative on the same board — a phaze aimed at one slot must not drag the other '
+     + '— and boundary 0 is the second, because the drag happens on turn 1 and nothing may have moved '
+     + 'before anybody chose.',
+  break: { why: 'the phaze never removes anybody — the move still resolves and still spends the turn',
+    patch: [["if(a.kind==='phaze'){", "if(a.kind==='phaze'){m._lastMove=a.mv;continue;}if(a.kind==='phaze'){"]] },
+  match(e) {
+    if (!e.forceSwitch) return null;
+    const arm = armFor(e);
+    const b0 = quietBody({ arm, type: e.type }), b1 = quietBody({ arm, type: e.type, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: e.type }));
+    return { arm, note: 'thrown at ' + pretty(b0.species) + '; ' + pretty(b1.species) + ' is in the '
+        + 'other slot and must stay' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 4,
+        a0: { ...CLICKER(arm), moves: [e.id] },
+        b0: { ...b0, moves: [INERT] }, b1: { ...b1, moves: [INERT] },
+        script: [turn([throwIt(e, 0), IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/protect-family', kind: 'move',
+  reads: 'stallingMove',
+  why: 'THE SHIELD ITSELF IS A WITHIN-TURN EFFECT AND ITS STALL COUNTER IS IN `NOT_COMPARED` — the two '
+     + 'engines hold different quantities there and `board_state.js` says so. What IS on the board is '
+     + 'the CONSEQUENCE, so the hit aimed at the shielded body is derived to be LETHAL: with the '
+     + 'shield the body is standing at the boundary and without it the body is dead, which lands on '
+     + '`fainted` rather than on a damage number. That also makes ENDURE expressible in the same '
+     + 'staging — it survives on 1 HP where Protect survives untouched — without a second rule. THE '
+     + 'PARTNER IS THE NEGATIVE: it carries the same move, does NOT click it, takes the same lethal '
+     + 'hit and must die.',
+  break: { why: 'the shield is never raised — the click still resolves and still spends the turn',
+    patch: [["if(it.a.kind==='protect'&&!volatileForbidsMove(it.mon,actionMoveId(it.a))){",
+             "if(false&&it.a.kind==='protect'&&!volatileForbidsMove(it.mon,actionMoveId(it.a))){"]] },
+  match(e) {
+    if (!e.stallingMove) return null;
+    /* THE MOVE POOL IS THE WRONG POOL HERE AND THE FIRST FULL RUN SAID SO — its five members are the
+     * bulkiest bodies the format offers and NOTHING kills one outright, so every member of this
+     * family read "no lethal pair". The two bodies here only have to STAND THERE, and
+     * `carrierAbility`'s filter already excludes an HP floor, a damage modifier and an immunity,
+     * which is the whole list of things that could corrupt a shielded-against-unshielded reading.
+     * `KILLABLE`/`KILLABLE2` are the same two derivations `item/hp-floor` uses. */
+    const arm = armFor(e), atk = dex.species.get(CAST.ATTACKER().species);
+    if (!KILLABLE || !KILLABLE2) return cannot('no two legal bodies of different species can each be '
+      + 'killed outright from full by one derived delivery move, and a shield is invisible unless the '
+      + 'blow it stops was fatal — a survived hit reads identically with and without it');
+    return { arm, note: pretty(KILLABLE.species) + ' shields a lethal ' + KILLABLE.move.name + '; '
+        + pretty(KILLABLE2.species) + ' beside it carries the same move, does NOT click it, and must die'
+        + armNote(e),
+      scenario: scaffold({
+        a0: mon(atk.id, '', CAST.ATTACKER().ability, [KILLABLE.move.id]),
+        a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [KILLABLE2.move.id]),
+        b0: mon(KILLABLE.species, '', KILLABLE.ability, [e.id]),
+        b1: mon(KILLABLE2.species, '', KILLABLE2.ability, [e.id]),
+        script: [turn([click(KILLABLE.move.id, 0), click(KILLABLE2.move.id, 1)], [mclick(e), IDLE])] }) };
+  } },
+
+{ id: 'move/charge', kind: 'move',
+  reads: 'flags.charge',
+  why: 'THE MOMENT IS THE MECHANIC AND ONLY THE WIND-UP IS REACHABLE FROM HERE. A two-turn move must '
+     + 'deal NOTHING on boundary 1, and an engine that resolved it immediately parts there — so the '
+     + 'wind-up turn is a real comparison for the members whose wind-up DOES something (Electro Shot '
+     + 'and Meteor Beam boost on it). For the rest, Showdown\'s own board is identical with and '
+     + 'without and the entry says THE STAGING IS INERT.\n'
+     + '     THE RELEASE TURN IS UNSCRIPTABLE AND THAT IS A DRIVER LIMIT, NOT A CHOICE. '
+     + '`game_differential.js scripted()` reads the target off `act.moves[k].target` and falls back to '
+     + 'the DEX target when the request omits it — and Showdown\'s request for a body mid-wind-up '
+     + 'omits it precisely because a locked move takes no target. So every scripted release turn is '
+     + 'emitted as `move 1 1` and rejected with "You can\'t choose a target for Dig", and the game '
+     + 'throws. Measured on all seven members. FILED RATHER THAN FIXED: `engine/game_differential.js` '
+     + 'is not this file\'s to edit.',
+  break: { why: 'the wind-up is skipped — the move resolves on the turn it is clicked',
+    patch: [["if(TAGS.has('move',a.move.id,'chargeTurn')){",
+             "if(false&&TAGS.has('move',a.move.id,'chargeTurn')){"]] },
+  match(e) {
+    if (!(e.flags && e.flags.charge)) return null;
+    const arm = armFor(e);
+    const b0 = quietBody({ arm, type: e.type }), b1 = quietBody({ arm, type: e.type, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: e.type }));
+    return { arm, note: 'the WIND-UP turn only — ' + pretty(b0.species) + ' must be UNTOUCHED at '
+        + 'boundary 1; the release turn is unscriptable through this driver (see the rule)' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 8,
+        a0: { ...CLICKER(arm), moves: [e.id] },
+        b0: { ...b0, moves: [INERT] }, b1: { ...b1, moves: [INERT] },
+        script: [turn([throwIt(e, 0), IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/recharge', kind: 'move',
+  reads: 'self.volatileStatus === "mustrecharge"',
+  why: 'ONE TURN ONLY, AND THE LIMIT IS THE POINT OF THIS RULE EXISTING. The DAMAGE is staged and '
+     + 'compared; THE RECHARGE TURN IS NOT, and it cannot be from here: on turn 2 Showdown\'s request '
+     + 'for the user offers the single pseudo-move `recharge` and nothing else, while the CONTROL arm '
+     + '— whose turn-1 click was replaced by the inert one — is not recharging and is offered its '
+     + 'ordinary moveset. The two arms would be answering different requests, which is two experiments '
+     + 'and not a control. Staged as a single-turn hit with that said out loud, rather than staged '
+     + 'wrongly and reported as agreeing.',
+  break: { why: 'every damage roll is halved, so the hit this rule DOES stage moves',
+    patch: [['return {min:roll(85),max:roll(100),eff};',
+             'return {min:Math.floor(roll(85)*0.5),max:Math.floor(roll(100)*0.5),eff};']] },
+  match(e) {
+    if (!(e.self && e.self.volatileStatus === 'mustrecharge')) return null;
+    const arm = armFor(e);
+    const b0 = quietBody({ arm, type: e.type }), b1 = quietBody({ arm, type: e.type, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: e.type }));
+    return { arm, note: 'one turn of damage into ' + pretty(b0.species)
+        + '; THE RECHARGE TURN IS NOT STAGED — see the rule' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 8,
+        a0: { ...CLICKER(arm), moves: [e.id] },
+        b0: { ...b0, moves: [INERT] }, b1: { ...b1, moves: [INERT] },
+        script: [turn([throwIt(e, 0), IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/ohko', kind: 'move',
+  reads: 'ohko',
+  why: 'the whole move is a `fainted` leaf, which is the cleanest thing this instrument can read. It '
+     + 'is only reachable on the bottom arm — every OHKO move in the format is 30-accurate and the '
+     + 'primary pin makes it miss — and the PARTNER IS THE NEGATIVE: an OHKO aimed at one slot must '
+     + 'not kill the other.',
+  /* THE FIRST ANCHOR HERE WAS THE ORDINARY DAMAGE ROLL AND `--reds` CAUGHT IT: an OHKO move does not
+   * go through the randomizer at all — `_fd.source === 'ohko'` returns the target's whole HP as a
+   * FLAT number — so halving every roll left it untouched and the plant moved nothing. */
+  break: { why: 'an OHKO deals 1 point instead of the target\'s whole HP, so the body survives',
+    patch: [["else if(_fd.source==='ohko')_flat=_hp;", "else if(_fd.source==='ohko')_flat=1;"]] },
+  match(e) {
+    if (!e.ohko) return null;
+    const arm = BOTTOM_ARM;
+    const b0 = quietBody({ arm, type: e.type }), b1 = quietBody({ arm, type: e.type, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: e.type }));
+    return { arm, note: pretty(b0.species) + ' must be dead at boundary 1 and ' + pretty(b1.species)
+        + ' must not' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 1,
+        a0: { ...CLICKER(arm), moves: [e.id] },
+        b0: { ...b0, moves: [INERT] }, b1: { ...b1, moves: [INERT] },
+        script: [turn([throwIt(e, 0), IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/multihit', kind: 'move',
+  reads: 'multihit',
+  why: 'THE PIN DECIDES THE HIT COUNT AND THE REPORT SAYS SO. `random(m,n)` is pinned to `m` in EVERY '
+     + 'arm, so a 2-5 range lands on TWO hits and a 3-hit move on three — the DISTRIBUTION is not '
+     + 'under test and cannot be from a pinned die. What IS under test is that the damage is the sum '
+     + 'of that many hits rather than of one, which is the defect WIRE 20 fixed (Rock Blast was a '
+     + 'single 25-BP hit). THE PARTNER IS THE NEGATIVE and is never aimed at.',
+  break: { why: 'a multi-hit move lands exactly ONE hit — which is the defect this family was written '
+              + 'against',
+    patch: [['if(_hits>1)return {min:Math.floor(roll(85)*_hits),max:Math.floor(roll(100)*_hits),eff};',
+             'if(false&&_hits>1)return {min:Math.floor(roll(85)*_hits),max:Math.floor(roll(100)*_hits),eff};']] },
+  match(e) {
+    if (!e.multihit) return null;
+    const arm = armFor(e);
+    const b0 = quietBody({ arm, type: e.type }), b1 = quietBody({ arm, type: e.type, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: e.type }));
+    const n = Array.isArray(e.multihit) ? e.multihit[0] : e.multihit;
+    return { arm, note: 'multihit ' + JSON.stringify(e.multihit) + ' — THE PIN LANDS ON ' + n
+        + ' HIT(S), which is the bottom corner of the range and the only count either engine can be '
+        + 'asked about here' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 8,
+        a0: { ...CLICKER(arm), moves: [e.id] },
+        b0: { ...b0, moves: [INERT] }, b1: { ...b1, moves: [INERT] },
+        script: twice(e, turn([throwIt(e, 0), IDLE], [IDLE, IDLE]),
+                         turn([throwIt(e, 0), IDLE], [IDLE, IDLE])) }) };
+  } },
+
+{ id: 'move/slot-condition', kind: 'move',
+  reads: 'slotCondition',
+  why: 'the condition itself is NOT a board leaf — `board_state.js` compares no slot condition — so '
+     + 'what is staged is its CONSEQUENCE, which is HP and arrives a turn later. The user is chipped '
+     + 'first so a heal has somewhere to go, clicks on turn 2, and boundaries 3 and 4 are where the '
+     + 'effect must land. THE PARTNER IS THE NEGATIVE: chipped identically, clicking nothing.',
+  break: { why: 'the heal branch is skipped, which is the only path a delayed heal could arrive by',
+    patch: [["if(a.kind==='heal'){", "if(a.kind==='heal'){m._lastMove=a.mv;continue;}if(a.kind==='heal'){"]] },
+  match(e) {
+    if (!e.slotCondition) return null;
+    const arm = armFor(e);
+    const b0 = quietBody({ arm }), b1 = quietBody({ arm, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm }));
+    const chip = neutralHit(b0.species, e.id), chip2 = neutralHit(b1.species, e.id);
+    if (!chip || !chip2) return cannot('no neutral 100-accuracy delivery move exists to take the two '
+      + 'bodies off full HP, and a heal into a full body is invisible');
+    return { arm, note: e.slotCondition + ' — chipped on turn 1, clicked on turn 2, and the effect has '
+        + 'to arrive by boundary 4; ' + pretty(b1.species) + ' is chipped identically and clicks nothing'
+        + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 4,
+        a0: mon(CLICKER(arm).species, '', CLICKER(arm).ability, [chip.id]),
+        a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [chip2.id]),
+        b0: { ...b0, moves: [e.id] }, b1: { ...b1, moves: [INERT] },
+        script: [turn([click(chip.id, 0), click(chip2.id, 1)], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [throwIt(e, 0), IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/side-condition', kind: 'move',
+  reads: 'sideCondition, and the condition\'s own onSideRestart',
+  why: 'screens, Tailwind and the four hazards are all board leaves WITH CLOCKS OR LAYER COUNTS, so '
+     + 'the move is clicked once and the board is then read for three more boundaries — a condition '
+     + 'set for the wrong number of turns parts on the count rather than on the name. THE SECOND CLICK '
+     + 'ON TURN 3 IS THE NEGATIVE AND ITS EXPECTED ANSWER IS DERIVED, not assumed: a condition whose '
+     + 'own definition carries `onSideRestart` STACKS (Spikes goes to two layers) and one that does '
+     + 'not FAILS and must not refresh the clock — which is exactly the state bug WIRE 8 fixed, where '
+     + 'a re-clicked Reflect halved damage five turns past its real expiry.',
+  break: { why: 'a screen is never raised — the click still resolves and still spends the turn',
+    patch: [["if(a.kind==='screen'){", "if(a.kind==='screen'){m._lastMove=a.mv;continue;}if(a.kind==='screen'){"]] },
+  match(e) {
+    if (!e.sideCondition) return null;
+    const arm = armFor(e), b0 = quietBody({ arm });
+    if (!b0) return cannot(noBodyWhy({ arm }));
+    const stacks = !!(e.condition && e.condition.onSideRestart);
+    return { arm, note: e.sideCondition + ' — the turn-3 re-click must '
+        + (stacks ? 'STACK (its condition declares onSideRestart)' : 'FAIL and must not refresh the '
+          + 'clock (its condition declares no onSideRestart)') + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 4,
+        a0: { ...CLICKER(arm), moves: [INERT] },
+        b0: { ...b0, moves: [e.id] },
+        script: [turn([IDLE, IDLE], [throwIt(e, 0), IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [throwIt(e, 0), IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/pseudo-weather', kind: 'move',
+  reads: 'pseudoWeather',
+  why: 'ONE MEMBER OF THIS FAMILY IS ON THE BOARD AND FOUR ARE NOT. `board_state.js` compares '
+     + '`field.trickroom_turns` and no other pseudo-weather, so Gravity, Magic Room, Wonder Room and '
+     + 'Fairy Lock have no leaf to appear on and will come back with THE STAGING IS INERT — which is '
+     + 'the honest answer and is a statement about the COMPARATOR rather than about the engine. Trick '
+     + 'Room is clicked, then three quiet boundaries so the clock has to walk down.',
+  break: { why: 'the room is never set — the click still resolves and still spends the turn',
+    patch: [["if(a.kind==='trickroom'){", "if(a.kind==='trickroom'){m._lastMove=a.mv;continue;}if(a.kind==='trickroom'){"]] },
+  match(e) {
+    if (!e.pseudoWeather) return null;
+    const arm = armFor(e), b0 = quietBody({ arm });
+    if (!b0) return cannot(noBodyWhy({ arm }));
+    return { arm, note: e.pseudoWeather + (e.pseudoWeather === 'trickroom' ? ' — compared as a clock'
+        : ' — NOT a leaf board_state.js compares; expect THE STAGING IS INERT') + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 4,
+        a0: { ...CLICKER(arm), moves: [INERT] },
+        b0: { ...b0, moves: [e.id] },
+        script: [turn([IDLE, IDLE], [throwIt(e, 0), IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/boosts-self', kind: 'move',
+  reads: 'boosts + target "self"',
+  why: 'the user clicks it TWICE, so the board carries the stage after one application and after two '
+     + '— an engine that applies a flat +1 for every setup move (which this one did until WIRE 19) '
+     + 'agrees with a Swords Dance on neither turn, and an engine that fails to stack parts on the '
+     + 'second. THE PARTNER IS THE NEGATIVE and stands beside it on every board, clicking nothing, so '
+     + 'a boost that leaked across the side is visible on the SAME board as the boost that landed.',
+  break: { why: 'the self-boost is skipped entirely — the click is still made, still costs the turn '
+              + 'and still records itself as the last move',
+    patch: [["if(a.kind==='setup'){", "if(a.kind==='setup'){m._lastMove=a.mv||m._lastMove;continue;}if(a.kind==='setup'){"]] },
+  match(e) {
+    if (!e.boosts || e.target !== 'self') return null;
+    const arm = armFor(e);
+    const b0 = quietBody({ arm }), b1 = quietBody({ arm, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm }));
+    return { arm,
+      note: 'clicked twice by ' + pretty(b0.species) + '; the partner ' + pretty(b1.species)
+          + ' clicks nothing and must stay at 0 on every stage' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 4,
+        a0: { ...CLICKER(arm), moves: [INERT] },
+        b0: { ...b0, moves: [e.id] }, b1: { ...b1, moves: [INERT] },
+        script: [turn([IDLE, IDLE], [mclick(e), IDLE]),
+                 turn([IDLE, IDLE], [mclick(e), IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/boosts-target', kind: 'move',
+  reads: 'boosts + a target that is not the user',
+  why: 'the aggressor throws it at ONE slot, twice, and the body in the OTHER slot is the negative on '
+     + 'the same board. That pairing is the point: a stat drop applied to the Pokemon object instead '
+     + 'of to the SLOT lands on a body that was never aimed at, which is the defect WIRE 139 fixed and '
+     + 'which a single-target board cannot see. The second click is the second negative — the stage '
+     + 'has to reach -2, and an engine that writes rather than accumulates stops at -1.',
+  break: { why: 'the target\'s stat stage is left where it was — the move still resolves, still '
+              + 'announces and still spends the turn',
+    patch: [['_t.boosts[_s2]=clamp(_t.boosts[_s2]+_d,-6,6);', '_t.boosts[_s2]=_t.boosts[_s2];']] },
+  match(e) {
+    if (!e.boosts || e.target === 'self' || !aimsAtFoe(e)) return null;
+    const arm = armFor(e), pw = !!(e.flags && e.flags.powder);
+    const b0 = quietBody({ arm, type: e.type, powder: pw });
+    const b1 = quietBody({ arm, type: e.type, powder: pw, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: e.type, powder: pw }));
+    return { arm,
+      note: 'thrown at ' + pretty(b0.species) + ' twice; ' + pretty(b1.species) + ' stands beside it '
+          + 'and is never aimed at' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 4,
+        a0: { ...CLICKER(arm), moves: [e.id] },
+        b0: { ...b0, moves: [INERT] }, b1: { ...b1, moves: [INERT] },
+        script: [turn([throwIt(e, 0), IDLE], [IDLE, IDLE]),
+                 turn([throwIt(e, 0), IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/status-inflict', kind: 'move',
+  reads: 'status',
+  why: 'the status itself is a board leaf and so is its COUNTER, which is the half nothing in this '
+     + 'repository could see until 2026-08-08. The move is thrown at one slot on turn 1 and AT THE '
+     + 'SAME SLOT AGAIN on turn 2 — the second click must FAIL, because a body already carrying a '
+     + 'major status cannot take another, and an engine that re-applies restarts the sleep or freeze '
+     + 'timer and parts on `status_counter` rather than on `status`. THE PARTNER IS THE NEGATIVE and '
+     + 'is never aimed at.',
+  /* THE FIRST ANCHOR FOR THIS RULE WAS THE WRONG BRANCH AND `--reds` SAID SO IMMEDIATELY. It patched
+   * `if(_e.status) applyStatus(...)` inside `kind==='affect'`, which reads like the mechanism and is
+   * only the SECONDARY door into it: `playerAction` classifies Glare, Spore and Thunder Wave as
+   * `kind:'status'`, so control never reaches that line and the plant moved no board. Aimed at the
+   * shared writer instead, which is where BOTH doors end up. */
+  break: { why: 'no status is ever written to any body — the move still resolves, still announces and '
+              + 'still spends the turn',
+    patch: [['function applyStatus(t,st,src){', 'function applyStatus(t,st,src){if(1)return false;']] },
+  match(e) {
+    if (!e.status) return null;
+    /* A SELF-INFLICTED STATUS FALLS THROUGH RATHER THAN REFUSING. Rest carries `status: 'slp'` AND a
+     * full heal; refusing it here would retire it before `move/heal` — which has a real staging for
+     * it — ever saw it. `null` means "not my shape", `cannot` means "nobody's". */
+    if (!aimsAtFoe(e)) return null;
+    /* THREE IMMUNITY TABLES AND NOT ONE, WHICH THE FIRST RUN CAUGHT: Poison Powder read "THE STAGING
+     * IS INERT" because the bulkiest quiet body is Goodra-HISUI, which is STEEL and cannot be
+     * poisoned at all. The TYPE chart decides whether the move connects; the STATUS has its own table
+     * (Steel/Poison refuse psn, Fire refuses brn, Electric refuses par, Ice refuses frz); and a POWDER
+     * move is refused by every Grass type whatever it carries. All three asked of the dex. */
+    const arm = armFor(e), pw = !!(e.flags && e.flags.powder);
+    const q = { arm, type: e.type, status: e.status, powder: pw };
+    const b0 = quietBody(q), b1 = quietBody({ ...q, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy(q) + ' The strict pool is required here rather than the '
+      + 'item stage\'s looser one because EARLY BIRD — the punching bag\'s own ability — moves the '
+      + 'SLEEP COUNTER, which is a leaf this comparison reads directly.');
+    return { arm,
+      note: e.status + ' onto ' + pretty(b0.species) + '; the second click must FAIL, and '
+          + pretty(b1.species) + ' beside it must stay clean' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 4,
+        a0: { ...CLICKER(arm), moves: [e.id] },
+        b0: { ...b0, moves: [INERT] }, b1: { ...b1, moves: [INERT] },
+        script: [turn([throwIt(e, 0), IDLE], [IDLE, IDLE]),
+                 turn([throwIt(e, 0), IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/weather-setter', kind: 'move',
+  reads: 'weather',
+  why: 'the sky and its CLOCK are both board leaves. The move is clicked once and the board is then '
+     + 'read for three more boundaries, so a weather that is set for the wrong number of turns parts '
+     + 'on the count rather than on the name. BOUNDARY 0 IS THE NEGATIVE — it is taken before anybody '
+     + 'chooses, so the sky must still be clear there — and turn 3 is the second: clicking the SAME '
+     + 'weather while it is already up FAILS in the authority and must not refresh the clock.',
+  break: { why: 'the weather is never written to the field — the click still resolves and still spends '
+              + 'the turn',
+    patch: [["if(a.kind==='weather'){", "if(a.kind==='weather'){m._lastMove=a.mv;continue;}if(a.kind==='weather'){"]] },
+  match(e) {
+    if (!e.weather) return null;
+    const arm = armFor(e), b0 = quietBody({ arm });
+    if (!b0) return cannot(noBodyWhy({ arm }));
+    return { arm,
+      note: e.weather + ', then three quiet boundaries so the clock has to walk down; the third click '
+          + 'is into its own weather and must FAIL' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 4,
+        a0: { ...CLICKER(arm), moves: [INERT] },
+        b0: { ...b0, moves: [e.id] },
+        script: [turn([IDLE, IDLE], [mclick(e), IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [mclick(e), IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/terrain-setter', kind: 'move',
+  reads: 'terrain',
+  why: 'the same shape one field over, and it is worth its own rule because the two carry DIFFERENT '
+     + 'vocabularies in the two engines — `psychicterrain` against `psychic` — and `board_state.js` '
+     + 'reconciles them through the engine\'s own exported translator. A terrain that arrives under a '
+     + 'name only one of this file\'s readers matches is invisible to everything else.',
+  break: { why: 'the terrain is never written to the field',
+    patch: [["if(a.kind==='terrain'){", "if(a.kind==='terrain'){m._lastMove=a.mv;continue;}if(a.kind==='terrain'){"]] },
+  match(e) {
+    if (!e.terrain) return null;
+    const arm = armFor(e), b0 = quietBody({ arm });
+    if (!b0) return cannot(noBodyWhy({ arm }));
+    return { arm,
+      note: e.terrain + ', then three quiet boundaries; the third click is into its own terrain and '
+          + 'must FAIL' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 4,
+        a0: { ...CLICKER(arm), moves: [INERT] },
+        b0: { ...b0, moves: [e.id] },
+        script: [turn([IDLE, IDLE], [mclick(e), IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [mclick(e), IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/self-boosts-after', kind: 'move',
+  reads: 'self.boosts on a damaging move',
+  why: 'Close Combat, Superpower, Armor Cannon and Head Long Rush pay their own stats AFTER the hit '
+     + 'lands, and the cost is a board leaf on the USER. Clicked twice, so the stage has to reach -2. '
+     + 'THE NEGATIVE IS THE SECOND SLOT: the partner throws a plain move of the same category and must '
+     + 'end at 0, which catches a self-drop applied to the side rather than to the body.',
+  break: { why: 'the self stat change is never applied — the damage still lands',
+    patch: [['const sdrop=connected?a.move.mv.self:null;', 'const sdrop=null;']] },
+  match(e) {
+    if (!(e.self && e.self.boosts) || !(e.basePower > 0)) return null;
+    const arm = armFor(e);
+    const b0 = quietBody({ arm, type: e.type });
+    if (!b0) return cannot(noBodyWhy({ arm, type: e.type }));
+    const plain = neutralHit(b0.species, e.id);
+    if (!plain) return cannot('no neutral 100-accuracy delivery move exists for the partner to throw '
+      + 'as the on-board negative');
+    return { arm, note: JSON.stringify(e.self.boosts) + ' onto the USER, twice; the partner throws '
+        + plain.name + ' and must end at 0' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 8,
+        a0: { ...CLICKER(arm), moves: [e.id] },
+        a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [plain.id]),
+        b0: { ...b0, moves: [INERT] },
+        script: [turn([throwIt(e, 0), click(plain.id, 0)], [IDLE, IDLE]),
+                 turn([throwIt(e, 0), click(plain.id, 0)], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/volatile', kind: 'move',
+  reads: 'volatileStatus',
+  why: 'EIGHT VOLATILES ARE BOARD LEAVES AND THE REST ARE NOT. `board_state.js` compares substitute, '
+     + 'taunt, encore, disable, leechseed, confusion, perish and the move trap — the rest of this '
+     + '32-move family has nowhere to appear and comes back THE STAGING IS INERT, which is a statement '
+     + 'about the comparator. The target CLICKS A REAL MOVE ON EVERY TURN, which Taunt, Encore and '
+     + 'Disable all need in order to bite anything, and THE PARTNER IS THE NEGATIVE beside it.',
+  break: { why: 'the move-sealing volatiles (Taunt, Encore, Disable) are never written',
+    patch: [["const _sm=TAGS.param('move',a.mv,'sealsMoves');", "const _sm=null;"]] },
+  match(e) {
+    if (!e.volatileStatus) return null;
+    const arm = armFor(e);
+    const b0 = quietBody({ arm, type: e.type }), b1 = quietBody({ arm, type: e.type, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: e.type }));
+    if (!aimsAtFoe(e)) {
+      /* a SELF volatile — the user raises it on itself, and the partner is the negative */
+      return { arm, note: e.volatileStatus + ' on the user; ' + pretty(b1.species) + ' beside it must '
+          + 'not gain it' + armNote(e),
+        scenario: scaffold({ hpA: 4, hpB: 8,
+          a0: { ...CLICKER(arm), moves: [INERT] },
+          b0: { ...b0, moves: [e.id] }, b1: { ...b1, moves: [INERT] },
+          script: [turn([IDLE, IDLE], [throwIt(e), IDLE]),
+                   turn([IDLE, IDLE], [IDLE, IDLE]),
+                   turn([IDLE, IDLE], [IDLE, IDLE])] }) };
+    }
+    /* TWO CLICKS, ALTERNATED, AND THAT IS NOT COSMETIC. The target has to be USING a move for Taunt,
+     * Encore and Disable to have anything to bite — and the first version gave it ONE, which DISABLE
+     * and TORMENT then made illegal on the following turn: Showdown rejected the choice and the game
+     * threw rather than staging anything. Two distinct neutral clicks, alternated, satisfies Torment
+     * (never the same move twice running) and survives Disable (the other one is still legal). */
+    const back = neutralHit(CLICKER(arm).species, e.id);
+    const back2 = back ? neutralHit2(CLICKER(arm).species, [e.id, back.id]) : null;
+    if (!back || !back2) return cannot('no PAIR of neutral 100-accuracy delivery moves exists for the '
+      + 'target to alternate between. One is not enough: Taunt, Encore and Disable read the target\'s '
+      + 'LAST MOVE, and Disable and Torment then make a repeated click ILLEGAL, which throws the game');
+    return { arm, note: e.volatileStatus + ' onto ' + pretty(b0.species) + ', which clicks '
+        + back.name + ' every turn so a move-sealing volatile has something to seal; '
+        + pretty(b1.species) + ' clicks the same move and is never aimed at' + armNote(e),
+      scenario: scaffold({ hpA: 8, hpB: 8,
+        a0: { ...CLICKER(arm), moves: [e.id] },
+        b0: { ...b0, moves: [back.id, back2.id] }, b1: { ...b1, moves: [back.id, back2.id] },
+        /* TWO TURNS AND NOT THREE. Disable seals the target's last move for FIVE turns, so a third
+         * turn has nothing legal left to click whichever of the pair it names — Showdown rejects the
+         * choice and the game throws. Two is enough: the volatile is on boundary 1 and its counter
+         * has decremented by boundary 2. */
+        script: [turn([throwIt(e, 0), IDLE], [click(back.id, 0), click(back.id, 0)]),
+                 turn([throwIt(e, 0), IDLE], [click(back2.id, 0), click(back2.id, 0)])] }) };
+  } },
+
+{ id: 'move/heal', kind: 'move',
+  reads: 'heal',
+  why: 'the user is chipped on turn 1 so a heal has somewhere to go, then heals on turns 2 and 3 — '
+     + 'the second is the negative for a heal that overshoots the maximum. THE PARTNER IS THE OTHER '
+     + 'NEGATIVE: chipped by an identical click and never healing.',
+  break: { why: 'the heal is skipped — the click still resolves and still spends the turn',
+    patch: [["if(a.kind==='heal'){", "if(a.kind==='heal'){m._lastMove=a.mv;continue;}if(a.kind==='heal'){"]] },
+  match(e) {
+    if (!e.heal) return null;
+    const arm = armFor(e);
+    const b0 = quietBody({ arm }), b1 = quietBody({ arm, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm }));
+    const chip = neutralHit(b0.species, e.id), chip2 = neutralHit(b1.species, e.id);
+    if (!chip || !chip2) return cannot('no neutral 100-accuracy delivery move exists to take the two '
+      + 'bodies off full HP, and a heal into a full body is invisible');
+    return { arm, note: 'chipped by ' + chip.name + ', then healing twice; ' + pretty(b1.species)
+        + ' is chipped identically and never heals' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 4,
+        a0: mon(CLICKER(arm).species, '', CLICKER(arm).ability, [chip.id]),
+        a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [chip2.id]),
+        b0: { ...b0, moves: [e.id] }, b1: { ...b1, moves: [INERT] },
+        script: [turn([click(chip.id, 0), click(chip2.id, 1)], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [throwIt(e), IDLE]),
+                 turn([IDLE, IDLE], [throwIt(e), IDLE])] }) };
+  } },
+
+{ id: 'move/drain', kind: 'move',
+  reads: 'drain',
+  why: 'BOTH HALVES ARE ON THE BOARD and an engine that had one without the other parts on exactly one '
+     + 'of them: the target loses HP and the user gains a fraction of what was dealt. The user is '
+     + 'chipped first, because a drain into a full-HP body heals NOTHING and would read as a plain '
+     + 'attack. THE PARTNER IS THE NEGATIVE and throws a plain move of the same type, gaining nothing.',
+  break: { why: 'the drain heal is skipped and the damage is left alone, so a break that moves ONLY '
+              + 'the user\'s HP is the localisation',
+    patch: [["const _dr=TAGS.param('move',a.move.id,'drain');", "const _dr=null;"]] },
+  match(e) {
+    if (!e.drain || !(e.basePower > 0)) return null;
+    const arm = armFor(e);
+    const b0 = quietBody({ arm }), b1 = quietBody({ arm, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm }));
+    const chip = neutralHit(b0.species, e.id), chip2 = neutralHit(b1.species, e.id);
+    const plain = neutralHit(CLICKER(arm).species, e.id);
+    if (!chip || !chip2 || !plain) return cannot('no neutral 100-accuracy delivery move exists to chip '
+      + 'the two bodies and to give the partner a non-draining click of its own');
+    if (dex.getImmunity(e.type, dex.species.get(CLICKER(arm).species).types) === false)
+      return cannot('the derived aggressor is immune to ' + e.type + ', so the drain would deal '
+        + 'nothing and heal nothing');
+    return { arm, note: 'chipped, then draining off ' + pretty(CLICKER(arm).species) + '; '
+        + pretty(b1.species) + ' throws ' + plain.name + ' instead and must gain nothing' + armNote(e),
+      scenario: scaffold({ hpA: 8, hpB: 4,
+        a0: mon(CLICKER(arm).species, '', CLICKER(arm).ability, [chip.id, chip2.id]),
+        b0: { ...b0, moves: [e.id] }, b1: { ...b1, moves: [plain.id] },
+        script: [turn([click(chip.id, 0), IDLE], [IDLE, IDLE]),
+                 turn([click(chip2.id, 1), IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [throwIt(e, 0), click(plain.id, 0)]),
+                 turn([IDLE, IDLE], [throwIt(e, 0), click(plain.id, 0)])] }) };
+  } },
+
+{ id: 'move/recoil', kind: 'move',
+  reads: 'recoil / mindBlownRecoil / struggleRecoil',
+  why: 'the user\'s OWN HP is the leaf, and the negative is on the same board: the partner throws a '
+     + 'plain move of comparable power at the other slot and must lose nothing. Two turns, because a '
+     + 'recoil computed off the wrong quantity (the move\'s power rather than the damage dealt) tracks '
+     + 'correctly on a full-HP target and parts on a chipped one.',
+  break: { why: 'the recoil is never paid — the damage still lands',
+    patch: [['const _rc=a.move.mv&&a.move.mv.rc;', 'const _rc=null;']] },
+  match(e) {
+    if (!(e.recoil || e.mindBlownRecoil || e.struggleRecoil) || !(e.basePower > 0)) return null;
+    /* STRUGGLE CANNOT BE CLICKED FROM A SCRIPT AT ALL, and the rejection names the reason: Showdown
+     * marks it DISABLED for any body that has a usable move, which every body in this file does.
+     * Read off `struggleRecoil` — the field only Struggle carries — rather than off its name. */
+    if (e.struggleRecoil) return cannot('Showdown DISABLES Struggle for any body that still has a '
+      + 'usable move, and every body this file stages carries at least the inert click — so the '
+      + 'scripted choice is rejected ("Struggle is disabled") and the game throws. Reaching it would '
+      + 'need a body whose whole moveset is spent, which the script language has no way to arrange '
+      + 'because medicham2 does not track PP at all (board_state.js NOT_COMPARED).');
+    const arm = armFor(e);
+    const b0 = quietBody({ arm, type: e.type }), b1 = quietBody({ arm, type: e.type, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: e.type }));
+    const plain = neutralHit(b1.species, e.id);
+    if (!plain) return cannot('no neutral 100-accuracy non-recoil delivery move exists for the '
+      + 'on-board negative');
+    return { arm, note: 'the user pays; the partner throws ' + plain.name + ' at the other slot and '
+        + 'must pay nothing' + armNote(e),
+      scenario: scaffold({ hpA: 8, hpB: 8,
+        a0: { ...CLICKER(arm), moves: [e.id] },
+        a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [plain.id]),
+        b0: { ...b0, moves: [INERT] }, b1: { ...b1, moves: [INERT] },
+        script: [turn([throwIt(e, 0), click(plain.id, 1)], [IDLE, IDLE]),
+                 turn([throwIt(e, 0), click(plain.id, 1)], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/fixed-damage', kind: 'move',
+  reads: 'damage / damageCallback',
+  why: 'a fixed-damage move ignores every multiplier this engine spends most of its lines on, so the '
+     + 'number it produces is a direct read of one branch. The user is hit by a PHYSICAL click and by '
+     + 'a SPECIAL one on the same turn, because Counter and Mirror Coat each read one of those and a '
+     + 'staging that supplied only one would report the other as inert. The user answers on the next '
+     + 'turn, so the retaliation family has something to retaliate against.',
+  break: { why: 'the fixed-damage branch is skipped — the click still resolves and still spends the turn',
+    patch: [["if(a.kind==='fixeddmg'){", "if(a.kind==='fixeddmg'){m._lastMove=a.mv;continue;}if(a.kind==='fixeddmg'){"]] },
+  match(e) {
+    if (!(e.damage || e.damageCallback)) return null;
+    const arm = armFor(e);
+    const b0 = quietBody({ arm });
+    if (!b0) return cannot(noBodyWhy({ arm }));
+    /* THE AGGRESSOR IS DERIVED FROM THE MOVE'S TYPE, NOT TAKEN FROM THE CAST. `CAST.ATTACKER` is
+     * Dragapult, which is Dragon/GHOST and therefore immune to both Fighting and Normal — so Seismic
+     * Toss, Counter, Final Gambit, Endeavor and Super Fang all read "the aggressor is immune" on the
+     * first full run. FIVE OF THE EIGHT MEMBERS of this family, retired by the fixture rather than by
+     * the format, which is the shape this file exists to refuse. */
+    const atkPick = bodyNotImmuneTo(e.type);
+    if (!atkPick) return cannot('no legal body with a non-interfering ability can be hit by ' + e.type
+      + ', so the fixed damage has nowhere to land');
+    const atk = dex.species.get(atkPick.species);
+    let phys = null, spec = null;
+    for (const t of Object.keys(DELIVERY)) {
+      if (dex.getEffectiveness(t, dex.species.get(b0.species).types) !== 0) continue;
+      if (dex.getImmunity(t, dex.species.get(b0.species).types) === false) continue;
+      if (!phys && DELIVERY[t].physical && idOf(DELIVERY[t].physical.id) !== idOf(e.id)) phys = DELIVERY[t].physical;
+      if (!spec && DELIVERY[t].special && idOf(DELIVERY[t].special.id) !== idOf(e.id)) spec = DELIVERY[t].special;
+    }
+    if (!phys || !spec) return cannot('no neutral 100-accuracy PHYSICAL and SPECIAL pair exists '
+      + 'against ' + b0.species + ', and Counter and Mirror Coat read one each');
+    return { arm, note: 'hit physically AND specially first, then answering ' + pretty(atk.id)
+        + armNote(e),
+      scenario: scaffold({ hpA: 8, hpB: 8,
+        a0: mon(atk.id, '', atkPick.ability, [phys.id]),
+        a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [spec.id]),
+        b0: { ...b0, moves: [e.id] },
+        script: [turn([click(phys.id, 0), click(spec.id, 0)], [IDLE, IDLE]),
+                 turn([click(phys.id, 0), click(spec.id, 0)], [throwIt(e, 0), IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/type-changing', kind: 'move',
+  reads: 'onModifyType, and the condition named in the move\'s own shortDesc',
+  why: 'A TYPE CHANGE IS ONLY OBSERVABLE IF THE DEFENDER\'S TYPE MAKES IT SO, and getting that wrong '
+     + 'is how a false calibration was produced against this very move on 2026-08-08: a NEUTRAL '
+     + 'defender turns the whole question into a damage number, where a missing 2x and a defensive '
+     + 'x0.5 are the same factor and cancel. So the defender is derived to be a GHOST wherever the '
+     + 'format offers one: with no weather Weather Ball is NORMAL and deals literally nothing, and '
+     + 'under sun it is FIRE and deals full damage. The comparison is then CATEGORICAL — 0 against a '
+     + 'number — and passes through the stage-5 immunity gate, which is where `effMoveType` is the '
+     + 'battle loop\'s authority.\n'
+     + '     THE KNOB IS VARIED ON ONE BOARD. Turn 1 is the click with a clear sky, turn 2 sets the '
+     + 'weather, turn 3 is the identical click under it. IDENTICAL DAMAGE ON TURNS 1 AND 3 MEANS THE '
+     + 'TYPE NEVER CHANGED, which is the only reading this instrument accepts as evidence.\n'
+     + '     WHAT IT STILL CANNOT REACH, said rather than implied: the known live defect is '
+     + '`effMoveType` reading `field.weather` RAW while `dmgRange` reads `effWeatherOf`, which only '
+     + 'part company under a PRIVATE sky — a Mega Sol ability with a clear field. That needs an '
+     + 'ABILITY carrier, so it is out of reach of a move-shape rule and is named here instead of '
+     + 'being quietly missed.',
+  /* THE FIRST ANCHOR WAS `effMoveType` AND THE PLANT MOVED NOTHING, which is the same split the live
+   * defect lives in: `effMoveType` (:2167) is the BATTLE LOOP'S authority for the stage-5 immunity
+   * gate, and `dmgRange` (:2360) reads `weatherScaled` AGAIN for itself. Breaking one leaves the
+   * other pricing the converted type, so the damage never moves. Aimed at the damage-side copy, and
+   * the BASE POWER half of the same line is deliberately left alone so a break that moves only the
+   * EFFECTIVENESS is the localisation. TWO READERS OF ONE FACT IS THE DEFECT ITSELF (CLAUDE.md: facts
+   * are global) and it is filed rather than fixed — the simulator is not this file's to edit. */
+  break: { why: 'the weather-driven TYPE conversion is dropped from the damage path; the base-power '
+              + 'doubling on the same line is left alone',
+    patch: [['if(w){if(w.type)mvT=w.type;if(w.bpMult)mvBP=Math.floor(mvBP*w.bpMult);}',
+             'if(w){if(w.bpMult)mvBP=Math.floor(mvBP*w.bpMult);}']] },
+  match(e) {
+    if (!e.onModifyType) return null;
+    const arm = armFor(e);
+    const setter = /weather|sun|rain|sand|snow|hail/i.test(e.shortDesc || '') ? 'weather'
+                 : /terrain/i.test(e.shortDesc || '') ? 'terrain' : null;
+    if (!setter) return cannot('the condition that changes its type is not named in its own '
+      + 'description, so no staging can be derived from the move\'s data: ' + (e.shortDesc || '(none)')
+      + '. Aura Wheel and Raging Bull read the USER\'S FORME, which is an ability/species question '
+      + 'rather than a move one.');
+    const set = dex.moves.all().find(m => m.exists && !m.isNonstandard && alwaysHits(m)
+      && (setter === 'weather' ? m.weather === 'sunnyday' : !!m.terrain));
+    if (!set) return cannot('no 100-accuracy move in this format sets the ' + setter + ' this move '
+      + 'reads, so the knob cannot be varied at all');
+    /* THE DEFENDER IS CHOSEN FOR ITS TYPE, NOT FOR ITS BULK. A Ghost is immune to the move's PRINTED
+     * type (Normal) and not to what it converts into, so turn 1 reads 0 and turn 3 reads a number. */
+    /* THE FIVE-SPECIES MOVE POOL CONTAINS NO GHOST, so this one rule falls back to the ITEM stage's
+     * wider filter — `carrierAbility`, which excludes every damage modifier, HP floor and immunity
+     * and is exactly the guarantee a damage reading needs. The ability chosen is PRINTED on the entry
+     * so the widening is visible rather than assumed. */
+    const ghost = quietBody({ arm, hasType: 'Ghost' })
+               || carrierBody({ hasType: 'Ghost', immuneTo: e.type });
+    const b0 = ghost || quietBody({ arm });
+    if (!b0) return cannot(noBodyWhy({ arm }));
+    const b1 = quietBody({ arm, not: [b0.species] });
+    if (!b1) return cannot(noBodyWhy({ arm, not: [b0.species] }));
+    return { arm, note: (ghost ? 'GHOST defender ' + pretty(b0.species) + ' (' + b0.ability + ') '
+          + '— the printed type is '
+          + e.type + ', so turn 1 (clear) must deal NOTHING and turn 3 (under ' + set.name + ') must '
+          + 'deal damage. A neutral defender would hide the conversion behind a damage number.'
+        : 'NO legal Ghost body with a quiet ability exists, so this runs against ' + pretty(b0.species)
+          + ' and the conversion is only visible as a damage difference — weaker evidence, said here')
+        + ' The weather setter is clicked by the PARTNER, so the control arm keeps it.' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 8,
+        a0: { ...CLICKER(arm), moves: [e.id] },
+        b0: { ...b0, moves: [set.id] }, b1: { ...b1, moves: [INERT] },
+        script: [turn([throwIt(e, 0), IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [click(set.id), IDLE]),
+                 turn([throwIt(e, 0), IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/variable-power', kind: 'move',
+  reads: 'basePowerCallback',
+  why: 'the power IS the calculation, and twelve members of this family carry `variablePower '
+     + '{computed:true}` with no derivable idiom at all — the artifact says so. Staged as a plain '
+     + 'damaging click, twice, so the number the formula produces is compared directly against the '
+     + 'authority. THE CONDITION IS WHATEVER THE DEFAULT BOARD SUPPLIES: no boosts, full HP, an item '
+     + 'held, no status. That is a real point in the domain and it is the one this reads; a member '
+     + 'whose formula is flat there will agree here and could still be wrong elsewhere, which is the '
+     + 'honest limit of a single staged board.',
+  break: { why: 'every damage roll is halved',
+    patch: [['return {min:roll(85),max:roll(100),eff};',
+             'return {min:Math.floor(roll(85)*0.5),max:Math.floor(roll(100)*0.5),eff};']] },
+  match(e) {
+    if (!e.basePowerCallback) return null;
+    const arm = armFor(e);
+    const b0 = quietBody({ arm, type: e.type }), b1 = quietBody({ arm, type: e.type, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: e.type }));
+    return { arm, note: 'thrown at ' + pretty(b0.species) + ' twice; the power comes out of the '
+        + 'formula and the damage is what is compared' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 8,
+        a0: { ...CLICKER(arm), moves: [e.id] },
+        b0: { ...b0, moves: [INERT] }, b1: { ...b1, moves: [INERT] },
+        script: twice(e, turn([throwIt(e, 0), IDLE], [IDLE, IDLE]),
+                         turn([throwIt(e, 0), IDLE], [IDLE, IDLE])) }) };
+  } },
+
+{ id: 'move/priority', kind: 'move',
+  reads: 'priority !== 0 on a damaging move',
+  why: 'A BRACKET IS NOT A BOARD LEAF; WHO IS STILL STANDING IS. The user is derived to be SLOWER than '
+     + 'the aggressor and to die outright to it, so a positive-priority click lands before the killing '
+     + 'blow and a 0-priority one never happens at all. THE NEGATIVE IS ON THE SAME BOARD: a second '
+     + 'body, equally doomed, throws an ordinary move at the other aggressor, which must therefore end '
+     + 'the turn UNTOUCHED. That pairing is the whole content — one aggressor damaged, one not, from '
+     + 'two clicks that differ only in their bracket.\n'
+     + '     A NEGATIVE BRACKET IS NOT ISOLATED HERE AND THE ENTRY SAYS SO. The control arm removes '
+     + 'the move entirely, and a move that never resolves because it went last is indistinguishable '
+     + 'from a move that was not clicked — the delta is empty by construction. Those are staged as '
+     + 'plain damage with the delay declared unmeasured.',
+  break: { why: 'every move resolves in bracket 0, so a priority click no longer outruns a faster foe',
+    patch: [["return (fx&&typeof fx.priority==='number')?fx.priority:0;", 'return 0;']] },
+  match(e) {
+    if (!e.priority || !(e.basePower > 0) || !needsIndex(e)) return null;
+    const arm = armFor(e);
+    const atk = dex.species.get(CAST.ATTACKER().species), atk2 = dex.species.get(CAST.ATTACKER2().species);
+    if (e.priority < 0) {
+      const b0 = quietBody({ arm, type: e.type });
+      if (!b0) return cannot(noBodyWhy({ arm, type: e.type }));
+      return { arm, note: 'priority ' + e.priority + ' — THE DELAY IS NOT ISOLATED (see the rule); '
+          + 'only the damage is staged' + armNote(e),
+        scenario: scaffold({ hpA: 8, hpB: 8,
+          a0: { ...CLICKER(arm), moves: [INERT] },
+          b0: { ...b0, moves: [e.id] },
+          script: [turn([IDLE, IDLE], [throwIt(e, 0), IDLE]),
+                   turn([IDLE, IDLE], [throwIt(e, 0), IDLE])] }) };
+    }
+    const spd = s => flatL50(s.baseStats).sp;
+    const pool = moveBodies(arm).filter(r => spd(r.sp) < spd(atk) && spd(r.sp) < spd(atk2)
+      && dex.getImmunity(e.type, atk.types) !== false);
+    let pick = null;
+    for (const r of pool) { const k1 = lethalMove(atk, r.sp, 1.2); if (!k1) continue;
+      for (const r2 of pool) { if (r2.sp.id === r.sp.id) continue;
+        const k2 = lethalMove(atk2, r2.sp, 1.2); if (!k2) continue;
+        const plain = neutralHit(atk2.id, e.id); if (!plain) continue;
+        pick = { r, r2, k1: k1.mv, k2: k2.mv, plain }; break; }
+      if (pick) break; }
+    if (!pick) return cannot('no pair of bodies in the move pool is both SLOWER than the two derived '
+      + 'aggressors and killable outright by them, so a bracket has no way onto the board: without a '
+      + 'KO the turn ends in the same state whichever order it resolved in');
+    return { arm, note: 'priority +' + e.priority + ' — ' + pretty(pick.r.sp.id) + ' is slower and '
+        + 'dies to ' + pick.k1.name + ', and its click must land FIRST; ' + pretty(pick.r2.sp.id)
+        + ' beside it throws a 0-priority ' + pick.plain.name + ' and must never get to act' + armNote(e),
+      scenario: scaffold({
+        a0: mon(atk.id, '', CAST.ATTACKER().ability, [pick.k1.id]),
+        a1: mon(atk2.id, '', CAST.ATTACKER2().ability, [pick.k2.id]),
+        b0: mon(pick.r.sp.id, '', pick.r.ability, [e.id]),
+        b1: mon(pick.r2.sp.id, '', pick.r2.ability, [pick.plain.id]),
+        script: [turn([click(pick.k1.id, 0), click(pick.k2.id, 1)],
+                      [throwIt(e, 0), click(pick.plain.id, 1)])] }) };
+  } },
+
+{ id: 'move/crit', kind: 'move',
+  reads: 'critRatio > 1 / willCrit',
+  why: 'THE RATIO ITSELF IS NOT STAGEABLE IN EITHER ARM, and what is staged instead is the CRIT '
+     + 'DAMAGE FORMULA. The primary arm never lands a crit by construction, and the control click '
+     + 'adds two crit stages, which on top of a raised ratio reaches the tier Showdown rolls as '
+     + 'randomChance(1,1) and crits EVERY TIME — a one-sided crit already mistaken once for an engine '
+     + 'defect (Wide Lens, Zoom Lens). On the bottom arm every crit lands whatever the ratio is, so a '
+     + 'ratio of 2 and a ratio of 1 produce the same board and the RATIO is not what is measured. The '
+     + 'x1.5, the ignored defensive stages and the ignored screens ARE, and nothing else in this file '
+     + 'reaches them.\n'
+     + '     THE DEFENDER COMES FROM THE ITEM STAGE\'S POOL AND NOT THE MOVE STAGE\'S, which is the '
+     + 'one place those two pools must differ. Every usable body in the move pool wears BATTLE ARMOR '
+     + 'or SHELL ARMOR — the format offers nothing else with a silent ability — and an armoured '
+     + 'defender BLOCKS the crit outright, which is how the first version of `critsLand()` came back '
+     + 'saying no crit lands anywhere. `carrierAbility` lists `onCriticalHit` in INTERFERES, so a body '
+     + 'chosen by it provably cannot block one.',
+  break: { why: 'a critical hit stops being worth x1.5 — it still lands, still ignores the defender\'s '
+              + 'positive stages and still ignores screens',
+    patch: [[CRIT_X15, 'if(_critHere){MEDSEEN.critInRange++;}']] },
+  match(e) {
+    if (!(e.critRatio > 1 || e.willCrit) || !(e.basePower > 0)) return null;
+    const C = critsLand();
+    if (!C.ok) return cannot('NO CRITICAL HIT LANDS IN THIS SIMULATOR IN EITHER ARM, so a raised '
+      + 'ratio has nothing to act on and the crit damage formula has nothing to price. ' + C.why);
+    const arm = BOTTOM_ARM;
+    const b0 = carrierBody({ type: e.type }), b1 = carrierBody({ type: e.type, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot('no two distinct bodies exist that a ' + e.type + '-type move can '
+      + 'be aimed at whose ability cannot block a critical hit');
+    return { arm, note: 'critRatio ' + (e.critRatio || '(willCrit)') + ' into ' + pretty(b0.species)
+        + ' (' + b0.ability + ', which cannot block a crit) — the RATIO is not under test; the crit '
+        + 'DAMAGE is' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 8,
+        a0: { ...CLICKER(arm), moves: [e.id] },
+        b0: { ...b0, moves: [INERT] }, b1: { ...b1, moves: [INERT] },
+        script: twice(e, turn([throwIt(e, 0), IDLE], [IDLE, IDLE]),
+                         turn([throwIt(e, 0), IDLE], [IDLE, IDLE])) }) };
+  } },
+
+{ id: 'move/plain-attack', kind: 'move',
+  reads: 'basePower > 0 and nothing else this file has a narrower rule for',
+  why: 'THE RESIDUE, AND IT IS A REAL TEST RATHER THAN A PARKING SPACE — which is the distinction '
+     + '`ability/generic` failed: that rule swallowed 124 abilities and reported them as inert. A '
+     + 'plain attack staged here is a DAMAGE NUMBER compared leaf for leaf against the authority on a '
+     + 'move nobody may ever have brought to the ladder, which is exactly the coverage the '
+     + 'usage-driven differential cannot buy. Thrown twice, with the partner as the on-board negative.'
+     + '\n     WHAT IT DOES NOT TEST IS PRINTED ON THE ENTRY: a sub-100% secondary never fires in '
+     + 'either engine on the primary arm and always fires on the bottom one, so the SECONDARY is a '
+     + 'property of the arm and not of this staging.',
+  break: { why: 'every damage roll is halved',
+    patch: [['return {min:roll(85),max:roll(100),eff};',
+             'return {min:Math.floor(roll(85)*0.5),max:Math.floor(roll(100)*0.5),eff};']] },
+  match(e) {
+    if (!(e.basePower > 0)) return null;
+    const arm = armFor(e);
+    if (!needsIndex(e) && !aimsAtFoe(e)) return cannot('it deals damage and is not aimed at a foe '
+      + '(target "' + e.target + '"), which this rule has no staging for');
+    const b0 = quietBody({ arm, type: e.type }), b1 = quietBody({ arm, type: e.type, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: e.type }));
+    const sec = (e.secondaries || []).filter(s => s.chance && s.chance < 100);
+    return { arm, note: e.type + ' ' + e.basePower + ' BP into ' + pretty(b0.species) + ', twice'
+        + (sec.length ? '; it also carries ' + sec.length + ' sub-100% secondary/ies which the arm '
+            + 'decides and this staging does not test' : '') + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 8,
+        a0: { ...CLICKER(arm), moves: [e.id] },
+        b0: { ...b0, moves: [INERT] }, b1: { ...b1, moves: [INERT] },
+        script: twice(e, turn([throwIt(e, 0), IDLE], [IDLE, IDLE]),
+                         turn([throwIt(e, 0), IDLE], [IDLE, IDLE])) }) };
+  } },
+
+{ id: 'move/generic-status', kind: 'move',
+  reads: 'nothing matched above — this is the second residue, and it is the WEAK one',
+  why: 'A ZERO-POWER MOVE WHOSE EFFECT LIVES ENTIRELY IN AN `onHit` HANDLER. Belly Drum, Acupressure, '
+     + 'Fling, Defog, Copycat, Entrainment, Guard Swap and forty-odd others reach the board only if '
+     + 'the handler happens to touch a leaf the comparator reads. It is clicked twice against a body '
+     + 'that has been chipped and is holding an item, and if Showdown\'s own board does not move the '
+     + 'entry says THE STAGING IS INERT rather than passing. THERE IS NO BREAK, because there is no '
+     + 'single mechanism to aim one at — this rule is a bucket and reporting it as anything else '
+     + 'would be the `ability/generic` failure again.',
+  match(e) {
+    const arm = armFor(e);
+    const b0 = quietBody({ arm }), b1 = quietBody({ arm, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm }));
+    const chip = neutralHit(b0.species, e.id);
+    if (!chip) return cannot('no neutral 100-accuracy delivery move exists to chip the bodies first');
+    const byFoe = aimsAtFoe(e);
+    const cl = throwIt(e, 0);
+    /* ONE CLICK, ON TURN 2, AND THE REASON IS A THROWN GAME RATHER THAN TIDINESS. Explosion, Memento,
+     * Misty Explosion and Self-Destruct KILL THE USER, so a second scripted click lands on the
+     * REPLACEMENT — which does not carry the move, resolves to `pass`, and is rejected outright.
+     * Ally Switch swaps the two slots and does the same thing one step sideways. Turn 1 chips, turn 2
+     * clicks, turn 3 is the quiet boundary the effect has to survive to. */
+    return { arm, note: 'generic: clicked ONCE on turn 2 by '
+          + (byFoe ? 'the aggressor at ' + pretty(b0.species) : pretty(b0.species) + ' itself')
+          + ', both sides chipped and holding an item' + armNote(e),
+      scenario: scaffold({ hpA: 8, hpB: 8,
+        a0: mon(CLICKER(arm).species, 'leftovers', CLICKER(arm).ability, byFoe ? [e.id, chip.id] : [chip.id]),
+        b0: { ...b0, item: 'sitrusberry', moves: byFoe ? [INERT] : [e.id] },
+        b1: { ...b1, item: 'leftovers', moves: [INERT] },
+        /* THE AGGRESSOR KEEPS A REAL CLICK ON EVERY TURN IT IS NOT THE SUBJECT, and IMPRISON is why:
+         * it seals every move BOTH bodies know, and every body in this file knows the inert click, so
+         * an idling aggressor is left with nothing legal and its choice resolves to a rejected pass.
+         * Where the aggressor IS the subject it idles instead — it must not throw a damaging move
+         * after its own click has been silenced, which is what `controlQuietAudit` refuses. */
+        script: [turn([click(chip.id, 0), IDLE], [IDLE, IDLE]),
+                 turn(byFoe ? [cl, IDLE] : [click(chip.id, 0), IDLE],
+                      byFoe ? [IDLE, IDLE] : [cl, IDLE]),
+                 turn(byFoe ? [IDLE, IDLE] : [click(chip.id, 0), IDLE], [IDLE, IDLE])] }) };
+  } },
+
 { id: 'item/held-and-nothing-more', kind: 'item',
   reads: 'nothing matched above — this is the residue',
   why: 'THE FALLBACK, AND IT IS DELIBERATELY WEAK. The item is simply held by a body that attacks, is '
@@ -1862,6 +3165,11 @@ const RULES = [
 function critRatioAudit(list) {
   const bad = [];
   for (const sc of list) {
+    /* ON `bottom-tie-first` EVERY CRIT LANDS, IN BOTH ENGINES, IN BOTH ARMS OF THE COMPARISON — so
+     * the control click's two extra stages cannot manufacture a ONE-SIDED crit and there is nothing
+     * for this audit to protect. The exclusion is stated rather than assumed: it is a property of that
+     * arm's pin (`CORNER_BOTTOM`), not a decision taken here. */
+    if (sc.arm && sc.arm !== PRIMARY_ARM_ID) continue;
     for (const [side, team] of [['p1', sc.A], ['p2', sc.B]]) {
       sc.script.forEach((step, t) => (step[side] || []).forEach((a, i) => {
         if (!a) return;
@@ -1876,6 +3184,48 @@ function critRatioAudit(list) {
     }
   }
   return bad;
+}
+
+/* THE THIRD STATIC AUDIT, AND IT IS THE ONE THE MOVE STAGE NEEDS.
+ *
+ * A move's control arm replaces the click under test with the INERT click, and `selftest()` proves
+ * that click moves NO board leaf in either engine over three turns. It has exactly one residue, named
+ * at INERT_RAISES_CRIT_STAGES above: Focus Energy adds TWO critical-hit stages to the body that
+ * clicks it. That is invisible on the board — until the SAME BODY throws a damaging move on a LATER
+ * turn, at which point the control arm carries a crit the subject arm does not, in both engines, and
+ * the delta is the control's.
+ *
+ * So it is refused STATICALLY, per entry rather than per run: a scenario in which the body that loses
+ * its click goes on to attack is marked CONTROL-NOT-QUIET and is never reported as a finding. This is
+ * cheap, it is exact, and it is checked for every derived script rather than remembered by whoever
+ * writes the next rule. */
+function controlQuietAudit(e) {
+  if (e.kind !== 'move' || !e.scenario) return null;
+  const sc = e.scenario;
+  for (const [side, team] of [['p1', sc.A], ['p2', sc.B]]) {
+    const silenced = new Map();                       // slot -> the turn its click became INERT
+    for (let t = 0; t < sc.script.length; t++) {
+      const acts = sc.script[t][side] || [];
+      for (let i = 0; i < acts.length; i++) {
+        const a = acts[i]; if (!a || !a.m) continue;
+        /* THE ENTITY'S OWN LATER CLICKS ARE NOT THE HAZARD AND THE FIRST VERSION OF THIS FLAGGED 42
+         * OF THEM. Every click of the move under test is replaced, so a body clicking it on turns 1
+         * AND 2 has BOTH replaced and never attacks in the control arm at all. The hazard is a
+         * DIFFERENT, damaging move thrown after the silence. */
+        if (idOf(a.m) === idOf(e.id)) { if (!silenced.has(i)) silenced.set(i, t); continue; }
+        const mv = dex.moves.get(a.m);
+        if (silenced.has(i) && mv && mv.exists && mv.basePower > 0)
+          return 'the CONTROL ARM IS NOT INERT IN THIS SCENARIO. ' + side + ' slot ' + i + ' has its '
+            + pretty(e.id) + ' click replaced by ' + pretty(INERT) + ' on turn ' + (silenced.get(i) + 1)
+            + ', and the SAME BODY throws ' + mv.name + ' on turn ' + (t + 1) + '. ' + pretty(INERT)
+            + ' adds ' + INERT_RAISES_CRIT_STAGES + ' critical-hit stages, so the control arm can land '
+            + 'a crit the subject arm cannot, and the delta would be the control\'s rather than the '
+            + 'entity\'s — the exact shape that produced four false findings in the abilities stage.';
+        if (idOf(a.m) === idOf(e.id)) silenced.set(i, t);
+      }
+    }
+  }
+  return null;
 }
 
 /* =================================================================================================
@@ -1979,9 +3329,13 @@ function assign(kind) {
     const sc = hit.m.scenario;
     sc.id = kind + '/' + e.id;
     sc.kind = kind; sc.entityId = e.id;
-    out.push({ kind, id: e.id, name: e.name, rule: hit.rule.id, ruleObj: hit.rule,
-               reads: hit.rule.reads, note: hit.m.note || '', tier: hit.m.tier || null,
-               controlQuiet: hit.m.controlQuiet !== false, scenario: sc });
+    sc.arm = hit.m.arm || PRIMARY_ARM_ID;
+    const row = { kind, id: e.id, name: e.name, rule: hit.rule.id, ruleObj: hit.rule,
+                  reads: hit.rule.reads, note: hit.m.note || '', tier: hit.m.tier || null,
+                  controlQuiet: hit.m.controlQuiet !== false, scenario: sc };
+    const nq = controlQuietAudit(row);
+    if (nq) row.controlNotQuiet = nq;
+    out.push(row);
   }
   return { entries: out, banned };
 }
@@ -2085,7 +3439,7 @@ function selftest() {
  *  REPORT
  * ================================================================================================= */
 const VERDICT_ORDER = ['FIRED-AND-BOARDS-DIFFER', 'DID-NOT-FIRE', 'FIRED-AND-BOARDS-MATCH',
-                       'COULD-NOT-STAGE'];
+                       'CONTROL-NOT-QUIET', 'COULD-NOT-STAGE'];
 
 function printRules() {
   console.log('\nTHE SHAPE RULES — a scenario is DERIVED from these, never written per entity.');
@@ -2110,7 +3464,40 @@ function printRules() {
       + 'x2-weak carriers ' + (WEAK_TO[t] ? WEAK_TO[t].slice(0, 2).map(w => w.species + ' (' + w.types
         + ', ' + w.ability + ')').join(' + ') : 'NONE'));
   }
-  console.log('  100-accuracy status carriers:');
+  /* ---- THE MOVE STAGE'S POOL, PRINTED BEFORE IT IS BELIEVED ------------------------------------
+   * This is the block that would have caught the over-match on the first run instead of the second.
+   * `carrierAbility` — the ITEM stage's filter — hands out SHIELD DUST to twenty species, AROMA VEIL
+   * to nine, plus Sweet Veil, Flower Veil, Contrary, Unaware and Prankster, every one of which is a
+   * live participant in a move experiment. The strict filter and what it costs are both here. */
+  console.log('\n  THE MOVE STAGE\'S BODY POOL — every legal, buildable body carrying an ability with');
+  console.log('  NO `on*` KEY AT ALL (not "no on* FUNCTION": Shell Armor\'s handler is the literal');
+  console.log('  `false`, which a handler-shaped filter waves straight through):');
+  for (const arm of [PRIMARY_ARM_ID, BOTTOM_ARM]) {
+    const rows = moveBodies(arm);
+    console.log('    ' + arm.padEnd(18) + rows.length + ' species   '
+      + rows.map(r => r.sp.name + ' (' + r.sp.types.join('/') + ', ' + r.ability + ')').join(', '));
+  }
+  console.log('  and excluded from the silent set BY HAND, because each acts through a FIELD the');
+  console.log('  engines read rather than through a handler:');
+  for (const k of Object.keys(MOVE_FIELD_ACTORS))
+    console.log('    ' + pretty(k).padEnd(12) + MOVE_FIELD_ACTORS[k]);
+  console.log('  the crit armours, and the measurement that decides whether they may be used:');
+  console.log('    ' + critsLand().why.replace(/\s+/g, ' '));
+  console.log('  the aggressor (NOT the cast\'s Dragapult — Infiltrator IGNORES a screen and a');
+  console.log('  Substitute, and this stage raises both):');
+  for (const arm of [PRIMARY_ARM_ID, BOTTOM_ARM])
+    console.log('    ' + arm.padEnd(18) + pretty(CLICKER(arm).species) + ' (' + CLICKER(arm).ability + ')');
+  console.log('  which pin arm each move needs, decided by the move\'s OWN accuracy and crit ratio:');
+  {
+    const legal = population('move').legal;
+    const bot = legal.filter(m => armFor(m) === BOTTOM_ARM);
+    console.log('    ' + (legal.length - bot.length) + ' on ' + PRIMARY_ARM_ID + ', ' + bot.length
+      + ' on ' + BOTTOM_ARM + ' — the latter would stage NOTHING under the primary pin and would have '
+      + 'read "identical"');
+    console.log('      ' + bot.slice(0, 16).map(m => m.name).join(', ') + ', +' + (bot.length - 16) + ' more');
+  }
+
+  console.log('\n  100-accuracy status carriers:');
   for (const s of ['par', 'psn', 'tox', 'slp', 'brn', 'frz'])
     console.log('    ' + s.padEnd(5) + (STATUS_MOVE[s] ? STATUS_MOVE[s].name : 'NONE — anything needing '
       + 'this status is COULD-NOT-STAGE, because the pin makes every sub-100-accuracy move miss'));
@@ -2169,6 +3556,7 @@ function main() {
    * the per-slot count check still applies and no real click escapes inspection. Neither engine sees
    * this copy. */
   const shells = staged.map(e => ({ id: e.scenario.id, A: e.scenario.A, B: e.scenario.B,
+    arm: e.scenario.arm,
     script: e.scenario.script.map(st => ({ p1: st.p1.map(a => (a && a.sw ? null : a)),
                                            p2: st.p2.map(a => (a && a.sw ? null : a)) })) }));
   const fx = SB.fixtureAudit(shells).concat(critRatioAudit(shells));
@@ -2245,7 +3633,11 @@ function main() {
       let moved = null;
       for (const member of byRule[rid].slice(0, 4)) {
         const br = runEntry({ ...member, brokenSrc: src });
-        if (br.verdict === 'FIRED-AND-BOARDS-DIFFER' || br.verdict === 'DID-NOT-FIRE') {
+        /* CONTROL-NOT-QUIET COUNTS AS "THE BOARD MOVED" HERE AND NOWHERE ELSE. The red demonstration
+         * asks whether the PLANT changes a board, which is a question about the simulator; the quiet
+         * gate exists to stop a delta being ATTRIBUTED to an entity, which is a different question. */
+        if (br.verdict === 'FIRED-AND-BOARDS-DIFFER' || br.verdict === 'DID-NOT-FIRE'
+            || br.verdict === 'CONTROL-NOT-QUIET') {
           moved = { member: member.id, verdict: br.verdict,
                     fields: [...new Set((br.subject_diffs || []).map(d => d.field))] };
           break;
@@ -2264,6 +3656,15 @@ function main() {
     console.log('\n  ' + v + '   ' + rows.length);
     if (v === 'FIRED-AND-BOARDS-MATCH') {
       for (const r of rows) console.log('    ' + r.name.padEnd(22) + '[' + r.rule + ']   ' + r.note);
+      continue;
+    }
+    if (v === 'CONTROL-NOT-QUIET') {
+      for (const r of rows) {
+        console.log('    ' + r.name.padEnd(22) + '[' + r.rule + ']   ' + (r.note || ''));
+        console.log('      ' + (r.control_why || '').replace(/\s+/g, ' '));
+        for (const d of (r.sd_delta || []).slice(0, 3))
+          console.log('        (the CONTROL\'s own delta, turn ' + d.turn + ') ' + SAY(d, r.boards));
+      }
       continue;
     }
     if (v === 'COULD-NOT-STAGE') {
@@ -2365,6 +3766,51 @@ function main() {
       console.log('      ' + k + '\n        seen while staging: ' + [...sharedFam[k]].slice(0, 8).join(', '));
   }
 
+  /* ---- THE MIRROR TEST — THE INSTRUMENT CHECKING ITSELF ----------------------------------------
+   *
+   * IF SUBJECT A'S CONTROL IS B AND SUBJECT B'S CONTROL IS A, THEIR DELTAS ARE THE SAME MEASUREMENT
+   * WITH THE SIGN FLIPPED. Whatever number comes out belongs to whichever of the two the engine
+   * actually implements, and the pair CANNOT say which. Sand Rush reported `with 818 / without 850`
+   * and Fluffy reported `with 850 / without 818` — one 32-HP fact, two accusations, and the guilty
+   * mechanic was the CONTROL both times.
+   *
+   * It is free: no game is replayed, the deltas are already on the results. A stage in which no such
+   * pair exists says so, because "the check found nothing" and "the check could not run" are the two
+   * readings this project keeps confusing. */
+  const ctrlIdOf = (r) => (r.kind === 'ability' && r.scenario && r.scenario.controlAbility)
+    ? idOf(r.scenario.controlAbility) : null;
+  const mirrored = [], byId = {};
+  /* KEYED TO ABILITIES ONLY, because `--stage all` puts three populations in one `results` array and
+   * an id is only unique WITHIN a kind: `metronome` is an item AND a move, `sharpness` and `guard`
+   * families collide the same way. `ctrlIdOf` returns an ABILITY id, so an unscoped map would let a
+   * move stand in as an ability's control and the mirror test would compare two unrelated entities. */
+  for (const r of results) if (r.scenario && r.kind === 'ability') byId[r.id] = r;
+  for (const r of results) {
+    const c = ctrlIdOf(r); if (!c) continue;
+    const o = byId[c]; if (!o || ctrlIdOf(o) !== r.id || r.id > o.id) continue;
+    const swap = [];
+    for (const d of (r.sd_delta || [])) for (const e2 of (o.sd_delta || []))
+      if (d.turn === e2.turn && d.path === e2.path
+          && String(d.with) === String(e2.without) && String(d.without) === String(e2.with))
+        swap.push(d.path + '  ' + pretty(r.name) + ' with=' + d.with + '/without=' + d.without
+          + '   ' + pretty(o.name) + ' with=' + e2.with + '/without=' + e2.without);
+    if (swap.length) mirrored.push({ a: r, b: o, swap });
+  }
+  const mirrorPairs = results.filter(r => ctrlIdOf(r) && byId[ctrlIdOf(r)]
+    && ctrlIdOf(byId[ctrlIdOf(r)]) === r.id).length / 2;
+  console.log('\n  THE MIRROR TEST — does an entity control the entity that controls it?   '
+    + mirrorPairs + ' such pair(s) in this stage');
+  if (!mirrorPairs) console.log('    NONE EXIST HERE, which is a property of the control and not a '
+    + 'clean bill of health: a MOVE is controlled by the inert click, which the selftest proves moves '
+    + 'no board leaf in either engine, so no move can be another move\'s control.');
+  for (const m of mirrored) {
+    console.log('    SAME NUMBERS SWAPPED   ' + m.a.name + ' <-> ' + m.b.name
+      + '   [' + m.a.verdict + ' / ' + m.b.verdict + ']');
+    for (const s of m.swap.slice(0, 4)) console.log('        ' + s);
+  }
+  if (mirrorPairs && !mirrored.length) console.log('    and none of them reported the same numbers '
+    + 'swapped, so no pair in this stage is measuring its own control.');
+
   console.log('\n  THE DECLARED DIVERGENCES — quietened, counted, and printed every run:');
   DECLARED.forEach((x, i) => {
     console.log('    ' + (DECLARED_HITS[i] ? String(DECLARED_HITS[i]).padStart(4) + ' leaves' : '   0 leaves — STALE')
@@ -2384,13 +3830,50 @@ function main() {
       engine_release: REL.id, format: CS.FORMAT,
       counts: Object.fromEntries(VERDICT_ORDER.map(v => [v, (by[v] || []).length])),
       reds: redRows,
+      mirror: { pairs: mirrorPairs, same_numbers_swapped: mirrored.map(m => ({ a: m.a.id, b: m.b.id,
+        verdicts: [m.a.verdict, m.b.verdict], leaves: m.swap })) },
       results: results.map(r => ({ kind: r.kind, id: r.id, name: r.name, rule: r.rule, reads: r.reads || null,
         note: r.note || null, verdict: r.verdict, why: r.why || null,
+        arm: (r.scenario && r.scenario.arm) || PRIMARY_ARM_ID, control_why: r.control_why || null,
         sd_delta: (r.sd_delta || []).map(d => ({ turn: d.turn, path: d.path, with: d.with, without: d.without })),
         diffs: (r.subject_diffs || []).map(d => ({ turn: d.turn, slot: d.slot, body: d.body,
           field: d.field, showdown: d.sd, ours: d.us, bucket: d.bucket })) })) };
-    if (HAS('--write')) { fs.writeFileSync(D('data', 'roster.json'), JSON.stringify(art, null, 1));
-      console.log('  wrote data/roster.json'); }
+    /* ---- THE WRITE IS STAGE-PRESERVING, AND IT WAS NOT (ROADMAP #107) ---------------------------
+     *
+     * This wrote `data/roster.json` UNCONDITIONALLY, whatever stage ran. One file cannot carry three
+     * stages, so a moves run silently destroyed the abilities results — twice on 2026-08-08, both
+     * times recovered only because they had been copied aside BY HAND.
+     *
+     * `engine/quarantine.js` is the reader that makes this matter, and its rule is already written
+     * down there: a stage is satisfied ONLY by an artifact whose own `stage` field names it, tried as
+     * `data/roster.<stage>.json`, then `data/roster.all.json`, then `data/roster.json`. Two of its
+     * four clauses were failing purely on ABSENCE — not on a red, on nothing being on disk.
+     *
+     * So the PER-STAGE FILE IS THE ARTIFACT and `data/roster.json` is a convenience copy of whatever
+     * ran last. The convenience copy is written second and named as such, because a reader that took
+     * it for the whole roster is the failure this fixes.
+     *
+     * AND AN OVERWRITE IS ANNOUNCED. A stage artifact that is about to be replaced by a shorter or
+     * differently-pinned run is the one thing nobody can get back, so the previous file's stamp is
+     * printed before it goes and the old bytes are kept beside it as `.prev.json`. A silent
+     * replacement looks exactly like a first write. */
+    if (HAS('--write')) {
+      const perStage = D('data', 'roster.' + STAGE + '.json');
+      if (fs.existsSync(perStage)) {
+        let old = null;
+        try { old = JSON.parse(fs.readFileSync(perStage, 'utf8')); } catch (err) { old = null; }
+        console.log('  REPLACING an existing data/roster.' + STAGE + '.json'
+          + (old ? ' (stage ' + old.stage + ', release ' + old.engine_release + ', generated '
+                   + old.generated + ', ' + JSON.stringify(old.counts) + ')'
+                 : ' (unreadable — its bytes are kept anyway)'));
+        fs.writeFileSync(D('data', 'roster.' + STAGE + '.prev.json'), fs.readFileSync(perStage));
+        console.log('    its bytes are kept at data/roster.' + STAGE + '.prev.json');
+      }
+      fs.writeFileSync(perStage, JSON.stringify(art, null, 1));
+      console.log('  wrote data/roster.' + STAGE + '.json   <- THIS is what engine/quarantine.js reads');
+      fs.writeFileSync(D('data', 'roster.json'), JSON.stringify(art, null, 1));
+      console.log('  wrote data/roster.json (a convenience copy of the LAST stage run — not the roster)');
+    }
     if (JSONOUT) console.log('\n' + JSON.stringify(art, null, 1));
   }
 

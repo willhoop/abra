@@ -10,6 +10,175 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.79.0] — 2026-08-08
+
+### Added
+- **THE QUARANTINE. EVERY FIGURE DOWNSTREAM OF MEDICHAM IS WITHHELD UNTIL MEDICHAM IS CORRECT.**
+  Will's standing call: *"all engines that take medicham's output should be regarded as out of date
+  and we should stop referencing them until medicham is up to date and we can rerun them."* New
+  `engine/quarantine.js`, registered as a gate in `tests/run-all.js`, and a new CLAUDE.md section.
+  `docs/DIVISIONS.md`'s graph is one-way — MEDICHAM → board.js → MAG weights → MILTANK baselines —
+  so a wrong simulator does not stay in ENGINE, it reaches every number to its right.
+  Withheld: R1, R2, R3, R4, leaf calibration, engine-correctness→leaf, click censoring,
+  `policy-weights.json` and the joint weights. **34 of 114 artifacts.** Membership is DERIVED, not
+  typed: the transitive closure of *requires the simulator*, seeded from `medicham2-browser.js`
+  alone. Still printed in full: the census, the differential, the interaction matrix, the roster and
+  every OPS store figure — they MEASURE MEDICHAM rather than consume it, and the store is upstream.
+- **A CAPTION IS NOT A QUARANTINE.** `status.js` had been printing `PRE-CHANGE` and *"[engine moved
+  since; transfer assumed, not measured]"* beside these numbers for days, and they went on being
+  quoted anyway — including by the session that wrote this entry, to Will, on this date. That is the
+  same failure as a red gate reported for two days as *"one of the two known failures"*: the number
+  renders, the caveat is skimmed, the number gets used. **The figure is now ABSENT, not annotated.**
+- **THE GATE IS COMPUTED, NOT REMEMBERED.** Quarantine lifts only when the differential shows zero
+  disagreements AND the roster shows zero `FIRED-AND-BOARDS-DIFFER` and zero `DID-NOT-FIRE` across
+  items, abilities and moves — read out of artifacts every run. **A MISSING STAGE IS A FAILING
+  CLAUSE, NEVER A PASSING ONE.** Demonstrated RED on a hand-removed withhold before being armed, and
+  demonstrated to LIFT: gate closed → 34 of 34 withheld, gate open → 0 of 34.
+- **`tests/roster.js` GREW 26 MOVE SHAPE RULES, AND THE MOVES STAGE RAN FOR THE FIRST TIME.** The
+  stage had been a stub: `--stage moves` dispatched and every one of the 500 legal moves returned
+  *"no shape rule in this file matches its data shape"*, with `all 0 derived clicks`. The file's own
+  header had DESCRIBED move rules reading `target`, `category`, `basePower`, `status`, `boosts`,
+  `volatileStatus`, `weather`, `flags` since it was written. They were never implemented — prose kept
+  as if it were built, in the file whose entire purpose is to end hand-maintained lists.
+  All 500 staged in 15s: **330 match, 52 differ, 27 did not fire, 91 could not stage.**
+- **`tests/probe_pair.js`** — one way to stage the same body in both engines, which REFUSES to return
+  a number when the two bodies disagree. It also refuses a move carrying `onModifyType` (a direct
+  `moveHit` never runs `ModifyType`, so the reported type is the unconverted one) and owns the
+  damage-roll index convention in one place. Nine self-tests, including one that pins the actual
+  defect: it asserts `buildMon('snorlax')` really does ship `thickfat`.
+
+### Fixed
+- **THE ROSTER'S CONTROL ARM WAS MEASURING THE CONTROL, NOT THE SUBJECT.** `ability/generic` built
+  its control by swapping in another live ability, so the delta belonged to the control and the
+  VERDICT accused the subject. Six findings were false. The mirror image is the proof — Sand Rush's
+  control was Fluffy and Fluffy's was Sand Rush, and their deltas were the same two numbers swapped.
+  A contaminated arm now emits `CONTROL-NOT-QUIET` *before* any accusing verdict, and a mirror test
+  runs over the roster's own results: 25 pairs checked in the abilities stage, **6 caught**
+  (Fluffy↔Sand Rush, Refrigerate↔Snow Warning, Gooey↔Shell Armor, Keen Eye↔Weak Armor, Water
+  Absorb↔Water Bubble, Corrosion↔Toxic Debris). Zero in the moves stage, and that zero is printed.
+  The abilities queue went from 2 differ + 4 did-not-fire to **0 and 0**.
+
+### Changed
+- `docs/LESSONS.md` §5 gains three lessons after FIVE instrument failures in one session, taking the
+  running count to about twenty-five: `buildMon` hands you the species' real ability while the other
+  engine's body gets a different one; against a neutral defender a wrong TYPE and a wrong MULTIPLIER
+  are the same number; and an artifact is a photograph of the engine that wrote it while `status.js`
+  prints it forever. The meta-lesson is now stated outright — **a red result is evidence about the
+  PAIR (probe, engine), and the probe is both cheaper to check and the more likely culprit.**
+
+### Notes — RETRACTIONS, stated rather than quietly dropped
+- **Weather Ball is CORRECT** in all four skies, including sand→Rock and snow→Ice. It was reported
+  broken on 8,620 uses. The probe gave the MEDICHAM Snorlax **Thick Fat** out of `MC.mons` and the
+  Showdown Snorlax `abilities[0]` = Immunity; Thick Fat halves Fire and Ice, which is exactly the arms
+  that went red. Both hypotheses offered at the time — "we convert to Water in every weather" and
+  "the BP doubling is missing" — fit equally, because against a neutral defender they are one factor.
+- **Sand Rush (1,426 uses) and Damp (623) are CORRECT.** `effSpeed:3658` reads the `speedCond` tag and
+  doubles Speed in the right weather only; Damp is consumed at `:7203` across all four actives.
+  Absence of the NAME in the simulator is not absence of the wire — the engine reads the tag, which
+  is the correct design.
+- **Solar Beam's charge turn was overstated.** The loop does charge (`:7165`); the comment at `:2330`
+  describes a hole larger than the one that exists. It is a pricing gap in `dmgRange` only.
+
+### Notes — FOUND AND FILED, not yet fixed
+- `effMoveType` (`:2167`) reads `field.weather` raw while `dmgRange` reads `effWeatherOf`, so under a
+  private sky the loop calls Weather Ball Normal while the damage calc prices it Fire. Meganium-Mega
+  Weather Ball into Gengar, clear sky: **Showdown 115, ours 0.** One fact, two readers.
+- The volatile DURATION family — Encore 5,599, Taunt 1,714, Infestation 971, Disable 808, **9,092
+  uses on one rule.** Showdown decrements inside the Residual event (`battle.js:342`), ordered by
+  `onResidualOrder`, so a volatile applied on turn N is already decremented by the end of turn N.
+  This is the Perish Song bug again; that fix was applied to one volatile and every other
+  duration-bearing volatile still has it.
+- 12 moves carry generic gen-9 BASE POWER instead of the format's — Trop Kick 70 vs 85, Mountain Gale
+  100 vs 120 — ours low in all 12, 345 uses. WIRE 89's hazard one field over. Confirmed twice by two
+  independent instruments whose measured damage ratios match the BP ratios to three decimals.
+- The procedural heal family resolves to `{kind:'pass'}` — Synthesis, Moonlight, Morning Sun and
+  Strength Sap heal 0.000 in every sky, 1,024 uses, Strength Sap 693 of them.
+- `buffsHolderOnHit` checks no condition and drops `gainsVolatile` entirely, so Anger Point maxes
+  Attack off ANY hit rather than a critical one, and Electromorphosis is skipped.
+- **56 of 62 frozen releases cannot be opened by the live driver.** `game_differential.js` is not in
+  `engine_release.js`'s `SOURCES`, so the photograph freezes the subject and not the camera; a driver
+  that began calling `M.natureL50` cannot open any release cut before that export existed. This
+  undercuts the re-run list and the quarantine's own lift condition, and it is the third instance of
+  the shape SOURCES already grew twice to fix.
+- `data/interaction-matrix.json` is two days and 141 WIREs behind the simulator. Its nineteen parting
+  rows describe a different engine and must not be treated as a bug list until it is re-run.
+
+---
+
+## [3.78.0] — 2026-08-08
+
+### Added
+- **THE SHEET'S REAL NATURE NOW REACHES BOTH ENGINES.** `buildPair` hardcoded `nature: 'Serious'`
+  while the stored sheet beside it said `Modest`, so the whole-game differential threw away the single
+  largest legal lever on a body we can actually observe, on 100% of them. Both sides are now told the
+  nature and **each computes its own line** — nothing is copied, which is the rule the flat build
+  existed to protect. New gate `tests/test-nature-differential.js`, 13 checks, with the mega case
+  red-demonstrated on a planted break.
+- `--nature real|serious` is a RUN PARAMETER and rides in `mode`, beside the pin digest and the credit
+  rule, so `engine/arms_comparable.js` REFUSES a before/after spanning it. `serious` reproduces the
+  pre-2026-08-08 build exactly, which is how the two arms of this measurement differ in one parameter
+  and in no bytes at all.
+- `natureShift` / `natureStat` / `natureL50` exported from `medicham2-browser.js` as FACTS, beside
+  `md4096`. The paste path's own `Math.floor(x * 1.1)` was folded into them; the arithmetic is
+  Showdown's fixed-point `tr(tr(stat * 110, 16) / 100)`, verbatim.
+
+### Fixed
+- **THE MEGA PATH WOULD HAVE LOST THE NATURE.** `megaEvolveNow` swaps stats as
+  `megaL50 + (st - baseL50)`; with `st` natured and the anchors not, the delta is (mul − 1) × baseL50
+  and the mega lands short on exactly the stat the nature moved — mid-turn, with no seam to re-align
+  in, because `formeChange` -> `setSpecies` recomputes Showdown's `storedStats` from the SET. Both
+  anchors now carry the body's nature. Staged: a Jolly Abomasnow @ Abomasite reads Speed 55 with the
+  fix and 58 without it, and the planted break was caught reporting exactly 58.
+- **`ALIGN_MOVED` READ 21 FOR THE FIRST TIME, AND ALL 21 ARE DITTO — NOT THE NATURE.** It read 21 in
+  BOTH arms. `battleInit` applies entry effects, which since 3.76.0 include Imposter, so the medicham
+  Ditto had already transformed by the time the alignment read it; Showdown's had not entered yet. The
+  alignment then wrote medicham's COPIED line onto Showdown's `storedStats` **and `baseStoredStats`**,
+  rebasing Showdown's Ditto onto another Pokemon's stats before the game began — and "do the two
+  engines' Imposters copy the same thing" was being answered in medicham's favour, silently, on every
+  Ditto in the pool. The alignment now compares the line AS BUILT, snapshot before `battleInit`, and
+  the counter is back to 0 with the question restored.
+
+### Changed
+- **THE MEASUREMENT, 1,998 games per arm, same frozen release `72e361e1bd44`, same pinned census, same
+  frozen team store, same pool digest `32b2abcbfeb7`, `threw` 0 in both.** THE NUMBERS FELL, as
+  predicted before the run: board identical at end of turn 1 **97.4% -> 97.3%**, games whose board
+  NEVER parted **80.8% -> 78.8%** (1615 -> 1574), median turn of first board divergence **8 -> 7**,
+  protocol games diverged **839 -> 874**. The receipt for why is the tie counter: tied speed groups the
+  resolver had to break fell **348,595 -> 243,467, a 30.2% drop**. The rig was manufacturing its own
+  speed ties and is now testing turn order it had never tested. A rise would have meant the knob was
+  not wired.
+- Fields the natures exposed, games in which that leaf differed: `party.hp` +13, `active[].hp` +12,
+  `active[].boosts.atk` +11, **`active[].vol.encore` +9 (10 -> 19, nearly doubled)**, `active[].item`
+  +6, `active[].boosts.def` +6. Protocol classes move the same way: `ordering` 238 -> 245, `event
+  missing from medicham2` 206 -> 216.
+- The alignment counter and the nature fallback counter both NAME what they counted now. A bare `21`
+  or a bare `96` cannot be acted on.
+
+### Notes
+- **THE SPREADS ARE NOT MISSING FROM OUR INGEST — THEY ARE NOT IN THE GAME.** A Showdown open team
+  sheet reveals species, item, ability, moves, nature, gender and level and NOT the spread: every
+  stored sheet reads `"evs": null`, on 173,784 of 173,784 bodies in the frozen store. Will worked this
+  out himself and it is the correct constraint. **ROADMAP #68's declared gap is NARROWED and NOT
+  CLOSED**, and that sentence is in the run's own output and in `rate_excludes` so the next reader does
+  not have to find it in a document.
+- **THE CONTROL WAS CLEARED EXPLICITLY.** `l50` grew an argument and `megaEvolveNow` grew two, so every
+  body this engine has ever built went through edited arithmetic. Measured against frozen release
+  `6b5447db1738` rather than argued: all 344 un-natured `buildMon` stat lines and all 75 un-natured
+  mega swaps are identical.
+- 96 bodies fell back to Serious and all 96 are the differential's OWN hand-written fixtures — the
+  frozen store carries a dex-valid nature on 100% of bodies. The authority decides whether a string is
+  a nature; `natureShift` answers `{plus:null,minus:null}` for a neutral nature and for a typo alike,
+  so asking it would count `Modset` as declared and flatten the body in silence.
+- Census unchanged at **324 live, 0 missing, 324 probed** — this is an instrument change and it must
+  not move the engine's number.
+
+### Reported, not fixed
+- **`tests/test-effective-identity.js` is RED and was red before this pass**: `no NEW raw read of a
+  transforming field` (869 total against a baseline of 234), from `tests/roster.js` 0 -> 97 and
+  `tests/staged_board.js` 0 -> 13. Both landed with the roster work; neither is touched here. The fix
+  is 110 written declarations of why each read is correct by construction, and authoring those for
+  code I did not walk is how a justification gets laundered.
+
 ## [3.77.0] — 2026-08-08
 
 ### Fixed

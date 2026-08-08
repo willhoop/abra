@@ -1,4 +1,11 @@
-/* test-pin-arms.js — THE RED DEMONSTRATION FOR THE FOUR PINNED ARMS. ROADMAP #88.
+/* test-pin-arms.js — THE RED DEMONSTRATION FOR THE PINNED ARMS. ROADMAP #88.
+ *
+ * FOUR ARMS WERE BUILT AND TWO SURVIVE, AND THIS FILE THREW FOR A DAY BECAUSE OF IT. 3.74.0 retired
+ * both `tie-second` arms with a written reason (see the long block above `bottom-tie-first` in the
+ * driver) and nothing updated the gate: PART 0 asserted a literal `4` and PART 2 played an arm that no
+ * longer existed, so the whole file died on `no such arm: top-tie-second` — a red gate guarding a
+ * deleted lever. The count is now READ from the driver, and PART 2 asserts what the fix actually
+ * claims: the tie resolves the SAME WAY IN BOTH ENGINES, in every arm.
  *
  *   SHOWDOWN_PATH=... node tests/test-pin-arms.js
  *
@@ -82,14 +89,20 @@ function play(A, B, script, armId) {
 const has = (t, re) => t.some(l => re.test(String(l)));
 
 /* ================= PART 0 — THE ARMS EXIST AND EVERY CLAIM THEY MAKE HOLDS ====================== */
-console.log('\nPART 0 — four arms, and every behavioural claim each one makes');
-if (G.ARMS.length !== 4) fail('there are ' + G.ARMS.length + ' arms, not 4');
-else pass('four arms: ' + G.ARMS.map(a => a.id).join(', '));
+console.log('\nPART 0 — the arms, and every behavioural claim each one makes');
+/* READ FROM THE DRIVER, NEVER TYPED. A literal `4` here is what left this file THROWING on
+ * `no such arm: top-tie-second` from 3.74.0 until 2026-08-08: two arms were deliberately deleted, with
+ * a written reason, and the gate that was supposed to guard them was still asserting the old count.
+ * The count is a property of the instrument. The test's job is that every arm which EXISTS is checked
+ * — what must never fall is the number of CLAIMS PER ARM, which is asserted below. */
+if (G.ARMS.length < 2) fail('there are ' + G.ARMS.length + ' arm(s) — an instrument with fewer than '
+  + 'two corners cannot demonstrate that a pin is a pin at all');
+else pass(G.ARMS.length + ' arms: ' + G.ARMS.map(a => a.id).join(', '));
 {
   let bad = 0;
   for (const a of G.ARMS) for (const [what, f] of G.PIN_CLAIMS_BY_ARM.get(a.id))
     if (!f()) { bad++; fail('the pin claims "' + what + '" and it is false'); }
-  if (!bad) pass(G.PIN_CLAIMS.length + ' behavioural pin claims hold across the four arms');
+  if (!bad) pass(G.PIN_CLAIMS.length + ' behavioural pin claims hold across all ' + G.ARMS.length + ' arms');
   /* EVERY ARM NEEDS ITS OWN ROWS. An arm added without claims is a pin nobody has checked, which is
    * the shape the single old pin had for the tie and the accuracy. */
   for (const a of G.ARMS) {
@@ -116,37 +129,48 @@ console.log('\nPART 2 — each axis CHANGES something. Identical results across 
 console.log('         knob is unwired, not that it does not matter.');
 
 /* --- the speed tie --- */
+/* THE TIE IS NO LONGER A KNOB, AND THIS BLOCK NOW ASSERTS THE OPPOSITE OF WHAT IT USED TO.
+ *
+ * It played `top-tie-second` and demanded that the staged tie resolve the OTHER way — a lever
+ * (`tieToSecondBody`) that 3.74.0 DELETED, with the reason written out in full beside
+ * `bottom-tie-first` in the driver: it swapped medicham2's per-action key from a constant to a
+ * sequence and so forced it onto the branch where it happened to agree with the authority. Once
+ * medicham2 ran Showdown's own selection sort at the root, the lever stopped correcting a wrong
+ * default and started BREAKING A CORRECT ONE, on one side only.
+ *
+ * So the claim to guard is no longer "the knob moves something". It is the FIX: the staged
+ * 120-vs-120 tie must resolve THE SAME WAY IN BOTH ENGINES, IN EVERY ARM. That is strictly stronger,
+ * and it is the thing that would silently come apart if the ordering work regressed. */
 {
-  const first = play(TIE_A, TIE_B, TIE_SCRIPT, 'top-tie-first');
-  const second = play(TIE_A, TIE_B, TIE_SCRIPT, 'top-tie-second');
   const atk = r => r.order.filter(x => /a$/.test(x));   // the two attackers, in the order they moved
-  if (!first || !second) fail('the staged tie could not be built');
-  else if (JSON.stringify(atk(first)) === JSON.stringify(atk(second)))
-    fail('THE TIE AXIS IS UNWIRED: both arms resolved the staged 120-vs-120 tie the same way ('
-       + atk(first).join(' then ') + '). Either the fixture is not a tie or the medicham tie sequence '
-       + 'is not reaching sortTurnOrder.');
-  else {
-    pass('the staged tie resolves the OTHER way: top-tie-first ' + atk(first).join(' then ')
-       + ', top-tie-second ' + atk(second).join(' then '));
-    /* THE FINDING, ASSERTED SO IT CANNOT REGRESS SILENTLY. Under the arm that WAS the whole
-     * instrument the two engines disagree about this tie; under the other arm they agree. That is the
-     * opposite of what the driver's header claimed for the life of the file, and if it ever stops
-     * being true this test should say so rather than quietly pass. */
-    if (first.diverged && first.cls === 'ordering' && !second.diverged) {
-      pass('AND THE FINDING HOLDS: under top-tie-first the two engines DISAGREE about who moves first '
-         + '(class "ordering", line ' + first.at + '); under top-tie-second they AGREE for the whole turn.');
-      note('showdown  ' + first.sdAtDiv);
-      note('medicham  ' + first.meAtDiv);
-      note('Showdown gives the tie to the LATER body in input order and PRNG.shuffle is not what '
-         + 'decides it; medicham2 gives it to the EARLIER one. This is an ENGINE finding, filed, not '
-         + 'fixed here — engine/game_differential.js does not own medicham2.');
+  let staged = 0, bad = 0;
+  for (const a of G.ARMS) {
+    const r = play(TIE_A, TIE_B, TIE_SCRIPT, a.id);
+    if (!r) { fail('the staged tie could not be built under arm ' + a.id); continue; }
+    staged++;
+    /* A TIE THAT DIVERGES ON `ordering` IS THE OLD DEFECT COMING BACK. Any other class is a finding
+     * about something else on this board and is NOT what this block is asserting, so it is reported
+     * rather than failed — a gate that goes red on an unrelated divergence is a gate people learn to
+     * ignore. */
+    if (r.diverged && r.cls === 'ordering') {
+      bad++;
+      fail('THE 120-vs-120 TIE PARTS AGAIN under ' + a.id + ' (class "ordering", line ' + r.at + '). '
+         + 'medicham2 and the authority no longer resolve a speed tie the same way — this is the '
+         + '3.74.0 fix regressing, not a new finding.');
+      note('showdown  ' + r.sdAtDiv);
+      note('medicham  ' + r.meAtDiv);
+    } else if (r.diverged) {
+      note('under ' + a.id + ' the staged tie board diverges on class "' + r.cls + '" at line ' + r.at
+         + ' — NOT an ordering split, so it is a finding about something else on this board and is '
+         + 'reported here rather than failed. medicham moved: ' + atk(r).join(' then '));
     } else {
-      note('the two arms differ, but not in the shape recorded on 2026-08-07 (first: '
-         + (first.diverged ? 'diverges ' + first.cls : 'agrees') + ', second: '
-         + (second.diverged ? 'diverges ' + second.cls : 'agrees') + '). Re-read the driver header '
-         + 'before quoting either arm.');
+      note('under ' + a.id + ' the two engines agree for the whole turn; medicham moved '
+         + atk(r).join(' then '));
     }
   }
+  if (!staged) fail('the tie fixture staged in NO arm — this block tested nothing');
+  else if (!bad) pass('the staged 120-vs-120 tie resolves identically in both engines in all '
+                    + staged + ' arm(s) — the 3.74.0 root fix holds');
 }
 
 /* --- the accuracy corner --- */
@@ -283,6 +307,6 @@ console.log('\nPART 4 — two arms pinned differently are NOT a before/after, an
 
 console.log('\n' + (failures
   ? failures + ' FAILURE(S) — the INSTRUMENT is wrong, which is the only thing this file fails on'
-  : 'ALL PASSED — four arms exist, each axis is wired, each pin means the same thing on both sides,\n'
+  : 'ALL PASSED — ' + G.ARMS.length + ' arms exist, each axis is wired, each pin means the same thing on both sides,\n'
   + 'and a pair pinned differently is refused. What the arms FOUND is in data/game-differential.json.'));
 process.exit(failures ? 1 : 0);

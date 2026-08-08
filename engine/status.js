@@ -69,6 +69,43 @@ const sha12 = require('./engine_release.js').sha12;
 const out = [];
 const say = s => out.push(s);
 
+/* ---- THE QUARANTINE ---------------------------------------------------------------------------
+ * Will, 2026-08-08: "all engines that take medicham's output should be regarded as out of date and we
+ * should stop referencing them until medicham is up to date and we can rerun them."
+ *
+ * A CAPTION IS NOT A QUARANTINE, AND THIS FILE IS WHERE THAT WAS PROVED. It has printed
+ * `PRE-CHANGE — measured against a different build of: ...` beside the leaf-calibration number for
+ * days, and the number went on being quoted anyway — by the sessions that printed the caption. That
+ * is the identical failure to a red gate reported as "one of the two known failures": the figure is
+ * rendered, the warning is skimmed, the figure gets used. So the figure is WITHHELD.
+ *
+ * The gate and the membership test live in engine/quarantine.js, not here. This file is a REPORTER;
+ * growing its own opinion about what is downstream of the simulator is how `buildMon("Scizor")`
+ * returned null — a hand-rolled second version of something that already exists. */
+const QUARANTINE = require('./quarantine.js');
+const QS = (() => {
+  try { return QUARANTINE.state(); }
+  catch (e) { NOTES.push('engine/quarantine.js could not compute the gate, so NOTHING is withheld: '
+                       + String((e && e.message) || e).split('\n')[0]); return null; }
+})();
+/* `held(...files)` answers one question — may this figure be printed — and takes every artifact the
+ * line rests on, because a line that reads two files is withheld if EITHER is. It returns the reason
+ * so the caller can print WHY and WHAT WOULD RE-RUN IT, which is the whole substitute for the number:
+ * a withheld figure with no route back is just a hole. */
+const held = (...files) => {
+  if (!QS) return null;
+  for (const f of files) { const h = QS.withhold(f); if (h) return h; }
+  return null;
+};
+/* ONE renderer for a withheld figure, so the wording cannot drift between six call sites and so a
+ * reader learns the shape once. The number is ABSENT — not blurred, not rounded, not captioned. */
+const sayHeld = (label, h) => {
+  say(`  ${label}: QUARANTINED — the figure is withheld, not annotated.`);
+  say(`    ${h.file} is downstream of MEDICHAM: ${h.because}`);
+  say(`    MEDICHAM is not correct — ${h.clause}`);
+  if (h.rerun) say(`    it becomes quotable again when the gate opens AND this is re-run: ${h.rerun}`);
+};
+
 /* ---- THE REFIT EDGE ---------------------------------------------------------------------------
  * provenance.js checks artifact-against-artifact and catches a great deal, but it reads the data
  * graph: a .json declaring what it was built from. It cannot see the edge that actually costs the
@@ -339,8 +376,10 @@ function engine() {
 function measure() {
   say('MEASURE — can we believe a number');
 
-  const b = j('winrate-backtest.json');
-  if (b) {
+  const qb = held('winrate-backtest.json');
+  const b = qb ? null : j('winrate-backtest.json');
+  if (qb) sayHeld('leaf calibration', qb);
+  else if (b) {
     say(`  leaf calibration: ${b.verdict}`);
     say(`    n=${b.n_games_scored} games, ${b.rollouts_per_game} rollouts each   (${day(mtime('data/winrate-backtest.json'))})`);
     /* THE CURVE, NOT JUST THE VERDICT. Four words collapse "overconfident but ranks correctly" and
@@ -404,8 +443,10 @@ function measure() {
    * differential's own divergence depth. It is printed with its NOISE FLOOR and its DEPTH-INSTRUMENT
    * RELIABILITY beside it, because both numbers here are small and a small number without its floor is
    * how an effect gets believed and a null gets published from a ruler with no resolution. */
-  const lc = j('leaf-engine-contrast.json');
-  if (lc) {
+  const qlc = held('leaf-engine-contrast.json');
+  const lc = qlc ? null : j('leaf-engine-contrast.json');
+  if (qlc) sayHeld('engine correctness -> leaf', qlc);
+  else if (lc) {
     const c = lc.engine_vs_engine, jt = lc.joint || {};
     say(`  engine correctness -> leaf: ${lc.verdict}`);
     say(`    ${c.n_paired.toLocaleString()} paired positions, ${lc.leaf_config.n_rollouts} rollouts each, ` +
@@ -504,8 +545,14 @@ function measure() {
    * The class-conditional contrast is the headline and the corpus-wide one is a control — §4 of the
    * spec disclaims a corpus-wide top-1 claim in advance, so printing that as the result here would
    * be manufacturing the thing the spec says not to claim. */
-  const cen = j('click-censoring-census.json');
-  if (!cen) say('  click censoring: NOT DERIVED (data/click-censoring-census.json absent)');
+  /* THE CENSORING BLOCK READS THREE ARTIFACTS AND ALL THREE ARE FITTED THROUGH THE SIMULATOR — the
+   * census through board.js, the EM arm and the behaviour contrast through fit_policy. Its headline
+   * ("0.546% of recorded actions were not clicks") looks like a fact about the protocol, but the
+   * numbers under it are logL differences from a policy fitted on features MEDICHAM computed. */
+  const qcen = held('click-censoring-census.json', 'partial-label-em.json', 'censoring-value.json');
+  const cen = qcen ? null : j('click-censoring-census.json');
+  if (qcen) sayHeld('click censoring', qcen);
+  else if (!cen) say('  click censoring: NOT DERIVED (data/click-censoring-census.json absent)');
   else {
     const a1 = cen.event_stream_arm || {};
     say(`  click censoring: ${(a1.coerced || 0).toLocaleString()} of ${(a1.actions_seen || 0).toLocaleString()} recorded actions ` +
@@ -546,7 +593,16 @@ function measure() {
     }
   }
 
+  /* THE REFIT LINE IS NOT A QUARANTINED FIGURE AND MUST KEEP PRINTING. It reports a STALENESS VERDICT
+   * about the weights rather than a quantity measured through them, and it is one of the instruments
+   * that says what has to be re-run once the gate opens. The WEIGHTS THEMSELVES are quarantined, and
+   * that is said here so nobody reads REFIT OWED as the only thing wrong with them: the refit is
+   * additionally gated behind MEDICHAM by Will's standing call, so it stays owed on purpose. */
+  const qw = held('policy-weights.json');
   const r = refitOwed();
+  if (qw) say(`  the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted `
+            + `on features computed through MEDICHAM. The refit stays OWED rather than being run: it is `
+            + `gated behind the engine, not behind compute.`);
   if (r.verdict === 'NOT DERIVED') say(`  refit edge: NOT DERIVED (${r.reason})`);
   else if (r.verdict === 'REFIT OWED') {
     say(`  REFIT OWED — weights fitted ${day(r.weights)}`);
@@ -602,6 +658,12 @@ function search() {
     ['R3 divergence', 'rollout-r3.json', d => `${d.divergence_pct.toFixed(1)}% over ${d.decisions} decisions (${d.agreed} agreed, ${d.skipped} skipped)`],
   ];
   for (const [name, file, fmt] of gates) {
+    /* R1 IS ASKED ABOUT BOTH OF ITS FILES. The shipped arm (explore=1.0) has no row in the derived
+     * graph — nothing detects a writer for it — so asking only about the file this line happens to
+     * prefer would let the gate's headline through on a technicality. The incumbent arm is classified,
+     * they are the same measurement at two settings, and either being held holds the line. */
+    const q = held(file, file === 'rollout-r1-explore1.json' ? 'rollout-r1.json' : file);
+    if (q) { sayHeld(name, q); continue; }
     const d = j(file);
     if (!d) { say(`  ${name.padEnd(18)} NOT DERIVED (data/${file} absent)`); continue; }
     if (d.withdrawn) {
@@ -658,8 +720,10 @@ function search() {
    * prose, which is the exact failure this file was written to end. Until a generator writes
    * data/rollout-r4.json the way r1/r2/r3 do, this prints what it can see and refuses to quote
    * the number — because the number is not here to quote. */
-  const r4 = j('rollout-r4.json');
-  if (r4) {
+  const qr4 = held('rollout-r4.json');
+  const r4 = qr4 ? null : j('rollout-r4.json');
+  if (qr4) sayHeld('R4 does it win', qr4);
+  else if (r4) {
     say(`  R4 does it win     ${r4.verdict || JSON.stringify(r4).slice(0, 80)}   (${day(new Date(r4.generated))})`);
   } else {
     const f = mtime('data/games.r4-decided.jsonl');
@@ -848,6 +912,28 @@ console.log('');
 console.log('ABRA STATUS — generated ' + day(new Date()) + ' by engine/status.js');
 console.log('Every figure is read from an artifact. NOT DERIVED means no artifact says it. Times are UTC.');
 console.log('');
+/* PRINTED FIRST, AND OUTSIDE THE SECTION BLOCKS so `--write` never stamps a transient state into a
+ * ledger. A reader has to know which figures are missing on purpose BEFORE reading the ones that are
+ * there; a QUARANTINED line encountered halfway down with no context reads as a defect. */
+if (QS && !QS.ok) {
+  console.log('QUARANTINE — MEDICHAM IS NOT CORRECT, SO EVERY FIGURE DOWNSTREAM OF IT IS WITHHELD');
+  console.log(`  ${QS.set.size} artifacts are downstream and are not printed below. The gate is computed, not set:`);
+  for (const c of QS.gate.clauses) {
+    /* THE WHOLE CLAUSE, NOT A PREFIX. A 150-character slice cut the roster clauses off at "A missing
+     * stage is a FAILI", which loses the sentence that says why an absent artifact is not a pass —
+     * the one thing about this gate a reader most needs. It wraps instead. */
+    const why = String(c.why).replace(/\s+/g, ' ');
+    const head = `    ${c.ok ? 'PASS' : 'FAIL'}  ${String(c.name).padEnd(30)} `;
+    let line = head;
+    for (const w of why.split(' ')) {
+      if ((line + w).length > 118) { console.log(line); line = ' '.repeat(head.length) + w + ' '; }
+      else line += w + ' ';
+    }
+    console.log(line.replace(/\s+$/, ''));
+  }
+  console.log('  Full derivation and the withheld set: node engine/quarantine.js');
+  console.log('');
+}
 console.log(out.join('\n'));
 /* DELIBERATELY OUTSIDE THE SECTION BLOCKS, so `--write` never stamps it into a ledger. A diagnostic
  * is a fact about THIS RUN of this tool — an artifact that would not parse, a subprocess that would

@@ -13,34 +13,29 @@ it does not compete on them.
 
 ```
 MEASURE — can we believe a number
-  leaf calibration: live in-game leaf is WORSE than a coin on Brier (paired +0.0502, 95% CI 0.0371 to 0.0628; negative is better). When it says 90-100% it wins 54% (n=56). Names the winner on 51.0% of 1314 decisive calls, 95% CI 48.3-53.7%. ECE 0.1811. See reliability_curve.
-    n=1378 games, 200 rollouts each   (2026-08-04 07:09)
-    when it says 90-100% it wins 54% (n=56); when it says 0-10% it wins 54% (n=52)  — ECE 0.1811
-    powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835
-    PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/abra-tags.js
-    (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
-  engine correctness -> leaf: The WIRE 10 engine's leaf is NOT SEPARATED from the pre-WIRE-1 engine's on Brier over 8,883 paired positions (+0, 95% CI -0.0007 to 0.0007; negative is better), and the effect is INSIDE its own split-half noise floor of 0.000642. Both engines' leaves remain worse than a coin: Brier vs coin 0.0325 (baseline) and 0.0325 (top). Change in divergence depth vs change in leaf error: rho -0.01151 [-0.03067, 0.0082] on n=8601.
-    8,883 paired positions, 200 rollouts each, releases cf6a68fa412c -> dc3c43336539   (2026-08-07 20:17)
-    Brier TOP-BASELINE 0 [-0.0007, 0.0007]  noise floor 0.000642  detectable |delta| >= 0.001013
-    does divergence depth predict leaf error?  LINES rho 0.00101 [-0.0186, 0.02212]   TURNS rho -0.00004 [-0.02082, 0.0226]   (MDE 0.02978)
-    the depth ruler's own reliability (same release, driver order reversed): rho 0.83612 on n=8855 — the ceiling on the two rho above
-  provenance: 13 unsafe, 1 void (declared), 48 possibly stale, 52 ok, 0 missing
-  click censoring: 1,475 of 270,022 recorded actions were NOT clicks (0.546%) and left the labeled set; 3,559 (1.318%) are kept under a candidate set
-    classifier vs the raw protocol on 6,988 games (69.8% of the corpus): encore recall 99.7% precision 96.2%, drag recall 96.7% precision 96.7%
-    EM recovers 91.4% of a planted censoring bias of 0.958 against a 0.328 noise floor (amplified regime)
-    behaviour on the OUTPLAYED turns, after - before, paired and game-bootstrapped:
-      redirection turns, mass on the candidate set  +0.000122 [-0.000261, 0.000514] (contains zero)   n=650
-      coerced turns, P(the coerced action)          -0.002613 [-0.003650, -0.001672]   n=293  (lower is better)
-      CONTROL, clean turns, logL                    +0.000485 [0.000189, 0.000777]   n=47331
+  leaf calibration: QUARANTINED — the figure is withheld, not annotated.
+    data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
+  engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
+    data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
+  provenance: 14 unsafe, 1 void (declared), 46 possibly stale, 54 ok, 0 missing
+  click censoring: QUARANTINED — the figure is withheld, not annotated.
+    data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
+  the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 04:00
     feature_fixture --check FAILED:   The weights were fitted against the old definition and no longer describe these quantities. |   Refit (node engine/fit_policy.js, then node engine/fit_joint.js), or if a derived table was |   merely re-ingested, restamp with: node engine/feature_fixture.js --stamp <file>
-    moved after the fit: engine/medicham2-browser.js  2026-08-08 08:04
+    moved after the fit: engine/medicham2-browser.js  2026-08-08 17:55
     moved after the fit: engine/board.js  2026-08-05 19:44
     moved after the fit: data/engine-data.js  2026-08-06 19:20
     moved after the fit: data/abra-tags.js  2026-08-08 06:23
 ```
 
-_stamped 2026-08-08 08:06_
+_stamped 2026-08-08 19:04_
 
 <!-- /GENERATED -->
 
@@ -57,6 +52,66 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 00. THE QUARANTINE IS A MECHANISM NOW, NOT A PARAGRAPH — 2026-08-08
+
+`engine/quarantine.js`. Will's standing call: *"all engines that take medicham's output should be
+regarded as out of date and we should stop referencing them until medicham is up to date and we can
+rerun them."* CLAUDE.md states the rule; this file executes it, and `engine/status.js` no longer
+prints the figures it covers.
+
+**THE BUG IT CLOSES IS THIS DIVISION'S OWN.** `status.js` has printed `PRE-CHANGE — measured against
+a different build of: …` beside the leaf-calibration number for days, and the number went on being
+quoted anyway — by the sessions that printed the caption. That is the identical failure to a red gate
+reported for two days as "one of the two known failures". **A caption is not a quarantine. The figure
+is WITHHELD.**
+
+**The gate, today: 4 of 4 clauses FAIL.**
+
+| clause | state |
+|---|---|
+| game differential | **1 of 150** comparisons disagree with Showdown — `chesnaught woodhammer -> mimikyu`, showdown 0-0, medicham 120-130 |
+| deliberate roster / items | **NO ARTIFACT** — a missing stage is a FAILING clause |
+| deliberate roster / abilities | **2** FIRED-AND-BOARDS-DIFFER, **4** DID-NOT-FIRE |
+| deliberate roster / moves | **NO ARTIFACT** |
+
+A MISSING STAGE FAILS. `tests/roster.js --write` writes `data/roster.json` whatever stage it ran, so
+the file holds only the newest one; reading it three times and calling that three stages would be
+"a capability was absent and everything reported success" inside the guard written to stop it. A stage
+counts only when an artifact's own `stage` field names it — `data/roster.<stage>.json`,
+`data/roster.all.json`, or `data/roster.json` when it matches.
+
+**Membership is derived from one root, and it is not a list of filenames.** The PLAY LAYER is the
+transitive closure of *requires the simulator*, seeded with `engine/medicham2-browser.js` alone: 63
+modules, board.js among them through `damageEngine()`. An artifact is quarantined if its generator is
+in that closure, if it reads a dump one of our own runs wrote, or if it reads a quarantined artifact.
+**34 of 114** artifacts are held. The transitive arm is what holds `mag.js`, `scoreboard.js`,
+`ladder.json` and `weight-multiplicity.json` behind `policy-weights.json`.
+
+**The strict direction is the dangerous one, and nothing that measures MEDICHAM is withheld.** The
+census, the interaction matrix, the differential, the roster, the release ladder and everything OPS
+counts off the ingested store all print. Most fall out for free — they are written by `tests/`, or they
+drive the authority through a subprocess. Two do not and are **declared with a reason**, the
+`RAW-STORE-OK` convention: `game_differential.js` (MEDICHAM is its subject; it is the gate's own first
+clause) and `derive_protocol_events.js` (it loads the simulator only to read the event list it claims
+to emit, and quarantining it would have withheld the differential downstream of it). Both declarations
+are **checked** — an exemption naming a module no longer in the play layer fails the gate.
+
+**Shown RED before being trusted.** The leaf-calibration withhold was removed by hand; `--check`
+exited 1 naming `data/winrate-backtest.json` and the leaked verdict sentence. And the negative was
+verified too: driving the real `withholder` with an open gate releases **34 of 34** and withholds
+none, so this can lift.
+
+**What the graph still cannot see, stated rather than papered over.** `provenance.js` finds a writer
+only in `engine/` and `build/`, so ~50 artifacts written by `tests/` or through an unfollowed path
+variable have no row and are neither cleared nor withheld. The set contains instruments (the census)
+AND consumers (`exploitability-mag.json`, seven `policy-weights-*.json` variants), so it cannot be
+defaulted either way. `engine/quarantine.js` prints them as unknowns every run.
+
+**Where a withheld number is still cited** — measured, not remembered, and ratcheted in
+`data/quarantine-stamp.json` (may shrink, never grow): `docs/ENGINE.md`, `docs/MEASURE.md`,
+`docs/SEARCH.md` and `web/status-data.js`. Not edited from here; `web/` is WEB's and a gate its owner
+cannot satisfy becomes a known failure.
 
 ### 0. THE FORK IS DECIDED, AND THE ANSWER IS NO — 2026-08-07 (3.69.0)
 

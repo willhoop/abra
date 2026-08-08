@@ -12,19 +12,23 @@ mid-run silently invalidates the run, and the run still prints a result.
 
 ```
 SEARCH — does MILTANK choose better than MAG
-  R1 leaf accuracy   PASS_OUTRIGHT — rollout 69.84% against material's 65.265% on 9,201 positions: +4.576 points, 95% CI 3.473 to 5.678   [explore=1.0 — THE ARM MILTANK RUNS]   (2026-08-05 03:22)
-    RECORDED, not inferred: n=40, explore=1, key "40@1", stamped by the run that wrote the rows.
-    This is the arm engine/miltank.js runs (explore=1), so the verdict above is R1's status and not a statement about a configuration nothing ships. The deterministic-greedy incumbent is kept beside it in data/rollout-r1.json; deleting it would repeat the original mistake in the other direction.
-  R2 leaf cost       477 boards over 200 games   (2026-08-03 08:22)
-    STAMP RECONSTRUCTED, NOT OBSERVED — inferred from commit 05248f23d306; HIGH — written 25s before the commit that carried it
-      explore: NOT RECORDED AND NOT PASSED.
-      maxTurns: NOT RECORDED AND NOT PASSED.
-      games: The artifact's `games` field is the GAMES environment CAP, not a count of games traversed.
-      machine: A duration is a fact about a machine under a load.
-  R3 divergence      80.2% over 121 decisions (24 agreed, 29 skipped)   (2026-08-04 07:55)
-    stamped: n=600@explore=1  (TREE WAS DIRTY — trust source_digests, not the commit)
-  R4 does it win     ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]   (2026-08-04 08:43)
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-08 08:04):
+  R1 leaf accuracy: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-r1.json is downstream of MEDICHAM: engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played
+    MEDICHAM is not correct — 4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r1_artifact.js
+  R2 leaf cost: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-cost.json is downstream of MEDICHAM: its generator engine/rollout_r2.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r2.js
+  R3 divergence: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-r3.json is downstream of MEDICHAM: its generator engine/rollout_r3.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r3.js
+  R4 does it win: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
+    MEDICHAM is not correct — 4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-08 17:55):
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41
     PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-04 02:36
     PRE-CHANGE games.r4.jsonl  2026-08-04 02:33
@@ -32,9 +36,43 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-04 00:45
 ```
 
-_stamped 2026-08-08 08:06_
+_stamped 2026-08-08 19:04_
 
 <!-- /GENERATED -->
+
+## ALL FOUR ROLLOUT GATES ARE QUARANTINED — 2026-08-08 (MEASURE)
+
+R1, R2, R3 and R4 no longer print a number. `engine/quarantine.js` computes whether MEDICHAM is
+correct, and while it is not, every figure downstream of the simulator is **withheld rather than
+captioned**. The caption this replaces was live on the line above: R4 printed
+`[engine moved since; transfer assumed, not measured]` beside 55.5%, and 55.5% went on being quoted.
+
+**The 55.5% is not retracted. It is unquotable.** It was a real measurement of a real build; the build
+does not exist any more, and the games it was measured on are `PRE-CHANGE` against a `medicham2` that
+has moved repeatedly since. Re-running is not optional once the gate opens — a quarantined number does
+not become true when MEDICHAM becomes correct, it becomes **re-runnable**. That is ROADMAP #57.
+
+What SEARCH gets back, and what it costs, per gate:
+
+| gate | withheld artifact | what re-runs it |
+|---|---|---|
+| R1 leaf accuracy | `data/rollout-r1.json` (and the `explore1` arm) | `node engine/rollout_r1_artifact.js` over a fresh dump |
+| R2 leaf cost | `data/rollout-cost.json` | `node engine/rollout_r2.js` |
+| R3 divergence | `data/rollout-r3.json` | `node engine/rollout_r3.js` — and this time it must WRITE its control floor |
+| R4 does it win | `data/rollout-r4.json` | `node engine/rollout_r4.js` over a re-played corpus |
+
+**R1's shipped arm was nearly let through on a technicality, and that is worth knowing before the
+next gate is written.** `data/rollout-r1-explore1.json` has no row in the derived artifact graph —
+nothing detects a writer for it — so asking the quarantine only about the file `status.js` prefers
+would have printed the headline while the incumbent arm beside it was withheld. The line now asks
+about both files. **A gate whose artifact has no detectable generator is invisible to every check in
+this repository**, not only this one.
+
+**The weights are quarantined too, and the refit stays OWED on purpose.** `data/policy-weights.json`
+and the joint weights were fitted on features computed through the simulator, so `mag.js`,
+`scoreboard.js`, `ladder.json` and `weight-multiplicity.json` are held behind them transitively.
+Running the refit now would produce a vector fitted through the same wrong engine — it is gated behind
+MEDICHAM, not behind compute.
 
 ## R11 — GARY, and the four things wrong with the imagined opponent. FOUND 2026-08-06, NOT MEASURED.
 

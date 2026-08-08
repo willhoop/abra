@@ -1,0 +1,548 @@
+{
+  "generated": "2026-08-08T19:02:32.576Z",
+  "by": "engine/game_differential.js run twice under --nature serious|real; tabled by tests/scratch mkartifact.js",
+  "what": "THE PAIRED BEFORE/AFTER FOR CARRYING THE SHEET'S REAL NATURE INTO BOTH ENGINES. Two 1,998-game runs differing in ONE run parameter (--nature serious|real) and in NO bytes: the same frozen release, the same pinned census, the same frozen team store, the same pool digest.",
+  "comparable_by_arms_comparable": false,
+  "comparable_note": "FALSE BY DESIGN. `mode` carries /nature: precisely so this pair cannot be tabled beside data/state-ladder.json or any pre-2026-08-08 rung. The two arms are different INSTRUMENTS; what is claimed here is a controlled A/B of the rig against itself, which is a different and narrower claim.",
+  "spreads": "ABSENT PERMANENTLY, and this is a property of the DATA and not of the ingest. A Showdown open team sheet reveals species, item, ability, moves, nature, gender and level and NOT the spread: every stored sheet reads \"evs\": null, on 173,784 of 173,784 bodies in the frozen team store. ROADMAP #68 is NARROWED by the nature and is NOT closed.",
+  "expected_direction": "THE NUMBERS WERE EXPECTED TO FALL, AND THEY DID. A flat Serious build manufactures speed ties — 326 of 357 format species share a Speed with some other species — so the instrument was testing turn order in the one configuration where turn order is hardest to get wrong. A RISE would have meant the knob was not wired.",
+  "engine_release": "72e361e1bd44",
+  "engine_release_cut": "2026-08-08T17:53:41.827Z",
+  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "census_pin": "data/wire-ladder-census.pin.json",
+  "census_digest": "f63179105d3c",
+  "team_pool_digest": "32b2abcbfeb7",
+  "team_store_pinned_to": "C:/Users/willj/AppData/Local/Temp/claude/C--Users-willj-Projects-Pokemon-ABRA/74b990e2-3b69-4349-a3f3-cd3b3778e5db/scratchpad/ladder-t1/team-store",
+  "pins_digest": "adb146050fff",
+  "arms_run": [
+    "top-tie-first",
+    "bottom-tie-first"
+  ],
+  "identical_inputs": {
+    "engine_release": true,
+    "census_digest": true,
+    "team_pool_digest": true,
+    "pins_digest": true,
+    "games": true,
+    "note": "every one of these must be true or the pair is not a controlled A/B"
+  },
+  "before_serious": {
+    "mode": "A/top-tie-first/pins:adb146050fff/credit:observed-effect/v1/nature:serious",
+    "games": 1998,
+    "elapsed_s": 419,
+    "threw": 0,
+    "protocol_diverged": 839,
+    "turn1_boards_identical": 1947,
+    "turn1_fraction": 0.9745,
+    "games_board_never_diverged": 1615,
+    "game_agreement": 0.8083,
+    "median_turn_of_first_board_divergence": 8,
+    "turn_boundary_agreement": 0.984,
+    "tied_speed_groups_resolved": 348595,
+    "align_had_to_move_a_stat": 0,
+    "nature_declared": 0,
+    "nature_fallback_to_serious": 0,
+    "families": {
+      "active[].hp": {
+        "games": 215,
+        "leaves": 244
+      },
+      "party.hp": {
+        "games": 163,
+        "leaves": 187
+      },
+      "active[].boosts.atk": {
+        "games": 107,
+        "leaves": 139
+      },
+      "active[].item": {
+        "games": 71,
+        "leaves": 74
+      },
+      "active[].species": {
+        "games": 70,
+        "leaves": 73
+      },
+      "party.MISSING-OR-EXTRA-MEMBER": {
+        "games": 36,
+        "leaves": 72
+      },
+      "active[].maxhp": {
+        "games": 60,
+        "leaves": 62
+      },
+      "field.weather_turns": {
+        "games": 23,
+        "leaves": 23
+      },
+      "active[].boosts.spa": {
+        "games": 22,
+        "leaves": 22
+      },
+      "field.weather": {
+        "games": 14,
+        "leaves": 14
+      },
+      "tailwind": {
+        "games": 9,
+        "leaves": 12
+      },
+      "active[].boosts.def": {
+        "games": 11,
+        "leaves": 11
+      },
+      "active[].vol.encore": {
+        "games": 10,
+        "leaves": 10
+      },
+      "active[].status": {
+        "games": 8,
+        "leaves": 8
+      },
+      "active[].fainted": {
+        "games": 5,
+        "leaves": 5
+      },
+      "field.trickroom_turns": {
+        "games": 5,
+        "leaves": 5
+      },
+      "active[].boosts.evasion": {
+        "games": 4,
+        "leaves": 5
+      },
+      "active[].boosts.spd": {
+        "games": 4,
+        "leaves": 4
+      },
+      "party.fainted": {
+        "games": 4,
+        "leaves": 4
+      },
+      "active[].status_counter": {
+        "games": 4,
+        "leaves": 4
+      },
+      "active[].vol.disable": {
+        "games": 3,
+        "leaves": 3
+      },
+      "hazards.toxicspikes": {
+        "games": 2,
+        "leaves": 3
+      },
+      "active[].vol.perish": {
+        "games": 2,
+        "leaves": 2
+      },
+      "field.terrain": {
+        "games": 2,
+        "leaves": 2
+      },
+      "field.terrain_turns": {
+        "games": 2,
+        "leaves": 2
+      },
+      "active[].boosts.spe": {
+        "games": 2,
+        "leaves": 2
+      },
+      "active[].vol.trapped_by_move": {
+        "games": 1,
+        "leaves": 1
+      },
+      "screens.special": {
+        "games": 1,
+        "leaves": 1
+      },
+      "screens.named.lightscreen": {
+        "games": 1,
+        "leaves": 1
+      },
+      "active[].vol.taunt": {
+        "games": 1,
+        "leaves": 1
+      }
+    },
+    "classes": {
+      "ordering": 238,
+      "-damage field 3": 16,
+      "event missing from medicham2": 206,
+      "extra event emitted by medicham2": 118,
+      "-start: a different body": 5,
+      "unrelated event mismatch": 185,
+      "-damage field 4": 1,
+      "-activate field 4": 1,
+      "switch: a different body": 33,
+      "-boost: a different body": 5,
+      "-heal field 3": 5,
+      "-immune field 3": 1,
+      "drag: a different body": 24,
+      "turn order": 1
+    }
+  },
+  "after_real": {
+    "mode": "A/top-tie-first/pins:adb146050fff/credit:observed-effect/v1/nature:real",
+    "games": 1998,
+    "elapsed_s": 435.4,
+    "threw": 0,
+    "protocol_diverged": 874,
+    "turn1_boards_identical": 1944,
+    "turn1_fraction": 0.973,
+    "games_board_never_diverged": 1574,
+    "game_agreement": 0.7878,
+    "median_turn_of_first_board_divergence": 7,
+    "turn_boundary_agreement": 0.9821,
+    "tied_speed_groups_resolved": 243467,
+    "align_had_to_move_a_stat": 0,
+    "nature_declared": 68736,
+    "nature_fallback_to_serious": 96,
+    "families": {
+      "active[].hp": {
+        "games": 227,
+        "leaves": 260
+      },
+      "party.hp": {
+        "games": 176,
+        "leaves": 204
+      },
+      "active[].boosts.atk": {
+        "games": 118,
+        "leaves": 148
+      },
+      "active[].item": {
+        "games": 77,
+        "leaves": 80
+      },
+      "active[].species": {
+        "games": 73,
+        "leaves": 76
+      },
+      "party.MISSING-OR-EXTRA-MEMBER": {
+        "games": 36,
+        "leaves": 72
+      },
+      "active[].maxhp": {
+        "games": 63,
+        "leaves": 65
+      },
+      "field.weather_turns": {
+        "games": 27,
+        "leaves": 27
+      },
+      "active[].boosts.spa": {
+        "games": 25,
+        "leaves": 25
+      },
+      "active[].vol.encore": {
+        "games": 19,
+        "leaves": 19
+      },
+      "active[].boosts.def": {
+        "games": 17,
+        "leaves": 17
+      },
+      "field.weather": {
+        "games": 16,
+        "leaves": 16
+      },
+      "tailwind": {
+        "games": 7,
+        "leaves": 11
+      },
+      "active[].status": {
+        "games": 9,
+        "leaves": 9
+      },
+      "active[].boosts.spd": {
+        "games": 6,
+        "leaves": 6
+      },
+      "party.fainted": {
+        "games": 6,
+        "leaves": 6
+      },
+      "active[].boosts.spe": {
+        "games": 4,
+        "leaves": 6
+      },
+      "field.trickroom_turns": {
+        "games": 6,
+        "leaves": 6
+      },
+      "active[].fainted": {
+        "games": 5,
+        "leaves": 5
+      },
+      "active[].boosts.evasion": {
+        "games": 4,
+        "leaves": 5
+      },
+      "active[].vol.taunt": {
+        "games": 3,
+        "leaves": 3
+      },
+      "active[].vol.disable": {
+        "games": 3,
+        "leaves": 3
+      },
+      "active[].status_counter": {
+        "games": 3,
+        "leaves": 3
+      },
+      "hazards.toxicspikes": {
+        "games": 2,
+        "leaves": 3
+      },
+      "field.terrain_turns": {
+        "games": 2,
+        "leaves": 2
+      },
+      "active[].vol.trapped_by_move": {
+        "games": 1,
+        "leaves": 1
+      },
+      "screens.physical": {
+        "games": 1,
+        "leaves": 1
+      },
+      "screens.special": {
+        "games": 1,
+        "leaves": 1
+      },
+      "screens.named.reflect": {
+        "games": 1,
+        "leaves": 1
+      },
+      "screens.named.lightscreen": {
+        "games": 1,
+        "leaves": 1
+      },
+      "active[].vol.perish": {
+        "games": 1,
+        "leaves": 1
+      },
+      "field.terrain": {
+        "games": 1,
+        "leaves": 1
+      }
+    },
+    "classes": {
+      "extra event emitted by medicham2": 123,
+      "ordering": 245,
+      "-damage field 3": 19,
+      "event missing from medicham2": 216,
+      "-start: a different body": 7,
+      "unrelated event mismatch": 194,
+      "-damage field 4": 1,
+      "switch: a different body": 33,
+      "-boost: a different body": 4,
+      "drag: a different body": 23,
+      "-heal field 3": 7,
+      "-status field 4": 1,
+      "turn order": 1
+    }
+  },
+  "per_field": [
+    {
+      "field": "party.hp",
+      "serious": 163,
+      "real": 176,
+      "delta": 13
+    },
+    {
+      "field": "active[].hp",
+      "serious": 215,
+      "real": 227,
+      "delta": 12
+    },
+    {
+      "field": "active[].boosts.atk",
+      "serious": 107,
+      "real": 118,
+      "delta": 11
+    },
+    {
+      "field": "active[].vol.encore",
+      "serious": 10,
+      "real": 19,
+      "delta": 9
+    },
+    {
+      "field": "active[].item",
+      "serious": 71,
+      "real": 77,
+      "delta": 6
+    },
+    {
+      "field": "active[].boosts.def",
+      "serious": 11,
+      "real": 17,
+      "delta": 6
+    },
+    {
+      "field": "field.weather_turns",
+      "serious": 23,
+      "real": 27,
+      "delta": 4
+    },
+    {
+      "field": "active[].species",
+      "serious": 70,
+      "real": 73,
+      "delta": 3
+    },
+    {
+      "field": "active[].maxhp",
+      "serious": 60,
+      "real": 63,
+      "delta": 3
+    },
+    {
+      "field": "active[].boosts.spa",
+      "serious": 22,
+      "real": 25,
+      "delta": 3
+    },
+    {
+      "field": "field.weather",
+      "serious": 14,
+      "real": 16,
+      "delta": 2
+    },
+    {
+      "field": "active[].boosts.spd",
+      "serious": 4,
+      "real": 6,
+      "delta": 2
+    },
+    {
+      "field": "party.fainted",
+      "serious": 4,
+      "real": 6,
+      "delta": 2
+    },
+    {
+      "field": "active[].boosts.spe",
+      "serious": 2,
+      "real": 4,
+      "delta": 2
+    },
+    {
+      "field": "active[].vol.taunt",
+      "serious": 1,
+      "real": 3,
+      "delta": 2
+    },
+    {
+      "field": "active[].status",
+      "serious": 8,
+      "real": 9,
+      "delta": 1
+    },
+    {
+      "field": "field.trickroom_turns",
+      "serious": 5,
+      "real": 6,
+      "delta": 1
+    },
+    {
+      "field": "screens.physical",
+      "serious": 0,
+      "real": 1,
+      "delta": 1
+    },
+    {
+      "field": "screens.named.reflect",
+      "serious": 0,
+      "real": 1,
+      "delta": 1
+    },
+    {
+      "field": "party.MISSING-OR-EXTRA-MEMBER",
+      "serious": 36,
+      "real": 36,
+      "delta": 0
+    },
+    {
+      "field": "active[].fainted",
+      "serious": 5,
+      "real": 5,
+      "delta": 0
+    },
+    {
+      "field": "active[].boosts.evasion",
+      "serious": 4,
+      "real": 4,
+      "delta": 0
+    },
+    {
+      "field": "active[].vol.disable",
+      "serious": 3,
+      "real": 3,
+      "delta": 0
+    },
+    {
+      "field": "hazards.toxicspikes",
+      "serious": 2,
+      "real": 2,
+      "delta": 0
+    },
+    {
+      "field": "field.terrain_turns",
+      "serious": 2,
+      "real": 2,
+      "delta": 0
+    },
+    {
+      "field": "active[].vol.trapped_by_move",
+      "serious": 1,
+      "real": 1,
+      "delta": 0
+    },
+    {
+      "field": "screens.special",
+      "serious": 1,
+      "real": 1,
+      "delta": 0
+    },
+    {
+      "field": "screens.named.lightscreen",
+      "serious": 1,
+      "real": 1,
+      "delta": 0
+    },
+    {
+      "field": "active[].status_counter",
+      "serious": 4,
+      "real": 3,
+      "delta": -1
+    },
+    {
+      "field": "active[].vol.perish",
+      "serious": 2,
+      "real": 1,
+      "delta": -1
+    },
+    {
+      "field": "field.terrain",
+      "serious": 2,
+      "real": 1,
+      "delta": -1
+    },
+    {
+      "field": "tailwind",
+      "serious": 9,
+      "real": 7,
+      "delta": -2
+    }
+  ],
+  "source_digests": {
+    "engine/game_differential.js": "5455b5e4a873",
+    "engine/medicham2-browser.js": "7f34bb1d33e1",
+    "engine/diff_swarm.js": "ecf3284aabb1",
+    "engine/board_state.js": "e4a236e8d0a4",
+    "data/wire-ladder-census.pin.json": "f63179105d3c",
+    "note": "Content, not mtime. A checkout moves an mtime without moving code."
+  }
+}

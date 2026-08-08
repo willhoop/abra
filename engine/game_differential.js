@@ -83,6 +83,23 @@ const TEAM_STORE = flag('--team-store', null);
  * the steering test can take two arms WITHOUT clobbering the published artifact — a test that
  * overwrites the run everybody quotes is a worse bug than the one it checks. */
 const OUT = flag('--out', null);
+/* ---- `--nature` — THE THIRD RUN PARAMETER (2026-08-08) -------------------------------------------
+ *
+ * `real` (the default) carries the SHEET'S OWN nature to both engines. `serious` flattens every body,
+ * which is exactly what every run before 2026-08-08 did, and is kept so the before-arm of this change
+ * is REACHABLE WITHOUT SWAPPING A FILE — the same argument as `--release`, and the reason the two arms
+ * of the measurement differ in ONE run parameter and in no bytes at all.
+ *
+ * Declared here, up with the other arguments, because `MODE` is built long before buildPair and a
+ * `const` further down the file is in its temporal dead zone when MODE reads it. */
+const NATURE_MODE = (() => {
+  const v = String(flag('--nature', 'real')).toLowerCase();
+  if (v !== 'real' && v !== 'serious') {
+    console.error('--nature takes `real` (the sheet\'s own) or `serious` (the pre-2026-08-08 flat build); got "' + v + '"');
+    process.exit(2);
+  }
+  return v;
+})();
 
 if (!process.env.SHOWDOWN_PATH) {
   console.error('NOT RUN — the official simulator is absent. Set SHOWDOWN_PATH. This is not a pass.');
@@ -649,7 +666,12 @@ const PINS = {
  * what `arms_comparable.js` compares. A run under click-credit and a run under effect-credit played
  * different games and must not be tabled together. */
 const CREDIT_POLICY = 'observed-effect/v1';
-const MODE = 'A/' + PRIMARY_ARM.id + '/pins:' + PIN_DIGEST + '/credit:' + CREDIT_POLICY;
+/* THE NATURE IS THE THIRD RUN PARAMETER IN `mode` (2026-08-08). Carrying the sheet's real nature
+ * changes the stat line, which changes turn order, which changes which games get played — the same
+ * class of change as the pin and the credit rule, so it rides in the same place and
+ * `arms_comparable.js` refuses a pair that spans it. `NATURE_MODE` is declared beside buildPair. */
+const MODE = 'A/' + PRIMARY_ARM.id + '/pins:' + PIN_DIGEST + '/credit:' + CREDIT_POLICY
+           + '/nature:' + NATURE_MODE;
 
 /* ---- THE SKIP LIST, READ FROM THE DERIVATION ---------------------------------------------------- */
 const PROTO = JSON.parse(fs.readFileSync(D('data', 'protocol-events.json'), 'utf8'));
@@ -1173,20 +1195,37 @@ function harvest(stream, S) {
  * body evolved, Showdown went back to the set's own numbers mid-turn, with no seam for a harness to
  * re-align in (`battle.choose` runs the whole turn), and `updateMaxHp` emitted a silent `-heal` on top.
  *
- * So both bodies are now the SAME Pokemon by construction: Serious, 0 EVs, 31 IVs on the Showdown
- * side, and a flat level-50 stat line computed from the row's own base stats on the medicham side.
- * Those two formulas are identical arithmetic —
- *     showdown  statModify: trunc((2b + 31 + max(2e-1,0)) * 50/100) + 5   [levelclausemod, e = 0]
- *     medicham  l50:        floor((2b + 31) * 50/100) + 5 + sp            [sp = 0]
- * — and `alignStats` below is kept only to assert that, plus to carry the staged hpBoost arms. The
- * cost is stated rather than hidden: these bodies do not carry the ladder's spreads, so this
- * instrument tests RULES and not the stat lines people actually bring. */
+ * So both bodies are now the SAME Pokemon by construction: 0 EVs, 31 IVs and THE SHEET'S OWN NATURE on
+ * the Showdown side, and a level-50 stat line computed from the row's own base stats under THE SAME
+ * NATURE on the medicham side. Those two formulas are identical arithmetic —
+ *     showdown  statModify: trunc((2b + 31 + max(2e-1,0)) * 50/100) + 5, then the nature multiply
+ *     medicham  l50:        floor((2b + 31) * 50/100) + 5 + sp, then the SAME multiply   [sp = 0]
+ * — and `alignStats` below is kept only to assert that, plus to carry the staged hpBoost arms.
+ *
+ * THE NATURE IS REAL AS OF 2026-08-08, AND THE SPREADS NEVER WILL BE. Will: "lets add the sp spreads
+ * and rerun", then, correctly, "we wont have evs from team sheets" and "just nature". A Showdown OPEN
+ * TEAM SHEET reveals species, item, ability, moves, NATURE, gender and level; it does NOT reveal the
+ * spread. Every stored sheet reads `"evs": null` — 173,784 of 173,784 bodies in the frozen store — and
+ * that is what the game shows, not a gap in the ingest. So THIS NARROWS ROADMAP #68's DECLARED GAP AND
+ * DOES NOT CLOSE IT: the ladder's spreads remain untested and always will be.
+ *
+ * WHAT THE NATURE BUYS IS NOT 10% ON A STAT — IT IS THE SPEED AXIS. With every body flat AND Serious,
+ * 91.4% of legal species share a base Speed with some other species, so THE RIG MANUFACTURED SPEED TIES
+ * and almost never exercised a real speed differential (ROADMAP #86). The instrument was testing turn
+ * order in the one configuration where turn order is hardest to get wrong. EXPECT THE TURN-1 NUMBER TO
+ * FALL when this is switched on; that is the instrument getting honest, not a regression.
+ *
+ * AND THE NATURE IS NOT COPIED ONTO ANYTHING. Both engines are TOLD the nature and each computes; the
+ * multiplier chart and the fixed-point multiply are `M.natureL50`, out of the frozen release, because
+ * they are FACTS and a second copy here is the two-files-one-fact breach CLAUDE.md names. `ALIGN_MOVED`
+ * still has to read 0, and now it is asserting something much harder. */
 let STONES_STRIPPED = 0, STONES_KEPT = 0, TEAMS_UNBUILDABLE = 0, MONS_UNBUILDABLE = 0;
 let MCKEY_MISSED = 0;
 /* A declared switch that one engine could not resolve. MUST read 0/0: a miss means that side PASSED
  * while the other switched, which is a different board and was previously invisible. */
 const SWITCH_LOOKUP_MISS = { medi: 0, sd: 0 };   /* species mc_key had no row for; the raw id is tried and the body is usually skipped */
 let ALIGN_MOVED = 0;   // a stat the alignment had to CHANGE — must be 0 outside the hpBoost arms
+const ALIGN_MOVED_WHO = new Map();   // ...and WHICH body, because a bare 21 cannot be acted on
 /* ROADMAP #31 — THE EVOLUTION COUNTERS, PRINTED EVERY RUN AND A ZERO CALLED OUT LOUDLY. Mega has
  * already passed an at-least-one check in this project while firing on 56% of the sides it should
  * have, so a bare count is not enough and a RATE with a real denominator is reported beside it. Both
@@ -1209,14 +1248,37 @@ const isStone = it => STONES.has(id(it));
  * 96.1% of the time. `mcKey` is the one thing allowed to know how that table is keyed
  * (tests/test-mc-key.js), and it is read out of the RELEASE so the photograph rule holds. */
 const { mcKey } = REL.require('engine/mc_key.js');
-/* The flat level-50 line, no SP and no nature — see the block header for why both engines must
- * compute the same one. Written here rather than imported because medicham2 does not export `l50`,
- * and the two are pinned to each other by the ASSERTION in alignStats rather than by faith. */
-function flatL50(bs) {
-  const S = b => Math.floor((2 * b + 31) * 50 / 100) + 5;
-  return { hp: Math.floor((2 * bs.hp + 31) * 50 / 100) + 50 + 10,
-           at: S(bs.atk), df: S(bs.def), sa: S(bs.spa), sd: S(bs.spd), sp: S(bs.spe) };
+/* A SHEET WITH NO NATURE FALLS BACK TO SERIOUS AND IS COUNTED. Older store rows and any set inferred
+ * from a closed-sheet replay carry none, and a silent fallback would leave the instrument HALF
+ * NATURED with nobody able to say which half. Printed beside the other declared gaps every run. */
+const NATURE_COUNT = { declared: 0, fallback: 0, forced_flat: 0 };
+/* AND THE FALLBACKS ARE NAMED, not just counted. The first run of this reported 96 of 4,544 bodies
+ * falling back and the frozen store carries a dex-valid nature on 173,784 of 173,784 — so the 96 came
+ * from somewhere else, and an unexplained fallback is a silent default wearing a number. They are the
+ * HARNESS'S OWN hand-written fixtures (the directed scenarios, the planted proofs, the Knock Off
+ * arms), which declare species/item/ability/moves and no nature. Naming them is what makes that a
+ * receipt instead of a guess. */
+const NATURE_FELL_BACK = new Map();
+function natureFor(p) {
+  if (NATURE_MODE === 'serious') { NATURE_COUNT.forced_flat++; return 'Serious'; }
+  const n = p && p.nature ? String(p.nature) : '';
+  /* THE AUTHORITY DECIDES WHETHER A STRING IS A NATURE, not a shape test and not this file's own list.
+   * `natureShift` answers {plus:null,minus:null} for a NEUTRAL nature and for a typo alike, so asking
+   * it would count "Modset" as declared and flatten the body in silence. */
+  const known = n && dex.natures.get(n);
+  if (known && known.exists) { NATURE_COUNT.declared++; return known.name; }
+  NATURE_COUNT.fallback++;
+  const who = id((p && p.species) || '?') + (n ? ' (nature "' + n + '" is not one the dex knows)' : ' (no nature declared)');
+  NATURE_FELL_BACK.set(who, (NATURE_FELL_BACK.get(who) || 0) + 1);
+  return 'Serious';
 }
+/* The level-50 line under a named nature, no SP — see the block header for why both engines must
+ * compute the same one INDEPENDENTLY. The arithmetic is the ENGINE'S (`M.natureL50`, read out of the
+ * frozen release) rather than a second copy written here: the chart and the fixed-point multiply are
+ * FACTS, and this file having its own would be the exact defect CLAUDE.md names. What is NOT shared is
+ * Showdown's side, which computes from the SET and knows nothing about this line — that is the
+ * disagreement `alignStats` exists to catch, and it is why ALIGN_MOVED must still read 0. */
+function flatL50(bs, nature) { return M.natureL50(bs, nature || 'Serious'); }
 
 function buildPair(sheet, opts) {
   const hpx = (opts && opts.hpBoost) || 1;
@@ -1286,8 +1348,12 @@ function buildPair(sheet, opts) {
      * `_switchKey` is set from the SAME expression the driver uses to name the candidate, so the two
      * sides ask one question. It is deliberately NOT `b.name`, which is display state and mutable. */
     b._switchKey = id(sp.id || sp.name);
+    /* THE SHEET'S OWN NATURE, resolved ONCE and handed to BOTH sides — never resolved twice, because
+     * two resolutions of "what nature is this" is how one side ends up Serious and the other Modest
+     * while every counter reads healthy. */
+    const nature = natureFor(p);
     picked.push({ medi: b, spec: { key, moves: b.moves.slice(), item, ability, hpx, bs: sp.baseStats,
-                                   ident: sp.baseSpecies || sp.name }, sd: {
+                                   nature, ident: sp.baseSpecies || sp.name }, sd: {
       name: sp.name, species: sp.name,
       /* GENDER IS 'N' ON BOTH SIDES. Showdown writes the gender into the `|switch|` details field
        * (`Incineroar, L50, F`) and medicham2 has no gender at all, so a declared gender would part
@@ -1295,7 +1361,7 @@ function buildPair(sheet, opts) {
        * Rivalry and Cute Charm are not exercised — stated, not hidden. */
       gender: 'N', level: 50, item: item ? dex.items.get(item).name : '',
       ability: ability ? dex.abilities.get(ability).name : '',
-      moves: moves.map(m2 => m2.name), nature: 'Serious',
+      moves: moves.map(m2 => m2.name), nature,
       evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
       ivs: { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 },
     } });
@@ -1313,12 +1379,17 @@ function freshBodies(pair) {
     const b = M.buildMon(x.spec.key, {});
     if (!b) return null;
     b.moves = x.spec.moves.slice(); b.item = x.spec.item; b.ability = x.spec.ability;
-    /* THE FLAT LEVEL-50 LINE, so the two engines are the same Pokemon rather than one being copied
-     * onto the other — see the buildPair header. `sp.baseStats` is the DEX's, and it was MEASURED to
-     * equal data/engine-data.js's `bs` on all 318 rows before this was wired, which is what makes
-     * medicham2's own mega stat swap (megaEvolveNow computes `megaL50 + (st - baseL50)`) come out at
-     * a delta of exactly zero and land on Showdown's recomputed numbers. */
-    if (x.spec.bs) { b.st = flatL50(x.spec.bs); b.curHP = b.st.hp; }
+    /* THE LEVEL-50 LINE UNDER THE SHEET'S NATURE, so the two engines are the same Pokemon rather than
+     * one being copied onto the other — see the buildPair header. `sp.baseStats` is the DEX's, and it
+     * was MEASURED to equal data/engine-data.js's `bs` on all 318 rows before this was wired, which is
+     * what makes medicham2's own mega stat swap (megaEvolveNow computes `megaL50 + (st - baseL50)`)
+     * come out at a delta of exactly zero and land on Showdown's recomputed numbers.
+     *
+     * `_nature` IS STAMPED ON THE BODY AND THAT IS NOT COSMETIC. The mega swap recomputes BOTH of its
+     * anchors from base stats, so it has to apply the same shift; without this the mega lands short by
+     * (mul - 1) x (mega - base) on exactly the stat the nature moved, mid-turn, with no seam left to
+     * re-align in. tests/test-nature-differential.js PART 4 is that case, staged. */
+    if (x.spec.bs) { b._nature = x.spec.nature || 'Serious'; b.st = flatL50(x.spec.bs, b._nature); b.curHP = b.st.hp; }
     /* THE PROTOCOL IDENTIFIER IS SHOWDOWN'S NICKNAME, AND SHOWDOWN DEFAULTS IT TO `baseSpecies`.
      *
      * A set whose name equals its species is renamed to the BASE species when the battle loads it, so
@@ -1535,6 +1606,25 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
    * already-damaged HP against a freshly built Showdown side. A proof that passes for the wrong reason
    * is worse than one that fails. */
   const A = freshBodies(pairA), B = freshBodies(pairB);
+  /* ---- THE STAT LINE AS BUILT, SNAPSHOT BEFORE `battleInit` TOUCHES ANYTHING (2026-08-08) --------
+   *
+   * FOUND BY `ALIGN_MOVED`, WHICH IS EXACTLY WHAT IT IS FOR, and found only at 1,998 games because the
+   * body is rare: it read 0 at 267 and at 1,530 games and 21 at 1,998, IN BOTH NATURES, so it is not
+   * the nature. The witness names it — 21 of 21 are DITTO:
+   *
+   *     Ditto  showdown 123/68/68/68/68/68     medicham 123/75/110/150/101/106   (and five more lines)
+   *
+   * `battleInit` applies ENTRY effects, and since 3.76.0 that includes IMPOSTER — so by the time the
+   * alignment reads `A[k].st`, the medicham Ditto has already transformed and is carrying the stat line
+   * of whatever it copied. Showdown's Ditto has NOT entered yet (this runs before `team 1234`), so it
+   * still reads its own 68s. The alignment then wrote medicham's COPIED line onto Showdown's
+   * `storedStats` AND `baseStoredStats` — the field a transform reverts to — so Showdown's Ditto was
+   * permanently rebased onto another Pokemon's stats before the game began.
+   *
+   * THAT IS THE PAPERING-OVER THE BUILDPAIR HEADER FORBIDS, arriving by a new road. "Do the two engines'
+   * Imposters copy the same thing" is a REAL QUESTION and the harness was answering it in medicham's
+   * favour, silently, on every Ditto in the pool. Comparing the line AS BUILT restores the question. */
+  const stAtBuild = [A, B].map(arr => arr.map(m => (m && m.st) ? Object.assign({}, m.st) : null));
   /* ROADMAP #31 — `autoMega: false`. medicham2's own policy would evolve at the first opportunity,
    * which is right for a rollout and wrong here: this driver has to issue the SAME choice to both
    * engines, so the choice is the driver's and the engine is told. An engine deciding for itself
@@ -1553,14 +1643,26 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
    * silent copy is exactly how the old alignment hid a real disagreement. It has to stay for the
    * hpBoost arms, which deliberately inflate the pool so a damage ratio can be read off a body that
    * would otherwise have died. */
-  for (const [side, pair, built] of [[battle.p1, pairA, A], [battle.p2, pairB, B]]) {
+  for (const [side, pair, built] of [[battle.p1, pairA, stAtBuild[0]], [battle.p2, pairB, stAtBuild[1]]]) {
     for (const p of side.pokemon) {
       const k = pair.findIndex(x => id(x.sd.species) === id(p.species.id));
-      if (k < 0) continue;
-      const st = built[k].st;      /* the FRESHLY built body, never a previous game's leftovers */
+      if (k < 0 || !built[k]) continue;
+      /* THE LINE AS BUILT — never the live body's, which `battleInit`'s entry effects have already
+       * rewritten for a Ditto. See the snapshot above for what that cost. */
+      const st = built[k];
       if (!(pair[k].spec.hpx > 1)) {
         if (p.storedStats.atk !== st.at || p.storedStats.def !== st.df || p.storedStats.spa !== st.sa
-            || p.storedStats.spd !== st.sd || p.storedStats.spe !== st.sp || p.maxhp !== st.hp) ALIGN_MOVED++;
+            || p.storedStats.spd !== st.sd || p.storedStats.spe !== st.sp || p.maxhp !== st.hp) {
+          ALIGN_MOVED++;
+          /* A COUNT WITH NO NAME ON IT CANNOT BE ACTED ON. `ALIGN_MOVED = 21` was published for the
+           * first time on 2026-08-08 (it read 0 at 267 and at 1,530 games and 21 at 1,998, in BOTH
+           * natures, so it is not the nature) and there was no way to tell WHICH body, WHICH stat, or
+           * whether it was one team hit twenty-one times. The counter now carries its own witness. */
+          const w = pair[k].sd.species + ' (' + pair[k].sd.nature + ')  sd '
+            + [p.maxhp, p.storedStats.atk, p.storedStats.def, p.storedStats.spa, p.storedStats.spd, p.storedStats.spe].join('/')
+            + '  medi ' + [st.hp, st.at, st.df, st.sa, st.sd, st.sp].join('/');
+          ALIGN_MOVED_WHO.set(w, (ALIGN_MOVED_WHO.get(w) || 0) + 1);
+        }
       }
       p.storedStats.atk = st.at; p.storedStats.def = st.df; p.storedStats.spa = st.sa;
       p.storedStats.spd = st.sd; p.storedStats.spe = st.sp;
@@ -2711,7 +2813,13 @@ function pairsFor(cfgId) {
   return out;
 }
 
-module.exports = { playGame, buildPair, classify, pinRandom, PIN_CHANCE, sdStream, chooseAction,
+module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CHANCE, sdStream, chooseAction,
+                   /* 2026-08-08 — the nature. `flatL50` and `freshBodies` are exported so
+                    * tests/test-nature-differential.js can check the MEDICHAM line against the
+                    * authority directly instead of inferring it from a game that agreed; the counters
+                    * are exported so the same file can prove the fallback is counted rather than
+                    * silent, and that it stays still on a fully-declared sheet. */
+                   flatL50, NATURE_MODE, natureCounters: () => Object.assign({}, NATURE_COUNT),
                    plantedProof, pairsFor, COV_TARGETS, COV_UNMEASURABLE, PIN_CLAIMS, REL, SW,
                    runDirected, damageInterior, DIRECTED, EQUIV, equivProof, semantic, reduce, NORM_COUNTS,
                    knockOffArms, KO_TARGET_ITEMS,
@@ -3486,9 +3594,26 @@ console.log('');
 console.log('  DECLARED GAPS, printed every run so they cannot quietly grow:');
 console.log('    mega stones stripped from the MEASURED arm: ' + STONES_KEPT + ' sets kept, 0 stripped'
   + '  (' + STONES_STRIPPED + ' stripped from the paired CONTROL arm, on purpose)');
-console.log('    both engines are built Serious / 0 EVs / 31 IVs, so the ladder\'s SPREADS are not tested;');
+console.log('    natures: ' + NATURE_MODE.toUpperCase() + '  ('
+  + NATURE_COUNT.declared + ' bodies built from the sheet\'s own nature, '
+  + NATURE_COUNT.fallback + ' fell back to Serious because the sheet carried none, '
+  + NATURE_COUNT.forced_flat + ' forced flat by --nature serious)'
+  + (NATURE_MODE === 'real' && !NATURE_COUNT.declared
+      ? '  <-- NOTHING WAS NATURED. The knob is unwired, not immaterial.' : ''));
+if (NATURE_COUNT.fallback) {
+  const top = [...NATURE_FELL_BACK.entries()].sort((a, b) => b[1] - a[1]);
+  console.log('      what fell back (' + NATURE_FELL_BACK.size + ' distinct; the pool\'s sheets carry a dex-valid');
+  console.log('      nature on 100% of bodies, so anything here is a HAND-WRITTEN fixture in this file):');
+  for (const [w, c] of top.slice(0, 6)) console.log('        ' + String(c).padStart(4) + '  ' + w);
+  if (top.length > 6) console.log('        ... and ' + (top.length - 6) + ' more');
+}
+console.log('    THE SPREADS ARE STILL ABSENT AND ALWAYS WILL BE — an open team sheet does not show them');
+console.log('      (`"evs": null` on every stored body), so this instrument tests RULES and NOT the stat');
+console.log('      lines people actually bring. ROADMAP #68 is NARROWED by the nature, not closed.');
 console.log('      the alignment had to MOVE a stat ' + ALIGN_MOVED + ' times outside the staged hpBoost arms'
   + (ALIGN_MOVED ? '  <-- the two engines are NOT the same Pokemon' : ' (must read 0)'));
+for (const [w, c] of [...ALIGN_MOVED_WHO.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8))
+  console.log('        ' + String(c).padStart(4) + '  ' + w);
 console.log('    gender is N on both sides, so Attract / Rivalry / Cute Charm are not exercised.');
 console.log('    ZERO TO HERO IS SILENT — found by this run, not assumed. Showdown transforms Palafin on');
 console.log('      SWITCH-OUT (`|detailschange|p1a: Palafin|Palafin-Hero, L50`) and announces');
@@ -3568,9 +3693,12 @@ if (WRITE) {
      *
      * IT USED TO SAY "ZERO MEGA BODIES WERE TESTED". ROADMAP #31 closed that; what remains is the
      * SPREADS, which is a smaller and differently-shaped hole and is named rather than inherited. */
-    rate_excludes: 'both engines are built Serious / 0 EVs / 31 IVs so that they compute the same '
-      + 'stat line before AND after a forme change, so this instrument tests RULES and not the '
-      + 'spreads the ladder actually brings. Mega bodies ARE tested as of ROADMAP #31 ('
+    rate_excludes: 'both engines are built with 0 EVs and 31 IVs and each DERIVES its own stat line '
+      + '(nature mode: ' + NATURE_MODE + '), so they agree before AND after a forme change without '
+      + 'either being told the other\'s answer. THE SPREADS ARE ABSENT AND ALWAYS WILL BE: an open '
+      + 'team sheet does not reveal them (`"evs": null` on every stored body), so this instrument '
+      + 'tests RULES and not the stat lines the ladder actually brings — the NATURE narrows that gap '
+      + 'and does not close it. Mega bodies ARE tested as of ROADMAP #31 ('
       + STONES_KEPT + ' stone sets kept, 0 stripped from the measured arm).',
     /* ROADMAP #31 — THE TWO RATES, NEVER ONE. Same pairs, same seeds, same driver state; the stone is
      * the only difference between `with_megas` and `control_same_pairs_no_stones`. */
@@ -3722,6 +3850,20 @@ if (WRITE) {
       mega_stones_kept: STONES_KEPT,
       control_arm_stones_stripped: STONES_STRIPPED,
       align_had_to_move_a_stat: ALIGN_MOVED,
+      align_had_to_move_who: Object.fromEntries([...ALIGN_MOVED_WHO.entries()].sort((a, b) => b[1] - a[1])),
+      /* 2026-08-08 — the nature. `spreads_absent` is stated as a permanent property of the DATA rather
+       * than a to-do, because an open team sheet does not show a spread and no amount of ingest work
+       * will change that. `nature_fallback_to_serious` must be read beside `nature_declared`: a run
+       * with a large fallback count is HALF NATURED and its turn-order numbers describe two
+       * populations. */
+      nature_mode: NATURE_MODE,
+      nature_declared: NATURE_COUNT.declared,
+      nature_fallback_to_serious: NATURE_COUNT.fallback,
+      nature_fallback_who: Object.fromEntries([...NATURE_FELL_BACK.entries()].sort((a, b) => b[1] - a[1])),
+      nature_forced_flat: NATURE_COUNT.forced_flat,
+      spreads_absent: 'permanently — a Showdown open team sheet reveals species, item, ability, moves, '
+        + 'nature, gender and level, and NOT the spread. Every stored sheet reads `"evs": null`. '
+        + 'ROADMAP #68 is narrowed by the nature and is not closed.',
       teams_unbuildable: TEAMS_UNBUILDABLE, sets_unbuildable: MONS_UNBUILDABLE,
       ban_fallbacks: BAN_FALLBACKS, forced_first_slot: FORCED_FIRST_SLOT,
       undeclared_event_drops: UNDECLARED_DROPS,

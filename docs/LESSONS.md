@@ -75,6 +75,42 @@ twenty and it is no longer bad luck; it is a property of how probes get written.
   **Prefer a real object from the real path. If you must synthesise one, read the consumer first and
   match the field names it tests, not the ones that read well.**
 
+**Three more, added 2026-08-08 after FIVE cases in a single session.** The count is now about
+twenty-five. Every one of the five accused a mechanic that turned out to be correct, and every one
+would have cost an engine change that made the engine worse.
+
+- **`buildMon` HANDS YOU THE SPECIES' REAL ABILITY, AND THE OTHER ENGINE'S BODY GETS A DIFFERENT
+  ONE.** A Weather Ball probe read `Meganium into Snorlax` and reported sun at exactly half. The
+  MEDICHAM Snorlax carried **Thick Fat** out of `MC.mons`; the Showdown Snorlax got `abilities[0]` =
+  Immunity. Thick Fat halves Fire and Ice — precisely the arms that went red, because sun is where
+  Weather Ball *becomes* Fire. This is lesson 5's "clear the control explicitly" one rung up: it is
+  not enough to clear the control on the arm under test, **the two engines' bodies must be built to
+  agree, and the probe must assert that they do.** Nothing in this repository asserted it, so every
+  hand-rolled two-engine probe has been one species away from this.
+
+- **AGAINST A NEUTRAL DEFENDER, A WRONG TYPE AND A WRONG MULTIPLIER ARE THE SAME NUMBER.** The same
+  probe offered two hypotheses — "we convert to Water in every weather" and "the BP doubling is
+  missing" — and they fit the data equally because Thick Fat's ×0.5 and a missing ×2 are one factor.
+  A defender chosen for convenience cannot separate them. **Pick the target whose TYPE makes the
+  conversion observable**; the real defect that hunt eventually found (`effMoveType` reading
+  `field.weather` raw while `dmgRange` reads `effWeatherOf`) is invisible on anything but a Ghost,
+  where the correct answer is 115 and ours is 0.
+
+- **AN ARTIFACT IS A PHOTOGRAPH OF THE ENGINE THAT WROTE IT, AND STATUS PRINTS IT FOREVER.**
+  `data/interaction-matrix.json` was two days old, the simulator had moved 141 WIREs past it, and a
+  fix queue was being built off its nineteen parting rows — including a 16,461-use "Shield Dust
+  cluster" the code refutes outright (`:8359` already filters exactly as Showdown does, and WIRE 115
+  postdates the artifact). The staleness rules were all written about MEASURE and SEARCH artifacts;
+  nobody had applied them to an instrument that measures ENGINE. **Before quoting any artifact,
+  compare its mtime to the thing it measured.** It is one `stat` call and it would have saved the
+  whole detour.
+
+**And the meta-lesson, which is now the loudest signal in this file:** across ~25 cases the
+instrument has been wrong far more often than the engine, and the failure is never random — it always
+lands on "the engine is broken", never on "my probe is broken", because a probe that finds nothing
+feels like a wasted probe. **A red result is evidence about the PAIR (probe, engine). Rule out the
+probe first — it is cheaper to check and it is the more likely culprit.**
+
 ## 6. Will's domain knowledge beat the data repeatedly
 
 Blaze/mega. Gardevoir-is-Trace. Contrary-Staraptor. "Meganium needs the mega." "Reality is not a

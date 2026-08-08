@@ -1483,10 +1483,55 @@ function megaRowAbility(key,m){
   if(!MEDFAILS.megaRowNoAbilityFirst)MEDFAILS.megaRowNoAbilityFirst=String(key);
   return '';
 }
+/* ---- THE NATURE, WHICH IS A FACT AND THEREFORE LIVES IN ONE PLACE -------------------------------
+ *
+ * A Showdown OPEN TEAM SHEET reveals the NATURE. It does NOT reveal the spread -- every stored sheet
+ * reads `"evs": null`, on 173,784 of 173,784 bodies in the frozen store, and that is not an ingest gap
+ * but what the game shows. So the nature is the largest legal lever left on a body we can observe, and
+ * it was being thrown away: engine/game_differential.js hardcoded `nature: 'Serious'` on both sides.
+ *
+ * WHY IT IS HERE AND NOT IN THE HARNESS. CLAUDE.md: FEATURES ARE PER-MODEL, FACTS ARE GLOBAL. "Modest
+ * is +SpA / -Atk" and "the multiply truncates in fixed point" are facts about Pokemon; two files that
+ * both decide them will disagree eventually and the disagreement will be invisible because both keep
+ * working. This file already had the chart TWICE in spirit -- PASTE_NAT with a float `Math.floor(x*1.1)`
+ * -- and the differential was about to grow a third copy. One function, everybody calls it.
+ *
+ * THE ARITHMETIC IS SHOWDOWN'S, VERBATIM (sim/battle.ts statModify, and data/mods/champions/scripts.ts
+ * which overrides the pre-nature half and not this half):
+ *     stat = tr(tr(stat * 110, 16) / 100)          tr(n, 16) === (n >>> 0) % 65536
+ * The 16-bit wrap is UNREACHABLE at level 50 -- it first bites at a stat of 596 and the largest legal
+ * line in this format is ~232 -- and is carried anyway, because "the same in the range we use" is
+ * exactly how two engines come apart later. Measured: float `floor(s*1.1)` and this agree on every
+ * s < 596 and part on 405 values above it.
+ *
+ * HP TAKES NO NATURE. Champions applies the multiplier AFTER adding SP (CLAUDE.md), which is what
+ * natureL50 does and what buildMonFromSet's pasted spreads have always done. */
+const NATURE_SHIFT={adamant:['at','sa'],jolly:['sp','sa'],modest:['sa','at'],timid:['sp','at'],
+  bold:['df','at'],calm:['sd','at'],careful:['sd','sa'],impish:['df','sa'],relaxed:['df','sp'],
+  sassy:['sd','sp'],quiet:['sa','sp'],brave:['at','sp'],naive:['sp','sd'],hasty:['sp','df'],
+  lonely:['at','df'],mild:['sa','df'],rash:['sa','sd'],gentle:['sd','df'],naughty:['at','sd'],lax:['df','sd']};
+/* The five neutral natures (Hardy, Docile, Serious, Bashful, Quirky) are ABSENT ON PURPOSE and read
+ * as {plus:null,minus:null} -- they shift nothing, so a membership row for them would be a row that
+ * does nothing, and tests/test-nature-differential.js checks all 25 against the format dex. */
+function natureShift(n){ const p=NATURE_SHIFT[String(n||'').toLowerCase()];
+  return {plus:p?p[0]:null,minus:p?p[1]:null}; }
+function natureStat(stat,nature,key){
+  const p=NATURE_SHIFT[String(nature||'').toLowerCase()];
+  if(!p)return stat;
+  const pct=p[0]===key?110:(p[1]===key?90:0);
+  if(!pct)return stat;
+  return Math.trunc((((stat*pct)>>>0)%65536)/100);
+}
 // level-50 stat line, identical convention to champ-model's statL50/hpL50 (Champions SP system)
-function l50(bs,sp){ const S=(b,v)=>Math.floor((Math.floor((2*b+31)*50/100)+5+(+v||0)));
-  return { hp:Math.floor((2*bs.hp+31)*50/100)+50+10, at:S(bs.atk,sp&&sp.at), df:S(bs.def,sp&&sp.df),
-           sa:S(bs.spa,sp&&sp.sa), sd:S(bs.spd,sp&&sp.sd), sp:S(bs.spe,sp&&sp.sp) }; }
+/* `nature` is the THIRD argument and defaults to nothing, so every existing caller -- buildMon, the
+ * mega swap, board.js's consumers, every probe -- gets byte-identical numbers to before. A nature is
+ * something a caller must ASK for; it is never inferred. */
+function l50(bs,sp,nature){ const S=(b,v,k)=>natureStat(Math.floor((Math.floor((2*b+31)*50/100)+5+(+v||0))),nature,k);
+  return { hp:Math.floor((2*bs.hp+31)*50/100)+50+10, at:S(bs.atk,sp&&sp.at,'at'), df:S(bs.def,sp&&sp.df,'df'),
+           sa:S(bs.spa,sp&&sp.sa,'sa'), sd:S(bs.spd,sp&&sp.sd,'sd'), sp:S(bs.spe,sp&&sp.sp,'sp') }; }
+/* The flat level-50 line under a NAMED nature, no SP. Exported because engine/game_differential.js
+ * needs exactly this and used to write its own copy of the formula; see its buildPair header. */
+function natureL50(bs,nature){ return l50(bs,null,nature); }
 /* ONE DOORWAY INTO MC.mons FROM THIS FILE, and it is a ratchet rather than a preference.
  * tests/test-mc-key.js bans a computed index into the species table because four separate callers
  * wrote their own and two of them were silently broken for 8.17% of the metagame. This file is
@@ -1564,11 +1609,13 @@ function buildMon(name,ov){ const m=monRow(name); if(!m)return null;
  * tests/test-paste.js pins the two implementations together against Will's own myteam.txt so they
  * cannot drift apart. The math that matters and would have been silently wrong from memory:
  * Champions EVs are FLAT stat points added on top (statL50 adds +sp inside the nature multiply,
- * hpL50 adds +sp after) — NOT the mainline EV/4 formula. Nature is the standard 10% chart. */
-const PASTE_NAT={adamant:['at','sa'],jolly:['sp','sa'],modest:['sa','at'],timid:['sp','at'],
-  bold:['df','at'],calm:['sd','at'],careful:['sd','sa'],impish:['df','sa'],relaxed:['df','sp'],
-  sassy:['sd','sp'],quiet:['sa','sp'],brave:['at','sp'],naive:['sp','sd'],hasty:['sp','df'],
-  lonely:['at','df'],mild:['sa','df'],rash:['sa','sd'],gentle:['sd','df'],naughty:['at','sd'],lax:['df','sd']};
+ * hpL50 adds +sp after) — NOT the mainline EV/4 formula. Nature is the standard 10% chart.
+ *
+ * THE CHART USED TO LIVE HERE AS `PASTE_NAT` AND IT IS NOW `NATURE_SHIFT`, one screen up, because the
+ * differential needed the same fact and a second copy of "Modest is +SpA / -Atk" is the two-files-one-
+ * fact breach CLAUDE.md names. The paste path's own multiply was `Math.floor(x * 1.1)`; it is now
+ * `natureStat`, which is Showdown's fixed-point form. The two agree on every value below 596 (measured)
+ * so no pasted team changes, and they part above it, where the float one was simply wrong. */
 function parsePaste(text){
   const sets=[];
   for(const block of String(text||'').split(/\n\s*\n/)){
@@ -1628,9 +1675,9 @@ function buildMonFromSet(set){
   if(!m||!m.bs)return null;
   const bs=m.bs;
   const types=m.t.slice();
-  const nat=PASTE_NAT[String(set.nature||'').toLowerCase()]||[];
-  const mul=st2=>nat[0]===st2?1.1:(nat[1]===st2?0.9:1);
-  const S=(b,sp2,st2)=>Math.floor((Math.floor((2*b+31)*50/100)+5+(+sp2||0))*mul(st2));
+  /* ONE CHART, ONE MULTIPLY — see the header above. `l50` cannot be reused wholesale here because a
+   * pasted set adds SP to HP as well, which l50 (and every sheet-built body) never does. */
+  const S=(b,sp2,st2)=>natureStat(Math.floor((Math.floor((2*b+31)*50/100)+5+(+sp2||0))),set.nature,st2);
   const st={hp:Math.floor((2*bs.hp+31)*50/100)+50+10+(+set.sp.hp||0),
     at:S(bs.atk,set.sp.at,'at'),df:S(bs.def,set.sp.df,'df'),
     sa:S(bs.spa,set.sp.sa,'sa'),sd:S(bs.spd,set.sp.sd,'sd'),sp:S(bs.spe,set.sp.sp,'sp')};
@@ -1650,7 +1697,11 @@ function buildMonFromSet(set){
    * NON-mega set keeps the old precedence and a declared Rough Skin still beats the dataset's Sand
    * Veil. If the mega row has no ability of its own the sheet is still better than nothing. */
   const rowAb=normAb(megaAbility(key,item,megaRowAbility(key,m)||''));
-  return {name:key,types,st,item,wt:m.wt||null,
+  /* `_nature` RIDES ON THE BODY because the stat line is not the last time it is needed: megaEvolveNow
+   * recomputes both of its anchors and must apply the same shift, or a mega lands short by
+   * (mul - 1) x (mega - base) on exactly the stat the nature moved. A body with no `_nature` is treated
+   * as neutral, which is every body built before this existed. */
+  return {name:key,types,st,item,wt:m.wt||null,_nature:set.nature||null,
     ability:(becameMega&&rowAb)?rowAb:(declaredAb||rowAb),baseAbility:normAb(m.ab||''),
     moves:usable,droppedMoves:ids.filter(id=>usable.indexOf(id)<0),
     curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0,acc:0,eva:0},status:'',slp:0,fainted:false,protect:false,
@@ -4601,8 +4652,16 @@ function megaEvolveNow(S,m,auto){
   if(megRow&&megRow.bs&&baseRow&&baseRow.bs){
     /* buildMon's own rule, verbatim: swap the BASE STATS and keep whatever spread this body already
      * carries, so a mega does not silently lose its investment. Showdown's updateMaxHp keeps the
-     * DAMAGE TAKEN constant rather than the fraction, which is what the curHP line below does. */
-    const b=l50(baseRow.bs), g=l50(megRow.bs);
+     * DAMAGE TAKEN constant rather than the fraction, which is what the curHP line below does.
+     *
+     * BOTH ANCHORS CARRY THE BODY'S NATURE, and getting that wrong is silent. The swap is
+     * `megaL50 + (st - baseL50)`; if `st` is natured and the anchors are not, the delta is
+     * (mul - 1) x baseL50 rather than the spread, and the mega lands one or two points short on
+     * exactly the stat the nature moved -- which surfaces as a turn-order divergence in hundreds of
+     * games and reads as an engine bug. Showdown has no such seam: formeChange -> setSpecies
+     * RECOMPUTES storedStats from the SET, nature included, so it is always right and we are always
+     * the one that drifts. A body with no `_nature` is neutral and this is byte-identical to before. */
+    const b=l50(baseRow.bs,null,m._nature), g=l50(megRow.bs,null,m._nature);
     const st={hp:g.hp+(m.st.hp-b.hp),at:g.at+(m.st.at-b.at),df:g.df+(m.st.df-b.df),
               sa:g.sa+(m.st.sa-b.sa),sd:g.sd+(m.st.sd-b.sd),sp:g.sp+(m.st.sp-b.sp)};
     const dHP=st.hp-m.st.hp;
@@ -9689,6 +9748,7 @@ root.punishExposure=punishExposure; root.clickFragility=clickFragility;
 root.battleInit=battleInit; root.battleTurn=battleTurn; root.battleOver=battleOver; root.battleResult=battleResult; root.playerAction=playerAction;
 root.parsePaste=parsePaste; root.buildMonFromSet=buildMonFromSet; root.weatherId=weatherId; root.terrainId=terrainId;
 root.megaTargetFor=megaTargetFor; root.canMegaNow=canMegaNow; root.megaEvolveNow=megaEvolveNow;
+root.natureShift=natureShift; root.natureStat=natureStat; root.natureL50=natureL50;
 // exported for tests: the rulebook-reading helpers must be assertable on their own, so a wrong
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,
@@ -9718,6 +9778,13 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
      CLAUDE.md's FACTS ARE GLOBAL rule. megaEvolveNow is exported for the probes, which have to be
      able to demonstrate the phase in isolation from the turn that normally calls it. */
   megaTargetFor,canMegaNow,megaEvolveNow,
+  /* THE NATURE, exported as a FACT for the same reason md4096 is. A Showdown open team sheet reveals
+     it (and never the spread), so engine/game_differential.js now carries the real one through to
+     both engines -- and it must apply the SAME chart and the SAME fixed-point multiply this file
+     does, or the two sides compute different Pokemon and the differential reports it as a rule bug.
+     `natureL50` is the flat level-50 line under a named nature; `natureShift` is the chart itself,
+     checked against the format dex by tests/test-nature-differential.js. */
+  natureShift,natureStat,natureL50,NATURE_SHIFT,
   /* Exported so a caller can ask THIS engine what counts as a protect rather than keeping a second
    * list that drifts from it: the live bot tracks consecutive uses to seed tookProtectTurns. */
   PROTECTMOVES,

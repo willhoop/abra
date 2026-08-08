@@ -355,6 +355,49 @@ was normalisation — a red gate reported as "one of the two known failures" for
 catches that. So this still governs: **say the test is red and what you are doing about it, or fix it.
 Never file it.** And do not pass `--no-verify`; if the gate is wrong, fix the gate and say so.
 
+## EVERYTHING DOWNSTREAM OF MEDICHAM IS QUARANTINED UNTIL MEDICHAM IS CORRECT
+
+*(Will, 2026-08-08: "all engines that take medicham's output should be regarded as out of date and we
+should stop referencing them until medicham is up to date and we can rerun them".)*
+
+`docs/DIVISIONS.md` states the graph and says it is one-way:
+
+```
+  MEDICHAM  ──►  board.js  ──►  MAG weights  ──►  MILTANK baselines  ──►  live
+  (engine)       (features)     (the refit)       (every H2H result)
+```
+
+One-way means a wrong simulator does not stay in ENGINE. It reaches every number to its right. On
+2026-08-08 MEDICHAM is **known incorrect** — Weather Ball ignores three of the four weathers on 8,620
+uses, Sand Rush and Damp fire in Showdown and not here, Solar Beam never charges, a transform never
+reverts. So every figure to the right of that arrow was measured under an engine that does not play
+this game, and **may not be quoted, compared against, or reasoned from.**
+
+QUARANTINED — do not cite until MEDICHAM passes its gate and the run is repeated:
+R1 leaf accuracy, R2 leaf cost, R3 divergence, R4 head-to-head, leaf calibration, the
+engine-correctness→leaf comparison, `data/policy-weights.json` and the joint weights, and every
+model report that reads a rollout (MAG, DODUO, PORYGON2, SLOWKING, GARY, MILTANK).
+
+NOT quarantined, because they MEASURE MEDICHAM rather than consume it: the census, the interaction
+matrix, the game differential, the deliberate roster, and everything OPS reports out of the store
+(`meta-usage.json`, usable %, battles recorded) — the store is upstream of the simulator, not
+downstream.
+
+**A CAPTION IS NOT A QUARANTINE.** `status.js` already printed `PRE-CHANGE` and
+`[engine moved since; transfer assumed, not measured]` beside these numbers and they went on being
+quoted anyway, including by me. That is the identical failure to "one of the two known failures" one
+section up: the number is rendered, the warning is skimmed, the number gets used. **The figure must be
+WITHHELD, not annotated.** Printing it with a caveat is the bug.
+
+**THE GATE IS READ, NOT REMEMBERED.** Quarantine lifts on a measured condition, never on somebody
+deciding MEDICHAM feels finished — the fourteen stale handoffs and the ban list of four are what a
+remembered state is worth here. The condition is that the differential shows no disagreements and the
+deliberate roster shows no `FIRED-AND-BOARDS-DIFFER` and no `DID-NOT-FIRE` across items, abilities
+and moves. `engine/status.js` computes it and says which clause is failing.
+
+**Re-running is not optional once it lifts.** A quarantined number does not become true when MEDICHAM
+becomes correct; it becomes re-runnable. The re-run list is ROADMAP #57.
+
 ## Living docs — update these EVERY change (do not let them drift)
 Any change to a model, a result, or the site updates ALL of the following in the **same pass**, each
 with its matching PDF where applicable, plus a CHANGELOG entry and a version bump:

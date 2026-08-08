@@ -1,6 +1,37 @@
 # ABRA — Technical Documentation
 
-**Version 3.77.0 · Last updated 2026-08-08**
+**Version 3.79.0 · Last updated 2026-08-08**
+
+**3.79.0 — EVERY FIGURE DOWNSTREAM OF MEDICHAM IS NOW WITHHELD RATHER THAN CAPTIONED, AND THE
+DELIBERATE ROSTER'S MOVES STAGE RAN FOR THE FIRST TIME.** Will's standing call: *"all engines that
+take medicham's output should be regarded as out of date and we should stop referencing them until
+medicham is up to date and we can rerun them."* 34 of 114 artifacts are downstream and are no longer
+printed at all — R1, R2, R3, R4, leaf calibration and the weights among them — because a caption is
+not a quarantine: `PRE-CHANGE` had been printed beside those numbers for days and they went on being
+quoted anyway. Membership is derived from the dependency graph, not typed, and the gate that lifts it
+is computed from the differential and the roster, where a MISSING stage counts as failing. The roster
+gained 26 move shape rules and staged all 500 legal moves for the first time, returning a 79-row
+queue over ~15,000 uses. Its control arm was found to be measuring the CONTROL rather than the
+subject, which made six ability findings false; **Weather Ball, Sand Rush and Damp are retracted as
+defects and are correct.**
+
+**3.78.0 — THE SHEET'S REAL NATURE NOW REACHES BOTH ENGINES, AND THE TURN-1 NUMBER FELL. THAT IS THE
+INSTRUMENT GETTING HONEST.** The whole-game differential built every body `Serious` while the stored
+sheet beside it said `Modest`, and with every body flat AND Serious, 326 of 357 species in the format share a Speed
+with some other species — so the rig MANUFACTURED speed ties and almost never tested a real speed
+differential. Carrying the declared nature cut the tied groups the resolver has to break from 348,595
+to 243,467 over the same 1,998 games, a 30.2% fall. The instrument's own numbers went DOWN, as
+predicted before the run: the board at the end of turn 1 is identical in 97.4% of games flat against
+97.3% natured, games whose board never parted 80.8% against 78.8%, and the median turn of first board
+divergence one turn earlier at 7. Encore divergences nearly doubled (10 to 19 games), which is what a
+duration volatile that only bites when turn order does looks like when turn order starts being tested.
+THE SPREADS REMAIN ABSENT AND ALWAYS WILL BE — a Showdown open team sheet does not reveal them
+(`"evs": null` on 173,784 of 173,784 stored bodies), so this narrows the declared gap and does not
+close it. Neither engine is told the other's answer: both are told the nature and each computes, and
+the alignment assertion still reads 0. It read 21 on the first run and all 21 were Ditto — entry-time
+Imposter had already transformed the medicham body, and the harness was writing the copied stat line
+onto Showdown's Ditto before the game began. Census 324 live, 0 missing, unchanged.
+
 
 **3.77.0 — CONFUSION DID NOT EXIST, AND BURN HAD NEVER BEEN ON A BOARD.** The confusion volatile was
 written and never read or ticked, so Hurricane's secondary — 3,779 uses — fell through every branch, and

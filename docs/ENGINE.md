@@ -6,9 +6,9 @@
 `tests/mechanics_rank.js`, `tests/mutation_harness.js`, `tests/test-mutation-coverage.js`,
 `tests/test-medicham-coverage.js`, `tests/regulation_usage.js`, `tests/probe_red_demo.js`,
 `tests/test-protocol-trace.js`, `engine/derive_protocol_events.js`, `data/protocol-events.json`,
-`tests/roster.js`, `data/roster.json`
+`tests/roster.js`, `data/roster.json`, `tests/test-nature-differential.js`
 
-**Seven instruments, and none substitutes for another:**
+**Eight instruments, and none substitutes for another:**
 
 | file | asks | structurally cannot see |
 |---|---|---|
@@ -19,6 +19,7 @@
 | `test-protocol-trace.js` | does the engine EMIT what it did, in Showdown's own protocol shapes, and does every event it claims actually FIRE | whether a MECHANIC is right — it is a stream, not an oracle; the comparison driver over two streams is ROADMAP #68's next step |
 | `mutation_harness.js` | does the handler MATTER, or does it only FIRE — change the FACT, watch the BEHAVIOUR | a fact derived WRONG upstream (it is propagated and consumed faithfully and scores LIVE); anything outside `medicham2-browser.js`; a branch no scripted turn reaches, which it counts rather than hides |
 | `roster.js` | does EVERY LEGAL ENTITY IN THE FORMAT do anything, and does it do the same thing the authority does — staged from the entity's own upstream data, with a CONTROL arm that removes only it | anything the pin refuses (a sub-100% chance, a crit), anything `board_state.js` does not compare (PP, ability trapping), and anything no shape rule matches — each named, per entity, with its reason |
+| `test-nature-differential.js` | is the two engines' Pokemon the SAME Pokemon — chart, arithmetic, the sheet's declared nature reaching both sides, and the line surviving a mega mid-turn | whether either engine plays the game right; it compares BODIES, not turns. The SPREADS, permanently — an open team sheet does not show them |
 
 **Its one number:** mechanics live. **It must never go down.**
 
@@ -29,8 +30,8 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  324/324 probed mechanics live, 0 missing   (census 2026-08-08 08:04)
-  1/150 differential comparisons disagree with Showdown   (2026-08-08 08:01)
+  324/324 probed mechanics live, 0 missing   (census 2026-08-08 19:00)
+  1/150 differential comparisons disagree with Showdown   (2026-08-08 08:06)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (65 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -54,9 +55,329 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 183/191 probed, 8 unprobed
 ```
 
-_stamped 2026-08-08 08:06_
+_stamped 2026-08-08 19:04_
 
 <!-- /GENERATED -->
+
+## THE ROSTER'S MOVES STAGE — 26 SHAPE RULES BUILT, AND THE ABILITIES STAGE'S ENTIRE FINDING QUEUE RETRACTED. 2026-08-08.
+
+Will, on being shown that the moves stage was a stub: *"lets do it"*.
+
+**THE STUB WAS REAL AND IT WAS PROSE.** `tests/roster.js`'s own header described move rules reading
+"a move's `target`, `category`, `basePower`, `status`, `boosts`, `volatileStatus`, `weather`,
+`flags`". `--rules` printed **23 item rules, 6 ability rules, 0 move rules**, and `--stage moves`
+answered *"no shape rule in this file matches its data shape. Handlers: none"* for all 500 legal
+moves, with `all 0 derived clicks are guaranteed hits`. The repository's signature failure, inside
+the file whose entire purpose is to stop hand-maintained lists.
+
+### THE RESULT — all 500 legal moves, release `72e361e1bd44`, 15 s wall clock
+
+`52 FIRED-AND-BOARDS-DIFFER · 27 DID-NOT-FIRE · 330 FIRED-AND-BOARDS-MATCH · 0 CONTROL-NOT-QUIET ·
+91 COULD-NOT-STAGE`, and **26 of 26 staging rules CAUGHT AND LOCALISED their own break**. The
+79-row queue totals **15,000 corpus uses** and is led by **Encore 5,599 · Taunt 1,714 · Toxic 1,062 ·
+Infestation 971 · Disable 808 · Clanging Scales 749 · Triple Axel 674**.
+
+### SAID FIRST, BECAUSE IT RETRACTS A NUMBER THIS FILE ALREADY PUBLISHED
+
+**ALL SIX FINDINGS OF THE ABILITIES STAGE WERE THE CONTROL'S, NOT THE SUBJECT'S.** That stage
+controls by swapping in ANOTHER REAL ABILITY of the same species, and where the species has no quiet
+alternative the "control" is a second live mechanic. `data/roster.abilities.json` reported Sand Rush
+`with=818/without=850` and Fluffy `with=850/without=818` — **one 32-HP fact, two accusations**, and
+the gap is Fluffy halving contact damage. Anger Point and Justified both reported `boosts.atk -1`,
+which is INTIMIDATE being removed by the control.
+
+**THE FILE ALREADY KNEW AND SAID IT IN THE WRONG FIELD.** Every one of those rows carried the note
+*"(NOT A QUIET ABILITY — see the caveat on any finding)"* while the VERDICT kept saying
+DID-NOT-FIRE. The verdict is what gets read, quoted and queued — the same shape as a `PRE-CHANGE`
+caption under a headline number. So the caveat is now **the verdict**: a new `CONTROL-NOT-QUIET`
+outcome, emitted from `runEntry` before anything downstream (the artifact, `--reds`, the exit code)
+can read a contaminated row as a subject failure. The abilities stage now reads
+`0 DIFFER · 0 DID-NOT-FIRE · 29 MATCH · 8 CONTROL-NOT-QUIET · 279 COULD-NOT-STAGE`.
+
+**AND THE INSTRUMENT NOW CHECKS ITSELF FOR IT.** THE MIRROR TEST: if A's control is B and B's
+control is A, their deltas are one measurement with the sign flipped and the pair cannot say which
+member moved the board. It costs nothing — no game is replayed — and it finds **25 such pairs in the
+abilities stage, 6 of them reporting the same numbers swapped**, including Fluffy ↔ Sand Rush and
+Refrigerate ↔ Snow Warning. The moves stage has **zero** such pairs by construction, and that is
+printed rather than left as silence: a move's control is the inert click, which the selftest proves
+moves no board leaf in either engine.
+
+### THE PIN COSTS 121 MOVES, AND THE OTHER SHIPPED ARM BUYS THEM BACK
+
+The primary arm makes every sub-100-accuracy move MISS. For an ITEM that costs almost nothing; for a
+MOVE it silences **121 of 500** — Will-O-Wisp, Hypnosis, Thunder Wave, Toxic, every OHKO move, every
+raised-crit-ratio move — each of which would have read *"identical"* on two boards where nothing
+happened. `bottom-tie-first` is the other arm already shipped in `game_differential.js` and its
+corner is the exact inverse. The arm is now a property of the SCENARIO, chosen from the move's own
+`accuracy` and `critRatio`, and printed on every entry staged under it: **379 primary, 121 bottom**.
+
+### FOUR TIMES THE INSTRUMENT WAS WRONG BEFORE THE ENGINE WAS, ALL FOUR CAUGHT BY ITS OWN CHECKS
+
+- **THE BODY POOL OVER-MATCHED, AND `--rules` IS WHY IT WAS SEEN.** The item stage's
+  `carrierAbility` filter is right for a DAMAGE reading and wrong for a move stage: printed, it hands
+  out **SHIELD DUST to 20 species** (it deletes every secondary), **AROMA VEIL to 9** (it blocks
+  Taunt, Encore, Disable), plus Sweet Veil, Flower Veil, Contrary, Unaware and Prankster. The move
+  pool is the strict one — **no `on*` KEY AT ALL**, not "no `on*` FUNCTION", because Shell Armor's
+  handler is the literal `false` and a handler-shaped filter waves it straight through. Three members
+  of even that set are excluded by hand with the reason: **Early Bird** moves the sleep counter,
+  **Dancer** copies the Dragon Dances this stage clicks, **Corrosion** breaks the poison immunity the
+  status rule leans on. What survives is **five species**, all wearing Battle Armor or Shell Armor.
+- **THE CRIT-ARMOUR GATE WAS ITSELF A CONTAMINATED CONTROL — INSIDE THE FIX FOR CONTAMINATED
+  CONTROLS, FOUR HOURS LATER.** It compared Shell Armor against the species' alternate, and every
+  legal carrier's alternate is Overgrow, Torrent, Sap Sipper or Defiant. Replaced by a question that
+  needs no control ability: break the crit's x1.5 and watch. **MEASURED: 2 leaves on
+  `bottom-tie-first`, 0 on the primary — a crit lands exactly where that arm's pin says. With Shell
+  Armor on the same body the plant moves 0 leaves and the two engines part on 0**, so the armour is
+  one fact BOTH engines hold and cancels out of every delta.
+- **AND THE FIRST VERSION OF THAT MEASUREMENT SAID NO CRIT LANDS ANYWHERE** — because its defender
+  was wearing the Shell Armor under test. `move/crit` therefore draws its defender from the ITEM
+  stage's pool, which is the one place the two pools must differ: `carrierAbility` lists
+  `onCriticalHit` in INTERFERES, so a body chosen by it provably cannot block one.
+- **THE CONTROL-QUIET AUDIT FIRED ON 42 FALSE POSITIVES ON ITS FIRST RUN** — it flagged the entity's
+  own later clicks, which are replaced too. The real hazard it exists for is narrow and is now
+  exactly stated: a body that throws a DIFFERENT damaging move after its own click was silenced
+  carries Focus Energy's two crit stages into the control arm only.
+
+### FOUR ANCHORS WERE THE WRONG LINE, AND `--reds` SAID SO EACH TIME
+
+None of these is a defect; each is the file's own red demonstration refusing a rule that could not
+express its mechanic. **`move/status-inflict`** was aimed at `if(_e.status) applyStatus(...)` inside
+the `affect` branch — but `playerAction` classifies Glare, Spore and Thunder Wave as `kind:'status'`,
+so control never reaches it; re-aimed at the shared writer. **`move/ohko`** was aimed at the damage
+roll, and an OHKO never goes through the randomizer (`_fd.source === 'ohko'` returns the target's
+whole HP flat). **`move/priority`** carried a double-quoted anchor the source does not contain.
+**`move/type-changing`** was aimed at `effMoveType` and moved nothing — **which is the live defect
+wearing its own clothes**: `effMoveType` (:2167) is the battle loop's authority for the stage-5
+immunity gate and `dmgRange` (:2360) reads `weatherScaled` AGAIN for itself, so breaking one leaves
+the other pricing the converted type. **Two readers of one fact is the defect** (CLAUDE.md: facts are
+global). Filed, not fixed — the simulator is not this file's to edit.
+
+**WEATHER BALL IS CORRECT AND IS NOW PROVEN CATEGORICALLY RATHER THAN BY A DAMAGE NUMBER.** It is
+staged against a GHOST — Skeledirge — because a neutral defender turns a type change into a damage
+number where a missing 2x and a defensive x0.5 are the same factor and cancel, which is exactly how a
+false red was manufactured against this move earlier the same day. Turn 1 is the click under a clear
+sky (Normal, so a Ghost takes literally nothing), turn 2 sets the sun, turn 3 is the identical click
+(Fire, full damage). **Identical damage on turns 1 and 3 would mean the type never changed.** Both
+engines agree. The known live defect needs a PRIVATE sky — a Mega Sol ability with a clear field —
+which is an ABILITY carrier and therefore out of reach of a move-shape rule; named on the rule rather
+than quietly missed.
+
+### THE RESIDUE, REPORTED WITH ITS SIZE AND ITS USAGE BECAUSE THAT IS THE MEASURE OF THE JOB
+
+`ability/generic` swallowed 124 abilities over 72,899 uses and called them inert, which is how a
+coverage hole last disguised itself as a completed run.
+
+| bucket | moves | uses | staged | what it actually tests |
+|---|---|---|---|---|
+| `move/plain-attack` | 175 | 171,323 | 168 | a DAMAGE NUMBER against the authority, on moves no ladder team brought — the coverage a usage-driven differential cannot buy |
+| `move/generic-status` | 54 | 5,878 | 23 | **the weak one.** A zero-power move whose effect lives in an `onHit` handler; it reaches the board only if that handler touches a compared leaf, and 31 of the 54 come back THE STAGING IS INERT |
+
+`move/plain-attack` is large and is NOT the `ability/generic` shape: every member of it that stages
+is a real leaf-for-leaf damage comparison, and 8 of the 79 queue rows came out of it.
+`move/generic-status` **is** that shape and is labelled as such rather than counted as coverage.
+
+### THREE LIMITS THAT BELONG TO THE DRIVER, FILED NOT FIXED
+
+`engine/game_differential.js` is not this file's to edit and all three are recorded on the rules that
+hit them. **A charge move's RELEASE turn is unscriptable**: `scripted()` falls back to the DEX target
+when the request omits one, and Showdown's request for a body mid-wind-up omits it precisely because
+a locked move takes no target — so every scripted release turn is emitted as `move 1 1` and rejected
+with *"You can't choose a target for Dig"*. The wind-up turn alone is staged and Electro Shot's
+`+1 SpA` on it is a real comparison. **A recharge turn is unscriptable** for the mirror-image reason:
+the subject arm is offered the single pseudo-move `recharge` and the control arm is not, which is two
+experiments rather than a control. **Struggle cannot be clicked at all** — Showdown disables it for
+any body with a usable move, and every body here carries the inert click.
+
+## THIS DIVISION IS NOW THE GATE ON EVERY NUMBER TO ITS RIGHT — 2026-08-08 (MEASURE)
+
+`engine/quarantine.js` withholds every figure downstream of MEDICHAM until MEDICHAM is correct, and
+**the condition is read out of ENGINE's own instruments**. Nothing here is a judgement about the
+engine; it is a computed gate, and `node engine/quarantine.js` prints which clause fails and by how
+much. Today all four fail:
+
+- the **game differential** at 1 of 150 (`chesnaught woodhammer -> mimikyu`);
+- the **deliberate roster** at 2 FIRED-AND-BOARDS-DIFFER and 4 DID-NOT-FIRE on the abilities stage;
+- the **items** and **moves** stages, which have **no artifact at all** — and a missing stage is a
+  FAILING clause, never a passing one.
+
+**Two things this asks of ENGINE, neither of them a change to the simulator.**
+
+1. **`tests/roster.js --write` overwrites `data/roster.json` whatever stage it ran**, so only the
+   newest stage survives and two thirds of the gate can never be satisfied at once. The gate accepts
+   `data/roster.<stage>.json` and `data/roster.all.json` as well, so a stage-preserving filename (or
+   a `--stage all` run) closes it. This was NOT changed here — the file was held by another division
+   at the time.
+2. **`engine/derive_protocol_events.js` is a DECLARED instrument** in `engine/quarantine.js`, with its
+   reason: it loads the simulator only to read the event list it claims to emit and checks that claim
+   against Showdown's own `add()` call sites, so MEDICHAM is its subject rather than its input.
+   Quarantining it would have withheld `game-differential.json` downstream of it — the gate's own
+   first clause. `engine/game_differential.js` is declared for the same reason. **Both declarations are
+   checked**: one naming a module that is no longer in the play layer fails the gate.
+
+Nothing ENGINE reports is withheld. The census, the differential, the interaction matrix, the roster
+and the release ladder all print in full, deliberately — they are the instruments that say when the
+quarantine can lift, and blinding them would be the one way to make it permanent.
+
+## THE REAL NATURE NOW REACHES BOTH ENGINES, AND THE TURN-1 NUMBER FELL. THAT IS THE INSTRUMENT GETTING HONEST. 2026-08-08.
+
+Census **324 live, 0 missing, 324 probed — UNCHANGED**, which is the point: this is an instrument
+change and it must not move the engine's number. New gate `tests/test-nature-differential.js`, **13
+checks, all green, with the mega case red-demonstrated on a planted break**.
+
+Will, 2026-08-08: *"lets add the sp spreads and rerun"*, then — correctly, before anyone had to tell
+him — *"we wont have evs from team sheets"* and *"just nature"*.
+
+### SAID FIRST, BECAUSE IT IS THE THING THAT IS NOT A DEFECT
+
+**THE SPREADS ARE NOT MISSING FROM OUR INGEST. THEY ARE NOT IN THE GAME.** A Showdown open team sheet
+reveals species, item, ability, moves, nature, gender and level. It does **not** reveal the spread:
+every stored sheet reads `"evs": null`, on **173,784 of 173,784 bodies** in the frozen store. So there
+are no real spreads to carry, there never will be, and **ROADMAP #68's declared gap is NARROWED by
+this pass and is not closed.** That sentence is in the run's own output and in `rate_excludes`, so the
+next reader does not have to find this section.
+
+**AND THE NATURE WAS BEING THROWN AWAY.** `buildPair` hardcoded `nature: 'Serious'` while the stored
+sheet beside it said `Modest`. Nature is the single largest legal lever on a body we can actually
+observe, and it was discarded on 100% of them.
+
+### WHY IT MATTERS MORE THAN 10% ON A STAT: THE RIG WAS MANUFACTURING ITS OWN SPEED TIES
+
+With every body flat AND Serious, **326 of 357 species in the format (91.3%) share a Speed with at least one other
+species** (ROADMAP #86 records 91.4% over the wider legal set). The differential was testing turn
+order in the one configuration where turn order is hardest to get wrong. The receipt is not an
+argument, it is the run's own `speed_ties` counter over the same 1,998 games:
+
+| | flat/Serious | the sheet's own nature |
+|---|---|---|
+| tied groups the resolver had to break | **348,595** | **243,467** |
+
+**A 30.2% fall.** A hundred thousand speed comparisons per run that were ties by construction are now
+real differentials, and the engine is being asked about them for the first time.
+
+### THE MEASUREMENT. THE TURN-1 NUMBER FELL, AND THAT IS THE HEADLINE
+
+Two arms, **1,998 games each**, differing in ONE run parameter and in no bytes at all: the same
+frozen release `72e361e1bd44`, the same pinned census `data/wire-ladder-census.pin.json`, the same
+frozen team store, the same pool digest `32b2abcbfeb7`, `--nature serious` against `--nature real`.
+`threw` is 0 in both. Every figure below is read out of **`data/nature-arms.json`**, which also carries
+an `identical_inputs` block asserting all five of those are equal across the pair — a controlled A/B
+that cannot say so is not one.
+
+**AND `engine/arms_comparable.js` REFUSES THIS PAIR, ON PURPOSE.** `mode` carries `/nature:`, so
+nobody can table it beside `data/state-ladder.json` or any pre-2026-08-08 rung. The two arms are
+different INSTRUMENTS; what is claimed here is the narrower thing — the rig measured against itself
+with one parameter moved.
+
+| | `--nature serious` | `--nature real` | |
+|---|---|---|---|
+| board identical at end of turn 1 | 1947/1998 **97.4%** | 1944/1998 **97.3%** | −3 games |
+| games whose board NEVER parted | 1615/1998 **80.8%** | 1574/1998 **78.8%** | **−41 games** |
+| median turn of first board divergence | 8 | **7** | one turn earlier |
+| turn boundaries identical | 98.40% | 98.21% | |
+| protocol: games that diverged | 839 | **874** | +35 |
+
+**A DROP IS THE RIGHT RESULT AND WAS PREDICTED BEFORE THE RUN.** The instrument now reaches boards it
+could not previously construct. Reporting the fall is the finding; a rise would have meant the knob
+was not wired.
+
+**WHICH FIELDS THE NATURES EXPOSED** — games in which that leaf differed, `real` minus `serious`:
+
+| field | serious | real | delta |
+|---|---|---|---|
+| `party.hp` | 163 | 176 | **+13** |
+| `active[].hp` | 215 | 227 | **+12** |
+| `active[].boosts.atk` | 107 | 118 | **+11** |
+| `active[].vol.encore` | 10 | 19 | **+9 — nearly doubled** |
+| `active[].item` | 71 | 77 | +6 |
+| `active[].boosts.def` | 11 | 17 | +6 |
+| `field.weather_turns` | 23 | 27 | +4 |
+| `active[].species` / `active[].maxhp` / `active[].boosts.spa` | 70 / 60 / 22 | 73 / 63 / 25 | +3 each |
+| `tailwind` | 9 | 7 | −2 |
+
+The protocol classes move the same way — `ordering` 238 → 245, `event missing from medicham2`
+206 → 216. **Encore is the one worth naming**: it is a duration volatile whose whole behaviour is
+"which move did the target use", so it only comes apart when the turn order does, and it had almost
+nothing to bite on while every body was tied.
+
+### NEITHER ENGINE IS TOLD THE OTHER'S ANSWER, AND `ALIGN_MOVED` STILL READS 0
+
+The old flat build existed for a real reason and the reason survives. Stats used to be **copied** from
+the medicham side onto the Showdown body, which papered over disagreement rather than removing it, and
+could not survive a mega — `formeChange` calls `setSpecies`, which **recomputes `storedStats` from the
+SET** mid-turn, with no seam for a harness to re-align in. So the rule is that both engines DERIVE, and
+`alignStats` exists only to assert they landed on the same number.
+
+Nature is compatible with that; copying is not. Both sides are told the **nature** and each computes.
+`M.natureL50` is a FACT and lives in `medicham2-browser.js` beside `md4096` — the differential calls it
+rather than growing a third copy of the chart, and the paste path's own `Math.floor(x * 1.1)` was
+folded into it. The arithmetic is Showdown's fixed-point form verbatim,
+`tr(tr(stat * 110, 16) / 100)`; the 16-bit wrap is unreachable at level 50 (it first bites at 596
+against a largest legal line of ~232) and is carried anyway, because "the same in the range we use" is
+how two engines come apart later. Measured: the float form and this one agree on every value below 596
+and part on 405 values above it.
+
+**AND THE MEGA CASE IS THE ONE THAT BROKE THE OLD DESIGN, so it was tested first.** medicham2's swap is
+`megaL50 + (st - baseL50)`. With `st` natured and the anchors not, the delta becomes
+(mul − 1) × baseL50 and the mega lands short on exactly the stat the nature moved. Staged as PART 4:
+a **Jolly Abomasnow @ Abomasite** megaing mid-turn — unnatured anchors give Speed **58**, the authority
+says **55**. Both engines and the authority agree on all six stats before and after the forme change,
+and `updateMaxHp` emits **no phantom `-heal`**. The break was planted and the probe caught it,
+reporting exactly the 58 it predicted.
+
+### THE CONTROL WAS CLEARED EXPLICITLY, NOT ASSUMED
+
+`l50` grew an argument and `megaEvolveNow` grew two, so **every body this engine has ever built** went
+through edited arithmetic — every rollout, every board feature, every census probe. PART 7 measures the
+no-op against frozen release `6b5447db1738` rather than arguing it from the source: **all 344 un-natured
+`buildMon` stat lines and all 75 un-natured mega swaps are identical.**
+
+### WHAT THE FIRST RUN FOUND, WHICH WAS NOT THE NATURE — `ALIGN_MOVED` READ 21, AND ALL 21 ARE DITTO
+
+The alignment counter had never been anything but 0. At 1,998 games it read **21 — in BOTH arms
+equally**, so it was not the nature; it had simply never been run at a game count that reached a Ditto.
+And a bare `21` cannot be acted on, so the counter now carries its own witness, which named it in one
+line:
+
+```
+Ditto  showdown 123/68/68/68/68/68     medicham 123/75/110/150/101/106
+```
+
+`battleInit` applies ENTRY effects, and since 3.76.0 that includes **Imposter** — so by the time the
+alignment read the medicham body, that Ditto had already transformed and was carrying the stat line of
+whatever it copied. Showdown's Ditto had not entered yet (the alignment runs before `team 1234`), so it
+still read its own 68s. **The alignment then wrote medicham's copied line onto Showdown's `storedStats`
+AND `baseStoredStats`** — the field a transform reverts to — rebasing Showdown's Ditto onto another
+Pokemon's stats before the game began.
+
+That is the papering-over the buildPair header forbids, arriving by a road nobody had covered. *"Do the
+two engines' Imposters copy the same thing"* is a REAL question and the harness was answering it in
+medicham's favour, silently, on every Ditto in the pool. The alignment now compares the line **as
+built**, snapshot before `battleInit` touches anything, and `ALIGN_MOVED` is back to 0 with the question
+restored.
+
+### THE NATURE IS A RUN PARAMETER, SO A BEFORE/AFTER SPANNING IT IS REFUSED
+
+`mode` now reads `A/<arm>/pins:<digest>/credit:<rule>/nature:<real|serious>`.
+`engine/arms_comparable.js` already compares `mode`, so the nature run cannot be quietly tabled beside
+`data/state-ladder.json` or any pre-2026-08-08 rung. It changes which games get played, exactly as the
+pin set and the credit rule do.
+
+**AND A MISSING NATURE IS COUNTED, NEVER SILENT.** 68,736 bodies built from the sheet's own nature, 96
+fell back. The frozen store carries a dex-valid nature on 100% of bodies, so an unexplained fallback
+would be a silent default wearing a number — the counter therefore NAMES what fell back, and all 96 are
+this file's **own hand-written fixtures** (Clefable, Milotic, Snorlax, Corviknight, Incineroar, Toxapex
+— the directed-scenario cast), which declare species/item/ability/moves and no nature. The authority
+decides whether a string is a nature: `natureShift` answers `{plus:null,minus:null}` for a NEUTRAL
+nature and for a typo alike, so asking it would count `Modset` as declared and flatten the body in
+silence.
+
+### FILED, NOT MINE
+
+- **`tests/test-effective-identity.js` is RED and was red before this pass**: `no NEW raw read of a
+  transforming field (869 total, baseline 234)`, from `tests/roster.js` 0 → 97 and
+  `tests/staged_board.js` 0 → 13. Both files landed with the roster work; neither is touched here. The
+  fix is 110 declarations of why each read is correct BY CONSTRUCTION, and writing those for code I did
+  not walk is how a justification gets laundered. **Not filed as "known" — named, with its owner.**
 
 ## WIRE 142 — THE STATUS-COUNTER CLUSTER. FIVE SYMPTOMS, THREE CAUSES, AND THE TWO LOUDEST WERE NOT DEFECTS. 2026-08-08.
 
