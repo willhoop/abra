@@ -10,6 +10,30 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.76.2] — 2026-08-08
+
+### Added
+- **A SCRIPTED SCENARIO CAN NOW SWITCH: `{ sw: 'espathra' }`.** Until now `scripted()` understood only a
+  move and every other step fell through to `pass`, so NO STAGED SCENARIO COULD PUT A MID-TURN ENTRANT
+  ON THE FIELD. That one gap blocked three separate things, all of them about a MOMENT rather than an
+  effect: Speed Boost's `activeTurns` gate (which only exists for a body that just switched in), Hunger
+  Switch's flip and Zero to Hero's switch-out transform, and the entire across-a-switch arm of the
+  roster. FOUR OF THE SIX ENGINE BUGS FOUND ON 2026-08-07 WERE ABOUT A MOMENT, and a scenario with no
+  entrant cannot express one.
+- Verified end to end: Espathra switches in on turn 1 and reads **+0 Speed in both engines**, then +1 at
+  the end of turn 2 — 131/131 fields identical on both boundaries. That is Will's rule
+  (*"u gotta be in the whole turn to get the speed boost"*) staged for the first time rather than
+  inferred from a random game.
+- The ask uses the SAME key as the chooser (`id(species.id)`, which `buildPair` also stamps as
+  `_switchKey`), so both engines resolve it identically — the failure 3.75.1 fixed. Legality stays
+  Showdown's: an ask naming a fainted, active or absent body resolves to `pass` and is COUNTED.
+
+### Notes
+- **It took four fixture errors to verify, all mine and none the engine's** — Wobbuffet does not learn
+  Splash, then not Safeguard, then a one-body bring where `buildPair` requires four. This is exactly why
+  `tests/roster.js` built a `fixtureAudit` before trusting a single green, and why the roster's own
+  `--reds` caught its prose claiming to stage a gate it could not reach.
+
 ## [3.76.1] — 2026-08-08
 
 ### Added

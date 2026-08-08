@@ -2,9 +2,9 @@
   "current": "6b5447db1738",
   "cut": "2026-08-08T06:30:37.740Z",
   "why": "WIRE 141 — the phaze branch asks the shared slot reader",
-  "cuts": 121,
-  "latest_cut": "2026-08-08T07:08:19.530Z",
+  "cuts": 154,
+  "latest_cut": "2026-08-08T07:26:57.643Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-08T07:08:19.535Z",
+  "pointer_written": "2026-08-08T07:26:57.647Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

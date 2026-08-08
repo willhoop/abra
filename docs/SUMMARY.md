@@ -1,8 +1,19 @@
 # ABRA — Project Summary
 
-**Version 3.76.1 · 2026-08-08 · Will Hooper**
+**Version 3.76.2 · 2026-08-08 · Will Hooper**
 
-**3.76.1 — ALL 316 ABILITIES STAGED DELIBERATELY, AND A FREE +6 ATTACK FELL OUT.** Anger Point and
+**3.76.2 — A STAGED SCENARIO CAN NOW SWITCH, SO A MID-TURN ENTRANT IS EXPRESSIBLE FOR THE FIRST
+TIME.** The scenario driver understood only a move; every other step became a pass, so no staged test
+could put a body on the field part-way through a turn. That single gap blocked three things at once:
+Speed Boost's entry gate, which exists only for a body that just switched in; Hunger Switch's flip and
+Zero to Hero's switch-out transform; and the whole across-a-switch arm of the roster. Four of the six
+engine defects found the day before were about a MOMENT rather than an effect, and no scenario without
+an entrant can express one. Verified end to end: Espathra switches in and reads +0 Speed in both
+engines on the turn it arrives, then +1 at the end of the next, with all 131 fields identical on both
+boundaries.
+
+
+**3.76.2 — ALL 316 ABILITIES STAGED DELIBERATELY, AND A FREE +6 ATTACK FELL OUT.** Anger Point and
 Justified are one defect twice: a conditional boost-on-being-hit whose condition is never checked, so
 Anger Point grants +6 Attack off an ordinary hit where it requires a crit, and Justified grants +1 off
 a Poison move where it requires Dark. Hustle applies no 1.5x Attack at all. Two facts about the
@@ -13,7 +24,7 @@ fact about the regulation rather than the simulator: 113 of 316 legal abilities 
 so the effective roster of this format is about 203.
 
 
-**3.76.1 — FIVE MECHANICS THAT DID NOTHING, AND ONE THAT WAS ALREADY RIGHT.** Imposter never
+**3.76.2 — FIVE MECHANICS THAT DID NOTHING, AND ONE THAT WAS ALREADY RIGHT.** Imposter never
 transformed Ditto; Hunger Switch never flipped Morpeko; Knock Off took its 1.5x against an item it
 cannot remove; Fling never became an attack at all, because a base power of 0 made the click fail a
 `hasPower()` gate; and Roar's phaze branch held a Pokemon-first target, so a phaze after a pivot dragged
@@ -25,7 +36,7 @@ this engine does not have. Census 319/319 live, 0 missing; the staged harness no
 all clean and all breakable.
 
 
-**3.76.1 — THE INSTRUMENT RESOLVED A SWITCH BY TWO DIFFERENT KEYS AND FAILED SILENTLY BOTH WAYS.** The
+**3.76.2 — THE INSTRUMENT RESOLVED A SWITCH BY TWO DIFFERENT KEYS AND FAILED SILENTLY BOTH WAYS.** The
 driver names a bench member by Showdown's species id; the Showdown side looked it up by species id and
 the medicham side by the body's DISPLAY NAME. Those agree until a body is renamed — which this engine
 began doing the day before, when Disguise started renaming a busted Mimikyu, Zero to Hero started
@@ -39,7 +50,7 @@ also LATENT UNTIL THE FORME FIXES LANDED, and the deliberate-roster build would 
 
 
 **WIRE 138-140 — THREE BOARD FAMILIES, AND A TARGETING MODEL THAT WAS WRONG WHENEVER ANYTHING MOVED
-(3.76.1).** Aimed at the three largest surviving board-divergence families of the 1,530-game run at
+(3.76.2).** Aimed at the three largest surviving board-divergence families of the 1,530-game run at
 release `288aee2e3501`. **Speed Boost fired a turn early**: Showdown gates it on `activeTurns`, which
 is 0 on the turn a body switches in, and this engine's own comment said the gate "is not expressible
 here" — true of `_turnsOut` and untrue since WIRE 135 added `_newlySwitched`, a reason that was

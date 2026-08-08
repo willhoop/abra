@@ -1926,6 +1926,27 @@ function scripted(script, turn, sd, i, act, side) {
   const step = script[turn];
   const want = step && step[sd] && step[sd][i];
   if (!want) return { pass: true };
+  /* A SCRIPT MAY NOW SWITCH: `{ sw: 'espathra' }`. Until 2026-08-08 it could not — every step that was
+   * not a move fell through to `pass` — and that single gap blocked THREE separate things at once, all
+   * of them about a MOMENT rather than an effect:
+   *
+   *   - Speed Boost's `activeTurns` gate, which only exists for a body that JUST switched in. The
+   *     roster's residual rule claimed to stage it and did not: a LEAD is not newly switched, so the
+   *     break aimed at that gate applied cleanly and moved no board. `--reds` caught the prose.
+   *   - Hunger Switch's flip, Zero to Hero's switch-OUT transform, and Disguise not getting a second
+   *     one on re-entry — every "does it happen at the right moment" question needs an entrant.
+   *   - the whole across-a-switch arm: does an item reset, does an ability re-fire, does Intimidate
+   *     trigger again on re-entry (it does).
+   *
+   * FOUR OF THE SIX ENGINE BUGS FOUND ON 2026-08-07 WERE ABOUT A MOMENT AND NOT AN EFFECT, and a
+   * single-turn scenario with no entrant cannot express one.
+   *
+   * THE KEY IS THE SAME ONE THE CHOOSER USES — `id(species.id)`, which `buildPair` also stamps as
+   * `_switchKey` on the medicham body, so both engines resolve the ask identically. That mattered
+   * enough to be its own fix in 3.75.1, where the two sides were matching on different keys and both
+   * failing SILENTLY. Legality is still Showdown's to judge: an ask naming a body that is fainted,
+   * already active or absent resolves to `pass` at the two call sites below AND IS COUNTED THERE. */
+  if (want.sw) return { switchTo: id(want.sw) };
   const k = (act.moves || []).findIndex(mv => id(mv.id) === id(want.m));
   if (k < 0) return { pass: true };
   const dm = dex.moves.get(id(want.m));
