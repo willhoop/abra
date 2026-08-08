@@ -24,7 +24,7 @@ MEASURE — can we believe a number
     Brier TOP-BASELINE 0 [-0.0007, 0.0007]  noise floor 0.000642  detectable |delta| >= 0.001013
     does divergence depth predict leaf error?  LINES rho 0.00101 [-0.0186, 0.02212]   TURNS rho -0.00004 [-0.02082, 0.0226]   (MDE 0.02978)
     the depth ruler's own reliability (same release, driver order reversed): rho 0.83612 on n=8855 — the ceiling on the two rho above
-  provenance: 13 unsafe, 1 void (declared), 46 possibly stale, 54 ok, 0 missing
+  provenance: 13 unsafe, 1 void (declared), 48 possibly stale, 52 ok, 0 missing
   click censoring: 1,475 of 270,022 recorded actions were NOT clicks (0.546%) and left the labeled set; 3,559 (1.318%) are kept under a candidate set
     classifier vs the raw protocol on 6,988 games (69.8% of the corpus): encore recall 99.7% precision 96.2%, drag recall 96.7% precision 96.7%
     EM recovers 91.4% of a planted censoring bias of 0.958 against a 0.328 noise floor (amplified regime)
@@ -34,13 +34,13 @@ MEASURE — can we believe a number
       CONTROL, clean turns, logL                    +0.000485 [0.000189, 0.000777]   n=47331
   REFIT OWED — weights fitted 2026-08-05 04:00
     feature_fixture --check FAILED:   The weights were fitted against the old definition and no longer describe these quantities. |   Refit (node engine/fit_policy.js, then node engine/fit_joint.js), or if a derived table was |   merely re-ingested, restamp with: node engine/feature_fixture.js --stamp <file>
-    moved after the fit: engine/medicham2-browser.js  2026-08-08 06:30
+    moved after the fit: engine/medicham2-browser.js  2026-08-08 07:31
     moved after the fit: engine/board.js  2026-08-05 19:44
     moved after the fit: data/engine-data.js  2026-08-06 19:20
     moved after the fit: data/abra-tags.js  2026-08-08 06:23
 ```
 
-_stamped 2026-08-08 07:20_
+_stamped 2026-08-08 07:32_
 
 <!-- /GENERATED -->
 

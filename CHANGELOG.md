@@ -10,6 +10,45 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.76.3] — 2026-08-08
+
+### Added
+- **THE ROSTER'S TWO OWED ARMS.** *Across a switch*: `ability/residual` now starts the carrier ON THE
+  BENCH and walks it in mid-turn, so boundary 1 IS its entry turn — and the break re-aimed at that gate
+  (`!m._newlySwitched` removed) goes RED on `boosts.spe`, which is the proof the staging reaches
+  `activeTurns` at all. The old lead-only version applied the same break and moved nothing, which is
+  what `--reds` caught. Speed Boost matches. *At the line*: `item/hp-floor` puts both cases on ONE board
+  — a full-HP body takes a lethal hit and must survive, while a body beside it holding the same Sash,
+  chipped the turn before, takes a lethal hit and must NOT. A floor reading "not dead yet" instead of
+  "at full" saves the chipped one. The chip is DERIVED (`chipFor` finds the smallest move that moves HP
+  without killing), so the line is found rather than typed. Focus Sash matches.
+
+### Reported — engine defect, not fixed here
+- **A TRANSFORM NEVER REVERTS ON SWITCH-OUT (#95).** `sim/pokemon.ts:1527` clears `transformed` inside
+  `clearVolatile()`; medicham sets `_transformed` at `:4823` and NOTHING EVER UNSETS IT. Because the
+  same function does `m.name = t.name` (plus stats, types, moves, boosts and ability), OUR BENCHED BODY
+  IS PERMANENTLY THE THING IT COPIED. Two consequences: the two engines then choose from benches that
+  no longer describe the same Pokemon — which is the `species` divergence the roster surfaced — and,
+  worse, **A DITTO CAN ONLY EVER TRANSFORM ONCE PER BATTLE**, because the guard at `:4806` refuses a
+  second one. Re-copying is the entire function of the Pokemon. THE DEFECT IS ONE DAY OLD AND WAS
+  CREATED BY FIXING SOMETHING ELSE: Imposter first fired in 3.76.0, and the out-and-back scenario that
+  exposes it only became expressible with the mid-turn entrant in 3.76.2.
+
+### Notes
+- **The suppression tier did NOT reopen, and it was re-checked rather than assumed.** A switch-in is a
+  second control in principle, but those 23 entities are suppress-tier BECAUSE their ability cannot be
+  swapped — switching them in brings the ability with them, so there is still no arm without it. Gastro
+  Acid remains the only control and still does not suppress.
+- Ability MATCH moved 31 → 29 and DIFFER 2 → 4 because the entry rule now stages a RE-ENTRY, which is
+  strictly more demanding than what it asked before. Anger Point and Justified still reproduce on the
+  measured bytes and are not yet fixed.
+- **The instrument caught itself again.** `SB.fixtureAudit` reads `a.m`, so a `{ sw: ... }` step arrived
+  as `no such move "undefined"` and REFUSED the whole run. The audit was right to be strict; a switch
+  step is now nulled in the audit's own copy only, so the per-slot count check still applies and no real
+  click escapes inspection. Neither engine sees that copy.
+- Stage 4 (500 moves) deliberately not started — it needs its own shape-rule set and the agent stopped
+  rather than half-build one. That is the correct call and the same judgement it made last round.
+
 ## [3.76.2] — 2026-08-08
 
 ### Added

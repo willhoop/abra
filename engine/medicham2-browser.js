@@ -117,6 +117,26 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* WIRE 140 -- Ally Switch actually swapping two bodies, and the consecutive-use roll refusing one.
    * A zero on the first after real games means the branch is not on the path (202 corpus uses). */
   allySwitchSwapped: 0, allySwitchStalled: 0,
+  /* ROADMAP #92 -- CONFUSION, which did not exist in this engine at all until this pass, so every
+   * one of these was structurally zero and there was nothing to notice. Each is a different event and
+   * a zero on each says a different thing:
+   *   confusionSet              a body was actually confused. Zero after real games means the whole
+   *                             mechanic is off the path;
+   *   confusionMinDuration      the clock was taken at the AUTHORITY'S MINIMUM rather than drawn.
+   *                             It equals confusionSet by construction today and is counted anyway,
+   *                             because the day somebody wires a real range draw this number is the
+   *                             receipt that the floor stopped being taken;
+   *   confusionSelfHit          the body hurt itself instead of moving -- the consequence, which is
+   *                             the half a counter alone never proves;
+   *   confusionExpired          the clock ran out and the volatile was removed. A confusionSet with
+   *                             no confusionExpired is the ORIGINAL defect, wearing a counter;
+   *   confusionAlreadyOn        a second Confuse Ray refused, so the clock was not extended free;
+   *   confusionRefusedByAbility / confusionRefusedBySideBuff  Own Tempo and Safeguard. A zero is
+   *                             expected unless one is brought and says only that;
+   *   volatileCuredByItem       a Lum or a Persim spent on a volatile rather than on a status. */
+  confusionSet: 0, confusionMinDuration: 0, confusionSelfHit: 0, confusionExpired: 0,
+  confusionAlreadyOn: 0, confusionRefusedByAbility: 0, confusionRefusedBySideBuff: 0,
+  volatileCuredByItem: 0,
   /* ROADMAP #92 -- THE DAMAGE-STAGE CLASS, one counter per family that MOVED STAGE, because moving a
    * multiplier is invisible in a head-to-head (both arms apply it, one arm applies it late) and the
    * only receipt that the new site is on the path is a non-zero here.
@@ -232,7 +252,7 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * branch on `reaimedToSlot`. Kept at 0 rather than deleted because it is a published figure and a
    * silently vanishing counter is worse than a visibly retired one. */
   statusReaimedToSlot: 0,
-  moodyRolled: 0, punishBurned: 0, instructRepeat: 0, dualPurposeHeal: 0,
+  moodyRolled: 0, punishBurned: 0, punishConfused: 0, instructRepeat: 0, dualPurposeHeal: 0,
   sideBuffRefused: 0, itemRoomHidden: 0, wonderRoomSwap: 0, powerDoubledOnRead: 0,
   /* WIRE 141 -- the TRANSFORM, counted apart from `formeSwapped` because it is a different mechanic
    * wearing the same word: a forme swap becomes a KNOWN row and a transform becomes an ARBITRARY
@@ -246,6 +266,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * mechanic that never fired is exactly the silent default this project keeps meeting. */
   formeCycled: 0, flingThrown: 0, flingRefused: 0 };
 const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnknownFirst: '',
+  /* ROADMAP #92 -- MISTY TERRAIN ALSO REFUSES CONFUSION to a grounded body, and this engine has no
+   * per-terrain volatile refusal to hang that on. 9 corpus uses. Counted every time confusion is
+   * written while misty terrain is up, so the size of the gap is a number in the run rather than a
+   * sentence in a comment that nobody re-checks. */
+  confusionMistyUnmodelled: 0,
   /* WIRE 133 -- the three ways the switch-out class can be WRONG rather than absent, each named:
    *   switchOutTriggerUnhandled  an ability declares `onSwitchOut` and the derivation could not say
    *                              what it DOES. A silent default here would look exactly like a
@@ -1894,6 +1919,12 @@ function grantSubstitute(m,moveId){
  * order is Showdown's and is not what this wire is changing. What is added is the after-action pass. */
 function berryCureUpdate(m){
   if(!m||m.fainted||m.curHP<=0)return;
+  /* ROADMAP #92 -- A BERRY CAN BE SPENT ON A VOLATILE, NOT ONLY ON A STATUS. Lum's `onUpdate` fires on
+   * `pokemon.status || pokemon.volatiles['confusion']` and Persim's fires on the volatile ALONE -- it
+   * has no status handler at all, which is why the derivation gave it no cure tag until `curesVolatile`
+   * learned to read `onEat`. Placed first because `curesStatus` returns early on an unstatused body,
+   * so a Persim holder never reached the rest of this function. */
+  if(m._vol&&m._vol.confusion>0&&itemCuresVolatile(m,'confusion'))return;
   const _cs=TAGS.param('item',m.item,'curesStatus');
   if(!(_cs&&m.status&&_cs.statuses))return;
   if(!(_cs.statuses==='any'||(Array.isArray(_cs.statuses)&&_cs.statuses.indexOf(m.status)>=0)))return;
@@ -4331,6 +4362,114 @@ function applyStatus(t,st,src){
   if(TR)TR.sta(t,st);
   if(st==='slp')t.slpTurns=0;if(st==='frz')t.frzTurns=0;if(st==='tox')t.toxTurns=0;return true;}
 
+/* ================= CONFUSION, WHICH THIS ENGINE DID NOT HAVE AT ALL ==============================
+ *
+ * ROADMAP #92. Until this pass the string `confusion` appeared in this file only in comments saying
+ * it was absent -- the `tangledfeet` row in the damage table is switched OFF with `off: 'no confusion
+ * volatile exists in this engine'`, and Alluring Voice's whole punish arm was counted as unmodelled.
+ * What DID happen was worse than nothing: Confuse Ray, Dynamic Punch, Swagger, Flatter, Sweet Kiss,
+ * Teeter Dance, Water Pulse, Hurricane and Axe Kick all carry `statusInflict {volatile:'confusion'}`,
+ * so the generic volatile branch wrote `_vol.confusion = 1` onto the target and NOTHING EVER READ IT
+ * OR DECREMENTED IT. Measured on a staged board (tests/staged_status_counters.js
+ * `confusion-counter-decays`): our Snorlax carries `confusion 1` on every board for the rest of the
+ * game while Showdown's has none from turn 2 -- and the CONSEQUENCE, a body that sometimes hits
+ * itself instead of moving, never happened once in any rollout this project has ever run.
+ *
+ * THE DURATION IS THE MINIMUM OF THE AUTHORITY'S RANGE, AND THAT IS A DECISION RATHER THAN A DEFAULT.
+ * `data/conditions.ts:174` draws it as `this.random(min, 6)` -- 2 to 5 attempts, or 3 to 5 after an
+ * Axe Kick. Showdown's RANGE form of `random` is what the differential pins, and every arm in
+ * `engine/game_differential.js` pins it to the BOTTOM (`return m;`), so the authority always draws 2
+ * under measurement. This engine's `rng` is a plain float and cannot express a range draw at all: a
+ * `min + floor(rng()*span)` would read 5 under the top-corner arm and 2 under the bottom one, so the
+ * two engines would part on the arm the staged boards actually run. The flat minimum is the same
+ * choice the partial-trap already makes (`turns:(_tn?+_tn[0]:4)`), it is the only value that can ever
+ * be CHECKED against the authority, and it is stated here rather than left to be discovered.
+ * THE COST IS REAL AND IS NOT HIDDEN: against real dice confusion lasts 3.5 attempts on average and
+ * this engine gives it 2, so a search will under-value landing one. `MEDSEEN.confusionMinDuration`
+ * counts every time the floor is taken, so it is a number in the run rather than a sentence here. */
+const CONFUSION_TURNS_MIN = 2;                    // data/conditions.ts:174 -- this.random(2, 6)
+const CONFUSION_SELF_HIT_BP = 40;                 // data/conditions.ts:191 -- getConfusionDamage(pokemon, 40)
+/* THE ITEM THAT TAKES A VOLATILE OFF, read by SHAPE from `curesVolatile.cures`. Lum and Persim reach
+ * it because tag_dex now derives that list from `onEat`'s own `removeVolatile` calls; Mental Herb
+ * keeps its separate site because it carries per-volatile bookkeeping (`_sealed`, the Encore lock)
+ * that a berry has nothing to do with. Returns true when the item was spent. */
+function itemCuresVolatile(m,vol){
+  if(!m||!m.item)return false;
+  const p=TAGS.param('item',m.item,'curesVolatile');
+  if(!(p&&Array.isArray(p.cures)&&p.cures.indexOf(vol)>=0))return false;
+  const it=m.item;
+  if(m._vol)delete m._vol[vol];
+  m.item='';
+  if(TR){TR.enditem(m,it,'[eat]');TR.vend(m,vol);}
+  MEDSEEN.volatileCuredByItem++;
+  return true;
+}
+/* `addVolatile('confusion')`, with every refusal the authority applies and no others.
+ *   ALREADY CONFUSED       `addVolatile` returns false for a volatile with no onRestart, and the
+ *                          clock is NOT re-rolled -- an engine that overwrote it would make a second
+ *                          Confuse Ray a free extension.
+ *   OWN TEMPO              `refusesVolatile`, derived from `onTryAddVolatile`. 64 sheets. Read by
+ *                          shape, so Inner Focus's flinch refusal comes off the same tag.
+ *   SAFEGUARD              the existing `sideBuff.blocksVolatile`, through the shared reader, so this
+ *                          cannot disagree with the status path beside it.
+ * DECLARED AND NOT MODELLED, because an unstated gap is the thing this project keeps finding: MISTY
+ * TERRAIN also refuses confusion to a GROUNDED body (`data/moves.ts` mistyterrain onTryAddVolatile).
+ * This engine has no per-terrain volatile refusal and the move is 9 corpus uses; it is counted as
+ * `MEDFAILS.confusionMistyUnmodelled` whenever the terrain is up, rather than silently allowed. */
+function applyConfusion(t,src,field){
+  if(!t||t.fainted||t.curHP<=0)return false;
+  if(t._vol&&t._vol.confusion>0){MEDSEEN.confusionAlreadyOn++;return false;}
+  {const _rv=TAGS.param('ability',t.ability,'refusesVolatile');
+   if(_rv&&Array.isArray(_rv.refuses)&&_rv.refuses.indexOf('confusion')>=0&&!_rv.requiresForme){
+     MEDSEEN.confusionRefusedByAbility++;
+     if(TR)TR.imm(t,'[from] ability: '+t.ability);
+     return false;}}
+  {const _sb=sideBuffRefuses(t,src,'blocksVolatile');
+   if(_sb){MEDSEEN.confusionRefusedBySideBuff++;
+     if(TR)TR.act(t,'move: '+(_sb.startsAs||_sb.sideCondition));
+     return false;}}
+  if(field&&field.terrain==='misty'){MEDFAILS.confusionMistyUnmodelled++;}
+  (t._vol=t._vol||{}).confusion=CONFUSION_TURNS_MIN;
+  MEDSEEN.confusionSet++;MEDSEEN.confusionMinDuration++;
+  if(TR)TR.vstart(t,'confusion');
+  /* THE BERRY IS AN `onUpdate` AND FIRES BEFORE THE BODY EVER ACTS, which is why it is here and not
+   * only in the update pass: a Lum holder confused by a move it was aimed at must lose the volatile
+   * inside the same turn, not at the next boundary. The update pass calls the same reader, so a
+   * confusion arriving by any other route is caught there. */
+  itemCuresVolatile(t,'confusion');
+  return true;
+}
+/* THE TICK, AND IT IS WHERE SHOWDOWN PUTS IT: `onBeforeMove`, at the TOP of the attempt, BEFORE the
+ * roll that decides whether the body hurts itself (data/conditions.ts:181). So a confusion whose
+ * clock has just run out costs nothing at all -- the volatile is removed and the move goes through.
+ * Returns TRUE when the body loses its action. */
+function confusionSelfDamage(m,rng){
+  const A=Math.floor(m.st.at*boostMul(m.boosts.at));
+  const D=Math.floor(m.st.df*boostMul(m.boosts.df));
+  /* `battle-actions.ts:1856`, with level 50 folded into the 22 the damage function already uses.
+   * NO STAB, NO TYPE CHART, NO CRIT, NO SCREEN, NO BURN -- the move is typeless and getConfusionDamage
+   * calls neither getDamage's modifier chain nor moveHit. The one thing it DOES pick up that this does
+   * not is an `onModifyAtk` ability (a burned Guts body hits itself harder); declared rather than
+   * modelled, and it needs a burn and a Guts body and a confusion at once. */
+  const base=Math.floor(Math.floor(22*CONFUSION_SELF_HIT_BP*A/D)/50)+2;
+  /* THE SAME ROLL IDIOM THE ATTACK PATH USES, so the two cannot pin differently: 16 sides, the top
+   * corner is the maximum roll and the bottom corner is 85%. */
+  const r=Math.min(15,Math.floor(rng()*16));
+  return Math.max(1,Math.floor(base*(85+r)/100));
+}
+function confusionBeforeMove(m,rng){
+  if(!m||!m._vol||!(m._vol.confusion>0))return false;
+  if(--m._vol.confusion<=0){delete m._vol.confusion;if(TR)TR.vend(m,'confusion');MEDSEEN.confusionExpired++;return false;}
+  if(TR)TR.act(m,'confusion');
+  /* `this.randomChance(33, 100)` at data/conditions.ts:187 -- one attempt in three. */
+  if(rng()>=1/3)return false;
+  const d=confusionSelfDamage(m,rng);
+  m.curHP-=d;MEDSEEN.confusionSelfHit++;
+  if(TR)TR.dmg(m,'[from] confusion');
+  if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}
+  return true;
+}
+
 /* ON-ENTRY FIELD EFFECTS, from the artifact instead of a four-name list. Called for the leads AND
  * for every faint replacement — the gap Will's Solar Beam/Pelipper question exposed: refill()
  * applied only Intimidate, so a mid-game Drizzle entrant set no rain in any rollout, ever. The
@@ -5599,10 +5738,31 @@ function battleTurn(S,rng,actsForA,actsForB){
        *     recharge   conditions.ts:372  return NULL    -- the one that does not count
        *     Throat Chop / Taunt / Disable  moves.ts      return false
        * Nothing here is a judgement; each is one line in the authority. */
-      if(m._flinch){m._flinch=false;m._mvRes=false;if(TR)TR.cant(m,'flinch');continue;}
-      if(m.status==='par'&&rng()<0.125){m._mvRes=false;if(TR)TR.cant(m,'par');continue;}   // Champions: 12.5% full-para (was 25%)
+      /* ROADMAP #92 -- THE ORDER OF THESE FIVE IS `onBeforeMovePriority`, WHICH IS AN AUTHORITY FACT
+       * AND WAS WRONG HERE. A HIGHER NUMBER RUNS FIRST:
+       *     slp        conditions.ts:64    priority 10
+       *     frz        conditions.ts:96    priority 10
+       *     flinch     conditions.ts:201   priority  8
+       *     confusion  conditions.ts:179   priority  3
+       *     par        conditions.ts:38    priority  1
+       * This loop ran flinch FIRST, so a body that was ASLEEP AND FLINCHED consumed the flinch and
+       * never ticked its sleep counter -- and the sleeper then woke a whole turn late. Not a counter
+       * curiosity: measured on a staged board (tests/staged_status_counters.js
+       * `sleep-counter-under-a-flinch`, Fake Out and Spore into the same Snorlax on one turn), the
+       * two engines part on `status`, on `status_counter` AND on `boosts.atk` -- Showdown's Snorlax
+       * wakes on turn 3 and gets a Swords Dance that ours does not get until turn 4. THE CONTROL WITH
+       * THE FAKE OUT REMOVED IS IDENTICAL ON THE SAME RELEASE, so the ordering is the whole cause.
+       * PAR MOVING BELOW SLP AND FRZ CHANGES NOTHING TODAY -- a body cannot hold two major statuses --
+       * and it moves anyway, because a list that is four fifths of the authority's list is the shape
+       * that comes apart the day somebody adds the fifth member. */
       if(m.status==='frz'){m.frzTurns=(m.frzTurns||0)+1;if(m.frzTurns>=3||rng()<0.25){m.status='';if(TR)TR.cure(m,'frz');}else {m._mvRes=false;if(TR)TR.cant(m,'frz');continue;}}   // Champions: 25%/attempt, guaranteed thaw turn 3
       if(m.status==='slp'){m.slpTurns=(m.slpTurns||0)+1;if(m.slpTurns>=3||(m.slpTurns===2&&rng()<1/3)){m.status='';if(TR)TR.cure(m,'slp');}else {m._mvRes=false;if(TR)TR.cant(m,'slp');continue;}}   // Champions: 33% wake turn 2, 100% turn 3
+      /* `_flinch` is cleared for every active body at the end of the turn (the `forEach` below the
+       * action loop), so a flinch that sleep got to first does NOT survive into the next turn -- which
+       * is Showdown's `duration: 1` on the volatile, arriving by a different road. */
+      if(m._flinch){m._flinch=false;m._mvRes=false;if(TR)TR.cant(m,'flinch');continue;}
+      if(confusionBeforeMove(m,rng)){m._mvRes=false;continue;}
+      if(m.status==='par'&&rng()<0.125){m._mvRes=false;if(TR)TR.cant(m,'par');continue;}   // Champions: 12.5% full-para (was 25%)
       const a=it.a;
       /* WIRE 43 -- THE RECHARGE TURN. Hyper Beam is 1,627 corpus clicks and Giga Impact 29, and both
          were free: the engine played the move and then let the user act again next turn, so the
@@ -5897,6 +6057,12 @@ function battleTurn(S,rng,actsForA,actsForB){
                DECLARED volatile name is the same read the encore and disable branches two lines above
                already make: the tag supplies the effect, the name says which handler owns it. */
             if(_e.volatile==='substitute') continue;
+            /* ROADMAP #92 -- CONFUSION IS OWNED TOO, for exactly the reason Substitute is. This
+             * generic path writes a bare turn count and knows nothing about Own Tempo, Safeguard, a
+             * body that is already confused, a Lum Berry or the self-hit -- and what it wrote was
+             * never read by anything. `applyConfusion` is the one implementation and the secondary
+             * path two thousand lines below calls the same function. */
+            if(_e.volatile==='confusion'){applyConfusion(_who,m,field);continue;}
             const _sm=TAGS.param('move',a.mv,'sealsMoves');
             let _tn=(_sm&&+_sm.turns)||1;
             /* WIRE 119 -- TAUNT LASTS THREE OF THE TARGET'S TURNS, NOT THREE TURNS. Showdown's taunt
@@ -8156,6 +8322,12 @@ function battleTurn(S,rng,actsForA,actsForB){
                     if(TR)TR.bst(m,_st,m.boosts[_st]-_b0);}
                 }
               }
+              /* ROADMAP #92 -- THE SECONDARY CONFUSION, which reached NO branch at all before this:
+               * Water Pulse (20%, 84 uses), Hurricane (30%, 3,779 uses), Dynamic Punch (100%, 19) and
+               * Axe Kick all fell through `status`, `targetBoosts`, `selfBoosts` and `flinch` and out
+               * of the loop. THE SAME FUNCTION the direct status path uses, so a refusal cannot be
+               * honoured on one road and not the other. */
+              else if(s.volatile==='confusion'){ applyConfusion(tg,m,field); }
               else if(s.volatile==='flinch'){
                 /* Flinch needs BOTH conditions: the target must not have moved yet this turn, and
                  * Inner Focus blocks it outright. WIRE 118: "not yet moved" is the target still
@@ -8193,6 +8365,12 @@ function battleTurn(S,rng,actsForA,actsForB){
            if(_pb&&_pb.onlyIfTargetBoostedThisTurn&&!suppressed&&!tg.fainted&&statsRoseThisTurn(tg)){
              if(_pb.effect==='status'&&_pb.status){
                if(applyStatus(tg,_pb.status,m))MEDSEEN.punishBurned++;
+             /* ROADMAP #92 -- ALLURING VOICE'S HALF IS NO LONGER DECLARED-AND-UNMODELLED. The comment
+              * above still describes the state this engine was in until confusion existed; the arm is
+              * wired now and `MEDFAILS.punishEffectUnmodelled` stays as the receipt for a THIRD member
+              * arriving with an effect neither branch knows. */
+             } else if(_pb.effect==='volatile'&&_pb.volatile==='confusion'){
+               if(applyConfusion(tg,m,field))MEDSEEN.punishConfused++;
              } else {
                MEDFAILS.punishEffectUnmodelled++;
                if(!MEDFAILS.punishEffectUnmodelledFirst)

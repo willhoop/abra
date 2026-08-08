@@ -2198,12 +2198,24 @@ const ITEM_TAGS = [
      * mechanic: Mental Herb frees a Taunt, an Encore, a Disable, an Attract, a Torment and a Heal
      * Block, and it does NOT touch confusion, a Leech Seed or a partial trap. A consumer reading the
      * boolean would have made it a universal volatile eraser. The handler declares the list. */
+    /* ROADMAP #92 -- THE SECOND SHAPE, AND IT IS A DIFFERENT HANDLER RATHER THAN A WIDER REGEX.
+     * Mental Herb declares its set as a LITERAL ARRAY inside `onUpdate`. Lum and Persim declare
+     * theirs one call at a time inside `onEat` -- `pokemon.removeVolatile('confusion')` -- and the
+     * herb pattern above could never have seen them, so the census read Persim Berry as carrying no
+     * cure tag of any kind and Lum as curing statuses only.
+     * MEMBERSHIP PRINTED BEFORE THIS WAS WIRED, over every non-Past item the format defines: the
+     * `removeVolatile` in an `onEat` matches EXACTLY TWO items, lumberry and persimberry, and both
+     * name `confusion`. That is the whole population -- this is not a pattern that could grow a third
+     * member quietly, because the run re-derives it and the count is in the artifact. */
     of: i => {
-      if (!(i.onUpdate && /taunt|encore|disable|attract|healblock|torment/i.test(String(i.onUpdate))))
-        return null;
-      const l = String(i.onUpdate).match(/conditions\s*=\s*\[([^\]]*)\]/);
-      const cures = l ? l[1].split(',').map(x => x.replace(/[^a-z]/gi, '')).filter(Boolean) : null;
-      return { oneShot: true, cures };
+      const upd = String(i.onUpdate || ''), eat = String(i.onEat || '');
+      const herb = /taunt|encore|disable|attract|healblock|torment/i.test(upd);
+      const removed = [...eat.matchAll(/removeVolatile\(\s*["']([a-z]+)["']\s*\)/g)].map(x => x[1]);
+      if (!herb && !removed.length) return null;
+      const l = upd.match(/conditions\s*=\s*\[([^\]]*)\]/);
+      const listed = l ? l[1].split(',').map(x => x.replace(/[^a-z]/gi, '')).filter(Boolean) : [];
+      const cures = [...new Set([...listed, ...removed])];
+      return { oneShot: true, cures: cures.length ? cures : null };
     } },
   { tag: 'boostsSuperEffective', param: 'x1.2 damage, but only on a super-effective hit', probe: 'onModifyDamage',
     why: 'Expert Belt. Conditional on the type matchup rather than flat, so it changes WHICH target '
@@ -2556,6 +2568,35 @@ const ABILITY_TAGS = [
                onlyFrom: only,
                onlyGrassTypes: /hasType\("Grass"\)/.test(src) || null,
                protectsAllies: !!a.onAllyTryBoost || null };
+    } },
+  /* ROADMAP #92 -- AN ABILITY THAT REFUSES ONE NAMED VOLATILE, WHICH IS NOT THE SAME TAG AS ONE THAT
+   * REFUSES A STAT DROP. Own Tempo carried `preventsStatDrop` alone -- the Intimidate half -- and its
+   * whole other handler is `onTryAddVolatile(status) { if (status.id === 'confusion') return null; }`.
+   * With no confusion in the engine that cost nothing; with confusion wired it is 64 sheets of a body
+   * that must not be confused, which is a divergence INTRODUCED by fixing something else.
+   *
+   * MEMBERSHIP PRINTED BEFORE IT WAS WIRED, over every non-Past ability the format defines: SEVEN
+   * carry `onTryAddVolatile` and the split is clean --
+   *     owntempo                                              confusion
+   *     innerfocus                                            flinch
+   *     insomnia, vitalspirit, leafguard, purifyingsalt,       yawn
+   *     shieldsdown
+   * so this cannot become "an ability that blocks everything". The volatile is read out of the
+   * handler's own equality test; an ability whose handler names no volatile returns null rather than
+   * a blanket refusal, because a refusal with no named target is the shape that over-matches. */
+  { tag: 'refusesVolatile', param: 'WHICH volatile this body cannot be given', probe: 'onTryAddVolatile',
+    why: 'Own Tempo (64 sheets) cannot be confused and Inner Focus (887) cannot be flinched. Both '
+       + 'were invisible: the flinch refusal was a hardcoded ability NAME in the engine and the '
+       + 'confusion refusal had nothing to refuse until confusion existed',
+    of: a => {
+      const src = String(a.onTryAddVolatile || '').replace(/\s+/g, ' ');
+      if (!src) return null;
+      const refuses = [...new Set([...src.matchAll(/status\.id\s*===?\s*["']([a-z]+)["']/g)].map(m => m[1]))];
+      if (!refuses.length) return null;
+      /* Shields Down refuses only in a named forme; the consumer must not apply it to a Minior that
+       * is not the Meteor forme, so the condition travels with the tag rather than being dropped. */
+      const forme = (src.match(/species\.id\s*!==?\s*["']([a-z]*)["']/) || [])[1] || null;
+      return { refuses, requiresForme: forme };
     } },
   /* Will: "scrappy needs the able to hit ghost types with normal and fighting type moves."
    * Right, and it was carrying preventsStatDrop alone -- the Intimidate half -- while its actual

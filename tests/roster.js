@@ -421,6 +421,34 @@ const KILLABLE = (() => {
   return best;
 })();
 
+/* A SECOND BODY THE AGGRESSOR CAN ALSO KILL FROM FULL, of a different species, so the HP-floor rule
+ * can put the FULL case and the CHIPPED case side by side on one board. */
+const KILLABLE2 = (() => {
+  const att = dex.species.get(CAST.ATTACKER().species);
+  let best = null;
+  for (const s of CANDIDATES) {
+    if (KILLABLE && s.id === KILLABLE.species) continue;
+    const L = lethalMove(att, s, 1.5);
+    if (L && (!best || L.d / flatL50(s.baseStats).hp > best.ratio))
+      best = { species: s.id, ability: carrierAbility(s), move: L.mv, ratio: L.d / flatL50(s.baseStats).hp,
+               hp: flatL50(s.baseStats).hp };
+  }
+  return best;
+})();
+/* AND A CHIP THAT TAKES A BODY OFF FULL WITHOUT KILLING IT — the whole content of "at the line". */
+function chipFor(speciesId) {
+  const att = dex.species.get(CAST.ATTACKER().species), def = dex.species.get(speciesId);
+  const hp = flatL50(def.baseStats).hp;
+  let best = null;
+  for (const t of Object.keys(DELIVERY)) for (const mv of [DELIVERY[t].physical, DELIVERY[t].special]) {
+    if (!mv) continue;
+    const d = maxRoll(att, mv, def);
+    if (d <= 0 || d >= hp) continue;                 // must not kill, must not be a no-op
+    if (!best || d < best.d) best = { mv, d };       // the SMALLEST real chip available
+  }
+  return best;
+}
+
 /* A PAIR WHOSE SPEED ORDER A MULTIPLIER FLIPS, and who can each kill the other outright.
  *
  * A MIRROR MATCH IS THE WRONG FIXTURE HERE AND THAT IS NOT OBVIOUS. Two identical bodies are a SPEED
@@ -818,9 +846,13 @@ function runEntry(e) {
 const SPARES = ['corviknight', 'milotic', 'clefable', 'snorlax', 'garchomp', 'toxapex', 'weavile',
                 'incineroar', 'dragapult', 'kangaskhan', 'metagross', 'pelipper'];
 function scaffold(o) {
-  const build = (lead, second) => {
+  const build = (lead, second, third) => {
     const rows = [lead];
     if (second) rows.push(second);
+    /* AN EXPLICIT BENCH SLOT, so a scenario can name the body it switches TO. `{ sw: '<species>' }`
+     * resolves by the same key the chooser uses, and a body that is absent resolves to `pass` — so
+     * putting the target on the bench BY NAME is what makes the ask land rather than evaporate. */
+    if (third) rows.push(third);
     const used = new Set(rows.map(r => idOf(r.species)));
     for (const s of SPARES) {
       if (rows.length >= 4) break;
@@ -832,7 +864,7 @@ function scaffold(o) {
     if (rows.length < 4) throw new Error('the spare pool could not fill a side to four distinct species');
     return rows;
   };
-  const A = build(o.a0, o.a1), B = build(o.b0, o.b1);
+  const A = build(o.a0, o.a1, o.a2), B = build(o.b0, o.b1, o.b2);
   for (const m of A.concat(B)) if (!m.moves.includes(INERT)) m.moves.push(INERT);
   return { A, B, script: o.script, subject: o.subject || 'B0', hpA: o.hpA || 1, hpB: o.hpB || 1 };
 }
@@ -943,12 +975,18 @@ function abilityScenario(e, C, kind) {
   const stone = C.tier === 'MEGA' ? C.stone : '';
   const carrier = mon(base.id, stone, C.tier === 'MEGA' ? '' : dex.abilities.get(e.id).name,
                       [hitThem.id]);
-  const partner = (() => {
+  const partnerSp = (() => {
     const alt = CANDIDATES.find(s => s.id !== base.id && s.id !== atk.id
       && neutralContactOn(s.id) && idOf(s.id) !== idOf(CAST.BAG().species));
-    const sp = alt || dex.species.get('snorlax');
-    return mon(sp.id, '', carrierAbility(sp) || '', [hitThem.id, 'uturn']);
+    return alt || dex.species.get('snorlax');
   })();
+  const partnerId = partnerSp.id;
+  /* A THIRD BODY, ON THE BENCH, FOR THE ARM THAT SWITCHES OUT AND BACK. It must be distinct from the
+   * carrier, the partner and the aggressor — an ask naming an ALREADY-ACTIVE body resolves to `pass`
+   * and is counted, so switching slot 0 onto its own partner would stage nothing. */
+  const benchSp = CANDIDATES.find(s => s.id !== base.id && s.id !== partnerId && s.id !== atk.id
+    && idOf(s.id) !== idOf(CAST.ATTACKER2().species)) || dex.species.get('corviknight');
+  const partner = mon(partnerSp.id, '', carrierAbility(partnerSp) || '', [hitThem.id, 'uturn']);
 
   /* THE STAGED HP INFLATION AND A MEGA EVOLUTION CANNOT BOTH BE IN THE SAME SCENARIO, and this was
    * measured rather than reasoned: Aerilate reported `Pinsir-Mega has 140 maximum HP` against `840`
@@ -959,12 +997,24 @@ function abilityScenario(e, C, kind) {
    * tier therefore runs at natural HP, and the cost is that a hit there can saturate. */
   let script, hpA = C.tier === 'MEGA' ? 1 : 6, hpB = C.tier === 'MEGA' ? 1 : 6;
   if (kind === 'entry') {
-    /* boundary 0 IS the positive; the two turns after it are the negative */
+    /* ARM 5. Boundary 0 is the first entry. The carrier then LEAVES and COMES BACK, so boundary 2 is
+     * a SECOND entry — which is the whole question for this family and could not be asked until
+     * `{ sw: ... }` existed. Intimidate must drop again; Zero to Hero must not upgrade twice; a
+     * returning Mimikyu must not get a fresh Disguise. Boundary 1 is the negative in between: the
+     * carrier is on the bench and nothing of its may be on the field. */
     hpA = 1; hpB = 1;
-    script = [turn([IDLE, IDLE], [IDLE, IDLE]), turn([IDLE, IDLE], [IDLE, IDLE])];
+    script = [turn([IDLE, IDLE], [{ sw: benchSp.id }, IDLE]),
+              turn([IDLE, IDLE], [{ sw: base.id }, IDLE]),
+              turn([IDLE, IDLE], [IDLE, IDLE])];
   } else if (kind === 'residual') {
+    /* ARM 5, AND THE ONE THIS RULE'S PROSE USED TO CLAIM FALSELY. The carrier starts ON THE BENCH and
+     * is switched in MID-TURN, so boundary 1 is its ENTRY TURN — `activeTurns` reads 0 there and the
+     * effect must NOT fire — and boundaries 2 and 3 are the resumption. A lead-only staging cannot
+     * express this, which is exactly what `--reds` proved by applying a break aimed at the gate and
+     * moving no board. */
     hpA = 1; hpB = 1;
-    script = [turn([IDLE, IDLE], [IDLE, IDLE]), turn([IDLE, IDLE], [IDLE, IDLE]),
+    script = [turn([IDLE, IDLE], [{ sw: base.id }, IDLE]),
+              turn([IDLE, IDLE], [IDLE, IDLE]),
               turn([IDLE, IDLE], [IDLE, IDLE])];
   } else if (kind === 'switchout') {
     hpB = 4;
@@ -994,10 +1044,18 @@ function abilityScenario(e, C, kind) {
     script = [turn([IDLE, IDLE], [C.tier === 'MEGA' ? { m: INERT, mega: true } : IDLE, IDLE])]
       .concat(script);
   }
+  /* WHERE THE CARRIER STANDS depends on the arm. The residual arm needs it on the BENCH so it can
+   * walk in mid-turn; every other arm leads with it. `subject` follows, because the control arm swaps
+   * the ability on every body of that side carrying it and the ignored-leaf bookkeeping is keyed on
+   * the slot. */
+  const onBench = kind === 'residual';
   const sc = scaffold({ hpA, hpB, subject: 'B0',
     a0: mon(atk.id, '', CAST.ATTACKER().ability, [hitThem.id]),
     a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [hitThem.id]),
-    b0: carrier, b1: partner, script });
+    b0: onBench ? mon(partnerId, '', carrierAbility(dex.species.get(partnerId)) || '', [INERT])
+                : carrier,
+    b1: partner,
+    b2: onBench ? carrier : mon(benchSp.id, '', carrierAbility(benchSp) || '', [INERT]), script });
   sc.controlAbility = C.control;
   /* WHETHER THE CONTROL ABILITY IS ITSELF ACTIVE, carried onto the entry and printed on any finding.
    * Bellibolt has Static, Electromorphosis and Damp and NOTHING QUIET, so Damp is controlled by
@@ -1272,9 +1330,13 @@ const RULES = [
 
 { id: 'item/hp-floor', kind: 'item',
   reads: 'onDamage + shortDesc "HP is full"',
-  why: 'a lethal hit into a FULL-HP holder, which must be left standing on 1 HP. THE NEGATIVE IS TURN '
-     + '2: the identical hit into the same body, now on 1 HP with the item spent. A floor that saved '
-     + 'twice, or one that saved from chipped HP, parts there.',
+  why: 'ARM 2 — THE DEFECT IS ALWAYS AT THE LINE. A lethal hit into a FULL-HP holder must leave it on '
+     + '1 HP, and the same hit into a holder that is ONE CHIP OFF FULL must kill it. Both are on the '
+     + 'SAME BOARD: a second body of a different species holds the same item and is chipped on turn 1, '
+     + 'then both take a lethal hit on turn 2. A floor that reads "not dead yet" instead of "at full" '
+     + 'saves the chipped one too, and that is a kill that is not a kill — the most expensive shape '
+     + 'this class has. Turn 3 is the third negative: the survivor is on 1 HP with the item spent and '
+     + 'must not be saved twice.',
   break: { why: 'the HP floor stops holding the body up — the item is still held and still read',
     patch: [["const _sv=TAGS.param('item',tg.item,'survivesFromFull')||TAGS.param('ability',tg.ability,'survivesFromFull');",
              "const _sv=null&&(TAGS.param('item',tg.item,'survivesFromFull')||TAGS.param('ability',tg.ability,'survivesFromFull'));"]] },
@@ -1282,12 +1344,23 @@ const RULES = [
     if (!e.onDamage || !/HP is full/i.test(e.shortDesc || '')) return null;
     if (!KILLABLE) return cannot('no legal body in the format can be killed from full by one derived '
       + 'delivery move with a 1.5x margin, so no staged hit is reliably lethal');
-    return { note: 'a lethal ' + KILLABLE.move.name + ' (' + KILLABLE.ratio.toFixed(1) + 'x its HP) '
-        + 'twice into ' + KILLABLE.species,
+    const chip = KILLABLE2 ? chipFor(KILLABLE2.species) : null;
+    if (!KILLABLE2 || !chip) return cannot('a full-HP killable body exists but no SECOND one of a '
+      + 'different species with a chip that takes it off full without killing it, so the AT-THE-LINE '
+      + 'negative — full against one chip down — has nowhere to stand');
+    return { note: 'AT THE LINE: ' + KILLABLE.species + ' at FULL takes a lethal ' + KILLABLE.move.name
+        + ' (' + KILLABLE.ratio.toFixed(1) + 'x its HP) and must survive; ' + KILLABLE2.species
+        + ' beside it, chipped ' + chip.d + ' off ' + KILLABLE2.hp + ' by ' + chip.mv.name
+        + ', takes a lethal ' + KILLABLE2.move.name + ' and must NOT',
       scenario: scaffold({
-        a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability, [KILLABLE.move.id]),
+        a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability,
+                [KILLABLE.move.id, chip.mv.id, KILLABLE2.move.id]),
+        a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability,
+                [chip.mv.id, KILLABLE2.move.id]),
         b0: mon(KILLABLE.species, e.id, KILLABLE.ability, [INERT]),
-        script: [turn([click(KILLABLE.move.id, 0), IDLE], [IDLE, IDLE]),
+        b1: mon(KILLABLE2.species, e.id, KILLABLE2.ability, [INERT]),
+        script: [turn([IDLE, click(chip.mv.id, 1)], [IDLE, IDLE]),
+                 turn([click(KILLABLE.move.id, 0), click(KILLABLE2.move.id, 1)], [IDLE, IDLE]),
                  turn([click(KILLABLE.move.id, 0), IDLE], [IDLE, IDLE])] }) };
   } },
 
@@ -1722,15 +1795,17 @@ const RULES = [
      + 'carrier stands for three quiet turns, so the board carries the effect ONCE PER BOUNDARY and '
      + 'an off-by-one in the schedule parts on the first of them. WHERE A SECOND LEGAL SPECIES CARRIES '
      + 'THE SAME ABILITY it is put on the bench and walked in MID-TURN behind a pivot: Showdown gates '
-     + 'this class on `activeTurns`, which a body that arrived this turn reads as 0. '
-     + '**THE ENTRY-GATE ARM IS NOT STAGED YET AND THIS PROSE USED TO CLAIM IT WAS.** `--reds` is what '
-     + 'caught that: the break aimed at the gate (`!m._newlySwitched`) applied cleanly and moved NO '
-     + 'board, because a LEAD is not newly switched and this staging has no mid-turn entrant in it. '
-     + 'The break below is aimed at what the staging can actually express — the per-turn effect '
-     + 'itself — and the entrant arm is open work, named here rather than implied.',
-  break: { why: 'the per-turn boost is skipped entirely, which is what a lead-only staging can express',
+     + 'this class on `activeTurns`, which a body that arrived this turn reads as 0. THE CARRIER NOW '
+     + 'STARTS ON THE BENCH AND WALKS IN MID-TURN, so boundary 1 IS its entry turn and the effect must '
+     + 'not fire there while boundaries 2 and 3 must carry it. That staging was impossible until '
+     + '`{ sw: ... }` became a legal step on 2026-08-08; before it, `--reds` correctly caught this '
+     + 'this rule\'s prose claiming a gate test it could not perform; the break below is now aimed at '
+     + 'the gate itself rather than at the effect.',
+  break: { why: 'THE ENTRY GATE IS REMOVED and the per-turn effect fires unconditionally — which is the '
+              + 'exact defect this family was written against, and it can only be caught by a staging '
+              + 'that has a mid-turn entrant in it',
     patch: [['if(_be&&_be.boosts&&m.boosts&&!m._newlySwitched)for(const k in _be.boosts){',
-             'if(false&&_be&&_be.boosts&&m.boosts&&!m._newlySwitched)for(const k in _be.boosts){']] },
+             'if(_be&&_be.boosts&&m.boosts)for(const k in _be.boosts){']] },
   match(e) { if (!e.onResidual) return null;
     return abilityScenario(e, carrierFor(e), 'residual'); } },
 
@@ -2087,8 +2162,15 @@ function main() {
 
   /* the fixture audit, on every derived script, before a single game is played */
   const staged = entries.filter(e => e.scenario);
+  /* A SWITCH STEP IS NOT A CLICK, and the shared fixture audit only knows about clicks — it reads
+   * `a.m`, so `{ sw: 'espathra' }` arrives as `no such move "undefined"` and refuses the whole run.
+   * The audit is right to be strict; what it is handed is what needs fixing. A switch is replaced by
+   * `null` in the AUDIT COPY ONLY — which the audit already treats as "this slot does nothing" — so
+   * the per-slot count check still applies and no real click escapes inspection. Neither engine sees
+   * this copy. */
   const shells = staged.map(e => ({ id: e.scenario.id, A: e.scenario.A, B: e.scenario.B,
-                                    script: e.scenario.script }));
+    script: e.scenario.script.map(st => ({ p1: st.p1.map(a => (a && a.sw ? null : a)),
+                                           p2: st.p2.map(a => (a && a.sw ? null : a)) })) }));
   const fx = SB.fixtureAudit(shells).concat(critRatioAudit(shells));
   console.log('\n  THE FIXTURE AUDIT — every derived click, before a game is played:');
   if (fx.length) {

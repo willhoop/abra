@@ -51,10 +51,10 @@ ENGINE — does the simulator do what Pokémon does
     whole-game agreement 7/1997 -> 134/1997; first-divergence line, mean 14.78 -> 33.98
     paired against the baseline: 1295 games part later, 116 EARLIER, 586 unchanged
     the baseline ran first and last and reproduced exactly; comparability: every arm cleared
-  tag coverage: 182/190 probed, 8 unprobed
+  tag coverage: 182/191 probed, 9 unprobed
 ```
 
-_stamped 2026-08-08 07:20_
+_stamped 2026-08-08 07:32_
 
 <!-- /GENERATED -->
 
@@ -395,6 +395,39 @@ Gallade / Iron Fist / Muscle Band case that motivated the arm is not in this mem
 Muscle Band's category scope selects a different move) — extending the membership to punch-flag moves
 specifically is the first thing to do here.
 
+### ARMS 5 AND 2 LANDED. 2026-08-08, on `{ sw: ... }` (3.76.2) and release `6b5447db1738`.
+
+**ARM 5 — ACROSS A SWITCH.** `ability/residual` now starts the carrier ON THE BENCH and walks it in
+MID-TURN, so boundary 1 IS its entry turn. That staging was impossible before a scripted switch
+existed, and `--reds` had already caught this rule's prose claiming a gate test it could not perform.
+**The break is now aimed at the gate itself** — `!m._newlySwitched` removed, so the effect fires
+unconditionally — and it goes RED on `boosts.spe` via Speed Boost, which is the proof the staging
+reaches `activeTurns` at all. Speed Boost MATCHES. `ability/entry` now switches the carrier OUT and
+back IN, so boundary 0 is the first entry, boundary 1 the bench, and boundary 2 a SECOND entry.
+
+**A NEW DIVERGENCE FELL OUT OF IT IMMEDIATELY, AND IT NEEDS TRIAGE RATHER THAN A DIAGNOSIS FROM ME:**
+**Imposter** under the out-and-back arm parts on `species` — Showdown's slot holds Weavile and ours
+holds Charizard, i.e. **the two engines brought in DIFFERENT BODIES on the same ask**. A transformed
+Ditto no longer answers to its own species inside medicham2 (`tests/staged_board.js` scenario 17
+records exactly that shape for the driver's replacement mirror), so the likely cause is the switch key
+missing on a renamed body — the same class 3.75.1 fixed for the chooser. Reported, not fixed.
+
+**ARM 2 — AT THE LINE.** `item/hp-floor` now puts BOTH cases on one board: Avalugg-Hisui at FULL takes
+a lethal Flash Cannon and must survive, while Salazzle beside it — holding the same Sash, chipped 15
+off 143 the turn before — takes a lethal Earth Power and must NOT. A floor that reads "not dead yet"
+instead of "at full" saves the chipped one, which is a kill that is not a kill. Turn 3 is the third
+negative: the survivor is on 1 HP with the item spent. Focus Sash MATCHES and the break is caught.
+The chip is DERIVED (`chipFor` takes the smallest delivery move that moves HP without killing), so the
+line is found rather than typed.
+
+**STILL OWED ON ARM 2:** Sitrus at exactly 50% against 51%. `chipFor` gives the machinery; what is
+missing is an exact-HP landing rather than a smallest-chip one.
+
+**THE SUPPRESSION TIER DID NOT REOPEN.** A switch-in is a second control in principle, but the 23
+entities there are SUPPRESS/MEGA-tier precisely because their ability cannot be swapped — switching
+them in still brings the ability with them, so there is no arm without it. Gastro Acid remains the
+only control and it still does not suppress here. Re-checked, not assumed.
+
 ### THE FIVE ARMS — WHAT IS LANDED AND WHAT IS OWED
 
 | arm | state |
@@ -403,7 +436,7 @@ specifically is the first thing to do here.
 | 2. threshold boundaries, AT the line | **OWED** — Sitrus at exactly 50% vs 51%, Focus Sash from exactly full vs one HP down. `HALVER` already derives a body/move pair by fraction; it needs an EXACT-HP variant that chips to the line first |
 | 3. suppression fires when it must not | **PARTLY ANSWERED, AND THE ANSWER IS THAT IT CANNOT FIRE**: Gastro Acid does not suppress at all here (6 leaves against 0), which closes 23 abilities and is itself the finding. Mold Breaker, Neutralizing Gas, Simple Beam, Magic Room, Embargo and Klutz are untested |
 | 4. 4x and 0.25x | **LANDED FOR THE BERRIES** (11 of 18 on a flipped-KO arm). Not generalised to Expert Belt, Tinted Lens or the 16 type-scoped items |
-| 5. across a switch and across a faint | **OWED** — and it is where four of the six engine bugs found tonight live. Needs the mid-turn entrant the residual rule is already missing |
+| 5. across a switch and across a faint | **LANDED for the switch** — mid-turn entrant and out-and-back, both red-demonstrated; it immediately produced the Imposter divergence. Across a FAINT is still owed |
 
 **STAGE 4 IS NOT STARTED**: all 500 moves. Three divergences the item stage could not attribute to any
 item are the first thing it should confirm — Toxic Thread's Speed drop never lands here, the confusion

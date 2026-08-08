@@ -1,8 +1,19 @@
 # ABRA — the plain-English deck
 
-**Version 3.76.2 · 2026-08-08 · Will Hooper**
+**Version 3.76.3 · 2026-08-08 · Will Hooper**
 
-**3.76.2 — A STAGED SCENARIO CAN NOW SWITCH, SO A MID-TURN ENTRANT IS EXPRESSIBLE FOR THE FIRST
+**3.76.3 — THE ACROSS-A-SWITCH ARM FOUND A DEFECT ONE DAY OLD THAT FIXING SOMETHING ELSE CREATED.**
+A transform never reverts when the body leaves the field: the authority clears it in `clearVolatile`,
+and this engine sets the flag and never unsets it. Since the transform also overwrites the body's name,
+stats, types, moves, boosts and ability, a benched Ditto is PERMANENTLY the thing it copied — so the two
+engines then choose replacements from benches that no longer describe the same Pokemon, and worse, a
+Ditto can only ever transform ONCE PER BATTLE, because the guard refuses a second. Re-copying is the
+entire function of the Pokemon. Imposter first fired the day before, and the out-and-back scenario that
+exposes this only became expressible hours earlier. The roster's two owed arms — across a switch, and
+at the exact HP line — are both built, both red-demonstrated, and Speed Boost and Focus Sash both match.
+
+
+**3.76.3 — A STAGED SCENARIO CAN NOW SWITCH, SO A MID-TURN ENTRANT IS EXPRESSIBLE FOR THE FIRST
 TIME.** The scenario driver understood only a move; every other step became a pass, so no staged test
 could put a body on the field part-way through a turn. That single gap blocked three things at once:
 Speed Boost's entry gate, which exists only for a body that just switched in; Hunger Switch's flip and
@@ -13,7 +24,7 @@ engines on the turn it arrives, then +1 at the end of the next, with all 131 fie
 boundaries.
 
 
-**3.76.2 — ALL 316 ABILITIES STAGED DELIBERATELY, AND A FREE +6 ATTACK FELL OUT.** Anger Point and
+**3.76.3 — ALL 316 ABILITIES STAGED DELIBERATELY, AND A FREE +6 ATTACK FELL OUT.** Anger Point and
 Justified are one defect twice: a conditional boost-on-being-hit whose condition is never checked, so
 Anger Point grants +6 Attack off an ordinary hit where it requires a crit, and Justified grants +1 off
 a Poison move where it requires Dark. Hustle applies no 1.5x Attack at all. Two facts about the
@@ -24,7 +35,7 @@ fact about the regulation rather than the simulator: 113 of 316 legal abilities 
 so the effective roster of this format is about 203.
 
 
-**3.76.2 — FIVE MECHANICS THAT DID NOTHING, AND ONE THAT WAS ALREADY RIGHT.** Imposter never
+**3.76.3 — FIVE MECHANICS THAT DID NOTHING, AND ONE THAT WAS ALREADY RIGHT.** Imposter never
 transformed Ditto; Hunger Switch never flipped Morpeko; Knock Off took its 1.5x against an item it
 cannot remove; Fling never became an attack at all, because a base power of 0 made the click fail a
 `hasPower()` gate; and Roar's phaze branch held a Pokemon-first target, so a phaze after a pivot dragged
@@ -36,7 +47,7 @@ this engine does not have. Census 319/319 live, 0 missing; the staged harness no
 all clean and all breakable.
 
 
-**3.76.2 — THE TEST ITSELF COULD SEND THE TWO COPIES OF THE GAME DIFFERENT POKEMON.** When the test
+**3.76.3 — THE TEST ITSELF COULD SEND THE TWO COPIES OF THE GAME DIFFERENT POKEMON.** When the test
 tells both engines to switch, it names the Pokemon it wants. One copy looked that name up one way and
 the other looked it up another way, and the two only agreed while nothing had been renamed — which
 stopped being true the day we taught the engine that Mimikyu becomes Mimikyu-Busted and Palafin becomes
@@ -45,7 +56,7 @@ nothing, so one side could switch while the other stood still and the difference
 bug. Both now ask the same question, and any failure to find it is counted out loud.
 
 
-**THE ENGINE FOLLOWED THE POKEMON, AND THE GAME FOLLOWS THE SPOT IT WAS STANDING IN (3.76.2).** If you
+**THE ENGINE FOLLOWED THE POKEMON, AND THE GAME FOLLOWS THE SPOT IT WAS STANDING IN (3.76.3).** If you
 aim at the left-hand Pokemon and it switches out before your move goes off, your move hits whatever
 walked in. Our simulator kept aiming at the Pokemon — sometimes at one that was already on the bench —
 so stat drops from Charm and Parting Shot went nowhere. Ally Switch, which swaps your two Pokemon

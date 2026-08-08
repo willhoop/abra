@@ -46,6 +46,34 @@ if (!process.env.SHOWDOWN_PATH) {
 }
 if (!process.argv.includes('--state')) process.argv.push('--state');
 
+/* ================= THE BEFORE ARM HAS TO BE PINNED, AND IT ALMOST WAS NOT ======================
+ *
+ * `engine_release.open()` WITH NO ID TAKES THE NEWEST RELEASE, and both `staged_board.js` and
+ * `game_differential.js` read the id off `--release` at MODULE LOAD. Measured here on 2026-08-08:
+ * this file's first full run had every scenario red on the release and red on the live tree; the
+ * engine was then fixed; the second run reported IDENTICAL ON BOTH ARMS — and the BEFORE arm had
+ * silently become a second copy of the AFTER arm, because a `game_differential` run in another
+ * process had cut release 138261a235c7 over this working tree at 07:33, mid-edit, and `open()` chose
+ * it. Nothing failed. The comparison simply stopped comparing, and its verdict was the comfortable
+ * one — which is this project's signature failure mode arriving inside the instrument built to catch
+ * it, for the second time in this file's short life.
+ *
+ * So the baseline is NAMED, injected into argv before either module is required, and the run REFUSES
+ * to proceed if that release is not on disk. `--release <id>` overrides it deliberately. */
+const BASELINE_RELEASE = '6b5447db1738';        // 3.76.0, the tree this session started from
+if (!process.argv.includes('--release')) process.argv.push('--release', BASELINE_RELEASE);
+{
+  const rid = process.argv[process.argv.indexOf('--release') + 1];
+  if (!fsExists(path.join(__dirname, '..', 'data', 'releases', String(rid), 'release.json'))) {
+    console.log('NOT RUN — release ' + rid + ' is not on disk, so there is no BEFORE arm to compare '
+      + 'against. This is not a pass.');
+    process.exit(2);
+  }
+  console.log('BEFORE arm pinned to release ' + rid
+    + (rid === BASELINE_RELEASE ? '   (the declared baseline)' : '   (overridden on the command line)'));
+}
+function fsExists(p) { try { require('fs').accessSync(p); return true; } catch (e) { return false; } }
+
 const ARGV = process.argv;
 const ARG = (n) => { const i = ARGV.indexOf(n); return i >= 0 ? ARGV[i + 1] : null; };
 const HAS = (n) => ARGV.includes(n);
