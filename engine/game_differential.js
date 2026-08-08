@@ -458,15 +458,38 @@ const ARMS = [
     what: 'every sub-100-accuracy move MISSES, no crit, no secondary fires, MAX damage; medicham2 '
         + 'gives a speed tie to the EARLIER body. THIS IS THE ONLY ARM THAT EXISTED BEFORE 2026-08-07, '
         + 'and it is the one in which the two engines DISAGREE about every speed tie.' }),
-  makeArm({ id: 'top-tie-second', corner: CORNER_TOP, damageIndex: 0, tieToSecondBody: true,
-    what: 'the same corner with medicham2 giving the tie to the LATER body — the coin flip we lose '
-        + 'half the time and had never played through, and the branch on which it agrees with '
-        + 'Showdown. The difference between this row and the one above IS what the speed tie costs.' }),
+  /* THE TWO `tie-second` ARMS ARE RETIRED, AND THE REASON IS THAT THEY BECAME A DESYNCHRONISER.
+   *
+   * They were built in 3.73.0, when medicham2 gave every speed tie to the EARLIER body and the
+   * authority did not. `tieToSecondBody` swapped medicham2's per-action key from a constant to an
+   * increasing sequence, which forced it onto the branch where it AGREED with Showdown. Under that
+   * engine the arm was honest: it played the half of every tied matchup we had never played.
+   *
+   * 3.74.0 FIXED THE TIE AT THE ROOT. medicham2 now runs Showdown's own selection sort and resolves
+   * the residual group with the key it already drew, so the two agree under identical pinned dice. The
+   * lever therefore no longer corrects a wrong default — IT BREAKS A CORRECT ONE, and it does so on one
+   * side only: `sdShuffleReverses` is false on every arm, so Showdown's tie resolution is identical in
+   * all of them. The arm handed medicham2 a different rule than the authority and then measured the
+   * disagreement.
+   *
+   * MEASURED, and it is the whole of the arm spread: isolating the two levers on 1,530 games at
+   * release 288aee2e3501, flipping the DAMAGE corner moved `ordering` by +19 and +10 games, while
+   * flipping the TIE moved it by +471 and +462. The harsh corner — every sub-100 move hitting, every
+   * crit landing, every secondary firing, minimum rolls — costs about fifteen games. The rest was the
+   * instrument disagreeing with itself.
+   *
+   * AND THERE IS NO HONEST REPLACEMENT, which is why these are deleted rather than repaired. The pin
+   * agent measured that reversing `PRNG.shuffle` does NOT move Showdown's turn order, so the
+   * authority's coin cannot be flipped from here. "The branch where we lose the tie" is not
+   * expressible against a pinned authority; it is a property of real dice. `REVERSING_SHUFFLE` above
+   * stays built and asserted for whoever finds the lever that does move it.
+   *
+   * WHAT IS LOST BY REMOVING THEM: nothing that was true. What WOULD have been lost by keeping them is
+   * the headline — 92.3% against 95.0%, with the gap owed entirely to an instrument fighting a fix
+   * that had landed hours earlier. */
   makeArm({ id: 'bottom-tie-first', corner: CORNER_BOTTOM, damageIndex: 15, tieToSecondBody: false,
     what: 'every sub-100-accuracy move HITS, every crit lands, every secondary fires, MIN damage; the '
         + 'tie goes to the earlier body. The hit path of a sub-100 move runs here for the first time.' }),
-  makeArm({ id: 'bottom-tie-second', corner: CORNER_BOTTOM, damageIndex: 15, tieToSecondBody: true,
-    what: 'the bottom corner with the tie to the later body — both new axes at once.' }),
 ];
 const ARM_BY_ID = new Map(ARMS.map(a => [a.id, a]));
 const PRIMARY_ARM = ARMS[0];
