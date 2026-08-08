@@ -1,6 +1,16 @@
 # ABRA — the model family (living reference)
 
-**Version 3.81.0 · Last updated 2026-08-08.**
+**Version 3.82.0 · Last updated 2026-08-08.**
+
+**3.82.0 — THE FIRST ENGINE FIX OF THE QUEUE LANDS: THE VOLATILE DURATION FAMILY, 9,092 USES, AND
+IT WAS THE PERISH SONG BUG A SECOND TIME.** Showdown decrements a volatile's duration inside the
+Residual event, so one applied on turn N has already spent a turn by the end of it. That defect was
+documented in this engine for Perish Song, fixed for Perish Song, and left standing for every other
+duration-bearing volatile. Taunt and Disable now match the official engine; Encore's counter row is
+gone and only a separate HP row remains. Whole-game board agreement rose 76.9% to 78.9% on a paired
+differential, the roster's moves queue fell from 52 to 50, and the census did not move. The previously
+published baseline could not be reproduced because the census digest and the team store had both
+shifted underneath it — so the run was discarded and re-taken paired. The delta is the measurement.
 
 **3.81.0 — THE QUARANTINE REACHED THE BOARD, AND THE CHECKER THAT POLICES IT WAS BLIND TO THE
 PUBLISHED COPY.** Thirteen slots on ABRA WORLD's status board now render as a redaction bar rather

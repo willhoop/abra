@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-08T08:08:10.353Z",
+ "generated": "2026-08-08T22:59:21.431Z",
  "by": "engine/conformance.js",
- "files": 332,
+ "files": 337,
  "findings": [
   {
    "std": "convention",
@@ -504,12 +504,6 @@
    "why": "every file states why it exists"
   },
   {
-   "std": "S12",
-   "file": "web/status-data.js",
-   "what": "hardcodes \"gen9championsvgc2026regmb\"",
-   "why": "lives in data/regulations.json (showdownFormat) — reference it"
-  },
-  {
    "std": "convention",
    "file": "web/status.html",
    "what": "no opening comment",
@@ -559,12 +553,6 @@
   },
   {
    "std": "S13",
-   "file": "data/exploitability-mag.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
    "file": "data/jolteon-weights.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
@@ -596,6 +584,12 @@
   {
    "std": "S13",
    "file": "data/miltank-timing-r6.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
+   "file": "data/nature-arms.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie"
   },
@@ -710,6 +704,30 @@
   {
    "std": "S13",
    "file": "data/rollout-r3.meta.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
+   "file": "data/roster.abilities.pre-shape-rules.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
+   "file": "data/roster.abilities.prev.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
+   "file": "data/roster.items.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
+   "file": "data/roster.moves.prev.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie"
   },

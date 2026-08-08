@@ -169,7 +169,14 @@ console.log('');
 let failed = 0;
 for (const sc of SCENARIOS) {
   let r;
-  try { r = SB.runOne(sc, SRC); } catch (e) { r = { verdict: 'THREW', why: String((e && e.stack) || e) }; }
+  /* IT SPEAKS TWICE. A throw here is the harness failing, not a verdict about the engine, and
+   * `tests/test-no-silent-failure.js` is right that a catch which only stuffs the reason into a
+   * variable is one refactor away from swallowing it. The stack goes to stderr AND into the row. */
+  try { r = SB.runOne(sc, SRC); }
+  catch (e) {
+    console.error('THREW while staging ' + sc.id + ': ' + ((e && e.stack) || e));
+    r = { verdict: 'THREW', why: String((e && e.stack) || e) };
+  }
   const ok = r.verdict === 'IDENTICAL';
   if (!ok) failed++;
   console.log((ok ? 'PASS  ' : 'FAIL  ') + sc.id + '   [' + r.verdict + ']');

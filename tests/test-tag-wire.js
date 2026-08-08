@@ -768,8 +768,21 @@ console.log('\nwires 19+20 — setup boosts / Encore');
     M.battleTurn(S2, () => 0.9, new Map([[S2.actA[0], M.playerAction(S2.actA[0], 'encore', v2, S2.field)]]));
     ok(!v2._lock, 'turn 1: a foe with NO last move cannot be Encored — the click honestly does nothing');
     M.battleTurn(S2, () => 0.9, new Map([[S2.actA[0], M.playerAction(S2.actA[0], 'encore', v2, S2.field)]]));
-    ok(v2._lock === v2._lastMove && v2._lockT === 3,
-      `turn 2: Encore pins the foe to its last move (${v2._lock}) for ${v2._lockT} turns`);
+    /* ROADMAP #111 -- THIS LINE READ `_lockT === 3` AND THE 3 WAS THE BUG BEING ASSERTED.
+     * Encore's lock was written as `turns + 1` to compensate for the counter being decremented a
+     * SECOND time inside `_chooseAction`, and `3` is what survived one end-of-turn tick of that 4.
+     * Showdown decrements a duration-bearing volatile INSIDE the Residual of the turn it was applied
+     * on (`Battle#residualEvent`, sim/battle.js:341-348), so after the turn that lands a 3-turn Encore
+     * on a target that had not yet moved there are TWO turns left, not three — measured against the
+     * official engine by `tests/test-volatile-duration.js`.
+     * The number is no longer typed here: it is the artifact's `turns` minus the residual that has
+     * already run, and the lock is asserted to agree with the VOLATILE, because two clocks for one
+     * effect is exactly how the lock came to outlive the Encore that made it. */
+    ok(v2._lock === v2._lastMove && v2._lockT === (+pE.turns) - 1
+       && v2._vol && v2._vol.encore === v2._lockT,
+      `turn 2: Encore pins the foe to its last move (${v2._lock}) for ${v2._lockT} more turn(s), and `
+      + `the lock agrees with the volatile (${v2._vol && v2._vol.encore}) — the artifact declares `
+      + `${+pE.turns} and the residual of the application turn has already spent one`);
   } finally { MC.priors[a2.name] = sA2; MC.priors[v2.name] = sV2; }
 }
 

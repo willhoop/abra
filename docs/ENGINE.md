@@ -7,9 +7,10 @@
 `tests/test-medicham-coverage.js`, `tests/regulation_usage.js`, `tests/probe_red_demo.js`,
 `tests/test-protocol-trace.js`, `engine/derive_protocol_events.js`, `data/protocol-events.json`,
 `tests/roster.js`, `data/roster.{items,abilities,moves,all}.json` (+ `data/roster.json`, a convenience
-copy of whatever stage ran last — **it is not the roster**), `tests/test-nature-differential.js`
+copy of whatever stage ran last — **it is not the roster**), `tests/test-nature-differential.js`,
+`tests/test-volatile-duration.js`
 
-**Eight instruments, and none substitutes for another:**
+**Nine instruments, and none substitutes for another:**
 
 | file | asks | structurally cannot see |
 |---|---|---|
@@ -20,6 +21,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 | `test-protocol-trace.js` | does the engine EMIT what it did, in Showdown's own protocol shapes, and does every event it claims actually FIRE | whether a MECHANIC is right — it is a stream, not an oracle; the comparison driver over two streams is ROADMAP #68's next step |
 | `mutation_harness.js` | does the handler MATTER, or does it only FIRE — change the FACT, watch the BEHAVIOUR | a fact derived WRONG upstream (it is propagated and consumed faithfully and scores LIVE); anything outside `medicham2-browser.js`; a branch no scripted turn reaches, which it counts rather than hides |
 | `roster.js` | does EVERY LEGAL ENTITY IN THE FORMAT do anything, and does it do the same thing the authority does — staged from the entity's own upstream data, with a CONTROL arm that removes only it | anything the pin refuses (a sub-100% chance, a crit), anything `board_state.js` does not compare (PP, ability trapping), and anything no shape rule matches — each named, per entity, with its reason |
+| `test-volatile-duration.js` | does a duration-bearing volatile carry the number Showdown carries, at every turn boundary — applied, re-applied, and left alone. Plays the LIVE tree by default, so it fails on bytes an author just wrote; `--engine release` plays a snapshot's | anything outside the duration family, and the HP consequences of a lock the engine holds but does not ENFORCE on a caller-supplied action — Encore's remaining row |
 | `test-nature-differential.js` | is the two engines' Pokemon the SAME Pokemon — chart, arithmetic, the sheet's declared nature reaching both sides, and the line surviving a mega mid-turn | whether either engine plays the game right; it compares BODIES, not turns. The SPREADS, permanently — an open team sheet does not show them |
 
 **Its one number:** mechanics live. **It must never go down.**
@@ -31,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  324/324 probed mechanics live, 0 missing   (census 2026-08-08 19:00)
-  1/150 differential comparisons disagree with Showdown   (2026-08-08 08:06)
+  324/324 probed mechanics live, 0 missing   (census 2026-08-08 22:53)
+  1/150 differential comparisons disagree with Showdown   (2026-08-08 22:46)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (65 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -56,9 +58,143 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 183/191 probed, 8 unprobed
 ```
 
-_stamped 2026-08-08 19:53_
+_stamped 2026-08-08 22:56_
 
 <!-- /GENERATED -->
+
+## ROADMAP #111 — THE VOLATILE DURATION FAMILY. FOUR QUEUE ROWS, ONE MECHANISM, AND THE BUG WAS ALREADY WRITTEN DOWN IN THIS FILE. 2026-08-08.
+
+Census **324 live / 324 probed, 0 missing → unchanged**. New gate: **`tests/test-volatile-duration.js`**.
+Release **`6f7fbc538318`**.
+
+### THE ONE SENTENCE
+
+`Battle#residualEvent` (sim/battle.js:341-348) decrements every handler carrying both an `end` and a
+`duration` **inside the Residual event**, so a volatile applied on turn N has already spent one of its
+turns by the end of turn N. This engine documented that defect at line 6588 — for **Perish Song** —
+fixed exactly one volatile with it, and left the general defect standing. Taunt, Encore and Disable
+then each re-created it in their own way, and the moves stage came back with all three as separate
+FIRED-AND-BOARDS-DIFFER rows.
+
+### WHAT MOVED
+
+| | before | after |
+|---|---|---|
+| roster `--stage moves` | 52 DIFFER · 27 DID-NOT-FIRE · 330 MATCH | **50 DIFFER · 27 DID-NOT-FIRE · 332 MATCH** |
+| differential `--nature real`, turn-1 board | 1946/2008 = 96.9% | 1946/2008 = 96.9% (unmoved) |
+| differential `--nature real`, whole game never parted | 1544/2008 = **76.9%** | 1585/2008 = **78.9%** |
+| differential `--nature real`, turn boundaries identical | 23083/23547 = 98.0% | 23366/23789 = **98.2%** |
+| differential `--nature real`, median first divergence | 8 | 8 (unmoved) |
+| differential `--nature serious`, whole game never parted | 1554/2008 = 77.4% | 1561/2008 = **77.7%** |
+| census | 324 live / 0 missing | 324 live / 0 missing |
+| `tests/test-engine-diff.js` | 1 of 150 disagree | 1 of 150 disagree |
+
+**The two differential arms are a PAIRED measurement and nothing else moved between them:** same
+pinned team store, same census digest `f5400247040d`, same 2008 games, same pin — the two runs differ
+in `--release` and in nothing else, and `engine/arms_comparable.js` says COMPARABLE. That mattered:
+the first attempt read the LIVE store, OPS appended to it mid-measurement (7,777 → 7,817 teams) and
+the two arms were sampling different populations.
+
+### THE THREE RULES, ALL OF THEM SHOWDOWN'S
+
+1. **The residual spends the application turn.** One tick site now, at end of turn, over
+   `durationVolatiles()`. It replaced THREE separate lines that each ticked one member — Disable's
+   own, Taunt's through the forbid table, and Encore's two thousand lines away inside `_chooseAction`.
+   Encore's was the WIRE 24 defect: a clock that only moves when the ENGINE is choosing never moves at
+   all in a rollout driven from outside, so `vol.encore` read the same number at every boundary of
+   every scripted game this repository has ever played.
+2. **Re-application FAILS.** `Pokemon#addVolatile` returns false when the volatile is present and its
+   condition declares no `onRestart`. A Taunt clicked on two consecutive turns was REFRESHING the
+   counter, which is why it read 2 at both boundaries where Showdown reads 2 then 1.
+3. **The counter is adjusted by whether the target has already spent its turn.** `+1 when it has` is
+   the general rule and it is the same statement the residual makes. Disable is the single declared
+   exception (`VOL_DUR_OFFSET = {disable: -1}`), because its declared 5 is one more than the four
+   turns it seals — Showdown writes that as `if (this.queue.willMove(pokemon) || ...) duration--`.
+
+**And the membership is the artifact's, printed before it was believed** (docs/LESSONS §4):
+`durationVolatiles` = `taunt 3, encore 3, disable 5`; **excluded** are Torment and Imprison (`turns:
+null` — no duration in gen 9, and giving them a counter would EXPIRE them, which is worse than the
+gap), Gravity and Throat Chop (no `statusInflict` volatile). The no-restart rule is scoped to that set
+on purpose: **a blanket one would have caught Protect, Follow Me, Rage Powder and Helping Hand**,
+which are per-turn volatiles that must be re-settable.
+
+**Which members need the target's LAST MOVE is derived, not listed.** A `sealsMoves` volatile that
+also declares a category (`forbidsStatusMoves`) seals a category; one that does not must be naming a
+move, and Showdown refuses both of those against a target that has never moved. So the set is
+`durationVolatiles − forbidByVolatile` = `{encore, disable}` — which is what WIRE 69 hand-wrote as
+`_e.volatile === 'encore'` and **what Disable never had at all**. That single missing guard is the
+whole of the `vol.disable showdown=0 ours=4` row: the engine applied a Disable on the turn before its
+target had ever moved.
+
+### THE RED DEMONSTRATION, ON THE SAME FILE AND THE SAME COMMAND
+
+`tests/test-volatile-duration.js` plays the LIVE tree by default and `--engine release` plays a
+snapshot's own bytes, so the before-arm is reachable without swapping a file:
+
+```
+node tests/test-volatile-duration.js --engine release --release 72e361e1bd44   ->  3/4 DIFFER
+  taunt    t2 vol.taunt    showdown=1  ours=2      t3  showdown=0  ours=1
+  disable  t1 vol.disable  showdown=0  ours=4      t2  showdown=3  ours=4   t3  showdown=2  ours=3
+  encore   t2 vol.encore   showdown=2  ours=3      t3  showdown=1  ours=3
+node tests/test-volatile-duration.js                                          ->  4/4 IDENTICAL
+```
+
+**Perish Song is the positive control and it is the fourth scenario.** It is the one member of the
+family that was already right, so a change to the shared model that breaks it has broken the model.
+It read IDENTICAL on the unfixed release and reads IDENTICAL now. No number in that file is an
+expectation: every scenario is played in both engines through `tests/staged_board.js`, whose rule is
+that Showdown is the expectation.
+
+### THE INSTRUMENT WAS WRONG BEFORE THE ENGINE WAS — THREE TIMES
+
+1. **The target's click did nothing.** The first draft gave Snorlax `Tackle`, which is not one of the
+   500 legal moves and has no row in `MC.moves`, so medicham2 dealt 0 with it and the probe reported a
+   42 HP divergence that had nothing to do with a duration. It also meant `_lastMove` was never set,
+   so Encore read `ours=0` — the engine refusing correctly, printed as a defect.
+2. **Two consecutive Protects.** Showdown failed the second one and medicham2 did not, on the body
+   being attacked. That is a REAL divergence and it is not this row; it is filed, and the scenarios
+   now never click Protect twice running on a body anyone is hitting.
+3. **Disable made the target's own scripted click illegal**, which throws rather than diverging. The
+   target alternates two clicks, which is the same correction `tests/roster.js` records for its own
+   `move/volatile` rule.
+
+### AND A FOURTH, WHICH WAS THE ENGINE BREAKING AN INSTRUMENT
+
+`tests/roster.js` demonstrates its `move/volatile` rule RED by nulling **one literal line** of engine
+source: `const _sm=TAGS.param('move',a.mv,'sealsMoves');`. The first version of this fix rewrote that
+line, so the patch would have matched nothing and **the red demonstration would have quietly stopped
+demonstrating**. `volDurationOnApply` therefore takes the tag params as an ARGUMENT rather than
+looking them up: the table decides the SET, the call site supplies the NUMBER, and severing either one
+is visible. `tests/roster.js` is not this division's to edit and was not edited.
+
+### ENCORE FELL OUT HALFWAY, AND THE OTHER HALF IS A DIFFERENT MECHANIC
+
+Encore's counter row is gone — `vol.encore` no longer appears in its diffs. It is still
+FIRED-AND-BOARDS-DIFFER on **HP only**, and that is a separate defect: Showdown's
+`encore.condition.onOverrideAction` replaces the target's chosen move, and medicham2 honours the lock
+only inside `_chooseAction`, so a SCRIPTED or caller-supplied action walks straight past it. Filed as
+its own row, not swept in here.
+
+### FILED, NOT MINE
+
+- **`infestation` / `partiallytrapped` still parts** (`vol.trapped_by_move` showdown=4/3, ours=3/2).
+  It runs one LOWER than Showdown — the opposite direction from Taunt — and it has no plain duration
+  at all (`durationCallback`, `this.random(5,7)`, Grip Claw changes it). Deliberately not swept into
+  this model.
+- **`tests/test-no-silent-failure.js` is RED**, with 22 NEW silent catch blocks. **None is mine** —
+  one was (`tests/test-volatile-duration.js:172`) and it was fixed in this pass by making it speak on
+  stderr. The remaining 22 are in `engine/quarantine.js` (11), `tests/test-web-quarantine.js` (3),
+  `engine/diff_swarm.js` (2), `engine/leaf_engine_contrast.js` (2), `tests/roster.js` (3) and
+  `engine/explain_divergence.js` (1) — every one of those files is outside this division's hands.
+  Saying so rather than filing it.
+- **`data/interaction-matrix.json` was not republished.** A `--full` run over the current tree stages
+  1,582 live cases against the published artifact's 1,643 and the instrument correctly refuses to let
+  a shallower run replace a deeper one. It agrees on 1,567/1,582 (99.1%) and **no taunt, encore or
+  disable pair is among the disagreements**, which is the check this change needed.
+- **`tests/test-tag-wire.js` asserted the bug.** Its Encore check read `_lockT === 3`, which is what
+  survived one tick of the `turns + 1` lock the old code wrote to compensate for the double decrement.
+  It now asserts `turns − 1` out of the artifact AND that the lock agrees with the volatile, because
+  two clocks for one effect is exactly how the lock came to outlive the Encore that made it.
 
 ## THE INERT 124 — FIFTEEN ABILITY SHAPE RULES, AND `--write` STOPS DESTROYING THE STAGE BESIDE IT. 2026-08-08. (ROADMAP #98 + #107)
 

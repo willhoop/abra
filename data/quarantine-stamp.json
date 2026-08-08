@@ -1,7 +1,7 @@
 {
   "note": "RATCHET. citation_sites may SHRINK and may never grow while the MEDICHAM quarantine is closed. A new entry means a withheld figure was just published somewhere.",
   "source_digests": {
-    "engine/quarantine.js": "224b42b4a263",
+    "engine/quarantine.js": "2b135b1fb171",
     "engine/provenance.js": "3bf20955defa",
     "note": "Content, not mtime. A checkout moves an mtime without moving code."
   },
@@ -52,5 +52,5 @@
   "citation_sites": [
     "docs/ENGINE.md"
   ],
-  "generated": "2026-08-08T22:18:20.882Z"
+  "generated": "2026-08-08T23:05:43.165Z"
 }

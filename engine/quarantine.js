@@ -54,6 +54,16 @@ const readJson = p => { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } c
  * the lift is, and a gate whose distance cannot be seen is a gate that gets argued with.
  */
 
+/* SWALLOWED READS ARE COUNTED, NOT SILENT. Every `catch` in this file guards a read that is allowed
+ * to be absent — an optional directory, an artifact not written yet, a stamp helper that may not
+ * exist. A bare `catch (e) {}` is the right CONTROL FLOW and the wrong REPORTING: it is exactly the
+ * shape CLAUDE.md opens on, "a capability was absent and everything reported success". So each one
+ * records where it fired, and `--check` prints the tally. If this gate ever goes quiet because it
+ * could not read the thing it polices, the count says so instead of the gate reading clean.
+ * `tests/test-no-silent-failure.js` found all eleven the day they were written. */
+const SWALLOWED = [];
+const why = e => (e && e.message) || String(e);
+
 /* THE THREE STAGES THAT THE RULE NAMES. `tests/roster.js --stage` also accepts `spine` (its own
  * selftest) and `pairs`; neither is part of the condition, so neither is read here. */
 const ROSTER_STAGES = ['items', 'abilities', 'moves'];
@@ -206,7 +216,7 @@ function sources() {
     let list = []; try { list = fs.readdirSync(D(dir)); } catch (e) { continue; }
     for (const f of list) {
       if (!/\.js$/.test(f)) continue;
-      try { src[dir + '/' + f] = fs.readFileSync(D(dir, f), 'utf8'); } catch (e) {}
+      try { src[dir + '/' + f] = fs.readFileSync(D(dir, f), 'utf8'); } catch (e) { SWALLOWED.push('readSource ' + dir + '/' + f + ': ' + why(e)); }
     }
   }
   return src;
@@ -291,7 +301,7 @@ function playProducts(src, play) {
       }
     }
   }
-  let disk = []; try { disk = fs.readdirSync(D('data')); } catch (e) {}
+  let disk = []; try { disk = fs.readdirSync(D('data')); } catch (e) { SWALLOWED.push('scan data/ for jsonl stores' + ': ' + why(e)); }
   for (const f of disk) if (/\.jsonl$/.test(f) && !ingested.has(f)) out.add(f);
   for (const f of ingested) out.delete(f);
   return out;
@@ -316,7 +326,7 @@ function engineInputArtifacts(g) {
     const m = s.match(/ENGINE_INPUTS\s*=\s*\[([^\]]*)\]/);
     if (!m) return out;
     for (const n of m[1].split(',').map(x => x.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean)) out.add(n);
-  } catch (e) { return out; }
+  } catch (e) { SWALLOWED.push('parse the ingest workflow for collector names' + ': ' + why(e)); return out; }
   if (!Array.isArray(g)) return out;
   const by = new Map(g.map(a => [a.file, a]));
   for (let i = 0; i < 16; i++) {
@@ -440,7 +450,7 @@ function classify(opts = {}) {
  * the failure this whole file exists to stop, so it is printed as an unknown. */
 function unclassified(rows) {
   const out = [];
-  let disk = []; try { disk = fs.readdirSync(D('data')); } catch (e) { return out; }
+  let disk = []; try { disk = fs.readdirSync(D('data')); } catch (e) { SWALLOWED.push('scan data/ for unclassified artifacts' + ': ' + why(e)); return out; }
   for (const f of disk) {
     if (!/\.(json|js)$/.test(f) || /^games\./.test(f) || /\.meta\.json$/.test(f)) continue;
     if (!rows || !rows.has(f)) out.push(f);
@@ -687,7 +697,7 @@ if (require.main === module) {
       try {
         out = execFileSync(process.execPath, [D('engine', 'status.js')],
           { encoding: 'utf8', maxBuffer: 1 << 26 });
-      } catch (e) { out = (e && (e.stdout || '')) || ''; }
+      } catch (e) { SWALLOWED.push('run engine/status.js to scan its output' + ': ' + why(e)); out = (e && (e.stdout || '')) || ''; }
       if (!out) {
         console.log('QUARANTINE CHECK: engine/status.js produced no output, so nothing could be checked.');
         fail++;
@@ -754,7 +764,7 @@ if (require.main === module) {
          * reads; run_stamp owns the digest format so there is not a second one. */
         source_digests: (() => {
           try { return require('./run_stamp.js').sourceDigests(['engine/quarantine.js', 'engine/provenance.js']); }
-          catch (e) { return undefined; }
+          catch (e) { return SWALLOWED.push('stamp source digests' + ': ' + why(e)); }
         })(),
         not_store_derived: 'it records which artifacts are downstream of the simulator and where they '
             + 'are still cited. No game is counted anywhere in it, so the quality filter has no bearing.',
@@ -767,7 +777,16 @@ if (require.main === module) {
     } catch (e) { console.log('  (could not write data/quarantine-stamp.json: ' + e.message + ')'); }
 
     console.log('');
-    console.log(`QUARANTINE CHECK: ${fail ? fail + ' failure(s)' : 'clean — no withheld figure is being printed'}`);
+    /* THE TALLY OF SWALLOWED READS, PRINTED EVERY RUN. A gate that could not read the thing it
+     * polices must not report clean in silence — that is the failure this whole file exists to stop,
+     * turned inward. Each entry names the read and the error, so "clean" always means "clean, and
+     * here is everything I could not open" rather than "clean, as far as I got". */
+    if (SWALLOWED.length) {
+      console.log(`  ${SWALLOWED.length} read(s) this gate is allowed to miss DID miss — it is reporting on less than the whole tree:`);
+      for (const w of SWALLOWED) console.log('    ' + w);
+    }
+    console.log(`QUARANTINE CHECK: ${fail ? fail + ' failure(s)' : 'clean — no withheld figure is being printed'}`
+      + (SWALLOWED.length ? ` (${SWALLOWED.length} read(s) swallowed, listed above)` : ''));
     process.exit(fail ? 1 : 0);
   }
 }
@@ -792,12 +811,12 @@ function citations(S) {
   if (!probes.length) return out;
   const walk = (dir, depth) => {
     if (depth > 3) return;
-    let list = []; try { list = fs.readdirSync(D(dir), { withFileTypes: true }); } catch (e) { return; }
+    let list = []; try { list = fs.readdirSync(D(dir), { withFileTypes: true }); } catch (e) { SWALLOWED.push('walk ' + dir + ' for citations' + ': ' + why(e)); return; }
     for (const e of list) {
       const rel = dir + '/' + e.name;
       if (e.isDirectory()) { if (!/^(node_modules|\.git|releases|_inbox)$/.test(e.name)) walk(rel, depth + 1); continue; }
       if (!/\.(md|html|js)$/.test(e.name)) continue;
-      let s = ''; try { s = fs.readFileSync(D(rel), 'utf8'); } catch (e2) { continue; }
+      let s = ''; try { s = fs.readFileSync(D(rel), 'utf8'); } catch (e2) { SWALLOWED.push('read ' + rel + ' for citations' + ': ' + why(e2)); continue; }
       for (const p of probes) if (s.includes(p.probe)) out.push({ where: rel, file: p.file });
     }
   };

@@ -264,7 +264,21 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * flingThrown / flingRefused are the two halves of Fling and are counted APART because the refusal
    * IS the mechanic on a body holding its own mega stone -- a fail that could not be told from a
    * mechanic that never fired is exactly the silent default this project keeps meeting. */
-  formeCycled: 0, flingThrown: 0, flingRefused: 0 };
+  formeCycled: 0, flingThrown: 0, flingRefused: 0,
+  /* ROADMAP #111 -- THE DURATION FAMILY, five counters, because every one of them was a place the old
+   * code was silently doing nothing and reporting success:
+   *   volDurationApplied    a counter was written THROUGH the shared model (Taunt, Encore, Disable,
+   *                         Cursed Body). A zero after real games means the model is unreachable;
+   *   volDurationTicked     a residual actually spent one. Encore's read zero in every scripted game
+   *                         ever played here, because its only tick lived in the chooser;
+   *   volDurationExpired    a clock reached zero and the volatile came OFF with its side fields;
+   *   volRestartRefused     a second click into a body already carrying it, refused rather than
+   *                         refreshing the counter -- the Taunt row;
+   *   volSealNoLastMove     Encore or Disable refused against a target that has never moved. THE
+   *                         DISABLE HALF OF THIS HAD NEVER FIRED AT ALL, and it is the whole of the
+   *                         `showdown=0 ours=4` turn-1 row. */
+  volDurationApplied: 0, volDurationTicked: 0, volDurationExpired: 0,
+  volRestartRefused: 0, volSealNoLastMove: 0 };
 const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnknownFirst: '',
   /* ROADMAP #92 -- MISTY TERRAIN ALSO REFUSES CONFUSION to a grounded body, and this engine has no
    * per-terrain volatile refusal to hang that on. 9 corpus uses. Counted every time confusion is
@@ -309,6 +323,10 @@ const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnk
    * ROADMAP #81 WIRE 12 -- a `perishClock` row with no `turns`. The number used to be typed into this
    * file as `||3`, which is the wrong number AND a silent default; there is no fallback now. */
   auraMultUnusable: 0, auraMultUnusableFirst: '',
+  /* ROADMAP #111 -- the duration table could not be built. An empty table is EXACTLY what this engine
+   * looked like before the wire (three volatiles that never expire on their own), so it must not be
+   * indistinguishable from it. */
+  volDurTableFailed: 0, volDurTableFailedFirst: '',
   perishTurnsMissing: 0,
   /* ROADMAP #81 WIRE 12 -- a `passesState` click that could not switch (an empty bench). Showdown's
    * Baton Pass and Shed Tail both `-fail` outright in that case; this counts how often it happens so
@@ -820,7 +838,113 @@ function forbidByVolatile(){
  * demand would keep serving the old membership and score this wire READ-AND-IGNORED -- the false-DEAD
  * direction. tags.js publishes the hook for exactly this; `SPREAD` and the terrain tables do not
  * register one, which is a separate pre-existing gap and is not fixed here. */
-if(TAGS&&typeof TAGS.__onSetDB==='function') TAGS.__onSetDB(function(){ _forbidVol=null; });
+if(TAGS&&typeof TAGS.__onSetDB==='function') TAGS.__onSetDB(function(){ _forbidVol=null; _volDur=null; });
+/* ============ ROADMAP #111 -- THE VOLATILE DURATION FAMILY, AS ONE MECHANISM ======================
+ *
+ * `Battle#residualEvent` (sim/battle.js:341-348) decrements EVERY handler carrying BOTH an `end` and
+ * a `duration`, INSIDE the Residual event, ordered by `onResidualOrder` (taunt 15, encore 16,
+ * disable 17):
+ *
+ *     if (eventid === 'Residual' && handler.end && handler.state?.duration) {
+ *       handler.state.duration--;
+ *       if (!handler.state.duration) { handler.end.call(...endCallArgs); continue; }
+ *     }
+ *
+ * So a volatile applied on turn N HAS ALREADY SPENT ONE OF ITS TURNS by the end of turn N. This file
+ * documents that exact defect at the Perish Song wire (`perishsong.condition.duration` is 4 and the
+ * engine wrote 3), FIXED ONE VOLATILE WITH IT, and left the general defect standing -- so Taunt,
+ * Encore and Disable each re-created it in their own way. `data/roster.moves.json` came back with
+ * three FIRED-AND-BOARDS-DIFFER rows, 9,092 corpus uses between them, and they are ONE BUG:
+ *
+ *     taunt        t2 counter  showdown 1  ours 2      the counter was REFRESHED by a second click
+ *     disable      t1 counter  showdown 0  ours 4      applied against a target that had never moved
+ *                  t2 counter  showdown 3  ours 4      and the application-time offset was missing
+ *     encore       t2 counter  showdown 2  ours 3      ticked in the CHOOSER, so a scripted or
+ *                  t3 counter  showdown 1  ours 3      caller-supplied action never spent a turn
+ *
+ * ---- THE SET IS THE ARTIFACT'S ------------------------------------------------------------------
+ * Every move whose `sealsMoves.turns` is a POSITIVE NUMBER contributes `volatile -> turns` through
+ * its own `statusInflict`. A member whose `turns` is null is deliberately EXCLUDED: Torment and
+ * Imprison carry no duration in gen 9, and handing them a counter would EXPIRE them, which is a
+ * worse error than the gap. Membership was printed before this was wired (docs/LESSONS §4):
+ *
+ *     taunt 3     encore 3     disable 5           <- in the table
+ *     torment, imprison (turns null), gravity (no volatile)   <- correctly NOT in it
+ *
+ * ---- THE APPLICATION-TIME OFFSET ----------------------------------------------------------------
+ * Showdown writes it into each condition's `onStart`, and the three it writes are the SAME RULE twice
+ * and a base correction once:
+ *
+ *     taunt    if (target.activeTurns && !this.queue.willMove(target)) duration++
+ *     encore   if (!this.queue.willMove(target))                       duration++
+ *     disable  if (this.queue.willMove(pokemon) || <is moving RIGHT NOW>) duration--
+ *
+ * "+1 when the target has already spent this turn" is the general rule, and it is the same statement
+ * the residual makes: a turn the target no longer has must not be one of the N. Taunt's extra
+ * `activeTurns` clause is subsumed by this engine's predicate -- a body dragged or switched in
+ * mid-turn holds no action in `acts`, so it reads NOT-already-moved, which is the WIRE 119 argument
+ * unchanged. Disable is the one row that is not covered by it, because its DECLARED 5 is one more
+ * than the four turns it actually seals; that -1 is written down as a named offset with Showdown's
+ * own line beside it rather than being folded into a literal.
+ *
+ * ---- AND WHICH ONES NEED A LAST MOVE IS DERIVED, NOT LISTED --------------------------------------
+ * A `sealsMoves` volatile that also declares a CATEGORY (`forbidsStatusMoves`) seals a category and
+ * needs nothing from the target. One that does not must be naming a MOVE -- and Showdown refuses both
+ * of those against a target that has never moved (`disable.onTryHit` returns false on `!target.
+ * lastMove`; `encore.condition.onStart` returns false on `!target.lastMove`). So the membership falls
+ * out of the artifact as `durationVolatiles - forbidByVolatile` = {encore, disable}, which is what
+ * WIRE 69 hand-wrote for encore alone and what Disable never had at all. */
+let _volDur=null;
+function durationVolatiles(){
+  if(_volDur) return _volDur;
+  _volDur=new Map();
+  try{
+    for(const id of (TAGS.withTag?TAGS.withTag('move','sealsMoves'):[])){
+      const sm=TAGS.param('move',id,'sealsMoves');
+      const si=TAGS.param('move',id,'statusInflict');
+      if(!sm||sm.turns==null||!(+sm.turns>0)) continue;
+      if(!si||!Array.isArray(si.effects)) continue;
+      for(const e of si.effects) if(e.volatile) _volDur.set(e.volatile,+sm.turns);
+    }
+  }catch(e){
+    /* IT SPEAKS, for the reason forbidByVolatile's catch does: an empty table here is exactly what
+     * the engine looked like BEFORE this wire -- three volatiles that never expire on their own --
+     * and that is a silent default wearing the shape of a working feature. */
+    MEDFAILS.volDurTableFailed++;
+    if(!MEDFAILS.volDurTableFailedFirst) MEDFAILS.volDurTableFailedFirst=String((e&&e.message)||e);
+  }
+  return _volDur;
+}
+/* Disable's declared duration is one longer than the number of turns it seals; every other member
+ * needs no correction. Written as a table of ONE so a second exception cannot be smuggled in as a
+ * literal, and so `durationVolatiles()` stays the authority on the SET. */
+const VOL_DUR_OFFSET={disable:-1};
+/* The counter to write at application, or null if this volatile carries no duration at all (in which
+ * case the caller keeps whatever it was doing before -- this function never invents one).
+ *
+ * THE NUMBER IS PASSED IN, NOT LOOKED UP, AND THAT IS NOT AN ACCIDENT. `tests/roster.js` demonstrates
+ * this rule RED by nulling the `sealsMoves` read AT THE CALL SITE; a function that fetched the turns
+ * from `durationVolatiles()` instead would sail straight past that break and the red demonstration
+ * would be green with the wire cut. The table decides the SET (and is what the end-of-turn tick walks);
+ * the call site supplies the NUMBER, so severing either one is visible. */
+function volDurationOnApply(vol,alreadyMoved,sm){
+  if(!durationVolatiles().has(vol)) return null;
+  if(!sm||sm.turns==null||!(+sm.turns>0)) return null;
+  const t=(+sm.turns)+(alreadyMoved?1:0)+(VOL_DUR_OFFSET[vol]||0);
+  return t>0?t:1;
+}
+/* Does this volatile seal a NAMED MOVE (and therefore fail against a target that has never moved)?
+ * Derived -- see the header above -- never listed. */
+function volNeedsLastMove(vol){ return durationVolatiles().has(vol)&&!forbidByVolatile().has(vol); }
+/* THE EXPIRY, in one place, because each member owns a second field beside the counter and freeing
+ * the name while leaving the field behind is how a volatile ends and keeps working. */
+function endDurationVolatile(m,vol){
+  if(!m||!m._vol) return;
+  delete m._vol[vol];
+  if(vol==='disable') m._sealed=null;
+  if(vol==='encore'){ m._encoreMove=null; if(m._lockT!==Infinity){ m._lock=null; m._lockT=0; } }
+  if(TR) TR.vend(m,'move: '+vol);
+}
 /* WIRE 119 -- THREE ACTION KINDS CARRY NO MOVE ID, and every one of them is a status move: the
  * chooser (chooseAction, not playerAction) returns a bare `{kind:'protect'}`, `{kind:'wideguard'}`
  * and `{kind:'tail'}`. It exists so the gate below can ask the ARTIFACT what category the action is
@@ -3554,7 +3678,17 @@ function _chooseAction(me,foes,ally,field,side,rng){
    * from outside (the WIRE 24 rule). */
   if(me._vol){
     if(me._vol.encore>0){
-      me._vol.encore--;
+      /* ROADMAP #111 -- THE DECREMENT THAT USED TO BE ON THIS LINE IS GONE, and that is the whole
+       * Encore row. It was the SECOND decrement site for one volatile: the counter fell here, during
+       * action SELECTION, and Encore is the only member of the duration family that was not also
+       * ticked at end of turn. Both halves were wrong in opposite directions -- a rollout driven from
+       * outside (a scripted turn, a caller-supplied action) never reaches this function, so the clock
+       * never moved at all and the lock was permanent; and when it DID reach it, the counter fell at
+       * the wrong moment relative to the residual. `data/roster.moves.json` saw only the first half
+       * (`vol.encore` showdown 2/1, ours 3/3 across two boundaries) because its turns are scripted.
+       * The tick now lives at end of turn with Taunt's and Disable's, for the reason Disable's own
+       * comment there gives: a duration that only counts down when the engine happens to be the one
+       * choosing is a duration that lasts forever. */
       const _mv=me._encoreMove;
       if(_mv&&MC.moves[_mv]){
         const _t=live[Math.floor(rng()*live.length)%live.length];
@@ -6134,11 +6268,26 @@ function battleTurn(S,rng,actsForA,actsForB){
            * as well as a chosen one — the WIRE 24 rule, which nothing about Encore honoured. A Choice
            * lock (`_lockT === Infinity`) is never shortened by it. */
           if(_e.volatile){
-            /* WIRE 69 -- ENCORE FAILS AGAINST A TARGET WITH NO LAST MOVE, and this guard has to come
-               BEFORE the volatile is written. The first version sat two lines lower, after the
-               assignment, so it skipped the bookkeeping and left the volatile on -- the pair matrix
-               kept reading `vol medi=["encore"] sd=[]` and the fix looked landed. */
-            if(_e.volatile==='encore'&&!_who._lastMove) continue;
+            /* WIRE 69 -- A MOVE-SEALING VOLATILE FAILS AGAINST A TARGET WITH NO LAST MOVE, and this
+               guard has to come BEFORE the volatile is written. The first version sat two lines lower,
+               after the assignment, so it skipped the bookkeeping and left the volatile on -- the pair
+               matrix kept reading `vol medi=["encore"] sd=[]` and the fix looked landed.
+               ROADMAP #111 -- AND IT WAS WRITTEN `=== 'encore'`, SO DISABLE NEVER HAD IT. Showdown
+               refuses both (`disable.onTryHit` returns false on `!target.lastMove`; encore's
+               `onStart` does the same), and `data/roster.moves.json` measured the cost: on the turn
+               before its target had ever moved, `vol.disable` read showdown=0 ours=4. The membership
+               is now derived -- see volNeedsLastMove -- so a third sealer arriving is covered. */
+            if(volNeedsLastMove(_e.volatile)&&!_who._lastMove){ MEDSEEN.volSealNoLastMove++; continue; }
+            /* ROADMAP #111 -- AND RE-APPLYING ONE THE BODY ALREADY CARRIES FAILS. `Pokemon#addVolatile`
+               returns false when the volatile is present and its condition declares no `onRestart`,
+               and none of this family does. Writing the counter again REFRESHED it, which is why a
+               Taunt clicked on two consecutive turns read 2 at both boundaries where Showdown reads
+               2 then 1 -- the clock never ran down while the move was being re-clicked. Restricted to
+               the duration family on purpose: Protect, Follow Me, Rage Powder and Helping Hand are
+               per-turn volatiles that MUST be re-settable, and a blanket no-restart rule would have
+               caught all four (docs/LESSONS §4 -- print what the rule matches before wiring it). */
+            if(durationVolatiles().has(_e.volatile)&&_who._vol&&_who._vol[_e.volatile]>0){
+              MEDSEEN.volRestartRefused++; continue; }
             /* ROADMAP #81 WIRE 7 -- THE SUBSTITUTE VOLATILE IS ALREADY OWNED, AND THIS LOOP WAS
                ANNOUNCING IT A SECOND TIME. `grantSubstitute` holds the doll's size, its failure rule
                and its `-start`; this generic path then wrote `_vol.substitute = 1` and emitted a
@@ -6153,8 +6302,6 @@ function battleTurn(S,rng,actsForA,actsForB){
              * never read by anything. `applyConfusion` is the one implementation and the secondary
              * path two thousand lines below calls the same function. */
             if(_e.volatile==='confusion'){applyConfusion(_who,m,field);continue;}
-            const _sm=TAGS.param('move',a.mv,'sealsMoves');
-            let _tn=(_sm&&+_sm.turns)||1;
             /* WIRE 119 -- TAUNT LASTS THREE OF THE TARGET'S TURNS, NOT THREE TURNS. Showdown's taunt
              * condition bumps its own duration when the target has ALREADY MOVED this turn
              * (`if (target.activeTurns && !this.queue.willMove(target)) this.effectState.duration++`),
@@ -6165,9 +6312,20 @@ function battleTurn(S,rng,actsForA,actsForB){
              * `unresolved` is this turn's outstanding actions (WIRE 118), so "was queued to move and
              * no longer will" is `acts.some(...) && !unresolved.has(...)` -- the same pair of clauses
              * Showdown asks, including the `activeTurns` half: a body dragged or switched in mid-turn
-             * is in neither set and is correctly NOT bumped. Applied only to a volatile in the forbid
-             * table, which is where the rule lives. */
-            if(forbidByVolatile().has(_e.volatile)&&!unresolved.has(_who)&&acts.some(x=>x.mon===_who)) _tn++;
+             * is in neither set and is correctly NOT bumped.
+             * ROADMAP #111 -- THE PREDICATE IS UNCHANGED AND THE MEMBERSHIP IS NOT. It used to be
+             * gated on `forbidByVolatile()`, which is a table of ONE (taunt), so Encore -- which
+             * Showdown bumps by the same rule minus the `activeTurns` clause -- never got it. The
+             * whole duration family now shares it, and Disable's declared-5-seals-4 correction rides
+             * in the same function rather than as a literal here. */
+            const _sm=TAGS.param('move',a.mv,'sealsMoves');
+            const _amv=!unresolved.has(_who)&&acts.some(x=>x.mon===_who);
+            const _dur=volDurationOnApply(_e.volatile,_amv,_sm);
+            /* NO SILENT DEFAULT. A volatile with no duration in the artifact keeps the pre-existing
+             * bare `1`, which is what every non-sealing volatile in this loop has always been given;
+             * the difference is that it is now visibly the fallback rather than the rule. */
+            const _tn=_dur!=null?_dur:((_sm&&+_sm.turns)||1);
+            if(_dur!=null) MEDSEEN.volDurationApplied++;
             (_who._vol=_who._vol||{})[_e.volatile]=_tn;
             /* `|-start|p1b: Amoonguss|move: Taunt` -- the `move: ` prefix is what Showdown writes for
              * a volatile whose source effect is a move, read off a real battle.log. */
@@ -6183,7 +6341,11 @@ function battleTurn(S,rng,actsForA,actsForB){
                legal. The rule is "has ever moved", not "has moved this turn". */
             if(_e.volatile==='encore'){
               _who._encoreMove=_who._lastMove||null;
-              if(_who._lastMove&&_who._lockT!==Infinity){_who._lock=_who._lastMove;_who._lockT=_tn+1;}
+              /* ROADMAP #111 -- `_tn` AND NOT `_tn + 1`. The +1 was compensating for the counter being
+                 decremented a second time inside `_chooseAction`; that second decrement is gone, so
+                 the lock and the volatile now start on the same number and expire on the same turn
+                 boundary. Two clocks for one effect is how a lock outlives the volatile that made it. */
+              if(_who._lastMove&&_who._lockT!==Infinity){_who._lock=_who._lastMove;_who._lockT=_tn;}
             }
             /* WIRE 62 -- MENTAL HERB, 684 sheets, and it undoes the whole point of the click that
              * just landed -- so any value a search assigns to landing a Taunt or an Encore is wrong
@@ -8581,8 +8743,16 @@ function battleTurn(S,rng,actsForA,actsForB){
            * The duration is Disable's own from the sealsMoves tag, so one number serves both routes. */
           {const _cb=TAGS.param('ability',tg.ability,'disablesAttacker');
            if(_cb&&_cb.chance&&!m.fainted&&!(m._vol&&m._vol.disable>0)&&rng()<+_cb.chance){
+             /* ROADMAP #111 -- THROUGH THE SHARED DURATION MODEL, and `alreadyMoved` is FALSE here on
+              * purpose. The body Cursed Body seals is the one that is MOVING RIGHT NOW, and Showdown
+              * spells that out as the second half of disable's own clause --
+              *   `if (this.queue.willMove(pokemon) || (pokemon === this.activePokemon && ...))`
+              * -- so a body mid-move counts as not-yet-spent exactly like one still queued. What
+              * stood here was `turns + 1`, a hand-compensation for the tick that gave Cursed Body 6
+              * where Showdown gives 4. */
              const _dt=TAGS.param('move','disable','sealsMoves');
-             (m._vol=m._vol||{}).disable=((_dt&&+_dt.turns)||4)+1;
+             (m._vol=m._vol||{}).disable=volDurationOnApply('disable',false,_dt)||1;
+             MEDSEEN.volDurationApplied++;
              m._sealed=a.move.id;
              if(TR){TR.act(tg,'ability: '+tg.ability);TR.vstart(m,'Disable',a.move.id);}
            }}
@@ -9237,19 +9407,28 @@ function battleTurn(S,rng,actsForA,actsForB){
      * corpse's last turn. */
     [...actA,...actB].forEach(m=>{if(m){m._mvResLast=m._mvRes;m._mvRes=undefined;}});
     [...actA,...actB].forEach(m=>{if(m&&!m.fainted)m._turnsOut++;if(m&&m._lockT!==Infinity&&m._lockT>0&&--m._lockT<=0)m._lock=null;
-      /* Disable ticks HERE and not in chooseAction, so a turn where the caller supplied the action
-       * still spends one — a duration that only counts down when the engine happens to be the one
-       * choosing is a duration that lasts forever in a rollout driven from outside. */
-      if(m&&m._vol&&m._vol.disable>0&&--m._vol.disable<=0)m._sealed=null;
       /* WIRE 140 -- the Ally Switch volatile has `duration: 2`, so a turn where it is NOT clicked
        * lets it lapse and the next click starts fresh at 1/1. Ticked here with the other durations
-       * rather than at the branch, for the reason the Disable comment above gives: a clock that only
+       * rather than at the branch, for the reason the Disable comment below gives: a clock that only
        * moves when the engine happens to be choosing is a clock that never runs out in a rollout. */
       if(m&&m._aswDur>0&&--m._aswDur<=0)m._aswCount=0;
-      /* WIRE 119 -- AND SO DOES TAUNT, for the identical reason and beside it rather than in the
-       * chooser where it used to sit. The set of volatiles is the forbid table's keys, so this ticks
-       * whatever the artifact says forbids a category and names no move. */
-      if(m&&m._vol)for(const _fv of forbidByVolatile().keys())if(m._vol[_fv]>0)m._vol[_fv]--;});
+      /* ROADMAP #111 -- ONE TICK FOR THE WHOLE DURATION FAMILY, and it replaces three separate lines
+       * that each ticked one member (Disable here, Taunt through the forbid table beside it, Encore
+       * two thousand lines up inside `_chooseAction`). Three sites is how the same defect came back
+       * three times after Perish Song was fixed once.
+       *
+       * It ticks HERE and not in chooseAction so a turn where the CALLER supplied the action still
+       * spends one -- a duration that only counts down when the engine happens to be the one choosing
+       * is a duration that lasts forever in a rollout driven from outside (the WIRE 24 rule).
+       *
+       * The set is `durationVolatiles()`, read out of the artifact, so a fourth sealer arriving in a
+       * later regulation is ticked without an edit here. A FAINTED holder is skipped, which is
+       * `residualEvent`'s own first line (`if (handler.effectHolder.fainted) continue`). */
+      if(m&&m._vol&&!m.fainted)for(const _dv of durationVolatiles().keys()){
+        if(!(m._vol[_dv]>0))continue;
+        MEDSEEN.volDurationTicked++;
+        if(--m._vol[_dv]<=0){MEDSEEN.volDurationExpired++;endDurationVolatile(m,_dv);}
+      }});
     /* THE DEATH COUNTERS update at turn end, before replacements enter: the live side count for
      * Last Respects (a mid-turn kill is seen one action late — an approximation, stated), and the
      * entrant's frozen snapshot for Supreme Overlord. Derived from the actual fainted flags every

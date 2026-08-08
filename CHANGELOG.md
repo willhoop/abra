@@ -10,6 +10,80 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.82.0] — 2026-08-08
+
+### Fixed
+- **WIRE: THE VOLATILE DURATION FAMILY — the top of the moves queue, 9,092 uses, one mechanism.**
+  `Battle#residualEvent` decrements every handler carrying both an `end` and a `duration` **inside
+  the Residual event**, so a volatile applied on turn N has already spent one of its turns by the end
+  of turn N. `medicham2-browser.js:6588` documents that exact defect — for Perish Song — fixed one
+  volatile with it, and left the general defect standing. Taunt and Disable move
+  `FIRED-AND-BOARDS-DIFFER → FIRED-AND-BOARDS-MATCH`; Encore's counter row is gone.
+  Three sub-rules Showdown carries that this engine had for nobody:
+  - **Re-application FAILS.** `addVolatile` returns false when the volatile is present and its
+    condition has no `onRestart`, so a Taunt clicked twice was **refreshing** the counter. That alone
+    is the whole `t2 showdown=1 ours=2` row.
+  - **The counter is adjusted by whether the target has already spent its turn.** `+1 when it has` is
+    general; Disable is the one declared exception, because its declared 5 seals four turns.
+  - **Encore and Disable need the target's last move.** WIRE 69 hand-wrote that as
+    `_e.volatile === 'encore'`, so **Disable never had it** — the `t1 showdown=0 ours=4` row was an
+    application-timing difference, not a counter one, exactly as predicted before the work started.
+- Both suspected sites were real. `:3556` was a second decrement — and worse than a double-count: it
+  was the *only* Encore tick, so in any rollout driven from outside `_chooseAction` the clock never
+  moved at all. `:9252` walked `forbidByVolatile().keys()`, a table of **one** (taunt), so Encore was
+  outside the tick entirely.
+- Cursed Body was writing `turns+1` = 6 where Showdown writes 4; routed through the same helper.
+- **`engine/quarantine.js` had eleven silent `catch` blocks**, found by `tests/test-no-silent-failure.js`
+  the day they were written. Every one guards a read that is *allowed* to be absent, which is the
+  right control flow and the wrong reporting — "a capability was absent and everything reported
+  success" is the failure CLAUDE.md opens on, and a gate that cannot read what it polices must not
+  report clean in silence. Each now records what it could not open and `--check` prints the tally.
+  Fixed by changing the code to satisfy the detector, **not** by widening the detector.
+
+### Changed
+- Membership printed before it was wired: `taunt 3, encore 3, disable 5`. **Excluded** Torment and
+  Imprison (`turns: null` — a counter would *expire* them) and Gravity and Throat Chop (no volatile).
+  The no-restart rule is scoped to that set deliberately: a blanket one catches Protect, Follow Me,
+  Rage Powder and Helping Hand.
+
+### Notes — the measurement, and why its baseline is not the one previously quoted
+- `tests/test-volatile-duration.js` runs four scenarios through `staged_board.js`, so **no number in
+  it is an expectation** — Showdown is. Shown RED on the unfixed release first: 3 of 4 DIFFER, with
+  taunt/disable/encore parting exactly as the roster reported. **Perish Song is scenario 4 and is
+  asserted explicitly** — the one member already fixed, present so that a change to the shared model
+  cannot quietly re-break it while turning three other rows green. Identical before and after.
+- **The previously published baseline could not be reproduced, and the reason matters more than the
+  number.** Two things that steer the sample had already moved: the census timestamp (regenerating it
+  changes its digest, and the digest selects the games) and **the team store, which OPS was appending
+  to mid-run — 7,777 → 7,817 teams.** That run was discarded and a fresh PAIRED before/after taken:
+  same pinned team store, same census digest, same 2,008 games, same pin, differing in `--release`
+  and nothing else. `engine/arms_comparable.js` says COMPARABLE. **The delta is the measurement; the
+  absolute is not comparable across days.**
+
+  | | before | after |
+  |---|---|---|
+  | census | 324 live / 324 probed / 0 missing | **unchanged** |
+  | roster moves | 52 DIFFER · 27 DID-NOT-FIRE · 330 MATCH | **50 · 27 · 332** |
+  | differential `--nature real` | turn-1 96.9% · whole game **76.9%** · boundaries 98.0% | turn-1 96.9% · whole game **78.9%** · boundaries **98.2%** |
+  | differential `--nature serious` | whole game **77.4%** | whole game **77.7%** |
+  | `test-engine-diff` | 1 of 150 disagree | 1 of 150 |
+
+- **Encore fell out halfway.** Its counter row is gone; it remains DIFFER on **HP only**, and that is
+  a different mechanic — Showdown's `encore.condition.onOverrideAction` replaces the target's chosen
+  move, while medicham2 honours the lock only inside `_chooseAction`, so a scripted or
+  caller-supplied action walks past it. Its own row, not swept in.
+- **An instrument hazard worth carrying forward.** The first version of this fix rewrote the literal
+  line `const _sm=TAGS.param('move',a.mv,'sealsMoves');` — which is exactly the string `tests/roster.js`
+  nulls for its `move/volatile` red demonstration. The demo would have matched nothing and **silently
+  stopped demonstrating.** The helper now takes the tag params as an argument, so severing either
+  half is visible.
+- `data/interaction-matrix.json` was NOT republished: a `--full` run stages 1,582 live cases against
+  the artifact's 1,643 and the instrument correctly refuses to let a shallower run replace a deeper
+  one. It agrees 1,567/1,582 (99.1%) and **no taunt/encore/disable pair is among the disagreements**,
+  which is the check this change needed.
+
+---
+
 ## [3.81.0] — 2026-08-08
 
 ### Fixed
