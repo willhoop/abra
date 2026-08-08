@@ -10,6 +10,66 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.80.0] — 2026-08-08
+
+### Added
+- **FIFTEEN ABILITY SHAPE RULES, AND THE INERT BUCKET COLLAPSED.** 124 abilities covering 72,609 uses
+  were falling through `ability/generic` — which stages a plain attack — so Showdown's own board came
+  out identical with and without them and the roster reported INERT. That reads as "nothing to test"
+  when the truth was **the condition was never created**: Blaze needs the user under a third HP,
+  Defiant needs a stat drop, Chlorophyll needs sun, Lightning Rod needs an Electric move aimed at its
+  ally. The bucket is now **59 abilities / 4,261 uses — 94.1% of the usage gone**, checked
+  entity-by-entity against the pre-change artifact for regressions. Nothing left in it is above 500
+  uses. New rules: pinch-offense, stat-drop-reaction, redirects-a-type, absorbs-a-type,
+  type-conversion, no-recoil, survives-from-full, unconditional-stat-multiplier, base-power-scoped,
+  damage-taken-scoped, speed-on-item-loss, weather-speed, weather-evasion, weather-residual,
+  priority-mod, blocks-priority, aids-its-ally, entry-aids-ally, blocks-foe-berry.
+  **All 22 ability rules CAUGHT their own break.** Two did not on the first attempt — `blocks-priority`
+  was anchored on a logging line and `unconditional-stat-multiplier` on the wrong tag — and were
+  re-anchored rather than declared.
+- **`--write` IS STAGE-PRESERVING (ROADMAP #107).** It writes `data/roster.<stage>.json`; `--stage all`
+  writes `data/roster.all.json`; `data/roster.json` remains a labelled convenience copy. An overwrite
+  is ANNOUNCED — the outgoing artifact's stage, release, timestamp and counts are printed and its
+  bytes kept at `data/roster.<stage>.prev.json`. One file could not carry three stages, and a moves
+  run had already destroyed the abilities results twice in one day.
+
+### Changed
+- **THE QUARANTINE GATE NOW READS EVIDENCE INSTEAD OF ABSENCE.** Two of its four clauses had been
+  failing purely because no artifact existed. All three roster clauses now read real per-stage
+  content: items 0 differ / 6 did-not-fire, abilities 0 differ / 1 did-not-fire, moves 52 / 27. The
+  gate is still CLOSED, which is the correct answer — but it is closed on measurement now.
+
+### Fixed
+- The mirror test is down from 6 caught pairs to 4. **Fluffy↔Sand Rush and Water Absorb↔Water Bubble
+  are gone** because each member now has a staging of its own that does not use the other as control.
+  Sand Rush, Chlorophyll, Swift Swim and Slush Rush all return FIRED-AND-BOARDS-MATCH under the new
+  `ability/weather-speed` rule — the positive control this pass was required to pass, on the grounds
+  that a rule family which cannot confirm a known-correct ability is not measuring anything.
+
+### Notes
+- **THE PINCH FAMILY IS DEAD — 8,524 uses.** Blaze 5,903, Torrent 1,924, Overgrow 651 and Swarm 46 all
+  carry `onlyWhen: "only below 1/3 HP"` as PROSE, and the `damageBoost` consumer at
+  `medicham2-browser.js:2761` requires `!_db.onlyWhen`. So none of the four has ever fired. The
+  refusal is CORRECT under ROADMAP #92 — a guessed condition is worse than none — and the defect is
+  that `onlyWhen` was never made machine-readable. The consumer's comment names its live members
+  (dragonsmaw, firemane, rockypayload, steelworker, transistor) and says outright *"All five are 0
+  corpus uses"*: it is armed for the abilities nobody runs and fails closed on the four everybody
+  runs. Overgrow is the only member the roster can stage cleanly, which is why it is the row that
+  surfaced; the other three sit in CONTROL-NOT-QUIET and are not unaffected.
+- **CONTROL-NOT-QUIET now holds 20 abilities over 14,014 uses** (Blaze 5,882, Flower Veil 3,112,
+  Torrent 1,910, Solar Power 797…). These are **not findings**. The condition was created and the
+  delta is real, but no carrier of those abilities in this format has a quiet second ability, so the
+  delta cannot be attributed to the subject. That is a fixture limit of the FORMAT and it is the
+  honest ceiling for those rows — recording it as a verdict would repeat the contaminated-control
+  defect that 3.79.0 fixed.
+- **Six more times the instrument was wrong before the engine was**, written up in `docs/ENGINE.md`:
+  Pure Power staged through a *special* click for an ability that doubles Attack; a drop-cover
+  covering the same two stats twice; Keen Eye briefly losing a green it already held; `speedOnItemLoss`
+  catching Sticky Hold **again, by name**; the ally rule throwing six games because `INERT` is a status
+  move and Taunt forbids those; and a mutual-KO requirement retiring three known-correct abilities.
+
+---
+
 ## [3.79.0] — 2026-08-08
 
 ### Added

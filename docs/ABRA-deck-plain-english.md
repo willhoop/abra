@@ -1,6 +1,16 @@
 # ABRA — the plain-English deck
 
-**Version 3.79.0 · 2026-08-08 · Will Hooper**
+**Version 3.80.0 · 2026-08-08 · Will Hooper**
+
+**3.80.0 — THE DELIBERATE ROSTER'S INERT BUCKET COLLAPSED BY 94.1% OF ITS USAGE, AND A FAMILY OF
+ABILITIES WORTH 8,524 USES TURNS OUT NEVER TO HAVE FIRED.** 124 abilities were falling through a
+catch-all that stages a plain attack, so the condition each one needs was never created and the
+roster honestly reported INERT — which reads as "nothing to test" when the truth is "never tested".
+Fifteen new shape rules take that bucket to 59 abilities / 4,261 uses, all 22 ability rules caught
+their own break, and nothing left in the bucket is above 500 uses. The first real defect it found:
+Blaze, Torrent, Overgrow and Swarm carry their below-1/3-HP condition as PROSE, and the consumer
+refuses any condition it cannot evaluate — so the pinch family has never once fired. The roster's
+artifacts are now written per stage, so the quarantine gate reads measurement rather than absence.
 
 **3.79.0 — EVERY FIGURE DOWNSTREAM OF MEDICHAM IS NOW WITHHELD RATHER THAN CAPTIONED, AND THE
 DELIBERATE ROSTER'S MOVES STAGE RAN FOR THE FIRST TIME.** Will's standing call: *"all engines that

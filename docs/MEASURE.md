@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 14 unsafe, 1 void (declared), 46 possibly stale, 54 ok, 0 missing
+  provenance: 13 unsafe, 1 void (declared), 46 possibly stale, 55 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)
@@ -35,7 +35,7 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-08-08 06:23
 ```
 
-_stamped 2026-08-08 19:04_
+_stamped 2026-08-08 19:53_
 
 <!-- /GENERATED -->
 

@@ -825,8 +825,13 @@ const SAY = (d, boards) => {
  *                       attributable to the subject at all. NOT a finding. NOT a pass. */
 function controlIsQuiet(e) {
   if (e.kind === 'ability' && e.controlQuiet === false)
+    /* THE SPECIES NAMED HERE IS THE CARRIER'S, NOT SLOT 0'S. A staging that puts the carrier on the
+     * BENCH — the entry-aids-ally arm — has somebody else in B[0], and this sentence blamed that body
+     * for having no quiet alternative. `carrierSpecies` is written by `stageAbility`; the old
+     * fall-back is kept for the scenarios that predate it. */
     return { quiet: false, why: 'the CONTROL is another LIVE ability — ' + (e.scenario.controlAbility
-        || 'unnamed') + ' — because ' + e.scenario.B[0].species + ' has no quiet alternative. The '
+        || 'unnamed') + ' — because ' + (e.scenario.carrierSpecies || e.scenario.B[0].species)
+      + ' has no quiet alternative. The '
       + 'measured delta is (subject MINUS that ability) and cannot say which of the two moved the '
       + 'board. MEASURED on this instrument\'s own artifact: Sand Rush and Fluffy control each other '
       + 'and reported THE SAME TWO NUMBERS SWAPPED, and the 32-HP gap is Fluffy.' };
@@ -1280,6 +1285,263 @@ function neutralHit(speciesId, notId) {
     if (!mv || (notId && idOf(mv.id) === idOf(notId))) continue;
     if (dex.getImmunity(t, sp.types) === false || dex.getEffectiveness(t, sp.types) !== 0) continue;
     return mv;
+  }
+  return null;
+}
+
+/* =================================================================================================
+ *  THE ABILITY STAGE'S OWN VOCABULARY — derived, printed by `--rules`, believed afterwards
+ *
+ * WHY THIS BLOCK EXISTS, MEASURED RATHER THAN ASSERTED. On 2026-08-08 the abilities stage had six
+ * rules and three of them were REFUSALS, so 124 of the 316 legal abilities — 72,609 uses — fell
+ * through to `ability/generic`, which stages a plain attack. Showdown's own board came out identical
+ * with and without every one of them and the roster honestly reported COULD-NOT-STAGE / THE STAGING
+ * IS INERT. That verdict reads as "nothing to test" and the truth is THE CONDITION WAS NEVER CREATED:
+ * Blaze needs the user under a third of its HP, Defiant needs a stat drop, Chlorophyll needs sun,
+ * Prankster needs a status move on a turn where the order decides something, Lightning Rod needs an
+ * Electric move aimed at its ALLY. None of those arises in a plain attack.
+ *
+ * THE MEASURED EXAMPLE THAT SETS THE STANDARD FOR THE WHOLE BLOCK IS PURE POWER. It doubles ATTACK,
+ * its carrier is Medicham (Fighting/Psychic), the generic staging picks the carrier's STAB click by
+ * type — Fighting is IMMUNE against the Dragon/Ghost aggressor, so it fell through to PSYCHIC, which
+ * is SPECIAL. A doubled Attack stat with a special click on the board is exactly `docs/LESSONS.md`
+ * §5: two arms, one number, nothing staged. So a rule here does not merely create a condition; it has
+ * to create a condition THIS ABILITY'S OWN SHAPE can move a board through, and the shape is read off
+ * the ability's upstream data rather than off its name.
+ *
+ * WHAT COUNTS AS UPSTREAM DATA HERE. The move stage reads `target`, `category`, `basePower`; an
+ * ability has almost none of that, so these rules read (a) the HANDLER NAMES, which are Showdown's
+ * own registration surface, and (b) THE SHAPES INSIDE THE HANDLERS — `move.type === 'Electric'`,
+ * `pokemon.effectiveWeather()`, `move.flags['sound']` — taken from the handler's source text. That is
+ * still the ability declaring what it reacts to. It is NOT `data/tags.json`, which is ours and
+ * derived, and it is NOT `shortDesc` except where a rule says so on its face.
+ * ================================================================================================= */
+
+/* the source text of every handler an ability registers, as one string to match shapes in */
+function handlerSrc(a, keys) {
+  return (keys || Object.keys(a)).filter(k => /^on/.test(k) && typeof a[k] === 'function')
+    .map(k => String(a[k])).join('\n');
+}
+const hasHandler = (a, ...names) => names.some(n => typeof a[n] === 'function');
+/* THE TYPE AN ABILITY NAMES INSIDE ITS OWN HANDLERS — `move.type === 'Electric'` and the two other
+ * spellings Showdown uses for the same test. Returns every distinct type it mentions, because a rule
+ * that silently took the first would stage Dry Skin's Water arm and miss its Fire one. */
+function typesNamed(a, keys) {
+  const src = handlerSrc(a, keys), out = new Set();
+  for (const m of src.matchAll(/move\.type\s*===?\s*['\"]([A-Z][a-z]+)['\"]/g)) out.add(m[1]);
+  for (const m of src.matchAll(/type\s*===?\s*['\"]([A-Z][a-z]+)['\"]/g)) out.add(m[1]);
+  return [...out].filter(t => DELIVERY[t]);
+}
+/* THE MOVE FLAG AN ABILITY NAMES — `move.flags['sound']`, `move.flags['bullet']`. Same argument. */
+function flagsNamed(a, keys) {
+  const src = handlerSrc(a, keys), out = new Set();
+  for (const m of src.matchAll(/move\.flags\s*\[\s*['\"](\w+)['\"]\s*\]/g)) out.add(m[1]);
+  return [...out];
+}
+/* THE WEATHER AN ABILITY NAMES, normalised to the ids Showdown's own `setWeather` uses. Snow is
+ * `snowscape` in gen 9 and `hail` in the older handlers, and BOTH appear in live ability source. */
+const WEATHER_IDS = ['sunnyday', 'raindance', 'sandstorm', 'snowscape', 'hail',
+                     'desolateland', 'primordialsea', 'deltastream'];
+function weatherNamed(a, keys) {
+  const src = handlerSrc(a, keys), out = new Set();
+  for (const m of src.matchAll(/['\"](\w+)['\"]/g)) if (WEATHER_IDS.includes(m[1])) out.add(m[1]);
+  return [...out];
+}
+
+/* WHICH ABILITY SUMMONS WHICH WEATHER, read off that ability's OWN `onStart` rather than from a table
+ * of four names. All four members score FIRED-AND-BOARDS-MATCH under the existing `ability/entry`
+ * rule, which is what makes them usable as a fixture: an effect BOTH engines demonstrably have,
+ * present identically in the subject and the control arm, cancels out of the delta exactly. */
+const WEATHER_SETTER = {};
+for (const a of dex.abilities.all()) {
+  if (!a.exists || a.isNonstandard || typeof a.onStart !== 'function') continue;
+  const m = /setWeather\(['\"](\w+)['\"]\)/.exec(String(a.onStart));
+  if (!m) continue;
+  const sp = (CARRIERS[a.id] || []).filter(s => !s.battleOnly && !s.isNonstandard
+    && buildableSpecies(s.id) && altAbility(s, a.id))
+    .sort((x, y) => (y.baseStats.hp + y.baseStats.def + y.baseStats.spd)
+                  - (x.baseStats.hp + x.baseStats.def + x.baseStats.spd))[0];
+  if (sp && !WEATHER_SETTER[m[1]]) WEATHER_SETTER[m[1]] = { ability: a.name, species: sp.id };
+}
+/* `snowscape` and `hail` are the SAME sky. An ability written against one must accept a setter that
+ * spells it the other way, or Ice Body and Slush Rush refuse for a vocabulary reason. */
+const SAME_SKY = { hail: 'snowscape', snowscape: 'hail' };
+function setterFor(w) { return WEATHER_SETTER[w] || WEATHER_SETTER[SAME_SKY[w]] || null; }
+
+/* THE STAT-LOWERING CLICK, derived: 100 accuracy so the pin lands it, aimed at ONE body so the rule
+ * chooses which, no status and no volatile riding along, and the user neither switches nor heals nor
+ * faints. Ranked by HOW MANY DISTINCT STATS IT LOWERS, because Hyper Cutter only sees an Attack drop
+ * and Big Pecks only sees a Defense one — a one-stat click would retire half the family for a reason
+ * about this file. */
+/* AND THE SET IS A GREEDY COVER OVER STATS, NOT A TOP-N BY COUNT, WHICH IS A CORRECTION MEASURED ON
+ * THIS RULE'S FIRST RUN. Ranking by "how many stats does this one lower" picked Noble Roar and
+ * Tearful Look — both Attack + Special Attack — so the two clicks covered the same two stats twice.
+ * Big Pecks (Defense), Keen Eye (accuracy) and Illuminate (accuracy) all came back INERT, and KEEN
+ * EYE HAD BEEN SCORING FIRED-AND-BOARDS-MATCH under the generic staging: a new rule made a proven
+ * ability unprovable. The cover is greedy — each further move is the one adding the most stats NOT
+ * already covered — and the stats it reaches are printed by `--rules`. */
+const DROP_POOL = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.category === 'Status'
+    && m.boosts && Object.values(m.boosts).some(v => v < 0)
+    && (m.accuracy === true || m.accuracy === 100)
+    && (m.target === 'normal' || m.target === 'any')
+    && !m.status && !m.volatileStatus && !m.selfSwitch && !m.self && !m.heal && !m.selfdestruct
+    && m.priority === 0);
+const DROP_SET = (() => {
+  const out = [], have = new Set();
+  /* SIX, NOT FOUR, AND ACCURACY IS WHY. A four-move cover reached atk / spa / spd / spe / def and
+   * stopped — so Keen Eye and Illuminate, whose whole content is refusing an ACCURACY drop, had
+   * nothing to refuse. KEEN EYE HAD BEEN SCORING FIRED-AND-BOARDS-MATCH before this rule existed;
+   * a new rule that makes a proven ability unprovable is a regression however good its reasoning is,
+   * and this is the second time the cover has been widened for exactly that reason. Six clicks is two
+   * slots over three turns, which is the whole script. */
+  while (out.length < 6) {
+    let best = null, gain = 0;
+    for (const m of DROP_POOL) {
+      if (out.some(x => x.id === m.id)) continue;
+      const n = Object.keys(m.boosts).filter(k => m.boosts[k] < 0 && !have.has(k)).length;
+      if (n > gain || (n === gain && n > 0 && best && m.basePower > best.basePower)) { gain = n; best = m; }
+    }
+    if (!best) break;
+    out.push(best);
+    for (const k of Object.keys(best.boosts)) if (best.boosts[k] < 0) have.add(k);
+  }
+  return { moves: out, stats: [...have] };
+})();
+const DROP_MOVE = DROP_SET.moves[0] || null;
+const DROP_MOVE2 = DROP_SET.moves[1] || null;
+
+/* A DAMAGING MOVE WITH POSITIVE PRIORITY, for the family whose whole content is refusing one. Every
+ * `deliveryOf` disqualifier still applies except the priority test itself — Sucker Punch is excluded
+ * by `onTry` (it fails unless the target is attacking) through that same filter. */
+const PRIORITY_HIT = dex.moves.all().filter(m => m.exists && !m.isNonstandard
+    && m.priority > 0 && m.category !== 'Status' && m.basePower > 0
+    && (m.accuracy === true || m.accuracy === 100) && (m.target === 'normal' || m.target === 'any')
+    && !(m.critRatio > 1) && !m.willCrit && !m.drain && !m.recoil && !m.self && !m.multihit
+    && !m.status && !m.volatileStatus && !m.boosts && !m.selfSwitch
+    && !(m.secondaries || []).length
+    && !Object.keys(m).some(k => /^on(Try|Hit|Prepare|Modify|Effectiveness|Base|After|Use|Damage)/.test(k)
+        && typeof m[k] === 'function'))
+  .sort((a, b) => b.basePower - a.basePower)[0] || null;
+
+/* THE CONFUSING CLICK and THE TAUNT, both derived and both compared leaves: `board_state.js` holds
+ * `vol.confusion` and `vol.taunt` as numbers in both engines. */
+const TAUNT_MOVE = dex.moves.all().find(m => m.exists && !m.isNonstandard
+  && m.volatileStatus === 'taunt' && (m.accuracy === true || m.accuracy === 100)
+  && (m.target === 'normal' || m.target === 'any')) || null;
+
+/* ---- A CARRIER CHOSEN FOR THIS RULE, NOT FOR THE STAGE ------------------------------------------
+ *
+ * `carrierFor` ranks quiet-control-first then by bulk and is right for the generic staging. These
+ * rules need three more things from a carrier and each was a real refusal before it was a filter:
+ *
+ *   BUILDABLE   `buildMon` returns null for any species with no MC.mons row, and `buildPair` then
+ *               hands back null for the WHOLE SIDE — the entry reads COULD-NOT-STAGE for a reason
+ *               about the damage table rather than about the ability.
+ *   ALTERNATE   the control has to be another ability THAT SAME SPECIES really has, or `buildPair`
+ *               silently falls back to slot 0 and the control arm is the subject arm.
+ *   A PREDICATE the rule's own condition. A pinch rule needs a body a derived hit can take to a
+ *               third of its HP without killing; a speed rule needs a body whose doubled Speed can
+ *               overtake something. Ranking by bulk and hoping is how `item/hp-floor` first measured
+ *               nothing at all.
+ *
+ * QUIET CONTROL IS PREFERRED AND ITS ABSENCE IS CARRIED, never hidden: `stageAbility` writes
+ * `controlQuiet` onto the scenario and `controlIsQuiet` turns a non-quiet control into the
+ * CONTROL-NOT-QUIET verdict rather than an accusation. */
+function abilityCarrier(ab, pred) {
+  const list = (CARRIERS[ab.id] || []).filter(s => !s.battleOnly && !s.isNonstandard
+    && !s.forme.endsWith('Mega') && buildableSpecies(s.id) && altAbility(s, ab.id));
+  const ok = list.filter(s => !pred || pred(s));
+  if (!ok.length) return null;
+  const quiet = s => (QUIET_SET.has(idOf(altAbility(s, ab.id))) ? 1 : 0);
+  const bulk = s => s.baseStats.hp + s.baseStats.def + s.baseStats.spd;
+  ok.sort((a, b) => (quiet(b) - quiet(a)) || (bulk(b) - bulk(a)));
+  const sp = ok[0];
+  return { tier: 'ALTERNATE', species: sp.id, sp, control: altAbility(sp, ab.id),
+           quiet: !!quiet(sp), pool: list.length };
+}
+/* the sentence a rule prints when no carrier survives its predicate — it names the pool it searched */
+function noCarrierWhy(ab, what) {
+  const all = (CARRIERS[ab.id] || []).map(s => s.id);
+  const usable = (CARRIERS[ab.id] || []).filter(s => !s.battleOnly && !s.isNonstandard
+    && !s.forme.endsWith('Mega') && buildableSpecies(s.id) && altAbility(s, ab.id)).map(s => s.id);
+  return 'no carrier this rule can use exists. Every species with it: ' + (all.join(', ') || 'none')
+    + '. Of those, ' + (usable.join(', ') || 'NONE') + ' are legal, buildable and have a second '
+    + 'ability to control with — and ' + (usable.length ? 'none of them ' + what
+        : 'the shortfall is already there, before this rule\'s own condition (' + what + ')') + '.';
+}
+
+/* ONE BUILDER FOR EVERY RULE IN THIS BLOCK. It owns the bookkeeping `controlOf` and `controlIsQuiet`
+ * read — `abilityId`, `controlAbility`, `controlKind`, `controlQuiet` — so a new rule supplies BODIES
+ * and a SCRIPT and cannot forget the half that makes the control arm a control. The carrier is always
+ * side B slot 0, matching `abilityScenario`, because the ignored-leaf bookkeeping is keyed on it. */
+function stageAbility(e, C, o) {
+  const sp = dex.species.get(C.species);
+  const carrier = mon(sp.id, o.item || '', dex.abilities.get(e.id).name, (o.moves || []).slice());
+  /* THE CARRIER CAN START ON THE BENCH, which is the only way to ask an ENTRY question about a board
+   * that already has something on it. `subject` stays 'B0' exactly as `abilityScenario`'s residual arm
+   * leaves it: for an ability the control arm swaps the ability on EVERY body of the subject's side,
+   * so the index only decides the ignored-leaf bookkeeping, which is item-only. */
+  const sc = o.onBench
+    ? scaffold({ hpA: o.hpA || 1, hpB: o.hpB || 1, subject: 'B0',
+        a0: o.a0, a1: o.a1, a2: o.a2,
+        b0: { ...o.benchLead, moves: [INERT] }, b1: { ...o.benchAlly, moves: [INERT] }, b2: carrier,
+        script: o.script })
+    : scaffold({ hpA: o.hpA || 1, hpB: o.hpB || 1, subject: 'B0',
+        a0: o.a0, a1: o.a1, a2: o.a2, b0: carrier, b1: o.b1, b2: o.b2, script: o.script });
+  sc.controlAbility = C.control;
+  sc.controlQuiet = QUIET_SET.has(idOf(C.control));
+  sc.controlKind = 'ability';
+  sc.abilityId = e.id;
+  sc.carrierSpecies = sp.id;
+  return { note: o.note + '   [carrier ' + sp.name + ', control = ' + C.control
+      + (sc.controlQuiet ? '' : ' — NOT A QUIET ABILITY, so any accusing verdict is downgraded to '
+          + 'CONTROL-NOT-QUIET') + ']',
+    arm: o.arm || null, scenario: sc, tier: 'ALTERNATE', controlQuiet: sc.controlQuiet };
+}
+
+/* A DERIVED HIT THAT LANDS A BODY IN A NAMED HP BAND, thrown by a named attacker. The pinch family is
+ * unstageable without it: "chip it a bit" leaves the carrier above the third and the rule measures
+ * nothing, which is how `item/hp-floor` and `move/protect-family` both first came back inert. The
+ * damage step is Showdown's own at the MAXIMUM roll, which is the roll the primary pin selects. */
+function hitInBand(attSp, defSp, lo, hi) {
+  const hp = flatL50(defSp.baseStats).hp;
+  let best = null;
+  for (const t of Object.keys(DELIVERY)) for (const mv of [DELIVERY[t].physical, DELIVERY[t].special]) {
+    if (!mv) continue;
+    const d = maxRoll(attSp, mv, defSp);
+    if (d < hp * lo || d > hp * hi) continue;
+    if (!best || d > best.d) best = { mv, d, hp };
+  }
+  return best;
+}
+
+/* A FOE WHOSE SPEED SITS STRICTLY BETWEEN THE CARRIER'S AND THE CARRIER'S MULTIPLIED SPEED, and whom
+ * the carrier can kill outright. `speedFlipPair` picks BOTH bodies; here the holder is fixed by the
+ * ability, so only the foe is free.
+ *
+ * ONE LETHAL DIRECTION, NOT TWO, AND THE FIRST VERSION ASKED FOR TWO. Requiring a MUTUAL knockout
+ * retired Sand Rush, Swift Swim and Slush Rush — three abilities the engine is KNOWN to have right —
+ * for a reason entirely about this file: Excadrill, Basculegion and Beartic are bulky enough that
+ * nothing in the format one-shots them back. The order is just as visible with one KO, because the
+ * foe's click is a STAT DROP: if the carrier moves first the foe is dead before it acts and the drop
+ * never lands, and if it does not the drop is on the board. That reads on `boosts`, `fainted` and
+ * `species` and never on a damage number.
+ *
+ * A MIRROR IS THE WRONG FIXTURE for the same reason it is in `speedFlipPair`: the driver's primary
+ * arm is the one in which the two engines disagree about every speed tie, so the pair is strictly
+ * ordered both before and after the multiplier. */
+function speedFlipFoe(holderSp, mult) {
+  if (!DROP_MOVE) return null;
+  const spd = s => flatL50(s.baseStats).sp;
+  const h = spd(holderSp), after = Math.floor(h * mult);
+  for (const F of CANDIDATES) {
+    if (F.id === holderSp.id || !buildableSpecies(F.id) || !carrierAbility(F)) continue;
+    const f = spd(F);
+    if (!(mult > 1 ? (h < f && f < after) : (after < f && f < h))) continue;
+    const kHF = lethalMove(holderSp, F, 1.2);
+    if (kHF) return { foe: F, holderMove: kHF.mv, foeMove: DROP_MOVE,
+                      ability: carrierAbility(F) || '',
+                      speeds: h + ' -> ' + after + ' against ' + f };
   }
   return null;
 }
@@ -2165,6 +2427,1022 @@ const RULES = [
     return cannot('its effect is a ' + m[1] + '% chance, and the driver\'s pin makes every sub-100% '
       + 'roll fail in both engines. Nothing staged here could tell a wired mechanic from an absent '
       + 'one.'); } },
+
+/* ---- THE SHAPE RULES FOR THE INERT 124 (ROADMAP #98) --------------------------------------------
+ *
+ * ALL OF THESE SIT ABOVE `ability/entry`, `ability/residual` AND `ability/generic` DELIBERATELY. The
+ * first rule whose `match` returns owns the entity, and the three below are broad: `entry` takes
+ * anything with an `onStart`, `generic` takes everything left. Hospitality has an `onStart` and needs
+ * a CHIPPED ALLY, which the entry staging cannot supply; Chlorophyll has none of the three shapes and
+ * fell to `generic`, which never raises weather. A narrow rule that sits under a broad one is not a
+ * rule.
+ *
+ * EACH ONE DECLARES WHAT IT READ OFF THE ABILITY ITSELF, and `--rules` prints the membership. */
+
+{ id: 'ability/pinch-offense', kind: 'ability',
+  reads: 'onModifyAtk / onModifySpA whose handler tests `attacker.hp <= attacker.maxhp / N` and names '
+       + 'a move type',
+  why: 'THE CONDITION IS THE MECHANIC AND A FULL-HP BODY DOES NOT HAVE IT. Blaze, Torrent, Overgrow '
+     + 'and Swarm multiply an offensive stat ONLY under a third of maximum HP, and the generic '
+     + 'staging leaves the carrier near full — so Showdown\'s own board came out identical with and '
+     + 'without all four. THE HIT THAT CROSSES THE LINE IS DERIVED, not hoped for: `hitInBand` picks '
+     + 'the delivery move whose maximum roll (the roll the pin selects) lands the carrier between '
+     + 'two thirds and 95% of its HP, which is below the gate and above death.\n'
+     + '     THE NEGATIVE IS BOUNDARY 1 AND IT IS ON THE SAME SCRIPT. The carrier throws the SAME '
+     + 'typed move on turn 1 at FULL HP, before the chip — that click must be worth exactly the same '
+     + 'in both arms — and again on turn 3 when it is under the gate, where it must not be. An engine '
+     + 'that applied the multiplier unconditionally parts on the first of those and an engine that '
+     + 'never applies it parts on the last.\n'
+     + '     AND THE CLICK IS OF THE TYPE THE ABILITY NAMES, which is the half Pure Power failed on: '
+     + 'the generic staging picks the carrier\'s STAB by type and fell through to a SPECIAL move for '
+     + 'an ability that doubles ATTACK. Here the type comes out of the handler.',
+  break: { why: 'the pinch multiplier is dropped — the ability is still on the body and still named, '
+              + 'and the HP gate is still crossed',
+    patch: [["const _db=TAGS.param('ability',attAb,'damageBoost');",
+             "const _db=null&&TAGS.param('ability',attAb,'damageBoost');"]] },
+  match(e) {
+    if (!hasHandler(e, 'onModifyAtk', 'onModifySpA')) return null;
+    const keys = ['onModifyAtk', 'onModifySpA'];
+    const g = /hp\s*<=\s*\w+\.maxhp\s*\/\s*(\d+)/.exec(handlerSrc(e, keys));
+    if (!g) return null;
+    const T = typesNamed(e, keys);
+    if (!T.length) return null;
+    const type = T[0], mv = hitOfType(type);
+    const atk = dex.species.get(CAST.ATTACKER().species);
+    if (!mv) return cannot('it multiplies ' + type + ' attacks under 1/' + g[1] + ' HP and no '
+      + '100-accuracy single-target ' + type + ' delivery move exists in this format');
+    if (dex.getImmunity(type, atk.types) === false)
+      return cannot('the aggressor ' + atk.name + ' is IMMUNE to ' + type + ', so the boosted click '
+        + 'would land on nothing and both arms would read 0 — the staging would be inert for a reason '
+        + 'about this fixture rather than about the ability');
+    let band = null;
+    const C = abilityCarrier(e, sp => (band = hitInBand(atk, sp, 1 - 1 / +g[1], 0.95)));
+    if (!C) return cannot(noCarrierWhy(e, 'can be taken between 1/' + g[1] + ' and death by one '
+      + 'derived delivery move thrown by ' + atk.name + ' — without that hit the HP gate is never '
+      + 'crossed and the entry would read INERT'));
+    band = hitInBand(atk, C.sp, 1 - 1 / +g[1], 0.95);
+    return stageAbility(e, C, { hpA: 8, hpB: 1, moves: [mv.id],
+      note: 'throws ' + mv.name + ' at FULL HP on turn 1 (the negative), is taken to '
+          + Math.round((1 - band.d / band.hp) * 100) + '% by ' + band.mv.name + ' on turn 2, and '
+          + 'throws it again under the 1/' + g[1] + ' gate on turn 3',
+      a0: mon(atk.id, '', CAST.ATTACKER().ability, [band.mv.id]),
+      script: [turn([IDLE, IDLE], [click(mv.id, 0), IDLE]),
+               turn([click(band.mv.id, 0), IDLE], [click(mv.id, 0), IDLE]),
+               turn([IDLE, IDLE], [click(mv.id, 0), IDLE])] });
+  } },
+
+{ id: 'ability/stat-drop-reaction', kind: 'ability',
+  reads: 'onTryBoost / onAfterEachBoost / onChangeBoost — the three hooks Showdown fires when '
+       + 'somebody else moves this body\'s stat stages',
+  why: 'A STAT DROP HAS TO HAPPEN AND THE GENERIC STAGING NEVER MAKES ONE. Thirteen abilities sit on '
+     + 'these three hooks — Defiant, Competitive, Clear Body, Hyper Cutter, Mirror Armor, Big Pecks, '
+     + 'White Smoke, Contrary and the four Intimidate-immunities — and every one of them read INERT '
+     + 'because nothing in a plain attack lowers a stat. TWO SEPARATE DROPS ARE STAGED, because the '
+     + 'family is stat-scoped: the two aggressor slots click the two most-lowering 100-accuracy '
+     + 'single-target drop moves in the format, so Hyper Cutter has an Attack drop and Big Pecks has '
+     + 'a Defense one rather than the family being retired for a reason about this file.\n'
+     + '     AND THE AGGRESSOR CARRIES INTIMIDATE, which is what makes Inner Focus, Oblivious, Own '
+     + 'Tempo and Scrappy expressible at all — their handlers check for that effect BY NAME. THIS IS '
+     + 'NOT THE CONTAMINATION THAT PRODUCED THE ANGER POINT AND JUSTIFIED FALSE FINDINGS. There, '
+     + 'Intimidate was the CONTROL ABILITY of the carrier, so removing it WAS the measurement. Here it '
+     + 'is on the OTHER SIDE and is present in BOTH ARMS identically, which is the same argument '
+     + '`carrierAbility` already rests on — and it is a fixture worth trusting because Intimidate '
+     + 'scores FIRED-AND-BOARDS-MATCH under `ability/entry`, so both engines demonstrably have it.\n'
+     + '     THE NEGATIVE IS THE AGGRESSOR\'S OWN STAT STAGES, on the same board: they must not move '
+     + 'unless the ability under test is Mirror Armor, whose whole content is moving them.',
+  break: { why: 'the boost-refusal path is removed, so an ability that should block a drop lets it '
+              + 'through',
+    patch: [["const p=TAGS.param('ability',ab,'preventsStatDrop');",
+             "const p=null&&TAGS.param('ability',ab,'preventsStatDrop');"]] },
+  match(e) {
+    if (!hasHandler(e, 'onTryBoost', 'onAfterEachBoost', 'onChangeBoost')) return null;
+    const keys = ['onTryBoost', 'onAfterEachBoost', 'onChangeBoost'];
+    const hsrc = handlerSrc(e, keys);
+    /* WHICH STAT THIS ONE ACTUALLY GUARDS, read off its own handler. Clear Body and Defiant loop over
+     * `for (i in boost)` and name nothing, so they see every drop; Hyper Cutter names `boost.atk`,
+     * Big Pecks `boost.def`, Keen Eye and Illuminate `boost.accuracy`. */
+    const guarded = [...new Set([...hsrc.matchAll(/boost\.(\w+)/g)].map(m => m[1]))];
+    /* AND IT DECLINES — it does not refuse — WHEN THE COVER CANNOT REACH THAT STAT, WHICH IS A
+     * CORRECTION MEASURED TWICE ON THIS RULE. Keen Eye and Illuminate guard ACCURACY, and every
+     * single-target accuracy drop in this format (Sand Attack, Smokescreen, Flash, Kinesis) is marked
+     * `isNonstandard: "Past"` — banned — while Sweet Scent lowers EVASION at every foe rather than
+     * accuracy at one. So the condition is uncreatable, and that is a property of the REGULATION.
+     *
+     * THE FIRST VERSION RETURNED A WRITTEN REFUSAL HERE AND THAT WAS WORSE THAN NOTHING. This rule
+     * owns the entity the moment it returns anything, and Keen Eye's OTHER half — ignoring the
+     * target's evasiveness, through `onModifyMove` — is a different mechanic that this rule never
+     * looked at. Refusing on behalf of the boost hook would have retired a mechanic on evidence about
+     * a different one, and it measurably cost Keen Eye a FIRED-AND-BOARDS-MATCH it already held.
+     * Returning null hands the entity to the next rule that can say something about it. */
+    if (guarded.length && !guarded.some(g => DROP_SET.stats.includes(g))) return null;
+    /* AND THE BERRY HOOK IS NOT THIS HOOK. Ripen registers `onChangeBoost` for a BERRY\'s own boost,
+     * so no click a foe makes reaches it — matching it here would report an INERT staging as if the
+     * engine had been asked something. */
+    if (/berry/i.test(hsrc)) return cannot('its boost hook fires only for a BERRY\'s own boost '
+      + '(its handler names one), so nothing a foe clicks can reach it and this rule would stage a '
+      + 'condition the ability never sees');
+    if (!DROP_MOVE || !DROP_MOVE2) return cannot('this format has fewer than two 100-accuracy '
+      + 'single-target stat-lowering status moves with no status or volatile riding along, and the '
+      + 'family is stat-scoped — one drop would retire Hyper Cutter and Big Pecks for a reason about '
+      + 'this file');
+    const intim = dex.abilities.get('intimidate');
+    const IB = (CARRIERS[intim.id] || []).filter(s => !s.battleOnly && !s.isNonstandard
+      && buildableSpecies(s.id))
+      .sort((a, b) => (b.baseStats.hp + b.baseStats.def + b.baseStats.spd)
+                    - (a.baseStats.hp + a.baseStats.def + a.baseStats.spd))[0];
+    if (!IB) return cannot('no legal buildable body in this format carries Intimidate, and the four '
+      + 'Intimidate-immunities in this family check for that effect by name');
+    const C = abilityCarrier(e, sp => idOf(sp.id) !== idOf(IB.id));
+    if (!C) return cannot(noCarrierWhy(e, 'is a body other than the Intimidate aggressor itself'));
+    const b1 = quietBody({ not: [C.species, IB.id] });
+    if (!b1) return cannot(noBodyWhy({ not: [C.species, IB.id] }));
+    const a1 = quietBody({ not: [C.species, IB.id, b1.species] });
+    /* THE FOUR CLICKS OF THE COVER, TWO PER TURN ACROSS TWO TURNS. Anything the cover does not reach
+     * is stated on the entry rather than left to be discovered as an INERT verdict. */
+    const D = DROP_SET.moves;
+    return stageAbility(e, C, { hpA: 4, hpB: 4, moves: [INERT],
+      note: 'Intimidate fires at boundary 0, then ' + D.map(m => m.name).join(' + ')
+          + ' are clicked at the carrier over turns 1 and 2 — between them they lower '
+          + DROP_SET.stats.join(', ') + '; the aggressors\' own stages are the negative on the same '
+          + 'board',
+      a0: mon(IB.id, '', intim.name, D.filter((m, i) => i % 2 === 0).map(m => m.id)),
+      a1: mon((a1 || {}).species || CAST.ATTACKER2().species, '',
+        (a1 || {}).ability || CAST.ATTACKER2().ability, D.filter((m, i) => i % 2 === 1).map(m => m.id)),
+      b1: { ...b1, moves: [INERT] },
+      script: [0, 1, 2].map(t => turn([D[2 * t] ? click(D[2 * t].id, 0) : IDLE,
+                                       D[2 * t + 1] ? click(D[2 * t + 1].id, 0) : IDLE],
+                                      [IDLE, IDLE])) });
+  } },
+
+{ id: 'ability/redirects-a-type', kind: 'ability',
+  reads: 'onAnyRedirectTarget / onFoeRedirectTarget, with the drawn type read off the same ability\'s '
+       + 'onTryHit',
+  why: 'REDIRECTION IS INVISIBLE UNLESS THE MOVE WAS AIMED SOMEWHERE ELSE. The generic staging throws '
+     + 'everything AT the carrier, where a draw changes nothing, so Lightning Rod read INERT on 2,560 '
+     + 'uses. Here the Electric click is aimed at the carrier\'s ALLY: with the ability the ally is '
+     + 'untouched and the carrier takes it (immune, +1 Special Attack), without it the ally loses HP. '
+     + 'That lands on the ALLY\'s hp and the CARRIER\'s boosts, both compared leaves.\n'
+     + '     THE NEGATIVE IS TURN 2, on which a NON-drawn neutral move is aimed at the same ally and '
+     + 'must land in both arms — an engine that redirected everything parts there.',
+  break: { why: 'the redirection is skipped, so the drawn move stays on its original target',
+    patch: [["const _rt=TAGS.param('ability',f.ability,'redirectsType');",
+             "const _rt=null&&TAGS.param('ability',f.ability,'redirectsType');"]] },
+  match(e) {
+    if (!hasHandler(e, 'onAnyRedirectTarget', 'onFoeRedirectTarget')) return null;
+    const T = typesNamed(e, ['onTryHit', 'onAnyRedirectTarget', 'onFoeRedirectTarget']);
+    if (!T.length) return cannot('it registers a redirection hook but names no move type inside its '
+      + 'own handlers, so this rule cannot derive WHICH moves it draws and would have to guess');
+    const type = T[0], mv = hitOfType(type);
+    if (!mv) return cannot('no 100-accuracy single-target ' + type + ' delivery move exists in this '
+      + 'format, and the pin makes anything below 100 miss');
+    const C = abilityCarrier(e);
+    if (!C) return cannot(noCarrierWhy(e, 'is legal, buildable and has a second ability'));
+    /* THE ALLY MUST BE HITTABLE BY THE DRAWN TYPE, or the "without it" arm reads 0 as well and the
+     * whole entry is inert for a reason about the fixture. */
+    const ally = quietBody({ not: [C.species], type });
+    if (!ally || dex.getImmunity(type, dex.species.get(ally.species).types) === false)
+      return cannot(noBodyWhy({ type, not: [C.species] }));
+    const neutral = neutralHit2(ally.species, [mv.id]);
+    if (!neutral) return cannot('no neutral delivery move of a type this ability does not draw exists '
+      + 'against ' + pretty(ally.species) + ', so the rule has no on-board negative');
+    return stageAbility(e, C, { hpA: 4, hpB: 6, moves: [INERT],
+      note: mv.name + ' is aimed at the ALLY ' + pretty(ally.species) + ' on turn 1 and must be drawn; '
+          + neutral.name + ' is aimed at the same ally on turn 2 and must NOT be',
+      a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability, [mv.id, neutral.id]),
+      b1: { ...ally, moves: [INERT] },
+      script: [turn([click(mv.id, 1), IDLE], [IDLE, IDLE]),
+               turn([click(neutral.id, 1), IDLE], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
+{ id: 'ability/absorbs-a-type', kind: 'ability',
+  reads: 'onTryHit / onAllyTryHitSide naming a move TYPE or a move FLAG inside the handler',
+  why: 'THE CARRIER HAS TO BE HIT BY THE RIGHT THING, AND A GENERIC TURN THROWS ONE NEUTRAL CLICK. '
+     + 'Flash Fire, Volt Absorb, Earth Eater, Motor Drive, Sap Sipper, Bulletproof and Soundproof all '
+     + 'read a type or a flag off the incoming move and all of them read INERT. The type comes from '
+     + '`move.type === "Electric"` in the ability\'s own handler and the flag from '
+     + '`move.flags["sound"]`; the delivery move is then derived to match.\n'
+     + '     THE CARRIER IS CHIPPED FIRST, because half this family HEALS and a heal on a full-HP '
+     + 'body is `docs/LESSONS.md` §5 exactly: 0 = 0 in both arms, proving nothing. THE NEGATIVE IS '
+     + 'TURN 3, a neutral click of a type the ability does NOT name, which must land in both arms — '
+     + 'an engine that made the body immune to everything parts there.',
+  break: { why: 'the type/flag immunity is dropped, so the absorbed hit lands as ordinary damage',
+    patch: [["const _imm=TAGS.param('ability',suppressedAbility(att,def),'typeImmunity');",
+             "const _imm=null&&TAGS.param('ability',suppressedAbility(att,def),'typeImmunity');"]] },
+  match(e) {
+    if (!hasHandler(e, 'onTryHit', 'onAllyTryHitSide', 'onTryHitPriority')) return null;
+    const keys = ['onTryHit', 'onAllyTryHitSide'];
+    const T = typesNamed(e, keys), F = flagsNamed(e, keys);
+    if (!T.length && !F.length) return null;
+    let mv = null, what = '';
+    if (T.length) { mv = hitOfType(T[0]); what = T[0] + '-type'; }
+    if (!mv && F.length) {
+      mv = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.flags && m.flags[F[0]]
+          && m.basePower > 0 && (m.accuracy === true || m.accuracy === 100)
+          && (m.target === 'normal' || m.target === 'any') && !m.multihit && !m.drain && !m.recoil
+          && !m.self && !m.status && !m.volatileStatus && !m.boosts && !(m.critRatio > 1)
+          && !m.basePowerCallback)
+        .sort((a, b) => b.basePower - a.basePower)[0] || null;
+      what = 'a `' + F[0] + '`-flagged';
+    }
+    /* THE STATUS FALLBACK, AND IT IS THE HALF THAT MAKES OVERCOAT AND MAGIC BOUNCE EXPRESSIBLE. Some
+     * flags have NO damaging carrier at 100 accuracy in this format — `powder` and `reflectable` are
+     * both status-only — and the first version refused both for that. `board_state.js` compares
+     * `status`, `status_counter` and `vol.taunt` as numbers in both engines, so a status click IS on
+     * the board and the absorb is readable through it. It is a second choice rather than a first,
+     * because a status carries no damage and the chip turn then does the whole job of taking the
+     * carrier off full HP. */
+    let statusClick = false;
+    if (!mv && F.length) {
+      mv = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.category === 'Status'
+          && m.flags && m.flags[F[0]] && (m.accuracy === true || m.accuracy === 100)
+          && (m.target === 'normal' || m.target === 'any')
+          && (m.status || m.volatileStatus === 'taunt' || (m.boosts
+              && Object.values(m.boosts).some(v => v < 0))))[0] || null;
+      if (mv) { statusClick = true; what = 'the `' + F[0] + '`-flagged status move'; }
+    }
+    if (!mv) return cannot('it refuses ' + (T[0] || F[0]) + ' moves and this format offers no '
+      + '100-accuracy single-target move of that shape whose effect is a leaf board_state.js '
+      + 'compares, so the pin would make the click miss or the click would land on nothing and both '
+      + 'arms would agree on nothing happening');
+    const type = mv.type;
+    /* A BODY THAT IS ALREADY IMMUNE TO THE STAGED CLICK READS THE SAME IN BOTH ARMS, and the three
+     * ways to be immune here are NOT the same table: the type chart, the POWDER rule (Grass types
+     * ignore every powder move, which `getImmunity` on the move's type does not know) and the STATUS
+     * immunity table (a Steel body cannot be poisoned). Each is asked of the dex. */
+    const C = abilityCarrier(e, sp => dex.getImmunity(type, sp.types) !== false
+      && !(mv.flags && mv.flags.powder && sp.types.includes('Grass'))
+      && !(mv.status && dex.getImmunity(mv.status === 'tox' ? 'psn' : mv.status, sp.types) === false)
+      && !!neutralHit2(sp.id, [mv.id]));
+    if (!C) return cannot(noCarrierWhy(e, 'is hittable by ' + mv.name + ' at all — a body that is '
+      + 'ALREADY immune to the staged click (by the type chart, by the powder rule, or by the status '
+      + 'immunity table) reads the same in BOTH arms and the ability cannot be distinguished from '
+      + 'the rule that was going to stop it anyway'));
+    const neutral = neutralHit2(C.species, [mv.id]);
+    return stageAbility(e, C, { hpA: 4, hpB: 6, moves: [INERT],
+      note: 'chipped by ' + neutral.name + ' on turn 1 so a heal has somewhere to land, hit by '
+          + what + ' ' + mv.name + ' on turn 2, and hit by ' + neutral.name + ' again on turn 3 as the '
+          + 'on-board negative',
+      a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability, [mv.id, neutral.id]),
+      script: [turn([click(neutral.id, 0), IDLE], [IDLE, IDLE]),
+               turn([click(mv.id, 0), IDLE], [IDLE, IDLE]),
+               turn([click(neutral.id, 0), IDLE], [IDLE, IDLE])] });
+  } },
+
+{ id: 'ability/type-conversion', kind: 'ability',
+  reads: 'onModifyType — the SOURCE type or flag it tests and the type it ASSIGNS, both from the '
+       + 'handler',
+  why: 'A CONVERTED TYPE IS ONLY ON THE BOARD IF THE TWO TYPES DIFFER ON THE CHART. `board_state.js` '
+     + 'does not compare a body\'s types at all, so the effect has to be read through DAMAGE — and '
+     + 'the generic staging throws the carrier\'s STAB at a body where Normal and Fairy are both '
+     + 'neutral, which is one number in both arms. THE DEFENDER IS DERIVED to make the difference '
+     + 'maximal: the body preferred is one the chart makes IMMUNE to the source type and not to the '
+     + 'assigned one, so the click is worth ZERO without the ability and real damage with it.\n'
+     + '     THE NEGATIVE IS TURN 2: a click of a type the ability does NOT convert, which must be '
+     + 'worth exactly the same in both arms.',
+  break: { why: 'the type rewrite is skipped, so the move keeps its printed type',
+    patch: [["const _cm=att&&TAGS.param('ability',att.ability,'convertsMoveType');",
+             "const _cm=null&&TAGS.param('ability',att.ability,'convertsMoveType');"]] },
+  match(e) {
+    if (typeof e.onModifyType !== 'function') return null;
+    const src = String(e.onModifyType);
+    const from = (/move\.type\s*===?\s*['"]([A-Z][a-z]+)['"]/.exec(src) || [])[1] || null;
+    const fromFlag = (/move\.flags\s*\[\s*['"](\w+)['"]\s*\]/.exec(src) || [])[1] || null;
+    const to = (/move\.type\s*=\s*['"]([A-Z][a-z]+)['"]/.exec(src) || [])[1] || null;
+    if (!to || (!from && !fromFlag)) return cannot('its onModifyType handler does not spell out both '
+      + 'the type it reads and the type it assigns in a shape this rule can read (from='
+      + (from || fromFlag || 'none') + ', to=' + (to || 'none') + '), so the staging would be a guess');
+    let mv = from ? hitOfType(from) : null;
+    if (!mv && fromFlag) mv = dex.moves.all().filter(m => m.exists && !m.isNonstandard
+        && m.flags && m.flags[fromFlag] && m.basePower > 0
+        && (m.accuracy === true || m.accuracy === 100) && (m.target === 'normal' || m.target === 'any')
+        && !m.multihit && !m.drain && !m.recoil && !m.self && !m.status && !m.volatileStatus
+        && !m.boosts && !(m.critRatio > 1) && !m.basePowerCallback)
+      .sort((a, b) => b.basePower - a.basePower)[0] || null;
+    if (!mv) return cannot('no 100-accuracy single-target delivery move it would convert ('
+      + (from || 'flag ' + fromFlag) + ') exists in this format');
+    const srcType = mv.type;
+    const C = abilityCarrier(e);
+    if (!C) return cannot(noCarrierWhy(e, 'is legal, buildable and has a second ability'));
+    /* THE DEFENDER, RANKED BY HOW MUCH THE CONVERSION IS WORTH ON IT. An immunity flipped to a hit is
+     * the largest signal the chart can produce and it lands on `hp` rather than on a rounding step. */
+    const cands = moveBodies(PRIMARY_ARM_ID).map(r => r.sp)
+      .filter(sp => idOf(sp.id) !== idOf(C.species) && dex.getImmunity(to, sp.types) !== false)
+      .map(sp => ({ sp, gain: (dex.getImmunity(srcType, sp.types) === false ? 9
+        : Math.pow(2, dex.getEffectiveness(to, sp.types)) - Math.pow(2, dex.getEffectiveness(srcType, sp.types))) }))
+      .filter(x => x.gain > 0).sort((a, b) => b.gain - a.gain);
+    if (!cands.length) return cannot('no quiet body in the move stage\'s pool takes ' + to
+      + ' differently from ' + srcType + ', so the conversion would be worth the same damage either '
+      + 'way and both arms would agree on a number that means nothing');
+    const def = cands[0].sp, defAb = moveBodies(PRIMARY_ARM_ID).find(r => r.sp.id === def.id).ability;
+    const other = neutralHit2(def.id, [mv.id, srcType]);
+    if (!other) return cannot('no second delivery move of an unconverted type exists against '
+      + pretty(def.id) + ', so the rule has no on-board negative');
+    return stageAbility(e, C, { hpA: 8, hpB: 4, moves: [mv.id, other.id],
+      note: mv.name + ' (' + srcType + ') is thrown at ' + def.name + ' (' + def.types.join('/')
+          + ') on turn 1 — the chart puts ' + srcType + ' at '
+          + (dex.getImmunity(srcType, def.types) === false ? 'IMMUNE' : Math.pow(2, dex.getEffectiveness(srcType, def.types)) + 'x')
+          + ' there and ' + to + ' at ' + Math.pow(2, dex.getEffectiveness(to, def.types))
+          + 'x; ' + other.name + ' on turn 2 is the unconverted negative',
+      a0: mon(def.id, '', defAb, [INERT]),
+      script: [turn([IDLE, IDLE], [click(mv.id, 0), IDLE]),
+               turn([IDLE, IDLE], [click(other.id, 0), IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
+{ id: 'ability/no-recoil', kind: 'ability',
+  reads: 'onDamage whose handler names `recoil`',
+  why: 'THE CARRIER HAS TO THROW A RECOIL MOVE AND THE DELIVERY TABLE REFUSES EVERY ONE OF THEM. '
+     + '`deliveryOf` excludes `m.recoil` on purpose — a vehicle that hurts its own user is the '
+     + 'experiment rather than the vehicle — so Rock Head (1,156 uses) could not be reached from any '
+     + 'staging in this file. Here the recoil move is the POINT and is searched for directly.\n'
+     + '     THE NEGATIVE IS TURN 2, a non-recoil click of the same category: an engine that had '
+     + 'simply stopped charging self-damage parts there, and one that never charged it at all is '
+     + 'caught by the fact that Showdown\'s own board moves when the ability is added.',
+  break: { why: 'the recoil exemption is dropped, so the holder pays the recoil anyway',
+    patch: [["const _nr=TAGS.param('ability',m.ability,'noRecoil');",
+             "const _nr=null&&TAGS.param('ability',m.ability,'noRecoil');"]] },
+  match(e) {
+    if (typeof e.onDamage !== 'function') return null;
+    if (!/recoil/i.test(String(e.onDamage))) return null;
+    const rec = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.recoil
+        && m.basePower > 0 && (m.accuracy === true || m.accuracy === 100)
+        && (m.target === 'normal' || m.target === 'any') && !m.multihit && !m.flags.charge
+        && !m.selfdestruct && !(m.critRatio > 1) && !m.basePowerCallback)
+      .sort((a, b) => b.basePower - a.basePower)[0];
+    if (!rec) return cannot('this format offers no 100-accuracy single-target recoil move, so the '
+      + 'self-damage this ability refuses cannot be created');
+    const C = abilityCarrier(e);
+    if (!C) return cannot(noCarrierWhy(e, 'is legal, buildable and has a second ability'));
+    const def = moveBodies(PRIMARY_ARM_ID).map(r => r.sp).find(sp => idOf(sp.id) !== idOf(C.species)
+      && dex.getImmunity(rec.type, sp.types) !== false
+      && dex.getEffectiveness(rec.type, sp.types) === 0);
+    if (!def) return cannot(noBodyWhy({ neutralTo: rec.type, not: [C.species] }));
+    const defAb = moveBodies(PRIMARY_ARM_ID).find(r => r.sp.id === def.id).ability;
+    const plain = dex.moves.all().find(m => deliveryOf(m) && m.category === rec.category
+      && dex.getEffectiveness(m.type, def.types) === 0 && dex.getImmunity(m.type, def.types) !== false);
+    return stageAbility(e, C, { hpA: 8, hpB: 4, moves: [rec.id].concat(plain ? [plain.id] : []),
+      note: 'the carrier throws ' + rec.name + ' (recoil ' + JSON.stringify(rec.recoil) + ') at '
+          + def.name + ' on turn 1 and must take NO self-damage'
+          + (plain ? '; ' + plain.name + ' on turn 2 is the non-recoil negative' : ''),
+      a0: mon(def.id, '', defAb, [INERT]),
+      script: [turn([IDLE, IDLE], [click(rec.id, 0), IDLE]),
+               turn([IDLE, IDLE], [plain ? click(plain.id, 0) : IDLE, IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
+{ id: 'ability/survives-from-full', kind: 'ability',
+  reads: 'onDamage / onTryHit whose handler names `maxhp` and returns a floor of 1',
+  why: 'AN HP FLOOR HAS NOTHING TO DO UNLESS THE BLOW WAS FATAL, which is the same lesson '
+     + '`item/hp-floor` was rewritten for. The generic staging throws one survivable click, so Sturdy '
+     + '(289 uses) read INERT. Here the hit is DERIVED TO KILL — `lethalMove` at a 1.5x margin, so no '
+     + 'roll or rounding saves it — and the difference lands on `fainted` and `species` rather than on '
+     + 'a damage number.\n'
+     + '     THE NEGATIVE IS TURN 2, on which the same lethal click is thrown again at a body that is '
+     + 'no longer at full HP: the floor may not save it twice.',
+  break: { why: 'the survive-from-full floor is dropped',
+    patch: [["const _sv=TAGS.param('item',tg.item,'survivesFromFull')||TAGS.param('ability',tg.ability,'survivesFromFull');",
+             "const _sv=TAGS.param('item',tg.item,'survivesFromFull')||(null&&TAGS.param('ability',tg.ability,'survivesFromFull'));"]] },
+  match(e) {
+    if (!hasHandler(e, 'onDamage', 'onTryHit')) return null;
+    const src = handlerSrc(e, ['onDamage', 'onTryHit']);
+    if (!/maxhp/.test(src) || !/return\s+target\.hp\s*-\s*1|hp\s*-\s*1/.test(src)) return null;
+    const atk = dex.species.get(CAST.ATTACKER().species);
+    let kill = null;
+    const C = abilityCarrier(e, sp => !!(kill = lethalMove(atk, sp, 1.5)));
+    if (!C) return cannot(noCarrierWhy(e, 'can be killed outright from full HP by one derived '
+      + 'delivery move at a 1.5x margin — an HP floor is invisible unless the blow it stops was '
+      + 'fatal'));
+    kill = lethalMove(atk, C.sp, 1.5);
+    return stageAbility(e, C, { hpA: 4, hpB: 1, moves: [INERT],
+      note: kill.mv.name + ' kills ' + C.sp.name + ' from full with ' + Math.round(kill.d * 100
+          / flatL50(C.sp.baseStats).hp) + '% of its HP in one blow, twice — the floor must hold the '
+          + 'first and not the second',
+      a0: mon(atk.id, '', CAST.ATTACKER().ability, [kill.mv.id]),
+      script: [turn([click(kill.mv.id, 0), IDLE], [IDLE, IDLE]),
+               turn([click(kill.mv.id, 0), IDLE], [IDLE, IDLE])] });
+  } },
+
+{ id: 'ability/unconditional-stat-multiplier', kind: 'ability',
+  reads: 'onModifyAtk / onModifySpA / onModifyDef / onModifySpD with NO type and NO HP gate — and any '
+       + '`pokemon.status` test inside the handler',
+  why: 'THIS IS THE RULE PURE POWER IS THE HEADER EXAMPLE FOR. It doubles ATTACK, its only carrier is '
+     + 'Medicham (Fighting/Psychic), the generic staging picks the carrier\'s click by TYPE, Fighting '
+     + 'is immune against the Dragon/Ghost aggressor — so it fell through to PSYCHIC, which is '
+     + 'SPECIAL, and an ability that doubles Attack was measured through a Special Attack click. Two '
+     + 'arms, one number, nothing staged.\n'
+     + '     SO THE CATEGORY COMES FROM THE HANDLER NAME. `onModifyAtk` means the carrier throws a '
+     + 'PHYSICAL move; `onModifySpA` a special one; `onModifyDef` and `onModifySpD` mean the carrier '
+     + 'is HIT by that category instead. THE NEGATIVE IS THE OTHER CATEGORY on turn 2, which the '
+     + 'multiplier must not touch — and that is the half a stat-stage-shaped bug fails.\n'
+     + '     WHERE THE HANDLER TESTS `pokemon.status` (Guts, Quick Feet, Marvel Scale) a 100-accuracy '
+     + 'status is inflicted on turn 1 and the clicks come afterwards, so the gate is genuinely open.',
+  break: { why: 'the doubled attacking stat is dropped — the ability is still on the body and still '
+              + 'named, and the click is still inside its category',
+    patch: [["if((attAb==='hugepower'||attAb==='purepower')&&phys)ACH(2);",
+             "if(false&&(attAb==='hugepower'||attAb==='purepower')&&phys)ACH(2);"]] },
+  match(e) {
+    const keys = ['onModifyAtk', 'onModifySpA', 'onModifyDef', 'onModifySpD']
+      .filter(k => typeof e[k] === 'function');
+    if (!keys.length) return null;
+    const src = handlerSrc(e, keys);
+    if (typesNamed(e, keys).length) return null;                    // the scoped families sit above
+    if (/hp\s*<=\s*\w+\.maxhp/.test(src)) return null;              // the pinch family sits above
+    if (weatherNamed(e, keys).length) return null;                  // the weather family sits above
+    const needStatus = /\.status\b/.test(src);
+    const off = keys.includes('onModifyAtk') ? 'Physical'
+              : (keys.includes('onModifySpA') ? 'Special' : null);
+    const def = keys.includes('onModifyDef') ? 'Physical'
+              : (keys.includes('onModifySpD') ? 'Special' : null);
+    if (!off && !def) return null;
+    const cat = off || def;
+    const other = cat === 'Physical' ? 'Special' : 'Physical';
+    const pick = (c, types) => Object.keys(DELIVERY).map(t => DELIVERY[t][c === 'Physical' ? 'physical'
+      : 'special']).filter(Boolean).find(m => dex.getEffectiveness(m.type, types) === 0
+        && dex.getImmunity(m.type, types) !== false);
+    const st = needStatus ? STATUS_MOVE.par : null;
+    if (needStatus && !st) return cannot('its multiplier is gated on the holder being STATUSED and '
+      + 'this format offers no 100-accuracy single-target status move, so the gate cannot be opened');
+    if (off) {
+      const target = moveBodies(PRIMARY_ARM_ID).map(r => r.sp)
+        .find(sp => pick(cat, sp.types) && pick(other, sp.types));
+      if (!target) return cannot(noBodyWhy({}) + ' (it must be neutral to BOTH a physical and a '
+        + 'special click, or the two turns differ in the type chart as well as in the category)');
+      const tgAb = moveBodies(PRIMARY_ARM_ID).find(r => r.sp.id === target.id).ability;
+      const C = abilityCarrier(e, sp => idOf(sp.id) !== idOf(target.id)
+        && (!needStatus || dex.getImmunity(st.status === 'tox' ? 'psn' : st.status, sp.types) !== false));
+      if (!C) return cannot(noCarrierWhy(e, needStatus ? 'can carry the ' + st.status + ' this rule '
+        + 'inflicts to open the gate' : 'is a body other than the derived target'));
+      const A = pick(cat, target.types), B2 = pick(other, target.types);
+      return stageAbility(e, C, { hpA: 8, hpB: 4, moves: [A.id, B2.id],
+        note: (needStatus ? st.name + ' opens the gate on turn 1, then ' : '') + A.name + ' ('
+            + cat + ', which is what ' + keys[0] + ' multiplies) and ' + B2.name + ' (' + other
+            + ', the negative) are thrown at ' + target.name,
+        a0: mon(target.id, '', tgAb, needStatus ? [st.id] : [INERT]),
+        script: [turn([needStatus ? click(st.id, 0) : IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [click(A.id, 0), IDLE]),
+                 turn([IDLE, IDLE], [click(B2.id, 0), IDLE])] });
+    }
+    const atk = dex.species.get(CAST.ATTACKER().species);
+    const C = abilityCarrier(e, sp => !!pick(cat, sp.types) && !!pick(other, sp.types)
+      && (!needStatus || dex.getImmunity(st.status === 'tox' ? 'psn' : st.status, sp.types) !== false));
+    if (!C) return cannot(noCarrierWhy(e, 'is neutral to both a physical and a special derived click'));
+    const A = pick(cat, C.sp.types), B2 = pick(other, C.sp.types);
+    return stageAbility(e, C, { hpA: 4, hpB: 6, moves: [INERT],
+      note: (needStatus ? st.name + ' opens the gate on turn 1, then ' : '') + A.name + ' (' + cat
+          + ', which is what ' + keys[0] + ' multiplies against) and ' + B2.name + ' (' + other
+          + ', the negative) are thrown AT the carrier',
+      a0: mon(atk.id, '', CAST.ATTACKER().ability, [A.id, B2.id].concat(needStatus ? [st.id] : [])),
+      script: [turn([needStatus ? click(st.id, 0) : IDLE, IDLE], [IDLE, IDLE]),
+               turn([click(A.id, 0), IDLE], [IDLE, IDLE]),
+               turn([click(B2.id, 0), IDLE], [IDLE, IDLE])] });
+  } },
+
+{ id: 'ability/base-power-scoped', kind: 'ability',
+  reads: 'onBasePower — the move FLAG, the base-power threshold or the `move.recoil` test inside the '
+       + 'handler',
+  why: 'THE CLICK HAS TO BE INSIDE THE SCOPE AND THE GENERIC STAGING PICKS IT BY TYPE. Technician '
+     + 'reads a base power at or under 60, Tough Claws reads the contact flag, Sharpness reads '
+     + 'slicing, Iron Fist punch, Strong Jaw bite, Reckless the recoil field — and the generic '
+     + 'staging hands the carrier its STAB, which satisfies none of those on purpose. So the click is '
+     + 'DERIVED FROM THE SCOPE: the strongest 100-accuracy single-target move that is inside it.\n'
+     + '     THE NEGATIVE IS TURN 2 AND IT IS THE HALF THAT MAKES THIS WORTH RUNNING: a move of the '
+     + 'same category that is OUTSIDE the scope, thrown at the same body, which must be worth exactly '
+     + 'the same in both arms. An engine applying the multiplier to everything parts there and '
+     + 'nowhere else, and that is the defect this family actually has a history of.',
+  break: { why: 'the scoped base-power multiplier is dropped',
+    patch: [["const _bc=TAGS.param('ability',attAb,'boostsMoveClass');",
+             "const _bc=null&&TAGS.param('ability',attAb,'boostsMoveClass');"]] },
+  match(e) {
+    if (typeof e.onBasePower !== 'function') return null;
+    const src = String(e.onBasePower);
+    const F = flagsNamed(e, ['onBasePower']);
+    /* `basePower\w*` AND NOT `basePower`, MEASURED: Showdown's Technician reads
+     * `basePowerAfterMultiplier <= 60`, so an anchored `basePower <=` matched nothing and 680 uses
+     * fell through to the generic staging that could not express them. */
+    const bp = (/basePower\w*\s*<=\s*(\d+)/.exec(src) || [])[1];
+    const rec = /move\.recoil/.test(src);
+    if (!F.length && !bp && !rec) return null;
+    const inScope = m => (F.length ? !!(m.flags && m.flags[F[0]]) : true)
+      && (bp ? m.basePower <= +bp : true) && (rec ? !!m.recoil : true);
+    const usable = m => m.exists && !m.isNonstandard && m.basePower > 0 && m.category !== 'Status'
+      && (m.accuracy === true || m.accuracy === 100) && (m.target === 'normal' || m.target === 'any')
+      && !m.multihit && !m.drain && !m.self && !m.status && !m.volatileStatus && !m.boosts
+      && !(m.critRatio > 1) && !m.willCrit && !m.basePowerCallback && !m.ohko
+      && !(m.secondaries || []).some(s => !s.chance || s.chance >= 100);
+    const all = dex.moves.all().filter(usable);
+    const hit = all.filter(inScope).sort((a, b) => b.basePower - a.basePower)[0];
+    if (!hit) return cannot('its scope is ' + (F[0] || (bp ? 'base power <= ' + bp : 'recoil moves'))
+      + ' and this format offers no 100-accuracy single-target damaging move inside it, so the '
+      + 'condition cannot be created');
+    const scope = F[0] ? 'the `' + F[0] + '` flag' : (bp ? 'base power <= ' + bp : 'the recoil field');
+    const C = abilityCarrier(e, sp => dex.getImmunity(hit.type, sp.types) !== false);
+    if (!C) return cannot(noCarrierWhy(e, 'is a legal buildable body at all'));
+    /* THE DEFENDER TAKES BOTH CLICKS AND MUST BE NEUTRAL TO BOTH, or the two turns differ in the type
+     * chart as well as in the scope and neither number means anything on its own. */
+    const cand = moveBodies(PRIMARY_ARM_ID).map(r => r.sp).filter(sp => idOf(sp.id) !== idOf(C.species)
+      && dex.getEffectiveness(hit.type, sp.types) === 0 && dex.getImmunity(hit.type, sp.types) !== false);
+    let out = null, def = null;
+    for (const sp of cand) {
+      out = all.find(m => !inScope(m) && m.category === hit.category && m.id !== hit.id
+        && dex.getEffectiveness(m.type, sp.types) === 0 && dex.getImmunity(m.type, sp.types) !== false);
+      if (out) { def = sp; break; }
+    }
+    if (!def) return cannot('no quiet body is neutral to both an in-scope click and an out-of-scope '
+      + 'one of the same category, so the rule has no on-board negative and a green would only say '
+      + 'that SOMETHING changed');
+    const defAb = moveBodies(PRIMARY_ARM_ID).find(r => r.sp.id === def.id).ability;
+    return stageAbility(e, C, { hpA: 8, hpB: 4, moves: [hit.id, out.id],
+      note: hit.name + ' (INSIDE ' + scope + ') at ' + def.name + ' on turn 1 and ' + out.name
+          + ' (outside it, same category, also neutral) on turn 2 — the second must be worth the '
+          + 'same in both arms',
+      a0: mon(def.id, '', defAb, [INERT]),
+      script: [turn([IDLE, IDLE], [click(hit.id, 0), IDLE]),
+               turn([IDLE, IDLE], [click(out.id, 0), IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
+{ id: 'ability/damage-taken-scoped', kind: 'ability',
+  reads: 'onSourceModifyDamage / onSourceModifyAtk / onSourceModifySpA — the move TYPE it names, or a '
+       + '`typeMod > 0` test meaning "super effective"',
+  why: 'THE SAME ARGUMENT FROM THE DEFENDING SIDE. Solid Rock only acts on a SUPER-EFFECTIVE hit, '
+     + 'Thick Fat only on Fire and Ice, Heatproof only on Fire, Purifying Salt only on Ghost — and '
+     + 'the generic staging throws ONE NEUTRAL CLICK at the carrier, which is outside every one of '
+     + 'those scopes by construction. The scoped type comes out of the handler; where the handler '
+     + 'tests `typeMod > 0` instead, a type the chart makes super effective on that carrier is '
+     + 'derived.\n'
+     + '     THE NEGATIVE IS TURN 2, an unscoped neutral click at the same body, which must be worth '
+     + 'the same in both arms.',
+  break: { why: 'the scoped damage reduction is dropped',
+    patch: [["const _htd=TAGS.param('ability',defAb,'halvesTypeDamage');",
+             "const _htd=null&&TAGS.param('ability',defAb,'halvesTypeDamage');"]] },
+  match(e) {
+    if (!hasHandler(e, 'onSourceModifyDamage', 'onSourceModifyAtk', 'onSourceModifySpA')) return null;
+    const keys = ['onSourceModifyDamage', 'onSourceModifyAtk', 'onSourceModifySpA'];
+    const T = typesNamed(e, keys);
+    const se = /typeMod\s*>\s*0/.test(handlerSrc(e, keys));
+    if (!T.length && !se) return null;
+    let hitType = null, C = null;
+    if (T.length) {
+      hitType = T.find(t => hitOfType(t));
+      if (!hitType) return cannot('it scopes ' + T.join(' / ') + ' and no 100-accuracy single-target '
+        + 'delivery move of those types exists in this format');
+      C = abilityCarrier(e, sp => dex.getImmunity(hitType, sp.types) !== false
+        && !!neutralHit2(sp.id, [hitOfType(hitType).id]));
+    } else {
+      /* THE SUPER-EFFECTIVE ARM: the type is a property of the CARRIER's own chart row, so it is
+       * derived per candidate rather than once. */
+      let found = null;
+      C = abilityCarrier(e, sp => {
+        found = Object.keys(DELIVERY).find(t => hitOfType(t)
+          && dex.getEffectiveness(t, sp.types) > 0 && dex.getImmunity(t, sp.types) !== false);
+        return !!found && !!neutralHit2(sp.id, []);
+      });
+      if (C) hitType = Object.keys(DELIVERY).find(t => hitOfType(t)
+        && dex.getEffectiveness(t, C.sp.types) > 0 && dex.getImmunity(t, C.sp.types) !== false);
+    }
+    if (!C) return cannot(noCarrierWhy(e, 'can be hit by the type this ability scopes AND by a '
+      + 'neutral type beside it — without both there is no negative and a green says only that '
+      + 'something changed'));
+    const hit = hitOfType(hitType), other = neutralHit2(C.species, [hit.id]);
+    if (!other) return cannot('no neutral delivery move of a type outside this ability\'s scope '
+      + 'exists against ' + pretty(C.species));
+    return stageAbility(e, C, { hpA: 4, hpB: 6, moves: [INERT],
+      note: hit.name + ' (' + hitType + ', which the chart puts at '
+          + Math.pow(2, dex.getEffectiveness(hitType, C.sp.types)) + 'x on ' + C.sp.name
+          + ') on turn 1, and the unscoped neutral ' + other.name + ' on turn 2 as the negative',
+      a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability, [hit.id, other.id]),
+      script: [turn([click(hit.id, 0), IDLE], [IDLE, IDLE]),
+               turn([click(other.id, 0), IDLE], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
+{ id: 'ability/speed-on-item-loss', kind: 'ability',
+  reads: 'onAfterUseItem / onTakeItem',
+  why: 'TWO CONDITIONS AT ONCE AND THE GENERIC STAGING CREATES NEITHER: the carrier must LOSE AN ITEM '
+     + 'and the resulting Speed must decide something. Unburden (2,688 uses) read INERT because no '
+     + 'body in that staging held anything at all.\n'
+     + '     THE ITEM IS A DERIVED THRESHOLD BERRY and the carrier is chipped past its line on turn '
+     + '1, so the loss is a CONSUMPTION rather than a Knock Off — the arm the tag `speedOnItemLoss` '
+     + 'is actually written against. The order is then made visible exactly as the weather-speed rule '
+     + 'makes it visible: the foe\'s Speed sits strictly between the carrier\'s and its doubled '
+     + 'Speed, the carrier\'s click kills outright, and the foe\'s click is a stat drop that only '
+     + 'lands if the carrier did NOT move first.\n'
+     + '     BOUNDARY 1 IS THE NEGATIVE, on the same script: the item is still held there and the '
+     + 'Speed must not have moved yet.',
+  break: { why: 'the speed multiplier on item loss is dropped — the item is still consumed',
+    patch: [["if(m._hadItem&&!m.item){const _ub=TAGS.param('ability',m.ability,'speedOnItemLoss');if(_ub&&_ub.speedMult)s*=_ub.speedMult;}",
+             "if(false&&m._hadItem&&!m.item){const _ub=TAGS.param('ability',m.ability,'speedOnItemLoss');if(_ub&&_ub.speedMult)s*=_ub.speedMult;}"]] },
+  match(e) {
+    if (!hasHandler(e, 'onAfterUseItem', 'onTakeItem')) return null;
+    /* AND STICKY HOLD IS NOT IN THIS FAMILY, WHICH IS THE OVER-MATCH THIS PROJECT HAS ALREADY MADE
+     * ONCE UNDER THIS EXACT NAME (`speedOnItemLoss` caught Sticky Hold — CLAUDE.md, by name). Sticky
+     * Hold registers `onTakeItem` to RETURN FALSE and stop the removal; Unburden registers it to
+     * `addVolatile("unburden")`. The discriminator is therefore the addVolatile call and not the
+     * handler name — printed by `--rules`, which is how this one was caught the second time. */
+    if (!/addVolatile\(/.test(handlerSrc(e, ['onAfterUseItem', 'onTakeItem']))) return null;
+    const mult = parseFloat((/chainModify\(([\d.]+)\)/.exec(handlerSrc(e)) || [])[1]) || 2;
+    const berry = dex.items.all().find(i => i.exists && !i.isNonstandard && i.isBerry && i.onUpdate
+      && /max HP or less/.test(i.shortDesc || '') && i.id === 'sitrusberry')
+      || dex.items.all().find(i => i.exists && !i.isNonstandard && i.isBerry && i.onUpdate
+        && /max HP or less/.test(i.shortDesc || ''));
+    if (!berry) return cannot('this format has no berry consumed at an HP threshold, so the item loss '
+      + 'this ability reacts to cannot be staged without a Knock Off — which is a different arm');
+    let flip = null, chip = null;
+    const C = abilityCarrier(e, sp => {
+      flip = speedFlipFoe(sp, mult);
+      chip = flip && hitInBand(flip.foe, sp, 0.5, 0.85);
+      return !!(flip && chip);
+    });
+    if (!C) return cannot(noCarrierWhy(e, 'has a foe whose Speed sits strictly between its own and '
+      + 'its x' + mult + ' Speed, whom it can kill outright, AND who can chip it past the berry\'s '
+      + 'half-HP line without killing it — all three are needed or the item never comes off or the '
+      + 'Speed never decides anything'));
+    flip = speedFlipFoe(C.sp, mult); chip = hitInBand(flip.foe, C.sp, 0.5, 0.85);
+    return stageAbility(e, C, { hpA: 4, hpB: 1, item: berry.id, moves: [flip.holderMove.id],
+      note: 'the carrier holds ' + berry.name + ' and is chipped to '
+          + Math.round((1 - chip.d / chip.hp) * 100) + '% by ' + chip.mv.name + ' on turn 1, which '
+          + 'EATS it; ' + flip.speeds + ', so on turn 2 the carrier\'s ' + flip.holderMove.name
+          + ' should land before ' + flip.foeMove.name,
+      a0: mon(flip.foe.id, '', flip.ability, [chip.mv.id, flip.foeMove.id]),
+      script: [turn([click(chip.mv.id, 0), IDLE], [IDLE, IDLE]),
+               turn([click(flip.foeMove.id, 0), IDLE], [click(flip.holderMove.id, 0), IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
+{ id: 'ability/weather-speed', kind: 'ability',
+  reads: 'onModifySpe whose handler names a weather id (`pokemon.effectiveWeather()` against '
+       + '"sunnyday", "snowscape", ...)',
+  why: 'THE SKY HAS TO BE UP AND A SPEED HAS TO DECIDE SOMETHING. Two conditions, and the generic '
+     + 'staging creates neither: it never raises weather, and it never puts two bodies in an order a '
+     + 'multiplier can flip. The sky is raised by the CARRIER\'S OWN PARTNER — a body holding the '
+     + 'ability whose `onStart` calls `setWeather` for the weather this one names, which is a fixture '
+     + 'worth trusting because all four setters score FIRED-AND-BOARDS-MATCH under `ability/entry` '
+     + 'and are present identically in both arms.\n'
+     + '     THE ORDER IS MADE VISIBLE THE WAY `item/speed-scaled` makes it visible: the foe is '
+     + 'derived so that its Speed sits STRICTLY between the carrier\'s and the carrier\'s multiplied '
+     + 'Speed, and the carrier can kill it outright while the FOE\'S OWN CLICK IS A STAT DROP — so '
+     + 'the multiplier decides whether that drop ever lands. That reads on `boosts`, `fainted` and '
+     + '`species`, never on a damage number. A MIRROR IS '
+     + 'THE WRONG FIXTURE and is excluded by construction: the driver\'s primary arm is the one in '
+     + 'which the two engines disagree about every speed tie, so the pair is strictly ordered before '
+     + 'and after.\n'
+     + '     THIS IS ALSO THIS BLOCK\'S POSITIVE CONTROL. Sand Rush, Swift Swim, Chlorophyll and '
+     + 'Slush Rush were verified BY HAND on 2026-08-08 (effSpeed reads `speedCond` and gives 100 -> '
+     + '200 in the right sky only). A rule family that cannot confirm a known-correct ability is not '
+     + 'measuring anything, so these four coming back FIRED-AND-BOARDS-MATCH is the evidence that the '
+     + 'rule works — and any accusation against one of them is the RULE being wrong.',
+  break: { why: 'the weather Speed multiplier is dropped, so the carrier never outruns anybody',
+    patch: [["const _scp=TAGS.param('ability',m.ability,'speedCond');",
+             "const _scp=null&&TAGS.param('ability',m.ability,'speedCond');"]] },
+  match(e) {
+    if (typeof e.onModifySpe !== 'function') return null;
+    const W = weatherNamed(e, ['onModifySpe']);
+    if (!W.length) return null;
+    const set = W.map(setterFor).find(Boolean);
+    if (!set) return cannot('it hastens its holder under ' + W.join(' / ') + ' and no legal buildable '
+      + 'body in this format carries an ability that SETS that weather, so the condition cannot be '
+      + 'created at all');
+    const mult = /chainModify\(2\)/.test(handlerSrc(e, ['onModifySpe'])) ? 2
+               : (parseFloat((/chainModify\(([\d.]+)\)/.exec(handlerSrc(e, ['onModifySpe'])) || [])[1]) || 2);
+    let flip = null;
+    const C = abilityCarrier(e, sp => idOf(sp.id) !== idOf(set.species)
+      && !!(flip = speedFlipFoe(sp, mult)));
+    if (!C) return cannot(noCarrierWhy(e, 'has a foe in this format whose Speed sits strictly between '
+      + 'its own and its x' + mult + ' Speed AND whom it can kill outright — without that pair the '
+      + 'multiplier changes no leaf of the board and the entry would read INERT'));
+    flip = speedFlipFoe(C.sp, mult);
+    return stageAbility(e, C, { hpA: 1, hpB: 1, moves: [flip.holderMove.id],
+      note: set.ability + ' on the partner raises ' + W[0] + ' at boundary 0; ' + flip.speeds
+          + ', the carrier\'s ' + flip.holderMove.name + ' kills outright and the foe\'s click is '
+          + flip.foeMove.name + ' — so the x' + mult + ' decides whether that drop ever lands',
+      a0: mon(flip.foe.id, '', flip.ability, [flip.foeMove.id]),
+      b1: mon(set.species, '', set.ability, [INERT]),
+      script: [turn([click(flip.foeMove.id, 0), IDLE], [click(flip.holderMove.id, 0), IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
+{ id: 'ability/weather-evasion', kind: 'ability',
+  reads: 'onModifyAccuracy whose handler names a weather id',
+  why: 'THE PIN IS WHAT MAKES THIS STAGEABLE AND IT IS THE SAME ARGUMENT AS BRIGHT POWDER. The '
+     + 'primary arm lands every 100-accuracy move and misses everything below it, IN BOTH ENGINES — '
+     + 'so a 1.25x evasion turns a guaranteed hit into a guaranteed MISS and the difference is on '
+     + '`hp`, not on a die. The sky comes from the carrier\'s partner exactly as in the speed rule.\n'
+     + '     THE NEGATIVE IS TURN 2: the same click aimed at the PARTNER, which has no evasion bonus '
+     + 'and must be hit in both arms — an engine that had simply stopped resolving the click parts '
+     + 'there rather than passing.',
+  break: { why: 'the evasion stage is ignored when accuracy is computed',
+    patch: [["const row=ACCMOD[kind+':'+key];", 'const row=null;']] },
+  match(e) {
+    if (typeof e.onModifyAccuracy !== 'function') return null;
+    const W = weatherNamed(e, ['onModifyAccuracy', 'onImmunity']);
+    if (!W.length) return null;
+    const set = W.map(setterFor).find(Boolean);
+    if (!set) return cannot('it raises evasiveness under ' + W.join(' / ') + ' and no legal buildable '
+      + 'body carries an ability that sets that weather');
+    const C = abilityCarrier(e, sp => idOf(sp.id) !== idOf(set.species) && !!neutralHit2(sp.id, []));
+    if (!C) return cannot(noCarrierWhy(e, 'is a body other than the weather setter that a neutral '
+      + 'delivery move can reach'));
+    const hit = neutralHit2(C.species, []);
+    return stageAbility(e, C, { hpA: 4, hpB: 4, moves: [INERT],
+      note: set.ability + ' on the partner raises ' + W[0] + '; ' + hit.name + ' is thrown at the '
+          + 'carrier on turn 1 and must MISS (100 accuracy x 1/1.25 = 80, and the primary pin misses '
+          + 'everything below 100), and at the PARTNER on turn 2, where it must land',
+      a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability, [hit.id]),
+      b1: mon(set.species, '', set.ability, [INERT]),
+      script: [turn([click(hit.id, 0), IDLE], [IDLE, IDLE]),
+               turn([click(hit.id, 1), IDLE], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
+{ id: 'ability/weather-residual', kind: 'ability',
+  reads: 'onWeather, with the weather read off the ability\'s own handlers',
+  why: 'A PER-TURN HEAL ON A FULL-HP BODY IS `docs/LESSONS.md` §5 — 0 = 0 in both arms — AND THERE '
+     + 'WAS NO WEATHER EITHER, so Rain Dish, Ice Body and Solar Power all read INERT twice over. The '
+     + 'sky comes from the partner and the carrier is CHIPPED on turn 1, so boundaries 2 and 3 each '
+     + 'carry one application and an off-by-one in the schedule parts on the first of them. The '
+     + 'carrier also attacks on those turns, which is what makes Solar Power\'s OTHER half — a 1.5x '
+     + 'Special Attack in sun — readable in the same script rather than needing a second rule.\n'
+     + '     THE NEGATIVE IS THE PARTNER, standing on the same board under the same sky with no such '
+     + 'ability: its HP must not move for this reason in either arm.',
+  break: { why: 'the residual weather effect is skipped',
+    patch: [["{const _be=TAGS.param('ability',m.ability,'boostsEachTurn');",
+             "{const _be=null&&TAGS.param('ability',m.ability,'boostsEachTurn');"]] },
+  match(e) {
+    if (typeof e.onWeather !== 'function') return null;
+    const W = weatherNamed(e, ['onWeather']);
+    if (!W.length) return cannot('it registers onWeather and names no weather inside it, so this rule '
+      + 'cannot tell which sky to raise and would have to guess');
+    const set = W.map(setterFor).find(Boolean);
+    if (!set) return cannot('it acts under ' + W.join(' / ') + ' and no legal buildable body in this '
+      + 'format carries an ability that SETS that weather');
+    const atk = dex.species.get(CAST.ATTACKER().species);
+    const C = abilityCarrier(e, sp => idOf(sp.id) !== idOf(set.species) && !!neutralHit2(sp.id, [])
+      && !!hitInBand(atk, sp, 0.25, 0.6));
+    if (!C) return cannot(noCarrierWhy(e, 'can be chipped between a quarter and 60% of its HP by one '
+      + 'derived delivery move — a per-turn heal on a full-HP body reads 0 in both arms'));
+    const chip = hitInBand(atk, C.sp, 0.25, 0.6);
+    const back = neutralHit2(atk.id, [chip.id]) || neutralHit2(atk.id, []);
+    return stageAbility(e, C, { hpA: 8, hpB: 1, moves: back ? [back.id] : [INERT],
+      note: set.ability + ' on the partner raises ' + W[0] + '; the carrier is chipped to '
+          + Math.round((1 - chip.d / chip.hp) * 100) + '% by ' + chip.mv.name + ' on turn 1 and then '
+          + 'stands (and attacks) through two residual phases',
+      a0: mon(atk.id, '', CAST.ATTACKER().ability, [chip.mv.id]),
+      b1: mon(set.species, '', set.ability, [INERT]),
+      script: [turn([click(chip.mv.id, 0), IDLE], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [back ? click(back.id, 0) : IDLE, IDLE]),
+               turn([IDLE, IDLE], [back ? click(back.id, 0) : IDLE, IDLE])] });
+  } },
+
+{ id: 'ability/priority-mod', kind: 'ability',
+  reads: 'onModifyPriority — whether it names `move.category === "Status"` or a move TYPE, and any '
+       + 'HP condition, all from the handler',
+  why: 'PRIORITY IS NOT A LEAF. `board_state.js` compares no turn order at all, so a shift is only '
+     + 'observable through a CONSEQUENCE — and in a generic turn where both bodies survive there is '
+     + 'none, which is why Prankster (8,477 uses) and Gale Wings (954) both read INERT.\n'
+     + '     THE CONSEQUENCE IS DERIVED FROM WHAT THE ABILITY SHIFTS. For a STATUS shift the carrier '
+     + 'is made SLOWER than an aggressor that can kill it outright and clicks a stat-lowering move: '
+     + 'with the shift the drop lands before the carrier dies, without it the carrier dies first and '
+     + 'the drop never happens — the delta is the AGGRESSOR\'s stat stages. For a TYPE shift the '
+     + 'carrier is made slower than a foe its typed move can kill outright, and that foe\'s own click '
+     + 'is the stat drop: with the shift the foe is dead before it acts.\n'
+     + '     THE DARK IMMUNITY IS RESPECTED BY DERIVATION rather than by exception — the aggressor is '
+     + 'checked for the Dark type, because a Prankster-boosted status into a Dark body is refused by '
+     + 'the authority and both arms would agree on nothing.',
+  break: { why: 'the priority shift is dropped, so the carrier moves in plain speed order',
+    patch: [["const _pm=TAGS.param('ability',mon.ability,'priorityMod');",
+             "const _pm=null&&TAGS.param('ability',mon.ability,'priorityMod');"]] },
+  match(e) {
+    if (typeof e.onModifyPriority !== 'function') return null;
+    if (!DROP_MOVE) return cannot('this format has no 100-accuracy single-target stat-lowering status '
+      + 'move, and the consequence this rule reads is a stat stage that did or did not land');
+    const src = String(e.onModifyPriority);
+    const isStatus = /category\s*===?\s*['"]Status['"]/.test(src);
+    const T = typesNamed(e, ['onModifyPriority']);
+    const spd = s => flatL50(s.baseStats).sp;
+    if (isStatus) {
+      const atk = dex.species.get(CAST.ATTACKER().species);
+      if (atk.types.includes('Dark')) return cannot('the aggressor is a Dark type and this family is '
+        + 'refused by Dark bodies, so the staged click would be blocked in BOTH arms');
+      let kill = null;
+      const C = abilityCarrier(e, sp => spd(sp) < spd(atk) && !!(kill = lethalMove(atk, sp, 1.2)));
+      if (!C) return cannot(noCarrierWhy(e, 'is SLOWER than the aggressor ' + atk.name + ' AND can be '
+        + 'killed outright by one of its derived delivery moves — without both, the shift changes no '
+        + 'leaf and the entry reads INERT'));
+      kill = lethalMove(atk, C.sp, 1.2);
+      return stageAbility(e, C, { hpA: 4, hpB: 1, moves: [DROP_MOVE.id],
+        note: 'the carrier is slower (' + spd(C.sp) + ' against ' + spd(atk) + ') and is killed '
+            + 'outright by ' + kill.mv.name + '; it clicks ' + DROP_MOVE.name + ', which only lands '
+            + 'if the shift moved it first',
+        a0: mon(atk.id, '', CAST.ATTACKER().ability, [kill.mv.id]),
+        script: [turn([click(kill.mv.id, 0), IDLE], [click(DROP_MOVE.id, 0), IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])] });
+    }
+    if (!T.length) return cannot('its onModifyPriority names neither a move category nor a move type '
+      + 'in a shape this rule can read, so the class of clicks it shifts cannot be derived');
+    const mv = hitOfType(T[0]);
+    if (!mv) return cannot('it shifts ' + T[0] + ' moves and no 100-accuracy single-target ' + T[0]
+      + ' delivery move exists in this format');
+    let victim = null;
+    const pick = (sp) => CANDIDATES.find(F => F.id !== sp.id && buildableSpecies(F.id)
+      && spd(F) > spd(sp) && dex.getImmunity(mv.type, F.types) !== false
+      && maxRoll(sp, mv, F) >= flatL50(F.baseStats).hp * 1.2 && carrierAbility(F));
+    const C = abilityCarrier(e, sp => !!(victim = pick(sp)));
+    if (!C) return cannot(noCarrierWhy(e, 'has a FASTER foe in this format that its own ' + T[0]
+      + ' click (' + mv.name + ') kills outright — the shift is invisible unless it takes an action '
+      + 'away from somebody'));
+    victim = pick(C.sp);
+    return stageAbility(e, C, { hpA: 1, hpB: 4, moves: [mv.id],
+      note: pretty(victim.id) + ' is FASTER (' + spd(victim) + ' against ' + spd(C.sp) + ') and is '
+          + 'killed outright by ' + mv.name + '; its own click is ' + DROP_MOVE.name + ', which only '
+          + 'lands if the shift did NOT move the carrier first',
+      a0: mon(victim.id, '', carrierAbility(victim), [DROP_MOVE.id]),
+      script: [turn([click(DROP_MOVE.id, 0), IDLE], [click(mv.id, 0), IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
+{ id: 'ability/blocks-priority', kind: 'ability',
+  reads: 'onFoeTryMove',
+  why: 'THE MOVE IT REFUSES HAS TO BE THROWN, and the generic staging throws a plain 0-priority '
+     + 'attack — so Armor Tail (3,431 uses) and Queenly Majesty (453) both read INERT. The click is '
+     + 'derived: the highest-power damaging move in the format with POSITIVE priority, 100 accuracy '
+     + 'and no rider. THE ALLY IS THE SECOND HALF OF THIS FAMILY and is staged on turn 2 — both of '
+     + 'these protect the whole side, and an engine that blocked only for the holder parts there and '
+     + 'nowhere else.\n'
+     + '     THE NEGATIVE IS TURN 3, an ordinary 0-priority click at the same body, which must land '
+     + 'in both arms: an engine that had stopped resolving anything at all would otherwise read as a '
+     + 'correct block.',
+  break: { why: 'the priority block is skipped, so the shielded side takes the fast move',
+    patch: [['function priorityRefusedAbove(defenders, field, aimedAt){',
+             'function priorityRefusedAbove(defenders, field, aimedAt){if(1)return Infinity;']] },
+  match(e) {
+    if (typeof e.onFoeTryMove !== 'function') return null;
+    if (!PRIORITY_HIT) return cannot('this format has no 100-accuracy single-target damaging move '
+      + 'with positive priority and no rider, so the class this ability refuses cannot be thrown');
+    const t = PRIORITY_HIT.type;
+    const C = abilityCarrier(e, sp => dex.getImmunity(t, sp.types) !== false);
+    if (!C) return cannot(noCarrierWhy(e, 'can be hit by ' + PRIORITY_HIT.name + ' at all — a body '
+      + 'the chart already makes immune reads 0 in both arms'));
+    const ally = quietBody({ not: [C.species], type: t });
+    if (!ally) return cannot(noBodyWhy({ type: t, not: [C.species] }));
+    const slow = neutralHit2(C.species, [PRIORITY_HIT.id]);
+    if (!slow) return cannot('no 0-priority neutral delivery move exists against ' + pretty(C.species)
+      + ', so the rule has no on-board negative');
+    return stageAbility(e, C, { hpA: 4, hpB: 6, moves: [INERT],
+      note: PRIORITY_HIT.name + ' (priority +' + PRIORITY_HIT.priority + ') at the carrier on turn 1 '
+          + 'and at its ALLY ' + pretty(ally.species) + ' on turn 2 — both must be refused; '
+          + slow.name + ' at the carrier on turn 3 must land',
+      a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability, [PRIORITY_HIT.id, slow.id]),
+      b1: { ...ally, moves: [INERT] },
+      script: [turn([click(PRIORITY_HIT.id, 0), IDLE], [IDLE, IDLE]),
+               turn([click(PRIORITY_HIT.id, 1), IDLE], [IDLE, IDLE]),
+               turn([click(slow.id, 0), IDLE], [IDLE, IDLE])] });
+  } },
+
+{ id: 'ability/aids-its-ally', kind: 'ability',
+  reads: 'onAlly* (onAllyTryBoost / onAllySetStatus / onAllyTryAddVolatile) or onAnyModifyDamage, and '
+       + 'any `target.hasType("X")` gate inside those handlers',
+  why: 'EVERYTHING THIS FAMILY DOES HAPPENS TO SOMEBODY ELSE, and the generic staging aims every '
+     + 'click at the carrier. Flower Veil (3,112 uses), Friend Guard (1,020), Aroma Veil and Sweet '
+     + 'Veil all read INERT for that one reason. Here the ALLY is the target of everything: a plain '
+     + 'damaging hit (which Friend Guard must reduce), a stat drop (Flower Veil), a Taunt (Aroma '
+     + 'Veil) and a sleep click (Sweet Veil).\n'
+     + '     THE TYPE GATE IS READ OFF THE HANDLER, not guessed: Flower Veil only protects GRASS '
+     + 'allies, so the ally is derived to be one — and where it is, the sleep click is dropped, '
+     + 'because Grass bodies are immune to powder and staging it would be a click that could never '
+     + 'land in either arm.\n'
+     + '     THE NEGATIVE IS THE CARRIER ITSELF: it stands beside its ally taking nothing, and the '
+     + 'ally\'s protections must not appear on it.',
+  break: { why: 'the ally damage reduction is dropped',
+    patch: [["const _fg=_pal&&TAGS.param('ability',_pal.ability,'reducesAllyDamage');",
+             "const _fg=null&&TAGS.param('ability',_pal.ability,'reducesAllyDamage');"]] },
+  match(e) {
+    /* ONLY THE THREE `onAlly` HOOKS THIS RULE ACTUALLY STAGES, plus the ally damage one. `onAllyFaint`
+     * (Receiver) and `onAllyAfterUseItem` (Symbiosis) are ally hooks too and this script creates
+     * NEITHER condition — no ally dies and no ally spends an item — so matching them would have
+     * charged an INERT staging to a rule that never looked at them. Printed by `--rules` and narrowed
+     * on sight, which is the same over-match discipline `refusesStatusMoves` needed. */
+    const keys = ['onAllyTryBoost', 'onAllySetStatus', 'onAllyTryAddVolatile']
+      .filter(k => typeof e[k] === 'function');
+    if (!keys.length && typeof e.onAnyModifyDamage !== 'function') return null;
+    const gate = (/hasType\(['"]([A-Z][a-z]+)['"]\)/.exec(handlerSrc(e, keys.concat(['onAnyModifyDamage'])))
+      || [])[1] || null;
+    const C = abilityCarrier(e);
+    if (!C) return cannot(noCarrierWhy(e, 'is legal, buildable and has a second ability'));
+    const ally = quietBody({ not: [C.species], hasType: gate || undefined });
+    if (!ally) return cannot(gate ? 'this ability only protects ' + gate + ' allies and the move '
+      + 'stage\'s quiet body pool holds no ' + gate + ' type, so the protected condition cannot be '
+      + 'created: ' + noBodyWhy({ hasType: gate, not: [C.species] })
+      : noBodyWhy({ not: [C.species] }));
+    const hit = neutralHit2(ally.species, []);
+    if (!hit) return cannot('no neutral delivery move exists against the ally ' + pretty(ally.species));
+    const sleep = STATUS_MOVE.slp;
+    const allySp = dex.species.get(ally.species);
+    const canSleep = sleep && !(sleep.flags && sleep.flags.powder && allySp.types.includes('Grass'))
+      && dex.getImmunity('slp', allySp.types) !== false;
+    return stageAbility(e, C, { hpA: 4, hpB: 6, moves: [INERT],
+      note: 'everything is aimed at the ALLY ' + pretty(ally.species)
+          + (gate ? ' (a ' + gate + ' type, which is the gate this ability\'s own handler names)' : '')
+          + ': ' + hit.name + ' and ' + DROP_MOVE.name + ' on turn 1, '
+          + (canSleep ? sleep.name : 'NO sleep click — the ally is immune to it, so staging it would '
+             + 'be a click that lands in neither arm') + ' on turn 2, and '
+          + (TAUNT_MOVE ? TAUNT_MOVE.name + ' LAST' : 'no taunt in this format'),
+      a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability,
+        [hit.id].concat(TAUNT_MOVE ? [TAUNT_MOVE.id] : [])),
+      a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability,
+        [DROP_MOVE.id].concat(canSleep ? [sleep.id] : [])),
+      b1: { ...ally, moves: [INERT] },
+      /* THE TAUNT IS ON THE LAST TURN AND THAT IS NOT A PREFERENCE. Taunt forbids STATUS moves, and
+       * this file's inert click IS a status move — so a body taunted on turn 2 has no legal choice
+       * on turn 3, `scripted()` answers `pass`, and Showdown REJECTS it: "Can't pass: Your Goodra
+       * must make a move". Measured on the first run of this rule: six of its members threw. Putting
+       * the taunt last means the volatile is on the boundary that reads it and no body ever has to
+       * choose underneath it. */
+      script: [turn([click(hit.id, 1), click(DROP_MOVE.id, 1)], [IDLE, IDLE]),
+               turn([IDLE, canSleep ? click(sleep.id, 1) : IDLE], [IDLE, IDLE]),
+               turn([TAUNT_MOVE ? click(TAUNT_MOVE.id, 1) : IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
+{ id: 'ability/entry-aids-ally', kind: 'ability',
+  reads: 'onStart whose handler walks `adjacentAllies()`',
+  why: 'HOSPITALITY HEALS ITS ALLY ON SWITCH-IN AND `ability/entry` STAGES BOTH BODIES AT FULL HP, so '
+     + 'the heal has nothing to do and 6,038 uses came back INERT. `ability/entry` cannot fix this by '
+     + 'itself — its whole point is that the effect has already happened by boundary 0, before '
+     + 'anybody can chip anything — so the carrier starts ON THE BENCH, the ally is chipped on turn 1, '
+     + 'and the carrier walks in on turn 2.\n'
+     + '     THAT MAKES BOUNDARY 1 THE NEGATIVE AND BOUNDARY 2 THE POSITIVE, on one script: the ally '
+     + 'is chipped and NOT healed while the carrier is on the bench, and healed the moment it is not. '
+     + 'Boundary 3 is the second negative — nothing may heal again on a turn with no entry, which is '
+     + 'the off-by-one this engine has already had twice in the residual family.',
+  break: { why: 'the entry heal is skipped — the carrier still switches in and is still named',
+    patch: [["const _h=TAGS.param('ability',m.ability,'healsAllyOnSwitchIn');",
+             "const _h=null&&TAGS.param('ability',m.ability,'healsAllyOnSwitchIn');"]] },
+  match(e) {
+    if (typeof e.onStart !== 'function') return null;
+    if (!/adjacentAllies\(\)/.test(String(e.onStart))) return null;
+    const atk = dex.species.get(CAST.ATTACKER().species);
+    const C = abilityCarrier(e);
+    if (!C) return cannot(noCarrierWhy(e, 'is legal, buildable and has a second ability'));
+    const ally = quietBody({ not: [C.species] });
+    const lead = quietBody({ not: [C.species, ally && ally.species] });
+    if (!ally || !lead) return cannot(noBodyWhy({ not: [C.species] }));
+    const chip = hitInBand(atk, dex.species.get(ally.species), 0.3, 0.7);
+    if (!chip) return cannot('no derived delivery move takes ' + pretty(ally.species) + ' between 30% '
+      + 'and 70% of its HP, and a heal on a body at full HP reads 0 in both arms');
+    return stageAbility(e, C, { hpA: 4, hpB: 1, moves: [INERT], onBench: true,
+      note: 'the carrier starts ON THE BENCH; the ally ' + pretty(ally.species) + ' is chipped to '
+          + Math.round((1 - chip.d / chip.hp) * 100) + '% by ' + chip.mv.name + ' and dropped by '
+          + DROP_MOVE.name + ' on turn 1 (the negative — nothing is restored while the carrier is '
+          + 'away) and the carrier walks in on turn 2',
+      a0: mon(atk.id, '', CAST.ATTACKER().ability, [chip.mv.id]),
+      /* THE ALLY IS DROPPED AS WELL AS CHIPPED. Hospitality restores HP and Curious Medicine — the
+       * other member this shape catches — RESETS STAT STAGES, and a board with no stat stages on it
+       * gives the second one nothing to reset. Measured: Curious Medicine came back INERT on the
+       * first run of this rule with the chip alone. */
+      a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [DROP_MOVE.id]),
+      script: [turn([click(chip.mv.id, 1), click(DROP_MOVE.id, 1)], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [{ sw: C.species }, IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])],
+      benchLead: lead, benchAlly: ally });
+  } },
+
+{ id: 'ability/blocks-foe-berry', kind: 'ability',
+  reads: 'onFoeTryEatItem',
+  why: 'THERE HAS TO BE A BERRY, AND IT HAS TO BE ABOUT TO BE EATEN. Unnerve (2,167 uses) read INERT '
+     + 'because no body in the generic staging held one. The fixture berry is DERIVED — a berry whose '
+     + '`onUpdate` heals at an HP threshold — and it is put on the AGGRESSOR, which is then chipped '
+     + 'past that threshold. With the ability the berry stays in the slot; without it, it is eaten '
+     + 'and the HP moves.\n'
+     + '     THE FIXTURE BERRY IS ITSELF A ROSTER ENTRY, which is the whole reason this is honest: '
+     + 'its own verdict is published in the items stage, so if it turns out not to fire here the '
+     + 'report says so under "THE TWO ENGINES PART SOMEWHERE ELSE TOO" rather than charging an '
+     + 'upstream failure to this ability. Measured 2026-08-08: Sitrus Berry scores '
+     + 'FIRED-AND-BOARDS-MATCH and Oran Berry does not, which is exactly why the berry is chosen by '
+     + 'shape and the caveat is printed rather than assumed away.',
+  break: { why: 'the berry block is skipped, so the foe eats it anyway',
+    patch: [["if(foes&&foes.some(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksBerries')))return;",
+             "if(false&&foes&&foes.some(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksBerries')))return;"]] },
+  match(e) {
+    if (typeof e.onFoeTryEatItem !== 'function') return null;
+    const berry = dex.items.all().filter(i => i.exists && !i.isNonstandard && i.isBerry && i.onUpdate
+        && /max HP or less/.test(i.shortDesc || '') && /Restores|Heals/.test(i.shortDesc || ''))
+      .sort((a, b) => (a.id === 'sitrusberry' ? -1 : 0) - (b.id === 'sitrusberry' ? -1 : 0))[0] || null;
+    if (!berry) return cannot('this format has no berry that heals at an HP threshold, so there is '
+      + 'nothing for the block to stop');
+    const atk = dex.species.get(CAST.ATTACKER().species);
+    const chip = hitInBand(atk, atk, 0.55, 0.85);
+    const C = abilityCarrier(e, sp => idOf(sp.id) !== idOf(atk.id) && !!neutralHit2(atk.id, []));
+    if (!C) return cannot(noCarrierWhy(e, 'is a body other than the berry holder'));
+    const hit = neutralHit2(atk.id, []);
+    if (!hit) return cannot('no neutral delivery move reaches the berry holder ' + atk.name);
+    return stageAbility(e, C, { hpA: 1, hpB: 4, moves: [hit.id],
+      note: 'the AGGRESSOR holds ' + berry.name + ' and is chipped past its threshold by the carrier '
+          + 'over two turns; with the ability the berry must still be in the slot at boundary 2',
+      a0: mon(atk.id, berry.id, CAST.ATTACKER().ability, [INERT]),
+      script: [turn([IDLE, IDLE], [click(hit.id, 0), IDLE]),
+               turn([IDLE, IDLE], [click(hit.id, 0), IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
 
 { id: 'ability/entry', kind: 'ability',
   reads: 'onStart / onSwitchIn, with no onResidual',
@@ -3495,6 +4773,37 @@ function printRules() {
       + ' on ' + BOTTOM_ARM + ' — the latter would stage NOTHING under the primary pin and would have '
       + 'read "identical"');
     console.log('      ' + bot.slice(0, 16).map(m => m.name).join(', ') + ', +' + (bot.length - 16) + ' more');
+  }
+
+  /* ---- THE ABILITY STAGE'S OWN VOCABULARY, AND THE MEMBERSHIP OF EVERY ABILITY RULE -------------
+   * The membership is the thing that has to be seen rather than believed. `refusesStatusMoves`
+   * caught Telepathy and `speedOnItemLoss` caught Sticky Hold, both by over-matching a shape; the
+   * only defence that has ever worked here is printing what a rule matched BEFORE trusting a count.
+   * These fifteen rules read handler SOURCE, which is a wider net than a field, so this block is not
+   * optional. */
+  console.log('\n  THE ABILITY STAGE\'S DERIVED VOCABULARY:');
+  console.log('    weather setters, read off each ability\'s own onStart `setWeather` call:');
+  for (const w of Object.keys(WEATHER_SETTER))
+    console.log('      ' + w.padEnd(14) + WEATHER_SETTER[w].ability + ' on ' + WEATHER_SETTER[w].species);
+  console.log('    the stat-drop COVER (greedy over stats, not top-N by count) — ' + DROP_SET.stats.join(', '));
+  for (const m of DROP_SET.moves)
+    console.log('      ' + m.name.padEnd(16) + JSON.stringify(m.boosts));
+  console.log('    AND THE STAT NO LEGAL MOVE IN THIS FORMAT LOWERS AT ONE BODY: accuracy. Sand '
+    + 'Attack, Smokescreen,\n      Flash and Kinesis are all isNonstandard "Past" here and Sweet Scent '
+    + 'lowers EVASION at every foe.\n      Keen Eye and Illuminate are therefore DECLINED by '
+    + 'ability/stat-drop-reaction (not refused — see the rule).');
+  console.log('    the priority click: ' + (PRIORITY_HIT ? PRIORITY_HIT.name + ' (priority +'
+    + PRIORITY_HIT.priority + ', ' + PRIORITY_HIT.basePower + ' BP)' : 'NONE'));
+  console.log('    the taunt click:    ' + (TAUNT_MOVE ? TAUNT_MOVE.name : 'NONE'));
+  {
+    const rows = assign('ability').entries;
+    console.log('\n  WHAT EACH ABILITY RULE ACTUALLY MATCHED — printed before the count is believed:');
+    for (const r of RULES.filter(x => x.kind === 'ability')) {
+      const mine = rows.filter(x => x.rule === r.id);
+      console.log('    ' + r.id.padEnd(38) + String(mine.length).padStart(4) + '   '
+        + mine.map(x => x.name).slice(0, 14).join(', ')
+        + (mine.length > 14 ? ', +' + (mine.length - 14) + ' more' : ''));
+    }
   }
 
   console.log('\n  100-accuracy status carriers:');

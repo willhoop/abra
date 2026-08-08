@@ -6,7 +6,8 @@
 `tests/mechanics_rank.js`, `tests/mutation_harness.js`, `tests/test-mutation-coverage.js`,
 `tests/test-medicham-coverage.js`, `tests/regulation_usage.js`, `tests/probe_red_demo.js`,
 `tests/test-protocol-trace.js`, `engine/derive_protocol_events.js`, `data/protocol-events.json`,
-`tests/roster.js`, `data/roster.json`, `tests/test-nature-differential.js`
+`tests/roster.js`, `data/roster.{items,abilities,moves,all}.json` (+ `data/roster.json`, a convenience
+copy of whatever stage ran last — **it is not the roster**), `tests/test-nature-differential.js`
 
 **Eight instruments, and none substitutes for another:**
 
@@ -55,9 +56,143 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 183/191 probed, 8 unprobed
 ```
 
-_stamped 2026-08-08 19:04_
+_stamped 2026-08-08 19:53_
 
 <!-- /GENERATED -->
+
+## THE INERT 124 — FIFTEEN ABILITY SHAPE RULES, AND `--write` STOPS DESTROYING THE STAGE BESIDE IT. 2026-08-08. (ROADMAP #98 + #107)
+
+**"INERT" WAS NOT "NOTHING TO TEST". IT WAS "THE CONDITION WAS NEVER CREATED."** The abilities stage
+had six rules and three of them were refusals, so **124 of the 316 legal abilities — 72,609 corpus
+uses — fell through to `ability/generic`**, which stages a plain attack. Showdown's own board came
+out identical with and without every one of them and the roster honestly reported
+COULD-NOT-STAGE / *THE STAGING IS INERT*. Blaze needs the user under a third of its HP; Defiant needs
+a stat drop; Chlorophyll needs sun; Prankster needs a status click on a turn where the order decides
+something; Lightning Rod needs an Electric move aimed at its **ally**. A plain attack creates none of
+those.
+
+### THE RESULT
+
+| | INERT abilities | the usage they cover |
+|---|---|---|
+| before | **124** | **72,609** |
+| after | **59** | **4,261** |
+
+`0 DIFFER · 1 DID-NOT-FIRE · 78 MATCH · 20 CONTROL-NOT-QUIET · 217 COULD-NOT-STAGE` (was
+`0 · 0 · 29 · 8 · 279`). **Zero regressions** — no ability that scored FIRED-AND-BOARDS-MATCH before
+this pass scores anything else after it, checked entity by entity against the pre-change artifact.
+**22 of 22 staging rules CAUGHT AND LOCALISED their own break**, including the two that did not on
+the first attempt and were re-anchored rather than declared.
+
+### THE ONE FINDING, AND IT IS ALREADY DOCUMENTED AS DELIBERATE
+
+**Overgrow — DID-NOT-FIRE, 648 uses.** Showdown's board moves when the ability is added and ours does
+not move at all, over a staging that chips the carrier to 11% and then throws Energy Ball. This is
+ROADMAP #92's narrowed `damageBoost` family behaving exactly as that section says it does: the
+consumer at `medicham2-browser.js` requires no `onlyWhen`, and Blaze / Torrent / Overgrow / Swarm all
+carry `onlyWhen: "only below 1/3 HP"` as **prose**. The roster is now the instrument that says so from
+the outside. Its three siblings read CONTROL-NOT-QUIET rather than DID-NOT-FIRE because **no carrier
+of any of them in this format has a quiet second ability** — Charizard, Skeledirge, Primarina and
+Volcarona all pair the pinch ability with something live.
+
+### WHAT EACH RULE READS, AND WHERE ITS NEGATIVE IS
+
+Fifteen new rules, every one reading the ability's **own upstream data** — the handler NAMES, and the
+shapes inside the handler source (`move.type === "Electric"`, `pokemon.effectiveWeather()`,
+`move.flags["sound"]`, `attacker.hp <= attacker.maxhp / 3`). Not `data/tags.json`, which is ours and
+derived. Membership is printed by `--rules` before any count is believed.
+
+| rule | reads | the condition it creates | the on-board negative |
+|---|---|---|---|
+| `pinch-offense` | HP gate + type in `onModifyAtk`/`onModifySpA` | a derived hit lands the carrier between 2/3 and 95% of its HP | the SAME typed click at full HP on turn 1 |
+| `stat-drop-reaction` | `onTryBoost`/`onAfterEachBoost`/`onChangeBoost` | Intimidate at boundary 0 + a greedy 4-click cover over atk/spa/spd/spe/def | the aggressors' own stages |
+| `redirects-a-type` | `onAnyRedirectTarget` + the type in `onTryHit` | the drawn move aimed at the carrier's ALLY | an undrawn neutral click at the same ally |
+| `absorbs-a-type` | a TYPE or FLAG in `onTryHit`/`onAllyTryHitSide` | the carrier chipped, then hit by that type/flag | a neutral click on turn 3 |
+| `type-conversion` | the type `onModifyType` reads and the type it ASSIGNS | a defender the chart treats differently under the two types | an unconverted click |
+| `no-recoil` | `recoil` inside `onDamage` | the carrier throws a real recoil move (the delivery table refuses every one) | a non-recoil click of the same category |
+| `survives-from-full` | `maxhp` + a floor of 1 in `onDamage` | `lethalMove` at a 1.5x margin, twice | the second, on a body no longer at full |
+| `unconditional-stat-multiplier` | `onModifyAtk`/`SpA`/`Def`/`SpD`, no type, no HP gate | a click of the CATEGORY the handler name implies | a click of the other category |
+| `base-power-scoped` | a flag, a base-power threshold or `move.recoil` in `onBasePower` | the strongest in-scope click | an out-of-scope click, same category, also neutral |
+| `damage-taken-scoped` | a type, or `typeMod > 0`, in `onSourceModify*` | a scoped hit on the carrier | an unscoped neutral hit |
+| `speed-on-item-loss` | `addVolatile` inside `onAfterUseItem`/`onTakeItem` | a threshold berry eaten, then a speed-flip pair | boundary 1, where the item is still held |
+| `weather-speed` | a weather id in `onModifySpe` | the partner SETS the sky; a foe whose speed sits strictly between | — the foe's click is a drop that only lands if it moved first |
+| `weather-evasion` | a weather id in `onModifyAccuracy` | the same sky; a 100-acc click becomes 80 and the pin MISSES it | the same click at the partner, which must land |
+| `weather-residual` | a weather id in `onWeather` | the same sky + a derived chip so a heal has somewhere to land | the partner, standing under the same sky |
+| `priority-mod` | `category === "Status"` or a type in `onModifyPriority` | a slower carrier that dies before it can act | — with the shift its drop lands, without it nothing does |
+| `blocks-priority` | `onFoeTryMove` | the format's strongest 100-acc positive-priority move, at the carrier AND at its ally | an ordinary 0-priority click that must land |
+| `aids-its-ally` | the three `onAlly*` hooks + `onAnyModifyDamage` | everything aimed at the ALLY: a hit, a drop, a sleep, a Taunt | the carrier, standing beside it |
+| `entry-aids-ally` | `adjacentAllies()` inside `onStart` | the carrier starts ON THE BENCH; the ally is chipped and dropped, then it walks in | boundary 1 (away) and boundary 3 (no second entry) |
+| `blocks-foe-berry` | `onFoeTryEatItem` | a derived threshold berry on the aggressor, chipped past its line | — |
+
+### THE POSITIVE CONTROL WAS DEMANDED AND IT PASSED
+
+Sand Rush, Swift Swim, Chlorophyll and Slush Rush were verified BY HAND earlier the same day
+(`effSpeed` reads `speedCond` and gives 100 → 200 in the right sky only). **A rule family that cannot
+confirm a known-correct ability is not measuring anything.** All four now come back
+FIRED-AND-BOARDS-MATCH under `weather-speed`; Damp is untouched and still uninvolved. Any future
+accusation against one of those four is the RULE being wrong.
+
+### SIX TIMES THE INSTRUMENT WAS WRONG BEFORE THE ENGINE WAS — ALL SIX CAUGHT BY ITS OWN CHECKS
+
+- **PURE POWER IS THE HEADER EXAMPLE AND IT IS MEASURED, NOT ILLUSTRATIVE.** It doubles ATTACK, its
+  only carrier is Medicham (Fighting/Psychic), the generic staging picks the carrier's click BY TYPE,
+  Fighting is immune against the Dragon/Ghost aggressor — so it fell through to **Psychic, which is
+  SPECIAL**. An ability that doubles Attack was being measured through a Special Attack click: two
+  arms, one number, nothing staged. `unconditional-stat-multiplier` takes the category from the
+  handler NAME instead.
+- **THE STAT-DROP COVER WAS A TOP-N BY COUNT AND COVERED THE SAME TWO STATS TWICE.** Noble Roar and
+  Tearful Look both lower atk + spa, so Big Pecks (Defense) had nothing to block. Replaced by a
+  GREEDY COVER over stats — each further click adds the most stats not already covered.
+- **AND WIDENING IT WAS NOT ENOUGH: KEEN EYE GUARDS ACCURACY, AND NO LEGAL MOVE IN THIS FORMAT LOWERS
+  IT.** Sand Attack, Smokescreen, Flash and Kinesis are all `isNonstandard: 'Past'` here and Sweet
+  Scent lowers EVASION at every foe. The first fix REFUSED Keen Eye with that reason and **cost it a
+  FIRED-AND-BOARDS-MATCH it already held** — because this rule owns the entity the moment it returns
+  anything, and Keen Eye's other half (ignoring the target's evasiveness, `onModifyMove`) is a
+  different mechanic the rule never looked at. It now DECLINES — returns null — and the entity falls
+  to a rule that can say something about it.
+- **`speedOnItemLoss` CAUGHT STICKY HOLD. AGAIN, BY NAME.** CLAUDE.md records that exact over-match;
+  it arrived a second time because both abilities register `onTakeItem`. The discriminator is the
+  SHAPE inside the handler — Unburden calls `addVolatile("unburden")`, Sticky Hold returns `false` —
+  and it was caught by printing the membership, which is the only defence that has ever worked here.
+- **THE ALLY RULE THREW SIX GAMES, AND THE CAUSE WAS THIS FILE'S OWN INERT CLICK.** Taunt forbids
+  STATUS moves and `INERT` is Focus Energy, a status move — so a body taunted on turn 2 had no legal
+  choice on turn 3, `scripted()` answered `pass`, and Showdown rejected it outright. The taunt is now
+  the LAST click in the script.
+- **A MUTUAL-KO REQUIREMENT RETIRED THREE KNOWN-CORRECT ABILITIES.** `weather-speed`'s first version
+  wanted a foe that could kill the carrier AND be killed by it; Excadrill, Basculegion and Beartic are
+  bulky enough that nothing in the format one-shots them back, so Sand Rush, Swift Swim and Slush Rush
+  all refused for a reason entirely about this file. One lethal direction is enough, because the FOE'S
+  CLICK IS A STAT DROP that only lands if it moved first.
+
+### THE MIRROR TEST STILL REPORTS, AND HALF ITS ACCUSATIONS ARE GONE
+
+25 pairs in the abilities stage, **4 reporting the same numbers swapped** (was 6): Corrosion ↔ Toxic
+Debris, Gooey ↔ Shell Armor, Keen Eye ↔ Weak Armor, Refrigerate ↔ Snow Warning. **Fluffy ↔ Sand Rush
+and Water Absorb ↔ Water Bubble are no longer among them** — not because anything was quietened, but
+because each member now has a staging of its own that does not use the other as its control.
+
+### ROADMAP #107 — `--write` WAS DESTROYING THE STAGE BESIDE IT
+
+It wrote `data/roster.json` unconditionally, whatever stage ran. One file cannot carry three stages,
+so a moves run silently destroyed the abilities results — **twice on 2026-08-08**, both times
+recovered only because they had been copied aside by hand. `engine/quarantine.js` reads a stage only
+from an artifact whose own `stage` field names it, so **two of its four clauses were failing purely on
+ABSENCE**, not on a red.
+
+`--write` now writes **`data/roster.<stage>.json`** — the file the gate reads — and keeps
+`data/roster.json` as a clearly-labelled convenience copy of the last stage run. `--stage all` runs
+items, abilities and moves together and writes `data/roster.all.json`, which the gate accepts as a
+fallback for all three. **An overwrite is announced**: the outgoing artifact's stage, release,
+timestamp and counts are printed and its bytes are kept at `data/roster.<stage>.prev.json`, because a
+silent replacement looks exactly like a first write.
+
+Measured after: `node engine/quarantine.js` reads `data/roster.items.json`,
+`data/roster.abilities.json` and `data/roster.moves.json` and reports **content** for all three —
+`0 DIFFER / 6 DID-NOT-FIRE`, `0 / 1`, `52 / 27` — where two of them previously read *NO ARTIFACT FOR
+THIS STAGE*.
+
+**Wall clock, release `72e361e1bd44`:** items 4 s · abilities 6 s (14 s with `--reds`, 38 s for the
+full red demonstration) · `--stage all` 1 min 20 s.
 
 ## THE ROSTER'S MOVES STAGE — 26 SHAPE RULES BUILT, AND THE ABILITIES STAGE'S ENTIRE FINDING QUEUE RETRACTED. 2026-08-08.
 
