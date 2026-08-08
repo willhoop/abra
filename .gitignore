@@ -113,3 +113,16 @@ data/lookahead-divergence.jsonl
 # store on any miss — carrying it in git would add a megabyte-scale churn every time OPS appends.
 # Its DIGEST travels in the artifacts that used it, which is what makes a run checkable.
 data/diff-team-pool.json
+
+# ---- FROZEN ENGINE RELEASES (2026-08-07) --------------------------------------------------------
+# A release is a BYTE-COPY of 23 files, ~3.2MB each, and they are cut freely — several per session.
+# 44 on disk is 122MB, and the pack had reached 321MB with no .gitignore rule at all. They are working
+# state, not source: every file inside one is already tracked at its own path, so a release duplicates
+# content git is holding anyway.
+#
+# CITED RELEASES STAY TRACKED. A stamped measurement points at a release id, and CLAUDE.md is explicit
+# that it must be a COPY rather than a checksum — "verifying digests afterwards only tells you the run
+# was wasted". Ignoring a directory does NOT untrack files already in the index, so the 26 releases an
+# artifact or an arm table names are unaffected. When a NEW release becomes evidence for a published
+# number, add it deliberately:  git add -f data/releases/<id>
+data/releases/
