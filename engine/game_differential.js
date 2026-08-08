@@ -14,48 +14,22 @@
  * functions of the same input and ANY difference is a bug — tolerance zero, no statistics. Mode B
  * (rolled, distribution comparison) is a different instrument and is not here.
  *
- * ================= THE PIN, AND WHY IT IS SHAPED THE WAY IT IS ===================================
+ * ================= TWO THINGS MOVED ON 2026-08-07 AND BOTH RESET THE BASELINE =====================
  *
- * CHANGELOG 3.45.0 records what a mispinned die costs: `random` was pinned to the median and
- * `randomChance` to `num >= den`, which is a DIFFERENT die, so every sub-100-accuracy move missed in
- * the reference engine and connected in ours, and a filter written for the same reason hid it. So the
- * two pins here are ONE FUNCTION BY CONSTRUCTION — `PIN_CHANCE(num, den)` is literally
- * `pinRandom(den) < num`, which IS `PRNG.randomChance`'s upstream definition (sim/prng.ts:115).
+ * ROADMAP #88 — ONE PIN IS ONE CORNER. There are now FOUR pinned arms, not one, and each is reported
+ * SEPARATELY. See "THE PIN, AND WHY THERE ARE FOUR OF THEM" below for the shape and for why there are
+ * four rather than six. Every figure this file produced before today describes `top-tie-in-order`.
  *
- * THE DAMAGE ROLL FORCED THE SHAPE, and this is the part worth reading before changing anything.
- * medicham2 rolls `min + floor(rng() * (max - min + 1))` — ELEVEN integers sampled uniformly.
- * Showdown rolls `tr(tr(base * (100 - random(16))) / 100)` — SIXTEEN indices onto the same span,
- * each floored separately, and THE INDEX IS INVERTED (index 0 is MAXIMUM damage). The two dice have
- * different sizes and opposite senses, so there is no scalar `r` that makes them agree in the middle.
- * They agree only at the ENDPOINTS — which is exactly what `tests/test-engine-diff.js` measures at
- * 149/150, and exactly what docs/GAME-DIFFERENTIAL-DESIGN.md §5a calls the unmeasured interior.
+ * ROADMAP #91 — A CLICK IS NOT A TEST. Coverage used to be credited when an entity was CLICKED or was
+ * merely ON THE FIELD. Primarina clicking Haze into a board with no boosts on it marked Haze
+ * exercised, and because the census STEERS the sample, a falsely credited row then steered every
+ * later run AWAY from ever testing it. Credit now requires an OBSERVED EFFECT. See "WHAT COUNTS AS
+ * EXERCISING A MECHANIC" below. THE COVERAGE NUMBER FELL, and the old one was wrong.
  *
- * So Mode A pins the damage roll to the MAXIMUM on both sides, because that is an endpoint where the
- * two engines are already known to agree:
- *
- *     medicham2   rng() = 1 - 1e-9   ->  min + floor((1-e) * span) = max
- *     showdown    random(16) = 0     ->  base * (100 - 0) / 100    = max
- *
- * Everything else on the Showdown side is pinned to the TOP of its range, which is the reading that
- * agrees with medicham2 at rng() = 1 - 1e-9 event for event:
- *
- *     randomChance(100, 100)  99 < 100  HIT      medicham2 skips the check when acc >= 100   AGREE
- *     randomChance( 90, 100)  99 <  90  MISS     medicham2  99.99 > 90 -> miss               AGREE
- *     randomChance(  1,  24)  23 <   1  no crit  medicham2  0.9999 < 1/24 is false           AGREE
- *     randomChance( 30, 100)  99 <  30  no proc  medicham2  99.99 >= 30 -> skipped           AGREE
- *     randomChance(  1,   3)   2 <   1  stall fails   medicham2 0.9999 < 1/3 is false        AGREE
- *
- * A SUB-100-ACCURACY MOVE THEREFORE MISSES IN BOTH ENGINES. That is symmetric and produces no false
- * divergence, and it is a REAL COVERAGE HOLE which the coverage report states in as many words —
- * those moves' hit paths are not tested by this instrument. Saying "Rock Slide: covered" because it
- * was clicked would be the 12%-tolerance mistake one level down.
- *
- * THE TWO-ARGUMENT FORM IS PINNED TO THE BOTTOM, and that is not an oversight. `random(m, n)` is the
- * range form, and its most consequential caller is `PRNG.shuffle` (sim/prng.ts:145), which is
- * Showdown's SPEED-TIE RESOLVER. Pinned to the bottom every swap is a self-swap, so the shuffle is
- * the identity and tied bodies keep their input order — which is what medicham2 does, because
- * battleInit is handed no rng and sorts stably. Pinned to the top or the middle, every speed tie in
- * the format would report as a turn-order divergence.
+ * ANY RUN AFTER THIS IS NOT COMPARABLE WITH ANY RUN BEFORE IT. Both changes alter which games get
+ * played and how a die falls. The 75.5% turn-1 figure and `data/state-ladder.json` describe the old
+ * instrument; `pins.digest` and `steering` are in the artifact so a reader can tell rather than guess,
+ * and `mode` carries the pin digest so `engine/arms_comparable.js` refuses a mismatched pair.
  *
  * ================= WHAT IS DROPPED FROM THE SHOWDOWN STREAM, AND WHY IT IS NOT A CHOICE ==========
  *
@@ -289,44 +263,370 @@ function annotateCause(cause) {
   };
 }
 
-/* ---- THE PIN ------------------------------------------------------------------------------------ */
-const MEDI_RNG_VALUE = 1 - 1e-9;
-const mediRng = () => MEDI_RNG_VALUE;
-/* THE DAMAGE ROLL IS THE ONLY SPECIAL CASE AND IT IS NAMED. `sim/battle.ts:2390` is the ONLY
+/* ---- THE PIN, AND WHY THERE ARE FOUR OF THEM (ROADMAP #88) --------------------------------------
+ *
+ * ONE PIN IS ONE CORNER. Until 2026-08-07 this file held exactly one, and every number it has ever
+ * produced describes that corner alone:
+ *
+ *   - `random(m, n)` was pinned to `m`, which makes `PRNG.shuffle` the identity — and shuffle is
+ *     Showdown's SPEED-TIE RESOLVER. Tied bodies therefore kept input order in BOTH engines BY
+ *     CONSTRUCTION. In a real game a tie is a coin flip and the branch where we lose it had never run.
+ *   - accuracy was pinned so every sub-100 move MISSED ON BOTH SIDES. Rock Slide has never connected
+ *     here, and four of six staged demonstrations on 2026-08-07 silently staged nothing because
+ *     Will-O-Wisp, Toxic, Rock Slide and High Horsepower all missed while reporting "identical".
+ *   - the damage roll was pinned to index 0 = MAX, leaving 15 of 16 rolls untested. That is not
+ *     hypothetical: the crit's position in the battle loop disagrees on 6 of 16 rolls and ROLL 0 IS
+ *     ONE OF THE TEN THAT AGREE, so the pin hid a real defect for the life of the project.
+ *
+ * ================= WHY FOUR AND NOT SIX, AND THIS IS THE PART TO READ =============================
+ *
+ * medicham2 HAS EXACTLY ONE SCALAR DIE. `battleTurn(S, rng, ...)` is handed a single `rng()` and every
+ * question in the engine reads it: accuracy (`rng()*100 > acc`), the crit (`rng() < rate`), every
+ * secondary (`rng()*100 >= chance`), the stall counter, the paralysis check, AND the damage roll
+ * (`min + floor(rng() * span)`). So medicham2 cannot be asked for "hits, but MAX damage": a scalar near
+ * 1 means miss + no crit + no secondary + MAX damage, and a scalar near 0 means hit + crit + every
+ * secondary + MIN damage. THERE ARE TWO CORNERS AND NOT FOUR, and an arm that pinned Showdown's
+ * accuracy and damage independently would be comparing a board medicham2 cannot reach.
+ *
+ * `mediSpan` already records this trap: sweeping the scalar to read a damage span silently crit every
+ * low roll. The same hazard, one level up.
+ *
+ * So the arms are the 2x2 of the two things that ARE independent:
+ *
+ *     corner            speed tie          what the arm tests
+ *     top    (r -> 1)   first body         today's instrument, unchanged
+ *     top    (r -> 1)   SECOND body        the tie branch we lose half the time and had never run
+ *     bottom (r -> 0)   first body         every sub-100 move HITS, every crit lands, MIN damage
+ *     bottom (r -> 0)   SECOND body        both at once
+ *
+ * ================= THE TIE, AND THE FINDING THAT CAME OUT OF BUILDING IT ==========================
+ *
+ * THE PLAN WAS TO FLIP THE TIE BY PINNING `random(m, n)` TO THE TOP. Two things were wrong with it.
+ *
+ * FIRST, `random(m, n)` IS NOT THE SPEED-TIE RESOLVER. This file's own header said its "most
+ * consequential caller is PRNG.shuffle". It has four other callers in the pinned checkout and they are
+ * not cosmetic:
+ *
+ *     data/conditions.ts         slp `this.random(2, 5)`      THE SLEEP DURATION
+ *     sim/battle-actions.ts:878  `random(h[0], h[1]+1)`       a non-2-5 multi-hit count
+ *     sim/battle-actions.ts:881  `5 - random(2)`, `random(7)` Loaded Dice
+ *     sim/battle-queue.ts:395    `random(firstIndex, last+1)` WHERE a mid-turn action is inserted
+ *
+ * Pinning it to the top would have made every sleep four turns long and moved inserted actions, so the
+ * "tie" arm would have differed from the baseline in four ways and been attributable to none of them.
+ * `random(m, n)` therefore stays pinned to `m` in EVERY arm, and `shuffle` is pinned as its own
+ * function — the identity, which is exactly what `random(m,n) -> m` produced through Fisher-Yates.
+ *
+ * SECOND, AND THIS IS A FINDING RATHER THAN A DESIGN NOTE: PINNING `shuffle` DOES NOT MOVE SHOWDOWN'S
+ * TURN ORDER AT ALL, AND THE TWO ENGINES ALREADY DISAGREE ON EVERY SPEED TIE.
+ *
+ * Measured on a staged pure tie (Volcarona 100 base Speed against Charizard 100, both built
+ * Serious / 0 EV / 31 IV, so 120 exactly on both sides), under all four combinations of the two levers:
+ *
+ *     showdown shuffle   medicham2 rng     who moves first          streams
+ *     identity           constant          SD p2a, MEDI p1a         DIVERGE, class `ordering`
+ *     REVERSED           constant          SD p2a, MEDI p1a         DIVERGE, class `ordering`
+ *     identity           increasing        SD p2a, MEDI p2a         AGREE
+ *     REVERSED           increasing        SD p2a, MEDI p2a         AGREE
+ *
+ * Showdown's answer does not move when the shuffle is reversed, in either team orientation, and the
+ * same result holds when BOTH tied bodies are on ONE side (Showdown takes the second-listed body,
+ * medicham2 the first). So:
+ *
+ *   - SHOWDOWN RESOLVES A SPEED TIE TO THE LATER BODY IN INPUT ORDER under this pin, and PRNG.shuffle
+ *     is not what decides it;
+ *   - MEDICHAM2 RESOLVES IT TO THE EARLIER BODY, because `sortTurnOrder` draws one tie value per
+ *     action from a CONSTANT scalar, every value is equal, and its sort is stable;
+ *   - so the header's claim that the pin made the two agree "by construction" was FALSE, and this
+ *     instrument has been manufacturing a turn-order divergence on every speed tie for its whole life.
+ *     91.4% of species share a base Speed and every body here is built with no spread, so a large
+ *     share of the `ordering` class has been this.
+ *
+ * THE ARM IS THEREFORE ON THE MEDICHAM SIDE, WHICH IS THE ONLY LEVER THAT MOVES A TIE. `tie-first`
+ * gives the tie to the earlier body (what the engine does today, and what disagrees with the
+ * authority); `tie-second` gives it to the later body by making the scalar STRICTLY INCREASING by
+ * 1e-15 a draw, so a later-drawn action outranks an earlier one — measured on a 4-way tie as an exact
+ * reversal, `p1a p1b p2a p2b` becoming `p2b p2a p1b p1a`. The step is behaviour-neutral by
+ * construction and it is ASSERTED below rather than argued: every value gives the SAME answer as the
+ * constant corner at every threshold a battle asks — the damage index, accuracy, the crit rate, a
+ * secondary's chance, the stall denominator.
+ *
+ * SHOWDOWN'S SHUFFLE IS PINNED TO THE IDENTITY IN ALL FOUR ARMS. Reversing it is implemented and
+ * asserted, and it is NOT USED: it is a change to one engine with no counterpart in the other, which
+ * is precisely the mispinned-die failure of CHANGELOG 3.45.0. `speed_ties` in the artifact records how
+ * many groups it was asked to resolve, so "the tie arm never met a tie" cannot pass as agreement.
+ *
+ * ================= AND IT HAS TO MEAN THE SAME THING ON BOTH SIDES ================================
+ *
+ * CHANGELOG 3.45.0 records what a mispinned die costs: `random` was pinned to the median and
+ * `randomChance` to `num >= den`, a DIFFERENT die, so every sub-100 move missed in one engine and
+ * connected in the other. The two pins are still ONE FUNCTION BY CONSTRUCTION — `PIN_CHANCE(num, den)`
+ * is literally `pinRandom(den) < num`, which IS `PRNG.randomChance` (sim/prng.ts:115).
+ *
+ * THE TIE PIN NEEDED THE SAME ARGUMENT AND IT IS NOT OBVIOUS. medicham2 resolves a tie by a value
+ * drawn ONCE PER ACTION from the same scalar and stored (`sortTurnOrder`'s `_tie`, sorted DESCENDING).
+ * Under a constant rng every tie is equal, the sort is stable, and the group keeps input order — which
+ * is what the identity shuffle does. To reverse it the medicham scalar is made STRICTLY INCREASING by
+ * 1e-15 a draw, so a later-drawn action outranks an earlier one and the group comes out reversed.
+ * MEASURED, not assumed: a 4-way tie reads `p1a p1b p2a p2b` constant and `p2b p2a p1b p1a` increasing
+ * — an exact reversal, which is what `shuffle`-reversed does to Showdown's group.
+ *
+ * The step is behaviour-neutral by construction and it is ASSERTED below rather than argued: every
+ * value in the sequence gives the SAME answer as the constant corner at every threshold a battle asks
+ * — the damage index, accuracy, the crit rate, a secondary's chance, the stall denominator.
+ *
+ * ================= THE ACCURACY-HIT ARM, EVENT FOR EVENT ==========================================
+ *
+ * medicham2 SKIPS the accuracy check entirely at acc >= 100; Showdown always calls
+ * `randomChance(accuracy, 100)`. Under the bottom corner Showdown's `random(100)` is 0, so 0 < acc
+ * HITS for every accuracy from 1 to 100 and NO `-miss` is emitted on either side — the two engines
+ * agree event for event, not merely "both hit". The extra draw Showdown consumes cannot matter,
+ * because the die is a CONSTANT and nothing downstream depends on stream position.
+ *
+ * THE DAMAGE ROLL IS THE ONLY SPECIAL CASE AND IT IS NAMED. `sim/battle.ts:2390` is the ONLY
  * `random(16)` in `sim/`, and there is no `randomChance(x, 16)` anywhere, so keying on the argument
- * cannot catch anything else. Checked by hand against the pinned checkout; if a second `random(16)`
- * appears upstream this pin silently changes meaning, which is why it is written down here. */
+ * cannot catch anything else. The index is INVERTED: 0 is MAXIMUM damage and 15 is MINIMUM, which is
+ * why the bottom corner pins it to 15 and the top corner to 0. Both are endpoints, which is the only
+ * place 16 separately-floored indices and 11 uniformly-sampled integers can agree at all. */
+const crypto = require('crypto');
 const DAMAGE_ROLL_SIDES = 16;
-function pinRandom(m, n) {
-  if (n === undefined) {
-    if (m === undefined) return 0;                     // random() -> a float in [0,1)
-    if (m === DAMAGE_ROLL_SIDES) return 0;             // THE DAMAGE ROLL -> index 0 -> MAX damage
-    return m - 1;                                      // top of the range
-  }
-  return m;                                            // random(m,n) -> bottom: shuffle is the identity
-}
-const PIN_CHANCE = (num, den) => pinRandom(den) < num;
+/* THE TWO CORNERS OF MEDICHAM2'S SINGLE SCALAR. */
+const CORNER_TOP = 1 - 1e-9;
+const CORNER_BOTTOM = 0;
+/* THE TIE SEQUENCE. 1e-15 is ~4.5 ulp near 1.0, so each draw is strictly greater than the last and
+ * every one of them is behaviourally identical to the corner (asserted in PIN_CLAIMS). Capped so the
+ * sequence can never reach 1.0 — an rng returning exactly 1 would make `floor(rng()*span)` index one
+ * past the end of the damage span. A run that hits the cap is COUNTED and printed, never silent. */
+const TIE_STEP = 1e-15, TIE_CAP = 900000;
+let TIE_SATURATED = 0;
+/* `random()` with no arguments is not called anywhere in the pinned checkout's battle path. If that
+ * ever changes the arms would silently disagree about what "no argument" means, so it is counted. */
+let BARE_FLOAT_DRAWS = 0;
+/* Every `shuffle` this run performed, and the sizes of the groups it was asked to resolve. A tie arm
+ * that never saw a group larger than 1 tested nothing, and would look exactly like one that did. */
+let SHUFFLE_CALLS = 0, SHUFFLE_TIE_GROUPS = 0;
+const SHUFFLE_GROUP_SIZES = new Map();
 
-/* THE PIN IS ASSERTED ON ITS BEHAVIOUR, not on its arithmetic. Each row below is a claim about what
- * a battle does, and each has a medicham2 counterpart written beside it in the header. */
-const PIN_CLAIMS = [
-  ['a 100-accuracy move HITS',            () => PIN_CHANCE(100, 100) === true],
-  ['a 90-accuracy move MISSES',           () => PIN_CHANCE(90, 100) === false],
-  ['a 1-in-24 crit does NOT happen',      () => PIN_CHANCE(1, 24) === false],
-  ['a 30% secondary does NOT fire',       () => PIN_CHANCE(30, 100) === false],
-  ['a second consecutive Protect FAILS',  () => PIN_CHANCE(1, 3) === false],
-  ['the damage roll is index 0 = MAX',    () => pinRandom(16) === 0],
-  ['the speed-tie shuffle is identity',   () => pinRandom(0, 2) === 0 && pinRandom(1, 4) === 1],
-  ['randomChance IS random(den) < num',   () => [[100, 100], [95, 100], [90, 100], [1, 24], [1, 8], [1, 2]]
-                                                  .every(([a, b]) => PIN_CHANCE(a, b) === (pinRandom(b) < a))],
-  ['medicham2 rng picks the TOP integer', () => [1, 2, 11, 16, 32]
-                                                  .every(s => Math.floor(MEDI_RNG_VALUE * s) === s - 1)],
+function makeArm(spec) {
+  const top = spec.corner === CORNER_TOP;
+  const random = function pinRandom(m, n) {
+    if (n === undefined) {
+      if (m === undefined) { BARE_FLOAT_DRAWS++; return spec.corner; }   // random() -> a float in [0,1)
+      if (m === DAMAGE_ROLL_SIDES) return spec.damageIndex;              // 0 = MAX damage, 15 = MIN
+      return top ? m - 1 : 0;                                           // top / bottom of the range
+    }
+    /* THE RANGE FORM IS PINNED TO THE BOTTOM IN EVERY ARM — see the header. It is the sleep duration,
+     * a multi-hit count and a queue insertion index, and it is NOT the speed-tie resolver. */
+    return m;
+  };
+  const chance = (num, den) => random(den) < num;
+  /* THE SPEED-TIE RESOLVER, replaced as the function it actually is rather than steered through the
+   * range form. `spec.sdShuffleReverses` is FALSE in every shipped arm — see the header: reversing it
+   * was measured not to move Showdown's turn order at all, and a lever that changes one engine and not
+   * the other is the mispinned die of CHANGELOG 3.45.0. It stays implemented and asserted so the
+   * measurement can be repeated rather than remembered. */
+  const shuffle = function pinShuffle(items, start, end) {
+    if (start === undefined) start = 0;
+    if (end === undefined) end = items.length;
+    SHUFFLE_CALLS++;
+    if (end - start > 1) {
+      SHUFFLE_TIE_GROUPS++;
+      SHUFFLE_GROUP_SIZES.set(end - start, (SHUFFLE_GROUP_SIZES.get(end - start) || 0) + 1);
+    }
+    if (!spec.sdShuffleReverses) return;
+    for (let i = start, j = end - 1; i < j; i++, j--) { const t = items[i]; items[i] = items[j]; items[j] = t; }
+  };
+  /* A FRESH SEQUENCE PER GAME. The counter is per-closure so one game's draws cannot shift the next
+   * game's tie order — which would make the instrument non-deterministic across a reordered run. */
+  const mediRng = () => {
+    if (!spec.tieToSecondBody) return () => spec.corner;
+    let i = 0;
+    return () => {
+      if (i >= TIE_CAP) { TIE_SATURATED++; return spec.corner + TIE_CAP * TIE_STEP; }
+      return spec.corner + (i++) * TIE_STEP;
+    };
+  };
+  return Object.assign({ sdShuffleReverses: false }, spec, { top, random, chance, shuffle, mediRng });
+}
+/* The reversing shuffle, built once so the PIN_CLAIMS can assert it and a future pass can use it
+ * without re-deriving the sub-range rule. Not installed on any battle. */
+const REVERSING_SHUFFLE = makeArm({ id: '(unused) reversing shuffle', corner: CORNER_TOP,
+  damageIndex: 0, tieToSecondBody: false, sdShuffleReverses: true, what: 'not installed' }).shuffle;
+
+const ARMS = [
+  makeArm({ id: 'top-tie-first', corner: CORNER_TOP, damageIndex: 0, tieToSecondBody: false,
+    what: 'every sub-100-accuracy move MISSES, no crit, no secondary fires, MAX damage; medicham2 '
+        + 'gives a speed tie to the EARLIER body. THIS IS THE ONLY ARM THAT EXISTED BEFORE 2026-08-07, '
+        + 'and it is the one in which the two engines DISAGREE about every speed tie.' }),
+  makeArm({ id: 'top-tie-second', corner: CORNER_TOP, damageIndex: 0, tieToSecondBody: true,
+    what: 'the same corner with medicham2 giving the tie to the LATER body — the coin flip we lose '
+        + 'half the time and had never played through, and the branch on which it agrees with '
+        + 'Showdown. The difference between this row and the one above IS what the speed tie costs.' }),
+  makeArm({ id: 'bottom-tie-first', corner: CORNER_BOTTOM, damageIndex: 15, tieToSecondBody: false,
+    what: 'every sub-100-accuracy move HITS, every crit lands, every secondary fires, MIN damage; the '
+        + 'tie goes to the earlier body. The hit path of a sub-100 move runs here for the first time.' }),
+  makeArm({ id: 'bottom-tie-second', corner: CORNER_BOTTOM, damageIndex: 15, tieToSecondBody: true,
+    what: 'the bottom corner with the tie to the later body — both new axes at once.' }),
 ];
+const ARM_BY_ID = new Map(ARMS.map(a => [a.id, a]));
+const PRIMARY_ARM = ARMS[0];
+/* Kept at module scope and bound to the PRIMARY arm, because the staged measurements below (the Knock
+ * Off halves, the damage interior) are calibrated against the max-damage endpoint and are NOT swept
+ * across arms. Exported under their old names so nothing downstream has to know about arms. */
+const pinRandom = PRIMARY_ARM.random;
+const PIN_CHANCE = PRIMARY_ARM.chance;
+const mediRng = PRIMARY_ARM.mediRng();
+
+/* THE PIN IS ASSERTED ON ITS BEHAVIOUR, not on its arithmetic. Every row is a claim about what a
+ * BATTLE does, and every row carries the medicham2 counterpart beside it — because the failure this
+ * guards against is not "the arithmetic is wrong", it is "the two engines were pinned to different
+ * dice and both kept working". Every arm generates its own rows; a new pin with no new rows is a pin
+ * nobody has checked. */
+function armClaims(a) {
+  const C = [];
+  /* THE GROUP IS THE SUB-RANGE [start, start+n), because `speedSort` calls
+   * `shuffle(list, sorted, sorted + n)` — a rule that only worked from index 0 would be wrong on every
+   * tie after the first, and the leading elements must come back UNTOUCHED. */
+  const shuf = (n, start) => { const xs = []; for (let i = 0; i < n + start; i++) xs.push(i);
+                               a.shuffle(xs, start, n + start);
+                               return xs.slice(0, start).join(',') + '|' + xs.slice(start).join(','); };
+  const head = start => { const xs = []; for (let i = 0; i < start; i++) xs.push(i); return xs.join(','); };
+  const inOrder = (n, start) => { const xs = []; for (let i = start; i < start + n; i++) xs.push(i);
+                                  return head(start) + '|' + xs.join(','); };
+  const reversed = (n, start) => { const xs = []; for (let i = start + n - 1; i >= start; i--) xs.push(i);
+                                   return head(start) + '|' + xs.join(','); };
+  const P = (w, f) => C.push([a.id + ': ' + w, f]);
+  if (a.top) {
+    P('a 100-accuracy move HITS  [medicham2 skips the check at acc >= 100]',
+      () => a.chance(100, 100) === true);
+    P('a 90-accuracy move MISSES  [medicham2: 99.99 > 90 -> miss]',
+      () => a.chance(90, 100) === false);
+    P('a 1-in-24 crit does NOT happen  [medicham2: 0.9999 < 1/24 is false]',
+      () => a.chance(1, 24) === false);
+    P('a 30% secondary does NOT fire  [medicham2: 99.99 >= 30 -> skipped]',
+      () => a.chance(30, 100) === false);
+    P('a second consecutive Protect FAILS  [medicham2: 0.9999 < 1/3 is false]',
+      () => a.chance(1, 3) === false);
+    P('the damage roll is index 0 = MAX  [medicham2: min + floor(0.9999*span) = max]',
+      () => a.random(16) === 0);
+    P('the medicham2 scalar picks the TOP integer of any span',
+      () => [1, 2, 11, 16, 32].every(s => Math.floor(a.corner * s) === s - 1));
+  } else {
+    P('a 90-accuracy move HITS  [medicham2: 0*100 > 90 is false -> hit]',
+      () => a.chance(90, 100) === true);
+    P('a 100-accuracy move HITS and neither engine emits a -miss  [medicham2 skips the check]',
+      () => a.chance(100, 100) === true && a.chance(1, 100) === true);
+    P('a 1-in-24 crit ALWAYS happens  [medicham2: 0 < 1/24 is true]',
+      () => a.chance(1, 24) === true);
+    P('a 30% secondary ALWAYS fires  [medicham2: 0 >= 30 is false -> it runs]',
+      () => a.chance(30, 100) === true);
+    P('a second consecutive Protect SUCCEEDS  [medicham2: 0 < 1/3 is true]',
+      () => a.chance(1, 3) === true);
+    P('the damage roll is index 15 = MIN  [medicham2: min + floor(0*span) = min]',
+      () => a.random(16) === 15);
+    P('the medicham2 scalar picks the BOTTOM integer of any span',
+      () => [1, 2, 11, 16, 32].every(s => Math.floor(a.corner * s) === 0));
+  }
+  P('randomChance IS random(den) < num, the same die  [sim/prng.ts:115]',
+    () => [[100, 100], [95, 100], [90, 100], [30, 100], [1, 24], [1, 8], [1, 3], [1, 2]]
+            .every(([x, y]) => a.chance(x, y) === (a.random(y) < x)));
+  /* SHOWDOWN'S SHUFFLE IS THE IDENTITY IN EVERY ARM, asserted at a NON-ZERO START too — `speedSort`
+   * calls `shuffle(list, sorted, sorted + n)`, so a rule that only held from index 0 would be wrong on
+   * every tie after the first. The reversing version is asserted beside it and is NOT installed; see
+   * the header for the measurement that took it out of the arms. */
+  P('Showdown\'s speed-tie shuffle is the IDENTITY on a group of 2..6, at start 0 and at start 3 — '
+    + 'exactly what `random(m,n) -> m` produced through Fisher-Yates',
+    () => [2, 3, 4, 5, 6].every(n => shuf(n, 0) === inOrder(n, 0) && shuf(n, 3) === inOrder(n, 3)));
+  P('the reversing shuffle, which is implemented and DELIBERATELY NOT INSTALLED, does reverse a group '
+    + 'of 2..6 at start 0 and at start 3 — so "it is unused" is a choice and not a broken function',
+    () => [2, 3, 4, 5, 6].every(n => {
+      const go = (start) => { const xs = []; for (let i = 0; i < n + start; i++) xs.push(i);
+                              REVERSING_SHUFFLE(xs, start, n + start);
+                              return xs.slice(0, start).join(',') + '|' + xs.slice(start).join(','); };
+      return go(0) === reversed(n, 0) && go(3) === reversed(n, 3); }));
+  if (a.tieToSecondBody) {
+    P('the medicham2 tie sequence is STRICTLY INCREASING, so a later-drawn action outranks an earlier '
+      + 'one and the tie goes to the LATER body  [sortTurnOrder sorts tie DESCENDING]',
+      () => { const r = a.mediRng(); let prev = -1;
+              for (let i = 0; i < 500; i++) { const v = r(); if (!(v > prev)) return false; prev = v; }
+              return true; });
+    P('every value in that sequence is BEHAVIOURALLY IDENTICAL to the constant corner — same damage '
+      + 'index, same accuracy verdict, same crit, same secondary, same stall, and never 1.0',
+      () => { const r = a.mediRng(); const c = a.corner;
+              for (let i = 0; i < 2000; i++) { const v = r();
+                if (v >= 1 || v < 0) return false;
+                if (Math.floor(v * 16) !== Math.floor(c * 16)) return false;
+                if (Math.floor(v * 11) !== Math.floor(c * 11)) return false;
+                if ((v * 100 > 90) !== (c * 100 > 90)) return false;
+                if ((v < 1 / 24) !== (c < 1 / 24)) return false;
+                if ((v * 100 >= 30) !== (c * 100 >= 30)) return false;
+                if ((v < 1 / 3) !== (c < 1 / 3)) return false;
+                if ((v < 0.125) !== (c < 0.125)) return false; }
+              return true; });
+  } else {
+    P('the medicham2 scalar is CONSTANT, so every tie is equal, the sort is stable and the tie goes '
+      + 'to the EARLIER body',
+      () => { const r = a.mediRng(); const v = r(); return r() === v && r() === v && v === a.corner; });
+  }
+  /* THE ARMS MUST DIFFER IN ONE THING. `random(2,5)` is the sleep duration and it is the same in
+   * every arm, so a difference between two arms is the tie or the corner and never the sleep. */
+  P('the RANGE form is untouched by the tie pin: random(2,5) — THE SLEEP DURATION — is 2',
+    () => a.random(2, 5) === 2 && a.random(0, 2) === 0 && a.random(1, 4) === 1);
+  return C;
+}
+const PIN_CLAIMS_BY_ARM = new Map(ARMS.map(a => [a.id, armClaims(a)]));
+/* Exported flat, so `for (const [what, f] of G.PIN_CLAIMS)` checks EVERY arm rather than one. */
+const PIN_CLAIMS = [].concat(...ARMS.map(a => PIN_CLAIMS_BY_ARM.get(a.id)));
 const PIN_BAD = PIN_CLAIMS.filter(([, f]) => !f()).map(([w]) => w);
 if (PIN_BAD.length) {
   console.error('THE PIN IS WRONG — these claims are false: ' + PIN_BAD.join('; '));
   process.exit(1);
 }
+
+/* ---- THE PIN SET IS A RUN PARAMETER, AND IT IS DIGESTED -----------------------------------------
+ * Two arms of a before/after that were pinned differently are not a before/after, exactly as two arms
+ * steered by different censuses are not. The digest covers WHICH arms ran and every behavioural claim
+ * each one makes, so a silent change to a pin forks it even when the arm list does not move. It is
+ * carried in `mode`, which `engine/arms_comparable.js` already compares as a run parameter — "Mode A
+ * and Mode B are different instruments" is exactly the claim, one level finer. */
+const ARM_IDS = (() => {
+  const want = flag('--arm', null);
+  if (!want) return ARMS.map(a => a.id);
+  const ids = want.split(',').map(s => s.trim()).filter(Boolean);
+  const bad = ids.filter(x => !ARM_BY_ID.has(x));
+  if (bad.length) {
+    console.error('--arm names an arm that does not exist: ' + bad.join(', ')
+      + '\n  arms are: ' + ARMS.map(a => a.id).join(', '));
+    process.exit(2);
+  }
+  return ids;
+})();
+const ARMS_RUN = ARM_IDS.map(id => ARM_BY_ID.get(id));
+const PIN_DIGEST = crypto.createHash('sha256').update(JSON.stringify(ARMS_RUN.map(a => ({
+  id: a.id, corner: a.corner, damageIndex: a.damageIndex, tieToSecondBody: a.tieToSecondBody,
+  sdShuffleReverses: a.sdShuffleReverses,
+  claims: PIN_CLAIMS_BY_ARM.get(a.id).map(([w]) => w),
+})))).digest('hex').slice(0, 12);
+const PINS = {
+  why: 'ONE PIN IS ONE CORNER. Every published number before 2026-08-07 describes `top-tie-in-order` '
+     + 'and nothing else: max damage, every sub-100 move missing, and every speed tie resolving to '
+     + 'input order in both engines BY CONSTRUCTION.',
+  arms_run: ARM_IDS, primary: PRIMARY_ARM.id, digest: PIN_DIGEST,
+  arms: ARMS_RUN.map(a => ({ id: a.id, what: a.what, corner: a.corner === CORNER_TOP ? 'top' : 'bottom',
+                             damage_roll_index: a.damageIndex,
+                             damage_roll_means: a.damageIndex === 0 ? 'MAXIMUM' : 'MINIMUM',
+                             speed_tie: a.tieToSecondBody ? 'to the LATER body' : 'to the EARLIER body',
+                             showdown_shuffle: 'identity in every arm — see the header',
+                             claims: PIN_CLAIMS_BY_ARM.get(a.id).map(([w]) => w) })),
+  medicham2_has_one_scalar_die: 'accuracy, the crit, every secondary, the stall counter and the damage '
+     + 'roll all read the same `rng()`, so there are TWO corners and not four independent knobs.',
+};
+/* THE CREDIT RULE IS PART OF THE SELECTION POLICY TOO (ROADMAP #91). `engine/steering.js` owns
+ * `policy` and this file does not, so the version rides in `mode` beside the pin digest — which is
+ * what `arms_comparable.js` compares. A run under click-credit and a run under effect-credit played
+ * different games and must not be tabled together. */
+const CREDIT_POLICY = 'observed-effect/v1';
+const MODE = 'A/' + PRIMARY_ARM.id + '/pins:' + PIN_DIGEST + '/credit:' + CREDIT_POLICY;
 
 /* ---- THE SKIP LIST, READ FROM THE DERIVATION ---------------------------------------------------- */
 const PROTO = JSON.parse(fs.readFileSync(D('data', 'protocol-events.json'), 'utf8'));
@@ -537,11 +837,204 @@ for (const r of CENSUS.results) {
   else COV_UNMEASURABLE.push({ key, kind: r.kind, tag: r.tag, label: r.label,
                                why: why || 'the tag exists but no ' + sec + ' row carries it' });
 }
+/* ---- WHAT COUNTS AS EXERCISING A MECHANIC (ROADMAP #91) -----------------------------------------
+ *
+ * A CLICK IS NOT A TEST. Until 2026-08-07 a census row was credited the moment an entity carrying its
+ * tag was CLICKED — nothing asked whether the move did anything. CAUGHT LIVE: Primarina clicked Haze
+ * on turn 1 into a board with zero boosts on it. Haze is a no-op there. The row was marked exercised
+ * and the driver moved on, and Haze has been "covered" ever since without ever having been tested.
+ *
+ * IT COMPOUNDS, WHICH IS THE PART THAT MATTERS. The census SELECTS THE SAMPLE (see the steering block
+ * above): `covWant` prefers the least-exercised row, so a falsely credited row steers every LATER run
+ * AWAY from the mechanic it was supposed to test. That is why Fairy Aura sat dead on the format's
+ * most-used mega while the coverage number looked healthy — it did not need to be REACHED, it needed
+ * to be reached WITH A FAIRY MOVE ON THE FIELD.
+ *
+ * SO CREDIT MOVES FROM THE CLICK TO THE OBSERVED EFFECT. `engine/board_state.js` already reads the
+ * whole board out of both engines at every turn boundary; the evidence was in hand and the CREDITING
+ * was wrong. A row is credited for a turn when
+ *
+ *   effect    an entity of the row was in play AND a board leaf in a family THE TAG'S OWN PARAMS
+ *             NAME changed across that turn, in either engine;
+ *   negative  a blocking tag's carrier was on the field, a connected move that moves that family was
+ *             aimed at it, and the family DID NOT move on the carrier — the declared negative case
+ *             reached and correctly not firing;
+ *   click     ONLY for a tag that names no board leaf at all (contact, sound, priority, moveClass, a
+ *             damage multiplier). A connected click is the strongest evidence available for those,
+ *             and it is COUNTED APART and never added into the headline.
+ *
+ * A click with no witness counts for NOTHING but an ATTEMPT.
+ *
+ * THE FAMILIES ARE DERIVED, NOT HAND-WRITTEN PER MECHANIC. Two passes, both over vocabulary rather
+ * than over mechanics: STRUCTURAL reads the tag's param KEYS and VALUES (a `boosts` key names stat
+ * stages, a `weather` key names the sky, a `hazard` key names a hazard) and NAME reads the tag's own
+ * name against the same closed list of board nouns. Writing a scenario per mechanic would rebuild the
+ * hand-maintained list CLAUDE.md opens with; a table of ~20 board nouns is a derivation rule.
+ *
+ * AND IT IS PRINTED BEFORE IT IS WIRED, per the standing rule — a derived set that over-matches is
+ * invisible until somebody looks at what it matched. `--witness` prints every row.
+ *
+ * THE ATTRIBUTION LIMIT, STATED RATHER THAN HIDDEN: credit is at TURN granularity, scoped to the
+ * user's slot, the target's slot, the field and both sides. Two mechanics acting on the same body in
+ * the same turn can both be credited. That is weaker than a per-effect trace and STRICTLY TIGHTER
+ * than the click it replaces, which is the whole claim. */
+const SHOW_WITNESS = has('--witness');
+/* The board vocabulary — one regex per family of leaves `engine/board_state.js` actually compares.
+ * Keyed on the FAMILY string that BS.family() produces, never on a raw path. */
+const BOARD_FAMILY = {
+  hp:         /(^|\.)hp$|(^|\.)maxhp$/,
+  fainted:    /fainted$|MISSING-OR-EXTRA/,
+  status:     /\.status$|status_counter$/,
+  boosts:     /boosts\./,
+  item:       /\.item$/,
+  species:    /species$/,
+  weather:    /^field\.weather/,
+  terrain:    /^field\.terrain/,
+  trickroom:  /^field\.trickroom/,
+  tailwind:   /^tailwind$/,
+  screens:    /^screens\./,
+  hazards:    /^hazards\./,
+  substitute: /vol\.substitute$/,
+  taunt:      /vol\.taunt$/,
+  encore:     /vol\.encore$/,
+  disable:    /vol\.disable$/,
+  leechseed:  /vol\.leechseed$/,
+  confusion:  /vol\.confusion$/,
+  perish:     /vol\.perish$/,
+  trap:       /vol\.trapped_by_move$/,
+};
+/* PASS 1 — STRUCTURAL. A param KEY that is a board noun, or a param VALUE that names one. */
+const PARAM_KEY_FAMILY = [
+  [/^boosts$|^statChange$|^lowersSpeed$|^lowersAttack$|^raisesSpeed$|^alsoLowers$|^alsoRaises$|^stages$/, ['boosts']],
+  /* `weathers` and `inWeather` are CONDITIONS a tag reads, not skies it sets, and they are left out
+   * for the same reason `weatherScaled` is declared leafless above. */
+  [/^weather$|^actsAsWeather$/, ['weather']],
+  [/^terrain$/, ['terrain']],
+  [/^pseudoWeather$/, ['trickroom']],
+  [/^hazard$/, ['hazards']],
+  [/^sideCondition$/, ['screens', 'tailwind', 'hazards']],
+  [/^status$|^statuses$|^cures$|^inflicts$|^oneOf$/, ['status']],
+  [/^heal$|^drain$|^recoil$|^costsFraction$|^chipPerTurn$|^leavesHP$|^buffer$/, ['hp']],
+  [/^into$|^becomes$/, ['species']],
+  [/^speedMult$/, []],                 // a multiplier moves no leaf — see the no-board-leaf class
+];
+/* PASS 0 — A TAG THAT MOVES NO BOARD LEAF AT ALL, DECLARED RATHER THAN DISCOVERED.
+ *
+ * A damage multiplier, a crit ratio, an accuracy modifier, a priority shift and a move CLASSIFICATION
+ * change a number inside a calculation or say what kind of move this is. None of them writes a leaf
+ * `board_state.js` compares, so no board evidence can exist for them and a connected click is the
+ * strongest thing this instrument can produce.
+ *
+ * IT IS A LIST BECAUSE THE FIRST VERSION WAS NOT, AND THAT VERSION OVER-MATCHED — printed before it
+ * was wired, exactly as the standing rule says. `damageBoost` and `stabBoost` picked up the `boost`
+ * noun and would have been credited on any stat change; `weightBased` picked up `weight` and would
+ * have been credited on any damage; `convertsMoveType`'s `into: "Dragon"` is a TYPE and was read as a
+ * SPECIES; `terrainScaled`'s `terrain` key is the terrain it READS, not one it sets; and
+ * `statusCategory` means "this move is in the Status category", which was being read as "a status
+ * appeared". Every one of those would have been a false credit of exactly the shape #91 exists to
+ * remove.
+ *
+ * WHAT IS DELIBERATELY NOT IN HERE: `ohko`, `fixedDamage`, `multiHit` and `noRecoil` all reach HP, and
+ * `amplifiesBoosts` (Simple) doubles a stage the board can see. */
+const NO_BOARD_LEAF_TAGS = new RegExp('^(' + [
+  'statusCategory', 'moveClass', 'contact', 'sound', 'powder', 'spreadFoes', 'spreadAll',
+  'neverMisses', 'neverMissesAttack', 'multiAccuracy', 'priority', 'priorityMod',
+  'fractionalPriority', 'accuracyMod', 'writesAccuracy', 'critRatioUp', 'critDamageUp', 'alwaysCrit',
+  'preventsCrit', 'damageBoost', 'damageReduce', 'damageMultAll', 'damageMultType',
+  'boostsMoveClass', 'boostsSuperEffective', 'stabBoost', 'conditionalPower', 'variablePower',
+  'powerFromFallen', 'weightBased', 'terrainScaled', 'convertsMoveType', 'speedMult', 'speedCond',
+  'ignoresBoosts', 'ignoresStatStages', 'ignoresDefenderAbility', 'ignoresScreensAndSubs',
+  'ignoresTypeImmunity', 'removesOwnSecondaries', 'halvesTypeDamage', 'halvesDamage',
+  'reducesAllyDamage', 'auraBoost', 'auraBreak', 'hitsTwice', 'overridesEffectiveness',
+  'condStatMult', 'untagged', 'statSwap', 'swapsStat', 'blocksHealing',
+  /* THESE FOUR READ A CONDITION, THEY DO NOT SET ONE. `weatherScaled`, `chargeSkippedByWeather`,
+   * `failsWithoutWeather` and `failsWithoutTerrain` all ASK what the sky is; crediting them when the
+   * sky changed would credit the mechanic that set it. */
+  'chargeSkippedByWeather', 'failsWithoutWeather', 'failsWithoutTerrain', 'weatherSuppression',
+].join('|') + ')$');
+/* PASS 2 — NAME. The tag's own name against the same closed list of board nouns. Every entry is a
+ * NOUN, not a mechanic: `boost` matches boostsUser, boostsTarget, invertsBoosts, amplifiesBoosts and
+ * anything added later that moves a stat stage. */
+const NAME_WORD_FAMILY = [
+  [/boost|unboost|lowers|statchange|stat.?swap|restoresstats|switchindrop/i, ['boosts']],
+  [/heal|drain|recoil|perturnhp|costsuserhp|leaveshp|crash|survivesfrom/i, ['hp']],
+  [/faint|ohko/i, ['hp', 'fainted']],
+  [/burn|poison|toxic|paraly|sleep|freeze|thaw|statusinflict|curesstatus|statusimmune|proceduralstatus/i, ['status']],
+  [/confusion/i, ['confusion']],
+  [/item|berry|megastone|unburden/i, ['item']],
+  [/weathersetter|setsweather|privateweather/i, ['weather']],
+  [/chipimmune/i, ['hp']],
+  [/setsterrain|terrainsetter/i, ['terrain']],
+  [/room|reversesspeed/i, ['trickroom']],
+  [/hazard/i, ['hazards']],
+  [/screen/i, ['screens']],
+  [/tailwind|doublessidespeed/i, ['tailwind']],
+  [/substitute/i, ['substitute']],
+  [/taunt|forbidsstatusmoves/i, ['taunt']],
+  [/encore|locksTarget|sealsMoves/i, ['encore', 'disable']],
+  [/perish/i, ['perish']],
+  [/partialtrap|preventsswitch/i, ['trap']],
+  [/forme|formechange|switchinforme|megarow|megasheet/i, ['species']],
+  [/leechseed|perturn/i, ['leechseed']],
+  [/sidebuff/i, ['screens', 'tailwind', 'hazards']],
+];
+/* A BLOCKING TAG. Its declared case is the effect NOT happening, and a bare "it did not happen" is
+ * true on almost every turn — so a negative credit additionally requires the precondition: a
+ * connected move that moves the same family, aimed at the carrier. */
+const BLOCKING = /^(blocks|immune|prevents|refuses|reflects|suppress|ignores|noRecoil|halves|damageReduce|removesOwnSecondaries|weatherChipImmune|typeImmunity|statusImmune|preventsCrit|preventsStatDrop|blocksMove|blocksBerries|blocksExplosion|blocksHealing|blocksSoundMoves|immuneToMoveClass|oneTurnGuard|auraBreak|weatherSuppression|ignoresScreensAndSubs|ignoresStatStages)/i;
+
+function witnessFor(sec, tag, entities) {
+  const fams = new Set(), why = [];
+  if (NO_BOARD_LEAF_TAGS.test(tag))
+    return { families: [], why: ['DECLARED: this tag changes a number inside a calculation or says '
+      + 'what KIND of move this is. It writes no leaf the board comparator reads.'],
+      blocking: false, kind: 'no-board-leaf' };
+  const add = (list, reason) => { for (const f of list) { if (BOARD_FAMILY[f]) { fams.add(f); } }
+                                  if (list.length) why.push(reason); };
+  /* the params carried by EVERY entity of this row, unioned — the tag is one mechanic and the params
+   * differ only in their values. */
+  const keys = new Set(), vals = [];
+  for (const e of entities) {
+    const row = (TAGS_OBJ[sec] || {})[e];
+    const p = row && row.params && row.params[tag];
+    if (!p || typeof p !== 'object') continue;
+    const walk = (o) => { for (const [k, v] of Object.entries(o)) {
+      keys.add(k);
+      if (typeof v === 'string') vals.push(v);
+      else if (v && typeof v === 'object') walk(v); } };
+    walk(p);
+  }
+  for (const k of keys) for (const [re, f] of PARAM_KEY_FAMILY)
+    if (re.test(k)) add(f, 'param key `' + k + '`');
+  for (const [re, f] of NAME_WORD_FAMILY) if (re.test(tag)) add(f, 'the tag name matches ' + re.source.slice(0, 28));
+  const blocking = BLOCKING.test(tag);
+  return { families: [...fams], why, blocking,
+           kind: fams.size ? (blocking ? 'negative-or-effect' : 'effect') : 'no-board-leaf' };
+}
+for (const t of COV_TARGETS) t.witness = witnessFor(t.sec, t.tag, t.entities);
+
+/* PRINTED BEFORE IT IS WIRED. A derived set that over-matches is invisible until somebody looks at
+ * what it matched; the counts are always printed and `--witness` prints every row. */
+{
+  const byKind = new Map();
+  for (const t of COV_TARGETS) byKind.set(t.witness.kind, (byKind.get(t.witness.kind) || 0) + 1);
+  console.log('\n  WHAT COUNTS AS EXERCISING A ROW — derived from each tag\'s own params, per ROADMAP #91:');
+  for (const [k, n] of [...byKind].sort((a, b) => b[1] - a[1]))
+    console.log('    ' + String(n).padStart(4) + '  ' + k
+      + (k === 'no-board-leaf' ? '   (a connected click is the only evidence available; counted APART)' : ''));
+  if (SHOW_WITNESS) for (const t of COV_TARGETS)
+    console.log('      ' + t.key.padEnd(34) + (t.witness.families.join(',') || '-').padEnd(34)
+      + t.witness.why.slice(0, 2).join('; '));
+}
+
 /* THE STEERING BLOCK THAT GOES IN THE ARTIFACT. The census OBJECT is dropped — the digest is the
  * claim, and 250 rows of it in every artifact would bury the numbers. */
 const { census: _c, ...STEER_STAMP } = STEER;
 STEER_STAMP.selects_from = COV_TARGETS.length;
 STEER_STAMP.unmeasurable = COV_UNMEASURABLE.length;
+STEER_STAMP.credit = 'observed-effect/v1 — a row is exercised when a board leaf in a family the tag\'s '
+  + 'own params name changed across the turn, or when a declared negative case was reached and did not '
+  + 'fire. A click alone counts for nothing. ROADMAP #91.';
 
 /* SAID OUT LOUD, BEFORE A GAME RUNS. A selection policy nobody can see is indistinguishable from no
  * selection policy, which is how four before/after pairs came to rest on a moving sample. */
@@ -562,8 +1055,28 @@ function baselineGuard() {
   try { prev = JSON.parse(fs.readFileSync(BASELINE, 'utf8')); }
   catch (e) { console.error('--baseline ' + BASELINE + ' cannot be read: ' + e.message); process.exit(3); }
   const cmp = STEERING.comparable(prev.steering, STEER_STAMP);
+  /* THE PIN SET IS THE OTHER HALF OF THE SELECTION, AND IT IS CHECKED HERE TOO (ROADMAP #88). Two arms
+   * pinned to different corners of the die did not play the same games, exactly as two arms steered by
+   * different censuses did not. FAILS CLOSED on an artifact that declares no pin set: every artifact
+   * written before 2026-08-07 has none, and the honest verdict for those is "nothing recorded which
+   * corner it measured", never "it measured this one". */
+  if (!prev.pins || !prev.pins.digest) {
+    cmp.ok = false;
+    cmp.reasons = (cmp.reasons || []).concat(['the baseline declares no `pins` block — it predates '
+      + 'ROADMAP #88, so nothing recorded which corner of the die it measured. Every pre-2026-08-07 '
+      + 'run is `top-tie-in-order` by construction, but it never said so and this guard will not '
+      + 'assume it.']);
+  } else if (prev.pins.digest !== PIN_DIGEST) {
+    cmp.ok = false;
+    cmp.reasons = (cmp.reasons || []).concat(['the PIN SET differs: ' + prev.pins.digest + ' ('
+      + (prev.pins.arms_run || []).join(', ') + ') vs ' + PIN_DIGEST + ' (' + ARM_IDS.join(', ')
+      + '). A different pin is a different instrument — a die pinned to max damage and a die pinned '
+      + 'to min damage answer different questions.']);
+  }
   BASELINE_CHECK = { artifact: BASELINE, baseline_release: prev.engine_release || null,
-                     baseline_steering: prev.steering || null, ok: cmp.ok, reasons: cmp.reasons };
+                     baseline_steering: prev.steering || null,
+                     baseline_pins: (prev.pins && prev.pins.digest) || null, pins: PIN_DIGEST,
+                     ok: cmp.ok, reasons: cmp.reasons };
   console.log('\n  BASELINE COMPARABILITY vs ' + BASELINE + '  (release ' + (prev.engine_release || 'UNSTAMPED') + ')');
   if (cmp.ok) {
     console.log('    COMPARABLE — same selection policy, census ' + STEER_STAMP.input_digest
@@ -807,27 +1320,146 @@ let BAN_FALLBACKS = 0;   // a config banned everything this body could click —
  * COUNTED because a silent one looks exactly like a working feature. */
 let FORCED_FIRST_SLOT = 0;
 
-/* How badly does the run still need this entity? Lower count = more wanted. A move is scored by the
- * least-exercised census mechanic it can reach, then by its own click count. */
+/* ---- THE STEERING COUNTER, WHICH IS NOW TWO COUNTERS (ROADMAP #91) -------------------------------
+ *
+ * `COV_HITS` used to be "times an entity of this row was clicked" and it decided BOTH the coverage
+ * number and the steering. A click is not a test, so it is split:
+ *
+ *   COV_CREDIT   times the row was OBSERVED TO ACT (or correctly not to, in its declared negative
+ *                case). This is the coverage number and the primary steering key.
+ *   COV_ATTEMPT  times an entity of the row was clicked or stood on the field. This is only a
+ *                TIE-BREAK, and it exists so a row that cannot be witnessed does not pin the driver
+ *                to it forever: without it, an uncreditable row scores 0 for ever, is always the most
+ *                wanted action, and the swarm stops exploring. That would be a new silent failure
+ *                introduced by the fix.
+ *
+ * The key is lexicographic — credit first, attempts second — so a row that has never been seen to do
+ * anything always outranks one that has, which is exactly the steering the old counter destroyed the
+ * moment a no-op click landed. */
+const COV_CREDIT = new Map();    // census key -> times an observed effect (or a declared non-effect)
+const COV_ATTEMPT = new Map();   // census key -> times an entity of it was clicked / stood
+const CREDIT_KIND = new Map();   // census key -> { effect, negative, click }
+const ATTEMPT_CAP = 1e6 - 1;
 const covWant = (sec, key) => {
   let worst = Infinity;
   for (const t of COV_TARGETS) if (t.sec === sec && t.entities.has(key)) {
-    const n = COV_HITS.get(t.key) || 0;
+    const n = (COV_CREDIT.get(t.key) || 0) * 1e6
+            + Math.min(ATTEMPT_CAP, COV_ATTEMPT.get(t.key) || 0);
     if (n < worst) worst = n;
   }
   return worst;
 };
-const COV_HITS = new Map();   // census key -> times an entity of it was clicked
-function creditClick(sec, key) {
-  for (const t of COV_TARGETS) if (t.sec === sec && t.entities.has(key)) COV_HITS.set(t.key, (COV_HITS.get(t.key) || 0) + 1);
-}
+const bumpCredit = (key, kind) => {
+  COV_CREDIT.set(key, (COV_CREDIT.get(key) || 0) + 1);
+  const k = CREDIT_KIND.get(key) || { effect: 0, negative: 0, click: 0 };
+  k[kind]++; CREDIT_KIND.set(key, k);
+};
 const CLICKS = new Map();
+/* Kept so the artifact can report how far the number moved when credit tightened. A row is "clicked
+ * or present" exactly as the old counter meant it. */
+const COV_TOUCHED = new Set();
+
+/* ---- CREDITING ONE TURN ------------------------------------------------------------------------
+ * Called at each turn boundary with the two boards that bracket the turn and what was in play during
+ * it. Nothing here reads the protocol: the change is read off the BOARDS, in both engines, and the
+ * union is used — a leaf that moved in either engine means the mechanic was in play, and a leaf that
+ * moved in only one is itself the strongest possible evidence that the turn exercised something. */
+const famRe = (f) => BOARD_FAMILY[f];
+const LOC = /^(p[12])\.active\[(\d+)\]\./;
+function changedFamilies(prev, cur) {
+  const out = [];
+  const push = (rows) => { for (const d of rows) {
+    const m = LOC.exec(d.path);
+    out.push({ path: d.path, family: BS.family(d.path),
+               side: m ? m[1] : (/^p[12]\./.test(d.path) ? d.path.slice(0, 2) : null),
+               slot: m ? +m[2] : null });
+  } };
+  push(BS.compare(prev.medi, cur.medi, null));
+  push(BS.compare(prev.sd, cur.sd, null));
+  return out;
+}
+/* Is this changed leaf inside the scope of an entity that was in play? Field-level and side-level
+ * leaves are always in scope; an ACTIVE leaf must be the user's slot, the target's slot, or any slot
+ * when the move hits more than one body. Abilities and items are scoped to every active slot, because
+ * Intimidate moves the FOE's Attack and a carrier-only scope would never credit it. */
+function inScope(chg, sc) {
+  if (chg.slot == null) return true;
+  if (sc.anySlot) return true;
+  return sc.slots.some(s => s.side === chg.side && s.slot === chg.slot);
+}
+let CREDIT_TURNS = 0;
+function creditTurn(play, prev, cur) {
+  if (!prev || !cur) return;
+  CREDIT_TURNS++;
+  const chgs = changedFamilies(prev, cur);
+  /* which families a CONNECTED move moved this turn, and where — the precondition a negative case
+   * needs. Built once per turn rather than per target. */
+  const connectedFams = new Map();     // family -> [{side, slot}] of the bodies aimed at
+  for (const mv of play.moves) {
+    if (!mv.connected) continue;
+    for (const t of COV_TARGETS) {
+      if (t.sec !== 'moves' || !t.entities.has(mv.id)) continue;
+      for (const f of t.witness.families) {
+        if (!connectedFams.has(f)) connectedFams.set(f, []);
+        for (const s of mv.scope.slots) connectedFams.get(f).push(s);
+      }
+    }
+  }
+  for (const t of COV_TARGETS) {
+    const w = t.witness;
+    /* who put this row in play this turn, and what board scope that gives it */
+    let scope = null, connectedClick = false;
+    const carriers = [];
+    if (t.sec === 'moves') {
+      for (const mv of play.moves) if (t.entities.has(mv.id)) {
+        scope = scope ? { anySlot: scope.anySlot || mv.scope.anySlot,
+                          slots: scope.slots.concat(mv.scope.slots) } : mv.scope;
+        if (mv.connected) connectedClick = true;
+      }
+    } else {
+      for (const b of play.bodies) if (t.entities.has(t.sec === 'items' ? b.item : b.ability)) carriers.push(b);
+      if (carriers.length) scope = { anySlot: true, slots: carriers };
+    }
+    if (!scope) continue;
+    /* THE ATTEMPT IS RECORDED HERE AND NOWHERE ELSE. It used to be bumped inside `chooseAction`,
+     * which the SCRIPTED scenarios never call — so a staged game recorded a credit of 0 AND an
+     * attempt of 0, and "clicked and did nothing" was indistinguishable from "never in play". That
+     * distinction is the whole content of this rule, and the red demonstration caught it. */
+    COV_TOUCHED.add(t.key);
+    COV_ATTEMPT.set(t.key, (COV_ATTEMPT.get(t.key) || 0) + 1);
+    if (w.kind === 'no-board-leaf') {
+      /* THE WEAK CLASS, AND IT IS COUNTED APART. `contact`, `sound`, `priority`, `moveClass`, a damage
+       * multiplier — none of them moves a board leaf, so a connected click is the strongest evidence
+       * this instrument can produce and pretending otherwise would be the opposite over-claim. */
+      if (t.sec === 'moves' ? connectedClick : play.moves.some(m => m.connected))
+        bumpCredit(t.key, 'click');
+      continue;
+    }
+    const hit = chgs.some(c => w.families.some(f => famRe(f).test(c.family)) && inScope(c, scope));
+    if (hit) { bumpCredit(t.key, 'effect'); continue; }
+    /* THE DECLARED NEGATIVE CASE. A blocking tag whose carrier stood there while a connected move
+     * that moves exactly this family was aimed at it, and the family did not move on that body. */
+    if (w.blocking && t.sec !== 'moves' && carriers.length) {
+      const reached = w.families.some(f => {
+        const aimed = connectedFams.get(f);
+        if (!aimed || !aimed.length) return false;
+        return carriers.some(b => aimed.some(s => s.side === b.side && s.slot === b.slot));
+      });
+      if (reached) bumpCredit(t.key, 'negative');
+    }
+  }
+}
 
 /* ---- ONE GAME ------------------------------------------------------------------------------------ */
 const SLOTCH = ['a', 'b'];
 
 function playGame(pairA, pairB, cfgId, seedTag, opts) {
   opts = opts || {};
+  /* THE ARM IS A PARAMETER OF THE GAME, NOT OF THE MODULE (ROADMAP #88). Defaulted to the primary so
+   * every existing caller — the planted proofs, the directed scenarios, the Knock Off halves — keeps
+   * running under exactly the pin it was written against. */
+  const ARM = opts.arm || PRIMARY_ARM;
+  const armRng = ARM.mediRng();          // a FRESH sequence per game; see makeArm
   const axis = DRIVER_AXES[cfgId] || {};
   const trace = [];
   /* FRESH BODIES EVERY GAME. `battleInit` takes the team BY REFERENCE and the battle then damages it,
@@ -872,8 +1504,12 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
       const full = p.hp === p.maxhp; p.maxhp = st.hp; p.baseMaxhp = st.hp; if (full) p.hp = st.hp;
     }
   }
-  battle.prng.random = pinRandom;
-  battle.prng.randomChance = PIN_CHANCE;
+  battle.prng.random = ARM.random;
+  battle.prng.randomChance = ARM.chance;
+  /* THE SPEED-TIE RESOLVER IS REPLACED AS A FUNCTION, not steered through `random(m,n)` — that form is
+   * also the sleep duration, a multi-hit count and a queue insertion index, and moving it would have
+   * made the tie arm differ from the baseline in four ways at once. See the pin header. */
+  battle.prng.shuffle = ARM.shuffle;
   if (battle.requestState === 'teampreview') { battle.choose('p1', 'team 1234'); battle.choose('p2', 'team 1234'); }
 
   const bodiesSeen = [];
@@ -899,15 +1535,22 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
    * the way a median is. Each record carries the LOCATED diffs — slot, body, field, both values and a
    * magnitude bucket — because "the boards differ" is the boolean this pass exists to replace. */
   const earlyBoards = [];
-  const stateCheck = (turnIdx) => {
-    if (!STATE) return null;
+  /* THE BOARD THAT BRACKETS THE TURN, KEPT WHETHER OR NOT `--state` WAS ASKED FOR (ROADMAP #91). The
+   * credit rule needs the two boards either side of a turn to say whether a mechanic did anything, and
+   * the census steers EVERY run, not only the state ones — so a run without `--state` must credit the
+   * same way or the two would select different samples while claiming one policy. */
+  let prevSnap = null;
+  const stateCheck = (turnIdx, play) => {
     /* `opts.statePlant` corrupts the MEDICHAM board and only the medicham board, at one named
      * boundary. It is undefined on every real run and exists for the red demonstration: a comparator
      * that has never been shown catching a planted STATE bug is not a comparator. It is applied to the
      * LIVE ENGINE STATE rather than to the snapshot, so the plant travels through the reader — a plant
      * applied to the output would prove only that `compare` can subtract. */
-    if (opts.statePlant) opts.statePlant(S, battle, turnIdx);
+    if (STATE && opts.statePlant) opts.statePlant(S, battle, turnIdx);
     const snap = BS.snapshot(S, battle, BS_CTX);
+    if (play) creditTurn(play, prevSnap, snap);
+    prevSnap = snap;
+    if (!STATE) return null;
     /* A TEST HOOK, and the only one. `tests/test-state-differential.js` has to observe boundaries the
      * driver does not keep — every board, not just the first divergent one — and the alternative was a
      * second copy of the build/init/choose harness inside the test, which is how two files come to
@@ -1007,6 +1650,16 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
         const side = sd === 'p1' ? battle.p1 : battle.p2;
         const req = side.activeRequest;
         if (!req || !req.active) { chosen[sd] = null; continue; }
+        /* TWO SLOTS ON ONE SIDE MAY NOT SWITCH TO THE SAME BODY. `chooseAction` scores each slot
+         * independently and the least-clicked bench member is the least-clicked one for BOTH of them,
+         * so it produced `switch 4, switch 4` — which Showdown rejects outright ("The Pokémon in slot
+         * 4 can only switch in once") and the whole game was thrown away.
+         *
+         * IT IS NOT A NEW BUG AND THE ARMS ARE WHAT MADE IT VISIBLE. It threw 1 game in 51 under the
+         * old single pin and 19 in 51 under `bottom-tie-in-order`, because that arm's games last
+         * longer and reach more forced switches — a defect the old instrument was too short-lived to
+         * meet. Fixed here rather than filed, because this file owns the driver. */
+        const claimed = new Set();
         req.active.forEach((act, i) => {
           const p = side.active[i];
           if (!p || p.fainted || !act) { chosen[sd].push({ pass: true }); return; }
@@ -1014,7 +1667,9 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
            * never reaches the fringe, and the two findings this harness was built to reproduce
            * (order within a hit; the damage interior) are staged rather than stumbled into. */
           if (opts.script) { chosen[sd].push(scripted(opts.script, t, sd, i, act, side)); return; }
-          chosen[sd].push(chooseAction(battle, side, i, act, axis));
+          const a = chooseAction(battle, side, i, act, axis, claimed);
+          if (a && a.switchTo != null) claimed.add(a.switchTo);
+          chosen[sd].push(a);
         });
       }
       if (!chosen.p1 || !chosen.p2) break;
@@ -1052,6 +1707,31 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
       if (STATE && t < EARLY_BOUNDARIES) earlyClicks[t + 1] = { p1: describeClicks('p1', chosen.p1),
                                                                 p2: describeClicks('p2', chosen.p2) };
 
+      /* WHAT IS IN PLAY THIS TURN, RECORDED BEFORE EITHER ENGINE RESOLVES IT (ROADMAP #91). The bodies
+       * are the ones STANDING when the choice was made, and the abilities and items are the ones they
+       * ACTUALLY HELD — read off the live medicham bodies, never off the sheet, per §3.1. */
+      const playMark = trace.length;
+      const play = { moves: [], bodies: [] };
+      for (const [sdk, acts, own] of [['p1', chosen.p1, S.actA], ['p2', chosen.p2, S.actB]]) {
+        const foeSide = sdk === 'p1' ? 'p2' : 'p1';
+        own.forEach((mon, i) => {
+          if (!mon) return;
+          play.bodies.push({ side: sdk, slot: i, ability: id(mon.ability || ''), item: id(mon.item || '') });
+          const a = acts && acts[i];
+          if (!a || a.pass || a.switchTo != null || !a.move) return;
+          /* THE SCOPE A CREDIT IS ALLOWED TO LOOK IN: the user's slot and the target's slot, plus every
+           * field- and side-level leaf. A move that hits more than one body is widened to every slot,
+           * read from its own tags rather than from a list of move names. */
+          const tg = (TAGS_OBJ.moves && TAGS_OBJ.moves[id(a.move)] && TAGS_OBJ.moves[id(a.move)].tags) || [];
+          const anySlot = tg.indexOf('spreadAll') >= 0 || tg.indexOf('spreadFoes') >= 0
+                       || tg.indexOf('clearsBoosts') >= 0 || tg.indexOf('perishClock') >= 0;
+          const slots = [{ side: sdk, slot: i }];
+          if (a.foeSlot != null) slots.push({ side: foeSide, slot: a.foeSlot });
+          play.moves.push({ id: id(a.move), side: sdk, slot: i, connected: false,
+                            scope: { anySlot, slots } });
+        });
+      }
+
       /* --- medicham2 --- */
       const mk = (own, foes, bench, acts) => {
         const map = new Map();
@@ -1073,7 +1753,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
         });
         return map;
       };
-      M.battleTurn(S, mediRng, mk(S.actA, S.actB, S.benchA, chosen.p1), mk(S.actB, S.actA, S.benchB, chosen.p2));
+      M.battleTurn(S, armRng, mk(S.actA, S.actB, S.benchA, chosen.p1), mk(S.actB, S.actA, S.benchB, chosen.p2));
 
       /* --- showdown --- */
       const str = (sd, acts) => {
@@ -1121,7 +1801,28 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
        * Guarded rather than argued. */
       const pd = alignAndCheck();
       if (!firstDiv && pd) { firstDiv = pd; divTurn = t + 1; }
-      stateCheck(t + 1);
+      /* DID THE CLICK CONNECT? Read off the stream this turn produced, the same `-miss` lookahead
+       * `harvest` uses. A move that missed exercised the MISS PATH and nothing else, and crediting it
+       * for its effect would be the click-credit bug wearing a different hat. */
+      {
+        const seg = trace.slice(playMark);
+        for (let k = 0; k < seg.length; k++) {
+          const p = String(seg[k]).split('|');
+          if (p[1] !== 'move') continue;
+          let missed = false;
+          for (let j = k + 1; j < Math.min(k + 4, seg.length); j++) {
+            const q = String(seg[j]).split('|');
+            if (q[1] === 'move') break;
+            if (q[1] === '-miss' && q[2] === p[2]) { missed = true; break; }
+          }
+          if (missed) continue;
+          const who = String(p[2] || '').slice(0, 3);   // `p1a` / `p2b`
+          const mv = play.moves.find(x => x.id === id(p[3]) && x.side === who.slice(0, 2)
+                                          && x.slot === (who[2] === 'b' ? 1 : 0));
+          if (mv) mv.connected = true;
+        }
+      }
+      stateCheck(t + 1, play);
     }
   } catch (e) { err = String((e && e.message) || e).slice(0, 160); }
 
@@ -1136,7 +1837,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
   const megaMedi = trace.filter(l => /^\|-mega\|/.test(String(l)));
   const megaSd = battle.log.filter(l => /^\|-mega\|/.test(String(l)));
   const capable = [pairA, pairB].filter(p => p.some(x => isStone(x.spec.item))).length;
-  return { config: cfgId, seed: seedTag, turns, lines: trace.length, err, div: firstDiv, mediTrace: trace,
+  return { config: cfgId, seed: seedTag, arm: ARM.id, turns, lines: trace.length, err, div: firstDiv, mediTrace: trace,
            /* THE STATE RESULT, beside the protocol one so the two can be read against each other on the
             * same game rather than across two runs. `stateDiv === null` with `boundaries > 1` is a game
             * whose boards never parted. */
@@ -1162,12 +1863,34 @@ function scripted(script, turn, sd, i, act, side) {
   if (tt === 'normal' || tt === 'any' || tt === 'adjacentFoe') target = (want.t == null ? 0 : want.t) + 1;
   else if (tt === 'adjacentAlly') target = -((i === 0 ? 1 : 0) + 1);
   else if (tt === 'adjacentAllyOrSelf') target = -(i + 1);
-  return { move: dm.id, slot: k + 1, target, foeSlot: target != null && target > 0 ? target - 1 : null };
+  /* A SCRIPT MAY ASK TO MEGA EVOLVE, and until 2026-08-07 it could not — the auto-mega block below
+   * skipped every scripted game wholesale, so eleven mega rows of the census were unreachable by any
+   * staged scenario and Fairy Aura had to be found in random play instead.
+   *
+   * THE SKIP ITSELF WAS RIGHT and is kept: a staged scenario is a controlled experiment, and a driver
+   * that spontaneously megas would move the board out from under the author. What was missing is the
+   * OPT-IN. `{ m: 'moonblast', t: 0, mega: true }` now asks, and the request answers.
+   *
+   * LEGALITY STILL COMES FROM SHOWDOWN'S OWN REQUEST — `act.canMegaEvo`, the same field the auto
+   * policy reads — because a driver that decided for itself would be a second copy of the rule. And a
+   * REFUSED ask is COUNTED rather than dropped: silently ignoring `mega: true` would hand back a green
+   * scenario that never tested the thing it was written for, which is this project's signature
+   * failure. The counter is asserted by the scenario file, not merely printed. */
+  let mega = false;
+  if (want.mega) {
+    if (act.canMegaEvo) mega = true;
+    else scriptMegaRefused++;
+  }
+  return { move: dm.id, slot: k + 1, target, mega,
+           foeSlot: target != null && target > 0 ? target - 1 : null };
 }
+/* Asks to mega that Showdown's request refused. MUST read 0 in any run whose scenarios ask for one. */
+let scriptMegaRefused = 0;
 
 /* Pick ONE action for one active slot. Legal actions come from Showdown's request; the choice among
  * them is the coverage rule. */
-function chooseAction(battle, side, i, act, axis) {
+function chooseAction(battle, side, i, act, axis, claimed) {
+  claimed = claimed || new Set();
   const p = side.active[i];
   const foes = (side.foe && side.foe.active) || [];
   const cands = [];
@@ -1207,10 +1930,15 @@ function chooseAction(battle, side, i, act, axis) {
                  prefer: axis.prefer && axis.prefer.has(dm.id) ? 1 : 0,
                  clicks: CLICKS.get(dm.id) || 0 });
   });
-  /* switching is a legal action too, and it is the largest single source of NEW entities */
-  if (!act.trapped) {
+  /* switching is a legal action too, and it is the largest single source of NEW entities.
+   * `maybeTrapped` counts as trapped: Showdown sets it when the switch MIGHT be refused, and offering
+   * one it then rejects throws the whole game away — a position the game cannot reach, which is the
+   * same argument the move-legality block above makes. `claimed` holds what this side's OTHER slot has
+   * already taken; nobody may switch in twice. */
+  if (!act.trapped && !act.maybeTrapped) {
     side.pokemon.forEach(q => {
       if (q.isActive || q.fainted) return;
+      if (claimed.has(id(q.species.id))) return;
       cands.push({ switchTo: id(q.species.id), want: 1e6, prefer: 0, banned: false,
                    clicks: (CLICKS.get('switch:' + id(q.species.id)) || 0) * 6 });
     });
@@ -1238,7 +1966,11 @@ function chooseAction(battle, side, i, act, axis) {
   pool.sort((a, b) => (b.prefer - a.prefer) || (a.want - b.want) || (a.clicks - b.clicks)
                    || String(a.move || a.switchTo).localeCompare(String(b.move || b.switchTo)));
   const pick = pool[0];
-  if (pick.move) { CLICKS.set(pick.move, (CLICKS.get(pick.move) || 0) + 1); creditClick('moves', pick.move); }
+  /* THE CENSUS ROW IS NOT TOUCHED HERE ANY MORE (ROADMAP #91). This used to call `creditClick`, which
+   * marked the row exercised on the strength of the click alone. Both the credit AND the attempt are
+   * now recorded at the turn boundary by `creditTurn`, where the board is — and where a SCRIPTED game,
+   * which never reaches this function, is counted too. */
+  if (pick.move) CLICKS.set(pick.move, (CLICKS.get(pick.move) || 0) + 1);
   else CLICKS.set('switch:' + pick.switchTo, (CLICKS.get('switch:' + pick.switchTo) || 0) + 1);
   return pick;
 }
@@ -1333,11 +2065,22 @@ function plantsFor(k) {
  * one team pair deliberately clicks something else. That is right for the swarm and fatal for a
  * proof — the FIELD plant reported NOT CAUGHT because the planted arm was a different game that
  * happened not to part where the clean one did. Frozen and restored around each arm. */
+/* THE DRIVER'S WHOLE STATE, IN ONE PLACE. It grew a second map when credit split from attempts
+ * (ROADMAP #91), and a snapshot that restored one and not the other would silently unfreeze the
+ * steering — which is the exact bug this function exists to prevent, one layer down. */
+function driverSnap() { return { c: new Map(CLICKS), cr: new Map(COV_CREDIT), at: new Map(COV_ATTEMPT),
+                                 kd: new Map(CREDIT_KIND), tc: new Set(COV_TOUCHED) }; }
+function driverRestore(s) {
+  const put = (m, v) => { m.clear(); for (const [k, x] of v) m.set(k, x); };
+  put(CLICKS, s.c); put(COV_CREDIT, s.cr); put(COV_ATTEMPT, s.at); put(CREDIT_KIND, s.kd);
+  COV_TOUCHED.clear(); for (const k of s.tc) COV_TOUCHED.add(k);
+}
+function driverReset() { driverRestore({ c: new Map(), cr: new Map(), at: new Map(),
+                                         kd: new Map(), tc: new Set() }); }
 function withFrozenDriver(fn) {
-  const c = new Map(CLICKS), h = new Map(COV_HITS);
+  const s = driverSnap();
   try { return fn(); }
-  finally { CLICKS.clear(); for (const [k, v] of c) CLICKS.set(k, v);
-            COV_HITS.clear(); for (const [k, v] of h) COV_HITS.set(k, v); }
+  finally { driverRestore(s); }
 }
 function plantedProof(pairA, pairB) {
   const clean = withFrozenDriver(() => playGame(pairA, pairB, 'baseline', 'proof/clean'));
@@ -1382,17 +2125,34 @@ function plantedProof(pairA, pairB) {
  * defensive about. */
 const bumpVol = (m, k, v) => { if (!m) return false; (m._vol = m._vol || {})[k] = v; return true; };
 const volOf = (m, k) => ((m && m._vol && m._vol[k]) || 0);
+/* A PLANT MUST NOT BE ABLE TO BE INVISIBLE, and three of them were.
+ *
+ * `board_state.js` reads a dead body's status as `fnt` WHATEVER its status field says — that is the
+ * `fainted-is-not-a-status` mapping, and it is right. So writing `brn` onto a corpse changes no
+ * compared leaf, the plant is applied, nothing is caught at that boundary, and the proof reports
+ * "caught at boundary 7, planted at 6" — which reads as a comparator that cannot localise and was a
+ * plant aimed at a body that could not show it. The same is true of HP: `Math.max(0, curHP - 1)` on a
+ * body already at 0 is a no-op.
+ *
+ * `living` picks a body that can actually carry the plant and returns null when there is none, so the
+ * plant reports NOT APPLIED — loudly failing — rather than silently landing on a corpse. Found by
+ * tests/test-state-differential.js going red on 2026-08-07 after the sample moved under it. */
+const living = (list, from) => {
+  for (let i = from || 0; i < list.length; i++) if (list[i] && !list[i].fainted && list[i].curHP > 0) return list[i];
+  for (let i = 0; i < (from || 0); i++) if (list[i] && !list[i].fainted && list[i].curHP > 0) return list[i];
+  return null;
+};
 const STATE_PLANTS = [
-  ['HP off by one on an active body', 'active[0].hp',
-   S => !!S.actA[0] && ((S.actA[0].curHP = Math.max(0, S.actA[0].curHP - 1)), true)],
-  ['a stat stage off by one', 'active[0].boosts.atk',
+  ['HP off by one on an active body', 'active',
+   S => { const m = living(S.actA); return !!m && ((m.curHP = Math.max(0, m.curHP - 1)), true); }],
+  ['a stat stage off by one', 'boosts.atk',
    S => !!S.actA[0] && ((S.actA[0].boosts.at += 1), true)],
-  ['a status that is not there', 'active[0].status',
-   S => !!S.actB[0] && ((S.actB[0].status = S.actB[0].status === 'brn' ? 'par' : 'brn'), true)],
-  ['the TOXIC stage off by one', 'active[0].status_counter',
-   S => !!S.actB[0] && ((S.actB[0].status = 'tox'), (S.actB[0].toxTurns = (S.actB[0].toxTurns || 0) + 3), true)],
-  ['the SLEEP counter off by one', 'active[1].status_counter',
-   S => !!S.actB[1] && ((S.actB[1].status = 'slp'), (S.actB[1].slpTurns = (S.actB[1].slpTurns || 0) + 2), true)],
+  ['a status that is not there', 'status',
+   S => { const m = living(S.actB); return !!m && ((m.status = m.status === 'brn' ? 'par' : 'brn'), true); }],
+  ['the TOXIC stage off by one', 'status_counter',
+   S => { const m = living(S.actB); return !!m && ((m.status = 'tox'), (m.toxTurns = (m.toxTurns || 0) + 3), true); }],
+  ['the SLEEP counter off by one', 'status_counter',
+   S => { const m = living(S.actB, 1); return !!m && ((m.status = 'slp'), (m.slpTurns = (m.slpTurns || 0) + 2), true); }],
   ['an item that is not held', 'active[1].item',
    S => !!S.actA[1] && ((S.actA[1].item = S.actA[1].item ? '' : 'leftovers'), true)],
   ['a body marked fainted that is not', 'active[1].fainted',
@@ -1412,7 +2172,13 @@ const STATE_PLANTS = [
   /* WRITTEN INTO WHICHEVER SHAPE THE FROZEN ENGINE HAS. Pre-WIRE-8 releases hold two category
    * counters and later ones hold named conditions; a plant that only knew one shape would be a
    * no-op on five of the thirteen releases and would report as caught-by-the-game. */
-  ['a SCREEN counter off by one', 'screens.physical',
+  /* THE EXPECTED FIELD IS `screens.` AND NOT `screens.physical`, and that is a correction rather than
+   * a loosening. `physical` is the MAX over the physical-side screens, so with an Aurora Veil already
+   * up at 5 turns a Reflect moved from 0 to 1 leaves the projection at 5 and moves only
+   * `screens.named.reflect` — which board_state.js documents as the one lossy place in the projection
+   * and is exactly why the named block is compared as well. Localising to `screens.named.reflect` is
+   * the comparator working; demanding `screens.physical` was the assertion assuming the lossy half. */
+  ['a SCREEN counter off by one', 'screens.',
    S => { if (S.sfA.sc) S.sfA.sc.reflect = (S.sfA.sc.reflect || 0) + 1;
           else S.sfA.scrP = (S.sfA.scrP || 0) + 1; return true; }],
   ['a HAZARD layer off by one', 'hazards.spikes',
@@ -1857,7 +2623,15 @@ module.exports = { playGame, buildPair, classify, pinRandom, PIN_CHANCE, sdStrea
                    plantedProof, pairsFor, COV_TARGETS, COV_UNMEASURABLE, PIN_CLAIMS, REL, SW,
                    runDirected, damageInterior, DIRECTED, EQUIV, equivProof, semantic, reduce, NORM_COUNTS,
                    knockOffArms, KO_TARGET_ITEMS,
-                   plantedStateProof, STATE_PLANTS, BS_CTX, BS };
+                   plantedStateProof, STATE_PLANTS, BS_CTX, BS,
+                   /* ROADMAP #88 — the arms, so a test can play the SAME game under two pins and
+                    * compare, rather than assert that the pin table looks right. */
+                   ARMS, ARM_BY_ID, PRIMARY_ARM, PIN_CLAIMS_BY_ARM, PINS, PIN_DIGEST, MODE,
+                   /* ROADMAP #91 — the credit layer, so a test can stage Haze into an empty board and
+                    * into a boosted one and read the two credits. */
+                   witnessFor, creditTurn, COV_CREDIT, COV_ATTEMPT, CREDIT_KIND, COV_TOUCHED,
+                   driverSnap, driverRestore, driverReset, covWant, CREDIT_POLICY,
+                   BOARD_FAMILY, changedFamilies };
 
 if (require.main !== module) return;
 
@@ -1925,48 +2699,80 @@ if (STATE) {
   }
 }
 
-const results = [];      // the MEASURED arm — stones kept
-const control = [];      // the PAIRED CONTROL — the same pair with the stones removed
+let results = [];        // the MEASURED arm of the PRIMARY pin — stones kept
+let control = [];        // the PAIRED CONTROL — the same pair with the stones removed
 /* A pair carrying no stone produces two identical games; when it does not, the harness is not paired
  * and the two rates below are not comparable. Counted, printed, must read 0. */
 let PAIRING_BROKEN = 0;
+/* ROADMAP #88 — ONE ENTRY PER PINNED ARM, AND THEY ARE NEVER POOLED. "The boards agree at max damage"
+ * and "the boards agree at min damage" are different claims about different games; adding them up
+ * would produce a number that describes neither. */
+const ARM_RUNS = [];
 const t0 = Date.now();
 if (!has('--proof')) {
   const live = SW.out.filter(c => !ONLY || c.config === ONLY);
   const perConfig = Math.max(1, Math.floor(GAMES / live.length));
-  /* THE DRIVER IS STATEFUL ON PURPOSE (`CLICKS`, `COV_HITS` carry across games so the swarm keeps
-   * reaching new mechanics), which is fatal for a PAIRED comparison — the second arm of a pair would
-   * deliberately click something else and stop being the same game. Frozen across the two arms and
-   * released afterwards, exactly as withFrozenDriver does for the planted proof. */
-  const snap = () => ({ c: new Map(CLICKS), h: new Map(COV_HITS) });
-  const restore = (s) => { CLICKS.clear(); for (const [k, v] of s.c) CLICKS.set(k, v);
-                           COV_HITS.clear(); for (const [k, v] of s.h) COV_HITS.set(k, v); };
-  for (const cfg of live) {
-    let made = 0;
-    for (const pr of pairsFor(cfg.config)) {
-      if (made >= perConfig) break;
-      const s0 = snap();
-      const c = playGame(pr.aN, pr.bN, cfg.config, pr.tag + ' [stones removed]');
-      restore(s0);
-      const r = playGame(pr.a, pr.b, cfg.config, pr.tag);
-      r.stones = pr.stones; c.stones = 0;
-      if (!pr.stones) {
-        const same = (!!r.div === !!c.div) && (!r.div || r.div.index === c.div.index) && r.turns === c.turns;
-        if (!same) PAIRING_BROKEN++;
+  for (const arm of ARMS_RUN) {
+    /* EVERY ARM STARTS FROM THE SAME DRIVER STATE, or it is not the same experiment. The driver is
+     * stateful on purpose (`CLICKS`, the credit maps) so the swarm keeps reaching new mechanics; left
+     * to carry over, arm 2 would deliberately click something else and the four arms would be four
+     * different runs rather than one run under four pins. */
+    driverReset();
+    const armResults = [], armControl = [];
+    const isPrimary = arm.id === PRIMARY_ARM.id;
+    for (const cfg of live) {
+      let made = 0;
+      for (const pr of pairsFor(cfg.config)) {
+        if (made >= perConfig) break;
+        /* THE STONE CONTROL RUNS UNDER THE PRIMARY PIN ONLY. It is a paired measurement that DOUBLES
+         * the games, and four arms times two would be eight runs of the swarm to answer a question
+         * that is about stones and not about dice. Declared rather than quietly dropped. */
+        let c = null;
+        if (isPrimary) {
+          const s0 = driverSnap();
+          c = playGame(pr.aN, pr.bN, cfg.config, pr.tag + ' [stones removed]', { arm });
+          driverRestore(s0);
+        }
+        const r = playGame(pr.a, pr.b, cfg.config, pr.tag, { arm });
+        r.stones = pr.stones;
+        if (c) {
+          c.stones = 0;
+          if (!pr.stones) {
+            const same = (!!r.div === !!c.div) && (!r.div || r.div.index === c.div.index) && r.turns === c.turns;
+            if (!same) PAIRING_BROKEN++;
+          }
+          armControl.push(c);
+        }
+        armResults.push(r); made++;
+        /* SUMMED OVER THE PRIMARY MEASURED ARM ONLY, and that is not fussiness. `playGame` is also
+         * called by the planted-divergence proof (four extra games on the baseline pair) and by the
+         * directed scenarios, so a module-level counter incremented inside it would count offers from
+         * games whose EVOLUTIONS are not in `results` — and the report would then show 44 choices
+         * against 40 evolutions and look like a lost choice. It did, on the first run of this. */
+        if (isPrimary) {
+          MEGA_CHOICES += r.megaChoices;
+          MEGA_MEDI += r.megaMedi; MEGA_SD += r.megaSd;
+          MEGA_SIDES_CAPABLE += r.megaCapableSides; MEGA_SIDES_EVOLVED += r.megaSidesEvolved;
+          MEGA_SLOT_A += r.megaSlotA; MEGA_SLOT_B += r.megaSlotB;
+        }
+        if (VERBOSE) console.log('   ' + arm.id.padEnd(22) + cfg.config.padEnd(24) + (r.err ? 'THREW ' + r.err
+          : r.div ? 'DIVERGES at line ' + r.div.index + '  ' + classify(r.div).cls : 'agrees, ' + r.turns + ' turns'));
       }
-      results.push(r); control.push(c); made++;
-      /* SUMMED OVER THE MEASURED ARM ONLY, and that is not fussiness. `playGame` is also called by
-       * the planted-divergence proof (four extra games on the baseline pair) and by the directed
-       * scenarios, so a module-level counter incremented inside it would count offers from games
-       * whose EVOLUTIONS are not in `results` — and the report would then show 44 choices against 40
-       * evolutions and look like a lost choice. It did, on the first run of this. */
-      MEGA_CHOICES += r.megaChoices;
-      MEGA_MEDI += r.megaMedi; MEGA_SD += r.megaSd;
-      MEGA_SIDES_CAPABLE += r.megaCapableSides; MEGA_SIDES_EVOLVED += r.megaSidesEvolved;
-      MEGA_SLOT_A += r.megaSlotA; MEGA_SLOT_B += r.megaSlotB;
-      if (VERBOSE) console.log('   ' + cfg.config.padEnd(24) + (r.err ? 'THREW ' + r.err
-        : r.div ? 'DIVERGES at line ' + r.div.index + '  ' + classify(r.div).cls : 'agrees, ' + r.turns + ' turns'));
     }
+    ARM_RUNS.push({ arm, results: armResults, control: armControl,
+                    credit: new Map(COV_CREDIT), kinds: new Map(CREDIT_KIND),
+                    touched: new Set(COV_TOUCHED) });
+    if (isPrimary) { results = armResults; control = armControl; }
+  }
+  /* THE CREDIT MAPS AFTER THE LAST ARM ARE THAT ARM'S, NOT THE RUN'S. The coverage report is a claim
+   * about what the WHOLE run exercised, so the union is rebuilt here rather than read off whichever
+   * arm happened to finish last — which would have been a silent, plausible, wrong number. */
+  driverReset();
+  for (const a of ARM_RUNS) {
+    for (const [k, v] of a.credit) COV_CREDIT.set(k, (COV_CREDIT.get(k) || 0) + v);
+    for (const [k, v] of a.kinds) { const e = CREDIT_KIND.get(k) || { effect: 0, negative: 0, click: 0 };
+      e.effect += v.effect; e.negative += v.negative; e.click += v.click; CREDIT_KIND.set(k, e); }
+    for (const k of a.touched) COV_TOUCHED.add(k);
   }
 }
 const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
@@ -2009,17 +2815,63 @@ const covStrong = COV_TARGETS.filter(t => t.sec === 'moves' && reach(t));
 const covWeak = COV_TARGETS.filter(t => t.sec !== 'moves' && reach(t));
 const covered = COV_TARGETS.filter(reach);
 const uncovered = COV_TARGETS.filter(t => !reach(t));
+/* ---- THE COVERAGE NUMBER AFTER CREDIT TIGHTENED (ROADMAP #91) -----------------------------------
+ * `covered` above is the OLD number, kept and printed: "an entity of this row connected, or stood on
+ * the field". It is the number that said Haze was covered because Primarina clicked it into a board
+ * with no boosts on it. Below it is the new one — the row was seen to DO something — and it is
+ * SMALLER. The old number was wrong; the drop is the fix working. */
+const kindOf = k => CREDIT_KIND.get(k) || { effect: 0, negative: 0, click: 0 };
+const credited = COV_TARGETS.filter(t => (COV_CREDIT.get(t.key) || 0) > 0);
+const creditedByEffect = COV_TARGETS.filter(t => kindOf(t.key).effect > 0 || kindOf(t.key).negative > 0);
+const creditedByClickOnly = COV_TARGETS.filter(t => kindOf(t.key).click > 0
+  && !(kindOf(t.key).effect > 0 || kindOf(t.key).negative > 0));
+const witnessable = COV_TARGETS.filter(t => t.witness.kind !== 'no-board-leaf');
+const noBoardLeaf = COV_TARGETS.filter(t => t.witness.kind === 'no-board-leaf');
+const touchedNotCredited = COV_TARGETS.filter(t => COV_TOUCHED.has(t.key) && !(COV_CREDIT.get(t.key) > 0));
 const TURNS = results.map(r => r.turns).sort((a, b) => a - b);
 const medianTurns = TURNS.length ? TURNS[Math.floor(TURNS.length / 2)] : 0;
 
 console.log('\nWHOLE-GAME DIFFERENTIAL — MODE A (pinned, tolerance zero)   ' + REL.id);
-console.log('  ' + results.length + ' games, ' + elapsed + 's, showdown ' + (CS.actualCommit() || 'UNKNOWN').slice(0, 12));
+console.log('  ' + results.length + ' games in the primary arm, ' + ARM_RUNS.length + ' arm(s), '
+  + elapsed + 's, showdown ' + (CS.actualCommit() || 'UNKNOWN').slice(0, 12));
 console.log('  tags.json in the release matches the live tree: ' + (TAGS_MATCH ? 'yes' : 'NO — the coverage sets and the engine were frozen from different bytes'));
 console.log('');
-console.log('  THE PIN — every claim below was asserted before a game ran:');
-for (const [w] of PIN_CLAIMS) console.log('    ok  ' + w);
+console.log('  *** THE BASELINE RESET ON 2026-08-07 AND NOTHING BEFORE IT IS COMPARABLE WITH THIS RUN.');
+console.log('  *** ROADMAP #88 gave this instrument FOUR pinned arms where it had one, and #91 moved');
+console.log('  *** coverage credit from the CLICK to the OBSERVED EFFECT. Both change which games get');
+console.log('  *** played. The 75.5% turn-1 figure and data/state-ladder.json describe the OLD');
+console.log('  *** instrument. mode = ' + MODE);
 console.log('');
-console.log('  DIVERGED: ' + diverged.length + ' of ' + results.length + ' games'
+console.log('  THE PIN — every claim below was asserted before a game ran, PER ARM:');
+for (const a of ARMS_RUN) {
+  console.log('    ' + a.id + '   ' + a.what);
+  for (const [w] of PIN_CLAIMS_BY_ARM.get(a.id)) console.log('      ok  ' + w.slice(a.id.length + 2));
+}
+console.log('');
+/* ---- PER ARM, NEVER POOLED --------------------------------------------------------------------- */
+console.log('  THE ARMS. Four pins, the same teams, the same driver state at the start of each — so a');
+console.log('  difference between two rows is the DIE and nothing else. These are NOT averaged: "the');
+console.log('  boards agree at max damage" and "the boards agree at min damage" are different claims.');
+console.log('     games  diverged  threw   median turns   turn-1 board   arm');
+for (const a of ARM_RUNS) {
+  const dv = a.results.filter(r => r.div).length, th = a.results.filter(r => r.err).length;
+  const tt = a.results.map(r => r.turns).sort((x, y) => x - y);
+  /* THE TURN-1 BOARD PER ARM, because that is the headline number and pooling it across four
+   * differently-pinned samples would describe none of them. `--` when the run was not asked for
+   * `--state`, which is a different claim from 0. */
+  const t1r = a.results.filter(r => (r.earlyBoards || [])[1]);
+  const t1ok = t1r.filter(r => r.earlyBoards[1].identical).length;
+  console.log('    ' + String(a.results.length).padStart(5) + '  ' + String(dv).padStart(8) + '  '
+    + String(th).padStart(5) + '   ' + String(tt.length ? tt[Math.floor(tt.length / 2)] : 0).padStart(12)
+    + '   ' + (STATE ? (t1ok + '/' + t1r.length).padStart(12) : '          --')
+    + '   ' + a.arm.id);
+}
+console.log('    THE SPEED TIE COST, read straight off the first two rows: they differ only in which');
+console.log('    body medicham2 gives a tie to. ' + SHUFFLE_TIE_GROUPS + ' tied groups were resolved in '
+  + 'this run (sizes ' + [...SHUFFLE_GROUP_SIZES].sort((a, b) => a[0] - b[0]).map(([n, c]) => n + 'x' + c).join(', ') + ').');
+if (!SHUFFLE_TIE_GROUPS) console.log('    ZERO TIED GROUPS — the tie arms tested NOTHING and would look exactly like arms that did.');
+console.log('');
+console.log('  DIVERGED (primary arm ' + PRIMARY_ARM.id + '): ' + diverged.length + ' of ' + results.length + ' games'
   + (threw.length ? '   (' + threw.length + ' threw)' : ''));
 console.log('');
 
@@ -2506,7 +3358,19 @@ for (const it of INTERIOR) {
   console.log('      worst per-value probability gap: ' + (100 * it.worst_probability_gap).toFixed(2) + ' points at ' + it.worst_at);
 }
 console.log('');
-console.log('  MECHANIC COVERAGE — what this run actually exercised (§5.3):');
+console.log('  MECHANIC COVERAGE — AND THE NUMBER FELL ON PURPOSE (ROADMAP #91):');
+console.log('    ' + creditedByEffect.length + ' / ' + witnessable.length
+  + '  rows whose EFFECT WAS OBSERVED — a board leaf in a family the tag\'s own params name moved');
+console.log('        across the turn, or a declared negative case was reached and correctly did not fire.');
+console.log('        THIS IS THE COVERAGE NUMBER NOW. It replaces the one below, which counted a CLICK.');
+console.log('    ' + noBoardLeaf.length + '      rows name NO BOARD LEAF at all (contact, sound, priority, a damage');
+console.log('        multiplier). A connected click is the strongest evidence available for those; '
+  + creditedByClickOnly.length + ' got it,');
+console.log('        and they are counted APART and never added into the number above.');
+console.log('    ' + touchedNotCredited.length + '      rows were CLICKED OR PRESENT AND DID NOTHING — the old counter called every');
+console.log('        one of these covered. Haze into a board with no boosts on it is in here.');
+console.log('');
+console.log('  THE OLD COVERAGE NUMBER, KEPT SO THE DROP IS READABLE RATHER THAN A MYSTERY:');
 console.log('    ' + covStrong.length + ' / ' + COV_TARGETS.filter(t => t.sec === 'moves').length
   + '  reached by a move that CONNECTED — the engine ran its handler and the stream carries the result');
 console.log('    ' + covWeak.length + ' / ' + COV_TARGETS.filter(t => t.sec !== 'moves').length
@@ -2555,7 +3419,48 @@ console.log('');
 
 if (WRITE) {
   const artifact = Object.assign({
-    generated: new Date().toISOString(), by: 'engine/game_differential.js', mode: 'A',
+    generated: new Date().toISOString(), by: 'engine/game_differential.js', mode: MODE,
+    /* THE HEADLINE WARNING, AT THE TOP OF THE FILE AND NOT IN A FOOTNOTE. */
+    baseline_reset: 'ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage '
+      + 'credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and '
+      + 'how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE '
+      + '2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. '
+      + '`mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js '
+      + 'refuses the pair rather than leaving it to a reader to notice.',
+    pins: PINS,
+    /* ROADMAP #88 — PER ARM, NEVER POOLED. */
+    arms: ARM_RUNS.map(a => {
+      const dv = a.results.filter(r => r.div);
+      const cl = new Map();
+      for (const r of dv) { const c = classify(r.div);
+        if (!cl.has(c.cls)) cl.set(c.cls, { cls: c.cls, games: 0, causes: new Set() });
+        const e = cl.get(c.cls); e.games++; e.causes.add(c.cause); }
+      const tt = a.results.map(r => r.turns).sort((x, y) => x - y);
+      const t1 = a.results.filter(r => (r.earlyBoards || [])[1]);
+      const t1ok = t1.filter(r => r.earlyBoards[1].identical);
+      const kd = { effect: 0, negative: 0, click: 0 };
+      for (const v of a.kinds.values()) { kd.effect += v.effect; kd.negative += v.negative; kd.click += v.click; }
+      return { arm: a.arm.id, what: a.arm.what,
+               corner: a.arm.corner === CORNER_TOP ? 'top' : 'bottom',
+               damage_roll: a.arm.damageIndex === 0 ? 'MAXIMUM' : 'MINIMUM',
+               speed_tie: a.arm.tieToSecondBody ? 'to the LATER body' : 'to the EARLIER body',
+               games: a.results.length, diverged: dv.length,
+               threw: a.results.filter(r => r.err).length,
+               median_turns: tt.length ? tt[Math.floor(tt.length / 2)] : 0,
+               /* `null` when the run was not asked for `--state`, which is a different claim from 0. */
+               turn1_boards_identical: STATE ? t1ok.length : null,
+               turn1_boards_reached: STATE ? t1.length : null,
+               rows_credited: [...a.credit.keys()].length,
+               credit_events: kd,
+               classes: [...cl.values()].map(c => ({ cls: c.cls, games: c.games, distinct_causes: c.causes.size }))
+                 .sort((x, y) => y.games - x.games) };
+    }),
+    /* WHAT THE TIE ARM ACTUALLY SAW. An arm that never met a tied group tested nothing and would look
+     * exactly like one that did — this project's signature failure, so it is a receipt. */
+    speed_ties: { shuffle_calls: SHUFFLE_CALLS, tied_groups_resolved: SHUFFLE_TIE_GROUPS,
+                  group_sizes: Object.fromEntries([...SHUFFLE_GROUP_SIZES].sort((a, b) => a[0] - b[0])),
+                  medicham_tie_sequence_saturated: TIE_SATURATED,
+                  bare_float_draws: BARE_FLOAT_DRAWS },
     games: results.length, turns_cap: MAXTURNS, elapsed_s: +elapsed,
     planted_divergence_proof: PROOF, planted_divergence_proof_ok: PROOF_OK,
     /* THE HEADLINE RATE IS NOT READABLE WITHOUT THIS. Stated at the top level, not buried in
@@ -2667,8 +3572,39 @@ if (WRITE) {
       config: r.config, seed: r.seed, index: r.div.index, agreed_lines: r.div.agreedLines,
       cls: r._cls.cls, cause: r._cls.cause, showdown: r.div.sdRaw, medicham: r.div.meRaw })),
     errors: threw.map(r => ({ config: r.config, seed: r.seed, err: r.err })),
+    /* ROADMAP #91 — THE CREDIT RULE AND WHAT IT COST, IN THE ARTIFACT SO THE DROP IS A MEASUREMENT
+     * RATHER THAN A MYSTERY. `exercised` below is the OLD, click-and-presence number and is kept
+     * exactly as it was; `credit.rows_with_an_observed_effect` is the number now. */
+    credit: {
+      policy: CREDIT_POLICY,
+      rule: 'a census row is exercised when a board leaf in a family THE TAG\'S OWN PARAMS NAME changed '
+          + 'across the turn, in either engine, inside the scope of an entity that was in play; or when '
+          + 'a blocking tag\'s declared negative case was reached and correctly did not fire. A click '
+          + 'alone counts for NOTHING but an attempt.',
+      why: 'Primarina clicked Haze on turn 1 into a board with zero boosts on it. Haze is a no-op '
+         + 'there, the census marked it exercised, and because the census STEERS the sample a falsely '
+         + 'credited row then steered every later run AWAY from testing it.',
+      rows_with_an_observed_effect: creditedByEffect.length,
+      rows_that_can_be_witnessed_on_a_board: witnessable.length,
+      rows_that_name_no_board_leaf: noBoardLeaf.length,
+      rows_credited_by_a_connected_click_only: creditedByClickOnly.length,
+      rows_clicked_or_present_that_did_nothing: touchedNotCredited.length,
+      rows_clicked_or_present_that_did_nothing_list: touchedNotCredited.map(t => t.key).sort(),
+      turns_credited_over: CREDIT_TURNS,
+      attribution_limit: 'credit is at TURN granularity, scoped to the user\'s slot, the target\'s '
+          + 'slot, the field and both sides. Two mechanics acting on one body in one turn can both be '
+          + 'credited. That is weaker than a per-effect trace and strictly tighter than the click it '
+          + 'replaces, which is the whole claim.',
+      derivation: COV_TARGETS.map(t => ({ key: t.key, kind: t.witness.kind,
+        families: t.witness.families, from: t.witness.why,
+        credit: COV_CREDIT.get(t.key) || 0, of_which: kindOf(t.key),
+        attempts: COV_ATTEMPT.get(t.key) || 0 })),
+    },
     coverage: {
       measurable: COV_TARGETS.length, exercised: covered.length,
+      exercised_note: 'THE OLD NUMBER — an entity of this row connected or stood on the field. It is '
+        + 'kept so the drop to credit.rows_with_an_observed_effect is readable, and it is NOT the '
+        + 'coverage claim any more.',
       exercised_by_a_connected_move: covStrong.length,
       move_targets: COV_TARGETS.filter(t => t.sec === 'moves').length,
       present_on_the_field_only: covWeak.length,

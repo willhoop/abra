@@ -10,6 +10,58 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.73.0] — 2026-08-07
+
+### Changed
+- **ONE PIN WAS ONE CORNER; THERE ARE NOW FOUR ARMS** (ROADMAP #88). Every die was pinned a single
+  way, so a game ran once, deterministically — no noise, and no coverage either. The speed tie always
+  resolved the same direction, every sub-100-accuracy move MISSED ON BOTH SIDES, and damage was always
+  the maximum roll. **Rock Slide had never once connected in this instrument.** It does now: it misses
+  in `top-tie-first` and hits in `bottom-tie-first`, and a crit lands in the bottom arm and not the top.
+  The pin set is a run parameter, digested into `mode`, and `--baseline` refuses a mismatched pair and
+  fails closed on an artifact carrying no `pins` block.
+- **COVERAGE CREDIT MOVED FROM THE CLICK TO THE OBSERVED EFFECT** (ROADMAP #91). `creditClick`
+  incremented when an entity was CLICKED and never asked whether the move did anything, and the
+  steering then stopped selecting a row once credited. Caught live: Primarina clicked Haze on turn 1
+  into a board with zero boosts on it — a no-op — and Haze was marked exercised. Five rows were
+  clicked-or-present and did NOTHING: `ability:critDamageUp`, `ability:preventsSwitch`,
+  `ability:privateWeather`, `move:clearsScreens`, `move:preTurnShield`. The old rule called all five
+  covered.
+
+### Fixed
+- `chooseAction` scored each slot independently, so both slots could pick the SAME bench body
+  (`switch 4, switch 4`), which Showdown rejects outright and which throws the game. Pre-existing; it
+  threw 1 game in 51 under the old single pin and 19 in 51 under `bottom-tie-first`, because that arm's
+  games last longer.
+- `tests/test-state-differential.js` planted two divergences that could not be seen: `board_state.js`
+  reads a dead body's status as `fnt` whatever the status field holds, so planting a burn on a corpse
+  moved no compared leaf, and `Math.max(0, curHP-1)` on a body already at 0 is a no-op. Plants now pick
+  a living body and report NOT APPLIED when there is none. 25/25 caught, localised.
+
+### Notes
+- **THE BASELINE IS RESET. No run after this is comparable with the 75.5% turn-1 figure or with
+  `data/state-ladder.json`.** Both changes above alter which games get played. This is why they landed
+  together rather than one at a time — two resets is one too many.
+- **THE ORIGINAL PLAN FOR THE TIE ARM WAS WRONG AND IS RECORDED SO IT IS NOT RE-PROPOSED.**
+  `random(m,n)` is NOT Showdown's speed-tie resolver. Its callers in the pinned checkout are the sleep
+  duration `random(2,5)`, a multi-hit count, Loaded Dice, and where a mid-turn action is inserted in the
+  queue. Pinning it to the top would have made every sleep four turns long and moved queued actions, so
+  the tie arm would have differed from the baseline in four ways and been attributable to none. Pinning
+  `PRNG.shuffle` does not move Showdown's turn order either — the reversing shuffle is implemented and
+  asserted, and DELIBERATELY NOT INSTALLED, because a lever that moves one engine and not the other is
+  CHANGELOG 3.45.0 repeating.
+- **OPEN, AND IT IS AN ENGINE DEFECT RATHER THAN AN INSTRUMENT ONE: the two engines have disagreed
+  about every speed tie for the life of this instrument.** Showdown resolves a tie to the LATER body in
+  input order; medicham2's `sortTurnOrder` draws one tie value per action from a constant scalar, so
+  every value is equal, the sort is stable, and it takes the EARLIER body. Measured on a staged pure tie
+  in both orientations and with the tied pair on one side and on opposite sides. **The header's claim
+  that the pin made them agree "by construction" was false, and it was repeated as fact to Will before
+  it was checked.** 53,242 tied groups were resolved in the published run (2x50134, 3x2935, 4x141,
+  5x16, 6x16). `sortTurnOrder` is the LIVE engine, not instrument code.
+- `trace_body_off_field` reads 231 (was 82 earlier today). `tests/test-protocol-trace.js` PART 6 says
+  it must read 0; that test is green because it plays its own shorter games, and the 12-turn state-mode
+  games reach it.
+
 ## [3.72.0] — 2026-08-07
 
 ### Fixed

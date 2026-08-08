@@ -1,8 +1,30 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 3.72.0 — 2026-08-07.**
 
-> **THIS AUDIT HAS BEEN LANDED. ROADMAP #92, 3.72.0.** Everything §6 lists as open work is fixed, and
+**ROADMAP #88 AND #91 — ONE PIN WAS ONE CORNER, AND A CLICK WAS COUNTED AS A TEST (3.73.0).** Every
+die in the differential was pinned a single way, which bought determinism — any difference is a bug,
+no statistics — and paid for it in coverage nobody had priced. The speed tie always resolved the same
+direction, every move below 100 accuracy MISSED ON BOTH SIDES, and damage was always the maximum roll,
+which is the one roll where the crit's wrong position happened to come out right. Rock Slide had never
+connected in this instrument; under the new arms it misses in one and hits in another, and a crit
+lands in the bottom arm and not the top. The pin set is now a declared run parameter, digested into
+`mode`, and a before/after pair whose pins differ is REFUSED rather than reported. Separately,
+coverage credit moved from the CLICK to the OBSERVED EFFECT: the old rule incremented when an entity
+was clicked and never asked whether the move did anything, so Haze clicked into a board with no boosts
+on it — a no-op — marked Haze exercised and stopped the steering selecting it. Five rows were
+clicked-or-present and did nothing at all: `critDamageUp`, `preventsSwitch`, `privateWeather`,
+`clearsScreens` and `preTurnShield`. The old rule called all five covered. **THE BASELINE IS RESET:
+both changes alter which games get played, so no run after this is comparable with the turn-1 figure
+published at 3.71.0 or with `data/state-ladder.json`.** And an ENGINE defect fell out of the tie work,
+filed rather than fixed here: the two engines have disagreed about EVERY speed tie for the life of
+this instrument — the authority resolves a tie to the LATER body in input order, `sortTurnOrder` draws
+one tie value per action from a constant scalar so the sort is stable and takes the EARLIER one. The
+instrument's own header claimed the pin made them agree by construction; that claim was false and was
+repeated as fact before it was checked. `sortTurnOrder` is the live engine, not instrument code.
+
+**Version: 3.73.0 — 2026-08-07.**
+
+> **THIS AUDIT HAS BEEN LANDED. ROADMAP #92, 3.73.0.** Everything §6 lists as open work is fixed, and
 > the numbers below are now HISTORY — they describe the engine at release `dc3c43336539`, not the
 > engine in the tree. **Read §2a and §3 as the record of what was wrong, not as a description of what
 > is wrong.** What replaced them:
@@ -97,8 +119,14 @@ ability is Gardevoir-Mega's, so it never appears in a sheet's ability slot. The 
 STONE, times **every Fairy move either side clicks while it is on the field** — `appliesToEveryone:
 true` in our own artifact.
 
-Read live from `data/tags.json`: Gardevoirite 412 sheets; Moonblast 8229 clicks, Dazzling Gleam 4041,
-Play Rough 1492.
+Exposure is read live from `data/tags.json` and is deliberately NOT restated here. The counts that sat
+on this line were true when it was written and were stale within hours — `tags.json` is regenerated
+whenever the tagger runs, and every one of them had moved by the next gate run. What matters and does
+not drift: the stone is on the order of hundreds of sheets, Moonblast is the most-clicked Fairy move
+in the corpus by a wide margin with Dazzling Gleam second, and the aura applies to EVERY Fairy move on
+the field rather than only the holder's — so the exposure is the stone's sheets multiplied by every
+Fairy click by anyone, which is why `fairyaura: uses 0` was worthless evidence. Read the current
+numbers out of the artifact.
 
 ---
 
@@ -156,7 +184,7 @@ thousand sheets each outrank one ability at 678. The measured column is the disa
 
 | multiplier | authority event | ours (frozen line) | uses | measured disagreement |
 |---|---|---|---|---|
-| **the 18 type items** (Fairy Feather 3015, Black Glasses 2591, Mystic Water 1711, Charcoal 1167, Never-Melt Ice 900, Sharp Beak 572, Metal Coat 317, Silk Scarf 252, Dragon Fang 224, Spell Tag 151, Magnet 141, Soft Sand 102, Miracle Seed 88, Black Belt 67, Twisted Spoon 39, Hard Stone 31, Poison Barb 15, Silver Powder 4) | `onBasePower` x1.2 | `:2499-2500` `damageMultType` in the ModifyDamage chain | **the biggest class here** | Black Glasses **65.0% (13/20)**, Charcoal **40.0% (10/25)** |
+| **the 18 type items** — every member of `damageMultType`, headed by Fairy Feather, Black Glasses, Mystic Water and Charcoal, with a long tail down to Silver Powder. Per-item usage is read live from `data/tags.json` and is deliberately not restated: the counts that stood here were correct when written and had all moved by the next gate run, because the tagger regenerates that artifact. Membership is what matters and it is derived, not typed | `onBasePower` x1.2 | `:2499-2500` `damageMultType` in the ModifyDamage chain | **the biggest class here** | Black Glasses **65.0% (13/20)**, Charcoal **40.0% (10/25)** |
 | **Tough Claws** | `onBasePower` `[5325,4096]` | `:2313-2320` `boostsMoveClass`, at the base stage | 627 | **34.0% (54/159)** |
 | **Technician** | `onBasePower` x1.5, priority 30 | `:2308`, at the base stage | 678 | **40.3% (31/77)** |
 | **Sharpness** | `onBasePower` x1.5 | `:2313-2320` | 314 | **48.0% (12/25)** |

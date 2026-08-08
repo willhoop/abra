@@ -1,7 +1,25 @@
 # ABRA — the plain-English deck
 
+**Version 3.73.0 · 2026-08-07 · Will Hooper**
+
+
+
+**WE WERE ONLY EVER TESTING ONE CORNER OF THE GAME (3.73.0).** To compare two engines fairly you
+freeze the luck, so both get identical dice and any difference has to be a real bug. We froze it to a
+single setting — and that setting meant the speed tie always went the same way, every move under 100%
+accuracy always MISSED on both sides, and damage was always the maximum roll. Rock Slide had never
+once connected in the entire history of this test. It does now. There are four frozen settings instead
+of one, so we look at four corners rather than the same corner four times, and a comparison between
+runs with different settings is refused rather than quietly reported. We also stopped counting a move
+as tested just because the bot clicked it: clicking Haze when there are no stat boosts on the board
+does nothing at all, and the old rule marked Haze covered and moved on. Five mechanics turned out to
+have been "covered" that way while doing nothing. **Every score published before this is measured on a
+different set of games and cannot be compared with what comes next.** And one real engine bug came out
+of it: when two Pokemon have exactly the same Speed, the real game and our copy have been picking
+different ones to move first — every time, for as long as this test has existed.
+
 **ROADMAP #92 — THE DAMAGE-STAGE CLASS. FOURTEEN MULTIPLIERS WERE APPLIED AT THE WRONG STAGE AND FIVE
-WERE ABSENT (3.72.0).** Showdown applies each multiplier at a STAGE — a base power, a stat, or the
+WERE ABSENT (3.73.0).** Showdown applies each multiplier at a STAGE — a base power, a stat, or the
 final damage — folds every handler at that stage into ONE modifier, and spends it ONCE. This engine
 applied about a third of them a stage late, and separately: Black Glasses on the final damage where
 the authority puts it on base power reads 109 against 108. That one-point shape is why it survived
@@ -22,7 +40,6 @@ trusted. `damageBoost` is still NOT wired as a class and the reason is a propert
 carries neither the stage nor the condition, so wiring it would hand Blaze a permanent x1.5 on 5,808
 sheets. Census 293/294 → 298/299 live.
 
-**Version 3.72.0 · 2026-08-07 · Will Hooper**
 
 **ROADMAP #81 WIRE 12 — FIVE ENGINE DEFECTS OFF THE TURN-1 BOARD, TWO OF THEM MIS-DIAGNOSED BEFORE
 THEY WERE FIXED (3.71.0).** The auras (Fairy, Dark, Aura Break) are wired FIELD-WIDE at the base-power

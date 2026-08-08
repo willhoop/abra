@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-08T01:55:16.813Z",
+  "generated": "2026-08-08T02:11:51.923Z",
   "by": "engine/game_differential.js",
   "mode": "A/top-tie-first/pins:14b891121035/credit:observed-effect/v1",
   "baseline_reset": "ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE 2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. `mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js refuses the pair rather than leaving it to a reader to notice.",
@@ -477,7 +477,7 @@
   },
   "games": 267,
   "turns_cap": 12,
-  "elapsed_s": 59.7,
+  "elapsed_s": 65.4,
   "planted_divergence_proof": [
     {
       "what": "a wrong FIELD on the last agreeing line",
@@ -3084,7 +3084,7 @@
       "plants": [
         {
           "what": "HP off by one on an active body",
-          "planted_field": "active[0].hp",
+          "planted_field": "active",
           "applied": true,
           "caught": true,
           "at": 4,
@@ -3098,7 +3098,7 @@
         },
         {
           "what": "a stat stage off by one",
-          "planted_field": "active[0].boosts.atk",
+          "planted_field": "boosts.atk",
           "applied": true,
           "caught": true,
           "at": 4,
@@ -3111,7 +3111,7 @@
         },
         {
           "what": "a status that is not there",
-          "planted_field": "active[0].status",
+          "planted_field": "status",
           "applied": true,
           "caught": true,
           "at": 4,
@@ -3124,7 +3124,7 @@
         },
         {
           "what": "the TOXIC stage off by one",
-          "planted_field": "active[0].status_counter",
+          "planted_field": "status_counter",
           "applied": true,
           "caught": true,
           "at": 4,
@@ -3138,7 +3138,7 @@
         },
         {
           "what": "the SLEEP counter off by one",
-          "planted_field": "active[1].status_counter",
+          "planted_field": "status_counter",
           "applied": true,
           "caught": true,
           "at": 4,
@@ -3260,7 +3260,7 @@
         },
         {
           "what": "a SCREEN counter off by one",
-          "planted_field": "screens.physical",
+          "planted_field": "screens.",
           "applied": true,
           "caught": true,
           "at": 4,
@@ -11297,10 +11297,10 @@
     "rule": "at every decision the driver prefers the legal action reaching the least-exercised row of data/mechanics-census.json, ties broken toward the least-clicked entity (game_differential.js covWant/creditClick). The census therefore SELECTS THE SAMPLE this run measures.",
     "input": "data/mechanics-census.json",
     "input_read_from": "data/mechanics-census.json",
-    "input_digest": "bfce55b75620",
+    "input_digest": "e74b1063da6a",
     "input_rows": 299,
-    "input_generated": "2026-08-08T01:07:14.926Z",
-    "input_live_digest": "bfce55b75620",
+    "input_generated": "2026-08-08T01:59:08.711Z",
+    "input_live_digest": "e74b1063da6a",
     "pinned": false,
     "matches_live": true,
     "selects_from": 254,
@@ -11314,7 +11314,7 @@
   "baseline_comparability": null,
   "engine_release": "1fc6e384fa6e",
   "engine_release_cut": "2026-08-08T01:00:31.245Z",
-  "engine_release_cuts": 31,
+  "engine_release_cuts": 41,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
     "engine/medicham2-browser.js": "62307b671328",

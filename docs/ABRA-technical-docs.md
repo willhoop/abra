@@ -1,7 +1,26 @@
 # ABRA — Technical Documentation
 
+**Version 3.73.0 · Last updated 2026-08-07**
+
+
+
+**THE TEST USED ONE SET OF DICE. IT NOW USES FOUR (3.73.0).** The differential freezes each random
+value so that both engines get the same result. Before this release it froze each value one way only.
+The effect was that the speed tie always gave the same order, each move with accuracy below 100 always
+missed in both engines, and the damage roll was always the maximum. A move with accuracy below 100 had
+therefore never hit in this test. The test now runs four arms. Each arm freezes the values a different
+way. Each arm stays fully deterministic. The set of frozen values is recorded in the artifact. If two
+runs use different sets, the comparison is refused. This release also changes how coverage is counted.
+Before, a mechanic counted as covered when the engine clicked it. A click can do nothing: Haze removes
+stat changes, and there were no stat changes to remove. A mechanic now counts as covered only when the
+board changes as the tag says it must, or when a declared negative case is reached and it correctly
+does not fire. Five mechanics were counted as covered and did nothing. **Do not compare any result
+after this release with a result before it. Both changes alter which games the test plays.** One
+engine fault was found and is not yet corrected: when two Pokemon have equal Speed, the official
+engine moves the later one first and this engine moves the earlier one first.
+
 **ROADMAP #92 — THE DAMAGE-STAGE CLASS. FOURTEEN MULTIPLIERS WERE APPLIED AT THE WRONG STAGE AND FIVE
-WERE ABSENT (3.72.0).** Showdown applies each multiplier at a STAGE — a base power, a stat, or the
+WERE ABSENT (3.73.0).** Showdown applies each multiplier at a STAGE — a base power, a stat, or the
 final damage — folds every handler at that stage into ONE modifier, and spends it ONCE. This engine
 applied about a third of them a stage late, and separately: Black Glasses on the final damage where
 the authority puts it on base power reads 109 against 108. That one-point shape is why it survived
@@ -22,7 +41,6 @@ trusted. `damageBoost` is still NOT wired as a class and the reason is a propert
 carries neither the stage nor the condition, so wiring it would hand Blaze a permanent x1.5 on 5,808
 sheets. Census 293/294 → 298/299 live.
 
-**Version 3.72.0 · Last updated 2026-08-07**
 
 **ROADMAP #81 WIRE 12 — FIVE ENGINE DEFECTS OFF THE TURN-1 BOARD, TWO OF THEM MIS-DIAGNOSED BEFORE
 THEY WERE FIXED (3.71.0).** The auras (Fairy, Dark, Aura Break) are wired FIELD-WIDE at the base-power

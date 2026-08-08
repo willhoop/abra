@@ -1,7 +1,32 @@
 # ABRA — Project Summary
 
+**Version 3.73.0 · 2026-08-07 · Will Hooper**
+
+
+
+**ROADMAP #88 AND #91 — ONE PIN WAS ONE CORNER, AND A CLICK WAS COUNTED AS A TEST (3.73.0).** Every
+die in the differential was pinned a single way, which bought determinism — any difference is a bug,
+no statistics — and paid for it in coverage nobody had priced. The speed tie always resolved the same
+direction, every move below 100 accuracy MISSED ON BOTH SIDES, and damage was always the maximum roll,
+which is the one roll where the crit's wrong position happened to come out right. Rock Slide had never
+connected in this instrument; under the new arms it misses in one and hits in another, and a crit
+lands in the bottom arm and not the top. The pin set is now a declared run parameter, digested into
+`mode`, and a before/after pair whose pins differ is REFUSED rather than reported. Separately,
+coverage credit moved from the CLICK to the OBSERVED EFFECT: the old rule incremented when an entity
+was clicked and never asked whether the move did anything, so Haze clicked into a board with no boosts
+on it — a no-op — marked Haze exercised and stopped the steering selecting it. Five rows were
+clicked-or-present and did nothing at all: `critDamageUp`, `preventsSwitch`, `privateWeather`,
+`clearsScreens` and `preTurnShield`. The old rule called all five covered. **THE BASELINE IS RESET:
+both changes alter which games get played, so no run after this is comparable with the turn-1 figure
+published at 3.71.0 or with `data/state-ladder.json`.** And an ENGINE defect fell out of the tie work,
+filed rather than fixed here: the two engines have disagreed about EVERY speed tie for the life of
+this instrument — the authority resolves a tie to the LATER body in input order, `sortTurnOrder` draws
+one tie value per action from a constant scalar so the sort is stable and takes the EARLIER one. The
+instrument's own header claimed the pin made them agree by construction; that claim was false and was
+repeated as fact before it was checked. `sortTurnOrder` is the live engine, not instrument code.
+
 **ROADMAP #92 — THE DAMAGE-STAGE CLASS. FOURTEEN MULTIPLIERS WERE APPLIED AT THE WRONG STAGE AND FIVE
-WERE ABSENT (3.72.0).** Showdown applies each multiplier at a STAGE — a base power, a stat, or the
+WERE ABSENT (3.73.0).** Showdown applies each multiplier at a STAGE — a base power, a stat, or the
 final damage — folds every handler at that stage into ONE modifier, and spends it ONCE. This engine
 applied about a third of them a stage late, and separately: Black Glasses on the final damage where
 the authority puts it on base power reads 109 against 108. That one-point shape is why it survived
@@ -22,7 +47,6 @@ trusted. `damageBoost` is still NOT wired as a class and the reason is a propert
 carries neither the stage nor the condition, so wiring it would hand Blaze a permanent x1.5 on 5,808
 sheets. Census 293/294 → 298/299 live.
 
-**Version 3.72.0 · 2026-08-07 · Will Hooper**
 
 **ROADMAP #81 WIRE 12 — FIVE ENGINE DEFECTS OFF THE TURN-1 BOARD, TWO OF THEM MIS-DIAGNOSED BEFORE
 THEY WERE FIXED (3.71.0).** The auras (Fairy, Dark, Aura Break) are wired FIELD-WIDE at the base-power
