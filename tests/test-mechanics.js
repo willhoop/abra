@@ -4928,6 +4928,153 @@ probe('item', 'curesVolatile', 'Mental Herb frees the holder from Taunt', () => 
            detail: 'no item taunted=' + none + ', Mental Herb taunted=' + herb };
 });
 
+/* ================= CONFUSION, ROADMAP #92 =======================================================
+ *
+ * FOUR ROWS FOR ONE MECHANIC, and they are four because each can be broken without the others: the
+ * clock can be set and never tick, it can tick and never cost an action, an ability can refuse the
+ * wrong thing, and a berry can take the wrong volatile off. Until 2026-08-08 the engine held no
+ * confusion at all — the generic volatile branch wrote `_vol.confusion = 1` and nothing read it —
+ * and no census row could see that, because there was no row.
+ * ============================================================================================== */
+
+probe('move', 'inflictsConfusion', 'Confuse Ray sets a clock that COUNTS DOWN and then removes itself', () => {
+  /* THE TWO-TURN SHAPE IS THE PROBE. A one-turn reading cannot separate "the volatile was written"
+   * from "the volatile is a working clock", and the engine's original defect passed the first
+   * reading exactly: it wrote a 1 that never moved. Turn 1 reads the clock after the target has
+   * taken its own action (Snorlax is slower than Milotic, so the tick has happened); turn 2 reads it
+   * again after a second action, by which point the authority has removed it. */
+  const run = (click) => {
+    const { me, ally, f1, f2, S } = board('milotic', 'corviknight', 'snorlax', 'garchomp');
+    const after = [];
+    for (let t = 0; t < 2; t++) {
+      M.battleTurn(S, rng5,
+        new Map([[me, t === 0 ? M.playerAction(me, click, f1, S.field) : { kind: 'pass' }],
+                 [ally, { kind: 'pass' }]]),
+        new Map([[f1, M.playerAction(f1, 'swordsdance', me, S.field)], [f2, { kind: 'pass' }]]));
+      after.push((f1._vol && f1._vol.confusion) || 0);
+    }
+    return after;
+  };
+  /* THE CONTROL IS A CLICK THAT CONFUSES NOBODY, not an absent turn: an engine that had lost the
+   * whole status-move path would read [0, 0] in both arms and pass a bare "the test arm is zero". */
+  const control = run('irondefense'), test = run('confuseray');
+  return { works: control[0] === 0 && control[1] === 0 && test[0] > 0 && test[1] === 0,
+           arms: { control, test },
+           detail: '[clock after the target\'s 1st action, after its 2nd] — a click that confuses '
+                 + 'nobody ' + control + ', Confuse Ray ' + test + '. The clock must be RUNNING '
+                 + 'after one action and GONE after two; an engine that writes a turn count and '
+                 + 'never ticks it reads the same non-zero in both cells' };
+});
+
+probe('move', 'statusInflict', 'a confused body sometimes hits ITSELF instead of moving', () => {
+  /* THE CONSEQUENCE, WHICH THE CLOCK NEVER PROVES. Two arms on the same board, separated only by the
+   * roll: `rng` at 0.1 is inside the authority's 33% and `rng` at 0.9 is outside it. The confused
+   * body must lose HP and its Swords Dance in the first arm and keep both in the second — so this
+   * fails an engine that never self-hits AND an engine that self-hits every turn. */
+  const run = (r) => {
+    const { me, ally, f1, f2, S } = board('milotic', 'corviknight', 'snorlax', 'garchomp');
+    M.battleTurn(S, () => r,
+      new Map([[me, M.playerAction(me, 'confuseray', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'swordsdance', me, S.field)], [f2, { kind: 'pass' }]]));
+    return [f1.st.hp - f1.curHP, f1.boosts.at];
+  };
+  const control = run(0.9), test = run(0.1);
+  return { works: control[0] === 0 && control[1] === 2 && test[0] > 0 && test[1] === 0,
+           arms: { control, test },
+           detail: '[self-damage taken, Attack stage] — the roll MISSES the 33% ' + control
+                 + ' (the move goes through), the roll LANDS it ' + test + ' (the action is lost). '
+                 + 'The control must show the boost or the probe is reading an engine whose Swords '
+                 + 'Dance does nothing' };
+});
+
+probe('move', 'statusCategory', 'a confusion does NOT survive the body leaving the field', () => {
+  /* SHOWDOWN CLEARS EVERY VOLATILE IN `clearVolatile()` ON THE WAY OUT, so a body that pivots and
+   * comes back is not confused. This engine's `switchOut` erases the substitute, the trap, the
+   * charge, the silence and the boosts by hand and DOES NOT TOUCH `_vol` — so a confusion written on
+   * turn 1 would still be on the body two switches later, which is the same never-decays defect the
+   * clock fix closed, arriving by a different road.
+   *
+   * THE CONTROL IS THE SAME BODY THAT DOES NOT LEAVE, and it must still be confused: an engine that
+   * had simply stopped confusing anything reads 0 in both arms and would pass a bare "the test arm is
+   * zero". Both arms are read on the SAME turn count so the clock cannot explain the difference. */
+  /* THE BENCH IS BUILT EXPLICITLY. `board()` puts TWO bodies on each side and nothing behind them,
+   * so `{ kind: 'switch', to: <undefined> }` is a switch that cannot happen — and the FIRST version
+   * of this probe did exactly that, then handed turn 3 to a body that was not on the field, so the
+   * confused Snorlax got no scripted action, chose a move for itself and ticked its own clock. The
+   * probe read 1 and called it a surviving volatile. A fixture that cannot express the act under test
+   * fails toward whatever answer the reader already believes. */
+  const run = (leave) => {
+    const me = bare('milotic'), ally = bare('corviknight');
+    const f1 = bare('snorlax'), f2 = bare('garchomp'), bench = bare('weavile');
+    const S = M.battleInit([me, ally], [f1, f2, bench], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'confuseray', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    const held = (f1._vol && f1._vol.confusion) || 0;
+    if (leave) {
+      M.battleTurn(S, rng5, PASS2(me, ally),
+        new Map([[f1, { kind: 'switch', to: bench }], [f2, { kind: 'pass' }]]));
+      M.battleTurn(S, rng5, PASS2(me, ally),
+        new Map([[bench, { kind: 'switch', to: f1 }], [f2, { kind: 'pass' }]]));
+    } else {
+      M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+      M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    }
+    return [held, (f1._vol && f1._vol.confusion) || 0];
+  };
+  const control = run(false), test = run(true);
+  return { works: control[0] > 0 && control[1] > 0 && test[0] > 0 && test[1] === 0,
+           arms: { control, test },
+           detail: '[clock right after the Confuse Ray, clock two turns later] — the body STAYS on '
+                 + 'the field ' + control + ' (it must still be confused: nobody moved, so the clock '
+                 + 'never ticked); the body PIVOTS OUT AND BACK ' + test + '. A volatile that '
+                 + 'survives a switch is a body confused for the rest of the battle' };
+});
+
+probe('ability', 'refusesVolatile', 'Own Tempo refuses the confusion and nothing else does', () => {
+  /* THE CONTROL IS A DIFFERENT ABILITY ON THE SAME BODY, because the hazard this tag invites is
+   * over-matching: `refusesVolatile` is carried by six abilities and only ONE of them names
+   * confusion — the other five name flinch or yawn. A refusal keyed on the tag rather than on the
+   * volatile would suppress the control arm too and read as a working feature. */
+  const run = (ab) => {
+    const { me, ally, f1, f2, S } = board('milotic', 'corviknight', 'mudsdale', 'garchomp');
+    f1.ability = ab;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'confuseray', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return (f1._vol && f1._vol.confusion) || 0;
+  };
+  const control = run('stamina'), test = run('owntempo');
+  return { works: control > 0 && test === 0, arms: { control, test },
+           detail: 'the same Mudsdale with Stamina -> confusion clock ' + control
+                 + ', with OWN TEMPO -> ' + test + '. Insomnia and Vital Spirit carry the same tag '
+                 + 'and refuse YAWN, so a handler that read the tag without reading the volatile '
+                 + 'would zero both arms' };
+});
+
+probe('item', 'curesVolatile', 'a Persim Berry is spent on the CONFUSION and not on a status', () => {
+  /* PERSIM IS THE SHARPEST MEMBER OF THIS TAG: its `onEat` removes the confusion and its handler
+   * touches no status at all, so it separates "cures a volatile" from "cures a status" in a way Lum
+   * cannot. THE NEGATIVE IS A MAJOR STATUS ON THE SAME BODY — a Nuzzle is a guaranteed paralysis, and
+   * a berry that ate itself on it would be a Lum wearing the wrong name. */
+  const run = (item, click) => {
+    const { me, ally, f1, f2, S } = board('milotic', 'corviknight', 'snorlax', 'garchomp');
+    f1.item = item;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, click, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return [(f1._vol && f1._vol.confusion) || 0, f1.item || 'none', f1.status || 'clean'];
+  };
+  const control = run('persimberry', 'nuzzle');       // a STATUS: the berry must survive it
+  const test = run('persimberry', 'confuseray');      // the volatile: the berry must be spent
+  const bare2 = run('', 'confuseray');                // and something must have been confused at all
+  return { works: control[0] === 0 && control[1] === 'persimberry' && control[2] === 'par'
+                  && bare2[0] > 0 && test[0] === 0 && test[1] === 'none',
+           arms: { control, test },
+           detail: '[confusion clock, item held, status] — a NUZZLE at the holder ' + control
+                 + ' (paralysed, berry untouched); a CONFUSE RAY at the holder ' + test
+                 + ' (berry spent, no confusion left); the same Confuse Ray with NO item ' + bare2
+                 + ' (which is what proves the confusion was ever landed)' };
+});
+
 /* THIS PROBE ASKED FOR THE WRONG MODEL AND WAS REWRITTEN, 2026-08-04, beside the critRatioUp one.
  *
  * It read `moveAccuracy('tripleaxel') < 90` on the reasoning that three 90% rolls compound to 73%.

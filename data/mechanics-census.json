@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-08T07:07:31.676Z",
+  "generated": "2026-08-08T08:06:26.035Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 319,
-  "live": 319,
+  "probed": 324,
+  "live": 324,
   "missing": 0,
-  "armed": 319,
+  "armed": 324,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -1873,6 +1873,56 @@
     },
     {
       "kind": "move",
+      "tag": "inflictsConfusion",
+      "label": "Confuse Ray sets a clock that COUNTS DOWN and then removes itself",
+      "live": true,
+      "detail": "[clock after the target's 1st action, after its 2nd] — a click that confuses nobody 0,0, Confuse Ray 1,0. The clock must be RUNNING after one action and GONE after two; an engine that writes a turn count and never ticks it reads the same non-zero in both cells",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statusInflict",
+      "label": "a confused body sometimes hits ITSELF instead of moving",
+      "live": true,
+      "detail": "[self-damage taken, Attack stage] — the roll MISSES the 33% 0,2 (the move goes through), the roll LANDS it 21,0 (the action is lost). The control must show the boost or the probe is reading an engine whose Swords Dance does nothing",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statusCategory",
+      "label": "a confusion does NOT survive the body leaving the field",
+      "live": true,
+      "detail": "[clock right after the Confuse Ray, clock two turns later] — the body STAYS on the field 2,2 (it must still be confused: nobody moved, so the clock never ticked); the body PIVOTS OUT AND BACK 2,0. A volatile that survives a switch is a body confused for the rest of the battle",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "refusesVolatile",
+      "label": "Own Tempo refuses the confusion and nothing else does",
+      "live": true,
+      "detail": "the same Mudsdale with Stamina -> confusion clock 2, with OWN TEMPO -> 0. Insomnia and Vital Spirit carry the same tag and refuse YAWN, so a handler that read the tag without reading the volatile would zero both arms",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "curesVolatile",
+      "label": "a Persim Berry is spent on the CONFUSION and not on a status",
+      "live": true,
+      "detail": "[confusion clock, item held, status] — a NUZZLE at the holder 0,persimberry,par (paralysed, berry untouched); a CONFUSE RAY at the holder 0,none,clean (berry spent, no confusion left); the same Confuse Ray with NO item 2,none,clean (which is what proves the confusion was ever landed)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "multiAccuracy",
       "label": "Triple Axel is priced below three full hits, and the 90% is not counted twice",
       "live": true,
@@ -2306,7 +2356,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.8% (format 20, generic 30), control Rock Slide 27.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.8% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

@@ -36,7 +36,10 @@
  *
  * Tailwind with 3 turns left is not Tailwind with 1, and a search that cannot tell them apart plans
  * the wrong turn. Every clock is compared as a number: weather, terrain, each screen, Tailwind, Trick
- * Room, the move-trap, Perish, Taunt, Encore, Disable, the toxic stage and the sleep counter.
+ * Room, the move-trap, Perish, Taunt, Encore, Disable, the toxic stage, the sleep counter AND THE
+ * FREEZE COUNTER — the last added 2026-08-08, after Will asked whether there was one. There was not,
+ * and the sentence above had named the other two for a day without anybody noticing the third was
+ * missing. A field this file does not compare is a field NOTHING in the repository compares.
  *
  * ================= REPRESENTATION MAPPINGS, AND WHY EACH IS SAFE =================================
  *
@@ -127,6 +130,28 @@ const MAPPINGS = [
        + 'separately, and planted) AND by this field, because a LIVING body never reads `fnt`.',
     equal: [{ fainted: true, status: '' }, { fainted: true, status: 'fnt' }],
     distinct: [{ fainted: false, status: 'brn' }, { fainted: true, status: 'fnt' }] },
+  /* WILL, 2026-08-08: *"do you have a freeze counter?"* — no, and nothing in this repository did.
+   * `frz` appeared in this file exactly once, in STATUS_NAME, which is a display string. The engine
+   * has held `frzTurns` since it was written (medicham2-browser.js, the `frz` gate in battleTurn) and
+   * NO INSTRUMENT WOULD EVER HAVE SEEN IT DRIFT: the sleep counter was compared, the toxic stage was
+   * compared, and the third counter beside them was not. Demonstrated rather than argued —
+   * tests/staged_status_counters.js plants `frzTurns = 1` at the moment the status is written and,
+   * before this mapping existed, the planted break was NOT CAUGHT on a board that compares 131 fields.
+   *
+   * AND THE QUANTITY IS FORMAT-SPECIFIC, so general Pokemon knowledge is the wrong source here.
+   * `data/mods/champions/conditions.ts` OVERRIDES `frz`: `startTime = 3` at onStart and `time--` on
+   * every move attempt, with an ADDITIONAL 1-in-4 thaw each attempt. Standard Gen 9 freeze has no
+   * counter at all — it is a flat 1-in-5 per attempt — so a reader written from memory would have
+   * compared a field the authority does not keep. TURNS ALREADY SPENT FROZEN is what both engines can
+   * express: medicham2 counts UP in `frzTurns` and Showdown counts DOWN from `startTime`, exactly as
+   * sleep does one row below, which is why it is the same function and not a second copy of it. */
+  { id: 'freeze-counter-is-turns-frozen',
+    why: 'medicham2 counts freeze UP (`frzTurns`, incremented as the body tries to move) and Showdown '
+       + 'counts DOWN (`statusState.time` from a Champions-specific `startTime` of 3). TURNS ALREADY '
+       + 'SPENT is the quantity both can express, so Showdown\'s is read as `startTime - time` — the '
+       + 'SAME reader the sleep counter uses. It cannot hide a wrong freeze length: a body on its '
+       + 'second frozen turn reads 2 in both engines whatever the timer was.',
+    equal: [2, 2], distinct: [1, 2] },
   { id: 'sleep-counter-is-turns-slept',
     why: 'medicham2 counts sleep UP (`slpTurns`, incremented as the body tries to move) and Showdown '
        + 'counts DOWN (`statusState.time` from `startTime`). TURNS ALREADY SLEPT is the quantity both '
@@ -172,6 +197,11 @@ function mappingProof(N, M) {
         statusOf(false, 'brn') !== statusOf(true, 'fnt'));
   check('sleep-counter-is-turns-slept', sleptTurns({ startTime: 3, time: 1 }) === 2,
         sleptTurns({ startTime: 3, time: 2 }) !== sleptTurns({ startTime: 3, time: 1 }));
+  /* The Champions freeze timer, at its own numbers rather than sleep's: startTime is 3 by the format's
+   * own override, so a body on its second frozen turn reads `3 - 1`. Exercised through the same
+   * function both engines' readers call, so the proof cannot pass while the reader diverges. */
+  check('freeze-counter-is-turns-frozen', frozenTurns({ startTime: 3, time: 1 }) === 2,
+        frozenTurns({ startTime: 3, time: 3 }) !== frozenTurns({ startTime: 3, time: 1 }));
   return out;
 }
 
@@ -180,6 +210,11 @@ const num = v => (typeof v === 'number' && isFinite(v) ? v : 0);
 const layers = c => (!c ? 0 : (typeof c === 'object' && typeof c.layers === 'number' ? c.layers : 1));
 const dur = c => (!c ? 0 : num(c.duration));
 const sleptTurns = ss => (!ss ? 0 : Math.max(0, num(ss.startTime) - num(ss.time)));
+/* ONE FUNCTION, TWO STATUSES, AND THE ALIAS IS FOR THE READER RATHER THAN FOR THE MACHINE. Sleep and
+ * the Champions freeze are both "a startTime counted down", so a second implementation would be the
+ * two-copies-of-one-fact breach CLAUDE.md names; a second NAME costs nothing and keeps `frz` from
+ * reading as a sleep bug at the call site. */
+const frozenTurns = sleptTurns;
 /* ONE FUNCTION FOR BOTH ENGINES — see the `fainted-is-not-a-status` mapping. A dead body reads `fnt`
  * whichever engine holds it; a living one reads whatever status it actually carries. */
 const statusOf = (fainted, status) => (fainted ? 'fnt' : String(status || ''));
@@ -306,8 +341,12 @@ function mediBody(m, id) {
     fainted: !!m.fainted,
     status: statusOf(m.fainted, m.status),
     /* one field, whose meaning is decided by `status`: the toxic stage when poisoned badly, the
-     * number of turns already slept when asleep, 0 otherwise. Two engines, one quantity. */
-    status_counter: m.status === 'tox' ? num(m.toxTurns) : (m.status === 'slp' ? num(m.slpTurns) : 0),
+     * number of turns already slept when asleep, the number already spent FROZEN when frozen, 0
+     * otherwise. Two engines, one quantity. The freeze arm was added 2026-08-08 — see the
+     * `freeze-counter-is-turns-frozen` mapping for why its absence was invisible. */
+    status_counter: m.status === 'tox' ? num(m.toxTurns)
+                  : (m.status === 'slp' ? num(m.slpTurns)
+                  : (m.status === 'frz' ? num(m.frzTurns) : 0)),
     item: id(m.item || ''),
     boosts: mediBoosts(m),
     vol: {
@@ -332,7 +371,8 @@ function sdBody(p, id) {
     fainted: !!p.fainted,
     status: statusOf(p.fainted, p.status),
     status_counter: p.status === 'tox' ? num(p.statusState && p.statusState.stage)
-                  : (p.status === 'slp' ? sleptTurns(p.statusState) : 0),
+                  : (p.status === 'slp' ? sleptTurns(p.statusState)
+                  : (p.status === 'frz' ? frozenTurns(p.statusState) : 0)),
     item: id(p.item || ''),
     boosts: sdBoosts(p),
     vol: {
@@ -590,4 +630,5 @@ function snapshot(S, battle, ctx) {
 
 module.exports = { readMedi, readShowdown, compare, snapshot, family, mappingProof, locate, bucket,
                    explain, MAPPINGS, NOT_COMPARED, PHYSICAL_SCREENS, SPECIAL_SCREENS,
-                   _internals: { num, layers, dur, sleptTurns, mediBoosts, sdBoosts, mediScreens, sdScreens } };
+                   _internals: { num, layers, dur, sleptTurns, frozenTurns, mediBoosts, sdBoosts,
+                                 mediScreens, sdScreens } };

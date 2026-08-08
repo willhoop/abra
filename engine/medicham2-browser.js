@@ -4387,7 +4387,10 @@ function applyStatus(t,st,src){
  * THE COST IS REAL AND IS NOT HIDDEN: against real dice confusion lasts 3.5 attempts on average and
  * this engine gives it 2, so a search will under-value landing one. `MEDSEEN.confusionMinDuration`
  * counts every time the floor is taken, so it is a number in the run rather than a sentence here. */
-const CONFUSION_TURNS_MIN = 2;                    // data/conditions.ts:174 -- this.random(2, 6)
+/* DERIVED, not chosen: it is the low end of the authority's own draw at data/conditions.ts:174,
+ * `this.effectState.time = this.random(min, 6)`, and it is the value the differential's pinned range
+ * form observed in EVERY arm -- measured, see the paragraph above. */
+const CONFUSION_TURNS_MIN = 2;
 const CONFUSION_SELF_HIT_BP = 40;                 // data/conditions.ts:191 -- getConfusionDamage(pokemon, 40)
 /* THE ITEM THAT TAKES A VOLATILE OFF, read by SHAPE from `curesVolatile.cures`. Lum and Persim reach
  * it because tag_dex now derives that list from `onEat`'s own `removeVolatile` calls; Mental Herb
@@ -4416,17 +4419,23 @@ function itemCuresVolatile(m,vol){
  * TERRAIN also refuses confusion to a GROUNDED body (`data/moves.ts` mistyterrain onTryAddVolatile).
  * This engine has no per-terrain volatile refusal and the move is 9 corpus uses; it is counted as
  * `MEDFAILS.confusionMistyUnmodelled` whenever the terrain is up, rather than silently allowed. */
-function applyConfusion(t,src,field){
+/* `viaSecondary` says which road the confusion arrived by, and it exists for ONE reason: Safeguard's
+ * refusal is ANNOUNCED for a move with no secondaries and SILENT for a secondary
+ * (`if (effect.effectType === 'Move' && !effect.secondaries) this.add('-activate', ...)`), which is
+ * the same split WIRE 133 already honours on the status path. Own Tempo announces NOTHING at all --
+ * its handler is a bare `return null` -- so nothing is emitted there either. Getting this wrong would
+ * put a line in our stream the authority never writes, which is the protocol differential's business
+ * and is invisible to the board. */
+function applyConfusion(t,src,field,viaSecondary){
   if(!t||t.fainted||t.curHP<=0)return false;
   if(t._vol&&t._vol.confusion>0){MEDSEEN.confusionAlreadyOn++;return false;}
   {const _rv=TAGS.param('ability',t.ability,'refusesVolatile');
    if(_rv&&Array.isArray(_rv.refuses)&&_rv.refuses.indexOf('confusion')>=0&&!_rv.requiresForme){
      MEDSEEN.confusionRefusedByAbility++;
-     if(TR)TR.imm(t,'[from] ability: '+t.ability);
      return false;}}
   {const _sb=sideBuffRefuses(t,src,'blocksVolatile');
    if(_sb){MEDSEEN.confusionRefusedBySideBuff++;
-     if(TR)TR.act(t,'move: '+(_sb.startsAs||_sb.sideCondition));
+     if(TR&&!viaSecondary)TR.act(t,'move: '+(_sb.startsAs||_sb.sideCondition));
      return false;}}
   if(field&&field.terrain==='misty'){MEDFAILS.confusionMistyUnmodelled++;}
   (t._vol=t._vol||{}).confusion=CONFUSION_TURNS_MIN;
@@ -5044,6 +5053,17 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
      here and NOT resettable for _disguiseBusted two lines down). */
   out._sub=0; out._noSound=0; out._noRepeat=null; out._noRepeatT=0; out._recharge=false;
   out._trap=null; out._proteanUsed=false;
+  /* ROADMAP #92 -- THE CONFUSION LEAVES WITH THE BODY. Showdown clears every volatile in
+   * `Pokemon#clearVolatile()` on the way out, and this list erases the substitute, the trap, the
+   * charge and the silence BY HAND while never touching `_vol` -- so a confusion written on turn 1
+   * would still be on the body two switches later, which is the never-decays defect arriving by a
+   * second road. Placed AFTER `capturePassedState` above, deliberately: Baton Pass exists to carry a
+   * volatile through a switch and reads the body before any of these lines run.
+   * FILED, NOT FIXED HERE: the SAME line would be correct for `taunt`, `encore` and `disable`, which
+   * also survive a switch in this engine and should not. There is no failing probe on them --
+   * `board_state.js` compares volatiles only on the ACTIVE bodies, so a taunt riding the bench is
+   * invisible to every staged board -- and a mechanic is not open work until a probe fails on it. */
+  if(out._vol)delete out._vol.confusion;
   /* _disguiseBusted IS DELIBERATELY NOT CLEARED HERE. A Mimikyu that leaves and comes back does not
    * get a second disguise -- the forme change lasts the battle. It sits beside these two because the
    * natural instinct on reading this line is to reset every underscore flag alongside them, and that
@@ -5761,7 +5781,18 @@ function battleTurn(S,rng,actsForA,actsForB){
        * action loop), so a flinch that sleep got to first does NOT survive into the next turn -- which
        * is Showdown's `duration: 1` on the volatile, arriving by a different road. */
       if(m._flinch){m._flinch=false;m._mvRes=false;if(TR)TR.cant(m,'flinch');continue;}
-      if(confusionBeforeMove(m,rng)){m._mvRes=false;continue;}
+      /* ONLY A MOVE RUNS `onBeforeMove`. A PASS AND A VOLUNTARY SWITCH ARE NOT MOVES, and Showdown
+       * resolves a switch in a different phase entirely -- so a confused body that pivots does NOT
+       * spend a turn of its clock. Measured on the probe that carries this row: with the tick applied
+       * to a passing body, the CONTROL arm (a body standing still while nobody moves) lost its
+       * confusion in two turns of doing nothing, which is not a game anybody plays.
+       * FILED, NOT FIXED HERE: `slp`, `frz` and the flinch above are on the same footing and are NOT
+       * guarded, so a sleeping body still ticks its counter on a pass and -- worse -- a `continue`
+       * there means it CANNOT VOLUNTARILY SWITCH AT ALL. That is a pre-existing turn-resolution bug
+       * with no failing probe on it, and changing how every switch resolves is not a line to add
+       * beside a confusion fix. */
+      if(!(it.a&&(it.a.kind==='pass'||it.a.kind==='switch'))
+         &&confusionBeforeMove(m,rng)){m._mvRes=false;continue;}
       if(m.status==='par'&&rng()<0.125){m._mvRes=false;if(TR)TR.cant(m,'par');continue;}   // Champions: 12.5% full-para (was 25%)
       const a=it.a;
       /* WIRE 43 -- THE RECHARGE TURN. Hyper Beam is 1,627 corpus clicks and Giga Impact 29, and both
@@ -8327,7 +8358,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                * Axe Kick all fell through `status`, `targetBoosts`, `selfBoosts` and `flinch` and out
                * of the loop. THE SAME FUNCTION the direct status path uses, so a refusal cannot be
                * honoured on one road and not the other. */
-              else if(s.volatile==='confusion'){ applyConfusion(tg,m,field); }
+              else if(s.volatile==='confusion'){ applyConfusion(tg,m,field,true); }
               else if(s.volatile==='flinch'){
                 /* Flinch needs BOTH conditions: the target must not have moved yet this turn, and
                  * Inner Focus blocks it outright. WIRE 118: "not yet moved" is the target still
@@ -8370,7 +8401,7 @@ function battleTurn(S,rng,actsForA,actsForB){
               * wired now and `MEDFAILS.punishEffectUnmodelled` stays as the receipt for a THIRD member
               * arriving with an effect neither branch knows. */
              } else if(_pb.effect==='volatile'&&_pb.volatile==='confusion'){
-               if(applyConfusion(tg,m,field))MEDSEEN.punishConfused++;
+               if(applyConfusion(tg,m,field,true))MEDSEEN.punishConfused++;
              } else {
                MEDFAILS.punishEffectUnmodelled++;
                if(!MEDFAILS.punishEffectUnmodelledFirst)

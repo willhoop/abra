@@ -10,6 +10,54 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.77.0] — 2026-08-08
+
+### Fixed
+- **CONFUSION DID NOT EXIST.** The generic volatile branch wrote `_vol.confusion = 1` and NOTHING read
+  or ticked it, so the secondary path — Hurricane alone is 3,779 uses — fell through every branch. The
+  counter now exists, decays, and hurts the confused body. This also explains the two "dead" berries
+  below: a berry that clears confusion had nothing to clear.
+- **LUM AND PERSIM WERE ONE TAG-DERIVATION GAP, NOT TWO ENGINE GAPS.** `curesVolatile` matched only
+  Mental Herb's literal array; Lum and Persim declare theirs as `removeVolatile('confusion')` inside
+  `onEat`. Membership was printed before wiring — exactly two matches, both `confusion`.
+- **THE SLEEP COUNTER WAS AN ORDERING BUG.** `onBeforeMovePriority` is slp/frz 10, flinch 8, confusion 3,
+  par 1; our loop ran FLINCH FIRST, so a body that was asleep AND flinched ate the flinch and never
+  ticked its sleep. Showdown's Snorlax wakes on turn 3 and takes a Swords Dance ours does not get until
+  turn 4.
+- **THE FREEZE COUNTER IS NOW COMPARED.** `board_state.js` carried `frz` only in a display-name map, so
+  `frzTurns` could drift and no measurement would see it. Will asked whether there was a freeze counter;
+  there was one in the engine and none in the instrument.
+- Two more, both found by the first probe run against the fix rather than by the fix: a `pass` or a
+  switch was TICKING THE CLOCK, and `switchOut` never touched `_vol`, so a confusion rode the bench
+  forever.
+
+### Notes
+- **BURN IS CORRECT AND WAS CONFIRMED, NOT CHANGED** — and it had NEVER ONCE BEEN ON A BOARD in this
+  repository. Will-O-Wisp is 85-accurate and the primary pin makes every sub-100 move miss, which is
+  exactly why the roster filed it COULD-NOT-STAGE. Staged on the `bottom-tie-first` arm: the halving
+  lands, a Fire type cannot be burned at all, Facade is exempt, and Guts is exempt — a burned Conkeldurr
+  deals 82 twice while a burned Scizor beside it drops 39 → 19 on the turn its burn lands.
+  `medicham2-browser.js:2969` is untouched.
+- **THE FREEZE TIMER IS ALSO CORRECT.** Champions' own override — a 3-turn timer plus a 1-in-4 thaw per
+  attempt — is already exactly what the `frz` gate encodes. **THE "DID-NOT-FIRE" WAS THE INSTRUMENT**: a
+  plant starting `frzTurns` at 1 instead of 0 was NOT CAUGHT on a board comparing 131 fields, and is now
+  caught and localised.
+- New tag `refusesVolatile` (membership printed first: Own Tempo→confusion, Inner Focus→flinch, four
+  →yawn) so Own Tempo's 64 sheets do not acquire a divergence from the confusion fix.
+
+### Reported, not fixed
+- **A SLEEPING BODY CANNOT VOLUNTARILY SWITCH AT ALL** — the `continue` in the sleep gate. And
+  `taunt` / `encore` / `disable` also survive a switch, while slp / frz / flinch also tick on a pass.
+  `board_state.js` compares volatiles only on ACTIVE bodies, so a taunt riding the bench is invisible to
+  every staged board.
+- **A RELEASE WAS CUT OVER A WORKING TREE MID-EDIT AND BECAME THE NEWEST ONE.** `138261a235c7`, cut by a
+  `game_differential` run at 07:33 while an agent was editing. Anything calling `open()` with NO id then
+  gets a build nobody chose — and it cost a whole measurement: a BEFORE arm silently became its own
+  AFTER arm and every scenario read IDENTICAL. Probes now pin a release BY NAME and refuse to run
+  without one. The general fix belongs to `engine_release.js`.
+- Misty Terrain's confusion refusal (9 uses) is counted as `MEDFAILS.confusionMistyUnmodelled` rather
+  than silently allowed.
+
 ## [3.76.3] — 2026-08-08
 
 ### Added

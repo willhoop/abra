@@ -64,15 +64,18 @@ const BASELINE_RELEASE = '6b5447db1738';        // 3.76.0, the tree this session
 if (!process.argv.includes('--release')) process.argv.push('--release', BASELINE_RELEASE);
 {
   const rid = process.argv[process.argv.indexOf('--release') + 1];
-  if (!fsExists(path.join(__dirname, '..', 'data', 'releases', String(rid), 'release.json'))) {
-    console.log('NOT RUN — release ' + rid + ' is not on disk, so there is no BEFORE arm to compare '
-      + 'against. This is not a pass.');
+  /* `existsSync` rather than a try/catch around `accessSync`: a catch here would swallow the reason
+   * (a permission error and an absent directory are different accidents) and tests/test-no-silent-
+   * failure.js is right to refuse one. */
+  const rel = path.join(__dirname, '..', 'data', 'releases', String(rid), 'release.json');
+  if (!require('fs').existsSync(rel)) {
+    console.log('NOT RUN — release ' + rid + ' is not on disk (' + rel + '), so there is no BEFORE '
+      + 'arm to compare against. This is not a pass.');
     process.exit(2);
   }
   console.log('BEFORE arm pinned to release ' + rid
     + (rid === BASELINE_RELEASE ? '   (the declared baseline)' : '   (overridden on the command line)'));
 }
-function fsExists(p) { try { require('fs').accessSync(p); return true; } catch (e) { return false; } }
 
 const ARGV = process.argv;
 const ARG = (n) => { const i = ARGV.indexOf(n); return i >= 0 ? ARGV[i + 1] : null; };
@@ -83,6 +86,37 @@ const JSONOUT = HAS('--json');
 const BS = require(D('engine', 'board_state.js'));
 const SB = require(D('tests', 'staged_board.js'));
 const LIVE_SRC = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
+
+/* ================= THE AFTER ARM NEEDS THE LIVE ARTIFACT, NOT ONLY THE LIVE CODE ================
+ *
+ * `harness()` compiles the live simulator UNDER THE SNAPSHOT'S OWN FILENAME, which is the only way to
+ * pair patched engine source with the right sibling modules — and it means `require('./tags.js')`
+ * resolves inside the release, so the live engine reads the RELEASE'S `data/tags.json`. Measured
+ * here: with the release pinned, the two berry scenarios stayed red on the AFTER arm even though the
+ * code was right, because the frozen artifact still had no `curesVolatile` on a Lum Berry. That is a
+ * true statement about that release and a MISLEADING one about the fix, and it is exactly the shape
+ * this repository keeps finding — a capability present, running clean, and reading a stale input.
+ *
+ * So the AFTER arm swaps the tags LOADER'S cache entry for the live one, which reads the live
+ * `data/tags.json`, and the BEFORE arm removes it again. The loader FILE itself must be byte-identical
+ * between the release and the tree or this would be swapping two things at once; that is asserted
+ * rather than assumed, and a mismatch refuses the run. Which artifact each arm read is printed. */
+const REL_ID = process.argv[process.argv.indexOf('--release') + 1];
+const REL_TAGS_JS = D('data', 'releases', REL_ID, 'engine', 'tags.js');
+const LIVE_TAGS_JS = D('engine', 'tags.js');
+if (fs.readFileSync(REL_TAGS_JS, 'utf8') !== fs.readFileSync(LIVE_TAGS_JS, 'utf8')) {
+  console.log('NOT RUN — engine/tags.js differs between release ' + REL_ID + ' and the tree, so the '
+    + 'AFTER arm cannot swap the ARTIFACT without also swapping the LOADER. Two changes at once is '
+    + 'not a measurement. This is not a pass.');
+  process.exit(2);
+}
+const REL_TAGS_KEY = require.resolve(REL_TAGS_JS);
+require(LIVE_TAGS_JS);
+const LIVE_TAGS_MODULE = require.cache[require.resolve(LIVE_TAGS_JS)];
+function useLiveTags(on) {
+  if (on) require.cache[REL_TAGS_KEY] = LIVE_TAGS_MODULE;
+  else delete require.cache[REL_TAGS_KEY];
+}
 
 const mon = (species, item, ability, moves) => ({ species, item: item || '', ability: ability || '', moves });
 const FILL = (...names) => names.map(n => mon(n, '', '', ['Protect']));
@@ -181,6 +215,32 @@ const SCENARIOS = [
       { p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'swordsdance' }, { m: 'irondefense' }] },
     ] },
 
+  /* --------------------------------------- 2c. THE CONSEQUENCE, WHICH THE PRIMARY ARM CANNOT SEE */
+  { id: 'confusion-hurts-itself',
+    arm: 'bottom-tie-first',
+    kind: 'volatile', shape: 'the self-hit: a lost action AND a specific number of HP',
+    what: 'THE COUNTER IS NOT THE MECHANIC. `confusion-counter-decays` runs on the primary arm, where '
+        + '`randomChance(33, 100)` reads the top of the range and the body NEVER hurts itself — so '
+        + 'that scenario proves the clock and says nothing at all about what the clock is for. Here '
+        + 'the roll lands: Snorlax is confused on turn 1 and, on its own attempt, loses the action and '
+        + 'takes a 40-BP typeless physical hit off its OWN Attack against its OWN Defence '
+        + '(battle-actions.ts:1850). Two compared fields say so together — the HP, which pins the '
+        + 'damage formula exactly, and `boosts.atk`, which stays at 0 because the Swords Dance never '
+        + 'happened.',
+    negative: 'TWO. Turn 2 is the first: the clock reaches zero at the top of that attempt, the '
+            + 'volatile is removed BEFORE the self-hit roll is even asked, and the Swords Dance goes '
+            + 'through — so an engine that rolled first would deal one hit too many and part on HP '
+            + 'and on the stage together. The partner is the second and is never confused.',
+    A: [mon('milotic', '', 'Marvel Scale', ['Confuse Ray', 'Protect']),
+        mon('clefable', '', 'Unaware', ['Calm Mind', 'Protect'])].concat(FILL('garchomp', 'weavile')),
+    B: [mon('snorlax', '', 'Thick Fat', ['Swords Dance', 'Protect']),
+        mon('corviknight', '', 'Pressure', ['Iron Defense', 'Protect'])].concat(FILL('toxapex', 'incineroar')),
+    script: [
+      { p1: [{ m: 'confuseray', t: 0 }, { m: 'calmmind' }], p2: [{ m: 'swordsdance' }, { m: 'irondefense' }] },
+      { p1: [{ m: 'protect' }, { m: 'calmmind' }], p2: [{ m: 'swordsdance' }, { m: 'irondefense' }] },
+      { p1: [{ m: 'protect' }, { m: 'calmmind' }], p2: [{ m: 'swordsdance' }, { m: 'irondefense' }] },
+    ] },
+
   /* ------------------------------------------------------------ 3. Lum Berry against confusion */
   { id: 'lum-berry-eats-a-confusion',
     arm: 'top-tie-first',
@@ -270,15 +330,20 @@ const SCENARIOS = [
             + 'power and skips the halving, so an engine applying x0.5 there deals about a quarter of '
             + 'the right damage. (c) The partner Corviknight is never aimed at and is never burned.',
     A: [mon('milotic', '', 'Marvel Scale', ['Will-O-Wisp', 'Protect']),
-        mon('clefable', '', 'Unaware', ['Protect'])].concat(FILL('garchomp', 'weavile')),
+        mon('clefable', '', 'Unaware', ['Calm Mind', 'Protect'])].concat(FILL('garchomp', 'weavile')),
     B: [mon('snorlax', '', 'Thick Fat', ['Body Slam', 'Facade', 'Protect']),
         mon('incineroar', '', 'Blaze', ['Iron Defense', 'Protect'])].concat(FILL('toxapex', 'corviknight')),
+    /* CLEFABLE CLICKS CALM MIND AND NOT PROTECT, and the first version of this scenario got that
+     * wrong in the one way the fixture audit says it cannot see: a click aimed INTO A PROTECT. With
+     * Clefable shielding, every Body Slam and the Facade were blocked — the burn landed, the boards
+     * agreed, and the HALVING under test was never once computed. Measured rather than reasoned:
+     * Clefable sat on 170 of 170 HP at every boundary of all three turns. */
     script: [
-      { p1: [{ m: 'willowisp', t: 0, mayMiss: 'the burn IS the mechanic and this arm lands it' }, { m: 'protect' }],
+      { p1: [{ m: 'willowisp', t: 0, mayMiss: 'the burn IS the mechanic and this arm lands it' }, { m: 'calmmind' }],
         p2: [{ m: 'bodyslam', t: 1 }, { m: 'irondefense' }] },
-      { p1: [{ m: 'willowisp', t: 1, mayMiss: 'aimed at a FIRE type — the refusal is the negative' }, { m: 'protect' }],
+      { p1: [{ m: 'willowisp', t: 1, mayMiss: 'aimed at a FIRE type — the refusal is the negative' }, { m: 'calmmind' }],
         p2: [{ m: 'bodyslam', t: 1 }, { m: 'irondefense' }] },
-      { p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'facade', t: 1 }, { m: 'irondefense' }] },
+      { p1: [{ m: 'protect' }, { m: 'calmmind' }], p2: [{ m: 'facade', t: 1 }, { m: 'irondefense' }] },
     ] },
 
   /* ---------------------------------------------- 7. guts — the OTHER body a burn does not halve */
@@ -286,23 +351,31 @@ const SCENARIOS = [
     arm: 'bottom-tie-first',
     kind: 'ability', shape: 'the ability that inverts the burn',
     what: 'Conkeldurr has GUTS, which turns a burn into a x1.5 Attack multiplier AND skips the x0.5 '
-        + 'halving. Milotic burns it on turn 1 and it clicks Drain Punch into Clefable on turns 2 and '
-        + '3; the HP on the board is the whole reading.',
-    negative: 'the partner Snorlax is burned by the same Milotic on turn 2 and has THICK FAT rather '
-            + 'than Guts, so the identical status must halve its Body Slam. Both bodies are burned '
-            + 'and only one is halved, on the same boards, which is the separation a single-body '
-            + 'scenario cannot make.',
-    A: [mon('milotic', '', 'Marvel Scale', ['Will-O-Wisp', 'Protect']),
-        mon('clefable', '', 'Unaware', ['Protect'])].concat(FILL('garchomp', 'weavile')),
+        + 'halving. Milotic burns it on turn 1 and it clicks Drain Punch into the Snorlax opposite on '
+        + 'all three turns; the HP on that body is the whole reading.',
+    negative: 'THE PARTNER IS THE NEGATIVE AND IT IS ON THE SAME BOARDS. Scizor is burned by the same '
+            + 'Milotic on turn 2 and has TECHNICIAN rather than Guts, so the identical status must '
+            + 'halve its Bullet Punch and must not raise its Attack. Both bodies are burned and only '
+            + 'one is exempt, which is the separation a single-body scenario cannot make. Scizor also '
+            + 'aims at the OTHER slot, so the two damage arms are read off two different bodies and '
+            + 'cannot be confused with each other.',
+    A: [mon('milotic', '', 'Marvel Scale', ['Will-O-Wisp', 'Calm Mind', 'Protect']),
+        mon('clefable', '', 'Unaware', ['Calm Mind', 'Protect'])].concat(FILL('garchomp', 'weavile')),
     B: [mon('conkeldurr', '', 'Guts', ['Drain Punch', 'Protect']),
-        mon('snorlax', '', 'Thick Fat', ['Body Slam', 'Protect'])].concat(FILL('toxapex', 'corviknight')),
+        mon('scizor', '', 'Technician', ['Bullet Punch', 'Protect'])].concat(FILL('toxapex', 'corviknight')),
+    /* THE TWO ATTACKERS AIM AT DIFFERENT BODIES, AND NEITHER TARGET MAY PROTECT OR DIE. The first
+     * version pointed both at one Clefable, which duly FAINTED on turn 2 -- and a faint in a scripted
+     * game is not a finding, it is a THROW: the replacement carries a different moveset, the scripted
+     * click is answered `pass`, and Showdown rejects a pass for a healthy active body. The version
+     * before that had the target on Protect, so both damage arms read zero. Both are staging faults
+     * and both looked like results. */
     script: [
-      { p1: [{ m: 'willowisp', t: 0, mayMiss: 'the burn IS the mechanic and this arm lands it' }, { m: 'protect' }],
-        p2: [{ m: 'drainpunch', t: 1 }, { m: 'bodyslam', t: 1 }] },
-      { p1: [{ m: 'willowisp', t: 1, mayMiss: 'the second burn, on the body WITHOUT Guts' }, { m: 'protect' }],
-        p2: [{ m: 'drainpunch', t: 1 }, { m: 'bodyslam', t: 1 }] },
-      { p1: [{ m: 'protect' }, { m: 'protect' }],
-        p2: [{ m: 'drainpunch', t: 1 }, { m: 'bodyslam', t: 1 }] },
+      { p1: [{ m: 'willowisp', t: 0, mayMiss: 'the burn IS the mechanic and this arm lands it' }, { m: 'calmmind' }],
+        p2: [{ m: 'drainpunch', t: 1 }, { m: 'bulletpunch', t: 0 }] },
+      { p1: [{ m: 'willowisp', t: 1, mayMiss: 'the second burn, on the body WITHOUT Guts' }, { m: 'calmmind' }],
+        p2: [{ m: 'drainpunch', t: 1 }, { m: 'bulletpunch', t: 0 }] },
+      { p1: [{ m: 'calmmind' }, { m: 'calmmind' }],
+        p2: [{ m: 'drainpunch', t: 1 }, { m: 'bulletpunch', t: 0 }] },
     ] },
 
   /* ------------------------------------------------------- 8. freeze — the counter nobody compared */
@@ -311,14 +384,23 @@ const SCENARIOS = [
     kind: 'status', shape: 'frz, and the timer this format overrides',
     what: 'Champions OVERRIDES `frz` (data/mods/champions/conditions.ts): the freeze is a THREE-TURN '
         + 'TIMER with an additional 1-in-4 thaw per move attempt, not standard Gen 9 freeze. Milotic '
-        + 'clicks Ice Beam at Snorlax; in this arm the 10% secondary fires and the body is frozen. '
+        + 'clicks Ice Beam at TINKATON; in this arm the 10% secondary fires and the body is frozen. '
         + 'THE POINT IS THE COMPARED FIELD RATHER THAN THE DURATION: until this pass `board_state.js` '
         + 'mentioned `frz` only in a display-name map, so `frzTurns` could drift by any amount and no '
-        + 'instrument in the repository would have seen it. The plant below is what proves it now can.',
-    negative: 'the partner Corviknight is never aimed at. And the arm itself is the second negative: '
-            + 'this pin thaws on the first attempt (`randomChance(1,4)` reads the bottom of the '
-            + 'range), so the board must show the freeze APPEARING and then LEAVING — an engine that '
-            + 'held it parts on the turn after.',
+        + 'instrument in the repository would have seen it. The plant below is what proves it now can.\n'
+        + '            THE TARGET IS THE FASTER BODY ON PURPOSE, and the first version of this scenario '
+        + 'got it wrong in exactly the way the fixture audit cannot see. Aimed at Snorlax (50 Speed) '
+        + 'the freeze landed and was GONE before the boundary — this pin reads `randomChance(1,4)` at '
+        + 'the bottom of the range, so the very next attempt thaws — and the two boards agreed over a '
+        + 'field neither of them was carrying. Tinkaton, at 152 Speed to Milotic\'s 101, moves '
+        + 'BEFORE the Ice Beam and reaches the boundary still frozen, so the counter sits on a real '
+        + 'board. CORVIKNIGHT WAS TRIED FIRST AND WAS NOT FAST ENOUGH, and the pinned log is what '
+        + 'said so: the 1-in-4 thaw roll fired on turn 1, which can only happen if the frozen body '
+        + 'moved AFTER the freeze landed. Steel halves Ice so Tinkaton survives the hit; the obvious '
+        + 'fast target, an ICE type, cannot be frozen at all.',
+    negative: 'the partner Snorlax is never aimed at and is never frozen. And the arm itself is the '
+            + 'second negative: the thaw is guaranteed on the next attempt here, so the board must '
+            + 'show the freeze APPEARING and then LEAVING — an engine that held it parts on turn 2.',
     plant: { why: 'the freeze counter is started at 1 instead of 0 — the status, the thaw and every '
                 + 'other field are untouched, so ONLY the counter moves. Before `frzTurns` was added '
                 + 'to the compared board this plant was INVISIBLE, which is the whole finding.',
@@ -326,12 +408,12 @@ const SCENARIOS = [
                "if(st==='slp')t.slpTurns=0;if(st==='frz')t.frzTurns=1;"]] },
     A: [mon('milotic', '', 'Marvel Scale', ['Ice Beam', 'Protect']),
         mon('clefable', '', 'Unaware', ['Protect'])].concat(FILL('garchomp', 'weavile')),
-    B: [mon('snorlax', '', 'Thick Fat', ['Swords Dance', 'Protect']),
-        mon('corviknight', '', 'Pressure', ['Iron Defense', 'Protect'])].concat(FILL('toxapex', 'incineroar')),
+    B: [mon('tinkaton', '', 'Mold Breaker', ['Iron Defense', 'Protect']),
+        mon('snorlax', '', 'Thick Fat', ['Swords Dance', 'Protect'])].concat(FILL('toxapex', 'incineroar')),
     script: [
-      { p1: [{ m: 'icebeam', t: 0 }, { m: 'protect' }], p2: [{ m: 'swordsdance' }, { m: 'irondefense' }] },
-      { p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'swordsdance' }, { m: 'irondefense' }] },
-      { p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'swordsdance' }, { m: 'irondefense' }] },
+      { p1: [{ m: 'icebeam', t: 0 }, { m: 'protect' }], p2: [{ m: 'irondefense' }, { m: 'swordsdance' }] },
+      { p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'irondefense' }, { m: 'swordsdance' }] },
+      { p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'irondefense' }, { m: 'swordsdance' }] },
     ] },
 ];
 
@@ -341,6 +423,7 @@ const SCENARIOS = [
  * release and over the live tree in one process. */
 function runOne(sc, src, armId) {
   let G;
+  useLiveTags(src != null);          // the AFTER arm reads the live artifact; the BEFORE arm the frozen one
   try { G = SB.harness(src); }
   catch (e) { return { id: sc.id, verdict: 'THREW', why: 'the simulator source would not load: ' + e.message }; }
   const arm = G.ARM_BY_ID.get(armId || 'top-tie-first');

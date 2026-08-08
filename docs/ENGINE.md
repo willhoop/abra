@@ -29,8 +29,8 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  319/319 probed mechanics live, 0 missing   (census 2026-08-08 07:07)
-  1/150 differential comparisons disagree with Showdown   (2026-08-08 06:52)
+  324/324 probed mechanics live, 0 missing   (census 2026-08-08 08:04)
+  1/150 differential comparisons disagree with Showdown   (2026-08-08 08:01)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (65 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -51,12 +51,179 @@ ENGINE — does the simulator do what Pokémon does
     whole-game agreement 7/1997 -> 134/1997; first-divergence line, mean 14.78 -> 33.98
     paired against the baseline: 1295 games part later, 116 EARLIER, 586 unchanged
     the baseline ran first and last and reproduced exactly; comparability: every arm cleared
-  tag coverage: 182/191 probed, 9 unprobed
+  tag coverage: 183/191 probed, 8 unprobed
 ```
 
-_stamped 2026-08-08 07:32_
+_stamped 2026-08-08 08:06_
 
 <!-- /GENERATED -->
+
+## WIRE 142 — THE STATUS-COUNTER CLUSTER. FIVE SYMPTOMS, THREE CAUSES, AND THE TWO LOUDEST WERE NOT DEFECTS. 2026-08-08.
+
+Census **319 → 324 live**, `missing` **0**, `probed` 324. New instrument:
+`tests/staged_status_counters.js`, **11 scenarios, 6 FIXED (red on release `6b5447db1738`, identical
+on the live tree), 5 ALREADY-CORRECT**, 2 declared controls both green on the release, 1 planted
+break caught and localised. `tests/staged_board.js` unchanged at **24/24 clean, 24/24 breaks caught**.
+Tag coverage 182/190 → 183/191 probed.
+
+Will, 2026-08-08: *"do you have a freeze counter? have we checked burn cuts attack in half?"*
+
+### SAID FIRST: BURN IS CORRECT, AND SO IS THE FREEZE TIMER
+
+**BURN WAS NEVER ONCE ON A BOARD IN THIS REPOSITORY, AND IT IS RIGHT ANYWAY.** Will-O-Wisp is
+85-accurate and the primary pin makes every sub-100 move miss, so the roster filed burn as
+COULD-NOT-STAGE and nothing else had ever inflicted one. Staged now on the `bottom-tie-first` arm,
+where a sub-100 move hits: the halving lands, **INCINEROAR CANNOT BE BURNED AT ALL** (Fire type, same
+Will-O-Wisp, no status on any board), **FACADE IS EXEMPT** and **GUTS IS EXEMPT** — a burned
+Conkeldurr deals 82 twice while a burned Scizor beside it drops from 39 to 19 on the turn its burn
+lands. Every field agrees with the authority on the frozen release too, so this is a confirmation and
+not a fix.
+
+**THE FREEZE TIMER IS ALSO CORRECT, AND THE FORMAT IS NOT WHAT GENERAL POKEMON KNOWLEDGE SAYS.**
+`data/mods/champions/conditions.ts` overrides `frz`: a **3-turn timer with an additional 1-in-4 thaw
+per attempt**, not Gen 9's flat 1-in-5. The engine's `frzTurns` gate already encodes exactly that and
+has since it was written.
+
+**WHAT WAS WRONG IS THAT NOTHING COULD HAVE SEEN IT.** `engine/board_state.js` compared the toxic
+stage and the sleep counter and mentioned `frz` only in a display-name map, so `frzTurns` could drift
+by any amount in silence. Demonstrated rather than argued: a plant that starts the counter at 1
+instead of 0 was **NOT CAUGHT** on a board comparing 131 fields, and is now **CAUGHT AND LOCALISED to
+`status_counter`**. The mapping `freeze-counter-is-turns-frozen` carries its own red proof beside the
+sleep one.
+
+### THE SLEEP COUNTER — THE CAUSE IS AN ORDERING, AND IT COSTS A WHOLE TURN
+
+`onBeforeMovePriority` is an authority fact and this engine had four fifths of it. A HIGHER NUMBER
+RUNS FIRST: `slp` 10, `frz` 10, `flinch` 8, `confusion` 3, `par` 1. The loop ran **flinch first**, so a
+body that was **asleep AND flinched** consumed the flinch and never ticked its sleep counter.
+
+Not a counter curiosity. Staged as `sleep-counter-under-a-flinch` — Fake Out and Spore into one
+Snorlax on one turn — the boards part on `status`, `status_counter` **and `boosts.atk`**: Showdown's
+Snorlax wakes on turn 3 and takes a Swords Dance ours does not get until turn 4. **The control with
+the Fake Out removed is IDENTICAL on the same release**, which is what makes the ordering the whole
+cause rather than a guess. `par` moved below `slp`/`frz` in the same pass; it changes nothing today
+because a body cannot hold two major statuses, and a list that is four fifths of the authority's is
+the shape that comes apart when somebody adds the fifth member.
+
+### CONFUSION DID NOT EXIST, AND THE VOLATILE THAT WAS THERE WAS WORSE THAN NOTHING
+
+Nine moves carry `statusInflict {volatile:'confusion'}` — Confuse Ray, Dynamic Punch, Swagger,
+Flatter, Sweet Kiss, Teeter Dance, Water Pulse, **Hurricane (3,779 uses)** and Axe Kick. The generic
+volatile branch wrote `_vol.confusion = 1` onto the target and **nothing ever read it or decremented
+it**, so the flag sat on the body for the rest of the game and the mechanic it named never happened
+once in any rollout this project has run. The secondary path did not even do that: `s.volatile ===
+'confusion'` fell through `status`, `targetBoosts`, `selfBoosts` and `flinch` and out of the loop.
+
+Wired as one function each way. `applyConfusion` refuses a body that is **already confused** (a second
+Confuse Ray is not a free extension), a body with **OWN TEMPO**, and a body behind **SAFEGUARD**
+through the existing `sideBuff.blocksVolatile` reader. `confusionBeforeMove` decrements at the TOP of
+the attempt, removes the volatile at zero **before the self-hit roll is asked**, and otherwise costs
+the action 33% of the time for a 40-BP typeless physical hit off the body's own Attack against its own
+Defence. Measured exact against the authority: 23 HP off a Snorlax at the maximum roll, 21 at the
+probe's, on the same board where Showdown reads the same number.
+
+**THE DURATION IS THE MINIMUM OF THE AUTHORITY'S RANGE, AND THAT IS A DECISION, NOT A DEFAULT.**
+`data/conditions.ts:174` draws `this.random(2, 6)`; the differential pins Showdown's RANGE form to the
+bottom in **every** arm, and this engine's `rng` is a plain float that cannot express a range draw —
+`min + floor(rng()*span)` reads 5 on the top-corner arm and 2 on the bottom one, so the two engines
+would part on the arm the staged boards actually run. The flat minimum is the same choice the partial
+trap already makes. **The cost is real and is counted, not hidden**: against real dice confusion lasts
+3.5 attempts and this engine gives it 2, so a search will UNDER-value landing one.
+`MEDSEEN.confusionMinDuration` is the receipt.
+
+**AND IT DID NOT SURVIVE THE FIRST PROBE WRITTEN AGAINST IT.** Two lifetime bugs came out of the
+census row `a confusion does NOT survive the body leaving the field`, both of which the staged boards
+structurally could not see:
+
+- **A `pass` AND A VOLUNTARY SWITCH ARE NOT MOVES**, and the tick ran for them. A body standing still
+  while nobody moved lost its confusion in two turns. Every staged scenario clicks a real move, so no
+  board in this repository could have caught it.
+- **`switchOut` NEVER TOUCHED `_vol`.** It erases the substitute, the trap, the charge, the silence
+  and the boosts by hand, so a confusion written on turn 1 was still on the body two switches later —
+  the never-decays defect arriving by a second road. Red-demonstrated: with the one line removed the
+  probe reads `2,2` and the census drops to 323/1 missing.
+
+**FILED, NOT FIXED, AND THEY ARE THE SAME TWO BUGS ONE LEVEL UP:** `taunt`, `encore` and `disable`
+also survive a switch here, and `slp`/`frz`/`flinch` also tick on a pass — worse, the `continue` in
+the sleep gate means **a sleeping body cannot voluntarily switch at all**. There is no failing probe
+on either: `board_state.js` compares volatiles only on the ACTIVE bodies, so a taunt riding the bench
+is invisible to every staged board, and changing how every switch resolves is not a line to add
+beside a confusion fix.
+
+**Alluring Voice's punish arm is no longer declared-and-unmodelled**, and the `tangledfeet` row in the
+damage table can now be switched on by whoever owns that table — the state it was waiting for exists.
+
+### THE TWO BERRIES WERE ONE DERIVATION GAP, NOT TWO ENGINE GAPS
+
+**PERSIM BERRY CARRIED NO CURE TAG OF ANY KIND.** Its `onUpdate` tests only `volatiles['confusion']`,
+so `curesStatus` (which greps the status handlers) found nothing and `curesVolatile` (which matched
+Mental Herb's literal `conditions` array) found nothing either. **Lum read as curing statuses only**,
+which is what the artifact said and not what the item does.
+
+`curesVolatile` now reads the SECOND shape as well — `removeVolatile('x')` inside `onEat` — and the
+membership was printed before it was wired, over every non-Past item the format defines:
+**exactly two matches, `lumberry` and `persimberry`, both naming `confusion`.** Mental Herb's set is
+unchanged. `berryCureUpdate` gained the volatile arm first, because `curesStatus` returns early on an
+unstatused body and a Persim holder never reached the rest of the function.
+
+### A NEW ABILITY TAG, WITH ITS MEMBERSHIP PRINTED FIRST
+
+`refusesVolatile`, derived from `onTryAddVolatile`. Own Tempo (64 sheets) could not be confused and
+had nothing to refuse until this pass; wiring confusion without it would have INTRODUCED a divergence
+on 64 sheets while fixing something else. The membership is clean and is the reason the tag is safe:
+
+| ability | refuses |
+|---|---|
+| `owntempo` (64) | confusion |
+| `innerfocus` (890) | flinch |
+| `insomnia` (63), `vitalspirit` (10), `leafguard` (94), `purifyingsalt` (60) | yawn |
+
+**One member is knowingly missed and it is a MISS rather than an over-match**: Shields Down writes its
+refusal as an early-return guard (`if (status.id !== 'yawn') return;`), which the inclusion pattern
+deliberately does not match — the same shape that nearly deleted Mirror Armor in ROADMAP #81 WIRE 12.
+Yawn is not modelled here at all, so it costs nothing today.
+
+### WHAT THE INSTRUMENT GOT WRONG BEFORE THE ENGINE DID — FIVE TIMES, ALL ON THE RECORD
+
+1. **THE BEFORE ARM SILENTLY BECAME THE AFTER ARM.** `engine_release.open()` with no id takes the
+   NEWEST release, and a `game_differential` run in another process cut release `138261a235c7` over
+   this working tree, mid-edit, at 07:33. The next run reported IDENTICAL on both arms and every
+   verdict in it was worthless. Nothing failed; the comparison simply stopped comparing, and it
+   stopped on the comfortable answer. The baseline is now NAMED in the file, injected into argv before
+   either module loads, and the run refuses to start if that release is absent.
+2. **THE AFTER ARM READ THE FROZEN ARTIFACT.** `harness()` compiles the live simulator under the
+   snapshot's filename, so `require('./tags.js')` resolves inside the release — the berry scenarios
+   stayed red on correct code because the frozen `data/tags.json` had no `curesVolatile` on a Lum.
+   The AFTER arm now swaps the tags loader's cache entry for the live one, and refuses to run if the
+   loader FILE differs between release and tree, because swapping two things at once is not a
+   measurement.
+3. **THE BURN SCENARIO WAS AIMED INTO A PROTECT.** Clefable shielded on every turn, so every Body Slam
+   and the Facade were blocked: the burn landed, the boards agreed, and the halving under test was
+   never computed. Measured, not reasoned — Clefable sat on 170 of 170 HP at every boundary. This is
+   the one fault `staged_board.js`'s fixture audit says in its own header that it cannot see.
+4. **THE SWITCH THE PROBE ASKED FOR COULD NOT HAPPEN.** `board()` puts two bodies on each side and
+   nothing behind them, so `{ kind: 'switch', to: <undefined> }` was a switch that never occurred —
+   and turn 3 was then handed to a body that was not on the field, which chose a move for itself and
+   ticked its own clock. The probe read a surviving volatile and would have been GREEN on the fix for
+   the wrong reason. A fixture that cannot express the act under test fails toward whatever the reader
+   already believes.
+5. **THE FREEZE TARGET WAS OUTSPED, AND THEN THE TARGET FAINTED.** Aimed at Corviknight the freeze
+   landed and was gone before the boundary — the pinned log shows the 1-in-4 thaw firing on turn 1,
+   which can only happen if the frozen body moved after the freeze. Tinkaton at 152 fixes it. Separately
+   the Guts scenario pointed two attackers at one Clefable, which fainted and turned the run into a
+   THROW rather than a finding, because the replacement carries a different moveset.
+
+### FILED, NOT MINE
+
+- **Release `138261a235c7` was cut over a mid-edit working tree** by a `game_differential` run at
+  07:33 on 2026-08-08 and is now the newest release. Anything that calls `open()` with no id gets an
+  engine that is neither `6b5447db1738` nor the current tree. It loads and runs; it is simply not a
+  build anybody chose. Reported rather than deleted.
+- **MISTY TERRAIN also refuses confusion** to a grounded body and this engine has no per-terrain
+  volatile refusal to hang it on. 9 corpus uses. `MEDFAILS.confusionMistyUnmodelled` counts every
+  confusion written while it is up, so the gap is a number in the run rather than a sentence here.
+- **`getConfusionDamage` picks up an `onModifyAtk` ability** and the self-hit here does not — a burned
+  Guts body hits itself harder in the authority. It needs a burn, a Guts body and a confusion at once.
 
 ## WIRE 141 — FIVE FIXES IN TWO ATTRIBUTABLE BATCHES, AND THE ONE WITH THE LOUDEST SYMPTOM WAS NOT A DEFECT. 2026-08-08.
 
@@ -264,12 +431,17 @@ holders, and this is the first time anything confirmed it.
 not): **Iron Ball** (the Speed halving — Showdown's Charizard dies to a Glimmora it outsped without
 it), **Light Ball**, **Shell Bell**, **Big Root**, **Metronome**, **Oran Berry** (its
 `healsAtThreshold` param carries `restores: null` where Sitrus carries `1/4` — a tag-derivation gap,
-not an engine one), and **Lum Berry** and **Persim Berry** (neither cures confusion).
+not an engine one), and ~~**Lum Berry** and **Persim Berry** (neither cures confusion)~~ — **BOTH
+CLOSED BY WIRE 142**, and both were the same tag-derivation gap rather than two engine gaps:
+`curesVolatile` could not read a berry's `onEat`. Six items remain.
 
-**AND THREE DIVERGENCES BELONG TO NO ITEM AT ALL**, found because the CONTROL arm parts on the same
-leaf: Toxic Thread's Speed drop never lands here; the confusion counter never decays; the sleep
-counter and the wake-up turn disagree with the authority. They are reported apart rather than charged
-to the berry that tripped over them — *a fix aimed at the wrong mechanism is still a bug*.
+~~**AND THREE DIVERGENCES BELONG TO NO ITEM AT ALL**~~ — **TWO OF THE THREE ARE CLOSED BY WIRE 142**,
+each with a staged board and a named control: the confusion counter now decays (it never existed —
+the volatile was written and never read), and the sleep counter disagreed only on a turn the body was
+ALSO flinched, which was an `onBeforeMovePriority` ordering bug. **Toxic Thread's Speed drop is still
+open.** They were reported apart rather than charged to the berry that tripped over them — *a fix
+aimed at the wrong mechanism is still a bug* — and that is exactly why the confusion row turned out
+to be the berries' cause and the sleep row turned out not to be.
 
 ### THE INSTRUMENT WAS WRONG FIVE TIMES BEFORE THE ENGINE WAS, AND EVERY ONE IS ON THE RECORD
 
@@ -438,11 +610,10 @@ only control and it still does not suppress here. Re-checked, not assumed.
 | 4. 4x and 0.25x | **LANDED FOR THE BERRIES** (11 of 18 on a flipped-KO arm). Not generalised to Expert Belt, Tinted Lens or the 16 type-scoped items |
 | 5. across a switch and across a faint | **LANDED for the switch** — mid-turn entrant and out-and-back, both red-demonstrated; it immediately produced the Imposter divergence. Across a FAINT is still owed |
 
-**STAGE 4 IS NOT STARTED**: all 500 moves. Three divergences the item stage could not attribute to any
-item are the first thing it should confirm — Toxic Thread's Speed drop never lands here, the confusion
-counter never decays, and the sleep counter and wake-up turn disagree with the authority. *(The
-confusion and sleep rows are being fixed by another agent as this is written; do not re-report them as
-new.)*
+**STAGE 4 IS NOT STARTED**: all 500 moves. Of the three divergences the item stage could not attribute
+to any item, **two are closed by WIRE 142** — the confusion counter and the sleep counter, both with a
+staged board, a named control and a red on release `6b5447db1738`. **Toxic Thread's Speed drop is the
+one that remains** and is the first thing stage 4 should confirm.
 
 ## WIRE 138–140 — THE THREE LARGEST BOARD-DIVERGENCE FAMILIES, AND WILL'S SLOT-FIRST QUESTION ANSWERED YES. 2026-08-08.
 
