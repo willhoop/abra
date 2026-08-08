@@ -22,7 +22,26 @@ one tie value per action from a constant scalar so the sort is stable and takes 
 instrument's own header claimed the pin made them agree by construction; that claim was false and was
 repeated as fact before it was checked. `sortTurnOrder` is the live engine, not instrument code.
 
-**Version: 3.73.0 — 2026-08-07.**
+**Version: 3.74.0 — 2026-08-07.**
+
+> **WIRE 133–138 ADDED ONE MULTIPLIER TO THIS AUDIT AND SETTLED THE SPEED-TIE PARAGRAPH ABOVE
+> (3.74.0).** The paragraph at the head of this file was RIGHT that the two engines disagreed about
+> every speed tie and RIGHT that `sortTurnOrder` is the live engine, and its DIAGNOSIS was incomplete:
+> "the authority resolves a tie to the LATER body in input order" is what the authority PRODUCES UNDER
+> THIS HARNESS'S PIN, which replaces `PRNG.shuffle` with a no-op — it is not a rule. The rule is
+> `Battle#speedSort`, a SELECTION SORT whose swaps move UNTIED elements around, ending in a
+> Fisher-Yates over the tied group: a speed tie is a COIN FLIP. The engine now performs the same
+> selection sort and resolves the residual group with the per-action uniform key it already drew, so
+> both engines land on the same body under identical pinned dice and both are a fair coin under real
+> ones. `tests/test-speed-tie.js` proves it in both team orientations, with the tied pair on one side,
+> on a three-way tie, and against a no-tie control.
+>
+> **The one change to the DAMAGE formula itself is WONDER ROOM** (`swapsDefences`, 11 uses), which had
+> no consumer at all. It swaps the STORED DEFENSIVE STAT and NOT the boost stage — `Pokemon#getStat`
+> swaps `storedStats` at the top of the function and then applies `boosts[statName]`, the ORIGINAL
+> stat's stage — so the swap is applied to `D` before the stage multiplier and `_dKey` is deliberately
+> left unrewritten. It rides on whichever defence the move attacks into, so Psyshock and Body Press
+> inherit it through `statSwap` rather than through a second rule. Nothing else in §2a or §3 moved.
 
 > **THIS AUDIT HAS BEEN LANDED. ROADMAP #92, 3.73.0.** Everything §6 lists as open work is fixed, and
 > the numbers below are now HISTORY — they describe the engine at release `dc3c43336539`, not the

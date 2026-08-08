@@ -10,6 +10,125 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.74.0] — 2026-08-07
+
+### Fixed
+- **THE TWO ENGINES HAVE DISAGREED ABOUT EVERY SPEED TIE FOR THE LIFE OF THE PROJECT, and the cause
+  is the SORT ALGORITHM rather than the comparator.** Measured on a staged pure tie (Volcarona vs
+  Charizard, both 100 base Speed, both 120 exactly) under the differential's primary pin: Showdown
+  moved Charizard first, medicham2 moved Volcarona first. `Array.prototype.sort` is STABLE, so a
+  comparator returning 0 keeps input order; `Battle#speedSort` is a SELECTION SORT whose swaps move
+  UNTIED elements around, so the tied group's order when the shuffle sees it is not the input order.
+  No comparator can make a stable sort produce that permutation. **It is not confined to the
+  instrument** — `sortTurnOrder` is the live engine, so every rollout MILTANK has run and every live
+  game resolved a tied matchup to the wrong body, and 91.4% of legal species share a base Speed with
+  some other species (ROADMAP #86). The selection sort is now reproduced line for line and the
+  residual tie is resolved by the per-action uniform key the file already drew — a uniform random
+  permutation under real dice (the coin the authority rolls) and the identity under a constant pinned
+  die (what the neutralised shuffle does), so both engines land on the same body without either being
+  told the answer. **"Take the later body" was explicitly REFUSED**: that is what the authority
+  produces under this harness's pin, not the game's rule, and hardcoding it would have made the
+  differential go green on an engine that was wrong in every rollout and every live game.
+- **Zero to Hero fired at the wrong MOMENT and emitted neither of its two lines.** Showdown transforms
+  Palafin on switch-OUT and announces on the way back IN; this engine transformed inside `bringIn()`.
+  After a pivot, Showdown's party held `palafinhero` and ours held `palafin`. Staged board comparison,
+  393 fields: now IDENTICAL.
+- **Disguise never renamed the body.** The HP was exact (both engines end at 114/130, which is why
+  this was once declared a non-bug) and Showdown's active slot AND party read `mimikyubusted` on every
+  turn after the hit while ours read `mimikyu`. Staged board comparison: now IDENTICAL.
+- **ROADMAP #89 — the comment justifying the Disguise model cited `battle.update()`, A SHOWDOWN METHOD
+  THAT DOES NOT EXIST** (verified by enumerating the prototype). The model was correct; the stated
+  reason was fiction, which is worse, because the next reader re-derives from it. The real reason is
+  in the ability's own source: the self-inflicted eighth is dealt in `onUpdate` on the next update
+  pass, as a separate damage event. Corrected in the engine and in `docs/ENGINE.md`, where the same
+  claim had been copied.
+- **`MEDFAILS.traceBodyOffField` 25 → 0**, and the cause was a STATE bug wearing an announcement's
+  clothes: the `pivotDamaging` switch resolved ABOVE recoil, drain and the Life Orb toll, so a U-turn
+  user paid all three FROM THE BENCH. `useMoveInner` queues `selfSwitch` after the hit and guards it
+  with `else if (pokemon.hp)`, so a Life Orb holder on a sliver of HP that clicks U-turn dies to the
+  orb and does not pivot. The last `??` was a status move still aiming at a BODY rather than at a
+  SLOT — the attack branch has re-resolved its aim since voluntary switching existed, the status
+  branch never did.
+- **`tests/mutation_harness.js` scored every tag `THREW` and the planted-stub gate read
+  `shipped = MISSING`.** `S.sfA._S = S` (ROADMAP #81 WIRE 9's battle-state back-reference) made the
+  harness's own `projVal` recurse without bound. Proven to be the INSTRUMENT and not the engine: the
+  gate passes on release `032b4a2979dd` (pre-WIRE-9) and fails identically on `dc3c43336539`, cut
+  before this session. `_S` is now skipped beside `team`.
+
+- **DEFIANT AND COMPETITIVE FIRED ON EXACTLY ONE ROUTE, AND FIRED THE WRONG NUMBER OF TIMES ON IT.**
+  Will: *"WHEN PARTING SHOT GOES INTO A DEFIANT OR COMPETITIVE MON IT GETS DOUBLE BOOSTS, ONE FOR EACH
+  DROP. I DONT THINK THATS THE CASE FOR CHARM BUT IDK."* Both halves are right: `Battle#boost` runs
+  `AfterEachBoost` inside its PER-STAT loop, so Parting Shot's two drops are `-1 +2 +2 = +3 Attack`
+  and Charm's single two-stage drop nets ZERO. The count was the smaller half — the retaliation lived
+  inside `applyStatDrop`, which only Intimidate and Sticky Web reach, so **every move-driven stat drop
+  escaped it entirely**: measured before a line changed, Parting Shot into a Defiant body read `-1,-1`,
+  identical to a body with the ability blanked, on 7,661 Defiant sheets and 1,916 Competitive ones. It
+  is now one shared reader called at every site that lowers a stat. Staged against the authority —
+  Parting Shot, Charm and a no-ability control — all IDENTICAL over 262 fields, with the emitted
+  stream reproducing the measured log line for line. The ally guard (`target.isAlly(source)`) and the
+  source guard are the artifact's now, not typed. **A green probe went red during the fix and was
+  right to**: the first cut passed `null` as Sticky Web's source, and Showdown's stickyweb condition
+  boosts with `this.effectState.source`, so the setter is now recorded on the layer.
+
+### Added
+- **`switchOutTrigger` — the switch-out moment as a CLASS.** Will: *"ALL THE SWITCH OUT ABILITIES
+  ACTIVATE ON SWITCH OUT LIKE REGENERATOR OR NATURAL CURE OR ZERO TO HERO."* Exactly three abilities
+  in this format declare `onSwitchOut` and they are those three. Regenerator was right, Zero to Hero
+  fired at the wrong moment, and **Natural Cure (97 uses) was `["untagged"]` and absent entirely**.
+  Membership is derived from the authority and `does` is read out of the handler; an unrecognised
+  `does` is COUNTED rather than silently ignored. Emergency Exit and Wimp Out are `onEmergencyExit` —
+  a different moment — and are deliberately not folded in.
+- **Nine mechanics that had never had a probe are now live**: Moody (`randomBoostEachTurn`, 605),
+  Burning Jealousy / Alluring Voice (`punishesBoostedTarget`, 219), Instruct (`instructsTarget`, 178),
+  Pollen Puff (`dualPurpose`, 139), Wonder Room (`swapsDefences`, 11), Safeguard (`sideBuff`, 8),
+  Magic Room (`suppressesItems`, 4), plus Zero to Hero and Natural Cure above. **Two of the ten turned
+  out to be ALREADY LIVE and merely unproved** — `terrainSetter` and `condStatMult` (Marvel Scale).
+- **`needsTargetToAttack` — the last MISSING census row, and the fix was a TAG before it was any
+  code.** All nine members carried the identical `{needs: "target attacking"}` while doing four
+  different things. `effect` and `when` are now read out of each member's own callback. Counter,
+  Mirror Coat and Metal Burst come out `reflectsDamage` and are **declared and NOT modelled**.
+- **ROADMAP #60** — `failsIfTargetNotAttacking` carries `needsPriority` / `minPriority`, read off
+  `move.priority <= 0.1` in Upper Hand's own onTry, so Upper Hand stops looking like it beats an
+  ordinary Earthquake.
+- **`tests/test-speed-tie.js`** — five arrangements chosen so that a comparator REVERSAL fails:
+  opposite sides, the same two bodies with the TEAMS SWAPPED, both tied bodies on ONE side, a
+  three-way tie, and a no-tie control. All five agree with the authority. It also asserts the tie is a
+  COIN under real dice (a hardcoded side passes every board case) and prints a sensitivity check
+  showing the shipped sort and the stable sort it replaces part on the same four actions.
+- **`formeOnHit`** — Disguise and Ice Face, derived from the narrow shape (an `onUpdate` that
+  forme-changes plus an `onDamage` that sets `busted`). The first predicate matched NINE abilities
+  including Forecast, Flower Gift and Hunger Switch; the membership was printed before wiring, as
+  `docs/LESSONS.md` §4 requires.
+
+### Changed
+- Census **298 live / 299 probed → 311 live / 311 probed**; `missing` **1 → 0 for the first time**.
+  `armed` 311/311, `directCall` 0, `hollow` 0, `threw` 0.
+- `sideBuff`, `dualPurpose`, `punishesBoostedTarget`, `instructsTarget` and `needsTargetToAttack` all
+  had their params ENRICHED before any consumer was written, because each carried a NAME or a
+  CONDITION with no EFFECT and could not be wired without guessing. `sideBuff` in particular: it said
+  only `{sideCondition: "safeguard"}`, and treating the class as one thing would have made Mist — which
+  refuses a STAT DROP, not a status — into a second Safeguard.
+
+### Notes
+- **THE SWEEP WILL ASKED FOR.** `partingshot.boosts` is `undefined` — it applies its drops in handler
+  code, exactly as Curse did — while `charm.boosts` is a plain `{atk:-2}`, so two moves a player thinks
+  of as the same kind of thing have different shapes in the source and only one is visible to a
+  derivation reading static fields. Scanning every `on*` handler, every secondary callback and every
+  condition of every legal move in this format: **16 moves apply a stat change in CODE, all 16 are in
+  the format's table, and 7 carry `statChangeInCode`.** That is a COUNT and not a defect list — six of
+  the nine without it are described by a SHARPER tag (`punishesContact`, `hazard`, `chargeTurn`, the
+  on-KO branch, a residual) and Clangorous Soul also carries a static `boosts` field. Stockpile and
+  Magnetic Flux are genuinely undescribed, at 51 combined uses. Reported, not fixed.
+- `node tests/run-all.js`: **86 passed, 10 failed**, up from 85/11. Nine of the ten reds are
+  attributed rather than filed — `test-forced-switch`, `test-team-preview-race` and `test-wiring` fail
+  ONLY under `ABRA_STRICT_SEMANTICS` and their root is the **REFIT OWED**, the same eight features
+  `engine/status.js` printed before this session began; `test-effective-identity` grows only on
+  `tests/staged_board.js` (another division's new file), this pass's own two contributors now being
+  DECLARED with construction reasons; the rest are WEB / OPS / MEASURE artifacts. No fit was run.
+- **`data/engine-data.js` owes a `mimikyu-busted` row.** Disguise's rename is faithful only because
+  the artifact states the pair is identical in stats and types; Ice Face's pair is not, and is refused
+  and counted rather than renamed wrongly. That file is downstream of this division.
+
 ## [3.73.0] — 2026-08-07
 
 ### Changed

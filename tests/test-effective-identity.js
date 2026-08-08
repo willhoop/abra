@@ -336,6 +336,37 @@ const RAW = /\.(ability|baseStats|weighthg|weightkg)\b/g;
  * #40b — it read the PRE-mega ability to decide whether a mon is a weather setter, and a mega's
  * weather ability is precisely what differs from its base). It was fixed rather than declared. */
 const DECLARED = {
+  /* WIRE 133/136, 2026-08-07. The count went 8 -> 10 and both new reads are ON THE SAME LINE, in the
+   * `formeOnHit` derivation: `JSON.stringify(base.baseStats) === JSON.stringify(sp.baseStats)`.
+   *
+   * CORRECT BY CONSTRUCTION, and the construction is the whole file. `tag_dex.js` HAS NO LIVE
+   * POKEMON IN IT AT ALL — it walks `dex.species.all()` and `dex.abilities.all()` and emits
+   * `data/tags.json`. There is no battle, no turn and no stone spent anywhere in it, so there is no
+   * effective identity for `effAbility(mon, dex)` to compute; a DEX SPECIES's `baseStats` is the
+   * species' own table entry and is exactly the thing being compared. The read asks whether Mimikyu
+   * and Mimikyu-Busted have identical base stats, which decides whether a consumer may perform that
+   * forme change as a RENAME or must rebuild the body — the opposite of a stale-identity bug.
+   * The other eight reads are the same shape and predate this note.
+   *
+   * PINNED, not merely asserted: the value this line produces is written into the artifact as
+   * `formeOnHit.sameStats`, and `tests/test-mechanics.js` probes the consumer that reads it. */
+  'engine/tag_dex.js':
+    'No live Pokemon exists anywhere in this file — it walks dex.species.all() and dex.abilities.all() '
+    + 'and emits data/tags.json. A DEX SPECIES\'s .baseStats is the species table\'s own entry, not a '
+    + 'body\'s, so there is no effective identity for effAbility() to compute and routing it through '
+    + 'one would be a category error. The two reads added 2026-08-07 are a single comparison asking '
+    + 'whether a base forme and its battle-only forme have identical base stats, which is what decides '
+    + 'whether a consumer may perform that forme change as a rename or must rebuild the body.',
+  /* WIRE 134, 2026-08-07. One read, and it is an ASSIGNMENT rather than a read at all: `m.ability =
+   * 'none'`. The regex is DELIBERATELY over-broad (see its comment) and does not distinguish the two.
+   * The line is this repository's standard probe fixture — blank the item and the ability so the
+   * probe sets the one thing it varies and nothing can supply it silently — copied verbatim from
+   * tests/test-mechanics.js's `bare()`. There is no read of an effective identity to get wrong. */
+  'tests/test-speed-tie.js':
+    'One match and it is an ASSIGNMENT, not a read: `m.ability = \'none\'` in the standard probe '
+    + 'fixture that blanks the item and the ability so the probe sets the one thing it varies. The '
+    + 'RAW regex is deliberately over-broad and cannot tell a write from a read. Nothing in this file '
+    + 'ever reads an ability.',
   'engine/leaf_engine_contrast.js':
     'One read, in a helper literally named `sheet()`, and it is this test\'s own stated legitimate '
     + 'case. The line BUILDS A DECLARATION rather than reading a live body: `M.buildMon(k, {})` is '

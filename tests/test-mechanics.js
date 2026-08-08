@@ -7916,6 +7916,353 @@ probe('item', 'damageMultAll', 'the Life Orb toll is refused by a move that MISS
                  + `item at all a landed Scald costs ${noItem.paid}. The authority pays 13 / 0 / 0` };
 });
 
+/* =================================================================================================
+ *  THE TEN WITH NO PROBE, plus the SWITCH-OUT TRIGGER — 2026-08-07
+ *
+ *  Will, 2026-08-07: "ALL THE SWITCH OUT ABILITIES ACTIVATE ON SWITCH OUT LIKE REGENERATOR OR
+ *  NATURAL CURE OR ZERO TO HERO." Measured against the authority: exactly three abilities in this
+ *  format declare `onSwitchOut`, and the tag vocabulary had no TRIGGER for the moment — only
+ *  abilities that individually happened to mention it. Regenerator was right, Zero to Hero fired at
+ *  the wrong moment (on the RETURN) and Natural Cure was untagged and absent.
+ *
+ *  Ten more tags carried real usage and had never had a probe at all, so nothing had ever shown
+ *  whether the engine does the thing. Two of the ten turned out to be LIVE ALREADY (terrainSetter
+ *  and condStatMult, both wired and never proved); the rest were absent. Each probe below clears its
+ *  own control and each carries the NEGATIVE the mechanic must refuse, because a mechanic that fires
+ *  unconditionally passes any test that only checks the positive.
+ * ================================================================================================= */
+
+/* 1. terrainSetter — 5 abilities, and it was ALREADY LIVE. Wired at applyEntryEffects and never
+ *    probed, so nothing had ever shown it. The receipt is not the field string on its own: an
+ *    engine that wrote `field.terrain='electric'` and had no reader would pass that. The second arm
+ *    is the DAMAGE a grounded Electric move deals under it. */
+probe('ability', 'terrainSetter', 'Electric Surge sets the terrain as the body arrives', () => {
+  const run = (ab) => {
+    const me = bare('clefable'), ally = bare('corviknight');
+    const f1 = bare('milotic'), f2 = bare('garchomp');
+    me.ability = ab; unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], {});      // NOT seeded: entry abilities fire
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'thunderbolt', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return [S.field.terrain || 'none', before - f1.curHP];
+  };
+  const control = run('none'), test = run('electricsurge');
+  return { works: control[0] === 'none' && test[0] === 'electric' && test[1] > control[1] && control[1] > 0,
+           arms: { control, test },
+           detail: `[terrain after the leads arrive, damage a grounded Thunderbolt deals] — ability `
+                 + `blanked ${control}, Electric Surge ${test} (the field string alone would pass on `
+                 + `an engine with no reader; the damage is what proves one exists)` };
+});
+
+/* 2. condStatMult — Marvel Scale, 40 uses, and it was ALSO ALREADY LIVE (WIRE 112's consumer, wired
+ *    against a staged tag that has since landed). THE NEGATIVE IS THE WHOLE MECHANIC: the multiplier
+ *    is on DEFENCE and only WHILE STATUSED, so an unstatused body and a special attack must both be
+ *    untouched. An engine that applied it unconditionally passes a one-armed probe. */
+probe('ability', 'condStatMult', 'Marvel Scale raises Defence only while the body is statused', () => {
+  const run = (status, moveId) => {
+    const B = board('garchomp', 'incineroar', 'milotic', 'corviknight');
+    unfaintable(B.f1);
+    B.f1.ability = 'marvelscale'; if (status) B.f1.status = status;
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, moveId, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return before - B.f1.curHP;
+  };
+  const phys = [run('', 'ironhead'), run('par', 'ironhead')];
+  const spec = [run('', 'flamethrower'), run('par', 'flamethrower')];
+  return { works: phys[1] < phys[0] && phys[1] > 0 && spec[0] === spec[1] && spec[0] > 0,
+           arms: { control: phys[0], test: phys[1] },
+           detail: `[unstatused, paralysed] — PHYSICAL Iron Head into Milotic ${phys}; SPECIAL `
+                 + `Flamethrower into the same body ${spec}. The physical pair must part and the `
+                 + `special pair must NOT — Marvel Scale is Defence, not a blanket bulk multiplier` };
+});
+
+/* 3. switchInForme — ZERO TO HERO, AND THE PROBE IS ABOUT THE MOMENT.
+ *
+ *    Showdown transforms Palafin on SWITCH-OUT (`onSwitchOut` → `formeChange('Palafin-Hero')`) and
+ *    only ANNOUNCES on the way back in. This engine transformed inside bringIn(), on the RETURN —
+ *    so a Palafin sitting on the bench was still the weak forme in both engines' party reads, and
+ *    the staged board comparison parts there. A probe that only asked "is it palafin-hero when it
+ *    comes back" would be GREEN on the wrong moment, which is exactly the defect. So the body is
+ *    read WHILE IT IS ON THE BENCH. */
+probe('ability', 'switchInForme', 'Zero to Hero transforms Palafin as it LEAVES, not on the return', () => {
+  const run = (ab) => {
+    const me = bare('palafin'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    const benchA = bare('clefable');
+    me.ability = ab;
+    const S = M.battleInit([me, ally, benchA], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'uturn', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    const benched = S.benchA.find(x => x && /palafin/.test(x.name));
+    return [S.actA[0] && S.actA[0].name, benched ? benched.name : 'NOT ON THE BENCH',
+            benched ? benched.st.at : 0];
+  };
+  const control = run('none'), test = run('zerotohero');
+  return { works: control[0] === 'clefable' && control[1] === 'palafin' && control[2] === 154
+                  && test[0] === 'clefable' && test[1] === 'palafin-hero' && test[2] === 233,
+           arms: { control, test },
+           detail: `[who is in slot 0 after the pivot, what the BENCHED body is, its Attack] — `
+                 + `ability blanked ${control}; Zero to Hero ${test}. Read off the BENCH on purpose: `
+                 + `an engine that transforms on the return is green on a probe that waits for it` };
+});
+
+/* 4. switchOutTrigger — THE CLASS, AND NATURAL CURE IS THE MEMBER THAT WAS ABSENT ENTIRELY.
+ *    97 uses, `onSwitchOut` upstream, and `data/tags.json` read `["untagged"]`. */
+probe('ability', 'switchOutTrigger', 'Natural Cure clears the status on the way out', () => {
+  const run = (ab) => {
+    const me = bare('milotic'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('clefable');
+    const benchA = bare('snorlax');
+    me.ability = ab; me.status = 'par';
+    const S = M.battleInit([me, ally, benchA], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'uturn', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    const benched = S.benchA.find(x => x && x.name === 'milotic');
+    return [S.actA[0] && S.actA[0].name, benched ? (benched.status || 'clean') : 'NOT ON THE BENCH'];
+  };
+  const control = run('none'), test = run('naturalcure');
+  return { works: control[0] === 'snorlax' && control[1] === 'par'
+                  && test[0] === 'snorlax' && test[1] === 'clean',
+           arms: { control, test },
+           detail: `[who is in slot 0 after the pivot, the BENCHED body's status] — ability blanked `
+                 + `${control}, Natural Cure ${test}. The control must still read "par": an engine `
+                 + `that cured everybody on every switch passes "the Natural Cure body is clean"` };
+});
+
+/* 5. instructsTarget — INSTRUCT, 178 uses, and the ONLY mechanic in this batch that changes the
+ *    ACTION COUNT of a turn. The knob is the SPEED ORDER and nothing else: the same Instruct, aimed
+ *    at the same ally, clicking the same attack. Slower than the ally, the attack has already
+ *    happened and Instruct repeats it; faster, the ally has not moved yet and Instruct must FAIL.
+ *    That negative is the half a naive fix drops. */
+probe('move', 'instructsTarget', 'Instruct makes an ally that has already moved attack again', () => {
+  const run = (mySpeed) => {
+    const me = bare('clefable'), ally = bare('garchomp');
+    const f1 = bare('milotic'), f2 = bare('corviknight');
+    me.st = Object.assign({}, me.st, { sp: mySpeed });
+    ally.st = Object.assign({}, ally.st, { sp: 100 });
+    unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'instruct', ally, S.field)],
+               [ally, M.playerAction(ally, 'ironhead', f1, S.field)]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return before - f1.curHP;
+  };
+  const control = run(200), test = run(1);
+  return { works: control > 0 && test > control * 1.8,
+           arms: { control, test },
+           detail: `Garchomp clicks Iron Head, Clefable clicks Instruct at it — Clefable FASTER (the `
+                 + `ally has not moved, so Instruct must fail) ${control}; Clefable SLOWER (the ally `
+                 + `already swung, so it swings again) ${test}. Must be about double` };
+});
+
+/* 6. dualPurpose — POLLEN PUFF, 126 uses: a 90 BP attack at a foe AND a 50% heal at an ally. Both
+ *    halves in one probe, because an engine that only ever attacks is caught by the ally arm and an
+ *    engine that only ever heals is caught by the foe arm. */
+probe('move', 'dualPurpose', 'Pollen Puff attacks a foe and HEALS an ally', () => {
+  const run = (aimAtAlly) => {
+    const me = bare('clefable'), ally = bare('corviknight');
+    const f1 = bare('milotic'), f2 = bare('garchomp');
+    ally.curHP = Math.floor(ally.st.hp / 2);
+    unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const a0 = ally.curHP, f0 = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'pollenpuff', aimAtAlly ? ally : f1, S.field)],
+               [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return [ally.curHP - a0, f0 - f1.curHP];
+  };
+  const control = run(false), test = run(true);
+  return { works: control[0] === 0 && control[1] > 0 && test[0] > 0 && test[1] === 0,
+           arms: { control, test },
+           detail: `[ally HP gained, foe HP lost] — aimed at the FOE ${control}, aimed at the half-HP `
+                 + `ALLY ${test}. Each arm is the other's negative: the foe arm must heal nobody and `
+                 + `the ally arm must damage nobody` };
+});
+
+/* 7. sideBuff — SAFEGUARD. The side condition has to go up AND have to refuse something; a probe
+ *    that only reads `sf.sc.safeguard` passes on an engine that writes a counter nothing consults.
+ *    The negative is the same Nuzzle, on the same board, with no Safeguard up. */
+/* THE FIRST FIXTURE AIMED THE NUZZLE AT A GARCHOMP, which is a GROUND type and cannot be touched by
+ * an Electric move at all — so the control read "clean" and the probe would have gone green the
+ * moment Safeguard was wired, on an arm that proved nothing. Caught by asserting the control
+ * EXPLICITLY rather than only the test arm. Corviknight takes Electric at 2x and can be paralysed. */
+probe('move', 'sideBuff', 'Safeguard refuses a status aimed at that side', () => {
+  const run = (foeClicks) => {
+    const B = board('milotic', 'incineroar', 'corviknight', 'garchomp');
+    unfaintable(B.f1);
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
+      new Map([[B.f1, M.playerAction(B.f1, foeClicks, B.f1, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    const up = (B.S.sfB && B.S.sfB.sc && B.S.sfB.sc.safeguard) > 0;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'nuzzle', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return [up, B.f1.status || 'clean'];
+  };
+  const control = run('irondefense'), test = run('safeguard');
+  return { works: control[0] === false && control[1] === 'par'
+                  && test[0] === true && test[1] === 'clean',
+           arms: { control, test },
+           detail: `[was Safeguard up, the target's status after a Nuzzle] — the foe clicked Iron `
+                 + `Defense ${control}, the foe clicked Safeguard ${test}. The control MUST read `
+                 + `"par" — an engine where Nuzzle never paralysed anything passes the other half` };
+});
+
+/* 8. suppressesItems — MAGIC ROOM, 4 uses and it kills Focus Sash, the Choice items and every
+ *    residual item in the format for five turns. Leftovers is the reading, because a heal that does
+ *    not happen is unambiguous and needs no damage roll. */
+probe('move', 'suppressesItems', 'Magic Room turns the items off', () => {
+  const run = (click) => {
+    const B = board('incineroar', 'corviknight', 'garchomp', 'milotic');
+    B.me.item = 'leftovers'; B.me.curHP = Math.floor(B.me.st.hp / 2);
+    const before = B.me.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, click, B.me, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return B.me.curHP - before;
+  };
+  const control = run('irondefense'), test = run('magicroom');
+  return { works: control > 0 && test === 0,
+           arms: { control, test },
+           detail: `Incineroar on half HP holding Leftovers — it clicked Iron Defense and healed `
+                 + `${control}; it clicked Magic Room and healed ${test}. The control must be `
+                 + `non-zero or the probe is reading an engine with no Leftovers at all` };
+});
+
+/* 9. swapsDefences — WONDER ROOM, 11 uses, and while it is up EVERY STORED DAMAGE NUMBER IS WRONG.
+ *    Milotic is the fixture because its two defences are 99 and 187 — nothing subtle survives that
+ *    gap. The negative is the SPECIAL side of the same swap: a special attack must get EASIER, not
+ *    harder, which an engine that simply raised Defence would fail. */
+probe('move', 'swapsDefences', 'Wonder Room swaps Defence and Special Defence', () => {
+  const run = (allyClicks, moveId) => {
+    const B = board('garchomp', 'clefable', 'milotic', 'corviknight');
+    unfaintable(B.f1);
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, { kind: 'pass' }], [B.ally, M.playerAction(B.ally, allyClicks, B.ally, B.S.field)]]),
+      PASS2(B.f1, B.f2));
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, moveId, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return before - B.f1.curHP;
+  };
+  const phys = [run('irondefense', 'ironhead'), run('wonderroom', 'ironhead')];
+  const spec = [run('irondefense', 'flamethrower'), run('wonderroom', 'flamethrower')];
+  return { works: phys[1] < phys[0] && phys[1] > 0 && spec[1] > spec[0] && spec[0] > 0,
+           arms: { control: phys[0], test: phys[1] },
+           detail: `Milotic is 99 Def / 187 SpD — [no room, Wonder Room] PHYSICAL ${phys}, SPECIAL `
+                 + `${spec}. Physical must get WEAKER and special must get STRONGER; an engine that `
+                 + `merely raised a defence moves both the same way` };
+});
+
+/* 10. randomBoostEachTurn — MOODY, 605 uses and 249 sheets, the largest unprobed tag in the census.
+ *     Exactly one stat +2 and a DIFFERENT stat -1 every turn, never accuracy or evasion (the Gen 8+
+ *     rule). The shape is what is asserted, not which stat: the roll is the engine's. */
+probe('ability', 'randomBoostEachTurn', 'Moody moves two stats every turn, +2 and -1', () => {
+  const run = (ab) => {
+    const B = board('clefable', 'corviknight', 'garchomp', 'milotic');
+    B.me.ability = ab;
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally), PASS2(B.f1, B.f2));
+    const b = B.me.boosts;
+    return [b.at, b.df, b.sa, b.sd, b.sp, b.acc, b.eva];
+  };
+  const control = run('none'), test = run('moody');
+  const main = test.slice(0, 5);
+  return { works: control.every(x => x === 0)
+                  && main.filter(x => x === 2).length === 1
+                  && main.filter(x => x === -1).length === 1
+                  && main.filter(x => x !== 0).length === 2
+                  && test[5] === 0 && test[6] === 0,
+           arms: { control, test },
+           detail: `[at, df, sa, sd, sp, acc, eva] after ONE turn of passing — ability blanked `
+                 + `${control}, Moody ${test}. Exactly one +2 and one -1 among the five real stats, `
+                 + `and accuracy/evasion untouched (the Gen 8+ rule the handler encodes)` };
+});
+
+/* 11. punishesBoostedTarget — BURNING JEALOUSY and ALLURING VOICE, 219 uses. THE CONDITION IS THE
+ *     MECHANIC: it fires only if the target RAISED A STAT THIS TURN, and an engine that burns
+ *     unconditionally is strictly worse than one that never burns. Burning Jealousy is the reading
+ *     because a burn is a major status on the board; Alluring Voice's confusion is a volatile this
+ *     engine does not hold at all, which is stated rather than quietly probed around.
+ *
+ *     The knob is what the FOE clicked, and my own click and speed are identical in both arms. */
+probe('move', 'punishesBoostedTarget', 'Burning Jealousy burns only a target that boosted this turn', () => {
+  const run = (foeClicks) => {
+    const me = bare('clefable'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    me.st = Object.assign({}, me.st, { sp: 1 });          // I move LAST, so their boost has landed
+    f1.st = Object.assign({}, f1.st, { sp: 200 });
+    unfaintable(f1); unfaintable(f2);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'burningjealousy', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, foeClicks ? M.playerAction(f1, foeClicks, f1, S.field) : { kind: 'pass' }],
+               [f2, { kind: 'pass' }]]));
+    return [f1.boosts.at, f1.status || 'clean'];
+  };
+  const control = run(null), test = run('swordsdance');
+  return { works: control[0] === 0 && control[1] === 'clean' && test[0] === 2 && test[1] === 'brn',
+           arms: { control, test },
+           detail: `[the target's Attack stage, its status] — the foe spent the turn doing nothing `
+                 + `${control}; the foe clicked Swords Dance ${test}. THE CONTROL IS NOT "a different `
+                 + `boosting move": Burning Jealousy asks only whether a stat ROSE, so any boost is a `
+                 + `positive and only a turn with no rise at all is the negative` };
+});
+
+/* 12. boostsWhenLowered — DEFIANT FIRES ONCE PER STAT LOWERED, NOT ONCE PER MOVE.
+ *
+ * Will, 2026-08-07: *"WHEN PARTING SHOT GOES INTO A DEFIANT OR COMPETITIVE MON IT GETS DOUBLE BOOSTS,
+ * ONE FOR EACH DROP. I DONT THINK THATS THE CASE FOR CHARM BUT IDK."* Both halves are right, and the
+ * mechanism is the HOOK NAME: `defiant.onAfterEachBoost` — EACH — and `Battle#boost` runs that event
+ * INSIDE its per-stat loop (sim/battle.ts:2073) with the single stat as its argument. Parting Shot
+ * lowers TWO stats, so it fires twice: -1 +2 +2 = **+3 Attack**. Charm lowers ONE stat by TWO stages,
+ * fires once, and the -2 exactly cancels the +2: **0**.
+ *
+ * THE EXISTING `boostsWhenLowered` PROBE IS ABOUT INTIMIDATE and passes, because Intimidate is a
+ * single-stat drop through `applyStatDrop` — the one path this engine had wired. This one is about
+ * the COUNT and about the route: every move-driven stat drop resolved in the `affect` branch, which
+ * wrote `_t.boosts[...]` directly and never asked the ability anything at all.
+ *
+ * THREE NEGATIVES, because a fix aimed only at Parting Shot passes while double-firing Charm:
+ *   - CHARM must net to ZERO, not to +2;
+ *   - an ALLY lowering the stat must NOT trigger it (`target.isAlly(source)` is the handler's own
+ *     first guard);
+ *   - the same Parting Shot into a body with the ability blanked must still be a plain -1 / -1. */
+probe('ability', 'boostsWhenLowered', 'Defiant fires once per STAT LOWERED — Parting Shot +3, Charm 0', () => {
+  const run = (moveId, ab, atAlly) => {
+    const me = bare('incineroar'), ally = bare('clefable');
+    const f1 = bare('corviknight'), f2 = bare('milotic');
+    const benchA = bare('snorlax');
+    (atAlly ? ally : f1).ability = ab;
+    const S = M.battleInit([me, ally, benchA], [f1, f2], { seeded: true });
+    const t = atAlly ? ally : f1;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, moveId, t, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return [t.boosts.at, t.boosts.sa];
+  };
+  const psPlain = run('partingshot', 'none', false);
+  const psDef = run('partingshot', 'defiant', false);
+  const charmDef = run('charm', 'defiant', false);
+  const charmAlly = run('charm', 'defiant', true);
+  return { works: String(psPlain) === '-1,-1' && String(psDef) === '3,-1'
+                  && String(charmDef) === '0,0' && String(charmAlly) === '-2,0',
+           arms: { control: psPlain, test: psDef },
+           detail: `[Attack stage, SpA stage] — Parting Shot into a blank ability ${psPlain}; into `
+                 + `DEFIANT ${psDef} (two stats lowered, so two +2s: -1 +2 +2 = 3); CHARM into the `
+                 + `same Defiant body ${charmDef} (ONE stat lowered by two, so ONE +2: -2 +2 = 0); `
+                 + `Charm aimed at MY OWN Defiant ally ${charmAlly} (an ally does not trigger it). `
+                 + `The authority reads -1,-1 / 3,-1 / 0,0 / -2,0` };
+});
+
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
 console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');

@@ -27,10 +27,8 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  298/299 probed mechanics live, 1 missing   (census 2026-08-08 00:59)
-  missing:
-    move    needsTargetToAttack    Avalanche doubles after the target hits it this turn
-  1/150 differential comparisons disagree with Showdown   (2026-08-08 00:36)
+  311/311 probed mechanics live, 0 missing   (census 2026-08-08 03:55)
+  1/150 differential comparisons disagree with Showdown   (2026-08-08 03:48)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (65 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -51,10 +49,10 @@ ENGINE — does the simulator do what Pokémon does
     whole-game agreement 7/1997 -> 134/1997; first-divergence line, mean 14.78 -> 33.98
     paired against the baseline: 1295 games part later, 116 EARLIER, 586 unchanged
     the baseline ran first and last and reproduced exactly; comparability: every arm cleared
-  tag coverage: 166/183 probed, 17 unprobed
+  tag coverage: 177/185 probed, 8 unprobed
 ```
 
-_stamped 2026-08-08 00:59_
+_stamped 2026-08-08 03:55_
 
 <!-- /GENERATED -->
 
@@ -67,6 +65,232 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
+
+## WIRE 133–137 — THE TWELVE, THE TWO BOARD BUGS, AND A SPEED TIE THAT HAS BEEN WRONG SINCE THE FIRST DAY. 2026-08-07.
+
+Census **298 live / 299 probed → 311 live / 311 probed**, `missing` **1 → 0** for the first time.
+`armed` 311/311, `directCall` 0, `hollow` 0, `threw` 0. `MEDFAILS.traceBodyOffField` **25 → 0** on a
+120-game reproduction. New gate: **`tests/test-speed-tie.js`**.
+
+### SAID FIRST: WHAT TURNED OUT NOT TO BE A DEFECT
+
+1. **`terrainSetter` was already live.** Five abilities, wired in `applyEntryEffects` since WIRE 31's
+   neighbourhood and never probed, so nothing had ever shown it. The probe passed on its first run.
+2. **`condStatMult` (Marvel Scale) was already live.** WIRE 112 wired the consumer against a STAGED
+   tag; the tag landed later and nobody went back to prove the pair. It passed on its first run too.
+3. **Disguise's HP model was right, and its stated REASON was fiction.** ROADMAP #89. Both engines
+   end at 114/130, and the comment justifying that said Showdown reports 0 "only because this harness
+   never calls `battle.update()`" — **a method that does not exist**, verified by enumerating the
+   prototype. The real reason is in the ability's own source: `onDamage` returns 0 and sets
+   `effectState.busted`, and the self-inflicted eighth is dealt in `onUpdate`, on the next update
+   pass, as a SEPARATE damage event. A right answer resting on a false reason is worse than a wrong
+   one, because the next reader re-derives from it.
+4. **`Battle#comparePriority` was never the speed-tie problem.** See below — it is the SORT.
+
+### THE SWITCH-OUT TRIGGER IS A CLASS, AND THE VOCABULARY HAD NO WORD FOR THE MOMENT
+
+Will, 2026-08-07: *"ALL THE SWITCH OUT ABILITIES ACTIVATE ON SWITCH OUT LIKE REGENERATOR OR NATURAL
+CURE OR ZERO TO HERO."* Measured against the authority — exactly three abilities in this format
+declare `onSwitchOut`, and they are those three:
+
+| ability | uses | before | after |
+|---|---|---|---|
+| Regenerator | 1,149 | `healsOnSwitchOut`, correct | unchanged, and deliberately left in its own block |
+| Zero to Hero | 191 | `switchInForme`, fired on the **RETURN** | fires as the body **LEAVES**, and emits both lines |
+| Natural Cure | 97 | `["untagged"]` — **absent entirely** | cures the status on the way out |
+
+`healsOnSwitchOut` had been NARROWED (3 → 1) precisely to escape this over-match, and narrowing it
+was right: a heal is not a cure. What was missing is the thing it was narrowed out of — the TRIGGER.
+`switchOutTrigger` is derived from `onSwitchOut` and dispatches on a `does` read out of the handler,
+so a fourth member arrives with the class. **An unrecognised `does` is COUNTED**
+(`MEDFAILS.switchOutTriggerUnhandled`), because this is exactly where a silent default would sit.
+
+**Emergency Exit and Wimp Out are NOT folded in.** They are `onEmergencyExit` — a HP threshold
+crossed mid-turn, a different moment — and the predicate reads the one field.
+
+### THE TWO BOARD BUGS, BOTH PROVEN ON THE BOARD RATHER THAN ON A PROBE
+
+Will, 2026-08-07: *"IF THE BOARDS ARE THE SAME WE KNOW THAT IT DID HAPPEN CORRECTLY THATS THE WHOLE
+POINT."* Both staged through `game_differential.js` in state mode, 393 fields compared per scenario,
+Showdown as the expectation and no typed answer anywhere:
+
+- **Zero to Hero** — Showdown transforms Palafin on switch-OUT (`|detailschange|p1a: Palafin|
+  Palafin-Hero, L50`) and announces `|-activate|…|ability: Zero to Hero` on the way back IN. This
+  engine transformed on the RETURN, inside `bringIn()`, and emitted NEITHER line. After the pivot,
+  Showdown's party held `palafinhero` and ours held `palafin`. **Now IDENTICAL.**
+- **Disguise** — the HP was exact and the SPECIES was never changed: Showdown's active slot AND party
+  read `mimikyubusted` on both turns and ours read `mimikyu`. **Now IDENTICAL.** Derived from a new
+  `formeOnHit` tag whose membership is exactly Disguise and Ice Face; the first predicate
+  (`formeChange` anywhere in any handler) matched NINE abilities including Forecast, Flower Gift and
+  Hunger Switch, and the membership was printed before anything was wired.
+  **`data/engine-data.js` has no `mimikyu-busted` row**, which is downstream of this division. The
+  artifact states `sameStats: true` and `sameTypes: true` for the pair, so the change is a RENAME and
+  nothing else; a member with `sameStats: false` (Ice Face, 0 uses) is refused and counted rather
+  than renamed wrongly. **That row is the one thing this pass owes MEASURE.**
+
+### THE SPEED TIE — THE LARGEST FINDING, AND IT IS NOT AN INSTRUMENT BUG
+
+**The two engines have disagreed about every speed tie for the life of this project.** Measured on a
+staged pure tie (Volcarona vs Charizard, both 100 base Speed, both 120 exactly) under the
+differential's own primary pin:
+
+```
+Showdown    |move|p2a: Charizard …   then   |move|p1a: Volcarona
+medicham2   |move|p1a: Volcarona  …   then   |move|p2a: Charizard
+```
+
+It is not a corner case (ROADMAP #86: 91.4% of legal species share a base Speed with some other
+species; the published run resolved 53,242 tied groups) and it is **not confined to the instrument** —
+`sortTurnOrder` IS the live engine, so every rollout MILTANK has run and every live game resolved a
+tied matchup to the wrong body.
+
+**THE CAUSE IS THE ALGORITHM, NOT THE COMPARATOR.** `Array.prototype.sort` is STABLE, so a comparator
+returning 0 leaves the two in input order. `Battle#speedSort` (sim/battle.ts:429) is a SELECTION SORT
+whose swaps move UNTIED elements around, so the tied group's order when the shuffle finally sees it
+is not the input order. In the trace above, the swap that lifted the faster Protect to the front is
+what put Volcarona behind Charizard before either was compared. **No comparator can make a stable
+sort produce that permutation.**
+
+**AND THE OBVIOUS FIX IS WRONG.** "Take the later body" is what the AUTHORITY PRODUCES UNDER THIS
+HARNESS'S PIN — which replaces `PRNG.shuffle` with a no-op — and it is not the game's rule. A real
+`speedSort` ends in a Fisher-Yates over the tied group: **a speed tie is a coin flip.** Hardcoding the
+pinned answer would make medicham2 match the differential and be wrong in every rollout and every
+live game, and the differential would go GREEN on it — the fitting-environment-versus-playing-
+environment error CLAUDE.md is built around.
+
+So: the selection sort is reproduced line for line, and the residual tied group is ordered by the
+per-action uniform key the file already drew. Sorting k items by iid uniform keys IS a uniform random
+permutation, so under real dice this is the coin the authority rolls; under a CONSTANT pinned die
+every key is equal, the group keeps the order the selection sort handed it, and that is exactly what
+the neutralised shuffle does. **Neither engine is told the answer and both land on the same body.**
+
+`tests/test-speed-tie.js` proves it on five arrangements chosen so a comparator REVERSAL — the shape
+of the bug being replaced — fails: opposite sides, **the same two bodies with the teams SWAPPED**,
+both tied bodies on ONE side, a THREE-way tie, and a no-tie control. All five AGREE. It also asserts
+the tie is a coin under real dice (47–52% over n=400 across runs), which every board case would pass
+on a hardcoded side, and prints a SENSITIVITY check showing the shipped sort and the stable sort it
+replaces produce DIFFERENT orders on the same four actions — so the cases cannot quietly stop testing.
+
+### THE TEN THAT HAD NO PROBE
+
+| tag | uses | verdict |
+|---|---|---|
+| `randomBoostEachTurn` | 605 | wired — Moody, +2 and −1, accuracy/evasion excluded (the Gen 8+ rule), both draws taken before either is applied |
+| `punishesBoostedTarget` | 219 | wired — the CONDITION is the mechanic, and `statsRaisedThisTurn` is answered from a turn-opening SNAPSHOT rather than from twelve instrumented raise sites |
+| `switchInForme` | 191 | see the board bugs above |
+| `instructsTarget` | 178 | wired — the only mechanic here that changes the ACTION COUNT of a turn; the repeat is QUEUED at `TURN_ORDER.next`, not executed inline, so it passes every gate a first swing does |
+| `dualPurpose` | 139 | wired — an ally-aimed Pollen Puff used to deal 90 BP to its own partner, which is strictly worse than clicking nothing |
+| `condStatMult` | 40 | already live, now proved |
+| `swapsDefences` | 11 | wired — the STORED STAT is swapped and the BOOST STAGE is not, which is `Pokemon#getStat`'s own order |
+| `sideBuff` | 8 | wired — and the tag had to be split first: Safeguard refuses a STATUS, Mist refuses a STAT DROP, and treating the class as one thing would have made Mist a second Safeguard |
+| `suppressesItems` | 4 | wired — implemented as a SWAP of the item slot rather than as a gate through ~40 readers, with the residue (Knock Off inside the room) stated |
+| `terrainSetter` | 2 | already live, now proved |
+
+**`needsTargetToAttack` was the last MISSING row and the fix was a TAG before it was any code.** All
+nine members carried the identical `{needs: "target attacking"}` and those nine DOUBLE, REFLECT, FAIL
+or GO FIRST. `effect` and `when` are now read out of each member's own callback: Avalanche/Revenge
+`damagedByTargetThisTurn`, Assurance `targetHurtThisTurn`, Payback `targetHasNotMovedYet`, Sucker
+Punch/Upper Hand `failsOutright`, and Counter/Mirror Coat/Metal Burst `reflectsDamage` — **declared
+and NOT modelled**, because the reflected number is a fact about a hit that already landed and this
+engine holds no per-source damage ledger. `_hitBy` is a SET OF BODIES rather than a flag, because
+Avalanche asks whether THE TARGET hit it and a boolean would double off the partner's Earthquake.
+
+**ROADMAP #60 landed beside it**: `failsIfTargetNotAttacking` now carries `needsPriority` and
+`minPriority`, read off `move.priority <= 0.1` in Upper Hand's own onTry, so the bot can stop
+believing Upper Hand beats an ordinary Earthquake.
+
+### `traceBodyOffField` 25 → 0, AND THE CAUSE WAS A STATE BUG WEARING AN ANNOUNCEMENT'S CLOTHES
+
+Every `??` identifier in 120 self-driven games was a Life Orb toll, a recoil or the faint that
+followed one, on a body that had **pivoted out**: the `pivotDamaging` switch sat ABOVE recoil, drain
+and the orb, so a U-turn user paid all three from the bench. `useMoveInner` queues `selfSwitch` AFTER
+`trySpreadMoveHit` and guards it with `else if (pokemon.hp)` — so **a Life Orb holder on a sliver of
+HP that clicks U-turn dies to the orb and does not pivot.** This engine let it pivot and then killed
+it on the bench, which is a different board and not just a different line. The last one was a status
+move still aiming at a BODY rather than at a SLOT; the attack branch has re-resolved its aim since
+voluntary switching existed and the status branch never did.
+
+### WIRE 138 — DEFIANT FIRES ONCE PER **STAT LOWERED**, AND IT FIRED ON EXACTLY ONE ROUTE
+
+Will, 2026-08-07: *"WHEN PARTING SHOT GOES INTO A DEFIANT OR COMPETITIVE MON IT GETS DOUBLE BOOSTS,
+ONE FOR EACH DROP. I DONT THINK THATS THE CASE FOR CHARM BUT IDK."* **Both halves are right.** The
+mechanism is the hook name: `Battle#boost` runs `runEvent('AfterEachBoost', …, currentBoost)` INSIDE
+its per-stat loop (sim/battle.ts:2073), so `defiant.onAfterEachBoost` fires per STAT. Parting Shot
+lowers two stats — `-1 +2 +2 = +3 Attack`. Charm lowers ONE stat by TWO stages, fires once, and the
+`-2` cancels the `+2` exactly — **0**.
+
+**THE COUNT WAS THE SMALLER HALF. THE ROUTE WAS THE BIGGER ONE.** The retaliation lived inside
+`applyStatDrop`, and `applyStatDrop` is reached by Intimidate and Sticky Web and by nothing else.
+Every MOVE-driven stat drop — Charm, Parting Shot, Icy Wind, Snarl, Growl, Breaking Swipe, Crunch's
+secondary — resolved in branches that write `target.boosts[…]` directly and never asked the ability
+anything. Measured before a line changed: **Parting Shot into a Defiant body read `-1,-1`, identical
+to a body with the ability blanked.** On 7,661 Defiant sheets and 1,916 Competitive ones, the
+Intimidate punisher did not punish anything a player actually clicks. It is now one shared reader
+called at every site that lowers a stat, which is the FACTS-ARE-GLOBAL rule: whether an ability
+retaliates is a fact about the game, not a property of the branch that happened to apply the drop.
+
+Staged against the authority, 262 fields per case, **all IDENTICAL**, and the emitted stream
+reproduces the measured log line for line:
+
+```
+partingshot-into-defiant      |-unboost|atk|1 → |-ability|defiant|boost → |-boost|atk|2
+                              |-unboost|spa|1 → |-ability|defiant|boost → |-boost|atk|2
+charm-into-defiant   NEGATIVE |-unboost|atk|2 → |-ability|defiant|boost → |-boost|atk|2   (net 0)
+partingshot-no-ability CONTROL |-unboost|atk|1, |-unboost|spa|1, and nothing else
+```
+
+**The ally negative cannot be staged through this driver and is said rather than dropped**:
+`scripted()` maps `t` to a FOE slot for a `normal`-target move and has no notation for Showdown's
+`-2`, so "an ally lowering your stats does not trigger it" is unreachable on the board. It is covered
+behaviourally by the census probe's fourth arm, which aims Charm at the user's OWN Defiant partner and
+reads `-2` with no retaliation. Fixing the driver belongs to `game_differential.js`.
+
+**A GREEN PROBE WENT RED AND IT WAS RIGHT TO.** The first cut passed `null` as Sticky Web's source,
+reasoning that a layer outlives whoever laid it — and `stickyWebEntry` immediately failed. Showdown's
+stickyweb condition boosts with `this.effectState.source`, so its `-1` Speed HAS a source and DOES
+trigger Defiant. The setter is now recorded on the layer (`sf.hzBy`) exactly as `effectState.source`
+holds it.
+
+**THE SWEEP WILL ASKED FOR, REPORTED WITH ITS CAVEAT.** `partingshot.boosts` is `undefined` — it
+applies its two drops in handler code, exactly as Curse did — while `charm.boosts` is a plain
+`{atk:-2}`, so two moves a player thinks of as the same kind of thing have different shapes in the
+source and only one is visible to a derivation reading static fields. Scanning every `on*` handler,
+every secondary callback and every condition of every legal move in this format: **16 moves apply a
+stat change in CODE, all 16 are in the format's table, and 7 carry `statChangeInCode`.** The nine
+without it are `electroshot` (2,684), `clangoroussoul` (384), `kingsshield` (210), `stockpile` (50),
+`stickyweb` (30), `fellstinger` (23), `meteorbeam` (11), `syrupbomb` (2), `magneticflux` (1).
+**That is a count and NOT a defect list**: Clangorous Soul also carries a static `boosts` field so a
+data reader sees it anyway, and King's Shield's drop belongs to `punishesContact`, Sticky Web's to
+`hazard`, Electro Shot's and Meteor Beam's to `chargeTurn`, Fell Stinger's to its on-KO branch and
+Syrup Bomb's to a residual — each is described by a sharper tag than `statChangeInCode` would be.
+Stockpile and Magnetic Flux are genuinely undescribed at 51 combined uses. Reported, not fixed.
+
+### THE RED GATES, SAID PLAINLY
+
+`node tests/run-all.js` — **86 passed, 10 failed.** `tests/test-mutation-coverage.js` went from red to
+green in this pass and the cause is worth recording: `S.sfA._S = S` (ROADMAP #81 WIRE 9's battle-state
+back-reference) made the harness's own `projVal` recurse without bound, so EVERY arm of every case
+read `THREW: Maximum call stack size exceeded` and the planted-stub gate reported `shipped = MISSING`
+— which looks exactly like the harness failing to find an operator. Proven to be the instrument and
+not the engine: the gate passes on release `032b4a2979dd` (pre-WIRE-9) and fails identically on
+`dc3c43336539`, cut before this session. `_S` is now skipped beside `team`.
+
+The other ten are **not this division's and each is attributed rather than filed**:
+
+- `test-forced-switch`, `test-team-preview-race`, `test-wiring` fail ONLY under
+  `ABRA_STRICT_SEMANTICS` and pass without it. Root: the **REFIT OWED** — the same eight features
+  (`koTarget`, `dmgFrac`, `killIsRoll`, `killsThreat`, `switchSurvives1`, `switchKOSlow`,
+  `switchDiesFirst`, `screenValue`) that `engine/status.js` already printed BEFORE this session
+  began. MEASURE owns the refit and this division may not run one.
+- `test-effective-identity` — the growth is `tests/staged_board.js: 0 → 12`, another division's new
+  file. This pass's own two contributors (`engine/tag_dex.js` 8 → 10, `tests/test-speed-tie.js`
+  0 → 1) are now DECLARED with construction reasons and no longer count.
+- `test-no-silent-failure` — six new silent catches in `diff_swarm.js`, `explain_divergence.js`,
+  `leaf_engine_contrast.js` and `staged_board.js`. None in a file this pass touched.
+- `test-prng` — `tests/test-protocol-trace.js` multiplies by 1103515245 in float arithmetic.
+- `test-site-data-fresh`, `test-web-status` — site bundles 1.2 days behind the store. WEB / OPS.
+- `test-stadium-roster` — three generators owe `docs/MODELS.md` an entry.
+- `engine/provenance.js` — 13 unsafe, 45 possibly stale, unchanged from the session's opening print.
 
 ## ROADMAP #92 — THE DAMAGE-STAGE CLASS. FOURTEEN MULTIPLIERS WERE AT THE WRONG STAGE AND FIVE WERE ABSENT. 2026-08-07.
 
@@ -3748,6 +3972,19 @@ is what created the 47 direct-call probes in the first place:
 | `ability\|randomBoostEachTurn` (Moody, 590) | **STOCHASTIC and staged only against a seeded rng.** Not attempted this pass. The probe must assert the mechanism — a stat moved up two and another down one — and not a particular stat. |
 | `ability\|terrainSetter` (2,044), `ability\|switchInForme` (511), `ability\|amplifiesBoosts` (309), `move\|dualPurpose` (363) | not measured this pass. |
 
+**CLOSED 2026-08-07 (WIRE 133–137) — every row in the table above except `amplifiesBoosts` now has a
+probe and the census carries it, so none of them is open work any more.** `auraBoost` and
+`passesState` landed with ROADMAP #81 WIRE 12; `instructsTarget`, `punishesBoostedTarget`,
+`randomBoostEachTurn`, `terrainSetter`, `switchInForme` and `dualPurpose` landed in this pass. Two of
+the diagnoses in that table were WRONG and the corrections are worth keeping beside them:
+`terrainSetter` was measured as "not measured" and was in fact **already fully live**, and Instruct's
+"re-entering action resolution from inside the resolution loop" is not what the mechanic needs — the
+authority QUEUES an action (`queue.prioritizeAction`) rather than executing one, and the queue is the
+`acts` array this engine already re-sorts before every action. `punishesBoostedTarget`'s "no per-turn
+was-boosted flag exists" was true and the answer was not to add one to twelve raise sites but to take
+a SNAPSHOT of the stages as the turn opens. The `confusion` half of Alluring Voice is still absent and
+is now counted rather than merely described (`MEDFAILS.punishEffectUnmodelled`).
+
 ### FILED, NOT FIXED
 
 - **`data/tags.json` / `data/abra-tags.js` carry an INVERTED `writesAccuracy.scope` on all nine
@@ -6630,12 +6867,27 @@ each, so **no refit is owed**.
   ledger, ready to print. **`status.js` is MEASURE's file.** Filed, not fixed.
 - **The last differential row is a LAYER MISMATCH, not an engine bug, and it is flagged in place.**
   `chesnaught woodhammer -> mimikyu` reads `showdown 0-0, medicham 120-130` and is marked SUSPECT.
-  Showdown's `onDamage` returns 0 while the maxhp/8 never lands, because this harness never calls
-  `battle.update()`; MEDICHAM's `dmgRange` correctly reports raw damage because WIRE 23 substitutes
-  one level up in the battle loop. Both engines are right and the comparison is asking `dmgRange` a
-  question about `battleTurn`. It is still COUNTED in the residual — flagging must never move the
-  number. Fixing it properly means teaching the harness to run the damage-layer abilities, which is
-  a bigger change than the row is worth.
+  Showdown's `onDamage` returns 0 for the hit; MEDICHAM's `dmgRange` correctly reports raw damage
+  because WIRE 23 substitutes one level up in the battle loop. Both engines are right and the
+  comparison is asking `dmgRange` a question about `battleTurn`. It is still COUNTED in the residual —
+  flagging must never move the number. Fixing it properly means teaching the harness to run the
+  damage-layer abilities, which is a bigger change than the row is worth.
+  **RETRACTED 2026-08-07, ROADMAP #89 — this entry, and the comment in the engine it was copied from,
+  gave a REASON THAT IS FICTION.** It said the maxhp/8 "never lands, because this harness never calls
+  `battle.update()`". **`battle.update()` does not exist**, verified by enumerating the prototype; the
+  nearest real methods are `sendUpdates`, `faintMessages` and `commitChoices`. The eighth is dealt in
+  Disguise's own `onUpdate` — `this.damage(pokemon.baseMaxhp / 8, ...)`, data/abilities.ts:996 — on the
+  next update pass, as a SEPARATE damage event, which is precisely why a single `dmgRange` comparison
+  cannot see it. The CONCLUSION above is unchanged; the reasoning under it was wrong, and a right
+  answer resting on a false reason is worse than a wrong one because the next reader re-derives from
+  it. The engine's comment is corrected at the same site.
+- **`data/engine-data.js` has no `mimikyu-busted` row, and it is the one thing WIRE 136 owes MEASURE.**
+  Disguise now performs its forme change as a RENAME, which is faithful ONLY because the artifact
+  states `formeOnHit.sameStats: true` and `sameTypes: true` for that pair — Mimikyu and Mimikyu-Busted
+  are 55/90/80/50/105/96 Ghost/Fairy either side of the change. Ice Face's pair is NOT identical
+  (Eiscue 50 Def / Eiscue-Noice 70), so it is refused and counted in `MEDFAILS.formeOnHitNoRow` rather
+  than renamed wrongly. `engine-data.js` is downstream of this division and may not be edited here.
+  Zero uses today; it becomes real the moment an Eiscue is played.
 - **`battleResult` cannot tell a finished battle from an expired clock.** `medicham2-browser.js:1802`
   scores bodies-then-HP unconditionally; `battleOver` returns true for a wipeout *and* for
   `S.turn >= maxTurns`, and the caller cannot distinguish them from the return value. Every

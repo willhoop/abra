@@ -696,7 +696,31 @@ const MOVE_TAGS = [
   { tag: 'instructsTarget', param: 'the target immediately repeats its last move, out of turn', probe: 'instructsTarget',
     why: 'Instruct (92 uses) gives an ally a second attack in one turn. Scored as a status move '
        + 'doing nothing, when it is often the largest damage action available',
-    of: m => /instruct/.test(norm(m.id)) ? { extraAction: true } : null },
+    /* MEMBERSHIP IS DERIVED NOW, not matched on the name. Instruct is the only move in the game whose
+     * onHit calls `queue.prioritizeAction` on an action it BUILDS for the target -- After You calls
+     * the same method on an action that already exists, so the two are separated by whether a
+     * `resolveAction` is being queued rather than by a string.
+     *
+     * AND WHAT IT REFUSES IS DERIVED TOO, because the refusal is the half a naive consumer drops and
+     * an unrefused Instruct is an INFINITE LOOP: instructing an Instruct queues another one. The
+     * handler names the flags it checks -- `failinstruct`, `charge`, `recharge` -- and `failinstruct`
+     * is upstream's own name for the class that must not be repeated (Instruct itself, Baton Pass,
+     * Dynamax Cannon and the rest). The flags are read out of the handler and then RESOLVED to the
+     * move ids that carry them, so the engine can answer "may this move be repeated" with one lookup
+     * and no flag table of its own. */
+    of: m => {
+      const src = String(m.onHit || '');
+      if (!/prioritizeAction/.test(src) || !/resolveAction/.test(src)) return null;
+      const flags = ['failinstruct', 'charge', 'recharge']
+        .filter(f => src.includes(`flags['${f}']`) || src.includes(`flags["${f}"]`) || src.includes(`flags.${f}`));
+      const refuses = [];
+      for (const mv of dex.moves.all()) {
+        if (!mv.exists || mv.isNonstandard) continue;
+        if (flags.some(f => mv.flags && mv.flags[f])) refuses.push(norm(mv.id));
+      }
+      refuses.sort();
+      return { extraAction: true, refusedFlags: flags, refuses };
+    } },
   /* NEW 2026-08-05 (STAGED) -- SKILL SWAP. The interaction matrix's `skillswap -> prankster` row:
    * the official engine exchanged the two abilities and medicham2 did nothing, because the move's
    * only tags were neverMisses and statusCategory. The derivation is EXACT, not heuristic:
@@ -815,7 +839,21 @@ const MOVE_TAGS = [
       for (const sec of (m.secondaries || []))
         for (const k of Object.keys(sec || {}))
           if (typeof sec[k] === 'function') parts.push(String(sec[k]));
-      return /statsRaisedThisTurn/.test(parts.join(' ')) ? { onlyIfTargetBoostedThisTurn: true } : null;
+      const src = parts.join(' ');
+      if (!/statsRaisedThisTurn/.test(src)) return null;
+      /* WHAT IT LANDS IS NOW READ, because `{onlyIfTargetBoostedThisTurn:true}` is a CONDITION with no
+       * EFFECT attached and no consumer can act on it. The two members do different things and the
+       * handler says which: Burning Jealousy `trySetStatus('brn', ...)`, Alluring Voice
+       * `addVolatile('confusion', ...)`. A consumer that guessed would have confused with Burning
+       * Jealousy or burned with Alluring Voice. */
+      const out = { onlyIfTargetBoostedThisTurn: true };
+      const st = src.match(/trySetStatus\(\s*["'](\w+)["']/);
+      if (st) { out.effect = 'status'; out.status = st[1]; }
+      else {
+        const vol = src.match(/addVolatile\(\s*["'](\w+)["']/);
+        if (vol) { out.effect = 'volatile'; out.volatile = vol[1]; }
+      }
+      return out;
     } },
   /* Will: "soak needs a change target type category." Soak is 78 uses and rewrites the target to
    * pure Water, which invalidates every type-effectiveness number the engine holds for that
@@ -857,8 +895,21 @@ const MOVE_TAGS = [
     of: m => {
       const src = String(m.onTryHit || '') + String(m.onHit || '');
       if (!/isAlly\(target\)/.test(src)) return null;
-      return { atFoe: m.basePower ? m.basePower + ' BP attack' : 'effect',
-               atAlly: /this\.heal/.test(src) ? 'heals the ally' : 'different effect' };
+      const out = { atFoe: m.basePower ? m.basePower + ' BP attack' : 'effect',
+                    atAlly: /this\.heal/.test(src) ? 'heals the ally' : 'different effect' };
+      /* THE PARAM WAS TWO SENTENCES OF PROSE AND NOTHING COULD READ IT. "heals the ally" is a
+       * DESCRIPTION; a consumer needs the FRACTION, and the handler states it:
+       * `this.heal(Math.floor(target.baseMaxhp * 0.5))` (data/moves.ts:13589). Read it rather than
+       * type 0.5 into the engine -- the same rule that took `healsOnSwitchOut` from an assumed third
+       * to a read one.
+       * `basePower = 0` at an ally is the other half and it is equally readable: the handler zeroes
+       * it, so the tag can say that the ally branch deals no damage instead of the engine inferring
+       * it from the presence of a heal. Shell Side Arm is the second member and does NEITHER, so it
+       * comes out with no numbers at all and is visibly unwired rather than silently given a heal. */
+      const h = src.match(/\.heal\(\s*Math\.floor\(\s*\w+\.(?:base)?[Mm]axhp\s*\*\s*([0-9.]+)/);
+      if (h) out.allyHealFrac = +h[1];
+      if (/move\.basePower\s*=\s*0/.test(src)) out.allyNoDamage = true;
+      return out;
     } },
   /* Will: "leftovers is like a leech seed." Same key -- HP changing every turn with no action spent
    * -- arriving from an item and from a move. Leftovers is +1/16 to the holder; Leech Seed is -1/8
@@ -1260,8 +1311,48 @@ const MOVE_TAGS = [
     why: 'Sucker Punch (3,909 uses), Upper Hand, Counter, Mirror Coat, Metal Burst, Focus Punch. '
        + 'Their value is a prediction about the opponent, not a property of the board -- which is '
        + 'exactly what sigma_opp is for and nothing connects them',
-    of: m => (/^(suckerpunch|upperhand|counter|mirrorcoat|metalburst|focuspunch|shelltrap|revenge|avalanche|payback|assurance)$/.test(norm(m.id)))
-             ? { needs: 'target attacking' } : null },
+    /* ONE TAG, FOUR COMPLETELY DIFFERENT BEHAVIOURS, AND THAT IS WHY IT COULD NOT BE WIRED.
+     *
+     * The census's own note on the Avalanche probe said it: all nine members carried the identical
+     * `{needs: "target attacking"}`, and those nine double the power, reflect the damage, fail
+     * outright or go first. Sucker Punch's half was live only because a SECOND and much sharper tag
+     * (`failsIfTargetNotAttacking`, derived from the onTry) existed beside it. There was nothing in
+     * the artifact that told Avalanche's doubling from Counter's reflection, so the fix was a TAG
+     * before it was any code — written down there, unwritten here, for a month.
+     *
+     * `effect` IS NOW DERIVED FROM THE MOVE'S OWN CALLBACK, never from the id:
+     *   damagedByTargetThisTurn  `pokemon.attackedBy.some(p => p.source === target && p.damage > 0
+     *                            && p.thisTurn)` — Avalanche, Revenge. DOUBLE the base power.
+     *   targetHurtThisTurn       `target.hurtThisTurn` — Assurance. DOUBLE.
+     *   targetAlreadyMoved       `target.newlySwitched || this.queue.willMove(target)` returning the
+     *                            UNDOUBLED power — Payback. DOUBLE when neither holds.
+     *   failsOutright            an onTry that returns false — Sucker Punch, Upper Hand, Focus Punch,
+     *                            Shell Trap. Already served by `failsIfTargetNotAttacking`.
+     *   reflectsDamage           Counter, Mirror Coat, Metal Burst, whose damage is a `damageCallback`
+     *                            over what was taken. NAMED AND NOT MODELLED: the reflected number is
+     *                            a fact about a hit that already landed and this engine holds no
+     *                            per-source damage ledger. Declared so it reads as a residue rather
+     *                            than as an oversight.
+     * MEMBERSHIP IS DELIBERATELY UNCHANGED. The list is a hand list and it should not be, but
+     * narrowing it in the same pass that adds the parameter would make a wiring change and a
+     * membership change indistinguishable if anything moved. */
+    of: m => {
+      if (!/^(suckerpunch|upperhand|counter|mirrorcoat|metalburst|focuspunch|shelltrap|revenge|avalanche|payback|assurance)$/.test(norm(m.id)))
+        return null;
+      const bp = String(m.basePowerCallback || ''), tryS = String(m.onTry || '');
+      const out = { needs: 'target attacking' };
+      if (/attackedBy\.some/.test(bp) && /p\.thisTurn|\.thisTurn/.test(bp))
+        { out.effect = 'doublePower'; out.when = 'damagedByTargetThisTurn'; out.mult = 2; }
+      else if (/hurtThisTurn/.test(bp))
+        { out.effect = 'doublePower'; out.when = 'targetHurtThisTurn'; out.mult = 2; }
+      else if (/newlySwitched/.test(bp) && /willMove\(\s*target\s*\)/.test(bp))
+        { out.effect = 'doublePower'; out.when = 'targetHasNotMovedYet'; out.mult = 2; }
+      else if (/return false/.test(tryS) && /willMove\(\s*target\s*\)/.test(tryS))
+        { out.effect = 'failsOutright'; }
+      else if (m.damageCallback)
+        { out.effect = 'reflectsDamage'; out.modelled = false; }
+      return out;
+    } },
   /* Will: "add the thaws you out tag and make sure frozen is in there too. all secondary effects". */
   { tag: 'thawsTarget', param: 'unfreezes the target it hits', probe: 'thawsTarget',
     why: 'Scald (601 uses), Scorching Sands. Undoes a freeze you may have wanted',
@@ -1297,12 +1388,44 @@ const MOVE_TAGS = [
       return { needsTerrain: true,
                clears: /clearTerrain\(\)/.test(String(m.onHit || '') + String(m.onAfterSubDamage || '')) };
     } },
-  { tag: 'sideBuff', param: 'another multi-turn modifier on my side', probe: 'sideCondition',
+  { tag: 'sideBuff', param: 'another multi-turn modifier on my side', probe: 'sideBuff',
     why: 'Safeguard, Mist -- what is left once Tailwind and the screens are split out',
-    of: m => (m.sideCondition && m.target === 'allySide'
-              && !/^(wideguard|quickguard|craftyshield|matblock)$/.test(norm(m.id))
-              && !/tailwind|reflect|lightscreen|auroraveil/.test(norm(m.sideCondition)))
-             ? { sideCondition: m.sideCondition } : null },
+    /* WHAT IT REFUSES IS NOW DERIVED, AND IT HAD TO BE BEFORE ANYTHING COULD READ IT. The param was
+     * `{sideCondition: "safeguard"}` and nothing else -- a NAME, with no statement of what the buff
+     * actually does -- so a consumer wanting "does this side refuse a status" had exactly two
+     * choices: match the string `safeguard` (a name, which docs/TAGS.md bans) or treat every sideBuff
+     * as a status shield, WHICH WOULD BE WRONG FOR MIST. Mist is the other member and it refuses a
+     * STAT DROP, not a status; wiring the class on the boolean would have made it a second Safeguard.
+     * Membership in this format is Safeguard alone today, so nothing would have caught it.
+     *
+     * Read off the condition's own handlers, which is where the authority states it:
+     *   onSetStatus       -> blocksStatus      (Safeguard)
+     *   onTryBoost        -> blocksStatDrop    (Mist)
+     *   onTryAddVolatile  -> blocksVolatile    (Safeguard also refuses confusion and Yawn)
+     * `turns` comes from the condition's `duration`, never from a literal in the engine -- the same
+     * rule the screens' Light Clay extension follows. */
+    of: m => {
+      if (!(m.sideCondition && m.target === 'allySide')) return null;
+      if (/^(wideguard|quickguard|craftyshield|matblock)$/.test(norm(m.id))) return null;
+      if (/tailwind|reflect|lightscreen|auroraveil/.test(norm(m.sideCondition))) return null;
+      const c = m.condition || {};
+      const out = { sideCondition: m.sideCondition };
+      if (c.duration) out.turns = c.duration;
+      if (c.onSetStatus) out.blocksStatus = true;
+      if (c.onTryBoost) out.blocksStatDrop = true;
+      if (c.onTryAddVolatile) out.blocksVolatile = true;
+      /* THE PROTOCOL LABEL IS THE AUTHORITY'S OWN, and it is NOT uniform upstream: Reflect and
+       * Safeguard announce a bare name while Light Screen, Aurora Veil and Stealth Rock announce
+       * `move: NAME`. Read out of the `-sidestart` call so this engine emits what Showdown emits
+       * rather than what the neighbouring condition happens to emit. */
+      /* BOTH QUOTE STYLES. The dex is read out of `dist/`, which is COMPILED, and the compiler
+       * rewrites the source's single quotes to double ones -- so a single-quote-only pattern silently
+       * matched nothing and `startsAs` was quietly absent. Caught by printing the param before wiring
+       * it, which is this file's standing rule and is what it is for. */
+      const st = String(c.onSideStart || '').match(/["']-sidestart["'],\s*\w+,\s*["']([^"']+)["']/);
+      if (st) out.startsAs = st[1];
+      return out;
+    } },
   { tag: 'hazard', param: 'their side is damaged or slowed on switch-in, until removed', probe: 'hazard',
     why: 'Stealth Rock, Spikes, Toxic Spikes, Sticky Web. Does nothing THIS turn -- it prices their '
        + 'future switches, which is a decision MAG does not model at all',
@@ -1895,7 +2018,18 @@ const MOVE_TAGS = [
        * what the target does -- and ROUND, which iterates the queue looking for other Rounds. Three
        * false positives on a five-move list. The real ones ask what THIS TARGET will do. */
       if (!/willMove\(\s*target\s*\)/.test(src)) return null;
-      return { fails: true };
+      /* ROADMAP #60 -- UPPER HAND AND SUCKER PUNCH SHARE THIS TAG AND DO NOT SHARE THE CONDITION.
+       * Sucker Punch refuses a STATUS move; Upper Hand additionally refuses anything at or below
+       * priority 0.1, so an ordinary Earthquake beats it and the broad model had the bot believing
+       * otherwise. Read off the handler's own comparison (`move.priority <= 0.1`) rather than off the
+       * name, so a third member printed later carries the right condition without an edit here. */
+      const out = { fails: true };
+      const pri = src.match(/move\.priority\s*<=?\s*([0-9.]+)/);
+      if (pri) { out.needsPriority = true; out.minPriority = +pri[1]; }
+      /* The status refusal is the OTHER half and both members declare it, so it is stated rather than
+       * assumed by a consumer: a Status move never satisfies either move. */
+      if (/category\s*===\s*['"]Status['"]/.test(src)) out.refusesStatusTarget = true;
+      return out;
     } },
   { tag: 'recharge', param: 'costs the turn AFTER it lands', probe: 'rechargeTurn',
     why: 'Hyper Beam. A free turn for the opponent',
@@ -2292,15 +2426,41 @@ const ABILITY_TAGS = [
      * WHICH stat and HOW MUCH live in the handler's own this.boost({atk: 2}) and the consumer
      * (applyStatDrop, WIRE 100) types them beside a comment naming this enrichment. Read, not
      * assumed, exactly as statChangeInCode reads a move handler's table. */
+    /* ENRICHED AGAIN 2026-08-07, AND THE MISSING FIELD WAS *HOW MANY TIMES*.
+     *
+     * Will: *"WHEN PARTING SHOT GOES INTO A DEFIANT OR COMPETITIVE MON IT GETS DOUBLE BOOSTS, ONE FOR
+     * EACH DROP. I DONT THINK THATS THE CASE FOR CHARM BUT IDK."* Both halves are right, and the
+     * mechanism is the HOOK NAME. `Battle#boost` runs `runEvent('AfterEachBoost', …, currentBoost)`
+     * INSIDE its per-stat loop (sim/battle.ts:2073) with the single stat as its argument — so an
+     * ability hanging off `onAfterEachBoost` fires ONCE PER STAT LOWERED, not once per move. Parting
+     * Shot lowers two stats and hands the target -1 +2 +2 = +3 Attack; Charm lowers ONE stat by two
+     * stages, fires once, and the -2 cancels the +2 exactly.
+     *
+     * `{retaliates:true, boosts:{atk:2}}` says WHAT and does not say HOW MANY TIMES, and a consumer
+     * reading it naturally fires once per move — which is right for Charm by accident and wrong for
+     * every multi-stat drop. The count is now DERIVED FROM THE HOOK the ability declares, so an
+     * ability that ever hangs off the per-move `onAfterBoost` instead arrives correctly without an
+     * edit here.
+     *
+     * TWO MORE GUARDS, both the handler's own first lines and both needed by the negative cases:
+     * `if (!source || target.isAlly(source)) return;` — an ALLY lowering your stats does not trigger
+     * it, and neither does a source-less drop. A consumer without those fires on a partner's Icy Wind. */
     of: a => {
-      if (!a.onAfterEachBoost) return null;
-      const bm = String(a.onAfterEachBoost).match(/\.boost\(\s*\{([^}]*)\}/);
+      const perStat = !!a.onAfterEachBoost;
+      const src = String(a.onAfterEachBoost || a.onAfterBoost || '');
+      if (!perStat && !a.onAfterBoost) return null;
+      if (!/statsLowered|<\s*0/.test(src)) return null;
+      const bm = src.match(/\.boost\(\s*\{([^}]*)\}/);
       const boosts = {};
       if (bm) for (const kv of bm[1].split(',')) {
         const p = kv.split(':').map(s => s.trim().replace(/["']/g, ''));
         if (p.length === 2 && !isNaN(+p[1])) boosts[p[0]] = +p[1];
       }
-      return Object.keys(boosts).length ? { retaliates: true, boosts } : { retaliates: true };
+      const out = { retaliates: true, perStatLowered: perStat };
+      if (Object.keys(boosts).length) out.boosts = boosts;
+      if (/!\s*source/.test(src)) out.needsSource = true;
+      if (/isAlly\(\s*source\s*\)/.test(src)) out.notFromAlly = true;
+      return out;
     } },
   { tag: 'preventsStatDrop', param: 'WHICH stat drops do not apply, and to whom', probe: 'onTryBoost',
     why: 'Clear Body blocks every stat, Hyper Cutter only Attack, Keen Eye only accuracy. That '
@@ -2696,6 +2856,109 @@ const ABILITY_TAGS = [
      * `pokemon.heal(pokemon.baseMaxhp / 3)`. Membership went 3 -> 1, and the one is Regenerator. */
     of: a => { const m = String(a.onSwitchOut || '').match(/\.heal\(\s*\w+\.(?:base)?[Mm]axhp\s*\/\s*(\d+)/);
       return m ? { heal: 1 / (+m[1]) } : null; } },
+  /* THE SWITCH-OUT TRIGGER, AND IT IS A CLASS RATHER THAN THREE ABILITIES.
+   *
+   * Will, 2026-08-07: *"ALL THE SWITCH OUT ABILITIES ACTIVATE ON SWITCH OUT LIKE REGENERATOR OR
+   * NATURAL CURE OR ZERO TO HERO."* He is describing a MOMENT, and the vocabulary above has no word
+   * for it — only abilities that individually happen to mention leaving. Measured against the
+   * authority the day this was written, and the three he named are exactly the three:
+   *
+   *     Regenerator  1,149 uses   onSwitchOut   healsOnSwitchOut     right, and already wired
+   *     Zero to Hero   191 uses   onSwitchOut   switchInForme        WIRED AT THE WRONG MOMENT
+   *     Natural Cure    97 uses   onSwitchOut   "untagged"           ABSENT ENTIRELY
+   *
+   * `healsOnSwitchOut` above is the tag that was NARROWED to escape exactly this over-match, and
+   * narrowing it was right — a heal is not a cure. What was missing is the thing it was narrowed out
+   * of: the trigger. So the trigger is derived here from `onSwitchOut` and the three fall out
+   * together, and a fourth ability printed next regulation arrives with them.
+   *
+   * MEMBERSHIP WAS PRINTED BEFORE THIS WAS WIRED, as docs/LESSONS.md §4 requires — and the danger
+   * here is the OPPOSITE of the usual one. It does not over-match: `onSwitchOut` is exactly three
+   * abilities in this format and every one of them is a real member. The danger is folding in
+   * Emergency Exit and Wimp Out, which are `onEmergencyExit` — a DIFFERENT moment (a HP threshold
+   * crossed mid-turn, not a switch) — so the predicate reads the one field and no other.
+   *
+   * `does` IS DERIVED FROM THE HANDLER, never from the name, because the whole point of a class is
+   * that the engine dispatches on shape. An `onSwitchOut` this deriver cannot read comes out as
+   * `does: 'unknown'` and the engine COUNTS it rather than silently doing nothing — a silent default
+   * looks exactly like a working feature. */
+  { tag: 'switchOutTrigger', param: 'the ability fires as the body LEAVES the field',
+    probe: 'switchOutTrigger',
+    why: 'Regenerator (1,149), Zero to Hero (191) and Natural Cure (97) are one moment and were '
+       + 'three unrelated facts. Zero to Hero fired on the RETURN and Natural Cure did not exist',
+    of: (a) => {
+      const src = String(a.onSwitchOut || '');
+      if (!src) return null;
+      const heal = src.match(/\.heal\(\s*\w+\.(?:base)?[Mm]axhp\s*\/\s*(\d+)/);
+      if (heal) return { does: 'heal', heal: 1 / (+heal[1]) };
+      if (/\.clearStatus\(|setStatus\(\s*['"]{2}\s*\)/.test(src)) return { does: 'cure', cures: 'any' };
+      if (/formeChange\(/.test(src)) {
+        /* THE FORME COMES OUT OF THE SPECIES TABLE, exactly as `switchInForme` above derives it, so
+         * the two cannot disagree about what Palafin becomes. Rediscovered rather than copied: a
+         * battleOnly forme names the base it comes from and the base carries the trigger ability. */
+        for (const sp of dex.species.all()) {
+          if (!sp.exists || !sp.battleOnly) continue;
+          const baseName = Array.isArray(sp.battleOnly) ? sp.battleOnly[0] : sp.battleOnly;
+          const base = dex.species.get(baseName);
+          if (!base || !base.exists) continue;
+          const abils = Object.values(base.abilities || {}).map(x => String(x).toLowerCase().replace(/[^a-z0-9]/g, ''));
+          if (abils.includes(a.id)) return { does: 'forme', from: base.name, becomes: sp.name,
+            /* Showdown announces the forme change on the way OUT (`|detailschange|`) and the ability
+             * itself on the way back IN (`|-activate|...|ability: Zero to Hero`, guarded by
+             * `heroMessageDisplayed`). Two moments, one mechanic, and the engine needs both. */
+            announcesOnReturn: true };
+        }
+        return { does: 'forme' };
+      }
+      return { does: 'unknown' };
+    } },
+  /* THE FORME THAT CHANGES WHEN THE BODY IS HIT — Disguise and Ice Face.
+   *
+   * WIRE 23 landed Disguise's SUBSTITUTION (the first hit is refused and costs maxhp/8) keyed on the
+   * ability NAME, and said so rather than pretending to a derivation: `disguise.tags` was
+   * `["preventsCrit","formeChange"]`, and both of those hold three other abilities each. It was right
+   * to name it and wrong to leave it there, because the half WIRE 23 did not do is the SPECIES: both
+   * engines end on 114/130 and Showdown's active slot and party read `mimikyubusted` while ours read
+   * `mimikyu`. The HP probe passes; the board does not.
+   *
+   * DERIVED ON THE SHAPE, and it is a narrow one: an `onUpdate` that calls `formeChange`, plus an
+   * `onDamage`/`onDamagingHit` that sets `effectState.busted`. MEMBERSHIP WAS PRINTED BEFORE THIS WAS
+   * WIRED and the first predicate — `formeChange` anywhere in any handler — matched NINE abilities
+   * including Forecast, Flower Gift, Hunger Switch, Power Construct, Schooling and Shields Down, none
+   * of which changes forme on being hit. The narrow one matches exactly Disguise and Ice Face, which
+   * are the two members of this mechanic.
+   *
+   * `sameStats` IS THE PARAM THAT MATTERS TO A CONSUMER and it is why this carries more than a name:
+   * Mimikyu and Mimikyu-Busted have IDENTICAL base stats and types, so the change is a species rename
+   * and nothing else; Eiscue and Eiscue-Noice do NOT, so a consumer that renamed without rebuilding
+   * would be silently wrong there. Stated by the artifact rather than discovered by the next reader. */
+  { tag: 'formeOnHit', param: 'the holder changes forme when a move damages it', probe: 'formeOnHit',
+    why: 'Disguise, 142 uses. WIRE 23 modelled the free hit and never renamed the body, so the two '
+       + 'engines part on the species in the active slot AND in the party on every Mimikyu game',
+    of: (a) => {
+      const up = String(a.onUpdate || '');
+      const hit = String(a.onDamage || '') + String(a.onDamagingHit || '');
+      if (!/formeChange\(/.test(up)) return null;
+      if (!/effectState\.busted\s*=\s*true/.test(hit)) return null;
+      for (const sp of dex.species.all()) {
+        if (!sp.exists || !sp.battleOnly || sp.isNonstandard) continue;
+        const baseName = Array.isArray(sp.battleOnly) ? sp.battleOnly[0] : sp.battleOnly;
+        const base = dex.species.get(baseName);
+        if (!base || !base.exists) continue;
+        const abils = Object.values(base.abilities || {}).map(x => String(x).toLowerCase().replace(/[^a-z0-9]/g, ''));
+        if (!abils.includes(a.id)) continue;
+        const out = { from: base.name, becomes: sp.name,
+          sameStats: JSON.stringify(base.baseStats) === JSON.stringify(sp.baseStats),
+          sameTypes: JSON.stringify(base.types) === JSON.stringify(sp.types) };
+        /* THE EIGHTH IS THE HANDLER'S OWN NUMBER: `this.damage(pokemon.baseMaxhp / 8, ...)` runs in
+         * the SAME onUpdate as the forme change, so the cost and the rename are one event and the
+         * engine should not carry the 8 as a literal. */
+        const dm = up.match(/\.damage\(\s*\w+\.(?:base)?[Mm]axhp\s*\/\s*(\d+)/);
+        if (dm) out.costsMaxHPDiv = +dm[1];
+        return out;
+      }
+      return null;
+    } },
   { tag: 'blocksBerries', param: 'their berries cannot be eaten', probe: 'unnerve',
     why: 'Unnerve, 2.03%. Turns off Sitrus (10.8% of items) and every resist berry on the other side',
     of: a => a.onFoeTryEatItem ? { blocks: true } : null },

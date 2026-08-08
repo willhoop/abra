@@ -185,9 +185,27 @@ function projMon(m) {
     return k + '=' + projVal(m[k]);
   }).join(';');
 }
+/* `_S` IS THE WHOLE BATTLE STATE, HANGING OFF THE SIDE OBJECT, AND PROJECTING IT NEVER TERMINATES.
+ *
+ * ROADMAP #81 WIRE 9 added `S.sfA._S = S; S.sfB._S = S` to medicham2 so that `liveFoesOf()` can
+ * answer "who is this body fighting" from the body alone. `projVal` recurses into any plain object,
+ * and its only cycle-breaker is the MON guard (`typeof v.curHP === 'number' && v.name`) — a battle
+ * state is not a mon, so `sf._S.sfA._S.sfA…` walks forever and every arm of every case comes back
+ * `THREW: Maximum call stack size exceeded`. The whole tag then reports `verdict: THREW` and the
+ * planted-stub gate reads `shipped = MISSING`, which looks exactly like the harness failing to find
+ * an operator rather than the projection failing to finish.
+ *
+ * MEASURED 2026-08-07: the gate passes on release 032b4a2979dd (which predates WIRE 9) and fails
+ * identically on dc3c43336539 and on every release since, so this is the INSTRUMENT and not the
+ * engine. `team` was already filtered here for the same class of reason — it is a reference to the
+ * party, not state of the side — and `_S` is the same shape one level up.
+ *
+ * NOTHING IS LOST BY SKIPPING IT: every field reachable through `_S` is already projected by
+ * `projState`, which is the caller. */
+const SIDE_SKIP = new Set(['team', '_S']);
 function projSide(sf) {
   if (!sf) return 'x';
-  return Object.keys(sf).filter(k => k !== 'team').sort().map(k => k + '=' + projVal(sf[k])).join(';');
+  return Object.keys(sf).filter(k => !SIDE_SKIP.has(k)).sort().map(k => k + '=' + projVal(sf[k])).join(';');
 }
 function projState(S) {
   return [

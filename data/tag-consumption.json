@@ -1,10 +1,10 @@
 {
   "note": "RATCHET. `dead` may shrink and may never grow. A tag here is one NO line of engine code looks for — decisive, and independent of how the sweep was staged. `staged` is a property of the sweep and is recorded for information only, never ratcheted.",
   "method": "engine/tags.js counts ASKED (any lookup) and FOUND (the entity carried it). ASKED=0 is the decisive reading. FOUND>0 is necessary and NOT sufficient — proving the read changes behaviour is the mutation tier in docs/TAG-COVERAGE.md.",
-  "total_tags": 179,
-  "live": 87,
-  "staged": 24,
-  "unreached": 44,
+  "total_tags": 181,
+  "live": 91,
+  "staged": 25,
+  "unreached": 48,
   "unreached_this_run": [
     "statusCategory",
     "neverMisses",
@@ -33,6 +33,7 @@
     "setsWeather",
     "forbidsStatusMoves",
     "failsWithoutWeather",
+    "switchOutTrigger",
     "perishClock",
     "healsOnSwitchOut",
     "boostsTarget",
@@ -49,6 +50,9 @@
     "typeSplitMove",
     "ohko",
     "swapsAbilities",
+    "swapsDefences",
+    "sideBuff",
+    "suppressesItems",
     "preventsSwitch"
   ],
   "dead": [
@@ -57,7 +61,6 @@
     "lowersUser",
     "boostsUser",
     "lowersTarget",
-    "needsTargetToAttack",
     "inflictsParalysis",
     "inflictsFreeze",
     "inflictsPoison",
@@ -67,130 +70,89 @@
     "readsTargetItem",
     "inflictsSleep",
     "inflictsToxic",
-    "randomBoostEachTurn",
     "statusImmune",
-    "punishesBoostedTarget",
     "readsOwnItem",
-    "dualPurpose",
-    "swapsDefences",
-    "sideBuff",
-    "suppressesItems",
     "setsRoom"
   ],
   "dead_by_uses": [
     {
       "tag": "flinches",
-      "uses": 41514,
+      "uses": 41654,
       "carriers": 19
     },
     {
       "tag": "inflictsBurn",
-      "uses": 27072,
+      "uses": 27173,
       "carriers": 15
     },
     {
       "tag": "lowersUser",
-      "uses": 20380,
+      "uses": 20452,
       "carriers": 13
     },
     {
       "tag": "boostsUser",
-      "uses": 12769,
+      "uses": 12821,
       "carriers": 23
     },
     {
       "tag": "lowersTarget",
-      "uses": 11791,
+      "uses": 11826,
       "carriers": 22
     },
     {
-      "tag": "needsTargetToAttack",
-      "uses": 8305,
-      "carriers": 9
-    },
-    {
       "tag": "inflictsParalysis",
-      "uses": 7796,
+      "uses": 7833,
       "carriers": 13
     },
     {
       "tag": "inflictsFreeze",
-      "uses": 7782,
+      "uses": 7815,
       "carriers": 4
     },
     {
       "tag": "inflictsPoison",
-      "uses": 7558,
+      "uses": 7579,
       "carriers": 11
     },
     {
       "tag": "locksTarget",
-      "uses": 6295,
+      "uses": 6325,
       "carriers": 3
     },
     {
       "tag": "needsUntrackedState",
-      "uses": 6016,
+      "uses": 6044,
       "carriers": 4
     },
     {
       "tag": "inflictsConfusion",
-      "uses": 3927,
+      "uses": 3944,
       "carriers": 9
     },
     {
       "tag": "readsTargetItem",
-      "uses": 3813,
+      "uses": 3829,
       "carriers": 2
     },
     {
       "tag": "inflictsSleep",
-      "uses": 2195,
+      "uses": 2202,
       "carriers": 4
     },
     {
       "tag": "inflictsToxic",
-      "uses": 1046,
+      "uses": 1047,
       "carriers": 2
-    },
-    {
-      "tag": "randomBoostEachTurn",
-      "uses": 605,
-      "carriers": 1
     },
     {
       "tag": "statusImmune",
-      "uses": 503,
+      "uses": 505,
       "carriers": 12
     },
     {
-      "tag": "punishesBoostedTarget",
-      "uses": 219,
-      "carriers": 2
-    },
-    {
       "tag": "readsOwnItem",
-      "uses": 190,
-      "carriers": 1
-    },
-    {
-      "tag": "dualPurpose",
-      "uses": 139,
-      "carriers": 2
-    },
-    {
-      "tag": "swapsDefences",
-      "uses": 11,
-      "carriers": 1
-    },
-    {
-      "tag": "sideBuff",
-      "uses": 8,
-      "carriers": 1
-    },
-    {
-      "tag": "suppressesItems",
-      "uses": 4,
+      "uses": 193,
       "carriers": 1
     },
     {
@@ -204,6 +166,7 @@
     "extendsDuration",
     "accuracyMod",
     "refusesStatusMoves",
+    "proceduralStatus",
     "weatherChipImmune",
     "punishesContact",
     "disablesAttacker",
@@ -213,9 +176,9 @@
     "substitute",
     "blocksExplosion",
     "forcesSwitch",
-    "crashOnMiss",
     "curesStatus",
     "reflectsStatusMoves",
+    "dualPurpose",
     "addsFlinch",
     "boostsFromFallen",
     "critDamageUp",
@@ -225,5 +188,5 @@
     "auraBreak",
     "amplifiesBoosts"
   ],
-  "generated": "2026-08-08T02:00:40.747Z"
+  "generated": "2026-08-08T03:59:50.357Z"
 }

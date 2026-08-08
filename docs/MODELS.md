@@ -1,6 +1,24 @@
 # ABRA — the model family (living reference)
 
-**Version 3.73.0 · Last updated 2026-08-07.**
+**WIRE 133-137 — A SPEED TIE THAT HAS BEEN RESOLVED WRONGLY SINCE THE FIRST DAY, AND IT IS THE LIVE
+ENGINE (3.74.0).** Measured on a staged pure tie under the differential's own primary pin: Showdown
+moved p2a first and medicham2 moved p1a first. The comparator was never the problem.
+`Array.prototype.sort` is STABLE, so a comparator returning 0 leaves the two in input order;
+`Battle#speedSort` is a SELECTION SORT whose swaps move UNTIED elements around, so the tied group's
+order when the shuffle finally sees it is not the input order, and no comparator can make a stable sort
+produce that permutation. ROADMAP #86 records that 91.4% of legal species share a base Speed with some
+other species, and `sortTurnOrder` is not an instrument — it orders every turn in every rollout and
+every live game. The fix reproduces the selection sort and resolves the residual group by the
+per-action uniform key already drawn, which is a uniform random permutation under real dice and the
+identity under a constant pinned die; **hardcoding the pinned answer was explicitly refused**, because
+it would have made the differential green on an engine that stayed wrong in play — the
+fitting-environment-versus-playing-environment error. Beside it, two board defects proven by staged
+comparison rather than by a probe (Zero to Hero's moment and Disguise's species), the switch-out
+trigger built as a CLASS after Will named it as one, and the last MISSING census row closed by
+enriching a tag that had described four different mechanics with one parameter. Census
+**298/299 → 310/310, `missing` 0 for the first time**; `MEDFAILS.traceBodyOffField` 25 → 0.
+
+**Version 3.74.0 · Last updated 2026-08-07.**
 
 
 

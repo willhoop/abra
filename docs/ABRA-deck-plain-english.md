@@ -1,6 +1,19 @@
 # ABRA — the plain-English deck
 
-**Version 3.73.0 · 2026-08-07 · Will Hooper**
+**A COIN FLIP WE HAD BEEN CALLING THE SAME WAY EVERY TIME (3.74.0).** When two Pokemon are exactly as
+fast as each other, the real game flips a coin. Our simulator did not — it always let the same one go
+first, and it had done that since the day it was written. That matters more than it sounds: nine out of
+ten Pokemon in this format share their Speed with some other Pokemon, so this was not a corner case,
+and it was not just a test problem — it is the same code that decides the order in every game the bot
+plays. Fixing it was not a matter of flipping the answer round. The official engine sorts in a way that
+shuffles ties, and the tempting shortcut — "always let the second one go" — would have made our test go
+green while the bot stayed wrong in real games. We copied the real rule instead, so both engines land on
+the same Pokemon for the same reason. Alongside it: Palafin was transforming at the wrong moment,
+Mimikyu's broken disguise never changed its name on the board, and a Pokemon that switched out mid-attack
+was paying its own damage costs after it had already left. Twelve more abilities and moves that nobody
+had ever tested now have tests. Two of them turned out to have been working all along.
+
+**Version 3.74.0 · 2026-08-07 · Will Hooper**
 
 
 

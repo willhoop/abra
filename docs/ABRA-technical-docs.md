@@ -1,6 +1,23 @@
 # ABRA — Technical Documentation
 
-**Version 3.73.0 · Last updated 2026-08-07**
+**WIRE 133-137 — THE SPEED TIE, THE SWITCH-OUT CLASS, AND THE LAST MISSING MECHANIC (3.74.0).** The
+two engines have disagreed about every speed tie for the life of this project, and the cause is the
+SORT rather than the comparison. `Array.prototype.sort` is stable, so two equal actions keep their
+input order; the authority uses a selection sort whose swaps move UNTIED actions around, so the tied
+group is no longer in input order by the time the tie is resolved. No comparison rule can produce that
+from a stable sort. It is not confined to the test instrument: the same function orders every turn the
+bot plays, and 91.4% of legal species share a base Speed with another species. The engine now performs
+the same selection sort, and resolves the remaining tie with the random key it already drew — a fair
+coin under real dice, and the identity under a frozen die, so both engines choose the same body without
+either being told the answer. Taking "the later body" was refused: that is what the authority produces
+under the frozen die, not the rule of the game. Beside it, three defects that changed a board rather
+than a message: Zero to Hero changed forme on the RETURN instead of on the way out, Disguise never
+renamed the body, and a Pokemon that pivoted out paid its recoil, its drain and its Life Orb cost from
+the bench. Twelve mechanics that had never been probed are now probed; two of them were already
+correct and unproved. The mechanic census reads 310 live of 310 probed, and `missing` is zero for the
+first time.
+
+**Version 3.74.0 · Last updated 2026-08-07**
 
 
 
