@@ -452,8 +452,190 @@ function forkBattle(json) {
   return b;
 }
 
+/* ---- IS THIS ONE BODY LEGAL? THE AUTHORITY'S ANSWER, FOR A PROBE RATHER THAN A CORPUS ----------
+ *
+ * `packTeam` above validates a whole SAMPLED team and REPAIRS it, because a training corpus must not
+ * be biased by discarding the draws that happen to come out illegal. A probe wants the opposite: one
+ * body, no repair, a yes or a no. Same validator, same format, same instance — a second one would be
+ * the "two implementations of a fact" defect CLAUDE.md bans.
+ *
+ * WHY THIS EXISTS AT ALL (Will, 2026-08-09: "why dont we use showdowns teams validator that is
+ * universal truth"). `new Battle()` RUNS NO VALIDATION. Every probe that assigns `p.ability = ab.id`
+ * or sets `p.item` directly walks straight past every rule in the format, and Showdown will happily
+ * simulate a banned item or an unlearnable move. Both engines then agree about something that cannot
+ * occur in a real game — a PASS that proves nothing, which is this project's signature failure.
+ *
+ * It catches strictly more than the `isNonstandard` check first proposed for this job:
+ *
+ *     Flamethrower on Meganium   REJECTED  "Meganium can't learn Flamethrower."
+ *     Rocky Helmet               REJECTED  "does not exist in Gen 9."
+ *     Pure Power on Snorlax      REJECTED  "Snorlax can't have Pure Power."
+ *     Skill Link on Toucannon    ACCEPTED
+ *     Garchomp @ Choice Scarf    ACCEPTED
+ *
+ * Flamethrower is a perfectly LEGAL move — Meganium simply cannot learn it, and only a learnset walk
+ * knows that. That exact set was staged by hand on 2026-08-08 and nothing stopped it.
+ *
+ * THE ONE WRINKLE, AND IT IS WHY THIS TAKES A COPY. Probes build FLAT, ZERO-SP bodies on purpose, so
+ * both engines derive the same stat line independently. Champions requires the 66-point budget SPENT,
+ * so the validator rejects a flat body outright — "Garchomp has exactly 0 Stat Points - did you forget
+ * to invest it?" — and that verdict MASKS the legality answer the caller actually asked for. So the
+ * spread below is stamped onto a COPY purely to satisfy the budget rule. Legality and stats are
+ * separate questions; this function asks only the first, and the caller battles with its own flat body.
+ */
+const LEGAL_SPREAD = { hp: 32, atk: 32, def: 2, spa: 0, spd: 0, spe: 0 };
+
+/* THE PADDING. Champions rejects a team of one — "You must bring at least 6 Pokémon (your team has 1)"
+ * — so the subject is validated inside a full team, and EVERY OTHER SLOT MUST BE CLEAN or its
+ * complaints are indistinguishable from the subject's.
+ *
+ * NAMED BY HAND FIRST, AND IT WAS WRONG WITHIN A MINUTE: Sandshrew is not in this format, so every
+ * filler team carried "Sandshrew does not exist in Gen 9." That is the failure this whole function
+ * exists to stop, committed in the function itself. The pool is now READ FROM THE FORMAT — species the
+ * dex does not mark isNonstandard — and then each candidate is VALIDATED before it is ever used as
+ * padding. A filler that cannot pass on its own is dropped, not trusted.
+ *
+ * Six kept so five distinct ones remain after dropping whichever collides with the subject under
+ * Species Clause. */
+let _fillers = null;
+function fillerSets(dex, skipId) {
+  if (!_fillers) {
+    const mkFiller = (sp) => {
+      let mv = null;
+      try {
+        const ls = dex.species.getLearnsetData(sp.id);
+        for (const k of Object.keys((ls && ls.learnset) || {})) {
+          const m = dex.moves.get(k);
+          if (m.exists && !m.isNonstandard) { mv = m.name; break; }
+        }
+      } catch (e) { /* no learnset */ }
+      if (!mv) return null;
+      return { name: sp.name, species: sp.name, item: '', ability: sp.abilities[0], moves: [mv],
+               nature: 'Serious', level: 50, gender: '',
+               evs: Object.assign({}, LEGAL_SPREAD),
+               ivs: { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 } };
+    };
+    const cand = [];
+    for (const sp of dex.species.all()) {
+      if (sp.isNonstandard || !sp.exists || sp.num <= 0) continue;
+      if (sp.forme || sp.isMega || sp.battleOnly) continue;
+      const f = mkFiller(sp);
+      if (f) cand.push(f);
+      if (cand.length >= 40) break;
+    }
+    /* PROVED, NOT ASSUMED. Each candidate is validated inside a team of six copies of itself is not
+     * possible (Species Clause), so they are validated as one pool of six and any complaint drops the
+     * named slot. Repeat until the padding is silent or the pool runs out. */
+    const { Teams, TeamValidator } = sim();
+    if (!_validator) _validator = new TeamValidator(FORMAT);
+    let pool = cand.slice();
+    for (let pass = 0; pass < 8 && pool.length >= 6; pass++) {
+      const six = pool.slice(0, 6);
+      const probs = _validator.validateTeam(Teams.unpack(Teams.pack(six))) || [];
+      if (!probs.length) { _fillers = six; break; }
+      const guilty = new Set();
+      for (const p of probs) for (const f of six) if (p.includes(f.species)) guilty.add(f.species);
+      if (!guilty.size) break;
+      pool = pool.filter(f => !guilty.has(f.species));
+    }
+    if (!_fillers) throw new Error('champions_sim.checkLegal: could not assemble six legal filler '
+      + 'Pokemon from ' + FORMAT + '. The padding must be clean or every verdict is contaminated.');
+  }
+  return _fillers.filter(f => dex.species.get(f.species).id !== skipId).slice(0, 5)
+                 .map(f => Object.assign({}, f));
+}
+
+/* WHICH KIND OF ILLEGAL. Two different questions arrive as one list of strings, and collapsing them
+ * was a mistake caught the same hour this was written:
+ *
+ *   EXISTENCE — "does not exist in Gen 9", "is an invalid item". The entity is BANNED or fictional.
+ *               Staging it is always wrong; both engines would agree about something unreachable.
+ *
+ *   PAIRING   — "can't learn", "can't have". The entity is real and legal; this SPECIES cannot hold
+ *               it. An isolation probe does this ON PURPOSE and must be allowed to: probe_pair stamps
+ *               ONE named quiet ability on every body precisely so the control does not vary with the
+ *               species, and Illuminate is illegal on Snorlax, Gengar and Meganium alike. Forcing a
+ *               per-species legal control is the Fluffy/Sand Rush failure (ROADMAP #100), which
+ *               produced four false findings across 2,049 uses.
+ *
+ * So existence is fatal and pairing is DECLARABLE. Anything unrecognised counts as existence, because
+ * an unclassified problem must not default to the permissive side. */
+const PAIRING_RE = /can't learn|can't have|does not have|is not compatible|incompatible/i;
+function classify(problems) {
+  const banned = [], pairing = [];
+  for (const p of problems) (PAIRING_RE.test(p) ? pairing : banned).push(p);
+  return { banned, pairing };
+}
+
+/* A MOVE THIS SPECIES CAN ACTUALLY CLICK, derived rather than named. Every probe in this repo padded
+ * its inert slots with 'Tackle', and TACKLE DOES NOT EXIST IN THIS FORMAT — the validator said so the
+ * first time it was pointed at one. Harmless there (those slots never move) and precisely the habit
+ * that produced the Loaded Dice sentence and the Sandshrew padding on the same day: a name recalled
+ * instead of read. Cached per species; returns null if the species has no usable learnset. */
+const _firstLegal = new Map();
+function firstLegalMove(species) {
+  const { Dex } = sim();
+  const dex = Dex.forFormat(FORMAT);
+  const sp = dex.species.get(species);
+  if (!sp.exists) return null;
+  if (_firstLegal.has(sp.id)) return _firstLegal.get(sp.id);
+  let out = null;
+  /* An evolved forme's own learnset can be thin; walk down the prevo chain the way the validator does
+   * so a species is not reported moveless because its list lives on its baby form. */
+  for (let cur = sp; cur && !out; cur = cur.prevo ? dex.species.get(cur.prevo) : null) {
+    let ls = null;
+    try { ls = dex.species.getLearnsetData(cur.id); } catch (e) { /* none */ }
+    for (const k of Object.keys((ls && ls.learnset) || {})) {
+      const m = dex.moves.get(k);
+      if (m.exists && !m.isNonstandard) { out = m.name; break; }
+    }
+  }
+  _firstLegal.set(sp.id, out);
+  return out;
+}
+
+function checkLegal(o) {
+  const { Dex, Teams, TeamValidator } = sim();
+  const dex = Dex.forFormat(FORMAT);
+  const sp = dex.species.get(o.species);
+  if (!sp.exists) return { legal: false, problems: ['no such species in ' + FORMAT + ': ' + o.species] };
+  /* An unknown NAME must be preserved verbatim, never silently dropped — `dex.items.get('nonsense')`
+   * returns a non-existent row whose `.name` is empty, and an empty item is a LEGAL item. Passing the
+   * raw string through means the validator answers about the thing the caller actually asked about. */
+  const nameOf = (row, raw) => (row && row.exists && row.name) ? row.name : String(raw);
+  const moves = (o.moves && o.moves.length ? o.moves : [firstLegalMove(sp.name) || 'Protect'])
+                  .map(m => nameOf(dex.moves.get(m), m));
+  const set = {
+    name: sp.name, species: sp.name,
+    item: o.item ? nameOf(dex.items.get(o.item), o.item) : '',
+    ability: o.ability ? nameOf(dex.abilities.get(o.ability), o.ability) : sp.abilities[0],
+    moves, nature: 'Serious', level: 50, gender: '',
+    evs: Object.assign({}, LEGAL_SPREAD),
+    ivs: { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 },
+  };
+  try {
+    if (!_validator) _validator = new TeamValidator(FORMAT);
+    const team = [set, ...fillerSets(dex, sp.id)];
+    const all = _validator.validateTeam(Teams.unpack(Teams.pack(team))) || [];
+    /* ONLY THE SUBJECT'S COMPLAINTS. A filler naming itself in a problem string is the padding's
+     * business; if that ever happens the padding is broken and `fillerProblems` says so out loud
+     * rather than being folded into the subject's verdict. */
+    const mine = [], theirs = [];
+    const fillerNames = fillerSets(dex, sp.id).map(f => f.species);
+    for (const p of all) (fillerNames.some(n => p.includes(n)) ? theirs : mine).push(p);
+    const { banned, pairing } = classify(mine);
+    const out = { legal: mine.length === 0, problems: mine, banned, pairing, set };
+    if (theirs.length) out.fillerProblems = theirs;
+    return out;
+  } catch (e) {
+    /* NOT SILENT, AND NOT A PASS. An unavailable validator is reported as such; a caller that treats
+     * "could not check" as "legal" reintroduces the hole this closes. */
+    return { legal: false, unavailable: true, problems: ['VALIDATOR UNAVAILABLE: ' + e.message] };
+  }
+}
+
 module.exports = { FORMAT, PINNED_COMMIT, PINNED_DATE, actualCommit, verify, packTeam, battle, winProb, sim,
-                   snapshot, forkBattle };
+                   snapshot, forkBattle, checkLegal, firstLegalMove, LEGAL_SPREAD };
 
 if (require.main === module) {
   const v = verify();

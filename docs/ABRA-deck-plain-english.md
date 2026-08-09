@@ -1,6 +1,20 @@
 # ABRA — the plain-English deck
 
-**Version 3.90.0 · 2026-08-09 · Will Hooper**
+**Version 3.91.0 · 2026-08-09 · Will Hooper**
+
+**3.91.0 — OUR TESTS COULD TEST THINGS THAT ARE BANNED, AND WOULD HAVE HAPPILY REPORTED THEY WORKED.**
+When we test one small piece of the game, we build a fake Pokémon and hand it to the official simulator.
+It turns out the simulator never checks whether that Pokémon is legal. Hand it a banned item and it
+will play along, our engine will play along, the two will agree, and the test goes green — about
+something that can never happen in a real match. Will asked the obvious question: Showdown ships a
+team validator, why aren't we using it? Now we are. It is stricter than a ban list, because it also
+knows which moves each Pokémon can actually learn — it caught a test we wrote yesterday giving
+Meganium a Fire move it cannot learn. **We kept one deliberate exception, on purpose.** To compare
+several abilities fairly you put them all on the same Pokémon, even though that Pokémon could not
+really have most of them. That is the whole point of a controlled comparison, so it is still allowed —
+but it now has to be written down as a choice rather than happening by accident. Banned things are
+never allowed, no exceptions. **The first thing the new check caught was our own test file:** it had
+been padding empty slots with Tackle, and Tackle is not in this format.
 
 **3.90.0 — MOVES THAT HIT TWO TO FIVE TIMES ALWAYS HIT 3.1 TIMES, WHICH IS NOT A THING THAT CAN
 HAPPEN.** Rock Blast, Bullet Seed, Icicle Spear and the rest roll for how many times they hit. Our

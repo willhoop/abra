@@ -1,6 +1,14 @@
 # ABRA — the model family (living reference)
 
-**Version 3.90.0 · Last updated 2026-08-09.**
+**Version 3.91.0 · Last updated 2026-08-09.**
+
+**3.91.0 — NO MODEL MOVED. THE INSTRUMENT THAT JUDGES MEDICHAM DID.** `tests/probe_pair.js` stages a
+body in both engines and, until now, never asked whether that body could legally exist — `new Battle()`
+validates nothing. A probe could hold a banned item, both engines would agree, and the row would read
+as a pass about a mechanic no game can reach. It now calls Showdown's `TeamValidator` through
+`engine/champions_sim.checkLegal`, which separates *the format does not contain this* (always fatal)
+from *this species cannot hold this* (a deliberate isolation, declarable). No weights were refitted, no
+rollout was re-run, and every figure downstream of MEDICHAM stays quarantined.
 
 **3.90.0 — MEDICHAM: EVERY MULTI-HIT MOVE LANDED 3.1 HITS, A NUMBER THE GAME NEVER PRODUCES.**
 `dmgRange` priced the whole 2-5 family off the mean of its distribution, and so did the turn loop, so

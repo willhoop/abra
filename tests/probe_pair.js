@@ -98,8 +98,14 @@ const dex = Dex.forFormat(CS.FORMAT);
  * a control is a DECISION recorded in one place, not a default that varies with the species. */
 const QUIET_ABILITY = 'Illuminate';
 
-/* Showdown's damage math wants a filled-out team; these are the padding, and they never act. */
+/* Showdown's damage math wants a filled-out team; these are the padding, and they never act.
+ *
+ * THEIR MOVE IS DERIVED, NOT NAMED. Every inert slot in this file carried 'Tackle' until the legality
+ * guard below was pointed at one, and TACKLE IS isNonstandard:'Past' — it does not exist in this
+ * format. Harmless, because these slots never move, and still the same habit that produced the Loaded
+ * Dice sentence and the Sandshrew padding on the same day: a name recalled instead of read. */
 const FILLER = ['Ditto', 'Ditto', 'Ditto'];
+const inertMove = (species) => CS.firstLegalMove(species) || 'Protect';
 
 const idOf = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
@@ -189,6 +195,58 @@ function assertBodiesMatch(label, sdMon, ourMon, species, o) {
   }
 }
 
+/* REFUSAL 5. IS THIS BODY EVEN LEGAL? (Will, 2026-08-09: "why dont we use showdowns teams validator
+ * that is universal truth".)
+ *
+ * `new Battle()` VALIDATES NOTHING. Everything above this line makes the two bodies MATCH; none of it
+ * asks whether the body can exist. Showdown will simulate Garchomp holding a Rocky Helmet quite
+ * happily, both engines will agree about it, and the row reads as a PASS while proving nothing — the
+ * signature failure of this project, arriving through the last door left open.
+ *
+ * TWO KINDS OF ILLEGAL, and only one of them is a bug (see `classify` in engine/champions_sim.js):
+ *
+ *   BANNED   the entity does not exist in this format. ALWAYS FATAL. There is no probe for which
+ *            staging a banned item is the right thing to do; the mechanic is unreachable in a real
+ *            game, so any number about it is fiction.
+ *
+ *   PAIRING  the entity is legal, this species just cannot hold it. Sometimes DELIBERATE — this file
+ *            stamps ONE named quiet ability on every body so the control does not vary with the
+ *            species, and Illuminate is illegal on Snorlax, Gengar and Meganium alike. Making the
+ *            control legal per-species is exactly the Fluffy/Sand Rush failure (ROADMAP #100).
+ *
+ * So: banned throws. Pairing throws too, UNLESS it is the quiet control (forgiven by construction,
+ * because that choice is documented above) or the caller declares `iKnowThisPairingIsIllegal`.
+ *
+ * The pairing arm is not decoration. On 2026-08-08 this session hand-staged Flamethrower on Meganium —
+ * a legal move on a species that cannot learn it — and nothing stopped it. `isNonstandard` never would
+ * have; only a learnset walk knows. That row throws now.
+ */
+function assertLegal(label, species, move, o) {
+  const r = CS.checkLegal({ species, ability: o.ability || QUIET_ABILITY, item: o.item,
+                            moves: move ? [move] : [] });
+  if (r.unavailable) {
+    throw new Error('probe_pair: the TeamValidator could not run (' + r.problems[0] + '). '
+      + '"Could not check" is not "legal" — fix the checkout rather than staging unvalidated bodies.');
+  }
+  if (r.banned.length) {
+    throw new Error('probe_pair: ' + label + ' = ' + species + ' STAGES SOMETHING THAT DOES NOT EXIST '
+      + 'IN ' + CS.FORMAT + ':\n    ' + r.banned.join('\n    ')
+      + '\n  new Battle() would have simulated it and both engines would have agreed about a mechanic '
+      + 'no real game can reach.');
+  }
+  /* The quiet control is forgiven by construction; anything else must be declared out loud. */
+  const quiet = idOf(QUIET_ABILITY);
+  const undeclared = r.pairing.filter(p => idOf(p).indexOf(quiet) === -1);
+  if (undeclared.length && !o.iKnowThisPairingIsIllegal) {
+    throw new Error('probe_pair: ' + label + ' = ' + species + ' CANNOT LEGALLY HOLD WHAT IT IS '
+      + 'STAGED WITH:\n    ' + undeclared.join('\n    ')
+      + '\n  The entity is legal in this format; this species just cannot have it. If the isolation is '
+      + 'deliberate, pass iKnowThisPairingIsIllegal:true and say why. This is the Flamethrower-on-'
+      + 'Meganium row from 2026-08-08, which nothing caught.');
+  }
+  return r;
+}
+
 /* ---- ONE PINNED ROLL -------------------------------------------------------------------------- */
 
 /**
@@ -215,8 +273,14 @@ function damage(o) {
       + 'Pass iKnowMoveHitSkipsModifyType:true only if the unconverted number is genuinely what you want.');
   }
 
-  const attO = { ability: o.attAb, item: o.attItem, hp: o.attHP };
-  const defO = { ability: o.defAb, item: o.defItem };
+  const attO = { ability: o.attAb, item: o.attItem, hp: o.attHP,
+                 iKnowThisPairingIsIllegal: o.iKnowThisPairingIsIllegal };
+  const defO = { ability: o.defAb, item: o.defItem,
+                 iKnowThisPairingIsIllegal: o.iKnowThisPairingIsIllegal };
+
+  /* BEFORE ANYTHING IS BUILT. A body that cannot exist is not worth matching. */
+  assertLegal('att', o.att, mv.name, attO);
+  assertLegal('def', o.def, null, defO);
 
   /* ---- ours ---- */
   const a = buildOurs(o.att, attO);
@@ -232,8 +296,8 @@ function damage(o) {
   const ours = hit.rolls[roll];
 
   /* ---- the authority ---- */
-  const teamA = [mkSet(o.att, mv.name, attO), ...FILLER.map(f => mkSet(f, 'Tackle', {}))];
-  const teamB = [mkSet(o.def, 'Tackle', defO), ...FILLER.map(f => mkSet(f, 'Tackle', {}))];
+  const teamA = [mkSet(o.att, mv.name, attO), ...FILLER.map(f => mkSet(f, inertMove(f), {}))];
+  const teamB = [mkSet(o.def, inertMove(o.def), defO), ...FILLER.map(f => mkSet(f, inertMove(f), {}))];
   const battle = new Battle({ formatid: CS.FORMAT, seed: [1, 2, 3, 4] });
   battle.setPlayer('p1', { name: 'A', team: Teams.pack(teamA) });
   battle.setPlayer('p2', { name: 'B', team: Teams.pack(teamB) });
@@ -356,6 +420,44 @@ if (require.main === module) {
     ok('a knob that does move is reported LIVE', live.knobMoved === true,
        'with=' + live.showdown + ' without=' + live.control.showdown);
   } catch (e) { ok('knob check', false, e.message); }
+
+  /* 6. THE LEGALITY REFUSAL. Every row here is a body `new Battle()` would have simulated without
+   *    complaint, and the last two are mistakes this project actually made. */
+  const refuses = (label, call, re) => {
+    let msg = null;
+    try { call(); } catch (e) { msg = e.message; }
+    ok(label, !!msg && re.test(msg), msg ? msg.split('\n')[0].slice(0, 86) : 'DID NOT THROW');
+  };
+  refuses('a BANNED item is refused (Rocky Helmet)',
+    () => damage({ att: 'Garchomp', def: 'Snorlax', move: 'Earthquake', attItem: 'Rocky Helmet' }),
+    /DOES NOT EXIST/);
+  refuses('a BANNED move is refused (Silk Trap)',
+    () => damage({ att: 'Garchomp', def: 'Snorlax', move: 'Silk Trap' }),
+    /DOES NOT EXIST|no such move|no MC.moves/);
+  refuses('an UNLEARNABLE move is refused — the Meganium row from 2026-08-08',
+    () => damage({ att: 'Meganium', def: 'Snorlax', move: 'Flamethrower' }),
+    /CANNOT LEGALLY HOLD/);
+  refuses('an ability this species cannot have is refused (Pure Power on Snorlax)',
+    () => damage({ att: 'Snorlax', def: 'Gengar', move: 'Body Slam', attAb: 'Pure Power' }),
+    /CANNOT LEGALLY HOLD/);
+
+  /* The forgiven cases, which matter just as much: a guard that refuses everything gets switched off.
+   * The quiet control is illegal on nearly every species BY DESIGN, and a declared isolation stands. */
+  try {
+    const q = damage({ att: 'Meganium', def: 'Snorlax', move: 'Energy Ball' });
+    ok('the quiet control ability is FORGIVEN (illegal on almost every species, deliberately)', q.agree,
+       'Illuminate on Meganium and Snorlax, sd=' + q.showdown);
+    const dec = damage({ att: 'Meganium', def: 'Snorlax', move: 'Flamethrower',
+                         iKnowThisPairingIsIllegal: true });
+    ok('a DECLARED illegal pairing is allowed through', typeof dec.showdown === 'number',
+       'Flamethrower on Meganium, declared: sd=' + dec.showdown);
+  } catch (e) { ok('forgiven cases', false, e.message); }
+
+  /* A banned entity must NEVER be waivable — the declaration covers pairing only. */
+  refuses('the declaration does NOT waive a ban',
+    () => damage({ att: 'Garchomp', def: 'Snorlax', move: 'Earthquake', attItem: 'Rocky Helmet',
+                   iKnowThisPairingIsIllegal: true }),
+    /DOES NOT EXIST/);
 
   console.log('\n' + (fail ? fail + ' FAILED' : 'all green — the instrument may be trusted'));
   process.exit(fail ? 1 : 0);

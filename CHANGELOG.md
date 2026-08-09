@@ -10,6 +10,79 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.91.0] — 2026-08-09
+
+### Added
+- **NOTHING VALIDATED A STAGED BODY, SO A PROBE COULD MEASURE A MECHANIC NO GAME CAN REACH
+  (ROADMAP #116).** Will asked the question that closes it: *"why dont we use showdowns teams validator
+  that is universal truth"*. `new Battle()` runs **no validation at all** — every probe in this repo
+  that assigns `p.ability = ab.id` or sets `p.item` walks straight past every rule in the format, and
+  Showdown will simulate a banned item quite happily. Both engines then agree about it and the row
+  reads as a **PASS while proving nothing**, which is this project's signature failure.
+
+  `engine/champions_sim.checkLegal()` now asks Showdown's own `TeamValidator` — the same authority
+  ADR-002 names and the same instance `packTeam` already builds, so there is one implementation of the
+  fact. `tests/probe_pair.js` calls it before it builds anything.
+
+  It catches strictly more than the `isNonstandard` check first proposed for this job:
+
+  | staged | verdict | the authority's words |
+  |---|---|---|
+  | Rocky Helmet, Assault Vest, Loaded Dice, Silk Trap | **BANNED** | *"does not exist in Gen 9."* |
+  | Flamethrower on Meganium | **PAIRING** | *"Meganium can't learn Flamethrower."* |
+  | Pure Power on Snorlax | **PAIRING** | *"Snorlax can't have Pure Power."* |
+  | Skill Link on Toucannon, Garchomp @ Choice Scarf | LEGAL | — |
+
+  Flamethrower is a **perfectly legal move** — Meganium simply cannot learn it, and only a learnset
+  walk knows that. An `isNonstandard` check would have waved it through. That exact set was hand-staged
+  by a session on 2026-08-08 while probing Mega Sol, and nothing stopped it.
+
+### Changed
+- **THE TWO KINDS OF ILLEGAL ARE SEPARATED, BECAUSE COLLAPSING THEM WOULD HAVE REFUSED EVERY HONEST
+  PROBE.** The first draft threw on any validator complaint and was wrong within the hour: `Illuminate`
+  is `probe_pair`'s named quiet control, stamped on every body **on purpose** so the control does not
+  vary with the species — and it is illegal on Snorlax, Gengar and Meganium alike. Forcing a
+  per-species legal control is precisely the Fluffy/Sand Rush failure (ROADMAP #100) that produced four
+  false findings across 2,049 uses. So:
+
+  - **BANNED** — the entity does not exist in the format. **Always fatal, never waivable.** There is no
+    probe for which a fictional mechanic is the right subject.
+  - **PAIRING** — the entity is legal, this species cannot hold it. Legitimate for an isolation probe,
+    and therefore **declarable** via `iKnowThisPairingIsIllegal` with a written reason.
+
+  `tests/test-pinch-family.js` declares it once, at its single choke point: every row stages a typed
+  ability and its matching typed move on one generic Farigiraf, and holding the body fixed is what
+  makes Blaze's row comparable to Torrent's. The declaration waives pairing and **does not** waive the
+  ban — proven by a self-test row that passes the declaration alongside a Rocky Helmet and still throws.
+
+### Fixed
+- **`Tackle` DOES NOT EXIST IN THIS FORMAT, AND EVERY INERT SLOT IN `probe_pair` CARRIED IT.** Found by
+  pointing the new guard at the file that hosts it, within a minute of it running. `isNonstandard:
+  'Past'`, like the rest of the class. Harmless — those slots never move — and the same habit that
+  produced the Loaded Dice sentence retracted one commit ago: **a name recalled instead of read.**
+  `CS.firstLegalMove(species)` now derives it from the species' own learnset, walking the prevo chain.
+- **THE VALIDATOR'S OWN PADDING WAS ILLEGAL, WHICH IS THE JOKE WRITING ITSELF.** Champions rejects a
+  team of one — *"You must bring at least 6 Pokémon"* — so the subject is validated inside a full team,
+  and I named the five filler species by hand. **Sandshrew is not in this format.** Every verdict came
+  back carrying *"Sandshrew does not exist in Gen 9."* The pool is now read from the format and each
+  candidate is **validated before it is ever used as padding**; a filler that cannot pass alone is
+  dropped, not trusted. Filler complaints are reported separately as `fillerProblems` and never folded
+  into the subject's verdict.
+- An unknown item or move NAME is now preserved verbatim rather than resolved to an empty string.
+  `dex.items.get('nonsense')` returns a non-existent row whose `.name` is `''`, and an empty item is a
+  **legal** item — so a garbage name would have validated clean. It now reports
+  *"'nonsenseorb' is an invalid item."*
+
+### Notes
+- `tests/probe_pair.js` self-test: **16 checks, all green**, including four refusals and three
+  forgiveness rows. A guard that refuses everything gets switched off, so the forgiven cases are tested
+  as hard as the refused ones. `tests/test-pinch-family.js`: **65 green** after declaring.
+- The remaining direct-assignment sites are named in ROADMAP #116 and are **not yet guarded**:
+  `tests/test-damage-stages.js` (`setAb`), `tests/staged_board.js`, `tests/test-mechanics.js`, and
+  `engine/game_differential.js` (`buildPair`). Stated here rather than implied by silence.
+
+---
+
 ## [3.90.0] — 2026-08-09
 
 ### Fixed

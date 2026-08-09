@@ -58,9 +58,103 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 183/191 probed, 8 unprobed
 ```
 
-_stamped 2026-08-09 22:48_
+_stamped 2026-08-09 23:12_
 
 <!-- /GENERATED -->
+
+## ROADMAP #116 — `new Battle()` VALIDATES NOTHING, SO A PROBE COULD MEASURE A MECHANIC THIS FORMAT DOES NOT CONTAIN. 2026-08-09.
+
+**Will's question is the whole fix:** *"why dont we use showdowns teams validator that is universal
+truth"*. I had proposed a hand-rolled `isNonstandard` guard. His answer is better and it is not close.
+
+### THE HOLE
+
+`new Battle()` **runs no validation at all.** Every probe in this repo that does `p.ability = ab.id`,
+sets `p.item`, or hands a set to `Teams.pack` walks straight past every rule in the format. Showdown
+will simulate a Garchomp holding a Rocky Helmet quite happily. MEDICHAM will too. **The two agree, and
+the row reads as a PASS about a mechanic no real game can reach** — the signature failure of this
+project, arriving through the last door left open.
+
+Nothing was actually broken by it, and that is luck rather than design. Measured the same day:
+
+```
+banned in gen9championsvgc2026regmb   4 abilities · 435 items · 454 moves
+tests/roster.js staged                99 abilities · 140 items · 409 moves — ZERO banned
+```
+
+`roster.js` derives its population from `Dex.forFormat` and excludes `isNonstandard` before staging, so
+**the roster is clean by construction and every hand-rolled probe was clean by luck.**
+
+### WHY THE VALIDATOR AND NOT A BAN CHECK — MEASURED, NOT ARGUED
+
+| staged | verdict | the authority's own words |
+|---|---|---|
+| Rocky Helmet on Garchomp | BANNED | *"Garchomp's item Rocky Helmet does not exist in Gen 9."* |
+| Assault Vest, Loaded Dice, Silk Trap | BANNED | same shape |
+| `Nonsense Orb` | BANNED | *"'nonsenseorb' is an invalid item."* |
+| **Flamethrower on Meganium** | **PAIRING** | *"Meganium can't learn Flamethrower."* |
+| Pure Power on Snorlax | PAIRING | *"Snorlax can't have Pure Power."* |
+| Skill Link on Toucannon | LEGAL | — |
+| Garchomp @ Choice Scarf | LEGAL | — |
+
+**Flamethrower is a perfectly legal move.** Meganium simply cannot learn it, and only a learnset walk
+knows that — an `isNonstandard` check would have waved it straight through. That exact set was
+hand-staged by a session on **2026-08-08** while probing Mega Sol, and nothing stopped it.
+
+### THE PART I GOT WRONG FIRST, AND IT WOULD HAVE MADE THE GUARD USELESS
+
+The first draft threw on **any** validator complaint. Within the hour it was refusing every honest
+probe, because `Illuminate` — `probe_pair.QUIET_ABILITY`, the named control stamped on every body — is
+illegal on Snorlax, Gengar and Meganium alike. **That staging is deliberate:** a control that varies
+with the species is exactly the Fluffy/Sand Rush failure (#100) that produced four false findings
+across 2,049 uses. A guard that refuses everything gets switched off, and then we are back where we
+started with an extra file.
+
+So the complaints are **classified**, in `engine/champions_sim.classify`:
+
+| class | means | policy |
+|---|---|---|
+| **BANNED** | the format does not contain this entity | **always fatal, never waivable** — there is no probe for which a fictional mechanic is the right subject |
+| **PAIRING** | the entity is legal; this species cannot hold it | **declarable** via `iKnowThisPairingIsIllegal`, with a written reason |
+
+`tests/test-pinch-family.js` declares it once at its single choke point: every row stages a typed
+ability and its typed move on one generic Farigiraf, and holding the body fixed is what makes Blaze's
+row comparable to Torrent's. The declaration waives pairing and **does not** waive the ban — a
+self-test row passes the declaration alongside a Rocky Helmet and still throws.
+
+### THE WRINKLE, RECORDED SO IT IS NOT REDISCOVERED
+
+Probes build **flat, zero-SP bodies on purpose**, so both engines derive the same stat line
+independently. Champions requires the 66-point budget **spent**, so the validator rejects a flat body
+outright — *"Garchomp has exactly 0 Stat Points - did you forget to invest it?"* — and that verdict
+**masks** the legality answer. `checkLegal` stamps a legal spread onto a **copy** purely to satisfy the
+budget rule. Legality and stats are separate questions; the caller still battles with its own flat body.
+
+### THE GUARD'S FIRST TWO FINDINGS WERE IN THE HARNESS THAT HOSTS IT
+
+- **`Tackle` is `isNonstandard: 'Past'`.** It does not exist in this format, and **every inert slot in
+  `probe_pair.js` carried it** — the defender's moveset and all three filler slots. Harmless, because
+  those slots never move. `CS.firstLegalMove(species)` derives it now, walking the prevo chain.
+- **The validator's own padding was illegal.** Champions rejects a team of one, so the subject is
+  validated inside a full team — and I named the five filler species by hand. **Sandshrew is not in
+  this format.** Every verdict came back carrying *"Sandshrew does not exist in Gen 9."* The pool is
+  read from the format now and each candidate is validated **before** it is used as padding; filler
+  complaints are reported separately as `fillerProblems` and never folded into the subject's verdict.
+
+Both are the same defect as the Loaded Dice retraction one version below: **a name recalled instead of
+read**, committed inside the function whose entire purpose is to stop that.
+
+### STILL OPEN — NAMED, NOT IMPLIED BY SILENCE
+
+The guard is on `tests/probe_pair.js` only. These still assign directly and are unguarded:
+`tests/test-damage-stages.js` (`setAb`), `tests/staged_board.js`, `tests/test-mechanics.js`, and
+`engine/game_differential.js` (`buildPair`). #116 stays open until they are covered.
+
+**Green:** `probe_pair` self-test 16/16 (four refusals, three forgiveness rows — the forgiven cases are
+tested as hard as the refused ones), `test-pinch-family` 65/65. **No engine behaviour changed, no
+artifact was regenerated, and every quarantined figure stays quarantined.**
+
+---
 
 ## ROADMAP #103 — THE MULTI-HIT CLUSTER WAS A COUNT, NOT AN ARITHMETIC. ELEVEN ROSTER ROWS, EIGHT OF THEM CLOSED. 2026-08-09.
 

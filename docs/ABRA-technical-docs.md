@@ -1,6 +1,21 @@
 # ABRA — Technical Documentation
 
-**Version 3.90.0 · Last updated 2026-08-09**
+**Version 3.91.0 · Last updated 2026-08-09**
+
+**3.91.0 — THE PROBE HARNESS VALIDATES A STAGED BODY. IT DID NOT VALIDATE ONE BEFORE.**
+The class `Battle` does not validate a team. A probe can give a Pokemon a banned item. The simulator
+accepts it. The engines then agree about a mechanic the format does not contain.
+A new function `checkLegal` is in `engine/champions_sim.js`. It takes a species, an ability, an item
+and a list of moves. It gives the set a legal stat spread and five validated filler Pokemon. It calls
+the `TeamValidator` of Showdown. It returns the problems of the subject only.
+The function divides the problems into two lists. The list `banned` holds problems of existence. The
+list `pairing` holds problems of compatibility.
+The file `tests/probe_pair.js` calls `checkLegal` before it builds a body. A problem in `banned` stops
+the probe always. A problem in `pairing` stops the probe unless the caller sets the flag
+`iKnowThisPairingIsIllegal`. The flag does not apply to `banned`.
+The quiet control ability is exempt from `pairing`. The control must not change with the species.
+A new function `firstLegalMove` gives a move the species can learn. Use it for a slot that does not
+act. Do not write the name of a move for such a slot. The move `Tackle` is not in this format.
 
 **3.90.0 — THE ENGINE DRAWS A MULTI-HIT COUNT. IT USED AN EXPECTATION BEFORE.**
 The function `expectedHitsOf` returns the mean of a hit distribution. For the 2-5 family that mean is

@@ -1,6 +1,19 @@
 # ABRA — Project Summary
 
-**Version 3.90.0 · 2026-08-09 · Will Hooper**
+**Version 3.91.0 · 2026-08-09 · Will Hooper**
+
+**3.91.0 — A PROBE COULD STAGE A BANNED MECHANIC AND BOTH ENGINES WOULD HAVE AGREED ABOUT IT.**
+`new Battle()` validates nothing, so every hand-staged body in this repo was legal by luck rather than
+by construction. `tests/probe_pair.js` now asks Showdown's `TeamValidator` first, through one shared
+implementation in `engine/champions_sim.checkLegal`. Existence problems (the format does not contain
+this) are always fatal; compatibility problems (this species cannot hold this) are legitimate in a
+controlled isolation and must be declared in writing — the distinction matters because the named quiet
+control ability is illegal on most species deliberately, and refusing it would have refused every
+honest probe. The guard's first two catches were in the harness itself: `Tackle` does not exist in this
+format and every inert slot carried it, and the padding species were named from memory and included
+one that is not in the format. Instrument only — no engine behaviour changed, no artifact was
+regenerated, every quarantined figure stays quarantined. `probe_pair` self-test 16 green,
+`test-pinch-family` 65 green.
 
 **3.90.0 — THE MULTI-HIT CLUSTER WAS A COUNT, NOT AN ARITHMETIC.** Eleven moves disagreed with the
 official simulator by small amounts in BOTH directions, which is the signature of a wrong hit COUNT

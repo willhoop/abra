@@ -162,9 +162,21 @@ console.log('\n2. THE TWO READERS OF ONE FACT AGREE (tag_dex vs tests/roster.js\
 }
 
 /* ================= 3. BELOW THE GATE IT FIRES, ABOVE IT IT DOES NOT ============================ */
+/* THE ISOLATION IS DECLARED, ONCE, HERE (added 2026-08-09 with probe_pair's legality guard).
+ *
+ * Every row in this file stages a typed ability and its matching typed move on ONE generic body —
+ * Farigiraf carrying Steelworker and clicking Flash Cannon, which it cannot learn and cannot have.
+ * That is the DESIGN, not an accident: holding the body fixed is what makes Blaze's row comparable to
+ * Torrent's, and letting the body vary per ability is exactly the Fluffy/Sand Rush failure (ROADMAP
+ * #100) that produced four false findings across 2,049 uses.
+ *
+ * So the pairing complaint is waived, deliberately and in writing. The BAN check is NOT waived and
+ * cannot be from here — an entity that does not exist in this format still throws, because there is no
+ * isolation for which a fictional mechanic is the right subject. */
 function row(label, o) {
   let r;
-  try { r = PP.damage(o); } catch (e) { return { err: e.message }; }
+  try { r = PP.damage(Object.assign({ iKnowThisPairingIsIllegal: true }, o)); }
+  catch (e) { return { err: e.message }; }
   return r;
 }
 

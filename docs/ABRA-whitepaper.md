@@ -1,6 +1,26 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 3.90.0 · Last updated 2026-08-09**
+**Version 3.91.0 · Last updated 2026-08-09**
+
+**3.91.0 — THE HARNESS COULD MEASURE A MECHANIC THE FORMAT DOES NOT CONTAIN, AND AGREEMENT ABOUT ONE
+IS WORTH NOTHING.** `new Battle()` performs no validation, so a probe that assigns an ability or an
+item directly bypasses every rule in the format. Both engines will then agree about a Rocky Helmet in a
+format that bans it, and the row reads as a pass. `tests/probe_pair.js` now asks Showdown's own
+`TeamValidator` before it builds anything — the authority ADR-002 already names, reached through the
+instance `champions_sim.packTeam` already constructs, so the fact has one implementation. It catches
+strictly more than a ban-list check would: *"Meganium can't learn Flamethrower"* is a legal move on a
+species that cannot have it, which no `isNonstandard` test can see, and that exact set was hand-staged
+on 2026-08-08. **Two kinds of illegal are separated, because collapsing them would have refused every
+honest probe:** an entity the format does not contain is always fatal, while an entity this species
+merely cannot hold is a deliberate isolation in a controlled probe — `probe_pair` stamps one named
+quiet ability on every body precisely so the control does not vary with the species, and that ability
+is illegal on most of them. The second class is waivable with a written declaration; the first is not,
+and a self-test proves the declaration does not launder a ban. **The guard's first two findings were in
+the harness that hosts it:** `Tackle` is `isNonstandard: 'Past'` and every inert slot in the file
+carried it, and the five padding species this author named by hand included one that does not exist in
+this format. Both were names recalled instead of read, which is the same defect as the retraction one
+version below. Nothing downstream moved; this is an instrument, and every quarantined figure stays
+quarantined.
 
 **3.90.0 — A CLUSTER THAT DISAGREED IN BOTH DIRECTIONS AT ONCE, WHICH IS WHAT A COUNT ERROR LOOKS
 LIKE.** Eleven multi-hit moves parted from the authority by small amounts, some high and some low, and

@@ -1,7 +1,14 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 3.90.0 — 2026-08-09.**
+**Version: 3.91.0 — 2026-08-09.**
 
+
+**3.91.0 — NOTHING IN THE TABLE BELOW MOVED, AND NO STAGE QUESTION WAS RAISED.** ROADMAP #116 is a
+legality guard on the probe harness, not a multiplier. It changes which bodies may be staged, never
+where a multiplier applies. Worth one line here for a reason that touches this document directly: the
+stage table is measured by probes, so a probe staging an entity the format does not contain would put a
+row in it about a mechanic no game can reach. **The boost-stage difference filed at 3.89.0 is still
+filed and still not fixed.**
 
 **3.90.0 — NOTHING IN THE TABLE BELOW MOVED, AND THE ONE STAGE QUESTION THIS PASS RAISED WAS
 ANSWERED NO.** ROADMAP #103 is a hit COUNT, not a stage. The plausible alternative WAS a stage
