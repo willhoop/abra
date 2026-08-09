@@ -1,10 +1,10 @@
 {
-  "current": "b571cfd7a97e",
-  "cut": "2026-08-09T22:39:24.245Z",
-  "why": "ROADMAP #103 — multi-hit count rolled, and the reaction count reads the same draw",
-  "cuts": 2,
-  "latest_cut": "2026-08-09T22:48:34.346Z",
+  "current": "3683864c51c9",
+  "cut": "2026-08-09T23:29:07.563Z",
+  "why": "partial trap counter starts at Showdown's duration, derived from the condition",
+  "cuts": 3,
+  "latest_cut": "2026-08-09T23:30:00.878Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-09T22:48:34.348Z",
+  "pointer_written": "2026-08-09T23:30:00.880Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

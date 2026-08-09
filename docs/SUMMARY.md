@@ -1,6 +1,16 @@
 # ABRA — Project Summary
 
-**Version 3.92.0 · 2026-08-09 · Will Hooper**
+**Version 3.93.0 · 2026-08-09 · Will Hooper**
+
+**3.93.0 — THE PARTIAL TRAP COUNTER WAS ONE LOW FROM THE TURN IT LANDED: SEVEN MOVES, ONE FACT.**
+Bind, Fire Spin, Infestation, Sand Tomb, Snap Trap, Whirlpool and Wrap all read `showdown 4 / ours 3`
+then `3 / 2` — identical, which is what identified it as one fact. `partialTrap: { turns: '4-5' }` was
+typed by hand and is the felt duration; the compared quantity is Showdown's counter, which starts at 5
+and ticks in the residual of the landing turn. The volatile-duration defect a third time, surviving the
+previous two because this counter lives in `_trap` and not `_vol`. Now derived from Showdown's own
+condition, failing closed. Roster moves **32 → 25** differ, exactly seven verdicts changed; census
+unmoved at 330 live; **whole-game differential unmoved at 65/107 diverging on both releases.** Red shown
+on the frozen pre-fix release (`3 · 2 · 1`) rather than asserted.
 
 **3.92.0 — FIVE MORE SITES STAGED MOVES THIS FORMAT DOES NOT CONTAIN, AND TWO OF THEM MATTERED.**
 The sweep after 3.91.0's `Tackle` finding: the `.item`/`.ability` surface across 238 files is clean,

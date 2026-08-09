@@ -1,6 +1,13 @@
 # ABRA — the model family (living reference)
 
-**Version 3.92.0 · Last updated 2026-08-09.**
+**Version 3.93.0 · Last updated 2026-08-09.**
+
+**3.93.0 — MEDICHAM: THE PARTIAL TRAP COUNTER STARTED ONE LOW, ON ALL SEVEN TRAPPING MOVES.** The
+artifact carried the FELT duration (`'4-5'`, typed by hand) where the engines are compared on Showdown's
+own counter, which starts at 5 and ticks in the residual of the landing turn. Derived from the condition
+now, failing closed. MEDICHAM-only — no model downstream was refitted and every quarantined figure stays
+quarantined. Roster moves 32 → 25 differ, census unmoved at 330 live, whole-game differential unmoved at
+65/107.
 
 **3.92.0 — STILL NO MODEL. FIVE MORE INSTRUMENTS STOPPED STAGING MOVES THIS FORMAT LACKS.** Two were
 real: a silencer that worked because the engine did not know the move, and a guard on `.exists` — which

@@ -1,6 +1,18 @@
 # ABRA — the plain-English deck
 
-**Version 3.92.0 · 2026-08-09 · Will Hooper**
+**Version 3.93.0 · 2026-08-09 · Will Hooper**
+
+**3.93.0 — THE MOVES THAT SQUEEZE YOU FOR A FEW TURNS WERE ALL COUNTING A TURN SHORT.** Bind, Fire
+Spin, Infestation, Sand Tomb, Snap Trap, Whirlpool and Wrap trap the target and chip its health for a
+few turns. All seven were off by exactly the same amount in exactly the same way, which is what told us
+it was one mistake and not seven. Someone had written down "4-5 turns" — the number a player feels —
+but the real game keeps a slightly different counter behind the scenes, starting one higher and ticking
+it down on the very turn the move lands. We now read that counter straight out of the real game instead
+of writing a number down. This is the third time this exact mix-up has bitten us, and the first two
+fixes missed this one because it is stored somewhere else in the code. **We proved it was broken before
+we proved it was fixed**, by running the old frozen copy of the engine and watching it get the wrong
+answer. Seven test rows went green and nothing else changed. Whole-game agreement did not move, and we
+are saying so: these moves are rare enough that they hardly ever decide where a game first goes wrong.
 
 **3.92.0 — WE WENT LOOKING FOR MORE OF THE SAME, AND TWO OF WHAT WE FOUND WERE REAL.** Yesterday we
 caught a test using Tackle, a move this format does not have, so we checked every test for the same

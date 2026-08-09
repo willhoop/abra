@@ -33,7 +33,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  330/330 probed mechanics live, 0 missing   (census 2026-08-09 22:39)
+  330/330 probed mechanics live, 0 missing   (census 2026-08-09 23:29)
   1/150 differential comparisons disagree with Showdown   (2026-08-09 23:18)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (70 uses)
@@ -58,9 +58,93 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 183/191 probed, 8 unprobed
 ```
 
-_stamped 2026-08-09 23:21_
+_stamped 2026-08-09 23:34_
 
 <!-- /GENERATED -->
+
+## ROADMAP #110 — THE PARTIAL TRAP COUNTER STARTED ONE LOW. SEVEN ROWS, ONE FACT, AND IT IS THE VOLATILE-DURATION DEFECT A THIRD TIME. 2026-08-09.
+
+Roster moves **32 → 25 differ / 353 → 360 match**. `DID-NOT-FIRE` unmoved at 24, `COULD-NOT-STAGE`
+unmoved at 91. Census unmoved at **330 live / 330 probed / 0 missing**. Release `3683864c51c9`.
+
+### THE SHAPE OF THE FINDING WAS THE DIAGNOSIS
+
+Seven rows, and every one of them read the same two lines:
+
+```
+  turn 1   vol.trapped_by_move   showdown 4   ours 3    off-by-one
+  turn 2   vol.trapped_by_move   showdown 3   ours 2    off-by-one
+```
+
+bind · firespin · infestation · sandtomb · snaptrap · whirlpool · wrap. Identical deltas across seven
+independent rows is not seven bugs.
+
+### TWO NUMBERS WITH THE SAME NAME
+
+`data/tags.json` carried `partialTrap: { turns: '4-5', chipPerTurn: 0.125 }`, **typed by hand**.
+
+`'4-5'` is the **folk quantity** — how many turns of chip the trapped side experiences. The quantity the
+two engines are compared on is Showdown's `partiallytrapped` **duration**: it starts at **5**, and it is
+decremented in the Residual event **of the turn the trap lands**. So the authority holds 4 at the end of
+that turn. This engine initialised `_trap.turns` from the already-post-decrement 4 and then ticked it
+again in the same residual → 3.
+
+**This is the volatile-duration defect a THIRD time.** Perish Song was the first; ROADMAP #111's family
+the second. It survived both because this counter lives in `_trap`, not in `_vol` — neither fix's blast
+radius could reach a field they did not walk.
+
+### DERIVED, NOT RESTATED — the only version that cannot come back
+
+`engine/tag_dex.js:partialTrapShape()` reads the shape off Showdown's own condition:
+
+| field | read from |
+|---|---|
+| `duration: 5` | `condition.duration` |
+| `durationRange: [5,6]` | `durationCallback`'s `this.random(5, 7)` — Showdown's range is `[lo, hi)` |
+| `durationItem: {gripclaw, 8}` | the callback's early return |
+| `chipPerTurn: 1/8` | `onStart`'s `boundDivisor = source.hasItem("bindingband") ? 6 : 8` |
+| `chipItem: {bindingband, 1/6}` | the same ternary's true branch |
+
+It **fails closed**: if the condition stops parsing, `partialTrapShape` returns null, the tag is not
+emitted, and the family refuses rather than guessing — #92's rule, and the reason the pinch family's
+refusal was correct for as long as it lasted.
+
+`turns: '4-5'` is **kept beside it, unchanged.** It is the honest answer to a different question, and
+silently repurposing a field name is how the next one of these starts. Nothing reads it today.
+
+Grip Claw and Binding Band are both `isNonstandard: 'Past'` here, so those two branches are **derived
+and unreachable in this format** — recorded rather than pretended to be live.
+
+### SHOWN RED ON FROZEN BYTES, NOT ASSERTED
+
+The pre-fix release `b571cfd7a97e` — the one stamped into the roster artifact that reported the finding
+— was opened and played:
+
+```
+  b571cfd7a97e   infestation   3  2  1        <- RED, one low from the landing turn
+  live tree      infestation   4  3  2
+  showdown                     4  3  2
+```
+
+### THE REGENERATION WAS ASKED BEFORE IT WAS RUN
+
+Per the 3.88.0 lesson. `data/tags.json`: **7 `partialTrap` params changed, 0 removed, 0 other params
+touched.** `klutz` gained a row — corpus growth, not this change; every `uses` count moved with it.
+
+### WHAT DID NOT MOVE, SAID PLAINLY
+
+**The whole-game differential is unchanged: 65 of 107 games diverge, on both releases, same seed.** A
+game stops at its first divergence and these moves rarely reach it, so the fix is invisible at that
+resolution. Stated because it is the measurement, not because it is the hoped-for result.
+
+### AND A PROBE THAT READ AS FIVE FAILURES WAS WRONG
+
+An ad-hoc two-engine check reported five of the seven still disagreeing after the fix. It does not
+control accuracy: Bind, Fire Spin, Sand Tomb, Whirlpool and Wrap are 85–90%, and **Showdown missed on
+turn 1**, shifting its whole column by a turn. The two 100%-accuracy members agreed exactly.
+`docs/LESSONS.md` §5 — rule out the probe first. The roster, which pins the dice, is what settled it.
+
+---
 
 ## ROADMAP #116 — `new Battle()` VALIDATES NOTHING, SO A PROBE COULD MEASURE A MECHANIC THIS FORMAT DOES NOT CONTAIN. 2026-08-09.
 

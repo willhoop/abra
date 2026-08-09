@@ -10,6 +10,58 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.93.0] — 2026-08-09
+
+### Fixed
+- **THE PARTIAL TRAP COUNTER WAS ONE LOW FROM THE MOMENT IT LANDED — SEVEN ROSTER ROWS, ONE FACT
+  (ROADMAP #110).** Bind, Fire Spin, Infestation, Sand Tomb, Snap Trap, Whirlpool and Wrap all
+  reported the **identical** difference — `showdown 4 / ours 3` at the end of turn 1, `3 / 2` at the end
+  of turn 2 — which is what said it was one fact and not seven bugs.
+
+  `data/tags.json` carried `partialTrap: { turns: '4-5' }`, **typed by hand**, and `'4-5'` is the folk
+  description: how many turns of chip the trapped side *feels*. The thing the two engines are compared
+  on is Showdown's `partiallytrapped` **duration**, which starts at 5 and is decremented in the
+  Residual event **of the turn the trap lands**. The engine initialised from the already-post-decrement
+  4 and then ticked it again on that same turn.
+
+  **This is the volatile-duration defect a third time** — Perish Song, then the family in #111, now
+  this — and it survived both fixes because this counter lives in `_trap` rather than in `_vol`, so
+  neither blast radius reached it.
+
+- **THE NUMBER IS DERIVED NOW, WHICH IS THE ONLY VERSION THAT CANNOT COME BACK.** `engine/tag_dex.js`
+  reads the shape off Showdown's own condition rather than restating it: `duration` from the condition,
+  `durationRange` `[5,6]` from `durationCallback`'s `this.random(5,7)`, `durationItem` from the Grip
+  Claw branch, and `chipPerTurn` from `onStart`'s `boundDivisor` ternary. It **fails closed** — if the
+  condition stops parsing the tag goes absent and the family refuses, which is #92's rule.
+  - `turns: '4-5'` is **kept, unchanged, beside it.** It is the honest answer to a different question,
+    and silently repurposing a field name is how the next one of these starts. Nothing reads it.
+  - Grip Claw and Binding Band are both `isNonstandard: 'Past'` here, so the item branches are derived
+    and **unreachable in this format** — recorded rather than pretended to be live.
+
+### Changed
+- `data/tags.json` regenerated. **Asked what the regeneration WOULD do before running it**, per the
+  3.88.0 lesson: **7 `partialTrap` params changed, 0 removed, 0 other params touched.** `klutz` also
+  gained a row — that is corpus growth, not this change; every `uses` count moved with it.
+
+### Notes
+- **SHOWN RED BEFORE GREEN, ON FROZEN BYTES.** The pre-fix release `b571cfd7a97e` — the one stamped
+  into the roster artifact that reported the finding — reads `3 · 2 · 1` where Showdown reads
+  `4 · 3 · 2`. The live tree reads `4 · 3 · 2`. Red was *measured on the old bytes*, not asserted.
+- **Roster moves stage: 32 → 25 differ, 353 → 360 match.** Exactly seven verdicts changed and they are
+  exactly the seven trapping moves; `DID-NOT-FIRE` unmoved at 24, `COULD-NOT-STAGE` unmoved at 91.
+  Census unmoved at **330 live / 330 probed / 0 missing** — the family always fired, it just carried the
+  wrong number.
+- **THE WHOLE-GAME DIFFERENTIAL DID NOT MOVE: 65 of 107 games diverge, on both releases, same seed.**
+  Stated because it is the measurement, not because it is the hoped-for result. A game stops at its
+  first divergence and these moves rarely reach it, so the fix is invisible at that resolution.
+- **A THROWAWAY PROBE READ AS FIVE FAILURES AND WAS WRONG.** An ad-hoc two-engine check reported five
+  of the seven still disagreeing. It does not control accuracy: Bind, Fire Spin, Sand Tomb, Whirlpool
+  and Wrap are 85–90% and **Showdown missed on turn 1**, shifting its column by a turn. The two
+  100%-accuracy members agreed exactly. `docs/LESSONS.md` §5 again — rule out the probe first. The
+  roster, which pins the dice, is what settled it.
+
+---
+
 ## [3.92.0] — 2026-08-09
 
 ### Fixed

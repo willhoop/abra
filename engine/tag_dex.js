@@ -315,6 +315,49 @@ function statusOdds(m, st) {
   return p === null ? null : { p, via: 'secondary' };
 }
 
+/* THE PARTIAL TRAP, READ OFF SHOWDOWN'S OWN CONDITION RATHER THAN TYPED.
+ *
+ * Every number here used to be a literal in the tag below, and the one that mattered was WRONG in a
+ * way no amount of re-reading the literal would reveal: `turns: '4-5'` is how long the trap is FELT,
+ * while the thing the engines are compared on is Showdown's `duration`, which starts at 5 and is
+ * decremented in the residual of the turn the trap LANDS.
+ *
+ * Fail loudly rather than fall back. A silent default here is how a wrong constant lives for months —
+ * if the condition stops parsing, the tag must go absent so `condHolds`-style consumers refuse, which
+ * is #92's rule and the reason the pinch family's refusal was correct for as long as it lasted. */
+let _ptShape;
+function partialTrapShape() {
+  if (_ptShape !== undefined) return _ptShape;
+  _ptShape = null;
+  let c; try { c = dex.conditions.get('partiallytrapped'); } catch (e) { return _ptShape; }
+  if (!c || !c.duration) return _ptShape;
+  const cb = String(c.durationCallback || '');
+  const st = String(c.onStart || '');
+  /* `return this.random(5, 7)` — Showdown's random(lo,hi) is [lo,hi), so 5 or 6. */
+  const rng = cb.match(/this\.random\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
+  /* `if (source?.hasItem("gripclaw")) return 8` */
+  const claw = cb.match(/hasItem\(\s*["'](\w+)["']\s*\)\s*\)?\s*return\s+(\d+)/);
+  /* `this.effectState.boundDivisor = source.hasItem("bindingband") ? 6 : 8` */
+  const div = st.match(/boundDivisor\s*=\s*\w+\.hasItem\(\s*["'](\w+)["']\s*\)\s*\?\s*(\d+)\s*:\s*(\d+)/)
+           || st.match(/boundDivisor\s*=\s*(\d+)/);
+  if (!div) return _ptShape;
+  const base = div.length === 4 ? +div[3] : +div[1];
+  _ptShape = {
+    /* KEPT, unchanged, and it is a DIFFERENT question from `duration` — how many turns of chip the
+     * trapped side actually feels. Nothing reads it; removing it would silently repurpose the name. */
+    turns: '4-5',
+    /* THE COUNTER THE AUTHORITY HOLDS. This is what a board comparison reads. */
+    duration: c.duration,
+    durationRange: rng ? [+rng[1], +rng[2] - 1] : null,
+    durationItem: claw ? { item: claw[1], duration: +claw[2] } : null,
+    /* Decremented in the residual of the turn it lands, so it reads `duration - 1` at that turn's end. */
+    ticksOnLandingTurn: true,
+    chipPerTurn: 1 / base,
+    chipItem: div.length === 4 ? { item: div[1], chipPerTurn: 1 / +div[2] } : null,
+  };
+  return _ptShape;
+}
+
 const MOVE_TAGS = [
   /* NEW 2026-08-08 -- THE MOVE THAT SPENDS THE USER'S OWN ITEM, and it is the mirror image of
    * `removesItem` rather than a member of it: Knock Off takes what the TARGET holds, this throws what
@@ -1062,10 +1105,29 @@ const MOVE_TAGS = [
                immuneType: imm,
                fraction: frac ? '1/' + frac : (tern ? '1/' + tern[3] : null) };
     } },
-  { tag: 'partialTrap', param: 'target cannot switch for 4-5 turns AND takes 1/8 chip each turn', probe: 'partiallytrapped',
+  /* THE COUNTER AND THE FEELING ARE TWO DIFFERENT NUMBERS, AND THIS TAG CARRIED THE FEELING.
+   *
+   * `{ turns: '4-5' }` was typed here, and it is the folk description — how many turns of chip the
+   * trapped player experiences. Showdown's `partiallytrapped` carries a DURATION, it starts at 5, and
+   * it is decremented in the Residual event OF THE TURN THE TRAP LANDS. So at the end of that turn the
+   * authority holds 4 and this engine held 3: it initialised from the already-post-decrement 4 and then
+   * ticked it again. All SEVEN trapping moves read `showdown 4 / ours 3` then `3 / 2` — the identical
+   * off-by-one, which is what said it was one fact and not seven bugs.
+   *
+   * This is the volatile-duration defect a THIRD time (Perish Song, then ROADMAP #111's family, now
+   * this), and it survived both because the counter lives in `_trap` rather than in `_vol`, so neither
+   * fix's blast radius reached it. Deriving the number rather than typing it is the only version of
+   * this that cannot come back: `duration` is read off the condition, the callback's range off its
+   * source, and the chip divisor off `onStart`'s `boundDivisor`.
+   *
+   * `turns` is KEPT alongside, unchanged, because it is the honest answer to a different question —
+   * how long the trap is FELT — and dropping it would silently repurpose a field. Nothing reads it now. */
+  { tag: 'partialTrap',
+    param: 'duration counts down from 5 in the residual, INCLUDING the turn it lands; 1/8 chip per turn',
+    probe: 'partiallytrapped',
     why: 'Infestation (450 uses), Fire Spin, Sand Tomb, Whirlpool. Trapping changes what they can '
        + 'legally do, which nothing represents, and the chip is residual damage nothing counts',
-    of: m => m.volatileStatus === 'partiallytrapped' ? { turns: '4-5', chipPerTurn: 1 / 8 } : null },
+    of: m => m.volatileStatus === 'partiallytrapped' ? partialTrapShape() : null },
   { tag: 'fixedDamage', param: 'damage is a constant, not a formula', probe: 'move.damage',
     why: 'Seismic Toss and Night Shade ignore stats entirely',
     of: m => m.damage ? { damage: m.damage } : null },

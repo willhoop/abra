@@ -1,6 +1,17 @@
 # ABRA — Technical Documentation
 
-**Version 3.92.0 · Last updated 2026-08-09**
+**Version 3.93.0 · Last updated 2026-08-09**
+
+**3.93.0 — THE PARTIAL TRAP COUNTER STARTS AT THE DURATION OF THE CONDITION.**
+The condition `partiallytrapped` has a duration. The duration is 5. The engine decrements the duration
+in the Residual event. The Residual event of the turn the trap lands also decrements it.
+The tag `partialTrap` had the field `turns` with the value `'4-5'`. This is the number of turns of chip
+damage. It is not the duration. Do not use `turns` for the counter.
+The tag now has the field `duration`. Read the counter from `duration`. The field `turns` stays. It
+answers a different question. No code reads it.
+The function `partialTrapShape` in `engine/tag_dex.js` derives every value from the condition. It reads
+`duration`, the range in `durationCallback`, the item in the callback, and the divisor in `onStart`. It
+returns null if it cannot read them. A null makes the tag absent and the family refuses.
 
 **3.92.0 — FIVE TEST FILES USED MOVES THAT ARE NOT IN THIS FORMAT.**
 A move can have the property `isNonstandard` with the value `Past`. Such a move is not in this format.

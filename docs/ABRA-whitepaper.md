@@ -1,6 +1,23 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 3.92.0 · Last updated 2026-08-09**
+**Version 3.93.0 · Last updated 2026-08-09**
+
+**3.93.0 — SEVEN TRAPPING MOVES REPORTED THE IDENTICAL DIFFERENCE, WHICH IS HOW A FACT ANNOUNCES
+ITSELF AS ONE FACT.** Bind, Fire Spin, Infestation, Sand Tomb, Snap Trap, Whirlpool and Wrap each read
+`showdown 4 / ours 3` then `3 / 2`. The artifact carried `partialTrap: { turns: '4-5' }`, typed by hand,
+and `'4-5'` is the folk quantity — how many turns of chip the trapped side *feels*. What the engines are
+compared on is Showdown's `partiallytrapped` **duration**, which starts at 5 and is decremented in the
+Residual event **of the turn the trap lands**; this engine initialised from the already-decremented 4
+and then ticked it again on that same turn. **The volatile-duration defect a third time** — Perish Song,
+then the family closed at 3.82.0, now this — surviving both because the counter lives in `_trap` rather
+than `_vol`, outside either fix's reach. The shape is now read off Showdown's own condition rather than
+restated: duration from the condition, the `[5,6]` range from its `random(5,7)` callback, the Grip Claw
+branch, and the chip divisor from `onStart`'s ternary; it fails closed if the condition stops parsing.
+Red was demonstrated on the **frozen release the finding was measured under** (`3 · 2 · 1` against the
+authority's `4 · 3 · 2`), not asserted. Roster moves **32 → 25** differing with exactly seven verdicts
+changed and nothing else moved; census unmoved at 330 live. **The whole-game differential did not move —
+65 of 107 games diverge on both releases** — which is stated because it is the measurement: a game stops
+at its first divergence and these moves rarely reach it.
 
 **3.92.0 — THE SWEEP THAT FOLLOWED THE GUARD FOUND FIVE MORE SITES, AND TWO WERE DEFECTS RATHER THAN
 COSMETICS.** 3.91.0 caught `Tackle` — `isNonstandard: 'Past'` — padding one harness, and the obvious

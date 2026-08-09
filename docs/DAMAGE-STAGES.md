@@ -1,7 +1,12 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 3.92.0 — 2026-08-09.**
+**Version: 3.93.0 — 2026-08-09.**
 
+
+**3.93.0 — NOTHING IN THE TABLE BELOW MOVED.** ROADMAP #110's partial-trap fix is a duration COUNTER,
+not a multiplier, and the chip fraction it carries (1/8) was correct throughout — what changed is that
+it is now derived from `onStart`'s `boundDivisor` rather than typed. **The boost-stage difference filed
+at 3.89.0 is still filed and still not fixed.**
 
 **3.92.0 — NOTHING IN THE TABLE BELOW MOVED.** `tests/test-damage-stages.js` stopped padding its inert
 slots with `Tackle`, which is `isNonstandard: 'Past'` and not in this format. Those slots never act, so

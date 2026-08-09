@@ -1,13 +1,13 @@
 {
- "generated": "2026-08-08T22:48:08.370Z",
+ "generated": "2026-08-09T22:42:05.894Z",
  "by": "tests/roster.js",
  "stage": "moves",
- "engine_release": "6f7fbc538318",
+ "engine_release": "b571cfd7a97e",
  "format": "gen9championsvgc2026regmb",
  "counts": {
-  "FIRED-AND-BOARDS-DIFFER": 50,
-  "DID-NOT-FIRE": 27,
-  "FIRED-AND-BOARDS-MATCH": 332,
+  "FIRED-AND-BOARDS-DIFFER": 32,
+  "DID-NOT-FIRE": 24,
+  "FIRED-AND-BOARDS-MATCH": 353,
   "CONTROL-NOT-QUIET": 0,
   "COULD-NOT-STAGE": 91
  },
@@ -659,7 +659,7 @@
    "rule": "move/plain-attack",
    "reads": "basePower > 0 and nothing else this file has a narrower rule for",
    "note": "Grass 90 BP into Goodra-Hisui, twice",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
@@ -701,44 +701,7 @@
      "without": 0
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1232,
-     "ours": 1233,
-     "bucket": "off-by-one"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1232,
-     "ours": 1233,
-     "bucket": "off-by-one"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1221,
-     "ours": 1223,
-     "bucket": "off-by-2-or-3"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1221,
-     "ours": 1223,
-     "bucket": "off-by-2-or-3"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -1409,7 +1372,7 @@
    "rule": "move/priority",
    "reads": "priority !== 0 on a damaging move",
    "note": "priority -3 — THE DELAY IS NOT ISOLATED (see the rule); only the damage is staged",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
@@ -1439,44 +1402,7 @@
      "without": 1240
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1213,
-     "ours": 1217,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p1a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1213,
-     "ours": 1217,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1186,
-     "ours": 1194,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p1a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1186,
-     "ours": 1194,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -2131,7 +2057,7 @@
    "rule": "move/multihit",
    "reads": "multihit",
    "note": "multihit [2,5] — THE PIN LANDS ON 2 HIT(S), which is the bottom corner of the range and the only count either engine can be asked about here  [pinned to bottom-tie-first — it is 90-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
@@ -2161,44 +2087,7 @@
      "without": 1240
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1192,
-     "ours": 1172,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1192,
-     "ours": 1172,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1144,
-     "ours": 1104,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1144,
-     "ours": 1104,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -2814,7 +2703,7 @@
    "rule": "move/multihit",
    "reads": "multihit",
    "note": "multihit [2,5] — THE PIN LANDS ON 2 HIT(S), which is the bottom corner of the range and the only count either engine can be asked about here",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
@@ -2844,44 +2733,7 @@
      "without": 1240
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1225,
-     "ours": 1231,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1225,
-     "ours": 1231,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1210,
-     "ours": 1222,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1210,
-     "ours": 1222,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -7575,7 +7427,7 @@
    "rule": "move/plain-attack",
    "reads": "basePower > 0 and nothing else this file has a narrower rule for",
    "note": "Fire 90 BP into Goodra-Hisui, twice",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
@@ -7617,44 +7469,7 @@
      "without": 0
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1199,
-     "ours": 1203,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1199,
-     "ours": 1203,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1138,
-     "ours": 1149,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1138,
-     "ours": 1149,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -8998,7 +8813,7 @@
    "rule": "move/plain-attack",
    "reads": "basePower > 0 and nothing else this file has a narrower rule for",
    "note": "Grass 90 BP into Goodra-Hisui, twice",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
@@ -9040,44 +8855,7 @@
      "without": 0
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1230,
-     "ours": 1231,
-     "bucket": "off-by-one"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1230,
-     "ours": 1231,
-     "bucket": "off-by-one"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1215,
-     "ours": 1218,
-     "bucket": "off-by-2-or-3"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1215,
-     "ours": 1218,
-     "bucket": "off-by-2-or-3"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -10825,7 +10603,7 @@
    "rule": "move/multihit",
    "reads": "multihit",
    "note": "multihit [2,5] — THE PIN LANDS ON 2 HIT(S), which is the bottom corner of the range and the only count either engine can be asked about here",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
@@ -10855,44 +10633,7 @@
      "without": 1240
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1175,
-     "ours": 1200,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1175,
-     "ours": 1200,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1110,
-     "ours": 1160,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1110,
-     "ours": 1160,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -11002,7 +10743,7 @@
    "rule": "move/variable-power",
    "reads": "basePowerCallback",
    "note": "thrown at Goodra-Hisui twice; the power comes out of the formula and the damage is what is compared",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
@@ -11032,44 +10773,7 @@
      "without": 1240
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1217,
-     "ours": 1218,
-     "bucket": "off-by-one"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1217,
-     "ours": 1218,
-     "bucket": "off-by-one"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1194,
-     "ours": 1196,
-     "bucket": "off-by-2-or-3"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1194,
-     "ours": 1196,
-     "bucket": "off-by-2-or-3"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -13138,8 +12842,8 @@
    "rule": "move/generic-status",
    "reads": "nothing matched above — this is the second residue, and it is the WEAK one",
    "note": "generic: clicked ONCE on turn 2 by Goodra-Hisui itself, both sides chipped and holding an item",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "sd_delta": [
@@ -13168,44 +12872,7 @@
      "without": 1105
     }
    ],
-   "diffs": [
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1240,
-     "ours": 1150,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1240,
-     "ours": 1150,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1195,
-     "ours": 1105,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1195,
-     "ours": 1105,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -13214,8 +12881,8 @@
    "rule": "move/generic-status",
    "reads": "nothing matched above — this is the second residue, and it is the WEAK one",
    "note": "generic: clicked ONCE on turn 2 by Goodra-Hisui itself, both sides chipped and holding an item",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "sd_delta": [
@@ -13244,44 +12911,7 @@
      "without": 1105
     }
    ],
-   "diffs": [
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1240,
-     "ours": 1150,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1240,
-     "ours": 1150,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1195,
-     "ours": 1105,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1195,
-     "ours": 1105,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -13377,7 +13007,7 @@
    "rule": "move/plain-attack",
    "reads": "basePower > 0 and nothing else this file has a narrower rule for",
    "note": "Ice 120 BP into Goodra-Hisui, twice; it also carries 1 sub-100% secondary/ies which the arm decides and this staging does not test  [pinned to bottom-tie-first — it is 85-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
@@ -13407,44 +13037,7 @@
      "without": 1240
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1195,
-     "ours": 1201,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1195,
-     "ours": 1201,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1150,
-     "ours": 1162,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1150,
-     "ours": 1162,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -13726,7 +13319,7 @@
    "rule": "move/plain-attack",
    "reads": "basePower > 0 and nothing else this file has a narrower rule for",
    "note": "Dark 90 BP into Goodra-Hisui, twice; it also carries 1 sub-100% secondary/ies which the arm decides and this staging does not test  [pinned to bottom-tie-first — it is 95-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
@@ -13768,44 +13361,7 @@
      "without": 0
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1213,
-     "ours": 1215,
-     "bucket": "off-by-2-or-3"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1213,
-     "ours": 1215,
-     "bucket": "off-by-2-or-3"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1186,
-     "ours": 1190,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1186,
-     "ours": 1190,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -14864,7 +14420,7 @@
    "rule": "move/multihit",
    "reads": "multihit",
    "note": "multihit [2,5] — THE PIN LANDS ON 2 HIT(S), which is the bottom corner of the range and the only count either engine can be asked about here  [pinned to bottom-tie-first — it is 95-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
@@ -14894,44 +14450,7 @@
      "without": 1240
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1230,
-     "ours": 1225,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1230,
-     "ours": 1225,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1220,
-     "ours": 1210,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1220,
-     "ours": 1210,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -15267,7 +14786,7 @@
    "rule": "move/multihit",
    "reads": "multihit",
    "note": "multihit 10 — THE PIN LANDS ON 10 HIT(S), which is the bottom corner of the range and the only count either engine can be asked about here  [pinned to bottom-tie-first — it is 90-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
@@ -15297,44 +14816,7 @@
      "without": 1240
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1200,
-     "ours": 1214,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1200,
-     "ours": 1214,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1160,
-     "ours": 1188,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1160,
-     "ours": 1188,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -15884,7 +15366,7 @@
    "rule": "move/plain-attack",
    "reads": "basePower > 0 and nothing else this file has a narrower rule for",
    "note": "Psychic 90 BP into Goodra-Hisui, twice  [pinned to bottom-tie-first — it is 90-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
@@ -15926,44 +15408,7 @@
      "without": 1240
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1223,
-     "ours": 1227,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1223,
-     "ours": 1227,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1206,
-     "ours": 1214,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1206,
-     "ours": 1214,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -16825,7 +16270,7 @@
    "rule": "move/multihit",
    "reads": "multihit",
    "note": "multihit [2,5] — THE PIN LANDS ON 2 HIT(S), which is the bottom corner of the range and the only count either engine can be asked about here  [pinned to bottom-tie-first — it is 90-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
@@ -16855,44 +16300,7 @@
      "without": 1240
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1230,
-     "ours": 1225,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1230,
-     "ours": 1225,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1220,
-     "ours": 1210,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1220,
-     "ours": 1210,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -17579,24 +16987,6 @@
      "bucket": "off-by-one"
     },
     {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1208,
-     "ours": 1191,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1208,
-     "ours": 1191,
-     "bucket": "off-by-4-or-more"
-    },
-    {
      "turn": 2,
      "slot": "p1a",
      "body": "goodrahisui",
@@ -17613,24 +17003,6 @@
      "showdown": 2,
      "ours": 0,
      "bucket": "off-by-2-or-3"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1176,
-     "ours": 1142,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1176,
-     "ours": 1142,
-     "bucket": "off-by-4-or-more"
     }
    ]
   },
@@ -19352,7 +18724,7 @@
    "rule": "move/plain-attack",
    "reads": "basePower > 0 and nothing else this file has a narrower rule for",
    "note": "Ghost 90 BP into Goodra-Hisui, twice",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
@@ -19382,44 +18754,7 @@
      "without": 1240
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1199,
-     "ours": 1203,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1199,
-     "ours": 1203,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1158,
-     "ours": 1166,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1158,
-     "ours": 1166,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -21336,8 +20671,8 @@
    "rule": "move/generic-status",
    "reads": "nothing matched above — this is the second residue, and it is the WEAK one",
    "note": "generic: clicked ONCE on turn 2 by Goodra-Hisui itself, both sides chipped and holding an item",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "sd_delta": [
@@ -21366,44 +20701,7 @@
      "without": 1105
     }
    ],
-   "diffs": [
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1240,
-     "ours": 1150,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1240,
-     "ours": 1150,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1195,
-     "ours": 1105,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1195,
-     "ours": 1105,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -21482,7 +20780,7 @@
    "rule": "move/multihit",
    "reads": "multihit",
    "note": "multihit [2,5] — THE PIN LANDS ON 2 HIT(S), which is the bottom corner of the range and the only count either engine can be asked about here  [pinned to bottom-tie-first — it is 85-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
@@ -21512,44 +20810,7 @@
      "without": 1240
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1230,
-     "ours": 1225,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1230,
-     "ours": 1225,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1220,
-     "ours": 1210,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1220,
-     "ours": 1210,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -23035,7 +22296,7 @@
      "body": "goodrahisui",
      "field": "party.hp",
      "showdown": 1193,
-     "ours": 1219,
+     "ours": 1216,
      "bucket": "off-by-4-or-more"
     },
     {
@@ -23044,7 +22305,7 @@
      "body": "goodrahisui",
      "field": "hp",
      "showdown": 1193,
-     "ours": 1219,
+     "ours": 1216,
      "bucket": "off-by-4-or-more"
     },
     {
@@ -23053,7 +22314,7 @@
      "body": "goodrahisui",
      "field": "party.hp",
      "showdown": 1146,
-     "ours": 1198,
+     "ours": 1192,
      "bucket": "off-by-4-or-more"
     },
     {
@@ -23062,7 +22323,7 @@
      "body": "goodrahisui",
      "field": "hp",
      "showdown": 1146,
-     "ours": 1198,
+     "ours": 1192,
      "bucket": "off-by-4-or-more"
     }
    ]
@@ -23074,7 +22335,7 @@
    "rule": "move/plain-attack",
    "reads": "basePower > 0 and nothing else this file has a narrower rule for",
    "note": "Grass 85 BP into Goodra-Hisui, twice",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
@@ -23116,44 +22377,7 @@
      "without": 0
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1231,
-     "ours": 1232,
-     "bucket": "off-by-one"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1231,
-     "ours": 1232,
-     "bucket": "off-by-one"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1222,
-     "ours": 1224,
-     "bucket": "off-by-2-or-3"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1222,
-     "ours": 1224,
-     "bucket": "off-by-2-or-3"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -23635,7 +22859,7 @@
    "rule": "move/multihit",
    "reads": "multihit",
    "note": "multihit [2,5] — THE PIN LANDS ON 2 HIT(S), which is the bottom corner of the range and the only count either engine can be asked about here",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
@@ -23665,44 +22889,7 @@
      "without": 1240
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1225,
-     "ours": 1231,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1225,
-     "ours": 1231,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1210,
-     "ours": 1222,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1210,
-     "ours": 1222,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",

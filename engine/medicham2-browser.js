@@ -9111,15 +9111,21 @@ function battleTurn(S,rng,actsForA,actsForB){
            * move may not get. The switch-blocking half IS modelled as of WIRE 116 -- see the gate in
            * the switch branch above; this comment used to say it was not. */
           {const _pt2=TAGS.param('move',a.move.id,'partialTrap');
-           if(_pt2&&_pt2.chipPerTurn&&!tg.fainted&&!tg._trap){
-             const _tn=String(_pt2.turns||'4').match(/\d+/);
+           if(_pt2&&_pt2.chipPerTurn&&_pt2.duration&&!tg.fainted&&!tg._trap){
              /* WIRE 105 -- the trap KNOWS ITS TRAPPER. Showdown's partiallytrapped removes itself
               * the moment its source leaves the field (onUpdate checks source.isActive), and this
               * engine kept chipping forever: the interaction matrix's `infestation -> beakblast` row
               * had Beak Blast KO the trapper in BOTH engines and only medicham2 still showed
               * `vol:["partiallytrapped"]` afterwards. `by` is the body, compared by identity at the
               * tick. */
-             tg._trap={frac:+_pt2.chipPerTurn,turns:(_tn?+_tn[0]:4),by:m};
+             /* THE COUNTER STARTS AT SHOWDOWN'S DURATION, NOT AT THE FELT TURN COUNT. This read
+              * `_pt2.turns` ('4-5' -> 4), which is how many turns of chip the trapped side
+              * EXPERIENCES -- already one tick short of the authority's counter, which starts at 5
+              * and is decremented in the residual OF THIS TURN. So every trap read one low from the
+              * moment it landed: all seven trapping moves showed `showdown 4 / ours 3` then `3 / 2`.
+              * The volatile-duration defect a third time, in the one counter that lives in `_trap`
+              * rather than `_vol` and so was outside both previous fixes' reach. */
+             tg._trap={frac:+_pt2.chipPerTurn,turns:+_pt2.duration,by:m};
              if(TR)TR.actOf(tg,'move: '+a.move.id,m);
            }}
           /* WIRE 52 -- CURSED BODY, 1,342 sheets. It seals the move that just hit it, which is
