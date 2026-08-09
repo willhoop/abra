@@ -1,6 +1,11 @@
 # ABRA — the model family (living reference)
 
-**Version 3.91.0 · Last updated 2026-08-09.**
+**Version 3.92.0 · Last updated 2026-08-09.**
+
+**3.92.0 — STILL NO MODEL. FIVE MORE INSTRUMENTS STOPPED STAGING MOVES THIS FORMAT LACKS.** Two were
+real: a silencer that worked because the engine did not know the move, and a guard on `.exists` — which
+is true for a banned move — that could therefore never fire. No weights, no rollouts, no artifacts; the
+quarantine is unchanged.
 
 **3.91.0 — NO MODEL MOVED. THE INSTRUMENT THAT JUDGES MEDICHAM DID.** `tests/probe_pair.js` stages a
 body in both engines and, until now, never asked whether that body could legally exist — `new Battle()`

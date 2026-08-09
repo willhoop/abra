@@ -1,6 +1,16 @@
 # ABRA — the plain-English deck
 
-**Version 3.91.0 · 2026-08-09 · Will Hooper**
+**Version 3.92.0 · 2026-08-09 · Will Hooper**
+
+**3.92.0 — WE WENT LOOKING FOR MORE OF THE SAME, AND TWO OF WHAT WE FOUND WERE REAL.** Yesterday we
+caught a test using Tackle, a move this format does not have, so we checked every test for the same
+habit. Most were harmless. Two were not. One test needed three Pokémon to stand still and do nothing,
+and told them to use Splash — a move our simulator has never heard of. They stood still because the
+simulator could not find the move, not because the move does nothing. That keeps working right up
+until it does not. The other test only ran a check when the move "exists", and it turns out a banned
+move still counts as existing — so that check never once did its job, and the case ran on a move
+nobody in this format can use. Both now use moves that really are in the game, picked from the game's
+own list rather than typed by hand. No result changed, which is exactly what we expected.
 
 **3.91.0 — OUR TESTS COULD TEST THINGS THAT ARE BANNED, AND WOULD HAVE HAPPILY REPORTED THEY WORKED.**
 When we test one small piece of the game, we build a fake Pokémon and hand it to the official simulator.

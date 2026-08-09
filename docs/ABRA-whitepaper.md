@@ -1,6 +1,21 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 3.91.0 · Last updated 2026-08-09**
+**Version 3.92.0 · Last updated 2026-08-09**
+
+**3.92.0 — THE SWEEP THAT FOLLOWED THE GUARD FOUND FIVE MORE SITES, AND TWO WERE DEFECTS RATHER THAN
+COSMETICS.** 3.91.0 caught `Tackle` — `isNonstandard: 'Past'` — padding one harness, and the obvious
+next question was whether it was alone. The `.item`/`.ability` assignment surface across 238 files is
+clean; move literals are not. Three sites were cosmetic, naming a nonexistent move in a slot that never
+acts. Two were not. `tests/test-priority-block.js` silenced three slots with Splash, which is not
+merely banned but ABSENT from the engine's move table — **so the silencing worked because the engine
+could not find the move, not because the move does nothing**, which is indistinguishable from working
+until it is not. And a guard in `tests/test-dead-volatile.js` admitted its subject only on
+`move.exists`, which is **true for a banned move**: the branch always ran, always on Thousand Arrows,
+which this format does not contain, and the else-branch that would have reported the gap was
+unreachable. Merely tightening that guard would have moved the hole rather than closing it, leaving the
+case untested — so the subject is derived from the format instead, and is now Smack Down. Every
+affected instrument re-runs green with no figure moved, which is the expected result: each was an inert
+slot or an unreachable branch. The value is that none of them can become live and wrong later.
 
 **3.91.0 — THE HARNESS COULD MEASURE A MECHANIC THE FORMAT DOES NOT CONTAIN, AND AGREEMENT ABOUT ONE
 IS WORTH NOTHING.** `new Battle()` performs no validation, so a probe that assigns an ability or an

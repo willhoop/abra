@@ -75,6 +75,9 @@ const dex = Dex.forFormat(CS.FORMAT);
  * truncation bug ride for weeks because both engines happened to land on the same integer.
  * ------------------------------------------------------------------------------------------- */
 const FILLER = ['Ditto', 'Ditto', 'Ditto'];
+/* THE INERT SLOT'S MOVE IS DERIVED, NOT NAMED (2026-08-09, ROADMAP #116). 'Tackle' is
+ * `isNonstandard: 'Past'` and does not exist in this format; it padded every non-acting slot here. */
+const inertMove = (species) => CS.firstLegalMove(species) || CS.INERT_MOVE;
 const flatStat = (b) => Math.floor((2 * b + 31) * 50 / 100) + 5;
 const flatHP = (b) => Math.floor((2 * b + 31) * 50 / 100) + 50 + 10;
 function flatStats(name) {
@@ -90,8 +93,8 @@ function mkSet(name, move) {
 
 /* THE AUTHORITY. */
 function showdownDamage(o) {
-  const teamA = [mkSet(o.att, o.move), ...FILLER.map(f => mkSet(f, 'Tackle'))];
-  const teamB = [mkSet(o.def, 'Tackle'), ...FILLER.map(f => mkSet(f, 'Tackle'))];
+  const teamA = [mkSet(o.att, o.move), ...FILLER.map(f => mkSet(f, inertMove(f)))];
+  const teamB = [mkSet(o.def, inertMove(o.def)), ...FILLER.map(f => mkSet(f, inertMove(f)))];
   const battle = new Battle({ formatid: CS.FORMAT, seed: [1, 2, 3, 4] });
   battle.setPlayer('p1', { name: 'A', team: Teams.pack(teamA) });
   battle.setPlayer('p2', { name: 'B', team: Teams.pack(teamB) });

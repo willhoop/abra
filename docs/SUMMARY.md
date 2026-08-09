@@ -1,6 +1,14 @@
 # ABRA — Project Summary
 
-**Version 3.91.0 · 2026-08-09 · Will Hooper**
+**Version 3.92.0 · 2026-08-09 · Will Hooper**
+
+**3.92.0 — FIVE MORE SITES STAGED MOVES THIS FORMAT DOES NOT CONTAIN, AND TWO OF THEM MATTERED.**
+The sweep after 3.91.0's `Tackle` finding: the `.item`/`.ability` surface across 238 files is clean,
+move literals are not. Three were cosmetic. `test-priority-block.js` silenced three slots with Splash,
+which has no row in the engine at all — the silencing worked by ACCIDENT. `test-dead-volatile.js`
+guarded on `.exists`, which is true for a banned move, so the guard could never fire and the case
+always ran on Thousand Arrows. Its subject is derived from the format now (Smack Down) rather than
+tightened into a vacuous skip. All five green, no figure moved.
 
 **3.91.0 — A PROBE COULD STAGE A BANNED MECHANIC AND BOTH ENGINES WOULD HAVE AGREED ABOUT IT.**
 `new Battle()` validates nothing, so every hand-staged body in this repo was legal by luck rather than

@@ -1,6 +1,16 @@
 # ABRA — Technical Documentation
 
-**Version 3.91.0 · Last updated 2026-08-09**
+**Version 3.92.0 · Last updated 2026-08-09**
+
+**3.92.0 — FIVE TEST FILES USED MOVES THAT ARE NOT IN THIS FORMAT.**
+A move can have the property `isNonstandard` with the value `Past`. Such a move is not in this format.
+The property `exists` is still true for such a move. Do not use `exists` to ask if a move is in this
+format. Ask for `isNonstandard`.
+Three files used the move `Tackle` for a slot that does not act. This is not correct. It has no effect.
+The file `tests/test-priority-block.js` used the move `Splash` to make a slot do nothing. The engine has
+no row for `Splash`. The slot did nothing because the move was unknown. Use `CS.INERT_MOVE`.
+The file `tests/test-dead-volatile.js` used `exists` as its guard. The guard was always true. The file
+now selects its move from the format by property.
 
 **3.91.0 — THE PROBE HARNESS VALIDATES A STAGED BODY. IT DID NOT VALIDATE ONE BEFORE.**
 The class `Battle` does not validate a team. A probe can give a Pokemon a banned item. The simulator

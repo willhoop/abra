@@ -1,7 +1,12 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 3.91.0 — 2026-08-09.**
+**Version: 3.92.0 — 2026-08-09.**
 
+
+**3.92.0 — NOTHING IN THE TABLE BELOW MOVED.** `tests/test-damage-stages.js` stopped padding its inert
+slots with `Tackle`, which is `isNonstandard: 'Past'` and not in this format. Those slots never act, so
+the reading is unchanged: **1728/1728 exact, 0 at the wrong stage.** **The boost-stage difference filed
+at 3.89.0 is still filed and still not fixed.**
 
 **3.91.0 — NOTHING IN THE TABLE BELOW MOVED, AND NO STAGE QUESTION WAS RAISED.** ROADMAP #116 is a
 legality guard on the probe harness, not a multiplier. It changes which bodies may be staged, never

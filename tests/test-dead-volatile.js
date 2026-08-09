@@ -84,15 +84,27 @@ board.startVolatile('p1', 'a', 'protect', 1);
 out = run([cand('Protect', null), cand('Moonblast', foeA)]);
 ok(out.cands.length === 2, 'Protect is never dropped — its volatile is self-targeting');
 
-/* A damaging move that happens to carry a volatile still does its damage. */
-const ta = dex.moves.get('Thousand Arrows');
-if (ta && ta.exists) {
-  board.startVolatile('p2', 'a', ta.volatileStatus, 5);
-  board.startVolatile('p2', 'b', ta.volatileStatus, 5);
-  out = run([cand('Thousand Arrows', null, [foeA, foeB]), cand('Moonblast', foeA)]);
-  ok(out.cands.length === 2, `${ta.name} survives — it is a ${ta.basePower} BP attack, not a volatile`);
-} else {
-  ok(true, 'Thousand Arrows is not in this dex, so the damaging-move case is untestable here');
+/* A damaging move that happens to carry a volatile still does its damage.
+ *
+ * THE SUBJECT IS DERIVED NOW, AND THE GUARD THAT REPLACED IT COULD NEVER HAVE FIRED (2026-08-09,
+ * ROADMAP #116). This read `dex.moves.get('Thousand Arrows')` and admitted the case only
+ * `if (ta.exists)` — but **`.exists` is TRUE for a banned move.** Thousand Arrows is
+ * `isNonstandard: 'Past'`, so the branch always ran and always tested a move no game in this format
+ * can contain, while the else-branch that would have said so was unreachable. Then simply tightening
+ * the guard would have made the else fire and the case go UNTESTED, which moves the hole rather than
+ * closing it. So the subject is chosen from the format: the highest-power legal move carrying a
+ * volatile, which both engines have. Eight qualify here; naming one would rot at the next regulation. */
+const volCarrier = dex.moves.all()
+  .filter(m => !m.isNonstandard && m.basePower > 0 && m.volatileStatus)
+  .sort((a, b) => b.basePower - a.basePower || (a.id < b.id ? -1 : 1))[0];
+ok(!!volCarrier, 'the format contains a damaging move that carries a volatile',
+   volCarrier ? `${volCarrier.name} — ${volCarrier.basePower} BP, ${volCarrier.volatileStatus}` : 'NONE');
+if (volCarrier) {
+  board.startVolatile('p2', 'a', volCarrier.volatileStatus, 5);
+  board.startVolatile('p2', 'b', volCarrier.volatileStatus, 5);
+  out = run([cand(volCarrier.name, null, [foeA, foeB]), cand('Moonblast', foeA)]);
+  ok(out.cands.length === 2,
+     `${volCarrier.name} survives — it is a ${volCarrier.basePower} BP attack, not a volatile`);
 }
 
 /* A status move that ALSO boosts still does the boost. */

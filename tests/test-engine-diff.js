@@ -138,6 +138,11 @@ const ONTRYHIT_CLASS = new Set(Object.keys(tags.abilities || {}).filter(a => {
 }));
 
 const FILLER = ['Ditto', 'Ditto', 'Ditto'];
+/* THE INERT SLOT'S MOVE IS DERIVED, NOT NAMED (2026-08-09, ROADMAP #116). This file padded every
+ * non-acting slot with 'Tackle', and TACKLE IS `isNonstandard: 'Past'` — it does not exist in this
+ * format. Harmless here, because those slots never move, and the same habit that has now been caught
+ * four times in two days: a name recalled instead of read. */
+const inertMove = (species) => CS.firstLegalMove(species) || CS.INERT_MOVE;
 const mkSet = (name, moveName) => ({
   name, species: name, item: '', ability: dex.species.get(name).abilities['0'] || '',
   moves: [moveName], nature: 'Serious', evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
@@ -172,8 +177,8 @@ const MULTIHIT = new Set(Object.keys(tags.moves || {}).filter(id =>
  * battle.random override entirely, so crits must be pinned with willCrit, and a fresh active move is
  * needed per call because moveHitData caches the crit decision per target slot. */
 function showdownDamage(attName, moveName, defName, roll, stats, defAbilId) {
-  const teamA = [mkSet(attName, moveName), ...FILLER.map(f => mkSet(f, 'Tackle'))];
-  const teamB = [mkSet(defName, 'Tackle'), ...FILLER.map(f => mkSet(f, 'Tackle'))];
+  const teamA = [mkSet(attName, moveName), ...FILLER.map(f => mkSet(f, inertMove(f)))];
+  const teamB = [mkSet(defName, inertMove(defName)), ...FILLER.map(f => mkSet(f, inertMove(f)))];
   const battle = new Battle({ formatid: CS.FORMAT, seed: [1, 2, 3, 4] });
   battle.setPlayer('p1', { name: 'A', team: Teams.pack(teamA) });
   battle.setPlayer('p2', { name: 'B', team: Teams.pack(teamB) });

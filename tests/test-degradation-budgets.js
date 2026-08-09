@@ -154,7 +154,10 @@ function measure() {
         for (const side of ['p1', 'p2']) {
           for (const L of ['a', 'b']) {
             const u = bd.slot(side, L); if (!u || u.fainted) continue;
-            const moves = (u.moves && u.moves.length) ? u.moves : ['tackle'];
+            /* THE FALLBACK MOVE MUST EXIST IN THIS FORMAT (2026-08-09, ROADMAP #116). This was
+             * `['tackle']`, and Tackle is `isNonstandard: 'Past'` — so a slot with no recorded
+             * moveset was scored on a move no game here can contain. `CS.INERT_MOVE` is legal. */
+            const moves = (u.moves && u.moves.length) ? u.moves : [CS.INERT_MOVE.toLowerCase()];
             for (const c of B.candidates(moves, u, bd, side, dex)) {
               candidates++; B.featuresFor(c, u, bd, side, dex, 0.25);
             }

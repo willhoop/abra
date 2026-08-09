@@ -19,6 +19,17 @@ const ROOT = path.join(__dirname, '..');
 require(path.join(ROOT, 'data', 'engine-data.js'));
 const E = require(path.join(ROOT, 'engine', 'medicham2-browser.js'));
 const TAGS = require(path.join(ROOT, 'engine', 'tags.js'));
+/* Cheap: champions_sim loads Showdown lazily, and nothing here calls sim(). */
+const CS = require(path.join(ROOT, 'engine', 'champions_sim.js'));
+
+/* THE SILENCER USED TO BE 'splash', AND IT WORKED BY ACCIDENT (2026-08-09, ROADMAP #116).
+ *
+ * Splash is `isNonstandard: 'Past'` — it does not exist in this format — and worse, it has no row in
+ * `MC.moves` at all. The three slots below were silenced because THE ENGINE DID NOT KNOW THE MOVE,
+ * not because the move does nothing. Every classic no-op is gone the same way: Celebrate and Hold
+ * Hands are `Past` too. `CS.INERT_MOVE` is Recycle, which is legal here, present in `MC.moves`, and
+ * fails outright on a body that has consumed no item. Asserted below rather than assumed. */
+const SILENT = CS.INERT_MOVE.toLowerCase().replace(/[^a-z0-9]/g, '');
 
 let fails = 0;
 const ok = (cond, label, detail) => {
@@ -33,6 +44,12 @@ console.log('PRIORITY BLOCKING — ARMOR TAIL, QUEENLY MAJESTY, DAZZLING, PSYCHI
 const blockers = TAGS.withTag('ability', 'blocksMove')
   .filter(a => { const p = TAGS.param('ability', a, 'blocksMove'); return p && p.what === 'priority'; });
 ok(blockers.length > 0, 'the artifact declares priority-blocking abilities', blockers.join(', '));
+
+/* THE SILENCER MUST BE A MOVE THIS ENGINE ACTUALLY HAS. The predecessor was absent from MC.moves and
+ * silenced its slots by being unknown, which is indistinguishable from working until it is not. */
+ok(!!MC.moves[SILENT], 'the silencing move has a row in MC.moves',
+   `${SILENT} — bp ${MC.moves[SILENT] ? (MC.moves[SILENT].bp || 0) : 'ABSENT'}`);
+ok(!(MC.moves[SILENT] && MC.moves[SILENT].bp), 'and it cannot damage anything');
 
 const prioMoves = Object.keys(MC.moves)
   .filter(id => { const m = MC.moves[id]; return m && m.bp && E.movePriority(id, NEUTRAL) > 0; });
@@ -74,13 +91,13 @@ function damageTaken(defAbility, terrain) {
   if (!att || !def || !a2 || !b2) return null;
   att.moves = [prioMoves[0]];
   def.ability = defAbility;
-  def.moves = ['splash'];
+  def.moves = [SILENT];
   /* SILENCE EVERY OTHER SOURCE OF DAMAGE. The first working version of this measured the defender's
    * HP and got 137 in all five arms -- because the attacker's PARTNER was still swinging with its
    * own moveset, so the number being compared had nothing to do with the priority move. Only `att`
    * may damage anything here, or the test cannot attribute what it measures. */
-  a2.moves = ['splash'];
-  b2.moves = ['splash'];
+  a2.moves = [SILENT];
+  b2.moves = [SILENT];
   /* battleInit(teamA, teamB) takes no options -- the field lives on the returned state, which is
    * where terrain has to be set. */
   const S = E.battleInit([att, a2], [def, b2]);

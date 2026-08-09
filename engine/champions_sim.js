@@ -594,6 +594,27 @@ function firstLegalMove(species) {
   return out;
 }
 
+/* A MOVE THAT DOES NOTHING, NAMED AND JUSTIFIED RATHER THAN DERIVED.
+ *
+ * Probes need a filler move for a slot that must not act — a partner that would otherwise swing, a
+ * defender whose damage would contaminate the number. Every classic no-op is gone from this format:
+ * **Splash, Celebrate and Hold Hands are all `isNonstandard: 'Past'`**, and `tests/test-priority-block.js`
+ * was silencing three slots with `'splash'`, which is not merely banned but ABSENT from `MC.moves`
+ * entirely. It worked by ACCIDENT — the engine had no row, so the move did nothing.
+ *
+ * Deriving a replacement was tried first and abandoned honestly: filtering the format for a status
+ * move with no declarative effect fields still returns Belly Drum, Rest and Moonlight, because
+ * Showdown implements those in handlers rather than fields. A filter I cannot trust is worse than a
+ * choice I can defend.
+ *
+ * So RECYCLE, chosen for a reason: it is legal here, present in `MC.moves`, and **fails outright when
+ * the user has consumed no item**, which is every probe body. It cannot damage, boost, heal, switch,
+ * or touch the field. Asserted where it is used rather than assumed — `tests/test-priority-block.js`
+ * checks that it has an `MC.moves` row and that its base power is 0 before it silences anything with
+ * it, because a silencer that works by being UNKNOWN is indistinguishable from one that works.
+ */
+const INERT_MOVE = 'Recycle';
+
 function checkLegal(o) {
   const { Dex, Teams, TeamValidator } = sim();
   const dex = Dex.forFormat(FORMAT);
@@ -635,7 +656,7 @@ function checkLegal(o) {
 }
 
 module.exports = { FORMAT, PINNED_COMMIT, PINNED_DATE, actualCommit, verify, packTeam, battle, winProb, sim,
-                   snapshot, forkBattle, checkLegal, firstLegalMove, LEGAL_SPREAD };
+                   snapshot, forkBattle, checkLegal, firstLegalMove, LEGAL_SPREAD, INERT_MOVE };
 
 if (require.main === module) {
   const v = verify();

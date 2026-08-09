@@ -34,7 +34,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 ```
 ENGINE — does the simulator do what Pokémon does
   330/330 probed mechanics live, 0 missing   (census 2026-08-09 22:39)
-  1/150 differential comparisons disagree with Showdown   (2026-08-09 22:41)
+  1/150 differential comparisons disagree with Showdown   (2026-08-09 23:18)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (70 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -58,7 +58,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 183/191 probed, 8 unprobed
 ```
 
-_stamped 2026-08-09 23:12_
+_stamped 2026-08-09 23:21_
 
 <!-- /GENERATED -->
 
@@ -144,11 +144,52 @@ budget rule. Legality and stats are separate questions; the caller still battles
 Both are the same defect as the Loaded Dice retraction one version below: **a name recalled instead of
 read**, committed inside the function whose entire purpose is to stop that.
 
+### THE SWEEP, 3.92.0 — FIVE MORE SITES, AND TWO OF THEM WERE DEFECTS
+
+`Tackle` in one harness raised the obvious question: is it alone. It is not.
+
+**The assignment surface is clean.** Every string literal assigned to `.item` or `.ability` across
+**238 files in `tests/` and `engine/`** was checked against the format. One hit: `noability`, which is
+the blank sentinel. So the direct-assignment hazard #116 was written about **never actually fired**.
+
+**The move-literal surface is not.** Five sites, and they are not the same kind of thing:
+
+| site | staged | kind |
+|---|---|---|
+| `test-engine-diff.js`, `test-damage-stages.js` | `Tackle` in every inert slot | cosmetic — the slot never acts |
+| `test-degradation-budgets.js` | `['tackle']` as the fallback moveset | a slot with no recorded moves scored on a move the format lacks |
+| **`test-priority-block.js`** | `'splash'` silencing three slots | **worked by accident** |
+| **`test-dead-volatile.js`** | `Thousand Arrows`, admitted `if (ta.exists)` | **the guard could never fire** |
+
+**The silencer worked because the engine had never heard of the move.** Splash is `Past` AND has **no
+row in `MC.moves` at all**. The defender and both partners were quiet through ABSENCE, not through the
+move doing nothing — a distinction with no observable difference until the day a row appears. Every
+classic no-op is gone the same way: Celebrate and Hold Hands are `Past` too, so there is nothing to
+swap in by reflex. `CS.INERT_MOVE` is **Recycle**, named and justified rather than derived — a filter
+for status-moves-with-no-declarative-effect still returns Belly Drum, Rest and Moonlight, because
+Showdown implements those in handlers. The file now **asserts the silencer has an `MC.moves` row and 0
+base power before it silences anything.** Results identical: 21 HP through, 0 under each blocker, 13
+under the Grassy Terrain control.
+
+**`.exists` IS TRUE FOR A BANNED MOVE.** `test-dead-volatile.js` admitted the damaging-move-with-a-
+volatile case only `if (ta && ta.exists)`, and Thousand Arrows is `isNonstandard: 'Past'`. The branch
+**always** ran, always on a move this format cannot contain, and the else-branch that would have
+declared the gap was unreachable. Note the trap in the obvious fix: tightening the guard makes the else
+fire and the case go **untested**, which moves the hole rather than closing it. So the subject is
+derived — highest-power legal move carrying a volatile, **Smack Down**, 50 BP. Eight qualify; naming
+one would rot at the next regulation. 16/16.
+
+**Nothing moved, and that is the expected result** — `test-damage-stages` 1728/1728 exact,
+`test-engine-diff` 0 disagree, `test-degradation-budgets` 11/0. Each of these was an inert slot or an
+unreachable branch. The value is that none can become live and wrong later.
+
 ### STILL OPEN — NAMED, NOT IMPLIED BY SILENCE
 
-The guard is on `tests/probe_pair.js` only. These still assign directly and are unguarded:
-`tests/test-damage-stages.js` (`setAb`), `tests/staged_board.js`, `tests/test-mechanics.js`, and
-`engine/game_differential.js` (`buildPair`). #116 stays open until they are covered.
+The TeamValidator guard is on `tests/probe_pair.js` only. `tests/staged_board.js` and
+`engine/game_differential.js` (`buildPair`) still assign directly and are unguarded. `test-mechanics.js`
+and `test-damage-stages.js` were checked by the sweep above and stage nothing the format lacks, so they
+are lower priority than they looked when #116 was written. #116 stays open until the two remaining
+sites are covered.
 
 **Green:** `probe_pair` self-test 16/16 (four refusals, three forgiveness rows — the forgiven cases are
 tested as hard as the refused ones), `test-pinch-family` 65/65. **No engine behaviour changed, no

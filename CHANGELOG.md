@@ -10,6 +10,58 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.92.0] — 2026-08-09
+
+### Fixed
+- **THE `Tackle` FINDING WAS NOT ONE FILE. A REPO-WIDE SWEEP FOUND FIVE MORE SITES, AND TWO OF THEM
+  WERE DEFECTS RATHER THAN COSMETICS (ROADMAP #116).** 3.91.0 found `Tackle` — `isNonstandard: 'Past'`
+  — padding the inert slots of `tests/probe_pair.js`. The obvious next question was whether it was
+  alone. It was not.
+
+  The `.item =` / `.ability =` surface across **238 files in `tests/` and `engine/` is clean** — the
+  only hit is `noability`, which is the blank sentinel. **Move literals are not**, and the two
+  categories below are different in kind:
+
+  | site | what it staged | consequence |
+  |---|---|---|
+  | `test-engine-diff.js`, `test-damage-stages.js` | `Tackle` in every inert slot | cosmetic — those slots never act |
+  | `test-degradation-budgets.js` | `['tackle']` as the fallback moveset | a slot with no recorded moves was scored on a move this format does not contain |
+  | **`test-priority-block.js`** | `'splash'` to silence three slots | **the silencing worked by ACCIDENT** |
+  | **`test-dead-volatile.js`** | `Thousand Arrows`, admitted `if (ta.exists)` | **the guard could never fire** |
+
+- **`test-priority-block.js` SILENCED ITS SLOTS BY NAMING A MOVE THE ENGINE HAS NEVER HEARD OF.**
+  Splash is `Past`, and it has **no row in `MC.moves` at all** — so the defender and both partners were
+  quiet because the engine could not find the move, not because the move does nothing. That is
+  indistinguishable from working until the day it is not. Every classic no-op is gone the same way:
+  Celebrate and Hold Hands are `Past` too. Now `CS.INERT_MOVE` (Recycle: legal here, present in
+  `MC.moves`, fails outright on a body that has consumed no item), and the file **asserts it has a row
+  and 0 base power before it silences anything with it**. Every result unchanged — 21 HP through, 0 HP
+  under each blocker, 13 HP under the Grassy Terrain control.
+- **`.exists` IS TRUE FOR A BANNED MOVE, SO A GUARD IN `test-dead-volatile.js` COULD NEVER FIRE.** It
+  admitted the damaging-move-with-volatile case only `if (ta && ta.exists)`, and Thousand Arrows is
+  `isNonstandard: 'Past'` — `.exists` still returns `true`. The branch always ran, always on a move no
+  game in this format can contain, and the else-branch that would have said so was unreachable.
+  **Merely tightening the guard would have moved the hole rather than closing it**, leaving the case
+  untested — so the subject is now derived from the format: the highest-power legal move carrying a
+  volatile, which is Smack Down (50 BP, `smackdown`). Eight moves qualify; naming one would rot at the
+  next regulation. 16/16 green.
+
+### Added
+- `CS.INERT_MOVE` — a filler move for a slot that must not act, **named and justified rather than
+  derived.** Deriving one was tried first and abandoned honestly: filtering the format for a status
+  move with no declarative effect fields still returns Belly Drum, Rest and Moonlight, because Showdown
+  implements those in handlers rather than fields. A filter that cannot be trusted is worse than a
+  choice that can be defended, and the same reasoning already governs `QUIET_ABILITY`.
+
+### Notes
+- All five sites re-run green: `test-damage-stages` 1728/1728 exact, `test-engine-diff` 0 disagree,
+  `test-priority-block` all, `test-dead-volatile` 16/0, `test-degradation-budgets` 11/0. **No number
+  moved**, which is the expected result — every one of these was an inert slot or an unreachable
+  branch. The value is that they can no longer become live and wrong.
+- The remaining #116 work is `tests/staged_board.js` and `engine/game_differential.js` (`buildPair`).
+
+---
+
 ## [3.91.0] — 2026-08-09
 
 ### Added
