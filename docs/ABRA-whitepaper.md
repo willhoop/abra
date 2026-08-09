@@ -1,6 +1,23 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 3.89.0 · Last updated 2026-08-09**
+**Version 3.90.0 · Last updated 2026-08-09**
+
+**3.90.0 — A CLUSTER THAT DISAGREED IN BOTH DIRECTIONS AT ONCE, WHICH IS WHAT A COUNT ERROR LOOKS
+LIKE.** Eleven multi-hit moves parted from the authority by small amounts, some high and some low, and
+the shape of that disagreement was the diagnosis: a per-hit rounding error cannot be both. The engine
+answered 3.1 hits — the mean of the 35/35/15/15 distribution over 2, 3, 4 and 5 — to every question
+ever asked about the family, including the question a real turn asks. Read straight out of Showdown
+through `battle.choose`, so every hit runs, its `|-hitcount|` reports FIVE at the differential's top pin
+corner and TWO at the bottom and never a three: the authority samples a twenty-element table and the
+pin selects its first or last element. **The competing hypothesis, a per-hit floor, was ruled out with
+arithmetic rather than a preference:** the per-hit value is already an integer, so with an integer count
+`floor(v*n)` and `n*v` are the same number, and the line that computes it did not change. The count is
+drawn now, once per move use and after the accuracy steps, exactly where the authority draws it; the
+per-hit accuracy is rolled and breaks at the first miss rather than being discounted by a mean; and the
+count of REACTION events reads the same draw, so a Bullet Seed can no longer deal five hits of damage
+while setting off Weak Armor three times. Census 329 to 330 live, 0 missing; the roster's moves stage
+40 to 32 disagreements with the eight multi-hit members accounting for all eight of the difference,
+abilities and items unmoved, the 150-row damage differential unmoved.
 
 **3.89.0 — A FAMILY THAT PRODUCED A WRONG ANSWER ON EVERY HIT, AND A HEAL FAMILY THAT HEALED 0.000
 HP.** 3.88.0 derived the condition for `buffsHolderOnHit` and said plainly that the engine did not

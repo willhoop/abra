@@ -10,6 +10,68 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.90.0] — 2026-08-09
+
+### Fixed
+- **THE MULTI-HIT CLUSTER WAS A COUNT, NOT AN ARITHMETIC (ROADMAP #103).** `engine/medicham2-browser.js`
+  answered **3.1 hits** — the mean of the 2-5 distribution — to every question ever asked about the
+  family, including questions asked by a turn that actually happened. Showdown's own `|-hitcount|`,
+  read through `battle.choose` so every hit runs, reports **5 at the differential's top pin corner and
+  2 at the bottom** and never a 3: `sim/battle-actions.ts:869` samples a twenty-element table and
+  `PRNG.sample` is `items[random(items.length)]`, so the pin selects element 19 or element 0. That is
+  why the eleven roster rows split **both ways at once** — too weak against a 5, too strong against a 2,
+  on the same move. **The per-hit floor was NOT in it**: `roll()` returns an integer, so with an integer
+  count `Math.floor(v*n)` and `n*v` are the same number, and the line at `dmgRange`'s tail did not need
+  to change.
+- **`rollHitsOf(moveId, rnd)` draws the count, beside `expectedHitsOf`, which stays a PRICE** and is
+  still what board features, rollout leaves and `punishExposure` read. The 2-5 table is copied verbatim
+  rather than summarised, because the pin reads an INDEX into it. The per-hit accuracy is rolled and
+  BREAKS at the first miss (`battle-actions.ts:910`) rather than being discounted by a mean. **One draw
+  per move use, lazily**, matching the authority's position in the stream — per target would hit one
+  body five times and the other twice off one click.
+- **The REACTION count now reads the same draw.** WIRE 84's comment claimed "3.1 → 3, which is what a
+  seeded Showdown rolls"; the authority reports 5 or 2. Two implementations of one fact, so Bullet Seed
+  dealt five hits of damage while setting off Weak Armor three times.
+- Two refusals counted, both reading 0: `MEDFAILS.multiHitRangeNot2To5` (a non-[2,5] range, which would
+  DISAGREE between the two engines under the pin — no such move exists in this format today) and
+  `MEDFAILS.multiHitNoCount`.
+
+### Added
+- **The proof, red before green.** `probe('move','multiHit', 'Icicle Spear lands FIVE hits at one rng
+  corner and TWO at the other, as Showdown does')` in `tests/test-mechanics.js`. The knob is the rng
+  corner and the measurement is a RATIO against a single-hit copy of the same move **at that same
+  corner**, because the corner also moves the damage roll and the crit. Red: ratios **3.10 and 3.10** —
+  identical across a varied knob, so the knob is unwired. Green: **5.00 and 2.00**. Census
+  **329 → 330 live / 330 probed**, 0 missing. **Double Hit, Dual Wingbeat and Twin Beam are the
+  positive control and did not move.**
+
+### Changed
+- `data/roster.{moves,abilities,items}.json` re-written on release `b571cfd7a97e`; the previous bytes are
+  kept at `data/roster.<stage>.prev.json`. Roster **moves 40 → 32 DIFFER · 24 DID-NOT-FIRE · 345 → 353
+  MATCH**; abilities **0 · 0** (the PASS clause, undisturbed); items **0 · 6**, unmoved. Differential
+  **1 of 150**, unmoved.
+
+### Notes
+- **The published baseline was stale and the correction matters.** `data/roster.moves.json` read
+  **50 · 27 · 332** and was generated 2026-08-08 against release `6f7fbc538318` — before ROADMAP #112,
+  #101 and #102. Against `9efcae3a60e2`, the tree those landed on, the same stage reads **40 · 24 ·
+  345**. The attributable delta of this pass is exactly **−8 DIFFER / +8 MATCH**, which is exactly the
+  eight multi-hit members. Same lesson as the interaction matrix on 2026-08-08: compare an artifact's
+  mtime to the thing it measured before quoting it.
+- **Three rows in the cluster are NOT this bug and are filed separately.** `tripleaxel` (718 uses) needs
+  **rising base power** (20/40/60 by hit) and its tag says `variablePower: {computed:true, note:'idiom
+  not yet derivable'}` — a `tag_dex` derivation, not a count. `scaleshot` (199) needs its **self-boost**
+  and is **blocked on a file this division may not edit**: `MC.moves['scaleshot']` carries no `self` at
+  all because `build/build_engine_data.js` writes `mv.self` for pure drops and Scale Shot's is mixed.
+  `dragondarts` (124) is **`smartTarget`**, a targeting mechanic that moves a second body.
+- **Two adjacent gaps this wire makes reachable for the first time, filed not fixed:** Skill Link and
+  Loaded Dice both rewrite the hit count, and until now there was no count for them to rewrite. Neither
+  has a failing probe, so neither is open work.
+- **`tests/roster.js:3694` now carries a wrong sentence** — *"a 2-5 range lands on TWO hits"*, printed on
+  all fourteen rows of the family. It is 5 at the top corner; the claim is true of the authority's OTHER
+  branch (`random(min, max+1)`), which the 2-5 family does not take. No verdict rests on it. Filed for
+  whoever holds that file.
+
 ## [3.89.0] — 2026-08-09
 
 ### Fixed

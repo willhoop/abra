@@ -1,6 +1,17 @@
 # ABRA — the plain-English deck
 
-**Version 3.89.0 · 2026-08-09 · Will Hooper**
+**Version 3.90.0 · 2026-08-09 · Will Hooper**
+
+**3.90.0 — MOVES THAT HIT TWO TO FIVE TIMES ALWAYS HIT 3.1 TIMES, WHICH IS NOT A THING THAT CAN
+HAPPEN.** Rock Blast, Bullet Seed, Icicle Spear and the rest roll for how many times they hit. Our
+simulator never rolled: it used the average, 3.1, every single time. So half these moves came out too
+strong and half too weak, and it looked like eleven separate small bugs instead of one. It was one.
+The simulator now rolls the count the same way the real game does, and the moves that always hit
+exactly twice — Double Hit, Dual Wingbeat, Twin Beam — were checked to make sure they did not move,
+because a "fix" that breaks the simple case has broken something else. Three moves in the group are
+still wrong and each is a different problem: Triple Axel hits harder with each hit, Scale Shot changes
+your own stats afterwards, and Dragon Darts spreads its two hits across two opponents. Those are named
+rather than lumped in.
 
 **3.89.0 — SOME POKÉMON GET STRONGER WHEN YOU HIT THEM, BUT ONLY IF YOU HIT THEM THE RIGHT WAY.**
 Anger Point maxes out its Attack when it takes a *critical* hit. Justified only reacts to *dark*

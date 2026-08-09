@@ -150,6 +150,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                     authority applies it -- a zero means the battle loop is still doing it. */
   bpChainSpent: 0, bpChainMembers: 0, statChainSpent: 0, damageBoostStat: 0,
   helpingHandBP: 0, friendGuardChain: 0, critInRange: 0,
+  /* ROADMAP #103 -- a REAL TURN priced a multi-hit move off a ROLLED count instead of the 3.1
+   * expectation. A zero here with multi-hit moves being clicked means the battle loop stopped handing
+   * `hit.hits` over and dmgRange fell back to the expectation, which is precisely the silent default
+   * this cluster was: it looks identical to a working feature and is wrong by up to three hits.
+   * multiHitAccuracyStopped counts the per-hit accuracy break (Triple Axel, Population Bomb). */
+  multiHitRolledCount: 0, multiHitAccuracyStopped: 0,
   perishTicked: 0, perishKO: 0, perishClearedOnSwitch: 0,
   passesStateSwitch: 0, passesStateBoosts: 0, passesStateVolatiles: 0,
   curseGhost: 0, curseNonGhost: 0,
@@ -328,6 +334,14 @@ const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnk
    * indistinguishable from it. */
   volDurTableFailed: 0, volDurTableFailedFirst: '',
   perishTurnsMissing: 0,
+  /* ROADMAP #103 -- the two ways `rollHitsOf` can be asked a question the artifact cannot answer.
+   * multiHitRangeNot2To5: a multi-hit range the authority resolves with `random(min,max+1)` rather
+   * than its 2-5 sample table. Zero members in this format today, so a non-zero is a new move
+   * arriving -- and its two engines DISAGREE under the pin, which is why it must be visible.
+   * multiHitNoCount: a `multiHit` row with neither a range nor a `hits`. One hit is dealt and said
+   * out loud, because a silent 1 here is exactly the defect WIRE 20 fixed. */
+  multiHitRangeNot2To5: 0, multiHitRangeNot2To5First: '',
+  multiHitNoCount: 0, multiHitNoCountFirst: '',
   /* ROADMAP #81 WIRE 12 -- a `passesState` click that could not switch (an empty bench). Showdown's
    * Baton Pass and Shed Tail both `-fail` outright in that case; this counts how often it happens so
    * "the pivot never fired" and "the pivot had nowhere to go" are different readings. */
@@ -3499,7 +3513,19 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
    * mechanic in either direction: its harness calls moveHit ONCE, so Showdown reports a single hit
    * there, and comparing an expectation over the hit distribution against one sample of it is not a
    * comparison. tests/test-engine-diff.js now skips multi-hit moves and says so out loud. */
-  const _hits=expectedHitsOf(mv&&mv.id);
+  /* ROADMAP #103 -- THE COUNT IS ROLLED WHEN A CALLER HAS ROLLED IT, AND ONLY AN EXPECTATION WHEN
+   * NOBODY HAS. `expectedHitsOf` returns 3.1 for the whole 2-5 family, which is the right answer for
+   * PRICING (a board feature, a rollout leaf, an exposure estimate) and the wrong answer for a TURN
+   * that actually happened: the authority draws a count, and the roster measured us against it at
+   * both pin corners. Showdown's own `|-hitcount|` reads 5 at the top corner and 2 at the bottom for
+   * every member of the 2-5 family; this engine said 3.1 at both, so it was wrong by two hits in one
+   * direction and by one hit in the other, on the SAME move. That is the whole of the cluster and it
+   * is a COUNT defect -- with an integer count `Math.floor(v*n)` and `n*v` are the same number, so
+   * the per-hit floor was never in it.
+   * `hit.hits` arrives from the battle loop, which draws it through `rollHitsOf` off the same rng it
+   * draws the damage index and the crit from. */
+  const _hits=(hit&&+hit.hits>0)?+hit.hits:expectedHitsOf(mv&&mv.id);
+  if(hit&&+hit.hits>0)MEDSEEN.multiHitRolledCount++;
   /* ROADMAP #92 -- ALL SIXTEEN ROLLS, ON REQUEST, IN THE AUTHORITY'S OWN INDEX ORDER. Index i is
    * percent 100-i (`battle.ts:2388` uses `100 - this.random(16)`), so index 0 is the top roll. This
    * exists because EVERY existing check in this repo compares the ENDPOINTS, and the endpoints are
@@ -3607,6 +3633,64 @@ function expectedHitsOf(moveId){
     if(_p<1){let e=0,k=1;for(let i=0;i<Math.round(n);i++){e+=k;k*=_p;}n=e;}
   }
   return n;
+}
+/* ROADMAP #103 -- THE COUNT A TURN ACTUALLY GETS, DRAWN, IN THE AUTHORITY'S OWN TABLE.
+ *
+ * `expectedHitsOf` above is a PRICE and stays one. This is the other question -- how many hits did
+ * this click land -- and the engine never asked it. Every 2-5 move was 3.1 hits in a real turn, so
+ * the eleven-move cluster in `data/roster.moves.json` split BOTH WAYS around the authority: 3.1 is
+ * too many when Showdown rolls 2 and too few when it rolls 5. Measured directly out of Showdown's
+ * `|-hitcount|` under the differential's two pin corners: Icicle Spear and Water Shuriken report
+ * FIVE at the top corner and TWO at the bottom. This engine reported 3.1 at both.
+ *
+ * THE TABLE IS COPIED FROM `sim/battle-actions.ts:869` VERBATIM -- twenty entries, 7/7/3/3, which is
+ * the 35/35/15/15 its comment states -- and it is copied rather than summarised because the PIN
+ * reads an INDEX into it, not a probability. `battle.sample(items)` is `items[random(items.length)]`
+ * (sim/prng.ts), so the pinned corner selects element 0 or element 19, and any table with the same
+ * distribution but a different length or order would answer differently at exactly the two corners
+ * every instrument in this repository measures at. `Math.floor(rnd()*20)` is the same index off this
+ * engine's [0,1) scalar; the `min` guards the caller who hands back exactly 1.
+ *
+ * A range that is NOT [2,5] goes through the authority's other branch (`random(min, max+1)`), and
+ * there is no such move in this format today -- so it is COUNTED rather than assumed, because a new
+ * one arriving silently is how this file loses a mechanic. Its pinned answers differ between the two
+ * engines (Showdown pins the RANGE form to its bottom in every arm, this draws uniformly), which is
+ * a divergence stated here rather than discovered later.
+ *
+ * THE PER-HIT ACCURACY IS ROLLED AND BREAKS, exactly as `battle-actions.ts:910` does: hits 2..n each
+ * roll, and the FIRST miss ends the move. That is not the same object as the expectation above --
+ * 1+p+p^2 is a mean and this is a draw -- and it agrees with the authority at both corners, where
+ * `randomChance(90,100)` is `0 < 90` (hit) and `99 < 90` (miss). */
+const MULTIHIT_2_5=[2,2,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,5,5,5];
+function rollHitsOf(moveId,rnd){
+  const p=TAGS.param('move',moveId,'multiHit');
+  if(!p)return 1;
+  const r=p.range;
+  let n;
+  if(Array.isArray(r)&&r.length===2&&+r[0]!==+r[1]){
+    if(+r[0]===2&&+r[1]===5){
+      n=MULTIHIT_2_5[Math.min(MULTIHIT_2_5.length-1,Math.floor(rnd()*MULTIHIT_2_5.length))];
+    }else{
+      n=+r[0]+Math.floor(rnd()*(+r[1]-+r[0]+1));
+      MEDFAILS.multiHitRangeNot2To5++;
+      if(!MEDFAILS.multiHitRangeNot2To5First)MEDFAILS.multiHitRangeNot2To5First=moveId+' '+JSON.stringify(r);
+    }
+  }else if(+p.hits>0){n=+p.hits;}
+  else{
+    /* NO COUNT IN THE ARTIFACT AT ALL. One hit is the only answer that cannot invent damage, and it
+     * is counted so it can never be mistaken for a move that really hits once. */
+    MEDFAILS.multiHitNoCount++;
+    if(!MEDFAILS.multiHitNoCountFirst)MEDFAILS.multiHitNoCountFirst=String(moveId);
+    return 1;
+  }
+  const _ma=TAGS.param('move',moveId,'multiAccuracy');
+  if(_ma&&_ma.perHit&&n>1){
+    const _p=(+_ma.accuracy||100)/100;
+    if(_p<1)for(let h=2;h<=n;h++){
+      if(rnd()>=_p){n=h-1;MEDSEEN.multiHitAccuracyStopped++;break;}
+    }
+  }
+  return Math.max(1,Math.floor(n));
 }
 function punishExposure(att,tgt,moveId,opts){
   opts=opts||{};
@@ -8199,8 +8283,18 @@ function battleTurn(S,rng,actsForA,actsForB){
       };
       /* STEP 7a -- getSpreadDamage (battle-actions.ts:1072/1148): the roll, the crit and the
        * effectiveness announcement, for EVERY target, before a single point of HP moves. */
+      /* ROADMAP #103 -- ONE COUNT PER MOVE USE, DRAWN ONCE, LAZILY.
+       *
+       * The authority draws `targetHits` in `hitStepMoveHitLoop` -- ONCE, before the loop over
+       * targets, and AFTER every accuracy step. Both halves matter. Once, because a spread multi-hit
+       * that drew per target would hit one body five times and the other twice off the same click;
+       * after the accuracy steps, because drawing earlier would consume a different position in the
+       * rng stream than the authority does. `null` until the first target is actually priced, so a
+       * move that misses everything draws nothing at all. */
+      let _hitsThisUse=null;
       const _stepDamage=(R)=>{const tg=R.tg;
         _reached++;   // ROADMAP #81 WIRE 1 -- past every gate: this target is a HIT, so the move did not fail
+        if(_hitsThisUse===null)_hitsThisUse=rollHitsOf(a.move.id,rng);
         /* ROADMAP #81 WIRE 11 -- THE WHOLE PRICE OF ONE HIT, IN ONE CLOSURE, TAKEN TWICE.
          *
          * It has to be a closure because a CRIT changes the price and this engine only found out
@@ -8228,6 +8322,11 @@ function battleTurn(S,rng,actsForA,actsForB){
            * must stay nothing. dmgRange's own `hasPower` guard is that test, so nothing is needed
            * here beyond passing the flag. */
           if(m._helpingHand)c.helpingHand=true;
+          /* ROADMAP #103 -- the ROLLED hit count, so dmgRange prices the hits this turn actually
+           * landed instead of the 3.1 it prices a hypothetical one with. Only ever set above 1 for a
+           * move the artifact calls multi-hit; every other caller of dmgRange leaves it absent and
+           * keeps the expectation, which is the right object for a price. */
+          if(_hitsThisUse>1)c.hits=_hitsThisUse;
           return c;
         })();
         const _price=(isCrit)=>dmgRange(m,tg,mv,field,_spreadHit,isCrit,_hitCtx);
@@ -8511,6 +8610,15 @@ function battleTurn(S,rng,actsForA,actsForB){
          * `multiHit` move at all -- it hits once per eligible party member -- so its count comes
          * from the same `perAlly` param the base power does, and no move is named. */
         const _react=(()=>{
+          /* ROADMAP #103 -- THE SAME COUNT THE DAMAGE USED, not a second opinion about it.
+           * The paragraph above said "3.1 -> 3, which is what a seeded Showdown rolls" and that was
+           * simply not true: Showdown's `|-hitcount|` reads 5 at the top pin corner and 2 at the
+           * bottom, never 3. Rounding an expectation here while the damage step draws a count is
+           * exactly the two-implementations-of-one-fact failure CLAUDE.md names -- Bullet Seed would
+           * deal five hits of damage and set off Weak Armor three times, and both would look right.
+           * `_hitsThisUse` is null only when nothing was priced (every target refused the move), in
+           * which case there was no hit to react to and the expectation is as good an answer as any. */
+          if(_hitsThisUse!==null&&TAGS.param('move',a.move.id,'multiHit'))return Math.max(1,_hitsThisUse);
           const _n=expectedHitsOf(a.move.id);
           if(_n>1)return Math.max(1,Math.round(_n));
           const _vpH=TAGS.param('move',a.move.id,'variablePower');

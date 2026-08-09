@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-09T22:22:51.117Z",
+  "generated": "2026-08-09T22:39:11.970Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 329,
-  "live": 329,
+  "probed": 330,
+  "live": 330,
   "missing": 0,
-  "armed": 329,
+  "armed": 330,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -1226,7 +1226,17 @@
       "tag": "multiHit",
       "label": "Rock Blast lands more than one hit",
       "live": true,
-      "detail": "one hit 16  ->  Rock Blast as the engine prices it 48 (real average is about 3.2 hits)",
+      "detail": "one hit 16  ->  Rock Blast as the engine prices it 47 (real average is about 3.2 hits)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "multiHit",
+      "label": "Icicle Spear lands FIVE hits at one rng corner and TWO at the other, as Showdown does",
+      "live": true,
+      "detail": "[top corner, bottom corner] one hit [92,112]  ->  Icicle Spear [460,224] — ratios 5.00 and 2.00, and Showdown's own |-hitcount| is 5 and 2",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1276,7 +1286,7 @@
       "tag": "immuneToMoveClass",
       "label": "Bulletproof refuses Rock Blast, and a Mold Breaker goes through it",
       "live": true,
-      "detail": "HP the Kommo-o lost to Rock Blast — no ability 37, Bulletproof 0, Bulletproof against a Mold Breaker 37 (breakable, so it goes through)",
+      "detail": "HP the Kommo-o lost to Rock Blast — no ability 36, Bulletproof 0, Bulletproof against a Mold Breaker 36 (breakable, so it goes through)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1966,7 +1976,7 @@
       "tag": "multiAccuracy",
       "label": "Triple Axel is priced below three full hits, and the 90% is not counted twice",
       "live": true,
-      "detail": "Triple Axel 96 x2.71 = 260 (three full hits would be x3, the discount is x2.71);  Rock Blast 10 x3.10 = 31 (no per-hit roll, must stay x3.1);  through a real turn it deals 233 on a winning roll and 0 on a losing one (so the 90% is a to-hit roll, not a second discount)",
+      "detail": "Triple Axel 96 x2.71 = 260 (three full hits would be x3, the discount is x2.71);  Rock Blast 10 x3.10 = 31 (no per-hit roll, must stay x3.1);  through a real turn it deals 258 on a winning roll and 0 on a losing one (so the 90% is a to-hit roll, not a second discount)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2396,7 +2406,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 21.4% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

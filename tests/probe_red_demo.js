@@ -3825,6 +3825,70 @@ demoSource('ROADMAP #112  Blaze — the engine half: the consumer refuses any co
     });
 }
 
+/* ---- ROADMAP #103 -- THE MULTI-HIT COUNT, ON A SOURCE-REVERTED ENGINE ---------------------------
+ *
+ * There is no tag to strip: `multiHit` was PRESENT and READ the whole time. What was wrong is which
+ * NUMBER the read produced -- `expectedHitsOf`'s 3.1, the mean of the 2-5 distribution, handed to a
+ * real turn that the authority resolves to 5 or to 2. So the known-bad engine is the ONE LINE that
+ * stops the rolled count reaching `dmgRange`, and the reverted arm falls straight back on the mean.
+ *
+ * THE KNOB IS THE RNG CORNER AND THE MEASUREMENT IS A RATIO. The corner also moves the damage roll and
+ * the crit, so the two corners cannot be compared to each other; each is compared to a SINGLE-HIT COPY
+ * OF THE SAME MOVE AT THE SAME CORNER (the id is changed so the tag lookup misses), which divides
+ * everything except the count back out. Icicle Spear because it is 100-accurate -- a sub-100 move
+ * MISSES at the top corner and there would be no top arm to read. */
+{
+  const RATIOS = (E, moveId) => {
+    const run = (fake, rng) => {
+      const me = W12.bare(E, 'tyranitar'), ally = W12.bare(E, 'incineroar');
+      const f1 = W12.bare(E, 'garchomp'); W12.big(f1);
+      const f2 = W12.bare(E, 'garchomp'); W12.big(f2);
+      const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+      const real = global.MC.moves[moveId];
+      const id = fake ? '__' + moveId + '_onehit' : moveId;
+      const mv = fake ? Object.assign({}, real, { id }) : real;
+      const act = { kind: 'attack', target: f1,
+                    move: { id, mv, spread: false, d: E.dmgRange(me, f1, mv, S.field, false), acc: 1 } };
+      const h = f1.curHP;
+      E.battleTurn(S, rng, new Map([[me, act], [ally, { kind: 'pass' }]]), W12.pass2(f1, f2));
+      return h - f1.curHP;
+    };
+    const TOP = () => 1 - 1e-9, BOTTOM = () => 0;
+    const oneT = run(true, TOP), manyT = run(false, TOP);
+    const oneB = run(true, BOTTOM), manyB = run(false, BOTTOM);
+    return (oneT > 0 && oneB > 0) ? [manyT / oneT, manyB / oneB] : [0, 0];
+  };
+  const WITHHOLD = [['if(_hitsThisUse>1)c.hits=_hitsThisUse;',
+                     'if(false&&_hitsThisUse>1)c.hits=_hitsThisUse;']];
+  demoSource('ROADMAP #103  Icicle Spear lands FIVE hits at one rng corner and TWO at the other',
+    WITHHOLD,
+    (E) => { const r = RATIOS(E, 'iciclespear'); return r[0] === 5 && r[1] === 2; });
+
+  /* THE POSITIVE CONTROLS. A fixed-count member is exactly 2 hits with no variance, so the
+   * expectation and the draw are the SAME number and it must read 2 on BOTH builds — a reversal that
+   * turned those off too would mean the row above is measuring "multi-hit works at all" rather than
+   * "the count is DRAWN".
+   *
+   * TWO OF THEM, AND THE SECOND ONE IS HERE BECAUSE THE FIRST TRY WAS WRONG. Double Hit is the member
+   * the brief named and it is 90-ACCURATE, so at the top corner the real move MISSES while its
+   * single-hit copy (a synthetic id, in no accuracy source, so 100) lands — the top ratio is 0 for a
+   * reason that has nothing to do with hit counts, on both builds. That is asserted rather than
+   * hidden, because "the control read 0" and "the control was not measurable" must not look alike.
+   * TWIN BEAM is 100-accurate and exactly 2 hits, so it is the control that IS readable at both. */
+  {
+    const reverted = revertedEngine(WITHHOLD);
+    ran++;
+    const a = RATIOS(M, 'doublehit'), b = RATIOS(reverted, 'doublehit');
+    const c = RATIOS(M, 'twinbeam'), d = RATIOS(reverted, 'twinbeam');
+    const ok = a[1] === 2 && b[1] === 2 && a[0] === 0 && b[0] === 0
+            && c[0] === 2 && c[1] === 2 && d[0] === 2 && d[1] === 2;
+    if (!ok) failures++;
+    console.log(`  ${ok ? 'OK   ' : 'FAIL '} ROADMAP #103  the fixed-count members are the POSITIVE CONTROL and do not move   `
+      + `Double Hit (90 acc) shipped=${JSON.stringify(a)} reverted=${JSON.stringify(b)} — bottom must be 2, `
+      + `top must be 0 (it MISSES); Twin Beam (100 acc) shipped=${JSON.stringify(c)} reverted=${JSON.stringify(d)} — all four must be 2`);
+  }
+}
+
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);
 if (stale.length) {
   console.log(`  ${stale.length} of those are STALE REVERSALS — the demonstration is fine, the patch it applies is not:`);

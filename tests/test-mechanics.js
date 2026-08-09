@@ -3604,6 +3604,54 @@ probe('move', 'multiHit', 'Rock Blast lands more than one hit', () => {
                  + `(real average is about 3.2 hits)` };
 });
 
+/* ROADMAP #103 -- THE COUNT IS A DRAW, AND THE PROBE ABOVE CANNOT SEE THAT.
+ *
+ * "More than one hit" was true of an engine that answered 3.1 hits to every question ever asked about
+ * the 2-5 family, and 3.1 is a number the real game never produces. `data/roster.moves.json` measured
+ * the consequence against the authority and it went BOTH WAYS at once -- Bullet Seed, Icicle Spear and
+ * Water Shuriken too WEAK, Rock Blast, Pin Missile, Tail Slap and Bone Rush too STRONG -- which is the
+ * signature of a count error and not of an arithmetic one. Measured out of Showdown itself, through
+ * `battle.choose` so every hit runs, its `|-hitcount|` reads FIVE at the differential's top pin corner
+ * and TWO at the bottom (`sim/battle-actions.ts:869` samples a twenty-element table and the pin selects
+ * element 19 or element 0). This engine said 3.1 at both.
+ *
+ * SO THE KNOB IS THE RNG CORNER AND THE MEASUREMENT IS A RATIO. The corner also moves the damage roll
+ * and the crit, so the raw damage differs between corners on ANY move -- comparing the two corners
+ * directly would prove nothing. Each corner is therefore compared against a SINGLE-HIT COPY OF THE SAME
+ * MOVE AT THE SAME CORNER, exactly the control the probe above uses (the id is changed so the tag
+ * lookup misses), and the ratio between the two arms IS the hit count with everything else divided out.
+ *
+ * IT MUST BE 5 AND 2 AND NOT MERELY "DIFFERENT", because an engine that drew any count at all would
+ * pass a difference test while disagreeing with the authority. Icicle Spear is the carrier because it
+ * is 100-accurate: a sub-100 move MISSES at the top corner and there would be no top arm to read.
+ *
+ * ON THE OLD ENGINE BOTH RATIOS ARE 3.1 (floored) AND BOTH ASSERTIONS FAIL. Measured red before it was
+ * measured green. */
+probe('move', 'multiHit', 'Icicle Spear lands FIVE hits at one rng corner and TWO at the other, as Showdown does', () => {
+  const run = (fake, r) => {
+    const { me, ally, f1, f2, S } = board('tyranitar', 'incineroar', 'garchomp', 'garchomp');
+    unfaintable(f1);
+    const real = MC.moves['iciclespear'];
+    if (!real) return -1;
+    const id = fake ? '__iciclespear_onehit' : 'iciclespear';
+    const mv = fake ? Object.assign({}, real, { id }) : real;
+    const act = { kind: 'attack', target: f1,
+                  move: { id, mv, spread: false, d: M.dmgRange(me, f1, mv, S.field, false), acc: 1 } };
+    const before = f1.curHP;
+    M.battleTurn(S, r, new Map([[me, act], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return before - f1.curHP;
+  };
+  const TOP = () => 1 - 1e-9, BOTTOM = () => 0;
+  const oneTop = run(true, TOP), manyTop = run(false, TOP);
+  const oneBot = run(true, BOTTOM), manyBot = run(false, BOTTOM);
+  const control = [oneTop, oneBot], test = [manyTop, manyBot];
+  return { works: oneTop > 0 && oneBot > 0 && manyTop === oneTop * 5 && manyBot === oneBot * 2,
+           arms: { control, test },
+           detail: `[top corner, bottom corner] one hit ${JSON.stringify(control)}  ->  Icicle Spear `
+                 + `${JSON.stringify(test)} — ratios ${(manyTop / oneTop).toFixed(2)} and `
+                 + `${(manyBot / oneBot).toFixed(2)}, and Showdown's own |-hitcount| is 5 and 2` };
+});
+
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45), AND THE OLD ONE SAID SO IN ITS OWN COMMENT:
  * `S.sfA.fainted = 3;   // the input, not the effect`. It wrote the counter by hand and then asked
  * whether dmgRange read it — so it tested the FORMULA and left the whole question of whether

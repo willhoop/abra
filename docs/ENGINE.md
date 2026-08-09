@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  329/329 probed mechanics live, 0 missing   (census 2026-08-09 22:15)
-  1/150 differential comparisons disagree with Showdown   (2026-08-09 22:16)
+  330/330 probed mechanics live, 0 missing   (census 2026-08-09 22:39)
+  1/150 differential comparisons disagree with Showdown   (2026-08-09 22:41)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (70 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -58,9 +58,128 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 183/191 probed, 8 unprobed
 ```
 
-_stamped 2026-08-09 22:21_
+_stamped 2026-08-09 22:48_
 
 <!-- /GENERATED -->
+
+## ROADMAP #103 — THE MULTI-HIT CLUSTER WAS A COUNT, NOT AN ARITHMETIC. ELEVEN ROSTER ROWS, EIGHT OF THEM CLOSED. 2026-08-09.
+
+Census **329 → 330 live / 329 → 330 probed**, 0 missing, 0 hollow, 0 `threw`, 0 unarmed, 0
+direct-call. Roster **moves 40 → 32 DIFFER · 24 DID-NOT-FIRE · 345 → 353 MATCH**; abilities **0 · 0**,
+the PASS clause still green; items **0 DIFFER · 6 DID-NOT-FIRE**, unmoved. Differential **1 of 150**,
+unmoved. Release **`b571cfd7a97e`** (before-arm: `9efcae3a60e2`).
+
+### THE BASELINE THAT WAS QUOTED WAS STALE, AND SAYING SO IS THE FIRST FINDING
+
+`data/roster.moves.json` read **50 DIFFER · 27 DID-NOT-FIRE · 332 MATCH** and was written
+**2026-08-08 22:48 against release `6f7fbc538318`** — before ROADMAP #112, #101 and #102. Re-run
+against `9efcae3a60e2`, which is the tree those three landed on, the same stage reads **40 · 24 ·
+345**. Ten of the eighteen DIFFER rows and all three DID-NOT-FIRE rows that appear to close here had
+already closed. **The attributable delta of this pass is exactly −8 DIFFER / +8 MATCH**, and it is
+exactly the eight multi-hit members. The same lesson as `data/interaction-matrix.json` on 2026-08-08:
+compare an artifact's mtime to the thing it measured before quoting it. All three stage artifacts
+have been re-written on `b571cfd7a97e`; the old bytes are at `data/roster.<stage>.prev.json`.
+
+### THE HYPOTHESIS THAT WAS RIGHT, AND THE NUMBER THAT DECIDED IT
+
+Two were on the table: a **per-hit floor** (`n·floor(v)` against `floor(n·v)`), or the **hit count**.
+The count, and it is not close.
+
+`|-hitcount|` read straight out of Showdown, driven through `battle.choose` so every hit runs, under
+the differential's own two pin corners:
+
+| move | top corner | bottom corner | this engine, both corners |
+|---|---|---|---|
+| Icicle Spear | **5** | **2** | 3.1 |
+| Water Shuriken | **5** | **2** | 3.1 |
+| Rock Blast / Tail Slap / Pin Missile / Bone Rush | (misses — sub-100) | **2** | 3.1 |
+| Double Hit / Dual Wingbeat / Twin Beam | — | 2 | 2 — the controls, and they always matched |
+
+`sim/battle-actions.ts:869` samples a **twenty-element table** (`[2×7, 3×7, 4×3, 5×3]`, the 35/35/15/15
+its comment states) and `PRNG.sample` is `items[random(items.length)]` — so the pin selects **element
+19 or element 0**, never a middle. This engine answered the mean of that table, 3.1, to every question
+ever asked about the family. **That is why the eleven rows split BOTH WAYS**: 3.1 is too few against a
+5 and too many against a 2, on the same move. A fix aimed at "we do not multi-hit" would have been
+aimed at a bug that was not there.
+
+**And the per-hit floor is NOT in it, which is worth stating because it was the plausible one.**
+`roll()` already returns an integer, so with an INTEGER count `Math.floor(v*n)` and `n*v` are the same
+number for every v and every n. The floor only ever mattered because the count was fractional. The
+line at `dmgRange`'s tail did not need to change and did not.
+
+### WHAT LANDED
+
+- **`rollHitsOf(moveId, rnd)`** — the count a turn actually gets, beside `expectedHitsOf`, which stays
+  a PRICE and is still what a board feature, a rollout leaf and `punishExposure` read. The 2-5 table is
+  **copied verbatim rather than summarised**, because the pin reads an INDEX into it: any table with
+  the same distribution and a different length or order answers differently at exactly the two corners
+  every instrument here measures at.
+- **The per-hit accuracy is ROLLED and BREAKS**, as `battle-actions.ts:910` does — hits 2..n each roll
+  and the FIRST miss ends the move. Not the same object as `expectedHitsOf`'s `1+p+p²`, which is a
+  mean. It agrees with the authority at both corners (`randomChance(90,100)` is `0 < 90` and `99 < 90`)
+  and it is counted (`MEDSEEN.multiHitAccuracyStopped`), because at a CONSTANT rng it can never fire:
+  the whole-move roll and the per-hit roll share a threshold, so any draw that breaks hit 2 also loses
+  hit 1. Demonstrated firing under a varying stream (first three draws low, then 0.95 → 1 stop).
+- **ONE COUNT PER MOVE USE, DRAWN LAZILY.** The authority draws `targetHits` once, before the loop over
+  targets and after the accuracy steps. Drawing per target would hit one body five times and the other
+  twice off one click; drawing earlier would sit at a different position in the rng stream.
+- **The REACTION count reads the same draw.** WIRE 84's comment said "3.1 → 3, which is what a seeded
+  Showdown rolls" and that was simply untrue — the authority reports 5 or 2, never 3. A damage step
+  that draws a count beside an effects step that rounds an expectation is two implementations of one
+  fact, and Bullet Seed would have dealt five hits of damage while setting off Weak Armor three times.
+- **Two refusals are counted, both reading 0:** `MEDFAILS.multiHitRangeNot2To5` (a range the authority
+  resolves with `random(min,max+1)` — no such move exists in this format today, and its two engines
+  would DISAGREE under the pin, so it must be visible when one arrives) and `MEDFAILS.multiHitNoCount`.
+
+### THE PROOF — red on the unfixed engine, then green
+
+`probe('move','multiHit', 'Icicle Spear lands FIVE hits at one rng corner and TWO at the other, as
+Showdown does')` in `tests/test-mechanics.js`. **The knob is the rng corner and the measurement is a
+RATIO**: the corner also moves the damage roll and the crit, so comparing the two corners directly
+would prove nothing. Each corner is compared against a single-hit copy of the same move **at that same
+corner** (the id is changed so the tag lookup misses), and the ratio is the hit count with everything
+else divided out. Icicle Spear because it is 100-accurate — a sub-100 move misses at the top corner and
+there would be no top arm to read.
+
+```
+RED   (c.hits withheld from dmgRange)   one hit [92,112] -> [285,347]   ratios 3.10 and 3.10
+GREEN (the count handed over)           one hit [92,112] -> [460,224]   ratios 5.00 and 2.00
+```
+
+The red arm is the whole diagnosis in one line: **identical ratios across a varied knob mean the knob
+is unwired.** The census read 330 probed / **329** live / 1 missing under it, and 330/330/0 after.
+
+**Double Hit is the positive control and it did not move** — 2 hits, no variance, `FIRED-AND-BOARDS-
+MATCH` before and after, alongside Dual Wingbeat and Twin Beam. A fix that greened the 2-5 family
+while disturbing them would have broken the model.
+
+### THREE ROWS THAT ARE NOT THIS BUG, EACH FILED AS ITS OWN
+
+| row | uses | what it actually is | why it is not swept in |
+|---|---|---|---|
+| `tripleaxel` | 718 | **rising base power** — 20/40/60 by hit (`basePowerCallback: 20 * move.hit`). Ours is now the right COUNT (3) at the wrong power: 24 damage against the authority's 47 on the staged body | `data/tags.json` carries `variablePower: {computed:true, note:'idiom not yet derivable'}`. It needs a derivation in `engine/tag_dex.js`, not a count |
+| `scaleshot` | 199 | **the self-boost** (`def −1 / spe +1` after the last hit) never fires: sd −1/+1, ours 0/0. Damage is not the complaint | **BLOCKED ON A FILE THIS DIVISION MAY NOT EDIT.** `MC.moves['scaleshot']` is `{t,c,bp}` with no `self` at all — `build/build_engine_data.js` writes `mv.self` for pure DROPS and Scale Shot's is mixed. The tag's params carry booleans (`raisesSpeed`, `alsoLowers`), not the table. Either route is a refit |
+| `dragondarts` | 124 | **`smartTarget`** — in doubles it hits each foe once rather than the same target twice, so it moves a SECOND body (torterra 1326 against our 1360). A targeting mechanic | nothing to do with the count; it is a different step of the hit loop |
+
+**Two adjacent gaps this wire makes reachable for the first time, filed not fixed:** **Skill Link**
+(`onModifyMove: move.multihit = move.multihit[1]`, Cinccino's ability) and **Loaded Dice**
+(`if (targetHits < 4) targetHits = 5 - random(2)`) both rewrite the count — and until tonight there was
+no count for them to rewrite. Neither has a failing probe yet, so neither is open work.
+
+### THE HAND LIST IS UNCHANGED
+
+Nothing leaves it. The multi-hit cluster was a queue in `data/roster.moves.json`, not a hand claim —
+`Rivalry` is still the only entry and is still blocked on `data/engine-data.js` carrying no gender.
+
+### ONE PIECE OF PROSE IN AN INSTRUMENT IS NOW WRONG, AND IT IS NOT MINE TO EDIT
+
+`tests/roster.js:3694` states *"`random(m, n)` is pinned to `m` in EVERY arm, so a 2-5 range lands on
+TWO hits"*, and every one of the family's fourteen rows prints **"THE PIN LANDS ON 2 HIT(S)"** in its
+note. **It is 5 at the top corner.** The claim is true of the authority's OTHER branch — the range form
+`random(min, max+1)` — and the 2-5 family does not take that branch; it takes `sample`, which is a
+single-argument `random(20)`. The note is annotation and no verdict rests on it, but it is exactly the
+kind of confidently-wrong sentence that steers the next reader, and it is printed on every run. Filed
+for whoever holds `tests/roster.js`.
 
 ## ROADMAP #101 + #102 — A FAMILY THAT FAILED *OPEN*, AND 1,024 USES OF A HEAL THAT HEALED 0.000 HP. 2026-08-09.
 

@@ -1,311 +1,17 @@
 {
- "generated": "2026-08-08T19:47:59.209Z",
+ "generated": "2026-08-09T19:44:45.646Z",
  "by": "tests/roster.js",
  "stage": "abilities",
- "engine_release": "72e361e1bd44",
+ "engine_release": "759a0d3292f5",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
-  "DID-NOT-FIRE": 1,
-  "FIRED-AND-BOARDS-MATCH": 78,
-  "CONTROL-NOT-QUIET": 20,
+  "DID-NOT-FIRE": 0,
+  "FIRED-AND-BOARDS-MATCH": 82,
+  "CONTROL-NOT-QUIET": 17,
   "COULD-NOT-STAGE": 217
  },
- "reds": [
-  {
-   "rule": "ability/blocks-priority",
-   "ok": true,
-   "why": "the priority block is skipped, so the shielded side takes the fast move",
-   "moved": {
-    "member": "armortail",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "ability/aids-its-ally",
-   "ok": true,
-   "why": "the ally damage reduction is dropped",
-   "moved": {
-    "member": "aromaveil",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "vol.taunt"
-    ]
-   }
-  },
-  {
-   "rule": "ability/stat-drop-reaction",
-   "ok": true,
-   "why": "the boost-refusal path is removed, so an ability that should block a drop lets it through",
-   "moved": {
-    "member": "bigpecks",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "boosts.def"
-    ]
-   }
-  },
-  {
-   "rule": "ability/pinch-offense",
-   "ok": true,
-   "why": "the pinch multiplier is dropped — the ability is still on the body and still named, and the HP gate is still crossed",
-   "moved": {
-    "member": "blaze",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "ability/absorbs-a-type",
-   "ok": true,
-   "why": "the type/flag immunity is dropped, so the absorbed hit lands as ordinary damage",
-   "moved": {
-    "member": "dryskin",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "ability/weather-speed",
-   "ok": true,
-   "why": "the weather Speed multiplier is dropped, so the carrier never outruns anybody",
-   "moved": {
-    "member": "chlorophyll",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "party.hp",
-     "party.fainted",
-     "species",
-     "hp",
-     "maxhp",
-     "boosts.atk",
-     "boosts.spa"
-    ]
-   }
-  },
-  {
-   "rule": "ability/entry-aids-ally",
-   "ok": true,
-   "why": "the entry heal is skipped — the carrier still switches in and is still named",
-   "moved": {
-    "member": "curiousmedicine",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "boosts.atk",
-     "boosts.spa"
-    ]
-   }
-  },
-  {
-   "rule": "ability/entry",
-   "ok": true,
-   "why": "the entry stat drop is skipped — the ability is still on the body and still named. It is aimed at one MEMBER of the family, so a rule that catches it has proved the entry path is live rather than that every entry ability is",
-   "moved": {
-    "member": "imposter",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "party.MISSING-OR-EXTRA-MEMBER",
-     "species",
-     "hp",
-     "maxhp"
-    ]
-   }
-  },
-  {
-   "rule": "ability/damage-taken-scoped",
-   "ok": true,
-   "why": "the scoped damage reduction is dropped",
-   "moved": {
-    "member": "fluffy",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "ability/unconditional-stat-multiplier",
-   "ok": true,
-   "why": "the doubled attacking stat is dropped — the ability is still on the body and still named, and the click is still inside its category",
-   "moved": {
-    "member": "hugepower",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "ability/weather-residual",
-   "ok": true,
-   "why": "the residual weather effect is skipped",
-   "moved": {
-    "member": "icebody",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "ability/base-power-scoped",
-   "ok": true,
-   "why": "the scoped base-power multiplier is dropped",
-   "moved": {
-    "member": "ironfist",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "ability/redirects-a-type",
-   "ok": true,
-   "why": "the redirection is skipped, so the drawn move stays on its original target",
-   "moved": {
-    "member": "lightningrod",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "party.hp",
-     "boosts.spa",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "ability/type-conversion",
-   "ok": true,
-   "why": "the type rewrite is skipped, so the move keeps its printed type",
-   "moved": {
-    "member": "liquidvoice",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "ability/residual",
-   "ok": true,
-   "why": "THE ENTRY GATE IS REMOVED and the per-turn effect fires unconditionally — which is the exact defect this family was written against, and it can only be caught by a staging that has a mid-turn entrant in it",
-   "moved": {
-    "member": "speedboost",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "boosts.spe"
-    ]
-   }
-  },
-  {
-   "rule": "ability/priority-mod",
-   "ok": true,
-   "why": "the priority shift is dropped, so the carrier moves in plain speed order",
-   "moved": {
-    "member": "prankster",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "boosts.atk",
-     "boosts.spa"
-    ]
-   }
-  },
-  {
-   "rule": "ability/switch-out",
-   "ok": true,
-   "why": "the switch-out heal is skipped",
-   "moved": {
-    "member": "regenerator",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "party.hp"
-    ]
-   }
-  },
-  {
-   "rule": "ability/no-recoil",
-   "ok": true,
-   "why": "the recoil exemption is dropped, so the holder pays the recoil anyway",
-   "moved": {
-    "member": "rockhead",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "ability/weather-evasion",
-   "ok": true,
-   "why": "the evasion stage is ignored when accuracy is computed",
-   "moved": {
-    "member": "sandveil",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "ability/survives-from-full",
-   "ok": true,
-   "why": "the survive-from-full floor is dropped",
-   "moved": {
-    "member": "sturdy",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "party.hp",
-     "party.fainted",
-     "species",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "ability/speed-on-item-loss",
-   "ok": true,
-   "why": "the speed multiplier on item loss is dropped — the item is still consumed",
-   "moved": {
-    "member": "unburden",
-    "verdict": "CONTROL-NOT-QUIET",
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "ability/blocks-foe-berry",
-   "ok": true,
-   "why": "the berry block is skipped, so the foe eats it anyway",
-   "moved": {
-    "member": "unnerve",
-    "verdict": "DID-NOT-FIRE",
-    "fields": [
-     "party.hp",
-     "hp",
-     "item"
-    ]
-   }
-  }
- ],
+ "reds": [],
  "mirror": {
   "pairs": 25,
   "same_numbers_swapped": [
@@ -1000,10 +706,10 @@
    "rule": "ability/pinch-offense",
    "reads": "onModifyAtk / onModifySpA whose handler tests `attacker.hp <= attacker.maxhp / N` and names a move type",
    "note": "throws Flamethrower at FULL HP on turn 1 (the negative), is taken to 23% by Shadow Ball on turn 2, and throws it again under the 1/3 gate on turn 3   [carrier Skeledirge, control = Unaware — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
-   "verdict": "CONTROL-NOT-QUIET",
-   "why": "THE DELTA IS NOT ATTRIBUTABLE TO THIS ENTITY. the CONTROL is another LIVE ability — Unaware — because skeledirge has no quiet alternative. The measured delta is (subject MINUS that ability) and cannot say which of the two moved the board. MEASURED on this instrument's own artifact: Sand Rush and Fluffy control each other and reported THE SAME TWO NUMBERS SWAPPED, and the 32-HP gap is Fluffy. The subject arm did not move in this engine, which under a quiet control would read DID-NOT-FIRE — it is neither.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
-   "control_why": "the CONTROL is another LIVE ability — Unaware — because skeledirge has no quiet alternative. The measured delta is (subject MINUS that ability) and cannot say which of the two moved the board. MEASURED on this instrument's own artifact: Sand Rush and Fluffy control each other and reported THE SAME TWO NUMBERS SWAPPED, and the 32-HP gap is Fluffy.",
+   "control_why": null,
    "sd_delta": [
     {
      "turn": 2,
@@ -1030,44 +736,7 @@
      "without": 1178
     }
    ],
-   "diffs": [
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 1200,
-     "ours": 1220,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 1200,
-     "ours": 1220,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 1138,
-     "ours": 1178,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 1138,
-     "ours": 1178,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "ability",
@@ -5632,8 +5301,8 @@
    "rule": "ability/pinch-offense",
    "reads": "onModifyAtk / onModifySpA whose handler tests `attacker.hp <= attacker.maxhp / N` and names a move type",
    "note": "throws Energy Ball at FULL HP on turn 1 (the negative), is taken to 11% by Ice Punch on turn 2, and throws it again under the 1/3 gate on turn 3   [carrier Torterra, control = Shell Armor]",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "sd_delta": [
@@ -5662,44 +5331,7 @@
      "without": 1214
     }
    ],
-   "diffs": [
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 1229,
-     "ours": 1244,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 1229,
-     "ours": 1244,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 1184,
-     "ours": 1214,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 1184,
-     "ours": 1214,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "ability",
@@ -9023,10 +8655,10 @@
    "rule": "ability/pinch-offense",
    "reads": "onModifyAtk / onModifySpA whose handler tests `attacker.hp <= attacker.maxhp / N` and names a move type",
    "note": "throws Bug Buzz at FULL HP on turn 1 (the negative), is taken to 13% by Power Gem on turn 2, and throws it again under the 1/3 gate on turn 3   [carrier Volcarona, control = Flame Body — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
-   "verdict": "CONTROL-NOT-QUIET",
-   "why": "THE DELTA IS NOT ATTRIBUTABLE TO THIS ENTITY. the CONTROL is another LIVE ability — Flame Body — because volcarona has no quiet alternative. The measured delta is (subject MINUS that ability) and cannot say which of the two moved the board. MEASURED on this instrument's own artifact: Sand Rush and Fluffy control each other and reported THE SAME TWO NUMBERS SWAPPED, and the 32-HP gap is Fluffy. The subject arm did not move in this engine, which under a quiet control would read DID-NOT-FIRE — it is neither.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
-   "control_why": "the CONTROL is another LIVE ability — Flame Body — because volcarona has no quiet alternative. The measured delta is (subject MINUS that ability) and cannot say which of the two moved the board. MEASURED on this instrument's own artifact: Sand Rush and Fluffy control each other and reported THE SAME TWO NUMBERS SWAPPED, and the 32-HP gap is Fluffy.",
+   "control_why": null,
    "sd_delta": [
     {
      "turn": 2,
@@ -9053,44 +8685,7 @@
      "without": 1157
     }
    ],
-   "diffs": [
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 1182,
-     "ours": 1206,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 1182,
-     "ours": 1206,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 1109,
-     "ours": 1157,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 1109,
-     "ours": 1157,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "ability",
@@ -9558,10 +9153,10 @@
    "rule": "ability/pinch-offense",
    "reads": "onModifyAtk / onModifySpA whose handler tests `attacker.hp <= attacker.maxhp / N` and names a move type",
    "note": "throws Liquidation at FULL HP on turn 1 (the negative), is taken to 30% by Dire Claw on turn 2, and throws it again under the 1/3 gate on turn 3   [carrier Primarina, control = Liquid Voice — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
-   "verdict": "CONTROL-NOT-QUIET",
-   "why": "THE DELTA IS NOT ATTRIBUTABLE TO THIS ENTITY. the CONTROL is another LIVE ability — Liquid Voice — because primarina has no quiet alternative. The measured delta is (subject MINUS that ability) and cannot say which of the two moved the board. MEASURED on this instrument's own artifact: Sand Rush and Fluffy control each other and reported THE SAME TWO NUMBERS SWAPPED, and the 32-HP gap is Fluffy. The subject arm did not move in this engine, which under a quiet control would read DID-NOT-FIRE — it is neither.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
-   "control_why": "the CONTROL is another LIVE ability — Liquid Voice — because primarina has no quiet alternative. The measured delta is (subject MINUS that ability) and cannot say which of the two moved the board. MEASURED on this instrument's own artifact: Sand Rush and Fluffy control each other and reported THE SAME TWO NUMBERS SWAPPED, and the 32-HP gap is Fluffy.",
+   "control_why": null,
    "sd_delta": [
     {
      "turn": 2,
@@ -9588,44 +9183,7 @@
      "without": 1217
     }
    ],
-   "diffs": [
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 1233,
-     "ours": 1246,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 1233,
-     "ours": 1246,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 1191,
-     "ours": 1217,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 1191,
-     "ours": 1217,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "ability",

@@ -1,6 +1,18 @@
 # ABRA — Technical Documentation
 
-**Version 3.89.0 · Last updated 2026-08-09**
+**Version 3.90.0 · Last updated 2026-08-09**
+
+**3.90.0 — THE ENGINE DRAWS A MULTI-HIT COUNT. IT USED AN EXPECTATION BEFORE.**
+The function `expectedHitsOf` returns the mean of a hit distribution. For the 2-5 family that mean is
+3.1. This is correct for a price. It is not correct for a turn. The authority draws a count from a
+twenty-element table and the count is 2, 3, 4 or 5.
+A new function `rollHitsOf` draws the count. It takes a move identifier and a random-number function.
+It reads the range from the tag. For the range [2,5] it indexes the authority's table. For any other
+range it uses a uniform draw and increments `MEDFAILS.multiHitRangeNot2To5`. That counter reads 0.
+The battle loop calls `rollHitsOf` once for each use of a move. The call is made when the first target
+is priced. It is not made when the move hits nothing. The count travels to `dmgRange` on the seventh
+argument. `dmgRange` uses the expectation when no caller supplies a count.
+The effects step reads the same count. It rounded the expectation before. Do not compute a fact twice.
 
 **3.89.0 — THE ENGINE NOW READS THE CONDITION ON `buffsHolderOnHit`, AND FOUR HEALING MOVES WORK.**
 The function `condHolds` evaluates a tag condition. Before this change it accepted two arguments: the

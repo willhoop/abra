@@ -1,7 +1,15 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 3.89.0 — 2026-08-09.**
+**Version: 3.90.0 — 2026-08-09.**
 
+
+**3.90.0 — NOTHING IN THE TABLE BELOW MOVED, AND THE ONE STAGE QUESTION THIS PASS RAISED WAS
+ANSWERED NO.** ROADMAP #103 is a hit COUNT, not a stage. The plausible alternative WAS a stage
+question — whether the authority's per-hit floor (`n` independent `floor`s) differs from this engine's
+single `floor(v * n)` — and it was ruled out with arithmetic rather than a preference: `roll()` already
+returns an integer, so for an integer count the two expressions are equal for every value. The
+multiplication at `dmgRange`'s tail is unchanged. **The boost-stage difference filed at 3.89.0 is still
+filed and still not fixed.**
 
 **3.89.0 — NOTHING IN THE TABLE BELOW MOVED, AND ONE NEW DIFFERENCE IS FILED INTO IT.** ROADMAP #101
 and #102 are a post-damage REACTION and a HEAL; neither is a stage. But wiring Strength Sap's heal off

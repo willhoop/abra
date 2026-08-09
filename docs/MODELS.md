@@ -1,6 +1,14 @@
 # ABRA — the model family (living reference)
 
-**Version 3.89.0 · Last updated 2026-08-09.**
+**Version 3.90.0 · Last updated 2026-08-09.**
+
+**3.90.0 — MEDICHAM: EVERY MULTI-HIT MOVE LANDED 3.1 HITS, A NUMBER THE GAME NEVER PRODUCES.**
+`dmgRange` priced the whole 2-5 family off the mean of its distribution, and so did the turn loop, so
+a real Rock Blast and a real Icicle Spear were the same 3.1 hits at every rng corner. Showdown reports
+5 at the differential's top pin corner and 2 at the bottom. The count is drawn now, once per move use,
+from the authority's own table; `expectedHitsOf` stays as the PRICE that board features, rollout leaves
+and `punishExposure` read, which is the right object for a hypothetical click. MEDICHAM-only — no model
+downstream was refitted and every quarantined figure stays quarantined. Census 329 to 330 live.
 
 **3.89.0 — MEDICHAM: A REACTION FAMILY THAT FIRED ON EVERY HIT, AND A HEAL FAMILY THAT NEVER FIRED.**
 `buffsHolderOnHit` ignored the condition 3.88.0 derived, so Anger Point maxed Attack off any hit

@@ -1,6 +1,17 @@
 # ABRA — Project Summary
 
-**Version 3.89.0 · 2026-08-09 · Will Hooper**
+**Version 3.90.0 · 2026-08-09 · Will Hooper**
+
+**3.90.0 — THE MULTI-HIT CLUSTER WAS A COUNT, NOT AN ARITHMETIC.** Eleven moves disagreed with the
+official simulator by small amounts in BOTH directions, which is the signature of a wrong hit COUNT
+rather than wrong per-hit maths. The engine answered 3.1 hits — the mean of the 2-5 distribution — to
+every question, including questions asked by a turn that actually happened; the authority's own
+`|-hitcount|` reports 5 or 2 under the two pinned corners and never a 3. The count is now drawn from
+the authority's own twenty-element table, the per-hit accuracy is rolled and breaks at the first miss
+instead of being discounted by a mean, and the reaction count reads the same draw the damage does.
+Census 329 to 330 live, 0 missing; the roster's moves stage 40 to 32 disagreements, abilities and
+items unmoved, the damage differential unmoved. Triple Axel, Scale Shot and Dragon Darts remain and
+are three DIFFERENT mechanics, each filed on its own.
 
 **3.89.0 — THE CONDITION 3.88.0 DERIVED IS NOW READ, AND A HEAL FAMILY THAT HEALED NOTHING WORKS.**
 `buffsHolderOnHit` applied its boost on every connecting hit, so eleven of twelve members were wrong
