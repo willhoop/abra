@@ -312,6 +312,11 @@ canvas#confetti{position:fixed;inset:0;z-index:40;pointer-events:none}
 
 <footer style="margin-bottom:96px"><a href="https://willhoop.github.io" target="_blank" style="color:#1E2761;font-weight:800;text-decoration:underline">Built by Will Hooper</a> · ABRA = <b>A</b>utomated <b>B</b>attle <b>R</b>eplay <b>A</b>nalyzer · grounded in real ladder games, evaluated honestly, and built to learn from self-play over time.</footer>
 
+<!-- THE QUARANTINE, LOADED AHEAD OF EVERY BUNDLE IT POLICES. Two of the files below — data/mag.js and
+     data/mew.js — are in the withheld set (engine/quarantine.js). They are LOADED rather than quoted,
+     which is why the citation checker cannot see them: it greps for a verdict sentence and these
+     rooms read the object. window.ABRA_QUARANTINE tells each room whether its bundle may be drawn. -->
+<script src="quarantine-data.js"></script>
 <!-- The species/move/type tables. Loaded FIRST because the inline script below reads MC. -->
 <script src="../data/engine-data.js"></script>
 <script src="../data/kad-replays.js"></script>
@@ -1096,7 +1101,16 @@ const magHas=k=>!!(MAG.mons[k]&&MAG.mons[k].mv&&MAG.mons[k].mv.length);
 const MAGDEF={you:'garchomp',ally:'incineroar',foes:['charizard','kingambit'],moves:['earthquake','rockslide','dragonclaw','protect']};
 const magPick=(want,i)=>{const L=MAGMONS();return magHas(want)?want:L[i%L.length];};
 
+/* THE WITHHELD ROOM. `data/mag.js` re-encodes data/policy-weights.json, which is quarantined — the
+   weights were fitted on features computed through a simulator we currently know is wrong. Every
+   score this room draws, every feature bar and the held-out accuracy in its opening sentence come
+   out of that bundle, so there is nothing here to render at reduced confidence: the room closes and
+   says what re-opens it. The bundle still LOADS; this is the read, and the read is where it stops. */
+function magHeld(){ return window.ABRA_QUARANTINE && window.ABRA_QUARANTINE.heldFor('data/mag.js'); }
 function roomMagnemite(){const c=CAST.find(x=>x.id==='magnemite');
+  if(magHeld()) return `<div class="panel">${mascotHero(c,"My weights were fitted through a simulator we have since found wrong. Until it is fixed and the fit is re-run, I am not going to show you a score.")}</div>
+  <div class="panel"><h2>This room is closed</h2>${window.ABRA_QUARANTINE.plate('data/mag.js',{subject:'THE SCORER IS WITHHELD — every score below came from data/policy-weights.json'})}
+    <p style="font-weight:600;color:#3a5372">Nothing is broken and nothing has been deleted. The board builder, the feature set and the arithmetic are all still here; what is missing is a fit anybody should quote. When MEDICHAM passes its differential and its deliberate roster, the fit is re-run and this room comes back unchanged.</p></div>`;
   if(!window.MAG) return `<div class="panel">${mascotHero(c,"My data bundle is missing.")}</div><div class="panel"><h2>Not built yet</h2><p style="font-weight:600;color:#3a5372">Run <code>node build/build_mag_data.js</code> to generate <code>data/mag.js</code>.</p></div>`;
   const L=MAGMONS(), opts=v=>L.map(k=>`<option value="${k}"${k===v?' selected':''}>${MAG.mons[k].n}</option>`).join('');
   const h=MAG.heldOut;
@@ -1175,7 +1189,7 @@ function roomMagnemite(){const c=CAST.find(x=>x.id==='magnemite');
 
 function magTypeChips(id){ return ((MAG.mons[id]||{}).t||[]).map(t=>`<span style="display:inline-block;color:#fff;border-radius:5px;padding:1px 7px;font-size:10.5px;font-weight:800;margin-right:3px;background:${MAGTC[t]||'#888'}">${t}</span>`).join(''); }
 
-function magInit(){ if(window.MAG) magOnYou(true); }
+function magInit(){ if(magHeld()) return; if(window.MAG) magOnYou(true); }
 function magOnYou(first){
   const y=document.getElementById('magYou').value;
   let def=(first&&y===MAGDEF.you)?MAGDEF.moves.slice():((MAG.mons[y]||{}).mv||[]).slice(0,4);
@@ -1389,7 +1403,16 @@ function roomMew(){const c=CAST.find(x=>x.id==='mew');
 }
 /* The battle viewer, as its own panel so it can sit FIRST in the room — it is the thing people came
    to see, and it used to be buried under four explainers. */
+function mewHeld(){ return window.ABRA_QUARANTINE && window.ABRA_QUARANTINE.heldFor('data/mew.js'); }
 function mewViewerPanel(){
+  /* THE BATTLE IS THE ARTIFACT. data/mew.js is a bundle of games MEDICHAM played, and a visitor who
+     watches one concludes the engine plays Champions correctly. The deliberate roster currently says
+     otherwise, so the viewer is withheld — there is no figure here for the citation checker to find,
+     and that is precisely why this class of leak needed its own probe. The panels below this one are
+     UNAFFECTED: they count real ladder games out of data/status.js, which is not downstream. */
+  if(mewHeld()) return `<div class="panel"><h2>Watch MEW play itself</h2>
+     ${window.ABRA_QUARANTINE.plate('data/mew.js',{subject:'THE BATTLES ARE WITHHELD — they were played by the build under quarantine'})}
+     <p style="font-weight:600;color:#3a5372;margin:0">The games are still on disk and still replay move for move from their seed. What cannot be shown is a battle offered as evidence that the simulator is right, while the instrument that measures the simulator says it is not.</p></div>`;
   return `<div class="panel"><h2>Watch MEW play itself</h2>
      <p style="font-weight:600;color:#3a5372;margin-top:0">Played on the official Champions simulator and replayed in
      <b>Pokémon Showdown's own replay player</b> — the one you already know. Paste any seed from the bundle,
@@ -1462,6 +1485,7 @@ function mewFindSeed(){
   mewShow(q);
 }
 function initMew(){
+  if(mewHeld()) return;              /* never point the frame at a withheld battle */
   var G=mewGames();
   var meta=(window.MEW&&window.MEW.meta)||{};
   if(G.length) mewShow(G[0].seed);
@@ -2001,7 +2025,15 @@ function doBattle(quiet){
   document.getElementById('mRivL').textContent=pb+'%';
   const fav = pa>pb?'Your team':'Rival team', edge=Math.abs(pa-pb);
   let msg = edge<8?`Too close to call from the sheet — basically a coin flip`:`${fav} leans favoured (${Math.max(pa,pb)}%)`;
-  document.getElementById('readout').innerHTML=`${msg} <span class="zap"></span><br><span style="font-size:12px;color:#889">JOLTEON only reads the team sheet, which barely beats a coin — treat this as a hint. Playing it out is <b>not</b> a better read: MEDICHAM's in-game win meter is measured <b>worse than a coin</b> on Brier and names the winner on 51.0% of decisive calls (95% CI 48.3–53.7, <code>data/winrate-backtest.json</code>). It is worth watching for <i>where</i> a game turns, not for who wins. <a href="#" onclick="doMedicham();return false" style="font-weight:700;color:#c0432f">play it out with MEDICHAM ▶</a></span>`;
+  /* THE CAVEAT SURVIVES ITS FIGURE. data/winrate-backtest.json is quarantined, so the 51.0% and its
+     interval are withheld — but "playing it out is not a better read" is a statement about which
+     instrument to trust, and deleting the sentence with the number would quietly upgrade MEDICHAM.
+     So the figure becomes a chip and the warning stays, in the same red as everywhere else. */
+  const QQ=window.ABRA_QUARANTINE;
+  const WB=(QQ&&QQ.heldFor('data/winrate-backtest.json'))
+    ? `MEDICHAM's in-game win meter is graded against a coin in <code>data/winrate-backtest.json</code>, and that artifact is ${QQ.chip('data/winrate-backtest.json')} — it was measured through the build of the simulator now under quarantine, so its accuracy and its interval are not shown here`
+    : ((QQ&&QQ.rel('index.jolteon.winrate'))||'');
+  document.getElementById('readout').innerHTML=`${msg} <span class="zap"></span><br><span style="font-size:12px;color:#889">JOLTEON only reads the team sheet, which barely beats a coin — treat this as a hint. Playing it out is <b>not</b> a better read: ${WB}. It is worth watching for <i>where</i> a game turns, not for who wins. <a href="#" onclick="doMedicham();return false" style="font-weight:700;color:#c0432f">play it out with MEDICHAM ▶</a></span>`;
   document.getElementById('mcout').textContent='';
 }
 /* live engines via the local server (start.bat). Graceful if not running. */

@@ -15,27 +15,27 @@ it does not compete on them.
 MEASURE — can we believe a number
   leaf calibration: QUARANTINED — the figure is withheld, not annotated.
     data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)
+    MEDICHAM is not correct — 3 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / moves)
     it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
   engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)
+    MEDICHAM is not correct — 3 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / moves)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 13 unsafe, 1 void (declared), 46 possibly stale, 55 ok, 0 missing
+  provenance: 20 unsafe, 1 void (declared), 60 possibly stale, 79 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 4 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)
+    MEDICHAM is not correct — 3 of 4 gate clauses fail (game differential; deliberate roster / items; deliberate roster / moves)
     it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 04:00
     feature_fixture --check FAILED:   The weights were fitted against the old definition and no longer describe these quantities. |   Refit (node engine/fit_policy.js, then node engine/fit_joint.js), or if a derived table was |   merely re-ingested, restamp with: node engine/feature_fixture.js --stamp <file>
-    moved after the fit: engine/medicham2-browser.js  2026-08-08 22:43
+    moved after the fit: engine/medicham2-browser.js  2026-08-09 19:30
     moved after the fit: engine/board.js  2026-08-05 19:44
     moved after the fit: data/engine-data.js  2026-08-06 19:20
-    moved after the fit: data/abra-tags.js  2026-08-08 06:23
+    moved after the fit: data/abra-tags.js  2026-08-09 18:22
 ```
 
-_stamped 2026-08-08 22:56_
+_stamped 2026-08-09 19:45_
 
 <!-- /GENERATED -->
 
@@ -102,11 +102,13 @@ exited 1 naming `data/winrate-backtest.json` and the leaked verdict sentence. An
 verified too: driving the real `withholder` with an open gate releases **34 of 34** and withholds
 none, so this can lift.
 
-**What the graph still cannot see, stated rather than papered over.** `provenance.js` finds a writer
+~~**What the graph still cannot see, stated rather than papered over.** `provenance.js` finds a writer
 only in `engine/` and `build/`, so ~50 artifacts written by `tests/` or through an unfollowed path
-variable have no row and are neither cleared nor withheld. The set contains instruments (the census)
-AND consumers (`exploitability-mag.json`, seven `policy-weights-*.json` variants), so it cannot be
-defaulted either way. `engine/quarantine.js` prints them as unknowns every run.
+variable have no row and are neither cleared nor withheld.~~ **CLOSED 2026-08-09 — see §00a.** The
+graph is 115 → 160 artifacts and the unknown set is 61 → 16. `data/rollout-r1-explore1.json`
+classifies on its own now and is HELD by its own derived reason, so the both-files workaround at
+`status.js:665` is retired-able. The instruments stayed clear and the consumers went behind the gate:
+**34 of 114 → 40 of 160** withheld.
 
 **Where a withheld number is still cited** — measured, not remembered, and ratcheted in
 `data/quarantine-stamp.json` (may shrink, never grow): `docs/ENGINE.md`, `docs/MEASURE.md`,

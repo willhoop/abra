@@ -406,6 +406,18 @@ const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnk
    * `damageMult: 0.5, onlyWhen: null` and is not a damage cut at all -- it DOUBLES berry effects --
    * so the derivation over-matched and the consumer refuses anything it cannot name a condition for. */
   damageReduceUnknown: 0, damageReduceUnknownFirst: '',
+  /* ROADMAP #112 -- the same refusal on the OTHER side of the damage chain. A `damageBoost` carrier
+   * whose `onlyWhen` this engine cannot evaluate is refused, not guessed.
+   *
+   * THIS COUNTER READS ZERO TODAY AND THAT IS THE CORRECT VALUE, which is worth stating because a
+   * zero counter is normally this project's signature symptom. Every `onlyWhen` in the artifact is
+   * now an `hpFraction` structure, so nothing reaches the null branch: Blaze, Torrent, Overgrow and
+   * Swarm used to be refused here and now evaluate. The abilities still NOT served -- Analytic,
+   * Rivalry, Reckless, Stakeout -- are refused one clause EARLIER, by `_db.onType`, because they
+   * carry `onlyWhen: null` and name no type; their conditions are absent from the artifact rather
+   * than unreadable in it. The counter exists so that the next condition kind added upstream cannot
+   * be silently dropped on the floor here. */
+  damageBoostUnknownCond: 0, damageBoostUnknownCondFirst: '',
   /* WIRE 91 -- a `speedCond` carrier whose condition is NOT in its params (`inWeather: []`): Quick
      Feet (a status condition), Surge Surfer (a terrain), Slow Start (a turn clock). Applying the bare
      multiplier would be Quick Feet x1.5 forever, so they are refused and counted. The enrichment
@@ -1340,6 +1352,36 @@ const mdChain=(v,chain)=>chain===CH_ONE?v:_tr4096((_tr4096(v*chain)+2047)/4096);
 const CH_EXACT = { toughclaws:[5325,4096], sheerforce:[5325,4096], punkrock:[5325,4096],
                    transistor:[5325,4096] };
 const exact4096=(id,m)=>CH_EXACT[id]||m;
+/* ROADMAP #112 -- `onlyWhen`, EVALUATED. ONE READER OF THE CONDITION, FOR EVERY TAG THAT CARRIES ONE.
+ *
+ * Returns TRUE (the condition holds, or there is none), FALSE (it does not), or NULL (this engine
+ * cannot read this shape). NULL IS NOT FALSE and the caller must not treat it as such: it means
+ * "refuse AND say so", which is the fail-closed rule ROADMAP #92 wrote after `damageReduce` nearly
+ * handed every Ripen body a permanent halving. A silent default looks exactly like a working feature.
+ *
+ * THE ARITHMETIC IS INTEGER, DELIBERATELY, AND THAT IS THE WHOLE BOUNDARY. Showdown's gate is
+ *
+ *     if (move.type === 'Fire' && attacker.hp <= attacker.maxhp / 3) return this.chainModify(1.5);
+ *
+ * -- a real division. `hp <= maxhp * (1/3)` is a DIFFERENT predicate, because the nearest double to
+ * 1/3 is below it: 150 * (1/3) is 49.999999999999993, so a body at exactly 50 out of 150 would be
+ * refused a boost it is owed. `hp*den <= maxhp*num` is exact for every maxhp in the game. An
+ * off-by-one here reads as correct at every HP except the one that decides the game, which is why
+ * tests/test-pinch-family.js stages both parities of maxhp and both sides of the line.
+ *
+ * `of: 'self'` is the body whose ability this is. The caller passes it; this function never guesses
+ * which body it means. */
+function condHolds(w,self){
+  if(w==null)return true;
+  if(typeof w==='object'&&w.cond==='hpFraction'&&w.of==='self'
+     &&Number.isInteger(w.num)&&Number.isInteger(w.den)&&w.den>0&&w.num>0
+     &&self&&self.st&&self.st.hp>0&&self.curHP!=null){
+    const hp=self.curHP,mx=self.st.hp;
+    if(w.cmp==='<=')return hp*w.den<=mx*w.num;
+    if(w.cmp==='>=')return hp*w.den>=mx*w.num;
+  }
+  return null;
+}
 /* HEALING IS A CLASS, AND blocksHealing IS ITS COUNTER — one gate, asked in every place HP goes up.
  *
  * Psychic Noise (196 uses) is the only member and it carries `blocksHealing {turns:2}`. Wiring the
@@ -2880,12 +2922,33 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
    * "multiply my attacking stat for moves of this type, always" family, and every member of it in
    * this format is `onModifyAtk`/`onModifySpA` -- verified handler by handler against the dex, and
    * asserted by the probe, not remembered. Members today: dragonsmaw, firemane, rockypayload,
-   * steelworker, transistor. All five are 0 corpus uses; they are wired because they are right. */
+   * steelworker, transistor. All five are 0 corpus uses; they are wired because they are right.
+   *
+   * ROADMAP #112 -- AND THE FOUR EVERYBODY RUNS. The paragraph above was true and the shape it
+   * describes was armed for the wrong half of the family: `!_db.onlyWhen` refused BLAZE (5,903 uses),
+   * TORRENT (1,924), OVERGROW (651) and SWARM (46) -- 8,524 uses that had never fired once -- while
+   * serving five abilities with zero. The refusal itself was never the defect and is not removed: a
+   * condition is still refused unless it can be READ. What changed is upstream, in tag_dex, where
+   * `onlyWhen` stopped being the sentence "only below 1/3 HP" and became `{cond:'hpFraction',
+   * of:'self', cmp:'<=', num:1, den:3}` derived from Showdown's own `attacker.hp <= attacker.maxhp/3`.
+   * `condHolds` evaluates it in integers; anything it cannot read returns null and is COUNTED, which
+   * is the only difference between failing closed and failing silently.
+   *
+   * `att`, not `_aBody`: the condition is about the body whose ability this is, and `attAb` two
+   * hundred lines up is `att.ability`. A Foul Play user reading its TARGET's stat is the one case
+   * where Showdown would pair the ability and the HP differently, and that pairing is wrong here
+   * already -- filed, not fixed, because it is the `attAb` read and not this condition. */
   {
     const _db=TAGS.param('ability',attAb,'damageBoost');
     const _rec=_db&&TAGS.tagsFor&&TAGS.tagsFor('ability',attAb);
-    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&!_db.onlyWhen&&_db.onType===mvT
-       &&_rec&&_rec.tags&&_rec.tags.length===1){ACH(exact4096(attAb,+_db.mult));MEDSEEN.damageBoostStat++;}
+    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&_db.onType===mvT
+       &&_rec&&_rec.tags&&_rec.tags.length===1){
+      const _dbw=condHolds(_db.onlyWhen,att);
+      if(_dbw===null){MEDFAILS.damageBoostUnknownCond++;
+        if(!MEDFAILS.damageBoostUnknownCondFirst)
+          MEDFAILS.damageBoostUnknownCondFirst=String(attAb)+'/'+JSON.stringify(_db.onlyWhen);}
+      else if(_dbw){ACH(exact4096(attAb,+_db.mult));MEDSEEN.damageBoostStat++;}
+    }
   }
   /* WIRE 112 (STAGED consumer) -- MARVEL SCALE, through `condStatMult`: a stat multiplied while a
    * body condition holds ({stat:'def', mult:1.5, when:'statused'}). The derivation is written in
@@ -9941,6 +10004,24 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
   hitChance,hitProb,printedAccuracy,accStageMul,ACCMOD,
   /* WIRE 130 -- exported for the SUBSTITUTE-BYPASS CONFORMANCE block in tests/test-engine-diff.js. */
   SUBPASS,
+  /* 2026-08-09 -- `MEDI_SPREAD`, WHICH THIS FILE HAS BEEN "EXPORTING" TO NOBODY SINCE IT WAS WRITTEN.
+   *
+   * Line 9972 assigns `root.MEDI_SPREAD=SPREAD` and that is the ONLY place it was ever published, so
+   * `require('medicham2-browser.js').MEDI_SPREAD` has always been undefined -- `'MEDI_SPREAD' in M`
+   * is false across all 65 exports. `engine/game_differential.js:2735` reads
+   * `M.MEDI_SPREAD ? M.MEDI_SPREAD.has(id) : false`, so that ternary has taken the FALSE branch on
+   * every run this repository has ever done and every spread move's staged damage span was priced as
+   * a single-target hit -- no doubles 0.75 -- while Showdown's side of the same comparison came from
+   * a real battle that applies it. ~1.33x high on Heat Wave, Rock Slide, Earthquake, Icy Wind,
+   * Dazzling Gleam, Snarl, Discharge and Make It Rain.
+   *
+   * The `root` assignment stays: board.js reaches this engine through the global object in a browser,
+   * which is the same argument `compareTurnOrder` and `traceCanon` already make ten lines down. This
+   * adds the module half, changes NOTHING the engine does -- `SPREAD`'s contents are untouched -- and
+   * changes what the INSTRUMENT reports through `mediSpan`. Landed AFTER ROADMAP #112's paired
+   * before/after had both arms in hand, deliberately, so a pinch-family delta and a spread-pricing
+   * delta could not arrive in one measurement. */
+  MEDI_SPREAD:SPREAD,
   /* WIRE 118 -- THE ORDERING RULE, exported because board.js had a second copy of it. It is one
      function, it is pure, and it consumes no RNG, so a feature vector can ask it the same question a
      turn asks. `turnOrderKey`/`sortTurnOrder` come with it so a caller cannot have to rebuild the

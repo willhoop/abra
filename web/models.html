@@ -302,9 +302,13 @@ svg{width:100%;height:auto;display:block}
 <text x="34" y="1184" class="t">MACHAMP — promote a champion by WINNING</text>
 <text x="34" y="1203" class="io">in: MAG's own weights · out: a vector that beat the last champion</text>
 <text x="34" y="1216" class="io">every other model here is fitted to predict a human CLICK; this one is not</text>
-<text x="34" y="1236" class="st" fill="#8a5a1a">HALF-RUN AND NO VERDICT: the run on disk stopped after 2 of the 8</text>
-<text x="34" y="1248" class="st" fill="#8a5a1a">generations it asked for, on a 48-feature vector<tspan x="34" dy="10" class="src">generations / gensRequested / features in data/ladder.json</tspan></text>
-<text x="34" y="1276" class="st" fill="#9a2b2b">its champion vector was DELETED — 48 features against MAG's 58<tspan x="34" dy="10" class="src">features in data/policy-weights.json · docs/MODELS.md calls it the largest untested lever here</tspan></text>
+<!-- WITHHELD OR RELEASED AT RENDER TIME, AND THE FIGURES ARE NOT IN THIS FILE. Both rows below rest on
+     a QUARANTINED artifact; web/build-quarantine.js puts the markup back into web/quarantine-data.js
+     only when engine/quarantine.js says the artifact may be shown, so there is nothing here to go
+     stale and nothing here to leak. The `g` is empty on purpose — an SVG box with a hole in it is the
+     rendering, and the script at the foot of the page fills it either way. -->
+<g id="q-machamp-gens" data-q="data/ladder.json" data-rel="models.machamp.gens" data-xy="34,1236"></g>
+<g id="q-machamp-vector" data-q="data/policy-weights.json" data-rel="models.machamp.vector" data-xy="34,1276"></g>
 
 <!-- WOBBUFFET'S HEADLINE IS NOT ON THIS PAGE, DELIBERATELY. data/exploitability.json carries
      void:true and a void_reason naming what moved under the measurement; docs/MEASURE.md and
@@ -341,9 +345,7 @@ svg{width:100%;height:auto;display:block}
      mistake the .src comment above warns about, and web/figure-audit.js scored it as three
      uncited figures. A citation one line below a number traces nothing. -->
 <text x="34" y="1436" class="io">how: imagines ~200 games per option <tspan class="src">ROLLOUT_N, engine/miltank.js</tspan></text>
-<text x="34" y="1456" class="st" fill="#9a2b2b">its in-game judge names the winner on</text>
-<text x="34" y="1470" class="st" fill="#9a2b2b">51.0% of decisive calls, CI 48.3–53.7 <tspan x="34" dy="11" class="src">from data/winrate-backtest.json</tspan></text>
-<text x="34" y="1497" class="st" fill="#9a2b2b">— the interval contains a coin</text>
+<g id="q-miltank-leaf" data-q="data/winrate-backtest.json" data-rel="models.miltank.leaf" data-xy="34,1456"></g>
 <text x="34" y="1509" class="st" fill="#8a5a1a">it screens options with that same judge</text>
 
 <rect class="box" x="410" y="1368" width="330" height="150" fill="#fde4e0"/>
@@ -474,6 +476,43 @@ svg{width:100%;height:auto;display:block}
      either copy and under file://. It is the generated board of scalars, each copied verbatim from
      the artifact it names; tests/test-web-status.js goes red when any of them drifts. -->
 <script src="status-data.js"></script>
+<script src="quarantine-data.js"></script>
+<script>
+/* ---- THE QUARANTINE, DRAWN INTO THE MAP ------------------------------------------------------
+ * Three rows on this map rest on an artifact that is downstream of engine/medicham2-browser.js.
+ * While the gate is closed the figures are not in this file at all — they are in
+ * web/quarantine-release.json and web/build-quarantine.js declines to emit them — so each `g` fills
+ * with a WITHHELD run instead. When the gate opens the builder emits the original markup and the
+ * same `g` fills with exactly what the map showed before. A box that silently loses two lines would
+ * read as a model with less to say about itself, which is the opposite of the finding. */
+(function(){
+  var Q = window.ABRA_QUARANTINE;
+  var runs = document.querySelectorAll('g[data-rel]');
+  for (var i = 0; i < runs.length; i++) {
+    var g = runs[i], src = g.getAttribute('data-q'), key = g.getAttribute('data-rel');
+    var xy = (g.getAttribute('data-xy') || '0,0').split(','), x = xy[0], y = +xy[1];
+    var held = Q && Q.heldFor(src);
+    if (!held) {
+      var rel = Q && Q.rel(key);
+      /* NO FALLBACK. If the gate is open and the builder still has not emitted the row, the map says
+         so rather than showing an empty space that reads as "nothing to report here". */
+      g.innerHTML = rel || ('<text x="' + x + '" y="' + y + '" class="st" fill="#9a2b2b">NOT RENDERED — '
+        + 'web/quarantine-data.js carries no row for ' + key + '<tspan x="' + x + '" dy="12" class="src">'
+        + 'rebuild it: node web/build-quarantine.js</tspan></text>');
+      continue;
+    }
+    /* TWO LINES, NOT FOUR, AND THE REASON IS THE BOX. MACHAMP carries two withheld runs 40px apart
+       inside a 134px-tall box; a four-line plate for each one overlapped the other and then ran out
+       through the bottom edge. The full reason and the failing clauses go into a <title>, which is
+       both the hover text and what a screen reader reads. */
+    g.innerHTML =
+      '<title>' + Q.esc(held.file + ' — ' + held.because + '. ' + held.clause) + '</title>' +
+      '<text x="' + x + '" y="' + y + '" class="st" fill="#9a2b2b">QUARANTINED — the figure is withheld</text>' +
+      '<text x="' + x + '" y="' + (y + 11) + '" class="src">' + Q.esc(held.file) + ' · re-run: '
+        + Q.esc(held.rerun || 'node engine/quarantine.js') + '</text>';
+  }
+})();
+</script>
 <script>
 /* THE TWO NUMBERS THIS MAP CARRIES ARE NOW READ, NOT TYPED.
  * They had drifted: the page said "3k good games" and "5,368 real teams" while the artifacts said

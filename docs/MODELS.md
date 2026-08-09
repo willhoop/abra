@@ -1,6 +1,26 @@
 # ABRA — the model family (living reference)
 
-**Version 3.82.0 · Last updated 2026-08-08.**
+**Version 3.85.0 · Last updated 2026-08-09.**
+
+**3.85.0 — THE WHOLE SITE WITHHOLDS NOW, AND THE DEPLOYED COPY WAS MISSING THE FILE THAT MAKES IT
+WORK.** Five pages LOADED a quarantined artifact as data instead of quoting its verdict, so the
+citation checker could not see them at all; seven of the Stadium's fifteen cabinets now go dark, each
+keeping its seat and its button and answering with the quarantine instead of a number. The file that
+drives all of it, `quarantine-data.js`, did not exist under `app/` — which is the copy a visitor
+loads — so every guard there took the healthy path. That is the same failure as the day before, one
+directory over.
+
+**3.83.0 — THE PINCH FAMILY FIRES FOR THE FIRST TIME, AND THE ENGINE HAD BEEN RIGHT TO REFUSE IT.**
+Blaze, Torrent, Overgrow and Swarm carry 9,141 sheet uses between them and none of the four had ever
+fired. The consumer's guard was correct at every moment: their condition sat in the artifact as the
+SENTENCE "only below 1/3 HP", and a guessed threshold is worse than no wire at all. What nobody had
+done was make the condition READABLE — so the refusal was permanent, and the shape the consumer did
+serve is five abilities with **zero** corpus uses. The gate is now derived by shape from Showdown's
+own handler and evaluated in integer arithmetic, because a body at exactly one third of its maximum
+HP must get the boost and one HP above must not. The roster's abilities queue went from one
+DID-NOT-FIRE to none, with exactly four verdicts changed and nothing else moved, and the census rose
+324 → 325. Failing closed is unchanged: a condition the engine still cannot read refuses, and is now
+counted rather than silent.
 
 **3.82.0 — THE FIRST ENGINE FIX OF THE QUEUE LANDS: THE VOLATILE DURATION FAMILY, 9,092 USES, AND
 IT WAS THE PERISH SONG BUG A SECOND TIME.** Showdown decrements a volatile's duration inside the

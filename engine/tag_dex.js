@@ -148,10 +148,41 @@ function multiplierIn(src) {
   const a = src.match(/chainModify\(\s*\[\s*(\d+)\s*,\s*(\d+)\s*\]\s*\)/);
   return a ? +(((+a[1]) / (+a[2])).toFixed(3)) : null;
 }
+/* ROADMAP #112 -- THE HP GATE IS A STRUCTURE NOW, NOT A SENTENCE.
+ *
+ * This returned PROSE ("only below 1/3 HP") and that single fact is why Blaze, Torrent, Overgrow and
+ * Swarm -- 8,524 corpus uses between them -- had never fired. medicham2's `damageBoost` consumer
+ * gated on `!_db.onlyWhen`, refusing any member carrying a condition it could not evaluate. THAT
+ * REFUSAL WAS CORRECT (ROADMAP #92: a guessed threshold is the boolean-in-a-fraction's-clothing
+ * defect, and failing closed beats inventing one). The defect was that nobody ever made the condition
+ * readable, so the refusal was permanent -- and the consumer ended up armed for five abilities with
+ * ZERO corpus uses and closed against the four everybody runs.
+ *
+ * DERIVED BY SHAPE, NEVER BY NAME. Showdown writes the gate as `attacker.hp <= attacker.maxhp / 3`,
+ * and that expression IS the specification. A pinch ability added next regulation at 1/4 is picked up
+ * with no engine edit, which is docs/TAGS.md's standing rule and the opposite of the hand-maintained
+ * list this repository keeps being burned by.
+ *
+ * THE FRACTION IS KEPT AS num/den AND NEVER COLLAPSED TO A FLOAT. `hp <= maxhp * (1/3)` is NOT the
+ * same predicate as `hp <= maxhp / 3`: the nearest double to 1/3 is below it, so 150 * (1/3) is
+ * 49.999999999999993 and a body at exactly 50 -- one third of 150 -- would be refused the boost it is
+ * owed. A consumer holding num and den can ask `hp*den <= maxhp*num` in integers and be exactly
+ * right at the boundary, which is the one HP that decides games.
+ *
+ * `says` carries the old prose so anything that PRINTED this still reads, and so the structure is
+ * self-describing in the artifact.
+ *
+ * WHAT IT MATCHES, PRINTED BEFORE IT WAS BELIEVED (docs/LESSONS §4), over every standard ability and
+ * item in the format: blaze 1/3, defeatist 1/2, overgrow 1/3, swarm 1/3, torrent 1/3 on the `<=`
+ * side; multiscale and shadowshield on the `>=` side; NO items and NO denominator of two or more
+ * digits. The regex takes `\d+` rather than the old `\d` so it agrees with the one
+ * `tests/roster.js`'s `ability/pinch-offense` rule reads the same handler with -- two readers of one
+ * fact must not disagree, and `tests/test-pinch-family.js` asserts they do not. */
 function hpGateIn(src) {
-  if (/hp\s*>=\s*\w+\.maxhp/.test(src)) return 'only at full HP';
-  if (/hp\s*<=\s*\w+\.maxhp\s*\/\s*(\d)/.test(src))
-    return 'only below 1/' + src.match(/maxhp\s*\/\s*(\d)/)[1] + ' HP';
+  const G = (cmp, num, den, says) => ({ cond: 'hpFraction', of: 'self', cmp, num, den, says });
+  if (/hp\s*>=\s*\w+\.maxhp/.test(src)) return G('>=', 1, 1, 'only at full HP');
+  const le = /hp\s*<=\s*\w+\.maxhp\s*\/\s*(\d+)/.exec(src);
+  if (le) return G('<=', 1, +le[1], 'only below 1/' + le[1] + ' HP');
   return null;
 }
 function statusIn(src) {
@@ -3343,7 +3374,16 @@ const ABILITY_TAGS = [
        * `null` now means genuinely unconditional. It used to mean "no HP gate", which quietly
        * described Filter and Ice Scales as unconditional -- and RIPEN, which reduces nothing at all
        * and is about berries; requiring a real multiplier drops it. */
-      let when = hpGateIn(src) ? 'fullHP' : null;
+      /* `damageReduce` KEEPS ITS STRING VOCABULARY and is untouched by ROADMAP #112 -- its consumer
+       * (medicham2, the MODMUL block) reads 'fullHP' / 'superEffective' / 'special' / 'physical' /
+       * 'sound' and nothing else. The one thing that changed is that the gate is now asked for its
+       * DIRECTION instead of only its truthiness: `hpGateIn` returns an object for BOTH `>= maxhp`
+       * and `<= maxhp/N`, and calling the second of those 'fullHP' would be exactly backwards. No
+       * member of this family carries a `<=` gate today (Multiscale and Shadow Shield are the only
+       * two, both `>=`), so the artifact is unchanged -- verified by diffing the regenerated
+       * tags.json. The guard is here so it stays that way. */
+      const _g = hpGateIn(src);
+      let when = (_g && _g.cmp === '>=') ? 'fullHP' : null;
       if (!when) {
         if (/typeMod\s*>\s*0/.test(src)) when = 'superEffective';
         else if (/category\s*===\s*["']Special["']/.test(src)) when = 'special';

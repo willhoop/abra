@@ -58,15 +58,52 @@ const STRICT = process.argv.includes('--strict');
  * call; one that READS data/y.json names it too. Both are greppable facts about the code rather than
  * claims about it, so a new model joins the audit by existing.
  */
+/* WHERE A GENERATOR MAY LIVE.
+ *
+ * `tests/` WAS MISSING AND IT HELD THE INSTRUMENTS. This scanned engine/ and build/ only, so every
+ * artifact written by a test had no row in this graph AT ALL — not `ok`, not UNSAFE, absent. That set
+ * is not a fringe: it is `mechanics-census.json`, `engine-diff.json`, `interaction-matrix.json` and
+ * the deliberate roster, which is to say the four instruments engine/quarantine.js reads to decide
+ * whether MEDICHAM is correct. The tool that answers "is this artifact still true" could not see the
+ * files that answer "is the engine still right".
+ *
+ * A test that writes an artifact is a generator. Nothing about `engine/` makes a write call more
+ * trustworthy, and the ranking below judges the WRITE, not the directory. */
+const GEN_DIRS = ['engine', 'build', 'tests'];
+/* Where a DECLARED writer (see declaredWriter()) is allowed to point. Wider than GEN_DIRS because a
+ * declaration names a script that may sit anywhere a script sits; it is resolved and must exist. */
+const DECL_DIRS = ['engine', 'build', 'tests', 'tools', 'scripts'];
+
+/* A COMMENT IS NOT CODE, AND THE WRITE ARMS BELOW NOW READ THE CODE.
+ *
+ * This file has recorded that lesson twice and applied it once — `writesOnItsOwnLine` skips comment
+ * lines and nothing else did. It cost an attribution in this very pass: the comment two blocks up
+ * quotes `fs.writeFileSync(path.join(TMP, 'engine-release.json'), ...)` as an EXAMPLE OF WHAT NOT TO
+ * COUNT, and `writesNear` promptly credited engine/provenance.js with generating the release pointer.
+ * A provenance checker naming itself as the source of an artifact, for the second time, in the file
+ * that already carries that sentence about itself.
+ *
+ * Blank space replaces a block comment rather than nothing, so line numbers and line boundaries
+ * survive and a name before a comment cannot join a write after it.
+ *
+ * Deliberately NOT applied to `readsNear`: that arm decides `from`, which decides staleness verdicts,
+ * and moving it is a change to what this tool SAYS rather than to what it can SEE. It has the same
+ * hole and it is filed rather than fixed here. */
+function stripComments(s) {
+  return s.replace(/\/\*[\s\S]*?\*\//g, m => m.replace(/[^\n]/g, ' '))
+          .replace(/(^|[^:])\/\/[^\n]*/g, '$1')
+          .replace(/(^|\n)([ \t]*)#[^\n]*/g, '$1$2');
+}
+
 function deriveGraph() {
   const gens = [];
-  for (const dir of ['engine', 'build']) {
+  for (const dir of GEN_DIRS) {
     const d = D(dir);
     if (!fs.existsSync(d)) continue;
     for (const f of fs.readdirSync(d)) {
       if (!/\.(js|py)$/.test(f)) continue;
       let src; try { src = fs.readFileSync(path.join(d, f), 'utf8'); } catch (e) { continue; }
-      gens.push({ id: dir + '/' + f, src });
+      gens.push({ id: dir + '/' + f, src, code: stripComments(src) });
     }
   }
   /* A write looks like writeFileSync(...'name.json'...) or open(...,'w') on a joined path; both end
@@ -93,6 +130,57 @@ function deriveGraph() {
     return -1;
   };
   const named = (src, file) => at(src, file, 0) >= 0;
+  /* AND THE WRITE MUST BE INTO data/, WHICH ONLY MATTERED ONCE tests/ WAS SCANNED.
+   *
+   * A generator in engine/ that names an artifact beside a write is writing that artifact; there is
+   * nowhere else it would be putting it. A TEST is different — it writes the same filename into a
+   * temporary directory to drive the thing under test:
+   *
+   *   tests/test-miltank-release.js:128
+   *     fs.writeFileSync(path.join(EMPTY, 'engine-release.json'), JSON.stringify({ current: eid }))
+   *
+   * That is a fixture in a scratch tree, and on the first run it outranked engine/engine_release.js
+   * and took ownership of the release pointer. Attributing an artifact to the wrong generator means
+   * fixing the wrong generator — so a write only counts when the path is rooted in data/.
+   *
+   * Deliberately a WINDOW rather than a parse: `D('data', 'x.json')`, `path.join(ROOT,'data','x.json')`,
+   * `'../data/x.json'` and `DATA_DIR + 'x.json'` are all the same statement and none of them is worth
+   * a parser. 64 characters is long enough for every spelling in this repository and short enough that
+   * an unrelated mention of the word two arguments away cannot reach.
+   *
+   * AND THE WORD IS OFTEN INSIDE A HELPER, so the helper is derived rather than assumed. The dominant
+   * idiom here is `const D = p => path.join(__dirname, '..', 'data', p)` and then `D('illusion.json')`
+   * — the write line never says `data` at all. Requiring the literal word cost SIX correctly
+   * attributed artifacts on the first attempt, which is the direction this guard must not fail in: a
+   * lost row is an artifact nothing checks. So an identifier whose own DEFINITION roots it in data/
+   * counts as saying it. Note that the same name is not always the same helper — smogon_priors.js's
+   * `D` is `(...p) => path.join(ROOT, ...p)` and roots nothing — so this is computed per source. */
+  const DATA_WINDOW = 64;
+  const rootCache = new Map();
+  function dataRoots(src) {
+    if (rootCache.has(src)) return rootCache.get(src);
+    const out = [];
+    for (const m of src.matchAll(/^\s*(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=[^\n]*$/gm)) {
+      if (!/\bdata\b/i.test(m[0])) continue;
+      if (!/(path\.join|os\.path\.join|resolve|__dirname)/.test(m[0])) continue;
+      out.push(m[1]);
+    }
+    const re = out.length ? new RegExp(`\\b(?:${out.join('|')})\\s*\\(`) : null;
+    rootCache.set(src, re);
+    return re;
+  }
+  /* `\bdata\b`, NOT `data`. A bare substring test matched the identifier `atInData` sixty characters
+   * away and rooted a scratch-tree write in data/ — inside this file, in the comment describing the
+   * guard. `DATA_WINDOW` and `dataFiles` would have done it too. A path segment is a WORD: `'data'`,
+   * `"data"`, `../data/x.json` all match; a camelCase identifier that happens to contain it does not. */
+  const rootedIn = (text, src) => /\bdata\b/i.test(text) || !!(dataRoots(src) && dataRoots(src).test(text));
+  /* `whole` is the file the helper definitions live in; `text` may be a single line out of it. */
+  const atInData = (text, file, from, whole) => {
+    for (let i = at(text, file, from); i >= 0; i = at(text, file, i + 1)) {
+      if (rootedIn(text.slice(Math.max(0, i - DATA_WINDOW), i), whole || text)) return i;
+    }
+    return -1;
+  };
   /* The filename within ~120 characters of something that opens a file for reading. */
   const READ = /(readFileSync|require\s*\(|open\s*\(|read_json|load_games|loadGames|json\.load)/;
   function readsNear(src, file) {
@@ -104,10 +192,209 @@ function deriveGraph() {
     return false;
   }
 
+  /* A COMMENT IS NOT CODE — hoisted out of the per-file loop below because the template scanner
+   * needs the same test. See the note at `writesOnItsOwnLine` for the victim that produced it. */
+  const isComment = ln => /^\s*(\/\/|\/\*|\*|#)/.test(ln);
+  /* A STRICTER WRITE TEST THAN `WRITE`, at line scope. See the note at `writesOnItsOwnLine`.
+   *
+   * THE MODE STRING MUST BE AN ARGUMENT OF THE `open` CALL, not merely somewhere later on the line,
+   * and scanning tests/ found the victim of the looser form on the first run — JOLTEON's weight file,
+   * loaded by tests/test-jolteon.py like this:
+   *
+   *   M=json.load(open('data/<artifact>.json')); idx={...}; w=np.array(M['w'])
+   *
+   * That is a READ. `.*['"][wa]['"]` reached past the closing paren and matched the one-character
+   * dict key `'w'` at the end of the line, so the test — which only loads the model to assert things
+   * about it — outranked engine/ditto.py, which computes it. The same false-attribution class as
+   * engine/build_roles_js.py and engine/state_encoder.py, and it also flipped the artifact to
+   * not-store-derived, exempting it from every corpus check here.
+   *
+   * One level of parenthesis nesting is allowed so the ordinary Python idiom still matches:
+   *   json.dump(dex_out, open(D("data","pokemon-roles.json"),"w"), indent=1) */
+  const LINE_WRITE = /writeFileSync|createWriteStream|json\.dump|to_json|open\s*\((?:[^()]|\([^()]*\))*,\s*['"][wa]b?\+?['"]/;
+
+  /* ══ WRITERS WHOSE OUTPUT NAME IS COMPUTED, NOT SPELLED ═══════════════════════════════════════
+   *
+   * Everything above finds a writer by looking for the artifact's LITERAL NAME beside a write. A
+   * generator that assembles its output path leaves no such literal anywhere, so it has no writer,
+   * so the artifact has no row, so nothing can compare it to its source. Three of those are in this
+   * repository right now and all three matter:
+   *
+   *   tests/roster.js       fs.writeFileSync(D('data', 'roster.' + STAGE + '.json'), ...)
+   *   engine/exploit.js     const OUT = ... D('data', TAG ? `exploitability-${TAG}.json` : ...)
+   *   engine/run_stamp.js   return rel.replace(...) + '.meta.json'
+   *
+   * The first is the deliberate roster — the three clauses of the MEDICHAM gate. The second is
+   * `exploitability-mag.json`, the file behind the project's headline metric. The third is every
+   * run sidecar in the repository. `data/roster.moves.prev.json` having no discoverable writer is
+   * what trips engine/conformance.js's S13 today.
+   *
+   * SO THE PATTERN IS DERIVED FROM THE SOURCE, exactly as the rest of this graph is. A concatenation
+   * or a template literal that ends in a data extension becomes a REGEX with one wildcard per
+   * runtime value, and an artifact matching it has that generator as a candidate. Nothing is typed.
+   *
+   * THREE THINGS KEEP IT FROM BECOMING THE LOOSE MATCH THIS FILE HAS HAD TO FIX FOUR TIMES:
+   *   - the wildcard is `[^./\]+`, so `roster.` + X + `.json` reaches roster.items.json and NOT
+   *     roster.abilities.pre-shape-rules.json. A pattern that swallows dots swallows the repository.
+   *   - the LITERAL part, minus its extension, must be at least four characters. `${x}.json` is not
+   *     a pattern, it is "any artifact", and it would credit one generator with the whole of data/.
+   *   - the value must reach a write: on the same line, through an identifier that is written, or
+   *     out of a `return` in a file that writes. A path shape mentioned and never used is not a
+   *     writer, which is the same rule `writesVia` learned when `const r = JSON.parse(...)` credited
+   *     fetch_smogon_stats.js with generating the format registry.
+   *
+   * It ranks BELOW a literal write and ABOVE `writesNear`'s 200-character window: a computed name
+   * that matches is a stronger statement than a name that merely occurs near a write verb. */
+  const DATA_TAIL = /\.(json|jsonl|js)$/;
+  const WILD = '[^./\\\\]+';
+  const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  /* Split a line into string literals and the code between them. Deliberately naive about regex
+   * literals: `/\.[^./]+$/` contains no quote, so it lands in a gap and simply ends a chain, which
+   * is the safe direction — a missed template costs an UNKNOWN, a wrong one costs an attribution. */
+  function tokenize(ln) {
+    const toks = [];
+    const re = /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g;
+    let last = 0, m;
+    while ((m = re.exec(ln))) {
+      if (m.index > last) toks.push({ t: 'gap', s: ln.slice(last, m.index) });
+      toks.push({ t: 'str', s: m[0].slice(1, -1) });
+      last = re.lastIndex;
+    }
+    if (last < ln.length) toks.push({ t: 'gap', s: ln.slice(last) });
+    return toks;
+  }
+  /* The concatenation chain that ENDS the line's last string literal, read right to left. Anchored at
+   * the end because a filename ends in its extension: that is the one piece always present as a
+   * literal, and walking outward from it stops the scan wandering into unrelated arguments. Returns
+   * chunks that are joined by a wildcard, so ['roster.', '.json'] means roster.<something>.json and
+   * ['', '.meta.json'] means <something>.meta.json. */
+  function concatChain(ln) {
+    const toks = tokenize(ln);
+    let i = toks.length - 1;
+    while (i >= 0 && toks[i].t !== 'str') i--;
+    if (i < 0) return null;
+    const parts = [toks[i].s];
+    let j = i - 1;
+    while (j >= 1 && toks[j].t === 'gap' && toks[j - 1].t === 'str') {
+      const gap = toks[j].s;
+      if (/^\s*\+\s*$/.test(gap)) { parts[0] = toks[j - 1].s + parts[0]; j -= 2; continue; }
+      if (/^\s*\+[^'"]*\+\s*$/.test(gap)) { parts.unshift(toks[j - 1].s); j -= 2; continue; }
+      if (/\+\s*$/.test(gap)) parts.unshift('');
+      break;
+    }
+    if (parts.length === 1 && j >= 0 && toks[j] && toks[j].t === 'gap' && /\+\s*$/.test(toks[j].s)) parts.unshift('');
+    return parts;
+  }
+  function patternFrom(parts) {
+    if (!parts || parts.length < 2) return null;                 // no wildcard: it is a literal
+    if (!DATA_TAIL.test(parts[parts.length - 1])) return null;   // a filename ends in its extension
+    if (parts.some(p => /[/\\]/.test(p))) return null;           // a directory separator is not a name
+    const literal = parts.join('').replace(DATA_TAIL, '');
+    if (literal.length < 4) return null;                         // "any artifact" is not a pattern
+    return new RegExp('^' + parts.map(esc).join(WILD) + '$');
+  }
+  /* Does this path shape reach a write? Three named routes, one per real case above.
+   *
+   * The first two must be ROOTED IN data/ for the reason `inData` records — a fixture written into a
+   * scratch directory shares the basename and is not the artifact. The THIRD is deliberately exempt:
+   * a path HELPER is handed a relative name and returns a relative name, and its caller is what puts
+   * it under data/. Requiring the word on the helper's own line would ask a function to know where
+   * its caller writes. The bound on that exemption is that the pattern must still match a file that
+   * is actually in data/, which is the only set this graph ever tests against. */
+  function flowsToWrite(ln, src, anyWrite) {
+    const rooted = rootedIn(ln, src);
+    if (rooted && LINE_WRITE.test(ln)) return 'written on the same line';
+    const m = ln.match(/^\s*(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=/);
+    if (rooted && m) {
+      const use = new RegExp(`(writeFileSync|createWriteStream|json\\.dump|to_json|open)\\s*\\([^)\\n]*\\b${m[1]}\\b`);
+      if (use.test(src)) return `assigned to ${m[1]}, which is written`;
+    }
+    if (/^\s*return\b/.test(ln) && anyWrite) return 'returned by a path helper in a file that writes';
+    return null;
+  }
+  const tmplCache = new Map();
+  function pathTemplates(g) {
+    if (tmplCache.has(g.id)) return tmplCache.get(g.id);
+    const out = [];
+    const src = g.code;
+    const anyWrite = /writeFileSync|createWriteStream|json\.dump|to_json/.test(src);
+    for (const ln of src.split('\n')) {
+      if (isComment(ln)) continue;
+      if (!/\.(json|jsonl|js)['"`]/.test(ln)) continue;
+      const shapes = [];
+      for (const m of ln.matchAll(/`([^`]*)`/g)) {
+        if (!/\$\{[^}]*\}/.test(m[1])) continue;
+        shapes.push(m[1].split(/\$\{[^}]*\}/));
+      }
+      const chain = concatChain(ln);
+      if (chain) shapes.push(chain);
+      for (const parts of shapes) {
+        const re = patternFrom(parts);
+        if (!re) continue;
+        const how = flowsToWrite(ln, g.src, anyWrite);
+        if (!how) continue;
+        out.push({ re, how, shape: parts.join('<*>') });
+      }
+    }
+    tmplCache.set(g.id, out);
+    return out;
+  }
+  const templateWrite = (g, file) => pathTemplates(g).find(t => t.re.test(file)) || null;
+
   const dataFiles = fs.readdirSync(D('data'))
     .filter(f => /\.(json|js)$/.test(f) && !/^games\./.test(f) && f !== 'quality-filter.json');
 
+  /* ══ AND WHERE NO SOURCE CAN SAY, THE ARTIFACT MAY ═════════════════════════════════════════════
+   *
+   * Some writers are undiscoverable in principle rather than by weakness of the scan.
+   * `engine/rollout_r1_artifact.js` writes the literal `data/rollout-r1.json` and nothing else; the
+   * explore=1 arm — THE ARM engine/miltank.js RUNS — was produced by the same script over a different
+   * dump and given a different name afterwards, so no pattern over that source can ever reach it.
+   * `engine/fit_policy.js` takes its output path from the OUT_WEIGHTS environment variable, which is
+   * a runtime string with no literal shape at all.
+   *
+   * The artifact itself is then the only witness, and several already say so: `by`, `source`,
+   * `written_by`. That is the same convention as `not_store_derived`, `raw_store_ok`,
+   * `population_ceiling` and `void` — a declaration IN the artifact, visible to a consumer.
+   *
+   * IT IS THE WEAKEST EVIDENCE HERE AND IS LABELLED AS SUCH. It never outranks a derived writer, the
+   * named script must EXIST (a declaration pointing at nothing is a claim that has quietly become
+   * false, and is reported rather than believed), and every row carries `via` so a reader can tell a
+   * write call from a sentence. data/meta-nash.json declares "UNKNOWN GENERATOR. No script … writes
+   * this file" — that is the honest shape, and it stays UNKNOWN. */
+  const declFailures = [];
+  function declaredWriter(file) {
+    if (!/\.json$/i.test(file)) return null;                     // a .js bundle is not self-describing
+    let j = null;
+    try { j = JSON.parse(fs.readFileSync(D('data', file), 'utf8')); } catch (e) { return null; }
+    if (!j || typeof j !== 'object') return null;
+    const p = j.provenance && typeof j.provenance === 'object' ? j.provenance : {};
+    for (const v of [j.by, j.generated_by, j.written_by, j.generator, j.source,
+                     p.by, p.generated_by, p.written_by, p.generator]) {
+      if (typeof v !== 'string' || !v.trim()) continue;
+      /* A COMMAND LINE IS A DECLARATION TOO. data/ab-batch-effect.json says
+       * "engine/mew.js --policy score --policy2 score@../ABRA-prebatch". The first token that
+       * resolves to a script on disk is the writer; the rest is how it was invoked. */
+      for (const tok of v.split(/\s+/)) {
+        const t = tok.replace(/^\.\//, '');
+        if (!/^(?:[A-Za-z0-9_.-]+\/)?[A-Za-z0-9_.-]+\.(js|py)$/.test(t)) continue;
+        const dir = t.includes('/') ? t.split('/')[0] : null;
+        const cands = dir ? (DECL_DIRS.includes(dir) ? [t] : []) : DECL_DIRS.map(d => d + '/' + t);
+        for (const rel of cands) {
+          if (!fs.existsSync(D(rel))) continue;
+          let src = ''; try { src = fs.readFileSync(D(rel), 'utf8'); } catch (e) { continue; }
+          return { g: { id: rel, src, code: stripComments(src) }, claim: v.slice(0, 90) };
+        }
+        declFailures.push(`${file} declares "${v.slice(0, 60)}" and no such script exists`);
+        break;
+      }
+    }
+    return null;
+  }
+
   const out = [];
+  const noWriter = [];
   for (const file of dataFiles) {
     /* A WRITER names the file NEXT TO a write call, not merely somewhere in a file that also
      * happens to write something else. Matching loosely credited data/policy-weights.json to
@@ -115,10 +402,10 @@ function deriveGraph() {
      * mentions it in a report. Attributing an artifact to the wrong generator means fixing the
      * wrong generator. */
     const writesNear = (src) => {
-      let i = at(src, file, 0);
+      let i = atInData(src, file, 0, src);
       while (i >= 0) {
         if (WRITE.test(src.slice(Math.max(0, i - 200), i + 60))) return true;
-        i = at(src, file, i + 1);
+        i = atInData(src, file, i + 1, src);
       }
       return false;
     };
@@ -136,16 +423,15 @@ function deriveGraph() {
      * `json.load(open(D("data","pokemon-roles.json"), encoding="utf-8"))` is a READ and matches it.
      * Using the loose form here left engine/roles.py (which writes the file) and
      * engine/build_roles_js.py (which reads it) tied at the top rank, and the tie was broken by
-     * directory order. An `open` is only a write when a mode string says so. */
-    const LINE_WRITE = /writeFileSync|createWriteStream|json\.dump|to_json|open\s*\(.*['"][wa]b?\+?['"]/;
+     * directory order. An `open` is only a write when a mode string says so.
+     * (`LINE_WRITE` is defined once above, because the template scanner needs the same test.) */
     /* A COMMENT IS NOT CODE. This test found its first victim immediately: the comment above quotes
      * engine/roles.py's write line verbatim, which credited THIS FILE with generating
      * data/pokemon-roles.json — a provenance checker naming itself as the source of an artifact,
      * which is the same class of false attribution the block above exists to fix. A write statement
-     * never lives on a line that opens with a comment marker. */
-    const isComment = ln => /^\s*(\/\/|\/\*|\*|#)/.test(ln);
+     * never lives on a line that opens with a comment marker. (`isComment` is defined once above.) */
     const writesOnItsOwnLine = (src) =>
-      src.split('\n').some(ln => !isComment(ln) && at(ln, file, 0) >= 0 && LINE_WRITE.test(ln));
+      src.split('\n').some(ln => !isComment(ln) && atInData(ln, file, 0, src) >= 0 && LINE_WRITE.test(ln));
     /* ONE LEVEL OF VARIABLE INDIRECTION, which is the dominant Python idiom in engine/:
      *   OUT = os.path.join(ROOT, "data", "guru-matchups.json")
      *   ...
@@ -185,16 +471,63 @@ function deriveGraph() {
         if (ASSIGN_IS_READ.test(m[0])) continue;
         const ident = m[1];
         const use = new RegExp(`(writeFileSync|createWriteStream|json\\.dump|to_json|open)\\s*\\([^)\\n]*\\b${ident}\\b`);
-        if (use.test(src)) return true;
+        const hit = src.match(use);
+        /* ROOTED IN data/ SOMEWHERE ALONG THE CHAIN — see the note at `atInData`.
+         *   const POINTER = path.join(TMP, 'engine-release.json');  ... writeFileSync(POINTER, ...)
+         * binds a fixture in a scratch tree, and a test that does that is not the artifact's writer.
+         * EITHER END counts, because both spellings are common here and both are correct:
+         *   engine/policy.js    roots at the BINDING   `path.join(__dirname,'../data/move-priors.json')`
+         *   smogon_priors.js    roots at the WRITE     `const outFile = ...` … `D('data', outFile)`
+         * Demanding it at the write site alone lost sixteen correctly attributed rows, which is the
+         * direction this guard must not fail in: a lost row is an artifact nothing checks. */
+        if (hit && (rootedIn(m[0], src) || rootedIn(hit[0], src))) return true;
       }
       return false;
     };
     /* Rank the candidates by how directly they write it and take the best, rather than whichever
-     * the directory scan happened to reach first. */
-    const cands = gens.filter(g => named(g.src, file));
-    const rank = g => (writesOnItsOwnLine(g.src) ? 3 : 0) || (writesVia(g.src) ? 2 : 0) || (writesNear(g.src) ? 1 : 0);
-    const writers = cands.map(g => ({ g, r: rank(g) })).filter(x => x.r > 0).sort((x, y) => y.r - x.r).map(x => x.g);
-    if (!writers.length) continue;                    // nothing generates it; not an artifact
+     * the directory scan happened to reach first.
+     *
+     *   4  the file's own name on a write line          the strongest, and unchanged
+     *   3  its name bound to an identifier that is written
+     *   2  a COMPUTED name whose pattern matches it      new — see the template block above
+     *   1  its name within 200 characters of a write     the loosest arm, and the oldest
+     *
+     * A computed name outranks proximity deliberately: `'roster.' + STAGE + '.json'` is a statement
+     * about which files this script produces, and a name sitting near a write verb is a coincidence
+     * that has been wrong here four times. */
+    const scored = [];
+    for (const g of gens) {
+      /* THE LOOSE ARM READS THE CODE; THE TIGHT ONES READ THE SOURCE. See stripComments() for the
+       * false attribution, and this for why it is not applied to all three:
+       *
+       *   build/build_browser_data.js:66
+       *     fs.writeFileSync(t.out, header + body, 'utf8');   // data/move-effects.js, data/mega-formes.js
+       *
+       * That trailing comment is DELIBERATE and its own file says so — the generator writes through
+       * `t.out` and names its targets beside the write precisely so this checker can find them.
+       * Stripping comments took both artifacts back to "no generator", which is the condition that
+       * annotation exists to prevent. `writesOnItsOwnLine` already refuses a comment LINE, so it is
+       * safe on the raw source; `writesNear`'s 200-character window is not, and it is the arm that
+       * credited this file with generating the release pointer. */
+      if (named(g.src, file)) {
+        const r = writesOnItsOwnLine(g.src) ? 4 : writesVia(g.src) ? 3 : writesNear(g.code) ? 1 : 0;
+        if (r) { scored.push({ g, r, via: r === 4 ? 'write line' : r === 3 ? 'path variable' : 'near a write' }); continue; }
+      }
+      const t = templateWrite(g, file);
+      if (t) scored.push({ g, r: 2, via: `path template ${t.shape} (${t.how})` });
+    }
+    scored.sort((x, y) => y.r - x.r);
+    let chosen = scored[0] || null;
+    if (!chosen) {
+      const d = declaredWriter(file);
+      if (d) chosen = { g: d.g, r: 0, via: `DECLARED BY THE ARTIFACT — "${d.claim}"` };
+    }
+    /* NOTHING GENERATES IT. Recorded rather than skipped: a `continue` here is how ~50 artifacts came
+     * to have no row at all, and an artifact nothing can name a writer for is exactly the artifact
+     * nothing can compare to its source. It is REPORTED, never defaulted — the set holds instruments
+     * and consumers both, so guessing in either direction is wrong. */
+    if (!chosen) { noWriter.push(file); continue; }
+    const writers = [chosen.g];
     const by = writers[0].id;
     /* Its inputs: every other data file its generator actually READS.
      *
@@ -292,11 +625,63 @@ function deriveGraph() {
       || /require\(\s*['"]\.\/(quality|store)(\.js)?['"]/.test(writers[0].src)
       || /\b(from|import)\s+(store|quality)\b/.test(writers[0].src)
       || from.some(f => /^games\..*\.jsonl$/.test(f));
-    out.push({ file, by, from, corpus, storeDerived });
+    /* `via` IS PART OF THE GRAPH, NOT A DEBUGGING AID. The four arms are not equally strong, and a
+     * consumer of this graph (engine/quarantine.js decides what to withhold from it) is entitled to
+     * know whether `by` came off a write call or out of a sentence in the artifact. */
+    out.push({ file, by, from, corpus, storeDerived, via: chosen.via });
   }
-  return out;
+
+  /* ══ A TEMPLATE MATCH IS CORROBORATED AGAINST THE GENERATOR'S OTHER OUTPUT ═════════════════════
+   *
+   * `exploitability-${TAG}.json` legitimately reaches exploitability-mag.json and
+   * exploitability-machamp.json — and it ALSO reaches data/exploitability-holdout.json, which
+   * engine/exploit.js did not write and cannot write: it has no holdout mode and the word appears
+   * nowhere in it. That file is the held-out replay of the search winner, produced on 2026-08-04 by
+   * something that left no script. A pattern is a statement about a NAME, and a name is not a proof.
+   *
+   * So a template attribution has to survive one comparison against the same generator's LITERALLY
+   * attributed output: the top-level key sets must overlap by at least half. That is the same
+   * instrument `artifact_audit.js` applies — compare the derived thing to its source — turned on this
+   * file's own weakest arm.
+   *
+   * IT ONLY FIRES WHEN THERE IS SOMETHING TO COMPARE. engine/run_stamp.js writes nothing under a
+   * literal name, so its `<*>.meta.json` sidecars have no sibling and are accepted; tests/roster.js
+   * writes data/roster.json literally and every per-stage file matches it key for key.
+   *
+   * A REVOKED MATCH BECOMES AN UNKNOWN, WITH THE REASON. It does not fall back to a weaker arm — the
+   * point of the check is that this generator is the wrong answer, not that it is a poor one. */
+  const revoked = [];
+  const keysOf = (f) => {
+    try {
+      const j = JSON.parse(fs.readFileSync(D('data', f), 'utf8'));
+      return (j && typeof j === 'object' && !Array.isArray(j)) ? Object.keys(j) : null;
+    } catch (e) { return null; }
+  };
+  const shapeAgrees = (a, b) => {
+    const ka = keysOf(a), kb = keysOf(b);
+    if (!ka || !kb || !ka.length || !kb.length) return true;   // cannot judge: never revoke on ignorance
+    const setB = new Set(kb);
+    const both = ka.filter(k => setB.has(k)).length;
+    return both / Math.min(ka.length, kb.length) >= 0.5;
+  };
+  for (let i = out.length - 1; i >= 0; i--) {
+    const r = out[i];
+    if (!/^path template/.test(r.via)) continue;
+    const sibs = out.filter(x => x.by === r.by && /^(write line|path variable)$/.test(x.via)).map(x => x.file);
+    if (!sibs.length || sibs.some(s => shapeAgrees(r.file, s))) continue;
+    revoked.push(`${r.file} matches ${r.by}'s output pattern but its keys do not agree with `
+      + `${sibs.slice(0, 2).join(', ')}, which that generator writes by name`);
+    out.splice(i, 1);
+    noWriter.push(r.file);
+  }
+  return { artifacts: out, noWriter, declFailures, revoked };
 }
-const ARTIFACTS = deriveGraph();
+const GRAPH = deriveGraph();
+const ARTIFACTS = GRAPH.artifacts;
+/* ARTIFACTS ON DISK THAT NOTHING CAN NAME A WRITER FOR. Kept as a first-class output rather than as
+ * the silence left by a `continue`, because an empty list has to mean "every artifact has a writer"
+ * and never "we stopped looking". It is printed unconditionally, including at zero. */
+const NO_WRITER = GRAPH.noWriter.slice().sort();
 
 /* --graph prints the DERIVED graph itself: who writes what, from what, and whether the checker
  * believes the count is a store count. Added because the graph is the part of this file that can be
@@ -321,7 +706,37 @@ if (process.argv.includes('--graph')) {
                 pad(a.storeDerived ? 'yes' : 'no', 8) + (a.from.join(', ') || '(none detected)'));
   }
   console.log(`\n  ${ARTIFACTS.length} artifacts, ${ARTIFACTS.filter(a => a.storeDerived).length} counted off the game store`);
+  const byVia = {};
+  for (const a of ARTIFACTS) { const k = a.via.split(' (')[0].split(' —')[0]; byVia[k] = (byVia[k] || 0) + 1; }
+  console.log('  how the writer was found: ' + Object.entries(byVia).sort((a, b) => b[1] - a[1])
+    .map(([k, v]) => `${v} ${k}`).join(', '));
+  printNoWriter();
   process.exit(0);
+}
+
+/* PRINTED EVERY RUN, INCLUDING AT ZERO — see the note on NO_WRITER. Both callers use this one
+ * function so the wording cannot drift and so neither can quietly stop printing it. */
+function printNoWriter() {
+  console.log('');
+  if (!NO_WRITER.length) {
+    console.log('  NO WRITER FOUND: 0 — every file in data/ has a generator this graph can name.');
+    return;
+  }
+  console.log(`  NO WRITER FOUND (${NO_WRITER.length}) — these files are in data/ and NOTHING in `
+    + GEN_DIRS.join('/') + ' can be shown to write them,');
+  console.log('  so nothing can compare them to a source. They are NOT defaulted in either direction:');
+  console.log('  the set holds instruments and consumers both, and a wrong default is worse than a gap.');
+  for (const f of NO_WRITER) console.log('    ' + f);
+  console.log('  Fix in the GENERATOR: write the default path on its own line, or have the artifact');
+  console.log('  declare `by` (a script path, optionally with the flags it was run under).');
+  if (GRAPH.revoked.length) {
+    console.log(`  ${GRAPH.revoked.length} of those matched a generator's output PATTERN and were revoked on shape:`);
+    for (const f of GRAPH.revoked) console.log('    ' + f);
+  }
+  if (GRAPH.declFailures.length) {
+    console.log(`  ${GRAPH.declFailures.length} artifact(s) DECLARE a writer that does not exist on disk:`);
+    for (const f of GRAPH.declFailures) console.log('    ' + f);
+  }
 }
 
 const mtime = f => { try { return fs.statSync(D('data', f)).mtimeMs; } catch (e) { return null; } };
@@ -773,20 +1188,34 @@ if (digestFailures.length) {
 }
 console.log(`  ${verified.length} verified by CONTENT digest, ${mtimeOnly.length} by mtime alone` +
             (mtimeOnly.length ? ' — an mtime test cannot see an artifact written AFTER an input it read BEFORE' : ''));
+/* AND HOW MANY ARTIFACTS THIS TABLE DOES NOT COVER AT ALL. Printed here, in the same block as the
+ * count of rows resting on a weak method, because it is the same admission one step further out: a
+ * row verified by mtime is checked badly, and a file with no row is not checked. For ~50 artifacts
+ * that was the silent state until 2026-08-09 — the census, the differential, the interaction matrix,
+ * the deliberate roster and data/rollout-r1-explore1.json, the arm engine/miltank.js runs. */
+printNoWriter();
 
 const STAMP = D('data', 'provenance-stamp.json');
 /* Writes the NAMED baseline. One function because two branches call it — the ordinary path and the
  * one-time migration off the count-only stamp — and two copies of a ratchet writer is how a ratchet
  * quietly stops ratcheting. */
 const VOID_FILES = voided.map(r => r.file).sort();
-function writeStampFile(list, verifiedCount) {
+function writeStampFile(list, verifiedCount, discovery) {
+  /* DISCOVERIES ARE APPENDED, NEVER OVERWRITTEN. Every time this checker learns to see artifacts it
+   * could not see before, the baseline it ratchets against necessarily grows — and a growth nobody
+   * can audit afterwards is the ratchet laundering itself. The event stays in the file. */
+  const history = (prev && Array.isArray(prev.discoveries) ? prev.discoveries : []).slice();
+  if (discovery) history.push(discovery);
   try {
     fs.writeFileSync(STAMP, JSON.stringify({
       note: 'RATCHET. mtime_only_files may SHRINK and may never grow. mtime cannot detect an artifact '
           + 'written after an input it read before, which is how a 7,100-game WOBBUFFET re-run was '
           + 'cleared as ok on 2026-08-04 while measuring two different defenders. The LIST is recorded '
           + 'rather than a count: the first time this fired it could only say "one more than last '
-          + 'time", nobody could tell which file, and status.js printed NOT DERIVED for a session.',
+          + 'time", nobody could tell which file, and status.js printed NOT DERIVED for a session. '
+          + 'THE ONE WAY IT MAY GROW is a recorded DISCOVERY — the checker learning to see artifacts '
+          + 'it could not see before is the opposite event from a generator dropping its stamp, and '
+          + 'every such growth is listed in `discoveries` with its date, its reason and its files.',
       fix: 'Stamp engine_release.open().stamp() (or run_stamp.sourceDigests()) as `source_digests`.',
       mtime_only: list.length,
       mtime_only_files: list,
@@ -796,6 +1225,12 @@ function writeStampFile(list, verifiedCount) {
        * in CLAUDE.md and does not. */
       void_files: VOID_FILES,
       verified: verifiedCount,
+      /* HOW MANY ARTIFACTS THIS CHECKER CAN SEE AT ALL, and how many it cannot name a writer for.
+       * Recorded so the NEXT run can tell a newly-visible artifact from a newly-unstamped one without
+       * inferring it from a timestamp — see the discovery split below. */
+      graph_files: ARTIFACTS.map(a => a.file).sort(),
+      no_writer_files: NO_WRITER,
+      discoveries: history,
       generated: new Date().toISOString(),
     }, null, 2) + '\n');
   } catch (e) { console.log('  (could not write the ratchet stamp: ' + e.message + ')'); }
@@ -832,16 +1267,66 @@ const added = prevList ? nowList.filter(f => !prevList.includes(f)) : [];
 const removed = prevList ? prevList.filter(f => !nowList.includes(f)) : [];
 if (removed.length) console.log(`  now stamped (${removed.length}): ${removed.join(', ')}`);
 
+/* ── A NEWLY VISIBLE ARTIFACT IS NOT A NEWLY UNSTAMPED ONE, AND THE RATCHET COULD NOT TELL ───────
+ *
+ * The ratchet asks "did a generator ship without recording what content it read". It was measuring
+ * something else as well: "did this checker's coverage change". On 2026-08-09 the writer scan learned
+ * to see tests/, computed output paths and artifact-declared writers, the graph went 115 -> 160, and
+ * 38 artifacts that had sat unstamped on disk for weeks appeared as though they had just regressed.
+ *
+ * Those are opposite events. A regression means somebody made the repository worse; a discovery means
+ * the repository was always this bad and the instrument just got better. Reporting the second as the
+ * first is how a gate becomes "one of the known failures" — and reporting it as nothing at all is how
+ * a ratchet launders itself. So both are reported, and only one of them fails.
+ *
+ * THE SPLIT IS EVIDENCE, NOT A DECLARATION. `graph_files` in the stamp records exactly which
+ * artifacts the checker could see last time; anything outside that set is newly visible and anything
+ * inside it that has lost its stamp is a regression that still fails.
+ *
+ * A STAMP WITH NO `graph_files` CANNOT TELL, AND SAYS SO RATHER THAN GUESSING. An artifact mtime
+ * against the stamp's timestamp was tried as a fallback and is wrong: five of the thirty-eight had
+ * been regenerated by other divisions the same afternoon, so a heuristic that reads "modified since"
+ * as "regressed" accused five instruments of a fault they do not have. The honest first run adopts
+ * the whole addition, PRINTS every file, and records the event — the same shape as the count-only
+ * migration below, which this file already accepted once for the same reason. */
+const prevSeen = prev && Array.isArray(prev.graph_files) ? new Set(prev.graph_files) : null;
+const discovered = prevSeen ? added.filter(f => !prevSeen.has(f)) : added.slice();
+const regressed = prevSeen ? added.filter(f => prevSeen.has(f)) : [];
+
 /* THE RATCHET IS ON THE LIST, NOT THE COUNT. An artifact that gains a stamp while an unstamped one
  * is added nets to zero and would have slipped through a count comparison silently. */
-if (prevList && added.length) {
+if (prevList && regressed.length) {
   console.log('');
-  console.log(`  RATCHET BROKEN: ${added.length} artifact(s) newly rest on mtime alone —`);
-  for (const f of added) console.log('    ' + f);
+  console.log(`  RATCHET BROKEN: ${regressed.length} artifact(s) newly rest on mtime alone —`);
+  for (const f of regressed) console.log('    ' + f);
   console.log('  Their generator ships without recording what CONTENT it read. Fix in the generator:');
   console.log("  stamp run_stamp.sourceDigests() (or engine_release.open().stamp()) as `source_digests`.");
   console.log('  This list may shrink and may never grow — that is what makes it close rather than linger.');
   process.exitCode = 1;
+} else if (prevList && discovered.length) {
+  console.log('');
+  console.log(`  COVERAGE GREW: ${discovered.length} artifact(s) are newly VISIBLE to this checker and`);
+  console.log('  rest on mtime alone. They did not regress — nothing could see them until now, which is');
+  console.log('  worse than being seen and unstamped. The baseline is extended ONCE and the event is');
+  console.log('  recorded in data/provenance-stamp.json under `discoveries`, so the growth is auditable:');
+  for (const f of discovered) console.log('    ' + f);
+  if (!prevSeen) {
+    console.log('  The previous stamp recorded no `graph_files`, so it cannot separate a newly visible');
+    console.log('  artifact from a newly unstamped one and this run does not pretend otherwise: the');
+    console.log('  WHOLE addition is listed above and adopted. From the next run the split is exact.');
+  }
+  console.log('  From here they are ordinary members of the ratchet and may only shrink.');
+  writeStampFile(nowList, verified.length, {
+    when: new Date().toISOString(),
+    reason: 'the writer scan learned to see tests/, computed output paths and artifact-declared '
+          + 'writers; the artifact graph grew and these files became visible unstamped',
+    basis: prevSeen ? 'exact — diffed against the previous stamp\'s graph_files'
+                    : 'the previous stamp recorded no graph_files, so the whole addition is adopted '
+                      + 'and listed rather than split by a heuristic',
+    graph_before: prevSeen ? prevSeen.size : null,
+    graph_after: ARTIFACTS.length,
+    files: discovered,
+  });
 } else if (!prevList && prev && typeof prev.mtime_only === 'number' && mtimeOnly.length > prev.mtime_only) {
   /* One-time migration: the first stamp recorded only a count, so there is no list to diff against.
    * Adopt the current list rather than failing on a comparison that cannot name anything. */

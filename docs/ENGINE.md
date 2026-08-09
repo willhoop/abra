@@ -33,10 +33,10 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  324/324 probed mechanics live, 0 missing   (census 2026-08-08 22:53)
-  1/150 differential comparisons disagree with Showdown   (2026-08-08 22:46)
+  325/325 probed mechanics live, 0 missing   (census 2026-08-09 19:31)
+  1/150 differential comparisons disagree with Showdown   (2026-08-09 19:31)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
-    chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (65 uses)
+    chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (70 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
     2300 of 8795 theoretical pairs staged — agreement is a claim about the 2300 that ran, not about the 8795
@@ -58,9 +58,394 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 183/191 probed, 8 unprobed
 ```
 
-_stamped 2026-08-08 22:56_
+_stamped 2026-08-09 19:45_
 
 <!-- /GENERATED -->
+
+## ROADMAP #109 — THE PHOTOGRAPH FROZE THE SUBJECT AND NOT THE CAMERA. 56 OF 65 RELEASES COULD NOT BE OPENED, AND ALL 14 LADDER RUNGS ARE AMONG THEM. 2026-08-09.
+
+Census **unchanged at 325/325 live**, and it must be: nothing here touches a mechanic. What moved is
+`engine/engine_release.js`, `tests/test-engine-release.js`, and **one call site** in
+`engine/game_differential.js`.
+
+### THE ONE SENTENCE
+
+A release freezes the ENGINE and not the DRIVER that reads it, so when the live driver started
+calling `M.natureL50` on 2026-08-08, every release cut before that export existed became unopenable —
+and it announced itself as `TypeError: M.natureL50 is not a function` at `game_differential.js:1280`,
+which names neither the release, nor the symbol, nor the fact that the snapshot is **intact and merely
+old**.
+
+### THE MEASUREMENT, TAKEN AGAIN RATHER THAN INHERITED
+
+65 release directories on disk, probed by loading each snapshot's `medicham2-browser.js` and comparing
+its exports against the 13 symbols the live driver reads:
+
+```
+   4  PRUNED          open() already refuses these by name — a recorded decision, not a defect
+   1  file-absent     d3d04b669e18, the oldest with bodies, froze TWELVE files and has no
+                      engine/mc_key.js at all -> `Cannot find module ...\d3d04b669e18\engine\mc_key.js`
+  56  symbol-absent   no natureL50 (8 of them also lack traceCanon / TRACE_EVENTS)
+   5  usable
+```
+
+**The reported figure was right and understated in two directions.** It said 62 on disk and 56 without
+`natureL50`; three more releases have been cut since, and it did not carry the layer underneath —
+`engine/mc_key.js` joined `SOURCES` on 2026-08-05, so the oldest release fails **before** the symbol
+check is reached, out of `engine_release.js` itself.
+
+### WHY `SOURCES` DID NOT GROW A THIRD TIME
+
+`SOURCES` has grown twice, both times because a release turned out not to be **enough**: +6 loader deps
+so `REL.require` resolves, +5 lazily-read data files so a snapshot can play a game. This is the third
+instance of the class and **not** the third instance of the shape.
+
+The decisive evidence is in the file that breaks. `game_differential.js` already refuses to freeze
+`steering.js` and `board_state.js`, in its own words, because they are the **instrument** and freezing
+them "would mean each rung was scored by its own contemporaneous reader, which is the one thing a
+ladder must not do." Adding the driver to `SOURCES` would therefore:
+
+- recover **none** of the 56 (their bytes are unchanged either way);
+- change every FUTURE release id over a file that cannot change a number the ENGINE produces;
+- and break the release ladder, which is the main reason anybody re-opens an old release at all.
+
+Confirmed while deciding: adding to `SOURCES` genuinely does leave existing releases untouched — the
+id is the digest of the digests, `verify()` iterates each release's OWN `files` map rather than
+`SOURCES`, and the same-id-must-mean-same-digests refusal is unreachable for an id that has changed.
+
+### WHAT WAS ACTUALLY MISSING: A CONTRACT ACROSS THAT BOUNDARY
+
+A release knows exactly which files it froze and exactly what those bytes export. A caller knows
+exactly what it needs. **Nothing ever asked.** So:
+
+- `REL.require` / `REL.path` / `REL.read` refuse a file the release predates, naming the release, the
+  count of files it froze, its first cut, and that this is *not* corruption and *cannot* be repaired;
+- `REL.require(file, { need: [...] })` refuses a missing EXPORT the same way, and prints the command
+  that lists the releases which have it;
+- `{ want: [...] }` is the optional half, and it is **loud**, because a `? :` over an export that is
+  never there is indistinguishable from a working feature.
+
+**A Proxy was considered and rejected.** Wrapping the module so any absent key throws needs no caller
+change and would also turn every legitimate feature-detect in the repo into a crash, silently. The
+caller declares; the release checks.
+
+### IT RECOVERS NOTHING, AND THE PREVIOUS TWO FIXES DID NOT EITHER
+
+**The 56 do not become runnable.** Those bytes never held the function and no error message can put it
+there. What changed is that they fail in one sentence at second zero rather than deep inside an
+unrelated file, and that `compat` answers "which releases can this run use" *before* the run:
+
+```
+$ node engine/engine_release.js compat engine/medicham2-browser.js natureL50
+  ...
+  5 of 65 releases can serve it.  4 pruned,  0 predate the file,  56 predate an export,  0 broken.
+```
+
+Worth saying because it is the reason this is the third time: **the +6 and +5 growths did not repair a
+single release cut before them either, and neither of them said so.**
+
+### THE RED DEMONSTRATION, ON THE OLDEST RELEASE
+
+`tests/test-engine-release.js` proved a release serves its own bytes while a live file changes
+underneath it — and every one of its sections cut a release and read it back seconds later, so it had
+never opened an **old** one. Section 8 does, against the real store, read-only, because a synthetic
+release cannot be old and the age is the subject.
+
+Against a reconstruction of the pre-fix loader: **8 failures and a hard crash** on `REL.compat is not
+a function`. After: **59 passed, 0 failed.**
+
+```
+  ok   requiring engine/mc_key.js out of a release that predates it fails
+  ok   and the refusal names the RELEASE and the FILE
+  ok   not a bare MODULE_NOT_FOUND out of the resolver — that is what it used to be
+  ok   requiring a symbol the oldest snapshot predates FAILS at the require
+  ok   and the refusal NAMES the missing symbol
+  ok   and is not a TypeError raised 1,280 lines into an unrelated file
+  ok   the CURRENT release satisfies the same need list — the guard refuses by age, not always
+  ok   compat() separates them rather than answering the same for all: 5 provide, 56 predate it
+```
+
+**It asserts the CONTRACT, not compatibility.** A test demanding the 56 open would be red forever, and
+this project has already established that a permanently red test is the same thing as no test.
+
+**And the control is explicit** (LESSONS §5): a guard that refused *every* release would satisfy every
+assertion about the oldest one. The current release must load the same module under the same `need`
+list without throwing, and does.
+
+### FOUND WHILE HERE — NOT MINE, NOT FIXED
+
+- **`M.MEDI_SPREAD` has never existed, on any build, including the live one.** `medicham2-browser.js`
+  assigns it to `root` (line 9972) and not to `module.exports`, so `mediSpan`'s
+  `M.MEDI_SPREAD ? M.MEDI_SPREAD.has(...) : false` has taken the false branch on every run this driver
+  has ever done: **every spread move's staged damage span was priced as a single-target hit.** The fix
+  is one name in medicham2's export list, which WIRE 2 held this session. Declared `want` so the loader
+  shouts about it every run until somebody lands it.
+- **`engine/wire_ladder.js` cannot run at all — all 14 rungs lack `natureL50`.** The published ladder
+  on disk stands (it was measured under the driver of its day) but it is no longer *replayable*, and
+  replayability is the ladder's entire premise. Recovering it needs a decision nobody has taken:
+  whether a `--nature serious` arm may derive its flat level-50 line from anything other than the
+  frozen engine's own `natureL50`, which would be a second copy of a FACT.
+- **ROADMAP #57's re-run list is unaffected** — it classifies stamps and re-runs against the LIVE
+  engine, so it never re-opens an old release. **ROADMAP #99's lift condition is affected**, because it
+  runs through the differential, and the differential now has 5 usable releases out of 65.
+
+### THE HAND LIST IS UNCHANGED
+
+Nothing leaves it. This was not a mechanic and it landed no probe on one; the census is untouched at
+325/325 and `Rivalry` is still the only entry, still blocked on `data/engine-data.js` carrying no
+gender.
+
+## ROADMAP #112 — THE PINCH FAMILY. THE CONSUMER WAS ARMED FOR THE FIVE ABILITIES NOBODY RUNS AND FAILED CLOSED ON THE FOUR EVERYBODY DOES. 2026-08-09.
+
+Census **324 → 325 live / 325 probed, 0 missing**. New gate: **`tests/test-pinch-family.js`**.
+Release **`2929deeb41f3`** (before-arm: `6f7fbc538318`).
+
+### THE ONE SENTENCE
+
+Blaze (6,386 uses on today's corpus), Torrent (2,017), Overgrow (689) and Swarm (49) — **9,141 uses**
+— had never fired, and **the consumer's refusal of them was correct at every moment.** `data/tags.json`
+carried their condition as the SENTENCE `"only below 1/3 HP"`, and `medicham2-browser.js` gated on
+`!_db.onlyWhen`, which is exactly what ROADMAP #92 says to do with a condition you cannot evaluate.
+Nobody ever made `onlyWhen` READABLE, so the refusal was permanent — and the shape it did admit is
+`dragonsmaw, firemane, rockypayload, steelworker, transistor`, **all five of them 0 corpus uses**.
+
+`engine/tag_dex.js` now derives the gate as a STRUCTURE out of Showdown's own handler, and
+`condHolds` evaluates it. **The fail-closed rule is untouched**: an `onlyWhen` shape this engine
+cannot read still returns `null`, still refuses, and is now COUNTED
+(`MEDFAILS.damageBoostUnknownCond`).
+
+```
+  attacker.hp <= attacker.maxhp / 3            <- Showdown, data/abilities.ts
+  {cond:'hpFraction', of:'self', cmp:'<=', num:1, den:3, says:'only below 1/3 HP'}
+```
+
+### WHAT MOVED
+
+| | before (`6f7fbc538318`) | after (`2929deeb41f3`) |
+|---|---|---|
+| census | 324 live / 324 probed | **325 live / 325 probed**, 0 missing |
+| roster `--stage abilities` | 0 DIFFER · **1 DID-NOT-FIRE** · 78 MATCH · 20 CONTROL-NOT-QUIET | 0 DIFFER · **0 DID-NOT-FIRE** · **82 MATCH** · 17 CONTROL-NOT-QUIET |
+| roster `--stage items` | 0 DIFFER · 6 DID-NOT-FIRE · 134 MATCH | unchanged |
+| roster `--stage moves` | 50 DIFFER · 27 DID-NOT-FIRE · 332 MATCH | unchanged |
+| `tests/test-engine-diff.js` | 1 of 150 disagree | unchanged |
+| `tests/test-damage-stages.js` | 1728/1728 exact, shape matches **5** | 1728/1728 exact, shape matches **9** |
+
+**Exactly four entities changed verdict in the abilities stage and nothing else did**, verdict-diffed
+per entity rather than read off the summary:
+
+```
+  Overgrow   DID-NOT-FIRE       -> FIRED-AND-BOARDS-MATCH
+  Blaze      CONTROL-NOT-QUIET  -> FIRED-AND-BOARDS-MATCH
+  Swarm      CONTROL-NOT-QUIET  -> FIRED-AND-BOARDS-MATCH
+  Torrent    CONTROL-NOT-QUIET  -> FIRED-AND-BOARDS-MATCH
+```
+
+Blaze, Swarm and Torrent were **better than expected**: they were predicted to stay in
+CONTROL-NOT-QUIET, because no carrier of theirs in this format has a quiet second ability to control
+against. They did not need the control — CONTROL-NOT-QUIET is a *downgraded accusation*, and with the
+boards now matching there is no accusation to downgrade.
+
+### THE BOUNDARY IS THE MECHANIC, AND THE FRACTION IS NEVER COLLAPSED TO A FLOAT
+
+`hp <= maxhp * (1/3)` is **not** the same predicate as `hp <= maxhp / 3`. The nearest double to 1/3
+is below it, so `150 * (1/3) = 49.999999999999993` and a body at exactly 50 of 150 — one third — would
+be refused a boost it is owed. The structure therefore keeps `num` and `den` and the engine asks
+`hp*den <= maxhp*num` in integers, which is exact for every maxhp in the game. An off-by-one here
+reads as correct at every HP except the one that decides games.
+
+`tests/test-pinch-family.js` stages **both parities of maxhp** — Farigiraf 195 (divisible by three,
+so "exactly one third" is the integer 65 and must PASS) and Venusaur 155 (not, so the largest passing
+HP is the floor, 51) — and both sides of the line, in both engines, for all four members, on a
+special and a physical delivery move. 61 rows.
+
+### THE RED DEMONSTRATION, ON THE SAME COMMAND, IN BOTH HALVES
+
+The defect had two halves and either one alone kept the family dark, so
+`tests/probe_red_demo.js` reverts each separately:
+
+```
+  OK  ROADMAP #112  Blaze — the artifact half: onlyWhen back to the PROSE it used to carry
+                    green-arm=true  stripped-arm=false
+  OK  ROADMAP #112  Blaze — the engine half: the consumer refuses any condition at all
+                    shipped-arm=true  reverted-arm=false
+  OK  ROADMAP #112  Transistor (0 uses) is the POSITIVE CONTROL and fires on BOTH builds
+                    shipped=true  reverted=true
+```
+
+**The third row is the one that makes the first two mean anything.** The five 0-use members are what
+the consumer served before this change; a reversal that turned them off too would be measuring the
+whole consumer rather than the condition. `tests/test-pinch-family.js` §4 asserts all five against
+Showdown as well.
+
+And `tests/test-pinch-family.js` itself was RED before the fix: **31 of 61 failed**, with §4's five
+positive controls green throughout.
+
+### THE PROBE WAS WRONG BEFORE THE ENGINE WAS (docs/LESSONS §5, again)
+
+The first draft read the threshold out of `p.onlyWhen.den` — **the very field the fix creates**. On
+the unfixed tree that is `undefined`, so it staged a body at `floor(maxhp/undefined)` = NaN HP.
+`tests/probe_pair.js` refused it by name, which is the whole reason that refusal exists, but the row
+would have proved nothing either way. The threshold and the type now come out of **Showdown's
+handler**, and the family under test is the **authority's** set compared against the artifact's, not
+taken from it.
+
+### THE tags.json REGENERATION — MEASURED, NOT ASSUMED (ROADMAP #65's hazard is CLOSED)
+
+Two diffs were taken, not one, so the hazard is separated from the change:
+
+1. **A regeneration with NO code change**: 0 vanished, 0 lost a tag, 0 lost usage, 0 param diffs.
+   500 moves / 148 items / 265 abilities before and after. `sheet_entries` 127,464 → 135,804 (the
+   corpus grew; every `uses` rose or held). Serene Grace and Tinted Lens both survive. **#65 is closed
+   and this is the measurement that says so rather than its status field.**
+2. **The change, against that fresh baseline**: **5 param diffs and nothing else** — `blaze`,
+   `torrent`, `overgrow`, `swarm`, `defeatist`, each one `onlyWhen` prose → structure. Zero entity
+   losses.
+
+`damageReduce` (Multiscale, Shadow Shield) is byte-identical, which is the point of the one extra
+guard in its derivation: `hpGateIn` now returns an object for BOTH `>= maxhp` and `<= maxhp/N`, and
+that family asks for the DIRECTION rather than the truthiness, because calling a `<=` gate `'fullHP'`
+would be exactly backwards. No member has a `<=` gate today; the guard is so it stays that way.
+
+### WHAT THE CONSUMER SERVES NOW, PRINTED BEFORE IT WAS BELIEVED
+
+```
+  SERVED   firemane(0) dragonsmaw(0) rockypayload(0) steelworker(0) transistor(0)
+           blaze(6386) overgrow(689) swarm(49) torrent(2017)
+  REFUSED, no type          analytic(19) reckless(97) rivalry(40) stakeout(0) technician(710)
+                            guts(26) hugepower(135) purepower(26) defeatist(0) + 5 more
+  REFUSED, weather          solarpower(838)
+  REFUSED, unreadable cond  (none)
+  REFUSED, more than one tag  18 abilities
+```
+
+**`MEDFAILS.damageBoostUnknownCond` reads 0 and that is the correct value**, which is worth saying
+because a zero counter is normally this project's signature symptom. Every `onlyWhen` in the artifact
+is now readable. The four still-dark abilities are refused one clause EARLIER, by `_db.onType` —
+their conditions are **absent** from the artifact rather than unreadable in it.
+
+**`defeatist` is the one member that gained a readable condition and is still refused**, deliberately:
+its multiplier is 0.5 and it names no type, so it is a NERF and the `onType === mvT` clause keeps it
+out. 0 corpus uses. Widening the consumer to a typeless multiplier is a second change and is not in
+this one.
+
+### FOUND WHILE HERE — NOT MINE, NOT FIXED, AND THE FIRST ONE IS THE EXPENSIVE ONE
+
+- **`data/engine-data.js` gives First Impression base power 90. The dex says 100.** Found because the
+  probe's CONTROL arm disagreed with no ability on the body at all. `engine-data.js` belongs to
+  MEASURE. `tests/test-pinch-family.js` prints it as NOT COMPARABLE by name rather than blaming Swarm
+  for it.
+- **`tests/probe_red_demo.js` had been exiting on its SECOND demonstration.** `revertedEngine` throws
+  when its patch no longer matches, and the throw escaped and killed the process — so **186 of its 188
+  demonstrations had not run at all**, silently, for as long as the stale patch has been there. A
+  stale reversal is now a counted, named RED ROW and the run continues. It reports **3 failures, none
+  of them this wire's**: two STALE reversals (both ROADMAP #81 WIRE 11 — a later wire rewrote the
+  lines they patch) and one genuine red, `ARM sealsMoves`, whose stripped arm still holds, meaning
+  that probe does not watch its knob. **These are red, they are named here, and they are the next
+  thing this file should pick up** — they are not filed and they are not "known".
+- **The state differential's own planted-divergence proof FAILS at `--games 2008` on the current
+  store**, in BOTH arms, including the before-arm running bytes this wire never touched: one plant of
+  26 (a benched party member's HP off by one) is caught one boundary late and localised to
+  `field.trickroom_turns`. The instrument then declares its own state numbers worthless, so **the
+  turn-1 / whole-game / boundary percentages are not quoted for this wire.** It is sample-dependent —
+  the same proof passes 26/26 at `--games 45` on the same store and release — and it reproduces with
+  the 324-row census as well as the 325-row one, so it is not caused by the new probe's steering.
+
+### THE PAIRED DIFFERENTIAL — A HONEST NULL, AND THE ARMS ARE PROVABLY DIFFERENT BUILDS
+
+Same pinned team store, same census pin `909dd84f06ac`, same 2008 requested / 1546 played, same four
+pins, differing in `--release` and nothing else. `engine/game_differential.js` says **COMPARABLE**.
+
+| | before `6f7fbc538318` | after `2929deeb41f3` |
+|---|---|---|
+| turn-1 board identical | 1511/1546 = 97.7% | **1511/1546 = 97.7%** |
+| games whose board NEVER diverged | 1241/1546 = 80.3% | **1241/1546 = 80.3%** |
+| turn boundaries identical | 18153/18458 = 98.3% | **18153/18458 = 98.3%** |
+| median turn of first board divergence | 8 | 8 |
+| protocol: games agreed | 873/1546 = 56.5% | 873/1546 = 56.5% |
+| medicham2 digest | `5ff49e876bcb` | `663f8a7a5129` |
+| tags.json digest | `f494532ceec8` | `16bbdcb5a54d` |
+
+**Every state figure is byte-identical and the two builds are demonstrably different.** That is a
+NULL, not a dead knob, and the distinction is not an argument — it is three independent measurements
+on the SAME frozen bytes `2929deeb41f3` that the after-arm played: the roster's four verdict changes,
+`tests/test-pinch-family.js` at 61/61 against Showdown, and the census probe. The wire is live in the
+exact build measured; the pinch family simply does not reach this instrument's sample, which is not
+surprising — the primary arm pins MAX damage and every game stops at its first board divergence, at
+a median of turn 8, so a body has to fall under a third of its maximum HP *and* click a
+matching-type move *and* carry one of the four, all before the boards part. **Landing a mechanic is
+the result; this instrument did not move and saying so is the report.**
+
+**These three percentages carry the instrument's own disclaimer** (see FOUND WHILE HERE): its planted
+STATE proof fails at `--games 2008` on this store, in BOTH arms including the before-arm on untouched
+bytes. They are printed as a paired DELTA of zero rather than as a level.
+
+### AND ONE LINE MORE, LANDED AFTER THE MEASUREMENT ON PURPOSE — `MEDI_SPREAD` WAS EXPORTED TO NOBODY
+
+Will, 2026-08-09: *"lets fix it and reset the baseline."*
+
+`medicham2-browser.js:9972` publishes `root.MEDI_SPREAD=SPREAD` and **only** there, so
+`require(...).MEDI_SPREAD` has always been `undefined` — `'MEDI_SPREAD' in M` is false across all 65
+exports, verified against the LIVE tree, not a release artifact. `game_differential.js:2735` reads
+`M.MEDI_SPREAD ? M.MEDI_SPREAD.has(id) : false`, so **that ternary has taken the FALSE branch on
+every run this repository has ever done**: every spread move's staged span was priced as a
+single-target hit, no doubles 0.75, against a Showdown side that comes from a real battle and applies
+it. ~1.33x high on Heat Wave, Rock Slide, Earthquake, Icy Wind, Dazzling Gleam, Snarl, Discharge and
+Make It Rain. The `Set` holds 38 moves and all eight are in it.
+
+**The ordering was chosen, not stumbled into.** The export changes nothing the engine DOES — it
+changes what the instrument reports through `mediSpan` — so it was added only once both arms of the
+pinch measurement were in hand, and it is measured as its own third arm (`759a0d3292f5`) against the
+pinch after-arm. A pinch-family delta and a spread-pricing delta arriving in one before/after is
+exactly the attribution loss ROADMAP #81 exists to prevent. `SPREAD`'s contents are untouched, the
+`root` assignment stays (board.js reaches this engine through the global object in a browser), and
+`game_differential.js` was not edited — its `want: ['MEDI_SPREAD']` declaration at :150 is what
+surfaced this and is what catches the next one.
+
+Re-checked after the export, all on the live tree: census **325 live / 0 missing**,
+`tests/test-engine-diff.js` **1 of 150**, `tests/test-pinch-family.js` **61/61**.
+
+**AND ITS MEASURED EFFECT ON THE PUBLISHED FIGURES IS ZERO — SO THE BASELINE DOES NOT NEED RESETTING.**
+A third arm, `759a0d3292f5`, on the same pins and `--baseline` the pinch after-arm, says COMPARABLE
+and moves **not one number**: every `state.*` field identical, `diverged` 673 → 673, and — the ones
+that actually read `mediSpan` — `damage_interior` and `knock_off_roadmap_80` byte-identical.
+
+The reason is worth writing down rather than leaving as luck: **both damage-span probes stage
+SINGLE-TARGET moves.** `knock-off order` and `contact punish — Rough Skin` are the only two, so the
+branch that was permanently false is a branch neither of them ever needed. The defect was real, it
+was total, and its exposure in the figures this repository publishes is nil. The `!! release … does
+not export MEDI_SPREAD` warning that `game_differential.js` prints on every run is gone from
+`759a0d3292f5` and present on `2929deeb41f3`, which is the before/after receipt.
+
+**What that costs is a warning, not a retraction** — and it is an argument for the next span probe to
+stage a spread move, because until one does, the fixed branch is still untested by anything except
+the export check itself.
+
+### THE SIBLING, #101 — DOES THIS GENERALISE?
+
+**The mechanism yes, the field no, and the risk points the other way.** `buffsHolderOnHit` carries
+`{compounds, boosts, gainsVolatile}` and **no condition field at all**, so #101 needs the same
+tag_dex work rather than inheriting it. Its conditions are readable by shape, in five kinds, all
+printed off the live dex:
+
+| kind | members | handler shape |
+|---|---|---|
+| move TYPE | justified(51), rattled(0), steamengine(0), thermalexchange(0), watercompaction(0) | `move.type === "Dark"` / `[...].includes(move.type)` |
+| move CATEGORY | weakarmor(37) | `move.category === "Physical"` |
+| the hit CRIT | angerpoint(13) | `target.getMoveHitData(move).crit` |
+| a move FLAG | windpower(0), perishbody(0) | `move.flags["wind"]`, `checkMoveMakesContact` |
+| unconditional | stamina(2760), electromorphosis(98) | no test |
+
+The cost is one real refactor: `condHolds(w, self)` is about the HOLDER, and every #101 condition is
+about the incoming MOVE and the HIT. The signature has to widen to a context (`{self, move, crit}`),
+which is small but belongs to #101 rather than being pre-built here on speculation.
+
+**And the direction of the error is opposite, which makes #101 the more urgent of the two.** #112's
+gate defaulted CLOSED — nothing fired, and the engine was merely missing a mechanic. #101's defaults
+OPEN: Anger Point maxes Attack off ANY hit, Justified fires on non-Dark moves, Weak Armor on special
+ones. That is a WRONG ANSWER on the board rather than an absent one, and every condition landed is an
+improvement on its own. The `_buff.boosts` guard that drops the `gainsVolatile` members
+(Electromorphosis, 98 uses) is a **separate** membership defect and wiring conditions would not touch
+it.
 
 ## ROADMAP #111 — THE VOLATILE DURATION FAMILY. FOUR QUEUE ROWS, ONE MECHANISM, AND THE BUG WAS ALREADY WRITTEN DOWN IN THIS FILE. 2026-08-08.
 
@@ -7295,8 +7680,11 @@ is the artifact doing exactly that, not a claim anybody typed twice.
 - **Rivalry** — x1.25 into the same gender, x0.75 into the opposite, x1.0 if either is genderless.
   Wholly absent. Blocked on data, not on will: `MC.mons` carries no gender and `buildMon` returns
   none, and `data/engine-data.js` belongs to MEASURE. Its `damageBoost` tag carries a bare
-  `mult:1.25` with no condition and 43 other members including Blaze 1.5 and Slow Start 0.5, so it
-  cannot be wired from the artifact as it stands. The differential can no longer see it either:
+  `mult:1.25` with **no condition field at all** and 43 other members, so it cannot be wired from the
+  artifact as it stands. *(This sentence used to say "including Blaze 1.5" — ROADMAP #112 made Blaze's
+  condition machine-readable and Blaze is now wired, so the example was retired rather than left to
+  age. Rivalry's problem was never the neighbours: it is that `onlyWhen` is `null` for it, which means
+  "unconditional", and gender is not in `MC.mons` to derive one from.)* The differential can no longer see it either:
   CONTROL FIX 6 sets `gender:'N'` on both sides, because `gender:''` made Showdown roll one off the
   battle seed and MEDICHAM has none — a seed-dependent x0.75 nothing could match.
 

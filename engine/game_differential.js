@@ -126,7 +126,29 @@ const REL_ID = flag('--release', null);
 if (!REL_ID) ER.cut('game differential mode A — the comparison driver, ROADMAP #68 step two');
 const REL = ER.open(REL_ID);
 REL.require('data/engine-data.js');
-const M = REL.require('engine/medicham2-browser.js');
+/* WHAT THIS DRIVER NEEDS THE FROZEN ENGINE TO EXPORT — declared, so an old release is refused BY NAME
+ * at second zero instead of dying 1,150 lines further down.
+ *
+ * MEASURED 2026-08-09 (ROADMAP #109): of 65 frozen releases, 56 do not export `natureL50` and this
+ * file died on them with `TypeError: M.natureL50 is not a function` at flatL50 — a message that names
+ * neither the release, nor the symbol, nor the fact that the snapshot is INTACT and merely predates
+ * the export. The engine is frozen and this driver is not, deliberately (see `steering.js` and
+ * `board_state.js` above: freezing the INSTRUMENT would score every ladder rung by its own
+ * contemporaneous reader). The missing piece was a contract across that boundary, not a bigger
+ * photograph. `node engine/engine_release.js compat engine/medicham2-browser.js natureL50` lists which
+ * releases a run can still use.
+ *
+ * `MEDI_SPREAD` IS DECLARED OPTIONAL BECAUSE NOTHING HAS EVER PROVIDED IT, INCLUDING THE LIVE ENGINE.
+ * medicham2 assigns it to `root` and not to `module.exports`, so `M.MEDI_SPREAD ? ... : false` in
+ * `mediSpan` has taken the false branch on every run this file has ever done — every spread move's
+ * staged damage span was computed as a single-target hit. That is a real defect and it is NOT fixed
+ * here: the fix belongs in medicham2's export list, which ENGINE does not hold this session. Listing
+ * it under `want` makes the release loader shout about it every run instead of it staying invisible. */
+const M = REL.require('engine/medicham2-browser.js', {
+  need: ['natureL50', 'battleInit', 'battleTurn', 'battleOver', 'playerAction', 'buildMon',
+         'dmgRange', 'traceCanon', 'TRACE_EVENTS', 'weatherId', 'terrainId', 'fails'],
+  want: ['MEDI_SPREAD'],
+});
 const CS = require('./champions_sim.js');
 const { Dex, Teams, Battle } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);

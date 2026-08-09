@@ -230,5 +230,97 @@ try {
   catch (e) { console.error('  (throwaway release store left behind at ' + TMP + ': ' + e.message + ')'); }
 }
 
+/* ---- 8. THE OLDEST RELEASE ON DISK — THE ONE THAT FAILS FIRST, AND THE ONE NOTHING OPENED ------
+ *
+ * THE HOLE THIS CLOSES. Everything above cuts a release and reads it back seconds later, so it only
+ * ever exercises a snapshot taken by the CURRENT code against the CURRENT callers. The releases that
+ * break are the OLD ones, and no test had ever opened one.
+ *
+ * MEASURED 2026-08-09, 65 release directories: 4 pruned, 1 that predates `engine/mc_key.js` being in
+ * SOURCES at all, 56 that predate `natureL50`, 5 that can serve engine/game_differential.js. The two
+ * failures a person actually saw were `Cannot find module ...\releases\d3d04b669e18\engine\mc_key.js`
+ * and `TypeError: M.natureL50 is not a function` at game_differential.js:1280 — neither of which
+ * names a release, a symbol, or the fact that the snapshot is INTACT and merely old.
+ *
+ * THE SUBJECT IS FROZEN, THE CAMERA IS NOT — deliberately, because freezing the driver would score
+ * every rung of the release ladder by its own contemporaneous reader. So the fix is a CONTRACT across
+ * that boundary, and this section asserts the contract rather than asserting compatibility: the 56
+ * are not repairable and a test that demanded they open would be red forever, which this project has
+ * already learned is the same thing as no test.
+ *
+ * READ-ONLY, AND AGAINST THE REAL STORE ON PURPOSE. Every other section here uses a throwaway store
+ * because `cut()` WRITES the pointer. This section only opens and requires, and a synthetic release
+ * cannot be old — the age is the whole subject. */
+console.log('\n  -- the oldest release on disk (real store, read-only)');
+{
+  const REAL = REL.RELEASES;
+  const withCut = REL.list().map(rid => {
+    const m = JSON.parse(fs.readFileSync(path.join(REAL, rid, 'release.json'), 'utf8'));
+    return { id: rid, cut: m.cut, pruned: !!m.bodies_pruned, files: Object.keys(m.files || {}) };
+  }).sort((a, b) => String(a.cut).localeCompare(String(b.cut)));
+  const oldest = withCut.filter(x => !x.pruned)[0];
+  ok(!!oldest, 'there is an oldest un-pruned release to open' + (oldest ? ` (${oldest.id}, cut ${oldest.cut})` : ''));
+
+  if (oldest) {
+    /* IT IS NOT BROKEN. Everything below is about age, and the distinction only means something if
+     * the snapshot itself is provably intact. */
+    ok(REL.verify(oldest.id).ok, `the oldest release still verifies against its own manifest (${oldest.id})`);
+    const old = REL.open(oldest.id);
+
+    /* 8a. A FILE THE RELEASE PREDATES. `engine/mc_key.js` joined SOURCES on 2026-08-05 with the
+     * loader-deps growth; a release cut before that never held it, and the old code went straight to
+     * node's resolver and produced MODULE_NOT_FOUND from inside engine_release.js. */
+    const absentFile = REL.SOURCES.find(s => !oldest.files.includes(s));
+    if (absentFile) {
+      let errFile = null;
+      try { old.require(absentFile); } catch (e) { errFile = e.message; }
+      ok(!!errFile, `requiring ${absentFile} out of a release that predates it fails`);
+      ok(!!errFile && errFile.includes(oldest.id) && errFile.includes(absentFile),
+         'and the refusal names the RELEASE and the FILE');
+      ok(!!errFile && !/Cannot find module/i.test(errFile),
+         'not a bare MODULE_NOT_FOUND out of the resolver — that is what it used to be');
+      ok(!!errFile && /predates|never held it/i.test(errFile),
+         'and it says the snapshot predates the file rather than implying corruption');
+      /* `path` and `read` reach the same missing file by another door. */
+      let errPath = null;
+      try { old.path(absentFile); } catch (e) { errPath = e.message; }
+      ok(!!errPath && errPath.includes(absentFile), 'REL.path() refuses it too, not just REL.require()');
+    } else {
+      ok(false, 'expected the oldest release to predate at least one current SOURCE — if this is '
+              + 'genuinely false the store was rebuilt, not that the check is unnecessary');
+    }
+
+    /* 8b. THE SYMBOL. This is the reported failure, in one line, at second zero. */
+    let errSym = null;
+    try { old.require('engine/medicham2-browser.js', { need: ['natureL50'] }); }
+    catch (e) { errSym = e.message; }
+    ok(!!errSym, 'requiring a symbol the oldest snapshot predates FAILS at the require');
+    ok(!!errSym && errSym.includes('natureL50'), 'and the refusal NAMES the missing symbol');
+    ok(!!errSym && errSym.includes(oldest.id), 'and names the release, which the TypeError never did');
+    ok(!!errSym && !/is not a function/i.test(errSym),
+       'and is not a TypeError raised 1,280 lines into an unrelated file');
+
+    /* 8c. THE CONTROL, EXPLICITLY CLEARED. A guard that threw for EVERY release would pass every
+     * assertion above while making the whole release store unusable. The CURRENT release must load
+     * the same module with the same need list and NOT throw. */
+    let currentThrew = null;
+    try { REL.open().require('engine/medicham2-browser.js', { need: ['natureL50', 'battleInit', 'buildMon'] }); }
+    catch (e) { currentThrew = e.message; }
+    ok(!currentThrew, 'the CURRENT release satisfies the same need list — the guard refuses by age, '
+       + 'not always' + (currentThrew ? ': ' + currentThrew.split('\n')[0] : ''));
+
+    /* 8d. AND THE INVENTORY EXISTS, because a 56-release backlog cannot be acted on one crash at a
+     * time. Both verdicts must appear: identical results across every release would mean `compat` is
+     * reading nothing. */
+    const rows = REL.compat('engine/medicham2-browser.js', ['natureL50']);
+    ok(rows.length === REL.list().length, `compat() reports every release (${rows.length})`);
+    const provides = rows.filter(r => r.provides).length;
+    const lacks = rows.filter(r => r.status === 'ok' && !r.provides).length;
+    ok(provides > 0 && lacks > 0,
+       `compat() separates them rather than answering the same for all: ${provides} provide, ${lacks} predate it`);
+    ok(rows.some(r => r.id === oldest.id && !r.provides), 'and the oldest release is on the LACKS side');
+  }
+}
+
 console.log(`\nENGINE RELEASE TESTS: ${P} passed, ${F} failed`);
 process.exit(F ? 1 : 0);

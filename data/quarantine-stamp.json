@@ -2,7 +2,7 @@
   "note": "RATCHET. citation_sites may SHRINK and may never grow while the MEDICHAM quarantine is closed. A new entry means a withheld figure was just published somewhere.",
   "source_digests": {
     "engine/quarantine.js": "2b135b1fb171",
-    "engine/provenance.js": "3bf20955defa",
+    "engine/provenance.js": "4d933c5b9e3e",
     "note": "Content, not mtime. A checkout moves an mtime without moving code."
   },
   "not_store_derived": "it records which artifacts are downstream of the simulator and where they are still cited. No game is counted anywhere in it, so the quality filter has no bearing.",
@@ -10,10 +10,10 @@
   "failing_clauses": [
     "game differential",
     "deliberate roster / items",
-    "deliberate roster / abilities",
     "deliberate roster / moves"
   ],
   "quarantined": [
+    "ab-batch-effect.json",
     "brood.json",
     "censoring-value.json",
     "click-censoring-census.json",
@@ -22,6 +22,8 @@
     "collinearity-joint.json",
     "exploit-step-probe-reparam.json",
     "exploit-step-probe.json",
+    "exploitability-machamp.json",
+    "exploitability-mag.json",
     "exploitability.json",
     "feature-audit.json",
     "feature-engine-contrast.json",
@@ -34,6 +36,7 @@
     "opponent-calibration.json",
     "opponent-recall.json",
     "partial-label-em.json",
+    "policy-weights-joint-presheet.json",
     "policy-weights-joint.json",
     "policy-weights.json",
     "quarantine-stamp.json",
@@ -41,10 +44,12 @@
     "redirect-audit.json",
     "rollout-cost.json",
     "rollout-r1-explore-sweep.json",
+    "rollout-r1-explore1.json",
     "rollout-r1.json",
     "rollout-r3.json",
     "rollout-r4.json",
     "scoreboard.js",
+    "scoreboard.json",
     "sheet-channel-value.json",
     "weight-multiplicity.json",
     "winrate-backtest.json"
@@ -52,5 +57,5 @@
   "citation_sites": [
     "docs/ENGINE.md"
   ],
-  "generated": "2026-08-08T23:05:43.165Z"
+  "generated": "2026-08-09T19:51:41.453Z"
 }

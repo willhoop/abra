@@ -385,17 +385,29 @@ checkExactTable();
 
 /* AND THE MEMBERSHIP OF THE NARROWED `damageBoost` SHAPE, PRINTED BEFORE ANYONE TRUSTS IT.
  * docs/LESSONS.md 4: a new derived tag over-matches, and printing what it matched is the only thing
- * that has ever caught it. The shape the engine reads is "a multiplier, a type, no weather, no
- * condition, and no other tag on the ability"; this recomputes that set from the artifact and then
- * asks the DEX whether each member really is a stat-stage handler, which the tag cannot say. */
+ * that has ever caught it. The shape the engine reads is "a multiplier, a type, no weather, an
+ * EVALUABLE condition or none, and no other tag on the ability"; this recomputes that set from the
+ * artifact and then asks the DEX whether each member really is a stat-stage handler, which the tag
+ * cannot say.
+ *
+ * ROADMAP #112 CHANGED THE FOURTH CLAUSE AND THIS LINE HAD TO CHANGE WITH IT. It read
+ * `|| p.onlyWhen`, matching the engine's old `!_db.onlyWhen`. `onlyWhen` is now a STRUCTURE the
+ * engine can evaluate, so the set grew from five to nine and this instrument would otherwise have
+ * kept printing five — an instrument silently describing a smaller engine than the one that runs,
+ * which is the same shape as the fourteen stale handoffs. The clause mirrors `condHolds`: a
+ * condition is admitted when it is absent OR readable, and refused when it is neither. */
 const TAGS = require(D('engine', 'tags.js'));
 const tagDB = require(D('data', 'tags.json'));
+const readableCond = (w) => w == null
+  || (typeof w === 'object' && w.cond === 'hpFraction' && w.of === 'self'
+      && Number.isInteger(w.num) && Number.isInteger(w.den) && w.den > 0
+      && (w.cmp === '<=' || w.cmp === '>='));
 const dbMembers = [];
 for (const id of Object.keys(tagDB.abilities || {})) {
   const rec = tagDB.abilities[id];
   if (!rec.tags || !rec.tags.includes('damageBoost') || rec.tags.length !== 1) continue;
   const p = (rec.params || {}).damageBoost || {};
-  if (!p.mult || !p.onType || p.inWeather || p.onlyWhen) continue;
+  if (!p.mult || !p.onType || p.inWeather || !readableCond(p.onlyWhen)) continue;
   dbMembers.push(id);
 }
 let dbBad = 0;

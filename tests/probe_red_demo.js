@@ -94,9 +94,25 @@ function revertedEngine(edits) {
   m._compile(src, MEDI_PATH);
   return m.exports;
 }
+/* A STALE REVERSAL IS A RED ROW, NOT A CRASH. `revertedEngine` THROWS when its pattern no longer
+ * matches, which is right — a patch that silently missed would make a broken engine look fixed. But
+ * the throw escaped `demoSource` and killed the PROCESS, so one stale pattern stopped every
+ * demonstration below it from running at all, and the file had been exiting on its second row.
+ * That is the shape docs/LESSONS keeps recording: the guard fired, and firing it made the rest
+ * invisible. It is caught here, counted as a failure, and NAMED — the run continues so the other
+ * fifty rows still say something. Found 2026-08-09 while landing ROADMAP #112, whose own two
+ * demonstrations are the last in the file and could not be reached. */
+const stale = [];
 function demoSource(name, edits, assertFn) {
   ran++;
-  const bad = revertedEngine(edits);
+  let bad;
+  try { bad = revertedEngine(edits); }
+  catch (e) {
+    failures++; stale.push(name);
+    console.log(`  STALE ${name}   THE REVERSAL NO LONGER MATCHES THE ENGINE — a later wire rewrote `
+      + `the lines it patches, so this demonstration has not run since. ${String(e.message).split('\n')[0]}`);
+    return;
+  }
   const green = !!assertFn(M), red = !!assertFn(bad);
   const ok = green && !red;
   if (!ok) failures++;
@@ -2788,9 +2804,16 @@ const W9_SPREAD_GATE = [[
 + '        const _s=(_d.min>=_f.curHP?1e6:0)+_d.max; if(_s>_bs){_bs=_s;_t=_f;}}\n'
 + '      if(_t){MEDSEEN.spreadClickWithoutNamedTarget++;target=_t;}\n'
 + '    }\n'
-+ '  }\n'
-+ '  if(mv&&hasPower(mv)&&target){',
-  '  if(mv&&hasPower(mv)&&target){']];
++ '  }\n',
+  '']];
+/* THE TRAILING ANCHOR WAS REMOVED 2026-08-09, AND FINDING IT RED IS THE ONLY REASON IT WAS. This
+ * reversal used to end `... }\n  if(mv&&hasPower(mv)&&target){` and replace that with the anchor
+ * alone. WIRE 133 (Pollen Puff) then inserted a comment block between the two statements, so the
+ * pattern stopped matching, `revertedEngine` THREW, and this whole file has been exiting non-zero
+ * ever since — taking every demonstration after this line with it. The guard did exactly what it was
+ * built to do (docs/LESSONS: a patch that silently failed to match would make a broken engine look
+ * fixed) and nobody was reading its output. The block above appears exactly once in the engine, so
+ * it is unique on its own and does not need an anchor that another wire can move. */
 
 /* 1. THE STATE HALF, AND IT IS THE WHOLE SIZE OF THE WIRE. A spread move carries no target on
  *    Showdown's request, so every driver that asks the authority what is legal hands this engine a
@@ -3403,7 +3426,10 @@ demoSource('ROADMAP #81 WIRE 11  a crit ignores a POSITIVE Defence stage and Ref
  *     docs/ENGINE.md rather than folded in here.
  * So they are counted, printed and asserted neither way, with the reason. A row placed in the wrong
  * class is reported by name. */
-{
+/* THIS BLOCK CALLS `revertedEngine` DIRECTLY rather than through `demoSource`, so it needs the same
+ * stale-reversal guard for the same reason — an uncaught throw here ended the process and every
+ * demonstration below it. Same treatment: counted, named, and the run continues. */
+try {
   const bad = revertedEngine(W11_SPREAD_REVERT.concat(W11_ORDER_REVERT).concat(W11_CRIT_REVERT));
   /* [attacker, defender, defender ability, move, class] — 'none' the stream must not move,
      'toll' it must, 'rolled/laterstep' it is counted and printed and asserted neither way. */
@@ -3470,6 +3496,10 @@ demoSource('ROADMAP #81 WIRE 11  a crit ignores a POSITIVE Defence stage and Ref
     + (stateMoved.length ? '   STATE MOVED: ' + [...new Set(stateMoved)].join(', ') : '')
     + (streamShouldMatch.length ? '   STREAM MOVED WITH NO REACTOR: ' + [...new Set(streamShouldMatch)].join(', ') : '')
     + (streamShouldDiffer.length ? '   TOLL ROW DID NOT REORDER: ' + [...new Set(streamShouldDiffer)].join(', ') : ''));
+} catch (e) {
+  ran++; failures++; stale.push('ROADMAP #81 WIRE 11  CONTROL: the three-reversal ordering sweep');
+  console.log('  STALE ROADMAP #81 WIRE 11  CONTROL: the three-reversal ordering sweep   THE REVERSAL '
+    + 'NO LONGER MATCHES THE ENGINE. ' + String(e.message).split('\n')[0]);
 }
 
 
@@ -3650,5 +3680,85 @@ demoSource('ROADMAP #81 WIRE 12  the Life Orb toll is refused by a move that MIS
     return hit.dealt > 0 && hit.paid > 0 && miss.dealt === 0 && miss.paid === 0;
   });
 
+/* 9. ROADMAP #112 — THE PINCH FAMILY, AND IT TAKES BOTH KINDS OF KNOWN-BAD ENGINE, because the
+ *    defect had two halves and either half alone kept 9,141 corpus uses dark:
+ *
+ *      the ARTIFACT half — `onlyWhen` was the sentence "only below 1/3 HP", which nothing can
+ *        evaluate. Reverted with `demo`, by putting the sentence back.
+ *      the ENGINE half — the consumer gated on `!_db.onlyWhen`, refusing any member that carried a
+ *        condition at all. Reverted with `demoSource`, by putting that clause back verbatim.
+ *
+ *    THE ASSERTION IS THE BOUNDARY, not merely "it is bigger". Blaze must boost at exactly
+ *    floor(maxhp/3) and must NOT one HP above it, and the unboosted number must be the same at both
+ *    heights — an engine that made low HP matter for some other reason would pass a two-arm check. */
+const PINCH = (E) => {
+  const maxhp = W12.bare(E, 'charizard').st.hp;
+  const gate = Math.floor(maxhp / 3);
+  const hit = (ab, hp) => {
+    const me = W12.bare(E, 'charizard'); me.ability = ab; me.curHP = hp;
+    const ally = W12.bare(E, 'corviknight');
+    const f1 = W12.bare(E, 'goodra'); W12.big(f1);
+    const f2 = W12.bare(E, 'garchomp'); W12.big(f2);
+    const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+    const h = f1.curHP;
+    E.battleTurn(S, rng5,
+      new Map([[me, E.playerAction(me, 'flamethrower', f1, S.field)], [ally, { kind: 'pass' }]]),
+      W12.pass2(f1, f2));
+    return h - f1.curHP;
+  };
+  const plain = hit('none', gate);
+  return plain > 0 && hit('none', maxhp) === plain          /* HP alone must change nothing */
+      && hit('blaze', maxhp) === plain                      /* above the gate: no boost */
+      && hit('blaze', gate) > plain                         /* at the gate: boosted */
+      && hit('blaze', gate + 1) === plain;                  /* one HP above the line: not */
+};
+
+demo('ROADMAP #112  Blaze — the artifact half: onlyWhen back to the PROSE it used to carry',
+  shipped,
+  (() => { const db = clone(shipped);
+    for (const id of ['blaze', 'torrent', 'overgrow', 'swarm'])
+      db.abilities[id].params.damageBoost.onlyWhen = 'only below 1/3 HP';
+    return db; })(),
+  () => PINCH(M));
+
+demoSource('ROADMAP #112  Blaze — the engine half: the consumer refuses any condition at all',
+  [["    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&_db.onType===mvT",
+    "    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&!_db.onlyWhen&&_db.onType===mvT"]],
+  (E) => PINCH(E));
+
+/* AND THE POSITIVE CONTROL, ON THE SAME REVERSAL. The five 0-use members are what the consumer
+ * served BEFORE this change, so they must be green on BOTH builds — a reversal that turned them off
+ * too would mean the demonstration above is measuring the whole consumer rather than the condition. */
+{
+  const trans = (E) => {
+    const me = W12.bare(E, 'pikachu'); me.ability = 'transistor';
+    const ctl = W12.bare(E, 'pikachu');
+    const ally = W12.bare(E, 'corviknight');
+    const f1 = W12.bare(E, 'goodra'); W12.big(f1);
+    const f2 = W12.bare(E, 'garchomp'); W12.big(f2);
+    const run = (att) => {
+      const S = E.battleInit([att, ally], [f1, f2], { seeded: true });
+      const h = f1.curHP;
+      E.battleTurn(S, rng5,
+        new Map([[att, E.playerAction(att, 'thunderbolt', f1, S.field)], [ally, { kind: 'pass' }]]),
+        W12.pass2(f1, f2));
+      const d = h - f1.curHP; f1.curHP = h; return d;
+    };
+    return run(me) > run(ctl);
+  };
+  const reverted = revertedEngine([["    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&_db.onType===mvT",
+    "    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&!_db.onlyWhen&&_db.onType===mvT"]]);
+  ran++;
+  const a = trans(M), b = trans(reverted);
+  const ok = a && b;
+  if (!ok) failures++;
+  console.log(`  ${ok ? 'OK   ' : 'FAIL '} ROADMAP #112  Transistor (0 uses) is the POSITIVE CONTROL and fires on BOTH builds   shipped=${a} reverted=${b} (both must be true)`);
+}
+
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);
+if (stale.length) {
+  console.log(`  ${stale.length} of those are STALE REVERSALS — the demonstration is fine, the patch it applies is not:`);
+  for (const s of stale) console.log('    ' + s);
+  console.log('  Each one needs its edit re-aimed at what the engine says TODAY. Until then it has not run.');
+}
 if (failures) { console.log('  A green-and-stripped pair that did not flip means the probe does NOT watch its knob.'); process.exit(1); }

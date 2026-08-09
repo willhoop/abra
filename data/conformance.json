@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-08T22:59:21.431Z",
+ "generated": "2026-08-09T19:45:34.456Z",
  "by": "engine/conformance.js",
- "files": 337,
+ "files": 341,
  "findings": [
   {
    "std": "convention",
@@ -517,12 +517,6 @@
   },
   {
    "std": "S13",
-   "file": "data/ab-batch-effect.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
    "file": "data/calibration.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
@@ -544,12 +538,6 @@
    "file": "data/eval-report.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
-   "file": "data/exploitability-machamp.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
   },
   {
    "std": "S13",
@@ -596,12 +584,6 @@
   {
    "std": "S13",
    "file": "data/policy-weights-all.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
-   "file": "data/policy-weights-joint-presheet.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie"
   },
@@ -709,31 +691,7 @@
   },
   {
    "std": "S13",
-   "file": "data/roster.abilities.pre-shape-rules.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
    "file": "data/roster.abilities.prev.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
-   "file": "data/roster.items.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
-   "file": "data/roster.moves.prev.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
-   "file": "data/scoreboard.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie"
   },

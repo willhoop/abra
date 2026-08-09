@@ -46,9 +46,26 @@
   <div class="battle-log"></div>
   <script type="text/plain" class="battle-log-data" id="logdata"></script>
 </div>
+<script src="quarantine-data.js"></script>
 <script src="../data/mew.js"></script>
 <script>
 (function(){
+  /* ---- A BATTLE IS A CLAIM ABOUT THE WORLD, SO IT IS WITHHELD LIKE ONE -------------------------
+     data/mew.js is in the withheld set: build/build_mew_bundle.js reads games.selfplay.jsonl, a dump
+     of games MEDICHAM played. There is no NUMBER in this frame, which is exactly why
+     engine/quarantine.js's citation walker cannot see it — it looks for a quoted verdict sentence.
+     But a visitor who watches this battle concludes "the engine plays Champions correctly", and
+     today the deliberate roster reports 50 move stagings resolving differently from Showdown. That
+     is a reader being misled by a withheld artifact, which is the whole of the rule. So the frame
+     renders the plate and the Showdown player is never injected. */
+  var Q = window.ABRA_QUARANTINE;
+  var HELD = Q && Q.heldFor('data/mew.js');
+  if (HELD) {
+    document.getElementById('msg').innerHTML = Q.plate('data/mew.js', {
+      subject: 'THIS BATTLE IS NOT SHOWN — it was played by a build of MEDICHAM that disagrees with Showdown' });
+    return;
+  }
+
   var q = new URLSearchParams(location.search);
   var want = (q.get('seed')||'').replace(/[^0-9]/g,'');
   var games = (window.MEW && window.MEW.games) || [];

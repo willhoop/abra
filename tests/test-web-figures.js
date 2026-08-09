@@ -34,9 +34,10 @@
  * The floor moved 25.0 -> 80.0 in the same pass. RAISING it is the intended edit.
  */
 'use strict';
+const fs = require('fs');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
-const { audit } = require(path.join(ROOT, 'web', 'figure-audit.js'));
+const { audit, figuresIn } = require(path.join(ROOT, 'web', 'figure-audit.js'));
 
 /* ================================================================================================
  * THE FLOOR. Measured 2026-08-04 at 92.0% overall (92 of 100), from 84.3% (70 of 83) earlier the
@@ -112,10 +113,32 @@ ok(r.pct >= FLOOR_PCT,
   `${r.pct}% of figures cite an artifact — floor is ${FLOOR_PCT}%` +
   (r.pct >= FLOOR_PCT ? '' : '. Wire the new figure to its artifact, or withdraw it. Run: node web/figure-audit.js --list'));
 
-/* 3. A withdrawn claim stays withdrawn, and stays explained. */
-ok(r.withdrawn >= MIN_WITHDRAWN,
-  `${r.withdrawn} figures are struck out as withdrawn — expected at least ${MIN_WITHDRAWN}` +
-  (r.withdrawn >= MIN_WITHDRAWN ? '' : '. A retracted claim was deleted or un-struck; deleting it hides that it was ever made'));
+/* 3. A withdrawn claim stays withdrawn, and stays explained.
+ *
+ * A WITHHELD PARAGRAPH IS NOT A DELETED RETRACTION, AND THE RATCHET HAD TO LEARN THE DIFFERENCE.
+ * On 2026-08-09 the MEDICHAM quarantine took eight `<s class="wd">` figures off the pages with the
+ * paragraphs that carried them — WOBBUFFET's 63.2%, DODUO's -5.054, MEW's 47.5% mirror, MEDICHAM's
+ * superseded log-loss. This count fell 40 -> 32 and the ratchet went red, correctly: from where it
+ * stood, a strike vanishing from web/ is indistinguishable from someone quietly un-striking a claim.
+ *
+ * The strikes are not gone. They are in `web/quarantine-release.json`, harvested verbatim, and
+ * web/build-quarantine.js puts every one of them back on the page the moment its artifact is
+ * released. So the ratchet counts BOTH places rather than being lowered — lowering it would trade a
+ * real guard for a green run, which is the "known failure" move CLAUDE.md bans by name. Deleting a
+ * strike from either file still fails this. */
+const RELEASE = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'web', 'quarantine-release.json'), 'utf8'));
+let heldWithdrawn = 0;
+for (const e of RELEASE.entries) {
+  const text = typeof e.value === 'string' ? e.value : JSON.stringify(e.value);
+  /* the same definition of a strike and the same definition of a figure the audit uses — asking a
+     second scanner what counts would be CLAUDE.md's FACTS ARE GLOBAL failure in miniature */
+  for (const m of text.matchAll(/<s\b[^>]*\bwd\b[^>]*>([\s\S]*?)<\/s>/gi)) heldWithdrawn += figuresIn(m[1]).length;
+}
+const totalWithdrawn = r.withdrawn + heldWithdrawn;
+ok(totalWithdrawn >= MIN_WITHDRAWN,
+  `${totalWithdrawn} figures are struck out as withdrawn (${r.withdrawn} on the pages, ${heldWithdrawn} inside `
+  + `paragraphs the MEDICHAM quarantine is holding back) — expected at least ${MIN_WITHDRAWN}` +
+  (totalWithdrawn >= MIN_WITHDRAWN ? '' : '. A retracted claim was deleted or un-struck; deleting it hides that it was ever made'));
 ok(r.bad_strikes.length === 0,
   r.bad_strikes.length === 0
     ? 'every <s class="wd"> says when and why it was withdrawn'

@@ -57,8 +57,17 @@ reclassified, because the matrix is the instrument that will verify everything e
 
 ## Layer 1 — ONE GENERATOR for the two rulebooks
 
-`data/tags.json` (500 moves) and `CHOMP/data/move-effects.json` (954 moves, and THE one the engine
-reads for flinch/status/secondary/recoil) are two derivations of the same upstream. Decision made:
+Two derivations of the same upstream, one figure per paragraph so each sits beside its own artifact.
+
+`data/tags.json` carries 500 moves.
+
+`CHOMP/data/move-effects.json` carries 954 moves and is THE one the engine reads for
+flinch/status/secondary/recoil.
+
+*(Both counts sat on ONE line until 2026-08-09. `tests/test-docs-current.js` rule 3b pairs a figure
+with an artifact cited on the same line, so the move-effects count was being checked against the tag
+artifact, which happened to contain that string as a usage count until it was regenerated. The
+attribution was always wrong and the coincidence was hiding it. One figure, one line, one artifact.)* Decision made:
 **neither wins — one derivation, two emitted shapes**, so disagreement becomes impossible. CHOMP
 keeps its file format; ABRA keeps its tags; one script writes both.
 

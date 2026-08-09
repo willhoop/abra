@@ -1,8 +1,8 @@
 {
-  "generated": "2026-08-08T23:07:05.346Z",
+  "generated": "2026-08-09T19:53:28.141Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "3.82.0",
+  "changelog_top_at_baseline": "3.85.0",
   "version_pins": {
     "docs/ADR-002-showdown-is-the-authority.md": {
       "version": "3.50.0",
@@ -254,7 +254,7 @@
       "docs/ROLE-FAMILY.md": 2,
       "docs/SLOWKING-whitepaper.md": 7,
       "docs/SUMMARY.md": 1,
-      "docs/TAG-COVERAGE.md": 6,
+      "docs/TAG-COVERAGE.md": 1,
       "docs/predictability-study.md": 1
     }
   },

@@ -1,5 +1,26 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
+**Version: 3.85.0 — 2026-08-09.**
+
+
+**3.85.0 — THE WHOLE SITE WITHHOLDS NOW, AND THE DEPLOYED COPY WAS MISSING THE FILE THAT MAKES IT
+WORK.** Five pages LOADED a quarantined artifact as data instead of quoting its verdict, so the
+citation checker could not see them at all; seven of the Stadium's fifteen cabinets now go dark, each
+keeping its seat and its button and answering with the quarantine instead of a number. The file that
+drives all of it, `quarantine-data.js`, did not exist under `app/` — which is the copy a visitor
+loads — so every guard there took the healthy path. That is the same failure as the day before, one
+directory over.
+
+**3.83.0 — THE PINCH FAMILY FIRES, AND THE REFUSAL THAT HID IT WAS CORRECT THE WHOLE TIME.** 3.80.0
+(below) found that Blaze, Torrent, Overgrow and Swarm carry their below-1/3-HP condition as PROSE and
+that the `damageBoost` consumer refuses any condition it cannot evaluate. That refusal is #92's own
+rule and it is not removed. What changed is upstream: `engine/tag_dex.js` now derives the gate by
+SHAPE out of Showdown's `attacker.hp <= attacker.maxhp / 3` into
+`{cond:'hpFraction', of:'self', cmp:'<=', num:1, den:3}`, and `condHolds` evaluates it in INTEGER
+arithmetic — `maxhp * (1/3)` is not `maxhp / 3`, and a body at exactly one third would be refused a
+boost it is owed. An `onlyWhen` the engine still cannot read returns null, still refuses, and is now
+counted. The narrowed shape's membership went 5 → 9 and `tests/test-damage-stages.js` still reads
+1728/1728 exact with 0 at the wrong stage. 9,141 uses, on today's corpus.
 
 **ROADMAP #88 AND #91 — ONE PIN WAS ONE CORNER, AND A CLICK WAS COUNTED AS A TEST (3.73.0).** Every
 die in the differential was pinned a single way, which bought determinism — any difference is a bug,
@@ -21,8 +42,6 @@ this instrument — the authority resolves a tie to the LATER body in input orde
 one tie value per action from a constant scalar so the sort is stable and takes the EARLIER one. The
 instrument's own header claimed the pin made them agree by construction; that claim was false and was
 repeated as fact before it was checked. `sortTurnOrder` is the live engine, not instrument code.
-
-**Version: 3.82.0 — 2026-08-08.**
 
 **3.82.0 — THE FIRST ENGINE FIX OF THE QUEUE LANDS: THE VOLATILE DURATION FAMILY, 9,092 USES, AND
 IT WAS THE PERISH SONG BUG A SECOND TIME.** Showdown decrements a volatile's duration inside the
@@ -536,8 +555,12 @@ finding:
    `dmgRange`'s output. This is the largest single measured effect in the document (46.5% -> 61.8%).
 7. **Friend Guard** into the ModifyDamage chain rather than beside it.
 8. **The field terrain multipliers**, which are absent entirely.
-9. **`damageBoost`** — 44 abilities carry it and nothing reads it. Print the membership before wiring;
-   it contains Blaze, Overgrow, Torrent and Solar Power, whose conditions are not in the params.
+9. ~~**`damageBoost`** — 44 abilities carry it and nothing reads it.~~ **DONE, in two passes.**
+   ROADMAP #92 (3.7x) wired the unconditional, type-naming half — five abilities, all 0 corpus uses.
+   ROADMAP #112 (3.83.0) made the HP condition machine-readable and added the other four: Blaze,
+   Torrent, Overgrow, Swarm — 9,141 uses. Solar Power is still refused, correctly: its condition is a
+   WEATHER and `inWeather` is a separate clause. The membership was printed before either wiring, and
+   `tests/test-damage-stages.js` re-derives it every run.
 
 Every one of these needs a failing probe in `tests/test-mechanics.js` first. None of them is open work
 until it has one.

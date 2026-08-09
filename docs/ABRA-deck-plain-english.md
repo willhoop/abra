@@ -1,6 +1,26 @@
 # ABRA — the plain-English deck
 
-**Version 3.82.0 · 2026-08-08 · Will Hooper**
+**Version 3.85.0 · 2026-08-09 · Will Hooper**
+
+**3.85.0 — THE WHOLE SITE WITHHOLDS NOW, AND THE DEPLOYED COPY WAS MISSING THE FILE THAT MAKES IT
+WORK.** Five pages LOADED a quarantined artifact as data instead of quoting its verdict, so the
+citation checker could not see them at all; seven of the Stadium's fifteen cabinets now go dark, each
+keeping its seat and its button and answering with the quarantine instead of a number. The file that
+drives all of it, `quarantine-data.js`, did not exist under `app/` — which is the copy a visitor
+loads — so every guard there took the healthy path. That is the same failure as the day before, one
+directory over.
+
+**3.83.0 — FOUR OF THE COMMONEST ABILITIES IN THE GAME HAD NEVER ONCE WORKED, AND THE SIMULATOR WAS
+RIGHT TO IGNORE THEM.** Blaze, Torrent, Overgrow and Swarm all do the same thing: when the Pokémon
+drops below a third of its health, its attacks of one type hit 50% harder. Our simulator knew the
+50%. It did not know "below a third" — that part was written down as an English sentence, and code
+cannot read a sentence. Faced with a rule it could not check, the simulator did the safe thing and
+did nothing, which is right: guessing the cut-off would have handed every Charizard a permanent 50%
+bonus. So the fix was to write the rule down as a number the code can check, taken straight from the
+official game's own source. The catch was the exact line. "A third of 150" is 50, and if you compute
+it the sloppy way a computer gets 49.999999999999993 — so a Pokémon on exactly 50 would miss out on
+a boost it had earned. That single point of health is the one that decides games, so the test now
+checks precisely there, in both directions, against the official engine.
 
 **3.82.0 — THE FIRST ENGINE FIX OF THE QUEUE LANDS: THE VOLATILE DURATION FAMILY, 9,092 USES, AND
 IT WAS THE PERISH SONG BUG A SECOND TIME.** Showdown decrements a volatile's duration inside the

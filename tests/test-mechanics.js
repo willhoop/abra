@@ -4239,6 +4239,47 @@ probe('ability', 'damageBoost', 'Transistor raises an ELECTRIC move and nothing 
                  + `(must not move -- the tag names a type and a wire that ignored it would boost both)` };
 });
 
+/* ROADMAP #112 -- THE PINCH FAMILY. THE CONDITION IS THE MECHANIC, AND THE BOUNDARY IS THE TEST.
+ *
+ * Blaze, Torrent, Overgrow and Swarm carry 9,141 corpus uses between them and none of the four had
+ * ever fired. The consumer above refused them on `!_db.onlyWhen`, because their condition sat in the
+ * artifact as the SENTENCE "only below 1/3 HP". That refusal was correct -- ROADMAP #92's rule is
+ * that a guessed threshold is worse than no wire -- so the fix was upstream: `engine/tag_dex.js` now
+ * derives `{cond:'hpFraction', of:'self', cmp:'<=', num:1, den:3}` out of Showdown's own
+ * `attacker.hp <= attacker.maxhp / 3`, and `condHolds` evaluates it.
+ *
+ * FOUR ARMS, BECAUSE TWO WOULD PASS ON THREE DIFFERENT BROKEN ENGINES. An engine that applies the
+ * multiplier unconditionally passes "it is bigger under the gate"; one that never applies it passes
+ * "it is unchanged above the gate"; one that confuses the HP with the ability passes both if only
+ * one control is taken. So: full HP with and without the ability (must be EQUAL -- this is the
+ * negative), and under the gate with and without (must PART).
+ *
+ * AND THE LINE ITSELF. Showdown's gate is a real division, so the largest HP that still boosts is
+ * `floor(maxhp/3)` and one more must not. An engine off by a single HP reads correct everywhere
+ * except the point where the mechanic exists. The threshold is computed from the body this probe
+ * actually built, never typed. */
+probe('ability', 'damageBoost', 'Blaze fires ONLY under a third of maximum HP, and the line is exact', () => {
+  const SPS = ['charizard', 'incineroar', 'goodra', 'garchomp'];
+  const maxhp = bare('charizard').st.hp;
+  const gate = Math.floor(maxhp / 3);
+  const hit = (ab, hp, mv) => turnDamageBig(SPS, (B) => { B.me.ability = ab; B.me.curHP = hp; }, mv);
+  const full = [hit('none', maxhp, 'flamethrower'), hit('blaze', maxhp, 'flamethrower')];
+  const under = [hit('none', gate, 'flamethrower'), hit('blaze', gate, 'flamethrower')];
+  const line = [hit('blaze', gate, 'flamethrower'), hit('blaze', gate + 1, 'flamethrower')];
+  const otherType = [hit('none', gate, 'airslash'), hit('blaze', gate, 'airslash')];
+  return { works: full[0] === full[1] && full[0] > 0
+                  && under[1] > under[0] && under[0] === full[0]
+                  && line[0] > line[1] && line[1] === full[0]
+                  && otherType[0] === otherType[1] && otherType[0] > 0,
+           arms: { control: under[0], test: under[1] },
+           detail: `Charizard maxhp ${maxhp}, gate hp<=${gate}. Flamethrower [no ability, Blaze]: at `
+                 + `FULL HP ${full[0]},${full[1]} (must be EQUAL -- the negative); at ${gate} HP `
+                 + `${under[0]},${under[1]} (must PART). THE LINE: Blaze at ${gate} ${line[0]} vs at `
+                 + `${gate + 1} ${line[1]} (must fall back to the unboosted ${full[0]}). Air Slash, a `
+                 + `NON-Fire move off the same body at ${gate} HP: ${otherType[0]} -> ${otherType[1]} `
+                 + `(must not move)` };
+});
+
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). Two identical targets but for their Attack; if
  * Foul Play reads the USER's Attack the two are equal, and that equality is the null result.
  * Confirmed against Showdown independently: spiritomb foulplay -> pelipper reads 28-34 there and

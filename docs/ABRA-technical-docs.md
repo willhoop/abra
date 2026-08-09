@@ -1,6 +1,26 @@
 # ABRA — Technical Documentation
 
-**Version 3.82.0 · Last updated 2026-08-08**
+**Version 3.85.0 · Last updated 2026-08-09**
+
+**3.85.0 — THE WHOLE SITE WITHHOLDS NOW, AND THE DEPLOYED COPY WAS MISSING THE FILE THAT MAKES IT
+WORK.** Five pages LOADED a quarantined artifact as data instead of quoting its verdict, so the
+citation checker could not see them at all; seven of the Stadium's fifteen cabinets now go dark, each
+keeping its seat and its button and answering with the quarantine instead of a number. The file that
+drives all of it, `quarantine-data.js`, did not exist under `app/` — which is the copy a visitor
+loads — so every guard there took the healthy path. That is the same failure as the day before, one
+directory over.
+
+**3.83.0 — THE PINCH FAMILY FIRES, AND THE ENGINE'S REFUSAL WAS CORRECT THE WHOLE TIME.** Four
+abilities — Blaze, Torrent, Overgrow, Swarm — carry 9,141 sheet uses and had never fired. The
+simulator refused them because their condition was recorded as the SENTENCE "only below 1/3 HP", and
+this project's rule is that a guessed threshold is worse than no wire. `engine/tag_dex.js` now derives
+the condition as a STRUCTURE out of the official engine's own handler,
+`{cond:'hpFraction', of:'self', cmp:'<=', num:1, den:3}`, and `condHolds` in
+`engine/medicham2-browser.js` evaluates it. The fraction is never collapsed to a float: the test is
+`hp × den <= maxhp × num` in integers, because `maxhp × (1/3)` is smaller than `maxhp / 3` and would
+refuse a body at exactly one third the boost it is owed. Anything the engine still cannot read
+refuses and is counted. New gate: `tests/test-pinch-family.js`, 61 rows against the official engine,
+red at 31 of 61 before the change.
 
 **3.82.0 — THE FIRST ENGINE FIX OF THE QUEUE LANDS: THE VOLATILE DURATION FAMILY, 9,092 USES, AND
 IT WAS THE PERISH SONG BUG A SECOND TIME.** Showdown decrements a volatile's duration inside the

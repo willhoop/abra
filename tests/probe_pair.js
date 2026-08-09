@@ -137,7 +137,7 @@ function buildOurs(species, o) {
   if (!m) throw new Error('probe_pair: MEDI.buildMon returned null for "' + species + '" — no MC.mons '
     + 'row. Pick a species that exists on BOTH sides (Blissey and Ferrothorn do not; Snorlax does).');
   m.st = flatStats(species);
-  m.curHP = m.st.hp;
+  m.curHP = o.hp != null ? o.hp : m.st.hp;
   m.boosts = { at: 0, df: 0, sa: 0, sd: 0, sp: 0, acc: 0, eva: 0 };
   m.status = '';
   /* ALWAYS SET, NEVER INHERITED. This is the Thick Fat line. */
@@ -160,6 +160,16 @@ function assertBodiesMatch(label, sdMon, ourMon, species, o) {
   const wantAb = idOf(dex.abilities.get(o.ability || QUIET_ABILITY).name);
   const wantItem = o.item ? dex.items.get(o.item).id : '';
   const bad = [];
+  /* THE CURRENT HP IS PART OF THE BODY (added for the pinch family, WIRE 2). An ability whose whole
+   * content is an HP gate reads 0 = 0 in both arms on a full-HP body — so `attHP` exists, and it has
+   * to be compared here for the same reason species and ability are: a probe that set it on one side
+   * only would be the Thick Fat failure again, wearing an HP bar. `maxhp` is compared too, because
+   * the gate is a FRACTION of it, and this file deliberately scales the DEFENDER's by 40. */
+  if (o.hp != null) {
+    if (ourMon.curHP !== o.hp) bad.push('medicham curHP ' + ourMon.curHP + ' != requested ' + o.hp);
+    if (sdMon.hp !== o.hp) bad.push('showdown hp ' + sdMon.hp + ' != requested ' + o.hp);
+    if (ourMon.st.hp !== sdMon.maxhp) bad.push('maxhp medicham ' + ourMon.st.hp + ' != showdown ' + sdMon.maxhp);
+  }
   if (idOf(sdMon.species.name) !== idOf(species)) bad.push('showdown species is ' + sdMon.species.name);
   if (idOf(ourMon.name || species) !== idOf(species)) bad.push('medicham species is ' + ourMon.name);
   if (sdMon.ability !== wantAb) bad.push('showdown ability ' + sdMon.ability + ' != ' + wantAb);
@@ -182,8 +192,9 @@ function assertBodiesMatch(label, sdMon, ourMon, species, o) {
 /* ---- ONE PINNED ROLL -------------------------------------------------------------------------- */
 
 /**
- * damage({att, def, move, attAb, defAb, attItem, defItem, weather, terrain, crit, spread, roll, control})
+ * damage({att, def, move, attAb, defAb, attItem, defItem, attHP, weather, terrain, crit, spread, roll, control})
  *   roll: 0..15, where 0 is the TOP roll (x1.00) and 15 the bottom (x0.85). Default 0.
+ *   attHP: the attacker's CURRENT hp, set on BOTH sides and asserted equal. Default: full.
  *   control: an optional partial override; the same scenario with the varied thing removed.
  * Returns { showdown, medicham, agree, roll, rollFactor, knobMoved (if control given) }.
  */
@@ -204,7 +215,7 @@ function damage(o) {
       + 'Pass iKnowMoveHitSkipsModifyType:true only if the unconverted number is genuinely what you want.');
   }
 
-  const attO = { ability: o.attAb, item: o.attItem };
+  const attO = { ability: o.attAb, item: o.attItem, hp: o.attHP };
   const defO = { ability: o.defAb, item: o.defItem };
 
   /* ---- ours ---- */
@@ -231,7 +242,10 @@ function damage(o) {
   const A = flatStats(o.att), Dst = flatStats(o.def);
   src.storedStats.atk = A.at; src.storedStats.spa = A.sa; src.storedStats.def = A.df; src.storedStats.spd = A.sd; src.storedStats.spe = A.sp;
   tgt.storedStats.atk = Dst.at; tgt.storedStats.spa = Dst.sa; tgt.storedStats.def = Dst.df; tgt.storedStats.spd = Dst.sd; tgt.storedStats.spe = Dst.sp;
-  src.maxhp = A.hp; src.hp = A.hp;
+  src.maxhp = A.hp; src.hp = attO.hp != null ? attO.hp : A.hp;
+  if (attO.hp != null && (attO.hp < 1 || attO.hp > A.hp)) {
+    throw new Error('probe_pair: attHP ' + attO.hp + ' is outside 1..' + A.hp + ' for ' + o.att);
+  }
   tgt.maxhp = Dst.hp * 40; tgt.hp = tgt.maxhp;
   for (const p of [...battle.p1.active, ...battle.p2.active]) if (p) p.clearBoosts();
   battle.field.clearWeather(); battle.field.clearTerrain();

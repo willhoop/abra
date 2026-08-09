@@ -1,27 +1,27 @@
 {
   "generated": "auto from data/games.ladder.jsonl",
-  "n_team_sides": 19942,
-  "n_games": 9971,
+  "n_team_sides": 20952,
+  "n_games": 10476,
   "unit_note": "The clustering runs on TEAM SIDES, up to two per game. n_team_sides is the sample size for every share and silhouette below; n_games is the number of clean games they were drawn from.",
   "k_selected": 12,
-  "silhouette": 0.134,
+  "silhouette": 0.114,
   "note": "Archetypes are DISCOVERED from live ladder teams, not hand-listed. Re-run engine/archetypes.py to refresh as the meta shifts; K (how many distinct archetypes exist) is chosen from the data, so new ones appear and faded ones drop below the 3% floor automatically.",
   "archetypes": [
     {
-      "n": "Raichu-Sableye",
-      "share": 0.247,
+      "n": "Raichu-Talonflame",
+      "share": 0.216,
       "core": [
         "raichu",
-        "sableye",
         "talonflame",
-        "aerodactyl"
+        "aerodactyl",
+        "sableye"
       ],
       "signature": [],
-      "w_usage": 0.253
+      "w_usage": 0.221
     },
     {
       "n": "Incineroar-Sinistcha",
-      "share": 0.13,
+      "share": 0.121,
       "core": [
         "incineroar",
         "sinistcha",
@@ -29,49 +29,61 @@
         "sneasler"
       ],
       "signature": [],
-      "w_usage": 0.133
+      "w_usage": 0.124
     },
     {
-      "n": "Farigiraf-Kingambit",
-      "share": 0.094,
+      "n": "Trick Room",
+      "share": 0.113,
       "core": [
         "farigiraf",
         "kingambit",
-        "staraptor",
-        "sylveon"
+        "torkoal",
+        "staraptor"
       ],
       "signature": [],
-      "w_usage": 0.096
+      "w_usage": 0.116
+    },
+    {
+      "n": "Garchomp-Charizard",
+      "share": 0.102,
+      "core": [
+        "garchomp",
+        "charizard",
+        "kingambit",
+        "whimsicott"
+      ],
+      "signature": [
+        "whimsicott"
+      ],
+      "w_usage": 0.104
+    },
+    {
+      "n": "Whimsicott-Staraptor",
+      "share": 0.098,
+      "core": [
+        "whimsicott",
+        "staraptor",
+        "incineroar",
+        "garchomp"
+      ],
+      "signature": [],
+      "w_usage": 0.1
     },
     {
       "n": "Kingambit-Basculegion",
-      "share": 0.092,
+      "share": 0.087,
       "core": [
         "kingambit",
         "basculegion",
         "sneasler",
-        "whimsicott"
+        "froslass"
       ],
       "signature": [],
-      "w_usage": 0.094
-    },
-    {
-      "n": "Charizard-Garchomp",
-      "share": 0.076,
-      "core": [
-        "charizard",
-        "garchomp",
-        "kingambit",
-        "sylveon"
-      ],
-      "signature": [
-        "basculegion"
-      ],
-      "w_usage": 0.078
+      "w_usage": 0.089
     },
     {
       "n": "Sand",
-      "share": 0.071,
+      "share": 0.067,
       "core": [
         "tyranitar",
         "excadrill",
@@ -79,47 +91,35 @@
         "corviknight"
       ],
       "signature": [],
-      "w_usage": 0.073
+      "w_usage": 0.069
     },
     {
-      "n": "Whimsicott-Garchomp",
-      "share": 0.07,
+      "n": "Swampert-Pelipper",
+      "share": 0.053,
       "core": [
-        "whimsicott",
-        "garchomp",
-        "staraptor",
-        "delphox"
+        "swampert",
+        "pelipper",
+        "archaludon",
+        "grimmsnarl"
       ],
       "signature": [],
-      "w_usage": 0.072
+      "w_usage": 0.054
     },
     {
-      "n": "Pelipper-Archaludon",
-      "share": 0.07,
+      "n": "Rain",
+      "share": 0.046,
       "core": [
         "pelipper",
         "archaludon",
-        "swampert",
-        "sinistcha"
+        "basculegion",
+        "venusaur"
       ],
       "signature": [],
-      "w_usage": 0.072
-    },
-    {
-      "n": "Trick Room",
-      "share": 0.052,
-      "core": [
-        "torkoal",
-        "farigiraf",
-        "mawile",
-        "vileplume"
-      ],
-      "signature": [],
-      "w_usage": 0.053
+      "w_usage": 0.047
     },
     {
       "n": "Grimmsnarl-Sinistcha",
-      "share": 0.045,
+      "share": 0.043,
       "core": [
         "grimmsnarl",
         "sinistcha",
@@ -127,16 +127,16 @@
         "metagross"
       ],
       "signature": [],
-      "w_usage": 0.046
+      "w_usage": 0.044
     },
     {
       "n": "Sand",
       "share": 0.031,
       "core": [
         "tyranitar",
-        "excadrill",
         "staraptor",
-        "milotic"
+        "excadrill",
+        "gholdengo"
       ],
       "signature": [],
       "w_usage": 0.032

@@ -10,6 +10,195 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.85.0] — 2026-08-09
+
+### Added
+- **THE WHOLE SITE WITHHOLDS NOW, NOT JUST THE STATUS BOARD (ROADMAP #113).** Five pages LOADED a
+  quarantined artifact as data rather than quoting its verdict, so the citation checker structurally
+  could not see them. Each now loads `web/quarantine-data.js` first and calls `heldFor()` naming the
+  exact artifact: `data/mag.js` (the MAG scoring room), `data/mew.js` (the viewer and the replay),
+  `data/scoreboard.js` (the whole board). **7 of the Stadium's 15 cabinets go dark** — MEDICHAM, MAG,
+  MILTANK, DODUO, WOBBUFFET, MACHAMP, DITTO.
+- **THE STADIUM'S ANSWER TO "WHAT DOES A PAGE SAY WHEN ITS SUBJECT IS UNQUOTABLE".** The cabinet keeps
+  its seat, its sprite and its verb; pressing `SHOW ME THE NUMBER` returns the quarantine — artifact,
+  why it is downstream, which clauses fail, the re-run command. `docs/WEB.md` already held that
+  NOT MEASURED is a legitimate outcome of pressing a button and *a control that visibly refuses is the
+  finding*; QUARANTINED is that shape with a better reason. It is deliberately **not** a shade of
+  STALE: stale means a number aged, this means it was measured through a simulator we have caught
+  disagreeing with Showdown. The unit of darkening is the CONTROL, not "any held figure" — MEW quotes
+  one borrowed round-0 mirror, so that card reads QUARANTINED and the egg still hatches.
+- `tests/test-web-quarantine-loaders.js` — a detector for the class the citation walker cannot see.
+  Shown RED first on four synthetic pages: unguarded load flagged; load guarded on the WRONG artifact
+  flagged (a bare gate check would wave that through); a guard existing only in a comment flagged.
+  33 of 33 harvested figures held with the gate closed, all 33 returned and byte-equal with it open.
+  The values were harvested out of the pages by script, **never retyped**.
+
+### Fixed
+- **`app/quarantine-data.js` DID NOT EXIST, AND app/ IS THE DEPLOYED COPY.** Without it every guard on
+  the published pages takes the healthy path and `app/` goes on drawing from the withheld bundles —
+  **the exact `status-data.js` failure of 3.81.0, one day later, in the same directory.** Synced, along
+  with five pages that had diverged. `tests/test-site-sync.js` 16 passed, 0 failed.
+
+### Notes
+- **A JUDGEMENT CALL, FLAGGED FOR REVERSAL RATHER THAN BURIED.** `replay.html` and index's MEW viewer
+  carry **no figure at all** — which is precisely why nothing could see them — and they were withheld
+  anyway. The argument: a visitor watching a MEW self-play battle concludes *the engine plays Champions
+  correctly*, while the deliberate roster currently reports 50 move stagings resolving differently from
+  Showdown. That is a reader misled by a withheld artifact. If a battle is exhibit rather than claim,
+  this is the one to reverse; it is one `heldFor` branch in each file.
+- **CITING `docs/MODELS.md` LAUNDERS THE QUARANTINE.** `quarantine.js` classifies `data/*`. A page that
+  cites the ledger for a number which is really a self-play head-to-head through MEDICHAM is invisible
+  to the classifier AND to the new loader detector. Left standing and named: the Stadium's MAG
+  `Greedy over sampling 79.7%` and `Self-play improvement 55.9%`, MACHAMP's `+0.34 → +2.75`, MEW's
+  `mirror 51.0%`. No artifact was invented for them — the ledger is MEASURE's.
+- The Stadium's MACHAMP card said `2 of 6` where `data/ladder.json` says `gensRequested: 8`, and
+  `models.html` had it right at "2 of the 8". Withholding **removed a wrong number rather than
+  correcting it**; when `ladder.json` is re-run the release entry must be re-harvested, not restored.
+
+---
+
+## [3.84.0] — 2026-08-09
+
+### Fixed
+- **ROADMAP #109: THE PHOTOGRAPH FROZE THE SUBJECT AND NOT THE CAMERA — 56 of 65 frozen releases
+  could not be opened by their own caller, and every one of the release ladder's 14 rungs is among
+  them.** `engine/game_differential.js` died with `TypeError: M.natureL50 is not a function` at
+  `flatL50` — 1,280 lines into a file about turn order, naming neither the release nor the symbol nor
+  the fact that the snapshot was INTACT and merely predated the export. Measured over the 65 release
+  directories on disk: **4 pruned, 1 (`d3d04b669e18`, the oldest with bodies) that predates
+  `engine/mc_key.js` being in `SOURCES` at all and failed one layer earlier with a bare
+  `Cannot find module`, 56 that predate `natureL50`, and 5 that can serve the current driver.**
+  - **`SOURCES` did NOT grow a third time, and that is the decision.** It has grown twice before, both
+    times because a release was not ENOUGH (+6 loader deps to LOAD, +5 data files to RUN). Adding the
+    driver would have recovered none of the 56, changed every future release id over a file that
+    cannot change a number the engine produces, and broken the ladder — `game_differential.js` already
+    argues, about `steering.js` and `board_state.js`, that freezing the INSTRUMENT "would mean each
+    rung was scored by its own contemporaneous reader, which is the one thing a ladder must not do."
+  - **What was missing is a CONTRACT across that boundary.** A release knows what it froze and what
+    those bytes export; a caller knows what it needs; nothing asked. `REL.require` now refuses by name
+    on a file the release predates, and — when the caller declares `{ need: [...] }` — on a symbol,
+    naming the release, its first cut, the missing symbols and the command that lists the releases
+    which have them. `REL.path`/`REL.read` go through the same guard.
+  - **THIS RECOVERS NOTHING AND THE 56 REMAIN UNRUNNABLE.** Those bytes never held the function and no
+    message can put it there. What changes is that they fail in one sentence at second zero, and that
+    `compat` answers "which releases can this run use" before the run. The same is true of the two
+    earlier `SOURCES` growths — neither repaired a release cut before it either, and neither said so.
+- **`engine/game_differential.js` has read `M.MEDI_SPREAD` since it was written and NOTHING has ever
+  provided it, including the live engine.** `medicham2-browser.js` assigns `MEDI_SPREAD` to `root` and
+  not to `module.exports`, so `M.MEDI_SPREAD ? ... : false` in `mediSpan` has taken the false branch on
+  every run — every spread move's staged damage span was priced as a single-target hit. **Not fixed
+  here**; the fix is one entry in medicham2's export list, which ENGINE did not hold this session. It
+  is now declared `want: ['MEDI_SPREAD']` so the release loader shouts about it on every run instead
+  of it staying invisible.
+
+### Added
+- **`node engine/engine_release.js compat <file> [symbol ...]`** — the inventory that turns a
+  56-release backlog into a list. Every release, in cut order, PROVIDES or LACKS with the symbols
+  named. It LOADS the frozen module rather than scanning its text, because a text search finds the
+  definition and the `root` assignment and would have answered YES for `MEDI_SPREAD`, which no build
+  has ever exported.
+- **`REL.surface(id, file)` and `REL.compat(file, symbols)`**, exported for the same reason `sha12` is:
+  three files would otherwise each grow their own idea of what a release provides.
+- **`tests/test-engine-release.js` section 8 — the OLDEST release on disk.** Every other section cuts a
+  release and reads it back seconds later, so nothing had ever opened an old one, which is the one
+  that fails first. Shown RED against the pre-fix code (8 failures plus a hard crash) before green.
+  It asserts the CONTRACT, not compatibility — the 56 are unrepairable and a test demanding they open
+  would be red forever, which this project has already established is the same thing as no test — and
+  it clears the control explicitly: the CURRENT release must satisfy the same need list, so a guard
+  that refused everything cannot pass.
+
+### Notes
+- **`engine/wire_ladder.js` cannot run: all 14 of its rungs lack `natureL50`.** The published ladder
+  result on disk stands — it was measured under the driver of its day — but it is no longer
+  re-runnable, and the ladder's whole premise is that it is a replay rather than a re-do. Recovering it
+  needs a decision nobody has taken: whether `--nature serious` may derive its flat level-50 line from
+  something other than the frozen engine's own `natureL50`, which is a second copy of a FACT.
+- ROADMAP #57's re-run list is unaffected — it classifies stamps and re-runs against the LIVE engine,
+  so it never re-opens an old release. ROADMAP #99's quarantine lift condition does depend on the
+  differential, and the differential can now only be run against 5 of the 65 releases.
+
+## [3.83.0] — 2026-08-09
+
+### Fixed
+- **WIRE 2 / ROADMAP #112: THE PINCH FAMILY — 9,141 uses, and the refusal that hid them was correct
+  the whole time.** Blaze (6,386 uses), Torrent (2,017), Overgrow (689) and Swarm (49) had never
+  fired once. `data/tags.json` carried their condition as the SENTENCE `"only below 1/3 HP"`, and
+  `medicham2-browser.js` gated on `!_db.onlyWhen` — which is exactly what ROADMAP #92 requires of a
+  condition that cannot be evaluated. **The defect was that nobody ever made `onlyWhen` readable**, so
+  the refusal was permanent, and the shape the consumer *did* admit is five abilities with **zero**
+  corpus uses (`dragonsmaw, firemane, rockypayload, steelworker, transistor`): armed for what nobody
+  runs, closed against what everybody runs.
+  - `engine/tag_dex.js` derives the gate by SHAPE from Showdown's own `attacker.hp <= attacker.maxhp
+    / 3` into `{cond:'hpFraction', of:'self', cmp:'<=', num:1, den:3}`. Nothing is name-matched, so a
+    pinch ability added next regulation at 1/4 is picked up with no engine edit.
+  - **The fraction is never collapsed to a float.** `maxhp * (1/3)` is not `maxhp / 3` — the nearest
+    double to 1/3 is below it, so `150 * (1/3)` is `49.999999999999993` and a body at exactly one
+    third would be refused a boost it is owed. `condHolds` asks `hp*den <= maxhp*num` in integers.
+  - **Failing closed is unchanged.** An `onlyWhen` shape the engine cannot read still returns `null`,
+    still refuses, and is now counted in `MEDFAILS.damageBoostUnknownCond`.
+- **`tests/probe_red_demo.js` had been exiting on its second demonstration, so 186 of its 188 had not
+  run at all.** `revertedEngine` throws when its patch no longer matches the engine — correctly — but
+  the throw escaped and ended the process. A stale reversal is now a counted, NAMED red row and the
+  run continues.
+
+### Added
+- **`tests/test-pinch-family.js`** — 61 rows, both engines on every one, through
+  `tests/probe_pair.js`. Stages both parities of maxhp (divisible by three, where "exactly one third"
+  is an integer that must PASS, and not, where the largest passing HP is the floor) and both sides of
+  the line; asserts `tag_dex` and `tests/roster.js`'s own regex agree on the threshold; and carries
+  the five 0-use members as an explicit positive control. **RED at 31 of 61 before the fix.**
+- **`attHP` on `tests/probe_pair.js`** — the attacker's current HP, set on BOTH engines and asserted
+  equal alongside species, ability, item and stats. A pinch ability on a full-HP body reads 0 = 0 in
+  both arms and proves nothing.
+- **A census probe for the boundary** — `ability|damageBoost`, "Blaze fires ONLY under a third of
+  maximum HP, and the line is exact". Four arms, because two would pass on three different broken
+  engines. **Census 324 → 325 live, 0 missing.**
+
+### Changed
+- **`data/tags.json` and `data/abra-tags.js` regenerated.** ROADMAP #65's hazard is CLOSED and this is
+  the measurement that says so: a regeneration with NO code change loses 0 entities, 0 tags, 0 usage
+  and produces 0 param diffs. The change itself then produces **exactly 5 param diffs** — the four
+  pinch members plus `defeatist` — and nothing else. `damageReduce` is byte-identical.
+- `tests/test-damage-stages.js`'s printed membership of the narrowed `damageBoost` shape follows the
+  engine's clause rather than the old one: 5 → 9 members, still 0 at the wrong stage.
+
+### Notes
+- **`MEDI_SPREAD` was exported to nobody, and `engine/game_differential.js` had been running on the
+  fallback since it was written.** `medicham2-browser.js:9972` assigns it to `root` only, so
+  `require(...).MEDI_SPREAD` was `undefined` across all 65 exports and
+  `M.MEDI_SPREAD ? M.MEDI_SPREAD.has(id) : false` took the FALSE branch on **every run this
+  repository has ever done** — every spread move's staged span priced as a single-target hit, no
+  doubles 0.75, against a Showdown side that applies it. Added to `module.exports`; `SPREAD`'s 38
+  members and the `root` assignment are untouched, and `game_differential.js` was not edited.
+  - **Landed AFTER the pinch measurement had both arms in hand**, deliberately, so the two deltas
+    could not arrive in one before/after.
+  - **Its measured effect is ZERO, so the baseline does NOT need resetting.** A third arm
+    (`759a0d3292f5`, same pins, COMPARABLE) moves no `state.*` field, no `diverged` count, and
+    neither `damage_interior` nor `knock_off_roadmap_80` — **because both damage-span probes stage
+    single-target moves**, so the permanently-false branch is one neither ever needed. The defect was
+    total; its exposure in the published figures was nil. Until a span probe stages a spread move,
+    the fixed branch is untested by anything except the export check itself.
+- **The paired differential is an honest NULL.** Same store, same census pin `909dd84f06ac`, same
+  1546 games, COMPARABLE, differing only in `--release`: every state figure byte-identical
+  (turn-1 97.7%, whole-game 80.3%, boundaries 98.3%, median 8) across two provably different builds.
+  The wire is live in the exact bytes the after-arm played — the roster, the 61-row probe and the
+  census probe all say so on release `2929deeb41f3` — so this is the sample not reaching the family,
+  not a dead knob. No strength claim is made and none can be from here.
+- **Roster `--stage abilities`: 1 DID-NOT-FIRE → 0.** Exactly four entities changed verdict and
+  nothing else did — Overgrow `DID-NOT-FIRE → FIRED-AND-BOARDS-MATCH`, and Blaze, Swarm and Torrent
+  `CONTROL-NOT-QUIET → FIRED-AND-BOARDS-MATCH`. Items, moves and `tests/test-engine-diff.js` all
+  unchanged.
+- **`data/engine-data.js` gives First Impression base power 90; the dex says 100.** Found because the
+  probe's CONTROL arm disagreed with no ability on the body at all. That file belongs to MEASURE;
+  reported, not fixed, and printed as NOT COMPARABLE rather than blamed on Swarm.
+- **The state differential's own planted-divergence proof fails at `--games 2008` on the current
+  store**, in BOTH arms including the before-arm on untouched bytes, so its turn-1 / whole-game /
+  boundary percentages are **not quoted for this release**. Sample-dependent: the same proof passes
+  26/26 at `--games 45`, and reproduces with the 324-row census as well as the 325-row one.
+- **`tests/probe_red_demo.js` is RED at 3 of 188**, none of them this wire's: two STALE ROADMAP #81
+  WIRE 11 reversals and one genuine `ARM sealsMoves` row whose stripped arm still holds. Named here
+  rather than filed.
+
 ## [3.82.0] — 2026-08-08
 
 ### Fixed

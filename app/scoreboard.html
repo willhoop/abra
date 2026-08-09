@@ -45,10 +45,18 @@ button:disabled{opacity:.35;cursor:default}
 
 <h1>THE SCOREBOARD</h1>
 <div class="sub">Every turn, MAG gives each option it could click a <b>score</b>, then plays the highest one.
-The score is just a sum: each of 53 measured things about the board contributes a little push toward or away
+The score is just a sum: each measured thing about the board contributes a little push toward or away
 from that option. This page shows the whole sum, for every option, in real games. Nothing here is
 recomputed in your browser — the engine did the arithmetic and this page only draws it.</div>
 
+<!-- THE WHOLE ROOM IS THE WITHHELD ARTIFACT, WHICH IS WHY THE PLATE SITS AHEAD OF THE PANELS RATHER
+     THAN INSIDE ONE. Every score, every feature contribution and every board on this page came out of
+     data/scoreboard.js — a self-play game MEDICHAM played, scored by weights fitted through it. There
+     is no part of this page that survives its source being withheld, so the honest render is a closed
+     room and not a page of empty bars. -->
+<div id="qhold"></div>
+
+<div id="board">
 <div class="panel">
   <div class="row">
     <span class="tag">Game</span><select id="game"></select>
@@ -79,10 +87,25 @@ recomputed in your browser — the engine did the arithmetic and this page only 
   percentage tells you how close the call was.</p>
   <p class="note" id="prov"></p>
 </div>
+</div>
 
+<script src="quarantine-data.js"></script>
 <script src="../data/scoreboard.js"></script>
 <script>
 (function(){
+  /* ---- THE WITHHOLDING HAPPENS WHERE THE PAGE READS, NOT WHERE THE BUILDER WROTE ---------------
+     data/scoreboard.js is in the withheld set (engine/quarantine.js: its generator
+     build/build_scoreboard.js reaches engine/medicham2-browser.js through require). The file is
+     still on disk and still loads — this page is the reader, so this is where it has to stop. */
+  var Q = window.ABRA_QUARANTINE;
+  var HELD = Q && Q.heldFor('data/scoreboard.js');
+  if (HELD) {
+    document.getElementById('qhold').innerHTML = Q.plate('data/scoreboard.js', {
+      subject: 'THE SCOREBOARD IS CLOSED — every score on this page was computed through MEDICHAM' });
+    document.getElementById('board').style.display = 'none';
+    return;
+  }
+
   var SB = window.SCOREBOARD;
   var gEl=document.getElementById('game'), posEl=document.getElementById('pos'),
       ctxEl=document.getElementById('ctx'), optsEl=document.getElementById('opts'),

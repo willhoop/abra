@@ -42,6 +42,7 @@
  *   node engine/engine_release.js list
  *   node engine/engine_release.js verify <id>                     # has the snapshot itself rotted?
  *   node engine/engine_release.js rerender <id>                   # redraw release.json from cuts.jsonl
+ *   node engine/engine_release.js compat <file> [symbol ...]      # which releases can a caller open?
  *
  * In a measuring script:
  *   const REL = require('./engine_release.js').open();             # newest release
@@ -528,6 +529,110 @@ function prune(apply, opts) {
   return out;
 }
 
+/* ---- WHAT THE PHOTOGRAPH DOES NOT FREEZE, AND THE THIRD TIME THAT COST A RELEASE ---------------
+ *
+ * SOURCES has grown twice, both times because a release turned out not to be ENOUGH: +6 loader deps
+ * so `REL.require` resolves at all, +5 lazily-read data files so a snapshot can actually play a game.
+ * Both comments are above this one. This is the third instance of the same class and it is NOT the
+ * same SHAPE, which is exactly why SOURCES does not grow a third time here.
+ *
+ * MEASURED 2026-08-09 over the 65 release directories on disk, against engine/game_differential.js:
+ *    4  pruned — open() already refuses these by name, and a recorded decision is not a defect
+ *    1  d3d04b669e18, the oldest release that still has bodies, froze TWELVE files and does not
+ *       contain `engine/mc_key.js` at all. game_differential.js:1250 died with
+ *       `Cannot find module ...\releases\d3d04b669e18\engine\mc_key.js`, thrown out of THIS FILE.
+ *   56  do not export `natureL50`: `TypeError: M.natureL50 is not a function`, 1,280 lines into a
+ *       file whose subject is turn order and damage, naming neither the release nor the symbol.
+ *    5  can serve the current driver.
+ * So the two earlier SOURCES growths did not repair a single release cut before them either. Neither
+ * of them said so. That silence is half of why this is the third time.
+ *
+ * THE SUBJECT IS FROZEN AND THE CAMERA IS NOT, AND THAT IS DELIBERATE RATHER THAN AN OVERSIGHT.
+ * game_differential.js already argues it, in its own words, about `steering.js` and `board_state.js`:
+ * they are the INSTRUMENT, and freezing them "would mean each rung was scored by its own
+ * contemporaneous reader, which is the one thing a ladder must not do." Adding the driver to SOURCES
+ * is therefore the WRONG fix even though it is the shape of the previous two — it recovers none of
+ * the 56, it changes every future release id over a file that cannot change a number the ENGINE
+ * produces, and it breaks the release ladder, which is the main reason anybody re-opens an old
+ * release at all.
+ *
+ * WHAT WAS ACTUALLY MISSING IS A CONTRACT ACROSS THAT BOUNDARY. A release knows precisely which files
+ * it froze and precisely what those bytes export. A caller knows precisely what it needs. Nothing
+ * ever asked. So a require out of a release is now CHECKED, at the require:
+ *    - the FILE is not in the manifest  -> "this release predates <file> being part of the engine"
+ *    - a NEEDED SYMBOL is not exported  -> "this release predates <symbol>", named, with the command
+ *      that lists the releases which do have it.
+ *
+ * AND IT RECOVERS NOTHING — say it plainly rather than letting "fixed" imply a backlog came back. The
+ * 56 do not become runnable. Those bytes never held the function and no error message can put it
+ * there. What changes is that they fail in one sentence at second zero instead of deep inside an
+ * unrelated file, and that `compat` answers "which releases can this run use" BEFORE the run. */
+
+/* WHAT A FROZEN MODULE ACTUALLY EXPORTS. Loaded, not scanned: a text search for `natureL50` in the
+ * frozen source would find the definition and the root assignment and would answer YES for a module
+ * that never put it in `module.exports` — which is not a hypothetical, it is exactly the state of
+ * `MEDI_SPREAD` in the LIVE engine today (assigned to `root`, absent from `module.exports`, read by
+ * game_differential.js:2713 behind a `? :` that has therefore always taken the false branch).
+ *
+ * Loading has side effects — medicham2 writes its own exports onto the global object — so this is a
+ * DIAGNOSTIC, not something a measurement should call mid-run. The module is dropped from
+ * require.cache afterwards so that `compat` over sixty releases does not hold sixty engines. */
+function surface(id, rel, opts) {
+  const dir = path.join(store(opts).releases, id);
+  let man;
+  try { man = JSON.parse(fs.readFileSync(path.join(dir, 'release.json'), 'utf8')); }
+  catch (e) { return { id, rel, status: 'no-manifest', why: e.message, exports: null }; }
+  if (man.bodies_pruned) return { id, rel, cut: man.cut, status: 'pruned', why: 'bodies removed ' + man.bodies_pruned.at, exports: null };
+  if (!(rel in (man.files || {}))) {
+    return { id, rel, cut: man.cut, status: 'file-absent', exports: null,
+             why: 'this release froze ' + Object.keys(man.files || {}).length + ' files and ' + rel + ' was not one of them' };
+  }
+  const abs = path.join(dir, rel);
+  try {
+    const mod = require(abs);
+    delete require.cache[require.resolve(abs)];
+    return { id, rel, cut: man.cut, status: 'ok', exports: Object.keys(mod).sort() };
+  } catch (e) {
+    /* A snapshot that will not LOAD is a different answer from one that loads and lacks a symbol, and
+     * collapsing the two would report a broken release as merely old. */
+    return { id, rel, cut: man.cut, status: 'unloadable', why: e.message.split('\n')[0], exports: null };
+  }
+}
+
+/* WHICH RELEASES CAN SERVE THIS CALLER — the inventory that turns a backlog into a list.
+ * Ordered by first cut, so the answer reads as a timeline of when the caller's requirement appeared. */
+function compat(rel, symbols, opts) {
+  const need = symbols || [];
+  const rows = list(opts).map(id => {
+    const s = surface(id, rel, opts);
+    if (s.status !== 'ok') return Object.assign(s, { provides: false, missing: null });
+    const missing = need.filter(k => !s.exports.includes(k));
+    return Object.assign(s, { provides: missing.length === 0, missing });
+  });
+  rows.sort((a, b) => String(a.cut).localeCompare(String(b.cut)));
+  return rows;
+}
+
+/* THE TWO REFUSALS, WRITTEN ONCE. Both say the same three things, because a reader hitting either one
+ * needs the same three things: this is not corruption, the snapshot cannot be repaired, and here is
+ * the command that finds a release which can. */
+function fileRefusal(id, man, rel) {
+  const n = Object.keys(man.files || {}).length;
+  return new Error('release ' + id + ' does not contain ' + rel + '.\n'
+    + '  It froze ' + n + ' files when it was first cut at ' + man.cut + '; ' + rel + ' was added to\n'
+    + '  engine_release.js SOURCES afterwards, so these bytes never held it.\n'
+    + '  This is NOT corruption and NOT drift — the snapshot is intact and simply predates the file.\n'
+    + '  It cannot be repaired: a release is a photograph, and the file was not in the frame.\n'
+    + '  Which releases DO carry it:  node engine/engine_release.js compat ' + rel);
+}
+function symbolRefusal(id, man, rel, missing, provided) {
+  return new Error('release ' + id + ' was frozen before ' + rel + ' exported: ' + missing.join(', ') + '\n'
+    + '  First cut ' + man.cut + '. The snapshot is INTACT — it provides ' + provided + ' exports and\n'
+    + '  predates ' + (missing.length === 1 ? 'that one' : 'those') + '.\n'
+    + '  It cannot be repaired: the frozen bytes never had it. Pick a release that does:\n'
+    + '    node engine/engine_release.js compat ' + rel + ' ' + missing.join(' '));
+}
+
 function open(id, opts) {
   const S = store(opts);
   const POINTER = S.pointer;
@@ -561,15 +666,45 @@ function open(id, opts) {
   const v = verify(id, opts);
   if (!v.ok) throw new Error('release ' + id + ' has been MODIFIED since it was cut:\n  ' + v.bad.join('\n  '));
   const dir = path.join(S.releases, id);
+  /* EVERY WAY INTO THE SNAPSHOT GOES THROUGH THE SAME GUARD. `require` was the one that broke, but
+   * `path` and `read` reach the same missing file and would answer ENOENT from somewhere else. */
+  const frozen = (rel) => {
+    if (!(rel in (v.manifest.files || {}))) throw fileRefusal(id, v.manifest, rel);
+    return path.join(dir, rel);
+  };
   return {
     id,
     dir,
     manifest: v.manifest,
     /* Loads from the SNAPSHOT. A measuring script that calls this cannot be affected by another
-     * division editing the live file, which is the entire point. */
-    require(rel) { return require(path.join(dir, rel)); },
-    path(rel) { return path.join(dir, rel); },
-    read(rel) { return fs.readFileSync(path.join(dir, rel), 'utf8'); },
+     * division editing the live file, which is the entire point.
+     *
+     * `{ need, want }` IS THE CONTRACT, AND IT IS EXPLICIT BECAUSE THE ALTERNATIVE WAS TESTED IN THE
+     * HEAD AND REJECTED. Wrapping the module in a Proxy that threw on any absent key would need no
+     * caller change and would ALSO turn every legitimate feature-detect — `M.MEDI_SPREAD ? ... : ...`,
+     * `'x' in M` — into a crash, for every caller in the repo, silently. A caller says what it needs.
+     *   need: absent -> REFUSE, by name, here.
+     *   want: absent -> a loud line and carry on. That is for a genuinely optional read, and it is
+     *         loud because a `? :` over an export that is never there is indistinguishable from a
+     *         working feature until someone measures it. */
+    require(rel, opts2) {
+      const abs = frozen(rel);
+      const mod = require(abs);
+      const need = (opts2 && opts2.need) || [];
+      const want = (opts2 && opts2.want) || [];
+      const missing = need.filter(k => !(k in mod));
+      if (missing.length) throw symbolRefusal(id, v.manifest, rel, missing, Object.keys(mod).length);
+      const soft = want.filter(k => !(k in mod));
+      if (soft.length) {
+        console.error('  !! release ' + id + ' does not export ' + soft.join(', ') + ' from ' + rel
+          + ' — the caller declared these OPTIONAL, so it is running with whatever its fallback is.\n'
+          + '     A fallback nobody can see is the failure mode this project is named after. If the\n'
+          + '     number below depends on it, it is not the number you think it is.');
+      }
+      return mod;
+    },
+    path(rel) { return frozen(rel); },
+    read(rel) { return fs.readFileSync(frozen(rel), 'utf8'); },
     /* Goes straight into the artifact. `engine/provenance.js` reads `source_digests` and will now
      * verify it by CONTENT rather than by mtime.
      *
@@ -599,7 +734,7 @@ function open(id, opts) {
  * read. That is the FACTS ARE GLOBAL rule in CLAUDE.md — how to hash a file is a fact, not a
  * per-model choice, and four implementations of it will disagree eventually while all four keep
  * working. One implementation, everyone calls it. */
-module.exports = { cut, list, verify, drift, open, rerender, sha12, sha12OrNull, SOURCES, POINTER, RELEASES };
+module.exports = { cut, list, verify, drift, open, rerender, surface, compat, sha12, sha12OrNull, SOURCES, POINTER, RELEASES };
 
 if (require.main === module) {
   const [cmd, arg] = process.argv.slice(2);
@@ -654,6 +789,29 @@ if (require.main === module) {
     }
     const n = rows.filter(r => r.action === 'WOULD PRUNE' || r.action === 'pruned').length;
     console.log('\n  ' + n + ' release(s) ' + (apply ? 'pruned' : 'would be pruned') + '.\n');
+  } else if (cmd === 'compat') {
+    /* WHICH RELEASES CAN A GIVEN CALLER STILL USE. The question ROADMAP #57's re-run list and the
+     * quarantine's lift condition both assume has the answer "all of them", and it does not. */
+    const rel = arg;
+    if (!rel) { console.log('usage: engine_release.js compat <file-in-the-release> [symbol ...]'); process.exit(2); }
+    const syms = process.argv.slice(4);
+    const rows = compat(rel, syms);
+    console.log('\n  CAN A RELEASE SERVE THIS CALLER — ' + rel
+      + (syms.length ? '  needing: ' + syms.join(', ') : '  (file presence only)'));
+    console.log('  A release is a photograph. One that predates a file or an export cannot be repaired;\n'
+              + '  this says which ones can be USED, before a run finds out 1,280 lines deep.\n');
+    for (const r of rows) {
+      const verdict = r.status !== 'ok' ? r.status.toUpperCase()
+        : (r.provides ? 'PROVIDES' : 'LACKS ' + r.missing.join(','));
+      console.log('    ' + (r.cut || '(no cut time)') + '  ' + r.id + '  ' + verdict
+        + (r.status !== 'ok' && r.why ? '   (' + r.why + ')' : ''));
+    }
+    const okN = rows.filter(r => r.provides).length;
+    console.log('\n  ' + okN + ' of ' + rows.length + ' releases can serve it.'
+      + '  ' + rows.filter(r => r.status === 'pruned').length + ' pruned,'
+      + '  ' + rows.filter(r => r.status === 'file-absent').length + ' predate the file,'
+      + '  ' + rows.filter(r => r.status === 'ok' && !r.provides).length + ' predate an export,'
+      + '  ' + rows.filter(r => r.status === 'unloadable' || r.status === 'no-manifest').length + ' broken.\n');
   } else if (cmd === 'rerender') {
     const res = rerender(arg || (JSON.parse(fs.readFileSync(POINTER, 'utf8')).current));
     console.log(`re-rendered ${res.id} from its cut log (${res.cuts} cut(s))`);
@@ -661,7 +819,8 @@ if (require.main === module) {
     console.log(`  now: ${res.after.cut}  ${res.after.why}`);
     console.log('  digests and snapshot bytes untouched — this redraws the record, it does not cut.');
   } else {
-    console.log('usage: engine_release.js cut "<why>" | list | verify [id] | rerender [id]');
+    console.log('usage: engine_release.js cut "<why>" | list | verify [id] | rerender [id]\n'
+              + '       engine_release.js compat <file-in-the-release> [symbol ...]');
     process.exit(2);
   }
 }

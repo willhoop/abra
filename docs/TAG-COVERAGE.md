@@ -141,24 +141,34 @@ Speed by 1.5 will disagree eventually, and the disagreement will be invisible be
 working."* Here it is two files deciding which moves flinch, which moves recoil, and which moves set
 weather — and tonight's WIRE 71 was exactly a weather fact that had drifted between the two.
 
-### The sharp residue: 26 ability and item tags, 104,484 uses, that **cannot** be covered by move-effects.json
+### The sharp residue: 26 ability and item tags, 30,107 uses, that **cannot** be covered by move-effects.json
 
 `move-effects.json` describes moves only. An ability or item tag with no consumer has no second
 rulebook to fall back on:
 
 | tag | uses |
 |---|---|
-| `megaStone` | 29,790 |
-| `damageBoost` | 12,085 |
-| `onSwitchInDrop` | 10,415 |
-| `boostsWhenLowered` | 7,965 |
-| `priorityMod` | 7,958 |
-| `contactPunish` | 6,829 |
-| `speedMult` | 6,141 |
-| `stabBoost` | 4,468 |
-| `speedCond` | 3,564 |
-| `blocksStatusMoves` | 2,539 |
-| `accuracyMod` | 2,537 |
+| `resistBerry` | 12,975 |
+| `passiveHeal` | 8,363 |
+| `blocksBerries` | 2,293 |
+| `disablesAttacker` | 1,821 |
+| `poisonsOnMyContact` | 1,325 |
+| `blocksExplosion` | 636 |
+| `ignoresTypeImmunity` | 590 |
+| `ignoresStatStages` | 384 |
+| `survivesFromFull` | 319 |
+| `ignoresDefenderAbility` | 274 |
+| `curesStatus` | 268 |
+
+**RE-DERIVED 2026-08-09, and the list it replaced is why this is re-derived rather than edited.** The
+table above used to read `megaStone` 29,790, `damageBoost` 12,085, `onSwitchInDrop` 10,415,
+`boostsWhenLowered` 7,965, `priorityMod` 7,958, `contactPunish` 6,829, `speedMult` 6,141,
+`stabBoost` 4,468, `speedCond` 3,564, `blocksStatusMoves` 2,539, `accuracyMod` 2,537 — **and not
+one of those eleven is still unconsumed.** Every one has been wired since, `damageBoost` most
+recently by ROADMAP #112. The counts were also a snapshot of a smaller corpus. Both halves of a
+hand-typed table went stale at once, which is the failure this repository opens on; it is now read
+out of `data/tags.json` (`kind !== 'move' && !used`, sorted by uses) so it cannot say something the
+artifact does not.
 
 **These are candidates, not confirmed gaps, and the distinction matters.** Several are implemented by
 **hardcoded name** rather than from the artifact — `intimidate` appears 5 times in the simulator and
