@@ -2,6 +2,22 @@
 
 **Version 3.40.0 · 2026-08-04**
 
+> **THIS IS A DATED SNAPSHOT, NOT A LIVING LEDGER.** Every figure below was measured on 2026-08-04 and
+> is kept as written, because a point-in-time analysis that gets quietly re-typed stops being evidence
+> of anything. What has moved since, measured 2026-08-09 against `data/tags.json`:
+>
+> | the document says | today |
+> |---|---|
+> | 174 distinct tags | **187** |
+> | `boostsWhenLowered` 7,965 | **10,524** |
+> | `priorityMod` 7,958 | **10,064** |
+> | `contactPunish` 6,829 (dead) | **0 — the tag is gone**, merged into `punishesAttacker` exactly as §179 argued it should be |
+>
+> The usage counts rise because the store grows hourly; the tag count rises because `tag_dex` keeps
+> deriving new ones. **The ARGUMENT of this document is unaffected** — it is about whether the engine
+> reads what the artifact declares, and that question is answered by the live census in
+> `node engine/status.js`, not by these numbers.
+
 > Will, 2026-08-04: *"CAN WE DESIGN TESTS THAT CHECK ALL THE MOST COMMON MOVES, ITEMS, ABILITIES, AND
 > MONS AND SEE IF ALL THE TAGS ACTUALLY GET USED IN THE ENGINE"* — and, on why he should not have to
 > supply the list himself: *"I CANNOT TELL YOU ALL THE EXAMPLES"*.
@@ -148,7 +164,7 @@ rulebook to fall back on:
 
 | tag | uses |
 |---|---|
-| `resistBerry` | 12,975 |
+| `resistBerry` | 13,035 *(`data/tags.json`, 18 entities, 2026-08-09 — the original 3.40.0 reading is in the snapshot table at the top of this file)* |
 | `passiveHeal` | 8,363 |
 | `blocksBerries` | 2,293 |
 | `disablesAttacker` | 1,821 |
@@ -176,7 +192,7 @@ artifact does not.
 pick up any new ability of the same shape**, which is precisely what `CLAUDE.md` means by *"match on tag
 shape, never on a name, so an ability added later is picked up without editing the engine."*
 
-Two tags also appear to describe one mechanic — `contactPunish` (dead, 6,829 uses) beside
+Two tags also appear to describe one mechanic — `contactPunish` (**since retired: zero entities carry it in `data/tags.json` today, merged into `punishesAttacker` at 11,675 uses, which is exactly what this paragraph argued for. Its original DEAD reading is in the snapshot table at the top**) beside
 `punishesAttacker` (live). One of those is redundant and nothing has noticed.
 
 ---

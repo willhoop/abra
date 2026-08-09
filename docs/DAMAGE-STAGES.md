@@ -1,7 +1,16 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 3.87.0 — 2026-08-09.**
+**Version: 3.88.0 — 2026-08-09.**
 
+
+**3.88.0 — TWELVE MOVES WERE PRICED OFF GENERIC GEN-9 DATA INSTEAD OF THIS FORMAT'S, AND THE
+BUILDER THAT FIXED THEM WAS ONE RUN AWAY FROM DELETING TEN SPECIES.** Trop Kick read 70 where the
+format says 85, Mountain Gale 100 against 120 — ours low in all twelve, and MAG's own table had the
+right numbers the whole time, so the two engines disagreed on every one. Asking what a regeneration
+WOULD do, before running one, turned up 788 destructive changes waiting in the same builder and a
+header stamp whose regex had never once matched. `buffsHolderOnHit` also gained its condition by
+derivation — Anger Point only on a critical hit, Justified only on Dark — but **the engine does not
+read it yet and nothing behaves differently**, which is said here rather than left to look like a fix.
 
 **3.87.0 — THE STAGE WAS RIGHT AND THE INPUT TO IT WAS NOT: TWO READERS OF THE WEATHER.**
 Nothing in the table below moved. The BasePower-chain member at `:1991` (`weatherScaled`) sits at the

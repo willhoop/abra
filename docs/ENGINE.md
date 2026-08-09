@@ -451,10 +451,14 @@ this one.
 
 ### FOUND WHILE HERE — NOT MINE, NOT FIXED, AND THE FIRST ONE IS THE EXPENSIVE ONE
 
-- **`data/engine-data.js` gives First Impression base power 90. The dex says 100.** Found because the
-  probe's CONTROL arm disagreed with no ability on the body at all. `engine-data.js` belongs to
-  MEASURE. `tests/test-pinch-family.js` prints it as NOT COMPARABLE by name rather than blaming Swarm
-  for it.
+- ~~**`data/engine-data.js` gives First Impression base power 90. The dex says 100.**~~ **FIXED 3.88.0,
+  and it was one of TWELVE.** Found here because the probe's CONTROL arm disagreed with no ability on
+  the body at all; found independently by a damage sweep and by the roster's own moves stage, which
+  had `tropkick` (203 uses) in its queue for the same reason. `build/build_engine_data.js` now reads
+  base power from `Dex.forFormat` instead of keeping the stored generic gen-9 value, and
+  `engine/artifact_audit.js` check D fails if any written row disagrees with the format.
+  `tests/test-pinch-family.js` printing it as NOT COMPARABLE by name — rather than blaming Swarm for
+  it — is what made it findable.
 - **`tests/probe_red_demo.js` had been exiting on its SECOND demonstration.** `revertedEngine` throws
   when its patch no longer matches, and the throw escaped and killed the process — so **186 of its 188
   demonstrations had not run at all**, silently, for as long as the stale patch has been there. A

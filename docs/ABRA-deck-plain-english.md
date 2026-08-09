@@ -1,6 +1,15 @@
 # ABRA — the plain-English deck
 
-**Version 3.87.0 · 2026-08-09 · Will Hooper**
+**Version 3.88.0 · 2026-08-09 · Will Hooper**
+
+**3.88.0 — TWELVE MOVES WERE PRICED OFF GENERIC GEN-9 DATA INSTEAD OF THIS FORMAT'S, AND THE
+BUILDER THAT FIXED THEM WAS ONE RUN AWAY FROM DELETING TEN SPECIES.** Trop Kick read 70 where the
+format says 85, Mountain Gale 100 against 120 — ours low in all twelve, and MAG's own table had the
+right numbers the whole time, so the two engines disagreed on every one. Asking what a regeneration
+WOULD do, before running one, turned up 788 destructive changes waiting in the same builder and a
+header stamp whose regex had never once matched. `buffsHolderOnHit` also gained its condition by
+derivation — Anger Point only on a critical hit, Justified only on Dark — but **the engine does not
+read it yet and nothing behaves differently**, which is said here rather than left to look like a fix.
 
 **3.87.0 — ONE POKEMON CARRIES ITS OWN SUNSHINE, AND HALF THE ENGINE COULD NOT SEE IT.** Meganium's
 mega form fights as if the sun were out, even when the sky is clear. Weather Ball is a move that

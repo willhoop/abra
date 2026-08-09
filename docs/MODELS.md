@@ -1,6 +1,15 @@
 # ABRA — the model family (living reference)
 
-**Version 3.87.0 · Last updated 2026-08-09.**
+**Version 3.88.0 · Last updated 2026-08-09.**
+
+**3.88.0 — TWELVE MOVES WERE PRICED OFF GENERIC GEN-9 DATA INSTEAD OF THIS FORMAT'S, AND THE
+BUILDER THAT FIXED THEM WAS ONE RUN AWAY FROM DELETING TEN SPECIES.** Trop Kick read 70 where the
+format says 85, Mountain Gale 100 against 120 — ours low in all twelve, and MAG's own table had the
+right numbers the whole time, so the two engines disagreed on every one. Asking what a regeneration
+WOULD do, before running one, turned up 788 destructive changes waiting in the same builder and a
+header stamp whose regex had never once matched. `buffsHolderOnHit` also gained its condition by
+derivation — Anger Point only on a critical hit, Justified only on Dark — but **the engine does not
+read it yet and nothing behaves differently**, which is said here rather than left to look like a fix.
 
 **3.87.0 — THE ENGINE'S TYPE AUTHORITY AND ITS DAMAGE CALCULATION READ TWO DIFFERENT SKIES.** A
 private weather (Mega Sol) was applied by `dmgRange` and not by `effMoveType`, so a Weather Ball was

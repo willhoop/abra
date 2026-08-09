@@ -225,5 +225,65 @@ console.log('\n     NOTE: newer is NOT proof of correct. engine-data.js is newer
 console.log('     and still lost its output, because a LATER regeneration rewrote the whole MC table.');
 console.log('     Timestamps catch stale artifacts; only check B catches overwritten ones.');
 
+/* ---------------------------------------------------------------------------------------------
+ * D. THE FORMAT SAYS OTHERWISE — the artifact carries the field, and it DISAGREES
+ *
+ * ROADMAP #104. A and B ask whether a value ARRIVED. Neither asks whether the value that arrived is
+ * the one this FORMAT plays, and that is a distinct hole: MC.moves carried generic gen-9 base power
+ * for every move, while `Dex.forFormat('gen9championsvgc2026regmb')` applies Champions' own
+ * modifications on top. Twelve moves disagreed, ours LOW in every case, Trop Kick (203 corpus uses)
+ * by 70 against 85 — an 18% damage understatement on every rollout that ever clicked it.
+ *
+ * This is WIRE 89's hazard one field over. That wire took a secondary's CHANCE from the
+ * format-derived artifact for exactly this reason and deliberately left basePower alone, and
+ * CLAUDE.md states the general form: "the ban is a MECHANISM, not a list, so read it from the FORMAT
+ * rather than from memory." The repair is in build/build_engine_data.js, which now takes bp from the
+ * dex; this check is what stops a THIRTEENTH arriving unannounced.
+ *
+ * JUDGED ONLY ON THE ROWS THE BUILDER WRITES, per the lesson in check C above — the builder fills bp
+ * from the dex for every move the dex knows, so rows the dex does not know are excluded AND COUNTED.
+ * A builder that "passed" by skipping everything would show `judged 0` and is failed outright.
+ * ------------------------------------------------------------------------------------------- */
+console.log('\nD. THE FORMAT SAYS OTHERWISE — MC.moves against Dex.forFormat(champions)');
+
+let DEX = null, dexWhy = '';
+try {
+  const CS = require(D('engine', 'champions_sim.js'));
+  DEX = CS.sim().Dex.forFormat(CS.FORMAT);
+} catch (e) { dexWhy = e.message; }
+
+if (!DEX) {
+  /* LOUD, not silent. A dex-less run cannot check this and must not look like a clean one — that is
+   * the "silent default looks exactly like a working feature" failure this repo keeps paying for. */
+  flag('GAP', `could not open the format dex, so base power was NOT CHECKED — ${dexWhy}`);
+  console.log('           needs a built pokemon-showdown checkout (SHOWDOWN_PATH or the sibling dir).');
+} else {
+  /* One entry per artifact field the FORMAT is authoritative for. Registered here so a new one is
+   * declared rather than discovered by reading the builder. */
+  const FMT_FIELDS = [
+    { art: 'bp', of: d => d.basePower || 0, label: 'base power' },
+  ];
+  const mvKeys = Object.keys(MC.moves || {});
+  const known = mvKeys.filter(k => { const d = DEX.moves.get(k); return d && d.exists; });
+  console.log(`     ${mvKeys.length} move rows, ${known.length} of which the builder WRITES ` +
+    `(the dex knows them); ${mvKeys.length - known.length} the dex does not know and are excluded`);
+  if (!known.length) flag('GAP', 'judged 0 rows — a check that judges nothing clears everything');
+  for (const F of FMT_FIELDS) {
+    const bad = [];
+    for (const k of known) {
+      const ours = MC.moves[k][F.art] || 0, fmt = F.of(DEX.moves.get(k));
+      if (ours !== fmt) bad.push([k, ours, fmt]);
+    }
+    if (bad.length) {
+      flag('GAP', `${F.art}: ${bad.length} of ${known.length} rows disagree with the format on ${F.label}`);
+      for (const [k, o, f] of bad.slice(0, 15)) {
+        console.log(`           ${k.padEnd(20)} ours ${String(o).padStart(4)}   format ${String(f).padStart(4)}`);
+      }
+    } else {
+      flag('ok', `${F.art}: all ${known.length} written rows agree with the format on ${F.label}`);
+    }
+  }
+}
+
 console.log(`\n${problems ? problems + ' GAP(S) FOUND' : 'no gaps found'}`);
 process.exit(problems ? 1 : 0);

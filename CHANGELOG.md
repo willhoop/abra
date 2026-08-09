@@ -10,6 +10,54 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.88.0] — 2026-08-09
+
+### Fixed
+- **TWELVE MOVES CARRIED GENERIC GEN-9 BASE POWER INSTEAD OF THE FORMAT'S (ROADMAP #104).** Trop Kick
+  70 against the format's 85, Mountain Gale 100 against 120, Psyshield Bash 70 against 90 — ours LOW
+  in all twelve, 345 corpus uses. `build/build_engine_data.js` now reads base power from
+  `Dex.forFormat` rather than keeping the stored generic value, and prints every correction by name.
+  WIRE 89's hazard one field over: that WIRE took the secondary CHANCE from the format-aware artifact
+  for exactly this reason and left `basePower` alone.
+- **`engine/artifact_audit.js` check D** — the registered gate now fails if any written row disagrees
+  with the format on base power. Shown RED (12 of 500) then GREEN. It judges only the rows the builder
+  WRITES, prints the excluded count, and fails outright on `judged 0` — per CLAUDE.md, averaging over
+  rows a builder skips clears the builder that is broken.
+- **Independent confirmation nobody asked for:** `data/mag.js` — MAG's own move table, built from the
+  format — already carried all twelve correct values. **MAG and MEDICHAM disagreed on every one of
+  these until now.** They agree 12/12 after.
+
+### Notes — TWO LATENT BUGS IN THE SAME BUILDER, found by asking what a regeneration WOULD do first
+- The mons loop rebuilt a fresh literal, so a regeneration **dropped 10 species** (`victreebel-mega`,
+  `feraligatr-mega`, `skarmory-mega`, `barbaracle-mega`, `falinks-mega`, `aegislash-blade`, three
+  Gourgeist sizes, `palafin-hero`) and **deleted `nature`, `sp` and `set_source` from all 318 rows** —
+  fields a later builder writes. The trial run produced 800 semantic differences, **788 of them
+  destruction.** Now preserved, with the kept-species list printed.
+- The header stamp regex ended `\*\/\n` while the file has CRLF, so it **matched nothing and never
+  has**: `Last generated: 2026-07-24` survived every regeneration on this machine. Fixed, and a stamp
+  that fails to land now exits non-zero rather than writing a false date.
+- **Reported, left alone:** `data/move-effects.js` still carries the generic `tropkick` bp 70 — a
+  second base-power table that now disagrees with `engine-data.js`. Nothing reads `bp` from it
+  (medicham2 takes accuracy, secondary, target and priority from there, never power), so it is dormant
+  rather than wrong-in-use. Flagged as the next place this divergence can grow back.
+
+### Added
+- **`buffsHolderOnHit` NOW CARRIES ITS CONDITION — half of ROADMAP #101, and the half that is done is
+  the DERIVATION.** `engine/tag_dex.js` reads it by shape out of Showdown's own handler:
+  `angerpoint {cond:'crit'}` · `justified {cond:'moveType', is:['Dark']}` ·
+  `rattled {cond:'moveType', is:['Dark','Bug','Ghost']}` · `perishbody {cond:'moveFlag', is:['contact']}` ·
+  `stamina when: null` — correctly unconditional, and the one member with real usage (2,773).
+  The procedural heal family (`synthesis`, `moonlight`, `morningsun`, `strengthsap`) likewise gained
+  its `byWeather` boosts.
+  **THE ENGINE DOES NOT READ ANY OF IT YET, SO NOTHING BEHAVES DIFFERENTLY.** Anger Point still maxes
+  Attack off any hit. The consumer half is owed and the tag is inert until then — stated plainly
+  rather than left to read as a fix.
+- `data/tags.json` regenerated and diffed against the committed copy: **0 entities lost, 0 tag sets
+  changed**, 251 usage counts moved (the corpus grows hourly), 16 params changed — the conditions
+  above. ROADMAP #65's regeneration hazard is measured closed for the second time.
+
+---
+
 ## [3.87.0] — 2026-08-09
 
 ### Fixed

@@ -235,6 +235,45 @@ function effectRecipients(a) {
   return out;
 }
 
+/* ROADMAP #101 -- WHAT THE INCOMING HIT HAS TO BE, read out of the handler's own `if`.
+ *
+ * `buffsHolderOnHit` carried WHAT the holder gains and never WHEN, so medicham2 applied every
+ * member's boosts on every connecting hit: Anger Point maxed Attack off a Tackle, Justified fired on
+ * a Waterfall, Weak Armor on a Surf. That is the opposite failure from the pinch family (#112, which
+ * failed CLOSED) -- this one has been producing a wrong answer live.
+ *
+ * `condHolds(w, self)` in medicham2 asks about the HOLDER. Every condition here is about the
+ * INCOMING MOVE instead, so it is a different predicate and gets its own field (`when`) rather than
+ * being crammed into `onlyWhen` where a holder-shaped reader would try to evaluate it.
+ *
+ * FIVE SHAPES AND NO SIXTH, all measured off the eight members on 2026-08-09:
+ *     crit          angerpoint      target.getMoveHitData(move).crit
+ *     moveCategory  weakarmor       move.category === "Physical"
+ *     moveType      justified       move.type === "Dark"   /   ["Dark","Bug","Ghost"].includes(...)
+ *     moveFlag      windpower       move.flags["wind"]  --  and checkMoveMakesContact, which IS the
+ *                                   contact flag spelled as a call (perishbody)
+ *     (none)        stamina         no gate at all -- and stamina is 2,760 of the family's uses, so
+ *                                   a null return here must stay meaning "unconditional" and not
+ *                                   "unreadable". An unreadable shape would have to be a new branch.
+ * The order is exact-before-general: the contact CALL is tested before the generic flags[...] read,
+ * because a handler can carry both. */
+function hitCondIn(src) {
+  let m;
+  if (/getMoveHitData\(\s*\w+\s*\)\.crit/.test(src)) return { cond: 'crit', says: 'only on a critical hit' };
+  if ((m = /move\.category\s*===\s*"(\w+)"/.exec(src)))
+    return { cond: 'moveCategory', is: [m[1]], says: 'only a ' + m[1] + ' hit' };
+  if ((m = /\[([^\]]*)\]\s*\.includes\(\s*move\.type\s*\)/.exec(src))) {
+    const list = [...m[1].matchAll(/"(\w+)"/g)].map(x => x[1]);
+    if (list.length) return { cond: 'moveType', is: list, says: 'only a ' + list.join('/') + ' hit' };
+  }
+  if ((m = /move\.type\s*===\s*"(\w+)"/.exec(src)))
+    return { cond: 'moveType', is: [m[1]], says: 'only a ' + m[1] + ' hit' };
+  if (/checkMoveMakesContact/.test(src)) return { cond: 'moveFlag', is: ['contact'], says: 'only on contact' };
+  if ((m = /move\.flags\[\s*"(\w+)"\s*\]/.exec(src)))
+    return { cond: 'moveFlag', is: [m[1]], says: 'only a ' + m[1] + '-flagged hit' };
+  return null;
+}
+
 /* WHAT EXTENDS WHAT -- built by inverting the durationCallback references, per Will on Damp Rock.
  * The item carries no field naming its effect; each CONDITION names the item instead. */
 const EXTENDERS = {};
@@ -387,6 +426,20 @@ const MOVE_TAGS = [
         const src = String(m.onTryMove || '');
         const inc = src.match(/\[((?:\s*"\w+"\s*,?)+)\]\s*\.includes\([^)]*effectiveWeather/);
         if (inc && /attrLastMove\("\[still\]"\)/.test(src)) put(weathersIn(inc[1]), 'chargeSkip', true);
+      }
+      /* ROADMAP #102 -- THE CLEAR-SKY NUMBER, WHICH IS THE ONE THE MOVE IS USUALLY USED IN.
+       *
+       * Synthesis / Moonlight / Morning Sun open `onHit` with `let factor = 0.5;` and only OVERRIDE it
+       * inside the weather switch. Reading the switch alone gave sun/rain/sand/snow and no default, so a
+       * consumer had three quarters of the move and could not size it in a clear sky -- which is most
+       * turns. medicham2 therefore refused all three and they resolved to a wasted turn in EVERY sky,
+       * heal 0.000 including sun.
+       *
+       * Only emitted when the switch actually produced a healFraction, so this cannot attach a stray
+       * `factor` from an accuracy or power handler to a move that does not heal. */
+      if (Object.keys(by).some(w => by[w].healFraction != null)) {
+        const base = String(m.onHit || '').match(/let\s+factor\s*=\s*([\d.]+)\s*;/);
+        if (base) return { byWeather: by, baseHealFraction: +base[1] };
       }
       return Object.keys(by).length ? { byWeather: by } : null;
     } },
@@ -1873,8 +1926,20 @@ const MOVE_TAGS = [
        * aiming at a foe (Strength Sap). */
       const SELFISH = ['self', 'allies', 'allySide'];
       const FRIENDLY = ['adjacentAlly', 'adjacentAllyOrSelf', 'any'];
-      if (SELFISH.includes(m.target)) return { heal: m.heal || true };
-      if (!FRIENDLY.includes(m.target)) return { heal: m.heal || true, note: 'heals the user while targeting a foe' };
+      /* ROADMAP #102 -- HOW MUCH, when the answer is not a share of max HP at all.
+       *
+       * Strength Sap (693 corpus uses) reads `const atk = target.getStat("atk", false, true)` and then
+       * `this.heal(atk, source, target)` -- the heal is the TARGET'S Attack STAT, boosts included. With
+       * only `{heal: true}` on the tag, medicham2 could not size it, classified it as a bare stat drop,
+       * and healed nothing at all. The variable is matched through from the getStat to the heal call so
+       * this cannot fire on a move that reads a stat for some other purpose. */
+      const src = String(m.onHit || '');
+      const gs = /(?:const|let)\s+(\w+)\s*=\s*(\w+)\.getStat\(\s*"(\w+)"/.exec(src);
+      const fromStat = (gs && gs[2] === 'target' && new RegExp('heal\\(\\s*' + gs[1] + '\\b').test(src))
+        ? { fromTargetStat: gs[3] } : null;
+      if (SELFISH.includes(m.target)) return Object.assign({ heal: m.heal || true }, fromStat);
+      if (!FRIENDLY.includes(m.target))
+        return Object.assign({ heal: m.heal || true, note: 'heals the user while targeting a foe' }, fromStat);
       return null;
     } },
   { tag: 'healsAlly', param: 'restores my PARTNER max-HP share', probe: 'healsPartner',
@@ -3300,7 +3365,10 @@ const ABILITY_TAGS = [
         if (kv.length === 2 && /^-?\d+$/.test(kv[1])) boosts[kv[0].replace(/["']/g, '')] = +kv[1];
       }
       const vol = (src.match(/addVolatile\(\s*["'](\w+)["']/) || [])[1] || null;
-      return { compounds: true, boosts: Object.keys(boosts).length ? boosts : null, gainsVolatile: vol };
+      /* ROADMAP #101 -- AND WHEN. `when: null` is the honest reading for Stamina, which really has no
+       * gate; it is not a "could not read this" placeholder. See hitCondIn. */
+      return { compounds: true, boosts: Object.keys(boosts).length ? boosts : null, gainsVolatile: vol,
+               when: hitCondIn(src) };
     } },
   { tag: 'punishesAttacker', param: 'the ATTACKER pays a flat toll, which does NOT compound', probe: 'punishesAttacker',
     why: 'Rough Skin (3,762) chips, Static/Flame Body/Poison Point status, Cursed Body disables. '
