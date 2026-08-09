@@ -1,6 +1,14 @@
 # ABRA — Technical Documentation
 
-**Version 3.85.0 · Last updated 2026-08-09**
+**Version 3.86.0 · Last updated 2026-08-09**
+
+**3.86.0 — EVERY PUBLISHED ARTIFACT HAS A WRITER NOW, INCLUDING THE ARM MILTANK ACTUALLY RUNS.**
+The tool that answers "is this number still true" could only find a writer by an artifact's literal
+name beside a write call in two directories — so the mechanics census, the game differential, the
+interaction matrix and the deliberate roster, which are the four clauses of the MEDICHAM gate, had no
+row at all. Not ok, not unsafe: absent. The graph goes 115 to 160 artifacts and the unknown set 61 to
+16, membership derived through four ranked arms that each record how they matched. UNSAFE rises 13 to
+20 because seven artifacts that were always unsafe are now visible; none left the set.
 
 **3.85.0 — THE WHOLE SITE WITHHOLDS NOW, AND THE DEPLOYED COPY WAS MISSING THE FILE THAT MAKES IT
 WORK.** Five pages LOADED a quarantined artifact as data instead of quoting its verdict, so the

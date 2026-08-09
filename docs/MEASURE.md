@@ -35,7 +35,7 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-08-09 18:22
 ```
 
-_stamped 2026-08-09 19:45_
+_stamped 2026-08-09 19:57_
 
 <!-- /GENERATED -->
 
@@ -114,6 +114,104 @@ classifies on its own now and is HELD by its own derived reason, so the both-fil
 `data/quarantine-stamp.json` (may shrink, never grow): `docs/ENGINE.md`, `docs/MEASURE.md`,
 `docs/SEARCH.md` and `web/status-data.js`. Not edited from here; `web/` is WEB's and a gate its owner
 cannot satisfy becomes a known failure.
+
+### 00a. ROADMAP #105 — FIFTY ARTIFACTS HAD NO ROW IN THE GRAPH, AND ONE OF THEM WAS THE ARM MILTANK RUNS — 2026-08-09
+
+`engine/provenance.js` discovered an artifact's writer by looking for its literal name beside a write
+call in `engine/` or `build/`. Anything written by `tests/`, or through a path the scan did not
+follow, had **no row at all** — not `ok`, not UNSAFE, absent. Nothing could compare it to its source,
+which is the condition CLAUDE.md's derived-artifact rule exists one level above.
+
+| | before | after |
+|---|---|---|
+| artifacts with a writer | 115 | **160** |
+| artifacts with NO writer | 61 | **16** |
+| withheld by `quarantine.js` | 34 of 114 | **40 of 160** |
+| UNSAFE | 13 | **20** |
+
+**Four arms, ranked by how directly each proves a write, and `via` is now part of the graph** so a
+consumer can tell a write call from a sentence: `write line` (83), `path variable` (52),
+`path template` (12), `near a write` (1), `DECLARED BY THE ARTIFACT` (10). The scan reads `tests/`
+as well; a computed name such as `'roster.' + STAGE + '.json'`, `` `exploitability-${TAG}.json` `` or
+`+ '.meta.json'` becomes a regex with one wildcard per runtime value; and where no source can say —
+`fit_policy.js` takes its path from the `OUT_WEIGHTS` environment variable — the artifact's own `by`
+is accepted, labelled as the weakest evidence, and only if the named script exists.
+
+**`data/rollout-r1-explore1.json` CLASSIFIES ON ITS OWN and is HELD**, by the derived reason
+*"engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played"*. The
+both-files workaround at `status.js:665` — asking the quarantine about `rollout-r1.json` so the
+shipped arm could not slip through on a technicality — is a workaround for a hole that is now closed.
+**Not edited here; reported.**
+
+**Nothing was defaulted, and the strict direction held.** The instruments print
+(`mechanics-census`, `engine-diff`, `interaction-matrix`, `roster.*`, `tag-walk`,
+`wire-ladder-census.pin` — all `ok`); the consumers went behind the gate (`exploitability-mag`,
+`exploitability-machamp`, `scoreboard`, `policy-weights-joint-presheet`, `ab-batch-effect`,
+`rollout-r1-explore1`). The **16 that remain UNKNOWN are printed every run, at zero as well as at
+sixteen**, because an empty list has to mean "every artifact has a writer" and never "we stopped
+looking". Seven are `policy-weights-*.json` variants written through `OUT_WEIGHTS` and declaring no
+`by`; `engine-release.json` is written through `writeJsonAtomic(S.pointer, …)`, a helper no detector
+follows; `regulations.json` and `quality-filter.json` are CONFIG and correctly have no generator.
+
+**Four false attributions were found and closed on the way, three of them by this pass's own change.**
+Each is written into the file beside the rule it produced.
+
+- **A read `open()` on a line that later contains `'w'`.** `M=json.load(open('…')); … w=np.array(M['w'])`
+  matched `open\s*\(.*['"][wa]['"]` — so a test that only loads JOLTEON's weights outranked
+  `engine/ditto.py`, which computes them, and flipped the artifact to not-store-derived. The mode
+  string must now be an argument of the `open` call.
+- **A write into a scratch tree is not a write into `data/`.** `tests/test-miltank-release.js` writes
+  `path.join(EMPTY, 'engine-release.json')` as a fixture and took ownership of the release pointer. A
+  write now has to be rooted in `data/` — including through a helper whose own definition roots it,
+  because requiring the literal word cost six correct rows on the first attempt.
+- **`writesNear` never stripped comments, and this file's own new comment was its victim** — the
+  example of what NOT to count credited `provenance.js` with generating the release pointer. The loose
+  arm reads code now; the tight arms still read the source, because
+  `build/build_browser_data.js` names its two targets in a trailing comment *deliberately* and
+  stripping them took both artifacts back to "no generator".
+- **`data/regulations.json` was credited to `engine/analyze.js`, which only reads it.** It has no
+  generator: it is config, and `engine/conformance.js` already says so. One row lost, and the row was
+  wrong.
+
+**A template match is CORROBORATED, not trusted.** `exploitability-${TAG}.json` also reaches
+`data/exploitability-holdout.json`, which `exploit.js` did not write and cannot — it has no holdout
+mode. A template attribution must agree on top-level key shape with something the same generator
+writes by name, or it is revoked and the file stays UNKNOWN with that reason printed.
+
+**THE RATCHET GREW, AND THAT IS THE ONE JUDGEMENT CALL IN THIS PASS.** `mtime_only` went **91 → 128**.
+None of the 38 regressed — 37 of them had no row for anything to ratchet, and a file that was never
+visible cannot have lost a stamp. The ratchet was measuring two different things: *"a generator
+shipped without recording what it read"* and *"this checker's coverage changed"*. They are opposite
+events and only the first is a fault. So the stamp now records `graph_files`, the diff splits
+REGRESSION from DISCOVERY, a regression still fails, and a discovery is printed in full and appended
+to `discoveries` in `data/provenance-stamp.json` with its date, reason and file list — the growth is
+permanent and auditable rather than laundered. The first run could not split (the old stamp carries no
+`graph_files`) and **says so instead of guessing**: an artifact-mtime heuristic was tried and accused
+five instruments other divisions had regenerated that afternoon. **Shown RED before being trusted** —
+dropping one file from the baseline while it stays in `graph_files` reproduces `RATCHET BROKEN`.
+
+**UNSAFE 13 → 20, and the eight movements are accounted for.** Seven are newly visible and were always
+unsafe: `nature-arms.json` (older than `tags.json`, and `game_differential.js` moved under it) and six
+run sidecars pinned to superseded releases. The eighth was `quarantine-stamp.json`, which stamps
+`engine/provenance.js` by content — editing this file invalidated it by construction, and it returned
+to `ok` when `node engine/quarantine.js --check` re-ran. No artifact left the UNSAFE set.
+
+**Filed, not fixed:**
+
+- **`engine/conformance.js`'s S13 still hand-rolls the question.** It decides "no generator writes it"
+  with `allSrc.includes(file)` over source text, so `data/roster.moves.prev.json` still trips it. The
+  answer is derived now — `node engine/provenance.js --graph --json` carries `by` and `via` — and S13
+  should ask for it, the way `status.js` shells out rather than reimplementing staleness.
+- **`engine/rollout_r1_artifact.js` writes the literal `data/rollout-r1.json` whatever dump it read.**
+  The explore=1 arm exists only because somebody renamed the output afterwards, which is why no
+  pattern over that source can reach it and why the artifact's own `by` is the only witness. Derive
+  `OUT` from `ROWS`, as `run_stamp.js` already derives its sidecar path.
+- **`readsNear` has the same comment hole `writesNear` just had.** It decides `from`, and `from`
+  decides staleness verdicts, so moving it changes what this tool SAYS rather than what it can SEE.
+  Deliberately left; it belongs in a pass that re-derives the drift table.
+- **ROADMAP #108 is easier to close but is not closed.** `status.js` printing a figure `provenance`
+  calls UNSAFE is unchanged in kind — but every artifact `status.js` reads now HAS a row, so the two
+  gates can finally be asked the same question about the same file. `status.js` is not edited here.
 
 ### 0. THE FORK IS DECIDED, AND THE ANSWER IS NO — 2026-08-07 (3.69.0)
 

@@ -10,6 +10,68 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.86.0] — 2026-08-09
+
+### Fixed
+- **ROADMAP #105: ~50 ARTIFACTS HAD NO ROW IN THE DEPENDENCY GRAPH, AND ONE OF THEM WAS THE ARM
+  MILTANK RUNS.** `engine/provenance.js` discovered a writer only by the artifact's literal name
+  beside a write call in `engine/` or `build/`. Everything written by `tests/` — the mechanics census,
+  the game differential, the interaction matrix, the deliberate roster, which are the four clauses of
+  the MEDICHAM gate — and everything written through a computed path had **no row at all**: not `ok`,
+  not UNSAFE, absent. The tool that answers "is this artifact still true" could not see the files that
+  answer "is the engine still right".
+  - **115 → 160 artifacts with a writer; 61 → 16 without.** The scan reads `tests/`; a concatenated or
+    template path (`'roster.' + STAGE + '.json'`, `` `exploitability-${TAG}.json` ``, `+ '.meta.json'`)
+    becomes a regex with one wildcard per runtime value; and where no source can say — `fit_policy.js`
+    takes its output path from the `OUT_WEIGHTS` environment variable — the artifact's own `by` is
+    accepted as the weakest evidence, only if the named script exists. Every row carries a new `via`
+    saying which arm found it, so a consumer can tell a write call from a sentence.
+  - **`data/rollout-r1-explore1.json` classifies on its own and is HELD.** `engine/quarantine.js` now
+    withholds it by its own derived reason instead of the shipped arm borrowing `rollout-r1.json`'s
+    classification, so the both-files workaround at `engine/status.js:665` is retired-able. Reported,
+    not edited. Quarantine membership moved **34 of 114 → 40 of 160**: the instruments stayed clear and
+    the consumers (`exploitability-mag`, `exploitability-machamp`, `scoreboard`,
+    `policy-weights-joint-presheet`, `ab-batch-effect`) went behind the gate.
+  - **A template match is corroborated, not trusted.** `exploitability-${TAG}.json` also reaches
+    `data/exploitability-holdout.json`, which `engine/exploit.js` did not write and cannot — it has no
+    holdout mode. A pattern attribution is revoked unless its top-level key shape agrees with an
+    artifact the same generator writes by name, and the revocation is printed with its reason.
+  - **Four false attributions closed, three of them introduced by this change and caught before it
+    landed:** a read `open()` on a line that later contains the one-character string `'w'` (a JOLTEON
+    test outranked `engine/ditto.py` and flipped the artifact to not-store-derived); a fixture written
+    into a scratch directory taking ownership of the release pointer, fixed by requiring the write to
+    be rooted in `data/` including through a helper whose own definition roots it; `writesNear` never
+    stripping comments, whose first victim was this file's own new comment crediting
+    `engine/provenance.js` with generating an artifact; and `data/regulations.json`, credited to
+    `engine/analyze.js`, which only reads it — it is config and has no generator.
+  - **UNSAFE 13 → 20, with all eight movements named.** Seven are newly visible and were always
+    unsafe — `nature-arms.json` and six run sidecars pinned to superseded releases. The eighth,
+    `quarantine-stamp.json`, stamps `engine/provenance.js` by content, so editing this file
+    invalidated it by construction; it returned to `ok` when `engine/quarantine.js --check` re-ran.
+    Nothing left the UNSAFE set. `provenance.js --strict` remains red on the pre-existing 13, which
+    clear via the re-run list (#57), gated behind MEDICHAM (#99).
+
+### Changed
+- **The provenance ratchet can tell a DISCOVERY from a REGRESSION, and only one of them fails.**
+  `data/provenance-stamp.json`'s `mtime_only` grew **91 → 128** because 38 artifacts became visible
+  unstamped, not because anything regressed — 37 of them had no row for the ratchet to hold. The stamp
+  now records `graph_files` and `no_writer_files`; a file that was visible and has lost its stamp
+  still breaks the ratchet, while a newly visible one is printed in full and appended to a permanent
+  `discoveries` list with its date, reason and files, so the growth is auditable rather than laundered.
+  The first run cannot split (the old stamp carries no `graph_files`) and says so instead of guessing —
+  an artifact-mtime heuristic was tried and accused five instruments other divisions had regenerated
+  the same afternoon. Shown RED on a simulated regression before being trusted.
+
+### Notes
+- Filed, not fixed: `engine/conformance.js`'s S13 still decides "no generator writes it" with a
+  substring scan of source text, so `data/roster.moves.prev.json` keeps tripping it — the answer is
+  derived now and S13 should ask `provenance.js --graph --json` for it. `engine/rollout_r1_artifact.js`
+  should derive its output path from the dump it read rather than always writing
+  `data/rollout-r1.json`. `readsNear` has the same comment hole `writesNear` just lost, but it decides
+  `from` and therefore staleness verdicts, so it belongs in a pass that re-derives the drift table.
+
+---
+
 ## [3.85.0] — 2026-08-09
 
 ### Added
