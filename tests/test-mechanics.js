@@ -3466,6 +3466,62 @@ probe('move', 'healsSelf', 'Recover restores the user', () => {
                  + `${test} (the partner must gain nothing)` };
 });
 
+/* ROADMAP #102 — THE PROCEDURAL HEAL FAMILY, WHICH HEALED 0.000 HP IN EVERY SKY INCLUDING A CLEAR
+ * ONE. Synthesis, Moonlight and Morning Sun resolved to `{kind:'pass'}` — a wasted turn — because
+ * their tag says `heal: true` and `healParam` could not size a boolean. Measured on this body before
+ * the wire: from half HP, `healed 0` in clear, sun and rain, and `-9` in SAND, where the residual
+ * chipped it and the click was strictly worse than doing nothing.
+ *
+ * THE BODY IS ON 1 HP, NOT FULL AND NOT HALF, AND THAT IS THE WHOLE STAGING. A heal probe on a
+ * full-HP body reads 0 → 0 forever and passes nothing; a half-HP body CAPS the sun arm at max HP, so
+ * clear and sun would print 77 and 78 and the 2/3 would be invisible. On 1 HP both fractions land
+ * whole and the sky is the only varied knob: clear 77 = modify(155, 0.5), sun 103 = modify(155,
+ * 0.667). Those are the authority's own literals through its own rounding, not maxhp/2 and maxhp*2/3.
+ *
+ * Rain is the third arm because it moves the OTHER way (1/4). Tailwind is the fourth — the same turn
+ * spent on a status click in the same sun, which must heal exactly nothing. */
+probe('move', 'weatherScaled', 'Synthesis heals half, two thirds in sun and a quarter in rain', () => {
+  const run = (mv, weather) => {
+    const { me, ally, f1, f2, S } = board('venusaur', 'incineroar', 'garchomp', 'garchomp');
+    S.field.weather = weather; me.curHP = 1;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, null, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return me.curHP - 1;
+  };
+  const clear = run('synthesis', ''), sun = run('synthesis', 'sun'), rain = run('synthesis', 'rain');
+  const none = run('tailwind', 'sun');
+  return { works: clear === 77 && sun === 103 && rain === 39 && none === 0,
+           arms: { control: [clear, none], test: [sun, rain] },
+           detail: `hp gained on a 155 hp body from 1 hp — clear ${clear} (must be 77), sun ${sun} `
+                 + `(must be 103), rain ${rain} (must be 39), Tailwind in the same sun ${none}` };
+});
+
+/* ROADMAP #102 — STRENGTH SAP, 710 uses, the largest member of the family. WIRE 79 landed the Attack
+ * drop and filed the heal as unreachable ("no artifact this engine reads carries it"); the artifact
+ * carries `healsSelf.fromTargetStat: 'atk'` now, matching exactly one move.
+ *
+ * THE TARGET IS THE VARIED KNOB, not the sky and not the user. The heal is the TARGET's Attack, so
+ * two targets with different Attack must produce two different heals, each equal to that target's
+ * own stat — an engine healing a flat fraction of the user's max HP passes "it healed something" and
+ * fails this. The user is on 1 HP of 155 so neither arm caps, and both targets' Attack (63, 72) is
+ * well under that. The Attack drop is asserted beside it, because a fix that landed the heal and lost
+ * the half WIRE 79 already had would be a trade, not a gain. */
+probe('move', 'healsSelf', 'Strength Sap heals by the TARGET\'s Attack, and drops it', () => {
+  const run = (foe) => {
+    const { me, ally, f1, f2, S } = board('venusaur', 'incineroar', foe, 'garchomp');
+    me.curHP = 1;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'strengthsap', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return [me.curHP - 1, f1.boosts.at, f1.st.at];
+  };
+  const control = run('alakazam'), test = run('milotic');
+  return { works: control[0] === control[2] && test[0] === test[2] && control[0] !== test[0]
+                  && control[1] === -1 && test[1] === -1,
+           arms: { control, test },
+           detail: `[user hp gained, target atk stage, target's Attack] — vs Alakazam ${control}, `
+                 + `vs Milotic ${test} (the heal must equal that target's own Attack, and differ)` };
+});
+
 /* ARMS DECLARED, 2026-08-06 (#42/#45 part 3). ON THE CARVE-OUT LIST: a refusal or a redirection
  * turns a certainty into a failure whatever its usage, so tests/test-medicham-coverage.js
  * requires it to carry a machine-checked control. Both arms were already computed here; what was
@@ -3758,6 +3814,58 @@ probe('ability', 'buffsHolderOnHit', 'Justified raises Attack when hit by a Dark
   const none = run('none'), j = run('justified');
   return { works: none === 0 && j > 0, arms: { control: none, test: j },
            detail: 'no ability atk stage ' + none + ', Justified ' + j };
+});
+
+/* ROADMAP #101 — THE CONDITION, WHICH THE PROBE ABOVE STRUCTURALLY CANNOT SEE. It clicks a Dark move
+ * into Justified and reads a boost, and it was green for as long as the engine boosted on EVERY
+ * connecting hit: the `when` was in `data/tags.json` and nothing read it. Measured on this exact
+ * board before the wire: Anger Point +6 on a NON-crit and IDENTICAL on a crit (an unwired knob),
+ * Justified firing off CLOSE COMBAT, Weak Armor off DARK PULSE.
+ *
+ * FOUR KNOBS, EACH VARIED AGAINST ITS OWN CONTROL, because one green arm on a family of twelve is
+ * how the family got here:
+ *   crit          Anger Point, non-crit vs crit, SAME ability and SAME move — only the die moves.
+ *   moveType      Justified: Knock Off (Dark) vs Close Combat (Fighting).
+ *   moveCategory  Weak Armor: Close Combat (physical) vs Dark Pulse (special).
+ *   when: null    STAMINA, 2,773 of the family's 2,972 uses and CORRECT BEFORE THIS WIRE. It is read
+ *                 on BOTH sides of the crit die: a change that greens Anger Point while moving
+ *                 Stamina has broken the model, not fixed it.
+ * And `none` on the crit arm, so "+6 after a crit" cannot come from the crit itself.
+ *
+ * `+6, not +12`: the tag says `{atk: 12}` because Showdown's handler is `setBoost({atk: 12})`, which
+ * is its way of writing "max it out from wherever you are". This engine clamps every stage to ±6 and
+ * `boostMul` clamps again, so +6 IS the maxed stage — identical effective Attack, and a body carrying
+ * a literal 12 would be a value nothing else in this engine can read.
+ *
+ * THE CRIT LEVER IS THE RNG. The loop draws the damage-roll index and then the crit roll from the
+ * same stream, so `() => 0` takes the bottom roll AND lands the crit; rng5 lands neither. Knock Off
+ * carries no secondary, so 0 turns nothing else on. The target is given 20x HP so it survives to
+ * react — a fainted body takes no boost and every arm would read 0. */
+probe('ability', 'buffsHolderOnHit', 'Anger Point needs the crit, and Stamina does not move', () => {
+  const run = (ab, rngFn, mvId) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'garchomp', 'garchomp');
+    f1.ability = ab;
+    f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 20 }); f1.curHP = f1.st.hp;
+    M.battleTurn(S, rngFn,
+      new Map([[me, M.playerAction(me, mvId, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return [f1.boosts.at, f1.boosts.df, f1.boosts.sp];
+  };
+  const rngCrit = () => 0;
+  const angerPlain = run('angerpoint', rng5, 'knockoff'), angerCrit = run('angerpoint', rngCrit, 'knockoff');
+  const noneCrit = run('none', rngCrit, 'knockoff');
+  const stamPlain = run('stamina', rng5, 'knockoff'), stamCrit = run('stamina', rngCrit, 'knockoff');
+  const justDark = run('justified', rng5, 'knockoff'), justFight = run('justified', rng5, 'closecombat');
+  const armPhys = run('weakarmor', rng5, 'closecombat'), armSpec = run('weakarmor', rng5, 'darkpulse');
+  return { works: angerPlain[0] === 0 && angerCrit[0] === 6 && noneCrit[0] === 0
+                  && stamPlain[1] === 1 && stamCrit[1] === 1
+                  && justDark[0] === 1 && justFight[0] === 0
+                  && String(armPhys) === '0,-1,2' && String(armSpec) === '0,0,0',
+           arms: { control: [angerPlain[0], justFight[0], armSpec[1], stamPlain[1]],
+                   test:    [angerCrit[0],  justDark[0],  armPhys[1], stamCrit[1]] },
+           detail: `[atk,def,spe] — Anger Point non-crit ${angerPlain} vs crit ${angerCrit} `
+                 + `(no ability, same crit: ${noneCrit}); Stamina ${stamPlain} / ${stamCrit} `
+                 + `(must not move); Justified off Dark ${justDark} vs Fighting ${justFight}; `
+                 + `Weak Armor off physical ${armPhys} vs special ${armSpec}` };
 });
 
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). Fifty is the level and it must survive the

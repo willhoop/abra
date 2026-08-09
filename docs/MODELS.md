@@ -1,6 +1,14 @@
 # ABRA — the model family (living reference)
 
-**Version 3.88.0 · Last updated 2026-08-09.**
+**Version 3.89.0 · Last updated 2026-08-09.**
+
+**3.89.0 — MEDICHAM: A REACTION FAMILY THAT FIRED ON EVERY HIT, AND A HEAL FAMILY THAT NEVER FIRED.**
+`buffsHolderOnHit` ignored the condition 3.88.0 derived, so Anger Point maxed Attack off any hit
+(identically on a crit — an unwired knob), Justified fired off Fighting moves and Weak Armor off
+special ones. Stamina, the one member with real usage, carries no condition and was correct
+throughout; it is the positive control now. Synthesis, Moonlight, Morning Sun and Strength Sap
+(1,024 uses) resolved to a wasted turn and healed nothing. Both are MEDICHAM-only — no model
+downstream was refitted, and every quarantined figure stays quarantined. Census 326 to 329 live.
 
 **3.88.0 — TWELVE MOVES WERE PRICED OFF GENERIC GEN-9 DATA INSTEAD OF THIS FORMAT'S, AND THE
 BUILDER THAT FIXED THEM WAS ONE RUN AWAY FROM DELETING TEN SPECIES.** Trop Kick read 70 where the

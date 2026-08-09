@@ -1,6 +1,19 @@
 # ABRA — Technical Documentation
 
-**Version 3.88.0 · Last updated 2026-08-09**
+**Version 3.89.0 · Last updated 2026-08-09**
+
+**3.89.0 — THE ENGINE NOW READS THE CONDITION ON `buffsHolderOnHit`, AND FOUR HEALING MOVES WORK.**
+The function `condHolds` evaluates a tag condition. Before this change it accepted two arguments: the
+condition and the body that carries the ability. That is sufficient for a condition about the body. It
+is not sufficient for a condition about the incoming move. The function now accepts a third argument.
+The third argument holds the hit: the critical-hit flag, the resolved move type, the move category and
+the move identifier. Four condition shapes are readable. A condition that is not readable is refused
+and counted in `MEDFAILS.buffOnHitUnknownCond`. That counter reads 0.
+The function `healParam` returns the size of a heal. It could only read a fraction stored as an array.
+The tag for Synthesis, Moonlight, Morning Sun and Strength Sap stores `heal: true`. The function
+therefore returned nothing and the move became a wasted turn. `healParam` now returns a recipe. The
+resolution site spends the recipe, because the weather can change between the click and the move. The
+heal uses `md4096`, which is the authority's own `modify` function. Do not use a plain fraction.
 
 **3.88.0 — TWELVE MOVES WERE PRICED OFF GENERIC GEN-9 DATA INSTEAD OF THIS FORMAT'S, AND THE
 BUILDER THAT FIXED THEM WAS ONE RUN AWAY FROM DELETING TEN SPECIES.** Trop Kick read 70 where the

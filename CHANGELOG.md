@@ -10,6 +10,62 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.89.0] — 2026-08-09
+
+### Fixed
+- **`buffsHolderOnHit` NOW READS ITS CONDITION (ROADMAP #101) — the consumer half 3.88.0 said was
+  owed.** `engine/medicham2-browser.js` applied the boost table on EVERY connecting hit, so eleven of
+  the family's twelve members produced a **wrong answer on every hit**: Anger Point maxed Attack off a
+  NON-crit (and identically on a crit — an unwired knob), Justified fired off Close Combat, Weak Armor
+  off Dark Pulse. `condHolds` widened to `condHolds(w, self, hit)` — the cost ROADMAP #112 predicted,
+  since `hpFraction` asks about the HOLDER and every #101 condition asks about the INCOMING MOVE.
+  Four shapes readable (`crit`, `moveType`, `moveCategory`, `moveFlag`); anything else REFUSES and is
+  counted in `MEDFAILS.buffOnHitUnknownCond`, which reads 0. **Stamina — 2,773 of the family's 2,972
+  uses and correct throughout — is asserted on both sides of the crit die as the positive control.**
+- **This family failed OPEN, unlike the pinch family**, so it was a wrong answer on the board rather
+  than an absent one, and every landed condition is an improvement on its own.
+- **The `_buff.boosts && tg.boosts` guard dropped every VOLATILE-payload member entirely** —
+  `electromorphosis` (98 uses, `charge`), `windpower`, `perishbody`. Still not granted (no consumer for
+  a banked Charge; `perishsong`'s duration is carried by the MOVE tag and no ability states one) but
+  now **counted at the moment the condition holds** (`MEDFAILS.buffOnHitVolatileUnwired`) instead of
+  being a dropped branch. Filed, not fixed, and named.
+- **THE PROCEDURAL HEAL FAMILY DID NOTHING AT ALL (ROADMAP #102). 1,024 uses.** Synthesis, Moonlight
+  and Morning Sun resolved to `{kind:'pass'}` — a wasted turn, 0.000 HP in every sky including clear,
+  and in **sand strictly worse than doing nothing** because the residual still chipped. Measured on a
+  155 HP body from half HP before a line changed: 0 / 0 / 0 / **-9**, against Recover's 77.
+  `healParam` now sizes them from `weatherScaled.baseHealFraction`, through **`md4096`** (the handler
+  is `this.heal(this.modify(maxhp, factor))` with factor literally 0.5 / 0.667 / 0.25 — `maxhp * 2/3`
+  is a different number) and reading the **healer's own** sky through `effWeatherOf`, so Cloud Nine and
+  Mega Sol's private sun both reach it. On 155 HP: clear 77, sun 103, rain 39.
+- **Strength Sap (710 uses) heals again, and is deliberately NOT reclassified as a heal** — WIRE 79's
+  Attack drop is the half that decides where the move is played, so the heal lands inside the `affect`
+  branch where the target is in hand. Follows the handler in all three parts: a target already at -6
+  Attack makes the whole move FAIL, the Attack is read BEFORE the drop, and it is the stat itself —
+  boosted and unmodified, spelled the way `sim/pokemon.ts` spells it (multiply on a positive stage,
+  **divide** on a negative one).
+
+### Added
+- Three census probes, all through real turns: `ability|buffsHolderOnHit` *"Anger Point needs the crit,
+  and Stamina does not move"* (four knobs, each against its own control, plus a no-ability arm on the
+  same crit); `move|weatherScaled` *"Synthesis heals half, two thirds in sun and a quarter in rain"*
+  (staged at **1 HP** — a full-HP body reads 0 → 0 forever and a half-HP body caps the sun arm, hiding
+  the 2/3); `move|healsSelf` *"Strength Sap heals by the TARGET's Attack, and drops it"* (the TARGET is
+  the varied knob — Alakazam 63, Milotic 72).
+- **Census 326 → 329 live / 326 → 329 probed, 0 missing, 0 hollow, 0 threw, 0 unarmed, 0 direct-call.**
+  Roster unmoved on all three stages (abilities **0 · 0**, the one green gate clause, undisturbed).
+  Differential 1 of 150, unchanged. `data/tags.json` was NOT regenerated.
+
+### Notes — reported, not fixed
+- **Growth is +1/+1 where Showdown gives +2/+2 in sun.** `weatherScaled.byWeather.boosts` has no
+  consumer, and the build additionally patches `growth` so a private sun grants nothing. 5 uses.
+- **`dmgRange` applies boost stages as `Math.floor(x * boostMul(s))` where the authority DIVIDES on a
+  negative stage.** They disagree wherever the float lands just under an integer (`s = -1, x = 3`
+  gives 1 and 2). Pre-existing, a DAMAGE change, named rather than swept into a heal fix.
+- **`status.js` still opens FEATURE SEMANTICS CHECK FAILED on the same eight features.** Verified as
+  the identical eight already recorded in `docs/ENGINE.md` — not caused by this pass.
+
+---
+
 ## [3.88.0] — 2026-08-09
 
 ### Fixed

@@ -1,6 +1,22 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 3.88.0 · Last updated 2026-08-09**
+**Version 3.89.0 · Last updated 2026-08-09**
+
+**3.89.0 — A FAMILY THAT PRODUCED A WRONG ANSWER ON EVERY HIT, AND A HEAL FAMILY THAT HEALED 0.000
+HP.** 3.88.0 derived the condition for `buffsHolderOnHit` and said plainly that the engine did not
+read it; it does now. Applied unconditionally, eleven of the family's twelve members were wrong on
+every connecting hit — Anger Point maxed Attack off a NON-critical hit and did the same thing on a
+critical one (an unwired knob), Justified fired off Close Combat, Weak Armor off Dark Pulse. Stamina,
+2,773 of the family's 2,972 uses, carries no condition and was correct throughout, which is precisely
+why nothing noticed the other eleven; it is now asserted on both sides of the crit die as the positive
+control. **The direction of the error is what distinguishes this from the pinch family of 3.85.0:**
+that one failed CLOSED, so the engine was merely missing a mechanic, while this one failed OPEN and was
+stating something false about the board. Separately, Synthesis, Moonlight, Morning Sun and Strength Sap
+(1,024 uses) resolved to a wasted turn healing nothing in every sky, and in sand the click was strictly
+worse than passing, because the residual still chipped the body that had spent its turn. The blocker
+was real and had expired: the tag said `heal: true`, a boolean in a fraction's clothing, and the
+artifact now carries the weather fractions and the target-stat reference. Census 326 to 329 live, 0
+missing; the roster and the 150-row damage differential are unmoved.
 
 **3.88.0 — TWELVE MOVES WERE PRICED OFF GENERIC GEN-9 DATA INSTEAD OF THIS FORMAT'S, AND THE
 BUILDER THAT FIXED THEM WAS ONE RUN AWAY FROM DELETING TEN SPECIES.** Trop Kick read 70 where the

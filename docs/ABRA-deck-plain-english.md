@@ -1,6 +1,16 @@
 # ABRA — the plain-English deck
 
-**Version 3.88.0 · 2026-08-09 · Will Hooper**
+**Version 3.89.0 · 2026-08-09 · Will Hooper**
+
+**3.89.0 — SOME POKÉMON GET STRONGER WHEN YOU HIT THEM, BUT ONLY IF YOU HIT THEM THE RIGHT WAY.**
+Anger Point maxes out its Attack when it takes a *critical* hit. Justified only reacts to *dark*
+moves. Weak Armor only to *physical* ones. Our simulator gave all of them their bonus on every single
+hit, so it thought hitting these Pokémon was far more dangerous than it is. The one member of the
+group that genuinely has no condition — Stamina, which is also the only one people actually run — was
+right the whole time, and that is exactly why nobody spotted the other eleven. Separately, four
+healing moves (Synthesis, Moonlight, Morning Sun and Strength Sap) did **nothing at all**: the Pokémon
+spent its turn and recovered zero health. In a sandstorm that was worse than doing nothing, because
+the sand still hurt it. All fixed, with tests that fail if either comes back.
 
 **3.88.0 — TWELVE MOVES WERE PRICED OFF GENERIC GEN-9 DATA INSTEAD OF THIS FORMAT'S, AND THE
 BUILDER THAT FIXED THEM WAS ONE RUN AWAY FROM DELETING TEN SPECIES.** Trop Kick read 70 where the

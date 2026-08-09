@@ -1,7 +1,16 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 3.88.0 — 2026-08-09.**
+**Version: 3.89.0 — 2026-08-09.**
 
+
+**3.89.0 — NOTHING IN THE TABLE BELOW MOVED, AND ONE NEW DIFFERENCE IS FILED INTO IT.** ROADMAP #101
+and #102 are a post-damage REACTION and a HEAL; neither is a stage. But wiring Strength Sap's heal off
+`getStat('atk', false, true)` surfaced a boost-stage difference that IS a damage question:
+`dmgRange` applies a stage as `Math.floor(x * boostMul(s))`, where `sim/pokemon.ts` MULTIPLIES on a
+positive stage and **DIVIDES** on a negative one. The two disagree wherever the float lands just under
+an integer — at `s = -1, x = 3` they give 1 and 2. The new heal uses a helper (`statWithBoost`) that
+mirrors the authority exactly; `dmgRange` was deliberately left alone in the same pass, because
+changing it is a damage change and would have needed its own measurement. **Filed here, not fixed.**
 
 **3.88.0 — TWELVE MOVES WERE PRICED OFF GENERIC GEN-9 DATA INSTEAD OF THIS FORMAT'S, AND THE
 BUILDER THAT FIXED THEM WAS ONE RUN AWAY FROM DELETING TEN SPECIES.** Trop Kick read 70 where the

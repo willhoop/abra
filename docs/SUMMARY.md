@@ -1,6 +1,15 @@
 # ABRA — Project Summary
 
-**Version 3.88.0 · 2026-08-09 · Will Hooper**
+**Version 3.89.0 · 2026-08-09 · Will Hooper**
+
+**3.89.0 — THE CONDITION 3.88.0 DERIVED IS NOW READ, AND A HEAL FAMILY THAT HEALED NOTHING WORKS.**
+`buffsHolderOnHit` applied its boost on every connecting hit, so eleven of twelve members were wrong
+every time: Anger Point maxed Attack off a non-critical hit and did the same on a critical one — an
+unwired knob — Justified fired off Close Combat, Weak Armor off Dark Pulse. Stamina (2,773 of the
+family's 2,972 uses) carries no condition, was right throughout, and is now the positive control on
+both sides of the crit die. Synthesis, Moonlight, Morning Sun and Strength Sap — 1,024 uses — resolved
+to a wasted turn healing 0.000 HP in every sky, and in sand were strictly worse than passing. Census
+326 to 329 live, 0 missing; roster and differential unmoved.
 
 **3.88.0 — TWELVE MOVES WERE PRICED OFF GENERIC GEN-9 DATA INSTEAD OF THIS FORMAT'S, AND THE
 BUILDER THAT FIXED THEM WAS ONE RUN AWAY FROM DELETING TEN SPECIES.** Trop Kick read 70 where the

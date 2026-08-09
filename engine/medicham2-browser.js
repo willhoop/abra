@@ -382,6 +382,22 @@ const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnk
    * `heal: true`, which is a boolean in a fraction's clothing. Counted so "these do nothing" is a
    * READABLE claim rather than a silent default. */
   healProcedural: 0, healProceduralFirst: '',
+  /* ROADMAP #102 -- a `fromTargetStat` this engine cannot map onto a stat slot. `SD2ENG` covers all
+   * five, so a non-zero here means the artifact grew a sixth name and the heal was refused rather
+   * than sized from a stat that does not exist. */
+  healFromStatUnreadable: 0, healFromStatUnreadableFirst: '',
+  /* ROADMAP #101 -- a `buffsHolderOnHit` whose `when` this engine cannot evaluate. Four shapes are
+   * readable (crit, moveType, moveCategory, moveFlag) and `when: null` is unconditional; anything
+   * else REFUSES the buff and lands here. Refusing is the safe direction only because the defect
+   * this replaces failed OPEN -- Anger Point maxed Attack off any connecting hit. */
+  buffOnHitUnknownCond: 0, buffOnHitUnknownCondFirst: '',
+  /* ROADMAP #101 -- a `buffsHolderOnHit` member whose payload is a VOLATILE and not a boost table:
+   * electromorphosis and windpower bank `charge` (nothing in this engine multiplies an Electric move
+   * by it) and perishbody grants `perishsong` (the clock exists, but its DURATION is carried by the
+   * MOVE's `perishClock` tag and no ability states one). The old guard dropped all three silently;
+   * they are now counted at the moment the condition HOLDS, so the number is "buffs this engine
+   * owed and did not pay" rather than "carriers on the board". */
+  buffOnHitVolatileUnwired: 0, buffOnHitVolatileUnwiredFirst: '',
   /* ROADMAP #81 WIRE 9 -- a damaging click that could not be aimed at anything and therefore fell
    * through to the status chain, where it becomes a no-op turn. Reachable three ways: a SINGLE-target
    * move with the target withheld (which Showdown rejects as a choice), a `randomNormal` or
@@ -1370,16 +1386,40 @@ const exact4096=(id,m)=>CH_EXACT[id]||m;
  * tests/test-pinch-family.js stages both parities of maxhp and both sides of the line.
  *
  * `of: 'self'` is the body whose ability this is. The caller passes it; this function never guesses
- * which body it means. */
-function condHolds(w,self){
+ * which body it means.
+ *
+ * ROADMAP #101 -- THE SIGNATURE WIDENED, AND THAT WAS THE WHOLE COST WIRE 112 PREDICTED. `hpFraction`
+ * asks about the HOLDER and needs nothing else; every condition the `buffsHolderOnHit` family carries
+ * asks about the INCOMING MOVE (`crit`, `moveType`, `moveCategory`, `moveFlag`), which no amount of
+ * looking at `self` can answer. So a third argument arrives carrying the hit: `{crit, moveType,
+ * category, moveId}`. It is OPTIONAL and its absence is not silent -- a move-shaped condition asked
+ * without a hit context returns NULL, the same refusal an unknown shape gets, so a caller that
+ * forgets to pass it is counted rather than served a comfortable `false`.
+ *
+ * `moveType` is the type the move RESOLVED to (the caller passes effMoveType's answer), not `mv.t`:
+ * a Pixilate Body Slam is Fairy by the time it lands, so a Justified body must not react to it as
+ * Normal. `moveFlag` joins through the move's own tag exactly as mvMakesContact does -- the ability
+ * names a flag, the move carries it -- so a future ability keyed on `sound` needs no edit here. */
+function condHolds(w,self,hit){
   if(w==null)return true;
-  if(typeof w==='object'&&w.cond==='hpFraction'&&w.of==='self'
+  if(typeof w!=='object')return null;
+  if(w.cond==='hpFraction'&&w.of==='self'
      &&Number.isInteger(w.num)&&Number.isInteger(w.den)&&w.den>0&&w.num>0
      &&self&&self.st&&self.st.hp>0&&self.curHP!=null){
     const hp=self.curHP,mx=self.st.hp;
     if(w.cmp==='<=')return hp*w.den<=mx*w.num;
     if(w.cmp==='>=')return hp*w.den>=mx*w.num;
+    return null;
   }
+  /* Everything below needs the HIT. No hit in hand is a refusal, never a false. */
+  if(!hit)return null;
+  if(w.cond==='crit')return typeof hit.crit==='boolean'?hit.crit:null;
+  if(!Array.isArray(w.is)||!w.is.length)return null;
+  if(w.cond==='moveType')  return hit.moveType?w.is.indexOf(hit.moveType)>=0:null;
+  if(w.cond==='moveCategory')return hit.category?w.is.indexOf(hit.category)>=0:null;
+  if(w.cond==='moveFlag')  return hit.moveId
+    ?w.is.some(f=>TAGS.has('move',hit.moveId,String(f)))
+    :null;
   return null;
 }
 /* HEALING IS A CLASS, AND blocksHealing IS ITS COUNTER — one gate, asked in every place HP goes up.
@@ -1403,13 +1443,52 @@ const healBlocked=m=>!!(m&&m._healBlock>0);
  * tags and that is what makes it spread across the side; Roost and Recover carry only `healsSelf`.
  * Reading `fx.target === 'allies'` for that was asking a string what a tag already says.
  *
- * Heal Pulse (91 uses) carries `healsAlly {heal:true}` with no fraction and stays honestly unwired. */
+ * Heal Pulse (91 uses) carries `healsAlly {heal:true}` with no fraction and stays honestly unwired.
+ *
+ * ROADMAP #102 -- TWO OF THE `heal: true` MEMBERS ARE NOW SIZEABLE, AND THE ARTIFACT IS WHAT CHANGED.
+ * The comment above and MEDFAILS.healProcedural both said the same true thing -- "the tag says
+ * `heal: true`, which is a boolean in a fraction's clothing" -- and it stopped being true when
+ * tag_dex started carrying `weatherScaled.baseHealFraction` and `healsSelf.fromTargetStat`.
+ *
+ *   weatherScaled.baseHealFraction   synthesis, moonlight, morningsun   1/2, 2/3 in sun, 1/4 in
+ *                                    rain/sand/snow -- and the numbers come from the artifact, which
+ *                                    carries Showdown's own literal 0.667 rather than 2/3.
+ *   healsSelf.fromTargetStat         strengthsap, and ONLY strengthsap -- membership printed over
+ *                                    the whole move table before a line of this was written.
+ *
+ * Rest, Wish, Healing Wish, Swallow and Heal Pulse still arrive here with nothing but `true` and are
+ * still counted. The counter therefore keeps meaning what it meant; it just stops covering 1,024 uses
+ * it can now size.
+ *
+ * THE FRACTION IS NOT RESOLVED HERE. `fromTargetStat` needs the TARGET and the weather members need
+ * the sky AT THE MOMENT THE MOVE GOES OFF -- an ally's Sunny Day earlier in the same turn changes a
+ * Synthesis from 1/2 to 2/3 -- and this function is called by `playerAction` at CLICK time, one whole
+ * turn-sort earlier. So it returns the RECIPE and the resolution site spends it. */
 function healParam(id){
   const s=TAGS.param('move',id,'healsSelf'), al=TAGS.param('move',id,'healsAlly');
   const fr=(s&&s.heal)||(al&&al.heal)||null;
   if(Array.isArray(fr)&&fr[1])return {fr,allies:Array.isArray(al&&al.heal)};
-  if(fr===true){MEDFAILS.healProcedural++;if(!MEDFAILS.healProceduralFirst)MEDFAILS.healProceduralFirst=id;}
+  if(fr===true){
+    const _ws=TAGS.param('move',id,'weatherScaled');
+    if(_ws&&_ws.baseHealFraction)return {weather:_ws,allies:false};
+    if(s&&s.fromTargetStat)return {fromTargetStat:String(s.fromTargetStat),allies:false};
+    MEDFAILS.healProcedural++;if(!MEDFAILS.healProceduralFirst)MEDFAILS.healProceduralFirst=id;
+  }
   return null;
+}
+/* ROADMAP #102 -- `Pokemon#getStat(stat, false, true)`: the stored stat with its BOOST applied and no
+ * modifier events. Strength Sap heals by exactly this, so it is spelled the way sim/pokemon.ts spells
+ * it -- MULTIPLY on a positive stage, DIVIDE on a negative one.
+ *
+ * NOT `boostMul`, DELIBERATELY, AND THE DIFFERENCE IS REAL. `Math.floor(x * 2/(2-s))` and
+ * `Math.floor(x / ((2-s)/2))` disagree wherever the float lands just under an integer -- at s = -1 and
+ * x = 3 they give 1 and 2. dmgRange uses the multiply form on A and D and that is a pre-existing
+ * difference from the authority, filed here rather than fixed in the same breath: it is a DAMAGE
+ * change and this is a heal. */
+const BOOST_TABLE=[1,1.5,2,2.5,3,3.5,4];
+function statWithBoost(mon,k){
+  const b=clamp((mon.boosts&&mon.boosts[k])||0,-6,6),v=mon.st[k];
+  return b>=0?Math.floor(v*BOOST_TABLE[b]):Math.floor(v/BOOST_TABLE[-b]);
 }
 
 // Mega abilities — sourced from Serebii's Champions data (not guessed). Champions runs BOTH the
@@ -6313,6 +6392,35 @@ function battleTurn(S,rng,actsForA,actsForB){
          * as it dodges an Ice Beam, and No Guard lands one exactly as it lands a Stone Edge. */
         const _acc=hitChance(m,_t,a.mv,field,{targetAlreadyMoved:!unresolved.has(_t)});
         if(_acc<100&&rng()*100>_acc){if(TR)TR.miss(m,_t);continue;}
+        /* ROADMAP #102 -- STRENGTH SAP'S HEAL, WHICH WIRE 79 FILED AS UNREACHABLE AND NO LONGER IS.
+         *
+         * The note left here said "the heal scales off the TARGET's Attack and no artifact this engine
+         * reads carries it". That was true when it was written; `data/tags.json` now carries
+         * `healsSelf {heal:true, fromTargetStat:'atk'}` and it matches exactly one move -- membership
+         * printed over the whole table before this was wired. 710 uses, the largest single member of
+         * the procedural heal family, and the heal was 0.000 HP on every one of them.
+         *
+         * THREE THINGS COME OUT OF THE HANDLER AND ONLY ONE IS THE HEAL
+         * (`if (target.boosts.atk === -6) return false; const atk = target.getStat('atk', false, true);
+         *   const success = this.boost({atk: -1}, ...); return !!(this.heal(atk, source, target) || success);`)
+         *   1. A TARGET ALREADY AT -6 ATTACK MAKES THE WHOLE MOVE FAIL -- no heal either, and this
+         *      engine would otherwise have healed off a drop that could not happen.
+         *   2. THE ATTACK IS READ BEFORE THE DROP. Computed here, above the boost loop, deliberately:
+         *      reading it after would undercount every sap by one stage.
+         *   3. IT IS THE STAT, NOT A FRACTION OF IT -- boosted, unmodified. See statWithBoost.
+         * The user's own Heal Block still gates it, like every other place HP goes up. */
+        let _sapHeal=null;
+        {const _hs=TAGS.param('move',a.mv,'healsSelf');
+         if(_hs&&_hs.heal===true&&_hs.fromTargetStat){
+           const _k=SD2ENG[_hs.fromTargetStat];
+           if(!_k||!_t.st||_t.st[_k]==null||!_t.boosts||_t.boosts[_k]==null){
+             MEDFAILS.healFromStatUnreadable++;
+             if(!MEDFAILS.healFromStatUnreadableFirst)
+               MEDFAILS.healFromStatUnreadableFirst=String(a.mv)+'/'+String(_hs.fromTargetStat);
+           }
+           else if(_t.boosts[_k]<=-6){mvFail(m);continue;}
+           else _sapHeal=statWithBoost(_t,_k);
+         }}
         /* Stat changes. Contrary flips them and Clear Body refuses drops, both already modelled for
          * Intimidate -- asked here the same way so one ability does not behave differently by route. */
         for(const _e of ((a.sc&&a.sc.target)||[])){
@@ -6335,6 +6443,12 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(_d<0&&_t.boosts[_s2]!==_b0)retaliateWhenLowered(_t,m);
           }
           if(TR&&_ref&&_ref.announce)TR.failUnboost(_t,_ref.label,_ref.ab);
+        }
+        /* ROADMAP #102 -- and the sap is paid, after the drop and out of the amount read before it. */
+        if(_sapHeal!=null&&!m.fainted&&!healBlocked(m)){
+          const _sh0=m.curHP;
+          m.curHP=Math.min(m.st.hp,m.curHP+_sapHeal);
+          if(TR&&m.curHP>_sh0)TR.heal(m,'[from] move: '+a.mv,_t);
         }
         /* Status and volatiles. applyStatus already enforces the type and ability immunities; a
          * VOLATILE is a different thing and is recorded by name on the mon so a consumer can see
@@ -7282,8 +7396,35 @@ function battleTurn(S,rng,actsForA,actsForB){
            * the test caught it; a silently wrong divisor would not have shown up at all.
            * The Heal Block gate is per BODY, not per click: Life Dew still restores the partner when
            * only the user is blocked. */
+          /* ROADMAP #102 -- THE SIZE, PER BODY, AT THE MOMENT THE MOVE GOES OFF.
+           *
+           * Synthesis, Moonlight and Morning Sun (1,024 uses with Strength Sap) resolved to
+           * `{kind:'pass'}` -- a wasted turn healing 0.000 HP in every sky including a clear one, and
+           * in SAND the click was strictly worse than doing nothing because the residual still chipped
+           * it. Measured before a line changed: from half HP, `healed 0` in clear/sun/rain and `-9` in
+           * sand, against Recover's 77 on the same body.
+           *
+           * `md4096`, NOT a fraction. The handler is `this.heal(this.modify(pokemon.maxhp, factor))`
+           * with factor literally 0.5 / 0.667 / 0.25, and `Battle#modify` is the 4096ths round-half-up
+           * this engine already owns one implementation of. `maxhp * 0.667` is not `maxhp * 2/3` and
+           * neither is the right answer -- the authority's own float is, run through its own rounding.
+           *
+           * THE SKY IS THE HEALER'S, through effWeatherOf, so Cloud Nine suppression and Mega Sol's
+           * private sun both reach it exactly as they reach the damage formula. A weather this family
+           * does not list (none of them lists `snow` differently from hail -- the artifact already
+           * folded that) falls to `baseHealFraction`, which is the handler's own `let factor = 0.5`
+           * default and not a silent fallback. */
+          const _size=x=>{
+            if(_hp.weather){
+              const _w=effWeatherOf(field,x,null);
+              const _bw=_hp.weather.byWeather&&_hp.weather.byWeather[_w];
+              const _f=(_bw&&_bw.healFraction!=null)?+_bw.healFraction:+_hp.weather.baseHealFraction;
+              return md4096(x.st.hp,_f);
+            }
+            return Math.floor(x.st.hp*_hp.fr[0]/_hp.fr[1]);
+          };
           const amt=x=>{if(x&&x.st&&!healBlocked(x)){const _h0=x.curHP;
-            x.curHP=Math.min(x.st.hp,x.curHP+Math.floor(x.st.hp*_hp.fr[0]/_hp.fr[1]));
+            x.curHP=Math.min(x.st.hp,x.curHP+_size(x));
             if(TR){if(x.curHP>_h0)TR.heal(x);else TR.fail(x,'heal');}}};
           if(_hp.allies){for(const x of (it.side==='A'?actA:actB))if(x&&!x.fainted&&x.curHP>0)amt(x);}
           else amt(m);
@@ -8135,6 +8276,12 @@ function battleTurn(S,rng,actsForA,actsForB){
           * Breath always crit; dmgRange has already folded the x1.5 into the range, so the branch
           * above deliberately skips them -- and a trace that only emitted `|-crit|` from that branch
           * would print no crit at all on exactly the three moves the crit rules are tested with. */
+         /* ROADMAP #101 -- AND THE CRIT IS RECORDED ON THE HIT, not only announced. `_stepEffects`
+          * runs after this and Anger Point's whole condition is "did that one crit", which nothing
+          * downstream could see: the flag lived for the length of this block and then went out of
+          * scope. Same expression the trace emits, so the reaction and the `|-crit|` line cannot
+          * disagree about whether it happened. */
+         R.crit=(_cc>=1)||(_cc>0&&_cc<1&&_cr<_cc);
          if(TR){TR.eff(tg,d.eff);if(_cc>=1||(_cc>0&&_cc<1&&_cr<_cc))TR.crit(tg);}}
         /* WIRE 4 -- `modifyDamage` spends this one through `modify` too (battle-actions.ts:1821),
          * and x0.25 is NOT a value where a truncation and a round-half-up agree. */
@@ -8548,8 +8695,42 @@ function battleTurn(S,rng,actsForA,actsForB){
            * The order matters: the buff lands on a target that survived (checked above), and the
            * attacker toll is paid whether or not the target survived, so it sits outside this else.
            * Contact is read from the move's own flag via the linkage key rather than a name list. */
+          /* ROADMAP #101 -- AND THE CONDITION IS NOW READ. The block below applied `_buff.boosts` on
+           * EVERY connecting hit, because the tag carried WHAT the holder gains and never WHEN. That
+           * is a family that fails OPEN, which is the opposite of the pinch family WIRE 112 landed:
+           * nothing was missing, a WRONG ANSWER was being produced on every hit. Measured before a
+           * line changed, on one Knock Off into a 20x-HP Garchomp --
+           *     angerpoint  atk +6 on a NON-crit, and IDENTICAL on a crit  (an unwired knob)
+           *     justified   atk +1 off CLOSE COMBAT, a Fighting move
+           *     weakarmor   def -1 / spe +2 off DARK PULSE, a special move
+           *     stamina     def +1                                        (correct, and the control)
+           * Stamina is 2,773 of the family's 2,972 uses and carries `when: null`, which is exactly
+           * why nothing ever noticed the other eleven.
+           *
+           * `condHolds` is the same one reader ROADMAP #112 built; NULL means "this engine cannot
+           * evaluate that shape" and REFUSES the buff, counted. A guessed condition on a family that
+           * compounds is the boolean-in-a-fraction's-clothing defect with interest. */
           const _buff=TAGS.param('ability',tg.ability,'buffsHolderOnHit');
-          if(_buff&&_buff.boosts&&tg.boosts){
+          /* `R.crit` IS PASSED RAW, NOT COERCED. `!!R.crit` would turn "the damage step never ran, so
+           * nobody knows" into a confident `false` and Anger Point would silently never fire again --
+           * the same silent default one shape over. condHolds refuses a non-boolean and counts it. */
+          const _bHit=_buff?{crit:R.crit,moveType:effMoveType(mv,a.move.id,field,m),
+                             category:mv.c==='P'?'Physical':mv.c==='S'?'Special':'Status',
+                             moveId:a.move.id}:null;
+          const _bw=_buff?condHolds(_buff.when,tg,_bHit):false;
+          if(_buff&&_bw===null){MEDFAILS.buffOnHitUnknownCond++;
+            if(!MEDFAILS.buffOnHitUnknownCondFirst)
+              MEDFAILS.buffOnHitUnknownCondFirst=String(tg.ability)+'/'+JSON.stringify(_buff.when);}
+          /* THE VOLATILE HALF, WHICH THE OLD GUARD DROPPED ENTIRELY. `_buff.boosts && tg.boosts` also
+           * refused every member whose payload is `gainsVolatile` -- electromorphosis (98 uses),
+           * windpower, perishbody. This engine has no consumer for `charge` and no ability-sourced
+           * duration for `perishsong`, so they are still not granted; the difference is that the debt
+           * is now COUNTED at the moment the condition holds instead of being invisible. */
+          if(_buff&&_bw===true&&_buff.gainsVolatile&&!_buff.boosts){
+            MEDFAILS.buffOnHitVolatileUnwired++;
+            if(!MEDFAILS.buffOnHitVolatileUnwiredFirst)
+              MEDFAILS.buffOnHitVolatileUnwiredFirst=String(tg.ability)+'/'+String(_buff.gainsVolatile);}
+          if(_buff&&_bw===true&&_buff.boosts&&tg.boosts){
             /* The tag names the stats and the sizes, read from the handler's own this.boost({...}).
              * Showdown spells them atk/def/spa/spd/spe; this engine uses at/df/sa/sd/sp. That map is
              * a naming convention, not a mechanic, so it lives here rather than in the artifact.
@@ -9668,7 +9849,12 @@ function playerAction(me,moveId,target,field){
    * Strength Sap's is the Attack drop, and classifying them as a heal this engine cannot size would
    * turn a partly-modelled move into a fully no-op turn. They fall through to the branches that do
    * model their other half, and healParam counts them in MEDFAILS.healProcedural. */
-  if(healParam(id))return {kind:'heal',mv:id};
+  /* ROADMAP #102 -- AND THE ONE MEMBER THAT MUST NOT BE CLAIMED HERE. `fromTargetStat` is Strength
+   * Sap, whose OTHER half (the target's Attack drop) is already modelled by the `affect` branch far
+   * below. Letting it become a `heal` would trade one missing half for the other -- and the Attack
+   * drop is the half that decides where the move is played (WIRE 79). Its heal is landed inside that
+   * branch instead, where the target is in hand. The test is on the recipe, not on the move id. */
+  {const _h0=healParam(id); if(_h0&&!_h0.fromTargetStat)return {kind:'heal',mv:id};}
   /* REDIRECTION, FROM THE `redirects` TAG. Will was right that these were already tagged and the
    * first version of this line was not: it named ragepowder and followme by their volatile, having
    * looked for the tag under ABRA_TAGS.move — the artifact spells it `moves`, so the search came back

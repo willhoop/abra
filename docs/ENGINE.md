@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  326/326 probed mechanics live, 0 missing   (census 2026-08-09 20:24)
-  1/150 differential comparisons disagree with Showdown   (2026-08-09 20:27)
+  329/329 probed mechanics live, 0 missing   (census 2026-08-09 22:15)
+  1/150 differential comparisons disagree with Showdown   (2026-08-09 22:16)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (70 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -58,9 +58,117 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 183/191 probed, 8 unprobed
 ```
 
-_stamped 2026-08-09 20:53_
+_stamped 2026-08-09 22:21_
 
 <!-- /GENERATED -->
+
+## ROADMAP #101 + #102 — A FAMILY THAT FAILED *OPEN*, AND 1,024 USES OF A HEAL THAT HEALED 0.000 HP. 2026-08-09.
+
+Census **326 → 329 live / 326 → 329 probed**, 0 missing, 0 hollow, 0 `threw`, 0 unarmed, 0
+direct-call. Roster unmoved on all three stages (moves 50 DIFFER · 27 DID-NOT-FIRE · 332 MATCH;
+abilities **0 · 0**, the PASS clause still green; items 0 DIFFER · 6 DID-NOT-FIRE). Differential
+**1 of 150**, unchanged. Two unrelated mechanisms, two separate proofs.
+
+### #101 — `buffsHolderOnHit` IGNORED THE CONDITION THAT WAS ALREADY IN THE ARTIFACT
+
+3.88.0 landed the derivation and said so plainly: *"THE ENGINE DOES NOT READ ANY OF IT YET."* It does
+now. `medicham2-browser.js` applied `_buff.boosts` on **every connecting hit**, so eleven of the
+family's twelve members produced a **wrong answer on every hit** rather than no answer:
+
+| measured on one Knock Off into a 20x-HP Garchomp | before | after |
+|---|---|---|
+| `angerpoint` non-crit | **atk +6** | atk 0 |
+| `angerpoint` on a CRIT | atk +6 — *identical, an unwired knob* | **atk +6 (maxed)** |
+| `justified` off CLOSE COMBAT (Fighting) | **atk +1** | atk 0 |
+| `weakarmor` off DARK PULSE (special) | **def -1 / spe +2** | 0 / 0 |
+| `stamina` — the positive control, 2,773 of the family's 2,972 uses | def +1 | def +1 |
+
+Stamina carries `when: null` and was correct throughout, which is exactly why nothing noticed the
+other eleven. **The direction of the error is what made this different from #112.** The pinch family
+failed CLOSED — a missing mechanic, nothing happened. This one failed OPEN, so every landed condition
+is an improvement on its own and a partial landing would still have been net positive.
+
+**`condHolds` widened, and that was the whole cost #112 predicted.** `hpFraction` asks about the
+HOLDER; every #101 condition asks about the INCOMING MOVE, so a third argument now carries the hit —
+`{crit, moveType, category, moveId}`. Four shapes are readable (`crit`, `moveType`, `moveCategory`,
+`moveFlag`); anything else REFUSES and is counted in `MEDFAILS.buffOnHitUnknownCond`, which reads 0.
+`R.crit` is passed RAW rather than through `!!`, because coercing it would turn "the damage step never
+ran, so nobody knows" into a confident `false` and Anger Point would silently never fire again.
+
+**The second defect in the same block: the guard was `_buff.boosts && tg.boosts`, so every member
+whose payload is a VOLATILE was dropped entirely** — `electromorphosis` (98 uses, `charge`),
+`windpower`, `perishbody`. They are still not granted: this engine has no consumer that multiplies an
+Electric move by a banked Charge, and `perishsong` has a clock but its DURATION is carried by the
+MOVE's `perishClock` tag, which no ability states. **What changed is that the debt is now counted at
+the moment the condition HOLDS** (`MEDFAILS.buffOnHitVolatileUnwired`), so it is a readable claim
+rather than a dropped branch. Filed, not fixed, and named here rather than left to be rediscovered.
+
+### #102 — SYNTHESIS, MOONLIGHT, MORNING SUN AND STRENGTH SAP DID NOTHING AT ALL
+
+1,024 uses. The first three resolved to `{kind:'pass'}` — a wasted turn — and in **sand the click was
+strictly worse than doing nothing**, because the residual still chipped the body that had just spent
+its turn. Measured on a 155 HP Venusaur from half HP, before a line changed: `healed 0` in clear, sun
+and rain, and `-9` in sand, against Recover's 77 on the same body.
+
+The blocker was real and it expired. `healParam` could only size an `Array` fraction, and the tag says
+`heal: true` — *a boolean in a fraction's clothing*, as `MEDFAILS.healProcedural`'s own comment put it.
+`data/tags.json` now carries `weatherScaled.baseHealFraction` (3 moves, membership printed over the
+whole table first) and `healsSelf.fromTargetStat` (**exactly one move**). So:
+
+- the fraction comes through **`md4096`**, not a fraction. The handler is
+  `this.heal(this.modify(pokemon.maxhp, factor))` with factor literally `0.5 / 0.667 / 0.25`, and
+  `maxhp * 2/3` is not what the authority computes. On 155 HP: **clear 77, sun 103, rain 39.**
+- the sky is the **healer's**, through `effWeatherOf`, so Cloud Nine suppression and Mega Sol's
+  private sun reach the heal exactly as they reach the damage formula;
+- `healParam` returns the **recipe**, not the amount, because it is called by `playerAction` at CLICK
+  time and the sky can move before the move goes off — an ally's Sunny Day earlier in the same turn
+  turns a Synthesis from 1/2 into 2/3.
+
+**Strength Sap (710 uses) is deliberately NOT classified as a heal.** WIRE 79 already models its
+Attack drop in the `affect` branch, and the drop is the half that decides where the move is played;
+claiming it here would have traded one missing half for the other. The heal lands inside that branch
+instead, where the target is in hand, and it follows the handler in all three of its parts: a target
+already at **-6 Attack makes the whole move fail**, the Attack is read **before** the drop, and it is
+the **stat itself**, boosted and unmodified — `statWithBoost`, spelled the way `sim/pokemon.ts` spells
+it (multiply on a positive stage, **divide** on a negative one).
+
+**A pre-existing difference found while doing that, filed not fixed:** `dmgRange` applies boost stages
+as `Math.floor(x * boostMul(s))` where the authority divides on a negative stage. The two disagree
+wherever the float lands just under an integer — at `s = -1, x = 3` they give 1 and 2. It is a DAMAGE
+change and this was a heal, so it is named here and left alone.
+
+### THE PROOFS — red on the unfixed engine, then green, then the census
+
+Three probes, all through real turns, all in `tests/test-mechanics.js`:
+
+- `ability|buffsHolderOnHit` — *"Anger Point needs the crit, and Stamina does not move"*. Four knobs
+  each against its own control: the crit die (same ability, same move, only the die moves), moveType
+  (Knock Off vs Close Combat), moveCategory (Close Combat vs Dark Pulse), and **Stamina read on BOTH
+  sides of the crit die** — a change that greens Anger Point while moving Stamina has broken the model.
+  Plus a `none` arm on the crit, so "+6 after a crit" cannot come from the crit itself. The crit lever
+  is the rng: the loop draws the roll index then the crit roll from one stream, so `() => 0` lands it.
+- `move|weatherScaled` — *"Synthesis heals half, two thirds in sun and a quarter in rain"*. **Staged
+  on a body at 1 HP, and that is the whole staging.** A full-HP body reads 0 → 0 forever; a HALF-HP
+  body caps the sun arm at max HP, so clear and sun would print 77 and 78 and the 2/3 would be
+  invisible. Tailwind in the same sun is the fourth arm and heals exactly nothing.
+- `move|healsSelf` — *"Strength Sap heals by the TARGET's Attack, and drops it"*. **The target is the
+  varied knob**: Alakazam 63 and Milotic 72, each heal equal to that target's own Attack. An engine
+  healing a flat fraction of the user's max HP passes "it healed something" and fails this.
+
+**`+6, not +12`, and it is not a clamp bug.** The tag says `{atk: 12}` because Showdown's handler is
+`setBoost({atk: 12})` — its way of writing "max it out from wherever you are". This engine clamps every
+stage to ±6 and `boostMul` clamps again, so +6 IS the maxed stage and the effective Attack is
+identical; a body carrying a literal 12 would be a value nothing else in this engine can read.
+
+### NOT MINE, NOT FIXED, REPORTED
+
+- **Growth is +1/+1 where Showdown gives +2/+2 in sun.** `weatherScaled.byWeather.boosts` has no
+  consumer at all, and the current build additionally patches `growth` so a PRIVATE sun grants nothing.
+  5 uses. Deliberately not swept into this pass.
+- **`node engine/status.js` still opens with FEATURE SEMANTICS CHECK FAILED on the same eight
+  features** (`koTarget`, `dmgFrac`, `killIsRoll`, `killsThreat`, `switchSurvives1`, `switchKOSlow`,
+  `switchDiesFirst`, `screenValue`). Verified as the identical eight this file already records —
+  **not caused by this pass**, and MEASURE's to clear.
 
 ## ROADMAP #96 WIRE 3 — TWO TYPE AUTHORITIES, TWO DIFFERENT SKIES. A MEGA SOL WEATHER BALL DID NOTHING AT ALL TO A GHOST. 2026-08-09.
 
@@ -571,6 +679,12 @@ ones. That is a WRONG ANSWER on the board rather than an absent one, and every c
 improvement on its own. The `_buff.boosts` guard that drops the `gainsVolatile` members
 (Electromorphosis, 98 uses) is a **separate** membership defect and wiring conditions would not touch
 it.
+
+**LANDED 2026-08-09 — see the ROADMAP #101 + #102 section at the top of this file.** Every prediction
+in the three paragraphs above held: the signature widened to `condHolds(w, self, hit)`, the four shapes
+were all readable from the artifact as derived, `stamina` was the positive control and did not move,
+and the `gainsVolatile` membership defect was indeed separate — it is now COUNTED rather than dropped,
+and still not granted, for the reasons given there.
 
 ## ROADMAP #111 — THE VOLATILE DURATION FAMILY. FOUR QUEUE ROWS, ONE MECHANISM, AND THE BUG WAS ALREADY WRITTEN DOWN IN THIS FILE. 2026-08-08.
 
