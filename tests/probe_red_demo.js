@@ -3755,6 +3755,76 @@ demoSource('ROADMAP #112  Blaze — the engine half: the consumer refuses any co
   console.log(`  ${ok ? 'OK   ' : 'FAIL '} ROADMAP #112  Transistor (0 uses) is the POSITIVE CONTROL and fires on BOTH builds   shipped=${a} reverted=${b} (both must be true)`);
 }
 
+/* ---- ROADMAP #96 / WIRE 3 -- TWO SOURCE-REVERTED ENGINES ----------------------------------------
+ *
+ * There is no tag to strip. `weatherScaled` was present and READ, `privateWeather` was present and
+ * READ -- by `dmgRange`, which was the half that was already right. The defect was that
+ * `effMoveType`, the BATTLE LOOP's authority for the stage-5 immunity gate, resolved the weather
+ * branch off `field.weather` RAW while `dmgRange` resolved it off `effWeatherOf`, which applies the
+ * private sky. So each reversal is exactly the one expression that carries the effective sky into
+ * the type question, and nothing else.
+ *
+ * THE STAGING NEEDS A GHOST OR IT PROVES NOTHING. Against a neutral defender both builds return a
+ * number and the reversal reads as a multiplier, which the assertion below could not distinguish
+ * from noise. Against Gengar the reverted build returns a CATEGORICAL zero.
+ *
+ * AND THE CONTROL IS ASSERTED IN BOTH BUILDS. `no ability + clear sky === 0` must hold on the
+ * reverted engine too -- otherwise "Mega Sol landed" would be reachable by an engine that had simply
+ * stopped enforcing Normal-into-Ghost, which is a worse bug that would read as this fix working. */
+{
+  const CROSS = (E) => {
+    const at = (ability, weather) => {
+      const me = W12.bare(E, 'meganium-mega'), ally = W12.bare(E, 'corviknight');
+      const f1 = W12.bare(E, 'gengar'), f2 = W12.bare(E, 'milotic');
+      W12.big(f1);
+      me.ability = ability;
+      const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+      S.field.weather = weather;
+      const h = f1.curHP;
+      E.battleTurn(S, rng5,
+        new Map([[me, E.playerAction(me, 'weatherball', f1, S.field)], [ally, { kind: 'pass' }]]),
+        W12.pass2(f1, f2));
+      return h - f1.curHP;
+    };
+    const control = at('none', ''), pub = at('none', 'sun'), priv = at('megasol', '');
+    return { control, pub, priv, live: control === 0 && pub > 0 && priv === pub };
+  };
+  const REVERT = [['  if(w&&w.byWeather){const _w=effWeatherOf(field,att);if(_w){const x=w.byWeather[_w];if(x&&x.type)return x.type;}}',
+                   '  if(w&&w.byWeather&&field&&field.weather&&!field.wSup){const x=w.byWeather[field.weather];if(x&&x.type)return x.type;}']];
+  demoSource('ROADMAP #96  a PRIVATE sky changes Weather Ball\'s type for the battle loop, not only for dmgRange',
+    REVERT, (E) => CROSS(E).live);
+  /* THE POSITIVE CONTROL, ON THE SAME REVERSAL: a PUBLIC sun was correct before this wire and must
+   * stay correct on BOTH builds. A reversal that turned public weather off too would mean the row
+   * above is measuring the whole weather branch rather than the private-sky read. */
+  {
+    ran++;
+    const a = CROSS(M), b = CROSS(revertedEngine(REVERT));
+    const ok = a.pub > 0 && b.pub > 0 && a.pub === b.pub && a.control === 0 && b.control === 0;
+    if (!ok) failures++;
+    console.log(`  ${ok ? 'OK   ' : 'FAIL '} ROADMAP #96  PUBLIC sun and the Normal-into-Ghost control are unmoved on BOTH builds   `
+      + `shipped[control=${a.control} publicSun=${a.pub} privateSun=${a.priv}] `
+      + `reverted[control=${b.control} publicSun=${b.pub} privateSun=${b.priv}] (privateSun must differ, the other two must not)`);
+  }
+  /* THE SECOND SITE. clickFragility priced the click against the RAW type while `base`, computed two
+   * lines above it by dmgRange, already saw the private sun -- one function, two answers. The
+   * reversal drops the attacker again. */
+  demoSource('ROADMAP #96  clickFragility prices the click as the type the SKY makes it, not the printed one',
+    [['    const mvType=effMoveType(mv,moveId,field,att);  // the type the click has UNDER the current sky',
+      '    const mvType=effMoveType(mv,moveId,field);  // the type the click has UNDER the current sky']],
+    (E) => {
+      const frag = (ability) => {
+        const att = W12.bare(E, 'meganium-mega'); att.ability = ability;
+        const tgt = W12.bare(E, 'milotic');
+        const r = E.clickFragility(att, 'weatherball', tgt, [W12.bare(E, 'gengar')],
+          { weather: '', terrain: '', twA: 0, twB: 0 });
+        return r ? r.retention : null;
+      };
+      /* The control is the same body with the ability off: a benched Ghost really does blank a
+       * NORMAL Weather Ball, so retention 0 there is CORRECT and must survive both builds. */
+      return frag('none') === 0 && frag('megasol') === 1;
+    });
+}
+
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);
 if (stale.length) {
   console.log(`  ${stale.length} of those are STALE REVERSALS — the demonstration is fine, the patch it applies is not:`);

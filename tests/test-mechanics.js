@@ -6660,6 +6660,52 @@ probe('ability', 'privateWeather', "Mega Sol's own Fire move fires under a sun o
                  + `an ALLY holding it shoots for ${allyShoots} (must equal the no-ability number)` };
 });
 
+/* ROADMAP #96 / WIRE 3 -- THE CROSS. BOTH HALVES WERE PROBED AND NEITHER PROBE COULD SEE THE BUG.
+ *
+ * `weatherBall` above drives Weather Ball through a real turn, but only under PUBLIC skies, where the
+ * two type authorities happen to agree. `privateWeather` above drives Mega Sol through a real turn,
+ * but with FLAMETHROWER, whose type no sky can move. The defect lived in the intersection: the battle
+ * loop's stage-5 immunity gate asked `effMoveType`, which read `field.weather` RAW, while `dmgRange`
+ * asked `effWeatherOf`, which applies the private sun. So a Meganium-Mega's Weather Ball was priced
+ * at 128-151 by the damage calc and refused as a NORMAL move by the loop -- LITERALLY ZERO into a
+ * Ghost, the mega's headline click doing nothing at all.
+ *
+ * IT NEEDS A GHOST AND IT WILL NOT BE SEEN WITHOUT ONE. Against a neutral defender a wrong type is a
+ * damage number, and a missing conversion hides behind a multiplier; against a Ghost it is
+ * zero-against-a-number, which no multiplier can produce. (The first survey of this area used a
+ * neutral Snorlax and reported the whole thing clean.)
+ *
+ * THE THIRD ARM IS THE ONE THAT MAKES IT AN EQUALITY RATHER THAN AN INEQUALITY. A private sun must
+ * not merely be non-zero -- it must give the SAME number a real sun gives, because Showdown's
+ * `Pokemon.effectiveWeather()` returns `sunnyday` outright for a `megasol` body and both of Weather
+ * Ball's handlers (`onModifyType` for the type, `onModifyMove` for the base power) read it. A wire
+ * that converted the type and lost the BP doubling, or one that skipped the sun's x1.5 on Fire, would
+ * pass a bare `> 0`.
+ *
+ * OFFICIAL ENGINE, PLAYED NOT REMEMBERED (gen9championsvgc2026regmb, real battle through
+ * `battle.makeChoices`, Weather Ball into a Gengar that is NOT Protecting):
+ *     no mega, clear sky : 0/135   `|-immune`
+ *     MEGA,    clear sky : 97/135  no immune line
+ *     no mega, public sun: 62/135
+ *     MEGA,    public sun: 97/135  -- identical to the private sun, which is the equality below.
+ * Our absolute numbers differ from those (buildMon's spreads are not that team's), so what is
+ * asserted is the SHAPE Showdown produced: categorical zero, and private == public. */
+probe('ability', 'privateWeatherMoveType', "Mega Sol's private sun changes Weather Ball's TYPE, and a Ghost feels it", () => {
+  const at = (ability, weather) => turnDamageBig(['meganium-mega', 'corviknight', 'gengar', 'milotic'],
+    (B) => { B.me.ability = ability; B.S.field.weather = weather; }, 'weatherball');
+  /* THE CONTROL IS THE SAME BODY WITH THE ABILITY OFF -- not a base Meganium, which would vary the
+   * stats as well as the sky and make the two arms incomparable (the Choice Scarf lesson). */
+  const control = at('none', '');          // Normal into a Ghost: must be a hard zero
+  const publicSun = at('none', 'sun');     // the POSITIVE CONTROL: a real sun still works
+  const privateSun = at('megasol', '');    // the cross: clear field, private sun
+  return { works: control === 0 && publicSun > 0 && privateSun === publicSun,
+           arms: { control, test: privateSun },
+           detail: `Weather Ball into Gengar from a Meganium-Mega body -- no ability + clear sky `
+                 + `${control} (must be 0, Normal into a Ghost), no ability + PUBLIC sun ${publicSun} `
+                 + `(Fire; the positive control), MEGA SOL + clear sky ${privateSun} (must equal the `
+                 + `public-sun number, not merely exceed zero)` };
+});
+
 /* ================================================================================================
  * THE CENSUS ASKS WHETHER A MECHANIC FIRES. IT NEVER ASKED WHETHER IT FIRES *ONLY WHERE IT SHOULD*.
  *

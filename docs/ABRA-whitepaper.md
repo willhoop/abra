@@ -1,6 +1,20 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 3.86.0 · Last updated 2026-08-09**
+**Version 3.87.0 · Last updated 2026-08-09**
+
+**3.87.0 — TWO READERS OF ONE FACT, MEASURED: THE LOOP'S TYPE AUTHORITY AND THE DAMAGE CALCULATION
+DISAGREED ABOUT THE WEATHER.** `effMoveType` resolved a weather-scaled move's type off the raw
+`field.weather`; `dmgRange` resolved it off `effWeatherOf`, which applies the private sky carried by
+the `privateWeather` tag. Under a private sun with a clear field the two part: the damage calculation
+returned Fire, 128-151, and the loop's stage-5 immunity gate refused the same click as Normal, so the
+damage dealt into a Ghost was 0. The official engine, played rather than cited
+(`gen9championsvgc2026regmb`, a real battle, Weather Ball into Gengar): 0/135 with `-immune` without
+the mega, 97/135 with it, and 97/135 under a public sun — the private sky must therefore give
+EXACTLY the public-sky number, not merely a non-zero one, because Showdown's `effectiveWeather()`
+feeds both `onModifyType` and `onModifyMove`. The probe asserts that equality. Census 325 to 326
+live; the roster and the 1/150 damage differential are unmoved; the paired whole-game differential is
+identical at 668 divergences of 1553 games in both arms, and the artifact names why — it lists this
+mechanic among the 47 census rows it declares unmeasurable.
 
 **3.86.0 — EVERY PUBLISHED ARTIFACT HAS A WRITER NOW, INCLUDING THE ARM MILTANK ACTUALLY RUNS.**
 The tool that answers "is this number still true" could only find a writer by an artifact's literal
@@ -165,7 +179,7 @@ is 0 on the turn a body switches in, and this engine's own comment said the gate
 here" — true of `_turnsOut` and untrue since WIRE 135 added `_newlySwitched`, a reason that was
 correct when written and stale when read. **A move targets a SLOT, not a Pokemon** (Will: *"we gotta
 target slots, not mons"*): `Battle#getTarget` resolves from `targetLoc` at execution time, and five of
-this engine's seven branches held the object they aimed at, so Charm and Parting Shot (7,184 uses)
+this engine's seven branches held the object they aimed at, so Charm and Parting Shot (10,535 uses: Charm 1,625 + Parting Shot 8,910, `data/tags.json`; this read 7,184 when first written and the corpus has grown since)
 dropped stats on a body sitting on the BENCH. One shared reader now answers it everywhere, with
 `tracksTarget` (Snipe Shot, Stalwart) as the negative. **Ally Switch did not exist** — 202 uses
 resolving to a wasted turn — and it is the sharpest test of the slot rule, because both bodies stay on

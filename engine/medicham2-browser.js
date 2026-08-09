@@ -2324,8 +2324,11 @@ function convertsMoveTypeTo(mv,moveId,att,curT){
   return (_applies&&curT!==_cm.into)?_cm:null;
 }
 /* THE ATTACKER IS OPTIONAL AND ITS ABSENCE IS NOT SILENT: a caller that cannot supply one gets the
- * weather answer only, which is what every caller got before this wire. The one caller that
- * deliberately does not pass it is clickFragility -- see the note at its call site. */
+ * PUBLIC weather answer only, which is what every caller got before WIRE 126.
+ * ROADMAP #96 / WIRE 3: there is no longer a caller in this file that has an attacker and withholds
+ * it -- clickFragility was the one and it now passes `att`. An attacker-less call is therefore a
+ * caller that genuinely HAS no attacker, and the answer it gets is a strictly smaller true one:
+ * no -ate conversion and no private sky. */
 function effMoveType(mv,moveId,field,att){
   let t=mv?mv.t:'';
   const _cm=convertsMoveTypeTo(mv,moveId,att,t);
@@ -2333,7 +2336,31 @@ function effMoveType(mv,moveId,field,att){
   const w=moveId&&TAGS.param('move',moveId,'weatherScaled');
   /* WIRE 78 — a suppressed sky leaves Weather Ball NORMAL. The weather override runs AFTER the
    * conversion, matching dmgRange's own order, so Weather Ball in sand is Rock on a Pixilate body. */
-  if(w&&w.byWeather&&field&&field.weather&&!field.wSup){const x=w.byWeather[field.weather];if(x&&x.type)return x.type;}
+  /* ROADMAP #96 / WIRE 3 -- THIS LINE READ `field.weather` AND dmgRange READ `effWeatherOf`, SO THE
+   * TWO TYPE AUTHORITIES DISAGREED ABOUT THE SKY. WIRE 126 made "what type is this move really" one
+   * function; it did not make "what weather is this attacker under" one function, and the second
+   * split cost exactly what the first one did.
+   *
+   * `effWeatherOf` is the sky a FORMULA should read: it applies the private weather (WIRE 99, Mega
+   * Sol -- the holder's own moves resolve as if its sun were up while the field reports none) and it
+   * applies suppression, which is the `field.wSup` clause this line used to spell out by hand. So a
+   * Meganium-Mega's Weather Ball was priced at 128-151 by dmgRange as a FIRE move and refused by the
+   * battle loop's stage-5 gate as a NORMAL one: into a Ghost it dealt LITERALLY ZERO, and the mega's
+   * headline interaction was a whiffed turn in every rollout. Measured against the official engine:
+   * ours 0, Showdown non-zero, and a public sun over the same body was correct all along -- which is
+   * why neither half's probe could see it. The census had `weatherBall` (public skies only) and
+   * `privateWeather` (Flamethrower, whose type never moves) and no probe crossed them.
+   *
+   * NOT A COPY OF effWeatherOf's LOGIC -- a CALL to it, because two implementations of a fact is the
+   * defect being fixed and re-deriving the private sky here would rebuild it one line later.
+   *
+   * THE DEFENDER'S OWN SUPPRESSION IS NOT VISIBLE FROM HERE, and that is stated rather than silently
+   * handled: this helper is handed no defender. In the battle loop it does not matter -- `field.wSup`
+   * is the loop's answer over all four actives and effWeatherOf honours it, so a Cloud Nine target is
+   * already covered. A PURE call (clickFragility) holding a Cloud Nine defender would see the sky
+   * dmgRange blanks. Adding a `def` parameter would be dead code at all five loop sites, so it is not
+   * added; the gap is written down instead. */
+  if(w&&w.byWeather){const _w=effWeatherOf(field,att);if(_w){const x=w.byWeather[_w];if(x&&x.type)return x.type;}}
   return t;
 }
 /* WIRE 21 -- variablePower: does this move have power AT ALL, and what is it right now?
@@ -3581,13 +3608,22 @@ function clickFragility(att,moveId,tgt,benchFoes,field){
       consider(flipped.max/base.max,b.name,'flips the sky to '+ws.weather);
     }
     const im=TAGS.param('ability',b.ability,'typeImmunity');
-    /* WIRE 126 -- NO ATTACKER IS PASSED HERE, AND THAT IS A DECLARED HOLD RATHER THAN AN OVERSIGHT.
-     * clickFragility is one of the six exports board.js reaches this engine through, so its output is
-     * a MAG FEATURE INPUT: passing `att` would change the fitted vector and owe a refit, which is
-     * MEASURE's expensive edge and not ENGINE's to spend. The consequence is stated: an -ate body's
-     * click is priced against its RAW type here while the battle loop resolves it as the converted
-     * one. FILED in docs/ENGINE.md. */
-    const mvType=effMoveType(mv,moveId,field);  // the type the click has UNDER the current sky
+    /* ROADMAP #96 / WIRE 3 -- THE ATTACKER IS NOW PASSED, AND WIRE 126'S HOLD IS LIFTED WITH ITS
+     * REASON RECORDED RATHER THAN DELETED.
+     *
+     * WIRE 126 left `att` off deliberately: clickFragility is one of the six exports board.js reaches
+     * this engine through, it feeds the `benchRisk` feature, and moving a fitted feature owes MEASURE
+     * a refit. THAT HOLD WAS HALF-EFFECTIVE AT BEST AND THE OTHER HALF WAS A CONTRADICTION INSIDE ONE
+     * FUNCTION: `base` two lines above is `dmgRange(att,...)`, which already sees the -ate conversion
+     * AND the private sky, so a Meganium-Mega's Weather Ball was measured at 128-151 by this
+     * function's own first statement and then declared "type-immune to Normal (chart), retention 0"
+     * by its third. One function, two answers, from the exact two authorities #96 exists to reconcile.
+     *
+     * THE COST IS DECLARED, NOT AVOIDED: `benchRisk` moves for -ate bodies and for private-weather
+     * bodies, so the fitted vector is owed a refit at the next release cut. That is the normal
+     * ENGINE->MAG edge (docs/DIVISIONS.md), not a new expense -- what is NOT normal is a feature
+     * disagreeing with the damage number computed beside it. */
+    const mvType=effMoveType(mv,moveId,field,att);  // the type the click has UNDER the current sky
     if(im&&im.type===mvType)
       consider(0,b.name,'absorbs '+mvType+' entirely',im.gain?{feedsIt:im.gain}:null);
     else if(mcEff(mvType,b.types)===0)

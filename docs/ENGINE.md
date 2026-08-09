@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  325/325 probed mechanics live, 0 missing   (census 2026-08-09 19:31)
-  1/150 differential comparisons disagree with Showdown   (2026-08-09 19:31)
+  326/326 probed mechanics live, 0 missing   (census 2026-08-09 20:24)
+  1/150 differential comparisons disagree with Showdown   (2026-08-09 20:27)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (70 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -58,9 +58,130 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 183/191 probed, 8 unprobed
 ```
 
-_stamped 2026-08-09 19:57_
+_stamped 2026-08-09 20:53_
 
 <!-- /GENERATED -->
+
+## ROADMAP #96 WIRE 3 — TWO TYPE AUTHORITIES, TWO DIFFERENT SKIES. A MEGA SOL WEATHER BALL DID NOTHING AT ALL TO A GHOST. 2026-08-09.
+
+Census **325 → 326 live / 325 → 326 probed**, 0 missing, 0 hollow, 0 `threw`, 0 unarmed, 0
+direct-call. Roster unmoved on all three stages (moves 50 DIFFER · 27 DID-NOT-FIRE · 332 MATCH;
+abilities **0 · 0**, the PASS clause still green; items 0 DIFFER · 6 DID-NOT-FIRE).
+`test-engine-diff` unmoved at **1/150**.
+
+### THE DEFECT: WIRE 126'S OWN HAZARD, INSIDE WIRE 126'S OWN FUNCTION
+
+WIRE 126 exists because *"what type is this move really"* had two implementations and one was half
+done. The function it created to be the single answer then disagreed with `dmgRange` about a
+different input — **the weather**:
+
+```js
+effMoveType   ...field&&field.weather&&!field.wSup...      // the RAW field
+dmgRange      const _ew = effWeatherOf(field, att, def);   // the EFFECTIVE sky
+```
+
+`effWeatherOf` applies the **private** sky — the `privateWeather` tag, WIRE 99, Mega Sol, whose
+holder's own moves resolve as if its sun were up while the field reports none. `effMoveType` did not.
+So under a private sun with a clear field the damage calc priced Weather Ball as **Fire, 128-151**,
+and the battle loop's stage-5 immunity gate refused it as **Normal**. Into a Ghost that is not a
+rounding error: **the mega's headline click dealt literally zero.**
+
+`effMoveType` is the loop's authority at five sites — the immunity gate, the absorb check, the
+Lightning Rod draw, Protean's retype and the Fire thaw — so all five read a sky that was not the one
+the attacker was standing under.
+
+**THE FIX IS A CALL, NOT A COPY.** `effMoveType` now asks `effWeatherOf(field, att)`. Re-deriving the
+private sky inside it would have rebuilt the two-implementations defect one line later.
+
+**THE DEFENDER'S SUPPRESSION IS THE ONE THING THIS HELPER STILL CANNOT SEE, and it is written down
+rather than handled.** `effMoveType` is handed no defender. In the loop that costs nothing —
+`field.wSup` is the loop's answer over all four actives and `effWeatherOf` honours it — so a `def`
+parameter would be dead code at every loop site. A PURE call holding a Cloud Nine defender would see
+a sky `dmgRange` blanks. Stated at the line.
+
+### THE SECOND SITE, AND WIRE 126'S HOLD IS LIFTED WITH ITS REASON KEPT
+
+`clickFragility` did not pass `att` — a **declared hold**, not an oversight: it feeds `benchRisk`, so
+moving it owes a refit. **The hold was half-effective and the other half was a contradiction inside
+one function.** `base`, computed two lines above, is `dmgRange(att,...)` and already saw both the
+private sun and the -ate conversion; the fragility branch then read the raw type. Measured on a
+Meganium-Mega: `base.max = 151` and, from the same call, `retention 0, "type-immune to Normal
+(chart)"`.
+
+It now passes `att`. **`benchRisk` moves for -ate bodies and private-weather bodies, so the fitted
+vector is owed a refit at the next release cut — MEASURE's edge, flagged, not spent here.**
+
+### THE PROBE IS THE CROSS, AND NEITHER HALF'S PROBE COULD EVER HAVE SEEN IT
+
+`weatherBall` ran through the loop under **public** skies only, where the two authorities agree.
+`privateWeather` ran Mega Sol with **Flamethrower**, whose type no sky can move. The new probe
+`ability/privateWeatherMoveType` is the intersection: a private sky **and** a move the sky retypes
+**and** a Ghost, so the comparison is zero-against-a-number and cannot hide behind a multiplier.
+
+**THE THIRD ARM MAKES IT AN EQUALITY.** Showdown's `Pokemon.effectiveWeather()` returns `sunnyday`
+outright for a `megasol` body, and *both* of Weather Ball's handlers read it (`onModifyType` for the
+type, `onModifyMove` for the base power). A wire that converted the type and lost the BP doubling
+would pass a bare `> 0`. So the assertion is **private sun === public sun**.
+
+Official engine, played through `battle.makeChoices` rather than remembered (and the first attempt
+had Gengar clicking Protect, which read 0 in all four cells — the probe wrong before the engine, as
+usual):
+
+| mega | sky | forme | damage into Gengar | `-immune` |
+|---|---|---|---|---|
+| no | clear | Meganium | 0/135 | **yes** |
+| **YES** | clear | Meganium-Mega | **97/135** | no |
+| no | public sun | Meganium | 62/135 | no |
+| **YES** | public sun | Meganium-Mega | **97/135** | no |
+
+Ours, same shape: control **0**, public sun **140**, private sun **0 → 140**.
+
+### SHOWN RED BEFORE GREEN — THREE ROWS IN `probe_red_demo.js`
+
+```
+ROADMAP #96  a PRIVATE sky changes Weather Ball's type for the battle loop, not only for dmgRange
+             shipped-arm=true  reverted-arm=false
+ROADMAP #96  PUBLIC sun and the Normal-into-Ghost control are unmoved on BOTH builds
+             shipped[control=0 publicSun=140 privateSun=140] reverted[control=0 publicSun=140 privateSun=0]
+ROADMAP #96  clickFragility prices the click as the type the SKY makes it, not the printed one
+             shipped-arm=true  reverted-arm=false
+```
+
+The middle row **is the positive control**: public weather was correct before this wire and is
+identical on both builds, and so is the Normal-into-Ghost immunity. A change that fixed the private
+sky while disturbing either would have broken the model.
+
+### THE PAIRED DIFFERENTIAL: IDENTICAL, AND THE REASON IS MEASURED RATHER THAN ASSUMED
+
+Two arms, same pinned team store (copied out of the tree so OPS cannot append under it), same pinned
+326-row census, same pin, same `--games 2008 --turns 12 --state --nature real`, differing in
+`--release` and in nothing else. `engine/arms_comparable.js`: **COMPARABLE**.
+
+| | BEFORE `759a0d3292f5` | AFTER `2046f06452bd` |
+|---|---|---|
+| games (primary arm) | 1553 | 1553 |
+| diverged, top-tie-first | 668 | 668 |
+| diverged, bottom-tie-first | 738 | 738 |
+| turn-1 boards identical | 1520 (97.88%) | 1520 (97.88%) |
+| classes / state / coverage / first divergences | — | **byte-identical** |
+
+**IDENTICAL ACROSS A VARIED KNOB USUALLY MEANS THE KNOB IS UNWIRED, so it was checked both ways.**
+The arms' own `source_digests` differ in **exactly one file** (`engine/medicham2-browser.js`,
+`f6c945c0261c` → `f6b25f9476e2`), and the cross case run against the two **frozen snapshots the
+arms actually loaded** gives `privateSun 0` and `privateSun 140`. The instrument then says why it
+saw nothing: it lists **`move:weatherBall` and `ability:privateWeatherMoveType` among the 47 census
+rows it declares unmeasurable** (`why: "names"` — a census key that is not a tag in `tags.json`
+steers nothing). The differential cannot reach this mechanic, and now says so by name.
+
+**ONE COST, DECLARED: `47 census rows steer nothing` was 46.** The new probe's key is synthetic, the
+same class as the existing `weatherBall` row. Naming it after a real tag would collide with a probe
+that already holds that key.
+
+**AND THE INSTRUMENT'S OWN CAVEAT REPRODUCED.** At this game count the state comparator fails its own
+planted-divergence proof — one plant, `party.` (a benched member's HP off by one), caught at boundary
+11 instead of 10 and reported as `field.trickroom_turns` — **in BOTH arms, including the untouched
+bytes**. Every state figure above is therefore quoted only as a paired delta of zero, never as a
+level.
 
 ## ROADMAP #109 — THE PHOTOGRAPH FROZE THE SUBJECT AND NOT THE CAMERA. 56 OF 65 RELEASES COULD NOT BE OPENED, AND ALL 14 LADDER RUNGS ARE AMONG THEM. 2026-08-09.
 
@@ -807,6 +928,14 @@ wearing its own clothes**: `effMoveType` (:2167) is the battle loop's authority 
 immunity gate and `dmgRange` (:2360) reads `weatherScaled` AGAIN for itself, so breaking one leaves
 the other pricing the converted type. **Two readers of one fact is the defect** (CLAUDE.md: facts are
 global). Filed, not fixed — the simulator is not this file's to edit.
+
+> **The defect this rule named was FIXED by ROADMAP #96 WIRE 3 on 2026-08-09** — `effMoveType` now
+> asks `effWeatherOf`, so the loop and `dmgRange` read one sky. The rule's own anchor is unchanged and
+> still aimed at the damage-side copy, which is correct: two readers remain, and what was closed is
+> their DISAGREEMENT about the weather. **`tests/roster.js` still carries the old prose in the rule's
+> `why` field** ("the known live defect is `effMoveType` reading `field.weather` RAW…"). That file was
+> out of scope for this pass and the sentence is now stale; it is named here rather than left to be
+> read as current.
 
 **WEATHER BALL IS CORRECT AND IS NOW PROVEN CATEGORICALLY RATHER THAN BY A DAMAGE NUMBER.** It is
 staged against a GHOST — Skeledirge — because a neutral defender turns a type change into a damage
@@ -6081,9 +6210,12 @@ fitted on position features predates the correct number. **Routed to MEASURE, no
 
 ### FILED, NOT FIXED
 
-- **`clickFragility` prices an -ate click against the raw move type.** Fixing it means passing the
-  attacker into `effMoveType` at `medicham2-browser.js:1782`, which moves a MAG feature and owes a
-  refit. Declared in a comment at the line.
+- ~~**`clickFragility` prices an -ate click against the raw move type.**~~ **CLOSED by ROADMAP #96
+  WIRE 3, 2026-08-09.** `att` is now passed. The hold's reason stands and is recorded there — it
+  moves `benchRisk` and owes MEASURE a refit at the next release cut — but it was half-effective at
+  best: `base` in the same function already saw the converted type, so the function disagreed with
+  itself. Carried by `probe_red_demo.js` (`ROADMAP #96 clickFragility prices the click as the type
+  the SKY makes it`), not by this list.
 - **`data/move-effects.js` disagrees with the format dex on four accuracies** (`crabhammer`,
   `makeitrain`, `syrupbomb`, `clangoroussoul`). It is generated by `build/build_browser_data.js` from
   CHOMP's `move-effects.json` — not ENGINE's file. The engine corrects them locally in `ACC_FIX`; the

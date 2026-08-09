@@ -1,7 +1,17 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 3.86.0 — 2026-08-09.**
+**Version: 3.87.0 — 2026-08-09.**
 
+
+**3.87.0 — THE STAGE WAS RIGHT AND THE INPUT TO IT WAS NOT: TWO READERS OF THE WEATHER.**
+Nothing in the table below moved. The BasePower-chain member at `:1991` (`weatherScaled`) sits at the
+correct stage and reads the correct sky, because `dmgRange` shadows the field through
+`effWeatherOf` at its first statement — which applies the PRIVATE weather a Mega Sol body carries.
+The battle loop's own type authority, `effMoveType`, did not: it read `field.weather` raw. So the
+same click was a Fire move to this table and a Normal one to the stage-5 immunity gate, and a
+Meganium-Mega's Weather Ball priced here at 128-151 dealt 0 to a Ghost. `effMoveType` now CALLS
+`effWeatherOf`. This is §2's lesson in a new place: the stage-by-stage audit can be clean while a
+DIFFERENT reader of the same fact makes the whole row unreachable.
 
 **3.86.0 — EVERY PUBLISHED ARTIFACT HAS A WRITER NOW, INCLUDING THE ARM MILTANK ACTUALLY RUNS.**
 The tool that answers "is this number still true" could only find a writer by an artifact's literal

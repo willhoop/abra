@@ -1,6 +1,16 @@
 # ABRA — Technical Documentation
 
-**Version 3.86.0 · Last updated 2026-08-09**
+**Version 3.87.0 · Last updated 2026-08-09**
+
+**3.87.0 — THE SIMULATOR USED TWO DIFFERENT WEATHER VALUES FOR ONE MOVE.** The function `effMoveType`
+gives the type of a move. The battle loop uses it. It read the weather directly from the field. The
+function `dmgRange` gives the damage. It reads the weather from `effWeatherOf`. That function applies
+a PRIVATE weather, which one ability gives only to its own body. The two functions then disagree. A
+Weather Ball from that body had a damage value of 128-151 as a Fire move, and the battle loop refused
+it as a Normal move. Against a Ghost type, the damage was 0.
+CORRECTION: `effMoveType` now calls `effWeatherOf`. Do not copy the logic. One fact has one reader.
+RESULT: the census is 326 live of 326 probed, with 0 missing. The roster did not change. The 150-row
+damage comparison did not change, at 1 disagreement.
 
 **3.86.0 — EVERY PUBLISHED ARTIFACT HAS A WRITER NOW, INCLUDING THE ARM MILTANK ACTUALLY RUNS.**
 The tool that answers "is this number still true" could only find a writer by an artifact's literal
@@ -162,7 +172,7 @@ is 0 on the turn a body switches in, and this engine's own comment said the gate
 here" — true of `_turnsOut` and untrue since WIRE 135 added `_newlySwitched`, a reason that was
 correct when written and stale when read. **A move targets a SLOT, not a Pokemon** (Will: *"we gotta
 target slots, not mons"*): `Battle#getTarget` resolves from `targetLoc` at execution time, and five of
-this engine's seven branches held the object they aimed at, so Charm and Parting Shot (7,184 uses)
+this engine's seven branches held the object they aimed at, so Charm and Parting Shot (10,535 uses: Charm 1,625 + Parting Shot 8,910, `data/tags.json`; this read 7,184 when first written and the corpus has grown since)
 dropped stats on a body sitting on the BENCH. One shared reader now answers it everywhere, with
 `tracksTarget` (Snipe Shot, Stalwart) as the negative. **Ally Switch did not exist** — 202 uses
 resolving to a wasted turn — and it is the sharpest test of the slot rule, because both bodies stay on

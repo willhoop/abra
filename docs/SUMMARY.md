@@ -1,6 +1,15 @@
 # ABRA — Project Summary
 
-**Version 3.86.0 · 2026-08-09 · Will Hooper**
+**Version 3.87.0 · 2026-08-09 · Will Hooper**
+
+**3.87.0 — THE BATTLE LOOP AND THE DAMAGE CALCULATION READ TWO DIFFERENT SKIES.** `effMoveType`,
+which the loop asks what type a move really is, read the raw field weather; `dmgRange` read the
+EFFECTIVE one, which applies a private sky. So a Meganium-Mega's Weather Ball was priced as a Fire
+move at 128-151 and refused by the loop as a Normal one — literally zero into a Ghost, the mega's
+headline click doing nothing at all. One authority now: `effMoveType` calls the same function the
+damage calculation calls. Census 325 to 326 live, 0 missing; the roster and the 150-row damage
+differential did not move. The new probe is the CROSS neither half's probe could reach — a private
+sky AND a move the sky retypes AND a Ghost, so the reading is zero-against-a-number.
 
 **3.86.0 — EVERY PUBLISHED ARTIFACT HAS A WRITER NOW, INCLUDING THE ARM MILTANK ACTUALLY RUNS.**
 The tool that answers "is this number still true" could only find a writer by an artifact's literal
@@ -165,7 +174,7 @@ is 0 on the turn a body switches in, and this engine's own comment said the gate
 here" — true of `_turnsOut` and untrue since WIRE 135 added `_newlySwitched`, a reason that was
 correct when written and stale when read. **A move targets a SLOT, not a Pokemon** (Will: *"we gotta
 target slots, not mons"*): `Battle#getTarget` resolves from `targetLoc` at execution time, and five of
-this engine's seven branches held the object they aimed at, so Charm and Parting Shot (7,184 uses)
+this engine's seven branches held the object they aimed at, so Charm and Parting Shot (10,535 uses: Charm 1,625 + Parting Shot 8,910, `data/tags.json`; this read 7,184 when first written and the corpus has grown since)
 dropped stats on a body sitting on the BENCH. One shared reader now answers it everywhere, with
 `tracksTarget` (Snipe Shot, Stalwart) as the negative. **Ally Switch did not exist** — 202 uses
 resolving to a wasted turn — and it is the sharpest test of the slot rule, because both bodies stay on

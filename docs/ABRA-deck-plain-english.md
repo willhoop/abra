@@ -1,6 +1,15 @@
 # ABRA — the plain-English deck
 
-**Version 3.86.0 · 2026-08-09 · Will Hooper**
+**Version 3.87.0 · 2026-08-09 · Will Hooper**
+
+**3.87.0 — ONE POKEMON CARRIES ITS OWN SUNSHINE, AND HALF THE ENGINE COULD NOT SEE IT.** Meganium's
+mega form fights as if the sun were out, even when the sky is clear. Weather Ball is a move that
+changes type with the weather: Normal in clear skies, Fire in sun. Our damage maths knew about the
+private sunshine and called the move Fire. The part of the engine that decides whether a move is
+allowed to connect did not, and called it Normal — and a Normal move does nothing at all to a Ghost.
+So the mega's signature attack dealt zero. Both halves now ask the same question of the same
+function. We checked it against the real game first: 0 damage without the mega, 97 with it, and
+exactly the same 97 under a real sun. Live mechanics went from 325 to 326, and nothing else moved.
 
 **3.86.0 — EVERY PUBLISHED ARTIFACT HAS A WRITER NOW, INCLUDING THE ARM MILTANK ACTUALLY RUNS.**
 The tool that answers "is this number still true" could only find a writer by an artifact's literal

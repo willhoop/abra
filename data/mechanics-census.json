@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-09T19:31:19.285Z",
+  "generated": "2026-08-09T20:55:03.014Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 325,
-  "live": 325,
+  "probed": 326,
+  "live": 326,
   "missing": 0,
-  "armed": 325,
+  "armed": 326,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2366,7 +2366,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 28.0% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 21.1% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2547,6 +2547,16 @@
       "label": "Mega Sol's own Fire move fires under a sun only it can see",
       "live": true,
       "detail": "Flamethrower on a clear field: ability none 120, Mega Sol 179 (the private sun's x1.5); the field after the turn is CLEAR (must be CLEAR); an ALLY holding it shoots for 120 (must equal the no-ability number)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "privateWeatherMoveType",
+      "label": "Mega Sol's private sun changes Weather Ball's TYPE, and a Ghost feels it",
+      "live": true,
+      "detail": "Weather Ball into Gengar from a Meganium-Mega body -- no ability + clear sky 0 (must be 0, Normal into a Ghost), no ability + PUBLIC sun 140 (Fire; the positive control), MEGA SOL + clear sky 140 (must equal the public-sun number, not merely exceed zero)",
       "hollow": false,
       "armed": true,
       "directCall": false

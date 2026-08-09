@@ -10,6 +10,86 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.87.0] — 2026-08-09
+
+### Fixed
+- **ROADMAP #96 WIRE 3: THE BATTLE LOOP AND THE DAMAGE CALCULATION READ TWO DIFFERENT SKIES, AND A
+  MEGA SOL WEATHER BALL DEALT LITERALLY NOTHING TO A GHOST.** `effMoveType` — the loop's type
+  authority for the stage-5 immunity gate, the absorb check, the Lightning Rod draw, Protean's retype
+  and the Fire thaw — resolved the weather branch off `field.weather` RAW. `dmgRange` resolved it off
+  `effWeatherOf`, which applies the PRIVATE sky (the `privateWeather` tag; Meganium-Mega's Mega Sol
+  resolves its own moves as if its sun were up while the field reports none). Under a private sun with
+  a clear field the damage calc priced Weather Ball as **Fire, 128-151**, and the loop refused it as
+  **Normal** — so the mega's headline click was a whiffed turn in every rollout.
+  - **The fix is a CALL, not a copy.** `effMoveType` now asks `effWeatherOf`. Re-deriving the private
+    sky inside it would have rebuilt the two-implementations defect one line later — which is the
+    hazard WIRE 126 was created to close, inside the function WIRE 126 created to close it.
+  - **The defender's own suppression is still invisible from that helper and is written down rather
+    than handled.** It is handed no defender; in the loop `field.wSup` already covers it, so a `def`
+    parameter would be dead code at all five sites.
+  - **WIRE 126's declared hold in `clickFragility` is lifted, with its reason kept.** That site did
+    not pass `att` because it feeds the `benchRisk` feature and moving it owes a refit. The hold was
+    half-effective and the other half was a contradiction inside one function: `base`, two lines
+    above, is `dmgRange(att, ...)` and already saw the private sun — measured at `base.max = 151`
+    beside `retention 0, "type-immune to Normal (chart)"` on the same call. **`benchRisk` moves for
+    -ate bodies and private-weather bodies; a refit is owed at the next release cut. Routed to
+    MEASURE, not spent here.**
+
+### Added
+- **The probe is the CROSS, because neither half's probe could ever have seen this.** `weatherBall`
+  ran through the loop under PUBLIC skies only, where the two authorities agree; `privateWeather` ran
+  Mega Sol with Flamethrower, whose type no sky can move. `ability/privateWeatherMoveType` is the
+  intersection: a private sky, a move the sky retypes, and a **Ghost** — so the comparison is
+  zero-against-a-number and cannot hide behind a multiplier. The third arm asserts **private sun ===
+  public sun**, not merely `> 0`, because Showdown's `Pokemon.effectiveWeather()` returns `sunnyday`
+  for a `megasol` body and BOTH of Weather Ball's handlers read it (`onModifyType` for the type,
+  `onModifyMove` for the base power).
+- **Three rows in `tests/probe_red_demo.js`, shown RED before green**, one of them the positive
+  control: `shipped[control=0 publicSun=140 privateSun=140]` against
+  `reverted[control=0 publicSun=140 privateSun=0]`. Public weather and the Normal-into-Ghost immunity
+  are identical on both builds.
+- **Census 325 → 326 live / 325 → 326 probed**, 0 missing, 0 hollow, 0 `threw`, 0 unarmed, 0
+  direct-call.
+
+### Notes
+- **Official engine, played rather than remembered** (`gen9championsvgc2026regmb`, a real battle
+  through `battle.makeChoices`, Weather Ball into a Gengar that is NOT Protecting — the first attempt
+  had Gengar clicking Protect and read 0 in all four cells, the probe wrong before the engine again):
+  no mega + clear sky **0/135 with `-immune`**; mega + clear sky **97/135**; no mega + public sun
+  **62/135**; mega + public sun **97/135** — identical to the private sun, which is the equality the
+  probe asserts. Ours: control 0, public sun 140, private sun **0 → 140**.
+- **Nothing else moved.** Roster unchanged on all three stages (moves 50 DIFFER · 27 DID-NOT-FIRE ·
+  332 MATCH; abilities **0 · 0**; items 0 DIFFER · 6 DID-NOT-FIRE); `test-engine-diff` unchanged at
+  **1/150**.
+- **The paired whole-game differential is IDENTICAL, and the reason is measured rather than assumed.**
+  Two arms over one pinned team store and one pinned 326-row census, differing in `--release` and
+  nothing else (`arms_comparable.js`: COMPARABLE): 1553 games, **668 / 668** diverged top-tie-first,
+  738 / 738 bottom-tie-first, turn-1 boards identical 1520 both. Identical across a varied knob
+  usually means the knob is unwired, so it was checked both ways — the arms' `source_digests` differ
+  in **exactly one file**, and the cross case run against the two frozen snapshots the arms actually
+  loaded gives `privateSun 0` and `privateSun 140`. The instrument then names its own limit: it lists
+  `move:weatherBall` and `ability:privateWeatherMoveType` among the **47** census rows it declares
+  unmeasurable (`why: "names"` — a census key that is not a tag in `tags.json` steers nothing). That
+  count was 46; the new probe's key is synthetic, the same class as the existing `weatherBall` row.
+- **The differential's own caveat reproduced and the state figures are quoted only as a paired delta.**
+  At this game count the state comparator fails its own planted-divergence proof — one plant, a
+  benched member's HP off by one, caught at boundary 11 instead of 10 and reported as
+  `field.trickroom_turns` — **in BOTH arms, including the untouched bytes**.
+- **RED ON ARRIVAL, NOT CAUSED HERE, AND NOT FILED.** `tests/test-docs-current.js` fails its
+  untraceable-figures ratchet: `ABRA-technical-docs` 3 (was 2), `ABRA-whitepaper` 13 (was 12),
+  `MODELS` 16 (was 15), `SUMMARY` 2 (was 1). The gained figure in all four is the same one —
+  **`7,184` uses in the WIRE 138-140 paragraph** — which matches no number in any `data/*.json` and is
+  not in this changelog. Proven not to be this pass's doing by re-running the gate against a
+  reconstructed pre-session census: it fails identically. (`tags.json` puts Charm at 1,625 and Parting
+  Shot at 8,910, so the figure may also simply be wrong.) Not ENGINE's figure to author or delete.
+- **Two STALE reversals and one FAIL in `probe_red_demo.js` are likewise pre-existing and disjoint**
+  from this change: a `sealsMoves` tag-strip row, and two WIRE 11 reversals that patch a
+  `dmgRange(...)` spread line untouched here.
+- **`tests/roster.js` carries stale prose.** Its `move/type-changing` rule still says "the known live
+  defect is `effMoveType` reading `field.weather` RAW". That defect is closed; the file was out of
+  scope for this pass and the sentence is named in `docs/ENGINE.md` rather than left to read as
+  current.
+
 ## [3.86.0] — 2026-08-09
 
 ### Fixed
