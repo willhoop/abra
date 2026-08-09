@@ -64,9 +64,16 @@ silently rewritten; what changed and why is stated.
   and is **blocked on a file this division may not edit**: `MC.moves['scaleshot']` carries no `self` at
   all because `build/build_engine_data.js` writes `mv.self` for pure drops and Scale Shot's is mixed.
   `dragondarts` (124) is **`smartTarget`**, a targeting mechanic that moves a second body.
-- **Two adjacent gaps this wire makes reachable for the first time, filed not fixed:** Skill Link and
-  Loaded Dice both rewrite the hit count, and until now there was no count for them to rewrite. Neither
-  has a failing probe, so neither is open work.
+- **ONE adjacent gap this wire makes reachable for the first time, filed not fixed: Skill Link.** It
+  forces a 2–5 move to always land 5 (`move.multihit = move.multihit[1]`), and until now there was no
+  count for it to rewrite. **46 corpus uses**; the only legal carriers in this format are Heracross-Mega
+  and Toucannon. It has no failing probe yet, so it is not open work.
+- **CORRECTED IN THE SAME PASS, and the correction is the point:** this entry first named **Loaded Dice**
+  beside Skill Link. **Loaded Dice is `isNonstandard: 'Past'` in `gen9championsvgc2026regmb` — it does
+  not exist in this format and has no corpus row at all.** Will caught it. CLAUDE.md's rule is that the
+  ban is a MECHANISM and must be read from the format rather than from memory, and this was written from
+  memory, in the same session that measured the roster staging zero banned entities. The engine change is
+  unaffected; the sentence was wrong.
 - **`tests/roster.js:3694` now carries a wrong sentence** — *"a 2-5 range lands on TWO hits"*, printed on
   all fourteen rows of the family. It is 5 at the top corner; the claim is true of the authority's OTHER
   branch (`random(min, max+1)`), which the 2-5 family does not take. No verdict rests on it. Filed for

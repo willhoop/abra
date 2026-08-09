@@ -161,10 +161,18 @@ while disturbing them would have broken the model.
 | `scaleshot` | 199 | **the self-boost** (`def −1 / spe +1` after the last hit) never fires: sd −1/+1, ours 0/0. Damage is not the complaint | **BLOCKED ON A FILE THIS DIVISION MAY NOT EDIT.** `MC.moves['scaleshot']` is `{t,c,bp}` with no `self` at all — `build/build_engine_data.js` writes `mv.self` for pure DROPS and Scale Shot's is mixed. The tag's params carry booleans (`raisesSpeed`, `alsoLowers`), not the table. Either route is a refit |
 | `dragondarts` | 124 | **`smartTarget`** — in doubles it hits each foe once rather than the same target twice, so it moves a SECOND body (torterra 1326 against our 1360). A targeting mechanic | nothing to do with the count; it is a different step of the hit loop |
 
-**Two adjacent gaps this wire makes reachable for the first time, filed not fixed:** **Skill Link**
-(`onModifyMove: move.multihit = move.multihit[1]`, Cinccino's ability) and **Loaded Dice**
-(`if (targetHits < 4) targetHits = 5 - random(2)`) both rewrite the count — and until tonight there was
-no count for them to rewrite. Neither has a failing probe yet, so neither is open work.
+**ONE adjacent gap this wire makes reachable for the first time, filed not fixed: Skill Link**
+(`onModifyMove: move.multihit = move.multihit[1]`) — it forces a 2–5 move to always land 5, and until
+tonight there was no count for it to rewrite. **46 corpus uses; the only legal carriers in this format
+are Heracross-Mega and Toucannon.** No failing probe yet, so it is not open work.
+
+~~and **Loaded Dice**~~ — **RETRACTED, 2026-08-09, caught by Will within minutes of it being written.**
+Loaded Dice is **`isNonstandard: 'Past'` in this format**: it does not exist here and has no corpus row.
+It was named from memory in a session that had just measured the roster staging **zero** banned
+entities out of 99 abilities, 140 items and 409 moves. The roster reads the ban as a mechanism; the
+prose did not. `engine/game_differential.js:351` and the 3.62.0 changelog entry also mention Loaded
+Dice and are CORRECT — they describe where Showdown's own rng is called in `sim/battle-actions.ts`,
+which is a fact about Showdown's source and not a claim about this format.
 
 ### THE HAND LIST IS UNCHANGED
 
