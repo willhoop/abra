@@ -2207,3 +2207,56 @@ by the spread conflation alone.
 
 **Consequence:** `data/click-censoring-census.json` stamps `durable-ingest.js` by content and is now
 UNSAFE; re-run is `node engine/click_census.js`. It was already quarantined behind MEDICHAM.
+
+## ROADMAP #135 — THE CORPUS HIDES THE FORMAT'S OWN INFORMATION, AND THAT IS WHY THE REPLAYER IS BLUNT
+
+Will, 2026-08-10, in four questions: *"is the divergence from sps right?"*, *"is it megas?"*, *"we are
+doing open team sheets so poison touch shouldnt be a surprise"*, *"no bo3 forces open team sheets
+right?"*, *"we get nature too from open team sheets"*. Three of those closed a hypothesis and the
+fourth opened the one that mattered.
+
+**IT IS NOT SP.** The damage comparator already grants the engine every legal Champions spread before
+it accuses anything — the median attainable interval is wider than the whole 16-roll band. SP is why
+most rows read `ambiguous`; it is not why any row reads `no_match`. And the error runs the forgiving
+way: each event is priced at its own corner, so one body can be max-offence attacking and max-bulk
+defending on the same 66 points. Tying a body to one spread would raise divergence, not lower it.
+
+**IT IS NOT MEGAS.** Measured against the right denominator, which the first attempt got wrong: a mega
+is already on the field for 62.9% of turn-1 damage events, and megas appear in 48.9% of divergence
+witnesses. Under-represented, factor 0.78. (The first comparison put a game-level rate beside an
+event-level one and would have shown the opposite.)
+
+**THE FORMAT DECLARES ALL OF IT AND OUR CORPUS DOES NOT CARRY IT.** No raw log in the archive announces
+an Open Team Sheets rule — every one announces Species Clause and Item Clause and nothing else. The
+sheet rides on `rated|Tournament battle`, and tournament battles are about one percent of the store.
+Where a sheet exists it declares **species, item, ability, all four moves, nature, gender and level**;
+only `evs` is null. So Will's Sneasler is not a surprise anywhere it matters — Poison Touch is written
+down, and we substitute the modal observed ability instead.
+
+**THE ARM, AND THE RESULT THAT REVERSED MY FRAMING.** `--sheets-only` replays only games that declare
+BOTH sides, at the same frozen release as the published turn-1 run, so the population is the only
+thing that changes — see `data/replay-differential-sheets.json`. I predicted divergence would FALL
+because wrong guesses were being charged to the engine. It rose. That is the right way round and I had
+it backwards: an unknown item or ability makes the attainable interval WIDER, so the uncertainty was
+EXCUSING the engine rather than accusing it.
+
+**AND THE CONTROL IS THE REAL FINDING.** `--blind-sheets` replays the identical games with the sheet
+withheld, so information is the only variable. It **refuses to publish**: the plant that cuts a damage
+figure to a QUARTER is caught with the sheet visible and goes UNNOTICED with it withheld. Without the
+declared item and ability the legal interval swallows a fourfold error. The all-games run does catch
+that plant, so blinding does not always destroy detection — it destroyed it on this host, which is
+evidence of reduced power and not proof of none.
+
+**Read the headline accordingly.** The all-games rate is a LOWER BOUND measured through a comparator
+that, on the overwhelming majority of the corpus, cannot see a 4x damage error.
+
+**Two instrument defects found on the way, both fixed here:**
+- the species-swap plant cleared `g.sets` for the swapped body and not `g.sheets`, so on a sheet game
+  the old body's nature was still declared for that slot while the plant's disjointness test assumed a
+  neutral one;
+- the host filter admitted boards whose turn-1 order was never SCORED. The order comparator refuses
+  far more turns than it scores — spread moves, ability-modified priority, ties — and every refusal
+  reads `order_differ === 0`, identical to agreement. The plant was being placed where the arm does not
+  look and then reported as the instrument being blind. It was not blind; it was never asked.
+- the refusal now NAMES the boards it was blind on. A refusal that reports only a count made two
+  sessions re-derive the diagnosis from scratch, and I guessed wrong twice before looking.

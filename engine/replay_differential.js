@@ -165,6 +165,30 @@ const TURN1_ONLY = has('--turn1-only');
 const SELFTEST = has('--selftest');
 const QUIET = has('--quiet');
 
+/* --sheets-only — REPLAY ONLY THE GAMES THAT DECLARE BOTH TEAMS.
+ * Will, 2026-08-10: "we are doing open team sheets so poison touch shouldnt be a surprise", and
+ * "we get nature too from open team sheets". Both true, and the corpus is the wrong population for
+ * it: of 52,377 stored games, 891 carry a sheet on BOTH sides, and Showdown announces no Open Team
+ * Sheets rule on ANY of the 46,587 raw logs — the sheet rides on `rated|Tournament battle`, which is
+ * 1.2% of the store. So on 98.3% of what we replay, the item and the ability are guessed from a modal
+ * prior, and a wrong guess is scored as an ENGINE divergence. `sneasler Fake Out -> psn` 57 times is
+ * that: Poison Touch is declared on the sheet and we substitute Unburden.
+ *
+ * This flag changes the POPULATION and nothing else, so it may be compared directly against a run at
+ * the same --release. What it buys, per the sheet's own fields: item, ability, all four moves, nature,
+ * level. What it does NOT buy is SP — `evs` is null on every one of the 891, so the roll interval
+ * stays open and `ambiguous` stays the modal damage verdict. Anyone reading a drop in divergence here
+ * as "the engine got better" has it backwards: the engine is identical and the INFORMATION changed. */
+const SHEETS_ONLY = has('--sheets-only');
+
+/* --blind-sheets — THE CONTROL FOR THE ARM ABOVE, and without it that arm is not an experiment.
+ * `--sheets-only` changes the INFORMATION and the POPULATION at the same time: open-sheet games are
+ * tournament play, the rest is ladder, so a rate difference between them is not attributable. Run
+ * `--sheets-only --blind-sheets` and the population is byte-identical to `--sheets-only` while the
+ * declared item, ability, moves and nature are withheld from the comparator. The delta between those
+ * two runs is caused by the information and by nothing else. */
+const BLIND_SHEETS = has('--blind-sheets');
+
 /* ---- THE PHOTOGRAPH ---------------------------------------------------------------------------- */
 const ER = require('./engine_release.js');
 const REL = ER.open(flag('--release', null));
@@ -270,7 +294,27 @@ function mech(key, detail, ev) {
  * while the paste importer's comment says HP SP is added after. The two disagree, and that is an
  * ENGINE finding rather than this file's business — it is FILED. Here the HP envelope is widened by
  * the full 32 in the safe direction, so the disagreement cannot manufacture a divergence. */
+/* THE JOINT 66-POINT BUDGET IS ENFORCED AND IT TURNS OUT TO BE SLACK — MEASURED, NOT ASSUMED.
+ *
+ * The paragraph above says the marginal envelope "describes spreads that are not simultaneously
+ * legal", and the obvious narrowing is to make the corners spend one 66-point budget. It is done here
+ * and `budget` in the artifact reports what it bought: NOTHING, and the reason is arithmetic rather
+ * than an opinion. Every corner this instrument evaluates pushes at most TWO stats of one body — the
+ * attacker's offensive stat (1 x 32), or the defender's defensive stat together with its HP pool
+ * (2 x 32 = 64). 64 <= 66, so the budget never binds and no interval moves by a single point.
+ *
+ * THE OVER-WIDTH IS REAL AND IT IS SOMEWHERE ELSE, so it is stated rather than left implied: each
+ * EVENT is evaluated at its own corner, so one body may be the max-offence corner while it attacks and
+ * the max-bulk corner while it defends, in the same turn, on the same 66 points. Tying a body to ONE
+ * spread across a whole game is the narrowing with teeth. It is not done here: it is a joint solve
+ * over every event a body appears in, it errs in the direction of ACCUSING the engine, and this pass
+ * would be publishing a headline under it on the same day it was written.
+ *
+ * The clamp below is live rather than decorative — if `SP_CAP` or the budget ever changes so that two
+ * capped stats exceed it, `budget.clamped_corners` starts counting and the envelope narrows itself. */
 const SP_CAP = 32;
+const SP_BUDGET = 66;
+const BUDGET = { corners: 0, clamped_corners: 0, max_sp_spent_at_one_corner: 0, hp_sp_granted: SP_CAP };
 const NAT_UP = { at: 'Adamant', df: 'Impish', sa: 'Modest', sd: 'Calm', sp: 'Timid' };
 const NAT_DOWN = { at: 'Modest', df: 'Hasty', sa: 'Adamant', sd: 'Naughty', sp: 'Brave' };
 function neutralLine(bs) { return M.natureL50(bs, 'Serious'); }
@@ -285,7 +329,17 @@ function statEnvelope(bs, key, declaredNature) {
   return { lo: M.natureStat(raw, NAT_DOWN[key], key),
            hi: M.natureStat(raw + SP_CAP, NAT_UP[key], key), narrowed: false };
 }
-function hpEnvelope(bs) { const h = neutralLine(bs).hp; return { lo: h, hi: h + SP_CAP }; }
+/* `spentElsewhere` is the SP the SAME body is already spending at this corner — the defensive stat, at
+ * the bulkiest corner. The HP grant is whatever the 66-point budget has left. */
+function hpEnvelope(bs, spentElsewhere) {
+  const h = neutralLine(bs).hp;
+  const spent = spentElsewhere || 0;
+  const grant = Math.max(0, Math.min(SP_CAP, SP_BUDGET - spent));
+  BUDGET.corners++;
+  BUDGET.max_sp_spent_at_one_corner = Math.max(BUDGET.max_sp_spent_at_one_corner, spent + grant);
+  if (grant < SP_CAP) { BUDGET.clamped_corners++; BUDGET.hp_sp_granted = Math.min(BUDGET.hp_sp_granted, grant); }
+  return { lo: h, hi: h + grant };
+}
 
 /* ================= WALKING ONE GAME'S LOG INTO BOARDS =============================================
  * The store's own event stream, replayed into a per-slot state. Everything here is READ OFF THE
@@ -566,7 +620,9 @@ function damageVerdict(ctx) {
   const dKey = physical ? 'df' : 'sd';
   const aEnv = statEnvelope(aBS, aKey, att._replayNature);
   const dEnv = statEnvelope(dBS, dKey, def._replayNature);
-  const hEnv = hpEnvelope(dBS);
+  /* The bulkiest corner spends SP_CAP on the defensive stat, so the HP pool may only have what the
+   * 66-point budget has left. See the BUDGET block above: today that is the full 32 and nothing moves. */
+  const hEnv = hpEnvelope(dBS, SP_CAP);
 
   const saveA = Object.assign({}, att.st), saveD = Object.assign({}, def.st), saveHP = def.curHP;
   let lowRolls, highRolls;
@@ -911,6 +967,10 @@ function freeze(game, turnNo, board, after, ourAfter, clicks, turn, diffs, mechs
 /* ================= ONE GAME ====================================================================== */
 function replayGame(game, opt) {
   const res = { turns: 0, compared: 0, diverged: 0 };
+  /* THE BLIND CONTROL. One place, before anything reads it, so no consumer can be missed — the sheet
+   * feeds natures here, and items/abilities/moves further down, and blinding them separately is how a
+   * half-blinded control gets built. Same games, same engine, no declared information. */
+  if (BLIND_SHEETS) { game = Object.assign({}, game); game.sheets = null; game.openSheet = false; }
   const POP = SPLIT[population(game)];
   const sets = game.sets || {};
   /* Open sheets declare a NATURE, which narrows the envelope. They do NOT declare SP — measured: 884
@@ -969,8 +1029,11 @@ function replayGame(game, opt) {
   /* THE SIDE'S DEAD, walked from the record. Feeds Last Respects and Supreme Overlord. */
   const faints = { p1: 0, p2: 0 };
   for (const turn of game.turns) {
-    res.turns++; C.turns_seen++;
+    /* THE BREAK COMES BEFORE THE COUNTER. It used to come after, so `--turn1-only` counted the turn it
+     * refused to score and `turns_seen` read as 2 per game — a denominator that means one thing in one
+     * mode and another thing in the other is exactly how a rate stops being comparable. */
     if (TURN1_ONLY && turn.n !== 1) break;
+    res.turns++; C.turns_seen++;
     const after = applyTurn(board, turn, amb);
     let clicks;
     try { clicks = reconstructClicks(board, turn, sets, amb); }
@@ -1159,10 +1222,40 @@ function replayGame(game, opt) {
             bump(NOT_A_DAMAGE_UNIT, 'status on a body OUR ENGINE KILLED this turn — a damage question, scored by the damage comparator instead');
             continue;
           }
+          /* A STATUS WHOSE SOURCE'S ABILITY WE NEVER SAW IS A DIFFERENT CLAIM, and this family was
+           * quoting the two as one number while the DAMAGE family had split them for exactly the same
+           * reason a hundred lines up.
+           *
+           * MEASURED, which is how it was found: `sneasler Fake Out` precedes a turn-1 poison 57 times
+           * in 20,000 games. Sneasler's real ability there is POISON TOUCH; `data/engine-data.js`
+           * carries the modal observed set, which is UNBURDEN, and in a closed-sheet game — 98.3% of
+           * this store — that is what the body is built with. Our engine then cannot poison on contact,
+           * the record says it did, and the row reads as an engine defect when it is an unrevealed
+           * ability. The instrument is right that the two boards differ; it was wrong to file it under
+           * the same key as a mechanic we implement incorrectly.
+           *
+           * The source is the last `m` event before the status, which is the same adjacency the freeze
+           * dump already shows a human. Where there is no preceding move — a residual, an entry
+           * ability, a self-inflicted orb — nothing is appended and the key is unchanged. */
+          let stKey = 'status / the record applied ' + e.st + ' and no pin of our engine could produce it';
+          const evs = turn.ev || [];
+          const hereIdx = evs.indexOf(e);
+          let src = null;
+          for (let j = hereIdx - 1; j >= 0 && j >= hereIdx - 3; j--) { if (evs[j].t === 'm') { src = evs[j]; break; } }
+          const srcBody = src && src.s ? bodies[src.s] : null;
+          /* THE SPECIES GOES IN THE WITNESS, NOT IN THE KEY. Putting it in the key split this family
+           * into ~200 one-row mechanics and the table stopped being readable — the same convention the
+           * damage family already follows, learned again the hard way. */
+          if (srcBody && srcBody._replayFlags && srcBody._replayFlags.ability_unknown) {
+            stKey += '   [UNRESOLVED-CAUSE: the ability of the body that clicked into it was never '
+                   + 'revealed — we built it with the dataset\'s modal ability]';
+          }
           diverged = true;
-          mech('status / the record applied ' + e.st + ' and no pin of our engine could produce it',
-               (e.mon || '?') + ' <- ' + e.st,
+          mech(stKey,
+               (e.mon || '?') + ' <- ' + e.st + (src ? '   (after ' + (src.mon || '?') + ' ' + (src.mv || '?') + ')' : ''),
                { game: game.id, turn: turn.n, slot: e.s, mon: e.mon, status: e.st,
+                 source_move: src ? (src.mon || '?') + ' ' + (src.mv || '?') : null,
+                 source_ability_known: srcBody ? !srcBody._replayFlags.ability_unknown : null,
                  our_reachable: [...R.seen.status] });
           mechsHere.push('status ' + e.st + ' landed on ' + (e.mon || e.s) + ' in the record and our engine never applies it');
         }
@@ -1222,17 +1315,181 @@ function replayGame(game, opt) {
  * separate ways and requires the instrument to catch each one. It runs against the same code path the
  * measurement uses — nothing is stubbed. */
 const isSpreadMove = (mv) => { try { const f = M.moveFx(id(mv)); return !!(f && /allAdjacent/.test(String(f.target || ''))); } catch (e) { return false; } };
+
+/* ---- THE GATE IS STATED OVER CLASSES OF DEFECT, NOT OVER ARM NAMES -------------------------------
+ *
+ * `--turn1-only` CANNOT CARRY PLANT 3, and that is structural rather than unlucky: every body starts a
+ * game at full HP, so an `hp` event inserted at the top of turn 1 writes 100 over 100 and the turn-1
+ * rebuild has nothing left to detect. Skipping the arm and publishing anyway would be a bypass of
+ * exactly the kind this proof exists to stop — the run that skips a plant looks like the run that
+ * passed it, one level up from the `--selftest` flag this file already refuses to hide behind.
+ *
+ * So an arm declares its CLASS and may declare itself INAPPLICABLE in a mode, with the reason; and the
+ * gate then demands that every class is covered by some arm that ran AND was caught. PLANT 4 covers
+ * `preturn` in both modes, by corrupting the one thing about the pre-turn board that turn 1 can carry:
+ * the SPECIES standing in the slot. If it ever stops being caught, `--turn1-only` refuses to publish
+ * for the same reason the full mode does. */
+const KLASS = {
+  outcome: 'the recorded OUTCOME of a turn is wrong (the comparators must reject the record)',
+  unreachable: 'the record shows an effect no pin of our engine can produce',
+  preturn: 'the BOARD THE TURN IS SCORED FROM is wrong (the corruption travels through the rebuild)',
+};
+
+/* ---- PLANT 4's MACHINERY: a species swap the ORDER comparator is forced to reject ----------------
+ *
+ * WHY THE SPECIES, AND WHY THE ORDER COMPARATOR — the choice was made on evidence, and the two
+ * candidates that look more obvious were both measured and rejected first:
+ *
+ *   - A SPECIES SWAP INTO A TYPE IMMUNITY IS INVISIBLE TO THIS INSTRUMENT. `dmgRange` returns an EMPTY
+ *     roll array for an immune matchup, and `damageVerdict` turns that into
+ *     `unresolved — dmgRange returned no rolls` rather than a divergence. So a plant that makes the
+ *     recorded damage land on a body our engine says cannot be touched at all is REFUSED, not caught.
+ *     That is a real hole and it is FILED rather than fixed in this pass (76 rows of the published run
+ *     sit in that bucket, and moving them would move the headline on the same day the mode changed).
+ *   - A SPECIES SWAP INTO A BULKIER BODY IS NOT GUARANTEED. The attainable damage interval has a
+ *     median width of ~60 points of max HP, so most substitutions land back inside it and the plant
+ *     would fire or not fire depending on the sample. A red proof that is a coin flip is not a proof.
+ *
+ * THE SPEED AXIS IS THE ONE WHERE THE ANSWER IS FORCED. `orderVerdict` scores a DIFFERENCE only when
+ * no legal Champions spread could produce the observed order — a disjointness test — so a substitute
+ * whose FASTEST legal spread is slower than the victim-of-the-record's SLOWEST legal spread makes the
+ * recorded order unreachable by construction, and the check is computed here with the comparator's own
+ * `statEnvelope` and `effSpeed` rather than by a rule of thumb.
+ *
+ * It also buys coverage the three existing arms did not have at all: NOTHING had ever shown the turn
+ * ORDER comparator red, and it is the largest single mechanic in the published run. */
+const NEUTRAL_FIELD = { weather: null, weatherT: 0, terrain: '', terrainT: 0, twA: 0, twB: 0, tr: 0, sgA: {}, sgB: {} };
+/* Every weather, because the substitute's own ability may set one and `effSpeed` doubles Swift Swim,
+ * Chlorophyll, Sand Rush and Slush Rush under it. Taking the worst corner over all of them means the
+ * plant cannot be rescued by a sky the turn-1 board turns out to have. */
+const SPEED_FIELDS = (() => {
+  const out = [NEUTRAL_FIELD];
+  const seen = new Set();
+  for (const w of ['SunnyDay', 'RainDance', 'Sandstorm', 'Snow']) {
+    let wid = null; try { wid = M.weatherId(w); } catch (e) { wid = null; }
+    if (!wid || seen.has(wid)) continue; seen.add(wid);
+    out.push(Object.assign({}, NEUTRAL_FIELD, { weather: wid, weatherT: 5 }));
+  }
+  return out;
+})();
+function speedCorner(body, side, which) {
+  const bs = body._replayBS;
+  const env = bs ? statEnvelope(bs, 'sp', body._replayNature) : null;
+  const save = body.st.sp;
+  let best = null;
+  try {
+    body.st.sp = env ? (which === 'hi' ? env.hi : env.lo) : save;
+    for (const f of SPEED_FIELDS) {
+      let v = null; try { v = M.effSpeed(body, f, side); } catch (e) { continue; }
+      if (v == null) continue;
+      best = best === null ? v : (which === 'hi' ? Math.max(best, v) : Math.min(best, v));
+    }
+  } finally { body.st.sp = save; }
+  return best;
+}
+/* THE SUBSTITUTE POOL IS DERIVED FROM THE TABLE, NOT TYPED. Slowest first; megas and regional formes
+ * are excluded because a mega event in the record would overwrite the substitution one line later. */
+const SLOW_POOL = (() => {
+  const ks = Object.keys(MC.mons || {}).filter(k => !/-/.test(k) && MC.mons[k] && MC.mons[k].bs
+                                                    && typeof MC.mons[k].bs.spe === 'number');
+  ks.sort((a, b) => MC.mons[a].bs.spe - MC.mons[b].bs.spe);
+  return ks.slice(0, 60);
+})();
+const priorityCarrier = (b) => !!b && (PRIORITY_MOD.has('abilities:' + id(b.ability || ''))
+                                    || PRIORITY_MOD.has('items:' + id(b.item || '')));
+function plantSpeciesSwap(cand) {
+  const g = JSON.parse(JSON.stringify(cand));
+  const t1 = (g.turns || []).find(t => t.n === 1);
+  if (!t1 || !g.lead || !g.lead.p1 || !g.lead.p2) return null;
+  /* The FIRST TWO slots to move, so no earlier pair can settle the comparison before ours is reached
+   * — `orderVerdict` returns on the first adjacent pair it can decide. */
+  const ms = []; const seenSlot = new Set();
+  for (const e of (t1.ev || [])) { if (e.t !== 'm' || !e.s || seenSlot.has(e.s)) continue; seenSlot.add(e.s); ms.push(e); }
+  if (ms.length < 2) return null;
+  const A = ms[0], B = ms[1];
+  if ((t1.ev || []).some(e => e.t === 'mega' && (e.s === A.s || e.s === B.s))) return null;
+  const at = { side: A.s.slice(0, 2), i: A.s[2] === 'a' ? 0 : 1 };
+  const bt = { side: B.s.slice(0, 2), i: B.s[2] === 'a' ? 0 : 1 };
+  const oldSp = (g.lead[at.side] || [])[at.i], bSp = (g.lead[bt.side] || [])[bt.i];
+  if (!oldSp || !bSp) return null;
+  /* The species must name exactly one body, or the rename moves two of them and the plant is not the
+   * plant we described. */
+  const leadAll = [].concat(g.lead.p1 || [], g.lead.p2 || []);
+  const broughtAll = [].concat((g.brought && g.brought.p1) || [], (g.brought && g.brought.p2) || []);
+  const cnt = (arr, s) => arr.filter(x => id(x) === id(s)).length;
+  if (cnt(leadAll, oldSp) !== 1 || cnt(broughtAll, oldSp) > 1) return null;
+  /* Equal priority, or priority settles the order and speed is never asked. */
+  let pA = 0, pB = 0;
+  try { pA = M.movePriority(id(A.mv), NEUTRAL_FIELD) || 0; pB = M.movePriority(id(B.mv), NEUTRAL_FIELD) || 0; }
+  catch (e) { return null; }
+  if (pA !== pB) return null;
+  const bBody = bodyFor(bSp, g.sets || {}, {});
+  if (!bBody) return null;
+  dressBody(bBody, { hp: 100, status: '', boosts: {} });
+  if (priorityCarrier(bBody)) return null;              // the whole turn would be refused, not scored
+  const bLo = speedCorner(bBody, bt.side === 'p1' ? 'A' : 'B', 'lo');
+  if (bLo == null) return null;
+  const onBoard = new Set(leadAll.map(x => baseOf(x)));
+  let sub = null, subHi = null;
+  for (const k of SLOW_POOL) {
+    if (onBoard.has(baseOf(k))) continue;               // two of one species is an ambiguity, not a plant
+    const sb = bodyFor(k, {}, {});
+    if (!sb || priorityCarrier(sb)) continue;
+    dressBody(sb, { hp: 100, status: '', boosts: {} });
+    const hi = speedCorner(sb, at.side === 'p1' ? 'A' : 'B', 'hi');
+    if (hi != null && hi < bLo) { sub = k; subHi = hi; break; }
+  }
+  if (!sub) return null;
+  g.lead[at.side][at.i] = sub;
+  if (g.brought && g.brought[at.side]) g.brought[at.side] = g.brought[at.side].map(x => id(x) === id(oldSp) ? sub : x);
+  for (const t of (g.turns || [])) for (const e of (t.ev || [])) {
+    if (e.mon && e.s === A.s && id(e.mon) === id(oldSp)) e.mon = sub;
+    if (e.tgt && id(e.tgt) === id(oldSp)) e.tgt = sub;
+  }
+  if (g.sets) { delete g.sets[oldSp]; delete g.sets[sub]; }
+  /* AND THE SHEET, WHICH IS THE HALF THIS PLANT MISSED. `subHi` above is computed from
+   * `bodyFor(k, {}, {})` — a NEUTRAL nature, because a bare substitute declares nothing. On an
+   * open-sheet game the sheet still names the OLD body in this slot, nature included, and
+   * `speedCorner` reads that nature through `_replayNature`. A declared +Speed nature lifts the
+   * substitute's real fastest-legal speed above the `subHi` the disjointness test reasoned with, the
+   * recorded order becomes reachable after all, and the plant is not caught. That is exactly the
+   * 2-of-12 failure on the --sheets-only population: the plant was written when no arm read a
+   * declared nature, and it silently stopped being a proof the moment one did.
+   * Dropping the entry keeps the plant's own assumption true — nothing declares this slot. */
+  if (g.sheets && Array.isArray(g.sheets[at.side]))
+    g.sheets[at.side] = g.sheets[at.side].filter(m => m && id(m.species || '') !== id(oldSp));
+  return { game: g, planted: {
+    game: g.id, turn: 1, slot: A.s, was: oldSp, now: sub, move: A.mv, outsped: bSp,
+    our_speeds: { substitute_fastest_legal: subHi, victim_slowest_legal: bLo },
+    note: 'the body standing in ' + A.s + ' is replaced by ' + sub + '. Its FASTEST legal Champions '
+        + 'spread (' + subHi + ', taken over every weather) is slower than the SLOWEST legal spread of '
+        + bSp + ' (' + bLo + '), which the record shows it moving before — so the recorded resolution '
+        + 'order is unreachable and the order comparator must say so.' } };
+}
+
 function selftest(games) {
   const out = [];
   const base = JSON.parse(JSON.stringify(games[0]));
   const reset = () => { for (const k of Object.keys(DMG)) DMG[k] = 0; MECH.clear();
+                        for (const k of Object.keys(ORDER)) ORDER[k] = 0;
                         C.turns_diverged = 0; C.turns_compared = 0; FREEZES.length = 0; };
+  /* `order_agree` is here because `order_differ` alone cannot tell "the order matched" from "the order
+   * was never scored". The order comparator REFUSES far more turns than it scores — spread moves,
+   * ability-modified priority, genuine ties — and every one of those reads differ === 0. */
+  const snap = () => ({ diverged: C.turns_diverged, compared: C.turns_compared, no_match: DMG.no_match,
+                        order_differ: ORDER.differ, order_agree: ORDER.agree, mechs: [...MECH.keys()] });
+  /* A PLANT IS JUDGED AGAINST ITS OWN HOST GAME'S CLEAN RUN, not against games[0]'s. The arms search
+   * for a host that can carry them, so the baseline has to travel with the host — a game that already
+   * diverges would otherwise make a blind detector look like a working one. */
+  const cleanRun = (game) => { reset(); replayGame(JSON.parse(JSON.stringify(game)), {}); return snap(); };
+  /* Turn-1-only scores exactly one turn per game, so a plant placed on turn 5 is never reached. Every
+   * arm places itself inside the scored window rather than hoping. */
+  const inScope = (t) => !TURN1_ONLY || t.n === 1;
 
-  /* THE CLEAN ARM FIRST, so every plant is judged against this game's own baseline rather than
-   * against zero. A game that already diverges would otherwise make every plant look caught. */
   reset(); replayGame(JSON.parse(JSON.stringify(base)), {});
-  const clean = { diverged: C.turns_diverged, compared: C.turns_compared, no_match: DMG.no_match, mechs: [...MECH.keys()] };
-  out.push({ name: 'the unmodified game (the baseline every plant is judged against)',
+  const clean = snap();
+  out.push({ name: 'the unmodified game (a baseline arm — every plant additionally carries its own host\'s)',
+             klass: null, applicable: true,
              caught: null, diverged: clean.diverged, compared: clean.compared,
              no_match: clean.no_match, mechanics: clean.mechs });
 
@@ -1248,30 +1505,31 @@ function selftest(games) {
      * made the whole gate a property of whichever slice was being sampled: `--skip 30000` produced a
      * first game with no KO in it and the run REFUSED TO PUBLISH over a plant that could not be
      * placed. A red proof must fail on a blind instrument and never on an unlucky sample. */
-    let g = null, planted = null;
+    let g = null, planted = null, host = null;
     for (const cand of games.slice(0, 200)) {
       const c = JSON.parse(JSON.stringify(cand));
       if (!c.turns || !c.turns.length) continue;
-      for (const t of c.turns) for (const e of t.ev || []) {
+      for (const t of c.turns) { if (!inScope(t)) continue; for (const e of t.ev || []) {
         if (planted || e.t !== 'm' || !e.dmg || e.ko || e.dmg < 8 || isSpreadMove(e.mv)) continue;
         const now = Math.max(1, Math.round(e.dmg / 4));
         if (now === e.dmg) continue;
         planted = { game: c.id, turn: t.n, mv: e.mv, was: e.dmg, now };
         e.dmg = now; if (e.tgthp != null) e.tgthp = Math.min(100, e.tgthp + (planted.was - now));
-      }
-      if (planted) { g = c; break; }
+      } }
+      if (planted) { g = c; host = cand; break; }
     }
+    const bl = host ? cleanRun(host) : clean;
     reset(); if (g) replayGame(g, {});
-    out.push({ name: 'PLANT: a damage figure cut to a quarter', planted,
-               caught: planted ? DMG.no_match > clean.no_match : false,
-               why_not: planted ? null : 'NO EVENT IN THIS GAME COULD CARRY THE PLANT — the arm proves nothing, and says so',
+    out.push({ name: 'PLANT: a damage figure cut to a quarter', klass: 'outcome', applicable: true, planted,
+               caught: planted ? DMG.no_match > bl.no_match : false,
+               why_not: planted ? null : 'NO EVENT IN THE SCORED WINDOW COULD CARRY THE PLANT — the arm proves nothing, and says so',
+               host_baseline_no_match: bl.no_match,
                no_match: DMG.no_match, mechanics: [...MECH.keys()] });
   }
 
   /* PLANT 2 — A STATUS THAT CANNOT HAPPEN. A body is recorded as being frozen by a move that cannot
    * freeze. Comparator T must report that no pin of our engine produces it. */
   {
-    const g = JSON.parse(JSON.stringify(base));
     let planted = null;
     /* THE PLANT MUST LAND ON A SLOT THE INSTRUMENT WILL ACTUALLY SCORE, and the first attempt did not
      * — it put the freeze on a slot that had a `switch` event in the same turn, which this comparator
@@ -1287,23 +1545,41 @@ function selftest(games) {
      * Both refusals are correct and both made a working detector read as blind. So the plant now says
      * "every standing body froze this turn", which is impossible on any board, and the arm DECLARES
      * ITSELF UNABLE TO TEST if not one of them survives to be scored. */
-    let sites = 0;
-    for (const t of g.turns) {
-      const busy = new Set((t.ev || []).filter(e => e.t === 's').map(e => e.s));
-      for (const slot of SLOTS) {
-        if (busy.has(slot)) continue;
-        const ref = (t.ev || []).find(e => e.s === slot && e.mon);
-        if (!ref) continue;
-        t.ev.push({ t: 'x', s: slot, mon: ref.mon, st: 'frz' });
-        sites++;
+    /* AND THE HOST IS SEARCHED FOR RATHER THAN PINNED TO games[0], for the reason PLANT 1 already
+     * records: a red proof must fail on a blind instrument and never on an unlucky sample. Under
+     * `--turn1-only` only turn 1 is scored, so only turn 1 is a site. */
+    let g = null, host = null;
+    for (const cand of games.slice(0, 200)) {
+      const c = JSON.parse(JSON.stringify(cand));
+      if (!c.turns || !c.turns.length) continue;
+      let sites = 0;
+      for (const t of c.turns) {
+        if (!inScope(t)) continue;
+        const busy = new Set((t.ev || []).filter(e => e.t === 's').map(e => e.s));
+        for (const slot of SLOTS) {
+          if (busy.has(slot)) continue;
+          const ref = (t.ev || []).find(e => e.s === slot && e.mon);
+          if (!ref) continue;
+          t.ev.push({ t: 'x', s: slot, mon: ref.mon, st: 'frz' });
+          sites++;
+        }
       }
+      if (!sites) continue;
+      /* The host's own clean run must not already carry a frozen-body divergence, or the plant would
+       * be judged against a mechanic it did not cause. */
+      const b0 = cleanRun(cand);
+      if (b0.mechs.some(k => /^status \/ the record applied frz/.test(k))) continue;
+      g = c; host = cand;
+      planted = { game: c.id, sites, status: 'frz',
+                  note: 'every standing body in every scored turn is recorded as frozen — impossible on any board' };
+      break;
     }
-    if (sites) planted = { sites, status: 'frz', note: 'every standing body in every turn is recorded as frozen — impossible on any board' };
-    reset(); replayGame(g, {});
+    void host;
+    reset(); if (g) replayGame(g, {});
     const caught = [...MECH.keys()].some(k => /^status \/ the record applied frz/.test(k));
-    out.push({ name: 'PLANT: a freeze the game cannot produce', planted,
+    out.push({ name: 'PLANT: a freeze the game cannot produce', klass: 'unreachable', applicable: true, planted,
                caught: planted ? caught : false,
-               why_not: planted ? null : 'NO TURN IN THIS GAME COULD CARRY THE PLANT — the arm proves nothing, and says so',
+               why_not: planted ? null : 'NO TURN IN THE SCORED WINDOW COULD CARRY THE PLANT — the arm proves nothing, and says so',
                mechanics: [...MECH.keys()] });
   }
 
@@ -1311,8 +1587,20 @@ function selftest(games) {
    * is corrupted rather than the outcome. An `hp` event is inserted at the top of the turn putting the
    * body that is about to be killed back to full, so the recorded KO becomes something no roll of ours
    * can reach. It travels through the board reconstruction, not around it. */
-  {
-    let g = null, planted = null;
+  if (TURN1_ONLY) {
+    /* IT IS STRUCTURALLY IMPOSSIBLE ON TURN 1 AND SAYS SO, RATHER THAN BEING SKIPPED. Every body starts
+     * a game at full HP, so the inserted `hp` event writes 100 over 100 and the corruption does not
+     * exist for the instrument to miss. An arm that cannot be placed is not evidence either way; the
+     * class it belongs to is covered by PLANT 4 in this mode, and the gate below CHECKS that rather
+     * than trusting this sentence. */
+    out.push({ name: 'PLANT: a wrong HP on the board before the turn, making the recorded KO unreachable',
+               klass: 'preturn', applicable: false, caught: null, planted: null,
+               why_not_applicable: 'STRUCTURALLY IMPOSSIBLE UNDER --turn1-only: every body starts the game '
+                 + 'at full HP, so a corrupted pre-turn HP is overwritten by the turn-1 rebuild and there is '
+                 + 'nothing left to detect. The plant would be a no-op, not a missed defect.',
+               class_covered_in_this_mode_by: 'PLANT: a species swap on the pre-turn board' });
+  } else {
+    let g = null, planted = null, host = null;
     for (const cand of games.slice(0, 200)) {
       const c = JSON.parse(JSON.stringify(cand));
       if (!c.turns || !c.turns.length) continue;
@@ -1327,14 +1615,71 @@ function selftest(games) {
         planted = { game: c.id, turn: t.n, mv: e.mv, slot,
                     note: 'the target is put back to 100% before the turn and the KO is restated as a full-HP kill' };
       }
-      if (planted) { g = c; break; }
+      if (planted) { g = c; host = cand; break; }
     }
+    const bl = host ? cleanRun(host) : clean;
     reset(); if (g) replayGame(g, {});
     out.push({ name: 'PLANT: a wrong HP on the board before the turn, making the recorded KO unreachable',
+               klass: 'preturn', applicable: true,
                planted: planted || null,
-               caught: planted ? DMG.no_match > clean.no_match : false,
-               why_not: planted ? null : 'THIS GAME HAD NO SUITABLE KO — the arm proves nothing, and says so',
+               caught: planted ? DMG.no_match > bl.no_match : false,
+               why_not: planted ? null : 'NO SUITABLE KO IN THE SCORED WINDOW — the arm proves nothing, and says so',
+               host_baseline_no_match: bl.no_match,
                no_match: DMG.no_match, mechanics: [...MECH.keys()] });
+  }
+
+  /* PLANT 4 — A BODY ON THE PRE-TURN BOARD IS THE WRONG SPECIES. The class PLANT 3 covers, in the one
+   * form turn 1 can carry: the corruption is in the state the turn is scored FROM, it travels through
+   * `blankBoard` -> the click reconstruction -> the body build -> the comparator, and the recorded
+   * resolution order becomes something no legal Champions spread can produce.
+   *
+   * IT IS PLANTED AT EVERY SUITABLE SITE IT FINDS, UP TO A CAP, AND EVERY ONE MUST BE CAUGHT. Planting
+   * once and stopping at the first success is how a detector that works on one board in twenty passes
+   * a gate; the arm reports `placed` beside `caught` so the two can never be read as one. */
+  {
+    const CAP = 12;
+    const sites = []; let placed = 0, caughtN = 0, hostsSkipped = 0, hostsUnscored = 0;
+    for (const cand of games.slice(0, 200)) {
+      if (placed >= CAP) break;
+      const P = plantSpeciesSwap(cand);
+      if (!P) continue;
+      const bl = cleanRun(cand);
+      /* A host whose clean turn 1 ALREADY diverges on order cannot show this plant's delta. */
+      if (bl.order_differ !== 0) { hostsSkipped++; continue; }
+      /* AND NEITHER CAN A HOST WHOSE ORDER WAS NEVER SCORED, which this filter used to admit. The
+       * order comparator refuses a turn outright when a spread move, an ability-modified priority or a
+       * genuine tie is in it — and a refused turn reports `order_differ === 0`, identical to a turn
+       * that agreed. So the plant was being placed on boards the arm does not look at, and then
+       * reported as the INSTRUMENT being blind. It is not blind; it was never asked.
+       * Measured on --sheets-only: exactly the 2 of 12 failures, both swapping in Torkoal. */
+      if (!bl.order_agree) { hostsUnscored++; continue; }
+      reset(); replayGame(P.game, {});
+      const named = [...MECH.entries()].some(([k, r]) => /^turn order \/ SPEED/.test(k)
+                                                      && (r.examples || []).some(x => x.turn === 1));
+      const ok = ORDER.differ > bl.order_differ && named;
+      placed++; if (ok) caughtN++;
+      sites.push(Object.assign({ caught: ok, order_differ: ORDER.differ }, P.planted));
+    }
+    out.push({
+      name: 'PLANT: a species swap on the pre-turn board', klass: 'preturn', applicable: true,
+      planted: placed ? { sites: placed, caught: caughtN, hosts_skipped_already_diverging: hostsSkipped,
+                          hosts_skipped_order_never_scored: hostsUnscored,
+                          note: 'a lead body is replaced by one whose fastest legal spread cannot reach the '
+                              + 'order the record shows. Placed at every suitable site up to ' + CAP + '.' }
+                      : null,
+      caught: placed ? caughtN === placed : false,
+      /* NAME THE BOARDS. A refusal that reports only a count tells you the instrument is blind and
+       * not where, so the next session re-derives the diagnosis from scratch — which is what happened
+       * here: two wrong theories before anyone looked at the sites. */
+      why_not: placed ? (caughtN === placed ? null : (placed - caughtN) + ' of ' + placed + ' PLACED PLANTS WENT '
+                        + 'UNNOTICED — the instrument is blind on those boards: '
+                        + sites.filter(s => !s.caught).map(s => s.game + ' ' + s.slot + ' ' + s.was
+                            + '->' + s.now + ' (sub_fastest ' + (s.our_speeds || {}).substitute_fastest_legal
+                            + ' vs victim_slowest ' + (s.our_speeds || {}).victim_slowest_legal
+                            + ', order_differ ' + s.order_differ + ')').join(' | '))
+                      : 'NO GAME IN THE FIRST 200 COULD CARRY THE PLANT — the arm proves nothing, and says so',
+      placed, caught_sites: caughtN, sites: sites.slice(0, 6), mechanics: [...MECH.keys()],
+    });
   }
 
   reset();
@@ -1382,6 +1727,9 @@ function secondaryRates(games) {
 }
 
 /* ================= MAIN ========================================================================== */
+/* how many rows --sheets-only walked past, so the filter can never look like a small store */
+let SHEET_FILTER_REJECTED = 0;
+
 function readGames(file, n, skip) {
   return new Promise((resolve, reject) => {
     const out = [];
@@ -1392,7 +1740,12 @@ function readGames(file, n, skip) {
       i++;
       if (i <= skip) return;
       if (out.length >= n) { rl.close(); return; }
-      try { out.push(JSON.parse(line)); } catch (e) { bump(EXCEPTIONS, 'store line did not parse'); }
+      let g;
+      try { g = JSON.parse(line); } catch (e) { bump(EXCEPTIONS, 'store line did not parse'); return; }
+      /* BOTH sides, not either: a sheet for one player still leaves the other guessed, and a
+         half-informed arm answers neither question. */
+      if (SHEETS_ONLY && !(g.sheets && g.sheets.p1 && g.sheets.p2)) { SHEET_FILTER_REJECTED++; return; }
+      out.push(g);
     });
     rl.on('close', () => resolve(out));
     rl.on('error', reject);
@@ -1404,20 +1757,40 @@ function readGames(file, n, skip) {
   const games = await readGames(STORE, N_GAMES, SKIP_GAMES);
   C.games_read = games.length;
 
+  /* THE GATE, IN ONE PLACE, USED BY BOTH `--selftest` AND THE PUBLISHED RUN. Two conditions, and the
+   * second is the one `--turn1-only` needed: an arm that declares itself INAPPLICABLE in this mode
+   * hands its CLASS to the gate, and the class must still be proven by something that actually ran. */
+  const redVerdict = (rows) => {
+    const failed = rows.filter(r => r.applicable !== false && r.caught === false);
+    const need = [...new Set(rows.filter(r => r.klass).map(r => r.klass))];
+    const uncovered = need.filter(k => !rows.some(r => r.klass === k && r.applicable !== false && r.caught === true));
+    return { failed, uncovered, mode: TURN1_ONLY ? 'turn1-only' : 'all turns',
+             classes: need.map(k => ({ klass: k, what: KLASS[k] || k,
+               proven_by: rows.filter(r => r.klass === k && r.applicable !== false && r.caught === true).map(r => r.name),
+               inapplicable_here: rows.filter(r => r.klass === k && r.applicable === false).map(r => r.name) })) };
+  };
+
   if (SELFTEST) {
     const rows = selftest(games);
-    console.log('\n  THE RED PROOF — this instrument corrupting a real game and being required to notice.\n');
+    console.log('\n  THE RED PROOF — this instrument corrupting a real game and being required to notice.');
+    console.log('  mode: ' + (TURN1_ONLY ? 'TURN 1 ONLY — one scored turn per game' : 'ALL TURNS') + '\n');
     for (const r of rows) {
-      console.log('    ' + r.name);
+      console.log('    ' + r.name + (r.klass ? '   [class: ' + r.klass + ']' : ''));
       console.log('      planted:   ' + JSON.stringify(r.planted || null));
-      console.log('      caught:    ' + (r.caught === null ? '(baseline arm — nothing planted)' : r.caught ? 'YES' : '*** NO — THE INSTRUMENT IS BLIND TO THIS ***') + (r.why_not ? '   ' + r.why_not : ''));
+      console.log('      caught:    ' + (r.applicable === false ? 'NOT APPLICABLE IN THIS MODE — ' + r.why_not_applicable
+                                        : r.caught === null ? '(baseline arm — nothing planted)'
+                                        : r.caught ? 'YES' : '*** NO — THE INSTRUMENT IS BLIND TO THIS ***')
+                  + (r.why_not ? '   ' + r.why_not : ''));
       console.log('      no-match:  ' + (r.no_match != null ? r.no_match : '-') + '   mechanics: ' + JSON.stringify(r.mechanics));
       console.log('');
     }
-    const failed = rows.filter(r => r.caught === false);
-    console.log('  ' + (failed.length ? failed.length + ' PLANT(S) NOT CAUGHT — the instrument is not evidence.'
-                                      : 'every plant was caught.') + '\n');
-    process.exit(failed.length ? 1 : 0);
+    const V = redVerdict(rows);
+    for (const c of V.classes) console.log('    class ' + c.klass + ': proven by [' + c.proven_by.join('; ')
+      + ']' + (c.inapplicable_here.length ? '   inapplicable here: [' + c.inapplicable_here.join('; ') + ']' : ''));
+    console.log('  ' + (V.failed.length ? V.failed.length + ' PLANT(S) NOT CAUGHT — the instrument is not evidence.'
+                : V.uncovered.length ? 'A CLASS OF DEFECT HAS NO ARM IN THIS MODE: ' + V.uncovered.join(', ')
+                : 'every applicable plant was caught, and every class is covered.') + '\n');
+    process.exit(V.failed.length || V.uncovered.length ? 1 : 0);
   }
 
   /* THE RED PROOF RUNS ON EVERY PUBLISHED RUN AND THE ARTIFACT REFUSES TO EXIST WITHOUT IT.
@@ -1426,11 +1799,19 @@ function readGames(file, n, skip) {
    * and a `--selftest` flag somebody has to remember to pass is the same shape one level up: the run
    * that skips it looks exactly like the run that passed it. Four extra replays cost milliseconds. */
   const RED = selftest(games);
-  const redFailed = RED.filter(r => r.caught === false);
-  if (redFailed.length) {
-    console.error('\n  THE RED PROOF FAILED — ' + redFailed.length + ' planted defect(s) went unnoticed:');
-    for (const r of redFailed) console.error('    ' + r.name + (r.why_not ? '   ' + r.why_not : ''));
+  const RV = redVerdict(RED);
+  if (RV.failed.length) {
+    console.error('\n  THE RED PROOF FAILED — ' + RV.failed.length + ' planted defect(s) went unnoticed:');
+    for (const r of RV.failed) console.error('    ' + r.name + (r.why_not ? '   ' + r.why_not : ''));
     console.error('  REFUSING TO WRITE AN ARTIFACT. An instrument that cannot be shown red is not evidence.\n');
+    process.exit(1);
+  }
+  if (RV.uncovered.length) {
+    console.error('\n  THE RED PROOF IS INCOMPLETE IN THIS MODE (' + RV.mode + ') — a whole CLASS of defect has no '
+      + 'arm that ran and was caught:');
+    for (const k of RV.uncovered) console.error('    ' + k + ' — ' + (KLASS[k] || ''));
+    console.error('  REFUSING TO WRITE AN ARTIFACT. Dropping an arm because the mode cannot carry it is the same '
+      + 'bypass as never running it.\n');
     process.exit(1);
   }
   for (const k of Object.keys(DMG)) DMG[k] = 0;
@@ -1440,6 +1821,7 @@ function readGames(file, n, skip) {
   for (const k of Object.keys(ORDER)) ORDER[k] = 0;
   for (const k of Object.keys(ROLLID)) ROLLID[k] = 0;
   AMBIGUOUS_TARGETS.n = 0; AMBIGUOUS_TARGETS.games = 0;
+  BUDGET.corners = 0; BUDGET.clamped_corners = 0; BUDGET.max_sp_spent_at_one_corner = 0;
   for (const k of Object.keys(SPLIT)) { SPLIT[k].games = 0; SPLIT[k].turns = 0; SPLIT[k].diverged = 0; }
   C.games_read = games.length;
 
@@ -1471,6 +1853,35 @@ function readGames(file, n, skip) {
     what: 'ROADMAP #68 — real stored games replayed through the engine, divergences counted against '
         + 'what actually happened. The authority is data/games.ladder.jsonl, not Showdown.',
     store: path.relative(ROOT, STORE).replace(/\\/g, '/'),
+    mode: TURN1_ONLY ? 'turn1-only' : 'all-turns',
+    mode_note: TURN1_ONLY
+      ? 'TURN 1 ONLY (Will, 2026-08-10: "lets only do turn 1s so we know nothing from the previous turn '
+        + 'is messing up"). One scored unit per game, and the only arm with no invisible state in it: no '
+        + 'side condition, no Substitute, no consumed item, no volatile duration and no carried-over '
+        + 'sleep or Yawn can exist yet. Every rate below is over turn 1 alone. It does NOT remove the '
+        + 'spread-move ingest defect, which is a turn-1 problem too.'
+      : 'ALL TURNS. Later turns carry the confounders enumerated in cannot_see; read turn1_* beside the '
+        + 'headline, or re-run with --turn1-only.',
+    population: SHEETS_ONLY ? 'open-sheet games only (both sides declared)' : 'every stored game',
+    population_note: SHEETS_ONLY
+      ? 'OPEN SHEETS ONLY. Item, ability, all four moves, nature and level are DECLARED on both sides; '
+        + 'nothing is taken from a usage prior. SP is still not declared (evs is null on every stored '
+        + 'sheet), so the roll interval does not collapse and `ambiguous` stays the modal damage '
+        + 'verdict. A LOWER divergence rate here is NOT the engine improving — the engine is byte '
+        + 'identical at the same --release. It is the instrument no longer being charged for guesses '
+        + 'the format would have told it. This is also the population that matches how the bot will '
+        + 'actually play, so it is the arm to believe about readiness, and the arm to distrust about '
+        + 'ladder behaviour: 891 games is a thin sample and it is tournament play, not ladder play.'
+      : 'EVERY STORED GAME. On 98.3% of these the item and ability are guessed from a modal prior and a '
+        + 'wrong guess is charged to the engine. Compare against --sheets-only before believing a rate.',
+    sheet_filter_rejected: SHEETS_ONLY ? SHEET_FILTER_REJECTED : null,
+    blind_sheets: BLIND_SHEETS,
+    blind_sheets_note: BLIND_SHEETS
+      ? 'THE SHEET WAS WITHHELD FROM THE COMPARATOR. The population is selected exactly as in the '
+        + 'matching --sheets-only run, then item, ability, moves and nature are dropped before any '
+        + 'consumer reads them. Compare this run against that one and the difference is caused by the '
+        + 'INFORMATION alone — same games, same engine release, same instrument.'
+      : null,
     sample: { requested: N_GAMES, skipped_prefix: SKIP_GAMES, read: C.games_read },
     counts: Object.assign({}, C),
     skip_rate_pct: C.games_read ? +(100 * C.games_skipped / C.games_read).toFixed(2) : null,
@@ -1511,9 +1922,19 @@ function readGames(file, n, skip) {
         + 'of an unknown maximum HP. The legal-spread envelope is wider than the whole 16-roll band, so '
         + 'the observed value is consistent with many rolls for reasons that have nothing to do with '
         + 'our engine.',
-      sp_budget: 66, sp_cap_per_stat: SP_CAP,
+      sp_budget: SP_BUDGET, sp_cap_per_stat: SP_CAP,
       median_attainable_span_pct_of_maxhp: median,
       one_roll_step_pct: median != null ? +(median / 16).toFixed(3) : null,
+      budget: Object.assign({}, BUDGET, {
+        note: 'THE JOINT 66-POINT BUDGET IS ENFORCED AND IT IS SLACK — measured, not argued. Every corner '
+            + 'this instrument evaluates pushes at most TWO stats of one body (the defender\'s defensive '
+            + 'stat plus its HP pool = 2 x 32 = 64 <= 66), so the constraint never binds and '
+            + 'clamped_corners is 0. Enforcing it moves ZERO rows between verdicts. The over-width that '
+            + 'is real is a different one and is NOT fixed here: every EVENT is evaluated at its own '
+            + 'corner, so one body can be the max-offence spread while it attacks and the max-bulk spread '
+            + 'while it defends, in the same turn, on the same 66 points. Tying a body to one spread '
+            + 'across a game is a joint solve, and it errs toward ACCUSING the engine.',
+      }),
     },
     turn_order: Object.assign({}, ORDER, {
       note: 'ROADMAP #43 — the resolution order IS the event order in the record, and nothing in this '
@@ -1523,7 +1944,10 @@ function readGames(file, n, skip) {
     mechanics: mechRows,
     red_proof: { note: 'Run on EVERY published run, not behind a flag. Each row corrupts a real stored '
                      + 'game one way and the instrument is required to notice. The generator refuses to '
-                     + 'write this file if any plant goes unnoticed.', arms: RED },
+                     + 'write this file if any applicable plant goes unnoticed OR if any CLASS of defect '
+                     + 'has no arm that ran and was caught in this mode — dropping an arm because the mode '
+                     + 'cannot carry it is the same bypass as never running it.',
+                 mode: RV.mode, classes: RV.classes, class_definitions: KLASS, arms: RED },
     cannot_see: [
       'side conditions — the store has no `-sidestart`, so Reflect, Light Screen, Aurora Veil and '
         + 'Tailwind are invisible. A halved damage reading is the expected signature and it has its own '
@@ -1559,7 +1983,9 @@ function readGames(file, n, skip) {
   if (!QUIET) {
     const P = (s) => console.log(s);
     P('\n  REPLAY DIFFERENTIAL — real stored games against our engine.  release ' + REL.id);
-    P('  ' + artifact.what + '\n');
+    P('  ' + artifact.what);
+    P('  MODE: ' + (TURN1_ONLY ? 'TURN 1 ONLY — one scored turn per game, no invisible carried-over state'
+                               : 'ALL TURNS') + '\n');
     P('  GAMES     read ' + C.games_read + '   replayed ' + C.games_replayed + '   SKIPPED ' + C.games_skipped
       + '   (' + artifact.skip_rate_pct + '%)');
     for (const r of artifact.skips_by_reason.slice(0, 8)) P('              ' + String(r.n).padStart(5) + '  ' + r.reason);
@@ -1585,8 +2011,14 @@ function readGames(file, n, skip) {
       + '   n/a ' + ORDER['n/a']);
     P('  REFUSED, and kept out of every rate above:');
     for (const r of artifact.damage.refused_not_scored.slice(0, 6)) P('              ' + String(r.n).padStart(5) + '  ' + r.what);
-    P('  RED PROOF ' + RED.filter(r => r.caught === true).length + ' of ' + RED.filter(r => r.caught !== null).length
-      + ' planted defects caught — run on this run, not behind a flag');
+    P('  RED PROOF ' + RED.filter(r => r.caught === true).length + ' of '
+      + RED.filter(r => r.applicable !== false && r.caught !== null).length
+      + ' applicable plants caught — run on this run, not behind a flag');
+    for (const c of RV.classes) P('              class ' + c.klass + ': ' + (c.proven_by.join('; ') || 'NOTHING')
+      + (c.inapplicable_here.length ? '   (inapplicable here: ' + c.inapplicable_here.join('; ') + ')' : ''));
+    P('  ENVELOPE  joint 66-point budget ENFORCED: ' + BUDGET.clamped_corners + ' of ' + BUDGET.corners
+      + ' corners clamped, max SP spent at one corner ' + BUDGET.max_sp_spent_at_one_corner
+      + ' — the budget is slack and narrowing by it moves nothing');
     P('\n  DIVERGENCES BY MECHANIC');
     if (!mechRows.length) P('            none');
     for (const r of mechRows.slice(0, 20)) {
