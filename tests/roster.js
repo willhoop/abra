@@ -414,6 +414,62 @@ function lethalMove(att, def, margin) {
 const CANDIDATES = dex.species.all().filter(s => s.exists && !s.isNonstandard && !s.battleOnly
   && !s.forme.endsWith('Mega') && carrierAbility(s));
 
+/* ---- THE SKILL SWAP CONTROL — HOW A QUIET ABILITY IS LENT TO A BODY THAT CANNOT HAVE ONE ---------
+ * (ROADMAP #138, 2026-08-10.)
+ *
+ * `noQuietControlWhy` states the limitation this closes, in its own words: "A quiet ability CANNOT be
+ * lent from another species: engine/game_differential.js buildPair clamps an ability to its species'
+ * own list". That is true OF THE TEAM SHEET and it is NOT true of the battle. SKILL SWAP LENDS ONE, in
+ * play, legally, to a body whose sheet could never have carried it — which is exactly what a mega
+ * forme needs, because a mega's ability is written by the forme change and its `abilities` table has
+ * exactly one entry.
+ *
+ * FOURTEEN ABILITIES IN THIS FORMAT ARE REACHABLE ONLY ON A MEGA FORME (Parental Bond, Shadow Tag,
+ * Aerilate, Filter, Fairy Aura, Electric Surge, Innards Out, Unseen Fist, Piercing Drill, Fire Mane,
+ * Mega Sol, Dragonize, Eelevate, Spicy Spray) and the roster staged NONE of them: the MEGA tier's only
+ * control was Gastro Acid suppression, which `gastroWorks()` MEASURED to move 6 leaves in Showdown and
+ * 0 here. A control that does not work does not fail loudly — it hands back a control arm identical to
+ * the subject arm and every row in the tier reads DID-NOT-FIRE for the control's failure.
+ *
+ * THE SWAPPER IS AN OPPOSING BODY THAT OTHERWISE IDLES, and the residue is stated rather than hidden:
+ * Skill Swap MOVES an ability, it does not delete one. In the control arm the ability under test ends
+ * up on that idle body and STAYS ON THE FIELD. For a body-local ability (a contact reaction, an
+ * attacker's own modifier) that is inert, because the swapper never attacks. FOR A FIELD-WIDE ABILITY
+ * (Fairy Aura, Electric Surge) IT IS NOT: the effect is present in both arms, the delta collapses, and
+ * the row comes back COULD-NOT-STAGE with "the staging is inert" — which is the honest answer here and
+ * not a pass. Both halves are measured per row rather than argued.
+ *
+ * IT IS PROVEN BEFORE IT IS USED, exactly as the Gastro Acid control is, and for the same reason:
+ * see `swapControlWorks()`. */
+/* THE KNOB THAT TURNS IT OFF, so the claim "this opened the tier" is demonstrable rather than
+ * asserted. `--no-swap-control` restores the pre-ROADMAP-#138 state exactly — the MEGA and SUPPRESS
+ * tiers fall back to Gastro Acid, which is measured dead, and every row in them returns to
+ * COULD-NOT-STAGE. IDENTICAL RESULTS ACROSS THIS KNOB WOULD MEAN IT IS UNWIRED, which is the standing
+ * rule this file opens with, so it is a flag rather than a comment. */
+const NO_SWAP = HAS('--no-swap-control');
+const SWAP_MOVE = 'skillswap';
+const SWAPPER = (() => {
+  /* A body whose OWN ability is quiet, so what the control arm lends the carrier is a quiet ability
+   * and the row can still produce an accusing verdict. Derived from the quiet set rather than named,
+   * and PRINTED with the pool it was chosen from — a hand-picked fixture is the thing this file is
+   * written to avoid. Ranked by bulk so the swapper survives a stray hit. */
+  const used = new Set([CAST.ATTACKER().species, CAST.ATTACKER2().species, CAST.BAG().species]
+    .map(idOf));
+  const bulk = s => s.baseStats.hp + s.baseStats.def + s.baseStats.spd;
+  const pool = CANDIDATES.filter(s => !used.has(idOf(s.id))
+    && Object.values(s.abilities || {}).some(n => QUIET_SET.has(idOf(n))));
+  pool.sort((a, b) => bulk(b) - bulk(a));
+  if (!pool.length) return null;
+  const sp = pool[0];
+  const ab = Object.values(sp.abilities).find(n => QUIET_SET.has(idOf(n)));
+  return { species: sp.id, name: sp.name, ability: ab, pool: pool.map(s => s.name) };
+})();
+/* ABILITIES SHOWDOWN REFUSES TO SWAP. The flag is upstream's own (`flags.failskillswap`) and it is
+ * read rather than listed; medicham2 states in its own source that the class is NOT modelled, so a
+ * member staged this way would part the two engines IN THE CONTROL ARM and the row would accuse the
+ * entity for the control's divergence. Asked of the format, per entity, every run. */
+const swapRefused = abId => !!((dex.abilities.get(abId) || {}).flags || {}).failskillswap;
+
 /* A BODY THE STANDARD AGGRESSOR CAN KILL FROM FULL, twice over, so an HP floor has something to do */
 const KILLABLE = (() => {
   const att = dex.species.get(CAST.ATTACKER().species);
@@ -757,6 +813,44 @@ function controlOf(sc, rank) {
      * controlled this way would read DID-NOT-FIRE and the whole tier would be a fabrication. */
     c.script[0].p1[0] = { m: 'gastroacid', t: +sc.subject[1] };
     c.A[0] = { ...c.A[0], moves: c.A[0].moves.concat(['gastroacid']) };
+  } else if (sc.kind === 'ability' && sc.controlKind === 'stone') {
+    /* THE MEGA STONE COMES OFF, SO THE FORME CHANGE NEVER HAPPENS AND THE ABILITY NEVER ARRIVES.
+     * (ROADMAP #138, Will's Shadow Tag fixture.)
+     *
+     * FOR A BOARD-LEAF DELTA THIS WOULD BE AN ILLEGITIMATE CONTROL and it is worth saying why, because
+     * the distinction is the whole reason this kind exists: a mega changes STATS, TYPING and ABILITY at
+     * one moment, so "with the mega" minus "without the mega" cannot be charged to the ability.
+     *
+     * FOR A TRAP IT IS LEGITIMATE, because the measured thing is BINARY — did the authority refuse the
+     * switch choice — and no stat and no type can refuse a switch. The only thing on that board that
+     * can is the trapping ability. The `ignore` entry is the held item, which necessarily differs. */
+    const side = sideKey === 'A' ? 'p1' : 'p2';
+    body.item = '';
+    /* EVERYTHING THE FORME CHANGE ITSELF REWRITES IS EXCLUDED BY CONSTRUCTION, and the list is the
+     * whole of the carrier's own slot and its party row rather than a field at a time: species, types,
+     * the stat block, hp and maxhp all move together when a mega happens, so charging any of them to
+     * the ABILITY would be the "with the mega minus without it" fallacy this control only escapes by
+     * measuring somewhere else. WHAT IS LEFT is the field, the OTHER side, and the carrier's partner —
+     * which is where every consequence these rules read actually lands.
+     *
+     * THE COST IS STATED: an ability whose consequence is on the carrier's OWN body (a type immunity,
+     * a self-heal) cannot be measured through this control. It needs a different one. */
+    ignore.push(side + '.active[' + idx + ']*');
+    ignore.push(side + '.party*');
+    /* and the ask to evolve goes with it — a body holding nothing that asks to mega is a refused
+     * choice, not a control */
+    for (const st of c.script) for (const a of st.p2) if (a && a.mega) delete a.mega;
+  } else if (sc.kind === 'ability' && sc.controlKind === 'abilityswap') {
+    /* THE CARRIER'S ABILITY IS EXCHANGED FOR A QUIET ONE, IN PLAY. Side A slot 1 is the swapper: it
+     * idles on the setup turn in the subject arm and clicks Skill Swap at the carrier in this one, and
+     * NOTHING ELSE about the two arms differs — same bodies, same script, same pin. That makes this
+     * control the same SHAPE as the ordinary one (the carrier ends the setup turn holding a named
+     * quiet ability) rather than the suppression shape, which is why an accusing verdict is allowed
+     * off it at all.
+     *
+     * THE ONE THING IT DOES NOT DO is remove the ability from the FIELD — see the SWAPPER header. */
+    c.script[0].p1[1] = { m: SWAP_MOVE, t: +sc.subject[1] };
+    c.A[1] = { ...c.A[1], moves: c.A[1].moves.concat([SWAP_MOVE]) };
   } else if (sc.kind === 'ability') {
     /* THE ABILITY IS REMOVED FROM THE WHOLE SIDE, not from one slot. A residual scenario may put a
      * SECOND carrier of the same ability on the bench to test the entry gate, and if the control arm
@@ -801,7 +895,14 @@ function armDelta(subject, control, ignore) {
     for (const [who, key] of [['showdown', 'sd'], ['ours', 'medi']]) {
       const rows = BS.compare(subject.boards[i][key], control.boards[i][key], { compared: 0 });
       for (const d of rows) {
-        if (ignore.some(p => d.path === p)) continue;
+        /* AN IGNORE ENTRY MAY END IN `*` AND THEN IT IS A PREFIX. Exact paths were enough while the only
+         * necessarily-differing leaf was a held item. The mega STONE control needs more: stripping the
+         * stone means the carrier never changes forme, so its species, its stat block, its party row
+         * and its maximum HP ALL differ by construction in every scenario staged that way. Those are
+         * not findings and never could be — they are the control doing exactly what it was asked to.
+         * The prefix is written by `controlOf`, printed on the entry, and deliberately narrow: the
+         * SUBJECT'S OWN SLOT AND PARTY ROW, never a whole side. */
+        if (ignore.some(p => (p.endsWith('*') ? d.path.startsWith(p.slice(0, -1)) : d.path === p))) continue;
         out.push({ engine: who, turn: subject.boards[i].turn, path: d.path,
                    with: d.medicham, without: d.showdown });
       }
@@ -845,6 +946,39 @@ function armDelta(subject, control, ignore) {
  * ONLY THE OWNER PUTS SOMETHING HERE, and the quote goes in the entry. This is not a place for the
  * instrument's own judgement or for a row that turned out to be hard. */
 const DEFERRED = {
+  /* 2026-08-10. Will: "PUT COPYCAT INTO THE QUARANTINE IM NOT TOUCHING THAT" — the last row holding
+   * the MEDICHAM gate, shelved by the owner rather than fixed.
+   *
+   * NOT A USAGE SHELF. Copycat is clicked 78 times, comfortably above the 25-click threshold, so the
+   * rule cannot reach it and should not: this is a judgement about COST, not about whether anybody
+   * plays it.
+   *
+   * AND THE MECHANISM IS NOT THE PROBLEM — that part is wired, probed, and shown RED on the previous
+   * release with a nothing-to-copy control that correctly FAILS. The row fails on a SECOND, separate
+   * rule that Copycat merely reveals: Showdown's `addVolatile` REFUSES a volatile already present when
+   * the condition has no `onRestart`, and a move that failed never becomes `lastMove`. The roster idles
+   * its bodies on Focus Energy; the second click fails in the authority and succeeds here, so our
+   * Copycat faithfully repeats an inert click. The failed-move half is fixed; the no-restart refusal is
+   * what remains.
+   *
+   * WHY IT IS ITS OWN BATCH AND NOT A ONE-LINER. A blanket "refuse a duplicate volatile" rule catches
+   * Protect, Follow Me, Rage Powder and Helping Hand, every one of which MUST be re-settable turn after
+   * turn. It needs the membership printed against the format first and its own red proof — which is
+   * days of care for one row, on a gate that is otherwise clean.
+   *
+   * The row keeps its scenario, stays staged, and is played against the authority on every run. What it
+   * stops doing is holding the gate. Its underlying verdict is DID-NOT-FIRE and is named here so the
+   * shelf can never be read as a pass. */
+  copycat: {
+    by: 'Will', on: '2026-08-10',
+    why: 'THE MECHANISM IS WIRED AND GREEN; THE ROW FAILS ON A DIFFERENT RULE. Showdown refuses '
+       + '`addVolatile` for a volatile already present whose condition has no `onRestart`, and a failed '
+       + 'move never becomes `lastMove`. The fixture idles bodies on Focus Energy, whose second click '
+       + 'FAILS in the authority and SUCCEEDS here, so our Copycat correctly repeats an inert click. '
+       + 'Fixing the underlying refusal is its own batch: a blanket rule breaks Protect, Follow Me, Rage '
+       + 'Powder and Helping Hand, all of which must be re-settable. Underlying verdict: DID-NOT-FIRE. '
+       + 'Will: "PUT COPYCAT INTO THE QUARANTINE IM NOT TOUCHING THAT."',
+  },
   metronome: {
     by: 'Will', on: '2026-08-10',
     why: 'The Metronome ITEM (19 uses) climbs a damage ladder over consecutive uses of one move. '
@@ -854,6 +988,30 @@ const DEFERRED = {
        + 'damage path for the smallest row in the whole queue. Will: "metronome is a joke dont worry '
        + 'about that just put it into a quarantined closet we can re examine once the project is '
        + 'successful."',
+  },
+  /* ROADMAP #138, 2026-08-10. Will: "ANTICIPATION AND FOREWARN LETS PUT INTO THE QUARANTINE CLOSET NO
+   * ONE USES THEM."
+   *
+   * NOT ROUTED THROUGH THE USAGE SHELF, DELIBERATELY. That shelf is a THRESHOLD and it is moves-only,
+   * because the store records which move was clicked and cannot say which ability a body carried
+   * (891 open sheets in 52,377 games). There is no honest store-derived usage for an ability, so no
+   * ability row is ever shelved by rule. This is an OWNER JUDGEMENT about a mechanic with no
+   * observable effect, which is exactly what the named map is for. */
+  anticipation: {
+    by: 'Will', on: '2026-08-10',
+    why: 'THE EFFECT IS A MESSAGE. Anticipation\'s whole content is a switch-in shudder — no HP, no '
+       + 'stat stage, no volatile, no field change — so there is nothing a BOARD comparison can read, '
+       + 'and this instrument compares boards. The only instrument that could ever test it is the '
+       + 'PROTOCOL TRACE, which is a different comparison and does not exist here. Usage measured at 6, '
+       + 'across two legal carriers in this format. Will: "ANTICIPATION AND FOREWARN LETS PUT INTO THE '
+       + 'QUARANTINE CLOSET NO ONE USES THEM."',
+  },
+  forewarn: {
+    by: 'Will', on: '2026-08-10',
+    why: 'THE EFFECT IS A MESSAGE, for the identical reason as Anticipation one row up: Forewarn names '
+       + 'the foe\'s strongest move on entry and changes nothing on the board. A board comparison '
+       + 'cannot see it and a green from one would be vacuous; the protocol trace is the only '
+       + 'instrument that could. Usage measured at 4. Same quote, same date.',
   },
 };
 
@@ -1048,6 +1206,37 @@ function switchVerdict(e, subject, control, base) {
       ours_switched_control: oursLeft(control), subject_bad: subject.bad || null,
       subject_why: subject.why || null, control_bad: control.bad || null, ...(extra || {}) } });
 
+  /* 0. THE IN-GAME CONTROL — THE SAME BOARD, ONE TURN EARLIER (ROADMAP #138).
+   *
+   * Will's Shadow Tag design: "MONS BE ABLE TO SWITCH OUT IN FRONT OF NORMAL GENGAR, BUT THEN WHEN IT
+   * EVOLVES ON TURN 1 THEY ARE BLOCKED FROM SWITCHING ON TURN 2." The pre-mega turn is a control that
+   * costs no extra game and that the separate control ARM cannot replace: it proves the ask worked on
+   * THIS board, in THIS game, against THIS body, moments before the forme change.
+   *
+   * IT IS MEASURED AND NOT ASSUMED, which is the rule that comes with it. It is read off the boundary
+   * AFTER the pre-turn, in BOTH engines, from the same snapshots every other reading in this file uses
+   * — if the pre-mega switch did not complete, the fixture is broken and says so instead of reporting
+   * a trap. The subject arm THROWS on the trapped turn, so this boundary is the last one it has; that
+   * is why the reading is taken from `boards` rather than from the live state. */
+  const atBoundary = (r, i, which) => {
+    const b = (r.boards || []).find(x => x.turn === i);
+    if (!b || !b[which]) return null;
+    const act = (((b[which].sides || {})[key]) || {}).active || [];
+    return act[P.slot] ? idOf(act[P.slot].species) : null;
+  };
+  if (P.preTo) {
+    const sdPre = atBoundary(subject, P.preTurn == null ? 1 : P.preTurn, 'sd');
+    const usPre = atBoundary(subject, P.preTurn == null ? 1 : P.preTurn, 'medi');
+    const preOk = sdPre === idOf(P.preTo) && usPre === idOf(P.preTo);
+    base = { ...base, pre_mega_control: { wanted: idOf(P.preTo), showdown: sdPre, ours: usPre, ok: preOk } };
+    if (!preOk) return say('COULD-NOT-STAGE', 'THE PRE-MEGA CONTROL DID NOT LAND. The identical ask, '
+      + 'one turn earlier and before the forme change, was supposed to move ' + pretty(P.preTo)
+      + ' into the slot and Showdown left ' + (sdPre || 'nothing readable') + ' there while ours left '
+      + (usPre || 'nothing readable') + '. Without that, a refusal on the next turn cannot be told from '
+      + 'a probe that never switches anything. The fixture is broken, not the engine.',
+      { pre_mega: { showdown: sdPre, ours: usPre } });
+  }
+
   /* 1. THE CONTROL MUST PROVE THE ASK IS REAL. */
   if (control.bad) return say('COULD-NOT-STAGE', 'the CONTROL arm did not run: ' + control.bad + ' — '
     + control.why + '  Without an untrapped switch that WORKS, a refusal in the subject arm cannot be '
@@ -1081,9 +1270,89 @@ function switchVerdict(e, subject, control, base) {
     + '(' + String(subject.why).slice(0, 120) + ') and medicham2\'s slot now holds ' + pretty(P.to)
     + '. The trap does not prevent a switch in this engine. The control proves the ask was real: '
     + 'without the move the same switch succeeded in both engines.');
+  /* 4. THE EXCEPTIONS. A trap that refuses EVERYTHING passes everything above.
+   *
+   * Will named the first two: "EXCEPT FOR GHOST TYPES OR SWITCHING MOVES". Each is its own game and
+   * each is the INVERSE assertion — the authority must ALLOW the departure, and so must we. An
+   * over-refusal is a defect in exactly the same way an under-refusal is, and it is the one this
+   * instrument would otherwise call a clean pass. */
+  const EX = base.trap_exceptions || [];
+  const overRefused = EX.filter(x => x.verdict === 'OURS-REFUSED-AND-THE-AUTHORITY-DID-NOT');
+  /* THE PRE-MEGA CONTROL TRAVELS IN THE TEXT and not only in a field, because the report serialiser
+   * copies a whitelist of keys — which is how the exception arms went missing on the first run. */
+  const preSay = base.pre_mega_control
+    ? '  IN-GAME CONTROL: one turn earlier, before the forme change, the identical ask moved '
+      + pretty(base.pre_mega_control.wanted) + ' into the slot in BOTH engines (showdown='
+      + base.pre_mega_control.showdown + ', ours=' + base.pre_mega_control.ours + ').' : '';
+  const exSummary = preSay + (EX.length
+    /* A DECLARED JUDGEMENT PRINTS ON EVERY RUN OR IT IS A SILENT TOLERANCE. Each arm carries a design
+     * text and a RUNTIME reading, and only the reading was being shown — so the ruling that this
+     * instrument does not compare the phaze draw would have lived in a source comment that nobody
+     * reading a report ever sees. That is the failure this repo has paid for repeatedly: the caveat
+     * exists, the number gets quoted without it. Anything from the word DECLARED onward travels. */
+    ? '  EXCEPTIONS (' + EX.length + '): ' + EX.map(x => x.id + ' -> ' + x.verdict
+        + ' [' + x.why + ']'
+        + (/DECLARED/.test(x.expects || '')
+            ? '  ' + String(x.expects).slice(String(x.expects).indexOf('DECLARED')) : '')).join(';  ')
+    : '  NO EXCEPTION ARM RAN, so "it refuses everything" was not ruled out.');
+  if (overRefused.length) return say('FIRED-AND-BOARDS-DIFFER',
+    'THE TRAP ITSELF MATCHES AND AN EXCEPTION DOES NOT. Both engines refuse the ordinary switch, but '
+    + overRefused.length + ' body/bodies the authority lets leave were held by this engine: '
+    + overRefused.map(x => x.id + ' — ' + x.why).join('; ') + '  An OVER-refusal is a defect in the '
+    + 'same way an under-refusal is.' + exSummary);
   return say('FIRED-AND-BOARDS-MATCH', 'both engines refuse the switch — Showdown rejects the choice '
     + 'and medicham2 leaves the body in its slot — and both allow the identical switch in the control '
-    + 'arm. This is a refusal comparison, not a board comparison; see the rule.');
+    + 'arm. This is a refusal comparison, not a board comparison; see the rule.' + exSummary);
+}
+
+/* ---- THE EXCEPTION ARMS, PLAYED AND CLASSIFIED ---------------------------------------------------
+ *
+ * Each declares a scenario in which the departure MUST succeed, and the two engines are read the same
+ * two ways `switchVerdict` reads them: Showdown by whether it rejected the choice, ours by whether the
+ * slot changed hands. Four outcomes, and only one of them is a defect of ours:
+ *
+ *   BOTH-ALLOWED        the exception holds in both engines
+ *   OURS-REFUSED...     Showdown let it go and we did not — an OVER-refusal, ours
+ *   AUTHORITY-REFUSED   Showdown refused too, so this is not an exception in this format at all and
+ *                       the claim was wrong; reported, never quietly dropped
+ *   COULD-NOT-READ      the arm did not run or the slot could not be read — not a pass either way */
+/* A KNOB THAT SUPPRESSES THE EXCEPTION ARMS, and it exists for ONE reason: the red demonstration.
+ * `--reds` plants a break and asks whether the row flips, and it correctly refuses to credit a flip on
+ * a row that was ALREADY red — Shadow Tag is red for its Shed Shell arm, so the plant on the trap
+ * itself could not be attributed. With the exceptions suppressed the main arm is green on the clean
+ * source and the plant flips it, which is the receipt the trap arm owes. It is a DIAGNOSTIC and never
+ * a way to publish a greener number: a run with it on says so on every row it touched. */
+const NO_TRAP_EX = HAS('--no-trap-exceptions');
+function trapExceptionArms(e, src, arm) {
+  const out = [];
+  if (NO_TRAP_EX) return out;
+  for (const X of (e.trapExceptions || [])) {
+    const key = X.side === 'A' ? 'p1' : 'p2';
+    const r = play(X.scenario, src, arm);
+    const rejected = !!(r.bad === 'THREW' && /choice rejected/i.test(String(r.why || '')));
+    const ours = (() => { const a = r.medi_active;
+      return a ? idOf((a[key] || [])[X.slot] || '') : null; })();
+    const sd = (() => { const b = (r.boards || [])[r.boards.length - 1];
+      if (!b || !b.sd) return null;
+      const act = ((b.sd.sides || {})[key] || {}).active || [];
+      return act[X.slot] ? idOf(act[X.slot].species) : null; })();
+    const left = v => v != null && v !== idOf(X.from);
+    let verdict, why;
+    if (rejected) { verdict = 'AUTHORITY-REFUSED'; why = 'Showdown rejected the choice too, so this is '
+      + 'NOT an exception in this format: ' + String(r.why).slice(0, 140); }
+    else if (r.bad) { verdict = 'COULD-NOT-READ'; why = 'the arm did not run: ' + r.bad + ' — ' + r.why; }
+    else if (sd == null || ours == null) { verdict = 'COULD-NOT-READ';
+      why = 'the slot could not be read on one side (showdown=' + sd + ', ours=' + ours + ')'; }
+    else if (left(sd) && left(ours)) { verdict = 'BOTH-ALLOWED';
+      why = 'both engines let ' + pretty(X.from) + ' go (showdown slot now ' + sd + ', ours ' + ours + ')'; }
+    else if (left(sd) && !left(ours)) { verdict = 'OURS-REFUSED-AND-THE-AUTHORITY-DID-NOT';
+      why = 'Showdown moved ' + pretty(X.from) + ' out (slot now ' + sd + ') and our engine kept it '
+        + 'in the slot'; }
+    else { verdict = 'COULD-NOT-READ'; why = 'the authority did not move the body either, without '
+      + 'rejecting the choice (showdown=' + sd + ', ours=' + ours + ') — the arm staged nothing'; }
+    out.push({ id: X.id, expects: X.why, verdict, why });
+  }
+  return out;
 }
 
 /* ---- THE USAGE SHELF ---------------------------------------------------------------------------
@@ -1142,7 +1411,8 @@ function runEntry(e) {
     why: 'the SUBJECT arm did not run: ' + subject.bad + ' — ' + subject.why };
   const control = play(ctrlSc, src, arm);
   if (e.switchProbe) return switchVerdict(e, subject, control,
-    { ...e, boards: subject.boards, compared: subject.boards.reduce((n, b) => n + b.compared, 0),
+    { ...e, trap_exceptions: trapExceptionArms(e, src, arm),
+      boards: subject.boards, compared: subject.boards.reduce((n, b) => n + b.compared, 0),
       subject_diffs: splitDeclared(subject.boards.flatMap(b => b.diffs.map(d => ({ ...d, turn: b.turn }))),
                                    subject.boards).kept });
   if (control.bad) return { ...e, verdict: 'COULD-NOT-STAGE',
@@ -1252,6 +1522,20 @@ function runEntry(e) {
          + 'entity does nothing here and the leaves are the control\'s, OR this entity and one of the '
          + 'controls move the same leaves and cancel. TWO ARMS CANNOT SEPARATE THOSE and the species '
          + 'has no third alternative to ask with. Measured, not assumed: ' + SC.why };
+  /* THE CLOSET IS CHECKED BEFORE THE INERT GATE, AND IT WAS NOT — which made two deferrals
+   * invisible on the run that added them. Anticipation and Forewarn stage INERT (their whole effect is
+   * a switch-in MESSAGE, so no board leaf can carry it), so they returned COULD-NOT-STAGE and never
+   * reached the shelf; DEFERRED-BY-OWNER read 0 while two entries sat in the map. A shelf nobody can
+   * see is the invisible exception this file exists to prevent, so the owner's judgement is reported
+   * FIRST and the underlying verdict — inert, differ, whatever it is — is named inside it. */
+  const _DEF0 = DEFERRED[e.id];
+  if (_DEF0 && !sdMoved.length) return { ...base, verdict: 'DEFERRED-BY-OWNER', deferred: _DEF0,
+    would_pass_now: false,
+    why: 'SHELVED BY THE OWNER, NOT MEASURED CLEAN. ' + _DEF0.why + ' (deferred ' + _DEF0.on + ' by '
+       + _DEF0.by + '.) It is still staged and still played every run; it does not hold the gate. '
+       + 'Underlying verdict without the deferral: COULD-NOT-STAGE — the staging is inert, the '
+       + 'authority own board is identical with and without it over ' + base.compared + ' leaves, which '
+       + 'is exactly what an effect that is only a MESSAGE looks like to a board comparator.' };
   if (!sdMoved.length) return { ...base, verdict: 'COULD-NOT-STAGE',
     why: 'THE STAGING IS INERT. Showdown\'s own board is identical with and without it, over '
        + base.compared + ' compared leaves — so nothing here tests the entity and a green would have '
@@ -2562,6 +2846,71 @@ function gastroWorks() {
   return _GASTRO;
 }
 
+/* ---- IS THE SKILL SWAP CONTROL AVAILABLE? MEASURED, ONCE, BEFORE IT IS USED (ROADMAP #138) --------
+ *
+ * The identical proof to `gastroWorks()`, against the identical fixture, and it has to be: a control
+ * that silently does nothing hands back an arm identical to the subject arm, the delta comes out
+ * empty, and EVERY ENTITY IN THE TIER READS `DID-NOT-FIRE` for the control's failure rather than the
+ * ability's. That is what happened to five rows on the first Gastro Acid run and it is the reason this
+ * function exists rather than a comment saying Skill Swap is wired.
+ *
+ * THE FIXTURE IS ROUGH SKIN, which scores FIRED-AND-BOARDS-MATCH under an ordinary swapped-ability
+ * control, so both engines demonstrably have it. It is re-staged with a SKILL SWAP control instead —
+ * the swapper clicks it at the carrier on the setup turn — and the two arms are compared INSIDE each
+ * engine:
+ *
+ *   SHOWDOWN moves    the fixture stages something; the exchange is real up there
+ *   OURS moves        the control is usable and the tier opens
+ *   OURS DOES NOT     `swapsAbilities` is in data/tags.json and nothing consumes it, so the tier stays
+ *                     shut with that as its written reason
+ *
+ * IT IS A MEASUREMENT AND NOT A CONSTANT, so the day the consumer changes the tier follows without
+ * anybody remembering to reopen it. */
+let _SWAPC = null;
+function swapControlWorks() {
+  if (_SWAPC) return _SWAPC;
+  _SWAPC = { ok: false, why: 'the proof did not run' };
+  if (NO_SWAP) { _SWAPC.why = 'TURNED OFF BY --no-swap-control. This is the pre-ROADMAP-#138 state, '
+    + 'kept as a knob so the difference the swap control makes is measurable rather than claimed.';
+    return _SWAPC; }
+  if (!SWAPPER) { _SWAPC.why = 'no legal species in this format has a QUIET ability to lend, so there '
+    + 'is nothing for the swapper to give'; return _SWAPC; }
+  const ab = dex.abilities.get('roughskin');
+  const C = carrierFor(ab);
+  if (!C || C.tier !== 'ALTERNATE') return _SWAPC;
+  const built = abilityScenario(ab, C, 'generic');
+  if (!built || !built.scenario) return _SWAPC;
+  /* the swapper takes side A slot 1 and the setup turn is prepended, exactly as a real swap-tier
+   * scenario is built — the proof must exercise the code path that will actually be used */
+  const A = built.scenario.A.map((m, i) => (i === 1
+    ? mon(SWAPPER.species, '', SWAPPER.ability, m.moves.slice()) : m));
+  const sc = { ...built.scenario, id: 'proof/swap-control', kind: 'ability', entityId: 'roughskin',
+    A, script: [turn([IDLE, IDLE], [IDLE, IDLE])].concat(built.scenario.script) };
+  const subj = play(sc, null);
+  const ctrl = play({ ...sc, id: 'proof/swap-control-arm',
+    A: sc.A.map((m, i) => (i === 1 ? { ...m, moves: m.moves.concat([SWAP_MOVE]) } : m)),
+    script: sc.script.map((t, i) => (i === 0 ? { p1: [t.p1[0], { m: SWAP_MOVE, t: 0 }], p2: t.p2 } : t)) },
+    null);
+  if (subj.bad || ctrl.bad) { _SWAPC.why = 'the proof fixture did not play: '
+    + (subj.bad || ctrl.bad) + ' ' + (subj.why || ctrl.why); return _SWAPC; }
+  const moved = (key) => { let n = 0;
+    for (let i = 0; i < subj.boards.length; i++)
+      n += BS.compare(subj.boards[i][key], ctrl.boards[i][key], { compared: 0 }).length;
+    return n; };
+  const sd = moved('sd'), us = moved('medi');
+  _SWAPC = { ok: sd > 0 && us > 0, sd, us, swapper: SWAPPER,
+    why: sd === 0 ? 'the proof fixture stages nothing even in the authority, so it proves neither way — '
+           + 'Skill Swap moved no board leaf in Showdown against a KNOWN-LIVE ability, which means the '
+           + 'fixture and not the control is at fault'
+       : us === 0 ? 'MEASURED: exchanging a KNOWN-LIVE ability (Rough Skin) for a quiet one with Skill '
+           + 'Swap moves ' + sd + ' board leaves in Showdown and 0 in this simulator, so the control '
+           + 'arm would be IDENTICAL to the subject arm and every entity in this tier would read '
+           + 'DID-NOT-FIRE for the control\'s failure rather than the ability\'s.'
+       : 'usable: ' + sd + ' leaves in Showdown and ' + us + ' here, lending '
+           + SWAPPER.ability + ' off ' + SWAPPER.name };
+  return _SWAPC;
+}
+
 let _ABSW = null;
 function abilitySwitchWorks() {
   if (_ABSW) return _ABSW;
@@ -2681,14 +3030,40 @@ function abilityScenario(e, C, kind) {
    * MEGA tier spends the same turn asking to evolve — Showdown resolves the mega at queue order 104
    * and every move at 200, so a Gastro Acid on the same turn lands on the body the forme change has
    * already produced. */
+  /* TWO CONTROLS ARE AVAILABLE TO THESE TIERS AND THE BETTER ONE IS TRIED FIRST (ROADMAP #138).
+   *
+   *   SKILL SWAP    exchanges the carrier's ability for a QUIET one, in play. It is the same SHAPE as
+   *                 the ordinary control — the carrier ends the setup turn holding a named quiet
+   *                 ability — so an accusing verdict is allowed off it.
+   *   GASTRO ACID   suppression. MEASURED not to work in this simulator, and kept only so that the day
+   *                 it is wired the fall-back is already there.
+   *
+   * Both are PROVEN against a known-live ability before either is used, and the ability under test is
+   * asked of the format whether Showdown would refuse to swap it at all. */
   const suppress = C.tier === 'SUPPRESS' || C.tier === 'MEGA';
+  let controlKind = 'ability', controlAbility = C.control, controlQuiet = null, controlNote = '';
   if (suppress) {
-    const G = gastroWorks();
-    if (!G.ok) return cannot('its carrier is ' + C.tier + '-tier — the ability cannot be swapped out, '
-      + 'because ' + (C.tier === 'MEGA' ? 'the forme change WRITES it'
-                                        : 'it is the only ability its species has')
-      + ' — so the only control is suppression, and suppression does not work here. '
-      + G.why);
+    const S = swapControlWorks();
+    const refused = swapRefused(e.id);
+    if (S.ok && !refused) {
+      controlKind = 'abilityswap';
+      controlAbility = SWAPPER.ability;
+      controlQuiet = true;
+      controlNote = 'Skill Swap lends ' + SWAPPER.ability + ' off ' + SWAPPER.name
+        + ' (' + S.why + ')';
+    } else {
+      const G = gastroWorks();
+      if (!G.ok) return cannot('its carrier is ' + C.tier + '-tier — the ability cannot be swapped out '
+        + 'on the SHEET, because ' + (C.tier === 'MEGA' ? 'the forme change WRITES it'
+                                                        : 'it is the only ability its species has')
+        + ' — so the control has to be applied IN PLAY, and neither route is available. Skill Swap: '
+        + (refused ? 'the format flags this ability `failskillswap`, so Showdown refuses the exchange '
+            + 'and medicham2 does not model the refusal at all — the two engines would part IN THE '
+            + 'CONTROL ARM and the row would accuse the entity for the control\'s divergence'
+          : S.why)
+        + '  Gastro Acid suppression: ' + G.why);
+      controlKind = 'suppress';
+    }
     script = [turn([IDLE, IDLE], [C.tier === 'MEGA' ? { m: INERT, mega: true } : IDLE, IDLE])]
       .concat(script);
   }
@@ -2699,27 +3074,34 @@ function abilityScenario(e, C, kind) {
   const onBench = kind === 'residual';
   const sc = scaffold({ hpA, hpB, subject: 'B0',
     a0: mon(atk.id, '', CAST.ATTACKER().ability, [hitThem.id]),
-    a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [hitThem.id]),
+    /* SIDE A SLOT 1 IS THE SWAPPER when the control is an in-play exchange, because whatever ability
+     * that body carries is what the carrier ends up holding — so it has to be a QUIET one, and it is
+     * present in BOTH arms so nothing about the fixture differs between them. */
+    a1: controlKind === 'abilityswap'
+      ? mon(SWAPPER.species, '', SWAPPER.ability, [hitThem.id])
+      : mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [hitThem.id]),
     b0: onBench ? mon(partnerId, '', carrierAbility(dex.species.get(partnerId)) || '', [INERT])
                 : carrier,
     b1: partner,
     b2: onBench ? carrier : mon(benchSp.id, '', carrierAbility(benchSp) || '', [INERT]), script });
-  sc.controlAbility = C.control;
+  sc.controlAbility = controlAbility;
   /* WHETHER THE CONTROL ABILITY IS ITSELF ACTIVE, carried onto the entry and printed on any finding.
    * Bellibolt has Static, Electromorphosis and Damp and NOTHING QUIET, so Damp is controlled by
    * Electromorphosis and Electromorphosis by Static — and a delta between two live abilities cannot
    * say which of them moved the board. Measured: Sand Rush and Fluffy sit on Houndstone and control
    * each other, and exactly one of that pair is a real finding. */
-  sc.controlQuiet = !C.control || QUIET_SET.has(idOf(C.control));
-  /* the second control, for the same reason as in `stageAbility` — and never for the suppress tier,
-   * whose control is a CLICK rather than an ability and has no second form */
+  sc.controlQuiet = controlQuiet != null ? controlQuiet
+                                         : (!controlAbility || QUIET_SET.has(idOf(controlAbility)));
+  /* the second control, for the same reason as in `stageAbility` — and never for the two in-play
+   * control kinds, which have exactly one form each */
   sc.controlAbility2 = suppress ? null : (C.control2 || altAbility2(base, e.id) || null);
-  sc.controlKind = suppress ? 'suppress' : 'ability';
+  sc.controlKind = controlKind;
   sc.abilityId = e.id;
   sc.carrierSpecies = base.id;
   return { note: C.tier + ' carrier ' + base.name
       + (C.tier === 'MEGA' ? ' -> ' + pretty(C.forme) + ' via ' + pretty(C.stone) : '')
-      + '; control = ' + (suppress ? 'Gastro Acid suppression' : C.control)
+      + '; control = ' + (controlKind === 'abilityswap' ? controlNote
+                        : controlKind === 'suppress' ? 'Gastro Acid suppression' : C.control)
       + (sc.controlQuiet ? '' : ' (NOT A QUIET ABILITY — see the caveat on any finding)')
       + '; staged as ' + kind, scenario: sc, tier: C.tier, controlQuiet: sc.controlQuiet };
 }
@@ -3420,6 +3802,323 @@ const RULES = [
  * identical fixture with a NON-trapping carrier and requires both engines to complete the ask. A
  * staging path that has never run is assumed broken (CLAUDE.md), and a rule whose every member is
  * COULD-NOT-STAGE never reaches `--reds`, so this is the only receipt available. */
+/* ---- THE OTHER SWITCHING AXIS: BEING THROWN OUT (ROADMAP #138, 2026-08-10) ----------------------
+ *
+ * Nothing in this file had ever tested FORCED switching, and it is not the same mechanic as trapping —
+ * it runs the opposite way and has its own immunities. The asymmetry IS the mechanic, and one boolean
+ * for "can this body change slots" cannot represent it:
+ *
+ *     Shed Shell     restores the CHOICE to switch      ("cannot be PREVENTED from CHOOSING to switch")
+ *     Suction Cups   refuses the FORCE                  ("cannot be forced out by another's attack")
+ *
+ * A REFUSAL TO BE DRAGGED IS AN ORDINARY BOARD LEAF, unlike a refused choice: the body is either still
+ * in the slot at the boundary or it is not, and `p2.active[0].species` says which. So this rule needs
+ * none of the `switchVerdict` machinery — the standard subject-minus-control comparison reads it, with
+ * the control being the same species carrying a different ability, which MUST be dragged out.
+ *
+ * GUARD DOG IS THE OTHER MEMBER AND HAS NO LEGAL CARRIER HERE. Measured against the format rather than
+ * assumed: every body with it is `isNonstandard` in Champions. It falls out of this rule by the same
+ * derivation that admits Suction Cups, and is reported as a fact about the REGULATION. */
+{ id: 'ability/refuses-a-forced-switch', kind: 'ability',
+  reads: 'onDragOut — Showdown\'s own handler for refusing a phaze; the mover comes from `forceSwitch`',
+  why: 'FORCED SWITCHING HAD NO ROW AT ALL. A phaze move throws the target out; this family refuses it. '
+     + 'The carrier is on the field, the aggressor clicks a 100%-or-never-miss `forceSwitch` move at '
+     + 'it, and the whole reading is whether the slot still holds the carrier at the next boundary. '
+     + 'THE CONTROL IS THE SAME BODY WITH ITS OTHER ABILITY, which must be dragged out — without that '
+     + 'the row could not tell a working refusal from a phaze that never landed.',
+  break: { why: 'the drag-out refusal is skipped, so the carrier is thrown out like anything else '
+              + '(UNEXERCISED IF THE TAG IS ABSENT — see the verdict text)',
+    patch: [['TAGS.has(\'move\',id,\'forcesSwitch\')', 'false&&TAGS.has(\'move\',id,\'forcesSwitch\')']] },
+  match(e) {
+    if (typeof e.onDragOut !== 'function') return null;
+    /* THE MOVER. Dragon Tail and Circle Throw are 90-accuracy and the primary pin makes them MISS, so
+     * staging with one would leave the body in its slot in both arms and report a pass having tested
+     * nothing — the vacuous green this file exists to refuse. */
+    const PH = dex.moves.all().find(m => m.exists && !m.isNonstandard && m.forceSwitch
+      && (m.accuracy === 100 || m.accuracy === true) && MC.moves[m.id]);
+    if (!PH) return cannot('this format has no `forceSwitch` move that survives the pin (the two '
+      + 'damaging members are 90-accuracy and the primary arm makes every sub-100 roll miss), so '
+      + 'nothing can do the forcing');
+    const C = abilityCarrier(e);
+    if (!C) return cannot(noCarrierWhy(e, 'can be put on the field with a second ability to control '
+      + 'it with'));
+    const atk = dex.species.get(CAST.ATTACKER().species);
+    return stageAbility(e, C, { hpA: 4, hpB: 4, moves: [INERT],
+      note: 'the aggressor clicks ' + PH.name + ' (' + (PH.accuracy === true ? 'never misses'
+        : PH.accuracy + '%') + ', priority ' + PH.priority + ') at the carrier on turn 1 and again on '
+        + 'turn 2. The carrier must STILL BE IN THE SLOT at both boundaries; the control arm, which is '
+        + 'the same body with its other ability, must be thrown out — that is the negative and it is '
+        + 'what makes a green mean anything',
+      a0: mon(atk.id, '', CAST.ATTACKER().ability, [INERT, PH.id]),
+      a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [INERT]),
+      script: [turn([click(PH.id, 0), IDLE], [IDLE, IDLE]),
+               turn([click(PH.id, 0), IDLE], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
+/* ---- A TRAP THAT ONLY A MEGA FORME CARRIES — WILL'S FIXTURE, 2026-08-10 (ROADMAP #138) -----------
+ *
+ * Will: "TEST SHADOW TAG BY HAVING MONS BE ABLE TO SWITCH OUT IN FRONT OF NORMAL GENGAR, BUT THEN WHEN
+ * IT EVOLVES ON TURN 1 THEY ARE BLOCKED FROM SWITCHING ON TURN 2. EXCEPT FOR GHOST TYPES OR SWITCHING
+ * MOVES."
+ *
+ * WHY IT WORKS WHERE EVERY OTHER MEGA STAGING FAILED. This file stages an ability by WRITING it onto a
+ * body, and a forme change overwrites what was written; staging the mega forme directly is refused by
+ * the format's own TeamValidator, which rewrites `set.species` back to the base (measured — see
+ * tests/probe_mega_direct.js). THIS FIXTURE NEVER WRITES THE ABILITY ANYWHERE. Base Gengar carries its
+ * own ordinary ability, holds its stone, and mega-evolves during the run; the FORME grants Shadow Tag
+ * by itself. The subject is the CONSEQUENCE — can the foe leave — and not the contents of a slot.
+ *
+ * AND THAT GIVES THE CONTROL FOR FREE, TWICE OVER:
+ *   IN-GAME    turn 1, before the forme change, the identical ask must SUCCEED. Same board, same body,
+ *              one turn earlier. Measured in `switchVerdict` step 0; a failure there is COULD-NOT-STAGE.
+ *   ARM        the same game with the stone stripped, so the mega never happens. `controlKind: 'stone'`.
+ *
+ * THE STONE CONTROL IS ONLY LEGITIMATE BECAUSE THE MEASUREMENT IS BINARY. A mega moves stats, typing
+ * and ability at one moment, so for a DAMAGE delta "with the mega minus without it" is uncharged. No
+ * stat and no type can refuse a switch, so for a REFUSAL it is clean. That distinction is the limit of
+ * how far this shape generalises and it is written here rather than discovered later.
+ *
+ * THE TIMING IS THE FORMAT'S, NOT A HOPE. Showdown resolves a switch action before `megaEvo` (queue
+ * order ~103 against 104) and evaluates trapping when the CHOICE is requested — so turn 1's request is
+ * issued while Gengar is still base and turn 2's after the forme change. Both halves are measured
+ * anyway; nothing here rests on the ordering being remembered correctly.
+ *
+ * THE EXCEPTIONS ARE THE POINT, because a trap that refuses everything passes the main arm. Each is a
+ * separate game in which the departure MUST succeed, and an over-refusal is reported as
+ * FIRED-AND-BOARDS-DIFFER in the other direction. */
+{ id: 'ability/trap-arrives-with-a-mega', kind: 'ability',
+  reads: 'onFoeTrapPokemon + every legal carrier being a mega forme (battleOnly with a stone)',
+  why: 'the fourteen mega-tier abilities cannot be written onto a body, so the roster staged none of '
+     + 'them. A TRAP does not need to be written: base Gengar holds Gengarite and mega-evolves during '
+     + 'the run, and the forme grants Shadow Tag itself. Turn 1 (pre-mega) the foe switches and MUST '
+     + 'succeed; turn 2 (post-mega) the identical ask must be REFUSED by the authority. The stripped '
+     + 'stone is the second control. GHOST-TYPE and SWITCHING-MOVE departures are played as their own '
+     + 'games and must still succeed — an over-refusal is a defect too.',
+  break: { why: 'the ability trap no longer holds the switch',
+    patch: [['if(_held){MEDSEEN.trapBlockedSwitch++;continue;}', 'if(_held){MEDSEEN.trapBlockedSwitch++;}']] },
+  match(e) {
+    if (!['onFoeTrapPokemon', 'onFoeMaybeTrapPokemon'].some(k => typeof e[k] === 'function')) return null;
+    const all = CARRIERS[e.id] || [];
+    /* ONLY the mega-tier case belongs to this rule. A trap with an ordinary carrier is the next rule's,
+     * which has the swapped-ability control and does not need a forme change at all. */
+    if (!all.length || !all.every(s => s.battleOnly && MEGA_OF[s.id])) return null;
+    const forme = all[0], MO = MEGA_OF[forme.id];
+    const base = dex.species.get(MO.base);
+    const stone = dex.items.get(MO.item);
+    if (!base || !base.exists || !stone || !stone.exists)
+      return cannot('the stone or the base body this mega needs is not in the format dex');
+    if (!buildableSpecies(base.id))
+      return cannot('the base body ' + base.name + ' cannot be built by this engine, so it cannot hold '
+        + 'the stone');
+    const PROOF = abilitySwitchWorks();
+    if (!PROOF.ok) return cannot('THE PROBE ITSELF IS NOT PROVEN. ' + PROOF.why);
+
+    /* WHAT THE TRAP SCOPES, read off SHOWDOWN'S OWN HANDLER rather than out of our tag file — asking
+     * our own params which bodies it holds would be scoring this engine against itself. */
+    const src = handlerSrc(e, ['onFoeTrapPokemon', 'onFoeMaybeTrapPokemon']);
+    const needTypes = typesNamed(e, ['onFoeTrapPokemon', 'onFoeMaybeTrapPokemon'])
+      .concat([...src.matchAll(/hasType\(\s*['"]([A-Z][a-z]+)['"]/g)].map(m => m[1]));
+    const needGround = /isGrounded\s*\(/.test(src);
+
+    /* THE BODIES. P leads and asks to leave on turn 1; R walks in and asks to leave on turn 2, by
+     * which time the mega is out. Both must be ORDINARY — a Ghost cannot be trapped at all (Showdown's
+     * own `pokemon.js` lets any Ghost out of any trap) and would silently turn the main arm into a
+     * second exception arm. */
+    const ordinary = s => buildableSpecies(s.id) && carrierAbility(s) && !(s.types || []).includes('Ghost')
+      && (!needTypes.length || needTypes.some(t => (s.types || []).includes(t)))
+      && (!needGround || !(s.types || []).includes('Flying'));
+    const P = CANDIDATES.find(s => s.id !== base.id && ordinary(s));
+    const R = CANDIDATES.find(s => P && s.id !== base.id && s.id !== P.id && ordinary(s));
+    const GHOST = CANDIDATES.find(s => s.id !== base.id && buildableSpecies(s.id) && carrierAbility(s)
+      && (s.types || []).includes('Ghost'));
+    if (!P || !R) return cannot('no two ordinary non-Ghost bodies in this format satisfy what this trap '
+      + 'scopes AND can be built, so there is nobody to ask with');
+
+    const trapper = mon(base.id, stone.id, carrierAbility(base) || '', [INERT]);
+    const ally = mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [INERT]);
+    const partnerA = mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability, [INERT]);
+    /* THE SCRIPT. Boundary 1 is the pre-mega control; the trapped ask is turn 2 and the subject arm is
+     * expected to THROW there, which is what a refusal looks like from outside. */
+    /* THE TURN-1 DESTINATION IS A PARAMETER AND THE FIRST VERSION HARD-CODED IT, which cost a real
+     * arm. The Ghost exception puts the GHOST on the bench, so a turn-1 ask still naming `R` named a
+     * body that side did not have — `{ sw: ... }` resolves an absent name to `pass`, Showdown refuses a
+     * pass for a healthy active body, and the arm came back "AUTHORITY-REFUSED" as though Ghosts were
+     * trappable in this format. A fixture fault wearing a finding's clothes, caught only because the
+     * rejection string was printed with the verdict. */
+    const mkScript = (walkIn, leaveOn2, p2Click) => [
+      turn([{ sw: walkIn }, IDLE], [{ m: INERT, mega: true }, IDLE]),
+      turn([leaveOn2, IDLE], [IDLE, p2Click || IDLE]),
+      turn([IDLE, IDLE], [IDLE, IDLE])];
+    /* NATURAL HP ON BOTH SIDES, and this is not a style choice. `abilityScenario` records it: the
+     * staged HP inflation is written onto the Showdown body BEFORE the battle and Showdown RECOMPUTES
+     * maxhp from the mega forme's base stats when the forme changes, while medicham2 carries the delta
+     * across — so an inflated mega prints `Gengar-Mega has 135 maximum HP` against `540` on every
+     * board. Measured here on the first run; nothing in this fixture deals damage, so the pool has
+     * nothing to do anyway. */
+    const sc = scaffold({ hpA: 1, hpB: 1, subject: 'B0',
+      a0: mon(P.id, '', carrierAbility(P) || '', [INERT]),
+      a1: partnerA,
+      a2: mon(R.id, '', carrierAbility(R) || '', [INERT, 'uturn']),
+      b0: trapper, b1: ally, b2: null,
+      script: mkScript(R.id, { sw: P.id }) });
+    sc.controlKind = 'stone';
+    sc.abilityId = e.id;
+    sc.carrierSpecies = base.id;
+    sc.controlAbility = null;
+    sc.controlQuiet = true;      // nothing is swapped; the CONTROL is the absence of the forme change
+    sc.controlAbility2 = null;
+
+    /* ---- THE EXCEPTION GAMES ------------------------------------------------------------------
+     * Each is the same fixture with ONE thing changed, and each asserts the OPPOSITE: the body must
+     * still get out. Numbered as Will named them. */
+    const exScenario = (id, a2body, leaveOn2, p2Click) => {
+      const x = scaffold({ hpA: 1, hpB: 1, subject: 'B0',
+        a0: mon(P.id, '', carrierAbility(P) || '', [INERT]),
+        a1: partnerA, a2: a2body,
+        b0: trapper, b1: ally, b2: null,
+        /* the body that walks in on turn 1 IS the body this arm asks about on turn 2 */
+        script: mkScript(idOf(a2body.species), leaveOn2, p2Click) });
+      x.id = 'ability/' + e.id + '~' + id; x.kind = 'ability'; x.entityId = e.id;
+      x.abilityId = e.id; x.controlKind = 'stone';
+      return x;
+    };
+    const exceptions = [];
+    if (GHOST) exceptions.push({ id: 'ghost-type-is-not-trapped', side: 'A', slot: 0, from: GHOST.id,
+      why: 'a Ghost-type foe must still leave — Showdown\'s own pokemon.js exempts every Ghost from '
+         + 'every trap, so an engine that traps this one traps everything',
+      scenario: exScenario('ghost', mon(GHOST.id, '', carrierAbility(GHOST) || '', [INERT]),
+                           { sw: P.id }) });
+    /* THE SWITCHING MOVE. Trapping stops a VOLUNTARY switch and not a move that switches. The member is
+     * derived from the format's own `selfSwitch` field rather than named, and the one chosen is
+     * printed, because "pick whichever the format supports" is exactly where a hand-typed list rots. */
+    /* ONE ARM PER `selfSwitch` SHAPE, AND THE FIRST VERSION PROVED ONLY THE EASY HALF.
+     *
+     * Will named the escapes: "THE SWITCH MOVES LIKE BATON PASS AND SHED TAIL AND PARTING SHOT AND
+     * VOLT SWITCH ALL GET TO ESCAPE SHADOW TAG". Asked of the format there are SEVEN, and the field is
+     * NOT a boolean on all of them:
+     *
+     *     Parting Shot / Flip Turn / Volt Switch / U-turn / Chilly Reception   selfSwitch = true
+     *     Baton Pass                                                          selfSwitch = "copyvolatile"
+     *     Shed Tail                                                           selfSwitch = "shedtail"
+     *
+     * The membership test here was already TRUTHINESS and not `=== true`, so the two string members
+     * were never excluded by that — but `category !== 'Status'` and `accuracy === 100` excluded them
+     * both anyway, and `.find` took ONE member, which was always a damaging `true` one. An arm that can
+     * only ever draw U-turn cannot tell you whether Baton Pass escapes. Two of the four defects this
+     * fixture has surfaced are OVER-refusals, so the easy half is exactly the half not worth proving.
+     *
+     * `accuracy === true` MEANS NEVER MISSES, not "accuracy is boolean". Both string members carry it,
+     * and under the primary pin a sub-100 move would miss and stage nothing — so the filter admits 100
+     * and `true` and refuses everything else, which is the same rule the fixture audit applies. */
+    const PIVOTS = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.selfSwitch
+      && (m.accuracy === 100 || m.accuracy === true) && MC.moves[m.id]);
+    const byShape = new Map();
+    for (const m of PIVOTS) {
+      const shape = m.selfSwitch === true ? 'true' : 'string:' + m.selfSwitch;
+      if (!byShape.has(shape)) byShape.set(shape, m);
+    }
+    for (const [shape, PIVOT] of byShape) {
+      /* A SELF-TARGETING PIVOT TAKES NO TARGET. Baton Pass and Shed Tail are `target: 'self'`, and
+       * naming a foe slot for one of those is a click the driver cannot build. */
+      const selfTargeted = PIVOT.target === 'self' || PIVOT.target === 'all';
+      exceptions.push({ id: 'a-switching-move-still-works[' + shape + ']', side: 'A', slot: 0,
+        from: R.id,
+        why: 'a pivot move (' + PIVOT.name + ', selfSwitch=' + JSON.stringify(PIVOT.selfSwitch)
+           + ') is a MOVE, and a trap does not stop one. One arm per DISTINCT selfSwitch shape, '
+           + 'because two of the seven carry a STRING and an arm that only ever draws a boolean one '
+           + 'cannot speak for them',
+        scenario: exScenario('pivot-' + idOf(PIVOT.id),
+          mon(R.id, '', carrierAbility(R) || '', [INERT, PIVOT.id]),
+          selfTargeted ? { m: PIVOT.id } : { m: PIVOT.id, t: 0 }) });
+    }
+    /* ---- FORCED SWITCHING IS THE OTHER AXIS, AND IT RUNS THE OPPOSITE WAY -------------------------
+     *
+     * A TRAP PREVENTS CHOOSING TO SWITCH. IT DOES NOT PREVENT BEING THROWN OUT. A body held by Shadow
+     * Tag is still phazed by Roar, and an engine that models a trap as "this body cannot leave the
+     * slot" gets it exactly backwards — which is the most likely way ours is wrong, given it already
+     * over-refuses a Shed Shell holder on the very same branch.
+     *
+     * THE MOVE IS DERIVED FROM `forceSwitch` AND THE PIN DECIDES WHICH MEMBER. Four exist here — Roar,
+     * Whirlwind, Dragon Tail, Circle Throw — and the last two are 90-accuracy, which the primary pin
+     * turns into a guaranteed MISS: staged with one of those, the body would stay in its slot in both
+     * engines and the arm would report a clean pass having tested nothing. The filter admits accuracy
+     * 100 and `true` only, which is the same rule the fixture audit applies everywhere else.
+     *
+     * IT IS CLICKED BY THE TRAPPER'S ALLY, not by the trapper, so the carrier is never asked to act. */
+    const PHAZE = dex.moves.all().find(m => m.exists && !m.isNonstandard && m.forceSwitch
+      && (m.accuracy === 100 || m.accuracy === true) && MC.moves[m.id]);
+    if (PHAZE) {
+      const allyPh = mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [INERT, PHAZE.id]);
+      const x = exScenario('phaze', mon(R.id, '', carrierAbility(R) || '', [INERT]),
+                           IDLE, click(PHAZE.id, 0));
+      x.B = x.B.map((m, i) => (i === 1 ? allyPh : m));
+      /* ---- DECLARED: THIS ARM DOES NOT COMPARE WHICH BODY THE PHAZE DRAGGED IN -------------------
+       *
+       * Will, 2026-08-10: *"I MEAN ROAR IS RANDOM IT DOESNT REALLY MATTER WHAT IT DRAGS IN"*.
+       *
+       * MEASURED FIRST, THEN RULED ON: on the run that added this arm, Showdown pulled in Corviknight
+       * and medicham2 pulled in Venusaur off the identical bench. Roar's replacement is a RANDOM draw
+       * from the target's party, so the two engines flip that coin independently. The arm therefore
+       * reads ONE predicate — is the body that was in the slot still in it — and says nothing about
+       * the identity of what replaced it.
+       *
+       * THIS IS A JUDGEMENT, NOT A TOLERANCE, and it is written down so a later session does not
+       * "repair" it by pinning the draw and then wonder why the arm went flaky. Aligning that draw
+       * would be aligning a DIE rather than testing a mechanic — the same reasoning the order
+       * comparator already applies when it REFUSES a genuine speed tie instead of scoring it.
+       *
+       * THE LIMIT, AND IT IS THE HALF THAT MATTERS. The correct sentence is "THE ROSTER DOES NOT
+       * COMPARE THE DRAW", never the broader "the draw does not matter". This file stages one turn and
+       * asks one question, so the unread draw cannot propagate. A REPLAY DIFFERENTIAL IN ALL-TURNS
+       * MODE HAS NO SUCH IMMUNITY: if a stored game's Roar pulled in Corviknight and ours pulls in
+       * Venusaur, every subsequent turn compares two different boards and those divergences would be
+       * charged to the engine when they are the die. Turn-1-only mode is immune by construction;
+       * all-turns is not. That belongs to `engine/replay_differential.js` and is NOT this division's
+       * to change — it is named here only so this declaration cannot be quoted outside its scope,
+       * which is a thing that has happened in this repository before. */
+      exceptions.push({ id: 'a-trapped-body-is-still-phazed[' + PHAZE.id + ']', side: 'A', slot: 0,
+        from: R.id,
+        why: 'trapping restricts a CHOICE and does not stop a FORCED switch: ' + PHAZE.name
+           + ' must still throw the trapped body out. An engine that models the trap as a slot lock '
+           + 'fails here and passes everything else.  DECLARED, Will 2026-08-10 ("I MEAN ROAR IS '
+           + 'RANDOM IT DOESNT REALLY MATTER WHAT IT DRAGS IN"): THIS ARM DOES NOT COMPARE WHICH BODY '
+           + 'ARRIVED. The replacement is a random draw and the two engines flip it independently '
+           + '(measured: Showdown drew Corviknight, ours drew Venusaur off the same bench). Pinning it '
+           + 'would align a die rather than test a mechanic. SCOPE: the ROSTER does not compare the '
+           + 'draw — this is NOT the claim that the draw never matters, and an all-turns replay '
+           + 'differential would carry it forward into every later turn',
+        scenario: x });
+    }
+    /* GUARD DOG — the other ability that refuses a forced switch — HAS NO LEGAL CARRIER IN THIS FORMAT.
+     * Measured, not assumed: every body with it is isNonstandard here. That is a fact about the
+     * REGULATION and it is recorded rather than left as a silent omission; Suction Cups (Malamar) is the
+     * only member of that family that can be put on the field, and it has its own row. */
+
+    /* THE THIRD, ASKED OF THE FORMAT RATHER THAN TAKEN ON TRUST. Shed Shell makes a holder untrappable
+     * and IS legal here (`isNonstandard` is null — checked, not assumed). The Shadow-Tag-versus-Shadow-
+     * Tag exemption in the handler's own source is NOT reachable: the only carrier is a mega forme, and
+     * a second one would need a second mega evolution, which this format forbids. Declared, with the
+     * reason, rather than silently omitted. */
+    const SHED = dex.items.get('shedshell');
+    if (SHED && SHED.exists && !SHED.isNonstandard)
+      exceptions.push({ id: 'shed-shell-holder-is-not-trapped', side: 'A', slot: 0, from: R.id,
+        why: 'Shed Shell is legal in this format and makes its holder untrappable',
+        scenario: (() => { const x = exScenario('shedshell',
+          { ...mon(R.id, SHED.id, carrierAbility(R) || '', [INERT]) }, { sw: P.id });
+          return x; })() });
+
+    return { switchProbe: { side: 'A', slot: 0, to: P.id, turn: 2, preTo: R.id, preTurn: 1 },
+      trapExceptions: exceptions,
+      note: 'WILL\'S FIXTURE. ' + base.name + ' holds ' + stone.name + ' and mega-evolves on turn 1 into '
+          + forme.name + ', which is the ONLY body in this format with ' + e.name + '. '
+          + P.name + ' leaves for ' + R.name + ' on turn 1 (PRE-MEGA, the in-game control, and it must '
+          + 'succeed); ' + R.name + ' asks to leave on turn 2 and the authority must refuse. Control arm '
+          + '= the same game with the stone stripped, so no forme change happens at all. Exceptions '
+          + 'played as their own games: ' + (exceptions.map(x => x.id).join(', ') || 'NONE'),
+      scenario: sc, tier: 'MEGA', controlQuiet: true };
+  } },
+
 { id: 'ability/traps-and-somebody-tries-to-leave', kind: 'ability',
   reads: 'onFoeTrapPokemon / onFoeMaybeTrapPokemon — the handler names Showdown uses for a trap, and '
        + 'the type or grounding restriction read out of that handler\'s own source',
@@ -3462,10 +4161,25 @@ const RULES = [
         ? 'THE TRAP CANNOT BE ASKED BECAUSE NOTHING IN THIS FORMAT CARRIES IT. '
         : mega.length === all.length
           ? 'THE TRAP CANNOT BE ASKED BECAUSE ITS ONLY CARRIER IS MEGA-TIER (' + mega.map(s => s.name)
-            .join(', ') + '). THE FORME CHANGE WRITES THE ABILITY, so it cannot be swapped for a '
-            + 'control, and the only remaining control is suppression — which is MEASURED not to work '
-            + 'in this simulator: ' + gastroWorks().why + '  Until suppression is wired there is no '
-            + 'control arm for this row, and a trap probe with no control measures the fixture. '
+            .join(', ') + '). THE FORME CHANGE WRITES THE ABILITY, so it cannot be written onto the '
+            + 'sheet and a control has to be applied IN PLAY. '
+            /* THE BLOCKER MOVED, AND SAYING SO IS THE POINT. Until ROADMAP #138 this row was blocked by
+             * the CONTROL: the only one available was Gastro Acid suppression, measured dead here. A
+             * Skill Swap exchange now works (proven on Rough Skin, both engines), so the control is no
+             * longer what stops it — the FIXTURE is. `stageAbility`, which every specialised rule
+             * including this one builds through, can only put an ALTERNATE-tier body on the field: it
+             * writes the ability onto the sheet and has no mega ask and no setup turn. That is owed
+             * work in this file and it is named rather than dressed up as a control failure. */
+            + (swapControlWorks().ok
+                ? 'THE CONTROL IS NO LONGER THE OBSTACLE — a Skill Swap exchange is MEASURED to work in '
+                  + 'both engines (' + swapControlWorks().why + '). What is missing is the FIXTURE: '
+                  + '`stageAbility`, which this rule builds through, can only stage an ALTERNATE-tier '
+                  + 'carrier — it writes the ability onto the sheet and has no mega ask and no setup '
+                  + 'turn, so there is no way to put Gengar-Mega on the field with a trap to ask about. '
+                  + 'OWED WORK IN THIS FILE, not a fact about the simulator. '
+                : 'and the only remaining control is suppression — which is MEASURED not to work in '
+                  + 'this simulator: ' + gastroWorks().why + '  Until suppression is wired there is no '
+                  + 'control arm for this row, and a trap probe with no control measures the fixture. ')
           : 'THE TRAP CANNOT BE ASKED ON ANY CARRIER THIS RULE CAN USE. ';
       /* THE SCOPE TAG IS ONLY FOR THE REGULATION CASE. Shadow Tag HAS a carrier — tagging it
        * `no-legal-carrier` would inflate the out-of-scope count with a row that is really blocked by
@@ -4553,9 +5267,111 @@ const RULES = [
   match(e) {
     if (!(e.onStart || e.onSwitchIn) || e.onResidual) return null;
     const C = carrierFor(e);
+    /* THE REASON NAMES THE CONTROL THAT IS ACTUALLY IN USE, and it was stale for one run: ROADMAP #138
+     * replaced Gastro Acid with a Skill Swap exchange for these two tiers, and this sentence went on
+     * saying suppression was the only route. The OBSTACLE is unchanged and is not about which move it
+     * is — BOTH controls are CLICKS, and an entry effect has already fired by the time any click
+     * resolves. For the MEGA tier the trigger is the forme change on the setup turn and Showdown
+     * resolves that at queue order 104 against a move's 200, so the ability is on the board in BOTH
+     * arms before the control can touch it and the delta collapses. Measured, not argued: Electric
+     * Surge and Fairy Aura both come back with Showdown's own board identical. */
+    /* ---- THE MEGA TIER, THROUGH ITS CONSEQUENCE (ROADMAP #138, Will's Electric Surge / Fairy Aura
+     * fixtures) -----------------------------------------------------------------------------------
+     *
+     * Will: "WE TEST ELECTRIC SURGE BY SEEING IF THE TERRAIN IS SET UP"; "WITH FAIRY AURA WE HAVE OUR
+     * PARTNER MON ALSO USE A FAIRY ATTACK AND SEE IF IT GETS THE BOOST COMPARED TO WITHOUT IT".
+     *
+     * THE ABILITY IS NEVER WRITTEN ANYWHERE. The base body holds its stone and mega-evolves on turn 1;
+     * the forme grants the ability itself. The control is the SAME GAME WITH THE STONE STRIPPED, so no
+     * forme change happens and the ability never exists — `controlKind: 'stone'`.
+     *
+     * WHY THIS ESCAPES THE OBJECTION THAT KILLED EVERY EARLIER ATTEMPT. A mega moves stats, typing and
+     * ability at one instant, so a delta on the CARRIER cannot be charged to any one of them. These
+     * consequences are not on the carrier: a terrain is a FIELD leaf, and an aura's boost is measured
+     * on the FOE'S hp when the carrier's PARTNER attacks. No stat and no typing of the carrier's can
+     * set a terrain or change what its partner's move does to somebody else. `controlOf` excludes the
+     * carrier's own slot and party row by construction and prints that it did.
+     *
+     * THE PARTNER CLICKS AND THE CARRIER DOES NOT, deliberately: a click from the carrier would be
+     * thrown by a body whose Attack, Special Attack and typing all differ between the arms. */
+    if (C.tier === 'MEGA') {
+      const base = dex.species.get(C.species);
+      const forme = dex.species.get(C.forme);
+      if (!base || !base.exists || !forme || !forme.exists || !buildableSpecies(base.id))
+        return cannot('the base body or the mega forme this ability needs is not buildable here');
+      const atk = dex.species.get(CAST.ATTACKER().species);
+      const bag = dex.species.get(CAST.BAG().species);
+      /* THE PARTNER'S CLICK IS DERIVED FROM WHAT THE ABILITY SAYS IT SCOPES, never named. An aura names
+       * its TYPE in its own tag params; a terrain setter names its terrain, and the terrain's own
+       * consequence is read off the field rather than off a click. */
+      const aura = TAGS.abilities && TAGS.abilities[e.id] && TAGS.abilities[e.id].params
+        && TAGS.abilities[e.id].params.auraBoost;
+      const partnerSp = CANDIDATES.find(s => s.id !== base.id && s.id !== atk.id && s.id !== bag.id
+        && buildableSpecies(s.id) && carrierAbility(s));
+      if (!partnerSp) return cannot('no buildable partner body exists to click beside the carrier');
+      let click0 = null, negative = null, what = '';
+      if (aura && aura.type) {
+        /* SINGLE-TARGET ON PURPOSE. Floette-Mega's own list carries Dazzling Gleam, which is a SPREAD
+         * Fairy move and therefore carries its own 0.75 spread reduction — mixing that into an
+         * x5448/4096 reading is two multipliers where the rule wants one. Moonblast is the
+         * single-target member and the choice is made on `target`, not on a name. */
+        const fairy = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.type === aura.type
+          && m.category !== 'Status' && m.basePower && m.accuracy === 100
+          && m.target === 'normal' && MC.moves[m.id])
+          .sort((a, b) => b.basePower - a.basePower)[0];
+        const other = deliveryOf ? null : null;
+        const off = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.type !== aura.type
+          && m.category !== 'Status' && m.basePower && m.accuracy === 100
+          && m.target === 'normal' && MC.moves[m.id]
+          && dex.getImmunity(m.type, bag.types) !== false)
+          .sort((a, b) => b.basePower - a.basePower)[0];
+        if (!fairy || !off) return cannot('the format offers no single-target 100-accuracy '
+          + aura.type + '-type move and off-type counterpart this engine knows, so the aura has '
+          + 'nothing to boost and nothing to leave alone');
+        if (dex.getImmunity(fairy.type, bag.types) === false)
+          return cannot('the punching bag is immune to ' + aura.type + ', so the boosted arm would '
+            + 'read zero either way');
+        click0 = fairy; negative = off;
+        what = 'the PARTNER (' + partnerSp.name + ') throws ' + fairy.name + ' (' + aura.type
+          + ', single-target — a SPREAD member would carry its own 0.75 and make two multipliers of '
+          + 'one) at the bag on turn 2, and ' + off.name + ' (' + off.type + ', the negative, which '
+          + 'must be worth the same in both arms) on turn 3. The aura is field-wide, so the boost is '
+          + 'read on a body the carrier never touched.';
+      } else {
+        what = 'the carrier mega-evolves on turn 1 and the FIELD is the whole reading — a terrain, a '
+          + 'weather or a side condition that only this ability can set. Nothing is clicked at the '
+          + 'carrier, and the carrier own slot is excluded from the comparison by construction.';
+      }
+      const partner = mon(partnerSp.id, '', carrierAbility(partnerSp) || '',
+        [click0 ? click0.id : INERT, negative ? negative.id : INERT, INERT]);
+      const sc2 = scaffold({ hpA: 1, hpB: 1, subject: 'B0',
+        a0: mon(bag.id, '', CAST.BAG().ability, [INERT]),
+        a1: mon(atk.id, '', CAST.ATTACKER().ability, [INERT]),
+        b0: mon(base.id, C.stone, carrierAbility(base) || '', [INERT]),
+        b1: partner, b2: null,
+        script: [turn([IDLE, IDLE], [{ m: INERT, mega: true }, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, click0 ? click(click0.id, 0) : IDLE]),
+                 turn([IDLE, IDLE], [IDLE, negative ? click(negative.id, 0) : IDLE])] });
+      sc2.controlKind = 'stone';
+      sc2.abilityId = e.id;
+      sc2.carrierSpecies = base.id;
+      sc2.controlAbility = null;
+      sc2.controlQuiet = true;
+      sc2.controlAbility2 = null;
+      return { note: 'WILL FIXTURE, THROUGH THE CONSEQUENCE. ' + base.name + ' holds '
+          + pretty(C.stone) + ' and becomes ' + forme.name + ' on turn 1, which is the only body in '
+          + 'this format with ' + e.name + '. ' + what + '  CONTROL = the same game with the stone '
+          + 'stripped, so no forme change happens; the carrier own slot and party row are excluded '
+          + 'from the comparison because the forme change rewrites them by construction.',
+        scenario: sc2, tier: 'MEGA', controlQuiet: true };
+    }
     if (C.tier !== 'ALTERNATE') return cannot('it is an ENTRY ability on a ' + C.tier + '-tier carrier'
-      + ', and the only control available there is Gastro Acid — which is a CLICK, and a click cannot '
-      + 'come before boundary 0. The positive and the control would be different experiments.');
+      + ', where the ability cannot be written on the SHEET and every available control is a CLICK — '
+      + 'a Skill Swap exchange (ROADMAP #138) or Gastro Acid suppression. AN ENTRY EFFECT HAS ALREADY '
+      + 'FIRED BY THE TIME ANY CLICK RESOLVES'
+      + (C.tier === 'MEGA' ? ': the forme change writes the ability at queue order 104 and a move '
+          + 'resolves at 200, so the effect is on the board in BOTH arms before the control lands' : '')
+      + '. The positive and the control would be different experiments.');
     return abilityScenario(e, C, 'entry');
   } },
 
@@ -6540,6 +7356,11 @@ function assign(kind) {
                    * travel from the rule to `runEntry`, and dropping it here would silently turn a
                    * refusal probe back into a board comparison that always reads THREW. */
                   switchProbe: hit.m.switchProbe || null,
+                  /* AND THE EXCEPTION GAMES TRAVEL WITH IT, for the identical reason one line up. This
+                   * whitelist dropped them on the first run and the row came back
+                   * FIRED-AND-BOARDS-MATCH with "NO EXCEPTION ARM RAN" underneath — a pass whose own
+                   * text said it had not ruled out the thing it exists to rule out. */
+                  trapExceptions: hit.m.trapExceptions || null,
                   /* the receipt a precondition rule owes — see the check in `runEntry` */
                   precondition: hit.m.precondition || null };
     const nq = controlQuietAudit(row);

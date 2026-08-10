@@ -285,5 +285,153 @@ if (!DEX) {
   }
 }
 
+/* ---------------------------------------------------------------------------------------------
+ * E. TWO ROWS, ONE BODY — and the mega SOURCE POINTER underneath it
+ *
+ * ROADMAP #138, 2026-08-10. Check C asks whether two keys differ only in SPELLING. That is a
+ * different question from whether two keys name the same POKEMON, and the difference cost a forme:
+ *
+ *     floette-mega            mv: []   ab: "Fairy Aura"   base: "floette"
+ *     floette-eternal-mega    mv: []   ab: null
+ *
+ * `norm()` puts those in different buckets — `floettemega` against `floetteeternalmega` — so check C
+ * saw nothing. The FORMAT resolves BOTH to the single species Floette-Mega, which is in ~10.4% of
+ * stored games. CLAUDE.md already states this exactly: "ask whether the ARTIFACT has two keys that
+ * NORMALISE ALIKE, not whether the two files spell keys the same" — and normalising is precisely what
+ * was too weak. The authority on whether two names are one body is the dex, not a regexp.
+ *
+ * THE SECOND HALF IS THE POINTER, which is what actually emptied the row. A mega forme's source is
+ * `changesFrom`, NOT `baseSpecies`, and for three formes in this format they differ:
+ *
+ *     Floette-Mega      changesFrom Floette-Eternal   baseSpecies Floette   <- and plain Floette is
+ *                                                                             ILLEGAL here, so the
+ *                                                                             baseSpecies route lands
+ *                                                                             on a body with no row
+ *     Meowstic-F-Mega   changesFrom Meowstic-F        baseSpecies Meowstic
+ *
+ * Anything inheriting a mega's moves through `baseSpecies` therefore writes `mv: []`, and a body with
+ * no moves reads to every scorer as threatening NOTHING — the same consequence CLAUDE.md records for
+ * the original mega-ability hole, one field over.
+ *
+ * BOTH HALVES ARE ASKED OF THE FORMAT rather than listed, so a regulation change that adds a fourth
+ * such forme is caught without anybody editing this file.
+ * ------------------------------------------------------------------------------------------- */
+console.log('\nE. TWO ROWS, ONE BODY — artifact keys the FORMAT resolves to the same species');
+/* the artifact's own spelling map, at this scope — check B builds a private one per source and this
+ * check is not tied to a source */
+const artNormAll = new Map(keys.map(k => [norm(k), k]));
+if (!DEX) {
+  flag('GAP', 'could not open the format dex, so duplicate-body and mega-pointer were NOT CHECKED');
+} else {
+  const bySpecies = new Map();
+  let unresolved = 0;
+  for (const k of keys) {
+    const sp = DEX.species.get(k);
+    if (!sp || !sp.exists) { unresolved++; continue; }
+    if (!bySpecies.has(sp.id)) bySpecies.set(sp.id, []);
+    bySpecies.get(sp.id).push(k);
+  }
+  const dupes = [...bySpecies.entries()].filter(([, ks]) => ks.length > 1);
+  console.log(`     ${keys.length} rows, ${keys.length - unresolved} of which the format dex resolves` +
+    `${unresolved ? `; ${unresolved} it does not know and are excluded` : ''}`);
+  if (!bySpecies.size) flag('GAP', 'judged 0 rows — a check that judges nothing clears everything');
+  else if (dupes.length) {
+    flag('GAP', `${dupes.length} species is/are carried by MORE THAN ONE artifact row`);
+    for (const [id, ks] of dupes) {
+      console.log(`           ${DEX.species.get(id).name.padEnd(22)} <- ` + ks.map(k =>
+        `${k} [mv=${(mons[k].mv || []).length} ab=${mons[k].ab}]`).join('   ||   '));
+    }
+    console.log('           two representations of one body WILL diverge, and the emptier one wins ' +
+      'wherever a\n           consumer resolves by concatenation rather than through the artifact.');
+  } else flag('ok', 'every artifact row names a distinct body in this format');
+
+  /* the pointer. Judged ONLY on the rows that HAVE a source in the format and whose source is a legal
+   * body here — a mega whose source is banned in this regulation is a fact about the regulation. */
+  const megaRows = keys.filter(k => { const sp = DEX.species.get(k); return sp && sp.exists && sp.changesFrom; });
+  let judged = 0; const orphan = [], divergent = [];
+  for (const k of megaRows) {
+    const sp = DEX.species.get(k);
+    const from = DEX.species.get(norm(sp.changesFrom));
+    if (!from || !from.exists || from.isNonstandard) continue;   // source is not legal here
+    judged++;
+    if (norm(sp.changesFrom) !== norm(sp.baseSpecies)) divergent.push(`${sp.name} changesFrom ` +
+      `${sp.changesFrom}, baseSpecies ${sp.baseSpecies}`);
+    const srcKey = (from.id in mons) ? from.id : artNormAll.get(norm(from.id));
+    if (!srcKey) { orphan.push(`${k}: the format says its source is ${from.name} and the artifact has ` +
+      'no row for that body at all'); continue; }
+    if (!(mons[k].mv || []).length && (mons[srcKey].mv || []).length)
+      orphan.push(`${k}: mv is EMPTY while its source ${srcKey} carries ` +
+        `${mons[srcKey].mv.length} move(s) — the inheritance did not happen`);
+  }
+  console.log(`     ${megaRows.length} rows the format calls a forme change, ${judged} of which have a ` +
+    'source that is LEGAL in this regulation and are judged');
+  if (divergent.length) console.log('           changesFrom differs from baseSpecies on: ' +
+    divergent.join(' | ') + '  — a builder reading baseSpecies lands on the wrong body for these');
+  if (!judged) flag('GAP', 'judged 0 forme rows — a check that judges nothing clears everything');
+  else if (orphan.length) {
+    flag('GAP', `${orphan.length} forme row(s) did not inherit from the source the format names`);
+    for (const o of orphan) console.log('           ' + o);
+  } else flag('ok', `all ${judged} forme rows resolve to their source and carry moves`);
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * F. A ROW THAT IS PRESENT, NON-EMPTY, AND CARRIES NO INFORMATION
+ *
+ * ROADMAP #138, 2026-08-10, and it is the third distinct shape of the same root cause. Checks A, B and
+ * E all ask whether a value is ABSENT or EMPTY. None of them can see a moveset that is neither:
+ *
+ *     venusaur-mega   ["venoshock", "round", "snore", "protect"]
+ *     meganium-mega   ["round", "snore", "protect"]
+ *
+ * Round, Snore, Facade, Frustration — moves nobody brings on purpose, filled into rows that nothing had
+ * ever observed. Measured: of 76 mega rows whose source forme has a real set, only 8 shared it, and ALL
+ * 68 that differed carried no `set_source` at all while their base carried thousands of sheets. Every
+ * structural check passed on every one of them.
+ *
+ * AN EMPTY ROW IS A VISIBLE GAP AND A FILLER ROW IS AN INVISIBLE ONE. That asymmetry is the whole
+ * lesson, and it is why the builder now writes EMPTY rather than filler when it has no evidence.
+ *
+ * THE TEST IS PROVENANCE, NOT A LIST OF FILLER MOVES. "Which moves are filler" is a judgement that
+ * rots; "how many observations back this row, and from where" is a fact the builder records. A row
+ * whose declared observation count is zero — or which carries no provenance at all, meaning it was
+ * written by something that never asked — is suspect. THIN rows are reported separately and are not
+ * failures: two observations is a real set, it is just not a distribution, and a consumer should be
+ * able to see which it is holding.
+ * ------------------------------------------------------------------------------------------- */
+console.log('\nF. PRESENT, NON-EMPTY, AND UNBACKED — a moveset nothing ever observed');
+{
+  const isMegaRow = k => !!mons[k].mega || /-(mega|primal)(-|$)/i.test(k);
+  const megaKeys = keys.filter(isMegaRow);
+  const THIN = 10;
+  const unbacked = [], thin = [], empty = [];
+  for (const k of megaKeys) {
+    const P = mons[k].mv_provenance;
+    const n = (mons[k].mv || []).length;
+    if (!P) { if (n) unbacked.push(`${k} carries ${n} move(s) and NO provenance — nothing recorded `
+      + 'where they came from, which is what a filler row looks like'); continue; }
+    if (P.source === 'none' || !P.observations) {
+      if (n) unbacked.push(`${k} carries ${n} move(s) with source="${P.source}" and `
+        + `${P.observations || 0} observations — present, non-empty, and backed by nothing`);
+      else empty.push(k);
+      continue;
+    }
+    if (P.observations < THIN) thin.push(`${k} ${P.observations} obs from ${P.source}`);
+  }
+  console.log(`     ${megaKeys.length} mega/primal rows, `
+    + `${megaKeys.filter(k => mons[k].mv_provenance).length} of which record where their moveset came from`);
+  if (!megaKeys.length) flag('GAP', 'judged 0 rows — a check that judges nothing clears everything');
+  else if (unbacked.length) {
+    flag('GAP', `${unbacked.length} mega row(s) carry moves that nothing observed`);
+    for (const u of unbacked.slice(0, 10)) console.log('           ' + u);
+    console.log('           a filler moveset passes every ABSENT/EMPTY check while carrying no '
+      + 'information.\n           The honest value where there is no evidence is EMPTY, which is '
+      + 'visible.');
+  } else flag('ok', 'every mega row with a moveset records an observed source for it');
+  if (empty.length) console.log(`     ${empty.length} row(s) are EMPTY with a stated reason, which is `
+    + `the honest gap rather than a defect: ${empty.join(', ')}`);
+  if (thin.length) console.log(`     ${thin.length} row(s) are THIN (< ${THIN} observations) — a set, `
+    + `not a distribution, and reported rather than failed: ${thin.join('; ')}`);
+}
+
 console.log(`\n${problems ? problems + ' GAP(S) FOUND' : 'no gaps found'}`);
 process.exit(problems ? 1 : 0);

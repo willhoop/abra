@@ -15,27 +15,27 @@ it does not compete on them.
 MEASURE — can we believe a number
   leaf calibration: QUARANTINED — the figure is withheld, not annotated.
     data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 2 of 4 gate clauses fail (deliberate roster / abilities; deliberate roster / moves)
+    MEDICHAM is not correct — 1 of 5 gate clauses fail (deliberate roster / moves)
     it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
   engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 2 of 4 gate clauses fail (deliberate roster / abilities; deliberate roster / moves)
+    MEDICHAM is not correct — 1 of 5 gate clauses fail (deliberate roster / moves)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 20 unsafe, 1 void (declared), 67 possibly stale, 76 ok, 0 missing
+  provenance: 21 unsafe, 1 void (declared), 80 possibly stale, 65 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 2 of 4 gate clauses fail (deliberate roster / abilities; deliberate roster / moves)
+    MEDICHAM is not correct — 1 of 5 gate clauses fail (deliberate roster / moves)
     it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 04:00
-    feature_fixture --check FAILED:   The weights were fitted against the old definition and no longer describe these quantities. |   Refit (node engine/fit_policy.js, then node engine/fit_joint.js), or if a derived table was |   merely re-ingested, restamp with: node engine/feature_fixture.js --stamp <file>
-    moved after the fit: engine/medicham2-browser.js  2026-08-10 19:27
+    feature_fixture --check FAILED:   Measure what it touches before deciding — how many corpus games contain a changed species — |   then refit (node engine/fit_policy.js, then node engine/fit_joint.js) if it reaches the fit, |   or restamp with: node engine/feature_fixture.js --stamp <file>
+    moved after the fit: engine/medicham2-browser.js  2026-08-10 22:53
     moved after the fit: engine/board.js  2026-08-05 19:44
-    moved after the fit: data/engine-data.js  2026-08-10 00:00
-    moved after the fit: data/abra-tags.js  2026-08-10 19:12
+    moved after the fit: data/engine-data.js  2026-08-10 22:59
+    moved after the fit: data/abra-tags.js  2026-08-10 22:40
 ```
 
-_stamped 2026-08-10 19:35_
+_stamped 2026-08-10 22:59_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,116 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 00000. TURN 1 IS THE PRIMARY READING NOW, AND THE CONTAMINATION THEORY IS HALF RIGHT — 2026-08-10
+
+Will: *"lets only do turn 1's so we know nothing from the previous turn is messing up. then we can begin
+to look into later turns"*. `--turn1-only` refused to write an artifact, correctly, because one of the
+three planted defects is **structurally impossible on turn 1** — every body starts at full HP, so an
+`hp` event written at the top of turn 1 puts 100 over 100 and there is nothing left to detect.
+
+**THE REFUSAL WAS NOT WEAKENED. THE GATE IS STATED OVER CLASSES OF DEFECT INSTEAD OF ARM NAMES.** An arm
+declares its class; an arm the mode cannot carry declares itself INAPPLICABLE with the reason; and the
+run refuses unless every class has an arm that RAN and was CAUGHT. Dropping an arm because the mode
+cannot carry it is the same bypass as never running it, one level up from the `--selftest` flag this
+file already refuses to hide behind.
+
+**A FOURTH PLANT COVERS THE PRE-TURN-BOARD CLASS ON TURN 1: A SPECIES SWAP.** A lead body is replaced by
+one whose FASTEST legal Champions spread — taken over every weather — is slower than the SLOWEST legal
+spread of the body the record shows it outspeeding, so the recorded resolution order becomes something
+no legal spread can produce. It is planted at **every suitable site up to 12 and every one must be
+caught**; planting once and stopping at the first success is how a detector that works on one board in
+twenty passes a gate.
+
+| plant | class | all turns | turn 1 only |
+|---|---|---|---|
+| a damage figure cut to a quarter | outcome | runs | runs (restricted to turn 1) |
+| a freeze the game cannot produce | unreachable | runs | runs (restricted to turn 1) |
+| a wrong pre-turn HP under a recorded KO | pre-turn board | runs | **INAPPLICABLE — declared, not skipped** |
+| **a species swap on the pre-turn board** | pre-turn board | runs | runs |
+
+**TWO CANDIDATE PLANTS WERE MEASURED AND REJECTED FIRST, AND THE FIRST ONE IS A FINDING.** A species swap
+into a **type immunity** is invisible to this instrument: `dmgRange` returns an EMPTY roll array for an
+immune matchup and `damageVerdict` turns that into `unresolved — dmgRange returned no rolls` rather than
+a divergence. So "the record shows damage on a body our engine says cannot be touched at all" is
+REFUSED, not accused. **FILED, not fixed** — it would move the headline on the same day the mode changed.
+A swap into a bulkier body was rejected for a different reason: the attainable interval is ~60 points of
+max HP wide, so it fires or does not fire depending on the sample, and a red proof that is a coin flip
+is not a proof.
+
+**SHOWN RED TWICE, DELIBERATELY, BEFORE BEING BELIEVED.** Sabotaging the order comparator's disjointness
+test produced `8 of 8 PLACED PLANTS WENT UNNOTICED`; marking the species arm inapplicable produced
+`A WHOLE CLASS OF DEFECT HAS NO ARM THAT RAN AND WAS CAUGHT: preturn`. Both refused to write.
+
+**THE HEADLINE: 1,249 of 19,715 turn-1 units diverge = 6.34%**, release `30b21c5a335a`, 20,000 games read
+and 285 skipped (1.43%), 0 exceptions. bot-v-human 6.71%, human-v-human 5.62%.
+
+**THE MOVE FROM THE PUBLISHED 5.36% IS ENTIRELY SAMPLE, AND THAT IS MEASURED RATHER THAN ASSUMED.** On
+the same first 3,000 games the rebuilt instrument reproduces **158/2,947 = 5.36% exactly**, at the old
+release `70794711fe6d` AND at the new one — so the instrument moved nothing and the engine moved nothing
+on this arm. Games 3,001–20,000 run **6.51%**, and the gap survives inside both population strata rather
+than being the rising bot share alone.
+
+**TURN 1 AGAINST LATER TURNS, SAME 20,000 GAMES, SAME RELEASE, ONE RUN OF EACH MODE.** `--turn1-only`
+reproduces the full run's turn-1 arm to the unit (1,249/19,715 both ways), so the mode changes the
+denominator and not the measurement.
+
+| | turn 1 | turns >= 2 |
+|---|---|---|
+| turns compared | 19,715 | 106,558 |
+| diverged | 1,249 (**6.34%**) | 8,185 (**7.68%**) |
+
+Per 1,000 turns, by family — and the split between "everything that fed this was known" and "something
+was never revealed" is the whole point:
+
+| family | turn 1 | later | later / turn 1 |
+|---|---|---|---|
+| damage, all inputs known | 17.40 | 25.08 | 1.44 |
+| damage, attacker's item never revealed | 34.90 | 37.53 | 1.08 |
+| turn order | 5.02 | 8.39 | 1.67 |
+| **status, source ability known or no source** | **1.07** | **2.97** | **2.79** |
+| status, source ability never revealed | 8.17 | 7.56 | 0.93 |
+| weather | 0.00 | 0.17 | — |
+
+**THE STATUS BUCKET: THE RAW COUNT BARELY MOVES AND THE CLEAN ARM COLLAPSES.** 182 status divergences on
+turn 1 (9.23 per 1,000) against 1,123 later (10.54 per 1,000) — a 12% reduction, which does NOT support
+"the 188 status divergences are largely false" as a blanket claim. **88% of the turn-1 status rows (161
+of 182) are rows where the body that clicked into the status had an ability the record never revealed**,
+and that split did not exist until this pass: the damage family has carried `[the attacker's item was
+never revealed]` since it was built and the status family was quoting two different claims as one number.
+
+Split, the answer is sharp. **SLEEP IS THE CARRIED-OVER-STATE CONTAMINATION AND IT IS ISOLATED**: 130
+cause-known sleep divergences on later turns (1.22 per 1,000) against **ONE** on turn 1 (0.05) — a Yawn
+or a sleep counter from an earlier turn, exactly as suspected, and it cannot survive a turn-1 arm.
+**FREEZE IS THE OPPOSITE** and is the one clean status candidate for ENGINE: 10 of the 14 turn-1 freezes
+have a known cause and every witness is a Blizzard or an Ice Punch.
+
+**THE LARGEST SINGLE TURN-1 STATUS WITNESS IS NOT AN ENGINE DEFECT: `sneasler Fake Out -> psn`, 57 times
+in 20,000 turn-1s.** That is POISON TOUCH, and `data/engine-data.js` carries Sneasler's modal observed
+ability, which is UNBURDEN — in a closed-sheet game, 98.3% of this store, the body is built with it and
+cannot poison on contact. **A general lesson rather than a Sneasler one:** the modal-ability prior is
+doing the same damage to the status family that the unrevealed item does to the damage family.
+
+**AND THE SPREAD-MOVE INGEST DEFECT IS WORSE ON TURN 1, NOT BETTER.** The unresolved rate is **39.56% of
+41,762 damage units** against 35.30% over all turns, because **10,304 of the 16,519 unresolved rows (62%)
+are the spread-move conflation** — turn 1 is where both foes are most likely to be alive, so it is
+exactly where a spread move hits two bodies and the store collapses them into one row. Turn-1-only
+removes the invisible-carried-state class and removes none of this one. `sinistcha Matcha Gotcha -> brn`
+is the top turn-1 burn witness, which is that defect showing up in the status family too.
+
+**THE JOINT 66-POINT BUDGET IS NOW ENFORCED AND IT BUYS NOTHING — 0 of 28,982 corners clamped.** Every
+corner this instrument evaluates pushes at most TWO stats of one body (defensive stat + HP pool = 2 x 32
+= 64 <= 66), so the constraint never binds and no interval moves by a point. The clamp is live rather
+than decorative and starts counting if the cap ever changes. **The over-width that is real is a different
+one:** every EVENT is evaluated at its own corner, so one body can be the max-offence spread while it
+attacks and the max-bulk spread while it defends, in the same turn, on the same 66 points. Tying a body
+to one spread across a game is a joint solve, and it errs toward ACCUSING the engine — not done here,
+and not on the day the mode changed.
+
+**Filed, not fixed:** the immune-matchup hole above; `readGames` holds the whole sample in memory, which
+is what caps the sample rather than time (20,000 games is 35s in turn-1 mode); and the status family
+still has no split for a self-inflicted orb or a residual, which land in `[source ability KNOWN or no
+preceding move]` beside the genuine candidates.
 
 ### 0000. ROADMAP #68 — THE ENGINE NOW GETS MEASURED AGAINST GAMES THAT ACTUALLY HAPPENED — 2026-08-10
 

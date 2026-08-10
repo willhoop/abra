@@ -669,7 +669,27 @@ const MOVE_TAGS = [
      * BOARD's spelling; medicham2's terrainId translates it and nothing here needs to know that.
      * The multiplier is either a chainModify or an explicit `basePower * n`. A member where neither
      * can be read keeps the bare `scalesWith` and stays visibly unwired — Terrain Pulse changes its
-     * TYPE as well as its power and is not a multiplier, so it must not be given one. */
+     * TYPE as well as its power and is not a multiplier, so it must not be given one.
+     *
+     * ROADMAP #139 -- AND "VISIBLY UNWIRED" IS WHERE TERRAIN PULSE STAYED, so the second half is
+     * derived here rather than left as a note. `{scalesWith:'terrain'}` and nothing else is the same
+     * boolean-wearing-a-param's-clothes this tag's own comment complains about one paragraph up: the
+     * move takes the TERRAIN'S TYPE and DOUBLES its base power from 50 to 100 while its user is
+     * grounded, and neither fact was in the artifact — so the roster read `sd 1218 / ours 1231`, a
+     * Normal 50 where the authority threw an Electric 100.
+     *
+     * IT IS THE SAME SHAPE AS `weatherScaled.byWeather` ONE FIELD OVER, deliberately: a map from the
+     * field's own id to what it changes. `byTerrain` carries the type, `anyTerrainBPMult` the
+     * doubling that applies under ANY terrain (the handler tests `this.field.terrain` truthily rather
+     * than naming one), and `requiresGrounded` the gate both halves share. The paragraph above says
+     * the multiplier "must not be given" to Terrain Pulse and that stays true of `mult`, which means
+     * a SPECIFIC terrain's multiplier — an any-terrain doubling is a different field and does not
+     * collide with Expanding Force's or Rising Voltage's.
+     *
+     * MEMBERSHIP PRINTED BEFORE IT WAS WIRED: `byTerrain` matches Terrain Pulse alone, and so does
+     * `anyTerrainBPMult`. That is a set of one and it is stated rather than dressed up — what it buys
+     * over a name check is that the four terrain-to-type rows are read from the authority's own
+     * switch, which is where a hand-typed table would have gone wrong first. */
     of: m => {
       const srcs = [m.onModifyType, m.onModifyMove, m.basePowerCallback, m.onBasePower].map(x => String(x || ''));
       if (!srcs.some(s => /terrain/i.test(s))) return null;
@@ -681,6 +701,21 @@ const MOVE_TAGS = [
                   || (s.match(/basePower\s*\*\s*([\d.]+)/) || [])[1];
         if (t && mult) { out.terrain = t; out.mult = +mult; break; }
       }
+      /* idiom: switch (this.field.terrain) { case "electricterrain": move.type = "Electric"; break; … } */
+      for (const s of srcs) {
+        if (!/switch\s*\(\s*this\.field\.terrain\s*\)/.test(s)) continue;
+        const by = {};
+        for (const sw of s.matchAll(/case\s*"(\w+)"\s*:([^]*?)break/g)) {
+          const ty = (sw[2].match(/move\.type\s*=\s*"(\w+)"/) || [])[1];
+          if (ty) by[sw[1]] = ty;
+        }
+        if (Object.keys(by).length) out.byTerrain = by;
+      }
+      /* idiom: if (this.field.terrain && pokemon.isGrounded()) { move.basePower *= 2; } */
+      const any = String(m.onModifyMove || '')
+        .match(/this\.field\.terrain\s*&&[^{]*\{[^}]*basePower\s*\*=\s*([\d.]+)/);
+      if (any) out.anyTerrainBPMult = +any[1];
+      if ((out.byTerrain || out.anyTerrainBPMult) && /isGrounded\(\)/.test(srcs.join(''))) out.requiresGrounded = true;
       return out;
     } },
   /* TWO MECHANISMS, and the probe only knew one. Will: "knock off does 1.5x if they are holding an
@@ -935,14 +970,96 @@ const MOVE_TAGS = [
      * the one member that rounds UP. Measured against the authority on a 137 HP Heliolisk: Shed Tail
      * costs 69 there and this engine charged 68. Read from the handler so a fourth member arrives
      * with its own rounding instead of inheriting somebody else's. */
+    /* ROADMAP #139 -- THE FRACTION WAS A NAME TABLE, AND ONE OF ITS THREE ENTRIES WAS WRONG. What
+     * stood here read `/clangoroussoul/ ? 1/3 : /shedtail/ ? 1/2 : /substitute/ ? 1/4 : null` -- a
+     * hand list wearing a derivation's clothes, and Clangorous Soul does not cost a third. Its
+     * handler is `this.directDamage(pokemon.maxhp * 33 / 100)`: THIRTY-THREE HUNDREDTHS, which is
+     * less than a third, and on a 620 HP body the difference is exactly the 2 HP the deliberate
+     * roster read (`sd 416 / ours 414`). Nobody mistyped it; 33/100 reads as "about a third" and the
+     * table recorded the reading rather than the number.
+     *
+     * IT IS NOW PARSED OUT OF THE HANDLER, so a fourth member arrives with its own arithmetic. Three
+     * shapes cover every payer in the format -- `maxhp * A / B`, `maxhp / B` and
+     * `Math.ceil(maxhp / B)` -- and anything else returns null LOUDLY rather than inheriting a
+     * neighbour's fraction. `failsBelow` is read from the move's own guard (`hp <= ...`) rather than
+     * assumed equal to the cost: they happen to agree for all three members today, and a member for
+     * which they part is one regex away instead of one rewrite away.
+     *
+     * THE TRY-PHASE GATE IS REQUIRED FOR MEMBERSHIP, AND THAT IS WHAT KEEPS THE SET AT THREE. The
+     * first version of this parse asked only "does it directDamage a share of maxhp", and the diff
+     * printed TWO NEW MEMBERS before a consumer read them -- which is the whole reason this file's
+     * brief says to print the match. Both would have been defects:
+     *   - `curse` pays `source.maxhp / 2` on its Ghost branch and ALREADY pays it inside
+     *     `typeSplitMove`'s own branch in medicham2, so the shared charge at the top of the
+     *     resolution loop would have taken half the user's HP TWICE;
+     *   - `bellydrum` states its refusal inside `onHit` (`if (target.hp <= target.maxhp / 2 ||
+     *     target.boosts.atk >= 6) return false`), AFTER the boost decision, not in the try phase --
+     *     so charging it where this tag's consumer charges would apply a threshold at the wrong
+     *     moment and would ignore the +6 clause entirely.
+     * Neither is "not a cost". Both are costs whose ORDER differs, and the tag as written is about a
+     * cost paid at the try boundary. They are named here so the exclusion is a decision on the
+     * record rather than a predicate that happens to miss them. */
     of: m => {
-      const src = String(m.onTry || '') + String(m.onTryHit || '') + String(m.onHit || '');
+      const flat = (s) => String(s || '').replace(/\s+/g, ' ');
+      const src = flat(m.onTry) + flat(m.onTryHit) + flat(m.onHit);
       if (!/maxhp/i.test(src)) return null;
-      const frac = /clangoroussoul/.test(norm(m.id)) ? 1 / 3
-                 : /shedtail/.test(norm(m.id)) ? 1 / 2
-                 : /substitute/.test(norm(m.id)) ? 1 / 4 : null;
-      const rounds = /directDamage\(\s*Math\.ceil\(/.test(src.replace(/\s+/g, ' ')) ? 'ceil' : 'trunc';
-      return frac ? { costsFraction: frac, failsBelow: frac, rounds } : null;
+      /* The COST: whatever `directDamage` is handed. */
+      const paid = flat(m.onHit).match(/directDamage\(\s*(?:Math\.ceil\()?\s*\w+\.maxhp\s*(?:\*\s*(\d+)\s*)?\/\s*(\d+)/);
+      if (!paid) return null;
+      const costsFraction = (+(paid[1] || 1)) / (+paid[2]);
+      /* The THRESHOLD: the move's own try-phase `hp <= ...maxhp...` refusal. No gate, no membership. */
+      const gate = (flat(m.onTry) + flat(m.onTryHit))
+        .match(/\.hp\s*<=\s*(?:Math\.ceil\()?\s*\w+\.maxhp\s*(?:\*\s*(\d+)\s*)?\/\s*(\d+)/);
+      if (!gate) return null;
+      const failsBelow = (+(gate[1] || 1)) / (+gate[2]);
+      const rounds = /directDamage\(\s*Math\.ceil\(/.test(src) ? 'ceil' : 'trunc';
+      return { costsFraction, failsBelow, rounds };
+    } },
+  /* ROADMAP #139 -- A MOVE THAT REFUSES ITSELF. No Retreat's `onTry` is
+   * `if (source.volatiles['noretreat']) return false;` -- the second click FAILS OUTRIGHT, boosting
+   * nothing. This engine re-applied it, so the deliberate roster read `sd atk +1, ours +2` on every
+   * stat: a free second Dragon Dance, on 247 stored clicks.
+   *
+   * THE SHAPE, NOT THE MOVE, AND THE MATCH WAS PRINTED BEFORE ANYTHING READ IT. Exactly TWO members
+   * in this format: `noretreat` (guards on its OWN volatile) and `magnetrise` (guards on someone
+   * ELSE'S -- Smack Down or Ingrain, already on the same body). That second one is why `on` is
+   * carried at all: the guard's receiver is the move's target, which for a self-targeted move is the
+   * user, and collapsing the two would have made Magnet Rise refuse itself.
+   *
+   * WHAT IS DELIBERATELY EXCLUDED, because the derivation was run over the whole format first and
+   * each of these came back and was looked at: `counter` and `mirrorcoat` test for the ABSENCE of a
+   * volatile (`!source.volatiles[...]`) and are a different mechanic entirely; `stockpile` carries a
+   * layer comparison rather than a bare presence test and already has `layeredVolatile`; `curse`,
+   * `entrainment` and `lockon` state their guard in `onTryHit` inside a multi-clause body that also
+   * decides between two moves or edits the move object -- reading only `onTry` is what keeps those
+   * out. LOCK-ON IS A REAL MEMBER THIS PREDICATE DOES NOT CATCH, and that is written down rather
+   * than papered over: widening to `onTryHit` sweeps in Curse and Entrainment, whose refusals are
+   * conditional on things this tag cannot express. A predicate that swept them in would have
+   * described five mechanics with one tag, which is the failure `docs/TAGS.md` names first. */
+  { tag: 'failsIfVolatile', param: 'the click FAILS outright while a named volatile is present',
+    probe: 'failsIfVolatile',
+    why: 'No Retreat (247 stored clicks) re-applied for free, boosting all five stats a second time. '
+       + 'Lock-On and Magnet Rise carry the same guard',
+    of: m => {
+      const src = String(m.onTry || '').replace(/\s+/g, ' ');
+      if (!src) return null;
+      /* ONE CLAUSE ONLY, and it must be the FIRST statement of the guard: a bare
+       * `if (X.volatiles['a'] || X.volatiles['b']) return false;`. Anything with more structure than
+       * that is a different mechanic and is refused rather than approximated. */
+      const mt = src.match(/^\s*on\w+\([^)]*\)\s*\{\s*if\s*\(([^)]*volatiles\[[^)]*)\)\s*return\s+false\s*;/);
+      if (!mt) return null;
+      const clause = mt[1];
+      if (/!/.test(clause) || /[<>=]/.test(clause) || /&&/.test(clause)) return null;
+      const who = new Set(), vols = [];
+      const re = /(\w+)\.volatiles\[["'](\w+)["']\]/g;
+      let g;
+      while ((g = re.exec(clause))) { who.add(g[1]); vols.push(g[2]); }
+      if (!vols.length || who.size !== 1) return null;
+      const recv = [...who][0];
+      /* `source` is unambiguously the user. `target`/`pokemon` is the move's receiver, which for a
+       * self-targeted move IS the user -- read off the move's own target field rather than guessed. */
+      const on = recv === 'source' ? 'user' : (m.target === 'self' ? 'user' : 'target');
+      return { volatiles: vols, on };
     } },
   /* Will asked whether Triple Axel's ascending power is recorded. The escalation is in the move's
    * basePowerCallback, so it IS derivable -- but the thing that actually changes the maths is
@@ -1421,6 +1538,115 @@ const MOVE_TAGS = [
       const F = ['punch', 'bite', 'slicing', 'pulse', 'bullet', 'wind', 'reflectable'];
       const on = F.filter(f => m.flags && m.flags[f]);
       return on.length ? { classes: on } : null;
+    } },
+  /* ROADMAP #139 -- WHICH MOVES PARENTAL BOND REFUSES TO DOUBLE, read off the ability's own early
+   * return rather than off a list. `parentalbond.onPrepareHit` bails on
+   *     move.category === 'Status' || move.multihit || move.flags['noparentalbond']
+   *     || move.flags['charge'] || move.flags['futuremove'] || move.spreadHit || isZ || isMax
+   * The first two and `spreadHit` are already facts this engine holds (`hasPower`, `expectedHitsOf`,
+   * the `spread` argument), so what was missing is exactly the three FLAGS -- and without them a
+   * Kangaskhan-Mega's Solar Beam, Fling, Explosion and Final Gambit all got a second hit the real
+   * game never gives them.
+   *
+   * IT IS ITS OWN TAG AND NOT THREE MORE `moveClass` CLASSES, deliberately. `moveClass` is the set of
+   * flags ABILITIES key on (Bulletproof, Soundproof, Wind Rider) and it is read by `moveClassBlocked`
+   * as an immunity question; adding `charge` to it would put a class into that reader that means
+   * something completely different. One tag, one question.
+   *
+   * MEMBERSHIP PRINTED BEFORE IT WAS WIRED: 17 moves in this format -- bounce, dig, dive, electroshot,
+   * fly, meteorbeam, phantomforce, skyattack, solarbeam, solarblade (charge), futuresight
+   * (futuremove), and dragondarts, endeavor, explosion, finalgambit, fling, selfdestruct
+   * (noparentalbond). The reason is carried per move so a consumer can tell a charge move from an
+   * explicitly-excluded one. */
+  /* ROADMAP #139 -- PAIN SPLIT, 151 stored clicks, `DID-NOT-FIRE`. Its tags were `neverMisses` and
+   * `statusCategory` and nothing else, so `playerAction` had nothing to classify it by and the click
+   * was a no-op turn. The handler is the whole mechanic and it is fully derivable:
+   *     const averagehp = Math.floor((targetHP + pokemon.hp) / 2) || 1;
+   *     target.sethp(target.hp - (targetHP - averagehp)); pokemon.sethp(averagehp);
+   * Both bodies END ON THE SAME HP -- it is not a heal and not a chip, it is a levelling, and an
+   * engine modelling it as either gets the sign wrong half the time.
+   * ONE MEMBER, and that is stated rather than dressed up. What the tag buys over a name check is
+   * that the ROUNDING and the `|| 1` floor come out of the handler. */
+  /* ROADMAP #139 -- BLOCK AND MEAN LOOK. Will: *"block really shouldnt be that hard, its just shadow
+   * tag"*. He is right, and the artifact is why it never worked: `preventsSwitch` exists, Shadow Tag
+   * and Arena Trap carry it, medicham2 READS it (WIRE 92) -- and these two carried no trapping tag at
+   * all. Their whole tag set was [moveClass, neverMisses, ignoresProtect, statusCategory], so the
+   * roster's verdict was "SHOWDOWN REFUSED THE SWITCH AND OUR ENGINE ALLOWED IT". A TAGGER gap, not an
+   * engine gap.
+   *
+   * NOT THE SAME TAG AS `preventsSwitch`, deliberately. That one belongs to a body standing on the
+   * field and lapses the moment the carrier leaves; this is a volatile written ONTO the victim, which
+   * outlives its source and travels with the victim. Two mechanisms, two tags, one reader each.
+   * NOT `partiallyTrapped` either: that family (Wrap, Fire Spin) chips and expires; this does not.
+   *
+   * TWO MEMBERS IN THE FORMAT, printed before it was wired: block and meanlook. */
+  { tag: 'trapsTarget', param: 'the target cannot switch out until the trapper leaves',
+    probe: 'trapsTarget',
+    why: 'Block and Mean Look: the authority REFUSES the switch and this engine allowed it, because '
+       + 'neither move carried any trapping tag at all',
+    of: m => {
+      const src = String(m.onHit || '').replace(/\s+/g, ' ');
+      const mt = src.match(/addVolatile\(\s*["'](trapped)["']/);
+      if (!mt) return null;
+      return { volatile: mt[1], to: 'target', endsWithSource: true };
+    } },
+  { tag: 'sharesHP', param: 'both bodies end on the same HP -- the average of the two',
+    probe: 'sharesHP',
+    why: 'Pain Split (151 stored clicks) resolved to a no-op turn: the artifact described nothing '
+       + 'about it, so nothing could classify the click',
+    of: m => {
+      const src = String(m.onHit || '').replace(/\s+/g, ' ');
+      if (!/averagehp/i.test(src) || !/sethp/i.test(src)) return null;
+      const div = (src.match(/\/\s*(\d+)\s*\)/) || [])[1];
+      const floor = /\|\|\s*1/.test(src) ? 1 : 0;
+      return { mode: 'average', over: div ? +div : 2, minimum: floor, rounds: /Math\.floor/.test(src) ? 'floor' : null };
+    } },
+  /* ROADMAP #139 -- COPYCAT, 78 stored clicks, `DID-NOT-FIRE` for the same reason Pain Split was.
+   * `callsMove` is a flat dex field and the SOURCE of the call is what tells the two members apart:
+   * Copycat re-uses `this.lastMove` (the last move ANY body used) and Sleep Talk picks at random from
+   * its own moveslots. Collapsing them into one boolean would describe two different mechanics with
+   * one tag, which is the failure docs/TAGS.md names first. The refusal list is carried too --
+   * Copycat declines a move flagged `failcopycat`, which is how it avoids calling itself. */
+  { tag: 'callsAnotherMove', param: 'the click executes a DIFFERENT move, and this says which one',
+    probe: 'callsAnotherMove',
+    why: 'Copycat (78 stored clicks) and Sleep Talk resolved to a no-op turn -- the artifact said '
+       + 'only that they were status moves that never miss',
+    of: m => {
+      if (!m.callsMove) return null;
+      const src = String(m.onHit || '').replace(/\s+/g, ' ');
+      const source = /this\.lastMove/.test(src) ? 'lastMove'
+                   : /moveSlots/.test(src) ? 'ownRandom' : null;
+      if (!source) return null;
+      const refuses = [...src.matchAll(/flags\[["'](\w+)["']\]/g)].map(x => x[1]);
+      return { source, refusesFlags: refuses.length ? refuses : null };
+    } },
+  /* ROADMAP #139 -- ENDURE, 32 stored clicks. It carries `stalling` and `statusInflict`, so the
+   * engine built a `kind:'affect'` action, wrote `_vol.endure` and NOTHING READ IT -- the roster's
+   * receipt is a body that should have been left on 1 HP and instead fainted. It is NOT a Protect: the
+   * hit lands, every secondary and every contact punish happens, and only the HP floors at 1.
+   * Derived from the condition's own `onDamage`, which is where the floor and the "a MOVE only" gate
+   * both live -- burn chip and Leech Seed still kill through an Endure, and an engine that read this
+   * as a blanket survival would make the move strictly better than it is. */
+  { tag: 'survivesAnyHit', param: 'a damaging MOVE cannot take the user below this HP, for one turn',
+    probe: 'survivesAnyHit',
+    why: 'Endure (32 stored clicks) wrote its volatile and no consumer existed, so the body it was '
+       + 'meant to save died anyway',
+    of: m => {
+      const c = m.condition || {};
+      const src = String(c.onDamage || '').replace(/\s+/g, ' ');
+      if (!/damage >= target\.hp/.test(src) || !/return target\.hp - (\d+)/.test(src)) return null;
+      const leaves = +(src.match(/return target\.hp - (\d+)/) || [0, 1])[1];
+      return { leavesHP: leaves, onlyFrom: /effectType === "Move"/.test(src) ? 'move' : null,
+               duration: c.duration != null ? +c.duration : null, volatile: m.volatileStatus || null };
+    } },
+  { tag: 'noExtraHit', param: 'the move refuses an ability-granted extra hit (Parental Bond)',
+    probe: 'noExtraHit',
+    why: 'Parental Bond doubled Solar Beam, Fling, Explosion, Final Gambit and Dragon Darts, none of '
+       + 'which the authority doubles -- a whole extra hit on the moves it explicitly excludes',
+    of: m => {
+      const F = ['noparentalbond', 'charge', 'futuremove'];
+      const on = F.filter(f => m.flags && m.flags[f]);
+      return on.length ? { because: on } : null;
     } },
   /* Will: "does freeze dry need like tag saying im super effective against water, or will it tell
    * us that". It will NOT tell us -- mcEff is a static type chart and Freeze-Dry overrides
@@ -2916,6 +3142,24 @@ const MOVE_TAGS = [
 ];
 
 const ITEM_TAGS = [
+  /* ROADMAP #139 -- SHED SHELL, AND AN OVER-REFUSAL IS A DEFECT EXACTLY AS AN UNDER-REFUSAL IS.
+   * medicham2's ability-trapping branch already carried a comment admitting this gap by name ("SHED
+   * SHELL IS NOT HONOURED ON THIS BRANCH and that is a stated gap"). The mega agent's Shadow Tag
+   * fixture read it as `OURS-REFUSED-AND-THE-AUTHORITY-DID-NOT`: a bot that believes it is trapped
+   * will not switch when switching is right, and that is a lost game rather than a rounding error.
+   *
+   * ASKED OF THE FORMAT RATHER THAN LISTED: exactly ONE item in Reg M-B declares `onTrapPokemon`, and
+   * NO ability does. So this tag has one member and its emptiness elsewhere is a fact about the
+   * regulation, not a hole in the predicate -- which is why the count is worth printing. */
+  { tag: 'escapesTrap', param: 'the holder is never trapped -- its escape option survives',
+    probe: 'onTrapPokemon',
+    why: 'Shed Shell. The engine refuses a switch the authority allows, which is the direction that '
+       + 'costs a game rather than a point of HP',
+    of: i => {
+      const src = String(i.onTrapPokemon || '').replace(/\s+/g, ' ');
+      if (!/trapped = false/.test(src)) return null;
+      return { escapes: true, scope: 'ability' };
+    } },
   { tag: 'megaStone', param: 'the holder becomes another species', probe: 'megaStone',
     why: 'different stats, typing and ability from turn one',
     of: it => it.megaStone ? { into: it.megaStone } : null },
@@ -3275,6 +3519,86 @@ const ITEM_TAGS = [
 ];
 
 const ABILITY_TAGS = [
+  /* ROADMAP #139 -- SUCTION CUPS, AND IT IS THE MIRROR OF `escapesTrap` RATHER THAN A SECOND COPY OF
+   * IT. The two are opposite ends of the same axis and an engine holding one boolean for "can this
+   * body change slots" cannot express both:
+   *     escapesTrap    restores the CHOICE to leave     (Shed Shell, an item, against a trap)
+   *     refusesForcedSwitch  refuses being THROWN OUT   (Suction Cups, against Roar / Whirlwind)
+   * Measured RED before this existed: a Suction Cups holder was dragged out by Roar in the authority
+   * and this engine did not move the board at all -- and there was no `suctioncups` row in
+   * data/tags.json AT ALL, so no reader could have been written first. That is the two-queue point:
+   * a row with a tag is a reader and a row without one is a derivation.
+   *
+   * DERIVED FROM `onDragOut` RETURNING null, which is the whole mechanism and is not a name. TWO
+   * members in the format, printed before it was wired: `suctioncups` and `guarddog`. Guard Dog has no
+   * legal carrier in this regulation, which is a fact about the SPECIES POOL and not a reason to match
+   * on the one name that does -- a later regulation adding a carrier needs no edit here. */
+  { tag: 'refusesForcedSwitch', param: 'the holder cannot be dragged out by a move or an item',
+    probe: 'onDragOut',
+    why: 'Suction Cups: Showdown drags the body out and this engine did not move the board, because '
+       + 'the ability had no row in data/tags.json at all',
+    of: a => {
+      const src = String(a.onDragOut || '').replace(/\s+/g, ' ');
+      if (!/return null/.test(src)) return null;
+      return { refuses: 'forcedSwitch', announces: /this\.add\("-activate"/.test(src) };
+    } },
+  /* ROADMAP #139 -- PIERCING DRILL AND UNSEEN FIST, BOTH `untagged`, AND THIS FORMAT'S UNSEEN FIST IS
+   * NOT THE MAINLINE ONE. Champions Reg M-B ships them byte-identical:
+   *
+   *     shortDesc: "This Pokemon's contact moves ignore a target's protection and deal 1/4 the usual
+   *                 damage."
+   *     onHitProtect(source, target, move) {
+   *       if (move.flags['contact']) { target.getMoveHitData(move).bypassProtect = this.effect;
+   *                                    return false; }
+   *     }
+   *
+   * In standard gen 9 Unseen Fist pierces at FULL damage. Anyone reasoning from the mainline mechanic
+   * gets this wrong by a factor of four, which is why the multiplier is READ rather than typed.
+   *
+   * BOTH HALVES OR IT IS A DIFFERENT ABILITY. A bare `{bypassesProtect:true}` describes an ability
+   * that punches through a Protect for full damage -- strictly better than the one in this format and
+   * a strictly worse thing to hand a search. The condition (`onlyMoveFlag: contact`) is the other
+   * half: an ability that pierced with ANY move would be a third thing again.
+   *
+   * WHERE THE 0.25 LIVES, AND WHY IT IS NOT IN THE ABILITY. `onHitProtect` only RAISES the flag; the
+   * quartering is in the simulator, at the very bottom of `modifyDamage` -- after the burn halving and
+   * after the ModifyDamage event -- keyed on `getMoveHitData(move).bypassProtect`. So it is a property
+   * of the BYPASS, shared by every ability that raises the flag, and it is read out of
+   * `sim/battle-actions.js` rather than typed here or parsed out of English prose. A build where that
+   * line cannot be found emits no multiplier at all and says so, because a bypass at full damage is
+   * exactly the wrong half to guess.
+   *
+   * AND THE BYPASS ONLY HAPPENS AGAINST A LIVE SHIELD, which is the third arm of any honest fixture:
+   * `checkMoveBypassesProtect` is called ONLY from the protect family's own `onTryHit` (checked over
+   * the whole move file -- every call site is a stalling move's condition), so a contact move into an
+   * UNPROTECTED body raises no flag and takes no quartering. `appliesOnlyWhenBlocked` says so in the
+   * artifact so a consumer cannot read this as "contact moves deal a quarter".
+   *
+   * MATCHED ON SHAPE. Two abilities carry it today and neither is named: the predicate is "declares
+   * onHitProtect, tests a move flag, writes bypassProtect". */
+  { tag: 'piercesProtect', param: 'contact moves go through a shield, at reduced damage',
+    probe: 'piercesProtect',
+    why: 'Piercing Drill and Unseen Fist are both untagged, so nothing in the engine can act on them '
+       + 'and no fixture can reach them. This format quarters the pierced hit; mainline does not',
+    of: a => {
+      const src = String(a.onHitProtect || '').replace(/\s+/g, ' ');
+      if (!src || !/bypassProtect/.test(src)) return null;
+      const flag = (src.match(/move\.flags\[\s*["'](\w+)["']\s*\]/) || [])[1] || null;
+      const out = { bypassesProtect: true, onlyMoveFlag: flag, appliesOnlyWhenBlocked: true };
+      /* The multiplier, out of the simulator's own line rather than out of the shortDesc. */
+      try {
+        const sim = fs.readFileSync(path.join(process.env.SHOWDOWN_PATH, 'dist', 'sim', 'battle-actions.js'), 'utf8');
+        const mm = sim.replace(/\s+/g, ' ')
+          .match(/const bypassProtect = [^;]*; if \(bypassProtect\) \{ \w+ = this\.battle\.modify\(\w+, ([\d.]+)\)/);
+        if (mm) out.damageMult = +mm[1];
+      } catch (e) { /* falls through to the loud absence below */ }
+      if (out.damageMult == null) {
+        out.damageMult = null;
+        out.note = 'the simulator line that applies the bypass multiplier could not be read — the '
+                 + 'multiplier is UNKNOWN, not 1';
+      }
+      return out;
+    } },
   { tag: 'convertsMoveType', param: 'rewrites Normal moves to another type and boosts them',
     probe: 'convertsMoveType',
     why: 'Aerilate Staraptor and Galvanize are whole archetypes, and the engine played them as if '
@@ -3471,10 +3795,38 @@ const ABILITY_TAGS = [
        * it, so this changes no behaviour today and stops one tomorrow. */
       const only = (src.replace(/\s+/g, ' ')
         .match(/effect\.name\s*===?\s*['"]([^'"]+)['"][^;{]*\)\s*\{/) || [])[1] || null;
+      /* WIRE 157 -- MIRROR ARMOR DOES NOT BLOCK A DROP, IT RETURNS IT, AND THE TAG SAID ONLY THE
+       * FIRST HALF.
+       *
+       * The paragraph above is about a REGENERATION nearly deleting this ability. This is the other
+       * side of the same entry: the tag it did get -- `{blocks:'all stats'}` -- is what every Clear
+       * Body carrier gets, and medicham2 acted on it exactly that way, with `REFLECTS_DROP` a typed
+       * name list whose only job was to SUPPRESS the `-fail` message. So a Corviknight ate an
+       * Intimidate and the Intimidator walked away clean; the roster measured Showdown at -1/-2 Atk
+       * and -1 SpA on the aggressors against 0 here.
+       *
+       * DERIVED FROM THE HANDLER RE-AIMING THE BOOST AT `source`: `this.boost(negativeBoost, source,
+       * target, null, true)`. That is the shape, and it is what distinguishes a reflector from a
+       * blocker -- a blocker's handler deletes the key and calls nothing.
+       *
+       * MEMBERSHIP PRINTED BEFORE IT WAS WIRED, over every non-Past ability the format defines:
+       *     onTryBoost re-aiming this.boost at `source` [1]: Mirror Armor
+       * ONE, and the typed `REFLECTS_DROP` list in medicham2 held exactly that one name, so this
+       * changes no membership -- it replaces a literal with a derivation and gives the consumer the
+       * fact it was missing.
+       *
+       * THE TWO GUARDS TRAVEL WITH IT because the consumer must not invent them: the reflection is
+       * skipped when the target is ALREADY at -6 on that stat (`if (target.boosts[b] === -6)
+       * continue` -- the drop is then simply deleted and nobody takes it), and it needs a LIVING
+       * source (`if (source.hp)`). */
+      const refl = /this\.boost\([^)]*\bsource\b/.test(src);
       return { blocks: statsBlockedIn(src) || 'all stats',
                onlyFrom: only,
                onlyGrassTypes: /hasType\("Grass"\)/.test(src) || null,
-               protectsAllies: !!a.onAllyTryBoost || null };
+               protectsAllies: !!a.onAllyTryBoost || null,
+               reflects: refl || null,
+               reflectSkipsAtFloor: refl ? /boosts\[\w+\]\s*===?\s*-6/.test(src) : null,
+               reflectNeedsLivingSource: refl ? /source\.hp/.test(src) : null };
     } },
   /* ROADMAP #92 -- AN ABILITY THAT REFUSES ONE NAMED VOLATILE, WHICH IS NOT THE SAME TAG AS ONE THAT
    * REFUSES A STAT DROP. Own Tempo carried `preventsStatDrop` alone -- the Intimidate half -- and its
@@ -3504,6 +3856,102 @@ const ABILITY_TAGS = [
        * is not the Meteor forme, so the condition travels with the tag rather than being dropped. */
       const forme = (src.match(/species\.id\s*!==?\s*["']([a-z]*)["']/) || [])[1] || null;
       return { refuses, requiresForme: forme };
+    } },
+  /* WIRE 157 -- A REACTION TO A FLINCH IS NOT A REFUSAL OF ONE, AND `refusesVolatile` DIRECTLY ABOVE
+   * IS THE TAG IT KEEPS BEING MISTAKEN FOR.
+   *
+   * Inner Focus REFUSES the flinch: `onTryAddVolatile`, the volatile never lands, the body moves.
+   * Steadfast TAKES the flinch and is PAID for it: `onFlinch(pokemon) { this.boost({spe: 1}) }`,
+   * which Showdown runs from inside the flinch condition's own `onBeforeMove` (data/conditions.ts:
+   * `this.add('cant', pokemon, 'flinch'); this.runEvent('Flinch', pokemon); return false;`). The turn
+   * is still lost. So the two abilities sit on opposite sides of the same event and no consumer that
+   * reads one can serve the other -- which is exactly what happened: WIRE 156 routed Fake Out through
+   * the shared secondary loop and Inner Focus started working for free, while Steadfast's +1 Speed
+   * has never fired in this engine at all.
+   *
+   * MEMBERSHIP PRINTED BEFORE IT WAS WIRED, over every non-Past ability the format defines:
+   *     onFlinch [1]: Steadfast
+   * ONE. There is nothing here to over-match, which is why the tag is derived off the HOOK NAME and
+   * the boost table off the handler's own `this.boost({...})` rather than off `spe: 1` being typed
+   * anywhere. Carriers in Reg M-B: Machamp, Lucario, Gallade, Lycanroc.
+   *
+   * THE POSITION IN THE TURN IS THE MECHANIC, and it is the consumer's problem rather than the tag's:
+   * the boost is owed only when the flinch actually SPENDS the turn, so a body that is asleep as well
+   * as flinched consumes the sleep first (Showdown's beforeMove priority: slp 10, flinch 8) and is
+   * paid nothing. */
+  { tag: 'boostsOnFlinch', param: 'the holder is PAID when a flinch takes its turn away', probe: 'boostsOnFlinch',
+    why: 'Steadfast, 48 uses. It is the mirror of Inner Focus and it has never fired: the flinch '
+       + 'half was right (the turn is lost) and the reaction half did not exist',
+    of: a => {
+      const src = String(a.onFlinch || '').replace(/\s+/g, ' ');
+      if (!src) return null;
+      const bm = src.match(/\.boost\(\s*\{([^}]*)\}/);
+      if (!bm) return null;
+      const boosts = {};
+      for (const kv of bm[1].split(',')) {
+        const p = kv.split(':').map(s => s.trim().replace(/["']/g, ''));
+        if (p.length === 2 && !isNaN(+p[1])) boosts[p[0]] = +p[1];
+      }
+      return Object.keys(boosts).length ? { boosts } : null;
+    } },
+  /* WIRE 157 -- THE VEIL FAMILY PROTECTS THE BODY NEXT TO IT, AND THIS ENGINE ONLY EVER PROTECTED
+   * ITSELF.
+   *
+   * `sweetveil` sat in medicham2's hand-typed `STATUS_IMMUNE_ABIL.slp` list beside Insomnia and Vital
+   * Spirit, which are SELF immunities (`onSetStatus`). Sweet Veil has no `onSetStatus` at all -- its
+   * handler is `onAllySetStatus`, and in Showdown an `onAlly...` handler is gathered over
+   * `alliesAndSelf()`, so it covers the holder AND its partner. Half of it was live by accident of
+   * being in the wrong list, and the half that makes the ability worth running was absent: measured
+   * before this landed, Spore into the ally of a Sweet Veil body slept it here and was refused in the
+   * official engine.
+   *
+   * MEMBERSHIP PRINTED BEFORE IT WAS WIRED, over every non-Past ability the format defines:
+   *     onAllySetStatus     [3]  Flower Veil, Pastel Veil, Sweet Veil
+   *     onAllyTryAddVolatile[3]  Aroma Veil, Flower Veil, Sweet Veil
+   * and the three that set status are NOT one rule, which is why every scope the handlers carry
+   * travels in the params instead of being flattened:
+   *     Sweet Veil    slp only,        no type gate,      also blocks the yawn volatile
+   *     Pastel Veil   psn/tox only,    no type gate
+   *     Flower Veil   EVERY status except yawn, and ONLY on a GRASS-TYPE body
+   * A tag that said "this ability protects allies from status" would hand Sweet Veil a poison
+   * immunity and Flower Veil a blanket one on non-Grass bodies. `onlyGrassTypes` is the same field
+   * `preventsStatDrop` already carries for the same handler idiom, read the same way.
+   *
+   * AROMA VEIL IS DELIBERATELY NOT IN THIS TAG: its handler names no status at all, only the Taunt /
+   * Encore / Disable volatile set, so it returns null here rather than a blanket status refusal --
+   * the shape LESSONS §4 warns about. Its own family is `refusesVolatile`'s ally-side counterpart and
+   * is not wired by this pass. */
+  { tag: 'protectsAllyFromStatus', param: 'WHICH statuses this body refuses ON BEHALF OF ITS SIDE, and to whom', probe: 'protectsAllyFromStatus',
+    why: 'Sweet Veil (29 uses) and Flower Veil (1,465 sheets). Both were modelled as SELF immunities '
+       + 'or as nothing; the ally half -- the reason either is played -- reached no code',
+    of: a => {
+      const src = String(a.onAllySetStatus || '').replace(/\s+/g, ' ');
+      if (!src) return null;
+      /* The statuses come out of the handler's own equality test or its `includes([...])`. A handler
+       * that names none is the EXCLUDE shape (Flower Veil: everything except yawn), and that is
+       * recorded as 'all' rather than guessed at -- the two are opposite consumers. */
+      const eq = [...new Set([...src.matchAll(/status\.id\s*===?\s*["']([a-z]+)["']/g)].map(m => m[1]))];
+      const inc = [...new Set([...src.matchAll(/\[\s*((?:["'][a-z]+["']\s*,\s*)*["'][a-z]+["'])\s*\]\s*\.includes\(\s*status\.id/g)]
+        .flatMap(m => m[1].split(',').map(s => s.trim().replace(/["']/g, ''))))];
+      const statuses = eq.length ? eq : (inc.length ? inc : 'all');
+      /* Flower Veil's exclusion, read as an exclusion. `effect.id !== 'yawn'` is a MAJOR-status
+       * handler declining one source; it is not a status this ability blocks. */
+      const except = [...new Set([...src.matchAll(/effect\.id\s*!==?\s*["']([a-z]+)["']/g)].map(m => m[1]))];
+      const vol = [...new Set([...String(a.onAllyTryAddVolatile || '').replace(/\s+/g, ' ')
+        .matchAll(/status\.id\s*===?\s*["']([a-z]+)["']/g)].map(m => m[1]))];
+      return { statuses, except: except.length ? except : null,
+               volatiles: vol.length ? vol : null,
+               onlyGrassTypes: /hasType\("Grass"\)/.test(src) || null,
+               /* THE TWO GUARDS FLOWER VEIL CARRIES AND SWEET VEIL DOES NOT, and dropping them would
+                * make the two abilities the same rule. Flower Veil opens
+                * `if (target.hasType("Grass") && source && target !== source && ...)`, so a
+                * SOURCE-LESS status and a SELF-INFLICTED one (Rest, a Toxic Orb) both go through it.
+                * Sweet Veil's handler has neither clause -- which means a Sweet Veil body genuinely
+                * cannot Rest. That is the authority's rule and it is derived rather than smoothed. */
+               needsSource: /&&\s*source\s*&&/.test(src) || null,
+               notFromSelf: /target\s*!==?\s*source/.test(src) || null,
+               /* Showdown gathers `onAlly...` over alliesAndSelf(), so the holder is covered too. */
+               coversSelf: true };
     } },
   /* Will: "scrappy needs the able to hit ghost types with normal and fighting type moves."
    * Right, and it was carrying preventsStatDrop alone -- the Intimidate half -- while its actual
@@ -4322,8 +4770,39 @@ const ABILITY_TAGS = [
        * Mane and Huge Power carried the same shape while one applies to a single type and the
        * other to everything. Same defect as Swift Swim not naming rain. */
       const ty = (src.match(/move\.type\s*===?\s*"(\w+)"/) || [])[1] || null;
+      /* WIRE 157 -- RECKLESS'S CONDITION IS ABOUT THE MOVE, NOT ABOUT THE BODY, AND `onlyWhen` COULD
+       * ONLY EVER SAY THINGS ABOUT THE BODY.
+       *
+       * `hpGateIn` reads `attacker.hp <= attacker.maxhp/3` and gives Blaze/Torrent/Overgrow/Swarm a
+       * `{cond:'hpFraction'}` the consumer can evaluate. Reckless's handler is
+       * `if (move.recoil || move.hasCrashDamage)` -- a property of the CLICK -- so it fell out with
+       * `onlyWhen: null`, meaning "unconditional", and the consumer refused it for a different reason
+       * (no `onType`) rather than applying a permanent 1.2x. Two wrongs; the second is what kept the
+       * first invisible.
+       *
+       * IT IS EMITTED IN `condHolds`'s OWN `moveFlag` SHAPE -- the one medicham2 already evaluates
+       * for `buffsHolderOnHit.when` -- so no new evaluator is needed and the two tags cannot drift
+       * apart on what a condition looks like. `recoil` and `crashOnMiss` are both real move tags in
+       * this artifact (`data/tags.json`), which is what makes the shape READABLE rather than a
+       * plausible-looking string.
+       *
+       * MEMBERSHIP PRINTED BEFORE IT WAS WIRED, over every non-Past ability the format defines:
+       *     onBasePower testing move.recoil or move.hasCrashDamage [1]: Reckless
+       * ONE. Carriers in Reg M-B: Staraptor, Rhyperior, Emboar. */
+      const rec = /move\.recoil/.test(src), crash = /hasCrashDamage/.test(src);
+      const flags = [rec ? 'recoil' : null, crash ? 'crashOnMiss' : null].filter(Boolean);
       return { mult: multiplierIn(src), onType: ty, inWeather: w.length ? w : null,
-               onlyWhen: hpGateIn(src), costsPerTurn: chip ? '1/' + chip + ' max HP' : null };
+               onlyWhen: flags.length ? { cond: 'moveFlag', is: flags } : hpGateIn(src),
+               /* WHERE the multiplier is spent, because the family is split across two stages and the
+                * consumer has to know which chain to fold into: Reckless/Analytic/Sand Force are
+                * `onBasePower`, Steelworker/Transistor/Hustle/Gorilla Tactics are `onModifyAtk`. The
+                * two are NOT interchangeable -- `runEvent('BasePower')` folds every member into one
+                * relay and truncates once, above the formula, while a stat multiplier truncates
+                * inside it. Read off whichever handler actually carried the multiplier, so the engine
+                * holds no second copy of that split. */
+               stage: a.onBasePower ? 'basePower'
+                    : (a.onModifyAtk || a.onModifySpA) ? 'attackStat' : null,
+               costsPerTurn: chip ? '1/' + chip + ' max HP' : null };
     } },
   { tag: 'blocksMove', param: 'WHICH class of move fails', probe: 'onFoeTryMove',
     why: 'already derived for allySideBlockProb -- Dazzling, Armor Tail, Good as Gold. Will\'s third '
@@ -4467,7 +4946,43 @@ const ABILITY_TAGS = [
       }
       const drops = Object.fromEntries(Object.entries(boosts).filter(([, v]) => v < 0));
       if (!Object.keys(drops).length) return null;    /* Download: computed self-boost, no literal drop */
-      return { drop: true, boosts: drops };
+      /* WIRE 157 -- ONCE PER BATTLE IS NOT THE SAME AS ONCE PER ENTRY, AND THE TAG COULD NOT SAY SO.
+       *
+       * Intimidate drops again every time it walks in. Supersweet Syrup does NOT: its handler opens
+       * `if (pokemon.syrupTriggered) return; pokemon.syrupTriggered = true;` and `syrupTriggered` is
+       * set on the Pokemon in the CONSTRUCTOR (sim/pokemon.ts:263) and is NOT reset by
+       * `clearVolatile()` -- checked line by line, because "it survives a switch" is the whole claim.
+       * Measured before this landed: carrier leads (-1), leaves, returns -> ours -2, Showdown -1.
+       *
+       * MEMBERSHIP OF THE GUARD SHAPE, printed over every non-Past ability in the format:
+       *     Dauntless Shield, Intrepid Sword, Supersweet Syrup
+       * All three are genuinely once-per-battle. Only the third carries `onSwitchInDrop` (the other
+       * two boost THEMSELVES and reach a different tag), so this field lands on one entry -- which is
+       * why it is a param here and not a tag of its own. The flag NAME is read out of the handler so
+       * a fourth member arrives with its own bookkeeping key rather than sharing Syrup's. */
+      const g = src.replace(/\s+/g, ' ')
+        .match(/if\s*\(\s*\w+\.(\w+)\s*\)\s*return\s*;\s*\w+\.\1\s*=\s*true/);
+      return { drop: true, boosts: drops, oncePerBattle: g ? g[1] : null };
+    } },
+  /* WIRE 157 -- AN ENTRY ABILITY THAT REACHES THE BODY BESIDE IT, WHICH `onSwitchInDrop` ABOVE
+   * STRUCTURALLY CANNOT EXPRESS: that tag reads a handler aimed at `foe`/`adjacentFoes`, and this one
+   * walks `adjacentAllies()`. Curious Medicine wipes its PARTNER's stat stages on entry -- both
+   * directions, so it undoes a Swords Dance as readily as an Intimidate -- and carried `untagged`.
+   *
+   * MEMBERSHIP PRINTED BEFORE IT WAS WIRED, over every non-Past ability the format defines:
+   *     onStart walking adjacentAllies() [2]: Curious Medicine, Hospitality
+   *     ... of which clearBoosts()       [1]: Curious Medicine
+   * Hospitality HEALS the ally and is a different consumer entirely; matching on `adjacentAllies`
+   * alone would have swept it in, which is why the EFFECT is half the predicate. One member, and the
+   * ability has three corpus uses -- it is wired because the roster asked the authority and the
+   * authority moved a board this engine left still. */
+  { tag: 'clearsAllyBoostsOnEntry', param: 'the ALLY beside the arriving body has every stat stage reset to 0', probe: 'clearsAllyBoostsOnEntry',
+    why: 'Curious Medicine (Slowking-Galar). The roster staged it and Showdown restored the ally to '
+       + '0/0 where this engine left it at -1/-1',
+    of: a => {
+      const src = String(a.onStart || '').replace(/\s+/g, ' ');
+      if (!/adjacentAllies\(\)/.test(src) || !/clearBoosts\(\)/.test(src)) return null;
+      return { clears: 'all stages', scope: 'adjacent allies' };
     } },
   { tag: 'formeChange', param: 'the species changes mid-battle', probe: 'megaFormeOf',
     why: 'Zero to Hero (needs a switch), Illusion, Imposter, Disguise',
@@ -4561,6 +5076,56 @@ const ABILITY_TAGS = [
       if (/['"]sandstorm['"]/.test(src)) wx.push('sand');
       if (/['"]hail['"]/.test(src)) wx.push('snow');
       return wx.length ? { chipImmune: true, weathers: wx } : null;
+    } },
+  /* WIRE 157 -- THE WEATHER RESIDUAL IS A HP EVENT IN BOTH DIRECTIONS, AND THIS ENGINE HELD ONLY THE
+   * IMMUNITY TO ONE OF THEM.
+   *
+   * `weatherChipImmune` directly above says a body takes NO sand damage. It cannot say that a body
+   * GAINS HP, and `onWeather` is the one hook that does both. Ice Body read LIVE off the immunity
+   * tag while its actual mechanic -- heal 1/16 every turn it snows -- reached no code at all
+   * (roster: Showdown 71 -> 81 -> 91 -> 101, ours 71 flat).
+   *
+   * MEMBERSHIP PRINTED BEFORE IT WAS WIRED, over every non-Past ability the format defines:
+   *     onWeather [4]: Dry Skin, Ice Body, Rain Dish, Solar Power
+   * FOUR, and BOTH DIRECTIONS ARE DERIVED ON PURPOSE rather than just the heal the roster asked for.
+   * Dry Skin heals 1/8 in rain AND takes 1/8 in sun out of the same handler; Solar Power only takes.
+   * A tag that carried heals alone would have made Dry Skin strictly better than the real ability on
+   * every sun board -- a one-directional error, which is the class this project keeps being caught
+   * by, and it would have been introduced by fixing Ice Body.
+   *
+   * THE WEATHERS ARE TRANSLATED HERE, at the derivation, exactly as `weatherChipImmune` translates
+   * `hail` to `snow`, so the consumer never sees Showdown's vocabulary. `primordialsea` and
+   * `desolateland` map onto the same two skies; neither is reachable in this format (no carrier), and
+   * they are folded in rather than dropped because the handler names them and a de-duplicated list is
+   * what the consumer wants.
+   *
+   * THE DENOMINATOR IS READ OUT OF THE HANDLER (`baseMaxhp / 16`, `baseMaxhp / 8`), never typed. */
+  { tag: 'weatherResidualHP', param: 'HP gained or lost every turn a named weather is up, and WHICH way', probe: 'weatherResidualHP',
+    why: 'Ice Body heals 1/16 in snow and did nothing. Rain Dish and Dry Skin heal 1/16 and 1/8 in '
+       + 'rain; Dry Skin and Solar Power pay 1/8 in sun. None of it existed',
+    of: a => {
+      const src = String(a.onWeather || '').replace(/\s+/g, ' ');
+      if (!src) return null;
+      const SKY = { raindance: 'rain', primordialsea: 'rain', sunnyday: 'sun', desolateland: 'sun',
+                    sandstorm: 'sand', hail: 'snow', snowscape: 'snow' };
+      /* The handler is a chain of `if (effect.id === ...) { this.heal|damage(...) }` blocks, so each
+       * branch is cut at its own brace and read on its own. Reading the whole string at once would
+       * give Dry Skin a heal in the sun. */
+      const heals = {}, hurts = {};
+      for (const m of src.matchAll(/(?:if|else if)\s*\(([^{]*?)\)\s*\{([^{}]*)\}/g)) {
+        const skies = [...new Set([...m[1].matchAll(/["']([a-z]+)["']/g)].map(x => SKY[x[1]]).filter(Boolean))];
+        if (!skies.length) continue;
+        const heal = m[2].match(/this\.heal\([^)]*baseMaxhp\s*\/\s*(\d+)/);
+        const hurt = m[2].match(/this\.damage\([^)]*baseMaxhp\s*\/\s*(\d+)/);
+        for (const s of skies) { if (heal) heals[s] = +heal[1]; if (hurt) hurts[s] = +hurt[1]; }
+      }
+      if (!Object.keys(heals).length && !Object.keys(hurts).length) return null;
+      return { heals: Object.keys(heals).length ? heals : null,
+               hurts: Object.keys(hurts).length ? hurts : null,
+               /* `target.effectiveWeather() !== effect.id` is the Cloud Nine / Air Lock guard three of
+                * the four carry. It is the same fact `field.wSup` already answers at the consumer, so
+                * it travels as a flag rather than as a second implementation. */
+               needsEffectiveWeather: /effectiveWeather\(\)\s*!==?/.test(src) || null };
     } },
 ];
 

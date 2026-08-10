@@ -1,7 +1,7 @@
 {
   "note": "RATCHET. mtime_only_files may SHRINK and may never grow. mtime cannot detect an artifact written after an input it read before, which is how a 7,100-game WOBBUFFET re-run was cleared as ok on 2026-08-04 while measuring two different defenders. The LIST is recorded rather than a count: the first time this fired it could only say \"one more than last time\", nobody could tell which file, and status.js printed NOT DERIVED for a session. THE ONE WAY IT MAY GROW is a recorded DISCOVERY — the checker learning to see artifacts it could not see before is the opposite event from a generator dropping its stamp, and every such growth is listed in `discoveries` with its date, its reason and its files.",
   "fix": "Stamp engine_release.open().stamp() (or run_stamp.sourceDigests()) as `source_digests`.",
-  "mtime_only": 131,
+  "mtime_only": 133,
   "mtime_only_files": [
     "ab-batch-effect.json",
     "ability-blocks.json",
@@ -15,6 +15,7 @@
     "brood.json",
     "calibration.json",
     "chomp-ev.json",
+    "click-counts.json",
     "collinearity-audit.json",
     "collinearity-fix.json",
     "collinearity-joint.json",
@@ -57,6 +58,7 @@
     "mega-dex-official.json",
     "mega-dex.json",
     "mega-formes.js",
+    "mega-usage.json",
     "meta-usage.json",
     "mew.js",
     "move-effects.js",
@@ -138,7 +140,7 @@
   "void_files": [
     "exploitability.json"
   ],
-  "verified": 5,
+  "verified": 4,
   "graph_files": [
     "ab-batch-effect.json",
     "ability-blocks.json",
@@ -154,6 +156,7 @@
     "censoring-value.json",
     "chomp-ev.json",
     "click-censoring-census.json",
+    "click-counts.json",
     "collinearity-audit.json",
     "collinearity-fix.json",
     "collinearity-joint.json",
@@ -207,6 +210,7 @@
     "mega-dex-official.json",
     "mega-dex.json",
     "mega-formes.js",
+    "mega-usage.json",
     "meta-usage.json",
     "mew.js",
     "move-effects.js",
@@ -242,6 +246,7 @@
     "redirect-audit.json",
     "regulation-usage.json",
     "replay-differential-freezes.json",
+    "replay-differential-sheets.json",
     "replay-differential.json",
     "rerun-list.json",
     "role-matchups.json",
@@ -321,7 +326,9 @@
     "policy-weights-nopop.json",
     "policy-weights-pre-censoring.json",
     "policy-weights-presheet.json",
-    "regulations.json"
+    "raw-log-census.json",
+    "regulations.json",
+    "replay-differential-sheets-freezes.json"
   ],
   "discoveries": [
     {
@@ -400,7 +407,18 @@
       "files": [
         "replay-differential-freezes.json"
       ]
+    },
+    {
+      "when": "2026-08-10T22:55:00.378Z",
+      "reason": "the writer scan learned to see tests/, computed output paths and artifact-declared writers; the artifact graph grew and these files became visible unstamped",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 165,
+      "graph_after": 167,
+      "files": [
+        "click-counts.json",
+        "mega-usage.json"
+      ]
     }
   ],
-  "generated": "2026-08-10T19:35:59.167Z"
+  "generated": "2026-08-10T22:59:42.249Z"
 }

@@ -1,30 +1,30 @@
 {
- "generated": "2026-08-10T20:38:23.374Z",
+ "generated": "2026-08-10T23:01:10.633Z",
  "by": "tests/roster.js",
  "stage": "abilities",
- "engine_release": "07ffb4e75207",
+ "engine_release": "97626e9bad71",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
-  "DEFERRED-BY-OWNER": 0,
-  "FIRED-AND-BOARDS-MATCH": 86,
-  "CONTROL-NOT-QUIET": 16,
-  "COULD-NOT-STAGE": 214
+  "DEFERRED-BY-OWNER": 2,
+  "FIRED-AND-BOARDS-MATCH": 94,
+  "CONTROL-NOT-QUIET": 15,
+  "COULD-NOT-STAGE": 205
  },
  "scope": {
   "total": 316,
-  "out_of_scope": 115,
+  "out_of_scope": 114,
   "out_of_scope_by": {
-   "no-legal-carrier": 115
+   "no-legal-carrier": 114
   },
-  "in_scope": 201,
-  "tested": 86,
-  "matched": 86,
+  "in_scope": 202,
+  "tested": 94,
+  "matched": 94,
   "differ": 0,
   "silent": 0,
-  "deferred": 0,
-  "unattributable": 16,
+  "deferred": 2,
+  "unattributable": 15,
   "unattributable_ids": [
    "aftermath",
    "angerpoint",
@@ -32,7 +32,6 @@
    "damp",
    "flowerveil",
    "fluffy",
-   "imposter",
    "justified",
    "keeneye",
    "moxie",
@@ -46,10 +45,9 @@
   "declared_untestable": [
    "aromaveil",
    "flowerveil",
-   "fluffy",
-   "imposter"
+   "fluffy"
   ],
-  "could_not_stage_in_scope": 99,
+  "could_not_stage_in_scope": 91,
   "attributed_by_second_control": [
    "adaptability",
    "aftermath",
@@ -441,8 +439,8 @@
    "rule": "ability/entry",
    "reads": "onStart / onSwitchIn, with no onResidual",
    "note": "ALTERNATE carrier Hatterene; control = Healer (NOT A QUIET ABILITY — see the caveat on any finding); staged as entry",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "verdict": "DEFERRED-BY-OWNER",
+   "why": "SHELVED BY THE OWNER, NOT MEASURED CLEAN. THE EFFECT IS A MESSAGE. Anticipation's whole content is a switch-in shudder — no HP, no stat stage, no volatile, no field change — so there is nothing a BOARD comparison can read, and this instrument compares boards. The only instrument that could ever test it is the PROTOCOL TRACE, which is a different comparison and does not exist here. Usage measured at 6, across two legal carriers in this format. Will: \"ANTICIPATION AND FOREWARN LETS PUT INTO THE QUARANTINE CLOSET NO ONE USES THEM.\" (deferred 2026-08-10 by Will.) It is still staged and still played every run; it does not hold the gate. Underlying verdict without the deferral: COULD-NOT-STAGE — the staging is inert, the authority own board is identical with and without it over 524 leaves, which is exactly what an effect that is only a MESSAGE looks like to a board comparator.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -1859,7 +1857,7 @@
    "reads": null,
    "note": null,
    "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is SUPPRESS-tier — the ability cannot be swapped out, because it is the only ability its species has — so the only control is suppression, and suppression does not work here. MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "why": "its carrier is SUPPRESS-tier — the ability cannot be swapped out on the SHEET, because it is the only ability its species has — so the control has to be applied IN PLAY, and neither route is available. Skill Swap: the format flags this ability `failskillswap`, so Showdown refuses the exchange and medicham2 does not model the refusal at all — the two engines would part IN THE CONTROL ARM and the row would accuse the entity for the control's divergence  Gastro Acid suppression: MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -2190,10 +2188,10 @@
    "id": "eelevate",
    "name": "Eelevate",
    "rule": "ability/generic",
-   "reads": null,
-   "note": null,
+   "reads": "nothing matched above — this is the residue",
+   "note": "MEGA carrier Eelektross -> Eelektross-Mega via Eelektrossite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is MEGA-tier — the ability cannot be swapped out, because the forme change WRITES it — so the only control is suppression, and suppression does not work here. MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -2226,17 +2224,54 @@
    "id": "electricsurge",
    "name": "Electric Surge",
    "rule": "ability/entry",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "it is an ENTRY ability on a MEGA-tier carrier, and the only control available there is Gastro Acid — which is a CLICK, and a click cannot come before boundary 0. The positive and the control would be different experiments.",
+   "reads": "onStart / onSwitchIn, with no onResidual",
+   "note": "WILL FIXTURE, THROUGH THE CONSEQUENCE. Raichu holds Raichunite X and becomes Raichu-Mega-X on turn 1, which is the only body in this format with Electric Surge. the carrier mega-evolves on turn 1 and the FIELD is the whole reading — a terrain, a weather or a side condition that only this ability can set. Nothing is clicked at the carrier, and the carrier own slot is excluded from the comparison by construction.  CONTROL = the same game with the stone stripped, so no forme change happens; the carrier own slot and party row are excluded from the comparison because the forme change rewrites them by construction.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "field.terrain",
+     "with": "electric",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "field.terrain_turns",
+     "with": 4,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "field.terrain",
+     "with": "electric",
+     "without": ""
+    },
+    {
+     "turn": 2,
+     "path": "field.terrain_turns",
+     "with": 3,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "field.terrain",
+     "with": "electric",
+     "without": ""
+    },
+    {
+     "turn": 3,
+     "path": "field.terrain_turns",
+     "with": 2,
+     "without": 0
+    }
+   ],
    "diffs": []
   },
   {
@@ -2397,17 +2432,42 @@
    "id": "fairyaura",
    "name": "Fairy Aura",
    "rule": "ability/entry",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "it is an ENTRY ability on a MEGA-tier carrier, and the only control available there is Gastro Acid — which is a CLICK, and a click cannot come before boundary 0. The positive and the control would be different experiments.",
+   "reads": "onStart / onSwitchIn, with no onResidual",
+   "note": "WILL FIXTURE, THROUGH THE CONSEQUENCE. Floette-Eternal holds Floettite and becomes Floette-Mega on turn 1, which is the only body in this format with Fairy Aura. the PARTNER (Venusaur) throws Moonblast (Fairy, single-target — a SPREAD member would carry its own 0.75 and make two multipliers of one) at the bag on turn 2, and Gigaton Hammer (Steel, the negative, which must be worth the same in both arms) on turn 3. The aura is field-wide, so the boost is read on a body the carrier never touched.  CONTROL = the same game with the stone stripped, so no forme change happens; the carrier own slot and party row are excluded from the comparison because the forme change rewrites them by construction.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p1.party.kangaskhan.hp",
+     "with": 112,
+     "without": 128
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 112,
+     "without": 128
+    },
+    {
+     "turn": 3,
+     "path": "p1.party.kangaskhan.hp",
+     "with": 39,
+     "without": 55
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].hp",
+     "with": 39,
+     "without": 55
+    }
+   ],
    "diffs": []
   },
   {
@@ -2433,17 +2493,54 @@
    "id": "firemane",
    "name": "Fire Mane",
    "rule": "ability/generic",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is MEGA-tier — the ability cannot be swapped out, because the forme change WRITES it — so the only control is suppression, and suppression does not work here. MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "reads": "nothing matched above — this is the residue",
+   "note": "MEGA carrier Pyroar -> Pyroar-Mega via Pyroarite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p1.party.dragapult.hp",
+     "with": 120,
+     "without": 134
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 120,
+     "without": 134
+    },
+    {
+     "turn": 3,
+     "path": "p1.party.dragapult.hp",
+     "with": 77,
+     "without": 105
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].hp",
+     "with": 77,
+     "without": 105
+    },
+    {
+     "turn": 4,
+     "path": "p1.party.dragapult.hp",
+     "with": 77,
+     "without": 105
+    },
+    {
+     "turn": 4,
+     "path": "p1.active[0].hp",
+     "with": 77,
+     "without": 105
+    }
+   ],
    "diffs": []
   },
   {
@@ -2771,7 +2868,7 @@
    "reads": null,
    "note": null,
    "verdict": "COULD-NOT-STAGE",
-   "why": "it is an ENTRY ability on a SUPPRESS-tier carrier, and the only control available there is Gastro Acid — which is a CLICK, and a click cannot come before boundary 0. The positive and the control would be different experiments.",
+   "why": "it is an ENTRY ability on a SUPPRESS-tier carrier, where the ability cannot be written on the SHEET and every available control is a CLICK — a Skill Swap exchange (ROADMAP #138) or Gastro Acid suppression. AN ENTRY EFFECT HAS ALREADY FIRED BY THE TIME ANY CLICK RESOLVES. The positive and the control would be different experiments.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -2788,8 +2885,8 @@
    "rule": "ability/entry",
    "reads": "onStart / onSwitchIn, with no onResidual",
    "note": "ALTERNATE carrier Musharna; control = Synchronize (NOT A QUIET ABILITY — see the caveat on any finding); staged as entry",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "verdict": "DEFERRED-BY-OWNER",
+   "why": "SHELVED BY THE OWNER, NOT MEASURED CLEAN. THE EFFECT IS A MESSAGE, for the identical reason as Anticipation one row up: Forewarn names the foe's strongest move on entry and changes nothing on the board. A board comparison cannot see it and a green from one would be vacuous; the protocol trace is the only instrument that could. Usage measured at 4. Same quote, same date. (deferred 2026-08-10 by Will.) It is still staged and still played every run; it does not hold the gate. Underlying verdict without the deferral: COULD-NOT-STAGE — the staging is inert, the authority own board is identical with and without it over 524 leaves, which is exactly what an effect that is only a MESSAGE looks like to a board comparator.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -2999,10 +3096,10 @@
    "id": "goodasgold",
    "name": "Good as Gold",
    "rule": "ability/generic",
-   "reads": null,
-   "note": null,
+   "reads": "nothing matched above — this is the residue",
+   "note": "SUPPRESS carrier Gholdengo; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is SUPPRESS-tier — the ability cannot be swapped out, because it is the only ability its species has — so the only control is suppression, and suppression does not work here. MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -3125,14 +3222,14 @@
    "kind": "ability",
    "id": "guarddog",
    "name": "Guard Dog",
-   "rule": "ability/no-legal-carrier",
+   "rule": "ability/refuses-a-forced-switch",
    "reads": null,
    "note": null,
    "verdict": "COULD-NOT-STAGE",
-   "why": "NO LEGAL SPECIES IN gen9championsvgc2026regmb CARRIES IT — every body that has it is isNonstandard in this format. This is a property of the REGULATION, not of the simulator and not of this instrument.",
+   "why": "no carrier this rule can use exists. Every species with it: none. Of those, NONE are legal, buildable and have a second ability to control with — and the shortfall is already there, before this rule's own condition (can be put on the field with a second ability to control it with).",
    "arm": "top-tie-first",
    "control_why": null,
-   "out_of_scope": "no-legal-carrier",
+   "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
@@ -3463,7 +3560,7 @@
    "reads": null,
    "note": null,
    "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is SUPPRESS-tier — the ability cannot be swapped out, because it is the only ability its species has — so the only control is suppression, and suppression does not work here. MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "why": "its carrier is SUPPRESS-tier — the ability cannot be swapped out on the SHEET, because it is the only ability its species has — so the control has to be applied IN PLAY, and neither route is available. Skill Swap: the format flags this ability `failskillswap`, so Showdown refuses the exchange and medicham2 does not model the refusal at all — the two engines would part IN THE CONTROL ARM and the row would accuse the entity for the control's divergence  Gastro Acid suppression: MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -3734,7 +3831,7 @@
    "reads": null,
    "note": null,
    "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is SUPPRESS-tier — the ability cannot be swapped out, because it is the only ability its species has — so the only control is suppression, and suppression does not work here. MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "why": "its carrier is SUPPRESS-tier — the ability cannot be swapped out on the SHEET, because it is the only ability its species has — so the control has to be applied IN PLAY, and neither route is available. Skill Swap: the format flags this ability `failskillswap`, so Showdown refuses the exchange and medicham2 does not model the refusal at all — the two engines would part IN THE CONTROL ARM and the row would accuse the entity for the control's divergence  Gastro Acid suppression: MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -3777,12 +3874,12 @@
    "rule": "ability/entry",
    "reads": "onStart / onSwitchIn, with no onResidual",
    "note": "ALTERNATE carrier Ditto; control = Limber (NOT A QUIET ABILITY — see the caveat on any finding); staged as entry",
-   "verdict": "CONTROL-NOT-QUIET",
-   "why": "THE DELTA IS NOT ATTRIBUTABLE TO THIS ENTITY. the CONTROL is another LIVE ability — Limber — because ditto has no quiet alternative. The measured delta is (subject MINUS that ability) and cannot say which of the two moved the board. MEASURED on this instrument's own artifact: Sand Rush and Fluffy control each other and reported THE SAME TWO NUMBERS SWAPPED, and the 32-HP gap is Fluffy. The subject arm moved and the two engines disagree, which under a quiet control would read FIRED-AND-BOARDS-DIFFER — it is neither.  NO QUIET CONTROL EXISTS FOR THIS ABILITY IN THIS FORMAT, and the pool is printed rather than asserted. Every legal species carrying it, with what else it could be controlled by: Ditto [Limber]. This format has only 8 quiet abilities (Ball Fetch, Battle Armor, Corrosion, Dancer, Early Bird, Honey Gather, Run Away, Shell Armor) and not one of them shares a species with it. A quiet ability CANNOT be lent from another species: engine/game_differential.js buildPair clamps an ability to its species' own list and falls back to slot 0, so an illegal pairing would silently become the subject arm again — the ROADMAP #100 failure. Suppression is the other route and it is MEASURED not to work here (see the Gastro Acid proof). DECLARED UNTESTABLE, not passed and not failed. (the control, Limber, registers 2 handler(s), so it cannot be argued inert either, and its species has no THIRD ability to vary it against.)",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
-   "control_why": "NO QUIET CONTROL EXISTS FOR THIS ABILITY IN THIS FORMAT, and the pool is printed rather than asserted. Every legal species carrying it, with what else it could be controlled by: Ditto [Limber]. This format has only 8 quiet abilities (Ball Fetch, Battle Armor, Corrosion, Dancer, Early Bird, Honey Gather, Run Away, Shell Armor) and not one of them shares a species with it. A quiet ability CANNOT be lent from another species: engine/game_differential.js buildPair clamps an ability to its species' own list and falls back to slot 0, so an illegal pairing would silently become the subject arm again — the ROADMAP #100 failure. Suppression is the other route and it is MEASURED not to work here (see the Gastro Acid proof). DECLARED UNTESTABLE, not passed and not failed. (the control, Limber, registers 2 handler(s), so it cannot be argued inert either, and its species has no THIRD ability to vary it against.)",
+   "control_why": null,
    "out_of_scope": null,
-   "declared_untestable": true,
+   "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
    "sd_delta": [
@@ -3865,88 +3962,7 @@
      "without": "ditto"
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "weavile",
-     "field": "party.MISSING-OR-EXTRA-MEMBER",
-     "showdown": null,
-     "ours": {
-      "hp": 123,
-      "maxhp": 123,
-      "fainted": false
-     },
-     "bucket": "present-in-one-engine-only"
-    },
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "ditto",
-     "field": "party.MISSING-OR-EXTRA-MEMBER",
-     "showdown": {
-      "hp": 123,
-      "maxhp": 123,
-      "fainted": false
-     },
-     "ours": null,
-     "bucket": "present-in-one-engine-only"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "charizard",
-     "field": "species",
-     "showdown": "weavile",
-     "ours": "charizard",
-     "bucket": "different-value"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "charizard",
-     "field": "hp",
-     "showdown": 123,
-     "ours": 153,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "charizard",
-     "field": "maxhp",
-     "showdown": 123,
-     "ours": 153,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "p2a",
-     "body": "charizard",
-     "field": "species",
-     "showdown": "weavile",
-     "ours": "charizard",
-     "bucket": "different-value"
-    },
-    {
-     "turn": 3,
-     "slot": "p2a",
-     "body": "charizard",
-     "field": "hp",
-     "showdown": 123,
-     "ours": 153,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "p2a",
-     "body": "charizard",
-     "field": "maxhp",
-     "showdown": 123,
-     "ours": 153,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "ability",
@@ -3971,10 +3987,10 @@
    "id": "innardsout",
    "name": "Innards Out",
    "rule": "ability/generic",
-   "reads": null,
-   "note": null,
+   "reads": "nothing matched above — this is the residue",
+   "note": "MEGA carrier Victreebel -> Victreebel-Mega via Victreebelite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is MEGA-tier — the ability cannot be swapped out, because the forme change WRITES it — so the only control is suppression, and suppression does not work here. MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -4371,10 +4387,10 @@
    "id": "levitate",
    "name": "Levitate",
    "rule": "ability/generic",
-   "reads": null,
-   "note": null,
+   "reads": "nothing matched above — this is the residue",
+   "note": "SUPPRESS carrier Hydreigon; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is SUPPRESS-tier — the ability cannot be swapped out, because it is the only ability its species has — so the only control is suppression, and suppression does not work here. MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -4921,10 +4937,10 @@
    "id": "megasol",
    "name": "Mega Sol",
    "rule": "ability/generic",
-   "reads": null,
-   "note": null,
+   "reads": "nothing matched above — this is the residue",
+   "note": "MEGA carrier Meganium -> Meganium-Mega via Meganiumite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is MEGA-tier — the ability cannot be swapped out, because the forme change WRITES it — so the only control is suppression, and suppression does not work here. MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -4968,7 +4984,7 @@
    "reads": null,
    "note": null,
    "verdict": "COULD-NOT-STAGE",
-   "why": "it is an ENTRY ability on a SUPPRESS-tier carrier, and the only control available there is Gastro Acid — which is a CLICK, and a click cannot come before boundary 0. The positive and the control would be different experiments.",
+   "why": "it is an ENTRY ability on a SUPPRESS-tier carrier, where the ability cannot be written on the SHEET and every available control is a CLICK — a Skill Swap exchange (ROADMAP #138) or Gastro Acid suppression. AN ENTRY EFFECT HAS ALREADY FIRED BY THE TIME ANY CLICK RESOLVES. The positive and the control would be different experiments.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -5512,10 +5528,10 @@
    "id": "mummy",
    "name": "Mummy",
    "rule": "ability/generic",
-   "reads": null,
-   "note": null,
+   "reads": "nothing matched above — this is the residue",
+   "note": "SUPPRESS carrier Cofagrigus; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is SUPPRESS-tier — the ability cannot be swapped out, because it is the only ability its species has — so the only control is suppression, and suppression does not work here. MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -5896,17 +5912,54 @@
    "id": "parentalbond",
    "name": "Parental Bond",
    "rule": "ability/generic",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is MEGA-tier — the ability cannot be swapped out, because the forme change WRITES it — so the only control is suppression, and suppression does not work here. MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "reads": "nothing matched above — this is the residue",
+   "note": "MEGA carrier Kangaskhan -> Kangaskhan-Mega via Kangaskhanite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p1.party.dragapult.hp",
+     "with": 94,
+     "without": 108
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 94,
+     "without": 108
+    },
+    {
+     "turn": 3,
+     "path": "p1.party.dragapult.hp",
+     "with": 25,
+     "without": 53
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].hp",
+     "with": 25,
+     "without": 53
+    },
+    {
+     "turn": 4,
+     "path": "p1.party.dragapult.hp",
+     "with": 25,
+     "without": 53
+    },
+    {
+     "turn": 4,
+     "path": "p1.active[0].hp",
+     "with": 25,
+     "without": 53
+    }
+   ],
    "diffs": []
   },
   {
@@ -6002,10 +6055,10 @@
    "id": "piercingdrill",
    "name": "Piercing Drill",
    "rule": "ability/generic",
-   "reads": null,
-   "note": null,
+   "reads": "nothing matched above — this is the residue",
+   "note": "MEGA carrier Excadrill -> Excadrill-Mega via Excadrite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is MEGA-tier — the ability cannot be swapped out, because the forme change WRITES it — so the only control is suppression, and suppression does not work here. MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -8103,17 +8156,33 @@
    "kind": "ability",
    "id": "shadowtag",
    "name": "Shadow Tag",
-   "rule": "ability/traps-and-somebody-tries-to-leave",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE TRAP CANNOT BE ASKED BECAUSE ITS ONLY CARRIER IS MEGA-TIER (Gengar-Mega). THE FORME CHANGE WRITES THE ABILITY, so it cannot be swapped for a control, and the only remaining control is suppression — which is MEASURED not to work in this simulator: MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.  Until suppression is wired there is no control arm for this row, and a trap probe with no control measures the fixture. no carrier this rule can use exists. Every species with it: gengarmega. Of those, NONE are legal, buildable and have a second ability to control with — and the shortfall is already there, before this rule's own condition (can be put on the field with a second ability to control it with).  The probe itself is not the obstacle and that is measured rather than assumed: MEASURED: an ability-stage scenario CAN ask for a switch and both engines perform it — the untrapped Kangaskhan left for Milotic in Showdown and in medicham2. So a refusal measured by this rule would be the TRAP and not the fixture.",
+   "rule": "ability/trap-arrives-with-a-mega",
+   "reads": "onFoeTrapPokemon + every legal carrier being a mega forme (battleOnly with a stone)",
+   "note": "WILL'S FIXTURE. Gengar holds Gengarite and mega-evolves on turn 1 into Gengar-Mega, which is the ONLY body in this format with Shadow Tag. Venusaur leaves for Charizard on turn 1 (PRE-MEGA, the in-game control, and it must succeed); Charizard asks to leave on turn 2 and the authority must refuse. Control arm = the same game with the stone stripped, so no forme change happens at all. Exceptions played as their own games: ghost-type-is-not-trapped, a-switching-move-still-works[string:copyvolatile], a-switching-move-still-works[true], a-switching-move-still-works[string:shedtail], a-trapped-body-is-still-phazed[roar], shed-shell-holder-is-not-trapped",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": "both engines refuse the switch — Showdown rejects the choice and medicham2 leaves the body in its slot — and both allow the identical switch in the control arm. This is a refusal comparison, not a board comparison; see the rule.  IN-GAME CONTROL: one turn earlier, before the forme change, the identical ask moved Charizard into the slot in BOTH engines (showdown=charizard, ours=charizard).  EXCEPTIONS (6): ghost-type-is-not-trapped -> BOTH-ALLOWED [both engines let Typhlosion-Hisui go (showdown slot now venusaur, ours venusaur)];  a-switching-move-still-works[string:copyvolatile] -> BOTH-ALLOWED [both engines let Charizard go (showdown slot now corviknight, ours corviknight)];  a-switching-move-still-works[true] -> BOTH-ALLOWED [both engines let Charizard go (showdown slot now corviknight, ours corviknight)];  a-switching-move-still-works[string:shedtail] -> BOTH-ALLOWED [both engines let Charizard go (showdown slot now corviknight, ours corviknight)];  a-trapped-body-is-still-phazed[roar] -> BOTH-ALLOWED [both engines let Charizard go (showdown slot now corviknight, ours venusaur)]  DECLARED, Will 2026-08-10 (\"I MEAN ROAR IS RANDOM IT DOESNT REALLY MATTER WHAT IT DRAGS IN\"): THIS ARM DOES NOT COMPARE WHICH BODY ARRIVED. The replacement is a random draw and the two engines flip it independently (measured: Showdown drew Corviknight, ours drew Venusaur off the same bench). Pinning it would align a die rather than test a mechanic. SCOPE: the ROSTER does not compare the draw — this is NOT the claim that the draw never matters, and an all-turns replay differential would carry it forward into every later turn;  shed-shell-holder-is-not-trapped -> BOTH-ALLOWED [both engines let Charizard go (showdown slot now venusaur, ours venusaur)]",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
-   "switch_probe": null,
+   "switch_probe": {
+    "asked": {
+     "side": "A",
+     "slot": 0,
+     "to": "venusaur",
+     "turn": 2,
+     "preTo": "charizard",
+     "preTurn": 1
+    },
+    "showdown_refused_subject": true,
+    "ours_switched_subject": false,
+    "showdown_switched_control": true,
+    "ours_switched_control": true,
+    "subject_bad": "THREW",
+    "subject_why": "p1 choice rejected \"switch 3, move 1\": Can't switch: The active Pokémon is trapped",
+    "control_bad": null
+   },
    "sd_delta": [],
    "diffs": []
   },
@@ -8749,17 +8818,144 @@
    "id": "spicyspray",
    "name": "Spicy Spray",
    "rule": "ability/generic",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is MEGA-tier — the ability cannot be swapped out, because the forme change WRITES it — so the only control is suppression, and suppression does not work here. MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "reads": "nothing matched above — this is the residue",
+   "note": "MEGA carrier Scovillain -> Scovillain-Mega via Scovillainite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p1.party.dragapult.hp",
+     "with": 103,
+     "without": 113
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 103,
+     "without": 113
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].status",
+     "with": "brn",
+     "without": ""
+    },
+    {
+     "turn": 3,
+     "path": "p1.party.dragapult.hp",
+     "with": 43,
+     "without": 113
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].hp",
+     "with": 43,
+     "without": 113
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].status",
+     "with": "brn",
+     "without": ""
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.scovillainmega.hp",
+     "with": 32,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.scovillainmega.fainted",
+     "with": false,
+     "without": true
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].species",
+     "with": "scovillainmega",
+     "without": "charizard"
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].hp",
+     "with": 32,
+     "without": 153
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].maxhp",
+     "with": 140,
+     "without": 153
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].item",
+     "with": "scovillainite",
+     "without": ""
+    },
+    {
+     "turn": 4,
+     "path": "p1.party.dragapult.hp",
+     "with": 33,
+     "without": 113
+    },
+    {
+     "turn": 4,
+     "path": "p1.active[0].hp",
+     "with": 33,
+     "without": 113
+    },
+    {
+     "turn": 4,
+     "path": "p1.active[0].status",
+     "with": "brn",
+     "without": ""
+    },
+    {
+     "turn": 4,
+     "path": "p2.party.scovillainmega.hp",
+     "with": 32,
+     "without": 0
+    },
+    {
+     "turn": 4,
+     "path": "p2.party.scovillainmega.fainted",
+     "with": false,
+     "without": true
+    },
+    {
+     "turn": 4,
+     "path": "p2.active[0].species",
+     "with": "scovillainmega",
+     "without": "charizard"
+    },
+    {
+     "turn": 4,
+     "path": "p2.active[0].hp",
+     "with": 32,
+     "without": 153
+    },
+    {
+     "turn": 4,
+     "path": "p2.active[0].maxhp",
+     "with": 140,
+     "without": 153
+    },
+    {
+     "turn": 4,
+     "path": "p2.active[0].item",
+     "with": "scovillainite",
+     "without": ""
+    }
+   ],
    "diffs": []
   },
   {
@@ -8924,7 +9120,7 @@
    "reads": null,
    "note": null,
    "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is SUPPRESS-tier — the ability cannot be swapped out, because it is the only ability its species has — so the only control is suppression, and suppression does not work here. MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "why": "its carrier is SUPPRESS-tier — the ability cannot be swapped out on the SHEET, because it is the only ability its species has — so the control has to be applied IN PLAY, and neither route is available. Skill Swap: the format flags this ability `failskillswap`, so Showdown refuses the exchange and medicham2 does not model the refusal at all — the two engines would part IN THE CONTROL ARM and the row would accuse the entity for the control's divergence  Gastro Acid suppression: MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -9241,11 +9437,11 @@
    "kind": "ability",
    "id": "suctioncups",
    "name": "Suction Cups",
-   "rule": "ability/generic",
-   "reads": "nothing matched above — this is the residue",
-   "note": "ALTERNATE carrier Malamar; control = Contrary (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "rule": "ability/refuses-a-forced-switch",
+   "reads": "onDragOut — Showdown's own handler for refusing a phaze; the mover comes from `forceSwitch`",
+   "note": "the aggressor clicks Roar (never misses, priority -6) at the carrier on turn 1 and again on turn 2. The carrier must STILL BE IN THE SLOT at both boundaries; the control arm, which is the same body with its other ability, must be thrown out — that is the negative and it is what makes a green mean anything   [carrier Malamar, control = Contrary — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -9253,14 +9449,33 @@
    "second_control": {
     "control": "Infiltrator",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Infiltrator in the slot instead of Contrary. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (0 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Contrary registers 1 handler(s), Infiltrator registers 1.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 0,
-    "leaves_second": 0,
-    "leaves_kept": 0,
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Infiltrator in the slot instead of Contrary. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (6 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Contrary registers 1 handler(s), Infiltrator registers 1.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
+    "leaves_first": 6,
+    "leaves_second": 6,
+    "leaves_kept": 6,
     "dropped": []
    },
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "malamar",
+     "without": "clefable"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 644,
+     "without": 680
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].maxhp",
+     "with": 644,
+     "without": 680
+    }
+   ],
    "diffs": []
   },
   {
@@ -9395,10 +9610,10 @@
    "id": "surgesurfer",
    "name": "Surge Surfer",
    "rule": "ability/generic",
-   "reads": null,
-   "note": null,
+   "reads": "nothing matched above — this is the residue",
+   "note": "SUPPRESS carrier Raichu-Alola; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is SUPPRESS-tier — the ability cannot be swapped out, because it is the only ability its species has — so the only control is suppression, and suppression does not work here. MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -10387,10 +10602,10 @@
    "id": "unseenfist",
    "name": "Unseen Fist",
    "rule": "ability/generic",
-   "reads": null,
-   "note": null,
+   "reads": "nothing matched above — this is the residue",
+   "note": "MEGA carrier Golurk -> Golurk-Mega via Golurkite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is MEGA-tier — the ability cannot be swapped out, because the forme change WRITES it — so the only control is suppression, and suppression does not work here. MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -10510,10 +10725,10 @@
    "id": "wanderingspirit",
    "name": "Wandering Spirit",
    "rule": "ability/generic",
-   "reads": null,
-   "note": null,
+   "reads": "nothing matched above — this is the residue",
+   "note": "SUPPRESS carrier Runerigus; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is SUPPRESS-tier — the ability cannot be swapped out, because it is the only ability its species has — so the only control is suppression, and suppression does not work here. MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -10981,7 +11196,7 @@
    "reads": null,
    "note": null,
    "verdict": "COULD-NOT-STAGE",
-   "why": "it is an ENTRY ability on a SUPPRESS-tier carrier, and the only control available there is Gastro Acid — which is a CLICK, and a click cannot come before boundary 0. The positive and the control would be different experiments.",
+   "why": "it is an ENTRY ability on a SUPPRESS-tier carrier, where the ability cannot be written on the SHEET and every available control is a CLICK — a Skill Swap exchange (ROADMAP #138) or Gastro Acid suppression. AN ENTRY EFFECT HAS ALREADY FIRED BY THE TIME ANY CLICK RESOLVES. The positive and the control would be different experiments.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,

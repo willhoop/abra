@@ -88,6 +88,72 @@ const TAGS = (function(){
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
 const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+  /* ROADMAP #139 -- the max-HP recoil family (Steel Beam, Struggle). Counted apart from ordinary
+   * recoil because the two are different currencies off different artifact fields, and a zero here
+   * with a healthy `rc` recoil is exactly the state this engine was in: one paid, the other free. */
+  maxHPRecoilPaid: 0,
+  /* ROADMAP #139 -- the per-turn-HP VOLATILE ticks, apart from Curse's own `_ptDmg` chip and apart
+   * from each other. Salt Cure chipping and Aqua Ring healing are one map and two consumers, and a
+   * zero on either is a whole family of residual doing nothing. */
+  perTurnVolatileChip: 0, perTurnVolatileHeal: 0,
+  /* ROADMAP #139 -- a Focus Sash / Sturdy that answered ONE PACKET of a multi-packet click rather
+   * than its total. A zero with a Parental Bond body on the field means the split never reached the
+   * item and the Sash is still eating a whole two-hit turn. */
+  sashAnsweredOnePacket: 0,
+  /* ROADMAP #139 -- Endure floored a hit that would otherwise have killed. Zero means the volatile is
+   * written and read by nobody, which is exactly where it was. */
+  enduredLethalHit: 0,
+  /* ROADMAP #139 -- Pain Split levelled two bodies; Copycat re-used the last move anyone clicked;
+   * Metal Burst found the body that last damaged it. Each is a click that used to be a no-op turn. */
+  hpShared: 0, movecalled: 0, scriptedTargetFound: 0, scriptedTargetMissing: 0,
+  /* ROADMAP #139 -- a switch REFUSED by Block or Mean Look, and a switch ALLOWED because the body
+   * held a Shed Shell. The second one is an over-refusal being corrected, so it is counted too. */
+  moveTrapBlockedSwitch: 0, shedShellEscapedTrap: 0,
+  /* ROADMAP #139 -- Suction Cups / Guard Dog refusing a Roar. */
+  forcedSwitchRefused: 0,
+  /* ROADMAP #95 -- a transformed body restored to itself on the way out. A zero beside a non-zero
+   * `transformedOnEntry` is a Ditto that is somebody else for the rest of the battle. */
+  transformReverted: 0,
+  /* ROADMAP #139 -- Rough Skin, Weak Armor and every other `onDamagingHit` reactor firing TWICE off
+   * one bonded click, which is the reaction half of "two separate hits". */
+  parentalBondReactedTwice: 0,
+  /* ROADMAP #139 -- a self-boost move whose stat table the WEATHER replaced (Growth in sun). A zero
+   * means the sunny arm never fired and the move is +1/+1 in every sky. */
+  weatherScaledBoosts: 0,
+  /* ROADMAP #139 -- a damaging move's secondary that is a PLAIN volatile (Salt Cure, Psychic Noise,
+   * Syrup Bomb, Sparkling Aria). The loop had a branch for every other kind of secondary, so a zero
+   * here is the whole family falling out of the bottom of it, which is where it was. */
+  secondaryVolatileApplied: 0,
+  /* ROADMAP #139 -- Parental Bond, at BOTH of its moments, because "the plan was built" and "the
+   * second packet took the quarter" are two facts and only the pair says the ability works. A plan
+   * built with a second packet that never takes the modifier is a x2 Kangaskhan. */
+  parentalBondPlanned: 0, parentalBondSecondHit: 0,
+  /* ROADMAP #139 -- a move REFUSED because a volatile it names is already on the body (No Retreat,
+   * Lock-On). A zero means the veto never fires, which is what a re-applying No Retreat looks like. */
+  refusedOnOwnVolatile: 0,
+  /* WIRE 157 -- a flinch that SPENT a turn and PAID its holder for it (Steadfast). It is a fourth
+   * outcome beside the three above and needs its own line for the same reason they do: "the flinch
+   * landed", "the flinch was refused", "the flinch was too late" and "the flinch was landed on a body
+   * that profits from it" are four states, and only one of them is a defect when it reads zero. */
+  flinchPaidHolder: 0,
+  /* WIRE 157 -- the Charge bank, at all four of its moments, because "the ability does nothing" and
+   * "the ability banks and nothing spends it" and "it is spent but never banked" are three different
+   * defects that all read as a flat damage number on the board. */
+  chargeBanked: 0, chargeSpentBP: 0, chargeCleared: 0, chargeClearedOnSwitch: 0,
+  /* WIRE 157 -- the two directions of `onWeather`, counted apart. A zero in the second one on a board
+   * full of sun is Dry Skin and Solar Power being paid without being charged. */
+  weatherHealed: 0, weatherAbilityChip: 0,
+  /* WIRE 157 -- Curious Medicine reaching the partner's stage vector. */
+  allyBoostsCleared: 0,
+  /* WIRE 157 -- the veil family refusing a status on behalf of the body beside it, and the calls that
+   * could not name a source so the two source guards were skipped. */
+  allyVeilRefused: 0, allyVeilSourceUnknown: 0, allyVeilRefusedVolatile: 0,
+  /* WIRE 157 -- Mirror Armor sending a drop back, and the calls that could not name a source or a
+   * size so it had nothing to send. A non-zero second number on a board with a Corviknight in it is
+   * the reflection silently degrading to the old blocking behaviour. */
+  statDropReflected: 0, reflectSourceUnknown: 0,
+  /* WIRE 157 -- an entry drop that spent its ONE firing for the battle (Supersweet Syrup). */
+  entryDropOncePerBattle: 0,
   /* WIRE 154 -- the five capabilities the heal descriptor armed, each with its own name, because a
    * ZERO on any one of them is the finding (CLAUDE.md: a capability that cannot prove it ran is
    * assumed broken) and one merged counter could not say WHICH of the four moves never fired.
@@ -188,6 +254,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *   critInRange       a crit's x1.5 was applied inside dmgRange, before the roll, where the
    *                     authority applies it -- a zero means the battle loop is still doing it. */
   bpChainSpent: 0, bpChainMembers: 0, statChainSpent: 0, damageBoostStat: 0,
+  /* WIRE 157 -- the `damageBoost` members whose condition is about the CLICK rather than the body
+   * (Reckless), folded into the base-power chain. Counted apart from `damageBoostStat` because the
+   * two are different stages and a zero in one says nothing about the other. */
+  damageBoostMoveCond: 0,
   helpingHandBP: 0, friendGuardChain: 0, critInRange: 0,
   /* ROADMAP #103 -- a REAL TURN priced a multi-hit move off a ROLLED count instead of the 3.1
    * expectation. A zero here with multi-hit moves being clicked means the battle loop stopped handing
@@ -508,6 +578,18 @@ const MEDFAILS = { encoreAction: 0,
    * looked like before the wire (three volatiles that never expire on their own), so it must not be
    * indistinguishable from it. */
   volDurTableFailed: 0, volDurTableFailedFirst: '',
+  /* ROADMAP #139 -- the per-turn-HP volatile map. Same argument as the line above it: an empty table
+   * looks exactly like a residual nobody wired, which is the state Salt Cure was in for months. */
+  volPerTurnHPTableFailed: 0, volPerTurnHPTableFailedFirst: '',
+  volOneTurnSurvTableFailed: 0, volOneTurnSurvTableFailedFirst: '',
+  /* ROADMAP #139 -- a `callsAnotherMove` click this engine could not resolve. Two reasons, kept
+   * apart: `SourceUnmodelled` is Sleep Talk's own-moveslot draw, which is declared and not built;
+   * `Unresolvable` is a copied move `playerAction` itself has no branch for. Both FAIL the click
+   * loudly rather than passing the turn silently. */
+  callMoveSourceUnmodelled: 0, callMoveUnresolvable: 0,
+  /* ROADMAP #139 -- a terrain-scaled type/power read that had no attacker to check the ground under.
+   * It DECLINES rather than converting, and the count is what stops that being a silent default. */
+  terrainScaledNoAttacker: 0,
   perishTurnsMissing: 0,
   /* ROADMAP #103 -- the two ways `rollHitsOf` can be asked a question the artifact cannot answer.
    * multiHitRangeNot2To5: a multi-hit range the authority resolves with `random(min,max+1)` rather
@@ -607,6 +689,14 @@ const MEDFAILS = { encoreAction: 0,
    * through `onDamage`, which no derivation in tag_dex reads, so the ability carries `untagged` and
    * the chip cannot see it. Counted rather than name-checked -- see the comment at WIRE 31. */
   magicGuardChip: 0,
+  /* WIRE 157 -- a Curious Medicine entry whose STATE landed and whose `|-clearboost|` line did not.
+   * The reason is written at the site: `-clearboost` is not in TRACE_EVENTS and adding it would turn
+   * tests/test-protocol-trace.js PART 1 red on an event no generated game can reach. A stream gap,
+   * counted, so it reads as the known shortfall it is rather than as the mechanic working. */
+  clearBoostUnannounced: 0,
+  /* WIRE 157 -- a veil refusal whose STATE landed and whose `|-block|` line did not, for the same
+   * reason and with the same reasoning as `clearBoostUnannounced` above. */
+  blockLineUnannounced: 0,
   /* A terrain string neither vocabulary recognises (see terrainId). Returning the raw value is what
    * made the weather bug: truthy, and matching nothing. */
   terrainUnknown: 0, terrainUnknownFirst: '',
@@ -1158,6 +1248,75 @@ function durationVolatiles(){
     if(!MEDFAILS.volDurTableFailedFirst) MEDFAILS.volDurTableFailedFirst=String((e&&e.message)||e);
   }
   return _volDur;
+}
+/* ROADMAP #139 -- WHICH VOLATILE TICKS HP, AND HOW MUCH, DERIVED. `perTurnHP` has lived in the
+ * artifact with a consumer for exactly one shape at a time: the drain (Leech Seed) on the status
+ * path, the heal on a TERRAIN, and the damage on Curse through a field this engine sets by hand
+ * (`_ptDmg`). Salt Cure carries the same tag, its volatile is written by the ordinary secondary loop,
+ * and NOTHING TICKED IT -- so a 40 base power click that is played for its residual dealt only its
+ * 40 base power. The old comment beside the Curse chip said so out loud ("SALT CURE CARRIES THE SAME
+ * TAG AND IS NOT SET ANYWHERE ... It stays visibly unwired"), which is the honest version of a gap
+ * and still a gap: the roster read `sd 1076 / ours 1231` on the first tick.
+ *
+ * THE MAP IS VOLATILE -> PARAMS, keyed off the move's OWN `statusInflict` volatile, so any move that
+ * declares both a volatile and a per-turn HP effect is ticked without an edit here. Four members
+ * today, printed rather than remembered: `saltcure` (damage 1/16, 1/8 on Water or Steel), `curse`
+ * (damage 1/4), `aquaring` and `ingrain` (heal 1/16 on the holder). Leech Seed is deliberately NOT in
+ * it -- its effect is `drain`, it moves HP in two directions and it already has a consumer and a
+ * `_seededBy` record; a map that swept it in would tick it twice.
+ *
+ * `perIfType` IS CARRIED AND NOT RESOLVED HERE, because the authority resolves it AT THE TICK:
+ * `pokemon.hasType(['Water','Steel']) ? 8 : 16` is inside `onResidual`, so a Soak or a Trick-or-Treat
+ * between the hit and the tick changes the number. Baking it in at application time would be a
+ * different move. */
+let _volPTHP=null;
+function perTurnHPVolatiles(){
+  if(_volPTHP) return _volPTHP;
+  _volPTHP=new Map();
+  try{
+    for(const id of (TAGS.withTag?TAGS.withTag('move','perTurnHP'):[])){
+      const pt=TAGS.param('move',id,'perTurnHP');
+      const si=TAGS.param('move',id,'statusInflict');
+      if(!pt||!(+pt.per>0))continue;
+      if(pt.effect!=='damage'&&pt.effect!=='heal')continue;   // `drain` has its own two-sided consumer
+      if(!si||!Array.isArray(si.effects))continue;
+      for(const e of si.effects) if(e.volatile) _volPTHP.set(e.volatile,{mv:id,pt});
+    }
+  }catch(e){
+    /* IT SPEAKS, for the reason the two tables above do: an empty map here is indistinguishable from
+     * the state this wire was built to end -- a residual that silently does nothing. */
+    MEDFAILS.volPerTurnHPTableFailed++;
+    if(!MEDFAILS.volPerTurnHPTableFailedFirst) MEDFAILS.volPerTurnHPTableFailedFirst=String((e&&e.message)||e);
+  }
+  return _volPTHP;
+}
+/* ROADMAP #139 -- WHICH VOLATILES LAST EXACTLY ONE TURN AND FLOOR THEIR HOLDER'S HP. Endure is the
+ * only member today; the map exists so the expiry, the floor and the "a MOVE only" gate all come from
+ * one artifact read rather than from three places that can drift. */
+let _volOneTurnSurv=null;
+function oneTurnSurvivalVolatiles(){
+  if(_volOneTurnSurv) return _volOneTurnSurv;
+  _volOneTurnSurv=new Map();
+  try{
+    for(const id of (TAGS.withTag?TAGS.withTag('move','survivesAnyHit'):[])){
+      const p=TAGS.param('move',id,'survivesAnyHit');
+      if(!p||!p.volatile||+p.duration!==1)continue;
+      _volOneTurnSurv.set(p.volatile,p);
+    }
+  }catch(e){
+    MEDFAILS.volOneTurnSurvTableFailed++;
+    if(!MEDFAILS.volOneTurnSurvTableFailedFirst) MEDFAILS.volOneTurnSurvTableFailedFirst=String((e&&e.message)||e);
+  }
+  return _volOneTurnSurv;
+}
+/* The denominator AT THE TICK. `perIfType` names a type list and a different divisor for a body that
+ * carries one of them; anything else keeps the flat `per`. Nothing is defaulted silently -- a params
+ * object with no `perIfType` simply returns `per`, which is what every member but Salt Cure has. */
+function perTurnHPDenominator(pt,body){
+  const pit=pt&&pt.perIfType;
+  if(pit&&Array.isArray(pit.types)&&+pit.per>0&&body&&Array.isArray(body.types)
+     &&pit.types.some(t=>body.types.indexOf(t)>=0))return +pit.per;
+  return +pt.per;
 }
 /* Disable's declared duration is one longer than the number of turns it seals; every other member
  * needs no correction. Written as a table of ONE so a second exception cannot be smuggled in as a
@@ -3123,6 +3282,30 @@ function convertsMoveTypeTo(mv,moveId,att,curT){
  * it -- clickFragility was the one and it now passes `att`. An attacker-less call is therefore a
  * caller that genuinely HAS no attacker, and the answer it gets is a strictly smaller true one:
  * no -ate conversion and no private sky. */
+/* WIRE 157 -- `charge.condition.onAfterMove`, IN ONE FUNCTION BECAUSE IT IS ONE FACT.
+ *
+ *     onAfterMove(pokemon, target, move) {
+ *       if (move.type === 'Electric' && move.id !== 'charge') pokemon.removeVolatile('charge');
+ *     }
+ *
+ * TWO THINGS IN THAT LINE ARE EASY TO DROP AND BOTH CHANGE WHAT THE ABILITY IS WORTH. The bank is
+ * spent by ANY Electric click, including a Thunder Wave that takes no benefit from it -- so it is not
+ * "the next Electric ATTACK". And it is NOT spent by a non-Electric one, so a Bellibolt can bank a hit
+ * and click Body Slam and still have the doubling waiting: an engine that cleared the flag on any move
+ * would turn a bank into a one-turn buff, which is a different ability.
+ *
+ * IT IS CALLED FROM TWO PLACES AND THAT IS THE MINIMUM, not a duplication: a damaging click can only
+ * be spent AFTER the hit steps (it has to have taken the doubling first), and a status click cannot
+ * take the doubling at all, so for that one before and after are the same board. Both call this. */
+function spendChargeOnMove(m,mvId,mv,field){
+  if(!m||!m._vol||!(m._vol.charge>0)||!mvId)return false;
+  if(String(mvId)==='charge')return false;
+  if(effMoveType(mv||null,mvId,field,m)!=='Electric')return false;
+  delete m._vol.charge;
+  MEDSEEN.chargeCleared++;
+  if(TR)TR.vend(m,'Charge');
+  return true;
+}
 function effMoveType(mv,moveId,field,att){
   let t=mv?mv.t:'';
   const _cm=convertsMoveTypeTo(mv,moveId,att,t);
@@ -3155,6 +3338,16 @@ function effMoveType(mv,moveId,field,att){
    * dmgRange blanks. Adding a `def` parameter would be dead code at all five loop sites, so it is not
    * added; the gap is written down instead. */
   if(w&&w.byWeather){const _w=effWeatherOf(field,att);if(_w){const x=w.byWeather[_w];if(x&&x.type)return x.type;}}
+  /* ROADMAP #139 -- AND THE TERRAIN TWIN OF THE LINE ABOVE. Terrain Pulse takes the terrain's own
+   * type while its user is grounded. It has to be HERE as well as in dmgRange for exactly the reason
+   * WIRE 126 gives about Weather Ball: the battle loop's stage-5 immunity gate asks THIS function,
+   * dmgRange asks its own copy, and a move priced as Electric and refused as Normal is the split that
+   * made a Meganium-Mega's Weather Ball deal literally zero into a Ghost. */
+  {const _tr=moveId&&TAGS.param('move',moveId,'terrainScaled');
+   if(_tr&&_tr.byTerrain&&field&&field.terrain&&(!_tr.requiresGrounded||(att&&isGrounded(att)))){
+     const _te=terrainId(field.terrain);
+     if(_te)for(const k in _tr.byTerrain){if(terrainId(k)===_te)return _tr.byTerrain[k];}
+   }}
   return t;
 }
 /* WIRE 21 -- variablePower: does this move have power AT ALL, and what is it right now?
@@ -3324,7 +3517,7 @@ function auraFor(field,att,def){
  * passes the whole expectation on the flat path (so the arithmetic is byte-for-byte what it was) and
  * exactly 1 on the per-hit path (where the wrapper sums the hits itself). Nothing outside `dmgRange`
  * calls this; the exported name and its seven-argument signature are unchanged. */
-function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride){
+function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,perHit){
   stampMoveIds();
   if(!mv||!hasPower(mv))return {min:0,max:0,eff:mcEff(mv?mv.t:'',def.types)};
   /* Shadowed once, at the top, so every weather read BELOW this line -- weatherScaled, Weather Ball's
@@ -3373,6 +3566,37 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride){
     const w=_ws.byWeather[field.weather];
     if(w){if(w.type)mvT=w.type;if(w.bpMult)mvBP=Math.floor(mvBP*w.bpMult);}
   }
+  /* ROADMAP #139 -- TERRAIN PULSE, THE SAME TWO LINES ONE FIELD OVER. The block above is Weather
+   * Ball; this is its terrain twin, and the reason it did not exist is that the TAG did not carry the
+   * facts -- `terrainScaled` said `{scalesWith:'terrain'}` and nothing else, so there was nothing to
+   * read. tag_dex now derives `byTerrain` (the four terrain-to-type rows, out of the move's own
+   * `onModifyType` switch) and `anyTerrainBPMult` (the `move.basePower *= 2`), and this is the pair
+   * of statements that consume them.
+   *
+   * BOTH HALVES OR NEITHER. A 50 base power Normal click and a 100 base power Electric one are not
+   * the same move by a factor of four into a Water type, and half a fix here would have produced a
+   * number that is wrong in a NEW way rather than in the old one. The roster read `sd 1218 / ours
+   * 1231` under Electric Terrain -- a 13 HP difference standing in for a doubled, retyped, STAB-ed
+   * attack.
+   *
+   * THE GROUNDED GATE IS THE MOVE'S OWN (`requiresGrounded`, off `pokemon.isGrounded()` in both
+   * handlers) and it is the ATTACKER'S feet, which is what the handlers pass. That is stated because
+   * the `terrainScaled {terrain, mult}` block further down explicitly does NOT apply a grounded gate,
+   * for the documented reason that its two members disagree about whose feet matter -- this member
+   * does not have that ambiguity, so it gets the gate.
+   *
+   * A CALL WITH NO ATTACKER DECLINES AND SAYS SO. `dmgRange` is called from pure pricing paths that
+   * hand it a real body, but nothing in the signature guarantees one; a silent conversion on an
+   * unknown body would be exactly the fallback this file is not allowed to ship. */
+  {const _tsT=mv.id&&TAGS.param('move',mv.id,'terrainScaled');
+   if(_tsT&&(_tsT.byTerrain||_tsT.anyTerrainBPMult)&&field&&field.terrain){
+     const _te=terrainId(field.terrain);
+     const _ok=!_tsT.requiresGrounded||(att?isGrounded(att):(MEDFAILS.terrainScaledNoAttacker++,false));
+     if(_te&&_ok){
+       if(_tsT.byTerrain)for(const k in _tsT.byTerrain){if(terrainId(k)===_te){mvT=_tsT.byTerrain[k];break;}}
+       if(_tsT.anyTerrainBPMult)mvBP=Math.floor(mvBP*+_tsT.anyTerrainBPMult);
+     }
+   }}
   /* WIRE 9 -- the death counter, both freshness rules (Will's split). Last Respects reads the
    * side's LIVE count at each use; Supreme Overlord multiplies by the snapshot FROZEN at this
    * attacker's entry. Both zero when no counter is attached (site calls, unit tests). */
@@ -4062,6 +4286,69 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride){
       const _ty=TAGS.param('item',att.item,'damageMultType');
       if(_ty&&_ty.onType===mvT&&_ty.mult)BPCH(_ty.mult);
     }
+    /* WIRE 157 -- THE BANKED CHARGE, `chainModify(2)` ON AN ELECTRIC MOVE.
+     *
+     * The volatile has existed in this engine since the MOVE Charge was routed through
+     * `applyMoveVolatile`, and the comment at WIRE 146 said so plainly: "nothing in this engine reads
+     * `_vol.noretreat`, `_vol.minimize` or `_vol.charge`". So Charge was a status click that bought a
+     * +1 Special Defense and a flag, and Electromorphosis banked nothing at all because the ability
+     * side refused to grant a volatile no consumer would read.
+     *
+     * IT IS A BASE-POWER CHAIN MEMBER, not a stat multiplier and not a `Math.floor` on the damage.
+     * `charge.condition.onBasePowerPriority` is 9 and its handler is `this.chainModify(2)`
+     * (data/moves.ts), so it folds into the SAME relay as Technician, the type items and the -ate 1.2
+     * and truncates once with them. Spending it anywhere else is the 40%-wrong class of error the
+     * whole of this block exists to have fixed.
+     *
+     * THE TYPE IS THE EFFECTIVE ONE (`mvT`), which is the type the authority tests too -- its handler
+     * reads `move.type` after `onModifyType` has run, so a Galvanize body's Normal move IS Electric by
+     * the time Charge sees it.
+     *
+     * NOTHING IS SPENT HERE. `dmgRange` is called for hypothetical scoring as well as for real hits,
+     * so consuming the bank in the pricing function would delete a real fact off a body every time a
+     * searcher looked at a move it did not click. The removal is `onAfterMove`'s and lives at the two
+     * places a move actually resolves. */
+    if(mvT==='Electric'&&att._vol&&att._vol.charge>0){BPCH(2);MEDSEEN.chargeSpentBP++;}
+    /* WIRE 157 -- THE `damageBoost` MEMBERS WHOSE CONDITION IS ABOUT THE MOVE, AND RECKLESS IS THE
+     * ONE OF THEM THAT ANYBODY PLAYS.
+     *
+     * The other `damageBoost` consumer -- the one in the stat chain, ~200 lines up -- is narrowed to
+     * "a multiplier, a TYPE, no weather, and no other tag on the ability", which is the
+     * `onModifyAtk`/`onModifySpA` half of the family (Steelworker, Transistor, Dragon's Maw, Blaze and
+     * the pinch three). Reckless is not in that shape and never could be: it is `onBasePower`, it is
+     * type-agnostic, and its condition is a property of the CLICK -- `move.recoil ||
+     * move.hasCrashDamage`. It fell out of the artifact as `onlyWhen: null`, i.e. UNCONDITIONAL, and
+     * the only thing that stopped a permanent 1.2x on every move Staraptor, Rhyperior and Emboar throw
+     * was that the consumer refused it for an unrelated reason. Two defects holding each other up.
+     *
+     * SO THE CONDITION MOVED UPSTREAM AND THE STAGE CAME WITH IT. `tag_dex` now emits Reckless's
+     * `onlyWhen` in `condHolds`'s OWN `moveFlag` shape -- the same evaluator `buffsHolderOnHit.when`
+     * already uses, so there is one answer to "what does a condition look like" -- and a `stage` field
+     * read off whichever handler carried the multiplier. This block serves `stage: 'basePower'` and
+     * nothing else; the stat-chain block serves `attackStat`. That split is Showdown's own
+     * (`runEvent('BasePower')` folds and truncates ONCE, above the formula; a stat multiplier truncates
+     * inside it), and it now lives in the artifact rather than in two engine comments.
+     *
+     * IT REFUSES WHAT IT CANNOT READ AND COUNTS THE REFUSAL, exactly as its sibling does. `condHolds`
+     * returns null for a shape this engine cannot evaluate, and null is NOT false -- a guessed
+     * condition on a permanent 1.2x is the Blaze failure with the sign flipped.
+     *
+     * MEMBERSHIP, printed over the format dex before this was wired: the abilities whose `onBasePower`
+     * tests `move.recoil` or `move.hasCrashDamage` number exactly ONE, Reckless. Carriers in Reg M-B:
+     * Staraptor, Rhyperior, Emboar. */
+    {
+      const _dbm=TAGS.param('ability',attAb,'damageBoost');
+      if(_dbm&&_dbm.mult&&_dbm.stage==='basePower'&&!_dbm.onType&&!_dbm.inWeather
+         &&_dbm.onlyWhen&&_dbm.onlyWhen.cond&&mv&&mv.id){
+        const _dw=condHolds(_dbm.onlyWhen,att,{moveId:mv.id,
+                                               moveType:mvT,
+                                               category:phys?'Physical':'Special'});
+        if(_dw===null){MEDFAILS.damageBoostUnknownCond++;
+          if(!MEDFAILS.damageBoostUnknownCondFirst)
+            MEDFAILS.damageBoostUnknownCondFirst=String(attAb)+'/'+JSON.stringify(_dbm.onlyWhen);}
+        else if(_dw){BPCH(exact4096(attAb,+_dbm.mult));MEDSEEN.damageBoostMoveCond++;}
+      }
+    }
     /* MUSCLE BAND / WISE GLASSES, `[4505,4096]`. Name-wired because both are `untagged` in the
      * artifact; the value is the authority's pair rather than the 1.1 that used to be typed here. */
     if(att.item==='muscleband'&&phys)BPCH([4505,4096]);
@@ -4079,6 +4366,30 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride){
   }
   let base=Math.floor(Math.floor(22*mvBP*A/D)/50)+2;
   if(spread)base=md4096(base,0.75);
+  /* ROADMAP #139 -- PARENTAL BOND'S SECOND HIT IS RECOMPUTED, NOT SCALED, AND THIS IS THE STAGE.
+   * `battle-actions.ts:1460`, inside `modifyDamage`, is an `else if` on the SPREAD branch:
+   *
+   *     if (move.spreadHit) { baseDamage = this.modify(baseDamage, 0.75); }
+   *     else if (move.multihitType === 'parentalbond' && move.hit > 1) {
+   *       baseDamage = this.modify(baseDamage, 0.25);
+   *     }
+   *
+   * So it is the same slot as the spread modifier -- BEFORE the weather multiplier, the crit, the
+   * random roll, STAB, the type chart, burn and the final chain -- and every one of those stages then
+   * runs again for the second packet with its own truncations.
+   *
+   * WHAT WAS HERE INSTEAD: `base = floor(base * 1.25)` applied several stages later, which is one
+   * packet at one-and-a-quarter power rather than two packets. The two part by a point per hit and
+   * the error compounds: staged against the authority, Kangaskhan-Mega left Dragapult on 94 then 25
+   * where this engine left it on 95 then 27. `else if` and not `if`, because a spread hit never takes
+   * the bond modifier -- that is the authority's own structure and the reason it is written as one
+   * chain rather than two statements.
+   *
+   * THE HIT INDEX ARRIVES THROUGH THE EXISTING PER-HIT LOOP (`hitPlanOf` -> `dmgRangeOneHit`), which
+   * already exists for Beat Up and Triple Axel. Nothing new was built to carry it; the ability simply
+   * stopped being a post-hoc multiplier and became what it is, a two-packet move. */
+  else if(hitNo===2&&perHit&&perHit.bondMult){
+    base=md4096(base,+perHit.bondMult);MEDSEEN.parentalBondSecondHit++;}
   if(field.weather==='rain'){if(mvT==='Water')base=md4096(base,1.5);if(mvT==='Fire')base=md4096(base,0.5);}
   if(field.weather==='sun'){if(mvT==='Fire')base=md4096(base,1.5);if(mvT==='Water')base=md4096(base,0.5);}
   /* WIRE 35 -- THE CERTAIN HALF OF THE CRIT. Placed exactly where Showdown's getDamage puts it:
@@ -4119,15 +4430,11 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride){
    * and the screens, not folded into a plain truncated multiply that is not a modifier at all. It is
    * applied below, gated on `_critHere`, and the battle loop's copy is gone with it. */
   if(_critHere){base=Math.floor(base*1.5);MEDSEEN.critInRange++;}
-  /* WIRE 98 -- PARENTAL BOND (Kangaskhanite, 217 corpus uses). The second hit is a quarter, so a
-   * single-target damaging move is x1.25 total. NOT applied to spread moves (the real rule in
-   * doubles) and NOT to moves that already multi-hit. The flinch/secondary doubling is not modelled
-   * and is stated here rather than discovered. */
-  {
-    const _h2=TAGS.param('ability',attAb,'hitsTwice');
-    if(_h2&&_h2.hits>1&&!spread&&mv.id&&expectedHitsOf(mv.id)<=1)
-      base=Math.floor(base*(1+(+_h2.secondHitMult||0.25)));
-  }
+  /* WIRE 98 -- PARENTAL BOND (Kangaskhanite, 217 corpus uses). ROADMAP #139 MOVED IT: what stood here
+   * was `base = floor(base * 1.25)`, a single packet at one-and-a-quarter power applied at THIS
+   * stage, several after the one the authority uses. The ability is now a two-packet plan
+   * (`hitPlanOf`) whose second packet takes `modify(base, 0.25)` at the spread-modifier slot, and
+   * both packets run the whole formula. See the comment at that line for the receipt. */
   /* WIRE 128 -- THE TYPE CHART, THE OVERRIDES AND SCRAPPY ARE ONE FUNCTION NOW (see typeEffAgainst).
    * They used to live inline here, and the battle loop's own immunity gate re-derived the same
    * question as a bare `mcEff(effMoveType(...), tg.types)` -- so a Scrappy body's Body Slam was
@@ -4465,7 +4772,7 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride){
  * builds for the price sums to exactly that expectation (checked, and a mismatch is counted rather
  * than absorbed). */
 function dmgRange(att,def,mv,field,spread,isCrit,hit){
-  const _plan=hitPlanOf(att,mv,hit);
+  const _plan=hitPlanOf(att,mv,hit,spread);
   if(hit&&+hit.hits>0)MEDSEEN.multiHitRolledCount++;
   if(!_plan.perHitPower)return dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,1,_plan.total);
   MEDSEEN.perHitDamageLoop++;
@@ -4478,7 +4785,19 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
      * overwritten; every other field on the hit context (Helping Hand, Friend Guard, the drawn
      * conditional power) is carried through untouched. */
     const _sub=_wantRolls?Object.assign({},hit,{rolls:[]}):hit;
-    const _r=dmgRangeOneHit(att,def,mv,field,spread,isCrit,_sub,h,1);
+    /* ROADMAP #139 -- A TENTH ARGUMENT, AND IT IS DELIBERATELY NOT `hitsOverride`. That one is a
+     * COUNT (`+hitsOverride > 0 ? ... : 1`) and Parental Bond's quarter is a MODIFIER on one packet;
+     * smuggling an object through a numeric parameter would have worked by accident of coercion and
+     * broken the first time somebody read the count. Absent for every other caller, which is what the
+     * per-hit loop already meant for Beat Up and Triple Axel. */
+    const _r=dmgRangeOneHit(att,def,mv,field,spread,isCrit,_sub,h,1,_plan.perHit||null);
+    /* ROADMAP #139 -- THE FIRST PACKET, HANDED BACK, because a Focus Sash is a question about ONE
+     * ARRIVAL and not about a total. Will's acceptance test for Parental Bond is exactly this and it
+     * is binary rather than a magnitude: two real hits leave the Sash holder DEAD (hit one takes it to
+     * 1, hit two kills), one x1.25 hit leaves it ALIVE at 1. No multiplier can be tuned to pass it.
+     * Written onto the caller's hit context only when it asked (`wantFirst`), so every other caller
+     * draws exactly what it drew before. */
+    if(h===1&&hit&&hit.wantFirst){hit.firstMin=_r.min;hit.firstMax=_r.max;}
     _eff=_r.eff;_mn+=_w*_r.min;_mx+=_w*_r.max;
     if(_wantRolls&&_sub.rolls.length===16)for(let i=0;i<16;i++)_acc[i]+=_w*_sub.rolls[i];
   }
@@ -4497,7 +4816,27 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
  *
  * BEAT UP HAS NO `multiHit` ROW AT ALL -- its count is the eligible PARTY -- which is why this asks
  * the ally list before it asks the tag. */
-function hitPlanOf(att,mv,hit){
+/* ROADMAP #139 -- DOES PARENTAL BOND ADD A PACKET TO THIS CLICK, AND WHAT IS THAT PACKET WORTH?
+ * ONE implementation, because TWO readers need the same answer and this project's own rule says a
+ * FACT gets one owner: `hitPlanOf` prices the extra packet, and the battle loop's reaction counter
+ * decides how many times Rough Skin, Weak Armor and every other `onDamagingHit` reactor fires. Two
+ * copies of "is this a two-hit click" is exactly the shape that let the hit COUNT and the hit DAMAGE
+ * disagree for the 2-5 family (ROADMAP #103, recorded two hundred lines below).
+ *
+ * EVERY CLAUSE IS THE AUTHORITY'S `onPrepareHit` EARLY RETURN, asked of the object that owns it:
+ * `hasPower` refuses a Status move upstream; `perHitPower`, `expectedHitsOf` and the ROLLED count are
+ * three faces of `move.multihit`; `spread` is `move.spreadHit`; and the three flags come from
+ * `noExtraHit`, derived in tag_dex from the dex rather than listed here. */
+function bondMultFor(att,id,spread,rolled,perHitPower){
+  if(!att||!id)return null;
+  const _h2=TAGS.param('ability',att.ability,'hitsTwice');
+  if(!_h2||!(+_h2.hits>1))return null;
+  if(spread||perHitPower||(rolled||0)>1)return null;
+  if(expectedHitsOf(id)>1)return null;
+  if(TAGS.has('move',id,'noExtraHit'))return null;
+  return +_h2.secondHitMult||0.25;
+}
+function hitPlanOf(att,mv,hit,spread){
   const id=mv&&mv.id;
   const _vp=id&&TAGS.param('move',id,'variablePower');
   if(_vp&&_vp.kind==='alliesBaseAtk'&&_vp.perAlly){
@@ -4506,6 +4845,27 @@ function hitPlanOf(att,mv,hit){
   }
   const perHitPower=!!(_vp&&_vp.kind==='perHitEscalates'&&+_vp.per>0);
   const rolled=(hit&&+hit.hits>0)?Math.floor(+hit.hits):0;
+  /* ROADMAP #139 -- PARENTAL BOND IS A HIT PLAN, and this is where it becomes one. `onPrepareHit`
+   * literally writes `move.multihit = 2`, so the authority's own model of the ability is "this move
+   * now hits twice", not "this move deals a quarter more" -- and modelling it as a multiplier is what
+   * put the arithmetic a point out per hit.
+   *
+   * EVERY CLAUSE OF THE AUTHORITY'S EARLY RETURN IS ASKED, and each is asked of the object that owns
+   * it rather than restated here:
+   *   category Status   -> `hasPower` refuses the whole move upstream of any of this
+   *   move.multihit     -> `perHitPower` (Triple Axel) and `expectedHitsOf(id) > 1` (the 2-5 family),
+   *                        and a ROLLED count, which is the same fact at execution time
+   *   move.spreadHit    -> the `spread` argument, now passed in for exactly this
+   *   the three flags   -> `noExtraHit`, derived in tag_dex from the dex flags themselves (17 moves:
+   *                        every charge move, Future Sight, and the six that carry `noparentalbond`)
+   * Placed ABOVE the rolled early return so a caller that hands this function `hits: 1` for an
+   * ordinary click still gets the second packet; a caller that hands it a real multi-hit count is
+   * refused by the `rolled > 1` clause, which is the authority's `move.multihit` test one moment
+   * later in the turn. */
+  {
+    const _bm=bondMultFor(att,id,spread,rolled,perHitPower);
+    if(_bm!=null){MEDSEEN.parentalBondPlanned++;return {n:2,w:[1,1],total:2,perHitPower:true,perHit:{bondMult:_bm}};}
+  }
   if(rolled>0)return {n:rolled,w:new Array(rolled).fill(1),total:rolled,perHitPower};
   const total=expectedHitsOf(id);
   if(!perHitPower)return {n:1,w:[1],total,perHitPower:false};
@@ -5457,7 +5817,16 @@ const STATUS_IMMUNE_ABIL={ brn:['waterveil','waterbubble','thermalexchange'],
                            frz:['magmaarmor'],
                            psn:['immunity','poisonheal'],
                            tox:['immunity','poisonheal'],
-                           slp:['insomnia','vitalspirit','sweetveil'] };
+                           /* WIRE 157 -- `sweetveil` IS GONE FROM THIS LIST AND THE REASON IS THAT IT
+                            * WAS NEVER THIS KIND OF ABILITY. Insomnia and Vital Spirit are
+                            * `onSetStatus` -- a body refusing its own sleep. Sweet Veil has no
+                            * `onSetStatus` at all; its handler is `onAllySetStatus`, which Showdown
+                            * gathers over `alliesAndSelf()`. Sitting here it protected the holder by
+                            * accident and the PARTNER -- the reason the ability is played -- not at
+                            * all. Both halves are now served by the derived `protectsAllyFromStatus`
+                            * tag through `allyRefusesStatus`, which is one implementation of one fact
+                            * instead of a name in a list that happened to cover half of it. */
+                           slp:['insomnia','vitalspirit'] };
 /* WIRE 114 -- ABILITIES THAT REFUSE *EVERY* MAJOR STATUS, held in ONE list rather than repeated
  * across the six above, because the failure this fixes is exactly what per-status lists produce:
  * PURIFYING SALT (Garganacl, 51 sheets, legal and played in Reg M-B) was in NONE of them, so a
@@ -5734,11 +6103,43 @@ const SD_BLOCK2ENG={atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp'};
 /* STAGED tag_dex enrichment (`preventsStatDrop.onlyFrom`). Read the tag first; this list is only
  * consulted for an artifact generated before that field existed. */
 const INTIM_ONLY_BRIDGE=['innerfocus','oblivious','owntempo','scrappy','guarddog'];
-/* Mirror Armor REFLECTS the drop back at the source and emits `|-ability|X|Mirror Armor|`, not a
- * `-fail`. It blocks here exactly as it did before this wire and is announced by nothing; the
- * reflection is filed rather than guessed at. */
+/* WIRE 157 -- `REFLECTS_DROP` WAS A TYPED NAME WHOSE ONLY JOB WAS TO SUPPRESS A MESSAGE, AND THAT IS
+ * WHY MIRROR ARMOR NEVER REFLECTED ANYTHING. The comment that stood here said the reflection was
+ * "filed rather than guessed at" -- true, and it stayed filed while the ability read as working: the
+ * tag it carries, `{blocks:'all stats'}`, is what every Clear Body carrier gets, so a Corviknight ate
+ * an Intimidate and the Intimidator walked away clean. Roster: Showdown -1/-2 Attack and -1 SpA on
+ * the aggressors against 0 here, on 518 uses.
+ *
+ * THE MEMBERSHIP IS NOW THE ARTIFACT'S (`preventsStatDrop.reflects`, derived from the handler
+ * re-aiming its own `this.boost(...)` at `source`) and it resolves to the same single ability this
+ * list held -- so nothing about WHO reflects changes, only that the engine is now told WHAT that
+ * means. The list stays for the announcement suppression it was written for, one line below. */
 const REFLECTS_DROP=['mirrorarmor'];
-function statDropRefusal(target,engStat,effectName,isSecondary){
+/* WIRE 157 -- THE REFLECTION ITSELF, THROUGH THE SAME PIPELINE EVERY OTHER DROP GOES THROUGH.
+ *
+ * `this.boost(negativeBoost, source, target, null, true)`: the drop is re-aimed at the SOURCE and it
+ * is an ordinary boost from there on. So it must be refusable by the source's own Clear Body,
+ * invertible by its Contrary, doubled by its Simple and answered by its Defiant -- and `applyStatDrop`
+ * is where all four of those already live. Reimplementing the arithmetic here would be a second copy
+ * of the fact, which is the rule this engine is built on.
+ *
+ * THE EFFECT IS NAMED `Mirror Armor` AND THAT NAME IS THE RECURSION GUARD, not a label: the handler's
+ * own first line is `if (!source || target === source || !boost || effect.name === 'Mirror Armor')
+ * return;`, so a reflection arriving at a SECOND Mirror Armor body is taken rather than bounced back
+ * forever. `statDropRefusal` honours it below. */
+function reflectStatDrop(holder,src,engStat,amount){
+  if(!src||src===holder)return false;             // the handler's `!source || target === source`
+  if(src.fainted||src.curHP<=0)return false;      // the handler's `if (source.hp)`
+  if(!(amount>0))return false;
+  applyStatDrop(src,engStat,amount,'Mirror Armor',holder);
+  MEDSEEN.statDropReflected++;
+  return true;
+}
+/* `src` AND `amount` ARE OPTIONAL AND THEIR ABSENCE IS COUNTED, NOT DEFAULTED. A caller that cannot
+ * say who caused the drop or how big it was keeps exactly the pre-wire behaviour -- the drop is
+ * blocked and nothing bounces -- because inventing either would be a silent default in the one place
+ * that decides whether an ability does anything at all. */
+function statDropRefusal(target,engStat,effectName,isSecondary,src,amount){
   if(!target)return null;
   const ab=(target.ability||'').replace(/[^a-z0-9]/g,'');
   const p=TAGS.param('ability',ab,'preventsStatDrop');
@@ -5753,14 +6154,30 @@ function statDropRefusal(target,engStat,effectName,isSecondary){
   if(only&&String(only).toLowerCase().replace(/[^a-z0-9]/g,'')!==_eid)return null;
   const blocks=String(p.blocks||'');
   if(blocks!=='all stats'&&SD_BLOCK2ENG[blocks]!==engStat)return null;
+  /* WIRE 157 -- THE REFLECTOR'S THREE GUARDS, ALL THREE OFF THE HANDLER AND ALL THREE CARRIED BY THE
+   * TAG rather than typed here.
+   *   1. A DROP THAT IS ITSELF A REFLECTION IS TAKEN, NOT BOUNCED. `effect.name === 'Mirror Armor'`
+   *      is an EARLY RETURN over the whole handler, so the second Mirror Armor in a pair does not
+   *      block either -- returning null here is both halves of that at once.
+   *   2. A STAT ALREADY AT THE FLOOR IS NOT BOUNCED AND NOT BLOCKED. The handler `continue`s without
+   *      deleting the key, so the drop lands normally and clamps to no change. Returning null
+   *      reproduces exactly that; returning a refusal would have been the same board by luck and a
+   *      different one the moment anything read the return value.
+   *   3. THE SOURCE MUST BE ALIVE, which `reflectStatDrop` asks. */
+  if(p.reflects&&_eid==='mirrorarmor')return null;
+  if(p.reflects&&p.reflectSkipsAtFloor&&target.boosts&&target.boosts[engStat]===-6)return null;
   MEDSEEN.statDropRefused++;
+  if(p.reflects){
+    if(src===undefined||amount===undefined)MEDSEEN.reflectSourceUnknown++;
+    else reflectStatDrop(target,src,engStat,amount);
+  }
   return {ab, label:blocks==='all stats'?'':(STAT_LABEL[engStat]||''),
           announce:!isSecondary&&_eid!=='octolock'&&REFLECTS_DROP.indexOf(ab)<0};
 }
 /* The one place a refusal turns into a protocol line, so the shape cannot drift between the four
  * callers. Returns true when the drop was refused. */
-function refuseStatDrop(target,engStat,effectName,isSecondary){
-  const r=statDropRefusal(target,engStat,effectName,isSecondary);
+function refuseStatDrop(target,engStat,effectName,isSecondary,src,amount){
+  const r=statDropRefusal(target,engStat,effectName,isSecondary,src,amount);
   if(!r)return false;
   if(TR&&r.announce)TR.failUnboost(target,r.label,r.ab);
   return true;
@@ -5830,7 +6247,9 @@ function retaliateWhenLowered(f,src){
 function applyStatDrop(f,stat,n,eff,src){
   if(!f||f.fainted) return 'none';
   const ab=(f.ability||'').replace(/[^a-z0-9]/g,'');
-  if(refuseStatDrop(f,stat,eff,false)) return 'blocked';
+  /* WIRE 157 -- the source and the size travel with the refusal now, so a Mirror Armor target can
+   * bounce the drop back at whoever caused it. `src` is already this function's own argument. */
+  if(refuseStatDrop(f,stat,eff,false,src,n)) return 'blocked';
   /* THROUGH invSign, the ONE reader of the inverting fact -- which is where the WIRE 113 bridge
    * lives. Asking the tag directly here is exactly how Simple got +1 from Intimidate against the
    * official engine's -2: the shipped artifact over-tags it as an inverter. */
@@ -5942,7 +6361,7 @@ function applyStatOp(user,target,op,mvId,rng){
      * and a resulting DROP is offered to the same refusal gate every other drop in this engine goes
      * through -- one implementation of the fact, per CLAUDE.md. */
     const d=op.amount*invSign(b);
-    if(d<0&&statDropRefusal(b,k,mvId,false))return false;
+    if(d<0&&statDropRefusal(b,k,mvId,false,user,Math.abs(d)))return false;   // WIRE 157 -- source + size
     const _b0=b.boosts[k];
     b.boosts[k]=clamp(b.boosts[k]+d,-6,6);
     if(TR)TR.bst(b,k,b.boosts[k]-_b0);
@@ -5970,6 +6389,28 @@ function applyEntryDrops(m,foes){
   if(!_osd)return;
   const _bo=_osd.boosts||(m.ability==='intimidate'?{atk:-1}:null);
   if(!_bo)return;
+  /* WIRE 157 -- ONCE PER BATTLE IS NOT THE SAME AS ONCE PER ENTRY, AND THIS BRANCH KNEW ONLY THE
+   * SECOND. Supersweet Syrup's handler opens `if (pokemon.syrupTriggered) return; pokemon.syrupTriggered
+   * = true;`, and `syrupTriggered` is a field on the Pokemon set false in the CONSTRUCTOR
+   * (sim/pokemon.ts:263, :482) and NOT touched by `clearVolatile()` -- so it survives a switch and the
+   * drop happens once, ever. Measured before this landed: carrier leads (-1), pivots out, returns ->
+   * ours -2, Showdown -1. It is the one member of this whole wire that did something TWICE rather
+   * than not at all, which is why no arm short of a second entry could see it.
+   *
+   * THE FLAG'S NAME COMES OUT OF THE HANDLER, not from a boolean. `oncePerBattle: 'syrupTriggered'`
+   * is derived from the guard's own shape, so a second member arriving with its own bookkeeping key
+   * gets its own key here instead of sharing Syrup's -- Intrepid Sword and Dauntless Shield have the
+   * same shape and different fields, and both are in this format.
+   *
+   * INTIMIDATE IS UNCHANGED AND THAT IS THE POINT: it carries `oncePerBattle: null`, so the same tag
+   * on the same code path still drops on every entry. A blanket once-per-entry rule here would have
+   * been the fix that broke the ability everyone actually plays. */
+  if(_osd.oncePerBattle){
+    const _k='_once_'+String(_osd.oncePerBattle);
+    if(m[_k])return;
+    m[_k]=true;
+    MEDSEEN.entryDropOncePerBattle++;
+  }
   /* `|-ability|p1a: X|Intimidate|boost` once, then one `|-unboost|` per foe — Showdown's own order,
    * read off a real Champions battle.log. The `boost` third argument is the protocol's marker for
    * "this ability announcement is about a stat change". */
@@ -6073,7 +6514,92 @@ function refreshSleepBlock(actA,actB,sfA,sfB){
                                                 &&b._mtLock.blockSleep);
   if(sfA)sfA._noSleep=on; if(sfB)sfB._noSleep=on;
 }
+/* WIRE 157 -- DOES ANY BODY ON THIS SIDE REFUSE THIS STATUS ON THIS ONE'S BEHALF?
+ *
+ * The veil family's handlers are `onAllySetStatus`, and Showdown gathers an `onAlly...` handler over
+ * the holder's `alliesAndSelf()` -- so the question "is this status refused" is not a property of the
+ * TARGET's ability, it is a property of the SIDE. medicham2 had no way to ask that: `canTakeStatus`
+ * reads the target's own ability and nothing else, which is why `sweetveil` had been typed into the
+ * self-immunity slp list, where it protected the holder by accident and the PARTNER not at all.
+ *
+ * THE SCOPES TRAVEL WITH THE TAG AND ARE ALL READ, because the three carriers are three different
+ * rules and flattening them is how a 29-use ability becomes a blanket immunity on 1,465 sheets:
+ *     Sweet Veil    slp only,      no type gate, no source gate  (so its holder cannot Rest -- real)
+ *     Pastel Veil   psn/tox only,  no type gate, no source gate
+ *     Flower Veil   EVERY status EXCEPT yawn, and ONLY on a GRASS-TYPE body, and only from a SOURCE
+ *                   that is not the body itself
+ *
+ * `except` IS AN EXCLUDE AND `statuses` MAY BE THE STRING 'all', which is the shape Flower Veil's
+ * handler actually has (it names no status and declines one source). Treating a handler that names
+ * nothing as "blocks nothing" would delete the ability; treating it as "blocks everything" without
+ * the exclude would block Yawn's sleep, which the authority lets through.
+ *
+ * A SOURCE-LESS CALLER IS NOT REFUSED BY A GUARD IT CANNOT EVALUATE. `needsSource`/`notFromSelf` are
+ * only applied when the caller said who is doing it; a caller that did not is counted, exactly as
+ * `retaliateWhenLowered` counts its own. Returns the refusing body, so the caller can announce it. */
+function allyRefusesStatus(t,st,src){
+  if(!t||!st)return null;
+  const sf=t._sf,S=sf&&sf._S;
+  if(!S)return null;
+  const side=sf.side==='A'?S.actA:S.actB;
+  for(const h of (side||[])){
+    if(!h||h.fainted||h.curHP<=0)continue;
+    const p=TAGS.param('ability',h.ability,'protectsAllyFromStatus');
+    if(!p)continue;
+    if(h===t&&!p.coversSelf)continue;
+    if(p.onlyGrassTypes&&!(t.types||[]).some(x=>String(x).toLowerCase()==='grass'))continue;
+    const list=p.statuses;
+    if(Array.isArray(list)){ if(list.indexOf(st)<0)continue; }
+    else if(list!=='all')continue;
+    if(Array.isArray(p.except)&&p.except.indexOf(st)>=0)continue;
+    if(src===undefined){MEDSEEN.allyVeilSourceUnknown++;}
+    else{
+      if(p.needsSource&&!src)continue;
+      if(p.notFromSelf&&src===t)continue;
+    }
+    return h;
+  }
+  return null;
+}
+/* WIRE 157 -- THE VOLATILE HALF OF THE SAME FAMILY, `onAllyTryAddVolatile`.
+ *
+ * Kept as its own function rather than a flag on the one above, because the two handlers carry
+ * DIFFERENT scopes on the same ability: Flower Veil blocks every STATUS except one whose source is
+ * Yawn, and separately blocks the yawn VOLATILE outright. The grass gate applies to both; the status
+ * list and the source guards apply only to the status half. Folding them would have made the `except`
+ * list read as a volatile list.
+ *
+ * `except` IS AN EFFECT ID, NOT A STATUS NAME, and that is stated because the consumer above compares
+ * it against a status. Flower Veil's `effect.id !== 'yawn'` declines a status whose SOURCE is Yawn;
+ * this engine's `applyStatus` is handed a body and not an effect, so the comparison is a no-op today
+ * -- 'yawn' is never a status name. It costs nothing because the yawn is refused HERE instead, so the
+ * sleep it would have caused never arrives. Written down rather than left to be rediscovered. */
+function allyRefusesVolatile(t,vol){
+  if(!t||!vol)return null;
+  const sf=t._sf,S=sf&&sf._S;
+  if(!S)return null;
+  const side=sf.side==='A'?S.actA:S.actB;
+  for(const h of (side||[])){
+    if(!h||h.fainted||h.curHP<=0)continue;
+    const p=TAGS.param('ability',h.ability,'protectsAllyFromStatus');
+    if(!p||!Array.isArray(p.volatiles)||p.volatiles.indexOf(vol)<0)continue;
+    if(h===t&&!p.coversSelf)continue;
+    if(p.onlyGrassTypes&&!(t.types||[]).some(x=>String(x).toLowerCase()==='grass'))continue;
+    return h;
+  }
+  return null;
+}
 function applyStatus(t,st,src){
+  /* WIRE 157 -- ABOVE `canTakeStatus`, WHICH IS THE TARGET'S OWN REFUSAL. This one belongs to the
+   * SIDE, and it is asked first for the same reason Uproar's is: a status refused by a body standing
+   * next to you never reaches your own immunity table at all. */
+  {const _av=allyRefusesStatus(t,st,src);
+   if(_av){MEDSEEN.allyVeilRefused++;
+     /* `-block|TARGET|ability: Sweet Veil|[of] HOLDER` -- the handler's own line. `-block` is not in
+      * TRACE_EVENTS, so nothing is emitted here and the shortfall is counted rather than papered over
+      * with a `-fail`, which would part the two streams in a new place. See clearBoostUnannounced. */
+     MEDFAILS.blockLineUnannounced++;
+     return false;}}
   if(st==='slp'&&t&&t._sf&&t._sf._noSleep){
     MEDSEEN.uproarRefusedSleep++;
     /* `-fail|POKEMON|slp|[from] Uproar` (data/moves.ts:20248). The authority adds `[msg]` when the
@@ -6387,6 +6913,42 @@ function applyEntryEffects(m,field,ally){
     ally.curHP=Math.min(ally.st.hp,ally.curHP+Math.floor(ally.st.hp/4));
     if(TR)TR.heal(ally,'[from] ability: '+m.ability,m);
   }
+  /* WIRE 157 -- CURIOUS MEDICINE, THE OTHER THING AN ENTRY ABILITY CAN DO TO THE BODY BESIDE IT.
+   *
+   * `healsAllyOnSwitchIn` directly above is the only ally-directed entry effect this engine had, and
+   * `applyEntryDrops` next door walks the FOES. Curious Medicine walks `adjacentAllies()` and calls
+   * `ally.clearBoosts()` -- so it resets the PARTNER's stat stages, in BOTH directions. The roster
+   * staged it and the authority moved a board this engine left still: Showdown's Goodra-Hisui back to
+   * 0/0, ours held at -1/-1 for the rest of the game.
+   *
+   * `clearBoosts()` IS NOT `boost()`. It writes the vector directly (sim/pokemon.ts), so it runs no
+   * `onTryBoost` and no `onChangeBoost`: Clear Body does not refuse it and Contrary does not invert
+   * it. That is the same distinction WIRE 151 draws for Psych Up and Topsy-Turvy, and it is why this
+   * does NOT go through `statDropRefusal` or `invSign` -- asking either would be inventing a gate the
+   * authority does not have.
+   *
+   * IT CLEARS THE ALLY AND NOT THE HOLDER. `adjacentAllies()` excludes self; `alliesAndSelf()`, which
+   * the veil family uses, does not. One word apart in the dex and the opposite ability if confused.
+   *
+   * MEMBERSHIP, printed over the format dex before this was written: `onStart` walking
+   * `adjacentAllies()` matches TWO abilities, Curious Medicine and Hospitality, and only the first
+   * calls `clearBoosts()` -- which is why the EFFECT is half the tag's predicate. One carrier in Reg
+   * M-B: Slowking-Galar. */
+  {const _cm=TAGS.param('ability',m.ability,'clearsAllyBoostsOnEntry');
+   if(_cm&&ally&&!ally.fainted&&ally.curHP>0&&ally.boosts){
+     let _any=false;
+     for(const k in ally.boosts)if(ally.boosts[k]){ally.boosts[k]=0;_any=true;}
+     /* THE PROTOCOL LINE IS NOT EMITTED, AND THAT IS DECLARED RATHER THAN QUIET. Showdown writes
+      * `|-clearboost|ALLY|[from] ability: Curious Medicine|[of] HOLDER`, and `-clearboost` is not in
+      * this engine's TRACE_EVENTS. Adding it there is not free: tests/test-protocol-trace.js PART 1
+      * asserts every event this engine CLAIMS actually fires in a real game, and a three-use ability
+      * on a body with no row would never appear in those games -- so declaring the event would turn a
+      * green guard red and teach the next reader that a claimed-but-silent event is acceptable.
+      * Emitting `-clearallboost` instead would be worse: it is a FIELD-WIDE event carrying no
+      * Pokemon (sim/SIM-PROTOCOL.md:401) and would part the two streams in a new place.
+      * So the STATE is right and the STREAM is one line short, counted here by name. */
+     if(_any){MEDSEEN.allyBoostsCleared++;MEDFAILS.clearBoostUnannounced++;}
+   }}
   /* SETTING THE WEATHER THAT IS ALREADY STANDING IS A NO-OP, AND IT IS NOT A REFRESH EITHER.
    * `sim/field.ts setWeather()`: `if (this.weather === status.id) { if (sourceEffect.effectType ===
    * 'Ability') { if (this.battle.gen > 5 ...) return false; } }` -- gen 9 is > 5, so the second
@@ -6688,6 +7250,10 @@ function imposterCopy(m,foes,slot){
    * that is already somebody else, or hiding behind a doll, cannot be copied. */
   if(!t||t.fainted||t.curHP<=0){MEDSEEN.transformRefusedNoBody++;return false;}
   if(t._transformed||t._sub>0){MEDSEEN.transformRefusedAlready++;return false;}
+  /* ROADMAP #139 -- THE BODY IT WAS, KEPT, so the switch-out can put it back. Taken BEFORE a field is
+   * written, and only on the transform that actually happens (every refusal above has returned). */
+  m._preTransform={name:m.name,types:(m.types||[]).slice(),st:Object.assign({},m.st),wt:m.wt,
+                   _bsAtk:m._bsAtk,moves:(m.moves||[]).slice(),ability:m.ability,baseAbility:m.baseAbility};
   const st=Object.assign({},t.st); st.hp=m.st.hp;      // EVERY STAT EXCEPT HP
   m.name=t.name;
   m.types=(t.types||[]).slice();
@@ -6699,6 +7265,30 @@ function imposterCopy(m,foes,slot){
   m.ability=t.ability; m.baseAbility=t.ability;
   m._transformed=true;
   MEDSEEN.transformedOnEntry++;
+  return true;
+}
+/* ROADMAP #95 / #139 -- AND IT COMES BACK AS ITSELF. `Pokemon#clearVolatile` calls
+ * `this.setSpecies(this.baseSpecies)` on the way out and drops `transformed`, so a Ditto that copied a
+ * Milotic and pivoted is a Ditto again when it returns -- with Ditto's stats, Ditto's types, Ditto's
+ * one move and Ditto's ability. This engine kept the copy forever, so a Ditto that had ever been on
+ * the field was a second Milotic for the rest of the game: better stats, a real moveset and an ability
+ * it does not have.
+ *
+ * THE SNAPSHOT IS TAKEN AT THE COPY, not rebuilt from the dex, because `buildMon` would hand back a
+ * USAGE set and the body may legitimately have been given something else by a sheet or by a probe.
+ * Restoring what was actually there is the only reading that cannot invent state.
+ *
+ * BOOSTS ARE NOT RESTORED, and that is the authority rather than an omission: `clearVolatile` clears
+ * the stages to zero on any switch-out, and this engine's own switch path already does that. What is
+ * restored is the BODY -- species, stats, types, weight, moves, ability. */
+function imposterRevert(m){
+  if(!m||!m._preTransform)return false;
+  const b=m._preTransform;
+  m.name=b.name; m.types=b.types.slice(); m.st=Object.assign({},b.st); m.wt=b.wt;
+  m._bsAtk=b._bsAtk; m.moves=b.moves.slice();
+  m.ability=b.ability; m.baseAbility=b.baseAbility;
+  m._transformed=false; m._preTransform=null;
+  MEDSEEN.transformReverted++;
   return true;
 }
 /* PUT ONE LAYER OF A HAZARD DOWN, AND STOP AT THE CAP. ONE function, because three call sites now
@@ -7011,6 +7601,13 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * `board_state.js` compares volatiles only on the ACTIVE bodies, so a taunt riding the bench is
    * invisible to every staged board -- and a mechanic is not open work until a probe fails on it. */
   if(out._vol)delete out._vol.confusion;
+  /* WIRE 157 -- AND THE BANKED CHARGE LEAVES WITH IT, for the same reason and on the same line's
+   * authority (`clearVolatile()` empties `this.volatiles` wholesale). This is added in the same pass
+   * that GRANTS the volatile: Electromorphosis banking a charge that survived a pivot would be an
+   * ability strictly better than the real one, which is the one-directional error this project keeps
+   * being caught by -- and it would have been introduced by fixing something else. The filed gap named
+   * two lines up (taunt, encore, disable also survive and should not) is unchanged and still open. */
+  if(out._vol&&out._vol.charge>0){delete out._vol.charge;MEDSEEN.chargeClearedOnSwitch++;}
   /* _disguiseBusted IS DELIBERATELY NOT CLEARED HERE. A Mimikyu that leaves and comes back does not
    * get a second disguise -- the forme change lasts the battle. It sits beside these two because the
    * natural instinct on reading this line is to reset every underscore flag alongside them, and that
@@ -7019,6 +7616,11 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * transform needs to know this body has already left once. Written here rather than in bringIn
    * because leaving is the event -- and the first version read this flag without anything ever
    * setting it, which would have made the whole mechanic silently never fire. */
+  /* ROADMAP #95 / #139 -- A TRANSFORM DOES NOT SURVIVE THE SWITCH. Beside `_wasOut` because both are
+   * facts about HAVING LEFT, and the roadmap's line ("a transform never reverts on switch-out") is
+   * closed here. It is above the `_lock` reset for no reason other than reading order; nothing below
+   * depends on the species. */
+  if(out._transformed)imposterRevert(out);
   out._wasOut=true;
   out._lock=null; out._lockT=0; out._flinch=false;
   /* ROADMAP #84 -- a body that leaves the field forgets how its last turn ended, exactly as
@@ -7397,6 +7999,16 @@ function battleTurn(S,rng,actsForA,actsForB){
      *   _newlySwitched  did it arrive this turn (Payback refuses the double against one that did).
      * All four are cleared HERE, at the one point that opens a turn, rather than at the several
      * points that could end one. */
+    /* ROADMAP #139 -- ENDURE'S VOLATILE IS A ONE-TURN VOLATILE AND HAD NO EXPIRY AT ALL. Nothing
+     * ticks it (`durationVolatiles()` is the move-SEALING family) and nothing cleared it, so a body
+     * that clicked Endure once would have survived every lethal hit for the rest of the battle if the
+     * consumer had existed. It is cleared HERE, beside `protect`, because it is the same kind of fact:
+     * a shield that lasts exactly the turn it was raised. Read off `survivesAnyHit.duration === 1`
+     * rather than from a name, so a second member expires without an edit. */
+    for(const _b of [...actA,...actB]){
+      if(!_b||!_b._vol)continue;
+      for(const [_v,_p] of oneTurnSurvivalVolatiles()) if(_b._vol[_v]){delete _b._vol[_v];void _p;}
+    }
     [...actA,...actB].forEach(m=>{if(m){m.protect=false;m._redirect=null;m._helpingHand=false;
       m._boostSnap=m.boosts?Object.assign({},m.boosts):null;
       m._hitBy=null;m._hurtThisTurn=false;m._acted=false;m._newlySwitched=false;
@@ -7945,7 +8557,45 @@ function battleTurn(S,rng,actsForA,actsForB){
       /* `_flinch` is cleared for every active body at the end of the turn (the `forEach` below the
        * action loop), so a flinch that sleep got to first does NOT survive into the next turn -- which
        * is Showdown's `duration: 1` on the volatile, arriving by a different road. */
-      if(m._flinch){m._flinch=false;m._mvRes=false;if(TR)TR.cant(m,'flinch');continue;}
+      /* WIRE 157 -- STEADFAST IS PAID HERE, AND NOWHERE ELSE, BECAUSE THIS IS WHERE THE TURN IS LOST.
+       *
+       * `onFlinch` is not a hook on the volatile being APPLIED. Showdown runs it from inside the
+       * flinch condition's own `onBeforeMove` -- `this.add('cant', pokemon, 'flinch');
+       * this.runEvent('Flinch', pokemon); return false;` (data/conditions.ts:203) -- so the boost is
+       * owed exactly when the flinch SPENDS the turn, on the same line that emits `|cant|`.
+       *
+       * THAT POSITION IS THE MECHANIC AND NOT A TIDINESS. The five BeforeMove refusals above run in
+       * the authority's priority order (slp 10, frz 10, flinch 8), and each `continue`s out. A body
+       * that is asleep AND flinched therefore never reaches this line: Showdown pays it nothing, and
+       * an engine that boosted where `tg._flinch=true` is written -- four separate sites, the
+       * secondary loop, King's Rock, Fling and the old hardcode -- would pay it four times over and
+       * pay it for flinches that are never consumed at all. One site, one payment, and it is the site
+       * that already knows the turn is gone.
+       *
+       * `invSign` IS ASKED THOUGH IT CAN NEVER ANSWER -1 TODAY, and that is deliberate: a Pokemon has
+       * one ability, so a Steadfast body cannot also hold Contrary, and this is the shared reader for
+       * "does this body invert boosts" (CLAUDE.md: facts are global). Writing +1 directly would be a
+       * second answer to a question one function already owns.
+       *
+       * THE BOOST TABLE COMES OUT OF THE ARTIFACT (`boostsOnFlinch.boosts`, read off the handler's own
+       * `this.boost({spe: 1})`), so a second member arriving with a different stat needs no edit here.
+       * MEMBERSHIP, printed over the format dex before this was written: onFlinch matches exactly ONE
+       * ability, Steadfast. Carriers in Reg M-B: Machamp, Lucario, Gallade, Lycanroc. */
+      if(m._flinch){
+        m._flinch=false;m._mvRes=false;if(TR)TR.cant(m,'flinch');
+        {const _bf=TAGS.param('ability',m.ability,'boostsOnFlinch');
+         if(_bf&&_bf.boosts&&m.boosts&&!m.fainted){
+           const _sg=invSign(m);
+           for(const k in _bf.boosts){
+             const _st=SD2ENG[k]; if(!_st||m.boosts[_st]==null)continue;
+             const _b0=m.boosts[_st];
+             m.boosts[_st]=clamp(m.boosts[_st]+_bf.boosts[k]*_sg,-6,6);
+             if(TR&&m.boosts[_st]!==_b0)TR.bst(m,_st,m.boosts[_st]-_b0,'[from] ability: '+m.ability);
+           }
+           MEDSEEN.flinchPaidHolder++;
+         }}
+        continue;
+      }
       /* ONLY A MOVE RUNS `onBeforeMove`. A PASS AND A VOLUNTARY SWITCH ARE NOT MOVES, and Showdown
        * resolves a switch in a different phase entirely -- so a confused body that pivots does NOT
        * spend a turn of its clock. Measured on the probe that carries this row: with the tick applied
@@ -8055,6 +8705,34 @@ function battleTurn(S,rng,actsForA,actsForB){
          * wrote a result of its own. The failure sites below overwrite this through mvFail(); the
          * damaging branch overwrites it with all three values. */
         if(_mid)m._mvRes=true;
+        /* ROADMAP #139 -- WHICH MOVE WAS USED LAST, BY ANYBODY, AND THE TIMING IS THE MECHANIC.
+         * Showdown keeps it as `battle.lastMove` and writes it in `clearActiveMove` -- when a move
+         * FINISHES, not when it starts. That one line is the difference between Copycat working and
+         * Copycat copying ITSELF: written at the announcement, the field already reads `copycat` by
+         * the time the branch that consumes it runs, and the move fails against its own name. Measured
+         * exactly that way before this was corrected.
+         *
+         * So the id is held PENDING here and committed at the top of the NEXT announcement, which is
+         * the same instant `clearActiveMove` fires for the move before it. It is on the FIELD and not
+         * on the body, because the question is "what did anyone just click" -- `_lastMove` already
+         * answers "what did I click" and Encore reads that one. */
+        if(_mid){
+          /* AND A MOVE THAT FAILED NEVER BECOMES THE LAST MOVE. `clearActiveMove(failed)` is
+           * `if (!failed) this.lastMove = this.activeMove;` -- one clause, and it is the whole reason
+           * the deliberate roster kept reading Copycat as DID-NOT-FIRE after the copy itself worked.
+           * The roster's idle bodies click Focus Energy every turn; the SECOND click fails against its
+           * own volatile, so the authority's `lastMove` stays on the last move that actually landed
+           * and Copycat repeats THAT. An engine that commits every announced move copies the failed
+           * idle click instead and moves no board -- which is exactly what ours did.
+           *
+           * The pending body's own result is read at the moment the NEXT move is announced, which is
+           * the instant `clearActiveMove` fires for it: `_mvRes` while the turn is still running,
+           * `_mvResLast` once the turn boundary has rolled it over. */
+          const _pb=field._pendingLastBy;
+          const _pOK=!_pb||(_pb._mvRes!==undefined?_pb._mvRes!==false:_pb._mvResLast!==false);
+          if(field._pendingLastMove&&_pOK){field._lastMoveAny=field._pendingLastMove;field._lastMoveBy=_pb||null;}
+          field._pendingLastMove=_mid;field._pendingLastBy=m;
+        }
       }
       /* WIRE 42, the other members. Clangorous Soul (343 uses) and Shed Tail (60) pay HP for an
          effect this engine ALREADY models -- a setup and a pivot -- so they must not be captured by
@@ -8158,6 +8836,30 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_spv&&_spv.requires&&_spv.volatile&&!((m._vol&&m._vol[_spv.volatile])>0)){
             m._lastMove=_lmv; MEDSEEN.layerSpendNoStack++; mvFail(m); continue;
           }
+          /* ROADMAP #139 -- THE THIRD `onTry` REFUSAL, AND IT IS THE SAME SENTENCE AS THE TWO ABOVE
+           * ONE FIELD OVER: a click that FAILS while a volatile it names is already on the body.
+           * `noretreat`'s guard is `if (source.volatiles['noretreat']) return false;` and this engine
+           * simply re-applied the move -- so the deliberate roster read `sd atk +1, ours +2` across
+           * all five stats, a free second Dragon Dance on 247 stored clicks.
+           *
+           * IT SITS INSIDE THE SAME BLOCK ON PURPOSE. The refusal is an `onTry`, it belongs above the
+           * kind dispatch for exactly the reason WIRE 152 states for Stockpile, and putting it in the
+           * No Retreat BRANCH would have been a fourth copy of a rule the authority states once.
+           *
+           * `mvFail`, NOT A SILENT SKIP: `_mvRes === false` is what Stomping Tantrum reads, and a
+           * refused No Retreat is a FAILED move in the authority's sense, not a spent one.
+           *
+           * BOTH RECEIVERS ARE HANDLED even though only `user` has a member today (No Retreat and
+           * Magnet Rise both guard on the body that clicked). A `target` member would otherwise be a
+           * silent no-op, which is the shape this file is not allowed to ship -- and it is countable,
+           * so a zero is readable rather than assumed. */
+          {const _fiv=TAGS.param('move',_lmv,'failsIfVolatile');
+           if(_fiv&&_fiv.volatiles&&_fiv.volatiles.length){
+             const _recv=(_fiv.on==='target')?a.target:m;
+             if(_recv&&_recv._vol&&_fiv.volatiles.some(v=>_recv._vol[v]>0)){
+               m._lastMove=_lmv; MEDSEEN.refusedOnOwnVolatile++; mvFail(m); continue;
+             }
+           }}
           /* AND THE DEBT IS MARKED HERE, on the one line that knows the move got PAST its onTry. An
            * `afterMove` spend is owed from this instant whatever the move then does — see
            * flushAfterMoveSpends for why it cannot be paid at the bottom of a branch. `onHit` spenders
@@ -8202,6 +8904,15 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(m.curHP<=0){m.curHP=0;m.fainted=true;m._sub=0;if(TR)TR.faint(m);continue;}
         }
       }
+      /* WIRE 157 -- A NON-ATTACKING ELECTRIC CLICK SPENDS A BANKED CHARGE. Thunder Wave, Eerie Impulse
+       * and Electric Terrain are Electric-type moves that take no benefit from the bank and remove it
+       * anyway (`onAfterMove` tests the TYPE, not the category). Placed above the dispatch and gated on
+       * `kind !== 'attack'` because a damaging click has to keep the volatile until after its damage is
+       * computed -- that one is spent in the attack branch, through the same function. It is below the
+       * BeforeMove refusals for the same reason the rider below is: a move that never ran spends
+       * nothing, and Showdown's `onMoveAborted` is a separate handler this engine reaches by having
+       * already `continue`d. */
+      if(a.kind!=='attack'&&a.mv)spendChargeOnMove(m,a.mv,a.move&&a.move.mv,field);
       /* WIRE 146 -- THE COMPOSED-EFFECT RIDER. `playerAction` is a first-match cascade, so a move
        * carrying TWO effects was classified by whichever branch matched first and the second effect
        * never ran at all. The composer (see KIND_APPLIES) attaches `also` to the action; this is the
@@ -8257,7 +8968,30 @@ function battleTurn(S,rng,actsForA,actsForB){
        * the sign here exactly as it does for self-drops. */
       if(a.kind==='setup'){
         const _fx=a.mv&&moveFx(a.mv);
-        const _bo=_fx&&_fx.targetBoostsAlways;
+        let _bo=_fx&&_fx.targetBoostsAlways;
+        /* ROADMAP #139 -- GROWTH IS +2/+2 IN THE SUN, AND THE TAG HAS SAID SO ALL ALONG.
+         * `weatherScaled.byWeather.sun.boosts {atk:2, spa:2}` is in data/tags.json; nothing read it,
+         * so the engine gave +1/+1 in every sky and the roster read `sd +2 / ours +1` on both stats.
+         * THE TAG WAS RIGHT AND THE READER WAS MISSING -- the same sentence as Salt Cure, one branch
+         * over, which is why both are in this batch.
+         *
+         * IT REPLACES THE TABLE, IT DOES NOT ADD TO IT. Showdown's `onModifyMove` writes
+         * `move.boosts = {atk:2, spa:2}`, overwriting the declared `{atk:1, spa:1}` -- so a sunny
+         * Growth is +2, not +3. An engine that added would be wrong in a new direction.
+         *
+         * `effWeatherOf` AND NOT `field.weather`, for WIRE 3's reason: a private sky (Mega Sol) and a
+         * suppressed one (Cloud Nine) are both real here, and Showdown asks
+         * `pokemon.effectiveWeather()` in this very handler.
+         *
+         * A SET OF ONE TODAY AND THAT IS STATED RATHER THAN DRESSED UP: `growth` is the only move in
+         * the format whose `weatherScaled` entry carries `boosts`, checked over the whole artifact
+         * before this was written. What it buys over a name check is that the STATS and the SIZE come
+         * out of the authority's own handler. */
+        {const _wsB=a.mv&&TAGS.param('move',a.mv,'weatherScaled');
+         if(_wsB&&_wsB.byWeather){
+           const _w=effWeatherOf(field,m), _x=_w&&_wsB.byWeather[_w];
+           if(_x&&_x.boosts){_bo=_x.boosts;MEDSEEN.weatherScaledBoosts++;}
+         }}
         m._lastMove=a.mv||m._lastMove;
         if(_bo){
           const _sg=invSign(m);          // WIRE 100b
@@ -8457,7 +9191,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             for(const _k in _e.boosts){
               const _s2=SD2ENG[_k]; if(!_s2||_t.boosts[_s2]==null) continue;
               const _d=_e.boosts[_k]*_sg;
-              if(_d<0){ const _r=statDropRefusal(_t,_s2,a.mv,false); if(_r){ _ref=_ref||_r; continue; } }
+              if(_d<0){ const _r=statDropRefusal(_t,_s2,a.mv,false,m,Math.abs(_d)); if(_r){ _ref=_ref||_r; continue; } }   // WIRE 157
               const _b0=_t.boosts[_s2];
               _t.boosts[_s2]=clamp(_t.boosts[_s2]+_d,-6,6);
               if(TR)TR.bst(_t,_s2,_t.boosts[_s2]-_b0);
@@ -8555,6 +9289,101 @@ function battleTurn(S,rng,actsForA,actsForB){
       /* WIRE 39 -- HAZE. BOTH SIDES, including the user's own, which is the whole shape of the move:
          it is the answer to a sweeper you cannot outstat, and it costs you your own setup too. A
          version that only wiped the foe would be a strictly better move than the one in the game. */
+      /* ROADMAP #139 -- PAIN SPLIT. Not a heal and not a chip: BOTH bodies end on the average of the
+       * two, so it is a levelling and an engine modelling it as either gets the sign wrong on half
+       * the boards it is played on. The arithmetic is the artifact's -- `Math.floor((a + b) / 2) || 1`
+       * -- so the `|| 1` floor and the truncation are not typed here.
+       *
+       * EVERY GATE A STATUS MOVE OWES IS ASKED, in the order the other status branches ask them:
+       * re-aim to the SLOT, Magic Bounce, Protect, Good as Gold, a Substitute (Pain Split does NOT
+       * carry `bypasssub`), Prankster-into-Dark, and only then the effect. A fresh branch that skipped
+       * any of them would be a move that is better than the one in the game.
+       *
+       * HP IS SET, NOT ADDED, which matters at the edges: a body ABOVE the average LOSES HP to this,
+       * and a Substitute does not absorb that because it is not damage -- it is `sethp`. */
+      if(a.kind==='sharehp'){
+        m._lastMove=a.mv;
+        let t=bounceOff(m,a.target,a.mv);
+        t=reaimToSlot(t,it,actA,actB,a.mv);
+        if(!t||t.fainted||t===m){mvFail(m);continue;}
+        if(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect')){if(TR)TR.act(t,'move: Protect');continue;}
+        if(TAGS.has('ability',t.ability,'refusesStatusMoves')){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}
+        if(pranksterBlocked(m,t,a.mv)){if(TR)TR.imm(t);continue;}
+        if(subBlocks(m,t,a.mv)){if(TR)TR.act(t,'move: Substitute','[block]');continue;}
+        {const _sh=TAGS.param('move',a.mv,'sharesHP')||{};
+         const _over=+_sh.over||2, _min=+_sh.minimum||0;
+         let _avg=Math.floor((t.curHP+m.curHP)/_over);
+         if(_min&&!_avg)_avg=_min;
+         t.curHP=Math.min(t.st.hp,_avg); m.curHP=Math.min(m.st.hp,_avg);
+         MEDSEEN.hpShared++;
+         if(TR){TR.dmg(t,'[from] move: '+a.mv);TR.dmg(m,'[from] move: '+a.mv);}
+         if(t.curHP<=0){t.curHP=0;t.fainted=true;if(TR)TR.faint(t);}
+         if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}}
+        continue;
+      }
+      /* ROADMAP #139 -- COPYCAT. It does not have an effect of its own; it RE-USES the last move
+       * anybody clicked, and that is why it is resolved here rather than classified at click time --
+       * `field._lastMoveAny` can be written by a body that acted between the choice and this line.
+       *
+       * THROUGH `playerAction`, WHICH IS THE POINT. The copied move is turned into an action by the
+       * ONE function that turns a click into an action, so a copied Protect is a Protect, a copied
+       * Earthquake is a spread attack and a copied Substitute pays its own HP. A branch that
+       * hand-rolled the copy would be a second, worse `playerAction` -- and the WIRE 146 comment
+       * already records what happens when two roads build the same action differently.
+       *
+       * IT REFUSES ITSELF THROUGH THE ARTIFACT. `refusesFlags` is `['failcopycat']` off the handler,
+       * and `moveClass` does not carry that flag -- so the guard is expressed as "do not copy a move
+       * this move declares it cannot copy", checked against the tag rather than against the id, plus
+       * an explicit self-check that costs nothing and cannot recurse.
+       *
+       * NOTHING TO COPY IS A FAILURE, not a silent pass: `if (!move) return` in the handler. */
+      if(a.kind==='callmove'){
+        m._lastMove=a.mv;
+        const _src=(a.from==='lastMove')?(field._lastMoveAny||null):null;
+        if(!_src||_src===a.mv||TAGS.has('move',_src,'noCopycat')){
+          if(a.from!=='lastMove')MEDFAILS.callMoveSourceUnmodelled++;
+          mvFail(m);continue;
+        }
+        /* THE COPY PICKS ITS OWN TARGET, and inheriting Copycat's does not work: Copycat's dex target
+         * is `self`, so the caller aims it at the USER, and handing that on turns a copied Earthquake
+         * into a click aimed at my own body. Showdown calls `this.actions.useMove(move.id, pokemon)`
+         * with NO target at all and the copied move resolves its own default -- so the aim is chosen
+         * here the way the Instruct branch chooses one, through `targetForMove`, and a move that needs
+         * no target (a spread move, a self-boost) still gets none. */
+        const _cfoes=it.side==='A'?actB:actA;
+        const _cpick=targetForMove(m,_src,live(_cfoes),field);
+        const _sub2=playerAction(m,_src,(_cpick&&_cpick.target)||live(_cfoes)[0]||null,field);
+        if(!_sub2||_sub2.kind==='pass'){MEDFAILS.callMoveUnresolvable++;mvFail(m);continue;}
+        MEDSEEN.movecalled++;
+        /* RE-QUEUED IMMEDIATELY AFTER THIS ACTION, not executed inline and not appended to the end.
+         * The same shape and the same splice Instruct uses two hundred lines below -- one way to put
+         * an extra action into a turn, so a copied move inherits every BeforeMove refusal, every cost
+         * and every branch of this loop exactly as an ordinary click does. Appending would have run it
+         * after every other body had moved, which is a different turn. */
+        const _cEntry={mon:m,side:it.side,a:_sub2,
+          tgtSlot:_sub2.target?(it.side==='A'?actB:actA).indexOf(_sub2.target):-1,
+          _order:TURN_ORDER.next,_pri:actionPriority({mon:m,side:it.side,a:_sub2},field),_qc:0,_copied:true};
+        acts.splice(actIdx+1,0,_cEntry);
+        continue;
+      }
+      /* ROADMAP #139 -- BLOCK AND MEAN LOOK. The volatile goes on the TARGET and outlives the turn;
+       * the switch branch reads `_trapHard`. `endsWithSource` is honoured where the ability trap's
+       * equivalent is -- a trapper that leaves the field or faints releases the victim, which is
+       * Showdown's own `trapped` condition (`onTrapPokemon` only runs while the source is there). */
+      if(a.kind==='trapmove'){
+        m._lastMove=a.mv;
+        let t=bounceOff(m,a.target,a.mv);
+        t=reaimToSlot(t,it,actA,actB,a.mv);
+        if(!t||t.fainted||t===m){mvFail(m);continue;}
+        if(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect')){if(TR)TR.act(t,'move: Protect');continue;}
+        if(TAGS.has('ability',t.ability,'refusesStatusMoves')){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}
+        if(pranksterBlocked(m,t,a.mv)){if(TR)TR.imm(t);continue;}
+        if(subBlocks(m,t,a.mv)){if(TR)TR.act(t,'move: Substitute','[block]');continue;}
+        if((t.types||[]).includes('Ghost')){if(TR)TR.imm(t);continue;}   // a Ghost is never trapped
+        t._trapHard={by:m,mv:a.mv};
+        if(TR)TR.vstart(t,'move: '+a.mv);
+        continue;
+      }
       if(a.kind==='haze'){
         for(const x of [...actA,...actB])if(x&&!x.fainted&&x.boosts)x.boosts={at:0,df:0,sa:0,sd:0,sp:0,acc:0,eva:0};
         /* `|-clearallboost|` carries no POKEMON -- it is a field-wide event, sim/SIM-PROTOCOL.md:401. */
@@ -8602,6 +9431,21 @@ function battleTurn(S,rng,actsForA,actsForB){
            (405 corpus uses), so a Soundproof body cannot be phazed -- Showdown left Bastiodon on the
            field where medicham2 had already dragged it out. Protect does not stop Roar (it carries
            ignoresProtect) and that half was already right. */
+        /* ROADMAP #139 -- SUCTION CUPS REFUSES TO BE DRAGGED, and until the tagger derived
+         * `refusesForcedSwitch` there was no row in data/tags.json to read at all. It is the MIRROR of
+         * `escapesTrap` two branches up -- one restores the choice to leave, the other refuses being
+         * thrown out -- and they are separate tags because one boolean cannot hold both directions.
+         * `|-activate|POKEMON|ability: Suction Cups` is the ability's own line and the move then FAILS,
+         * which is `onDragOut` returning null. */
+        /* THROUGH THE MOLD BREAKER READER, and it returns the EFFECTIVE ABILITY rather than a
+         * boolean -- the whole point of it is that an attacker carrying `ignoresDefenderAbility` makes
+         * the defender read 'none'. */
+        const _rfs=TAGS.param('ability',suppressedAbility(m,_t),'refusesForcedSwitch');
+        if(_rfs&&_rfs.refuses==='forcedSwitch'){
+          MEDSEEN.forcedSwitchRefused++;
+          if(TR&&_rfs.announces)TR.act(_t,'ability: '+_t.ability);
+          mvFail(m);m._lastMove=a.mv;continue;
+        }
         if(_i>=0&&!_t.fainted&&!(_t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
            &&!moveClassBlocked(_t,a.mv,m)&&!TAGS.has('ability',_t.ability,'refusesStatusMoves')){
           const _lb=_live(_fb);
@@ -8998,7 +9842,16 @@ function battleTurn(S,rng,actsForA,actsForB){
            MEASURED AT THE PINNED COMMIT, both arms on the same Gholdengo: Good as Gold -> `vol=[]`,
            a Honey Gather control -> `vol=[yawn]`. Found by the generated matrix as
            `yawn -> goodasgold` (840 x 2,461), where medicham2's own two arms were IDENTICAL. */
-        if(t&&!t.fainted&&!t.protect&&t._yawn==null&&canTakeStatus(t,'slp')&&!pranksterBlocked(m,t,a.mv)
+        /* WIRE 157 -- AND THE VEIL FAMILY REFUSES THE YAWN ITSELF, which is the `onAllyTryAddVolatile`
+           half of the same tag `allyRefusesStatus` serves. Sweet Veil and Flower Veil both name `yawn`
+           there. It has to be refused HERE, at the volatile, and not only at the sleep two thousand
+           lines down: Flower Veil's STATUS handler explicitly declines `effect.id === 'yawn'`, so on a
+           Grass ally the only thing that stops the sleep is the yawn never landing. Refusing at both
+           ends would be one refusal too many for Sweet Veil and exactly right for Flower Veil, and
+           refusing at neither is what this engine did. */
+        const _vv=t?allyRefusesVolatile(t,'yawn'):null;
+        if(_vv)MEDSEEN.allyVeilRefusedVolatile++;
+        if(t&&!_vv&&!t.fainted&&!t.protect&&t._yawn==null&&canTakeStatus(t,'slp')&&!pranksterBlocked(m,t,a.mv)
            &&!(TAGS.has('ability',t.ability,'refusesStatusMoves')&&t!==m))
           /* +1 because the end-of-turn tick below fires on the APPLICATION turn too. Without it a
              delay of 1 puts the target to sleep on the turn Yawn was clicked, which is a turn early
@@ -9138,7 +9991,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             for(const k in _sc2.boosts){
               const _s=SD2ENG[k]; if(!_s||_pt.boosts[_s]==null) continue;
               const _d=_sc2.boosts[k]*_sg;
-              if(_d<0){ const _r=statDropRefusal(_pt,_s,a.mv,false);
+              if(_d<0){ const _r=statDropRefusal(_pt,_s,a.mv,false,m,Math.abs(_d));   // WIRE 157
                         if(_r){ _ref2=_ref2||_r; continue; } }
               const _b0=_pt.boosts[_s];
               _pt.boosts[_s]=clamp(_pt.boosts[_s]+_d,-6,6);
@@ -9176,7 +10029,28 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(_ps.onlyGrounded&&!isGrounded(m))return false;   // WIRE 117 -- the shared predicate
             return true;
           });
-          if(_held){MEDSEEN.trapBlockedSwitch++;continue;}
+          /* ROADMAP #139 -- SHED SHELL LETS IT OUT, AND AN OVER-REFUSAL IS A DEFECT EXACTLY AS AN
+           * UNDER-REFUSAL IS. The paragraph above this block declared the gap by name ("SHED SHELL IS
+           * NOT HONOURED ON THIS BRANCH ... Zero corpus exposure today"), and a Shadow Tag fixture
+           * then read it live as `OURS-REFUSED-AND-THE-AUTHORITY-DID-NOT`. A bot that believes it is
+           * trapped does not switch when switching is correct, which is a lost game, not a point of
+           * HP.
+           * BY SHAPE NOW, NOT BY NAME. The other half of that comment said Shed Shell "is a NAME
+           * because the item carries no tag at all" -- it carries `escapesTrap` now, derived from its
+           * own `onTrapPokemon`, and exactly one item in the format declares one. The move-trap branch
+           * below reads the same tag, so the two roads cannot disagree about one item. */
+          if(_held&&TAGS.param('item',m.item,'escapesTrap')){MEDSEEN.shedShellEscapedTrap++;}
+          else if(_held){MEDSEEN.trapBlockedSwitch++;continue;}
+        }
+        /* ROADMAP #139 -- AND A MOVE-LAID TRAP HOLDS IT TOO. Block and Mean Look write `_trapHard`
+         * onto the victim, which outlives its source's turn and travels with the victim -- that is
+         * what makes it a different mechanism from the ability trap above, which lapses the moment the
+         * carrier leaves the field. The exemptions are the same three the partial-trap branch below
+         * honours and they are read the same way: a pivot MOVE is not a bare switch, a Ghost always
+         * leaves, and a Shed Shell holder leaves. */
+        if(!a.mv&&m._trapHard&&!(m.types||[]).includes('Ghost')){
+          if(TAGS.param('item',m.item,'escapesTrap'))MEDSEEN.shedShellEscapedTrap++;
+          else {MEDSEEN.moveTrapBlockedSwitch++;continue;}
         }
         /* WIRE 116 -- THE PARTIAL TRAP HOLDS THE SWITCH, and until now it did not, anywhere. `_trap`
            was set (WIRE 51), chipped, expired and even taught to die with its trapper (WIRE 105) --
@@ -9194,8 +10068,9 @@ function battleTurn(S,rng,actsForA,actsForB){
 
            Shed Shell is a NAME because the item carries no tag at all -- `data/tags.json` has no
            `shedshell` entry, so there is nothing to read by shape. Stated, in the place it is read. */
-        if(!a.mv&&m._trap&&!(m.types||[]).includes('Ghost')
-           &&String(m.item||'').replace(/[^a-z0-9]/g,'')!=='shedshell'){
+        /* ROADMAP #139 -- AND THE NAME IS GONE. The paragraph above says Shed Shell "is a NAME because
+         * the item carries no tag at all"; `escapesTrap` is derived now and both trap roads ask it. */
+        if(!a.mv&&m._trap&&!(m.types||[]).includes('Ghost')&&!TAGS.param('item',m.item,'escapesTrap')){
           MEDSEEN.trapBlockedSwitchByMove++;continue;
         }
         const idx=own.indexOf(m);
@@ -9830,6 +10705,22 @@ function battleTurn(S,rng,actsForA,actsForB){
          (Ally Switch) was followed by object. It also gains the `tracksTarget` exception, which this
          site never had. */
       let aim=reaimToSlot(a.target,it,actA,actB,a.move&&a.move.id);
+      /* ROADMAP #139 -- A `scripted` MOVE AIMS AT WHOEVER JUST HIT IT, AND THAT IS ONLY KNOWN NOW.
+       * Counter, Mirror Coat, Metal Burst and Comeuppance carry Showdown target `scripted`, resolved
+       * in `onModifyTarget` at execution. `playerAction` priced the click against the foe it would
+       * hurt most and flagged it; this is where the aim becomes the real one. A body that has taken
+       * nothing this turn finds nobody and the move FAILS -- which is the authority's own `onTry`
+       * (`if (!lastDamagedBy?.thisTurn) return false`), expressed through `_took`, whose whole
+       * lifetime is one turn. */
+      if(a.rescript){
+        const _fd2=TAGS.param('move',a.move.id,'fixedDamage')||{};
+        const _tk=m._took, _by=_tk&&_tk.by;
+        const _catOK=!_fd2.category||(_fd2.category==='physical'?(_tk&&_tk.phys>0):(_tk&&_tk.spec>0));
+        if(!_by||!_catOK||_by.fainted||_by.curHP<=0||(_fd2.excludesAlly&&m._sf&&_by._sf===m._sf)){
+          MEDSEEN.scriptedTargetMissing++;mvFail(m);continue;
+        }
+        aim=_by;
+      }
       let targets=a.move.spread?live(foes):[aim].filter(t=>t&&!t.fainted&&t.curHP>0);
       /* REDIRECTION APPLIES HERE, and only to SINGLE-TARGET moves aimed at the other side. Spread
        * moves already hit everything so there is nothing to draw, and the redirector must be a live
@@ -10470,6 +11361,9 @@ function battleTurn(S,rng,actsForA,actsForB){
            * move the artifact calls multi-hit; every other caller of dmgRange leaves it absent and
            * keeps the expectation, which is the right object for a price. */
           if(_hitsThisUse>1)c.hits=_hitsThisUse;
+          /* ROADMAP #139 -- ASK dmgRange TO HAND BACK THE FIRST PACKET. It costs nothing for a move
+           * with one packet (the field is simply never written) and it is what the Focus Sash reads. */
+          c.wantFirst=true;
           /* WIRE 147 -- DRAGON DARTS. `hitStepMoveHitLoop` sets `targetsCopy = [targets[hit - 1]]`
            * when `move.smartTarget` (battle-actions.ts:896), so each surviving body takes exactly ONE
            * dart. With the partner gone the authority sets `move.smartTarget = false` in
@@ -10539,6 +11433,15 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* WIRE 4 -- `modifyDamage` spends this one through `modify` too (battle-actions.ts:1821),
          * and x0.25 is NOT a value where a truncation and a round-half-up agree. */
         if(tg.protect&&!_thruProtect)dmg=md4096(dmg,0.25);   // Piercing Drill: contact hits through Protect for 25%
+        /* ROADMAP #139 -- HOW MUCH OF THAT TOTAL ARRIVED AS THE FIRST PACKET. `dmgRange` writes it
+         * back on the hit context for any plan that ran its per-hit loop -- Parental Bond, Beat Up,
+         * Triple Axel -- and the same roll INDEX is read off it, so the split cannot exceed the total
+         * or drift from it. Absent for every other move, which is what keeps the single-packet family
+         * (and the 2-5 family, which this engine prices as one packet) byte-identical. */
+        if(_hitCtx.firstMax!=null){
+          const _fr=Math.min(_roll,Math.max(0,_hitCtx.firstMax-_hitCtx.firstMin));
+          R.first=Math.min(dmg,_hitCtx.firstMin+_fr);
+        }
         R.d=d;R.dmg=dmg;
       };
       /* STEP 7b -- spreadDamage (battle-actions.ts:1079): the HP actually moves, for every target,
@@ -10676,10 +11579,52 @@ function battleTurn(S,rng,actsForA,actsForB){
             }
           }
         }
-        if(dmg>=tg.curHP&&tg.curHP===tg.st.hp){
+        /* ROADMAP #139 -- A FOCUS SASH ANSWERS THE PACKET THAT ARRIVES, NOT THE TURN'S TOTAL, and
+         * that is the whole of Will's acceptance test for Parental Bond: *"have mega kanga try and KO
+         * a mon holding a focus sash"*. Two real hits kill it — hit one takes it to 1, the Sash is
+         * spent, hit two lands on a body that is no longer at full HP and finishes it. One packet at
+         * x1.25 leaves it alive at 1. The two implementations deal the same average damage and produce
+         * OPPOSITE outcomes, so no multiplier can be tuned to pass this.
+         *
+         * `_arrive` IS THE FIRST PACKET where the click has more than one and the total otherwise, so
+         * every single-packet move on the board reads exactly what it read before. TWO consequences
+         * fall out of it and both are the real rule:
+         *   - a first packet that does NOT reach 0 means the Sash never fires at all, because the body
+         *     is off full HP by the time the second arrives (`onlyFromFullHP`);
+         *   - a first packet that DOES reach 0 leaves the survivor on 1 and the remainder still lands.
+         *
+         * WHAT IT DOES NOT CLAIM. The 2-5 family (Bullet Seed, Icicle Spear) is priced by this engine
+         * as ONE packet with a weighted expectation, so it hands back no first-packet figure and a
+         * Sash still eats the whole volley — the divergence the WIRE 12 comment above already
+         * declares. This wire narrows that gap to the plans that actually run the per-hit loop rather
+         * than closing it, and saying which is which is the point. */
+        /* ROADMAP #139 -- ENDURE, AND IT IS NOT A PROTECT. The hit LANDS: the damage is dealt, every
+         * secondary rolls, every contact punish is paid, and only the HP floors. The roster's receipt
+         * is a body that should have been left on 1 and fainted instead -- the volatile was written by
+         * the ordinary `affect` path and NOTHING READ IT.
+         *
+         * ABOVE THE FOCUS SASH, and the order is free rather than chosen: once Endure has floored the
+         * packet the Sash's own `dmg >= curHP` test is false, so the two cannot both fire on one hit.
+         *
+         * `onlyFrom: 'move'` IS THE HALF THAT KEEPS IT HONEST. The authority's condition is
+         * `effect?.effectType === 'Move'`, so a burn, a Leech Seed or a sandstorm still kills through
+         * an Endure; this branch is inside the MOVE damage step and nowhere else, which is that gate
+         * expressed by position. Nothing is defaulted -- a member declaring some other source would
+         * not match here and would be visibly unwired rather than quietly granted immunity. */
+        {const _sv1=tg._vol&&oneTurnSurvivalVolatiles();
+         if(_sv1)for(const [_v,_p] of _sv1){
+           if(!tg._vol[_v]||_p.onlyFrom!=='move')continue;
+           if(dmg>=tg.curHP){dmg=tg.curHP-(+_p.leavesHP||1);MEDSEEN.enduredLethalHit++;if(TR)TR.act(tg,'move: '+_v);}
+         }}
+        const _arrive=(R.first!=null?R.first:dmg);
+        if(_arrive>=tg.curHP&&tg.curHP===tg.st.hp){
           const _sv=TAGS.param('item',tg.item,'survivesFromFull')||TAGS.param('ability',tg.ability,'survivesFromFull');
           if(_sv&&(!_sv.onlyFromFullHP||tg.curHP===tg.st.hp)){
-            dmg=tg.curHP-(_sv.leavesHP||1);
+            /* The survivor is left on `leavesHP` BY THE FIRST PACKET, and whatever the rest of the
+             * click was still owed is added back on top -- which is what kills it. */
+            const _rest=Math.max(0,dmg-_arrive);
+            dmg=tg.curHP-(_sv.leavesHP||1)+_rest;
+            MEDSEEN.sashAnsweredOnePacket++;
             /* Showdown emits the `|-enditem|` BEFORE the `|-damage|` that the Sash survived -- read
              * off a real battle.log, where `-enditem Focus Sash` precedes `-damage 1/135`. */
             if(_sv.consumesItem){if(TR)TR.enditem(tg,tg.item);tg.item='';}
@@ -10713,7 +11658,12 @@ function battleTurn(S,rng,actsForA,actsForB){
            * other two — it has to know which arrived later. */
           const _cat=(a.move&&a.move.mv&&a.move.mv.c==='P')?'phys':'spec';
           tg._took=tg._took||{phys:0,spec:0,any:0};
-          tg._took[_cat]=dmg; tg._took.any=dmg;}
+          tg._took[_cat]=dmg; tg._took.any=dmg;
+          /* ROADMAP #139 -- AND WHO DEALT IT. `_took` records HOW MUCH and `_hitBy` records WHO as an
+           * unordered SET; Metal Burst's dex target is `scripted`, which means THE BODY THAT LAST
+           * DAMAGED ME, and neither existing field can answer that. Recorded on the same line, so the
+           * amount and the source cannot come apart. */
+          tg._took.by=m;}
         if(TR)TR.dmg(tg);
         /* ROADMAP #81 WIRE 11 -- DID THIS PACKET ACTUALLY KILL IT. Read here, once, off the HP that
          * has already moved -- not off `dmg`, which is the number before the Focus Sash and the
@@ -10804,6 +11754,15 @@ function battleTurn(S,rng,actsForA,actsForB){
            * damage step had already been split. */
           if(_smartTarget&&_smartRows>1)return 1;
           if(_hitsThisUse!==null&&TAGS.param('move',a.move.id,'multiHit'))return Math.max(1,_hitsThisUse);
+          /* ROADMAP #139 -- A PARENTAL BOND CLICK IS TWO HITS TO EVERY `onDamagingHit` REACTOR, and
+           * that is the half of "two separate hits" this engine's granularity can actually deliver.
+           * The DAMAGE is two packets summed into one range (which is what the whole multi-hit family
+           * does here — Bullet Seed is one packet too), so a Focus Sash and a Substitute still see one
+           * arrival; making Parental Bond finer-grained than Icicle Spear would be a new inconsistency
+           * rather than a fix, and that limit is written down rather than implied. What DOES come for
+           * free is Rough Skin twice, Weak Armor twice, Rocky Helmet twice — through the one shared
+           * `bondMultFor`, so the count and the damage cannot come apart. */
+          if(bondMultFor(m,a.move.id,_spreadHit,_hitsThisUse,false)!=null){MEDSEEN.parentalBondReactedTwice++;return 2;}
           const _n=expectedHitsOf(a.move.id);
           if(_n>1)return Math.max(1,Math.round(_n));
           const _vpH=TAGS.param('move',a.move.id,'variablePower');
@@ -11018,13 +11977,36 @@ function battleTurn(S,rng,actsForA,actsForB){
               MEDFAILS.buffOnHitUnknownCondFirst=String(tg.ability)+'/'+JSON.stringify(_buff.when);}
           /* THE VOLATILE HALF, WHICH THE OLD GUARD DROPPED ENTIRELY. `_buff.boosts && tg.boosts` also
            * refused every member whose payload is `gainsVolatile` -- electromorphosis (98 uses),
-           * windpower, perishbody. This engine has no consumer for `charge` and no ability-sourced
-           * duration for `perishsong`, so they are still not granted; the difference is that the debt
-           * is now COUNTED at the moment the condition holds instead of being invisible. */
+           * windpower, perishbody.
+           *
+           * WIRE 157 -- `charge` IS NOW BANKED, BECAUSE IT NOW HAS A CONSUMER. The sentence that stood
+           * here ("this engine has no consumer for `charge`") was the honest reason to refuse it and it
+           * stopped being true one block down, in the base-power chain: a banked Charge doubles the
+           * holder's next ELECTRIC move, exactly as the move Charge itself has always been able to
+           * (`applyMoveVolatile` writes the same `_vol.charge`). Granting it without the consumer would
+           * have been a flag nobody reads; wiring the consumer without granting it would have left
+           * Electromorphosis and Wind Power dead. They land together.
+           *
+           * `perishsong` IS STILL REFUSED AND STILL COUNTED, and the reason is unchanged: the clock
+           * exists but its DURATION is carried by the MOVE's `perishClock` tag and no ability states
+           * one, so granting it would mean inventing the number. The counter therefore keeps meaning
+           * what it meant -- "buffs this engine owed and did not pay" -- for the members that are
+           * genuinely still owed, instead of covering one that is now paid. */
           if(_buff&&_bw===true&&_buff.gainsVolatile&&!_buff.boosts){
-            MEDFAILS.buffOnHitVolatileUnwired++;
-            if(!MEDFAILS.buffOnHitVolatileUnwiredFirst)
-              MEDFAILS.buffOnHitVolatileUnwiredFirst=String(tg.ability)+'/'+String(_buff.gainsVolatile);}
+            if(_buff.gainsVolatile==='charge'&&tg.curHP>0&&!tg.fainted){
+              const _cv=(tg._vol=tg._vol||{});
+              /* `onRestart` re-announces and does NOT stack: the volatile is a boolean in Showdown
+               * (no duration, no layers), so a second hit re-banks the same one charge. */
+              const _had=_cv.charge>0;
+              _cv.charge=1;
+              MEDSEEN.chargeBanked++;
+              if(TR&&!_had)TR.vstart(tg,'Charge');
+            } else {
+              MEDFAILS.buffOnHitVolatileUnwired++;
+              if(!MEDFAILS.buffOnHitVolatileUnwiredFirst)
+                MEDFAILS.buffOnHitVolatileUnwiredFirst=String(tg.ability)+'/'+String(_buff.gainsVolatile);
+            }
+          }
           if(_buff&&_bw===true&&_buff.boosts&&tg.boosts){
             /* The tag names the stats and the sizes, read from the handler's own this.boost({...}).
              * Showdown spells them atk/def/spa/spd/spe; this engine uses at/df/sa/sd/sp. That map is
@@ -11120,7 +12102,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                 for(const k in s.targetBoosts){
                   const _st=SD2ENG[k];
                   if(_st&&tg.boosts[_st]!=null&&s.targetBoosts[k]<0){
-                    if(refuseStatDrop(tg,_st,a.move.id,true)) continue;
+                    if(refuseStatDrop(tg,_st,a.move.id,true,m,Math.abs(s.targetBoosts[k]))) continue;   // WIRE 157
                     const _b0=tg.boosts[_st];
                     tg.boosts[_st]=clamp(tg.boosts[_st]+s.targetBoosts[k],-6,6);
                     if(TR)TR.bst(tg,_st,tg.boosts[_st]-_b0);
@@ -11166,6 +12148,28 @@ function battleTurn(S,rng,actsForA,actsForB){
                 if(!unresolved.has(tg)) MEDSEEN.flinchTooLate++;
                 else if(tgAb==='innerfocus') MEDSEEN.flinchBlockedByInnerFocus++;
                 else { tg._flinch=true; MEDSEEN.flinch++; }
+              }
+              /* ROADMAP #139 -- THE SECONDARY THAT IS AN ORDINARY VOLATILE, and this loop had a branch
+               * for every OTHER kind: status, target drops, self boosts, confusion, flinch. A damaging
+               * move whose secondary is a plain volatile fell out of the loop entirely and the volatile
+               * was never written -- which is why Salt Cure's residual could not fire no matter what
+               * the residual read: there was nothing on the body to read.
+               *
+               * FOUR MEMBERS, PRINTED OVER THE WHOLE RULEBOOK BEFORE THIS WAS WIRED, exactly as this
+               * file's rule requires: `saltcure` (the chip), `psychicnoise` -> healblock, `syrupbomb`
+               * and `sparklingaria`. Confusion and flinch are ABOVE this line and stay there -- both
+               * have owners (`applyConfirmation`-shaped appliers that know about Own Tempo, Inner
+               * Focus and the too-late case), and a generic write would bypass every one of them.
+               * That is the same split `applyMoveVolatile` itself makes for `substitute`.
+               *
+               * WHAT IT DOES NOT CLAIM: three of the four volatiles have no CONSUMER in this engine
+               * yet. Writing them is still strictly right -- the authority writes them, the roster
+               * compares them, and a volatile that is absent cannot be consumed later -- but nobody
+               * should read a green Salt Cure as Psychic Noise blocking a heal. `healBlocked` reads
+               * `_healBlock`, not `_vol.healblock`, and that is stated rather than left to be found. */
+              else if(s.volatile){
+                if(applyMoveVolatile(tg,s.volatile,m,a.move.id,field,{alreadyMoved:!unresolved.has(tg)}))
+                  MEDSEEN.secondaryVolatileApplied++;
               }
             }
           }
@@ -11414,6 +12418,12 @@ function battleTurn(S,rng,actsForA,actsForB){
        * onTryHit returns null, Protect returns NOT_FAIL). `_reached` is this engine's own count of
        * bodies past every gate and has existed since ROADMAP #81 WIRE 1 for the crash. */
       if(_hadTargets)m._mvRes=_reached?true:(_explicitFail?false:null);
+      /* WIRE 157 -- AND THE DAMAGING HALF OF `charge.condition.onAfterMove`. It is HERE, after the
+       * whole hit-step list, because the doubling is spent inside `dmgRange` during those steps: a
+       * removal above them would price this very click as an uncharged one. `AfterMove` runs whether
+       * or not the move connected, so this is deliberately NOT gated on `dealt` or `connected` -- a
+       * Thunderbolt that misses still spends the bank in the real game. */
+      spendChargeOnMove(m,a.move&&a.move.id,a.move&&a.move.mv,field);
       /* ROADMAP #72 -- AN ATTACKING MOVE THAT LAYS A HAZARD. Ceaseless Edge lays Spikes, Stone Axe
        * lays Stealth Rock, and neither did anything here: both declare `secondaries: [{}]` -- an
        * EMPTY secondary object that exists only so Sheer Force can see one -- with the layer laid from
@@ -11493,6 +12503,36 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(_rcF&&dealt>0){m.curHP-=_rcDmg;
         if(TR)TR.dmg(m,'[from] Recoil');
         if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}}
+      /* ROADMAP #139 -- THE OTHER RECOIL, AND IT IS A DIFFERENT CURRENCY. The block above reads
+       * `mv.rc`, a share of the DAMAGE DEALT. Steel Beam and Struggle pay a share of the USER'S OWN
+       * MAXIMUM instead, and the move table carries no `rc` for either -- so Steel Beam, a 140 base
+       * power click that should cost its user half its health, was FREE in this engine. The roster
+       * read it as the sharpest possible witness: Showdown's Goodra-Hisui went 1240 -> 620 -> fainted
+       * and a Corviknight walked into the slot; ours sat at 1240 across both turns.
+       *
+       * THE SHAPE IS THE TAG'S, NOT A NAME. `recoil {fraction, of:'maxhp'}` is derived by tag_dex
+       * from `mindBlownRecoil` and from Struggle's `struggleRecoil`, and this reader serves anything
+       * carrying it. Two members in this format today, which is stated rather than hidden: Struggle
+       * is unreachable from a scripted turn (medicham2 tracks no PP), so Steel Beam is the one that
+       * can be watched -- but a reader keyed on the name would have to be rewritten for the third.
+       *
+       * THREE THINGS IT DOES NOT DO, EACH BECAUSE THE AUTHORITY DOES NOT:
+       *   - it does not consult Rock Head. `mindBlownRecoil` is a bare `this.damage(...)` inside
+       *     `hitStepMoveHitLoop`, NOT `applyRecoilDamage`, so `noRecoil` never sees it. A Rock Head
+       *     Steel Beam costs full price.
+       *   - it is NOT gated on `dealt > 0`. The toll is paid for executing the move, not for hurting
+       *     anything, which is why the same fraction is written a second time into `onMoveFail`.
+       *   - it ROUNDS rather than floors -- `Math.round(source.maxhp / 2)` -- and an odd max HP is
+       *     where a floor here would part from the authority by one.
+       * WHAT IT DOES NOT COVER, SAID OUT LOUD: a Steel Beam that MISSES still pays, through the
+       * move's own `onMoveFail`. This engine's miss path exits above this line, so the missing arm is
+       * a known remaining gap rather than something this wire quietly claims. */
+      {const _mr=TAGS.param('move',a.move&&a.move.id,'recoil');
+       if(_mr&&_mr.of==='maxhp'&&+_mr.fraction>0&&m.st&&!m.fainted){
+         m.curHP-=Math.max(1,Math.round(m.st.hp*+_mr.fraction));
+         MEDSEEN.maxHPRecoilPaid++;
+         if(TR)TR.dmg(m,'[from] Recoil');
+         if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}}}
       /* WIRE 19 -- DRAIN, the exact mirror of the recoil line above and absent entirely. 8,553 corpus
        * clicks: Matcha Gotcha 4,957, Giga Drain 1,255, Drain Punch 916, Draining Kiss 814. The damage
        * landed and the heal was simply never applied -- `dealt 51 to the foe; user 85 -> 85 hp` -- so
@@ -12017,6 +13057,51 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(TR)TR.dmg(m,'[from] Sandstorm');
         }
       }
+      /* WIRE 157 -- THE OTHER HALF OF `onWeather`, AND IT IS THE HALF THAT GIVES HP BACK.
+       *
+       * The block directly above is the sandstorm CHIP and it has been the whole of this engine's
+       * weather residual. The same hook restores HP -- Ice Body 1/16 in snow, Rain Dish 1/16 in rain,
+       * Dry Skin 1/8 in rain -- and NONE of it existed, which is why Ice Body read LIVE off its
+       * immunity tag while doing nothing. Roster, Avalugg standing in its own snow: Showdown
+       * 71 -> 81 -> 91 -> 101, ours 71 flat.
+       *
+       * BOTH DIRECTIONS LAND TOGETHER AND THAT IS NOT THOROUGHNESS, IT IS THE ONLY SAFE ORDER. Two of
+       * the four carriers LOSE HP (Solar Power 1/8 in sun; Dry Skin 1/8 in sun, out of the same
+       * handler that heals it in rain). A pass that wired the heals alone would have made Dry Skin
+       * strictly better than the real ability on every sun board -- a one-directional error introduced
+       * by fixing a different one, which is this project's signature failure.
+       *
+       * IT SITS IMMEDIATELY BELOW THE SAND CHIP BECAUSE IT IS THE SAME RESIDUAL SLOT: Showdown runs
+       * every `onWeather` handler inside `Battle#residualEvent('Weather')` at `onResidualOrder` 1,
+       * ahead of Wish (4), the Grassy Terrain heal and Leftovers (5), the seed (8) and the status
+       * chips (10). A heal placed at the bottom would rescue a body the burn should have outrun.
+       *
+       * `field.wSup` IS THE `effectiveWeather()` GUARD THE TAG CARRIES. Three of the four handlers open
+       * `if (target.effectiveWeather() !== effect.id) return;` -- Cloud Nine and Air Lock -- and this
+       * engine already answers that question in one place. Ice Body is the one that does NOT carry the
+       * guard, and it is honoured for it anyway rather than branched on: a suppressed sky is not a sky,
+       * and reproducing an inconsistency in the authority's own handlers would be a second fact.
+       *
+       * THE HEAL IS GATED ON `healBlocked` and the CHIP IS NOT, which is the same asymmetry every other
+       * member of both families already has here: Heal Block's `onTryHeal` refuses restored HP and says
+       * nothing about damage. */
+      {const _wr=TAGS.param('ability',m.ability,'weatherResidualHP');
+       if(_wr&&field.weather&&!field.wSup&&!m.fainted&&m.curHP>0){
+         const _hn=_wr.heals&&_wr.heals[field.weather];
+         const _dn=_wr.hurts&&_wr.hurts[field.weather];
+         if(_hn>0&&!healBlocked(m)&&m.curHP<m.st.hp){
+           const _h0=m.curHP;
+           m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/_hn));
+           MEDSEEN.weatherHealed++;
+           if(TR&&m.curHP>_h0)TR.heal(m,'[from] ability: '+m.ability);
+         }
+         if(_dn>0){
+           m.curHP-=Math.floor(m.st.hp/_dn);
+           MEDSEEN.weatherAbilityChip++;
+           if(TR)TR.dmg(m,'[from] ability: '+m.ability);
+           if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}
+         }
+       }}
       /* WIRE 154 -- WISH PAYS OUT HERE, AND THE POSITION IN THE RESIDUAL IS THE AUTHORITY'S.
        * `wish.condition.onResidualOrder` is 4: AFTER the weather chip (order 1, the block directly
        * above) and BEFORE the Grassy Terrain heal and Leftovers (both order 5), the seed (8) and the
@@ -12065,10 +13150,27 @@ function battleTurn(S,rng,actsForA,actsForB){
            if(TR&&m.curHP>_h0)TR.heal(m,'[from] Grassy Terrain');}
          else MEDSEEN.terrainHealSkippedAirborne++;
        }}
-      if(m.status==='brn'){m.curHP-=Math.floor(m.st.hp/16);if(TR)TR.dmg(m,'[from] brn');}
-      if(m.status==='psn'){m.curHP-=Math.floor(m.st.hp/8);if(TR)TR.dmg(m,'[from] psn');}   // regular poison: a flat 1/8
-      if(m.status==='tox'){m.toxTurns=(m.toxTurns||0)+1;                        // Toxic: n/16, escalating
-        m.curHP-=Math.floor(m.st.hp*Math.min(15,m.toxTurns)/16);if(TR)TR.dmg(m,'[from] psn');}
+      /* ROADMAP #139 -- THE TOXIC RAMP IS A SIXTEENTH TIMES THE STAGE, NOT A STAGE-SIXTEENTH OF THE
+       * MAXIMUM, and the two differ by a rounding step on every body whose max HP is not a multiple
+       * of 16. Showdown's `tox` condition:
+       *
+       *     this.damage(this.clampIntRange(pokemon.baseMaxhp / 16, 1) * this.effectState.stage)
+       *
+       * The tick is TRUNCATED FIRST and multiplied after. This engine multiplied first and truncated
+       * once, so a 170 HP Torterra lost 10, 21, 31 where the authority takes 10, 20, 30 -- off by one
+       * on turn two and by two on turn three, compounding for as long as the poison is on. The
+       * deliberate roster read it on a 680 HP body as `turn2 sd 554 / ours 553, turn3 sd 428 / ours
+       * 426`, which is the same defect at four times the scale.
+       *
+       * THE `Math.max(1,...)` IS NOT DECORATION AND IT IS NOT THE FIX EITHER. `Battle#spreadDamage`
+       * clamps every damage packet to at least 1, so a body under 16 max HP still loses a point a
+       * turn; nothing in this format is that small, and the clamp is written here because the
+       * authority's line has it, not because a probe can reach it. The same clamp is added to burn and
+       * to ordinary poison for the identical reason -- all three are `this.damage(...)` calls. */
+      if(m.status==='brn'){m.curHP-=Math.max(1,Math.floor(m.st.hp/16));if(TR)TR.dmg(m,'[from] brn');}
+      if(m.status==='psn'){m.curHP-=Math.max(1,Math.floor(m.st.hp/8));if(TR)TR.dmg(m,'[from] psn');}   // regular poison: a flat 1/8
+      if(m.status==='tox'){m.toxTurns=(m.toxTurns||0)+1;                        // Toxic: n x 1/16, escalating
+        m.curHP-=Math.max(1,Math.floor(m.st.hp/16))*Math.min(15,m.toxTurns);if(TR)TR.dmg(m,'[from] psn');}
       /* WIRE 29 -- passiveHeal, from the item's own tag instead of a Leftovers name check. The tag
        * carries the fraction (0.0625 = 1/16) and the name check carried the same number typed out, so
        * this is a no-op today and the point is next month: a second passive-heal item joins by
@@ -12097,6 +13199,25 @@ function battleTurn(S,rng,actsForA,actsForB){
        * continues and the heal is simply lost -- close to the real slot rule without slot state. */
       /* WIRE 51 -- THE TRAP CHIPS. Beside Leech Seed because it is the same kind of clock, and after
        * the status chips for the same residual-order reason. */
+      /* ROADMAP #139 -- THE HEAL HALF OF THE SAME MAP: Aqua Ring and Ingrain, `perTurnHP
+       * {effect:'heal', per:16, on:'holder'}`. Both were DID-NOT-FIRE-shaped rows on the deliberate
+       * roster (`sd 613/620/620, ours 575/575/575` -- the ring existed and restored nothing), and
+       * both are the same sentence as Salt Cure with the sign flipped, which is why they are wired by
+       * the same map rather than by two more branches.
+       *
+       * IT SITS ABOVE THE TRAP AND THE SEED, which is the authority's order: aquaring is
+       * onResidualOrder 6 and ingrain 7, both above leechseed's 8 and well above partiallytrapped's
+       * 13. Below the status chips would let a ring rescue a body the real game lets the burn kill.
+       *
+       * `healBlocked` GATES IT for the reason every other heal in this residual is gated: Heal Block
+       * stops the restore and leaves the volatile in place. */
+      if(m.curHP>0&&m._vol&&!healBlocked(m))for(const [_v,_r] of perTurnHPVolatiles()){
+        if(!(m._vol[_v]>0)||_r.pt.effect!=='heal'||_r.pt.on!=='holder')continue;
+        const _h0=m.curHP;
+        m.curHP=Math.min(m.st.hp,m.curHP+Math.max(1,Math.trunc(m.st.hp/perTurnHPDenominator(_r.pt,m))));
+        MEDSEEN.perTurnVolatileHeal++;
+        if(TR&&m.curHP>_h0)TR.heal(m,'[from] move: '+_r.mv);
+      }
       if(m._trap&&m.curHP>0){
         /* WIRE 105 -- the trap DIES WITH ITS TRAPPER. A source that fainted or left the field ends
          * the trap before this tick chips, which is Showdown's own onUpdate rule. A trap whose
@@ -12136,6 +13257,32 @@ function battleTurn(S,rng,actsForA,actsForB){
         m.curHP-=Math.max(1,Math.trunc(m.st.hp/m._ptDmg.per));
         if(TR)TR.dmg(m,'[from] Curse');
         MEDSEEN.perTurnDamageChip++;
+      }
+      /* ROADMAP #139 -- SALT CURE, AND EVERY OTHER VOLATILE THAT CHIPS. The paragraph above this one
+       * has said for two batches that Salt Cure "carries the same tag and is not set anywhere ... it
+       * stays visibly unwired" -- an honest note about a gap, kept until the gap was measured: the
+       * deliberate roster read `sd 1076 / ours 1231` on the first tick and `912 / 1222` on the second,
+       * so the whole reason the move is played was worth nothing.
+       *
+       * THE TAG WAS ALREADY RIGHT AND THE READER WAS MISSING, which is worth naming because it is the
+       * shape of most of this queue: `perTurnHP.perIfType {types:[Water,Steel], per:8}` has been in
+       * data/tags.json all along and matches the authority's
+       * `baseMaxhp / (hasType(['Water','Steel']) ? 8 : 16)` exactly. Nothing here types a 16 or an 8.
+       *
+       * IT SITS AT ORDER 13, BELOW CURSE'S 12, which is the authority's own placement and the reason
+       * this is a second block rather than a clause added to the one above.
+       *
+       * `_ptDmg` AND THIS MAP CANNOT DOUBLE-FIRE, and that is checked rather than assumed: Curse is a
+       * member of the map (it declares a volatile and a per-turn damage), but its handler writes
+       * `_ptDmg` and never `_vol.curse`, so the branch above owns it and this one never sees it. If
+       * Curse is ever routed through `applyMoveVolatile` the two must be merged, and this sentence is
+       * where that is written down. */
+      if(m.curHP>0&&m._vol)for(const [_v,_r] of perTurnHPVolatiles()){
+        if(!(m._vol[_v]>0)||_r.pt.effect!=='damage')continue;
+        m.curHP-=Math.max(1,Math.trunc(m.st.hp/perTurnHPDenominator(_r.pt,m)));
+        MEDSEEN.perTurnVolatileChip++;
+        if(TR)TR.dmg(m,'[from] '+_r.mv);
+        if(m.curHP<=0)break;
       }
       if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}}
     /* WIRE 154 -- A WISH THAT CAME DUE ON AN EMPTY OR DEAD SLOT IS SPENT ANYWAY, and this is the
@@ -12537,11 +13684,42 @@ function playerActionPrimary(me,moveId,target,field){
     if(_dp&&_dp.allyHealFrac&&target&&target!==me&&me._sf&&target._sf===me._sf)
       return {kind:'allyheal',mv:id,target,frac:+_dp.allyHealFrac,noDamage:!!_dp.allyNoDamage};
   }
+  /* ROADMAP #139 -- METAL BURST NAMES NO TARGET, BECAUSE ITS TARGET IS A FACT ABOUT THE TURN.
+   * Its dex target is `scripted` -- THE BODY THAT LAST DAMAGED ME -- so the request carries no target
+   * and the click fell through the whole cascade to `{kind:'pass'}`, a no-op turn on 53 stored
+   * clicks. dmgRange has had the retaliation branch since 2026-08-10 and `hasPower` admits the family;
+   * what was missing is that nothing ever handed it a defender.
+   *
+   * THE SAME SHAPE AS WIRE 9 (spread) AND WIRE 144 (randomNormal), and the third member of that set:
+   * a damaging click the authority AIMS FOR YOU. The difference is that this one is not a die -- it is
+   * `getLastDamagedBy`, a recorded fact, and `_took.by` is that record. A body that has taken nothing
+   * finds nobody, correctly returns no target, and the move fails exactly as the authority's `onTry`
+   * fails it (`if (!lastDamagedBy?.thisTurn) return false`) -- `_took` is cleared at the top of every
+   * turn, so `thisTurn` is expressed by the field's own lifetime rather than by a second flag. */
+  let _rescript=false;
+  if(mv&&hasPower(mv)&&!target){
+    const _fdT=TAGS.param('move',id,'fixedDamage');
+    if(_fdT&&_fdT.retaliates){
+      /* THE TARGET IS NOT KNOWN YET AND MUST NOT BE GUESSED HERE. `scripted` means THE BODY THAT LAST
+       * DAMAGED ME, and Showdown resolves it in `onModifyTarget` at EXECUTION -- the action is chosen
+       * at the top of the turn, when nothing has hit me yet, so a body picked here would be the answer
+       * to last turn's question. `_rescript` carries that forward; the aim below is a PRICE, exactly
+       * as it is for the spread family and the randomNormal family, and the executor re-aims. */
+      const _fo=liveFoesOf(me);
+      if(_fo.length){
+        let _t=null,_bs=-1;
+        for(const _f of _fo){const _d=dmgRange(me,_f,mv,field,false);
+          const _s=(_d.min>=_f.curHP?1e6:0)+_d.max; if(_s>_bs){_bs=_s;_t=_f;}}
+        if(_t){target=_t;_rescript=true;MEDSEEN.scriptedTargetFound++;}
+      }
+    }
+  }
   if(mv&&hasPower(mv)&&target){
     const spread=SPREAD.has(id);
     /* WIRE 131 — `acc` is the chance THIS click lands on THIS target, not the move's printed number.
      * Both bodies are in hand here and the old line used neither. */
-    return {kind:'attack',move:{id,mv,spread,d:dmgRange(me,target,mv,field,spread),acc:hitProb(me,target,id,field)},target};
+    return {kind:'attack',move:{id,mv,spread,d:dmgRange(me,target,mv,field,spread),acc:hitProb(me,target,id,field)},
+            target,rescript:_rescript||undefined};
   }
   /* ROADMAP #81 WIRE 9 -- AND A DAMAGING CLICK THAT COULD NOT BE AIMED IS COUNTED, NEVER SWALLOWED.
    * Falling through to the status chain below is what made the defect above invisible for as long as
@@ -12698,7 +13876,18 @@ function playerActionPrimary(me,moveId,target,field){
    * returned. Measured before a line changed: Farigiraf clicked Curse and ended the turn at
    * `at0 df0 sp0`, having lost no HP, with the foe having lost none either. The move did NOTHING. */
   if(TAGS.param('move',id,'typeSplitMove'))return {kind:'typesplit',mv:id,target};
-  if(TAGS.has('move',id,'perTurnHP')&&!TAGS.has('move',id,'setsTerrain'))return {kind:'status',mv:id,target};
+  /* ROADMAP #139 -- AND THE SELF-RING MEMBERS ARE NOT SENT DOWN THIS ROAD. Aqua Ring and Ingrain
+   * carry `perTurnHP` and no major status, so they were classified `status`, fell into that branch's
+   * `!st` arm, matched only the `drain` clause and returned having done NOTHING -- the roster read
+   * `sd 613/620/620, ours 575/575/575`. They belong in `affect`, which is where every self-volatile
+   * move already lands and which applies the move's own `statusInflict` through `applyMoveVolatile`;
+   * the residual then ticks the volatile from the same map that ticks Salt Cure.
+   * Excluded by SHAPE and not by name: `effect === 'heal'` on the `holder`. Leech Seed (drain, on the
+   * target) and Salt Cure (damage; it is a damaging move and never reaches here anyway) keep the road
+   * they were on, and Curse is claimed by `typeSplitMove` one line above. */
+  {const _ptK=TAGS.param('move',id,'perTurnHP');
+   if(!(_ptK&&_ptK.effect==='heal'&&_ptK.on==='holder'))
+     if(TAGS.has('move',id,'perTurnHP')&&!TAGS.has('move',id,'setsTerrain'))return {kind:'status',mv:id,target};}
   /* PERISH SONG: a three-turn clock on everything on the field, INCLUDING THE USER'S OWN SIDE. It is
      a win condition rather than a chip move, and the rollout could not represent it at all. */
   if(TAGS.has('move',id,'perishClock'))return {kind:'perish',mv:id};
@@ -12755,6 +13944,22 @@ function playerActionPrimary(me,moveId,target,field){
      move in the format that answers a Belly Drum or a Dragon Dance was a wasted turn in every
      rollout. Clear Smog carries base power and is caught by the attack branch above, so only the
      pure-status members arrive here. */
+  /* ROADMAP #139 -- PAIN SPLIT. Its tags were `neverMisses` and `statusCategory`, which describe an
+   * accuracy and a category and no effect at all, so it came out `{kind:'pass'}` on 151 stored clicks.
+   * `sharesHP` is derived now and this is the one line that routes it. */
+  {const _sh=TAGS.param('move',id,'sharesHP');
+   if(_sh&&_sh.mode==='average')return {kind:'sharehp',mv:id,target};}
+  /* ROADMAP #139 -- COPYCAT. Same signature, same no-op, 78 stored clicks. It is routed rather than
+   * executed here: what it actually does is USE ANOTHER MOVE, and the move it uses is not known until
+   * the click resolves -- `this.lastMove` can be written by a body acting between the choice and the
+   * execution. Deciding it here would read a stale answer, which is the same argument the Curse
+   * branch makes about a type read at classification time. */
+  {const _ca=TAGS.param('move',id,'callsAnotherMove');
+   if(_ca&&_ca.source)return {kind:'callmove',mv:id,target,from:_ca.source,refuses:_ca.refusesFlags||null};}
+  /* ROADMAP #139 -- BLOCK AND MEAN LOOK, through the tag the tagger was missing rather than through a
+   * name. They carry a real volatile onto the TARGET and the target then cannot leave. */
+  {const _tt=TAGS.param('move',id,'trapsTarget');
+   if(_tt&&_tt.volatile)return {kind:'trapmove',mv:id,target,vol:_tt.volatile};}
   if(TAGS.has('move',id,'clearsBoosts'))return {kind:'haze',mv:id};
   /* WIRE 40 -- ROAR and WHIRLWIND, the damage-less half of forcesSwitch. Dragon Tail and Circle
      Throw carry base power and drag from the attack path; these two carry none and fell through to
@@ -13015,6 +14220,18 @@ root.ABRA_TAG_LOOKUP=TAGS; root.canTakeStatus=canTakeStatus; root.effSpeed=effSp
    pure FACT about a set of bodies, and a differential that wants to price one hit needs to be able to
    build the field the battle loop would have built without spending a turn to get it. */
 root.auraStateOf=auraStateOf;
+/* WIRE 157 -- THE COUNTERS, EXPORTED, AND THE REASON IS A PROBE THAT COULD NOT TELL TWO STATES APART.
+ *
+ * CLAUDE.md's rule is that a capability which cannot prove it ran is assumed broken, and this file
+ * has 100+ counters built for exactly that. NONE of them were reachable from a test: `MEDSEEN` and
+ * `MEDFAILS` appeared on neither `root` nor `module.exports`, so every probe in tests/test-mechanics.js
+ * had to infer from the board what the engine already knew. That is how the Rock Slide report of
+ * 2026-08-10 happened -- 0 of 600 flinches, with `MEDSEEN.flinchTooLate` sitting at 571 and unreadable.
+ *
+ * THE LIVE OBJECTS, BY REFERENCE, so a caller snapshots a field before a turn and subtracts after.
+ * They are cumulative for the life of the process and are NOT reset here: a reset function would be a
+ * second way to make a counter read zero, which is the thing they exist to distinguish. */
+root.MEDSEEN=MEDSEEN; root.MEDFAILS=MEDFAILS;
 /* WIRE 118 -- ON THE ROOT AS WELL AS IN module.exports, because board.js reaches this engine through
    the GLOBAL object in a browser (damageEngine() returns `window`) and through require() in node. A
    module-only export would have left the Battle Tower page falling back on a hand-rolled order --
@@ -13035,6 +14252,8 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
   moveFx,movePriority,priorityRefusedAbove,isGrounded,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors,
   /* ROADMAP #81 WIRE 12 -- the aura roster read; see the root export above. */
   auraStateOf,
+  /* WIRE 157 -- the counters, by reference. See the root export above for why. */
+  MEDSEEN,MEDFAILS,
   /* WIRE 129 -- exported for the ACCURACY-MODIFIER CONFORMANCE block in tests/test-engine-diff.js,
    * which re-derives the whole table out of the live format dex. A table nobody checks is the literal
    * it replaced; this is the only thing that makes it different in kind. */

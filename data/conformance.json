@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-09T21:05:20.835Z",
+ "generated": "2026-08-10T20:27:04.404Z",
  "by": "engine/conformance.js",
- "files": 341,
+ "files": 344,
  "findings": [
   {
    "std": "convention",
@@ -187,7 +187,7 @@
   {
    "std": "S12",
    "file": "engine/medicham2-browser.js",
-   "what": "names 17 Pokemon thing(s) in code: move:earthquake, move:blizzard, move:protect, move:tailwind, move:detect, ...",
+   "what": "names 15 Pokemon thing(s) in code: move:earthquake, move:blizzard, move:protect, move:tailwind, move:fakeout, ...",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
    "detail": [
     "ability:intimidate",
@@ -195,8 +195,6 @@
     "ability:lightningrod",
     "ability:prankster",
     "ability:technician",
-    "item:assaultvest",
-    "item:choiceband",
     "item:lifeorb",
     "move:blizzard",
     "move:detect",
@@ -283,6 +281,17 @@
   },
   {
    "std": "S12",
+   "file": "engine/replay_differential.js",
+   "what": "names 3 Pokemon thing(s) in code: move:tailwind, move:protect, move:detect",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:detect",
+    "move:protect",
+    "move:tailwind"
+   ]
+  },
+  {
+   "std": "S12",
    "file": "engine/rollout_r1.js",
    "what": "names 2 Pokemon thing(s) in code: move:trickroom, move:tailwind",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
@@ -354,7 +363,7 @@
   {
    "std": "S12",
    "file": "engine/tag_dex.js",
-   "what": "names 17 Pokemon thing(s) in code: move:reflect, move:protect, move:followme, move:ragepowder, move:trickroom, ...",
+   "what": "names 14 Pokemon thing(s) in code: move:reflect, move:protect, move:followme, move:ragepowder, move:trickroom, ...",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
    "detail": [
     "ability:friendguard",
@@ -362,9 +371,6 @@
     "ability:levitate",
     "ability:lightningrod",
     "ability:technician",
-    "item:assaultvest",
-    "item:choiceband",
-    "item:choicescarf",
     "item:leftovers",
     "move:auroraveil",
     "move:followme",
@@ -649,6 +655,36 @@
   },
   {
    "std": "S13",
+   "file": "data/raw-log-census.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
+   "file": "data/replay-differential-freezes.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/replay-differential-sheets-freezes.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
+   "file": "data/replay-differential-sheets.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
+   "file": "data/replay-differential.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
    "file": "data/rollout-cost.meta.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie"
@@ -692,6 +728,18 @@
   {
    "std": "S13",
    "file": "data/roster.abilities.prev.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
+   "file": "data/roster.items.prev.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
+   "file": "data/roster.moves.staging-trial.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie"
   },

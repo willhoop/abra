@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  381/381 probed mechanics live, 0 missing   (census 2026-08-10 19:30)
-  0/20000 differential comparisons disagree with Showdown   (2026-08-10 19:25)
+  408/408 probed mechanics live, 0 missing   (census 2026-08-10 22:56)
+  0/20000 differential comparisons disagree with Showdown   (2026-08-10 22:57)
     seed 20260804, requested 20000, 850 not comparable (multihit 630, non-finite 0, threw 220)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
@@ -54,12 +54,207 @@ ENGINE — does the simulator do what Pokémon does
     whole-game agreement 7/1997 -> 134/1997; first-divergence line, mean 14.78 -> 33.98
     paired against the baseline: 1295 games part later, 116 EARLIER, 586 unchanged
     the baseline ran first and last and reproduced exactly; comparability: every arm cleared
-  tag coverage: 190/201 probed, 11 unprobed
+  tag coverage: 201/214 probed, 13 unprobed
 ```
 
-_stamped 2026-08-10 19:35_
+_stamped 2026-08-10 22:59_
 
 <!-- /GENERATED -->
+
+## ROADMAP #139 — THE MOVES CLAUSE, AND SEVEN THINGS HANDED OVER WHILE IT RAN. 2026-08-11.
+
+**Census 390 → 407 live / 407 probed / 0 missing / 0 threw / 0 hollow / 0 unarmed / 0 direct-call.**
+`tests/test-engine-diff.js --n 20000` held at **0 disagreements** at every step. The deliberate
+roster's moves stage went **7 FIRED-AND-BOARDS-DIFFER + 4 DID-NOT-FIRE → 0 + 1**. Releases cut:
+`432477ef068d`, `e5451d32f349`, `f22367e16168`. Every probe was watched RED against `07ffb4e75207`
+— the pre-session engine — before a byte moved. The full table, the retractions and the receipts are
+in [_outbox/moves-queue-notes.md](_outbox/moves-queue-notes.md); what follows is what this ledger owes.
+
+### THE SHAPE OF THE BATCH: THE TAG WAS RIGHT AND THE READER WAS MISSING
+
+Five of the eleven were that sentence exactly — `saltcure`'s `perIfType`, `growth`'s
+`weatherScaled.boosts`, `metalburst`'s `fixedDamage.source`, Shed Shell's `escapesTrap`, Imposter's
+`transformsOnEntry`. Each reader is a MAP over the tag shape, not a branch on a name, and two of them
+paid for themselves inside the same pass: the `perTurnHP` volatile map that ticks Salt Cure also heals
+**Aqua Ring and Ingrain**, which were separate DEFERRED rows nobody was working on.
+
+The other half were **tagger** gaps, and they are the more expensive kind because no reader can
+precede them: `block`/`meanlook` carried no trapping tag at all, `suctioncups` had **no row in
+`data/tags.json`**, `terrainpulse` carried `{scalesWith:'terrain'}` — a boolean wearing a param's
+clothes, which is the complaint that tag's own comment already made about its predecessor.
+
+### A HAND-WRITTEN TABLE INSIDE A DERIVATION, AND IT WAS WRONG
+
+`costsUserHP` read `/clangoroussoul/ ? 1/3 : /shedtail/ ? 1/2 : /substitute/ ? 1/4`. Clangorous Soul
+does not cost a third — its handler is `directDamage(maxhp * 33 / 100)`, and 33/100 reads as "about a
+third", so the table recorded the reading rather than the number. It is parsed now. **The diff caught
+two over-matches before a consumer read them**: `curse` and `bellydrum` joined the tag on the first
+parse, and Curse would then have paid half its user's HP TWICE (it already pays inside `typeSplitMove`).
+That is ROADMAP #65 working, and it is why the predicate now requires a try-phase gate.
+
+### FOUR RETRACTIONS, EACH WITH THE MEASUREMENT THAT ENDS IT
+
+- **Rage Powder / Follow Me do not have a redirect bug.** The reported fixture used Breaking Swipe,
+  which is `allAdjacentFoes` — a SPREAD move hits both slots in the authority too and is not
+  redirected. With two genuinely single-target moves: drawer 146 / partner 0, against 0 / 110 with
+  nothing clicked.
+- **ROADMAP #112 is retracted whole.** Blaze, Torrent, Overgrow and Swarm all fire, at the authority's
+  EXACT numbers under `dmgRange` with the roll pinned. The ratios read 1.483–1.500 rather than exactly
+  1.5 because the multiplier truncates before STAB and the type chart; that is the arithmetic, not an
+  approximation. The one row that read OUT was Surf, which is `allAdjacent` and was priced with
+  `spread=false` — 85/114 = 0.746.
+- **Imposter copies fine, including stat stages.** The probe that read `["transform"]` used
+  `battleInit(..., {seeded:true})`, which **skips entry effects by design**. ROADMAP #95's real open
+  half was the REVERT, and that is now closed.
+- **"Shed Shell is a NAME because the item carries no tag at all"** and **"SHED SHELL IS NOT HONOURED
+  ON THIS BRANCH … zero corpus exposure today"** are both struck. It carries `escapesTrap` and both
+  trap roads ask it. The zero-exposure clause was a USAGE claim standing in for a correctness one,
+  which is the Mega Floette shape.
+
+### PARENTAL BOND IS TWO PACKETS, AND THE ACCEPTANCE TEST IS BINARY
+
+The x1.25 sat several stages below the authority's slot (`modify(baseDamage, 0.25)` in the SPREAD
+MODIFIER's position, before the roll, STAB, the type chart and burn). It is a two-packet plan through
+the existing per-hit loop now. Will's test — *"have mega kanga try and KO a mon holding a focus sash"*
+— cannot be passed by tuning a multiplier and it passes: frozen leaves the Sash holder alive on 1,
+live KILLS it, and both controls behave.
+
+**What is NOT claimed:** the damage is still two packets summed into one range, as it is for the whole
+multi-hit family. The split buys the ARRIVAL (a Sash answers one packet) and reactions firing twice.
+`|-hitcount|` is still not emitted at all.
+
+### THE HAND LIST GAINS TWO AND LOSES ONE
+
+Off: **`terrainScaled` carries no grounded subject** — `requiresGrounded` is derived and read, for the
+member that has no ambiguity about whose feet matter. Rivalry stays (still blocked on `MC.mons`
+carrying no gender, and `data/engine-data.js` is MEASURE's).
+
+On, both found by a roster row rather than by survey:
+
+- **A re-applied volatile with no `onRestart` must FAIL the move, and this engine only refuses the
+  duration family.** `Battle#addVolatile` returns false for any volatile already present whose
+  condition declares no `onRestart`, and `clearActiveMove(failed)` then keeps `battle.lastMove` on the
+  last move that actually landed. This is the ONLY thing still holding the roster's Copycat row: its
+  staging idles on Focus Energy, whose second click FAILS in the authority and SUCCEEDS here, so our
+  Copycat faithfully repeats the inert click. The Copycat mechanism itself is wired and probed. The
+  fix is a real generalisation and needs its own batch with the membership printed first — a blanket
+  no-restart rule catches Protect, Follow Me, Rage Powder and Helping Hand, all of which must be
+  re-settable.
+- **PP does not exist in this engine at all, and Champions changed the numbers.** 42 moves differ from
+  standard gen 9 over 136,299 clicks, led by **Protect at 5, not 10**. It is a mechanic and not
+  bookkeeping: an engine that believes Protect is infinite makes every stalling rollout a game that
+  cannot happen. Sized and filed in the outbox notes; it belongs AFTER the eleven, because it is the
+  first item in this queue whose consumers live outside ENGINE.
+
+## WIRE 157 — AN ABILITY THAT READS AN EVENT AND DOES NOT ACT ON IT. 2026-08-10.
+
+**WIRE 156 DIRECTLY BELOW IS WHY THIS ONE WAS NEEDED, AND SAYING SO IS THE FINDING.** Routing Fake
+Out's flinch through the shared secondary loop made **Inner Focus work for free** — the loop already
+asked "is this refused". **Steadfast did not come with it**, because Steadfast is not a refusal. It
+takes the flinch, loses the turn, and is PAID +1 Speed for it. Nothing in this engine reacted to a
+flinch at all. Measured before a byte moved:
+
+```
+Fake Out into Machamp, attacker decisively faster so the flinch cannot land late
+  control (no flinch ability)   flinched 300/300   spe stage 0    correct
+  STEADFAST                     flinched 300/300   spe stage 0    <<< the +1 NEVER FIRES
+  Inner Focus                   flinched   0/300   spe stage 0    correct
+```
+
+Seven roster rows turned out to be the same shape one field over. **Eight abilities, eight probes,
+each watched RED on its own.** Census **381 → 390 live / 390 probed / 0 missing / 0 threw**. The full
+table of red-and-green readings, the tag diff and the sweep are in
+[MEDICHAM-SPRINT-NOTES.md](MEDICHAM-SPRINT-NOTES.md); what follows is only what this ledger owes.
+
+### THE POSITION OF THE BOOST IS THE MECHANIC, NOT A TIDINESS
+
+`onFlinch` is **not** a hook on the volatile being applied. Showdown runs it from inside the flinch
+condition's own `onBeforeMove` — `this.add('cant', pokemon, 'flinch'); this.runEvent('Flinch',
+pokemon); return false;` — so the boost is owed exactly where the turn is spent. This engine sets
+`tg._flinch = true` at **four** separate sites (the secondary loop, King's Rock, Fling, and until WIRE
+156 a Fake Out hardcode); paying at any of them would pay four times over and pay for flinches that
+are never consumed. It is paid at the ONE line that already knows the turn is gone. The probe's
+asleep arm is what holds that: `beforeMove` priority is slp 10 against flinch 8, so a body that is
+both spends the turn on the sleep and Steadfast is paid **nothing**.
+
+### FOUR RETRACTIONS IN PLACE, EACH WITH THE MEASUREMENT THAT ENDS IT
+
+This file states four things that were true when written and are now false. They are struck here
+rather than edited away, per the file's own convention:
+
+- **"Charge has no volatile to read"** (ROADMAP #92's four unfixed items, in the hand-list section).
+  `_vol.charge` has existed since the MOVE Charge was routed through `applyMoveVolatile`; what was
+  missing was a CONSUMER. There is one now — a base-power chain member, `chainModify(2)` on an
+  Electric move at `onBasePowerPriority` 9 — so Electromorphosis and Wind Power can bank it and the
+  move Charge finally buys something. **Bellibolt's Thunderbolt: 72 → 142, then back to 72.**
+- **"TWO ABILITIES DO NOTHING: Electromorphosis …"** (the roster's third-ability arm). One of the two
+  is closed. Fluffy is untouched and still stated as an inference.
+- **"Mirror Armor does not reflect Intimidate — medicham2 drops its own ally's Attack instead"** and
+  the `|-ability|X|Mirror Armor|` line in the nine-point list. The reflection is wired through
+  `applyStatDrop`, so the bounce is an ordinary drop: refusable by the SOURCE's Clear Body, invertible
+  by its Contrary, answered by its Defiant. `REFLECTS_DROP` survives as the announcement suppressor it
+  always was; the membership now comes from `preventsStatDrop.reflects`.
+- **"Supersweet Syrup's evasion drop skips honestly (no evasion slot)"** (the `onSwitchInDrop` row).
+  Stale twice: the engine has had an `eva` slot since ROADMAP #92, and the drop was landing — TWICE,
+  once per entry, against the authority's once per battle.
+
+### THE HAND LIST LOSES ONE LINE AND IS OTHERWISE UNCHANGED
+
+It is still **empty except for Rivalry**, which remains blocked on `MC.mons` carrying no gender —
+`data/engine-data.js` belongs to MEASURE and this division may not touch it. What comes off is the
+ROADMAP #92 sentence above: **Charge is no longer one of that class's four unfixed items; three
+remain** (`terrainScaled` carries no grounded subject, Rivalry has no gender, the artifact stores 1.3
+as a float).
+
+### FOUR ITEMS ADDED TO THE OPEN WORK, FOUND BY SURVEY RATHER THAN BY A ROSTER ROW
+
+The brief asked whether anything else reacts to a flinch, or to a volatile landing. Asked of the
+format dex rather than of memory:
+
+- `onFlinch` matches **exactly one** ability. The flinch family is complete.
+- There is **no "react to any volatile" hook in this format at all**. `onTryAddVolatile` (7 members)
+  and `onAllyTryAddVolatile` (3) are entirely REFUSALS, and both are now covered — the second by this
+  wire's `protectsAllyFromStatus.volatiles`.
+- **Four reaction abilities with real usage remain untagged and unwired**, each the same shape as
+  Steadfast and **none with a failing probe yet**, so none is claimed here as open work: **Synchronize**
+  (135 uses, `onAfterSetStatus` — it sends the status back at its source, which is Mirror Armor's shape
+  in the status family), **Pickpocket** (95, `onAfterMoveSecondary`), **Aroma Veil** (60, the ally-side
+  Taunt/Encore/Disable refusal — the one member of the veil family this wire does not serve), and
+  **Berserk** (44, `onAfterMoveSecondary`).
+
+### THE ARTIFACT MOVED, AND TWO PROTOCOL LINES ARE OWED
+
+`data/tags.json` regenerated: **0 entities removed / 0 added / 68 changed**, of which **9 changed
+their TAG SET** and 59 gained param fields on unchanged behaviour. Six new derivations, every
+membership printed against the format dex before wiring — `onFlinch` **1**,
+`adjacentAllies()+clearBoosts()` **1**, `move.recoil||hasCrashDamage` **1**, `onTryBoost` re-aiming at
+`source` **1**, `onWeather` **4**, `onAllySetStatus` **3**.
+
+`|-clearboost|` (Curious Medicine) and `|-block|` (the veil family) are **not emitted**, deliberately:
+neither event is in `TRACE_EVENTS`, and `tests/test-protocol-trace.js` PART 1 asserts every event this
+engine CLAIMS actually fires in a real game — a three-use ability on a body with no MC row never
+would. The STATE is right; the STREAM is two lines short, carried by
+`MEDFAILS.clearBoostUnannounced` and `MEDFAILS.blockLineUnannounced`. Adding the events would turn a
+green guard red on an unreachable case, which is the trade this file has already made twice.
+
+### `MEDSEEN` AND `MEDFAILS` ARE NOW EXPORTED, AND THE REASON IS THE REPORT WIRE 156 HAD TO RETRACT
+
+This engine keeps 100+ counters whose whole purpose is CLAUDE.md's rule that a capability which
+cannot prove it ran is assumed broken — and **not one of them was reachable from a test.** Neither
+object appeared on `root` or in `module.exports`. That is how "Rock Slide flinches 0 of 600" was filed
+while `MEDSEEN.flinchTooLate` sat at 571 and unreadable. Exported by reference, cumulative, with no
+reset function — a reset would be a second way to make a counter read zero, which is the thing they
+exist to distinguish. The Steadfast probe subtracts `flinchTooLate` across its own turns and asserts
+**0**, so that report cannot be made again from this file.
+
+### TWO RED CHECKS, NEITHER MINE, REPORTED RATHER THAN FILED
+
+`engine/conformance.js` (10 findings) and `engine/selftest.js` (5 undeclared raw-store readers) are
+both red. Every conformance finding names `engine/replay_differential.js` or one of its artifacts, and
+`medicham2-browser.js`'s single `games.ladder.jsonl` mention is a **comment at line 1651**,
+byte-identical in the frozen pre-session release — so both predate this wire. `replay_differential.js`
+is another agent's live file and this division was instructed not to touch it.
+
 
 ## WIRE 156 — THE FLINCH DICE WERE FINE. THE HARDCODE BESIDE THEM WAS NOT. 2026-08-10.
 
@@ -2941,7 +3136,7 @@ printed off the live dex:
 | move CATEGORY | weakarmor(37) | `move.category === "Physical"` |
 | the hit CRIT | angerpoint(13) | `target.getMoveHitData(move).crit` |
 | a move FLAG | windpower(0), perishbody(0) | `move.flags["wind"]`, `checkMoveMakesContact` |
-| unconditional | stamina(2760), electromorphosis(98) | no test |
+| unconditional | stamina(2760), electromorphosis(98) | no test — *electromorphosis has one as of WIRE 157* |
 
 The cost is one real refactor: `condHolds(w, self)` is about the HOLDER, and every #101 condition is
 about the incoming MOVE and the HIT. The signature has to widen to a context (`{self, move, crit}`),
@@ -4007,7 +4202,8 @@ boost-on-being-hit whose condition is never checked:
 | **Anger Point** (needs a CRITICAL HIT; the pin never lands one) | 0 Attack | **+6 Attack**, off an ordinary hit |
 | **Justified** (needs a DARK move; the staged hit was Poison) | 0 Attack | **+1 per hit**, off any hit |
 
-**TWO ABILITIES DO NOTHING**: **Electromorphosis** (proved by a third-ability arm — Bellibolt's Damp,
+**TWO ABILITIES DO NOTHING**  *(**Electromorphosis WIRED, WIRE 157** — it banks Charge and the next
+Electric move spends it, 72 → 142 → 72; Fluffy is untouched)*: **Electromorphosis** (proved by a third-ability arm — Bellibolt's Damp,
 Electromorphosis and Static control each other, and re-running each against the third gave *Damp vs
 Static: 0 leaves in both engines*, *Electromorphosis vs Damp: 6 in Showdown, 0 here*), and **Fluffy**
 — the delta sits on the carrier's OWN HP, which is a defensive damage reduction and not Sand Rush's
@@ -7513,7 +7709,9 @@ of this file applies.
   branch never reaches `TR.mv`. Five games. Same shape for the other non-`attack` action kinds.
 - **the two engines disagree about whether a Protect SUCCEEDS** — `-singleturn protect` against our
   `-fail`, nine games, under a pin where both stall checks are supposed to read the same die.
-- **Mirror Armor does not reflect Intimidate.** medicham2 drops its own ally's Attack instead.
+- ~~**Mirror Armor does not reflect Intimidate.** medicham2 drops its own ally's Attack instead.~~
+  **FIXED, WIRE 157** — the drop is re-aimed at the source through `applyStatDrop`, so the bounce is
+  refusable by the source's own Clear Body and answered by its Defiant.
 - **Colbur is recorded as KNOCKED OFF where Showdown records it as EATEN.** Harvest, Recycle, Belch,
   Cud Chew and Unburden all read "was it eaten". Same family as #28, the resist berries.
   **THE REGISTER DOES NOT CARRY THIS ITEM.** It was filed to me as ROADMAP item eighty, and
@@ -9951,7 +10149,8 @@ goes red on the old value at `(90,100)` and `(95,100)`.
   in bucket B and 53 more in bucket A, and **all 47 measured bucket-B members came back INERT, 47 of
   47** — which is what "cannot express itself" looks like from outside. It keeps the flinch class's
   real coverage gap visible (**Inner Focus and Steadfast have no 100%-flinch carrier to test them
-  with**) instead of dissolving it into the INERT count.
+  with** — *the MATRIX still cannot; the CENSUS can and does, WIRE 157: the Steadfast probe stages
+  Fake Out and Iron Head itself*) instead of dissolving it into the INERT count.
 
 **Will's collision rule was asked for and the measurement says the set is EMPTY, so it is not
 shipped.** The proposal was to drop a bucket-B pair when the carrier's own secondary collides with
@@ -10122,7 +10321,7 @@ named, tag_dex change staged; **(d)** = blocked or declared, reason stated.
 |---|---|---|
 | `megaStone` | 29,790 | **(a) WIRE 111.** "Is this a stone" was a `/ite[xy]?$/` name-shape regex in `megaAbility` and `buildMonFromSet`; both now ask the tag first (regex kept as OR-fallback because the X/Y forme SUFFIX genuinely lives in the item name). The stone-stats artifact stays MEGA_FORMES — richer than the tag and shared with the canonical engine |
 | `damageBoost` | 12,085 | **(d) DECLARED.** 44 carriers whose conditions the params do not carry (Blaze `onlyWhen:"only below 1/3 HP"` is prose; Rivalry needs gender the engine lacks; Slow Start needs a turn clock). Guts stays name-wired; wiring the family's bare `mult` would fire Blaze at full HP. Needs a derivation pass of its own — the WIRE 83 shape, not started inside this dispatch |
-| `onSwitchInDrop` | 10,415 | **(a) WIRE 100a + STAGED enrichment.** Membership from the tag (`applyEntryDrops`), amounts typed for Intimidate until the enrichment lands. The enrichment also caught the derivation OVER-MATCHING (Lesson §4): **Download carried it** — its onStart boosts ITSELF off the foes' defences. The enriched derivation reads the literal drop table and Download falls out. Supersweet Syrup's evasion drop skips honestly (no evasion slot) |
+| `onSwitchInDrop` | 10,415 | **(a) WIRE 100a + STAGED enrichment.** Membership from the tag (`applyEntryDrops`), amounts typed for Intimidate until the enrichment lands. The enrichment also caught the derivation OVER-MATCHING (Lesson §4): **Download carried it** — its onStart boosts ITSELF off the foes' defences. The enriched derivation reads the literal drop table and Download falls out. ~~Supersweet Syrup's evasion drop skips honestly (no evasion slot)~~ **RETRACTED, WIRE 157 — stale twice: the engine has had an `eva` slot since ROADMAP #92, and the drop was LANDING, once per entry against the authority's once per battle. `oncePerBattle` is now a param on this tag** |
 | `boostsWhenLowered` | 7,965 | **(a) WIRE 100 + STAGED enrichment, and the ARITHMETIC WAS WRONG.** Verified against the official handlers: the drop LANDS, then the +2 fires. Intimidate into Defiant is net **+1** (engine said +2); into Competitive it is **Atk −1 AND SpA +2** (engine skipped the drop). Probed. Enrichment emits the boost tables read from the handlers |
 | `priorityMod` | 7,958 | **(a) WIRE 93.** Prankster's literal in the priority sort now reads the tag (`movesOfClass:'status'`) — and **Gale Wings had no consumer at all**: a TYPE-valued `movesOfClass` now shifts attacks of that type, the 'only at full HP' condition string is evaluated, any OTHER condition fails closed and is counted (`fails.priorityModUnknownCond`). The Prankster/Dark immunity stays in pranksterBlocked — it is Prankster-specific in the real engine too |
 | `contactPunish` | 6,829 | **(c) REDUNDANT — survivor `punishesAttacker`.** Verified: every carrier also carries punishesAttacker, whose params are a strict superset and are what the consumer reads. Both tag_dex entries (item: banned Rocky Helmet; ability) retired, STAGED |
@@ -10199,8 +10398,9 @@ multipliers and the narrowed `damageBoost` family are census probes (`move|setsT
 `ability|damageBoost`), and everything else in `docs/DAMAGE-STAGES.md` is held by
 `tests/test-damage-stages.js` against the authority at exact equality. **Do not re-add any of them
 here.** The four things that class left unfixed are named in the ROADMAP #92 section above with their
-reasons — Charge has no volatile to read, `terrainScaled` carries no grounded subject, Rivalry has no
-gender, and the artifact stores 1.3 as a float. Rivalry is the only one of the four that belongs on
+reasons — ~~Charge has no volatile to read~~ (**RETRACTED, WIRE 157: `charge` is now a base-power
+chain member and Electromorphosis banks it — three of the four remain**), `terrainScaled` carries no
+grounded subject, Rivalry has no gender, and the artifact stores 1.3 as a float. Rivalry is the only one of the four that belongs on
 this list, and it is already on it.
 
 **AND IT HAS A SUCCESSOR THAT CANNOT GO STALE, 2026-08-06.** A hand list is prose, and prose cannot

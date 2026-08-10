@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-10T19:35:22.711Z",
+  "generated": "2026-08-10T22:56:28.122Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 381,
-  "live": 381,
+  "probed": 408,
+  "live": 408,
   "missing": 0,
-  "armed": 381,
+  "armed": 408,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -202,11 +202,41 @@
       "directCall": false
     },
     {
+      "kind": "ability",
+      "tag": "boostsOnFlinch",
+      "label": "Steadfast is PAID +1 Speed by every flinch that lands, and by nothing else",
+      "live": true,
+      "detail": "Iron Head (this format's 0.2 flinch) at a Machamp over 2000 seeded turns each, the foe's own Knock Off the receipt for the flinch — no ability: flinched 404, Speed raised 0 (must be 0); STEADFAST: flinched 404 (20.2%, declared 20), Speed raised 404 — EQUAL is the claim, so the boost is bound to the event and not to the click; Inner Focus: flinched 0 (must be 0 — it refuses), Speed raised 0 (must be 0 — a refusal is paid nothing); STEADFAST ON A SLEEPING BODY: Speed raised 0 (must be 0 — sleep runs at beforeMove priority 10 against the flinch's 8, so the flinch handler never runs); MEDSEEN.flinchTooLate over the control and test arms 0/0 (must be 0/0 — the attacker holds the turn, so no flinch arrived at a body that had already acted)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "move",
       "tag": "recoil",
       "label": "Brave Bird hurts its user and Drill Peck does not",
       "live": true,
       "detail": "user lost 41 hp to Brave Bird's recoil, 0 to Drill Peck (no recoil)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "damageBoost",
+      "label": "Reckless pays 1.2x for the recoil moves ONLY, and the recoil grows with it",
+      "live": true,
+      "detail": "Staraptor into a Garchomp — BRAVE BIRD (recoil) 123 with no ability and 147 with RECKLESS, x1.195 against the handler's 4915/4096 = 1.200; DRILL PECK (same type, same category, same accuracy, NO recoil) 83 and 83 — IDENTICAL is the claim, and it is what separates a recoil boost from a blanket one; HIGH JUMP KICK (hasCrashDamage, not recoil) 89 and 106 — the handler's condition is move.recoil || move.hasCrashDamage and both halves are read. The recoil the USER pays goes up with it, 41 -> 49, because recoil is a fraction of damage dealt; Drill Peck costs its user 0 either way",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "protectsAllyFromStatus",
+      "label": "Sweet Veil refuses sleep for its PARTNER as well as itself, and refuses nothing else",
+      "live": true,
+      "detail": "Hypnosis at the body standing BESIDE the carrier — control ability \"slp\", SWEET VEIL on the partner \"-\"; the same Hypnosis at the CARRIER itself, \"slp\" then \"-\" (the name was removed from the engine's typed slp list, so this arm now rests on the derived tag too). It refuses nothing else: TOXIC at the same partner \"tox\", and the FOE off the same board still takes Hypnosis \"slp\". PASTEL VEIL on the partner, Hypnosis \"slp\" and Toxic \"-\" — the mirror scope. FLOWER VEIL, whose handler blocks EVERY status but only on a Grass body: a Grass partner \"-\" against the same Grass partner with the control ability \"slp\", and a non-Grass one \"slp\". YAWN at the partner, read as [yawn landed]/[status three turns later] — control true/slp, SWEET VEIL false/-: the volatile itself is refused, which is the onAllyTryAddVolatile half of the same handler pair",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -303,6 +333,16 @@
     },
     {
       "kind": "ability",
+      "tag": "onSwitchInDrop",
+      "label": "Supersweet Syrup drops evasion ONCE PER BATTLE — where Intimidate drops again",
+      "live": true,
+      "detail": "both foes' stage at three boundaries — the carrier LEADS, leaves on turn 1, and comes BACK on turn 2 (it did: true). SUPERSWEET SYRUP (evasion) -1,-1 -> -1,-1 -> -1,-1 — the second entry adds NOTHING, because syrupTriggered is set on the Pokemon and clearVolatile() does not reset it. INTIMIDATE (attack), the same tag through the same code on the same board, -1,-1 -> -1,-1 -> -2,-2 — it DOES fire again, which is what stops this being \"entry abilities fire once\". Control ability, 0,0 -> 0,0 -> 0,0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
       "tag": "priorityMod",
       "label": "Prankster puts a status move in front of a faster foe",
       "live": true,
@@ -367,6 +407,16 @@
       "label": "Inner Focus refuses INTIMIDATE and nothing else — a Charm still lands",
       "live": true,
       "detail": "one Gallade, one Inner Focus, two sources of an Attack drop — Charm -2 (must be -2, the official engine lands it) vs Intimidate 0 (must be 0); the no-ability partner takes -1 from the same Intimidate",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "preventsStatDrop",
+      "label": "Mirror Armor RETURNS the drop to its source — where Clear Body only eats it",
+      "live": true,
+      "detail": "read as [target stages | source stages]. INTIMIDATE into: no ability -1/0, CLEAR BODY 0/0 (eaten — the source is untouched, which is what this engine did for Mirror Armor too), MIRROR ARMOR 0/-1 (returned). PARTING SHOT (atk,spa,def) — none -1,-1,0 | 0,0,0, Clear Body 0,0,0 | 0,0,0, MIRROR ARMOR 0,0,0 | -1,-1,0: BOTH stats come back, so the reflection is per-stat. A SECONDARY, Crunch's -1 Def — none 0,0,-1 | 0,0,0, MIRROR ARMOR 0,0,0 | 0,0,-1, so the third of the three routes a drop reaches the board through is covered. And the bounce is an ordinary drop: a CLEAR BODY Intimidator against a Mirror Armor 0/0 — the source refuses what is sent back, and nothing loops",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -643,6 +693,16 @@
     },
     {
       "kind": "ability",
+      "tag": "weatherResidualHP",
+      "label": "Ice Body heals in snow — and Dry Skin heals in rain and BURNS in sun",
+      "live": true,
+      "detail": "HP change over the residual — ICE BODY, Avalugg, three turns of snow 30 (3 x a sixteenth = 30); no ability, same snow 0; Ice Body in NO weather 0; Ice Body in SAND -10 against the plain body's -10 — it takes the chip, because its immunity names snow and not sand. DRY SKIN, one turn: rain 19 (+1/8 = 19) and sun -19 (-1/8) off the SAME ability, where no ability in the same sun is 0. RAIN DISH in rain 9 (+1/16 = 9); SOLAR POWER in sun -19 (-1/8)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
       "tag": "speedOnItemLoss",
       "label": "Unburden doubles Speed once the item is gone",
       "live": true,
@@ -777,6 +837,16 @@
       "label": "Hospitality heals the partner on entry",
       "live": true,
       "detail": "partner hp change: ability none 0, Hospitality 43 (a quarter is 43)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "clearsAllyBoostsOnEntry",
+      "label": "Curious Medicine wipes its PARTNER's stages on entry, and nobody else's",
+      "live": true,
+      "detail": "the carrier walks in from the bench (arrived: true) beside a partner sitting on atk/def/spe stages — ability none leaves them 2/-1/3, CURIOUS MEDICINE leaves them 0/0/0 (every stage, both directions). The FOES are untouched in both arms: 2/-1 and 2/-1 — adjacentAllies(), not adjacentFoes(). And so is the CARRIER'S OWN SpA stage, 2 then 2: adjacentAllies() excludes self, where the veil family's alliesAndSelf() would not",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1472,6 +1542,26 @@
       "directCall": false
     },
     {
+      "kind": "ability",
+      "tag": "buffsHolderOnHit",
+      "label": "Electromorphosis banks Charge, and the NEXT Electric move spends it",
+      "live": true,
+      "detail": "Bellibolt's Thunderbolt into an Incineroar on the two turns after it is struck — no ability 72 then 72 (flat, the control); ELECTROMORPHOSIS 142 then 72 (the first is ~2x and the second is back to the control, so the bank is SPENT); struck by a STATUS move instead 72 then 72 (both must equal the control — onDamagingHit banks nothing off a move that deals none); a BODY SLAM clicked in between 25 (identical to the 25 the same click deals with no ability, so it took no boost) and the Thunderbolt after it is still 142 — a non-Electric move neither takes the doubling nor spends it",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "buffsHolderOnHit",
+      "label": "a banked Charge does not survive a switch",
+      "live": true,
+      "detail": "Bellibolt is struck, then clicks Thunderbolt — having STAYED on the field 142 (the bank is spent on it); having pivoted out and back first 72 (back on the field: true) — roughly half, because the switch took the Charge with it exactly as clearVolatile() does",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "move",
       "tag": "fixedDamage",
       "label": "Seismic Toss deals the level, whoever it hits",
@@ -1816,7 +1906,7 @@
       "tag": "inflictsToxic",
       "label": "Toxic damage grows each turn",
       "live": true,
-      "detail": "status tox, chip per turn: 22, 34, 45, 57",
+      "detail": "status tox, chip per turn: 22, 33, 44, 55",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2546,7 +2636,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.2% (format 20, generic 30), control Rock Slide 27.0% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2946,7 +3036,7 @@
       "tag": "statusCategory",
       "label": "every action kind the engine can resolve announces its |move| line",
       "live": true,
-      "detail": "34/34 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
+      "detail": "37/37 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3817,6 +3907,186 @@
       "label": "Healing Wish faints its user and the replacement arrives at full HP with its status cleared",
       "live": true,
       "detail": "[Clefable clicks it with a paralysed Garchomp on 1 of 183 on the bench] — the user is down (true) and slot 0 now holds \"garchomp\" on 183/183 with status \"-\". CONTROL — the same board with the turn passed leaves \"clefable\" standing, down false. The faint is the half a heal-only probe cannot see, and it is the half that PRICES the move",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "inflictsToxic",
+      "label": "the Toxic ramp is the stage times a truncated sixteenth, not a truncated stage-sixteenth",
+      "live": true,
+      "detail": "[HP a 170 HP Torterra loses on each of four turns] — after Toxic 10,20,30,40 (status \"tox\"); CONTROL, the same board with the click passed, 0,0,0,0. floor(170/16) = 10, so the authority takes 10, 20, 30, 40; an engine that computes floor(170 x stage / 16) takes 10, 21, 31, 42 — one HP up by turn two, two by turn three, and climbing for as long as the poison is on",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "costsUserHP",
+      "label": "Clangorous Soul pays 33/100 of max HP for its five stages, and fails below it",
+      "live": true,
+      "detail": "[HP paid and stages gained by a 150 HP Kommo-o] — Clangorous Soul 49 for 1/1/1/1/1; CONTROL Swords Dance, the other boostsUser click off the same body, 0 for 2/0/0/0/0. trunc(150 x 33/100) = 49, where a third would be 50. THRESHOLD: from 50 HP it pays and lands on 1; from 49 HP it FAILS (result false) at 0/0/0/0/0, costing 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "recoil",
+      "label": "Steel Beam pays half its user's MAX HP, whatever it dealt, and Rock Head does not stop it",
+      "live": true,
+      "detail": "[HP a 180 HP Kangaskhan pays for its own click] — Steel Beam 90 (dealing 34); CONTROL Iron Head, a Steel attack off the same body with no recoil clause, 0 (dealing 53). round(180/2) = 90. ROCK HEAD pays 90 and MUST: mindBlownRecoil is a bare damage call outside applyRecoilDamage, so the ability that deletes Brave Bird's recoil never sees this one",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "failsIfVolatile",
+      "label": "a second No Retreat FAILS outright — it does not boost again",
+      "live": true,
+      "detail": "[stages after each of two identical clicks] — No Retreat 1/1/1/1/1 1/1/1/1/1 (results true/false, mark \"noretreat\"); CONTROL Swords Dance, the other boostsUser click off the same body, 2/0/0/0/0 4/0/0/0/0. The control MUST stack — that is what says the second click is being executed at all — and No Retreat MUST NOT, because its onTry refuses against its own mark",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "perTurnHP",
+      "label": "Salt Cure chips every turn, and takes DOUBLE off a Water or Steel body",
+      "live": true,
+      "detail": "[HP lost on the two turns AFTER the hit] — Salt Cure on Corviknight (Flying/STEEL, 1384 max) 173,173, want 173 = max/8; on Farigiraf (Normal/Psychic, 1560 max) 97,97, want 97 = max/16. CONTROL — a Rock Slide into the same Corviknight instead, 0,0: the residual belongs to the move and not to the board. An engine reading only the flat 1/16 gives Corviknight 86 a turn",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "perTurnHP",
+      "label": "Aqua Ring and Ingrain restore a sixteenth of the holder every turn",
+      "live": true,
+      "detail": "[HP a 183 HP Garchomp on half regains on each of the two turns after the click] — Aqua Ring 11,11, Ingrain 11,11, want 11 = trunc(183/16). CONTROL, the same chipped body with the click passed, 0,0. Both moves carry `perTurnHP {effect:\"heal\", on:\"holder\"}` and neither had a consumer: the volatile was written and the residual never looked at it",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "weatherScaled",
+      "label": "Growth is +1/+1 in a clear sky and +2/+2 in sun — the weather REPLACES its table",
+      "live": true,
+      "detail": "[at/df/sa/sd/sp after Growth] — clear sky 1/0/1/0/0, under a partner's Sunny Day 2/0/2/0/0. THIRD ARM — Swords Dance under the same sun 2/0/0/0/0, which is its ordinary +2 Attack and nothing else: without it, an engine that doubled every setup click in sun would pass. The sunny table REPLACES the flat one, so it is +2 and never +3",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "terrainScaled",
+      "label": "Terrain Pulse takes the terrain's type and doubles its base power, for a GROUNDED user only",
+      "live": true,
+      "detail": "[HP taken off unfaintable defenders] — THE TYPE, into Dragapult (Dragon/GHOST): clear field 0 (Normal does nothing to a Ghost), ELECTRIC TERRAIN 26. THE POWER, into Farigiraf (Normal/Psychic, where Fairy and Normal are both neutral): clear 22, MISTY TERRAIN 43, ratio 1.95 — the 50 -> 100 doubling with the type multiplier held fixed. THE GROUND: an AIR BALLOON on the user under Electric Terrain reads 0 into the Ghost, i.e. neither half applies",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "hitsTwice",
+      "label": "Parental Bond hits twice, with the second packet recomputed at a quarter — not the total scaled by 1.25",
+      "live": true,
+      "detail": "[HP taken off an unfaintable Dragapult by one Fire Punch, top roll] — ability blank 34, PARENTAL BOND 42. 42 is Showdown's own number for this board through battle.actions.useMove with the stats aligned; the pre-fix engine read 43, because it scaled one packet by 1.25 instead of pricing two. SOLAR BEAM, which the ability refuses (charge flag): 23 without it and 23 with — identical, which is the arm an engine that doubles everything fails",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "hitsTwice",
+      "label": "Parental Bond KOs THROUGH a Focus Sash — the Sash answers one packet, not the turn total",
+      "live": true,
+      "detail": "[a 30 max HP Dragapult at FULL, one Fire Punch] — PARENTAL BOND leaves it on 0 down=true; CONTROL 1, ability blank and the same Sash, 1 down=false (the Sash saves it, so the magnitude is right); CONTROL 2, bonded and NO Sash, 0 down=true (it connects). An engine that scales one packet by 1.25 leaves arm one alive at 1 and passes every damage-average check ever written",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "sharesHP",
+      "label": "Pain Split leaves both bodies on the average — the healthy one LOSES HP",
+      "live": true,
+      "detail": "[user on 20, foe at full] — after Pain Split user 95, foe 95, both equal to trunc((20 + 170) / 2) = 95. CONTROL, the same board with the click passed, user 20 foe 170. The FOE going DOWN is the half a heal-shaped implementation gets backwards",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "callsAnotherMove",
+      "label": "Copycat re-uses the last move anyone clicked, and fails with nothing to copy",
+      "live": true,
+      "detail": "[HP an unfaintable Milotic loses on the COPY turn] — after an Earthquake on turn one, Copycat deals 92; with NOTHING clicked on turn one it deals 0 and the click FAILS (result false); and the same board with the copy turn passed deals 0. The last move is committed when a move FINISHES, not when it starts — read at the announcement, Copycat copies ITSELF",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "survivesAnyHit",
+      "label": "Endure floors a lethal hit at 1 HP, and expires after its own turn",
+      "live": true,
+      "detail": "[a 20 max HP Garchomp taking a lethal Surf] — with ENDURE it is on 1 down=false; CONTROL, the same board with the click passed, 0 down=true. EXPIRY: Endure clicked on turn one only, the turn-two Surf leaves it down=true — the volatile had no expiry at all before this, so a body that clicked it once would have been immortal",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "fixedDamage",
+      "label": "Metal Burst answers the body that just hit it, and fails if nothing has",
+      "live": true,
+      "detail": "[HP an unfaintable Milotic loses] — Metal Burst from a body that was hit FIRST deals 108; from a body that moves first and has taken nothing, 0 (the authority's own onTry refuses it). CONTROL — Body Slam off the same slow body deals 0, because Normal does nothing this staging can see and the click is aimed at nobody: what the retaliation family needs is a TARGET, which its dex target `scripted` only names at execution",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "trapsTarget",
+      "label": "Block holds the target in its slot, and a Shed Shell walks out of it",
+      "live": true,
+      "detail": "[who holds the foe's slot 0 after it asks to switch] — after BLOCK \"milotic\" (refused); after MEAN LOOK \"milotic\"; CONTROL, nothing clicked, \"kangaskhan\" (the switch goes through, so the staging can switch at all); with a SHED SHELL on the trapped body, \"kangaskhan\" — it leaves. Both halves matter: an over-refusal costs a game exactly as an under-refusal does",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "refusesForcedSwitch",
+      "label": "Suction Cups cannot be dragged out by Roar, and Mold Breaker ignores it",
+      "live": true,
+      "detail": "[who holds the foe's slot after a Roar] — SUCTION CUPS \"milotic\" (it stays); CONTROL, ability blank, \"kangaskhan\" (dragged); a SECOND control, Contrary — an unrelated ability on the same body — \"kangaskhan\", which says the drag is not being stopped by \"the defender has an ability\". MOLD BREAKER on the phazer: \"kangaskhan\", dragged, because an ignored ability refuses nothing",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "transformsOnEntry",
+      "label": "a transformed Ditto comes back as ITSELF after a switch-out",
+      "live": true,
+      "detail": "[a Ditto entering opposite a Garchomp/Milotic pair, then switching out] — on entry it is \"milotic\" with ability \"competitive\", moves [scald,icywind,haze,protect] and Attack 72 (the DIAGONAL, which is the authority's own arithmetic). After the switch-out it is \"ditto\" with \"imposter\", moves [transform] and Attack 61. Both halves are asserted: a probe that only checked the revert is green on an engine where nothing ever copied",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "noExtraHit",
+      "label": "a move flagged noExtraHit takes NO second hit from Parental Bond",
+      "live": true,
+      "detail": "[HP an unfaintable Farigiraf loses over the two turns of the move] — PHANTOM FORCE (charge flag, so `noExtraHit`): 44 without Parental Bond and 44 with — IDENTICAL, which is the claim. CONTROL, Zen Headbutt off the same body with the same two abilities: 104 then 128, so the ability is demonstrably live on the same board. 17 moves carry this tag and Phantom Force alone is 1,606 stored clicks",
       "hollow": false,
       "armed": true,
       "directCall": false

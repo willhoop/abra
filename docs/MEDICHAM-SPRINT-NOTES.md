@@ -2483,8 +2483,7 @@ Will, 2026-08-10, on the defects the gate was ignoring: *"those things need to b
 gate that passes while something is known to be unmeasured is a preference, not a bar.
 
 **THE OBVIOUS CLAUSE WAS WRONG, AND IT WAS PRICED BEFORE IT WAS WIRED.** "COULD-NOT-STAGE stops being
-a free pass" fails 42 moves above the shelf — including **Rage Powder at 9,626 clicks, Wide Guard at
-6,615 and Follow Me at 4,005**. Every one of those IS measured, by the mechanics census, which probes
+a free pass" fails 42 moves above the shelf — including **Rage Powder at 9,626 clicks, Wide Guard and Follow Me**. Every one of those IS measured, by the mechanics census, which probes
 the TAG. COULD-NOT-STAGE describes one harness's fixture, not the mechanic. That clause would have
 cried wolf on the three busiest moves in the format on its first run, and a gate nobody believes is
 the "one of the two known failures" failure arriving by a new road.
@@ -2544,3 +2543,60 @@ classifies nothing and the refusal never fires, rather than firing blind.
 hold in another. "The draw does not matter" is true of the roster's one-turn question and false of a
 multi-turn replay, and writing the narrow version down is what stops the broad version being quoted
 out of its scope later. This repository has a specific history of exactly that.
+
+## THE GATE IS OPEN — ALL FIVE CLAUSES PASS
+
+```
+PASS  game differential      0 of 20,000 comparisons disagree with Showdown
+PASS  roster / items         139 tested, clean
+PASS  roster / abilities      94 tested, clean
+PASS  roster / moves         427 tested, clean
+PASS  coverage               every used move is measured by some instrument
+```
+
+Zero FIRED-AND-BOARDS-DIFFER anywhere in the roster. The census reached 408 live / 408 probed / 0
+missing. The quarantine is lifted and the withheld artifacts may be quoted again — after they are
+re-run, which is not optional: a quarantined number does not become true when the engine becomes
+correct, it becomes re-runnable.
+
+**Three rows are shelved by the owner, and the shelf is visible rather than silent.** Copycat is the
+last of them — Will: *"PUT COPYCAT INTO THE QUARANTINE IM NOT TOUCHING THAT"*. Its mechanism is wired
+and green; the row fails on a SEPARATE rule it merely reveals (Showdown refuses `addVolatile` for a
+volatile already present with no `onRestart`, and a failed move never becomes `lastMove`). Fixing that
+is its own batch, because a blanket rule breaks Protect, Follow Me, Rage Powder and Helping Hand, all
+of which must be re-settable.
+
+## AND THE THING THE GATE DOES NOT SAY
+
+**REPLAY TESTING IS CAPPED BY CONSTRUCTION, AND THE BO3 RUN PROVED IT IN ONE NUMBER.** Will:
+*"BUT WE DONT KNOW SPS IN BO3 SO ITS STILL IMPOSSIBLE"*, then *"WE HAVE TO CREATE THE GAMES OURSELVES
+AND TEST IT ON SHOWDOWN"*.
+
+The bo3 store is the open-sheet ladder — a separate Showdown format running in parallel over the same
+window, where nearly every game declares both teams. Replayed at turn 1 with item, ability, moves and
+nature all known on both sides:
+
+| | |
+|---|---|
+| exact-roll `matched` | **0 of 22,313** |
+| `ambiguous` | 10,228 |
+
+**Not one damage comparison resolves to a roll.** Champions sheets do not declare SP, and the legal-SP
+envelope alone is wider than the whole 16-roll band. No quantity of sheet data closes that; the
+instrument's resolution is bounded by what the record can never say.
+
+So the replay differential answers "does the engine contradict reality" and can never answer "is the
+engine exact". The instrument that can is the one that BUILDS the game — we choose the spreads, so
+nothing is unknown — and it is already the gate's first clause, clean at 20,000 comparisons.
+
+Its own limit is COVERAGE, not resolution: it plays teams a bot would bring, so it exercises only the
+moves a bot clicks. Building teams from the MECHANIC LIST rather than from realistic sets would cover
+the rare rows the strong way — against real Showdown games instead of staged single turns — and is the
+natural next instrument.
+
+**A store was missed for most of this sprint and it is worth recording.** Every usage figure taken
+before this row read `games.ladder.jsonl` alone, while `games.bo3.jsonl` had been ingesting in parallel
+since 2026-07-23 at roughly 640 games a day. `engine/click_counts.js` now reads both. The blast radius
+on the gate was one row (Mean Look, 20 clicks becoming 25), and that row had already been fixed on its
+merits — luck, not design. The mega census and the raw-log census still read one store and are owed a
+re-run.
