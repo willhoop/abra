@@ -1,10 +1,10 @@
 {
-  "current": "4bfae56dedb7",
-  "cut": "2026-08-10T02:25:08.649Z",
-  "why": "encore overrides at execution and re-rolls its target",
+  "current": "d59e1b76f6c8",
+  "cut": "2026-08-10T02:51:32.985Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
   "cuts": 1,
-  "latest_cut": "2026-08-10T02:25:08.649Z",
-  "latest_why": "encore overrides at execution and re-rolls its target",
-  "pointer_written": "2026-08-10T02:25:08.652Z",
+  "latest_cut": "2026-08-10T02:51:32.985Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-08-10T02:51:32.989Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

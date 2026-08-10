@@ -180,6 +180,30 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * them from a driver reading Showdown's request) and was aimed off the board instead of falling
    * through to a no-op. A zero after real games means the fix is not on the path. */
   spreadClickWithoutNamedTarget: 0,
+  /* WIRE 144 -- the same event for the `randomTarget` family (Outrage, Petal Dance, Raging Fury,
+   * Thrash, Uproar, Struggle). A driver that reads Showdown's request supplies no target for these
+   * either, because Showdown never asks for one. Counted apart from the spread family because they
+   * are aimed for different reasons and a merged counter could not tell a fixed spread click from a
+   * die-rolled single-target one. */
+  randomTargetClickWithoutNamedTarget: 0,
+  /* WIRE 144 -- the execution-time re-roll actually FIRED: `getRandomTarget`'s uniform draw over the
+   * living foes, taken from the engine's own seeded stream. A zero after a game containing any of the
+   * six means the die is not on the path and the target is whatever the click happened to name. */
+  randomTargetRerolled: 0,
+  /* WIRE 144 -- a turn spent under a lock-in (Outrage, Thrash, Uproar...) where the action the caller
+   * or the chooser supplied was REPLACED by the locked move. A zero after a game in which one of the
+   * five landed means turn 2 was still a free choice. */
+  lockedIntoMove: 0,
+  /* WIRE 144 -- the lock reached the end of its run. `lockExpiredConfused` is the fatigue that
+   * follows it; the two are counted apart because Uproar expires and never confuses, so one number
+   * could not say whether the confusion half was wired. */
+  lockExpired: 0, lockExpiredConfused: 0,
+  /* WIRE 144 -- the lock was broken EARLY by sleep, which is the one path on which Showdown's own
+   * `onResidual` deletes the volatile and bypasses the fatigue. */
+  lockBrokenBySleep: 0,
+  /* WIRE 144 -- Uproar woke a sleeping body (its `onTryHit` sweeps every active slot on BOTH sides),
+   * and Uproar refused a sleep while it was running (`onAnySetStatus`). */
+  uproarWokeSleeper: 0, uproarRefusedSleep: 0,
   /* ROADMAP #84 -- Stomping Tantrum or Temper Flare priced at 150 because last turn's move result was
    * literally `false`. A zero after real games means the move-result split is not reaching dmgRange. */
   powerDoubledAfterFailure: 0,
@@ -303,6 +327,20 @@ const MEDFAILS = { encoreAction: 0,
    * real behaviour change dressed as a no-op, so it is counted apart from `encoreAction` -- that one is
    * a THROW inside the chooser's own branch, and a merged counter could not say which happened. */
   encoreOverrideUnbuilt: 0,
+  /* WIRE 144 -- a body held by a multi-turn lock (Outrage, Thrash, Uproar...) whose forced click could
+   * not be BUILT. Showdown's request in that state offers exactly one move and marks the body trapped,
+   * so a failure here means the turn falls back to whatever the caller asked for -- a free choice the
+   * player does not have. Counted for the reason `encoreOverrideUnbuilt` is. */
+  lockActionUnbuilt: 0,
+  /* WIRE 144 -- the execution-time target re-roll drew a live foe and `playerAction` could not rebuild
+   * the click against it, so the move keeps the target and the damage range playerAction priced at
+   * click time. Counted rather than swallowed: a silent fall-through here is a randomNormal move that
+   * looks re-rolled and is not. */
+  randomTargetUnbuilt: 0,
+  /* WIRE 144 -- the `locksIntoMove` tag was absent or carried no positive `turns`, so the lock was NOT
+   * armed after the move landed. The tag is the only source of the number; inventing a duration here
+   * would be a made-up count of forced turns, which is worse than no lock. */
+  lockShapeMissing: 0, lockShapeMissingFirst: '',
   megaRevert: 0, weatherUnknown: 0, weatherUnknownFirst: '',
   /* ROADMAP #92 -- MISTY TERRAIN ALSO REFUSES CONFUSION to a grounded body, and this engine has no
    * per-terrain volatile refusal to hang that on. 9 corpus uses. Counted every time confusion is
@@ -4939,7 +4977,32 @@ function sideBuffRefuses(t,src,what){
   }
   return null;
 }
+/* WIRE 144 -- UPROAR REFUSES SLEEP TO EVERY BODY ON THE FIELD, INCLUDING ITS OWN USER'S PARTNER.
+ * `data/moves.ts` uproar.condition.onAnySetStatus returns null for `slp` -- an `onAny` handler, so it
+ * is a property of the FIELD for as long as a carrier is standing on it, which is the same thing the
+ * aura block in battleTurn says about Fairy Aura.
+ *
+ * WRITTEN ONTO BOTH SIDE OBJECTS, WITH THE SAME VALUE, AND THAT IS NOT A SIDE-SCOPED CLAIM. It lives
+ * there because `applyStatus` is handed a BODY and reaches a side (`t._sf`, stamped for the whole team
+ * in battleInit) and has no field in scope at all; putting it on `field` would need a fourth argument
+ * at every caller. Both sides get the identical boolean, so which side reads it cannot matter.
+ *
+ * RECOMPUTED FROM THE STANDING BODIES rather than incremented, for the reason the aura comment gives:
+ * a faint, a switch or an expiry changes the answer and nothing has to remember to clear a flag.
+ * `blockSleep` comes off the lock's own tag param, so a second sleep-refusing lock arrives wired. */
+function refreshSleepBlock(actA,actB,sfA,sfB){
+  const on=[...(actA||[]),...(actB||[])].some(b=>b&&!b.fainted&&b._mtLock&&b._mtLock.left>0
+                                                &&b._mtLock.blockSleep);
+  if(sfA)sfA._noSleep=on; if(sfB)sfB._noSleep=on;
+}
 function applyStatus(t,st,src){
+  if(st==='slp'&&t&&t._sf&&t._sf._noSleep){
+    MEDSEEN.uproarRefusedSleep++;
+    /* `-fail|POKEMON|slp|[from] Uproar` (data/moves.ts:20248). The authority adds `[msg]` when the
+     * refused body is the Uproar user itself; that is the one field this distinguishes. */
+    if(TR)TR.fail(t,'slp');
+    return false;
+  }
   {const _sb=sideBuffRefuses(t,src,'blocksStatus');
    if(_sb){MEDSEEN.sideBuffRefused++;
      /* `-activate|TARGET|move: Safeguard` -- the authority emits it for a MOVE with no secondaries
@@ -5649,6 +5712,13 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
      here and NOT resettable for _disguiseBusted two lines down). */
   out._sub=0; out._noSound=0; out._noRepeat=null; out._noRepeatT=0; out._recharge=false;
   out._trap=null; out._proteanUsed=false;
+  /* WIRE 144 -- AND THE LOCK-IN LEAVES WITH THE BODY, with NO fatigue. `lockedmove` is an ordinary
+   * volatile, so `Pokemon#clearVolatile()` removes it directly rather than through `removeVolatile`,
+   * and `onEnd` -- the only writer of the confusion -- never runs. A body that gets off the field
+   * therefore escapes both the lock and the fatigue. It cannot be reached by a VOLUNTARY switch (a
+   * locked body is `trapped`; see the mk() block), but a phaze, a U-turn'd partner slot or a forced
+   * replacement all come through here. */
+  out._mtLock=null;
   /* ROADMAP #92 -- THE CONFUSION LEAVES WITH THE BODY. Showdown clears every volatile in
    * `Pokemon#clearVolatile()` on the way out, and this list erases the substitute, the trap, the
    * charge and the silence BY HAND while never touching `_vol` -- so a confusion written on turn 1
@@ -6061,6 +6131,9 @@ function battleTurn(S,rng,actsForA,actsForB){
        there is no aura", and auraFor distinguishes the two -- so a pure call still gets its own
        two-body answer instead of silently inheriting a stale one. */
     field.aura=auraStateOf([...actA,...actB]);
+    /* WIRE 144 -- and the sleep refusal on the same line and for the same reason: an `onAny` handler is
+     * a property of the field while a carrier stands on it. See refreshSleepBlock. */
+    refreshSleepBlock(actA,actB,sfA,sfB);
     const acts=[];
     /* actsForB exists for the Tower's LOWER floors: a floor-3 guardian clicks random legal moves,
      * so the caller hands the weak actions in rather than this engine growing a "play badly" mode. */
@@ -6116,8 +6189,47 @@ function battleTurn(S,rng,actsForA,actsForB){
        * resolves an action's priority when it is queued" — TRUE for every action except a locked one,
        * and false precisely here. `_selMv` records what was chosen before the rewrite; `actionPriority`
        * reads it. Nothing else about the action changes: the MOVE executed is still the locked one. */
+      /* WIRE 144 -- THE MULTI-TURN LOCK, AND IT IS A HARDER LOCK THAN THE CHOICE ONE BELOW.
+       *
+       * Outrage, Petal Dance, Raging Fury, Thrash and Uproar (`locksIntoMove`, derived in
+       * engine/tag_dex.js from a move that writes a volatile onto its OWN user whose condition answers
+       * `onLockMove` and carries no `onBeforeMove` -- which is what separates them from the six
+       * `mustrecharge` moves that also lock the menu and REFUSE the action).
+       *
+       * IT BINDS A SWITCH AND A PASS, WHICH THE CHOICE LOCK DELIBERATELY DOES NOT.
+       * `Pokemon#getMoveRequestData` (sim/pokemon.ts:1090) opens with
+       *     let lockedMove = this.getLockedMove();
+       *     if (lockedMove) { this.trapped = true; }
+       * so the request carries ONE move and `trapped`. A Choice item narrows the move list and leaves
+       * the switch legal -- being stuck on a bad move is a reason to leave -- and this does not. Two
+       * different locks, and reading the second off the first would have made switching out of an
+       * Outrage free.
+       *
+       * ABOVE `_selMv`, AND THAT IS THE PRIORITY BRACKET. WIRE 118's rule is that the bracket belongs
+       * to the move the PLAYER SELECTED, because `sim/battle-actions.ts` reads `priority` one line
+       * before `OverrideAction` may swap the move. A hard lock is not an override: the player never
+       * selected anything else, so the selected move IS the locked move and `_selMv` must be computed
+       * from the rewritten action. Encore, one block up, is the opposite case and sits below this line
+       * for exactly that reason.
+       *
+       * THE TARGET IS LEFT NULL ON PURPOSE. All five are `randomNormal`, so playerAction prices the
+       * click against the hardest-hit foe and the execution re-roll below picks the body -- one rule,
+       * drawn from the seeded stream, shared with Encore's override.
+       *
+       * A REBUILD THAT FAILS IS LOUD, for WIRE 143's reason: falling through and playing whatever the
+       * caller asked for is a real behaviour change dressed as a no-op. */
+      if(_a&&mon._mtLock&&mon._mtLock.left>0&&MC.moves[mon._mtLock.move]
+         &&!(_a.kind==='attack'&&_a.move&&_a.move.id===mon._mtLock.move)){
+        let _la=null;
+        try{ _la=playerAction(mon,mon._mtLock.move,null,field); }catch(e){ MEDFAILS.lockActionUnbuilt++; }
+        if(_la&&_la.kind==='attack'){ MEDSEEN.lockedIntoMove++; _a=_la; }
+        else MEDFAILS.lockActionUnbuilt++;
+      }
       const _selMv=(_a&&_a.kind==='attack'&&_a.move&&_a.move.id)||(_a&&_a.mv)||null;
-      if(_a&&mon._lock&&_a.kind!=='switch'&&_a.kind!=='pass'
+      /* WIRE 144 -- and the Choice rewrite declines while a HARD lock holds, so two locks disagreeing
+       * about which move to force cannot silently hand the turn to the weaker one. */
+      if(_a&&mon._lock&&!(mon._mtLock&&mon._mtLock.left>0)
+         &&_a.kind!=='switch'&&_a.kind!=='pass'
          &&!(_a.kind==='attack'&&_a.move&&_a.move.id===mon._lock)){
         const _lk=targetForMove(mon,mon._lock,live(foes),field);
         if(_lk)_a={kind:'attack',move:_lk,target:_lk.target};
@@ -6359,6 +6471,9 @@ function battleTurn(S,rng,actsForA,actsForB){
        * one line that already answers the question, so the two cannot come apart. */
       m._acted=true;
       if(m.fainted||m.curHP<=0)continue;
+      /* WIRE 144 -- did the Encore override below rewrite this action? The randomTarget re-roll after
+       * it must not draw a second time for one rule; see its own comment. */
+      let _ovr=false;
       /* WIRE 143 -- ENCORE AT EXECUTION TIME, AND THIS IS WIRE 119's PLACE FOR WIRE 119's REASON.
        *
        * Showdown answers Encore in TWO handlers off one condition, exactly as it answers Taunt:
@@ -6426,6 +6541,51 @@ function battleTurn(S,rng,actsForA,actsForB){
              * ally-directed encored move, which is what `mk()` writes for those too. */
             it.tgtSlot=_eact.target?_efoes.indexOf(_eact.target):-1;
           } else MEDFAILS.encoreOverrideUnbuilt++;
+          _ovr=true;
+        }
+      }
+      /* WIRE 144 -- `randomNormal` RE-ROLLS ITS TARGET AT EXECUTION, WHATEVER THE PLAYER NAMED.
+       *
+       * This is the easy half to miss, and it is one line of the authority. `sim/battle.ts:2461`:
+       *
+       *     if (move.target !== 'randomNormal' && this.validTargetLoc(targetLoc, pokemon, move.target)) {
+       *       ... return the selected target ...
+       *     }
+       *     return this.getRandomTarget(pokemon, move);
+       *
+       * The named-target branch is GATED OFF for randomNormal, so every one of these six moves falls
+       * to `getRandomTarget` -> (doubles) `side.randomFoe()` -> `sample(this.foes())`, uniform over the
+       * LIVING foes. A caller that names a body is therefore not honoured, and that is the rule rather
+       * than a corner: in a double, which foe an Outrage hits is a die, not a decision.
+       *
+       * PLACED HERE, beside Encore's override and above the five BeforeMove gates, because `runMove`
+       * resolves the target on its FIRST line -- before `OverrideAction` and long before the sleep,
+       * freeze, flinch, confusion and paralysis checks. A body that is then flinched has still had its
+       * target drawn; nothing downstream can see the difference, and the position is the authority's.
+       *
+       * IT DOES NOT RUN OVER AN ENCORE OVERRIDE. That block one above has ALREADY drawn a uniform live
+       * foe from this same stream (`getRandomTarget` is what it is modelling), so a second draw here
+       * would consume the stream twice for one rule. `_ovr` says so explicitly rather than relying on
+       * the ids happening to differ.
+       *
+       * THE DRAW IS THE ENGINE'S OWN SEEDED `rng` -- the stream already threaded through this turn for
+       * accuracy, crit and damage -- and it is consumed ONLY when a randomTarget move is actually
+       * being executed. `Math.random()` is never reached, so the differential and the roster stay
+       * reproducible; only a turn containing one of the six moves shifts, and before this wire such a
+       * turn did nothing at all. */
+      if(!_ovr&&it.a&&it.a.kind==='attack'&&it.a.move&&TAGS.has('move',it.a.move.id,'randomTarget')){
+        const _rfoes=it.side==='A'?actB:actA, _rlive=live(_rfoes);
+        if(_rlive.length){
+          const _rt=_rlive[Math.floor(rng()*_rlive.length)%_rlive.length];
+          if(_rt!==it.a.target)MEDSEEN.randomTargetRerolled++;
+          /* The action object is rebuilt rather than mutated in place: `move.d` and `move.acc` were
+           * priced against the body playerAction picked, and leaving them would hit the new target with
+           * the old one's damage range -- the WIRE 131 defect arriving through a new door. A rebuild
+           * that fails leaves the click exactly as it was and says so. */
+          let _ra=null;
+          try{ _ra=playerAction(m,it.a.move.id,_rt,field); }catch(e){ MEDFAILS.randomTargetUnbuilt++; }
+          if(_ra&&_ra.kind==='attack'){ it.a=_ra; it.tgtSlot=_rfoes.indexOf(_rt); }
+          else MEDFAILS.randomTargetUnbuilt++;
         }
       }
       /* ROADMAP #68 -- `|cant|POKEMON|REASON`, and the REASON strings are Showdown's own, read off the
@@ -9773,6 +9933,52 @@ function battleTurn(S,rng,actsForA,actsForB){
          Hyper Beam still recharges in the real game, but this line sits after every `continue` that
          means "the move did not happen at all", which is the conservative half). */
       if(!m.fainted&&TAGS.has('move',a.move.id,'recharge')){m._recharge=true;if(TR)TR.recharge(m);}
+      /* WIRE 144 -- ARM THE LOCK-IN, and it is WIRE 43's neighbour because it is WIRE 43's mirror
+       * image: both are `self: { volatileStatus: ... }` on the move, one spends the NEXT turn and this
+       * one sells the next TWO.
+       *
+       * SET ONLY WHEN THE MOVE ACTUALLY RESOLVED, exactly as the recharge above -- this line sits below
+       * every `continue` that means "the move did not happen at all". That is also the authority:
+       * `self` effects are applied inside `moveHit`, so an Outrage that missed outright never writes
+       * the volatile and the user is free next turn.
+       *
+       * `left` IS THE NUMBER OF TURNS OF ATTACKING STILL OWED, INCLUDING THIS ONE, and it is ticked in
+       * the residual below -- the same convention Encore, Heal Block and Yawn use, and the same place
+       * Showdown ticks it (`lockedmove.onResidual` decrements trueDuration; the residual's own
+       * duration decrement is what calls `onEnd`).
+       *
+       * A SECOND USE DOES NOT RE-ARM IT. `lockedmove.onRestart` re-arms `duration` and never touches
+       * `trueDuration`, and `trueDuration` is what `left` models -- so a lock that re-writes itself on
+       * turn 2 would be a lock that never ends.
+       *
+       * THE NUMBER COMES FROM THE TAG AND IS NEVER INVENTED HERE. An absent or non-positive `turns`
+       * leaves the body FREE and says so, because a made-up count of forced turns is worse than no
+       * lock: it would take a turn away from a player for a reason nothing can check. */
+      if(!m.fainted&&TAGS.has('move',a.move.id,'locksIntoMove')){
+        const _lk=TAGS.param('move',a.move.id,'locksIntoMove'), _lt=_lk&&+_lk.turns;
+        if(!(_lt>0)){ MEDFAILS.lockShapeMissing++;
+          if(!MEDFAILS.lockShapeMissingFirst)MEDFAILS.lockShapeMissingFirst=String(a.move.id); }
+        else if(!(m._mtLock&&m._mtLock.move===a.move.id)){
+          m._mtLock={move:a.move.id,left:_lt,confuse:!!_lk.confuseOnEnd,vol:_lk.volatile||null,
+                     blockSleep:!!_lk.blocksSleep};
+          /* The field fact changes the instant the lock is armed, so a Spore thrown LATER IN THE SAME
+           * TURN is refused. Recomputed rather than set, so it cannot disagree with the turn-top pass. */
+          refreshSleepBlock(actA,actB,sfA,sfB);
+          /* `lockedmove` has no onStart `add` at all and announces NOTHING; `uproar`'s onStart is
+           * `this.add('-start', target, 'Uproar')`. Emitting a line the authority never writes is the
+           * protocol differential's business, so the announcement is read off the condition rather
+           * than given to both. */
+          if(TR&&_lk.volatile==='uproar')TR.vstart(m,'Uproar');
+        }
+        /* UPROAR WAKES EVERY SLEEPER ON THE FIELD, BOTH SIDES. `data/moves.ts` uproar.onTryHit walks
+         * `target.side.activeTeam()` AND `target.side.foe.activeTeam()` and calls `cureStatus()` on
+         * anything asleep -- including its own user's partner. Read off `wakesSleepers`, which tag_dex
+         * derives from that handler, so it is a property of the move rather than of its name. */
+        if(_lk&&_lk.wakesSleepers)for(const _b of [...actA,...actB]){
+          if(_b&&!_b.fainted&&_b.status==='slp'){_b.status='';_b.slpTurns=0;
+            MEDSEEN.uproarWokeSleeper++; if(TR)TR.cure(_b,'slp');}
+        }
+      }
       /* WIRE 44 -- ARM THE LOCKOUT. `lockoutTurns + 1` for the end-of-turn tick that fires on this
          turn too, the same convention Encore, Heal Block and Yawn already use. */
       {
@@ -10154,7 +10360,45 @@ function battleTurn(S,rng,actsForA,actsForB){
          from outside. */
       if(x._noSound>0)x._noSound--;
       if(x._noRepeatT>0&&--x._noRepeatT<=0)x._noRepeat=null;
+      /* WIRE 144 -- THE LOCK-IN CLOCK, AND THE THREE LINES BELOW ARE SHOWDOWN'S RESIDUAL IN ITS OWN
+       * ORDER. `Battle#residualEvent` decrements the effect's duration FIRST and calls `end` if it
+       * reaches zero, `continue`-ing past `onResidual` when it does:
+       *
+       *     if (handler.end && handler.state?.duration) {
+       *       handler.state.duration--;
+       *       if (!handler.state.duration) { handler.end.call(...); continue; }
+       *     }
+       *     this.singleEvent('residual', ...)          <- lockedmove.onResidual, which holds the sleep clause
+       *
+       * so the DECREMENT comes first, the EXPIRY second and the sleep check only on a clock that
+       * survived. Written in that order rather than a convenient one, because the order is the whole
+       * difference between "asleep on the last turn" (fatigued) and "asleep with a turn left" (calmed).
+       *
+       *   expiry     `lockedmove.onEnd` -> `if (trueDuration > 1) return; target.addVolatile('confusion')`,
+       *              i.e. fatigue ONLY when the lock ran its full length. `uproar.onEnd` just announces.
+       *   sleep      `lockedmove.onResidual` -> `if (target.status === 'slp') delete volatiles[...]`.
+       *              A `delete` and not `removeVolatile`, so onEnd never runs and there is NO confusion:
+       *              the comment in the authority reads "don't lock, and bypass confusion for calming".
+       *
+       * IT TICKS FOR A BODY THAT NEVER MOVED, which is the point of putting it here rather than at the
+       * move site: Showdown's residual runs whatever the body did, so an Outrage user that was flinched
+       * or fully paralysed on its last locked turn still fatigues. */
+      if(x._mtLock&&x._mtLock.left>0){
+        x._mtLock.left--;
+        if(x._mtLock.left<=0){
+          const _lc=x._mtLock;
+          x._mtLock=null; MEDSEEN.lockExpired++;
+          if(TR&&_lc.vol==='uproar')TR.vend(x,'Uproar');
+          if(_lc.confuse){ MEDSEEN.lockExpiredConfused++; applyConfusion(x,null,field,false); }
+        } else if(x.status==='slp'){
+          if(TR&&x._mtLock.vol==='uproar')TR.vend(x,'Uproar');
+          x._mtLock=null; MEDSEEN.lockBrokenBySleep++;
+        }
+      }
     }
+    /* WIRE 144 -- an Uproar that just ended stops refusing sleep from this instant, so the Yawn that
+     * resolves later in this same residual is allowed. Recomputed, never cleared by hand. */
+    refreshSleepBlock(actA,actB,sfA,sfB);
     /* WIRE 82 -- the shield lasts exactly the turn it was raised (Showdown's volatile has
      * duration 1). Cleared for BOTH sides here rather than in the attack branch, because a holder
      * that was flinched, paralysed or KO'd never reached its own action. */
@@ -10289,6 +10533,36 @@ function playerAction(me,moveId,target,field){
       for(const _f of _fo){const _d=dmgRange(me,_f,mv,field,true);
         const _s=(_d.min>=_f.curHP?1e6:0)+_d.max; if(_s>_bs){_bs=_s;_t=_f;}}
       if(_t){MEDSEEN.spreadClickWithoutNamedTarget++;target=_t;}
+    }
+  }
+  /* WIRE 144 -- THE SECOND FAMILY THAT NAMES NO TARGET, AND WIRE 9 EXPLICITLY LEFT IT OUT.
+   *
+   * The block above ends "`randomNormal` (Outrage) and `scripted` (Mirror Coat) are counted rather
+   * than aimed: Showdown picks those with a die this engine would have to guess the shape of". The die
+   * is now derived (`randomTarget`, engine/tag_dex.js) and its shape is exactly the one WIRE 143
+   * already implemented for the Encore override, so this is a second caller of one rule.
+   *
+   * `sim/battle.ts:2461` -- `if (move.target !== 'randomNormal' && this.validTargetLoc(...))` -- so a
+   * randomNormal move falls THROUGH the chosen-target branch every time and lands on
+   * `getRandomTarget`, which in a double is `side.randomFoe()` -> `sample(this.foes())`, UNIFORM over
+   * the LIVING foes. Six moves in this format: Outrage, Petal Dance, Raging Fury, Thrash, Uproar,
+   * Struggle.
+   *
+   * WHAT IS PICKED HERE IS A PRICE, NOT A DECISION. The click has to become an `attack` action at all
+   * -- the branch below is gated on `&& target`, so a targetless Outrage degraded to `{kind:'pass'}`,
+   * a NO-OP TURN, which is how all five reached `data/roster.moves.json` as DID-NOT-FIRE. `d` and
+   * `acc` are VALUATION fields and need a defender, so the body picked is the one the move hits
+   * hardest, exactly as the spread branch above does and for the same stated reason. The body that is
+   * actually HIT is re-rolled from the seeded stream at execution (battleTurn), where an rng exists;
+   * a caller that never reaches battleTurn gets a priced click instead of nothing, which is the
+   * conservative half. */
+  if(mv&&hasPower(mv)&&!target&&TAGS.has('move',id,'randomTarget')){
+    const _rf=liveFoesOf(me);
+    if(_rf.length){
+      let _t=null,_bs=-1;
+      for(const _f of _rf){const _d=dmgRange(me,_f,mv,field,false);
+        const _s=(_d.min>=_f.curHP?1e6:0)+_d.max; if(_s>_bs){_bs=_s;_t=_f;}}
+      if(_t){MEDSEEN.randomTargetClickWithoutNamedTarget++;target=_t;}
     }
   }
   /* WIRE 133 -- POLLEN PUFF IS TWO MOVES AND THE TARGET DECIDES WHICH, so the branch is taken HERE,

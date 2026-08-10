@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  335/335 probed mechanics live, 0 missing   (census 2026-08-10 02:20)
-  0/150 differential comparisons disagree with Showdown   (2026-08-10 02:02)
+  342/342 probed mechanics live, 0 missing   (census 2026-08-10 02:59)
+  0/150 differential comparisons disagree with Showdown   (2026-08-10 02:25)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
@@ -54,12 +54,92 @@ ENGINE — does the simulator do what Pokémon does
     whole-game agreement 7/1997 -> 134/1997; first-divergence line, mean 14.78 -> 33.98
     paired against the baseline: 1295 games part later, 116 EARLIER, 586 unchanged
     the baseline ran first and last and reproduced exactly; comparability: every arm cleared
-  tag coverage: 183/194 probed, 11 unprobed
+  tag coverage: 185/196 probed, 11 unprobed
 ```
 
-_stamped 2026-08-10 02:23_
+_stamped 2026-08-10 03:00_
 
 <!-- /GENERATED -->
+
+## WIRE 144 — THE LOCK-IN FIVE. TWO CAUSES STACKED ON ONE ROW, AND THE SECOND ONE IS NOT IN THIS DIVISION. 2026-08-10.
+
+Census **335 → 342 live, 342 probed, 0 missing, 0 threw, 0 hollow, 0 unarmed, 0 direct-call.** Seven
+new probes. **The roster verdict is NOT claimed — `tests/roster.js` is Will's to run against a frozen
+tree, and the five rows' state is unknown rather than closed.** Full working: `docs/MEDICHAM-SPRINT-NOTES.md`.
+
+Outrage, Petal Dance, Raging Fury, Thrash and Uproar all sat at `DID-NOT-FIRE` under
+`move/plain-attack`. Two independent causes were stacked on that one row, **either of which alone
+produces the same silent nothing**:
+
+1. **THE CLICK WAS A NO-OP TURN.** All five carry `target: "randomNormal"`, so Showdown's request
+   names no target — and `playerAction`'s attack branch is gated on `&& target`, so the click fell
+   through the whole status chain and came out as `{kind:'pass'}`. Zero damage, both turns. This is
+   ROADMAP #81 WIRE 9's defect in the one family that wire deliberately left out.
+2. **THERE WAS NO LOCK.** Turn 2 was a free choice and the user never fatigued.
+
+**AND THE ROW MAY STILL NOT MOVE, WHICH IS NOT EVIDENCE ABOUT THE ENGINE.**
+`engine/game_differential.js` — the driver the roster runs through — translates five Showdown target
+types (`normal`, `any`, `adjacentFoe`, `adjacentAlly`, `adjacentAllyOrSelf`) and `randomNormal` is
+none of them, so it passes a null target regardless of what this engine now does with one. Diagnosed
+in parallel by `@measure`; **deliberately not fixed here** — it is the shared instrument and outside
+ENGINE. Same root cause for Counter / Comeuppance / Metal Burst (`target: "scripted"`): **8 of the 20
+DID-NOT-FIRE rows**. The engine half is real and needed; neither repair is sufficient alone.
+
+### THE FELT NUMBER IS NOT THE INTERNAL COUNTER, AND HERE THERE ARE THREE OF THEM
+
+`lockedmove` declares `duration: 2` and that is **not** its length. `onStart` draws
+`trueDuration = this.random(2, 4)`; `onRestart` re-arms `duration` to 2 on each use (a window, not a
+length); `onResidual` ticks `trueDuration`; `onEnd` fatigues only `if (trueDuration > 1) return`. So
+the forced-turn count is `trueDuration` and the declared 2 is a coincidence at the low end of the
+range. `uproar` has no `trueDuration`: `duration: 3`, decremented in the residual **of the turn it
+lands**, so three turns, and there the declared number *is* the answer.
+
+**THE CONVENTION IS THE MINIMUM OF THE RANGE, 2**, and it is `CONFUSION_TURNS_MIN`'s existing
+decision: every arm in `engine/game_differential.js` pins Showdown's RANGE form of `random` to the
+bottom, so the authority draws 2 under measurement, and a `min + floor(rng()*span)` on our single
+scalar would read 3 under the top-corner arm and part from it. **Corroborated, not assumed:**
+`data/roster.moves.json` recorded Showdown's own board on this exact staging *before a line was
+written* — `p1.active[0].vol.confusion = 2` at **turn 2**.
+
+### THE TAG OVER-MATCHED AND IT WAS PRINTED BEFORE IT WAS WIRED
+
+`m.self.volatileStatus && condition.onLockMove` catches **eleven** moves, not five: the six
+`mustrecharge` moves answer `onLockMove` too, because a recharge turn is also a locked menu. The
+discriminator is mechanical rather than a name — `mustrecharge` carries an `onBeforeMove` that
+**refuses** the action; the lock-in family carries none. Final membership: `locksIntoMove` = the five
+exactly, `randomTarget` = those five **plus Struggle**, which is why they are two tags. `data/tags.json`
+regenerated and diffed: **0 removed, 0 added, 6 changed.**
+
+### THE SEVEN PROBES, AND ALL SEVEN WERE SHOWN RED FIRST
+
+Cutting the six new branches to `if(false&&…)` reads **335 live / 7 missing**, each red for its own
+reason: the targetless Outrage dealt **0** and aimed at itself, the die returned `p2a` at both rng
+values, turn 2 played Dragon Claw, confusion read `[0,0]`, Outrage and Uproar each ran **1** turn, the
+locked body switched out, and a Spore landed through an Uproar.
+
+| tag | what it proves | its control |
+|---|---|---|
+| `randomTarget` | a click with NO named target lands | a single-target Dragon Claw with the target withheld — which the authority **refuses** — still deals 0 |
+| `randomTarget` | the target is a uniform die, and NAMING one does not stop it | an ordinary Dragon Claw named at p2a hits p2a at **both** rng values, so this is not a blanket re-aim |
+| `locksIntoMove` | turn 2 repeats the move whatever the caller clicked | the identical turn-2 Dragon Claw after a turn-1 Dragon Claw |
+| `locksIntoMove` | the run ENDS in fatigue, and not before the last forced turn | two hand-clicked Dragon Claws read `[0,0]` |
+| `locksIntoMove` | the LENGTH and the fatigue are per-move, from the condition | Outrage 2 turns + confusion 2 **vs** Uproar 3 turns + confusion 0 |
+| `locksIntoMove` | a locked body is TRAPPED | the same switch to the same bench body after a move that does not lock |
+| `locksIntoMove` | Uproar wakes every sleeper and refuses sleep while it runs | the same sleeping partner and the same Spore with a Dragon Claw in the slot |
+
+### THE HAND LIST IS UNCHANGED
+
+Nothing on it was one of these — the list has been empty except for Rivalry since 2026-08-07, and the
+five rows came off `data/roster.moves.json` rather than off prose. Two things found and **not** fixed
+are recorded in the sprint notes rather than added here, because neither has a failing probe:
+Uproar's Throat Chop clause, and Encore over a lock-in.
+
+**TWO PRE-EXISTING REDS, MEASURED RATHER THAN ASSUMED TO BE SOMEBODY ELSE'S.**
+`tests/test-no-silent-failure.js` is red with **20** new silent catch blocks against its 2026-08-06
+baseline, none in code this wire wrote (the one it *did* add was caught and made to speak, 21 → 20).
+And `FEATURE SEMANTICS CHECK FAILED` on `data/policy-weights.json` is unaffected by this wire: with
+all six branches cut the eight changed digests are **bit-identical**, so it is a REFIT OWED and
+belongs to MEASURE. Both are reported, not filed.
 
 ## WIRE 143 — ENCORE WAS APPLIED AT SELECTION AND SHOWDOWN APPLIES IT AT EXECUTION. TWO HALVES, AND FOUR GREEN PROBES SAW NEITHER. 2026-08-10.
 

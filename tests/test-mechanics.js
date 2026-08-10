@@ -239,7 +239,18 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * the chosen move equals the encored one. It reads the `|move|` stream rather than state, because
  * both halves of the mechanic — WHICH move ran and WHICH body it ran at — are on that one line, and
  * `S.lastActs` records the click rather than the execution and is unchanged by this fix by design. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bencoreExec\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(/;
+/* `lockRun(` and `uproarSleep(` added 2026-08-10 with WIRE 144, declared HERE and with their reasons,
+ * exactly as the paragraph above requires. Both stage a real doubles board through `battleInit`.
+ * `lockRun(` spends UP TO FOUR real turns through `battleTurn`, and it has to spend more than one: the
+ * whole mechanic is a fact carried ACROSS a turn boundary — what a body is ALLOWED to click on turn 2
+ * depends on what it clicked on turn 1 — and no single-turn probe can see it. It clicks the move under
+ * test with NO TARGET, because that is what a driver reading Showdown's own request supplies for a
+ * `randomNormal` move, and it reads the `|move|` stream beside both foes' HP so "the right target" can
+ * never come to mean "the move stopped hitting anything". `uproarSleep(` spends ONE turn but needs a
+ * board a pure call cannot express: the refusal is a property of the FIELD while a carrier stands on
+ * it, so it needs a sleeping ally, a foe throwing Spore, and a turn order in which the Uproar lands
+ * first. */
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -9186,6 +9197,217 @@ probe('move', 'sealsMoves', 'the encored move\'s target is RE-ROLLED, not aimed 
                  + `targets would mean the re-roll is unwired). The UN-Encored victim's own Brick `
                  + `Break named p1a and hit ${unencored.at}/${unencored9.at} at both rng values, and `
                  + `the un-Encored partner hit ${control.partner} throughout` };
+});
+
+/* ---- WIRE 144 — THE LOCK-IN FIVE ---------------------------------------------------------------
+ *
+ * Outrage, Petal Dance, Raging Fury, Thrash and Uproar. All five sat at DID-NOT-FIRE in
+ * `data/roster.moves.json` under `move/plain-attack`, and there were TWO independent causes stacked on
+ * one row, either of which alone produces the same silent nothing:
+ *
+ *   1. THE CLICK WAS A NO-OP TURN. All five carry Showdown's `target: 'randomNormal'`, for which the
+ *      request names no target at all — so a driver that asks the authority what is legal hands
+ *      medicham2 a null. `playerAction`'s attack branch is gated on `&& target`, so the click fell
+ *      through the whole status chain and came out as `{kind:'pass'}`. Zero damage, both turns.
+ *   2. THERE WAS NO LOCK. Turn 2 was a free choice and the user never fatigued.
+ *
+ * Both are fixed and both are probed separately, because fixing either one alone leaves the row red
+ * and a single probe could not say which half was live.
+ *
+ * THE MOVE UNDER TEST IS ALWAYS CLICKED WITH NO TARGET, deliberately: that is the shape the authority
+ * itself produces, and aiming it in the probe would test a path no real driver takes. The one probe
+ * that DOES aim it is the one asserting that aiming makes no difference — which is the authority's
+ * rule (`sim/battle.ts:2461` gates the chosen-target branch off for randomNormal) and the half of this
+ * that is easiest to miss. */
+const lockRun = (first, r, turns, opt) => {
+  opt = opt || {};
+  const me = bare('goodra-hisui'), ally = bare('incineroar'), benched = bare('milotic');
+  const f1 = bare('torterra'), f2 = bare('garchomp');
+  const S = M.battleInit(opt.bench ? [me, ally, benched] : [me, ally], [f1, f2], { seeded: true });
+  /* EVERY BODY THAT CAN BE HIT IS MADE UNFAINTABLE. A KO empties a slot, and an emptied slot changes
+   * what a uniform draw over the LIVING foes can return — a different mechanic riding along inside the
+   * measurement. Nothing else about any of them is touched. */
+  unfaintable(me); unfaintable(ally); unfaintable(f1); unfaintable(f2);
+  const rng = () => r;
+  const trace = []; S._trace = trace;
+  const out = [];
+  for (let t = 0; t < turns; t++) {
+    trace.length = 0;
+    const b1 = f1.curHP, b2 = f2.curHP;
+    /* Turn 1 is the move under test. EVERY LATER TURN CLICKS DRAGON CLAW AT A NAMED BODY — 100%
+     * accurate, single-target, physical, no secondary — so a later turn that runs the move under test
+     * anyway is the lock and can be nothing else. */
+    let a;
+    if (t === 0) a = M.playerAction(me, first, opt.aim ? f1 : null, S.field);
+    else if (opt.switchOn === t) a = { kind: 'switch', to: S.benchA.find(x => x && !x.fainted) };
+    else a = M.playerAction(me, 'dragonclaw', f1, S.field);
+    M.battleTurn(S, rng, new Map([[me, a], [ally, { kind: 'pass' }]]),
+                 new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    const mv = (trace.find(l => l.startsWith('|move|p1a')) || '').split('|');
+    out.push({ used: mv[3] || 'NONE', at: (mv[4] || 'NONE').split(':')[0],
+               d1: b1 - f1.curHP, d2: b2 - f2.curHP,
+               slot0: (S.actA[0] && S.actA[0].name) || 'EMPTY',
+               conf: (me._vol && me._vol.confusion) || 0 });
+  }
+  return out;
+};
+
+/* HALF ONE OF THE ROW, ON ITS OWN. The control is NOT "the same move without the fix" — it is a move
+ * the authority genuinely REFUSES to let you click without a target. Showdown rejects `move 1` with no
+ * target for Dragon Claw ("You can't choose a target for..."), and medicham2 correctly makes that a
+ * no-op; it does NOT reject it for Outrage, because it never asks. So the two arms differ in exactly
+ * the thing under test — whether the engine knows this family names no target — and a fix that simply
+ * aimed every targetless click would fail the control. */
+probe('move', 'randomTarget', 'a randomNormal click with NO named target still lands', () => {
+  const control = lockRun('dragonclaw', 0.1, 1)[0], test = lockRun('outrage', 0.1, 1)[0];
+  const dealt = (x) => x.d1 + x.d2;
+  return { works: dealt(control) === 0 && dealt(test) > 0
+                  && control.used === 'dragonclaw' && test.used === 'outrage'
+                  && test.at === 'p2a',
+           arms: { control: dealt(control), test: dealt(test) },
+           detail: `both clicked with the target withheld, which is what a driver reading Showdown's `
+                 + `request supplies: single-target Dragon Claw dealt ${dealt(control)} across both `
+                 + `foes (the authority refuses that choice), randomNormal Outrage dealt `
+                 + `${dealt(test)} at ${test.at}` };
+});
+
+/* HALF ONE'S SECOND HALF, AND IT IS A DIFFERENT CLAIM. `getRandomTarget` in a double is
+ * `side.randomFoe()` -> `sample(this.foes())` — UNIFORM over the living foes — and `getTarget` routes
+ * EVERY randomNormal move to it, named target or not. So two things have to be true and neither
+ * implies the other: the draw must move with the die, and naming a body must not stop it.
+ *
+ * THE KNOB IS THE ENGINE'S OWN SEEDED rng: a constant 0.1 selects live foe 0 and 0.9 selects live foe
+ * 1. Identical slots across the two would mean the die is unwired. `Math.random()` is never reached,
+ * which is what keeps the differential and the roster reproducible.
+ *
+ * THE DRAGON CLAW ARMS ARE THE GUARD AGAINST A BLANKET RE-AIM. An engine that re-rolled every click
+ * would pass the first two assertions and be catastrophic, so an ordinary single-target move named at
+ * p2a must hit p2a at BOTH rng values. */
+probe('move', 'randomTarget', 'the target is a uniform die, and NAMING one does not stop it', () => {
+  const control = lockRun('outrage', 0.1, 1, { aim: true })[0];
+  const test = lockRun('outrage', 0.9, 1, { aim: true })[0];
+  const blind1 = lockRun('outrage', 0.1, 1)[0], blind9 = lockRun('outrage', 0.9, 1)[0];
+  const plain1 = lockRun('dragonclaw', 0.1, 1, { aim: true })[0];
+  const plain9 = lockRun('dragonclaw', 0.9, 1, { aim: true })[0];
+  return { works: control.at === 'p2a' && test.at === 'p2b'
+                  && blind1.at === 'p2a' && blind9.at === 'p2b'
+                  && plain1.at === 'p2a' && plain9.at === 'p2a'
+                  && control.d1 > 0 && test.d2 > 0,
+           arms: { control: control.at, test: test.at },
+           detail: `Outrage AIMED at p2a, same board, only the seeded die varied — it hit ${control.at} `
+                 + `at 0.1 and ${test.at} at 0.9, so the named body is overwritten exactly as `
+                 + `getTarget's randomNormal gate says. Clicked with no target it hit `
+                 + `${blind1.at}/${blind9.at}. An ordinary Dragon Claw named at p2a hit `
+                 + `${plain1.at}/${plain9.at} at the same two values` };
+});
+
+/* HALF TWO — THE LOCK ITSELF, AND IT BINDS A CALLER-SUPPLIED ACTION (the WIRE 24 rule). The turn-2
+ * click is Dragon Claw at a named body in BOTH arms; only turn 1 differs. A control that clicked the
+ * same move twice would be green against an engine with no lock at all. */
+probe('move', 'locksIntoMove', 'turn 2 repeats the move whatever the caller clicked', () => {
+  const control = lockRun('dragonclaw', 0.1, 2), test = lockRun('outrage', 0.1, 2);
+  return { works: control[0].used === 'dragonclaw' && control[1].used === 'dragonclaw'
+                  && test[0].used === 'outrage' && test[1].used === 'outrage'
+                  && test[1].d1 > 0,
+           arms: { control: control[1].used, test: test[1].used },
+           detail: `turn 2 clicked Dragon Claw at a named body in both arms — after a turn-1 Dragon `
+                 + `Claw the engine played ${control[1].used}, after a turn-1 Outrage it played `
+                 + `${test[1].used} for ${test[1].d1} (a free choice on turn 2 is the defect)` };
+});
+
+/* THE FATIGUE, AND WHICH TURN IT LANDS ON. `lockedmove.onEnd` is
+ * `if (this.effectState.trueDuration > 1) return; target.addVolatile('confusion')`, so the confusion
+ * is the price of running the lock to the END and not of using the move.
+ *
+ * THE COUNTER IS 2 AND THAT IS DERIVED. `confusion.onStart` draws `this.random(2, 6)`; every arm in
+ * engine/game_differential.js pins Showdown's RANGE form to the BOTTOM, so the authority reads 2 under
+ * measurement and medicham2 takes the flat minimum (CONFUSION_TURNS_MIN). `data/roster.moves.json`
+ * recorded Showdown's own answer on this exact staging — `p1.active[0].vol.confusion` 2 at turn 2 —
+ * before a line of this was written, which is the number this asserts against. */
+probe('move', 'locksIntoMove', 'the run ENDS in fatigue, and not before the last forced turn', () => {
+  const control = lockRun('dragonclaw', 0.1, 2), test = lockRun('outrage', 0.1, 2);
+  return { works: control[0].conf === 0 && control[1].conf === 0
+                  && test[0].conf === 0 && test[1].conf === 2,
+           arms: { control: control.map(x => x.conf), test: test.map(x => x.conf) },
+           detail: `confusion counter per turn — two hand-clicked Dragon Claws read `
+                 + `[${control.map(x => x.conf)}], the Outrage lock read [${test.map(x => x.conf)}]. `
+                 + `It is 0 after the FIRST locked turn and 2 after the last, which is Showdown's own `
+                 + `board on this staging (roster.moves.json, p1.active[0].vol.confusion = 2, turn 2)` };
+});
+
+/* THE LENGTH IS PER-MOVE AND IT IS READ OFF THE MOVE'S OWN CONDITION, not shared by the family.
+ * `lockedmove` declares `duration: 2` and draws `trueDuration = this.random(2, 4)`, which is the real
+ * length and is taken at its minimum — 2 turns. `uproar` has no trueDuration at all: `duration: 3`,
+ * decremented in the residual OF THE TURN IT LANDS, so it is 3 turns. And Uproar's `onEnd` announces
+ * rather than confusing.
+ *
+ * ONE PROBE FOR BOTH BECAUSE THEY ARE ONE CLAIM: that the number and the fatigue come from the tag
+ * rather than from a constant. An engine that hard-coded either would fail exactly one of the arms. */
+probe('move', 'locksIntoMove', 'the LENGTH and the fatigue are per-move, from the condition', () => {
+  const control = lockRun('outrage', 0.1, 4), test = lockRun('uproar', 0.1, 4);
+  const ran = (a, id) => a.filter(x => x.used === id).length;
+  return { works: ran(control, 'outrage') === 2 && control[3].used === 'dragonclaw'
+                  && ran(test, 'uproar') === 3 && test[3].used === 'dragonclaw'
+                  && control[1].conf === 2 && test[2].conf === 0 && test[3].conf === 0,
+           arms: { control: [ran(control, 'outrage'), control[1].conf],
+                   test: [ran(test, 'uproar'), test[2].conf] },
+           detail: `over four turns of clicking Dragon Claw after turn 1: Outrage ran `
+                 + `${ran(control, 'outrage')} turns and left confusion ${control[1].conf}; Uproar ran `
+                 + `${ran(test, 'uproar')} turns and left confusion ${test[2].conf}. Both freed the `
+                 + `user by turn 4 (${control[3].used} / ${test[3].used})` };
+});
+
+/* AND IT IS A HARDER LOCK THAN THE CHOICE ONE. `Pokemon#getMoveRequestData` sets `this.trapped = true`
+ * the moment `getLockedMove()` answers, so the request carries one move and no switch. A Choice item
+ * narrows the moves and leaves the switch legal — being stuck on a bad move is a reason to leave —
+ * and reading this lock off that one would have made switching out of an Outrage free.
+ *
+ * THE CONTROL IS THE SAME SWITCH ON THE SAME BOARD after a move that does not lock, so a green here
+ * cannot mean "switching is broken". */
+probe('move', 'locksIntoMove', 'a locked body is TRAPPED — the switch is refused', () => {
+  const control = lockRun('dragonclaw', 0.1, 2, { bench: true, switchOn: 1 });
+  const test = lockRun('outrage', 0.1, 2, { bench: true, switchOn: 1 });
+  return { works: control[1].slot0 === 'milotic' && test[1].slot0 === 'goodra-hisui'
+                  && test[1].used === 'outrage' && test[1].d1 > 0,
+           arms: { control: control[1].slot0, test: test[1].slot0 },
+           detail: `the identical switch to the identical bench body on turn 2 — after a Dragon Claw `
+                 + `slot p1a holds ${control[1].slot0}, after an Outrage it still holds `
+                 + `${test[1].slot0} and the forced ${test[1].used} ran for ${test[1].d1}` };
+});
+
+/* UPROAR'S OTHER TWO RULES, WHICH ARE NOT THE LOCK. Its `onTryHit` walks `target.side.activeTeam()`
+ * AND `target.side.foe.activeTeam()` and cures every sleeper on the field — including its own
+ * partner — and its condition's `onAnySetStatus` returns null for `slp` while it runs.
+ *
+ * THE TURN ORDER IS THE STAGING AND IT IS EXPLICIT. The Uproar user is given 200 Speed and the Spore
+ * user 20, so the Uproar lands FIRST and the Spore is thrown into a field that is already refusing
+ * sleep. With the speeds the other way round the Spore lands first, the Uproar user never gets to move
+ * at all, and the probe would measure the staging instead of the mechanic. */
+const uproarSleep = (first) => {
+  const me = bare('goodra-hisui'), ally = bare('incineroar');
+  const f1 = bare('gengar'), f2 = bare('milotic');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  unfaintable(me); unfaintable(ally); unfaintable(f1); unfaintable(f2);
+  me.st = Object.assign({}, me.st, { sp: 200 });
+  f1.st = Object.assign({}, f1.st, { sp: 20 });
+  /* The PARTNER is put to sleep before the turn, so the wake sweep has something to find on the
+   * Uproar user's OWN side — which is the half a "wakes the opponent" reading would miss. */
+  M.applyStatus(ally, 'slp');
+  M.battleTurn(S, () => 0.1,
+    new Map([[me, M.playerAction(me, first, null, S.field)], [ally, { kind: 'pass' }]]),
+    new Map([[f1, M.playerAction(f1, 'spore', me, S.field)], [f2, { kind: 'pass' }]]));
+  return { ally: ally.status || 'none', me: me.status || 'none' };
+};
+
+probe('move', 'locksIntoMove', 'Uproar wakes every sleeper and refuses sleep while it runs', () => {
+  const control = uproarSleep('dragonclaw'), test = uproarSleep('uproar');
+  return { works: control.ally === 'slp' && control.me === 'slp'
+                  && test.ally === 'none' && test.me === 'none',
+           arms: { control: [control.ally, control.me], test: [test.ally, test.me] },
+           detail: `an already-sleeping PARTNER and a Spore thrown at the user on the same turn — with `
+                 + `a Dragon Claw in the slot the partner stayed ${control.ally} and the user became `
+                 + `${control.me}; with an Uproar there the partner woke (${test.ally}) and the Spore `
+                 + `was refused (${test.me})` };
 });
 
 const works = results.filter(r => r.works);

@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-10T02:20:23.765Z",
+  "generated": "2026-08-10T03:01:01.440Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 335,
-  "live": 335,
+  "probed": 342,
+  "live": 342,
   "missing": 0,
-  "armed": 335,
+  "armed": 342,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2406,7 +2406,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 26.0% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3357,6 +3357,76 @@
       "label": "the encored move's target is RE-ROLLED, not aimed at the best foe",
       "live": true,
       "detail": "the same mid-turn Encore, same board, only the seeded rng varied — at 0.1 the forced xscissor hit p1a, at 0.9 it hit p1b (identical targets would mean the re-roll is unwired). The UN-Encored victim's own Brick Break named p1a and hit p1a/p1a at both rng values, and the un-Encored partner hit brickbreak@p1b throughout",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "randomTarget",
+      "label": "a randomNormal click with NO named target still lands",
+      "live": true,
+      "detail": "both clicked with the target withheld, which is what a driver reading Showdown's request supplies: single-target Dragon Claw dealt 0 across both foes (the authority refuses that choice), randomNormal Outrage dealt 85 at p2a",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "randomTarget",
+      "label": "the target is a uniform die, and NAMING one does not stop it",
+      "live": true,
+      "detail": "Outrage AIMED at p2a, same board, only the seeded die varied — it hit p2a at 0.1 and p2b at 0.9, so the named body is overwritten exactly as getTarget's randomNormal gate says. Clicked with no target it hit p2a/p2b. An ordinary Dragon Claw named at p2a hit p2a/p2a at the same two values",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "locksIntoMove",
+      "label": "turn 2 repeats the move whatever the caller clicked",
+      "live": true,
+      "detail": "turn 2 clicked Dragon Claw at a named body in both arms — after a turn-1 Dragon Claw the engine played dragonclaw, after a turn-1 Outrage it played outrage for 85 (a free choice on turn 2 is the defect)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "locksIntoMove",
+      "label": "the run ENDS in fatigue, and not before the last forced turn",
+      "live": true,
+      "detail": "confusion counter per turn — two hand-clicked Dragon Claws read [0,0], the Outrage lock read [0,2]. It is 0 after the FIRST locked turn and 2 after the last, which is Showdown's own board on this staging (roster.moves.json, p1.active[0].vol.confusion = 2, turn 2)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "locksIntoMove",
+      "label": "the LENGTH and the fatigue are per-move, from the condition",
+      "live": true,
+      "detail": "over four turns of clicking Dragon Claw after turn 1: Outrage ran 2 turns and left confusion 2; Uproar ran 3 turns and left confusion 0. Both freed the user by turn 4 (dragonclaw / dragonclaw)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "locksIntoMove",
+      "label": "a locked body is TRAPPED — the switch is refused",
+      "live": true,
+      "detail": "the identical switch to the identical bench body on turn 2 — after a Dragon Claw slot p1a holds milotic, after an Outrage it still holds goodra-hisui and the forced outrage ran for 85",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "locksIntoMove",
+      "label": "Uproar wakes every sleeper and refuses sleep while it runs",
+      "live": true,
+      "detail": "an already-sleeping PARTNER and a Spore thrown at the user on the same turn — with a Dragon Claw in the slot the partner stayed slp and the user became slp; with an Uproar there the partner woke (none) and the Spore was refused (none)",
       "hollow": false,
       "armed": true,
       "directCall": false

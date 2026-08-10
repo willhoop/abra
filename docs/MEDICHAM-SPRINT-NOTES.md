@@ -153,6 +153,135 @@ rides, and it needs a probe of its own.
 
 ---
 
+## THE LOCK-IN FIVE — WIRE 144, 2026-08-10. TWO CAUSES ON ONE ROW, AND ONE OF THEM IS NOT IN THIS DIVISION.
+
+| # | row(s) | uses | what it was | verdict move |
+|---|---|---|---|---|
+| 10 | **Outrage, Petal Dance, Raging Fury, Thrash, Uproar** | 101 | TWO independent causes stacked on one `move/plain-attack` row, either of which alone produces the same silent nothing. (a) all five are `target: "randomNormal"`, the request names no target, and `playerAction`'s attack branch is gated on `&& target` — so the click degraded to `{kind:'pass'}`, a NO-OP TURN, both turns. (b) there was no lock at all: turn 2 was a free choice and the user never fatigued | DID-NOT-FIRE → **awaiting Will's roster re-run, AND SEE THE DRIVER CAVEAT BELOW** |
+
+Census **335 → 342 live, 342 probed, 0 missing, 0 threw, 0 hollow, 0 unarmed, 0 direct-call.**
+Seven new probes, **all seven shown RED first** by cutting the six new branches to `if(false&&…)`:
+under the cut the census reads **335 live / 7 missing**, and each red for its own reason — the
+targetless Outrage dealt **0** and aimed at `p1a` (itself), the die returned `p2a` at both rng values,
+turn 2 played Dragon Claw, confusion read `[0,0]`, Outrage ran **1** turn and Uproar ran **1**, the
+locked body switched out, and the Spore landed on a body an Uproar should have shielded.
+
+### THE ROW MAY NOT MOVE, AND THAT IS NOT EVIDENCE ABOUT THE ENGINE
+
+`engine/game_differential.js` — the driver `tests/roster.js` runs through — resolves a medicham target
+from Showdown's target type and handles five kinds (`normal`, `any`, `adjacentFoe`, `adjacentAlly`,
+`adjacentAllyOrSelf`). `randomNormal` matches none, so `foeSlot` stays null and
+`M.playerAction(mon, 'outrage', null, field)` is called with no target. Diagnosed in parallel by
+`@measure`; **deliberately not fixed here** — it is the shared instrument, it is outside ENGINE, and a
+competing repair would collide. The same root cause covers Counter / Comeuppance / Metal Burst
+(`target: "scripted"`), i.e. **8 of the 20 DID-NOT-FIRE rows**.
+
+**The engine half is nonetheless real and is now correct:** a targetless `randomNormal` click lands,
+which it did not before, so the driver repair and this wire are both required and neither is
+sufficient.
+
+### THE FELT NUMBER IS NOT THE INTERNAL COUNTER — HERE THEY ARE THREE DIFFERENT NUMBERS
+
+`lockedmove` (`data/conditions.ts:253`) declares `duration: 2` and that is **not** how long it lasts:
+
+| handler | line | what it does |
+|---|---|---|
+| `onStart` | `trueDuration = this.random(2, 4)` | 2 or 3 — **the real length** |
+| `onRestart` | `if (trueDuration >= 2) duration = 2` | the 2 is a re-armable window, not a length |
+| `onResidual` | `trueDuration--` | ticks with the turn, whatever the body did |
+| `onAfterMove` | `if (duration === 1) removeVolatile(…)` | |
+| `onEnd` | `if (trueDuration > 1) return; addVolatile('confusion')` | fatigue **only on a full run** |
+
+So the forced-turn count equals `trueDuration`, and the declared `duration: 2` is a coincidence at the
+low end of the range. `uproar` has no `trueDuration` at all: `duration: 3`, decremented in the residual
+**of the turn it lands**, so it is three turns and there the declared number *is* the answer.
+
+**THE CONVENTION USED, AND WHY: the MINIMUM of the range, 2.** Every arm in
+`engine/game_differential.js` pins Showdown's RANGE form of `random` to the **bottom** (`return m;`),
+so the authority draws 2 under measurement; medicham2's `rng` is a single scalar and a
+`min + floor(rng()*span)` would read 3 under the top-corner arm and part from it. This is the identical
+decision `CONFUSION_TURNS_MIN` already states. **It is corroborated rather than assumed:**
+`data/roster.moves.json` recorded Showdown's own board on this exact staging *before a line was
+written* — `p1.active[0].vol.confusion = 2` at **turn 2** — which is a 2-turn Outrage followed by a
+fatigue counter of 2. The probe asserts that number.
+
+### THE TAG OVER-MATCHED, AND IT WAS PRINTED BEFORE IT WAS WIRED
+
+`m.self.volatileStatus && condition.onLockMove` catches **eleven** moves in this format, not five —
+the six `mustrecharge` moves answer `onLockMove` too, because a recharge turn is also a locked menu.
+The discriminator is mechanical, not a name: `mustrecharge` additionally carries an `onBeforeMove` that
+announces `cant` and returns null — it **refuses** the action — where the lock-in family carries none
+and lets the forced move run. Final membership, printed: `locksIntoMove` = the five exactly;
+`randomTarget` = those five **plus Struggle**, which is right and is why it is a separate tag.
+
+`data/tags.json` was regenerated and **diffed against its predecessor: 0 entities removed, 0 added, 6
+changed** (the five plus Struggle). ROADMAP #65's hazard is gone — `tag_dex` reads `scope:'all'` — and
+this run confirms it: Serene Grace, Tinted Lens, Curious Medicine, Steely Spirit and Leppa Berry are
+all still present.
+
+### WHAT THE FIVE NOW DO, AND EACH LINE IS THE AUTHORITY'S
+
+- **A `randomNormal` click with no named target lands.** `playerAction` prices it against the
+  hardest-hit foe (a valuation, not a decision — the same rule ROADMAP #81 WIRE 9 uses for spreads).
+- **The target is re-rolled UNIFORMLY at execution, whatever the player named.** `sim/battle.ts:2461`
+  gates the chosen-target branch off for randomNormal, so it always falls to `getRandomTarget` →
+  `side.randomFoe()` → `sample(this.foes())`. Drawn from the engine's **own seeded `rng`** — the stream
+  already threaded through the turn for accuracy, crit and damage — never `Math.random()`, and only
+  when one of the six is actually executing. It does not double-draw over an Encore override, which has
+  already applied the same rule.
+- **Turn 2 repeats the move, binding a caller-supplied action** (the WIRE 24 rule).
+- **A locked body is TRAPPED.** `Pokemon#getMoveRequestData` sets `this.trapped = true` the moment
+  `getLockedMove()` answers. This is a **harder** lock than the Choice one, which deliberately leaves
+  the switch legal — reading one off the other would have made switching out of an Outrage free.
+- **The clock ticks in the residual, in the authority's own order:** decrement, then expiry, then the
+  sleep clause. So a body flinched on its last locked turn still fatigues, and a body put to sleep with
+  a turn still to run is *calmed* — `delete volatiles[…]`, not `removeVolatile`, so `onEnd` never runs
+  and there is no confusion.
+- **The lock leaves with the body**, with no fatigue (`clearVolatile`).
+- **Uproar wakes every sleeper on the field, both sides**, including its own partner, and **refuses
+  sleep while it runs**. Both read off handlers (`wakesSleepers`, `blocksSleep`), never off the name.
+
+### FOUND AND DELIBERATELY NOT FIXED
+
+- **Uproar's Throat Chop clause.** `uproar.onResidual` removes the volatile if the holder carries
+  `throatchop`, and it also declines to lock after a Struggle. Neither is modelled. Uproar is 3 corpus
+  uses and both need their own shape rule; stated rather than smuggled in.
+- **Encore over a lock-in.** The WIRE 143 execution override would rewrite a locked action. In the
+  authority a locked body's request offers one move and Encore's `OverrideAction` still runs, so the
+  interaction is genuinely ambiguous. Not staged, not guessed at.
+- **`tests/test-no-silent-failure.js` is RED, and it was red before this pass.** 20 NEW silent catch
+  blocks against the 2026-08-06 baseline, in `champions_sim`, `diff_swarm`, `explain_divergence`,
+  `leaf_engine_contrast`, `provenance`, `quarantine`, `tag_dex:332` (`partialTrapShape`), `roster` and
+  `test-web-quarantine` — **none of them mine.** The one I did add was caught by it and made to speak
+  before this was written, taking the count 21 → 20. Reported, not filed: it needs an owner.
+- **`FEATURE SEMANTICS CHECK FAILED` on `data/policy-weights.json` is also pre-existing.** Measured
+  rather than assumed: with all six WIRE 144 branches cut to `if(false&&…)` the eight changed digests
+  are **bit-identical**, so this wire moves no fixture-board feature. It is a REFIT OWED and belongs to
+  MEASURE.
+
+### THE ARTIFACT REGENERATION HAD THREE SIDE-EFFECTS, EACH CHECKED
+
+Regenerating `data/tags.json` re-reads the game store, which OPS appends to continuously
+(`sheet_entries` 137,148 → 138,084 during this pass). That moves every usage count, and three prose
+figures citing the artifact went stale — `tests/test-docs-current.js` **went red on it and was fixed
+in this session, not filed**. Confirmed it was the cause rather than a coincidence by swapping the old
+`tags.json` back in: 21/21 passed, and 20/1 with the new one.
+
+- `docs/TAG-COVERAGE.md` — four usage figures re-read to today's artifact: `resistBerry` **13,232**,
+  `passiveHeal` **8,495**, `blocksBerries` **2,326**, `punishesAttacker` **11,819**. Values only; the
+  entity counts and the 3.40.0 snapshot table are untouched. **The superseded readings are deliberately
+  NOT restated here** — quoting them beside the citation made the same check red a second time, which
+  is the check doing exactly its job. They are in the file's own history.
+- `docs/GAME-DIFFERENTIAL-DESIGN.md` — the *99%-of-usage coverage bar* sentence was split into its own
+  paragraph. It states a THRESHOLD from `tests/test-medicham-coverage.js`, and standing in a block that
+  cited `data/tags.json` made the check read it as a figure attributed to that artifact. The check was
+  right about the attribution; the number was never wrong.
+- `data/abra-tags.js` — the browser copy, rebuilt from `tags.json` by `build/build_tags_js.js`. It was
+  **already one regeneration behind before this pass** (17:09 against 20:56) and now matches. Stated
+  because it is a WEB-consumed artifact that this pass moved.
+
+---
+
 ## DECISIONS TAKEN BY WILL DURING THE SPRINT — record, not recollection
 
 **THE SITE IS A VISUALISATION, NOT A CONSTRAINT.** *"the website really was just for fun and for me to

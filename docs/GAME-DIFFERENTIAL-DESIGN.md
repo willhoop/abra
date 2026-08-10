@@ -240,8 +240,15 @@ broken assumption rather than a list of missing tags.
 
 `uses` in `data/tags.json` counts **sheet-declared** abilities. A team sheet declares what a Pokemon
 starts with. A mega's ability exists only **after** it evolves. So every ability that is mega-only
-reads `uses: 0`, never clears the 99%-of-usage coverage bar, and is therefore never scheduled to be
-wired — **by construction, silently, forever.**
+reads `uses: 0`.
+
+That zero is what makes it silent: the coverage bar in `tests/test-medicham-coverage.js` is a
+usage-weighted THRESHOLD, not a reading out of the artifact, and a `uses: 0` entity can never clear
+it — so a mega-only ability is never scheduled to be wired, **by construction, silently, forever.**
+*(2026-08-10: the threshold sentence was split off its own paragraph. It states a bar, and standing in
+a block that cites `data/tags.json` made `tests/test-docs-current.js` read it as a figure ATTRIBUTED
+to that artifact — which it never was. The check was right that the attribution was wrong; the number
+was not.)*
 
 Measured: of the 63 entries in `MEGA_ABIL`, twelve read `uses = 0` or are absent from `tags.json`
 entirely, and six have no mechanic derived at all — `trace` on Mega Alakazam and Mega Meowstic (207

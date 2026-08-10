@@ -358,6 +358,65 @@ function partialTrapShape() {
   return _ptShape;
 }
 
+/* THE LOCK-IN, READ OFF THE CONDITION THE MOVE NAMES. See the long comment on the `locksIntoMove`
+ * entry below for the derivation of every number here and for the over-match that was printed first.
+ *
+ * FAILS LOUDLY RATHER THAN FALLING BACK, the same rule partialTrapShape follows: if the condition
+ * stops parsing the tag goes ABSENT, so the engine's `TAGS.param(...)` returns null and its lock
+ * branch declines instead of inventing a duration. A silent default here would be a made-up number of
+ * forced turns, which is worse than no lock at all. */
+function lockShape(m) {
+  const vol = m && m.self && m.self.volatileStatus;
+  if (!vol) return null;
+  /* IT SPEAKS. An unreadable condition here means the tag goes absent and five moves silently stop
+   * locking — the exact "capability absent, everything reports success" shape, so the reason is
+   * printed rather than discarded (tests/test-no-silent-failure.js). */
+  let c;
+  try { c = dex.conditions.get(vol); }
+  catch (e) {
+    console.error('tag_dex: lockShape could not read condition "' + vol + '" for ' + (m && m.id)
+      + ', so the lock-in tag is ABSENT for it. Reason: '
+      + String((e && e.message) || e).split('\n')[0].slice(0, 120));
+    return null;
+  }
+  if (!c || !c.onLockMove) return null;
+  /* THE DISCRIMINATOR. `mustrecharge` also answers onLockMove and is the opposite mechanic; it is the
+   * one member of the eleven that REFUSES the forced action (`onBeforeMove` -> `cant` -> null). */
+  if (c.onBeforeMove) return null;
+  if (!c.duration) return null;
+  const start = String(c.onStart || '');
+  const end = String(c.onEnd || '');
+  /* `this.effectState.trueDuration = this.random(2, 4)` -- Showdown's random(lo,hi) is [lo,hi), so the
+   * range is 2..3. Absent (Uproar) the declared duration IS the number of forced turns. */
+  const tr = start.match(/trueDuration\s*=\s*this\.random\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
+  const turnsMin = tr ? +tr[1] : c.duration;
+  const turnsMax = tr ? +tr[2] - 1 : c.duration;
+  /* WHICH move the lock repeats. A function reading `effectState.move` repeats whatever applied it; a
+   * string names one outright (Uproar). */
+  const lk = c.onLockMove;
+  const repeats = typeof lk === 'string' ? lk
+                : (/effectState\.move/.test(String(lk)) ? 'self' : null);
+  if (!repeats) return null;
+  return {
+    volatile: vol,
+    /* THE COUNTER THE AUTHORITY DECLARES. Recorded, and deliberately NOT the field to consume -- for
+     * `lockedmove` it is a re-armable two-turn window and not the length of anything. */
+    duration: c.duration,
+    /* THE NUMBER OF TURNS THE USER IS FORCED TO ATTACK, and the field the engine reads. The minimum of
+     * the authority's own range, for the reason CONFUSION_TURNS_MIN gives. */
+    turns: turnsMin,
+    turnsMin, turnsMax,
+    repeats,
+    /* Fatigue: onEnd's own addVolatile call, and the guard immediately above it. */
+    confuseOnEnd: /addVolatile\(\s*["']confusion["']\s*\)/.test(end),
+    confuseNeedsFullRun: /trueDuration\s*>\s*1\s*\)?\s*return/.test(end),
+    /* UPROAR'S TWO EXTRA RULES, both off handlers. The move's own onTryHit sweeps every active body and
+     * calls cureStatus on anything asleep; the condition's onAnySetStatus returns null for slp. */
+    wakesSleepers: /status\s*===\s*['"]slp['"][\s\S]*cureStatus\(/.test(String(m.onTryHit || '')),
+    blocksSleep: /status\.id\s*===\s*['"]slp['"]/.test(String(c.onAnySetStatus || '')),
+  };
+}
+
 const MOVE_TAGS = [
   /* NEW 2026-08-08 -- THE MOVE THAT SPENDS THE USER'S OWN ITEM, and it is the mirror image of
    * `removesItem` rather than a member of it: Knock Off takes what the TARGET holds, this throws what
@@ -1168,6 +1227,28 @@ const MOVE_TAGS = [
     why: 'Earthquake, Rock Slide, Discharge, Surf. This is the one allyHit exists for, and the one '
        + 'that killed its own Archaludon',
     of: m => m.target === 'allAdjacent' ? { target: m.target, hitsAlly: true } : null },
+  /* THE THIRD TARGET SHAPE, AND IT IS THE ONE NOBODY CAN NAME A TARGET FOR. `randomNormal` hits ONE
+   * body and the player does not get to say which: Showdown's `getTarget` (sim/battle.ts:2461) opens
+   * with `if (move.target !== 'randomNormal' && this.validTargetLoc(...))`, so a randomNormal move
+   * falls THROUGH the chosen-target branch every time and lands on `getRandomTarget`, which in a
+   * double is `pokemon.side.randomFoe()` -> `sample(this.foes())` -- UNIFORM over the LIVING foes.
+   * (`activePerHalf > 2` is the triples branch and is not this format.) The re-roll therefore happens
+   * whether or not a target was named, which is the half that is easy to miss.
+   *
+   * IT IS NOT A SPREAD MOVE and must not be given `spreadFoes`: no x0.75, one body only. It exists as
+   * its own tag because the CONSUMER's problem is the same one ROADMAP #81 WIRE 9 solved for the
+   * spreads -- a driver that asks the authority what is legal supplies NO target for these, medicham2
+   * needs one to price the click, and the click was falling through to a no-op turn. That wire
+   * deliberately excluded randomNormal ("Showdown picks those with a die this engine would have to
+   * guess the shape of"); this tag is the shape of the die.
+   *
+   * SIX MEMBERS, PRINTED BEFORE WIRING: outrage, petaldance, ragingfury, struggle, thrash, uproar. */
+  { tag: 'randomTarget', param: 'ONE body, re-rolled UNIFORMLY over the living foes at execution — '
+       + 'the player never names it, and a named one is overwritten', probe: 'randomTarget',
+    why: 'Outrage (77 uses), Petal Dance (18), Uproar (3), Raging Fury (3), Thrash and Struggle. A '
+       + 'driver that takes its targets from the authority supplies none for these, and every one of '
+       + 'them was a NO-OP TURN in medicham2',
+    of: m => m.target === 'randomNormal' ? { target: m.target, uniformOverLivingFoes: true } : null },
   { tag: 'priority', param: 'order = priority', probe: 'effectivePriority',
     why: 'who moves first, before speed is consulted at all',
     of: m => m.priority ? { readFrom: 'm.priority', sign: m.priority > 0 ? '+' : '-' } : null },
@@ -2252,6 +2333,53 @@ const MOVE_TAGS = [
   { tag: 'recharge', param: 'costs the turn AFTER it lands', probe: 'rechargeTurn',
     why: 'Hyper Beam. A free turn for the opponent',
     of: m => (m.self && m.self.volatileStatus === 'mustrecharge') ? { recharge: true } : null },
+  /* THE LOCK-IN FAMILY -- Outrage, Petal Dance, Raging Fury, Thrash and Uproar. Sibling of `recharge`
+   * one line up and derived from the same field, which is why it sits here: both are a move that
+   * writes a volatile ONTO ITS OWN USER and both of those volatiles answer `onLockMove`. They are
+   * opposite mechanics wearing one field -- recharge SPENDS the next turn, this one SELLS it.
+   *
+   * ---- THE FIRST SHAPE OVER-MATCHED, AND IT WAS PRINTED BEFORE IT WAS WIRED ------------------------
+   * `m.self.volatileStatus && condition.onLockMove` catches ELEVEN moves in this format, not five:
+   *     blastburn frenzyplant gigaimpact hydrocannon hyperbeam rockwrecker -> mustrecharge
+   *     outrage petaldance ragingfury thrash                               -> lockedmove
+   *     uproar                                                             -> uproar
+   * `mustrecharge` carries `onLockMove: 'recharge'` because the recharge turn is also a locked menu.
+   * The discriminator is a MECHANICAL fact rather than a name: `mustrecharge` additionally carries an
+   * `onBeforeMove` that announces `cant` and returns null -- it REFUSES the action -- while
+   * `lockedmove` and `uproar` carry none and let the forced move run. So: it locks the menu AND it
+   * does not refuse the move.
+   *
+   * ---- THE FELT NUMBER IS NOT THE INTERNAL COUNTER, AND HERE THEY ARE THREE DIFFERENT NUMBERS -------
+   * `lockedmove` (data/conditions.ts:253) declares `duration: 2` and that is NOT how long it lasts:
+   *     onStart      this.effectState.trueDuration = this.random(2, 4)     <- 2 or 3, the REAL length
+   *     onRestart    if (trueDuration >= 2) this.effectState.duration = 2  <- re-armed on each use
+   *     onResidual   this.effectState.trueDuration--                       <- ticks with the turn
+   *     onAfterMove  if (duration === 1) pokemon.removeVolatile(...)
+   *     onEnd        if (trueDuration > 1) return; target.addVolatile('confusion')
+   * Walked out, `duration` is a two-turn re-armable window and `trueDuration` is the number of turns
+   * the user is actually forced to attack. So the FORCED TURN COUNT equals trueDuration, and the
+   * declared `duration: 2` is a coincidence at the low end of the range rather than the answer.
+   * `uproar` has no trueDuration at all: `duration: 3`, decremented in the residual OF THE TURN IT
+   * LANDS, so it is three turns of Uproar and there the declared number IS the answer.
+   *
+   * `turns` IS THE MINIMUM OF THE RANGE, AND IT IS THE FIELD THE ENGINE CONSUMES -- the opposite way
+   * round from `partialTrap`, which consumes `duration` and keeps `turns` as prose. This is the same
+   * decision `CONFUSION_TURNS_MIN` states in medicham2: every arm in engine/game_differential.js pins
+   * Showdown's RANGE form of random to the BOTTOM (`return m;`), so the authority always draws 2 under
+   * measurement, and a `min + floor(rng()*span)` on our single scalar would read 3 under the top-corner
+   * arm and part from it. The minimum is the only value that can be CHECKED. `turnsMax` is emitted
+   * beside it so the cost is a number rather than a sentence.
+   *
+   * `confuseOnEnd` is read off onEnd's own `addVolatile('confusion')`, and `confuseNeedsFullRun` off
+   * the `trueDuration > 1 return` guard immediately above it -- which is the rule that a lock broken
+   * EARLY does not fatigue. Uproar gets neither, and gets `wakesSleepers` / `blocksSleep` instead,
+   * both read off handlers rather than off its name. */
+  { tag: 'locksIntoMove', param: 'the user is forced to repeat this move for `turns` turns',
+    probe: 'locksIntoMove',
+    why: 'Outrage (77 uses), Petal Dance (18), Uproar (3), Raging Fury (3), Thrash. All five sit at '
+       + 'DID-NOT-FIRE in data/roster.moves.json -- the user got a free choice on turn 2 and never '
+       + 'fatigued',
+    of: m => lockShape(m) },
   /* THE PROBABILITY IS THE PARAMETER, not the yes/no. Will: "these are just % chance to flinch
    * right?" -- yes, and they run from 10% to 100%. A single tag put Fake Out (100%, +3 priority)
    * beside Fire Fang (10%), which is not a distinction a model can afford to lose. Only matters when

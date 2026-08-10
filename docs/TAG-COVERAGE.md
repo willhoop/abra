@@ -164,9 +164,9 @@ rulebook to fall back on:
 
 | tag | uses |
 |---|---|
-| `resistBerry` | 13,134 *(`data/tags.json`, 18 entities, 2026-08-09 — the original 3.40.0 reading is in the snapshot table at the top of this file)* |
-| `passiveHeal` | 8,363 |
-| `blocksBerries` | 2,293 |
+| `resistBerry` | 13,232 *(`data/tags.json`, 18 entities, re-read 2026-08-10 — the original 3.40.0 reading is in the snapshot table at the top of this file)* |
+| `passiveHeal` | 8,495 |
+| `blocksBerries` | 2,326 |
 | `disablesAttacker` | 1,821 |
 | `poisonsOnMyContact` | 1,325 |
 | `blocksExplosion` | 636 |
@@ -192,7 +192,7 @@ artifact does not.
 pick up any new ability of the same shape**, which is precisely what `CLAUDE.md` means by *"match on tag
 shape, never on a name, so an ability added later is picked up without editing the engine."*
 
-Two tags also appear to describe one mechanic — `contactPunish` (**since retired: zero entities carry it in `data/tags.json` today, merged into `punishesAttacker` at 11,751 uses, which is exactly what this paragraph argued for. Its original DEAD reading is in the snapshot table at the top**) beside
+Two tags also appear to describe one mechanic — `contactPunish` (**since retired: zero entities carry it in `data/tags.json` today, merged into `punishesAttacker` at 11,819 uses, which is exactly what this paragraph argued for. Its original DEAD reading is in the snapshot table at the top**) beside
 `punishesAttacker` (live). One of those is redundant and nothing has noticed.
 
 ---
