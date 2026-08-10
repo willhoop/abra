@@ -777,6 +777,31 @@ function armDelta(subject, control, ignore) {
  *
  * The machinery stays because the abilities and moves stages will need it, and because a mechanism
  * that can only be added under a red staleness check is a mechanism that cannot rot. */
+/* ---- THE CLOSET: ENTITIES THE OWNER HAS DEFERRED BY NAME ---------------------------------------
+ *
+ * `DECLARED` above quietens a DIFFERENCE. This defers an ENTITY, which is a different thing and was
+ * needed the moment an entity read DID-NOT-FIRE — an ABSENCE has no diff to quieten.
+ *
+ * A row in here is still staged, still played against the authority, and still printed on every run
+ * with its reason and its date. The only thing it stops doing is holding the MEDICHAM gate shut.
+ * Deleting the entity from the population instead would make the shelf invisible, and an invisible
+ * exception is precisely what this file exists to prevent.
+ *
+ * ONLY THE OWNER PUTS SOMETHING HERE, and the quote goes in the entry. This is not a place for the
+ * instrument's own judgement or for a row that turned out to be hard. */
+const DEFERRED = {
+  metronome: {
+    by: 'Will', on: '2026-08-10',
+    why: 'The Metronome ITEM (19 uses) climbs a damage ladder over consecutive uses of one move. '
+       + 'Its tag is derived and correct (`damageMultOnRepeat`, the full 4096ths ladder off the '
+       + 'condition); what is missing is the CONSUMER, which needs a per-body consecutive-use counter '
+       + 'threaded through the turn loop and read inside dmgRange — a change that touches every move\'s '
+       + 'damage path for the smallest row in the whole queue. Will: "metronome is a joke dont worry '
+       + 'about that just put it into a quarantined closet we can re examine once the project is '
+       + 'successful."',
+  },
+};
+
 const DECLARED = [];
 let DECLARED_HITS = DECLARED.map(() => 0);
 function splitDeclared(diffs, boards) {
@@ -886,6 +911,29 @@ function runEntry(e) {
    * the report so nothing downstream — the artifact, `--reds`, the exit code — can read a contaminated
    * row as a subject failure. FIRED-AND-BOARDS-MATCH is deliberately NOT gated: agreement between the
    * two engines over a shared control is still agreement, whatever the control was doing. */
+  /* THE CLOSET. An entity the OWNER has deferred by name — not a gap the instrument found, and not a
+   * pass. Will, 2026-08-10: *"metronome is a joke dont worry about that just put it into a
+   * quarantined closet we can re examine once the project is successful"*.
+   *
+   * WHY THIS IS A VERDICT AND NOT A DELETION. A deferred row keeps its scenario, keeps being staged,
+   * keeps being played against the authority, and prints on every run with its reason and the date it
+   * was shelved. What it stops doing is holding the MEDICHAM gate shut. The alternative — dropping the
+   * entity from the population — would make the shelf invisible, and an invisible exception is the
+   * failure mode this whole file exists to prevent.
+   *
+   * AND IT IS CHECKED THE WAY `DECLARED` IS. A deferral whose row would now pass on its own is
+   * reported as STALE, because a shelf that no longer holds anything is a claim that has quietly
+   * become false. See the DEFERRED block at the head of this file. */
+  const DEF = DEFERRED[e.id];
+  if (DEF) {
+    const wouldPass = usMoved.length && !mine.length;
+    return { ...base, verdict: 'DEFERRED-BY-OWNER', deferred: DEF, would_pass_now: !!wouldPass,
+      why: 'SHELVED BY THE OWNER, NOT MEASURED CLEAN. ' + DEF.why
+         + ' (deferred ' + DEF.on + ' by ' + DEF.by + '.) It is still staged and still played every '
+         + 'run; it does not hold the gate. Underlying verdict without the deferral: '
+         + (wouldPass ? 'FIRED-AND-BOARDS-MATCH — THE SHELF IS STALE, take it down'
+                      : (usMoved.length ? 'FIRED-AND-BOARDS-DIFFER' : 'DID-NOT-FIRE')) + '.' };
+  }
   const CQ = controlIsQuiet(e);
   if (!CQ.quiet && (!usMoved.length || mine.length))
     return { ...base, verdict: 'CONTROL-NOT-QUIET', control_why: CQ.why,
@@ -4716,7 +4764,7 @@ function selftest() {
 /* =================================================================================================
  *  REPORT
  * ================================================================================================= */
-const VERDICT_ORDER = ['FIRED-AND-BOARDS-DIFFER', 'DID-NOT-FIRE', 'FIRED-AND-BOARDS-MATCH',
+const VERDICT_ORDER = ['FIRED-AND-BOARDS-DIFFER', 'DID-NOT-FIRE', 'DEFERRED-BY-OWNER', 'FIRED-AND-BOARDS-MATCH',
                        'CONTROL-NOT-QUIET', 'COULD-NOT-STAGE'];
 
 function printRules() {

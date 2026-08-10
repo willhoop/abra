@@ -9373,8 +9373,38 @@ function battleTurn(S,rng,actsForA,actsForB){
            * `Math.round(targetDamage * effect.drain[0] / effect.drain[1])` from gen 5 on (gen <= 4
            * is the floor, and that branch is not this format). Same root as recoil, opposite sign:
            * flooring cost the user half a point of health on average on 8,553 corpus clicks. */
-          const _gain=Math.min(m.st.hp,_hpPreReact+Math.round(dealt*_dr.fraction))-_hpPreReact;
+          /* BIG ROOT, 53 uses — a roster DID-NOT-FIRE row and it had no tag at all until now.
+           * `onTryHeal` multiplies a heal by 5324/4096 (x1.2998) but ONLY when the effect that
+           * produced it is on its own list — drain, Leech Seed, Ingrain, Aqua Ring, Strength Sap. The
+           * SOURCE LIST IS PART OF THE FACT and is carried in the tag: this does not boost Recover, a
+           * berry or Leftovers, and an item that boosted all healing would be a different item.
+           * Applied INSIDE the rounding, because Showdown modifies the heal before it rounds. */
+          const _br=TAGS.param('item',m.item,'healMultBySource');
+          const _brM=(_br&&_br.mult&&Array.isArray(_br.from)&&_br.from.includes('drain'))?+_br.mult:1;
+          const _gain=Math.min(m.st.hp,_hpPreReact+Math.round(dealt*_dr.fraction*_brM))-_hpPreReact;
           if(_gain>0){m.curHP=Math.min(m.st.hp,m.curHP+_gain);if(TR)TR.heal(m,'[from] drain');}
+        }
+      }
+      /* SHELL BELL, 44 uses — a roster DID-NOT-FIRE row, and it sits here for the same reason recoil
+       * does: both are a fraction of the damage the move ACTUALLY dealt.
+       *     onAfterMoveSecondarySelf: if (move.totalDamage && !forceSwitchFlag) heal(totalDamage / 8)
+       * `dealt` is already the sum across targets, capped at each target's remaining HP — which is
+       * exactly Showdown's `totalDamage`, so a spread move heals off the sum and a hit into a body
+       * with 3 HP left heals off 3 rather than off the roll. The drain comment above establishes that
+       * property and this reuses it rather than re-deriving it.
+       *
+       * HEAL BLOCK STOPS IT, like the drain. A KO'd user heals nothing. */
+      {
+        const _sb=TAGS.param('item',m.item,'healFromDamageDealt');
+        if(_sb&&_sb.div&&dealt>0&&!m.fainted&&m.st&&m.curHP>0&&!healBlocked(m)){
+          /* THE ROUNDING IS THE AUTHORITY'S, AND `Math.round` WAS WRONG BY ONE EVERY TURN. Measured:
+           * the roster read FIRED-AND-BOARDS-DIFFER with ours consistently HIGH.
+           * `sim/battle.js` heal(): `if (damage && damage <= 1) damage = 1; damage = this.trunc(damage);`
+           * So the min-1 clamp applies to a value at or below 1, and everything else TRUNCATES. At
+           * dealt=12 that is 1.5 -> 1, where a round gives 2. Order matters: clamp first, then trunc. */
+          let _h=dealt/+_sb.div; if(_h&&_h<=1)_h=1; _h=Math.floor(_h);
+          const _b4=m.curHP; m.curHP=Math.min(m.st.hp,m.curHP+_h);
+          if(TR&&m.curHP>_b4)TR.heal(m,'[from] item: '+m.item);
         }
       }
       /* WIRE 65 -- A MOVE THAT REACHED NOTHING PAYS NOTHING. Found by tests/test-game-diff.js's

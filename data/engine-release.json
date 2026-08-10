@@ -1,10 +1,10 @@
 {
-  "current": "fb8b4fc84f8a",
-  "cut": "2026-08-10T00:25:12.642Z",
-  "why": "a flat berry heal arms the pinch path; Oran reaches the engine",
-  "cuts": 1,
-  "latest_cut": "2026-08-10T00:25:12.642Z",
-  "latest_why": "a flat berry heal arms the pinch path; Oran reaches the engine",
-  "pointer_written": "2026-08-10T00:25:12.645Z",
+  "current": "0fc7266b0755",
+  "cut": "2026-08-10T00:42:17.273Z",
+  "why": "Shell Bell truncates as the authority does",
+  "cuts": 2,
+  "latest_cut": "2026-08-10T00:44:09.065Z",
+  "latest_why": "the closet: an owner-deferred entity is shelved, staged and printed",
+  "pointer_written": "2026-08-10T00:44:09.068Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

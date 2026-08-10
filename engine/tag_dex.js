@@ -2475,6 +2475,64 @@ const ITEM_TAGS = [
                restoresFlat: flat ? +flat : null,
                confusesIfWrongNature: /confus/i.test(eat) || null };
     } },
+  /* THE LAST THREE ITEMS ON THE GATE'S QUEUE (2026-08-10). Unlike Iron Ball and Light Ball — where
+   * the mechanic existed and only the producer was blind — these three had NO tag describing what
+   * they do, so nothing downstream could have read them. Each is derived from its own handler. */
+
+  /* SHELL BELL — heals the ATTACKER a fraction of the damage it just dealt.
+   *     onAfterMoveSecondarySelf: if (move.totalDamage && !forceSwitchFlag) heal(move.totalDamage / 8)
+   * The divisor is read, not assumed, and the `totalDamage` basis matters: it is the damage the move
+   * ACTUALLY dealt across every target it hit, so a spread move heals off the sum. */
+  { tag: 'healFromDamageDealt', param: 'the holder heals a fraction of the damage its move dealt',
+    probe: 'onAfterMoveSecondarySelf',
+    why: 'Shell Bell, 44 uses — a roster DID-NOT-FIRE row, and it changes how many turns a kill takes',
+    of: (it) => {
+      const src = String(it.onAfterMoveSecondarySelf || '').replace(/\s+/g, ' ');
+      if (!src || !/heal\(/.test(src)) return null;
+      const m = src.match(/heal\(\s*move\.totalDamage\s*\/\s*(\d+)/);
+      if (!m) return null;
+      return { div: +m[1], basis: 'totalDamage' };
+    } },
+
+  /* BIG ROOT — multiplies the holder's own DRAIN-family healing.
+   *     onTryHeal: const heals=["drain","leechseed","ingrain","aquaring","strengthsap"]
+   *                if (heals.includes(effect.id)) chainModify([5324, 4096])
+   * The SOURCE LIST IS PART OF THE FACT and is carried: this does not boost Recover, Leftovers or a
+   * berry, and a tag that said only "x1.3 healing" would be a different and wrong item. */
+  { tag: 'healMultBySource', param: 'multiplies healing that came from specific effects',
+    probe: 'onTryHeal',
+    why: 'Big Root, 53 uses — a roster DID-NOT-FIRE row. It boosts drain and Leech Seed and nothing else',
+    of: (it) => {
+      const src = String(it.onTryHeal || '').replace(/\s+/g, ' ');
+      if (!src) return null;
+      const frac = src.match(/chainModify\(\s*\[\s*(\d+)\s*,\s*(\d+)\s*\]\s*\)/);
+      const flat = src.match(/chainModify\(\s*([\d.]+)\s*\)/);
+      const mult = frac ? (+frac[1] / +frac[2]) : (flat ? +flat[1] : null);
+      if (mult === null) return null;
+      const list = src.match(/\[\s*((?:"[a-z]+"\s*,?\s*)+)\]/);
+      const from = list ? [...list[1].matchAll(/"([a-z]+)"/g)].map(x => x[1]) : null;
+      if (!from || !from.length) return null;     /* an unreadable source list is not a claim */
+      return { mult, from };
+    } },
+
+  /* METRONOME (the ITEM, not the move) — damage climbs while you repeat one move.
+   *     onModifyDamage: dmgMod = [4096, 4915, 5734, 6553, 7372, 8192], indexed by numConsecutive
+   *                     capped at 5
+   * The whole LADDER is carried rather than a "+20% per use" summary, because the steps are not
+   * evenly spaced in 4096ths and a summary would be a second, wrong implementation of the fact. */
+  { tag: 'damageMultOnRepeat', param: 'damage climbs with consecutive uses of the same move',
+    probe: 'onModifyDamage with a consecutive-use ladder',
+    why: 'Metronome, 19 uses — a roster DID-NOT-FIRE row and the only member of its shape',
+    of: (it) => {
+      const src = String((it.condition && it.condition.onModifyDamage) || '').replace(/\s+/g, ' ');
+      if (!src || !/numConsecutive/.test(src)) return null;
+      const arr = src.match(/\[\s*((?:\d+\s*,\s*)+\d+)\s*\]/);
+      if (!arr) return null;
+      const steps = arr[1].split(/\s*,\s*/).map(Number);
+      const cap = (src.match(/numConsecutive\s*>\s*(\d+)/) || [])[1];
+      return { steps4096: steps, cap: cap ? +cap : steps.length - 1, denom: 4096 };
+    } },
+
   { tag: 'passiveHeal', param: 'restores HP every turn', probe: 'leftovers',
     why: 'changes how many turns a kill takes',
     of: it => norm(it.name) === 'leftovers' ? { heal: 1 / 16 } : null },

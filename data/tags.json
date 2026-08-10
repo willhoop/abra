@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-10T00:25:01.068Z",
+ "generated": "2026-08-10T00:39:23.998Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1868,6 +1868,45 @@
    "examples": [
     "Oran Berry",
     "Sitrus Berry"
+   ]
+  },
+  {
+   "tag": "healFromDamageDealt",
+   "kind": "item",
+   "param": "the holder heals a fraction of the damage its move dealt",
+   "why": "Shell Bell, 44 uses — a roster DID-NOT-FIRE row, and it changes how many turns a kill takes",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 44,
+   "examples": [
+    "Shell Bell"
+   ]
+  },
+  {
+   "tag": "healMultBySource",
+   "kind": "item",
+   "param": "multiplies healing that came from specific effects",
+   "why": "Big Root, 53 uses — a roster DID-NOT-FIRE row. It boosts drain and Leech Seed and nothing else",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 53,
+   "examples": [
+    "Big Root"
+   ]
+  },
+  {
+   "tag": "damageMultOnRepeat",
+   "kind": "item",
+   "param": "damage climbs with consecutive uses of the same move",
+   "why": "Metronome, 19 uses — a roster DID-NOT-FIRE row and the only member of its shape",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 19,
+   "examples": [
+    "Metronome"
    ]
   },
   {
@@ -22549,10 +22588,21 @@
   "bigroot": {
    "name": "Big Root",
    "tags": [
+    "healMultBySource",
     "flingable"
    ],
    "uses": 53,
    "params": {
+    "healMultBySource": {
+     "mult": 1.2998046875,
+     "from": [
+      "drain",
+      "leechseed",
+      "ingrain",
+      "aquaring",
+      "strengthsap"
+     ]
+    },
     "flingable": {
      "basePower": 10,
      "status": null,
@@ -23310,10 +23360,23 @@
   "metronome": {
    "name": "Metronome",
    "tags": [
+    "damageMultOnRepeat",
     "flingable"
    ],
    "uses": 19,
    "params": {
+    "damageMultOnRepeat": {
+     "steps4096": [
+      4096,
+      4915,
+      5734,
+      6553,
+      7372,
+      8192
+     ],
+     "cap": 5,
+     "denom": 4096
+    },
     "flingable": {
      "basePower": 30,
      "status": null,
@@ -23692,10 +23755,15 @@
   "shellbell": {
    "name": "Shell Bell",
    "tags": [
+    "healFromDamageDealt",
     "flingable"
    ],
    "uses": 44,
    "params": {
+    "healFromDamageDealt": {
+     "div": 8,
+     "basis": "totalDamage"
+    },
     "flingable": {
      "basePower": 30,
      "status": null,

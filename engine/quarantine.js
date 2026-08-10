@@ -104,15 +104,25 @@ function rosterStage(stage) {
      * with an `ok` flag; a red that did not behave as the rule predicted means the rule is not proven,
      * so the stage's greens are not evidence either. */
     const badReds = (j.reds || []).filter(r => r && r.ok === false).length;
+    /* THE CLOSET DOES NOT HOLD THE GATE — BUT A STALE SHELF DOES. An entity the owner deferred by
+     * name (tests/roster.js DEFERRED) is still staged and still played; it is simply not counted as a
+     * failure. What IS counted is a deferral whose row would now pass on its own: that shelf has
+     * quietly become a false claim, and the roster marks it `would_pass_now`. Same discipline as the
+     * DECLARED staleness check, which once retracted its own author's declaration. */
+    const deferred = (j.results || []).filter(r => r && r.verdict === 'DEFERRED-BY-OWNER');
+    const staleShelf = deferred.filter(r => r.would_pass_now).length;
     return {
       stage, file: 'data/' + f, generated: j.generated || null, release: j.engine_release || null,
       differ, silent, badReds, matched: c['FIRED-AND-BOARDS-MATCH'] || 0,
       couldNotStage: c['COULD-NOT-STAGE'] || 0,
-      ok: differ === 0 && silent === 0 && badReds === 0,
-      why: differ === 0 && silent === 0 && badReds === 0
+      deferred: deferred.length, staleShelf,
+      ok: differ === 0 && silent === 0 && badReds === 0 && staleShelf === 0,
+      why: differ === 0 && silent === 0 && badReds === 0 && staleShelf === 0
         ? `clean: ${c['FIRED-AND-BOARDS-MATCH'] || 0} fired and matched`
+          + (deferred.length ? ` (${deferred.length} deferred by the owner, still staged and printed)` : '')
         : `${differ} FIRED-AND-BOARDS-DIFFER, ${silent} DID-NOT-FIRE`
-          + (badReds ? `, ${badReds} red demonstration(s) did not behave as their rule predicted` : ''),
+          + (badReds ? `, ${badReds} red demonstration(s) did not behave as their rule predicted` : '')
+          + (staleShelf ? `, ${staleShelf} DEFERRAL(S) NOW PASS ON THEIR OWN — take the shelf down` : ''),
     };
   }
   return {
