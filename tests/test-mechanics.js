@@ -899,21 +899,106 @@ probe('move', 'stalling', 'a shield answers before the accuracy roll, so a MISSI
  * `contact` 444,874, `priority` 359,331. Move coverage read 9.3% of USAGE armed against 260 of 277
  * moves LIVE, and the gap is entirely that the handful of tags the biggest moves carry were the
  * ones nobody had declared arms on. Every control below was already being computed. */
-probe('move', 'flinches', 'Fake Out stops the foe attacking', () => {
-  const run = (useFO) => {
+/* THE BAR IS A RATE, NOT NON-ZERO, AND THE OLD VERSION OF THIS PROBE COULD NOT TELL THE DIFFERENCE.
+ *
+ * It clicked FAKE OUT and asserted the foe dealt less damage. Fake Out is `pFlinch: 1` — `rng() < 1`
+ * is true for every draw a generator can produce, so the one member of this family that was probed is
+ * the one member whose probability proves NOTHING about the die. CLAUDE.md's mega lesson, one field
+ * over: "non-zero is not always a strong enough bar".
+ *
+ * So the rate is measured, over a SEEDED generator so the number is a fact rather than a sample, with
+ * both ends of the range bracketed: Knock Off carries no flinch at all and must read 0, Fake Out is
+ * certain and must read 100, and the two members Will named must land on their own declared
+ * probability times their accuracy — Rock Slide 0.3 x 90% = 27, Iron Head 0.2 (this FORMAT's, not the
+ * generic 0.3) x 100% = 20.
+ *
+ * THE FOURTH ARM IS THE ONE THAT MATTERS MOST, and it is here because a report reached this division
+ * on 2026-08-10 saying Rock Slide and Iron Head never flinch at all, measured at 0 of 600. They do.
+ * That measurement staged an attacker that MOVED SECOND: a flinch applied to a body that has already
+ * taken its turn does nothing, in this engine and in Showdown alike (`unresolved.has(tg)` is the
+ * question, and `MEDSEEN.flinchTooLate` counted 571 of those 600 turns). Fake Out passed the same
+ * staging only because +3 priority made it the one move in the sample that moved first. So the
+ * attacker's speed is set EXPLICITLY here, and the moved-second case is asserted as its own arm — a
+ * probe that cannot tell "the flinch is dead" from "the flinch was too late" is the probe that
+ * produced the report. */
+probe('move', 'flinches', 'a secondary flinch fires at ITS OWN probability, not only at p=1', () => {
+  /* mulberry32. The engine takes its generator as an argument, so a probe that wants a RATE can hand
+     it a seeded one and get the same number every run — no tolerance is spent on flake. */
+  const seeded = (s) => { let a = s >>> 0; return () => {
+    a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
+  /* THE FOE'S OWN OUTPUT IS THE RECEIPT, not MEDSEEN.flinch — a counter can increment on a body that
+     already moved. Everything is made unfaintable so a KO cannot masquerade as a flinch. */
+  const rate = (mvId, n, attackerFirst) => {
+    const rng = seeded(20260810); let silent = 0;
+    for (let i = 0; i < n; i++) {
+      const me = bare('archaludon'), ally = bare('incineroar');
+      const f1 = bare('torterra'), f2 = bare('garchomp');
+      unfaintable(me); unfaintable(f1); unfaintable(f2);
+      if (attackerFirst) { me.st.sp = 400; f1.st.sp = 1; f2.st.sp = 1; }
+      else { me.st.sp = 1; f1.st.sp = 400; f2.st.sp = 400; }
+      const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+      const before = me.curHP;
+      M.battleTurn(S, rng,
+        new Map([[me, M.playerAction(me, mvId, f1, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, M.playerAction(f1, 'knockoff', me, S.field)], [f2, { kind: 'pass' }]]));
+      if (me.curHP === before) silent++;
+    }
+    return 100 * silent / n;
+  };
+  const N = 4000;
+  const none = rate('knockoff', N, true), sure = rate('fakeout', N, true);
+  const rock = rate('rockslide', N, true), iron = rate('ironhead', N, true);
+  const late = rate('rockslide', N, false);
+  return { works: none === 0 && sure === 100
+                  && Math.abs(rock - 27) < 2.5 && Math.abs(iron - 20) < 2.5 && late === 0,
+           arms: { control: none, test: rock },
+           detail: `over ${N} seeded turns each, the foe's own Knock Off is the receipt — Knock Off `
+                 + `at the user ${none.toFixed(1)}% (no flinch on the move, must be 0), Fake Out `
+                 + `${sure.toFixed(1)}% (must be 100), Rock Slide ${rock.toFixed(1)}% (0.3 x 90% acc `
+                 + `= 27), Iron Head ${iron.toFixed(1)}% (this format's 0.2 x 100% = 20); and Rock `
+                 + `Slide with the ATTACKER MOVING SECOND ${late.toFixed(1)}% (must be 0 — a flinch `
+                 + 'cannot reach a body that has already acted)' };
+});
+
+/* WIRE 156 — FAKE OUT'S FLINCH IS A SECONDARY, AND A HARDCODE SAID IT WAS NOT.
+ *
+ * `if(a.move.id==='fakeout'){ ... tg._flinch=true }` sat OUTSIDE the secondary loop, so it bypassed
+ * both suppressions the loop honours. Showdown's own data: Fake Out is
+ * `secondaries:[{chance:100, volatileStatus:'flinch'}]`; Shield Dust is
+ * `secondaries.filter(effect => !!effect.self)`; Sheer Force is `delete move.secondaries`. Both
+ * delete it. Measured in the official engine at the Champions format before the fix — Incineroar Fake
+ * Out into a Vivillon clicking Bug Buzz back: the Compound Eyes control gets `|cant|flinch` and no
+ * Bug Buzz, the Shield Dust arm gets no `|cant|` line and 52 damage back, the Sheer Force arm gets no
+ * `|cant|` line, 52 damage back, and Fake Out hitting for 39 instead of 29. MEDICHAM flinched in all
+ * three.
+ *
+ * THIS IS THE PROBE THE FAMILY DID NOT HAVE. The rate probe above asks whether the die is rolled; this
+ * asks whether the SUPPRESSIONS reach the p=1 member, which is exactly the question a hardcode hides.
+ * Vivillon is the format's only Shield Dust body with an MC row, so it is the defender in all three
+ * arms and the ability is the only thing that varies. */
+probe('move', 'flinches', "Fake Out's flinch is a SECONDARY — Shield Dust and Sheer Force delete it", () => {
+  const foeStruckBack = (attAb, defAb) => {
     const me = bare('incineroar'), ally = bare('incineroar');
-    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    const f1 = bare('vivillon'), f2 = bare('garchomp');
+    unfaintable(me); unfaintable(f1);
+    me.ability = attAb; f1.ability = defAb;
     const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
-    const fa = new Map([[me, useFO ? M.playerAction(me, 'fakeout', f1, S.field) : { kind: 'pass' }],
-                        [ally, { kind: 'pass' }]]);
-    const fb = new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]);
     const before = me.curHP;
-    M.battleTurn(S, rng5, fa, fb);
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'fakeout', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'bugbuzz', me, S.field)], [f2, { kind: 'pass' }]]));
     return before - me.curHP;
   };
-  const control = run(false), test = run(true);
-  return { works: test < control && control > 0, arms: { control, test },
-           detail: `foe dealt ${control} without  ->  ${test} after Fake Out` };
+  const plain = foeStruckBack('none', 'none');
+  const dust = foeStruckBack('none', 'shielddust');
+  const sheer = foeStruckBack('sheerforce', 'none');
+  return { works: plain === 0 && dust > 0 && sheer > 0 && dust === sheer,
+           arms: { control: plain, test: dust },
+           detail: `Fake Out at a Vivillon that clicked Bug Buzz back — quiet abilities: the foe dealt `
+                 + `${plain} (flinched, must be 0); the foe holds SHIELD DUST: ${dust} (must be >0); `
+                 + `the user holds SHEER FORCE: ${sheer} (must be >0, and equal to the Shield Dust arm `
+                 + 'because both delete the same secondary)' };
 });
 
 /* ARMS DECLARED, 2026-08-06 (#42/#45 part 3), AND THESE TEN WERE PICKED BY A NUMBER RATHER THAN BY
@@ -5494,6 +5579,114 @@ probe('move', 'hazard', 'Stealth Rock chips what comes in afterwards', () => {
            detail: 'the switch-in (Staraptor, 4x weak to Rock) lost ' + control.lost + ' after Howl '
                  + '(came in=' + control.cameIn + ', must be 0) and ' + test.lost + ' after Stealth Rock '
                  + '(came in=' + test.cameIn + ')' };
+});
+
+/* HOW MANY LAYERS, 2026-08-10. The probe above proves a hazard LANDS and says nothing about how many
+ * times it lands. WIRE 41 incremented unconditionally, and the comment sitting over that line argued
+ * the gap did not matter because "re-laying it is a wasted turn either way" -- true of the CLICK,
+ * false of the BOARD, and the board is what the game differential compares. Measured before a byte
+ * moved, three clicks of each of the four: {spikes:3, toxicspikes:3, stealthrock:3, stickyweb:3}
+ * against the authority's 3 / 2 / 1 / 1.
+ *
+ * SPIKES AND TOXIC SPIKES ARE THE CONTROL, and they are the arm that can fail in the WORSE direction:
+ * a cap that stops everything at one layer trades a phantom second Stealth Rock for a real missing
+ * Spikes layer, which is maxhp/8 of actual damage per switch-in. Both are asserted rather than
+ * assumed, and both counts are printed so a null result reads as a null result. */
+probe('move', 'hazard', 'a single-layer hazard stops at ONE layer while Spikes still stacks to three', () => {
+  const layers = (mv) => {
+    const me = bare('garchomp'), ally = bare('corviknight');
+    const f1 = bare('incineroar'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    for (let t = 0; t < 3; t++)
+      M.battleTurn(S, rng5,
+        new Map([[me, M.playerAction(me, mv, null, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    /* The layer bag lives on the SIDE object every member of that team shares by reference, so it is
+     * read off a body standing in the slot rather than out of anything this probe built. */
+    return ((f1._sf && f1._sf.hz) || {})[mv] || 0;
+  };
+  const control = { spikes: layers('spikes'), toxicspikes: layers('toxicspikes') };
+  const test = { stealthrock: layers('stealthrock'), stickyweb: layers('stickyweb') };
+  return { works: control.spikes === 3 && control.toxicspikes === 2
+                  && test.stealthrock === 1 && test.stickyweb === 1,
+           arms: { control, test },
+           detail: 'three clicks of each -- STACKING control: spikes ' + control.spikes + ' (must be 3), '
+                 + 'toxicspikes ' + control.toxicspikes + ' (must be 2)   |   single-layer: stealthrock '
+                 + test.stealthrock + ' (must be 1), stickyweb ' + test.stickyweb + ' (must be 1)' };
+});
+
+/* ROADMAP #72, 2026-08-10. An ATTACKING move that lays a hazard. Ceaseless Edge and Stone Axe carry
+ * `secondaries: [{}]` -- an EMPTY secondary object, which exists only so Sheer Force can see one --
+ * and lay the layer from `onAfterHit` / `onAfterSubDamage`. Nothing in the dex says `sideCondition`
+ * on either move, so tag_dex derived no hazard tag at all and the engine's hazard branch, which
+ * works, was never reached. Measured before a byte moved: Stone Axe into a foe left `hz` UNDEFINED,
+ * and the interaction matrix has been reading `.B.hazards.stealthrock medi=null sd=1` on six pairs.
+ *
+ * THE OUTCOME, NOT THE CLASSIFICATION: the body that walks in afterwards either loses HP or it does
+ * not. Stone Edge is the control -- the same 65-105 BP physical Rock click, the same target, the same
+ * turn spent, no layer -- so "the switch-in got chipped" cannot be an entry residual this engine
+ * applies to everybody. Both arms assert the attack CONNECTED, because an unchipped switch-in and a
+ * move that never landed read identically from HP alone. */
+probe('move', 'hazardOnHit', 'Stone Axe lays Stealth Rock, so the next body in is chipped', () => {
+  const run = (mv) => {
+    const me = bare('garchomp'), ally = bare('corviknight');
+    const f1 = bare('incineroar'), f2 = bare('milotic'), fbench = bare('staraptor');
+    const S = M.battleInit([me, ally], [f1, f2, fbench], { seeded: true });
+    unfaintable(f1);
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const dealt = f1.st.hp - f1.curHP;
+    const before = fbench.curHP;
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, { kind: 'switch', to: fbench }], [f2, { kind: 'pass' }]]));
+    return { connected: dealt > 0, cameIn: S.actB.indexOf(fbench) >= 0, lost: before - fbench.curHP,
+             hz: ((f1._sf && f1._sf.hz) || {}).stealthrock || 0 };
+  };
+  const control = run('stoneedge'), test = run('stoneaxe');
+  return { works: control.connected && control.cameIn && control.lost === 0 && control.hz === 0
+                  && test.connected && test.cameIn && test.lost > 0 && test.hz === 1,
+           arms: { control, test },
+           detail: 'Stone Edge (control, connected=' + control.connected + '): switch-in lost '
+                 + control.lost + ' with ' + control.hz + ' layers (both must be 0)   |   Stone Axe '
+                 + '(connected=' + test.connected + '): switch-in lost ' + test.lost + ' with '
+                 + test.hz + ' layer (must be 1)' };
+});
+
+/* THE REFUSAL HALF of the same wire, and it is the half a "does it fire" probe cannot see. The
+ * handler is `onAfterHit` PLUS `onAfterSubDamage`, and the pair is a statement about exactly which
+ * failures stop it: a MISS and a PROTECT stop it, a SUBSTITUTE does NOT -- the second handler exists
+ * precisely so the layer still goes down when the doll ate the hit. So a fix that lays the hazard at
+ * click time would pass the probe above and fail here, which is why the refusals are separated out.
+ *
+ * THE STACK IS ASSERTED HERE TOO, and deliberately: Ceaseless Edge lays SPIKES, whose cap is three,
+ * so the layer count has to come from the hazard that was LAID and never from the move that laid it.
+ * A cap read off the wrong entity gives 1 here and passes every other arm. */
+probe('move', 'hazardOnHit', 'Ceaseless Edge lays Spikes only when it connects -- through a Sub, not through a Protect', () => {
+  const spikesAfter = (mode) => {
+    const me = bare('garchomp'), ally = bare('corviknight');
+    const f1 = bare('incineroar'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(f1);
+    const swing = (rngIn, foeAct) => M.battleTurn(S, rngIn,
+      new Map([[me, M.playerAction(me, 'ceaselessedge', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, foeAct], [f2, { kind: 'pass' }]]));
+    if (mode === 'protect') swing(rng5, M.playerAction(f1, 'protect', null, S.field));
+    else if (mode === 'miss') swing(rngLose, { kind: 'pass' });
+    else if (mode === 'sub') {
+      M.battleTurn(S, rng5, PASS2(me, ally),
+        new Map([[f1, M.playerAction(f1, 'substitute', null, S.field)], [f2, { kind: 'pass' }]]));
+      swing(rng5, { kind: 'pass' });
+    } else for (let t = 0; t < 3; t++) swing(rng5, { kind: 'pass' });
+    return ((f1._sf && f1._sf.hz) || {}).spikes || 0;
+  };
+  const control = { protect: spikesAfter('protect'), miss: spikesAfter('miss') };
+  const test = { threeHits: spikesAfter('hit'), throughSub: spikesAfter('sub') };
+  return { works: control.protect === 0 && control.miss === 0
+                  && test.threeHits === 3 && test.throughSub === 1,
+           arms: { control, test },
+           detail: 'REFUSAL control: Protected ' + control.protect + ' layers, missed ' + control.miss
+                 + ' layers (both must be 0)   |   three connecting hits ' + test.threeHits
+                 + ' layers (Spikes caps at 3), through a Substitute ' + test.throughSub
+                 + ' layer (onAfterSubDamage -- must be 1)' };
 });
 
 probe('move', 'blocksHealing', 'Psychic Noise stops the target healing', () => {

@@ -475,6 +475,38 @@ function STAT_OP(h) {
   return null;
 }
 
+/* HOW MANY LAYERS A NAMED SIDE HAZARD STACKS TO, read out of the authority's own condition.
+ *
+ * ONE FUNCTION, because two consumers need the same fact from opposite directions: the `hazard` tag
+ * asks about the hazard a status move DECLARES, and `hazardOnHit` asks about the hazard a damaging
+ * move NAMES INSIDE ITS HANDLER. A second copy of this rule would eventually disagree with the first
+ * and nothing would notice, which is the failure CLAUDE.md's "facts are global" rule exists to stop.
+ *
+ * THE RULE IS STRUCTURAL AND HAS NO NAME LIST IN IT. Showdown lets a side condition be re-laid only
+ * if its condition declares `onSideRestart`, and that handler carries its own ceiling as a literal:
+ *
+ *     onSideRestart(side) { if (this.effectState.layers >= 3) return false; ... layers++; }
+ *
+ * So: no `onSideRestart` -> the condition cannot be re-laid -> the cap is exactly 1. With one -> the
+ * cap is the number the handler tests. NULL is returned when a handler exists and its ceiling cannot
+ * be read, and that is deliberate: a consumer must be able to tell "no cap stated" from "a cap of 1",
+ * because guessing 1 would delete real Spikes layers.
+ *
+ * Measured over every move in the format the day it was written: spikes 3, toxicspikes 2,
+ * stealthrock 1, stickyweb 1. */
+function hazardCap(cond) {
+  let c; try { c = dex.conditions.get(cond); } catch (e) { return null; }
+  const rs = String((c && c.onSideRestart) || '');
+  if (!rs) return 1;
+  const mm = rs.match(/layers\s*>=\s*(\d+)/);
+  if (!mm) {
+    console.error('tag_dex: "' + cond + '" has an onSideRestart whose ceiling could not be read; '
+      + 'emitting maxLayers: null rather than guessing.');
+    return null;
+  }
+  return +mm[1];
+}
+
 const MOVE_TAGS = [
   /* NEW 2026-08-08 -- THE MOVE THAT SPENDS THE USER'S OWN ITEM, and it is the mirror image of
    * `removesItem` rather than a member of it: Knock Off takes what the TARGET holds, this throws what
@@ -1819,10 +1851,67 @@ const MOVE_TAGS = [
       if (st) out.startsAs = st[1];
       return out;
     } },
-  { tag: 'hazard', param: 'their side is damaged or slowed on switch-in, until removed', probe: 'hazard',
+  /* HOW MANY LAYERS IS PART OF THE FACT, and this tag carried only WHICH hazard until 2026-08-10 --
+   * so the one consumer (medicham2's WIRE 41) incremented unconditionally and a re-clicked Stealth
+   * Rock stood at two layers against the authority's one. Measured on a turn-3 re-click, ours 2 /
+   * Showdown 1 for both stealthrock and stickyweb.
+   *
+   * DERIVED FROM THE AUTHORITY'S OWN CONDITION, NEVER FROM A NAME LIST. Showdown expresses the whole
+   * rule in one place: a hazard that can be re-laid has an `onSideRestart` handler and that handler
+   * states its own ceiling (`if (this.effectState.layers >= 3) return false`). A hazard with NO
+   * `onSideRestart` cannot be re-laid at all, which is a cap of exactly one. Printed before it was
+   * wired, over every move in the format: spikes 3, toxicspikes 2, stealthrock 1, stickyweb 1 -- four
+   * moves, no others, and the two that were wrong are the two the differential named.
+   *
+   * A HANDLER WHOSE CEILING CANNOT BE READ EMITS `maxLayers: null` RATHER THAN A GUESS. That is a
+   * loud absence: the consumer counts it and keeps the old uncapped behaviour rather than silently
+   * inventing a 1, because a wrong cap of 1 deletes real Spikes damage and is worse than the defect
+   * it would be replacing. */
+  { tag: 'hazard', param: 'their side is damaged or slowed on switch-in, until removed -- and HOW MANY layers it stacks to', probe: 'hazard',
     why: 'Stealth Rock, Spikes, Toxic Spikes, Sticky Web. Does nothing THIS turn -- it prices their '
        + 'future switches, which is a decision MAG does not model at all',
-    of: m => (m.sideCondition && m.target === 'foeSide') ? { hazard: m.sideCondition } : null },
+    of: m => {
+      if (!(m.sideCondition && m.target === 'foeSide')) return null;
+      return { hazard: m.sideCondition, maxLayers: hazardCap(m.sideCondition) };
+    } },
+  /* ROADMAP #72 -- AN ATTACKING MOVE THAT LAYS A HAZARD, and it is a TAG-DERIVATION gap rather than
+   * an engine one: medicham2's hazard branch works, and nothing routed these two moves to it.
+   *
+   * Ceaseless Edge and Stone Axe declare NO `sideCondition` at all. What they declare is
+   * `secondaries: [{}]` -- an empty secondary object, which exists only so Sheer Force can see that
+   * the move has a secondary -- and the layer is laid from `onAfterHit` PLUS `onAfterSubDamage`. So
+   * every rule this file already had (target === 'foeSide', a declared sideCondition) misses them
+   * completely, and their tag rows held `contact` and `moveClass` and nothing else.
+   *
+   * IT IS A SEPARATE TAG FROM `hazard` ON PURPOSE. `hazard` means "the whole click is the hazard",
+   * and medicham2's action classifier returns `kind:'hazard'` -- a status turn with no damage -- for
+   * anything carrying it. Stone Axe is a 65 BP physical Rock attack that ALSO lays; putting it under
+   * `hazard` would risk trading its damage for its layer on any path that reaches the classifier.
+   * Two different shapes, two tags, and a consumer that wants "does this lay rocks" reads both.
+   *
+   * THE CAP COMES FROM THE HAZARD THAT IS LAID, NOT FROM THE MOVE THAT LAYS IT: Ceaseless Edge lays
+   * Spikes and stacks to three, Stone Axe lays Stealth Rock and stops at one. Same `hazardCap`
+   * lookup the declared family uses, so the two can never disagree.
+   *
+   * PRINTED BEFORE IT WAS WIRED, over every move in the format: exactly two members, and a sweep for
+   * `addSideCondition` in ANY handler of ANY move returns the same two. No over-match. */
+  { tag: 'hazardOnHit', param: 'a DAMAGING move that lays a hazard on the foe side when it CONNECTS', probe: 'hazardOnHit',
+    why: 'Ceaseless Edge and Stone Axe, whose hazard lives in onAfterHit and had no tag at all -- so '
+       + 'the engine laid nothing. Stone Axe is used roughly twice as often as Stealth Rock itself',
+    of: m => {
+      if (m.sideCondition) return null;   /* the declared family is `hazard`'s, above */
+      const src = String(m.onAfterHit || '') + '\n' + String(m.onAfterSubDamage || '');
+      /* BOTH QUOTE STYLES, for the reason written on sideBuff's `startsAs`: the dex is read out of
+       * `dist/`, which is COMPILED, and the compiler rewrites single quotes to double ones. */
+      const h = (src.match(/addSideCondition\(\s*["'](\w+)["']/) || [])[1];
+      if (!h) return null;
+      /* WHICH FAILURES STOP IT is the half a "does it fire" consumer gets wrong, so the pair of
+       * handlers is reported rather than inferred. `onAfterSubDamage` present means the layer goes
+       * down even when a Substitute ate the hit; `onAfterHit` alone would not. A miss and a Protect
+       * stop both, because neither handler runs at all. */
+      return { hazard: h, maxLayers: hazardCap(h),
+               throughSubstitute: !!m.onAfterSubDamage, onlyOnConnect: true };
+    } },
   /* Will: "does the engine know what the boostsUser actually boosts". IT DOES NOT. board.js has
    * movesBoostMe, which is a SIGN (+1/0/-1) from expectedBoostSign -- so Swords Dance (+2 Atk),
    * Calm Mind (+1 SpA/SpD) and Dragon Dance (+1 Atk/+1 SPE) all read identically, even though only

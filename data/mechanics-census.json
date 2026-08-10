@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-10T19:01:00.425Z",
+  "generated": "2026-08-10T19:35:22.711Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 377,
-  "live": 377,
+  "probed": 381,
+  "live": 381,
   "missing": 0,
-  "armed": 377,
+  "armed": 381,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -184,9 +184,19 @@
     {
       "kind": "move",
       "tag": "flinches",
-      "label": "Fake Out stops the foe attacking",
+      "label": "a secondary flinch fires at ITS OWN probability, not only at p=1",
       "live": true,
-      "detail": "foe dealt 167 without  ->  0 after Fake Out",
+      "detail": "over 4000 seeded turns each, the foe's own Knock Off is the receipt — Knock Off at the user 0.0% (no flinch on the move, must be 0), Fake Out 100.0% (must be 100), Rock Slide 26.6% (0.3 x 90% acc = 27), Iron Head 20.6% (this format's 0.2 x 100% = 20); and Rock Slide with the ATTACKER MOVING SECOND 0.0% (must be 0 — a flinch cannot reach a body that has already acted)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "flinches",
+      "label": "Fake Out's flinch is a SECONDARY — Shield Dust and Sheer Force delete it",
+      "live": true,
+      "detail": "Fake Out at a Vivillon that clicked Bug Buzz back — quiet abilities: the foe dealt 0 (flinched, must be 0); the foe holds SHIELD DUST: 61 (must be >0); the user holds SHEER FORCE: 61 (must be >0, and equal to the Shield Dust arm because both delete the same secondary)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1983,6 +1993,36 @@
     },
     {
       "kind": "move",
+      "tag": "hazard",
+      "label": "a single-layer hazard stops at ONE layer while Spikes still stacks to three",
+      "live": true,
+      "detail": "three clicks of each -- STACKING control: spikes 3 (must be 3), toxicspikes 2 (must be 2)   |   single-layer: stealthrock 1 (must be 1), stickyweb 1 (must be 1)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "hazardOnHit",
+      "label": "Stone Axe lays Stealth Rock, so the next body in is chipped",
+      "live": true,
+      "detail": "Stone Edge (control, connected=true): switch-in lost 0 with 0 layers (both must be 0)   |   Stone Axe (connected=true): switch-in lost 40 with 1 layer (must be 1)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "hazardOnHit",
+      "label": "Ceaseless Edge lays Spikes only when it connects -- through a Sub, not through a Protect",
+      "live": true,
+      "detail": "REFUSAL control: Protected 0 layers, missed 0 layers (both must be 0)   |   three connecting hits 3 layers (Spikes caps at 3), through a Substitute 1 layer (onAfterSubDamage -- must be 1)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "blocksHealing",
       "label": "Psychic Noise stops the target healing",
       "live": true,
@@ -2506,7 +2546,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.8% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

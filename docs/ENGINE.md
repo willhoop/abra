@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  377/377 probed mechanics live, 0 missing   (census 2026-08-10 18:56)
-  0/20000 differential comparisons disagree with Showdown   (2026-08-10 18:57)
+  381/381 probed mechanics live, 0 missing   (census 2026-08-10 19:30)
+  0/20000 differential comparisons disagree with Showdown   (2026-08-10 19:25)
     seed 20260804, requested 20000, 850 not comparable (multihit 630, non-finite 0, threw 220)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
@@ -54,12 +54,158 @@ ENGINE — does the simulator do what Pokémon does
     whole-game agreement 7/1997 -> 134/1997; first-divergence line, mean 14.78 -> 33.98
     paired against the baseline: 1295 games part later, 116 EARLIER, 586 unchanged
     the baseline ran first and last and reproduced exactly; comparability: every arm cleared
-  tag coverage: 189/200 probed, 11 unprobed
+  tag coverage: 190/201 probed, 11 unprobed
 ```
 
-_stamped 2026-08-10 18:59_
+_stamped 2026-08-10 19:35_
 
 <!-- /GENERATED -->
+
+## WIRE 156 — THE FLINCH DICE WERE FINE. THE HARDCODE BESIDE THEM WAS NOT. 2026-08-10.
+
+**THE REPORT THAT ARRIVED WAS WRONG, AND SAYING SO IS THE FIRST HALF OF THIS ROW.** ENGINE was
+handed a measurement — *"a secondary flinch never fires unless its probability is 1"* — with Rock
+Slide at 0 of 600, Iron Head at 0 of 600 and Fake Out at 600 of 600, and was asked to fix Rock Slide
+and Iron Head by name. **Both moves were already correct.** Reproduced exactly, then explained:
+
+```
+the reported board, reproduced (real Archaludon vs real Torterra, natural speeds)
+  rockslide   silent  0.0%   MEDSEEN.flinchTooLate  571 of 1000
+  ironhead    silent  0.0%   MEDSEEN.flinchTooLate  185 of 1000
+  fakeout     silent 100.0%  flinchTooLate 0
+
+the same board with the attacker's speed set EXPLICITLY so it moves first
+  rockslide   silent 26.4%   (0.3 x 90% accuracy = 27.0)
+  ironhead    silent 20.4%   (this FORMAT's 0.2 x 100% = 20.0)
+  fakeout     silent 100.0%
+  knockoff    silent  0.0%   (control — the move carries no flinch)
+```
+
+The attacker was **moving second**. A flinch applied to a body that has already taken its turn does
+nothing, here and in Showdown alike — `unresolved.has(tg)` is that question and
+`MEDSEEN.flinchTooLate` is its receipt, which is why that counter exists rather than a bare
+`MEDSEEN.flinch`. **Fake Out passed the same staging only because +3 priority made it the one move in
+the sample that moved first.** The probe was wrong before the engine was, for the fifteenth-or-so
+time, and it was wrong toward a confident, actionable answer.
+
+**THE WHOLE FAMILY, MEASURED RATHER THAN ARGUED.** All nineteen `flinches` carriers in
+`data/tags.json`, 2,000 staged turns each, the foe's own Knock Off as the receipt:
+
+| | declared x accuracy | measured | |
+|---|---|---|---|
+| fakeout (17,104) | 100.0 | 100.0 | |
+| rockslide (15,620) | 27.0 | 26.4 | |
+| ironhead (9,328) | 20.0 | 20.4 | the format's 0.2, not the generic 0.3 — WIRE 89 |
+| darkpulse (2,154) | 20.0 | 19.5 | |
+| iciclecrash, waterfall, airslash, zenheadbutt, triplearrows, upperhand, dragonrush, extrasensory, firefang, bite, mountaingale, snore | 27.0 / 20.0 / 28.5 / 18.0 / 30.0 / 100.0 / 15.0 / 10.0 / 9.5 / 30.0 / 25.5 / 30.0 | 27.8 / 18.8 / 29.0 / 18.7 / 30.7 / 100.0 / 15.8 / 9.8 / 10.1 / 29.0 / 24.5 / 29.4 | |
+| icefang (852) | 9.5 | 17.0 | **the PROBE, not the engine** — Ice Fang also freezes 10%, and a frozen foe deals no damage either |
+| thunderfang (15) | 9.5 | 0.0 | **the PROBE** — Electric into a Grass/Ground Torterra is an immunity, so nothing connects |
+| skyattack (8) | 27.0 | 0.0 | **correct** — `chargeTurn`, so turn 1 deals no damage and rolls no secondary |
+
+Seventeen of nineteen land within sampling error. The two that do not are both my staging, named
+separately rather than folded into the finding, because a family measurement that quietly counts a
+freeze as a flinch is the same defect one level up.
+
+### THE DEFECT THAT WAS ACTUALLY THERE, AND IT IS ADJACENT
+
+```js
+// Fake Out still flinches: it is a guaranteed flinch, and it always moves first (+3 priority)
+if(a.move.id==='fakeout'){ ... tg._flinch=true; MEDSEEN.flinch++; }
+```
+
+That sat **outside** `if(fx&&fx.secondary&&!sheerForce)` and outside `dustBlocked`. Fake Out's flinch
+is not a special case — it is a **secondary**, and the authority is unambiguous:
+`secondaries:[{chance:100, volatileStatus:'flinch'}]`, Shield Dust is
+`secondaries.filter(effect => !!effect.self)`, Sheer Force is `delete move.secondaries`. **Both
+delete it. This engine honoured neither.** Measured in the official engine at the Champions format
+before a line changed — Incineroar Fake Out into a Vivillon clicking Bug Buzz back:
+
+| p1 ability | p2 ability | the authority | MEDICHAM |
+|---|---|---|---|
+| Blaze | Compound Eyes | `\|cant\|p2a: Vivillon\|flinch`, no Bug Buzz | flinched |
+| Blaze | **Shield Dust** | no `\|cant\|` line, Bug Buzz for 52 | **flinched** |
+| **Sheer Force** | Compound Eyes | no `\|cant\|` line, Bug Buzz for 52, and Fake Out hit for 39 instead of 29 | **flinched** |
+
+**THE FIX IS A DELETION.** `data/move-effects.js` already carries fakeout's
+`{chance:100, volatile:'flinch'}`, so the shared loop was firing on every Fake Out **anyway** —
+`MEDSEEN.flinch` read **200% of turns** for a single-target 100% flinch, which is the receipt that
+both paths ran and the reason removing one changes nothing except the two suppressions.
+
+### WHY IT SURVIVED, IN ONE SENTENCE
+
+**p = 1 is the only probability at which `rng() < p` cannot tell a working die from a dead one**, Fake
+Out was the only member of the family anybody had probed, and it reached the flinch by a road that no
+other member used. The old probe — *"Fake Out stops the foe attacking"* — could not have caught either
+this or the thing it was accused of.
+
+### THE TWO PROBES
+
+- `move flinches` — *"a secondary flinch fires at ITS OWN probability, not only at p=1"*, **replacing**
+  the Fake Out one-armer. A **rate** over 4,000 turns off a **seeded** generator (so it is a fact, not
+  a sample, and no tolerance is spent on flake), with four assertions bracketing it: Knock Off `0`,
+  Fake Out `100`, Rock Slide within 2.5 of 27, Iron Head within 2.5 of 20 — **and a fourth arm that
+  is the whole reason the report was wrong**: Rock Slide with the attacker moving SECOND must read 0.
+  A probe that cannot tell *the flinch is dead* from *the flinch was too late* is the probe that
+  produced the report.
+- `move flinches` — *"Fake Out's flinch is a SECONDARY — Shield Dust and Sheer Force delete it"*, the
+  new one, **watched RED before a line of the engine changed**. Vivillon is the format's only Shield
+  Dust body with an `MC` row, so it is the defender on all three arms and the ability is the only
+  thing that varies.
+
+### THE DIGEST SWEEP — 1,500 CELLS, 2 DIFFER, 0 THREW
+
+Every move in `data/tags.json` (500), three ability configurations each (**quiet**, defender **Shield
+Dust**, attacker **Sheer Force**), two real turns apiece, digested as the whole board — every
+primitive on all four active bodies and both benches, the field and both side conditions.
+
+```
+cells 1500   DIFF cells 2   THREW before 0  after 0
+  fakeout|dust
+  fakeout|sheer
+```
+
+**`fakeout|quiet` did NOT move, and that is the claim, not a disappointment**: the mechanic is
+preserved exactly and only the two suppressions arrive. 1,413 of the 1,500 digests are distinct, so
+the instrument is sensitive rather than flat. The throw count is printed beside the diff count for
+WIRE 150's reason.
+
+### CENSUS AND GATES
+
+**380 live / 1 missing → 381 live / 0 missing / 381 probed / 0 threw / 0 hollow / 0 unarmed /
+0 direct-call.** The before-arm is the pre-change engine bytes compiled under the real filename and
+run against the NEW probe file, so the one MISSING row is exactly the new probe and nothing else.
+*(The artifact on disk read 377 live / 380 probed / 3 missing; another ENGINE agent landed three
+fixes in `medicham2-browser.js` without regenerating it. Those three are theirs, not this row's.)*
+
+`tests/test-engine-diff.js --n 20000 --seed 20260804` — **agreed 20,000, disagreed 0**.
+`tests/test-damage-stages.js` **1728/1728 exact**. `test-medicham`, `test-engine-consistency`,
+`test-dead-volatile`, `test-tag-wire` (104 checks) and `test-wiring` (every capability proved it ran)
+all pass. **No release was cut.** `engine/game_differential.js` was run once **pinned to
+`b26893debcb0`**, whose `medicham2-browser.js` bytes are byte-identical to the live tree.
+
+**ONE GATE IS RED AND IT IS NOT THIS CHANGE'S — SAID, NOT FILED.**
+`tests/staged_board.js --only fakeout-flinch --reds` reports **`FAIL the planted proof case does not
+part`**: the clean arm is board-identical on all three turn boundaries, and so is the arm played with
+the flinch consumer disabled. Its own note records that this break used to part the boards by 69 HP on
+2026-08-07. **Red on the tree BEFORE this change** — measured on the clean tree before any edit — and
+it reads the FROZEN RELEASE's bytes rather than the live tree, so nothing here can have caused it or
+can fix it. It belongs to whoever owns `staged_board.js` / `game_differential.js`, and another agent is
+live in that file.
+
+### THE HAND LIST IS UNCHANGED
+
+Nothing on it was any of this; it is still empty except for Rivalry. Two items are **reported, not
+touched**:
+
+- **`tag_dex.js:3141` derives `{pFlinch: 0.1}` for King's Rock**, and the engine's consumer at the
+  `addsFlinch` site is the one the incoming report actually quoted. It is **correct** — measured at
+  the item's own 10% and already probed (`item addsFlinch`) — but another agent is in `tag_dex.js`, so
+  it was read and not edited.
+- **`data/tags.json` gives moves a `flinches {pFlinch}` param that NOTHING reads.** The engine takes
+  the chance from `statusInflict.effects[].chance` (WIRE 89's format-vs-generic reconciliation) and
+  from `move-effects.js`. Two artifacts stating the same fact is the shape CLAUDE.md warns about; it
+  is not a defect today because only one of them is consumed, and collapsing them is a tag-derivation
+  change, which is where the other agent is.
 
 ## WIRE 155 — WIRE 147 PINNED BOTH CORNERS AND NOT THE MIDDLE, SO THE 1.3x SURVIVED ITS OWN FIX. 2026-08-10.
 
@@ -5690,14 +5836,33 @@ and the surviving `-sidestart` rows are **hazards**, not screens.
 
 ### The boundaries — measured, declared, NOT fixed
 
-- **THE HAZARD HALF OF FAMILY A IS NOT DONE, and the reason is not a judgement call.** Stealth Rock
-  and Sticky Web declare no `onSideRestart`, so a second lay FAILS exactly like a Tailwind; Spikes and
-  Toxic Spikes DO, capped at 3 and 2. **The cap is not in `data/tags.json`** — the move's `hazard`
-  param carries only `{hazard:'spikes'}` — and `data/tags.json` **cannot be safely regenerated**
-  (ROADMAP #65, below: five entities would silently drop out of the engine's knowledge). Refusing all
-  four duplicates would break Spikes' second and third layer. It reads **6 games across 5 causes** at
-  the top rung (`|-fail| <> |-sidestart|p2:|stealthrock`, `…|stickyweb`) and is left alone with the
-  reason.
+- ~~**THE HAZARD HALF OF FAMILY A IS NOT DONE, and the reason is not a judgement call.**~~ **CLOSED
+  2026-08-10 — and BOTH stated blockers had expired, which is why the bullet is struck rather than
+  deleted.** The analysis above was right about the mechanism: Stealth Rock and Sticky Web declare no
+  `onSideRestart`, so a second lay FAILS exactly like a Tailwind; Spikes and Toxic Spikes DO, capped
+  at 3 and 2. What made it "not done" was two claims that stopped being true.
+  **(1) "The cap is not in `data/tags.json`."** It is now: the `hazard` param carries `maxLayers`,
+  derived by `tag_dex.js` from the authority's own condition — no `onSideRestart` means the condition
+  cannot be re-laid at all, which is a cap of one, and a handler that exists states its ceiling as a
+  literal. Printed over the whole format before wiring: spikes 3, toxicspikes 2, stealthrock 1,
+  stickyweb 1, four moves and no others.
+  **(2) "`data/tags.json` cannot be safely regenerated" (ROADMAP #65).** It was regenerated on
+  2026-08-10 with the diff taken both ways: **0 entities removed / 0 added / 6 changed**, and the six
+  are exactly the four hazard moves gaining `maxLayers` plus Ceaseless Edge and Stone Axe gaining
+  `hazardOnHit`. Nothing dropped out of the engine's knowledge.
+  **"Refusing all four duplicates would break Spikes' second and third layer" is the right worry and
+  it is now a CONTROL, not a caveat** — the probe asserts spikes 3 and toxicspikes 2 in the same call
+  it asserts stealthrock 1 and stickyweb 1, so a cap that flattens everything to one layer fails the
+  file. Proved by `tests/test-mechanics.js` → `move|hazard` *"a single-layer hazard stops at ONE layer
+  while Spikes still stacks to three"*. Measured before the fix: **all four read 3.**
+- **AND THE MOVES THAT LAY A HAZARD BY ATTACKING NOW LAY ONE (ROADMAP #72).** Ceaseless Edge (Spikes)
+  and Stone Axe (Stealth Rock) carry `secondaries: [{}]` — an EMPTY secondary object that exists so
+  Sheer Force can see one — with the layer laid from `onAfterHit`/`onAfterSubDamage` and **no
+  `sideCondition` declared anywhere**, so every rule keyed on `target === 'foeSide'` missed them and
+  their tag rows held `contact` and `moveClass` only. It was a **tag-derivation gap, not a hazard-code
+  gap**: the engine's hazard branch worked and nothing routed these two to it. Proved by two probes on
+  the new `hazardOnHit` tag, one of which is the refusal half — a Protect and a miss lay nothing, a
+  **Substitute does not stop it**, which is what the second handler in the authority is for.
 - **THE SIDE RESIDUAL SUB-ORDER IS NOT MODELLED.** Showdown's are reflect 1, lightscreen 2, tailwind
   5, auroraveil 10, and its per-Pokémon items sit at a different order entirely. This engine ticks
   Tailwind as a FIELD counter above the per-body loop, so a Leftovers heal and a `-sideend` on the

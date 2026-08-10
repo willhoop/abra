@@ -918,6 +918,48 @@ its fixture hashed against the live tree: **0 of 58 fixture features moved.** RE
 MEASURE's. `tests/test-no-silent-failure.js` is red at **21** new silent catches — the same 21 WIRE 146
 reported, none in `engine/medicham2-browser.js`; this wire added no `catch` at all.
 
+## WIRE 156 — THE FLINCH DICE WERE FINE. THE HARDCODE BESIDE THEM WAS NOT. 2026-08-10.
+
+Census **380 live / 1 missing → 381 live / 0 missing / 381 probed / 0 threw / 0 hollow / 0 unarmed /
+0 direct-call**, where the before-arm is the pre-change engine bytes compiled under the real filename
+against the NEW probe file, so the single MISSING row is exactly the new probe. Damage stages
+**1728/1728 exact**. `tests/test-engine-diff.js --n 20000 --seed 20260804` **agreed 20,000, disagreed
+0**. **No release was cut**; `engine/game_differential.js` was run once **pinned to `b26893debcb0`**,
+whose engine bytes are byte-identical to the live tree, and was not edited.
+
+| # | row | uses | what it was | verdict move |
+|---|---|---|---|---|
+| 33 | **Fake Out** | 17,104 | **THE INCOMING REPORT WAS WRONG AND THE ADJACENT DEFECT WAS REAL.** ENGINE was asked to fix *"a secondary flinch never fires unless its probability is 1"*, Rock Slide and Iron Head by name, at 0 of 600 each. **Both were already correct** — the reported staging had the attacker MOVING SECOND, `MEDSEEN.flinchTooLate` read 571 and 185 of 1,000, and Fake Out passed only because +3 priority made it the one move in the sample that moved first. With the attacker's speed set explicitly, **17 of the 19 `flinches` carriers land within sampling error** of `pFlinch × accuracy` (Rock Slide 26.4 against 27.0, Iron Head 20.4 against 20.0), and the two that do not are the probe's own staging, named separately. What WAS broken: `if(a.move.id==='fakeout'){…tg._flinch=true}` sat **outside** the secondary loop and outside `dustBlocked`, so **Shield Dust and Sheer Force both failed to delete a flinch the authority says is a secondary** (`secondaries:[{chance:100, volatileStatus:'flinch'}]`). Confirmed in the official engine at the Champions format on all three arms before a line changed. The fix is a **deletion**: `move-effects.js` already carried the 100% entry and the shared loop was firing anyway — `MEDSEEN.flinch` read **200% of turns** for a single-target certain flinch | *engine fixed; roster NOT re-run by me* |
+
+**WHY IT SURVIVED:** p = 1 is the only probability at which `rng() < p` cannot tell a working die from
+a dead one, and Fake Out was the only member of the family anybody had probed — by a road no other
+member used.
+
+**THE TWO PROBES.** `move flinches` — *"a secondary flinch fires at ITS OWN probability, not only at
+p=1"* replaces the old Fake Out one-armer: a **rate** over 4,000 turns off a **seeded** generator, with
+Knock Off at 0 and Fake Out at 100 bracketing Rock Slide 27 and Iron Head 20, plus a fourth arm that is
+the whole reason the report was wrong — Rock Slide with the attacker moving SECOND must read 0. And
+`move flinches` — *"Fake Out's flinch is a SECONDARY — Shield Dust and Sheer Force delete it"*, the new
+one, **watched RED first**.
+
+**BLAST RADIUS.** Every move in `data/tags.json` (500) × 3 ability configurations (quiet / defender
+Shield Dust / attacker Sheer Force) × 2 real turns, whole-board digest: **1,500 cells, 2 differ, 0
+THREW on both arms** — `fakeout|dust` and `fakeout|sheer`, and nothing else. **`fakeout|quiet` did NOT
+move**, which is the claim rather than a disappointment: the mechanic is preserved exactly and only the
+two suppressions arrive. 1,413 of 1,500 digests are distinct, so the instrument is sensitive.
+
+**ONE GATE IS RED AND IT IS NOT THIS CHANGE'S — SAID, NOT FILED.** `tests/staged_board.js --only
+fakeout-flinch --reds` reports `FAIL the planted proof case does not part`: the arm played with the
+flinch consumer disabled is board-identical to the clean arm, where its own note records a 69 HP parting
+on 2026-08-07. **Measured red on the clean tree before any edit**, and it reads the FROZEN RELEASE's
+bytes rather than the live tree. Owned by whoever holds `staged_board.js` / `game_differential.js`.
+
+**REPORTED, NOT TOUCHED.** `tag_dex.js:3141`'s King's Rock `{pFlinch:0.1}` is **correct** — measured at
+the item's own 10%, already probed by `item addsFlinch` — but another agent is in that file. And moves
+carry a `flinches {pFlinch}` param that **nothing reads**: the engine takes the chance from
+`statusInflict.effects[].chance` and `move-effects.js`. Two artifacts stating one fact; harmless today
+because only one is consumed, and collapsing them is a derivation change.
+
 ## WIRE 155 — WIRE 147 PINNED BOTH CORNERS AND NOT THE MIDDLE, SO THE 1.3x SURVIVED ITS OWN FIX. 2026-08-10.
 
 Census **376 → 377 live, 377 probed, 0 missing, 0 threw, 0 hollow, 0 unarmed, 0 direct-call.** One new
@@ -1325,7 +1367,7 @@ Without them "a foe holds a priority move" is true of **99.3%** of usage-weighte
   King's Shield, Spiky Shield, Baneful Bunker, Ally Switch, Follow Me, Rage Powder, Helping Hand and
   the two guards. Base rate **99.3% → 50.5%**. Two target sets cover all 14 strings across 500 moves;
   a fifteenth is counted (`MEDFAILS.guardTargetClassUnknown`, **0**).
-- **it cannot be used this turn.** Fake Out is the most-used priority move in the corpus (16,779 —
+- **it cannot be used this turn.** Fake Out is the most-used priority move in the corpus (17,104 —
   re-read from `data/tags.json` on 2026-08-10; it said 16,761 when this row was written, and the
   corpus grew under it, which is the standing caveat above doing its job) and
   is legal only on its user's entry turn. Routed through **one** predicate — the rule had three copies
@@ -1951,3 +1993,168 @@ every run rather than behind a flag somebody has to remember.
 
 **Filed to OPS:** no `cant` events at all; spread damage is conflated, refusing 8,360 of 37,177
 units; everything before `|turn|1` is dropped, including a lead's entry weather.
+
+---
+
+## THE HAZARD CLUSTER — A SINGLE-LAYER HAZARD STACKED TO THREE, AND TWO MOVES LAID NOTHING. 2026-08-10.
+
+Four roster rows, two defects, one area. Both are **layer arithmetic and tag derivation**; neither is
+in the hazard branch itself, which was correct throughout.
+
+### A. THE LAYER COUNT WAS UNBOUNDED — FIVE MOVES, NOT THE FOUR THE ROSTER NAMED
+
+`medicham2-browser.js` WIRE 41 incremented `_fsf.hz[hazard]` unconditionally. Measured on three real
+clicks, before a byte moved:
+
+| hazard | ours | Showdown | why |
+|---|---|---|---|
+| `spikes` | 3 | 3 | the CONTROL — already right |
+| `toxicspikes` | 3 | **2** | **a fifth defect the roster had not named** |
+| `stealthrock` | 3 | **1** | measured 2-vs-1 on a two-click re-lay |
+| `stickyweb` | 3 | **1** | measured 2-vs-1 on a two-click re-lay |
+
+**THE COMMENT OVER THAT LINE WAS A GUARD KEPT PAST ITS LIMITATION — the ninth instance this sprint.**
+It read: *"Layers accumulate because Spikes stacks to three; Stealth Rock does not and re-laying it is
+a wasted turn either way."* The first clause is right. The second is an argument about the **click**,
+and the click is not what the differential compares — the **board** is, which is the entire reason for
+having a differential. It is corrected in place at the line rather than deleted; the table above is now
+written where the excuse was.
+
+**THE CAP IS DERIVED, NOT LISTED.** `tag_dex.js` reads the authority's own condition: a side condition
+with **no `onSideRestart` cannot be re-laid at all**, which is a cap of exactly one; one that has the
+handler states its ceiling as a literal (`if (this.effectState.layers >= 3) return false`). Printed
+over every move in the format before anything was wired — **spikes 3, toxicspikes 2, stealthrock 1,
+stickyweb 1, four moves and no others.**
+
+**THE FALLBACK IS LOUD, AND IT WAS SHOWN FIRING.** A `maxLayers` of null keeps the OLD uncapped
+behaviour and counts it in `MEDFAILS.hazardCapUnknown`, because a guessed cap of 1 would silently
+delete real Spikes layers — a worse bug than the one being fixed. Deleting `maxLayers` from
+`stealthrock` in memory reproduces `{stealthrock:3}` **and** sets the counter to 3 with a first-cause
+string. On the shipped tags it is **0**, so the zero is a claim and not a dead branch.
+
+### B. AN ATTACKING MOVE THAT LAYS A HAZARD LAID NOTHING (ROADMAP #72)
+
+`ceaselessedge` and `stoneaxe` read **Showdown 1 / ours 0**. Both declare `secondaries: [{}]` — an
+**empty secondary object**, which exists only so Sheer Force can see one — and lay the layer from
+`onAfterHit` **and** `onAfterSubDamage`. Neither declares a `sideCondition` anywhere, so every rule in
+`tag_dex.js` keyed on `target === 'foeSide'` missed them and their tag rows held `contact` and
+`moveClass` and nothing else.
+
+**THIS WAS A TAG-DERIVATION GAP, NOT A HAZARD-CODE GAP.** The hazard branch works; nothing routed
+these two moves to it. The engine side is four lines that consume a new tag.
+
+**IT IS A SEPARATE TAG (`hazardOnHit`) FROM `hazard`, DELIBERATELY.** `playerAction`'s classifier
+returns `kind:'hazard'` — a status turn with no damage — for anything carrying `hazard`. Stone Axe is a
+65 BP physical Rock attack that *also* lays. Two shapes, two tags; a consumer that wants "does this lay
+rocks" reads both. **The cap comes from the hazard that is LAID, not from the move that lays it** —
+Ceaseless Edge stacks to 3 because Spikes does, Stone Axe stops at 1 because Stealth Rock does, through
+the same `hazardCap()` the declared family uses, so the two can never disagree.
+
+**WHICH FAILURES STOP IT IS READ, NOT REMEMBERED.** `onAfterSubDamage` exists precisely so the layer
+still goes down when a **Substitute** ate the hit; a **miss** and a **Protect** stop it because neither
+handler runs. The gate is `connected`, which this engine sets *above* the substitute's early return —
+already the right predicate — plus `!m.fainted`, which is Showdown's own `source.hp` test. `_subAte` is
+recorded beside it so the first member that declares only `onAfterHit` is not silently given the wrong
+rule.
+
+### THE PROBES — THREE, EACH WATCHED RED INDIVIDUALLY
+
+| probe | red reading | green reading |
+|---|---|---|
+| `move / hazard` *a single-layer hazard stops at ONE layer while Spikes still stacks to three* | spikes 3, toxicspikes **3**, stealthrock **3**, stickyweb **3** | 3 / 2 / 1 / 1 |
+| `move / hazardOnHit` *Stone Axe lays Stealth Rock, so the next body in is chipped* | control Stone Edge connected, switch-in lost 0; **Stone Axe connected, switch-in lost 0, 0 layers** | Stone Axe: switch-in lost **40**, 1 layer; control still 0 |
+| `move / hazardOnHit` *Ceaseless Edge lays Spikes only when it connects — through a Sub, not through a Protect* | Protected 0, missed 0, **three hits 0**, **through a Sub 0** | Protected 0, missed 0, three hits **3**, through a Sub **1** |
+
+The **stacking control** (Spikes to 3, Toxic Spikes to 2) and the **refusal control** (Protect and miss
+lay nothing) sit inside the same probe calls as the claims, so a cap that flattens everything to one
+layer, or a fix that lays at click time, fails the file rather than passing it.
+
+### THE DIGEST SWEEP — 3,147,001 CELLS, 54 DIFFER, 0 THREW
+
+Every move in `data/tags.json` (500), three rng seeds x two aims x **three click counts**, a trailing
+turn so residuals land, digested as the whole board: every primitive on all four actives and both
+benches, the field and both sides' conditions. BEFORE is the live file with exactly this pass's seven
+edits reversed by anchor (each asserted to match once, and verified to reproduce the pre-fix
+measurements); AFTER is the shipped bytes. Both compiled at the real medicham path.
+
+**CLICK COUNT HAD TO BE AN AXIS.** At one click every hazard reads 1 layer in both arms, so a one-turn
+sweep would have reported the cap fix as having no blast radius at all.
+
+```
+cells 3147001   DIFF cells 54   THREW before 0  after 0
+MOVES THAT MOVED (5):
+  ceaselessedge  (60 uses)   at x1,x2,x3   sfB.hz undefined -> {spikes:1|2|3}
+  stoneaxe       (94 uses)   at x1,x2,x3   sfB.hz undefined -> {stealthrock:1}
+  stealthrock   (160 uses)   at x2,x3      {stealthrock:2|3} -> {stealthrock:1}
+  stickyweb      (38 uses)   at x2,x3      {stickyweb:2|3}   -> {stickyweb:1}
+  toxicspikes    (36 uses)   at x3 only    {toxicspikes:3}   -> {toxicspikes:2}
+```
+
+**FIVE MOVED, NOT THE FOUR EXPECTED, AND THE FIFTH IS SAID RATHER THAN BURIED.** Toxic Spikes has the
+identical defect and only shows at three clicks, which is why the roster never named it. **`spikes` did
+not move at any click count** — the control held.
+
+### `data/tags.json` AND `data/abra-tags.js` WERE REGENERATED — 0 REMOVED / 0 ADDED / 6 CHANGED
+
+One new tag (`move|hazardOnHit`), and the six changed entities are exactly: `ceaselessedge` and
+`stoneaxe` gaining it, and `spikes` / `toxicspikes` / `stealthrock` / `stickyweb` gaining `maxLayers` on
+their existing `hazard` param. No entity gained or lost anything else. Tag coverage **189/200 -> 190/201
+probed**, 11 unprobed unchanged.
+
+**AND THE REGENERATION FOLDED IN A CORPUS UPDATE THAT IS NOT THIS CHANGE'S — SAID, NOT BURIED.**
+`sheet_entries` now reads **141,312** because the store grew since the last `tag_dex` run, and that
+moved the `uses` count on **265 moves, 98 items and 110 abilities**. Those are usage-only diffs with no
+structural component and no consumer in the engine, but they are in the artifact and they arrived with
+this commit rather than being caused by it.
+
+**IT ALSO RETRO-INVALIDATED TWO FIGURES ALREADY QUOTED IN THIS FILE, AND THAT IS THE INTERESTING PART.**
+`tests/test-docs-current.js` went red on `docs/MEDICHAM-SPRINT-NOTES.md`, a document that had **zero**
+untraceable figures before this pass: Fake Out was quoted twice as **17,104 uses** and no artifact says
+that any more. Both were restamped to the current artifact value, **17,104**. Nobody mistyped anything
+and no conclusion changed — the CORPUS moved under a number written down as prose, which is the same
+shape as the fourteen stale handoffs. The prior `sheet_entries` value is deliberately not written here
+for exactly that reason: it would be a third one.
+
+**ROADMAP #65's "`data/tags.json` cannot be safely regenerated — five entities would silently drop out"
+DID NOT REPRODUCE.** The diff was taken both ways over moves, items and abilities: zero removed, zero
+added.
+
+### THE COUNTER PROVES IT RAN
+
+`MEDFAILS.hazardCapUnknown` is **0** over four clicks of each of the six moves, and **3** with
+`maxLayers` deleted from one tag in memory — so the zero is evidence and not an unreached branch.
+
+### DELIBERATELY NOT FIXED, AND STATED
+
+- **A hazard laid AT ITS CAP does not emit a fail line.** Showdown's `Side#addSideCondition` returns
+  false at the cap, which fails the whole move and writes `|-fail|`. This engine now correctly declines
+  the layer and emits no `-sidestart`, but the click still resolves as a spent turn with no failure
+  line. That is a PROTOCOL row, it touches `mvFail` and `_lastMove`, and it would move every hazard's
+  third click rather than only the four rows in scope. Left for a protocol pass.
+- **`hzBy` is now recorded by WIRE 68 (Toxic Debris) as well**, because `layHazard` takes a setter. It
+  is read only for Sticky Web's `-1 Speed` source and no ability lays Sticky Web in this format, so
+  nothing consumes it today. The sweep cannot see it — every body in the sweep has `ability: 'none'` —
+  so it was checked separately: Toxic Debris caps at 2 and records its holder.
+
+### GATES
+
+`test-mechanics` **381 live / 381 probed / 0 missing / 0 threw / 0 hollow / 0 unarmed / 0 directCall**
+(381, not 380, because a fourth probe landed from a concurrent agent while this ran; the three above
+are green in the artifact). `test-damage-stages` **1728/1728 exact**. `test-medicham`,
+`test-engine-consistency`, `test-dead-volatile`, `test-protocol-trace`, `test-battle-api`,
+`test-charge`, `test-choice-lock`, `test-entry-effects`, `test-forced-switch`, `test-future-sight`,
+`test-drop-guard`, `test-encore-gate`, `test-artifact-keys`, `test-volatile-duration`,
+`test-medicham-coverage`, `test-wiring`, `test-effect-credit`, `test-game-diff`,
+`test-mutation-coverage`, `test-engine-diff`, `test-feature-semantics` and `test-docs-current` all pass.
+
+**NOT RUN, AND NAMED:** `tests/test-game-differential.js` requires `engine/game_differential.js`, which
+**cuts a release at module load** unless `--release` is pinned — and a pinned release plays the
+SNAPSHOT's bytes, so it cannot say anything about this change. Cutting was forbidden for this pass, so
+the differential over these bytes is **owed**, not passed.
+
+**ONE STATUS LINE IS RED AND IT IS NOT THIS CHANGE'S — SAID, NOT FILED.** `engine/status.js` prints
+FEATURE SEMANTICS CHECK FAILED against `data/policy-weights.json` (koTarget, dmgFrac, killIsRoll,
+killsThreat, switchSurvives1, switchKOSlow, switchDiesFirst, screenValue). That is the standing REFIT
+OWED edge and it is MEASURE's. `tests/test-feature-semantics.js` itself is **16 passed, 0 failed**, and
+the fixture board contains no hazard and neither hazard-laying move, so this pass cannot have moved a
+damage or KO feature.

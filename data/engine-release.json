@@ -1,10 +1,10 @@
 {
-  "current": "c507af781de0",
-  "cut": "2026-08-10T19:01:01.222Z",
-  "why": "fickle beam prices a branch, not the mean",
+  "current": "30b21c5a335a",
+  "cut": "2026-08-10T19:33:34.838Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
   "cuts": 1,
-  "latest_cut": "2026-08-10T19:01:01.222Z",
-  "latest_why": "fickle beam prices a branch, not the mean",
-  "pointer_written": "2026-08-10T19:01:01.226Z",
+  "latest_cut": "2026-08-10T19:33:34.838Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-08-10T19:33:34.842Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

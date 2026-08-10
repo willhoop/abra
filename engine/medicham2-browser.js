@@ -404,6 +404,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * come unwired and Howl is back to boosting the partner only. */
   boostAlliesSideWide: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* 2026-08-10 -- a hazard was laid and its tag carried no `maxLayers`, so `layHazard` fell back to
+   * the pre-fix UNCAPPED behaviour. That fallback is deliberate and it is counted rather than quiet:
+   * guessing a cap of 1 would silently delete the second and third layer of Spikes, which is real
+   * damage, and would be indistinguishable from the mechanic working. Non-zero means data/tags.json
+   * predates the derivation and needs regenerating -- it is not an engine fault. */
+  hazardCapUnknown: 0, hazardCapUnknownFirst: '',
   /* WIRE 154 -- a `healDescriptor.amount` that carries a fraction and a ROUNDING NAME this engine does
    * not implement. It falls to `trunc`, which is `Battle#heal`'s own, and it says so out loud: the
    * family's four members use three different rounding functions (ceil, trunc, and none at all for a
@@ -6695,6 +6701,41 @@ function imposterCopy(m,foes,slot){
   MEDSEEN.transformedOnEntry++;
   return true;
 }
+/* PUT ONE LAYER OF A HAZARD DOWN, AND STOP AT THE CAP. ONE function, because three call sites now
+ * lay hazards -- WIRE 41 (a status move that declares one), WIRE 68 (Toxic Debris, an ability) and
+ * ROADMAP #72 (an attacking move whose hazard lives in `onAfterHit`) -- and "how many layers is this
+ * hazard allowed" is a FACT about the game, not a property of whichever site happened to lay it.
+ * Two copies of that arithmetic would disagree eventually and nothing would notice.
+ *
+ * THE CAP IS THE TAG'S, AND A MISSING CAP IS LOUD RATHER THAN INVENTED. `maxLayers` is derived by
+ * tag_dex from the authority's own condition: a hazard with no `onSideRestart` cannot be re-laid and
+ * caps at one, and a hazard with one states its ceiling in the handler. If a caller hands in null --
+ * a tag that predates the derivation, or a condition whose handler could not be read -- this keeps
+ * the OLD uncapped behaviour and counts it, because a guessed cap of 1 would silently delete real
+ * Spikes layers, which is a worse bug than the one being fixed. A zero on that counter is a claim;
+ * a non-zero is a tag that needs regenerating.
+ *
+ * Returns true when a layer actually went down, so the caller can decide whether to announce it --
+ * Showdown's `onSideRestart` returns false at the cap and emits no `-sidestart`. */
+function layHazard(sf,hz,cap,setter,sideLabel){
+  if(!sf||!hz)return false;
+  const bag=(sf.hz=sf.hz||{});
+  const before=bag[hz]||0;
+  let lim;
+  if(cap==null||!(+cap>0)){MEDFAILS.hazardCapUnknown++;
+    if(!MEDFAILS.hazardCapUnknownFirst)MEDFAILS.hazardCapUnknownFirst=hz+' (no maxLayers in the tag; '
+      +'laying UNCAPPED, which is the pre-2026-08-10 behaviour -- regenerate data/tags.json)';
+    lim=Infinity;}
+  else lim=+cap;
+  if(before>=lim)return false;
+  bag[hz]=before+1;
+  /* WIRE 138 -- WHO LAID IT, kept on the layer because it outlives whoever set it, exactly as
+     Showdown's `effectState.source` does. Sticky Web's -1 Speed HAS a source and therefore DOES
+     trigger Defiant. Only recorded when a caller names one. */
+  if(setter)(sf.hzBy=sf.hzBy||{})[hz]=setter;
+  if(TR&&sideLabel)TR.sstartSide(sideLabel,hz);
+  return true;
+}
 /* BRING A BENCHED POKEMON IN. Shared by faint replacement and by voluntary/pivot switching.
    WHICH mon: live(bench)[0], the same choice refill() has always made. A rollout needs SOME policy
    and the honest first version reuses the existing one rather than inventing a matchup heuristic
@@ -8574,22 +8615,41 @@ function battleTurn(S,rng,actsForA,actsForB){
         m._lastMove=a.mv;continue;
       }
       /* WIRE 41 -- LAYING A HAZARD. It lands on the OPPOSING side's `_sf`, which every member of that
-         team shares by reference, so a body still on the bench is already standing behind it. Layers
-         accumulate because Spikes stacks to three; Stealth Rock does not and re-laying it is a wasted
-         turn either way. */
+         team shares by reference, so a body still on the bench is already standing behind it.
+
+         THE LAYER COUNT IS CAPPED, 2026-08-10, AND THE PARAGRAPH THAT USED TO SIT HERE WAS A GUARD
+         KEPT PAST ITS LIMITATION. It said: "Layers accumulate because Spikes stacks to three; Stealth
+         Rock does not and re-laying it is a wasted turn either way." The first clause is right. The
+         second is an argument about the CLICK -- and the click is not what the game differential
+         compares, the BOARD is, which is the whole reason for having a differential. Measured on a
+         turn-3 re-click, before a byte moved:
+
+             hazard        ours   Showdown
+             spikes           3          3      (the control: this one was already right)
+             toxicspikes      3          2
+             stealthrock      3          1
+             stickyweb        3          1
+
+         So it was never "either way": three of the four hazards in the format stood at a layer count
+         no legal board can hold, and the two that read 1 in Showdown read 3 here. The cap is the
+         tag's `maxLayers`, derived by tag_dex from the authority's own condition (no `onSideRestart`
+         means the condition cannot be re-laid at all, which is a cap of one) -- never a name list.
+         `layHazard` owns the arithmetic and is shared with WIRE 68 and ROADMAP #72. */
       if(a.kind==='hazard'){
         const _h=TAGS.param('move',a.mv,'hazard');
         const _fsf=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);
-        if(_h&&_h.hazard&&_fsf){(_fsf.hz=_fsf.hz||{})[_h.hazard]=(_fsf.hz[_h.hazard]||0)+1;
-          /* WIRE 138 -- WHO LAID IT. Sticky Web's own handler boosts with `this.effectState.source`
-             (data/moves.ts, the stickyweb condition), so its -1 Speed HAS a source and DOES trigger
-             Defiant. This engine recorded no setter, and the first cut of WIRE 138 passed `null` and
-             turned an existing green probe red -- which is the probe doing its job. The layer outlives
-             whoever set it, exactly as `effectState.source` does, so it is stored on the layer. */
-          (_fsf.hzBy=_fsf.hzBy||{})[_h.hazard]=m;
-          /* The SIDE is the one the layer lands on, which is the FOE's -- taken from a body standing
-           * in that side's slots rather than from `it.side`, because the hazard chooses the target. */
-          if(TR)TR.sstartSide(it.side==='A'?'p2':'p1',_h.hazard);}
+        /* WIRE 138 -- WHO LAID IT is passed as the setter. Sticky Web's own handler boosts with
+           `this.effectState.source` (data/moves.ts, the stickyweb condition), so its -1 Speed HAS a
+           source and DOES trigger Defiant. This engine recorded no setter, and the first cut of WIRE
+           138 passed `null` and turned an existing green probe red -- which is the probe doing its
+           job. The layer outlives whoever set it, exactly as `effectState.source` does.
+           The SIDE is the one the layer lands on, which is the FOE's -- taken from a body standing
+           in that side's slots rather than from `it.side`, because the hazard chooses the target.
+           AT THE CAP NOTHING IS ANNOUNCED, which is Showdown's own behaviour: `onSideRestart`
+           returns false before it reaches `this.add('-sidestart', ...)`. `layHazard` returns whether
+           a layer went down and does the emitting itself. */
+        if(_h&&_h.hazard&&_fsf)
+          layHazard(_fsf,_h.hazard,_h.maxLayers,m,it.side==='A'?'p2':'p1');
         m._lastMove=a.mv;continue;
       }
       /* WIRE 42 -- SUBSTITUTE, both halves. It FAILS outright below the threshold the tag names
@@ -10169,6 +10229,15 @@ function battleTurn(S,rng,actsForA,actsForB){
        * the move into a miss. The whole block below now lives in `_stepAccuracy`, in the step list,
        * with its own comments carried down with it. */
       let dealt=0,connected=false;
+      /* ROADMAP #72 -- DID A SUBSTITUTE EAT IT. `connected` is deliberately true when a doll absorbed
+       * the hit (it is set above the substitute's early return), which is right for every consumer it
+       * already has -- but "the move connected" and "the move reached the BODY" are two different
+       * facts and the after-hit family splits on exactly that. Showdown says it in the handler pair:
+       * an effect declared in `onAfterHit` ALONE stops at a substitute, one that also declares
+       * `onAfterSubDamage` goes through. Recorded here rather than inferred, so a consumer can ask.
+       * Every member of `hazardOnHit` today declares both, which is why this reads false in the
+       * probes -- it exists so the first member that does NOT is not silently given the wrong rule. */
+      let _subAte=false;
       /* ROADMAP #81 WIRE 1 -- how many targets got past EVERY gate. Showdown's `moveResult` is
          `!!targets.length` after the whole step list (sim/battle-actions.ts:614), so a move whose
          only target was immune, absorbed or semi-invulnerable is a FAILED move and pays the crash
@@ -10496,6 +10565,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            divergence here and is now the rule: subBlocks owns it for the damage path and for every
            status path, so one substitute cannot mean two things inside one turn. */
         if(subBlocks(m,tg,a.move.id)){const _s0=tg._sub;tg._sub=Math.max(0,tg._sub-dmg);
+          _subAte=true;                      // ROADMAP #72 -- see the declaration for why this is not `!connected`
           if(TR){TR.act(tg,'move: Substitute','[damage]');if(_s0>0&&tg._sub<=0)TR.vend(tg,'Substitute');}
           R.out=true;return;}
         /* THE BERRY IS CONSUMED HERE AND ONLY HERE. dmgRange applied the halve as a pure read --
@@ -10817,14 +10887,15 @@ function battleTurn(S,rng,actsForA,actsForB){
              * `.A.hazards.toxicspikes medi=null sd=1` on two separate pairs.
              * inflictsVolatile is still unconsumed HERE and is not a gap: Cursed Body now lands
              * through its own `disablesAttacker` tag at WIRE 52, and Cute Charm's attract and Perish
-             * Body's clock have no state in this engine. */
-            if(_pun.hazard&&m._sf){
-              const _hz=(m._sf.hz=m._sf.hz||{});
-              const _cap=+_pun.maxLayers||1;
-              const _b0=_hz[_pun.hazard]||0;
-              _hz[_pun.hazard]=Math.min(_cap,_b0+1);
-              if(TR&&_hz[_pun.hazard]>_b0)TR.sstartSide(m._sf.side==='A'?'p1':'p2',_pun.hazard);
-            }
+             * Body's clock have no state in this engine.
+             * 2026-08-10 -- ROUTED THROUGH `layHazard`, which is now the one implementation of "put a
+             * layer down and stop at the cap". This block had the ONLY correct cap in the file and
+             * WIRE 41 five thousand lines up had none; that is exactly the shape CLAUDE.md's
+             * facts-are-global rule names, and the two would have gone on disagreeing invisibly. Its
+             * `+_pun.maxLayers||1` default is deliberately NOT preserved: an absent cap is now
+             * counted in MEDFAILS.hazardCapUnknown instead of quietly becoming 1. */
+            if(_pun.hazard&&m._sf)
+              layHazard(m._sf,_pun.hazard,_pun.maxLayers,tg,m._sf.side==='A'?'p1':'p2');
           }
         }
         /* WIRE 80 -- MUMMY AND WANDERING SPIRIT REWRITE THE ATTACKER'S ABILITY.
@@ -11181,11 +11252,35 @@ function battleTurn(S,rng,actsForA,actsForB){
              const _i=Math.min(_ps.oneOf.length-1,Math.floor(rng()*_ps.oneOf.length));
              applyStatus(tg,CODE_OF_STATUS[_ps.oneOf[_i]]||_ps.oneOf[_i],m);
            }}
-          // Fake Out still flinches: it is a guaranteed flinch, and it always moves first (+3 priority)
-          if(a.move.id==='fakeout'){
-            if(!unresolved.has(tg)) MEDSEEN.flinchTooLate++;
-            else if(tgAb==='innerfocus') MEDSEEN.flinchBlockedByInnerFocus++;
-            else { tg._flinch=true; MEDSEEN.flinch++; } }
+          /* WIRE 156 -- FAKE OUT'S FLINCH IS A SECONDARY, AND THE HARDCODE THAT USED TO SIT HERE
+           * SAID IT WAS NOT.
+           *
+           * A special case for `a.move.id==='fakeout'` set `_flinch` unconditionally, OUTSIDE the
+           * `if(fx&&fx.secondary&&!sheerForce)` loop and outside `dustBlocked`. The authority is
+           * unambiguous -- `data/moves.ts` gives Fake Out `secondaries:[{chance:100,
+           * volatileStatus:'flinch'}]`, Shield Dust's handler is
+           * `secondaries.filter(effect => !!effect.self)` and Sheer Force's is `delete
+           * move.secondaries` -- so BOTH abilities delete this flinch, and this engine honoured
+           * neither. Measured in the official engine at the Champions format, one turn, Incineroar
+           * Fake Out into a Vivillon clicking Bug Buzz back:
+           *     Compound Eyes control  |cant|p2a: Vivillon|flinch      Bug Buzz never used
+           *     Shield Dust            no |cant| line                  Bug Buzz used, 52 damage
+           *     Sheer Force attacker   no |cant| line                  Bug Buzz used, and Fake Out
+           *                                                            hit for 39 instead of 29
+           * MEDICHAM flinched in all three.
+           *
+           * THE LOOP ALREADY DID THE WORK. `move-effects.json` carries fakeout's
+           * `{chance:100, volatile:'flinch'}`, so the branch at `s.volatile==='flinch'` was firing
+           * on every Fake Out ANYWAY and setting the same `_flinch` -- MEDSEEN.flinch read 200% of
+           * turns for a single-target 100% flinch, which is the receipt that both paths ran. So
+           * this is a DELETION, not a replacement: the shared path keeps the mechanic and the two
+           * suppressions arrive with it.
+           *
+           * WHY IT SURVIVED: p=1 is the only probability at which `rng()<p` cannot distinguish a
+           * working die from a dead one, and Fake Out was the only member of the family anybody
+           * probed. The rest of the family was correct the whole time -- 17 of 19 `flinches`
+           * carriers measure within sampling error of `pFlinch x accuracy` over 2,000 staged turns
+           * (Rock Slide 26.4% against 27.0, Iron Head 20.4% against 20.0). */
           /* WIRE 50 -- POISON TOUCH / TOXIC CHAIN, 985 sheets and nothing at all. Lesson 3 bites
            * hardest here and the tag says why: `needsContact` is true, so a SPECIAL attacker carrying
            * Poison Touch contributes to the sheet count and can never trigger. The chance is the
@@ -11319,6 +11414,39 @@ function battleTurn(S,rng,actsForA,actsForB){
        * onTryHit returns null, Protect returns NOT_FAIL). `_reached` is this engine's own count of
        * bodies past every gate and has existed since ROADMAP #81 WIRE 1 for the crash. */
       if(_hadTargets)m._mvRes=_reached?true:(_explicitFail?false:null);
+      /* ROADMAP #72 -- AN ATTACKING MOVE THAT LAYS A HAZARD. Ceaseless Edge lays Spikes, Stone Axe
+       * lays Stealth Rock, and neither did anything here: both declare `secondaries: [{}]` -- an
+       * EMPTY secondary object that exists only so Sheer Force can see one -- with the layer laid from
+       * `onAfterHit`/`onAfterSubDamage`, so no rule keyed on `sideCondition` or `target: 'foeSide'`
+       * ever saw them. Their tag rows carried `contact` and `moveClass` and nothing else.
+       *
+       * THIS WAS A TAG-DERIVATION GAP, NOT A HAZARD-CODE GAP. WIRE 41's branch works and `layHazard`
+       * caps correctly; nothing ROUTED these two moves to it. The fix is `hazardOnHit` in tag_dex,
+       * and this is the four lines that consume it. Measured before: Stone Axe into a foe left `hz`
+       * undefined, and the interaction matrix has been reading `.B.hazards.stealthrock medi=null
+       * sd=1` on six separate carrier x reactor pairs.
+       *
+       * `connected` IS THE GATE, AND IT IS THE RIGHT ONE FOR THIS FAMILY -- it is set inside the
+       * damage step ABOVE the substitute's early return, so it is true when a doll ate the hit and
+       * false on a miss, on a Protect and on an immunity. That is exactly the pair of handlers the
+       * authority declares: `onAfterSubDamage` exists so the layer still goes down through a
+       * Substitute, and neither handler runs at all when the move never connected. The tag carries
+       * `throughSubstitute` so the claim is read rather than remembered.
+       *
+       * `!m.fainted` IS SHOWDOWN'S OWN `source.hp` TEST, which both handlers open with: a user that
+       * died to a contact punish on the way in lays nothing. It sits ABOVE the recoil block below for
+       * the same reason -- `runMoveEffects` fires AfterHit before the hit loop returns and recoil is
+       * applied after it, so a user killed by its own recoil has already laid the layer.
+       *
+       * THE SIDE IS THE FOE'S: `foeSidesWithConditions()` in the handler, taken here from a body
+       * standing in that side's slots, the same read WIRE 41 makes and for the same reason. */
+      {
+        const _hoh=TAGS.param('move',a.move&&a.move.id,'hazardOnHit');
+        if(_hoh&&_hoh.hazard&&connected&&!m.fainted&&(_hoh.throughSubstitute||!_subAte)){
+          const _hsf=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);
+          if(_hsf)layHazard(_hsf,_hoh.hazard,_hoh.maxLayers,m,it.side==='A'?'p2':'p1');
+        }
+      }
       /* THE PIVOT HALF, AFTER THE DAMAGE. U-turn, Volt Switch and Flip Turn carry base power, so
          they arrived here as ordinary attacks and the user simply stayed -- the chip was modelled
          and the momentum, which is the reason the move is played, was not. The tag says which moves
