@@ -1,12 +1,13 @@
 {
- "generated": "2026-08-10T00:42:20.505Z",
+ "generated": "2026-08-10T00:44:11.763Z",
  "by": "tests/roster.js",
  "stage": "items",
  "engine_release": "0fc7266b0755",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
-  "DID-NOT-FIRE": 1,
+  "DID-NOT-FIRE": 0,
+  "DEFERRED-BY-OWNER": 1,
   "FIRED-AND-BOARDS-MATCH": 139,
   "CONTROL-NOT-QUIET": 0,
   "COULD-NOT-STAGE": 8
@@ -5204,8 +5205,8 @@
    "rule": "item/held-and-nothing-more",
    "reads": "nothing matched above — this is the residue",
    "note": "generic: held, attacking, attacked, over three turns",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "DEFERRED-BY-OWNER",
+   "why": "SHELVED BY THE OWNER, NOT MEASURED CLEAN. The Metronome ITEM (19 uses) climbs a damage ladder over consecutive uses of one move. Its tag is derived and correct (`damageMultOnRepeat`, the full 4096ths ladder off the condition); what is missing is the CONSUMER, which needs a per-body consecutive-use counter threaded through the turn loop and read inside dmgRange — a change that touches every move's damage path for the smallest row in the whole queue. Will: \"metronome is a joke dont worry about that just put it into a quarantined closet we can re examine once the project is successful.\" (deferred 2026-08-10 by Will.) It is still staged and still played every run; it does not hold the gate. Underlying verdict without the deferral: DID-NOT-FIRE.",
    "arm": "top-tie-first",
    "control_why": null,
    "sd_delta": [

@@ -1,8 +1,8 @@
 {
- "generated": "2026-08-10T00:44:11.763Z",
+ "generated": "2026-08-10T06:26:29.730Z",
  "by": "tests/roster.js",
  "stage": "items",
- "engine_release": "0fc7266b0755",
+ "engine_release": "cb831e50eafb",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
@@ -11,6 +11,22 @@
   "FIRED-AND-BOARDS-MATCH": 139,
   "CONTROL-NOT-QUIET": 0,
   "COULD-NOT-STAGE": 8
+ },
+ "scope": {
+  "total": 148,
+  "out_of_scope": 0,
+  "out_of_scope_by": {},
+  "in_scope": 148,
+  "tested": 139,
+  "matched": 139,
+  "differ": 0,
+  "silent": 0,
+  "deferred": 1,
+  "unattributable": 0,
+  "unattributable_ids": [],
+  "declared_untestable": [],
+  "could_not_stage_in_scope": 8,
+  "attributed_by_second_control": []
  },
  "reds": [],
  "mirror": {
@@ -29,6 +45,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -96,6 +116,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -163,6 +187,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -230,6 +258,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -297,6 +329,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -364,6 +400,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -431,6 +471,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -498,6 +542,10 @@
    "why": "no 100-accuracy move in this format inflicts frz outright, and the pin makes every sub-100-accuracy move miss — so the condition this berry cures cannot be put on a body at all. THE ITEM IS NOT ABSENT FROM THE ENGINE; IT IS UNREACHABLE FROM HERE.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [],
    "diffs": []
   },
@@ -512,6 +560,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -579,6 +631,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -606,6 +662,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -673,6 +733,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -740,6 +804,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -807,6 +875,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 2,
@@ -846,6 +918,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -885,6 +961,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -924,6 +1004,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -991,6 +1075,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -1070,6 +1158,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -1109,6 +1201,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -1176,6 +1272,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -1243,6 +1343,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -1282,6 +1386,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -1349,6 +1457,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -1440,6 +1552,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -1485,6 +1601,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -1512,6 +1632,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -1579,6 +1703,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -1606,6 +1734,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -1633,6 +1765,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -1700,6 +1836,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -1775,6 +1915,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -1820,6 +1964,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -1887,6 +2035,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -1932,6 +2084,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -1959,6 +2115,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -2026,6 +2186,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -2065,6 +2229,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -2132,6 +2300,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -2199,6 +2371,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -2238,6 +2414,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -2305,6 +2485,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -2372,6 +2556,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -2439,6 +2627,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -2506,6 +2698,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -2573,6 +2769,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -2612,6 +2812,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -2651,6 +2855,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -2718,6 +2926,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -2785,6 +2997,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -2852,6 +3068,10 @@
    "why": "its effect is a 10% chance, and the driver's pin makes every sub-100% roll fail in both engines (game_differential.js PRIMARY_ARM: \"no secondary fires\"). Nothing staged here could distinguish a wired mechanic from an absent one.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [],
    "diffs": []
   },
@@ -2866,6 +3086,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 2,
@@ -2971,6 +3195,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -3062,6 +3290,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -3129,6 +3361,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -3196,6 +3432,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -3263,6 +3503,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -3330,6 +3574,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -3397,6 +3645,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -3464,6 +3716,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -3531,6 +3787,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -3598,6 +3858,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -3665,6 +3929,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -3692,6 +3960,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -3731,6 +4003,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -3798,6 +4074,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -3837,6 +4117,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -3904,6 +4188,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -3971,6 +4259,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -4010,6 +4302,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -4085,6 +4381,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -4152,6 +4452,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -4179,6 +4483,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -4224,6 +4532,10 @@
    "why": "its effect is a 10% chance, and the driver's pin makes every sub-100% roll fail in both engines (game_differential.js PRIMARY_ARM: \"no secondary fires\"). Nothing staged here could distinguish a wired mechanic from an absent one.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [],
    "diffs": []
   },
@@ -4238,6 +4550,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -4289,6 +4605,10 @@
    "why": "its whole effect is on PP, and board_state.js does not compare PP in either engine (medicham2 does not track it at all), so there is no board leaf it could move",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [],
    "diffs": []
   },
@@ -4303,6 +4623,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -4366,6 +4690,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -4393,6 +4721,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -4456,6 +4788,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -4523,6 +4859,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -4590,6 +4930,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -4611,6 +4955,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -4650,6 +4998,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -4717,6 +5069,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -4808,6 +5164,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -4875,6 +5235,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -4942,6 +5306,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -5009,6 +5377,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -5036,6 +5408,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -5103,6 +5479,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -5170,6 +5550,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -5209,6 +5593,10 @@
    "why": "SHELVED BY THE OWNER, NOT MEASURED CLEAN. The Metronome ITEM (19 uses) climbs a damage ladder over consecutive uses of one move. Its tag is derived and correct (`damageMultOnRepeat`, the full 4096ths ladder off the condition); what is missing is the CONSUMER, which needs a per-body consecutive-use counter threaded through the turn loop and read inside dmgRange — a change that touches every move's damage path for the smallest row in the whole queue. Will: \"metronome is a joke dont worry about that just put it into a quarantined closet we can re examine once the project is successful.\" (deferred 2026-08-10 by Will.) It is still staged and still played every run; it does not hold the gate. Underlying verdict without the deferral: DID-NOT-FIRE.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 2,
@@ -5285,6 +5673,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -5324,6 +5716,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -5363,6 +5759,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -5402,6 +5802,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -5441,6 +5845,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -5486,6 +5894,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -5513,6 +5925,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -5540,6 +5956,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -5585,6 +6005,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -5636,6 +6060,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -5657,6 +6085,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -5724,6 +6156,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -5791,6 +6227,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -5830,6 +6270,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -5897,6 +6341,10 @@
    "why": "its effect is a 20% chance, and the driver's pin makes every sub-100% roll fail in both engines (game_differential.js PRIMARY_ARM: \"no secondary fires\"). Nothing staged here could distinguish a wired mechanic from an absent one.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [],
    "diffs": []
   },
@@ -5911,6 +6359,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -6002,6 +6454,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -6069,6 +6525,10 @@
    "why": "no 100-accuracy move in this format inflicts brn outright, and the pin makes every sub-100-accuracy move miss — so the condition this berry cures cannot be put on a body at all. THE ITEM IS NOT ABSENT FROM THE ENGINE; IT IS UNREACHABLE FROM HERE.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [],
    "diffs": []
   },
@@ -6083,6 +6543,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -6128,6 +6592,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -6173,6 +6641,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -6240,6 +6712,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -6307,6 +6783,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -6374,6 +6854,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -6441,6 +6925,10 @@
    "why": "it raises the critical-hit RATIO, and the pin never lets a crit land in either engine, so the ratio has nothing to act on",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [],
    "diffs": []
   },
@@ -6455,6 +6943,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -6522,6 +7014,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -6613,6 +7109,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -6652,6 +7152,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -6719,6 +7223,10 @@
    "why": "it undoes TRAPPING, which needs a voluntary switch to observe; the script language has no switch action and board_state.js does not compare ability trapping at all",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [],
    "diffs": []
   },
@@ -6733,6 +7241,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 2,
@@ -6772,6 +7284,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -6817,6 +7333,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -6856,6 +7376,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -6895,6 +7419,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -6922,6 +7450,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -6989,6 +7521,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -7056,6 +7592,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -7095,6 +7635,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -7134,6 +7678,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -7173,6 +7721,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -7240,6 +7792,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -7307,6 +7863,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -7374,6 +7934,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -7441,6 +8005,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -7486,6 +8054,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -7525,6 +8097,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -7592,6 +8168,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -7659,6 +8239,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -7726,6 +8310,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -7753,6 +8341,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -7780,6 +8372,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -7861,6 +8457,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -7900,6 +8500,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
@@ -7945,6 +8549,10 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
+   "switch_probe": null,
    "sd_delta": [
     {
      "turn": 1,
