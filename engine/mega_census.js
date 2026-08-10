@@ -44,12 +44,43 @@ const TOP = (() => { const i = process.argv.indexOf('--top'); return i >= 0 ? +p
 
 const id = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
+/* THE EVENT IS MISNAMED, AND THE FIRST VERSION OF THIS FILE BELIEVED IT.
+ *
+ * `t: "mega"` in the store is EVERY FORME CHANGE, not mega evolution. Measured over the whole store:
+ * 83,810 such events, of which 2,899 (3.5%) are not a mega at all — aegislashblade 789, palafinhero
+ * 676, mimikyubusted 667, morpekohangry 248, castform's four skies, and `aegislashblade -> aegislash`
+ * REVERTING, which is a forme change in the opposite direction. Stance Change, Zero to Hero, Disguise
+ * and Forecast were all being counted as megas.
+ *
+ * That is what produced the "sides showing two distinct mega formes" anomaly this file reported on its
+ * first run and could not explain. Will, 2026-08-10: *"sometimes u do bring two mons with mega stones,
+ * but obviously only one can evolve per game per side"* — so two evolutions really would have been a
+ * regulation break, and it was our label, not the players.
+ *
+ * So the FORMAT decides what a mega is, not the event name and not a substring: `-Mega` is a forme,
+ * and `/mega/i` on a name matches Meganium and Yanmega. The non-mega changes are kept and counted
+ * separately rather than dropped — Disguise, Stance Change and Zero to Hero are real mechanics with
+ * real usage, and this is the only place that has ever counted them. */
+function megaFormeSet() {
+  try {
+    const SP = require('./showdown_path.js');                     // sets SHOWDOWN_PATH as a side effect
+    void SP;
+    const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
+    const CS = require('./champions_sim.js');
+    const D = Dex.forFormat(CS.FORMAT);
+    return new Set(D.species.all().filter(s => /-Mega/.test(s.name)).map(s => s.id));
+  } catch (e) {
+    return null;      // null means CANNOT CLASSIFY — never "nothing is a mega"
+  }
+}
+const MEGA = megaFormeSet();
+
 function run() {
   return new Promise((resolve, reject) => {
     const forme = Object.create(null);      // charizardmegay -> games it appeared in
     const base = Object.create(null);       // charizard      -> games it mega'd in
-    const perGameSides = Object.create(null);
-    let games = 0, gamesWithMega = 0, events = 0, sides = 0, bodies = 0;
+    const otherForme = Object.create(null); // every NON-mega forme change wearing the t:"mega" label
+    let games = 0, gamesWithMega = 0, events = 0, megaEvents = 0, sides = 0, bodies = 0;
     let twoOnOneSide = 0, megaTurn1 = 0, megaLater = 0;
 
     const rl = readline.createInterface({ input: fs.createReadStream(STORE), crlfDelay: Infinity });
@@ -72,6 +103,11 @@ function run() {
           if (e.t !== 'mega' || !e.mon) continue;
           events++;
           const f = id(e.mon), b = id(e.from || '');
+          /* NOT EVERY FORME CHANGE IS A MEGA. See megaFormeSet above. A null MEGA set means the format
+             could not be loaded, and the honest answer there is to classify nothing rather than to
+             classify everything as a mega — which is what the first version of this file did. */
+          if (!MEGA || !MEGA.has(f)) { otherForme[f] = (otherForme[f] || 0) + 1; continue; }
+          megaEvents++;
           seenForme.add(f);
           if (b) base[b] = base[b] || { games: 0, formes: Object.create(null) };
           const side = String(e.s || '').slice(0, 2);
@@ -85,21 +121,22 @@ function run() {
       /* THE FORMAT ALLOWS ONE MEGA PER BATTLE PER SIDE. If a side shows two distinct formes the
          record disagrees with the regulation, and that is worth a count rather than a silent pass. */
       for (const s of ['p1', 'p2']) if (perSide[s].size > 1) twoOnOneSide++;
-      /* base -> which formes it became, so a two-forme base (Charizard X/Y) is legible */
-      for (const t of (g.turns || [])) for (const e of (t.ev || [])) {
-        if (e.t !== 'mega' || !e.from) continue;
-        const b = id(e.from), f = id(e.mon);
-        base[b].formes[f] = (base[b].formes[f] || 0) + 1;
-      }
-      for (const b of Object.keys(base)) if (seenForme.size) { /* counted once below */ }
+      /* base -> which formes it became, so a two-forme base (Charizard X/Y) is legible. Filtered the
+         same way: without it, `mimikyu -> mimikyubusted` becomes a base that "mega'd". */
       const basesThisGame = new Set();
       for (const t of (g.turns || [])) for (const e of (t.ev || [])) {
-        if (e.t === 'mega' && e.from) basesThisGame.add(id(e.from));
+        if (e.t !== 'mega' || !e.from || !e.mon) continue;
+        const f = id(e.mon);
+        if (!MEGA || !MEGA.has(f)) continue;
+        const b = id(e.from);
+        base[b] = base[b] || { games: 0, formes: Object.create(null) };
+        base[b].formes[f] = (base[b].formes[f] || 0) + 1;
+        basesThisGame.add(b);
       }
       for (const b of basesThisGame) base[b].games++;
     });
-    rl.on('close', () => resolve({ forme, base, games, gamesWithMega, events, sides, bodies,
-                                   twoOnOneSide, megaTurn1, megaLater }));
+    rl.on('close', () => resolve({ forme, base, otherForme, games, gamesWithMega, events, megaEvents,
+                                   sides, bodies, twoOnOneSide, megaTurn1, megaLater }));
     rl.on('error', reject);
   });
 }
@@ -118,10 +155,24 @@ async function main() {
           + 'its log was, which is a property of the log and not of the meta',
     caveat: 'THIS IS NOT DOWNSTREAM OF MEDICHAM. It counts what the store recorded; no simulation runs '
           + 'and the quarantine does not touch it.',
+    classifier: MEGA ? 'the format dex: a forme whose name carries "-Mega"' : 'UNAVAILABLE',
+    classifier_note: MEGA ? null
+      : 'THE FORMAT COULD NOT BE LOADED, so no event could be classified and every count below is '
+      + 'ZERO. That is deliberate: classifying nothing is honest, classifying everything as a mega is '
+      + 'what the first version of this file did.',
     store_games: r.games,
     games_with_a_mega: r.gamesWithMega,
     games_with_a_mega_pct: +(100 * r.gamesWithMega / (r.games || 1)).toFixed(2),
-    mega_events: r.events,
+    forme_change_events_total: r.events,
+    mega_events: r.megaEvents,
+    non_mega_forme_change_events: r.events - r.megaEvents,
+    non_mega_note: 'the store labels EVERY forme change t:"mega". These are the ones that are not a '
+                 + 'mega — Stance Change, Zero to Hero, Disguise, Forecast, Morpeko, and reversions. '
+                 + 'They are counted here rather than dropped because nothing else counts them, and '
+                 + 'because their presence in the mega bucket is what produced the "two mega formes '
+                 + 'on one side" anomaly this file reported and could not explain on its first run.',
+    non_mega_formes: Object.fromEntries(
+      Object.entries(r.otherForme).sort((a, b) => b[1] - a[1])),
     mega_on_turn_1: r.megaTurn1,
     mega_after_turn_1: r.megaLater,
     sides_showing_two_distinct_formes: r.twoOnOneSide,

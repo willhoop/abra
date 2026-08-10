@@ -1,18 +1,35 @@
 {
-  "generated": "2026-08-10T21:24:13.049Z",
+  "generated": "2026-08-10T21:50:40.252Z",
   "by": "engine/mega_census.js",
   "what": "How often each MEGA FORME actually appears, derived from the store's t:\"mega\" events. The store's brought[] and lead[] name only the base species, so every usage figure taken from them counts every mega forme as zero. This is the artifact that un-blinds them.",
   "method": "one count per forme per GAME, not per event — event counts weight a mega by how talkative its log was, which is a property of the log and not of the meta",
   "caveat": "THIS IS NOT DOWNSTREAM OF MEDICHAM. It counts what the store recorded; no simulation runs and the quarantine does not touch it.",
+  "classifier": "the format dex: a forme whose name carries \"-Mega\"",
+  "classifier_note": null,
   "store_games": 52377,
-  "games_with_a_mega": 48867,
-  "games_with_a_mega_pct": 93.3,
-  "mega_events": 83810,
-  "mega_on_turn_1": 39860,
-  "mega_after_turn_1": 43950,
-  "sides_showing_two_distinct_formes": 1649,
+  "games_with_a_mega": 48733,
+  "games_with_a_mega_pct": 93.04,
+  "forme_change_events_total": 83810,
+  "mega_events": 80911,
+  "non_mega_forme_change_events": 2899,
+  "non_mega_note": "the store labels EVERY forme change t:\"mega\". These are the ones that are not a mega — Stance Change, Zero to Hero, Disguise, Forecast, Morpeko, and reversions. They are counted here rather than dropped because nothing else counts them, and because their presence in the mega bucket is what produced the \"two mega formes on one side\" anomaly this file reported and could not explain on its first run.",
+  "non_mega_formes": {
+    "aegislashblade": 789,
+    "palafinhero": 676,
+    "mimikyubusted": 667,
+    "aegislash": 322,
+    "morpekohangry": 248,
+    "morpeko": 143,
+    "castformrainy": 20,
+    "castformsunny": 17,
+    "castformsnowy": 13,
+    "castform": 4
+  },
+  "mega_on_turn_1": 38842,
+  "mega_after_turn_1": 42069,
+  "sides_showing_two_distinct_formes": 0,
   "sides_note": "the format allows one mega per battle per side; a non-zero count here is the record disagreeing with the regulation and wants explaining, not rounding away",
-  "distinct_formes_seen": 88,
+  "distinct_formes_seen": 78,
   "formes": {
     "charizardmegay": 10679,
     "staraptormega": 6390,
@@ -41,10 +58,7 @@
     "glimmoramega": 818,
     "sceptilemega": 811,
     "meganiummega": 710,
-    "palafinhero": 674,
-    "mimikyubusted": 664,
     "lopunnymega": 561,
-    "aegislashblade": 531,
     "starmiemega": 517,
     "lucariomega": 514,
     "kangaskhanmega": 501,
@@ -72,7 +86,6 @@
     "abomasnowmega": 225,
     "houndoommega": 222,
     "chesnaughtmega": 215,
-    "aegislash": 213,
     "excadrillmega": 213,
     "steelixmega": 209,
     "pidgeotmega": 204,
@@ -82,24 +95,18 @@
     "scolipedemega": 169,
     "pinsirmega": 168,
     "clefablemega": 155,
-    "morpekohangry": 152,
     "audinomega": 137,
     "manectricmega": 131,
     "barbaraclemega": 126,
     "medichammega": 120,
     "victreebelmega": 116,
     "sharpedomega": 111,
-    "morpeko": 100,
     "sableyemega": 97,
     "glaliemega": 93,
     "emboarmega": 91,
     "meowsticmmega": 72,
     "absolmega": 57,
     "meowsticfmega": 56,
-    "castformrainy": 19,
-    "castformsunny": 16,
-    "castformsnowy": 13,
-    "castform": 4,
     "salamencemega": 2,
     "dianciemega": 2
   },
@@ -187,12 +194,6 @@
       "games": 437,
       "formes": {
         "scizormega": 437
-      }
-    },
-    "mimikyu": {
-      "games": 664,
-      "formes": {
-        "mimikyubusted": 667
       }
     },
     "camerupt": {
@@ -311,12 +312,6 @@
         "pyroarmega": 1092
       }
     },
-    "palafin": {
-      "games": 674,
-      "formes": {
-        "palafinhero": 676
-      }
-    },
     "scovillain": {
       "games": 933,
       "formes": {
@@ -327,12 +322,6 @@
       "games": 514,
       "formes": {
         "lucariomega": 516
-      }
-    },
-    "aegislash": {
-      "games": 531,
-      "formes": {
-        "aegislashblade": 789
       }
     },
     "pinsir": {
@@ -467,12 +456,6 @@
         "steelixmega": 209
       }
     },
-    "aegislashblade": {
-      "games": 213,
-      "formes": {
-        "aegislash": 322
-      }
-    },
     "victreebel": {
       "games": 116,
       "formes": {
@@ -513,14 +496,6 @@
       "games": 382,
       "formes": {
         "chandeluremega": 382
-      }
-    },
-    "castform": {
-      "games": 34,
-      "formes": {
-        "castformsnowy": 10,
-        "castformrainy": 14,
-        "castformsunny": 13
       }
     },
     "heracross": {
@@ -589,18 +564,6 @@
         "absolmega": 57
       }
     },
-    "morpeko": {
-      "games": 152,
-      "formes": {
-        "morpekohangry": 248
-      }
-    },
-    "morpekohangry": {
-      "games": 100,
-      "formes": {
-        "morpeko": 143
-      }
-    },
     "meowsticf": {
       "games": 56,
       "formes": {
@@ -612,21 +575,6 @@
       "formes": {
         "abomasnowmega": 1,
         "staraptormega": 1
-      }
-    },
-    "castformrainy": {
-      "games": 8,
-      "formes": {
-        "castform": 3,
-        "castformsunny": 3,
-        "castformsnowy": 2
-      }
-    },
-    "castformsnowy": {
-      "games": 3,
-      "formes": {
-        "castformrainy": 2,
-        "castformsunny": 1
       }
     },
     "houndstone": {
@@ -641,14 +589,6 @@
       "formes": {
         "ampharosmega": 1,
         "dragalgemega": 1
-      }
-    },
-    "castformsunny": {
-      "games": 6,
-      "formes": {
-        "castformrainy": 4,
-        "castformsnowy": 1,
-        "castform": 1
       }
     },
     "aromatisse": {

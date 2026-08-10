@@ -2439,3 +2439,39 @@ stage none of them, because staging an ability means writing it onto a body and 
 overwrites what was just written. Among them **Shadow Tag** (Gengar-Mega, in 4.2% of games),
 **Parental Bond** (Kangaskhan-Mega), **Fairy Aura** (Floette-Mega), **Aerilate** (Pinsir-Mega),
 **Electric Surge** (Raichu-Mega-X) and **Filter** (Aggron-Mega).
+
+### #137 CORRECTED, WITHIN THE HOUR — `t:"mega"` IS EVERY FORME CHANGE, NOT MEGA EVOLUTION
+
+The row above reported an anomaly it could not explain: sides showing two distinct mega formes, when
+the regulation allows one per side per battle. Will, 2026-08-10: *"sometimes u do bring two mons with
+mega stones, but obviously only one can evolve per game per side"* — which removes the innocent reading
+and makes it either a real violation or our own defect. It is ours.
+
+**The store labels EVERY forme change `t:"mega"`.** The witnesses name themselves:
+`mimikyu -> mimikyubusted` (Disguise), `aegislash -> aegislashblade` (Stance Change),
+`palafin -> palafinhero` (Zero to Hero), `castform -> castformsnowy` (Forecast),
+`morpeko -> morpekohangry`, and `aegislashblade -> aegislash` — a forme change in the opposite
+direction. **2,899 of 83,810 events, 3.5%.**
+
+`engine/mega_census.js` now asks the FORMAT which formes are megas instead of trusting the label, and
+keeps the non-mega changes in their own bucket rather than dropping them — Stance Change, Zero to Hero
+and Disguise are real mechanics and nothing else in this repository counts them.
+
+| | first run | corrected |
+|---|---|---|
+| games containing a mega | 93.3% | **93.04%** |
+| distinct mega formes | 88 | **78** |
+| mega on turn 1 / later | each about a thousand higher | **38,842 / 42,069** |
+| sides showing two formes | 1,649 | **0** |
+
+The forme table's leaders are unchanged — those were genuine megas — and the conclusion the row was
+written for survives: the store still records no mega in `brought[]` or `lead[]`, so every ranking in
+this project still counted every mega forme as zero until today, and a mega is still not a turn-1
+default.
+
+**This is the third artifact-level error of the day and the first one nothing external caught.** The
+sequence that found it was the right one and is worth keeping: an anomaly was PRINTED rather than
+rounded away, the hypotheses were separated by a script rather than picked by intuition, and the
+witnesses named the cause in one run. Two of my earlier diagnoses today were guesses and both were
+wrong. Filed as the ingest-side item: the extractor should not call a Disguise break a mega, and
+`t:"mega"` wants splitting into mega-evolution and forme-change at the parser.
