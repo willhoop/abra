@@ -33,10 +33,9 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  330/330 probed mechanics live, 0 missing   (census 2026-08-10 00:01)
-  1/150 differential comparisons disagree with Showdown   (2026-08-09 23:18)
+  330/330 probed mechanics live, 0 missing   (census 2026-08-10 00:13)
+  0/150 differential comparisons disagree with Showdown   (2026-08-10 00:13)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
-    chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (70 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
     2300 of 8795 theoretical pairs staged — agreement is a claim about the 2300 that ran, not about the 8795
@@ -58,9 +57,73 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 183/191 probed, 8 unprobed
 ```
 
-_stamped 2026-08-10 00:03_
+_stamped 2026-08-10 00:16_
 
 <!-- /GENERATED -->
+
+## THE DAMAGE CALCULATOR NEVER KNEW ABOUT DISGUISE — A WHOLE GATE CLAUSE WAS ONE ROW. 2026-08-10.
+
+**THE GATE MOVED: 3 of 4 clauses failing → 2.** Release `a4c7f898ad0e`, all four re-measured on it.
+
+```
+PASS  game differential              0 of 150 disagree      (was FAIL, 1 of 150)
+PASS  deliberate roster / abilities  84 fired and matched
+FAIL  deliberate roster / items      0 differ, 6 did-not-fire
+FAIL  deliberate roster / moves      23 differ, 24 did-not-fire
+```
+
+### THE ROW
+
+```
+chesnaught woodhammer -> mimikyu    showdown 0-0    medicham 120-130
+```
+
+Showdown's `disguise.onDamage` returns false: the MOVE deals zero. The `maxhp/8` that busts the
+disguise is the ABILITY's damage, applied separately, and does not appear in the move's own number.
+
+### THE CONTROL IS WHAT MADE IT UNDENIABLE
+
+|  | with Disguise | with no ability |
+|---|---|---|
+| Showdown, real turn | lost **20** (= maxhp/8) | lost 117 |
+| our battle **loop** | lost **16** (= maxhp/8) ✓ | lost 130 |
+| our damage **calculator** | **120–142** | **120–142** |
+
+The calculator gave **the same answer with and without the ability** — this project's own definition of
+an unwired knob, borrowed from the roster.
+
+### WHY IT SURVIVED
+
+WIRE 136 has the loop right: it substitutes the chip and busts the forme, both engines land on the same
+HP, and **ROADMAP #89 recorded the Disguise MODEL as correct while telling the truth.** Nobody asked
+the other reader. `dmgRange` is what every board feature, every rollout leaf and `punishExposure`
+consult — so the SEARCH believed a Wood Hammer killed a Mimikyu when the move does nothing at all.
+
+**This is the `effMoveType` / `effWeatherOf` defect of 3.87.0 in a new place.** One fact, two readers,
+one silent, each internally consistent, so nothing ever failed. `formeOnHitAbsorbs()` states it once
+and both readers call it.
+
+### ZERO AND NOT THE CHIP, DELIBERATELY
+
+`dmgRange` answers "what does the MOVE do" — the question the authority answers with 0 and the question
+the differential compares. The chip stays with the loop. **A hypothetical price therefore understates a
+click into a fresh Mimikyu by `maxhp/8`**, which is stated rather than hidden and is far smaller than
+the 120 it replaces.
+
+### THE HAZARD WAS IN THE FIX, NOT THE FINDING
+
+The loop's `dmg` comes **from** `dmgRange`. So the moment the calculator correctly returned 0, the
+loop's `dmg > 0` guard would have been false **exactly when the disguise was there to bust** — no
+forme change, no chip, a regression created by the fix itself. Caught by reading the call path before
+running, not by a red test afterwards. The guard now asks what it always meant: a damaging move
+(`bp > 0`) that is not immune (`eff > 0`).
+
+### SIZE, STATED PLAINLY
+
+Disguise is **149 sheet uses**, Mimikyu only; Ice Face is the family's only other member at **0**. Small
+in corpus terms — and it was a quarter of the gate, and a decision error rather than a rounding one.
+
+---
 
 ## ROADMAP #110 — THE USER'S OWN STAT DROP LIVES IN TWO SHOWDOWN FIELDS. THE BUILDER READ ONE, AND SIX WORKING MOVES HID IT. 2026-08-10.
 

@@ -1,6 +1,13 @@
 # ABRA — Project Summary
 
-**Version 3.94.0 · 2026-08-10 · Will Hooper**
+**Version 3.95.0 · 2026-08-10 · Will Hooper**
+
+**3.95.0 — THE DAMAGE CALCULATOR NEVER KNEW ABOUT DISGUISE, AND THAT WAS A QUARTER OF THE GATE.**
+One row out of 150: `chesnaught woodhammer -> mimikyu`, showdown `0-0`, ours `120-130`. The battle
+loop was right all along; `dmgRange` — read by every board feature and rollout leaf — gave the same
+answer with and without the ability. Two readers of one fact, the 3.87.0 defect again. Stated once now.
+**Gate 3 failing clauses to 2**; differential clean at 0/150; census unmoved at 330 live; all four
+clauses re-measured under one release.
 
 **3.94.0 — THE USER'S OWN STAT DROP LIVES IN TWO SHOWDOWN FIELDS AND THE BUILDER READ ONE.**
 `self.boosts` (Close Combat, Superpower, Draco Meteor, Overheat, Leaf Storm, Make It Rain) all read

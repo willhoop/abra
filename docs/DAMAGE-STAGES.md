@@ -1,7 +1,14 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 3.94.0 — 2026-08-10.**
+**Version: 3.95.0 — 2026-08-10.**
 
+
+**3.95.0 — A DAMAGE ANSWER CHANGED, AND IT IS NOT A STAGE.** `dmgRange` now returns **0** against an
+intact Disguise, because the authority's `onDamage` blocks the move outright and the `maxhp/8` that
+busts it belongs to the ABILITY. Nothing in the table below moved — no multiplier changed position, and
+`tests/test-damage-stages.js` re-reads **1728/1728 exact, 0 at the wrong stage** — but this is the
+first entry here that alters what the function RETURNS rather than where a multiplier applies, so it is
+recorded as such. **The boost-stage difference filed at 3.89.0 is still filed and still not fixed.**
 
 **3.94.0 — NOTHING IN THE TABLE BELOW MOVED.** ROADMAP #110's `selfBoost` fix adds the USER's own
 stat change to two move rows; it is a boost applied after the move, not a multiplier inside it.

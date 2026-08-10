@@ -1,6 +1,17 @@
 # ABRA — the plain-English deck
 
-**Version 3.94.0 · 2026-08-10 · Will Hooper**
+**Version 3.95.0 · 2026-08-10 · Will Hooper**
+
+**3.95.0 — WE THOUGHT WE COULD KNOCK OUT A MIMIKYU. WE CANNOT.** Mimikyu has an ability that soaks up
+the first hit it takes — the attack does nothing at all. Our simulator has two halves: one plays out
+the turn, the other just works out "how hard would this hit". The turn-playing half knew about it and
+has for a while. The damage half did not, so it kept saying Wood Hammer does 120 to a Mimikyu when the
+real answer is zero. Anything picking moves was reading the wrong half, so it believed it had a
+knockout that was not there. Both halves now ask the same single source. **This was a quarter of our
+"is the simulator correct yet" scorecard, and it was one row.** That section is now clean — 150 out of
+150. **The tricky part was the fix, not the finding:** the turn-playing half gets its numbers from the
+damage half, so the moment we correctly said "zero", the turn half stopped noticing the ability had
+been used at all. Caught that before running it.
 
 **3.94.0 — A MOVE THAT HURTS YOU TO USE IT WAS FREE FOR US, ON TWO MOVES.** Some attacks lower your
 own stats as the price of using them — Close Combat drops your defences, Draco Meteor drops your

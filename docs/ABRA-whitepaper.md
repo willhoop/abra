@@ -1,6 +1,23 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 3.94.0 · Last updated 2026-08-10**
+**Version 3.95.0 · Last updated 2026-08-10**
+
+**3.95.0 — TWO READERS OF ONE FACT, AGAIN, AND THIS TIME IT WAS A QUARTER OF THE GATE.** The damage
+differential's sole remaining disagreement across 150 comparisons was `chesnaught woodhammer ->
+mimikyu`: the authority reports `0-0`, this engine reported `120-130`. Showdown's Disguise returns
+false from `onDamage`, so the MOVE deals nothing and the `maxhp/8` that busts the disguise is the
+ABILITY's own damage, applied separately. The battle loop had this right and has since WIRE 136 — both
+engines land on the same HP, which is exactly why the Disguise model could be recorded as correct and
+the record be true. The DAMAGE CALCULATOR, which every board feature and every rollout leaf consults,
+knew nothing: measured against a control it returned **the same 120-142 with Disguise and with no
+ability at all**, the deliberate roster's own definition of an unwired knob. This is the
+`effMoveType`/`effWeatherOf` defect of 3.87.0 in a new place — one fact, two readers, one silent, each
+internally consistent so nothing ever failed. The fact is stated once now and both readers call it.
+**The hazard was in the fix rather than the finding:** the loop's damage comes FROM the calculator, so
+once the calculator correctly returned 0 the loop's `dmg > 0` guard would have been false precisely
+when the disguise was there to bust — the forme would never have broken. Caught before running. **Gate:
+3 of 4 clauses failing to 2**, the differential clean at 0 of 150, all four re-measured under one
+release.
 
 **3.94.0 — THE MECHANIC WAS WORKING ON 20,000 USES, AND THAT IS EXACTLY WHY THE HOLE SURVIVED.**
 Showdown carries the user's own stat change in **two different fields**. `self.boosts` covers Close

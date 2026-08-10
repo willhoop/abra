@@ -10,6 +10,68 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.95.0] — 2026-08-10
+
+### Fixed
+- **THE DAMAGE CALCULATOR NEVER KNEW ABOUT DISGUISE. A WHOLE CLAUSE OF THE MEDICHAM GATE WAS ONE ROW.**
+  The damage differential's only remaining disagreement, out of 150 comparisons:
+
+  ```
+  chesnaught woodhammer -> mimikyu    showdown 0-0    medicham 120-130
+  ```
+
+  Showdown's `disguise.onDamage` returns false, so the **move** deals zero; the `maxhp/8` chip that
+  busts the disguise is applied separately, by the ability. `dmgRange` — the calculator every board
+  feature, every rollout leaf and `punishExposure` consults — applied neither.
+
+  **Measured with a control, which is what made it undeniable:**
+
+  | | with Disguise | with no ability |
+  |---|---|---|
+  | Showdown, real turn | lost **20** (= maxhp/8) | lost 117 |
+  | our battle **loop** | lost **16** (= maxhp/8) ✓ | lost 130 |
+  | our damage **calculator** | **120–142** | **120–142** |
+
+  The calculator returned the **same number with and without the ability** — the deliberate roster's
+  own definition of an unwired knob.
+
+- **THE LOOP WAS RIGHT ALL ALONG, WHICH IS WHY THIS SURVIVED.** WIRE 136 substitutes the chip and busts
+  the forme, both engines land on the same HP, and ROADMAP #89 recorded the Disguise *model* as correct
+  — truthfully. Nobody asked the other reader. **This is the `effMoveType` / `effWeatherOf` defect of
+  3.87.0 again**: two readers of one fact, one right and one silent, each internally consistent, so
+  nothing failed. The fact is now stated once in `formeOnHitAbsorbs()` and both readers call it.
+
+- **ZERO, NOT THE CHIP — deliberately.** `dmgRange` answers "what does the MOVE do", which the authority
+  answers with 0 and which is what the differential compares. The chip is the ABILITY's damage and stays
+  with the loop. A hypothetical price therefore understates a click into a fresh Mimikyu by `maxhp/8` —
+  stated rather than hidden, and far smaller than the 120 it replaces.
+
+### Changed
+- **THE LOOP'S GUARD CAN NO LONGER READ `dmg`, AND THAT WAS THE ONE REAL HAZARD IN THIS CHANGE.** The
+  loop's damage comes *from* `dmgRange`, so once the calculator correctly returned 0 the old
+  `dmg > 0` test would have been false **exactly when the disguise was there to bust** — the forme
+  would never have broken and the chip never applied. Caught before running, not after. The guard now
+  asks what it always meant: a damaging move (`bp > 0`) that is not immune (`eff > 0`).
+
+### Notes
+- **THE GATE MOVED: 3 of 4 clauses failing → 2.**
+
+  ```
+  PASS  game differential              0 of 150 disagree   (was FAIL, 1 of 150)
+  PASS  deliberate roster / abilities  84 fired and matched
+  FAIL  deliberate roster / items      0 differ, 6 did-not-fire
+  FAIL  deliberate roster / moves      23 differ, 24 did-not-fire
+  ```
+
+- All four clauses re-measured under **one** release, `a4c7f898ad0e`. Roster abilities, items and moves
+  all unchanged (0/0/84, 0/6/134, 23/24/362), census unmoved at **330 live / 330 probed / 0 missing**,
+  `test-engine-consistency` all pass.
+- Disguise is **149 sheet uses** on Mimikyu. Small in corpus terms and it was a quarter of the gate;
+  more importantly it is a *decision* error — the search believed a Wood Hammer killed a Mimikyu when
+  the move does nothing at all. Ice Face is the family's only other member and has **0 uses** here.
+
+---
+
 ## [3.94.0] — 2026-08-10
 
 ### Fixed

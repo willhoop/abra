@@ -1,6 +1,16 @@
 # ABRA — Technical Documentation
 
-**Version 3.94.0 · Last updated 2026-08-10**
+**Version 3.95.0 · Last updated 2026-08-10**
+
+**3.95.0 — THE DAMAGE FUNCTION MUST HONOUR AN INTACT DISGUISE.**
+The ability Disguise blocks the damage of a move. The move does 0 damage. The ability then does damage
+equal to `maxhp/8`. These are two different sources. Showdown reports them separately.
+The battle loop applied the ability damage. The function `dmgRange` did not apply the block. It gave
+the same result with the ability and without it.
+The function `formeOnHitAbsorbs` holds this fact. The function `dmgRange` calls it and returns 0. The
+battle loop calls it and applies the chip. Do not write this rule in two places.
+The guard in the loop must not read the damage. The damage is 0 when the block applies. Read the base
+power of the move and the type effectiveness instead.
 
 **3.94.0 — READ THE USER'S OWN BOOST FROM TWO FIELDS.**
 A move can change the stats of its user. Showdown puts this fact in the field `self.boosts`. Showdown

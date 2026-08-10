@@ -3532,12 +3532,52 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
    * where a stage error is smallest: at 100% the randomizer is the identity. The interior is where a
    * misplaced truncation shows, and nothing could see it. Filled only when a caller hands over an
    * array, so the hot path allocates nothing. */
+  /* AN INTACT DISGUISE TAKES **NOTHING** FROM THE MOVE, AND THIS FUNCTION SAID 120-130.
+   *
+   * ROADMAP #110 / the damage differential's ONLY remaining disagreement, and it is a whole clause of
+   * the MEDICHAM gate on its own: `chesnaught woodhammer -> mimikyu` reads `showdown 0-0, medicham
+   * 120-130`. Showdown's `disguise.onDamage` returns false, so the MOVE deals zero; the 1/8 chip that
+   * busts the disguise is applied SEPARATELY, by the ability, and does not appear in the move's own
+   * damage. Both facts are visible in a real turn: Showdown loses exactly `maxhp/8`.
+   *
+   * THE BATTLE LOOP ALREADY HAD THIS RIGHT (WIRE 136, `:8495`) — it substitutes the chip and busts the
+   * forme, and both engines land on the same HP, which is why ROADMAP #89 could call the Disguise
+   * MODEL correct and be telling the truth. What nobody checked is that `dmgRange` — the calculator
+   * every board feature, every rollout leaf and `punishExposure` ask — never knew. Measured with a
+   * control: it returned the SAME 120-142 with Disguise and with no ability at all, which is the
+   * roster's own definition of an unwired knob.
+   *
+   * THIS IS THE `effMoveType` / `effWeatherOf` DEFECT AGAIN (3.87.0): two readers of one fact, one
+   * right and one silent, and nothing compared them because each was internally consistent. So the
+   * fact is stated ONCE now, in `formeOnHitAbsorbs`, and the loop reads the same function.
+   *
+   * ZERO AND NOT THE CHIP, deliberately. This function answers "what does the MOVE do", which is the
+   * question the authority answers with 0 and the question the differential compares. The chip is the
+   * ABILITY's damage and belongs to the loop, which still applies it. A hypothetical price therefore
+   * understates a click into a fresh Mimikyu by `maxhp/8` — stated here rather than hidden, and it is
+   * a far smaller error than the full 120 it replaces. */
+  if(formeOnHitAbsorbs(def)){
+    if(hit&&Array.isArray(hit.rolls)){hit.rolls.length=0;for(let i=0;i<16;i++)hit.rolls.push(0);}
+    return {min:0,max:0,eff};
+  }
   if(hit&&Array.isArray(hit.rolls)){
     hit.rolls.length=0;
     for(let i=0;i<16;i++){const v=roll(100-i);hit.rolls.push(_hits>1?Math.floor(v*_hits):v);}
   }
   if(_hits>1)return {min:Math.floor(roll(85)*_hits),max:Math.floor(roll(100)*_hits),eff};
   return {min:roll(85),max:roll(100),eff};
+}
+
+/* THE FACT, IN ONE PLACE, because two implementations of it is what produced the row above.
+ * Returns null when nothing absorbs, else the ability's own params and the chip it costs the holder.
+ * `_disguiseBusted` is the state the loop sets; an unbuilt hypothetical body has it undefined, which
+ * correctly reads as INTACT. */
+function formeOnHitAbsorbs(tg){
+  if(!tg||tg._disguiseBusted)return null;
+  const fh=TAGS.param('ability',tg&&tg.ability,'formeOnHit');
+  if(!fh||!fh.becomes)return null;
+  const max=(tg.st&&tg.st.hp)||0;
+  return {fh,chip:Math.floor(max/(+fh.costsMaxHPDiv||8))};
 }
 /* Recoil and self stat drops now ride ON THE MOVE TABLE (mv.rc = [num,den] of damage dealt,
  * mv.self = the drop in Showdown stat names), generated into data/engine-data.js from the dex by
@@ -8492,10 +8532,18 @@ function battleTurn(S,rng,actsForA,actsForB){
          * and that file belongs downstream of this division. A member with `sameStats:false` (Ice
          * Face, 0 uses) would need the row and is COUNTED rather than renamed wrongly. */
         {
-          const _fh=TAGS.param('ability',tg.ability,'formeOnHit');
-          if(_fh&&_fh.becomes&&!tg._disguiseBusted&&dmg>0){
+          /* THE GUARD CANNOT READ `dmg` ANY MORE, AND THAT IS THE WHOLE CARE IN THIS CHANGE.
+           * `dmg` comes from `dmgRange` (`_price()` above), and `dmgRange` now correctly returns 0
+           * against an intact Disguise — so the old `dmg>0` test would be FALSE exactly when the
+           * disguise is there to bust, and the forme would never break. The question this guard is
+           * actually asking is "would this move have connected damagingly", which is the MOVE and the
+           * TYPE CHART, not the post-absorb number: a damaging move (`bp>0`) that is not immune
+           * (`d.eff>0`). `eff` survives the absorb because `dmgRange` returns it unchanged. */
+          const _abs=formeOnHitAbsorbs(tg);
+          if(_abs&&mv&&(mv.bp>0)&&d&&d.eff>0){
+            const _fh=_abs.fh;
             tg._disguiseBusted=true;
-            dmg=Math.floor(tg.st.hp/(+_fh.costsMaxHPDiv||8));
+            dmg=_abs.chip;
             if(TR)TR.act(tg,'ability: '+tg.ability);
             const _key=pasteKey(_fh.becomes);
             if(monRow(_key))formeSwap(tg,_fh.becomes,'formeOnHit');

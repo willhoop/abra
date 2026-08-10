@@ -47,7 +47,7 @@ converged. Read at the moment of the decision, from artifacts, not prose:
 
 | instrument | agreement with the official engine |
 |---|---|
-| `data/engine-diff.json` (damage, seed 20260804) | **149 / 150** — the one residual is a documented harness-layer boundary, both engines right |
+| `data/engine-diff.json` (damage, seed 20260804) | **150 / 150**, clean. *(This read **149 / 150** and called the residual "a documented harness-layer boundary, both engines right". **That was wrong and is retracted, 2026-08-10.** The residual was `chesnaught woodhammer -> mimikyu`, and it was a real engine defect: `dmgRange` ignored an intact Disguise and priced the click at 120-130 where the authority says 0. Both engines were NOT right. The claim survived because the battle LOOP handles Disguise correctly, so the mechanic looked implemented — see `docs/ENGINE.md`.)* |
 | `data/interaction-matrix.json` (carrier × reactor) | **1,624 / 1,643 — 98.8%** of 2,300 staged from a theoretical 8,795, PLUS the artifact's own `off_gate` count of **53** disagreements in buckets the gate discards. The agreement RATE excludes those and the count fell at 3.50.0 while the rate did not move; read both fields. The four oldest are UNWIRED knobs (Shield Dust ×3, Steadfast ×1) rather than wrong arithmetic |
 | `data/mechanics-census.json` | the live/probed count, with every miss carrying a written reason. **Read it from the artifact — this figure moved four times in one night as the WIRE queue landed, and was hand-corrected three of them.** |
 

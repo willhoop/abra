@@ -1,6 +1,11 @@
 # ABRA — the model family (living reference)
 
-**Version 3.94.0 · Last updated 2026-08-09.**
+**Version 3.95.0 · Last updated 2026-08-09.**
+
+**3.95.0 — MEDICHAM: THE CALCULATOR PRICED A WOOD HAMMER INTO MIMIKYU AT 120 WHEN IT DOES NOTHING.**
+An intact Disguise blocks the move outright. The loop knew; `dmgRange` did not, so every board feature
+and every rollout leaf believed the KO was there. Stated once now in `formeOnHitAbsorbs`. MEDICHAM-only
+— nothing refitted, quarantine unchanged, though this is the first change that moves a GATE clause.
 
 **3.94.0 — MEDICHAM: TWO MOVES NEVER APPLIED THE USER'S OWN STAT DROP.** Showdown keeps that fact in
 `self.boosts` AND `selfBoost.boosts`; the engine's move table was built from the first only, so

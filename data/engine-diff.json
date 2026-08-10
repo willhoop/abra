@@ -1,25 +1,14 @@
 {
-  "generated": "2026-08-09T23:18:23.374Z",
+  "generated": "2026-08-10T00:13:16.283Z",
   "by": "tests/test-engine-diff.js",
   "design": "Showdown is the authority. Same attacker, move and defender through both engines; a disagreement is a MEDICHAM bug, including one nobody thought to look for.",
   "scope": "damage only, no items or abilities. Turn order, status duration and switching need a different harness and are not attempted here rather than attempted badly.",
   "seed": 20260804,
   "requested": 150,
   "compared": 150,
-  "agreed": 149,
-  "disagreed": 1,
-  "worst": [
-    {
-      "att": "chesnaught",
-      "mv": "woodhammer",
-      "def": "mimikyu",
-      "showdown": "0-0",
-      "medicham": "120-130",
-      "rel": 125,
-      "uses": 70,
-      "suspect": true
-    }
-  ],
+  "agreed": 150,
+  "disagreed": 0,
+  "worst": [],
   "skipped_non_finite": 0,
   "skipped_moves": {},
   "skipped_multihit": 7,
