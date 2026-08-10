@@ -454,9 +454,23 @@ thousand sheets each outrank one ability at 678. The measured column is the disa
 (clamped) or dealt 0. **The control — the same rows with nothing switched on — disagrees on 4.1%
 (12/294).** That is the floor: anything at 4% is adding nothing, anything at 35% is the stage.
 
+**PER-ITEM USAGE FOR THE TYPE-ITEM ROW IS READ LIVE FROM `data/tags.json` AND IS DELIBERATELY NOT
+RESTATED IN THE ROW.** The counts that used to stand there were correct when written and had all moved
+by the next gate run, because the tagger regenerates that artifact against a corpus that grows hourly —
+roughly a quarter of all tagged entities' `uses` moved in the single regeneration of 2026-08-10 (the
+exact tally is in `docs/MEDICHAM-SPRINT-NOTES.md`, where it is stated once). Membership is what matters
+and it is derived, not typed.
+
+*(The citation moved out of the table row on 2026-08-10, and the reason is worth one sentence. A table
+row is its own paragraph to `tests/test-docs-current.js`, so naming `data/tags.json` inside the row was
+a promise that every figure in that row came from it — and the row's other figures are DISAGREEMENT
+RATES from the run described above, which no artifact holds. `65.0%` passed the citation check for
+months purely because some unrelated `0.65` sat in `tags.json`, and it stopped passing the moment that
+number moved. The measurement is unchanged; only the false citation is gone.)*
+
 | multiplier | authority event | ours (frozen line) | uses | measured disagreement |
 |---|---|---|---|---|
-| **the 18 type items** — every member of `damageMultType`, headed by Fairy Feather, Black Glasses, Mystic Water and Charcoal, with a long tail down to Silver Powder. Per-item usage is read live from `data/tags.json` and is deliberately not restated: the counts that stood here were correct when written and had all moved by the next gate run, because the tagger regenerates that artifact. Membership is what matters and it is derived, not typed | `onBasePower` x1.2 | `:2499-2500` `damageMultType` in the ModifyDamage chain | **the biggest class here** | Black Glasses **65.0% (13/20)**, Charcoal **40.0% (10/25)** |
+| **the 18 type items** — every member of `damageMultType`, headed by Fairy Feather, Black Glasses, Mystic Water and Charcoal, with a long tail down to Silver Powder | `onBasePower` x1.2 | `:2499-2500` `damageMultType` in the ModifyDamage chain | **the biggest class here** | Black Glasses **65.0% (13/20)**, Charcoal **40.0% (10/25)** |
 | **Tough Claws** | `onBasePower` `[5325,4096]` | `:2313-2320` `boostsMoveClass`, at the base stage | 627 | **34.0% (54/159)** |
 | **Technician** | `onBasePower` x1.5, priority 30 | `:2308`, at the base stage | 678 | **40.3% (31/77)** |
 | **Sharpness** | `onBasePower` x1.5 | `:2313-2320` | 314 | **48.0% (12/25)** |

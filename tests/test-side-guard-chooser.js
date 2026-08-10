@@ -32,6 +32,7 @@ const path = require('path');
 const D = (...p) => path.join(__dirname, '..', ...p);
 require(D('data', 'engine-data.js'));
 const M = require(D('engine', 'medicham2-browser.js'));
+const MCKEY = require(D('engine', 'mc_key.js'));   // the ONE species -> MC.mons resolver
 const TAGS = globalThis.ABRA_TAG_LOOKUP;
 
 let fails = 0;
@@ -137,8 +138,13 @@ for (const [foeMove, hp, guard, want, why] of ARMS) {
  * move no modelled body holds. */
 console.log('\n--- 3. THE RATE, MEASURED OVER SELF-PLAY ---');
 function xorshift(seed) { let s = seed >>> 0; return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
-const names = Object.keys(MC.mons).filter(k => M.buildMon(k, {}));
-const wts = names.map(k => (MC.mons[k].set_source && MC.mons[k].set_source.n) || 0);
+/* mcKey.all() rather than walking MC.mons. Its own comment is the reason: it returns ENTRIES, not
+ * keys, "because a caller handed a list of keys will index the raw table with them and we are
+ * exactly back where we started". Object.entries would have dodged the gate's pattern while doing
+ * the identical thing. */
+const rows = MCKEY.mcKey.all().filter(([k]) => M.buildMon(k, {}));
+const names = rows.map(([k]) => k);
+const wts = rows.map(([, v]) => (v.set_source && v.set_source.n) || 0);
 const total = wts.reduce((a, b) => a + b, 0);
 const GAMES = 1500;
 const rng = xorshift(20260810);

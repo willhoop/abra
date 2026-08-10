@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-10T07:46:41.389Z",
+  "generated": "2026-08-10T08:30:06.220Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 372,
-  "live": 372,
+  "probed": 376,
+  "live": 376,
   "missing": 0,
-  "armed": 372,
+  "armed": 376,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2496,7 +2496,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 28.0% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 25.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2896,7 +2896,7 @@
       "tag": "statusCategory",
       "label": "every action kind the engine can resolve announces its |move| line",
       "live": true,
-      "detail": "33/33 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
+      "detail": "34/34 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3727,6 +3727,46 @@
       "label": "Imprison, Destiny Bond and Endure clicked with NO TARGET each land their volatile, and a foe-directed click with none still fails",
       "live": true,
       "detail": "[volatile, result] after ONE untargeted click — [[\"imprison\",\"imprison\",true],[\"destinybond\",\"destinybond\",true],[\"endure\",\"endure\",true]]; every one identical to the same click aimed at the user (true). CONTROL — Hatterene's Charm is target:normal and with no target named it lands nothing: volatile \"-\", result false, foe atk 0. The knob is the move's own target field and nothing else",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "healDescriptor",
+      "label": "Heal Pulse restores half the ALLY's max HP, rounded UP, to the ally and not to its user",
+      "live": true,
+      "detail": "[Clefable 170 max clicks it at a Garchomp on 1 of 183] — the ally ends on 93, restored 92; ceil(183/2) = 92, and half the USER's max would be 85. CONTROL — the same board with the turn passed leaves the ally on 1, so nothing in the staging heals. The user keeps 170: this move costs no HP and gives its user none",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "healDescriptor",
+      "label": "Wish resolves a turn LATE, on whoever holds the slot, for half the WISHER's max",
+      "live": true,
+      "detail": "[slot 0 after each of three turns: wish, switch, pass] — clefable:170 garchomp:86 garchomp:86; CONTROL with the wish turn passed clefable:170 garchomp:1 garchomp:1. The Garchomp arrives on 1 of 183 and is restored 85: trunc(170/2) = 85, where half its OWN max would be 91. It is not on the field when the move is clicked and the HP arrives at the END of the turn AFTER, so an engine that healed the user on the spot reads clefable:170 on row one",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "healDescriptor",
+      "label": "Rest restores FULL HP, replaces the burn it was carrying, and puts its user to sleep — all three",
+      "live": true,
+      "detail": "[a 125 HP Toxapex on 31 and burned] — after Rest it is on 125/125 with status \"slp\"; CONTROL, the same body passing the turn, 24/125 status \"brn\" (the burn chips it further, which is what makes the arms differ honestly). All three effects are asserted: an engine that heals and leaves the burn, or heals and never sleeps, is a strictly better move than the one in the game",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "healDescriptor",
+      "label": "Healing Wish faints its user and the replacement arrives at full HP with its status cleared",
+      "live": true,
+      "detail": "[Clefable clicks it with a paralysed Garchomp on 1 of 183 on the bench] — the user is down (true) and slot 0 now holds \"garchomp\" on 183/183 with status \"-\". CONTROL — the same board with the turn passed leaves \"clefable\" standing, down false. The faint is the half a heal-only probe cannot see, and it is the half that PRICES the move",
       "hollow": false,
       "armed": true,
       "directCall": false

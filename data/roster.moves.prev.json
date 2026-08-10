@@ -1,14 +1,14 @@
 {
- "generated": "2026-08-10T07:26:33.228Z",
+ "generated": "2026-08-10T07:46:50.986Z",
  "by": "tests/roster.js",
  "stage": "moves",
- "engine_release": "60d88f2e8a78",
+ "engine_release": "3a89b0c9d044",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 17,
-  "DID-NOT-FIRE": 19,
+  "DID-NOT-FIRE": 16,
   "DEFERRED-BY-OWNER": 0,
-  "FIRED-AND-BOARDS-MATCH": 401,
+  "FIRED-AND-BOARDS-MATCH": 404,
   "CONTROL-NOT-QUIET": 0,
   "COULD-NOT-STAGE": 63
  },
@@ -18,9 +18,9 @@
   "out_of_scope_by": {},
   "in_scope": 500,
   "tested": 437,
-  "matched": 401,
+  "matched": 404,
   "differ": 17,
-  "silent": 19,
+  "silent": 16,
   "deferred": 0,
   "unattributable": 0,
   "unattributable_ids": [],
@@ -20399,8 +20399,8 @@
    "rule": "move/needs-a-volatile-set-first",
    "reads": "a volatile named inside the move's own onTry, and the move in this format that sets it",
    "note": "the gate is `stockpile`, set by Stockpile on turns 1 and 2, and the move is clicked on turn 3 with two layers on it",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -20457,44 +20457,7 @@
      "without": 2
     }
    ],
-   "diffs": [
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 586,
-     "ours": 620,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "p1a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 586,
-     "ours": 620,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 4,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 586,
-     "ours": 620,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 4,
-     "slot": "p1a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 586,
-     "ours": 620,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -20941,8 +20904,8 @@
    "rule": "move/volatile",
    "reads": "volatileStatus",
    "note": "stockpile on the user; Torterra beside it must not gain it",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -20987,62 +20950,7 @@
      "without": 0
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "boosts.def",
-     "showdown": 1,
-     "ours": 0,
-     "bucket": "off-by-one"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "boosts.spd",
-     "showdown": 1,
-     "ours": 0,
-     "bucket": "off-by-one"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "boosts.def",
-     "showdown": 1,
-     "ours": 0,
-     "bucket": "off-by-one"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "boosts.spd",
-     "showdown": 1,
-     "ours": 0,
-     "bucket": "off-by-one"
-    },
-    {
-     "turn": 3,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "boosts.def",
-     "showdown": 1,
-     "ours": 0,
-     "bucket": "off-by-one"
-    },
-    {
-     "turn": 3,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "boosts.spd",
-     "showdown": 1,
-     "ours": 0,
-     "bucket": "off-by-one"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -22157,8 +22065,8 @@
    "rule": "move/needs-a-volatile-set-first",
    "reads": "a volatile named inside the move's own onTry, and the move in this format that sets it",
    "note": "the gate is `stockpile`, set by Stockpile on turns 1 and 2, and the move is clicked on turn 3 with two layers on it",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,

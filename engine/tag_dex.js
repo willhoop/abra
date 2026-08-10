@@ -2286,6 +2286,142 @@ const MOVE_TAGS = [
       const FRIENDLY = ['allies', 'allySide', 'adjacentAlly', 'adjacentAllyOrSelf', 'any'];
       return FRIENDLY.includes(m.target) ? { heal: m.heal || true } : null;
     } },
+  /* ---- WIRE 154 -- THE HEAL DESCRIPTOR, BECAUSE `healsSelf` CANNOT DESCRIBE A SINGLE ONE OF THEM --
+   *
+   * Four moves in this format carry `healsSelf` or `healsAlly` and NOT ONE is a plain self-heal:
+   *
+   *   Heal Pulse    heals the TARGET       now                half the TARGET'S max, ROUNDED UP
+   *   Wish          heals whoever holds    at the residual    half the WISHER'S max -- booked on the
+   *                 the SLOT               of the NEXT turn   click and spent a turn later
+   *   Rest          heals the user         now                FULL, and REPLACES its status with its
+   *                                                           own sleep
+   *   Healing Wish  heals the REPLACEMENT  on ENTRY           FULL, clears status, and THE USER DIES
+   *
+   * `{heal: true}` -- which is what all four carried -- expresses none of that, so all four resolved
+   * to `{kind:'pass'}`: four wasted turns, and Healing Wish was a free full restore for the next body
+   * in with its whole cost missing. This tag carries WHO, WHEN, HOW MUCH, WHETHER STATUS CLEARS and
+   * WHETHER THE USER FAINTS, every one of them read out of the move's own handler, `target`,
+   * `slotCondition` and `selfdestruct`. Not one move is named.
+   *
+   * MEMBERSHIP PRINTED OVER THE WHOLE MOVE TABLE BEFORE A LINE OF THE CONSUMER WAS WRITTEN, as this
+   * file's own rule requires -- 22 moves in this format carry `flags.heal` and the descriptor matches
+   * FOUR. What it declines and why it declines it is the interesting half, because every one of those
+   * refusals is a move some other param already sizes and a double claim would double-heal:
+   *
+   *   m.drain            bitterblade drainingkiss drainpunch gigadrain hornleech leechlife
+   *                      matchagotcha paraboliccharge   -- a share of DAMAGE DEALT, a different tag
+   *   m.heal is a PAIR   lifedew recover roost slackoff softboiled   -- `healsSelf`/`healsAlly` carry
+   *                      the [1,2] / [1,4] and the engine's WIRE 150 arm already spends it
+   *   a `this.modify`    moonlight morningsun synthesis swallow   -- sized by `weatherScaled
+   *   factor             .baseHealFraction` and `healsSelf.byVolatileLayers`, which are 4096ths chains
+   *                      and NOT the plain rounding this tag describes
+   *   a bare variable    strengthsap   -- `this.heal(atk, ...)`, sized by `healsSelf.fromTargetStat`
+   *
+   * THE ROUNDING IS THE HANDLER'S OWN AND IT IS DIFFERENT ON TWO OF THE FOUR, which is exactly why it
+   * is carried rather than assumed. Heal Pulse is `Math.ceil(target.baseMaxhp * 0.5)` -- 92 on a 183
+   * HP body where a floor gives 91 -- and Wish books `source.maxhp / 2` as a raw float that
+   * `Battle#heal` then TRUNCATES. A consumer that picked one rule for the family would be wrong on
+   * the other member by one HP, every time, in the direction that decides a faint.
+   *
+   * THE VARIABLE IS THREADED IN EVERY ARM, the same discipline `fromTargetStat` and `byVolatileLayers`
+   * use above: the identifier whose `maxhp` is read must be the identifier the heal is spent on (or,
+   * for Wish, the `effectState` field the booking wrote must be the one `onEnd` heals from), and the
+   * identifier is resolved to a ROLE through the handler's own formal parameter list rather than by
+   * assuming a name. That is what tells Heal Pulse's `target` (the recipient) from Wish's `source`
+   * (the user) without either move being mentioned. */
+  { tag: 'healDescriptor', param: 'WHO is healed, WHEN, HOW MUCH, whether status clears and whether the user dies',
+    probe: 'healDescriptor',
+    why: 'Heal Pulse (148), Wish (63), Rest (60) and Healing Wish (16) all resolved to a wasted turn '
+       + 'because `{heal:true}` cannot say any of those five things. Healing Wish was the worst: a '
+       + 'free full restore with its own faint missing, which is strictly better than the real move',
+    of: m => {
+      if (!(m.flags && m.flags.heal) || m.drain) return null;
+      /* SIZED BY THE DEX FIELD ALREADY. Recover, Roost, Slack Off, Soft-Boiled and Life Dew carry
+       * `heal: [1,2]` / `[1,4]`, which `healsSelf`/`healsAlly` publish and the engine's WIRE 150 arm
+       * spends. Claiming them here would be a SECOND reader of the same fact, which is the failure
+       * CLAUDE.md's "FACTS ARE GLOBAL" rule names. */
+      if (m.heal) return null;
+      /* The handler's formal parameter list, so an identifier can be resolved to a ROLE. `onHit(target,
+       * source)` and `onStart(pokemon, source)` both put the USER second and the body the effect is
+       * resolving on first; a handler with one parameter has only the first. */
+      const roleMap = (fn, roles) => {
+        const sig = /^[^(]*\(([^)]*)\)/.exec(String(fn || ''));
+        const out = {};
+        if (sig) sig[1].split(',').map(x => x.trim().split(/[\s=]/)[0]).filter(Boolean)
+          .forEach((nm, i) => { if (roles[i]) out[nm] = roles[i]; });
+        return out;
+      };
+      const out = {};
+      const cond = m.condition || null;
+      if (m.slotCondition) {
+        /* A SLOT CONDITION IS THE WHOLE POINT OF TWO OF THESE MOVES: the HP lands on whoever is
+         * STANDING IN THAT SLOT when it resolves, which is why both survive a switch and why neither
+         * can be modelled as a heal on the body that clicked. */
+        out.slotCondition = norm(m.slotCondition);
+        out.who = 'slot';
+        if (cond && cond.onStart && cond.onEnd) {
+          /* WISH. `onStart` BOOKS the amount off the user and stores it on the condition; `onEnd`
+           * SPENDS it. Both halves are matched, and the field name is threaded from one to the other,
+           * so a condition that merely happens to hold a number cannot fire this. */
+          const st = String(cond.onStart), en = String(cond.onEnd);
+          const r = roleMap(cond.onStart, ['recipient', 'user']);
+          const book = /effectState\.(\w+)\s*=\s*(\w+)\.maxhp\s*\/\s*([\d.]+)/.exec(st);
+          if (!book) return null;
+          if (!new RegExp('heal\\(\\s*this\\.effectState\\.' + book[1] + '\\b').test(en)) return null;
+          out.when = 'endOfNextTurn';
+          /* `trunc`, AND IT IS THE AUTHORITY'S AND NOT A CHOICE. The booking is a raw float division
+           * (`source.maxhp / 2`) and `Battle#heal` truncs its argument, so an odd max HP loses the
+           * half rather than rounding it up. */
+          out.amount = { fraction: 1 / (+book[3]), of: r[book[2]] || book[2], round: 'trunc' };
+        } else if (cond && cond.onSwap) {
+          /* HEALING WISH. The condition fires as the REPLACEMENT arrives (`onSwitchIn` -> `onSwap`),
+           * and the body it heals is the one it is handed -- never the user, who by then is dead. */
+          const sw = String(cond.onSwap);
+          const r = roleMap(cond.onSwap, ['recipient']);
+          const full = /(\w+)\.heal\(\s*\1\.maxhp\s*\)/.exec(sw);
+          if (!full) return null;
+          out.when = 'onEntry';
+          out.amount = { full: true, of: r[full[1]] || full[1] };
+          if (new RegExp('\\b' + full[1] + '\\.(?:clearStatus|cureStatus)\\(').test(sw)) out.curesStatus = true;
+        } else return null;
+      } else {
+        const src = String(m.onHit || '');
+        if (!src) return null;
+        const r = roleMap(m.onHit, ['recipient', 'user']);
+        /* (a) A FRACTION OF SOMEBODY'S MAX, THROUGH THE HANDLER'S OWN ROUNDING FUNCTION. The function
+         *     is captured rather than assumed -- Heal Pulse ceils. Deliberately NOT matching a
+         *     `this.modify(...)` factor: that is the 4096ths chain, it is a different arithmetic, and
+         *     the moves that use it are already sized by `weatherScaled` and `byVolatileLayers`. */
+        const frac = /this\.heal\(\s*Math\.(ceil|floor|round)\(\s*(\w+)\.(?:baseMaxhp|maxhp)\s*\*\s*([\d.]+)\s*\)\s*\)/.exec(src);
+        /* (b) A FULL RESTORE. */
+        const full = /this\.heal\(\s*(\w+)\.maxhp\s*\)/.exec(src);
+        if (frac) out.amount = { fraction: +frac[3], of: r[frac[2]] || frac[2], round: frac[1] };
+        else if (full) out.amount = { full: true, of: r[full[1]] || full[1] };
+        else return null;
+        out.who = 'target';
+        out.when = 'now';
+        const who = frac ? frac[2] : full[1];
+        if (new RegExp('\\b' + who + '\\.(?:clearStatus|cureStatus)\\(').test(src)) out.curesStatus = true;
+        /* REST SETS A STATUS ON THE BODY IT JUST HEALED, and `Pokemon#setStatus` REPLACES whatever was
+         * there -- it refuses only the SAME status and the ordinary immunities. That is why
+         * `curesStatus` is set alongside: an engine that routes this through a "one major status at a
+         * time" gate heals to full and leaves the burn on, which is a strictly better move than the
+         * real one. `turns` is the handler's own `statusState.time = 3` literal. */
+        const sets = new RegExp('\\b' + who + '\\.setStatus\\(\\s*"(\\w+)"').exec(src);
+        if (sets) {
+          out.setsStatus = { status: sets[1] };
+          const t = /statusState\.time\s*=\s*(\d+)/.exec(src);
+          if (t) out.setsStatus.turns = +t[1];
+          out.curesStatus = true;
+        }
+      }
+      /* THE COST, FROM THE MOVE'S OWN `selfdestruct`. It duplicates nothing: `userFaints` already
+       * carries this and is read by the attack and `affect` branches, and NEITHER of them is reachable
+       * from a move that resolves as a heal -- so the descriptor's consumer has to be able to see it
+       * without asking a second tag whether it agrees. */
+      if (m.selfdestruct) out.userFaints = m.selfdestruct;
+      return out;
+    } },
   /* Will: "the charge turns need a weather sub tag or something that says if rain then no charge on
    * electroshot". Exactly right, and the dex declares it -- Showdown stores the skip condition on
    * the move's own condition handler, so it is derivable rather than a list. Electro Shot skips its

@@ -88,6 +88,16 @@ const TAGS = (function(){
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
 const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+  /* WIRE 154 -- the five capabilities the heal descriptor armed, each with its own name, because a
+   * ZERO on any one of them is the finding (CLAUDE.md: a capability that cannot prove it ran is
+   * assumed broken) and one merged counter could not say WHICH of the four moves never fired.
+   *   healDescriptorNow      a Heal Pulse or a Rest restored HP on the spot
+   *   healDescriptorSet      a Wish or a Healing Wish laid its slot condition
+   *   healDescriptorSlot     a slot condition actually SPENT itself on the body standing there
+   *   healDescriptorStatus   a descriptor cleared a status, set one, or both (Rest, Healing Wish)
+   *   healDescriptorFaint    a descriptor killed its own user, which is Healing Wish's whole price */
+  healDescriptorNow: 0, healDescriptorSet: 0, healDescriptorSlot: 0,
+  healDescriptorStatus: 0, healDescriptorFaint: 0,
   /* ROADMAP #81 WIRE 12 -- the four capabilities this wire armed, each with a name so a ZERO reads as
    * the finding it is (CLAUDE.md: a capability that cannot prove it ran is assumed broken).
    *   auraApplied      a Fairy/Dark Aura multiplier reached a base power -- from ANY body on the
@@ -393,6 +403,16 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * come unwired and Howl is back to boosting the partner only. */
   boostAlliesSideWide: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* WIRE 154 -- a `healDescriptor.amount` that carries a fraction and a ROUNDING NAME this engine does
+   * not implement. It falls to `trunc`, which is `Battle#heal`'s own, and it says so out loud: the
+   * family's four members use three different rounding functions (ceil, trunc, and none at all for a
+   * full restore) and a silent default here would be indistinguishable from the mechanic working while
+   * being one HP wrong on exactly the member that matters. */
+  healDescriptorRounding: 0, healDescriptorRoundingFirst: '',
+  /* WIRE 154 -- the action reached the descriptor branch and the artifact had no descriptor to read,
+   * so the click was refused rather than guessed at. Non-zero means `playerAction` and the turn loop
+   * disagree about what a `healdesc` action is, which is a wiring fault and not a mechanic. */
+  healDescriptorMissing: 0, healDescriptorMissingFirst: '',
   /* WIRE 151 -- a `statChangeInCode.op` this engine could not APPLY: no stat subset, no amount, or no
    * seeded die to draw with. Counted rather than swallowed, because the failure mode being repaired is
    * precisely a stat move that resolves to a quiet no-op turn, and a fallback here would recreate it
@@ -2084,6 +2104,70 @@ function healParam(id){
   }
   return null;
 }
+/* ---- WIRE 154 -- THE HEAL DESCRIPTOR, AND WHY THE FOUR MOVES IT COVERS NEEDED A NEW SHAPE --------
+ *
+ * `healParam` above sizes a heal and answers one question: how much. That is enough for Recover and
+ * for Life Dew and it is enough for NONE of the four moves this reads, because on every one of them
+ * the interesting facts are WHO gets it and WHEN:
+ *
+ *   Heal Pulse    the TARGET, now, half the TARGET'S max ROUNDED UP
+ *   Wish          whoever holds the SLOT at the residual of the NEXT turn, half the WISHER'S max
+ *   Rest          the user, now, FULL -- and it REPLACES its status with its own sleep
+ *   Healing Wish  the REPLACEMENT, on ENTRY, FULL, status cleared, AND THE USER DIES
+ *
+ * All four resolved to `{kind:'pass'}` before this: four wasted turns, and Healing Wish was strictly
+ * BETTER than the real move -- a free full restore for the next body in with its whole cost missing,
+ * which is the one-directional error a search learns to spam.
+ *
+ * THE SIZE, AND ITS ROUNDING, ARE THE ARTIFACT'S -- and the rounding is genuinely different across
+ * the family, which is exactly why the descriptor carries it instead of this function choosing one:
+ *
+ *   ceil    Heal Pulse   `Math.heal(Math.ceil(target.baseMaxhp * 0.5))` -- 92 on a 183 HP body,
+ *                        where the floor this file spends everywhere else gives 91
+ *   trunc   Wish         `this.effectState.hp = source.maxhp / 2` is a raw float and `Battle#heal`
+ *                        truncates its argument, so an odd max loses the half
+ *   full    Rest, Healing Wish
+ *
+ * This is WIRE 150's distinction arriving a third time: the `Math.round` arm and the `md4096` arm in
+ * the `heal` branch mirror two different authority paths, and these are a third and a fourth. A
+ * consumer that picked one rule for the whole family would be wrong by one HP on the other member,
+ * every time, in the direction that decides a faint.
+ *
+ * `of` IS THE HALF A ONE-BODY PROBE CANNOT SEE. Heal Pulse reads the RECIPIENT'S max and Wish reads
+ * the USER'S, and on a board where both bodies have the same max HP those are the same number. The
+ * artifact resolves the identifier to a role through each handler's own parameter list, so nothing
+ * here has to know which move it is holding.
+ *
+ * AN UNKNOWN ROUNDING IS LOUD. A descriptor that carries a fraction and a rounding name this function
+ * does not implement falls to `trunc` and is COUNTED -- a silent default here would look exactly like
+ * the mechanic working, which is the failure this whole file is a reaction to. */
+function healSize(desc,recipient,user){
+  const amt=(desc&&desc.amount)||null;
+  if(!amt||!recipient||!recipient.st)return 0;
+  if(amt.full)return recipient.st.hp;
+  const base=(amt.of==='user'?user:recipient);
+  if(!base||!base.st||!(amt.fraction>0))return 0;
+  const raw=base.st.hp*amt.fraction;
+  if(amt.round==='ceil')return Math.ceil(raw);
+  if(amt.round==='round')return Math.round(raw);
+  if(amt.round!=='trunc'){
+    MEDFAILS.healDescriptorRounding++;
+    if(!MEDFAILS.healDescriptorRoundingFirst)MEDFAILS.healDescriptorRoundingFirst=String(amt.round);
+  }
+  return Math.trunc(raw);
+}
+/* WIRE 154 -- THE SLOT'S PENDING HEAL, ON THE SIDE OBJECT, KEYED BY SLOT AND NOT BY BODY.
+ *
+ * Wish and Healing Wish are `slotCondition` moves and that is the whole mechanic: the HP lands on
+ * whoever is STANDING IN THAT SLOT when it resolves. Holding the record on the body would model a
+ * completely different move -- a Wish that follows its user to the bench and a Healing Wish that
+ * heals a corpse.
+ *
+ * DECLARED, NOT MODELLED: Ally Switch swaps two bodies between slots and does NOT move the slot
+ * conditions with them here. That is one composed case (Wish + Ally Switch on the same side within
+ * two turns) with no corpus exposure this engine can measure, and it is said rather than left to be
+ * found. */
+function slotCondOf(sf){ return (sf&&(sf.slot=sf.slot||{}))||{}; }
 /* ROADMAP #102 -- `Pokemon#getStat(stat, false, true)`: the stored stat with its BOOST applied and no
  * modifier events. Strength Sap heals by exactly this, so it is spelled the way sim/pokemon.ts spells
  * it -- MULTIPLY on a positive stage, DIVIDE on a negative one.
@@ -6649,6 +6733,43 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry){
    * the item slot (see itemRoomSync), and a switch-in is the one path that can put an item on the
    * field after the room went down over an empty one. */
   if(field&&field.magicRoom>0)itemRoomHide(nx);
+  /* WIRE 154 -- HEALING WISH COLLECTS ON THE REPLACEMENT'S ENTRY, AND IT COLLECTS BEFORE THE HAZARDS.
+   *
+   * Read off a staged authority game rather than assumed, because the order is the whole difference
+   * between a body that walks in at full and one that walks in a Stealth Rock down:
+   *
+   *     |switch|p1a: Garchomp|Garchomp, L50, F|1/183 par
+   *     |-heal|p1a: Garchomp|183/183|[from] move: Healing Wish
+   *     |-damage|p1a: Garchomp|172/183|[from] Stealth Rock
+   *
+   * IT SITS IN `bringIn` FOR WIRE 41'S REASON -- this is the ONE path a Pokemon arrives through, so a
+   * faint replacement, a voluntary switch, a U-turn pivot and a Roar drag all collect it, and putting
+   * it in any one of them would silently exempt the other three.
+   *
+   * THE CONDITION SURVIVES A BODY THAT NEEDS NOTHING, which is the authority's own guard
+   * (`if (!target.fainted && (target.hp < target.maxhp || target.status))`) and was confirmed on a
+   * staged game: a full-HP statusless replacement arrives, nothing happens, and `slotConditions` still
+   * holds `healingwish`. So the record is only cleared when it was actually SPENT. */
+  /* READ, NEVER CREATED. `slotCondOf` would install an empty map on the side object here, and every
+   * entry in the game goes through this function -- so the first digest sweep after this wire showed
+   * 51 unrelated moves "moving", every one of them a `slot: undefined -> {}` on a side where nothing
+   * had happened. A reader must not write. */
+  if(sf&&sf.slot){
+    const _sc=sf.slot, _rec=_sc[i];
+    if(_rec&&_rec.when==='onEntry'&&nx&&!nx.fainted&&nx.curHP>0
+       &&(nx.curHP<nx.st.hp||nx.status)){
+      /* THE STATUS CLEAR IS SILENT, and that is the authority rather than an omission: the handler
+       * calls `target.clearStatus()`, which is `setStatus('')` and emits NOTHING -- the staged game
+       * above shows a paralysed Garchomp arriving, ending with no status, and NO `-curestatus` line
+       * anywhere. Emitting one here would put a line in the stream the real engine never writes. */
+      if(_rec.cures&&nx.status){nx.status='';nx.slpTurns=0;nx.frzTurns=0;nx.toxTurns=0;
+        MEDSEEN.healDescriptorStatus++;}
+      nx.curHP=_rec.full?nx.st.hp:Math.min(nx.st.hp,nx.curHP+(_rec.hp||0));
+      delete _sc[i];
+      MEDSEEN.healDescriptorSlot++;
+      if(TR)TR.heal(nx,'[from] move: '+_rec.mv);
+    }
+  }
   /* WIRE 41 -- THE HAZARD BITES ON ENTRY, and it is here rather than in the switch branches because
      bringIn is the ONE path a Pokemon arrives through: a faint replacement, a voluntary switch, a
      U-turn pivot and a Roar drag all come here, and putting it in any one of them would silently
@@ -9255,6 +9376,113 @@ function battleTurn(S,rng,actsForA,actsForB){
          if(_spv&&_spv.volatile&&_spv.when==='onHit')releaseLayeredVolatile(m,_spv.volatile);}
         continue;
       }
+      /* ---- WIRE 154 -- THE HEAL DESCRIPTOR, ALL FOUR MOVES, ONE BRANCH ---------------------------
+       *
+       * Heal Pulse, Wish, Rest and Healing Wish. Every one of them resolved to `{kind:'pass'}` before
+       * this branch existed; the descriptor and its derivation are at `healSize` above.
+       *
+       * HEAL BLOCK REFUSES THE WHOLE MOVE ON THE USER, NOT ON THE BODY BEING HEALED, and that is the
+       * same asymmetry the `allyheal` branch states: the authority's healblock is an `onBeforeMove`
+       * over `move.flags['heal']` (data/moves.ts), so it stops the CLICK. All four of these carry the
+       * heal flag. The per-body gate the `heal` branch uses is the right one for Life Dew, which
+       * spreads across a side, and the wrong one here.
+       *
+       * THE THREE ARMS ARE THREE DIFFERENT MOMENTS AND THAT IS THE WHOLE TAG. `now` lands the HP on a
+       * body standing in front of us; `endOfNextTurn` and `onEntry` write a record on the SIDE, keyed
+       * by SLOT, and something else spends it -- the residual for Wish, `bringIn` for Healing Wish.
+       * Neither of the last two can be modelled on the clicking body: the wisher is expected to leave
+       * and the Healing Wish user is dead before its own HP arrives. */
+      if(a.kind==='healdesc'){
+        m._lastMove=a.mv;
+        const _hd=TAGS.param('move',a.mv,'healDescriptor');
+        if(!_hd){MEDFAILS.healDescriptorMissing++;
+          if(!MEDFAILS.healDescriptorMissingFirst)MEDFAILS.healDescriptorMissingFirst=String(a.mv);
+          mvFail(m);continue;}
+        if(healBlocked(m)){if(TR){TR.attrStill();TR.cant(m,'move: Heal Block',a.mv);}continue;}
+        const _own=it.side==='A'?actA:actB, _sf=it.side==='A'?sfA:sfB;
+        const _bench=it.side==='A'?benchA:benchB;
+        if(_hd.when==='now'){
+          /* WIRE 137's rule -- a move aims at a SLOT, so the body that is in it NOW is the one that
+             gets healed. Heal Pulse is `target: 'any'` and the ally it was aimed at can have pivoted
+             out in the same turn. A `self` member arrives with no target at all (WIRE 153) and
+             resolves to the user, which is what the request and the roster both supply. */
+          const _t=reaimToSlot(a.target,it,actA,actB,a.mv)||a.target||m;
+          if(!_t||_t.fainted||_t.curHP<=0){mvFail(m);continue;}
+          /* PROTECT REFUSES IT, and it is the ALLY'S Protect that matters here rather than a foe's:
+             Heal Pulse carries `flags.protect` and the authority's shield has no ally exemption --
+             staged and read off a real game, a Heal Pulse aimed at a Protecting partner heals
+             nothing at all. */
+          if(_t!==m&&_t.protect&&!TAGS.has('move',a.mv,'ignoresProtect')){
+            if(TR)TR.act(_t,'move: Protect');
+            mvFail(m);continue;}
+          /* THE SAME STATUS IS A REFUSAL, AND IT IS `Pokemon#setStatus`'S OWN FIRST LINE
+             (`if (this.status === status.id) return false`). Rest's `onTry` reads it as "fails if the
+             user is already asleep", and an engine without it lets a sleeping body re-Rest for a free
+             full heal every turn. */
+          if(_hd.setsStatus&&_hd.setsStatus.status&&_t.status===_hd.setsStatus.status){mvFail(m);continue;}
+          /* A HEAL THAT RESTORES NOTHING IS A FAILURE, WHICH IS THE AUTHORITY AND ALSO THE PRICE:
+             Rest's `onTry` refuses a full-HP user BEFORE the sleep is applied, so a body at full HP
+             does not fall asleep for nothing, and Heal Pulse at full HP emits `-fail|TARGET|heal`.
+             Both were read off staged games rather than remembered. */
+          const _amt=healSize(_hd,_t,m);
+          if(_t.curHP>=_t.st.hp||_amt<=0){if(TR)TR.fail(_t,'heal');mvFail(m);continue;}
+          /* THE STATUS FIRST, THEN THE HP -- the handler's own order (`setStatus`, then `heal`), and
+             it matters because a refused status means the move never heals at all. `_prev` is cleared
+             around the call because Showdown's `setStatus` REPLACES a different status where this
+             engine's `canTakeStatus` refuses any body that already carries one; the immunity gates
+             underneath (Insomnia, Vital Spirit, a type, Uproar, Safeguard) are the ones that should
+             still refuse, and they still do because the call is the shared one. */
+          if(_hd.setsStatus&&_hd.setsStatus.status){
+            const _prev=_t.status; _t.status='';
+            if(!applyStatus(_t,_hd.setsStatus.status,m)){_t.status=_prev;mvFail(m);continue;}
+            MEDSEEN.healDescriptorStatus++;
+          } else if(_hd.curesStatus&&_t.status){
+            const _s0=_t.status;_t.status='';_t.slpTurns=0;_t.frzTurns=0;_t.toxTurns=0;
+            MEDSEEN.healDescriptorStatus++;if(TR)TR.cure(_t,_s0);
+          }
+          _t.curHP=Math.min(_t.st.hp,_t.curHP+_amt);
+          MEDSEEN.healDescriptorNow++;
+          if(TR)TR.heal(_t);
+          continue;
+        }
+        /* THE SLOT ARMS. `healingwish` fails outright with an empty bench -- the authority's own
+           `onTryHit` is `if (!this.canSwitch(source.side))`, and without it the user would kill itself
+           for a record nobody can ever collect. `wish` has no such guard and does not need one. */
+        const _slot=_own.indexOf(m);
+        if(_slot<0){mvFail(m);continue;}
+        if(_hd.userFaints&&!_live(_bench).length){mvFail(m);continue;}
+        const _sc=slotCondOf(_sf);
+        /* A SECOND WISH ON A SLOT THAT ALREADY HOLDS ONE FAILS -- `|-fail|p1a: Clefable|`, read off a
+           staged game. Overwriting would refresh the clock and make the move spammable. */
+        if(_sc[_slot]){mvFail(m);continue;}
+        /* THE AMOUNT IS BOOKED NOW AND SPENT LATER, which is the authority's `onStart`: Wish stores
+           `source.maxhp / 2` at the moment it is clicked, so a wisher that leaves, is Knocked Off or
+           dies still delivers the number it booked. A record that recomputed at resolution would read
+           the RECIPIENT's max instead, which is the exact defect this wire was dispatched for. */
+        _sc[_slot]={mv:a.mv,when:_hd.when,
+          hp:(_hd.amount&&_hd.amount.full)?null:healSize(_hd,m,m),
+          full:!!(_hd.amount&&_hd.amount.full),cures:!!_hd.curesStatus,
+          /* `+1` for the same reason Heal Block's does: the residual at the END OF THIS TURN ticks it
+             once, so a `2` here resolves at the end of the NEXT turn, which is where the authority
+             puts it (`onResidual` returns while `getOverflowedTurnCount() <= startingTurn`). */
+          turns:_hd.when==='endOfNextTurn'?2:0};
+        MEDSEEN.healDescriptorSet++;
+        /* LAYING THE CONDITION EMITS NOTHING. The staged game shows `|move|p1a: Clefable|Wish|p1a:
+           Clefable` and then the next line is `|upkeep|` -- Showdown announces a slot condition when
+           it PAYS OUT, not when it is set, so a `-singleturn` here would be a line the real stream
+           does not carry.
+           AND THE USER DIES. `selfdestruct: 'ifHit'` -- reaching this line IS the move having landed,
+           because every refusal above `continue`s out. It is deliberately NOT routed through the
+           `userFaints` reader in the attack and `affect` branches: neither of those is reachable from
+           a move that resolves here, so the descriptor has to carry its own cost or the cost is
+           simply absent, which is what it was.
+           NO `-damage` BEFORE THE FAINT, unlike the `affect` branch's Memento site: the staged game
+           reads `|move|p1a: Clefable|Healing Wish|p1a: Clefable` then `|faint|p1a: Clefable` with
+           nothing between them. */
+        if(_hd.userFaints){m.curHP=0;m.fainted=true;MEDSEEN.healDescriptorFaint++;
+          if(TR)TR.faint(m);}
+        continue;
+      }
       /* A status move inflicts the status THAT MOVE inflicts, at THAT MOVE's accuracy. This line used
        * to read `applyStatus(t, ['brn','par','slp'][rng()*3|0])` - a uniformly random pick, so Thunder
        * Wave burned a third of the time. The status and the accuracy now come from the rulebook. */
@@ -11432,6 +11660,22 @@ function battleTurn(S,rng,actsForA,actsForB){
       for(const _id of screenIds(sf)){
         if(--sf.sc[_id]<=0){delete sf.sc[_id]; if(TR)TR.sendSide(sf.side==='A'?'p1':'p2',_id);}
       }}}
+    /* WIRE 154 -- THE SLOT CLOCK TICKS ONCE PER SLOT, NOT ONCE PER BODY, and it is decoupled from the
+     * pay-out below for exactly that reason: the residual loop walks LIVING BODIES and skips a slot
+     * whose occupant fainted or was never refilled, so a clock that lived inside it would freeze
+     * instead of expiring -- the same shape as the Perish Song bug that froze on the bench.
+     *
+     * Showdown's `wish.onResidual` removes the slot condition once `getOverflowedTurnCount()` has
+     * passed the turn it was set on, and removal is what fires `onEnd`. So the decrement is the whole
+     * clock and `due` is what removal means here. */
+    for(const _sf of [sfA,sfB]){
+      const _sc=_sf&&_sf.slot; if(!_sc)continue;
+      for(const _k of Object.keys(_sc)){
+        const _r=_sc[_k];
+        if(!_r||!(_r.turns>0))continue;
+        if(--_r.turns<=0)_r.due=true;
+      }
+    }
     for(const m of [...actA,...actB]){if(!m||m.fainted||m.curHP<=0)continue;
       /* WIRE 55 -- THE STATUS BERRIES, FIRST IN THE RESIDUAL ORDER on purpose: Lum and its family
        * cure the MOMENT the status lands, so a body that was just burned must not also take the burn
@@ -11605,6 +11849,28 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(TR)TR.dmg(m,'[from] Sandstorm');
         }
       }
+      /* WIRE 154 -- WISH PAYS OUT HERE, AND THE POSITION IN THE RESIDUAL IS THE AUTHORITY'S.
+       * `wish.condition.onResidualOrder` is 4: AFTER the weather chip (order 1, the block directly
+       * above) and BEFORE the Grassy Terrain heal and Leftovers (both order 5), the seed (8) and the
+       * status chips (10). Put above the sandstorm it would rescue a body the real game lets the sand
+       * kill; put at the bottom it would arrive after a burn that should have been outrun.
+       *
+       * IT IS READ OFF THE SLOT AND NOT OFF THE BODY, which is the whole mechanic: the wisher is
+       * expected to have LEFT, and whoever is standing in that slot collects. The amount was booked at
+       * click time off the WISHER'S max (see the branch that sets it) -- recomputing it here would
+       * read the recipient's, which is the exact defect this wire was dispatched for.
+       *
+       * `endOfNextTurn` ONLY. An `onEntry` record sitting in the same map belongs to `bringIn` and is
+       * left alone; it is matched on the descriptor's own `when` rather than on which move wrote it. */
+      {const _sf2=actA.indexOf(m)>=0?sfA:sfB, _si2=actA.indexOf(m)>=0?actA.indexOf(m):actB.indexOf(m);
+       const _sc2=_sf2&&_sf2.slot, _r2=_sc2&&_si2>=0?_sc2[_si2]:null;
+       if(_r2&&_r2.due&&_r2.when==='endOfNextTurn'&&!healBlocked(m)){
+         const _h0=m.curHP;
+         m.curHP=_r2.full?m.st.hp:Math.min(m.st.hp,m.curHP+(_r2.hp||0));
+         delete _sc2[_si2];
+         MEDSEEN.healDescriptorSlot++;
+         if(TR&&m.curHP>_h0)TR.heal(m,'[from] move: '+_r2.mv);
+       }}
       /* WIRE 73 -- GRASSY TERRAIN HEALS. WIRE 72 made the terrain exist; this is the half that made
        * the terrain WORTH setting, and the two had to land together or the engine would have gained a
        * field it models wrongly instead of one it does not model at all.
@@ -11704,6 +11970,19 @@ function battleTurn(S,rng,actsForA,actsForB){
         MEDSEEN.perTurnDamageChip++;
       }
       if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}}
+    /* WIRE 154 -- A WISH THAT CAME DUE ON AN EMPTY OR DEAD SLOT IS SPENT ANYWAY, and this is the
+     * counterpart of ticking the clock outside the body loop rather than inside it. The authority
+     * removes the slot condition at the residual whatever is standing there and `onEnd` simply
+     * declines (`if (target && !target.fainted)`), so a Wish whose recipient died is GONE -- not
+     * banked for the replacement that walks in afterwards. A record left behind here would pay out on
+     * a body the real game never healed, which is the direction that invents HP. */
+    for(const _sf3 of [sfA,sfB]){
+      const _sc3=_sf3&&_sf3.slot; if(!_sc3)continue;
+      for(const _k3 of Object.keys(_sc3)){
+        const _r3=_sc3[_k3];
+        if(_r3&&_r3.due&&_r3.when==='endOfNextTurn')delete _sc3[_k3];
+      }
+    }
     /* The TERRAIN clock ticks here, below the residual, and the weather clock above it — see WIRE 74
        for the measurement that says the two are not symmetric in the official engine. */
     if(field.terrainT>0){const _t0=field.terrain;if(--field.terrainT<=0){field.terrain='';if(TR)TR.terrainEnd(_t0);}}
@@ -12121,6 +12400,25 @@ function playerActionPrimary(me,moveId,target,field){
    * drop is the half that decides where the move is played (WIRE 79). Its heal is landed inside that
    * branch instead, where the target is in hand. The test is on the recipe, not on the move id. */
   {const _h0=healParam(id); if(_h0&&!_h0.fromTargetStat)return {kind:'heal',mv:id};}
+  /* WIRE 154 -- THE FOUR HEALS `healParam` CANNOT SIZE, AND EVERY ONE OF THEM WAS A WASTED TURN.
+   *
+   * Heal Pulse (148), Wish (63), Rest (60) and Healing Wish (16) all fell past the branch above --
+   * correctly, because `heal: true` is a boolean in a fraction's clothing and the comment there says
+   * so -- and then fell past every other branch to `{kind:'pass'}`. Measured before a line changed,
+   * on real turns: the ally kept its 1 HP, the replacement kept its 1 HP, the burned Toxapex stayed
+   * burned, and Healing Wish's user was still standing at full HP at the end of the turn.
+   *
+   * IT SITS DIRECTLY BELOW THE `heal` BRANCH AND THE TWO CANNOT BOTH CLAIM A MOVE: `healParam` reads
+   * `healsSelf`/`healsAlly` and returns only for a move sized by a PAIR, a weather table, a stat or a
+   * layer count, and `healDescriptor`'s own derivation declines every one of those (`m.heal` present,
+   * or a `this.modify` factor, or a bare variable). Membership is four moves and it was printed over
+   * the whole move table before this line was written.
+   *
+   * THE TARGET TRAVELS WITH THE CLICK, for WIRE 106's reason: Heal Pulse is `target: 'any'` and can
+   * legally be aimed at a foe (Showdown heals it), so dropping the caller's target here would re-aim
+   * every such click at the user. A `self`-target member arrives with a null target and the branch
+   * resolves it to the user, which is WIRE 153's rule and not a fallback. */
+  if(TAGS.param('move',id,'healDescriptor'))return {kind:'healdesc',mv:id,target};
   /* REDIRECTION, FROM THE `redirects` TAG. Will was right that these were already tagged and the
    * first version of this line was not: it named ragepowder and followme by their volatile, having
    * looked for the tag under ABRA_TAGS.move — the artifact spells it `moves`, so the search came back

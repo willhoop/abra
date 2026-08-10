@@ -284,7 +284,14 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * the same action object with or without a target — the field is simply null — so an action-reading
  * probe cannot see this, and every applier underneath is correct and never reached. Its full reason
  * and what each row carries are written at the helper itself. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(/;
+/* `healRun(` added 2026-08-10 with WIRE 154, declared HERE and with its reason, exactly as the
+ * paragraph above requires. It stages a real doubles board through `battleInit` WITH A BENCH and
+ * spends up to four real turns through `battleTurn`, and it has to have all three: two of the four
+ * moves in the heal-descriptor family put the HP into a body that is NOT ON THE FIELD when the move
+ * is clicked (Wish heals whoever holds the slot a turn later; Healing Wish heals the replacement
+ * that walks in over its user's corpse), so a probe without a bench and without a turn boundary is
+ * structurally blind to both. Its full reason and what each row carries are written at the helper. */
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -10435,6 +10442,165 @@ probe('move', 'statusInflict', 'Imprison, Destiny Bond and Endure clicked with N
                  + `Charm is target:normal and with no target named it lands nothing: volatile `
                  + `"${ctrl.vol}", result ${ctrl.res}, foe atk ${ctrl.foeAtk}. The knob is the move's `
                  + `own target field and nothing else` };
+});
+
+/* ---- THE HEAL DESCRIPTOR (WIRE 154) — FOUR MOVES, ONE PRIMITIVE, NO PLAIN SELF-HEAL AMONG THEM ---
+ *
+ * `healRun(` added 2026-08-10, declared HERE and with its reason, exactly as the REALTURN paragraph
+ * near the top of this file requires. It stages a real doubles board through `battleInit` WITH A
+ * BENCH and spends up to four real turns through `battleTurn`, and every one of those is load-bearing
+ * for at least one member of the family:
+ *
+ *   the BENCH        Wish heals whoever holds the SLOT and Healing Wish heals the REPLACEMENT, so on
+ *                    both of them the body that receives the HP is not on the field when the move is
+ *                    clicked. A two-body board is structurally blind to both.
+ *   MORE THAN ONE    Wish resolves at the residual of the turn AFTER the one it was used on. No
+ *   TURN             single-turn probe can tell "resolved late" from "never resolved".
+ *   A REAL SWITCH    the whole claim about Wish is that the condition rides the SLOT and not the
+ *                    body; a probe whose wisher stays put cannot see that and would pass on an
+ *                    engine that had simply healed the user on the spot.
+ *   THE WHOLE ROW    the four moves fail in four different currencies — Heal Pulse in the ALLY's HP,
+ *                    Wish in the REPLACEMENT's, Rest in HP *and* status *and* sleep, Healing Wish in
+ *                    whether its user is still standing. So a row carries all of them at every turn
+ *                    boundary and each probe reads the ones its move can get wrong.
+ *
+ * EVERY BODY IS BUILT BY `bare`, WHICH STRIPS THE ITEM, AND THAT IS NOT HOUSEKEEPING HERE. A Sitrus
+ * Berry at half HP restores 25% of max — numerically identical to Life Dew, to Hospitality and to
+ * Aqua Ring — and it has broken two probes in this sprint already. Every arm below also carries a
+ * no-heal control on the same board, so "the number moved" cannot be satisfied by anything the
+ * staging brought with it.
+ *
+ * THE TWO BODIES DELIBERATELY HAVE DIFFERENT MAX HP (Clefable 170, Garchomp 183) because the
+ * measured defect is which one the size is read off: Heal Pulse is half the TARGET's max (92) and
+ * Wish is half the WISHER's (85). On one body those two numbers are the same and the probe proves
+ * nothing. Each body legally learns what it clicks, checked against the format's own learnsets. */
+const healRun = (o) => {
+  o = o || {};
+  const me = bare(o.user || 'clefable'), ally = bare(o.ally || 'garchomp');
+  const bench = bare(o.bench || 'garchomp');
+  const f1 = bare('milotic'), f2 = bare('swampert');
+  const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
+  if (o.userHP != null) me.curHP = o.userHP;
+  if (o.userStatus) me.status = o.userStatus;
+  if (o.allyHP != null) ally.curHP = o.allyHP;
+  if (o.benchHP != null) bench.curHP = o.benchHP;
+  if (o.benchStatus) bench.status = o.benchStatus;
+  const out = [];
+  for (const step of (o.script || [null])) {
+    const actor = S.actA[0];
+    let act = { kind: 'pass' };
+    if (step && step.switchOut) act = { kind: 'switch', to: bench };
+    else if (step && step.mv) {
+      const aim = step.at === 'ally' ? ally : step.at === 'foe' ? f1 : step.at === 'self' ? actor : null;
+      act = M.playerAction(actor, step.mv, aim, S.field);
+    }
+    M.battleTurn(S, o.rng || rng5,
+      new Map([[actor, act], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    const s0 = S.actA[0];
+    out.push({ slot0: s0 && s0.name, hp: s0 ? s0.curHP : -1, max: s0 ? s0.st.hp : -1,
+               st: (s0 && s0.status) || '-',
+               ally: ally.curHP, allyMax: ally.st.hp,
+               userHP: me.curHP, userDown: !!me.fainted,
+               /* `_mvResLast` AND NOT `_mvRes`, for the reason `stockRun` states above: the turn loop
+                * rolls the live result into the previous-turn slot at its last line. */
+               res: actor && actor._mvResLast });
+  }
+  return out;
+};
+const healTrace = (rows, pick) => rows.map(pick).join(' ');
+
+/* HEAL PULSE — 148 uses, and its ABILITY TWIN ALREADY WORKS, which is what makes "it is not wired"
+ * the honest reading rather than "this engine cannot heal another body". Hospitality restores an
+ * ally 25% on entry and Life Dew spreads across the side; the mechanism exists and Heal Pulse is not
+ * connected to it. The same shape as Quick Guard against Armor Tail.
+ *
+ * THE SIZE IS THE TARGET'S, AND THAT IS THE HALF A ONE-BODY PROBE CANNOT SEE. `Math.ceil(target
+ * .baseMaxhp * 0.5)` — 92 on a 183 HP Garchomp, where half the 170 HP USER would be 85 and half of
+ * either FLOORED would be one lower. Three wrong answers within seven HP of the right one, so the
+ * assertion is the exact integer and not a band. */
+probe('move', 'healDescriptor', 'Heal Pulse restores half the ALLY\'s max HP, rounded UP, to the ally and not to its user', () => {
+  const test = healRun({ allyHP: 1, script: [{ mv: 'healpulse', at: 'ally' }] })[0];
+  const ctrl = healRun({ allyHP: 1, script: [null] })[0];
+  const want = Math.ceil(test.allyMax * 0.5);
+  return { works: test.ally - 1 === want && test.res === true
+             && ctrl.ally === 1 && ctrl.userHP === test.userHP
+             && want !== Math.ceil(test.max * 0.5),
+           arms: { control: ctrl.ally, test: test.ally },
+           detail: `[Clefable ${test.max} max clicks it at a Garchomp on 1 of ${test.allyMax}] — the `
+                 + `ally ends on ${test.ally}, restored ${test.ally - 1}; ceil(${test.allyMax}/2) = `
+                 + `${want}, and half the USER's max would be ${Math.ceil(test.max * 0.5)}. CONTROL — `
+                 + `the same board with the turn passed leaves the ally on ${ctrl.ally}, so nothing `
+                 + `in the staging heals. The user keeps ${test.userHP}: this move costs no HP and `
+                 + `gives its user none` };
+});
+
+/* WISH — the amount is booked off the WISHER and spent on whoever holds the SLOT, one turn later.
+ * Measured against the authority before a line was written: a 170 HP Clefable wishes, switches, and
+ * a Garchomp that walked in on 1 HP is healed to 86 — `|-heal|p1a: Garchomp|86/183|[from] move:
+ * Wish|[wisher] Clefable`. 85 is trunc(170/2). Half the RECIPIENT's max is 91, so the two bodies
+ * having different max HP is the whole probe.
+ *
+ * THE TURN IT LANDS ON IS ASSERTED SEPARATELY FROM THE AMOUNT. An engine that healed on the spot and
+ * an engine that healed a turn late both move the same number; only the row-by-row trace tells them
+ * apart, and "the recipient was not even on the field on the click turn" is the claim. */
+probe('move', 'healDescriptor', 'Wish resolves a turn LATE, on whoever holds the slot, for half the WISHER\'s max', () => {
+  const test = healRun({ benchHP: 1, script: [{ mv: 'wish' }, { switchOut: true }, null] });
+  const ctrl = healRun({ benchHP: 1, script: [null, { switchOut: true }, null] });
+  const shape = (r) => healTrace(r, x => x.slot0 + ':' + x.hp);
+  const want = Math.trunc(test[0].max / 2);
+  return { works: shape(ctrl) === 'clefable:170 garchomp:1 garchomp:1'
+             && test[0].slot0 === 'clefable' && test[0].hp === 170
+             && test[1].slot0 === 'garchomp' && test[1].hp === 1 + want
+             && test[2].hp === 1 + want
+             && want !== Math.trunc(test[1].max / 2),
+           arms: { control: shape(ctrl), test: shape(test) },
+           detail: `[slot 0 after each of three turns: wish, switch, pass] — ${shape(test)}; CONTROL `
+                 + `with the wish turn passed ${shape(ctrl)}. The Garchomp arrives on 1 of `
+                 + `${test[1].max} and is restored ${test[1].hp - 1}: trunc(170/2) = ${want}, where `
+                 + `half its OWN max would be ${Math.trunc(test[1].max / 2)}. It is not on the field `
+                 + `when the move is clicked and the HP arrives at the END of the turn AFTER, so an `
+                 + `engine that healed the user on the spot reads clefable:170 on row one` };
+});
+
+/* REST — three effects, and a probe reading only the HP passes on an engine that has two of them
+ * missing. The body is BOTH damaged and burned, because Showdown's `setStatus` REPLACES a different
+ * status where this engine's `canTakeStatus` refuses a body that already has one: an implementation
+ * that routes Rest through the ordinary status path heals to full and leaves the burn on. */
+probe('move', 'healDescriptor', 'Rest restores FULL HP, replaces the burn it was carrying, and puts its user to sleep — all three', () => {
+  const test = healRun({ user: 'toxapex', userHP: 31, userStatus: 'brn', script: [{ mv: 'rest' }] })[0];
+  const ctrl = healRun({ user: 'toxapex', userHP: 31, userStatus: 'brn', script: [null] })[0];
+  return { works: test.hp === test.max && test.st === 'slp' && test.res === true
+             && ctrl.hp < ctrl.max && ctrl.st === 'brn',
+           arms: { control: [ctrl.hp, ctrl.st], test: [test.hp, test.st] },
+           detail: `[a ${test.max} HP Toxapex on 31 and burned] — after Rest it is on ${test.hp}/`
+                 + `${test.max} with status "${test.st}"; CONTROL, the same body passing the turn, `
+                 + `${ctrl.hp}/${ctrl.max} status "${ctrl.st}" (the burn chips it further, which is `
+                 + `what makes the arms differ honestly). All three effects are asserted: an engine `
+                 + `that heals and leaves the burn, or heals and never sleeps, is a strictly better `
+                 + `move than the one in the game` };
+});
+
+/* HEALING WISH — the user FAINTS, and that is broader than the heal. Measured before the fix: the
+ * click was a no-op turn and the user was still standing at full HP at the end of it, so the move
+ * this engine offered a search was a free full restore for the next body in with no cost at all.
+ *
+ * THE FAINT IS STAGED HONESTLY. Nothing here kills the user — the move's own `selfdestruct: 'ifHit'`
+ * has to do it, and the assertion is that slot 0 holds a DIFFERENT BODY at the end of the turn. A
+ * replacement arriving is not something a no-op turn can produce. */
+probe('move', 'healDescriptor', 'Healing Wish faints its user and the replacement arrives at full HP with its status cleared', () => {
+  const test = healRun({ benchHP: 1, benchStatus: 'par', script: [{ mv: 'healingwish' }] })[0];
+  const ctrl = healRun({ benchHP: 1, benchStatus: 'par', script: [null] })[0];
+  return { works: test.userDown === true && test.slot0 === 'garchomp'
+             && test.hp === test.max && test.st === '-'
+             && ctrl.userDown === false && ctrl.slot0 === 'clefable',
+           arms: { control: [ctrl.slot0, ctrl.userDown, ctrl.hp], test: [test.slot0, test.userDown, test.hp] },
+           detail: `[Clefable clicks it with a paralysed Garchomp on 1 of 183 on the bench] — the `
+                 + `user is down (${test.userDown}) and slot 0 now holds "${test.slot0}" on `
+                 + `${test.hp}/${test.max} with status "${test.st}". CONTROL — the same board with `
+                 + `the turn passed leaves "${ctrl.slot0}" standing, down ${ctrl.userDown}. The `
+                 + `faint is the half a heal-only probe cannot see, and it is the half that PRICES `
+                 + `the move` };
 });
 
 const works = results.filter(r => r.works);

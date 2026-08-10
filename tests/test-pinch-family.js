@@ -61,6 +61,7 @@ const PP = require(D('tests', 'probe_pair.js'));
 const CS = require(D('engine', 'champions_sim.js'));
 const dex = Dex.forFormat(CS.FORMAT);
 const MC = globalThis.MC;
+const MCKEY = require('../engine/mc_key.js');
 const TAGSJSON = JSON.parse(fs.readFileSync(D('data', 'tags.json'), 'utf8'));
 
 let fail = 0, rows = 0;
@@ -98,7 +99,7 @@ const maxhpOf = (species) => flatHP(dex.species.get(species).baseStats.hp);
 const BODY_DIV3 = 'Farigiraf';
 const DEFENDER  = 'Snorlax';
 const BODY_ND3  = (() => {
-  for (const id of Object.keys(MC.mons)) {
+  for (const [id] of MCKEY.mcKey.all()) {   // the resolver enumerates; nobody indexes MC.mons by hand
     const sp = dex.species.get(id);
     if (!sp.exists || sp.isNonstandard) continue;
     if (maxhpOf(sp.name) % 3 === 0) continue;

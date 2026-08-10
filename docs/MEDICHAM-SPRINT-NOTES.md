@@ -1200,7 +1200,9 @@ Without them "a foe holds a priority move" is true of **99.3%** of usage-weighte
   King's Shield, Spiky Shield, Baneful Bunker, Ally Switch, Follow Me, Rage Powder, Helping Hand and
   the two guards. Base rate **99.3% → 50.5%**. Two target sets cover all 14 strings across 500 moves;
   a fifteenth is counted (`MEDFAILS.guardTargetClassUnknown`, **0**).
-- **it cannot be used this turn.** Fake Out is the most-used priority move in the corpus (16,761) and
+- **it cannot be used this turn.** Fake Out is the most-used priority move in the corpus (16,779 —
+  re-read from `data/tags.json` on 2026-08-10; it said 16,761 when this row was written, and the
+  corpus grew under it, which is the standing caveat above doing its job) and
   is legal only on its user's entry turn. Routed through **one** predicate — the rule had three copies
   by name and this wire needed a fourth reader, so all four now call `firstTurnOnlyRefused`.
 - **it would fail anyway.** `needsTargetToAttack` — Sucker Punch (9,178) and Upper Hand (89) fail
@@ -1505,6 +1507,175 @@ has the Dark type. So a **Prankster Dark-type clicking Substitute on itself is r
 **pre-existing** — the self-aimed click has hit it since the branch was written, and this wire neither
 creates nor widens it: both arms behave identically, which is what the equivalence probe asserts.
 Reported, not filed, and not fixed in this pass — one mechanic at a time.
+
+### NOT CLAIMED
+
+No roster row is closed here. `tests/roster.js` is Will's to run against a frozen tree, and no engine
+release was cut by this wire.
+
+---
+
+## WIRE 154 — FOUR HEAL MOVES, NOT ONE OF THEM A SELF-HEAL, ALL FOUR A WASTED TURN. 2026-08-10.
+
+Census **372 → 376 live, 376 probed, 0 missing, 0 threw, 0 hollow, 0 unarmed, 0 direct-call.** Four new
+probes, each watched RED on its own before a line of the engine changed. Damage stages **1728/1728
+exact**, unchanged. **No release was cut**, and neither `tests/roster.js` nor anything reaching
+`engine/game_differential.js` was run.
+
+**ONE PRIMITIVE, NOT FOUR FIXES.** Four moves carry `healsSelf` or `healsAlly` and every one of them
+needs a fact that tag cannot express — WHO is healed, WHEN, HOW MUCH, whether status clears, whether
+the user dies. Writing that four times is four places to disagree, so one tag shape carries all five.
+
+| # | row | uses | what it was | verdict move |
+|---|---|---|---|---|
+| — | **Heal Pulse** | 148 | `{kind:'pass'}` — a wasted turn. Its ability twin **Hospitality works** and Life Dew works, so "this engine cannot heal another body" was never the reading | *engine fixed; roster NOT re-run by me* |
+| — | **Wish** | 63 | `{kind:'pass'}`. The slot condition did not exist at all | *engine fixed; roster NOT re-run by me* |
+| — | **Rest** | 61 | `{kind:'pass'}` — unwired on all three of HP, status-cure and sleep. A probe reading only HP passes on a broken Rest | *engine fixed; roster NOT re-run by me* |
+| — | **Healing Wish** | 16 | `{kind:'pass'}`, and **the user did not even faint** — so the engine offered a search a free full restore for the next body in with its whole cost missing. Strictly better than the real move | *engine fixed; roster NOT re-run by me* |
+
+### THE TAG — `healDescriptor`, DERIVED, MEMBERSHIP PRINTED FIRST
+
+```
+healpulse    {amount:{fraction:0.5, of:'recipient', round:'ceil'}, who:'target', when:'now'}
+wish         {slotCondition:'wish', who:'slot', when:'endOfNextTurn',
+              amount:{fraction:0.5, of:'user', round:'trunc'}}
+rest         {amount:{full:true, of:'recipient'}, who:'target', when:'now',
+              setsStatus:{status:'slp', turns:3}, curesStatus:true}
+healingwish  {slotCondition:'healingwish', who:'slot', when:'onEntry',
+              amount:{full:true, of:'recipient'}, curesStatus:true, userFaints:'ifHit'}
+```
+
+**MEMBERSHIP PRINTED OVER THE WHOLE MOVE TABLE BEFORE THE CONSUMER WAS WRITTEN.** 22 moves in this
+format carry `flags.heal`; the descriptor matches **four**, and every refusal is a move some other
+param already sizes — a double claim would double-heal:
+
+| declined | why | who sizes it instead |
+|---|---|---|
+| bitterblade drainingkiss drainpunch gigadrain hornleech leechlife matchagotcha paraboliccharge | `m.drain` | `drain` |
+| lifedew recover roost slackoff softboiled | `m.heal` is a PAIR | `healsSelf` / `healsAlly`, WIRE 150's arm |
+| moonlight morningsun synthesis swallow | a `this.modify` factor, a 4096ths chain | `weatherScaled.baseHealFraction`, `healsSelf.byVolatileLayers` |
+| strengthsap | `this.heal(atk, ...)`, a bare variable | `healsSelf.fromTargetStat` |
+
+**THE ROUNDING IS CARRIED BECAUSE IT GENUINELY DIFFERS ACROSS THE FAMILY** — this is WIRE 150's
+distinction arriving a third and a fourth time. Heal Pulse is `Math.ceil(target.baseMaxhp * 0.5)`; Wish
+books `source.maxhp / 2` as a raw float that `Battle#heal` **truncates**. Picking one rule for the
+family is wrong by one HP on the other member, every time, in the direction that decides a faint.
+
+**`of` IS THE HALF A ONE-BODY PROBE CANNOT SEE.** Heal Pulse reads the RECIPIENT's max, Wish reads the
+USER's. On a board where both bodies have the same max HP those are the same number, so every arm below
+uses Clefable 170 against Garchomp 183 and asserts the exact integer.
+
+### THE NUMBERS ARE THE AUTHORITY'S, STAGED IN A REAL `gen9championsvgc2026regmb` BATTLE
+
+```
+|-heal|p1b: Garchomp|93/183                                        Heal Pulse   +92 = ceil(183/2)
+|-heal|p1a: Garchomp|86/183|[from] move: Wish|[wisher] Clefable    Wish         +85 = trunc(170/2)
+|-status|p1a: Toxapex|slp|[from] move: Rest                        Rest         brn -> slp
+|-heal|p1a: Toxapex|125/125 slp|[silent]                                        31 -> 125
+|faint|p1a: Clefable                                               Healing Wish user dies
+|switch|p1a: Garchomp|Garchomp, L50, F|1/183 par
+|-heal|p1a: Garchomp|183/183|[from] move: Healing Wish                          full, par cleared
+```
+
+medicham2 after the wire reads **+92**, **86 at the end of turn 2**, **125/125 slp**, and **user down,
+Garchomp 183/183, status cleared** — the same four numbers.
+
+### FIVE THINGS THE AUTHORITY DECIDED THAT WOULD OTHERWISE HAVE BEEN GUESSED
+
+Each read off a staged game rather than remembered, and each is a refusal the engine now honours. All
+five agree with medicham2 on the board:
+
+| staged | authority | medicham2 |
+|---|---|---|
+| Rest at FULL HP | fails as a heal — **no sleep**, because `onTry` refuses before `onHit` | identical |
+| Rest while ALREADY asleep | `cant ... slp`, no heal | identical |
+| Heal Pulse at full HP | fails as a heal on the target | identical |
+| Wish clicked twice | second click fails; the pending one is NOT refreshed | identical |
+| Healing Wish with a dead bench | fails, and **the user survives** (`onTryHit` reads `canSwitch`) | identical |
+
+Two more, taken the same way and written into the code:
+
+- **Healing Wish collects BEFORE the hazards.** The stream reads the full restore and then the Stealth
+  Rock chip, in that order. It is consumed in `bringIn` — WIRE 41's one-entry-path rule — above the
+  hazard block.
+- **Healing Wish's slot condition SURVIVES a replacement that needs nothing.** The guard is
+  `if (!target.fainted && (target.hp < target.maxhp || target.status))`, and a full-HP statusless
+  replacement leaves `slotConditions` still holding `healingwish`.
+
+### WHERE THE SLOT CONDITION LIVES, AND THE TWO ORDERING FACTS
+
+`sf.slot`, keyed by **slot index**, on the side object — never on the body. That is the whole mechanic:
+the wisher is expected to leave and the Healing Wish user is dead before its own HP arrives, so a
+record on the body would model a different move.
+
+- **The clock ticks in its own pass, outside the residual body loop.** The loop walks LIVING bodies and
+  skips an empty or dead slot, so a clock inside it would *freeze* rather than expire — the same shape
+  as the Perish Song bug that froze on the bench. A Wish that comes due on an empty or dead slot is
+  **spent and discarded**, never banked for the replacement, because the authority's `onEnd` declines
+  and removal happens regardless.
+- **Wish pays out between the sandstorm chip and the terrain/Leftovers heal.** `onResidualOrder` is 4:
+  after weather (1), before terrain and Leftovers (5), the seed (8) and the status chips (10). Above
+  the sand it would rescue a body the real game lets the sand kill.
+
+### THREE PROTOCOL LINES DELIBERATELY NOT EMITTED
+
+Each because the authority does not emit it, and a spurious line is the worse error:
+
+- laying a slot condition announces **nothing** — the Wish move line is followed straight by `upkeep`;
+- `clearStatus()` on the Healing Wish recipient is **silent** — no `-curestatus` in the real stream;
+- Healing Wish's faint has **no `-damage` before it**, unlike the `affect` branch's Memento site.
+
+### THE DIGEST SWEEP — 1,500 CELLS, 12 DIFFER, 0 THREW
+
+Every move in `data/tags.json` (500), three aims each (**no target**, at the user, at the foe), two real
+turns apiece so clocks and residuals land, digested as the whole board: every primitive on all four
+active bodies and both benches, the field, both side conditions and the full emitted trace.
+
+```
+cells 1500   DIFF cells 12   THREW before 0  after 0
+MOVES THAT MOVED (4):  healingwish  healpulse  rest  wish     (all three aims each)
+```
+
+**THE FIRST SWEEP READ 84 CELLS AND 55 MOVES, AND IT CAUGHT A REAL DEFECT.** `bringIn` read the slot
+map through `slotCondOf`, which *installs* an empty map — and every entry in the game goes through
+`bringIn`, so 51 unrelated moves showed `slot: undefined -> {}` on a side where nothing had happened. A
+reader must not write; it now reads `sf.slot` directly. The throw count is printed beside the diff
+count for WIRE 150's reason: its first sweep reported a perfect zero over cells that had all thrown.
+
+### `data/tags.json` AND `data/abra-tags.js` WERE REGENERATED — 0 REMOVED / 0 ADDED / 4 CHANGED
+
+One new tag (`move|healDescriptor`, 205 → 206 rows in the tag index) and four moves gained it. No
+entity gained or lost anything else. Tag coverage **188/199 → 189/200 probed**, 11 unprobed unchanged.
+
+### THE COUNTERS PROVE IT RAN
+
+`MEDSEEN.healDescriptorNow 2`, `healDescriptorSet 2`, `healDescriptorSlot 2`, `healDescriptorStatus 1`,
+`healDescriptorFaint 1` over one click of each of the four. Both failure counters are **0** —
+`MEDFAILS.healDescriptorRounding` (a rounding name this engine does not implement, which falls to
+`trunc` and says so) and `healDescriptorMissing` (the branch reached with no descriptor to read).
+
+### GATES
+
+`test-damage-stages` **1728/1728 exact**. `test-medicham`, `test-engine-consistency`,
+`test-dead-volatile`, `test-wiring`, `test-protocol-trace`, `test-battle-api`, `test-charge`,
+`test-choice-lock`, `test-entry-effects`, `test-forced-switch`, `test-future-sight`,
+`test-medicham-coverage`, `test-drop-guard`, `test-encore-gate` and `test-artifact-keys` all pass
+unchanged.
+
+**TWO GATES ARE RED AND NEITHER IS THIS WIRE'S — SAID, NOT FILED.**
+`tests/test-no-silent-failure.js` reports 24 NEW silent catch blocks against a baseline stamped
+**2026-08-06**; not one of them is in a file this wire touched, and this wire adds **zero** catch
+blocks. `tests/test-mc-key.js` fails naming `tests/test-pinch-family.js` and
+`tests/test-side-guard-chooser.js`, neither of which this wire created or opened. Both are red on the
+tree as it stands and belong to whoever owns them; they are reported here so the redness is on the
+record rather than absorbed.
+
+### A GAP DECLARED RATHER THAN DISCOVERED
+
+**Ally Switch does not move a slot condition with the bodies it swaps.** Composing Wish with Ally Switch
+on one side inside two turns would put the HP in the wrong slot. Stated in the code at `slotCondOf` and
+here; there is no failing probe on it and no measurable corpus exposure, and a mechanic is not open work
+until a probe fails on it.
 
 ### NOT CLAIMED
 

@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  372/372 probed mechanics live, 0 missing   (census 2026-08-10 07:38)
-  0/150 differential comparisons disagree with Showdown   (2026-08-10 07:26)
+  376/376 probed mechanics live, 0 missing   (census 2026-08-10 08:24)
+  0/150 differential comparisons disagree with Showdown   (2026-08-10 07:46)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
@@ -54,10 +54,10 @@ ENGINE — does the simulator do what Pokémon does
     whole-game agreement 7/1997 -> 134/1997; first-divergence line, mean 14.78 -> 33.98
     paired against the baseline: 1295 games part later, 116 EARLIER, 586 unchanged
     the baseline ran first and last and reproduced exactly; comparability: every arm cleared
-  tag coverage: 188/199 probed, 11 unprobed
+  tag coverage: 189/200 probed, 11 unprobed
 ```
 
-_stamped 2026-08-10 07:45_
+_stamped 2026-08-10 08:25_
 
 <!-- /GENERATED -->
 
@@ -10467,6 +10467,25 @@ docs/TAGS.md invariant 3. A move added next regulation with `healsSelf` now work
 Strength Sap (scales off the TARGET's Attack), Heal Pulse (91 uses, heals its target). They are
 deliberately NOT classified as `kind:'heal'` — Rest's real click is the sleep and Strength Sap's is the
 Attack drop, and capturing them here would turn a partly-modelled move into a fully no-op turn.
+
+***THAT LIST IS NOW EMPTY, and this paragraph is left standing with its correction rather than
+rewritten, because the sentence above was the hand claim and the record of what closed it is worth
+more than a tidy page.*** Every member has since been sized by a param the artifact carries, and the
+last four went on 2026-08-10:
+
+| member | closed by | how it is sized now |
+|---|---|---|
+| Synthesis / Moonlight / Morning Sun | ROADMAP #102 | `weatherScaled.baseHealFraction`, the handler's own float through `modify` |
+| Strength Sap | ROADMAP #102 | `healsSelf.fromTargetStat` — the TARGET's Attack, boosts included |
+| Swallow | WIRE 152 | `healsSelf.byVolatileLayers` — the handler's own `[0.25, 0.5, 1]` by Stockpile count |
+| **Heal Pulse, Wish, Rest, Healing Wish** | **WIRE 154** | **`healDescriptor`** — WHO, WHEN, HOW MUCH, whether status clears, whether the user dies |
+
+The four that closed last were the four the old sentence was most right about: not one of them is a
+plain self-heal, so `healsSelf` could not describe any of them and all four resolved to `{kind:'pass'}`
+— a wasted turn. Healing Wish was the expensive one, because its user **did not faint**: the engine
+offered a search a free full restore for the next body in with its whole cost missing, which is
+strictly better than the move in the game. Four probes, `move|healDescriptor`, census 372 → 376.
+Full write-up in `docs/MEDICHAM-SPRINT-NOTES.md`.
 
 ### `blocksHealing` is the counter and it landed in the SAME pass, on purpose
 
