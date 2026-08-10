@@ -2677,3 +2677,58 @@ resembles a reactor if you are searching for an ability slot. The fix is that th
 be a TYPE — which is CHEAPER than an ability reactor, not harder: there is nothing to swap, you pick a
 body of that type and the control is a body that is not. It unblocks the ~400 pairs the interaction
 matrix drops.
+
+## ROADMAP #145 — THE GROUNDED AXIS: ONE PREDICATE, SEVEN READERS, SIX MISSING INPUTS
+
+Will, walking the type-reaction surface: *"FLYING IMMUNE TO GROUND HAZARDS, GROUND BASED THINGS LIEK
+TERRAIN"*, then *"ROOST MAKES A MON GROUNDED, SAME WITH SMACK DOWN"*, then *"ROOST ALSO CAUSES THE MON
+TO LOSE FLYING TYPE FOR THE TURN"*.
+
+**Grounded-ness is not a property of a type. It is a mutable per-turn state**, and our engine treats it
+as almost static.
+
+```
+isGrounded() consults        does NOT consult
+  Iron Ball                    Levitate      <- an ordinary ability, needs no setup at all
+  Air Balloon                  Roost            2,808 clicks
+  Flying type                  Gravity            585
+                               Smack Down          59
+                               Magnet Rise          8
+                               Ingrain              5
+```
+
+**Seven mechanics read that one predicate** — Spikes, Toxic Spikes, Sticky Web and all four terrains.
+Stealth Rock is the deliberate exception and hits everything. So one wrong predicate is wrong seven
+ways simultaneously, and **Levitate is wrong on turn 1 of every game containing a Levitate body**, with
+no move needing to have been clicked.
+
+**And Roost has no mechanism at all.** The format says *"Flying-type removed 'til turn ends"*; our
+simulator has no temporary-type concept — no `removeType`, no override. A Roosting Corviknight eats a
+full Earthquake here and takes zero in the real game, and for that turn its whole type chart is
+different, so Rock, Ice and Electric all misprice too. Smack Down is the mirror and is equally absent.
+
+**Toxic Spikes carries a SECOND type reaction on top:** Poison types do not merely ignore it, they
+absorb it off the field.
+
+## AND WILL'S STUN SPORE QUESTION, WHICH IS THE BEST TEST CASE OF THE NIGHT
+
+> *"SO ELECTRIC TYPES CANNOT BE STUN SPORED?"*
+
+Correct, and it is TWO INDEPENDENT IMMUNITIES STACKED. Stun Spore carries `status: par` AND
+`flags.powder`. A Grass type refuses it as POWDER, before the move resolves. An Electric type refuses
+it as PARALYSIS, at status application. Measured on a live battle: Heliolisk (Electric/Normal, not
+Grass) returns `runStatusImmunity('par') === false` — immune, with powder playing no part.
+
+That makes it the sharpest single fixture available: **a Grass/Electric body refuses it twice over, so
+an engine missing exactly one gate still passes.** Any test that only checks one of them is measuring
+the wrong thing and will report green on a half-broken engine.
+
+## THE PART WORTH RECORDING ABOUT THE GATE
+
+None of this is visible to the MEDICHAM gate. The roster stages a move and compares OUR TWO ENGINES;
+both compute grounded-ness the same wrong way, agree perfectly, and the row passes.
+
+That is the THIRD defect class tonight the gate structurally cannot see, after the mainline constants
+in `move-effects.js` and the mega movesets. All three share one shape: **a shared wrong input produces
+perfect agreement.** Only a comparison against the AUTHORITY can see them, which is the argument for
+the constructed-game differential and against reading OPEN as "the engine is right".
