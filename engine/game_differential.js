@@ -1478,6 +1478,57 @@ let BAN_FALLBACKS = 0;   // a config banned everything this body could click —
  * COUNTED because a silent one looks exactly like a working feature. */
 let FORCED_FIRST_SLOT = 0;
 
+/* ---- WHO THE CLICK NAMED — ONE TRANSLATION, EVERY DIRECTION (2026-08-10) -------------------------
+ *
+ * THIS IS THE THIRD INSTANCE OF ONE ROOT CAUSE AND IT IS THE INSTRUMENT'S, NOT THE ENGINE'S.
+ * Both choosers below turned a Showdown target type into TWO things: `target`, the number that goes
+ * into the choice string, and `foeSlot`, the index the medicham side was handed. `foeSlot` was
+ * derived as `target > 0 ? target - 1 : null` — so every NEGATIVE target, which is Showdown's own
+ * numbering for a body on your OWN side, arrived at `M.playerAction(mon, id, null, field)` as NO
+ * TARGET AT ALL. The choice string was perfect and the game played correctly on the authority's side;
+ * only our half was blind, which is why it looked like an engine defect for as long as it did.
+ *
+ * MEASURED, on `move/heals-a-body-that-was-damaged-first`: Heal Pulse (`target: 'any'`, aimed at the
+ * partner with `t = -2`) read DID-NOT-FIRE — Showdown put Torterra back to 123 and we left it at 38 —
+ * while LIFE DEW, the same rule, the same fixture, the same turn, read FIRED-AND-BOARDS-MATCH,
+ * because `target: 'allies'` hits the whole side and needs no aim. A probe handing Heal Pulse the
+ * ally BODY healed 92 correctly, so the engine was never the fault.
+ *
+ * THE FIX IS NOT A SPECIAL CASE FOR `any`. The same translation could not aim `scripted` (Counter,
+ * Comeuppance, Metal Burst) or `randomNormal` (the lock-in five) either, and both were diagnosed as
+ * this driver's fault earlier in this sprint. So the click now carries an AIM — a relationship and a
+ * slot — and each engine resolves it against its OWN arrays. `aimOf` reads the number the AUTHORITY
+ * would receive, so it cannot disagree with the choice string by construction; there is no second
+ * table of target types to keep in step.
+ *
+ *   target  >  0   the foe in slot target-1                 rel 'foe'
+ *   target  <  0   the body in the USER'S OWN slot -target-1 — rel 'ally', or rel 'self' when that
+ *                  slot is the clicker's own (`adjacentAllyOrSelf` aims at -(i+1))
+ *   target === null  NOBODY WAS NAMED, and it stays nobody.
+ *
+ * THE LAST LINE IS LOAD-BEARING. `self`, the spread family, `randomNormal` and `scripted` all name no
+ * target in the choice string, and the engine resolves each of them from the body and the board — a
+ * targetless `self` heal to its user (WIRE 153, deliberately restricted to `target === 'self'`), a
+ * targetless `randomNormal` to the hardest-hit foe (WIRE 144). A DAMAGING click that genuinely has
+ * nobody must still fail into `MEDFAILS.damagingClickWithoutTarget`, which 126 moves legitimately
+ * reach. Turning "no target" into "aim at something" here would delete that signal. */
+const AIM = { foe: 0, ally: 0, self: 0, none: 0, miss: 0 };
+function aimOf(target, i) {
+  if (target == null) return null;
+  if (target > 0) return { rel: 'foe', slot: target - 1 };
+  const s = -target - 1;
+  return s === i ? { rel: 'self', slot: s } : { rel: 'ally', slot: s };
+}
+/* THE BODY, out of whichever engine's own arrays the caller is holding — medicham2's `S.actA/actB` or
+ * Showdown's `side.active`. The two are index-parallel by the same assumption `foeSlot` already made.
+ * Pure: the counters are bumped at the ONE call site that dispatches a click, so a described turn and
+ * a credit scope cannot inflate them. */
+function aimBody(aim, own, foes, i) {
+  if (!aim) return null;
+  const b = aim.rel === 'foe' ? foes[aim.slot] : aim.rel === 'self' ? own[i] : own[aim.slot];
+  return b || null;
+}
+
 /* ---- THE STEERING COUNTER, WHICH IS NOW TWO COUNTERS (ROADMAP #91) -------------------------------
  *
  * `COV_HITS` used to be "times an entity of this row was clicked" and it decided BOTH the coverage
@@ -1777,8 +1828,13 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
       if (!a || a.pass) return { body: who, did: 'does nothing' };
       if (a.switchTo != null) return { body: who, did: 'switches out to ' + pretty(a.switchTo) };
       const mv = pretty(a.move);
-      const tgt = a.foeSlot != null && foes[a.foeSlot] ? pretty(foes[a.foeSlot].species.id) : null;
-      return { body: who, did: 'clicks ' + mv + (tgt ? ' at ' + tgt : '') + (a.mega ? ', and mega evolves' : '') };
+      /* THE AIM, NOT A FOE INDEX. A click on an ally used to read `clicks Heal Pulse` with no target
+       * named at all, which is the same blindness the dispatch had one level down. */
+      const tb = aimBody(a.aim, side.active, foes, i);
+      const rel = a.aim ? a.aim.rel : null;
+      const tgt = tb ? (rel === 'self' ? ' at itself'
+                      : (rel === 'ally' ? ' at its ally ' : ' at ') + pretty(tb.species.id)) : '';
+      return { body: who, did: 'clicks ' + mv + tgt + (a.mega ? ', and mega evolves' : '') };
     });
   };
 
@@ -1915,7 +1971,15 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
           const anySlot = tg.indexOf('spreadAll') >= 0 || tg.indexOf('spreadFoes') >= 0
                        || tg.indexOf('clearsBoosts') >= 0 || tg.indexOf('perishClock') >= 0;
           const slots = [{ side: sdk, slot: i }];
-          if (a.foeSlot != null) slots.push({ side: foeSide, slot: a.foeSlot });
+          /* THE SLOT THE CLICK NAMED, WHICHEVER SIDE OF THE FIELD IT IS ON. An ally-aimed move used to
+           * put only the USER's slot in scope, so the effect it landed on the partner sat outside the
+           * window the credit is read from — an entity could not be credited for the one thing it
+           * does. `self` is already the user's slot and is not pushed twice. */
+          if (a.aim) {
+            const ts = a.aim.rel === 'foe' ? foeSide : sdk;
+            const tk = a.aim.rel === 'self' ? i : a.aim.slot;
+            if (!(ts === sdk && tk === i)) slots.push({ side: ts, slot: tk });
+          }
           play.moves.push({ id: id(a.move), side: sdk, slot: i, connected: false,
                             scope: { anySlot, slots } });
         });
@@ -1938,7 +2002,13 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
             SWITCH_LOOKUP_MISS.medi++;
             map.set(mon, { kind: 'pass' }); return;
           }
-          const tgt = a.foeSlot != null ? foes[a.foeSlot] : null;
+          /* THE ONE DISPATCH, AND THE ONE PLACE THE AIM IS COUNTED. `own` is this side's actives, so
+           * an ally aim resolves inside it — the ask that could not be expressed before. A NAMED slot
+           * holding no body is a MISS and is counted: it is exactly the shape of the defect this
+           * replaces (a click that quietly became targetless), and a silent one reads as a working
+           * omission. `none` is the legitimate targetless click and stays targetless. */
+          const tgt = aimBody(a.aim, own, foes, i);
+          if (!a.aim) AIM.none++; else if (!tgt) AIM.miss++; else AIM[a.aim.rel]++;
           const pa = M.playerAction(mon, a.move, tgt, S.field);
           /* the SAME flag Showdown gets as ` mega` on the choice string below — one decision, two
            * spellings, never two decisions */
@@ -2097,8 +2167,9 @@ function scripted(script, turn, sd, i, act, side) {
     if (act.canMegaEvo) mega = true;
     else scriptMegaRefused++;
   }
-  return { move: dm.id, slot: k + 1, target, mega,
-           foeSlot: target != null && target > 0 ? target - 1 : null };
+  /* `target` IS UNCHANGED AND IS STILL WHAT SHOWDOWN RECEIVES. The authority already accepted `-1`
+   * and played the turn correctly; the bug was entirely in what OUR side was handed. See `aimOf`. */
+  return { move: dm.id, slot: k + 1, target, mega, aim: aimOf(target, i) };
 }
 /* Asks to mega that Showdown's request refused. MUST read 0 in any run whose scenarios ask for one. */
 let scriptMegaRefused = 0;
@@ -2140,8 +2211,11 @@ function chooseAction(battle, side, i, act, axis, claimed) {
       target = -(i + 1);
     }
     const want = covWant('moves', dm.id);
-    cands.push({ move: dm.id, slot: k + 1, target, banned,
-                 foeSlot: target != null && target > 0 ? target - 1 : null,
+    /* THE SAME TRANSLATION THE SCRIPT USES. This chooser has its own `adjacentAlly` and
+     * `adjacentAllyOrSelf` branches and had the identical hole: it built a legal `move n -1` for
+     * Showdown and handed medicham2 nothing. One `aimOf` for both, because two implementations of
+     * "who did this click name" is what produced the disagreement in the first place. */
+    cands.push({ move: dm.id, slot: k + 1, target, banned, aim: aimOf(target, i),
                  want: want === Infinity ? 1e6 : want,
                  prefer: axis.prefer && axis.prefer.has(dm.id) ? 1 : 0,
                  clicks: CLICKS.get(dm.id) || 0 });
@@ -2167,7 +2241,7 @@ function chooseAction(battle, side, i, act, axis, claimed) {
      * choice is one decision and two spellings. */
     if (act.moves && act.moves.length) {
       FORCED_FIRST_SLOT++;
-      return { move: id(act.moves[0].id), slot: 1, target: null, foeSlot: null, forced: true };
+      return { move: id(act.moves[0].id), slot: 1, target: null, aim: null, forced: true };
     }
     return { pass: true };
   }
@@ -2842,6 +2916,10 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                     * are exported so the same file can prove the fallback is counted rather than
                     * silent, and that it stays still on a fully-declared sheet. */
                    flatL50, NATURE_MODE, natureCounters: () => Object.assign({}, NATURE_COUNT),
+                   /* 2026-08-10 — the aim translation and its counters, exported for the same reason
+                    * the nature counters are: a caller proving the ally path RAN must read this
+                    * driver's own answer, never a second copy of the arithmetic. */
+                   aimOf, aimBody, aimCounters: () => Object.assign({}, AIM),
                    plantedProof, pairsFor, COV_TARGETS, COV_UNMEASURABLE, PIN_CLAIMS, REL, SW,
                    runDirected, damageInterior, DIRECTED, EQUIV, equivProof, semantic, reduce, NORM_COUNTS,
                    knockOffArms, KO_TARGET_ITEMS,
@@ -3649,6 +3727,14 @@ console.log('    switch lookups that MISSED: medicham ' + SWITCH_LOOKUP_MISS.med
   + ((SWITCH_LOOKUP_MISS.medi || SWITCH_LOOKUP_MISS.sd) ? '  <-- MUST READ 0. A miss means that side PASSED while the other switched.' : '  (must read 0)'));
 console.log('    ' + MCKEY_MISSED + ' set(s) had no MC.mons row for their species'
   + (MCKEY_MISSED ? '  <-- expected: cosmetic formes only. An ordinary species here is a broken alias table.' : ''));
+/* PRINTED BECAUSE A CAPABILITY THAT CANNOT PROVE IT RAN IS ASSUMED BROKEN. `ally` reading 0 on a run
+ * whose scenarios aim at a partner is the defect this replaces, back again and silent. `none` is
+ * legitimate and large — `self`, every spread move, `randomNormal` and `scripted` all name nobody and
+ * are resolved by the engine from the body and the board. `miss` must read 0: a NAMED slot with no
+ * body in it is a click that quietly went targetless. */
+console.log('    clicks by AIM: ' + AIM.foe + ' at a foe, ' + AIM.ally + ' at an ally, ' + AIM.self
+  + ' at self, ' + AIM.none + ' naming nobody (self/spread/randomNormal/scripted — the engine resolves those), '
+  + AIM.miss + ' named a slot with NO BODY in it' + (AIM.miss ? '  <-- MUST READ 0' : ' (must read 0)'));
 console.log('    ' + BAN_FALLBACKS + ' clicks where the configuration had banned every legal action (fell through, counted).');
 console.log('    ' + FORCED_FIRST_SLOT + ' requests this driver could build no candidate for (a recharge or a lock) — answered `move 1`, counted.');
 console.log('    MEDFAILS.traceBodyOffField = ' + M.fails.traceBodyOffField
@@ -3888,6 +3974,10 @@ if (WRITE) {
         + 'ROADMAP #68 is narrowed by the nature and is not closed.',
       teams_unbuildable: TEAMS_UNBUILDABLE, sets_unbuildable: MONS_UNBUILDABLE,
       ban_fallbacks: BAN_FALLBACKS, forced_first_slot: FORCED_FIRST_SLOT,
+      /* 2026-08-10 — the driver's ally aim. `aim_ally` at 0 on a run that staged one means the
+       * translation is blind again; `aim_slot_empty` is a named slot with no body and must be 0. */
+      aim_foe: AIM.foe, aim_ally: AIM.ally, aim_self: AIM.self,
+      aim_none: AIM.none, aim_slot_empty: AIM.miss,
       undeclared_event_drops: UNDECLARED_DROPS,
       trace_body_off_field: M.fails.traceBodyOffField,
       trace_body_off_field_first: M.fails.traceBodyOffFieldFirst,

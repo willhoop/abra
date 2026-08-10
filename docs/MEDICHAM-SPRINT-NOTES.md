@@ -1681,3 +1681,108 @@ until a probe fails on it.
 
 No roster row is closed here. `tests/roster.js` is Will's to run against a frozen tree, and no engine
 release was cut by this wire.
+
+---
+
+## THE DRIVER COULD NOT NAME AN ALLY — 2026-08-10, MEASURE. THE INSTRUMENT, NOT THE SIMULATOR.
+
+| # | row(s) | uses | what it was | verdict move |
+|---|---|---|---|---|
+| 31 | **Heal Pulse** | 148 | `engine/game_differential.js scripted()` derived the medicham target as `foeSlot = target > 0 ? target - 1 : null`. Showdown's numbering makes a **NEGATIVE** target a body on your OWN side, so every ally-aimed click reached `M.playerAction(mon, id, null, field)` **with no target at all**. The choice string was correct and the authority played the turn correctly; only our half was blind | DID-NOT-FIRE → **FIRED-AND-BOARDS-MATCH** |
+
+**THE ENGINE WAS NEVER AT FAULT AND THE CONTROL IS WHAT SAYS SO.** `lifedew` sits in the SAME rule
+(`move/heals-a-body-that-was-damaged-first`), the same fixture, the same turn, and read
+FIRED-AND-BOARDS-MATCH throughout — because `target: 'allies'` hits the whole side and needs no aim.
+Heal Pulse is `target: 'any'`, the roster aims it at the partner with `t = -2` → `move n -1`, and that
+is the only difference between the two rows. Handed the ally BODY directly, WIRE 154's `healdesc`
+branch heals 38 → **123 of 170**, which is the authority's own number.
+
+**IT IS THE THIRD INSTANCE OF ONE ROOT CAUSE AND IT IS NOT FIXED AS A SPECIAL CASE.** The same
+translation could not aim `scripted` (Counter, Comeuppance, Metal Burst, Mirror Coat) or `randomNormal`
+(the lock-in five) either — both diagnosed against this file earlier in this sprint. A click now
+carries an **AIM** — `{rel:'foe'|'ally'|'self', slot}` — read off the number the AUTHORITY receives, so
+it cannot disagree with the choice string by construction, and each engine resolves it against its own
+arrays. There is no second table of target types to keep in step; `foeSlot` is gone from the file.
+
+| target in the choice string | resolves to | which target types reach it |
+|---|---|---|
+| `> 0` | the foe in slot `target-1` | `normal`, `any`, `adjacentFoe` aimed across the field |
+| `< 0`, a slot that is NOT the clicker's | **the ALLY in that slot** | `adjacentAlly` (Dragon Cheer, Aromatic Mist, Coaching, Helping Hand), and `normal` / `any` aimed at the partner (Heal Pulse, Pollen Puff) |
+| `< 0`, the clicker's OWN slot | the clicker | `adjacentAllyOrSelf` (Acupressure) |
+| `null` | **NOBODY, and it stays nobody** | `self`, every spread target, `randomNormal`, `scripted` |
+
+**THE LAST ROW IS THE LOAD-BEARING ONE.** `MEDFAILS.damagingClickWithoutTarget` is the signal that a
+damaging click could not be aimed, and 126 moves legitimately reach it; turning "no target" into "aim
+at something" would delete it. Measured on release `ec4dc5fd4a0d` after the change: a damaging click
+with no target still falls through (`kind: 'affect'`) and the counter still moves **0 → 1**, and naming
+a foe leaves it still. `self` keeps resolving inside the engine (WIRE 153) and `randomNormal` inside
+the engine (WIRE 144) — the driver does not second-guess either.
+
+**WHAT MOVED, MEASURED RATHER THAN PREDICTED.** Full `--stage moves`, release `ec4dc5fd4a0d` on both
+sides, written to a trial artifact and **not** to `data/roster.moves.json`:
+
+```
+before  17 DIFFER   13 DID-NOT-FIRE   406 MATCH   64 COULD-NOT-STAGE   (data/roster.moves.json, 08:31)
+after   17 DIFFER   12 DID-NOT-FIRE   407 MATCH   64 COULD-NOT-STAGE
+exactly ONE row of 500 changed verdict: healpulse.  reds identical, COULD-NOT-STAGE set identical.
+```
+
+`acupressure`, `aromaticmist` and `coaching` — the other three rows whose click carries a negative
+target — were re-run individually and all three stay FIRED-AND-BOARDS-MATCH. `dragoncheer`,
+`helpinghand` and `mirrorcoat` are COULD-NOT-STAGE and cannot move. **No roster row is claimed closed
+here: the artifact is Will's to write.**
+
+**NOT FIXED, AND NOT SILENTLY EITHER.** `counter` / `comeuppance` / `metalburst` (`scripted`) and the
+lock-in five (`randomNormal`) are **untouched by this change** — Showdown names no target for either
+family, so the driver has no slot to translate and inventing one would be the instrument asserting a
+fact the authority declined to give. Their aim stays `null` and belongs to the engine, exactly where
+WIRE 144 put the `randomNormal` half. The lock-in five already read MATCH on the 08:31 artifact; the
+four `scripted` rows read DID-NOT-FIRE and this does not move them.
+
+**THE COUNTER PROVES IT RAN**, because a capability that cannot is assumed broken. Every run prints
+`clicks by AIM: N at a foe, N at an ally, N at self, N naming nobody, N named a slot with NO BODY in
+it`, and the last must read 0; the same five land in the artifact as `aim_foe` / `aim_ally` /
+`aim_self` / `aim_none` / `aim_slot_empty`. Driven end to end on one staged turn, an ally click reads
+`ally 1` and the turn is described as *"Clefable clicks Heal Pulse at its ally Snorlax"* — that
+sentence was `clicks Heal Pulse` with no target named at all before, which is the same blindness one
+level up. Mode A, 12 games: `189 foe, 0 ally, 0 miss`; random play rarely offers an ally-aimed move, so
+the 0 is a fact about the sample and not about the path.
+
+**A SECOND CONSEQUENCE, STATED BECAUSE IT MOVES MODE A.** Coverage credit reads a SCOPE of slots, and
+an ally-aimed move used to put only the user's slot in it — so the one thing such a move does sat
+outside the window its credit is read from. The aimed slot is now in scope whichever side of the field
+it is on. That changes which entities get credited in random play, and this driver steers on credit, so
+**mode A runs before and after this change are not directly comparable**, for the same reason ROADMAP
+#91 gives.
+
+### FOUND AND NOT FIXED — REPORTED, PER THE ROUTING RULE
+
+- **`scripted()` falls back to the DEX row when the request omits `target`.** `chooseAction` already
+  treats an absent `target` on the request entry as "do not name one", and its comment records four
+  thrown games from getting that wrong (`Can't choose a target for Solar Beam`). `scripted()` still
+  reads `'target' in act.moves[k] ? act.moves[k].target : dm.target`, so a LOCKED body — the release
+  turn of a two-turn move — is handed a target the authority refuses. One fact, two implementations,
+  one of them wrong. **Left alone deliberately:** fixing it turns a thrown scripted turn into a played
+  one for the two-turn family, which changes what the roster can stage.
+- **`tests/roster.js:2079` now describes the old behaviour.** Its `allySlot` comment argues the aim is
+  safe because "the medicham side receives `foeSlot: null` — precisely what it already receives for
+  Life Dew". That reasoning is exactly what hid this defect: Life Dew needs no aim and Heal Pulse does.
+  Not edited from here — the file is mid-sprint and its bytes decide what Will re-runs.
+- **`oneHitDamage()`, the damage-interior helper, still does `foes[w.t]`.** A negative `t` would index
+  off the end. No `DIRECTED` scenario aims one at an ally today, so it is a latent hazard rather than a
+  defect — but it is a third copy of the same arithmetic and should call `aimOf`.
+
+### GATES
+
+`tests/test-game-differential.js` ALL PASSED; `tests/test-state-differential.js` all parts pass;
+`tests/test-effect-credit.js`, `tests/test-pin-arms.js`, `tests/test-arm-steering.js`,
+`tests/test-nature-differential.js`, `tests/test-speed-tie.js` and `tests/staged_status_counters.js`
+(live tree IDENTICAL on every scenario) are green.
+
+**ONE GATE IS RED AND IT IS NOT THIS CHANGE'S — SAID, NOT FILED.**
+`tests/test-effective-identity.js` fails `no NEW raw read of a transforming field` (1048 against a
+baseline of 234). Its per-file delta names `champions_sim.js`, `probe_pair.js`, `roster.js` (0 → 232),
+`staged_board.js`, `test-nature-differential.js`, `test-pinch-family.js` and
+`test-side-guard-chooser.js`. `game_differential.js` is not among them, and this change is net zero on
+that regex — it replaced one `.species` read with one `.species` read. Red on the tree as it stands and
+owned by whoever holds those files.
