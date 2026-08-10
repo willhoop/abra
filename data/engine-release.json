@@ -1,10 +1,10 @@
 {
-  "current": "9c04f767ba8c",
-  "cut": "2026-08-10T01:00:40.811Z",
-  "why": "the retaliation family reaches the engine: the hasPower exclusion had expired",
-  "cuts": 2,
-  "latest_cut": "2026-08-10T01:03:38.893Z",
-  "latest_why": "retaliation returns 0 with nothing to retaliate against",
-  "pointer_written": "2026-08-10T01:03:38.896Z",
+  "current": "0dfc7d6ef0cc",
+  "cut": "2026-08-10T01:23:45.762Z",
+  "why": "the bracket belongs to the SELECTED move, not the one Encore forces",
+  "cuts": 1,
+  "latest_cut": "2026-08-10T01:23:45.762Z",
+  "latest_why": "the bracket belongs to the SELECTED move, not the one Encore forces",
+  "pointer_written": "2026-08-10T01:23:45.766Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

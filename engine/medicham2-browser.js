@@ -4245,7 +4245,14 @@ function actionPriority(it, field){
       if(_mvR&&String(_mvR.t||'').toLowerCase()===String(_pm.movesOfClass||'').toLowerCase())return +_pm.shift;}
     return 0;
   };
-  if(k==='attack')    return movePriority(it.a.move.id, field)+_pmOf(it.mon,null,true,it.a.move.id);
+  /* THE BRACKET IS THE SELECTED MOVE'S, and `_selMv` carries it when a lock overrode the choice.
+   * `sim/battle-actions.js` reads `baseMove.priority` and `baseMove.pranksterBoosted` one line BEFORE
+   * it runs OverrideAction, so an Encored body keeps the bracket of what its player picked and
+   * executes what Encore forces. `_pmOf` is handed the same id for the identical reason — Prankster
+   * and Gale Wings are captured on that same pre-override line. Absent `_selMv` (every unlocked
+   * action) this is exactly what it always was. */
+  if(k==='attack'){ const _pmv=it._selMv||it.a.move.id;
+                    return movePriority(_pmv, field)+_pmOf(it.mon,null,true,_pmv); }
   /* PRANKSTER, +1 TO ANY STATUS CLICK (now via the tag above). Every kind below is a status
      move; only 'attack' is not, and it returns above. The Dark-type immunity stays in
      pranksterBlocked -- that half is Prankster-specific in the real engine too. */
@@ -6069,6 +6076,29 @@ function battleTurn(S,rng,actsForA,actsForB){
        * move is a REASON to leave, so narrowing the move list must never narrow the switch list.
        * A pass stays a pass. Everything else re-aims to the locked move, which is what the real
        * client offers -- it does not let you click the others at all. */
+      /* THE BRACKET BELONGS TO THE MOVE YOU SELECTED, NOT THE ONE THE LOCK FORCES.
+       * (Will, 2026-08-10: "if you use a prio move but get encored into something you still get prio
+       * on it or something like that ... its obscure look it up". He is right, and the authority's
+       * own source is explicit about it — `sim/battle-actions.js`:
+       *
+       *     let baseMove = this.dex.getActiveMove(moveOrMoveName);
+       *     const priority = baseMove.priority;              <-- read from the SELECTED move
+       *     const pranksterBoosted = baseMove.pranksterBoosted;
+       *     if (baseMove.id !== "struggle" && ...) {
+       *       const changedMove = this.battle.runEvent("OverrideAction", ...);   <-- Encore swaps HERE
+       *       if (changedMove && changedMove !== true) baseMove = ...changedMove;
+       *     }
+       *
+       * `priority` is captured ONE LINE BEFORE the override is allowed to run. So an Encored body
+       * moves in the bracket of the move its player chose and executes the move Encore forces —
+       * and `pranksterBoosted` is captured on the same line, so a Prankster boost carries across too.
+       *
+       * THIS ENGINE HAD IT BACKWARDS. `_pri` is computed from `acts` AFTER this rewrite, so the lock's
+       * move decided the bracket. WIRE 118's comment claims the bracket is frozen "exactly as Showdown
+       * resolves an action's priority when it is queued" — TRUE for every action except a locked one,
+       * and false precisely here. `_selMv` records what was chosen before the rewrite; `actionPriority`
+       * reads it. Nothing else about the action changes: the MOVE executed is still the locked one. */
+      const _selMv=(_a&&_a.kind==='attack'&&_a.move&&_a.move.id)||(_a&&_a.mv)||null;
       if(_a&&mon._lock&&_a.kind!=='switch'&&_a.kind!=='pass'
          &&!(_a.kind==='attack'&&_a.move&&_a.move.id===mon._lock)){
         const _lk=targetForMove(mon,mon._lock,live(foes),field);
@@ -6085,7 +6115,10 @@ function battleTurn(S,rng,actsForA,actsForB){
          replaces it takes the hit. Without this the outgoing mon stayed targetable from the bench and
          a switch neither dodged the attack nor handed it to the replacement -- it hit a Pokemon that
          was no longer on the field. Only surfaced once voluntary switching existed to expose it. */
-      acts.push({mon,side,a:_a,tgtSlot:_a&&_a.target?foes.indexOf(_a.target):-1});};
+      /* `_selMv` rides along so `actionPriority` can read the SELECTED move rather than the locked
+       * one — see the block above. It is null whenever nothing was overridden, and the priority
+       * function falls back to the executed move in that case, so every ordinary action is unchanged. */
+      acts.push({mon,side,a:_a,_selMv,tgtSlot:_a&&_a.target?foes.indexOf(_a.target):-1});};
     mk(actA[0],'A',actB,actA[1]);mk(actA[1],'A',actB,actA[0]);mk(actB[0],'B',actA,actB[1]);mk(actB[1],'B',actA,actB[0]);
     /* what was actually clicked this turn, both sides, for observers (the Tower's local game
      * record). A summary, not the live objects -- nothing outside can mutate the turn. */

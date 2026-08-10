@@ -61,6 +61,83 @@ FAIL  deliberate roster / moves      23 differ, 24 did-not-fire
 
 ---
 
+## ENCORE — THREE FINDINGS, ALL FROM WILL, TWO OF THEM ENGINE FIXES
+
+*(Will, 2026-08-10: "we need to fix encore", then "there are some crazy encore shenanigans".)*
+
+**Encore itself was never broken.** The row is FIRED-AND-BOARDS-DIFFER, not DID-NOT-FIRE, and there is
+**no `vol.encore` disagreement at all** — only HP. Verified directly: handed Dragon Claw on turns 3 and
+4, the encored body used **Dragon Pulse** both times; it FAILS on turn 1 against a body with no last
+move (Will's switch-in case); duration is 3, matching Showdown.
+
+*My first probe said the lock was broken and the probe was wrong* — I clicked Encore once, on the turn
+it cannot land. Fourth broken probe of the day.
+
+### 1. ENCORE INTO GIGATON HAMMER LEAVES YOU WITH STRUGGLE — measured, not inferred
+
+`medicham2` carried this as an explicit **unmeasured inference**: *"The code implies every move ends up
+disabled and the Pokemon Struggles. That is an inference from reading two handlers, NOT something
+measured, and it is flagged here as needing a live test rather than stated as fact."*
+
+Now measured against the authority:
+
+```
+turn 1  Tinkaton uses Gigaton Hammer.  Oranguru Encores it.
+        Tinkaton may select: Struggle          <- every move gone
+turn 3  Tinkaton STRUGGLES.  Encore expires.
+```
+
+The inference was **correct**. Will's counter-hypothesis — that `cantusetwice` only blocks SELECTION so
+an Encore would let it hammer twice — does not hold: the authority has **both** guards, `battle.js`
+disables it for selection and `battle-actions.js` catches it again at execution. 249 uses.
+
+*(The first attempt at this was contaminated: Gengar has CURSED BODY, which disabled the Hammer on
+contact. The finding would have been the fixture's. Same shape as the Thick Fat lesson.)*
+
+### 2. THE PRIORITY BRACKET BELONGS TO THE MOVE YOU SELECTED — **ENGINE FIX**
+
+Will: *"if you use a prio move but get encored into something you still get prio on it ... its obscure
+look it up."* He is right, and `sim/battle-actions.js` is explicit:
+
+```js
+let baseMove = this.dex.getActiveMove(moveOrMoveName);
+const priority = baseMove.priority;             // <-- read from the SELECTED move
+const pranksterBoosted = baseMove.pranksterBoosted;
+if (baseMove.id !== "struggle" && ...) {
+  const changedMove = this.battle.runEvent("OverrideAction", ...);   // <-- Encore swaps HERE
+  if (changedMove && changedMove !== true) baseMove = ...changedMove;
+}
+```
+
+Priority is captured **one line before** the override may run. So an Encored body moves in the bracket
+of what its player picked and executes what Encore forces — and `pranksterBoosted` is captured on the
+same line, so a Prankster boost carries too.
+
+**This engine had it backwards.** `_pri` was computed from `acts` AFTER the WIRE 24 lock rewrite, so the
+LOCK decided the bracket. WIRE 118's comment claimed the bracket is frozen *"exactly as Showdown
+resolves an action's priority when it is queued"* — true for every action except a locked one, and
+false precisely there. `_selMv` now carries the pre-override choice and `actionPriority` reads it.
+
+**Shown red on the frozen pre-fix release:**
+
+```
+  PRE-FIX  9c04f767ba8c   gengarLost = 0    <- died before acting: took the LOCKED bracket
+  POST-FIX live tree      gengarLost = 70   <- kept Quick Attack's +1, got the forced move off
+```
+
+### 3. THE `failencore` SET — 6,221 uses Encore cannot lock
+
+Encore, Copycat, Sleep Talk, Transform, +1. Not yet checked against our engine.
+
+### AND THE ROW STILL DOES NOT MOVE
+
+Roster moves unchanged at 23 differ / 24 did-not-fire. Both fixes above are real and independently
+verified; **neither closes the Encore row**, because the roster's scenario has both sides clicking the
+same neutral 0-priority move — there is no bracket mismatch in it to exercise. The residual is still
+the 106/36 versus 161/0 damage split, still undiagnosed, and still not guessed at.
+
+---
+
 ## OPEN — WORK DONE, ROW NOT CLOSED
 
 **THE RETALIATION FAMILY (Counter, Mirror Coat, Metal Burst, Comeuppance — 16 uses).** The engine
