@@ -2600,3 +2600,80 @@ since 2026-07-23 at roughly 640 games a day. `engine/click_counts.js` now reads 
 on the gate was one row (Mean Look, 20 clicks becoming 25), and that row had already been fixed on its
 merits — luck, not design. The mega census and the raw-log census still read one store and are owed a
 re-run.
+
+## ROADMAP #143 — THE SCENARIO CATALOGUE, AND THE TWO THINGS WILL ADDED THAT MAKE IT WORK
+
+Will: *"START DEVISING TESTS AND SCENARIOS FOR EACH MECHANIC (ITEM, ABILITY, MOVE, MON) IN THE GAME
+THAT WE CAN RUN"*.
+
+**ONE SHAPE PER TAG, NOT PER ENTITY.** 500 moves, 272 abilities and 148 items — 920 entities — carry
+217 distinct tags between them. Entities sharing a tag share a test, so 217 shapes cover all 920 and an
+entity added tomorrow inherits its shape without anyone editing anything. Plus 357 legal species as one
+`structural` shape that needs no battle at all — just a comparison against the format, which is the
+cheapest coverage in the catalogue and is exactly where a mainline-versus-Champions error would hide.
+
+`engine/scenario_catalogue.js` derives it from `data/tags.json` and the format. Ten archetypes, and the
+archetype decides which INSTRUMENT can ask the question — `chance` tags are marked precisely so nobody
+builds a one-board test for a coin.
+
+### Will's first addition: what the subject must be FACING
+
+> *"IE WIDE GUARD NEEDS A SPREAD MOVE AGAINST IT, ITS POINTLESS TO TEST IF IT DOESNT FACE THAT"*
+
+This is a different field from the precondition and the catalogue was missing it. A PRECONDITION is
+about the subject's own state — Blaze needs the holder under a third. **`faces` is about the
+ADVERSARY'S ACTION**, and omitting it produces a green that proves nothing:
+
+| shape | vacuous without | 
+|---|---|
+| Wide Guard | a SPREAD move aimed at the side |
+| Rage Powder | a single-target move aimed at the ALLY |
+| Counter | a physical hit taken before it moves |
+| a trap | somebody actually trying to leave |
+| Filter | a super-effective hit |
+
+Every one of those passes by doing nothing. It is "A CLICK IS NOT A TEST" one level up — the click
+happened, the CONDITION did not — and on inspection it is why so much of the roster reports
+COULD-NOT-STAGE: the harness did not know what the subject had to be facing.
+
+**And the rule chain bit me immediately.** `piercesProtect` matched the generic `/protect/` rule before
+its own, so the shape that BYPASSES a guard was told to face a move it could block. Specific before
+general; fixed on the first run.
+
+### Will's second addition: a PROPERTY is tested through its REACTOR
+
+> *"HAVE CONTACT HIT ROUGH SKIN TO CHECK"*
+
+`contact` is a flag, not a behaviour. Nothing observable happens because a move made contact unless
+something READS the flag. So the shape is: click the flagged move into a body carrying the reactor, and
+control with a body without it. Derived from the format, every property flag has one:
+
+| flag | moves | reactor |
+|---|---|---|
+| contact | 166 | Rough Skin, Effect Spore, Aftermath, Cute Charm |
+| sound | 24 | Soundproof |
+| bullet | 17 | Bulletproof |
+| slicing | 21 | Sharpness |
+| punch | 15 | Iron Fist |
+| powder | 7 | Overcoat |
+
+Two honest gaps found the same way: **`wind` has three reactors and ZERO legal carriers** in this
+regulation — a fact about the format, not a hole — and **`reflectable` has no ability reactor at all**,
+because it is tested by the move BOUNCING rather than by anything reacting to it.
+
+### And the retraction Will forced
+
+> *"DYM A TYPE CANNOT BE A REACTOR? ALL TYPES HAVE A SORTA ABILITY, DARK IMMUNE TO PRANKSTER, GRASS TO
+> POWDER MOVES, GHOSTS CANNOT BE TRAPPED, ETC."*
+
+ROADMAP #20 said a type cannot be a reactor and therefore Grass-blocks-powder was untestable. That is a
+statement about our harness, not about the game. Asked of a live battle: **Fire refuses burn, Steel
+refuses poison, Electric refuses paralysis, Ice refuses freeze**, the type chart carries seven more,
+Prankster names Dark in its own text, the `trapped` volatile refuses Ghost, and powder is gated in the
+battle rules.
+
+**It looked impossible because type reactions live in FIVE different places** and only one of them
+resembles a reactor if you are searching for an ability slot. The fix is that the harness's reactor may
+be a TYPE — which is CHEAPER than an ability reactor, not harder: there is nothing to swap, you pick a
+body of that type and the control is a body that is not. It unblocks the ~400 pairs the interaction
+matrix drops.

@@ -1,0 +1,3645 @@
+{
+  "generated": "2026-08-10T23:34:58.177Z",
+  "by": "engine/scenario_catalogue.js",
+  "what": "One test SHAPE per mechanic. 920 entities across 500 moves, 272 abilities and 148 items share 217 distinct tags, so this many shapes cover all of them — and an entity added tomorrow inherits its shape without editing anything.",
+  "principle": "A shape is a SPECIFICATION, not a fixture: the precondition, the click, what must move, and what must NOT. A shape with no negative control cannot tell a working mechanic from a dead board, which is the commonest way a probe in this repository has been wrong.",
+  "archetype_counts": {
+    "UNCLASSED": 78,
+    "status": 10,
+    "timing": 8,
+    "stat": 30,
+    "chance": 15,
+    "damage": 24,
+    "field": 17,
+    "refusal": 23,
+    "residual": 10,
+    "entry": 2
+  },
+  "chance_warning": "Tags marked `chance` CANNOT be tested on a single staged turn. A 30% effect that does not fire has told you nothing. They need N seeded trials and a confidence interval — a different instrument, and the reason the million-game run exists.",
+  "species": {
+    "tag": "(species)",
+    "archetype": "structural",
+    "entities": 357,
+    "why": "A SPECIES IS NOT A MECHANIC AND NEEDS NO BATTLE. Its base stats, typing, weight, legal abilities and learnset are FACTS, and the only honest test is a direct comparison against the format — not against mainline gen 9, which is where 21 move fields were found to have come from on 2026-08-10. This is the cheapest coverage in the catalogue and nothing does it today.",
+    "checks": [
+      "base stats match the format",
+      "typing matches",
+      "weight matches (Heavy Slam, Grass Knot)",
+      "the legal ability set matches",
+      "every move on a generated set is in the learnset",
+      "no forme is absent that the format allows, and none present that it forbids"
+    ]
+  },
+  "shapes": [
+    {
+      "tag": "pp",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 500,
+      "moves": 500,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 1259684,
+      "example_carriers": [
+        "appleacid",
+        "banefulbunker",
+        "beakblast",
+        "belch"
+      ]
+    },
+    {
+      "tag": "statusInflict",
+      "archetype": "status",
+      "why": "applies or refuses a major status. Board read. The control is a body IMMUNE to it, so \"nothing happened\" cannot pass for \"correctly refused\".",
+      "faces": null,
+      "faces_why": null,
+      "entities": 118,
+      "moves": 118,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 504062,
+      "example_carriers": [
+        "banefulbunker",
+        "dragoncheer",
+        "electrify",
+        "encore"
+      ]
+    },
+    {
+      "tag": "contact",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 166,
+      "moves": 166,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 378505,
+      "example_carriers": [
+        "crabhammer",
+        "crushclaw",
+        "direclaw",
+        "dragonclaw"
+      ]
+    },
+    {
+      "tag": "statusCategory",
+      "archetype": "status",
+      "why": "applies or refuses a major status. Board read. The control is a body IMMUNE to it, so \"nothing happened\" cannot pass for \"correctly refused\".",
+      "faces": null,
+      "faces_why": null,
+      "entities": 175,
+      "moves": 175,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 378034,
+      "example_carriers": [
+        "banefulbunker",
+        "clangoroussoul",
+        "corrosivegas",
+        "dragoncheer"
+      ]
+    },
+    {
+      "tag": "neverMisses",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 124,
+      "moves": 124,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 319210,
+      "example_carriers": [
+        "banefulbunker",
+        "clangoroussoul",
+        "dragoncheer",
+        "electrify"
+      ]
+    },
+    {
+      "tag": "moveClass",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 131,
+      "moves": 131,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 316059,
+      "example_carriers": [
+        "beakblast",
+        "corrosivegas",
+        "crushclaw",
+        "direclaw"
+      ]
+    },
+    {
+      "tag": "priority",
+      "archetype": "timing",
+      "why": "changes WHEN something resolves. Compare the resolution ORDER, not the board. A genuine speed tie must be REFUSED rather than scored — matching a coin is not evidence.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 39,
+      "moves": 39,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 300897,
+      "example_carriers": [
+        "banefulbunker",
+        "beakblast",
+        "fakeout",
+        "firstimpression"
+      ]
+    },
+    {
+      "tag": "statChange",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 107,
+      "moves": 107,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 210082,
+      "example_carriers": [
+        "appleacid",
+        "clangoroussoul",
+        "crushclaw",
+        "firelash"
+      ]
+    },
+    {
+      "tag": "spreadFoes",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": "TWO live foes, so the spread reduction is observable",
+      "faces_why": "a single live target cannot distinguish spread damage from single-target damage",
+      "entities": 22,
+      "moves": 22,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 174157,
+      "example_carriers": [
+        "makeitrain",
+        "aircutter",
+        "blizzard",
+        "breakingswipe"
+      ]
+    },
+    {
+      "tag": "stalling",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": "a damaging move it can actually block",
+      "faces_why": "a Protect nobody attacks into is a spent turn, not a test",
+      "entities": 6,
+      "moves": 6,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 160532,
+      "example_carriers": [
+        "banefulbunker",
+        "kingsshield",
+        "protect",
+        "spikyshield"
+      ]
+    },
+    {
+      "tag": "secondaryStatEffect",
+      "archetype": "chance",
+      "why": "fires with probability below 1, so a single staged turn cannot distinguish \"broken\" from \"did not roll\". Needs N seeded trials and an interval — the rate arm, not a board read.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 52,
+      "moves": 52,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 122912,
+      "example_carriers": [
+        "appleacid",
+        "crushclaw",
+        "firelash",
+        "gravapple"
+      ]
+    },
+    {
+      "tag": "flinches",
+      "archetype": "chance",
+      "why": "fires with probability below 1, so a single staged turn cannot distinguish \"broken\" from \"did not roll\". Needs N seeded trials and an interval — the rate arm, not a board read.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 19,
+      "moves": 19,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 98565,
+      "example_carriers": [
+        "fakeout",
+        "ironhead",
+        "mountaingale",
+        "airslash"
+      ]
+    },
+    {
+      "tag": "inflictsBurn",
+      "archetype": "chance",
+      "why": "fires with probability below 1, so a single staged turn cannot distinguish \"broken\" from \"did not roll\". Needs N seeded trials and an interval — the rate arm, not a board read.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 15,
+      "moves": 15,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 91134,
+      "example_carriers": [
+        "beakblast",
+        "infernalparade",
+        "blazekick",
+        "fireblast"
+      ]
+    },
+    {
+      "tag": "variablePower",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 30,
+      "moves": 30,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 71402,
+      "example_carriers": [
+        "infernalparade",
+        "ragefist",
+        "acrobatics",
+        "assurance"
+      ]
+    },
+    {
+      "tag": "weatherScaled",
+      "archetype": "field",
+      "why": "sets or reads field state. Read the field, and for anything PRIVATE add a leak control — the foe must not see it.",
+      "faces": "the SKY or TERRAIN the tag names, set by something else first",
+      "faces_why": "the scaling branch is dead without it, and the control is the same click with it absent",
+      "entities": 11,
+      "moves": 11,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 69021,
+      "example_carriers": [
+        "growth",
+        "blizzard",
+        "electroshot",
+        "hurricane"
+      ]
+    },
+    {
+      "tag": "recoil",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 11,
+      "moves": 11,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 63074,
+      "example_carriers": [
+        "lightofruin",
+        "bravebird",
+        "doubleedge",
+        "flareblitz"
+      ]
+    },
+    {
+      "tag": "lowersUser",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 13,
+      "moves": 13,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 56244,
+      "example_carriers": [
+        "makeitrain",
+        "armorcannon",
+        "clangingscales",
+        "closecombat"
+      ]
+    },
+    {
+      "tag": "thawsTarget",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": "a target already carrying the status it removes",
+      "faces_why": "nothing to cure otherwise",
+      "entities": 5,
+      "moves": 5,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 47278,
+      "example_carriers": [
+        "burnup",
+        "flareblitz",
+        "matchagotcha",
+        "scald"
+      ]
+    },
+    {
+      "tag": "sound",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 24,
+      "moves": 24,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 46515,
+      "example_carriers": [
+        "clangoroussoul",
+        "dragoncheer",
+        "howl",
+        "alluringvoice"
+      ]
+    },
+    {
+      "tag": "drain",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 8,
+      "moves": 8,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 33158,
+      "example_carriers": [
+        "bitterblade",
+        "drainingkiss",
+        "drainpunch",
+        "gigadrain"
+      ]
+    },
+    {
+      "tag": "spreadAll",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": "TWO live foes, so the spread reduction is observable",
+      "faces_why": "a single live target cannot distinguish spread damage from single-target damage",
+      "entities": 16,
+      "moves": 16,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 30228,
+      "example_carriers": [
+        "corrosivegas",
+        "boomburst",
+        "brutalswing",
+        "bulldoze"
+      ]
+    },
+    {
+      "tag": "doublesSideSpeed",
+      "archetype": "field",
+      "why": "sets or reads field state. Read the field, and for anything PRIVATE add a leak control — the foe must not see it.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 28436,
+      "example_carriers": [
+        "tailwind"
+      ]
+    },
+    {
+      "tag": "inflictsParalysis",
+      "archetype": "chance",
+      "why": "fires with probability below 1, so a single staged turn cannot distinguish \"broken\" from \"did not roll\". Needs N seeded trials and an interval — the rate arm, not a board read.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 13,
+      "moves": 13,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 27953,
+      "example_carriers": [
+        "bodyslam",
+        "bounce",
+        "discharge",
+        "glare"
+      ]
+    },
+    {
+      "tag": "boostsUser",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 23,
+      "moves": 23,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 27333,
+      "example_carriers": [
+        "clangoroussoul",
+        "growth",
+        "acidarmor",
+        "agility"
+      ]
+    },
+    {
+      "tag": "noExtraHit",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 17,
+      "moves": 17,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 25497,
+      "example_carriers": [
+        "bounce",
+        "dig",
+        "dive",
+        "dragondarts"
+      ]
+    },
+    {
+      "tag": "needsTargetToAttack",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 9,
+      "moves": 9,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 23724,
+      "example_carriers": [
+        "assurance",
+        "avalanche",
+        "counter",
+        "focuspunch"
+      ]
+    },
+    {
+      "tag": "chargeTurn",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 10,
+      "moves": 10,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 23657,
+      "example_carriers": [
+        "bounce",
+        "dig",
+        "dive",
+        "electroshot"
+      ]
+    },
+    {
+      "tag": "inflictsPoison",
+      "archetype": "chance",
+      "why": "fires with probability below 1, so a single staged turn cannot distinguish \"broken\" from \"did not roll\". Needs N seeded trials and an interval — the rate arm, not a board read.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 11,
+      "moves": 11,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 23612,
+      "example_carriers": [
+        "banefulbunker",
+        "toxicthread",
+        "barbbarrage",
+        "crosspoison"
+      ]
+    },
+    {
+      "tag": "failsIfTargetNotAttacking",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 23359,
+      "example_carriers": [
+        "suckerpunch",
+        "upperhand"
+      ]
+    },
+    {
+      "tag": "neverMissesAttack",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 8,
+      "moves": 8,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 22128,
+      "example_carriers": [
+        "aerialace",
+        "aurasphere",
+        "clearsmog",
+        "flowertrick"
+      ]
+    },
+    {
+      "tag": "sealsMoves",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 7,
+      "moves": 7,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 21516,
+      "example_carriers": [
+        "encore",
+        "disable",
+        "gravity",
+        "imprison"
+      ]
+    },
+    {
+      "tag": "chargeSkippedByWeather",
+      "archetype": "field",
+      "why": "sets or reads field state. Read the field, and for anything PRIVATE add a leak control — the foe must not see it.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 3,
+      "moves": 3,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 21440,
+      "example_carriers": [
+        "electroshot",
+        "solarbeam",
+        "solarblade"
+      ]
+    },
+    {
+      "tag": "conditionalPower",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 11,
+      "moves": 11,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 20854,
+      "example_carriers": [
+        "gravapple",
+        "barbbarrage",
+        "expandingforce",
+        "facade"
+      ]
+    },
+    {
+      "tag": "inflictsFreeze",
+      "archetype": "chance",
+      "why": "fires with probability below 1, so a single staged turn cannot distinguish \"broken\" from \"did not roll\". Needs N seeded trials and an interval — the rate arm, not a board read.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 4,
+      "moves": 4,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 20461,
+      "example_carriers": [
+        "blizzard",
+        "icebeam",
+        "icefang",
+        "icepunch"
+      ]
+    },
+    {
+      "tag": "lowersTarget",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 22,
+      "moves": 22,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 20278,
+      "example_carriers": [
+        "toxicthread",
+        "babydolleyes",
+        "charm",
+        "cottonspore"
+      ]
+    },
+    {
+      "tag": "needsUntrackedState",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 4,
+      "moves": 4,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 18569,
+      "example_carriers": [
+        "ragefist",
+        "electroball",
+        "gyroball",
+        "lastrespects"
+      ]
+    },
+    {
+      "tag": "powder",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 7,
+      "moves": 7,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 18536,
+      "example_carriers": [
+        "cottonspore",
+        "magicpowder",
+        "poisonpowder",
+        "ragepowder"
+      ]
+    },
+    {
+      "tag": "redirects",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": "a SINGLE-TARGET move aimed at the ALLY, from a body that is not powder-immune",
+      "faces_why": "nothing to redirect otherwise, and a spread move is not redirected at all",
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 17845,
+      "example_carriers": [
+        "followme",
+        "ragepowder"
+      ]
+    },
+    {
+      "tag": "multiHit",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 14,
+      "moves": 14,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 17677,
+      "example_carriers": [
+        "bonerush",
+        "bulletseed",
+        "doublehit",
+        "dragondarts"
+      ]
+    },
+    {
+      "tag": "powerFromFallen",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 16612,
+      "example_carriers": [
+        "lastrespects"
+      ]
+    },
+    {
+      "tag": "reversesSpeed",
+      "archetype": "timing",
+      "why": "changes WHEN something resolves. Compare the resolution ORDER, not the board. A genuine speed tie must be REFUSED rather than scored — matching a coin is not evidence.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 16576,
+      "example_carriers": [
+        "trickroom"
+      ]
+    },
+    {
+      "tag": "statChangeInCode",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 12,
+      "moves": 12,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 15919,
+      "example_carriers": [
+        "stuffcheeks",
+        "acupressure",
+        "bellydrum",
+        "clearsmog"
+      ]
+    },
+    {
+      "tag": "inflictsConfusion",
+      "archetype": "chance",
+      "why": "fires with probability below 1, so a single staged turn cannot distinguish \"broken\" from \"did not roll\". Needs N seeded trials and an interval — the rate arm, not a board read.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 9,
+      "moves": 9,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 15245,
+      "example_carriers": [
+        "axekick",
+        "confuseray",
+        "dynamicpunch",
+        "flatter"
+      ]
+    },
+    {
+      "tag": "halvesDamage",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 3,
+      "moves": 3,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 14966,
+      "example_carriers": [
+        "auroraveil",
+        "lightscreen",
+        "reflect"
+      ]
+    },
+    {
+      "tag": "pivotStatus",
+      "archetype": "status",
+      "why": "applies or refuses a major status. Board read. The control is a body IMMUNE to it, so \"nothing happened\" cannot pass for \"correctly refused\".",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 14175,
+      "example_carriers": [
+        "chillyreception",
+        "partingshot"
+      ]
+    },
+    {
+      "tag": "readsTargetItem",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 13020,
+      "example_carriers": [
+        "knockoff",
+        "poltergeist"
+      ]
+    },
+    {
+      "tag": "takesTargetItem",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 9,
+      "moves": 9,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 12899,
+      "example_carriers": [
+        "corrosivegas",
+        "stuffcheeks",
+        "bugbite",
+        "covet"
+      ]
+    },
+    {
+      "tag": "removesItem",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 8,
+      "moves": 8,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 12899,
+      "example_carriers": [
+        "corrosivegas",
+        "bugbite",
+        "covet",
+        "knockoff"
+      ]
+    },
+    {
+      "tag": "swapsStat",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 3,
+      "moves": 3,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 11364,
+      "example_carriers": [
+        "bodypress",
+        "foulplay",
+        "psyshock"
+      ]
+    },
+    {
+      "tag": "healsSelf",
+      "archetype": "residual",
+      "why": "fires at end of turn. Multi-turn scenario, with a turn where the trigger is absent as the negative.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 13,
+      "moves": 13,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 11071,
+      "example_carriers": [
+        "healingwish",
+        "lifedew",
+        "moonlight",
+        "morningsun"
+      ]
+    },
+    {
+      "tag": "locksTarget",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 3,
+      "moves": 3,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 11064,
+      "example_carriers": [
+        "encore",
+        "disable",
+        "torment"
+      ]
+    },
+    {
+      "tag": "punishesContact",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 3,
+      "moves": 3,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 8999,
+      "example_carriers": [
+        "banefulbunker",
+        "kingsshield",
+        "spikyshield"
+      ]
+    },
+    {
+      "tag": "pivotDamaging",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 3,
+      "moves": 3,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 8817,
+      "example_carriers": [
+        "flipturn",
+        "uturn",
+        "voltswitch"
+      ]
+    },
+    {
+      "tag": "ignoresBoosts",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 8600,
+      "example_carriers": [
+        "darkestlariat",
+        "sacredsword"
+      ]
+    },
+    {
+      "tag": "oneTurnGuard",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": "a SPREAD move aimed at the protected side",
+      "faces_why": "a single-target attack is refused by nothing here, so the arm would be vacuous",
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 8545,
+      "example_carriers": [
+        "quickguard",
+        "wideguard"
+      ]
+    },
+    {
+      "tag": "inflictsSleep",
+      "archetype": "chance",
+      "why": "fires with probability below 1, so a single staged turn cannot distinguish \"broken\" from \"did not roll\". Needs N seeded trials and an interval — the rate arm, not a board read.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 4,
+      "moves": 4,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 8235,
+      "example_carriers": [
+        "hypnosis",
+        "sing",
+        "sleeppowder",
+        "spore"
+      ]
+    },
+    {
+      "tag": "partialTrap",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 7,
+      "moves": 7,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 7749,
+      "example_carriers": [
+        "snaptrap",
+        "bind",
+        "firespin",
+        "infestation"
+      ]
+    },
+    {
+      "tag": "statSwap",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 6834,
+      "example_carriers": [
+        "bodypress",
+        "psyshock"
+      ]
+    },
+    {
+      "tag": "proceduralStatus",
+      "archetype": "chance",
+      "why": "fires with probability below 1, so a single staged turn cannot distinguish \"broken\" from \"did not roll\". Needs N seeded trials and an interval — the rate arm, not a board read.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 6512,
+      "example_carriers": [
+        "direclaw",
+        "triattack"
+      ]
+    },
+    {
+      "tag": "blocksSoundMoves",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 6406,
+      "example_carriers": [
+        "throatchop"
+      ]
+    },
+    {
+      "tag": "weightBased",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 4,
+      "moves": 4,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 5808,
+      "example_carriers": [
+        "grassknot",
+        "heatcrash",
+        "heavyslam",
+        "lowkick"
+      ]
+    },
+    {
+      "tag": "ignoresProtect",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": "a target that IS protecting",
+      "faces_why": "bypassing a guard nobody raised is not a bypass",
+      "entities": 14,
+      "moves": 14,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 5694,
+      "example_carriers": [
+        "afteryou",
+        "block",
+        "curse",
+        "decorate"
+      ]
+    },
+    {
+      "tag": "fixedDamage",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": "a DAMAGING hit of the category it reflects, taken before it moves",
+      "faces_why": "it returns nothing when it has not been hit, which reads as a working zero",
+      "entities": 15,
+      "moves": 15,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 5351,
+      "example_carriers": [
+        "comeuppance",
+        "counter",
+        "endeavor",
+        "finalgambit"
+      ]
+    },
+    {
+      "tag": "healsAlly",
+      "archetype": "residual",
+      "why": "fires at end of turn. Multi-turn scenario, with a turn where the trigger is absent as the negative.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 5328,
+      "example_carriers": [
+        "healpulse",
+        "lifedew"
+      ]
+    },
+    {
+      "tag": "recharge",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 6,
+      "moves": 6,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 5208,
+      "example_carriers": [
+        "blastburn",
+        "frenzyplant",
+        "gigaimpact",
+        "hydrocannon"
+      ]
+    },
+    {
+      "tag": "critRatioUp",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 17,
+      "moves": 14,
+      "abilities": 2,
+      "items": 1,
+      "clicks": 4996,
+      "example_carriers": [
+        "crabhammer",
+        "nightslash",
+        "shadowclaw",
+        "aircutter"
+      ]
+    },
+    {
+      "tag": "inflictsToxic",
+      "archetype": "chance",
+      "why": "fires with probability below 1, so a single staged turn cannot distinguish \"broken\" from \"did not roll\". Needs N seeded trials and an interval — the rate arm, not a board read.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 4715,
+      "example_carriers": [
+        "poisonfang",
+        "toxic"
+      ]
+    },
+    {
+      "tag": "clearsScreens",
+      "archetype": "field",
+      "why": "sets or reads field state. Read the field, and for anything PRIVATE add a leak control — the foe must not see it.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 3,
+      "moves": 3,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 4265,
+      "example_carriers": [
+        "brickbreak",
+        "psychicfangs",
+        "ragingbull"
+      ]
+    },
+    {
+      "tag": "accuracyMod",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 14,
+      "moves": 5,
+      "abilities": 6,
+      "items": 3,
+      "clicks": 3929,
+      "example_carriers": [
+        "coil",
+        "doubleteam",
+        "gravity",
+        "minimize"
+      ]
+    },
+    {
+      "tag": "multiAccuracy",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 3887,
+      "example_carriers": [
+        "populationbomb",
+        "tripleaxel"
+      ]
+    },
+    {
+      "tag": "setsWeather",
+      "archetype": "field",
+      "why": "sets or reads field state. Read the field, and for anything PRIVATE add a leak control — the foe must not see it.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 5,
+      "moves": 5,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 3806,
+      "example_carriers": [
+        "sandstorm",
+        "snowscape",
+        "chillyreception",
+        "raindance"
+      ]
+    },
+    {
+      "tag": "forbidsStatusMoves",
+      "archetype": "status",
+      "why": "applies or refuses a major status. Board read. The control is a body IMMUNE to it, so \"nothing happened\" cannot pass for \"correctly refused\".",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 2943,
+      "example_carriers": [
+        "taunt"
+      ]
+    },
+    {
+      "tag": "reordersTurn",
+      "archetype": "timing",
+      "why": "changes WHEN something resolves. Compare the resolution ORDER, not the board. A genuine speed tie must be REFUSED rather than scored — matching a coin is not evidence.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 3,
+      "moves": 3,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 2781,
+      "example_carriers": [
+        "afteryou",
+        "instruct",
+        "quash"
+      ]
+    },
+    {
+      "tag": "terrainScaled",
+      "archetype": "field",
+      "why": "sets or reads field state. Read the field, and for anything PRIVATE add a leak control — the foe must not see it.",
+      "faces": "the SKY or TERRAIN the tag names, set by something else first",
+      "faces_why": "the scaling branch is dead without it, and the control is the same click with it absent",
+      "entities": 4,
+      "moves": 4,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 2646,
+      "example_carriers": [
+        "expandingforce",
+        "mistyexplosion",
+        "risingvoltage",
+        "terrainpulse"
+      ]
+    },
+    {
+      "tag": "overridesEffectiveness",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 2631,
+      "example_carriers": [
+        "freezedry",
+        "flyingpress"
+      ]
+    },
+    {
+      "tag": "perTurnHP",
+      "archetype": "residual",
+      "why": "fires at end of turn. Multi-turn scenario, with a turn where the trigger is absent as the negative.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 6,
+      "moves": 6,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 2582,
+      "example_carriers": [
+        "saltcure",
+        "aquaring",
+        "curse",
+        "grassyterrain"
+      ]
+    },
+    {
+      "tag": "boostsTarget",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 6,
+      "moves": 6,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 2451,
+      "example_carriers": [
+        "howl",
+        "aromaticmist",
+        "coaching",
+        "decorate"
+      ]
+    },
+    {
+      "tag": "failsWithoutWeather",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 2339,
+      "example_carriers": [
+        "auroraveil",
+        "magnetrise"
+      ]
+    },
+    {
+      "tag": "perishClock",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 2315,
+      "example_carriers": [
+        "perishsong"
+      ]
+    },
+    {
+      "tag": "semiInvulnerable",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 5,
+      "moves": 5,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 2182,
+      "example_carriers": [
+        "bounce",
+        "dig",
+        "dive",
+        "fly"
+      ]
+    },
+    {
+      "tag": "costsUserHP",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 3,
+      "moves": 3,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 2097,
+      "example_carriers": [
+        "clangoroussoul",
+        "shedtail",
+        "substitute"
+      ]
+    },
+    {
+      "tag": "delayedSleep",
+      "archetype": "status",
+      "why": "applies or refuses a major status. Board read. The control is a body IMMUNE to it, so \"nothing happened\" cannot pass for \"correctly refused\".",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 1988,
+      "example_carriers": [
+        "yawn"
+      ]
+    },
+    {
+      "tag": "instructsTarget",
+      "archetype": "timing",
+      "why": "changes WHEN something resolves. Compare the resolution ORDER, not the board. A genuine speed tie must be REFUSED rather than scored — matching a coin is not evidence.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 1505,
+      "example_carriers": [
+        "instruct"
+      ]
+    },
+    {
+      "tag": "substitute",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 1442,
+      "example_carriers": [
+        "shedtail",
+        "substitute"
+      ]
+    },
+    {
+      "tag": "alwaysCrit",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 3,
+      "moves": 3,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 1274,
+      "example_carriers": [
+        "stormthrow",
+        "flowertrick",
+        "frostbreath"
+      ]
+    },
+    {
+      "tag": "layeredVolatile",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 1176,
+      "example_carriers": [
+        "stockpile"
+      ]
+    },
+    {
+      "tag": "userFaints",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 6,
+      "moves": 6,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 1171,
+      "example_carriers": [
+        "explosion",
+        "finalgambit",
+        "healingwish",
+        "memento"
+      ]
+    },
+    {
+      "tag": "swapsAbilities",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 1123,
+      "example_carriers": [
+        "skillswap"
+      ]
+    },
+    {
+      "tag": "setsTerrain",
+      "archetype": "field",
+      "why": "sets or reads field state. Read the field, and for anything PRIVATE add a leak control — the foe must not see it.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 4,
+      "moves": 4,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 1112,
+      "example_carriers": [
+        "electricterrain",
+        "grassyterrain",
+        "mistyterrain",
+        "psychicterrain"
+      ]
+    },
+    {
+      "tag": "ohko",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 4,
+      "moves": 4,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 990,
+      "example_carriers": [
+        "fissure",
+        "guillotine",
+        "horndrill",
+        "sheercold"
+      ]
+    },
+    {
+      "tag": "passesState",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 949,
+      "example_carriers": [
+        "batonpass",
+        "shedtail"
+      ]
+    },
+    {
+      "tag": "swapsSlots",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 940,
+      "example_carriers": [
+        "allyswitch"
+      ]
+    },
+    {
+      "tag": "hazardOnHit",
+      "archetype": "field",
+      "why": "sets or reads field state. Read the field, and for anything PRIVATE add a leak control — the foe must not see it.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 881,
+      "example_carriers": [
+        "ceaselessedge",
+        "stoneaxe"
+      ]
+    },
+    {
+      "tag": "randomTarget",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 6,
+      "moves": 6,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 872,
+      "example_carriers": [
+        "outrage",
+        "petaldance",
+        "ragingfury",
+        "struggle"
+      ]
+    },
+    {
+      "tag": "forcesSwitch",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 4,
+      "moves": 4,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 844,
+      "example_carriers": [
+        "circlethrow",
+        "dragontail",
+        "roar",
+        "whirlwind"
+      ]
+    },
+    {
+      "tag": "blocksHealing",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 840,
+      "example_carriers": [
+        "psychicnoise"
+      ]
+    },
+    {
+      "tag": "cantUseTwice",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 765,
+      "example_carriers": [
+        "gigatonhammer"
+      ]
+    },
+    {
+      "tag": "healDescriptor",
+      "archetype": "residual",
+      "why": "fires at end of turn. Multi-turn scenario, with a turn where the trigger is absent as the negative.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 4,
+      "moves": 4,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 737,
+      "example_carriers": [
+        "healingwish",
+        "healpulse",
+        "rest",
+        "wish"
+      ]
+    },
+    {
+      "tag": "changesTargetType",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 5,
+      "moves": 5,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 720,
+      "example_carriers": [
+        "trickortreat",
+        "forestscurse",
+        "magicpowder",
+        "reflecttype"
+      ]
+    },
+    {
+      "tag": "crashOnMiss",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 3,
+      "moves": 3,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 715,
+      "example_carriers": [
+        "axekick",
+        "highjumpkick",
+        "supercellslam"
+      ]
+    },
+    {
+      "tag": "readsOwnItem",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 707,
+      "example_carriers": [
+        "acrobatics"
+      ]
+    },
+    {
+      "tag": "setsOwnTypeAlways",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 639,
+      "example_carriers": [
+        "struggle"
+      ]
+    },
+    {
+      "tag": "typeSplitMove",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 622,
+      "example_carriers": [
+        "curse"
+      ]
+    },
+    {
+      "tag": "punishesBoostedTarget",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 514,
+      "example_carriers": [
+        "alluringvoice",
+        "burningjealousy"
+      ]
+    },
+    {
+      "tag": "hazard",
+      "archetype": "field",
+      "why": "sets or reads field state. Read the field, and for anything PRIVATE add a leak control — the foe must not see it.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 4,
+      "moves": 4,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 466,
+      "example_carriers": [
+        "spikes",
+        "stealthrock",
+        "stickyweb",
+        "toxicspikes"
+      ]
+    },
+    {
+      "tag": "smartTarget",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 452,
+      "example_carriers": [
+        "dragondarts"
+      ]
+    },
+    {
+      "tag": "clearsBoosts",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 394,
+      "example_carriers": [
+        "clearsmog",
+        "haze"
+      ]
+    },
+    {
+      "tag": "dualPurpose",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 311,
+      "example_carriers": [
+        "pollenpuff",
+        "shellsidearm"
+      ]
+    },
+    {
+      "tag": "failsIfVolatile",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 305,
+      "example_carriers": [
+        "magnetrise",
+        "noretreat"
+      ]
+    },
+    {
+      "tag": "locksIntoMove",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 5,
+      "moves": 5,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 233,
+      "example_carriers": [
+        "outrage",
+        "petaldance",
+        "ragingfury",
+        "thrash"
+      ]
+    },
+    {
+      "tag": "sharesHP",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 188,
+      "example_carriers": [
+        "painsplit"
+      ]
+    },
+    {
+      "tag": "callsAnotherMove",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 123,
+      "example_carriers": [
+        "copycat",
+        "sleeptalk"
+      ]
+    },
+    {
+      "tag": "flingsOwnItem",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 103,
+      "example_carriers": [
+        "fling"
+      ]
+    },
+    {
+      "tag": "preTurnShield",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 95,
+      "example_carriers": [
+        "beakblast",
+        "focuspunch"
+      ]
+    },
+    {
+      "tag": "removesPP",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 83,
+      "example_carriers": [
+        "eeriespell",
+        "spite"
+      ]
+    },
+    {
+      "tag": "sideBuff",
+      "archetype": "field",
+      "why": "sets or reads field state. Read the field, and for anything PRIVATE add a leak control — the foe must not see it.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 65,
+      "example_carriers": [
+        "safeguard"
+      ]
+    },
+    {
+      "tag": "survivesAnyHit",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 33,
+      "example_carriers": [
+        "endure"
+      ]
+    },
+    {
+      "tag": "trapsTarget",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": "an attempted voluntary SWITCH by the trapped body",
+      "faces_why": "the refusal cannot fire if nobody tries to leave",
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 28,
+      "example_carriers": [
+        "block",
+        "meanlook"
+      ]
+    },
+    {
+      "tag": "failsWithoutTerrain",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 23,
+      "example_carriers": [
+        "steelroller"
+      ]
+    },
+    {
+      "tag": "swapsDefences",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 12,
+      "example_carriers": [
+        "wonderroom"
+      ]
+    },
+    {
+      "tag": "setsRoom",
+      "archetype": "field",
+      "why": "sets or reads field state. Read the field, and for anything PRIVATE add a leak control — the foe must not see it.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 11,
+      "example_carriers": [
+        "fairylock"
+      ]
+    },
+    {
+      "tag": "suppressesItems",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 1,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 10,
+      "example_carriers": [
+        "magicroom"
+      ]
+    },
+    {
+      "tag": "spendsVolatile",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 2,
+      "abilities": 0,
+      "items": 0,
+      "clicks": 4,
+      "example_carriers": [
+        "spitup",
+        "swallow"
+      ]
+    },
+    {
+      "tag": "flingable",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 148,
+      "moves": 0,
+      "abilities": 0,
+      "items": 148,
+      "clicks": 0,
+      "example_carriers": [
+        "abomasite",
+        "absolite",
+        "aerodactylite",
+        "aggronite"
+      ]
+    },
+    {
+      "tag": "breakable",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 82,
+      "moves": 0,
+      "abilities": 82,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "disguise",
+        "eelevate",
+        "armortail",
+        "aromaveil"
+      ]
+    },
+    {
+      "tag": "megaStone",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 75,
+      "moves": 0,
+      "abilities": 0,
+      "items": 75,
+      "clicks": 0,
+      "example_carriers": [
+        "abomasite",
+        "absolite",
+        "aerodactylite",
+        "aggronite"
+      ]
+    },
+    {
+      "tag": "damageBoost",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 44,
+      "moves": 0,
+      "abilities": 44,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "dragonize",
+        "firemane",
+        "aerilate",
+        "analytic"
+      ]
+    },
+    {
+      "tag": "untagged",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 36,
+      "moves": 0,
+      "abilities": 36,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "berserk",
+        "healer",
+        "anticipation",
+        "cheekpouch"
+      ]
+    },
+    {
+      "tag": "damageMultType",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 18,
+      "moves": 0,
+      "abilities": 0,
+      "items": 18,
+      "clicks": 0,
+      "example_carriers": [
+        "spelltag",
+        "blackbelt",
+        "blackglasses",
+        "charcoal"
+      ]
+    },
+    {
+      "tag": "resistBerry",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 18,
+      "moves": 0,
+      "abilities": 0,
+      "items": 18,
+      "clicks": 0,
+      "example_carriers": [
+        "babiriberry",
+        "chartiberry",
+        "chilanberry",
+        "chopleberry"
+      ]
+    },
+    {
+      "tag": "punishesAttacker",
+      "archetype": "chance",
+      "why": "fires with probability below 1, so a single staged turn cannot distinguish \"broken\" from \"did not roll\". Needs N seeded trials and an interval — the rate arm, not a board read.",
+      "faces": "a HIT that satisfies the trigger (contact where the tag says contact)",
+      "faces_why": "the reaction has nothing to react to",
+      "entities": 16,
+      "moves": 0,
+      "abilities": 16,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "spicyspray",
+        "aftermath",
+        "cursedbody",
+        "cutecharm"
+      ]
+    },
+    {
+      "tag": "preventsStatDrop",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 15,
+      "moves": 0,
+      "abilities": 15,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "bigpecks",
+        "clearbody",
+        "flowerveil",
+        "fullmetalbody"
+      ]
+    },
+    {
+      "tag": "convertsMoveType",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 14,
+      "moves": 0,
+      "abilities": 14,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "dragonize",
+        "dragonize",
+        "aerilate",
+        "aerilate"
+      ]
+    },
+    {
+      "tag": "typeImmunity",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": "a move of the ABSORBED type",
+      "faces_why": "any other type tests nothing",
+      "entities": 12,
+      "moves": 0,
+      "abilities": 12,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "eelevate",
+        "dryskin",
+        "eartheater",
+        "flashfire"
+      ]
+    },
+    {
+      "tag": "buffsHolderOnHit",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": "a HIT that satisfies the trigger (contact where the tag says contact)",
+      "faces_why": "the reaction has nothing to react to",
+      "entities": 12,
+      "moves": 0,
+      "abilities": 12,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "angerpoint",
+        "electromorphosis",
+        "innardsout",
+        "justified"
+      ]
+    },
+    {
+      "tag": "statusImmune",
+      "archetype": "status",
+      "why": "applies or refuses a major status. Board read. The control is a body IMMUNE to it, so \"nothing happened\" cannot pass for \"correctly refused\".",
+      "faces": null,
+      "faces_why": null,
+      "entities": 12,
+      "moves": 0,
+      "abilities": 12,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "comatose",
+        "immunity",
+        "insomnia",
+        "leafguard"
+      ]
+    },
+    {
+      "tag": "writesAccuracy",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 8,
+      "moves": 0,
+      "abilities": 8,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "compoundeyes",
+        "hustle",
+        "noguard",
+        "sandveil"
+      ]
+    },
+    {
+      "tag": "weatherSetter",
+      "archetype": "field",
+      "why": "sets or reads field state. Read the field, and for anything PRIVATE add a leak control — the foe must not see it.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 8,
+      "moves": 0,
+      "abilities": 8,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "deltastream",
+        "desolateland",
+        "drizzle",
+        "drought"
+      ]
+    },
+    {
+      "tag": "damageReduce",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": "a move that is superEffective",
+      "faces_why": "the reduction is conditional and does not apply otherwise",
+      "entities": 8,
+      "moves": 0,
+      "abilities": 8,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "filter",
+        "icescales",
+        "multiscale",
+        "prismarmor"
+      ]
+    },
+    {
+      "tag": "formeChange",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 7,
+      "moves": 0,
+      "abilities": 7,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "disguise",
+        "illusion",
+        "imposter",
+        "powerconstruct"
+      ]
+    },
+    {
+      "tag": "speedCond",
+      "archetype": "timing",
+      "why": "changes WHEN something resolves. Compare the resolution ORDER, not the board. A genuine speed tie must be REFUSED rather than scored — matching a coin is not evidence.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 7,
+      "moves": 0,
+      "abilities": 7,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "chlorophyll",
+        "quickfeet",
+        "sandrush",
+        "slowstart"
+      ]
+    },
+    {
+      "tag": "weatherChipImmune",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 6,
+      "moves": 0,
+      "abilities": 6,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "icebody",
+        "overcoat",
+        "sandforce",
+        "sandrush"
+      ]
+    },
+    {
+      "tag": "refusesVolatile",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 6,
+      "moves": 0,
+      "abilities": 6,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "innerfocus",
+        "insomnia",
+        "leafguard",
+        "owntempo"
+      ]
+    },
+    {
+      "tag": "boostsMoveClass",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 6,
+      "moves": 0,
+      "abilities": 6,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "ironfist",
+        "megalauncher",
+        "punkrock",
+        "sharpness"
+      ]
+    },
+    {
+      "tag": "curesStatus",
+      "archetype": "status",
+      "why": "applies or refuses a major status. Board read. The control is a body IMMUNE to it, so \"nothing happened\" cannot pass for \"correctly refused\".",
+      "faces": "a target already carrying the status it removes",
+      "faces_why": "nothing to cure otherwise",
+      "entities": 6,
+      "moves": 0,
+      "abilities": 0,
+      "items": 6,
+      "clicks": 0,
+      "example_carriers": [
+        "aspearberry",
+        "cheriberry",
+        "chestoberry",
+        "lumberry"
+      ]
+    },
+    {
+      "tag": "blocksMove",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 5,
+      "moves": 0,
+      "abilities": 5,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "armortail",
+        "dazzling",
+        "goodasgold",
+        "queenlymajesty"
+      ]
+    },
+    {
+      "tag": "immuneToMoveClass",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 5,
+      "moves": 0,
+      "abilities": 5,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "bulletproof",
+        "magicbounce",
+        "overcoat",
+        "soundproof"
+      ]
+    },
+    {
+      "tag": "halvesTypeDamage",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 5,
+      "moves": 0,
+      "abilities": 5,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "dryskin",
+        "heatproof",
+        "purifyingsalt",
+        "thickfat"
+      ]
+    },
+    {
+      "tag": "terrainSetter",
+      "archetype": "field",
+      "why": "sets or reads field state. Read the field, and for anything PRIVATE add a leak control — the foe must not see it.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 5,
+      "moves": 0,
+      "abilities": 5,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "electricsurge",
+        "grassysurge",
+        "hadronengine",
+        "mistysurge"
+      ]
+    },
+    {
+      "tag": "extendsDuration",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 5,
+      "moves": 0,
+      "abilities": 0,
+      "items": 5,
+      "clicks": 0,
+      "example_carriers": [
+        "damprock",
+        "heatrock",
+        "icyrock",
+        "lightclay"
+      ]
+    },
+    {
+      "tag": "preventsCrit",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 4,
+      "moves": 0,
+      "abilities": 4,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "disguise",
+        "battlearmor",
+        "iceface",
+        "shellarmor"
+      ]
+    },
+    {
+      "tag": "weatherResidualHP",
+      "archetype": "field",
+      "why": "sets or reads field state. Read the field, and for anything PRIVATE add a leak control — the foe must not see it.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 4,
+      "moves": 0,
+      "abilities": 4,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "dryskin",
+        "icebody",
+        "raindish",
+        "solarpower"
+      ]
+    },
+    {
+      "tag": "ignoresDefenderAbility",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 4,
+      "moves": 0,
+      "abilities": 4,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "moldbreaker",
+        "myceliummight",
+        "teravolt",
+        "turboblaze"
+      ]
+    },
+    {
+      "tag": "switchOutTrigger",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 3,
+      "moves": 0,
+      "abilities": 3,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "naturalcure",
+        "regenerator",
+        "zerotohero"
+      ]
+    },
+    {
+      "tag": "preventsSwitch",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": "an attempted voluntary SWITCH by the trapped body",
+      "faces_why": "the refusal cannot fire if nobody tries to leave",
+      "entities": 3,
+      "moves": 0,
+      "abilities": 3,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "arenatrap",
+        "magnetpull",
+        "shadowtag"
+      ]
+    },
+    {
+      "tag": "blocksBerries",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 3,
+      "moves": 0,
+      "abilities": 3,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "asoneglastrier",
+        "asonespectrier",
+        "unnerve"
+      ]
+    },
+    {
+      "tag": "protectsAllyFromStatus",
+      "archetype": "status",
+      "why": "applies or refuses a major status. Board read. The control is a body IMMUNE to it, so \"nothing happened\" cannot pass for \"correctly refused\".",
+      "faces": "a damaging move it can actually block",
+      "faces_why": "a Protect nobody attacks into is a spent turn, not a test",
+      "entities": 3,
+      "moves": 0,
+      "abilities": 3,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "flowerveil",
+        "pastelveil",
+        "sweetveil"
+      ]
+    },
+    {
+      "tag": "priorityMod",
+      "archetype": "timing",
+      "why": "changes WHEN something resolves. Compare the resolution ORDER, not the board. A genuine speed tie must be REFUSED rather than scored — matching a coin is not evidence.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 3,
+      "moves": 0,
+      "abilities": 3,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "galewings",
+        "prankster",
+        "triage"
+      ]
+    },
+    {
+      "tag": "rewritesAbilityOnContact",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 3,
+      "moves": 0,
+      "abilities": 3,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "lingeringaroma",
+        "mummy",
+        "wanderingspirit"
+      ]
+    },
+    {
+      "tag": "boostsEachTurn",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 3,
+      "moves": 0,
+      "abilities": 3,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "moody",
+        "opportunist",
+        "speedboost"
+      ]
+    },
+    {
+      "tag": "curesVolatile",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": "a target already carrying the status it removes",
+      "faces_why": "nothing to cure otherwise",
+      "entities": 3,
+      "moves": 0,
+      "abilities": 0,
+      "items": 3,
+      "clicks": 0,
+      "example_carriers": [
+        "lumberry",
+        "mentalherb",
+        "persimberry"
+      ]
+    },
+    {
+      "tag": "formeOnHit",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 0,
+      "abilities": 2,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "disguise",
+        "iceface"
+      ]
+    },
+    {
+      "tag": "boostsOnKO",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 0,
+      "abilities": 2,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "eelevate",
+        "beastboost"
+      ]
+    },
+    {
+      "tag": "piercesProtect",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": "a target that IS protecting",
+      "faces_why": "bypassing a guard nobody raised is not a bypass",
+      "entities": 2,
+      "moves": 0,
+      "abilities": 2,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "piercingdrill",
+        "unseenfist"
+      ]
+    },
+    {
+      "tag": "weatherSuppression",
+      "archetype": "field",
+      "why": "sets or reads field state. Read the field, and for anything PRIVATE add a leak control — the foe must not see it.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 0,
+      "abilities": 2,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "airlock",
+        "cloudnine"
+      ]
+    },
+    {
+      "tag": "boostsWhenLowered",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 0,
+      "abilities": 2,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "competitive",
+        "defiant"
+      ]
+    },
+    {
+      "tag": "auraBoost",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 0,
+      "abilities": 2,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "darkaura",
+        "fairyaura"
+      ]
+    },
+    {
+      "tag": "refusesForcedSwitch",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 0,
+      "abilities": 2,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "guarddog",
+        "suctioncups"
+      ]
+    },
+    {
+      "tag": "onSwitchInDrop",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 0,
+      "abilities": 2,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "intimidate",
+        "supersweetsyrup"
+      ]
+    },
+    {
+      "tag": "typeBecomesMoveType",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 0,
+      "abilities": 2,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "libero",
+        "protean"
+      ]
+    },
+    {
+      "tag": "redirectsType",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": "a SINGLE-TARGET move aimed at the ALLY, from a body that is not powder-immune",
+      "faces_why": "nothing to redirect otherwise, and a spread move is not redirected at all",
+      "entities": 2,
+      "moves": 0,
+      "abilities": 2,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "lightningrod",
+        "stormdrain"
+      ]
+    },
+    {
+      "tag": "ignoresTypeImmunity",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": "a move of the ABSORBED type",
+      "faces_why": "any other type tests nothing",
+      "entities": 2,
+      "moves": 0,
+      "abilities": 2,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "mindseye",
+        "scrappy"
+      ]
+    },
+    {
+      "tag": "poisonsOnMyContact",
+      "archetype": "chance",
+      "why": "fires with probability below 1, so a single staged turn cannot distinguish \"broken\" from \"did not roll\". Needs N seeded trials and an interval — the rate arm, not a board read.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 0,
+      "abilities": 2,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "poisontouch",
+        "toxicchain"
+      ]
+    },
+    {
+      "tag": "survivesFromFull",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 0,
+      "abilities": 1,
+      "items": 1,
+      "clicks": 0,
+      "example_carriers": [
+        "sturdy",
+        "focussash"
+      ]
+    },
+    {
+      "tag": "switchInForme",
+      "archetype": "entry",
+      "why": "fires on switch-in. Needs the switch-in path, and ORDER matters when both sides arrive at once — a copy taken before or after an opposing Intimidate is a different copy.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 0,
+      "abilities": 2,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "terashift",
+        "zerotohero"
+      ]
+    },
+    {
+      "tag": "speedMult",
+      "archetype": "timing",
+      "why": "changes WHEN something resolves. Compare the resolution ORDER, not the board. A genuine speed tie must be REFUSED rather than scored — matching a coin is not evidence.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 0,
+      "abilities": 0,
+      "items": 2,
+      "clicks": 0,
+      "example_carriers": [
+        "choicescarf",
+        "ironball"
+      ]
+    },
+    {
+      "tag": "healsAtThreshold",
+      "archetype": "residual",
+      "why": "fires at end of turn. Multi-turn scenario, with a turn where the trigger is absent as the negative.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 2,
+      "moves": 0,
+      "abilities": 0,
+      "items": 2,
+      "clicks": 0,
+      "example_carriers": [
+        "oranberry",
+        "sitrusberry"
+      ]
+    },
+    {
+      "tag": "privateWeather",
+      "archetype": "field",
+      "why": "sets or reads field state. Read the field, and for anything PRIVATE add a leak control — the foe must not see it.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "megasol"
+      ]
+    },
+    {
+      "tag": "healsOnSwitchOut",
+      "archetype": "residual",
+      "why": "fires at end of turn. Multi-turn scenario, with a turn where the trigger is absent as the negative.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "regenerator"
+      ]
+    },
+    {
+      "tag": "stabBoost",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "adaptability"
+      ]
+    },
+    {
+      "tag": "auraBreak",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "aurabreak"
+      ]
+    },
+    {
+      "tag": "invertsBoosts",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "contrary"
+      ]
+    },
+    {
+      "tag": "clearsAllyBoostsOnEntry",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "curiousmedicine"
+      ]
+    },
+    {
+      "tag": "disablesAttacker",
+      "archetype": "chance",
+      "why": "fires with probability below 1, so a single staged turn cannot distinguish \"broken\" from \"did not roll\". Needs N seeded trials and an interval — the rate arm, not a board read.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "cursedbody"
+      ]
+    },
+    {
+      "tag": "blocksExplosion",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "damp"
+      ]
+    },
+    {
+      "tag": "reducesAllyDamage",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "friendguard"
+      ]
+    },
+    {
+      "tag": "refusesStatusMoves",
+      "archetype": "status",
+      "why": "applies or refuses a major status. Board read. The control is a body IMMUNE to it, so \"nothing happened\" cannot pass for \"correctly refused\".",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "goodasgold"
+      ]
+    },
+    {
+      "tag": "healsAllyOnSwitchIn",
+      "archetype": "residual",
+      "why": "fires at end of turn. Multi-turn scenario, with a turn where the trigger is absent as the negative.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "hospitality"
+      ]
+    },
+    {
+      "tag": "formeCycleResidual",
+      "archetype": "residual",
+      "why": "fires at end of turn. Multi-turn scenario, with a turn where the trigger is absent as the negative.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "hungerswitch"
+      ]
+    },
+    {
+      "tag": "transformsOnEntry",
+      "archetype": "entry",
+      "why": "fires on switch-in. Needs the switch-in path, and ORDER matters when both sides arrive at once — a copy taken before or after an opposing Intimidate is a different copy.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "imposter"
+      ]
+    },
+    {
+      "tag": "ignoresScreensAndSubs",
+      "archetype": "field",
+      "why": "sets or reads field state. Read the field, and for anything PRIVATE add a leak control — the foe must not see it.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "infiltrator"
+      ]
+    },
+    {
+      "tag": "reflectsStatusMoves",
+      "archetype": "status",
+      "why": "applies or refuses a major status. Board read. The control is a body IMMUNE to it, so \"nothing happened\" cannot pass for \"correctly refused\".",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "magicbounce"
+      ]
+    },
+    {
+      "tag": "condStatMult",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "marvelscale"
+      ]
+    },
+    {
+      "tag": "randomBoostEachTurn",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "moody"
+      ]
+    },
+    {
+      "tag": "hitsTwice",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "parentalbond"
+      ]
+    },
+    {
+      "tag": "deductsExtraPP",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "pressure"
+      ]
+    },
+    {
+      "tag": "noRecoil",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "rockhead"
+      ]
+    },
+    {
+      "tag": "removesOwnSecondaries",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "sheerforce"
+      ]
+    },
+    {
+      "tag": "amplifiesBoosts",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "simple"
+      ]
+    },
+    {
+      "tag": "critDamageUp",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "sniper"
+      ]
+    },
+    {
+      "tag": "boostsOnFlinch",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": "a HIT that satisfies the trigger (contact where the tag says contact)",
+      "faces_why": "the reaction has nothing to react to",
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "steadfast"
+      ]
+    },
+    {
+      "tag": "boostsFromFallen",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "supremeoverlord"
+      ]
+    },
+    {
+      "tag": "ignoresStatStages",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "unaware"
+      ]
+    },
+    {
+      "tag": "speedOnItemLoss",
+      "archetype": "timing",
+      "why": "changes WHEN something resolves. Compare the resolution ORDER, not the board. A genuine speed tie must be REFUSED rather than scored — matching a coin is not evidence.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 1,
+      "items": 0,
+      "clicks": 0,
+      "example_carriers": [
+        "unburden"
+      ]
+    },
+    {
+      "tag": "restoresStats",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 0,
+      "items": 1,
+      "clicks": 0,
+      "example_carriers": [
+        "whiteherb"
+      ]
+    },
+    {
+      "tag": "healMultBySource",
+      "archetype": "residual",
+      "why": "fires at end of turn. Multi-turn scenario, with a turn where the trigger is absent as the negative.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 0,
+      "items": 1,
+      "clicks": 0,
+      "example_carriers": [
+        "bigroot"
+      ]
+    },
+    {
+      "tag": "choiceLock",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 0,
+      "items": 1,
+      "clicks": 0,
+      "example_carriers": [
+        "choicescarf"
+      ]
+    },
+    {
+      "tag": "boostsSuperEffective",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 0,
+      "items": 1,
+      "clicks": 0,
+      "example_carriers": [
+        "expertbelt"
+      ]
+    },
+    {
+      "tag": "addsFlinch",
+      "archetype": "chance",
+      "why": "fires with probability below 1, so a single staged turn cannot distinguish \"broken\" from \"did not roll\". Needs N seeded trials and an interval — the rate arm, not a board read.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 0,
+      "items": 1,
+      "clicks": 0,
+      "example_carriers": [
+        "kingsrock"
+      ]
+    },
+    {
+      "tag": "passiveHeal",
+      "archetype": "residual",
+      "why": "fires at end of turn. Multi-turn scenario, with a turn where the trigger is absent as the negative.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 0,
+      "items": 1,
+      "clicks": 0,
+      "example_carriers": [
+        "leftovers"
+      ]
+    },
+    {
+      "tag": "restoresPP",
+      "archetype": "UNCLASSED",
+      "why": "NO ARCHETYPE MATCHED — this tag needs a scenario designed by hand. That is a request for design, not a defect.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 0,
+      "items": 1,
+      "clicks": 0,
+      "example_carriers": [
+        "leppaberry"
+      ]
+    },
+    {
+      "tag": "damageMultAll",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 0,
+      "items": 1,
+      "clicks": 0,
+      "example_carriers": [
+        "lifeorb"
+      ]
+    },
+    {
+      "tag": "statMult",
+      "archetype": "stat",
+      "why": "moves a stat stage. Board read on the stage itself, with a body that should NOT move as the negative arm.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 0,
+      "items": 1,
+      "clicks": 0,
+      "example_carriers": [
+        "lightball"
+      ]
+    },
+    {
+      "tag": "damageMultOnRepeat",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 0,
+      "items": 1,
+      "clicks": 0,
+      "example_carriers": [
+        "metronome"
+      ]
+    },
+    {
+      "tag": "fractionalPriority",
+      "archetype": "chance",
+      "why": "fires with probability below 1, so a single staged turn cannot distinguish \"broken\" from \"did not roll\". Needs N seeded trials and an interval — the rate arm, not a board read.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 0,
+      "items": 1,
+      "clicks": 0,
+      "example_carriers": [
+        "quickclaw"
+      ]
+    },
+    {
+      "tag": "escapesTrap",
+      "archetype": "refusal",
+      "why": "REFUSES something — a switch, a move, a status. Binary, and read from the authority's own refusal rather than from a board difference. An over-refusal is a defect too.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 0,
+      "items": 1,
+      "clicks": 0,
+      "example_carriers": [
+        "shedshell"
+      ]
+    },
+    {
+      "tag": "healFromDamageDealt",
+      "archetype": "damage",
+      "why": "changes a damage figure. Compare dmgRange element-wise across all 16 rolls against a control body; a played turn does not hold the roll constant and will lie.",
+      "faces": null,
+      "faces_why": null,
+      "entities": 1,
+      "moves": 0,
+      "abilities": 0,
+      "items": 1,
+      "clicks": 0,
+      "example_carriers": [
+        "shellbell"
+      ]
+    }
+  ]
+}
