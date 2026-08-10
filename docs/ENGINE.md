@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  346/346 probed mechanics live, 0 missing   (census 2026-08-10 03:12)
-  0/150 differential comparisons disagree with Showdown   (2026-08-10 03:02)
+  350/350 probed mechanics live, 0 missing   (census 2026-08-10 03:52)
+  0/150 differential comparisons disagree with Showdown   (2026-08-10 03:23)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
@@ -57,9 +57,69 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 185/196 probed, 11 unprobed
 ```
 
-_stamped 2026-08-10 03:19_
+_stamped 2026-08-10 03:52_
 
 <!-- /GENERATED -->
+
+## WIRE 146 — `playerAction` IS A FIRST-MATCH CASCADE, SO A MOVE CARRYING TWO EFFECTS SILENTLY LOST ONE. 2026-08-10.
+
+Census **346 → 350 live, 350 probed, 0 missing, 0 threw, 0 hollow, 0 unarmed, 0 direct-call.** Four new
+probes, each watched RED on its own — not as a block — before a line of the engine changed. **No release
+was cut and neither `tests/roster.js` nor `engine/game_differential.js` was run**: another agent is in
+both, and `engine_release.open()` with no id reads a POINTER, so a cut would swap the release under a
+live measurement. Full working: `docs/MEDICHAM-SPRINT-NOTES.md`.
+
+**THE DEFECT IS THE CONTROL FLOW, NOT FIVE MOVES.** `playerAction` was ~40 sequential
+`return {kind:...}` statements, so a move whose tags describe two effects was classified by whichever
+branch matched first and the second effect **never executed at all**. Chilly Reception pivoted and set
+no sky. Swagger and Flatter boosted and never confused. No Retreat boosted and left no mark. Howl
+boosted the partner and not its user. The file had already fixed this shape ONCE, by hand, on Toxic
+Thread — one pair, not the shape, and that guard is the precedent this wire generalises.
+
+**WHAT LANDED.** `playerActionPrimary` is the cascade, byte-for-byte what it was. `playerAction` now
+hands its result to `composeResiduals`, which reads `KIND_APPLIES` — a table stating, **in the
+vocabulary of EFFECTS**, what each action kind actually applies — and attaches any carried-but-unapplied
+effect to the action as a rider. The riders execute at **ONE site above the kind dispatch**, which is
+WIRE 77's and WIRE 85's argument: every BeforeMove refusal (flinch, paralysis, Throat Chop, Taunt, the
+priority bar) has already `continue`d out above that line, so a rider inherits all of them for free.
+
+**A DERIVED RESIDUAL WOULD HAVE OVER-MATCHED, AND IT IS WHY THE TABLE IS A TABLE.** "Every effect-bearing
+tag the claiming branch did not read" catches **Yawn**, which carries `delayedSleep` *and* a
+`statusInflict` volatile describing the same sleep — two tags, one effect — and would have written a
+second `_vol.yawn` on every Yawn in the format. Membership was printed over all 500 moves in
+`data/tags.json` before a rider ever ran: **five riders exist**, and the fifth (Shed Tail's substitute)
+is refused inside `applyMoveVolatile` because `grantSubstitute` owns that volatile.
+
+**TWO FACTS WERE EXTRACTED RATHER THAN COPIED.** `applyMoveVolatile` (Mental Herb, the no-restart rule,
+Encore's lock, Disable's `_sealed`) came verbatim out of the `affect` branch — the block was the last
+statement in that loop, so every `continue` is exactly a `return` — and `applyMoveWeather` (the sky, the
+turns, the rocks) out of the `weather` branch. Both now have two callers and one implementation.
+
+**UNCHANGED BY CONSTRUCTION *AND* MEASURED.** The composer returns on its first line for `kind:'attack'`;
+a single-effect move gets no `also` field and the executor is gated on that field. Then, empirically:
+**every one of the 500 moves in the tag corpus, three digests each** — the action object, the whole
+board after a real turn with a target, and the same with no target. **After the extraction alone,
+byte-identical on all 1,500.** After the whole wire, exactly **seven moves differ and they are the seven
+this wire is about**.
+
+**WHAT IS NOT CLOSED, SAID PLAINLY.** No Retreat's roster row is `sd +1 / ours +2` on the second click.
+That is a second APPLICATION — Showdown's `onTry` fails the whole move against the mark. This wire
+writes the mark and does **not** add the veto: nothing in `data/tags.json` carries it, and a blanket
+"a user-directed volatile refuses a repeat" rule was printed and rejected because it catches `minimize`
+and `charge`, which Showdown lets you re-click. It needs a `tag_dex` derivation off `onTry` plus a
+regeneration of `data/tags.json`, and that artifact is being read by another agent's run right now.
+
+**AND ONE ROW MAY STILL DIFFER FOR A REASON THAT IS NOT THIS WIRE'S.** `board_state.js` compares
+`vol.confusion` as a NUMBER; ours is `CONFUSION_TURNS_MIN = 2` always and Showdown's is `random(2,6)`
+decremented. A Swagger row can read FIRED-AND-BOARDS-DIFFER on the counter with the mechanic live. That
+approximation is `MEDSEEN.confusionMinDuration` and predates this pass.
+
+**TWO PRE-EXISTING REDS, MEASURED RATHER THAN ASSUMED TO BE SOMEBODY ELSE'S.**
+`FEATURE SEMANTICS CHECK FAILED` on `data/policy-weights.json` is unaffected: after
+`engine/feature_fixture.js` builds and hashes every fixture feature, all four of this wire's counters
+read **0**. REFIT OWED, and it is MEASURE's. `tests/test-no-silent-failure.js` is red at **21** new
+silent catches; none is in `engine/medicham2-browser.js` or `tests/test-mechanics.js` — this wire added
+no `catch` at all.
 
 ## WIRE 145 — A LOCKED BODY STRUGGLED RATHER THAN USING ITS STATUS MOVE. ONE GUARD, TWO CALL SITES, FAILING IN OPPOSITE DIRECTIONS. 2026-08-10.
 

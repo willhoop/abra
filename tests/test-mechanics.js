@@ -258,7 +258,16 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * directions. Nothing below the turn loop has a caller at all, so a direct call is structurally blind
  * to the distinction. It returns the `|move|` line, both foes' HP, their Taunt counters and the Trick
  * Room clock together, because a locked status move that "ran" must be shown to have LANDED. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(/;
+/* `composedTurn(` added 2026-08-10 with WIRE 146, declared HERE and with its reason, exactly as the
+ * paragraph above requires. It stages a real doubles board through `battleInit` and spends a real turn
+ * through `battleTurn`, and it has to: the defect it watches is a FIRST-MATCH CASCADE in
+ * `playerAction` — the action is built with one effect named and the other silently absent — so the
+ * only place the second effect can be shown to have happened is the board after the turn. A direct
+ * call to any one applier would be blind to it by construction, because each applier works fine; it
+ * is never reached. It returns the sky, the switch, both sides' stages and the volatiles together,
+ * because a composed move must be shown to have kept the half that already worked as well as gained
+ * the half that did not. */
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bcomposedTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -9561,6 +9570,102 @@ probe('move', 'sealsMoves', 'the locked status move draws its target from the se
            detail: `the same Taunt lock on the same board, only the seeded die varied — at 0.1 it hit `
                  + `${control.at}, at 0.9 it hit ${test.at}. An ordinary Taunt hand-clicked at p2a hit `
                  + `${plain1.at}/${plain9.at} at the same two values, so nothing else was re-aimed` };
+});
+
+/* ================= WIRE 146 — A MOVE THAT DOES TWO THINGS ==========================================
+ *
+ * `playerAction` is a FIRST-MATCH CASCADE — ~40 sequential `return {kind:...}` statements — so a move
+ * whose tags describe two effects was classified by whichever branch matched first and the second
+ * effect never executed. Four probes, one per pair, each with a control that carries ONE half of the
+ * pair off the same body on the same board, so "both halves happened" cannot be satisfied by an
+ * engine that splashes the second half onto every click.
+ *
+ * ALL FOUR WERE WATCHED RED INDIVIDUALLY BEFORE A LINE OF THE ENGINE CHANGED, and each was red for
+ * its own reason rather than as a block:
+ *     chillyreception  leaves=true sky=""/0        (pivoted, no sky at all)
+ *     swagger          foe atk +2  confusion 0     (boosted, never confused)
+ *     flatter          foe spa +1  confusion 0
+ *     noretreat        1/1/1/1/1   vol=""          (boosted, never marked)
+ *     howl             me at0  ally at1            (the partner only) */
+const composedTurn = (mv, target, withBench) => {
+  const B = board('farigiraf', 'garchomp', 'incineroar', 'toxapex');
+  /* A BENCH, because a pivot with nowhere to go does not leave and the Chilly Reception arm needs the
+     switch to actually happen — otherwise "the sky moved" would be the only thing under test and the
+     probe could not tell the composed move from a plain weather move. */
+  if (withBench) B.S.benchA = [bare('milotic')];
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, mv, target ? B.f1 : null, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    PASS2(B.f1, B.f2));
+  return { left: B.S.actA[0] !== B.me, sky: (B.S.field.weather || '-') + '/' + (B.S.field.weatherT || 0),
+           me: B.me, ally: B.ally, foe: B.f1,
+           mine: [B.me.boosts.at, B.me.boosts.df, B.me.boosts.sa, B.me.boosts.sd, B.me.boosts.sp].join('/'),
+           myVol: Object.keys(B.me._vol || {}).join(',') || '-',
+           foeAt: B.f1.boosts.at, foeSpa: B.f1.boosts.sa,
+           foeConf: (B.f1._vol && B.f1._vol.confusion) || 0 };
+};
+
+/* THE CONTROL IS PARTING SHOT: the other `pivotStatus` move in the format, off the same body, onto
+ * the same bench. Both arms must LEAVE — that is what says the pivot half survived the fix — and only
+ * one may change the sky. A control of "no click" would be satisfied by an engine that set snow on
+ * every turn, which is the worse bug. */
+probe('move', 'setsWeather', 'Chilly Reception sets the sky AND pivots — one click, two effects', () => {
+  const c = composedTurn('partingshot', true, true);
+  const t = composedTurn('chillyreception', true, true);
+  return { works: t.sky === 'snow/4' && t.left && c.left && c.sky === '-/0',
+           arms: { control: c.sky + ' left=' + c.left, test: t.sky + ' left=' + t.left },
+           detail: `Parting Shot (pivotStatus, no weather clause) left=${c.left} sky=${c.sky}; Chilly `
+                 + `Reception (pivotStatus AND setsWeather, same Farigiraf, same bench) left=${t.left} `
+                 + `sky=${t.sky} — Showdown reads snow with 4 turns left at this same boundary. The `
+                 + `pivot branch claimed the click first and the sky never moved` };
+});
+
+/* THE CONTROL IS DECORATE: a `boostsTarget` move with no status clause, aimed across the field at the
+ * same body. Both arms must BOOST the foe; only one may confuse it. Flatter is asserted beside
+ * Swagger in the same probe because the two are one mechanism and 0 corpus uses is not a reason to
+ * leave half a fix unwatched. */
+probe('move', 'statusInflict', 'Swagger boosts the foe AND confuses it — the boost branch claimed the click', () => {
+  const c = composedTurn('decorate', true);
+  const t = composedTurn('swagger', true);
+  const f = composedTurn('flatter', true);
+  return { works: t.foeAt === 2 && t.foeConf > 0 && f.foeSpa === 1 && f.foeConf > 0 && c.foeConf === 0 && c.foeAt === 2,
+           arms: { control: 'at' + c.foeAt + ' conf' + c.foeConf, test: 'at' + t.foeAt + ' conf' + t.foeConf },
+           detail: `Decorate (boostsTarget, no status clause) foe atk +${c.foeAt} confused=${c.foeConf}; `
+                 + `Swagger (boostsTarget AND statusInflict) foe atk +${t.foeAt} confused=${t.foeConf}; `
+                 + `Flatter foe spa +${f.foeSpa} confused=${f.foeConf}. Both now route to the branch `
+                 + `that applies BOTH halves — which also throws Swagger's 85 accuracy die` };
+});
+
+/* THE CONTROL IS SWORDS DANCE: a `boostsUser` move with no volatile clause, off the same body. Both
+ * arms must raise a stage; only one may leave a mark. WHAT THIS DOES NOT CLAIM is written into the
+ * detail: Showdown FAILS a second No Retreat outright (`onTry` returns false on the volatile), and
+ * that refusal is not derivable from anything in data/tags.json — so the mark is set and the repeat
+ * still succeeds. Saying so here is the point; a probe that quietly asserted the half it fixed would
+ * make the other half unfindable. */
+probe('move', 'statusInflict', 'No Retreat raises all five AND marks its user — the setup branch claimed the click', () => {
+  const c = composedTurn('swordsdance', false);
+  const t = composedTurn('noretreat', false);
+  return { works: t.mine === '1/1/1/1/1' && /noretreat/.test(t.myVol) && !/noretreat/.test(c.myVol) && c.mine === '2/0/0/0/0',
+           arms: { control: c.mine + ' vol=' + c.myVol, test: t.mine + ' vol=' + t.myVol },
+           detail: `Swords Dance (boostsUser, no volatile clause) ${c.mine} vol=${c.myVol}; No Retreat `
+                 + `(boostsUser AND statusInflict) ${t.mine} vol=${t.myVol}. NOT CLAIMED: Showdown's `
+                 + `onTry FAILS a second No Retreat against the mark and no artifact carries that `
+                 + `refusal, so the repeat still boosts here — the mark exists, the veto does not` };
+});
+
+/* THE CONTROL IS COACHING: a `boostsTarget` move whose dex target is `adjacentAlly`, clicked with no
+ * named target off the same body. The PARTNER must rise in both arms — that is what says the branch
+ * still works for the four members that are not Howl — and only the USER separates them. */
+probe('move', 'boostsTarget', 'Howl boosts the WHOLE side, user included (target: allies)', () => {
+  const c = composedTurn('coaching', false);
+  const t = composedTurn('howl', false);
+  return { works: t.me.boosts.at === 1 && t.ally.boosts.at === 1
+                  && c.me.boosts.at === 0 && c.ally.boosts.at === 1,
+           arms: { control: 'me' + c.me.boosts.at + '/ally' + c.ally.boosts.at,
+                   test: 'me' + t.me.boosts.at + '/ally' + t.ally.boosts.at },
+           detail: `Coaching (target: adjacentAlly) user +${c.me.boosts.at} partner +${c.ally.boosts.at}; `
+                 + `Howl (target: allies = Pokemon#alliesAndSelf, same body, same board) user `
+                 + `+${t.me.boosts.at} partner +${t.ally.boosts.at}. The branch resolved ONE body, so `
+                 + `the click landed on active[1] and the user got nothing` };
 });
 
 const works = results.filter(r => r.works);

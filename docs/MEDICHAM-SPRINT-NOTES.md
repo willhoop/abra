@@ -674,6 +674,76 @@ sent me hunting the engine, when a clean single-turn probe of the same mechanic 
 
 ---
 
+## WIRE 146 — `playerAction` IS A FIRST-MATCH CASCADE, SO A MOVE WITH TWO EFFECTS LOST ONE. 2026-08-10.
+
+Census **346 → 350 live, 350 probed, 0 missing, 0 threw, 0 hollow, 0 unarmed, 0 direct-call**, on four
+new probes, each watched RED on its own before a line of the engine changed.
+
+| # | row(s) | uses | what it was | verdict move |
+|---|---|---|---|---|
+| 25 | **Chilly Reception** | 38 | `pivotStatus` claimed the click ~140 lines above the weather branch, so the sky was never set. Was `""/0`, is `snow/4` at the same boundary the authority reads `snow/4` | *engine fixed; roster NOT re-run by me* |
+| 26 | **Swagger, Flatter** | 71, 0 | `boostsTarget` claimed the click and `boostally` applies a boost table and nothing else — the confusion never happened. **Routed** to `affect`, which applies both halves *and* throws Swagger's 85 accuracy die, asks Own Tempo, Safeguard, Substitute and Protect, and runs the boost through Contrary | *engine fixed; the roster's `vol.confusion` COUNTER may still differ — see below* |
+| 27 | **Howl** | 50 | dex target is `allies` = `Pokemon#alliesAndSelf`, i.e. user AND partner. The branch resolved ONE body, so the click landed on `active[1]` and the user got nothing. Derived from the move's own target, not its name | *engine fixed; roster NOT re-run by me* |
+| 28 | **No Retreat** | 90 | the `noretreat` volatile was never written. **HALF-FIXED, and the half that is missing is the one the roster row measures** — see below | *NOT CLOSED* |
+
+**THE FIX IS THE SHAPE, NOT THE FIVE PAIRS.** `playerAction` now runs the cascade unchanged and then
+COMPOSES: `KIND_APPLIES` states, in the vocabulary of EFFECTS, what each action kind actually applies,
+and anything the move carries that its kind does not apply becomes a rider on the action, executed at
+ONE site above the kind dispatch. Two effect classes have appliers (`weather`, `statusInflict`); a
+third class arriving is **counted and named** (`MEDFAILS.composedEffectUnexpressed`, 0 over the whole
+500-move corpus) rather than dropped.
+
+**THE TABLE IS DELIBERATE AND THE DERIVED VERSION IS THE TRAP.** "The residual is every effect-bearing
+tag the claiming branch did not read" over-matches *silently*: **Yawn** carries `delayedSleep` AND a
+`statusInflict` volatile describing the same sleep, so a tag-subtraction rule writes a second
+`_vol.yawn` on every Yawn in the format. Two tags, one effect. Membership was printed over all 500
+moves before a rider ever executed — **five riders exist**: chillyreception (weather), noretreat,
+minimize, charge (user volatile) and **shedtail**, whose substitute rider is refused inside
+`applyMoveVolatile` because `grantSubstitute` owns that volatile. Its board digest is identical.
+
+**TWO FACTS WERE EXTRACTED RATHER THAN COPIED**, because the rider needed a second caller and CLAUDE.md
+forbids two implementations of one fact: `applyMoveVolatile` (the ~100 lines of Mental Herb, the
+no-restart rule, Encore's lock and Disable's `_sealed`, lifted verbatim out of the `affect` branch —
+the block was the last statement in that loop, so every `continue` is exactly a `return`) and
+`applyMoveWeather` (the sky, the turns and the rocks, lifted out of the `weather` branch).
+
+**UNCHANGED-BY-CONSTRUCTION, AND THEN MEASURED ANYWAY.** The attack path returns from the composer on
+its first line. A single-effect move gets no `also` field, and the executor is gated on that field. The
+proof is empirical as well: **all 500 moves in `data/tags.json`, three digests each** — the action
+object, the whole board after a real turn with a target, and the same with NO target. After the
+extraction alone: **byte-identical on all 1,500**. After the whole wire: **seven moves differ and they
+are the seven named above** (plus shedtail's action object, board unchanged).
+
+**WHAT IS NOT CLOSED, AND IT IS THE ROW WITH THE LOUDEST NUMBER.** No Retreat's roster row reads
+`sd +1 / ours +2` on the SECOND click. That is a *second application*: Showdown's `onTry` returns false
+against the mark and the whole move fails, boosts included. This wire writes the mark; it does **not**
+add the veto, because **no artifact this engine reads carries it** — `data/tags.json` has
+`boostsUser {readFrom:"m.self.boosts"}` and `statusInflict {volatile:"noretreat", to:"user"}`, and
+neither says "fails if the user already has it". A blanket "a user-directed volatile refuses a repeat"
+rule was **printed and rejected**: it catches `minimize` and `charge`, both of which Showdown lets you
+re-click. The fix is a `tag_dex` derivation off `onTry`, and I did not regenerate `data/tags.json`
+because another agent is running `tests/roster.js` and `engine/game_differential.js`, which read it —
+that is the photograph rule, not a preference.
+
+**AND THE CONFUSION COUNTER IS A PRE-EXISTING APPROXIMATION, NOT THIS WIRE'S.** `board_state.js`
+compares `vol.confusion` as a NUMBER: ours is `CONFUSION_TURNS_MIN = 2` always, Showdown's is
+`this.random(2,6)` decremented. So a Swagger/Flatter row can still read FIRED-AND-BOARDS-DIFFER on the
+counter while the mechanic is live. That is `MEDSEEN.confusionMinDuration`, declared long before this
+wire, and it is the same for Confuse Ray and Teeter Dance.
+
+**`minimize` and `charge` are invisible to the roster either way** — `board_state.js` compares a fixed
+list of eight volatiles and neither is on it. The census probes are the only evidence for them.
+
+**TWO PRE-EXISTING REDS, MEASURED RATHER THAN ASSUMED TO BE SOMEBODY ELSE'S.**
+`FEATURE SEMANTICS CHECK FAILED` on `data/policy-weights.json` is unaffected: after
+`engine/feature_fixture.js` builds and hashes every fixture feature, all four of this wire's counters
+read **0**, so no branch it added executes on that board. REFIT OWED, and it is MEASURE's.
+`tests/test-no-silent-failure.js` is red at **21** new silent catches against its baseline; **none is
+in `engine/medicham2-browser.js` or `tests/test-mechanics.js`** — this wire added no `catch` at all,
+and the 21st against WIRE 145's 20 is in `tests/roster.js`, which another agent is holding.
+
+---
+
 ## FINDINGS THAT ARE NOT FIXES
 
 - **THE CLOSET IS NEW MACHINERY AND NEEDS WRITING UP.** `DECLARED` quietens a *difference*; it cannot

@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-10T03:23:29.886Z",
+  "generated": "2026-08-10T03:54:13.259Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 346,
-  "live": 346,
+  "probed": 350,
+  "live": 350,
   "missing": 0,
-  "armed": 346,
+  "armed": 350,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2406,7 +2406,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 26.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3467,6 +3467,46 @@
       "label": "the locked status move draws its target from the seeded die",
       "live": true,
       "detail": "the same Taunt lock on the same board, only the seeded die varied — at 0.1 it hit p2a, at 0.9 it hit p2b. An ordinary Taunt hand-clicked at p2a hit p2a/p2a at the same two values, so nothing else was re-aimed",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "setsWeather",
+      "label": "Chilly Reception sets the sky AND pivots — one click, two effects",
+      "live": true,
+      "detail": "Parting Shot (pivotStatus, no weather clause) left=true sky=-/0; Chilly Reception (pivotStatus AND setsWeather, same Farigiraf, same bench) left=true sky=snow/4 — Showdown reads snow with 4 turns left at this same boundary. The pivot branch claimed the click first and the sky never moved",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statusInflict",
+      "label": "Swagger boosts the foe AND confuses it — the boost branch claimed the click",
+      "live": true,
+      "detail": "Decorate (boostsTarget, no status clause) foe atk +2 confused=0; Swagger (boostsTarget AND statusInflict) foe atk +2 confused=2; Flatter foe spa +1 confused=2. Both now route to the branch that applies BOTH halves — which also throws Swagger's 85 accuracy die",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statusInflict",
+      "label": "No Retreat raises all five AND marks its user — the setup branch claimed the click",
+      "live": true,
+      "detail": "Swords Dance (boostsUser, no volatile clause) 2/0/0/0/0 vol=-; No Retreat (boostsUser AND statusInflict) 1/1/1/1/1 vol=noretreat. NOT CLAIMED: Showdown's onTry FAILS a second No Retreat against the mark and no artifact carries that refusal, so the repeat still boosts here — the mark exists, the veto does not",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "boostsTarget",
+      "label": "Howl boosts the WHOLE side, user included (target: allies)",
+      "live": true,
+      "detail": "Coaching (target: adjacentAlly) user +0 partner +1; Howl (target: allies = Pokemon#alliesAndSelf, same body, same board) user +1 partner +1. The branch resolved ONE body, so the click landed on active[1] and the user got nothing",
       "hollow": false,
       "armed": true,
       "directCall": false

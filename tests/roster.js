@@ -657,22 +657,37 @@ function play(sc, src, armId) {
        + 'on that side could be built, so the game was never played' };
 
   const boards = [];
+  /* THE ENGINE'S OWN LIVE STATE, KEPT BY REFERENCE, AND IT IS ONLY EVER READ FOR ONE THING.
+   *
+   * A trap is a REFUSAL and not a board leaf. Showdown answers a trapped switch by rejecting the
+   * choice string, which the driver turns into a thrown game BEFORE the next boundary is taken — so
+   * there is no board to read on the subject arm, and the question "did OUR engine let the body
+   * leave" has no snapshot to answer it. `onBoundary` is handed medicham2's live `S`, and `S.actA` /
+   * `S.actB` are the slots `board_state.js` itself reads (`mediBody` keys on `m.name`). Held here
+   * and read AFTER the run, so the answer survives the throw.
+   *
+   * IT IS ONE FIELD AND IT IS THE ENGINE'S OWN. Anything more would be this file reimplementing a
+   * comparator, which is what `board_state.js` already declines to do for ability trapping. */
+  let Sref = null;
   const r = G.playGame(a, b, 'directed', 'roster:' + sc.id, {
     script: sc.script, arm: ARM || undefined,
-    onBoundary: (snap, turnIdx) => {
+    onBoundary: (snap, turnIdx, Slive) => {
+      if (Slive) Sref = Slive;
       boards.push({ turn: turnIdx, compared: snap.leaves_compared,
                     diffs: snap.diffs.map(d => BS.locate(d, snap)),
                     medi: snap.medi, sd: snap.sd });
       snap.identical = true; snap.diffs = [];
     } });
-  if (r.err) return { bad: 'THREW', why: r.err, boards };
+  const actives = () => (Sref ? { p1: (Sref.actA || []).map(m => (m ? idOf(m.name) : null)),
+                                 p2: (Sref.actB || []).map(m => (m ? idOf(m.name) : null)) } : null);
+  if (r.err) return { bad: 'THREW', why: r.err, boards, medi_active: actives() };
   if (r.turns !== sc.script.length) return { bad: 'SHORT', boards,
     why: 'the script declares ' + sc.script.length + ' turn(s) and ' + r.turns + ' were played' };
   if (boards.length !== sc.script.length + 1) return { bad: 'SHORT', boards,
     why: boards.length + ' boundaries were taken and ' + (sc.script.length + 1) + ' were expected' };
   if (boards.some(x => !x.compared)) return { bad: 'SHORT', boards,
     why: 'a boundary compared ZERO leaves — the state path is not armed' };
-  return { boards };
+  return { boards, medi_active: actives() };
 }
 
 /* THE CONTROL ARM, derived from the subject and never written beside it. Exactly one thing changes.
@@ -864,6 +879,78 @@ function controlIsQuiet(e) {
   return { quiet: true };
 }
 
+/* ---- THE SWITCH PROBE — THE ONE COMPARISON THAT IS NOT A BOARD LEAF ----------------------------
+ *
+ * Everything else in this file compares two boards. A TRAP CANNOT BE COMPARED THAT WAY and the
+ * reason is structural rather than a gap somebody can close: Showdown refuses a trapped switch by
+ * REJECTING THE CHOICE STRING, the driver raises on a rejected choice, and the boundary that would
+ * have held the answer is never taken. `board_state.js` says the same thing from the other side —
+ * ability trapping is `NOT_COMPARED` because "a comparator would have to reimplement medicham2's
+ * rule to have anything to compare".
+ *
+ * So the two engines are asked the SAME question in the two forms they answer it in:
+ *
+ *     SHOWDOWN   did it reject the switch choice        (the driver's own rejection string)
+ *     OURS       is the trapped body still in the slot  (medicham2's `S.actB[i].name`)
+ *
+ * AND THE CONTROL DECIDES WHETHER THE ROW MEANS ANYTHING. Without the trap the identical ask must
+ * SUCCEED in both engines. If it does not, the probe's action shape is wrong and "did not switch"
+ * would be the fixture agreeing with itself — the ROADMAP #100 failure with a switch in it. That is
+ * checked FIRST and a failure there is COULD-NOT-STAGE, never a finding. */
+function switchVerdict(e, subject, control, base) {
+  const P = e.switchProbe;
+  const key = P.side === 'A' ? 'p1' : 'p2';
+  const refused = (r) => !!(r.bad === 'THREW' && /choice rejected "[^"]*switch/i.test(String(r.why || '')));
+  const oursLeft = (r) => { const a = r.medi_active;
+    return a ? idOf((a[key] || [])[P.slot] || '') === idOf(P.to) : null; };
+  const sdLeft = (r) => { const b = (r.boards || [])[r.boards.length - 1];
+    if (!b || !b.sd) return null;
+    const act = ((b.sd.sides || {})[key] || {}).active || [];
+    return act[P.slot] ? idOf(act[P.slot].species) === idOf(P.to) : null; };
+  const say = (v, why, extra) => ({ ...base, verdict: v, why,
+    switch_probe: { asked: P, showdown_refused_subject: refused(subject),
+      ours_switched_subject: oursLeft(subject), showdown_switched_control: sdLeft(control),
+      ours_switched_control: oursLeft(control), subject_bad: subject.bad || null,
+      subject_why: subject.why || null, control_bad: control.bad || null, ...(extra || {}) } });
+
+  /* 1. THE CONTROL MUST PROVE THE ASK IS REAL. */
+  if (control.bad) return say('COULD-NOT-STAGE', 'the CONTROL arm did not run: ' + control.bad + ' — '
+    + control.why + '  Without an untrapped switch that WORKS, a refusal in the subject arm cannot be '
+    + 'told from a probe that never asked anything.');
+  if (sdLeft(control) !== true || oursLeft(control) !== true)
+    return say('COULD-NOT-STAGE', 'THE PROBE ITSELF DID NOT SWITCH. With the trap removed the same ask '
+      + 'left the body where it was — Showdown ' + (sdLeft(control) ? 'moved' : 'did NOT move')
+      + ' it, ours ' + (oursLeft(control) ? 'moved' : 'did NOT move') + ' it — so this row is measuring '
+      + 'the fixture and not the trap. Refused rather than reported.');
+
+  /* 2. DID THE AUTHORITY TRAP AT ALL? */
+  if (!refused(subject)) {
+    if (subject.bad) return say('COULD-NOT-STAGE', 'the SUBJECT arm did not run for a reason that is '
+      + 'not a refused switch: ' + subject.bad + ' — ' + subject.why);
+    if (sdLeft(subject) === true && oursLeft(subject) === true)
+      return say('COULD-NOT-STAGE', 'THE STAGING IS INERT for the trap: Showdown ACCEPTED the switch '
+        + 'with the move in place, exactly as it did without it, so nothing here tests trapping.');
+    if (sdLeft(subject) === true && oursLeft(subject) === false)
+      return say('FIRED-AND-BOARDS-DIFFER', 'OURS TRAPS AND THE AUTHORITY DOES NOT. Showdown let the '
+        + 'body leave with the move in place; our engine kept it in the slot. An over-refusal is a '
+        + 'defect in the same way an under-refusal is.');
+    return say('COULD-NOT-STAGE', 'the authority neither refused the switch nor completed it in a way '
+      + 'this probe can read (showdown_left=' + sdLeft(subject) + ', ours_left=' + oursLeft(subject) + ')');
+  }
+
+  /* 3. THE AUTHORITY REFUSED. WHAT DID WE DO? */
+  if (oursLeft(subject) === null) return say('COULD-NOT-STAGE', 'Showdown refused the switch and our '
+    + 'engine\'s own slot could not be read, so the two answers cannot be put beside each other.');
+  if (oursLeft(subject) === true) return say('FIRED-AND-BOARDS-DIFFER',
+    'SHOWDOWN REFUSED THE SWITCH AND OUR ENGINE ALLOWED IT. The authority rejected the choice outright '
+    + '(' + String(subject.why).slice(0, 120) + ') and medicham2\'s slot now holds ' + pretty(P.to)
+    + '. The trap does not prevent a switch in this engine. The control proves the ask was real: '
+    + 'without the move the same switch succeeded in both engines.');
+  return say('FIRED-AND-BOARDS-MATCH', 'both engines refuse the switch — Showdown rejects the choice '
+    + 'and medicham2 leaves the body in its slot — and both allow the identical switch in the control '
+    + 'arm. This is a refusal comparison, not a board comparison; see the rule.');
+}
+
 function runEntry(e) {
   const sc = e.scenario;
   const { sc: ctrlSc, ignore } = controlOf(sc);
@@ -871,11 +958,35 @@ function runEntry(e) {
   const arm = sc.arm || null;
 
   const subject = play(sc, src, arm);
-  if (subject.bad) return { ...e, verdict: 'COULD-NOT-STAGE',
+  if (subject.bad && !e.switchProbe) return { ...e, verdict: 'COULD-NOT-STAGE',
     why: 'the SUBJECT arm did not run: ' + subject.bad + ' — ' + subject.why };
   const control = play(ctrlSc, src, arm);
+  if (e.switchProbe) return switchVerdict(e, subject, control,
+    { ...e, boards: subject.boards, compared: subject.boards.reduce((n, b) => n + b.compared, 0),
+      subject_diffs: splitDeclared(subject.boards.flatMap(b => b.diffs.map(d => ({ ...d, turn: b.turn }))),
+                                   subject.boards).kept });
   if (control.bad) return { ...e, verdict: 'COULD-NOT-STAGE',
     why: 'the CONTROL arm did not run: ' + control.bad + ' — ' + control.why };
+
+  /* ---- DID THE PRECONDITION ACTUALLY LAND? ------------------------------------------------------
+   *
+   * A CAPABILITY THAT CANNOT PROVE IT RAN IS ASSUMED BROKEN (CLAUDE.md), and the precondition layer
+   * broke that rule on its own first run: a derivation fault picked APPLE ACID as the sun setter, the
+   * sky stayed clear, Solar Beam charged exactly as it had before, and the row reported the same
+   * honest-looking INERT it was written to remove. Nothing failed. Nothing said anything.
+   *
+   * So a rule that stages a condition DECLARES how to see it, and it is read off SHOWDOWN'S board —
+   * the authority — at the boundary the setup must have landed by. A precondition that did not land
+   * is COULD-NOT-STAGE with that as its reason, never an inert row and never a pass. */
+  if (e.precondition) {
+    const pb = subject.boards.find(x => x.turn === e.precondition.turn);
+    let ok = false;
+    try { ok = !!(pb && e.precondition.ok(pb)); } catch (err) { ok = false; }
+    if (!ok) return { ...e, verdict: 'COULD-NOT-STAGE', boards: subject.boards,
+      why: 'THE PRECONDITION DID NOT LAND, so nothing downstream of it was tested and an inert board '
+         + 'here would mean only that the setup failed. Wanted, by boundary ' + e.precondition.turn
+         + ': ' + e.precondition.why + '. Read off SHOWDOWN\'s own board, not ours.' };
+  }
 
   const delta = armDelta(subject, control, ignore);
   const sdMoved = delta.filter(d => d.engine === 'showdown');
@@ -1407,11 +1518,18 @@ const TERRAIN_MOVE = dex.moves.all().find(m => m.exists && !m.isNonstandard && m
  * it on ENTRY — before boundary 0 — which puts it on the leads' board in both arms and makes the
  * setup invisible as a turn. A MOVE puts the setup on a turn of its own, which is what lets the
  * report show the sky arriving and the effect landing after it. */
+/* THE `|| ''` IN THE FIRST VERSION OF THIS MATCHED EVERY MOVE IN THE FORMAT, and it is left on the
+ * record because it is this file's own standing hazard arriving inside the fix for it. The guard read
+ * `idOf(m.weather) === idOf(SAME_SKY[w] || '')`; for a sky with no alias that is `'' === ''`, which is
+ * TRUE FOR EVERY MOVE THAT SETS NO WEATHER — so Solar Beam's "precondition" was staged with APPLE
+ * ACID and the sun was never up. Both engines then agreed about a board where nothing had happened,
+ * which is the vacuous green this whole file exists to refuse, produced by the precondition layer on
+ * its first run. It is why `precondition.ok` below exists: a setup that cannot prove it landed is
+ * assumed not to have. */
 function skySetter(w) {
-  const ab = setterFor(w);
-  const mv = dex.moves.all().find(m => m.exists && !m.isNonstandard && alwaysHits(m)
-    && (m.weather === w || idOf(m.weather) === idOf(w) || idOf(m.weather) === idOf(SAME_SKY[w] || '')));
-  return mv || (ab ? null : null);
+  const alt = SAME_SKY[w] || null;
+  return dex.moves.all().find(m => m.exists && !m.isNonstandard && alwaysHits(m) && m.weather
+    && (idOf(m.weather) === idOf(w) || (alt && idOf(m.weather) === idOf(alt)))) || null;
 }
 
 /* ---- 2. A STAT STAGE ON THE TARGET -------------------------------------------------------------
@@ -1477,11 +1595,19 @@ function healsOnResidual(m) {
  * `onTry(source) { return !!source.volatiles["stockpile"]; }` — Spit Up and Swallow refuse outright
  * without it. The move that SETS the named volatile is found in the format rather than named here,
  * so a mechanic added later is picked up with no edit. */
+/* THE GATE SHAPE IS `return !!source.volatiles["x"]` AND NOT "the word volatiles appears in onTry".
+ *
+ * THE LOOSE FORM WAS WRITTEN FIRST AND IT STOLE EIGHTEEN MOVES. Substitute, Shed Tail, No Retreat,
+ * Magnet Rise, Stockpile, Counter, Curse, Sucker Punch and ten more all MENTION a volatile in a gate
+ * — to refuse a SECOND copy of themselves, or to read the foe — and every one of them already had a
+ * narrower rule with a staging built for it. A precondition rule sitting above the general ones is
+ * exactly where an over-match does the most damage, which is the hazard this file opens by naming.
+ * Restricted to the shape that means "this move FAILS OUTRIGHT without that volatile on its user". */
 function volatileRequiredBy(m) {
-  const src = String(m.onTry || '') + String(m.onTryHit || '') + String(m.onTryMove || '');
+  const src = String(m.onTry || '');
   const out = [];
-  for (const x of src.matchAll(/volatiles\s*\[\s*['"](\w+)['"]\s*\]/g)) if (!out.includes(x[1])) out.push(x[1]);
-  for (const x of src.matchAll(/hasVolatile\(\s*['"](\w+)['"]\s*\)/g)) if (!out.includes(x[1])) out.push(x[1]);
+  for (const x of src.matchAll(/return\s+!!\s*(?:source|pokemon|attacker|target)\.volatiles\s*\[\s*['"](\w+)['"]\s*\]/g))
+    if (!out.includes(x[1])) out.push(x[1]);
   return out;
 }
 function volatileSetter(vid) {
@@ -1584,8 +1710,26 @@ function orderPair(e) {
   const users = dex.species.all().filter(s => s.exists && !s.isNonstandard && !s.battleOnly
       && !s.forme.endsWith('Mega') && buildableSpecies(s.id) && carrierAbility(s) && learnsMove(s, e.id))
     .sort((a, b) => spd(a) - spd(b));
-  if (!users.length) return { why: 'no legal, buildable body in this format learns it — asked of the '
-    + 'format\'s own learnsets (the prevo chain, the way champions_sim walks it), not of a list' };
+  if (!users.length) {
+    /* SAY WHICH OF THE THREE FILTERS EMPTIED THE POOL. "No body learns it" and "every body that
+     * learns it carries an ability this fixture cannot hold" are different facts and the second one
+     * is about the FORMAT'S ABILITY LIST, which is the confusion the previous version of this whole
+     * rule was built on. Extreme Speed's users are Dragonite (Inner Focus / Multiscale), Lucario and
+     * Arcanine; every one of those abilities is in INTERFERES. */
+    const learners = dex.species.all().filter(s => s.exists && !s.isNonstandard && !s.battleOnly
+      && !s.forme.endsWith('Mega') && learnsMove(s, e.id));
+    const buildable = learners.filter(s => buildableSpecies(s.id));
+    return { why: (!learners.length ? 'no legal, non-mega species in this format learns it'
+      : !buildable.length ? learners.length + ' legal species learn it and the damage table can build '
+          + 'none of them (' + learners.slice(0, 4).map(s => pretty(s.id)).join(', ') + ')'
+      : 'the ' + buildable.length + ' legal buildable species that learn it ('
+          + buildable.slice(0, 5).map(s => pretty(s.id) + ' [' + Object.values(s.abilities).join('/') + ']')
+              .join(', ') + ') ALL carry only abilities this fixture may not hold — a second damage '
+          + 'modifier, an immunity, an HP floor or something that moves the board by itself. That is a '
+          + 'fact about the FORMAT\'S ABILITY LIST, not about priority')
+      + ' — asked of the format\'s own learnsets (the prevo chain, the way champions_sim walks it), '
+      + 'not of a list' };
+  }
   const foes = CANDIDATES.filter(s => buildableSpecies(s.id) && !s.forme.endsWith('Mega')
     && (!flinch || !canRefuseAFlinch(s)));
   for (const u of users.slice(0, 20)) {
@@ -1604,6 +1748,26 @@ function orderPair(e) {
     + ' Speed, and no legal buildable body is BOTH strictly faster than it AND able to kill it '
     + 'outright with a derived delivery move. Without a kill the turn ends in the same state '
     + 'whichever order it resolved in, and the bracket has no way onto the board' };
+}
+/* ASK THE FORMAT, NOT THE LEARNSET WALK. `learnsMove` is a candidate generator; the authority on
+ * whether a body may carry a move here is `champions_sim.checkLegal`, which drives the official
+ * TeamValidator. The owner's own worked example for this rule was "Muk Shadow Punch" and MUK IS
+ * `isNonstandard: 'Past'` in this format — the exact class of error that function exists to catch.
+ * Only EXISTENCE problems are fatal: a PAIRING complaint is what an isolation probe does on purpose
+ * everywhere else in this file (`carrierAbility` stamps abilities the validator would refuse), and
+ * treating one as fatal here would retire rows for a reason that is about the fixture. */
+const _LP = new Map();
+function legalPair(speciesId, ability, moveId) {
+  const k = speciesId + '|' + moveId;
+  if (_LP.has(k)) return _LP.get(k);
+  let out = null;
+  try {
+    const r = CS.checkLegal({ species: speciesId, ability, moves: [moveId] });
+    if (r.unavailable) out = null;                       // cannot check is not a verdict either way
+    else if ((r.banned || []).length) out = r.banned.join('; ');
+  } catch (err) { out = null; }
+  _LP.set(k, out);
+  return out;
 }
 
 /* =================================================================================================
@@ -3843,6 +4007,384 @@ const RULES = [
       + 'and control would be the same script and the comparison would be vacuous. Its effect — two '
       + 'critical-hit stages — is also not a leaf board_state.js compares.'); } },
 
+/* ---- THE PRECONDITION RULES --------------------------------------------------------------------
+ *
+ * These sit ABOVE the general rules because a move that needs a condition needs it whatever else its
+ * shape says: Solar Beam is a charge move AND a move that skips its charge under sun, and staged as
+ * the first it is a wind-up nobody can compare. Each one stages the condition the move's OWN DATA
+ * asks for and then hands the click to the same kind of scaffold every other rule uses.
+ *
+ * WHAT THEY DO NOT DO IS RELAX A VERDICT. `THE STAGING IS INERT` still fires if Showdown's board does
+ * not move with the precondition in place — which is the answer for every member whose effect has no
+ * leaf `board_state.js` compares, and those rows stay COULD-NOT-STAGE with a reason that now names
+ * the comparator instead of blaming the fixture.
+ */
+
+{ id: 'move/needs-the-sky-it-names', kind: 'move',
+  reads: 'a weather id named inside the move\'s own onTry / onTryMove / onModifyMove',
+  why: 'AURORA VEIL REFUSES TO WORK WITHOUT SNOW — `onTry() { return this.field.isWeather(["hail", '
+     + '"snowscape"]); }` is the move stating its own precondition — and every other rule in this file '
+     + 'stages a clear sky, so it failed outright and the row read THE STAGING IS INERT. Solar Beam and '
+     + 'Solar Blade are the same shape from the other side: under sun their `onTryMove` returns before '
+     + 'the wind-up, so they resolve in ONE turn and become an ordinary damage comparison instead of a '
+     + 'wind-up the driver cannot release.\n'
+     + '     THE SETTER IS CLICKED BY THE PARTNER, on a turn before the move, so it is present '
+     + 'identically in the control arm and cancels out of the delta. The weather itself IS a compared '
+     + 'leaf, so the setup is visible on the board rather than assumed.',
+  /* THE ANCHOR IS THE SETTING OF THE SKY, and the first one was wrong in a way `--reds` caught on the
+   * full run and a single-rule run did not. It aimed at the weather BASE-POWER multiplier, which only
+   * moves a board for a member whose damage scales with the sky — Growth, and nothing else here. With
+   * the demonstration correctly preferring a GREEN member (see the red loop), the plant was tried on
+   * Aurora Veil, Blizzard, Electro Shot and Hurricane, moved none of them, and the whole rule read
+   * NOT CAUGHT. Aimed at the sky itself, every member is provable: the veil has no snow to stand in,
+   * Solar Beam charges, the scaled heals halve. SHOWDOWN still sets it, so the precondition receipt
+   * — read off the authority — still passes and the break lands where the rule points. */
+  break: { why: 'a weather set by a move is never written to the field',
+    /* THE LINE ENDINGS ARE CRLF AND THE FIRST ANCHOR ASSUMED LF, which cost a whole run: the plant
+     * matched zero times, the rule read NOT CAUGHT, and "the anchor is wrong" and "the mechanism is
+     * absent" print identically. Anchored on a single line so no newline is inside it at all. */
+    patch: [['field.weather=w;', '']] },
+  match(e) {
+    /* WEATHER BALL IS NOT THIS RULE'S. It names every weather in the game inside `onModifyMove`, so
+     * a plain shape test takes it — and `move/type-changing` already stages it CATEGORICALLY, against
+     * a derived GHOST defender, where 0 damage against a number cannot be confused with a missing
+     * multiplier. That staging is stronger than a damage comparison and was written against a known
+     * live defect. A precondition rule must not demote a rule that already discriminates. */
+    if (e.onModifyType) return null;
+    const skies = skyNamedBy(e);
+    if (!skies.length) return null;
+    const set = skies.map(w => skySetter(w)).find(Boolean);
+    if (!set) return cannot('it names ' + skies.join('/') + ' in its own gate and no 100-accuracy move '
+      + 'in this format sets any of them, so the precondition cannot be created at all');
+    const arm = armFor(e);
+    const b0 = quietBody({ arm, type: e.type }), b1 = quietBody({ arm, type: e.type, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: e.type }));
+    const self = !aimsAtFoe(e);
+    /* the SUBJECT throws the move; the setter is always somebody else's click, so `controlOf` cannot
+     * take it away with the move under test */
+    const a0 = { ...CLICKER(arm), moves: self ? [set.id] : [e.id] };
+    const bb0 = { ...b0, moves: self ? [e.id] : [set.id] };
+    /* A CHARGE MOVE GETS EXACTLY ONE CLICK AND THE SCRIPT ENDS THERE. Solar Beam's own `onTryMove`
+     * returns before the wind-up under sun, so ONE click either resolves (and the damage is compared)
+     * or winds up (and the row reads INERT, which is no worse than before). A SECOND click cannot be
+     * scripted either way: if it did wind up, Showdown's next request for that body carries no target
+     * and the driver's `move N T` is rejected — `Can't move: You can't choose a target for Solar Beam`
+     * — which is a thrown game rather than a measurement. MEASURED on the first run of this rule, on
+     * all three members. */
+    const twoClicks = !(e.flags && e.flags.charge);
+    /* PRECONDITIONS COMPOSE, AND THREE MEMBERS OF THIS FAMILY NEED TWO OF THEM. Moonlight, Morning
+     * Sun and Synthesis are weather-SCALED HEALS: the fraction they restore depends on the sky, and a
+     * heal into a full body is capped to nothing whatever the sky is. Staged with the sun alone they
+     * come back INERT for the second reason in this block's header rather than the first.
+     *
+     * THEY ALSO PASSED FOR THE WRONG REASON BEFORE THE SETTER BUG WAS FIXED, which is worth leaving
+     * on the record: the bogus "setter" was APPLE ACID, a damaging move, so the fixture was chipping
+     * the body by accident and the heal had somewhere to go. Two faults cancelling into a green. */
+    const heals = !!(e.heal || /this\.heal\(/.test(gateSrc(e)));
+    const healer = dex.species.get(self ? bb0.species : b0.species);
+    const chip = heals ? hitInBand(dex.species.get(CAST.ATTACKER().species), healer, 0.3, 0.7) : null;
+    if (heals && !chip) return cannot('it is a weather-scaled HEAL and no derived delivery move takes '
+      + pretty(healer.id) + ' to between 30% and 70% of its HP — a heal into a full body is capped to '
+      + 'nothing in both engines whatever the sky is');
+    const chipTurns = chip
+      ? [turn([click(chip.mv.id, 0), IDLE], [IDLE, IDLE])] : [];
+    const preTurn = chipTurns.length + 1;
+    if (chip) { a0.moves = [chip.mv.id].concat(a0.moves.filter(x => idOf(x) !== idOf(chip.mv.id))); }
+    return { arm, precondition: { turn: preTurn, why: 'a weather on the field'
+        + (chip ? ', and the healing body off full HP' : ''),
+        ok: b => !!(b.sd && b.sd.field && b.sd.field.weather)
+              && (!chip || (b.sd.sides.p2.active[0] && b.sd.sides.p2.active[0].hp
+                            < b.sd.sides.p2.active[0].maxhp)) },
+      note: 'the sky it names is ' + skies.join('/') + ', set by ' + set.name
+        + (chip ? ' (and ' + pretty(healer.id) + ' is chipped by ' + chip.mv.name + ' first — it is a '
+            + 'weather-scaled heal and a full body caps it to nothing)' : '')
+        + ', and the move is clicked '
+        + (twoClicks ? 'twice' : 'ONCE (it is a charge move — a second scripted '
+            + 'click lands on a locked body and is rejected)') + ' under it' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: chip ? 1 : 8,
+        a0, b0: bb0, b1: { ...b1, moves: [INERT] },
+        script: chipTurns.concat(self
+          ? [turn([click(set.id, 0), IDLE], [IDLE, IDLE]),
+             turn([IDLE, IDLE], [throwIt(e, 0), IDLE])].concat(twoClicks
+               ? [turn([IDLE, IDLE], [IDLE, IDLE])] : [])
+          : [turn([IDLE, IDLE], [click(set.id), IDLE]),
+             turn([throwIt(e, 0), IDLE], [IDLE, IDLE])].concat(twoClicks
+               ? [turn([throwIt(e, 0), IDLE], [IDLE, IDLE])] : [])) }) };
+  } },
+
+{ id: 'move/needs-the-terrain-it-names', kind: 'move',
+  reads: '`field.terrain` / `isTerrain` inside the move\'s own gate',
+  why: 'STEEL ROLLER\'S WHOLE GATE IS `onTry() { return !this.field.isTerrain(""); }` — it FAILS on a '
+     + 'bare field, which is the only field any other rule stages, so a 130-base-power move was '
+     + 'reported as staging nothing. The terrain is a compared leaf and is set by the other side.',
+  /* THE ANCHOR IS THE SETTING OF THE TERRAIN, not a damage multiplier — there is no terrain
+   * base-power line in this simulator to aim at, which is itself part of what these rows measure.
+   * With the field left bare, Steel Roller's own gate refuses and Expanding Force loses its scaling,
+   * while SHOWDOWN still sets it — so the precondition receipt, which is read off the authority,
+   * still passes and the break lands where the rule points. */
+  break: { why: 'a terrain set by a move is never written to the field',
+    patch: [['field.terrain=_t;field.terrainT=5;if(TR)TR.terrainStart(_t,null,m);',
+             'field.terrainT=5;if(TR)TR.terrainStart(_t,null,m);']] },
+  match(e) {
+    if (!terrainNamedBy(e) || skyNamedBy(e).length) return null;
+    if (!TERRAIN_MOVE) return cannot('no 100-accuracy terrain setter exists in this format');
+    const arm = armFor(e);
+    const b0 = quietBody({ arm, type: e.type }), b1 = quietBody({ arm, type: e.type, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: e.type }));
+    const self = !aimsAtFoe(e);
+    return { arm, precondition: { turn: 1, why: 'a terrain on the field',
+        ok: b => !!(b.sd && b.sd.field && b.sd.field.terrain) },
+      note: 'the terrain gate is set by ' + TERRAIN_MOVE.name + ' on turn 1 (the other '
+        + 'side\'s click, so the control arm keeps it) and the move is clicked under it' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 8,
+        a0: { ...CLICKER(arm), moves: self ? [TERRAIN_MOVE.id] : [e.id] },
+        b0: { ...b0, moves: self ? [e.id] : [TERRAIN_MOVE.id] },
+        b1: { ...b1, moves: [INERT] },
+        script: self
+          ? [turn([click(TERRAIN_MOVE.id), IDLE], [IDLE, IDLE]),
+             turn([IDLE, IDLE], [throwIt(e, 0), IDLE]),
+             turn([IDLE, IDLE], [IDLE, IDLE])]
+          : [turn([IDLE, IDLE], [click(TERRAIN_MOVE.id), IDLE]),
+             turn([throwIt(e, 0), IDLE], [IDLE, IDLE]),
+             turn([throwIt(e, 0), IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/needs-a-stat-stage-to-act-on', kind: 'move',
+  reads: 'a Status move with no `boosts` of its own whose handler reads, clears, swaps or copies them',
+  why: 'HAZE, PSYCH UP, TOPSY-TURVY, GUARD SWAP AND POWER SWAP ARE ALL NO-OPS ON A BOARD WHERE NOBODY '
+     + 'HAS A BOOST, and that is the board every other rule stages. Topsy-Turvy says so in its own '
+     + 'handler: `if (!success) return false;`. The boost is put there by the TARGET\'S OWN CLICK on '
+     + 'turn 1 — the subject move is clicked on turn 2 — so the setup is in both arms and the stage '
+     + 'leaves are compared directly.\n'
+     + '     WHICH STAT IS DERIVED FROM THE MOVE, not assumed. Guard Swap names ["def","spd"] and Power '
+     + 'Swap names ["atk","spa"]; a Swords Dance staged against Guard Swap would leave it inert a '
+     + 'second time and the row would read like an engine finding.',
+  break: { why: 'a stat stage written by a move\'s own boost block is dropped, so there is nothing for '
+              + 'the subject to clear, copy, invert or swap',
+    patch: [['m.boosts[_s]=clamp(m.boosts[_s]+_bo[k]*_sg,-6,6);', 'm.boosts[_s]=m.boosts[_s];']] },
+  match(e) {
+    if (!readsExistingBoosts(e)) return null;
+    const set = boostSetterFor(e);
+    if (!set) return cannot('it reads the stat stages ' + (boostStatsNamedBy(e).join('/') || '(any)')
+      + ' and no all-positive 100-accuracy self-boost move in this format raises one of them, so the '
+      + 'precondition cannot be created');
+    const arm = armFor(e);
+    const b0 = quietBody({ arm }), b1 = quietBody({ arm, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm }));
+    const byFoe = aimsAtFoe(e);
+    /* THE BOOST GOES ON WHOEVER THE MOVE READS. A swap or a copy reads the TARGET, so the target
+     * boosts itself; a field-wide clear (Haze) reads everybody, so the same click serves. */
+    return { arm, precondition: { turn: 1, why: 'a non-zero stat stage on the body the move reads',
+        ok: b => Object.values(((((b.sd || {}).sides || {}).p2 || {}).active || [])[0] || {}).length
+              && Object.values((b.sd.sides.p2.active[0] || {}).boosts || {}).some(v => v !== 0) },
+      note: pretty(b0.species) + ' raises ' + JSON.stringify(set.boosts) + ' with '
+        + set.name + ' on turn 1; the move is clicked on turn 2 and the stage leaves are what is '
+        + 'compared. ' + pretty(b1.species) + ' beside it never boosts and is the negative' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 8,
+        a0: { ...CLICKER(arm), moves: byFoe ? [e.id, set.id] : [set.id] },
+        b0: { ...b0, moves: byFoe ? [set.id] : [e.id, set.id] },
+        b1: { ...b1, moves: [INERT] },
+        script: [turn([IDLE, IDLE], [click(set.id), IDLE]),
+                 turn(byFoe ? [throwIt(e, 0), IDLE] : [IDLE, IDLE],
+                      byFoe ? [IDLE, IDLE] : [throwIt(e, 0), IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/needs-a-berry-already-eaten', kind: 'move',
+  reads: '`ateBerry` / `lastItem` inside the move\'s own gate',
+  why: 'BELCH REFUSES TO FIRE AT ALL — `onTry(source) { return source.ateBerry; }` — and RECYCLE\'s '
+     + 'first line is `if (pokemon.item || !pokemon.lastItem) return false;`. Neither is reachable on a '
+     + 'body that has never consumed anything, which is every body every other rule stages. The user '
+     + 'holds the derived half-HP berry and is CHIPPED on turn 1 so it eats; the move is clicked on '
+     + 'turn 2. The chip is thrown by the other side and survives into the control arm.\n'
+     + '     ONE LIMIT IS PRINTED RATHER THAN HIDDEN: `board_state.js` publishes item DISPOSITION as '
+     + 'NOT_COMPARED — medicham2 has no `lastItem` — so Recycle handing the berry BACK lands on the '
+     + 'item leaf (empty against the berry) and the reason it came back does not.',
+  /* THE ANCHOR IS THE BERRY'S OWN HEAL. `board_state.js` already publishes that medicham2 has no
+   * `lastItem` and no `ateBerry` at all, so there is no memory-of-consumption line to break; what CAN
+   * be broken is the consumption itself, which is the event that puts a berry in the past tense. */
+  break: { why: 'a threshold berry restores nothing when it is eaten',
+    patch: [['m.curHP=Math.min(m.st.hp,m.curHP+_amt);m.item=\'\';', 'm.item=\'\';']] },
+  match(e) {
+    if (!needsAnEatenBerry(e)) return null;
+    if (!HALF_HP_BERRY) return cannot('no legal berry in this format eats itself at half HP, so a '
+      + 'single derived chip cannot make a body consume one');
+    const arm = armFor(e);
+    const self = !aimsAtFoe(e);
+    /* THE TARGET MUST NOT BE IMMUNE TO IT, AND BELCH IS WHY. The bulkiest quiet body in this format
+     * is Goodra-Hisui, which is STEEL — and Belch is POISON. With the berry correctly eaten and the
+     * gate correctly open, the move landed on an immune body and the row read INERT for the third
+     * time, now for a reason that had nothing to do with the precondition. Same fault the status rule
+     * already records against Poison Powder, on the same body. */
+    const b0 = quietBody({ arm, type: self ? null : e.type });
+    const b1 = quietBody({ arm, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: self ? null : e.type }));
+    /* the eater is whoever CLICKS the move — Belch is thrown at a foe by its user, Recycle is aimed
+     * at the user itself, and `aimsAtFoe` is what separates them */
+    const eater = self ? b0 : { ...CLICKER(arm) };
+    const chipTarget = self ? b0.species : CLICKER(arm).species;
+    const chip = neutralHit(chipTarget, e.id);
+    if (!chip) return cannot('no neutral 100-accuracy delivery move exists to take ' + chipTarget
+      + ' to half HP, and a half-HP berry that is never eaten leaves the gate shut');
+    /* THE BERRY EATS AT HALF, SO THE CHIP HAS TO CROSS THE LINE, AND ONE DID NOT. The first version
+     * threw a single neutral hit and both Belch and Recycle came back INERT — the body was chipped,
+     * never dropped below half, never ate, and the gate stayed shut. The row then read exactly like
+     * the coverage limit it had just been written to remove. THREE chips, and the number is derived:
+     * enough copies of the derived hit to take the body past half its flat HP. */
+    const HALVE = HALF_HP_BERRY.id;
+    const eatSp = dex.species.get(self ? b0.species : CLICKER(arm).species);
+    /* THE 0.85 ROLL AND NOT THE MAXIMUM, AND THE RECEIPT IS WHAT FOUND IT. `maxRoll` prices the top
+     * of the damage range, which is the corner the PRIMARY arm pins — but a sub-100-accuracy move
+     * runs on `bottom-tie-first`, whose corner is the MINIMUM roll. Belch is 90-accurate, so its chip
+     * count was computed one roll too generous, the body never crossed the half-HP line, the berry
+     * was never eaten and the gate stayed shut. It did not read as a pass: `precondition.ok` said
+     * THE PRECONDITION DID NOT LAND, which is the whole reason that check exists. */
+    const per = Math.floor(maxRoll(dex.species.get(self ? CLICKER(arm).species : b0.species),
+                                   chip, eatSp) * 0.85);
+    const hp = flatL50(eatSp.baseStats).hp;
+    const need = per > 0 ? Math.ceil((hp / 2) / per) : 0;
+    /* SIX CHIP TURNS IS THE CEILING AND IT IS A COST DECISION, NOT A CORRECTNESS ONE. The chipper is
+     * whichever quiet body the move's own type can be aimed at, which for a POISON move is not the
+     * hardest hitter in the pool — Belch needs five. Each turn is two more games; the alternative is
+     * retiring a row for being slow, which is a fixture limit dressed as a coverage limit. */
+    if (!need || need > 6) return cannot('the derived chip ' + chip.name + ' deals ' + per + ' into '
+      + pretty(eatSp.id) + '\'s ' + hp + ' HP, so it would take ' + (need || 'infinitely many')
+      + ' turns to cross the half-HP line the berry eats at — and a berry that is never eaten leaves '
+      + 'the gate shut, which is the inert row this rule exists to remove');
+    const chipTurn = self ? turn([click(chip.id, 0), IDLE], [IDLE, IDLE])
+                          : turn([IDLE, IDLE], [click(chip.id, 0), IDLE]);
+    const clickTurn = self ? turn([IDLE, IDLE], [throwIt(e), IDLE])
+                           : turn([throwIt(e, 0), IDLE], [IDLE, IDLE]);
+    const eatSide = self ? 'p2' : 'p1';
+    return { arm, precondition: { turn: need,
+        why: 'the ' + HALF_HP_BERRY.name + ' EATEN — the holder\'s item slot empty on Showdown\'s board',
+        ok: b => !((((b.sd || {}).sides || {})[eatSide] || {}).active || [])[0]
+              || !b.sd.sides[eatSide].active[0].item },
+      note: pretty(eater.species) + ' holds a ' + HALF_HP_BERRY.name + ', is chipped '
+        + need + 'x by ' + chip.name + ' (' + per + ' a time into ' + hp + ' HP) so it crosses the '
+        + 'half-HP line and EATS it, then clicks with `ateBerry` set' + armNote(e),
+      scenario: scaffold({ hpA: 1, hpB: 1,
+        a0: self ? mon(CLICKER(arm).species, '', CLICKER(arm).ability, [chip.id])
+                 : mon(CLICKER(arm).species, HALVE, CLICKER(arm).ability, [e.id]),
+        b0: self ? { ...b0, item: HALVE, moves: [e.id] } : { ...b0, moves: [chip.id] },
+        b1: { ...b1, moves: [INERT] },
+        script: Array.from({ length: need }, () => chipTurn)
+          .concat([clickTurn, turn([IDLE, IDLE], [IDLE, IDLE])]) }) };
+  } },
+
+{ id: 'move/needs-the-user-off-full-hp', kind: 'move',
+  reads: 'a volatile whose own condition heals on residual',
+  why: 'AQUA RING AND INGRAIN INSTALL A VOLATILE WHOSE WHOLE CONTENT IS `onResidual(p) { this.heal(p.'
+     + 'baseMaxhp / 16); }`. On a full body that heal is capped to nothing in both engines, the '
+     + 'volatile is not a leaf `board_state.js` compares, and the row reported that nothing happened. '
+     + 'The user is chipped on turn 1 by the other side, rings on turn 2, and the residual has two '
+     + 'boundaries to arrive on.',
+  break: { why: 'the residual heal is skipped, which is the only path this family reaches HP by',
+    patch: [['if(a.kind===\'heal\'){', 'if(a.kind===\'heal\'){m._lastMove=a.mv;continue;}if(a.kind===\'heal\'){']] },
+  match(e) {
+    if (!healsOnResidual(e)) return null;
+    const arm = armFor(e);
+    const b0 = quietBody({ arm }), b1 = quietBody({ arm, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm }));
+    const chip = neutralHit(b0.species, e.id), chip2 = neutralHit(b1.species, e.id);
+    if (!chip || !chip2) return cannot('no neutral 100-accuracy delivery move exists to take the two '
+      + 'bodies off full HP, and a residual heal into a full body is invisible');
+    return { arm, precondition: { turn: 1, why: 'the ringing body OFF full HP — a residual heal into '
+        + 'a full body is capped to nothing in both engines and reaches no leaf',
+        ok: b => { const a = ((((b.sd || {}).sides || {}).p2 || {}).active || [])[0];
+                   return !!a && a.hp < a.maxhp; } },
+      note: pretty(b0.species) + ' is chipped by ' + chip.name + ' on turn 1 and installs '
+        + e.volatileStatus + ' on turn 2; ' + pretty(b1.species) + ' is chipped identically and never '
+        + 'rings, so the residual is visible on ONE of the two bodies' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 4,
+        a0: mon(CLICKER(arm).species, '', CLICKER(arm).ability, [chip.id]),
+        a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [chip2.id]),
+        b0: { ...b0, moves: [e.id] }, b1: { ...b1, moves: [INERT] },
+        script: [turn([click(chip.id, 0), click(chip2.id, 1)], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [throwIt(e), IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/needs-a-volatile-set-first', kind: 'move',
+  reads: 'a volatile named inside the move\'s own onTry, and the move in this format that sets it',
+  why: 'SPIT UP AND SWALLOW REFUSE OUTRIGHT — `onTry(source) { return !!source.volatiles["stockpile"]; '
+     + '}` — and neither had ever been staged on a body that had stockpiled. The SETTER is found in the '
+     + 'format by matching the named volatile against every move\'s `volatileStatus`, so a mechanic '
+     + 'added later is picked up with no edit here. It is clicked twice, by the subject itself, on the '
+     + 'two turns before the move — which puts the LAYER COUNT in play as well as the gate.',
+  /* NOTHING TO BREAK, DECLARED AND CHECKED. Both members come back DID-NOT-FIRE with the clean
+   * source: the gate volatile is not written in this simulator at all, so there is no line to aim at
+   * and the ABSENCE is the finding. The declaration is not taken on trust — `--reds` fails it the
+   * moment any member of this rule fires, exactly as a stale DECLARED divergence is failed. */
+  noBreak: 'medicham2 writes no `stockpile`-shaped gate volatile at all, so there is no line to break: '
+     + 'every member of this rule reads DID-NOT-FIRE against the clean source, which is what proves it.',
+  match(e) {
+    const need = volatileRequiredBy(e).map(v => ({ v, set: volatileSetter(v) })).find(x => x.set);
+    if (!volatileRequiredBy(e).length) return null;
+    if (!need) return cannot('its own gate requires the volatile(s) '
+      + volatileRequiredBy(e).join('/') + ' and no 100-accuracy self-targeting move in this format '
+      + 'sets one, so the precondition cannot be created from a move click');
+    const arm = armFor(e);
+    const b0 = quietBody({ arm, type: e.type }), b1 = quietBody({ arm, type: e.type, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: e.type }));
+    const self = !aimsAtFoe(e);
+    const user = self ? b0 : b0;      // both families here are clicked BY the subject body
+    return { arm, note: 'the gate is `' + need.v + '`, set by ' + need.set.name + ' on turns 1 and 2, '
+        + 'and the move is clicked on turn 3 with two layers on it' + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 8,
+        a0: { ...CLICKER(arm), moves: [INERT] },
+        b0: { ...user, moves: [e.id, need.set.id] }, b1: { ...b1, moves: [INERT] },
+        script: [turn([IDLE, IDLE], [click(need.set.id), IDLE]),
+                 turn([IDLE, IDLE], [click(need.set.id), IDLE]),
+                 turn([IDLE, IDLE], [throwIt(e, 0), IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'move/traps-and-somebody-tries-to-leave', kind: 'move',
+  reads: '`volatileStatus === "partiallytrapped"`, or an onHit that adds the `trapped` volatile',
+  why: 'BLOCK CAME BACK INERT BECAUSE NOBODY EVER TRIED TO SWITCH. A trap is a REFUSAL, not a board '
+     + 'leaf, and the only way to observe a refusal is to make the ask — so this rule scripts one. '
+     + 'Will, 2026-08-10: *"we need to test the switch blocking like shadow tag, block, and the '
+     + 'trapping moves, so we need to be able to switch in the test"*.\n'
+     + '     WHAT IS COMPARED IS NOT A BOARD LEAF AND THE ENTRY SAYS SO. Showdown answers a trapped '
+     + 'switch by REJECTING THE CHOICE, which the driver turns into a thrown game; ours answers by '
+     + 'leaving the body where it is, which IS on the board. Both are the same question asked of two '
+     + 'engines and they are compared as such.\n'
+     + '     THE CONTROL IS A HARD PRECONDITION OF THE VERDICT: without the trap the identical switch '
+     + 'must SUCCEED in both engines, or the probe\'s own action shape is what "did not switch" is '
+     + 'measuring. The partial family also carries a compared leaf (`trapped_by_move`) and its counter '
+     + 'is read at the boundary before the ask, so this rule does not lose the coverage it inherits.',
+  /* THE ANCHOR IS THE REFUSAL ITSELF (WIRE 116), which is the only line in the simulator this rule
+   * can aim at: the trap's COUNTER and its CHIP are written elsewhere and belong to other rules'
+   * breaks. What this rule tests is whether the switch is HELD, so that is what is broken — the trap
+   * is still set, still chips and still counts down, and the body simply leaves. */
+  break: { why: 'the partial trap no longer holds the switch',
+    patch: [['MEDSEEN.trapBlockedSwitchByMove++;continue;', 'MEDSEEN.trapBlockedSwitchByMove++;']] },
+  match(e) {
+    const hard = trapsHard(e), partial = trapsPartial(e);
+    if (!hard && !partial) return null;
+    const arm = armFor(e);
+    const b0 = quietBody({ arm, type: e.type });
+    if (!b0) return cannot(noBodyWhy({ arm, type: e.type }));
+    const bench = quietBody({ arm, not: [b0.species] });
+    const b1 = quietBody({ arm, not: [b0.species, bench && bench.species] });
+    if (!bench || !b1) return cannot(noBodyWhy({ arm, not: [b0.species] })
+      + ' A trap probe needs THREE distinct bodies on the trapped side: the one that is trapped, its '
+      + 'partner, and the bench body it tries to leave for.');
+    return { arm, switchProbe: { side: 'B', slot: 0, to: bench.species, turn: 2 },
+      note: pretty(b0.species) + ' is trapped by ' + e.name + ' on turn 1 and asks to switch to '
+        + pretty(bench.species) + ' on turn 2. ' + (hard ? 'HARD trap — nothing about it is a compared '
+          + 'leaf, so the refusal is the whole row' : 'PARTIAL trap — its counter IS compared at '
+          + 'boundary 1 and the refusal is the half that never was') + armNote(e),
+      scenario: scaffold({ hpA: 4, hpB: 8,
+        a0: { ...CLICKER(arm), moves: [e.id] },
+        b0: { ...b0, moves: [INERT] }, b1: { ...b1, moves: [INERT] },
+        b2: { ...bench, moves: [INERT] },
+        script: [turn([throwIt(e, 0), IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [{ sw: bench.species }, IDLE])] }) };
+  } },
+
 { id: 'move/self-switch', kind: 'move',
   reads: 'selfSwitch',
   why: 'THE USER LEAVING THE FIELD IS THE ONLY EFFECT IN THIS FAMILY THAT IS UNAMBIGUOUSLY ON THE '
@@ -4504,10 +5046,50 @@ const RULES = [
     const arm = armFor(e);
     const setter = /weather|sun|rain|sand|snow|hail/i.test(e.shortDesc || '') ? 'weather'
                  : /terrain/i.test(e.shortDesc || '') ? 'terrain' : null;
-    if (!setter) return cannot('the condition that changes its type is not named in its own '
-      + 'description, so no staging can be derived from the move\'s data: ' + (e.shortDesc || '(none)')
-      + '. Aura Wheel and Raging Bull read the USER\'S FORME, which is an ability/species question '
-      + 'rather than a move one.');
+    if (!setter) {
+      /* THE FORME-KEYED HALF OF THIS FAMILY, DERIVED RATHER THAN SHRUGGED AT. The old refusal said
+       * "the condition is not named in its own description", which was true of the shortDesc and
+       * false of the move: `onModifyType` switches on `pokemon.species.name` and NAMES EVERY FORME
+       * AND EVERY TYPE IT CONVERTS TO. That table is read out here and printed with the refusal, so
+       * the row states exactly what staging it is owed instead of what it could not find.
+       *
+       * WHY IT IS STILL A REFUSAL. Every other arm of this rule works by VARYING A KNOB ON ONE BOARD
+       * — clear sky on turn 1, sun on turn 3, identical damage means the type never changed. THE
+       * FORME IS NOT A KNOB: Tauros-Paldea-Combat and Tauros-Paldea-Blaze are different species, so
+       * separating "the conversion happened" from "these two bodies have different stats" needs two
+       * users, two defenders and a cross-comparison this rule's scaffold does not express. Staging
+       * one forme and reading a damage number would prove only that the move deals damage, which is
+       * the vacuous green this file exists to refuse.
+       *
+       * ONE OF THE TWO HAS A KNOB AND IT IS WORTH RECORDING: Morpeko flips forme at the END OF EVERY
+       * TURN through Hunger Switch, so Aura Wheel clicked on two consecutive turns by ONE body is
+       * Electric then Dark — the same shape as the weather arm, on the same board. Morpeko-Hangry is
+       * `battleOnly` and cannot be built directly; the base forme can, and the flip does the work. */
+      const src = String(e.onModifyType || '');
+      const formes = [];
+      /* TWO SPELLINGS, BECAUSE SHOWDOWN USES BOTH AND THE FIRST VERSION READ ONLY ONE. Aura Wheel is
+       * an `if (pokemon.species.name === '...')` and Raging Bull is a `switch (pokemon.species.name)`
+       * with three `case` arms — a regex that knew only the comparison form derived Aura Wheel's
+       * table and reported Raging Bull as underivable, which is the same shape of miss the whole
+       * refusal was being replaced for. */
+      for (const x of src.matchAll(/species\.(?:name|id)\s*===?\s*['"]([\w-]+)['"][\s\S]{0,80}?type\s*=\s*['"]([A-Z][a-z]+)['"]/g))
+        formes.push(x[1] + ' -> ' + x[2]);
+      if (/switch\s*\(\s*\w+\.species\.(?:name|id)\s*\)/.test(src))
+        for (const x of src.matchAll(/case\s*['"]([\w-]+)['"]\s*:[\s\S]{0,60}?type\s*=\s*['"]([A-Z][a-z]+)['"]/g))
+          formes.push(x[1] + ' -> ' + x[2]);
+      if (formes.length) return cannot('ITS TYPE IS KEYED ON THE USER\'S FORME, and the table is '
+        + 'derived from its own onModifyType rather than missing: ' + formes.join(', ')
+        + ' (printed type ' + e.type + '). A forme is not a knob that can be varied on one board — '
+        + 'the formes are different SPECIES with different stats — so isolating the conversion needs '
+        + 'two users and a cross-comparison this rule\'s scaffold does not express, and staging one '
+        + 'forme would read as a damage number that proves only that the move deals damage. '
+        + (/morpeko/i.test(src) ? 'THIS ONE HAS A KNOB: Hunger Switch flips Morpeko\'s forme at the '
+            + 'end of every turn, so two consecutive clicks by one body are the two branches on one '
+            + 'board — the same shape as the weather arm. Owed, not impossible.'
+          : 'Its users are separate species and it has no such knob.'));
+      return cannot('the condition that changes its type is not named in its own '
+        + 'description, so no staging can be derived from the move\'s data: ' + (e.shortDesc || '(none)'));
+    }
     const set = dex.moves.all().find(m => m.exists && !m.isNonstandard && alwaysHits(m)
       && (setter === 'weather' ? m.weather === 'sunnyday' : !!m.terrain));
     if (!set) return cannot('no 100-accuracy move in this format sets the ' + setter + ' this move '
@@ -4594,29 +5176,49 @@ const RULES = [
           script: [turn([IDLE, IDLE], [throwIt(e, 0), IDLE]),
                    turn([IDLE, IDLE], [throwIt(e, 0), IDLE])] }) };
     }
-    const spd = s => flatL50(s.baseStats).sp;
-    const pool = moveBodies(arm).filter(r => spd(r.sp) < spd(atk) && spd(r.sp) < spd(atk2)
-      && dex.getImmunity(e.type, atk.types) !== false);
-    let pick = null;
-    for (const r of pool) { const k1 = lethalMove(atk, r.sp, 1.2); if (!k1) continue;
-      for (const r2 of pool) { if (r2.sp.id === r.sp.id) continue;
-        const k2 = lethalMove(atk2, r2.sp, 1.2); if (!k2) continue;
-        const plain = neutralHit(atk2.id, e.id); if (!plain) continue;
-        pick = { r, r2, k1: k1.mv, k2: k2.mv, plain }; break; }
-      if (pick) break; }
-    if (!pick) return cannot('no pair of bodies in the move pool is both SLOWER than the two derived '
-      + 'aggressors and killable outright by them, so a bracket has no way onto the board: without a '
-      + 'KO the turn ends in the same state whichever order it resolved in');
-    return { arm, note: 'priority +' + e.priority + ' — ' + pretty(pick.r.sp.id) + ' is slower and '
-        + 'dies to ' + pick.k1.name + ', and its click must land FIRST; ' + pretty(pick.r2.sp.id)
-        + ' beside it throws a 0-priority ' + pick.plain.name + ' and must never get to act' + armNote(e),
+    /* THE PAIRING IS DERIVED FROM THE MOVE'S OWN LEARNSET, OUTWARD — see `orderPair`. The previous
+     * version reasoned from the five-species move pool inward and refused all fifteen members of this
+     * family with "no pair of bodies in the move pool is both SLOWER than the two derived aggressors
+     * and killable outright by them", which is a fact about the FORMAT'S ABILITY LIST wearing a fact
+     * about priority. Will, 2026-08-10: *"test all the prio moves by finding the slowest user of the
+     * moves and have them use it against the faster user of a normal prio move"*. */
+    const P = orderPair(e);
+    if (P.why) return cannot('a bracket is only observable if the ORDER decides the final board, and '
+      + P.why + '. Derived from the move outward — its own users, slowest first — rather than from a '
+      + 'fixed body pool inward.');
+    const legality = legalPair(P.user.id, P.userAbility, e.id);
+    if (legality) return cannot('its slowest legal user by learnset is ' + pretty(P.user.id)
+      + ' and the format\'s own validator refuses that pairing: ' + legality);
+    const b1 = quietBody({ arm, not: [P.user.id, P.foe.id] });
+    const back = b1 ? neutralHit(P.foe.id, e.id) : null;
+    /* THE ON-BOARD NEGATIVE, and it is the whole content of the reading. The partner is equally doomed
+     * and throws a 0-PRIORITY move at the other aggressor slot, so one turn produces two clicks that
+     * differ ONLY in their bracket: the priority one must connect and the ordinary one must not. */
+    const neg = (b1 && back && lethalMove(dex.species.get(CAST.ATTACKER2().species),
+                                          dex.species.get(b1.species), 1.2))
+      ? { body: b1, back, kill: lethalMove(dex.species.get(CAST.ATTACKER2().species),
+                                           dex.species.get(b1.species), 1.2).mv } : null;
+    return { arm, note: 'priority +' + e.priority + ' — ' + pretty(P.user.id) + ' is the SLOWEST legal '
+        + 'user of this move in the format (' + P.speeds + ' Speed) and dies outright to '
+        + pretty(P.foe.id) + '\'s ' + P.kill.name + '. '
+        + (P.flinch ? 'It carries a 100% FLINCH, which fires in both pin arms, so with the bracket '
+            + 'correct the foe never acts and the user is UNTOUCHED at the boundary; with it ignored '
+            + 'the user is dead before it clicks.'
+          : 'With the bracket correct the click lands and the foe is DAMAGED; with it ignored the user '
+            + 'dies first and the foe is UNTOUCHED. The foe\'s HP is the leaf.')
+        + (neg ? '  ' + pretty(neg.body.species) + ' beside it is equally doomed and throws a '
+            + '0-priority ' + neg.back.name + ', which must NEVER connect.'
+              : '  NO ON-BOARD NEGATIVE: no second doomed body with an ordinary click could be derived, '
+            + 'so the ignored-bracket board is supplied by the CONTROL ARM alone.') + armNote(e),
       scenario: scaffold({
-        a0: mon(atk.id, '', CAST.ATTACKER().ability, [pick.k1.id]),
-        a1: mon(atk2.id, '', CAST.ATTACKER2().ability, [pick.k2.id]),
-        b0: mon(pick.r.sp.id, '', pick.r.ability, [e.id]),
-        b1: mon(pick.r2.sp.id, '', pick.r2.ability, [pick.plain.id]),
-        script: [turn([click(pick.k1.id, 0), click(pick.k2.id, 1)],
-                      [throwIt(e, 0), click(pick.plain.id, 1)])] }) };
+        a0: mon(P.foe.id, '', P.foeAbility, [P.kill.id]),
+        a1: neg ? mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [neg.kill.id])
+                : mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [INERT]),
+        b0: mon(P.user.id, '', P.userAbility, [e.id]),
+        b1: neg ? mon(neg.body.species, '', neg.body.ability, [neg.back.id]) : undefined,
+        script: [turn([click(P.kill.id, 0), neg ? click(neg.kill.id, 1) : IDLE],
+                      [throwIt(e, 0), neg ? click(neg.back.id, 1) : IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])] }) };
   } },
 
 { id: 'move/crit', kind: 'move',
@@ -4927,7 +5529,13 @@ function assign(kind) {
     sc.arm = hit.m.arm || PRIMARY_ARM_ID;
     const row = { kind, id: e.id, name: e.name, rule: hit.rule.id, ruleObj: hit.rule,
                   reads: hit.rule.reads, note: hit.m.note || '', tier: hit.m.tier || null,
-                  controlQuiet: hit.m.controlQuiet !== false, scenario: sc };
+                  controlQuiet: hit.m.controlQuiet !== false, scenario: sc,
+                  /* THE ONE ROW SHAPE THAT IS NOT A BOARD COMPARISON — see `switchVerdict`. It has to
+                   * travel from the rule to `runEntry`, and dropping it here would silently turn a
+                   * refusal probe back into a board comparison that always reads THREW. */
+                  switchProbe: hit.m.switchProbe || null,
+                  /* the receipt a precondition rule owes — see the check in `runEntry` */
+                  precondition: hit.m.precondition || null };
     const nq = controlQuietAudit(row);
     if (nq) row.controlNotQuiet = nq;
     out.push(row);
@@ -5257,7 +5865,28 @@ function main() {
       /* the first member of the rule that staged something is enough to demonstrate the break: the
        * plant is aimed at the RULE's mechanism, so a member that moves proves the mechanism is live */
       let moved = null;
-      for (const member of byRule[rid].slice(0, 4)) {
+      /* A GREEN MEMBER FIRST, AND THE ORDER IS THE DEMONSTRATION. The list was taken alphabetically,
+       * and a member that ALREADY reads DID-NOT-FIRE against the clean source reads DID-NOT-FIRE
+       * against the broken one too — so the plant is credited with a verdict it did not cause and
+       * the rule is marked CAUGHT having proved nothing. Measured on
+       * `move/needs-a-stat-stage-to-act-on`, where Acupressure is both first alphabetically and
+       * already red. A member whose board AGREES is the only one whose flip is attributable to the
+       * break, so those are tried first and the alphabetical order is the fallback. */
+      /* AND THE FALLBACK IS KEPT, LABELLED, RATHER THAN DROPPED. Preferring greens is right and it
+       * cost two rules their demonstration on the first full run — `move/fixed-damage` and (before
+       * its anchor was re-aimed) `move/needs-the-sky-it-names` — because their green members are the
+       * ones the plant does not reach. Losing a weak demonstration to gain a strong one is not a
+       * trade this file should make silently, so the red members are still tried afterwards and a
+       * catch on one is printed as WEAK: the member was ALREADY red, so the flip is not attributable
+       * to the plant and the rule is not shown to express its own mechanic. */
+      const green = byRule[rid].filter(x => x.verdict === 'FIRED-AND-BOARDS-MATCH');
+      const other = byRule[rid].filter(x => x.verdict !== 'FIRED-AND-BOARDS-MATCH');
+      /* EIGHT GREENS AND NOT FOUR. `move/volatile` has thirty-two members and its provable one —
+       * Disable — is the fifth green; a four-deep slice cut it and the rule read NOT CAUGHT for a
+       * reason that was about this loop. The search stops at the first flip, so the ceiling costs
+       * nothing on a rule that can demonstrate itself and buys the ones that cannot do it early. */
+      const order = green.slice(0, 8).concat(other.slice(0, 4));
+      for (const member of order) {
         const br = runEntry({ ...member, brokenSrc: src });
         /* CONTROL-NOT-QUIET COUNTS AS "THE BOARD MOVED" HERE AND NOWHERE ELSE. The red demonstration
          * asks whether the PLANT changes a board, which is a question about the simulator; the quiet
@@ -5265,6 +5894,8 @@ function main() {
         if (br.verdict === 'FIRED-AND-BOARDS-DIFFER' || br.verdict === 'DID-NOT-FIRE'
             || br.verdict === 'CONTROL-NOT-QUIET') {
           moved = { member: member.id, verdict: br.verdict,
+                    weak: member.verdict !== 'FIRED-AND-BOARDS-MATCH',
+                    was: member.verdict,
                     fields: [...new Set((br.subject_diffs || []).map(d => d.field))] };
           break;
         }
@@ -5342,6 +5973,10 @@ function main() {
           + '— its species carries no quiet alternative — so this delta is (subject MINUS a live '
           + 'control) and cannot on its own say which of the two moved the board.');
       } else {
+        /* A REFUSAL PROBE HAS NO `diffs` AND ITS WHOLE FINDING IS THE SENTENCE. Printing only the
+         * leaf list would show a DIFFER row with nothing under it, which reads as a broken report
+         * rather than as the strongest thing this instrument can say about a trap. */
+        if (r.switch_probe) console.log('      ' + String(r.why).replace(/\s+/g, ' '));
         for (const d of (r.subject_diffs || []).slice(0, 6)) {
           console.log('        SHOWDOWN  ' + BS.explain(d, d.sd, pretty));
           console.log('        OURS      ' + BS.explain(d, d.us, pretty)
@@ -5366,7 +6001,12 @@ function main() {
       + (row.declared ? (row.ok ? 'NOTHING TO BREAK ' : 'FALSE DECLARATION ') : (row.ok ? 'CAUGHT   ' : 'NOT CAUGHT '))
       + row.rule
       + (row.moved ? '   via ' + row.moved.member + ' -> ' + row.moved.verdict + ' on '
-                     + row.moved.fields.join(', ') : '\n        ' + row.why.replace(/\s+/g, ' ')));
+                     + row.moved.fields.join(', ')
+                     + (row.moved.weak ? '\n        WEAK — ' + row.moved.member + ' was ALREADY '
+                         + row.moved.was + ' against the clean source, so the flip is not '
+                         + 'attributable to the plant and this rule is NOT shown to express its own '
+                         + 'mechanic. No green member of it could be moved.' : '')
+                   : '\n        ' + row.why.replace(/\s+/g, ' ')));
   }
 
   /* THE DIFFERENCES THAT BELONG TO NO ENTITY. Collected rather than dropped: each is a real
@@ -5461,6 +6101,10 @@ function main() {
       results: results.map(r => ({ kind: r.kind, id: r.id, name: r.name, rule: r.rule, reads: r.reads || null,
         note: r.note || null, verdict: r.verdict, why: r.why || null,
         arm: (r.scenario && r.scenario.arm) || PRIMARY_ARM_ID, control_why: r.control_why || null,
+        /* THE REFUSAL PROBE'S OWN EVIDENCE. Its verdict rests on four facts that are not board leaves
+         * — who refused, who moved, in which arm — and an artifact carrying only `diffs` would show a
+         * DIFFER row with an empty difference list, which reads exactly like a bug in this file. */
+        switch_probe: r.switch_probe || null,
         sd_delta: (r.sd_delta || []).map(d => ({ turn: d.turn, path: d.path, with: d.with, without: d.without })),
         diffs: (r.subject_diffs || []).map(d => ({ turn: d.turn, slot: d.slot, body: d.body,
           field: d.field, showdown: d.sd, ours: d.us, bucket: d.bucket })) })) };

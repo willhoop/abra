@@ -327,7 +327,25 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * Struggle in the chooser and was ignored outright for a caller-supplied action. A zero after real
    * games with an Encore in them is the finding -- it means the punished body is still being handed
    * something it can use. */
-  lockedIntoStatusMove: 0 };
+  lockedIntoStatusMove: 0,
+  /* WIRE 146 -- THE COMPOSED-EFFECT RIDER, three counters, because "the classifier saw a second
+   * effect" and "the turn loop applied it" are different claims and the whole defect was that the
+   * first was true and the second was not:
+   *   composedRiderBuilt      playerAction attached an `also` list to an action. FIVE moves in the
+   *                           format do -- chillyreception, noretreat, minimize, charge and shedtail,
+   *                           whose substitute rider is then refused by applyMoveVolatile because
+   *                           grantSubstitute owns that volatile. So Built > Weather + Volatile by
+   *                           exactly the Shed Tail count, by design, and a zero here means the
+   *                           composer matched nothing at all;
+   *   composedRiderWeather    a rider actually set a sky (Chilly Reception). A built-but-never-run
+   *                           rider would otherwise look exactly like the bug being fixed;
+   *   composedRiderVolatile   a rider actually wrote a volatile (No Retreat, Minimize, Charge). */
+  composedRiderBuilt: 0, composedRiderWeather: 0, composedRiderVolatile: 0,
+  /* WIRE 146 -- a boost applied to the WHOLE of the user's side because the move's own dex target is
+   * `allies` (user AND partner, `Pokemon#alliesAndSelf`). Howl is the only member that reaches the
+   * boost branch; Life Dew is the other `allies` move and is a heal. Zero means the target read has
+   * come unwired and Howl is back to boosting the partner only. */
+  boostAlliesSideWide: 0 };
 const MEDFAILS = { encoreAction: 0,
   /* WIRE 143 -- the execution-time override was owed and `playerAction` could not BUILD the encored
    * click (it came back null or as the unmodelled `pass`). The un-encored action then runs, which is a
@@ -564,7 +582,16 @@ const MEDFAILS = { encoreAction: 0,
   /* ROADMAP #68. A trace emit asked for the slot of a body that is in neither active array. The line
      is still emitted, with `??` where the identifier goes, because a HOLE in the stream is worse than
      a wrong label -- a missing line reads to the differ as a missing MECHANIC. Must read 0. */
-  traceBodyOffField: 0, traceBodyOffFieldFirst: '' };
+  traceBodyOffField: 0, traceBodyOffFieldFirst: '',
+  /* WIRE 146 -- a move carries an effect CLASS the composer has no applier for (a stat table, a
+   * terrain) under a kind that does not apply it. Zero over the whole 500-move tag corpus today; a
+   * non-zero names the first member, because "the composer covers everything" is exactly the kind of
+   * claim that stops being true without anyone noticing. */
+  composedEffectUnexpressed: 0, composedEffectUnexpressedFirst: '',
+  /* WIRE 146 -- a rider's effect is directed at a TARGET and no live body sits in the aimed slot, so
+   * there is nowhere to put it. It is dropped, and counted rather than dropped silently: every
+   * member of the rider set today is user-directed, so a non-zero here is a new shape arriving. */
+  composedRiderNoTarget: 0, composedRiderNoTargetFirst: '' };
 
 /* ================= THE SHOWDOWN-SHAPED PROTOCOL TRACE — ROADMAP #68, step one ====================
  *
@@ -1312,6 +1339,27 @@ function weatherId(w){
  * rock's rulebook text names the move; `weatherSetter.weather` holds ENGINE words (`sun`). Both go
  * through `weatherId` before they are compared, so neither spelling is authoritative and adding a
  * fifth setter route cannot reintroduce the split. */
+/* WIRE 146 -- ONE WEATHER SETTER, and it is the `kind:'weather'` branch's own body lifted out
+ * verbatim so the rider cannot set a sky by a different rule. Returns TRUE when the sky CHANGED; the
+ * branch turns a false into `mvFail`, and the rider does not, which is the one thing the two callers
+ * legitimately disagree about: Showdown's Sunny Day fails outright against standing sun, while Chilly
+ * Reception sets its snow from `onTry` and pivots regardless of whether the sky moved.
+ *
+ * WIRE 70 -- THE ROCKS, and the artifact has carried the number since the item tags existed:
+ * `extendsDuration {extends:["sunnyday"], toTurns:8, insteadOf:5}` on Heat, Damp, Smooth and Icy Rock.
+ * The SCREEN branch has read that tag since Light Clay was wired; this code wrote a literal 5, so all
+ * four rocks were inert on the one mechanic they exist for -- three extra turns of sun, which on a
+ * Charizard-Y team is most of the game. Same tag, same shape, one consumer short, found by the
+ * weather audit. The comment beside the weather line used to say the rocks "are not consumed here"
+ * and named it a gap. */
+function applyMoveWeather(m,mvId,field){
+  const w=weatherId((moveFx(mvId)||{}).weather);
+  if(!w||field.weather===w)return false;
+  field.weather=w;
+  field.weatherT=weatherTurns(w,m&&m.item);
+  if(TR)TR.wx(w);
+  return true;
+}
 function weatherTurns(weather, item, TAGSMOD){
   const w=weatherId(weather);
   if(!w)return 0;
@@ -5177,6 +5225,127 @@ function applyConfusion(t,src,field,viaSecondary){
   itemCuresVolatile(t,'confusion');
   return true;
 }
+/* WIRE 146 -- APPLYING A MOVE'S VOLATILE IS ONE IMPLEMENTATION, AND UNTIL NOW IT WAS ONE *SITE*.
+ *
+ * Every statement in this function was lifted verbatim out of the `kind==='affect'` branch's `si`
+ * loop, with its `continue`s becoming `return`s -- an exact transformation there, because the
+ * `if(_e.volatile)` block was the LAST thing in that loop body, so ending the iteration and returning
+ * from a call are the same event. Nothing was added, removed or reordered in the move.
+ *
+ * IT IS EXTRACTED BECAUSE A SECOND CALLER NOW EXISTS. WIRE 146's rider (see composeResiduals) applies
+ * the volatile half of a move whose PRIMARY effect was claimed by a different branch -- No Retreat's
+ * mark riding on a `setup`, Minimize's on another. A second hand-written copy of this block is
+ * precisely what CLAUDE.md's "FACTS ARE GLOBAL" rule forbids: Mental Herb, the no-restart rule, the
+ * Encore lock and Disable's `_sealed` would then live in two places and disagree the first time one
+ * of them was corrected.
+ *
+ * `alreadyMoved` is the one thing it cannot compute for itself -- it is a question about THIS TURN's
+ * outstanding actions, which only the turn loop holds. */
+function applyMoveVolatile(who,vol,src,mvId,field,opts){
+  if(!who||!vol)return false;
+  /* WIRE 69 -- A MOVE-SEALING VOLATILE FAILS AGAINST A TARGET WITH NO LAST MOVE, and this
+     guard has to come BEFORE the volatile is written. The first version sat two lines lower,
+     after the assignment, so it skipped the bookkeeping and left the volatile on -- the pair
+     matrix kept reading `vol medi=["encore"] sd=[]` and the fix looked landed.
+     ROADMAP #111 -- AND IT WAS WRITTEN `=== 'encore'`, SO DISABLE NEVER HAD IT. Showdown
+     refuses both (`disable.onTryHit` returns false on `!target.lastMove`; encore's
+     `onStart` does the same), and `data/roster.moves.json` measured the cost: on the turn
+     before its target had ever moved, `vol.disable` read showdown=0 ours=4. The membership
+     is now derived -- see volNeedsLastMove -- so a third sealer arriving is covered. */
+  if(volNeedsLastMove(vol)&&!who._lastMove){ MEDSEEN.volSealNoLastMove++; return false; }
+  /* ROADMAP #111 -- AND RE-APPLYING ONE THE BODY ALREADY CARRIES FAILS. `Pokemon#addVolatile`
+     returns false when the volatile is present and its condition declares no `onRestart`,
+     and none of this family does. Writing the counter again REFRESHED it, which is why a
+     Taunt clicked on two consecutive turns read 2 at both boundaries where Showdown reads
+     2 then 1 -- the clock never ran down while the move was being re-clicked. Restricted to
+     the duration family on purpose: Protect, Follow Me, Rage Powder and Helping Hand are
+     per-turn volatiles that MUST be re-settable, and a blanket no-restart rule would have
+     caught all four (docs/LESSONS §4 -- print what the rule matches before wiring it). */
+  if(durationVolatiles().has(vol)&&who._vol&&who._vol[vol]>0){
+    MEDSEEN.volRestartRefused++; return false; }
+  /* ROADMAP #81 WIRE 7 -- THE SUBSTITUTE VOLATILE IS ALREADY OWNED, AND THIS LOOP WAS
+     ANNOUNCING IT A SECOND TIME. `grantSubstitute` holds the doll's size, its failure rule
+     and its `-start`; this generic path then wrote `_vol.substitute = 1` and emitted a
+     SECOND `|-start|X|move: substitute` that Showdown never writes -- measured on a plain
+     Garchomp Substitute, three lines out where the authority writes two. Skipping by the
+     DECLARED volatile name is the same read the encore and disable branches two lines above
+     already make: the tag supplies the effect, the name says which handler owns it. */
+  if(vol==='substitute') return false;
+  /* ROADMAP #92 -- CONFUSION IS OWNED TOO, for exactly the reason Substitute is. This
+   * generic path writes a bare turn count and knows nothing about Own Tempo, Safeguard, a
+   * body that is already confused, a Lum Berry or the self-hit -- and what it wrote was
+   * never read by anything. `applyConfusion` is the one implementation and the secondary
+   * path two thousand lines below calls the same function. */
+  if(vol==='confusion'){applyConfusion(who,src,field);return true;}
+  /* WIRE 119 -- TAUNT LASTS THREE OF THE TARGET'S TURNS, NOT THREE TURNS. Showdown's taunt
+   * condition bumps its own duration when the target has ALREADY MOVED this turn
+   * (`if (target.activeTurns && !this.queue.willMove(target)) this.effectState.duration++`),
+   * because the turn it just spent must not be one of the three. Measured at the pinned
+   * commit both ways -- a faster Taunter blocks the target on turns 1(exec), 2, 3; a slower
+   * one blocks turns 2, 3, 4 -- three refusals either way, and without this bump the slow
+   * case gets two.
+   * `unresolved` is this turn's outstanding actions (WIRE 118), so "was queued to move and
+   * no longer will" is `acts.some(...) && !unresolved.has(...)` -- the same pair of clauses
+   * Showdown asks, including the `activeTurns` half: a body dragged or switched in mid-turn
+   * is in neither set and is correctly NOT bumped. It arrives as `alreadyMoved` because it
+   * is the turn loop's fact, not this function's.
+   * ROADMAP #111 -- THE PREDICATE IS UNCHANGED AND THE MEMBERSHIP IS NOT. It used to be
+   * gated on `forbidByVolatile()`, which is a table of ONE (taunt), so Encore -- which
+   * Showdown bumps by the same rule minus the `activeTurns` clause -- never got it. The
+   * whole duration family now shares it, and Disable's declared-5-seals-4 correction rides
+   * in the same function rather than as a literal here. */
+  const _sm=TAGS.param('move',mvId,'sealsMoves');
+  const _dur=volDurationOnApply(vol,!!(opts&&opts.alreadyMoved),_sm);
+  /* NO SILENT DEFAULT. A volatile with no duration in the artifact keeps the pre-existing
+   * bare `1`, which is what every non-sealing volatile in this loop has always been given;
+   * the difference is that it is now visibly the fallback rather than the rule. */
+  const _tn=_dur!=null?_dur:((_sm&&+_sm.turns)||1);
+  if(_dur!=null) MEDSEEN.volDurationApplied++;
+  (who._vol=who._vol||{})[vol]=_tn;
+  /* `|-start|p1b: Amoonguss|move: Taunt` -- the `move: ` prefix is what Showdown writes for
+   * a volatile whose source effect is a move, read off a real battle.log. */
+  if(TR)TR.vstart(who,'move: '+vol);
+  /* `_sealed` is Disable's alone. Encore carries its move in `_encoreMove` and `_lock`, and
+   * one field serving two volatiles is a field that expires the wrong one. */
+  if(vol==='disable')who._sealed=who._lastMove||null;
+  /* Encore's own guard is WIRE 69, four lines above: there is nothing to repeat against a
+     target that has never moved, and Showdown's condition bails on `!target.lastMove`.
+     THE FIRST VERSION OF THAT RULE WAS TOO STRICT AND THE CENSUS CAUGHT IT: it demanded the
+     target had moved THIS TURN, which dropped `live` 148 -> 146, because Showdown's
+     `lastMove` persists across turns -- an Encore on turn 3 repeating a turn-1 move is
+     legal. The rule is "has ever moved", not "has moved this turn". */
+  if(vol==='encore'){
+    who._encoreMove=who._lastMove||null;
+    /* ROADMAP #111 -- `_tn` AND NOT `_tn + 1`. The +1 was compensating for the counter being
+       decremented a second time inside `_chooseAction`; that second decrement is gone, so
+       the lock and the volatile now start on the same number and expire on the same turn
+       boundary. Two clocks for one effect is how a lock outlives the volatile that made it. */
+    if(who._lastMove&&who._lockT!==Infinity){who._lock=who._lastMove;who._lockT=_tn;}
+  }
+  /* WIRE 62 -- MENTAL HERB, 684 sheets, and it undoes the whole point of the click that
+   * just landed -- so any value a search assigns to landing a Taunt or an Encore is wrong
+   * against a holder. Applied HERE, the instant the volatile is set, because the real item
+   * is an onUpdate: it never spends a turn taunted.
+   * THE SET IS THE ARTIFACT'S. The param was `{oneShot:true}`, which named the shape and
+   * not WHICH volatiles -- and the set is the mechanic: the herb frees Taunt, Encore,
+   * Disable, Attract, Torment and Heal Block and does NOT touch confusion, a Leech Seed or
+   * a partial trap. A consumer reading the boolean would have built a universal eraser.
+   * It clears the ENGINE-SIDE state each volatile owns as well as the volatile itself,
+   * because `_sealed` and the Encore `_lock` are separate fields (WIRE 26) and leaving
+   * either behind would free the name and keep the effect. */
+  {
+    const _mh=TAGS.param('item',who.item,'curesVolatile');
+    if(_mh&&Array.isArray(_mh.cures)&&_mh.cures.indexOf(vol)>=0){
+      delete who._vol[vol];
+      if(vol==='disable')who._sealed=null;
+      if(vol==='encore'){who._encoreMove=null;if(who._lockT!==Infinity){who._lock=null;who._lockT=0;}}
+      if(vol==='healblock')who._healBlock=0;
+      if(TR){TR.vend(who,'move: '+vol);TR.enditem(who,who.item);}
+      who.item='';
+    }
+  }
+  return true;
+}
 /* THE TICK, AND IT IS WHERE SHOWDOWN PUTS IT: `onBeforeMove`, at the TOP of the attempt, BEFORE the
  * roll that decides whether the body hurts itself (data/conditions.ts:181). So a confusion whose
  * clock has just run out costs nothing at all -- the volatile is removed and the move goes through.
@@ -6917,6 +7086,54 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(m.curHP<=0){m.curHP=0;m.fainted=true;m._sub=0;if(TR)TR.faint(m);continue;}
         }
       }
+      /* WIRE 146 -- THE COMPOSED-EFFECT RIDER. `playerAction` is a first-match cascade, so a move
+       * carrying TWO effects was classified by whichever branch matched first and the second effect
+       * never ran at all. The composer (see KIND_APPLIES) attaches `also` to the action; this is the
+       * one place it is executed.
+       *
+       * ABOVE THE KIND DISPATCH, and that position is the mechanic rather than a convenience -- it is
+       * WIRE 77's argument and WIRE 85's. Every BeforeMove refusal (flinch, paralysis, sleep,
+       * recharge, Throat Chop, Taunt, the priority bar) has already `continue`d out ABOVE this line,
+       * so a rider inherits every one of them for free; a copy inside each branch is exactly the
+       * shape that let Roar through Throat Chop. Below it, each branch ends in its own `continue`,
+       * so there is no common tail to hang this on without rewriting forty of them.
+       *
+       * WHICH MEANS THE RIDER RUNS BEFORE THE PRIMARY, AND THAT IS STATED RATHER THAN GLOSSED.
+       * Showdown's `moveHit` order is boosts -> status -> volatile -> weather -> selfSwitch, so a
+       * rider is in the authority's order for Chilly Reception (whose sky is set in `onTry`, ahead of
+       * everything) and INVERTED for the three self-boost moves, whose volatile is written after
+       * their boosts. Measured, not assumed: nothing in this engine reads `_vol.noretreat`,
+       * `_vol.minimize` or `_vol.charge`, and the boost tables do not consult them -- the two effects
+       * commute for every member of the set today. A member for which they did NOT commute would need
+       * the common tail, and this comment is where that is written down.
+       *
+       * IT IS GATED ON A FIELD SINGLE-EFFECT ACTIONS DO NOT HAVE. `also` is attached to FIVE moves in
+       * the format and to nothing else, so every other click reaches the dispatch through exactly the
+       * statements it always did. PROVED, not argued: all 500 moves in data/tags.json were run through
+       * a real turn three ways -- the action object, the board with a target, the board with none --
+       * before and after, and exactly the seven moves this wire is about differ. */
+      if(a.also&&a.also.length)for(const _r of a.also){
+        if(_r.fx==='weather'){
+          if(applyMoveWeather(m,a.mv,field))MEDSEEN.composedRiderWeather++;
+        } else if(_r.fx==='si'){
+          for(const _e of (_r.effects||[])){
+            /* The user is in hand; a target-directed rider resolves through the SAME shared slot
+               reader every other branch uses (WIRE 139), and an empty slot is counted rather than
+               guessed at -- see MEDFAILS.composedRiderNoTarget. */
+            const _who=_e.to==='user'?m:reaimToSlot(a.target,it,actA,actB,a.mv);
+            if(!_who||_who.fainted||_who.curHP<=0){
+              MEDFAILS.composedRiderNoTarget++;
+              if(!MEDFAILS.composedRiderNoTargetFirst)MEDFAILS.composedRiderNoTargetFirst=String(a.mv)+' -> '+String(_e.volatile||_e.status);
+              continue;
+            }
+            if(_e.chance<100&&rng()*100>=_e.chance) continue;
+            if(_e.status) applyStatus(_who,_e.status,m);
+            if(_e.volatile&&applyMoveVolatile(_who,_e.volatile,m,a.mv,field,
+                 {alreadyMoved:!unresolved.has(_who)&&acts.some(x=>x.mon===_who)}))
+              MEDSEEN.composedRiderVolatile++;
+          }
+        }
+      }
       /* WIRE 19 -- REAL setup boosts. This applied a generic +1 to Attack, SpA AND Speed for every
        * setup click, so Swords Dance was one-third right, Iron Defense entirely wrong, and Dragon
        * Dance half right. The rulebook states each move's actual boosts (targetBoostsAlways); the
@@ -7125,109 +7342,15 @@ function battleTurn(S,rng,actsForA,actsForB){
              * ENCORE RIDES THE SAME `_lock` THE CHOICE ITEMS USE, so a caller-SUPPLIED action is bound
              * as well as a chosen one — the WIRE 24 rule, which nothing about Encore honoured. A Choice
              * lock (`_lockT === Infinity`) is never shortened by it. */
-            if(_e.volatile){
-              /* WIRE 69 -- A MOVE-SEALING VOLATILE FAILS AGAINST A TARGET WITH NO LAST MOVE, and this
-                 guard has to come BEFORE the volatile is written. The first version sat two lines lower,
-                 after the assignment, so it skipped the bookkeeping and left the volatile on -- the pair
-                 matrix kept reading `vol medi=["encore"] sd=[]` and the fix looked landed.
-                 ROADMAP #111 -- AND IT WAS WRITTEN `=== 'encore'`, SO DISABLE NEVER HAD IT. Showdown
-                 refuses both (`disable.onTryHit` returns false on `!target.lastMove`; encore's
-                 `onStart` does the same), and `data/roster.moves.json` measured the cost: on the turn
-                 before its target had ever moved, `vol.disable` read showdown=0 ours=4. The membership
-                 is now derived -- see volNeedsLastMove -- so a third sealer arriving is covered. */
-              if(volNeedsLastMove(_e.volatile)&&!_who._lastMove){ MEDSEEN.volSealNoLastMove++; continue; }
-              /* ROADMAP #111 -- AND RE-APPLYING ONE THE BODY ALREADY CARRIES FAILS. `Pokemon#addVolatile`
-                 returns false when the volatile is present and its condition declares no `onRestart`,
-                 and none of this family does. Writing the counter again REFRESHED it, which is why a
-                 Taunt clicked on two consecutive turns read 2 at both boundaries where Showdown reads
-                 2 then 1 -- the clock never ran down while the move was being re-clicked. Restricted to
-                 the duration family on purpose: Protect, Follow Me, Rage Powder and Helping Hand are
-                 per-turn volatiles that MUST be re-settable, and a blanket no-restart rule would have
-                 caught all four (docs/LESSONS §4 -- print what the rule matches before wiring it). */
-              if(durationVolatiles().has(_e.volatile)&&_who._vol&&_who._vol[_e.volatile]>0){
-                MEDSEEN.volRestartRefused++; continue; }
-              /* ROADMAP #81 WIRE 7 -- THE SUBSTITUTE VOLATILE IS ALREADY OWNED, AND THIS LOOP WAS
-                 ANNOUNCING IT A SECOND TIME. `grantSubstitute` holds the doll's size, its failure rule
-                 and its `-start`; this generic path then wrote `_vol.substitute = 1` and emitted a
-                 SECOND `|-start|X|move: substitute` that Showdown never writes -- measured on a plain
-                 Garchomp Substitute, three lines out where the authority writes two. Skipping by the
-                 DECLARED volatile name is the same read the encore and disable branches two lines above
-                 already make: the tag supplies the effect, the name says which handler owns it. */
-              if(_e.volatile==='substitute') continue;
-              /* ROADMAP #92 -- CONFUSION IS OWNED TOO, for exactly the reason Substitute is. This
-               * generic path writes a bare turn count and knows nothing about Own Tempo, Safeguard, a
-               * body that is already confused, a Lum Berry or the self-hit -- and what it wrote was
-               * never read by anything. `applyConfusion` is the one implementation and the secondary
-               * path two thousand lines below calls the same function. */
-              if(_e.volatile==='confusion'){applyConfusion(_who,m,field);continue;}
-              /* WIRE 119 -- TAUNT LASTS THREE OF THE TARGET'S TURNS, NOT THREE TURNS. Showdown's taunt
-               * condition bumps its own duration when the target has ALREADY MOVED this turn
-               * (`if (target.activeTurns && !this.queue.willMove(target)) this.effectState.duration++`),
-               * because the turn it just spent must not be one of the three. Measured at the pinned
-               * commit both ways -- a faster Taunter blocks the target on turns 1(exec), 2, 3; a slower
-               * one blocks turns 2, 3, 4 -- three refusals either way, and without this bump the slow
-               * case gets two.
-               * `unresolved` is this turn's outstanding actions (WIRE 118), so "was queued to move and
-               * no longer will" is `acts.some(...) && !unresolved.has(...)` -- the same pair of clauses
-               * Showdown asks, including the `activeTurns` half: a body dragged or switched in mid-turn
-               * is in neither set and is correctly NOT bumped.
-               * ROADMAP #111 -- THE PREDICATE IS UNCHANGED AND THE MEMBERSHIP IS NOT. It used to be
-               * gated on `forbidByVolatile()`, which is a table of ONE (taunt), so Encore -- which
-               * Showdown bumps by the same rule minus the `activeTurns` clause -- never got it. The
-               * whole duration family now shares it, and Disable's declared-5-seals-4 correction rides
-               * in the same function rather than as a literal here. */
-              const _sm=TAGS.param('move',a.mv,'sealsMoves');
-              const _amv=!unresolved.has(_who)&&acts.some(x=>x.mon===_who);
-              const _dur=volDurationOnApply(_e.volatile,_amv,_sm);
-              /* NO SILENT DEFAULT. A volatile with no duration in the artifact keeps the pre-existing
-               * bare `1`, which is what every non-sealing volatile in this loop has always been given;
-               * the difference is that it is now visibly the fallback rather than the rule. */
-              const _tn=_dur!=null?_dur:((_sm&&+_sm.turns)||1);
-              if(_dur!=null) MEDSEEN.volDurationApplied++;
-              (_who._vol=_who._vol||{})[_e.volatile]=_tn;
-              /* `|-start|p1b: Amoonguss|move: Taunt` -- the `move: ` prefix is what Showdown writes for
-               * a volatile whose source effect is a move, read off a real battle.log. */
-              if(TR)TR.vstart(_who,'move: '+_e.volatile);
-              /* `_sealed` is Disable's alone. Encore carries its move in `_encoreMove` and `_lock`, and
-               * one field serving two volatiles is a field that expires the wrong one. */
-              if(_e.volatile==='disable')_who._sealed=_who._lastMove||null;
-              /* Encore's own guard is WIRE 69, four lines above: there is nothing to repeat against a
-                 target that has never moved, and Showdown's condition bails on `!target.lastMove`.
-                 THE FIRST VERSION OF THAT RULE WAS TOO STRICT AND THE CENSUS CAUGHT IT: it demanded the
-                 target had moved THIS TURN, which dropped `live` 148 -> 146, because Showdown's
-                 `lastMove` persists across turns -- an Encore on turn 3 repeating a turn-1 move is
-                 legal. The rule is "has ever moved", not "has moved this turn". */
-              if(_e.volatile==='encore'){
-                _who._encoreMove=_who._lastMove||null;
-                /* ROADMAP #111 -- `_tn` AND NOT `_tn + 1`. The +1 was compensating for the counter being
-                   decremented a second time inside `_chooseAction`; that second decrement is gone, so
-                   the lock and the volatile now start on the same number and expire on the same turn
-                   boundary. Two clocks for one effect is how a lock outlives the volatile that made it. */
-                if(_who._lastMove&&_who._lockT!==Infinity){_who._lock=_who._lastMove;_who._lockT=_tn;}
-              }
-              /* WIRE 62 -- MENTAL HERB, 684 sheets, and it undoes the whole point of the click that
-               * just landed -- so any value a search assigns to landing a Taunt or an Encore is wrong
-               * against a holder. Applied HERE, the instant the volatile is set, because the real item
-               * is an onUpdate: it never spends a turn taunted.
-               * THE SET IS THE ARTIFACT'S. The param was `{oneShot:true}`, which named the shape and
-               * not WHICH volatiles -- and the set is the mechanic: the herb frees Taunt, Encore,
-               * Disable, Attract, Torment and Heal Block and does NOT touch confusion, a Leech Seed or
-               * a partial trap. A consumer reading the boolean would have built a universal eraser.
-               * It clears the ENGINE-SIDE state each volatile owns as well as the volatile itself,
-               * because `_sealed` and the Encore `_lock` are separate fields (WIRE 26) and leaving
-               * either behind would free the name and keep the effect. */
-              {
-                const _mh=TAGS.param('item',_who.item,'curesVolatile');
-                if(_mh&&Array.isArray(_mh.cures)&&_mh.cures.indexOf(_e.volatile)>=0){
-                  delete _who._vol[_e.volatile];
-                  if(_e.volatile==='disable')_who._sealed=null;
-                  if(_e.volatile==='encore'){_who._encoreMove=null;if(_who._lockT!==Infinity){_who._lock=null;_who._lockT=0;}}
-                  if(_e.volatile==='healblock')_who._healBlock=0;
-                  if(TR){TR.vend(_who,'move: '+_e.volatile);TR.enditem(_who,_who.item);}
-                  _who.item='';
-                }
-              }
-            }
+            /* WIRE 146 -- ONE IMPLEMENTATION, CALLED FROM TWO PLACES. The hundred lines that stood
+               here are `applyMoveVolatile` verbatim (see its header): the block was the last thing in
+               this loop body, so each of its `continue`s is a `return` and the transformation is
+               exact. The second caller is the composed-effect rider above the kind dispatch, which
+               has to apply a volatile for a move some OTHER branch claimed -- and a hand-written
+               second copy of Mental Herb, the no-restart rule and Encore's lock is what CLAUDE.md's
+               "FACTS ARE GLOBAL" rule exists to stop. */
+            if(_e.volatile)applyMoveVolatile(_who,_e.volatile,m,a.mv,field,
+              {alreadyMoved:!unresolved.has(_who)&&acts.some(x=>x.mon===_who)});
           }
           _landed++;
         }
@@ -7460,11 +7583,34 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _blocked=_isFoe&&((_tgt.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
           ||TAGS.has('ability',_tgt.ability,'refusesStatusMoves')
           ||moveClassBlocked(_tgt,a.mv,m)||powderBlocked(_tgt,a.mv)||pranksterBlocked(m,_tgt,a.mv));
+        /* WIRE 146 -- `allies` MEANS THE USER TOO, AND THIS BRANCH COULD ONLY EVER MOVE ONE BODY.
+         *
+         * Howl's dex target is `allies`, which `Pokemon#getMoveTargets` resolves to
+         * `pokemon.alliesAndSelf()` -- the user AND the partner, both at +1. Everything above this
+         * line aims at exactly one body, so the click landed on `active[1]` and the user itself got
+         * nothing. Measured on a real turn before this changed, a Farigiraf clicking with no named
+         * target: `howl me at0 ally at1` against the authority's +1 on both.
+         *
+         * DERIVED FROM THE MOVE'S OWN TARGET, never from its name. MEMBERSHIP PRINTED OVER THE WHOLE
+         * FORMAT DEX BEFORE THIS WAS WIRED, as this file's rule requires: exactly TWO moves are
+         * `target: 'allies'` -- howl and lifedew -- and lifedew is a heal, which `playerAction`
+         * classifies `kind:'heal'` and whose own branch has read `allies` since it was written. So
+         * one move reaches this branch, and the other five `boostsTarget` members (Coaching and
+         * Aromatic Mist are `adjacentAlly`, Decorate is `normal`) are untouched.
+         *
+         * NO GATES ON THIS ARM, deliberately: every body in the set is on the user's own side, and
+         * `_blocked` above is the FOE-aimed check (WIRE 106). A Protect on my own partner does not
+         * refuse my Howl in the authority either. */
         const BK={atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp'};
-        if(who&&bt.boosts&&!_blocked)for(const k in bt.boosts){
-          const kk=BK[k]; if(kk){const _b0=who.boosts[kk]||0;
-            who.boosts[kk]=clamp((who.boosts[kk]||0)+bt.boosts[k],-6,6);
-            if(TR)TR.bst(who,kk,who.boosts[kk]-_b0);}
+        let _lift;
+        if((moveFx(a.mv)||{}).target==='allies'){
+          _lift=(it.side==='A'?actA:actB).filter(x=>x&&!x.fainted&&x.curHP>0);
+          if(_lift.length>1)MEDSEEN.boostAlliesSideWide++;
+        } else _lift=(who&&!_blocked)?[who]:[];
+        if(bt.boosts)for(const _w of _lift)for(const k in bt.boosts){
+          const kk=BK[k]; if(kk){const _b0=_w.boosts[kk]||0;
+            _w.boosts[kk]=clamp((_w.boosts[kk]||0)+bt.boosts[k],-6,6);
+            if(TR)TR.bst(_w,kk,_w.boosts[kk]-_b0);}
         }
         m._lastMove=a.mv;continue;
       }
@@ -7686,20 +7832,12 @@ function battleTurn(S,rng,actsForA,actsForB){
          outright. Confirmed directly against the official engine before it was touched.
          REPLACING A DIFFERENT WEATHER STILL WORKS, and that half is the counter-play the comment
          below is about -- a Politoed answering a snow team. Only the SAME weather fails. */
+      /* WIRE 146 -- THE FOUR LINES THAT SET THE SKY ARE `applyMoveWeather` NOW, unchanged, because a
+         SECOND caller exists: Chilly Reception's sky rides on a `switch` action and is applied by the
+         composed-effect rider above. Two copies of "which sky, for how many turns, and do the rocks
+         extend it" is the shape CLAUDE.md's FACTS-ARE-GLOBAL rule forbids. */
       if(a.kind==='weather'){
-        const w=weatherId((moveFx(a.mv)||{}).weather);
-        if(w&&field.weather!==w){
-          field.weather=w;
-          /* WIRE 70 -- THE ROCKS, and the artifact has carried the number since the item tags existed:
-             `extendsDuration {extends:["sunnyday"], toTurns:8, insteadOf:5}` on Heat, Damp, Smooth and
-             Icy Rock. The SCREEN branch above has read that tag since Light Clay was wired; this branch
-             wrote a literal 5, so all four rocks were inert on the one mechanic they exist for -- three
-             extra turns of sun, which on a Charizard-Y team is most of the game.
-             Same tag, same shape, one consumer short, found by the weather audit. The comment beside
-             the weather line used to say the rocks "are not consumed here" and named it a gap. */
-          field.weatherT=weatherTurns(w,m.item);
-          if(TR)TR.wx(w);
-        } else mvFail(m);
+        if(!applyMoveWeather(m,a.mv,field)) mvFail(m);
         m._lastMove=a.mv;continue;
       }
       /* WIRE 32 -- CLICKING A TERRAIN MOVE. The four weather moves had a branch here since WIRE 13 and
@@ -10578,11 +10716,143 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
   while(!battleOver(S))battleTurn(S,rng);
   return battleResult(S);
 }
+/* WIRE 146 -- WHAT EACH ACTION KIND ACTUALLY APPLIES, READ OFF THE BRANCHES AND WRITTEN DOWN.
+ *
+ * `playerActionPrimary` below is a FIRST-MATCH CASCADE: ~40 sequential `return {kind:...}` statements,
+ * so a move whose tags describe two effects is classified by whichever branch matches first and the
+ * second effect never executes at all. Toxic Thread was fixed by hand on 2026-08-10 (the guard is
+ * still there, above `kind:'status'`) and that patch fixed ONE PAIR rather than the shape. This table
+ * plus `composeResiduals` is the shape.
+ *
+ * IT IS A TABLE AND THAT IS DELIBERATE. The alternative -- "the residual is every effect-bearing tag
+ * the claiming branch did not read" -- OVER-MATCHES, and it does so silently: Yawn carries BOTH
+ * `delayedSleep` (which the `yawn` branch consumes) and a `statusInflict` volatile describing the
+ * SAME sleep, so a tag-subtraction rule would have written a second `_vol.yawn` on every Yawn in the
+ * format. Two tags, one effect. So coverage is stated in the vocabulary of EFFECTS, and the
+ * membership the table produces was printed over all 500 moves in the tag corpus before a rider was
+ * ever executed (docs/LESSONS §4).
+ *
+ * A kind absent from this table covers NOTHING, which is the safe direction: it makes a residual
+ * visible rather than swallowing it. */
+const KIND_APPLIES={
+  /* the hit path owns its own secondaries -- status, volatile, boosts and self-drops all resolve
+   * inside the damage branch, and this classifier must not second-guess it */
+  attack:['status','volatile','boostUser','boostTarget','weather','terrain','pivot'],
+  affect:['status','volatile','boostTarget'],   // the generic applier: `sc.target` and every `si` effect
+  /* THE MAJOR STATUS, AND THE VOLATILE CLAIM IS PART HONEST AND PART OPTIMISTIC -- SAID HERE RATHER
+   * THAN LEFT TO BE DISCOVERED. Three moves reach this kind carrying a `statusInflict` volatile.
+   * LEECH SEED's is written by this branch under the engine's own field name (`_seededBy`, which is
+   * also what board_state.js reads), so claiming it is correct and a rider would be a SECOND
+   * representation of one fact. AQUA RING (5 uses) and INGRAIN (0) carry `perTurnHP {on:'holder'}`
+   * and this branch only consumes `{effect:'drain', on:'target'}` -- so their volatile is not written
+   * and their per-turn self-heal has no consumer anywhere in this file. That gap is PRE-EXISTING and
+   * this wire neither creates nor closes it; marking the class covered keeps a rider from writing a
+   * volatile whose effect would still not happen, which is the half-wired state that made the spread
+   * status defect look like a working feature. */
+  status:['status','volatile'],
+  setup:['boostUser'],
+  statcode:['boostUser'],
+  boostally:['boostTarget'],
+  switch:['pivot','boostTarget'],               // pivotStatus + Parting Shot's statChangeInCode
+  passstate:['pivot'],
+  weather:['weather'],
+  terrain:['terrain'],
+  yawn:['volatile'],                            // delayedSleep IS the statusInflict volatile
+  sub:['volatile'],                             // grantSubstitute owns the doll and its -start
+  typesplit:['boostUser','volatile'],           // Curse is two moves and both halves live in the branch
+  perish:['volatile'],
+  redirect:['volatile'],
+  protect:['volatile'],
+  helpinghand:['volatile'],
+  slotswap:['volatile'],
+  trickitem:['volatile'],
+  /* everything else -- heal, screen, haze, phaze, hazard, room, sidebuff, fixeddmg, typechange,
+   * reorder, instruct, abilityswap, allyheal, tail, trickroom, wideguard, pass -- applies none of
+   * these classes, and says so by being absent. */
+};
+/* WIRE 146 -- THE COMPOSER. It takes the action the cascade built and asks what the move ALSO does.
+ *
+ * Two effect classes are RIDDEN today, because two is the whole membership the table produces and
+ * each has an applier that is shared with the branch that owns it:
+ *   weather   `applyMoveWeather`, the same function `kind:'weather'` calls
+ *   volatile  `applyMoveVolatile`, the same function the `affect` branch calls
+ * Anything else carried-but-unapplied is COUNTED and named rather than quietly dropped, so the day a
+ * move arrives whose residual this composer cannot express, the counter says so instead of the
+ * mechanic simply not happening -- which is how the five rows below survived.
+ *
+ * THE MEMBERSHIP, PRINTED OVER ALL 500 MOVES IN data/tags.json BEFORE THIS WAS WIRED:
+ *   chillyreception  38 uses  kind `switch`  + weather snowscape   (Showdown snow/4, ours ""/0)
+ *   noretreat        90       kind `setup`   + volatile noretreat
+ *   minimize         27       kind `setup`   + volatile minimize
+ *   charge            1       kind `setup`   + volatile charge
+ * and NOTHING else. Flatter and Swagger were the other two and they are not here: they are ROUTED to
+ * `affect` at the boostsTarget line instead, because a branch that already applies both halves beats
+ * a rider that bolts one on.
+ *
+ * A FIFTH RIDER IS BUILT AND DELIBERATELY DOES NOTHING, and it is named here rather than left to be
+ * discovered: SHED TAIL. It is `kind:'passstate'` and carries `statusInflict {volatile:'substitute'}`,
+ * so a rider is attached -- and `applyMoveVolatile` refuses it at the `substitute` guard, because
+ * `grantSubstitute` (charged in the costsUserHP block, above the dispatch) owns that volatile and its
+ * `-start`. The refusal is the correct one and it lives in ONE place; the alternative was to encode
+ * "passstate covers volatile" in the table above, which would be a lie about a branch that applies
+ * nothing of the sort. Proved rather than argued: the before/after board digest for `shedtail` is
+ * IDENTICAL and only the action object gained a field.
+ *
+ * THE ATTACK PATH IS UNCHANGED BY CONSTRUCTION -- it returns on the line below, before anything is
+ * computed -- and a single-effect move never gets an `also` field at all, so the executor in
+ * battleTurn is gated on a property those actions do not have. */
+function composeResiduals(a,id){
+  if(!a||a.kind==='attack')return a;
+  if(!id)return a;
+  const cov=KIND_APPLIES[a.kind]||[];
+  const also=[];
+  {
+    const _w=TAGS.param('move',id,'setsWeather');
+    if(_w&&_w.weather&&cov.indexOf('weather')<0)also.push({fx:'weather'});
+  }
+  {
+    const _si=TAGS.param('move',id,'statusInflict');
+    const left=((_si&&_si.effects)||[]).filter(e=>
+      (e.volatile&&cov.indexOf('volatile')<0)||(e.status&&cov.indexOf('status')<0));
+    if(left.length)also.push({fx:'si',effects:left});
+  }
+  /* THE CLASSES WITH NO APPLIER, COUNTED RATHER THAN SILENT. A stat table or a terrain the claiming
+   * branch does not read would be exactly the defect this wire is about, one field over -- and the
+   * whole reason it was invisible is that nothing anywhere said a carried effect had been dropped.
+   * Zero today over the whole 500-move corpus; a non-zero here names the first member.
+   *
+   * `pass` IS EXCLUDED, AND THAT IS NOT A SOFTENING. `{kind:'pass'}` is this engine's own declaration
+   * that it models NO effect for the click, and it already has two loud counters of its own
+   * (`damagingClickWithoutTarget`, and the unmodelled-click branch that names the move). Counting it
+   * here too made this number read 21 on a sweep of the corpus with no target supplied -- every one
+   * of them a damaging move degrading to `pass`, none of them a composition defect. A counter that
+   * fires 21 times for a non-defect is a counter nobody reads, which is the failure mode this project
+   * has already paid for once. */
+  if(a.kind!=='pass'){
+    const _sc=TAGS.param('move',id,'statChange'), _tr=TAGS.param('move',id,'setsTerrain');
+    const gap=(_sc&&_sc.user&&cov.indexOf('boostUser')<0)?'statChange.user'
+             :(_sc&&_sc.target&&cov.indexOf('boostTarget')<0)?'statChange.target'
+             :(_tr&&_tr.terrain&&cov.indexOf('terrain')<0)?'setsTerrain':null;
+    if(gap){MEDFAILS.composedEffectUnexpressed++;
+      if(!MEDFAILS.composedEffectUnexpressedFirst)MEDFAILS.composedEffectUnexpressedFirst=id+' '+gap+' under kind '+a.kind;}
+  }
+  if(also.length){a.also=also;MEDSEEN.composedRiderBuilt++;}
+  return a;
+}
 /* Build ONE turn action from a player's click, in exactly the shape chooseAction emits — the page
  * must never hand-roll these, or the Tower and the rollout would resolve moves differently.
  * Unmodelled status clicks return kind 'pass' (a no-op turn): honest, and the Tower says so in
- * the log rather than pretending the engine played a move it cannot represent. */
+ * the log rather than pretending the engine played a move it cannot represent.
+ *
+ * WIRE 146 -- AND IT IS NOW TWO FUNCTIONS. The cascade is `playerActionPrimary`, byte-for-byte what
+ * it was; this wrapper hands its result to the composer above. Every caller -- the Encore override,
+ * the Instruct repeat, the randomTarget re-roll, board.js, the Tower and every probe -- goes through
+ * the wrapper, so a composed move cannot be built one way here and another way there. */
 function playerAction(me,moveId,target,field){
+  return composeResiduals(playerActionPrimary(me,moveId,target,field),
+    String(moveId||'').toLowerCase().replace(/[^a-z0-9]/g,''));
+}
+function playerActionPrimary(me,moveId,target,field){
   const id=String(moveId||'').toLowerCase().replace(/[^a-z0-9]/g,'');
   /* ROADMAP #81 WIRE 6 -- EVERY ACTION CARRIES THE MOVE THAT MADE IT. These four used to return a
    * BARE kind, and `actionMoveId` patched three of them back from a hand-written map (KIND_MOVE) that
@@ -10767,7 +11037,27 @@ function playerAction(me,moveId,target,field){
   /* WIRE 106 -- the TARGET travels with the click. Decorate can legally be aimed at a FOE (+2/+2 to
      it -- Showdown applies it), and dropping the caller's target here re-aimed every such click at
      the ally: three interaction-matrix rows read `.A.active[1].boosts.atk medi=2 sd=0` at once. */
-  if(TAGS.has('move',id,'boostsTarget'))return {kind:'boostally',mv:id,target};
+  /* WIRE 146 -- A MOVE THAT BOOSTS *AND* INFLICTS MUST NOT BE CLAIMED BY THE BOOST BRANCH, and this
+   * is the Toxic Thread guard ten lines down wearing the other hat. `boostally` applies a boost table
+   * and nothing else; `affect` applies BOTH `sc` and `si` and is already sitting below this line.
+   * Measured before it changed, on a real turn with the click aimed across the field:
+   *     swagger  foe atk +2  confusion 0        flatter  foe spa +1  confusion 0
+   * -- the boost half agreed with the authority and the confusion never happened at all, so the move
+   * the search sees is a free +2 with no downside for the target.
+   * ROUTING RATHER THAN A RIDER, deliberately: `affect` also throws the accuracy die (Swagger is 85,
+   * and this branch throws none), asks Own Tempo, Safeguard, Substitute and Protect, and runs the
+   * boost through statDropRefusal and Contrary. Every one of those is a gate `boostally` does not
+   * have, so the composed path is not merely two halves -- it is the half that was already right,
+   * done by the branch that does it properly.
+   * MEMBERSHIP PRINTED OVER THE WHOLE MOVE TABLE BEFORE THIS WAS WIRED, as this file's rule requires:
+   * of the six `boostsTarget` moves in the format (Coaching, Decorate, Howl, Aromatic Mist, Flatter,
+   * Swagger) exactly TWO also carry `statusInflict` -- Flatter and Swagger -- so the other four are
+   * untouched and still take the shorter path. */
+  {
+    const _btSi=TAGS.param('move',id,'statusInflict');
+    if(TAGS.has('move',id,'boostsTarget')&&!(_btSi&&_btSi.effects&&_btSi.effects.length))
+      return {kind:'boostally',mv:id,target};
+  }
   /* LEECH SEED and the rest of the perTurnHP family. The RESOLUTION for this already existed -- the
      status branch reads the tag, checks the Grass immunity from the move's own onTryImmunity and sets
      _seededBy -- and playerAction simply never produced an action that could reach it, so the click
