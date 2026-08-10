@@ -1,6 +1,6 @@
 # MEDICHAM SPRINT — running notes
 
-**Version 3.96.0 · 2026-08-10**
+**Version 3.97.0 · 2026-08-10**
 
 **WHAT THIS FILE IS AND WHEN IT DIES.** Will, 2026-08-10: *"yes faster, lets just keep a running notes
 list doc that we can then use to update the living docs upon completion of medicham."*
@@ -673,6 +673,167 @@ sent me hunting the engine, when a clean single-turn probe of the same mechanic 
 172. The probe was broken, not the engine — `docs/LESSONS.md` §5, for the third time today.
 
 ---
+
+## WIRE 147 — THE DAMAGE WAS ONE ROLL MULTIPLIED BY N. FOUR ROWS, ONE ROOT CAUSE, TWO OF THEM 2x. 2026-08-10.
+
+Census **350 → 354 live, 354 probed, 0 missing, 0 threw, 0 hollow, 0 unarmed, 0 direct-call.** Four new
+probes, each watched RED on its own before a line of the engine changed. Damage stages **1728/1728
+exact**, unchanged. **No release was cut and neither `tests/roster.js` nor `engine/game_differential.js`
+was run** — `game_differential.js:126` AUTO-CUTS when no release is pinned, which would swap the
+pointer under another agent's measurement; the pointer is still `f727f7fdee4f`, mtime unmoved.
+
+| # | row(s) | uses | what it was | verdict move |
+|---|---|---|---|---|
+| 29 | **Triple Axel** | 753 | `basePowerCallback` is `20 * move.hit` — 20/40/60. We applied a flat 20 three times, so the move dealt **exactly half**: 8+8+8 = 24 against the authority's 8+16+23 = 47. The tag said `variablePower {computed:true, note:"idiom not yet derivable"}` and, because `MEDFAILS.variablePowerUnknown` is gated on a truthy `kind`, it was **not even counted** | *engine fixed; roster NOT re-run by me* |
+| 30 | **Dragon Darts** | 126 | `smartTarget: true`. One packet cannot be aimed at two bodies, so both darts hit the aimed foe and the partner took **zero**: goodra −72 / torterra 0 against −36 / −34. `smartTarget` appeared in this engine only in two comments and in no tag at all | *engine fixed; roster NOT re-run by me* |
+| 31 | **Beat Up** | 320 | `mvBP = _hits ? _sum : …` summed every ally's base power into ONE packet. The formula's `+2` is paid per packet, so four hits lost three of them: 24 against 28 | *engine fixed; roster NOT re-run by me* |
+| 32 | **Fickle Beam** | 38 | `mvBP = floor(mvBP * (1 + p*(mult-1)))` — 80 × 1.3 = **104 base power, a number the move never has**. It is 80 or 160. Measured sd 42 / ours 54, and 42 × 1.3 = 54.6 | *engine fixed; roster NOT re-run by me* |
+
+**IT IS THE 3.90.0 BUG IN A SECOND PLACE.** *"The multi-hit count was the MEAN, and the pin never lands
+on a middle."* Fickle Beam is that sentence word for word in the conditional-power path, and the comment
+above the line stated the averaging as a deliberate choice. The fix is the shape ROADMAP #103 already
+chose for the hit count and not a second shape: `hit.condPower` arrives from the battle loop, drawn off
+the same rng that draws the count, the damage index and the crit; a PURE call keeps the expectation,
+because that is the right object for a price, and the two halves are counted separately
+(`conditionalPowerRolled` / `conditionalPowerPriced`) so a run with games in it that never rolls one is
+readable as the lost draw it would be.
+
+### THE PRECONDITION IS A PER-HIT LOOP, AND IT IS ENTERED ONLY WHERE THE BASE POWER IS A FUNCTION OF THE HIT INDEX
+
+`dmgRange` is now a wrapper over `dmgRangeOneHit`. `hitPlanOf` decides, **from the artifact**, whether a
+move's base power depends on the hit number — today `variablePower {kind:'perHitEscalates'}` (Triple
+Axel) and `variablePower {kind:'alliesBaseAtk', perAlly:true}` (Beat Up), and nothing else. Every other
+move, **multi-hit included**, takes exactly one trip through `dmgRangeOneHit` with the identical `_hits`
+scalar the old line multiplied by, so its arithmetic is byte-for-byte what it was. That is what "single-
+hit damage is unchanged by construction" means here, and it is the reason the wire is safe to land in the
+damage path at all.
+
+**THE PINNED CORNER, STATED.** `min` is every hit at the 85% randomizer and `max` every hit at 100% —
+exactly what a pin produces in the authority, which draws a randomizer per hit and gives every one of
+them the same corner. **What this does NOT reproduce is the interior:** the battle loop still draws one
+index across the summed range, so N independent mid-rolls are modelled as one. That is unchanged from
+before this wire and it is a range-versus-sample question the loop owns, not the calculator.
+
+**THE COUNT IS NOT RE-DERIVED AS A MEAN.** `hitPlanOf` takes `hit.hits` whenever a caller has drawn one,
+and only falls back to `expectedHitsOf` for a price. The weight vector it builds for that price —
+`P(at least hit h)`, so `[1, 0.9, 0.81]` for Triple Axel — **sums to exactly `expectedHitsOf`**, and the
+sum is CHECKED rather than asserted in prose: `MEDFAILS.hitWeightsDisagree` fires if it ever does not
+(0 over 1,500 real turns across the whole 500-move corpus). It can: `expectedHitsOf` discards the 2-5
+mean for a move that also carries `multiAccuracy`, and no move in this format carries both.
+
+### THE FOUR PROBES, ALL SHOWN RED INDIVIDUALLY FIRST
+
+Each compares the move against **separate arms of itself at fixed base powers**, so the assertion is an
+exact integer identity and nothing else in the turn has to be held equal.
+
+| tag | what it proves | what it read RED |
+|---|---|---|
+| `variablePower` | Triple Axel equals `d(20) + d(40) + d(60)` and not `3 × d(20)` | flat 360 where escalating is 688 |
+| `smartTarget` | one dart each — the aimed body takes exactly what a SINGLE dart does, the partner takes a second one, **and with the partner already fainted both go back into the aimed body** | `[132, 0]` where one dart is `[132, 0]` and the move must be `[132, 66]` |
+| `variablePower` | four identical eligible allies deal **exactly 4×** what one does | 96 where four packets are 100 |
+| `conditionalPower` | equals a flat 160 BP copy at the corner where `random(10)` draws 0 and a flat 80 BP copy where it draws 9 | `[320, 252]` — an averaged 1.3x lands between the two arms at BOTH corners |
+
+The Triple Axel probe uses ONE corner and says why: at the top pin the move **misses outright**
+(`|move|p1a: Weavile|Triple Axel|p2a: Garchomp|[miss]`, read out of the authority), so a two-corner probe
+would be reading a miss and calling it a hit count.
+
+### THE AUTHORITY WAS READ DIRECTLY, NOT INFERRED
+
+A pinned `new Battle('gen9doublescustomgame')` for all four idioms at both corners. It confirms every
+line of this wire: Triple Axel escalating, Dragon Darts writing `|-anim|` at the second dart with damage
+on **both** bodies, Beat Up emitting **four separate `|-damage|` steps** and `|-hitcount| 4`, and Fickle
+Beam printing `[anim] Fickle Beam All Out` + `|-activate|` at one corner and nothing at the other.
+
+**AND THE FIRST VERSION OF THAT HARNESS WAS WRONG IN THE FLATTERING DIRECTION.** It overrode
+`battle.random`, and `Battle#randomChance` calls `this.prng.randomChance(...)` **directly**
+(sim/battle.ts:352) — so every chance event stayed unpinned and Fickle Beam appeared never to double at
+either corner, which would have read as "the tag's `p` is wrong". The pin belongs on the PRNG.
+
+### UNCHANGED BY CONSTRUCTION *AND* MEASURED
+
+Every move in `data/tags.json` (500), four turns each — mid roll, both pin corners, and one with no
+target — digested as the **whole board** (both sides' HP, status, boosts, item, ability, faint, sub,
+volatiles, types, plus the full field). The "before" arm is the **frozen release `f727f7fdee4f`**, loaded
+through `engine_release.open(id)` so it serves the pre-wire bytes; opening does not touch the pointer.
+
+**2,000 cells. 11 differ. Four moves: `tripleaxel`, `dragondarts`, `beatup`, `ficklebeam`.** Nothing else
+in the corpus moved by a single HP.
+
+### COUNTERS, WITH A CONTROL
+
+`perHitDamageLoop`, `perHitBasePower`, `smartTargetSplit`, `conditionalPowerRolled`,
+`conditionalPowerPriced` — all **0** after a control turn of Dragon Claw and Rock Blast, all non-zero
+after the four. `MEDFAILS.hitWeightsDisagree` 0 and `MEDFAILS.beatUpAllyNoBaseAtk` 0 over the whole
+corpus. `MEDFAILS.variablePowerUnknown` reads 7, first `lashout:userStatsLoweredThisTurn` — pre-existing
+and unrelated.
+
+### TWO CORRECTIONS MADE BESIDE THE FOUR, BOTH STATED RATHER THAN ABSORBED
+
+- **BEAT UP'S ELIGIBILITY FILTER WAS WRONG AND IS THE AUTHORITY'S NOW.** Showdown filters
+  `ally === pokemon || !ally.fainted && !ally.status` — the `ally === pokemon` short-circuits, so **the
+  user is always in the list**; a burned Weavile still throws its own punch. This engine applied the
+  fainted and status tests to every member including the user. There were **three** copies of that
+  filter (base power, hit count, reaction count) and they are now one function, `beatUpAllies`. No probe
+  covers the statused-user case; it is reported here rather than claimed.
+- **`tests/test-mechanics.js`'s `reactorPerHit` PROBE WAS GREEN ON A FALSEHOOD.** It asserted Weak Armor
+  `-2 / +4` off Dragon Darts against a Milotic standing beside a **healthy partner**, and Showdown lands
+  one dart there. The reaction count read the move's total while the damage step had already split. Both
+  are fixed; the arm now stages **both** ways and reads the PARTNER's stages too, because "each body
+  once" and "nobody at all" are otherwise the same number on the aimed body.
+- **`multiAccuracy`'s probe needed a new denominator, not a new claim.** Its ratio compared Triple Axel's
+  price against `3 × its first hit`; with the hits at 20/40/60 that reads ~4.98 and looks like a 66%
+  OVERPRICE on a probe whose whole subject is a discount. It now compares against
+  `d(20) + d(40) + d(60)`, where the 1 + p + p² discount shows as ×0.87.
+
+### `data/tags.json` WAS REGENERATED, AND HERE IS THE DIFF
+
+Two derivations were added to `engine/tag_dex.js` and the artifact regenerated. **A CONTROL
+REGENERATION WAS RUN FIRST** with no changes at all: 0 entities removed, 0 added, **0 changed** — so
+ROADMAP #65's blocker (the corpus had shrunk 29% and five entities dropped out) is **gone**, and this is
+the measurement that says so rather than a decision that it felt safe.
+
+Against the pre-session artifact: **0 entities removed, 0 added, three hundred and seven changed — and
+all but two of those are the `uses` COUNT ONLY.** `data/tags.json`'s own `sheet_entries` field moved by about six hundred between the
+control run and the real one: the ingest is live and appended sides while I worked, and the current
+value is the one in the artifact rather than any number typed here. Nothing consumes `uses`. The
+**two semantic changes are the two intended ones**, and the tag CATALOGUE gained exactly `move|smartTarget`:
+
+```
+moves dragondarts  tags ["multiHit"] -> ["multiHit","smartTarget"]
+                   + smartTarget {splitsAcrossPartner:true, spreadReduced:false, hits:2}
+moves tripleaxel   variablePower {computed:true, note:"idiom not yet derivable"}
+                -> variablePower {kind:"perHitEscalates", per:20}
+```
+
+Membership for both was **measured over the format before the pattern was typed**: exactly three moves
+in `data/moves.ts` read `move.hit` in a `basePowerCallback` and two (Fury Cutter, Triple Kick) are
+`isNonstandard: 'Past'`; `smartTarget` is declared exactly once. Fury Cutter would not match the pattern
+in any case — its escalation is a volatile multiplier and `move.hit` appears only in its RESET test.
+`data/abra-tags.js` was rebuilt from the same artifact.
+
+### WHAT IS NOT CLOSED, SAID PLAINLY
+
+- **A PURE PRICE FOR DRAGON DARTS STILL SAYS TWO HITS INTO THE AIMED BODY.** `dmgRange` is handed two
+  bodies and cannot know a partner is standing there, so `playerAction`'s pre-computed `d`, `bestMoveVs`
+  and every rollout leaf still price the move as 2 × 50 BP on the target and 0 on the partner. The TURN
+  is right; the PRICE overstates the aimed body and understates the board. It is the same shape as the
+  `auraBoost` finding (a fact that needs the field, not the pair) and it is filed, not hidden.
+- **`|-hitcount|` IS STILL NOT EMITTED**, and its declaration in `engine/derive_protocol_events.js` was
+  rewritten rather than left stale: the HP still moves once for the summed part of the family, so a count
+  beside a single `-damage` would be an invented number. Dragon Darts would emit nothing there in any
+  case — `if (move.multihit && typeof move.smartTarget !== 'boolean')` skips every smartTarget move.
+- **NO ROSTER ROW IS CLAIMED CLOSED.** I did not run `tests/roster.js` and I did not run the differential.
+  The four rows above say *engine fixed* and nothing more.
+
+### TWO PRE-EXISTING REDS, MEASURED RATHER THAN ASSUMED TO BE SOMEBODY ELSE'S
+
+`FEATURE SEMANTICS CHECK FAILED` on `data/policy-weights.json` is **unaffected by this wire, and this
+time that is a measurement rather than a counter read**: the per-hit loop DOES execute during
+`engine/feature_fixture.js`'s build (`perHitDamageLoop` 2, `perHitBasePower` 6), so the counter argument
+WIRE 146 used would have been wrong here. A full sandbox of the frozen release's 23 files was built and
+its fixture hashed against the live tree: **0 of 58 fixture features moved.** REFIT OWED, and it is
+MEASURE's. `tests/test-no-silent-failure.js` is red at **21** new silent catches — the same 21 WIRE 146
+reported, none in `engine/medicham2-browser.js`; this wire added no `catch` at all.
 
 ## WIRE 146 — `playerAction` IS A FIRST-MATCH CASCADE, SO A MOVE WITH TWO EFFECTS LOST ONE. 2026-08-10.
 

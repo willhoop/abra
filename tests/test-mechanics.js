@@ -267,7 +267,17 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * is never reached. It returns the sky, the switch, both sides' stages and the volatiles together,
  * because a composed move must be shown to have kept the half that already worked as well as gained
  * the half that did not. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bcomposedTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(/;
+/* `perHitTurn(` added 2026-08-10 with WIRE 147, declared HERE and with its reason, exactly as the
+ * paragraph above requires. It stages a real doubles board through `battleInit` and spends a real turn
+ * through `battleTurn`, and it has to: every one of the four defects it watches is a COLLAPSE of N
+ * hits into one packet, and the collapse is invisible to anything that asks for one number — a direct
+ * `dmgRange` call returns the collapsed scalar and looks entirely healthy. It needs a board the other
+ * helpers cannot express in three separate ways: a BENCH of four (Beat Up's hit count is the eligible
+ * PARTY, not the actives), BOTH foes' HP returned together (Dragon Darts aims its two hits at two
+ * different bodies, so a probe reading only the aimed foe would score the redirect as a damage loss),
+ * and a caller-supplied MOVE OBJECT (each arm is the same move at a fixed base power, which is how a
+ * per-hit sum is compared against a flat multiply with everything else divided out). */
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -3695,6 +3705,139 @@ probe('move', 'multiHit', 'Icicle Spear lands FIVE hits at one rng corner and TW
                  + `${(manyBot / oneBot).toFixed(2)}, and Showdown's own |-hitcount| is 5 and 2` };
 });
 
+/* ================= WIRE 147 -- THE FOUR PROBES THAT WATCH A COLLAPSED PACKET ====================
+ *
+ * `dmgRange` returned ONE roll multiplied by N. Everything a hit owns individually -- its own base
+ * power, its own +2, its own target -- was folded into a scalar, and four moves are wrong because of
+ * it. Each probe below pins the rng to a CORNER and compares the move against SEPARATE ARMS OF ITSELF
+ * at fixed base powers, so the assertion is an exact integer identity rather than a ratio: a sum of
+ * per-hit packets and a single multiplied packet are different numbers, and nothing else in the turn
+ * has to be held equal for that to be readable.
+ *
+ * THE CORNER IS THE BOTTOM (`rng() === 0`) IN THREE OF THE FOUR, and the reason is stated because it
+ * also decides two other things: at the bottom the damage index is `d.min` (every hit at the 85%
+ * randomizer, which is exactly what Showdown's own pin produces), the crit die passes on every arm,
+ * and Triple Axel's per-hit accuracy roll `rnd() >= 0.9` is FALSE so all three hits land. At the TOP
+ * corner Triple Axel misses outright (`rng()*100 > 90`), so a two-corner probe for it would be reading
+ * a miss and calling it a hit count. */
+const perHitTurn = (benchSps, foeSps, moveId, mvObj, r, stage) => {
+  const bench = benchSps.map(bare), foes = foeSps.map(bare);
+  const S = M.battleInit(bench, foes, { seeded: true });
+  /* BOTH foes, because Dragon Darts moves damage from one to the other and a clamp at a KO would make
+   * "it split the hits" and "it stopped hitting" the same number. */
+  unfaintable(foes[0]); unfaintable(foes[1]);
+  if (stage) stage({ bench, foes, S });
+  const me = bench[0], mv = mvObj || MC.moves[moveId];
+  const act = { kind: 'attack', target: foes[0],
+                move: { id: moveId, mv, spread: false, d: M.dmgRange(me, foes[0], mv, S.field, false), acc: 1 } };
+  const b0 = foes[0].curHP, b1 = foes[1].curHP;
+  M.battleTurn(S, r, new Map([[me, act], [bench[1], { kind: 'pass' }]]), PASS2(foes[0], foes[1]));
+  return [b0 - foes[0].curHP, b1 - foes[1].curHP];
+};
+const BOTTOM_ROLL = () => 0, TOP_ROLL = () => 1 - 1e-9;
+
+/* TRIPLE AXEL'S BASE POWER IS `20 * move.hit` -- 20, then 40, then 60 (data/moves.ts:20003). This
+ * engine applied a flat 20 three times, so the move dealt EXACTLY HALF what it does: Showdown's
+ * 8+16+23 = 47 against our 8+8+8 = 24 on the roster's staged body.
+ *
+ * THE CONTROL IS THE OLD ANSWER, BUILT OUT OF THE ENGINE'S OWN ARITHMETIC. Three copies of the move
+ * are staged with their ids changed -- so every tag lookup misses and each is a single hit -- at base
+ * powers 20, 40 and 60. `bp20 * 3` is what a flat-20 triple deals and `bp20 + bp40 + bp60` is what an
+ * escalating one deals; the two are different integers, and the real move must equal the second. An
+ * engine that had no escalation at all scores the FIRST, which is what this went red on. */
+probe('move', 'variablePower', 'Triple Axel escalates 20/40/60 across its three hits', () => {
+  const at = (id, bp) => perHitTurn(['weavile', 'incineroar'], ['garchomp', 'torterra'], id,
+    bp ? Object.assign({}, MC.moves['tripleaxel'], { id, bp }) : null, BOTTOM_ROLL)[0];
+  const bp20 = at('__ta_bp20', 20), bp40 = at('__ta_bp40', 40), bp60 = at('__ta_bp60', 60);
+  const control = bp20 * 3, test = at('tripleaxel');
+  return { works: bp20 > 0 && bp40 > bp20 && bp60 > bp40 && control !== bp20 + bp40 + bp60
+                  && test === bp20 + bp40 + bp60,
+           arms: { control, test },
+           detail: `one 20 BP hit ${bp20}, one 40 ${bp40}, one 60 ${bp60} — a FLAT triple is `
+                 + `${control} and an ESCALATING one is ${bp20 + bp40 + bp60}; the engine's Triple `
+                 + `Axel deals ${test} (Showdown's basePowerCallback is 20 * move.hit)` };
+});
+
+/* DRAGON DARTS IS TWO DARTS AT TWO BODIES (`smartTarget: true`, data/moves.ts:4129). `getSmartTargets`
+ * returns [aimed foe, its partner] and `hitStepMoveHitLoop` hands hit n to targets[n-1], so in doubles
+ * the partner takes the second dart -- and because `move.spreadHit` is NOT set for a smartTarget move
+ * (battle-actions.ts:551) neither dart is reduced. Measured in the authority: goodra -36, torterra -34.
+ * This engine put both hits into the aimed body and the partner took ZERO.
+ *
+ * THE CONTROL IS THE SAME MOVE WITH ITS ID CHANGED, so the tag lookup misses and it is one 50 BP hit
+ * into the aimed foe -- which is exactly what ONE dart should do. So the test arm must read [that same
+ * number, a second number above zero on the OTHER body], and the old engine reads [twice it, zero].
+ * A THIRD ARM kills the "it just sprays" reading: with the partner already fainted the authority sets
+ * `move.smartTarget = false` and both darts go back into the aimed foe. */
+probe('move', 'smartTarget', 'Dragon Darts aims its second dart at the partner', () => {
+  const run = (id, stage) => perHitTurn(['dragapult', 'incineroar'], ['goodra', 'torterra'], id,
+    id === 'dragondarts' ? null : Object.assign({}, MC.moves['dragondarts'], { id }), BOTTOM_ROLL, stage);
+  const control = run('__dd_onehit');
+  const test = run('dragondarts');
+  const partnerDown = run('dragondarts', ({ foes }) => { foes[1].curHP = 0; foes[1].fainted = true; });
+  return { works: control[0] > 0 && control[1] === 0
+                  && test[0] === control[0] && test[1] > 0
+                  && partnerDown[0] === control[0] * 2 && partnerDown[1] === 0,
+           arms: { control, test },
+           detail: `[aimed Goodra, partner Torterra] one dart ${JSON.stringify(control)}  ->  Dragon `
+                 + `Darts ${JSON.stringify(test)}; with the partner already fainted both darts go `
+                 + `back into the aimed body ${JSON.stringify(partnerDown)}` };
+});
+
+/* BEAT UP IS ONE PACKET PER ELIGIBLE PARTY MEMBER, and this engine SUMMED their base powers into a
+ * single packet (`mvBP = _hits ? _sum : ...`). The damage formula adds a flat +2 per packet, so four
+ * hits lost three of them: Showdown 28 against our 24 on the roster's staged body.
+ *
+ * THE KNOB IS ELIGIBILITY AND THE PARTY IS FOUR IDENTICAL BODIES, which is what makes the assertion an
+ * exact identity rather than an approximation: with every member the same species every packet has the
+ * same base power, so FOUR eligible must deal exactly FOUR TIMES what ONE eligible deals. A single
+ * summed packet at 4x the base power is strictly less than that, because the +2 is paid once. Showdown's
+ * own filter is `ally === pokemon || !ally.fainted && !ally.status`, so the three benched Weavile are
+ * made ineligible with a status and nothing else about the board moves. */
+probe('move', 'variablePower', 'Beat Up deals one PACKET per ally, not one packet of summed power', () => {
+  const run = (eligible) => perHitTurn(['weavile', 'weavile', 'weavile', 'weavile'],
+    ['garchomp', 'torterra'], 'beatup', null, BOTTOM_ROLL,
+    ({ bench }) => { for (let i = 1; i < bench.length; i++) if (i >= eligible) bench[i].status = 'psn'; })[0];
+  const one = run(1), four = run(4);
+  const control = one * 4;
+  return { works: one > 0 && four > one && control !== 0 && four === control,
+           arms: { control: [one, control], test: four },
+           detail: `1 eligible ally ${one}, so four SEPARATE packets are ${control} — the engine's `
+                 + `four-ally Beat Up deals ${four} (one summed packet pays the formula's +2 once `
+                 + `instead of four times)` };
+});
+
+/* FICKLE BEAM DOUBLES 30% OF THE TIME AND THIS ENGINE PRICED IT AT 1.3x ALWAYS -- 80 x (1 + 0.3) = 104
+ * base power, a number the move never has. It is the 3.90.0 lesson verbatim ("the multi-hit count was
+ * the MEAN, and the pin never lands on a middle") surviving in the conditional-power path, and the
+ * comment above the line stated the averaging as a deliberate choice.
+ *
+ * THE KNOB IS THE RNG CORNER AND BOTH ARMS ARE PINNED AGAINST A FIXED-POWER COPY OF THE MOVE. Showdown's
+ * `onBasePower` is `randomChance(3, 10)` -- `this.random(10) < 3` -- so the bottom corner draws 0 and
+ * the beam goes all out, and the top corner draws 9 and it does not. So the move must equal a flat
+ * 160 BP copy at the bottom and a flat 80 BP copy at the top. At 104 BP it equals NEITHER, which is
+ * what this went red on: an averaged engine lands between the two arms at both corners. */
+probe('move', 'conditionalPower', 'Fickle Beam rolls its double — it is never 1.3x', () => {
+  const at = (id, bp, r) => perHitTurn(['hydrapple', 'incineroar'], ['garchomp', 'torterra'], id,
+    bp ? Object.assign({}, MC.moves['ficklebeam'], { id, bp }) : null, r)[0];
+  const bot80 = at('__fb_bp80', 80, BOTTOM_ROLL), bot160 = at('__fb_bp160', 160, BOTTOM_ROLL);
+  const top80 = at('__fb_bp80', 80, TOP_ROLL), top160 = at('__fb_bp160', 160, TOP_ROLL);
+  const test = [at('ficklebeam', 0, BOTTOM_ROLL), at('ficklebeam', 0, TOP_ROLL)];
+  /* THE ARM IS THE MOVE WITHOUT ITS CHANCE CLAUSE -- the tag-free 80 BP copy at the same two corners.
+   * It is deliberately NOT the pair [bot160, top80] the test must equal: a control that is the
+   * answer is not a control, and the harness marks two arms that agree HOLLOW for exactly that
+   * reason. What this pair shows is that the corner ALONE does not move the move -- 80 BP reads
+   * [246, 194] at the two corners, and the difference between 246 and 492 is the double firing. */
+  const control = [bot80, top80];
+  return { works: bot80 > 0 && bot160 > bot80 && top160 > top80
+                  && test[0] === bot160 && test[1] === top80,
+           arms: { control, test },
+           detail: `[bottom corner, top corner] a flat 80 BP copy ${JSON.stringify(control)} and a `
+                 + `flat 160 BP copy [${bot160}, ${top160}]; Fickle Beam reads ${JSON.stringify(test)} `
+                 + `— it must equal the 160 copy at the corner where random(10) draws 0 and the 80 `
+                 + `copy at the one where it draws 9, and an averaged 1.3x equals NEITHER` };
+});
+
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45), AND THE OLD ONE SAID SO IN ITS OWN COMMENT:
  * `S.sfA.fainted = 3;   // the input, not the effect`. It wrote the counter by hand and then asked
  * whether dmgRange read it — so it tested the FORMULA and left the whole question of whether
@@ -5346,20 +5489,33 @@ probe('move', 'multiAccuracy', 'Triple Axel is priced below three full hits, and
   const att = bare('weavile'), def = bare('garchomp');
   const ta = MC.moves['tripleaxel'], rb = MC.moves['rockblast'];
   if (!ta || !rb) return { works: false, detail: 'tripleaxel/rockblast not in MC.moves' };
-  const one = (mv) => M.dmgRange(att, def, Object.assign({}, mv, { id: '__' + mv.id + '_flat' }), fresh(), false).max;
+  const one = (mv, bp) => M.dmgRange(att, def, Object.assign({}, mv, { id: '__' + mv.id + '_flat' },
+    bp ? { bp } : {}), fresh(), false).max;
   const all = (mv) => M.dmgRange(att, def, mv, fresh(), false).max;
   const taOne = one(ta), taAll = all(ta);
   const rbOne = one(rb), rbAll = all(rb);
   /* Rock Blast's expectation is 3.1 hits and carries no per-hit accuracy, so its ratio must stay at
-   * 3.1; Triple Axel's must fall from 3 to about 2.71. */
+   * 3.1.
+   *
+   * WIRE 147 -- TRIPLE AXEL'S DENOMINATOR IS NO LONGER ITS FIRST HIT, because its three hits are no
+   * longer equal: they are 20, 40 and 60 base power. The claim this probe makes is unchanged -- the
+   * price carries the 1 + p + p^2 discount and not a second accuracy multiply -- but "three full
+   * hits" is now `d(20) + d(40) + d(60)` rather than `3 x d(20)`, so the discount shows against THAT.
+   * Comparing against the old denominator would have made the ratio ~4.98 and read as a 66% OVERPRICE
+   * on a probe whose whole subject is a discount. The undiscounted sum is built out of the same
+   * tag-free copies the rest of this file uses, at the base powers the callback actually produces. */
+  const taFull = one(ta, 20) + one(ta, 40) + one(ta, 60);
   const taR = taAll / taOne, rbR = rbAll / rbOne;
+  const taDisc = taAll / taFull;
   const turn = (rngIn) => turnDamageBig(['weavile', 'incineroar', 'garchomp', 'milotic'], null,
     'tripleaxel', rngIn);
   const landed = turn(rng5), missed = turn(rngLose);
-  return { works: taR > 2 && taR < 2.95 && rbR > 3.0 && landed > 0 && missed === 0,
+  return { works: taDisc > 0.80 && taDisc < 0.95 && rbR > 3.0 && landed > 0 && missed === 0,
            arms: { control: missed, test: landed },
-           detail: 'Triple Axel ' + taOne + ' x' + taR.toFixed(2) + ' = ' + taAll
-                 + ' (three full hits would be x3, the discount is x2.71);  Rock Blast ' + rbOne
+           detail: 'Triple Axel priced ' + taAll + ' against ' + taFull + ' for three UNDISCOUNTED '
+                 + 'hits at 20/40/60 BP — x' + taDisc.toFixed(3) + ', which is the 1 + p + p^2 = 2.71 '
+                 + 'discount carried on escalating hits (its first hit alone is ' + taOne + ');  '
+                 + 'Rock Blast ' + rbOne
                  + ' x' + rbR.toFixed(2) + ' = ' + rbAll + ' (no per-hit roll, must stay x3.1);  '
                  + 'through a real turn it deals ' + landed + ' on a winning roll and ' + missed
                  + ' on a losing one (so the 90% is a to-hit roll, not a second discount)' };
@@ -6333,23 +6489,37 @@ probe('move', 'boostScaledPower', 'Stored Power grows with the user\'s positive 
 });
 
 /* WIRE 84. The count of REACTION EVENTS was silently 1 for every multi-hit move. The damage is
- * still one packet (WIRE 20's declared divergence, unchanged); this is a different quantity. */
+ * still one packet (WIRE 20's declared divergence, unchanged); this is a different quantity.
+ *
+ * WIRE 147 -- AND THE DRAGON DARTS ARM WAS ASSERTING A FALSEHOOD, GREEN. It read `-2 / +4` on a Weak
+ * Armor Milotic standing beside a healthy partner, and Showdown lands ONE dart there: `targetsCopy =
+ * [targets[hit - 1]]`, and `target.timesAttacked += move.smartTarget ? 1 : hit - 1`. The arm is kept
+ * -- Dragon Darts is still the format's only fixed-2 carrier worth watching -- and is now staged BOTH
+ * WAYS, which is strictly more than it tested before: with the partner up each body reacts once, and
+ * with the partner already down `smartTarget` turns itself off and the aimed body reacts twice. The
+ * PARTNER'S stages are read too, because "each body once" and "nobody at all" are otherwise the same
+ * number on the aimed body. */
 probe('ability', 'reactorPerHit', 'Weak Armor triggers once per hit of a multi-hit move', () => {
-  const run = (mv) => {
+  const run = (mv, stage) => {
     const { me, ally, f1, f2, S } = board('garchomp', 'incineroar', 'milotic', 'garchomp');
-    f1.ability = 'weakarmor';
+    f1.ability = 'weakarmor'; f2.ability = 'weakarmor';
+    if (stage) stage(f1, f2);
     M.battleTurn(S, rng5,
       new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
-    return [f1.boosts.df, f1.boosts.sp];
+    return [f1.boosts.df, f1.boosts.sp, f2.boosts.df, f2.boosts.sp];
   };
   const control = run('dragonclaw');          // one hit
   const test = run('bulletseed');             // 2-5, seeded to 3
-  const twice = run('dragondarts');           // fixed 2
+  const split = run('dragondarts');           // fixed 2, smartTarget: ONE dart each
+  const alone = run('dragondarts', (f1, f2) => { f2.curHP = 0; f2.fainted = true; });
   return { works: control[0] === -1 && control[1] === 2 && test[0] === -3 && test[1] === 6
-                  && twice[0] === -2 && twice[1] === 4,
+                  && split[0] === -1 && split[1] === 2 && split[2] === -1 && split[3] === 2
+                  && alone[0] === -2 && alone[1] === 4,
            arms: { control, test },
-           detail: `def/spe after Dragon Claw ${control.join('/')}, after Bullet Seed (3 hits) `
-                 + `${test.join('/')}, after Dragon Darts (2 hits) ${twice.join('/')}` };
+           detail: `[aimed def/spe, partner def/spe] after Dragon Claw ${control.join('/')}, after `
+                 + `Bullet Seed (3 hits) ${test.join('/')}; Dragon Darts with the partner UP `
+                 + `${split.join('/')} (one dart each) and with the partner DOWN ${alone.join('/')} `
+                 + `(smartTarget turns itself off and both darts land on the aimed body)` };
 });
 
 /* ---- BATCH 12 — WHAT THE SECOND FULL MATRIX RUN FOUND (WIRES 85-89) ----------------------------- */

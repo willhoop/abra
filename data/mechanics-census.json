@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-10T03:54:13.259Z",
+  "generated": "2026-08-10T04:42:09.670Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 350,
-  "live": 350,
+  "probed": 354,
+  "live": 354,
   "missing": 0,
-  "armed": 350,
+  "armed": 354,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -1243,6 +1243,46 @@
     },
     {
       "kind": "move",
+      "tag": "variablePower",
+      "label": "Triple Axel escalates 20/40/60 across its three hits",
+      "live": true,
+      "detail": "one 20 BP hit 120, one 40 232, one 60 336 — a FLAT triple is 360 and an ESCALATING one is 688; the engine's Triple Axel deals 688 (Showdown's basePowerCallback is 20 * move.hit)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "smartTarget",
+      "label": "Dragon Darts aims its second dart at the partner",
+      "live": true,
+      "detail": "[aimed Goodra, partner Torterra] one dart [132,0]  ->  Dragon Darts [132,66]; with the partner already fainted both darts go back into the aimed body [264,0]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "variablePower",
+      "label": "Beat Up deals one PACKET per ally, not one packet of summed power",
+      "live": true,
+      "detail": "1 eligible ally 25, so four SEPARATE packets are 100 — the engine's four-ally Beat Up deals 100 (one summed packet pays the formula's +2 once instead of four times)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "conditionalPower",
+      "label": "Fickle Beam rolls its double — it is never 1.3x",
+      "live": true,
+      "detail": "[bottom corner, top corner] a flat 80 BP copy [246,194] and a flat 160 BP copy [492, 386]; Fickle Beam reads [492,194] — it must equal the 160 copy at the corner where random(10) draws 0 and the 80 copy at the one where it draws 9, and an averaged 1.3x equals NEITHER",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "powerFromFallen",
       "label": "Last Respects grows with fallen allies",
       "live": true,
@@ -1976,7 +2016,7 @@
       "tag": "multiAccuracy",
       "label": "Triple Axel is priced below three full hits, and the 90% is not counted twice",
       "live": true,
-      "detail": "Triple Axel 96 x2.71 = 260 (three full hits would be x3, the discount is x2.71);  Rock Blast 10 x3.10 = 31 (no per-hit roll, must stay x3.1);  through a real turn it deals 258 on a winning roll and 0 on a losing one (so the 90% is a to-hit roll, not a second discount)",
+      "detail": "Triple Axel priced 478 against 548 for three UNDISCOUNTED hits at 20/40/60 BP — x0.872, which is the 1 + p + p^2 = 2.71 discount carried on escalating hits (its first hit alone is 96);  Rock Blast 10 x3.10 = 31 (no per-hit roll, must stay x3.1);  through a real turn it deals 504 on a winning roll and 0 on a losing one (so the 90% is a to-hit roll, not a second discount)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2316,7 +2356,7 @@
       "tag": "variablePowerAbsolute",
       "label": "a move whose base power IS the calculation deals damage at all",
       "live": true,
-      "detail": "gyroball 92 electroball 30 hardpress 112 reversal 48 beatup 8   control splash 0",
+      "detail": "gyroball 92 electroball 30 hardpress 112 reversal 48 beatup 9   control splash 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2356,7 +2396,7 @@
       "tag": "reactorPerHit",
       "label": "Weak Armor triggers once per hit of a multi-hit move",
       "live": true,
-      "detail": "def/spe after Dragon Claw -1/2, after Bullet Seed (3 hits) -3/6, after Dragon Darts (2 hits) -2/4",
+      "detail": "[aimed def/spe, partner def/spe] after Dragon Claw -1/2/0/0, after Bullet Seed (3 hits) -3/6/0/0; Dragon Darts with the partner UP -1/2/-1/2 (one dart each) and with the partner DOWN -2/4/0/0 (smartTarget turns itself off and both darts land on the aimed body)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2406,7 +2446,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.0% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

@@ -111,18 +111,58 @@ function rosterStage(stage) {
      * DECLARED staleness check, which once retracted its own author's declaration. */
     const deferred = (j.results || []).filter(r => r && r.verdict === 'DEFERRED-BY-OWNER');
     const staleShelf = deferred.filter(r => r.would_pass_now).length;
+    /* ---- THE DENOMINATOR, AND THE ROWS THAT COUNT IN NEITHER COLUMN (ROADMAP #120, #121) --------
+     *
+     * THIS CLAUSE SAID "clean: 84 fired and matched" AND PASSED. It did not say of how many, and 84
+     * of 316 is 26.6% while 84 of the 201 rows that HAVE a legal carrier in this format is 42%. It
+     * also said nothing at all about fifteen CONTROL-NOT-QUIET rows sitting inside that green — rows
+     * where the control arm was ANOTHER LIVE ABILITY, so the measurement is (subject minus a live
+     * control) and names neither of them. Those are UNMEASURED, not passing.
+     *
+     * A bare PASS is the same failure this file was built to stop one level up: `status.js` printed
+     * `PRE-CHANGE` beside a figure for days and the figure went on being quoted. A caption is not a
+     * quarantine, and a verdict with no denominator is not a result.
+     *
+     * THE NUMBERS ARE READ OFF THE ARTIFACT'S OWN `scope` BLOCK, written by tests/roster.js at the
+     * refusal, never re-derived here by matching prose. An artifact predating that block says
+     * DENOMINATOR NOT CARRIED rather than defaulting to zero — a missing count must not read as
+     * "none", which is the whole shape of the bug above.
+     *
+     * WHY UNATTRIBUTABLE ROWS ARE REPORTED AND DO NOT HOLD THE GATE. Four of them (Aroma Veil, Flower
+     * Veil, Fluffy, Imposter) are untestable in this format by construction: their only legal carriers
+     * have exactly one alternative ability, that alternative is live, and this format has 8 quiet
+     * abilities of which none shares a species with them. A clause that can never open is not a gate.
+     * They are named in the text on every run instead, so nobody has to go and look. If Will wants
+     * them to fail, the flag is one `&&` on the line below. */
+    const sc = j.scope || null;
+    /* A ZERO IS A RESULT AND `|| null` EATS IT. An artifact that carries `results` can be counted
+     * whatever its scope block says; only an artifact with no rows at all cannot answer. */
+    const unattributable = sc ? sc.unattributable
+      : (Array.isArray(j.results)
+          ? j.results.filter(r => r && r.verdict === 'CONTROL-NOT-QUIET').length : null);
+    const denom = sc
+      ? `${sc.tested} TESTED of ${sc.in_scope} IN SCOPE, of ${sc.total} total `
+        + `(${sc.out_of_scope} have NO LEGAL CARRIER in this format — a fact about the regulation)`
+      : `DENOMINATOR NOT CARRIED by ${'data/' + f} — it predates the scope block; re-run `
+        + `tests/roster.js --stage ${stage} --write`;
+    const unattrib = unattributable === null
+      ? '. UNATTRIBUTABLE ROWS NOT COUNTED — this artifact carries no rows to count'
+      : unattributable === 0 ? ''
+      : `. ${unattributable} row(s) count in NEITHER column — the control arm is itself a live ability`
+        + (sc && sc.unattributable_ids ? `: ${sc.unattributable_ids.join(', ')}` : '');
     return {
       stage, file: 'data/' + f, generated: j.generated || null, release: j.engine_release || null,
       differ, silent, badReds, matched: c['FIRED-AND-BOARDS-MATCH'] || 0,
       couldNotStage: c['COULD-NOT-STAGE'] || 0,
-      deferred: deferred.length, staleShelf,
+      deferred: deferred.length, staleShelf, scope: sc, unattributable,
       ok: differ === 0 && silent === 0 && badReds === 0 && staleShelf === 0,
-      why: differ === 0 && silent === 0 && badReds === 0 && staleShelf === 0
-        ? `clean: ${c['FIRED-AND-BOARDS-MATCH'] || 0} fired and matched`
+      why: (differ === 0 && silent === 0 && badReds === 0 && staleShelf === 0
+        ? `clean: ${denom}`
           + (deferred.length ? ` (${deferred.length} deferred by the owner, still staged and printed)` : '')
-        : `${differ} FIRED-AND-BOARDS-DIFFER, ${silent} DID-NOT-FIRE`
+        : `${differ} FIRED-AND-BOARDS-DIFFER, ${silent} DID-NOT-FIRE — ${denom}`
           + (badReds ? `, ${badReds} red demonstration(s) did not behave as their rule predicted` : '')
-          + (staleShelf ? `, ${staleShelf} DEFERRAL(S) NOW PASS ON THEIR OWN — take the shelf down` : ''),
+          + (staleShelf ? `, ${staleShelf} DEFERRAL(S) NOW PASS ON THEIR OWN — take the shelf down` : ''))
+        + unattrib,
     };
   }
   return {

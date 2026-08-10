@@ -1,6 +1,16 @@
 # ABRA — Technical Documentation
 
-**Version 3.96.0 · Last updated 2026-08-10**
+**Version 3.97.0 · Last updated 2026-08-10**
+
+**3.97.0 — GIVE EACH HIT ITS OWN ROLL. DO NOT MULTIPLY ONE ROLL.**
+The function `dmgRange` made one damage roll. It multiplied the roll by the number of hits.
+This is correct only if every hit is the same. Four moves in this format have hits that are not the same.
+The move Triple Axel has a base power of `20 * move.hit`. The powers are 20, 40 and 60.
+The move Dragon Darts has the field `smartTarget`. Hit 1 goes to the target. Hit 2 goes to its partner.
+The move Beat Up has one hit for each usable team member. Each hit has its own base power.
+The move Fickle Beam has a 30% chance of double power. It is 80 or 160. It is never 104.
+Use a loop over the hits. Enter the loop only if the base power depends on the hit number.
+Do not use a mean for a chance. Draw the chance in the battle loop. Keep the mean only for a price.
 
 **3.96.0 — DERIVE TAG MEMBERSHIP FROM THE HANDLER. DO NOT MATCH A NAME.**
 The rule `speedMult` matched the name "choicescarf". The item Iron Ball has the same handler

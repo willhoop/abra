@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  350/350 probed mechanics live, 0 missing   (census 2026-08-10 03:52)
-  0/150 differential comparisons disagree with Showdown   (2026-08-10 03:23)
+  354/354 probed mechanics live, 0 missing   (census 2026-08-10 04:39)
+  0/150 differential comparisons disagree with Showdown   (2026-08-10 03:54)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
@@ -54,12 +54,94 @@ ENGINE — does the simulator do what Pokémon does
     whole-game agreement 7/1997 -> 134/1997; first-divergence line, mean 14.78 -> 33.98
     paired against the baseline: 1295 games part later, 116 EARLIER, 586 unchanged
     the baseline ran first and last and reproduced exactly; comparability: every arm cleared
-  tag coverage: 185/196 probed, 11 unprobed
+  tag coverage: 186/197 probed, 11 unprobed
 ```
 
-_stamped 2026-08-10 03:52_
+_stamped 2026-08-10 04:41_
 
 <!-- /GENERATED -->
+
+## WIRE 147 — THE DAMAGE WAS ONE ROLL MULTIPLIED BY N. FOUR MOVES, ONE ROOT CAUSE, AND TWO OF THEM WERE 2x. 2026-08-10.
+
+Census **350 → 354 live, 354 probed, 0 missing, 0 threw, 0 hollow, 0 unarmed, 0 direct-call.** Four new
+probes, each watched RED on its own — not as a block — before a line of the engine changed. Damage
+stages **1728/1728 exact**, unchanged. **No release was cut and neither `tests/roster.js` nor
+`engine/game_differential.js` was run**: `game_differential.js:126` AUTO-CUTS when nothing is pinned,
+which swaps the pointer other measurements read. The pointer is still `f727f7fdee4f`, mtime unmoved.
+Full working: `docs/MEDICHAM-SPRINT-NOTES.md`.
+
+**THE DEFECT IS ONE LINE AND FOUR MOVES PAID FOR IT.** `dmgRange` ended
+`if(_hits>1) return {min: floor(roll(85)*_hits), max: floor(roll(100)*_hits), eff}`. Everything a hit
+owns individually — its own base power, its own `+2`, its own target — was folded into a scalar:
+
+| move | uses | what it was |
+|---|---|---|
+| **Triple Axel** | 753 | `basePowerCallback` is `20 * move.hit` — 20/40/60. We applied a flat 20 three times, so the move dealt **exactly half**: 8+8+8 = 24 against 8+16+23 = 47. It was **silent** too: the tag said `{computed:true, note:"idiom not yet derivable"}` and `MEDFAILS.variablePowerUnknown` is gated on a truthy `kind`, so it fell out of every branch AND out of the counter that exists to report exactly that |
+| **Dragon Darts** | 126 | `smartTarget: true`. One packet cannot be aimed at two bodies, so both darts hit the aimed foe and the partner took **zero**: −72/0 against −36/−34. `smartTarget` appeared in this engine only in two comments and in no tag at all |
+| **Beat Up** | 320 | `mvBP = _hits ? _sum : …` summed every ally's base power into one packet, and the formula's `+2` is paid per packet — four hits lost three of them: 24 against 28 |
+| **Fickle Beam** | 38 | a 30% DOUBLE applied as a flat ×1.3 — 80 × 1.3 = **104 base power, a number the move never has**. It is 80 or 160 |
+
+**FICKLE BEAM IS THE 3.90.0 BUG VERBATIM** — *"the multi-hit count was the MEAN, and the pin never lands
+on a middle"* — surviving in the conditional-power path, with the comment above the line stating the
+averaging as a deliberate choice. It is fixed with the shape ROADMAP #103 already chose and not a second
+one: `hit.condPower` is drawn in the battle loop off the same rng that draws the hit count, the crit and
+the damage index; a pure call keeps the expectation, because that is the right object for a PRICE, and
+the two halves are counted separately so a run that never rolls one is readable.
+
+**THE PER-HIT LOOP IS ENTERED ONLY WHERE THE BASE POWER IS A FUNCTION OF THE HIT INDEX.** `dmgRange` is
+now a wrapper over `dmgRangeOneHit`, and `hitPlanOf` decides from the ARTIFACT — today
+`perHitEscalates` (Triple Axel) and `alliesBaseAtk {perAlly}` (Beat Up), nothing else. Every other move,
+**multi-hit included**, takes one trip with the identical `_hits` scalar the old line multiplied by. That
+is what "unchanged by construction" means here, and it is why this is safe to land in the damage path.
+
+**THE PINNED CORNER, STATED.** `min` is every hit at the 85% randomizer and `max` every hit at 100% —
+exactly what a pin produces in the authority, which draws a randomizer per hit and gives every one the
+same corner. **What this does NOT reproduce is the INTERIOR:** the loop still draws one index across the
+summed range, so N independent mid-rolls are modelled as one. Unchanged from before this wire, and it is
+the loop's question rather than the calculator's. **The COUNT is not re-derived as a mean** — `hit.hits`
+wins whenever a caller drew one, and the weight vector used for a price sums to exactly `expectedHitsOf`,
+CHECKED (`MEDFAILS.hitWeightsDisagree`, 0 over 1,500 real turns across all 500 moves).
+
+**UNCHANGED BY CONSTRUCTION *AND* MEASURED.** Every move in `data/tags.json` (500), four turns each —
+mid roll, both pin corners, and one with no target — digested as the whole board, against the **frozen
+release `f727f7fdee4f`** opened through `engine_release.open(id)` so it serves the pre-wire bytes.
+**2,000 cells. 11 differ. Four moves, and they are the four above.**
+
+**THE AUTHORITY WAS READ DIRECTLY, AND THE FIRST HARNESS WAS WRONG IN THE FLATTERING DIRECTION.** A
+pinned `new Battle` confirms all four at both corners — Triple Axel escalating, Dragon Darts writing
+`|-anim|` at the second dart with damage on both bodies, Beat Up emitting four `|-damage|` steps and
+`|-hitcount| 4`, Fickle Beam printing `[anim] Fickle Beam All Out` at one corner and nothing at the
+other. The first version overrode `battle.random`, and `Battle#randomChance` calls
+`this.prng.randomChance(...)` **directly** (sim/battle.ts:352) — so every chance event stayed unpinned
+and Fickle Beam appeared never to double, which would have read as "the tag's `p` is wrong".
+
+**A PROBE THAT WAS GREEN ON A FALSEHOOD.** `reactorPerHit` asserted Weak Armor `-2/+4` off Dragon Darts
+against a Milotic standing beside a **healthy partner**, and Showdown lands one dart there. The reaction
+count read the move's total while the damage step had already split. Corrected, and now staged BOTH ways
+with the partner's stages read beside the aimed body's. `multiAccuracy`'s probe needed a new denominator
+rather than a new claim: Triple Axel's discount now shows against `d(20)+d(40)+d(60)`.
+
+**BEAT UP'S ELIGIBILITY FILTER WAS WRONG IN THREE COPIES AND IS ONE FUNCTION NOW.** Showdown's
+`ally === pokemon || !ally.fainted && !ally.status` short-circuits, so **the user is always in the
+list**; this engine applied the tests to the user too. No probe covers the statused-user case — reported,
+not claimed.
+
+**`data/tags.json` WAS REGENERATED, AND ROADMAP #65's BLOCKER IS GONE — MEASURED, NOT ASSUMED.** A
+CONTROL regeneration with no changes ran first: **0 removed, 0 added, 0 changed**. Against the
+pre-session artifact: **0 removed, 0 added, three hundred and seven changed, and all but two of those
+are the `uses` count only**
+(`data/tags.json`'s own `sheet_entries` moved by about six hundred between the control run and the real
+one — the ingest is live and appended sides mid-session; read the value from the artifact). The semantic
+changes are the two intended ones and the catalogue gained exactly `move|smartTarget`.
+
+**WHAT IS NOT CLOSED, SAID PLAINLY.** A PURE PRICE for Dragon Darts still says two hits into the aimed
+body: `dmgRange` is handed two bodies and cannot see a partner, so `playerAction`'s pre-computed `d`,
+`bestMoveVs` and every rollout leaf overstate the aimed body and understate the board. Same shape as the
+`auraBoost` finding — a fact that needs the FIELD, not the pair — and filed rather than hidden. **No
+roster row is claimed closed:** the roster was not run.
+
+**THE HAND LIST IS UNCHANGED.** Nothing on it was any of this; it has been empty except for Rivalry
+since 2026-08-07, and these four rows came off the deliberate roster rather than off prose.
 
 ## WIRE 146 — `playerAction` IS A FIRST-MATCH CASCADE, SO A MOVE CARRYING TWO EFFECTS SILENTLY LOST ONE. 2026-08-10.
 

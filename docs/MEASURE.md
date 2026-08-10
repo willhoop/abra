@@ -15,27 +15,27 @@ it does not compete on them.
 MEASURE — can we believe a number
   leaf calibration: QUARANTINED — the figure is withheld, not annotated.
     data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 1 of 4 gate clauses fail (deliberate roster / moves)
+    MEDICHAM is not correct — 2 of 4 gate clauses fail (deliberate roster / abilities; deliberate roster / moves)
     it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
   engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 1 of 4 gate clauses fail (deliberate roster / moves)
+    MEDICHAM is not correct — 2 of 4 gate clauses fail (deliberate roster / abilities; deliberate roster / moves)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 21 unsafe, 1 void (declared), 64 possibly stale, 76 ok, 0 missing
+  provenance: 20 unsafe, 1 void (declared), 72 possibly stale, 69 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 1 of 4 gate clauses fail (deliberate roster / moves)
+    MEDICHAM is not correct — 2 of 4 gate clauses fail (deliberate roster / abilities; deliberate roster / moves)
     it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 04:00
     feature_fixture --check FAILED:   The weights were fitted against the old definition and no longer describe these quantities. |   Refit (node engine/fit_policy.js, then node engine/fit_joint.js), or if a derived table was |   merely re-ingested, restamp with: node engine/feature_fixture.js --stamp <file>
-    moved after the fit: engine/medicham2-browser.js  2026-08-10 03:52
+    moved after the fit: engine/medicham2-browser.js  2026-08-10 04:18
     moved after the fit: engine/board.js  2026-08-05 19:44
     moved after the fit: data/engine-data.js  2026-08-10 00:00
-    moved after the fit: data/abra-tags.js  2026-08-10 02:59
+    moved after the fit: data/abra-tags.js  2026-08-10 04:13
 ```
 
-_stamped 2026-08-10 03:52_
+_stamped 2026-08-10 04:41_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,117 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 000. THE ABILITIES CLAUSE WAS GREEN OVER 27% COVERAGE AND FIFTEEN UNMEASURED ROWS — ROADMAP #120, #121, #122 — 2026-08-10
+
+Will: *"check the abilities clause for the same hole"*. `data/roster.abilities.json` read **84
+FIRED-AND-BOARDS-MATCH, 217 COULD-NOT-STAGE, 15 CONTROL-NOT-QUIET** and `engine/quarantine.js` printed
+`clean: 84 fired and matched` and **PASSED**. Three separate faults sat inside that sentence.
+
+**THE CLAUSE NOW FAILS, AND IT FAILS ON SEVEN ATTRIBUTED DEFECTS.**
+
+| | before | after |
+|---|---|---|
+| FIRED-AND-BOARDS-DIFFER | 0 | **2** |
+| DID-NOT-FIRE | 0 | **5** |
+| FIRED-AND-BOARDS-MATCH | 84 | 77 |
+| CONTROL-NOT-QUIET | 15 | **18** |
+| COULD-NOT-STAGE | 217 | 214 |
+| clause | **PASS** | **FAIL** |
+
+**1. A CONTROL THAT IS ITSELF A LIVE ABILITY IS NOW VARIED, NOT CAPTIONED (#121).** The 15 rows were
+controlled by a second real mechanic because their carrier species has no quiet alternative — and
+this format has **only 8 quiet abilities**, none of which shares a species with any of the 15, so
+"pick a quieter one" cannot reach them and never will. A quiet ability cannot be lent from another
+species either: `buildPair` clamps an ability to its species' own list and falls back to slot 0, so
+an illegal pairing silently becomes the subject arm again.
+
+What CAN reach them is a **SECOND CONTROL**: where the carrier has a third ability, the identical
+scenario is played a third time against it and the two deltas are compared leaf for leaf **in both
+engines**. A leaf that survives both does not depend on which ability was removed, so it is not the
+control's. **98 rows were varied this way.** It is the noise-floor discipline (§9 of LESSONS) applied
+to a control arm: vary the knob that is supposed not to matter, and believe the effect only if it
+survives.
+
+**IT IMMEDIATELY CAUGHT EIGHT VACUOUS GREENS.** Anger Point, Justified, Rivalry, Keen Eye, Shell
+Armor, Stalwart, Sticky Hold and Slush Rush were **FIRED-AND-BOARDS-MATCH** and the agreement was
+about the CONTROL's work — Intimidate's −1 Attack on three of them, Weak Armor's drop, Gooey's drop,
+Stamina's boost, Supersweet Syrup's evasion drop. Anger Point needs a crit and the pin lands none;
+Rivalry needs a gender and `buildPair` sets every body to `N` by construction. Those rows could never
+have fired.
+
+**AND IT CAUGHT THE INSTRUMENT'S OWN FIRST ANSWER, WHICH IS WORTH RECORDING.** The first version
+called a row with nothing surviving both controls *inert*. Two rows come out with identical
+arithmetic — 28 leaves against the first control, 0 against the second — and mean opposite things.
+ANGER POINT really is inert. SLUSH RUSH is live: against Swift Swim (inert in snow) Beartic's kill
+lands before the foe's stat drop; against SNOW CLOAK the drop **misses**, because evasion in snow
+turns a 100-accuracy move into a guaranteed miss under this pin — the same board by a different
+mechanism. **Two arms cannot separate "the subject did nothing" from "the subject and this control
+did the same thing"**, and Beartic has exactly three abilities so there is no third to ask with. Those
+rows are UNATTRIBUTABLE and say so; they are not inert and they are certainly not passes.
+
+**SIX ARE DECLARED UNTESTABLE, with the pool printed rather than asserted** — Aroma Veil, Flower
+Veil, Fluffy, Imposter, Rain Dish, Solar Power. Every legal carrier of each has exactly one
+alternative ability and that alternative is live. The declaration is derived every run from the
+format, so a regulation change retires it without anybody remembering to.
+
+**A TIE-BREAK THAT WOULD HAVE BOUGHT TWO OF THOSE SIX WAS TRIED AND TAKEN BACK OUT.** Ranking
+"carrier has a third ability" above bulk moves Rain Dish to Pelipper and Solar Power to Heliolisk —
+and it moved Water Absorb to Politoed, whose highest-ranked alternative is **DRIZZLE**, and Sand Rush
+and Sand Force to Excadrill, where the staging comes out inert in Showdown and the rows lose their
+coverage entirely. **Changing the fixture to suit the control is the wrong trade.** The second control
+is a measurement taken on whatever carrier the rule chose.
+
+**2. THE CLAUSE STATES ITS DENOMINATOR (#120).** 84 of 316 is 26.6%; excluding the 115 rows whose
+ability has **no legal carrier in this format** — out of scope by regulation, not untested — it is 84
+of 201 = **42%**. Neither number was on the line. The artifact now carries a `scope` block written at
+the refusal (`cannot(why, 'no-legal-carrier')`, tagged where the refusal happens, never matched out of
+prose afterwards) and `quarantine.js` reads it rather than re-deriving it. The clause reads
+`84 TESTED of 201 IN SCOPE, of 316 total` and **names the 18 unattributable rows in the text**.
+
+An artifact predating the block says **DENOMINATOR NOT CARRIED** and names the re-run, rather than
+defaulting to zero — a missing count must not read as "none", which is the shape of the bug it
+replaces. `data/roster.items.json` and `data/roster.moves.json` are in that state now and are their
+owners' to re-run.
+
+**THE ONE JUDGEMENT CALL, stated so it can be overruled: an unattributable row is REPORTED and does
+not hold the gate shut.** Six of the eighteen are untestable in this format by construction, and a
+clause that can never open is not a gate. They are named in the clause text on every run instead of
+sitting invisible inside a green. One `&&` in `rosterStage` changes that if Will wants it.
+
+**3. THE ABILITY STAGE CAN ASK FOR A SWITCH NOW, AND IT CLOSES ZERO ROWS (#122).** No ability row had
+ever attempted one, so trapping abilities had never been asked the only question that distinguishes
+them from doing nothing. `ability/traps-and-somebody-tries-to-leave` reuses the moves stage's
+`switchVerdict` rather than building a second probe. **Asked of the format: Arena Trap and Magnet Pull
+have no legal carrier at all, and Shadow Tag's only carrier is Gengar-Mega — a forme whose ability the
+forme change WRITES, so it cannot be swapped and its only control is suppression, which
+`gastroWorks()` measures as dead in this simulator (6 leaves in Showdown, 0 here).** So the honest
+count of trapping rows closed is **zero**, and the rows say that instead of saying nothing.
+
+**The capability proves itself rather than being asserted**, because a rule whose every member is
+COULD-NOT-STAGE never reaches `--reds` and a staging path that has never run is assumed broken:
+`abilitySwitchWorks()` plays the identical fixture with a NON-trapping carrier and requires both
+engines to complete the ask. It is green — the untrapped Kangaskhan leaves for Milotic in Showdown
+and in medicham2 — and it is a printed selftest line, so it can go red.
+
+**THE SEVEN NEW REDS ARE ENGINE DEFECTS AND ARE NOT FIXED HERE** — filed to `@engine`, each with the
+second-control receipt that makes it attributable:
+
+| ability | verdict | what parted |
+|---|---|---|
+| **Electromorphosis** | DID-NOT-FIRE | Charge never applies — Showdown's Bellibolt hits 22 harder after being struck; ours does not move at all |
+| **Ice Body** | DID-NOT-FIRE | no hail/snow residual heal — Showdown 71 → 81 → 91 → 101, ours flat at 71 |
+| **Curious Medicine** | DID-NOT-FIRE | the ally's stat stages are not reset on entry (−1 Atk / −1 SpA stay) |
+| **Reckless** | DID-NOT-FIRE | the recoil-move base-power boost is absent (Brave Bird 11 HP short, and the recoil with it) |
+| **Sweet Veil** | DID-NOT-FIRE | the ally is not protected from sleep — Spore lands in ours and is refused in Showdown |
+| **Mirror Armor** | FIRED-AND-BOARDS-DIFFER | the drop is not reflected: Showdown puts Scrafty at −1/−2 Atk and −1 SpA, ours leaves 0 |
+| **Supersweet Syrup** | FIRED-AND-BOARDS-DIFFER | evasion drops **twice** here and once in Showdown — an entry effect firing on both foes and again, or not once-per-battle |
+
+**One process note.** `data/roster.abilities.json` was rewritten (its bytes are at
+`.prev.json`); `data/roster.json` — the labelled convenience copy of whichever stage ran last — was
+also rewritten and previously mirrored the moves stage. Nothing is lost: `data/roster.moves.json` is
+that stage's artifact and `quarantine.js` reads the per-stage file first. `tests/roster.js
+--keep-shared` now exists so a division running beside another can leave that file alone.
 
 ### 00. THE QUARANTINE IS A MECHANISM NOW, NOT A PARAGRAPH — 2026-08-08
 

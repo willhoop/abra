@@ -162,6 +162,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * this cluster was: it looks identical to a working feature and is wrong by up to three hits.
    * multiHitAccuracyStopped counts the per-hit accuracy break (Triple Axel, Population Bomb). */
   multiHitRolledCount: 0, multiHitAccuracyStopped: 0,
+  /* WIRE 147 -- the four halves of the per-hit damage loop, each named so a ZERO is readable.
+   * perHitDamageLoop: dmgRange priced a move ONE HIT AT A TIME (Triple Axel, Beat Up).
+   * perHitBasePower:  a hit's base power came from its own index rather than from the move's.
+   * smartTargetSplit: a Dragon Darts use aimed its two darts at two different bodies.
+   * conditionalPowerRolled / conditionalPowerPriced: Fickle Beam's 30% double as a DRAW (a real turn)
+   * against as an EXPECTATION (a pure price). Both are legitimate; a run with games in it that never
+   * rolls one has lost the draw, which is the exact silent default this wire removed. */
+  perHitDamageLoop: 0, perHitBasePower: 0, smartTargetSplit: 0,
+  conditionalPowerRolled: 0, conditionalPowerPriced: 0,
   perishTicked: 0, perishKO: 0, perishClearedOnSwitch: 0,
   passesStateSwitch: 0, passesStateBoosts: 0, passesStateVolatiles: 0,
   curseGhost: 0, curseNonGhost: 0,
@@ -429,6 +438,15 @@ const MEDFAILS = { encoreAction: 0,
    * out loud, because a silent 1 here is exactly the defect WIRE 20 fixed. */
   multiHitRangeNot2To5: 0, multiHitRangeNot2To5First: '',
   multiHitNoCount: 0, multiHitNoCountFirst: '',
+  /* WIRE 147 -- the two ways the per-hit loop can be asked a question the artifact cannot answer.
+   * hitWeightsDisagree: the per-hit weight vector does not sum to `expectedHitsOf` for the same move,
+   * which means the PRICE and the PER-HIT SUM have parted for it. No member in this format today; a
+   * non-zero is a move carrying both a hit RANGE and a per-hit accuracy, which the two objects model
+   * differently and neither notices.
+   * beatUpAllyNoBaseAtk: a party member with no recorded base Attack. It is skipped, which SHORTENS
+   * the hit count, and a silent short count is exactly the collapse this wire removed. */
+  hitWeightsDisagree: 0, hitWeightsDisagreeFirst: '',
+  beatUpAllyNoBaseAtk: 0,
   /* ROADMAP #81 WIRE 12 -- a `passesState` click that could not switch (an empty bench). Showdown's
    * Baton Pass and Shed Tail both `-fail` outright in that case; this counts how often it happens so
    * "the pivot never fired" and "the pivot had nowhere to go" are different readings. */
@@ -2735,7 +2753,13 @@ function auraFor(field,att,def){
  * stage error, because at the TOP roll the randomizer is the identity and half of this class hides.
  * Every existing caller passes six arguments or fewer and gets `undefined`, which is the behaviour
  * it always had. */
-function dmgRange(att,def,mv,field,spread,isCrit,hit){
+/* WIRE 147 -- THIS IS ONE HIT NOW, AND `dmgRange` BELOW IT IS THE LOOP. The two extra parameters are
+ * INTERNAL: `hitNo` is the 1-based hit index (Showdown's `move.hit`), which the base-power block reads
+ * for Triple Axel and Beat Up, and `hitsOverride` is the count this call must price -- the wrapper
+ * passes the whole expectation on the flat path (so the arithmetic is byte-for-byte what it was) and
+ * exactly 1 on the per-hit path (where the wrapper sums the hits itself). Nothing outside `dmgRange`
+ * calls this; the exported name and its seven-argument signature are unchanged. */
+function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride){
   stampMoveIds();
   if(!mv||!hasPower(mv))return {min:0,max:0,eff:mcEff(mv?mv.t:'',def.types)};
   /* Shadowed once, at the top, so every weather read BELOW this line -- weatherScaled, Weather Ball's
@@ -2893,18 +2917,35 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
       mvBP=mvBP+(+_vp.per||0)*_n;
     }
     /* BEAT UP: one hit per eligible party member, each at 5 + floor(that member's base Atk / 10).
-     * ROLLED AS ONE PACKET, summed, which is the same declared divergence this engine already
-     * carries for every multi-hit move against a Focus Sash and is stated here rather than hidden.
-     * Eligibility is Showdown's: not fainted and carrying no major status. */
+     *
+     * WIRE 147 -- IT WAS ONE PACKET OF SUMMED POWER AND IT IS N PACKETS NOW. The line that stood here
+     * was `mvBP = _hits ? _sum : ...`: every ally's base power added into a single hit. The damage
+     * formula ends `... / 50) + 2`, and that +2 is paid PER PACKET, so a four-ally Beat Up lost three
+     * of them -- Showdown 28 against this engine's 24 on the roster's staged body. It is the same
+     * collapse as the multiplied roll above, arriving through a move that carries no `multiHit` tag
+     * at all, which is why `hitPlanOf` asks the ALLY LIST for the count rather than the tag.
+     *
+     * THE INDEX IS THE HIT NUMBER, in `pokemon.side.pokemon` order, because Showdown's callback is
+     * `move.allies.shift()` -- it consumes the list one member per hit, so hit n is member n. The
+     * list itself comes from `beatUpAllies`, which both this line and the hit count read: two copies
+     * of "who is eligible" would let the count and the powers disagree, and the disagreement would be
+     * invisible because each is internally consistent (CLAUDE.md, FACTS ARE GLOBAL). */
     else if(_vp.kind==='alliesBaseAtk'){
-      const _party=(att._sf&&att._sf.team&&att._sf.team.length)?att._sf.team:[att];
-      let _sum=0,_hits=0;
-      for(const _al of _party){
-        if(!_al||_al.fainted||_al.curHP<=0||(_al.status&&_al.status!=='none'))continue;
-        if(!_al._bsAtk)continue;
-        _sum+=(+_vp.base||5)+Math.floor(_al._bsAtk/(+_vp.div||10));_hits++;
-      }
-      mvBP=_hits?_sum:((+_vp.base||5)+Math.floor((att._bsAtk||0)/(+_vp.div||10)));
+      const _bps=beatUpAllies(att,_vp);
+      mvBP=_bps[Math.min(Math.max((+hitNo||1)-1,0),_bps.length-1)];
+    }
+    /* WIRE 147 -- TRIPLE AXEL. `basePowerCallback(pokemon, target, move) { return 20 * move.hit; }`
+     * (data/moves.ts:20003), so the three hits are 20, 40 and 60. This engine applied a flat 20 three
+     * times and dealt EXACTLY HALF the move: 8+8+8 = 24 against the authority's 8+16+23 = 47.
+     *
+     * IT WAS SILENT AS WELL AS WRONG. The artifact carried `variablePower {computed:true, note:"idiom
+     * not yet derivable"}`, and the unknown-kind counter at the bottom of this block is gated on a
+     * TRUTHY `kind` -- so a member with no kind fell out of every branch AND out of the counter that
+     * exists to report exactly that. `tag_dex` now derives the kind off the callback's own arithmetic
+     * and the membership was measured over the format first: three moves in data/moves.ts read
+     * `move.hit`, and two of them are `isNonstandard: 'Past'`. */
+    else if(_vp.kind==='perHitEscalates'&&+_vp.per>0){
+      mvBP=(+_vp.per)*Math.max(1,+hitNo||1);MEDSEEN.perHitBasePower++;
     }
     /* ROADMAP #84 -- DOUBLE IF LAST TURN'S MOVE FAILED. Stomping Tantrum (3,545 corpus uses) and
      * Temper Flare (48), and the two are ONE handler written twice:
@@ -2970,10 +3011,23 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
    * eleven members with wildly different rules, which is why the census carried it MISSING. It now
    * names the CONDITION and the MULTIPLIER, read out of each handler's own chainModify.
    * `userStatsLoweredThisTurn` (Lash Out) has no state here and is COUNTED rather than defaulted;
-   * `chance` (Fickle Beam) is applied as its EXPECTED multiplier, because dmgRange is a range and
-   * has no rng -- stated, because a 30% double silently ignored is the same class of silent default.
    * The members whose condition lives in weatherScaled / terrainScaled / variablePower carry only
-   * `conditional:true` and are correctly skipped here rather than double-counted. */
+   * `conditional:true` and are correctly skipped here rather than double-counted.
+   *
+   * WIRE 147 -- `chance` IS DRAWN WHEN A CALLER HAS DRAWN IT, AND ONLY AN EXPECTATION WHEN NOBODY HAS.
+   *
+   * The line that stood here was `mvBP = floor(mvBP * (1 + p*(mult-1)))` -- 80 x 1.3 = 104 base power
+   * for Fickle Beam, a number the move NEVER HAS. It is either 80 or 160. That is the 3.90.0 lesson
+   * word for word ("the multi-hit count was the MEAN, and the pin never lands on a middle") surviving
+   * in the conditional-power path, and the comment that stood here stated the averaging as a
+   * deliberate choice. Measured against the authority: sd 42, ours 54, and 42 x 1.3 = 54.6.
+   *
+   * IT IS THE SAME SPLIT ROADMAP #103 MADE FOR THE HIT COUNT, which is why it is built the same way
+   * rather than a second way: `hit.condPower` arrives from the battle loop, which draws it through
+   * `rollConditionalPower` off the same rng it draws the hit count, the damage index and the crit
+   * from. A PURE call -- a board feature, a rollout leaf, `punishExposure` -- hands over no `hit` and
+   * keeps the expectation, which is the right object for a PRICE and is counted separately so a run
+   * that never rolls one reads as the untested case it is. */
   {
     const _cp=mv.id&&TAGS.param('move',mv.id,'conditionalPower');
     if(_cp&&_cp.when&&_cp.mult){
@@ -2984,7 +3038,13 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
       } else if(_cp.when==='targetStatusIn'){
         if((_cp.statuses||[]).includes(_st(def)))mvBP=Math.floor(mvBP*_cp.mult);
       } else if(_cp.when==='chance'){
-        mvBP=Math.floor(mvBP*(1+(_cp.p||0)*((_cp.mult||1)-1)));
+        if(hit&&hit.condPower!==undefined){
+          if(hit.condPower)mvBP=Math.floor(mvBP*(+_cp.mult||1));
+          MEDSEEN.conditionalPowerRolled++;
+        } else {
+          mvBP=Math.floor(mvBP*(1+(_cp.p||0)*((_cp.mult||1)-1)));
+          MEDSEEN.conditionalPowerPriced++;
+        }
       } else {
         MEDFAILS.variablePowerUnknown++;
         if(!MEDFAILS.variablePowerUnknownFirst)MEDFAILS.variablePowerUnknownFirst=mv.id+':'+_cp.when;
@@ -3717,8 +3777,10 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
    * the per-hit floor was never in it.
    * `hit.hits` arrives from the battle loop, which draws it through `rollHitsOf` off the same rng it
    * draws the damage index and the crit from. */
-  const _hits=(hit&&+hit.hits>0)?+hit.hits:expectedHitsOf(mv&&mv.id);
-  if(hit&&+hit.hits>0)MEDSEEN.multiHitRolledCount++;
+  /* WIRE 147 -- THE COUNT ARRIVES FROM THE WRAPPER NOW. It is the same number `hitPlanOf` computes
+   * from `hit.hits` or `expectedHitsOf`; it is passed in rather than re-derived so that the per-hit
+   * path (which prices ONE hit at a time and sums them itself) cannot accidentally multiply twice. */
+  const _hits=+hitsOverride>0?+hitsOverride:1;
   /* ROADMAP #92 -- ALL SIXTEEN ROLLS, ON REQUEST, IN THE AUTHORITY'S OWN INDEX ORDER. Index i is
    * percent 100-i (`battle.ts:2388` uses `100 - this.random(16)`), so index 0 is the top roll. This
    * exists because EVERY existing check in this repo compares the ENDPOINTS, and the endpoints are
@@ -3759,6 +3821,158 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
   }
   if(_hits>1)return {min:Math.floor(roll(85)*_hits),max:Math.floor(roll(100)*_hits),eff};
   return {min:roll(85),max:roll(100),eff};
+}
+
+/* ================= WIRE 147 -- THE DAMAGE IS A LOOP OVER HITS ====================================
+ *
+ * `if(_hits>1) return {min: floor(roll(85)*_hits), max: floor(roll(100)*_hits), eff}` was ONE ROLL
+ * MULTIPLIED BY N. Everything a hit owns individually -- its own base power, its own `+2`, its own
+ * target -- was folded into a scalar, and four moves are wrong because of it. Two of the four are 2x
+ * errors rather than rounding:
+ *
+ *   tripleaxel   20/40/60 escalating -> we dealt 20 three times.  8+16+23 = 47 vs 8+8+8 = 24.
+ *   dragondarts  two darts, two bodies -> we put both in one.     goodra -36/torterra -34 vs -72/0.
+ *   beatup       one packet per ally  -> we summed the powers.    28 vs 24 over four hits.
+ *   ficklebeam   a 30% DOUBLE         -> we applied a flat 1.3x.  42 vs 54, and 42 x 1.3 = 54.6.
+ *
+ * SINGLE-HIT DAMAGE IS UNCHANGED BY CONSTRUCTION, AND THAT IS THE WHOLE SHAPE OF THIS FUNCTION. The
+ * per-hit loop is entered ONLY when the move's base power is a function of the hit index -- which
+ * `hitPlanOf` decides from the artifact, and which today is Triple Axel and Beat Up and nothing else.
+ * Every other move, multi-hit included, goes down `dmgRangeOneHit` exactly once with the same
+ * `_hits` scalar the old line used, so the arithmetic is the arithmetic it already had. It was then
+ * MEASURED anyway rather than argued: every move in `data/tags.json`, through a real turn, digested
+ * before and after (see docs/MEDICHAM-SPRINT-NOTES.md).
+ *
+ * THE PINNED CORNER, STATED. `min` is every hit at the 85% randomizer and `max` is every hit at 100%,
+ * which is exactly what the differential's two pins produce in the authority -- Showdown draws a
+ * randomizer per hit and a pin gives every one of them the same corner. So the endpoints are the
+ * authority's endpoints. What this does NOT reproduce is the INTERIOR of a multi-hit distribution: the
+ * battle loop draws one index across the summed range, so N independent mid-rolls are modelled as one.
+ * That is unchanged from before this wire and is a range-versus-sample question the loop owns.
+ *
+ * THE COUNT IS NOT RE-DERIVED AS A MEAN -- 3.90.0's lesson. `hitPlanOf` takes `hit.hits` whenever the
+ * caller has drawn one and only falls back to `expectedHitsOf` for a PRICE, and the weight vector it
+ * builds for the price sums to exactly that expectation (checked, and a mismatch is counted rather
+ * than absorbed). */
+function dmgRange(att,def,mv,field,spread,isCrit,hit){
+  const _plan=hitPlanOf(att,mv,hit);
+  if(hit&&+hit.hits>0)MEDSEEN.multiHitRolledCount++;
+  if(!_plan.perHitPower)return dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,1,_plan.total);
+  MEDSEEN.perHitDamageLoop++;
+  const _wantRolls=!!(hit&&Array.isArray(hit.rolls));
+  const _acc=_wantRolls?new Array(16).fill(0):null;
+  let _mn=0,_mx=0,_eff=1;
+  for(let h=1;h<=_plan.n;h++){
+    const _w=_plan.w[h-1];
+    /* A FRESH `rolls` PER HIT so the sixteen-roll out-parameter can be accumulated rather than
+     * overwritten; every other field on the hit context (Helping Hand, Friend Guard, the drawn
+     * conditional power) is carried through untouched. */
+    const _sub=_wantRolls?Object.assign({},hit,{rolls:[]}):hit;
+    const _r=dmgRangeOneHit(att,def,mv,field,spread,isCrit,_sub,h,1);
+    _eff=_r.eff;_mn+=_w*_r.min;_mx+=_w*_r.max;
+    if(_wantRolls&&_sub.rolls.length===16)for(let i=0;i<16;i++)_acc[i]+=_w*_sub.rolls[i];
+  }
+  if(_wantRolls){hit.rolls.length=0;for(let i=0;i<16;i++)hit.rolls.push(Math.floor(_acc[i]));}
+  return {min:Math.floor(_mn),max:Math.floor(_mx),eff:_eff};
+}
+/* HOW MANY HITS, WHAT EACH IS WORTH, AND WHETHER THEY DIFFER AT ALL.
+ *
+ *   n             how many packets to price
+ *   w             the weight on each, summing to `total`
+ *   total         the scalar the flat path multiplies by -- EXACTLY what `_hits` used to be
+ *   perHitPower   is the base power a function of the hit index? this is the switch, and it is a
+ *                 property of the MOVE, never of whether two hits happen to land on equal numbers.
+ *                 Beat Up with four identical allies has four equal packets and still must not be
+ *                 summed into one, because the formula's +2 is paid per packet.
+ *
+ * BEAT UP HAS NO `multiHit` ROW AT ALL -- its count is the eligible PARTY -- which is why this asks
+ * the ally list before it asks the tag. */
+function hitPlanOf(att,mv,hit){
+  const id=mv&&mv.id;
+  const _vp=id&&TAGS.param('move',id,'variablePower');
+  if(_vp&&_vp.kind==='alliesBaseAtk'&&_vp.perAlly){
+    const n=Math.max(1,beatUpAllies(att,_vp).length);
+    return {n,w:new Array(n).fill(1),total:n,perHitPower:true};
+  }
+  const perHitPower=!!(_vp&&_vp.kind==='perHitEscalates'&&+_vp.per>0);
+  const rolled=(hit&&+hit.hits>0)?Math.floor(+hit.hits):0;
+  if(rolled>0)return {n:rolled,w:new Array(rolled).fill(1),total:rolled,perHitPower};
+  const total=expectedHitsOf(id);
+  if(!perHitPower)return {n:1,w:[1],total,perHitPower:false};
+  const w=hitWeightsOf(id);
+  return {n:w.length,w,total,perHitPower:true};
+}
+/* THE PRICE OF HIT h IS ITS PROBABILITY OF HAPPENING AT ALL, and the vector must sum to
+ * `expectedHitsOf` or the two objects disagree about the same move.
+ *
+ *   fixed count, no per-hit accuracy   [1, 1, ... ]            sum = hits
+ *   fixed count + multiAccuracy        [1, p, p^2, ... ]       sum = 1 + p + p^2 ...  (Triple Axel)
+ *   the 2-5 family                     P(at least h hits)      sum = 3.1 over 35/35/15/15
+ *
+ * THE SUM IS CHECKED RATHER THAN ASSERTED IN PROSE. `expectedHitsOf` discards the 2-5 mean when a
+ * move also carries multiAccuracy (it takes the geometric series over `Math.round(n)` terms), and no
+ * move in this format carries both -- so a member that ever does would part the two objects silently.
+ * It is counted instead. */
+function hitWeightsOf(moveId){
+  const p=TAGS.param('move',moveId,'multiHit');
+  if(!p)return [1];
+  let w;
+  const r=p.range;
+  if(Array.isArray(r)&&r.length===2&&+r[0]!==+r[1]){
+    const a=+r[0],b=+r[1];
+    if(a===2&&b===5)w=[1,1,0.65,0.30,0.15];                 // 35/35/15/15, as P(>= h)
+    else {w=[];for(let h=1;h<=b;h++)w.push(h<=a?1:(b-h+1)/(b-a+1));}
+  } else w=new Array(Math.max(1,+p.hits||2)).fill(1);
+  const _ma=TAGS.param('move',moveId,'multiAccuracy');
+  if(_ma&&_ma.perHit&&w.length>1){
+    const _pa=(+_ma.accuracy||100)/100;
+    if(_pa<1){let k=1;for(let i=0;i<w.length;i++){w[i]*=k;k*=_pa;}}
+  }
+  const _sum=w.reduce((a,b)=>a+b,0);
+  if(Math.abs(_sum-expectedHitsOf(moveId))>1e-9){
+    MEDFAILS.hitWeightsDisagree++;
+    if(!MEDFAILS.hitWeightsDisagreeFirst)
+      MEDFAILS.hitWeightsDisagreeFirst=String(moveId)+' '+_sum.toFixed(4)+' vs '+expectedHitsOf(moveId).toFixed(4);
+  }
+  return w;
+}
+/* WHO THROWS A BEAT UP PUNCH, AND WHAT EACH ONE IS WORTH -- ONE IMPLEMENTATION, TWO READERS (the hit
+ * COUNT in `hitPlanOf` and the per-hit POWER in `dmgRangeOneHit`). Two copies would let the count and
+ * the powers disagree and neither would look wrong on its own.
+ *
+ * THE FILTER IS THE AUTHORITY'S AND IT IS NOT THE ONE THIS ENGINE HAD:
+ *     move.allies = pokemon.side.pokemon.filter(ally => ally === pokemon || !ally.fainted && !ally.status)
+ * (data/moves.ts beatup onModifyMove). `ally === pokemon` short-circuits, so THE USER IS ALWAYS IN THE
+ * LIST -- a burned Weavile still throws its own punch. The block this replaced applied the fainted and
+ * status tests to every member including the user, so a statused user lost its own hit whenever any
+ * ally was healthy. Corrected here, with the source quoted, rather than carried across.
+ *
+ * A MEMBER WITH NO RECORDED BASE ATTACK IS SKIPPED AND COUNTED. It cannot be priced, and dropping it
+ * silently would shorten the hit count for a reason that has nothing to do with eligibility. */
+function beatUpAllies(att,vp){
+  const base=+((vp&&vp.base))||5, div=+((vp&&vp.div))||10;
+  const party=(att&&att._sf&&att._sf.team&&att._sf.team.length)?att._sf.team:[att];
+  const out=[];
+  for(const al of party){
+    if(!al)continue;
+    if(al!==att&&(al.fainted||al.curHP<=0||(al.status&&al.status!=='none')))continue;
+    if(!al._bsAtk){MEDFAILS.beatUpAllyNoBaseAtk++;continue;}
+    out.push(base+Math.floor(al._bsAtk/div));
+  }
+  return out.length?out:[base+Math.floor(((att&&att._bsAtk)||0)/div)];
+}
+/* FICKLE BEAM'S DIE, DRAWN WHERE EVERY OTHER DIE IN A TURN IS DRAWN.
+ *
+ * `onBasePower` is `if (this.randomChance(3, 10)) return this.chainModify(2)`, and `randomChance(n,d)`
+ * is `this.random(d) < n` (sim/battle.ts). `Math.floor(r*d) < n` and `r < n/d` are the SAME predicate
+ * for every r in [0,1), so the tag's fraction reproduces the authority exactly -- including at both
+ * pin corners, where `random(10)` draws 0 (all out) and 9 (not). Returns null when the move carries no
+ * chance clause, so no rng is consumed: before this wire nothing drew here at all, and every existing
+ * seeded probe, differential and roster arm must draw the sequence it drew before. */
+function rollConditionalPower(moveId,rnd){
+  const cp=moveId&&TAGS.param('move',moveId,'conditionalPower');
+  if(!cp||cp.when!=='chance')return null;
+  return rnd()<(+cp.p||0);
 }
 
 /* THE FACT, IN ONE PLACE, because two implementations of it is what produced the row above.
@@ -8681,9 +8895,42 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * READ HERE, which is the position that corresponds to Showdown's: after target resolution and
        * redirection, after the ally is known, and ABOVE the Wide Guard block and the Protect gate --
-       * both of which live in Showdown's step 1 and therefore run after this line. `smartTarget`
-       * (Dragon Darts) has no representation in this engine, so no exclusion for it is written; the
-       * one move that carries it does not exist in this format's damage path. */
+       * both of which live in Showdown's step 1 and therefore run after this line.
+       *
+       * WIRE 147 -- AND THE `smartTarget` EXCLUSION IS REAL NOW. The paragraph that stood here said
+       * Dragon Darts "has no representation in this engine, so no exclusion for it is written" and
+       * that "the one move that carries it does not exist in this format's damage path". The first
+       * half was true and is no longer; the second half was simply wrong -- `dragondarts` is legal,
+       * carries 126 corpus uses and was being resolved as a two-hit single-target move. It needs no
+       * exclusion in the LINE below either, because `a.move.spread` is false for it and the
+       * expression is already gated on that: `move.spreadHit` is set only
+       * `if (targets.length > 1 && !move.smartTarget)`, and a smartTarget move never reaches this
+       * engine with `spread` set. */
+      /* ================= WIRE 147 -- THE DARTS SPLIT ============================================
+       *
+       * `Pokemon#getSmartTargets(target, move)` (sim/pokemon.ts:757) returns [aimed foe, its living
+       * adjacent ally] and `hitStepMoveHitLoop` hands hit n to targets[n-1]. So Dragon Darts in
+       * doubles is TWO SEPARATE 50 BP DARTS AT TWO SEPARATE BODIES, neither of them spread-reduced.
+       * This engine put both into the aimed body and the partner took literally zero: goodra -72,
+       * torterra 0, against the authority's -36 and -34.
+       *
+       * THE THREE FALLBACKS ARE THE AUTHORITY'S OWN, and each is what makes this conditional rather
+       * than a second kind of spread move:
+       *   - no partner at all, or the partner is the USER      -> `smartTarget = false`, one target;
+       *   - the partner is fainted (`!target2.hp`)             -> `smartTarget = false`, one target;
+       *   - the AIMED body is the one that is down (`!target.hp`) -> the partner alone.
+       * The third is already covered above this line, where `targets` is built from bodies that are
+       * alive; the first two are the `live` filter here.
+       *
+       * PLACED AFTER REDIRECTION ON PURPOSE. A Follow Me or a Lightning Rod resolves first in the
+       * authority too (`getMoveTargets` runs `priorityEvent('RedirectTarget')` and only THEN calls
+       * `getSmartTargets`), so the partner is the partner of whoever the darts ended up aimed at. */
+      if(!a.move.spread&&targets.length===1&&TAGS.param('move',a.move.id,'smartTarget')){
+        const _dside=actA.indexOf(targets[0])>=0?actA:actB;
+        const _mate=_dside.find(x=>x&&x!==targets[0]&&x!==m&&!x.fainted&&x.curHP>0);
+        if(_mate)targets=[targets[0],_mate];
+      }
+      const _smartTarget=!a.move.spread&&!!TAGS.param('move',a.move.id,'smartTarget');
       const _spreadHit=!!a.move.spread&&(targets.length+(_allyHit?1:0))>1;
       /* ROADMAP #81 WIRE 9 -- WIDE GUARD NAMES THE BODY IT SHIELDED, ONE LINE PER BODY.
        *
@@ -8999,9 +9246,28 @@ function battleTurn(S,rng,actsForA,actsForB){
        * rng stream than the authority does. `null` until the first target is actually priced, so a
        * move that misses everything draws nothing at all. */
       let _hitsThisUse=null;
+      /* WIRE 147 -- HOW MANY BODIES THE DARTS ARE SPLIT ACROSS, read once at the damage step because
+       * `_stepDamage` never sets `R.out` and the surviving set is therefore stable across it. */
+      let _smartRows=0;
+      /* WIRE 147 -- FICKLE BEAM'S DOUBLE, DRAWN ONCE PER USE, LAZILY, FOR EXACTLY THE SAME TWO
+       * REASONS THE HIT COUNT ABOVE IS. `onBasePower` fires per hit in the authority and Fickle Beam
+       * is a single-hit move, so once per use IS per hit for every carrier; drawing per TARGET would
+       * let a spread member go all out on one body and not the other off one click.
+       *
+       * NO RNG IS CONSUMED FOR ANY OTHER MOVE. `rollConditionalPower` returns null unless the move
+       * carries `conditionalPower {when:'chance'}` -- one move in this format -- so every existing
+       * seeded probe, every differential arm and every roster row draws the sequence it drew before
+       * this wire. That is the WIRE 145 rule again: a new die may only be thrown where nothing was
+       * thrown at all. */
+      let _condPowerThisUse;
       const _stepDamage=(R)=>{const tg=R.tg;
         _reached++;   // ROADMAP #81 WIRE 1 -- past every gate: this target is a HIT, so the move did not fail
         if(_hitsThisUse===null)_hitsThisUse=rollHitsOf(a.move.id,rng);
+        if(_condPowerThisUse===undefined){
+          const _cpr=rollConditionalPower(a.move.id,rng);
+          _condPowerThisUse=(_cpr===null)?null:_cpr;
+        }
+        if(!_smartRows)_smartRows=_rows.filter(x=>!x.out).length;
         /* ROADMAP #81 WIRE 11 -- THE WHOLE PRICE OF ONE HIT, IN ONE CLOSURE, TAKEN TWICE.
          *
          * It has to be a closure because a CRIT changes the price and this engine only found out
@@ -9034,6 +9300,17 @@ function battleTurn(S,rng,actsForA,actsForB){
            * move the artifact calls multi-hit; every other caller of dmgRange leaves it absent and
            * keeps the expectation, which is the right object for a price. */
           if(_hitsThisUse>1)c.hits=_hitsThisUse;
+          /* WIRE 147 -- DRAGON DARTS. `hitStepMoveHitLoop` sets `targetsCopy = [targets[hit - 1]]`
+           * when `move.smartTarget` (battle-actions.ts:896), so each surviving body takes exactly ONE
+           * dart. With the partner gone the authority sets `move.smartTarget = false` in
+           * `getSmartTargets` and every dart goes back into the aimed body -- which is what the
+           * one-row case here is, and it needs no branch because `_hitsThisUse` is already the full
+           * count. `_smartRows` is computed once at the top of this step: `_stepDamage` never sets
+           * `R.out`, so the surviving set is stable across the step. */
+          if(_smartTarget&&_smartRows>1){c.hits=1;MEDSEEN.smartTargetSplit++;}
+          /* WIRE 147 -- Fickle Beam's drawn double, absent for every move that has no chance clause,
+           * so `dmgRange` keeps its expectation for a pure PRICE and takes the DRAW for a real turn. */
+          if(_condPowerThisUse!==null&&_condPowerThisUse!==undefined)c.condPower=_condPowerThisUse;
           return c;
         })();
         const _price=(isCrit)=>dmgRange(m,tg,mv,field,_spreadHit,isCrit,_hitCtx);
@@ -9348,15 +9625,23 @@ function battleTurn(S,rng,actsForA,actsForB){
            * deal five hits of damage and set off Weak Armor three times, and both would look right.
            * `_hitsThisUse` is null only when nothing was priced (every target refused the move), in
            * which case there was no hit to react to and the expectation is as good an answer as any. */
+          /* WIRE 147 -- AND WHEN THE HITS SPLIT ACROSS TWO BODIES, EACH BODY REACTS ONCE. Showdown
+           * writes `target.timesAttacked += move.smartTarget ? 1 : hit - 1` (battle-actions.ts:994)
+           * and runs `onDamagingHit` on the body a dart actually landed on. This probe read
+           * `-2 / +4` on a Weak Armor Milotic standing beside a healthy partner, which is TWO
+           * reactions for ONE dart -- the reaction count was reading the move's total while the
+           * damage step had already been split. */
+          if(_smartTarget&&_smartRows>1)return 1;
           if(_hitsThisUse!==null&&TAGS.param('move',a.move.id,'multiHit'))return Math.max(1,_hitsThisUse);
           const _n=expectedHitsOf(a.move.id);
           if(_n>1)return Math.max(1,Math.round(_n));
           const _vpH=TAGS.param('move',a.move.id,'variablePower');
-          if(_vpH&&_vpH.perAlly){
-            const _pt=(m._sf&&m._sf.team)||[m];
-            let _c=0;for(const _al of _pt)if(_al&&!_al.fainted&&_al.curHP>0&&!(_al.status&&_al.status!=='none'))_c++;
-            return Math.max(1,_c);
-          }
+          /* WIRE 147 -- THROUGH `beatUpAllies`, WHICH WAS THE THIRD COPY OF THIS FILTER. The base
+           * power, the hit count and this reaction count all answer "who is eligible" and all three
+           * used to answer it separately; this one still had the pre-WIRE-147 reading in which a
+           * STATUSED USER loses its own punch, so a burned Weavile beside three healthy allies set
+           * off three reactors and dealt four packets. One implementation, three readers. */
+          if(_vpH&&_vpH.perAlly)return Math.max(1,beatUpAllies(m,_vpH).length);
           return 1;
         })();
         R.react=_react;   // WIRE 10 -- the effects step reads the same count, one step later

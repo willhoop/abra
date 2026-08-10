@@ -450,6 +450,25 @@ const MOVE_TAGS = [
       distribution: Array.isArray(m.multihit) ? '2:35 3:35 4:15 5:15' : 'fixed',
       hits: Array.isArray(m.multihit) ? null : +m.multihit,
       range: Array.isArray(m.multihit) ? m.multihit.slice() : null } : null },
+  /* WHICH BODY EACH HIT GOES TO, which `multiHit` above cannot say. `hitStepMoveHitLoop` sets
+   * `targetsCopy = [targets[hit - 1]]` when `move.smartTarget` (sim/battle-actions.ts:896), and
+   * `Pokemon#getSmartTargets` builds the array as [aimed foe, its living partner] -- so in doubles
+   * Dragon Darts is two 50 BP darts at two different bodies and the partner is NOT covered by the
+   * spread reduction, because `move.spreadHit` is only set `if (targets.length > 1 && !move.smartTarget)`
+   * (:551). One packet cannot be aimed at two bodies, so this engine put both darts into the aimed
+   * foe and the partner took literally nothing.
+   *
+   * DERIVED FROM THE DEX FIELD AND NOT FROM A NAME. `m.smartTarget` is declared exactly once in
+   * data/moves.ts (dragondarts, :4129) and is the only carrier legal in this format -- measured, not
+   * assumed -- but it is a FIELD, so a second one arriving needs no edit here or in the engine.
+   * The fallbacks in `getSmartTargets` are what make it conditional rather than a second spread
+   * move: no partner, or a fainted partner, sets `move.smartTarget = false` and every hit goes back
+   * into the aimed body. */
+  { tag: 'smartTarget', param: 'hit n is aimed at targets[n-1] -- the hits SPLIT across the target and its partner', probe: 'smartTarget',
+    why: 'Dragon Darts (126 uses). Both darts landed on the aimed foe and its partner took ZERO, so the move was priced as a single-body 2x hit',
+    of: m => m.smartTarget
+      ? { splitsAcrossPartner: true, spreadReduced: false,
+          hits: Array.isArray(m.multihit) ? null : (+m.multihit || 2) } : null },
   /* Will, 2026-07-29: "most gambit use defiant but the supreme overlord needs a count of the dead
    * like last respects ... and i think that only works on first switchin, then the status is tuck".
    * Both right, and both read from the handlers: Last Respects is 50 + 50 x side.totalFainted read
@@ -704,6 +723,21 @@ const MOVE_TAGS = [
          * a reason someone had to explain away. */
         const b = src.match(/(\d+)\s*\+\s*Math\.floor\(\s*setSpecies\.baseStat[s]\.atk\s*\/\s*(\d+)\s*\)/);
         if (b && /move\.allies/.test(src)) return { kind: 'alliesBaseAtk', base: +b[1], div: +b[2], perAlly: true };
+      }
+      /* TRIPLE AXEL: THE BASE POWER *IS* THE HIT NUMBER. `return 20 * move.hit` (data/moves.ts:20003),
+       * so the three hits are 20, 40 and 60 -- not 20 three times, which is EXACTLY HALF the move.
+       * It sat under `{computed:true, note:'idiom not yet derivable'}` and was SILENT as well as
+       * wrong, because medicham2's unknown-kind counter is gated on a truthy `kind`.
+       *
+       * MEMBERSHIP MEASURED OVER THE FORMAT BEFORE THE PATTERN WAS TYPED, per docs/LESSONS.md 4:
+       * exactly three moves in data/moves.ts read `move.hit` inside a basePowerCallback --
+       * `furycutter` (Past), `triplekick` (Past) and `tripleaxel` -- so the LEGAL membership is
+       * Triple Axel alone. Fury Cutter would not match this pattern in any case: its escalation is a
+       * volatile's stored multiplier and `move.hit` only appears in its RESET test, which is a
+       * different mechanic that must not be dressed up as this one. */
+      {
+        const e = src.match(/return\s*(\d+)\s*\*\s*move\.hit\s*;/);
+        if (e) return { kind: 'perHitEscalates', per: +e[1] };
       }
       return src ? { computed: true, note: 'idiom not yet derivable' } : null;
     } },

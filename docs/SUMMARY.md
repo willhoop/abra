@@ -1,6 +1,14 @@
 # ABRA — Project Summary
 
-**Version 3.96.0 · 2026-08-10 · Will Hooper**
+**Version 3.97.0 · 2026-08-10 · Will Hooper**
+
+**3.97.0 — ONE ROLL MULTIPLIED BY N: FOUR MOVES, ONE ROOT CAUSE, TWO OF THEM 2x.** Triple Axel escalates
+20/40/60 and we applied a flat 20 three times — exactly half the move. Dragon Darts splits across the
+target and its partner and we put both darts in one body. Beat Up summed every ally's base power into a
+single packet and lost three of the formula's four `+2`s. Fickle Beam's 30% double was a flat ×1.3, i.e.
+104 base power, a value the move never takes — the 3.90.0 mean-versus-draw defect in a second code path.
+Fixed with a per-hit damage loop; single-hit damage unchanged by construction and measured against the
+frozen release across all 500 moves. Census 350 → 354 live, damage stages 1728/1728 exact.
 
 **3.96.0 — ITEMS QUEUE 6 → 3, AND ALL THREE WERE NAME HARDCODES OR AN UNREADABLE AMOUNT.** Iron Ball
 (139 uses) went untagged because `speedMult` matched on the NAME "choicescarf" — the consumer worked

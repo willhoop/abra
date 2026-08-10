@@ -10,6 +10,67 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.97.0] — 2026-08-10
+
+### Fixed
+- **WIRE 147 — THE DAMAGE WAS ONE ROLL MULTIPLIED BY N. Four moves, one root cause, and two of them
+  were 2x errors rather than rounding.** `dmgRange` ended
+  `if(_hits>1) return {min: floor(roll(85)*_hits), max: floor(roll(100)*_hits), eff}` — everything a
+  hit owns individually (its own base power, its own `+2`, its own target) folded into a scalar.
+
+  | move | uses | what it was |
+  |---|---|---|
+  | Triple Axel | 753 | `basePowerCallback` is `20 * move.hit` — 20/40/60. We applied a flat 20 three times, so the move dealt **exactly half**: 8+8+8 = 24 against 8+16+23 = 47 |
+  | Dragon Darts | 126 | `smartTarget: true`. One packet cannot be aimed at two bodies, so the partner took **zero**: −72/0 against the authority's −36/−34 |
+  | Beat Up | 320 | every ally's base power summed into ONE packet. The formula's `+2` is paid per packet, so four hits lost three of them: 24 against 28 |
+  | Fickle Beam | 38 | a 30% DOUBLE applied as a flat ×1.3 — 80 × 1.3 = **104 base power, a number the move never has**. Measured 54 against 42 |
+
+- **Fickle Beam is the 3.90.0 defect verbatim** — *"the multi-hit count was the MEAN, and the pin never
+  lands on a middle"* — surviving in the conditional-power path, with the comment above the line stating
+  the averaging as a deliberate choice. It is fixed with the shape ROADMAP #103 already chose rather
+  than a second shape: the battle loop draws it off the same rng as the hit count, the crit and the
+  damage index; a pure call keeps the expectation, because that is the right object for a price.
+
+### Added
+- **A per-hit damage loop.** `dmgRange` is a wrapper over `dmgRangeOneHit`; `hitPlanOf` decides from the
+  artifact whether a move's base power is a function of the hit index. **Single-hit damage is unchanged
+  by construction** — every other move, multi-hit included, takes one trip with the identical `_hits`
+  scalar the old line multiplied by — and was measured anyway: all 500 moves in `data/tags.json`, four
+  real turns each, whole-board digests, against the frozen release `f727f7fdee4f`. **2,000 cells, 11
+  differ, four moves, and they are the four above.**
+- Two `tag_dex` derivations, each with its format membership measured before the pattern was written:
+  `variablePower {kind:'perHitEscalates'}` (Triple Axel — the only legal move whose `basePowerCallback`
+  reads `move.hit`) and a new `smartTarget` tag (Dragon Darts — the only move in the dex that declares
+  the field). `data/tags.json` regenerated: **0 entities removed, 0 added, 2 semantic changes**; the
+  other 305 rows moved only their `uses` count, because the ingest appended ~600 sides mid-session.
+- Counters `MEDSEEN.perHitDamageLoop`, `perHitBasePower`, `smartTargetSplit`, `conditionalPowerRolled`,
+  `conditionalPowerPriced` and `MEDFAILS.hitWeightsDisagree`, `beatUpAllyNoBaseAtk` — all zero on a
+  control turn of Dragon Claw and Rock Blast.
+
+### Changed
+- **Beat Up's eligibility filter is the authority's now.** Showdown's
+  `ally === pokemon || !ally.fainted && !ally.status` short-circuits, so the user is always in the list;
+  this engine applied the fainted and status tests to the user too. There were **three** copies of that
+  filter and they are now one function, `beatUpAllies`.
+- **`tests/test-mechanics.js`'s `reactorPerHit` probe was GREEN on a falsehood** and is corrected: it
+  asserted Weak Armor `-2/+4` off Dragon Darts against a body standing beside a healthy partner, where
+  Showdown lands one dart. It now stages both ways and reads the partner's stages too.
+- The `multiAccuracy` probe's denominator, not its claim: Triple Axel's discount is now measured against
+  `d(20) + d(40) + d(60)` rather than `3 × d(20)`.
+
+### Notes
+- Census **350 → 354 live, 354 probed, 0 missing, 0 threw, 0 hollow, 0 unarmed, 0 direct-call.** Tag
+  coverage 185/196 → 186/197. `tests/test-damage-stages.js` **1728/1728 exact**, unchanged.
+- **No engine release was cut, and `tests/roster.js` and `engine/game_differential.js` were not run** —
+  `game_differential.js:126` auto-cuts when no release is pinned, which would swap the pointer under
+  another agent's measurement. **No roster row is claimed closed.**
+- `FEATURE SEMANTICS CHECK FAILED` on `data/policy-weights.json` is unaffected, and here that is a
+  measurement rather than a counter read: the per-hit loop DOES execute during the fixture build, so a
+  full sandbox of the frozen release was hashed against the live tree — **0 of 58 fixture features
+  moved.** REFIT OWED, and it is MEASURE's.
+- Full working: `docs/MEDICHAM-SPRINT-NOTES.md`. Living-docs pass deferred under the sprint rule
+  recorded at the top of that file.
+
 ## [3.96.0] — 2026-08-10
 
 ### Fixed

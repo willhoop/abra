@@ -1,6 +1,12 @@
 # ABRA — the model family (living reference)
 
-**Version 3.96.0 · Last updated 2026-08-09.**
+**Version 3.97.0 · Last updated 2026-08-10.**
+
+**3.97.0 — MEDICHAM: THE DAMAGE WAS ONE ROLL MULTIPLIED BY N.** Triple Axel (half its real damage),
+Dragon Darts (both darts in one body, the partner untouched), Beat Up (every ally's power summed into one
+packet) and Fickle Beam (a 30% double applied as a flat ×1.3). One root cause, fixed with a per-hit loop
+entered only where the artifact says base power depends on the hit index. Census 350 → 354 live.
+MEDICHAM-only — nothing refitted, quarantine unchanged, no roster row claimed.
 
 **3.96.0 — MEDICHAM: THREE ITEMS DID NOTHING BECAUSE THE ARTIFACT NEVER NAMED THEM.** Iron Ball, Light
 Ball and Oran Berry. In every case the mechanic existed; the tag rule matched on a hardcoded NAME, or

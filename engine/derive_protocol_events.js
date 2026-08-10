@@ -185,9 +185,16 @@ const NOT_EMITTED = {
   '-sethp': 'Pain Split is not modelled.',
   '-endability': 'ability SUPPRESSION (Gastro Acid, Neutralizing Gas) is not modelled; Mummy and '
     + 'Wandering Spirit REWRITE the ability and emit `-ability` instead, which is what Showdown does.',
-  '-hitcount': 'multi-hit damage is ONE packet in this engine (WIRE 20, declared). The reaction COUNT '
-    + 'is right (WIRE 84) and the hit count is not, so emitting one would be an invented number.',
-  '-anim': 'animation only; carries no rule.',
+  '-hitcount': 'multi-hit damage is ONE packet for most of the family in this engine (WIRE 20, '
+    + 'declared) and the HP still moves once, so emitting a count beside a single `-damage` line '
+    + 'would be an invented number. The reaction COUNT is right (WIRE 84) and the DRAWN hit count is '
+    + 'right (ROADMAP #103); WIRE 147 made the DAMAGE per-hit for the two moves whose base power is a '
+    + 'function of the hit index (Triple Axel, Beat Up) and left the rest summed. Dragon Darts would '
+    + 'emit nothing here in any case: `if (move.multihit && typeof move.smartTarget !== \'boolean\')` '
+    + 'skips every smartTarget move (sim/battle-actions.ts:977).',
+  '-anim': 'animation only; carries no rule. WIRE 147 -- Dragon Darts writes one at its SECOND dart '
+    + '(`addMove(\'-anim\', pokemon, move.name, target)`, battle-actions.ts:906); the darts really do '
+    + 'split across two bodies here now, but the line is animation and carries no rule.',
   '-combine': 'no combined moves.', '-center': 'no triples.',
   '-waiting': 'no move that waits on a partner is modelled.',
   '-notarget': 'gen 5+ emits `-fail` instead (sim/battle-actions.ts:456), which this engine does emit.',

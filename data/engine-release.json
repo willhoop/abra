@@ -1,10 +1,10 @@
 {
-  "current": "f727f7fdee4f",
-  "cut": "2026-08-10T03:54:19.569Z",
-  "why": "composed effects, locked status moves, lock-in five, staged preconditions",
+  "current": "bfefdb697454",
+  "cut": "2026-08-10T04:21:13.577Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
   "cuts": 1,
-  "latest_cut": "2026-08-10T03:54:19.569Z",
-  "latest_why": "composed effects, locked status moves, lock-in five, staged preconditions",
-  "pointer_written": "2026-08-10T03:54:19.573Z",
+  "latest_cut": "2026-08-10T04:21:13.577Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-08-10T04:21:13.580Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

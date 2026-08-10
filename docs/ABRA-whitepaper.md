@@ -1,6 +1,22 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 3.96.0 · Last updated 2026-08-10**
+**Version 3.97.0 · Last updated 2026-08-10**
+
+**3.97.0 — THE DAMAGE FUNCTION WAS ONE ROLL MULTIPLIED BY N, AND FOUR MOVES PAID FOR IT.** `dmgRange`
+ended `if(_hits>1) return {min: floor(roll(85)*_hits), max: floor(roll(100)*_hits)}`: everything a hit owns
+individually — its own base power, its own `+2`, its own target — folded into a scalar. Triple Axel's
+`basePowerCallback` is `20 * move.hit`, so a flat 20 three times is **exactly half** the move (24 against
+47); Dragon Darts carries `smartTarget`, so both darts landed on the aimed body and its partner took zero
+(−72/0 against −36/−34); Beat Up summed every ally's base power into one packet and lost three of the
+formula's four `+2`s (24 against 28); and Fickle Beam's 30% double was applied as a flat ×1.3, giving 104
+base power — a value the move never takes. The last is the 3.90.0 finding verbatim (*"the multi-hit count
+was the MEAN, and the pin never lands on a middle"*) surviving in a second code path, with the comment
+above the line stating the averaging as a deliberate choice. The fix is a per-hit loop entered only where
+the artifact says base power depends on the hit index, so single-hit damage is unchanged **by
+construction** — and measured anyway: every move in the tag corpus, four real turns each, whole-board
+digests against the frozen release, **2,000 cells and 11 differences across exactly these four moves**.
+`data/mechanics-census.json` now reads 354 live and 354 probed, four more than before this wire.
+No roster row is claimed closed; the roster and the differential were not run.
 
 **3.96.0 — THE ITEMS QUEUE WENT 6 TO 3, AND NOT ONE OF THE THREE WAS A MISSING MECHANIC.** Each was a
 producer that could not name its member. `speedMult` was hardcoded to `name === 'choicescarf'`, so

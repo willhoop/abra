@@ -1,6 +1,17 @@
 # ABRA — the plain-English deck
 
-**Version 3.96.0 · 2026-08-10 · Will Hooper**
+**Version 3.97.0 · 2026-08-10 · Will Hooper**
+
+**3.97.0 — FOUR MOVES DEALT THE WRONG DAMAGE BECAUSE WE ROLLED THEM ONCE AND MULTIPLIED.** A move
+that hits three times should roll three times. Ours rolled once and multiplied the answer, which is fine
+when every hit is the same and wrong when it is not. Triple Axel gets stronger with each hit — we gave it
+the weakest hit three times, so it did **exactly half** its real damage. Dragon Darts fires one dart at
+each opponent — we fired both at one, so the partner took **nothing**. Beat Up is one punch per healthy
+team-mate, and we added their strengths together into a single punch. Fickle Beam has a 30% chance to go
+all out, and we gave it 30% of the boost every single time — a number the move never actually has. All
+four are fixed by giving each hit its own roll. Ordinary moves are untouched, and that was checked rather
+than assumed: every one of the 500 moves was played through a real turn before and after, and only these
+four came out different.
 
 **3.96.0 — THREE ITEMS DID NOTHING IN OUR SIMULATOR, AND NONE OF THEM WAS ACTUALLY MISSING.** Iron
 Ball halves your Speed. Our engine handles that perfectly — for Choice Scarf. The rule that decides

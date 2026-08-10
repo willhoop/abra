@@ -1,6 +1,18 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 3.96.0 — 2026-08-10.**
+**Version: 3.97.0 — 2026-08-10.**
+
+**3.97.0 — THE DAMAGE IS A LOOP OVER HITS NOW, AND NO STAGE MOVED.** `dmgRange` is a wrapper over
+`dmgRangeOneHit`; the stage ORDER inside one hit is byte-for-byte what this document already describes,
+and `tests/test-damage-stages.js` re-reads **1728/1728 exact, 0 at the wrong stage**. What changed is how
+many times that chain is spent: once per HIT for a move whose base power is a function of the hit index
+(Triple Axel `20 * move.hit`, Beat Up one packet per eligible ally), and once in total — with the old
+`_hits` scalar — for everything else, including the rest of the multi-hit family. **The pinned endpoints
+are the authority's**: `min` is every hit at the 85% randomizer and `max` every hit at 100%, which is what
+a pin produces in Showdown. **The interior of a multi-hit range is still a single draw** across the summed
+endpoints rather than N independent ones — unchanged by this pass, and it is the battle loop's question
+rather than this chain's. Fickle Beam's conditional power left this file's arithmetic entirely: it is a
+DRAW taken in the battle loop, not a ×1.3 on the base power.
 
 
 **3.96.0 — THREE DEAD LINES LEFT THE ATTACK AND DEFENCE CHAINS, AND ONE LIVE ONE JOINED.** The
