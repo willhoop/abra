@@ -1,14 +1,14 @@
 {
- "generated": "2026-08-09T19:44:45.646Z",
+ "generated": "2026-08-09T22:42:14.940Z",
  "by": "tests/roster.js",
  "stage": "abilities",
- "engine_release": "759a0d3292f5",
+ "engine_release": "b571cfd7a97e",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
-  "FIRED-AND-BOARDS-MATCH": 82,
-  "CONTROL-NOT-QUIET": 17,
+  "FIRED-AND-BOARDS-MATCH": 84,
+  "CONTROL-NOT-QUIET": 15,
   "COULD-NOT-STAGE": 217
  },
  "reds": [],
@@ -196,10 +196,10 @@
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Tauros-Paldea-Combat; control = Intimidate (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
-   "verdict": "CONTROL-NOT-QUIET",
-   "why": "THE DELTA IS NOT ATTRIBUTABLE TO THIS ENTITY. the CONTROL is another LIVE ability — Intimidate — because taurospaldeacombat has no quiet alternative. The measured delta is (subject MINUS that ability) and cannot say which of the two moved the board. MEASURED on this instrument's own artifact: Sand Rush and Fluffy control each other and reported THE SAME TWO NUMBERS SWAPPED, and the 32-HP gap is Fluffy. The subject arm moved and the two engines disagree, which under a quiet control would read FIRED-AND-BOARDS-DIFFER — it is neither.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
-   "control_why": "the CONTROL is another LIVE ability — Intimidate — because taurospaldeacombat has no quiet alternative. The measured delta is (subject MINUS that ability) and cannot say which of the two moved the board. MEASURED on this instrument's own artifact: Sand Rush and Fluffy control each other and reported THE SAME TWO NUMBERS SWAPPED, and the 32-HP gap is Fluffy.",
+   "control_why": null,
    "sd_delta": [
     {
      "turn": 0,
@@ -286,89 +286,7 @@
      "without": 844
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 928,
-     "ours": 784,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 928,
-     "ours": 784,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "taurospaldeacombat",
-     "field": "boosts.atk",
-     "showdown": 0,
-     "ours": 6,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 878,
-     "ours": 590,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 878,
-     "ours": 590,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "taurospaldeacombat",
-     "field": "boosts.atk",
-     "showdown": 0,
-     "ours": 6,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 878,
-     "ours": 590,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 878,
-     "ours": 590,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "p2a",
-     "body": "taurospaldeacombat",
-     "field": "boosts.atk",
-     "showdown": 0,
-     "ours": 6,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "ability",
@@ -3623,10 +3541,10 @@
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Arcanine; control = Intimidate (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
-   "verdict": "CONTROL-NOT-QUIET",
-   "why": "THE DELTA IS NOT ATTRIBUTABLE TO THIS ENTITY. the CONTROL is another LIVE ability — Intimidate — because arcanine has no quiet alternative. The measured delta is (subject MINUS that ability) and cannot say which of the two moved the board. MEASURED on this instrument's own artifact: Sand Rush and Fluffy control each other and reported THE SAME TWO NUMBERS SWAPPED, and the 32-HP gap is Fluffy. The subject arm moved and the two engines disagree, which under a quiet control would read FIRED-AND-BOARDS-DIFFER — it is neither.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
-   "control_why": "the CONTROL is another LIVE ability — Intimidate — because arcanine has no quiet alternative. The measured delta is (subject MINUS that ability) and cannot say which of the two moved the board. MEASURED on this instrument's own artifact: Sand Rush and Fluffy control each other and reported THE SAME TWO NUMBERS SWAPPED, and the 32-HP gap is Fluffy.",
+   "control_why": null,
    "sd_delta": [
     {
      "turn": 0,
@@ -3713,89 +3631,7 @@
      "without": 922
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 943,
-     "ours": 927,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 943,
-     "ours": 927,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "arcanine",
-     "field": "boosts.atk",
-     "showdown": 0,
-     "ours": 1,
-     "bucket": "off-by-one"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 908,
-     "ours": 858,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 908,
-     "ours": 858,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "arcanine",
-     "field": "boosts.atk",
-     "showdown": 0,
-     "ours": 2,
-     "bucket": "off-by-2-or-3"
-    },
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 908,
-     "ours": 858,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 908,
-     "ours": 858,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "p2a",
-     "body": "arcanine",
-     "field": "boosts.atk",
-     "showdown": 0,
-     "ours": 2,
-     "bucket": "off-by-2-or-3"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "ability",
@@ -6236,6 +6072,24 @@
     {
      "turn": 2,
      "slot": "",
+     "body": "torkoal",
+     "field": "party.hp",
+     "showdown": 1041,
+     "ours": 1052,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 2,
+     "slot": "p1a",
+     "body": "torkoal",
+     "field": "hp",
+     "showdown": 1041,
+     "ours": 1052,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 2,
+     "slot": "",
      "body": "rhyperior",
      "field": "party.hp",
      "showdown": 739,
@@ -6250,6 +6104,24 @@
      "showdown": 739,
      "ours": 742,
      "bucket": "off-by-2-or-3"
+    },
+    {
+     "turn": 3,
+     "slot": "",
+     "body": "torkoal",
+     "field": "party.hp",
+     "showdown": 1041,
+     "ours": 1052,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 3,
+     "slot": "p1a",
+     "body": "torkoal",
+     "field": "hp",
+     "showdown": 1041,
+     "ours": 1052,
+     "bucket": "off-by-4-or-more"
     },
     {
      "turn": 3,
