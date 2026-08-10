@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  342/342 probed mechanics live, 0 missing   (census 2026-08-10 02:59)
-  0/150 differential comparisons disagree with Showdown   (2026-08-10 02:25)
+  346/346 probed mechanics live, 0 missing   (census 2026-08-10 03:12)
+  0/150 differential comparisons disagree with Showdown   (2026-08-10 03:02)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
@@ -57,9 +57,108 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 185/196 probed, 11 unprobed
 ```
 
-_stamped 2026-08-10 03:00_
+_stamped 2026-08-10 03:19_
 
 <!-- /GENERATED -->
+
+## WIRE 145 — A LOCKED BODY STRUGGLED RATHER THAN USING ITS STATUS MOVE. ONE GUARD, TWO CALL SITES, FAILING IN OPPOSITE DIRECTIONS. 2026-08-10.
+
+Census **342 → 346 live, 346 probed, 0 missing, 0 threw, 0 hollow, 0 unarmed, 0 direct-call.** Four new
+probes, all four shown RED on the unmodified tree first. **No release was cut and `tests/roster.js` was
+not run** — a read-only agent was mid-diagnosis, and `engine_release.open()` with no id reads a POINTER,
+so a cut would have swapped the release under a live measurement. Full working:
+`docs/MEDICHAM-SPRINT-NOTES.md`.
+
+`_lock` is read in three places. Locked into an ATTACK all three agreed; locked into a STATUS move,
+`chooseAction` returned `{kind:'struggle'}` and `mk()`'s WIRE 24 rewrite silently kept the caller's own
+click. **ONE CAUSE:** both broken sites resolved the lock through `targetForMove`, which opens
+`if(!mv||!hasPower(mv))return null` because its job is to **rank foes by damage**. All **175 legal
+status moves in this format have base power 0**, so "cannot be used" and "no damage to rank" arrived at
+the two callers as the same null. A guard doing a job it was never scoped for — the fourth instance of
+that shape this sprint.
+
+**AND `{kind:'struggle'}` MATCHES NO BRANCH IN THE DISPATCH LOOP** (`if(a.kind!=='attack')continue`), so
+the turn was not merely mis-damaged, it vanished — no `|move|` line at all. Measured on the live tree
+before a line changed, both foes passing:
+
+```
+lock=knockoff   -> |move|p1a|knockoff|p2b   foe -22           <- normal
+lock=taunt      -> (no line at all)         foe   0
+lock=trickroom  -> (no line at all)         foe   0, tr  0
+lock=tailwind   -> (no line at all)         foe   0, twA 0
+handed dragonclaw while locked into taunt -> dragonclaw, foe -46   <- the other direction
+```
+
+**WHY IT IS WORTH MORE THAN A GATE ROW.** Encore exists to lock a body into a move that is **useless
+when repeated** — Protect, Trick Room, Tailwind, a Taunt already landed. The victim is supposed to burn
+turns. This engine handed it a fresh attack, so Encore was not mis-simulated, it was **INVERTED**:
+clicking it *helped* the victim, and anything fitted against it learns Encore is bad.
+
+### THE FIX IS A RE-ROUTE, AND THE ATTACK PATH IS UNTOUCHED ON PURPOSE
+
+`lockedAction(me,id,live,field,rng)` — one function, both sites. `hasPower` is asked *there*, as a
+classification: a damaging lock still goes to `targetForMove` (best foe by damage) and draws no rng, so
+the Choice holders that ride that line every turn are the control this fix must not move, and do not.
+A status lock builds through `playerAction`, the same builder a normal click uses — which already
+returned `{kind:'affect', mv:'taunt'}` correctly and always did. **The repeat semantics were already
+correct and were not rebuilt:** Trick Room's second click ends the room, Tailwind's counter ticks rather
+than refreshing. The only broken thing was that the locked move never reached them.
+
+**WHAT A LOCKED STATUS MOVE TARGETS, STATED RATHER THAN IMPLIED: a uniform draw over the LIVING foes
+from the engine's own seeded `rng`.** It is the rule this file already implements twice —
+`chooseAction`'s Encore branch and WIRE 143's `getRandomTarget` re-roll — so this is a third caller of
+one rule and not a third rule. `Math.random()` is never reached and the draw is taken **only when a
+status lock resolves**, which before this wire never happened, so every existing seeded probe, the
+differential and the roster draw the identical sequence they drew before.
+
+The WIRE 24 skip test moved from `!(_a.kind==='attack'&&_a.move.id===mon._lock)` to
+`actionMoveId(_a)!==mon._lock`, because a status action carries its id in `mv` and the old shape could
+not recognise a handed action that was already the locked move.
+
+### THE FOUR PROBES
+
+| tag | what it proves | its control |
+|---|---|---|
+| `sealsMoves` | a status lock PLAYS the move, not Struggle (`chooseAction`, nothing handed in) | a **Knock Off** lock on the same board, plus a third arm — the identical Taunt hand-clicked with **no lock** — so a red can never mean "this engine cannot Taunt" |
+| `choiceLock` | the lock binds a **caller-supplied** action into a status move (`mk()`) | Dragon Claw handed in on every arm; with no lock it stays Dragon Claw |
+| `locksTarget` | **the payoff** — locked into Trick Room the victim re-clicks it and the room it just set comes DOWN | the identical two clicks with the lock absent: the room stands, tr 4 → 3, Dragon Claw lands |
+| `sealsMoves` | the target is a uniform die (0.1 → p2a, 0.9 → p2b) | an ordinary hand-clicked Taunt named at p2a hits p2a at **both** values, so nothing else was re-aimed |
+
+### COUNTERS
+
+`MEDSEEN.lockedIntoStatusMove` (fires; exactly 2 after two staged status locks, 0 after an attack lock)
+and `MEDFAILS.lockStatusUnbuilt` — a lock into a status move this engine has no branch for still SPENDS
+the turn, because a body cannot escape a lock by holding an unmodelled move, and that must not arrive
+at the same counter as the mechanic working.
+
+### THE HAND LIST IS UNCHANGED
+
+Nothing on it was this — the list has been empty except for Rivalry since 2026-08-07, and the row came
+from a live behaviour defect measured by the router rather than off prose.
+
+### FOUND AND DELIBERATELY NOT FIXED — reported, not absorbed
+
+- **Struggle is not implemented AT ALL**, which corrects rather than confirms the earlier reading that
+  it "does no recoil". Handed `{kind:'struggle'}` with both foes passing: **0 to the foe, 0 to the user,
+  no `|move|` line**. Showdown's is typeless 50 BP physical, never misses, ignores type immunity, hits a
+  random adjacent foe and costs the user 1/4 of MAX HP (270 on the probe body). A family, not a line.
+- **The Choice lock still does not ARM on a status move**, and this re-route does not close it — it
+  honours a lock that exists. Measured on a Scarf holder: `knockoff` → `_lock=knockoff/Infinity`;
+  `taunt`, `tailwind`, `trickroom`, `swordsdance` → `_lock=undefined`, because the arming line sits
+  below `if(a.kind!=='attack')continue`. Needs one shared "the move was committed" site, not 30 copies.
+- **Thirteen moves execute and never record `_lastMove`** — measured over the whole 500-move table:
+  `heal` 8/8 (Recover, Roost, Life Dew, Moonlight, Morning Sun...), `switch` 2/2, `tail`, `trickroom`,
+  `wideguard`. Consequence: `volNeedsLastMove` correctly refuses a sealer against a body that has never
+  moved, so **Encore can never lock anything into Trick Room, Tailwind, Wide Guard or a recovery move** —
+  most of the list Encore exists to punish. Five one-line writes close it, but Instruct reads the same
+  field, so it gets its own wire and its own probe.
+
+**TWO PRE-EXISTING REDS, MEASURED RATHER THAN ASSUMED TO BE SOMEBODY ELSE'S.**
+`tests/test-no-silent-failure.js` is red with the same **20** new silent catch blocks WIRE 144 recorded,
+none of them this wire's — the one `catch` added here increments a counter and the count did not move.
+And `FEATURE SEMANTICS CHECK FAILED` on `data/policy-weights.json` is unaffected: both new counters read
+**0** after `engine/feature_fixture.js` builds and hashes every fixture feature, so neither branch
+executes on that board. REFIT OWED, and it is MEASURE's.
 
 ## WIRE 144 — THE LOCK-IN FIVE. TWO CAUSES STACKED ON ONE ROW, AND THE SECOND ONE IS NOT IN THIS DIVISION. 2026-08-10.
 

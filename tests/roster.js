@@ -1338,6 +1338,275 @@ function neutralHit(speciesId, notId) {
 }
 
 /* =================================================================================================
+ *  THE PRECONDITIONS — WHY 70 MOVE ROWS READ "THE STAGING IS INERT"
+ *
+ * `THE STAGING IS INERT` is an honest refusal and it was the RIGHT verdict: Showdown's own board did
+ * not move, so nothing tested the move and a green would have been vacuous. But it is TWO different
+ * facts wearing one sentence, and only one of them is a coverage limit:
+ *
+ *   (a) the effect has no leaf `board_state.js` compares — Gravity, Magic Room, a PP change. A
+ *       statement about the COMPARATOR, and nothing here can fix it.
+ *   (b) THE CONDITION THE MOVE NEEDS WAS NEVER CREATED. Belch needs a berry already eaten, Aurora
+ *       Veil needs snow, Aqua Ring needs a body that is not at full HP, Haze needs a stat stage to
+ *       clear, Swallow needs Stockpile, Block needs somebody ACTUALLY TRYING TO LEAVE. Every one of
+ *       those staged a body standing at full HP on a clear field and then reported that nothing
+ *       happened. That is the fixture, not the engine.
+ *
+ * This block is (b). It is the same argument the ability stage's own vocabulary block makes one
+ * screen down — Blaze needs the user under a third of its HP — arriving at the move stage.
+ *
+ * A PRECONDITION IS DERIVED FROM THE MOVE'S OWN DATA AND NEVER FROM A LIST OF SEVENTY NAMES. Each
+ * capability below reads the move's declared fields and the SOURCE TEXT of its own handlers and its
+ * own `condition` — which is Showdown's registration surface for the move, exactly as `typesNamed`
+ * and `weatherNamed` read an ability's. `onTry(source) { return source.ateBerry; }` is the move
+ * saying what it needs; a rule that matched on the string "belch" would be the ban-list-of-four.
+ *
+ * AND THE CONTROL ARM STAYS INERT BY CONSTRUCTION. Every precondition click is made by a body that
+ * is NOT clicking the move under test, on a turn BEFORE it, and `controlOf` only ever replaces the
+ * move under test — so the setup is present, identically, in both arms and cancels out of the
+ * subject-minus-control delta exactly. That is the same argument `carrierAbility` already rests on.
+ * It is not assumed: a precondition that moved the control's own board would show up as a shared
+ * difference, which `runEntry` already separates out and reports against the fixture.
+ * ================================================================================================= */
+
+/* the move's OWN registration surface as one string: its handlers, plus the handlers of the
+ * condition it installs. `condition` is where a volatile's residual heal and a side condition's
+ * duration live, and half the preconditions below are named there rather than on the move. */
+function moveSrc(m) {
+  const own = handlerSrc(m);
+  const c = m.condition || {};
+  const cond = Object.keys(c).filter(k => typeof c[k] === 'function').map(k => String(c[k])).join('\n');
+  const cbs = ['basePowerCallback', 'damageCallback', 'durationCallback']
+    .filter(k => typeof m[k] === 'function').map(k => String(m[k])).join('\n');
+  return own + '\n' + cond + '\n' + cbs;
+}
+/* the source of the move's own GATES only — the handlers Showdown consults to decide whether the
+ * move may happen at all. A precondition is a thing the move REFUSES to work without, so a match
+ * here is much stronger evidence than a match anywhere in the body. */
+function gateSrc(m) {
+  return ['onTry', 'onTryMove', 'onTryHit', 'onDisableMove', 'onModifyMove', 'onHit']
+    .filter(k => typeof m[k] === 'function').map(k => String(m[k])).join('\n');
+}
+
+/* ---- 1. A WEATHER OR A TERRAIN THE MOVE ITSELF NAMES -------------------------------------------
+ * `onTry() { return this.field.isWeather(["hail","snowscape"]); }` is Aurora Veil declaring its own
+ * precondition. `setterFor` is the same derivation the ability stage uses, and the setter is clicked
+ * by a body that is NOT the subject, so it survives into the control arm untouched. */
+function skyNamedBy(m) {
+  const src = gateSrc(m), out = [];
+  for (const x of src.matchAll(/['"](\w+)['"]/g)) if (WEATHER_IDS.includes(x[1]) && !out.includes(x[1])) out.push(x[1]);
+  /* the weather this format can actually summon — `desolateland` and its two siblings have no setter
+   * here, and staging a precondition nothing can create is the vacuous green in a new costume */
+  return out.filter(w => WEATHER_SETTER[w] || WEATHER_SETTER[SAME_SKY[w]]);
+}
+function terrainNamedBy(m) {
+  return /isTerrain|field\.terrain/.test(gateSrc(m));
+}
+const TERRAIN_MOVE = dex.moves.all().find(m => m.exists && !m.isNonstandard && m.terrain && alwaysHits(m));
+/* THE WEATHER IS SET BY A MOVE, NOT BY AN ABILITY, and the difference matters here. An ability sets
+ * it on ENTRY — before boundary 0 — which puts it on the leads' board in both arms and makes the
+ * setup invisible as a turn. A MOVE puts the setup on a turn of its own, which is what lets the
+ * report show the sky arriving and the effect landing after it. */
+function skySetter(w) {
+  const ab = setterFor(w);
+  const mv = dex.moves.all().find(m => m.exists && !m.isNonstandard && alwaysHits(m)
+    && (m.weather === w || idOf(m.weather) === idOf(w) || idOf(m.weather) === idOf(SAME_SKY[w] || '')));
+  return mv || (ab ? null : null);
+}
+
+/* ---- 2. A STAT STAGE ON THE TARGET -------------------------------------------------------------
+ * Haze clears boosts, Psych Up copies them, Topsy-Turvy inverts them, Guard Swap and Power Swap
+ * exchange them. EVERY ONE OF THEM IS A NO-OP ON A BOARD WHERE NOBODY HAS A BOOST, which is the
+ * board every other rule in this file stages. Showdown says so out loud — Topsy-Turvy's own handler
+ * is `if (!success) return false;`.
+ *
+ * WHICH STATS, read off the move's own handler rather than assumed. Guard Swap names `["def","spd"]`
+ * and Power Swap names `["atk","spa"]`, so a Swords Dance staged against Guard Swap would leave it
+ * inert for a second time and the row would look like an engine finding. */
+const BOOST_MOVES = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.category === 'Status'
+  && m.target === 'self' && m.boosts && alwaysHits(m)
+  && Object.values(m.boosts).every(v => v > 0)
+  /* nothing that pays for the boost with a second effect on a leaf this file compares */
+  && !m.volatileStatus && !m.heal && !Object.keys(m).some(k => k === 'onHit' || k === 'onTry'));
+function boostStatsNamedBy(m) {
+  const src = gateSrc(m), out = new Set();
+  for (const x of src.matchAll(/['"](atk|def|spa|spd|spe|accuracy|evasion)['"]/g)) out.add(x[1]);
+  return [...out];
+}
+/* the smallest all-positive self-boost move that raises at least one of the stats the move reads */
+function boostSetterFor(m) {
+  const want = boostStatsNamedBy(m);
+  const ok = (mv) => !want.length || Object.keys(mv.boosts).some(k => want.includes(k));
+  const list = BOOST_MOVES.filter(ok)
+    .sort((a, b) => (Object.values(b.boosts).reduce((n, v) => n + v, 0))
+                  - (Object.values(a.boosts).reduce((n, v) => n + v, 0)));
+  return list[0] || null;
+}
+/* DOES THE MOVE READ A BOOST IT DID NOT PUT THERE? Declared `boosts` is a move that SETS stages and
+ * is already staged by `move/boosts-self` and `move/boosts-target`; what this asks is the opposite —
+ * a Status move with no `boosts` field of its own whose handler nevertheless reads or clears them. */
+function readsExistingBoosts(m) {
+  if (m.category !== 'Status' || m.boosts) return false;
+  return /\.boosts\b|clearBoosts?\(|setBoost\(|clearAllBoost/.test(gateSrc(m));
+}
+
+/* ---- 3. A BERRY ALREADY EATEN ------------------------------------------------------------------
+ * `onTry(source) { return source.ateBerry; }` — Belch. `if (pokemon.item || !pokemon.lastItem)` —
+ * Recycle. Both are the SAME precondition and neither is reachable on a body that has never consumed
+ * anything, which is every body every other rule in this file stages.
+ *
+ * THE BERRY IS DERIVED FROM ITS OWN CONDITION: the one whose `onUpdate` fires on a HALF-HP body, so
+ * a single derived chip is enough to make it eat. `board_state.js` publishes item DISPOSITION as
+ * NOT_COMPARED (medicham2 has no `lastItem`), which is a real limit and is printed on the entry —
+ * the eaten berry itself IS compared, as an item leaf going to empty. */
+const HALF_HP_BERRY = dex.items.all().find(i => i.exists && !i.isNonstandard && i.isBerry
+  && typeof i.onUpdate === 'function' && /maxhp\s*\/\s*2|maxhp\s*\*\s*0?\.5/.test(String(i.onUpdate)));
+function needsAnEatenBerry(m) { return /ateBerry|lastItem/.test(gateSrc(m)); }
+
+/* ---- 4. THE USER MUST NOT BE AT FULL HP --------------------------------------------------------
+ * Aqua Ring and Ingrain install a volatile whose whole content is `onResidual(p) { this.heal(...) }`.
+ * A heal into a full body is capped to nothing in both engines, so the volatile lands, the residual
+ * fires, and NOTHING REACHES A LEAF. The volatile itself is not one `board_state.js` compares, so the
+ * HP the residual restores is the only evidence there is, and it only exists on a chipped body. */
+function healsOnResidual(m) {
+  const c = m.condition || {};
+  return !!(m.volatileStatus && typeof c.onResidual === 'function' && /heal\(/.test(String(c.onResidual)));
+}
+
+/* ---- 5. A VOLATILE THE USER HAS TO SET FIRST ---------------------------------------------------
+ * `onTry(source) { return !!source.volatiles["stockpile"]; }` — Spit Up and Swallow refuse outright
+ * without it. The move that SETS the named volatile is found in the format rather than named here,
+ * so a mechanic added later is picked up with no edit. */
+function volatileRequiredBy(m) {
+  const src = String(m.onTry || '') + String(m.onTryHit || '') + String(m.onTryMove || '');
+  const out = [];
+  for (const x of src.matchAll(/volatiles\s*\[\s*['"](\w+)['"]\s*\]/g)) if (!out.includes(x[1])) out.push(x[1]);
+  for (const x of src.matchAll(/hasVolatile\(\s*['"](\w+)['"]\s*\)/g)) if (!out.includes(x[1])) out.push(x[1]);
+  return out;
+}
+function volatileSetter(vid) {
+  return dex.moves.all().find(m => m.exists && !m.isNonstandard && alwaysHits(m)
+    && (m.volatileStatus === vid || (m.self && m.self.volatileStatus === vid)) && m.target === 'self');
+}
+
+/* ---- 6. SOMEBODY ACTUALLY TRYING TO LEAVE ------------------------------------------------------
+ *
+ * Will, 2026-08-10: *"we need to test the switch blocking like shadow tag, block, and the trapping
+ * moves, so we need to be able to switch in the test"*.
+ *
+ * BLOCK CAME BACK INERT BECAUSE NOBODY EVER TRIED TO SWITCH. A trap is not a board leaf — it is a
+ * REFUSAL — and the only way to observe a refusal is to make the ask. The driver's script language
+ * grew `{ sw: '<species>' }` on 2026-08-08 and no roster rule had used it.
+ *
+ * TWO SHAPES, DERIVED, AND THEY ARE NOT THE SAME MECHANIC:
+ *   HARD     `onHit` adds the `trapped` volatile (Block, Mean Look). NOTHING about it is a compared
+ *            leaf — `board_state.js` holds `trapped_by_move` for the PARTIAL family only — so the
+ *            refusal is the entire content of the row.
+ *   PARTIAL  `volatileStatus: 'partiallytrapped'` (Infestation, Sand Tomb, Whirlpool, Fire Spin,
+ *            Wrap, Bind, Snap Trap). The counter and the chip ARE compared and were already being
+ *            tested; the switch-prevention half never was.
+ *
+ * WHAT IS COMPARED, SAID OUT LOUD BECAUSE IT IS NOT A BOARD LEAF. Showdown answers a trapped switch
+ * by REJECTING THE CHOICE, which the driver turns into a thrown game — so the subject arm's evidence
+ * is the rejection string and not a board. Ours answers by leaving the body where it is, which IS on
+ * the board. The two are compared as the same question asked of two engines:
+ *
+ *     Showdown refused the switch AND our engine's slot still holds the trapped body   -> they agree
+ *     Showdown refused the switch AND our engine's slot holds the bench body            -> DEFECT
+ *
+ * AND THE CONTROL IS WHAT MAKES IT A RESULT. Without the trap the identical switch must SUCCEED in
+ * both engines — if it does not, the probe's own action shape is wrong and "did not switch" would
+ * have been the fixture agreeing with itself. That check is a hard precondition of the verdict. */
+function trapsHard(m) { return /addVolatile\(\s*['"]trapped['"]/.test(gateSrc(m)); }
+function trapsPartial(m) { return m.volatileStatus === 'partiallytrapped'; }
+
+/* ---- 7. AN ORDER THAT DECIDES SOMETHING -------------------------------------------------------
+ *
+ * Will, 2026-08-10: *"test all the prio moves by finding the slowest user of the moves and have them
+ * use it against the faster user of a normal prio move"*.
+ *
+ * THE OLD RULE REASONED FROM A FIXED POOL INWARD and refused all fifteen: "no pair of bodies in the
+ * move pool is both SLOWER than the two derived aggressors and killable outright by them". The move
+ * pool is five species deep — every legal body carrying an ability with no `on*` key at all — and
+ * nothing in it is slow. That is a fact about the FORMAT'S ABILITY LIST doing duty as a fact about
+ * priority.
+ *
+ * SO IT REASONS FROM THE MOVE OUTWARD. The move's own learnset gives the SLOWEST body that may
+ * legally click it; the foe is then chosen to be strictly faster and to KILL that body outright. The
+ * bracket is the only thing that can put the slow body first, and what lands on the board is:
+ *
+ *     correct bracket   the slow body's click resolves, THEN it dies   -> the foe is DAMAGED
+ *     ignored bracket   the foe kills it first and the click never happens -> the foe is UNTOUCHED
+ *
+ * so the leaf is the FOE'S HP and the control arm (the same body clicking the inert move) reads the
+ * ignored-bracket board exactly. One lethal direction is enough; a mutual KO is not required, and
+ * requiring one is what made the first version of this unstageable.
+ *
+ * A 100% FLINCH IS STRONGER STILL AND IS PREFERRED WHERE THE MOVE CARRIES ONE. Fake Out and Upper
+ * Hand flinch on 100%, which fires in BOTH pin arms, so a correct bracket means the foe never acts
+ * at all and the slow body is ALIVE AND UNTOUCHED at the boundary — a `fainted` leaf rather than an
+ * HP one. The foe is then required not to carry an ability that can refuse a flinch or delete a
+ * secondary, which is read off the ability's handlers (`onTryAddVolatile`, `onModifySecondaries`)
+ * and not off a list of names. */
+const _LS = new Map();
+function learnsMove(sp, moveId) {
+  const k = sp.id + '|' + moveId;
+  if (_LS.has(k)) return _LS.get(k);
+  let out = false;
+  /* the prevo chain, the way `champions_sim.firstLegalMove` walks it — an evolved forme's own
+   * learnset is thin and a body is not moveless because its list lives on its baby form */
+  for (let cur = sp; cur && !out; cur = cur.prevo ? dex.species.get(cur.prevo) : null) {
+    let ls = null; try { ls = dex.species.getLearnsetData(cur.id); } catch (e) { /* none */ }
+    if (ls && ls.learnset && ls.learnset[moveId]) out = true;
+  }
+  if (!out && sp.baseSpecies && idOf(sp.baseSpecies) !== sp.id) {
+    let ls = null; try { ls = dex.species.getLearnsetData(idOf(sp.baseSpecies)); } catch (e) { /* none */ }
+    if (ls && ls.learnset && ls.learnset[moveId]) out = true;
+  }
+  _LS.set(k, out);
+  return out;
+}
+/* an ability that can refuse a flinch or delete a secondary — read off the handler surface, because
+ * Inner Focus, Shield Dust and Covert-Cloak-shaped abilities do not share a name or a keyword */
+function canRefuseAFlinch(sp) {
+  return Object.values(sp.abilities || {}).some(n => {
+    const a = dex.abilities.get(idOf(n));
+    if (typeof a.onTryAddVolatile === 'function' && /flinch/.test(String(a.onTryAddVolatile))) return true;
+    return typeof a.onModifySecondaries === 'function';
+  });
+}
+/* THE ORDER-SENSITIVE PAIRING. Returns the slow legal user, the faster body that kills it, and the
+ * kill, or a written reason. Every body is checked with `CS.checkLegal` before it is staged — the
+ * owner's own example was Muk, which is `isNonstandard: 'Past'` here. */
+function orderPair(e) {
+  const spd = s => flatL50(s.baseStats).sp;
+  const flinch = (e.secondaries || []).some(s => s.chance === 100 && s.volatileStatus === 'flinch');
+  const users = dex.species.all().filter(s => s.exists && !s.isNonstandard && !s.battleOnly
+      && !s.forme.endsWith('Mega') && buildableSpecies(s.id) && carrierAbility(s) && learnsMove(s, e.id))
+    .sort((a, b) => spd(a) - spd(b));
+  if (!users.length) return { why: 'no legal, buildable body in this format learns it — asked of the '
+    + 'format\'s own learnsets (the prevo chain, the way champions_sim walks it), not of a list' };
+  const foes = CANDIDATES.filter(s => buildableSpecies(s.id) && !s.forme.endsWith('Mega')
+    && (!flinch || !canRefuseAFlinch(s)));
+  for (const u of users.slice(0, 20)) {
+    for (const f of foes) {
+      if (f.id === u.id) continue;
+      if (spd(f) <= spd(u)) continue;                       // strictly faster: never a speed tie
+      if (dex.getImmunity(e.type, f.types) === false) continue;   // the click must connect
+      if (!flinch && maxRoll(dex.species.get(u.id), e, f) <= 0) continue;
+      const kill = lethalMove(f, u, 1.2);                   // the foe must kill outright, no roll
+      if (!kill) continue;
+      return { user: u, userAbility: carrierAbility(u), foe: f, foeAbility: carrierAbility(f),
+               kill: kill.mv, flinch, gap: spd(f) - spd(u), speeds: spd(u) + ' against ' + spd(f) };
+    }
+  }
+  return { why: 'its slowest legal user is ' + pretty(users[0].id) + ' at ' + spd(users[0])
+    + ' Speed, and no legal buildable body is BOTH strictly faster than it AND able to kill it '
+    + 'outright with a derived delivery move. Without a kill the turn ends in the same state '
+    + 'whichever order it resolved in, and the bracket has no way onto the board' };
+}
+
+/* =================================================================================================
  *  THE ABILITY STAGE'S OWN VOCABULARY — derived, printed by `--rules`, believed afterwards
  *
  * WHY THIS BLOCK EXISTS, MEASURED RATHER THAN ASSERTED. On 2026-08-08 the abilities stage had six

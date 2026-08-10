@@ -320,7 +320,14 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * the WIRE 24 rewrite in mk() both answer at SELECTION, and a mid-turn Encore is written after both
    * have run. A zero after real games with an Encore in them is the finding -- it means the only turn
    * the override can fire on is being missed, which is the state this counter was added to end. */
-  encoreOverrodeAtExecution: 0 };
+  encoreOverrodeAtExecution: 0,
+  /* WIRE 145 -- a `_lock` into a STATUS move was resolved into a real action. It reads zero on every
+   * run before this wire and it CANNOT have read anything else: both selection-time call sites
+   * resolved the lock through `targetForMove`, which refuses a 0-power move, so a status lock became
+   * Struggle in the chooser and was ignored outright for a caller-supplied action. A zero after real
+   * games with an Encore in them is the finding -- it means the punished body is still being handed
+   * something it can use. */
+  lockedIntoStatusMove: 0 };
 const MEDFAILS = { encoreAction: 0,
   /* WIRE 143 -- the execution-time override was owed and `playerAction` could not BUILD the encored
    * click (it came back null or as the unmodelled `pass`). The un-encored action then runs, which is a
@@ -341,6 +348,12 @@ const MEDFAILS = { encoreAction: 0,
    * armed after the move landed. The tag is the only source of the number; inventing a duration here
    * would be a made-up count of forced turns, which is worse than no lock. */
   lockShapeMissing: 0, lockShapeMissingFirst: '',
+  /* WIRE 145 -- a `_lock` into a STATUS move that `playerAction` could not build, or built as the
+   * unmodelled `{kind:'pass'}`. The lock is still honoured (the turn is spent), because a body cannot
+   * escape a lock by holding a move this engine has no branch for -- but "the mechanic ran" and "the
+   * mechanic ran into a move we do not model" must not arrive at the same counter, which is why it is
+   * separate from `lockedIntoStatusMove` rather than a shared total. */
+  lockStatusUnbuilt: 0,
   megaRevert: 0, weatherUnknown: 0, weatherUnknownFirst: '',
   /* ROADMAP #92 -- MISTY TERRAIN ALSO REFUSES CONFUSION to a grounded body, and this engine has no
    * per-terrain volatile refusal to hang that on. 9 corpus uses. Counted every time confusion is
@@ -4024,6 +4037,66 @@ function targetForMove(me,id,live,field){ const mv=MC.moves[id]; if(!mv||!hasPow
   if(id==='fakeout'&&me._turnsOut>0)return null;   // same pick-time legality as bestMoveVs
   let bt=null,bs=-1; for(const f of live){const d=dmgRange(me,f,mv,field,SPREAD.has(id));const sc=(d.min>=f.curHP?1e6:0)+d.max;if(sc>bs){bs=sc;bt={id,mv,spread:SPREAD.has(id),d,target:f};}}
   return bt; }
+/* WIRE 145 -- WHAT A LOCKED BODY ACTUALLY DOES, ASKED ONCE INSTEAD OF TWICE AND WRONG BOTH TIMES.
+ *
+ * `_lock` is read in three places. Locked into an ATTACK all three agreed; locked into a STATUS move
+ * they did three different things -- `chooseAction` returned `{kind:'struggle'}`, `mk()`'s WIRE 24
+ * rewrite silently kept the caller's own click, and only WIRE 143's execution-time override was
+ * right. ONE CAUSE: both of the broken sites resolved the lock through `targetForMove`, which opens
+ *     if(!mv||!hasPower(mv))return null
+ * because its job is to RANK FOES BY DAMAGE. Every one of the 175 legal status moves in this format
+ * has base power 0, so "this move cannot be used" and "this move has no damage to rank" arrived at
+ * the two callers as the same null. That is a guard doing a job it was never scoped for, and it is
+ * the fourth instance of that shape in this sprint.
+ *
+ * WHY IT IS NOT A GATE ROW. Encore exists to lock a body into a move that is USELESS WHEN REPEATED --
+ * Protect, Trick Room, Tailwind, a Taunt that has already landed. The victim is supposed to burn
+ * turns. This engine handed it a fresh attack instead, so Encore was not merely mis-simulated, it was
+ * INVERTED: clicking it HELPED the victim, and any policy fitted against that learns Encore is bad.
+ *
+ * THIS IS A RE-ROUTE AND NOT NEW MECHANICS. The repeat semantics were already correct and are not
+ * touched: Trick Room's second click ENDS the room (the `pseudoWeather` toggle, WIRE at kind==='room'
+ * and its Trick Room sibling), and Tailwind's counter ticks down rather than refreshing. The only
+ * broken thing was that the locked status move never reached them.
+ *
+ * THE ATTACK PATH IS DELIBERATELY UNCHANGED. `targetForMove` still answers for a damaging lock, byte
+ * for byte, because it is the right instrument there (best foe by damage) and because the Choice
+ * holders that ride this line every turn are the control this fix must not move. `hasPower` is asked
+ * HERE, where it is a classification, rather than left to be a refusal inside the ranker.
+ *
+ * WHAT DOES A LOCKED STATUS MOVE TARGET? A UNIFORM DRAW OVER THE LIVING FOES, from the engine's own
+ * seeded `rng`. Three reasons, in order of weight: (1) it is the rule this file already implements
+ * twice -- `chooseAction`'s Encore branch and WIRE 143's `getRandomTarget` re-roll -- and a third
+ * rule for one question is what CLAUDE.md's FACTS ARE GLOBAL section forbids; (2) the ranker cannot
+ * answer, because a status move has no damage to rank; (3) `Math.random()` is never reached, so every
+ * existing seeded probe, the differential and the roster draw the identical sequence they drew
+ * before -- the draw happens ONLY when a status lock actually resolves, which today it never does.
+ * Most of the family (Trick Room, Tailwind, Protect, every setup move) discards the target entirely;
+ * it decides Taunt, Will-O-Wisp and the rest of the aimed status moves.
+ *
+ * A BUILD THAT COMES BACK `pass` IS COUNTED, AND THE TURN IS STILL SPENT. `playerAction`'s last line
+ * is `{kind:'pass',mv:id}` for a status move this engine does not model, and a lock is not escapable
+ * by holding an unmodelled move -- Showdown offers that body exactly one move. Returning Struggle
+ * instead would be a no-op turn AND the wrong move; the pass at least carries the id into
+ * `S.lastActs` and `actionMoveId`. It is LOUD either way, per this file's rule.
+ *
+ * NULL MEANS "no action could be built at all", which the callers already handle. */
+function lockedAction(me,id,live,field,rng){
+  if(!me||!id)return null;
+  const mv=MC.moves[id]; if(!mv)return null;
+  if(hasPower(mv)){
+    const bt=targetForMove(me,id,live,field);
+    return bt?{kind:'attack',move:bt,target:bt.target}:null;
+  }
+  if(!live||!live.length)return null;
+  const t=live[Math.floor(rng()*live.length)%live.length];
+  let a=null;
+  try{ a=playerAction(me,id,t,field); }catch(e){ MEDFAILS.lockStatusUnbuilt++; return null; }
+  if(!a)                 { MEDFAILS.lockStatusUnbuilt++; return null; }
+  if(a.kind==='pass')    { MEDFAILS.lockStatusUnbuilt++; return a; }
+  MEDSEEN.lockedIntoStatusMove++;
+  return a;
+}
 // MEDICHAM policy = behaviour cloning: sample what a real ladder player would click, but always
 // take an obvious KO, and Protect defensively when threatened. This is the whole point of the model —
 // the win rate is the expected outcome under *realistic* play by both sides, not optimal play.
@@ -4132,9 +4205,14 @@ function _chooseAction(me,foes,ally,field,side,rng){
       }
     }
   }
+  /* WIRE 145 -- CALL SITE ONE. This read `targetForMove` directly and fell through to Struggle on its
+   * null, so a body locked into ANY of the 175 legal status moves in this format Struggled -- and
+   * `{kind:'struggle'}` matches no branch in the dispatch loop (`if(a.kind!=='attack')continue`), so
+   * the turn was a silent no-op with no `|move|` line at all. Struggle itself is unimplemented in this
+   * engine and that is a separate family, deliberately not fixed inside a re-route. */
   if(me._lock){
-    const chosen=targetForMove(me,me._lock,live,field);
-    if(chosen)return{kind:'attack',move:chosen,target:chosen.target};
+    const _la=lockedAction(me,me._lock,live,field,rng);
+    if(_la)return _la;
     return{kind:'struggle'};
   }
   // strongest option + is a KO available?
@@ -6228,11 +6306,27 @@ function battleTurn(S,rng,actsForA,actsForB){
       const _selMv=(_a&&_a.kind==='attack'&&_a.move&&_a.move.id)||(_a&&_a.mv)||null;
       /* WIRE 144 -- and the Choice rewrite declines while a HARD lock holds, so two locks disagreeing
        * about which move to force cannot silently hand the turn to the weaker one. */
+      /* WIRE 145 -- CALL SITE TWO, AND IT FAILED IN THE OPPOSITE DIRECTION TO CALL SITE ONE. This also
+       * resolved the lock through `targetForMove`, whose null means "no damage to rank" for every
+       * status move -- and here the null was read as "leave the action alone", so a caller-supplied
+       * Dragon Claw was simply PLAYED by a body locked into Taunt. The chooser Struggled and this site
+       * ignored the lock; two answers to one question, neither of them Showdown's. Both now go through
+       * `lockedAction`, so they cannot come apart again.
+       *
+       * THE SKIP TEST IS `actionMoveId` NOW, not `kind==='attack' && move.id`. A status action carries
+       * its id in `mv` rather than in `move.id`, so the old shape could not recognise the handed action
+       * as ALREADY being the locked move -- it would have rebuilt it and drawn a die for nothing.
+       * `actionMoveId` is the file's one reader of "which move is this action", and it already covers
+       * both shapes.
+       *
+       * `_selMv` IS COMPUTED ABOVE THIS BLOCK AND STAYS THERE. WIRE 118's rule is that the priority
+       * bracket belongs to the move the PLAYER SELECTED; a Choice/Encore lock is an override, so the
+       * bracket must remain the caller's. Nothing here touches it. */
       if(_a&&mon._lock&&!(mon._mtLock&&mon._mtLock.left>0)
          &&_a.kind!=='switch'&&_a.kind!=='pass'
-         &&!(_a.kind==='attack'&&_a.move&&_a.move.id===mon._lock)){
-        const _lk=targetForMove(mon,mon._lock,live(foes),field);
-        if(_lk)_a={kind:'attack',move:_lk,target:_lk.target};
+         &&actionMoveId(_a)!==mon._lock){
+        const _lk=lockedAction(mon,mon._lock,live(foes),field,rng);
+        if(_lk)_a=_lk;
       }
       /* AND DISABLE BINDS A HANDED-IN ACTION TOO — the same WIRE 24 rule with the opposite sign. A
        * caller that hands in the disabled move is re-asked rather than obeyed; chooseAction has the

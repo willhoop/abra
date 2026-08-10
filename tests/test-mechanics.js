@@ -250,7 +250,15 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * board a pure call cannot express: the refusal is a property of the FIELD while a carrier stands on
  * it, so it needs a sleeping ally, a foe throwing Spore, and a turn order in which the Uproar lands
  * first. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(/;
+/* `statusLock(` added 2026-08-10 with WIRE 145, declared HERE and with its reason, exactly as the
+ * paragraph above requires. It stages a real doubles board through `battleInit` and spends one or two
+ * real turns through `battleTurn`, and it has to: the defect it watches is that TWO SEPARATE CALL
+ * SITES read a lock — `chooseAction`, which only runs when the caller hands in nothing, and `mk()`'s
+ * rewrite, which only runs when the caller hands in something — and they failed in OPPOSITE
+ * directions. Nothing below the turn loop has a caller at all, so a direct call is structurally blind
+ * to the distinction. It returns the `|move|` line, both foes' HP, their Taunt counters and the Trick
+ * Room clock together, because a locked status move that "ran" must be shown to have LANDED. */
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -9408,6 +9416,151 @@ probe('move', 'locksIntoMove', 'Uproar wakes every sleeper and refuses sleep whi
                  + `a Dragon Claw in the slot the partner stayed ${control.ally} and the user became `
                  + `${control.me}; with an Uproar there the partner woke (${test.ally}) and the Spore `
                  + `was refused (${test.me})` };
+});
+
+/* ================= WIRE 145 — A LOCK INTO A STATUS MOVE ==========================================
+ *
+ * `_lock` is honoured in THREE places and until now they did three different things. Locked into an
+ * ATTACK all three were right; locked into a STATUS move, `chooseAction` returned `{kind:'struggle'}`
+ * and `mk()`'s WIRE 24 rewrite silently kept the caller's own click. One cause: both read
+ * `targetForMove`, which opens `if(!mv||!hasPower(mv))return null` — and every one of the 175 legal
+ * status moves in this format has base power 0, so "cannot be used" and "has no damage to rank" were
+ * the same answer.
+ *
+ * WHY IT IS NOT A GATE ROW. Encore exists to lock a body into a move that is USELESS when repeated —
+ * Protect, Trick Room, Tailwind, a Taunt already landed. This engine handed the victim a fresh attack
+ * instead, so Encore was not mis-simulated, it was INVERTED: clicking it HELPED the victim, and
+ * anything fitted against that learns Encore is bad.
+ *
+ * THE REPEAT SEMANTICS WERE ALREADY CORRECT and are deliberately not rebuilt — Trick Room's second
+ * click ends the room, Tailwind's counter ticks 3 -> 2 -> 1 rather than refreshing. The only broken
+ * thing was that the locked status move never reached them, which is what the Trick Room probe below
+ * is for.
+ *
+ * MEASURED RED ON THE LIVE TREE BEFORE A LINE CHANGED, and the shape is worse than "wrong damage":
+ * `{kind:'struggle'}` matches NO branch in the dispatch loop (`if(a.kind!=='attack')continue`), so a
+ * status-locked body emitted no `|move|` line at all and the whole turn was a silent no-op. Struggle
+ * itself is unimplemented in this engine — reported, not fixed here, because it is a family and not
+ * this re-route. */
+const statusLock = (lock, handed, r, turns) => {
+  const me = bare('whimsicott'), ally = bare('incineroar');
+  const f1 = bare('garchomp'), f2 = bare('milotic');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  /* EVERY BODY THAT CAN BE HIT IS MADE UNFAINTABLE, for lockRun's stated reason: a KO empties a slot,
+   * and an emptied slot changes what a uniform draw over the LIVING foes can return — a different
+   * mechanic riding along inside the measurement. */
+  unfaintable(me); unfaintable(ally); unfaintable(f1); unfaintable(f2);
+  const rng = () => r;
+  const trace = []; S._trace = trace;
+  /* `_lock` + `_lockT` written directly, which is what BOTH of the engine's own writers do: WIRE 18
+   * on a Choice item's first attack, and the Encore branch (`_who._lock = _who._lastMove`). The lock
+   * is the thing under test, so it is set rather than arrived at through a second mechanic that could
+   * fail for its own reasons. `_lockT = 5` outlives every probe below (it ticks once per turn). */
+  if (lock) { me._lock = lock; me._lockT = 5; }
+  const out = [];
+  for (let t = 0; t < (turns || 1); t++) {
+    trace.length = 0;
+    const b1 = f1.curHP, b2 = f2.curHP;
+    /* NO ENTRY IN THE MAP MEANS chooseAction PICKS, which is the OTHER call site — `mk()` reads
+     * `forced || chooseAction(...)`. The two paths failed in DIFFERENT directions (Struggle vs
+     * ignoring the lock), so a probe that only drove one of them would have called the row fixed. */
+    const acts = new Map([[ally, { kind: 'pass' }]]);
+    const click = Array.isArray(handed) ? handed[t] : handed;
+    if (click) acts.set(me, M.playerAction(me, click, f1, S.field));
+    M.battleTurn(S, rng, acts, PASS2(f1, f2));
+    const mv = (trace.find(l => l.startsWith('|move|p1a')) || '').split('|');
+    out.push({ used: mv[3] || 'NONE', at: (mv[4] || 'NONE').split(':')[0],
+               d1: b1 - f1.curHP, d2: b2 - f2.curHP,
+               taunt: [(f1._vol && f1._vol.taunt) || 0, (f2._vol && f2._vol.taunt) || 0],
+               tr: S.field.tr });
+  }
+  return out;
+};
+
+/* CALL SITE ONE — `chooseAction`. The control is a lock into KNOCK OFF on the same board: if the lock
+ * itself were unwired the control would fail too, so a green here is specifically about the status
+ * half. The THIRD arm is the sharper one — the same Taunt, hand-clicked with no lock at all — because
+ * without it a red could mean "this engine cannot Taunt", which it can and always could. */
+probe('move', 'sealsMoves', 'a lock into a STATUS move plays the move, not Struggle', () => {
+  const control = statusLock('knockoff', null, 0.5)[0];
+  const test = statusLock('taunt', null, 0.5)[0];
+  const free = statusLock(null, 'taunt', 0.5)[0];
+  return { works: control.used === 'knockoff' && control.d2 > 0
+                  && test.used === 'taunt' && test.taunt[1] > 0 && test.d1 + test.d2 === 0
+                  && free.used === 'taunt' && free.taunt[0] > 0,
+           arms: { control: control.used, test: test.used },
+           detail: `nothing handed in, so the chooser picks under the lock — locked into Knock Off it `
+                 + `played ${control.used} for ${control.d2}; locked into Taunt it played ${test.used} `
+                 + `(foe taunt counters ${test.taunt}, damage ${test.d1 + test.d2}). The identical `
+                 + `Taunt clicked with NO lock played ${free.used} (${free.taunt}), so a red here is `
+                 + `the lock and never the move` };
+});
+
+/* CALL SITE TWO — `mk()`'s WIRE 24 rewrite, which binds a CALLER-SUPPLIED action. It failed in the
+ * OPPOSITE direction to call site one: not Struggle, but the lock silently ignored and the caller's
+ * own Dragon Claw played. Both are driven here because a fix to either alone leaves the engine
+ * disagreeing with itself about what a locked body does.
+ *
+ * THE GUARD ARM IS THE SAME DRAGON CLAW WITH NO LOCK, so "the lock binds" can never come to mean
+ * "handed actions stopped working". */
+probe('item', 'choiceLock', 'the lock binds a caller-supplied action into a STATUS move too', () => {
+  const control = statusLock('knockoff', 'dragonclaw', 0.5)[0];
+  const test = statusLock('taunt', 'dragonclaw', 0.5)[0];
+  const guard = statusLock(null, 'dragonclaw', 0.5)[0];
+  return { works: control.used === 'knockoff' && control.d1 === 0
+                  && test.used === 'taunt' && test.taunt[1] > 0 && test.d1 === 0
+                  && guard.used === 'dragonclaw' && guard.d1 > 0,
+           arms: { control: control.used, test: test.used },
+           detail: `Dragon Claw handed in on every arm, only the lock varied — locked into Knock Off `
+                 + `the engine played ${control.used}, locked into Taunt it played ${test.used} `
+                 + `(foe taunt ${test.taunt}), with no lock it played ${guard.used} for ${guard.d1}` };
+});
+
+/* THE PAYOFF, AND IT IS THE WHOLE REASON THE ROW IS WORTH MORE THAN A GATE. A body locked into Trick
+ * Room must SPEND its turn re-clicking it — and the second click ENDS the room (`pseudoWeather`, a
+ * second use toggles rather than refreshes), so the lock makes the victim undo its own field. That is
+ * what Encore is FOR, and this engine handed the victim a free attack instead.
+ *
+ * THE TWO ARMS CLICK THE IDENTICAL PAIR OF MOVES — Trick Room then Dragon Claw — and differ only in
+ * whether the lock is set. Nothing about the repeat semantics is asserted from the fix's side: the
+ * control proves the room is up and STAYS up when the lock is absent. */
+probe('move', 'locksTarget', 'a lock into Trick Room re-clicks it and turns the room OFF', () => {
+  const control = statusLock(null, ['trickroom', 'dragonclaw'], 0.5, 2);
+  const test = statusLock('trickroom', ['trickroom', 'dragonclaw'], 0.5, 2);
+  return { works: control[0].used === 'trickroom' && control[0].tr === 4
+                  && control[1].used === 'dragonclaw' && control[1].tr === 3 && control[1].d1 > 0
+                  && test[0].used === 'trickroom' && test[0].tr === 4
+                  && test[1].used === 'trickroom' && test[1].tr === 0 && test[1].d1 === 0,
+           arms: { control: [control[1].used, control[1].tr], test: [test[1].used, test[1].tr] },
+           detail: `turn 1 Trick Room, turn 2 Dragon Claw, on both arms — with no lock the room stood `
+                 + `(tr ${control[0].tr} -> ${control[1].tr}) and ${control[1].used} dealt `
+                 + `${control[1].d1}; locked into Trick Room the turn-2 click became `
+                 + `${test[1].used} and the room it had just set came DOWN (tr ${test[1].tr})` };
+});
+
+/* WHAT DOES A LOCKED STATUS MOVE TARGET? A uniform draw over the LIVING foes, taken from the engine's
+ * own seeded `rng` — WIRE 143's rule for the Encore override and `chooseAction`'s Encore branch
+ * before it, so this is a third caller of one rule rather than a third rule. `targetForMove` is the
+ * wrong instrument by construction: it ranks by damage and a status move has none.
+ *
+ * IDENTICAL RESULTS ACROSS A VARIED KNOB MEAN THE KNOB IS UNWIRED. The only thing varied is the
+ * constant rng — 0.1 selects live foe 0 and 0.9 selects live foe 1 — and `Math.random()` is never
+ * reached, which is what keeps the differential and the roster reproducible.
+ *
+ * THE PLAIN ARMS ARE THE GUARD AGAINST A BLANKET RE-AIM: an ordinary hand-clicked Taunt named at p2a
+ * must land on p2a at BOTH values, or a fix that re-rolled every click would read as green here and
+ * be catastrophic everywhere else. */
+probe('move', 'sealsMoves', 'the locked status move draws its target from the seeded die', () => {
+  const control = statusLock('taunt', null, 0.1)[0];
+  const test = statusLock('taunt', null, 0.9)[0];
+  const plain1 = statusLock(null, 'taunt', 0.1)[0], plain9 = statusLock(null, 'taunt', 0.9)[0];
+  return { works: control.used === 'taunt' && test.used === 'taunt'
+                  && control.at === 'p2a' && test.at === 'p2b'
+                  && plain1.at === 'p2a' && plain9.at === 'p2a',
+           arms: { control: control.at, test: test.at },
+           detail: `the same Taunt lock on the same board, only the seeded die varied — at 0.1 it hit `
+                 + `${control.at}, at 0.9 it hit ${test.at}. An ordinary Taunt hand-clicked at p2a hit `
+                 + `${plain1.at}/${plain9.at} at the same two values, so nothing else was re-aimed` };
 });
 
 const works = results.filter(r => r.works);

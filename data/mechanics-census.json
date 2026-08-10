@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-10T03:01:01.440Z",
+  "generated": "2026-08-10T03:23:29.886Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 342,
-  "live": 342,
+  "probed": 346,
+  "live": 346,
   "missing": 0,
-  "armed": 342,
+  "armed": 346,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2406,7 +2406,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 26.0% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 26.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3427,6 +3427,46 @@
       "label": "Uproar wakes every sleeper and refuses sleep while it runs",
       "live": true,
       "detail": "an already-sleeping PARTNER and a Spore thrown at the user on the same turn — with a Dragon Claw in the slot the partner stayed slp and the user became slp; with an Uproar there the partner woke (none) and the Spore was refused (none)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "sealsMoves",
+      "label": "a lock into a STATUS move plays the move, not Struggle",
+      "live": true,
+      "detail": "nothing handed in, so the chooser picks under the lock — locked into Knock Off it played knockoff for 22; locked into Taunt it played taunt (foe taunt counters 0,2, damage 0). The identical Taunt clicked with NO lock played taunt (2,0), so a red here is the lock and never the move",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "choiceLock",
+      "label": "the lock binds a caller-supplied action into a STATUS move too",
+      "live": true,
+      "detail": "Dragon Claw handed in on every arm, only the lock varied — locked into Knock Off the engine played knockoff, locked into Taunt it played taunt (foe taunt 0,2), with no lock it played dragonclaw for 46",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "locksTarget",
+      "label": "a lock into Trick Room re-clicks it and turns the room OFF",
+      "live": true,
+      "detail": "turn 1 Trick Room, turn 2 Dragon Claw, on both arms — with no lock the room stood (tr 4 -> 3) and dragonclaw dealt 46; locked into Trick Room the turn-2 click became trickroom and the room it had just set came DOWN (tr 0)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "sealsMoves",
+      "label": "the locked status move draws its target from the seeded die",
+      "live": true,
+      "detail": "the same Taunt lock on the same board, only the seeded die varied — at 0.1 it hit p2a, at 0.9 it hit p2b. An ordinary Taunt hand-clicked at p2a hit p2a/p2a at the same two values, so nothing else was re-aimed",
       "hollow": false,
       "armed": true,
       "directCall": false
