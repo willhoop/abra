@@ -1,6 +1,11 @@
 # ABRA — the model family (living reference)
 
-**Version 3.93.0 · Last updated 2026-08-09.**
+**Version 3.94.0 · Last updated 2026-08-09.**
+
+**3.94.0 — MEDICHAM: TWO MOVES NEVER APPLIED THE USER'S OWN STAT DROP.** Showdown keeps that fact in
+`self.boosts` AND `selfBoost.boosts`; the engine's move table was built from the first only, so
+Clanging Scales and Scale Shot carried nothing. MEDICHAM-only — no model refitted, no rollout re-run,
+the quarantine unchanged.
 
 **3.93.0 — MEDICHAM: THE PARTIAL TRAP COUNTER STARTED ONE LOW, ON ALL SEVEN TRAPPING MOVES.** The
 artifact carried the FELT duration (`'4-5'`, typed by hand) where the engines are compared on Showdown's

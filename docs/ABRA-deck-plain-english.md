@@ -1,6 +1,18 @@
 # ABRA — the plain-English deck
 
-**Version 3.93.0 · 2026-08-09 · Will Hooper**
+**Version 3.94.0 · 2026-08-10 · Will Hooper**
+
+**3.94.0 — A MOVE THAT HURTS YOU TO USE IT WAS FREE FOR US, ON TWO MOVES.** Some attacks lower your
+own stats as the price of using them — Close Combat drops your defences, Draco Meteor drops your
+special attack. We handle all of those correctly, on more than twenty thousand recorded uses, which is
+precisely why nobody looked closer. It turns out the real game stores that price in **two different
+places**, and we only ever read one of them. Two moves keep it in the other place — Clanging Scales and
+Scale Shot — so for those two the drop simply never happened: the real game lowered the user's defence
+twice over two turns, ours left it untouched. Fixed by reading both places. **We also raised a much
+bigger alarm and then shot it down ourselves**, which is worth saying: it looked briefly like a label
+covering 22,000 uses had nothing reading it, including Close Combat. It does not — the engine gets
+there another way, and the six moves already testing correct are what proved it. A missing label and a
+missing mechanic are not the same thing.
 
 **3.93.0 — THE MOVES THAT SQUEEZE YOU FOR A FEW TURNS WERE ALL COUNTING A TURN SHORT.** Bind, Fire
 Spin, Infestation, Sand Tomb, Snap Trap, Whirlpool and Wrap trap the target and chip its health for a

@@ -33,7 +33,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  330/330 probed mechanics live, 0 missing   (census 2026-08-09 23:29)
+  330/330 probed mechanics live, 0 missing   (census 2026-08-10 00:01)
   1/150 differential comparisons disagree with Showdown   (2026-08-09 23:18)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (70 uses)
@@ -58,9 +58,88 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 183/191 probed, 8 unprobed
 ```
 
-_stamped 2026-08-09 23:34_
+_stamped 2026-08-10 00:03_
 
 <!-- /GENERATED -->
+
+## ROADMAP #110 — THE USER'S OWN STAT DROP LIVES IN TWO SHOWDOWN FIELDS. THE BUILDER READ ONE, AND SIX WORKING MOVES HID IT. 2026-08-10.
+
+Roster moves **25 → 23 differ / 360 → 362 match**, exactly two verdicts changed. Census unmoved at
+**330 live / 330 probed / 0 missing**. Release `c587032378a3`.
+
+### THE TWO FIELDS
+
+`build/build_engine_data.js` enriched every move row from `d.self.boosts`. Showdown has a second,
+separate field — `selfBoost.boosts` — and it is not a synonym: **`self` applies on use, `selfBoost`
+only once the move has actually hit something.**
+
+| move | field | boosts | uses | before |
+|---|---|---|---|---|
+| Clanging Scales | `selfBoost` | `{def:-1}` | 810 | user at 0 Def; Showdown at −1 then −2 |
+| Scale Shot | `selfBoost` | `{def:-1, spe:+1}` | 199 | same, and the `+1 spe` half was the open note on its multi-hit row |
+
+### WHY IT SURVIVED, WHICH IS THE PART WORTH KEEPING
+
+Every move using `self.boosts` **works**, and the roster says so out loud:
+
+```
+  closecombat  dracometeor  overheat  leafstorm  superpower  makeitrain   -> FIRED-AND-BOARDS-MATCH
+```
+
+Close Combat alone is 12,155 uses. So "the user's own drop" was demonstrably live on 20,000+ uses and
+looked closed. **The hole was a sibling field name, not a missing mechanic** — a shape no amount of
+re-reading the working path surfaces, and the deliberate roster found it only because it stages
+*every legal move* rather than the ones anybody thought to check.
+
+`selfBoostsOf()` reads both and **warns** if a move ever carries both, rather than silently choosing.
+
+### AN ALARM I RAISED AND THEN KILLED
+
+Mid-investigation: the `lowersUser` tag has **no consumer anywhere in `engine/`**, across 13 moves and
+**22,277 uses**, Close Combat included. That looked like a hole twice the size of the whole remaining
+queue and I was about to file it as one.
+
+**It is not a hole.** The engine applies these through `MC.moves[id].self` and the `selfBoosts`
+secondary path — never through that tag. The six MATCH rows above are what killed it.
+
+**A tag with no reader and a mechanic with no implementation are different claims**, and only
+measurement separates them. Recorded here because the killing is the useful half; `docs/LESSONS.md` §5
+now has enough of these that the pattern is the lesson.
+
+### THE REGENERATION WAS ASKED BEFORE IT WAS RUN
+
+```
+  MOVES   changed 2   added 0   REMOVED 0
+  SPECIES 318 -> 318   lost: []   species rows changed: 0
+```
+
+This builder was once one run from dropping ten species (3.88.0), so the diff is taken **every** time.
+
+### TWO ROWS INVESTIGATED AND NOT FIXED — reported, not implied by silence
+
+- **Encore, 6,102 uses, the single heaviest row left.** It is **not** the missing action-override I
+  first assumed. `WIRE 24` already binds a handed-in action to `_lock`, and Encore sets `_lock` when it
+  lands, so the override is wired. The residual difference is **targeting**: Showdown's second
+  aggressor hit Corviknight for 36, ours hit Goodra-Hisui for 55. Needs its own pass.
+- **The lock-in family** — Outrage, Petal Dance, Thrash, Raging Fury, Uproar. `DID-NOT-FIRE` because
+  `self.volatileStatus: 'lockedmove'` **has no tag at all**: the engine has nothing to read, and the
+  roster's control arm has nothing to strip, which is why the delta is empty rather than wrong. Real,
+  and **101 sheet uses in total** — the lightest cluster in the queue. Filed, not built.
+
+### THE QUEUE, RE-SIZED BY CORPUS WEIGHT
+
+Measured rather than assumed, because I nearly spent a session on the 101-use family:
+
+```
+  6178  encore(6102) stockpile(66) electrify(7) teeterdance(3)     move/volatile
+  1104  toxic                                                      move/status-inflict
+  1047  tripleaxel(724) scaleshot(199) dragondarts(124)            move/multihit
+   498  clangoroussoul(410) noretreat(88)                          move/boosts-self
+   320  beatup                                                     move/variable-power
+   145  the rest of move/plain-attack after this fix
+```
+
+---
 
 ## ROADMAP #110 — THE PARTIAL TRAP COUNTER STARTED ONE LOW. SEVEN ROWS, ONE FACT, AND IT IS THE VOLATILE-DURATION DEFECT A THIRD TIME. 2026-08-09.
 

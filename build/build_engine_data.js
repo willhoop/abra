@@ -98,6 +98,14 @@ for (const [key, m] of Object.entries(M.MONS)) {
  * landmine for whoever runs it next, and it was found by asking what a regeneration WOULD do before
  * running one. Preserved rather than dropped, and printed with the count, because a preserved row is
  * a divergence between two sources that somebody should eventually reconcile — not a fact. */
+/* THE USER'S OWN BOOST, FROM WHICHEVER FIELD SHOWDOWN PUT IT IN. Never guess between them: a move
+ * that carries both would be a real upstream oddity, so it is reported rather than silently merged. */
+function selfBoostsOf(d) {
+  const a = d.self && d.self.boosts, b = d.selfBoost && d.selfBoost.boosts;
+  if (a && b) console.warn(`  ${d.id}: carries BOTH self.boosts and selfBoost.boosts — using self.boosts`);
+  return a || b || null;
+}
+
 const preserved = Object.keys(prior.mons || {}).filter(k => !(k in mons));
 for (const k of preserved) mons[k] = prior.mons[k];
 
@@ -106,7 +114,21 @@ for (const k of preserved) mons[k] = prior.mons[k];
  * cost, priced into decisions — a cost table someone typed is a cost table someone forgot to type):
  *   rc    recoil as [numerator, denominator] of damage dealt — m.recoil is a plain dex field,
  *         exactly the case Will ruled "look it up, don't restate it in a tag"
- *   self  the move's own stat drops, from m.self.boosts (Superpower, Overheat, Close Combat)
+ *   self  the move's own stat drops (Superpower, Overheat, Close Combat)
+ *
+ * SHOWDOWN CARRIES THE USER'S OWN BOOST IN **TWO DIFFERENT FIELDS**, AND THIS READ ONE OF THEM.
+ * (ROADMAP #110, 2026-08-09.) `self.boosts` covers Close Combat, Superpower, Draco Meteor, Overheat,
+ * Leaf Storm and Make It Rain — all six of which the deliberate roster reports as MATCH, which is
+ * exactly why nothing looked wrong. `selfBoost.boosts` is a SEPARATE field, and the two moves in this
+ * format that use it got no self-data at all:
+ *
+ *     Clanging Scales   selfBoost {def:-1}          810 uses   roster: FIRED-AND-BOARDS-DIFFER
+ *     Scale Shot        selfBoost {def:-1, spe:+1}  199 uses   roster: FIRED-AND-BOARDS-DIFFER
+ *
+ * Showdown drove Clanging Scales' user to -1 then -2 Defence across two clicks; this engine left it
+ * at 0 both times. `selfBoostsOf` reads BOTH fields, and the difference between them is real rather
+ * than cosmetic — `self` applies on use, `selfBoost` only once the move has actually hit something —
+ * so the source field is recorded rather than flattened away.
  *
  * BASE POWER IS TAKEN FROM THE FORMAT, NOT KEPT (ROADMAP #104, 2026-08-09). It used to be kept, and
  * the stored copy was GENERIC gen-9 data: `Dex.forFormat('gen9championsvgc2026regmb')` applies
@@ -138,7 +160,8 @@ for (const [key, mv] of Object.entries(prior.moves || {})) {
       mv.bp = fmtBp;
       if (d.recoil) mv.rc = d.recoil;
       else if (mv.rc) delete mv.rc;
-      if (d.self && d.self.boosts) mv.self = d.self.boosts;
+      const _sb = selfBoostsOf(d);
+      if (_sb) mv.self = _sb;
       else if (mv.self) delete mv.self;
     } else { bpNoDex++; }
   } catch (e) { bpNoDex++; /* keep whatever was stored */ }
@@ -156,7 +179,8 @@ try {
     if (!d || !d.exists) continue;
     moves[key] = { t: d.type, c: d.category === 'Physical' ? 'P' : 'S', bp: d.basePower || 0 };
     if (d.recoil) moves[key].rc = d.recoil;
-    if (d.self && d.self.boosts) moves[key].self = d.self.boosts;
+    const _sb2 = selfBoostsOf(d);
+    if (_sb2) moves[key].self = _sb2;
     added++;
   }
   if (added) console.log(`  moves added from the artifact+dex (were unlookupable): ${added}`);

@@ -1,6 +1,15 @@
 # ABRA — Project Summary
 
-**Version 3.93.0 · 2026-08-09 · Will Hooper**
+**Version 3.94.0 · 2026-08-10 · Will Hooper**
+
+**3.94.0 — THE USER'S OWN STAT DROP LIVES IN TWO SHOWDOWN FIELDS AND THE BUILDER READ ONE.**
+`self.boosts` (Close Combat, Superpower, Draco Meteor, Overheat, Leaf Storm, Make It Rain) all read
+MATCH, which is why this looked closed. `selfBoost` is a separate field and its two moves here —
+Clanging Scales 810 uses, Scale Shot 199 — had no self-data at all: Showdown drove the user to −1 then
+−2 Defence, ours stayed at 0. Roster moves **25 → 23** differ, exactly those two verdicts changed;
+census unmoved at 330 live. Also recorded: a 22,277-use alarm about the `lowersUser` tag having no
+consumer, raised and then **killed** — the engine implements it by another path, and six MATCH rows
+are what proved it.
 
 **3.93.0 — THE PARTIAL TRAP COUNTER WAS ONE LOW FROM THE TURN IT LANDED: SEVEN MOVES, ONE FACT.**
 Bind, Fire Spin, Infestation, Sand Tomb, Snap Trap, Whirlpool and Wrap all read `showdown 4 / ours 3`

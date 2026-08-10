@@ -1,6 +1,15 @@
 # ABRA — Technical Documentation
 
-**Version 3.93.0 · Last updated 2026-08-09**
+**Version 3.94.0 · Last updated 2026-08-10**
+
+**3.94.0 — READ THE USER'S OWN BOOST FROM TWO FIELDS.**
+A move can change the stats of its user. Showdown puts this fact in the field `self.boosts`. Showdown
+also puts this fact in the field `selfBoost.boosts`. The two fields are not the same. The field
+`self` applies on use. The field `selfBoost` applies only after the move hits a target.
+The file `build/build_engine_data.js` read `self.boosts` only. Two moves use `selfBoost.boosts`.
+These moves are Clanging Scales and Scale Shot. Their rows had no self-data.
+The function `selfBoostsOf` reads both fields. It prefers `self`. It writes a warning if a move has
+both fields. Do not merge the two fields without a warning.
 
 **3.93.0 — THE PARTIAL TRAP COUNTER STARTS AT THE DURATION OF THE CONDITION.**
 The condition `partiallytrapped` has a duration. The duration is 5. The engine decrements the duration

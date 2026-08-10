@@ -1,7 +1,12 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 3.93.0 — 2026-08-09.**
+**Version: 3.94.0 — 2026-08-10.**
 
+
+**3.94.0 — NOTHING IN THE TABLE BELOW MOVED.** ROADMAP #110's `selfBoost` fix adds the USER's own
+stat change to two move rows; it is a boost applied after the move, not a multiplier inside it.
+`tests/test-damage-stages.js` re-reads **1728/1728 exact, 0 at the wrong stage.** **The boost-stage
+difference filed at 3.89.0 is still filed and still not fixed.**
 
 **3.93.0 — NOTHING IN THE TABLE BELOW MOVED.** ROADMAP #110's partial-trap fix is a duration COUNTER,
 not a multiplier, and the chip fraction it carries (1/8) was correct throughout — what changed is that

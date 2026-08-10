@@ -10,6 +10,52 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.94.0] — 2026-08-10
+
+### Fixed
+- **SHOWDOWN PUTS THE USER'S OWN STAT CHANGE IN *TWO* FIELDS, AND THE BUILDER READ ONE (ROADMAP #110).**
+  `build/build_engine_data.js` enriched every move row from `d.self.boosts`. Showdown also has a
+  separate `selfBoost.boosts`, and the two moves in this format that use it got **no self-data at all**:
+
+  | move | field | boosts | uses | was |
+  |---|---|---|---|---|
+  | Clanging Scales | `selfBoost` | `{def:-1}` | 810 | user stayed at 0 Def; Showdown drove it to −1 then −2 |
+  | Scale Shot | `selfBoost` | `{def:-1, spe:+1}` | 199 | same, both directions |
+
+  **Roster moves 25 → 23 differ / 360 → 362 match. Exactly those two verdicts changed.**
+
+- **WHY NOTHING LOOKED WRONG, WHICH IS THE INTERESTING HALF.** Close Combat (12,155 uses), Make It
+  Rain, Draco Meteor, Overheat, Leaf Storm and Superpower all use `self.boosts` and all read
+  **FIRED-AND-BOARDS-MATCH**. The mechanic was demonstrably working on 20,000+ uses, so "the user's own
+  drop" looked closed. The hole was a *sibling field name*, not a missing mechanic.
+
+- The two fields are **not** merged blindly. `self` applies on use; `selfBoost` only once the move has
+  actually hit something. `selfBoostsOf()` prefers `self`, and **warns** if a move ever carries both,
+  rather than silently picking one.
+
+### Notes
+- **A 22,277-USE ALARM I RAISED AND THEN KILLED.** Mid-investigation I found the `lowersUser` tag has
+  **no consumer anywhere in the engine** across 13 moves and 22,277 uses, Close Combat included, and
+  was about to file it as a major hole. It is not one: the engine applies self-drops through
+  `MC.moves[id].self` and the `selfBoosts` secondary path, never through that tag. The roster's six
+  MATCH rows are what killed it. `docs/LESSONS.md` §5 — the tag having no reader is not the same claim
+  as the mechanic having no implementation, and only measurement separates them.
+- **The regeneration was asked before it was run**, per the 3.88.0 lesson: **2 move rows changed, 0
+  added, 0 removed, 318 → 318 species, 0 species rows changed.** This builder was once one run from
+  dropping ten species, so the diff is taken every time and not just when it feels risky.
+- Census unmoved at **330 live / 330 probed / 0 missing**; `test-damage-stages` 1728/1728 exact, 0 at
+  the wrong stage; `test-engine-consistency` all pass. Release `c587032378a3`.
+- **Two rows investigated and NOT fixed, reported rather than left implied.** *Encore* (6,102 uses,
+  the single heaviest row left) is **not** the missing action-override I first assumed — `WIRE 24`
+  already binds a handed-in action to `_lock`, and Encore sets `_lock` when it lands. The residual
+  difference is a **targeting** one: Showdown's second aggressor hit Corviknight for 36, ours hit
+  Goodra-Hisui for 55. That needs its own pass. *The lock-in family* (Outrage, Petal Dance, Thrash,
+  Raging Fury, Uproar) reads DID-NOT-FIRE because `self.volatileStatus: 'lockedmove'` **has no tag at
+  all**, so the engine has nothing to read and the roster's control arm has nothing to strip — but it
+  is **101 sheet uses total**, the lightest cluster in the queue, so it is filed rather than built.
+
+---
+
 ## [3.93.0] — 2026-08-09
 
 ### Fixed

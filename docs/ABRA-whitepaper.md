@@ -1,6 +1,21 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 3.93.0 · Last updated 2026-08-09**
+**Version 3.94.0 · Last updated 2026-08-10**
+
+**3.94.0 — THE MECHANIC WAS WORKING ON 20,000 USES, AND THAT IS EXACTLY WHY THE HOLE SURVIVED.**
+Showdown carries the user's own stat change in **two different fields**. `self.boosts` covers Close
+Combat, Superpower, Draco Meteor, Overheat, Leaf Storm and Make It Rain — all six read
+FIRED-AND-BOARDS-MATCH in the deliberate roster, so "the user's own drop" looked closed. `selfBoost` is
+a separate field, the builder never read it, and the two moves in this format that use it — Clanging
+Scales (810 uses) and Scale Shot (199) — carried **no self-data at all**: Showdown drove the user to −1
+then −2 Defence across two clicks while this engine left it at 0 both times. A sibling field name, not
+a missing mechanic, and no amount of re-reading the working path would have surfaced it. Roster moves
+**25 → 23** differ with exactly those two verdicts changed; census unmoved at 330 live; the damage
+table unmoved at 1728/1728 exact. **An alarm raised and then killed in the same pass, recorded because
+the killing is the useful part:** the `lowersUser` tag has no consumer anywhere in the engine across 13
+moves and 22,277 uses, and that is *not* a hole — the engine applies these through the move row and the
+secondary path, never through that tag. A tag with no reader and a mechanic with no implementation are
+different claims, and only measurement separates them.
 
 **3.93.0 — SEVEN TRAPPING MOVES REPORTED THE IDENTICAL DIFFERENCE, WHICH IS HOW A FACT ANNOUNCES
 ITSELF AS ONE FACT.** Bind, Fire Spin, Infestation, Sand Tomb, Snap Trap, Whirlpool and Wrap each read
