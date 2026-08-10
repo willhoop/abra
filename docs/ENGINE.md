@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  357/357 probed mechanics live, 0 missing   (census 2026-08-10 05:40)
-  0/150 differential comparisons disagree with Showdown   (2026-08-10 05:15)
+  359/359 probed mechanics live, 0 missing   (census 2026-08-10 06:01)
+  0/150 differential comparisons disagree with Showdown   (2026-08-10 05:52)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
@@ -57,9 +57,120 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 186/197 probed, 11 unprobed
 ```
 
-_stamped 2026-08-10 05:51_
+_stamped 2026-08-10 06:08_
 
 <!-- /GENERATED -->
+
+## WIRE 150 — THE HEAL TRUNCATED WHERE THE AUTHORITY ROUNDS. ONE LINE, FIVE MOVES, 6,398 USES. 2026-08-10.
+
+Census **357 live / 357 probed → 359 live / 359 probed**, `missing` **0**, `threw` **0**, `hollow`
+**0**, `unarmed` **0**, `directCall` **0**. Damage stages **1728/1728 exact**, unchanged. Two new
+probes, each watched RED on its own before the engine changed. **No release was cut**, and neither
+`tests/roster.js` nor anything reaching `engine/game_differential.js` was run.
+
+`medicham2-browser.js`, the fraction arm of the `heal` branch:
+
+```
+- return Math.floor(x.st.hp*_hp.fr[0]/_hp.fr[1]);
++ return Math.round(x.st.hp*_hp.fr[0]/_hp.fr[1]);
+```
+
+`battle-actions.js:1015` — `target.baseMaxhp * heal[0] / heal[1]`, then
+`(gen < 5 ? Math.floor : Math.round)(amount)`. Gen 9 rounds. Every odd division lost a point.
+
+| move | uses | maxhp staged | authority | this engine was |
+|---|---|---|---|---|
+| Roost | 2,672 | Torkoal 145 | 73 | 72 |
+| Recover | 803 | Torkoal 145 | 73 | 72 |
+| Slack Off | 123 | Torkoal 145 | 73 | 72 |
+| Soft-Boiled | 0 | Torkoal 145 | 73 | 72 |
+| Life Dew | 2,800 | Torterra 170 | 43, **on both bodies** | 42 |
+
+### IT IS `Math.round`, AND DELIBERATELY NOT THE `md4096` ON THE LINE ABOVE IT
+
+The two arms of `_size` mirror **two different authority paths** and that is why they use two
+helpers. The weather family's handler is `this.heal(this.modify(pokemon.maxhp, factor))` on a float
+factor — `modify` **is** the 4096ths chain, so `md4096` is right there. The fraction arm has no
+`modify` in it at all: a plain round over an **exact integer pair** taken off the move. Spending
+`md4096` here would push `[1,2]` through a float and a 4096ths truncation the authority never
+applies — the lossy-float trap WIRE 4's own note is about (*5448/4096, not 1.33*). The two helpers
+agree at `[1,2]` and `[1,4]` and are not the same function: `md4096` truncates the multiplier to
+4096ths first, so any fraction whose 4096ths form is inexact would diverge.
+
+### WHY IT SURVIVED EVERY EXISTING HEAL PROBE — TWO BLINDFOLDS AT ONCE
+
+The old fixture inflated max HP **fourfold**, so every fraction divided **exactly** and floor and
+round could not disagree at all; and it chipped with the smallest neutral hit, so the heal
+**overshot and clamped to full**. The right answer and the wrong answer were the same number, twice
+over. The surviving `healsSelf` probe reads `test[0] > 0`, and a truncation is still > 0.
+
+So the two new probes require **both** of: `maxhp * heal[0] / heal[1]` MUST NOT be whole
+(145/2 = 72.5, 170/4 = 42.5), and the chip MUST be deeper than the heal (1 HP, so nothing clamps).
+A probe failing either condition passes on the broken code.
+
+### THE PROBES, AND THE CONTROL IS THE POINT
+
+Both numbers come out of a real `gen9championsvgc2026regmb` `Battle`, not from arithmetic typed here.
+
+| tag | control arm | test arm |
+|---|---|---|
+| `move\|healsSelf` — *"Recover rounds the half — it does not truncate it"* | Torterra **170,85** — 170/2 is whole, so floor and round agree and this arm **cannot move** | Torkoal **145,73**; the authority staged 14 → 87, a truncating engine reads 72 |
+| `move\|healsAlly` — *"Life Dew rounds the quarter, for the partner too"* | Torkoal **145,36,36** — 145/4 = 36.25 rounds **DOWN**, so this arm is where a **ceiling** would be caught | Torterra **170,43,43**; the authority staged 17 → 60, a truncating engine reads 42 on **both** bodies |
+
+The only varied knob is the **parity of max HP**, which is exactly what the rounding rule reads.
+Max HP is returned beside the gain, so the probe fails loudly rather than quietly changing meaning if
+`buildMon` ever hands back a different body.
+
+### THE BLAST RADIUS WAS MEASURED, NOT ARGUED
+
+Every move in `data/tags.json` (500), six scenarios each — mid roll, both pin corners, aimed and with
+no target — two turns apiece so residuals and clocks land, digested as the **whole board**: every
+primitive on all four active bodies and all four benched ones, plus the field and both side
+conditions. The BEFORE arm is the current file with **this one character reverted**, compiled under
+the real medicham path so its relative requires resolve identically.
+
+**981,756 cells. 30 differ. Five moves: `recover`, `roost`, `slackoff`, `softboiled`, `lifedew`.**
+Nothing else in the corpus moved by a single HP. Life Dew contributes one cell per scenario rather
+than two, because Torkoal's 145/4 rounds down — the control arm, visible in the sweep.
+
+**AND THE FIRST RUN OF THAT SWEEP REPORTED `0 cells differ` ON 3,000 CELLS, ALL OF WHICH HAD THROWN.**
+A circular reference in the digest turned every scenario into a one-cell `THREW` row and the two arms
+agreed perfectly about nothing. It was caught only because the throw count is printed beside the diff
+count. That is CLAUDE.md's signature failure inside the instrument built to prevent it.
+
+### NO SECOND ROUNDING — THE CALLERS, NAMED
+
+- `_size`'s only caller is `amt`, which does `curHP = Math.min(st.hp, curHP + _size(x))`. A **clamp**,
+  not a rounding; `Math.min` over integers cannot shift a rounding.
+- `_hp.fr` is read at exactly one site. `healParam`'s other caller is `playerAction`, which uses it
+  only to decide `kind:'heal'` and never touches the fraction.
+- `board.js`'s `healValue` reads the same `[num,den]` off the artifact but as a **fractional feature
+  in 0..1**, never an integer HP count, so there is no integer rounding to double-apply and no
+  fact to diverge.
+
+### EVERY OTHER `Math.floor` HEAL IN THE FILE WAS CHECKED AND IS CORRECT
+
+They mirror `Battle#heal`, which does `damage = this.trunc(damage)` — a **floor** — so
+`pokemon.heal(baseMaxhp / N)` truncates and these must not change: healing berries, Hospitality,
+`healsOnSwitchOut` (Regenerator), the absorb-ability gains, Grassy Terrain, `passiveHeal`
+(Leftovers). **Pollen Puff is the sharpest case**: its handler is literally
+`this.heal(Math.floor(target.baseMaxhp * 0.5))`, so the `allyheal` branch flooring is the authority
+and a blanket floor → round would have broken it. Drain and Shell Bell already carry the correct
+rule with their own notes — drain rounds, Shell Bell clamps-then-truncates.
+
+### THE HAND LIST IS UNCHANGED
+
+Still empty except for Rivalry. This defect was never on it — it came off the derived roster, which
+is the derived list doing the job the prose list cannot.
+
+### A RED THAT IS NOT MINE, MEASURED RATHER THAN ASSUMED
+
+`node engine/status.js` prints **FEATURE SEMANTICS CHECK FAILED** against
+`data/policy-weights.json` for eight features (`koTarget`, `dmgFrac`, `killIsRoll`, `killsThreat`,
+`switchSurvives1`, `switchKOSlow`, `switchDiesFirst`, `screenValue`). Rather than call it
+pre-existing, `engine/feature_fixture.js`'s `hashes()` was computed over the AFTER bytes and the
+BEFORE bytes: **all 58 feature hashes identical, 0 moved by this wire.** It is a REFIT OWED against
+the damage-path wires and it belongs to MEASURE. Reported, not filed.
 
 ## WIRE 149 — THE MECHANIC WAS LIVE AND THE SEARCH COULD NOT SELECT IT. 2026-08-10.
 

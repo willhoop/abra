@@ -1,10 +1,10 @@
 {
-  "current": "522b14a17617",
-  "cut": "2026-08-10T05:52:53.842Z",
-  "why": "quick guard selectable; heal staging damage-first",
+  "current": "cb831e50eafb",
+  "cut": "2026-08-10T06:10:10.870Z",
+  "why": "heal rounds where Showdown rounds",
   "cuts": 1,
-  "latest_cut": "2026-08-10T05:52:53.842Z",
-  "latest_why": "quick guard selectable; heal staging damage-first",
-  "pointer_written": "2026-08-10T05:52:53.845Z",
+  "latest_cut": "2026-08-10T06:10:10.870Z",
+  "latest_why": "heal rounds where Showdown rounds",
+  "pointer_written": "2026-08-10T06:10:10.873Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

@@ -8763,7 +8763,29 @@ function battleTurn(S,rng,actsForA,actsForB){
               const _f=(_bw&&_bw.healFraction!=null)?+_bw.healFraction:+_hp.weather.baseHealFraction;
               return md4096(x.st.hp,_f);
             }
-            return Math.floor(x.st.hp*_hp.fr[0]/_hp.fr[1]);
+            /* WIRE 150 -- `Math.round`, AND IT IS DELIBERATELY NOT THE `md4096` ONE LINE ABOVE.
+             *
+             * battle-actions.js:1015, the FRACTION arm:
+             *     const amount = target.baseMaxhp * moveData.heal[0] / moveData.heal[1];
+             *     this.battle.heal((this.battle.gen < 5 ? Math.floor : Math.round)(amount), ...)
+             * Gen 9 ROUNDS. This floored, so every odd division lost a point: Torkoal's 145 Recover
+             * healed 72 against the authority's 73, and Torterra's 170 Life Dew 42 against 43 -- paid
+             * TWICE per Life Dew, because it heals the partner too.
+             *
+             * THE TWO ARMS OF `_size` MIRROR TWO DIFFERENT AUTHORITY PATHS, which is why they use two
+             * different helpers and neither is a copy of the other. The weather family's handler is
+             * `this.heal(this.modify(pokemon.maxhp, factor))` on a float factor -- `modify` IS the
+             * 4096ths chain, so `md4096` is right there. This arm has no `modify` in it at all: it is
+             * a plain round over an EXACT integer pair straight off the move. Spending md4096 here
+             * would push [1,2] through a float and a 4096ths truncation the authority never applies,
+             * which is the lossy-float trap WIRE 4's own note is about (5448/4096, not 1.33).
+             *
+             * BLAST RADIUS, MEASURED RATHER THAN ASSUMED: `_size` is local to this branch and the
+             * fraction arm sizes exactly five moves -- recover, roost, slackoff, softboiled, lifedew,
+             * 6,398 corpus uses. Drain, Leftovers, berries, Shell Bell, Strength Sap, the residual
+             * heals and the weather family all round elsewhere and are untouched; the whole-corpus
+             * digest sweep is in docs/MEDICHAM-SPRINT-NOTES.md. */
+            return Math.round(x.st.hp*_hp.fr[0]/_hp.fr[1]);
           };
           const amt=x=>{if(x&&x.st&&!healBlocked(x)){const _h0=x.curHP;
             x.curHP=Math.min(x.st.hp,x.curHP+_size(x));

@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-10T05:52:41.156Z",
+  "generated": "2026-08-10T06:10:10.634Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 357,
-  "live": 357,
+  "probed": 359,
+  "live": 359,
   "missing": 0,
-  "armed": 357,
+  "armed": 359,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -586,7 +586,7 @@
       "tag": "healsAlly",
       "label": "Life Dew heals the partner",
       "live": true,
-      "detail": "[partner gained, user gained, foe gained] -- after Recover 0,85,0 (the partner must gain nothing); after Life Dew 42,42,0",
+      "detail": "[partner gained, user gained, foe gained] -- after Recover 0,85,0 (the partner must gain nothing); after Life Dew 43,43,0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1197,6 +1197,26 @@
       "label": "Recover restores the user",
       "live": true,
       "detail": "[user hp gained, partner hp gained] — after Tailwind 0,0; after Recover 85,0 (the partner must gain nothing)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "healsSelf",
+      "label": "Recover rounds the half — it does not truncate it",
+      "live": true,
+      "detail": "[max hp, hp gained from 1] — Torterra 170,85 (must be 170,85; 170/2 is whole, so floor and round agree here and this arm cannot move), Torkoal 145,73 (must be 145,73; the authority staged 14 -> 87, and a truncating engine reads 72)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "healsAlly",
+      "label": "Life Dew rounds the quarter, for the partner too",
+      "live": true,
+      "detail": "[max hp, user gained, partner gained] — Torkoal 145,36,36 (must be 145,36,36; 145/4 = 36.25 rounds DOWN, so this arm is where a ceiling would be caught), Torterra 170,43,43 (must be 170,43,43; the authority staged 17 -> 60, and a truncating engine reads 42 on both bodies)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2476,7 +2496,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 26.2% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

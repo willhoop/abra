@@ -3618,6 +3618,83 @@ probe('move', 'healsSelf', 'Recover restores the user', () => {
                  + `${test} (the partner must gain nothing)` };
 });
 
+/* WIRE 150 — THE HEAL TRUNCATED WHERE THE AUTHORITY ROUNDS, AND THE OLD FIXTURE HID IT TWICE.
+ *
+ * `battle-actions.js:1015`: `const amount = target.baseMaxhp * heal[0] / heal[1];` then
+ * `(gen < 5 ? Math.floor : Math.round)(amount)`. Gen 9 rounds. This engine floored, on the one line
+ * that sizes the whole fraction family — recover, roost, slackoff, softboiled, lifedew, 6,398 uses.
+ *
+ * WHY IT SURVIVED EVERY EXISTING HEAL PROBE, and this is the part that shapes the staging. The probe
+ * above it reads `test[0] > 0` — a truncation is still > 0. Older fixtures also inflated max HP
+ * fourfold, so every fraction divided EXACTLY and floor and round could not disagree at all, and
+ * chipped by a small hit, so the heal OVERSHOT and clamped to full — the right answer and the wrong
+ * answer were the same number twice over. So this probe requires both of:
+ *
+ *   maxhp * heal[0] / heal[1] MUST NOT be whole   (145/2 = 72.5, 170/4 = 42.5)
+ *   the chip MUST be deeper than the heal          (1 HP, so nothing clamps at the top)
+ *
+ * THE CONTROL IS A BODY WHERE FLOOR AND ROUND AGREE — Torterra's 170/2 = 85 exactly. A probe whose
+ * only reading is "Torkoal gained 73" would also be satisfied by an engine that rounded everything UP
+ * (ceil), or by a heal that got bigger for an unrelated reason. Both arms come off the SAME move on
+ * the SAME turn with the SAME chip; the only varied knob is the parity of max HP, which is exactly
+ * the thing the rounding rule reads.
+ *
+ * THE NUMBERS ARE THE AUTHORITY'S OWN, not arithmetic typed here. Staged in a real
+ * gen9championsvgc2026regmb Battle (scratchpad/heal_authority.js, SHOWDOWN_PATH pinned), chipped to
+ * a tenth and clicked:
+ *
+ *     Torkoal  maxhp 145  Recover   14 -> 87    gained 73   (floor would read 72)
+ *     Torterra maxhp 170  Recover   17 -> 102   gained 85   (floor and round agree — the control)
+ *
+ * Max HP is returned beside the gain so the probe fails loudly rather than quietly changing meaning
+ * if `buildMon` ever hands back a different body. */
+probe('move', 'healsSelf', 'Recover rounds the half — it does not truncate it', () => {
+  const run = (sp) => {
+    const { me, ally, f1, f2, S } = board(sp, 'incineroar', 'garchomp', 'garchomp');
+    me.curHP = 1;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'recover', null, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return [me.st.hp, me.curHP - 1];
+  };
+  const control = run('torterra'), test = run('torkoal');
+  return { works: String(control) === '170,85' && String(test) === '145,73',
+           arms: { control, test },
+           detail: `[max hp, hp gained from 1] — Torterra ${control} (must be 170,85; 170/2 is whole, `
+                 + `so floor and round agree here and this arm cannot move), Torkoal ${test} (must be `
+                 + `145,73; the authority staged 14 -> 87, and a truncating engine reads 72)` };
+});
+
+/* WIRE 150, THE SPREAD HALF. Life Dew is the largest member of the family (2,800 uses) and the only
+ * one on a quarter, so it is the arm where a truncation is worth a different amount — and it heals
+ * BOTH bodies on the side, so a rounding bug is paid twice per click.
+ *
+ * THE CONTROL ROUNDS DOWN, DELIBERATELY. Torkoal's 145/4 = 36.25, where round and floor BOTH give 36.
+ * That is a stronger control than a whole division: it proves the engine is rounding rather than
+ * ceiling, which "Torterra gained 43" alone cannot distinguish. Staged in the same real battle:
+ *
+ *     Torterra maxhp 170  Life Dew  17 -> 60    gained 43   (floor would read 42)
+ *     Torkoal  maxhp 145  Life Dew  14 -> 50    gained 36   (round and floor agree — the control)
+ *
+ * The partner is the same species as the user on both arms, so the two readings must be equal to each
+ * other as well as to the authority; a spread heal that sized the partner off the USER's max HP would
+ * pass the single-body reading and fail this. */
+probe('move', 'healsAlly', 'Life Dew rounds the quarter, for the partner too', () => {
+  const run = (sp) => {
+    const { me, ally, f1, f2, S } = board(sp, sp, 'garchomp', 'garchomp');
+    me.curHP = 1; ally.curHP = 1;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'lifedew', null, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return [me.st.hp, me.curHP - 1, ally.curHP - 1];
+  };
+  const control = run('torkoal'), test = run('torterra');
+  return { works: String(control) === '145,36,36' && String(test) === '170,43,43',
+           arms: { control, test },
+           detail: `[max hp, user gained, partner gained] — Torkoal ${control} (must be 145,36,36; `
+                 + `145/4 = 36.25 rounds DOWN, so this arm is where a ceiling would be caught), `
+                 + `Torterra ${test} (must be 170,43,43; the authority staged 17 -> 60, and a `
+                 + `truncating engine reads 42 on both bodies)` };
+});
+
 /* ROADMAP #102 — THE PROCEDURAL HEAL FAMILY, WHICH HEALED 0.000 HP IN EVERY SKY INCLUDING A CLEAR
  * ONE. Synthesis, Moonlight and Morning Sun resolved to `{kind:'pass'}` — a wasted turn — because
  * their tag says `heal: true` and `healParam` could not size a boolean. Measured on this body before
