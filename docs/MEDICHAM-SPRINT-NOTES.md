@@ -61,6 +61,54 @@ FAIL  deliberate roster / moves      23 differ, 24 did-not-fire
 
 ---
 
+## THE boosts-target SIX — ONE CLOSED, THREE DIAGNOSED, TWO WERE NEVER BROKEN
+
+I expected one shared cause across six rows. **There were two causes and they split the group
+differently than the verdicts did** — measuring first is what stopped a wrong fix.
+
+### CLOSED — Toxic Thread (6 uses): a status move that ALSO changes a stat
+
+`playerAction` routed anything with `fx.status` to `kind:'status'`, which applies the status and
+nothing else. Toxic Thread poisons AND drops Speed by two, and measured in a real turn **it did
+neither** — because `affect`, six lines further down, is the branch that carries `sc` and `si`
+together, and the status line got there first. The guard is now narrow: a status move with no stat
+change still takes the shorter path.
+
+Verified both halves land and no pure-status move regressed:
+
+```
+  toxicthread  status psn   spe -2      <- was: neither
+  thunderwave  status par   spe  0
+  willowisp    status brn   spe  0
+  toxic        status tox   spe  0
+  spore        status slp   spe  0
+```
+
+**Roster moves 23 -> 22 differ / 362 -> 363 match. Exactly one verdict changed.**
+
+### DIAGNOSED, NOT FIXED — spread STATUS moves reach only ONE foe (3 rows)
+
+Cotton Spore, String Shot and Sweet Scent are `allAdjacentFoes`. Measured:
+
+```
+  cottonspore  foe0 sp=-2   foe1 sp= 0      <- both should move
+  stringshot   foe0 sp=-2   foe1 sp= 0
+  sweetscent   foe0 eva=-2  foe1 eva= 0
+```
+
+That is exactly why all three read DID-NOT-FIRE: the roster's SECOND body never moves. The `affect`
+branch resolves a single `_t` and would need restructuring into a loop over the target list — a
+change to a `100-line branch that I am not making this deep into a session. Filed with the
+measurement so the next pass starts from evidence.
+
+### NEVER BROKEN — Flatter and Swagger
+
+Both apply the foe's boost correctly in a real turn (+1 SpA, +2 Atk). An early probe of mine reported
+them boosting the ALLY; that probe had not set the side stamp, so `_isFoe` was false. Probe artifact,
+not a defect — the fifth of the day.
+
+---
+
 ## ENCORE — THREE FINDINGS, ALL FROM WILL, TWO OF THEM ENGINE FIXES
 
 *(Will, 2026-08-10: "we need to fix encore", then "there are some crazy encore shenanigans".)*

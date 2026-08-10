@@ -1,10 +1,10 @@
 {
-  "current": "0dfc7d6ef0cc",
-  "cut": "2026-08-10T01:23:45.762Z",
-  "why": "the bracket belongs to the SELECTED move, not the one Encore forces",
+  "current": "a59b885861cd",
+  "cut": "2026-08-10T01:38:25.207Z",
+  "why": "a status move that also changes a stat must take the branch that carries both",
   "cuts": 1,
-  "latest_cut": "2026-08-10T01:23:45.762Z",
-  "latest_why": "the bracket belongs to the SELECTED move, not the one Encore forces",
-  "pointer_written": "2026-08-10T01:23:45.766Z",
+  "latest_cut": "2026-08-10T01:38:25.207Z",
+  "latest_why": "a status move that also changes a stat must take the branch that carries both",
+  "pointer_written": "2026-08-10T01:38:25.209Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

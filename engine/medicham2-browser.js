@@ -10374,7 +10374,18 @@ function playerAction(me,moveId,target,field){
     const _sb=TAGS.param('move',id,'sideBuff');
     if(_sb&&_sb.sideCondition)return {kind:'sidebuff',mv:id,cond:_sb.sideCondition};
   }
-  if(fx&&fx.status)return {kind:'status',mv:id,target};
+  /* A MOVE THAT DOES BOTH A STATUS AND A STAT CHANGE MUST NOT BE CLAIMED BY THE STATUS BRANCH.
+   * (2026-08-10.) This line took anything with a status and routed it to `kind:'status'`, which
+   * applies the status and NOTHING ELSE. Toxic Thread poisons AND drops Speed by two — measured, it
+   * did neither in a real turn, because `affect` (six lines down) is the branch that carries `sc`
+   * AND `si` together and this one got there first. Cotton Spore, String Shot and Sweet Scent all
+   * reach `affect` and all correctly drop the stat, which is what made the difference visible.
+   * The guard is narrow on purpose: a status move with no stat change is unaffected and still takes
+   * the shorter path. */
+  if(fx&&fx.status){
+    const _scBoth=TAGS.param('move',id,'statChange');
+    if(!(_scBoth&&_scBoth.target))return {kind:'status',mv:id,target};
+  }
   if(fx&&fx.targetBoostsAlways&&fx.target==='self')return {kind:'setup',mv:id};
   /* ONE READER FOR EVERY TARGET-SIDE EFFECT, from the artifact rather than a branch per move.
    *
