@@ -1,0 +1,99 @@
+{
+  "generated": "census over data/games.ladder.raw-logs.jsonl and data/games.ladder.jsonl",
+  "by": "ROADMAP #134 — written so the frequencies in the sprint notes are checkable, not trusted",
+  "caveat": "A COUNT, NOT A CLAIM ABOUT THE ENGINE. Nothing here is downstream of MEDICHAM, so the quarantine does not touch it: the store is upstream of the simulator.",
+  "raw_archive_games": 46587,
+  "raw_archive_unique_ids": 46186,
+  "lines": {
+    "hitcount": 11200,
+    "cant": 35430,
+    "chip_from": 191678,
+    "enditem": 56506,
+    "spread": 127674,
+    "status_from": 6182,
+    "status_any": 26459,
+    "start_end": 50213,
+    "item_reveal": 5638
+  },
+  "games": {
+    "hitcount": 6553,
+    "cant": 21301,
+    "chip_from": 38987,
+    "enditem": 31838,
+    "spread": 38873,
+    "status_from": 3864,
+    "status_any": 16924,
+    "start_end": 14680,
+    "item_reveal": 2627
+  },
+  "pre_turn1": {
+    "lines": 1753618,
+    "games": 46127,
+    "note": "games with a |turn|1 only; a truncated log would otherwise donate its body"
+  },
+  "store": {
+    "games": 52377,
+    "bytes": 229728757,
+    "mb": 219.1,
+    "games_with_no_raw_log": 6191,
+    "note": "games_with_no_raw_log can never be re-parsed; MODE=reparse refuses rather than dropping them, and FORCE=1 would lose any replay aged out of the pool"
+  },
+  "top_reasons": {
+    "cant": {
+      "flinch": 21546,
+      "slp": 7041,
+      "recharge": 1677,
+      "par": 1015,
+      "frz": 772,
+      "Trick Room": 272,
+      "[of] p1a: Kingambit": 95,
+      "[of] p2a: Kingambit": 92,
+      "[of] p2b: Kingambit": 87,
+      "[of] p1b: Kingambit": 82,
+      "[of] p1b: Incineroar": 76,
+      "[of] p2b: Sableye": 65
+    },
+    "enditem": {
+      "Sitrus Berry": 24684,
+      "Focus Sash": 12680,
+      "Chople Berry": 4180,
+      "White Herb": 2397,
+      "Colbur Berry": 2356,
+      "Roseli Berry": 1741,
+      "Kasib Berry": 1434,
+      "Occa Berry": 1165,
+      "Leftovers": 721,
+      "Life Orb": 691,
+      "Passho Berry": 598,
+      "Coba Berry": 549
+    },
+    "chip_from": {
+      "Life Orb": 51523,
+      "Recoil": 37265,
+      "Sandstorm": 36348,
+      "brn": 23435,
+      "psn": 14358,
+      "Rough Skin": 13056,
+      "Infestation": 8056,
+      "Leech Seed": 2141,
+      "Stealth Rock": 786,
+      "confusion": 742,
+      "pokemon: Mimikyu-Busted": 574,
+      "Salt Cure": 561
+    },
+    "start_end": {
+      "[silent]": 12546,
+      "Encore": 5477,
+      "perish3": 5451,
+      "perish2": 4347,
+      "perish1": 2881,
+      "move: Taunt": 2482,
+      "confusion": 2386,
+      "perish0": 1986,
+      "[from] ability: Protean": 1656,
+      "Substitute": 1408,
+      "Illusion": 855,
+      "move: Leech Seed": 847
+    }
+  }
+}

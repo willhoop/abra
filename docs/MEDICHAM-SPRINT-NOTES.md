@@ -1954,12 +1954,16 @@ baseline of 234). Its per-file delta names `champions_sim.js`, `probe_pair.js`, 
 that regex — it replaced one `.species` read with one `.species` read. Red on the tree as it stands and
 owned by whoever holds those files.
 
-## ROADMAP #68 — THE GAME REPLAYER EXISTS, AND 5.47% OF REAL TURNS DIVERGE
+## ROADMAP #68 — THE GAME REPLAYER EXISTS, AND ABOUT ONE TURN IN TWENTY DIVERGES
 
-Built, red-proofed, run. **2,947 games replayed, 18,421 turns compared, 1,008 DIVERGED (5.47%).**
-Turn 1 alone — the only arm with no invisible state in it — **158 of 2,947 = 5.36%.** Skip rate
-1.77%, all "no turns recorded". **Zero exceptions.** Artifact `data/replay-differential.json`;
-forty readable frozen boards in `data/replay-differential-freezes.json`.
+Built, red-proofed, run. **Roughly one turn in twenty diverges from what actually happened**, and
+turn 1 alone — the only arm with no invisible state in it — diverges at about the same rate. Skip
+rate under 2%, all "no turns recorded". **Zero exceptions.**
+
+**The counts are deliberately not restated here.** They live in `data/replay-differential.json`,
+which is rewritten on every run, with forty readable frozen boards in
+`data/replay-differential-freezes.json`. A figure typed into prose beside an artifact that moves is
+the staleness this file exists to prevent — and it went stale within the hour, which is the proof.
 
 **This is the first number in the project that asks whether we reproduce a real game.** The damage
 differential compares one calculation per row, has never run a turn loop, and reads 0 disagreements
@@ -1971,15 +1975,15 @@ is better, and this corpus cannot support it: Champions sheets do not declare SP
 games carry an open sheet and **every one has `evs: null`**. The record states damage as an integer
 percent of an unknown maximum. Median attainable interval **60.13 points of max HP against a
 3.76-point roll step**, so the legal-spread envelope is several times wider than the entire 16-roll
-band. `matched` fires **2 times in 37,177**. The test is inverted into the one the record supports,
+band. `matched` fires twice in the entire run. The test is inverted into the one the record supports,
 and the interval WIDTH prints beside every verdict so "in span" cannot be read as "exact".
 
 **Divergences by mechanic:** 145 turn-order/SPEED, 72 damage x0.5-ish, 59/57/31/18/15 status
 slp/brn/psn/par/frz, 56 x0.25-ish, 32 x2-ish, 25 a KO our maximum roll cannot reach, 17 x4-plus,
 14 turn-order/PRIORITY.
 
-**Bot games are valid material and the data says so, not the argument:** bot-v-human 5.95% over
-8,577 turns, human-v-human 5.06% over 9,839. Two populations, same answer.
+**Bot games are valid material and the data says so, not the argument:** bot-v-human and
+human-v-human diverge within one point of each other. Two populations, same answer.
 
 **Four instrument bugs were found by reading its own freeze dump**, each at or near the top of the
 mechanic table — a mega not applied before its own turn, a Weather Ball priced in clear skies
@@ -1991,8 +1995,8 @@ instrument had to be debugged before its output meant anything, which is what a 
 It **refuses to write its artifact** if its own three planted corruptions go unnoticed — checked
 every run rather than behind a flag somebody has to remember.
 
-**Filed to OPS:** no `cant` events at all; spread damage is conflated, refusing 8,360 of 37,177
-units; everything before `|turn|1` is dropped, including a lead's entry weather.
+**Filed to OPS:** no `cant` events at all; spread damage is conflated, and it is the largest
+single refusal bucket; everything before `|turn|1` is dropped, including a lead entry weather.
 
 ---
 
@@ -2158,3 +2162,48 @@ killsThreat, switchSurvives1, switchKOSlow, switchDiesFirst, screenValue). That 
 OWED edge and it is MEASURE's. `tests/test-feature-semantics.js` itself is **16 passed, 0 failed**, and
 the fixture board contains no hazard and neither hazard-laying move, so this pass cannot have moved a
 damage or KO feature.
+
+## ROADMAP #134 — THE INGEST NOW KEEPS SIX FACTS IT USED TO REACH AND DISCARD
+
+Parser only. **`data/games.ladder.jsonl` was never opened for writing** and nothing is re-ingested, so
+no existing number moves yet. Will named three of these from memory and was right on all three.
+
+**Additive, and proved so rather than asserted:** 20,000 real stored games re-parsed from the raw
+archive are **byte-identical to the store once the new fields are stripped — 20,000 of 20,000.**
+`tests/test-parse.js` extended in place: **18 pass / 22 FAIL** against the shipped parser, **42 / 0**
+against the new one. Six of the 18 that pass on both are new `LEGACY UNCHANGED` assertions pinning
+`dmg = max(delta)`, `tgt`, `tgthp`, `ko` and `turns[0].n === 1` to exactly what 52,377 stored games
+mean today — so a later pass that "improves" `dmg` goes red and says so.
+
+Frequencies for all six — plus the two classes still unparsed — are measured over the whole raw
+archive and written to **`data/raw-log-census.json`**, reproduced by a second independent pass
+rather than restated here. The shape of it: `|cant|` is dominated by flinch and then sleep; chip
+damage names its cause on most residual lines, Life Orb first; `-enditem` is dominated by Sitrus
+and Focus Sash; and spread moves are common enough that conflating their targets is the single
+largest refusal bucket in the replayer.
+
+Pre-`|turn|1` is kept as a **top-level `preTurn: []`, deliberately not `turns[0]`** — a turn 0 would
+change the array every consumer iterates. Verified on a 20,000-game round trip: all but a
+handful gain a `preTurn` and **not one gains a turn 0**.
+
+**Two shapes that would have bitten a naive parser**, both caught by the fixture: after a target
+faints Showdown drops the slot letter (`|-hitcount|p1: Venusaur|2`, 4 of the first 8 in the archive);
+and a resist berry emits **both `[eat]` and `[weaken]` for one consumption**, so anything counting
+`-enditem` without reading `why` double-counts.
+
+**MY GARCHOMP DIAGNOSIS WAS WRONG AND THE AGENT CORRECTED IT.** I traced a Garchomp falling asleep
+with nothing on the turn that sleeps to a Yawn, and attributed the gap to the `[from]` clause. It is
+**`|-start|`/`|-end|` volatiles, which are entirely unparsed** — **50,213 lines in 14,680 games** across the whole archive (I first quoted a
+sampled figure off a subset; the census is the number). Yawn's `-start` lands a turn earlier and the `-status|slp` that
+follows carries no `[from]` at all. That is the biggest remaining hole, bigger than three of the six
+above, and it needs its own item and its own red-first test.
+
+**Backfill is priced and NOT taken:** the store, the archive id count and the shortfall are all
+in `data/raw-log-census.json` — **6,191 stored games have NO raw log**. `MODE=reparse` refuses
+today, correctly, rather than deleting them — the sequence is `MODE=backfill` (network) then
+that has aged out of the public pool**. Records grow by roughly a third. The immediate consumer is
+`engine/replay_differential.js`, whose largest refusal bucket is its largest single refusal bucket caused
+by the spread conflation alone.
+
+**Consequence:** `data/click-censoring-census.json` stamps `durable-ingest.js` by content and is now
+UNSAFE; re-run is `node engine/click_census.js`. It was already quarantined behind MEDICHAM.

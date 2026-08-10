@@ -48,6 +48,40 @@ function baseForme(sp){
   return m && m[1] ? m[1] : sp;
 }
 
+/* ---- THE ATTRIBUTION CLAUSE, PARSED ONCE ---------------------------------------------------
+   Showdown states WHY on the same line as the effect: `|-damage|p2b: Sylveon|7/100|[from] item:
+   Life Orb`, `|-enditem|p1a: X|Sitrus Berry|[from] move: Knock Off|[of] p2a: Y`. The parser used
+   to TEST for `[from]` to decide a damage was residual and then discard the text, so burn,
+   sandstorm, Life Orb and Rocky Helmet all landed as an anonymous HP drop. Measured on the
+   46,587-game raw ladder archive: 191,678 residual damage lines, led by Life Orb 51,523,
+   Recoil 37,265, Sandstorm 36,348, burn 23,435, poison 14,358, Rough Skin 13,056.
+   One function, because a `[from]` clause means the same thing on every line that carries one. */
+function fromOf(tail){
+  const t=tail||'';
+  const f=/\[from\]\s*([^|\[]+)/.exec(t), o=/\[of\]\s*(p[12][ab])/.exec(t);
+  return { from: f?f[1].trim():null, of: o?o[1]:null };
+}
+/* ---- ONE MOVE, ONE ROW PER BODY IT ACTUALLY HIT ---------------------------------------------
+   A spread move is ONE `|move|` line and several `|-damage|` lines. Every damage was folded onto
+   the move as `dmg = max(dmg, delta)` with `tgt = tgt || <slot>`, so a Matcha Gotcha that hit two
+   bodies came out as the LARGER of the two deltas, attributed to the FIRST target's species, at
+   the LAST target's hp. engine/replay_differential.js could not score those and refused 8,360 of
+   37,177 damage units. A multi-hit move has the same shape from the other direction: three damage
+   lines against one body, and `max` reported one hit of an attack that landed three.
+   `tgts` accumulates PER SLOT — dmg sums, hp is the last value, n counts the lines — so a spread
+   move gets one row per body and a multi-hit move gets the whole attack. The legacy `dmg`, `tgt`,
+   `tgthp` and `ko` fields are written exactly as before, because analysis across the repository
+   reads them. */
+function addTgt(e, slot, mon, delta, nw, ko){
+  const a=e.tgts||(e.tgts=[]);
+  let x=a.find(y=>y.s===slot);
+  if(!x){ x={s:slot,mon:mon||null,dmg:0,hp:nw,n:0}; a.push(x); }
+  x.dmg+=delta; x.hp=nw; x.n++;
+  if(mon&&!x.mon) x.mon=mon;
+  if(ko) x.ko=true;
+  return x;
+}
+
 function extract(id, uploadtime, text){
   const P={p1:{},p2:{}}, poke={p1:[],p2:[]}, brought={p1:new Set(),p2:new Set()}, lead={p1:[],p2:[]};
   const sets={};           // species -> {moves:Set, item, ability}
@@ -56,10 +90,19 @@ function extract(id, uploadtime, text){
   const hp={};
   const boosts={};   // slot -> {atk,def,spa,spd,spe} stage, absolute             // 'p1a' -> current HP % (0..100)
   const turns=[];          // per-turn event stream
-  let cur=null, lastMove=null, winner=null, forfeit=false;
+  /* ---- THE ENTRY PHASE IS A TURN THIS STORE USED TO HAVE NO ROOM FOR --------------------------
+     `cur` was null until `|turn|1`, so everything Showdown emits between `|start` and the first
+     turn was dropped: the four lead switch-ins, every Intimidate, and a Drought or Drizzle lead's
+     WEATHER — which is on the field for the whole of turn 1 and which replay_differential.js had
+     to reconstruct or refuse. 72,203 such lines across 25,583 of 46,587 archived games.
+     It is kept in its OWN top-level field rather than as `turns[0]`, deliberately: a turn 0 in
+     `turns` would change the shape every existing consumer iterates, and this change may only add. */
+  const preTurn=[];
+  let cur={n:0,ev:[]}, lastMove=null, winner=null, forfeit=false;
   const sheets={p1:null,p2:null};   // open team sheets, when the format declares them
   const touch=sp=>sets[sp]=sets[sp]||{moves:new Set(),item:null,ability:null};
-  const flush=()=>{ if(cur&&cur.ev.length) turns.push(cur); };
+  const flush=()=>{ if(!cur||!cur.ev.length) return;
+    if(cur.n===0) preTurn.push(...cur.ev); else turns.push(cur); };
   for(const l of text.split('\n')){ let m;
     if(m=l.match(/^\|player\|(p[12])\|([^|]*)\|[^|]*\|(\d*)/)){ P[m[1]]={name:m[2],rating:+m[3]||null,bot:isBot(m[2])}; }
     else if(m=l.match(/^\|poke\|(p[12])\|([^,|]+)/)){ poke[m[1]].push(norm(m[2])); }
@@ -104,7 +147,43 @@ function extract(id, uploadtime, text){
       const slot=m[1], side=slot.slice(0,2), sp=nick[side+m[2]]||slotSp[slot];
       if(sp){ touch(sp); sets[sp].moves.add(m[3].trim()); }
       lastMove={slot,sp,mv:m[3].trim(),tgt:m[4]||null,dmg:0};
-      if(cur) cur.ev.push({t:'m',s:slot,mon:sp,mv:m[3].trim(),tgt:m[4]?slotSp[m[4]]:null,dmg:0});
+      const evm={t:'m',s:slot,mon:sp,mv:m[3].trim(),tgt:m[4]?slotSp[m[4]]:null,dmg:0};
+      /* `|move|p2a: Charizard|Heat Wave|p1b: Incineroar|[spread] p1a,p1b` — the target field names
+         ONE body and the attribute names every body the move reached. Without it a spread move that
+         happened to hit one target is indistinguishable from a single-target move, and a consumer
+         cannot tell a missing row from a target that was never in range. 127,674 spread moves in
+         38,873 of 46,587 archived games. */
+      const sprd=(l.match(/\[spread\]\s*([^|]+)/)||[])[1];
+      if(sprd){ const ss=sprd.trim().split(',').map(x=>x.trim()).filter(x=>/^p[12][ab]$/.test(x));
+        if(ss.length) evm.spread=ss; }
+      if(cur) cur.ev.push(evm);
+    }
+    /* ---- THE MOVE THAT DID NOT HAPPEN, AND WHY -------------------------------------------------
+       `|cant|p2a: X|flinch`. Never read, so a flinched, fully paralysed, asleep, frozen, recharging,
+       taunted, disabled or Armor-Tailed body was one indistinguishable ABSENCE of an `m` event —
+       zero games in 52,089 carried a flinch marker. 35,430 lines across 21,301 of 46,587 archived
+       games: flinch 21,546, slp 7,041, ability: Armor Tail 1,771, recharge 1,677, par 1,015,
+       frz 772, Disable 668, move: Taunt 461, Queenly Majesty 272, and a long tail.
+       The reason is kept VERBATIM rather than bucketed — `ability: Armor Tail` and `move: Taunt`
+       name the rule that stopped the move, and bucketing them here would throw away the same fact
+       twice. The 4th field, where present, is the move that was refused. */
+    else if(m=l.match(/^\|cant\|(p[12][ab]): ([^|]*)\|([^|]*)(?:\|([^|]*))?/)){
+      if(cur) cur.ev.push({t:'c',s:m[1],mon:slotSp[m[1]]||null,why:(m[3]||'').trim(),
+        mv:m[4]?m[4].trim():null});
+    }
+    /* `|-hitcount|p2a: X|3` — how many times a multi-hit move landed, stated outright and never
+       read. The differential skipped 630 multi-hit rows as incomparable while the count was on the
+       wire. 11,200 lines in 6,553 of 46,587 archived games; 2 hits is the mode (6,567), 10 the tail
+       (430, Population Bomb). NOTE THE SLOT: after the target faints Showdown drops the a/b letter
+       (`|-hitcount|p1: Venusaur|2`), so the position is optional and the count still belongs to the
+       move — that shape is 4 of the first 8 occurrences in the archive, not an edge case. */
+    else if(m=l.match(/^\|-hitcount\|(p[12])([ab])?[^|]*\|(\d+)/)){
+      const n=+m[3], slot=m[2]?m[1]+m[2]:null;
+      if(cur){ const e=[...cur.ev].reverse().find(x=>x.t==='m');
+        if(e){ e.hitcount=n;
+          const rows=e.tgts||[];
+          const x=slot?rows.find(y=>y.s===slot):(rows.length===1?rows[0]:null);
+          if(x) x.hitcount=n; } }
     }
     /* ---- HP IS RECORDED ABSOLUTELY, NOT AS A RUNNING TOTAL OF DAMAGE ---------------------
        This used to write ONLY the delta (`dmg`) onto the move, and the absolute figure it had
@@ -127,16 +206,23 @@ function extract(id, uploadtime, text){
       const delta=Math.max(0,was-nw); hp[slot]=nw;
       const residual=/\[from\]/.test(m[4]);
       if(!residual && cur && cur.ev.length){ // attribute to the just-used move
-        const e=[...cur.ev].reverse().find(x=>x.t==='m'); if(e){ e.dmg=Math.max(e.dmg,delta); e.tgt=e.tgt||slotSp[slot]; e.tgthp=nw; }
+        const e=[...cur.ev].reverse().find(x=>x.t==='m'); if(e){ e.dmg=Math.max(e.dmg,delta); e.tgt=e.tgt||slotSp[slot]; e.tgthp=nw;
+          addTgt(e,slot,slotSp[slot],delta,nw,false); }
       }
       /* Chip damage is nobody's move, so it cannot ride on one -- burn, sandstorm, Life Orb and
-         Rocky Helmet all land here and were previously invisible to every replay. */
-      else if(residual && cur) cur.ev.push({t:'hp',s:slot,mon:slotSp[slot],hp:nw});
+         Rocky Helmet all land here and were previously invisible to every replay. They NAME
+         THEMSELVES on the line (`[from] item: Life Orb`, `[of] p2a: X` for a Rocky Helmet or Rough
+         Skin), and the parser had that text in hand at the moment it decided the damage was
+         residual. `from`/`of`/`dmg` are added; `hp` keeps its exact meaning. */
+      else if(residual && cur){ const fo=fromOf(m[4]);
+        cur.ev.push({t:'hp',s:slot,mon:slotSp[slot],hp:nw,dmg:delta,from:fo.from,of:fo.of}); }
     }
     else if(m=l.match(/^\|-damage\|(p[12][ab])[^|]*\|0 fnt(.*)/)){
       const slot=m[1], was=hp[slot]==null?100:hp[slot]; hp[slot]=0;
-      if(!/\[from\]/.test(m[2]) && cur){ const e=[...cur.ev].reverse().find(x=>x.t==='m'); if(e){ e.dmg=Math.max(e.dmg,was); e.ko=true; e.tgthp=0; } }
-      else if(cur) cur.ev.push({t:'hp',s:slot,mon:slotSp[slot],hp:0});
+      if(!/\[from\]/.test(m[2]) && cur){ const e=[...cur.ev].reverse().find(x=>x.t==='m'); if(e){ e.dmg=Math.max(e.dmg,was); e.ko=true; e.tgthp=0;
+        addTgt(e,slot,slotSp[slot],was,0,true); } }
+      else if(cur){ const fo=fromOf(m[2]);
+        cur.ev.push({t:'hp',s:slot,mon:slotSp[slot],hp:0,dmg:was,from:fo.from,of:fo.of}); }
     }
     /* ---- STAT STAGES ---------------------------------------------------------------------
        Intimidate, Snarl, Icy Wind, Swords Dance, Tailwind's cousins. NONE of this was recorded,
@@ -186,17 +272,39 @@ function extract(id, uploadtime, text){
       if(cur){const e=[...cur.ev].reverse().find(x=>x.t==='m'); if(e)e.blockedBy=m[2].trim();}
     }
     else if(m=l.match(/^\|faint\|(p[12][ab])/)){ if(cur) cur.ev.push({t:'f',s:m[1],mon:slotSp[m[1]]}); }
-    else if(m=l.match(/^\|-heal\|(p[12][ab])[^|]*\|(\d+)\/(\d+)/)){
-      const slot=m[1], nw=Math.round(100*+m[2]/+m[3]); hp[slot]=nw;
-      if(cur) cur.ev.push({t:'hp',s:slot,mon:slotSp[slot],hp:nw});
+    /* A heal names its source on the same line and for the same reason chip damage does:
+       `[from] item: Sitrus Berry`, `[from] ability: Regenerator`, `[from] move: Wish`. `heal:1`
+       distinguishes it from a chip event without a consumer having to infer direction from hp. */
+    else if(m=l.match(/^\|-heal\|(p[12][ab])[^|]*\|(\d+)\/(\d+)(.*)/)){
+      const slot=m[1], nw=Math.round(100*+m[2]/+m[3]), was=hp[slot]==null?nw:hp[slot]; hp[slot]=nw;
+      const fo=fromOf(m[4]);
+      // `got` is how much came BACK; `dmg` is deliberately not reused, because it means damage taken
+      // on every other event that carries it and one field with two signs is how a fact goes wrong.
+      if(cur) cur.ev.push({t:'hp',s:slot,mon:slotSp[slot],hp:nw,heal:1,got:Math.max(0,nw-was),from:fo.from,of:fo.of});
     }
     /* |-sethp| is how Pain Split and a few others state a new value outright. */
-    else if(m=l.match(/^\|-sethp\|(p[12][ab])[^|]*\|(\d+)\/(\d+)/)){
+    else if(m=l.match(/^\|-sethp\|(p[12][ab])[^|]*\|(\d+)\/(\d+)(.*)/)){
       const slot=m[1], nw=Math.round(100*+m[2]/+m[3]); hp[slot]=nw;
-      if(cur) cur.ev.push({t:'hp',s:slot,mon:slotSp[slot],hp:nw});
+      const fo=fromOf(m[4]);
+      if(cur) cur.ev.push({t:'hp',s:slot,mon:slotSp[slot],hp:nw,from:fo.from,of:fo.of});
     }
     else if(m=l.match(/^\|-item\|(p[12][ab]): ([^|]*)\|([^|]+)/)){ const sp=slotSp[m[1]]; if(sp){touch(sp);sets[sp].item=m[3].trim();} }
-    else if(m=l.match(/^\|-enditem\|(p[12][ab]): ([^|]*)\|([^|]+)/)){ const sp=slotSp[m[1]]; if(sp){touch(sp);sets[sp].item=sets[sp].item||m[3].trim();} }
+    /* ---- AN ITEM LEAVING IS AN EVENT, NOT ONLY A REVEAL -----------------------------------------
+       This line was read for ONE purpose — to infer what item the body had been holding — and the
+       fact that it left, on this turn, was thrown away. So "the Focus Sash triggered here" was gone,
+       and so was every consumed berry and every Knock Off. That is the exact hazard CLAUDE.md
+       records: a sharpened item estimate with nothing tracking what stales it, and the damage and
+       speed calculations keep applying a Life Orb or a Choice Scarf that is no longer there.
+       56,506 lines in 31,838 of 46,587 archived games: Sitrus Berry 24,684, Focus Sash 12,680,
+       Chople 4,180, White Herb 2,397, Colbur 2,356 ... Choice Scarf 523, Life Orb 691.
+       `why` is the bracket qualifier — a resist berry emits BOTH `[eat]` and `[weaken]` for one
+       consumption, so a consumer that counts events without reading it will double-count. */
+    else if(m=l.match(/^\|-enditem\|(p[12][ab]): ([^|]*)\|([^|]+)(.*)/)){
+      const slot=m[1], sp=slotSp[slot], item=m[3].trim(), tail=m[4]||'';
+      if(sp){touch(sp);sets[sp].item=sets[sp].item||item;}
+      const fo=fromOf(tail), why=(tail.match(/\[(eat|weaken|silent)\]/)||[])[1]||null;
+      if(cur) cur.ev.push({t:'ei',s:slot,mon:sp||null,item,why,from:fo.from,of:fo.of});
+    }
     else if(m=l.match(/^\|-ability\|(p[12][ab]): ([^|]*)\|([^|]+)/)){ const sp=slotSp[m[1]]; if(sp){touch(sp);sets[sp].ability=m[3].trim();} }
     /* ---- MEGA EVOLUTION -------------------------------------------------------------
        Showdown announces a mega with |detailschange| (and |-mega|). Without this the slot
@@ -235,7 +343,15 @@ function extract(id, uploadtime, text){
     else if(m=l.match(/^\|-fieldstart\|move: ([^|]+)/)){
       if(cur) cur.ev.push({t:'fs',field:m[1].trim()});
     }
-    else if(m=l.match(/^\|-status\|(p[12][ab]): ([^|]*)\|([^|]+)/)){ if(cur) cur.ev.push({t:'x',s:m[1],mon:slotSp[m[1]],st:m[3].trim()}); }
+    /* A status names its cause on 1,052 of 4,408 lines (23.9%, measured on 8,000 archived games):
+       `[from] move: Sleep Powder` 536, `move: Hypnosis` 192, `ability: Spicy Spray` 191, Poison
+       Touch 90, Rest 17, Flame Body 14, Static 7. Same clause, same helper as the chip damage above.
+       The other 76% are the ordinary case where the move that just resolved carries the secondary,
+       and a null `from` means exactly that — it does NOT mean the cause is unknown. */
+    else if(m=l.match(/^\|-status\|(p[12][ab]): ([^|]*)\|([^|]+)(.*)/)){
+      const fo=fromOf(m[4]);
+      if(cur) cur.ev.push({t:'x',s:m[1],mon:slotSp[m[1]],st:m[3].trim(),from:fo.from,of:fo.of});
+    }
     /* ---- OPEN TEAM SHEETS (Bo3 / tournament format) --------------------------------------
        |showteam|p1|Gengar||Gengarite|CursedBody|ShadowBall,PerishSong,...|Timid||F|||50|]Swampert|...
        This line declares the FULL set of all six: item, ability, every move, nature, level. It is
@@ -298,7 +414,7 @@ function extract(id, uploadtime, text){
     format:fmt, openSheet,
     p1:P.p1, p2:P.p2, winner:winner||null, forfeit, sheets,
     six:{p1:[...new Set(poke.p1)],p2:[...new Set(poke.p2)]},
-    brought:{p1:[...brought.p1],p2:[...brought.p2]}, lead, sets:setsOut, turns };
+    brought:{p1:[...brought.p1],p2:[...brought.p2]}, lead, sets:setsOut, preTurn, turns };
 }
 async function pool(items,fn,c){const out=[];let i=0;await Promise.all(Array.from({length:c},async()=>{while(i<items.length){const k=i++;out[k]=await fn(items[k]);}}));return out;}
 
