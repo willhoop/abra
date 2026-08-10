@@ -1,0 +1,685 @@
+{
+  "generated": "2026-08-10T21:24:13.049Z",
+  "by": "engine/mega_census.js",
+  "what": "How often each MEGA FORME actually appears, derived from the store's t:\"mega\" events. The store's brought[] and lead[] name only the base species, so every usage figure taken from them counts every mega forme as zero. This is the artifact that un-blinds them.",
+  "method": "one count per forme per GAME, not per event — event counts weight a mega by how talkative its log was, which is a property of the log and not of the meta",
+  "caveat": "THIS IS NOT DOWNSTREAM OF MEDICHAM. It counts what the store recorded; no simulation runs and the quarantine does not touch it.",
+  "store_games": 52377,
+  "games_with_a_mega": 48867,
+  "games_with_a_mega_pct": 93.3,
+  "mega_events": 83810,
+  "mega_on_turn_1": 39860,
+  "mega_after_turn_1": 43950,
+  "sides_showing_two_distinct_formes": 1649,
+  "sides_note": "the format allows one mega per battle per side; a non-zero count here is the record disagreeing with the regulation and wants explaining, not rounding away",
+  "distinct_formes_seen": 88,
+  "formes": {
+    "charizardmegay": 10679,
+    "staraptormega": 6390,
+    "floettemega": 5433,
+    "swampertmega": 4208,
+    "delphoxmega": 3766,
+    "blastoisemega": 3697,
+    "raichumegay": 3584,
+    "dragonitemega": 2886,
+    "venusaurmega": 2747,
+    "gengarmega": 2216,
+    "froslassmega": 2043,
+    "tyranitarmega": 1940,
+    "mawilemega": 1864,
+    "scraftymega": 1824,
+    "metagrossmega": 1811,
+    "aerodactylmega": 1258,
+    "garchompmega": 1174,
+    "gardevoirmega": 1130,
+    "blazikenmega": 1092,
+    "pyroarmega": 1089,
+    "cameruptmega": 1059,
+    "scovillainmega": 933,
+    "eelektrossmega": 892,
+    "raichumegax": 878,
+    "glimmoramega": 818,
+    "sceptilemega": 811,
+    "meganiummega": 710,
+    "palafinhero": 674,
+    "mimikyubusted": 664,
+    "lopunnymega": 561,
+    "aegislashblade": 531,
+    "starmiemega": 517,
+    "lucariomega": 514,
+    "kangaskhanmega": 501,
+    "charizardmegax": 485,
+    "malamarmega": 445,
+    "scizormega": 437,
+    "aggronmega": 418,
+    "greninjamega": 401,
+    "dragalgemega": 385,
+    "chandeluremega": 382,
+    "drampamega": 350,
+    "gyaradosmega": 345,
+    "crabominablemega": 341,
+    "golurkmega": 322,
+    "hawluchamega": 315,
+    "beedrillmega": 298,
+    "falinksmega": 291,
+    "ampharosmega": 282,
+    "altariamega": 248,
+    "alakazammega": 239,
+    "feraligatrmega": 238,
+    "slowbromega": 230,
+    "heracrossmega": 227,
+    "banettemega": 226,
+    "abomasnowmega": 225,
+    "houndoommega": 222,
+    "chesnaughtmega": 215,
+    "aegislash": 213,
+    "excadrillmega": 213,
+    "steelixmega": 209,
+    "pidgeotmega": 204,
+    "skarmorymega": 202,
+    "gallademega": 201,
+    "chimechomega": 175,
+    "scolipedemega": 169,
+    "pinsirmega": 168,
+    "clefablemega": 155,
+    "morpekohangry": 152,
+    "audinomega": 137,
+    "manectricmega": 131,
+    "barbaraclemega": 126,
+    "medichammega": 120,
+    "victreebelmega": 116,
+    "sharpedomega": 111,
+    "morpeko": 100,
+    "sableyemega": 97,
+    "glaliemega": 93,
+    "emboarmega": 91,
+    "meowsticmmega": 72,
+    "absolmega": 57,
+    "meowsticfmega": 56,
+    "castformrainy": 19,
+    "castformsunny": 16,
+    "castformsnowy": 13,
+    "castform": 4,
+    "salamencemega": 2,
+    "dianciemega": 2
+  },
+  "by_base": {
+    "charizard": {
+      "games": 11076,
+      "formes": {
+        "charizardmegay": 11224,
+        "charizardmegax": 486
+      }
+    },
+    "gengar": {
+      "games": 2215,
+      "formes": {
+        "gengarmega": 2227
+      }
+    },
+    "swampert": {
+      "games": 4208,
+      "formes": {
+        "swampertmega": 4283
+      }
+    },
+    "tyranitar": {
+      "games": 1940,
+      "formes": {
+        "tyranitarmega": 1944
+      }
+    },
+    "staraptor": {
+      "games": 6388,
+      "formes": {
+        "staraptormega": 6676
+      }
+    },
+    "blastoise": {
+      "games": 3697,
+      "formes": {
+        "blastoisemega": 3773
+      }
+    },
+    "gardevoir": {
+      "games": 1129,
+      "formes": {
+        "gardevoirmega": 1134
+      }
+    },
+    "delphox": {
+      "games": 3766,
+      "formes": {
+        "delphoxmega": 3837
+      }
+    },
+    "floetteeternal": {
+      "games": 5433,
+      "formes": {
+        "floettemega": 5541
+      }
+    },
+    "beedrill": {
+      "games": 298,
+      "formes": {
+        "beedrillmega": 298
+      }
+    },
+    "dragonite": {
+      "games": 2886,
+      "formes": {
+        "dragonitemega": 2910
+      }
+    },
+    "scrafty": {
+      "games": 1823,
+      "formes": {
+        "scraftymega": 1839
+      }
+    },
+    "greninja": {
+      "games": 401,
+      "formes": {
+        "greninjamega": 401
+      }
+    },
+    "scizor": {
+      "games": 437,
+      "formes": {
+        "scizormega": 437
+      }
+    },
+    "mimikyu": {
+      "games": 664,
+      "formes": {
+        "mimikyubusted": 667
+      }
+    },
+    "camerupt": {
+      "games": 1059,
+      "formes": {
+        "cameruptmega": 1063
+      }
+    },
+    "glalie": {
+      "games": 93,
+      "formes": {
+        "glaliemega": 93
+      }
+    },
+    "blaziken": {
+      "games": 1091,
+      "formes": {
+        "blazikenmega": 1096
+      }
+    },
+    "metagross": {
+      "games": 1811,
+      "formes": {
+        "metagrossmega": 1819
+      }
+    },
+    "malamar": {
+      "games": 445,
+      "formes": {
+        "malamarmega": 445
+      }
+    },
+    "raichu": {
+      "games": 4424,
+      "formes": {
+        "raichumegay": 3641,
+        "raichumegax": 889
+      }
+    },
+    "falinks": {
+      "games": 290,
+      "formes": {
+        "falinksmega": 290
+      }
+    },
+    "chesnaught": {
+      "games": 215,
+      "formes": {
+        "chesnaughtmega": 215
+      }
+    },
+    "aerodactyl": {
+      "games": 1258,
+      "formes": {
+        "aerodactylmega": 1270
+      }
+    },
+    "venusaur": {
+      "games": 2747,
+      "formes": {
+        "venusaurmega": 2770
+      }
+    },
+    "garchomp": {
+      "games": 1173,
+      "formes": {
+        "garchompmega": 1177
+      }
+    },
+    "froslass": {
+      "games": 2043,
+      "formes": {
+        "froslassmega": 2060
+      }
+    },
+    "ampharos": {
+      "games": 281,
+      "formes": {
+        "ampharosmega": 282
+      }
+    },
+    "meganium": {
+      "games": 710,
+      "formes": {
+        "meganiummega": 710
+      }
+    },
+    "golurk": {
+      "games": 322,
+      "formes": {
+        "golurkmega": 322
+      }
+    },
+    "aggron": {
+      "games": 418,
+      "formes": {
+        "aggronmega": 418
+      }
+    },
+    "audino": {
+      "games": 137,
+      "formes": {
+        "audinomega": 136,
+        "falinksmega": 1
+      }
+    },
+    "mawile": {
+      "games": 1864,
+      "formes": {
+        "mawilemega": 1880
+      }
+    },
+    "pyroar": {
+      "games": 1089,
+      "formes": {
+        "pyroarmega": 1092
+      }
+    },
+    "palafin": {
+      "games": 674,
+      "formes": {
+        "palafinhero": 676
+      }
+    },
+    "scovillain": {
+      "games": 933,
+      "formes": {
+        "scovillainmega": 937
+      }
+    },
+    "lucario": {
+      "games": 514,
+      "formes": {
+        "lucariomega": 516
+      }
+    },
+    "aegislash": {
+      "games": 531,
+      "formes": {
+        "aegislashblade": 789
+      }
+    },
+    "pinsir": {
+      "games": 168,
+      "formes": {
+        "pinsirmega": 168
+      }
+    },
+    "gyarados": {
+      "games": 345,
+      "formes": {
+        "gyaradosmega": 346
+      }
+    },
+    "drampa": {
+      "games": 350,
+      "formes": {
+        "drampamega": 350
+      }
+    },
+    "cofagrigus": {
+      "games": 1,
+      "formes": {
+        "blazikenmega": 1
+      }
+    },
+    "sceptile": {
+      "games": 811,
+      "formes": {
+        "sceptilemega": 812
+      }
+    },
+    "gallade": {
+      "games": 201,
+      "formes": {
+        "gallademega": 202
+      }
+    },
+    "altaria": {
+      "games": 248,
+      "formes": {
+        "altariamega": 248
+      }
+    },
+    "skarmory": {
+      "games": 202,
+      "formes": {
+        "skarmorymega": 202
+      }
+    },
+    "eelektross": {
+      "games": 892,
+      "formes": {
+        "eelektrossmega": 893
+      }
+    },
+    "alakazam": {
+      "games": 239,
+      "formes": {
+        "alakazammega": 240
+      }
+    },
+    "starmie": {
+      "games": 517,
+      "formes": {
+        "starmiemega": 517
+      }
+    },
+    "chimecho": {
+      "games": 175,
+      "formes": {
+        "chimechomega": 175
+      }
+    },
+    "glimmora": {
+      "games": 818,
+      "formes": {
+        "glimmoramega": 824
+      }
+    },
+    "emboar": {
+      "games": 91,
+      "formes": {
+        "emboarmega": 95
+      }
+    },
+    "barbaracle": {
+      "games": 126,
+      "formes": {
+        "barbaraclemega": 126
+      }
+    },
+    "crabominable": {
+      "games": 341,
+      "formes": {
+        "crabominablemega": 341
+      }
+    },
+    "hawlucha": {
+      "games": 315,
+      "formes": {
+        "hawluchamega": 315
+      }
+    },
+    "kangaskhan": {
+      "games": 501,
+      "formes": {
+        "kangaskhanmega": 502
+      }
+    },
+    "houndoom": {
+      "games": 222,
+      "formes": {
+        "houndoommega": 222
+      }
+    },
+    "abomasnow": {
+      "games": 224,
+      "formes": {
+        "abomasnowmega": 224
+      }
+    },
+    "sableye": {
+      "games": 97,
+      "formes": {
+        "sableyemega": 97
+      }
+    },
+    "steelix": {
+      "games": 209,
+      "formes": {
+        "steelixmega": 209
+      }
+    },
+    "aegislashblade": {
+      "games": 213,
+      "formes": {
+        "aegislash": 322
+      }
+    },
+    "victreebel": {
+      "games": 116,
+      "formes": {
+        "victreebelmega": 116
+      }
+    },
+    "dragalge": {
+      "games": 384,
+      "formes": {
+        "dragalgemega": 385
+      }
+    },
+    "slowbro": {
+      "games": 230,
+      "formes": {
+        "slowbromega": 232
+      }
+    },
+    "lopunny": {
+      "games": 561,
+      "formes": {
+        "lopunnymega": 561
+      }
+    },
+    "medicham": {
+      "games": 120,
+      "formes": {
+        "medichammega": 120
+      }
+    },
+    "banette": {
+      "games": 226,
+      "formes": {
+        "banettemega": 226
+      }
+    },
+    "chandelure": {
+      "games": 382,
+      "formes": {
+        "chandeluremega": 382
+      }
+    },
+    "castform": {
+      "games": 34,
+      "formes": {
+        "castformsnowy": 10,
+        "castformrainy": 14,
+        "castformsunny": 13
+      }
+    },
+    "heracross": {
+      "games": 227,
+      "formes": {
+        "heracrossmega": 228
+      }
+    },
+    "clefable": {
+      "games": 155,
+      "formes": {
+        "clefablemega": 155
+      }
+    },
+    "feraligatr": {
+      "games": 238,
+      "formes": {
+        "feraligatrmega": 238
+      }
+    },
+    "sharpedo": {
+      "games": 111,
+      "formes": {
+        "sharpedomega": 111
+      }
+    },
+    "manectric": {
+      "games": 131,
+      "formes": {
+        "manectricmega": 131
+      }
+    },
+    "scolipede": {
+      "games": 169,
+      "formes": {
+        "scolipedemega": 169
+      }
+    },
+    "meowstic": {
+      "games": 72,
+      "formes": {
+        "meowsticmmega": 72
+      }
+    },
+    "whimsicott": {
+      "games": 1,
+      "formes": {
+        "gengarmega": 1
+      }
+    },
+    "pidgeot": {
+      "games": 204,
+      "formes": {
+        "pidgeotmega": 204
+      }
+    },
+    "excadrill": {
+      "games": 213,
+      "formes": {
+        "excadrillmega": 213
+      }
+    },
+    "absol": {
+      "games": 57,
+      "formes": {
+        "absolmega": 57
+      }
+    },
+    "morpeko": {
+      "games": 152,
+      "formes": {
+        "morpekohangry": 248
+      }
+    },
+    "morpekohangry": {
+      "games": 100,
+      "formes": {
+        "morpeko": 143
+      }
+    },
+    "meowsticf": {
+      "games": 56,
+      "formes": {
+        "meowsticfmega": 56
+      }
+    },
+    "farigiraf": {
+      "games": 2,
+      "formes": {
+        "abomasnowmega": 1,
+        "staraptormega": 1
+      }
+    },
+    "castformrainy": {
+      "games": 8,
+      "formes": {
+        "castform": 3,
+        "castformsunny": 3,
+        "castformsnowy": 2
+      }
+    },
+    "castformsnowy": {
+      "games": 3,
+      "formes": {
+        "castformrainy": 2,
+        "castformsunny": 1
+      }
+    },
+    "houndstone": {
+      "games": 2,
+      "formes": {
+        "staraptormega": 1,
+        "garchompmega": 1
+      }
+    },
+    "runerigus": {
+      "games": 2,
+      "formes": {
+        "ampharosmega": 1,
+        "dragalgemega": 1
+      }
+    },
+    "castformsunny": {
+      "games": 6,
+      "formes": {
+        "castformrainy": 4,
+        "castformsnowy": 1,
+        "castform": 1
+      }
+    },
+    "aromatisse": {
+      "games": 1,
+      "formes": {
+        "gardevoirmega": 1
+      }
+    },
+    "salamence": {
+      "games": 2,
+      "formes": {
+        "salamencemega": 2
+      }
+    },
+    "diancie": {
+      "games": 2,
+      "formes": {
+        "dianciemega": 2
+      }
+    },
+    "reuniclus": {
+      "games": 1,
+      "formes": {
+        "scraftymega": 1
+      }
+    },
+    "sneasler": {
+      "games": 1,
+      "formes": {
+        "audinomega": 1
+      }
+    }
+  }
+}

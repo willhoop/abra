@@ -2391,3 +2391,51 @@ clause went clean on its own.
 **Where the gate stands:** three clauses of four now PASS. The moves clause is down from 29 blocking
 rows to 11, and every one of the 11 is genuinely used — the largest is Toxic, whose second application
 must fail and does not.
+
+## ROADMAP #137 — THE STORE NEVER RECORDED A MEGA AS A BODY, SO NO RANKING COULD EVER SEE ONE
+
+Will, 2026-08-10: *"megas need to be the number one priority wtf"*, then *"how tf did we get this far
+without this coming up"*. The second question has a measured answer, and it is the more useful one.
+
+```
+stored games                 52,377
+mega EVENTS recorded         83,810   (93.3% of games)
+mega forme named in brought[]     0   of 387,491 bodies
+mega forme named in lead[]        0
+```
+
+The store records THAT a mega happened and never records the mega as a body. `brought` and `lead`
+name only the base species. Every usage figure in this project is derived from those fields, and every
+ranking is derived from those figures — the coverage bar, what gets wired next, what the roster stages
+first, which tags are worth a probe. **A mega forme therefore counts as zero and cannot rank above
+anything, however broken it is.** Mega Floette was caught (#64, #66) because somebody looked at it, not
+because anything surfaced it. This is the project's signature failure once more: a whole layer absent,
+every instrument green.
+
+`engine/mega_census.js` derives it from the store — the events already carry forme, base and slot, so
+there is no re-pull, no re-parse, and the 6,191 games whose raw log has aged out are covered like the
+rest. It does NOT write into `brought`/`lead`: those mean "what came to preview", which is the base
+species and is correct; a mega is a mid-battle forme change, not a team slot. Rewriting them would make
+the store lie about preview to fix a problem in analysis.
+
+**Two findings fall straight out of the first run, in `data/mega-usage.json`:**
+- **A mega is not a turn-1 default.** Turn-1 megas and later megas are the same order of magnitude,
+  which is the mega-must-be-a-strategic-decision item on the roadmap, with evidence under it
+  at last.
+  count is printed rather than rounded away. Illusion mis-attribution (#67) is a hypothesis and is not
+  asserted.
+
+**MY OWN AUDIT WAS WRONG TWICE FIRST, AND WILL CAUGHT BOTH.** I reported 18 mega formes absent from
+`engine-data.js` and 5 with empty movesets. Filtered for legality — which is a field on the species and
+which I did not read — the true figures are **76 legal mega formes, 0 absent, 1 empty moveset**
+(Floette-Mega, already #66). Every other name on both lists is `Past`, `Future` or `CAP`. This is the
+rule at the top of the umbrella CLAUDE.md, broken in the ordinary way: the ban is a MECHANISM to be
+asked, and I eyeballed a dex listing instead. A third error preceded them — `/mega/i` matched
+**Meganium** and **Yanmega** — and a fourth, a typo'd species key that Showdown fuzzy-resolved to
+another body, produced a false "Mega Gengar has no ability".
+
+**What survives, verified:** 14 abilities are reachable only on a LEGAL mega forme and the roster can
+stage none of them, because staging an ability means writing it onto a body and mega-evolving
+overwrites what was just written. Among them **Shadow Tag** (Gengar-Mega, in 4.2% of games),
+**Parental Bond** (Kangaskhan-Mega), **Fairy Aura** (Floette-Mega), **Aerilate** (Pinsir-Mega),
+**Electric Surge** (Raichu-Mega-X) and **Filter** (Aggron-Mega).
