@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-10T07:26:23.780Z",
+  "generated": "2026-08-10T07:46:41.389Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 369,
-  "live": 369,
+  "probed": 372,
+  "live": 372,
   "missing": 0,
-  "armed": 369,
+  "armed": 372,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2496,7 +2496,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.0% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 28.0% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3697,6 +3697,36 @@
       "label": "the stack is spent even when the release does nothing — a full-HP Swallow and a Protected Spit Up",
       "live": true,
       "detail": "[layers:def/spd after the release turn] — two Stockpiles and NO release 2:2/2 (the stack is spent by the MOVE, not by the turn); a Swallow at full HP restored 0 and left 0:0/0; a Spit Up into a Protect dealt 0 and left 0:0/0. Both releases accomplished nothing and both still paid — the shielded one is the sharper case, because onAfterMove fires outside the hit entirely",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "substitute",
+      "label": "Substitute clicked with NO TARGET is the same move as one clicked at its user — doll, HP, both failure cases and the result flag",
+      "live": true,
+      "detail": "[125 HP Toxapex] two untargeted Substitute clicks [{\"hp\":94,\"sub\":31,\"vol\":\"-\",\"df\":0,\"sd\":0,\"foeSpe\":0,\"foeAtk\":0,\"res\":true},{\"hp\":94,\"sub\":31,\"vol\":\"-\",\"df\":0,\"sd\":0,\"foeSpe\":0,\"foeAtk\":0,\"res\":false}]; the same two aimed at the user [{\"hp\":94,\"sub\":31,\"vol\":\"-\",\"df\":0,\"sd\":0,\"foeSpe\":0,\"foeAtk\":0,\"res\":true},{\"hp\":94,\"sub\":31,\"vol\":\"-\",\"df\":0,\"sd\":0,\"foeSpe\":0,\"foeAtk\":0,\"res\":false}] — IDENTICAL is the claim, true. At 24% HP untargeted [{\"hp\":30,\"sub\":0,\"vol\":\"-\",\"df\":0,\"sd\":0,\"foeSpe\":0,\"foeAtk\":0,\"res\":false}] vs aimed [{\"hp\":30,\"sub\":0,\"vol\":\"-\",\"df\":0,\"sd\":0,\"foeSpe\":0,\"foeAtk\":0,\"res\":false}] (true): it cannot pay, so it fails and costs nothing. CONTROL — Scary Face is target:normal, and clicked with no target it still fails {\"hp\":125,\"sub\":0,\"vol\":\"-\",\"df\":0,\"sd\":0,\"foeSpe\":0,\"foeAtk\":0,\"res\":false}: the foe keeps spe 0 and nothing landed on the user either",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "layeredVolatile",
+      "label": "Stockpile clicked with NO TARGET stacks to three exactly as one clicked at its user",
+      "live": true,
+      "detail": "[layers:def/spd/result after each of four turns] — four UNTARGETED Stockpile clicks stockpile:1/1/true stockpile2:2/2/true stockpile3:3/3/true stockpile3:3/3/false; the same four aimed at the user stockpile:1/1/true stockpile2:2/2/true stockpile3:3/3/true stockpile3:3/3/false (identical true). This is the row WIRE 152 built and the roster could not move, because the roster clicks with no target. CONTROL — four untargeted Scary Faces -:0/0/false -:0/0/false -:0/0/false -:0/0/false, foe spe 0: a foe-directed move with nobody named still fails, four times over",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statusInflict",
+      "label": "Imprison, Destiny Bond and Endure clicked with NO TARGET each land their volatile, and a foe-directed click with none still fails",
+      "live": true,
+      "detail": "[volatile, result] after ONE untargeted click — [[\"imprison\",\"imprison\",true],[\"destinybond\",\"destinybond\",true],[\"endure\",\"endure\",true]]; every one identical to the same click aimed at the user (true). CONTROL — Hatterene's Charm is target:normal and with no target named it lands nothing: volatile \"-\", result false, foe atk 0. The knob is the move's own target field and nothing else",
       "hollow": false,
       "armed": true,
       "directCall": false

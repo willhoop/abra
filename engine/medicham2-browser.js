@@ -127,6 +127,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * family is off the path (four moves reach the branch), NOT that the loop is absent -- which is why
    * the census probes read the two foes' stages rather than this number. */
   spreadStatusTargets: 0,
+  /* WIRE 153 -- a `target: 'self'` status move resolved to its USER instead of to a target list the
+   * caller had to supply. It counts every such click, not only the untargeted ones, because the whole
+   * point of the wire is that the three aims are now ONE resolution: a counter that fired only on the
+   * broken shape could not tell "the fix is on the path" from "nothing clicks these any more". Nine
+   * moves, 1,322 corpus uses; a zero after real games means the family is off the path. */
+  selfTargetToUser: 0,
   /* ROADMAP #126 -- a ONE-TURN SIDE GUARD actually refused a move. One counter for the whole family
    * (Quick Guard and Wide Guard both), because the guard that refused is re-derived from the artifact
    * rather than named here and a per-name counter would put the forbidden name back. A ZERO after
@@ -8106,7 +8112,50 @@ function battleTurn(S,rng,actsForA,actsForB){
         let _tl;
         {
           const _spF=TAGS.param('move',a.mv,'spreadFoes'), _spA=TAGS.param('move',a.mv,'spreadAll');
-          if(_spF||_spA){
+          /* WIRE 153 -- A SELF-TARGETING STATUS MOVE CLICKED WITH NO TARGET FAILED OUTRIGHT. 2026-08-10.
+           *
+           * Nine moves, 1,322 corpus uses, every one of them `target: 'self'` in the dex:
+           *     substitute 807  imprison 328  destinybond 104  stockpile 66  focusenergy 12
+           *     endure 4  magnetrise 1  powershift 0  powertrick 0
+           * A `self` move names nobody on the request -- there is nothing to aim -- so any driver that
+           * asks the authority what is legal correctly hands this engine a null, `tgtSlot` is -1, the
+           * slot reader below returns that same null and `_tl` came out EMPTY. `if(!_tl.length)
+           * {mvFail(m);continue;}` then spent the turn on a `|-fail|`. This is ROADMAP #81 WIRE 9's
+           * defect (a spread click with no target was a no-op turn) in the self-targeting case, and
+           * WIRE 146's side effect in the same branch fixed the spread half of it.
+           *
+           * MEMBERSHIP PRINTED OVER THE WHOLE MOVE TABLE BEFORE THIS WAS WIRED, as this file's rule
+           * requires. Of the 500 moves in data/tags.json, 135 reach this branch with no target
+           * supplied; exactly the nine above carry `target: 'self'` and NOT ONE other move does. The
+           * remaining 126 are damaging clicks that could not be aimed (already counted, loudly, by
+           * MEDFAILS.damagingClickWithoutTarget), the three `allAdjacentFoes` and one `allAdjacent`
+           * members the arm below already serves, and foe-directed status moves.
+           *
+           * THE TARGET IS DERIVED, NOT DEFAULTED, AND THAT DISTINCTION IS THE WHOLE GUARD. "If no
+           * target, use the user" would silently re-aim a foe-directed move whose target went missing
+           * for a REAL reason -- and that case is an error Showdown itself refuses ("Can't move: You
+           * can't choose a target for Charm"), which ROADMAP #81 WIRE 9 already treats as one. Only
+           * `target === 'self'` is self-resolving, because that is the one value that means the move
+           * HAS no target to lose. `adjacentAlly`, `adjacentAllyOrSelf`, `any` and `normal` all name a
+           * BODY the caller has to choose, so a null there is still a genuine failure and still falls
+           * to mvFail below.
+           *
+           * IT RESOLVES A `self` MOVE TO THE USER WHATEVER THE CALLER AIMED AT, and that is a second
+           * behaviour change, declared here rather than left in a diff. A caller aiming one of these
+           * nine at a FOE used to run the user's own volatile through the FOE's gauntlet: measured
+           * before this line existed, a Stockpile aimed across the field at a Protecting Garchomp
+           * granted its user NO layers, and the same click at a Gholdengo was refused by Good as Gold.
+           * Showdown cannot express that click at all -- `getMoveTargets` returns `[pokemon]` for a
+           * `self` move and never consults the request -- so one resolution for all three aims is both
+           * the rule and the reason the untargeted click is now provably the SAME move rather than a
+           * second code path that happens to agree.
+           *
+           * THE SPREAD ARM IS UNREACHABLE FOR THIS SET and the order is therefore free: `self` and
+           * `allAdjacentFoes`/`allAdjacent` are disjoint over the whole table, measured. */
+          if((moveFx(a.mv)||{}).target==='self'){
+            _tl=[m];
+            MEDSEEN.selfTargetToUser++;
+          } else if(_spF||_spA){
             const _foes=it.side==='A'?actB:actA, _mine=it.side==='A'?actA:actB;
             _tl=[];
             if(_spA){const _al=_mine.find(x=>x&&x!==m&&!x.fainted&&x.curHP>0); if(_al)_tl.push(_al);}

@@ -53,6 +53,11 @@ Census **330 live / 330 probed / 0 missing**. Damage stages **1728/1728 exact**.
 | 10 | **Stockpile, Spit Up, Swallow** (WIRE 152) | 66 | the string `stockpile` appeared **zero times** in `medicham2-browser.js`. `statusInflict` said "apply the volatile" and the generic path wrote a **duration of 1** — so the counter never climbed, the +1/+1 never landed, Spit Up dealt 0 with two layers up and reported `result true`, and Swallow moved a body 40 → 40. Fixed at the DERIVATION first: two new tags, `layeredVolatile` (the cap, the per-layer boost, and that the refund is only what it GRANTED) and `spendsVolatile` (the entry fee and when it is paid), plus `variablePower{volatileLayers}` and `healsSelf.byVolatileLayers`. `data/tags.json` + `data/abra-tags.js` regenerated: **0 entities removed, 0 added, 3 changed**. **Roster not re-run by me** | DID-NOT-FIRE → *awaiting the roster re-run* |
 | 9 | **Guard Swap, Power Swap, Psych Up, Topsy-Turvy, Acupressure** (WIRE 151) | 99 | all five resolved to `{kind:'pass'}` — a whole no-op turn — because both doors out of `statChangeInCode` demand a LITERAL boost table and all five carry `{procedural:true}`. Belly Drum and Strength Sap, the only two members WITH `boosts`+`on`, were the only two that worked. Fixed at the DERIVATION: `statChangeInCode` gained an **`op` descriptor beside `boosts`, never inside it** (`exchange` / `copy` / `invert` / `randomOne`, each with its stat subset), read out of each handler's own shape; one engine primitive `applyStatOp` consumes all four. `data/tags.json` + `data/abra-tags.js` regenerated: **0 entities removed, 0 added, 5 changed**. **Roster not re-run by me** | DID-NOT-FIRE → *awaiting the roster re-run* |
 
+| 11 | **Substitute, Imprison, Destiny Bond, Stockpile, Focus Energy, Endure, Magnet Rise, Power Shift, Power Trick** (WIRE 153) | see below | a `target: 'self'` status move clicked with **no target** built an empty `_tl` and fell to `mvFail` — a whole wasted turn. Eight of the nine applied **no volatile at all**; Substitute is the exception and is stated loudly below. Target now **derived from the move's own `target` field**, not defaulted. Engine-only: no tag change, `data/tags.json` untouched. **Roster not re-run by me** | DID-NOT-FIRE → *awaiting the roster re-run* |
+
+Row 11's per-move `uses` are quoted in its own section at the foot of this file, each beside the move
+it belongs to, so every figure sits next to the `data/tags.json` entry it was read out of.
+
 Census at the close of WIRE 151 was **364 live, 364 probed**; that reading is superseded by row 10
 below and the artifact has moved on from it. The current figure is quoted with row 10. The
 before-state, the damage-stage gate and every other figure for this row are in `docs/ENGINE.md`'s
@@ -79,9 +84,10 @@ WIRE 151 section, each beside the measurement it came from.
   `ea58415e1cd8` was cut over the mid-work tree and `data/engine-release.json`'s `current` moved from
   `cb831e50eafb`. **Left exactly as written, nothing reverted or deleted** — see ENGINE.md.
 
-Census, out of `data/mechanics-census.json`: **369 live, 369 probed, 0 missing, 0 threw, 0 hollow,
-0 unarmed** — up five on the five probes this row added, `directCall` unchanged. The damage-stage
-gate is exact and unmoved.
+Census at the close of WIRE 152 was **369 live, 369 probed, 0 missing, 0 threw, 0 hollow, 0 unarmed**
+— up five on the five probes this row added, `directCall` unchanged. That reading is superseded by row
+11 below; the current figure out of `data/mechanics-census.json` is quoted with row 11. The
+damage-stage gate is exact and unmoved.
 
 **WIRE 152, the parts a one-line row cannot carry** (full section in `docs/ENGINE.md`, where every
 figure below sits beside the measurement it came from):
@@ -1371,3 +1377,136 @@ clamps-then-truncates, each with its own note.
 for eight features. `engine/feature_fixture.js`'s `hashes()` was computed over the AFTER bytes and the
 BEFORE bytes: **all 58 identical, 0 moved by this wire.** REFIT OWED against the damage-path wires;
 it belongs to MEASURE. Reported, not filed.
+
+---
+
+## WIRE 153 — A SELF-TARGETING STATUS MOVE CLICKED WITH NO TARGET FAILED OUTRIGHT. 2026-08-10.
+
+Nine moves, **1,322 corpus uses**, every one of them `target: 'self'` in the dex:
+
+```
+substitute 807   imprison 328   destinybond 104   stockpile 66   focusenergy 12
+endure 4         magnetrise 1   powershift 0      powertrick 0
+```
+
+A `self` move names nobody on the request — there is nothing to aim — so a driver that asks the
+authority what is legal hands this engine a **null**. `tgtSlot` is then `-1`, `reaimToSlot` returns
+that same null by design, `_tl` came out **empty**, and `if(!_tl.length){mvFail(m);continue;}` spent
+the turn on a `|-fail|`. This is ROADMAP #81 WIRE 9's defect (a spread click with no target was a
+no-op turn) in the self-targeting case, and WIRE 146's side effect fixed the spread half of it in this
+same branch.
+
+### SUBSTITUTE IS 807 OF THE 1,322 AND ITS DEFECT WAS **NOT** THE FAMILY'S. SAY IT LOUDLY.
+
+The brief for this wire said the family loses a whole turn. That is true of eight of the nine and
+**false of Substitute**, and the probe was written before the engine was touched precisely so this
+would surface rather than be assumed. The HP cost and the doll are charged in the `costsUserHP` block
+**above** the kind dispatch, which never looks at a target. Measured on a real turn, before a line
+changed, a 125 HP Toxapex clicking Substitute with no target:
+
+```
+|move|p1a: toxapex|substitute|p1a: toxapex
+|-start|p1a: toxapex|Substitute      <- the doll WAS built
+|-damage|p1a: toxapex|94/125         <- and paid for
+|-fail|p1a: toxapex                  <- and then the move reported FAILURE
+```
+
+So the state was already right and the **result flag** was wrong: `_mvRes === false`. That is not
+cosmetic. `_mvResLast === false` **doubles Stomping Tantrum's base power** (medicham2:3448), so an
+untargeted Substitute was arming the user's next Stomping Tantrum. Everything downstream that reads
+`SUBPASS` is untouched by this wire — `subBlocks` never saw a different `_sub` on any arm.
+
+**Nothing else about Substitute changed.** Both failure cases were re-measured and both still hold:
+below a quarter HP it fails and costs nothing (`hp 30 -> 30, sub 0`), and a second click fails free
+(`hp 94, sub 31, result false`) exactly as the self-aimed click does.
+
+### THE TARGET IS **DERIVED**, NOT DEFAULTED — AND THAT IS THE WHOLE GUARD
+
+`if (no target) use the user` would silently re-aim a **foe**-directed move whose target went missing
+for a real reason. Showdown refuses that click itself (*"Can't move: You can't choose a target for
+Charm"*) and WIRE 9 already treats it as an error. So the rule reads the move's own `target` field and
+**only `target === 'self'` is self-resolving**, because that is the one value meaning the move has no
+target to lose. `normal`, `any`, `adjacentAlly`, `adjacentAllyOrSelf`, `allySide` and the rest all name
+a body the caller has to choose; a null there is still a genuine failure and still falls to `mvFail`.
+
+**Membership printed over the whole move table before it was wired**, per docs/LESSONS.md 4. Of the
+500 moves in `data/tags.json`, **135** reach the `affect` branch with no target supplied. Exactly the
+nine above carry `target: 'self'`; **not one other move does**. The other 126 are damaging clicks that
+could not be aimed (already counted loudly by `MEDFAILS.damagingClickWithoutTarget`), the three
+`allAdjacentFoes` and one `allAdjacent` members the spread arm already serves, and foe-directed status
+moves — Scary Face, Charm, Taunt, Encore — every one of which must keep failing.
+
+### A SECOND BEHAVIOUR CHANGE, DECLARED RATHER THAN LEFT IN A DIFF
+
+A `self` move now resolves to its user **whatever the caller aimed at**, not only when the aim was
+null. A caller aiming one of these nine at a **foe** used to run the user's own volatile through the
+**foe's** gauntlet. Measured before and after, a Toxapex clicking Stockpile across the field:
+
+| aimed at a foe that… | before | after |
+|---|---|---|
+| Protects | user gets **no layers** | `stockpile`, +1/+1 |
+| is Gholdengo (Good as Gold) | user gets **no layers** | `stockpile`, +1/+1 |
+
+Showdown cannot express that click at all — `getMoveTargets` returns `[pokemon]` for a `self` move and
+never consults the request — so one resolution for all three aims is both the rule and the reason the
+untargeted click is provably the **same move** rather than a second code path that happens to agree.
+
+### THE PROBES — RED INDIVIDUALLY BEFORE THE FIX, GREEN AFTER
+
+Three added to `tests/test-mechanics.js`, all three armed, none direct-call, on a new `selfAim(`
+helper declared at the REALTURN ratchet. Each carries the same control: **a foe-directed status move
+clicked with no target must still fail**, on the same body and the same board, so the only varied knob
+is the move's own `target` field.
+
+| tag | test arm (untargeted) | control arm |
+|---|---|---|
+| `move\|substitute` | two clicks `hp 94 sub 31 res true` then `res false`; at 24% HP `hp 30 sub 0 res false` — every row **identical** to the self-aimed run | Scary Face (`target: normal`) with nobody named: `res false`, foe spe **0** |
+| `move\|layeredVolatile` | four clicks `stockpile:1/1/true 2:2/2/true 3:3/3/true 3:3/3/false` — identical to the self-aimed run | four Scary Faces: `-:0/0/false` x4, foe spe **0** |
+| `move\|statusInflict` | Imprison (Hatterene), Destiny Bond (Gengar), Endure (Toxapex) each land their volatile with `res true`, each identical to the self-aimed click | Hatterene's Charm with nobody named: volatile `-`, `res false`, foe atk **0** |
+
+Every body legally learns what it clicks, checked against the format's own learnsets rather than
+remembered. Flutter Mane was the first choice and **has no `MC` row in this format** — caught by the
+probe throwing, not by memory.
+
+### THE DIGEST SWEEP — 1,500 CELLS, 9 DIFFER, 0 THREW
+
+Every move in `data/tags.json` (500), three aims each (**no target**, at the user, at the foe), two
+real turns apiece so clocks and residuals land, digested as the whole board: every primitive on all
+four active bodies and both benches, the field, both side conditions and the full emitted trace.
+
+```
+cells 1500   DIFF cells 9   THREW before 0  after 0
+```
+
+**Nine moves moved and they are exactly the nine, and only in the `none` cell.** Nothing outside the
+list. The `foe` cell is unchanged in the sweep because the sweep's foe passes — the foe-aim change
+above needs a foe that actually *refuses*, which is why it was measured separately and is stated
+separately.
+
+The throw count is printed beside the diff count for WIRE 150's reason: its first sweep reported a
+perfect zero over cells that had all thrown.
+
+### CENSUS AND GATES
+
+**369 live / 369 probed** -> **372 live / 372 probed / 0 missing / 0 threw / 0 hollow / 0 unarmed /
+0 directCall.** Damage stages **1728/1728 exact**. `test-medicham`, `test-engine-consistency`,
+`test-dead-volatile` and `test-wiring` all pass unchanged.
+
+**The counter proves it ran:** `MEDSEEN.selfTargetToUser` reads **3** for three aims of one Stockpile.
+It counts every `self`-target resolution, not only the untargeted ones, because the point of the wire
+is that the three aims are now one resolution — a counter that fired only on the broken shape could
+not tell "the fix is on the path" from "nothing clicks these any more".
+
+### A FINDING THAT IS NOT A FIX — PRANKSTER REFUSES YOUR OWN SELF-TARGETING MOVE
+
+`pranksterBlocked(m, _t, id)` is asked with `_t === m` on this path and tests only whether the target
+has the Dark type. So a **Prankster Dark-type clicking Substitute on itself is refused**. Showdown's
+`hitStepTryImmunity` guards that check with `!targetsAlly`, so a `self` or ally move is exempt. This is
+**pre-existing** — the self-aimed click has hit it since the branch was written, and this wire neither
+creates nor widens it: both arms behave identically, which is what the equivalence probe asserts.
+Reported, not filed, and not fixed in this pass — one mechanic at a time.
+
+### NOT CLAIMED
+
+No roster row is closed here. `tests/roster.js` is Will's to run against a frozen tree, and no engine
+release was cut by this wire.

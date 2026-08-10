@@ -277,7 +277,14 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * different bodies, so a probe reading only the aimed foe would score the redirect as a damage loss),
  * and a caller-supplied MOVE OBJECT (each arm is the same move at a fixed base power, which is how a
  * per-hit sum is compared against a flat multiply with everything else divided out). */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(/;
+/* `selfAim(` added 2026-08-10 with WIRE 153, declared HERE and with its reason, exactly as the
+ * paragraph above requires. It stages a real doubles board through `battleInit` and spends up to four
+ * real turns through `battleTurn`, and it has to: the thing it varies is WHAT THE CALLER AIMED AT,
+ * and the target list a click resolves to is built inside the turn loop. `playerAction` hands back
+ * the same action object with or without a target — the field is simply null — so an action-reading
+ * probe cannot see this, and every applier underneath is correct and never reached. Its full reason
+ * and what each row carries are written at the helper itself. */
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -10305,6 +10312,129 @@ probe('move', 'spendsVolatile', 'the stack is spent even when the release does n
                  + `Protect dealt ${lastOf(spit).dealt} and left ${shape(spit)}. Both releases `
                  + `accomplished nothing and both still paid — the shielded one is the sharper case, `
                  + `because onAfterMove fires outside the hit entirely` };
+});
+
+/* ---- A SELF-TARGETING STATUS MOVE CLICKED WITH NO TARGET (WIRE 153) ----------------------------
+ *
+ * `selfAim(` added 2026-08-10, declared HERE and with its reason, exactly as the REALTURN paragraph
+ * near the top of this file requires. It stages a real doubles board through `battleInit` and spends
+ * up to four real turns through `battleTurn`, and it has to: the defect it watches lives in the
+ * TARGET LIST the `affect` branch builds, which exists only inside a turn. `playerAction` returns the
+ * same action object whether or not a target was named — the field is simply null — so a probe that
+ * inspects the action is structurally blind to this, and every applier underneath works fine and is
+ * never reached.
+ *
+ * IT VARIES ONE THING: WHAT THE CALLER AIMED AT. The same body clicks the same move three ways —
+ * `none` (no target supplied, which is what the roster and the real request do for a `self` move),
+ * `self` (the target the existing probes in this file pass) and `foe`. It returns the user's HP, its
+ * substitute size, its live volatiles with the stockpile layer count, both of its defensive stages,
+ * BOTH foes' stages and the move's own result flag, because the nine moves in this family fail in
+ * different currencies and a probe reading one of them cannot tell a working family from a half-wired
+ * one: Substitute's state was ALREADY right untargeted (the HP cost and the doll are charged above
+ * the kind dispatch) and only its RESULT was wrong, while Stockpile, Imprison, Endure and Destiny
+ * Bond applied no volatile at all. The foe stages are in the row for the control arm's sake — a
+ * foe-directed move must NOT start landing on somebody once targetless clicks resolve. */
+const selfAim = (o) => {
+  o = o || {};
+  const me = bare(o.user || 'toxapex'), ally = bare('incineroar');
+  const f1 = bare('garchomp'), f2 = bare('milotic');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  if (o.userHP) me.curHP = Math.max(1, Math.round(me.st.hp * o.userHP));
+  /* `none` is the case under test and it is the DEFAULT here deliberately: a probe that had to
+   * remember to ask for the broken shape is a probe that stops asking. */
+  const aim = () => (o.aim === 'self' ? me : o.aim === 'foe' ? f1 : null);
+  const out = [];
+  for (let i = 0; i < (o.clicks || 1); i++) {
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, o.mv, aim(), S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, o.foeMv ? M.playerAction(f1, o.foeMv, me, S.field) : { kind: 'pass' }],
+               [f2, { kind: 'pass' }]]));
+    out.push({ hp: me.curHP, sub: me._sub || 0,
+               vol: Object.keys(me._vol || {}).filter(k => me._vol[k] > 0)
+                      .map(k => k + (me._vol[k] > 1 ? me._vol[k] : '')).sort().join('+') || '-',
+               df: me.boosts.df, sd: me.boosts.sd,
+               foeSpe: f1.boosts.sp, foeAtk: f1.boosts.at,
+               /* `_mvResLast` AND NOT `_mvRes`, for the reason stockRun states one section up: the
+                * turn loop rolls the live result into the previous-turn slot at its last line. */
+               res: me._mvResLast });
+  }
+  return out;
+};
+const sameRuns = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+/* SUBSTITUTE IS 807 OF THE FAMILY'S 1,322 CORPUS USES AND IS THE MEMBER MOST EASILY GOT WRONG, so it
+ * is probed on its own and with both of its failure cases. It is also the member whose defect is NOT
+ * the one the rest of the family has, and that is asserted rather than glossed: the HP cost and the
+ * doll are charged in the `costsUserHP` block ABOVE the kind dispatch, which never looks at a target,
+ * so an untargeted Substitute already built its doll and paid for it — and then fell to `mvFail`,
+ * emitting a `|-fail|` beside its own `|-start|` and leaving `_mvRes === false`, which is read by
+ * Stomping Tantrum's doubler (`_mvResLast === false` doubles its base power). So the claim here is
+ * the WHOLE run being identical to the self-aimed one, not merely "a doll appeared". */
+probe('move', 'substitute', 'Substitute clicked with NO TARGET is the same move as one clicked at its user — doll, HP, both failure cases and the result flag', () => {
+  const test    = selfAim({ mv: 'substitute', clicks: 2 });                 // no target named
+  const ref     = selfAim({ mv: 'substitute', clicks: 2, aim: 'self' });    // the shape existing probes use
+  const low     = selfAim({ mv: 'substitute', userHP: 0.24 });              // cannot pay: must fail free
+  const lowRef  = selfAim({ mv: 'substitute', userHP: 0.24, aim: 'self' });
+  /* THE CONTROL, AND IT IS THE POINT OF THE WHOLE WIRE. Scary Face is `target: normal` — a genuinely
+   * foe-directed click with nobody named is an ERROR, and it must still fail. Toxapex learns it. */
+  const ctrl    = selfAim({ mv: 'scaryface' });
+  return { works: sameRuns(test, ref) && sameRuns(low, lowRef)
+             && test[0].sub === 31 && test[0].hp === 94 && test[0].res === true
+             && test[1].sub === 31 && test[1].hp === 94 && test[1].res === false
+             && low[0].sub === 0 && low[0].hp === 30 && low[0].res === false
+             && ctrl[0].res === false && ctrl[0].foeSpe === 0 && ctrl[0].df === 0 && ctrl[0].sd === 0,
+           arms: { control: ctrl[0], test: test[0] },
+           detail: `[125 HP Toxapex] two untargeted Substitute clicks ${JSON.stringify(test)}; the `
+                 + `same two aimed at the user ${JSON.stringify(ref)} — IDENTICAL is the claim, `
+                 + `${sameRuns(test, ref)}. At 24% HP untargeted ${JSON.stringify(low)} vs aimed `
+                 + `${JSON.stringify(lowRef)} (${sameRuns(low, lowRef)}): it cannot pay, so it fails `
+                 + `and costs nothing. CONTROL — Scary Face is target:normal, and clicked with no `
+                 + `target it still fails ${JSON.stringify(ctrl[0])}: the foe keeps spe 0 and nothing `
+                 + `landed on the user either` };
+});
+
+probe('move', 'layeredVolatile', 'Stockpile clicked with NO TARGET stacks to three exactly as one clicked at its user', () => {
+  const trace = (r) => r.map(x => x.vol + ':' + x.df + '/' + x.sd + '/' + x.res).join(' ');
+  const test = selfAim({ mv: 'stockpile', clicks: 4 });
+  const ref  = selfAim({ mv: 'stockpile', clicks: 4, aim: 'self' });
+  const ctrl = selfAim({ mv: 'scaryface', clicks: 4 });
+  return { works: sameRuns(test, ref)
+             && trace(test) === 'stockpile:1/1/true stockpile2:2/2/true stockpile3:3/3/true stockpile3:3/3/false'
+             && trace(ctrl) === '-:0/0/false -:0/0/false -:0/0/false -:0/0/false'
+             && ctrl.every(x => x.foeSpe === 0),
+           arms: { control: trace(ctrl), test: trace(test) },
+           detail: `[layers:def/spd/result after each of four turns] — four UNTARGETED Stockpile `
+                 + `clicks ${trace(test)}; the same four aimed at the user ${trace(ref)} `
+                 + `(identical ${sameRuns(test, ref)}). This is the row WIRE 152 built and the roster `
+                 + `could not move, because the roster clicks with no target. CONTROL — four `
+                 + `untargeted Scary Faces ${trace(ctrl)}, foe spe ${ctrl[3].foeSpe}: a foe-directed `
+                 + `move with nobody named still fails, four times over` };
+});
+
+/* THE REST OF THE FAMILY, ON THREE DIFFERENT BODIES, because "it works for Substitute" is a claim
+ * about one move and the branch is shared by nine. Imprison is the second-largest member at 328 uses;
+ * Destiny Bond (104) and Endure (4) are the two whose whole effect is the volatile, so a probe that
+ * reads the volatile reads the entire move. Each body legally learns what it clicks, checked against
+ * the format's own learnsets rather than remembered. */
+probe('move', 'statusInflict', 'Imprison, Destiny Bond and Endure clicked with NO TARGET each land their volatile, and a foe-directed click with none still fails', () => {
+  const one = (user, mv, aim) => selfAim({ user, mv, aim })[0];
+  const fam = [['hatterene', 'imprison'], ['gengar', 'destinybond'], ['toxapex', 'endure']];
+  const got = fam.map(([u, mv]) => [mv, one(u, mv).vol, one(u, mv).res]);
+  const same = fam.every(([u, mv]) => sameRuns(one(u, mv), one(u, mv, 'self')));
+  /* Hatterene learns Charm (target: normal). Same body, same board, one knob: the move's own
+   * declared target. */
+  const ctrl = one('hatterene', 'charm');
+  return { works: same
+             && JSON.stringify(got) === JSON.stringify([['imprison', 'imprison', true],
+                                                        ['destinybond', 'destinybond', true],
+                                                        ['endure', 'endure', true]])
+             && ctrl.vol === '-' && ctrl.res === false && ctrl.foeAtk === 0,
+           arms: { control: [ctrl.vol, ctrl.res, ctrl.foeAtk], test: got },
+           detail: `[volatile, result] after ONE untargeted click — ${JSON.stringify(got)}; every one `
+                 + `identical to the same click aimed at the user (${same}). CONTROL — Hatterene's `
+                 + `Charm is target:normal and with no target named it lands nothing: volatile `
+                 + `"${ctrl.vol}", result ${ctrl.res}, foe atk ${ctrl.foeAtk}. The knob is the move's `
+                 + `own target field and nothing else` };
 });
 
 const works = results.filter(r => r.works);

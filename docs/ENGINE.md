@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  369/369 probed mechanics live, 0 missing   (census 2026-08-10 07:21)
-  0/150 differential comparisons disagree with Showdown   (2026-08-10 06:42)
+  372/372 probed mechanics live, 0 missing   (census 2026-08-10 07:38)
+  0/150 differential comparisons disagree with Showdown   (2026-08-10 07:26)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
@@ -57,9 +57,178 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 188/199 probed, 11 unprobed
 ```
 
-_stamped 2026-08-10 07:23_
+_stamped 2026-08-10 07:45_
 
 <!-- /GENERATED -->
+
+## WIRE 153 — A SELF-TARGETING STATUS MOVE CLICKED WITH NO TARGET FAILED OUTRIGHT. NINE MOVES, AND THE BIGGEST ONE'S DEFECT WAS NOT THE FAMILY'S. 2026-08-10.
+
+Nine moves, every one of them `target: 'self'` in the dex, **1,322 corpus uses between them**:
+
+```
+substitute 807   imprison 328   destinybond 104   stockpile 66   focusenergy 12
+endure 4         magnetrise 1   powershift 0      powertrick 0
+```
+
+A `self` move names nobody on the request — there is nothing to aim — so any driver that asks the
+authority what is legal correctly hands this engine a **null** target. `tgtSlot` is then `-1`,
+`reaimToSlot` returns that same null **by design** (its own comment: *"-1 means the action named no
+FOE slot: a self-target, an ally-target or a spread move. Those are resolved elsewhere"* — and they
+were not), `_tl` came out **empty**, and the branch's first statement after the list is built spent
+the turn:
+
+```js
+if(!_tl.length){mvFail(m);continue;}
+```
+
+This is ROADMAP #81 WIRE 9's defect — *a click that could not be aimed became a no-op turn* — in the
+self-targeting case. WIRE 146's side effect fixed the **spread** half of it in this same branch, and
+left this half standing.
+
+### SUBSTITUTE IS 807 OF THE 1,322, AND ITS DEFECT WAS **NOT** THE FAMILY'S
+
+The diagnosis handed to this wire was that the family loses a whole turn. That is true of eight of the
+nine and **false of Substitute**. The probes were written and watched red before the engine was
+touched, which is the only reason this surfaced instead of being assumed: the HP cost and the doll are
+charged in the `costsUserHP` block that sits **above** the kind dispatch, and that block never looks
+at a target. Measured on a real turn before a line changed — a 125 HP Toxapex, no target supplied:
+
+```
+|move|p1a: toxapex|substitute|p1a: toxapex
+|-start|p1a: toxapex|Substitute      <- the doll WAS built
+|-damage|p1a: toxapex|94/125         <- and paid for
+|-fail|p1a: toxapex                  <- and the move then reported FAILURE
+```
+
+So the **state** was already right and the **result flag** was wrong. That is not cosmetic:
+`_mvResLast === false` **doubles Stomping Tantrum's base power**, so an untargeted Substitute was
+arming its user's next Stomping Tantrum, and the stream carried a `|-fail|` beside its own `|-start|`.
+
+**Nothing else about Substitute moved, and this is the sentence 807 uses ride on.** Everything
+downstream that reads `SUBPASS` is untouched — `subBlocks` was handed the same `_sub` on every arm,
+because the doll's size never came from this code path. Both failure cases were re-measured and both
+still hold: below a quarter of max HP it fails and costs nothing (`hp 30 -> 30, sub 0`), and a second
+click fails free (`hp 94, sub 31, result false`) — each byte-identical to the self-aimed click.
+
+### THE TARGET IS DERIVED, NOT DEFAULTED, AND THAT IS THE WHOLE GUARD
+
+A blanket *"if no target, use the user"* would silently re-aim a **foe**-directed move whose target
+went missing for a real reason — a worse bug than the one being fixed. Showdown refuses that click
+itself (*"Can't move: You can't choose a target for Charm"*) and WIRE 9 already treats it as an error.
+
+So the rule reads the move's own `target` field, and **only `target === 'self'` is self-resolving**,
+because that is the one value that means the move has no target to lose. `normal`, `any`,
+`adjacentAlly`, `adjacentAllyOrSelf`, `allySide`, `all` and the rest each name a **body the caller has
+to choose**; a null there is still a genuine failure and still falls to `mvFail`.
+
+**Membership printed over the whole move table before it was wired**, as this project's rule requires.
+Of the 500 moves in `data/tags.json`, **135** reach the `affect` branch with no target supplied.
+Exactly the nine above carry `target: 'self'`, and **not one other move does**. The remaining 126 are:
+damaging clicks that could not be aimed (already counted, loudly, by
+`MEDFAILS.damagingClickWithoutTarget`), the three `allAdjacentFoes` and one `allAdjacent` members the
+spread arm added by the previous wire already serves, and foe-directed status moves — Scary Face,
+Charm, Taunt, Encore — every one of which must keep failing and does.
+
+### A SECOND BEHAVIOUR CHANGE, DECLARED RATHER THAN LEFT IN A DIFF
+
+A `self` move now resolves to its user **whatever the caller aimed at**, not only when the aim was
+null. A caller aiming one of these nine at a **foe** used to run the user's own volatile through the
+**foe's** gauntlet — Protect, Substitute, Good as Gold, the accuracy die. Measured before and after,
+a Toxapex clicking Stockpile across the field:
+
+| aimed at a foe that… | before | after |
+|---|---|---|
+| Protects | user gets **no layers** | `stockpile`, +1/+1 |
+| is Gholdengo (Good as Gold) | user gets **no layers** | `stockpile`, +1/+1 |
+
+Showdown cannot express that click at all — `getMoveTargets` returns `[pokemon]` for a `self` move and
+never consults the request — so one resolution for all three aims is both the rule and the reason the
+untargeted click is provably the **same move** rather than a second code path that happens to agree.
+
+### THE PROBES — THREE, EACH WATCHED RED ON ITS OWN
+
+New helper `selfAim(`, declared at the REALTURN ratchet with its reason. It stages a real doubles
+board through `battleInit` and spends up to four real turns through `battleTurn`; it has to, because
+`playerAction` hands back the same action object with or without a target — the field is simply null —
+so an action-reading probe is structurally blind to this, and every applier underneath is correct and
+never reached.
+
+Each probe carries the same control: **a foe-directed status move clicked with no target must still
+fail**, on the same body and the same board, so the only varied knob is the move's own `target` field.
+
+| tag | test arm (untargeted) | control arm |
+|---|---|---|
+| `move\|substitute` | two clicks: `hp 94 sub 31 res true` then `res false`; at 24% HP `hp 30 sub 0 res false` — every row **identical** to the self-aimed run | Scary Face (`target: normal`), nobody named: `res false`, foe spe **0** |
+| `move\|layeredVolatile` | four clicks `stockpile:1/1/true 2:2/2/true 3:3/3/true 3:3/3/false` — identical to the self-aimed run | four Scary Faces, `-:0/0/false` each time, foe spe **0** |
+| `move\|statusInflict` | Imprison (Hatterene), Destiny Bond (Gengar), Endure (Toxapex) each land their volatile with `res true`, each identical to the self-aimed click | Hatterene's Charm, nobody named: volatile `-`, `res false`, foe atk **0** |
+
+The *identical to the self-aimed click* comparison is the strongest available claim here, and it is
+why the arms are **not** those two runs: two agreeing arms are marked HOLLOW by this harness and would
+fail the file, correctly. The arms are the varied knob — a foe-directed untargeted click against a
+self-directed one — and the equivalence is asserted in `works` and printed in `detail`.
+
+Every body legally learns what it clicks, checked against the format's own learnsets rather than
+remembered. Flutter Mane was the first choice and **has no `MC` row in this format**; the probe threw,
+which is how it was caught.
+
+### THE BLAST-RADIUS SWEEP — 1,500 CELLS, 9 DIFFER, 0 THREW
+
+Every move in `data/tags.json` (500), **three aims each** — no target, at the user, at the foe — two
+real turns apiece so clocks and residuals land, digested as the whole board: every primitive on all
+four active bodies and both benches, the field, both side conditions, and the full emitted trace.
+
+```
+cells 1500   DIFF cells 9   THREW before 0   THREW after 0
+```
+
+**Nine moves moved. They are exactly the nine, and only in the `none` cell.** Nothing outside the list.
+
+The `foe` cell is unchanged **in the sweep** because the sweep's foe passes — the foe-aim change above
+needs a foe that actually refuses, which is why it was measured separately and is stated separately
+rather than folded into a diff count that would have read zero.
+
+The throw count is printed beside the diff count for WIRE 150's reason: its first sweep reported a
+perfect zero over cells that had all thrown.
+
+### THE COUNTER PROVES IT RAN
+
+`MEDSEEN.selfTargetToUser` reads **3** for three aims of one Stockpile click. It counts every
+`self`-target resolution and not only the untargeted ones, deliberately: the point of the wire is that
+the three aims are now **one** resolution, and a counter that fired only on the broken shape could not
+tell *"the fix is on the path"* from *"nothing clicks these any more"*.
+
+### A FINDING THAT IS NOT A FIX — PRANKSTER REFUSES YOUR OWN SELF-TARGETING MOVE
+
+`pranksterBlocked(m, _t, id)` is asked with `_t === m` on this path, and it tests only whether the
+target has the Dark type. So a **Prankster Dark-type clicking Substitute on itself is refused.**
+Showdown's `hitStepTryImmunity` guards that check with `!targetsAlly`, so a `self` or ally move is
+exempt from it.
+
+This is **pre-existing**: the self-aimed click has hit it since the branch was written, and this wire
+neither creates nor widens it — both arms behave identically, which is exactly what the equivalence
+probe asserts. Reported, left alone, one mechanic at a time.
+
+### GATES
+
+Census **369 live / 369 probed** to **372 live / 372 probed, 0 missing, 0 threw, 0 hollow, 0 unarmed**,
+`directCall` unchanged at zero. Damage stages **1728/1728 exact**. `tests/test-medicham.js`,
+`tests/test-engine-consistency.js`, `tests/test-dead-volatile.js` and `tests/test-wiring.js` all pass
+unchanged.
+
+**No engine release was cut by this wire**, and `tests/roster.js`, `tests/test-engine-diff.js` and the
+game differential were not run — the roster belongs to Will, against a frozen tree.
+
+### THE HAND LIST IS UNCHANGED
+
+Still empty except for Rivalry. These nine were never on it — they came off the derived roster and the
+brief that carried it.
+
+### THE RED THAT IS NOT MINE
+
+`tests/test-no-silent-failure.js` is red with `NEW since the baseline 24`. **Not one of the 24 is in a
+file this wire touched** — `medicham2-browser.js` and `test-mechanics.js` do not appear in the list at
+all. Same reading as WIRE 152 recorded. Not filed, and not called a known failure: it is somebody
+else's open item, named here so it is visible.
 
 ## WIRE 152 — STOCKPILE. A DURATION WHERE THE GAME KEEPS A COUNT, AND IT TOOK THREE MOVES DOWN WITH IT. 2026-08-10.
 
