@@ -33,6 +33,31 @@ echo "$STAGED" | grep -qE '^(docs/|engine/|tests/|web/|CHANGELOG\.md|README\.md|
   exit 0
 }
 
+# THE SPRINT CLAUSE. Will, 2026-08-10: "yes faster, lets just keep a running notes list doc that we
+# can then use to update the living docs upon completion of medicham."
+#
+# The full living-docs pass is DEFERRED for the duration of the MEDICHAM gate sprint -- deliberately,
+# by the repository owner, on the record. This clause exists so the deferral is CHECKED rather than
+# merely promised: while docs/MEDICHAM-SPRINT-NOTES.md exists, a commit that touches engine/ or tests/
+# must ALSO touch that file. A fix that records nothing still fails.
+#
+# That is the difference between this and the drift the hook was built for. The debt is deferred,
+# visible and countable; it is not silent. Deleting the notes file re-arms the normal rule, which is
+# what happens when the gate closes and the batch is written up.
+SPRINT="docs/MEDICHAM-SPRINT-NOTES.md"
+if [ -f "$SPRINT" ]; then
+  if echo "$STAGED" | grep -qE '^(engine/|tests/)'; then
+    echo "$STAGED" | grep -qF "$SPRINT" || {
+      echo ""
+      echo "  BLOCKED: MEDICHAM sprint is active and this commit records nothing."
+      echo "    It touches engine/ or tests/ but not $SPRINT."
+      echo "    The living-docs pass is deferred, NOT waived -- add the row, then commit."
+      echo "    (Delete $SPRINT to end the sprint and re-arm the full rule.)"
+      exit 1
+    }
+  fi
+fi
+
 echo "pre-commit: living-docs gate (~2s)"
 FAILED=0
 
