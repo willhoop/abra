@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  357/357 probed mechanics live, 0 missing   (census 2026-08-10 05:04)
-  0/150 differential comparisons disagree with Showdown   (2026-08-10 04:55)
+  357/357 probed mechanics live, 0 missing   (census 2026-08-10 05:40)
+  0/150 differential comparisons disagree with Showdown   (2026-08-10 05:15)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
@@ -57,9 +57,113 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 186/197 probed, 11 unprobed
 ```
 
-_stamped 2026-08-10 05:05_
+_stamped 2026-08-10 05:51_
 
 <!-- /GENERATED -->
+
+## WIRE 149 — THE MECHANIC WAS LIVE AND THE SEARCH COULD NOT SELECT IT. 2026-08-10.
+
+Census **357 live / 357 probed → 357 live / 357 probed**, and that is the correct outcome: this wire
+adds no mechanic. It makes one the search can already *execute* into one the search can *choose*.
+`missing` **0**, `threw` **0**, `hollow` **0**, `unarmed` **0**, `directCall` **0** — all held. New
+gate: **`tests/test-side-guard-chooser.js`**.
+
+Will: *"its gotta be able to click it man"* — overruling ROADMAP #126's decision to file this.
+
+### THE HAND LIST IS UNCHANGED
+
+Still empty except for Rivalry, which has never been probeable. What LEFT the ROADMAP #126 section's
+*"found and deliberately not fixed"* list is its **first bullet** — `chooseAction` name-matching
+`wideguard`. That claim is now carried by a probe, so it stops being a sentence in a document.
+
+### THE DEFECT WAS ONE FUNCTION FURTHER IN THAN THE FIX
+
+ROADMAP #126 corrected three name matches and left a fourth standing:
+
+```js
+if(me.moves.includes('wideguard') && live.length>1 && ... && rng()<0.35){ ...SPREAD... }
+```
+
+`playerAction` is the path the live bot, the game differential and every census probe take — so every
+one of them said Quick Guard worked. `chooseAction` is the path every **rollout** and every self-play
+game takes, and it could not see the move at all. **A move the search cannot select is worth nothing
+to the search.**
+
+RED, reproduced first: 200 self-play games / 1,176 turns, every side-A body handed both guards, foes
+usage-weighted with their own movesets — **Quick Guard 0, Wide Guard 270**.
+
+### WHAT REPLACED IT, AND WHAT IT REFUSED TO INVENT
+
+Membership, the class it blocks and the **rate** are all read off the artifact; the branch contains no
+move name. `GUARD_PRED` — the class→predicate table the turn loop already refuses with — gained a
+`chosen` counter and a `worth` predicate in the same row, so a class cannot have one and not the
+others. Wide Guard is the family's most-used member, so the derived rate hands it back **0.35 to the
+bit**, and its trigger set against the old bare `SPREAD.has(id)` is **0 lost, 0 gained over all 500
+moves** — a set comparison, not a promise.
+
+Three filters, each lifted off the execution path rather than invented, because "the foe holds a
+priority move" is true of **99.3%** of usage-weighted foe pairs — Protect is +4:
+
+- **aimed at the other side** (the `_pf.indexOf(a.target)` gate, asked of the move's own `target` at
+  selection time): 29 moves sit above +0.1 in this format and only **17** are foe-facing. 99.3% → 50.5%.
+- **cannot be used this turn**: Fake Out (16,761 uses) is entry-turn only. The rule had three copies
+  by name and this needed a fourth reader, so all four now call one predicate.
+- **would fail anyway**: `needsTargetToAttack` — Sucker Punch (9,178) fails against a body that is
+  guarding rather than attacking. Read off the tag.
+
+Then the situational half, which is what stops it spamming: the priority threat must FINISH a body on
+my side (`dmgRange` max ≥ curHP) or carry **`flinches`**, which costs the turn at any HP. Spread's
+`worth` is `true` — a statement of Wide Guard's current behaviour, left alone deliberately because its
+click count is a baseline other measurements rest on.
+
+### THE BAR WAS A RATE, NOT A NON-ZERO, AND THE HONEST ANSWER IS "CONSERVATIVE"
+
+The corpus is the target, measured on the store — 51,445 games / 327,993 turns carrying a move:
+
+```
+HUMANS   Quick Guard 601 clicks   Wide Guard 6,460   ratio 0.093
+TRIGGER  of the 482 sides that clicked Quick Guard, the OPPOSING side used one of the 17 foe-facing
+         priority moves in 63.3% of those games, against 37.5% over all sides -- a 1.69x lift
+```
+
+One self-play run, 1,500 games / 8,836 turns, one guard per body assigned 50/50:
+
+```
+QUICK GUARD 48   WIDE GUARD 988   ratio 0.049      (was 0 : 270 before the wire)
+```
+
+**0.049 against 0.093 is ~2x conservative and it is reported rather than tuned away.** Nothing was
+fitted: the rate came out of `tags.json` `uses` and the situational half out of the execution path.
+`tags.json` says 927:3,997 = 0.232 for the same two moves where the store says 0.093 — the two
+artifacts disagree by 2.5x (ROADMAP #70's standing caveat), the engine can only read the tag record,
+and the probe prints both every run so the gap cannot go quiet.
+
+**THIS IS A PLAY CHANGE AND NOT A CORRECTNESS CLAIM.** The authority has no policy; no probe can show
+Showdown's player would have clicked Quick Guard on a given turn. Nothing here was compared against it.
+
+### FOUND WHILE THERE — REPORTED, NOT ABSORBED
+
+- **`tests/test-tag-consumed.js` is RED at HEAD and green on this tree**, three runs each way: HEAD
+  exits 1 with *"1 tag(s) newly have NO consumer: `flinches`"*. The consumer it gained here is the
+  situational half's flinch clause — which is a thin consumer for a mechanic tag, and the real question
+  is why the flinch path stopped asking.
+- **`data/engine-data.js` carries no Quick Guard set at all** — 0 of 318 species, against 8 for Wide
+  Guard, and 0 of `MC.priors`' rows against 14. Even a correct chooser cannot click a move no modelled
+  body holds. Not this division's artifact to edit; filed with the count.
+- **The other two ROADMAP #126 gaps are NOT closed by this derivation**, checked rather than assumed:
+  the `onTry()` last-action failure is execution-time, and Wide Guard's spread-**status** hole lives in
+  the attack branch. Note that the chooser now *selects* Wide Guard against Cotton Spore, String Shot,
+  Sweet Scent and Teeter Dance while the turn loop does not block them — pre-existing and identical
+  under the old trigger, named because this wire is why someone will read that line next.
+- **The counter this wire is measured by could have been corrupted by the wire itself.** The chooser
+  asks the refusal question thousands of times a game hypothetically, so the pure predicate was split
+  out carrying **no counter** and the probe asserts `sideGuardBlocked` is still 0 after a full
+  membership sweep.
+
+**`tests/roster.js` WAS NOT RUN AND NO RELEASE WAS CUT** — another agent is in the roster, and
+`game_differential.js` auto-cuts a release when nothing is pinned.
+
+---
 
 ## ROADMAP #126 — QUICK GUARD WAS THE ONLY BROKEN SOURCE OF PRIORITY REFUSAL, AND THE TWO GUARDS CARRY BYTE-IDENTICAL TAGS. 2026-08-10.
 

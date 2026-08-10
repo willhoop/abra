@@ -1069,3 +1069,141 @@ any guard. `tests/test-no-silent-failure.js` is red at 22 new silent catches; **
 ROADMAP #70. Measured 2026-08-10 on Iron Ball: `tags.json` says 139, `g.sheets` (populated on 1.7% of
 sides) says 15, `g.sets` says 0. **The queue is ORDERED by these numbers.** Every usage figure in this
 file inherits that uncertainty and is quoted from `tags.json` unless stated otherwise.
+
+---
+
+## WIRE 149 — THE CHOOSER CAN CLICK QUICK GUARD. 2026-08-10.
+
+| # | row(s) | uses | what it was | verdict move |
+|---|---|---|---|---|
+| — | **Quick Guard, in `chooseAction`** | 927 tag / **601 store** | WIRE 148 made the mechanic WORK through `playerAction` — the live bot, the differential and every probe. `chooseAction`, the heuristic chooser that drives every **rollout** and every self-play game, still matched `me.moves.includes('wideguard')` **by name**, so MILTANK could never imagine clicking it | not a roster row — **a PLAY change**, measured as a rate, not a correctness claim |
+
+Will, 2026-08-10: *"its gotta be able to click it man"*.
+
+**THIS IS NOT A CORRECTNESS CLAIM AND THE PROBE SAYS SO.** Nothing here compares the engine to
+Showdown. The authority has no policy, so no probe can show that its player would have clicked Quick
+Guard on a given turn. What is asserted is behaviour at a **rate**.
+
+### RED, REPRODUCED BEFORE ANYTHING WAS TOUCHED
+
+200 self-play games / 1,176 turns, every side-A body handed **both** guards, foes usage-weighted with
+their own movesets: **Quick Guard 0 clicks, Wide Guard 270.** `tests/test-side-guard-chooser.js` run
+against a temporarily restored HEAD chooser is **5 FAILED, Quick Guard 0 of 1,500 games**; the file
+was restored and its SHA-256 verified identical afterwards.
+
+### WHAT IS DERIVED, AND FROM WHAT — NO SECOND NAME IN A NAME LIST
+
+| question | source |
+|---|---|
+| which moves are guards | `TAGS.has('move', id, 'oneTurnGuard')` — **exactly 2 of 500**, printed by the probe |
+| what each one refuses | `oneTurnGuard.blocks` through **`GUARD_PRED`, the same table the turn loop refuses with**, so the chooser cannot come to believe a guard stops something execution lets through |
+| how often it clicks | the guard's own `uses` off the tag record, scaled against the most-used member. Wide Guard is the max, so it keeps **0.35 exactly**; Quick Guard gets 0.35 × 927/3997 = **0.0812** |
+| is it worth a turn | per class, in the same table (`worth`) — see below |
+
+The threat scan is Wide Guard's own, generalised: `live.some(fo => fo.moves.some(…))` became "does a
+**live** foe hold a move of the class I refuse". Reading `live` is what answers CLAUDE.md's Focus-Sash
+caution — a foe whose only priority user has **fainted** is not on `live` and stops being a threat,
+with no bookkeeping to go stale. **The move list of the body on the field IS the open sheet** where one
+was set; no species prior and no `meta-usage.json` read.
+
+### THE THREE FILTERS THAT STOP IT FIRING ON THREE BOARDS IN FOUR
+
+Without them "a foe holds a priority move" is true of **99.3%** of usage-weighted foe pairs, because
+**Protect is +4**. Each filter is taken from the execution path rather than invented:
+
+- **aimed at the other side.** The execution gate is `a.target && _pf.indexOf(a.target)>=0`; at
+  selection time there is no action, so the move's own `target` is asked instead. Of the **29** moves
+  above +0.1 in this format, only **17** are foe-facing — the other 12 are Protect, Detect, Endure,
+  King's Shield, Spiky Shield, Baneful Bunker, Ally Switch, Follow Me, Rage Powder, Helping Hand and
+  the two guards. Base rate **99.3% → 50.5%**. Two target sets cover all 14 strings across 500 moves;
+  a fifteenth is counted (`MEDFAILS.guardTargetClassUnknown`, **0**).
+- **it cannot be used this turn.** Fake Out is the most-used priority move in the corpus (16,761) and
+  is legal only on its user's entry turn. Routed through **one** predicate — the rule had three copies
+  by name and this wire needed a fourth reader, so all four now call `firstTurnOnlyRefused`.
+- **it would fail anyway.** `needsTargetToAttack` — Sucker Punch (9,178) and Upper Hand (89) fail
+  unless the target attacks, and a body raising a guard is not attacking. Read off the **tag**.
+
+### THE SITUATIONAL HALF, AND WHY IT IS PER CLASS
+
+Knowing the foe HAS priority is necessary and nowhere near sufficient. `worth` lives in the same class
+row as `test`, so a class cannot have one and not the other:
+
+- **spread → `true`**, which is a statement of Wide Guard's CURRENT behaviour, not a claim that no test
+  would improve it. Its click count is a baseline other measurements rest on; moving it here was
+  refused deliberately.
+- **priority → the threat must cost something**: it FINISHES a body on my side (`max roll >= curHP`,
+  through `dmgRange`), or it carries **`flinches`**, which takes the turn away at any HP — Fake Out,
+  and the entry-turn gate has already refused it if it cannot be used.
+
+`live.length>1` is kept and applied to **both**, so the branch has no name in it and the Wide Guard arm
+is untouched.
+
+### WIDE GUARD DID NOT REGRESS, AND IT IS A SET COMPARISON RATHER THAN A PROMISE
+
+Its trigger set through the new derivation against the old bare `SPREAD.has(id)`, over all 500 moves:
+**0 lost, 0 gained.** Its rate is 0.35 to the bit. Its own two census probes are green, and
+`tests/test-priority-block.js`, `test-engine-consistency`, `test-medicham`, `test-rollout-effects`,
+`test-speed-multipliers` and `test-tag-wire` all pass.
+
+### THE RATE — THE NUMBER THIS WIRE IS ACTUALLY JUDGED ON
+
+Measured on `data/games.ladder.jsonl` -- every side of all 51,445 stored games:
+
+```
+HUMANS      Quick Guard   601 clicks     Wide Guard  6,460      ratio 0.093
+TRIGGER     of the 482 sides that clicked Quick Guard, the OPPOSING side used one of the 17
+            foe-facing priority moves in 63.3% of those games, against 37.5% over all sides -- 1.69x
+```
+
+One self-play run, 1,500 games, each body holding ONE guard assigned 50/50 and keeping three real
+attacks (the turn count is printed by the probe and is not quoted here):
+
+```
+QUICK GUARD  48 clicks     WIDE GUARD  988 clicks     ratio 0.049
+counters     sideGuardChosenVsPriority 50   sideGuardChosenVsSpread 998   sideGuardBlocked 308
+```
+
+**0.049 against a human 0.093 — roughly 2x CONSERVATIVE, and that is stated rather than tuned away.**
+Nothing here was fitted to the target: the rate came out of the artifact and the situational half out
+of the execution path. Moving it onto 0.093 would mean picking a constant to hit a number. The
+direction is the safe one — CLAUDE.md's mega lesson is that a healthy counter at the wrong rate is
+still a defect, and the failure it warns about is spamming.
+
+**TWO ARTIFACTS DISAGREE ABOUT THESE MOVES BY 2.5x AND THE ENGINE CAN ONLY READ ONE.** `tags.json`
+`uses` says 927:3,997 = 0.232; the store says 601:6,460 = 0.093. ROADMAP #70's standing caveat covers
+exactly this. The store is the harder fact and is not readable at runtime, so the derived rate carries
+the tag figure's 2.5x overstatement — which happens to offset part of the conservative situational
+half. Both numbers are printed by the probe on every run so the gap cannot go quiet.
+
+### FOUND WHILE THERE
+
+- **`tests/test-tag-consumed.js` IS RED AT HEAD AND GREEN WITH THIS WIRE.** Measured three runs each
+  way: HEAD exits 1 with *"1 tag(s) newly have NO consumer: `flinches`"*; this tree exits 0. The
+  consumer it gained is `worth`'s flinch clause. Reported rather than claimed — a chooser heuristic is
+  a thin consumer for a mechanic tag, and the real question is why the flinch path stopped asking.
+- **`data/engine-data.js` CARRIES NO QUICK GUARD SET AT ALL** — 0 of 318 species; Wide Guard is on 8,
+  and `MC.priors` has 14 Wide Guard rows and 0 Quick Guard rows. **Even a correct chooser cannot click
+  a move no modelled body holds**, so self-play has to hand it out. That artifact is not this
+  division's to edit; filed here with the count.
+- **THE OTHER TWO WIRE 148 GAPS ARE NOT FIXED BY THIS DERIVATION, checked rather than assumed.** The
+  `onTry()`/last-action failure is execution-time and untouched. Wide Guard's spread-**status** hole is
+  in the attack branch and untouched — and note the chooser now *selects* Wide Guard against Cotton
+  Spore, String Shot, Sweet Scent and Teeter Dance (they carry `spreadFoes`, so `GUARD_PRED` says it
+  refuses them) while the turn loop does **not** block them. That disagreement was equally true of the
+  old `SPREAD.has(id)` trigger, so it is pre-existing and unchanged; it is named here because this wire
+  is the reason someone will read that line next.
+- **`MEDSEEN.sideGuardBlocked` COULD HAVE BEEN CORRUPTED BY ITS OWN FIX.** The chooser asks the refusal
+  question thousands of times a game HYPOTHETICALLY. `guardRefusalOf` was split out carrying **no
+  counter** for exactly that reason, and the probe asserts the counter is still 0 after a full
+  membership sweep.
+
+### NEW SURFACE
+
+`tests/test-side-guard-chooser.js` — three sections: membership, a deterministic 10-arm board where
+**every control prints a real alternative click**, and the 1,500-game rate.
+Counters: `MEDSEEN.sideGuardChosenVsPriority`, `MEDSEEN.sideGuardChosenVsSpread`;
+`MEDFAILS.guardTargetClassUnknown`, `MEDFAILS.sideGuardRateNoUses`. Exported for the probe:
+`foeThreatensGuardClass`, `sideGuardClickRate`, `guardMoveAimedAtFoes`.
+
+Census **357 live / 357 probed / 0 missing / 0 threw — unchanged**, which is correct: this wire adds
+no mechanic, it makes an existing one reachable by the search.

@@ -1,10 +1,10 @@
 {
-  "current": "25958d06e36b",
-  "cut": "2026-08-10T04:55:24.966Z",
-  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "current": "522b14a17617",
+  "cut": "2026-08-10T05:52:53.842Z",
+  "why": "quick guard selectable; heal staging damage-first",
   "cuts": 1,
-  "latest_cut": "2026-08-10T04:55:24.966Z",
-  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-10T04:55:24.969Z",
+  "latest_cut": "2026-08-10T05:52:53.842Z",
+  "latest_why": "quick guard selectable; heal staging damage-first",
+  "pointer_written": "2026-08-10T05:52:53.845Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

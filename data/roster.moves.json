@@ -1,16 +1,32 @@
 {
- "generated": "2026-08-10T03:54:32.825Z",
+ "generated": "2026-08-10T05:53:03.458Z",
  "by": "tests/roster.js",
  "stage": "moves",
- "engine_release": "f727f7fdee4f",
+ "engine_release": "522b14a17617",
  "format": "gen9championsvgc2026regmb",
  "counts": {
-  "FIRED-AND-BOARDS-DIFFER": 21,
+  "FIRED-AND-BOARDS-DIFFER": 22,
   "DID-NOT-FIRE": 24,
   "DEFERRED-BY-OWNER": 0,
-  "FIRED-AND-BOARDS-MATCH": 392,
+  "FIRED-AND-BOARDS-MATCH": 391,
   "CONTROL-NOT-QUIET": 0,
   "COULD-NOT-STAGE": 63
+ },
+ "scope": {
+  "total": 500,
+  "out_of_scope": 0,
+  "out_of_scope_by": {},
+  "in_scope": 500,
+  "tested": 437,
+  "matched": 391,
+  "differ": 22,
+  "silent": 24,
+  "deferred": 0,
+  "unattributable": 0,
+  "unattributable_ids": [],
+  "declared_untestable": [],
+  "could_not_stage_in_scope": 63,
+  "attributed_by_second_control": []
  },
  "reds": [],
  "mirror": {
@@ -29,6 +45,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -69,6 +88,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -103,6 +125,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -155,6 +180,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -195,6 +223,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -242,6 +273,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -282,6 +316,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -297,6 +334,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -331,6 +371,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -395,6 +438,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -435,6 +481,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -475,6 +524,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -599,6 +651,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -633,6 +688,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -673,6 +731,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -725,6 +786,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -765,6 +829,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -805,6 +872,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -912,6 +982,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -964,6 +1037,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1004,6 +1080,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1068,6 +1147,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1096,6 +1178,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1136,6 +1221,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 393 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -1151,6 +1239,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1191,6 +1282,9 @@
    "why": "ITS TYPE IS KEYED ON THE USER'S FORME, and the table is derived from its own onModifyType rather than missing: Morpeko-Hangry -> Dark (printed type Electric). A forme is not a knob that can be varied on one board — the formes are different SPECIES with different stats — so isolating the conversion needs two users and a cross-comparison this rule's scaffold does not express, and staging one forme would read as a damage number that proves only that the move deals damage. THIS ONE HAS A KNOB: Hunger Switch flips Morpeko's forme at the end of every turn, so two consecutive clicks by one body are the two branches on one board — the same shape as the weather arm. Owed, not impossible.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -1206,6 +1300,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1258,6 +1355,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1298,6 +1398,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1387,6 +1490,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1421,6 +1527,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1467,6 +1576,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1507,6 +1619,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1559,6 +1674,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1595,10 +1713,13 @@
    "rule": "move/variable-power",
    "reads": "basePowerCallback",
    "note": "thrown at Goodra-Hisui twice; the power comes out of the formula and the damage is what is compared",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1626,44 +1747,7 @@
      "without": 1240
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1212,
-     "ours": 1216,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1212,
-     "ours": 1216,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1184,
-     "ours": 1192,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1184,
-     "ours": 1192,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -1676,6 +1760,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1716,6 +1803,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1768,6 +1858,9 @@
    "why": "both engines refuse the switch — Showdown rejects the choice and medicham2 leaves the body in its slot — and both allow the identical switch in the control arm. This is a refusal comparison, not a board comparison; see the rule.",
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": {
     "asked": {
      "side": "B",
@@ -1797,6 +1890,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1837,6 +1933,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1901,6 +2000,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1953,6 +2055,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -1981,6 +2086,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -2033,6 +2141,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -2097,6 +2208,9 @@
    "why": "SHOWDOWN REFUSED THE SWITCH AND OUR ENGINE ALLOWED IT. The authority rejected the choice outright (p2 choice rejected \"switch 3, move 1\": Can't switch: The active Pokémon is trapped) and medicham2's slot now holds Torterra. The trap does not prevent a switch in this engine. The control proves the ask was real: without the move the same switch succeeded in both engines.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": {
     "asked": {
      "side": "B",
@@ -2126,6 +2240,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -2166,6 +2283,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -2206,6 +2326,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -2246,6 +2369,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -2334,6 +2460,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 262 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -2349,6 +2478,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -2413,6 +2545,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -2501,6 +2636,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -2541,6 +2679,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -2629,6 +2770,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -2669,6 +2813,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -2709,6 +2856,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -2761,6 +2911,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -2849,6 +3002,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -2889,6 +3045,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -2929,6 +3088,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -2993,6 +3155,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 393 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": [
@@ -3045,6 +3210,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -3097,6 +3265,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -3168,6 +3339,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -3202,6 +3376,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -3254,6 +3431,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -3288,6 +3468,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -3340,6 +3523,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -3416,6 +3602,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -3480,6 +3669,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -3556,6 +3748,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -3753,6 +3948,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -3793,6 +3991,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -3857,6 +4058,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -3897,6 +4101,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -3967,6 +4174,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4044,6 +4254,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4066,6 +4279,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4143,6 +4359,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4220,6 +4439,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4272,6 +4494,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4306,6 +4531,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4358,6 +4586,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4435,6 +4666,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4475,6 +4709,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4515,6 +4752,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4555,6 +4795,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4607,6 +4850,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4647,6 +4893,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4699,6 +4948,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4763,6 +5015,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4803,6 +5058,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4843,6 +5101,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4907,6 +5168,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4959,6 +5223,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -4987,6 +5254,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -5002,6 +5272,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -5048,6 +5321,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 262 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -5063,6 +5339,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -5103,6 +5382,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -5125,6 +5407,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -5213,6 +5498,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 262 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -5228,6 +5516,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -5292,6 +5583,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -5332,6 +5626,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -5366,6 +5663,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -5418,6 +5718,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -5433,6 +5736,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -5473,6 +5779,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -5521,10 +5830,13 @@
    "rule": "move/multihit",
    "reads": "multihit",
    "note": "multihit 2 — THE PIN LANDS ON 2 HIT(S), which is the bottom corner of the range and the only count either engine can be asked about here",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -5576,80 +5888,7 @@
      "without": 1360
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1204,
-     "ours": 1168,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "torterra",
-     "field": "party.hp",
-     "showdown": 1326,
-     "ours": 1360,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1204,
-     "ours": 1168,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2b",
-     "body": "torterra",
-     "field": "hp",
-     "showdown": 1326,
-     "ours": 1360,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1168,
-     "ours": 1096,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "torterra",
-     "field": "party.hp",
-     "showdown": 1292,
-     "ours": 1360,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1168,
-     "ours": 1096,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2b",
-     "body": "torterra",
-     "field": "hp",
-     "showdown": 1292,
-     "ours": 1360,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -5662,6 +5901,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -5702,6 +5944,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -5742,6 +5987,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -5806,6 +6054,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -5870,6 +6121,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -5934,6 +6188,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -5974,6 +6231,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -6014,6 +6274,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -6054,6 +6317,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -6100,6 +6366,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -6140,6 +6409,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -6204,6 +6476,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -6238,6 +6513,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -6278,6 +6556,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -6342,6 +6623,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -6419,6 +6703,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -6459,6 +6746,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -6493,6 +6783,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -6581,6 +6874,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -6627,6 +6923,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -6667,6 +6966,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -6759,6 +7061,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -6799,6 +7104,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -6814,6 +7122,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -6878,6 +7189,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -6918,6 +7232,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -7000,6 +7317,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -7040,6 +7360,9 @@
    "why": "a bracket is only observable if the ORDER decides the final board, and the 4 legal buildable species that learn it (Arcanine [Intimidate/Flash Fire/Justified], Arcanine-Hisui [Intimidate/Flash Fire/Rock Head], Dragonite [Inner Focus/Multiscale], Lucario [Steadfast/Inner Focus/Justified]) ALL carry only abilities this fixture may not hold — a second damage modifier, an immunity, an HP floor or something that moves the board by itself. That is a fact about the FORMAT'S ABILITY LIST, not about priority — asked of the format's own learnsets (the prevo chain, the way champions_sim walks it), not of a list. Derived from the move outward — its own users, slowest first — rather than from a fixed body pool inward.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -7055,6 +7378,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -7095,6 +7421,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -7110,6 +7439,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -7210,6 +7542,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -7244,6 +7579,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -7278,6 +7616,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -7318,6 +7659,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -7354,10 +7698,13 @@
    "rule": "move/plain-attack",
    "reads": "basePower > 0 and nothing else this file has a narrower rule for",
    "note": "Dragon 80 BP into Goodra-Hisui, twice",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -7385,44 +7732,7 @@
      "without": 1240
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1198,
-     "ours": 1186,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1198,
-     "ours": 1186,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1156,
-     "ours": 1132,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1156,
-     "ours": 1132,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -7435,6 +7745,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -7475,6 +7788,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -7575,6 +7891,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -7627,6 +7946,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -7679,6 +8001,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -7731,6 +8056,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -7771,6 +8099,9 @@
    "why": "both engines refuse the switch — Showdown rejects the choice and medicham2 leaves the body in its slot — and both allow the identical switch in the control arm. This is a refusal comparison, not a board comparison; see the rule.",
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": {
     "asked": {
      "side": "B",
@@ -7800,6 +8131,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -7840,6 +8174,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -7886,6 +8223,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -7926,6 +8266,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -7978,6 +8321,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -8018,6 +8364,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -8082,6 +8431,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -8122,6 +8474,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -8162,6 +8517,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -8214,6 +8572,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -8290,6 +8651,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -8330,6 +8694,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 262 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -8345,6 +8712,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -8422,6 +8792,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -8474,6 +8847,9 @@
    "why": "this move IS the control arm's inert click (Focus Energy), so subject and control would be the same script and the comparison would be vacuous. Its effect — two critical-hit stages — is also not a leaf board_state.js compares.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -8489,6 +8865,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -8529,6 +8908,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -8544,6 +8926,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -8559,6 +8944,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -8599,6 +8987,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -8639,6 +9030,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -8667,6 +9061,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -8707,6 +9104,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 393 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": [
@@ -8759,6 +9159,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 393 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -8774,6 +9177,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -8838,6 +9244,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -8866,6 +9275,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -8894,6 +9306,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -8928,6 +9343,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -8968,6 +9386,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -9008,6 +9429,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -9072,6 +9496,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -9124,6 +9551,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -9139,6 +9569,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -9216,6 +9649,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -9231,6 +9667,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -9308,6 +9747,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -9354,6 +9796,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -9406,6 +9851,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -9446,6 +9894,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -9498,6 +9949,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -9538,6 +9992,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -9553,6 +10010,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -9617,6 +10077,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -9681,6 +10144,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -9689,165 +10155,114 @@
    "kind": "move",
    "id": "healingwish",
    "name": "Healing Wish",
-   "rule": "move/slot-condition",
-   "reads": "slotCondition",
-   "note": "healingwish — chipped on turn 1, clicked on turn 2, and the effect has to arrive by boundary 4; Torterra is chipped identically and clicks nothing",
+   "rule": "move/the-user-faints-and-the-replacement-arrives-restored",
+   "reads": "a slotCondition with selfdestruct, whose condition heals from onSwap/onSwitchIn",
+   "note": "Torterra is chipped 72 of 170 HP and given psn on turn 1, leaves on turn 2 for Torkoal, which clicks on turn 3 and FAINTS. Whether the damaged body is the one that comes back is the engine's own choice and is checked rather than assumed. Nothing holds an item",
    "verdict": "DID-NOT-FIRE",
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 2,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 0,
-     "without": 575
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.goodrahisui.fainted",
-     "with": true,
-     "without": false
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].species",
-     "with": "corviknight",
-     "without": "goodrahisui"
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].hp",
-     "with": 692,
-     "without": 575
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].maxhp",
-     "with": 692,
-     "without": 620
+     "turn": 3,
+     "path": "p2.party.torterra.hp",
+     "with": 170,
+     "without": 77
     },
     {
      "turn": 3,
-     "path": "p2.party.goodrahisui.hp",
+     "path": "p2.party.torkoal.hp",
      "with": 0,
-     "without": 575
+     "without": 145
     },
     {
      "turn": 3,
-     "path": "p2.party.goodrahisui.fainted",
+     "path": "p2.party.torkoal.fainted",
      "with": true,
      "without": false
     },
     {
      "turn": 3,
      "path": "p2.active[0].species",
-     "with": "corviknight",
-     "without": "goodrahisui"
+     "with": "torterra",
+     "without": "torkoal"
     },
     {
      "turn": 3,
      "path": "p2.active[0].hp",
-     "with": 692,
-     "without": 575
+     "with": 170,
+     "without": 145
     },
     {
      "turn": 3,
      "path": "p2.active[0].maxhp",
-     "with": 692,
-     "without": 620
+     "with": 170,
+     "without": 145
     },
     {
      "turn": 4,
-     "path": "p2.party.goodrahisui.hp",
+     "path": "p2.party.torterra.hp",
+     "with": 170,
+     "without": 77
+    },
+    {
+     "turn": 4,
+     "path": "p2.party.torkoal.hp",
      "with": 0,
-     "without": 575
+     "without": 145
     },
     {
      "turn": 4,
-     "path": "p2.party.goodrahisui.fainted",
+     "path": "p2.party.torkoal.fainted",
      "with": true,
      "without": false
     },
     {
      "turn": 4,
      "path": "p2.active[0].species",
-     "with": "corviknight",
-     "without": "goodrahisui"
+     "with": "torterra",
+     "without": "torkoal"
     },
     {
      "turn": 4,
      "path": "p2.active[0].hp",
-     "with": 692,
-     "without": 575
+     "with": 170,
+     "without": 145
     },
     {
      "turn": 4,
      "path": "p2.active[0].maxhp",
-     "with": 692,
-     "without": 620
+     "with": 170,
+     "without": 145
     }
    ],
    "diffs": [
     {
-     "turn": 2,
+     "turn": 3,
      "slot": "",
-     "body": "goodrahisui",
+     "body": "torterra",
      "field": "party.hp",
-     "showdown": 0,
-     "ours": 575,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.fainted",
-     "showdown": true,
-     "ours": false,
-     "bucket": "one-says-yes-one-says-no"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "species",
-     "showdown": "corviknight",
-     "ours": "goodrahisui",
-     "bucket": "different-value"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 692,
-     "ours": 575,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "maxhp",
-     "showdown": 692,
-     "ours": 620,
+     "showdown": 170,
+     "ours": 77,
      "bucket": "off-by-4-or-more"
     },
     {
      "turn": 3,
      "slot": "",
-     "body": "goodrahisui",
+     "body": "torkoal",
      "field": "party.hp",
      "showdown": 0,
-     "ours": 575,
+     "ours": 145,
      "bucket": "off-by-4-or-more"
     },
     {
      "turn": 3,
      "slot": "",
-     "body": "goodrahisui",
+     "body": "torkoal",
      "field": "party.fainted",
      "showdown": true,
      "ours": false,
@@ -9856,43 +10271,52 @@
     {
      "turn": 3,
      "slot": "p2a",
-     "body": "goodrahisui",
+     "body": "torkoal",
      "field": "species",
-     "showdown": "corviknight",
-     "ours": "goodrahisui",
+     "showdown": "torterra",
+     "ours": "torkoal",
      "bucket": "different-value"
     },
     {
      "turn": 3,
      "slot": "p2a",
-     "body": "goodrahisui",
+     "body": "torkoal",
      "field": "hp",
-     "showdown": 692,
-     "ours": 575,
+     "showdown": 170,
+     "ours": 145,
      "bucket": "off-by-4-or-more"
     },
     {
      "turn": 3,
      "slot": "p2a",
-     "body": "goodrahisui",
+     "body": "torkoal",
      "field": "maxhp",
-     "showdown": 692,
-     "ours": 620,
+     "showdown": 170,
+     "ours": 145,
      "bucket": "off-by-4-or-more"
     },
     {
      "turn": 4,
      "slot": "",
-     "body": "goodrahisui",
+     "body": "torterra",
+     "field": "party.hp",
+     "showdown": 170,
+     "ours": 77,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 4,
+     "slot": "",
+     "body": "torkoal",
      "field": "party.hp",
      "showdown": 0,
-     "ours": 575,
+     "ours": 145,
      "bucket": "off-by-4-or-more"
     },
     {
      "turn": 4,
      "slot": "",
-     "body": "goodrahisui",
+     "body": "torkoal",
      "field": "party.fainted",
      "showdown": true,
      "ours": false,
@@ -9901,28 +10325,28 @@
     {
      "turn": 4,
      "slot": "p2a",
-     "body": "goodrahisui",
+     "body": "torkoal",
      "field": "species",
-     "showdown": "corviknight",
-     "ours": "goodrahisui",
+     "showdown": "torterra",
+     "ours": "torkoal",
      "bucket": "different-value"
     },
     {
      "turn": 4,
      "slot": "p2a",
-     "body": "goodrahisui",
+     "body": "torkoal",
      "field": "hp",
-     "showdown": 692,
-     "ours": 575,
+     "showdown": 170,
+     "ours": 145,
      "bucket": "off-by-4-or-more"
     },
     {
      "turn": 4,
      "slot": "p2a",
-     "body": "goodrahisui",
+     "body": "torkoal",
      "field": "maxhp",
-     "showdown": 692,
-     "ours": 620,
+     "showdown": 170,
+     "ours": 145,
      "bucket": "off-by-4-or-more"
     }
    ]
@@ -9931,75 +10355,78 @@
    "kind": "move",
    "id": "healpulse",
    "name": "Heal Pulse",
-   "rule": "move/generic-status",
-   "reads": "nothing matched above — this is the second residue, and it is the WEAK one",
-   "note": "generic: clicked ONCE on turn 2 by the aggressor at Goodra-Hisui, both sides chipped and holding an item",
+   "rule": "move/heals-a-body-that-was-damaged-first",
+   "reads": "flags.heal on a Status move whose own data restores HP to a body that is NOT its user",
+   "note": "Torterra is chipped to 22% of its 170 HP by Ice Punch and holds NO ITEM, then Torkoal — its own partner — heals it on turn 2. Nothing on either side holds anything: a Sitrus Berry's 25% and Leftovers' maxhp/16 are the size of what is being measured and would fire in the control arm too",
    "verdict": "DID-NOT-FIRE",
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
      "turn": 2,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 1240,
-     "without": 1195
+     "path": "p2.party.torterra.hp",
+     "with": 123,
+     "without": 38
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 1240,
-     "without": 1195
+     "with": 123,
+     "without": 38
     },
     {
      "turn": 3,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 1240,
-     "without": 1195
+     "path": "p2.party.torterra.hp",
+     "with": 123,
+     "without": 38
     },
     {
      "turn": 3,
      "path": "p2.active[0].hp",
-     "with": 1240,
-     "without": 1195
+     "with": 123,
+     "without": 38
     }
    ],
    "diffs": [
     {
      "turn": 2,
      "slot": "",
-     "body": "goodrahisui",
+     "body": "torterra",
      "field": "party.hp",
-     "showdown": 1240,
-     "ours": 1195,
+     "showdown": 123,
+     "ours": 38,
      "bucket": "off-by-4-or-more"
     },
     {
      "turn": 2,
      "slot": "p2a",
-     "body": "goodrahisui",
+     "body": "torterra",
      "field": "hp",
-     "showdown": 1240,
-     "ours": 1195,
+     "showdown": 123,
+     "ours": 38,
      "bucket": "off-by-4-or-more"
     },
     {
      "turn": 3,
      "slot": "",
-     "body": "goodrahisui",
+     "body": "torterra",
      "field": "party.hp",
-     "showdown": 1240,
-     "ours": 1195,
+     "showdown": 123,
+     "ours": 38,
      "bucket": "off-by-4-or-more"
     },
     {
      "turn": 3,
      "slot": "p2a",
-     "body": "goodrahisui",
+     "body": "torterra",
      "field": "hp",
-     "showdown": 1240,
-     "ours": 1195,
+     "showdown": 123,
+     "ours": 38,
      "bucket": "off-by-4-or-more"
     }
    ]
@@ -10015,6 +10442,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10055,6 +10485,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10143,6 +10576,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10183,6 +10619,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -10198,6 +10637,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10238,6 +10680,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10278,6 +10723,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10318,6 +10766,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10364,6 +10815,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10428,6 +10882,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10468,6 +10925,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10514,6 +10974,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10542,6 +11005,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10582,6 +11048,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10610,6 +11079,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10674,6 +11146,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10702,6 +11177,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10742,6 +11220,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10782,6 +11263,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10834,6 +11318,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10874,6 +11361,9 @@
    "why": "a bracket is only observable if the ORDER decides the final board, and the 9 legal buildable species that learn it (Ninetales-Alola [Snow Cloak/Snow Warning], Glalie [Inner Focus/Ice Body/Moody], Abomasnow [Snow Warning/Soundproof], Weavile [Pressure/Pickpocket], Glaceon [Snow Cloak/Ice Body]) ALL carry only abilities this fixture may not hold — a second damage modifier, an immunity, an HP floor or something that moves the board by itself. That is a fact about the FORMAT'S ABILITY LIST, not about priority — asked of the format's own learnsets (the prevo chain, the way champions_sim walks it), not of a list. Derived from the move outward — its own users, slowest first — rather than from a fixed body pool inward.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -10889,6 +11379,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10929,6 +11422,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -10969,6 +11465,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -11009,6 +11508,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -11097,6 +11599,9 @@
    "why": "the SUBJECT arm did not run: THREW — p1 choice rejected \"pass, move 1\": Can't pass: Your Goodra must make a move (or switch)",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -11112,6 +11617,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -11152,6 +11660,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -11204,6 +11715,9 @@
    "why": "both engines refuse the switch — Showdown rejects the choice and medicham2 leaves the body in its slot — and both allow the identical switch in the control arm. This is a refusal comparison, not a board comparison; see the rule.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": {
     "asked": {
      "side": "B",
@@ -11233,6 +11747,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -11340,6 +11857,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -11355,6 +11875,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -11389,6 +11912,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -11429,6 +11955,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -11481,6 +12010,9 @@
    "why": "a bracket is only observable if the ORDER decides the final board, and the 1 legal buildable species that learn it (Palafin [Zero to Hero]) ALL carry only abilities this fixture may not hold — a second damage modifier, an immunity, an HP floor or something that moves the board by itself. That is a fact about the FORMAT'S ABILITY LIST, not about priority — asked of the format's own learnsets (the prevo chain, the way champions_sim walks it), not of a list. Derived from the move outward — its own users, slowest first — rather than from a fixed body pool inward.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -11496,6 +12028,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -11542,6 +12077,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -11582,6 +12120,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -11622,6 +12163,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -11662,6 +12206,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 393 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": [
@@ -11714,6 +12261,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -11754,6 +12304,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -11842,6 +12395,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -11882,6 +12438,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -11934,6 +12493,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -11998,6 +12560,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -12097,65 +12662,81 @@
    "kind": "move",
    "id": "lifedew",
    "name": "Life Dew",
-   "rule": "move/heal",
-   "reads": "heal",
-   "note": "chipped by Dragon Pulse, then healing twice; Torterra is chipped identically and never heals",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "rule": "move/heals-a-body-that-was-damaged-first",
+   "reads": "flags.heal on a Status move whose own data restores HP to a body that is NOT its user",
+   "note": "Torterra is chipped to 22% of its 170 HP by Ice Punch and holds NO ITEM, then Torkoal — its own partner — heals it on turn 2. Nothing on either side holds anything: a Sitrus Berry's 25% and Leftovers' maxhp/16 are the size of what is being measured and would fire in the control arm too",
+   "verdict": "FIRED-AND-BOARDS-DIFFER",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
      "turn": 2,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 620,
-     "without": 575
-    },
-    {
-     "turn": 2,
      "path": "p2.party.torterra.hp",
-     "with": 680,
-     "without": 654
+     "with": 81,
+     "without": 38
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 620,
-     "without": 575
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[1].hp",
-     "with": 680,
-     "without": 654
-    },
-    {
-     "turn": 3,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 620,
-     "without": 575
+     "with": 81,
+     "without": 38
     },
     {
      "turn": 3,
      "path": "p2.party.torterra.hp",
-     "with": 680,
-     "without": 654
+     "with": 81,
+     "without": 38
     },
     {
      "turn": 3,
      "path": "p2.active[0].hp",
-     "with": 620,
-     "without": 575
-    },
-    {
-     "turn": 3,
-     "path": "p2.active[1].hp",
-     "with": 680,
-     "without": 654
+     "with": 81,
+     "without": 38
     }
    ],
-   "diffs": []
+   "diffs": [
+    {
+     "turn": 2,
+     "slot": "",
+     "body": "torterra",
+     "field": "party.hp",
+     "showdown": 81,
+     "ours": 80,
+     "bucket": "off-by-one"
+    },
+    {
+     "turn": 2,
+     "slot": "p2a",
+     "body": "torterra",
+     "field": "hp",
+     "showdown": 81,
+     "ours": 80,
+     "bucket": "off-by-one"
+    },
+    {
+     "turn": 3,
+     "slot": "",
+     "body": "torterra",
+     "field": "party.hp",
+     "showdown": 81,
+     "ours": 80,
+     "bucket": "off-by-one"
+    },
+    {
+     "turn": 3,
+     "slot": "p2a",
+     "body": "torterra",
+     "field": "hp",
+     "showdown": 81,
+     "ours": 80,
+     "bucket": "off-by-one"
+    }
+   ]
   },
   {
    "kind": "move",
@@ -12168,6 +12749,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -12232,6 +12816,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -12296,6 +12883,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -12336,6 +12926,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -12351,6 +12944,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -12391,6 +12987,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -12443,6 +13042,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -12495,6 +13097,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -12547,6 +13152,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -12587,6 +13195,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -12602,6 +13213,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -12617,6 +13231,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -12632,6 +13249,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -12647,6 +13267,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -12723,6 +13346,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -12835,6 +13461,9 @@
    "why": "SHOWDOWN REFUSED THE SWITCH AND OUR ENGINE ALLOWED IT. The authority rejected the choice outright (p2 choice rejected \"switch 3, move 1\": Can't switch: The active Pokémon is trapped) and medicham2's slot now holds Torterra. The trap does not prevent a switch in this engine. The control proves the ask was real: without the move the same switch succeeded in both engines.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": {
     "asked": {
      "side": "B",
@@ -12864,6 +13493,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -12904,6 +13536,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -12944,6 +13579,9 @@
    "why": "the SUBJECT arm did not run: THREW — p1 choice rejected \"pass, move 1\": Can't pass: Your Milotic must make a move (or switch)",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -12959,6 +13597,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13036,6 +13677,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13070,6 +13714,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13092,6 +13739,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13144,6 +13794,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13178,6 +13831,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -13193,6 +13849,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13275,6 +13934,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13339,6 +14001,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13379,6 +14044,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13419,6 +14087,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13459,6 +14130,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13547,6 +14221,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13587,6 +14264,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13675,6 +14355,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13727,6 +14410,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13779,6 +14465,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13831,6 +14520,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13865,6 +14557,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13917,6 +14612,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13957,6 +14655,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -13997,6 +14698,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -14049,6 +14753,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -14246,6 +14953,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -14298,6 +15008,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -14344,6 +15057,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -14396,6 +15112,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -14473,6 +15192,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -14561,6 +15283,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -14637,6 +15362,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -14677,6 +15405,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -14741,6 +15472,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -14829,6 +15563,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -14875,6 +15612,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 262 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -14890,6 +15630,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -14930,6 +15673,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -14982,6 +15728,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -15022,6 +15771,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -15062,6 +15814,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -15102,6 +15857,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -15172,6 +15930,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -15212,6 +15973,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 393 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": [
@@ -15264,6 +16028,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -15304,6 +16071,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -15356,6 +16126,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -15396,6 +16169,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -15436,6 +16212,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -15451,6 +16230,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -15466,6 +16248,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -15543,6 +16328,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -15558,6 +16346,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -15598,6 +16389,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -15638,6 +16432,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -15684,6 +16481,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -15724,6 +16524,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -15764,6 +16567,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -15804,6 +16610,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -15868,6 +16677,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -15908,6 +16720,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -16015,6 +16830,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -16067,6 +16885,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -16107,6 +16928,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -16122,6 +16946,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -16162,6 +16989,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -16177,6 +17007,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -16247,6 +17080,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -16287,6 +17123,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -16302,6 +17141,9 @@
    "why": "ITS TYPE IS KEYED ON THE USER'S FORME, and the table is derived from its own onModifyType rather than missing: Tauros-Paldea-Combat -> Fighting, Tauros-Paldea-Blaze -> Fire, Tauros-Paldea-Aqua -> Water (printed type Normal). A forme is not a knob that can be varied on one board — the formes are different SPECIES with different stats — so isolating the conversion needs two users and a cross-comparison this rule's scaffold does not express, and staging one forme would read as a damage number that proves only that the move deals damage. Its users are separate species and it has no such knob.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -16317,6 +17159,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -16363,6 +17208,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -16427,6 +17275,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -16479,6 +17330,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -16525,40 +17379,62 @@
    "id": "recover",
    "name": "Recover",
    "rule": "move/heal",
-   "reads": "heal",
-   "note": "chipped by Dragon Pulse, then healing twice; Torterra is chipped identically and never heals",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "reads": "heal — a DECLARED fraction of the user's own maximum",
+   "note": "Torkoal is chipped 118 of its REAL 145 HP by Earth Power — deeper than the 1/2 this restores, so the first heal cannot clamp — then heals twice; the second click IS the overshoot negative. ITS MAXIMUM DOES NOT DIVIDE BY 2 (145 x 1/2), so the authority's rounding of that quotient is under test too. Goodra-Hisui is chipped by Dragon Pulse and never heals",
+   "verdict": "FIRED-AND-BOARDS-DIFFER",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
      "turn": 2,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 620,
-     "without": 575
+     "path": "p2.party.torkoal.hp",
+     "with": 100,
+     "without": 27
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 620,
-     "without": 575
+     "with": 100,
+     "without": 27
     },
     {
      "turn": 3,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 620,
-     "without": 575
+     "path": "p2.party.torkoal.hp",
+     "with": 145,
+     "without": 27
     },
     {
      "turn": 3,
      "path": "p2.active[0].hp",
-     "with": 620,
-     "without": 575
+     "with": 145,
+     "without": 27
     }
    ],
-   "diffs": []
+   "diffs": [
+    {
+     "turn": 2,
+     "slot": "",
+     "body": "torkoal",
+     "field": "party.hp",
+     "showdown": 100,
+     "ours": 99,
+     "bucket": "off-by-one"
+    },
+    {
+     "turn": 2,
+     "slot": "p2a",
+     "body": "torkoal",
+     "field": "hp",
+     "showdown": 100,
+     "ours": 99,
+     "bucket": "off-by-one"
+    }
+   ]
   },
   {
    "kind": "move",
@@ -16571,6 +17447,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -16648,6 +17527,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -16712,6 +17594,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -16720,55 +17605,82 @@
    "kind": "move",
    "id": "rest",
    "name": "Rest",
-   "rule": "move/generic-status",
-   "reads": "nothing matched above — this is the second residue, and it is the WEAK one",
-   "note": "generic: clicked ONCE on turn 2 by Goodra-Hisui itself, both sides chipped and holding an item",
+   "rule": "move/full-heal-that-also-writes-a-status-onto-its-user",
+   "reads": "a self-targeting flags.heal move whose own onHit BOTH heals AND calls setStatus",
+   "note": "Samurott is chipped 63 of 170 HP by Dragon Claw AND given psn by Toxic Thread on turn 1, then clicks on turn 2 — so all three of its effects have somewhere to land, and two quiet boundaries follow so the sleep counter it writes has to walk. Nothing holds an item",
    "verdict": "DID-NOT-FIRE",
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
      "turn": 2,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 1240,
-     "without": 1150
+     "path": "p2.party.samurott.hp",
+     "with": 170,
+     "without": 65
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 1240,
-     "without": 1150
+     "with": 170,
+     "without": 65
     },
     {
      "turn": 2,
      "path": "p2.active[0].status",
      "with": "slp",
-     "without": ""
+     "without": "psn"
     },
     {
      "turn": 3,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 1195,
-     "without": 1105
+     "path": "p2.party.samurott.hp",
+     "with": 170,
+     "without": 44
     },
     {
      "turn": 3,
      "path": "p2.active[0].hp",
-     "with": 1195,
-     "without": 1105
+     "with": 170,
+     "without": 44
     },
     {
      "turn": 3,
      "path": "p2.active[0].status",
      "with": "slp",
-     "without": ""
+     "without": "psn"
     },
     {
      "turn": 3,
      "path": "p2.active[0].status_counter",
      "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 4,
+     "path": "p2.party.samurott.hp",
+     "with": 170,
+     "without": 23
+    },
+    {
+     "turn": 4,
+     "path": "p2.active[0].hp",
+     "with": 170,
+     "without": 23
+    },
+    {
+     "turn": 4,
+     "path": "p2.active[0].status",
+     "with": "slp",
+     "without": "psn"
+    },
+    {
+     "turn": 4,
+     "path": "p2.active[0].status_counter",
+     "with": 2,
      "without": 0
     }
    ],
@@ -16776,65 +17688,101 @@
     {
      "turn": 2,
      "slot": "",
-     "body": "goodrahisui",
+     "body": "samurott",
      "field": "party.hp",
-     "showdown": 1240,
-     "ours": 1150,
+     "showdown": 170,
+     "ours": 65,
      "bucket": "off-by-4-or-more"
     },
     {
      "turn": 2,
      "slot": "p2a",
-     "body": "goodrahisui",
+     "body": "samurott",
      "field": "hp",
-     "showdown": 1240,
-     "ours": 1150,
+     "showdown": 170,
+     "ours": 65,
      "bucket": "off-by-4-or-more"
     },
     {
      "turn": 2,
      "slot": "p2a",
-     "body": "goodrahisui",
+     "body": "samurott",
      "field": "status",
      "showdown": "slp",
-     "ours": "",
-     "bucket": "present-in-one-engine-only"
+     "ours": "psn",
+     "bucket": "different-value"
     },
     {
      "turn": 3,
      "slot": "",
-     "body": "goodrahisui",
+     "body": "samurott",
      "field": "party.hp",
-     "showdown": 1195,
-     "ours": 1105,
+     "showdown": 170,
+     "ours": 44,
      "bucket": "off-by-4-or-more"
     },
     {
      "turn": 3,
      "slot": "p2a",
-     "body": "goodrahisui",
+     "body": "samurott",
      "field": "hp",
-     "showdown": 1195,
-     "ours": 1105,
+     "showdown": 170,
+     "ours": 44,
      "bucket": "off-by-4-or-more"
     },
     {
      "turn": 3,
      "slot": "p2a",
-     "body": "goodrahisui",
+     "body": "samurott",
      "field": "status",
      "showdown": "slp",
-     "ours": "",
-     "bucket": "present-in-one-engine-only"
+     "ours": "psn",
+     "bucket": "different-value"
     },
     {
      "turn": 3,
      "slot": "p2a",
-     "body": "goodrahisui",
+     "body": "samurott",
      "field": "status_counter",
      "showdown": 1,
      "ours": 0,
      "bucket": "off-by-one"
+    },
+    {
+     "turn": 4,
+     "slot": "",
+     "body": "samurott",
+     "field": "party.hp",
+     "showdown": 170,
+     "ours": 23,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 4,
+     "slot": "p2a",
+     "body": "samurott",
+     "field": "hp",
+     "showdown": 170,
+     "ours": 23,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 4,
+     "slot": "p2a",
+     "body": "samurott",
+     "field": "status",
+     "showdown": "slp",
+     "ours": "psn",
+     "bucket": "different-value"
+    },
+    {
+     "turn": 4,
+     "slot": "p2a",
+     "body": "samurott",
+     "field": "status_counter",
+     "showdown": 2,
+     "ours": 0,
+     "bucket": "off-by-2-or-3"
     }
    ]
   },
@@ -16849,6 +17797,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -16889,6 +17840,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -16929,6 +17883,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -16981,6 +17938,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -17021,6 +17981,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -17055,6 +18018,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -17119,6 +18085,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -17171,6 +18140,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -17199,6 +18171,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -17208,40 +18183,62 @@
    "id": "roost",
    "name": "Roost",
    "rule": "move/heal",
-   "reads": "heal",
-   "note": "chipped by Dragon Pulse, then healing twice; Torterra is chipped identically and never heals",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "reads": "heal — a DECLARED fraction of the user's own maximum",
+   "note": "Torkoal is chipped 118 of its REAL 145 HP by Earth Power — deeper than the 1/2 this restores, so the first heal cannot clamp — then heals twice; the second click IS the overshoot negative. ITS MAXIMUM DOES NOT DIVIDE BY 2 (145 x 1/2), so the authority's rounding of that quotient is under test too. Goodra-Hisui is chipped by Dragon Pulse and never heals",
+   "verdict": "FIRED-AND-BOARDS-DIFFER",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
      "turn": 2,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 620,
-     "without": 575
+     "path": "p2.party.torkoal.hp",
+     "with": 100,
+     "without": 27
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 620,
-     "without": 575
+     "with": 100,
+     "without": 27
     },
     {
      "turn": 3,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 620,
-     "without": 575
+     "path": "p2.party.torkoal.hp",
+     "with": 145,
+     "without": 27
     },
     {
      "turn": 3,
      "path": "p2.active[0].hp",
-     "with": 620,
-     "without": 575
+     "with": 145,
+     "without": 27
     }
    ],
-   "diffs": []
+   "diffs": [
+    {
+     "turn": 2,
+     "slot": "",
+     "body": "torkoal",
+     "field": "party.hp",
+     "showdown": 100,
+     "ours": 99,
+     "bucket": "off-by-one"
+    },
+    {
+     "turn": 2,
+     "slot": "p2a",
+     "body": "torkoal",
+     "field": "hp",
+     "showdown": 100,
+     "ours": 99,
+     "bucket": "off-by-one"
+    }
+   ]
   },
   {
    "kind": "move",
@@ -17254,6 +18251,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -17294,6 +18294,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -17334,6 +18337,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 659 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": [
@@ -17386,6 +18392,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -17463,6 +18472,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -17527,6 +18539,9 @@
    "why": "both engines refuse the switch — Showdown rejects the choice and medicham2 leaves the body in its slot — and both allow the identical switch in the control arm. This is a refusal comparison, not a board comparison; see the rule.",
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": {
     "asked": {
      "side": "B",
@@ -17556,6 +18571,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -17596,6 +18614,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -17660,6 +18681,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -17694,6 +18718,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -17734,6 +18761,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -17768,6 +18798,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -17808,6 +18841,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -17848,6 +18884,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -17930,6 +18969,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -17970,6 +19012,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -18010,6 +19055,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -18050,6 +19098,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -18090,6 +19141,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -18166,6 +19220,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -18212,6 +19269,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -18252,6 +19312,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -18358,6 +19421,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -18392,6 +19458,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -18407,6 +19476,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -18435,6 +19507,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -18450,6 +19525,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -18502,6 +19580,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 262 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -18511,40 +19592,62 @@
    "id": "slackoff",
    "name": "Slack Off",
    "rule": "move/heal",
-   "reads": "heal",
-   "note": "chipped by Dragon Pulse, then healing twice; Torterra is chipped identically and never heals",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "reads": "heal — a DECLARED fraction of the user's own maximum",
+   "note": "Torkoal is chipped 118 of its REAL 145 HP by Earth Power — deeper than the 1/2 this restores, so the first heal cannot clamp — then heals twice; the second click IS the overshoot negative. ITS MAXIMUM DOES NOT DIVIDE BY 2 (145 x 1/2), so the authority's rounding of that quotient is under test too. Goodra-Hisui is chipped by Dragon Pulse and never heals",
+   "verdict": "FIRED-AND-BOARDS-DIFFER",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
      "turn": 2,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 620,
-     "without": 575
+     "path": "p2.party.torkoal.hp",
+     "with": 100,
+     "without": 27
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 620,
-     "without": 575
+     "with": 100,
+     "without": 27
     },
     {
      "turn": 3,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 620,
-     "without": 575
+     "path": "p2.party.torkoal.hp",
+     "with": 145,
+     "without": 27
     },
     {
      "turn": 3,
      "path": "p2.active[0].hp",
-     "with": 620,
-     "without": 575
+     "with": 145,
+     "without": 27
     }
    ],
-   "diffs": []
+   "diffs": [
+    {
+     "turn": 2,
+     "slot": "",
+     "body": "torkoal",
+     "field": "party.hp",
+     "showdown": 100,
+     "ours": 99,
+     "bucket": "off-by-one"
+    },
+    {
+     "turn": 2,
+     "slot": "p2a",
+     "body": "torkoal",
+     "field": "hp",
+     "showdown": 100,
+     "ours": 99,
+     "bucket": "off-by-one"
+    }
+   ]
   },
   {
    "kind": "move",
@@ -18557,6 +19660,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -18585,6 +19691,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -18600,6 +19709,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -18640,6 +19752,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -18704,6 +19819,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -18744,6 +19862,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -18784,6 +19905,9 @@
    "why": "both engines refuse the switch — Showdown rejects the choice and medicham2 leaves the body in its slot — and both allow the identical switch in the control arm. This is a refusal comparison, not a board comparison; see the rule.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": {
     "asked": {
      "side": "B",
@@ -18813,6 +19937,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -18901,6 +20028,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 393 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": [
@@ -18953,6 +20083,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -19017,6 +20150,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -19026,40 +20162,62 @@
    "id": "softboiled",
    "name": "Soft-Boiled",
    "rule": "move/heal",
-   "reads": "heal",
-   "note": "chipped by Dragon Pulse, then healing twice; Torterra is chipped identically and never heals",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "reads": "heal — a DECLARED fraction of the user's own maximum",
+   "note": "Torkoal is chipped 118 of its REAL 145 HP by Earth Power — deeper than the 1/2 this restores, so the first heal cannot clamp — then heals twice; the second click IS the overshoot negative. ITS MAXIMUM DOES NOT DIVIDE BY 2 (145 x 1/2), so the authority's rounding of that quotient is under test too. Goodra-Hisui is chipped by Dragon Pulse and never heals",
+   "verdict": "FIRED-AND-BOARDS-DIFFER",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
      "turn": 2,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 620,
-     "without": 575
+     "path": "p2.party.torkoal.hp",
+     "with": 100,
+     "without": 27
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 620,
-     "without": 575
+     "with": 100,
+     "without": 27
     },
     {
      "turn": 3,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 620,
-     "without": 575
+     "path": "p2.party.torkoal.hp",
+     "with": 145,
+     "without": 27
     },
     {
      "turn": 3,
      "path": "p2.active[0].hp",
-     "with": 620,
-     "without": 575
+     "with": 145,
+     "without": 27
     }
    ],
-   "diffs": []
+   "diffs": [
+    {
+     "turn": 2,
+     "slot": "",
+     "body": "torkoal",
+     "field": "party.hp",
+     "showdown": 100,
+     "ours": 99,
+     "bucket": "off-by-one"
+    },
+    {
+     "turn": 2,
+     "slot": "p2a",
+     "body": "torkoal",
+     "field": "hp",
+     "showdown": 100,
+     "ours": 99,
+     "bucket": "off-by-one"
+    }
+   ]
   },
   {
    "kind": "move",
@@ -19072,6 +20230,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -19100,6 +20261,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -19128,6 +20292,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -19216,6 +20383,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -19231,6 +20401,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -19283,6 +20456,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -19323,6 +20499,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -19369,6 +20548,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -19421,6 +20603,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -19461,6 +20646,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -19476,6 +20664,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -19577,6 +20768,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -19617,6 +20811,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -19676,6 +20873,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -19822,6 +21022,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -19886,6 +21089,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -19938,6 +21144,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -19997,6 +21206,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -20104,6 +21316,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -20144,6 +21359,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -20215,6 +21433,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -20255,6 +21476,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -20295,6 +21519,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -20335,6 +21562,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -20363,6 +21593,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -20415,6 +21648,9 @@
    "why": "Showdown DISABLES Struggle for any body that still has a usable move, and every body this file stages carries at least the inert click — so the scripted choice is rejected (\"Struggle is disabled\") and the game throws. Reaching it would need a body whose whole moveset is spent, which the script language has no way to arrange because medicham2 does not track PP at all (board_state.js NOT_COMPARED).",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -20430,6 +21666,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -20518,6 +21757,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -20637,6 +21879,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -20671,6 +21916,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -20741,6 +21989,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -20781,6 +22032,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -20845,6 +22099,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -20885,6 +22142,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -20925,6 +22185,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -20989,6 +22252,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -21077,6 +22343,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -21153,6 +22422,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -21193,6 +22465,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -21263,6 +22538,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -21315,6 +22593,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -21379,6 +22660,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -21413,6 +22697,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -21453,6 +22740,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -21524,6 +22814,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -21564,6 +22857,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -21598,6 +22894,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -21626,6 +22925,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -21678,6 +22980,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -21785,6 +23090,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -21825,6 +23133,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -21865,6 +23176,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -21942,6 +23256,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -21982,6 +23299,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -22028,6 +23348,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -22068,6 +23391,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -22120,6 +23446,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -22160,6 +23489,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -22212,6 +23544,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -22252,6 +23587,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -22286,6 +23624,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -22338,6 +23679,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -22378,6 +23722,9 @@
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -22485,6 +23832,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -22537,6 +23887,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 393 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -22552,6 +23905,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -22677,6 +24033,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -22717,6 +24076,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -22805,6 +24167,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -22857,6 +24222,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -22872,6 +24240,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -22912,6 +24283,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -22976,6 +24350,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -22991,6 +24368,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -23025,6 +24405,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -23073,10 +24456,13 @@
    "rule": "move/multihit",
    "reads": "multihit",
    "note": "multihit 3 — THE PIN LANDS ON 3 HIT(S), which is the bottom corner of the range and the only count either engine can be asked about here  [pinned to bottom-tie-first — it is 90-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -23104,44 +24490,7 @@
      "without": 1240
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1193,
-     "ours": 1216,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1193,
-     "ours": 1216,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1146,
-     "ours": 1192,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1146,
-     "ours": 1192,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -23154,6 +24503,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -23206,6 +24558,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -23246,6 +24601,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 393 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": [
@@ -23388,6 +24746,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -23428,6 +24789,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -23504,6 +24868,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -23544,6 +24911,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -23584,6 +24954,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -23660,6 +25033,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -23724,6 +25100,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -23764,6 +25143,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -23804,6 +25186,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -23844,6 +25229,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -23908,6 +25296,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -23972,6 +25363,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -24000,6 +25394,9 @@
    "why": "both engines refuse the switch — Showdown rejects the choice and medicham2 leaves the body in its slot — and both allow the identical switch in the control arm. This is a refusal comparison, not a board comparison; see the rule.",
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": {
     "asked": {
      "side": "B",
@@ -24029,6 +25426,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -24081,6 +25481,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -24096,6 +25499,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -24160,6 +25566,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -24223,75 +25632,78 @@
    "kind": "move",
    "id": "wish",
    "name": "Wish",
-   "rule": "move/slot-condition",
-   "reads": "slotCondition",
-   "note": "Wish — chipped on turn 1, clicked on turn 2, and the effect has to arrive by boundary 4; Torterra is chipped identically and clicks nothing",
+   "rule": "move/heals-the-slot-a-turn-later-across-a-switch",
+   "reads": "a slotCondition whose own condition heals from its onEnd/onResidual, and whose user does NOT faint",
+   "note": "Torterra (170 HP) is chipped 132 by Ice Punch on turn 1, leaves on turn 2 for Falinks (140 HP), which wishes on turn 3 and is swapped back out on turn 4 — the turn the wish resolves. HALF THE WISHER'S MAX HP IS 70 AND HALF THE RECIPIENT'S IS 85, so an engine reading the wrong body's maximum lands 15 HP away. Nothing holds an item",
    "verdict": "DID-NOT-FIRE",
    "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 3,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 620,
-     "without": 575
-    },
-    {
-     "turn": 3,
-     "path": "p2.active[0].hp",
-     "with": 620,
-     "without": 575
-    },
-    {
      "turn": 4,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 620,
-     "without": 575
+     "path": "p2.party.torterra.hp",
+     "with": 108,
+     "without": 38
     },
     {
      "turn": 4,
      "path": "p2.active[0].hp",
-     "with": 620,
-     "without": 575
+     "with": 108,
+     "without": 38
+    },
+    {
+     "turn": 5,
+     "path": "p2.party.torterra.hp",
+     "with": 108,
+     "without": 38
+    },
+    {
+     "turn": 5,
+     "path": "p2.active[0].hp",
+     "with": 108,
+     "without": 38
     }
    ],
    "diffs": [
     {
-     "turn": 3,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 620,
-     "ours": 575,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 620,
-     "ours": 575,
-     "bucket": "off-by-4-or-more"
-    },
-    {
      "turn": 4,
      "slot": "",
-     "body": "goodrahisui",
+     "body": "torterra",
      "field": "party.hp",
-     "showdown": 620,
-     "ours": 575,
+     "showdown": 108,
+     "ours": 38,
      "bucket": "off-by-4-or-more"
     },
     {
      "turn": 4,
      "slot": "p2a",
-     "body": "goodrahisui",
+     "body": "torterra",
      "field": "hp",
-     "showdown": 620,
-     "ours": 575,
+     "showdown": 108,
+     "ours": 38,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 5,
+     "slot": "",
+     "body": "torterra",
+     "field": "party.hp",
+     "showdown": 108,
+     "ours": 38,
+     "bucket": "off-by-4-or-more"
+    },
+    {
+     "turn": 5,
+     "slot": "p2a",
+     "body": "torterra",
+     "field": "hp",
+     "showdown": 108,
+     "ours": 38,
      "bucket": "off-by-4-or-more"
     }
    ]
@@ -24307,6 +25719,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -24322,6 +25737,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -24386,6 +25804,9 @@
    "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
    "diffs": []
@@ -24401,6 +25822,9 @@
    "why": "both engines refuse the switch — Showdown rejects the choice and medicham2 leaves the body in its slot — and both allow the identical switch in the control arm. This is a refusal comparison, not a board comparison; see the rule.",
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": {
     "asked": {
      "side": "B",
@@ -24430,6 +25854,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -24470,6 +25897,9 @@
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -24492,6 +25922,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
@@ -24544,6 +25977,9 @@
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
+   "out_of_scope": null,
+   "declared_untestable": false,
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {

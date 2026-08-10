@@ -129,6 +129,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * real games says the family is off the path -- 4,924 corpus uses between them, so it should not
    * be. Wide Guard's half was live before this wire and Quick Guard's was structurally impossible. */
   sideGuardBlocked: 0,
+  /* WIRE 149 -- THE CHOOSER SELECTED A SIDE GUARD. `sideGuardBlocked` above counts a guard that was
+   * ALREADY UP refusing a move, which says nothing about whether the internal heuristic chooser can
+   * pick one -- and it could not pick Quick Guard at all. These two count the SELECTION, split by the
+   * CLASS the guard refuses rather than by the guard's name, so a third member of the family is
+   * counted by whichever class it declares and nobody types a name. A zero on either after self-play
+   * means the chooser cannot reach that class, which is exactly the state this wire found. */
+  sideGuardChosenVsPriority: 0, sideGuardChosenVsSpread: 0,
   /* ROADMAP #92 -- CONFUSION, which did not exist in this engine at all until this pass, so every
    * one of these was structurally zero and there was nothing to notice. Each is a different event and
    * a zero on each says a different thing:
@@ -391,6 +398,11 @@ const MEDFAILS = { encoreAction: 0,
    * for, so the guard was raised and refused nothing. Zero today: the only two members are "spread
    * moves" and "priority moves" and both are wired. Crafty Shield and Mat Block would land here. */
   guardClassUnknown: 0, guardClassUnknownFirst: '',
+  /* WIRE 149 -- a move whose `target` is neither in this engine's foe-facing set nor its own-side set,
+   * so the chooser could not tell whether it is a threat worth guarding against. Zero today: the two
+   * sets cover all 14 target strings across the 500 moves in the table. And a family whose tag records
+   * carry no `uses` at all, which would otherwise silently set every guard's click rate to 0. */
+  guardTargetClassUnknown: 0, guardTargetClassUnknownFirst: '', sideGuardRateNoUses: 0,
   megaRevert: 0, weatherUnknown: 0, weatherUnknownFirst: '',
   /* ROADMAP #92 -- MISTY TERRAIN ALSO REFUSES CONFUSION to a grounded body, and this engine has no
    * per-terrain volatile refusal to hang that on. 9 corpus uses. Counted every time confusion is
@@ -1325,9 +1337,34 @@ function priorityRefusedAbove(defenders, field, aimedAt){
  *      half -- consecutive Quick Guards do not roll a die -- and it matches the authority. The second
  *      half is ROADMAP #59's three-behaviours-collapsed-into-two and is left exactly as it was, so
  *      this wire changes nothing about Protect. */
+/* WIRE 149 -- ONE ROW PER CLASS, AND THE SELECTION COUNTER IS IN THE SAME ROW. It was two bare
+ * predicates; the chooser now needs a counter per class too, and a SECOND table keyed by the same
+ * strings is how a class comes to be in one and not the other. `test` is the refusal predicate WIRE
+ * 148 wrote, unchanged. */
+/* `worth` is WIRE 149's SITUATIONAL half and it is per-class because the two classes are worth a turn
+ * for different reasons -- see that wire's header for the corpus numbers behind each.
+ *   SPREAD: `true`, and that is a statement of the CURRENT behaviour, not a claim that no situational
+ *     test would improve it. Wide Guard's chooser branch has never had one, its click count is a
+ *     baseline other measurements rest on, and adding a test here would move it. Left alone
+ *     deliberately, said out loud rather than left to be inferred from an absent line.
+ *   PRIORITY: the threat must actually cost something. `test` alone is true on roughly three boards
+ *     in four -- Incineroar and Kingambit are the two most-brought bodies in the format and both
+ *     carry one -- so a guard gated on `test` alone spams. Two ways a priority move costs a turn, and
+ *     both are read off the artifact rather than off a move name:
+ *       it FINISHES a body of mine (max roll >= current HP), which is what a revenge jet is for; or
+ *       it carries `flinches`, which takes the turn away at ANY hp -- Fake Out, and the entry-turn
+ *       gate above has already refused it if it cannot be used. */
 const GUARD_PRED = {
-  'spread moves':   (ctx) => !!ctx.spread,
-  'priority moves': (ctx) => ctx.priority > 0.1,
+  'spread moves':   { test:(ctx) => !!ctx.spread,        chosen:'sideGuardChosenVsSpread',
+                      worth:() => true },
+  'priority moves': { test:(ctx) => ctx.priority > 0.1,  chosen:'sideGuardChosenVsPriority',
+                      worth:(fo,id,mine,field) => {
+                        if(TAGS.has('move',id,'flinches')) return true;
+                        const mv=MC.moves[id];
+                        if(!mv||!hasPower(mv)) return false;
+                        return (mine||[]).some(b => b && !b.fainted && b.curHP>0 &&
+                                 dmgRange(fo,b,mv,field,SPREAD.has(id)).max >= b.curHP);
+                      } },
 };
 function sideGuardBlocksClass(gid){
   const p = gid && TAGS.param('move', gid, 'oneTurnGuard');
@@ -1341,21 +1378,160 @@ function sideGuardName(gid){
  * `guard` is the side's `sgA`/`sgB` map: guard move id -> true, one entry per guard raised this turn.
  * The STATE stores which guard is up; the CLASS is re-derived from the artifact on every read, so a
  * change to `blocks` upstream cannot be out of step with a copy cached in the field. */
+/* WIRE 149 -- THE REFUSAL, AS A PURE QUESTION. true / false / null, where null means the artifact
+ * named a `blocks` class this engine has no predicate for. It carries NO COUNTER, deliberately: the
+ * chooser below asks this HYPOTHETICALLY, once per foe move per turn, and a counter fired here would
+ * inflate `sideGuardBlocked` -- the very number this wire is measured by -- with events that never
+ * happened. The execution-time wrapper owns the counting; see LESSONS on a probe measuring itself. */
+function guardRefusalOf(gid, moveId, ctx){
+  if(!gid || !moveId) return false;
+  if(TAGS.has('move', moveId, 'ignoresProtect')) return false;   // checkMoveBypassesProtect, upstream
+  const row = GUARD_PRED[sideGuardBlocksClass(gid)];
+  if(!row) return null;
+  return !!row.test(ctx);
+}
 function sideGuardRefuses(guard, moveId, ctx){
   if(!guard || !moveId) return null;
-  if(TAGS.has('move', moveId, 'ignoresProtect')) return null;   // checkMoveBypassesProtect, upstream
   for(const gid of Object.keys(guard)){
     if(!guard[gid]) continue;
-    const cls = sideGuardBlocksClass(gid);
-    const pred = GUARD_PRED[cls];
-    if(!pred){
+    const r = guardRefusalOf(gid, moveId, ctx);
+    if(r === null){
       MEDFAILS.guardClassUnknown++;
-      if(!MEDFAILS.guardClassUnknownFirst) MEDFAILS.guardClassUnknownFirst = gid+':'+(cls||'(no oneTurnGuard param)');
+      if(!MEDFAILS.guardClassUnknownFirst) MEDFAILS.guardClassUnknownFirst = gid+':'+(sideGuardBlocksClass(gid)||'(no oneTurnGuard param)');
       continue;
     }
-    if(pred(ctx)){ MEDSEEN.sideGuardBlocked++; return gid; }
+    if(r){ MEDSEEN.sideGuardBlocked++; return gid; }
   }
   return null;
+}
+
+/* WIRE 149 -- THE CHOOSER CAN CLICK A SIDE GUARD, AND WHICH ONE IS DERIVED FROM THE SAME PARAM THE
+ * REFUSAL IS. Will, 2026-08-10: *"its gotta be able to click it man"*, and the trigger is his too:
+ * *"if the other team has some prio it should be able to be clicked"*.
+ *
+ * WIRE 148 made Quick Guard WORK through `playerAction` -- the path the live bot, the differential and
+ * every probe take. It did not touch `chooseAction`, the internal heuristic chooser that drives every
+ * ROLLOUT and every self-play game, and that still read
+ *
+ *     if(me.moves.includes('wideguard') && ... ) { ...SPREAD... return {kind:'wideguard'}; }
+ *
+ * -- the identical name match, one function further in. MEASURED BEFORE THE CHANGE, 200 self-play
+ * games / 1,176 turns with BOTH guards in every side-A body's hand: Wide Guard clicked 270 times,
+ * Quick Guard **0**. A move the search cannot select is worth nothing to the search, so the mechanic
+ * WIRE 148 landed was unreachable from MILTANK.
+ *
+ * WHAT IS DERIVED, AND FROM WHAT:
+ *   WHICH MOVES ARE GUARDS   `TAGS.has('move', id, 'oneTurnGuard')` -- exactly 2 of 500, printed.
+ *   WHAT EACH ONE REFUSES    `oneTurnGuard.blocks` through GUARD_PRED -- the SAME table
+ *                            `sideGuardRefuses` uses at execution time, so the chooser cannot come to
+ *                            believe a guard blocks something the turn loop will let through.
+ *   HOW OFTEN IT CLICKS      the guard's own `uses` off the tag record, relative to the most-used
+ *                            member of its family. Wide Guard is the max, so it keeps its historic
+ *                            0.35 EXACTLY and this wire cannot regress it; Quick Guard gets
+ *                            0.35 x 927/3997 = 0.081.
+ *
+ * THE THREAT SCAN IS WIDE GUARD'S OWN, GENERALISED. It read
+ * `live.some(fo => fo.moves.some(id => SPREAD.has(id)))` -- "does a LIVE foe hold a move of the class
+ * I refuse". That is now asked through `guardRefusalOf`, so the two classes share one scan. Reading
+ * `live` rather than the declared team is what answers CLAUDE.md's Focus-Sash caution: a foe whose
+ * only priority user has FAINTED is not on `live` and stops being a threat that turn, with no separate
+ * bookkeeping to go stale.
+ *
+ * TWO FILTERS THE SCAN NEEDS THAT THE OLD ONE DID NOT, both taken from the execution path rather than
+ * invented, because "the foe holds a priority move" is otherwise true of 99.3% of boards:
+ *   AIMED AT THE OTHER SIDE  the execution gate is `a.target && _pf.indexOf(a.target)>=0`. At
+ *                            selection time there is no action, so the same question is asked of the
+ *                            move's own `target`. WITHOUT IT PROTECT IS A PRIORITY THREAT: measured
+ *                            over the 500 moves this engine carries, 29 sit above +0.1 and only 17
+ *                            are foe-facing -- the other 12 are Protect, Detect, Endure, King's
+ *                            Shield, Spiky Shield, Baneful Bunker, Ally Switch, Follow Me, Rage
+ *                            Powder, Helping Hand and the two guards themselves. Base rate of a
+ *                            usage-weighted foe PAIR holding one: 99.3% unfiltered, 50.5% filtered.
+ *   ignoresProtect           already inside `guardRefusalOf`, so Feint does not make Quick Guard look
+ *                            worth clicking when it would go straight through it.
+ *
+ * WHAT VALIDATES THE TRIGGER IS THE CORPUS, NOT MY REASONING. Scanned `data/games.ladder.jsonl`,
+ * 51,445 games / 102,890 sides, 2026-08-10: of the 482 sides that clicked Quick Guard, the OPPOSING
+ * side used one of those 17 foe-facing priority moves in **63.3%** of those games, against a base rate
+ * of **37.5%** over all sides. A 1.69x lift -- humans click it when the other team has priority, which
+ * is the rule this wires. (The same scan says the observed click ratio in real games is 601:6,460 =
+ * 0.093, where `tags.json` `uses` says 927:3,997 = 0.232. ROADMAP #70's standing caveat: the two
+ * disagree and the store is the harder fact. The rate here is derived from the artifact and lands
+ * between them -- see the sprint note.)
+ *
+ * `live.length>1` IS KEPT AND IS NOW APPLIED TO BOTH. It is not a spread-specific test -- it is "this
+ * is still a real doubles board", and burning a whole turn on a side condition against one remaining
+ * foe is a bad click for either guard. Applying it uniformly keeps ONE branch with no names in it,
+ * leaves the Wide Guard arm byte-identical, and errs toward fewer Quick Guard clicks.
+ *
+ * NOT A CORRECTNESS CLAIM. This is a PLAY change: no probe can show that Showdown's own player would
+ * have clicked Quick Guard on a given turn. What is asserted is the behaviour -- the chooser can now
+ * select it, at a rate measured against the corpus -- and nothing about the authority. */
+const GUARD_TARGET_FOE  = new Set(['normal','any','allAdjacent','allAdjacentFoes','randomNormal','scripted','foeSide']);
+const GUARD_TARGET_SELF = new Set(['self','adjacentAlly','adjacentAllyOrSelf','allies','allySide','allyTeam','all']);
+function guardMoveAimedAtFoes(id){
+  const t = String((moveFx(id)||{}).target||'');
+  if(GUARD_TARGET_FOE.has(t))  return true;
+  if(GUARD_TARGET_SELF.has(t)) return false;
+  /* A SILENT DEFAULT LOOKS EXACTLY LIKE A WORKING FEATURE. The two sets above cover all 14 target
+   * strings present across the 500 moves in this engine's table; a fifteenth arriving is counted
+   * rather than quietly deciding whether a guard is worth clicking. */
+  MEDFAILS.guardTargetClassUnknown++;
+  if(!MEDFAILS.guardTargetClassUnknownFirst) MEDFAILS.guardTargetClassUnknownFirst = id+':'+(t||'(no target)');
+  return false;
+}
+/* WIRE 149 -- FAKE OUT'S "ONLY ON THE TURN YOU ENTER" RULE, ASKED IN ONE PLACE. It was written out by
+ * name at three sites (`bestMoveVs`, `targetForMove`, and the execution branch that fails the move)
+ * and this wire needed a fourth reader, which is how a rule ends up with four copies and three of
+ * them right. The authority expresses it as `onTry` on the move rather than as a flag, so there is no
+ * upstream flag and no tag to derive from -- the NAME is currently the only source, and having it
+ * once is the difference this can make. */
+function firstTurnOnlyRefused(mon,id){ return id==='fakeout' && !!(mon && mon._turnsOut>0); }
+/* Does any LIVE foe hold a move that this guard would refuse, AND is it worth a whole turn to stop?
+ * `mine` is my own live side, because the second half is a question about what I stand to lose. */
+function foeThreatensGuardClass(gid, live, mine, field){
+  const row = GUARD_PRED[sideGuardBlocksClass(gid)];
+  if(!row) return false;
+  for(const fo of (live||[])){
+    for(const id of (fo && fo.moves) || []){
+      if(!guardMoveAimedAtFoes(id)) continue;
+      /* A MOVE THE FOE CANNOT USE THIS TURN IS NOT A THREAT, and both exclusions are the difference
+       * between a rule that fires on three boards in four and one that discriminates.
+       *   FIRST-TURN-ONLY -- Fake Out is the most-used priority move in the corpus by a distance
+       *     (16,761) and is legal only on the turn its user entered. Through the shared predicate, so
+       *     this is not a fourth copy of the rule.
+       *   needsTargetToAttack -- Sucker Punch (9,178) and Upper Hand (89) FAIL unless the target is
+       *     attacking, and a body that spends its turn raising a side guard is not attacking. So the
+       *     guard click would be answering a move that was going to fail anyway. This is read off the
+       *     TAG, which is why it costs nothing to be right about it. */
+      if(firstTurnOnlyRefused(fo,id)) continue;
+      if(TAGS.has('move',id,'needsTargetToAttack')) continue;
+      /* the same `+_pk` Prankster term the execution gate adds -- a Prankster body's status move is
+       * refused at +1, which is more than half of what Quick Guard is for. */
+      const pk = (TAGS.has('move',id,'statusCategory') && isPrankster(fo)) ? 1 : 0;
+      if(guardRefusalOf(gid, id, {spread:SPREAD.has(id), priority:movePriority(id,field)+pk}) !== true) continue;
+      if(row.worth(fo, id, mine, field)) return true;
+    }
+  }
+  return false;
+}
+/* How often the chooser clicks this guard when its class IS threatened: the family's historic 0.35,
+ * scaled by this member's corpus `uses` against the most-used member's. Built once, lazily, because
+ * the tag DB can be swapped under this file (`__setDB`). */
+const SIDE_GUARD_TOP_RATE = 0.35;
+let _SGRATE = null;
+function sideGuardClickRate(gid){
+  if(!_SGRATE){
+    _SGRATE = {};
+    const fam = (TAGS.withTag ? TAGS.withTag('move','oneTurnGuard') : []) || [];
+    const usesOf = id => { const r = TAGS.tagsFor && TAGS.tagsFor('move', id); return (r && +r.uses) || 0; };
+    const top = fam.reduce((m,id)=>Math.max(m, usesOf(id)), 0);
+    /* NO USES ANYWHERE -> every member falls back to the top rate, and that is announced rather than
+     * assumed: a silent 0 here would turn the whole family off and read exactly like a working one. */
+    if(!top){ MEDFAILS.sideGuardRateNoUses++; for(const id of fam) _SGRATE[id]=SIDE_GUARD_TOP_RATE; }
+    else for(const id of fam) _SGRATE[id] = SIDE_GUARD_TOP_RATE * (usesOf(id)/top);
+  }
+  return _SGRATE[gid] != null ? _SGRATE[gid] : SIDE_GUARD_TOP_RATE;
 }
 
 /* WIRE 124 -- ACCURACY IS DERIVED. `const ACC = {hydropump:80, ...}` was a hand-typed 35-move literal
@@ -4349,7 +4525,7 @@ function bestMoveVs(att,def,field){ let best=null,bs=-1e18;
     /* LEGALITY AT PICK TIME, not just at execution: the loop already refuses a turn-2 Fake Out,
      * but nothing stopped the bot CLICKING one -- a silent no-op turn, sampled constantly off
      * Incineroar's priors. Found by Will asking whether Fake Out was modeled at all. */
-    if(id==='fakeout'&&att._turnsOut>0)continue;
+    if(firstTurnOnlyRefused(att,id))continue;              // WIRE 149 -- one reader, see the predicate
     /* WIRE 131 — hitProb, not moveAccuracy: bestMoveVs has both bodies in its own signature, and the
      * bodiless call plus a hand-written attacker-only No Guard check was the bug. */
     const acc=hitProb(att,def,id,field);const d=dmgRange(att,def,mv,field,SPREAD.has(id));
@@ -4396,7 +4572,7 @@ function liveFoesOf(me){
   return (_f||[]).filter(x=>x&&!x.fainted&&x.curHP>0);
 }
 function targetForMove(me,id,live,field){ const mv=MC.moves[id]; if(!mv||!hasPower(mv))return null;
-  if(id==='fakeout'&&me._turnsOut>0)return null;   // same pick-time legality as bestMoveVs
+  if(firstTurnOnlyRefused(me,id))return null;      // same pick-time legality as bestMoveVs (WIRE 149)
   let bt=null,bs=-1; for(const f of live){const d=dmgRange(me,f,mv,field,SPREAD.has(id));const sc=(d.min>=f.curHP?1e6:0)+d.max;if(sc>bs){bs=sc;bt={id,mv,spread:SPREAD.has(id),d,target:f};}}
   return bt; }
 /* WIRE 145 -- WHAT A LOCKED BODY ACTUALLY DOES, ASKED ONCE INSTEAD OF TWICE AND WRONG BOTH TIMES.
@@ -4594,8 +4770,28 @@ function _chooseAction(me,foes,ally,field,side,rng){
     if(bestKOsNow&&rng()<0.85) return {kind:'attack',move:bestAtk,target:tgt};
     // 2) Protect when threatened and can't KO back
     if(inDanger&&!bestKOsNow&&canProtect&&!me.protect&&me.tookProtectTurns<2&&rng()<0.5) return {kind:'protect'};
-    // 3) Wide Guard against a spread threat
-    if(me.moves.includes('wideguard')&&live.length>1&&me.tookProtectTurns<2&&!me.protect&&rng()<0.35){const foeSpread=live.some(fo=>(fo.moves||[]).some(id=>SPREAD.has(id)));if(foeSpread)return{kind:'wideguard'};}
+    /* 3) A ONE-TURN SIDE GUARD against the class it refuses -- see WIRE 149 at foeThreatensGuardClass.
+     * `me.moves.includes('wideguard')` stood here and was the reason a rollout could never click Quick
+     * Guard. The guards are found by TAG and the threat by the SAME predicate the turn loop refuses
+     * with; `kind:'wideguard'` is kept as the name of the ACTION KIND (the dispatch, the +3 bracket and
+     * the `sgA`/`sgB` write all key off it) and `mv` names which guard was actually raised -- without
+     * it, actionMoveId falls back through KIND_MOVE and a Quick Guard would be announced, traced and
+     * recorded as a Wide Guard.
+     * THE ROLL IS BEFORE THE THREAT SCAN, exactly as it was, so a body holding only Wide Guard consumes
+     * the rng stream identically to before this wire. */
+    /* MY OWN LIVE SIDE, because a side guard protects both bodies and the situational half of the
+     * priority row asks what I stand to lose. `ally` is this function's own argument. */
+    const _mine=[me,ally].filter(b=>b&&!b.fainted&&b.curHP>0);
+    if(live.length>1&&me.tookProtectTurns<2&&!me.protect){
+      for(const _gid of me.moves){
+        if(!TAGS.has('move',_gid,'oneTurnGuard')) continue;
+        if(!(rng()<sideGuardClickRate(_gid))) continue;
+        if(!foeThreatensGuardClass(_gid,live,_mine,field)) continue;
+        const _row=GUARD_PRED[sideGuardBlocksClass(_gid)];
+        if(_row) MEDSEEN[_row.chosen]++;
+        return {kind:'wideguard',mv:_gid};
+      }
+    }
   }
   // behaviour clone: sample the move this species actually clicks, at its real frequency
   const pr=MC.priors[me.name];
@@ -8733,7 +8929,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       const mv=a.move.mv;
       /* the lock engages on the first attack a choiceLock holder commits (WIRE 18) */
       if(!m._lock&&TAGS.has('item',m.item,'choiceLock')){m._lock=a.move.id;m._lockT=Infinity;}m._lastMove=a.move.id;
-      if(a.move.id==='fakeout'&&m._turnsOut>0){{if(TR)TR.attrStill();mvFail(m);}continue;}   // Fake Out only works the turn you enter
+      if(firstTurnOnlyRefused(m,a.move.id)){{if(TR)TR.attrStill();mvFail(m);}continue;}   // Fake Out only works the turn you enter
       /* WIRE 44 -- GIGATON HAMMER (197 uses) cannot be clicked twice in a row. `_noRepeat` is armed
          when the move lands and disarmed by the end-of-turn tick, so the block covers exactly the
          following turn -- and it binds a CALLER-SUPPLIED action as well as a chosen one, the WIRE 24
@@ -11870,6 +12066,10 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
   /* Exported so a caller can ask THIS engine what counts as a protect rather than keeping a second
    * list that drifts from it: the live bot tracks consecutive uses to seed tookProtectTurns. */
   PROTECTMOVES,
+  /* WIRE 149 -- the chooser's side-guard derivation, exported so the probe asserts on the FUNCTION the
+   * chooser calls rather than on a re-implementation of it in the test. A membership print that agrees
+   * with a copy of the rule proves nothing (LESSONS §4). */
+  foeThreatensGuardClass,sideGuardClickRate,guardMoveAimedAtFoes,
   /* Exported for the SAME reason as PROTECTMOVES: the boundary that hands this engine a field has to
    * be able to ask THIS engine what its weather words are, rather than keeping a second map that
    * drifts. rollout_leaf.applyField is the caller that needed it and could not reach it. */

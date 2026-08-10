@@ -572,16 +572,32 @@ for (const s of dex.species.all()) {
   if (!s.exists || s.isNonstandard) continue;
   for (const n of Object.values(s.abilities || {})) (CARRIERS[idOf(n)] = CARRIERS[idOf(n)] || []).push(s);
 }
-/* the control ability for a species, given the one under test: quiet first, then fewest handlers,
- * and never one that would interfere with the staging */
-function altAbility(sp, notId) {
-  const opts = Object.values(sp.abilities || {}).filter(n => idOf(n) !== idOf(notId));
-  const scored = opts.map(n => { const a = dex.abilities.get(idOf(n));
+/* THE CONTROL ABILITIES FOR A SPECIES, RANKED — quiet first, then fewest handlers.
+ *
+ * THE WHOLE LIST IS RETURNED AND NOT JUST THE WINNER, because the SECOND one is what makes a
+ * non-quiet control measurable rather than merely captioned (ROADMAP #121). Where a species has three
+ * abilities, the entity under test can be controlled TWICE — against two different live alternatives —
+ * and if the measured delta is the same leaf for leaf in BOTH engines then it does not depend on which
+ * control was used, so it is not the control's. See `secondControlOf` in `runEntry`. */
+function altAbilities(sp, notId) {
+  const seen = new Set();
+  const opts = Object.values(sp.abilities || {}).filter(n => {
+    const i = idOf(n);
+    if (i === idOf(notId) || seen.has(i)) return false;
+    seen.add(i); return true;
+  });
+  return opts.map(n => { const a = dex.abilities.get(idOf(n));
     const hs = Object.keys(a).filter(k => /^on/.test(k) && typeof a[k] === 'function');
     return { name: n, quiet: QUIET_SET.has(a.id), n: hs.length }; })
-    .sort((x, y) => (y.quiet - x.quiet) || (x.n - y.n));
-  return scored.length ? scored[0].name : null;
+    .sort((x, y) => (y.quiet - x.quiet) || (x.n - y.n))
+    .map(x => x.name);
 }
+/* the control ability for a species, given the one under test: quiet first, then fewest handlers,
+ * and never one that would interfere with the staging */
+function altAbility(sp, notId) { return altAbilities(sp, notId)[0] || null; }
+/* THE SECOND control — null where the species has only one alternative, which is the case this file
+ * has to DECLARE rather than measure. */
+function altAbility2(sp, notId) { return altAbilities(sp, notId)[1] || null; }
 function carrierFor(ab) {
   const list = CARRIERS[ab.id] || [];
   const plain = list.filter(s => !s.battleOnly);
@@ -595,11 +611,21 @@ function carrierFor(ab) {
    * without an explosion) and Electromorphosis moved 6 in Showdown and 0 here. Ranking quiet-control
    * first picks a different body wherever the format offers one, and where it does not the caveat is
    * printed on the finding. */
+  /* A CARRIER WITH A THIRD ABILITY WAS TRIED AS A TIE-BREAK HERE AND WAS TAKEN BACK OUT, 2026-08-10,
+   * AND THE REASON IS WORTH KEEPING. Ranking "has a second control" above bulk does buy two rows
+   * (Rain Dish moves Blastoise -> Pelipper, Solar Power moves Charizard -> Heliolisk) and it COST
+   * five: Water Absorb moved Araquanid -> Politoed, whose highest-ranked alternative is DRIZZLE — a
+   * weather setter as a control arm — and Sand Rush and Sand Force moved to Excadrill, where the
+   * staging comes out INERT in Showdown and the row loses its coverage entirely. CHANGING THE FIXTURE
+   * TO SUIT THE CONTROL IS THE WRONG TRADE: it moves rows that were fine. The second control is a
+   * MEASUREMENT taken on whatever carrier the rule chose, and where that carrier has no third ability
+   * the row is DECLARED untestable rather than re-staged somewhere easier. */
   const withAlt = plain.filter(s => altAbility(s, ab.id))
     .sort((a, b) => (QUIET_SET.has(idOf(altAbility(b, ab.id))) - QUIET_SET.has(idOf(altAbility(a, ab.id))))
                  || (bulk(b) - bulk(a)));
   if (withAlt.length) return { tier: 'ALTERNATE', species: withAlt[0].id,
                                control: altAbility(withAlt[0], ab.id),
+                               control2: altAbility2(withAlt[0], ab.id),
                                second: withAlt[1] ? withAlt[1].id : null };
   if (plain.length) return { tier: 'SUPPRESS', species: plain.sort((a, b) => bulk(b) - bulk(a))[0].id,
                              control: null };
@@ -697,8 +723,13 @@ function play(sc, src, armId) {
  * and the ONE FIELD that necessarily differs by construction — the held item — is excluded from the
  * subject-against-control comparison, so "it was in the slot" can never be mistaken for "it did
  * something". */
-function controlOf(sc) {
-  const c = { ...sc, id: sc.id + '~control',
+/* `rank` selects WHICH alternative ability the control arm swaps in: 0 is the ordinary control, 1 is
+ * the SECOND one, which exists only for a species carrying three abilities and only matters when the
+ * first is not quiet. Everything else about the two arms is identical by construction — same bodies,
+ * same script, same pin — so the only thing that can differ between them is the control ability. */
+function controlOf(sc, rank) {
+  const R = rank || 0;
+  const c = { ...sc, id: sc.id + (R ? '~control2' : '~control'),
               A: sc.A.map(m => ({ ...m, moves: m.moves.slice() })),
               B: sc.B.map(m => ({ ...m, moves: m.moves.slice() })),
               script: sc.script.map(s => ({ p1: s.p1.map(x => ({ ...x })), p2: s.p2.map(x => ({ ...x })) })) };
@@ -730,11 +761,15 @@ function controlOf(sc) {
     let swapped = 0;
     for (const b of c[sideKey]) {
       if (idOf(b.ability) !== idOf(sc.abilityId)) continue;
-      const alt = altAbility(dex.species.get(b.species), sc.abilityId);
+      const ranked = altAbilities(dex.species.get(b.species), sc.abilityId);
+      /* A BENCH CARRIER MAY HAVE NO SECOND ALTERNATIVE while the subject does. Falling back to its
+       * first one keeps the two control arms differing in exactly ONE ability — the subject's — which
+       * is the whole reason the second arm can say anything. */
+      const alt = ranked[R] || ranked[0];
       if (!alt) continue;
       b.ability = alt; swapped++;
     }
-    if (!swapped) body.ability = sc.controlAbility;
+    if (!swapped) body.ability = (R ? sc.controlAbility2 : sc.controlAbility) || sc.controlAbility;
   } else if (sc.kind === 'pair') {
     /* BOTH modifiers come off at once. The pair arm asks whether two handlers AT THE SAME STAGE are
      * folded into one modifier and spent once — which is what the authority does — or applied
@@ -879,6 +914,101 @@ function controlIsQuiet(e) {
   return { quiet: true };
 }
 
+/* ---- WHY NO QUIET CONTROL EXISTS, DERIVED RATHER THAN ASSERTED (ROADMAP #121) -------------------
+ *
+ * A row that stays CONTROL-NOT-QUIET is a row this instrument DECLARES untestable, and a declaration
+ * is worth exactly the evidence printed under it. So the sentence is built from the format every run:
+ * every species that carries the ability, the abilities each of them actually has, and the size of the
+ * quiet set. If a regulation change ever puts a quiet ability beside one of these, this text changes
+ * on its own and the row stops being declared — which is the difference between a derived reason and
+ * a hand-maintained list of fifteen. */
+function noQuietControlWhy(abilityId) {
+  const rows = (CARRIERS[abilityId] || []).map(s => s.name + ' [' + Object.values(s.abilities || {})
+    .filter(n => idOf(n) !== idOf(abilityId)).join('/') + ']' + (s.battleOnly ? ' (battle-only)' : ''));
+  return 'NO QUIET CONTROL EXISTS FOR THIS ABILITY IN THIS FORMAT, and the pool is printed rather than '
+    + 'asserted. Every legal species carrying it, with what else it could be controlled by: '
+    + (rows.join(', ') || 'NONE') + '. This format has only ' + QUIET.length + ' quiet abilities ('
+    + QUIET.map(a => pretty(a)).join(', ') + ') and not one of them shares a species with it. '
+    + 'A quiet ability CANNOT be lent from another species: engine/game_differential.js buildPair '
+    + 'clamps an ability to its species\' own list and falls back to slot 0, so an illegal pairing '
+    + 'would silently become the subject arm again — the ROADMAP #100 failure. Suppression is the '
+    + 'other route and it is MEASURED not to work here (see the Gastro Acid proof). '
+    + 'DECLARED UNTESTABLE, not passed and not failed.';
+}
+
+/* ---- THE SECOND CONTROL — HOW A LIVE CONTROL IS MADE MEASURABLE ---------------------------------
+ *
+ * The problem CONTROL-NOT-QUIET names is that (subject MINUS a live control) cannot say which of the
+ * two moved the board. The answer is not to relax the control. It is to VARY it: play the identical
+ * scenario a THIRD time against a DIFFERENT live alternative of the same species, and compare the two
+ * deltas leaf for leaf in BOTH engines.
+ *
+ *   THEY AGREE      the delta does not depend on which ability was removed, so it is not the removed
+ *                   ability's — it is the subject's. The row is released to its real verdict and the
+ *                   receipt travels with it.
+ *   THEY DIFFER     at least one control is live ON THIS FIXTURE and the leaves it moved are named.
+ *                   The row stays CONTROL-NOT-QUIET, now with a MEASUREMENT under it instead of a
+ *                   shape argument.
+ *
+ * WHAT THIS STILL CANNOT SEE, said out loud: two controls that are live in the SAME WAY on the same
+ * leaves would agree and fool it. That is why the handler counts of both controls are recorded on the
+ * receipt — a reader can see whether "they agree" meant "both inert" or "both busy". The common case
+ * is the first: Bellibolt's Static and Electromorphosis both need to be HIT by a contact/electric move
+ * before they do anything, and the generic arm does not hit the carrier at all.
+ *
+ * IT IS THE SAME DISCIPLINE AS THE NOISE FLOOR (docs/LESSONS.md §9): vary the knob that is supposed
+ * not to matter, and believe the effect only if it survives. */
+/* A leaf is THE SAME MEASUREMENT in two deltas only when the engine, the boundary, the path AND both
+ * values agree. Keying on the path alone would let "the subject moved it to 955" and "the control
+ * moved it to 933" count as one observation, which is the confusion this whole function exists to
+ * remove. Conservative in the safe direction: a leaf both the subject and a control touch is DROPPED
+ * rather than charged to the subject. */
+const DKEY = d => d.engine + '|' + d.turn + '|' + d.path + '|' + String(d.with) + '|' + String(d.without);
+
+/* Returns null when the format offers no second control at all — the DECLARE case. Otherwise it plays
+ * the third arm and hands back the SPLIT: what survives both controls, and what does not. */
+function secondControl(e, sc, subject, delta, src, arm) {
+  if (sc.kind !== 'ability' || !sc.controlAbility2) return null;
+  const { sc: c2, ignore: ig2 } = controlOf(sc, 1);
+  const run = play(c2, src, arm);
+  const head = 'THE SECOND CONTROL: the identical scenario played a third time with '
+    + pretty(sc.controlAbility2) + ' in the slot instead of ' + pretty(sc.controlAbility) + '. ';
+  if (run.bad) return { control: sc.controlAbility2, ran: false,
+    why: head + 'IT DID NOT RUN (' + run.bad + ' — ' + run.why + '), so the delta could not be varied '
+       + 'and this row stays unattributable. A control that cannot be varied is a control that cannot '
+       + 'be cleared.' };
+  const delta2 = armDelta(subject, run, ig2);
+  const B = new Set(delta2.map(DKEY)), A = new Set(delta.map(DKEY));
+  const attributed = delta.filter(d => B.has(DKEY(d)));
+  const dropped = delta.filter(d => !B.has(DKEY(d)))
+    .concat(delta2.filter(d => !A.has(DKEY(d))));
+  const hs = a => { const X = dex.abilities.get(idOf(a)) || {};
+    return Object.keys(X).filter(k => /^on/.test(k) && typeof X[k] === 'function').length; };
+  const say = d => d.engine + ' turn ' + d.turn + ' ' + d.path + ' with=' + d.with + ' without=' + d.without;
+  const shape = ' (' + pretty(sc.controlAbility) + ' registers ' + hs(sc.controlAbility)
+    + ' handler(s), ' + pretty(sc.controlAbility2) + ' registers ' + hs(sc.controlAbility2) + '.)';
+  return {
+    control: sc.controlAbility2, ran: true, attributed, dropped,
+    /* a disagreement the SECOND control arm also shows is the fixture's too */
+    ctrl_diffs: splitDeclared(run.boards.flatMap(b => b.diffs.map(d => ({ ...d, turn: b.turn }))),
+                              run.boards).kept,
+    leaves_first: delta.length, leaves_second: delta2.length, leaves_kept: attributed.length,
+    dropped_leaves: dropped.map(say),
+    why: head + (dropped.length
+      ? 'THE TWO DELTAS DIFFER on ' + dropped.length + ' leaf/leaves, which means at least one control '
+        + 'is LIVE on this fixture — so those leaves are the CONTROL\'S and are dropped, not charged '
+        + 'to the entity: ' + dropped.slice(0, 4).map(say).join('; ')
+        + (dropped.length > 4 ? ', +' + (dropped.length - 4) + ' more' : '') + '. '
+        + attributed.length + ' of ' + delta.length + ' leaf/leaves survive BOTH controls and the '
+        + 'verdict is computed on those alone.' + shape
+      : 'THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (' + delta.length
+        + ' leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is '
+        + 'therefore not the removed ability\'s.' + shape
+        + ' What this still cannot see: two controls live in the SAME way on the SAME leaves would '
+        + 'also agree.'),
+  };
+}
+
 /* ---- THE SWITCH PROBE — THE ONE COMPARISON THAT IS NOT A BOARD LEAF ----------------------------
  *
  * Everything else in this file compares two boards. A TRAP CANNOT BE COMPARED THAT WAY and the
@@ -978,23 +1108,52 @@ function runEntry(e) {
    * So a rule that stages a condition DECLARES how to see it, and it is read off SHOWDOWN'S board —
    * the authority — at the boundary the setup must have landed by. A precondition that did not land
    * is COULD-NOT-STAGE with that as its reason, never an inert row and never a pass. */
+  /* A STAGING WITH SEVERAL MOVING PARTS NEEDS A RECEIPT PER PART, so `precondition` may be a LIST.
+   * The heal rules are what forced it: "the recipient was damaged" and "the recipient came back into
+   * the slot" and "the authority actually healed the body we aimed at" are three separate facts on
+   * three separate boundaries, and a single clause covering one of them would leave the other two
+   * exactly as unproven as they were before. `ok` is handed the boundary it names AND every boundary,
+   * because a receipt is often a COMPARISON between two of them — an HP that went up cannot be read
+   * off one board. A single object still works and every existing rule passes one. */
   if (e.precondition) {
-    const pb = subject.boards.find(x => x.turn === e.precondition.turn);
-    let ok = false;
-    try { ok = !!(pb && e.precondition.ok(pb)); } catch (err) { ok = false; }
-    if (!ok) return { ...e, verdict: 'COULD-NOT-STAGE', boards: subject.boards,
-      why: 'THE PRECONDITION DID NOT LAND, so nothing downstream of it was tested and an inert board '
-         + 'here would mean only that the setup failed. Wanted, by boundary ' + e.precondition.turn
-         + ': ' + e.precondition.why + '. Read off SHOWDOWN\'s own board, not ours.' };
+    for (const pc of (Array.isArray(e.precondition) ? e.precondition : [e.precondition])) {
+      const pb = subject.boards.find(x => x.turn === pc.turn);
+      let ok = false;
+      try { ok = !!(pb && pc.ok(pb, subject.boards)); } catch (err) { ok = false; }
+      if (!ok) return { ...e, verdict: 'COULD-NOT-STAGE', boards: subject.boards,
+        why: 'THE PRECONDITION DID NOT LAND, so nothing downstream of it was tested and an inert board '
+           + 'here would mean only that the setup failed. Wanted, by boundary ' + pc.turn
+           + ': ' + pc.why + '. Read off SHOWDOWN\'s own board, not ours.' };
+    }
   }
 
-  const delta = armDelta(subject, control, ignore);
-  const sdMoved = delta.filter(d => d.engine === 'showdown');
-  const usMoved = delta.filter(d => d.engine === 'ours');
+  let delta = armDelta(subject, control, ignore);
   const subjDiffs = splitDeclared(subject.boards.flatMap(b => b.diffs.map(d => ({ ...d, turn: b.turn }))),
                                   subject.boards).kept;
-  const ctrlDiffs = splitDeclared(control.boards.flatMap(b => b.diffs.map(d => ({ ...d, turn: b.turn }))),
-                                  control.boards).kept;
+  let ctrlDiffs = splitDeclared(control.boards.flatMap(b => b.diffs.map(d => ({ ...d, turn: b.turn }))),
+                                control.boards).kept;
+
+  /* ---- THE SECOND CONTROL, AND THE ONLY PLACE IT CHANGES A NUMBER (ROADMAP #121) ----------------
+   *
+   * Run only where the control ability is itself LIVE, which is the case this instrument previously
+   * captioned and threw away. It NARROWS the delta to the leaves BOTH controls agree the subject
+   * moved, so the verdict below is computed on the attributable part rather than on the whole. A leaf
+   * the two controls disagree about is dropped and reported, exactly as `shared_diffs` are — it is a
+   * fact about the controls, not about the entity.
+   *
+   * MEASURED THE MOMENT IT WAS WIRED: Damp on Bellibolt reported a 22-HP Showdown delta that turned
+   * out to be ELECTROMORPHOSIS — the control — charging Bellibolt's own Electric click. Against Static
+   * the delta was empty. Damp is inert on that fixture and the row was accusing the control. */
+  const SC = (!controlIsQuiet(e).quiet && sc.kind === 'ability')
+    ? secondControl(e, sc, subject, delta, src, arm) : null;
+  let dropped = [];
+  if (SC && SC.ran) {
+    delta = SC.attributed; dropped = SC.dropped;
+    /* a two-engine disagreement that EITHER control also shows is the fixture's, not the entity's */
+    ctrlDiffs = ctrlDiffs.concat(SC.ctrl_diffs);
+  }
+  const sdMoved = delta.filter(d => d.engine === 'showdown');
+  const usMoved = delta.filter(d => d.engine === 'ours');
 
   /* WHAT THE ENTITY IS ACTUALLY ANSWERABLE FOR. A difference that appears in the CONTROL arm too — on
    * the same turn and the same leaf — is a property of the shared fixture and not of the entity, and
@@ -1012,8 +1171,37 @@ function runEntry(e) {
 
   const base = { ...e, boards: subject.boards, sd_delta: sdMoved, us_delta: usMoved,
                  subject_diffs: mine, shared_diffs: shared, control_diffs: ctrlDiffs, ignore,
+                 second_control: SC || null,
                  compared: subject.boards.reduce((n, b) => n + b.compared, 0) };
 
+  /* ---- NOTHING SURVIVED BOTH CONTROLS, AND THAT IS NOT THE SAME AS INERT --------------------------
+   *
+   * MEASURED 2026-08-10, AND THE FIRST VERSION OF THIS CALLED IT INERT AND WAS WRONG ON A ROW THAT
+   * PROVED IT. Two rows come out with the identical arithmetic — 28 leaves against the first control,
+   * 0 against the second — and they mean opposite things:
+   *
+   *   ANGER POINT on Tauros   the 28 leaves are INTIMIDATE's -1 Attack. Anger Point needs a CRIT and
+   *                           the pin lands none, so the subject really is inert and its old green was
+   *                           the control's drop.
+   *   SLUSH RUSH on Beartic   the 28 leaves are Beartic killing Beedrill before its stat drop lands.
+   *                           Against SWIFT SWIM (inert in snow) the drop lands and the kill fails;
+   *                           against SNOW CLOAK the drop MISSES, because evasion in snow turns a
+   *                           100-accuracy move into a guaranteed miss under this pin — the SAME board
+   *                           by a different mechanism. Slush Rush is live and so is Snow Cloak.
+   *
+   * Two arms cannot separate "the subject did nothing" from "the subject and this control did the same
+   * thing". A THIRD alternative would, and Beartic has exactly three abilities, so there is none. So
+   * the row is UNATTRIBUTABLE and says exactly that — not inert, not a pass, and above all not the
+   * FIRED-AND-BOARDS-MATCH it used to be, which was agreement about the control's work. */
+  if (SC && SC.ran && !delta.length && (SC.leaves_first || SC.leaves_second))
+    return { ...base, verdict: 'CONTROL-NOT-QUIET', declared_untestable: false,
+      control_why: SC.why,
+      why: 'NOTHING SURVIVES BOTH CONTROLS, AND THAT IS NOT THE SAME AS INERT. The delta against '
+         + pretty(sc.controlAbility) + ' is ' + SC.leaves_first + ' leaf/leaves and against '
+         + pretty(SC.control) + ' it is ' + SC.leaves_second + ', and they share none. Either this '
+         + 'entity does nothing here and the leaves are the control\'s, OR this entity and one of the '
+         + 'controls move the same leaves and cancel. TWO ARMS CANNOT SEPARATE THOSE and the species '
+         + 'has no third alternative to ask with. Measured, not assumed: ' + SC.why };
   if (!sdMoved.length) return { ...base, verdict: 'COULD-NOT-STAGE',
     why: 'THE STAGING IS INERT. Showdown\'s own board is identical with and without it, over '
        + base.compared + ' compared leaves — so nothing here tests the entity and a green would have '
@@ -1045,18 +1233,46 @@ function runEntry(e) {
          + (wouldPass ? 'FIRED-AND-BOARDS-MATCH — THE SHELF IS STALE, take it down'
                       : (usMoved.length ? 'FIRED-AND-BOARDS-DIFFER' : 'DID-NOT-FIRE')) + '.' };
   }
+  /* THE ACCUSING VERDICTS ARE GATED ON THE DELTA BEING ATTRIBUTABLE, and the gate sits here rather
+   * than in the report so nothing downstream — the artifact, `--reds`, the exit code — can read a
+   * contaminated row as a subject failure. It is satisfied two ways and only two:
+   *
+   *   the control is QUIET       nothing else was in the slot to move a board
+   *   the delta SURVIVED a       every retained leaf was measured against TWO different live controls
+   *   SECOND, DIFFERENT control  and came out the same, so it is not the control's
+   *
+   * A row that can satisfy neither is CONTROL-NOT-QUIET and says which of the two it failed. */
   const CQ = controlIsQuiet(e);
-  if (!CQ.quiet && (!usMoved.length || mine.length))
-    return { ...base, verdict: 'CONTROL-NOT-QUIET', control_why: CQ.why,
+  if (!CQ.quiet && !(SC && SC.ran) && (!usMoved.length || mine.length)) {
+    const hs = a => { const X = dex.abilities.get(idOf(a)) || {};
+      return Object.keys(X).filter(k => /^on/.test(k) && typeof X[k] === 'function').length; };
+    const declared = !SC;
+    const tail = SC ? SC.why
+      : noQuietControlWhy(idOf(sc.abilityId || e.id)) + ' (the control, ' + pretty(sc.controlAbility)
+        + ', registers ' + hs(sc.controlAbility) + ' handler(s), so it cannot be argued inert either, '
+        + 'and its species has no THIRD ability to vary it against.)';
+    return { ...base, verdict: 'CONTROL-NOT-QUIET', control_why: tail,
+      declared_untestable: declared,
       why: 'THE DELTA IS NOT ATTRIBUTABLE TO THIS ENTITY. ' + CQ.why + ' The subject arm '
          + (usMoved.length ? 'moved and the two engines disagree' : 'did not move in this engine')
          + ', which under a quiet control would read '
-         + (usMoved.length ? 'FIRED-AND-BOARDS-DIFFER' : 'DID-NOT-FIRE') + ' — it is neither.' };
+         + (usMoved.length ? 'FIRED-AND-BOARDS-DIFFER' : 'DID-NOT-FIRE') + ' — it is neither.  '
+         + tail };
+  }
+  /* A ROW RELEASED BY THE SECOND CONTROL SAYS SO IN ITS OWN VERDICT TEXT. The receipt is the whole
+   * reason the row is allowed to accuse, so it travels with the accusation rather than sitting in a
+   * field somebody has to go and look up. */
+  const REL2 = (SC && SC.ran)
+    ? '  ATTRIBUTION: the control ability is itself live, so every leaf below was RE-MEASURED against '
+      + 'a second, different control (' + pretty(SC.control) + '). ' + SC.leaves_kept + ' of '
+      + SC.leaves_first + ' leaf/leaves came out the same against both and are the only ones charged '
+      + 'here' + (SC.dropped.length ? '; ' + SC.dropped.length + ' were the control\'s and were '
+      + 'dropped' : '') + '.' : '';
   if (!usMoved.length) return { ...base, verdict: 'DID-NOT-FIRE',
     why: 'Showdown\'s board MOVED when the entity was added and ours did not move at all. The staging '
-       + 'is known-good because the authority answered it.' };
+       + 'is known-good because the authority answered it.' + REL2 };
   if (!mine.length) return { ...base, verdict: 'FIRED-AND-BOARDS-MATCH' };
-  return { ...base, verdict: 'FIRED-AND-BOARDS-DIFFER' };
+  return { ...base, verdict: 'FIRED-AND-BOARDS-DIFFER', why: REL2 || null };
 }
 
 /* =================================================================================================
@@ -1106,7 +1322,12 @@ function scaffold(o) {
   for (const m of A.concat(B)) if (!m.moves.includes(INERT)) m.moves.push(INERT);
   return { A, B, script: o.script, subject: o.subject || 'B0', hpA: o.hpA || 1, hpB: o.hpB || 1 };
 }
-const cannot = (why) => ({ cannot: why });
+/* `scope` marks a refusal that is a fact about the REGULATION rather than about this instrument — an
+ * entity with no legal body to put it on is not untested, it is out of scope. It exists so the gate
+ * clause can state a DENOMINATOR (ROADMAP #120): 84 of 316 is 27% and 84 of 201 is 42%, and the
+ * difference between those two numbers is entirely rows nobody could ever stage in this format.
+ * A bare PASS with no denominator is the same failure as a caption under a quarantined figure. */
+const cannot = (why, scope) => ({ cannot: why, scope: scope || null });
 
 /* A PHYSICAL CONTACT HIT PER TYPE. The generic ability staging needs CONTACT specifically — Rough
  * Skin, Static, Flame Body, Mummy, Wandering Spirit, Pickpocket, Gooey, Tangling Hair, Cursed Body
@@ -1770,6 +1991,180 @@ function legalPair(speciesId, ability, moveId) {
   return out;
 }
 
+/* ---- 8. DAMAGE ON THE BOARD BEFORE THE HEAL, AND FOUR SHAPES THAT NEED FOUR STAGINGS -----------
+ *
+ * Will, 2026-08-10: *"we need to set up scenarios to test where damage is dealt and then the healing
+ * moves are used to check to see if they work"*.
+ *
+ * A HEAL INTO A FULL BODY IS CAPPED TO NOTHING IN BOTH ENGINES, so a heal staged on a healthy body
+ * reads "identical" and proves exactly nothing. `move/heal` already chips first and is right; what it
+ * cannot express is that NOT ONE of the four moves below is a plain self-heal (ROADMAP #127):
+ *
+ *   heals ANOTHER BODY      Heal Pulse restores half the TARGET'S max HP. `data/tags.json` gives it
+ *                           `healsAlly {heal:true}` — a boolean in a fraction's clothing — and
+ *                           medicham2's own header says it "stays honestly unwired".
+ *   heals THE SLOT, LATER   Wish's `onEnd` heals whoever is STANDING IN THE SLOT a turn later, for
+ *                           half the WISHER'S max HP. Will: *"wish heals the slot more specifically
+ *                           so it could heal the user or you can switch out and heal a partner"*. A
+ *                           staging where the wisher never leaves cannot tell the slot from the body,
+ *                           and one where the two bodies have the same max HP cannot tell whose half
+ *                           it is.
+ *   heals AND CURES AND     Rest is three effects on one click — full HP, status cleared, its own
+ *   SLEEPS                  sleep written with a 3-turn counter. Will: *"rest heals status too"*. A
+ *                           row staged on a body with NO status checks one of the three and passes on
+ *                           a Rest that cures nothing.
+ *   heals THE REPLACEMENT   Healing Wish faints its user and restores the body that walks in. Will:
+ *                           *"like a self ko like memento and then wish for the replacement, but more
+ *                           healing and status healing"*. It needs a faint AND a replacement that is
+ *                           already damaged, in one scenario.
+ *
+ * MEMBERSHIP IS READ OFF `flags.heal` — SHOWDOWN'S OWN MARKER, the one Heal Block consults — plus the
+ * move's `target`, its `slotCondition`, its `selfdestruct` and the source text of its own handlers.
+ * Never off a list of names and never off our tags: the tag is exactly what cannot express these four.
+ * The membership each predicate selects is printed by `--rules` before any of it is believed.
+ *
+ * AND THE ITEM COMES OFF EVERY BODY, WHICH IS THE ONE THING THAT MUST NOT BE LEFT TO LUCK. A SITRUS
+ * BERRY FIRES AT HALF HP AND RESTORES 25% — numerically indistinguishable from the heals under test,
+ * and it fires in the CONTROL arm too, so a contaminated row moves BOTH arms by the same amount and
+ * looks like a clean pass. Measured 2026-08-10 outside this file: damaging a body to half and healing
+ * it read +42 on every arm INCLUDING the control, and the only reason anybody noticed was that the
+ * control moved. Leftovers is the same hazard one sixteenth at a time — `maxhp/16` is exactly Aqua
+ * Ring's own figure. Every body these rules stage is built with `item: ''` (never `move/generic-status`'s
+ * berry-and-Leftovers board), and that is not asserted: `noHeldItems()` walks the scenario before it
+ * is played and every row carries a PRECONDITION read off SHOWDOWN'S OWN BOARD. */
+const healsAnybody = m => !!(m.flags && m.flags.heal);
+
+/* THE MOVE RESTORES HP TO A BODY THAT IS NOT ITS USER. `heal: [1,4]` (Life Dew) declares it outright;
+ * Heal Pulse declares it only inside `onHit`, as `this.heal(<something>(target.baseMaxhp ...))`.
+ * STRENGTH SAP IS THE NEAR MISS AND IT IS WHY THE REGEX NAMES `target`: its onHit is
+ * `this.heal(atk, source, target)` — the SOURCE is healed off the target's stat — so a looser test
+ * would have pulled a stat-drop move into a heal staging and reported the drop as a heal. */
+function healsAnotherBody(m) {
+  if (!healsAnybody(m) || m.category !== 'Status') return false;
+  if (m.slotCondition || m.selfdestruct) return false;      // the delayed and fainting families, below
+  if (m.target === 'self') return false;
+  if (m.heal) return true;
+  return /this\.heal\(\s*(?:this\.modify\()?\s*(?:Math\.\w+\()?\s*target\./.test(gateSrc(m));
+}
+/* A DELAYED HEAL ATTACHED TO THE SLOT AND NOT TO THE BODY: the condition the move installs heals from
+ * its own `onEnd`/`onResidual`, so it reaches whoever is standing there when it fires. */
+function healsTheSlotLater(m) {
+  if (!m.slotCondition || m.selfdestruct) return false;
+  const c = m.condition || {};
+  return ['onEnd', 'onResidual', 'onSwap', 'onSwitchIn']
+    .some(k => typeof c[k] === 'function' && /\.heal\(/.test(String(c[k])));
+}
+/* THE USER FAINTS AND THE BODY THAT REPLACES IT ARRIVES RESTORED. `selfdestruct` is what separates
+ * this from Wish; the heal is in the condition's `onSwap`/`onSwitchIn` rather than its residual. */
+function healsTheReplacement(m) {
+  if (!m.slotCondition || !m.selfdestruct) return false;
+  const c = m.condition || {};
+  return ['onSwap', 'onSwitchIn']
+    .some(k => typeof c[k] === 'function' && /\.heal\(/.test(String(c[k])));
+}
+/* A SELF-HEAL THAT ALSO WRITES A STATUS ONTO ITS OWN USER — both facts out of the one `onHit`. */
+function healsAndStatusesTheUser(m) {
+  if (m.target !== 'self' || !healsAnybody(m)) return false;
+  const g = gateSrc(m);
+  return /\.heal\(/.test(g) && /setStatus\(/.test(g);
+}
+
+/* AIMING A CLICK AT YOUR OWN PARTNER, AND THE ARITHMETIC IS THE DRIVER'S RATHER THAN A TRICK.
+ *
+ * `engine/game_differential.js scripted()` turns a script's `t` into Showdown's own target number as
+ * `t + 1` for every single-target move. A POSITIVE `t` therefore names a foe slot (0 -> 1, 1 -> 2)
+ * and `t = -(j + 2)` names the user's OWN slot j (-2 -> -1, -3 -> -2), which is exactly Showdown's
+ * numbering for an ally. Nothing is bypassed and nothing is loosened: the choice string the authority
+ * receives is `move n -1`, the same string a human clicking their partner produces, and the medicham
+ * side receives `foeSlot: null` — precisely what it already receives for Life Dew's `allies` target,
+ * which is wired and green.
+ *
+ * IT IS NOT TAKEN ON TRUST. Every row staged this way carries a precondition that reads SHOWDOWN'S
+ * board and requires the intended ALLY's HP to have gone UP. A click that landed on the wrong body
+ * fails it and the row is COULD-NOT-STAGE with that written on it, never a finding and never a pass. */
+const allySlot = j => -(j + 2);
+
+/* NO BODY IN A HEAL SCENARIO MAY HOLD AN ITEM. Walked over the built scenario rather than trusted to
+ * every `mon(...)` call being written with an empty second argument — the contamination is silent, it
+ * survives into the control arm, and it is worth exactly one loop to make impossible. Returns a
+ * refusal string or null. */
+function noHeldItems(sc) {
+  const held = sc.A.concat(sc.B).filter(m => m.item);
+  return held.length ? 'A HEAL SCENARIO STAGED A HELD ITEM (' + held.map(m => pretty(m.species) + ' holding '
+    + m.item).join(', ') + '). A Sitrus Berry fires at half HP for 25% and Leftovers pays maxhp/16 — '
+    + 'both are the same size as the heals under test AND both fire in the control arm, so the row '
+    + 'would move both arms by the same amount and read as a clean pass. Refused rather than reported.'
+    : null;
+}
+
+/* A BODY ONE DERIVED HIT TAKES DEEP BELOW HALF WITHOUT KILLING IT, out of the MOVE stage's own pool.
+ * `HALVER` does the same job against `CAST.ATTACKER` and the item stage's wider carrier list; a heal
+ * reading needs the strict pool (no `on*` key at all), because Rain Dish, Poison Heal, Regenerator
+ * and every residual healer would otherwise sit inside the measurement. The band is deliberately
+ * DEEP — past 55% of max HP — so that a half-max-HP heal has somewhere to go and is not capped. */
+function chippableBody(arm, opt) {
+  opt = opt || {};
+  const att = dex.species.get(opt.attacker || CLICKER(arm).species);
+  for (const r of moveBodies(arm)) {
+    if ((opt.not || []).some(x => x && idOf(x) === idOf(r.sp.id))) continue;
+    if (opt.status && dex.getImmunity(opt.status === 'tox' ? 'psn' : opt.status, r.sp.types) === false) continue;
+    if (opt.powder && r.sp.types.includes('Grass')) continue;
+    const hp = flatL50(r.sp.baseStats).hp;
+    if (opt.minHP && hp < opt.minHP) continue;
+    /* AND THE FRACTION MUST NOT COME OUT WHOLE, WHICH IS A ROUNDING TEST AND NOT A NICETY. Showdown
+     * heals `Math.round(baseMaxhp * heal[0] / heal[1])` (battle-actions.js, gen >= 5). On a body whose
+     * maximum divides exactly there is no remainder to round, so a floor and a round are the SAME
+     * NUMBER and the row proves only that something healed — the same shape as staging a type change
+     * against a neutral defender. MEASURED: `move/heal` inflated max HP by 4x, which makes every
+     * maximum even, and all four of its members read FIRED-AND-BOARDS-MATCH on a heal that had no
+     * remainder AND overshot the maximum anyway. */
+    if (opt.fracNotWhole && (hp * opt.fracNotWhole[0]) % opt.fracNotWhole[1] === 0) continue;
+    const chip = hitInBand(att, r.sp, opt.lo == null ? 0.55 : opt.lo, opt.hi == null ? 0.92 : opt.hi);
+    if (!chip) continue;
+    /* AND THE SETUP MUST NOT KILL THE BODY IN THE ARM THAT NEVER HEALS IT. MEASURED, AND THE FIRST
+     * VERSION OF THE REST ROW GOT THIS WRONG: poison ticks maxhp/8 every turn, a chip past 55% left
+     * Torterra on 38 of 170, and in the CONTROL arm — the one with the heal taken out — it was DEAD by
+     * turn 2 and a replacement walked in. The delta then carried a faint, a species change and a fresh
+     * body's entire board, none of which is the move under test. A rule whose setup is lethal without
+     * the entity is measuring its own staging. */
+    if (opt.residualFraction && opt.turns) {
+      const tick = Math.floor(hp * opt.residualFraction) || 1;
+      if (hp - chip.d <= tick * opt.turns) continue;
+    }
+    return { body: mon(r.sp.id, '', r.ability, []), sp: r.sp, chip: chip.mv, dealt: chip.d, hp };
+  }
+  return null;
+}
+/* the sentence a heal rule prints when no body in the pool can be chipped into the band */
+function noChipWhy(arm, opt) {
+  return 'no body in the move stage\'s ' + moveBodies(arm).length + '-species pool can be taken to '
+    + 'between ' + Math.round(100 * ((opt || {}).lo == null ? 0.55 : opt.lo)) + '% and '
+    + Math.round(100 * ((opt || {}).hi == null ? 0.92 : opt.hi)) + '% of its HP by ONE derived '
+    + 'delivery move thrown by ' + pretty(CLICKER(arm).species) + ' ' + JSON.stringify(opt || {})
+    + '. A heal into a body that is barely scratched is capped by the maximum and reads as nothing, '
+    + 'which is the vacuous staging this rule exists to replace.';
+}
+
+/* A STATUS THAT CAN BE PUT ON A BODY AND THEN CURED, WITHOUT DECIDING THE EXPERIMENT ITSELF.
+ * Derived from `STATUS_MOVE` — the 100-accuracy carriers this file already builds — minus the two
+ * that would run a second experiment inside the first:
+ *   slp   the move under test WRITES sleep, so curing sleep and re-writing it is unreadable, and
+ *         Rest's own `onTry` refuses outright on a body that is already asleep;
+ *   par   paralysis DENIES ACTIONS on a die this file pins, so a body that cannot click the move
+ *         under test would read as the move doing nothing.
+ * Poison is what is left: it is on the board as `status`, it survives a switch, and its residual chip
+ * is identical in both arms and cancels out of the delta exactly. */
+const CURABLE_STATUS = ['psn', 'brn', 'tox']
+  .map(s => (STATUS_MOVE[s] ? { status: s, move: STATUS_MOVE[s] } : null)).filter(Boolean);
+
+/* READING THE AUTHORITY'S OWN BOARD BY NAME rather than by index arithmetic at eleven call sites.
+ * Every heal precondition below is read off `sd` — Showdown — and never off `medi`, because a
+ * receipt taken from the engine under test is not a receipt. */
+const sdSide = (b, side) => (((b || {}).sd || {}).sides || {})[side] || {};
+const sdActive = (b, side, slot) => (sdSide(b, side).active || [])[slot] || null;
+const sdParty = (b, side, species) => (sdSide(b, side).party || {})[idOf(species)] || null;
+const atTurn = (boards, t) => (boards || []).find(x => x.turn === t) || null;
+
 /* =================================================================================================
  *  THE ABILITY STAGE'S OWN VOCABULARY — derived, printed by `--rules`, believed afterwards
  *
@@ -1934,10 +2329,13 @@ function abilityCarrier(ab, pred) {
   const ok = list.filter(s => !pred || pred(s));
   if (!ok.length) return null;
   const quiet = s => (QUIET_SET.has(idOf(altAbility(s, ab.id))) ? 1 : 0);
+  /* NO "has a second control" TIE-BREAK HERE EITHER — see the note in `carrierFor` for the five rows
+   * it cost against the two it bought. The fixture is not chosen to suit the control. */
   const bulk = s => s.baseStats.hp + s.baseStats.def + s.baseStats.spd;
   ok.sort((a, b) => (quiet(b) - quiet(a)) || (bulk(b) - bulk(a)));
   const sp = ok[0];
   return { tier: 'ALTERNATE', species: sp.id, sp, control: altAbility(sp, ab.id),
+           control2: altAbility2(sp, ab.id),
            quiet: !!quiet(sp), pool: list.length };
 }
 /* the sentence a rule prints when no carrier survives its predicate — it names the pool it searched */
@@ -1970,6 +2368,9 @@ function stageAbility(e, C, o) {
     : scaffold({ hpA: o.hpA || 1, hpB: o.hpB || 1, subject: 'B0',
         a0: o.a0, a1: o.a1, a2: o.a2, b0: carrier, b1: o.b1, b2: o.b2, script: o.script });
   sc.controlAbility = C.control;
+  /* THE SECOND CONTROL travels with the scenario or it does not exist as far as `runEntry` is
+   * concerned. Dropping it here is how a capability goes missing while everything reports success. */
+  sc.controlAbility2 = C.control2 || altAbility2(sp, e.id) || null;
   sc.controlQuiet = QUIET_SET.has(idOf(C.control));
   sc.controlKind = 'ability';
   sc.abilityId = e.id;
@@ -2089,6 +2490,40 @@ function gastroWorks() {
   return _GASTRO;
 }
 
+let _ABSW = null;
+function abilitySwitchWorks() {
+  if (_ABSW) return _ABSW;
+  const victim = dex.species.get(CAST.BAG().species);
+  const bench = dex.species.get('milotic');
+  const sc = scaffold({ hpA: 4, hpB: 4, subject: 'B0',
+    a0: mon(victim.id, '', CAST.BAG().ability, [INERT]),
+    a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [INERT]),
+    a2: mon(bench.id, '', carrierAbility(bench) || '', [INERT]),
+    b0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability, [INERT]),
+    b1: mon('snorlax', '', carrierAbility(dex.species.get('snorlax')) || '', [INERT]),
+    script: [turn([IDLE, IDLE], [IDLE, IDLE]),
+             turn([{ sw: bench.id }, IDLE], [IDLE, IDLE])] });
+  sc.id = 'proof/ability-switch-ask';
+  sc.kind = 'ability'; sc.entityId = 'proof';
+  const r = play(sc, null, PRIMARY_ARM_ID);
+  if (r.bad) { _ABSW = { ok: false, why: 'the proof fixture did not play: ' + r.bad + ' ' + r.why };
+    return _ABSW; }
+  const ours = ((r.medi_active || {}).p1 || [])[0];
+  const last = (r.boards || [])[r.boards.length - 1];
+  const act = (((last && last.sd && last.sd.sides) || {}).p1 || {}).active || [];
+  const sd = act[0] ? idOf(act[0].species) : null;
+  const ok = idOf(ours || '') === idOf(bench.id) && sd === idOf(bench.id);
+  _ABSW = { ok, ours, sd,
+    why: ok ? 'MEASURED: an ability-stage scenario CAN ask for a switch and both engines perform it — '
+              + 'the untrapped ' + victim.name + ' left for ' + bench.name + ' in Showdown and in '
+              + 'medicham2. So a refusal measured by this rule would be the TRAP and not the fixture.'
+            : 'MEASURED AND RED: the untrapped control ask did NOT complete — Showdown left '
+              + (sd || 'nothing readable') + ' in the slot and ours left ' + (ours || 'nothing '
+              + 'readable') + ' — so this rule could not tell a trap from a probe that never asked. '
+              + 'No trapping row may be reported until this is green.' };
+  return _ABSW;
+}
+
 function abilityScenario(e, C, kind) {
   if (!C) return cannot('no legal species in this format carries it');
   const base = dex.species.get(C.species);
@@ -2204,8 +2639,12 @@ function abilityScenario(e, C, kind) {
    * say which of them moved the board. Measured: Sand Rush and Fluffy sit on Houndstone and control
    * each other, and exactly one of that pair is a real finding. */
   sc.controlQuiet = !C.control || QUIET_SET.has(idOf(C.control));
+  /* the second control, for the same reason as in `stageAbility` — and never for the suppress tier,
+   * whose control is a CLICK rather than an ability and has no second form */
+  sc.controlAbility2 = suppress ? null : (C.control2 || altAbility2(base, e.id) || null);
   sc.controlKind = suppress ? 'suppress' : 'ability';
   sc.abilityId = e.id;
+  sc.carrierSpecies = base.id;
   return { note: C.tier + ' carrier ' + base.name
       + (C.tier === 'MEGA' ? ' -> ' + pretty(C.forme) + ' via ' + pretty(C.stone) : '')
       + '; control = ' + (suppress ? 'Gastro Acid suppression' : C.control)
@@ -2884,6 +3323,107 @@ const RULES = [
 
 /* -------------------------------------------------------------------------- abilities ----------- */
 
+/* ---- ROADMAP #122: NO ABILITY ROW HAD EVER ASKED FOR A SWITCH ----------------------------------
+ *
+ * Every other ability row compares two boards, and a TRAP IS NOT A BOARD LEAF. `board_state.js` says
+ * so from its own side — ability trapping is `NOT_COMPARED`, because "a comparator would have to
+ * reimplement medicham2's rule to have anything to compare" — and this file's ability rules had no
+ * switch action in them at all, so Shadow Tag, Arena Trap and Magnet Pull had never been asked the
+ * only question that distinguishes them from doing nothing.
+ *
+ * THE PROBE IS THE MOVE STAGE'S, REUSED RATHER THAN REBUILT. `switchVerdict` already asks the two
+ * engines the same question in the two forms they answer it in — Showdown REJECTS the choice string,
+ * ours leaves the body in `S.actB[i]` — and it already refuses the row unless the CONTROL arm's
+ * identical ask SUCCEEDS in both engines. It found that Block and Mean Look do not trap. One probe,
+ * one place, or the two would drift.
+ *
+ * THIS RULE CLOSES ZERO ROWS TODAY AND THAT IS THE HONEST OUTCOME, not a shortfall. Asked of the
+ * format rather than remembered: ARENA TRAP and MAGNET PULL have NO legal carrier at all in
+ * gen9championsvgc2026regmb, and SHADOW TAG's only carrier is Gengar-Mega — a forme whose ability is
+ * WRITTEN BY THE FORME CHANGE, so it cannot be swapped and its only control is suppression, which
+ * `gastroWorks()` measures as not working in this simulator. The rows say that instead of saying
+ * nothing, and the day a regulation puts one of these on a body the staging is already here.
+ *
+ * AND THE CAPABILITY PROVES ITSELF RATHER THAN BEING ASSERTED. `abilitySwitchWorks()` plays the
+ * identical fixture with a NON-trapping carrier and requires both engines to complete the ask. A
+ * staging path that has never run is assumed broken (CLAUDE.md), and a rule whose every member is
+ * COULD-NOT-STAGE never reaches `--reds`, so this is the only receipt available. */
+{ id: 'ability/traps-and-somebody-tries-to-leave', kind: 'ability',
+  reads: 'onFoeTrapPokemon / onFoeMaybeTrapPokemon — the handler names Showdown uses for a trap, and '
+       + 'the type or grounding restriction read out of that handler\'s own source',
+  why: 'A TRAP IS A REFUSAL AND NOT A BOARD LEAF, so no ability row had ever tested one: this file\'s '
+     + 'ability scripts contained no switch action at all, and `board_state.js` explicitly does not '
+     + 'compare ability trapping. The foe is made to ASK to leave, and the two engines are compared on '
+     + 'their two forms of answer — Showdown rejects the choice string, medicham2 leaves the body in '
+     + 'its slot. Reuses `switchVerdict`, which the move stage already proved on Block and Mean Look.\n'
+     + '     THE CONTROL IS A HARD PRECONDITION: with the trapper\'s ability swapped out, the '
+     + 'identical ask must SUCCEED in both engines or the row is refused rather than reported.',
+  /* THE ANCHOR IS THE ABILITY REFUSAL ITSELF (WIRE 92 in medicham2-browser.js), the only line this
+   * rule can aim at — the tag params that scope it belong to other rules. It is written down and it
+   * has NEVER BEEN EXERCISED, because no member of this rule can be staged in this format; `--reds`
+   * skips a rule whose every member is COULD-NOT-STAGE, so this claim is unproven and says so. */
+  break: { why: 'the ability trap no longer holds the switch (UNEXERCISED — no member of this rule '
+       + 'can be staged in this format, so the anchor has never been fired)',
+    patch: [['if(_held){MEDSEEN.trapBlockedSwitch++;continue;}', 'if(_held){MEDSEEN.trapBlockedSwitch++;}']] },
+  match(e) {
+    const traps = ['onFoeTrapPokemon', 'onFoeMaybeTrapPokemon'].some(k => typeof e[k] === 'function');
+    if (!traps) return null;
+    const PROOF = abilitySwitchWorks();
+    const src = handlerSrc(e, ['onFoeTrapPokemon', 'onFoeMaybeTrapPokemon']);
+    /* the restriction, read off SHOWDOWN'S handler rather than out of our own tag file — asking our
+     * params which bodies it holds would be scoring this engine against itself */
+    const needTypes = typesNamed(e, ['onFoeTrapPokemon', 'onFoeMaybeTrapPokemon'])
+      .concat([...src.matchAll(/hasType\(\s*['"]([A-Z][a-z]+)['"]/g)].map(m => m[1]));
+    const needGround = /isGrounded\s*\(/.test(src);
+    const scope = (needTypes.length ? 'it holds only ' + [...new Set(needTypes)].join('/') + ' types; '
+                                    : '') + (needGround ? 'it holds only GROUNDED bodies; ' : '');
+    const C = abilityCarrier(e);
+    if (!C) {
+      /* WHY IT CANNOT BE ASKED IS TWO DIFFERENT FACTS AND THEY GET TWO DIFFERENT SENTENCES. Arena Trap
+       * and Magnet Pull have NO body at all in this format; Shadow Tag has one and it is a MEGA, whose
+       * ability the forme change WRITES — so it cannot be swapped and its only control is suppression,
+       * which is measured not to work here. Rolling both into "nothing carries it" would have been
+       * false about Shadow Tag, and a false reason is worse than a missing one. */
+      const all = CARRIERS[e.id] || [];
+      const mega = all.filter(s => MEGA_OF[s.id] || s.forme.endsWith('Mega'));
+      const head = all.length === 0
+        ? 'THE TRAP CANNOT BE ASKED BECAUSE NOTHING IN THIS FORMAT CARRIES IT. '
+        : mega.length === all.length
+          ? 'THE TRAP CANNOT BE ASKED BECAUSE ITS ONLY CARRIER IS MEGA-TIER (' + mega.map(s => s.name)
+            .join(', ') + '). THE FORME CHANGE WRITES THE ABILITY, so it cannot be swapped for a '
+            + 'control, and the only remaining control is suppression — which is MEASURED not to work '
+            + 'in this simulator: ' + gastroWorks().why + '  Until suppression is wired there is no '
+            + 'control arm for this row, and a trap probe with no control measures the fixture. '
+          : 'THE TRAP CANNOT BE ASKED ON ANY CARRIER THIS RULE CAN USE. ';
+      /* THE SCOPE TAG IS ONLY FOR THE REGULATION CASE. Shadow Tag HAS a carrier — tagging it
+       * `no-legal-carrier` would inflate the out-of-scope count with a row that is really blocked by
+       * the mega tier and by suppression not being wired, which is an instrument-and-engine fact and
+       * belongs in the in-scope-not-stageable column beside the other nine MEGA-tier rows. */
+      return cannot(head + scope
+        + noCarrierWhy(e, 'can be put on the field with a second ability to control it with')
+        + '  The probe itself is not the obstacle and that is measured rather than assumed: '
+        + PROOF.why, all.length === 0 ? 'no-legal-carrier' : null);
+    }
+    const victim = CANDIDATES.find(s => s.id !== C.species && buildableSpecies(s.id) && carrierAbility(s)
+      && (!needTypes.length || needTypes.some(t => (s.types || []).includes(t)))
+      && (!needGround || !(s.types || []).includes('Flying')));
+    const bench = CANDIDATES.find(s => victim && s.id !== C.species && s.id !== victim.id
+      && buildableSpecies(s.id) && carrierAbility(s));
+    if (!victim || !bench) return cannot('no legal body in this format satisfies what this trap scopes '
+      + '(' + (scope || 'no restriction') + ') AND can be built, so there is nobody to ask with');
+    if (!PROOF.ok) return cannot('THE PROBE ITSELF IS NOT PROVEN. ' + PROOF.why);
+    return { switchProbe: { side: 'A', slot: 0, to: bench.id, turn: 1 },
+      ...stageAbility(e, C, { hpA: 4, hpB: 4, moves: [INERT],
+        note: 'the trapper stands still and ' + victim.name + ' asks to leave for ' + bench.name
+            + ' on turn 2. ' + (scope || 'the trap is unrestricted') + ' A refusal is compared, not a '
+            + 'board leaf. ' + PROOF.why,
+        a0: mon(victim.id, '', carrierAbility(victim) || '', [INERT]),
+        a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [INERT]),
+        a2: mon(bench.id, '', carrierAbility(bench) || '', [INERT]),
+        script: [turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([{ sw: bench.id }, IDLE], [IDLE, IDLE])] }) };
+  } },
+
 { id: 'ability/no-legal-carrier', kind: 'ability',
   reads: 'the format\'s own species list',
   why: 'THE LARGEST SINGLE FACT IN THIS STAGE, AND IT IS ABOUT THE REGULATION RATHER THAN ABOUT THIS '
@@ -2896,7 +3436,8 @@ const RULES = [
     return cannot('NO LEGAL SPECIES IN ' + CS.FORMAT + ' CARRIES IT'
       + (all.length ? ' in a form this file can put on the field (' + all.join(', ') + ')'
                     : ' — every body that has it is isNonstandard in this format')
-      + '. This is a property of the REGULATION, not of the simulator and not of this instrument.'); } },
+      + '. This is a property of the REGULATION, not of the simulator and not of this instrument.',
+      'no-legal-carrier'); } },
 
 { id: 'ability/chance-gated', kind: 'ability',
   reads: 'shortDesc — a percentage that is not 100',
@@ -4272,6 +4813,335 @@ const RULES = [
           .concat([clickTurn, turn([IDLE, IDLE], [IDLE, IDLE])]) }) };
   } },
 
+/* ---- THE HEAL FAMILY: DAMAGE FIRST, THEN THE CLICK ---------------------------------------------
+ *
+ * Four rules, because the four shapes are four different mechanics and one rule covering them would
+ * be the `ability/generic` bucket again. See section 8 of the precondition vocabulary for the shape
+ * predicates and for why `data/tags.json` cannot express any of this.
+ *
+ * EVERY ONE OF THEM STAGES ITS BODIES WITH NO ITEM AND PROVES IT — `noHeldItems()` before the game and
+ * a precondition off SHOWDOWN'S board after it. A Sitrus Berry at half HP restores 25% and Leftovers
+ * pays maxhp/16; both are the size of the effects under test, both fire in the CONTROL arm as well,
+ * and a contaminated row therefore moves both arms equally and reads as a pass. */
+{ id: 'move/heals-a-body-that-was-damaged-first', kind: 'move',
+  reads: 'flags.heal on a Status move whose own data restores HP to a body that is NOT its user',
+  why: 'HEAL PULSE RESTORES HALF THE TARGET\'S MAX HP AND HAS NEVER BEEN AIMED AT A DAMAGED BODY. '
+     + 'Under `move/generic-status` it was clicked at a body holding a SITRUS BERRY on a board where '
+     + 'both sides also held Leftovers — a 25% heal and a maxhp/16 heal sitting inside a measurement '
+     + 'of a 50% heal, present in the control arm too. Here the healee is chipped past 55% of its max '
+     + 'HP by ONE derived delivery move, holds NOTHING, and is then healed by the OTHER BODY.\n'
+     + '     THE DIRECTION IS READ OFF THE MOVE\'S OWN TARGET. A move that can reach an ally is aimed '
+     + 'at its ALLY — which is the direction Will named (*"heal pulse is like hospitality"*) and the '
+     + 'direction the `healsAlly` tag claims — and one that can only be aimed across the field is '
+     + 'thrown across it. Neither is assumed: the row carries a precondition requiring the AUTHORITY '
+     + 'to have put HP back on the body the click named.\n'
+     + '     THE CONTROL IS THE OTHER NEGATIVE and it is genuinely inert here: the click becomes the '
+     + 'inert one, the chip is unchanged, no item exists to fire differently between the arms, and the '
+     + 'healee is left sitting on the damage.',
+  break: { why: 'the heal is skipped — the click still resolves and still spends the turn',
+    patch: [["if(a.kind==='heal'){", "if(a.kind==='heal'){m._lastMove=a.mv;continue;}if(a.kind==='heal'){"]] },
+  match(e) {
+    if (!healsAnotherBody(e)) return null;
+    const arm = armFor(e);
+    /* WHICH DIRECTIONS THE MOVE CAN BE AIMED, off its own `target` field and nothing else. */
+    const ALLY_TARGETS = new Set(['any', 'adjacentAlly', 'adjacentAllyOrSelf', 'allies', 'allySide']);
+    const ally = ALLY_TARGETS.has(e.target);
+    if (!ally && !aimsAtFoe(e)) return cannot('it restores HP to a body other than its user and its '
+      + 'target is "' + e.target + '", which is neither an ally this rule can put beside the healer '
+      + 'nor a foe it can aim across the field at — so there is no slot to damage first');
+    const healee = chippableBody(arm);
+    if (!healee) return cannot(noChipWhy(arm));
+    const healer = quietBody({ arm, not: [healee.sp.id, CLICKER(arm).species] });
+    if (!healer) return cannot(noBodyWhy({ arm, not: [healee.sp.id, CLICKER(arm).species] })
+      + ' A heal probe needs a HEALER that is not the healee and not the body throwing the chip.');
+    /* THE CLICK. An ally aim uses the driver's own target arithmetic (see `allySlot`); a cross-field
+     * aim uses the ordinary foe index. Both produce a choice string Showdown accepts as written. */
+    const healClick = ally ? mclick(e, needsIndex(e) ? allySlot(0) : null) : throwIt(e, 0);
+    const chipTurn = turn([click(healee.chip.id, 0), IDLE], [IDLE, IDLE]);
+    const sc = ally
+      ? scaffold({ hpA: 1, hpB: 1,
+          a0: mon(CLICKER(arm).species, '', CLICKER(arm).ability, [healee.chip.id]),
+          b0: { ...healee.body, moves: [INERT] }, b1: { ...healer, moves: [e.id] },
+          script: [chipTurn,
+                   turn([IDLE, IDLE], [IDLE, healClick]),
+                   turn([IDLE, IDLE], [IDLE, IDLE])] })
+      : scaffold({ hpA: 1, hpB: 1,
+          a0: mon(CLICKER(arm).species, '', CLICKER(arm).ability, [healee.chip.id]),
+          a1: { ...healer, moves: [e.id] },
+          b0: { ...healee.body, moves: [INERT] },
+          script: [chipTurn,
+                   turn([IDLE, healClick], [IDLE, IDLE]),
+                   turn([IDLE, IDLE], [IDLE, IDLE])] });
+    const bad = noHeldItems(sc);
+    if (bad) return cannot(bad);
+    return { arm, scenario: sc,
+      note: pretty(healee.sp.id) + ' is chipped to ' + Math.round(100 * (1 - healee.dealt / healee.hp))
+        + '% of its ' + healee.hp + ' HP by ' + healee.chip.name + ' and holds NO ITEM, then '
+        + pretty(healer.species) + (ally ? ' — its own partner — ' : ' — across the field — ')
+        + 'heals it on turn 2. Nothing on either side holds anything: a Sitrus Berry\'s 25% and '
+        + 'Leftovers\' maxhp/16 are the size of what is being measured and would fire in the control '
+        + 'arm too' + armNote(e),
+      precondition: [
+        { turn: 1, why: 'the body that is to be healed OFF FULL HP and holding nothing — a heal into a '
+            + 'full body is capped to nothing in both engines and reaches no leaf',
+          ok: b => { const a = sdActive(b, 'p2', 0); return !!a && a.hp < a.maxhp && !a.item; } },
+        { turn: 2, why: 'SHOWDOWN\'S OWN BOARD showing that body\'s HP GO UP — which is what proves the '
+            + 'click landed on the body it was aimed at rather than on the other slot. A mis-aimed '
+            + 'ally target is otherwise invisible: it would still move a board, just the wrong one',
+          ok: (b, all) => { const a = sdActive(b, 'p2', 0), p = sdActive(atTurn(all, 1), 'p2', 0);
+                            return !!a && !!p && a.hp > p.hp; } },
+      ] };
+  } },
+
+{ id: 'move/heals-the-slot-a-turn-later-across-a-switch', kind: 'move',
+  reads: 'a slotCondition whose own condition heals from its onEnd/onResidual, and whose user does '
+       + 'NOT faint',
+  why: 'WISH HEALS THE SLOT, NOT THE BODY, AND NOTHING HAD EVER ASKED IT THE DIFFERENCE. Will, '
+     + '2026-08-10: *"wish heals the slot more specifically so it could heal the user or you can '
+     + 'switch out and heal a partner"*. Under `move/slot-condition` the wisher stood in its own slot '
+     + 'for the whole scenario, so an engine that healed the BODY and an engine that healed the SLOT '
+     + 'produce the identical board and the row could not tell them apart.\n'
+     + '     SO THE BODY LEAVES. The recipient is damaged while it is on the field, switches OUT, the '
+     + 'wisher comes in and wishes, and the recipient switches BACK IN on the turn the wish resolves. '
+     + 'The heal therefore reaches a body that was never the user.\n'
+     + '     AND THE AMOUNT IS HALF THE **WISHER\'S** MAX HP, which is only visible if the two bodies '
+     + 'are different sizes. They are derived to be: the recipient is the bulkiest body that can be '
+     + 'chipped past 55% of its HP and the wisher is the SMALLEST body in the pool, so the two '
+     + 'candidate amounts differ by a margin printed on the entry. An engine reading the recipient\'s '
+     + 'own max HP instead lands on a different number and parts on it.\n'
+     + '     THE CHIP IS DEEPER THAN EITHER CANDIDATE AMOUNT, deliberately: a heal that overshoots the '
+     + 'maximum is clamped to it, and a clamped heal is the one case where the right answer and the '
+     + 'wrong answer are the same number.',
+  /* NOTHING TO BREAK, DECLARED AND CHECKED. medicham2's own heal header names Wish among the members
+   * that "arrive here with nothing but `true`" and are counted into `MEDFAILS.healProcedural` — there
+   * is no delayed slot heal in this simulator to aim an anchor at, and the member coming back
+   * DID-NOT-FIRE against the clean source is what proves it. `--reds` fails this declaration the
+   * moment any member of the rule fires. */
+  noBreak: 'medicham2 writes no delayed SLOT heal at all — `healParam` returns null for Wish and the '
+     + 'click is counted into MEDFAILS.healProcedural — so there is no line to break: the member reads '
+     + 'DID-NOT-FIRE against the clean source, which is what proves the absence.',
+  match(e) {
+    if (!healsTheSlotLater(e)) return null;
+    const arm = armFor(e);
+    const att = dex.species.get(CLICKER(arm).species);
+    /* THE PAIR IS DERIVED, NOT PICKED: recipient bulky enough to be chipped deep and survive, wisher
+     * small enough that half ITS max HP is a different number from half the recipient's. */
+    let pick = null;
+    for (const R of moveBodies(arm)) {
+      const rhp = flatL50(R.sp.baseStats).hp;
+      const chip = hitInBand(att, R.sp, 0.55, 0.92);
+      if (!chip) continue;
+      for (const W of moveBodies(arm)) {
+        if (W.sp.id === R.sp.id) continue;
+        const whp = flatL50(W.sp.baseStats).hp;
+        if (whp >= rhp) continue;                 // the wisher must be the SMALLER of the two ...
+        const gap = Math.floor(rhp / 2) - Math.floor(whp / 2);
+        if (gap < 5) continue;                    // ... by enough that the two amounts are tellable apart
+        /* and the chip has to be deeper than the LARGER candidate heal, or a clamp hides the source */
+        if (chip.d < Math.floor(rhp / 2)) continue;
+        if (!pick || gap > pick.gap) pick = { R, W, rhp, whp, gap, chip };
+      }
+    }
+    if (!pick) return cannot('no pair of bodies in the move stage\'s ' + moveBodies(arm).length
+      + '-species pool works as (recipient, wisher): the recipient must take one derived hit past 55% '
+      + 'of its max HP without dying, the wisher must be SMALLER so that half its max HP is a '
+      + 'different number, and the chip must be deeper than half the recipient\'s max HP so that '
+      + 'neither candidate heal is clamped by the maximum. Without all three the amount is either '
+      + 'invisible or identical whichever body it is read off, and the row would prove only that '
+      + 'something healed.');
+    const filler = quietBody({ arm, not: [pick.R.sp.id, pick.W.sp.id] });
+    if (!filler) return cannot(noBodyWhy({ arm, not: [pick.R.sp.id, pick.W.sp.id] })
+      + ' The recipient, the wisher and the partner standing in the other slot are three distinct '
+      + 'species by Species Clause — board_state.js keys a party BY SPECIES.');
+    const sc = scaffold({ hpA: 1, hpB: 1,
+      a0: mon(CLICKER(arm).species, '', CLICKER(arm).ability, [pick.chip.mv.id]),
+      b0: mon(pick.R.sp.id, '', pick.R.ability, [INERT]),
+      b1: { ...filler, moves: [INERT] },
+      b2: mon(pick.W.sp.id, '', pick.W.ability, [e.id]),
+      script: [turn([click(pick.chip.mv.id, 0), IDLE], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [{ sw: pick.W.sp.id }, IDLE]),
+               turn([IDLE, IDLE], [mclick(e, null), IDLE]),
+               turn([IDLE, IDLE], [{ sw: pick.R.sp.id }, IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+    const bad = noHeldItems(sc);
+    if (bad) return cannot(bad);
+    return { arm, scenario: sc,
+      note: pretty(pick.R.sp.id) + ' (' + pick.rhp + ' HP) is chipped ' + pick.chip.d + ' by '
+        + pick.chip.mv.name + ' on turn 1, leaves on turn 2 for ' + pretty(pick.W.sp.id) + ' ('
+        + pick.whp + ' HP), which wishes on turn 3 and is swapped back out on turn 4 — the turn the '
+        + 'wish resolves. HALF THE WISHER\'S MAX HP IS ' + Math.floor(pick.whp / 2)
+        + ' AND HALF THE RECIPIENT\'S IS ' + Math.floor(pick.rhp / 2) + ', so an engine reading the '
+        + 'wrong body\'s maximum lands ' + pick.gap + ' HP away. Nothing holds an item' + armNote(e),
+      precondition: [
+        { turn: 1, why: 'the RECIPIENT standing in the slot, off full HP, holding nothing',
+          ok: b => { const a = sdActive(b, 'p2', 0);
+                     return !!a && idOf(a.species) === idOf(pick.R.sp.id) && a.hp < a.maxhp && !a.item; } },
+        { turn: 3, why: 'the WISHER — a different body — standing in that slot when the move is clicked, '
+            + 'which is what makes this a test of the SLOT rather than of the user',
+          ok: b => { const a = sdActive(b, 'p2', 0);
+                     return !!a && idOf(a.species) === idOf(pick.W.sp.id); } },
+        { turn: 4, why: 'the RECIPIENT back in the slot, and SHOWDOWN\'S OWN BOARD showing its HP has '
+            + 'gone UP since it was on the bench — the authority healing a body that never used the '
+            + 'move is the whole content of this row',
+          ok: (b, all) => { const a = sdActive(b, 'p2', 0);
+            if (!a || idOf(a.species) !== idOf(pick.R.sp.id)) return false;
+            const before = sdParty(atTurn(all, 3), 'p2', pick.R.sp.id);
+            return !!before && a.hp > before.hp; } },
+      ] };
+  } },
+
+{ id: 'move/full-heal-that-also-writes-a-status-onto-its-user', kind: 'move',
+  reads: 'a self-targeting flags.heal move whose own onHit BOTH heals AND calls setStatus',
+  why: 'REST IS THREE EFFECTS ON ONE CLICK AND A ROW THAT ONLY CHECKS HP PASSES ON A BROKEN REST. '
+     + 'Will, 2026-08-10: *"rest heals status too"*. Its `onHit` restores the whole bar, writes SLEEP '
+     + 'onto its own user and sets that sleep\'s counter to 3 — and `board_state.js` compares all '
+     + 'three (`hp`, `status`, `status_counter`). Its `onTry` also REFUSES on a body at full HP, so a '
+     + 'staging that does not damage first stages nothing at all and Showdown answers `-fail`.\n'
+     + '     SO THE USER IS DAMAGED **AND STATUSED** BEFORE IT CLICKS. The status is derived from the '
+     + 'format\'s own 100-accuracy carriers, minus SLEEP (the move writes sleep itself, and Rest '
+     + 'refuses outright on a body already asleep) and minus PARALYSIS (it denies actions on a die '
+     + 'this file pins, so the body might never get to click). Both halves of the setup are receipted '
+     + 'off Showdown\'s board before anything downstream is believed.\n'
+     + '     THE CHIP IS DELIBERATELY SHALLOW AND THAT IS A CORRECTION, NOT A WEAKNESS. This move '
+     + 'restores the WHOLE bar, so any wound at all is fully visible; the deep chip a HALF-heal needs '
+     + 'is what made the first version of this row lethal — poison ticks maxhp/8 a turn and killed the '
+     + 'body in the CONTROL arm, so the delta carried a faint and a replacement instead of a heal. The '
+     + 'depth is now derived to leave the body alive through every residual turn of the script WITHOUT '
+     + 'the heal, with one tick of slack.',
+  /* NOTHING TO BREAK, DECLARED AND CHECKED — medicham2's heal header names Rest among the members that
+   * "arrive here with nothing but `true`", so `healParam` returns null and the click is counted into
+   * MEDFAILS.healProcedural rather than healing anything. `--reds` fails the declaration if it fires. */
+  noBreak: 'medicham2 resolves no procedural full heal: `healParam` returns null for Rest and the click '
+     + 'is counted into MEDFAILS.healProcedural, so there is no heal line to aim an anchor at. The '
+     + 'member reading DID-NOT-FIRE against the clean source is what proves the absence.',
+  match(e) {
+    if (!healsAndStatusesTheUser(e)) return null;
+    const arm = armFor(e);
+    if (!CURABLE_STATUS.length) return cannot('this format has no 100-accuracy carrier for any major '
+      + 'status other than sleep and paralysis — sleep is what this move WRITES (and its own onTry '
+      + 'refuses a body that already has it) and paralysis denies actions on a die this file pins. '
+      + 'Without a status to cure, only one of the move\'s three effects would be staged and a row '
+      + 'that checked HP alone would pass on a heal that cures nothing.');
+    /* the script runs four turns, so the status residual gets four ticks and one of slack */
+    const BAND = { lo: 0.2, hi: 0.45, residualFraction: 1 / 8, turns: 5 };
+    let pick = null;
+    for (const s of CURABLE_STATUS) {
+      const powder = !!(s.move.flags && s.move.flags.powder);
+      const body = chippableBody(arm, { ...BAND, status: s.status, powder });
+      if (body) { pick = { ...s, body, powder }; break; }
+    }
+    if (!pick) return cannot(noChipWhy(arm, BAND) + ' (and it must also be a body this format can '
+      + 'actually inflict a curable status on — ' + CURABLE_STATUS.map(s => s.status + ' via '
+        + s.move.name).join(', ') + ' — and one the status\'s own residual cannot kill over the '
+      + 'script, or the CONTROL arm loses the body and the delta becomes a faint rather than a heal)');
+    const statuser = quietBody({ arm, not: [CLICKER(arm).species, pick.body.sp.id] })
+                  || { ...CAST.ATTACKER2() };
+    const sc = scaffold({ hpA: 1, hpB: 1,
+      a0: mon(CLICKER(arm).species, '', CLICKER(arm).ability, [pick.body.chip.id]),
+      a1: mon(statuser.species, '', statuser.ability, [pick.move.id]),
+      b0: { ...pick.body.body, moves: [e.id] },
+      script: [turn([click(pick.body.chip.id, 0), click(pick.move.id, 0)], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [mclick(e, null), IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+    const bad = noHeldItems(sc);
+    if (bad) return cannot(bad);
+    return { arm, scenario: sc,
+      note: pretty(pick.body.sp.id) + ' is chipped ' + pick.body.dealt + ' of ' + pick.body.hp
+        + ' HP by ' + pick.body.chip.name + ' AND given ' + pick.status + ' by ' + pick.move.name
+        + ' on turn 1, then clicks on turn 2 — so all three of its effects have somewhere to land, and '
+        + 'two quiet boundaries follow so the sleep counter it writes has to walk. Nothing holds an '
+        + 'item' + armNote(e),
+      precondition: [
+        { turn: 1, why: 'the user OFF FULL HP (its own onTry refuses at full), CARRYING ' + pick.status
+            + ' (or the cure half of the move is not staged at all) and holding nothing',
+          ok: b => { const a = sdActive(b, 'p2', 0);
+                     return !!a && a.hp < a.maxhp && a.status === pick.status && !a.item; } },
+      ] };
+  } },
+
+{ id: 'move/the-user-faints-and-the-replacement-arrives-restored', kind: 'move',
+  reads: 'a slotCondition with selfdestruct, whose condition heals from onSwap/onSwitchIn',
+  why: 'HEALING WISH KILLS ITS OWN USER AND RESTORES THE BODY THAT WALKS IN. Will, 2026-08-10: *"like '
+     + 'a self ko like memento and then wish for the replacement, but more healing and status '
+     + 'healing"*. Its condition\'s `onSwap` refuses to do anything unless the entrant is damaged OR '
+     + 'statused — so a scenario with a healthy bench, which is every other scenario in this file, '
+     + 'stages precisely nothing and the row was reading a slot condition nobody could see.\n'
+     + '     THE ENTRANT IS DAMAGED BEFORE IT IS AN ENTRANT. It starts on the field, is chipped and '
+     + 'statused there, and only then leaves for the body that clicks the move — which is the only way '
+     + 'this instrument can produce a hurt replacement, because a bench body cannot be attacked.\n'
+     + '     ONE THING HERE IS NOT THIS FILE\'S TO CHOOSE AND THE ROW SAYS SO. When the user faints '
+     + 'the replacement is picked by MEDICHAM2 and mirrored onto Showdown (game_differential.js line '
+     + '1970) — no script can name it. So the row does not assume it got the body it damaged: a '
+     + 'precondition reads Showdown\'s own board and REFUSES with the species it actually got.',
+  noBreak: 'medicham2 writes no healing-wish slot condition: `healParam` returns null for it and the '
+     + 'click is counted into MEDFAILS.healProcedural, so there is no restore-the-entrant line to aim '
+     + 'an anchor at. MEASURED 2026-08-10 and worth stating precisely, because it is broader than the '
+     + 'heal: the subject and control boards are identical in THIS engine on every leaf, so the user '
+     + 'does not even FAINT here — the whole click is inert, not merely the restoration half. The '
+     + 'member reading DID-NOT-FIRE against the clean source is what proves the absence.',
+  match(e) {
+    if (!healsTheReplacement(e)) return null;
+    const arm = armFor(e);
+    /* SHALLOW, AND DERIVED NOT TO DIE. The entrant carries a status residual back onto the field with
+     * it, and in the arm where this move is NOT wired nothing restores it — a body that dies there
+     * turns the row into a faint comparison. Its condition restores the WHOLE bar, so a shallow wound
+     * is all the staging needs. */
+    const BAND = { lo: 0.2, hi: 0.45, residualFraction: 1 / 8, turns: 4 };
+    let pick = null;
+    for (const s of CURABLE_STATUS) {
+      const powder = !!(s.move.flags && s.move.flags.powder);
+      const body = chippableBody(arm, { ...BAND, status: s.status, powder });
+      if (body) { pick = { ...s, body, powder }; break; }
+    }
+    if (!pick) return cannot(noChipWhy(arm, BAND) + ' — and the entrant must be BOTH damaged and '
+      + 'statused, because this move\'s own condition refuses to act on a body that is neither, and '
+      + 'must survive its own status residual in the arm that never heals it.');
+    const user = quietBody({ arm, not: [pick.body.sp.id, CLICKER(arm).species] });
+    const filler = quietBody({ arm, not: [pick.body.sp.id, CLICKER(arm).species, user && user.species] });
+    if (!user || !filler) return cannot(noBodyWhy({ arm, not: [pick.body.sp.id] })
+      + ' This probe needs THREE distinct bodies on the subject side: the one that is damaged and '
+      + 'leaves, the one that clicks the move and dies, and the partner standing in the other slot.');
+    const statuser = quietBody({ arm, not: [CLICKER(arm).species, pick.body.sp.id] })
+                  || { ...CAST.ATTACKER2() };
+    const sc = scaffold({ hpA: 1, hpB: 1,
+      a0: mon(CLICKER(arm).species, '', CLICKER(arm).ability, [pick.body.chip.id]),
+      a1: mon(statuser.species, '', statuser.ability, [pick.move.id]),
+      b0: { ...pick.body.body, moves: [INERT] },
+      b1: { ...filler, moves: [INERT] },
+      b2: { ...user, moves: [e.id] },
+      script: [turn([click(pick.body.chip.id, 0), click(pick.move.id, 0)], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [{ sw: user.species }, IDLE]),
+               turn([IDLE, IDLE], [mclick(e, null), IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+    const bad = noHeldItems(sc);
+    if (bad) return cannot(bad);
+    return { arm, scenario: sc,
+      note: pretty(pick.body.sp.id) + ' is chipped ' + pick.body.dealt + ' of ' + pick.body.hp
+        + ' HP and given ' + pick.status + ' on turn 1, leaves on turn 2 for ' + pretty(user.species)
+        + ', which clicks on turn 3 and FAINTS. Whether the damaged body is the one that comes back is '
+        + 'the engine\'s own choice and is checked rather than assumed. Nothing holds an item' + armNote(e),
+      precondition: [
+        { turn: 1, why: 'the future entrant standing in the slot, DAMAGED and CARRYING ' + pick.status
+            + ' and holding nothing — this move\'s condition refuses a body that is neither hurt nor '
+            + 'statused, so without both halves the staging is empty',
+          ok: b => { const a = sdActive(b, 'p2', 0);
+                     return !!a && a.hp < a.maxhp && a.status === pick.status && !a.item; } },
+        { turn: 2, why: 'the USER standing in the slot, so the click on turn 3 comes from the body that '
+            + 'is supposed to pay for it',
+          ok: b => { const a = sdActive(b, 'p2', 0);
+                     return !!a && idOf(a.species) === idOf(user.species); } },
+        { turn: 3, why: 'the user FAINTED on Showdown\'s own board — the price the move charges, and '
+            + 'the thing that forces a replacement at all',
+          ok: b => { const p = sdParty(b, 'p2', user.species); return !!p && p.fainted; } },
+        { turn: 3, why: 'and the DAMAGED body back in the slot. The engine picks its own replacement '
+            + 'and no script can name one, so if it chose the healthy partner instead there is nothing '
+            + 'for this move to restore and the row is refused rather than reported',
+          ok: b => { const a = sdActive(b, 'p2', 0);
+                     return !!a && idOf(a.species) === idOf(pick.body.sp.id); } },
+      ] };
+  } },
+
 { id: 'move/needs-the-user-off-full-hp', kind: 'move',
   reads: 'a volatile whose own condition heals on residual',
   why: 'AQUA RING AND INGRAIN INSTALL A VOLATILE WHOSE WHOLE CONTENT IS `onResidual(p) { this.heal(p.'
@@ -4279,8 +5149,29 @@ const RULES = [
      + 'volatile is not a leaf `board_state.js` compares, and the row reported that nothing happened. '
      + 'The user is chipped on turn 1 by the other side, rings on turn 2, and the residual has two '
      + 'boundaries to arrive on.',
-  break: { why: 'the residual heal is skipped, which is the only path this family reaches HP by',
-    patch: [['if(a.kind===\'heal\'){', 'if(a.kind===\'heal\'){m._lastMove=a.mv;continue;}if(a.kind===\'heal\'){']] },
+  /* THE ANCHOR WAS RE-AIMED ON 2026-08-10, AND IT HAD BEEN POINTING AT THE WRONG MECHANISM.
+   *
+   * It was `if(a.kind==='heal'){` — the ordinary CLICK heal branch — and `--reds` reported this rule
+   * as `CAUGHT ... WEAK`: the only flip it could produce was DID-NOT-FIRE -> DID-NOT-FIRE on a member
+   * that was already red, which is not attributable to the plant.
+   *
+   * MEASURED rather than argued, on release 25958d06e36b: that plant moves **0 board leaves in
+   * medicham2** on Aqua Ring and **0** on Ingrain. Of course it does — this family's HP does not
+   * arrive from a click at all. It arrives from a VOLATILE'S OWN RESIDUAL, and the click branch is a
+   * different code path entirely. A break aimed at the wrong mechanism is still a bug (CLAUDE.md).
+   *
+   * A `noBreak` DECLARATION WAS TRIED NEXT AND THE INSTRUMENT REFUSED IT, WHICH IS THE CHECK WORKING.
+   * The declaration says "the simulator has no implementation of this family", and `--reds` answered
+   * FALSE DECLARATION naming **LEECH SEED** — a third member nobody had noticed this rule owned, which
+   * scores FIRED-AND-BOARDS-MATCH. Its condition's `onResidual` damages the seeded body and heals the
+   * seeder, so `healsOnResidual` matches it correctly and the family IS implemented, once.
+   *
+   * SO THE ANCHOR IS THE SEEDER'S RETURN — the only residual heal in this engine, and exactly the
+   * shape Aqua Ring's and Ingrain's would take if they existed. The chip is deliberately left alone:
+   * a break that moves ONLY the healing half is the localisation. */
+  break: { why: 'a residual volatile takes HP off its victim and returns NOTHING to the body it is '
+              + 'supposed to heal — the only residual heal path in this engine',
+    patch: [['_s.curHP=Math.min(_s.st.hp,_s.curHP+_d);', '_s.curHP=_s.curHP;']] },
   match(e) {
     if (!healsOnResidual(e)) return null;
     const arm = armFor(e);
@@ -4835,8 +5726,21 @@ const RULES = [
      + '32-move family has nowhere to appear and comes back THE STAGING IS INERT, which is a statement '
      + 'about the comparator. The target CLICKS A REAL MOVE ON EVERY TURN, which Taunt, Encore and '
      + 'Disable all need in order to bite anything, and THE PARTNER IS THE NEGATIVE beside it.',
-  break: { why: 'the move-sealing volatiles (Taunt, Encore, Disable) are never written',
-    patch: [["const _sm=TAGS.param('move',a.mv,'sealsMoves');", "const _sm=null;"]] },
+  /* THE ANCHOR WENT STALE AND NOTHING SAID SO UNTIL 2026-08-10, because the artifact that ships this
+   * rule was written WITHOUT `--reds`. `const _sm=TAGS.param('move',a.mv,'sealsMoves');` matched ZERO
+   * times in the release — ENGINE moved the read from the call site into `volDurationOnApply` and it
+   * is spelled `mvId` there — and a plant that never applies reads exactly like a comparator that
+   * found nothing. The rule reported NOT CAUGHT on both releases checked, so all 32 of its members
+   * were unproven staging and no report had ever mentioned it.
+   * THE `why` IS CORRECTED WITH THE ANCHOR, deliberately: nulling this does NOT stop the volatile
+   * being written — it removes the DURATION the artifact carries, so the seal lands with the bare
+   * fallback of 1 turn instead of Taunt's 3 or Disable's 4. That is a counter, which is exactly what
+   * `board_state.js` compares for this family, and describing it as "never written" would be a break
+   * whose stated mechanism is not the one it exercises. */
+  break: { why: 'the move-sealing volatiles (Taunt, Encore, Disable) land with the bare 1-turn '
+              + 'fallback instead of the duration the artifact carries — the counter is what this '
+              + 'family is compared on',
+    patch: [["const _sm=TAGS.param('move',mvId,'sealsMoves');", "const _sm=null;"]] },
   match(e) {
     if (!e.volatileStatus) return null;
     const arm = armFor(e);
@@ -4878,29 +5782,59 @@ const RULES = [
   } },
 
 { id: 'move/heal', kind: 'move',
-  reads: 'heal',
+  reads: 'heal — a DECLARED fraction of the user\'s own maximum',
   why: 'the user is chipped on turn 1 so a heal has somewhere to go, then heals on turns 2 and 3 — '
      + 'the second is the negative for a heal that overshoots the maximum. THE PARTNER IS THE OTHER '
-     + 'NEGATIVE: chipped by an identical click and never healing.',
+     + 'NEGATIVE: chipped by its own click and never healing.\n'
+     + '     TWO THINGS ABOUT THE FIXTURE WERE WRONG UNTIL 2026-08-10 AND BOTH PRODUCED VACUOUS '
+     + 'GREENS. It inflated max HP FOURFOLD (`hpB: 4`) and it chipped with the SMALLEST neutral hit '
+     + 'available, so on a 620 HP Goodra-Hisui a 45-point scratch was healed by a half that came out '
+     + 'to a whole 310 and then CLAMPED at the maximum. A clamped heal is the one case where the right '
+     + 'amount and a wrong amount are the same number, and an inflated maximum divides exactly, so '
+     + 'there is no remainder to round either. All four members read FIRED-AND-BOARDS-MATCH through '
+     + 'both blindfolds at once.\n'
+     + '     SO THE MAXIMUM IS REAL AND THE CHIP IS DEEPER THAN THE HEAL. The body is derived so that '
+     + '`maxhp * heal[0] / heal[1]` does NOT come out whole — the authority rounds that quotient '
+     + '(`Math.round`, battle-actions.js, gen >= 5) and a body whose maximum divides exactly cannot '
+     + 'tell a round from a floor. Nothing holds an item, for the reason section 8 gives.',
   break: { why: 'the heal is skipped — the click still resolves and still spends the turn',
     patch: [["if(a.kind==='heal'){", "if(a.kind==='heal'){m._lastMove=a.mv;continue;}if(a.kind==='heal'){"]] },
   match(e) {
     if (!e.heal) return null;
     const arm = armFor(e);
-    const b0 = quietBody({ arm }), b1 = quietBody({ arm, not: [b0 && b0.species] });
-    if (!b0 || !b1) return cannot(noBodyWhy({ arm }));
-    const chip = neutralHit(b0.species, e.id), chip2 = neutralHit(b1.species, e.id);
-    if (!chip || !chip2) return cannot('no neutral 100-accuracy delivery move exists to take the two '
-      + 'bodies off full HP, and a heal into a full body is invisible');
-    return { arm, note: 'chipped by ' + chip.name + ', then healing twice; ' + pretty(b1.species)
-        + ' is chipped identically and never heals' + armNote(e),
-      scenario: scaffold({ hpA: 4, hpB: 4,
-        a0: mon(CLICKER(arm).species, '', CLICKER(arm).ability, [chip.id]),
-        a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [chip2.id]),
-        b0: { ...b0, moves: [e.id] }, b1: { ...b1, moves: [INERT] },
-        script: [turn([click(chip.id, 0), click(chip2.id, 1)], [IDLE, IDLE]),
-                 turn([IDLE, IDLE], [throwIt(e), IDLE]),
-                 turn([IDLE, IDLE], [throwIt(e), IDLE])] }) };
+    const fr = Array.isArray(e.heal) ? e.heal : null;
+    if (!fr) return null;                     // a `heal: true` member is somebody else's shape
+    /* deeper than the heal, so the restore cannot clamp at the maximum and hide its own size */
+    const lo = Math.min(0.9, Math.max(0.55, fr[0] / fr[1] + 0.05));
+    let pick = chippableBody(arm, { lo, hi: 0.94, fracNotWhole: fr });
+    let rounds = true;
+    if (!pick) { pick = chippableBody(arm, { lo, hi: 0.94 }); rounds = false; }
+    if (!pick) return cannot(noChipWhy(arm, { lo, hi: 0.94 }) + ' A heal must be staged on a body it '
+      + 'cannot fill, or the amount is clamped by the maximum and the right answer and a wrong one '
+      + 'are the same number.');
+    const b1 = quietBody({ arm, not: [pick.sp.id] });
+    if (!b1) return cannot(noBodyWhy({ arm, not: [pick.sp.id] }));
+    const chip2 = neutralHit(b1.species, e.id);
+    if (!chip2) return cannot('no neutral 100-accuracy delivery move exists to take the on-board '
+      + 'negative off full HP, and a body at full HP proves nothing by not healing');
+    const sc = scaffold({ hpA: 4, hpB: 1,
+      a0: mon(CLICKER(arm).species, '', CLICKER(arm).ability, [pick.chip.id]),
+      a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [chip2.id]),
+      b0: { ...pick.body, moves: [e.id] }, b1: { ...b1, moves: [INERT] },
+      script: [turn([click(pick.chip.id, 0), click(chip2.id, 1)], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [throwIt(e), IDLE]),
+               turn([IDLE, IDLE], [throwIt(e), IDLE])] });
+    const bad = noHeldItems(sc);
+    if (bad) return cannot(bad);
+    return { arm, scenario: sc,
+      note: pretty(pick.sp.id) + ' is chipped ' + pick.dealt + ' of its REAL ' + pick.hp + ' HP by '
+        + pick.chip.name + ' — deeper than the ' + fr[0] + '/' + fr[1] + ' this restores, so the first '
+        + 'heal cannot clamp — then heals twice; the second click IS the overshoot negative. '
+        + (rounds ? 'ITS MAXIMUM DOES NOT DIVIDE BY ' + fr[1] + ' (' + pick.hp + ' x ' + fr[0] + '/'
+            + fr[1] + '), so the authority\'s rounding of that quotient is under test too'
+          : 'NO BODY IN THE POOL HAS A MAXIMUM THAT FAILS TO DIVIDE BY ' + fr[1] + ', so the ROUNDING '
+            + 'of the amount is NOT exercised here — said rather than left to be assumed') + '. '
+        + pretty(b1.species) + ' is chipped by ' + chip2.name + ' and never heals' + armNote(e) };
   } },
 
 { id: 'move/drain', kind: 'move',
@@ -5522,7 +6456,7 @@ function assign(kind) {
         + (Object.keys(e).filter(k => /^on/.test(k) && typeof e[k] === 'function').join(', ') || 'none')
         + '. shortDesc: ' + (e.shortDesc || '(none)') }); continue; }
     if (hit.m.cannot) { out.push({ kind, id: e.id, name: e.name, rule: hit.rule.id,
-      verdict: 'COULD-NOT-STAGE', why: hit.m.cannot }); continue; }
+      verdict: 'COULD-NOT-STAGE', why: hit.m.cannot, out_of_scope: hit.m.scope || null }); continue; }
     const sc = hit.m.scenario;
     sc.id = kind + '/' + e.id;
     sc.kind = kind; sc.entityId = e.id;
@@ -5635,7 +6569,103 @@ function selftest() {
       }
     }
   }
+  /* 5. THE ABILITY STAGE CAN ASK FOR A SWITCH AT ALL (ROADMAP #122). Every trapping ability in this
+   *    format is COULD-NOT-STAGE for a carrier reason, so `ability/traps-and-somebody-tries-to-leave`
+   *    never plays a game and `--reds` never reaches it — which would leave a staging path that has
+   *    NEVER RUN sitting in the file reporting success, the exact failure CLAUDE.md opens on. This is
+   *    the receipt: an UNTRAPPED body is asked to leave and both engines must move it. */
+  {
+    const P = abilitySwitchWorks();
+    out.push({ id: 'an ability-stage scenario can ask for a switch and BOTH engines perform it',
+               ok: P.ok, note: P.why });
+  }
+  /* 6. THE HEAL STAGING CAN EXPRESS ITS OWN MECHANIC — AND `--reds` CANNOT SAY SO HERE (2026-08-10).
+   *
+   *    The red demonstration asks whether the plant FLIPS A VERDICT, and it tries green members first
+   *    because a member that is already red flips to red for reasons that are not the plant. The heal
+   *    rule has no green member: Heal Pulse is DID-NOT-FIRE and Life Dew is FIRED-AND-BOARDS-DIFFER on
+   *    an off-by-one in the heal amount. So `--reds` reports `CAUGHT ... WEAK` — correctly, by its own
+   *    rule — and the rule is left unproven.
+   *
+   *    THE FIX IS NOT TO LOOSEN THE REDS LOOP. Counting a DIFFER member as a demonstration would flip
+   *    other rules from NOT CAUGHT to CAUGHT and quietly weaken a guard, which is the one thing this
+   *    file may never do to close a row. The fix is to ask the narrower question directly, exactly as
+   *    `critsLand()` and `abilitySwitchWorks()` do: BREAK THE MECHANISM AND WATCH OUR OWN BOARD.
+   *
+   *    A green verdict is not required and is not what is being asked. What is being asked is whether
+   *    the anchor this rule names sits in the path its fixture drives — if it does, a rule that stops
+   *    detecting a heal has somewhere to fail. The member is DERIVED (the first one the engine
+   *    actually implements), never named, and both directions are printed. */
+  {
+    const P = healStagingWorks();
+    out.push({ id: 'a heal-after-damage scenario reaches the heal path IN THIS ENGINE — the rule\'s own '
+                 + 'anchor moves OUR board on a member the simulator implements',
+               ok: P.ok, note: P.why });
+  }
   return out;
+}
+
+/* ---- CAN A HEAL SCENARIO EXPRESS ITS OWN MECHANIC? MEASURED, NOT ASSERTED ----------------------
+ *
+ * The anchor is taken from the RULE rather than retyped, so there is one definition of it and a rule
+ * that re-aims its break re-aims this proof with it. The member is taken from the FORMAT — every move
+ * whose shape the rule claims — and the first one whose fixture the plant actually moves is the
+ * answer. If none of them moves, this is RED and every row that rule produces is unproven staging.
+ *
+ * WHY IT IS SEPARATE FROM `--reds`: the reds loop measures a VERDICT FLIP, which needs a green member.
+ * This measures whether the plant reaches OUR ENGINE'S BOARD AT ALL, which does not. They answer
+ * different questions and the weaker one is not allowed to stand in for the stronger. */
+const HEAL_RULE_ID = 'move/heals-a-body-that-was-damaged-first';
+let _HSW = null;
+function healStagingWorks() {
+  if (_HSW) return _HSW;
+  const rule = RULES.find(r => r.id === HEAL_RULE_ID);
+  if (!rule || !rule.break) {
+    _HSW = { ok: false, why: 'the rule `' + HEAL_RULE_ID + '` or its break anchor is gone, so this '
+      + 'proof has nothing to aim at — which is a fault in this file rather than a finding' };
+    return _HSW;
+  }
+  const src = REL.read('engine/medicham2-browser.js');
+  const [find, repl] = rule.break.patch[0];
+  if (src.split(find).length - 1 !== 1) {
+    _HSW = { ok: false, why: 'the anchor `' + find.slice(0, 40) + '` is not in release ' + REL.id
+      + ' exactly once, so the question cannot be asked of it and the answer is UNKNOWN rather than no' };
+    return _HSW;
+  }
+  const broken = src.replace(find, repl);
+  const rows = [];
+  for (const m of dex.moves.all()) {
+    if (!m.exists || m.isNonstandard || !healsAnotherBody(m)) continue;
+    let st = null;
+    try { st = rule.match(m); } catch (err) { st = null; }
+    if (!st || st.cannot || !st.scenario) { rows.push(m.name + ': not staged by the rule'); continue; }
+    const sc = { ...st.scenario, id: 'selftest/heal-staging/' + m.id };
+    const a = play(sc, null, st.arm), b = play(sc, broken, st.arm);
+    if (a.bad || b.bad) { rows.push(m.name + ': the fixture did not play (' + (a.bad || b.bad) + ')'); continue; }
+    let moved = 0;
+    for (let i = 0; i < a.boards.length; i++)
+      moved += BS.compare(a.boards[i].medi, b.boards[i].medi, { compared: 0 }).length;
+    rows.push(m.name + ': ' + moved + ' leaf/leaves');
+    if (moved > 0) {
+      /* WHICH RULES THIS COVERS, DERIVED. Several heal rules name the SAME anchor, and a proof that
+       * only spoke for the one it was written against would understate itself — `move/heal` also has
+       * no green member left now that its fixture stopped clamping, so it also reads WEAK and also
+       * depends on this line being live. */
+      const shares = RULES.filter(r => r.break && r.break.patch.some(p => p[0] === find)).map(r => r.id);
+      _HSW = { ok: true, why: 'MEASURED on release ' + REL.id + ': removing the heal branch from '
+        + 'medicham2 moves ' + moved + ' board leaf/leaves of OUR OWN in this rule\'s fixture ('
+        + rows.join('; ') + '), so the staging drives the path the rule names. The anchor is shared by '
+        + shares.length + ' rule(s) — ' + shares.join(', ') + ' — and this covers all of them. It says '
+        + 'nothing about whether the members are CORRECT (Heal Pulse is unwired; Life Dew, Recover, '
+        + 'Roost, Slack Off and Soft-Boiled are all one HP short on a quotient the authority rounds), '
+        + 'only that a heal that stopped working here would be SEEN.' };
+      return _HSW;
+    }
+  }
+  _HSW = { ok: false, why: 'THE PLANT MOVES NO BOARD OF OURS ON ANY MEMBER OF THIS RULE (' + rows.join('; ')
+    + '), so this staging cannot express its own mechanic and every row it produces is unproven — the '
+    + 'equivalent-mutant failure, in the fixture rather than the comparator.' };
+  return _HSW;
 }
 
 /* =================================================================================================
@@ -5916,8 +6946,13 @@ function main() {
       continue;
     }
     if (v === 'CONTROL-NOT-QUIET') {
+      console.log('    NOT A FINDING AND NOT A PASS. These rows count in NEITHER column and the clause '
+        + 'says so out loud.\n    DECLARED = the format offers no second control on any legal carrier, '
+        + 'so it cannot be measured here at all.\n    MEASURED = a second control WAS played and the '
+        + 'two disagreed, so at least one control is live.');
       for (const r of rows) {
-        console.log('    ' + r.name.padEnd(22) + '[' + r.rule + ']   ' + (r.note || ''));
+        console.log('    ' + (r.declared_untestable ? 'DECLARED ' : 'MEASURED ')
+          + r.name.padEnd(22) + '[' + r.rule + ']   ' + (r.note || ''));
         console.log('      ' + (r.control_why || '').replace(/\s+/g, ' '));
         for (const d of (r.sd_delta || []).slice(0, 3))
           console.log('        (the CONTROL\'s own delta, turn ' + d.turn + ') ' + SAY(d, r.boards));
@@ -5969,9 +7004,12 @@ function main() {
           console.log('      and the two engines part on NOTHING the entity does not already explain, '
             + 'so the entity itself is the whole difference.');
         }
-        if (r.controlQuiet === false) console.log('      CAVEAT: the control ability is itself ACTIVE '
-          + '— its species carries no quiet alternative — so this delta is (subject MINUS a live '
-          + 'control) and cannot on its own say which of the two moved the board.');
+        if (r.controlQuiet === false) console.log('      ' + (r.second_control && r.second_control.ran
+          ? 'THE CONTROL ABILITY IS ITSELF ACTIVE AND THE DELTA WAS VARIED AGAINST A SECOND ONE. '
+            + r.second_control.why.replace(/\s+/g, ' ')
+          : 'CAVEAT: the control ability is itself ACTIVE — its species carries no quiet alternative '
+            + '— so this delta is (subject MINUS a live control) and cannot on its own say which of '
+            + 'the two moved the board.'));
       } else {
         /* A REFUSAL PROBE HAS NO `diffs` AND ITS WHOLE FINDING IS THE SENTENCE. Printing only the
          * leaf list would show a DIFFER row with nothing under it, which reads as a broken report
@@ -6087,20 +7125,79 @@ function main() {
   if (staleDecl) console.log('    A DECLARED DIVERGENCE THAT MATCHED NOTHING IS A CLAIM THAT HAS '
     + 'QUIETLY BECOME FALSE. Remove it or find out why.');
 
+  /* ---- THE DENOMINATOR (ROADMAP #120) ----------------------------------------------------------
+   *
+   * A COUNT WITHOUT A DENOMINATOR IS A CAPTION. `engine/quarantine.js` printed "clean: 84 fired and
+   * matched" and PASSED, and 84 of 316 is 26.6% while 84 of the 201 rows that HAVE a legal carrier is
+   * 42% — two very different claims, neither of which was on the line. Worse, fifteen rows sat inside
+   * that green counting towards neither.
+   *
+   * So the artifact carries the split and the gate reads it from here rather than re-deriving it. The
+   * out-of-scope arm is TAGGED AT THE REFUSAL (`cannot(why, 'no-legal-carrier')`), not matched out of
+   * the reason string afterwards — a substring test over prose is how `ladder.json` came to be a
+   * substring of `games.ladder.jsonl`. */
+  const oos = results.filter(r => r.out_of_scope);
+  const oosBy = {};
+  for (const r of oos) oosBy[r.out_of_scope] = (oosBy[r.out_of_scope] || 0) + 1;
+  const nOf = v => (by[v] || []).length;
+  const unattributable = (by['CONTROL-NOT-QUIET'] || []);
+  const scope = {
+    total: results.length,
+    out_of_scope: oos.length, out_of_scope_by: oosBy,
+    in_scope: results.length - oos.length,
+    tested: nOf('FIRED-AND-BOARDS-MATCH') + nOf('FIRED-AND-BOARDS-DIFFER') + nOf('DID-NOT-FIRE'),
+    matched: nOf('FIRED-AND-BOARDS-MATCH'), differ: nOf('FIRED-AND-BOARDS-DIFFER'),
+    silent: nOf('DID-NOT-FIRE'), deferred: nOf('DEFERRED-BY-OWNER'),
+    unattributable: unattributable.length,
+    unattributable_ids: unattributable.map(r => r.id),
+    declared_untestable: unattributable.filter(r => r.declared_untestable).map(r => r.id),
+    could_not_stage_in_scope: nOf('COULD-NOT-STAGE') - oos.length,
+    attributed_by_second_control: results.filter(r => r.second_control && r.second_control.ran).map(r => r.id),
+  };
+
   console.log('\nSUMMARY   ' + STAGE);
   for (const v of VERDICT_ORDER) console.log('  ' + String((by[v] || []).length).padStart(4) + '  ' + v);
   console.log('  ' + String(results.length).padStart(4) + '  total');
+  console.log('\n  THE DENOMINATOR — a count with no denominator is a caption, not a result:');
+  console.log('    ' + scope.tested + ' TESTED (the authority answered and the two engines were compared) '
+    + 'of ' + scope.in_scope + ' IN SCOPE, of ' + scope.total + ' total');
+  console.log('    ' + scope.out_of_scope + ' OUT OF SCOPE — a fact about the regulation, not a gap: '
+    + (Object.entries(oosBy).map(([k, v]) => v + ' ' + k).join(', ') || 'none'));
+  console.log('    ' + scope.could_not_stage_in_scope + ' in scope and NOT STAGEABLE by this instrument '
+    + '(inert staging, a chance below 100%, no usable carrier for the rule, an unusable control tier)');
+  console.log('    ' + scope.unattributable + ' UNATTRIBUTABLE — the control is itself a live ability and '
+    + 'the delta cannot be charged to the entity'
+    + (scope.unattributable ? ': ' + scope.unattributable_ids.join(', ') : '')
+    + (scope.declared_untestable.length ? '\n      of which DECLARED UNTESTABLE (no second control '
+        + 'exists on any legal carrier): ' + scope.declared_untestable.join(', ') : ''));
+  if (scope.attributed_by_second_control.length)
+    console.log('    ' + scope.attributed_by_second_control.length + ' row(s) were RELEASED OR NARROWED BY '
+      + 'A SECOND CONTROL: ' + scope.attributed_by_second_control.join(', '));
 
   if (JSONOUT || HAS('--write')) {
     const art = { generated: new Date().toISOString(), by: 'tests/roster.js', stage: STAGE,
       engine_release: REL.id, format: CS.FORMAT,
       counts: Object.fromEntries(VERDICT_ORDER.map(v => [v, (by[v] || []).length])),
+      /* THE DENOMINATOR TRAVELS WITH THE COUNTS. engine/quarantine.js reads this rather than
+       * re-deriving it, so the clause and the run cannot come to disagree about what 84 is out of. */
+      scope,
       reds: redRows,
       mirror: { pairs: mirrorPairs, same_numbers_swapped: mirrored.map(m => ({ a: m.a.id, b: m.b.id,
         verdicts: [m.a.verdict, m.b.verdict], leaves: m.swap })) },
       results: results.map(r => ({ kind: r.kind, id: r.id, name: r.name, rule: r.rule, reads: r.reads || null,
         note: r.note || null, verdict: r.verdict, why: r.why || null,
         arm: (r.scenario && r.scenario.arm) || PRIMARY_ARM_ID, control_why: r.control_why || null,
+        /* the regulation refusal, tagged at the refusal rather than matched out of the prose */
+        out_of_scope: r.out_of_scope || null,
+        declared_untestable: r.declared_untestable || false,
+        /* THE SECOND CONTROL'S RECEIPT. An accusation released by it rests on this and on nothing
+         * else, so the artifact carries what was varied, what survived and what was dropped. */
+        second_control: r.second_control ? { control: r.second_control.control,
+          ran: r.second_control.ran, why: r.second_control.why,
+          leaves_first: r.second_control.leaves_first || 0,
+          leaves_second: r.second_control.leaves_second || 0,
+          leaves_kept: r.second_control.leaves_kept || 0,
+          dropped: r.second_control.dropped_leaves || [] } : null,
         /* THE REFUSAL PROBE'S OWN EVIDENCE. Its verdict rests on four facts that are not board leaves
          * — who refused, who moved, in which arm — and an artifact carrying only `diffs` would show a
          * DIFFER row with an empty difference list, which reads exactly like a bug in this file. */
@@ -6141,8 +7238,22 @@ function main() {
       }
       fs.writeFileSync(perStage, JSON.stringify(art, null, 1));
       console.log('  wrote data/roster.' + STAGE + '.json   <- THIS is what engine/quarantine.js reads');
-      fs.writeFileSync(D('data', 'roster.json'), JSON.stringify(art, null, 1));
-      console.log('  wrote data/roster.json (a convenience copy of the LAST stage run — not the roster)');
+      /* `--keep-shared` LEAVES data/roster.json ALONE, and it exists because two divisions run this
+       * file at once. The shared copy is a copy of whatever stage ran LAST; when another agent is
+       * mid-pass on a different stage, replacing it hands them a file whose `stage` field names
+       * somebody else's work. Nothing is lost either way — the per-stage artifact is the artifact and
+       * quarantine.js tries it first — but "I did not touch your file" is cheaper to say than to
+       * reconstruct. Used 2026-08-10 while the moves stage was live in another session. */
+      if (HAS('--keep-shared')) {
+        let cur = null;
+        try { cur = JSON.parse(fs.readFileSync(D('data', 'roster.json'), 'utf8')); } catch (err) { cur = null; }
+        console.log('  LEFT data/roster.json alone (--keep-shared). It still holds stage "'
+          + (cur ? cur.stage : 'unreadable') + '", generated ' + (cur ? cur.generated : '?')
+          + ' — another division\'s run. The artifact for THIS stage is the per-stage file above.');
+      } else {
+        fs.writeFileSync(D('data', 'roster.json'), JSON.stringify(art, null, 1));
+        console.log('  wrote data/roster.json (a convenience copy of the LAST stage run — not the roster)');
+      }
     }
     if (JSONOUT) console.log('\n' + JSON.stringify(art, null, 1));
   }
