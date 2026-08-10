@@ -61,6 +61,65 @@ FAIL  deliberate roster / moves      23 differ, 24 did-not-fire
 
 ---
 
+## ENCORE, DIAGNOSED — the lock is applied at SELECTION; Showdown applies it at EXECUTION
+
+Diagnosed by `@measure` against frozen release `a59b885861cd`. **Not yet fixed** — `@engine` owned the
+file. Will: *"fix encore when the other agent is done."*
+
+**THE MECHANISM.** The Encore in this scenario lands **mid-turn**: p1a is faster and Encores p2a AFTER
+both sides' actions were collected. Our `mk()` runs for all four bodies before the queue is sorted, and
+at that instant `mon._lock` is still null — Encore is written later, at move resolution. So the WIRE 24
+rewrite evaluates **once per turn, at the wrong instant**, and never fires.
+
+```
+SHOWDOWN turn 2                              MEDICHAM turn 2 (frozen)
+  |-start|p2a|Encore                           |-start|p2a|move: encore      <- volatile IS set
+  |move|p2a|Dragon Pulse|p1b Corviknight       |move|p2a|dragonclaw|p1a      <- SELECTED move, unchanged
+  |-damage|p1b  (-36)                          |-damage|p1a  (-55)
+  |move|p2b|Dragon Claw|p1a  (-39)             |move|p2b|dragonclaw|p1a  (-39)
+```
+
+**THE CONTROL IS THE SHARPEST STATEMENT OF IT.** The roster's control arm replaces the Encore click
+with the inert click, and its turn-2 board is **bit-identical to our subject arm**. Landing the Encore
+changed nothing whatsoever in our engine.
+
+**AUTHORITY** — `sim/battle-actions.ts:223-234`, inside `runMove`, i.e. PER ACTION AT EXECUTION:
+
+```ts
+const changedMove = this.battle.runEvent('OverrideAction', pokemon, target, baseMove);
+if (changedMove && changedMove !== true) {
+    baseMove = this.dex.getActiveMove(changedMove);
+    baseMove.priority = priority;                          // the bracket we already fixed
+    target = this.battle.getRandomTarget(pokemon, baseMove);   // <- and the target is RE-ROLLED
+}
+```
+
+Only reachable when the Encore lands after the victim's choice was locked in — on any later turn
+`onDisableMove` removes the other moves from the request, so the chosen move already equals the encored
+one. **A fast Encore into a slower foe is the whole of the reachable set, and it is common.**
+
+**THE PRECEDENT IS IN THIS FILE.** `WIRE 119 — "TAUNT AT EXECUTION TIME"` gave Taunt BOTH halves: a
+menu filter in `chooseAction` and a second check in the dispatch loop for the mid-turn case. **Encore
+only ever got the first half.**
+
+**TWO HALVES ARE NEEDED** and the row stays red after either alone:
+  1. Re-evaluate the lock in the per-action dispatch loop, ABOVE the confusion / paralysis / recharge /
+     Throat Chop / Taunt gates — those are `BeforeMove` handlers and `OverrideAction` fires first.
+     `_selMv` STAYS at collection time; the priority-bracket fix depends on it.
+  2. `targetForMove` picks the **highest-damage** live foe; Showdown's `getRandomTarget` picks a
+     **uniformly random** adjacent one. Different functions.
+
+**RULED OUT, measured:** not damage (Torterra's identical unencored Dragon Claw deals 39 in BOTH
+engines), not the volatile or its counter, not `targetForMove` mis-aiming (that code never executed),
+not the fixture (control agrees leaf-for-leaf), not the harness (it reproduced the published verdict
+and HP values exactly).
+
+**INCIDENTAL, reported not acted on:** we emit no `|-fail|` for the turn-1 Encore that correctly
+refuses. Boards agree so the state comparator is silent, but the PROTOCOL arm of
+`game_differential.js` would see it.
+
+---
+
 ## DECISIONS TAKEN BY WILL DURING THE SPRINT — record, not recollection
 
 **THE SITE IS A VISUALISATION, NOT A CONSTRAINT.** *"the website really was just for fun and for me to
