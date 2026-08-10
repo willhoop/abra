@@ -61,6 +61,40 @@ FAIL  deliberate roster / moves      23 differ, 24 did-not-fire
 
 ---
 
+## DECISIONS TAKEN BY WILL DURING THE SPRINT — record, not recollection
+
+**THE SITE IS A VISUALISATION, NOT A CONSTRAINT.** *"the website really was just for fun and for me to
+visualize all the progress on the project, now that we have an outline im more concerned about speed
+and functionality."* This REVERSES a standing assumption — that ABRA WORLD needing to run the real
+engine live is a design constraint on `medicham2-browser.js`. It is not. Speed and functionality win.
+
+**THE BROWSER WRAPPER STAYS, FOR NOW.** *"so can we get medicham up to full functionality without
+changing the browser"* — yes, and measured: every row closed tonight was fixed INSIDE the wrapper.
+The 22 remaining move rows are tag derivations, consumers and branch logic; none needs
+`module.exports`. Full gate green does not require touching it.
+
+*What the wrapper actually costs, so the decision is revisited on evidence rather than feel:*
+  - **ROADMAP #114 is caused by it** — `root.MEDI_SPREAD` instead of `module.exports`, a symbol that
+    never existed on any build, so every spread move was priced as single-target. That is a ONE-LINE
+    export fix, not a conversion.
+  - `MC` is a global rather than an import, which is why a frozen release is **23 files** instead of a
+    module graph.
+  - Every artifact read is dual-pathed with a **silent-degradation branch** for the browser, and
+    silent degradation is this project's signature failure mode.
+  - Measured: exactly ONE page actually loads the engine — `web/tower.html`. `index`, `models` and
+    `app/index` mention it in prose with no script tag. The cost is paid for one page.
+
+*Revisit in September alongside the regulation change, when releases are being re-cut anyway. Doing it
+mid-sprint would invalidate every frozen release and every probe's setup, and destroy the one thing
+that has made this sprint work: being able to attribute a regression to a single change.*
+
+**AND REMOVING IT WOULD NOT MAKE ANYTHING FASTER.** The UMD closure costs nothing at runtime. If speed
+is the goal the two right items are already filed and neither has been started: **#61** (*"MEDICHAM is
+half the speed the project thinks it is, and nothing watches"*) and **#76** (*"SPEED IS A BUDGET, NOT A
+VIBE"*). There is no benchmark, so every speed claim in this repo is currently a vibe.
+
+---
+
 ## THE boosts-target SIX — ONE CLOSED, THREE DIAGNOSED, TWO WERE NEVER BROKEN
 
 I expected one shared cause across six rows. **There were two causes and they split the group
