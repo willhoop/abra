@@ -51,6 +51,20 @@ silently rewritten; what changed and why is stated.
   reason they are two fields. Sitrus is unchanged.
 
 ### Notes
+- **CORRECTED BY WILL THE SAME DAY — what Iron Ball is actually for.** *"iron ball is mostly used in
+  fling sets"*. The entry above framed 139 uses as though the Speed halving were the whole value.
+  **The Fling half was already wired** (`flingable` carries its 130 BP, the highest in the game), so
+  this fix adds nothing there. **But the Trick Room half makes the defect worse than described:** under
+  Trick Room the slower body moves FIRST, so halving your own Speed is the point of the item — and
+  before this fix the engine gave an Iron Ball holder *double its true Speed in exactly the room it is
+  brought for*, moving it last where the real game moves it first.
+- **AND THE 139 IS NOT A SOLID NUMBER — ROADMAP #70, met while using it.** `g.sheets` covers 1.7% of
+  sides and yields 15 Iron Ball rows; `g.sets` yields 0; `tags.json` says 139. Three sources, three
+  answers. **No Fling/Trick-Room split is quoted**, because n=15 cannot characterise 139 and the 139 is
+  itself one of the disagreeing figures.
+- **Three Fling facts checked and all three were already correct**, so none is queue work: Light Ball
+  flings for **paralysis**, Iron Ball flings for 130 BP and **no flinch**, King's Rock flings for
+  **flinch** (96 uses, the only legal item here whose Fling carries a volatile).
 - **Every regeneration was diffed before it was trusted.** Batch 1: 5 params changed, 0 added, 0
   removed. Batch 2: 2 params changed, 0 added, 0 removed. Roster verdict changes were exactly the
   three predicted rows and nothing else moved.

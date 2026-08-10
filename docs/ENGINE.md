@@ -57,7 +57,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 183/191 probed, 8 unprobed
 ```
 
-_stamped 2026-08-10 00:27_
+_stamped 2026-08-10 00:31_
 
 <!-- /GENERATED -->
 
@@ -107,6 +107,39 @@ The residual loop said plainly: *"Oran restores a FLAT 10 HP, not a fraction —
 null and it stays unwired."* Honest, accurate, and **the roster read it DID-NOT-FIRE regardless.**
 `restoresFlat` is derived beside `restores` and is deliberately **not** scaled by max HP — that
 distinction is the whole reason they are two fields. Sitrus unchanged.
+
+### CORRECTED BY WILL, SAME DAY: WHAT IRON BALL IS ACTUALLY FOR
+
+*(Will, 2026-08-10: "iron ball is mostly used in fling sets".)* The entry above framed 139 uses as if
+the Speed halving were the item's whole value. It is not, and the correction cuts **both** ways:
+
+- **The Fling half was already wired.** `flingable` derives base power, status and volatile straight
+  from the dex, and Iron Ball's 130 BP — the highest Fling power in the game — was in the artifact
+  throughout. This fix adds nothing to a Fling set.
+- **The Trick Room half makes the defect WORSE than described.** Under Trick Room the SLOWER body moves
+  first, so an item that halves your own Speed is a deliberate buff, not a cost. Before this fix the
+  engine gave an Iron Ball holder **double its true Speed in exactly the room the item is brought
+  for** — moving it last where the real game moves it first. That is a turn-order error in the item's
+  primary use, not a damage rounding error in a fringe one.
+
+**AND THE USAGE FIGURE ITSELF IS NOT SOLID, which is ROADMAP #70 again.** Attempting to characterise
+the 139 against the store: `g.sheets` is populated on **1.7% of sides** (open-sheet games only) and
+yields 15 Iron Ball rows; `g.sets` yields **zero**. Three sources, three answers, and no reconciliation
+— so **no split between Fling and Trick Room sets is quoted here**, because n=15 cannot characterise
+139 and the 139 itself is one of the disagreeing numbers. #70 is "two usage numbers disagree by up to
+13x and the coverage bar ranks what gets wired by one of them"; this is that, met while using it.
+
+**Two further Fling facts checked on the same prompt** (Will: *"fling light ball too for para"*,
+*"i think fling iron ball flinches ... or is that king's rock"*) — the artifact was already right on
+all three, so none of them is queue work:
+
+| flung | BP | effect | our tag |
+|---|---|---|---|
+| Light Ball | 30 | **paralysis** | correct |
+| Iron Ball | 130 | nothing — **no flinch** | correct |
+| King's Rock | 30 | **flinch** — this is the one | correct, 96 uses |
+
+King's Rock is the only legal item in this format whose Fling carries a volatile.
 
 ### STILL OPEN — three rows, and they are a bigger piece than these were
 
