@@ -2494,12 +2494,23 @@ function hasPower(mv){
   if(mv.id&&TAGS.param('move',mv.id,'flingsOwnItem'))return true;
   /* A FIXED-DAMAGE MOVE HAS NO BASE POWER AND STILL DOES DAMAGE. Without this line dmgRange
    * short-circuits at its !hasPower guard and Super Fang is worth zero. Only the shapes dmgRange can
-   * actually compute count as "has power" -- Counter and Mirror Coat need turn state and would
-   * otherwise be admitted here only to return zero one branch later, which is a slower way of
-   * being wrong. */
+   * actually compute count as "has power".
+   *
+   * THE EXCLUSION OF THE RETALIATION FAMILY EXPIRED, 2026-08-10, AND NOTHING NOTICED. What stood here
+   * said: "Counter and Mirror Coat need turn state and would otherwise be admitted here only to
+   * return zero one branch later, which is a slower way of being wrong." That was TRUE and it was the
+   * right call — while the turn state did not exist. It does now (`_took`, recorded where every
+   * damage packet lands), and `dmgRange` has the branch that reads it. Leaving the whitelist alone
+   * would have made the new branch UNREACHABLE: the gate rejects the move before the branch runs, and
+   * the roster would have kept reading DID-NOT-FIRE with the fix sitting in the file.
+   *
+   * That is the shape this project keeps hitting — a guard written against a real limitation, kept
+   * past the limitation. `retaliates` is the tag's own word for "reads damage taken", so the gate now
+   * asks the artifact rather than carrying a second list. A body that took nothing still returns 0,
+   * one branch later, which is exactly what the authority does. */
   const f=mv.id&&TAGS.param('move',mv.id,'fixedDamage');
   return !!(f&&(f.damage==='level'||f.source==='halfTargetCurrentHP'||f.source==='myRemainingHP'
-                ||f.source==='targetDownToMine'||f.source==='ohko'));
+                ||f.source==='targetDownToMine'||f.source==='ohko'||f.retaliates));
 }
 /* WIRE 78 -- WEATHER SUPPRESSION. Air Lock and Cloud Nine leave the weather ON THE FIELD and make it
  * do nothing: the sky is still raining, and Swift Swim, Solar Power, the Fire/Water multipliers, the
@@ -3372,9 +3383,35 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
       else if(_fd.source==='myRemainingHP')_flat=_mine;
       else if(_fd.source==='targetDownToMine')_flat=Math.max(0,_hp-_mine);
       else if(_fd.source==='ohko')_flat=_hp;
+      /* THE RETALIATION BRANCH — the one this comment block promised and did not have (2026-08-10).
+       *
+       * Counter, Mirror Coat, Metal Burst and Comeuppance return a multiple of the damage the USER
+       * took this turn. The old note was right that a pure pricing function must not INVENT turn
+       * state — so the state was added to the body instead (`_took`, recorded on the one line every
+       * damage packet passes through) and this reads it. Nothing is invented here: an unfilled `_took`
+       * means no qualifying hit landed, and the move correctly returns 0, which is what the authority
+       * returns too (`if (!pokemon.volatiles['counter']) return 0`).
+       *
+       * The multiplier and the category filter come from the TAG, derived from the condition — x2 on
+       * a physical hit for Counter, x2 special for Mirror Coat, x1.5 on any for Metal Burst and
+       * Comeuppance. None of those four numbers is written here.
+       *
+       * A HYPOTHETICAL PRICE STILL READS 0, correctly and for the same reason: `board.js` scoring a
+       * click into the future has no `_took` on its bodies, and a Counter thrown at a body that has
+       * not hit you does nothing. That is the move, not a gap. */
+      if(_flat==null&&_fd.retaliates&&_fd.mult){
+        const _t=att._took;
+        const _src=_t?(_fd.category==='physical'?_t.phys:_fd.category==='special'?_t.spec:_t.any):0;
+        /* NO QUALIFYING HIT MEANS ZERO, AND IT HAS TO BE RETURNED HERE RATHER THAN FALLEN THROUGH.
+         * Measured the moment the hasPower gate opened: Mirror Coat after a PHYSICAL hit read 1, and
+         * a Counter on a body that had taken nothing read 2 — because falling through runs the
+         * ordinary damage formula at base power 0, which floors at 1 rather than at 0. The authority
+         * is explicit: `if (!pokemon.volatiles['counter']) return 0`. A retaliation move with nothing
+         * to retaliate against FAILS; it does not chip. */
+        if(_src>0)_flat=Math.max(1,Math.floor(_src*+_fd.mult));
+        else return{min:0,max:0,eff};
+      }
       if(_flat!=null)return{min:_flat,max:_flat,eff};
-      /* counterDamageTaken and callback fall through to the ordinary path, which with bp 0 is zero.
-       * Stated, not hidden: this is the one branch that still under-prices its moves. */
     }
   }
   /* WIRE 95 -- the STAB factor reads `stabBoost` (Adaptability's x2) off the artifact instead of a
@@ -5982,7 +6019,10 @@ function battleTurn(S,rng,actsForA,actsForB){
      * points that could end one. */
     [...actA,...actB].forEach(m=>{if(m){m.protect=false;m._redirect=null;m._helpingHand=false;
       m._boostSnap=m.boosts?Object.assign({},m.boosts):null;
-      m._hitBy=null;m._hurtThisTurn=false;m._acted=false;m._newlySwitched=false;}});
+      m._hitBy=null;m._hurtThisTurn=false;m._acted=false;m._newlySwitched=false;
+      /* `_took` clears with the rest: Counter reads damage taken THIS turn, and a counter that
+       * remembered last turn's hit would fire off a hit that is over. */
+      m._took=null;}});
     field.wgA=false;field.wgB=false;
     /* WIRE 78 -- AIR LOCK / CLOUD NINE. Recomputed at the top of every turn from whoever is standing
        there, because it is a property of the FIELD for as long as a carrier is on it, and a switch or
@@ -8622,7 +8662,22 @@ function battleTurn(S,rng,actsForA,actsForB){
          * different move and a wrong number. `_hurtThisTurn` is the weaker fact Assurance wants and is
          * kept beside it rather than derived, because "hurt by anything" and "hurt by you" are two
          * questions and collapsing them is how one tag came to describe four mechanics. */
-        if(dmg>0){(tg._hitBy=tg._hitBy||new Set()).add(m);tg._hurtThisTurn=true;}
+        if(dmg>0){(tg._hitBy=tg._hitBy||new Set()).add(m);tg._hurtThisTurn=true;
+          /* HOW MUCH, AND OF WHAT CATEGORY — the state the retaliation family needs and the reason
+           * `dmgRange`'s own WIRE 21 comment could say Counter and Metal Burst were "one branch away"
+           * without building the branch. `_hitBy` records WHO; this records HOW MUCH.
+           *
+           * THE LAST QUALIFYING HIT, NOT THE SUM. Showdown's counter condition OVERWRITES
+           * `effectState.damage` on every physical hit, and `getLastDamagedBy` is singular by name —
+           * so two Rock Slides into the same body leave Counter reading the SECOND one, not both. A
+           * sum would be a different and wrong move.
+           *
+           * Kept per category because Counter takes only physical and Mirror Coat only special, while
+           * Metal Burst and Comeuppance take whatever landed last. `any` is not derivable from the
+           * other two — it has to know which arrived later. */
+          const _cat=(a.move&&a.move.mv&&a.move.mv.c==='P')?'phys':'spec';
+          tg._took=tg._took||{phys:0,spec:0,any:0};
+          tg._took[_cat]=dmg; tg._took.any=dmg;}
         if(TR)TR.dmg(tg);
         /* ROADMAP #81 WIRE 11 -- DID THIS PACKET ACTUALLY KILL IT. Read here, once, off the HP that
          * has already moved -- not off `dmg`, which is the number before the Focus Sash and the

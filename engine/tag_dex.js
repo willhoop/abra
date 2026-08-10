@@ -807,8 +807,34 @@ const MOVE_TAGS = [
                  : /clampIntRange\(target\.getUndynamaxedHP\(\) \/ 2/.test(src) ? 'halfTargetCurrentHP'
                  : /volatiles/.test(src) ? 'counterDamageTaken'
                  : typeof m.damage === 'number' ? 'flat' : 'callback';
+      /* THE RETALIATION FAMILY NEEDED TWO MORE NUMBERS AND THE TAG CARRIED NEITHER (2026-08-10).
+       * `counterDamageTaken` and `callback` both said only "this reads damage taken", which is why
+       * `dmgRange`'s own comment could say the moves were "one branch away" and still not build it:
+       * the branch had nothing to multiply by and no idea which hits count.
+       *
+       *   Counter       condition.onDamagingHit   getCategory(move) === "Physical"   damage * 2
+       *   Mirror Coat   condition.onDamagingHit   getCategory(move) === "Special"    damage * 2
+       *   Metal Burst   damageCallback            getLastDamagedBy(true)             damage * 1.5
+       *   Comeuppance   damageCallback            getLastDamagedBy(true)             damage * 1.5
+       *
+       * Counter and Mirror Coat filter by CATEGORY and take the last qualifying hit; Metal Burst and
+       * Comeuppance take the last damaging hit of ANY category. Both facts are read here rather than
+       * restated in the engine, and a shape neither regex matches emits no multiplier — so the
+       * consumer refuses instead of guessing, which is why these read 0 rather than wrong until now. */
+      const cond = String((m.condition && m.condition.onDamagingHit) || '');
+      const catM = /getCategory\(move\)\s*===?\s*["'](Physical|Special)["']/.exec(cond);
+      const mult = (/=\s*(\d+(?:\.\d+)?)\s*\*\s*damage/.exec(cond)
+                 || /damage\s*\*\s*(\d+(?:\.\d+)?)/.exec(src) || [])[1];
+      const retaliates = (kind === 'counterDamageTaken' || /getLastDamagedBy/.test(src));
       return { source: kind, flat: typeof m.damage === 'number' ? m.damage : null,
-               ignoresStatsAndSTAB: true };
+               ignoresStatsAndSTAB: true,
+               ...(retaliates && mult ? {
+                 retaliates: true,
+                 mult: +mult,
+                 /* null = any category, which is Metal Burst and Comeuppance. */
+                 category: catM ? catM[1].toLowerCase() : null,
+                 excludesAlly: /isAlly/.test(cond) || /true\)/.test(src) || null,
+               } : {}) };
     } },
   /* Will: "gigaton hammer -- is it not a contact move? you cant click it twice in a row."
    * Both halves right, and it was sitting UNTAGGED at 123 uses and 160 base power.

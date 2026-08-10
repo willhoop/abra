@@ -1,12 +1,13 @@
 {
- "generated": "2026-08-10T00:13:56.654Z",
+ "generated": "2026-08-10T01:03:53.741Z",
  "by": "tests/roster.js",
  "stage": "moves",
- "engine_release": "a4c7f898ad0e",
+ "engine_release": "9c04f767ba8c",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 23,
   "DID-NOT-FIRE": 24,
+  "DEFERRED-BY-OWNER": 0,
   "FIRED-AND-BOARDS-MATCH": 362,
   "CONTROL-NOT-QUIET": 0,
   "COULD-NOT-STAGE": 91

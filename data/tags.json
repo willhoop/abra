@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-10T00:39:23.998Z",
+ "generated": "2026-08-10T00:56:01.779Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1875,8 +1875,8 @@
    "kind": "item",
    "param": "the holder heals a fraction of the damage its move dealt",
    "why": "Shell Bell, 44 uses — a roster DID-NOT-FIRE row, and it changes how many turns a kill takes",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "onAfterMoveSecondarySelf",
+   "used": true,
    "n": 1,
    "uses": 44,
    "examples": [
@@ -1888,8 +1888,8 @@
    "kind": "item",
    "param": "multiplies healing that came from specific effects",
    "why": "Big Root, 53 uses — a roster DID-NOT-FIRE row. It boosts drain and Leech Seed and nothing else",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "onTryHeal",
+   "used": true,
    "n": 1,
    "uses": 53,
    "examples": [
@@ -10951,7 +10951,11 @@
     "fixedDamage": {
      "source": "callback",
      "flat": null,
-     "ignoresStatsAndSTAB": true
+     "ignoresStatsAndSTAB": true,
+     "retaliates": true,
+     "mult": 1.5,
+     "category": null,
+     "excludesAlly": true
     },
     "contact": {
      "contact": true
@@ -11133,7 +11137,11 @@
     "fixedDamage": {
      "source": "counterDamageTaken",
      "flat": null,
-     "ignoresStatsAndSTAB": true
+     "ignoresStatsAndSTAB": true,
+     "retaliates": true,
+     "mult": 2,
+     "category": "physical",
+     "excludesAlly": true
     },
     "priority": {
      "readFrom": "m.priority",
@@ -15345,7 +15353,11 @@
     "fixedDamage": {
      "source": "callback",
      "flat": null,
-     "ignoresStatsAndSTAB": true
+     "ignoresStatsAndSTAB": true,
+     "retaliates": true,
+     "mult": 1.5,
+     "category": null,
+     "excludesAlly": true
     },
     "needsTargetToAttack": {
      "needs": "target attacking",
@@ -15506,7 +15518,11 @@
     "fixedDamage": {
      "source": "counterDamageTaken",
      "flat": null,
-     "ignoresStatsAndSTAB": true
+     "ignoresStatsAndSTAB": true,
+     "retaliates": true,
+     "mult": 2,
+     "category": "special",
+     "excludesAlly": true
     },
     "priority": {
      "readFrom": "m.priority",

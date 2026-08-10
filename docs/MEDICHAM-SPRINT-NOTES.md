@@ -48,6 +48,8 @@ Census **330 live / 330 probed / 0 missing**. Damage stages **1728/1728 exact**.
 | 5 | **Shell Bell** | 44 | no tag at all. `healFromDamageDealt` derived; sits beside recoil because both are a fraction of damage ACTUALLY dealt. **Took two passes:** `Math.round` was one high every turn — the authority clamps <=1 to 1 and then TRUNCATES | DID-NOT-FIRE → DIFFER → MATCH |
 | 6 | **Metronome** | 19 | **SHELVED BY WILL, not fixed.** Tag derived and correct; the consumer needs a per-body consecutive-use counter threaded through the turn loop and read in `dmgRange` — every move's damage path, for the smallest row in the queue | DID-NOT-FIRE → DEFERRED-BY-OWNER |
 
+| 7 | **Counter, Mirror Coat, Metal Burst, Comeuppance** | 16 | **ENGINE FIXED AND VERIFIED — ROSTER ROW HAS NOT MOVED, CAUSE UNKNOWN.** See the open item below. | DID-NOT-FIRE → *unchanged* |
+
 **ITEMS CLAUSE CLOSED: 6 open → 0. The gate is now 3 of 4 PASS.**
 
 ```
@@ -56,6 +58,53 @@ PASS  deliberate roster / items      139 matched (1 deferred, still staged and p
 PASS  deliberate roster / abilities  84 matched
 FAIL  deliberate roster / moves      23 differ, 24 did-not-fire
 ```
+
+---
+
+## OPEN — WORK DONE, ROW NOT CLOSED
+
+**THE RETALIATION FAMILY (Counter, Mirror Coat, Metal Burst, Comeuppance — 16 uses).** The engine
+change is real, complete and MEASURED CORRECT; the roster verdict did not move and I do not yet know
+why. Recorded as-is rather than reported as a fix.
+
+*What landed, in four layers:*
+- `tag_dex`: the `fixedDamage` tag now carries `retaliates`, `mult` and `category`, derived from the
+  condition — x2 physical for Counter, x2 special for Mirror Coat, x1.5 any for Metal Burst and
+  Comeuppance. It carried none of those before, which is why `dmgRange`'s own comment could say the
+  moves were "one branch away" and still not build the branch: there was nothing to multiply by.
+- `medicham2`: `_took` records the LAST qualifying hit per category on the body, beside `_hitBy`.
+  Last, not sum — Showdown OVERWRITES `effectState.damage` on each hit and `getLastDamagedBy` is
+  singular, so two Rock Slides leave Counter reading the second one.
+- `dmgRange`: the branch, plus an explicit `return 0` when nothing qualifies. That return matters —
+  falling through runs the ordinary formula at base power 0, which floors at **1**, and Mirror Coat
+  after a physical hit read 1 instead of 0.
+- `hasPower`: **an exclusion that had EXPIRED.** It deliberately rejected these four, with a comment
+  that was correct when written — *"Counter and Mirror Coat need turn state and would otherwise be
+  admitted here only to return zero one branch later."* True while the turn state did not exist. It
+  does now, and leaving the gate alone made the new branch UNREACHABLE. Same shape this project keeps
+  hitting: a guard written against a real limitation, kept past the limitation.
+
+*Verified by direct measurement:*
+
+```
+  counter     took {phys:95}  -> 190   (2 x 95)          ok
+  mirrorcoat  took {phys:95}  ->   0   (no special hit)  ok
+  mirrorcoat  took {spec:80}  -> 160   (2 x 80)          ok
+  metalburst  took {phys:95}  -> 142   (1.5 x 95)        ok
+  comeuppance took {spec:80}  -> 120   (1.5 x 80)        ok
+  counter     took nothing    ->   0                     ok
+
+  and in a real turn: Kangaskhan Body Slams for 86, Counter answers for 172.
+```
+
+*What is NOT resolved:* the roster still reads DID-NOT-FIRE for all three of its rows. Showdown deals
+70 in that scenario and we deal 0. The engine demonstrably does the right thing when hand-staged, so
+the gap is in how the roster's script and ours line up on that particular turn — **not diagnosed, not
+guessed at.** Next step is to dump the roster's own script for the row rather than reconstruct it.
+
+*A harness of mine was wrong on the way, and it wasted time:* a two-turn probe reported 0 damage and
+sent me hunting the engine, when a clean single-turn probe of the same mechanic reported the correct
+172. The probe was broken, not the engine — `docs/LESSONS.md` §5, for the third time today.
 
 ---
 
