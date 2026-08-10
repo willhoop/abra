@@ -189,6 +189,27 @@ const SHEETS_ONLY = has('--sheets-only');
  * two runs is caused by the information and by nothing else. */
 const BLIND_SHEETS = has('--blind-sheets');
 
+/* --phaze-through: keep comparing after a phaze. The default REFUSES those turns, because the
+ * replacement is drawn at random; this flag exists so the cost of the refusal can be measured rather
+ * than argued about. */
+const PHAZE_THROUGH = has('--phaze-through');
+/* Roar, Whirlwind, Dragon Tail, Circle Throw — read from the FORMAT and never from a hand list, so a
+ * regulation that adds one is covered without editing this file. `null` means the format could not be
+ * loaded, and then the refusal never fires rather than firing blind. */
+const PHAZE_MOVES = (() => {
+  try {
+    const CSx = require('./champions_sim.js');
+    const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
+    return new Set(Dex.forFormat(CSx.FORMAT).moves.all()
+      .filter(m => !m.isNonstandard && m.forceSwitch).map(m => m.id));
+  } catch (e) { return null; }
+})();
+function turnHasPhaze(t) {
+  if (!PHAZE_MOVES) return false;
+  for (const e of (t.ev || [])) if (e.t === 'm' && e.mv && PHAZE_MOVES.has(id(e.mv))) return true;
+  return false;
+}
+
 /* ---- THE PHOTOGRAPH ---------------------------------------------------------------------------- */
 const ER = require('./engine_release.js');
 const REL = ER.open(flag('--release', null));
@@ -206,6 +227,7 @@ const id = require('./names.js').id;
  * exactly like a working feature. */
 const C = {
   games_read: 0, games_replayed: 0, games_skipped: 0,
+  turns_after_phaze: 0,
   turns_seen: 0, turns_compared: 0, turns_diverged: 0, turns_turn1: 0, turns_turn1_diverged: 0,
   exceptions: 0,
 };
@@ -1028,11 +1050,40 @@ function replayGame(game, opt) {
   const amb = { n: 0 };
   /* THE SIDE'S DEAD, walked from the record. Feeds Last Respects and Supreme Overlord. */
   const faints = { p1: 0, p2: 0 };
+  let phazedAt = null;              // the turn a phaze fired; everything after it is downstream of a die
   for (const turn of game.turns) {
     /* THE BREAK COMES BEFORE THE COUNTER. It used to come after, so `--turn1-only` counted the turn it
      * refused to score and `turns_seen` read as 2 per game — a denominator that means one thing in one
      * mode and another thing in the other is exactly how a rate stops being comparable. */
     if (TURN1_ONLY && turn.n !== 1) break;
+    /* ---- EVERYTHING AFTER A PHAZE IS DOWNSTREAM OF A COIN, NOT OF THE ENGINE -------------------
+     *
+     * Will, 2026-08-10: *"I MEAN ROAR IS RANDOM IT DOESNT REALLY MATTER WHAT IT DRAGS IN"*. Correct,
+     * and the roster's forced-switch arm is right to ask only whether the body LEFT.
+     *
+     * But the judgement does not survive being carried into an ALL-TURNS replay. Roar, Whirlwind,
+     * Dragon Tail and Circle Throw draw the replacement at random. If the record's draw was Corviknight
+     * and ours is Venusaur, every later turn of that game compares two different boards — and this
+     * instrument would charge each of those to the engine. That is scoring a die, which the turn-order
+     * comparator already refuses to do for a genuine speed tie.
+     *
+     * MEASURED before this was written, so the cost is stated rather than assumed: 539 of 52,607 games
+     * carry a phaze (1.02%), and 2,824 of 335,523 turns fall after one (0.84%). Small against the
+     * corpus and NOT small against the finding — the all-turns arm reports on the order of eight
+     * thousand later-turn divergences, so this is potentially a large minority of them.
+     *
+     * The game is REFUSED from here on rather than skipped whole: everything up to and including the
+     * phaze turn was compared against a board both engines agreed on, and throwing that away would
+     * lose real evidence to protect against a later coin. `--phaze-through` restores the old
+     * behaviour for anyone who wants to see what it was costing. TURN1_ONLY is immune by construction
+     * and this can never fire there. */
+    if (phazedAt !== null && turn.n > phazedAt && !PHAZE_THROUGH) {
+      bump(SKIP_REASON, 'turns after a phaze — the replacement is drawn at random, so a later board '
+                      + 'difference is the die and not the engine (Will, 2026-08-10)');
+      C.turns_after_phaze++;
+      break;
+    }
+    if (phazedAt === null && turnHasPhaze(turn)) phazedAt = turn.n;
     res.turns++; C.turns_seen++;
     const after = applyTurn(board, turn, amb);
     let clicks;

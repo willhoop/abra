@@ -2515,3 +2515,32 @@ clause is four probes, not eight fixtures.
 **The gate is now five clauses and the selftest is 20/20.** It also fails harder than before, which is
 the direction asked for: three of the eight uncovered moves are already among the blocking eleven, so
 the two clauses agree rather than double-counting.
+
+## ROADMAP #142 — THE REPLAYER STOPS SCORING TURNS DOWNSTREAM OF A PHAZE
+
+Will, 2026-08-10: *"I MEAN ROAR IS RANDOM IT DOESNT REALLY MATTER WHAT IT DRAGS IN"*. Correct, and the
+roster's forced-switch arm is right to ask only whether the body LEFT — which replacement arrives is a
+coin the two engines flip independently, and aligning it would be aligning a die rather than testing a
+mechanic. The turn-order comparator already refuses a genuine speed tie for the same reason.
+
+**But the judgement does not survive being carried into an ALL-TURNS replay.** If the record's Roar
+drew Corviknight and ours draws Venusaur, every later turn of that game compares two different boards,
+and this instrument would charge each one to the engine.
+
+**Measured before the code was written**, so the cost is stated rather than assumed: **about one game in a hundred carries a phaze, and just under one percent of all stored turns
+fall after one**. Small against the
+corpus and NOT small against the finding — the all-turns arm reports on the order of eight thousand
+later-turn divergences, so this was potentially a large minority of them.
+
+The game is refused from the phaze onward rather than dropped whole: everything up to and including
+that turn was compared against a board both engines agreed on, and discarding it would lose real
+evidence to guard against a later coin. `--phaze-through` restores the old behaviour so the cost of the
+refusal can be measured rather than argued about. `--turn1-only` is immune by construction.
+
+The phaze set is read from the FORMAT and never from a hand list. A format that fails to load
+classifies nothing and the refusal never fires, rather than firing blind.
+
+**The generalisation worth keeping:** an owner judgement about one instrument does not automatically
+hold in another. "The draw does not matter" is true of the roster's one-turn question and false of a
+multi-turn replay, and writing the narrow version down is what stops the broad version being quoted
+out of its scope later. This repository has a specific history of exactly that.
