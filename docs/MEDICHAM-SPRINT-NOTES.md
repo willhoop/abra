@@ -1911,3 +1911,43 @@ baseline of 234). Its per-file delta names `champions_sim.js`, `probe_pair.js`, 
 `test-side-guard-chooser.js`. `game_differential.js` is not among them, and this change is net zero on
 that regex — it replaced one `.species` read with one `.species` read. Red on the tree as it stands and
 owned by whoever holds those files.
+
+## ROADMAP #68 — THE GAME REPLAYER EXISTS, AND 5.47% OF REAL TURNS DIVERGE
+
+Built, red-proofed, run. **2,947 games replayed, 18,421 turns compared, 1,008 DIVERGED (5.47%).**
+Turn 1 alone — the only arm with no invisible state in it — **158 of 2,947 = 5.36%.** Skip rate
+1.77%, all "no turns recorded". **Zero exceptions.** Artifact `data/replay-differential.json`;
+forty readable frozen boards in `data/replay-differential-freezes.json`.
+
+**This is the first number in the project that asks whether we reproduce a real game.** The damage
+differential compares one calculation per row, has never run a turn loop, and reads 0 disagreements
+at 20,000 comparisons — it is silent about every mechanic this sprint fixed.
+
+**THE ROLL-IDENTIFICATION IDEA IS UNAVAILABLE HERE, MEASURED NOT ASSUMED.** Will proposed computing
+all 16 damage rolls and identifying which one was played; I endorsed it as better than pinning. It
+is better, and this corpus cannot support it: Champions sheets do not declare SP — 884 of 52,089
+games carry an open sheet and **every one has `evs: null`**. The record states damage as an integer
+percent of an unknown maximum. Median attainable interval **60.13 points of max HP against a
+3.76-point roll step**, so the legal-spread envelope is several times wider than the entire 16-roll
+band. `matched` fires **2 times in 37,177**. The test is inverted into the one the record supports,
+and the interval WIDTH prints beside every verdict so "in span" cannot be read as "exact".
+
+**Divergences by mechanic:** 145 turn-order/SPEED, 72 damage x0.5-ish, 59/57/31/18/15 status
+slp/brn/psn/par/frz, 56 x0.25-ish, 32 x2-ish, 25 a KO our maximum roll cannot reach, 17 x4-plus,
+14 turn-order/PRIORITY.
+
+**Bot games are valid material and the data says so, not the argument:** bot-v-human 5.95% over
+8,577 turns, human-v-human 5.06% over 9,839. Two populations, same answer.
+
+**Four instrument bugs were found by reading its own freeze dump**, each at or near the top of the
+mechanic table — a mega not applied before its own turn, a Weather Ball priced in clear skies
+because the sun was set three events earlier in the SAME turn, a KO clamp read off a reconstructed
+HP rather than the record's own figure (56 of 158), and weather with no expiry doubling Swift Swim
+for the rest of the game. Turn-order divergences fell 26 → 6 per 100 games as these closed. The
+instrument had to be debugged before its output meant anything, which is what a freeze dump is for.
+
+It **refuses to write its artifact** if its own three planted corruptions go unnoticed — checked
+every run rather than behind a flag somebody has to remember.
+
+**Filed to OPS:** no `cant` events at all; spread damage is conflated, refusing 8,360 of 37,177
+units; everything before `|turn|1` is dropped, including a lead's entry weather.

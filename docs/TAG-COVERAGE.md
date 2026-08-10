@@ -164,7 +164,7 @@ rulebook to fall back on:
 
 | tag | uses |
 |---|---|
-| `resistBerry` | 13,290 *(`data/tags.json`, 18 entities — the original 3.40.0 reading is in the snapshot table at the top of this file)* |
+| `resistBerry` | 13,508 *(`data/tags.json`, 18 entities — the original 3.40.0 reading is in the snapshot table at the top of this file)* |
 | `passiveHeal` | 8,539 |
 | `blocksBerries` | 2,333 |
 | `disablesAttacker` | 1,861 |
@@ -180,7 +180,7 @@ rulebook to fall back on:
 NOBODY HAD NOTICED.** The head figure said *26 tags, 30,107 uses* and the table said `blocksBerries`
 2,326, `disablesAttacker` 1,821, `poisonsOnMyContact` 1,325, `survivesFromFull` 319,
 `ignoresDefenderAbility` 274, `curesStatus` 268 — **every one of those was already stale against the
-artifact sitting beside it**, and the two that still matched (`resistBerry` 13,283 and `passiveHeal`
+artifact sitting beside it**, and the two that still matched (`resistBerry` 13,508 and `passiveHeal`
 8,520) were the only reason `tests/test-docs-current.js` had nothing to say. WIRE 154 regenerated
 `data/tags.json` (one new tag; the corpus had also grown by 180 sheet entries, moving `uses` on 213 of
 914 entities) and those last two moved too, which is what surfaced the rest.
@@ -206,7 +206,7 @@ artifact does not.
 pick up any new ability of the same shape**, which is precisely what `CLAUDE.md` means by *"match on tag
 shape, never on a name, so an ability added later is picked up without editing the engine."*
 
-Two tags also appear to describe one mechanic — `contactPunish` (**since retired: zero entities carry it in `data/tags.json` today, merged into `punishesAttacker` at 11,881 uses (re-read 2026-08-10), which is exactly what this paragraph argued for. Its original DEAD reading is in the snapshot table at the top**) beside
+Two tags also appear to describe one mechanic — `contactPunish` (**since retired: zero entities carry it in `data/tags.json` today, merged into `punishesAttacker` at 12,085 uses (re-read 2026-08-10), which is exactly what this paragraph argued for. Its original DEAD reading is in the snapshot table at the top**) beside
 `punishesAttacker` (live). One of those is redundant and nothing has noticed.
 
 ---

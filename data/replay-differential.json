@@ -1,10 +1,10 @@
 {
-  "engine_release": "ec4dc5fd4a0d",
-  "engine_release_cut": "2026-08-10T08:30:58.060Z",
-  "engine_release_cuts": 9,
+  "engine_release": "70794711fe6d",
+  "engine_release_cut": "2026-08-10T19:15:09.753Z",
+  "engine_release_cuts": 3,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "4b36abf74014",
+    "engine/medicham2-browser.js": "2f553e6754b2",
     "engine/board.js": "5bdaa3923958",
     "engine/rollout_leaf.js": "7a2311756ab8",
     "engine/position_features.js": "7927ccb7f5af",
@@ -22,374 +22,581 @@
     "data/regulations.json": "6c1995e9a9fb",
     "data/quality-filter.json": "e675d10477c8",
     "data/engine-data.js": "24ab2c378ec8",
-    "data/abra-tags.js": "b1503007f875",
-    "data/tags.json": "28bcbb4402cc",
+    "data/abra-tags.js": "059e639f0c12",
+    "data/tags.json": "51e5155f6eed",
     "data/policy-weights.json": "626c1d240782",
     "data/policy-weights-joint.json": "e2aca467ff04",
     "data/move-priors.json": "a64314db056b"
   },
-  "generated": "2026-08-10T19:00:57.579Z",
+  "generated": "2026-08-10T19:19:09.546Z",
   "by": "engine/replay_differential.js",
   "what": "ROADMAP #68 — real stored games replayed through the engine, divergences counted against what actually happened. The authority is data/games.ladder.jsonl, not Showdown.",
   "store": "data/games.ladder.jsonl",
   "sample": {
-    "requested": 100,
+    "requested": 3000,
     "skipped_prefix": 0,
-    "read": 100
+    "read": 3000
   },
   "counts": {
-    "games_read": 100,
-    "games_replayed": 83,
-    "games_skipped": 17,
-    "turns_seen": 496,
-    "turns_compared": 496,
-    "turns_diverged": 55,
-    "turns_turn1": 83,
-    "turns_turn1_diverged": 5,
+    "games_read": 3000,
+    "games_replayed": 2947,
+    "games_skipped": 53,
+    "turns_seen": 18421,
+    "turns_compared": 18421,
+    "turns_diverged": 1008,
+    "turns_turn1": 2947,
+    "turns_turn1_diverged": 158,
     "exceptions": 0
   },
-  "skip_rate_pct": 17,
-  "turn_divergence_rate_pct": 11.09,
-  "turn1_divergence_rate_pct": 6.02,
+  "skip_rate_pct": 1.77,
+  "turn_divergence_rate_pct": 5.47,
+  "turn1_divergence_rate_pct": 5.36,
+  "population_split": {
+    "bot-v-bot": {
+      "games": 1,
+      "turns": 5,
+      "diverged": 0,
+      "divergence_rate_pct": 0
+    },
+    "bot-v-human": {
+      "games": 1385,
+      "turns": 8577,
+      "diverged": 510,
+      "divergence_rate_pct": 5.95
+    },
+    "human-v-human": {
+      "games": 1561,
+      "turns": 9839,
+      "diverged": 498,
+      "divergence_rate_pct": 5.06
+    },
+    "unknown": {
+      "games": 0,
+      "turns": 0,
+      "diverged": 0,
+      "divergence_rate_pct": null
+    }
+  },
+  "population_note": "BOT GAMES ARE INCLUDED AND ARE NOT A FILTER. Showdown resolved those turns and does not resolve differently for a bot; only legality and resolution matter here, and both are the server’s. They must never feed meta-usage.json or any human prior — that is a different analysis with a different filter.",
+  "ground_truth_clicks": "NONE EXISTS. 22 stored games have willhoop as a player and carry the same extracted schema as every other row — no record of what was clicked. So the choice reconstruction cannot be validated against known answers and is validated only by the per-click confidence in the freeze dump. Filed: the live bot logging its own choice string would make this instrument exact.",
   "skips_by_reason": [
     {
       "reason": "no turns recorded",
-      "n": 4
-    },
-    {
-      "reason": "(not a skip) two slots held the same species — 7 ambiguous target lookups",
-      "n": 4
-    },
-    {
-      "reason": "a body in this game is unbuildable: sinistchamasterpiece",
-      "n": 4
-    },
-    {
-      "reason": "a body in this game is unbuildable: mausholdfour",
-      "n": 3
-    },
-    {
-      "reason": "(not a skip) two slots held the same species — 5 ambiguous target lookups",
-      "n": 3
-    },
-    {
-      "reason": "(not a skip) two slots held the same species — 11 ambiguous target lookups",
-      "n": 2
-    },
-    {
-      "reason": "(not a skip) two slots held the same species — 8 ambiguous target lookups",
-      "n": 2
-    },
-    {
-      "reason": "a body in this game is unbuildable: florgeswhite",
-      "n": 2
-    },
-    {
-      "reason": "(not a skip) two slots held the same species — 12 ambiguous target lookups",
-      "n": 2
-    },
-    {
-      "reason": "(not a skip) two slots held the same species — 17 ambiguous target lookups",
-      "n": 2
-    },
-    {
-      "reason": "(not a skip) two slots held the same species — 1 ambiguous target lookups",
-      "n": 1
-    },
-    {
-      "reason": "(not a skip) two slots held the same species — 3 ambiguous target lookups",
-      "n": 1
-    },
-    {
-      "reason": "a body in this game is unbuildable: vivillonfancy",
-      "n": 1
-    },
-    {
-      "reason": "a body in this game is unbuildable: mimikyubusted",
-      "n": 1
-    },
-    {
-      "reason": "(not a skip) two slots held the same species — 15 ambiguous target lookups",
-      "n": 1
-    },
-    {
-      "reason": "(not a skip) two slots held the same species — 20 ambiguous target lookups",
-      "n": 1
-    },
-    {
-      "reason": "(not a skip) two slots held the same species — 30 ambiguous target lookups",
-      "n": 1
-    },
-    {
-      "reason": "a body in this game is unbuildable: vivillonmonsoon",
-      "n": 1
-    },
-    {
-      "reason": "a body in this game is unbuildable: vivillonmarine",
-      "n": 1
-    },
-    {
-      "reason": "(not a skip) two slots held the same species — 4 ambiguous target lookups",
-      "n": 1
-    },
-    {
-      "reason": "(not a skip) two slots held the same species — 9 ambiguous target lookups",
-      "n": 1
+      "n": 53
     }
   ],
   "exceptions": [],
   "damage": {
     "note": "FOUR VERDICTS, NEVER TWO. `matched` needs the envelope to collapse to a roll; on this corpus it does not, and `ambiguous` means the observed value is inside our attainable interval without identifying which roll. Read the interval width beside it.",
     "verdicts": {
-      "matched": 0,
-      "ambiguous": 350,
-      "unresolved": 375,
-      "no_match": 41,
-      "clamped_ok": 271,
+      "matched": 2,
+      "ambiguous": 13359,
+      "unresolved": 13533,
+      "no_match": 719,
+      "clamped_ok": 9564,
       "clamped_unreachable": 0
     },
-    "total": 1037,
-    "unresolved_rate_pct": 36.16,
-    "no_match_rate_pct": 3.95,
+    "total": 37177,
+    "unresolved_rate_pct": 36.4,
+    "no_match_rate_pct": 1.93,
     "unresolved_by_reason": [
       {
         "reason": "SPREAD MOVE — the store conflates its targets into one dmg/tgt pair (ingest defect, filed)",
-        "n": 241
+        "n": 8360
       },
       {
-        "reason": "connected but dealt 0 — Substitute / doll / unseen block",
-        "n": 93
+        "reason": "the target clicked a guard this turn (Protect family) — blocked, not a damage test",
+        "n": 3378
       },
       {
         "reason": "multi-hit — the record sums the hits",
-        "n": 12
+        "n": 716
       },
       {
         "reason": "target slot could not be recovered from the species",
-        "n": 10
-      },
-      {
-        "reason": "base power depends on state the record does not carry: ragefist",
-        "n": 5
-      },
-      {
-        "reason": "base power depends on state the record does not carry: round",
-        "n": 4
-      },
-      {
-        "reason": "the record shows damage and MC.moves has no base power for lowkick",
-        "n": 3
-      },
-      {
-        "reason": "the record shows damage and MC.moves has no base power for grassknot",
-        "n": 3
+        "n": 390
       },
       {
         "reason": "the record shows damage and MC.moves has no base power for superfang",
-        "n": 2
+        "n": 91
       },
       {
-        "reason": "the record shows damage and MC.moves has no base power for beatup",
-        "n": 1
+        "reason": "base power depends on state the record does not carry: ragefist",
+        "n": 80
       },
       {
         "reason": "dmgRange returned no rolls",
+        "n": 76
+      },
+      {
+        "reason": "connected but dealt 0 — Substitute / doll / unseen block",
+        "n": 73
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for lowkick",
+        "n": 70
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for heavyslam",
+        "n": 33
+      },
+      {
+        "reason": "base power depends on state the record does not carry: storedpower",
+        "n": 30
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for grassknot",
+        "n": 29
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for substitute",
+        "n": 24
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for finalgambit",
+        "n": 22
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for beatup",
+        "n": 19
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for bellydrum",
+        "n": 17
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for sheercold",
+        "n": 17
+      },
+      {
+        "reason": "base power depends on state the record does not carry: round",
+        "n": 16
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for shedtail",
+        "n": 14
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for endeavor",
+        "n": 14
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for fissure",
+        "n": 10
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for curse",
+        "n": 9
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for clangoroussoul",
+        "n": 9
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for heatcrash",
+        "n": 8
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for mirrorcoat",
+        "n": 6
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for fling",
+        "n": 5
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for electroball",
+        "n": 5
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for nightshade",
+        "n": 4
+      },
+      {
+        "reason": "base power depends on state the record does not carry: assurance",
+        "n": 3
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for hardpress",
+        "n": 2
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for horndrill",
+        "n": 1
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for gyroball",
+        "n": 1
+      },
+      {
+        "reason": "the record shows damage and MC.moves has no base power for return",
         "n": 1
       }
     ],
     "refused_not_scored": [
       {
         "what": "status / field move — no base power",
-        "n": 419
+        "n": 16064
       },
       {
         "what": "weather set by a body that SWITCHED IN this turn — cannot be staged from the opening board",
-        "n": 41
-      },
-      {
-        "what": "the move MISSED (recovered from the record, not simulated)",
-        "n": 17
+        "n": 1327
       },
       {
         "what": "the move failed / was blocked / was charging",
-        "n": 14
+        "n": 739
+      },
+      {
+        "what": "the move MISSED (recovered from the record, not simulated)",
+        "n": 686
       },
       {
         "what": "the move was IMMUNE-blocked",
-        "n": 5
+        "n": 496
       },
       {
         "what": "status landed on a body that SWITCHED IN this turn — cannot be staged from the opening board",
-        "n": 4
+        "n": 185
+      },
+      {
+        "what": "weather on a turn with a MEGA — the mega ability fires mid-turn and the rebuild fires it at entry",
+        "n": 128
+      },
+      {
+        "what": "status on a body OUR ENGINE KILLED this turn — a damage question, scored by the damage comparator instead",
+        "n": 126
       }
     ],
-    "species_fallbacks": [],
+    "ambiguous_target_lookups": {
+      "n": 6097,
+      "games": 590
+    },
+    "species_fallbacks": [
+      {
+        "what": "sinistchamasterpiece -> sinistcha  (cosmetic forme; base used)",
+        "n": 2717
+      },
+      {
+        "what": "mausholdfour -> maushold  (cosmetic forme; base used)",
+        "n": 1643
+      },
+      {
+        "what": "mimikyubusted -> mimikyu  (cosmetic forme; base used)",
+        "n": 611
+      },
+      {
+        "what": "vivillonpokeball -> vivillon  (cosmetic forme; base used)",
+        "n": 450
+      },
+      {
+        "what": "vivillonfancy -> vivillon  (cosmetic forme; base used)",
+        "n": 362
+      },
+      {
+        "what": "vivillonmonsoon -> vivillon  (cosmetic forme; base used)",
+        "n": 139
+      },
+      {
+        "what": "vivillonhighplains -> vivillon  (cosmetic forme; base used)",
+        "n": 129
+      },
+      {
+        "what": "florgeswhite -> florges  (cosmetic forme; base used)",
+        "n": 99
+      },
+      {
+        "what": "vivillonocean -> vivillon  (cosmetic forme; base used)",
+        "n": 97
+      },
+      {
+        "what": "alcremierainbowswirl -> alcremie  (cosmetic forme; base used)",
+        "n": 78
+      },
+      {
+        "what": "alcremierubyswirl -> alcremie  (cosmetic forme; base used)",
+        "n": 45
+      },
+      {
+        "what": "vivillonmarine -> vivillon  (cosmetic forme; base used)",
+        "n": 43
+      },
+      {
+        "what": "alcremiemintcream -> alcremie  (cosmetic forme; base used)",
+        "n": 41
+      },
+      {
+        "what": "morpekohangry -> morpeko  (cosmetic forme; base used)",
+        "n": 41
+      },
+      {
+        "what": "vivillonsandstorm -> vivillon  (cosmetic forme; base used)",
+        "n": 40
+      },
+      {
+        "what": "vivillonjungle -> vivillon  (cosmetic forme; base used)",
+        "n": 36
+      },
+      {
+        "what": "alcremiecaramelswirl -> alcremie  (cosmetic forme; base used)",
+        "n": 35
+      },
+      {
+        "what": "castformsnowy -> castform  (cosmetic forme; base used)",
+        "n": 18
+      },
+      {
+        "what": "alcremiesaltedcream -> alcremie  (cosmetic forme; base used)",
+        "n": 12
+      },
+      {
+        "what": "vivillonelegant -> vivillon  (cosmetic forme; base used)",
+        "n": 10
+      }
+    ],
     "span_width_pct_of_maxhp": {
-      "median": 63.68,
-      "min": 1.16,
-      "max": 817.65,
-      "n": 755
+      "median": 60.13,
+      "min": null,
+      "max": 1058.95,
+      "n": 27095
     }
   },
   "roll_identification": {
-    "unique": 16,
-    "ambiguous": 35,
-    "none": 322,
+    "unique": 683,
+    "ambiguous": 1469,
+    "none": 11828,
     "note": "THE DIRECT ANSWER TO \"can we identify which of the sixteen rolls was played\". Computed against the DEFAULT baked body from data/engine-data.js, so it confounds the damage chain with that dataset's spread and is NOT a verdict on the engine. It is reported because the number did not exist before."
   },
   "spread_envelope": {
     "why_roll_recovery_fails": "Champions team sheets do not declare SP (884 of 52,089 stored games carry a sheet; every one has evs:null), and the record states damage as an integer percent of an unknown maximum HP. The legal-spread envelope is wider than the whole 16-roll band, so the observed value is consistent with many rolls for reasons that have nothing to do with our engine.",
     "sp_budget": 66,
     "sp_cap_per_stat": 32,
-    "median_attainable_span_pct_of_maxhp": 63.68,
-    "one_roll_step_pct": 3.98
+    "median_attainable_span_pct_of_maxhp": 60.13,
+    "one_roll_step_pct": 3.758
   },
   "turn_order": {
-    "agree": 78,
-    "differ": 5,
-    "spread": 258,
-    "ability-priority": 134,
+    "agree": 3081,
+    "differ": 159,
+    "spread": 9312,
+    "ability-priority": 5016,
     "tie": 0,
-    "n/a": 21,
+    "n/a": 853,
     "note": "ROADMAP #43 — the resolution order IS the event order in the record, and nothing in this repository had ever read it. A genuine speed tie is REFUSED, not scored: matching a coin is not evidence and missing one is not a defect."
   },
   "mechanics": [
     {
-      "mechanic": "damage / the record shows a KO our maximum roll cannot reach",
-      "n": 18,
+      "mechanic": "turn order / SPEED — no legal Champions spread can produce the order the record shows",
+      "n": 145,
       "top_witnesses": [
-        "weavile Flamethrower -> sneasler x1",
-        "basculegion Aqua Jet -> meowscarada x1",
-        "sinistcha Matcha Gotcha -> pelipper x1",
-        "sylveon Quick Attack -> grimmsnarl x1",
-        "araquanid Surf -> garchomp x1",
-        "araquanid Surf -> kingambit x1"
+        "overqwil stockpile (pri 0, our attainable speed 47-75)  then  gholdengo powergem (pri 0, our attainable speed 93-149) x8",
+        "overqwil minimize (pri 0, our attainable speed 47-75)  then  gholdengo powergem (pri 0, our attainable speed 93-149) x5",
+        "overqwil stockpile (pri 0, our attainable speed 47-75)  then  gholdengo shadowball (pri 0, our attainable speed 93-149) x3",
+        "tyranitar knockoff (pri 0, our attainable speed 72-124)  then  starmiemega psychocut (pri 0, our attainable speed 126-189)  then  sandaconda bodypress (pri 0, our attainable speed 81-135) x2",
+        "overqwil stockpile (pri 0, our attainable speed 47-75)  then  gholdengo makeitrain (pri 0, our attainable speed 93-149) x2",
+        "charizard protect (pri 4, our attainable speed 108-167)  then  basculegion wavecrash (pri 0, our attainable speed 88-143)  then  florgeswhite drainingkiss (pri 0, our attainable speed 170-278) x1"
       ],
       "examples": [
         {
-          "game": "gen9championsvgc2026regmb-2653450644",
-          "turn": 2,
-          "move": "Flamethrower",
-          "att": "weavile",
-          "def": "sneasler",
-          "observed": 8,
-          "our_span": [
-            7.49,
-            30.97
-          ],
-          "why": "the record shows a KO our maximum roll cannot reach",
-          "unknowns": [
-            "attacker item UNKNOWN",
-            "attacker ability UNKNOWN",
-            "defender item UNKNOWN",
-            "defender ability UNKNOWN"
+          "game": "gen9championsvgc2026regmb-2653449922",
+          "turn": 5,
+          "why": "SPEED — no legal Champions spread lets basculegion move before florgeswhite (our attainable speeds: 88-143 vs 170-278)",
+          "order_in_the_record": [
+            "charizard protect (pri 4, our attainable speed 108-167)",
+            "basculegion wavecrash (pri 0, our attainable speed 88-143)",
+            "florgeswhite drainingkiss (pri 0, our attainable speed 170-278)"
           ]
         },
         {
-          "game": "gen9championsvgc2026regmb-2653450359",
-          "turn": 5,
-          "move": "Aqua Jet",
-          "att": "basculegion",
-          "def": "meowscarada",
-          "observed": 8,
-          "our_span": [
-            3.83,
-            13.25
-          ],
-          "why": "the record shows a KO our maximum roll cannot reach",
-          "unknowns": [
-            "attacker item UNKNOWN",
-            "attacker ability UNKNOWN",
-            "defender ability UNKNOWN"
+          "game": "gen9championsvgc2026regmb-2653449922",
+          "turn": 6,
+          "why": "SPEED — no legal Champions spread lets basculegion move before florgeswhite (our attainable speeds: 88-143 vs 170-278)",
+          "order_in_the_record": [
+            "ceruledge shadowsneak (pri 1, our attainable speed 188-300)",
+            "basculegion wavecrash (pri 0, our attainable speed 88-143)",
+            "florgeswhite drainingkiss (pri 0, our attainable speed 170-278)",
+            "charizardmegay heatwave (pri 0, our attainable speed 108-167)"
           ]
         },
         {
           "game": "gen9championsvgc2026regmb-2653449594",
           "turn": 6,
-          "move": "Matcha Gotcha",
-          "att": "sinistcha",
-          "def": "pelipper",
-          "observed": 31,
-          "our_span": [
-            25.75,
-            93.33
-          ],
-          "why": "the record shows a KO our maximum roll cannot reach",
-          "unknowns": [
-            "attacker item UNKNOWN",
-            "attacker ability UNKNOWN",
-            "defender item UNKNOWN"
+          "why": "SPEED — no legal Champions spread lets tyranitar move before pelipper (our attainable speeds: 72-124 vs 152-256)",
+          "order_in_the_record": [
+            "milotic muddywater (pri 0, our attainable speed 180-292)",
+            "tyranitar knockoff (pri 0, our attainable speed 72-124)",
+            "pelipper hurricane (pri 0, our attainable speed 152-256)",
+            "sinistcha matchagotcha (pri 0, our attainable speed 81-134)"
           ]
         },
         {
-          "game": "gen9championsvgc2026regmb-2653450000",
+          "game": "gen9championsvgc2026regmb-2653441418",
           "turn": 3,
-          "move": "Quick Attack",
-          "att": "sylveon",
-          "def": "grimmsnarl",
-          "observed": 9,
-          "our_span": [
-            15.84,
-            64.71
-          ],
-          "why": "the record shows a KO our maximum roll cannot reach",
-          "unknowns": [
-            "attacker item UNKNOWN",
-            "attacker ability UNKNOWN",
-            "defender item UNKNOWN",
-            "defender ability UNKNOWN"
+          "why": "SPEED — no legal Champions spread lets basculegion move before sylveon (our attainable speeds: 88-143 vs 144-246)",
+          "order_in_the_record": [
+            "charizardmegay heatwave (pri 0, our attainable speed 216-334)",
+            "basculegion flipturn (pri 0, our attainable speed 88-143)",
+            "sylveon hyperbeam (pri 0, our attainable speed 144-246)",
+            "venusaurmega sludgebomb (pri 0, our attainable speed 90-145)"
           ]
         },
         {
-          "game": "gen9championsvgc2026regmb-2653449140",
-          "turn": 2,
-          "move": "Surf",
-          "att": "araquanid",
-          "def": "garchomp",
-          "observed": 26,
-          "our_span": [
-            20,
-            78.69
-          ],
-          "why": "the record shows a KO our maximum roll cannot reach",
-          "unknowns": [
-            "attacker item UNKNOWN",
-            "attacker ability UNKNOWN",
-            "defender item UNKNOWN",
-            "defender ability UNKNOWN"
+          "game": "gen9championsvgc2026regmb-2653436344",
+          "turn": 7,
+          "why": "SPEED — no legal Champions spread lets metagrossmega move before excadrill (our attainable speeds: 117-178 vs 194-308)",
+          "order_in_the_record": [
+            "tyranitar knockoff (pri 0, our attainable speed 72-124)",
+            "metagrossmega ironhead (pri 0, our attainable speed 117-178)",
+            "excadrill ironhead (pri 0, our attainable speed 194-308)"
           ]
         },
         {
-          "game": "gen9championsvgc2026regmb-2653449140",
-          "turn": 4,
-          "move": "Surf",
-          "att": "araquanid",
-          "def": "kingambit",
-          "observed": 44,
-          "our_span": [
-            20.77,
-            82.29
-          ],
-          "why": "the record shows a KO our maximum roll cannot reach",
-          "unknowns": [
-            "attacker item UNKNOWN",
-            "attacker ability UNKNOWN",
-            "defender item UNKNOWN",
-            "defender ability UNKNOWN"
+          "game": "gen9championsvgc2026regmb-2653436861",
+          "turn": 7,
+          "why": "SPEED — no legal Champions spread lets basculegion move before dragapult (our attainable speeds: 88-143 vs 145-213)",
+          "order_in_the_record": [
+            "ninetalesalola protect (pri 4, our attainable speed 116-177)",
+            "archaludon protect (pri 4, our attainable speed 94-150)",
+            "basculegion lastrespects (pri 0, our attainable speed 88-143)",
+            "dragapult shadowball (pri 0, our attainable speed 145-213)"
           ]
         }
       ]
     },
     {
-      "mechanic": "damage / x2-ish — A TYPE OR WEATHER MULTIPLIER WE ARE MISSING",
-      "n": 7,
+      "mechanic": "damage / x1.5-ish — STAB, sun/rain, or a boost stage we did not apply   [UNRESOLVED-CAUSE: the attacker's item was never revealed]",
+      "n": 143,
       "top_witnesses": [
-        "basculegion Aqua Jet -> whimsicott x1",
-        "weavile Flamethrower -> kingambit x1",
-        "whimsicott Moonblast -> dragonitemega x1",
-        "araquanid Hydro Pump -> charizardmegay x1",
-        "raichumegax Fake Out -> dragonitemega x1",
-        "delphoxmega Psychic -> dragonitemega x1"
+        "kingambit Sucker Punch -> charizardmegay x4",
+        "kingambit Kowtow Cleave -> whimsicott x3",
+        "steelix Ancient Power -> rotomwash x3",
+        "mamoswine Ice Shard -> charizardmegay x2",
+        "basculegion Aqua Jet -> mamoswine x2",
+        "kingambit Kowtow Cleave -> charizardmegay x2"
+      ],
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmb-2653450692",
+          "turn": 4,
+          "move": "Sucker Punch",
+          "att": "kingambit",
+          "def": "excadrill",
+          "observed": 76,
+          "our_span": [
+            20.74,
+            71.35
+          ],
+          "ratio": 1.651,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653450386",
+          "turn": 1,
+          "move": "Ice Shard",
+          "att": "mamoswine",
+          "def": "charizardmegay",
+          "observed": 46,
+          "our_span": [
+            11.89,
+            41.18
+          ],
+          "ratio": 1.734,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653449709",
+          "turn": 5,
+          "move": "Fake Out",
+          "att": "kangaskhan",
+          "def": "basculegion",
+          "observed": 31,
+          "our_span": [
+            8.37,
+            29.74
+          ],
+          "ratio": 1.627,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653444423",
+          "turn": 1,
+          "move": "Sucker Punch",
+          "att": "kingambit",
+          "def": "charizardmegay",
+          "observed": 77,
+          "our_span": [
+            21.08,
+            71.24
+          ],
+          "ratio": 1.668,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653440995",
+          "turn": 6,
+          "move": "Crunch",
+          "att": "overqwil",
+          "def": "swampertmega",
+          "observed": 52,
+          "our_span": [
+            14.98,
+            48.57
+          ],
+          "ratio": 1.637,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653441379",
+          "turn": 4,
+          "move": "Hyper Voice",
+          "att": "sylveon",
+          "def": "aerodactyl",
+          "observed": 99,
+          "our_span": [
+            27.27,
+            97.42
+          ],
+          "ratio": 1.588,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN"
+          ]
+        }
+      ]
+    },
+    {
+      "mechanic": "damage / x2-ish — A TYPE OR WEATHER MULTIPLIER WE ARE MISSING   [UNRESOLVED-CAUSE: the attacker's item was never revealed]",
+      "n": 98,
+      "top_witnesses": [
+        "whimsicott Moonblast -> dragonitemega x3",
+        "milotic Scald -> charizardmegay x3",
+        "alakazam Stomping Tantrum -> archaludon x3",
+        "steelix Earth Power -> basculegion x3",
+        "kingambit Sucker Punch -> incineroar x2",
+        "palafin Flip Turn -> malamar x2"
       ],
       "examples": [
         {
@@ -470,36 +677,38 @@
           ]
         },
         {
-          "game": "gen9championsvgc2026regmb-2653445265",
-          "turn": 7,
-          "move": "Fake Out",
-          "att": "raichumegax",
-          "def": "dragonitemega",
-          "observed": 12,
+          "game": "gen9championsvgc2026regmb-2653445362",
+          "turn": 3,
+          "move": "Play Rough",
+          "att": "cofagrigus",
+          "def": "incineroar",
+          "observed": 37,
           "our_span": [
-            3.03,
-            9.04
+            6.93,
+            27.06
           ],
-          "ratio": 1.989,
+          "ratio": 2.177,
           "why": "observed ABOVE everything our engine can produce",
           "unknowns": [
-            "defender ability UNKNOWN"
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN"
           ]
         },
         {
-          "game": "gen9championsvgc2026regmb-2653444455",
-          "turn": 8,
-          "move": "Psychic",
-          "att": "delphoxmega",
+          "game": "gen9championsvgc2026regmb-2653441475",
+          "turn": 4,
+          "move": "U-turn",
+          "att": "decidueye",
           "def": "dragonitemega",
-          "observed": 44,
+          "observed": 9,
           "our_span": [
-            10.61,
-            32.53
+            2.02,
+            6.63
           ],
-          "ratio": 2.04,
+          "ratio": 2.082,
           "why": "observed ABOVE everything our engine can produce",
           "unknowns": [
+            "attacker item UNKNOWN",
             "attacker ability UNKNOWN",
             "defender ability UNKNOWN"
           ]
@@ -507,15 +716,516 @@
       ]
     },
     {
-      "mechanic": "damage / x0.25-ish — two resists, or a doubled resist we invented",
-      "n": 6,
+      "mechanic": "damage / x0.5-ish — ONE HALVING WE APPLY AND THE GAME DID NOT, or a screen the store cannot record   [UNRESOLVED-CAUSE: the attacker's item was never revealed]",
+      "n": 95,
       "top_witnesses": [
-        "metagrossmega Psychic Fangs -> sneasler x1",
-        "sylveon Quick Attack -> greninjamega x1",
-        "charizardmegax Flare Blitz -> whimsicott x1",
-        "golurkmega Headlong Rush -> primarina x1",
-        "incineroar Flare Blitz -> ninetalesalola x1",
-        "tyranitar Knock Off -> rotomwash x1"
+        "sneasler Dire Claw -> whimsicott x9",
+        "archaludon Flash Cannon -> grimmsnarl x5",
+        "glimmora Sludge Bomb -> whimsicott x5",
+        "sneasler Poison Jab -> whimsicott x4",
+        "incineroar Flare Blitz -> whimsicott x3",
+        "archaludon Electro Shot -> pelipper x3"
+      ],
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmb-2653451415",
+          "turn": 2,
+          "move": "Throat Chop",
+          "att": "incineroar",
+          "def": "farigiraf",
+          "observed": 35,
+          "our_span": [
+            37,
+            124.1
+          ],
+          "ratio": 0.434,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653445458",
+          "turn": 7,
+          "move": "Last Respects",
+          "att": "basculegion",
+          "def": "dragapult",
+          "observed": 99,
+          "our_span": [
+            100.51,
+            346.01
+          ],
+          "ratio": 0.443,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653443548",
+          "turn": 9,
+          "move": "Knock Off",
+          "att": "tyranitar",
+          "def": "sinistcha",
+          "observed": 41,
+          "our_span": [
+            50.56,
+            161.64
+          ],
+          "ratio": 0.386,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653441855",
+          "turn": 4,
+          "move": "Flash Cannon",
+          "att": "archaludon",
+          "def": "grimmsnarl",
+          "observed": 55,
+          "our_span": [
+            63.37,
+            215.29
+          ],
+          "ratio": 0.395,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653439401",
+          "turn": 4,
+          "move": "Flare Blitz",
+          "att": "incineroar",
+          "def": "whimsicott",
+          "observed": 99,
+          "our_span": [
+            100.6,
+            346.67
+          ],
+          "ratio": 0.443,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653436091",
+          "turn": 8,
+          "move": "Psychic",
+          "att": "farigiraf",
+          "def": "cofagrigus",
+          "observed": 17,
+          "our_span": [
+            20.61,
+            72.18
+          ],
+          "ratio": 0.366,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN"
+          ]
+        }
+      ]
+    },
+    {
+      "mechanic": "damage / the record shows a KO our maximum roll cannot reach   [UNRESOLVED-CAUSE: the attacker's item was never revealed]",
+      "n": 73,
+      "top_witnesses": [
+        "meowscarada Thunder Punch -> charizardmegay x2",
+        "garchomp Earthquake -> whimsicott x2",
+        "aromatisse Shadow Ball -> kleavor x2",
+        "kingambit Sucker Punch -> politoed x1",
+        "venusaur Earth Power -> gengarmega x1",
+        "politoed Weather Ball -> mimikyubusted x1"
+      ],
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmb-2653447721",
+          "turn": 2,
+          "move": "Sucker Punch",
+          "att": "kingambit",
+          "def": "politoed",
+          "observed": 100,
+          "our_span": [
+            20.3,
+            69.09
+          ],
+          "ratio": 2.237,
+          "why": "the record shows a KO our maximum roll cannot reach",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "defender item UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653444045",
+          "turn": 1,
+          "move": "Earth Power",
+          "att": "venusaur",
+          "def": "gengarmega",
+          "observed": 100,
+          "our_span": [
+            27.54,
+            97.78
+          ],
+          "ratio": 1.596,
+          "why": "the record shows a KO our maximum roll cannot reach",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653442189",
+          "turn": 4,
+          "move": "Weather Ball",
+          "att": "politoed",
+          "def": "mimikyubusted",
+          "observed": 37,
+          "our_span": [
+            0,
+            0
+          ],
+          "ratio": 37,
+          "why": "the record shows a KO our maximum roll cannot reach",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653441036",
+          "turn": 1,
+          "move": "Sludge Bomb",
+          "att": "venusaur",
+          "def": "pelipper",
+          "observed": 100,
+          "our_span": [
+            25.15,
+            91.85
+          ],
+          "ratio": 1.709,
+          "why": "the record shows a KO our maximum roll cannot reach",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653430279",
+          "turn": 4,
+          "move": "Bitter Blade",
+          "att": "ceruledge",
+          "def": "charizardmegay",
+          "observed": 100,
+          "our_span": [
+            28.65,
+            96.73
+          ],
+          "ratio": 1.595,
+          "why": "the record shows a KO our maximum roll cannot reach",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653425919",
+          "turn": 2,
+          "move": "Kowtow Cleave",
+          "att": "kingambit",
+          "def": "venusaur",
+          "observed": 100,
+          "our_span": [
+            24.6,
+            81.94
+          ],
+          "ratio": 1.877,
+          "why": "the record shows a KO our maximum roll cannot reach",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        }
+      ]
+    },
+    {
+      "mechanic": "damage / x0.5-ish — ONE HALVING WE APPLY AND THE GAME DID NOT, or a screen the store cannot record",
+      "n": 72,
+      "top_witnesses": [
+        "venusaurmega Sludge Bomb -> whimsicott x8",
+        "sneasler Dire Claw -> whimsicott x4",
+        "charizardmegay Weather Ball -> whimsicott x4",
+        "farigiraf Twin Beam -> cameruptmega x3",
+        "charizardmegay Heat Wave -> whimsicott x2",
+        "venusaurmega Sludge Bomb -> grimmsnarl x2"
+      ],
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmb-2653450367",
+          "turn": 2,
+          "move": "Weather Ball",
+          "att": "charizardmegay",
+          "def": "archaludon",
+          "observed": 31,
+          "our_span": [
+            36.55,
+            123.64
+          ],
+          "ratio": 0.387,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "defender item UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653448271",
+          "turn": 5,
+          "move": "Twin Beam",
+          "att": "farigiraf",
+          "def": "rotomheat",
+          "observed": 19,
+          "our_span": [
+            20.38,
+            68.8
+          ],
+          "ratio": 0.426,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653443506",
+          "turn": 2,
+          "move": "Heat Wave",
+          "att": "charizardmegay",
+          "def": "whimsicott",
+          "observed": 99,
+          "our_span": [
+            112.57,
+            386.67
+          ],
+          "ratio": 0.397,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653436937",
+          "turn": 1,
+          "move": "Sludge Bomb",
+          "att": "venusaurmega",
+          "def": "whimsicott",
+          "observed": 99,
+          "our_span": [
+            114.97,
+            400
+          ],
+          "ratio": 0.384,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653433752",
+          "turn": 1,
+          "move": "Darkest Lariat",
+          "att": "incineroar",
+          "def": "incineroar",
+          "observed": 8,
+          "our_span": [
+            9.41,
+            31.18
+          ],
+          "ratio": 0.394,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": []
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653433752",
+          "turn": 2,
+          "move": "Flare Blitz",
+          "att": "incineroar",
+          "def": "incineroar",
+          "observed": 11,
+          "our_span": [
+            12.87,
+            43.53
+          ],
+          "ratio": 0.39,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": []
+        }
+      ]
+    },
+    {
+      "mechanic": "status / the record applied slp and no pin of our engine could produce it",
+      "n": 59,
+      "top_witnesses": [
+        "sylveon <- slp x7",
+        "basculegion <- slp x6",
+        "garchomp <- slp x5",
+        "charizardmegay <- slp x4",
+        "sinistcha <- slp x3",
+        "pelipper <- slp x2"
+      ],
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmb-2653448434",
+          "turn": 6,
+          "slot": "p2b",
+          "mon": "chesnaughtmega",
+          "status": "slp",
+          "our_reachable": []
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653447580",
+          "turn": 3,
+          "slot": "p2a",
+          "mon": "sylveon",
+          "status": "slp",
+          "our_reachable": []
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653445628",
+          "turn": 4,
+          "slot": "p1a",
+          "mon": "pelipper",
+          "status": "slp",
+          "our_reachable": []
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653443399",
+          "turn": 5,
+          "slot": "p2a",
+          "mon": "tyranitar",
+          "status": "slp",
+          "our_reachable": [
+            "p1b:brn"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653442543",
+          "turn": 15,
+          "slot": "p2a",
+          "mon": "toxapex",
+          "status": "slp",
+          "our_reachable": [
+            "p1a:par",
+            "p1b:par"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653441746",
+          "turn": 6,
+          "slot": "p2a",
+          "mon": "sylveon",
+          "status": "slp",
+          "our_reachable": []
+        }
+      ]
+    },
+    {
+      "mechanic": "status / the record applied brn and no pin of our engine could produce it",
+      "n": 57,
+      "top_witnesses": [
+        "garchomp <- brn x9",
+        "archaludon <- brn x5",
+        "basculegion <- brn x3",
+        "dragonite <- brn x3",
+        "kingambit <- brn x3",
+        "sylveon <- brn x2"
+      ],
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmb-2653444423",
+          "turn": 4,
+          "slot": "p2a",
+          "mon": "sylveon",
+          "status": "brn",
+          "our_reachable": [
+            "p2b:brn"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653443399",
+          "turn": 3,
+          "slot": "p1b",
+          "mon": "beartic",
+          "status": "brn",
+          "our_reachable": []
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653436955",
+          "turn": 6,
+          "slot": "p1a",
+          "mon": "grimmsnarl",
+          "status": "brn",
+          "our_reachable": [
+            "p1b:brn"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653431238",
+          "turn": 5,
+          "slot": "p1a",
+          "mon": "maushold",
+          "status": "brn",
+          "our_reachable": []
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653424625",
+          "turn": 4,
+          "slot": "p2b",
+          "mon": "tyranitar",
+          "status": "brn",
+          "our_reachable": [
+            "p1a:brn"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653426331",
+          "turn": 1,
+          "slot": "p2a",
+          "mon": "staraptormega",
+          "status": "brn",
+          "our_reachable": []
+        }
+      ]
+    },
+    {
+      "mechanic": "damage / x0.25-ish — two resists, or a doubled resist we invented",
+      "n": 56,
+      "top_witnesses": [
+        "rotomwash Hydro Pump -> ceruledge x6",
+        "gengarmega Sludge Bomb -> whimsicott x5",
+        "metagrossmega Psychic Fangs -> sneasler x2",
+        "farigiraf Twin Beam -> archaludon x2",
+        "glimmoramega Sludge Bomb -> whimsicott x2",
+        "pelipper Hurricane -> meowscarada x2"
       ],
       "examples": [
         {
@@ -532,25 +1242,6 @@
           "ratio": 0.269,
           "why": "observed BELOW everything our engine can produce",
           "unknowns": [
-            "attacker ability UNKNOWN",
-            "defender ability UNKNOWN"
-          ]
-        },
-        {
-          "game": "gen9championsvgc2026regmb-2653447683",
-          "turn": 6,
-          "move": "Quick Attack",
-          "att": "sylveon",
-          "def": "greninjamega",
-          "observed": 9,
-          "our_span": [
-            17.88,
-            66.67
-          ],
-          "ratio": 0.213,
-          "why": "observed BELOW everything our engine can produce",
-          "unknowns": [
-            "attacker item UNKNOWN",
             "attacker ability UNKNOWN",
             "defender ability UNKNOWN"
           ]
@@ -592,20 +1283,90 @@
           ]
         },
         {
-          "game": "gen9championsvgc2026regmb-2653446293",
-          "turn": 1,
-          "move": "Flare Blitz",
-          "att": "incineroar",
-          "def": "ninetalesalola",
-          "observed": 47,
+          "game": "gen9championsvgc2026regmb-2653439679",
+          "turn": 3,
+          "move": "Earthquake",
+          "att": "swampertmega",
+          "def": "sneasler",
+          "observed": 29,
           "our_span": [
-            64.44,
-            232.43
+            55.61,
+            198.71
           ],
-          "ratio": 0.317,
+          "ratio": 0.228,
           "why": "observed BELOW everything our engine can produce",
           "unknowns": [
-            "defender item UNKNOWN"
+            "attacker ability UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653436091",
+          "turn": 7,
+          "move": "Sucker Punch",
+          "att": "mawilemega",
+          "def": "cofagrigus",
+          "observed": 5,
+          "our_span": [
+            8.48,
+            27.07
+          ],
+          "ratio": 0.281,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653436091",
+          "turn": 10,
+          "move": "Play Rough",
+          "att": "mawilemega",
+          "def": "blaziken",
+          "observed": 10,
+          "our_span": [
+            22.46,
+            81.94
+          ],
+          "ratio": 0.192,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        }
+      ]
+    },
+    {
+      "mechanic": "damage / x0.25-ish — two resists, or a doubled resist we invented   [UNRESOLVED-CAUSE: the attacker's item was never revealed]",
+      "n": 38,
+      "top_witnesses": [
+        "basculegion Wave Crash -> excadrill x3",
+        "farigiraf Twin Beam -> archaludon x2",
+        "grimmsnarl Spirit Break -> ditto x2",
+        "archaludon Aura Sphere -> malamarmega x2",
+        "sylveon Quick Attack -> greninjamega x1",
+        "tyranitar Knock Off -> rotomwash x1"
+      ],
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmb-2653447683",
+          "turn": 6,
+          "move": "Quick Attack",
+          "att": "sylveon",
+          "def": "greninjamega",
+          "observed": 9,
+          "our_span": [
+            17.88,
+            66.67
+          ],
+          "ratio": 0.213,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
+            "defender ability UNKNOWN"
           ]
         },
         {
@@ -625,69 +1386,144 @@
             "attacker item UNKNOWN",
             "defender ability UNKNOWN"
           ]
-        }
-      ]
-    },
-    {
-      "mechanic": "damage / x0.5-ish — ONE HALVING WE APPLY AND THE GAME DID NOT, or a screen the store cannot record",
-      "n": 5,
-      "top_witnesses": [
-        "incineroar Throat Chop -> farigiraf x1",
-        "charizardmegay Weather Ball -> archaludon x1",
-        "farigiraf Twin Beam -> rotomheat x1",
-        "basculegion Last Respects -> dragapult x1",
-        "tyranitar Knock Off -> sinistcha x1"
-      ],
-      "examples": [
+        },
         {
-          "game": "gen9championsvgc2026regmb-2653451415",
-          "turn": 2,
-          "move": "Throat Chop",
-          "att": "incineroar",
-          "def": "farigiraf",
-          "observed": 35,
+          "game": "gen9championsvgc2026regmb-2653440198",
+          "turn": 6,
+          "move": "Electro Shot",
+          "att": "archaludon",
+          "def": "pelipper",
+          "observed": 99,
           "our_span": [
-            37,
-            124.1
+            172.46,
+            613.33
           ],
-          "ratio": 0.434,
+          "ratio": 0.252,
           "why": "observed BELOW everything our engine can produce",
           "unknowns": [
-            "attacker item UNKNOWN",
-            "defender item UNKNOWN",
-            "defender ability UNKNOWN"
+            "attacker item UNKNOWN"
           ]
         },
         {
-          "game": "gen9championsvgc2026regmb-2653450367",
+          "game": "gen9championsvgc2026regmb-2653436861",
           "turn": 2,
-          "move": "Weather Ball",
-          "att": "charizardmegay",
+          "move": "Twin Beam",
+          "att": "farigiraf",
           "def": "archaludon",
-          "observed": 31,
+          "observed": 7,
           "our_span": [
-            36.55,
-            123.64
+            11.17,
+            38.79
           ],
-          "ratio": 0.387,
+          "ratio": 0.28,
           "why": "observed BELOW everything our engine can produce",
           "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
             "defender item UNKNOWN"
           ]
         },
         {
-          "game": "gen9championsvgc2026regmb-2653448271",
-          "turn": 5,
+          "game": "gen9championsvgc2026regmb-2653433244",
+          "turn": 4,
+          "move": "Wave Crash",
+          "att": "basculegion",
+          "def": "excadrill",
+          "observed": 99,
+          "our_span": [
+            121.66,
+            434.59
+          ],
+          "ratio": 0.356,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653423024",
+          "turn": 4,
           "move": "Twin Beam",
           "att": "farigiraf",
-          "def": "rotomheat",
-          "observed": 19,
+          "def": "dragapult",
+          "observed": 16,
           "our_span": [
-            20.38,
-            68.8
+            19.49,
+            69.94
           ],
-          "ratio": 0.426,
+          "ratio": 0.358,
           "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        }
+      ]
+    },
+    {
+      "mechanic": "damage / x2-ish — A TYPE OR WEATHER MULTIPLIER WE ARE MISSING",
+      "n": 32,
+      "top_witnesses": [
+        "charizardmegay Weather Ball -> dragonitemega x3",
+        "incineroar Fake Out -> dragonitemega x2",
+        "charizardmegay Heat Wave -> dragonitemega x2",
+        "raichumegax Fake Out -> dragonitemega x1",
+        "delphoxmega Psychic -> dragonitemega x1",
+        "raichu Electroweb -> whimsicott x1"
+      ],
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmb-2653445265",
+          "turn": 7,
+          "move": "Fake Out",
+          "att": "raichumegax",
+          "def": "dragonitemega",
+          "observed": 12,
+          "our_span": [
+            3.03,
+            9.04
+          ],
+          "ratio": 1.989,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653444455",
+          "turn": 8,
+          "move": "Psychic",
+          "att": "delphoxmega",
+          "def": "dragonitemega",
+          "observed": 44,
+          "our_span": [
+            10.61,
+            32.53
+          ],
+          "ratio": 2.04,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653436975",
+          "turn": 8,
+          "move": "Electroweb",
+          "att": "raichu",
+          "def": "whimsicott",
+          "observed": 33,
+          "our_span": [
+            7.19,
+            25.19
+          ],
+          "ratio": 2.039,
+          "why": "observed ABOVE everything our engine can produce",
           "unknowns": [
             "attacker ability UNKNOWN",
             "defender item UNKNOWN",
@@ -695,174 +1531,256 @@
           ]
         },
         {
-          "game": "gen9championsvgc2026regmb-2653445458",
-          "turn": 7,
-          "move": "Last Respects",
-          "att": "basculegion",
-          "def": "dragapult",
-          "observed": 99,
+          "game": "gen9championsvgc2026regmb-2653434766",
+          "turn": 4,
+          "move": "Dazzling Gleam",
+          "att": "floettemega",
+          "def": "charizardmegay",
+          "observed": 73,
           "our_span": [
-            100.51,
-            346.01
+            14.05,
+            43.14
           ],
-          "ratio": 0.443,
-          "why": "observed BELOW everything our engine can produce",
+          "ratio": 2.553,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": []
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653411811",
+          "turn": 3,
+          "move": "High Horsepower",
+          "att": "rhyperior",
+          "def": "milotic",
+          "observed": 56,
+          "our_span": [
+            13.37,
+            44.12
+          ],
+          "ratio": 1.948,
+          "why": "observed ABOVE everything our engine can produce",
           "unknowns": [
-            "attacker item UNKNOWN",
             "attacker ability UNKNOWN",
             "defender ability UNKNOWN"
           ]
         },
         {
-          "game": "gen9championsvgc2026regmb-2653443548",
-          "turn": 9,
-          "move": "Knock Off",
-          "att": "tyranitar",
-          "def": "sinistcha",
-          "observed": 41,
+          "game": "gen9championsvgc2026regmb-2653384918",
+          "turn": 3,
+          "move": "Ice Punch",
+          "att": "swampertmega",
+          "def": "venusaurmega",
+          "observed": 52,
           "our_span": [
-            50.56,
-            161.64
+            12.83,
+            38.71
           ],
-          "ratio": 0.386,
-          "why": "observed BELOW everything our engine can produce",
+          "ratio": 2.018,
+          "why": "observed ABOVE everything our engine can produce",
           "unknowns": [
-            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
             "defender ability UNKNOWN"
           ]
         }
       ]
     },
     {
-      "mechanic": "turn order / SPEED — no legal Champions spread can produce the order the record shows",
-      "n": 5,
+      "mechanic": "status / the record applied psn and no pin of our engine could produce it",
+      "n": 31,
       "top_witnesses": [
-        "archaludon dragonpulse (pri 0, our attainable speed 94-150)  then  venusaur earthpower (pri 0, our attainable speed 180-290) x1",
-        "milotic muddywater (pri 0, our attainable speed 180-292)  then  tyranitar knockoff (pri 0, our attainable speed 72-124)  then  pelipper hurricane (pri 0, our attainable speed 152-256)  then  sinistcha matchagotcha (pri 0, our attainable speed 81-134) x1",
-        "aerodactyl wideguard (pri 3, our attainable speed 270-400)  then  excadrill rockslide (pri 0, our attainable speed 97-154)  then  gholdengo nastyplot (pri 0, our attainable speed 186-298)  then  tyranitar knockoff (pri 0, our attainable speed 72-124) x1",
-        "aerodactyl wideguard (pri 3, our attainable speed 270-400)  then  excadrill ironhead (pri 0, our attainable speed 97-154)  then  gholdengo makeitrain (pri 0, our attainable speed 186-298) x1",
-        "basculegion lastrespects (pri 0, our attainable speed 88-143)  then  venusaur sleeppowder (pri 0, our attainable speed 180-290) x1"
+        "garchomp <- psn x5",
+        "charizardmegay <- psn x4",
+        "sinistcha <- psn x4",
+        "pelipper <- psn x4",
+        "aerodactyl <- psn x2",
+        "basculegion <- psn x2"
       ],
       "examples": [
         {
-          "game": "gen9championsvgc2026regmb-2653450694",
-          "turn": 8,
-          "why": "SPEED — no legal Champions spread lets archaludon move before venusaur (our attainable speeds: 94-150 vs 180-290)",
-          "order_in_the_record": [
-            "archaludon dragonpulse (pri 0, our attainable speed 94-150)",
-            "venusaur earthpower (pri 0, our attainable speed 180-290)"
+          "game": "gen9championsvgc2026regmb-2653437229",
+          "turn": 5,
+          "slot": "p2b",
+          "mon": "charizardmegay",
+          "status": "psn",
+          "our_reachable": []
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653427027",
+          "turn": 1,
+          "slot": "p2a",
+          "mon": "aerodactyl",
+          "status": "psn",
+          "our_reachable": []
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653426331",
+          "turn": 4,
+          "slot": "p1b",
+          "mon": "sinistcha",
+          "status": "psn",
+          "our_reachable": [
+            "p1a:psn"
           ]
         },
         {
-          "game": "gen9championsvgc2026regmb-2653449594",
-          "turn": 6,
-          "why": "SPEED — no legal Champions spread lets tyranitar move before pelipper (our attainable speeds: 72-124 vs 152-256)",
-          "order_in_the_record": [
-            "milotic muddywater (pri 0, our attainable speed 180-292)",
-            "tyranitar knockoff (pri 0, our attainable speed 72-124)",
-            "pelipper hurricane (pri 0, our attainable speed 152-256)",
-            "sinistcha matchagotcha (pri 0, our attainable speed 81-134)"
-          ]
-        },
-        {
-          "game": "gen9championsvgc2026regmb-2653447772",
-          "turn": 2,
-          "why": "SPEED — no legal Champions spread lets excadrill move before gholdengo (our attainable speeds: 97-154 vs 186-298)",
-          "order_in_the_record": [
-            "aerodactyl wideguard (pri 3, our attainable speed 270-400)",
-            "excadrill rockslide (pri 0, our attainable speed 97-154)",
-            "gholdengo nastyplot (pri 0, our attainable speed 186-298)",
-            "tyranitar knockoff (pri 0, our attainable speed 72-124)"
-          ]
-        },
-        {
-          "game": "gen9championsvgc2026regmb-2653447772",
+          "game": "gen9championsvgc2026regmb-2653392518",
           "turn": 3,
-          "why": "SPEED — no legal Champions spread lets excadrill move before gholdengo (our attainable speeds: 97-154 vs 186-298)",
-          "order_in_the_record": [
-            "aerodactyl wideguard (pri 3, our attainable speed 270-400)",
-            "excadrill ironhead (pri 0, our attainable speed 97-154)",
-            "gholdengo makeitrain (pri 0, our attainable speed 186-298)"
+          "slot": "p2a",
+          "mon": "dragonitemega",
+          "status": "psn",
+          "our_reachable": []
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653387022",
+          "turn": 2,
+          "slot": "p2a",
+          "mon": "garchomp",
+          "status": "psn",
+          "our_reachable": []
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653383635",
+          "turn": 1,
+          "slot": "p2b",
+          "mon": "pelipper",
+          "status": "psn",
+          "our_reachable": []
+        }
+      ]
+    },
+    {
+      "mechanic": "damage / the record shows a KO our maximum roll cannot reach",
+      "n": 25,
+      "top_witnesses": [
+        "charizardmegay Heat Wave -> talonflame x1",
+        "charizardmegax Dragon Rush -> dragonitemega x1",
+        "garchomp Stomping Tantrum -> incineroar x1",
+        "pelipper Weather Ball -> overqwil x1",
+        "meganiummega Dazzling Gleam -> dragonitemega x1",
+        "eelektrossmega Flamethrower -> greninja x1"
+      ],
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmb-2653449841",
+          "turn": 3,
+          "move": "Heat Wave",
+          "att": "charizardmegay",
+          "def": "talonflame",
+          "observed": 100,
+          "our_span": [
+            17.84,
+            60.13
+          ],
+          "ratio": 2.565,
+          "why": "the record shows a KO our maximum roll cannot reach",
+          "unknowns": [
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
           ]
         },
         {
-          "game": "gen9championsvgc2026regmb-2653447563",
+          "game": "gen9championsvgc2026regmb-2653442543",
+          "turn": 3,
+          "move": "Dragon Rush",
+          "att": "charizardmegax",
+          "def": "dragonitemega",
+          "observed": 97,
+          "our_span": [
+            27.78,
+            86.75
+          ],
+          "ratio": 1.694,
+          "why": "the record shows a KO our maximum roll cannot reach",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653442040",
+          "turn": 5,
+          "move": "Stomping Tantrum",
+          "att": "garchomp",
+          "def": "incineroar",
+          "observed": 71,
+          "our_span": [
+            18.81,
+            61.18
+          ],
+          "ratio": 1.775,
+          "why": "the record shows a KO our maximum roll cannot reach",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653440995",
           "turn": 6,
-          "why": "SPEED — no legal Champions spread lets basculegion move before venusaur (our attainable speeds: 88-143 vs 180-290)",
-          "order_in_the_record": [
-            "basculegion lastrespects (pri 0, our attainable speed 88-143)",
-            "venusaur sleeppowder (pri 0, our attainable speed 180-290)"
+          "move": "Weather Ball",
+          "att": "pelipper",
+          "def": "overqwil",
+          "observed": 80,
+          "our_span": [
+            8.33,
+            30
+          ],
+          "ratio": 4.174,
+          "why": "the record shows a KO our maximum roll cannot reach",
+          "unknowns": [
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653427391",
+          "turn": 2,
+          "move": "Dazzling Gleam",
+          "att": "meganiummega",
+          "def": "dragonitemega",
+          "observed": 69,
+          "our_span": [
+            17.17,
+            53.01
+          ],
+          "ratio": 1.966,
+          "why": "the record shows a KO our maximum roll cannot reach",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653413924",
+          "turn": 3,
+          "move": "Flamethrower",
+          "att": "eelektrossmega",
+          "def": "greninja",
+          "observed": 81,
+          "our_span": [
+            14.53,
+            51.7
+          ],
+          "ratio": 2.446,
+          "why": "the record shows a KO our maximum roll cannot reach",
+          "unknowns": [
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
           ]
         }
       ]
     },
     {
       "mechanic": "damage / x1.5-ish — STAB, sun/rain, or a boost stage we did not apply",
-      "n": 4,
+      "n": 25,
       "top_witnesses": [
-        "kingambit Sucker Punch -> excadrill x1",
-        "mamoswine Ice Shard -> charizardmegay x1",
-        "kangaskhan Fake Out -> basculegion x1",
-        "flapple Dragon Rush -> dragonitemega x1"
+        "greninjamega Weather Ball -> floettemega x2",
+        "milotic Scald -> garganacl x2",
+        "flapple Dragon Rush -> dragonitemega x1",
+        "pyroarmega Overheat -> basculegion x1",
+        "charizardmegay Heat Wave -> kommoo x1",
+        "kingambit Sucker Punch -> staraptormega x1"
       ],
       "examples": [
-        {
-          "game": "gen9championsvgc2026regmb-2653450692",
-          "turn": 4,
-          "move": "Sucker Punch",
-          "att": "kingambit",
-          "def": "excadrill",
-          "observed": 76,
-          "our_span": [
-            20.74,
-            71.35
-          ],
-          "ratio": 1.651,
-          "why": "observed ABOVE everything our engine can produce",
-          "unknowns": [
-            "attacker item UNKNOWN",
-            "defender item UNKNOWN",
-            "defender ability UNKNOWN"
-          ]
-        },
-        {
-          "game": "gen9championsvgc2026regmb-2653450386",
-          "turn": 1,
-          "move": "Ice Shard",
-          "att": "mamoswine",
-          "def": "charizardmegay",
-          "observed": 46,
-          "our_span": [
-            11.89,
-            41.18
-          ],
-          "ratio": 1.734,
-          "why": "observed ABOVE everything our engine can produce",
-          "unknowns": [
-            "attacker item UNKNOWN",
-            "attacker ability UNKNOWN"
-          ]
-        },
-        {
-          "game": "gen9championsvgc2026regmb-2653449709",
-          "turn": 5,
-          "move": "Fake Out",
-          "att": "kangaskhan",
-          "def": "basculegion",
-          "observed": 31,
-          "our_span": [
-            8.37,
-            29.74
-          ],
-          "ratio": 1.627,
-          "why": "observed ABOVE everything our engine can produce",
-          "unknowns": [
-            "attacker item UNKNOWN",
-            "attacker ability UNKNOWN",
-            "defender item UNKNOWN",
-            "defender ability UNKNOWN"
-          ]
-        },
         {
           "game": "gen9championsvgc2026regmb-2653447800",
           "turn": 3,
@@ -880,196 +1798,305 @@
             "attacker ability UNKNOWN",
             "defender ability UNKNOWN"
           ]
-        }
-      ]
-    },
-    {
-      "mechanic": "status / the record applied frz and no pin of our engine could produce it",
-      "n": 3,
-      "top_witnesses": [
-        "sinistcha <- frz x1",
-        "garchomp <- frz x1",
-        "venusaurmega <- frz x1"
-      ],
-      "examples": [
+        },
         {
-          "game": "gen9championsvgc2026regmb-2653449594",
+          "game": "gen9championsvgc2026regmb-2653437413",
+          "turn": 6,
+          "move": "Overheat",
+          "att": "pyroarmega",
+          "def": "basculegion",
+          "observed": 44,
+          "our_span": [
+            11.89,
+            38.46
+          ],
+          "ratio": 1.748,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653419495",
+          "turn": 5,
+          "move": "Heat Wave",
+          "att": "charizardmegay",
+          "def": "kommoo",
+          "observed": 72,
+          "our_span": [
+            20.88,
+            66
+          ],
+          "ratio": 1.657,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653407516",
           "turn": 2,
-          "slot": "p2a",
-          "mon": "sinistcha",
-          "status": "frz",
-          "our_reachable": []
+          "move": "Sucker Punch",
+          "att": "kingambit",
+          "def": "staraptormega",
+          "observed": 21,
+          "our_span": [
+            6.25,
+            18.75
+          ],
+          "ratio": 1.68,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "defender ability UNKNOWN"
+          ]
         },
         {
-          "game": "gen9championsvgc2026regmb-2653448271",
-          "turn": 4,
-          "slot": "p1a",
-          "mon": "garchomp",
-          "status": "frz",
-          "our_reachable": []
-        },
-        {
-          "game": "gen9championsvgc2026regmb-2653447819",
+          "game": "gen9championsvgc2026regmb-2653406584",
           "turn": 7,
-          "slot": "p1a",
-          "mon": "venusaurmega",
-          "status": "frz",
-          "our_reachable": [
-            "p1b:psn"
+          "move": "Body Press",
+          "att": "chesnaughtmega",
+          "def": "charizardmegay",
+          "observed": 42,
+          "our_span": [
+            16.22,
+            37.91
+          ],
+          "ratio": 1.552,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653369889",
+          "turn": 1,
+          "move": "Acrobatics",
+          "att": "sneasler",
+          "def": "sinistcha",
+          "observed": 68,
+          "our_span": [
+            18.54,
+            59.59
+          ],
+          "ratio": 1.741,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender ability UNKNOWN"
           ]
         }
       ]
     },
     {
-      "mechanic": "weather / the record set SunnyDay and our engine did not",
-      "n": 3,
+      "mechanic": "damage / x4-plus — a type chart or base-power error   [UNRESOLVED-CAUSE: the attacker's item was never revealed]",
+      "n": 23,
       "top_witnesses": [
-        "SunnyDay by Drought x3"
+        "torkoal Eruption -> garchomp x2",
+        "heliolisk Bullet Punch -> dragonite x1",
+        "ditto Dragon Claw -> basculegion x1",
+        "ditto Dragon Claw -> garchomp x1",
+        "ditto Flip Turn -> basculegion x1",
+        "ditto Dragon Pulse -> archaludon x1"
       ],
       "examples": [
         {
-          "game": "gen9championsvgc2026regmb-2653447580",
-          "turn": 6,
-          "weather": "SunnyDay",
-          "by": "Drought",
-          "our_reachable": [
-            "sand"
+          "game": "gen9championsvgc2026regmb-2653421617",
+          "turn": 3,
+          "move": "Bullet Punch",
+          "att": "heliolisk",
+          "def": "dragonite",
+          "observed": 37,
+          "our_span": [
+            3.54,
+            12.65
+          ],
+          "ratio": 4.572,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
           ]
         },
         {
-          "game": "gen9championsvgc2026regmb-2653445621",
-          "turn": 2,
-          "weather": "SunnyDay",
-          "by": "Drought",
-          "our_reachable": [
-            "rain"
+          "game": "gen9championsvgc2026regmb-2653389498",
+          "turn": 3,
+          "move": "Dragon Claw",
+          "att": "ditto",
+          "def": "basculegion",
+          "observed": 59,
+          "our_span": [
+            6.61,
+            26.67
+          ],
+          "ratio": 3.546,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
           ]
         },
         {
-          "game": "gen9championsvgc2026regmb-2653445621",
-          "turn": 6,
-          "weather": "SunnyDay",
-          "by": "Drought",
-          "our_reachable": [
-            "rain"
+          "game": "gen9championsvgc2026regmb-2653389498",
+          "turn": 4,
+          "move": "Dragon Claw",
+          "att": "ditto",
+          "def": "garchomp",
+          "observed": 88,
+          "our_span": [
+            11.16,
+            42.62
+          ],
+          "ratio": 3.272,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653388757",
+          "turn": 3,
+          "move": "Flip Turn",
+          "att": "ditto",
+          "def": "basculegion",
+          "observed": 21,
+          "our_span": [
+            2.2,
+            10.26
+          ],
+          "ratio": 3.371,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653388757",
+          "turn": 8,
+          "move": "Dragon Pulse",
+          "att": "ditto",
+          "def": "archaludon",
+          "observed": 78,
+          "our_span": [
+            8.12,
+            33.94
+          ],
+          "ratio": 3.709,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "defender item UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653359804",
+          "turn": 3,
+          "move": "Dark Pulse",
+          "att": "tsareena",
+          "def": "audino",
+          "observed": 46,
+          "our_span": [
+            6.19,
+            24.16
+          ],
+          "ratio": 3.032,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
           ]
         }
       ]
     },
     {
       "mechanic": "status / the record applied par and no pin of our engine could produce it",
-      "n": 2,
+      "n": 18,
       "top_witnesses": [
-        "incineroar <- par x1",
-        "flapple <- par x1"
+        "basculegion <- par x2",
+        "floettemega <- par x2",
+        "swampertmega <- par x1",
+        "venusaur <- par x1",
+        "whimsicott <- par x1",
+        "venusaurmega <- par x1"
       ],
       "examples": [
         {
-          "game": "gen9championsvgc2026regmb-2653451415",
-          "turn": 2,
+          "game": "gen9championsvgc2026regmb-2653439679",
+          "turn": 1,
           "slot": "p1a",
-          "mon": "incineroar",
-          "status": "par",
-          "our_reachable": []
-        },
-        {
-          "game": "gen9championsvgc2026regmb-2653447800",
-          "turn": 3,
-          "slot": "p2a",
-          "mon": "flapple",
+          "mon": "swampertmega",
           "status": "par",
           "our_reachable": [
-            "p1a:slp",
-            "p2a:psn",
+            "p1a:psn"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653431965",
+          "turn": 2,
+          "slot": "p1b",
+          "mon": "basculegion",
+          "status": "par",
+          "our_reachable": [
             "p2b:brn"
           ]
-        }
-      ]
-    },
-    {
-      "mechanic": "status / the record applied brn and no pin of our engine could produce it",
-      "n": 2,
-      "top_witnesses": [
-        "kangaskhan <- brn x1",
-        "gholdengo <- brn x1"
-      ],
-      "examples": [
+        },
         {
-          "game": "gen9championsvgc2026regmb-2653449709",
+          "game": "gen9championsvgc2026regmb-2653425522",
+          "turn": 9,
+          "slot": "p2a",
+          "mon": "basculegion",
+          "status": "par",
+          "our_reachable": [
+            "p2a:psn"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653397856",
           "turn": 5,
-          "slot": "p1b",
-          "mon": "kangaskhan",
-          "status": "brn",
+          "slot": "p2a",
+          "mon": "venusaur",
+          "status": "par",
           "our_reachable": []
         },
         {
-          "game": "gen9championsvgc2026regmb-2653447772",
-          "turn": 8,
-          "slot": "p1b",
-          "mon": "gholdengo",
-          "status": "brn",
-          "our_reachable": []
-        }
-      ]
-    },
-    {
-      "mechanic": "status / the record applied slp and no pin of our engine could produce it",
-      "n": 2,
-      "top_witnesses": [
-        "sylveon <- slp x1",
-        "pelipper <- slp x1"
-      ],
-      "examples": [
-        {
-          "game": "gen9championsvgc2026regmb-2653447580",
+          "game": "gen9championsvgc2026regmb-2653395942",
           "turn": 3,
           "slot": "p2a",
-          "mon": "sylveon",
-          "status": "slp",
+          "mon": "whimsicott",
+          "status": "par",
           "our_reachable": []
         },
         {
-          "game": "gen9championsvgc2026regmb-2653445628",
+          "game": "gen9championsvgc2026regmb-2653390702",
           "turn": 4,
-          "slot": "p1a",
-          "mon": "pelipper",
-          "status": "slp",
+          "slot": "p2a",
+          "mon": "venusaurmega",
+          "status": "par",
           "our_reachable": []
-        }
-      ]
-    },
-    {
-      "mechanic": "weather / the record set Snowscape and our engine did not",
-      "n": 2,
-      "top_witnesses": [
-        "Snowscape by Snow Warning x2"
-      ],
-      "examples": [
-        {
-          "game": "gen9championsvgc2026regmb-2653447788",
-          "turn": 6,
-          "weather": "Snowscape",
-          "by": "Snow Warning",
-          "our_reachable": [
-            "sun"
-          ]
-        },
-        {
-          "game": "gen9championsvgc2026regmb-2653447710",
-          "turn": 5,
-          "weather": "Snowscape",
-          "by": "Snow Warning",
-          "our_reachable": [
-            "sun"
-          ]
         }
       ]
     },
     {
       "mechanic": "damage / x4-plus — a type chart or base-power error",
-      "n": 1,
+      "n": 17,
       "top_witnesses": [
-        "flapple Grav Apple -> sneasler x1"
+        "flapple Grav Apple -> sneasler x1",
+        "golurkmega Poltergeist -> garganacl x1",
+        "mawilemega Iron Head -> blaziken x1",
+        "mausholdfour Shadow Ball -> basculegion x1",
+        "charizardmegay Heat Wave -> charizardmegay x1",
+        "aurorus Hyper Beam -> archaludon x1"
       ],
       "examples": [
         {
@@ -1090,10 +2117,841 @@
             "defender item UNKNOWN",
             "defender ability UNKNOWN"
           ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653435507",
+          "turn": 4,
+          "move": "Poltergeist",
+          "att": "golurkmega",
+          "def": "garganacl",
+          "observed": 64,
+          "our_span": [
+            12.08,
+            36.57
+          ],
+          "ratio": 2.631,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653436091",
+          "turn": 8,
+          "move": "Iron Head",
+          "att": "mawilemega",
+          "def": "blaziken",
+          "observed": 81,
+          "our_span": [
+            10.16,
+            36.13
+          ],
+          "ratio": 3.5,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653409689",
+          "turn": 2,
+          "move": "Shadow Ball",
+          "att": "mausholdfour",
+          "def": "basculegion",
+          "observed": 93,
+          "our_span": [
+            14.98,
+            56.41
+          ],
+          "ratio": 2.605,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653381441",
+          "turn": 6,
+          "move": "Heat Wave",
+          "att": "charizardmegay",
+          "def": "charizardmegay",
+          "observed": 73,
+          "our_span": [
+            12.97,
+            39.87
+          ],
+          "ratio": 2.763,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": []
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653361352",
+          "turn": 1,
+          "move": "Hyper Beam",
+          "att": "aurorus",
+          "def": "archaludon",
+          "observed": 81,
+          "our_span": [
+            12.18,
+            44.24
+          ],
+          "ratio": 2.871,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN"
+          ]
+        }
+      ]
+    },
+    {
+      "mechanic": "status / the record applied frz and no pin of our engine could produce it",
+      "n": 15,
+      "top_witnesses": [
+        "gholdengo <- frz x3",
+        "blaziken <- frz x1",
+        "sinistcha <- frz x1",
+        "sneasler <- frz x1",
+        "umbreon <- frz x1",
+        "tyranitar <- frz x1"
+      ],
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmb-2653431965",
+          "turn": 5,
+          "slot": "p2b",
+          "mon": "blaziken",
+          "status": "frz",
+          "our_reachable": []
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653419203",
+          "turn": 2,
+          "slot": "p1a",
+          "mon": "gholdengo",
+          "status": "frz",
+          "our_reachable": []
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653415169",
+          "turn": 5,
+          "slot": "p1b",
+          "mon": "sinistcha",
+          "status": "frz",
+          "our_reachable": [
+            "p2a:brn"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653398875",
+          "turn": 1,
+          "slot": "p2a",
+          "mon": "sneasler",
+          "status": "frz",
+          "our_reachable": []
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653395000",
+          "turn": 2,
+          "slot": "p1b",
+          "mon": "umbreon",
+          "status": "frz",
+          "our_reachable": []
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653379257",
+          "turn": 6,
+          "slot": "p2b",
+          "mon": "gholdengo",
+          "status": "frz",
+          "our_reachable": [
+            "p1b:brn"
+          ]
+        }
+      ]
+    },
+    {
+      "mechanic": "turn order / PRIORITY — the record moved a lower-priority move first",
+      "n": 14,
+      "top_witnesses": [
+        "raichumegax encore (pri 0, our attainable speed 117-178)  then  rotomwash protect (pri 4, our attainable speed 95-151)  then  steelix ancientpower (pri 0, our attainable speed 45-90) x2",
+        "lopunnymega afteryou (pri 0, our attainable speed 139-205)  then  farigiraf trickroom (pri -7, our attainable speed 72-123)  then  pelipper hurricane (pri 0, our attainable speed 76-128)  then  archaludon electroshot (pri 0, our attainable speed 94-150) x1",
+        "mausholdfour encore (pri 0, our attainable speed 117-179)  then  scovillainmega protect (pri 4, our attainable speed 85-139)  then  gardevoirmega hypervoice (pri 0, our attainable speed 108-167) x1",
+        "venusaurmega protect (pri 4, our attainable speed 90-145)  then  kingambit suckerpunch (pri 1, our attainable speed 63-112)  then  ninetalesalola encore (pri 0, our attainable speed 116-177)  then  incineroar fakeout (pri 3, our attainable speed 72-123) x1",
+        "aegislash kingsshield (pri 4, our attainable speed 72-123)  then  tyranitar knockoff (pri 0, our attainable speed 72-124)  then  politoed encore (pri 0, our attainable speed 81-134)  then  toxapex banefulbunker (pri 4, our attainable speed 49-95) x1",
+        "delphoxmega encore (pri 0, our attainable speed 138-204)  then  sylveon protect (pri 4, our attainable speed 72-123) x1"
+      ],
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmb-2653414281",
+          "turn": 1,
+          "why": "PRIORITY — the record moved a lower-priority move first",
+          "order_in_the_record": [
+            "lopunnymega afteryou (pri 0, our attainable speed 139-205)",
+            "farigiraf trickroom (pri -7, our attainable speed 72-123)",
+            "pelipper hurricane (pri 0, our attainable speed 76-128)",
+            "archaludon electroshot (pri 0, our attainable speed 94-150)"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653409689",
+          "turn": 4,
+          "why": "PRIORITY — the record moved a lower-priority move first",
+          "order_in_the_record": [
+            "mausholdfour encore (pri 0, our attainable speed 117-179)",
+            "scovillainmega protect (pri 4, our attainable speed 85-139)",
+            "gardevoirmega hypervoice (pri 0, our attainable speed 108-167)"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653402595",
+          "turn": 3,
+          "why": "PRIORITY — the record moved a lower-priority move first",
+          "order_in_the_record": [
+            "venusaurmega protect (pri 4, our attainable speed 90-145)",
+            "kingambit suckerpunch (pri 1, our attainable speed 63-112)",
+            "ninetalesalola encore (pri 0, our attainable speed 116-177)",
+            "incineroar fakeout (pri 3, our attainable speed 72-123)"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653386210",
+          "turn": 8,
+          "why": "PRIORITY — the record moved a lower-priority move first",
+          "order_in_the_record": [
+            "aegislash kingsshield (pri 4, our attainable speed 72-123)",
+            "tyranitar knockoff (pri 0, our attainable speed 72-124)",
+            "politoed encore (pri 0, our attainable speed 81-134)",
+            "toxapex banefulbunker (pri 4, our attainable speed 49-95)"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653354043",
+          "turn": 6,
+          "why": "PRIORITY — the record moved a lower-priority move first",
+          "order_in_the_record": [
+            "delphoxmega encore (pri 0, our attainable speed 138-204)",
+            "sylveon protect (pri 4, our attainable speed 72-123)"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653279762",
+          "turn": 2,
+          "why": "PRIORITY — the record moved a lower-priority move first",
+          "order_in_the_record": [
+            "basculegion lastrespects (pri 0, our attainable speed 88-143)",
+            "noivern tailwind (pri 0, our attainable speed 128-192)",
+            "tinkaton encore (pri 0, our attainable speed 102-160)",
+            "charizardmegay protect (pri 4, our attainable speed 108-167)"
+          ]
+        }
+      ]
+    },
+    {
+      "mechanic": "status / the record applied tox and no pin of our engine could produce it",
+      "n": 8,
+      "top_witnesses": [
+        "floettemega <- tox x2",
+        "kingambit <- tox x1",
+        "sinistcha <- tox x1",
+        "sylveon <- tox x1",
+        "garchomp <- tox x1",
+        "incineroar <- tox x1"
+      ],
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmb-2653404595",
+          "turn": 1,
+          "slot": "p1b",
+          "mon": "kingambit",
+          "status": "tox",
+          "our_reachable": [
+            "p1a:slp"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653394833",
+          "turn": 7,
+          "slot": "p1a",
+          "mon": "sinistcha",
+          "status": "tox",
+          "our_reachable": [
+            "p1a:slp",
+            "p1b:slp"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653378891",
+          "turn": 2,
+          "slot": "p2b",
+          "mon": "floettemega",
+          "status": "tox",
+          "our_reachable": []
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653329772",
+          "turn": 2,
+          "slot": "p1a",
+          "mon": "sylveon",
+          "status": "tox",
+          "our_reachable": [
+            "p2b:brn"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653298470",
+          "turn": 5,
+          "slot": "p1a",
+          "mon": "garchomp",
+          "status": "tox",
+          "our_reachable": []
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653268923",
+          "turn": 1,
+          "slot": "p1b",
+          "mon": "floettemega",
+          "status": "tox",
+          "our_reachable": []
+        }
+      ]
+    },
+    {
+      "mechanic": "damage / unknown   [UNRESOLVED-CAUSE: the attacker's item was never revealed]",
+      "n": 7,
+      "top_witnesses": [
+        "corviknight Iron Head -> mimikyubusted x2",
+        "pelipper Hurricane -> mimikyubusted x1",
+        "basculegion Wave Crash -> mimikyubusted x1",
+        "sinistcha Matcha Gotcha -> mimikyubusted x1",
+        "sylveon Hyper Voice -> mimikyubusted x1",
+        "torkoal Weather Ball -> mimikyubusted x1"
+      ],
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmb-2653398210",
+          "turn": 3,
+          "move": "Hurricane",
+          "att": "pelipper",
+          "def": "mimikyubusted",
+          "observed": 65,
+          "our_span": [
+            0,
+            0
+          ],
+          "why": "our engine says this move cannot damage this target at all",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653391880",
+          "turn": 1,
+          "move": "Wave Crash",
+          "att": "basculegion",
+          "def": "mimikyubusted",
+          "observed": 63,
+          "our_span": [
+            0,
+            0
+          ],
+          "why": "our engine says this move cannot damage this target at all",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653385857",
+          "turn": 4,
+          "move": "Iron Head",
+          "att": "corviknight",
+          "def": "mimikyubusted",
+          "observed": 39,
+          "our_span": [
+            0,
+            0
+          ],
+          "why": "our engine says this move cannot damage this target at all",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653385857",
+          "turn": 6,
+          "move": "Iron Head",
+          "att": "corviknight",
+          "def": "mimikyubusted",
+          "observed": 40,
+          "our_span": [
+            0,
+            0
+          ],
+          "why": "our engine says this move cannot damage this target at all",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653383665",
+          "turn": 9,
+          "move": "Matcha Gotcha",
+          "att": "sinistcha",
+          "def": "mimikyubusted",
+          "observed": 24,
+          "our_span": [
+            0,
+            0
+          ],
+          "why": "our engine says this move cannot damage this target at all",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653362883",
+          "turn": 1,
+          "move": "Hyper Voice",
+          "att": "sylveon",
+          "def": "mimikyubusted",
+          "observed": 79,
+          "our_span": [
+            0,
+            0
+          ],
+          "why": "our engine says this move cannot damage this target at all",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        }
+      ]
+    },
+    {
+      "mechanic": "damage / x0.125-ish — a resist chain or an ability halving we apply and the game did not",
+      "n": 5,
+      "top_witnesses": [
+        "charizardmegay Weather Ball -> tsareena x1",
+        "venusaurmega Giga Drain -> ditto x1",
+        "gengarmega Shadow Ball -> alakazam x1",
+        "charizardmegay Solar Beam -> ditto x1",
+        "malamarmega Superpower -> ditto x1"
+      ],
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmb-2653400455",
+          "turn": 4,
+          "move": "Weather Ball",
+          "att": "charizardmegay",
+          "def": "tsareena",
+          "observed": 22,
+          "our_span": [
+            93.85,
+            299.32
+          ],
+          "ratio": 0.112,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653388757",
+          "turn": 12,
+          "move": "Giga Drain",
+          "att": "venusaurmega",
+          "def": "ditto",
+          "observed": 13,
+          "our_span": [
+            32.9,
+            127.64
+          ],
+          "ratio": 0.162,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653341485",
+          "turn": 7,
+          "move": "Shadow Ball",
+          "att": "gengarmega",
+          "def": "alakazam",
+          "observed": 10,
+          "our_span": [
+            60.49,
+            195.38
+          ],
+          "ratio": 0.078,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653281935",
+          "turn": 4,
+          "move": "Solar Beam",
+          "att": "charizardmegay",
+          "def": "ditto",
+          "observed": 16,
+          "our_span": [
+            43.23,
+            164.23
+          ],
+          "ratio": 0.154,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653237883",
+          "turn": 3,
+          "move": "Superpower",
+          "att": "malamarmega",
+          "def": "ditto",
+          "observed": 26,
+          "our_span": [
+            58.06,
+            240.65
+          ],
+          "ratio": 0.174,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        }
+      ]
+    },
+    {
+      "mechanic": "damage / unknown",
+      "n": 4,
+      "top_witnesses": [
+        "charizardmegay Heat Wave -> mimikyubusted x1",
+        "garchomp Stomping Tantrum -> mimikyubusted x1",
+        "garchomp Poison Jab -> mimikyubusted x1",
+        "pelipper Hurricane -> mimikyubusted x1"
+      ],
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmb-2653449897",
+          "turn": 1,
+          "move": "Heat Wave",
+          "att": "charizardmegay",
+          "def": "mimikyubusted",
+          "observed": 52,
+          "our_span": [
+            0,
+            0
+          ],
+          "why": "our engine says this move cannot damage this target at all",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653387741",
+          "turn": 4,
+          "move": "Stomping Tantrum",
+          "att": "garchomp",
+          "def": "mimikyubusted",
+          "observed": 47,
+          "our_span": [
+            0,
+            0
+          ],
+          "why": "our engine says this move cannot damage this target at all",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653387741",
+          "turn": 6,
+          "move": "Poison Jab",
+          "att": "garchomp",
+          "def": "mimikyubusted",
+          "observed": 17,
+          "our_span": [
+            0,
+            0
+          ],
+          "why": "our engine says this move cannot damage this target at all",
+          "unknowns": [
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653280878",
+          "turn": 3,
+          "move": "Hurricane",
+          "att": "pelipper",
+          "def": "mimikyubusted",
+          "observed": 36,
+          "our_span": [
+            0,
+            0
+          ],
+          "why": "our engine says this move cannot damage this target at all",
+          "unknowns": [
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        }
+      ]
+    },
+    {
+      "mechanic": "damage / x0.125-ish — a resist chain or an ability halving we apply and the game did not   [UNRESOLVED-CAUSE: the attacker's item was never revealed]",
+      "n": 4,
+      "top_witnesses": [
+        "dragonite Outrage -> heliolisk x1",
+        "torkoal Eruption -> sneasler x1",
+        "tyranitar Rock Slide -> charizardmegay x1",
+        "tyranitar Knock Off -> sinistcha x1"
+      ],
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmb-2653421617",
+          "turn": 3,
+          "move": "Outrage",
+          "att": "dragonite",
+          "def": "heliolisk",
+          "observed": 20,
+          "our_span": [
+            48.52,
+            186.13
+          ],
+          "ratio": 0.17,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653307319",
+          "turn": 4,
+          "move": "Eruption",
+          "att": "torkoal",
+          "def": "sneasler",
+          "observed": 16,
+          "our_span": [
+            44.92,
+            162.58
+          ],
+          "ratio": 0.154,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653279768",
+          "turn": 4,
+          "move": "Rock Slide",
+          "att": "tyranitar",
+          "def": "charizardmegay",
+          "observed": 11,
+          "our_span": [
+            90.81,
+            305.88
+          ],
+          "ratio": 0.055,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653236609",
+          "turn": 13,
+          "move": "Knock Off",
+          "att": "tyranitar",
+          "def": "sinistcha",
+          "observed": 8,
+          "our_span": [
+            26.97,
+            82.19
+          ],
+          "ratio": 0.147,
+          "why": "observed BELOW everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        }
+      ]
+    },
+    {
+      "mechanic": "weather / the record set RainDance and our engine did not",
+      "n": 2,
+      "top_witnesses": [
+        "RainDance x2"
+      ],
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmb-2653435507",
+          "turn": 7,
+          "weather": "RainDance",
+          "by": null,
+          "our_reachable": [
+            "sun"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653365238",
+          "turn": 4,
+          "weather": "RainDance",
+          "by": null,
+          "our_reachable": []
+        }
+      ]
+    },
+    {
+      "mechanic": "damage / x1.3-ish — an unrevealed Life Orb / boosting item, or a power modifier we miss   [UNRESOLVED-CAUSE: the attacker's item was never revealed]",
+      "n": 2,
+      "top_witnesses": [
+        "hatterene Psyshock -> excadrill x2"
+      ],
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmb-2653411811",
+          "turn": 6,
+          "move": "Psyshock",
+          "att": "hatterene",
+          "def": "excadrill",
+          "observed": 39,
+          "our_span": [
+            17.97,
+            37.3
+          ],
+          "ratio": 1.411,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
+        },
+        {
+          "game": "gen9championsvgc2026regmb-2653411811",
+          "turn": 7,
+          "move": "Psyshock",
+          "att": "hatterene",
+          "def": "excadrill",
+          "observed": 39,
+          "our_span": [
+            17.97,
+            37.3
+          ],
+          "ratio": 1.411,
+          "why": "observed ABOVE everything our engine can produce",
+          "unknowns": [
+            "attacker item UNKNOWN",
+            "attacker ability UNKNOWN",
+            "defender item UNKNOWN",
+            "defender ability UNKNOWN"
+          ]
         }
       ]
     }
   ],
+  "red_proof": {
+    "note": "Run on EVERY published run, not behind a flag. Each row corrupts a real stored game one way and the instrument is required to notice. The generator refuses to write this file if any plant goes unnoticed.",
+    "arms": [
+      {
+        "name": "the unmodified game (the baseline every plant is judged against)",
+        "caught": null,
+        "diverged": 0,
+        "compared": 8,
+        "no_match": 0,
+        "mechanics": []
+      },
+      {
+        "name": "PLANT: a damage figure cut to a quarter",
+        "planted": {
+          "game": "gen9championsvgc2026regmb-2653451938",
+          "turn": 1,
+          "mv": "Iron Head",
+          "was": 83,
+          "now": 21
+        },
+        "caught": true,
+        "why_not": null,
+        "no_match": 1,
+        "mechanics": [
+          "damage / x0.25-ish — two resists, or a doubled resist we invented"
+        ]
+      },
+      {
+        "name": "PLANT: a freeze the game cannot produce",
+        "planted": {
+          "sites": 20,
+          "status": "frz",
+          "note": "every standing body in every turn is recorded as frozen — impossible on any board"
+        },
+        "caught": true,
+        "why_not": null,
+        "mechanics": [
+          "status / the record applied frz and no pin of our engine could produce it"
+        ]
+      },
+      {
+        "name": "PLANT: a wrong HP on the board before the turn, making the recorded KO unreachable",
+        "planted": {
+          "game": "gen9championsvgc2026regmb-2653451938",
+          "turn": 3,
+          "mv": "Dragon Claw",
+          "slot": "p2a",
+          "note": "the target is put back to 100% before the turn and the KO is restated as a full-HP kill"
+        },
+        "caught": true,
+        "why_not": null,
+        "no_match": 1,
+        "mechanics": [
+          "damage / the record shows a KO our maximum roll cannot reach   [UNRESOLVED-CAUSE: the attacker's item was never revealed]"
+        ]
+      }
+    ]
+  },
   "cannot_see": [
     "side conditions — the store has no `-sidestart`, so Reflect, Light Screen, Aurora Veil and Tailwind are invisible. A halved damage reading is the expected signature and it has its own ratio bucket rather than being hidden inside \"below band\".",
     "Substitute — no event, so a move that hit a doll reads as connecting for zero. Its own bucket.",
@@ -1104,5 +2962,5 @@
     "secondary-effect PROBABILITIES — pinning the observed outcome makes a wrong chance agree with itself. The aggregate counter-test is designed and behind --rates; it is DEFERRED and is not part of any figure above."
   ],
   "secondary_rates": null,
-  "seconds": 0.8
+  "seconds": 25.1
 }

@@ -185,6 +185,35 @@ const C = {
   turns_seen: 0, turns_compared: 0, turns_diverged: 0, turns_turn1: 0, turns_turn1_diverged: 0,
   exceptions: 0,
 };
+/* ---- THE BOT SPLIT, REPORTED AND NEVER FILTERED (Will, 2026-08-10) ------------------------------
+ *
+ * *"we can use the bot games here too. they still have to follow the rules, we are just trying to
+ * make sure our engine lines up with reality"*. He is right, and the reason is structural rather than
+ * charitable: the engine that resolved those turns was SHOWDOWN, and Showdown does not resolve a turn
+ * differently because a bot chose it. Move QUALITY is irrelevant to "can our engine reproduce this
+ * turn" — only legality and resolution matter, and both are guaranteed by the server.
+ *
+ * They are also denser material. A single `pcrlbot*` account plays roughly 2,900 games, so a bot slice
+ * gives many turns over a consistent archetype instead of a long tail of one-off teams.
+ *
+ * THE BOUNDARY THAT MUST NOT BE CROSSED LATER, written here so it travels with the decision: bot games
+ * must NEVER feed `meta-usage.json`, the opponent model or any human prior. A bot's CHOICES are not a
+ * human distribution. That is a different analysis with a different filter — which is exactly the
+ * store's founding principle working as intended: store raw, filter at analysis time.
+ *
+ * SPLIT, SO THE HEADLINE IS READABLE EITHER WAY. If the divergence rate differs between the two
+ * populations that is itself a finding (it would mean bot lines reach different mechanics), and a
+ * single blended number could never say so. */
+const SPLIT = { 'bot-v-bot': { games: 0, turns: 0, diverged: 0 },
+                'bot-v-human': { games: 0, turns: 0, diverged: 0 },
+                'human-v-human': { games: 0, turns: 0, diverged: 0 },
+                'unknown': { games: 0, turns: 0, diverged: 0 } };
+function population(game) {
+  const a = game.p1 && typeof game.p1.bot === 'boolean' ? game.p1.bot : null;
+  const b = game.p2 && typeof game.p2.bot === 'boolean' ? game.p2.bot : null;
+  if (a === null || b === null) return 'unknown';
+  return a && b ? 'bot-v-bot' : (a || b ? 'bot-v-human' : 'human-v-human');
+}
 const SKIP_REASON = new Map();
 const EXCEPTIONS = new Map();
 const bump = (m, k) => m.set(k, (m.get(k) || 0) + 1);
@@ -196,6 +225,9 @@ const DMG_UNRESOLVED = new Map();
  * OUT of the damage denominator and printed anyway, because "we looked at 242 things" has to mean the
  * same 242 things a rate is computed over. */
 const NOT_A_DAMAGE_UNIT = new Map();
+/* Two of the same species on one board. Not a skip and not a refusal — the unit is scored and the
+ * count is published so a reader can see how much of the sample rested on a first-match. */
+const AMBIGUOUS_TARGETS = { n: 0, games: 0 };
 /* The roll-identification reading against the DEFAULT baked body — the direct answer to the question
  * that was asked, kept separate from the verdict because it confounds the damage chain with the
  * dataset's baked spread. */
@@ -278,7 +310,7 @@ const allySlot = (s) => (s[2] === 'a' ? s.slice(0, 2) + 'b' : s.slice(0, 2) + 'a
  * derived Tailwind or Trick Room says so, and the freeze dump prints it as `derived` beside the fields
  * that were read straight off the record. */
 function blankBoard(game) {
-  const b = { slot: {}, weather: null, weatherBy: null, terrain: null, tr: 0,
+  const b = { slot: {}, weather: null, weatherBy: null, weatherT: 0, terrain: null, tr: 0,
               tw: { p1: 0, p2: 0 }, derived: [] };
   const lead = game.lead || {};
   for (const side of ['p1', 'p2']) {
@@ -289,7 +321,7 @@ function blankBoard(game) {
   return b;
 }
 function cloneBoard(b) {
-  const o = { slot: {}, weather: b.weather, weatherBy: b.weatherBy, terrain: b.terrain, tr: b.tr,
+  const o = { slot: {}, weather: b.weather, weatherBy: b.weatherBy, weatherT: b.weatherT || 0, terrain: b.terrain, tr: b.tr,
               tw: { p1: b.tw ? b.tw.p1 : 0, p2: b.tw ? b.tw.p2 : 0 }, derived: (b.derived || []).slice() };
   for (const s of SLOTS) o.slot[s] = b.slot[s] ? { sp: b.slot[s].sp, hp: b.slot[s].hp,
                                                   status: b.slot[s].status, boosts: Object.assign({}, b.slot[s].boosts) } : null;
@@ -345,7 +377,17 @@ function stepEvent(b, e, amb) {
   else if (e.t === 'f') { if (b.slot[e.s]) b.slot[e.s].hp = 0; }
   else if (e.t === 'x') { if (b.slot[e.s]) b.slot[e.s].status = e.st; }
   else if (e.t === 'b') { if (b.slot[e.s]) b.slot[e.s].boosts = Object.assign({}, e.b); }
-  else if (e.t === 'w') { b.weather = e.field; b.weatherBy = e.by || null; }
+  /* WEATHER HAS A CLOCK AND THE FIRST VERSION LET IT RUN FOREVER, which is a speed bug rather than a
+   * damage one. `-weather` is only emitted when the sky CHANGES, so a rain set on turn 2 stayed set
+   * for the rest of the game — and `effSpeed` doubles Swift Swim and Chlorophyll under it. Both
+   * published turn-order divergences were that: a Swampert-Mega priced at 162-268 and a Venusaur at
+   * 180-290, each carrying a x2 from weather that had expired several turns earlier.
+   *
+   * FIVE TURNS, WHICH IS THE RULE AND NOT AN OBSERVATION, and the imprecision is stated: an extending
+   * rock makes it eight and the record cannot tell us which. A weather older than five turns is
+   * therefore CLEARED rather than kept, which is the direction that removes a multiplier rather than
+   * inventing one. */
+  else if (e.t === 'w') { b.weather = e.field; b.weatherBy = e.by || null; b.weatherT = 5; }
   else if (e.t === 'fs') {
     if (/trick\s*room/i.test(e.field)) { b.tr = b.tr > 0 ? 0 : 5; if (!b.derived.includes('trick room duration')) b.derived.push('trick room duration'); }
     else b.terrain = e.field;
@@ -371,6 +413,8 @@ function applyTurn(board, turn, amb) {
    * is up for this turn. Getting that backwards costs exactly one turn of doubled Speed, which is the
    * turn the order comparator is most likely to be looking at. */
   b.tr = Math.max(0, b.tr - 1);
+  b.weatherT = Math.max(0, (b.weatherT || 0) - 1);
+  if (!b.weatherT) { b.weather = null; b.weatherBy = null; }
   b.tw.p1 = Math.max(0, b.tw.p1 - 1);
   b.tw.p2 = Math.max(0, b.tw.p2 - 1);
   return b;
@@ -472,7 +516,7 @@ function dressBody(b, st) {
 function fieldFor(board) {
   const w = board.weather ? M.weatherId(board.weather) : '';
   const t = board.terrain ? M.terrainId(board.terrain) : '';
-  return { weather: w || null, weatherT: w ? 5 : 0, terrain: t || '', terrainT: t ? 5 : 0,
+  return { weather: w || null, weatherT: w ? (board.weatherT || 5) : 0, terrain: t || '', terrainT: t ? 5 : 0,
            twA: (board.tw && board.tw.p1) || 0, twB: (board.tw && board.tw.p2) || 0,
            tr: board.tr || 0, sgA: {}, sgB: {} };
 }
@@ -484,6 +528,12 @@ function fieldFor(board) {
  * rather than sampled — a crit is always announced, so its absence is knowledge and not a guess. */
 const MULTIHIT_HINT = /(bulletseed|rockblast|iciclespear|pinmissile|tailslap|bonerush|doublehit|dualwingbeat|twineedle|doublekick|tripleaxel|triplekick|watershuriken|surgingstrikes|populationbomb|scaleshot|armthrust|cometpunch|furyattack|furyswipes|doubleironbash|gearrind|tripledive|dragondarts)/;
 const FIXED_HINT = /(seismictoss|nightshade|dragonrage|sonicboom|superfang|naturesmadness|ruination|endeavor|finalgambit|guillotine|horndrill|fissure|sheercold|psywave|counter|mirrorcoat|metalburst|comeuppance|bide)/;
+
+/* The guard family. Named here rather than tag-matched because `oneTurnGuard` lives in the engine's
+ * own tag reader and this file has no TAGS handle; it is the one name list in this file and it is
+ * flagged as such. Silk Trap, Obstruct and Burning Bulwark are BANNED in Champions and are absent on
+ * purpose — the ban is read from the format, not from memory (CLAUDE.md). */
+const GUARD = /^(protect|detect|spikyshield|banefulbunker|kingsshield|maxguard|wideguard|quickguard|craftyshield)$/;
 
 function rollsFor(att, def, mv, field, spread, crit) {
   const hit = { rolls: [] };
@@ -545,9 +595,25 @@ function damageVerdict(ctx) {
   /* A KO CLAMPS THE RECORD. Showdown reports the HP actually lost, so a lethal hit reads as the
    * target's remaining HP and not as the damage the move would have dealt. The test becomes
    * one-sided: could our engine have killed it at all. */
+  /* A KO CLAMPS THE RECORD, AND THE FIRST VERSION READ THE CLAMP OFF THE WRONG NUMBER.
+   *
+   * It compared our maximum against the target's HP as RECONSTRUCTED by this file's running board,
+   * and that board can be wrong inside a turn — a spread move writes one `tgthp` for two victims, so
+   * the second one's HP is not updated. The record states the answer directly: on a KO the extractor
+   * writes `dmg = max(dmg, hp-before)`, which IS the HP the body actually had. Using it turns the test
+   * back into the one-sided question it should always have been: could our maximum roll have removed
+   * that much.
+   *
+   * MEASURED: this alone was 56 of 158 divergences at 300 games, and both published examples were
+   * plainly wrong on their face — `weavile Flamethrower -> sneasler, observed 8, our span 7.5-31.0`
+   * was reported as a KO we could not reach while 8 sat inside the interval. A top mechanic that is an
+   * arithmetic error in the instrument is exactly what a differential is supposed to stop happening
+   * to somebody else. */
   if (wasKO) {
-    if (hi >= (preHP == null ? obs : preHP)) { out.verdict = 'clamped_ok'; }
-    else { out.verdict = 'no-match'; out.why = 'the record shows a KO our maximum roll cannot reach'; }
+    const lost = obs != null && obs > 0 ? obs : preHP;
+    if (lost == null) { out.verdict = 'unresolved'; out.why = 'a KO with no recorded HP loss to bound it'; return out; }
+    if (hi >= lost) { out.verdict = 'clamped_ok'; }
+    else { out.verdict = 'no-match'; out.why = 'the record shows a KO our maximum roll cannot reach'; out.ratio = +(lost / ((loPct + hiPct) / 2 || 1)).toFixed(3); }
     return out;
   }
 
@@ -555,7 +621,17 @@ function damageVerdict(ctx) {
     if (ev.immune || ev.miss || ev.fail || ev.blockedBy || ev.charging) { out.verdict = 'unresolved'; out.why = 'the move did not connect'; return out; }
     /* A CONNECTED MOVE THAT DEALT NOTHING. Substitute is the usual cause and the store cannot see one.
      * Its own bucket, never folded into a pass. */
-    if (hiPct > 0) { out.verdict = 'unresolved'; out.why = 'connected but dealt 0 — Substitute / doll / unseen block'; return out; }
+    /* A CONNECTED MOVE THAT DEALT NOTHING SPLITS INTO TWO VERY DIFFERENT FACTS, and the first version
+     * put 106 of them in one bucket. If the target CLICKED A GUARD in the same turn the record
+     * explains itself — that is a Protect, and it is not evidence about the damage chain. If it did
+     * not, the usual cause is a Substitute, which the store cannot record at all. Naming them apart is
+     * the difference between a limitation and a mystery. */
+    if (hiPct > 0) {
+      out.verdict = 'unresolved';
+      out.why = ctx.targetGuarded ? 'the target clicked a guard this turn (Protect family) — blocked, not a damage test'
+                                  : 'connected but dealt 0 — Substitute / doll / unseen block';
+      return out;
+    }
     out.verdict = 'matched'; return out;
   }
   if (hiPct === 0 && obs > 0) { out.verdict = 'no-match'; out.why = 'our engine says this move cannot damage this target at all'; return out; }
@@ -690,13 +766,22 @@ const ORDER = { agree: 0, differ: 0, spread: 0, 'ability-priority': 0, tie: 0, '
  *     0.50   the middle
  *     0.90   near the top of the band
  *
- * IT IS NOT A DISTRIBUTION AND MUST NOT BE READ AS ONE. Four fixed values cannot estimate a rate;
+ * IT IS NOT A DISTRIBUTION AND MUST NOT BE READ AS ONE. Six fixed values cannot estimate a rate;
  * they can only answer "is this outcome reachable". The rate question is the DEFERRED aggregate test
  * described in the header, and conflating the two would be exactly the vacuous green this instrument
  * exists to prevent. The reverse direction — our engine produced something the record does not show —
  * is NOT scored, because under a pin that forces every secondary it would fire constantly and mean
- * nothing. */
-const PINS = [0, 0.13, 0.5, 0.9];
+ * nothing.
+ *
+ * 0.05 IS THE ONE THAT MATTERS AND IT WAS MISSING, and a freeze dump is what found it. `par landed on
+ * incineroar and our engine never applies it` had `status_reachable: []` and `fainted_reachable:
+ * ['p2b']` — the par came from a 10% Thunderbolt secondary, and at pin 0.00 the OTHER side's Throat
+ * Chop critted (every crit lands at 0) and killed the Thunderbolt user before it could move. At 0.13
+ * the crit is gone but a 10% secondary no longer fires (13 >= 10). Neither pin could reach it. At 0.05
+ * the crit does not land (0.05 > 1/24) and a 10% secondary does (5 >= 10 is false), which is exactly
+ * the corner a 10% secondary lives in. THE ONE PIN THAT WOULD HAVE CAUGHT IT WAS THE ONE NOT IN THE
+ * LADDER, and that is the shape of every sample-size failure in this repository. */
+const PINS = [0, 0.05, 0.13, 0.5, 0.9, 0.999];
 
 function reachableEffects(game, board, clicks, sets, megaHere, natures) {
   const seen = { status: new Set(), weather: new Set(), fainted: new Set(), moved: new Set() };
@@ -826,6 +911,7 @@ function freeze(game, turnNo, board, after, ourAfter, clicks, turn, diffs, mechs
 /* ================= ONE GAME ====================================================================== */
 function replayGame(game, opt) {
   const res = { turns: 0, compared: 0, diverged: 0 };
+  const POP = SPLIT[population(game)];
   const sets = game.sets || {};
   /* Open sheets declare a NATURE, which narrows the envelope. They do NOT declare SP — measured: 884
    * of 52,089 stored games carry a sheet and every one has `evs: null`. */
@@ -850,6 +936,35 @@ function replayGame(game, opt) {
   }
 
   let board = blankBoard(game);
+  /* THE LEADS' ENTRY WEATHER IS NOT IN THE STORE, AND THAT IS AN INGEST DEFECT WITH A REAL COST.
+   * Showdown emits `|-weather|SunnyDay|[from] ability: Drought` BEFORE `|turn|1`, and
+   * `engine/durable-ingest.js` only attaches events once a `|turn|` line has opened a bucket — so a
+   * Torkoal or a Charizard-Mega-Y that leads sets a sun the record never mentions. Measured: it made
+   * `torkoal Weather Ball` read `x4-plus — a type chart or base-power error` three times in a hundred
+   * games, because a 100 BP Fire move was being priced as a 50 BP Normal one.
+   *
+   * SEEDED FROM OUR OWN ENGINE'S ENTRY EFFECTS AND MARKED `derived`, WHICH IS A REAL COST STATED
+   * PLAINLY: the weather comparator cannot catch a lead-set weather we get wrong, because we supplied
+   * it. That is the honest trade against pricing every sun move in clear skies. The fix belongs in the
+   * ingest and is FILED. */
+  try {
+    const lead = [];
+    for (const side of ['p1', 'p2']) for (const s of [side + 'a', side + 'b']) {
+      const st = board.slot[s]; if (st) { const b = bodyFor(st.sp, sets, {}); if (b) lead.push([s, b]); }
+    }
+    const A = lead.filter(x => x[0][1] === '1').map(x => x[1]);
+    const B = lead.filter(x => x[0][1] === '2').map(x => x[1]);
+    if (A.length && B.length) {
+      const S0 = M.battleInit(A, B, { autoMega: false });
+      if (S0.field.weather) {
+        board.weather = S0.field.weather; board.weatherT = 5;
+        board.derived.push('the LEADS\' entry weather (' + S0.field.weather + ') — the store drops every '
+          + 'event before |turn|1, so this is our engine\'s answer and the weather comparator cannot '
+          + 'test it on turn 1');
+      }
+      if (S0.field.terrain) { board.terrain = S0.field.terrain; board.derived.push('the leads\' entry terrain'); }
+    }
+  } catch (e) { C.exceptions++; bump(EXCEPTIONS, 'lead entry effects: ' + String(e.message).slice(0, 120)); }
   const amb = { n: 0 };
   /* THE SIDE'S DEAD, walked from the record. Feeds Last Respects and Supreme Overlord. */
   const faints = { p1: 0, p2: 0 };
@@ -955,7 +1070,8 @@ function replayGame(game, opt) {
       let v;
       try {
         v = damageVerdict({ ev: e, att, def, mvRow, field, spread, board: run, tSlot,
-                            targetPreHP: run.slot[tSlot] ? run.slot[tSlot].hp : null });
+                            targetPreHP: run.slot[tSlot] ? run.slot[tSlot].hp : null,
+                            targetGuarded: (turn.ev || []).some(x => x.t === 'm' && x.s === tSlot && GUARD.test(id(x.mv))) });
       } catch (x) {
         C.exceptions++; bump(EXCEPTIONS, 'damageVerdict ' + id(e.mv) + ': ' + String(x.message).slice(0, 120));
         DMG.unresolved++; bump(DMG_UNRESOLVED, 'THREW — see the exception table'); stepEvent(run, e, amb); continue;
@@ -968,11 +1084,17 @@ function replayGame(game, opt) {
         DMG.no_match++;
         diverged = true;
         const key = 'damage / ' + ratioBucket(v.ratio != null ? v.ratio : (v.why && /KO/.test(v.why) ? null : null));
-        const k2 = v.why && /KO/.test(v.why) ? 'damage / the record shows a KO our maximum roll cannot reach' : key;
+        let k2 = v.why && /KO/.test(v.why) ? 'damage / the record shows a KO our maximum roll cannot reach' : key;
         const flags = [att._replayFlags.item_unknown ? 'attacker item UNKNOWN' : null,
                        att._replayFlags.ability_unknown ? 'attacker ability UNKNOWN' : null,
                        def._replayFlags.item_unknown ? 'defender item UNKNOWN' : null,
                        def._replayFlags.ability_unknown ? 'defender ability UNKNOWN' : null].filter(Boolean);
+        /* A NO-MATCH WHERE WE DO NOT KNOW WHAT THE ATTACKER WAS HOLDING IS A DIFFERENT CLAIM, and
+         * merging the two is exactly the "no-match is only evidence when we know everything that fed
+         * the calculation" line. In a closed-sheet game — 98.3% of this store — an unrevealed Life Orb
+         * is 1.3x and would land a hit outside our span with nothing wrong in the engine. Split at the
+         * key so the two counts can never be quoted as one. */
+        if (att._replayFlags.item_unknown) k2 += '   [UNRESOLVED-CAUSE: the attacker\'s item was never revealed]';
         mech(k2, att._replaySpecies + ' ' + e.mv + ' -> ' + def._replaySpecies,
              { game: game.id, turn: turn.n, move: e.mv, att: att._replaySpecies, def: def._replaySpecies,
                observed: v.observed, our_span: v.span, ratio: v.ratio, why: v.why, unknowns: flags });
@@ -1026,6 +1148,17 @@ function replayGame(game, opt) {
             bump(NOT_A_DAMAGE_UNIT, 'status landed on a body that SWITCHED IN this turn — cannot be staged from the opening board');
             continue;
           }
+          /* WE CANNOT BURN A BODY WE KILLED, AND THAT IS A DAMAGE FINDING WEARING A STATUS COSTUME.
+           * Read straight off a freeze: `brn landed on kingambit and our engine never applies it`, with
+           * `fainted_reachable: ['p2b']` — p2b IS the Kingambit. Incineroar's Flare Blitz killed it in
+           * our simulation and left it at 17% in the real game, so the 10% burn had no body to land on.
+           * The engine's secondary is not the defect there; its damage might be, and the damage
+           * comparator is where that belongs. Counting it twice, once in the wrong family, is how a
+           * mechanic table stops being actionable. */
+          if (R.seen.fainted.has(e.s)) {
+            bump(NOT_A_DAMAGE_UNIT, 'status on a body OUR ENGINE KILLED this turn — a damage question, scored by the damage comparator instead');
+            continue;
+          }
           diverged = true;
           mech('status / the record applied ' + e.st + ' and no pin of our engine could produce it',
                (e.mon || '?') + ' <- ' + e.st,
@@ -1047,6 +1180,16 @@ function replayGame(game, opt) {
             bump(NOT_A_DAMAGE_UNIT, 'weather set by a body that SWITCHED IN this turn — cannot be staged from the opening board');
             continue;
           }
+          /* A MEGA'S WEATHER ABILITY FIRES MID-TURN AND THE REBUILD FIRES IT AT ENTRY, WHICH IS A
+           * DIFFERENT ORDER. Read off a freeze: a Charizard megas into Drought on turn 1 against a
+           * Pelipper's Drizzle. In the real game Drizzle lands at entry and Drought overwrites it at
+           * the mega, so the record ends in SUN. This probe pre-applies the mega, so both entry
+           * abilities fire at once and Drizzle wins — and the instrument accused the engine of not
+           * setting a sun it would have set one step later. Refused for any turn carrying a mega. */
+          if (megaHere.size) {
+            bump(NOT_A_DAMAGE_UNIT, 'weather on a turn with a MEGA — the mega ability fires mid-turn and the rebuild fires it at entry');
+            continue;
+          }
           diverged = true;
           mech('weather / the record set ' + e.field + ' and our engine did not',
                e.field + (e.by ? ' by ' + e.by : ''),
@@ -1056,10 +1199,10 @@ function replayGame(game, opt) {
       }
     } catch (x) { C.exceptions++; bump(EXCEPTIONS, 'reachableEffects: ' + String(x.message).slice(0, 120)); }
 
-    C.turns_compared++; res.compared++;
+    C.turns_compared++; res.compared++; POP.turns++;
     if (turn.n === 1) C.turns_turn1++;
     if (diverged) {
-      C.turns_diverged++; res.diverged++;
+      C.turns_diverged++; res.diverged++; POP.diverged++;
       if (turn.n === 1) C.turns_turn1_diverged++;
       freeze(game, turn.n, board, after, ourAfter, clicks, turn, mechsHere, mechsHere);
     }
@@ -1069,6 +1212,7 @@ function replayGame(game, opt) {
    * target lookup ambiguous; the unit is still scored (foes are searched first, so the common case is
    * right) and the count belongs beside the refusals, not beside the games that never ran. */
   if (amb.n) AMBIGUOUS_TARGETS.n += amb.n, AMBIGUOUS_TARGETS.games++;
+  POP.games++;
   return res;
 }
 
@@ -1077,29 +1221,51 @@ function replayGame(game, opt) {
  * instrument that has never been shown red is not evidence. This corrupts a REAL game in three
  * separate ways and requires the instrument to catch each one. It runs against the same code path the
  * measurement uses — nothing is stubbed. */
+const isSpreadMove = (mv) => { try { const f = M.moveFx(id(mv)); return !!(f && /allAdjacent/.test(String(f.target || ''))); } catch (e) { return false; } };
 function selftest(games) {
   const out = [];
   const base = JSON.parse(JSON.stringify(games[0]));
   const reset = () => { for (const k of Object.keys(DMG)) DMG[k] = 0; MECH.clear();
                         C.turns_diverged = 0; C.turns_compared = 0; FREEZES.length = 0; };
 
+  /* THE CLEAN ARM FIRST, so every plant is judged against this game's own baseline rather than
+   * against zero. A game that already diverges would otherwise make every plant look caught. */
   reset(); replayGame(JSON.parse(JSON.stringify(base)), {});
-  const clean = { diverged: C.turns_diverged, no_match: DMG.no_match, mechs: [...MECH.keys()] };
-  out.push({ name: 'the unmodified game', diverged: clean.diverged, no_match: clean.no_match, mechanics: clean.mechs });
+  const clean = { diverged: C.turns_diverged, compared: C.turns_compared, no_match: DMG.no_match, mechs: [...MECH.keys()] };
+  out.push({ name: 'the unmodified game (the baseline every plant is judged against)',
+             caught: null, diverged: clean.diverged, compared: clean.compared,
+             no_match: clean.no_match, mechanics: clean.mechs });
 
-  /* PLANT 1 — A WRONG DAMAGE FIGURE. The record is told a move dealt four times what it did. Nothing
-   * legal about a spread can explain a 4x, so the span test must refuse it. */
+  /* PLANT 1 — A WRONG DAMAGE FIGURE. The record is told a move dealt a QUARTER of what it did.
+   *
+   * THE FIRST VERSION OF THIS PLANT WAS A NO-OP AND THE SELFTEST STILL PRINTED, which is the exact
+   * failure this whole file is about. It multiplied by four and clamped at 99, and the event it
+   * picked already read 99 — so it planted 99 over 99, the instrument correctly found nothing, and
+   * the report said the instrument was blind. A plant is now ASSERTED to have changed the record
+   * before the result is believed. */
   {
-    const g = JSON.parse(JSON.stringify(base));
-    let planted = null;
-    for (const t of g.turns) for (const e of t.ev || []) {
-      if (planted || e.t !== 'm' || !e.dmg || e.ko) continue;
-      planted = { turn: t.n, mv: e.mv, was: e.dmg, now: Math.min(99, e.dmg * 4) };
-      e.dmg = planted.now; if (e.tgthp != null) e.tgthp = Math.max(0, e.tgthp);
+    /* THE HOST GAME IS SEARCHED FOR, NOT ASSUMED TO BE THE FIRST ONE. Pinning the plant to games[0]
+     * made the whole gate a property of whichever slice was being sampled: `--skip 30000` produced a
+     * first game with no KO in it and the run REFUSED TO PUBLISH over a plant that could not be
+     * placed. A red proof must fail on a blind instrument and never on an unlucky sample. */
+    let g = null, planted = null;
+    for (const cand of games.slice(0, 200)) {
+      const c = JSON.parse(JSON.stringify(cand));
+      if (!c.turns || !c.turns.length) continue;
+      for (const t of c.turns) for (const e of t.ev || []) {
+        if (planted || e.t !== 'm' || !e.dmg || e.ko || e.dmg < 8 || isSpreadMove(e.mv)) continue;
+        const now = Math.max(1, Math.round(e.dmg / 4));
+        if (now === e.dmg) continue;
+        planted = { game: c.id, turn: t.n, mv: e.mv, was: e.dmg, now };
+        e.dmg = now; if (e.tgthp != null) e.tgthp = Math.min(100, e.tgthp + (planted.was - now));
+      }
+      if (planted) { g = c; break; }
     }
-    reset(); replayGame(g, {});
-    out.push({ name: 'PLANT: a damage figure multiplied by four', planted,
-               caught: DMG.no_match > clean.no_match, no_match: DMG.no_match, mechanics: [...MECH.keys()] });
+    reset(); if (g) replayGame(g, {});
+    out.push({ name: 'PLANT: a damage figure cut to a quarter', planted,
+               caught: planted ? DMG.no_match > clean.no_match : false,
+               why_not: planted ? null : 'NO EVENT IN THIS GAME COULD CARRY THE PLANT — the arm proves nothing, and says so',
+               no_match: DMG.no_match, mechanics: [...MECH.keys()] });
   }
 
   /* PLANT 2 — A STATUS THAT CANNOT HAPPEN. A body is recorded as being frozen by a move that cannot
@@ -1107,33 +1273,68 @@ function selftest(games) {
   {
     const g = JSON.parse(JSON.stringify(base));
     let planted = null;
+    /* THE PLANT MUST LAND ON A SLOT THE INSTRUMENT WILL ACTUALLY SCORE, and the first attempt did not
+     * — it put the freeze on a slot that had a `switch` event in the same turn, which this comparator
+     * REFUSES by design (a body that walked in was never on the board the rebuild started from). The
+     * plant read as "not caught" when the instrument was working exactly as written. A plant aimed at
+     * a refused unit tests the refusal, not the detector. */
+    /* THE PLANT IS APPLIED EVERYWHERE IT COULD BE SCORED, NOT AT ONE GUESSED SPOT, and both earlier
+     * attempts to guess were wrong for reasons that were themselves the instrument working:
+     *   - the first landed on a slot with a `switch` that turn, which is REFUSED (a body that walked
+     *     in was never on the board the rebuild started from);
+     *   - the second landed on a slot our engine KILLED that turn, which is also refused (we cannot
+     *     freeze a body we killed — that is a damage finding, not a status one).
+     * Both refusals are correct and both made a working detector read as blind. So the plant now says
+     * "every standing body froze this turn", which is impossible on any board, and the arm DECLARES
+     * ITSELF UNABLE TO TEST if not one of them survives to be scored. */
+    let sites = 0;
     for (const t of g.turns) {
-      if (planted) break;
-      const m = (t.ev || []).find(e => e.t === 'm' && e.tgt);
-      if (!m) continue;
-      const slot = (m.s.slice(0, 2) === 'p1' ? 'p2a' : 'p1a');
-      t.ev.push({ t: 'x', s: slot, mon: m.tgt, st: 'frz' });
-      planted = { turn: t.n, slot, status: 'frz', after: m.mv };
+      const busy = new Set((t.ev || []).filter(e => e.t === 's').map(e => e.s));
+      for (const slot of SLOTS) {
+        if (busy.has(slot)) continue;
+        const ref = (t.ev || []).find(e => e.s === slot && e.mon);
+        if (!ref) continue;
+        t.ev.push({ t: 'x', s: slot, mon: ref.mon, st: 'frz' });
+        sites++;
+      }
     }
+    if (sites) planted = { sites, status: 'frz', note: 'every standing body in every turn is recorded as frozen — impossible on any board' };
     reset(); replayGame(g, {});
     const caught = [...MECH.keys()].some(k => /^status \/ the record applied frz/.test(k));
-    out.push({ name: 'PLANT: a freeze the game cannot produce', planted, caught, mechanics: [...MECH.keys()] });
+    out.push({ name: 'PLANT: a freeze the game cannot produce', planted,
+               caught: planted ? caught : false,
+               why_not: planted ? null : 'NO TURN IN THIS GAME COULD CARRY THE PLANT — the arm proves nothing, and says so',
+               mechanics: [...MECH.keys()] });
   }
 
-  /* PLANT 3 — A WRONG HP. The board before a turn is told the target is at full when the record says
-   * it was chipped, which must move a KO out of reach. */
+  /* PLANT 3 — A WRONG HP ON THE BOARD. This is the one Will named: the state the turn is scored from
+   * is corrupted rather than the outcome. An `hp` event is inserted at the top of the turn putting the
+   * body that is about to be killed back to full, so the recorded KO becomes something no roll of ours
+   * can reach. It travels through the board reconstruction, not around it. */
   {
-    const g = JSON.parse(JSON.stringify(base));
-    let planted = null;
-    for (const t of g.turns) for (const e of t.ev || []) {
-      if (planted || e.t !== 'm' || !e.ko) continue;
-      planted = { turn: t.n, mv: e.mv, was: e.dmg, now: 100 };
-      e.dmg = 100;    // the record now claims a full-health body was killed outright
+    let g = null, planted = null;
+    for (const cand of games.slice(0, 200)) {
+      const c = JSON.parse(JSON.stringify(cand));
+      if (!c.turns || !c.turns.length) continue;
+      for (const t of c.turns) {
+        if (planted) break;
+        const k = (t.ev || []).findIndex(e => e.t === 'm' && e.ko && e.tgt && e.dmg < 60 && !isSpreadMove(e.mv));
+        if (k < 0) continue;
+        const e = t.ev[k];
+        const slot = (e.s.slice(0, 2) === 'p1' ? 'p2a' : 'p1a');
+        t.ev.unshift({ t: 'hp', s: slot, mon: e.tgt, hp: 100 });
+        e.dmg = 100;
+        planted = { game: c.id, turn: t.n, mv: e.mv, slot,
+                    note: 'the target is put back to 100% before the turn and the KO is restated as a full-HP kill' };
+      }
+      if (planted) { g = c; break; }
     }
-    reset(); replayGame(g, {});
-    out.push({ name: 'PLANT: a KO from full HP', planted: planted || '(this game had no KO to corrupt)',
-               caught: planted ? DMG.no_match > clean.no_match : null, no_match: DMG.no_match,
-               mechanics: [...MECH.keys()] });
+    reset(); if (g) replayGame(g, {});
+    out.push({ name: 'PLANT: a wrong HP on the board before the turn, making the recorded KO unreachable',
+               planted: planted || null,
+               caught: planted ? DMG.no_match > clean.no_match : false,
+               why_not: planted ? null : 'THIS GAME HAD NO SUITABLE KO — the arm proves nothing, and says so',
+               no_match: DMG.no_match, mechanics: [...MECH.keys()] });
   }
 
   reset();
@@ -1209,7 +1410,7 @@ function readGames(file, n, skip) {
     for (const r of rows) {
       console.log('    ' + r.name);
       console.log('      planted:   ' + JSON.stringify(r.planted || null));
-      console.log('      caught:    ' + (r.caught === null ? 'N/A' : r.caught ? 'YES' : '*** NO — THE INSTRUMENT IS BLIND TO THIS ***'));
+      console.log('      caught:    ' + (r.caught === null ? '(baseline arm — nothing planted)' : r.caught ? 'YES' : '*** NO — THE INSTRUMENT IS BLIND TO THIS ***') + (r.why_not ? '   ' + r.why_not : ''));
       console.log('      no-match:  ' + (r.no_match != null ? r.no_match : '-') + '   mechanics: ' + JSON.stringify(r.mechanics));
       console.log('');
     }
@@ -1218,6 +1419,29 @@ function readGames(file, n, skip) {
                                       : 'every plant was caught.') + '\n');
     process.exit(failed.length ? 1 : 0);
   }
+
+  /* THE RED PROOF RUNS ON EVERY PUBLISHED RUN AND THE ARTIFACT REFUSES TO EXIST WITHOUT IT.
+   *
+   * CLAUDE.md's founding failure is a capability that was absent while everything reported success,
+   * and a `--selftest` flag somebody has to remember to pass is the same shape one level up: the run
+   * that skips it looks exactly like the run that passed it. Four extra replays cost milliseconds. */
+  const RED = selftest(games);
+  const redFailed = RED.filter(r => r.caught === false);
+  if (redFailed.length) {
+    console.error('\n  THE RED PROOF FAILED — ' + redFailed.length + ' planted defect(s) went unnoticed:');
+    for (const r of redFailed) console.error('    ' + r.name + (r.why_not ? '   ' + r.why_not : ''));
+    console.error('  REFUSING TO WRITE AN ARTIFACT. An instrument that cannot be shown red is not evidence.\n');
+    process.exit(1);
+  }
+  for (const k of Object.keys(DMG)) DMG[k] = 0;
+  MECH.clear(); DMG_UNRESOLVED.clear(); NOT_A_DAMAGE_UNIT.clear(); EXCEPTIONS.clear();
+  SKIP_REASON.clear(); SPECIES_FALLBACK.clear(); SPAN_WIDTH.length = 0; FREEZES.length = 0;
+  for (const k of Object.keys(C)) C[k] = 0;
+  for (const k of Object.keys(ORDER)) ORDER[k] = 0;
+  for (const k of Object.keys(ROLLID)) ROLLID[k] = 0;
+  AMBIGUOUS_TARGETS.n = 0; AMBIGUOUS_TARGETS.games = 0;
+  for (const k of Object.keys(SPLIT)) { SPLIT[k].games = 0; SPLIT[k].turns = 0; SPLIT[k].diverged = 0; }
+  C.games_read = games.length;
 
   for (const g of games) {
     let r = null;
@@ -1252,6 +1476,9 @@ function readGames(file, n, skip) {
     skip_rate_pct: C.games_read ? +(100 * C.games_skipped / C.games_read).toFixed(2) : null,
     turn_divergence_rate_pct: C.turns_compared ? +(100 * C.turns_diverged / C.turns_compared).toFixed(2) : null,
     turn1_divergence_rate_pct: C.turns_turn1 ? +(100 * C.turns_turn1_diverged / C.turns_turn1).toFixed(2) : null,
+    population_split: (() => { const o = {}; for (const k of Object.keys(SPLIT)) o[k] = Object.assign({}, SPLIT[k], { divergence_rate_pct: SPLIT[k].turns ? +(100 * SPLIT[k].diverged / SPLIT[k].turns).toFixed(2) : null }); return o; })(),
+    population_note: 'BOT GAMES ARE INCLUDED AND ARE NOT A FILTER. Showdown resolved those turns and does not resolve differently for a bot; only legality and resolution matter here, and both are the server’s. They must never feed meta-usage.json or any human prior — that is a different analysis with a different filter.',
+    ground_truth_clicks: 'NONE EXISTS. 22 stored games have willhoop as a player and carry the same extracted schema as every other row — no record of what was clicked. So the choice reconstruction cannot be validated against known answers and is validated only by the per-click confidence in the freeze dump. Filed: the live bot logging its own choice string would make this instrument exact.',
     skips_by_reason: [...SKIP_REASON.entries()].sort((a, b) => b[1] - a[1]).map(([k, n]) => ({ reason: k, n })),
     exceptions: [...EXCEPTIONS.entries()].sort((a, b) => b[1] - a[1]).map(([k, n]) => ({ what: k, n })),
     damage: {
@@ -1267,6 +1494,7 @@ function readGames(file, n, skip) {
        * `unresolved` inflated that rate from 41% to 52% on the first run and made the denominator mean
        * two different things at once. */
       refused_not_scored: [...NOT_A_DAMAGE_UNIT.entries()].sort((a, b) => b[1] - a[1]).map(([k, n]) => ({ what: k, n })),
+      ambiguous_target_lookups: AMBIGUOUS_TARGETS,
       species_fallbacks: [...SPECIES_FALLBACK.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20).map(([k, n]) => ({ what: k, n })),
       span_width_pct_of_maxhp: { median, min: spanSorted[0] || null, max: spanSorted[spanSorted.length - 1] || null,
                                  n: spanSorted.length },
@@ -1293,6 +1521,9 @@ function readGames(file, n, skip) {
           + 'is not evidence and missing one is not a defect.',
     }),
     mechanics: mechRows,
+    red_proof: { note: 'Run on EVERY published run, not behind a flag. Each row corrupts a real stored '
+                     + 'game one way and the instrument is required to notice. The generator refuses to '
+                     + 'write this file if any plant goes unnoticed.', arms: RED },
     cannot_see: [
       'side conditions — the store has no `-sidestart`, so Reflect, Light Screen, Aurora Veil and '
         + 'Tailwind are invisible. A halved damage reading is the expected signature and it has its own '
@@ -1336,6 +1567,7 @@ function readGames(file, n, skip) {
       + '   (' + artifact.turn_divergence_rate_pct + '%)');
     P('            turn 1 only: ' + C.turns_turn1 + ' compared, ' + C.turns_turn1_diverged + ' diverged ('
       + artifact.turn1_divergence_rate_pct + '%)  — the only arm with no invisible state in it');
+    for (const k of Object.keys(SPLIT)) { const v = artifact.population_split[k]; if (v.games) P('            ' + k.padEnd(14) + ' ' + String(v.games).padStart(5) + ' games  ' + String(v.turns).padStart(5) + ' turns  ' + String(v.diverged).padStart(4) + ' diverged  ' + v.divergence_rate_pct + '%'); }
     P('  EXCEPTIONS ' + C.exceptions + '   (a category, printed, never vanished)');
     for (const r of artifact.exceptions.slice(0, 8)) P('              ' + String(r.n).padStart(5) + '  ' + r.what);
     P('\n  DAMAGE — all 16 rolls, at the observed crit state, across the legal SP envelope');
@@ -1347,8 +1579,14 @@ function readGames(file, n, skip) {
       + artifact.spread_envelope.one_roll_step_pct + ' points');
     P('  ROLL ID   unique ' + ROLLID.unique + '   ambiguous ' + ROLLID.ambiguous + '   none ' + ROLLID.none
       + '   (against the DEFAULT baked body — not a verdict on the engine)');
-    P('  ORDER     agree ' + ORDER.agree + '   DIFFER ' + ORDER.differ + '   tie(refused) ' + ORDER.tie
+    P('  ORDER     forced-and-agree ' + ORDER.agree + '   DIFFER ' + ORDER.differ
+      + '   inside the spread envelope (refused) ' + ORDER.spread
+      + '   priority ability (refused) ' + ORDER['ability-priority']
       + '   n/a ' + ORDER['n/a']);
+    P('  REFUSED, and kept out of every rate above:');
+    for (const r of artifact.damage.refused_not_scored.slice(0, 6)) P('              ' + String(r.n).padStart(5) + '  ' + r.what);
+    P('  RED PROOF ' + RED.filter(r => r.caught === true).length + ' of ' + RED.filter(r => r.caught !== null).length
+      + ' planted defects caught — run on this run, not behind a flag');
     P('\n  DIVERGENCES BY MECHANIC');
     if (!mechRows.length) P('            none');
     for (const r of mechRows.slice(0, 20)) {

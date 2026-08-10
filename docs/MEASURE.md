@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 2 of 4 gate clauses fail (deliberate roster / abilities; deliberate roster / moves)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 20 unsafe, 1 void (declared), 67 possibly stale, 76 ok, 0 missing
+  provenance: 20 unsafe, 1 void (declared), 69 possibly stale, 74 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 2 of 4 gate clauses fail (deliberate roster / abilities; deliberate roster / moves)
@@ -29,13 +29,13 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 04:00
     feature_fixture --check FAILED:   The weights were fitted against the old definition and no longer describe these quantities. |   Refit (node engine/fit_policy.js, then node engine/fit_joint.js), or if a derived table was |   merely re-ingested, restamp with: node engine/feature_fixture.js --stamp <file>
-    moved after the fit: engine/medicham2-browser.js  2026-08-10 18:45
+    moved after the fit: engine/medicham2-browser.js  2026-08-10 19:18
     moved after the fit: engine/board.js  2026-08-05 19:44
     moved after the fit: data/engine-data.js  2026-08-10 00:00
-    moved after the fit: data/abra-tags.js  2026-08-10 08:03
+    moved after the fit: data/abra-tags.js  2026-08-10 19:12
 ```
 
-_stamped 2026-08-10 18:59_
+_stamped 2026-08-10 19:20_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,84 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 0000. ROADMAP #68 — THE ENGINE NOW GETS MEASURED AGAINST GAMES THAT ACTUALLY HAPPENED — 2026-08-10
+
+`engine/replay_differential.js` → `data/replay-differential.json` and
+`data/replay-differential-freezes.json`. New file; nothing existing was edited.
+
+**The authority is `data/games.ladder.jsonl`, not Showdown.** `tests/test-engine-diff.js` is one damage
+calculation per row with no turn loop, and at its default n=150 it reported zero disagreements for
+weeks while n=20,000 finds 19. `engine/game_differential.js` has a turn loop and plays SYNTHETIC games
+against the library. Neither asks whether our engine describes the game people actually play.
+
+**THE HEADLINE, 3,000 games, release `70794711fe6d`.** 2,947 replayed, **53 skipped (1.77%)**, all for
+the same reason — the row has no turns. **18,421 turns compared, 1,008 diverged = 5.47%.** On turn 1,
+where no invisible state can exist yet, **5.36% of 2,947**. **0 exceptions.** Bot games are included
+and split rather than filtered: bot-v-human 5.95%, human-v-human 5.06%.
+
+**THE BOARD IS REBUILT FROM THE RECORD AT THE START OF EVERY TURN**, so each turn is an independent
+unit and one 6-turn game is ~6 tests rather than one fragile chain. The price is enumerated in
+`cannot_see` and the turn-1 arm is the one with no unmeasured confounder in it.
+
+**ROLL RECOVERY DOES NOT WORK ON THIS CORPUS, AND THE REASON IS MEASURED.** Will's proposal — roll all
+16 and identify which one was played — is the right shape, and it turns the damage figure from an
+input into a test. It cannot run here: **Champions team sheets do not declare SP** (884 of 52,089
+stored games carry a sheet; every one has `evs: null`), and the record states damage as an integer
+percent of an unknown maximum. The **median attainable damage interval is 60.1 points of max HP**, so
+one roll step is **3.76 points** — the legal-spread envelope is several times wider than the entire
+16-roll band. `matched` fires **2 times in 37,177**. The test is therefore inverted into the one the
+record supports: all 16 rolls, at the observed crit state, at both corners of the legal SP envelope,
+and is the observed value inside. **719 no-match, 13,359 ambiguous, 13,533 unresolved (36.4%),
+9,564 KO-clamped.** The 36% is printed at the top because a rate that size decides whether the
+headline means anything.
+
+**THREE SOURCES OF RANDOMNESS ARE RECOVERED FROM THE RECORD RATHER THAN SIMULATED** — a miss is
+`miss:1`, a crit is `crit:1` and its ABSENCE is knowledge because Showdown always announces one, and a
+secondary is an `x` or `b` event. **The resolution order is the event order (ROADMAP #43), and nothing
+in this repository had ever read it**: 3,081 turns where our speed calculation is forced and agrees,
+**159 where no legal Champions spread can produce the order the record shows**, 9,312 refused as
+inside the envelope, 5,016 refused for a Prankster/Gale Wings/Triage carrier.
+
+**EVERY DIVERGING TURN IS A READABLE FROZEN BOARD**, not a counter — Will diagnoses by reading boards.
+`data/replay-differential-freezes.json` carries the board before, the reconstructed clicks with a
+per-click confidence, the board after from the log against what our engine could reach, and the raw
+events. **Four instrument bugs were found by reading its own output**, each of which had been sitting
+at or near the top of the mechanic table: a mega not applied before the turn it happens in, a Weather
+Ball priced in clear skies because the sun was set three events earlier in the same turn, a KO clamp
+read off a reconstructed HP instead of the record's own figure (56 of 158 divergences), and weather
+with no expiry doubling Swift Swim and Chlorophyll speeds for the rest of the game.
+
+**THE RED PROOF RUNS ON EVERY PUBLISHED RUN AND THE ARTIFACT REFUSES TO EXIST WITHOUT IT.** Three
+planted defects in a real stored game — a damage figure cut to a quarter, an impossible freeze, a
+corrupted board HP that puts a recorded KO out of reach. A `--selftest` flag somebody has to remember
+is the same failure one level up. It has been **shown red twice for real**, both times correctly.
+
+**FILED TO ENGINE, from the mechanic table.** These are candidates and not verdicts; where the
+attacker's item was never revealed the row says so IN ITS KEY and must not be quoted with the others.
+Largest with everything known: `x0.5-ish` 72, `x0.25-ish` 56, `x2-ish` 32, `x4-plus` 17, and the status
+family — `slp` 59, `brn` 57, `psn` 31, `par` 18, `frz` 15 — where the record applied a status no pin of
+our engine can produce.
+
+**FILED TO OPS — three ingest defects this instrument had to work around.** Each is a store change, not
+an analysis change. (1) `durable-ingest.js` records **no `cant` event at all**, so flinched, fully
+paralysed, asleep, frozen and recharging are one indistinguishable absence — Showdown emits
+`|cant|p2a: X|flinch` and it is dropped. (2) A **spread move's damage is conflated**: every `-damage`
+is attributed to the last `m` event with `dmg = max(dmg, delta)` and `tgt = tgt || <slot>`, so one row
+carries the maximum of two deltas against the first target's species and the last target's `tgthp`.
+That refuses **8,360 of 37,177** damage units — the single largest unresolved bucket. (3) **Everything
+before `|turn|1` is dropped**, including a lead's entry weather, so a Drought lead's sun is invisible.
+
+**NO GROUND TRUTH FOR THE CHOICES EXISTS.** The 22 stored games with `willhoop` as a player carry the
+same extracted schema as every other row — no record of what was clicked. So the reconstruction cannot
+be validated against known answers and rests on the per-click confidence in the freeze dump. The live
+bot logging its own choice string would make this instrument exact.
+
+**DEFERRED, DESIGNED, AND BEHIND `--rates`: the aggregate secondary-rate test.** Pinning an outcome to
+what was observed makes a wrong PROBABILITY agree with itself — the same trap as pinning damage. The
+counter-test compares each move's observed secondary rate across the corpus against the chance our tag
+declares. It is not part of any figure above and needs a far larger corpus before an interval on a 10%
+secondary means anything.
 
 ### 000. THE ABILITIES CLAUSE WAS GREEN OVER 27% COVERAGE AND FIFTEEN UNMEASURED ROWS — ROADMAP #120, #121, #122 — 2026-08-10
 
