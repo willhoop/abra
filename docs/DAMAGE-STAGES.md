@@ -1,6 +1,11 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 3.97.0 — 2026-08-10.**
+**Version: 3.98.0 — 2026-08-10.**
+
+**3.98.0 — NO STAGE MOVED AND NOTHING IN THIS FILE CHANGED.** ROADMAP #126 wired Quick Guard onto the
+priority-refusal gate. That gate sits in the TURN LOOP, above the action-kind dispatch, and never reaches
+`dmgRange`: a refused move deals no damage at all rather than damage at a different stage. `tests/test-damage-stages.js`
+is unchanged. The version moves because the CHANGELOG top moved, and this line says why the content did not.
 
 **3.97.0 — THE DAMAGE IS A LOOP OVER HITS NOW, AND NO STAGE MOVED.** `dmgRange` is a wrapper over
 `dmgRangeOneHit`; the stage ORDER inside one hit is byte-for-byte what this document already describes,

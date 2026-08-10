@@ -123,6 +123,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * family is off the path (four moves reach the branch), NOT that the loop is absent -- which is why
    * the census probes read the two foes' stages rather than this number. */
   spreadStatusTargets: 0,
+  /* ROADMAP #126 -- a ONE-TURN SIDE GUARD actually refused a move. One counter for the whole family
+   * (Quick Guard and Wide Guard both), because the guard that refused is re-derived from the artifact
+   * rather than named here and a per-name counter would put the forbidden name back. A ZERO after
+   * real games says the family is off the path -- 4,924 corpus uses between them, so it should not
+   * be. Wide Guard's half was live before this wire and Quick Guard's was structurally impossible. */
+  sideGuardBlocked: 0,
   /* ROADMAP #92 -- CONFUSION, which did not exist in this engine at all until this pass, so every
    * one of these was structurally zero and there was nothing to notice. Each is a different event and
    * a zero on each says a different thing:
@@ -381,6 +387,10 @@ const MEDFAILS = { encoreAction: 0,
    * mechanic ran into a move we do not model" must not arrive at the same counter, which is why it is
    * separate from `lockedIntoStatusMove` rather than a shared total. */
   lockStatusUnbuilt: 0,
+  /* ROADMAP #126 -- the artifact named a `oneTurnGuard.blocks` class this engine has no predicate
+   * for, so the guard was raised and refused nothing. Zero today: the only two members are "spread
+   * moves" and "priority moves" and both are wired. Crafty Shield and Mat Block would land here. */
+  guardClassUnknown: 0, guardClassUnknownFirst: '',
   megaRevert: 0, weatherUnknown: 0, weatherUnknownFirst: '',
   /* ROADMAP #92 -- MISTY TERRAIN ALSO REFUSES CONFUSION to a grounded body, and this engine has no
    * per-terrain volatile refusal to hang that on. 9 corpus uses. Counted every time confusion is
@@ -1261,6 +1271,93 @@ function priorityRefusedAbove(defenders, field, aimedAt){
   return out;
 }
 
+/* ROADMAP #126 -- THE ONE-TURN SIDE GUARDS, AND THE CLASS EACH REFUSES IS READ OFF THE ARTIFACT.
+ *
+ * Will: *"have quick guard block all prio moves"*, then *"its like armor tail"* -- and the second
+ * sentence is the whole diagnosis. Every OTHER source of priority refusal in this engine was already
+ * correct and already resolving through one function: Armor Tail, Dazzling, Queenly Majesty and
+ * Psychic Terrain all reach `priorityRefusedAbove` above. Measured on the frozen release, a +1 Quick
+ * Attack into a Farigiraf:
+ *
+ *     no guard  25 landed  |  Armor Tail 0  Dazzling 0  Queenly Majesty 0  Psychic Terrain 0
+ *     Wide Guard 25 landed -- CORRECT, it stops SPREAD    Quick Guard 25 LANDED -- the only defect
+ *
+ * WHY IT WAS INVISIBLE: `quickguard` and `wideguard` carry BYTE-IDENTICAL TAG LISTS
+ * (`priority, neverMisses, oneTurnGuard, statusCategory`). The engine separated them BY NAME --
+ * `if(id==='wideguard')` in playerAction, `if(id==='wideguard')` in the usable-move filter -- so
+ * Quick Guard fell through the whole classifier to `{kind:'pass'}` and 927 corpus clicks bought a
+ * wasted turn. Matching on a name is the thing CLAUDE.md forbids, and this is what it costs.
+ *
+ * THE PARAM WAS ALREADY THERE AND NOTHING READ IT. `data/tags.json` carries
+ * `oneTurnGuard.blocks` -- "priority moves" for Quick Guard, "spread moves" for Wide Guard -- derived
+ * by tag_dex from each move's OWN `condition.onTryHit`, not from a two-name list. So tag_dex needed
+ * no change at all; the consumer did. MEMBERSHIP PRINTED BEFORE WIRING (LESSONS §4): exactly two
+ * moves carry `oneTurnGuard` across all 500, and they are these two.
+ *
+ * THE CLASS -> PREDICATE TABLE BELOW IS THIS ENGINE'S HALF OF THE CONTRACT, and an artifact class it
+ * has no predicate for is COUNTED, LOUDLY, rather than silently letting the move through -- the same
+ * shape as `volatileForbidsMove`'s unknown-category counter. Crafty Shield ("status moves") and Mat
+ * Block ("damaging moves") are both `isNonstandard: 'Past'` in this format and absent from the
+ * artifact entirely; when one arrives, the counter says so instead of the guard quietly doing nothing.
+ *
+ * THE AUTHORITY, clause for clause (data/moves.ts quickguard.condition.onTryHit):
+ *   `if (move.priority <= 0.1) return;`   so it is the FINAL priority -- a Prankster-boosted status
+ *                                         move (0 -> +1) IS refused, and Quick Claw is not priority
+ *                                         at all and is not. That is why the caller adds the same
+ *                                         `+_pk` Prankster term the ability bar uses.
+ *   `if (this.checkMoveBypassesProtect(...)) return;`   the move must carry `flags.protect`. Our
+ *                                         `ignoresProtect` tag is derived from exactly that flag's
+ *                                         ABSENCE, so it is the same test. Membership printed: 14
+ *                                         moves, and the one that matters here is FEINT (+2, 539
+ *                                         uses) -- it goes through, and a probe asserts it.
+ *   `return this.NOT_FAIL;`               the move does not count as FAILED, so `_mvRes` is left
+ *                                         alone and Stomping Tantrum is not fed by a block.
+ *
+ * TWO CLAUSES OF THE AUTHORITY ARE NOT WIRED HERE AND ARE NAMED RATHER THAN LEFT TO BE FOUND:
+ *   `onTry() { return !!this.queue.willAct(); }` -- a side guard FAILS if its user holds the last
+ *      action of the turn. WIRE 119 implements exactly this for `kind:'protect'` and has never
+ *      implemented it for `kind:'wideguard'`; that is a pre-existing Wide Guard gap, it is not this
+ *      wire's, and closing it needs its own failing probe.
+ *   `onHitSide(side, source) { source.addVolatile('stall'); }` -- a side guard NEVER fails from
+ *      consecutive use in this generation (there is no `runEvent('StallMove')` in either condition),
+ *      but it DOES advance the counter that makes a later Protect fail. This engine RESETS
+ *      `tookProtectTurns` to 0 at the pre-pass instead. So the assumption taken here is the first
+ *      half -- consecutive Quick Guards do not roll a die -- and it matches the authority. The second
+ *      half is ROADMAP #59's three-behaviours-collapsed-into-two and is left exactly as it was, so
+ *      this wire changes nothing about Protect. */
+const GUARD_PRED = {
+  'spread moves':   (ctx) => !!ctx.spread,
+  'priority moves': (ctx) => ctx.priority > 0.1,
+};
+function sideGuardBlocksClass(gid){
+  const p = gid && TAGS.param('move', gid, 'oneTurnGuard');
+  return p ? String(p.blocks || '') : null;
+}
+function sideGuardName(gid){
+  const rec = (TAGS.tagsFor && TAGS.tagsFor('move', gid)) || null;
+  return (rec && rec.name) || String(gid || '');
+}
+/* Which guard standing on the TARGETED side refuses this move -- the guard's move id, or null.
+ * `guard` is the side's `sgA`/`sgB` map: guard move id -> true, one entry per guard raised this turn.
+ * The STATE stores which guard is up; the CLASS is re-derived from the artifact on every read, so a
+ * change to `blocks` upstream cannot be out of step with a copy cached in the field. */
+function sideGuardRefuses(guard, moveId, ctx){
+  if(!guard || !moveId) return null;
+  if(TAGS.has('move', moveId, 'ignoresProtect')) return null;   // checkMoveBypassesProtect, upstream
+  for(const gid of Object.keys(guard)){
+    if(!guard[gid]) continue;
+    const cls = sideGuardBlocksClass(gid);
+    const pred = GUARD_PRED[cls];
+    if(!pred){
+      MEDFAILS.guardClassUnknown++;
+      if(!MEDFAILS.guardClassUnknownFirst) MEDFAILS.guardClassUnknownFirst = gid+':'+(cls||'(no oneTurnGuard param)');
+      continue;
+    }
+    if(pred(ctx)){ MEDSEEN.sideGuardBlocked++; return gid; }
+  }
+  return null;
+}
+
 /* WIRE 124 -- ACCURACY IS DERIVED. `const ACC = {hydropump:80, ...}` was a hand-typed 35-move literal
  * and `moveAccuracy` ended `return ACC[id]||100`, so every move NOT on the list could not miss. Of
  * the 500 moves in this engine's own table, 78 carry an accuracy below 100 in
@@ -2082,7 +2179,10 @@ function buildMonFromSet(set){
    * a pasted team without its Protects is a different team. Truly invisible moves are recorded on
    * droppedMoves so a UI can disclose them instead of silently thinning the set. */
   const ids=set.moves.map(norm2);
-  const usable=ids.filter(id=>MC.moves[id]||PROTECTMOVES.has(id)||id==='wideguard'||id==='tailwind'||moveFx(id));
+  /* ROADMAP #126 -- `id==='wideguard'` STOOD HERE and it is why a sheet's Quick Guard was DROPPED
+   * from the body before the turn loop ever saw it. Asked of the tag instead, so both members of the
+   * family survive the filter and a third would too. */
+  const usable=ids.filter(id=>MC.moves[id]||PROTECTMOVES.has(id)||TAGS.has('move',id,'oneTurnGuard')||id==='tailwind'||moveFx(id));
   /* THE STONE DECIDES THE ABILITY TOO, not just the forme -- and this line used to let the SHEET win.
    * A team sheet lists the PRE-mega ability ("Scizor ... Ability: Swarm"), so `declaredAb ||` handed
    * a mega body its base forme's ability every single time a paste declared one, which is the exact
@@ -6357,7 +6457,11 @@ function oneMegaPerSide(team){
 }
 function battleInit(teamA,teamB,opts){
   oneMegaPerSide(teamA); oneMegaPerSide(teamB);
-  const S={field:{weather:null,weatherT:0,terrain:'',terrainT:0,twA:0,twB:0,tr:0,wgA:false,wgB:false},
+  /* ROADMAP #126 -- `wgA:false,wgB:false` STOOD HERE, a boolean pair whose NAME was the only record
+   * of what it guarded against. `sgA`/`sgB` are maps of `guard move id -> true`, one entry per guard
+   * raised on that side this turn; the CLASS it refuses is re-derived from `oneTurnGuard.blocks` at
+   * every read, so the field cannot hold a stale copy of a fact the artifact owns. */
+  const S={field:{weather:null,weatherT:0,terrain:'',terrainT:0,twA:0,twB:0,tr:0,sgA:{},sgB:{}},
     /* one shared death counter per side, handed to every mon by reference */
     /* `side` is stamped here so a body can answer "which Tailwind is mine" without being handed a
        side argument -- WIRE 83's speed ratio is computed inside dmgRange, which is given two bodies
@@ -6579,7 +6683,8 @@ function battleTurn(S,rng,actsForA,actsForB){
       /* `_took` clears with the rest: Counter reads damage taken THIS turn, and a counter that
        * remembered last turn's hit would fire off a hit that is over. */
       m._took=null;}});
-    field.wgA=false;field.wgB=false;
+    field.sgA={};field.sgB={};              // duration:1 on both conditions -- they never survive a turn
+
     /* WIRE 78 -- AIR LOCK / CLOUD NINE. Recomputed at the top of every turn from whoever is standing
        there, because it is a property of the FIELD for as long as a carrier is on it, and a switch or
        a faint changes it. Stored on the field so every reader asks one place. */
@@ -6804,7 +6909,13 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         it.mon._lastMove=it.a.mv||'protect';it.mon._protectMove=it.a.mv||null;
       }
-      else if(it.a.kind==='wideguard'&&!volatileForbidsMove(it.mon,actionMoveId(it.a))){if(it.side==='A')field.wgA=true;else field.wgB=true;it.mon.tookProtectTurns=0;}
+      /* ROADMAP #126 -- THE GUARD RAISED IS RECORDED BY ITS MOVE ID, not by a boolean whose name is
+       * the mechanic. `tookProtectTurns=0` is left exactly as it was: see the ROADMAP #59 note at
+       * sideGuardRefuses -- the authority ADVANCES the stall counter here and this engine resets it,
+       * which is a separate pre-existing gap and not this wire's to change silently. */
+      else if(it.a.kind==='wideguard'&&!volatileForbidsMove(it.mon,actionMoveId(it.a))){
+        const _g=actionMoveId(it.a)||'wideguard';
+        (it.side==='A'?field.sgA:field.sgB)[_g]=true;it.mon.tookProtectTurns=0;}
       else it.mon.tookProtectTurns=0;
     }
     /* WIRE 118 -- "HAS THIS BODY ALREADY ACTED?" IS NOW "HAS IT RESOLVED?", AND THAT IS THE POINT.
@@ -7261,6 +7372,36 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(TR){const _h=_pf.find(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksMove'));
                    if(_h)TR.cant(_h,'ability: '+_h.ability,_pmv,m);}
             continue;}
+          /* ROADMAP #126 -- AND THE SIDE-CONDITION SOURCE OF THE SAME REFUSAL, WIRED ONTO THE SAME
+           * GATE. Will: *"its like armor tail"*. It is: same question, same `+_pk` Prankster term,
+           * same side, same "only a move aimed at the other side" scope -- so it belongs beside the
+           * ability bar and above the kind dispatch, not inside the attack branch. Putting it here is
+           * what makes a Prankster-boosted Thunder Wave (a `kind:'affect'` action, never seen by the
+           * attack branch) refusable, which is more than half of what Quick Guard is for.
+           *
+           * IT DOES NOT SHARE `priorityRefusedAbove`'s RETURN, deliberately. That function answers
+           * "above what priority is a move refused", a single number folded over abilities and
+           * terrain; a guard is a SIDE CONDITION with its own announcement and its own bypass rule
+           * (`ignoresProtect`), and folding it into the number would lose both. Two sources, one
+           * gate.
+           *
+           * `NOT_FAIL` upstream: no `mvFail`, so `_mvRes` stays true and Stomping Tantrum is not fed
+           * by a Quick Guard. `_lastMove` IS written, because the move was used. */
+          /* SPREAD IS EXCLUDED HERE AND THAT IS NOT AN OVERSIGHT. A spread move is refused PER BODY
+           * downstream, with one `-activate` line for each -- ROADMAP #81 WIRE 9 is exactly that fix,
+           * and answering the spread case at this whole-action gate would collapse Wide Guard's two
+           * lines back into one. `spread:false` is therefore passed as a literal rather than read off
+           * the action, so a reader cannot mistake this for a spread-aware test that happens to be
+           * false. */
+          if(!(a.move&&a.move.spread)){
+            const _sgid=sideGuardRefuses(it.side==='A'?field.sgB:field.sgA,_pmv,
+                          {spread:false,priority:movePriority(_pmv,field)+_pk});
+            if(_sgid){m._lastMove=_pmv;
+              /* `|-activate|TARGET|move: Quick Guard` -- the condition's own onTryHit names the
+               * SHIELDED body, not the attacker, and fires once per body it stopped. */
+              if(TR)TR.act(a.target,'move: '+sideGuardName(_sgid));
+              continue;}
+          }
         }
       }
       /* ROADMAP #81 WIRE 12 -- `passstate` PAYS ITS OWN COST, INSIDE ITS OWN BRANCH, and is excluded
@@ -8516,9 +8657,14 @@ function battleTurn(S,rng,actsForA,actsForB){
        * move that FAILED, and that is a fact about the STATE -- Stomping Tantrum reads it next turn --
        * so it cannot be recorded only on runs that happen to have a trace attached. The announcement
        * still fires only when there is somewhere to announce to. */
+      /* ROADMAP #126 -- `|-singleturn|USER|Quick Guard` and `|-singleturn|USER|Wide Guard` are the
+       * SAME event with the guard's own name in it (each condition's `onSideStart` adds
+       * `this.add('-singleturn', source, 'Wide Guard' / 'Quick Guard')`), so the label is read off the
+       * artifact rather than being a ternary over one name. */
       if(a.kind==='protect'||a.kind==='wideguard'){
-        if(a.kind==='wideguard'?((it.side==='A'&&field.wgA)||(it.side==='B'&&field.wgB)):m.protect){
-          if(TR)TR.st1(m,a.kind==='wideguard'?'Wide Guard':'Protect');
+        const _sg=a.kind==='wideguard'?(it.side==='A'?field.sgA:field.sgB):null;
+        if(a.kind==='wideguard'?!!(_sg&&_sg[actionMoveId(a)||'wideguard']):m.protect){
+          if(TR)TR.st1(m,a.kind==='wideguard'?sideGuardName(actionMoveId(a)||'wideguard'):'Protect');
         } else { if(TR)TR.attrStill(); mvFail(m); }
       }
       if(a.kind!=='attack')continue;
@@ -8944,9 +9090,18 @@ function battleTurn(S,rng,actsForA,actsForB){
        * driver reading Showdown's request carried no target, so it never became an `attack` action and
        * never reached this branch at all; the WIRE 9 ladder rung opened a whole new divergence class
        * (`-activate: a different body`, 18 games) the moment the family started resolving. */
-      if(a.move.spread&&((it.side==='A'&&field.wgB)||(it.side==='B'&&field.wgA))){
-        if(TR)for(const _wg of targets)TR.act(_wg,'move: Wide Guard');
-        targets=[];}
+      /* ROADMAP #126 -- THE SAME LINE, ASKED OF THE ARTIFACT. It tested `field.wgB` -- a boolean whose
+       * name WAS the class -- and now asks the foe side's guard map whether anything on it refuses
+       * THIS move. Wide Guard's answer is unchanged (a spread move, `spread:true`); Quick Guard now
+       * gets its spread case here too, and the `-activate` names whichever guard did the refusing. */
+      {
+        const _fsg=it.side==='A'?field.sgB:field.sgA;
+        const _gid=a.move.spread?sideGuardRefuses(_fsg,a.move.id,
+                                   {spread:true,priority:movePriority(a.move.id,field)}):null;
+        if(_gid){
+          if(TR)for(const _wg of targets)TR.act(_wg,'move: '+sideGuardName(_gid));
+          targets=[];}
+      }
       /* ROADMAP #81 WIRE 9 -- THE PARTNER IS HIT FIRST, NOT LAST, and that is Showdown's own order
        * rather than a preference. `Pokemon.getMoveTargets` (sim/pokemon.ts:809) builds an
        * `allAdjacent` list as `push(...adjacentAllies())` and only THEN falls through to
@@ -11145,7 +11300,13 @@ function playerActionPrimary(me,moveId,target,field){
    * id belongs on the action, at the one place that knows it, and the map stays only as the backstop
    * for a bare action a CALLER built. */
   if(PROTECTMOVES.has(id))return {kind:'protect',mv:id};   // mv, so WIRE 61 knows which shield blocked
-  if(id==='wideguard')return {kind:'wideguard',mv:id};
+  /* ROADMAP #126 -- THE ONE LINE THAT MADE QUICK GUARD A WASTED TURN. `id==='wideguard'` matched one
+   * of the two moves that carry `oneTurnGuard`; the other fell through the entire cascade below and
+   * came out `{kind:'pass'}` on 927 corpus clicks. `kind:'wideguard'` is kept as the NAME OF THE
+   * ACTION KIND -- it is the side-guard kind, and every consumer (the +3 bracket in the sort key, the
+   * pre-pass, chooseAction, double_protect.js) already speaks it. What decides BEHAVIOUR is `mv` and
+   * the class the artifact gives it, which is the part that was matching on a name. */
+  if(TAGS.has('move',id,'oneTurnGuard'))return {kind:'wideguard',mv:id};
   if(id==='tailwind')return {kind:'tail',mv:id};
   if(id==='trickroom')return {kind:'trickroom',mv:id};
   const mv=MC.moves[id];

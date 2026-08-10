@@ -587,7 +587,7 @@ console.log('\n  wrote data/engine-diff.json');
  * gets a tolerance; an accuracy disagreement is a number that is simply wrong, and the whole point of
  * the list is that a fifth row must not be able to arrive silently. */
 {
-  const cleanField = { weather: '', terrain: '', twA: 0, twB: 0, tr: 0, wgA: false, wgB: false };
+  const cleanField = { weather: '', terrain: '', twA: 0, twB: 0, tr: 0, sgA: {}, sgB: {} };
   const accBad = [];
   let accCompared = 0;
   for (const id of Object.keys(MC.moves)) {

@@ -1,6 +1,16 @@
 # ABRA — Project Summary
 
-**Version 3.97.0 · 2026-08-10 · Will Hooper**
+**Version 3.98.0 · 2026-08-10 · Will Hooper**
+
+**3.98.0 — QUICK GUARD BLOCKED NOTHING, AND THE TWO GUARDS CARRY BYTE-IDENTICAL TAGS.** Staged on the
+frozen release, a +1 priority attack: Armor Tail, Dazzling, Queenly Majesty and Psychic Terrain all
+refused it; Wide Guard let it through (correct — it stops spread); Quick Guard let it through too, on 927
+corpus clicks. `quickguard` and `wideguard` carry the same four tags, so three sites told them apart by
+NAME — the classifier (Quick Guard resolved to the no-op `{kind:'pass'}`), the `buildMon` move filter, and
+the field's boolean pair. The param that separates them, `oneTurnGuard.blocks`, was already in the
+artifact and nothing read it, so `tag_dex.js` did not change and nothing was regenerated. Wired onto the
+gate the ability sources already use, so a Prankster-boosted status move is refused too, and Feint still
+breaks through. Census 354 → **357 live**; Wide Guard unchanged and green.
 
 **3.97.0 — ONE ROLL MULTIPLIED BY N: FOUR MOVES, ONE ROOT CAUSE, TWO OF THEM 2x.** Triple Axel escalates
 20/40/60 and we applied a flat 20 three times — exactly half the move. Dragon Darts splits across the

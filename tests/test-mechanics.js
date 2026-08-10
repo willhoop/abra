@@ -36,7 +36,7 @@ const bare = (sp) => {
   b.item = ''; b.ability = 'none';
   return b;
 };
-const FIELD = { weather: '', terrain: '', twA: 0, twB: 0, tr: 0, wgA: false, wgB: false };
+const FIELD = { weather: '', terrain: '', twA: 0, twB: 0, tr: 0, sgA: {}, sgB: {} };
 const fresh = () => Object.assign({}, FIELD);
 /* Mid-roll rng: 0.5 defeats nothing and triggers nothing at the extremes, so a probe that needs a
  * chance effect forces it explicitly rather than hoping. */
@@ -1843,6 +1843,105 @@ probe('move', 'oneTurnGuard', 'Wide Guard blocks a spread move', () => {
   const control = run(false), test = run(true);
   return { works: test < control && control > 0, arms: { control, test },
            detail: 'ally took ' + control + ' without  ->  ' + test + ' behind Wide Guard' };
+});
+
+/* ================= ROADMAP #126 -- QUICK GUARD, THE OTHER MEMBER OF THE SAME TAG =================
+ *
+ * Will: *"have quick guard block all prio moves and test it against some prio moves"*, then
+ * *"its like armor tail"*. Every other source of priority refusal in this engine was already right --
+ * measured on the frozen release, a +1 Quick Attack into a Farigiraf: Armor Tail 0, Dazzling 0,
+ * Queenly Majesty 0, Psychic Terrain 0, no-guard control 25 LANDED, Wide Guard 25 landed (correct --
+ * it stops SPREAD), QUICK GUARD 25 LANDED. One broken source out of six.
+ *
+ * The cause was that `quickguard` and `wideguard` carry BYTE-IDENTICAL TAG LISTS and the engine told
+ * them apart BY NAME, so Quick Guard fell through the classifier to `{kind:'pass'}` -- a wasted turn
+ * on 927 corpus clicks. The class each refuses was already in the artifact as `oneTurnGuard.blocks`
+ * and nothing read it.
+ *
+ * THE THIRD ARM IS THE POINT OF THIS PROBE. A two-arm probe here would pass on an engine that made
+ * EVERY one-turn guard block EVERYTHING, which is the obvious wrong fix. Wide Guard is run against
+ * the same priority move on the same board and must still let it through -- so what is being read is
+ * the param, not the family. */
+probe('move', 'oneTurnGuard', 'Quick Guard blocks a +1 priority move and Wide Guard does not', () => {
+  /* AN UNCONDITIONAL PRIORITY MOVE, AND THAT IS NOT A DETAIL. The first version of this used SUCKER
+   * PUNCH, which fails unless the target is attacking -- the defender was passing, so all three arms
+   * INCLUDING THE CONTROL read 0 and the board looked like universal refusal. Bullet Punch has no
+   * such condition.
+   * AIMED AT THE PARTNER, not at the guard's user: Quick Guard protects the whole SIDE, and a probe
+   * that fired at the user could not tell that apart from a self-shield. */
+  const run = (guardMove) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'milotic', 'scizor', 'garchomp');
+    unfaintable(ally);
+    const before = ally.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, guardMove ? M.playerAction(me, guardMove, null, S.field) : { kind: 'pass' }],
+               [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'bulletpunch', ally, S.field)], [f2, { kind: 'pass' }]]));
+    return before - ally.curHP;
+  };
+  const control = run(null), test = run('quickguard'), wide = run('wideguard');
+  return { works: control > 0 && test === 0 && wide === control,
+           arms: { control, test },
+           detail: `Bullet Punch (+1) at the PARTNER — no guard ${control}, behind Quick Guard ${test} `
+                 + `(must be 0), behind Wide Guard ${wide} (must equal the control: Wide Guard stops `
+                 + `spread, not priority)` };
+});
+
+/* THE HALF THAT IS MORE THAN HALF OF WHAT QUICK GUARD IS FOR. Showdown's condition reads
+ * `if (move.priority <= 0.1) return;` — the FINAL priority, so a Prankster-boosted status move (0 ->
+ * +1) is refused. Those are `kind:'affect'` actions and never reach the attack branch, which is why
+ * the refusal is wired above the kind dispatch beside Armor Tail rather than inside it.
+ *
+ * THE CONTROL IS THE SAME THUNDER WAVE FROM A BODY WITH NO PRANKSTER, through the same Quick Guard.
+ * Without it this probe cannot tell "Quick Guard refuses priority" from "Quick Guard refuses
+ * everything", and the second is exactly the wrong fix a two-arm version would have accepted. */
+probe('move', 'oneTurnGuard', 'Quick Guard refuses a PRANKSTER-boosted status move, not a plain one', () => {
+  const run = (guardMove, ability) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'milotic', 'whimsicott', 'garchomp');
+    f1.ability = ability;
+    M.battleTurn(S, rng5,
+      new Map([[me, guardMove ? M.playerAction(me, guardMove, null, S.field) : { kind: 'pass' }],
+               [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'thunderwave', ally, S.field)], [f2, { kind: 'pass' }]]));
+    return ally.status || 'none';
+  };
+  const control = run(null, 'prankster');            // no guard: the Thunder Wave must land
+  const test = run('quickguard', 'prankster');       // +1 through Prankster: refused
+  const plain = run('quickguard', 'none');           // priority 0: NOT refused
+  return { works: control === 'par' && test === 'none' && plain === 'par',
+           arms: { control, test },
+           detail: `Whimsicott's Thunder Wave at the partner — no guard ${control}, Prankster into `
+                 + `Quick Guard ${test} (must be none), the SAME move with no Prankster into the same `
+                 + `Quick Guard ${plain} (must be par — priority 0 is not refused)` };
+});
+
+/* AND THE BYPASS, WHICH IS A RULE RATHER THAN A LIST. `checkMoveBypassesProtect` lets a move through
+ * when it does not carry `flags.protect`; our `ignoresProtect` tag is derived from that flag's
+ * ABSENCE, so it is the same test asked of the artifact. Membership printed before wiring: 14 moves,
+ * and FEINT (+2, 539 uses) is the one this format cares about — it is a priority move, so a Quick
+ * Guard that ignored the bypass would eat it.
+ *
+ * THE CONTROL IS A PRIORITY MOVE THAT DOES CARRY THE FLAG, on the same board behind the same guard —
+ * otherwise "Feint got through" cannot be told from "the guard was not up". */
+probe('move', 'ignoresProtect', 'Feint goes through Quick Guard; a flagged priority move does not', () => {
+  const run = (mv, guardMove) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'milotic', 'scizor', 'garchomp');
+    unfaintable(ally);
+    const before = ally.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, guardMove ? M.playerAction(me, guardMove, null, S.field) : { kind: 'pass' }],
+               [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, mv, ally, S.field)], [f2, { kind: 'pass' }]]));
+    return before - ally.curHP;
+  };
+  const control = run('bulletpunch', 'quickguard');   // flagged +1: blocked
+  const test = run('feint', 'quickguard');            // unflagged +2: lands
+  const feintOpen = run('feint', null);
+  return { works: control === 0 && test > 0 && test === feintOpen,
+           arms: { control, test },
+           detail: `behind one Quick Guard — Bullet Punch (+1, carries flags.protect) dealt ${control} `
+                 + `(must be 0), Feint (+2, no protect flag) dealt ${test} (must be > 0 and equal to `
+                 + `the ${feintOpen} it deals with no guard up at all)` };
 });
 
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45), AND THE OLD STAGING VARIED EVERYTHING. It fired

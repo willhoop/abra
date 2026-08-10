@@ -1,6 +1,18 @@
 # ABRA — the plain-English deck
 
-**Version 3.97.0 · 2026-08-10 · Will Hooper**
+**Version 3.98.0 · 2026-08-10 · Will Hooper**
+
+**3.98.0 — QUICK GUARD IS SUPPOSED TO STOP FAST MOVES. OURS STOPPED NOTHING AT ALL.** Some moves always
+go first — Fake Out, Bullet Punch, Aqua Jet. Quick Guard is the answer to them: it protects your whole
+side from anything that jumps the queue. We checked every way the game has of stopping a fast move, and
+four out of five worked. The fifth was Quick Guard, and it did not exist as far as our simulator was
+concerned — clicking it wasted your turn. The reason is small and embarrassing: Quick Guard and Wide Guard
+are described in our data with the *exact same four labels*, so the program was telling them apart by
+their names, which is the one thing we have a rule against. The information that separates them — one
+stops fast moves, the other stops moves that hit everybody — was already sitting in the data file and
+nothing was reading it. It reads it now. Quick Guard also correctly stops a status move that a Prankster
+ability has made fast, and Feint still punches through it, because Feint punches through every shield in
+the real game. Wide Guard was checked and is unchanged.
 
 **3.97.0 — FOUR MOVES DEALT THE WRONG DAMAGE BECAUSE WE ROLLED THEM ONCE AND MULTIPLIED.** A move
 that hits three times should roll three times. Ours rolled once and multiplied the answer, which is fine

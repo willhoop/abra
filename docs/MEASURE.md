@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 2 of 4 gate clauses fail (deliberate roster / abilities; deliberate roster / moves)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 20 unsafe, 1 void (declared), 72 possibly stale, 69 ok, 0 missing
+  provenance: 20 unsafe, 1 void (declared), 71 possibly stale, 70 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 2 of 4 gate clauses fail (deliberate roster / abilities; deliberate roster / moves)
@@ -29,13 +29,13 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 04:00
     feature_fixture --check FAILED:   The weights were fitted against the old definition and no longer describe these quantities. |   Refit (node engine/fit_policy.js, then node engine/fit_joint.js), or if a derived table was |   merely re-ingested, restamp with: node engine/feature_fixture.js --stamp <file>
-    moved after the fit: engine/medicham2-browser.js  2026-08-10 04:18
+    moved after the fit: engine/medicham2-browser.js  2026-08-10 04:51
     moved after the fit: engine/board.js  2026-08-05 19:44
     moved after the fit: data/engine-data.js  2026-08-10 00:00
     moved after the fit: data/abra-tags.js  2026-08-10 04:13
 ```
 
-_stamped 2026-08-10 04:41_
+_stamped 2026-08-10 05:05_
 
 <!-- /GENERATED -->
 
@@ -61,14 +61,22 @@ FIRED-AND-BOARDS-MATCH, 217 COULD-NOT-STAGE, 15 CONTROL-NOT-QUIET** and `engine/
 
 **THE CLAUSE NOW FAILS, AND IT FAILS ON SEVEN ATTRIBUTED DEFECTS.**
 
-| | before | after |
-|---|---|---|
-| FIRED-AND-BOARDS-DIFFER | 0 | **2** |
-| DID-NOT-FIRE | 0 | **5** |
-| FIRED-AND-BOARDS-MATCH | 84 | 77 |
-| CONTROL-NOT-QUIET | 15 | **18** |
-| COULD-NOT-STAGE | 217 | 214 |
-| clause | **PASS** | **FAIL** |
+**THE ENGINE MOVED UNDER THIS AND THE TWO CAUSES ARE SEPARATED RATHER THAN BLENDED.** A release was
+cut by another division at 04:21 while this was being written, so the published run reads a different
+simulator from the artifact it replaces. The new instrument was therefore re-run **pinned to the OLD
+release `a4c7f898ad0e`**, and the two engine snapshots differ on **exactly one row**: Magic Bounce,
+DID-NOT-FIRE on the old and FIRED-AND-BOARDS-MATCH on the new — ENGINE fixed it in between, and the
+old instrument could not have said so because that row was CONTROL-NOT-QUIET. Every other movement
+below is the instrument.
+
+| | before (old instrument, `a4c7f898ad0e`) | instrument only (`a4c7f898ad0e`) | published (`bfefdb697454`) |
+|---|---|---|---|
+| FIRED-AND-BOARDS-DIFFER | 0 | **2** | **2** |
+| DID-NOT-FIRE | 0 | **6** | **5** |
+| FIRED-AND-BOARDS-MATCH | 84 | 76 | 77 |
+| CONTROL-NOT-QUIET | 15 | **18** | **18** |
+| COULD-NOT-STAGE | 217 | 214 | 214 |
+| clause | **PASS** | **FAIL** | **FAIL** |
 
 **1. A CONTROL THAT IS ITSELF A LIVE ABILITY IS NOW VARIED, NOT CAPTIONED (#121).** The 15 rows were
 controlled by a second real mechanic because their carrier species has no quiet alternative — and

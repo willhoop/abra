@@ -1,6 +1,14 @@
 # ABRA — the model family (living reference)
 
-**Version 3.97.0 · Last updated 2026-08-10.**
+**Version 3.98.0 · Last updated 2026-08-10.**
+
+**3.98.0 — MEDICHAM: QUICK GUARD WAS THE ONLY BROKEN SOURCE OF PRIORITY REFUSAL.** Armor Tail, Dazzling,
+Queenly Majesty and Psychic Terrain all refuse a +1 move; Wide Guard correctly does not; Quick Guard did
+not either, on 927 uses. The two guards carry byte-identical tag lists, so the engine separated them by
+NAME in three places and Quick Guard resolved to a no-op turn. The separating param was already in
+`data/tags.json` and unread — `tag_dex.js` unchanged, no artifact regenerated. Census 354 → 357 live.
+MEDICHAM-only — nothing refitted, quarantine unchanged, no roster row claimed. **Not fixed and named:**
+`chooseAction` still name-matches `wideguard`, so a rollout will never click Quick Guard.
 
 **3.97.0 — MEDICHAM: THE DAMAGE WAS ONE ROLL MULTIPLIED BY N.** Triple Axel (half its real damage),
 Dragon Darts (both darts in one body, the partner untouched), Beat Up (every ally's power summed into one

@@ -10,6 +10,135 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.98.0] — 2026-08-10
+
+### Fixed
+- **THE ABILITIES CLAUSE OF THE MEDICHAM GATE WAS GREEN OVER 27% COVERAGE AND FIFTEEN UNMEASURED
+  ROWS. It now FAILS, on seven attributed engine defects.** (ROADMAP #120, #121, #122.)
+  `data/roster.abilities.json` read 84 FIRED-AND-BOARDS-MATCH / 217 COULD-NOT-STAGE / 15
+  CONTROL-NOT-QUIET and `engine/quarantine.js` printed `clean: 84 fired and matched` and PASSED.
+  After: **2 FIRED-AND-BOARDS-DIFFER, 5 DID-NOT-FIRE, 77 MATCH, 18 CONTROL-NOT-QUIET, 214
+  COULD-NOT-STAGE.**
+- **A CONTROL THAT IS ITSELF A LIVE ABILITY IS NOW VARIED RATHER THAN CAPTIONED (#121).** Where the
+  carrier species has a third ability, `tests/roster.js` plays the identical scenario a third time
+  against it and keeps only the leaves whose delta is the same against BOTH controls, in both engines
+  — so the measurement cannot depend on which ability was removed. 98 rows were varied this way. This
+  format has only 8 quiet abilities and none shares a species with any of the 15, and `buildPair`
+  clamps an ability to its species' own list, so no quiet control could ever have been lent in.
+- **It immediately caught EIGHT VACUOUS GREENS** — Anger Point, Justified, Rivalry, Keen Eye, Shell
+  Armor, Stalwart, Sticky Hold and Slush Rush agreed with the authority about the CONTROL's work
+  (Intimidate's −1 Attack on three of them, Weak Armor's and Gooey's drops, Stamina's boost,
+  Supersweet Syrup's evasion drop). Anger Point needs a crit the pin never lands; Rivalry needs a
+  gender and every body is built genderless.
+- **And it caught the instrument's own first answer.** "Nothing survives both controls" was called
+  INERT and that is wrong: Anger Point really is inert, Slush Rush is live and coincides with Snow
+  Cloak (evasion in snow makes the foe's drop miss — the same board by a different mechanism). Two
+  arms cannot separate those, so such a row is UNATTRIBUTABLE and says so.
+- **Six rows are DECLARED UNTESTABLE with the pool printed** — Aroma Veil, Flower Veil, Fluffy,
+  Imposter, Rain Dish, Solar Power. Derived from the format every run, so a regulation change retires
+  the declaration without anybody remembering to.
+
+### Added
+- **THE GATE CLAUSE STATES ITS DENOMINATOR (#120).** `data/roster.*.json` carries a `scope` block
+  written at the refusal (`cannot(why, 'no-legal-carrier')`, tagged where the refusal happens, never
+  matched out of prose), and `engine/quarantine.js` reads it. The abilities clause now reads
+  `84 TESTED of 201 IN SCOPE, of 316 total (115 have NO LEGAL CARRIER in this format)` and names all
+  18 unattributable rows. An artifact predating the block says **DENOMINATOR NOT CARRIED** and names
+  the re-run rather than defaulting to zero.
+- **THE ABILITY STAGE CAN ASK FOR A SWITCH (#122), and it closes zero rows.**
+  `ability/traps-and-somebody-tries-to-leave` reuses the moves stage's `switchVerdict` rather than
+  building a second probe. Arena Trap and Magnet Pull have no legal carrier in this format; Shadow
+  Tag's only carrier is Gengar-Mega, whose ability the forme change writes, so its only control is
+  suppression — measured dead here (6 leaves in Showdown, 0 in medicham2). The capability proves
+  itself: `abilitySwitchWorks()` plays the same fixture with a NON-trapping carrier and requires both
+  engines to complete the ask, printed as a selftest line so it can go red.
+- `tests/roster.js --keep-shared` leaves `data/roster.json` alone, for a division running beside
+  another that holds the shared convenience copy.
+
+### Notes
+- **A carrier tie-break was tried and taken back out.** Ranking "has a third ability" above bulk buys
+  Rain Dish and Solar Power a second control — and moves Water Absorb onto Politoed, whose
+  highest-ranked alternative is DRIZZLE, and Sand Rush and Sand Force onto Excadrill, where the
+  staging is inert. Changing the fixture to suit the control is the wrong trade.
+- **The seven new reds are ENGINE defects and are not fixed here** — Electromorphosis (Charge never
+  applies), Ice Body (no snow residual heal), Curious Medicine (ally stat stages not reset on entry),
+  Reckless (no recoil-move base-power boost), Sweet Veil (ally not protected from sleep), Mirror
+  Armor (drop not reflected), Supersweet Syrup (evasion drops twice here, once in Showdown).
+- **The judgement call, stated so it can be overruled:** an unattributable row is REPORTED in the
+  clause text and does not hold the gate shut. Six of the 18 are untestable in this format by
+  construction and a clause that can never open is not a gate.
+
+
+
+- **ROADMAP #126 — QUICK GUARD WAS THE ONLY BROKEN SOURCE OF PRIORITY REFUSAL, AND THE ENGINE WAS
+  TELLING THE TWO SIDE GUARDS APART BY NAME.** Will: *"have quick guard block all prio moves and test
+  it against some prio moves not that hard"*, then *"its like armor tail"* — and the second sentence
+  is the diagnosis. A +1 priority attack staged against each source of refusal in turn, on the frozen
+  release, control first:
+
+  ```
+  CONTROL  no guard          25   landed
+  Armor Tail 0  Dazzling 0  Queenly Majesty 0  Psychic Terrain 0     all REFUSED
+  Wide Guard                 25   landed     <- CORRECT: it stops SPREAD, not priority
+  Quick Guard                25   LANDED     <- the only broken source, 927 corpus clicks
+  ```
+
+  `quickguard` and `wideguard` carry **byte-identical tag lists** (`priority, neverMisses,
+  oneTurnGuard, statusCategory`), so three sites separated them by spelling:
+
+  | site | what it said | what it cost |
+  |---|---|---|
+  | `playerActionPrimary` | `if(id==='wideguard')` | Quick Guard fell through the cascade to `{kind:'pass'}` — a wasted turn on every click |
+  | `buildMon`'s usable filter | `id==='wideguard'` | a declared Quick Guard was deleted from the body before any turn ran |
+  | the field | `wgA:false, wgB:false` | a boolean pair whose NAME was the only record of what it guarded against |
+
+- **`engine/tag_dex.js` did not change and no artifact was regenerated.** `data/tags.json` has carried
+  `oneTurnGuard.blocks` — `"priority moves"` / `"spread moves"`, derived from each move's own
+  `condition.onTryHit` — since the tag was written, and nothing read it. Membership printed before
+  wiring: exactly **2** of 500 moves carry `oneTurnGuard`; `ignoresProtect` carries **14** and all 14
+  genuinely lack `flags.protect` upstream.
+- **Wired onto the gate the ability sources already use**, above the action-kind dispatch, which is
+  what makes a Prankster-boosted status move refusable — Showdown tests the *final* priority
+  (`if (move.priority <= 0.1) return`). It does not fold into `priorityRefusedAbove`'s single return
+  value, because a side condition has its own announcement and its own bypass rule. Spread is answered
+  per body downstream so Wide Guard keeps emitting one `-activate` line per shielded body.
+
+### Added
+- **Three census probes, each shown red first and each carrying a third arm**, because a two-arm probe
+  passes on an engine that makes every guard block everything: Quick Guard blocks a +1 move
+  (28 → **0**) *while Wide Guard on the same board still reads 28*; Quick Guard refuses a
+  Prankster-boosted Thunder Wave (`par` → **`none`**) *while the same move with no Prankster through
+  the same guard still reads `par`*; Feint (no `protect` flag) deals 29 through a Quick Guard that
+  reads 0 against Bullet Punch.
+- **The first probe written for this was broken and the failure is recorded rather than tidied away.**
+  It used Sucker Punch, which fails unless the target is attacking — the defender was passing, so every
+  arm *including the control* read 0 and the board looked like universal refusal.
+- Counters `MEDSEEN.sideGuardBlocked` (one for the family, since the guard is re-derived from the
+  artifact) and `MEDFAILS.guardClassUnknown` (an artifact class this engine has no predicate for — 0).
+
+### Changed
+- Census **354 → 357 live, 357 probed, 0 missing, 0 threw, 0 hollow, 0 unarmed, 0 direct-call.**
+  Wide Guard's two existing probes are unchanged and green.
+- `tests/probe_red_demo.js`: one demonstration re-aimed and one reversal re-anchored, and the reason is
+  itself the finding — that file used **Quick Guard as its example of a click the engine models nothing
+  for**, which is no longer true. Re-aimed onto `psychup`, which the neighbouring case already asserted.
+
+### Notes
+- **Named and deliberately not fixed:** `chooseAction` still name-matches `wideguard`, so a rollout will
+  never click Quick Guard (measured: 40 games, 326 turns, `sideGuardBlocked` 0) — the mechanic is live
+  through `playerAction`, which is what the live bot, the differential and every probe use. A side guard
+  does not fail when its user holds the last action (`onTry: willAct`, a pre-existing Wide Guard gap).
+  Wide Guard does not stop spread *status* moves. `ABRA_TAGS_OFF=1` now loses Wide Guard too, because
+  the classifier asks the tag.
+- **The stall counter, stating which behaviour was assumed (ROADMAP #59).** The authority: a side guard
+  never rolls a consecutive-use die, but does `addVolatile('stall')`, which makes a later Protect fail.
+  Assumed here: the first half only. The pre-pass line that resets `tookProtectTurns` is byte-identical
+  to what it was, so nothing about Protect moved.
+- MEDICHAM-only. Nothing refitted, quarantine unchanged, **no roster row claimed closed** — `tests/roster.js`
+  was not run. PDFs not rebuilt.
+
+---
+
 ## [3.97.0] — 2026-08-10
 
 ### Fixed

@@ -194,7 +194,7 @@ const bare = (sp) => { const m = M.buildMon(sp, {}); m.item = ''; m.ability = 'n
 /* THE SAME FUNCTION THE TURN LOOP CALLS, over two real bodies at an identical Speed, with a REAL die.
  * Read off the sort rather than off a battle, because the reading has to be "which action came out
  * first" and a battle only exposes that through a consequence. */
-const FIELD = { weather: '', terrain: '', twA: 0, twB: 0, tr: 0, wgA: false, wgB: false };
+const FIELD = { weather: '', terrain: '', twA: 0, twB: 0, tr: 0, sgA: {}, sgB: {} };
 const N = 400;
 let later = 0;
 for (let i = 0; i < N; i++) {

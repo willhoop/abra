@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-10T04:42:09.670Z",
+  "generated": "2026-08-10T05:15:55.688Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 354,
-  "live": 354,
+  "probed": 357,
+  "live": 357,
   "missing": 0,
-  "armed": 354,
+  "armed": 357,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -507,6 +507,36 @@
       "label": "Wide Guard blocks a spread move",
       "live": true,
       "detail": "ally took 92 without  ->  0 behind Wide Guard",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "oneTurnGuard",
+      "label": "Quick Guard blocks a +1 priority move and Wide Guard does not",
+      "live": true,
+      "detail": "Bullet Punch (+1) at the PARTNER — no guard 28, behind Quick Guard 0 (must be 0), behind Wide Guard 28 (must equal the control: Wide Guard stops spread, not priority)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "oneTurnGuard",
+      "label": "Quick Guard refuses a PRANKSTER-boosted status move, not a plain one",
+      "live": true,
+      "detail": "Whimsicott's Thunder Wave at the partner — no guard par, Prankster into Quick Guard none (must be none), the SAME move with no Prankster into the same Quick Guard par (must be par — priority 0 is not refused)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "ignoresProtect",
+      "label": "Feint goes through Quick Guard; a flagged priority move does not",
+      "live": true,
+      "detail": "behind one Quick Guard — Bullet Punch (+1, carries flags.protect) dealt 0 (must be 0), Feint (+2, no protect flag) dealt 29 (must be > 0 and equal to the 29 it deals with no guard up at all)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2446,7 +2476,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.0% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.5% (format 20, generic 30), control Rock Slide 27.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

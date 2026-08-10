@@ -26,7 +26,7 @@ const M = require(D('engine', 'medicham2-browser.js'));
 const TAGS = require(D('engine', 'tags.js'));
 
 const bare = (sp) => { const b = M.buildMon(sp, {}); if (!b) throw new Error('no MC row for ' + sp); b.item = ''; b.ability = 'none'; return b; };
-const FIELD = () => ({ weather: '', terrain: '', twA: 0, twB: 0, tr: 0, wgA: false, wgB: false });
+const FIELD = () => ({ weather: '', terrain: '', twA: 0, twB: 0, tr: 0, sgA: {}, sgB: {} });
 const rng5 = () => 0.5;
 
 const clone = o => JSON.parse(JSON.stringify(o));
@@ -2405,9 +2405,15 @@ demoSource('ROADMAP #81 WIRE 6  a move the engine models NOTHING for still annou
  *    condition read `_mid && a.kind!=='pass'`; restoring the kind test leaves playerAction stamping
  *    the id correctly and the line still never reaches the stream. Trick Room must keep announcing on
  *    BOTH engines here - that is what makes this case about the gate rather than about the id. */
+/*    RE-AIMED 2026-08-10 (ROADMAP #126), AND THE REASON IS THE FINDING. This case used QUICK GUARD
+ *    as its example of a `{kind:'pass'}` click, and Quick Guard is no longer one: it now resolves as
+ *    a real side guard, so the reverted engine kept announcing it and the demonstration stopped
+ *    flipping. Psych Up (still `{kind:'pass',mv:'psychup'}`, and already the second half of case 2)
+ *    is the replacement. Nothing about the CLAIM changed -- only the move that can still exhibit it.
+ *    Case 2 above is untouched because it already asserted psychup beside quickguard. */
 demoSource('ROADMAP #81 WIRE 6  the announcement is gated on THE MOVE, not on the kind being liked',
   [['        if(TR&&_mid){', "        if(TR&&_mid&&a.kind!=='pass'){"]],
-  (E) => W6.controls(E) && W6.says(E, 'trickroom') && W6.says(E, 'quickguard'));
+  (E) => W6.controls(E) && W6.says(E, 'trickroom') && W6.says(E, 'psychup'));
 
 /* ================= ROADMAP #81 WIRE 7 — SEVEN TARGETS, EIGHT REVERTS ==============================
  *
@@ -2886,11 +2892,15 @@ demoSource('ROADMAP #81 WIRE 9  a MISS names its targets and an impossible move 
  *     The reverted arm is the engine's own text — the target list emptied BEFORE the announcement,
  *     which is why the line named nobody. */
 demoSource('ROADMAP #81 WIRE 9  Wide Guard names each body it shielded',
-  [['      if(a.move.spread&&((it.side===\'A\'&&field.wgB)||(it.side===\'B\'&&field.wgA))){\n'
-  + '        if(TR)for(const _wg of targets)TR.act(_wg,\'move: Wide Guard\');\n'
-  + '        targets=[];}',
-    '      if(a.move.spread&&((it.side===\'A\'&&field.wgB)||(it.side===\'B\'&&field.wgA))){targets=[];\n'
-  + '        if(TR)TR.push([\'-activate\',\'\',"move: Wide Guard"]);}']],
+  /* RE-ANCHORED 2026-08-10 (ROADMAP #126). The lines this reverts were rewritten when the side
+   * guards stopped being a boolean pair named after Wide Guard and started reading the artifact's
+   * `oneTurnGuard.blocks`; the CLAIM is unchanged, so the mutation is the same one -- empty the
+   * target list first and write a single body-less line. */
+  [['        if(_gid){\n'
+  + '          if(TR)for(const _wg of targets)TR.act(_wg,\'move: \'+sideGuardName(_gid));\n'
+  + '          targets=[];}',
+    '        if(_gid){targets=[];\n'
+  + '          if(TR)TR.push([\'-activate\',\'\',"move: "+sideGuardName(_gid)]);}']],
   (E) => {
     const run = (guard) => {
       const { me, ally, f1, f2, S } = W7.board(E, 'charizard', 'incineroar', 'garchomp', 'milotic');

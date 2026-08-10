@@ -1,6 +1,17 @@
 # ABRA — Technical Documentation
 
-**Version 3.97.0 · Last updated 2026-08-10**
+**Version 3.98.0 · Last updated 2026-08-10**
+
+**3.98.0 — READ THE TAG PARAMETER. DO NOT MATCH THE MOVE NAME.**
+The moves Quick Guard and Wide Guard have the same four tags.
+The tag `oneTurnGuard` has a parameter `blocks`. The value is "priority moves" or "spread moves".
+The simulator did not read the parameter. It matched the name "wideguard" in three places.
+The move Quick Guard became the action `pass`. The action `pass` does nothing. This is 927 uses.
+Read the parameter. Store the guard by its move identifier. Derive the class at each read.
+Test the final priority. A status move with the ability Prankster has a priority of +1.
+Do not block a move without the flag `protect`. The move Feint has no such flag.
+Put the test beside the ability test, above the action dispatch. A status move does not reach the attack branch.
+Do not put the spread test there. A spread move needs one message for each protected body.
 
 **3.97.0 — GIVE EACH HIT ITS OWN ROLL. DO NOT MULTIPLY ONE ROLL.**
 The function `dmgRange` made one damage roll. It multiplied the roll by the number of hits.

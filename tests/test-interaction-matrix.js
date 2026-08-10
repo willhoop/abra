@@ -235,7 +235,7 @@ function runState(c) {
 /* ================================================================================================
  * EVALUATOR 2 — DAMAGE.  A RATIO, so the spread, the formula and the roll all cancel.
  * ============================================================================================= */
-const FIELD0 = { weather: '', terrain: '', twA: 0, twB: 0, tr: 0, wgA: false, wgB: false };
+const FIELD0 = { weather: '', terrain: '', twA: 0, twB: 0, tr: 0, sgA: {}, sgB: {} };
 function runDamage(c) {
   const out = { evaluator: 'damage' };
   const atkSide = c.reactor.side === 'atk';

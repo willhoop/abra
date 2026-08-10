@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  354/354 probed mechanics live, 0 missing   (census 2026-08-10 04:39)
-  0/150 differential comparisons disagree with Showdown   (2026-08-10 03:54)
+  357/357 probed mechanics live, 0 missing   (census 2026-08-10 05:04)
+  0/150 differential comparisons disagree with Showdown   (2026-08-10 04:55)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
@@ -57,9 +57,121 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 186/197 probed, 11 unprobed
 ```
 
-_stamped 2026-08-10 04:41_
+_stamped 2026-08-10 05:05_
 
 <!-- /GENERATED -->
+
+## ROADMAP #126 — QUICK GUARD WAS THE ONLY BROKEN SOURCE OF PRIORITY REFUSAL, AND THE TWO GUARDS CARRY BYTE-IDENTICAL TAGS. 2026-08-10.
+
+Census **354 live / 354 probed → 357 live / 357 probed**. `missing` **0**, `threw` **0**, `hollow`
+**0**, `unarmed` **0**, `directCall` **0** — all held. New counters: `MEDSEEN.sideGuardBlocked`,
+`MEDFAILS.guardClassUnknown`.
+
+Will: *"have quick guard block all prio moves and test it against some prio moves not that hard"*,
+then *"its like armor tail"*. The second sentence is the diagnosis and it turns a mechanic into a
+wiring job.
+
+### THE BOARD, MEASURED BEFORE ANYTHING WAS TOUCHED
+
+A +1 priority attack into a defender, one source of refusal varied and nothing else. **Five of six
+sources were already right**, and all five already resolve through one function
+(`priorityRefusedAbove`):
+
+```
+CONTROL  no guard          25   landed
+Armor Tail                  0   REFUSED
+Dazzling                    0   REFUSED
+Queenly Majesty             0   REFUSED
+Psychic Terrain             0   REFUSED
+Wide Guard                 25   landed     <- CORRECT: it stops SPREAD, not priority
+Quick Guard                25   LANDED     <- the only broken source
+```
+
+### THE CAUSE IS A NAME MATCH — THE THING THIS REPO FORBIDS — IN THREE PLACES
+
+`quickguard` and `wideguard` carry **byte-identical tag lists**: `priority, neverMisses,
+oneTurnGuard, statusCategory`. So the engine told them apart by spelling.
+
+| site | what it said | what it cost |
+|---|---|---|
+| `playerActionPrimary` | `if(id==='wideguard')` | Quick Guard fell through the entire cascade to `{kind:'pass'}` — **927 corpus clicks bought a wasted turn** |
+| `buildMon`'s usable filter | `id==='wideguard'` | a sheet's Quick Guard was **deleted from the body** before the turn loop ever saw it |
+| the field | `wgA:false, wgB:false` | a boolean pair whose **NAME was the only record of what it guarded against** |
+
+**`engine/tag_dex.js` DID NOT CHANGE AND DID NOT NEED TO, AND THAT IS THE FINDING.**
+`data/tags.json` has carried `oneTurnGuard.blocks` — `"priority moves"` / `"spread moves"` — derived
+from each move's own `condition.onTryHit` since the tag was written. **Nothing read it.**
+`data/tags.json` and `data/abra-tags.js` were **not regenerated**, so there is no artifact diff.
+
+**MEMBERSHIP PRINTED BEFORE WIRING** (LESSONS §4): exactly **two** of 500 moves carry `oneTurnGuard`,
+and they are these two. Crafty Shield and Mat Block are `isNonstandard: 'Past'` here and absent from
+the artifact entirely. `ignoresProtect`, the bypass rule, carries **14** — all 14 genuinely lack
+`flags.protect` upstream, so all 14 genuinely bypass.
+
+### WHERE IT LANDED, AND WHY THERE
+
+Beside the ability bar at **WIRE 85's gate, above the kind dispatch**, because *"its like armor
+tail"* is literally true: same question, same `+_pk` Prankster term, same side, same "only a move
+aimed at the other side" scope. Inside the attack branch it would have missed every
+Prankster-boosted status move, **which is more than half of what Quick Guard is for**.
+
+It does **not** fold into `priorityRefusedAbove`'s return. That function answers "above what priority
+is a move refused" as one number over abilities and terrain; a side guard has its own announcement
+and its own bypass rule, and folding it in would lose both. **Two sources, one gate.**
+
+Spread is **excluded at that gate on purpose** and answered per body downstream — ROADMAP #81 WIRE 9
+is the fix that made Wide Guard emit one `-activate` line per shielded body, and answering spread at
+a whole-action gate would collapse those two lines back into one.
+
+### THE THREE PROBES, EACH RED FIRST, EACH WITH A THIRD ARM
+
+A two-arm probe passes on an engine that makes **every** guard block **everything** — the obvious
+wrong fix. So each carries a cross-control:
+
+| probe | red → green | the arm that stops the wrong fix |
+|---|---|---|
+| `move\|oneTurnGuard` Quick Guard blocks a +1 priority move | Bullet Punch at the PARTNER 28 → **0** | **Wide Guard on the same board still reads 28** |
+| `move\|oneTurnGuard` Quick Guard refuses a PRANKSTER-boosted status move | Thunder Wave `par` → **`none`** | the **same** move with **no Prankster** through the **same** guard still reads `par` |
+| `move\|ignoresProtect` Feint goes through Quick Guard | — | Bullet Punch behind that guard reads **0**; Feint reads **29**, equal to its unguarded 29 |
+
+**MY FIRST PROBE WAS BROKEN AND IT IS THE INSTRUCTIVE PART.** It used **Sucker Punch**, which fails
+unless the target is attacking — the defender was passing, so every arm **including the control**
+read 0 and the board looked like universal refusal. The shipped probes use an *unconditional*
+priority move and **always print the control landing**.
+
+**WIDE GUARD DID NOT REGRESS** — both existing probes green: `ally took 92 without → 0 behind Wide
+Guard`, and `2 -activate lines, one per body, 0 damage`.
+
+### FOUND AND DELIBERATELY NOT FIXED
+
+- **`chooseAction` STILL NAME-MATCHES `wideguard`, SO A ROLLOUT WILL NEVER CLICK QUICK GUARD.**
+  Measured: 40 self-play games, 326 turns, bodies handed both guards — `sideGuardBlocked` **0**. The
+  mechanic is live through `playerAction` (the live bot, the differential and every probe), but the
+  internal heuristic chooser cannot select it. Wiring that is a **play** change with no correctness
+  probe available.
+- **A SIDE GUARD DOES NOT FAIL WHEN ITS USER HOLDS THE LAST ACTION** — both conditions carry
+  `onTry() { return !!this.queue.willAct(); }`. WIRE 119 implements it for `kind:'protect'` and never
+  has for `kind:'wideguard'`. Pre-existing Wide Guard gap; needs its own failing probe.
+- **THE STALL COUNTER — WHICH BEHAVIOUR WAS ASSUMED, AND WHY.** ROADMAP #59. The authority: a side
+  guard **never** rolls a consecutive-use die (neither condition calls `runEvent('StallMove')`) but
+  **does** `addVolatile('stall')`, which makes a *later Protect* fail. **Assumed here: the first half
+  only**, matching the authority. The engine's pre-pass **resets** `tookProtectTurns` where the
+  authority advances it; that line is byte-identical to what it was, so nothing about Protect moved.
+- **WIDE GUARD DOES NOT STOP SPREAD *STATUS* MOVES** — the authority's condition has no category test.
+  The same derivation would close it. **Not taken on without its own failing probe.**
+- **`ABRA_TAGS_OFF=1` NOW LOSES WIDE GUARD TOO**, because the classifier asks the tag and the OFF stub
+  answers null. That is the switch's stated purpose (revert to pre-artifact behaviour) but it is a
+  change to that arm, named here rather than discovered later.
+
+### THE HAND LIST IS UNCHANGED
+
+Quick Guard was never on it — it came off the ROADMAP register, where #126 points at this file. The
+list is still empty except for Rivalry, which has never been probeable.
+
+**ROADMAP #126's ROW IS NOT MARKED CLOSED BY ME**, and `tests/roster.js` was not run: another agent
+is in it, and a roster verdict is not something this section may claim.
+
+---
 
 ## WIRE 147 — THE DAMAGE WAS ONE ROLL MULTIPLIED BY N. FOUR MOVES, ONE ROOT CAUSE, AND TWO OF THEM WERE 2x. 2026-08-10.
 

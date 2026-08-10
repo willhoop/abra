@@ -1,6 +1,25 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 3.97.0 · Last updated 2026-08-10**
+**Version 3.98.0 · Last updated 2026-08-10**
+
+**3.98.0 — FIVE OF SIX SOURCES OF PRIORITY REFUSAL WERE CORRECT; THE SIXTH TOLD ITSELF APART BY NAME.**
+A +1 priority attack was staged against each source in turn on the frozen release. Armor Tail, Dazzling,
+Queenly Majesty and Psychic Terrain all refused it (0 damage against a control of 25); Wide Guard let it
+through, correctly, because it stops spread moves rather than priority ones; **Quick Guard let it through
+too**, and that is a defect on 927 corpus clicks. The cause is that `quickguard` and `wideguard` carry
+*byte-identical tag lists* — `priority, neverMisses, oneTurnGuard, statusCategory` — so three sites in the
+simulator separated them by spelling: the action classifier (`if(id==='wideguard')`, which sent Quick Guard
+to the no-op `{kind:'pass'}` branch), the move-legality filter in `buildMon` (which deleted Quick Guard from
+a declared body before any turn ran), and the field state itself (a boolean pair whose *name* was the only
+record of what it guarded against). The parameter that separates them — `oneTurnGuard.blocks`, derived by
+`tag_dex` from each move's own `condition.onTryHit` — has been in `data/tags.json` since the tag was
+written and nothing read it, so **`engine/tag_dex.js` did not change and no artifact was regenerated.**
+The refusal is wired onto the same gate the ability sources already use, above the action-kind dispatch,
+which is what makes a Prankster-boosted status move refusable (Showdown tests the *final* priority:
+`if (move.priority <= 0.1) return`). Feint and the other thirteen moves lacking `flags.protect` still break
+through, by the same rule the authority applies. `data/mechanics-census.json` now reads **357 live and 357
+probed**, three more than before this wire; Wide Guard's two existing probes are unchanged and green. The
+roster and the differential were not run and no roster row is claimed closed.
 
 **3.97.0 — THE DAMAGE FUNCTION WAS ONE ROLL MULTIPLIED BY N, AND FOUR MOVES PAID FOR IT.** `dmgRange`
 ended `if(_hits>1) return {min: floor(roll(85)*_hits), max: floor(roll(100)*_hits)}`: everything a hit owns
@@ -15,8 +34,10 @@ above the line stating the averaging as a deliberate choice. The fix is a per-hi
 the artifact says base power depends on the hit index, so single-hit damage is unchanged **by
 construction** — and measured anyway: every move in the tag corpus, four real turns each, whole-board
 digests against the frozen release, **2,000 cells and 11 differences across exactly these four moves**.
-`data/mechanics-census.json` now reads 354 live and 354 probed, four more than before this wire.
-No roster row is claimed closed; the roster and the differential were not run.
+`data/mechanics-census.json` read 354 live and 354 probed at that release, four more than before this
+wire — a figure that has since moved on, and is quoted here as what the census previously held rather
+than what it holds now (3.98.0 took it to 357). No roster row is claimed closed; the roster and the differential
+were not run.
 
 **3.96.0 — THE ITEMS QUEUE WENT 6 TO 3, AND NOT ONE OF THE THREE WAS A MISSING MECHANIC.** Each was a
 producer that could not name its member. `speedMult` was hardcoded to `name === 'choicescarf'`, so
