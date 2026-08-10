@@ -175,9 +175,28 @@ const NOT_EMITTED = {
   replace: 'Illusion is not modelled (ROADMAP #67), so nothing is ever revealed.',
   swap: 'Ally Switch is not modelled.',
   '-swapsideconditions': 'Court Change is not modelled.',
-  '-invertboost': 'Topsy-Turvy is not modelled.',
-  '-copyboost': 'Psych Up is not modelled.',
-  '-swapboost': 'Heart Swap / Power Swap are not modelled.',
+  /* WIRE 151, 2026-08-10 -- THESE THREE REASONS WERE "X IS NOT MODELLED" AND THAT IS NO LONGER TRUE.
+   * Topsy-Turvy, Psych Up, Guard Swap and Power Swap all resolve now (statChangeInCode.op), and the
+   * STATE they produce is correct and probed. What is still absent is the ANNOUNCEMENT, and the reason
+   * is a real one rather than an oversight: all four use `setBoost` or a raw `boosts[i] =` assignment,
+   * neither of which produces a `-boost`/`-unboost` line, so there is no per-stat delta for the
+   * existing emitter to carry and the authority's own one-line event would have to be claimed in
+   * TRACE_EVENTS -- where tests/test-protocol-trace.js requires every claimed event to FIRE in its
+   * scripted games. Emitting without claiming would trip that file's unclaimed-event check instead.
+   * Acupressure is the family member that DOES announce, because it alone calls `this.boost(...)`;
+   * it emits `-boost` through the ordinary emitter and is not listed here.
+   * The reason is corrected rather than left standing, because a stale "not modelled" is exactly the
+   * shape of the two evasion comments this same wire had to retract. */
+  '-invertboost': 'Topsy-Turvy IS modelled as of WIRE 151 and its stage inversion is probed; the '
+    + 'raw `boosts[i] = -boosts[i]` assignment emits no line in this engine, and `-invertboost` is '
+    + 'not claimed in TRACE_EVENTS. The STATE is right and the ANNOUNCEMENT is owed.',
+  '-copyboost': 'Psych Up IS modelled as of WIRE 151 and its whole-vector copy is probed; '
+    + '`source.boosts[i] = target.boosts[i]` emits no line in this engine, and `-copyboost` is not '
+    + 'claimed in TRACE_EVENTS. The STATE is right and the ANNOUNCEMENT is owed.',
+  '-swapboost': 'Guard Swap and Power Swap ARE modelled as of WIRE 151 and their stat-pair exchange '
+    + 'is probed; `setBoost` emits no line in this engine, and `-swapboost` is not claimed in '
+    + 'TRACE_EVENTS. Heart Swap is isNonstandard Past and unplayable here. The STATE is right and the '
+    + 'ANNOUNCEMENT is owed.',
   '-setboost': 'no move in this engine SETS a stage; Belly Drum adds +12 half-stages through '
     + 'statChangeInCode and is emitted as `-boost`, which is what Showdown\'s gen-9 bellydrum does too.',
   '-clearpositiveboost': 'Spectral Thief is not modelled.',

@@ -50,6 +50,32 @@ Census **330 live / 330 probed / 0 missing**. Damage stages **1728/1728 exact**.
 
 | 7 | **Counter, Mirror Coat, Metal Burst, Comeuppance** | 16 | **ENGINE FIXED AND VERIFIED — ROSTER ROW HAS NOT MOVED, CAUSE UNKNOWN.** See the open item below. | DID-NOT-FIRE → *unchanged* |
 | 8 | **Cotton Spore, String Shot, Sweet Scent** (+ Teeter Dance, which was not a roster row) | — | the `affect` branch resolved ONE `_t`, so every spread STATUS move moved slot 0 and left slot 1 alone. Target list derived from `spreadFoes` / `spreadAll`, gauntlet run per body. **Roster not re-run by me** — `tests/roster.js` is Will's to run against a frozen tree | DID-NOT-FIRE → *awaiting the roster re-run* |
+| 9 | **Guard Swap, Power Swap, Psych Up, Topsy-Turvy, Acupressure** (WIRE 151) | 99 | all five resolved to `{kind:'pass'}` — a whole no-op turn — because both doors out of `statChangeInCode` demand a LITERAL boost table and all five carry `{procedural:true}`. Belly Drum and Strength Sap, the only two members WITH `boosts`+`on`, were the only two that worked. Fixed at the DERIVATION: `statChangeInCode` gained an **`op` descriptor beside `boosts`, never inside it** (`exchange` / `copy` / `invert` / `randomOne`, each with its stat subset), read out of each handler's own shape; one engine primitive `applyStatOp` consumes all four. `data/tags.json` + `data/abra-tags.js` regenerated: **0 entities removed, 0 added, 5 changed**. **Roster not re-run by me** | DID-NOT-FIRE → *awaiting the roster re-run* |
+
+Census, out of `data/mechanics-census.json`: **364 live, 364 probed, 0 missing, 0 threw, 0 hollow,
+0 unarmed, 0 directCall**. The before-state, the damage-stage gate and every other figure for this row
+are in `docs/ENGINE.md`'s WIRE 151 section, each beside the measurement it came from.
+
+**WIRE 151, the parts a one-line row cannot carry** (full section in `docs/ENGINE.md`):
+- the first `randomOne` shape rule **over-matched** — a bare `this.sample(` claimed Sleep Talk,
+  Metronome, Assist and Conversion 2, which pick a MOVE. Tightened to require a `.boosts[…] < N`
+  ceiling AND a `this.boost(` call; final membership over 954 moves is six, the fifth being Heart Swap
+  (`isNonstandard: 'Past'`, unplayable here). Printed before wiring, per docs/LESSONS.md 4;
+- **two stale comments retracted in place with measurements**, both claiming evasion is *"a stat this
+  engine has no slot for"*: a real Defog click moves the target's `eva` 0 → −1, and a Supersweet Syrup
+  switch-in puts BOTH foes at `eva` −1. All seven slots exist. It matters — Psych Up copies accuracy
+  and evasion, Topsy-Turvy inverts them, Acupressure can draw them;
+- **one pre-existing defect fixed because this wire would have extended it**: the `affect` branch's
+  Protect gate was a bare `if(_t.protect)` with no `ignoresProtect` clause, so it also blocked
+  **Tearful Look**, which goes straight through a Protect in the authority. Measured before/after with
+  Charm as the control (still blocked, correctly);
+- blast radius: every move in `data/tags.json` × 6 scenarios × 2 real turns, whole-board digest —
+  **879,848 cells, 126 differ, 5 moves, 0 THREW on both arms**. The throw count is printed beside the
+  diff count because WIRE 150's first sweep read "0 differ" over 3,000 cells that had all thrown;
+- **a release was cut that I did not intend**: `tests/test-nature-differential.js` requires
+  `engine/game_differential.js`, whose line 126 auto-cuts when `REL_ID` is unpinned. Release
+  `ea58415e1cd8` was cut over the mid-work tree and `data/engine-release.json`'s `current` moved from
+  `cb831e50eafb`. **Left exactly as written, nothing reverted or deleted** — see ENGINE.md.
 
 **ITEMS CLAUSE CLOSED: 6 open → 0. The gate is now 3 of 4 PASS.**
 

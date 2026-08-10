@@ -1,10 +1,10 @@
 {
-  "current": "cb831e50eafb",
-  "cut": "2026-08-10T06:10:10.870Z",
-  "why": "heal rounds where Showdown rounds",
-  "cuts": 1,
-  "latest_cut": "2026-08-10T06:10:10.870Z",
-  "latest_why": "heal rounds where Showdown rounds",
-  "pointer_written": "2026-08-10T06:10:10.873Z",
+  "current": "ea58415e1cd8",
+  "cut": "2026-08-10T06:34:15.401Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "cuts": 4,
+  "latest_cut": "2026-08-10T06:43:24.317Z",
+  "latest_why": "procedural stat ops: swap, copy, invert, acupressure",
+  "pointer_written": "2026-08-10T06:43:24.321Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

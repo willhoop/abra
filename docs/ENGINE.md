@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  359/359 probed mechanics live, 0 missing   (census 2026-08-10 06:01)
-  0/150 differential comparisons disagree with Showdown   (2026-08-10 05:52)
+  364/364 probed mechanics live, 0 missing   (census 2026-08-10 06:36)
+  0/150 differential comparisons disagree with Showdown   (2026-08-10 06:10)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
@@ -57,9 +57,211 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 186/197 probed, 11 unprobed
 ```
 
-_stamped 2026-08-10 06:08_
+_stamped 2026-08-10 06:39_
 
 <!-- /GENERATED -->
+
+## WIRE 151 — THE PROCEDURAL STAT-CHANGE FAMILY. FIVE MOVES, ONE CLASSIFIER GATE, AND THE TAG HAD NO SHAPE TO SAY "OPERATION" IN. 2026-08-10.
+
+Census **359 live / 359 probed → 364 live / 364 probed**, `missing` **0**, `threw` **0**, `hollow`
+**0**, `unarmed` **0**, `directCall` **0**. Damage stages **1728/1728 exact**, unchanged. Five new
+probes, each watched RED on its own before the engine changed. **No release was cut by me** — but one
+*was* cut, by a gate, and that is reported at the bottom of this section rather than buried. Neither
+`tests/roster.js` nor `tests/test-engine-diff.js` was run.
+
+Guard Swap, Power Swap, Psych Up, Topsy-Turvy and Acupressure all resolved to `{kind:'pass',mv:id}` —
+a whole no-op turn — and the split was decisive rather than suggestive. The two doors out of the
+`statChangeInCode` block both demand a **literal boost table**:
+
+```js
+if(_sc3&&_sc3.boosts&&_sc3.on==='user')   return {kind:'statcode',mv:id};
+if(_sc3&&_sc3.boosts&&_sc3.on==='target') return {kind:'affect',...};
+```
+
+All five carry `{procedural:true}` and nothing else. The only two members that DO carry `boosts`+`on`
+— Belly Drum `{atk:12}/user` and Strength Sap `{atk:-1}/target` — are the only two that read MATCH.
+**5/5 red, 2/2 green, on that one param**, and both controls stayed green throughout.
+
+### THE FIX IS AT THE DERIVATION, NOT AT THE ENGINE. `op` IS A THIRD SHAPE BESIDE `boosts`.
+
+The old comment in `tag_dex.js` said these five "are not expressible as a stage table … they keep the
+tag, get no numbers, and stay visibly unwired". The first half is true and the conclusion does not
+follow. They are not tables; they are **operations**, and an operation is as derivable from a handler
+as a table is. At the engine all five are one primitive — *read a body's boost vector, transform it,
+write it to a named body* — so they are **one function**, `applyStatOp`. At the derivation they are
+five, and that is where the work was:
+
+| move | uses | reads | transform | writes | derived `op` |
+|---|---|---|---|---|---|
+| Guard Swap | 2 | both bodies | exchange | both | `{kind:'exchange', stats:['def','spd']}` |
+| Power Swap | 11 | both bodies | exchange | both | `{kind:'exchange', stats:['atk','spa']}` |
+| Psych Up | 68 | target | copy | user | `{kind:'copy', stats:'all', from:'target', to:'user'}` |
+| Topsy-Turvy | 16 | target | negate nonzero | target | `{kind:'invert', stats:'all', nonzeroOnly:true}` |
+| Acupressure | 2 | target, stats `< 6` | random pick, +2 | target | `{kind:'randomOne', stats:'all', amount:2, below:6}` |
+
+`op` is **disjoint from `boosts`** over the whole move table — measured, every member carries one or
+the other and never both — so a consumer reading `boosts` keeps working unchanged and cannot be
+handed a table nobody derived. `stats` is an explicit array when the handler names one and the string
+`'all'` when it iterates `for (i in target.boosts)`; **nothing is invented** when a field cannot be
+read, and `applyStatOp` refuses loudly into `MEDFAILS.statOpUnreadable` rather than reaching for a
+plausible +2.
+
+### THE MEMBERSHIP PRINT CAUGHT AN OVER-MATCH, WHICH IS THE ENTIRE POINT OF DOING IT
+
+The first `randomOne` rule was a bare `this.sample(` test. Over 954 moves it claimed **Sleep Talk,
+Metronome, Assist and Conversion 2** — `sample` is Showdown's generic random pick and three of those
+four choose a MOVE. The rule now also demands a `.boosts[...] < N` ceiling **and** a `this.boost(`
+call, which is the shape of a stat pick and not of a move pick. Final membership: **six** —
+`acupressure`, `guardswap`, `powerswap`, `psychup`, `topsyturvy`, and `heartswap`, which is
+`isNonstandard: 'Past'` and unplayable here (its all-seven exchange derives correctly and is never
+clicked). `clearsmog` keeps `{procedural:true}` with no `op` and its own `clearsBoosts` tag, which is
+right.
+
+### THE TAG REGENERATION, SAID LOUDLY AND DIFFED
+
+`data/tags.json` **and** `data/abra-tags.js` were regenerated (`engine/tag_dex.js`, then
+`build/build_tags_js.js` — the second is a separate step and skipping it would have left the engine
+reading yesterday's bytes). Against their predecessors, both files:
+
+**entities removed 0 · added 0 · changed 5** — acupressure, guardswap, powerswap, psychup,
+topsyturvy, each gaining only `params.statChangeInCode.op`. Nothing else in the corpus moved.
+ROADMAP #65's blocker is measured gone rather than assumed gone.
+
+### THREE OF THE FOUR KINDS DELIBERATELY BYPASS THE BOOST PIPELINE, AND THAT IS THE AUTHORITY'S RULE
+
+`setBoost` (the two swaps) and a raw `boosts[i] = …` assignment (Psych Up, Topsy-Turvy) run **no**
+`onTryBoost` and **no** `onChangeBoost` — so Contrary does not invert them and Clear Body does not
+refuse them. Acupressure alone calls `this.boost(...)`, so it alone goes through `invSign` and
+`statDropRefusal`, the same two readers the `affect` branch's own boost loop uses. That is a real
+mechanical distinction, not a shortcut, and it is why the family is one function with four arms
+rather than four functions.
+
+**ROUTING RATHER THAN A RIDER** (WIRE 146's rule): the new door returns `kind:'affect'` with `sc` and
+`si` null. These are status moves aimed across the field and `affect` is where every such move
+already runs its gauntlet — `reaimToSlot`, Magic Bounce (Topsy-Turvy is `reflectable`), Protect,
+Substitute (all three of Guard Swap / Power Swap / Psych Up are already in `SUBPASS`, correctly: all
+three carry `bypasssub`), Good as Gold, Soundproof, powder, Prankster-into-Dark and the accuracy die.
+A fresh branch would have restated every one of those and got at least one wrong.
+
+### ACUPRESSURE DRAWS FROM THE BATTLE'S OWN SEEDED DIE, NEVER `Math.random()`
+
+`this.sample(stats)` in the authority; `rng()` here, the same function `battleTurn` already threads
+to every other die in the loop. The probe's varied knob is the **die itself**: at 0.1 the draw lands
+on `atk`, at 0.9 on `evasion`. A hard-coded stat, or a reach for `Math.random`, fails exactly there —
+and a `Math.random` would additionally make every rollout of this move unreproducible.
+
+**The roster's recorded `sd_delta` for Acupressure captures ONE draw (evasion +2), so that row is
+reproducible only while the authority's seed is.** No claim is made here about the roster row.
+
+### TWO STALE COMMENTS RETRACTED IN PLACE, EACH WITH THE MEASUREMENT THAT REFUTES IT
+
+Both said evasion is *"a stat this engine has no slot for"*. Both are false, and this is the sixth
+guard-kept-past-its-limitation this sprint:
+
+- `medicham2-browser.js` (the `statChangeInCode` target door) — a real **Defog** click on a staged
+  doubles board moves the target's `eva` **0 → −1**.
+- `medicham2-browser.js` (`applyEntryDrops`) — a **Supersweet Syrup** switch-in puts **both** foes at
+  `eva` **−1**, against 0 for the identical board with the ability removed.
+
+`SD2ENG` is `{…accuracy:'acc', evasion:'eva'}` and every body is built with all seven slots
+(`{at,df,sa,sd,sp,acc,eva}`). It matters here rather than being trivia: Psych Up **copies** accuracy
+and evasion, Topsy-Turvy **inverts** them and Acupressure can **draw** them — a stat the engine
+really could not hold would have made all three wrong.
+
+### TWO THINGS THE SWEEP FOUND THAT THE DIAGNOSIS DID NOT NAME
+
+1. **A self/ally-target op with nobody named was FAILING OUTRIGHT.** All three
+   `acupressure|*|notarget` sweep rows moved no stage at all. The move's dex `target` is
+   `adjacentAllyOrSelf`, so a caller naming nobody is choosing itself; the default is now read off
+   `moveFx(id).target` — the same field the `boostally` branch already reads for `allies` — never off
+   a name. The other four are `normal` and a null target still fails them, which is correct.
+2. **A FOE named for a self/ally-only op was being OBEYED**, so `acupressure|*|aimed` handed the foe
+   +2. Showdown never presents that choice. It is now ignored and the click lands on the user. This is
+   deliberately **not** the `normal`-target rule WIRE 106 established for Decorate: Decorate's dex
+   target ALLOWS a foe and the authority applies it there. Same field, opposite readings, both right.
+
+### ONE PRE-EXISTING DEFECT FIXED BECAUSE THE WIRE WOULD OTHERWISE HAVE EXTENDED IT
+
+The `affect` branch's Protect gate was a bare `if(_t.protect)`. Four other sites in the file write the
+pair `(_t.protect && !TAGS.has('move',a.mv,'ignoresProtect'))` and `guardRefusalOf` reads the same
+tag — one fact, two implementations, one of them missing half of itself. Psych Up has no `protect`
+flag and is why it was found. **It is not only the new move:** `tearfullook` reaches the same branch
+and has been blocked by a Protect it goes straight through since the branch was written. Measured
+before/after bytes on a board that actually Protects, foe staged with Coil:
+
+| click | BEFORE (user / foe) | AFTER (user / foe) |
+|---|---|---|
+| `psychup` | `0/0/0/0/0/0/0` / `1/1/0/0/0/1/0` | **`1/1/0/0/0/1/0`** / `1/1/0/0/0/1/0` |
+| `tearfullook` | `0/0/0/0/0/0/0` / `1/1/0/0/0/1/0` | `0/0/0/0/0/0/0` / **`0/1/-1/0/0/1/0`** |
+| `charm` (control, HAS the protect flag) | unchanged | **unchanged** |
+| `guardswap`, `topsyturvy` (both HAVE the flag) | blocked | **still blocked** |
+
+### THE BLAST RADIUS WAS MEASURED, WITH THE THROW COUNT BESIDE THE DIFF COUNT
+
+Every move in `data/tags.json` (500), six scenarios each — mid roll and both pin corners, aimed and
+with no target — **two** real turns apiece (turn 1 stages the board: the user Calm Minds, the foe
+Coils, so every move meets a body that HAS stages, which is the only board on which a transform over a
+boost vector can be told from a no-op). Digested as the whole board: every primitive on all four
+active bodies and all four benched ones, plus the field and both side conditions. The BEFORE arm is
+`HEAD`'s bytes compiled under the real `engine/` path so its relative requires resolve identically.
+
+**879,848 cells. 126 differ, in 30 of 3,000 scenario rows. Five moves: `acupressure`, `guardswap`,
+`powerswap`, `psychup`, `topsyturvy`. 0 THREW on both arms.** Nothing else in the corpus moved by a
+single cell — Belly Drum and Strength Sap included.
+
+**The sweep stages no Protect, so it is structurally blind to the `ignoresProtect` fix**, which is why
+that has its own table above rather than being folded in and called covered.
+
+### THE PROTOCOL RESIDUE, DECLARED — AND THREE REASONS THAT HAD GONE FALSE
+
+Acupressure calls `this.boost(...)` and therefore emits a real `|-boost|` line; it is fully announced.
+The other four use `setBoost` or a raw assignment, which produce Showdown's one-line `-swapboost` /
+`-copyboost` / `-invertboost` events, and this engine emits none of them. Those three events were
+already declared unemitted in `engine/derive_protocol_events.js` — with the reasons *"Topsy-Turvy is
+not modelled"*, *"Psych Up is not modelled"*, *"Heart Swap / Power Swap are not modelled"*. **This
+wire makes all three false**, so each was rewritten to say the STATE is modelled and probed and the
+ANNOUNCEMENT is owed. `data/protocol-events.json` was regenerated (`--write`); both gates pass,
+`emitted` 38 → 38 and `notEmitted` 56 → 56.
+
+**And the regeneration surfaced drift nobody had written back:** `-anim` and `-hitcount` had their
+reasons edited by WIRE 147 in the *source* and never re-derived into the *artifact*, which was dated
+2026-08-07. That is CLAUDE.md's "a derived artifact is not a fact until something compares it to its
+source", caught by running the generator rather than by anyone noticing.
+
+### THE HAND LIST IS UNCHANGED
+
+Still empty except for Rivalry. These five were never on it — they came off the derived roster, which
+is the derived list doing the job the prose list cannot.
+
+### TWO REDS THAT ARE NOT MINE, MEASURED RATHER THAN ASSUMED
+
+Neither is filed and neither is called a known failure; each was checked against the pre-change bytes.
+
+- **`tests/test-no-silent-failure.js`** — red on `engine/tag_dex.js:332`, a `catch (e) { return
+  _ptShape; }` inside `partialTrapShape()` that predates this wire. Verified by re-running with the
+  `tag_dex.js` change removed: still red, same line, `NEW since the baseline 24` either way.
+- **`tests/test-effective-identity.js`** — red on *"no NEW raw read of a transforming field (1048
+  total, baseline 234)"*. The baseline is dated 2026-08-02 and the file's own declared exceptions say
+  `game_differential.js` has been over the ratchet since the moment it was written. This wire adds
+  **zero** raw reads: the count of `.ability|.species|.types|.baseStats|.weight|.baseSpecies` in
+  `medicham2-browser.js` is **221 before and 221 after**.
+- **`FEATURE SEMANTICS CHECK FAILED`** against `data/policy-weights.json` for eight features is the
+  same REFIT OWED WIRE 150 reported, and it belongs to MEASURE. Rather than call it pre-existing,
+  `engine/feature_fixture.js`'s `hashes()` was computed over the BEFORE bytes and the AFTER bytes:
+  **all 76 feature and joint-feature hashes identical, 0 moved by this wire.**
+
+### A RELEASE WAS CUT BY A GATE, AND I DID NOT INTEND IT — REPORTED, NOT HIDDEN
+
+`tests/test-nature-differential.js` `require`s `engine/game_differential.js` at module load, and that
+file's line 126 is `if (!REL_ID) ER.cut(…)`. Running the gate therefore cut release
+**`ea58415e1cd8`** ("game differential mode A — the comparison driver, ROADMAP #68 step two",
+2026-08-10 06:34) over the mid-work tree, and moved `data/engine-release.json`'s `current` pointer
+from **`cb831e50eafb`** to it. **Nothing was deleted and nothing was reverted** — the pointer and the
+new `data/releases/ea58415e1cd8/` directory are left exactly as the gate wrote them, because undoing
+another division's artifact by hand is worse than reporting it. **Anything that opens the DEFAULT
+release rather than a named id will get a snapshot of a half-finished tree until somebody cuts again.**
+The auto-cut is reachable from a gate that does not look like a differential run, which is worth
+knowing before the next person runs the suite.
 
 ## WIRE 150 — THE HEAL TRUNCATED WHERE THE AUTHORITY ROUNDS. ONE LINE, FIVE MOVES, 6,398 USES. 2026-08-10.
 

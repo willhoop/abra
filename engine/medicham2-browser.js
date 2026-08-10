@@ -99,6 +99,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *   passesStateBoosts / passesStateVolatiles  what the incoming body inherited;
    *   curseGhost / curseNonGhost  the two halves of a move that is two moves. */
   auraApplied: 0, perTurnDamageChip: 0,
+  /* WIRE 151 -- a procedural stat OPERATION actually transformed a boost vector (Guard Swap, Power
+   * Swap, Psych Up, Topsy-Turvy, Acupressure). A zero means the whole family is back to spending the
+   * turn on nothing, which is the state this wire found it in. */
+  statOpApplied: 0,
   /* WIRE 138 -- a per-turn boost (Speed Boost) REFUSED because the body arrived this turn, which is
    * Showdown's `activeTurns` gate. Counted rather than silent for the usual reason and one extra: the
    * gate reads a flag another wire owns (`_newlySwitched`, WIRE 135), so if that flag ever stopped
@@ -369,6 +373,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * come unwired and Howl is back to boosting the partner only. */
   boostAlliesSideWide: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* WIRE 151 -- a `statChangeInCode.op` this engine could not APPLY: no stat subset, no amount, or no
+   * seeded die to draw with. Counted rather than swallowed, because the failure mode being repaired is
+   * precisely a stat move that resolves to a quiet no-op turn, and a fallback here would recreate it
+   * one layer down. `statOpUnknownKind` is the separate case of a descriptor shape nobody wired. */
+  statOpUnreadable: 0, statOpUnreadableFirst: '',
+  statOpUnknownKind: 0, statOpUnknownKindFirst: '',
   /* WIRE 143 -- the execution-time override was owed and `playerAction` could not BUILD the encored
    * click (it came back null or as the unmodelled `pass`). The un-encored action then runs, which is a
    * real behaviour change dressed as a no-op, so it is counted apart from `encoreAction` -- that one is
@@ -5518,11 +5528,119 @@ function applyStatDrop(f,stat,n,eff,src){
   return ab==='simple'?'simple':'dropped';
 }
 function applyIntimidate(f){ return applyStatDrop(f,'at',1,'Intimidate'); }
+/* WIRE 151 -- THE PROCEDURAL STAT-CHANGE PRIMITIVE. ONE FUNCTION, FIVE MOVES.
+ *
+ * Guard Swap, Power Swap, Psych Up, Topsy-Turvy and Acupressure all resolved to `{kind:'pass'}` -- a
+ * whole no-op turn -- because the only two doors out of `playerAction`'s `statChangeInCode` block
+ * demanded a LITERAL boost table and all five carry `{procedural:true}` and nothing else. The split
+ * was decisive: the only two members that DO carry `boosts` + `on` (Belly Drum and Strength Sap) were
+ * the only two that read MATCH.
+ *
+ * AT THE ENGINE THEY ARE ONE THING -- read a body's boost vector, transform it, write it to a named
+ * body -- so they are one function. At the DERIVATION they are five, and that is where the work was:
+ * `statChangeInCode` now carries an `op` descriptor beside `boosts` (never inside it), read out of
+ * each handler's own shape. See engine/tag_dex.js `STAT_OP`, including the over-match this caught.
+ *
+ * THREE OF THE FOUR KINDS DELIBERATELY DO NOT GO THROUGH THE BOOST PIPELINE, and that is the
+ * authority's own distinction rather than a shortcut. `setBoost` (the two swaps) and a raw
+ * `boosts[i] = ...` assignment (Psych Up, Topsy-Turvy) run NO `onTryBoost` and NO `onChangeBoost`,
+ * so Contrary does not invert them and Clear Body does not refuse them. Acupressure alone calls
+ * `this.boost(...)`, so it alone is asked -- through `invSign` and `statDropRefusal`, the same two
+ * readers the `affect` branch's own boost loop uses, because those are FACTS and not this function's
+ * to restate.
+ *
+ * NOTHING IS INVENTED WHEN THE DESCRIPTOR CANNOT BE READ. A missing stat subset or a missing amount
+ * returns false and increments a named counter; it does NOT fall back to "all seven" or to a
+ * plausible +2. A silent default here would look exactly like the mechanic working. */
+function statOpSlots(op,body){
+  if(!body||!body.boosts)return null;
+  /* 'all' is the authority's `for (i in target.boosts)` and is resolved against the BODY's own
+   * vector, so this engine never carries a second list of stat names to drift from SD2ENG. */
+  if(op.stats==='all')return Object.keys(body.boosts);
+  if(!Array.isArray(op.stats)||!op.stats.length)return null;
+  const out=[];
+  for(const s of op.stats){const k=SD2ENG[s];if(k&&body.boosts[k]!=null)out.push(k);}
+  return out.length?out:null;
+}
+function applyStatOp(user,target,op,mvId,rng){
+  if(!op||!op.kind||!user||!target)return false;
+  if(op.kind==='exchange'){
+    const ks=statOpSlots(op,target);
+    if(!ks){MEDFAILS.statOpUnreadable++;if(!MEDFAILS.statOpUnreadableFirst)MEDFAILS.statOpUnreadableFirst=String(mvId)+'/exchange';return false;}
+    /* BOTH bodies are written from the pair saved first, so the second write cannot read a slot the
+     * first one already changed. Showdown saves both vectors before calling setBoost twice. */
+    for(const k of ks){
+      if(user.boosts[k]==null||target.boosts[k]==null)continue;
+      const _u=user.boosts[k],_t=target.boosts[k];
+      user.boosts[k]=_t;target.boosts[k]=_u;
+    }
+    MEDSEEN.statOpApplied++;return true;
+  }
+  if(op.kind==='copy'){
+    const src=op.from==='target'?target:user, dst=op.to==='user'?user:target;
+    const ks=statOpSlots(op,src);
+    if(!ks){MEDFAILS.statOpUnreadable++;if(!MEDFAILS.statOpUnreadableFirst)MEDFAILS.statOpUnreadableFirst=String(mvId)+'/copy';return false;}
+    /* AN OVERWRITE, NOT A MERGE. Psych Up's `source.boosts[i] = target.boosts[i]` destroys whatever
+     * the user had -- clicking it after your own Calm Mind THROWS AWAY the Calm Mind. An engine that
+     * added the two together would make it strictly better than the move in the game. */
+    for(const k of ks){if(src.boosts[k]!=null&&dst.boosts[k]!=null)dst.boosts[k]=src.boosts[k];}
+    MEDSEEN.statOpApplied++;return true;
+  }
+  if(op.kind==='invert'){
+    const b=op.on==='user'?user:target;
+    const ks=statOpSlots(op,b);
+    if(!ks){MEDFAILS.statOpUnreadable++;if(!MEDFAILS.statOpUnreadableFirst)MEDFAILS.statOpUnreadableFirst=String(mvId)+'/invert';return false;}
+    let moved=false;
+    for(const k of ks){
+      if(b.boosts[k]==null)continue;
+      if(op.nonzeroOnly&&b.boosts[k]===0)continue;      // `if (target.boosts[i] === 0) continue;`
+      b.boosts[k]=-b.boosts[k];moved=true;
+    }
+    /* AN EMPTY VECTOR IS A LEGITIMATE FAIL, and it is the handler's own `if (!success) return false`.
+     * A Topsy-Turvy at an unstaged body does not silently succeed. */
+    if(!moved)return false;
+    MEDSEEN.statOpApplied++;return true;
+  }
+  if(op.kind==='randomOne'){
+    if(op.amount==null){MEDFAILS.statOpUnreadable++;if(!MEDFAILS.statOpUnreadableFirst)MEDFAILS.statOpUnreadableFirst=String(mvId)+'/randomOne-amount';return false;}
+    const b=op.on==='user'?user:target;
+    const ks=statOpSlots(op,b);
+    if(!ks){MEDFAILS.statOpUnreadable++;if(!MEDFAILS.statOpUnreadableFirst)MEDFAILS.statOpUnreadableFirst=String(mvId)+'/randomOne-stats';return false;}
+    /* THE CEILING IS PART OF THE PICK, not of the application: a stat already at the cap is not a
+     * candidate at all, so it cannot be drawn and wasted. `below` is the handler's own `< 6`. */
+    const cand=ks.filter(k=>b.boosts[k]!=null&&(op.below==null||b.boosts[k]<op.below));
+    if(!cand.length)return false;                       // `else { return false; }` -- the move fails
+    /* THE BATTLE'S OWN SEEDED DIE. `this.sample(stats)` in the authority, and a `Math.random()` here
+     * would make every rollout of this move unreproducible and every differential run unpinnable. */
+    if(typeof rng!=='function'){MEDFAILS.statOpUnreadable++;if(!MEDFAILS.statOpUnreadableFirst)MEDFAILS.statOpUnreadableFirst=String(mvId)+'/randomOne-nodie';return false;}
+    const k=cand[Math.floor(rng()*cand.length)%cand.length];
+    /* THROUGH THE SHARED READERS, because this one IS a `this.boost(...)` call. Contrary inverts it
+     * and a resulting DROP is offered to the same refusal gate every other drop in this engine goes
+     * through -- one implementation of the fact, per CLAUDE.md. */
+    const d=op.amount*invSign(b);
+    if(d<0&&statDropRefusal(b,k,mvId,false))return false;
+    const _b0=b.boosts[k];
+    b.boosts[k]=clamp(b.boosts[k]+d,-6,6);
+    if(TR)TR.bst(b,k,b.boosts[k]-_b0);
+    if(d<0&&b.boosts[k]!==_b0)retaliateWhenLowered(b,user);
+    MEDSEEN.statOpApplied++;return b.boosts[k]!==_b0;
+  }
+  /* AN `op.kind` NOBODY WIRED IS REFUSED LOUDLY. A future derivation that grows a sixth shape must
+   * fail visibly here rather than resolve to a quiet no-op turn, which is the exact defect this
+   * whole wire is repairing. */
+  MEDFAILS.statOpUnknownKind++;
+  if(!MEDFAILS.statOpUnknownKindFirst)MEDFAILS.statOpUnknownKindFirst=String(mvId)+'/'+String(op.kind);
+  return false;
+}
 /* WIRE 100a -- every entry drop reads `onSwitchInDrop` membership from the artifact. The params
  * carry no stat table yet ({drop:true} -- and Download is an over-match in the current artifact,
  * which is exactly why the amounts are NOT taken from it), so Intimidate's -1 Atk is typed beside
- * the STAGED enrichment; a member without a table does nothing rather than guessing. Supersweet
- * Syrup's drop is evasion, a stat this engine has no slot for, and skips honestly through SD2ENG. */
+ * the STAGED enrichment; a member without a table does nothing rather than guessing.
+ * WIRE 151 -- THE LAST SENTENCE OF THIS PARAGRAPH WAS FALSE AND IS CORRECTED IN PLACE. It read
+ * "Supersweet Syrup's drop is evasion, a stat this engine has no slot for, and skips honestly through
+ * SD2ENG". `SD2ENG.evasion` is `'eva'` and every body carries an `eva` slot, so nothing skips:
+ * MEASURED on a real switch-in, a Supersweet Syrup body puts BOTH foes at `eva` -1, against 0 for the
+ * identical board with the ability removed. The drop lands and always did. */
 function applyEntryDrops(m,foes){
   const _osd=TAGS.param('ability',m.ability,'onSwitchInDrop');
   if(!_osd)return;
@@ -7783,7 +7901,16 @@ function battleTurn(S,rng,actsForA,actsForB){
              TARGET today -- Memento kills its user -- so this is a guard rather than a live path, and
              it costs one comparison to be right if that ever stops being true. */
           if(!_t||_t.fainted||_t.curHP<=0) continue;
-          if(_t.protect){if(TR)TR.act(_t,'move: Protect');continue;}
+          /* WIRE 151 -- THE `ignoresProtect` GUARD, WHICH THIS BRANCH ALONE DID NOT ASK.
+           * This line read a bare `if(_t.protect)`. Four other sites in this file already write the
+           * pair (`_t.protect && !TAGS.has('move',a.mv,'ignoresProtect')`) and `guardRefusalOf` reads
+           * the same tag -- so this was a fact with two implementations, one of which was missing half
+           * of itself, which is exactly the shape CLAUDE.md's "FACTS ARE GLOBAL" rule names.
+           * IT IS NOT ONLY THE NEW MOVE. Psych Up has no `protect` flag and is why this was found, but
+           * TEARFULL LOOK reaches this same branch (statChange + ignoresProtect) and has been blocked
+           * by a Protect it goes straight through since the branch was written. Named here rather than
+           * left inside a diff, and it is visible as its own row in this wire's blast-radius sweep. */
+          if(_t.protect&&!TAGS.has('move',a.mv,'ignoresProtect')){if(TR)TR.act(_t,'move: Protect');continue;}
           if(subBlocks(m,_t,a.mv)){if(TR)TR.act(_t,'move: Substitute','[damage]');continue;}   // WIRE 130 -- the doll takes the status move
           /* GOOD AS GOLD REFUSES A STATUS MOVE OUTRIGHT. Gholdengo was taking Charm for -2, which
            * makes it a different Pokemon to the one people build around. The tag is derived from the
@@ -7850,6 +7977,16 @@ function battleTurn(S,rng,actsForA,actsForB){
             }
             if(TR&&_ref&&_ref.announce)TR.failUnboost(_t,_ref.label,_ref.ab);
           }
+          /* WIRE 151 -- THE PROCEDURAL STAT OPERATION, in the same place the declared table above is
+           * applied and after it, so a move that ever carried both would read the table first exactly
+           * as Showdown's own handler order does. No move carries both today -- `boosts` and `op` are
+           * disjoint over the whole table, measured -- so this is a guard rather than a live path.
+           *
+           * A REFUSED OP ENDS THIS BODY'S PASS AND DOES NOT COUNT AS A LANDING: Topsy-Turvy at a body
+           * with no stages, or Acupressure with every stat at the cap, FAILS in the authority and must
+           * fail here, or the move becomes strictly better than the one in the game. `_landed` is
+           * incremented below this line, so the `continue` leaves it alone. */
+          if(a.op&&!applyStatOp(m,_t,a.op,a.mv,rng)){mvFail(m);continue;}
           /* ROADMAP #102 -- and the sap is paid, after the drop and out of the amount read before it. */
           if(_sapHeal!=null&&!m.fainted&&!healBlocked(m)){
             const _sh0=m.curHP;
@@ -11886,9 +12023,12 @@ function playerActionPrimary(me,moveId,target,field){
   }
   /* WIRE 67, the SELF half. Belly Drum, Tidy Up and Stuff Cheeks raise their OWN stages from inside a
      handler, so no `boosts` field exists for the setup branch above to read and all three resolved to
-     a wasted turn. Only members whose handler carries a LITERAL table arrive here; the five that
+     a wasted turn. Only members whose handler carries a LITERAL table arrive here.
+     WIRE 151 -- AND THE SENTENCE THAT USED TO END THIS PARAGRAPH IS RETIRED. It read: "the five that
      invert, copy, swap or randomise their stages carry the tag with no numbers and still resolve to a
-     pass, which is honest -- see the derivation's own comment for why a guessed table is worse. */
+     pass, which is honest". It was honest and it was not necessary. Those five are OPERATIONS rather
+     than tables, and an operation is as derivable from a handler as a table is -- `statChangeInCode`
+     now carries an `op` descriptor and the third door below is where they leave. */
   {
     const _sc3=TAGS.param('move',id,'statChangeInCode');
     if(_sc3&&_sc3.boosts&&_sc3.on==='user')return {kind:'statcode',mv:id};
@@ -11901,8 +12041,17 @@ function playerActionPrimary(me,moveId,target,field){
        than a wrong number.
        MEMBERSHIP PRINTED BEFORE WIRING, as this file's rule requires. Exactly THREE moves carry a
        target-side table: Parting Shot (claimed earlier by `pivotStatus`, so it cannot double-apply),
-       Strength Sap, and Defog, whose only stage is `evasion` -- a stat this engine has no slot for, so
-       SD2ENG returns nothing and the affect branch skips it rather than inventing one.
+       Strength Sap, and Defog.
+       WIRE 151 -- AND THE DEFOG CLAUSE THAT STOOD HERE WAS FALSE, CORRECTED IN PLACE RATHER THAN
+       DELETED. It said Defog's only stage is `evasion`, "a stat this engine has no slot for, so
+       SD2ENG returns nothing and the affect branch skips it rather than inventing one". Every clause
+       of that is wrong. `SD2ENG` is `{...accuracy:'acc', evasion:'eva'}` and every body in this engine
+       is built with `boosts:{at,df,sa,sd,sp,acc,eva}` -- all SEVEN slots. MEASURED, not argued: a real
+       Defog click on a staged doubles board moves the target's `eva` 0 -> -1, and a Supersweet Syrup
+       switch-in moves BOTH foes' `eva` 0 -> -1. The guard was kept past the limitation it described,
+       which is the sixth time that shape has appeared this sprint. It matters here because Psych Up
+       COPIES accuracy and evasion, Topsy-Turvy INVERTS them and Acupressure can DRAW them -- a stat
+       this engine really could not hold would have made all three wrong.
        WHAT IS STILL NOT MODELLED, stated: Strength Sap's HEAL scales off the TARGET's Attack and no
        artifact this engine reads carries it. The Attack drop is the half that decides where the move
        is played; the heal stays absent. It leaves fails.healProcedural now that the move resolves
@@ -11910,6 +12059,46 @@ function playerActionPrimary(me,moveId,target,field){
        rediscovered as a counter that quietly went down. */
     if(_sc3&&_sc3.boosts&&_sc3.on==='target')
       return {kind:'affect',mv:id,target,sc:{target:[{boosts:_sc3.boosts,chance:100}]},si:null};
+    /* WIRE 151 -- THE THIRD DOOR, AND IT IS THE `affect` BRANCH RATHER THAN A NEW ONE.
+     *
+     * Both doors above demand a literal `boosts` table. Guard Swap, Power Swap, Psych Up, Topsy-Turvy
+     * and Acupressure carry `{procedural:true}` and nothing else, so all five fell past this block to
+     * `return {kind:'pass',mv:id}` -- a whole no-op turn, measured on a staged board before a byte
+     * changed. `boosts` and `op` are disjoint over the whole move table (measured: every member
+     * carries one or the other, never both), so this cannot claim a click the two doors above want.
+     *
+     * ROUTING RATHER THAN A RIDER, which is WIRE 146's rule and it is load-bearing here. These are
+     * STATUS moves aimed across the field, and `affect` is where every such move already runs its
+     * gauntlet: reaimToSlot (the SLOT, not the body the chooser pointed at), Magic Bounce -- which
+     * Topsy-Turvy is `reflectable` and therefore subject to -- Protect, Substitute (Guard Swap, Power
+     * Swap and Psych Up are all in SUBPASS, which is correct: all three carry `bypasssub`), Good as
+     * Gold, Soundproof, powder, Prankster-into-Dark and the accuracy die. A fresh branch would have
+     * had to restate every one of those, and would have got at least one wrong.
+     *
+     * `sc` AND `si` ARE NULL ON PURPOSE. The op IS the whole effect; the two loops run zero times and
+     * the op block between them does the work. */
+    if(_sc3&&_sc3.op){
+      /* A SELF- OR ALLY-TARGET OP WITH NOBODY NAMED LANDS ON THE USER, and the rule is read off the
+       * move's own dex `target` field -- the same field the `boostally` branch reads for `allies` --
+       * never off its name. Acupressure is `adjacentAllyOrSelf`, so a caller that names nobody is
+       * choosing itself; leaving the target null sent it into the `affect` branch's "found nobody"
+       * arm and the click FAILED outright. Measured in this wire's blast-radius sweep before the line
+       * existed: all three `acupressure|*|notarget` rows moved no stage at all while the aimed rows
+       * did. The other four are `normal`, so they are untouched by this and a null target still fails
+       * them -- which is correct, a Guard Swap with nobody named has nothing to swap with. */
+      const _opT=String((fx&&fx.target)||'');
+      const _opSelf=/^(self|adjacentAllyOrSelf|adjacentAlly|allies|allySide)$/.test(_opT);
+      /* AND A FOE NAMED FOR A SELF/ALLY-ONLY OP IS NOT HONOURED, which is the other half the sweep
+       * exposed: `acupressure|*|aimed` handed the FOE +2. Showdown never presents that choice -- an
+       * `adjacentAllyOrSelf` request cannot name an opposing slot -- so an engine that obeys it makes
+       * Acupressure a move that boosts the enemy, and a search would learn to click it at them. This
+       * is deliberately NOT the `normal`-target rule WIRE 106 established for Decorate: Decorate's dex
+       * target ALLOWS a foe and the authority applies it there, so the two are opposite readings of
+       * the same field rather than an inconsistency. */
+      let _opTgt=target||null;
+      if(_opSelf&&_opTgt&&_opTgt._sf&&me._sf&&_opTgt._sf!==me._sf)_opTgt=null;
+      return {kind:'affect',mv:id,target:_opTgt||(_opSelf?me:null),sc:null,si:null,op:_sc3.op};
+    }
   }
   if(TAGS.has('move',id,'sealsMoves'))return {kind:'status',mv:id,target};   // Encore rides the status path
   /* WIRE 42 -- SUBSTITUTE. Last, so anything with a modelled effect has already claimed the click.

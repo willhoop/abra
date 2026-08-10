@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-10T06:10:10.634Z",
+  "generated": "2026-08-10T06:42:43.946Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 359,
-  "live": 359,
+  "probed": 364,
+  "live": 364,
   "missing": 0,
-  "armed": 359,
+  "armed": 364,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2496,7 +2496,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 26.2% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.8% (format 20, generic 30), control Rock Slide 26.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3597,6 +3597,56 @@
       "label": "Howl boosts the WHOLE side, user included (target: allies)",
       "live": true,
       "detail": "Coaching (target: adjacentAlly) user +0 partner +1; Howl (target: allies = Pokemon#alliesAndSelf, same body, same board) user +1 partner +1. The branch resolved ONE body, so the click landed on active[1] and the user got nothing",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statChangeInCode",
+      "label": "Guard Swap exchanges Def and Sp. Def, and only those two",
+      "live": true,
+      "detail": "[user | foe, as at/df/sa/sd/sp/acc/eva] — the SAME staged board on both arms, only the turn-2 click varies. no click 0/0/1/1/0/0/0 | 1/1/0/0/0/1/0; Guard Swap 0/1/1/0/0/0/0 | 1/0/0/1/0/1/0 (kind \"affect\"). def and spd cross the field in BOTH directions and atk/spa/accuracy must not move — a copy, a one-way take, or Heart Swap's all-seven exchange each fail on that subset",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statChangeInCode",
+      "label": "Power Swap exchanges Attack and Sp. Atk, and only those two",
+      "live": true,
+      "detail": "[user | foe, as at/df/sa/sd/sp/acc/eva] — no click 0/0/1/1/0/0/0 | 1/1/0/0/0/1/0; Power Swap 1/0/0/1/0/0/0 | 0/1/1/0/0/1/0 (kind \"affect\"). It is the SAME staged board as the Guard Swap probe and the SAME primitive with a different stat pair, so the pair is the only varied thing between the two rows",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statChangeInCode",
+      "label": "Psych Up copies the target's whole vector and OVERWRITES the user's",
+      "live": true,
+      "detail": "[user | foe, as at/df/sa/sd/sp/acc/eva] — no click 0/0/1/1/0/0/0 | 1/1/0/0/0/1/0; Psych Up 1/1/0/0/0/1/0 | 1/1/0/0/0/1/0 (kind \"affect\"). The user's OWN +1 SpA / +1 SpD are gone, which is what separates a COPY from a merge — an engine that added the target's stages onto the user's reads 1/1/1/1/0/1/0 here. The foe keeps everything: Psych Up takes, it does not swap",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statChangeInCode",
+      "label": "Topsy-Turvy inverts the target's NONZERO stages and fails on an empty vector",
+      "live": true,
+      "detail": "[foe, as at/df/sa/sd/sp/acc/eva] — no click 1/1/0/0/0/1/0; Topsy-Turvy -1/-1/0/0/0/-1/0 (kind \"affect\"); Topsy-Turvy at an UNSTAGED foe 0/0/0/0/0/0/0 (the authority returns false and nothing moves). Only the three NONZERO stages flip — an engine that negated all seven reads the same string here, so the zeros are load-bearing only in that they must stay 0 and not become -0. The user is untouched at 0/0/1/1/0/0/0: this move reads and writes ONE body",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statChangeInCode",
+      "label": "Acupressure raises ONE random stat by two, off the battle's own die",
+      "live": true,
+      "detail": "[user, as at/df/sa/sd/sp/acc/eva] — the SAME body and the SAME click on every arm, only the seeded die varies. no click 0/0/1/1/0/0/0; die 0.1 2/0/1/1/0/0/0 (stat index 0); die 0.9 0/0/1/1/0/0/2 (stat index 6, kind \"affect\"). Exactly one stat moves and it moves by two; the two draws must land on DIFFERENT stats or the pick is not wired to the battle's rng",
       "hollow": false,
       "armed": true,
       "directCall": false

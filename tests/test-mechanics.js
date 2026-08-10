@@ -277,7 +277,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * different bodies, so a probe reading only the aimed foe would score the redirect as a damage loss),
  * and a caller-supplied MOVE OBJECT (each arm is the same move at a fixed base power, which is how a
  * per-hit sum is compared against a flat multiply with everything else divided out). */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(/;
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -10012,6 +10012,136 @@ probe('move', 'boostsTarget', 'Howl boosts the WHOLE side, user included (target
                  + `Howl (target: allies = Pokemon#alliesAndSelf, same body, same board) user `
                  + `+${t.me.boosts.at} partner +${t.ally.boosts.at}. The branch resolved ONE body, so `
                  + `the click landed on active[1] and the user got nothing` };
+});
+
+/* ---- THE PROCEDURAL STAT-CHANGE FAMILY (WIRE 151) ----------------------------------------------
+ *
+ * `procStages(` added 2026-08-10, declared HERE and with its reason, exactly as the REALTURN
+ * paragraph above requires. It stages a real doubles board through `battleInit` and spends TWO real
+ * turns through `battleTurn`, and it has to spend both: every move in this family READS a boost
+ * vector that must already exist, so a body with an empty vector cannot tell a working transform
+ * from a no-op — Topsy-Turvy on an unstaged foe is a legitimate FAIL and looks identical to the
+ * whole-turn no-op these five actually were. The stages are put on the board by REAL CLICKS (the
+ * user's Calm Mind, +1 SpA / +1 SpD; the foe's Coil, +1 Atk / +1 Def / +1 accuracy) rather than
+ * assigned onto `.boosts`, so the fixture cannot drift from what the engine's own setup branch does.
+ *
+ * It returns ALL SEVEN stages of BOTH bodies as one string each, because the whole finding is a stat
+ * SUBSET and a DIRECTION: Guard Swap must move def and spd and leave atk, spa and accuracy exactly
+ * where they were, and a probe reading one stat could not tell it from Heart Swap. Accuracy and
+ * evasion are in the vector deliberately — this engine holds all seven (`boosts:{at,df,sa,sd,sp,acc,
+ * eva}`) and a Defog click really does move a target's `eva` 0 -> -1, measured, so the comment in
+ * medicham2-browser.js that said evasion had no slot was false and these probes are what says so. */
+const stages7 = (m) => [m.boosts.at, m.boosts.df, m.boosts.sa, m.boosts.sd,
+                        m.boosts.sp, m.boosts.acc, m.boosts.eva].join('/');
+const procStages = (mv, o) => {
+  o = o || {};
+  const me = bare(o.user || 'farigiraf'), ally = bare('incineroar');
+  const f1 = bare('milotic'), f2 = bare('garchomp');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const die = o.rng || rng5;
+  const setup = (mon, id) => id ? M.playerAction(mon, id, null, S.field) : { kind: 'pass' };
+  M.battleTurn(S, die,
+    new Map([[me, setup(me, o.userSetup)], [ally, { kind: 'pass' }]]),
+    new Map([[f1, setup(f1, o.foeSetup)], [f2, { kind: 'pass' }]]));
+  const staged = { user: stages7(me), foe: stages7(f1) };
+  const act = mv ? M.playerAction(me, mv, o.atSelf ? me : f1, S.field) : { kind: 'pass' };
+  M.battleTurn(S, die,
+    new Map([[me, act], [ally, { kind: 'pass' }]]),
+    new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  return { kind: mv ? act.kind : 'none', staged, user: stages7(me), foe: stages7(f1) };
+};
+/* The two setups are LEGAL on the bodies that click them, checked against gen 9 learnsets rather
+ * than remembered: Milotic learns Coil, Farigiraf learns Calm Mind / Guard Swap / Power Swap /
+ * Psych Up, Malamar learns Calm Mind / Topsy-Turvy / Acupressure. */
+const COIL_FOE = '1/1/0/0/0/1/0';        // atk +1, def +1, accuracy +1 — the foe after Coil
+const CM_USER  = '0/0/1/1/0/0/0';        // spa +1, spd +1              — the user after Calm Mind
+
+probe('move', 'statChangeInCode', 'Guard Swap exchanges Def and Sp. Def, and only those two', () => {
+  const control = procStages(null,        { userSetup: 'calmmind', foeSetup: 'coil' });
+  const test    = procStages('guardswap', { userSetup: 'calmmind', foeSetup: 'coil' });
+  return { works: test.kind !== 'pass'
+             && control.user === CM_USER && control.foe === COIL_FOE
+             && test.user === '0/1/1/0/0/0/0' && test.foe === '1/0/0/1/0/1/0',
+           arms: { control: control.user + ' | ' + control.foe, test: test.user + ' | ' + test.foe },
+           detail: `[user | foe, as at/df/sa/sd/sp/acc/eva] — the SAME staged board on both arms, `
+                 + `only the turn-2 click varies. no click ${control.user} | ${control.foe}; `
+                 + `Guard Swap ${test.user} | ${test.foe} (kind "${test.kind}"). def and spd cross `
+                 + `the field in BOTH directions and atk/spa/accuracy must not move — a copy, a `
+                 + `one-way take, or Heart Swap's all-seven exchange each fail on that subset` };
+});
+
+probe('move', 'statChangeInCode', 'Power Swap exchanges Attack and Sp. Atk, and only those two', () => {
+  const control = procStages(null,        { userSetup: 'calmmind', foeSetup: 'coil' });
+  const test    = procStages('powerswap', { userSetup: 'calmmind', foeSetup: 'coil' });
+  return { works: test.kind !== 'pass'
+             && control.user === CM_USER && control.foe === COIL_FOE
+             && test.user === '1/0/0/1/0/0/0' && test.foe === '0/1/1/0/0/1/0',
+           arms: { control: control.user + ' | ' + control.foe, test: test.user + ' | ' + test.foe },
+           detail: `[user | foe, as at/df/sa/sd/sp/acc/eva] — no click ${control.user} | `
+                 + `${control.foe}; Power Swap ${test.user} | ${test.foe} (kind "${test.kind}"). It `
+                 + `is the SAME staged board as the Guard Swap probe and the SAME primitive with a `
+                 + `different stat pair, so the pair is the only varied thing between the two rows` };
+});
+
+probe('move', 'statChangeInCode', 'Psych Up copies the target\'s whole vector and OVERWRITES the user\'s', () => {
+  const control = procStages(null,      { userSetup: 'calmmind', foeSetup: 'coil' });
+  const test    = procStages('psychup', { userSetup: 'calmmind', foeSetup: 'coil' });
+  return { works: test.kind !== 'pass'
+             && control.user === CM_USER && control.foe === COIL_FOE
+             && test.user === COIL_FOE && test.foe === COIL_FOE,
+           arms: { control: control.user + ' | ' + control.foe, test: test.user + ' | ' + test.foe },
+           detail: `[user | foe, as at/df/sa/sd/sp/acc/eva] — no click ${control.user} | `
+                 + `${control.foe}; Psych Up ${test.user} | ${test.foe} (kind "${test.kind}"). The `
+                 + `user's OWN +1 SpA / +1 SpD are gone, which is what separates a COPY from a merge `
+                 + `— an engine that added the target's stages onto the user's reads 1/1/1/1/0/1/0 `
+                 + `here. The foe keeps everything: Psych Up takes, it does not swap` };
+});
+
+/* THREE ARMS, and the third is the one the authority's own handler demands: Topsy-Turvy returns
+ * false when every stage is already 0, so an unstaged foe is a legitimate FAIL and a two-arm probe
+ * could not tell that from the whole-turn no-op this move actually was. */
+probe('move', 'statChangeInCode', 'Topsy-Turvy inverts the target\'s NONZERO stages and fails on an empty vector', () => {
+  const control = procStages(null,         { user: 'malamar', userSetup: 'calmmind', foeSetup: 'coil' });
+  const test    = procStages('topsyturvy', { user: 'malamar', userSetup: 'calmmind', foeSetup: 'coil' });
+  const empty   = procStages('topsyturvy', { user: 'malamar', userSetup: 'calmmind' });
+  return { works: test.kind !== 'pass'
+             && control.foe === COIL_FOE && test.foe === '-1/-1/0/0/0/-1/0'
+             && test.user === CM_USER
+             && empty.foe === '0/0/0/0/0/0/0' && empty.user === CM_USER,
+           arms: { control: control.foe, test: test.foe },
+           detail: `[foe, as at/df/sa/sd/sp/acc/eva] — no click ${control.foe}; Topsy-Turvy `
+                 + `${test.foe} (kind "${test.kind}"); Topsy-Turvy at an UNSTAGED foe ${empty.foe} `
+                 + `(the authority returns false and nothing moves). Only the three NONZERO stages `
+                 + `flip — an engine that negated all seven reads the same string here, so the `
+                 + `zeros are load-bearing only in that they must stay 0 and not become -0. The `
+                 + `user is untouched at ${test.user}: this move reads and writes ONE body` };
+});
+
+/* THE VARIED KNOB IS THE SEEDED DIE, and it has to be: Acupressure picks its stat at random, so a
+ * probe that asserts a NAMED stat is asserting this engine's rng draw rather than the mechanic. Two
+ * draws that land on DIFFERENT stats is the only evidence that the pick is wired to the battle's own
+ * rng at all — an engine that hard-coded a stat, or reached for Math.random, fails exactly here.
+ * NOT ASSERTED, and stated rather than discovered: the authority only offers stats already below +6,
+ * and no arm here reaches +6, so the ceiling is implemented and unwitnessed. */
+probe('move', 'statChangeInCode', 'Acupressure raises ONE random stat by two, off the battle\'s own die', () => {
+  const opts = (r) => ({ user: 'malamar', userSetup: 'calmmind', atSelf: true, rng: r });
+  const control = procStages(null,          opts(() => 0.1));
+  const low     = procStages('acupressure', opts(() => 0.1));
+  const high    = procStages('acupressure', opts(() => 0.9));
+  const delta = (a) => a.user.split('/').map((v, i) => +v - +a.staged.user.split('/')[i]);
+  const dLow = delta(low), dHigh = delta(high);
+  const oneByTwo = (d) => d.filter(v => v === 2).length === 1 && d.filter(v => v !== 0).length === 1;
+  return { works: low.kind !== 'pass' && high.kind !== 'pass'
+             && control.user === CM_USER
+             && oneByTwo(dLow) && oneByTwo(dHigh)
+             && dLow.indexOf(2) !== dHigh.indexOf(2),
+           arms: { control: low.user, test: high.user },
+           detail: `[user, as at/df/sa/sd/sp/acc/eva] — the SAME body and the SAME click on every `
+                 + `arm, only the seeded die varies. no click ${control.user}; die 0.1 `
+                 + `${low.user} (stat index ${dLow.indexOf(2)}); die 0.9 ${high.user} (stat index `
+                 + `${dHigh.indexOf(2)}, kind "${high.kind}"). Exactly one stat moves and it moves `
+                 + `by two; the two draws must land on DIFFERENT stats or the pick is not wired to `
+                 + `the battle's rng` };
 });
 
 const works = results.filter(r => r.works);

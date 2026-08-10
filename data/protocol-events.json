@@ -1,9 +1,9 @@
 {
-  "generated": "2026-08-07 08:08:14",
+  "generated": "2026-08-10 06:33:21",
   "source": "engine/derive_protocol_events.js",
   "source_digests": {
-    "engine/derive_protocol_events.js": "944b901e2fd7",
-    "engine/medicham2-browser.js": "70876e2b09ba"
+    "engine/derive_protocol_events.js": "88cd86d74429",
+    "engine/medicham2-browser.js": "304f1136d649"
   },
   "showdown_pinned_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "derivedFrom": {
@@ -75,7 +75,7 @@
   "notEmitted": [
     {
       "event": "-anim",
-      "reason": "animation only; carries no rule."
+      "reason": "animation only; carries no rule. WIRE 147 -- Dragon Darts writes one at its SECOND dart (`addMove('-anim', pokemon, move.name, target)`, battle-actions.ts:906); the darts really do split across two bodies here now, but the line is animation and carries no rule."
     },
     {
       "event": "-block",
@@ -107,7 +107,7 @@
     },
     {
       "event": "-copyboost",
-      "reason": "Psych Up is not modelled."
+      "reason": "Psych Up IS modelled as of WIRE 151 and its whole-vector copy is probed; `source.boosts[i] = target.boosts[i]` emits no line in this engine, and `-copyboost` is not claimed in TRACE_EVENTS. The STATE is right and the ANNOUNCEMENT is owed."
     },
     {
       "event": "-cureteam",
@@ -135,11 +135,11 @@
     },
     {
       "event": "-hitcount",
-      "reason": "multi-hit damage is ONE packet in this engine (WIRE 20, declared). The reaction COUNT is right (WIRE 84) and the hit count is not, so emitting one would be an invented number."
+      "reason": "multi-hit damage is ONE packet for most of the family in this engine (WIRE 20, declared) and the HP still moves once, so emitting a count beside a single `-damage` line would be an invented number. The reaction COUNT is right (WIRE 84) and the DRAWN hit count is right (ROADMAP #103); WIRE 147 made the DAMAGE per-hit for the two moves whose base power is a function of the hit index (Triple Axel, Beat Up) and left the rest summed. Dragon Darts would emit nothing here in any case: `if (move.multihit && typeof move.smartTarget !== 'boolean')` skips every smartTarget move (sim/battle-actions.ts:977)."
     },
     {
       "event": "-invertboost",
-      "reason": "Topsy-Turvy is not modelled."
+      "reason": "Topsy-Turvy IS modelled as of WIRE 151 and its stage inversion is probed; the raw `boosts[i] = -boosts[i]` assignment emits no line in this engine, and `-invertboost` is not claimed in TRACE_EVENTS. The STATE is right and the ANNOUNCEMENT is owed."
     },
     {
       "event": "-message",
@@ -175,7 +175,7 @@
     },
     {
       "event": "-swapboost",
-      "reason": "Heart Swap / Power Swap are not modelled."
+      "reason": "Guard Swap and Power Swap ARE modelled as of WIRE 151 and their stat-pair exchange is probed; `setBoost` emits no line in this engine, and `-swapboost` is not claimed in TRACE_EVENTS. Heart Swap is isNonstandard Past and unplayable here. The STATE is right and the ANNOUNCEMENT is owed."
     },
     {
       "event": "-swapsideconditions",

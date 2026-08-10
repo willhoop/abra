@@ -417,6 +417,64 @@ function lockShape(m) {
   };
 }
 
+/* WIRE 151 -- THE PROCEDURAL STAT-CHANGE OPERATION, derived from the handler's own shape.
+ *
+ * `statChangeInCode` could say only "there is a stage table in here somewhere" and hand back the
+ * table when it found one. Five moves have no table at all because they are OPERATIONS over an
+ * existing boost vector, and this is where that operation is read. Its whole output is a descriptor:
+ *
+ *   { kind:'exchange',  stats, between:['user','target'] }   Guard Swap, Power Swap (Heart Swap)
+ *   { kind:'copy',      stats, from:'target', to:'user' }    Psych Up
+ *   { kind:'invert',    stats, on:'target', nonzeroOnly }    Topsy-Turvy
+ *   { kind:'randomOne', stats, on:'target', amount, below }  Acupressure
+ *
+ * `stats` is an explicit array when the handler names one and the string 'all' when it iterates the
+ * whole vector. NOTHING IS INVENTED: `amount` comes back null if the assignment cannot be read, and a
+ * consumer must refuse a null rather than reach for a plausible 2.
+ *
+ * THE `randomOne` GUARD IS THE OVER-MATCH FIX AND IT IS LOAD-BEARING. `this.sample(` alone matched
+ * SLEEP TALK, Metronome, Assist and Conversion 2 -- the sampler is Showdown's generic random pick and
+ * three of those four choose a MOVE, not a stat. So the rule also demands the candidate list be
+ * filtered by a `.boosts[...] < N` ceiling and the handler actually call `this.boost(`, which is the
+ * shape of a stat pick. Measured over all 954 moves in the format after the guard: six matches, and
+ * every one of them is a stat operation. */
+const OP_STAT = 'atk|def|spa|spd|spe|accuracy|evasion';
+function statSubsetIn(s) {
+  /* An array literal made of NOTHING BUT stat names. Psych Up's `["dragoncheer","focusenergy",...]`
+   * is right beside its stat loop and must not be mistaken for one, which is why this is an
+   * all-or-nothing match rather than a scan for stat names. */
+  const arr = s.match(new RegExp('\\[\\s*"(?:' + OP_STAT + ')"(?:\\s*,\\s*"(?:' + OP_STAT + ')")*\\s*\\]'));
+  if (arr) return arr[0].match(new RegExp('"(' + OP_STAT + ')"', 'g')).map(x => x.replace(/"/g, ''));
+  /* `for (i in target.boosts)` is the authority's own way of saying ALL SEVEN, accuracy and evasion
+   * included. Carried as the string 'all' rather than expanded here, so the consumer reads the
+   * body's real vector instead of a list this file guessed at. */
+  if (/for\s*\(\s*(?:const\s+|let\s+)?\w+\s+in\s+target\.boosts\s*\)/.test(s)) return 'all';
+  return null;
+}
+function STAT_OP(h) {
+  const s = String(h).replace(/\s+/g, ' ');
+  /* EXCHANGE: both bodies are written with setBoost, each from the other's saved vector. */
+  if (/\bsource\.setBoost\(/.test(s) && /\btarget\.setBoost\(/.test(s))
+    return { kind: 'exchange', stats: statSubsetIn(s), between: ['user', 'target'] };
+  /* COPY: one direction only, straight assignment out of the target's vector into the source's. */
+  if (/\bsource\.boosts\[\s*\w+\s*\]\s*=\s*target\.boosts\[\s*\w+\s*\]/.test(s))
+    return { kind: 'copy', stats: statSubsetIn(s), from: 'target', to: 'user' };
+  /* INVERT: the target's own slot assigned its own negation. `nonzeroOnly` is the handler's `continue`
+   * guard, and it is the difference between a move that fails on an empty vector and one that does
+   * nothing quietly -- Showdown returns false when no stage moved. */
+  if (/\btarget\.boosts\[\s*(\w+)\s*\]\s*=\s*-\s*target\.boosts\[\s*\1\s*\]/.test(s))
+    return { kind: 'invert', stats: statSubsetIn(s), on: 'target',
+             nonzeroOnly: /boosts\[\s*\w+\s*\]\s*===\s*0\s*\)\s*continue/.test(s) };
+  if (/this\.sample\(/.test(s) && /this\.boost\(/.test(s)) {
+    const ceil = s.match(/\.boosts\[\s*\w+\s*\]\s*<\s*(\d+)/);
+    if (!ceil) return null;                       // the over-match guard: no stat ceiling, no stat pick
+    const amt = s.match(/\[\s*\w+\s*\]\s*=\s*(-?\d+)\s*;\s*this\.boost\(/);
+    return { kind: 'randomOne', stats: statSubsetIn(s), on: 'target',
+             amount: amt ? +amt[1] : null, below: +ceil[1] };
+  }
+  return null;
+}
+
 const MOVE_TAGS = [
   /* NEW 2026-08-08 -- THE MOVE THAT SPENDS THE USER'S OWN ITEM, and it is the mirror image of
    * `removesItem` rather than a member of it: Knock Off takes what the TARGET holds, this throws what
@@ -1841,7 +1899,36 @@ const MOVE_TAGS = [
      * consumer handed a made-up one would be wrong on all five. They keep the tag, get no numbers,
      * and stay visibly unwired.
      * WHO it lands on comes from the move's own `target` field: Belly Drum is `self`, Parting Shot is
-     * `normal`. `costFraction` is Belly Drum's directDamage. */
+     * `normal`. `costFraction` is Belly Drum's directDamage.
+     *
+     * ---- WIRE 151, 2026-08-10: THE PARAGRAPH ABOVE IS STILL RIGHT AND IT STOPS ONE STEP SHORT. ----
+     *
+     * "None of them is expressible as a stage TABLE" is true, and the conclusion drawn from it -- that
+     * they can therefore carry no numbers at all -- does not follow. They are not tables; they are
+     * OPERATIONS, and an operation is just as derivable from the handler as a table is. Four of the
+     * five above (Strength Sap is the exception and keeps its literal) are the same engine primitive:
+     * READ a body's boost vector, TRANSFORM it, WRITE it to a named body. What was missing was a
+     * SHAPE to say so in.
+     *
+     * SO `op` IS A THIRD SHAPE BESIDE `boosts`, DELIBERATELY NOT BOLTED ONTO IT. The two are disjoint
+     * by construction and measured to be so over the whole move table: every member carries `boosts`
+     * or `op` and never both, so a consumer reading `boosts` keeps working unchanged and cannot be
+     * handed a made-up table by this addition. A consumer that does not understand an `op.kind` must
+     * refuse it loudly -- the auraBoost precedent -- rather than reach for a stage table nobody derived.
+     *
+     * MEMBERSHIP PRINTED OVER THE WHOLE MOVE TABLE BEFORE THIS WAS WIRED, as docs/LESSONS.md 4
+     * requires, AND THE FIRST VERSION OVER-MATCHED, which is exactly what that rule exists to catch:
+     * a bare `this.sample(` test claimed SLEEP TALK, Metronome, Assist and Conversion 2 -- move and
+     * type choosers that share the sampler and have nothing to do with stats. The rule now demands the
+     * candidate list be built from a `.boosts[...] < N` gate AND the handler call `this.boost(`, which
+     * is the shape of a stat pick and not of a move pick. Final membership over 954 moves: SIX --
+     * acupressure, guardswap, powerswap, psychup, topsyturvy, and heartswap (isNonstandard 'Past', so
+     * unplayable here; its all-seven exchange is derived correctly and simply never clicked).
+     *
+     * THE STAT SUBSET IS PART OF THE FACT AND IS CARRIED. Guard Swap's `["def","spd"]` and Power
+     * Swap's `["atk","spa"]` are array literals in their own handlers; Psych Up, Topsy-Turvy and
+     * Acupressure iterate `for (i in target.boosts)`, which is ALL SEVEN -- accuracy and evasion
+     * included. A consumer that dropped the subset would turn Guard Swap into Heart Swap. */
     of: m => {
       if (m.boosts || (m.self && m.self.boosts)) return null;
       const h = String(m.onHit || '') + String(m.onModifyMove || '');
@@ -1857,6 +1944,8 @@ const MOVE_TAGS = [
       }
       const dd = h.replace(/\s+/g, ' ').match(/directDamage\(\s*\w+\.maxhp\s*\/\s*(\d+)/);
       if (dd) p.costFraction = 1 / +dd[1];
+      const op = STAT_OP(h);
+      if (op && !p.boosts) p.op = op;
       return p;
     } },
   /* ROADMAP #81 WIRE 12 -- CURSE IS TWO MOVES AND NO TAG SAID SO.

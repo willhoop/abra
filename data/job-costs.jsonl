@@ -101,3 +101,4 @@
 {"job":"mutation-harness","peak_mb":151,"duration_s":36,"samples":2,"node":"v24.15.0","at":"2026-08-09T19:18:05.686Z"}
 {"job":"mutation-harness","peak_mb":145,"duration_s":2,"samples":2,"node":"v24.15.0","at":"2026-08-09T20:43:59.204Z"}
 {"job":"mutation-harness","peak_mb":150,"duration_s":2,"samples":2,"node":"v24.15.0","at":"2026-08-10T04:21:23.477Z"}
+{"job":"mutation-harness","peak_mb":148,"duration_s":2,"samples":2,"node":"v24.15.0","at":"2026-08-10T06:34:27.750Z"}

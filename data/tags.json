@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-10T04:12:10.190Z",
+ "generated": "2026-08-10T06:21:00.295Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -9249,7 +9249,14 @@
      "note": "default for status"
     },
     "statChangeInCode": {
-     "procedural": true
+     "procedural": true,
+     "op": {
+      "kind": "randomOne",
+      "stats": "all",
+      "on": "target",
+      "amount": 2,
+      "below": 6
+     }
     },
     "statusCategory": {
      "status": true
@@ -13517,7 +13524,18 @@
      "note": "default for status"
     },
     "statChangeInCode": {
-     "procedural": true
+     "procedural": true,
+     "op": {
+      "kind": "exchange",
+      "stats": [
+       "def",
+       "spd"
+      ],
+      "between": [
+       "user",
+       "target"
+      ]
+     }
     },
     "lowersTarget": {
      "boosts": "via onHit",
@@ -16605,7 +16623,18 @@
      "note": "default for status"
     },
     "statChangeInCode": {
-     "procedural": true
+     "procedural": true,
+     "op": {
+      "kind": "exchange",
+      "stats": [
+       "atk",
+       "spa"
+      ],
+      "between": [
+       "user",
+       "target"
+      ]
+     }
     },
     "lowersTarget": {
      "boosts": "via onHit",
@@ -16805,7 +16834,13 @@
      "throughProtect": true
     },
     "statChangeInCode": {
-     "procedural": true
+     "procedural": true,
+     "op": {
+      "kind": "copy",
+      "stats": "all",
+      "from": "target",
+      "to": "user"
+     }
     },
     "statusCategory": {
      "status": true
@@ -20062,7 +20097,13 @@
      "note": "default for status"
     },
     "statChangeInCode": {
-     "procedural": true
+     "procedural": true,
+     "op": {
+      "kind": "invert",
+      "stats": "all",
+      "on": "target",
+      "nonzeroOnly": true
+     }
     },
     "statusCategory": {
      "status": true
