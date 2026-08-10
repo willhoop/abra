@@ -1,0 +1,7674 @@
+{
+  "note": "One readable frozen state per diverging turn. Open one and the mistake should be visible without running anything. `board_after_LOG` is what really happened; `board_after_OURS` is what our engine could reach under any of its pins. `clicks[].reconstruction` says how sure the choice recovery was — a board that differs because the wrong click was fed in is not an engine defect.",
+  "engine_release": "ec4dc5fd4a0d",
+  "generated": "2026-08-10T19:00:57.582Z",
+  "total_diverging_turns": 55,
+  "shown": 40,
+  "freezes": [
+    {
+      "game": "gen9championsvgc2026regmb-2653451415",
+      "turn": 2,
+      "date": "2026-07-23 03:20",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653451415",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / x0.5-ish — ONE HALVING WE APPLY AND THE GAME DID NOT, or a screen the store cannot record  (incineroar Throat Chop -> farigiraf: record 35%, our span 37–124.1%)",
+        "status par landed on incineroar in the record and our engine never applies it"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "incineroar",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "farigiraf",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "incineroar",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "farigiraf",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "clicks": [
+        {
+          "slot": "p1a",
+          "move": "Throat Chop",
+          "target_species": "farigiraf",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Flare Blitz",
+          "target_species": "pelipper",
+          "target_slot": null,
+          "reconstruction": "TARGET SLOT NOT RECOVERED"
+        },
+        {
+          "slot": "p2b",
+          "move": "Thunderbolt",
+          "target_species": "incineroar",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "incineroar",
+            "hp": 82,
+            "status": "par",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "pelipper",
+            "hp": 83,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "incineroar",
+            "hp": 86,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "farigiraf",
+            "hp": 65,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "RainDance",
+        "weatherBy": "Drizzle",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p2b"
+        ],
+        "weather_reachable": []
+      },
+      "fields_that_differ": [
+        "damage / x0.5-ish — ONE HALVING WE APPLY AND THE GAME DID NOT, or a screen the store cannot record  (incineroar Throat Chop -> farigiraf: record 35%, our span 37–124.1%)",
+        "status par landed on incineroar in the record and our engine never applies it"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "s",
+          "s": "p1b",
+          "mon": "pelipper"
+        },
+        {
+          "t": "w",
+          "s": "p1b",
+          "mon": "pelipper",
+          "field": "RainDance",
+          "by": "Drizzle"
+        },
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "incineroar",
+          "mv": "Throat Chop",
+          "tgt": "farigiraf",
+          "dmg": 35,
+          "tgthp": 65
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "incineroar",
+          "mv": "Flare Blitz",
+          "tgt": "pelipper",
+          "dmg": 17,
+          "tgthp": 83
+        },
+        {
+          "t": "hp",
+          "s": "p2a",
+          "mon": "incineroar",
+          "hp": 96
+        },
+        {
+          "t": "hp",
+          "s": "p2a",
+          "mon": "incineroar",
+          "hp": 86
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "farigiraf",
+          "mv": "Thunderbolt",
+          "tgt": "incineroar",
+          "dmg": 18,
+          "tgthp": 82
+        },
+        {
+          "t": "x",
+          "s": "p1a",
+          "mon": "incineroar",
+          "st": "par"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653447800",
+      "turn": 3,
+      "date": "2026-07-23 03:11",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653447800",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / x1.5-ish — STAB, sun/rain, or a boost stage we did not apply  (flapple Dragon Rush -> dragonitemega: record 63%, our span 18.69–59.64%)",
+        "status par landed on flapple in the record and our engine never applies it"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "dragonitemega",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "sneasler",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "flapple",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "gengarmega",
+            "hp": 51,
+            "status": "brn",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": "Gravity",
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "clicks": [
+        {
+          "slot": "p1a",
+          "move": "Extreme Speed",
+          "target_species": "gengarmega",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": "Hypnosis",
+          "target_species": "dragonitemega",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": "Dire Claw",
+          "target_species": "flapple",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Dragon Rush",
+          "target_species": "dragonitemega",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "dragonitemega",
+            "hp": 37,
+            "status": "slp",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "sneasler",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "flapple",
+            "hp": 1,
+            "status": "par",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "gengarmega",
+            "hp": 45,
+            "status": "brn",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": "Gravity",
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "board_after_OURS": {
+        "status_reachable": [
+          "p1a:slp",
+          "p2a:psn",
+          "p2b:brn"
+        ],
+        "fainted_reachable": [
+          "p2a"
+        ],
+        "weather_reachable": []
+      },
+      "fields_that_differ": [
+        "damage / x1.5-ish — STAB, sun/rain, or a boost stage we did not apply  (flapple Dragon Rush -> dragonitemega: record 63%, our span 18.69–59.64%)",
+        "status par landed on flapple in the record and our engine never applies it"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "dragonitemega",
+          "mv": "Extreme Speed",
+          "tgt": "gengarmega",
+          "dmg": 0,
+          "immune": 1
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "gengarmega",
+          "mv": "Hypnosis",
+          "tgt": "dragonitemega",
+          "dmg": 0
+        },
+        {
+          "t": "x",
+          "s": "p1a",
+          "mon": "dragonitemega",
+          "st": "slp"
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "sneasler",
+          "mv": "Dire Claw",
+          "tgt": "flapple",
+          "dmg": 99,
+          "tgthp": 1
+        },
+        {
+          "t": "x",
+          "s": "p2a",
+          "mon": "flapple",
+          "st": "par"
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "flapple",
+          "mv": "Dragon Rush",
+          "tgt": "dragonitemega",
+          "dmg": 63,
+          "tgthp": 37
+        },
+        {
+          "t": "hp",
+          "s": "p2b",
+          "mon": "gengarmega",
+          "hp": 45
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653449709",
+      "turn": 5,
+      "date": "2026-07-23 03:16",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653449709",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / x1.5-ish — STAB, sun/rain, or a boost stage we did not apply  (kangaskhan Fake Out -> basculegion: record 31%, our span 8.37–29.74%)",
+        "status brn landed on kangaskhan in the record and our engine never applies it"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "blaziken",
+            "hp": 67,
+            "status": "",
+            "boosts": {
+              "spe": 2
+            }
+          },
+          "p1b": {
+            "sp": "kangaskhan",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "charizardmegay",
+            "hp": 34,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 1
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p1b",
+          "move": "Fake Out",
+          "target_species": "basculegion",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Heat Wave",
+          "target_species": "blaziken",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": "Flare Blitz",
+          "target_species": "charizardmegay",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "NO CLICK RECORDED — the store has no `cant` event, so flinch / full-para / sleep / freeze / recharge are indistinguishable"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "blaziken",
+            "hp": 56,
+            "status": "",
+            "boosts": {
+              "spe": 3
+            }
+          },
+          "p1b": {
+            "sp": "kangaskhan",
+            "hp": 17,
+            "status": "brn",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "charizardmegay",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "basculegion",
+            "hp": 69,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p1a",
+          "p1b",
+          "p2a"
+        ],
+        "weather_reachable": [
+          "sun"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / x1.5-ish — STAB, sun/rain, or a boost stage we did not apply  (kangaskhan Fake Out -> basculegion: record 31%, our span 8.37–29.74%)",
+        "status brn landed on kangaskhan in the record and our engine never applies it"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "kangaskhan",
+          "mv": "Fake Out",
+          "tgt": "basculegion",
+          "dmg": 31,
+          "tgthp": 69
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "charizardmegay",
+          "mv": "Heat Wave",
+          "tgt": "blaziken",
+          "dmg": 77,
+          "miss": 1,
+          "tgthp": 23
+        },
+        {
+          "t": "x",
+          "s": "p1b",
+          "mon": "kangaskhan",
+          "st": "brn"
+        },
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "blaziken",
+          "mv": "Flare Blitz",
+          "tgt": "charizardmegay",
+          "dmg": 34,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p2a",
+          "mon": "charizardmegay"
+        },
+        {
+          "t": "hp",
+          "s": "p1a",
+          "mon": "blaziken",
+          "hp": 56
+        },
+        {
+          "t": "hp",
+          "s": "p1b",
+          "mon": "kangaskhan",
+          "hp": 17
+        },
+        {
+          "t": "b",
+          "s": "p1a",
+          "mon": "blaziken",
+          "b": {
+            "spe": 3
+          }
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653449594",
+      "turn": 6,
+      "date": "2026-07-23 03:16",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653449594",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / the record shows a KO our maximum roll cannot reach  (sinistcha Matcha Gotcha -> pelipper: record 31%, our span 25.75–93.33%)",
+        "turn order / SPEED — no legal Champions spread can produce the order the record shows :: SPEED — no legal Champions spread lets tyranitar move before pelipper (our attainable speeds: 72-124 vs 152-256)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "milotic",
+            "hp": 35,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "pelipper",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "sinistcha",
+            "hp": 93,
+            "status": "frz",
+            "boosts": {
+              "accuracy": -1
+            }
+          },
+          "p2b": {
+            "sp": "tyranitar",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "RainDance",
+        "weatherBy": "Drizzle",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 1,
+          "p2": 0
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p1a",
+          "move": "Muddy Water",
+          "target_species": "tyranitar",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": "Knock Off",
+          "target_species": "milotic",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": "Hurricane",
+          "target_species": "sinistcha",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Matcha Gotcha",
+          "target_species": "pelipper",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "milotic",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "beartic",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "sinistcha",
+            "hp": 21,
+            "status": "frz",
+            "boosts": {
+              "accuracy": -2
+            }
+          },
+          "p2b": {
+            "sp": "tyranitar",
+            "hp": 71,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "RainDance",
+        "weatherBy": "Drizzle",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [
+          "p2a:frz"
+        ],
+        "fainted_reachable": [
+          "p2a",
+          "p2b",
+          "p1a"
+        ],
+        "weather_reachable": [
+          "sand",
+          "rain"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / the record shows a KO our maximum roll cannot reach  (sinistcha Matcha Gotcha -> pelipper: record 31%, our span 25.75–93.33%)",
+        "turn order / SPEED — no legal Champions spread can produce the order the record shows :: SPEED — no legal Champions spread lets tyranitar move before pelipper (our attainable speeds: 72-124 vs 152-256)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "milotic",
+          "mv": "Muddy Water",
+          "tgt": "tyranitar",
+          "dmg": 22,
+          "miss": 1,
+          "tgthp": 71
+        },
+        {
+          "t": "b",
+          "s": "p2a",
+          "mon": "sinistcha",
+          "b": {
+            "accuracy": -2
+          }
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "tyranitar",
+          "mv": "Knock Off",
+          "tgt": "milotic",
+          "dmg": 35,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p1a",
+          "mon": "milotic"
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "pelipper",
+          "mv": "Hurricane",
+          "tgt": "sinistcha",
+          "dmg": 65,
+          "tgthp": 6
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "sinistcha",
+          "mv": "Matcha Gotcha",
+          "tgt": "pelipper",
+          "dmg": 31,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "hp",
+          "s": "p2a",
+          "mon": "sinistcha",
+          "hp": 21
+        },
+        {
+          "t": "f",
+          "s": "p1b",
+          "mon": "pelipper"
+        },
+        {
+          "t": "s",
+          "s": "p1b",
+          "mon": "beartic"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653447788",
+      "turn": 6,
+      "date": "2026-07-23 03:11",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653447788",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / the record shows a KO our maximum roll cannot reach  (froslassmega Shadow Ball -> whimsicott: record 1%, our span 28.74–98.52%)",
+        "weather Snowscape was set in the record and our engine did not set it"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "froslass",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "rotomfrost",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "charizardmegay",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p1b",
+          "move": "Thunderbolt",
+          "target_species": "charizardmegay",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": "Shadow Ball",
+          "target_species": "whimsicott",
+          "target_slot": null,
+          "reconstruction": "TARGET SLOT NOT RECOVERED"
+        },
+        {
+          "slot": "p2b",
+          "move": "Heat Wave",
+          "target_species": "froslassmega",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "froslassmega",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "rotomfrost",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "whimsicott",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "charizardmegay",
+            "hp": 10,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "Snowscape",
+        "weatherBy": "Snow Warning",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p1a",
+          "p1b"
+        ],
+        "weather_reachable": [
+          "sun"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / the record shows a KO our maximum roll cannot reach  (froslassmega Shadow Ball -> whimsicott: record 1%, our span 28.74–98.52%)",
+        "weather Snowscape was set in the record and our engine did not set it"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "s",
+          "s": "p2a",
+          "mon": "whimsicott"
+        },
+        {
+          "t": "mega",
+          "s": "p1a",
+          "mon": "froslassmega",
+          "from": "froslass"
+        },
+        {
+          "t": "w",
+          "s": "p1a",
+          "mon": "froslassmega",
+          "field": "Snowscape",
+          "by": "Snow Warning"
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "rotomfrost",
+          "mv": "Thunderbolt",
+          "tgt": "charizardmegay",
+          "dmg": 90,
+          "tgthp": 10
+        },
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "froslassmega",
+          "mv": "Shadow Ball",
+          "tgt": "whimsicott",
+          "dmg": 1,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p2a",
+          "mon": "whimsicott"
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "charizardmegay",
+          "mv": "Heat Wave",
+          "tgt": "froslassmega",
+          "dmg": 100,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p1a",
+          "mon": "froslassmega"
+        },
+        {
+          "t": "f",
+          "s": "p1b",
+          "mon": "rotomfrost"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653450644",
+      "turn": 1,
+      "date": "2026-07-23 03:18",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653450644",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / x2-ish — A TYPE OR WEATHER MULTIPLIER WE ARE MISSING  (weavile Flamethrower -> kingambit: record 73%, our span 13.53–52.57%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "kingambit",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "sneasler",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "weavile",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "gholdengo",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "clicks": [
+        {
+          "slot": "p2a",
+          "move": "Flamethrower",
+          "target_species": "kingambit",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": "Close Combat",
+          "target_species": "weavile",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": "Make It Rain",
+          "target_species": "kingambit",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "sneasler",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "weavile",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "gholdengo",
+            "hp": 90,
+            "status": "",
+            "boosts": {
+              "spa": -2
+            }
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "board_after_OURS": {
+        "status_reachable": [
+          "p1a:brn"
+        ],
+        "fainted_reachable": [
+          "p1b",
+          "p2a"
+        ],
+        "weather_reachable": []
+      },
+      "fields_that_differ": [
+        "damage / x2-ish — A TYPE OR WEATHER MULTIPLIER WE ARE MISSING  (weavile Flamethrower -> kingambit: record 73%, our span 13.53–52.57%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "weavile",
+          "mv": "Flamethrower",
+          "tgt": "kingambit",
+          "dmg": 73,
+          "tgthp": 27
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "sneasler",
+          "mv": "Close Combat",
+          "tgt": "weavile",
+          "dmg": 0,
+          "immune": 1
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "gholdengo",
+          "mv": "Make It Rain",
+          "tgt": "kingambit",
+          "dmg": 92,
+          "ko": true,
+          "tgthp": 8
+        },
+        {
+          "t": "b",
+          "s": "p2b",
+          "mon": "gholdengo",
+          "b": {
+            "spa": -2
+          }
+        },
+        {
+          "t": "f",
+          "s": "p1a",
+          "mon": "kingambit"
+        },
+        {
+          "t": "hp",
+          "s": "p2b",
+          "mon": "gholdengo",
+          "hp": 90
+        },
+        {
+          "t": "s",
+          "s": "p1a",
+          "mon": "basculegion"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653450386",
+      "turn": 1,
+      "date": "2026-07-23 03:18",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653450386",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / x1.5-ish — STAB, sun/rain, or a boost stage we did not apply  (mamoswine Ice Shard -> charizardmegay: record 46%, our span 11.89–41.18%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "charizard",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "sylveon",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "mamoswine",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "gallade",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "clicks": [
+        {
+          "slot": "p2a",
+          "move": "Ice Shard",
+          "target_species": "charizardmegay",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": "Psycho Cut",
+          "target_species": "charizardmegay",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": "Hyper Voice",
+          "target_species": "gallade",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "sylveon",
+            "hp": 90,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "mamoswine",
+            "hp": 90,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "tinkaton",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p1a",
+          "p2b"
+        ],
+        "weather_reachable": [
+          "sun"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / x1.5-ish — STAB, sun/rain, or a boost stage we did not apply  (mamoswine Ice Shard -> charizardmegay: record 46%, our span 11.89–41.18%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "mega",
+          "s": "p1a",
+          "mon": "charizardmegay",
+          "from": "charizard"
+        },
+        {
+          "t": "w",
+          "s": "p1a",
+          "mon": "charizardmegay",
+          "field": "SunnyDay",
+          "by": "Drought"
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "mamoswine",
+          "mv": "Ice Shard",
+          "tgt": "charizardmegay",
+          "dmg": 46,
+          "tgthp": 54
+        },
+        {
+          "t": "hp",
+          "s": "p2a",
+          "mon": "mamoswine",
+          "hp": 90
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "gallade",
+          "mv": "Psycho Cut",
+          "tgt": "charizardmegay",
+          "dmg": 54,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p1a",
+          "mon": "charizardmegay"
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "sylveon",
+          "mv": "Hyper Voice",
+          "tgt": "gallade",
+          "dmg": 100,
+          "tgthp": 0,
+          "ko": true
+        },
+        {
+          "t": "f",
+          "s": "p2b",
+          "mon": "gallade"
+        },
+        {
+          "t": "hp",
+          "s": "p1b",
+          "mon": "sylveon",
+          "hp": 90
+        },
+        {
+          "t": "s",
+          "s": "p1a",
+          "mon": "basculegion"
+        },
+        {
+          "t": "s",
+          "s": "p2b",
+          "mon": "tinkaton"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653449178",
+      "turn": 1,
+      "date": "2026-07-23 03:18",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653449178",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / x0.25-ish — two resists, or a doubled resist we invented  (metagrossmega Psychic Fangs -> sneasler: record 99%, our span 162.57–572.9%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "blaziken",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "sneasler",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "metagross",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "farigiraf",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "clicks": [
+        {
+          "slot": "p1b",
+          "move": "Coaching",
+          "target_species": "blazikenmega",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": "Flare Blitz",
+          "target_species": "farigiraf",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Psychic Fangs",
+          "target_species": "sneasler",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "blazikenmega",
+            "hp": 52,
+            "status": "",
+            "boosts": {
+              "atk": 0,
+              "def": 1,
+              "spe": 1
+            }
+          },
+          "p1b": {
+            "sp": "sneasler",
+            "hp": 1,
+            "status": "",
+            "boosts": {
+              "atk": -1
+            }
+          },
+          "p2a": {
+            "sp": "metagrossmega",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "scrafty",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p2b"
+        ],
+        "weather_reachable": []
+      },
+      "fields_that_differ": [
+        "damage / x0.25-ish — two resists, or a doubled resist we invented  (metagrossmega Psychic Fangs -> sneasler: record 99%, our span 162.57–572.9%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "mega",
+          "s": "p1a",
+          "mon": "blazikenmega",
+          "from": "blaziken"
+        },
+        {
+          "t": "mega",
+          "s": "p2a",
+          "mon": "metagrossmega",
+          "from": "metagross"
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "sneasler",
+          "mv": "Coaching",
+          "tgt": "blazikenmega",
+          "dmg": 0
+        },
+        {
+          "t": "b",
+          "s": "p1a",
+          "mon": "blazikenmega",
+          "b": {
+            "atk": 1
+          }
+        },
+        {
+          "t": "b",
+          "s": "p1a",
+          "mon": "blazikenmega",
+          "b": {
+            "atk": 1,
+            "def": 1
+          }
+        },
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "blazikenmega",
+          "mv": "Flare Blitz",
+          "tgt": "farigiraf",
+          "dmg": 100,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p2b",
+          "mon": "farigiraf"
+        },
+        {
+          "t": "hp",
+          "s": "p1a",
+          "mon": "blazikenmega",
+          "hp": 52
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "metagrossmega",
+          "mv": "Psychic Fangs",
+          "tgt": "sneasler",
+          "dmg": 99,
+          "tgthp": 1
+        },
+        {
+          "t": "b",
+          "s": "p1a",
+          "mon": "blazikenmega",
+          "b": {
+            "atk": 1,
+            "def": 1,
+            "spe": 1
+          }
+        },
+        {
+          "t": "s",
+          "s": "p2b",
+          "mon": "scrafty"
+        },
+        {
+          "t": "b",
+          "s": "p1a",
+          "mon": "blazikenmega",
+          "b": {
+            "atk": 0,
+            "def": 1,
+            "spe": 1
+          }
+        },
+        {
+          "t": "b",
+          "s": "p1b",
+          "mon": "sneasler",
+          "b": {
+            "atk": -1
+          }
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653447563",
+      "turn": 1,
+      "date": "2026-07-23 03:11",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653447563",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / x2-ish — A TYPE OR WEATHER MULTIPLIER WE ARE MISSING  (araquanid Hydro Pump -> charizardmegay: record 98%, our span 22.7–87.58%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "charizard",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "sylveon",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "araquanid",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "oranguru",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "clicks": [
+        {
+          "slot": "p1a",
+          "move": "Heat Wave",
+          "target_species": "oranguru",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": "Hyper Voice",
+          "target_species": "araquanid",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Hydro Pump",
+          "target_species": "charizardmegay",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": "Trick Room",
+          "target_species": "oranguru",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "charizardmegay",
+            "hp": 2,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "sylveon",
+            "hp": 90,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "araquanid",
+            "hp": 40,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "oranguru",
+            "hp": 62,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 4,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "trick room duration"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [
+          "p2b:brn"
+        ],
+        "fainted_reachable": [
+          "p2a",
+          "p2b"
+        ],
+        "weather_reachable": [
+          "sun"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / x2-ish — A TYPE OR WEATHER MULTIPLIER WE ARE MISSING  (araquanid Hydro Pump -> charizardmegay: record 98%, our span 22.7–87.58%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "mega",
+          "s": "p1a",
+          "mon": "charizardmegay",
+          "from": "charizard"
+        },
+        {
+          "t": "w",
+          "s": "p1a",
+          "mon": "charizardmegay",
+          "field": "SunnyDay",
+          "by": "Drought"
+        },
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "charizardmegay",
+          "mv": "Heat Wave",
+          "tgt": "oranguru",
+          "dmg": 63,
+          "miss": 1,
+          "tgthp": 37
+        },
+        {
+          "t": "hp",
+          "s": "p2b",
+          "mon": "oranguru",
+          "hp": 62
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "sylveon",
+          "mv": "Hyper Voice",
+          "tgt": "araquanid",
+          "dmg": 50,
+          "tgthp": 20
+        },
+        {
+          "t": "hp",
+          "s": "p1b",
+          "mon": "sylveon",
+          "hp": 90
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "araquanid",
+          "mv": "Hydro Pump",
+          "tgt": "charizardmegay",
+          "dmg": 98,
+          "tgthp": 2
+        },
+        {
+          "t": "hp",
+          "s": "p2a",
+          "mon": "araquanid",
+          "hp": 40
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "oranguru",
+          "mv": "Trick Room",
+          "tgt": "oranguru",
+          "dmg": 0
+        },
+        {
+          "t": "fs",
+          "field": "Trick Room"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653446293",
+      "turn": 1,
+      "date": "2026-07-23 03:06",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653446293",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / x0.25-ish — two resists, or a doubled resist we invented  (incineroar Flare Blitz -> ninetalesalola: record 47%, our span 64.44–232.43%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "incineroar",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "sylveon",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "whimsicott",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "ninetalesalola",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "clicks": [
+        {
+          "slot": "p2a",
+          "move": "Tailwind",
+          "target_species": "whimsicott",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": "Aurora Veil",
+          "target_species": "ninetalesalola",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": "Flare Blitz",
+          "target_species": "ninetalesalola",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "incineroar",
+            "hp": 88,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "kingambit",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "whimsicott",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "ninetalesalola",
+            "hp": 53,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 3
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p2b"
+        ],
+        "weather_reachable": [
+          "snow"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / x0.25-ish — two resists, or a doubled resist we invented  (incineroar Flare Blitz -> ninetalesalola: record 47%, our span 64.44–232.43%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "s",
+          "s": "p1b",
+          "mon": "kingambit"
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "whimsicott",
+          "mv": "Tailwind",
+          "tgt": "whimsicott",
+          "dmg": 0
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "ninetalesalola",
+          "mv": "Aurora Veil",
+          "tgt": "ninetalesalola",
+          "dmg": 0
+        },
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "incineroar",
+          "mv": "Flare Blitz",
+          "tgt": "ninetalesalola",
+          "dmg": 47,
+          "tgthp": 53
+        },
+        {
+          "t": "hp",
+          "s": "p1a",
+          "mon": "incineroar",
+          "hp": 88
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653450367",
+      "turn": 2,
+      "date": "2026-07-23 03:20",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653450367",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / x0.5-ish — ONE HALVING WE APPLY AND THE GAME DID NOT, or a screen the store cannot record  (charizardmegay Weather Ball -> archaludon: record 31%, our span 36.55–123.64%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "charizardmegay",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "grimmsnarl",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "charizardmegay",
+            "hp": 41,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "grimmsnarl",
+            "hp": 32,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "clicks": [
+        {
+          "slot": "p2b",
+          "move": "Parting Shot",
+          "target_species": "charizardmegay",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": "Weather Ball",
+          "target_species": "archaludon",
+          "target_slot": null,
+          "reconstruction": "TARGET SLOT NOT RECOVERED"
+        },
+        {
+          "slot": "p1b",
+          "move": "Spirit Break",
+          "target_species": "venusaur",
+          "target_slot": null,
+          "reconstruction": "TARGET SLOT NOT RECOVERED"
+        },
+        {
+          "slot": "p2a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "charizardmegay",
+            "hp": 0,
+            "status": "",
+            "boosts": {
+              "atk": -1,
+              "spa": -1
+            }
+          },
+          "p1b": {
+            "sp": "grimmsnarl",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "archaludon",
+            "hp": 75,
+            "status": "",
+            "boosts": {
+              "def": 1
+            }
+          },
+          "p2b": {
+            "sp": "venusaur",
+            "hp": 71,
+            "status": "",
+            "boosts": {
+              "spa": -1
+            }
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p1a"
+        ],
+        "weather_reachable": [
+          "sun"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / x0.5-ish — ONE HALVING WE APPLY AND THE GAME DID NOT, or a screen the store cannot record  (charizardmegay Weather Ball -> archaludon: record 31%, our span 36.55–123.64%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "s",
+          "s": "p2a",
+          "mon": "archaludon"
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "grimmsnarl",
+          "mv": "Parting Shot",
+          "tgt": "charizardmegay",
+          "dmg": 0
+        },
+        {
+          "t": "b",
+          "s": "p1a",
+          "mon": "charizardmegay",
+          "b": {
+            "atk": -1
+          }
+        },
+        {
+          "t": "b",
+          "s": "p1a",
+          "mon": "charizardmegay",
+          "b": {
+            "atk": -1,
+            "spa": -1
+          }
+        },
+        {
+          "t": "s",
+          "s": "p2b",
+          "mon": "venusaur"
+        },
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "charizardmegay",
+          "mv": "Weather Ball",
+          "tgt": "archaludon",
+          "dmg": 31,
+          "tgthp": 69
+        },
+        {
+          "t": "b",
+          "s": "p2a",
+          "mon": "archaludon",
+          "b": {
+            "def": 1
+          }
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "grimmsnarl",
+          "mv": "Spirit Break",
+          "tgt": "venusaur",
+          "dmg": 29,
+          "tgthp": 71
+        },
+        {
+          "t": "b",
+          "s": "p2b",
+          "mon": "venusaur",
+          "b": {
+            "spa": -1
+          }
+        },
+        {
+          "t": "hp",
+          "s": "p2a",
+          "mon": "archaludon",
+          "hp": 75
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653450644",
+      "turn": 2,
+      "date": "2026-07-23 03:18",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653450644",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / the record shows a KO our maximum roll cannot reach  (weavile Flamethrower -> sneasler: record 8%, our span 7.49–30.97%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "sneasler",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "weavile",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "gholdengo",
+            "hp": 90,
+            "status": "",
+            "boosts": {
+              "spa": -2
+            }
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "clicks": [
+        {
+          "slot": "p1a",
+          "move": "Aqua Jet",
+          "target_species": "incineroar",
+          "target_slot": null,
+          "reconstruction": "TARGET SLOT NOT RECOVERED"
+        },
+        {
+          "slot": "p2a",
+          "move": "Flamethrower",
+          "target_species": "sneasler",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        },
+        {
+          "slot": "p2b",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {
+              "atk": -1
+            }
+          },
+          "p1b": {
+            "sp": "dragonite",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "weavile",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "incineroar",
+            "hp": 70,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "board_after_OURS": {
+        "status_reachable": [
+          "p1b:brn"
+        ],
+        "fainted_reachable": [],
+        "weather_reachable": []
+      },
+      "fields_that_differ": [
+        "damage / the record shows a KO our maximum roll cannot reach  (weavile Flamethrower -> sneasler: record 8%, our span 7.49–30.97%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "s",
+          "s": "p2b",
+          "mon": "incineroar"
+        },
+        {
+          "t": "b",
+          "s": "p1a",
+          "mon": "basculegion",
+          "b": {
+            "atk": -1
+          }
+        },
+        {
+          "t": "b",
+          "s": "p1b",
+          "mon": "sneasler",
+          "b": {
+            "atk": -1
+          }
+        },
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "basculegion",
+          "mv": "Aqua Jet",
+          "tgt": "incineroar",
+          "dmg": 30,
+          "tgthp": 70
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "weavile",
+          "mv": "Flamethrower",
+          "tgt": "sneasler",
+          "dmg": 8,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p1b",
+          "mon": "sneasler"
+        },
+        {
+          "t": "s",
+          "s": "p1b",
+          "mon": "dragonite"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653449594",
+      "turn": 2,
+      "date": "2026-07-23 03:16",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653449594",
+      "open_sheet": false,
+      "mechanics": [
+        "status frz landed on sinistcha in the record and our engine never applies it"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "milotic",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "swampert",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "sinistcha",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "maushold",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "clicks": [
+        {
+          "slot": "p2b",
+          "move": "Super Fang",
+          "target_species": "milotic",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": "Ice Beam",
+          "target_species": "sinistcha",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        },
+        {
+          "slot": "p2a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "NO CLICK RECORDED — the store has no `cant` event, so flinch / full-para / sleep / freeze / recharge are indistinguishable"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "milotic",
+            "hp": 55,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "pelipper",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "sinistcha",
+            "hp": 62,
+            "status": "frz",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "maushold",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "RainDance",
+        "weatherBy": "Drizzle",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p2a"
+        ],
+        "weather_reachable": []
+      },
+      "fields_that_differ": [
+        "status frz landed on sinistcha in the record and our engine never applies it"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "s",
+          "s": "p1b",
+          "mon": "pelipper"
+        },
+        {
+          "t": "w",
+          "s": "p1b",
+          "mon": "pelipper",
+          "field": "RainDance",
+          "by": "Drizzle"
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "maushold",
+          "mv": "Super Fang",
+          "tgt": "milotic",
+          "dmg": 50,
+          "tgthp": 50
+        },
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "milotic",
+          "mv": "Ice Beam",
+          "tgt": "sinistcha",
+          "dmg": 38,
+          "tgthp": 62
+        },
+        {
+          "t": "x",
+          "s": "p2a",
+          "mon": "sinistcha",
+          "st": "frz"
+        },
+        {
+          "t": "hp",
+          "s": "p1a",
+          "mon": "milotic",
+          "hp": 55
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653447772",
+      "turn": 2,
+      "date": "2026-07-23 03:14",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653447772",
+      "open_sheet": false,
+      "mechanics": [
+        "turn order / SPEED — no legal Champions spread can produce the order the record shows :: SPEED — no legal Champions spread lets excadrill move before gholdengo (our attainable speeds: 97-154 vs 186-298)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "tyranitar",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "excadrill",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "gholdengo",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "aerodactyl",
+            "hp": 48,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 3
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p2b",
+          "move": "Wide Guard",
+          "target_species": "aerodactyl",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": "Rock Slide",
+          "target_species": "gholdengo",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Nasty Plot",
+          "target_species": "gholdengo",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": "Knock Off",
+          "target_species": "gholdengo",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "tyranitar",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "excadrill",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "gholdengo",
+            "hp": 19,
+            "status": "",
+            "boosts": {
+              "spa": 2
+            }
+          },
+          "p2b": {
+            "sp": "aerodactyl",
+            "hp": 48,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 2
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p2a"
+        ],
+        "weather_reachable": [
+          "sand"
+        ]
+      },
+      "fields_that_differ": [
+        "turn order / SPEED — no legal Champions spread can produce the order the record shows :: SPEED — no legal Champions spread lets excadrill move before gholdengo (our attainable speeds: 97-154 vs 186-298)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "aerodactyl",
+          "mv": "Wide Guard",
+          "tgt": "aerodactyl",
+          "dmg": 0
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "excadrill",
+          "mv": "Rock Slide",
+          "tgt": "gholdengo",
+          "dmg": 0
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "gholdengo",
+          "mv": "Nasty Plot",
+          "tgt": "gholdengo",
+          "dmg": 0
+        },
+        {
+          "t": "b",
+          "s": "p2a",
+          "mon": "gholdengo",
+          "b": {
+            "spa": 2
+          }
+        },
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "tyranitar",
+          "mv": "Knock Off",
+          "tgt": "gholdengo",
+          "dmg": 81,
+          "tgthp": 19
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653449140",
+      "turn": 2,
+      "date": "2026-07-23 03:14",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653449140",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / the record shows a KO our maximum roll cannot reach  (araquanid Surf -> garchomp: record 26%, our span 20–78.69%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "garchomp",
+            "hp": 90,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "sylveon",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "oranguru",
+            "hp": 62,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "araquanid",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 4,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "trick room duration"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p2b",
+          "move": "Surf",
+          "target_species": "sylveon",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Instruct",
+          "target_species": "araquanid",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        },
+        {
+          "slot": "p1b",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "incineroar",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "kingambit",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "oranguru",
+            "hp": 62,
+            "status": "",
+            "boosts": {
+              "atk": -1
+            }
+          },
+          "p2b": {
+            "sp": "araquanid",
+            "hp": 80,
+            "status": "",
+            "boosts": {
+              "atk": -1
+            }
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 3,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "trick room duration"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [],
+        "weather_reachable": []
+      },
+      "fields_that_differ": [
+        "damage / the record shows a KO our maximum roll cannot reach  (araquanid Surf -> garchomp: record 26%, our span 20–78.69%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "araquanid",
+          "mv": "Surf",
+          "tgt": "sylveon",
+          "dmg": 64,
+          "blockedBy": "Telepathy",
+          "tgthp": 0,
+          "ko": true
+        },
+        {
+          "t": "f",
+          "s": "p1b",
+          "mon": "sylveon"
+        },
+        {
+          "t": "hp",
+          "s": "p2b",
+          "mon": "araquanid",
+          "hp": 90
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "oranguru",
+          "mv": "Instruct",
+          "tgt": "araquanid",
+          "dmg": 0
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "araquanid",
+          "mv": "Surf",
+          "tgt": "garchomp",
+          "dmg": 26,
+          "blockedBy": "Telepathy",
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p1a",
+          "mon": "garchomp"
+        },
+        {
+          "t": "hp",
+          "s": "p2b",
+          "mon": "araquanid",
+          "hp": 80
+        },
+        {
+          "t": "s",
+          "s": "p1b",
+          "mon": "kingambit"
+        },
+        {
+          "t": "s",
+          "s": "p1a",
+          "mon": "incineroar"
+        },
+        {
+          "t": "b",
+          "s": "p2a",
+          "mon": "oranguru",
+          "b": {
+            "atk": -1
+          }
+        },
+        {
+          "t": "b",
+          "s": "p2b",
+          "mon": "araquanid",
+          "b": {
+            "atk": -1
+          }
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653448360",
+      "turn": 2,
+      "date": "2026-07-23 03:12",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653448360",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / x2-ish — A TYPE OR WEATHER MULTIPLIER WE ARE MISSING  (whimsicott Moonblast -> dragonitemega: record 55%, our span 12.63–42.17%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "basculegion",
+            "hp": 70,
+            "status": "",
+            "boosts": {
+              "atk": -1
+            }
+          },
+          "p1b": {
+            "sp": "dragonitemega",
+            "hp": 70,
+            "status": "",
+            "boosts": {
+              "atk": -1,
+              "spa": -1
+            }
+          },
+          "p2a": {
+            "sp": "arcanine",
+            "hp": 31,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "whimsicott",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 3,
+          "p2": 0
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p1a",
+          "move": "Aqua Jet",
+          "target_species": "drampa",
+          "target_slot": null,
+          "reconstruction": "TARGET SLOT NOT RECOVERED"
+        },
+        {
+          "slot": "p1b",
+          "move": "Heat Wave",
+          "target_species": "drampa",
+          "target_slot": null,
+          "reconstruction": "TARGET SLOT NOT RECOVERED"
+        },
+        {
+          "slot": "p2b",
+          "move": "Moonblast",
+          "target_species": "dragonitemega",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "basculegion",
+            "hp": 70,
+            "status": "",
+            "boosts": {
+              "atk": -1
+            }
+          },
+          "p1b": {
+            "sp": "dragonitemega",
+            "hp": 15,
+            "status": "",
+            "boosts": {
+              "atk": -1,
+              "spa": -1
+            }
+          },
+          "p2a": {
+            "sp": "drampa",
+            "hp": 88,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "whimsicott",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 2,
+          "p2": 0
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p2b",
+          "p1b"
+        ],
+        "weather_reachable": []
+      },
+      "fields_that_differ": [
+        "damage / x2-ish — A TYPE OR WEATHER MULTIPLIER WE ARE MISSING  (whimsicott Moonblast -> dragonitemega: record 55%, our span 12.63–42.17%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "s",
+          "s": "p2a",
+          "mon": "drampa"
+        },
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "basculegion",
+          "mv": "Aqua Jet",
+          "tgt": "drampa",
+          "dmg": 9,
+          "tgthp": 91
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "dragonitemega",
+          "mv": "Heat Wave",
+          "tgt": "drampa",
+          "dmg": 69,
+          "tgthp": 31
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "whimsicott",
+          "mv": "Moonblast",
+          "tgt": "dragonitemega",
+          "dmg": 55,
+          "tgthp": 15
+        },
+        {
+          "t": "hp",
+          "s": "p2a",
+          "mon": "drampa",
+          "hp": 88
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653447725",
+      "turn": 2,
+      "date": "2026-07-23 03:11",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653447725",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / the record shows a KO our maximum roll cannot reach  (sylveon Quick Attack -> annihilape: record 1%, our span 14.75–51.89%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "sylveon",
+            "hp": 28,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "annihilape",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "charizardmegay",
+            "hp": 75,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "clicks": [
+        {
+          "slot": "p1b",
+          "move": "Quick Attack",
+          "target_species": "annihilape",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": "Last Respects",
+          "target_species": "charizardmegay",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": "Weather Ball",
+          "target_species": "sylveon",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "whimsicott",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "archaludon",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "charizardmegay",
+            "hp": 2,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p1b"
+        ],
+        "weather_reachable": [
+          "sun"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / the record shows a KO our maximum roll cannot reach  (sylveon Quick Attack -> annihilape: record 1%, our span 14.75–51.89%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "sylveon",
+          "mv": "Quick Attack",
+          "tgt": "annihilape",
+          "dmg": 1,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p2a",
+          "mon": "annihilape"
+        },
+        {
+          "t": "hp",
+          "s": "p1b",
+          "mon": "sylveon",
+          "hp": 19
+        },
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "basculegion",
+          "mv": "Last Respects",
+          "tgt": "charizardmegay",
+          "dmg": 73,
+          "tgthp": 2
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "charizardmegay",
+          "mv": "Weather Ball",
+          "tgt": "sylveon",
+          "dmg": 19,
+          "crit": 1,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p1b",
+          "mon": "sylveon"
+        },
+        {
+          "t": "s",
+          "s": "p2a",
+          "mon": "archaludon"
+        },
+        {
+          "t": "s",
+          "s": "p1b",
+          "mon": "whimsicott"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653447721",
+      "turn": 2,
+      "date": "2026-07-23 03:10",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653447721",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / the record shows a KO our maximum roll cannot reach  (kingambit Sucker Punch -> politoed: record 100%, our span 20.3–69.09%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "politoed",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "incineroar",
+            "hp": 92,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "incineroar",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "kingambit",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "RainDance",
+        "weatherBy": "Drizzle",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "clicks": [
+        {
+          "slot": "p2a",
+          "move": "Helping Hand",
+          "target_species": "kingambit",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": "Sucker Punch",
+          "target_species": "politoed",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": "Parting Shot",
+          "target_species": "incineroar",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "incineroar",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "sinistcha",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "incineroar",
+            "hp": 100,
+            "status": "",
+            "boosts": {
+              "atk": -3,
+              "spa": -1
+            }
+          },
+          "p2b": {
+            "sp": "kingambit",
+            "hp": 100,
+            "status": "",
+            "boosts": {
+              "atk": 2
+            }
+          }
+        },
+        "weather": "RainDance",
+        "weatherBy": "Drizzle",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [],
+        "weather_reachable": [
+          "rain"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / the record shows a KO our maximum roll cannot reach  (kingambit Sucker Punch -> politoed: record 100%, our span 20.3–69.09%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "incineroar",
+          "mv": "Helping Hand",
+          "tgt": "kingambit",
+          "dmg": 0
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "kingambit",
+          "mv": "Sucker Punch",
+          "tgt": "politoed",
+          "dmg": 100,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p1a",
+          "mon": "politoed"
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "incineroar",
+          "mv": "Parting Shot",
+          "tgt": "incineroar",
+          "dmg": 0
+        },
+        {
+          "t": "b",
+          "s": "p2a",
+          "mon": "incineroar",
+          "b": {
+            "atk": -2
+          }
+        },
+        {
+          "t": "b",
+          "s": "p2a",
+          "mon": "incineroar",
+          "b": {
+            "atk": -2,
+            "spa": -1
+          }
+        },
+        {
+          "t": "s",
+          "s": "p1b",
+          "mon": "sinistcha"
+        },
+        {
+          "t": "s",
+          "s": "p1a",
+          "mon": "incineroar"
+        },
+        {
+          "t": "b",
+          "s": "p2a",
+          "mon": "incineroar",
+          "b": {
+            "atk": -3,
+            "spa": -1
+          }
+        },
+        {
+          "t": "b",
+          "s": "p2b",
+          "mon": "kingambit",
+          "b": {
+            "atk": 0
+          }
+        },
+        {
+          "t": "b",
+          "s": "p2b",
+          "mon": "kingambit",
+          "b": {
+            "atk": 2
+          }
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653447805",
+      "turn": 2,
+      "date": "2026-07-23 03:10",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653447805",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / x0.25-ish — two resists, or a doubled resist we invented  (charizardmegax Flare Blitz -> whimsicott: record 99%, our span 141.32–493.33%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "charizardmegay",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "whimsicott",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "charizardmegax",
+            "hp": 1,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 3
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p1b",
+          "move": "Tailwind",
+          "target_species": "whimsicott",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": "Heat Wave",
+          "target_species": "basculegion",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": "Wave Crash",
+          "target_species": "charizardmegay",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Flare Blitz",
+          "target_species": "whimsicott",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "whimsicott",
+            "hp": 1,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "kingambit",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "basculegion",
+            "hp": 74,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 3,
+          "p2": 2
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [
+          "p1b:brn",
+          "p2b:brn"
+        ],
+        "fainted_reachable": [
+          "p1b",
+          "p2a",
+          "p2b",
+          "p1a"
+        ],
+        "weather_reachable": [
+          "sun"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / x0.25-ish — two resists, or a doubled resist we invented  (charizardmegax Flare Blitz -> whimsicott: record 99%, our span 141.32–493.33%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "whimsicott",
+          "mv": "Tailwind",
+          "tgt": "whimsicott",
+          "dmg": 0
+        },
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "charizardmegay",
+          "mv": "Heat Wave",
+          "tgt": "basculegion",
+          "dmg": 20,
+          "miss": 1,
+          "tgthp": 24
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "basculegion",
+          "mv": "Wave Crash",
+          "tgt": "charizardmegay",
+          "dmg": 100,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p1a",
+          "mon": "charizardmegay"
+        },
+        {
+          "t": "hp",
+          "s": "p2b",
+          "mon": "basculegion",
+          "hp": 74
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "charizardmegax",
+          "mv": "Flare Blitz",
+          "tgt": "whimsicott",
+          "dmg": 99,
+          "tgthp": 1
+        },
+        {
+          "t": "hp",
+          "s": "p2a",
+          "mon": "charizardmegax",
+          "hp": 0
+        },
+        {
+          "t": "f",
+          "s": "p2a",
+          "mon": "charizardmegax"
+        },
+        {
+          "t": "s",
+          "s": "p1a",
+          "mon": "basculegion"
+        },
+        {
+          "t": "s",
+          "s": "p2a",
+          "mon": "kingambit"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653445621",
+      "turn": 2,
+      "date": "2026-07-23 03:06",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653445621",
+      "open_sheet": false,
+      "mechanics": [
+        "weather SunnyDay was set in the record and our engine did not set it"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "pelipper",
+            "hp": 70,
+            "status": "",
+            "boosts": {
+              "spa": -1
+            }
+          },
+          "p1b": {
+            "sp": "charizard",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "hydreigon",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "incineroar",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "RainDance",
+        "weatherBy": "Drizzle",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "clicks": [
+        {
+          "slot": "p2a",
+          "move": "Snarl",
+          "target_species": "venusaur",
+          "target_slot": null,
+          "reconstruction": "TARGET SLOT NOT RECOVERED"
+        },
+        {
+          "slot": "p1b",
+          "move": "Heat Wave",
+          "target_species": "incineroar",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": "Throat Chop",
+          "target_species": "charizardmegay",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "venusaur",
+            "hp": 82,
+            "status": "",
+            "boosts": {
+              "spa": -1
+            }
+          },
+          "p1b": {
+            "sp": "charizardmegay",
+            "hp": 37,
+            "status": "",
+            "boosts": {
+              "atk": -1,
+              "spa": -1
+            }
+          },
+          "p2a": {
+            "sp": "hydreigon",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "incineroar",
+            "hp": 80,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "board_after_OURS": {
+        "status_reachable": [
+          "p2a:brn"
+        ],
+        "fainted_reachable": [
+          "p1b"
+        ],
+        "weather_reachable": [
+          "rain"
+        ]
+      },
+      "fields_that_differ": [
+        "weather SunnyDay was set in the record and our engine did not set it"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "s",
+          "s": "p1a",
+          "mon": "venusaur"
+        },
+        {
+          "t": "mega",
+          "s": "p1b",
+          "mon": "charizardmegay",
+          "from": "charizard"
+        },
+        {
+          "t": "w",
+          "s": "p1b",
+          "mon": "charizardmegay",
+          "field": "SunnyDay",
+          "by": "Drought"
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "hydreigon",
+          "mv": "Snarl",
+          "tgt": "venusaur",
+          "dmg": 22,
+          "tgthp": 82
+        },
+        {
+          "t": "b",
+          "s": "p1a",
+          "mon": "venusaur",
+          "b": {
+            "spa": -1
+          }
+        },
+        {
+          "t": "b",
+          "s": "p1b",
+          "mon": "charizardmegay",
+          "b": {
+            "atk": -1,
+            "spa": -1
+          }
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "charizardmegay",
+          "mv": "Heat Wave",
+          "tgt": "incineroar",
+          "dmg": 27,
+          "tgthp": 80
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "incineroar",
+          "mv": "Throat Chop",
+          "tgt": "charizardmegay",
+          "dmg": 45,
+          "tgthp": 37
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653445503",
+      "turn": 2,
+      "date": "2026-07-23 03:05",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653445503",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / the record shows a KO our maximum roll cannot reach  (sylveon Quick Attack -> kingambit: record 1%, our span 5.8–19.43%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "aerodactylmega",
+            "hp": 1,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "kingambit",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "sylveon",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 3
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p2b",
+          "move": "Quick Attack",
+          "target_species": "kingambit",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Last Respects",
+          "target_species": "aerodactylmega",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        },
+        {
+          "slot": "p1b",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "sylveon",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "farigiraf",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "sylveon",
+            "hp": 90,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 2
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p1a"
+        ],
+        "weather_reachable": [
+          "sun"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / the record shows a KO our maximum roll cannot reach  (sylveon Quick Attack -> kingambit: record 1%, our span 5.8–19.43%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "sylveon",
+          "mv": "Quick Attack",
+          "tgt": "kingambit",
+          "dmg": 1,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p1b",
+          "mon": "kingambit"
+        },
+        {
+          "t": "hp",
+          "s": "p2b",
+          "mon": "sylveon",
+          "hp": 90
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "basculegion",
+          "mv": "Last Respects",
+          "tgt": "aerodactylmega",
+          "dmg": 100,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p1a",
+          "mon": "aerodactylmega"
+        },
+        {
+          "t": "s",
+          "s": "p1a",
+          "mon": "sylveon"
+        },
+        {
+          "t": "s",
+          "s": "p1b",
+          "mon": "farigiraf"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653451770",
+      "turn": 3,
+      "date": "2026-07-23 03:20",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653451770",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / x2-ish — A TYPE OR WEATHER MULTIPLIER WE ARE MISSING  (basculegion Aqua Jet -> whimsicott: record 14%, our span 2.99–12.59%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "whimsicott",
+            "hp": 6,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "charizard",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "kingambit",
+            "hp": 66,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "basculegion",
+            "hp": 77,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "clicks": [
+        {
+          "slot": "p1a",
+          "move": "Tailwind",
+          "target_species": "whimsicott",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": "Aqua Jet",
+          "target_species": "whimsicott",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Sucker Punch",
+          "target_species": "charizardmegay",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": "Heat Wave",
+          "target_species": "basculegion",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "whimsicott",
+            "hp": 86,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "charizardmegay",
+            "hp": 53,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "kingambit",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "basculegion",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 3,
+          "p2": 0
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [
+          "p2b:brn"
+        ],
+        "fainted_reachable": [
+          "p1a",
+          "p2a"
+        ],
+        "weather_reachable": [
+          "sun"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / x2-ish — A TYPE OR WEATHER MULTIPLIER WE ARE MISSING  (basculegion Aqua Jet -> whimsicott: record 14%, our span 2.99–12.59%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "mega",
+          "s": "p1b",
+          "mon": "charizardmegay",
+          "from": "charizard"
+        },
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "whimsicott",
+          "mv": "Tailwind",
+          "tgt": "whimsicott",
+          "dmg": 0
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "basculegion",
+          "mv": "Aqua Jet",
+          "tgt": "whimsicott",
+          "dmg": 14,
+          "tgthp": 86
+        },
+        {
+          "t": "hp",
+          "s": "p2b",
+          "mon": "basculegion",
+          "hp": 68
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "kingambit",
+          "mv": "Sucker Punch",
+          "tgt": "charizardmegay",
+          "dmg": 47,
+          "tgthp": 53
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "charizardmegay",
+          "mv": "Heat Wave",
+          "tgt": "basculegion",
+          "dmg": 66,
+          "miss": 1,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p2a",
+          "mon": "kingambit"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653450000",
+      "turn": 3,
+      "date": "2026-07-23 03:16",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653450000",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / the record shows a KO our maximum roll cannot reach  (sylveon Quick Attack -> grimmsnarl: record 9%, our span 15.84–64.71%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "grimmsnarl",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "charizardmegay",
+            "hp": 9,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "charizardmegay",
+            "hp": 56,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "sylveon",
+            "hp": 37,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "clicks": [
+        {
+          "slot": "p2b",
+          "move": "Quick Attack",
+          "target_species": "grimmsnarl",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": "Heat Wave",
+          "target_species": "sylveon",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Heat Wave",
+          "target_species": "charizardmegay",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "annihilape",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "charizardmegay",
+            "hp": 7,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "charizardmegay",
+            "hp": 56,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p1a",
+          "p1b"
+        ],
+        "weather_reachable": [
+          "sun"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / the record shows a KO our maximum roll cannot reach  (sylveon Quick Attack -> grimmsnarl: record 9%, our span 15.84–64.71%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "sylveon",
+          "mv": "Quick Attack",
+          "tgt": "grimmsnarl",
+          "dmg": 9,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p1a",
+          "mon": "grimmsnarl"
+        },
+        {
+          "t": "hp",
+          "s": "p2b",
+          "mon": "sylveon",
+          "hp": 27
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "charizardmegay",
+          "mv": "Heat Wave",
+          "tgt": "sylveon",
+          "dmg": 36,
+          "tgthp": 0,
+          "ko": true
+        },
+        {
+          "t": "f",
+          "s": "p2b",
+          "mon": "sylveon"
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "charizardmegay",
+          "mv": "Heat Wave",
+          "tgt": "charizardmegay",
+          "dmg": 32,
+          "tgthp": 7
+        },
+        {
+          "t": "s",
+          "s": "p2b",
+          "mon": "basculegion"
+        },
+        {
+          "t": "s",
+          "s": "p1a",
+          "mon": "annihilape"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653447772",
+      "turn": 3,
+      "date": "2026-07-23 03:14",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653447772",
+      "open_sheet": false,
+      "mechanics": [
+        "turn order / SPEED — no legal Champions spread can produce the order the record shows :: SPEED — no legal Champions spread lets excadrill move before gholdengo (our attainable speeds: 97-154 vs 186-298)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "tyranitar",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "excadrill",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "gholdengo",
+            "hp": 19,
+            "status": "",
+            "boosts": {
+              "spa": 2
+            }
+          },
+          "p2b": {
+            "sp": "aerodactyl",
+            "hp": 48,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 2
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p2b",
+          "move": "Wide Guard",
+          "target_species": "aerodactyl",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": "Iron Head",
+          "target_species": "gholdengo",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Make It Rain",
+          "target_species": "tyranitar",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "milotic",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "excadrill",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "gholdengo",
+            "hp": 3,
+            "status": "",
+            "boosts": {
+              "spa": 0
+            }
+          },
+          "p2b": {
+            "sp": "aerodactyl",
+            "hp": 48,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 1
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p2a"
+        ],
+        "weather_reachable": [
+          "sand"
+        ]
+      },
+      "fields_that_differ": [
+        "turn order / SPEED — no legal Champions spread can produce the order the record shows :: SPEED — no legal Champions spread lets excadrill move before gholdengo (our attainable speeds: 97-154 vs 186-298)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "aerodactyl",
+          "mv": "Wide Guard",
+          "tgt": "aerodactyl",
+          "dmg": 0
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "excadrill",
+          "mv": "Iron Head",
+          "tgt": "gholdengo",
+          "dmg": 16,
+          "tgthp": 3
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "gholdengo",
+          "mv": "Make It Rain",
+          "tgt": "tyranitar",
+          "dmg": 100,
+          "crit": 1,
+          "ko": true,
+          "tgthp": 40
+        },
+        {
+          "t": "b",
+          "s": "p2a",
+          "mon": "gholdengo",
+          "b": {
+            "spa": 0
+          }
+        },
+        {
+          "t": "f",
+          "s": "p1a",
+          "mon": "tyranitar"
+        },
+        {
+          "t": "s",
+          "s": "p1a",
+          "mon": "milotic"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653447580",
+      "turn": 3,
+      "date": "2026-07-23 03:12",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653447580",
+      "open_sheet": false,
+      "mechanics": [
+        "status slp landed on sylveon in the record and our engine never applies it"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "araquanid",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "hippowdon",
+            "hp": 64,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "sylveon",
+            "hp": 54,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "whimsicott",
+            "hp": 60,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 2
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p1a",
+          "move": "Wide Guard",
+          "target_species": "araquanid",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": "Moonblast",
+          "target_species": "araquanid",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Hyper Voice",
+          "target_species": "araquanid",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": "Slack Off",
+          "target_species": "hippowdon",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "araquanid",
+            "hp": 66,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "hippowdon",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "sylveon",
+            "hp": 48,
+            "status": "slp",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "whimsicott",
+            "hp": 54,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 1
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [],
+        "weather_reachable": [
+          "sand"
+        ]
+      },
+      "fields_that_differ": [
+        "status slp landed on sylveon in the record and our engine never applies it"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "araquanid",
+          "mv": "Wide Guard",
+          "tgt": "araquanid",
+          "dmg": 0
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "whimsicott",
+          "mv": "Moonblast",
+          "tgt": "araquanid",
+          "dmg": 28,
+          "tgthp": 72
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "sylveon",
+          "mv": "Hyper Voice",
+          "tgt": "araquanid",
+          "dmg": 0
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "hippowdon",
+          "mv": "Slack Off",
+          "tgt": "hippowdon",
+          "dmg": 0
+        },
+        {
+          "t": "hp",
+          "s": "p1b",
+          "mon": "hippowdon",
+          "hp": 100
+        },
+        {
+          "t": "hp",
+          "s": "p2b",
+          "mon": "whimsicott",
+          "hp": 54
+        },
+        {
+          "t": "hp",
+          "s": "p2a",
+          "mon": "sylveon",
+          "hp": 48
+        },
+        {
+          "t": "hp",
+          "s": "p1a",
+          "mon": "araquanid",
+          "hp": 66
+        },
+        {
+          "t": "x",
+          "s": "p2a",
+          "mon": "sylveon",
+          "st": "slp"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653445362",
+      "turn": 3,
+      "date": "2026-07-23 03:05",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653445362",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / x2-ish — A TYPE OR WEATHER MULTIPLIER WE ARE MISSING  (cofagrigus Play Rough -> incineroar: record 37%, our span 6.93–27.06%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "incineroar",
+            "hp": 85,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "charizard",
+            "hp": 72,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "mawilemega",
+            "hp": 41,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "cofagrigus",
+            "hp": 60,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 3,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "trick room duration"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p2b",
+          "move": "Ally Switch",
+          "target_species": "cofagrigus",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": "Parting Shot",
+          "target_species": "mawilemega",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": "Heat Wave",
+          "target_species": "cofagrigus",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "garchomp",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "charizardmegay",
+            "hp": 72,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "hatterene",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "skeledirge",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 2,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "trick room duration"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p2b",
+          "p2a"
+        ],
+        "weather_reachable": [
+          "sun"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / x2-ish — A TYPE OR WEATHER MULTIPLIER WE ARE MISSING  (cofagrigus Play Rough -> incineroar: record 37%, our span 6.93–27.06%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "mega",
+          "s": "p1b",
+          "mon": "charizardmegay",
+          "from": "charizard"
+        },
+        {
+          "t": "w",
+          "s": "p1b",
+          "mon": "charizardmegay",
+          "field": "SunnyDay",
+          "by": "Drought"
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "cofagrigus",
+          "mv": "Ally Switch",
+          "tgt": "cofagrigus",
+          "dmg": 0
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "mawilemega",
+          "mv": "Play Rough",
+          "tgt": "incineroar",
+          "dmg": 37,
+          "tgthp": 48,
+          "blockedBy": "Mummy"
+        },
+        {
+          "t": "hp",
+          "s": "p1a",
+          "mon": "incineroar",
+          "hp": 72
+        },
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "incineroar",
+          "mv": "Parting Shot",
+          "tgt": "mawilemega",
+          "dmg": 0
+        },
+        {
+          "t": "b",
+          "s": "p2a",
+          "mon": "mawilemega",
+          "b": {
+            "atk": -2
+          }
+        },
+        {
+          "t": "b",
+          "s": "p2a",
+          "mon": "mawilemega",
+          "b": {
+            "atk": -2,
+            "spa": -1
+          }
+        },
+        {
+          "t": "s",
+          "s": "p1a",
+          "mon": "garchomp"
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "charizardmegay",
+          "mv": "Heat Wave",
+          "tgt": "cofagrigus",
+          "dmg": 60,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p2a",
+          "mon": "mawilemega"
+        },
+        {
+          "t": "f",
+          "s": "p2b",
+          "mon": "cofagrigus"
+        },
+        {
+          "t": "s",
+          "s": "p2a",
+          "mon": "hatterene"
+        },
+        {
+          "t": "s",
+          "s": "p2b",
+          "mon": "skeledirge"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653445576",
+      "turn": 3,
+      "date": "2026-07-23 03:04",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653445576",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / the record shows a KO our maximum roll cannot reach  (ninetalesalola Freeze-Dry -> basculegion: record 10%, our span 22.03–83.08%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "kingambit",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "blazikenmega",
+            "hp": 51,
+            "status": "",
+            "boosts": {
+              "spe": 2
+            }
+          },
+          "p2b": {
+            "sp": "ninetalesalola",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "clicks": [
+        {
+          "slot": "p2a",
+          "move": "Close Combat",
+          "target_species": "kingambit",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": "Last Respects",
+          "target_species": "blazikenmega",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": "Freeze-Dry",
+          "target_species": "basculegion",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "NO CLICK RECORDED — the store has no `cant` event, so flinch / full-para / sleep / freeze / recharge are indistinguishable"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "kingambit",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "basculegion",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "blazikenmega",
+            "hp": 0,
+            "status": "",
+            "boosts": {
+              "spe": 2,
+              "def": -1,
+              "spd": -1
+            }
+          },
+          "p2b": {
+            "sp": "ninetalesalola",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p1a",
+          "p2a"
+        ],
+        "weather_reachable": [
+          "snow",
+          "sun"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / the record shows a KO our maximum roll cannot reach  (ninetalesalola Freeze-Dry -> basculegion: record 10%, our span 22.03–83.08%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "blazikenmega",
+          "mv": "Close Combat",
+          "tgt": "kingambit",
+          "dmg": 100,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "b",
+          "s": "p2a",
+          "mon": "blazikenmega",
+          "b": {
+            "spe": 2,
+            "def": -1
+          }
+        },
+        {
+          "t": "b",
+          "s": "p2a",
+          "mon": "blazikenmega",
+          "b": {
+            "spe": 2,
+            "def": -1,
+            "spd": -1
+          }
+        },
+        {
+          "t": "f",
+          "s": "p1a",
+          "mon": "kingambit"
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "basculegion",
+          "mv": "Last Respects",
+          "tgt": "blazikenmega",
+          "dmg": 51,
+          "crit": 1,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p2a",
+          "mon": "blazikenmega"
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "ninetalesalola",
+          "mv": "Freeze-Dry",
+          "tgt": "basculegion",
+          "dmg": 10,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p1b",
+          "mon": "basculegion"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653450692",
+      "turn": 4,
+      "date": "2026-07-23 03:19",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653450692",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / x1.5-ish — STAB, sun/rain, or a boost stage we did not apply  (kingambit Sucker Punch -> excadrill: record 76%, our span 20.74–71.35%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "excadrill",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "tyranitar",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "sylveon",
+            "hp": 40,
+            "status": "",
+            "boosts": {
+              "spe": -1
+            }
+          },
+          "p2b": {
+            "sp": "kingambit",
+            "hp": 33,
+            "status": "brn",
+            "boosts": {
+              "spe": -1,
+              "atk": 2
+            }
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "clicks": [
+        {
+          "slot": "p1b",
+          "move": "Protect",
+          "target_species": "tyranitar",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": "Sucker Punch",
+          "target_species": "excadrill",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": "Earthquake",
+          "target_species": "sylveon",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "excadrill",
+            "hp": 24,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "tyranitar",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "garchomp",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "board_after_OURS": {
+        "status_reachable": [
+          "p2b:brn"
+        ],
+        "fainted_reachable": [
+          "p2a",
+          "p2b"
+        ],
+        "weather_reachable": [
+          "sand"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / x1.5-ish — STAB, sun/rain, or a boost stage we did not apply  (kingambit Sucker Punch -> excadrill: record 76%, our span 20.74–71.35%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "tyranitar",
+          "mv": "Protect",
+          "tgt": "tyranitar",
+          "dmg": 0
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "kingambit",
+          "mv": "Sucker Punch",
+          "tgt": "excadrill",
+          "dmg": 76,
+          "tgthp": 24
+        },
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "excadrill",
+          "mv": "Earthquake",
+          "tgt": "sylveon",
+          "dmg": 40,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p2a",
+          "mon": "sylveon"
+        },
+        {
+          "t": "f",
+          "s": "p2b",
+          "mon": "kingambit"
+        },
+        {
+          "t": "s",
+          "s": "p2a",
+          "mon": "basculegion"
+        },
+        {
+          "t": "s",
+          "s": "p2b",
+          "mon": "garchomp"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653449140",
+      "turn": 4,
+      "date": "2026-07-23 03:14",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653449140",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / the record shows a KO our maximum roll cannot reach  (araquanid Surf -> kingambit: record 44%, our span 20.77–82.29%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "incineroar",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "kingambit",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "oranguru",
+            "hp": 40,
+            "status": "",
+            "boosts": {
+              "atk": -1
+            }
+          },
+          "p2b": {
+            "sp": "araquanid",
+            "hp": 80,
+            "status": "",
+            "boosts": {
+              "atk": -1
+            }
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 2,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "trick room duration"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p2b",
+          "move": "Surf",
+          "target_species": "incineroar",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Instruct",
+          "target_species": "araquanid",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "NO CLICK RECORDED — the store has no `cant` event, so flinch / full-para / sleep / freeze / recharge are indistinguishable"
+        },
+        {
+          "slot": "p1b",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "NO CLICK RECORDED — the store has no `cant` event, so flinch / full-para / sleep / freeze / recharge are indistinguishable"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "incineroar",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "kingambit",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "oranguru",
+            "hp": 40,
+            "status": "",
+            "boosts": {
+              "atk": -1
+            }
+          },
+          "p2b": {
+            "sp": "araquanid",
+            "hp": 60,
+            "status": "",
+            "boosts": {
+              "atk": -1
+            }
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 1,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "trick room duration"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p1a",
+          "p2a"
+        ],
+        "weather_reachable": []
+      },
+      "fields_that_differ": [
+        "damage / the record shows a KO our maximum roll cannot reach  (araquanid Surf -> kingambit: record 44%, our span 20.77–82.29%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "araquanid",
+          "mv": "Surf",
+          "tgt": "incineroar",
+          "dmg": 100,
+          "blockedBy": "Telepathy",
+          "ko": true,
+          "tgthp": 44
+        },
+        {
+          "t": "f",
+          "s": "p1a",
+          "mon": "incineroar"
+        },
+        {
+          "t": "hp",
+          "s": "p2b",
+          "mon": "araquanid",
+          "hp": 70
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "oranguru",
+          "mv": "Instruct",
+          "tgt": "araquanid",
+          "dmg": 0
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "araquanid",
+          "mv": "Surf",
+          "tgt": "kingambit",
+          "dmg": 44,
+          "blockedBy": "Telepathy",
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p1b",
+          "mon": "kingambit"
+        },
+        {
+          "t": "hp",
+          "s": "p2b",
+          "mon": "araquanid",
+          "hp": 60
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653448271",
+      "turn": 4,
+      "date": "2026-07-23 03:14",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653448271",
+      "open_sheet": false,
+      "mechanics": [
+        "status frz landed on garchomp in the record and our engine never applies it"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "garchomp",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "rotomheat",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "tyranitarmega",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "farigiraf",
+            "hp": 96,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 2,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "trick room duration"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p2b",
+          "move": "Twin Beam",
+          "target_species": "rotomheat",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Ice Punch",
+          "target_species": "garchomp",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": "Electroweb",
+          "target_species": "tyranitarmega",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "NO CLICK RECORDED — the store has no `cant` event, so flinch / full-para / sleep / freeze / recharge are indistinguishable"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "garchomp",
+            "hp": 47,
+            "status": "frz",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "rotomheat",
+            "hp": 54,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "tyranitarmega",
+            "hp": 79,
+            "status": "",
+            "boosts": {
+              "atk": -1,
+              "spe": -1
+            }
+          },
+          "p2b": {
+            "sp": "farigiraf",
+            "hp": 73,
+            "status": "",
+            "boosts": {
+              "atk": -1,
+              "spe": -1
+            }
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 1,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "trick room duration"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p1a"
+        ],
+        "weather_reachable": [
+          "sand"
+        ]
+      },
+      "fields_that_differ": [
+        "status frz landed on garchomp in the record and our engine never applies it"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "farigiraf",
+          "mv": "Twin Beam",
+          "tgt": "rotomheat",
+          "dmg": 21,
+          "tgthp": 59
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "tyranitarmega",
+          "mv": "Ice Punch",
+          "tgt": "garchomp",
+          "dmg": 78,
+          "tgthp": 22
+        },
+        {
+          "t": "x",
+          "s": "p1a",
+          "mon": "garchomp",
+          "st": "frz"
+        },
+        {
+          "t": "hp",
+          "s": "p2a",
+          "mon": "tyranitarmega",
+          "hp": 87
+        },
+        {
+          "t": "hp",
+          "s": "p1a",
+          "mon": "garchomp",
+          "hp": 47
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "rotomheat",
+          "mv": "Electroweb",
+          "tgt": "tyranitarmega",
+          "dmg": 17,
+          "tgthp": 79
+        },
+        {
+          "t": "b",
+          "s": "p2a",
+          "mon": "tyranitarmega",
+          "b": {
+            "atk": -1,
+            "spe": -1
+          }
+        },
+        {
+          "t": "b",
+          "s": "p2b",
+          "mon": "farigiraf",
+          "b": {
+            "atk": -1,
+            "spe": -1
+          }
+        },
+        {
+          "t": "hp",
+          "s": "p2b",
+          "mon": "farigiraf",
+          "hp": 73
+        },
+        {
+          "t": "hp",
+          "s": "p1b",
+          "mon": "rotomheat",
+          "hp": 54
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653445628",
+      "turn": 4,
+      "date": "2026-07-23 03:04",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653445628",
+      "open_sheet": false,
+      "mechanics": [
+        "status slp landed on pelipper in the record and our engine never applies it"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "pelipper",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "archaludon",
+            "hp": 22,
+            "status": "",
+            "boosts": {
+              "spd": -1,
+              "def": 2
+            }
+          },
+          "p2a": {
+            "sp": "venusaur",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "farigiraf",
+            "hp": 52,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "RainDance",
+        "weatherBy": "Drizzle",
+        "terrain": null,
+        "tr": 2,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "trick room duration"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p2b",
+          "move": "Psychic",
+          "target_species": "archaludon",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": "Hurricane",
+          "target_species": "venusaur",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Sleep Powder",
+          "target_species": "pelipper",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "pelipper",
+            "hp": 100,
+            "status": "slp",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "raichu",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "venusaur",
+            "hp": 26,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "farigiraf",
+            "hp": 52,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "RainDance",
+        "weatherBy": "Drizzle",
+        "terrain": null,
+        "tr": 1,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "trick room duration"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p1b",
+          "p2a"
+        ],
+        "weather_reachable": [
+          "rain"
+        ]
+      },
+      "fields_that_differ": [
+        "status slp landed on pelipper in the record and our engine never applies it"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "farigiraf",
+          "mv": "Psychic",
+          "tgt": "archaludon",
+          "dmg": 22,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p1b",
+          "mon": "archaludon"
+        },
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "pelipper",
+          "mv": "Hurricane",
+          "tgt": "venusaur",
+          "dmg": 74,
+          "tgthp": 26
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "venusaur",
+          "mv": "Sleep Powder",
+          "tgt": "pelipper",
+          "dmg": 0
+        },
+        {
+          "t": "x",
+          "s": "p1a",
+          "mon": "pelipper",
+          "st": "slp"
+        },
+        {
+          "t": "s",
+          "s": "p1b",
+          "mon": "raichu"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653450359",
+      "turn": 5,
+      "date": "2026-07-23 03:16",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653450359",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / the record shows a KO our maximum roll cannot reach  (basculegion Aqua Jet -> meowscarada: record 8%, our span 3.83–13.25%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "basculegion",
+            "hp": 18,
+            "status": "brn",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "garchomp",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "sinistcha",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "meowscarada",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "clicks": [
+        {
+          "slot": "p1a",
+          "move": "Aqua Jet",
+          "target_species": "meowscarada",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Matcha Gotcha",
+          "target_species": "basculegion",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "NO CLICK RECORDED — the store has no `cant` event, so flinch / full-para / sleep / freeze / recharge are indistinguishable"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "basculegion",
+            "hp": 0,
+            "status": "brn",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "garchomp",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "sinistcha",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "meowscarada",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "board_after_OURS": {
+        "status_reachable": [
+          "p1a:brn"
+        ],
+        "fainted_reachable": [
+          "p1a",
+          "p1b"
+        ],
+        "weather_reachable": []
+      },
+      "fields_that_differ": [
+        "damage / the record shows a KO our maximum roll cannot reach  (basculegion Aqua Jet -> meowscarada: record 8%, our span 3.83–13.25%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "basculegion",
+          "mv": "Aqua Jet",
+          "tgt": "meowscarada",
+          "dmg": 8,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p2b",
+          "mon": "meowscarada"
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "sinistcha",
+          "mv": "Matcha Gotcha",
+          "tgt": "basculegion",
+          "dmg": 18,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p1a",
+          "mon": "basculegion"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653448271",
+      "turn": 5,
+      "date": "2026-07-23 03:14",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653448271",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / x0.5-ish — ONE HALVING WE APPLY AND THE GAME DID NOT, or a screen the store cannot record  (farigiraf Twin Beam -> rotomheat: record 19%, our span 20.38–68.8%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "garchomp",
+            "hp": 47,
+            "status": "frz",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "rotomheat",
+            "hp": 54,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "tyranitarmega",
+            "hp": 79,
+            "status": "",
+            "boosts": {
+              "atk": -1,
+              "spe": -1
+            }
+          },
+          "p2b": {
+            "sp": "farigiraf",
+            "hp": 73,
+            "status": "",
+            "boosts": {
+              "atk": -1,
+              "spe": -1
+            }
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 1,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "trick room duration"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p2b",
+          "move": "Twin Beam",
+          "target_species": "rotomheat",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Ice Punch",
+          "target_species": "garchomp",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": "Electroweb",
+          "target_species": "tyranitarmega",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "NO CLICK RECORDED — the store has no `cant` event, so flinch / full-para / sleep / freeze / recharge are indistinguishable"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "garchomp",
+            "hp": 0,
+            "status": "frz",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "rotomheat",
+            "hp": 16,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "tyranitarmega",
+            "hp": 53,
+            "status": "",
+            "boosts": {
+              "atk": -1,
+              "spe": -2
+            }
+          },
+          "p2b": {
+            "sp": "farigiraf",
+            "hp": 73,
+            "status": "",
+            "boosts": {
+              "atk": -1,
+              "spe": -2
+            }
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "trick room duration"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [
+          "p1a:frz"
+        ],
+        "fainted_reachable": [
+          "p1a",
+          "p1b"
+        ],
+        "weather_reachable": [
+          "sand"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / x0.5-ish — ONE HALVING WE APPLY AND THE GAME DID NOT, or a screen the store cannot record  (farigiraf Twin Beam -> rotomheat: record 19%, our span 20.38–68.8%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "farigiraf",
+          "mv": "Twin Beam",
+          "tgt": "rotomheat",
+          "dmg": 19,
+          "tgthp": 16
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "tyranitarmega",
+          "mv": "Ice Punch",
+          "tgt": "garchomp",
+          "dmg": 47,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "hp",
+          "s": "p2a",
+          "mon": "tyranitarmega",
+          "hp": 67
+        },
+        {
+          "t": "f",
+          "s": "p1a",
+          "mon": "garchomp"
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "rotomheat",
+          "mv": "Electroweb",
+          "tgt": "tyranitarmega",
+          "dmg": 20,
+          "tgthp": 53
+        },
+        {
+          "t": "b",
+          "s": "p2a",
+          "mon": "tyranitarmega",
+          "b": {
+            "atk": -1,
+            "spe": -2
+          }
+        },
+        {
+          "t": "b",
+          "s": "p2b",
+          "mon": "farigiraf",
+          "b": {
+            "atk": -1,
+            "spe": -2
+          }
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653447788",
+      "turn": 5,
+      "date": "2026-07-23 03:11",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653447788",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / the record shows a KO our maximum roll cannot reach  (basculegion Last Respects -> garchomp: record 59%, our span 26.05–85.25%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "garchomp",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "empoleon",
+            "hp": 72,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "charizardmegay",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 1
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p2a",
+          "move": "Last Respects",
+          "target_species": "garchomp",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": "Heat Wave",
+          "target_species": "empoleon",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        },
+        {
+          "slot": "p1b",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "froslass",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "rotomfrost",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "charizardmegay",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [
+          "p1a:brn"
+        ],
+        "fainted_reachable": [
+          "p1a",
+          "p1b"
+        ],
+        "weather_reachable": [
+          "sun"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / the record shows a KO our maximum roll cannot reach  (basculegion Last Respects -> garchomp: record 59%, our span 26.05–85.25%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "basculegion",
+          "mv": "Last Respects",
+          "tgt": "garchomp",
+          "dmg": 59,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p1a",
+          "mon": "garchomp"
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "charizardmegay",
+          "mv": "Heat Wave",
+          "tgt": "empoleon",
+          "dmg": 72,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p1b",
+          "mon": "empoleon"
+        },
+        {
+          "t": "s",
+          "s": "p1a",
+          "mon": "froslass"
+        },
+        {
+          "t": "s",
+          "s": "p1b",
+          "mon": "rotomfrost"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653447800",
+      "turn": 5,
+      "date": "2026-07-23 03:11",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653447800",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / x4-plus — a type chart or base-power error  (flapple Grav Apple -> sneasler: record 80%, our span 12.83–47.74%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "kingambit",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "sneasler",
+            "hp": 100,
+            "status": "slp",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "flapple",
+            "hp": 1,
+            "status": "par",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "gengarmega",
+            "hp": 40,
+            "status": "brn",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": "Gravity",
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "clicks": [
+        {
+          "slot": "p2b",
+          "move": "Focus Blast",
+          "target_species": "kingambit",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Grav Apple",
+          "target_species": "sneasler",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "NO CLICK RECORDED — the store has no `cant` event, so flinch / full-para / sleep / freeze / recharge are indistinguishable"
+        },
+        {
+          "slot": "p1b",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "NO CLICK RECORDED — the store has no `cant` event, so flinch / full-para / sleep / freeze / recharge are indistinguishable"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "kingambit",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "sneasler",
+            "hp": 20,
+            "status": "slp",
+            "boosts": {
+              "def": -1
+            }
+          },
+          "p2a": {
+            "sp": "flapple",
+            "hp": 1,
+            "status": "par",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "gengarmega",
+            "hp": 34,
+            "status": "brn",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": "Gravity",
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": []
+      },
+      "board_after_OURS": {
+        "status_reachable": [
+          "p1b:slp",
+          "p2a:par",
+          "p2b:brn"
+        ],
+        "fainted_reachable": [
+          "p1a"
+        ],
+        "weather_reachable": []
+      },
+      "fields_that_differ": [
+        "damage / x4-plus — a type chart or base-power error  (flapple Grav Apple -> sneasler: record 80%, our span 12.83–47.74%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "gengarmega",
+          "mv": "Focus Blast",
+          "tgt": "kingambit",
+          "dmg": 100,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p1a",
+          "mon": "kingambit"
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "flapple",
+          "mv": "Grav Apple",
+          "tgt": "sneasler",
+          "dmg": 80,
+          "tgthp": 20
+        },
+        {
+          "t": "b",
+          "s": "p1b",
+          "mon": "sneasler",
+          "b": {
+            "def": -1
+          }
+        },
+        {
+          "t": "hp",
+          "s": "p2b",
+          "mon": "gengarmega",
+          "hp": 34
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653447710",
+      "turn": 5,
+      "date": "2026-07-23 03:10",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653447710",
+      "open_sheet": false,
+      "mechanics": [
+        "weather Snowscape was set in the record and our engine did not set it"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "charizardmegay",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "froslass",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "aerodactyl",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 1,
+          "p2": 2
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p2a",
+          "move": "Protect",
+          "target_species": "froslassmega",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": "Rock Slide",
+          "target_species": "charizardmegay",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": "Last Respects",
+          "target_species": "froslassmega",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "NO CLICK RECORDED — the store has no `cant` event, so flinch / full-para / sleep / freeze / recharge are indistinguishable"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "charizardmegay",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "froslassmega",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "aerodactyl",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "Snowscape",
+        "weatherBy": "Snow Warning",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 1
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [
+          "p1b"
+        ],
+        "weather_reachable": [
+          "sun"
+        ]
+      },
+      "fields_that_differ": [
+        "weather Snowscape was set in the record and our engine did not set it"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "mega",
+          "s": "p2a",
+          "mon": "froslassmega",
+          "from": "froslass"
+        },
+        {
+          "t": "w",
+          "s": "p2a",
+          "mon": "froslassmega",
+          "field": "Snowscape",
+          "by": "Snow Warning"
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "froslassmega",
+          "mv": "Protect",
+          "tgt": "froslassmega",
+          "dmg": 0
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "aerodactyl",
+          "mv": "Rock Slide",
+          "tgt": "charizardmegay",
+          "dmg": 100,
+          "tgthp": 0,
+          "ko": true
+        },
+        {
+          "t": "f",
+          "s": "p1b",
+          "mon": "charizardmegay"
+        },
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "basculegion",
+          "mv": "Last Respects",
+          "tgt": "froslassmega",
+          "dmg": 0
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653441398",
+      "turn": 5,
+      "date": "2026-07-23 03:08",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653441398",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / x0.25-ish — two resists, or a doubled resist we invented  (golurkmega Headlong Rush -> primarina: record 26%, our span 42.25–141.94%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "farigiraf",
+            "hp": 53,
+            "status": "",
+            "boosts": {
+              "accuracy": -1
+            }
+          },
+          "p1b": {
+            "sp": "golurkmega",
+            "hp": 80,
+            "status": "",
+            "boosts": {
+              "def": -2,
+              "spd": -2
+            }
+          },
+          "p2a": {
+            "sp": "primarina",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "garganacl",
+            "hp": 23,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "RainDance",
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 2,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "trick room duration"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p2a",
+          "move": "Protect",
+          "target_species": "primarina",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": "Recover",
+          "target_species": "garganacl",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": "Headlong Rush",
+          "target_species": "primarina",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": "Hyper Voice",
+          "target_species": "garganacl",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "farigiraf",
+            "hp": 53,
+            "status": "",
+            "boosts": {
+              "accuracy": -1
+            }
+          },
+          "p1b": {
+            "sp": "golurkmega",
+            "hp": 80,
+            "status": "",
+            "boosts": {
+              "def": -3,
+              "spd": -3
+            }
+          },
+          "p2a": {
+            "sp": "primarina",
+            "hp": 74,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "garganacl",
+            "hp": 68,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "RainDance",
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 1,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "trick room duration"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [],
+        "weather_reachable": [
+          "rain"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / x0.25-ish — two resists, or a doubled resist we invented  (golurkmega Headlong Rush -> primarina: record 26%, our span 42.25–141.94%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "primarina",
+          "mv": "Protect",
+          "tgt": "primarina",
+          "dmg": 0
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "garganacl",
+          "mv": "Recover",
+          "tgt": "garganacl",
+          "dmg": 0
+        },
+        {
+          "t": "hp",
+          "s": "p2b",
+          "mon": "garganacl",
+          "hp": 73
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "golurkmega",
+          "mv": "Headlong Rush",
+          "tgt": "primarina",
+          "dmg": 26,
+          "tgthp": 74
+        },
+        {
+          "t": "b",
+          "s": "p1b",
+          "mon": "golurkmega",
+          "b": {
+            "def": -3,
+            "spd": -2
+          }
+        },
+        {
+          "t": "b",
+          "s": "p1b",
+          "mon": "golurkmega",
+          "b": {
+            "def": -3,
+            "spd": -3
+          }
+        },
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "farigiraf",
+          "mv": "Hyper Voice",
+          "tgt": "garganacl",
+          "dmg": 11,
+          "tgthp": 62
+        },
+        {
+          "t": "hp",
+          "s": "p2b",
+          "mon": "garganacl",
+          "hp": 68
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653445458",
+      "turn": 5,
+      "date": "2026-07-23 03:05",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653445458",
+      "open_sheet": false,
+      "mechanics": [
+        "damage / the record shows a KO our maximum roll cannot reach  (araquanid Liquidation -> whimsicott: record 1%, our span 7.19–29.63%)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "delphoxmega",
+            "hp": 51,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "araquanid",
+            "hp": 72,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "sylveon",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "whimsicott",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 3
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p1a",
+          "move": "Protect",
+          "target_species": "delphoxmega",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": "Moonblast",
+          "target_species": "delphoxmega",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": "Hyper Voice",
+          "target_species": "araquanid",
+          "target_slot": "p1b",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1b",
+          "move": "Liquidation",
+          "target_species": "whimsicott",
+          "target_slot": "p2b",
+          "reconstruction": "move + slot recovered"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "delphoxmega",
+            "hp": 51,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "araquanid",
+            "hp": 50,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "sylveon",
+            "hp": 90,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 2
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [],
+        "fainted_reachable": [],
+        "weather_reachable": [
+          "sun"
+        ]
+      },
+      "fields_that_differ": [
+        "damage / the record shows a KO our maximum roll cannot reach  (araquanid Liquidation -> whimsicott: record 1%, our span 7.19–29.63%)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "delphoxmega",
+          "mv": "Protect",
+          "tgt": "delphoxmega",
+          "dmg": 0
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "whimsicott",
+          "mv": "Moonblast",
+          "tgt": "delphoxmega",
+          "dmg": 0
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "sylveon",
+          "mv": "Hyper Voice",
+          "tgt": "araquanid",
+          "dmg": 47,
+          "tgthp": 25
+        },
+        {
+          "t": "hp",
+          "s": "p1b",
+          "mon": "araquanid",
+          "hp": 50
+        },
+        {
+          "t": "hp",
+          "s": "p2a",
+          "mon": "sylveon",
+          "hp": 90
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "araquanid",
+          "mv": "Liquidation",
+          "tgt": "whimsicott",
+          "dmg": 1,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p2b",
+          "mon": "whimsicott"
+        },
+        {
+          "t": "s",
+          "s": "p2b",
+          "mon": "basculegion"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653447580",
+      "turn": 6,
+      "date": "2026-07-23 03:12",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653447580",
+      "open_sheet": false,
+      "mechanics": [
+        "weather SunnyDay was set in the record and our engine did not set it"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "garchompmega",
+            "hp": 27,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "hippowdon",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "charizard",
+            "hp": 94,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "whimsicott",
+            "hp": 20,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": null,
+        "weatherBy": null,
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 3
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p2b",
+          "move": "Moonblast",
+          "target_species": "araquanid",
+          "target_slot": null,
+          "reconstruction": "TARGET SLOT NOT RECOVERED"
+        },
+        {
+          "slot": "p2a",
+          "move": "Heat Wave",
+          "target_species": "araquanid",
+          "target_slot": null,
+          "reconstruction": "TARGET SLOT NOT RECOVERED"
+        },
+        {
+          "slot": "p1b",
+          "move": "Rock Slide",
+          "target_species": "charizardmegay",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p1a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "switched out (no move to reconstruct)"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "araquanid",
+            "hp": 24,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "hippowdon",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "charizardmegay",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 2
+        },
+        "derived": [
+          "tailwind (the store has no -sidestart; read off the MOVE)"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [
+          "p1b:brn"
+        ],
+        "fainted_reachable": [
+          "p1a",
+          "p2b",
+          "p2a"
+        ],
+        "weather_reachable": [
+          "sand"
+        ]
+      },
+      "fields_that_differ": [
+        "weather SunnyDay was set in the record and our engine did not set it"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "s",
+          "s": "p1a",
+          "mon": "araquanid"
+        },
+        {
+          "t": "mega",
+          "s": "p2a",
+          "mon": "charizardmegay",
+          "from": "charizard"
+        },
+        {
+          "t": "w",
+          "s": "p2a",
+          "mon": "charizardmegay",
+          "field": "SunnyDay",
+          "by": "Drought"
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "whimsicott",
+          "mv": "Moonblast",
+          "tgt": "araquanid",
+          "dmg": 28,
+          "tgthp": 38
+        },
+        {
+          "t": "m",
+          "s": "p2a",
+          "mon": "charizardmegay",
+          "mv": "Heat Wave",
+          "tgt": "araquanid",
+          "dmg": 76,
+          "tgthp": 24
+        },
+        {
+          "t": "m",
+          "s": "p1b",
+          "mon": "hippowdon",
+          "mv": "Rock Slide",
+          "tgt": "charizardmegay",
+          "dmg": 20,
+          "miss": 1,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p2b",
+          "mon": "whimsicott"
+        },
+        {
+          "t": "s",
+          "s": "p2b",
+          "mon": "basculegion"
+        }
+      ]
+    },
+    {
+      "game": "gen9championsvgc2026regmb-2653447563",
+      "turn": 6,
+      "date": "2026-07-23 03:11",
+      "format": "champions-regmb",
+      "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-2653447563",
+      "open_sheet": false,
+      "mechanics": [
+        "turn order / SPEED — no legal Champions spread can produce the order the record shows :: SPEED — no legal Champions spread lets basculegion move before venusaur (our attainable speeds: 88-143 vs 180-290)"
+      ],
+      "board_before": {
+        "slot": {
+          "p1a": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "sylveon",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "torkoal",
+            "hp": 71,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "venusaur",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "trick room duration"
+        ]
+      },
+      "clicks": [
+        {
+          "slot": "p1a",
+          "move": "Last Respects",
+          "target_species": "torkoal",
+          "target_slot": "p2a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2b",
+          "move": "Sleep Powder",
+          "target_species": "basculegion",
+          "target_slot": "p1a",
+          "reconstruction": "move + slot recovered"
+        },
+        {
+          "slot": "p2a",
+          "move": null,
+          "target_species": null,
+          "target_slot": null,
+          "reconstruction": "NO CLICK RECORDED — the store has no `cant` event, so flinch / full-para / sleep / freeze / recharge are indistinguishable"
+        }
+      ],
+      "board_after_LOG": {
+        "slot": {
+          "p1a": {
+            "sp": "basculegion",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          },
+          "p1b": {
+            "sp": "sylveon",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          },
+          "p2a": {
+            "sp": "torkoal",
+            "hp": 0,
+            "status": "",
+            "boosts": {}
+          },
+          "p2b": {
+            "sp": "venusaur",
+            "hp": 100,
+            "status": "",
+            "boosts": {}
+          }
+        },
+        "weather": "SunnyDay",
+        "weatherBy": "Drought",
+        "terrain": null,
+        "tr": 0,
+        "tw": {
+          "p1": 0,
+          "p2": 0
+        },
+        "derived": [
+          "trick room duration"
+        ]
+      },
+      "board_after_OURS": {
+        "status_reachable": [
+          "p1a:slp"
+        ],
+        "fainted_reachable": [
+          "p1b"
+        ],
+        "weather_reachable": [
+          "sun"
+        ]
+      },
+      "fields_that_differ": [
+        "turn order / SPEED — no legal Champions spread can produce the order the record shows :: SPEED — no legal Champions spread lets basculegion move before venusaur (our attainable speeds: 88-143 vs 180-290)"
+      ],
+      "raw_log_events_this_turn": [
+        {
+          "t": "m",
+          "s": "p1a",
+          "mon": "basculegion",
+          "mv": "Last Respects",
+          "tgt": "torkoal",
+          "dmg": 68,
+          "ko": true,
+          "tgthp": 0
+        },
+        {
+          "t": "f",
+          "s": "p2a",
+          "mon": "torkoal"
+        },
+        {
+          "t": "m",
+          "s": "p2b",
+          "mon": "venusaur",
+          "mv": "Sleep Powder",
+          "tgt": "basculegion",
+          "dmg": 0,
+          "miss": 1
+        }
+      ]
+    }
+  ]
+}

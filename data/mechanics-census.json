@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-10T08:30:06.220Z",
+  "generated": "2026-08-10T19:01:00.425Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 376,
-  "live": 376,
+  "probed": 377,
+  "live": 377,
   "missing": 0,
-  "armed": 376,
+  "armed": 377,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -1333,6 +1333,16 @@
     },
     {
       "kind": "move",
+      "tag": "conditionalPower",
+      "label": "Fickle Beam PRICED is a real branch, not the 1.3x middle between them",
+      "live": true,
+      "detail": "PRICED (no die drawn) — a flat 80 BP copy prices [164, 194] and a flat 160 BP copy prices [326, 386], which do not overlap (gap true); Fickle Beam prices [164,194] — strictly between them: false. It must EQUAL the 80 copy, because a 30% rate is not a min or a max. The same helper's REAL TURN still draws both branches: 492 at the corner where random(10) gives 0 against the 160 copy's 492, and 194 at the corner where it gives 9 against the 80 copy's 194",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "powerFromFallen",
       "label": "Last Respects grows with fallen allies",
       "live": true,
@@ -2496,7 +2506,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 25.9% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.8% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

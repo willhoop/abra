@@ -277,6 +277,13 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * different bodies, so a probe reading only the aimed foe would score the redirect as a damage loss),
  * and a caller-supplied MOVE OBJECT (each arm is the same move at a fixed base power, which is how a
  * per-hit sum is compared against a flat multiply with everything else divided out). */
+/* `pricedTurn(` added 2026-08-10 with WIRE 155, declared HERE and with its reason, exactly as the
+ * paragraph above requires. It stages a real doubles board through `battleInit` and spends a real turn
+ * through `battleTurn`, and it hands back the PURE PRICE off the same bodies alongside what the turn
+ * took off. Its full reason is written at the helper: the defect it watches is a probability folded
+ * into `dmgRange`'s min/max, which the turn loop overwrites with a drawn die — so the turn is where
+ * the two branches become visible and the price is where the defect lives, and the claim is a relation
+ * between them that needs both numbers in one place. */
 /* `selfAim(` added 2026-08-10 with WIRE 153, declared HERE and with its reason, exactly as the
  * paragraph above requires. It stages a real doubles board through `battleInit` and spends up to four
  * real turns through `battleTurn`, and it has to: the thing it varies is WHAT THE CALLER AIMED AT,
@@ -291,7 +298,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * is clicked (Wish heals whoever holds the slot a turn later; Healing Wish heals the replacement
  * that walks in over its user's corpse), so a probe without a bench and without a turn boundary is
  * structurally blind to both. Its full reason and what each row carries are written at the helper. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(/;
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -3924,6 +3931,35 @@ const perHitTurn = (benchSps, foeSps, moveId, mvObj, r, stage) => {
   M.battleTurn(S, r, new Map([[me, act], [bench[1], { kind: 'pass' }]]), PASS2(foes[0], foes[1]));
   return [b0 - foes[0].curHP, b1 - foes[1].curHP];
 };
+/* WIRE 155 -- THE SAME BOARD, PRICED AND THEN PLAYED, AND BOTH NUMBERS HANDED BACK TOGETHER.
+ *
+ * `perHitTurn` above returns only what the turn TOOK OFF. That is the right instrument for a collapsed
+ * packet and it is structurally blind to the defect this one watches, which lives on the OTHER side of
+ * the same function: `dmgRange` called with no hit context -- the object every board feature, every
+ * rollout leaf and `punishExposure` receives before anything is drawn. A probe that reads only the
+ * turn cannot see it, because the loop re-prices with a drawn die and throws the pure price away.
+ *
+ * IT SPENDS A REAL TURN ANYWAY, AND IT HAS TO. The claim is a RELATION between the price and the two
+ * outcomes the turn can actually produce -- "the price equals the branch that happens when the die
+ * says no, and is not a middle between the two" -- and neither half of that is assertable without
+ * both. The price is taken off the SAME staged bodies the turn is about to use, so nothing is held
+ * equal by hand. Declared here rather than named plausibly and slipped past the direct-call ratchet:
+ * if a future probe uses this helper to ask a question a pure call could have answered, the helper is
+ * the wrong one and this paragraph is the reason why. */
+const pricedTurn = (benchSps, foeSps, moveId, mvObj, r, stage) => {
+  const bench = benchSps.map(bare), foes = foeSps.map(bare);
+  const S = M.battleInit(bench, foes, { seeded: true });
+  unfaintable(foes[0]); unfaintable(foes[1]);
+  if (stage) stage({ bench, foes, S });
+  const me = bench[0], mv = mvObj || MC.moves[moveId];
+  /* NO SEVENTH ARGUMENT. This is the PRICE -- nobody has drawn anything, which is the whole case. */
+  const price = M.dmgRange(me, foes[0], mv, S.field, false);
+  const act = { kind: 'attack', target: foes[0],
+                move: { id: moveId, mv, spread: false, d: price, acc: 1 } };
+  const b0 = foes[0].curHP;
+  M.battleTurn(S, r, new Map([[me, act], [bench[1], { kind: 'pass' }]]), PASS2(foes[0], foes[1]));
+  return { dealt: b0 - foes[0].curHP, min: price.min, max: price.max };
+};
 const BOTTOM_ROLL = () => 0, TOP_ROLL = () => 1 - 1e-9;
 
 /* TRIPLE AXEL'S BASE POWER IS `20 * move.hit` -- 20, then 40, then 60 (data/moves.ts:20003). This
@@ -4026,6 +4062,49 @@ probe('move', 'conditionalPower', 'Fickle Beam rolls its double — it is never 
                  + `flat 160 BP copy [${bot160}, ${top160}]; Fickle Beam reads ${JSON.stringify(test)} `
                  + `— it must equal the 160 copy at the corner where random(10) draws 0 and the 80 `
                  + `copy at the one where it draws 9, and an averaged 1.3x equals NEITHER` };
+});
+
+/* WIRE 155 -- THE CORNERS WERE PINNED AND THE MIDDLE WAS NOT, SO THE 1.3x SURVIVED THE FIX THAT WAS
+ * WRITTEN TO REMOVE IT.
+ *
+ * The probe above pins both rng corners of a real turn and both were correct after WIRE 147. Nothing
+ * asked what `dmgRange` returns when NOBODY HAS DRAWN — the pure price a board feature, a rollout leaf
+ * and `punishExposure` all receive — and that path still read `mvBP * (1 + p*(mult-1))` = 80 x 1.3 =
+ * 104. The damage differential is the only thing that saw it: at 20,000 comparisons, seed 20260804,
+ * EVERY ONE of the 19 disagreements was Fickle Beam, all ~1.30x high
+ * (`hydrapple ficklebeam -> orthworm  showdown 39-46  ours 51-60`).
+ *
+ * THE ASSERTION IS THAT THE PRICE IS NOT BETWEEN THE ARMS, which is the shape a corner probe cannot
+ * have. The two arms are the same move at a fixed 80 and a fixed 160 base power, and they do not
+ * overlap — 160 at the 85% randomizer is above 80 at 100% — so there is a real GAP between them, and a
+ * 1.3x price lands squarely inside it: strictly above everything the un-procced beam can deal and
+ * strictly below everything the procced one can. The price must be one of the two, and it is the 80
+ * copy, for the reason stated at the engine site: a RATE does not go into a min/max (medicham2 :2675
+ * already refuses `critRatioUp` on exactly that ground), it rides the turn loop's draw.
+ *
+ * BOTH TURN CORNERS ARE RE-READ ALONGSIDE, so "the price stopped moving because the whole mechanic
+ * stopped moving" is not available: the same helper's real turn must still deal the 160 number at the
+ * corner where random(10) draws 0 and the 80 number at the corner where it draws 9. */
+probe('move', 'conditionalPower', 'Fickle Beam PRICED is a real branch, not the 1.3x middle between them', () => {
+  const at = (id, bp, r) => pricedTurn(['hydrapple', 'incineroar'], ['garchomp', 'torterra'], id,
+    bp ? Object.assign({}, MC.moves['ficklebeam'], { id, bp }) : null, r);
+  const a80 = at('__fbp_bp80', 80, TOP_ROLL), a160 = at('__fbp_bp160', 160, BOTTOM_ROLL);
+  const fbBot = at('ficklebeam', 0, BOTTOM_ROLL), fbTop = at('ficklebeam', 0, TOP_ROLL);
+  const gap = a160.min > a80.max;                       // the two branches do not overlap
+  const inGap = fbBot.min > a80.max && fbBot.max < a160.min;
+  const control = [a80.min, a80.max, a160.min, a160.max], test = [fbBot.min, fbBot.max];
+  return { works: a80.min > 0 && gap && !inGap
+                  && fbBot.min === a80.min && fbBot.max === a80.max
+                  && fbTop.min === a80.min && fbTop.max === a80.max
+                  && fbBot.dealt === a160.dealt && fbTop.dealt === a80.dealt,
+           arms: { control, test },
+           detail: `PRICED (no die drawn) — a flat 80 BP copy prices [${a80.min}, ${a80.max}] and a `
+                 + `flat 160 BP copy prices [${a160.min}, ${a160.max}], which do not overlap `
+                 + `(gap ${gap}); Fickle Beam prices ${JSON.stringify(test)} — strictly between them: `
+                 + `${inGap}. It must EQUAL the 80 copy, because a 30% rate is not a min or a max. The `
+                 + `same helper's REAL TURN still draws both branches: ${fbBot.dealt} at the corner `
+                 + `where random(10) gives 0 against the 160 copy's ${a160.dealt}, and ${fbTop.dealt} `
+                 + `at the corner where it gives 9 against the 80 copy's ${a80.dealt}` };
 });
 
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45), AND THE OLD ONE SAID SO IN ITS OWN COMMENT:

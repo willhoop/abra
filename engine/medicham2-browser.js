@@ -200,8 +200,9 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * perHitBasePower:  a hit's base power came from its own index rather than from the move's.
    * smartTargetSplit: a Dragon Darts use aimed its two darts at two different bodies.
    * conditionalPowerRolled / conditionalPowerPriced: Fickle Beam's 30% double as a DRAW (a real turn)
-   * against as an EXPECTATION (a pure price). Both are legitimate; a run with games in it that never
-   * rolls one has lost the draw, which is the exact silent default this wire removed. */
+   * against as the UN-PROCCED branch (a pure price — WIRE 155; it was an expectation until then, and
+   * that 1.3x was the differential's only remaining disagreement). Both are legitimate; a run with
+   * games in it that never rolls one has lost the draw, which is the silent default this wire removed. */
   perHitDamageLoop: 0, perHitBasePower: 0, smartTargetSplit: 0,
   conditionalPowerRolled: 0, conditionalPowerPriced: 0,
   perishTicked: 0, perishKO: 0, perishClearedOnSwitch: 0,
@@ -2677,6 +2678,11 @@ function mvMakesContact(id){
  * put every ratio move permanently out of step with the differential's no-crit comparison. It rides
  * the battle loop's roll instead, which is where the 1/24 already lived.
  *
+ * THIS PARAGRAPH IS THE RULE AND IT WAS BROKEN ONE FUNCTION AWAY FOR THREE WIRES. Fickle Beam's 30%
+ * double is the same object as a crit rate -- a per-use die -- and `conditionalPower` folded it into
+ * base power as 80 x 1.3 = 104 until WIRE 155. It cost 19 of 19 disagreements in the 20,000-comparison
+ * differential. If a new mechanic is a RATE, it belongs in the turn loop's rng and nowhere else.
+ *
  * STAGES, NOT MULTIPLIERS: Gen-6+ crit chance is 1/24, 1/8, 1/2, 1 by stage, and `critRatio: 2` in
  * the artifact means one stage up. Move and ITEM (Scope Lens) stack; the two ABILITY carriers are
  * refused and counted -- see MEDFAILS.critRatioAbility. */
@@ -3589,9 +3595,41 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride){
    * IT IS THE SAME SPLIT ROADMAP #103 MADE FOR THE HIT COUNT, which is why it is built the same way
    * rather than a second way: `hit.condPower` arrives from the battle loop, which draws it through
    * `rollConditionalPower` off the same rng it draws the hit count, the damage index and the crit
-   * from. A PURE call -- a board feature, a rollout leaf, `punishExposure` -- hands over no `hit` and
-   * keeps the expectation, which is the right object for a PRICE and is counted separately so a run
-   * that never rolls one reads as the untested case it is. */
+   * from.
+   *
+   * WIRE 155 -- AND THE PURE CALL KEEPS NO EXPECTATION EITHER. THE CORNERS WERE PINNED, THE MIDDLE
+   * WAS NOT, AND THE 1.3x SURVIVED THE WIRE THAT WAS WRITTEN TO REMOVE IT.
+   *
+   * WIRE 147 split the DRAWN path off and left the else branch reading `mvBP * (1 + p*(mult-1))` --
+   * the same 80 x 1.3 = 104 the paragraph above calls a number the move never has. Its probe asserted
+   * the two pinned rng corners of a real turn, both of which now go through `hit.condPower`, so both
+   * were green and the priced middle between them was never asked about. The damage differential is
+   * what saw it: 20,000 comparisons at seed 20260804 produced 19 disagreements and EVERY ONE was
+   * Fickle Beam, all ~1.30x high (`hydrapple ficklebeam -> orthworm  showdown 39-46  ours 51-60`).
+   *
+   * THE JUDGEMENT, BECAUSE THERE IS A REAL CHOICE HERE AND THIS FILE HAS ALREADY MADE IT ONCE.
+   * `dmgRange` is a PRICE -- "what will this move do" asked before anything is clicked -- and for a
+   * move that is 80 BP with p=0.7 and 160 BP with p=0.3 the candidates were the EXPECTATION (104), the
+   * SPAN (the 80 case's min to the 160 case's max), or something carrying both. It is none of the
+   * three, and the reason is written thirty lines above `critChance`: a RATE MUST NOT GO INTO A
+   * MIN/MAX. `critRatioUp` is refused there on exactly this ground -- folding an expectation in stops
+   * `max` being a roll the move can deal, and puts the move permanently out of step with the
+   * differential, whose authority draws a die and never returns a mean. The 30% double is the same
+   * object as a crit rate: a per-use die that the TURN LOOP owns. So it rides the loop's draw and the
+   * price is the branch that happens when the die says no -- an achievable number, 70% of the time the
+   * exact one, and the only one comparable to a pinned authority.
+   *
+   * THE EXPECTATION IS NOT LOST AND IS NOT A FIELD NOBODY READS. A caller that wants the other branch
+   * asks for it by name -- `dmgRange(..., {condPower:true})` is a supported call and is what the
+   * differential harness now uses to compare the procced branch. The two paths therefore return
+   * DIFFERENT numbers on purpose: the comparison path is told which branch, the pricing path is the
+   * un-procced one, and neither is a mean.
+   *
+   * WHAT IT COSTS, STATED RATHER THAN HIDDEN: a Fickle Beam that only KOs on the proc is priced as not
+   * KOing, which is the same understatement `critRatioUp` already accepts and the same one multi-hit's
+   * expectation accepts in the other direction. The rollout is where the double is worth something,
+   * and the rollout draws it. Counted as `conditionalPowerPriced` so a run that never draws one still
+   * reads as the untested case it is. */
   {
     const _cp=mv.id&&TAGS.param('move',mv.id,'conditionalPower');
     if(_cp&&_cp.when&&_cp.mult){
@@ -3606,7 +3644,9 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride){
           if(hit.condPower)mvBP=Math.floor(mvBP*(+_cp.mult||1));
           MEDSEEN.conditionalPowerRolled++;
         } else {
-          mvBP=Math.floor(mvBP*(1+(_cp.p||0)*((_cp.mult||1)-1)));
+          /* NOBODY DREW, SO NOTHING PROCS. `mvBP` is left exactly as the dex states it -- deliberately
+           * NOT multiplied by anything, and written as an explicit no-op branch rather than an absent
+           * one so that a reader sees the choice instead of an omission. */
           MEDSEEN.conditionalPowerPriced++;
         }
       } else {

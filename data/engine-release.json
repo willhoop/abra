@@ -1,10 +1,10 @@
 {
-  "current": "ec4dc5fd4a0d",
-  "cut": "2026-08-10T08:30:58.060Z",
-  "why": "heal descriptor: pulse, wish, rest, healing wish",
+  "current": "c507af781de0",
+  "cut": "2026-08-10T19:01:01.222Z",
+  "why": "fickle beam prices a branch, not the mean",
   "cuts": 1,
-  "latest_cut": "2026-08-10T08:30:58.060Z",
-  "latest_why": "heal descriptor: pulse, wish, rest, healing wish",
-  "pointer_written": "2026-08-10T08:30:58.062Z",
+  "latest_cut": "2026-08-10T19:01:01.222Z",
+  "latest_why": "fickle beam prices a branch, not the mean",
+  "pointer_written": "2026-08-10T19:01:01.226Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

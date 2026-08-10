@@ -33,9 +33,9 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  376/376 probed mechanics live, 0 missing   (census 2026-08-10 08:24)
-  0/150 differential comparisons disagree with Showdown   (2026-08-10 07:46)
-    seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
+  377/377 probed mechanics live, 0 missing   (census 2026-08-10 18:56)
+  0/20000 differential comparisons disagree with Showdown   (2026-08-10 18:57)
+    seed 20260804, requested 20000, 850 not comparable (multihit 630, non-finite 0, threw 220)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
     2300 of 8795 theoretical pairs staged — agreement is a claim about the 2300 that ran, not about the 8795
@@ -57,9 +57,112 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 189/200 probed, 11 unprobed
 ```
 
-_stamped 2026-08-10 08:25_
+_stamped 2026-08-10 18:59_
 
 <!-- /GENERATED -->
+
+## WIRE 155 — WIRE 147 PINNED BOTH CORNERS AND NOT THE MIDDLE, SO THE 1.3x SURVIVED ITS OWN FIX. 2026-08-10.
+
+Census **376 → 377 live, 377 probed, 0 missing, 0 threw, 0 hollow, 0 unarmed, 0 direct-call.** One new
+probe, watched RED before a line of the engine changed. Damage stages **1728/1728 exact**, unchanged.
+**No release was cut, `tests/roster.js` was not run, and `engine/game_differential.js` was neither run
+nor edited** — another agent is live in it and `:126` auto-cuts when no release is pinned.
+
+**Fickle Beam was the ONLY move disagreeing with the authority, and it was all 19 of the 19.**
+
+```
+tests/test-engine-diff.js --n 20000 --seed 20260804
+  before   agreed 19,981   disagreed 19    <- every one Fickle Beam, all ~1.30x high
+  after    agreed 20,000   disagreed  0
+
+  hydrapple ficklebeam -> orthworm   showdown 39-46   ours 51-60   (before)
+                                     showdown 39-46   ours 39-46   (after, rel 0.0%)
+```
+
+WIRE 147 split the DRAWN path off and **left the else branch** reading `mvBP * (1 + p*(mult-1))` = 80 ×
+1.3 = **104 base power, a number the move never has**. Its probe asserted the two pinned rng corners of a
+real turn, both of which now go through `hit.condPower` — so both were green and **the priced middle
+between them was never asked about**. This is 3.90.0 for the third time: *"the multi-hit count was the
+MEAN, and the pin never lands on a middle."*
+
+### THE JUDGEMENT — THE RULE WAS ALREADY WRITTEN THIRTY LINES ABOVE `critChance`
+
+`dmgRange` is a **PRICE**. For a move that is 80 BP with p=0.7 and 160 BP with p=0.3 the candidates were
+the **expectation** (104), the **span**, or something carrying both. It is none of the three:
+`medicham2-browser.js:2675` already refuses `critRatioUp` on the ground that **a RATE must not go into a
+min/max** — folding an expectation in stops `max` being a roll the move can deal, and puts the move
+permanently out of step with a differential whose authority draws a die and never returns a mean. Fickle
+Beam's 30% double is the same object as a crit rate: a per-use die the TURN LOOP owns. So it rides the
+loop's draw, and the price is the branch that happens when the die says no.
+
+**The two paths return different numbers on purpose.** The comparison path is TOLD which branch
+(`dmgRange(..., {condPower:true|false})` — the same call `battleTurn`'s `_hitCtx` already makes); the
+pricing path is the un-procced one. Neither is a mean, and the expectation is not a dead field nobody
+reads. **What it costs, stated:** a Fickle Beam that only KOs on the proc is priced as not KOing — the
+same understatement `critRatioUp` already accepts.
+
+### THE PROBE — IT ASSERTS THE MIDDLE, NOT THE CORNERS
+
+`move conditionalPower` — *"Fickle Beam PRICED is a real branch, not the 1.3x middle between them"*, on
+a new `pricedTurn(` helper declared at the REALTURN ratchet with its reason. It **spends a real turn**
+and hands back the pure price off the same staged bodies, because the claim is a RELATION between the
+two. The direct-call ratchet stays at **0 of 377**.
+
+| | flat 80 BP arm | flat 160 BP arm | Fickle Beam PRICED | between? |
+|---|---|---|---|---|
+| RED | `[164, 194]` | `[326, 386]` | `[212, 252]` | **true** |
+| GREEN | `[164, 194]` | `[326, 386]` | `[164, 194]` | false |
+
+The arms **do not overlap** — 160 at the 85% randomizer is above 80 at 100% — so there is a real gap and
+a 1.3x price lands squarely inside it. The same helper's real turn is re-read alongside (492 where
+`random(10)` gives 0, 194 where it gives 9), so "the price stopped moving because the mechanic stopped
+moving" is not available.
+
+### CONTROL FIX 12 — THE HARNESS WAS READING THE COIN AND WOULD HAVE AGREED BY LUCK
+
+`Battle#randomChance` goes **straight to `this.prng`** (`sim/battle.js:213`) and does not pass through
+`test-engine-diff.js`'s `battle.random` override, so the double was drawn off the battle seed while every
+other input was pinned. At `[1,2,3,4]` it drew **false on every row, in both calls** — so after the engine
+fix these rows read rel 0.0%, **and they would have read 0.0% by luck**. That is CONTROL FIX 6's gender
+coin again.
+
+Pinned now, and **both ways rather than off**: a carrier is compared twice, MEDICHAM is asked for the
+matching branch, and the row **keeps the worse residual**. Pinning merely off would leave the mechanic
+untested by the differential. The carrier set is DERIVED from `conditionalPower.when === 'chance'` and
+printed before use — `ficklebeam(p=0.3 x2)`, one member — and the override is installed **only for a
+carrier**, so the other 19,981 rows draw the identical stream. **Proven live:** MEDICHAM's proc branch on
+`hydrapple ficklebeam -> orthworm` is `78-92` against `39-46`, exactly 2x, and the row still reads 0.0% on
+the worse face — a silently-failed pin would read ~100% there.
+
+### NO OTHER MEMBER SHARES IT, AND THE NEIGHBOURS ARE NAMED
+
+All eleven `conditionalPower` members read out of `data/tags.json`: **`ficklebeam` is the only
+`when: 'chance'`**. `facade` and `barbbarrage` / `venoshock` are deterministic conditions; `lashout` is
+**counted** through `MEDFAILS.variablePowerUnknown` rather than defaulted; the other six carry
+`conditional: true` with their condition in `weatherScaled` / `terrainScaled` / `variablePower`.
+
+**FOUND AND NOT FIXED, PER THE ROUTING RULE.** `dmgRangeOneHit`'s Parental Bond line
+(`base = floor(base * 1.25)`, `hitsTwice`, 217 uses) collapses two packets into one exactly as WIRE 147's
+four rows did — the `+2` paid once, no second randomizer. It is **not** this defect (nothing
+probabilistic is folded) and the differential cannot see it, because it stages the species' slot-0
+ability and Parental Bond is a mega ability. Reported, not touched.
+
+### THE HAND LIST IS UNCHANGED
+
+Fickle Beam was never on it — it came off the differential, which is the point of having one. The list
+is still empty except for Rivalry (blocked on `engine-data.js`, which is MEASURE's).
+
+**TWO PRE-EXISTING REDS, SAID AND NOT FILED.**
+
+`FEATURE SEMANTICS CHECK FAILED` on `data/policy-weights.json` is **REFIT OWED and MEASURE's**, and it
+is not this wire's: the feature fixture's four staged sets contain no Fickle Beam, so nothing here can
+reach those digests.
+
+`tests/test-effective-identity.js` is red on `no NEW raw read of a transforming field`. Its per-file
+delta names `champions_sim.js`, `replay_differential.js`, `probe_pair.js`, `roster.js`,
+`staged_board.js`, `test-nature-differential.js`, `test-pinch-family.js` and
+`test-side-guard-chooser.js` — **neither `test-engine-diff.js` nor `test-mechanics.js` is among them**.
+Owned by whoever holds those files.
 
 ## WIRE 153 — A SELF-TARGETING STATUS MOVE CLICKED WITH NO TARGET FAILED OUTRIGHT. NINE MOVES, AND THE BIGGEST ONE'S DEFECT WAS NOT THE FAMILY'S. 2026-08-10.
 

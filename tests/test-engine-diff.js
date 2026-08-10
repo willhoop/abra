@@ -171,12 +171,40 @@ const skippedMulti = { n: 0, moves: {} };
 /* DERIVED, not a list of names, and printed below before it is used. */
 const MULTIHIT = new Set(Object.keys(tags.moves || {}).filter(id =>
   (tags.moves[id].tags || []).indexOf('multiHit') >= 0));
+/* CONTROL FIX 12 -- A MOVE WHOSE BASE POWER IS A COIN, AND THIS FILE WAS READING THE COIN. 2026-08-10.
+ *
+ * DERIVED from the artifact, never a name: every move carrying `conditionalPower {when: 'chance'}`.
+ * Today that is Fickle Beam alone (30% for x2) and the set is PRINTED below before it is used, because
+ * every derived set in this project over-matched on its first try.
+ *
+ * WHY IT IS A CONTROL FAILURE AND NOT A DETAIL. `battle.randomChance` goes STRAIGHT to `this.prng`
+ * (sim/battle.js:213) and does not pass through the `battle.random` override on line 235, so the
+ * double was drawn off the battle seed while everything else in the row was pinned. It happened to
+ * draw FALSE at seed [1,2,3,4], on every row, in both the top and the bottom call. So after the engine
+ * fix below these rows read rel 0.0% — AND THEY WOULD HAVE READ 0.0% BY LUCK. That is the exact shape
+ * this file has already been burned by four times (CONTROL FIX 6's gender coin, most closely), and a
+ * false agreement is the expensive one because nothing prints.
+ *
+ * SO IT IS PINNED, AND PINNED BOTH WAYS RATHER THAN OFF. CONTROL FIX 11 pins a random crit off because
+ * MEDICHAM's `dmgRange` deliberately excludes a crit RATE; the same reasoning says the un-procced
+ * branch is what a pure price returns. But pinning only that would leave the 30% branch — the whole
+ * mechanic — untested by the differential, which is worse than the bug it replaces. So a carrier is
+ * compared TWICE, once with the die pinned false and once true, and MEDICHAM is asked for the matching
+ * branch through the seventh argument its battle loop already uses. The row's residual is the WORSE of
+ * the two, so an engine that is right on one branch and wrong on the other cannot average out.
+ *
+ * The override is installed ONLY for a carrier, so every other row in this file draws exactly the
+ * stream it drew before and the 19,981 agreements are not disturbed by this fix. */
+const CONDCHANCE = new Set(Object.keys(tags.moves || {}).filter(id => {
+  const p = (tags.moves[id].params || {}).conditionalPower;
+  return !!(p && p.when === 'chance');
+}));
 
 /* Showdown's damage for ONE hit, with the roll pinned. The traps here are recorded in
  * engine/validate_damage_sim.js and cost that file two debugging rounds: randomChance() bypasses a
  * battle.random override entirely, so crits must be pinned with willCrit, and a fresh active move is
  * needed per call because moveHitData caches the crit decision per target slot. */
-function showdownDamage(attName, moveName, defName, roll, stats, defAbilId) {
+function showdownDamage(attName, moveName, defName, roll, stats, defAbilId, condPin) {
   const teamA = [mkSet(attName, moveName), ...FILLER.map(f => mkSet(f, inertMove(f)))];
   const teamB = [mkSet(defName, inertMove(defName)), ...FILLER.map(f => mkSet(f, inertMove(f)))];
   const battle = new Battle({ formatid: CS.FORMAT, seed: [1, 2, 3, 4] });
@@ -233,6 +261,10 @@ function showdownDamage(attName, moveName, defName, roll, stats, defAbilId) {
   battle.field.clearWeather();
   battle.field.clearTerrain();
   battle.random = (n) => (n === 16 ? roll : 0);
+  /* CONTROL FIX 12 -- the coin, held. Installed only when the caller named a branch, so a non-carrier
+   * row draws the identical stream it drew before this fix. The header above says why it cannot ride
+   * the `battle.random` override on the line above. */
+  if (condPin != null) battle.randomChance = () => !!condPin;
   const move = battle.dex.getActiveMove(moveName);
   /* CONTROL FIX 11 -- PIN THE CRIT OFF FOR MOVES WHOSE CRIT IS RANDOM, AND ONLY THOSE. 2026-08-04.
    *
@@ -346,7 +378,16 @@ console.log('  ' + [...ONTRYHIT_IMMUNE].sort().map(a =>
   console.log('DERIVED — corpus moves whose base power reads move.hit (NaN without CONTROL FIX 9): '
     + (hitReaders.join(' ') || 'none'));
   console.log('DERIVED — corpus multi-hit moves, SKIPPED because MEDICHAM prices an expectation and '
-    + 'one moveHit call is one sample:\n  ' + [...MULTIHIT].sort().join(' ') + '\n');
+    + 'one moveHit call is one sample:\n  ' + [...MULTIHIT].sort().join(' '));
+  /* CONTROL FIX 12's set, printed before it is used, with its probability and multiplier, so that an
+   * over-match is readable by eye rather than trusted. A member here costs two extra Showdown battles
+   * per row and is compared on BOTH faces of its die. */
+  console.log('DERIVED — corpus moves whose base power is a COIN (conditionalPower when=chance), '
+    + 'compared on BOTH faces with battle.randomChance pinned:\n  '
+    + ([...CONDCHANCE].sort().map(id => {
+        const p = tags.moves[id].params.conditionalPower;
+        return id + '(p=' + p.p + ' x' + p.mult + ')';
+      }).join(' ') || 'none') + '\n');
 }
 /* ONE ROW, BOTH ENGINES. Extracted from the sampling loop so that `--case att,move,def` can run a
  * SINGLE named matchup. That is not a convenience: a control fix is only proved by the row it
@@ -373,7 +414,7 @@ function compareRow(attId, mvId, defId) {
   if (!attSp.exists || !defSp.exists) return null;
 
   /* MEDICHAM FIRST, because its stats are what Showdown must be aligned to. */
-  let m, A, B;
+  let A, B;
   try {
     A = MEDI.buildMon(attId, {}); B = MEDI.buildMon(defId, {});
     A.item = ''; B.item = '';
@@ -391,23 +432,10 @@ function compareRow(attId, mvId, defId) {
      * the Showdown side instead, because clearing is complete and a replay is a list of three. Both
      * engines therefore start from an empty field and zero boosts, and this file is damage only, as
      * its header has always claimed. */
-    m = MEDI.dmgRange(A, B, MC.moves[mvId], { weather: '', terrain: '', twA: 0, twB: 0, tr: 0 }, false);
-  } catch (e) { logDroppedRow('medicham build/dmgRange ' + attId + ' ' + mvId + ' -> ' + defId, e); return null; }
-  if (!m || !A || !B) return null;
+  } catch (e) { logDroppedRow('medicham build ' + attId + ' ' + mvId + ' -> ' + defId, e); return null; }
+  if (!A || !B) return null;
   const stats = { at: A.st.at, sa: A.st.sa, adf: A.st.df, asd: A.st.sd, ahp: A.st.hp,
                   dat: B.st.at, dsa: B.st.sa, df: B.st.df, sd: B.st.sd, hp: B.st.hp };
-
-  let hi, lo;
-  try {
-    hi = showdownDamage(attSp.name, dexMove.name, defSp.name, 0, stats, B.ability);
-    lo = showdownDamage(attSp.name, dexMove.name, defSp.name, 15, stats, B.ability);
-  } catch (e) { logDroppedRow('showdownDamage ' + attId + ' ' + mvId + ' -> ' + defId, e); return null; }
-  if (hi === NOT_FINITE || lo === NOT_FINITE) {
-    skipped.n++;
-    skipped.moves[mvId] = (skipped.moves[mvId] || 0) + 1;
-    return null;
-  }
-  if (hi == null || lo == null) return null;
 
   /* SHOWDOWN'S DAMAGE IS CAPPED AT THE TARGET'S HP and MEDICHAM'S IS NOT.
    *
@@ -417,9 +445,46 @@ function compareRow(attId, mvId, defId) {
    * comparison did not know that. Capping both sides asks the question that matters: would this hit
    * take the same amount off, up to death. */
   const cap = (x) => Math.min(x, B.st.hp);
-  const sMid = (cap(hi) + cap(lo)) / 2, mMid = (cap(m.max) + cap(m.min)) / 2;
-  /* Both zero is agreement: an immunity both engines honour. */
-  const rel = (sMid === 0 && mMid === 0) ? 0 : Math.abs(sMid - mMid) / Math.max(1, sMid);
+  /* CONTROL FIX 12 -- ONE PASS PER BRANCH OF A DIE THIS FILE USED TO READ RATHER THAN HOLD. `null` is
+   * "there is no die", which is every move but one and is the single unpinned pass this file has
+   * always made; a carrier is compared on BOTH faces and keeps the WORSE residual, so being right on
+   * the 70% branch cannot pay for being wrong on the 30% one. Full reasoning at CONDCHANCE. */
+  const branches = CONDCHANCE.has(mvId) ? [false, true] : [null];
+  let worst = null;
+  for (const pin of branches) {
+    let m;
+    try {
+      /* THE SEVENTH ARGUMENT IS THE BRANCH, AND IT IS ABSENT FOR A NON-CARRIER. Absent means "nobody
+       * drew", which is the PURE PRICE -- and after WIRE 155 that is the un-procced branch and not an
+       * expectation, so the two paths deliberately return different numbers and this file compares the
+       * DRAWN one. Passing it here is the same call `battleTurn`'s `_hitCtx` makes. */
+      m = MEDI.dmgRange(A, B, MC.moves[mvId], { weather: '', terrain: '', twA: 0, twB: 0, tr: 0 },
+                        false, false, pin == null ? undefined : { condPower: pin });
+    } catch (e) { logDroppedRow('medicham dmgRange ' + attId + ' ' + mvId + ' -> ' + defId, e); return null; }
+    if (!m) return null;
+
+    let hi, lo;
+    try {
+      hi = showdownDamage(attSp.name, dexMove.name, defSp.name, 0, stats, B.ability, pin);
+      lo = showdownDamage(attSp.name, dexMove.name, defSp.name, 15, stats, B.ability, pin);
+    } catch (e) { logDroppedRow('showdownDamage ' + attId + ' ' + mvId + ' -> ' + defId, e); return null; }
+    if (hi === NOT_FINITE || lo === NOT_FINITE) {
+      skipped.n++;
+      skipped.moves[mvId] = (skipped.moves[mvId] || 0) + 1;
+      return null;
+    }
+    if (hi == null || lo == null) return null;
+    const sMid = (cap(hi) + cap(lo)) / 2, mMid = (cap(m.max) + cap(m.min)) / 2;
+    /* Both zero is agreement: an immunity both engines honour. */
+    const r = (sMid === 0 && mMid === 0) ? 0 : Math.abs(sMid - mMid) / Math.max(1, sMid);
+    const label = pin == null ? '' : (pin ? '[proc] ' : '[no-proc] ');
+    if (!worst || r > worst.rel) {
+      worst = { rel: r, suspect: sMid === 0 && mMid > 0,
+                showdown: label + cap(lo) + '-' + cap(hi), medicham: cap(m.min) + '-' + cap(m.max) };
+    }
+  }
+  if (!worst) return null;
+  const rel = worst.rel;
   /* SUSPECT — a PHANTOM ZERO, which is the shape the Triple Axel bug actually had.
    *
    * Showdown says the move did nothing, MEDICHAM says it did something, and the move computes its
@@ -441,9 +506,9 @@ function compareRow(attId, mvId, defId) {
    * A true immunity is NOT caught by this, because both sides read 0 and the row agrees before it
    * gets here. STILL COUNTED AS A DISAGREEMENT -- flagging must never move the number, or the marker
    * becomes a way to make the residual look better than it is. */
-  const suspect = sMid === 0 && mMid > 0;
+  const suspect = worst.suspect;
   return { att: attId, mv: mvId, def: defId, A, B, dexMove, rel, suspect,
-           showdown: cap(lo) + '-' + cap(hi), medicham: cap(m.min) + '-' + cap(m.max),
+           showdown: worst.showdown, medicham: worst.medicham,
            uses: ((tags.moves[mvId] || {}).uses) || 0 };
 }
 
