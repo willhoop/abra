@@ -269,11 +269,90 @@ function coverageClause() {
   };
 }
 
+/* ---- NO OPEN, KNOWN, UNFIXED ENGINE DEFECT ------------------------------------------------------
+ *
+ * Will, 2026-08-10, on seeing the gate OPEN beside the register: *"THE GATE SHOULDNT BE OPEN, SO MANY
+ * OF THESE ITEMS ARE DISQUALIFYING FOR THE ENGINE TO WORK."* He is right and the GATE was wrong, not
+ * the items.
+ *
+ * WHAT THE OTHER FIVE CLAUSES ACTUALLY ASK. The differential asks whether Showdown disagreed about
+ * what the bots HAPPENED TO CLICK. The three roster clauses ask whether OUR TWO ENGINES agree. The
+ * coverage clause asks whether SOMETHING measured it. **Not one of them asks whether we already KNOW
+ * a mechanic is broken.**
+ *
+ * And we do know. The roadmap is precisely that register, and on the day this clause was written it
+ * held 22 open rows describing a live engine defect — Struggle unimplemented, PP absent, 32 moves
+ * resolving to a whole no-op turn, the Choice lock not arming on a status move at 7,844 uses, Quick
+ * Guard the only priority refusal that does not work, thirteen moves never recording `_lastMove` so
+ * Encore cannot reach most of what it should. Any one of those is disqualifying, and the gate said
+ * OPEN over all of them.
+ *
+ * THIS IS THE "KNOWN FAILURE IS A BANNED PHRASE" RULE, ONE LEVEL UP. That rule stops a RED TEST being
+ * filed as a status. This stops a KNOWN DEFECT being filed as a roadmap row while the gate reports the
+ * engine correct. Same failure, different register — and the fix is the same one the file already
+ * applies everywhere else: the gate is READ, not remembered.
+ *
+ * HOW A ROW IS CLASSIFIED. It counts if the roadmap files it to `docs/ENGINE.md`, or if its own text
+ * says the engine does not do something — "NEVER FIRED", "NOT IMPLEMENTED", "DOES NOT WORK", "IS
+ * ABSENT", "no-op", "never records". Matched on the row's own words rather than a hand list of numbers,
+ * so an item added tomorrow is counted without editing this file, and a row that is CLOSED says so in
+ * its own text and drops out. That cuts both ways deliberately: it means a row cannot be quietly
+ * excluded, and it means a stale row keeps the gate shut until somebody marks it done — which is the
+ * correct direction for a bar to err.
+ *
+ * IT IS NOT A USAGE THRESHOLD. A defect is a defect; the shelf that exists for the roster is about
+ * which rows are worth STAGING, not about which broken mechanics are acceptable. Usage is reported so
+ * the queue can be ordered, and it does not excuse anything. */
+function openDefectClause() {
+  let lines;
+  try { lines = fs.readFileSync(D('docs', 'ROADMAP.md'), 'utf8').split(/\r?\n/); }
+  catch (e) {
+    return { name: 'no open, known engine defect', ok: false, missing: true,
+      why: 'CANNOT ANSWER — docs/ROADMAP.md is unreadable. A clause that cannot be computed FAILS.' };
+  }
+  const open = [];
+  for (const l of lines) {
+    const m = l.match(/^\|\s*#(\d+)\s*\|\s*\*\*(.{0,140})/);
+    if (!m) continue;
+    if (/—\s*DONE|DONE,|RETRACTED|closed 20\d\d|GUARDED,/.test(l.slice(0, 600))) continue;
+    /* THE ROW MUST ASSERT BREAKAGE, NOT MERELY BE FILED TO ENGINE.
+     *
+     * The first version also counted any row filed to `docs/ENGINE.md`, and that was too loose: it
+     * held the gate shut on "hand MEDICHAM to Fable 5 and make it faster" and on a cost measurement
+     * that had already been taken. Sixteen rows, of which four were not defects and three were
+     * finished the same night.
+     *
+     * AN OVER-FIRING GATE IS THE ONE PEOPLE LEARN TO IGNORE, which is the failure this file exists to
+     * prevent — "one of the two known failures" begins with a bar that cried wolf. So the test is now
+     * the row's own CLAIM: it counts when it says a mechanic does not work, is absent, is
+     * unimplemented, never fires, or resolves to nothing. A task, an investigation or a measurement is
+     * not a defect however it is filed.
+     *
+     * It still errs shut rather than open: a row whose wording is ambiguous keeps the gate closed until
+     * somebody states plainly whether the thing is broken, which is the correct direction. */
+    const saysBroken = /NEVER FIRED|NEVER FIRES|NOT IMPLEMENTED|DOES NOT WORK|DOES NOT ARM|DOES NOT FIRE|UNIMPLEMENTED|silent no-op|IS ABSENT|is not implemented|does not exist|never records|never record|resolve[sd]? to `\{kind:'pass'\}`|HAS NEVER FIRED|IS DEAD/i.test(l);
+    if (!saysBroken) continue;
+    const uses = +((l.match(/([\d,]{3,})\s*(uses|clicks)/) || [, '0'])[1].replace(/,/g, '')) || 0;
+    open.push({ n: +m[1], uses, title: m[2].replace(/\s+/g, ' ').slice(0, 84) });
+  }
+  open.sort((a, b) => b.uses - a.uses);
+  const weight = open.reduce((s, r) => s + r.uses, 0);
+  return {
+    name: 'no open, known engine defect', ok: open.length === 0, open,
+    why: open.length === 0
+      ? 'clean: the roadmap registers no open row describing a live engine defect'
+      : `${open.length} OPEN roadmap row(s) describe a live engine defect (${weight.toLocaleString()} `
+        + `named uses between them). A gate cannot report the engine correct while the register says `
+        + `otherwise — that is "known failure" filed one level up. Worst: `
+        + open.slice(0, 5).map(r => '#' + r.n + (r.uses ? ' (' + r.uses.toLocaleString() + ')' : '')).join(', '),
+  };
+}
+
 function medichamIsCorrect() {
   const clauses = [differentialClause(), ...ROSTER_STAGES.map(s => {
     const r = rosterStage(s);
     return { ...r, name: `deliberate roster / ${s}` };
-  }), coverageClause()];
+  }), coverageClause(), openDefectClause()];
   return { ok: clauses.every(c => c.ok), clauses, failing: clauses.filter(c => !c.ok) };
 }
 

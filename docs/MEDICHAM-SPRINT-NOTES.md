@@ -2732,3 +2732,37 @@ That is the THIRD defect class tonight the gate structurally cannot see, after t
 in `move-effects.js` and the mega movesets. All three share one shape: **a shared wrong input produces
 perfect agreement.** Only a comparison against the AUTHORITY can see them, which is the argument for
 the constructed-game differential and against reading OPEN as "the engine is right".
+
+## ROADMAP #146 — A SIXTH GATE CLAUSE: NO OPEN, KNOWN, UNFIXED ENGINE DEFECT
+
+Will, on seeing the gate report OPEN beside the register: *"THE GATE SHOULDNT BE OPEN, SO MANY OF THESE
+ITEMS ARE DISQUALIFYING FOR THE ENGINE TO WORK."* Right, and the GATE was wrong rather than the items.
+
+**WHAT THE FIRST FIVE CLAUSES ACTUALLY ASK.** The differential asks whether Showdown disagreed about
+what the bots HAPPENED TO CLICK. The three roster clauses ask whether OUR TWO ENGINES agree. The
+coverage clause asks whether SOMETHING measured it. **Not one asks whether we already KNOW a mechanic
+is broken** — and we did know, in writing, in the register the gate never read.
+
+Struggle unimplemented. PP absent. Thirty-two moves resolving to a whole no-op turn. The Choice lock not arming on a status move. Quick Guard the only priority refusal that does not work.
+Any one is disqualifying, and the gate said OPEN over all of them.
+
+**This is "KNOWN FAILURE IS A BANNED PHRASE" one level up.** That rule stops a RED TEST being filed as
+a status. This stops a KNOWN DEFECT being filed as a roadmap row while the gate calls the engine
+correct. Same failure, different register, same fix: the gate is READ, not remembered.
+
+**AND THE FIRST VERSION OF THE CLAUSE OVER-FIRED, WHICH IS WORTH RECORDING BECAUSE IT IS THE SAME
+DISEASE.** It counted any row filed to `docs/ENGINE.md` and reported SIXTEEN. Four were not defects at
+all — including *"hand MEDICHAM to Fable 5 and make it faster"* — and three had been finished that same
+night. **A bar that cries wolf is precisely how "one of the two known failures" begins.** The test is
+now the row's own CLAIM: it counts when it says a mechanic does not work, is absent, is unimplemented,
+never fires, or resolves to nothing. A task, an investigation or a measurement is not a defect however
+it is filed. It still errs SHUT on ambiguous wording, which is the correct direction for a bar.
+
+**The honest count is SEVEN registered defects** — #117 `_lastMove`/Encore, #118 the Choice lock,
+#119 Struggle, #123 semi-invulnerability, #125 the thirty-two no-op moves, #126 Quick Guard, #128 the
+berry-ability family — **plus four found tonight and not yet registered**: PP absent, `isGrounded`
+missing six inputs, Roost's temporary type removal absent, and the mainline constants in
+`data/move-effects.js`.
+
+Eleven concrete defects. Not the fifty-one-row roadmap: most of that register is design, measurement
+and search work, none of which blocks the engine being right.
