@@ -50,11 +50,13 @@ Census **330 live / 330 probed / 0 missing**. Damage stages **1728/1728 exact**.
 
 | 7 | **Counter, Mirror Coat, Metal Burst, Comeuppance** | 16 | **ENGINE FIXED AND VERIFIED — ROSTER ROW HAS NOT MOVED, CAUSE UNKNOWN.** See the open item below. | DID-NOT-FIRE → *unchanged* |
 | 8 | **Cotton Spore, String Shot, Sweet Scent** (+ Teeter Dance, which was not a roster row) | — | the `affect` branch resolved ONE `_t`, so every spread STATUS move moved slot 0 and left slot 1 alone. Target list derived from `spreadFoes` / `spreadAll`, gauntlet run per body. **Roster not re-run by me** — `tests/roster.js` is Will's to run against a frozen tree | DID-NOT-FIRE → *awaiting the roster re-run* |
+| 10 | **Stockpile, Spit Up, Swallow** (WIRE 152) | 66 | the string `stockpile` appeared **zero times** in `medicham2-browser.js`. `statusInflict` said "apply the volatile" and the generic path wrote a **duration of 1** — so the counter never climbed, the +1/+1 never landed, Spit Up dealt 0 with two layers up and reported `result true`, and Swallow moved a body 40 → 40. Fixed at the DERIVATION first: two new tags, `layeredVolatile` (the cap, the per-layer boost, and that the refund is only what it GRANTED) and `spendsVolatile` (the entry fee and when it is paid), plus `variablePower{volatileLayers}` and `healsSelf.byVolatileLayers`. `data/tags.json` + `data/abra-tags.js` regenerated: **0 entities removed, 0 added, 3 changed**. **Roster not re-run by me** | DID-NOT-FIRE → *awaiting the roster re-run* |
 | 9 | **Guard Swap, Power Swap, Psych Up, Topsy-Turvy, Acupressure** (WIRE 151) | 99 | all five resolved to `{kind:'pass'}` — a whole no-op turn — because both doors out of `statChangeInCode` demand a LITERAL boost table and all five carry `{procedural:true}`. Belly Drum and Strength Sap, the only two members WITH `boosts`+`on`, were the only two that worked. Fixed at the DERIVATION: `statChangeInCode` gained an **`op` descriptor beside `boosts`, never inside it** (`exchange` / `copy` / `invert` / `randomOne`, each with its stat subset), read out of each handler's own shape; one engine primitive `applyStatOp` consumes all four. `data/tags.json` + `data/abra-tags.js` regenerated: **0 entities removed, 0 added, 5 changed**. **Roster not re-run by me** | DID-NOT-FIRE → *awaiting the roster re-run* |
 
-Census, out of `data/mechanics-census.json`: **364 live, 364 probed, 0 missing, 0 threw, 0 hollow,
-0 unarmed, 0 directCall**. The before-state, the damage-stage gate and every other figure for this row
-are in `docs/ENGINE.md`'s WIRE 151 section, each beside the measurement it came from.
+Census at the close of WIRE 151 was **364 live, 364 probed**; that reading is superseded by row 10
+below and the artifact has moved on from it. The current figure is quoted with row 10. The
+before-state, the damage-stage gate and every other figure for this row are in `docs/ENGINE.md`'s
+WIRE 151 section, each beside the measurement it came from.
 
 **WIRE 151, the parts a one-line row cannot carry** (full section in `docs/ENGINE.md`):
 - the first `randomOne` shape rule **over-matched** — a bare `this.sample(` claimed Sleep Talk,
@@ -76,6 +78,55 @@ are in `docs/ENGINE.md`'s WIRE 151 section, each beside the measurement it came 
   `engine/game_differential.js`, whose line 126 auto-cuts when `REL_ID` is unpinned. Release
   `ea58415e1cd8` was cut over the mid-work tree and `data/engine-release.json`'s `current` moved from
   `cb831e50eafb`. **Left exactly as written, nothing reverted or deleted** — see ENGINE.md.
+
+Census, out of `data/mechanics-census.json`: **369 live, 369 probed, 0 missing, 0 threw, 0 hollow,
+0 unarmed** — up five on the five probes this row added, `directCall` unchanged. The damage-stage
+gate is exact and unmoved.
+
+**WIRE 152, the parts a one-line row cannot carry** (full section in `docs/ENGINE.md`, where every
+figure below sits beside the measurement it came from):
+- five new probes, each watched RED on its own before the engine changed. **No release was cut by
+  me**; `tests/roster.js` and `tests/test-engine-diff.js` were not run;
+- **the fifth probe was red against a wire that was already written, and that is the best thing in
+  this row.** `spendsVolatile` was the one new tag no probe carried — the census said so, `unprobed`
+  went up by one — and writing that probe found a real defect: a **Spit Up into a Protect kept its
+  layers**. `onAfterMove` is run by `useMove`, one level ABOVE `useMoveInner`, outside every hit,
+  miss and shield refusal, and the first version paid it at the bottom of the attack branch, which a
+  fully-shielded move never reaches. The debt is now marked at the onTry gate and settled beside
+  `_updateAll`, which is the pattern this file already uses for the same ~30-`continue` problem;
+- **a duration is not a count, and this is the third time that difference has cost a mechanic here.**
+  `_vol[name]` held a clock everywhere else in the file, so the no-restart rule ROADMAP #111 added for
+  Taunt was the correct rule applied to the wrong kind of number. `layeredVolatile` is what makes the
+  artifact say which one `_vol` is holding;
+- **the trap probe is the one that earns its place.** Stockpile books the stages it ACTUALLY granted,
+  so a body at +6 Def is owed nothing back. Demonstrated by mutation rather than argued: booking the
+  INTENDED delta instead of the granted one turns that probe RED at `6/2 -> 4/0` and leaves the other
+  three GREEN, which is what says the four probes are not one probe written four ways;
+- **Swallow uses `md4096`, not WIRE 150's `Math.round` arm**, because its handler is
+  `this.heal(this.modify(maxhp, healAmount[layers-1]))` — a `modify` call, like the weather family, not
+  a plain round over an exact integer pair. It shows: 125 / 2 through `modify` is **62**, not 63;
+- **membership printed before every rule was wired**, per docs/LESSONS.md 4. Six moves call
+  `removeVolatile` in an onHit/onAfterMove and four of them are clearing somebody ELSE'S condition, so
+  `spendsVolatile` demands the onTry require the SAME volatile the handler removes — membership then is
+  exactly {spitup, swallow}. Two moves count `effectState.layers`; G-Max Chi Strike declares no
+  `volatileStatus` and is `isNonstandard: 'Past'`, so `layeredVolatile` is a membership of one;
+- blast radius: every move in `data/tags.json` × 6 scenarios × 2 real turns, whole-board digest
+  (the move RESULT is in the digest on purpose — a failed click and a modelled no-op leave identical
+  HP) — **3,000 cells, 15 differ, 3 moves, 0 THREW on both arms**. BEFORE is frozen release
+  `ea58415e1cd8`, whose engine bytes are this wire's tree minus its own hunks, verified by diff. A
+  second sweep family of the same size, with two Stockpile turns played FIRST, moves almost every cell
+  in it — that is the mechanic working rather than blast radius, and it is counted apart in ENGINE.md
+  for exactly that reason;
+- **NOT CLOSED, MEASURED, AND NAMED SO IT IS NOT MISTAKEN FOR DONE:** a self-targeting `affect` move
+  clicked with **no target supplied** still fails. `_tl` is empty and the branch calls `mvFail`, so
+  Stockpile does nothing on 3 of its 6 no-prelude sweep cells. It is PRE-EXISTING and general, not this
+  wire's: the membership is **nine moves** — `destinybond`, `endure`, `focusenergy`, `imprison`,
+  `magnetrise`, `powershift`, `powertrick`, `stockpile`, `substitute` — with their usage counted in
+  ENGINE.md. It is left alone deliberately because fixing it changes Substitute's targeting and cannot
+  be checked without the roster
+  or the differential to check that. Stockpile IS reachable through the live consumers —
+  `rollout_leaf.js` passes a live foe for every click, and the `to:'user'` effect then lands on the
+  user — so this is a gap in one entry path, not a dead mechanic. It wants its own wire.
 
 **ITEMS CLAUSE CLOSED: 6 open → 0. The gate is now 3 of 4 PASS.**
 
@@ -1173,7 +1224,7 @@ Its trigger set through the new derivation against the old bare `SPREAD.has(id)`
 
 ### THE RATE — THE NUMBER THIS WIRE IS ACTUALLY JUDGED ON
 
-Measured on `data/games.ladder.jsonl` -- every side of all 51,445 stored games:
+Measured on `data/games.ladder.jsonl` -- every side of every stored game (the count grows with each ingest, so it is deliberately not pinned here -- read it from the store):
 
 ```
 HUMANS      Quick Guard   601 clicks     Wide Guard  6,460      ratio 0.093

@@ -341,6 +341,20 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                         `showdown=0 ours=4` turn-1 row. */
   volDurationApplied: 0, volDurationTicked: 0, volDurationExpired: 0,
   volRestartRefused: 0, volSealNoLastMove: 0,
+  /* WIRE 152 -- THE LAYER FAMILY, and it is the duration family's opposite number in every one of
+   * these five slots, which is why it gets its own counters rather than borrowing theirs:
+   *   layerAdded         a layer went ON. A duration volatile REFUSES a restart; a layered one is
+   *                      re-applied on purpose and must CLIMB, so the same event means the opposite
+   *                      thing and a shared counter would read as the other mechanic working;
+   *   layerBoostBooked   a stage the layer actually GRANTED was written into the refund book. It is
+   *                      counted apart from layerAdded because the gap between the two IS the trap:
+   *                      a Stockpile onto a capped Def adds a layer and books nothing;
+   *   layerClickAtCap    the move's own `onTry` refused a click at the cap. Zero after games with a
+   *                      Stockpile in them means the ceiling is not being reached, not that it works;
+   *   layerReleased      a consumer spent the whole stack and paid the refund back;
+   *   layerSpendNoStack  Spit Up or Swallow clicked with nothing stored, refused. Before this wire
+   *                      that click reported SUCCESS and dealt nothing. */
+  layerAdded: 0, layerBoostBooked: 0, layerClickAtCap: 0, layerReleased: 0, layerSpendNoStack: 0,
   /* WIRE 143 -- an action REWRITTEN at execution time by an Encore that landed mid-turn (Showdown's
    * `onOverrideAction`). This is the half `sealsMoves` never had: the menu filter in chooseAction and
    * the WIRE 24 rewrite in mk() both answer at SELECTION, and a mid-turn Encore is written after both
@@ -529,7 +543,7 @@ const MEDFAILS = { encoreAction: 0,
   forbidTableFailed: 0, forbidTableFailedFirst: '',
   /* A heal whose SIZE no artifact this engine reads can state — Rest (full, plus sleep), Synthesis /
    * Moonlight / Morning Sun (weather-dependent), Wish (delayed a turn), Healing Wish (the user
-   * faints), Swallow (needs Stockpile), Strength Sap (scales off the TARGET's Attack). The tag says
+   * faints), Strength Sap (scales off the TARGET's Attack). The tag says
    * `heal: true`, which is a boolean in a fraction's clothing. Counted so "these do nothing" is a
    * READABLE claim rather than a silent default. */
   healProcedural: 0, healProceduralFirst: '',
@@ -638,6 +652,15 @@ const MEDFAILS = { encoreAction: 0,
    * non-zero names the first member, because "the composer covers everything" is exactly the kind of
    * claim that stops being true without anyone noticing. */
   composedEffectUnexpressed: 0, composedEffectUnexpressedFirst: '',
+  /* WIRE 152 -- the layered-volatile TABLE could not be built. It would come back EMPTY, which is
+   * exactly what this engine looked like BEFORE this wire (a Stockpile written as a bare 1 that never
+   * climbs and grants nothing), so the failure is counted rather than swallowed -- the same call
+   * `volDurTableFailed` makes one family over. */
+  layerTableFailed: 0, layerTableFailedFirst: '',
+  /* WIRE 152 -- a `layeredVolatile` whose `max` the artifact does not state a positive number for.
+   * The layer is REFUSED rather than added, because an uncapped counter is a Spit Up whose base power
+   * has no ceiling, and inventing a 3 here would be a literal standing in for a fact nobody derived. */
+  layerNoMax: 0, layerNoMaxFirst: '',
   /* WIRE 146 -- a rider's effect is directed at a TARGET and no live body sits in the aimed slot, so
    * there is nowhere to put it. It is dropped, and counted rather than dropped silently: every
    * member of the rider set today is user-directed, so a non-zero here is a new shape arriving. */
@@ -1132,6 +1155,138 @@ function endDurationVolatile(m,vol){
   if(vol==='disable') m._sealed=null;
   if(vol==='encore'){ m._encoreMove=null; if(m._lockT!==Infinity){ m._lock=null; m._lockT=0; } }
   if(TR) TR.vend(m,'move: '+vol);
+}
+/* ---- WIRE 152: THE LAYER FAMILY, WHICH IS THE DURATION FAMILY'S OPPOSITE NUMBER --------------------
+ *
+ * A DURATION COUNTS DOWN AND REFUSES A RESTART. A LAYER COUNTS UP AND EXISTS TO BE RESTARTED. They are
+ * the same field on the same object (`_vol[name]`) holding two different quantities, and this engine
+ * had only the first one -- so `stockpile` was written as a bare 1, the no-restart rule twenty lines
+ * below refused every later click, and the counter both Spit Up and Swallow read could never be
+ * anything but 1. Measured before a line of this existed: `_vol={"stockpile":1} boosts def 0 spd 0`
+ * on turn 1, turn 2 and turn 3 alike, Spit Up dealing 0 with two layers up, Swallow moving a 40 HP
+ * body to 40. This is the THIRD time the difference between a felt number and a bookkept number has
+ * cost this project a mechanic (docs/LESSONS.md); it is the first time the artifact states which kind
+ * of number `_vol` is holding.
+ *
+ * THE TABLE IS KEYED BY THE VOLATILE, NOT BY THE MOVE, because the consumers only ever know the
+ * volatile's name: `spendsVolatile {volatile:'stockpile'}` is what Spit Up and Swallow carry, and the
+ * cap, the per-layer boost and the refund rule are all declared by STOCKPILE. One table, read by the
+ * application, by the release and by nothing else -- two readers of "how many layers may this hold"
+ * is precisely how a cap and a counter come apart. */
+let _layTab=null;
+function layeredVolatiles(){
+  if(_layTab) return _layTab;
+  _layTab=new Map();
+  try{
+    for(const id of (TAGS.withTag?TAGS.withTag('move','layeredVolatile'):[])){
+      const p=TAGS.param('move',id,'layeredVolatile');
+      if(p&&p.volatile) _layTab.set(p.volatile,p);
+    }
+  }catch(e){
+    MEDFAILS.layerTableFailed++;
+    if(!MEDFAILS.layerTableFailedFirst) MEDFAILS.layerTableFailedFirst=String((e&&e.message)||e);
+  }
+  return _layTab;
+}
+/* PUT ONE LAYER ON, AND BOOK ONLY WHAT IT REALLY GRANTED.
+ *
+ * The booking is the whole care in this function and it is not an optimisation:
+ *
+ *     const [curDef, curSpD] = [target.boosts.def, target.boosts.spd];
+ *     this.boost({ def: 1, spd: 1 }, target, target);
+ *     if (curDef !== target.boosts.def) this.effectState.def--;
+ *
+ * Stockpile records how many stages it ACTUALLY handed over, so a body already at +6 Def is given
+ * nothing there and is owed nothing back when the stack is spent. A release that simply subtracts the
+ * LAYER COUNT strips stages Stockpile never granted -- and the error is invisible on any body that
+ * started at zero, which is every body a simple fixture builds.
+ *
+ * THE RAISE GOES THROUGH `invSign`, the same reader every other move-driven stat change in this file
+ * asks, so a Contrary body's Stockpile drops its defences and the book records the drop -- which is
+ * what makes the refund put them back. Writing a bare `+1` here would be a second implementation of
+ * "which direction does a boost go on this body" (CLAUDE.md, FACTS ARE GLOBAL). */
+function applyLayeredVolatile(who,vol,p){
+  const max=+p.max;
+  if(!(max>0)){
+    MEDFAILS.layerNoMax++;
+    if(!MEDFAILS.layerNoMaxFirst)MEDFAILS.layerNoMaxFirst=String(vol);
+    return false;
+  }
+  const v=(who._vol=who._vol||{});
+  const at=+v[vol]||0;
+  /* The move's own `onTry` refuses a click at the cap above the kind dispatch; this is the condition's
+   * `onRestart` returning false, which is a different handler answering the same question, and both
+   * exist upstream. Reaching it means the volatile was applied by some route other than a click. */
+  if(at>=max){ MEDSEEN.layerClickAtCap++; return false; }
+  v[vol]=at+1;
+  MEDSEEN.layerAdded++;
+  const book=(who._volGave=who._volGave||{});
+  const gave=(book[vol]=book[vol]||{});
+  const sg=invSign(who);
+  for(const k in (p.boostsPerLayer||{})){
+    const s=SD2ENG[k];
+    if(!s||!who.boosts||who.boosts[s]==null) continue;
+    const d=(+p.boostsPerLayer[k])*sg;
+    if(!d) continue;
+    const b0=who.boosts[s];
+    who.boosts[s]=clamp(b0+d,-6,6);
+    const got=who.boosts[s]-b0;
+    if(got){
+      gave[s]=(gave[s]||0)+got;
+      MEDSEEN.layerBoostBooked++;
+      if(TR)TR.bst(who,s,got);
+    }
+  }
+  /* `|-start|p1a: Toxapex|stockpile1` -- the authority's own `this.add('-start', target, 'stockpile' +
+   * this.effectState.layers)`, so the LAYER NUMBER is part of the name and there is no `move: ` prefix
+   * (which is what the generic path writes for a volatile whose source effect is a move). */
+  if(TR)TR.vstart(who,vol+v[vol]);
+  return true;
+}
+/* SPEND THE WHOLE STACK AND PAY THE REFUND. Both consumers spend ALL of it -- `removeVolatile` takes
+ * the condition away entirely and its `onEnd` runs once -- so there is no partial release to model.
+ * The refund is the BOOK, never the layer count, for the reason applyLayeredVolatile's header gives;
+ * `refundsOnEnd` is read rather than assumed, so a layered volatile that grants a permanent boost
+ * would keep it instead of silently inheriting Stockpile's rule. */
+function releaseLayeredVolatile(who,vol){
+  if(!who||!who._vol||!(who._vol[vol]>0)) return false;
+  const p=layeredVolatiles().get(vol)||null;
+  delete who._vol[vol];
+  const book=who._volGave&&who._volGave[vol];
+  if(book&&(!p||p.refundsOnEnd)){
+    for(const s in book){
+      const d=+book[s];
+      if(!d||!who.boosts||who.boosts[s]==null) continue;
+      const b0=who.boosts[s];
+      who.boosts[s]=clamp(b0-d,-6,6);
+      if(TR&&who.boosts[s]!==b0)TR.bst(who,s,who.boosts[s]-b0);
+    }
+  }
+  if(who._volGave) delete who._volGave[vol];
+  MEDSEEN.layerReleased++;
+  if(TR)TR.vend(who,vol);
+  return true;
+}
+/* THE `onAfterMove` HALF, AND IT IS DEFERRED FOR THE REASON `_updateAll` IS.
+ *
+ * Showdown runs `singleEvent('AfterMove')` in `useMove` (sim/battle-actions.ts:311) -- one level ABOVE
+ * `useMoveInner`, outside every hit, immunity, miss and shield refusal. So a Spit Up that a Protect
+ * stopped dead still empties the stack. Written at the BOTTOM of the attack branch it did not: the
+ * fully-shielded exit is `if(_hadTargets&&!targets.length){...continue;}` and it leaves the branch
+ * long before that line. The probe caught it -- a Spit Up into a Protect read `2:2/2`, keeping layers
+ * the authority spends -- which is the whole reason the probe stages a Protecting foe.
+ *
+ * The action loop body carries ~30 `continue`s, so ANY per-branch position is a silent default waiting
+ * to happen. `_updateAll` already solved this exact problem the same way and its comment says so: mark
+ * the debt when the move is USED and pay it at the top of the next iteration plus once below the loop,
+ * which is "after action k-1, before action k" and is precisely where AfterMove sits. Paid BEFORE
+ * `_updateAll`, because AfterMove is inside `useMove` and the Update event is fired after the action. */
+function flushAfterMoveSpends(bodies){
+  for(const m of bodies){
+    if(!m||!m._spendAfter) continue;
+    const vol=m._spendAfter; m._spendAfter=null;
+    releaseLayeredVolatile(m,vol);
+  }
 }
 /* WIRE 119 -- THREE ACTION KINDS CARRY NO MOVE ID, and every one of them is a status move: the
  * chooser (chooseAction, not playerAction) returns a bare `{kind:'protect'}`, `{kind:'wideguard'}`
@@ -1888,9 +2043,17 @@ const healBlocked=m=>!!(m&&m._healBlock>0);
  *   healsSelf.fromTargetStat         strengthsap, and ONLY strengthsap -- membership printed over
  *                                    the whole move table before a line of this was written.
  *
- * Rest, Wish, Healing Wish, Swallow and Heal Pulse still arrive here with nothing but `true` and are
- * still counted. The counter therefore keeps meaning what it meant; it just stops covering 1,024 uses
- * it can now size.
+ * Rest, Wish, Healing Wish and Heal Pulse still arrive here with nothing but `true` and are still
+ * counted. The counter therefore keeps meaning what it meant; it just stops covering 1,024 uses it
+ * can now size.
+ *
+ * WIRE 152 -- AND SWALLOW LEFT THAT LIST, which is why it is struck from the sentence above rather
+ * than left there to go stale:
+ *
+ *   healsSelf.byVolatileLayers   swallow, and ONLY swallow -- membership printed over the whole move
+ *                                table before a line of this was written. The size is a table indexed
+ *                                by the Stockpile count and the fractions are the handler's own
+ *                                0.25 / 0.5 / 1.
  *
  * THE FRACTION IS NOT RESOLVED HERE. `fromTargetStat` needs the TARGET and the weather members need
  * the sky AT THE MOMENT THE MOVE GOES OFF -- an ally's Sunny Day earlier in the same turn changes a
@@ -1904,6 +2067,13 @@ function healParam(id){
     const _ws=TAGS.param('move',id,'weatherScaled');
     if(_ws&&_ws.baseHealFraction)return {weather:_ws,allies:false};
     if(s&&s.fromTargetStat)return {fromTargetStat:String(s.fromTargetStat),allies:false};
+    /* WIRE 152 -- SWALLOW, THE THIRD MEMBER THE ARTIFACT CAN NOW SIZE. `healsSelf.byVolatileLayers`
+     * carries the volatile and Showdown's own `healAmount = [0.25, 0.5, 1]`, so the fraction depends
+     * on a body's state at the MOMENT THE MOVE GOES OFF -- which is exactly why this function returns
+     * a RECIPE and the resolution site spends it, the same as the weather members above. */
+    if(s&&s.byVolatileLayers&&Array.isArray(s.byVolatileLayers.fractions)
+       &&s.byVolatileLayers.fractions.length)
+      return {byLayers:s.byVolatileLayers,allies:false};
     MEDFAILS.healProcedural++;if(!MEDFAILS.healProceduralFirst)MEDFAILS.healProceduralFirst=id;
   }
   return null;
@@ -2900,9 +3070,16 @@ function hasPower(mv){
      NOTHING, which is where 35 of the interaction matrix's 68 divergences came from. The
      CONDITIONAL kinds (targetStatused, userNoItem, positiveBoosts...) multiply a real base and must
      NOT be listed here, or a move whose condition is false would be admitted at bp 0. */
+  /* WIRE 152 -- `volatileLayers` (Spit Up) joins the ABSOLUTE list, and it belongs there for the
+     reason the five above do: its dex base power is 0 because the power IS the calculation. Without
+     this line `playerAction` fell through the whole cascade to `{kind:'pass'}` and the click was a
+     no-op turn rather than a weak attack -- the same shape as Fling below and the spread family.
+     A stack of ZERO is refused as a whole MOVE at the onTry gate above the kind dispatch, not here:
+     `hasPower` answers "can this move deal damage at all", and "not while the stack is empty" is a
+     turn-time question, which is the split the Fling comment states one block down. */
   if(v&&(v.kind==='targetWeightKg'||v.kind==='weightRatio'||v.kind==='speedRatioLinear'
         ||v.kind==='speedRatioTable'||v.kind==='targetHPFrac'||v.kind==='userHPBrackets'
-        ||v.kind==='alliesBaseAtk'))return true;
+        ||v.kind==='alliesBaseAtk'||v.kind==='volatileLayers'))return true;
   /* WIRE 141 -- FLING SHIPS AT BASE POWER 0 BECAUSE THE POWER IS THE HELD ITEM, and this gate is why
    * the move was a NO-OP TURN rather than a weak one: `playerAction` fell all the way through to
    * `{kind:'pass'}`, so the click never became an attack, never reached the hit steps, and could not
@@ -3232,6 +3409,17 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride){
      * `move.hit`, and two of them are `isNonstandard: 'Past'`. */
     else if(_vp.kind==='perHitEscalates'&&+_vp.per>0){
       mvBP=(+_vp.per)*Math.max(1,+hitNo||1);MEDSEEN.perHitBasePower++;
+    }
+    /* WIRE 152 -- SPIT UP: 100 BASE POWER PER STOCKPILED LAYER.
+     *     if (!pokemon.volatiles['stockpile']?.layers) return false;
+     *     return pokemon.volatiles['stockpile'].layers * 100;
+     * `_vol[name]` IS the layer count for this family (see applyLayeredVolatile), so this is the
+     * authority's expression with this engine's spelling for the same field and nothing else. An
+     * empty stack reads 0 and the move never reaches here -- the onTry gate above the kind dispatch
+     * refuses the click outright, which is where the authority refuses it too. */
+    else if(_vp.kind==='volatileLayers'){
+      const _ly=(att._vol&&+att._vol[_vp.volatile])||0;
+      mvBP=_ly>0?_ly*(+_vp.per||0):0;
     }
     /* ROADMAP #84 -- DOUBLE IF LAST TURN'S MOVE FAILED. Stomping Tantrum (3,545 corpus uses) and
      * Temper Flare (48), and the two are ONE handler written twice:
@@ -5881,6 +6069,16 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
      before its target had ever moved, `vol.disable` read showdown=0 ours=4. The membership
      is now derived -- see volNeedsLastMove -- so a third sealer arriving is covered. */
   if(volNeedsLastMove(vol)&&!who._lastMove){ MEDSEEN.volSealNoLastMove++; return false; }
+  /* WIRE 152 -- A LAYERED VOLATILE IS OWNED, and the guard has to come ABOVE the no-restart rule
+     three lines below, not below it. That rule is written for a DURATION -- a Taunt re-clicked on
+     turn 2 must not refresh its clock -- and a layer counter is the exact opposite: being re-applied
+     is the mechanic. Stockpile carrying no `sealsMoves` means it is not in `durationVolatiles()`
+     today and would not be caught by it, so this position is belt-and-braces rather than a fix; it
+     is written this way round because the day a layered volatile also declares a duration, the
+     silently wrong outcome is a Stockpile that never climbs -- which is precisely the state this
+     wire found. `applyLayeredVolatile` owns the cap, the boost and the refund book. */
+  {const _lay=layeredVolatiles().get(vol);
+   if(_lay) return applyLayeredVolatile(who,vol,_lay);}
   /* ROADMAP #111 -- AND RE-APPLYING ONE THE BODY ALREADY CARRIES FAILS. `Pokemon#addVolatile`
      returns false when the volatile is present and its condition declares no `onRestart`,
      and none of this family does. Writing the counter again REFRESHED it, which is why a
@@ -7363,6 +7561,9 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * SPEED ORDER, FASTEST FIRST, AND NOT THROUGH TRICK ROOM: `eachEvent` sorts with a bare
        * `(a, b) => b.speed - a.speed`, so the field's inversion does not apply to it. */
+      /* WIRE 152 -- the AfterMove debt from the PREVIOUS action, settled before the Update event
+         exactly as the authority orders them. See flushAfterMoveSpends. */
+      flushAfterMoveSpends([...actA,...actB]);
       _updateAll();
       const it=acts[actIdx];const m=it.mon;
       /* Marked BEFORE the body runs, so a move cannot flinch the Pokemon using it. */
@@ -7716,6 +7917,44 @@ function battleTurn(S,rng,actsForA,actsForB){
               if(TR)TR.act(a.target,'move: '+sideGuardName(_sgid));
               continue;}
           }
+        }
+      }
+      /* WIRE 152 -- THE TWO `onTry` REFUSALS THE LAYER FAMILY OWNS, and they sit HERE, above the kind
+       * dispatch, because that is where the authority asks them: `onTry` runs inside `useMove` after
+       * the move line is emitted and before any branch of `moveHit` -- which is exactly the position
+       * of this block, one line below the `|move|` emit and above every kind.
+       *
+       *   STOCKPILE AT THE CAP FAILS. `onTry(source) { if (source.volatiles['stockpile'] &&
+       *   source.volatiles['stockpile'].layers >= 3) return false; }` -- the fourth click is a wasted
+       *   turn AND a failure, which is a different thing from a wasted turn: `_mvRes === false` is
+       *   what feeds Stomping Tantrum, so an engine that let the click through quietly also changes a
+       *   move it has nothing to do with.
+       *
+       *   SPIT UP AND SWALLOW WITHOUT A STACK FAIL. `onTry(source) { return !!source.volatiles[...] }`.
+       *   Measured before this line existed: a Spit Up on an empty stack dealt 0 and reported
+       *   `result true` -- a move that did nothing and said it worked, which is this project's
+       *   signature failure mode arriving in a new place.
+       *
+       * BOTH ARE READ OFF THE ARTIFACT AND NEITHER NAMES A MOVE. `layeredVolatile` marks the filler,
+       * `spendsVolatile` marks the spenders, and a third member of either set arriving needs no edit
+       * here. */
+      {
+        const _lmv=a.mv||(a.move&&a.move.id);
+        if(_lmv){
+          const _lay=TAGS.param('move',_lmv,'layeredVolatile');
+          if(_lay&&_lay.volatile&&+_lay.max>0
+             &&(((m._vol&&+m._vol[_lay.volatile])||0)>=+_lay.max)){
+            m._lastMove=_lmv; MEDSEEN.layerClickAtCap++; mvFail(m); continue;
+          }
+          const _spv=TAGS.param('move',_lmv,'spendsVolatile');
+          if(_spv&&_spv.requires&&_spv.volatile&&!((m._vol&&m._vol[_spv.volatile])>0)){
+            m._lastMove=_lmv; MEDSEEN.layerSpendNoStack++; mvFail(m); continue;
+          }
+          /* AND THE DEBT IS MARKED HERE, on the one line that knows the move got PAST its onTry. An
+           * `afterMove` spend is owed from this instant whatever the move then does — see
+           * flushAfterMoveSpends for why it cannot be paid at the bottom of a branch. `onHit` spenders
+           * are NOT marked: Swallow's removal is inside its own handler and is paid there. */
+          if(_spv&&_spv.volatile&&_spv.when==='afterMove')m._spendAfter=_spv.volatile;
         }
       }
       /* ROADMAP #81 WIRE 12 -- `passstate` PAYS ITS OWN COST, INSIDE ITS OWN BRANCH, and is excluded
@@ -8900,6 +9139,25 @@ function battleTurn(S,rng,actsForA,actsForB){
               const _f=(_bw&&_bw.healFraction!=null)?+_bw.healFraction:+_hp.weather.baseHealFraction;
               return md4096(x.st.hp,_f);
             }
+            /* WIRE 152 -- SWALLOW, AND IT IS `md4096` AND NOT THE `Math.round` ARM BELOW.
+             *
+             * The two arms below mirror two different authority paths and this one belongs to the
+             * FIRST: `this.heal(this.modify(pokemon.maxhp, healAmount[layers - 1]))` -- a `modify`
+             * call on a float factor, which IS the 4096ths chain, exactly like the weather family
+             * three lines up. It is not the plain round over an exact integer pair that WIRE 150
+             * corrected, because Swallow carries no `heal: [1, 2]` at all. The difference is real and
+             * it shows on the two-layer arm: 125 / 2 through `modify` is 62 and not 63.
+             *
+             * `|| 1` IS THE HANDLER'S OWN DEFAULT (`pokemon.volatiles['stockpile']?.layers || 1`) and
+             * it is unreachable here -- the onTry gate above the kind dispatch refuses a Swallow with
+             * no stack -- so it is mirrored rather than relied on. The index is CLAMPED to the table
+             * the artifact carries, so a stack deeper than the fractions list cannot read past its
+             * end and silently heal `undefined`. */
+            if(_hp.byLayers){
+              const _fr=_hp.byLayers.fractions;
+              const _n=((x._vol&&+x._vol[_hp.byLayers.volatile])||0)||1;
+              return md4096(x.st.hp,+_fr[Math.min(Math.max(_n,1),_fr.length)-1]);
+            }
             /* WIRE 150 -- `Math.round`, AND IT IS DELIBERATELY NOT THE `md4096` ONE LINE ABOVE.
              *
              * battle-actions.js:1015, the FRACTION arm:
@@ -8930,6 +9188,22 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_hp.allies){for(const x of (it.side==='A'?actA:actB))if(x&&!x.fainted&&x.curHP>0)amt(x);}
           else amt(m);
         }
+        /* WIRE 152 -- AND SWALLOW SPENDS THE STACK, `onHit`, WHETHER OR NOT THE HEAL DID ANYTHING.
+         *
+         *     const success = !!this.heal(...);
+         *     if (!success) this.add('-fail', pokemon, 'heal');
+         *     pokemon.removeVolatile('stockpile');
+         *
+         * The removal is BELOW the failure line in the handler, so a Swallow clicked at full HP fails
+         * as a heal and still empties the stack. Placed outside the `if(_hp)` block above for exactly
+         * that reason: the stack is spent by the MOVE, not by the healing.
+         *
+         * `when === 'onHit'` is what separates this call from Spit Up's, which is an `onAfterMove` and
+         * is paid at the bottom of the attack branch. One function, two call sites, because the two
+         * members genuinely spend at two different moments -- folding them into "afterwards" would
+         * let a blocked Spit Up keep its layers. */
+        {const _spv=TAGS.param('move',a.mv,'spendsVolatile');
+         if(_spv&&_spv.volatile&&_spv.when==='onHit')releaseLayeredVolatile(m,_spv.volatile);}
         continue;
       }
       /* A status move inflicts the status THAT MOVE inflicts, at THAT MOVE's accuracy. This line used
@@ -11012,11 +11286,30 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _c2=TAGS.param('move',a.move.id,'cantUseTwice');
         if(_c2&&!m.fainted){m._noRepeat=a.move.id;m._noRepeatT=(+_c2.lockoutTurns||1)+1;}
       }
+      /* WIRE 152 -- SPIT UP SPENDS THE STOCKPILE, AND IT SPENDS IT WHETHER OR NOT THE MOVE CONNECTED.
+       *
+       * `onAfterMove(pokemon) { pokemon.removeVolatile('stockpile'); }`, and Showdown runs the
+       * AfterMove event in `useMove` (sim/battle-actions.ts:311) -- one level ABOVE `useMoveInner`,
+       * outside every hit, immunity and Protect refusal. So a Spit Up into a shield still empties the
+       * stack. That is the opposite of the neighbouring recharge and lock-in blocks, which are gated
+       * on the move having resolved, and it is written here rather than beside them for that reason:
+       * this line is deliberately NOT under a `dealt > 0` or a `_reached` test.
+       *
+       * IT IS NOT PAID HERE, AND THE FIRST VERSION OF THIS WIRE PAID IT HERE. The bottom of the attack
+       * branch is not "after the move" -- it is "after a move that got all the way down here", and a
+       * fully-shielded attack leaves through `if(_hadTargets&&!targets.length){...continue;}` several
+       * hundred lines above it. The debt is marked at the onTry gate and settled by
+       * flushAfterMoveSpends beside `_updateAll`; see that function's header. This comment stays
+       * because the wrong answer is the intuitive one.
+       *
+       * The refund of the Def and Sp. Def stages rides inside `releaseLayeredVolatile` and is the
+       * BOOK, not the layer count -- see its header for why those are different numbers. */
       /* WIRE 54's PROTEAN BLOCK USED TO SIT HERE, below every branch of the resolved move, and
          ROADMAP #81 WIRE 7 moved it up to the PrepareHit position -- see the block just under
          `_hadTargets`. The old comment called the placement "the wrong order by a hair"; it was worth
          the whole of the ability's offensive half. */
     }
+    flushAfterMoveSpends([...actA,...actB]);   // WIRE 152 -- the LAST action's debt, same reason
     _updateAll();   // ROADMAP #81 WIRE 7 -- after the LAST action, the half the loop-top call cannot reach
     /* Flinch expires at the END of the turn it was applied. It used to be cleared only when the
      * flinched Pokemon tried to act, so a flinch landed by a SLOWER attacker (impossible to use this

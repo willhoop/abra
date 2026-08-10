@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-10T06:21:00.295Z",
+ "generated": "2026-08-10T06:57:31.899Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1596,6 +1596,30 @@
     "Fake Out",
     "Infernal Parade"
    ]
+  },
+  {
+   "tag": "layeredVolatile",
+   "kind": "move",
+   "param": "the volatile is a COUNTER with a cap, a per-layer boost, and a refund that is only what it granted",
+   "why": "Stockpile is the only door to Spit Up and Swallow, and a volatile written as a duration of 1 makes all three moves inert",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 66,
+   "examples": [
+    "Stockpile"
+   ]
+  },
+  {
+   "tag": "spendsVolatile",
+   "kind": "move",
+   "param": "the move FAILS without a volatile and removes it when it is done",
+   "why": "Spit Up and Swallow are the only exits from Stockpile, and neither the entry requirement nor the spend had any representation at all",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 0,
+   "examples": []
   },
   {
    "tag": "removesItem",
@@ -18733,13 +18757,20 @@
   "spitup": {
    "name": "Spit Up",
    "tags": [
-    "variablePower"
+    "variablePower",
+    "spendsVolatile"
    ],
    "uses": 0,
    "params": {
     "variablePower": {
-     "computed": true,
-     "note": "idiom not yet derivable"
+     "kind": "volatileLayers",
+     "volatile": "stockpile",
+     "per": 100
+    },
+    "spendsVolatile": {
+     "volatile": "stockpile",
+     "requires": true,
+     "when": "afterMove"
     }
    }
   },
@@ -18901,7 +18932,8 @@
    "tags": [
     "neverMisses",
     "statusCategory",
-    "statusInflict"
+    "statusInflict",
+    "layeredVolatile"
    ],
    "uses": 66,
    "params": {
@@ -18920,6 +18952,16 @@
        "to": "user"
       }
      ]
+    },
+    "layeredVolatile": {
+     "volatile": "stockpile",
+     "max": 3,
+     "boostsPerLayer": {
+      "def": 1,
+      "spd": 1
+     },
+     "booksGranted": true,
+     "refundsOnEnd": true
     }
    }
   },
@@ -19373,7 +19415,8 @@
    "tags": [
     "neverMisses",
     "statusCategory",
-    "healsSelf"
+    "healsSelf",
+    "spendsVolatile"
    ],
    "uses": 0,
    "params": {
@@ -19385,7 +19428,20 @@
      "status": true
     },
     "healsSelf": {
-     "heal": true
+     "heal": true,
+     "byVolatileLayers": {
+      "volatile": "stockpile",
+      "fractions": [
+       0.25,
+       0.5,
+       1
+      ]
+     }
+    },
+    "spendsVolatile": {
+     "volatile": "stockpile",
+     "requires": true,
+     "when": "onHit"
     }
    }
   },

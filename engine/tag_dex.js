@@ -797,6 +797,20 @@ const MOVE_TAGS = [
         const e = src.match(/return\s*(\d+)\s*\*\s*move\.hit\s*;/);
         if (e) return { kind: 'perHitEscalates', per: +e[1] };
       }
+      /* WIRE 152 -- SPIT UP: THE BASE POWER IS A COUNT HELD ON A VOLATILE.
+       *     if (!pokemon.volatiles['stockpile']?.layers) return false;
+       *     return pokemon.volatiles['stockpile'].layers * 100;
+       * The volatile is READ OUT of the callback rather than named here, so a second layered move
+       * arriving in a later generation needs no edit. MEMBERSHIP MEASURED OVER THE FORMAT BEFORE THE
+       * PATTERN WAS TYPED, per docs/LESSONS.md 4: exactly ONE move in data/moves.ts multiplies a
+       * `volatiles[...].layers` by a literal inside a basePowerCallback, and it is Spit Up.
+       * It sat under `{computed:true, note:'idiom not yet derivable'}` and was SILENT as well as
+       * wrong, because medicham2's unknown-kind counter is gated on a truthy `kind` -- the same trap
+       * Triple Axel was in one entry above. */
+      {
+        const L = src.match(/volatiles\[["'](\w+)["']\]\??\.layers\s*\*\s*(\d+)/);
+        if (L) return { kind: 'volatileLayers', volatile: L[1], per: +L[2] };
+      }
       return src ? { computed: true, note: 'idiom not yet derivable' } : null;
     } },
   /* Will: "darkest lariat we need a tag for things like unaware". Same parameter from both sides --
@@ -2229,9 +2243,35 @@ const MOVE_TAGS = [
       const gs = /(?:const|let)\s+(\w+)\s*=\s*(\w+)\.getStat\(\s*"(\w+)"/.exec(src);
       const fromStat = (gs && gs[2] === 'target' && new RegExp('heal\\(\\s*' + gs[1] + '\\b').test(src))
         ? { fromTargetStat: gs[3] } : null;
-      if (SELFISH.includes(m.target)) return Object.assign({ heal: m.heal || true }, fromStat);
+      /* WIRE 152 -- SWALLOW: THE SIZE IS A TABLE INDEXED BY A VOLATILE'S LAYER COUNT.
+       *
+       *     const layers = pokemon.volatiles['stockpile']?.layers || 1;
+       *     const healAmount = [0.25, 0.5, 1];
+       *     this.heal(this.modify(pokemon.maxhp, healAmount[layers - 1]))
+       *
+       * The fractions are the AUTHORITY'S OWN LITERALS, read out of the handler, for the reason the
+       * weather family's `baseHealFraction` is: writing 1/4 and 1/2 here would be a second copy of a
+       * number that already exists upstream, and it is the copy that goes stale. BOTH VARIABLES ARE
+       * THREADED through to the heal call -- the array name and the layer name must both appear in
+       * the `this.heal(this.modify(...))` expression -- exactly as `fromTargetStat` above threads its
+       * getStat variable, so this cannot fire on a move that happens to hold a list of numbers.
+       * MEMBERSHIP MEASURED BEFORE THE PATTERN WAS TYPED: two moves in data/moves.ts read
+       * `volatiles[...].layers` in an onHit (Swallow and Psych Up), and Psych Up carries no heal flag
+       * and never reaches this function at all. */
+      const byLayers = (() => {
+        const arr = /(?:const|let)\s+(\w+)\s*=\s*\[\s*([\d.\s,]+?)\s*\]/.exec(src);
+        const lay = /(?:const|let)\s+(\w+)\s*=\s*\w+\.volatiles\[["'](\w+)["']\]\??\.layers/.exec(src);
+        if (!arr || !lay) return null;
+        const used = new RegExp('heal\\(\\s*this\\.modify\\(\\s*\\w+\\.maxhp\\s*,\\s*'
+          + arr[1] + '\\[\\s*' + lay[1] + '\\s*-\\s*1\\s*\\]');
+        if (!used.test(src)) return null;
+        const fr = arr[2].split(',').map(x => +x.trim());
+        if (!fr.length || fr.some(x => !(x > 0))) return null;
+        return { byVolatileLayers: { volatile: lay[2], fractions: fr } };
+      })();
+      if (SELFISH.includes(m.target)) return Object.assign({ heal: m.heal || true }, fromStat, byLayers);
       if (!FRIENDLY.includes(m.target))
-        return Object.assign({ heal: m.heal || true, note: 'heals the user while targeting a foe' }, fromStat);
+        return Object.assign({ heal: m.heal || true, note: 'heals the user while targeting a foe' }, fromStat, byLayers);
       return null;
     } },
   { tag: 'healsAlly', param: 'restores my PARTNER max-HP share', probe: 'healsPartner',
@@ -2364,6 +2404,88 @@ const MOVE_TAGS = [
         if (sec.volatileStatus) eff.push({ volatile: sec.volatileStatus, chance: sec.chance || 100, to: to(sec.self) });
       }
       return eff.length ? { effects: eff } : null;
+    } },
+  /* WIRE 152 -- A VOLATILE THAT COUNTS LAYERS, NOT TURNS.
+   *
+   * `statusInflict` already says "apply the volatile `stockpile` to the user", and medicham2 did
+   * exactly that: it wrote `_vol.stockpile = 1` and, because every other volatile in this engine is
+   * a DURATION, refused every later click as a restart. So the counter never climbed past 1, the
+   * boosts never landed at all, and both consumers -- Spit Up and Swallow -- were reading a number
+   * that could only ever be one. This is the third time this project has paid for the difference
+   * between a duration and a count (see docs/LESSONS.md), and it is the first time the artifact says
+   * which one it is.
+   *
+   * WHAT THE CONDITION DECLARES, ALL OF IT READ RATHER THAN TYPED:
+   *   onStart    `this.effectState.layers = 1` and `this.boost({def: 1, spd: 1}, target, target)`
+   *   onRestart  `if (this.effectState.layers >= 3) return false; this.effectState.layers++`
+   *   onEnd      `this.boost(boosts, target, target)` -- the refund
+   *
+   * `booksGranted` IS THE FIELD THAT MATTERS AND IT IS THE ONE A CONSUMER WOULD NEVER GUESS.
+   * Stockpile records how many stages it ACTUALLY GRANTED (`if (curDef !== target.boosts.def)
+   * this.effectState.def--`), so a body already at +6 Def is given nothing and is owed nothing back.
+   * A release that subtracts the LAYER COUNT strips stages Stockpile never granted, and the error is
+   * invisible on any body that started at zero.
+   *
+   * MEMBERSHIP MEASURED OVER THE FORMAT BEFORE THE PATTERN WAS TYPED, per docs/LESSONS.md 4: two
+   * moves in data/moves.ts count `effectState.layers` in a condition -- `stockpile` and
+   * `gmaxchistrike`. G-Max Chi Strike declares NO `volatileStatus` (its condition is attached by the
+   * move's own handler) and is `isNonstandard: 'Past'`, so requiring a declared volatile leaves a
+   * membership of exactly one, and it is the one this wire is about. */
+  { tag: 'layeredVolatile', param: 'the volatile is a COUNTER with a cap, a per-layer boost, and a refund that is only what it granted',
+    probe: 'layeredVolatile',
+    why: 'Stockpile is the only door to Spit Up and Swallow, and a volatile written as a duration of '
+       + '1 makes all three moves inert',
+    of: m => {
+      const c = m.condition;
+      if (!m.volatileStatus || !c) return null;
+      const start = String(c.onStart || ''), restart = String(c.onRestart || ''), end = String(c.onEnd || '');
+      if (!/this\.effectState\.layers\s*=\s*1\b/.test(start)) return null;
+      const cap = restart.match(/this\.effectState\.layers\s*>=\s*(\d+)\s*\)\s*return false/);
+      if (!cap) return null;
+      /* The boost table is the onStart's own literal. No table means no per-layer boost, which is a
+       * legitimate shape (a pure counter) -- so it is recorded as an empty object rather than
+       * refused, and the consumer can tell "grants nothing" from "nobody derived it". */
+      const boosts = {};
+      const b = start.match(/this\.boost\(\s*\{([^}]*)\}/);
+      if (b) for (const kv of b[1].split(',')) {
+        const p = kv.split(':'); if (p.length !== 2) continue;
+        const k = p[0].trim().replace(/["']/g, ''), v = +p[1].trim();
+        if (k && Number.isFinite(v)) boosts[k] = v;
+      }
+      return { volatile: m.volatileStatus, max: +cap[1], boostsPerLayer: boosts,
+               booksGranted: /!==\s*target\.boosts\./.test(start) && /this\.effectState\.\w+--/.test(start),
+               refundsOnEnd: /this\.boost\(\s*boosts\b/.test(end) };
+    } },
+  /* WIRE 152 -- THE MOVE THAT REQUIRES A VOLATILE AND SPENDS IT.
+   *
+   * Both halves are the same fact and separating them is how the mechanic ends up half-wired: a
+   * Spit Up that reads the layer count but never clears it is a move that can be clicked forever,
+   * and a Spit Up that clears it without the requirement is a 0 base power move that reports
+   * SUCCESS on an empty stack (measured, before this wire: `result true` on a click that dealt
+   * nothing).
+   *
+   * MEMBERSHIP MEASURED BEFORE THE PATTERN WAS TYPED, and the measurement is what shaped it. Six
+   * moves call `removeVolatile` in an onHit or onAfterMove -- beakblast, psychup, sparklingaria,
+   * spitup, swallow, tidyup -- and four of those are removing somebody ELSE'S condition rather than
+   * spending their own entry fee. Requiring the onTry to demand THE SAME volatile the handler then
+   * removes leaves exactly {spitup, swallow}, which is the set the authority's own `onTry(source)
+   * { return !!source.volatiles[...] }` describes.
+   *
+   * `when` IS RECORDED BECAUSE THE TWO MEMBERS SPEND AT DIFFERENT MOMENTS. Spit Up's removal is an
+   * `onAfterMove`, which Showdown runs at the end of `useMove` whether the move hit or not; Swallow's
+   * is inside its `onHit`. Folding both into "afterwards" would make a blocked Spit Up keep its
+   * layers, which is a strictly better move than the one in the game. */
+  { tag: 'spendsVolatile', param: 'the move FAILS without a volatile and removes it when it is done',
+    probe: 'spendsVolatile',
+    why: 'Spit Up and Swallow are the only exits from Stockpile, and neither the entry requirement '
+       + 'nor the spend had any representation at all',
+    of: m => {
+      const need = String(m.onTry || '').match(/!!\s*source\.volatiles\[["'](\w+)["']\]/);
+      if (!need) return null;
+      const after = String(m.onAfterMove || ''), hit = String(m.onHit || '');
+      const rm = new RegExp('removeVolatile\\(\\s*["\']' + need[1] + '["\']');
+      if (!rm.test(after) && !rm.test(hit)) return null;
+      return { volatile: need[1], requires: true, when: rm.test(after) ? 'afterMove' : 'onHit' };
     } },
   /* ITEM REMOVAL, AND WHETHER IT IS A THEFT. Derived from the move's own handler: every one of
    * these calls takeItem, and the ones that also call setItem/addItem are the thefts. Knock Off

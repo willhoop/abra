@@ -137,7 +137,7 @@
   "void_files": [
     "exploitability.json"
   ],
-  "verified": 6,
+  "verified": 5,
   "graph_files": [
     "ab-batch-effect.json",
     "ability-blocks.json",
@@ -389,5 +389,5 @@
       ]
     }
   ],
-  "generated": "2026-08-10T06:41:24.937Z"
+  "generated": "2026-08-10T07:23:49.029Z"
 }

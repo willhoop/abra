@@ -277,7 +277,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * different bodies, so a probe reading only the aimed foe would score the redirect as a damage loss),
  * and a caller-supplied MOVE OBJECT (each arm is the same move at a fixed base power, which is how a
  * per-hit sum is compared against a flat multiply with everything else divided out). */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(/;
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -10142,6 +10142,169 @@ probe('move', 'statChangeInCode', 'Acupressure raises ONE random stat by two, of
                  + `${dHigh.indexOf(2)}, kind "${high.kind}"). Exactly one stat moves and it moves `
                  + `by two; the two draws must land on DIFFERENT stats or the pick is not wired to `
                  + `the battle's rng` };
+});
+
+/* ---- STOCKPILE, SPIT UP AND SWALLOW (WIRE 152) -------------------------------------------------
+ *
+ * `stockRun(` added 2026-08-10, declared HERE and with its reason, exactly as the REALTURN paragraph
+ * above requires. It stages a real doubles board through `battleInit` and spends UP TO SIX real turns
+ * through `battleTurn`, and it has to spend more than one: a layer counter is a fact carried ACROSS a
+ * turn boundary — what Spit Up's base power is on turn 3 is decided by what was clicked on turns 1
+ * and 2 — and no single-turn probe and no direct call to any applier can see it. It returns, for
+ * EVERY turn it spends, the layer count, both defensive stages, the HP the user gained, the HP the
+ * aimed foe lost and the move's own result flag, because the three moves in this family fail in
+ * different currencies: Stockpile's fourth click fails as a RESULT with no state change, Spit Up
+ * fails as ZERO DAMAGE, and Swallow fails as a heal that did not happen. A probe reading only one of
+ * those cannot tell a working family from a half-wired one.
+ *
+ * THE BODY IS TOXAPEX ON EVERY ARM and it is the one species in this format's pool that legally
+ * learns all four moves these probes click — Stockpile, Spit Up, Swallow and Iron Defense — checked
+ * against the format's own learnsets rather than remembered. Items are stripped by `bare`, which
+ * matters more here than usual: a Sitrus Berry at half HP restores 25% of max, which is numerically
+ * the SAME NUMBER as a one-layer Swallow. */
+const stockRun = (o) => {
+  o = o || {};
+  const me = bare(o.user || 'toxapex'), ally = bare('incineroar');
+  const f1 = bare('garchomp'), f2 = bare('milotic');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  /* The aimed foe cannot faint, so a bigger Spit Up prints a bigger number instead of the same
+   * clamped maximum — the hollow shape this file's own header warns about. */
+  unfaintable(f1);
+  if (o.userHP) me.curHP = o.userHP;
+  const out = [];
+  const step = (id, atSelf, foeMv) => {
+    const hp0 = me.curHP, foe0 = f1.curHP;
+    M.battleTurn(S, o.rng || rng5,
+      new Map([[me, id ? M.playerAction(me, id, atSelf ? me : f1, S.field) : { kind: 'pass' }],
+               [ally, { kind: 'pass' }]]),
+      new Map([[f1, foeMv ? M.playerAction(f1, foeMv, me, S.field) : { kind: 'pass' }],
+               [f2, { kind: 'pass' }]]));
+    out.push({ mv: id || 'pass',
+               layers: (me._vol && me._vol.stockpile) || 0,
+               df: me.boosts.df, sd: me.boosts.sd,
+               /* `_mvResLast` AND NOT `_mvRes`: the turn loop rolls the live result into the
+                * previous-turn slot and blanks it at the last line of `battleTurn`, so the field
+                * holding the result of the turn that just finished is this one. Reading `_mvRes`
+                * here returns `undefined` on every arm, which is exactly the shape of a knob that
+                * is not wired — the first version of this helper did it and could not have told a
+                * failed Stockpile from a successful one. */
+               healed: me.curHP - hp0, dealt: foe0 - f1.curHP, res: me._mvResLast });
+  };
+  /* THE PRE-BOOST IS PUT ON THE BOARD BY REAL CLICKS, not assigned onto `.boosts`, for the reason the
+   * WIRE 151 helper above states: a fixture that writes stages itself can drift from what this
+   * engine's own setup branch does, and the whole point of the trap arm is what Stockpile sees when
+   * it looks at a vector somebody else built. Iron Defense is +2 Def, so three of them is the cap. */
+  for (let i = 0; i < (o.ironDefense || 0); i++) step('irondefense', true);
+  for (let i = 0; i < (o.stock || 0); i++) step(o.noClick ? null : 'stockpile', true);
+  /* `o.thenFoe` lets the FOE act on the release turn, which is the only way to reach the branch
+   * `spendsVolatile.when` distinguishes: a Spit Up stopped by a Protect never enters `moveHit`, and
+   * `onAfterMove` fires anyway. A probe in which the foe always passes is structurally blind to it. */
+  if (o.then) step(o.then, o.then === 'swallow', o.thenFoe);
+  return out;
+};
+const lastOf = (rows) => rows[rows.length - 1];
+const layerTrace = (rows) => rows.map(r => r.layers + ':' + r.df + '/' + r.sd).join(' ');
+
+probe('move', 'layeredVolatile', 'Stockpile stacks to three, raising Def and Sp. Def each time, and the FOURTH click fails', () => {
+  const control = stockRun({ stock: 4, noClick: true });
+  const test    = stockRun({ stock: 4 });
+  return { works: layerTrace(control) === '0:0/0 0:0/0 0:0/0 0:0/0'
+             && layerTrace(test) === '1:1/1 2:2/2 3:3/3 3:3/3'
+             && test[2].res === true && lastOf(test).res === false,
+           arms: { control: layerTrace(control), test: layerTrace(test) },
+           detail: `[layers:def/spd after each of four turns] — four PASS turns ${layerTrace(control)}; `
+                 + `four Stockpile clicks ${layerTrace(test)} (turn-3 result ${test[2].res}, turn-4 `
+                 + `result ${lastOf(test).res}). The counter is LAYERS and not a duration: it must `
+                 + `CLIMB on re-use where every other volatile in this engine refuses a restart, and `
+                 + `it must stop at three with the move itself failing — an engine that let the `
+                 + `fourth click through reads 4:4/4 on the last cell` };
+});
+
+probe('move', 'variablePower', 'Spit Up is 100 base power per stockpiled layer, and it empties the stack', () => {
+  const one  = stockRun({ stock: 1, then: 'spitup' });
+  const two  = stockRun({ stock: 2, then: 'spitup' });
+  const none = stockRun({ stock: 0, then: 'spitup' });
+  const d1 = lastOf(one).dealt, d2 = lastOf(two).dealt, d0 = lastOf(none).dealt;
+  return { works: d1 > 0 && d2 > d1 * 1.8 && d2 < d1 * 2.2 && d0 === 0
+             && lastOf(none).res === false
+             && lastOf(one).layers === 0 && lastOf(two).layers === 0
+             && lastOf(one).df === 0 && lastOf(two).df === 0,
+           arms: { control: d1, test: d2 },
+           detail: `[HP taken off an unfaintable Garchomp] — one layer ${d1}, two layers ${d2}, no `
+                 + `layers at all ${d0} (result ${lastOf(none).res}). Two layers must be about twice `
+                 + `one, which is the 100-per-layer rule showing through the damage formula, and the `
+                 + `stack must be spent: layers ${lastOf(two).layers} and Def stage `
+                 + `${lastOf(two).df} after the release` };
+});
+
+probe('move', 'healsSelf', 'Swallow heals 25 / 50 / 100 percent by layer count, and empties the stack', () => {
+  const at = (n) => stockRun({ stock: n, then: 'swallow', userHP: 1 });
+  const one = at(1), two = at(2), three = at(3), none = at(0);
+  const h = (r) => lastOf(r).healed;
+  /* 125 max HP, and the sizes are the AUTHORITY'S arithmetic rather than a quarter and a half:
+   * `this.heal(this.modify(pokemon.maxhp, healAmount[layers - 1]))`, and `Battle#modify` is
+   * trunc((trunc(125 * trunc(f * 4096)) + 2047) / 4096) — 31, 62 and 125. The three-layer arm is
+   * capped by the body's own maximum from 1 HP, so it reads 124. */
+  return { works: h(one) === 31 && h(two) === 62 && h(three) === 124 && h(none) === 0
+             && lastOf(none).res === false
+             && lastOf(one).layers === 0 && lastOf(one).df === 0,
+           arms: { control: h(one), test: h(two) },
+           detail: `[HP restored to a 125 HP Toxapex sitting on 1] — one layer ${h(one)}, two `
+                 + `${h(two)}, three ${h(three)} (capped by max HP), none ${h(none)} (result `
+                 + `${lastOf(none).res}). Not a quarter and a half: 0.25 and 0.5 go through the `
+                 + `4096ths modify chain the handler names, so 125/2 is 62 and not 63. The stack `
+                 + `is spent — layers ${lastOf(one).layers}, Def ${lastOf(one).df}` };
+});
+
+/* THE TRAP, AND IT IS THE ONLY ARM IN THIS FAMILY A SIMPLE FIXTURE CANNOT REACH. Stockpile books how
+ * many stages it ACTUALLY GRANTED (`if (curDef !== target.boosts.def) this.effectState.def--`), and
+ * the release refunds only those. On a body already at +6 Def, Stockpile grants nothing to Def and
+ * must therefore take nothing back — an engine that subtracts `layers` from both stats strips two
+ * stages it never gave, and the defect is INVISIBLE on any body that started at zero. */
+probe('move', 'layeredVolatile', 'the release takes back only the stages Stockpile actually granted', () => {
+  const shape = (rows) => lastOf(rows).df + '/' + lastOf(rows).sd;
+  const controlRows = stockRun({ stock: 2, then: 'spitup' });
+  const testRows    = stockRun({ stock: 2, then: 'spitup', ironDefense: 3 });
+  const stockedC = controlRows[controlRows.length - 2], stockedT = testRows[testRows.length - 2];
+  return { works: stockedC.df === 2 && stockedC.sd === 2 && shape(controlRows) === '0/0'
+             && stockedT.df === 6 && stockedT.sd === 2 && shape(testRows) === '6/0',
+           arms: { control: stockedC.df + '/' + stockedC.sd + ' -> ' + shape(controlRows),
+                   test:    stockedT.df + '/' + stockedT.sd + ' -> ' + shape(testRows) },
+           detail: `[def/spd with two layers up -> after Spit Up spends them] — from +0 Def `
+                 + `${stockedC.df}/${stockedC.sd} -> ${shape(controlRows)}; from +6 Def (three real `
+                 + `Iron Defense clicks) ${stockedT.df}/${stockedT.sd} -> ${shape(testRows)}. The `
+                 + `pre-boosted body is the whole probe: Stockpile could not raise a capped Def, so `
+                 + `it booked nothing and must refund nothing. A naive minus-layers release reads `
+                 + `4/0 here and is indistinguishable from correct on the control arm` };
+});
+
+/* THE ENTRY FEE IS SPENT EVEN WHEN THE MOVE ACCOMPLISHES NOTHING, and that is the half neither of the
+ * two probes above can see — both of them release the stack through a click that WORKED.
+ *
+ *   SWALLOW at FULL HP.  `const success = !!this.heal(...); if (!success) this.add('-fail', ...);
+ *   pokemon.removeVolatile('stockpile');` — the removal sits BELOW the failure line, so the stack goes
+ *   and the heal does not happen.
+ *   SPIT UP into a PROTECT.  Its removal is an `onAfterMove`, which Showdown runs in `useMove`
+ *   (sim/battle-actions.ts:311) — one level ABOVE `useMoveInner`, outside every hit, immunity and
+ *   shield refusal. So a Spit Up that never touched the target still empties the stack.
+ *
+ * An engine that paid the fee only on a successful release makes both moves strictly better than the
+ * ones in the game, and it is invisible to any probe whose release lands. */
+probe('move', 'spendsVolatile', 'the stack is spent even when the release does nothing — a full-HP Swallow and a Protected Spit Up', () => {
+  const control = stockRun({ stock: 2 });                                     // no release clicked at all
+  const swal    = stockRun({ stock: 2, then: 'swallow' });                    // full HP: heals nothing
+  const spit    = stockRun({ stock: 2, then: 'spitup', thenFoe: 'protect' }); // shielded: deals nothing
+  const shape = (r) => lastOf(r).layers + ':' + lastOf(r).df + '/' + lastOf(r).sd;
+  return { works: shape(control) === '2:2/2'
+             && lastOf(swal).healed === 0 && shape(swal) === '0:0/0'
+             && lastOf(spit).dealt === 0 && shape(spit) === '0:0/0',
+           arms: { control: shape(control), test: shape(swal) + ' | ' + shape(spit) },
+           detail: `[layers:def/spd after the release turn] — two Stockpiles and NO release `
+                 + `${shape(control)} (the stack is spent by the MOVE, not by the turn); a Swallow at `
+                 + `full HP restored ${lastOf(swal).healed} and left ${shape(swal)}; a Spit Up into a `
+                 + `Protect dealt ${lastOf(spit).dealt} and left ${shape(spit)}. Both releases `
+                 + `accomplished nothing and both still paid — the shielded one is the sharper case, `
+                 + `because onAfterMove fires outside the hit entirely` };
 });
 
 const works = results.filter(r => r.works);

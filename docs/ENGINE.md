@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  364/364 probed mechanics live, 0 missing   (census 2026-08-10 06:36)
-  0/150 differential comparisons disagree with Showdown   (2026-08-10 06:10)
+  369/369 probed mechanics live, 0 missing   (census 2026-08-10 07:21)
+  0/150 differential comparisons disagree with Showdown   (2026-08-10 06:42)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
@@ -54,12 +54,204 @@ ENGINE — does the simulator do what Pokémon does
     whole-game agreement 7/1997 -> 134/1997; first-divergence line, mean 14.78 -> 33.98
     paired against the baseline: 1295 games part later, 116 EARLIER, 586 unchanged
     the baseline ran first and last and reproduced exactly; comparability: every arm cleared
-  tag coverage: 186/197 probed, 11 unprobed
+  tag coverage: 188/199 probed, 11 unprobed
 ```
 
-_stamped 2026-08-10 06:39_
+_stamped 2026-08-10 07:23_
 
 <!-- /GENERATED -->
+
+## WIRE 152 — STOCKPILE. A DURATION WHERE THE GAME KEEPS A COUNT, AND IT TOOK THREE MOVES DOWN WITH IT. 2026-08-10.
+
+Census **364 live / 364 probed → 369 live / 369 probed**, `missing` **0**, `threw` **0**, `hollow`
+**0**, `unarmed` **0**. Damage stages **1728/1728 exact**, unchanged. Five new probes, each watched
+RED on its own before the engine changed — **and the fifth one was red against a version of this wire
+that was already written, which is the finding at the bottom of this section.** **No release was
+cut**; `tests/roster.js` and `tests/test-engine-diff.js` were not run.
+
+The string `stockpile` appeared **zero times** in `engine/medicham2-browser.js`. It is upstream of
+both consumers, so nothing downstream could work, and the measurement said so before anything was
+written — three clicks, items stripped:
+
+```
+t1  _vol={"stockpile":1}   boosts def 0  spd 0
+t2  _vol={"stockpile":1}   boosts def 0  spd 0
+t3  _vol={"stockpile":1}   boosts def 0  spd 0
+```
+
+Two defects in one line. The boosts never landed, and **the counter never climbed** — the generic
+`applyMoveVolatile` writes a **duration** and Showdown counts **LAYERS**. Downstream, with two layers
+nominally up: Spit Up dealt **0** against the authority's 200 BP, and Swallow moved a body 40 → 40,
+which is what a no-click control does.
+
+### A DURATION IS NOT A COUNT, AND THAT DIFFERENCE HAS NOW COST THIS PROJECT THREE MECHANICS
+
+`_vol[name]` holds a clock everywhere else in this file. ROADMAP #111 added a no-restart rule for
+exactly that reason — a Taunt re-clicked on turn 2 must not refresh its counter — and it is the
+correct rule applied to the wrong kind of number here: **a layer counter exists to be restarted.** The
+fix is therefore not a branch, it is the artifact learning to say which quantity `_vol` is holding.
+`layeredVolatile` is that statement, and the guard for it sits ABOVE the no-restart rule rather than
+below it, because the silently wrong outcome of getting that order wrong is a Stockpile that never
+climbs — which is the state this wire found.
+
+### THE FIX IS AT THE DERIVATION FIRST. TWO NEW TAGS AND TWO EXTENDED ONES.
+
+| tag | on | carries | read out of |
+|---|---|---|---|
+| `layeredVolatile` (new) | stockpile | `{volatile, max:3, boostsPerLayer:{def:1,spd:1}, booksGranted:true, refundsOnEnd:true}` | the move's own `condition` — `onStart`, `onRestart`, `onEnd` |
+| `spendsVolatile` (new) | spitup, swallow | `{volatile, requires:true, when:'afterMove' or 'onHit'}` | `onTry` + the matching `removeVolatile` |
+| `variablePower` | spitup | `{kind:'volatileLayers', volatile, per:100}` | `basePowerCallback` |
+| `healsSelf` | swallow | `byVolatileLayers:{volatile, fractions:[0.25,0.5,1]}` | `onHit`, both variables threaded to the `heal` call |
+
+**MEMBERSHIP PRINTED BEFORE EVERY RULE WAS WIRED**, per docs/LESSONS.md §4, and it shaped two of
+them:
+
+- `removeVolatile` in an onHit/onAfterMove matches **six** moves — beakblast, psychup, sparklingaria,
+  spitup, swallow, tidyup — and four of those clear somebody ELSE'S condition. Requiring the `onTry`
+  to demand the SAME volatile the handler then removes leaves exactly **{spitup, swallow}**;
+- `effectState.layers` in a condition matches **two** — `stockpile` and `gmaxchistrike`. G-Max Chi
+  Strike declares no `volatileStatus` at all (its condition is attached by the move's own handler) and
+  is `isNonstandard: 'Past'`, so demanding a declared volatile leaves a membership of **one**.
+
+`data/tags.json` **and** `data/abra-tags.js` regenerated (`engine/tag_dex.js`, then
+`build/build_tags_js.js` — the second is a separate step and skipping it leaves the engine reading
+yesterday's bytes). Against their predecessors: **entities removed 0 · added 0 · changed 3** —
+spitup, stockpile, swallow, and nothing else in the corpus moved. Two tags added to the vocabulary,
+none removed.
+
+### THE TRAP: STOCKPILE REFUNDS WHAT IT GRANTED, NOT WHAT IT COUNTED
+
+```js
+const [curDef, curSpD] = [target.boosts.def, target.boosts.spd];
+this.boost({ def: 1, spd: 1 }, target, target);
+if (curDef !== target.boosts.def) this.effectState.def--;
+```
+
+A body already at +6 Def gains nothing and Stockpile books nothing, so the release owes it nothing
+back. A naive `−layers` strips two stages the move never gave — **and the error is invisible on any
+body that started at zero**, which is every body a simple fixture builds. It is the same shape as the
+volatile-duration defect above: the felt number and the bookkept number are different.
+
+**PROVED BY MUTATION, NOT ASSERTED.** With `applyLayeredVolatile` booking the INTENDED delta instead
+of the granted one, the trap probe goes red reading exactly `6/2 -> 4/0` while the other three stay
+green. That is what says these are five probes rather than one written five ways.
+
+### SWALLOW USES `md4096`, NOT WIRE 150's `Math.round` ARM
+
+The handler is `this.heal(this.modify(pokemon.maxhp, healAmount[layers - 1]))`. `modify` **is** the
+4096ths chain, so this is the weather family's arm and not the plain round over an exact integer pair
+WIRE 150 corrected — Swallow carries no `heal: [1,2]` at all. It shows on the two-layer arm: 125 / 2
+through `modify` is **62**, not 63. The probe asserts 31 / 62 / 124 on a 125 HP Toxapex sitting on 1,
+with the arithmetic written beside it.
+
+### THE ONTRY REFUSALS, AND WHY BOTH BELONG ABOVE THE KIND DISPATCH
+
+Showdown runs `onTry` inside `useMove`, after the move line is emitted and before any branch of
+`moveHit`. Both refusals therefore sit one line below the `|move|` emit and above every kind:
+
+- **Stockpile at three fails.** Not merely a wasted turn — `_mvRes === false` is what feeds Stomping
+  Tantrum, so an engine that lets the fourth click through quietly changes a move it has nothing to
+  do with.
+- **Spit Up and Swallow on an empty stack fail.** Measured before this line existed: a Spit Up with
+  nothing stored dealt 0 and reported `result true`. A move that did nothing and said it worked is
+  this project's signature failure mode arriving one field over.
+
+### THE FIFTH PROBE WAS RED AGAINST A WIRE THAT WAS ALREADY WRITTEN, AND THAT IS THE BEST THING IN THIS SECTION
+
+`layeredVolatile`, `variablePower` and `healsSelf` all had probes and were all green. `spendsVolatile`
+had **none** — the tag coverage line said `12 unprobed`, up one, which is the census being honest about
+a tag whose name no probe carried. Writing that probe found a real defect in the wire.
+
+**A SPIT UP INTO A PROTECT KEPT ITS LAYERS.** `onAfterMove` is run by `useMove`
+(sim/battle-actions.ts:311), one level ABOVE `useMoveInner` — outside every hit, immunity, miss and
+shield refusal. The first version of this wire paid it at the BOTTOM of the attack branch, which is
+not "after the move" but "after a move that got all the way down here": a fully-shielded attack leaves
+through `if(_hadTargets && !targets.length){ … continue; }` several hundred lines earlier. Measured:
+`2:2/2` after the release, keeping a stack the authority spends and leaving Spit Up clickable forever.
+
+The fix is the one this file already uses for exactly this problem, and `_updateAll`'s own comment
+states the reason: *"the loop body carries ~30 `continue`s and a call at the bottom would be skipped
+by every one of them, which is the silent-default shape."* So the debt is MARKED at the onTry gate —
+the one line that knows the move got past its own `onTry` — and settled by `flushAfterMoveSpends` at
+the top of the next action and once below the loop, which is "after action k-1, before action k".
+Paid **before** `_updateAll`, because AfterMove is inside `useMove` and the Update event is fired after
+the action.
+
+The probe stages a **Protecting foe** and a **full-HP Swallow** for that reason: both are releases that
+accomplish nothing, and the entry fee is owed by both. Neither of the other four probes can see it —
+every one of them releases through a click that worked.
+
+### THE CAPABILITY COUNTERS, READ RATHER THAN ASSUMED
+
+On a scripted eight-turn sequence (four Stockpiles, two Spit Ups, one more Stockpile, one Swallow):
+`layerAdded 4`, `layerBoostBooked 8`, `layerClickAtCap 1`, `layerReleased 2`, `layerSpendNoStack 1`;
+`layerTableFailed 0`, `layerNoMax 0`, `healProcedural 0`, `variablePowerUnknown 0`. Every capability
+fires and every refusal counter is zero.
+
+### THE BLAST-RADIUS SWEEP — 3,000 CELLS, 15 DIFFER, 3 MOVES, 0 THREW ON BOTH ARMS
+
+Every move in `data/tags.json` (500), six scenarios each (three dice × aimed / no target), two real
+turns apiece, digested as the whole board — every primitive on all six bodies per side, the field, and
+**the move RESULT**, which is in the digest on purpose: a click that fails and a click that is a
+modelled no-op leave identical HP, and that is precisely what changes for Spit Up and Swallow on an
+empty stack. The first version of this digest omitted it and reported "nothing moved" about a real
+change.
+
+BEFORE is frozen release **`ea58415e1cd8`** — the release the WIRE 151 gate cut by accident, which is
+this wire's own pre-change tree: `diff` against it is **13 hunks and 5 removed lines, all of them
+mine**. Nothing was cut for this measurement.
+
+**Moves that moved: `stockpile` (3 of 6 cells), `spitup` (6 of 6), `swallow` (6 of 6). Nothing else in
+the corpus moved.** A second 3,000-cell family, identical except that two real Stockpile turns are
+played FIRST, moves **2,976 cells across 497 moves** — that is the mechanic working (every body now
+starts the click at +2/+2 with two layers up), not blast radius, and it is reported apart for exactly
+that reason.
+
+### NOT CLOSED, MEASURED, AND NAMED SO IT IS NOT MISTAKEN FOR DONE
+
+**A self-targeting `affect` move clicked with NO TARGET SUPPLIED still fails.** That is why Stockpile
+moved only 3 of its 6 cells above: on the three `aim: null` scenarios the branch builds an empty
+target list and calls `mvFail`, in both arms. Showdown's request for a `target: "self"` move names no
+target, so a driver reading the authority hands null.
+
+It is **pre-existing and general**, not this wire's — membership measured over the whole corpus:
+**9 moves, 1,322 corpus uses** — `destinybond` (104), `endure` (4), `focusenergy` (12), `imprison`
+(328), `magnetrise` (1), `powershift` (0), `powertrick` (0), `stockpile` (66), `substitute` (807).
+
+It is **left alone deliberately**. The one-line fix (resolve to the user when every declared effect is
+user-directed) changes Substitute's targeting on 807 uses, and neither `tests/roster.js` nor the
+differential was mine to run in this pass, so a bad outcome there could not be attributed. It wants
+its own wire and its own probe.
+
+**The mechanic is NOT dead in the live consumers, and that is measured rather than hoped:**
+`engine/rollout_leaf.js` passes a live foe as the target for every click it forces, and the
+`to: 'user'` effect lands on the user regardless of which body the action names — so Stockpile works
+on the rollout path. This is a gap in one entry path.
+
+### THE HAND LIST IS UNCHANGED
+
+Still empty except for Rivalry. These three were never on it — they came off the derived roster.
+
+### THE REDS THAT ARE NOT MINE, CHECKED AGAINST THE PRE-CHANGE BYTES
+
+Neither is filed and neither is called a known failure.
+
+- **`tests/test-no-silent-failure.js`** — red, `NEW since the baseline 24`. Not one of the 24 is in a
+  file this wire touched: `medicham2-browser.js` and `test-mechanics.js` do not appear at all, and the
+  single `tag_dex.js` entry is line **332**, `partialTrapShape()`'s catch, which predates this wire and
+  sits above every line it added. The one `catch` this wire does add speaks — it increments
+  `MEDFAILS.layerTableFailed` and keeps the message.
+- **`tests/test-docs-current.js`** — red before this wire started, on TWO clauses: *"figures a cited
+  artifact does not contain"* (baseline 66, standing at 67) and *"no living document gained
+  untraceable figures"* (42 across 9 documents). **It is now red on one.** The first clause was
+  failing because `docs/MEDICHAM-SPRINT-NOTES.md` still quoted the census as `364 live, 364 probed`
+  beside a citation of `data/mechanics-census.json` — a figure the artifact had already moved past.
+  That sentence is now marked superseded and the current reading is quoted with this row, so the
+  clause passes. The second clause is **byte-identical** to its pre-change output, same 42 figures
+  across the same 9 documents, and belongs to whoever owns those documents. 19 passed / 2 failed
+  before, 20 passed / 1 failed after.
+- **`FEATURE SEMANTICS CHECK FAILED`** against `data/policy-weights.json` for eight features is the
+  same REFIT OWED WIRE 150 and WIRE 151 both reported. It belongs to MEASURE.
 
 ## WIRE 151 — THE PROCEDURAL STAT-CHANGE FAMILY. FIVE MOVES, ONE CLASSIFIER GATE, AND THE TAG HAD NO SHAPE TO SAY "OPERATION" IN. 2026-08-10.
 

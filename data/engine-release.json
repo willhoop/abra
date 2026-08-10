@@ -1,10 +1,10 @@
 {
-  "current": "ea58415e1cd8",
-  "cut": "2026-08-10T06:34:15.401Z",
+  "current": "60d88f2e8a78",
+  "cut": "2026-08-10T07:22:01.980Z",
   "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 4,
-  "latest_cut": "2026-08-10T06:43:24.317Z",
-  "latest_why": "procedural stat ops: swap, copy, invert, acupressure",
-  "pointer_written": "2026-08-10T06:43:24.321Z",
+  "cuts": 2,
+  "latest_cut": "2026-08-10T07:26:23.936Z",
+  "latest_why": "stockpile layers, spit up, swallow",
+  "pointer_written": "2026-08-10T07:26:23.938Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

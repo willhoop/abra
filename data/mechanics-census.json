@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-10T06:42:43.946Z",
+  "generated": "2026-08-10T07:26:23.780Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 364,
-  "live": 364,
+  "probed": 369,
+  "live": 369,
   "missing": 0,
-  "armed": 364,
+  "armed": 369,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2496,7 +2496,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.8% (format 20, generic 30), control Rock Slide 26.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.0% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3647,6 +3647,56 @@
       "label": "Acupressure raises ONE random stat by two, off the battle's own die",
       "live": true,
       "detail": "[user, as at/df/sa/sd/sp/acc/eva] — the SAME body and the SAME click on every arm, only the seeded die varies. no click 0/0/1/1/0/0/0; die 0.1 2/0/1/1/0/0/0 (stat index 0); die 0.9 0/0/1/1/0/0/2 (stat index 6, kind \"affect\"). Exactly one stat moves and it moves by two; the two draws must land on DIFFERENT stats or the pick is not wired to the battle's rng",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "layeredVolatile",
+      "label": "Stockpile stacks to three, raising Def and Sp. Def each time, and the FOURTH click fails",
+      "live": true,
+      "detail": "[layers:def/spd after each of four turns] — four PASS turns 0:0/0 0:0/0 0:0/0 0:0/0; four Stockpile clicks 1:1/1 2:2/2 3:3/3 3:3/3 (turn-3 result true, turn-4 result false). The counter is LAYERS and not a duration: it must CLIMB on re-use where every other volatile in this engine refuses a restart, and it must stop at three with the move itself failing — an engine that let the fourth click through reads 4:4/4 on the last cell",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "variablePower",
+      "label": "Spit Up is 100 base power per stockpiled layer, and it empties the stack",
+      "live": true,
+      "detail": "[HP taken off an unfaintable Garchomp] — one layer 49, two layers 97, no layers at all 0 (result false). Two layers must be about twice one, which is the 100-per-layer rule showing through the damage formula, and the stack must be spent: layers 0 and Def stage 0 after the release",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "healsSelf",
+      "label": "Swallow heals 25 / 50 / 100 percent by layer count, and empties the stack",
+      "live": true,
+      "detail": "[HP restored to a 125 HP Toxapex sitting on 1] — one layer 31, two 62, three 124 (capped by max HP), none 0 (result false). Not a quarter and a half: 0.25 and 0.5 go through the 4096ths modify chain the handler names, so 125/2 is 62 and not 63. The stack is spent — layers 0, Def 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "layeredVolatile",
+      "label": "the release takes back only the stages Stockpile actually granted",
+      "live": true,
+      "detail": "[def/spd with two layers up -> after Spit Up spends them] — from +0 Def 2/2 -> 0/0; from +6 Def (three real Iron Defense clicks) 6/2 -> 6/0. The pre-boosted body is the whole probe: Stockpile could not raise a capped Def, so it booked nothing and must refund nothing. A naive minus-layers release reads 4/0 here and is indistinguishable from correct on the control arm",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "spendsVolatile",
+      "label": "the stack is spent even when the release does nothing — a full-HP Swallow and a Protected Spit Up",
+      "live": true,
+      "detail": "[layers:def/spd after the release turn] — two Stockpiles and NO release 2:2/2 (the stack is spent by the MOVE, not by the turn); a Swallow at full HP restored 0 and left 0:0/0; a Spit Up into a Protect dealt 0 and left 0:0/0. Both releases accomplished nothing and both still paid — the shielded one is the sharper case, because onAfterMove fires outside the hit entirely",
       "hollow": false,
       "armed": true,
       "directCall": false
