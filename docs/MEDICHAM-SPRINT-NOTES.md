@@ -49,6 +49,7 @@ Census **330 live / 330 probed / 0 missing**. Damage stages **1728/1728 exact**.
 | 6 | **Metronome** | 19 | **SHELVED BY WILL, not fixed.** Tag derived and correct; the consumer needs a per-body consecutive-use counter threaded through the turn loop and read in `dmgRange` — every move's damage path, for the smallest row in the queue | DID-NOT-FIRE → DEFERRED-BY-OWNER |
 
 | 7 | **Counter, Mirror Coat, Metal Burst, Comeuppance** | 16 | **ENGINE FIXED AND VERIFIED — ROSTER ROW HAS NOT MOVED, CAUSE UNKNOWN.** See the open item below. | DID-NOT-FIRE → *unchanged* |
+| 8 | **Cotton Spore, String Shot, Sweet Scent** (+ Teeter Dance, which was not a roster row) | — | the `affect` branch resolved ONE `_t`, so every spread STATUS move moved slot 0 and left slot 1 alone. Target list derived from `spreadFoes` / `spreadAll`, gauntlet run per body. **Roster not re-run by me** — `tests/roster.js` is Will's to run against a frozen tree | DID-NOT-FIRE → *awaiting the roster re-run* |
 
 **ITEMS CLAUSE CLOSED: 6 open → 0. The gate is now 3 of 4 PASS.**
 
@@ -179,9 +180,9 @@ Verified both halves land and no pure-status move regressed:
 
 **Roster moves 23 -> 22 differ / 362 -> 363 match. Exactly one verdict changed.**
 
-### DIAGNOSED, NOT FIXED — spread STATUS moves reach only ONE foe (3 rows)
+### CLOSED — spread STATUS moves reached only ONE foe (3 rows). Diagnosed 2026-08-10, fixed the same day.
 
-Cotton Spore, String Shot and Sweet Scent are `allAdjacentFoes`. Measured:
+Cotton Spore, String Shot and Sweet Scent are `allAdjacentFoes`. Measured before anything changed:
 
 ```
   cottonspore  foe0 sp=-2   foe1 sp= 0      <- both should move
@@ -189,10 +190,54 @@ Cotton Spore, String Shot and Sweet Scent are `allAdjacentFoes`. Measured:
   sweetscent   foe0 eva=-2  foe1 eva= 0
 ```
 
-That is exactly why all three read DID-NOT-FIRE: the roster's SECOND body never moves. The `affect`
-branch resolves a single `_t` and would need restructuring into a loop over the target list — a
-change to a `100-line branch that I am not making this deep into a session. Filed with the
-measurement so the next pass starts from evidence.
+That is exactly why all three read DID-NOT-FIRE: the roster's SECOND body never moves, so the delta
+against the control arm is empty and a HALF-wired move produces the same receipt as an unwired one.
+
+**THE FIX IS A LOOP, AND THE GATES INSIDE IT ARE UNTOUCHED.** The `affect` branch resolved one `_t`;
+it now builds a target LIST off the tag — `spreadFoes` (both foes, ally safe) and `spreadAll` (the
+partner too, and FIRST, which is Showdown's own `adjacentAllies()`-before-`adjacentFoes()` order) —
+and runs the existing ~100-line gauntlet per body. Not one gate was removed or reordered; their
+`continue`s now end that BODY's pass instead of the whole move, which for a single-target click is no
+change at all because the loop runs exactly once. What stays once per move: `m._lastMove`, the
+`mvFail` for a move that found nobody, a user-directed `si` effect (Showdown's own `move.selfDropped`
+exists for that), and `userFaints` — Memento's user dies once, now gated on a `_landed` count instead
+of on straight-line flow.
+
+**THE SINGLE-TARGET CONTROL IS THE WHOLE RISK AND IT WAS MEASURED AS A DIFF, NOT ASSERTED.** 22
+single-target status moves were run through a real turn against the pre-change engine and the
+post-change engine, printing every stat stage, status and volatile of all three non-acting bodies.
+The two runs differ on **exactly the four spread moves and nothing else**:
+
+```
+  thunderwave willowisp toxic spore charm faketears growl leer screech tickle scaryface
+  confuseray taunt encore strengthsap memento partingshot nuzzle glare sleeppowder
+  stunspore poisonpowder                                    <- byte-identical, before vs after
+
+  cottonspore  ally UNCHANGED   foe0 sp -2    foe1 sp -2     <- was foe1 UNCHANGED
+  stringshot   ally UNCHANGED   foe0 sp -2    foe1 sp -2     <- was foe1 UNCHANGED
+  sweetscent   ally UNCHANGED   foe0 eva -2   foe1 eva -2    <- was foe1 UNCHANGED
+  teeterdance  ally confusion   foe0 confusion foe1 confusion <- was ally + foe1 UNCHANGED
+```
+
+**A FOURTH MOVE CAME WITH IT AND IT IS NOT ONE OF THE THREE ROWS.** Teeter Dance is `allAdjacent` and
+so is the `spreadAll` member of this branch; it confused slot 0 only. Membership was printed over the
+whole move table before the loop was written: `spreadFoes` reaches `affect` as cottonspore, stringshot
+and sweetscent; `spreadAll` as teeterdance alone. Corrosive Gas is `allAdjacent` too and `playerAction`
+classifies it `trickitem`, so it never arrives here — named rather than left to be rediscovered.
+
+**A SECOND CONSEQUENCE, NOT LOOKED FOR.** A driver reading Showdown's request is handed **no target**
+for `allAdjacentFoes`, so `tgtSlot` was -1, `reaimToSlot` returned null and the branch took `mvFail` —
+the whole turn spent doing nothing:
+
+```
+  BEFORE: targetless cottonspore -> foe0 0   foe1 0
+  AFTER:  targetless cottonspore -> foe0 -2  foe1 -2
+```
+
+Same shape as ROADMAP #81 WIRE 9, which closed this for the DAMAGING half of the family and never
+touched the status half.
+
+Census **330 → 333 live, 0 missing, 0 threw**, on three new probes.
 
 ### NEVER BROKEN — Flatter and Swagger
 

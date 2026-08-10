@@ -1,10 +1,10 @@
 {
-  "current": "a59b885861cd",
-  "cut": "2026-08-10T01:38:25.207Z",
-  "why": "a status move that also changes a stat must take the branch that carries both",
-  "cuts": 1,
-  "latest_cut": "2026-08-10T01:38:25.207Z",
-  "latest_why": "a status move that also changes a stat must take the branch that carries both",
-  "pointer_written": "2026-08-10T01:38:25.209Z",
+  "current": "7314ff067018",
+  "cut": "2026-08-10T01:56:28.574Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "cuts": 2,
+  "latest_cut": "2026-08-10T02:05:57.257Z",
+  "latest_why": "a spread status move resolves per target, not once",
+  "pointer_written": "2026-08-10T02:05:57.259Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

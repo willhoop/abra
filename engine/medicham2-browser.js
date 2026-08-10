@@ -117,6 +117,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* WIRE 140 -- Ally Switch actually swapping two bodies, and the consecutive-use roll refusing one.
    * A zero on the first after real games means the branch is not on the path (202 corpus uses). */
   allySwitchSwapped: 0, allySwitchStalled: 0,
+  /* 2026-08-10 -- a STATUS move resolved against more than one body. The whole defect was that this
+   * was structurally impossible: the `affect` branch held a single `_t`, so Cotton Spore, String Shot,
+   * Sweet Scent and Teeter Dance moved slot 0 and nothing else. A zero after real games means the
+   * family is off the path (four moves reach the branch), NOT that the loop is absent -- which is why
+   * the census probes read the two foes' stages rather than this number. */
+  spreadStatusTargets: 0,
   /* ROADMAP #92 -- CONFUSION, which did not exist in this engine at all until this pass, so every
    * one of these was structurally zero and there was nothing to notice. Each is a different event and
    * a zero on each says a different thing:
@@ -6603,222 +6609,292 @@ function battleTurn(S,rng,actsForA,actsForB){
        * way the existing status branch checks them, because a target-drop is a status move. */
       if(a.kind==='affect'){
         m._lastMove=a.mv;
-        /* WIRE 139 -- THE SLOT, BEFORE ANYTHING ELSE LOOKS AT THE BODY. This branch is where Charm,
-         * Fake Tears, Growl, Leer, Screech, Tickle and every other generic effect resolves, and it
-         * held the Pokemon OBJECT the chooser aimed at. Measured on a board before this line existed
-         * (tests/staged_board.js --only pivot-then-the-slot-is-hit): Weavile pivots out, Toxapex walks
-         * in, and Showdown has Toxapex at -2 Attack while this engine had it at 0 and had quietly
-         * dropped a body sitting on the BENCH. */
-        let _t=reaimToSlot(a.target,it,actA,actB,a.mv);
-        _t=_t&&!_t.fainted&&_t.curHP>0?_t:null;
-        _t=bounceOff(m,_t,a.mv);
-        if(!_t){mvFail(m);continue;}
-        if(_t.protect){if(TR)TR.act(_t,'move: Protect');continue;}
-        if(subBlocks(m,_t,a.mv)){if(TR)TR.act(_t,'move: Substitute','[damage]');continue;}   // WIRE 130 -- the doll takes the status move
-        /* GOOD AS GOLD REFUSES A STATUS MOVE OUTRIGHT. Gholdengo was taking Charm for -2, which
-         * makes it a different Pokemon to the one people build around. The tag is derived from the
-         * ability's own onTryHit -- and tightened after the first version caught Telepathy, which
-         * tests category !== 'Status' and blocks an ALLY'S DAMAGE, and Wonder Guard, which tests
-         * for Status and then bare-returns to ALLOW it. */
-        if(TAGS.has('ability',_t.ability,'refusesStatusMoves')&&_t!==m){if(TR)TR.imm(_t,'[from] ability: '+_t.ability);continue;}
-        if(moveClassBlocked(_t,a.mv,m)){if(TR)TR.imm(_t);continue;}               // WIRE 66 -- Soundproof, Bulletproof
-        if(powderBlocked(_t,a.mv)){if(TR)TR.imm(_t);continue;}
-        if(pranksterBlocked(m,_t,a.mv)){if(TR)TR.imm(_t);continue;}
-        /* WIRE 129 -- hitChance, not moveAccuracy: a Minimize'd target dodges a Will-O-Wisp exactly
-         * as it dodges an Ice Beam, and No Guard lands one exactly as it lands a Stone Edge. */
-        const _acc=hitChance(m,_t,a.mv,field,{targetAlreadyMoved:!unresolved.has(_t)});
-        if(_acc<100&&rng()*100>_acc){if(TR)TR.miss(m,_t);continue;}
-        /* ROADMAP #102 -- STRENGTH SAP'S HEAL, WHICH WIRE 79 FILED AS UNREACHABLE AND NO LONGER IS.
+        /* SPREAD STATUS MOVES REACHED ONLY ONE FOE, AND THIS IS THE BRANCH THEY LAND IN. 2026-08-10.
          *
-         * The note left here said "the heal scales off the TARGET's Attack and no artifact this engine
-         * reads carries it". That was true when it was written; `data/tags.json` now carries
-         * `healsSelf {heal:true, fromTargetStat:'atk'}` and it matches exactly one move -- membership
-         * printed over the whole table before this was wired. 710 uses, the largest single member of
-         * the procedural heal family, and the heal was 0.000 HP on every one of them.
+         * `let _t = reaimToSlot(...)` resolved exactly ONE body, so Cotton Spore, String Shot and
+         * Sweet Scent -- all three `allAdjacentFoes` in this format, all three carrying `spreadFoes`
+         * in the artifact -- moved slot 0 and left slot 1 untouched. Measured on a real turn before
+         * this changed, a Meganium clicking at a foe pair:
+         *     cottonspore  foe0 spe -2   foe1 spe 0
+         *     stringshot   foe0 spe -2   foe1 spe 0
+         *     sweetscent   foe0 eva -2   foe1 eva 0
+         * That is exactly why all three read DID-NOT-FIRE in data/roster.moves.json: the roster's
+         * SECOND body never moved, so its delta against the control arm was empty and the move looked
+         * unwired when it was in fact half-wired -- the worse of the two, because the receipt is the
+         * same shape as a mechanic nobody has written.
          *
-         * THREE THINGS COME OUT OF THE HANDLER AND ONLY ONE IS THE HEAL
-         * (`if (target.boosts.atk === -6) return false; const atk = target.getStat('atk', false, true);
-         *   const success = this.boost({atk: -1}, ...); return !!(this.heal(atk, source, target) || success);`)
-         *   1. A TARGET ALREADY AT -6 ATTACK MAKES THE WHOLE MOVE FAIL -- no heal either, and this
-         *      engine would otherwise have healed off a drop that could not happen.
-         *   2. THE ATTACK IS READ BEFORE THE DROP. Computed here, above the boost loop, deliberately:
-         *      reading it after would undercount every sap by one stage.
-         *   3. IT IS THE STAT, NOT A FRACTION OF IT -- boosted, unmodified. See statWithBoost.
-         * The user's own Heal Block still gates it, like every other place HP goes up. */
-        let _sapHeal=null;
-        {const _hs=TAGS.param('move',a.mv,'healsSelf');
-         if(_hs&&_hs.heal===true&&_hs.fromTargetStat){
-           const _k=SD2ENG[_hs.fromTargetStat];
-           if(!_k||!_t.st||_t.st[_k]==null||!_t.boosts||_t.boosts[_k]==null){
-             MEDFAILS.healFromStatUnreadable++;
-             if(!MEDFAILS.healFromStatUnreadableFirst)
-               MEDFAILS.healFromStatUnreadableFirst=String(a.mv)+'/'+String(_hs.fromTargetStat);
-           }
-           else if(_t.boosts[_k]<=-6){mvFail(m);continue;}
-           else _sapHeal=statWithBoost(_t,_k);
-         }}
-        /* Stat changes. Contrary flips them and Clear Body refuses drops, both already modelled for
-         * Intimidate -- asked here the same way so one ability does not behave differently by route. */
-        for(const _e of ((a.sc&&a.sc.target)||[])){
-          if(_e.chance<100&&rng()*100>=_e.chance) continue;
-          const _sg=invSign(_t);         // WIRE 100b
-          /* WIRE 3 -- the refusal is ONE gate now, and it is asked per STAT while the ANNOUNCEMENT
-           * is once per boost table: Showdown's onTryBoost deletes each blocked key inside a single
-           * boost() call and then adds at most one `-fail`. Emitting per stat would invent a second
-           * line for a two-stat drop. */
-          let _ref=null;
-          for(const _k in _e.boosts){
-            const _s2=SD2ENG[_k]; if(!_s2||_t.boosts[_s2]==null) continue;
-            const _d=_e.boosts[_k]*_sg;
-            if(_d<0){ const _r=statDropRefusal(_t,_s2,a.mv,false); if(_r){ _ref=_ref||_r; continue; } }
-            const _b0=_t.boosts[_s2];
-            _t.boosts[_s2]=clamp(_t.boosts[_s2]+_d,-6,6);
-            if(TR)TR.bst(_t,_s2,_t.boosts[_s2]-_b0);
-              /* WIRE 138 -- ONCE PER STAT LOWERED. `retaliateWhenLowered` is the shared reader; the
-                 attacker is named so an ALLY's drop does not trigger it. */
-            if(_d<0&&_t.boosts[_s2]!==_b0)retaliateWhenLowered(_t,m);
+         * THE SET COMES OFF THE TAG AND THE TWO TAGS ARE NOT COLLAPSED. `spreadFoes` is ally-safe;
+         * `spreadAll` puts MY OWN PARTNER in the set, and FIRST -- `Pokemon#getMoveTargets`
+         * (sim/pokemon.ts:809) builds an `allAdjacent` list as `push(...adjacentAllies())` and only
+         * then falls through to `push(...adjacentFoes())`, which is the same order the damaging branch
+         * already takes (ROADMAP #81 WIRE 9). MEMBERSHIP PRINTED OVER THE WHOLE MOVE TABLE BEFORE THIS
+         * WAS WIRED, as this file's rule requires: `spreadFoes` reaches this branch as cottonspore,
+         * stringshot and sweetscent; `spreadAll` as teeterdance. corrosivegas is `allAdjacent` too and
+         * `playerAction` classifies it `trickitem`, so it never arrives here -- named rather than left
+         * to be rediscovered as a spread move this loop appears to cover and does not.
+         *
+         * EVERY TARGET RUNS THE WHOLE GAUNTLET ON ITS OWN. Showdown resolves each body through its own
+         * TryHit, so a Protect on one does not shield the other, a Soundproof body does not eat the
+         * partner's share, and the accuracy die is thrown PER TARGET. Not one gate below is removed or
+         * reordered: their `continue`s now end THIS BODY's pass through the move instead of the whole
+         * move, which is the entire edit as far as a single-target click is concerned -- the loop runs
+         * exactly once and every call it makes is in the order it was already in.
+         *
+         * WHAT STAYS ONCE PER MOVE: `m._lastMove` (set above), the `mvFail` for a move that found
+         * nobody at all, a user-directed `si` effect (Showdown carries `move.selfDropped` for exactly
+         * that), and `userFaints` -- Memento's user dies once, and only if the move reached somebody. */
+        let _tl;
+        {
+          const _spF=TAGS.param('move',a.mv,'spreadFoes'), _spA=TAGS.param('move',a.mv,'spreadAll');
+          if(_spF||_spA){
+            const _foes=it.side==='A'?actB:actA, _mine=it.side==='A'?actA:actB;
+            _tl=[];
+            if(_spA){const _al=_mine.find(x=>x&&x!==m&&!x.fainted&&x.curHP>0); if(_al)_tl.push(_al);}
+            for(const _f of live(_foes))_tl.push(_f);
+            /* Magic Bounce is asked of each body separately, exactly as it is on the single-target
+               path below, and the result is de-duplicated by identity: two bouncers on one side would
+               otherwise send the same move back at its user twice. */
+            _tl=_tl.map(x=>bounceOff(m,x,a.mv)).filter((x,i,arr)=>x&&arr.indexOf(x)===i);
+            if(_tl.length>1)MEDSEEN.spreadStatusTargets++;
+          } else {
+          /* WIRE 139 -- THE SLOT, BEFORE ANYTHING ELSE LOOKS AT THE BODY. This branch is where Charm,
+           * Fake Tears, Growl, Leer, Screech, Tickle and every other generic effect resolves, and it
+           * held the Pokemon OBJECT the chooser aimed at. Measured on a board before this line existed
+           * (tests/staged_board.js --only pivot-then-the-slot-is-hit): Weavile pivots out, Toxapex walks
+           * in, and Showdown has Toxapex at -2 Attack while this engine had it at 0 and had quietly
+           * dropped a body sitting on the BENCH. */
+            let _t0=reaimToSlot(a.target,it,actA,actB,a.mv);
+            _t0=_t0&&!_t0.fainted&&_t0.curHP>0?_t0:null;
+            _t0=bounceOff(m,_t0,a.mv);
+            _tl=_t0?[_t0]:[];
           }
-          if(TR&&_ref&&_ref.announce)TR.failUnboost(_t,_ref.label,_ref.ab);
         }
-        /* ROADMAP #102 -- and the sap is paid, after the drop and out of the amount read before it. */
-        if(_sapHeal!=null&&!m.fainted&&!healBlocked(m)){
-          const _sh0=m.curHP;
-          m.curHP=Math.min(m.st.hp,m.curHP+_sapHeal);
-          if(TR&&m.curHP>_sh0)TR.heal(m,'[from] move: '+a.mv,_t);
-        }
-        /* Status and volatiles. applyStatus already enforces the type and ability immunities; a
-         * VOLATILE is a different thing and is recorded by name on the mon so a consumer can see
-         * which ones it does and does not act on, instead of a silent no-op. */
-        for(const _e of ((a.si&&a.si.effects)||[])){
-          const _who=_e.to==='user'?m:_t;
-          if(!_who||_who.fainted) continue;
-          if(_e.chance<100&&rng()*100>=_e.chance) continue;
-          if(_e.status) applyStatus(_who,_e.status);
-          /* WIRE 26 -- sealsMoves, and it is where the tag actually resolves.
+        if(!_tl.length){mvFail(m);continue;}
+        /* How many bodies the move actually LANDED on. Read by `userFaints` below, and by the
+           user-directed `si` guard inside the loop. A refusal `continue`s without touching it, so a
+           move every target refused reads 0 and is a move that did nothing -- which is what the old
+           straight-line branch expressed by skipping the tail with a `continue`. */
+        let _landed=0;
+        for(const _t of _tl){
+          /* A body that has left or died since the list was built. Nothing in this branch can faint a
+             TARGET today -- Memento kills its user -- so this is a guard rather than a live path, and
+             it costs one comparison to be right if that ever stops being true. */
+          if(!_t||_t.fainted||_t.curHP<=0) continue;
+          if(_t.protect){if(TR)TR.act(_t,'move: Protect');continue;}
+          if(subBlocks(m,_t,a.mv)){if(TR)TR.act(_t,'move: Substitute','[damage]');continue;}   // WIRE 130 -- the doll takes the status move
+          /* GOOD AS GOLD REFUSES A STATUS MOVE OUTRIGHT. Gholdengo was taking Charm for -2, which
+           * makes it a different Pokemon to the one people build around. The tag is derived from the
+           * ability's own onTryHit -- and tightened after the first version caught Telepathy, which
+           * tests category !== 'Status' and blocks an ALLY'S DAMAGE, and Wonder Guard, which tests
+           * for Status and then bare-returns to ALLOW it. */
+          if(TAGS.has('ability',_t.ability,'refusesStatusMoves')&&_t!==m){if(TR)TR.imm(_t,'[from] ability: '+_t.ability);continue;}
+          if(moveClassBlocked(_t,a.mv,m)){if(TR)TR.imm(_t);continue;}               // WIRE 66 -- Soundproof, Bulletproof
+          if(powderBlocked(_t,a.mv)){if(TR)TR.imm(_t);continue;}
+          if(pranksterBlocked(m,_t,a.mv)){if(TR)TR.imm(_t);continue;}
+          /* WIRE 129 -- hitChance, not moveAccuracy: a Minimize'd target dodges a Will-O-Wisp exactly
+           * as it dodges an Ice Beam, and No Guard lands one exactly as it lands a Stone Edge. */
+          const _acc=hitChance(m,_t,a.mv,field,{targetAlreadyMoved:!unresolved.has(_t)});
+          if(_acc<100&&rng()*100>_acc){if(TR)TR.miss(m,_t);continue;}
+          /* ROADMAP #102 -- STRENGTH SAP'S HEAL, WHICH WIRE 79 FILED AS UNREACHABLE AND NO LONGER IS.
            *
-           * The consumer that read this tag lived in the `kind==='status'` branch and its guard could
-           * never pass: playerAction classifies Encore, Disable and Taunt as `affect` (they carry a
-           * VOLATILE and no major status), so control never reached it. `tests/test-tag-wire.js` has
-           * printed "Encore pins the foe to its last move (undefined) for undefined turns" since
-           * before 2026-08-04 for exactly that reason. The dead branch is gone; this is the live one.
+           * The note left here said "the heal scales off the TARGET's Attack and no artifact this engine
+           * reads carries it". That was true when it was written; `data/tags.json` now carries
+           * `healsSelf {heal:true, fromTargetStat:'atk'}` and it matches exactly one move -- membership
+           * printed over the whole table before this was wired. 710 uses, the largest single member of
+           * the procedural heal family, and the heal was 0.000 HP on every one of them.
            *
-           * THE DURATION COMES FROM THE ARTIFACT, not from three typed literals. It read
-           * `encore?3:taunt?3:1`, so Disable — which the tag says lasts 5 — got ONE turn, and any
-           * future duration change in the artifact would have been silently ignored. Now
-           * `sealsMoves.turns`.
-           *
-           * BRANCHING ON THE VOLATILE NAME IS READING A DECLARED FACT, not typing a list. Showdown
-           * names the volatile; the tag cannot tell "pin to the last move" from "forbid the last
-           * move" because both carry the same params (`turns`, `scope`, `fromUsersOwnMoves:false`).
-           * The tag supplies the number, the flag supplies the direction — that is the split
-           * docs/TAGS.md describes, not an exception to it.
-           *
-           * ENCORE RIDES THE SAME `_lock` THE CHOICE ITEMS USE, so a caller-SUPPLIED action is bound
-           * as well as a chosen one — the WIRE 24 rule, which nothing about Encore honoured. A Choice
-           * lock (`_lockT === Infinity`) is never shortened by it. */
-          if(_e.volatile){
-            /* WIRE 69 -- A MOVE-SEALING VOLATILE FAILS AGAINST A TARGET WITH NO LAST MOVE, and this
-               guard has to come BEFORE the volatile is written. The first version sat two lines lower,
-               after the assignment, so it skipped the bookkeeping and left the volatile on -- the pair
-               matrix kept reading `vol medi=["encore"] sd=[]` and the fix looked landed.
-               ROADMAP #111 -- AND IT WAS WRITTEN `=== 'encore'`, SO DISABLE NEVER HAD IT. Showdown
-               refuses both (`disable.onTryHit` returns false on `!target.lastMove`; encore's
-               `onStart` does the same), and `data/roster.moves.json` measured the cost: on the turn
-               before its target had ever moved, `vol.disable` read showdown=0 ours=4. The membership
-               is now derived -- see volNeedsLastMove -- so a third sealer arriving is covered. */
-            if(volNeedsLastMove(_e.volatile)&&!_who._lastMove){ MEDSEEN.volSealNoLastMove++; continue; }
-            /* ROADMAP #111 -- AND RE-APPLYING ONE THE BODY ALREADY CARRIES FAILS. `Pokemon#addVolatile`
-               returns false when the volatile is present and its condition declares no `onRestart`,
-               and none of this family does. Writing the counter again REFRESHED it, which is why a
-               Taunt clicked on two consecutive turns read 2 at both boundaries where Showdown reads
-               2 then 1 -- the clock never ran down while the move was being re-clicked. Restricted to
-               the duration family on purpose: Protect, Follow Me, Rage Powder and Helping Hand are
-               per-turn volatiles that MUST be re-settable, and a blanket no-restart rule would have
-               caught all four (docs/LESSONS §4 -- print what the rule matches before wiring it). */
-            if(durationVolatiles().has(_e.volatile)&&_who._vol&&_who._vol[_e.volatile]>0){
-              MEDSEEN.volRestartRefused++; continue; }
-            /* ROADMAP #81 WIRE 7 -- THE SUBSTITUTE VOLATILE IS ALREADY OWNED, AND THIS LOOP WAS
-               ANNOUNCING IT A SECOND TIME. `grantSubstitute` holds the doll's size, its failure rule
-               and its `-start`; this generic path then wrote `_vol.substitute = 1` and emitted a
-               SECOND `|-start|X|move: substitute` that Showdown never writes -- measured on a plain
-               Garchomp Substitute, three lines out where the authority writes two. Skipping by the
-               DECLARED volatile name is the same read the encore and disable branches two lines above
-               already make: the tag supplies the effect, the name says which handler owns it. */
-            if(_e.volatile==='substitute') continue;
-            /* ROADMAP #92 -- CONFUSION IS OWNED TOO, for exactly the reason Substitute is. This
-             * generic path writes a bare turn count and knows nothing about Own Tempo, Safeguard, a
-             * body that is already confused, a Lum Berry or the self-hit -- and what it wrote was
-             * never read by anything. `applyConfusion` is the one implementation and the secondary
-             * path two thousand lines below calls the same function. */
-            if(_e.volatile==='confusion'){applyConfusion(_who,m,field);continue;}
-            /* WIRE 119 -- TAUNT LASTS THREE OF THE TARGET'S TURNS, NOT THREE TURNS. Showdown's taunt
-             * condition bumps its own duration when the target has ALREADY MOVED this turn
-             * (`if (target.activeTurns && !this.queue.willMove(target)) this.effectState.duration++`),
-             * because the turn it just spent must not be one of the three. Measured at the pinned
-             * commit both ways -- a faster Taunter blocks the target on turns 1(exec), 2, 3; a slower
-             * one blocks turns 2, 3, 4 -- three refusals either way, and without this bump the slow
-             * case gets two.
-             * `unresolved` is this turn's outstanding actions (WIRE 118), so "was queued to move and
-             * no longer will" is `acts.some(...) && !unresolved.has(...)` -- the same pair of clauses
-             * Showdown asks, including the `activeTurns` half: a body dragged or switched in mid-turn
-             * is in neither set and is correctly NOT bumped.
-             * ROADMAP #111 -- THE PREDICATE IS UNCHANGED AND THE MEMBERSHIP IS NOT. It used to be
-             * gated on `forbidByVolatile()`, which is a table of ONE (taunt), so Encore -- which
-             * Showdown bumps by the same rule minus the `activeTurns` clause -- never got it. The
-             * whole duration family now shares it, and Disable's declared-5-seals-4 correction rides
-             * in the same function rather than as a literal here. */
-            const _sm=TAGS.param('move',a.mv,'sealsMoves');
-            const _amv=!unresolved.has(_who)&&acts.some(x=>x.mon===_who);
-            const _dur=volDurationOnApply(_e.volatile,_amv,_sm);
-            /* NO SILENT DEFAULT. A volatile with no duration in the artifact keeps the pre-existing
-             * bare `1`, which is what every non-sealing volatile in this loop has always been given;
-             * the difference is that it is now visibly the fallback rather than the rule. */
-            const _tn=_dur!=null?_dur:((_sm&&+_sm.turns)||1);
-            if(_dur!=null) MEDSEEN.volDurationApplied++;
-            (_who._vol=_who._vol||{})[_e.volatile]=_tn;
-            /* `|-start|p1b: Amoonguss|move: Taunt` -- the `move: ` prefix is what Showdown writes for
-             * a volatile whose source effect is a move, read off a real battle.log. */
-            if(TR)TR.vstart(_who,'move: '+_e.volatile);
-            /* `_sealed` is Disable's alone. Encore carries its move in `_encoreMove` and `_lock`, and
-             * one field serving two volatiles is a field that expires the wrong one. */
-            if(_e.volatile==='disable')_who._sealed=_who._lastMove||null;
-            /* Encore's own guard is WIRE 69, four lines above: there is nothing to repeat against a
-               target that has never moved, and Showdown's condition bails on `!target.lastMove`.
-               THE FIRST VERSION OF THAT RULE WAS TOO STRICT AND THE CENSUS CAUGHT IT: it demanded the
-               target had moved THIS TURN, which dropped `live` 148 -> 146, because Showdown's
-               `lastMove` persists across turns -- an Encore on turn 3 repeating a turn-1 move is
-               legal. The rule is "has ever moved", not "has moved this turn". */
-            if(_e.volatile==='encore'){
-              _who._encoreMove=_who._lastMove||null;
-              /* ROADMAP #111 -- `_tn` AND NOT `_tn + 1`. The +1 was compensating for the counter being
-                 decremented a second time inside `_chooseAction`; that second decrement is gone, so
-                 the lock and the volatile now start on the same number and expire on the same turn
-                 boundary. Two clocks for one effect is how a lock outlives the volatile that made it. */
-              if(_who._lastMove&&_who._lockT!==Infinity){_who._lock=_who._lastMove;_who._lockT=_tn;}
+           * THREE THINGS COME OUT OF THE HANDLER AND ONLY ONE IS THE HEAL
+           * (`if (target.boosts.atk === -6) return false; const atk = target.getStat('atk', false, true);
+           *   const success = this.boost({atk: -1}, ...); return !!(this.heal(atk, source, target) || success);`)
+           *   1. A TARGET ALREADY AT -6 ATTACK MAKES THE WHOLE MOVE FAIL -- no heal either, and this
+           *      engine would otherwise have healed off a drop that could not happen.
+           *   2. THE ATTACK IS READ BEFORE THE DROP. Computed here, above the boost loop, deliberately:
+           *      reading it after would undercount every sap by one stage.
+           *   3. IT IS THE STAT, NOT A FRACTION OF IT -- boosted, unmodified. See statWithBoost.
+           * The user's own Heal Block still gates it, like every other place HP goes up. */
+          let _sapHeal=null;
+          {const _hs=TAGS.param('move',a.mv,'healsSelf');
+           if(_hs&&_hs.heal===true&&_hs.fromTargetStat){
+             const _k=SD2ENG[_hs.fromTargetStat];
+             if(!_k||!_t.st||_t.st[_k]==null||!_t.boosts||_t.boosts[_k]==null){
+               MEDFAILS.healFromStatUnreadable++;
+               if(!MEDFAILS.healFromStatUnreadableFirst)
+                 MEDFAILS.healFromStatUnreadableFirst=String(a.mv)+'/'+String(_hs.fromTargetStat);
+             }
+             else if(_t.boosts[_k]<=-6){mvFail(m);continue;}
+             else _sapHeal=statWithBoost(_t,_k);
+           }}
+          /* Stat changes. Contrary flips them and Clear Body refuses drops, both already modelled for
+           * Intimidate -- asked here the same way so one ability does not behave differently by route. */
+          for(const _e of ((a.sc&&a.sc.target)||[])){
+            if(_e.chance<100&&rng()*100>=_e.chance) continue;
+            const _sg=invSign(_t);         // WIRE 100b
+            /* WIRE 3 -- the refusal is ONE gate now, and it is asked per STAT while the ANNOUNCEMENT
+             * is once per boost table: Showdown's onTryBoost deletes each blocked key inside a single
+             * boost() call and then adds at most one `-fail`. Emitting per stat would invent a second
+             * line for a two-stat drop. */
+            let _ref=null;
+            for(const _k in _e.boosts){
+              const _s2=SD2ENG[_k]; if(!_s2||_t.boosts[_s2]==null) continue;
+              const _d=_e.boosts[_k]*_sg;
+              if(_d<0){ const _r=statDropRefusal(_t,_s2,a.mv,false); if(_r){ _ref=_ref||_r; continue; } }
+              const _b0=_t.boosts[_s2];
+              _t.boosts[_s2]=clamp(_t.boosts[_s2]+_d,-6,6);
+              if(TR)TR.bst(_t,_s2,_t.boosts[_s2]-_b0);
+                /* WIRE 138 -- ONCE PER STAT LOWERED. `retaliateWhenLowered` is the shared reader; the
+                   attacker is named so an ALLY's drop does not trigger it. */
+              if(_d<0&&_t.boosts[_s2]!==_b0)retaliateWhenLowered(_t,m);
             }
-            /* WIRE 62 -- MENTAL HERB, 684 sheets, and it undoes the whole point of the click that
-             * just landed -- so any value a search assigns to landing a Taunt or an Encore is wrong
-             * against a holder. Applied HERE, the instant the volatile is set, because the real item
-             * is an onUpdate: it never spends a turn taunted.
-             * THE SET IS THE ARTIFACT'S. The param was `{oneShot:true}`, which named the shape and
-             * not WHICH volatiles -- and the set is the mechanic: the herb frees Taunt, Encore,
-             * Disable, Attract, Torment and Heal Block and does NOT touch confusion, a Leech Seed or
-             * a partial trap. A consumer reading the boolean would have built a universal eraser.
-             * It clears the ENGINE-SIDE state each volatile owns as well as the volatile itself,
-             * because `_sealed` and the Encore `_lock` are separate fields (WIRE 26) and leaving
-             * either behind would free the name and keep the effect. */
-            {
-              const _mh=TAGS.param('item',_who.item,'curesVolatile');
-              if(_mh&&Array.isArray(_mh.cures)&&_mh.cures.indexOf(_e.volatile)>=0){
-                delete _who._vol[_e.volatile];
-                if(_e.volatile==='disable')_who._sealed=null;
-                if(_e.volatile==='encore'){_who._encoreMove=null;if(_who._lockT!==Infinity){_who._lock=null;_who._lockT=0;}}
-                if(_e.volatile==='healblock')_who._healBlock=0;
-                if(TR){TR.vend(_who,'move: '+_e.volatile);TR.enditem(_who,_who.item);}
-                _who.item='';
+            if(TR&&_ref&&_ref.announce)TR.failUnboost(_t,_ref.label,_ref.ab);
+          }
+          /* ROADMAP #102 -- and the sap is paid, after the drop and out of the amount read before it. */
+          if(_sapHeal!=null&&!m.fainted&&!healBlocked(m)){
+            const _sh0=m.curHP;
+            m.curHP=Math.min(m.st.hp,m.curHP+_sapHeal);
+            if(TR&&m.curHP>_sh0)TR.heal(m,'[from] move: '+a.mv,_t);
+          }
+          /* Status and volatiles. applyStatus already enforces the type and ability immunities; a
+           * VOLATILE is a different thing and is recorded by name on the mon so a consumer can see
+           * which ones it does and does not act on, instead of a silent no-op. */
+          for(const _e of ((a.si&&a.si.effects)||[])){
+            const _who=_e.to==='user'?m:_t;
+            /* ONCE FOR THE MOVE, NOT ONCE PER TARGET. Showdown carries `move.selfDropped` for
+               exactly this: a spread move's `self` effects are applied on the first body it reaches
+               and skipped on every one after. `_landed` is incremented at the BOTTOM of the
+               per-target loop, so it is 0 while the first landing body resolves and non-zero after
+               -- no second flag to keep in step with it. On a single-target move the loop runs once
+               and this line can never fire. */
+            if(_e.to==='user'&&_landed>0) continue;
+            if(!_who||_who.fainted) continue;
+            if(_e.chance<100&&rng()*100>=_e.chance) continue;
+            if(_e.status) applyStatus(_who,_e.status);
+            /* WIRE 26 -- sealsMoves, and it is where the tag actually resolves.
+             *
+             * The consumer that read this tag lived in the `kind==='status'` branch and its guard could
+             * never pass: playerAction classifies Encore, Disable and Taunt as `affect` (they carry a
+             * VOLATILE and no major status), so control never reached it. `tests/test-tag-wire.js` has
+             * printed "Encore pins the foe to its last move (undefined) for undefined turns" since
+             * before 2026-08-04 for exactly that reason. The dead branch is gone; this is the live one.
+             *
+             * THE DURATION COMES FROM THE ARTIFACT, not from three typed literals. It read
+             * `encore?3:taunt?3:1`, so Disable — which the tag says lasts 5 — got ONE turn, and any
+             * future duration change in the artifact would have been silently ignored. Now
+             * `sealsMoves.turns`.
+             *
+             * BRANCHING ON THE VOLATILE NAME IS READING A DECLARED FACT, not typing a list. Showdown
+             * names the volatile; the tag cannot tell "pin to the last move" from "forbid the last
+             * move" because both carry the same params (`turns`, `scope`, `fromUsersOwnMoves:false`).
+             * The tag supplies the number, the flag supplies the direction — that is the split
+             * docs/TAGS.md describes, not an exception to it.
+             *
+             * ENCORE RIDES THE SAME `_lock` THE CHOICE ITEMS USE, so a caller-SUPPLIED action is bound
+             * as well as a chosen one — the WIRE 24 rule, which nothing about Encore honoured. A Choice
+             * lock (`_lockT === Infinity`) is never shortened by it. */
+            if(_e.volatile){
+              /* WIRE 69 -- A MOVE-SEALING VOLATILE FAILS AGAINST A TARGET WITH NO LAST MOVE, and this
+                 guard has to come BEFORE the volatile is written. The first version sat two lines lower,
+                 after the assignment, so it skipped the bookkeeping and left the volatile on -- the pair
+                 matrix kept reading `vol medi=["encore"] sd=[]` and the fix looked landed.
+                 ROADMAP #111 -- AND IT WAS WRITTEN `=== 'encore'`, SO DISABLE NEVER HAD IT. Showdown
+                 refuses both (`disable.onTryHit` returns false on `!target.lastMove`; encore's
+                 `onStart` does the same), and `data/roster.moves.json` measured the cost: on the turn
+                 before its target had ever moved, `vol.disable` read showdown=0 ours=4. The membership
+                 is now derived -- see volNeedsLastMove -- so a third sealer arriving is covered. */
+              if(volNeedsLastMove(_e.volatile)&&!_who._lastMove){ MEDSEEN.volSealNoLastMove++; continue; }
+              /* ROADMAP #111 -- AND RE-APPLYING ONE THE BODY ALREADY CARRIES FAILS. `Pokemon#addVolatile`
+                 returns false when the volatile is present and its condition declares no `onRestart`,
+                 and none of this family does. Writing the counter again REFRESHED it, which is why a
+                 Taunt clicked on two consecutive turns read 2 at both boundaries where Showdown reads
+                 2 then 1 -- the clock never ran down while the move was being re-clicked. Restricted to
+                 the duration family on purpose: Protect, Follow Me, Rage Powder and Helping Hand are
+                 per-turn volatiles that MUST be re-settable, and a blanket no-restart rule would have
+                 caught all four (docs/LESSONS §4 -- print what the rule matches before wiring it). */
+              if(durationVolatiles().has(_e.volatile)&&_who._vol&&_who._vol[_e.volatile]>0){
+                MEDSEEN.volRestartRefused++; continue; }
+              /* ROADMAP #81 WIRE 7 -- THE SUBSTITUTE VOLATILE IS ALREADY OWNED, AND THIS LOOP WAS
+                 ANNOUNCING IT A SECOND TIME. `grantSubstitute` holds the doll's size, its failure rule
+                 and its `-start`; this generic path then wrote `_vol.substitute = 1` and emitted a
+                 SECOND `|-start|X|move: substitute` that Showdown never writes -- measured on a plain
+                 Garchomp Substitute, three lines out where the authority writes two. Skipping by the
+                 DECLARED volatile name is the same read the encore and disable branches two lines above
+                 already make: the tag supplies the effect, the name says which handler owns it. */
+              if(_e.volatile==='substitute') continue;
+              /* ROADMAP #92 -- CONFUSION IS OWNED TOO, for exactly the reason Substitute is. This
+               * generic path writes a bare turn count and knows nothing about Own Tempo, Safeguard, a
+               * body that is already confused, a Lum Berry or the self-hit -- and what it wrote was
+               * never read by anything. `applyConfusion` is the one implementation and the secondary
+               * path two thousand lines below calls the same function. */
+              if(_e.volatile==='confusion'){applyConfusion(_who,m,field);continue;}
+              /* WIRE 119 -- TAUNT LASTS THREE OF THE TARGET'S TURNS, NOT THREE TURNS. Showdown's taunt
+               * condition bumps its own duration when the target has ALREADY MOVED this turn
+               * (`if (target.activeTurns && !this.queue.willMove(target)) this.effectState.duration++`),
+               * because the turn it just spent must not be one of the three. Measured at the pinned
+               * commit both ways -- a faster Taunter blocks the target on turns 1(exec), 2, 3; a slower
+               * one blocks turns 2, 3, 4 -- three refusals either way, and without this bump the slow
+               * case gets two.
+               * `unresolved` is this turn's outstanding actions (WIRE 118), so "was queued to move and
+               * no longer will" is `acts.some(...) && !unresolved.has(...)` -- the same pair of clauses
+               * Showdown asks, including the `activeTurns` half: a body dragged or switched in mid-turn
+               * is in neither set and is correctly NOT bumped.
+               * ROADMAP #111 -- THE PREDICATE IS UNCHANGED AND THE MEMBERSHIP IS NOT. It used to be
+               * gated on `forbidByVolatile()`, which is a table of ONE (taunt), so Encore -- which
+               * Showdown bumps by the same rule minus the `activeTurns` clause -- never got it. The
+               * whole duration family now shares it, and Disable's declared-5-seals-4 correction rides
+               * in the same function rather than as a literal here. */
+              const _sm=TAGS.param('move',a.mv,'sealsMoves');
+              const _amv=!unresolved.has(_who)&&acts.some(x=>x.mon===_who);
+              const _dur=volDurationOnApply(_e.volatile,_amv,_sm);
+              /* NO SILENT DEFAULT. A volatile with no duration in the artifact keeps the pre-existing
+               * bare `1`, which is what every non-sealing volatile in this loop has always been given;
+               * the difference is that it is now visibly the fallback rather than the rule. */
+              const _tn=_dur!=null?_dur:((_sm&&+_sm.turns)||1);
+              if(_dur!=null) MEDSEEN.volDurationApplied++;
+              (_who._vol=_who._vol||{})[_e.volatile]=_tn;
+              /* `|-start|p1b: Amoonguss|move: Taunt` -- the `move: ` prefix is what Showdown writes for
+               * a volatile whose source effect is a move, read off a real battle.log. */
+              if(TR)TR.vstart(_who,'move: '+_e.volatile);
+              /* `_sealed` is Disable's alone. Encore carries its move in `_encoreMove` and `_lock`, and
+               * one field serving two volatiles is a field that expires the wrong one. */
+              if(_e.volatile==='disable')_who._sealed=_who._lastMove||null;
+              /* Encore's own guard is WIRE 69, four lines above: there is nothing to repeat against a
+                 target that has never moved, and Showdown's condition bails on `!target.lastMove`.
+                 THE FIRST VERSION OF THAT RULE WAS TOO STRICT AND THE CENSUS CAUGHT IT: it demanded the
+                 target had moved THIS TURN, which dropped `live` 148 -> 146, because Showdown's
+                 `lastMove` persists across turns -- an Encore on turn 3 repeating a turn-1 move is
+                 legal. The rule is "has ever moved", not "has moved this turn". */
+              if(_e.volatile==='encore'){
+                _who._encoreMove=_who._lastMove||null;
+                /* ROADMAP #111 -- `_tn` AND NOT `_tn + 1`. The +1 was compensating for the counter being
+                   decremented a second time inside `_chooseAction`; that second decrement is gone, so
+                   the lock and the volatile now start on the same number and expire on the same turn
+                   boundary. Two clocks for one effect is how a lock outlives the volatile that made it. */
+                if(_who._lastMove&&_who._lockT!==Infinity){_who._lock=_who._lastMove;_who._lockT=_tn;}
+              }
+              /* WIRE 62 -- MENTAL HERB, 684 sheets, and it undoes the whole point of the click that
+               * just landed -- so any value a search assigns to landing a Taunt or an Encore is wrong
+               * against a holder. Applied HERE, the instant the volatile is set, because the real item
+               * is an onUpdate: it never spends a turn taunted.
+               * THE SET IS THE ARTIFACT'S. The param was `{oneShot:true}`, which named the shape and
+               * not WHICH volatiles -- and the set is the mechanic: the herb frees Taunt, Encore,
+               * Disable, Attract, Torment and Heal Block and does NOT touch confusion, a Leech Seed or
+               * a partial trap. A consumer reading the boolean would have built a universal eraser.
+               * It clears the ENGINE-SIDE state each volatile owns as well as the volatile itself,
+               * because `_sealed` and the Encore `_lock` are separate fields (WIRE 26) and leaving
+               * either behind would free the name and keep the effect. */
+              {
+                const _mh=TAGS.param('item',_who.item,'curesVolatile');
+                if(_mh&&Array.isArray(_mh.cures)&&_mh.cures.indexOf(_e.volatile)>=0){
+                  delete _who._vol[_e.volatile];
+                  if(_e.volatile==='disable')_who._sealed=null;
+                  if(_e.volatile==='encore'){_who._encoreMove=null;if(_who._lockT!==Infinity){_who._lock=null;_who._lockT=0;}}
+                  if(_e.volatile==='healblock')_who._healBlock=0;
+                  if(TR){TR.vend(_who,'move: '+_e.volatile);TR.enditem(_who,_who.item);}
+                  _who.item='';
+                }
               }
             }
           }
+          _landed++;
         }
         /* WIRE 86 -- MEMENTO FAINTS ITS USER, AND THE CHECK LIVED IN THE ATTACK BRANCH.
          * WIRE 46 wired `userFaints` where damaging moves resolve, gated on `dealt > 0`. Memento is
@@ -6830,7 +6906,13 @@ function battleTurn(S,rng,actsForA,actsForB){
          * a damaging move -- so both branches read one artifact and neither names a move. */
         {
           const _ufa=TAGS.param('move',a.mv,'userFaints');
-          if(_ufa&&_ufa.faints&&!m.fainted){m.curHP=0;m.fainted=true;if(TR){TR.dmg(m);TR.faint(m);}}
+          /* AND THE "IT LANDED" TEST IS EXPLICIT NOW. The paragraph above said reaching this line
+             means the effect LANDED, "because every refusal above `continue`s out". That was true of a
+             straight-line branch and is not true of a loop: a per-target `continue` ends THAT BODY's
+             pass and the loop carries on, so this tail is reached whatever happened to any one target.
+             `_landed` counts the bodies that got all the way through, and 0 is a move that did
+             nothing -- the same claim, made by a number instead of by control flow. */
+          if(_landed&&_ufa&&_ufa.faints&&!m.fainted){m.curHP=0;m.fainted=true;if(TR){TR.dmg(m);TR.faint(m);}}
         }
         continue;
       }

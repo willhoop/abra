@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  330/330 probed mechanics live, 0 missing   (census 2026-08-10 00:22)
-  0/150 differential comparisons disagree with Showdown   (2026-08-10 00:13)
+  333/333 probed mechanics live, 0 missing   (census 2026-08-10 02:02)
+  0/150 differential comparisons disagree with Showdown   (2026-08-10 02:02)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
@@ -54,12 +54,105 @@ ENGINE — does the simulator do what Pokémon does
     whole-game agreement 7/1997 -> 134/1997; first-divergence line, mean 14.78 -> 33.98
     paired against the baseline: 1295 games part later, 116 EARLIER, 586 unchanged
     the baseline ran first and last and reproduced exactly; comparability: every arm cleared
-  tag coverage: 183/191 probed, 8 unprobed
+  tag coverage: 183/194 probed, 11 unprobed
 ```
 
-_stamped 2026-08-10 00:31_
+_stamped 2026-08-10 02:03_
 
 <!-- /GENERATED -->
+
+## A SPREAD *STATUS* MOVE REACHED ONE FOE. FOUR MOVES, ONE MISSING LOOP, AND `spreadFoes` HAD FOUR GREEN PROBES ALREADY. 2026-08-10.
+
+Census **330 → 333 live, 0 missing, 0 threw.** Three new probes. Three roster rows —
+`cottonspore`, `stringshot`, `sweetscent` — were DID-NOT-FIRE for this reason, and a fourth move came
+with them.
+
+**THE TAG WAS PROBED FOUR TIMES AND THE HOLE WAS STILL THERE.** `spreadFoes` carried live probes for
+"Rock Slide hits both foes", the x0.75 rounding, the ordering across targets and the protecting
+partner. Every one of them clicks a **damaging** move, so every one resolves through
+`kind==='attack'` — which has built a real target ARRAY since WIRE 15. The `kind==='affect'` branch,
+where every stat drop and every volatile lands, held a single body:
+
+```js
+let _t = reaimToSlot(a.target, it, actA, actB, a.mv);   // one Pokemon, for a move that hits two
+```
+
+Measured in a real turn before anything changed:
+
+```
+  cottonspore  foe0 sp=-2    foe1 sp=0      <- both should move
+  stringshot   foe0 sp=-2    foe1 sp=0
+  sweetscent   foe0 eva=-2   foe1 eva=0
+  teeterdance  ally  -       foe0 confusion  foe1 -
+```
+
+**A HALF-WIRED MOVE PRODUCES THE SAME RECEIPT AS AN UNWIRED ONE, AND THAT IS THE FINDING.** The
+roster stages the entity against a control arm that removes only it, and reads the DELTA. Its second
+body never moved, so the delta was empty and all three printed DID-NOT-FIRE — the verdict for "this
+engine does not have the mechanic". It had half of it. That is worse than absent, because the
+instrument cannot tell the two apart and the honest-looking verdict points at the wrong work.
+
+**THE FIX IS A LOOP AND NOT ONE GATE MOVED.** The branch now builds a target LIST off the tag and
+runs the existing ~100-line gauntlet — Protect, Substitute, Good as Gold, `moveClassBlocked`,
+`powderBlocked`, `pranksterBlocked`, the accuracy die, Strength Sap's heal, the boost loop, the
+status/volatile loop — once per body, in order. Their `continue`s now end **that body's** pass through
+the move instead of the whole move; for a single-target click the loop runs exactly once and every
+call it makes is in the order it was already in.
+
+- **The set comes off the TAG, and the two tags are not collapsed.** `spreadFoes` is ally-safe;
+  `spreadAll` puts my own partner in the set, and **first** — `Pokemon#getMoveTargets` builds an
+  `allAdjacent` list as `push(...adjacentAllies())` and only then `push(...adjacentFoes())`, the same
+  order the damaging branch already takes.
+- **Membership printed before wiring**, as this file's rule requires. `spreadFoes` reaches `affect`
+  as cottonspore, stringshot, sweetscent; `spreadAll` as **teeterdance** alone. Corrosive Gas is
+  `allAdjacent` too and `playerAction` classifies it `trickitem`, so it never arrives here — named
+  rather than left to be rediscovered as a move this loop appears to cover and does not.
+- **Once per move, not once per target:** `m._lastMove`, the `mvFail` for a move that found nobody, a
+  user-directed `si` effect (Showdown carries `move.selfDropped` for exactly this), and `userFaints`.
+  Memento's user dies once, and the comment that said *"reaching this line means the effect LANDED,
+  because every refusal above `continue`s out"* is now false of a loop — so the claim is carried by a
+  `_landed` count instead of by control flow, and the old sentence is corrected in place rather than
+  left to be read as still true.
+
+**THE RISK WAS THE SINGLE-TARGET CASE AND IT WAS MEASURED AS A DIFF, NOT ASSERTED.** Charm, Fake
+Tears, Growl, Leer, Screech, Tickle, Thunder Wave, Will-O-Wisp, Toxic and Spore are the overwhelming
+majority of this branch's traffic. 22 single-target status moves were run through a real turn against
+the pre-change bytes and the post-change bytes, printing every stat stage, status and volatile of all
+three non-acting bodies. **The two runs differ on exactly the four spread moves and on nothing else.**
+
+**THE THREE PROBES, AND EACH HAS A CONTROL THAT IS THE SAME EFFECT WITH A DIFFERENT TARGET TYPE** —
+not "no click", which an engine that splashed every status move across the field would also pass:
+
+| probe | control | test |
+|---|---|---|
+| a spread STATUS move drops BOTH foes | Scary Face, `normal`, spe -2 → `0,-2,0` | String Shot, `allAdjacentFoes`, spe -2 → `0,-2,-2` |
+| one foe's Protect does not shield the other | String Shot, nobody shielding → `0,-2,-2` | foe 1 behind a Protect → `0,0,-2`; Scary Face into that same Protect → `0,0,0` |
+| `spreadAll` reaches my own partner | Confuse Ray, `normal` → `0,1,0` | Teeter Dance, `allAdjacent` → `1,1,1` |
+
+Both bodies are legal: **Ariados** is the one species in this format that learns a `spreadFoes`
+stat-drop and Scary Face, and **Mr. Rime** the one that learns Teeter Dance and Confuse Ray — checked
+against the format's own learnsets rather than from memory.
+
+**AND A SECOND CONSEQUENCE NOBODY WAS LOOKING FOR: A TARGETLESS CLICK WAS A NO-OP TURN.** A driver
+that reads Showdown's request is handed **no target at all** for `allAdjacentFoes` — there is nothing
+to aim — so `it.tgtSlot` is -1, `reaimToSlot` returned null and the branch took `mvFail`. Measured on
+the same board, both engines:
+
+```
+  BEFORE: targetless cottonspore -> foe0 0   foe1 0        <- the whole turn, spent doing nothing
+  AFTER:  targetless cottonspore -> foe0 -2  foe1 -2
+```
+
+That is exactly the shape ROADMAP #81 WIRE 9 found and fixed for the DAMAGING half of the family
+(*"33 legal moves and 56,524 corpus uses dealing ZERO"*) — the status half was never touched, and the
+fix here closes it for the same reason and by the same route: the turn loop never needed the aim.
+
+**NOT FIXED, FOUND WHILE HERE.** Wide Guard does not stop a spread status move. Showdown's
+`wideguard.onTryHit` refuses anything whose target is `allAdjacent` or `allAdjacentFoes` and says
+nothing about category, so it should block all four of these. This branch has never checked it, and it
+could not have mattered before today because the move only ever resolved as single-target. Left alone
+deliberately — it is a new mechanic, not part of making this one loop, and it deserves its own failing
+probe.
 
 ## THE ITEMS QUEUE: 6 → 3. EVERY ONE WAS A PRODUCER THAT COULD NOT NAME ITS MEMBER. 2026-08-10.
 

@@ -224,7 +224,15 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * reason: it stages a real doubles board through `battleInit` and spends a real turn through
  * `battleTurn` on the LOSING accuracy roll, because the whole defect is a branch that only exists
  * when a move MISSES — and nothing below the turn loop can miss. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(/;
+/* `spreadStatus(` added 2026-08-10 with the spread-status-target fix, declared HERE and with its
+ * reason, exactly as the paragraph above requires. It stages a real doubles board through
+ * `battleInit` and spends a real turn through `battleTurn`, and it has to: the defect it watches is
+ * that the `kind==='affect'` branch of the TURN LOOP resolved a single body, so nothing below the
+ * turn loop has a target set at all and a direct call is structurally blind to it. It returns both
+ * the Speed stages and the confusion flags of all three non-acting bodies, because the two halves of
+ * the branch (the `sc` boost loop and the `si` effects loop) are different code and one can be fixed
+ * without the other. */
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -8988,6 +8996,85 @@ probe('ability', 'boostsWhenLowered', 'Defiant fires once per STAT LOWERED — P
                  + `same Defiant body ${charmDef} (ONE stat lowered by two, so ONE +2: -2 +2 = 0); `
                  + `Charm aimed at MY OWN Defiant ally ${charmAlly} (an ally does not trigger it). `
                  + `The authority reads -1,-1 / 3,-1 / 0,0 / -2,0` };
+});
+
+/* A SPREAD *STATUS* MOVE REACHED ONLY ONE FOE. 2026-08-10.
+ *
+ * `spreadFoes` was probed four ways above and every one of those probes clicks a DAMAGING move, so
+ * every one of them resolves through the `kind==='attack'` branch — which has built a real target
+ * ARRAY since WIRE 15. The `kind==='affect'` branch, where Cotton Spore, String Shot, Sweet Scent and
+ * every other stat-drop and volatile lands, resolved exactly ONE body:
+ *
+ *     let _t = reaimToSlot(a.target, it, actA, actB, a.mv);
+ *
+ * Measured before a line changed, Ariados into a Garchomp/Milotic pair — `spe foe0 -2, foe1 0` on all
+ * three, against `allAdjacentFoes` in the format and the `spreadFoes` tag in the artifact. That is
+ * exactly why all three read DID-NOT-FIRE in data/roster.moves.json: the roster's SECOND body never
+ * moved, so the delta against its control arm was empty and the move looked unwired.
+ *
+ * THE CONTROL IS SCARY FACE AND IT IS NOT A CONVENIENCE. It is the SAME stat, the SAME magnitude
+ * (spe -2), off the SAME body on the SAME board — the only thing that varies is the move's target
+ * type. Without it, "both foes are at -2" is also what an engine that splashed every status move
+ * across the field would print, and that is the worse bug. Ariados is the one species in this format
+ * that legally learns a `spreadFoes` stat-drop AND Scary Face (checked against the format's own
+ * learnsets, not from memory), so neither arm needs a body that could not exist.
+ *
+ * MY OWN PARTNER MUST READ 0 IN BOTH ARMS. `spreadFoes` is ally-safe; `spreadAll` is not, and the
+ * two are separate tags with separate meanings — the third probe below is the other one. */
+const spreadStatus = (user, mv, protect1) => {
+  const { me, ally, f1, f2, S } = board(user, 'incineroar', 'garchomp', 'milotic');
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+    new Map([[f1, protect1 ? { kind: 'protect', mv: 'protect' } : { kind: 'pass' }],
+             [f2, { kind: 'pass' }]]));
+  return { spe: [ally.boosts.sp, f1.boosts.sp, f2.boosts.sp],
+           conf: [ally, f1, f2].map(x => (x._vol && x._vol.confusion) > 0 ? 1 : 0) };
+};
+probe('move', 'spreadFoes', 'a spread STATUS move drops BOTH foes; a single-target one drops one', () => {
+  const control = spreadStatus('ariados', 'scaryface').spe;
+  const test = spreadStatus('ariados', 'stringshot').spe;
+  return { works: String(control) === '0,-2,0' && String(test) === '0,-2,-2',
+           arms: { control, test },
+           detail: `[my partner, foe 1, foe 2] Speed stage — Scary Face (target: normal, spe -2) `
+                 + `${control}; String Shot (target: allAdjacentFoes, spe -2, same Ariados, same `
+                 + `board) ${test}. My own partner reads 0 in BOTH arms — spreadFoes is ally-safe` };
+});
+
+/* AND EVERY TARGET RUNS THE GAUNTLET ON ITS OWN. The fix is one line away from being a loop that
+ * shares a verdict across bodies — a Protect on slot 0 stopping slot 1, a Soundproof body eating the
+ * partner's share — so the per-target independence is probed rather than assumed. Showdown resolves
+ * each target through its own TryHit, so a shield on one is not a shield on the other.
+ *
+ * THE SINGLE-TARGET ARM IS ASSERTED IN THE SAME PROBE (`single`): Scary Face into that same Protect
+ * must be stopped OUTRIGHT, so "the shield is porous" cannot be what makes this green. */
+probe('move', 'spreadFoes', 'a spread status move blocked by ONE foe\'s Protect still lands on the other', () => {
+  const control = spreadStatus('ariados', 'stringshot').spe;
+  const test = spreadStatus('ariados', 'stringshot', true).spe;
+  const single = spreadStatus('ariados', 'scaryface', true).spe;
+  return { works: String(control) === '0,-2,-2' && String(test) === '0,0,-2'
+                  && String(single) === '0,0,0',
+           arms: { control, test },
+           detail: `[my partner, foe 1, foe 2] Speed stage — String Shot, nobody shielding `
+                 + `${control}; foe 1 behind a PROTECT ${test} (the shield holds for the body that `
+                 + `raised it and for nobody else); Scary Face into the same Protect ${single} `
+                 + `(a single-target move IS stopped outright — so a porous shield cannot pass this)` };
+});
+
+/* THE `spreadAll` HALF OF THE SAME BRANCH, AND IT IS A DIFFERENT TARGET SET, NOT A LOUDER ONE.
+ * Teeter Dance is `allAdjacent`: it confuses MY OWN PARTNER as well as both foes, in that order
+ * (Pokemon#getMoveTargets pushes adjacentAllies() before adjacentFoes()). The control is Confuse Ray
+ * — the identical effect, `target: normal` — off the same Mr. Rime, which is the one species in this
+ * format that legally learns both. A control of "no click" would be satisfied by an engine that
+ * confused the whole field with every move; a control of a `spreadFoes` move would not separate
+ * "reaches the partner" from "reaches two foes". */
+probe('move', 'spreadAll', 'Teeter Dance confuses BOTH foes AND my own partner; Confuse Ray confuses one', () => {
+  const control = spreadStatus('mrrime', 'confuseray').conf;
+  const test = spreadStatus('mrrime', 'teeterdance').conf;
+  return { works: String(control) === '0,1,0' && String(test) === '1,1,1',
+           arms: { control, test },
+           detail: `[my partner, foe 1, foe 2] confused? — Confuse Ray (target: normal) ${control}; `
+                 + `Teeter Dance (target: allAdjacent, same Mr. Rime, same board) ${test} — the `
+                 + `partner is in the set for spreadAll and must NOT be for spreadFoes` };
 });
 
 const works = results.filter(r => r.works);
