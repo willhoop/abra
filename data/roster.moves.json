@@ -1,14 +1,14 @@
 {
- "generated": "2026-08-10T02:06:08.867Z",
+ "generated": "2026-08-10T02:25:20.669Z",
  "by": "tests/roster.js",
  "stage": "moves",
- "engine_release": "7314ff067018",
+ "engine_release": "4bfae56dedb7",
  "format": "gen9championsvgc2026regmb",
  "counts": {
-  "FIRED-AND-BOARDS-DIFFER": 22,
+  "FIRED-AND-BOARDS-DIFFER": 21,
   "DID-NOT-FIRE": 20,
   "DEFERRED-BY-OWNER": 0,
-  "FIRED-AND-BOARDS-MATCH": 367,
+  "FIRED-AND-BOARDS-MATCH": 368,
   "CONTROL-NOT-QUIET": 0,
   "COULD-NOT-STAGE": 91
  },
@@ -6332,7 +6332,7 @@
    "rule": "move/volatile",
    "reads": "volatileStatus",
    "note": "encore onto Goodra-Hisui, which clicks Dragon Pulse every turn so a move-sealing volatile has something to seal; Torterra clicks the same move and is never aimed at",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
@@ -6368,44 +6368,7 @@
      "without": 0
     }
    ],
-   "diffs": [
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 1134,
-     "ours": 1079,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "corviknight",
-     "field": "party.hp",
-     "showdown": 1348,
-     "ours": 1384,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p1a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 1134,
-     "ours": 1079,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p1b",
-     "body": "corviknight",
-     "field": "hp",
-     "showdown": 1348,
-     "ours": 1384,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",

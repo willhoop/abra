@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-09T20:49:00.860Z",
+  "generated": "2026-08-10T02:21:21.622Z",
   "by": "tests/walk_tags.js",
   "design": "The tag list says WHAT to exercise; Showdown says what should happen. No hand-written expectations, because seven control failures were written by hand in one session.",
   "checked": 40,
@@ -13,7 +13,7 @@
     {
       "tag": "priority",
       "id": "protect",
-      "uses": 91461,
+      "uses": 91805,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -22,7 +22,7 @@
     {
       "tag": "neverMisses",
       "id": "protect",
-      "uses": 91461,
+      "uses": 91805,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -31,7 +31,7 @@
     {
       "tag": "stalling",
       "id": "protect",
-      "uses": 91461,
+      "uses": 91805,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -40,7 +40,7 @@
     {
       "tag": "statusCategory",
       "id": "protect",
-      "uses": 91461,
+      "uses": 91805,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -49,7 +49,7 @@
     {
       "tag": "statusInflict",
       "id": "protect",
-      "uses": 91461,
+      "uses": 91805,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -58,7 +58,7 @@
     {
       "tag": "flingable",
       "id": "focussash",
-      "uses": 16793,
+      "uses": 16864,
       "sec": "items",
       "kind": "item",
       "verdict": "DIVERGE",
@@ -67,7 +67,7 @@
     {
       "tag": "survivesFromFull",
       "id": "focussash",
-      "uses": 16793,
+      "uses": 16864,
       "sec": "items",
       "kind": "item",
       "verdict": "DIVERGE",
@@ -76,7 +76,7 @@
     {
       "tag": "contact",
       "id": "fakeout",
-      "uses": 16376,
+      "uses": 16421,
       "sec": "moves",
       "kind": "move",
       "verdict": "AGREE",
@@ -85,7 +85,7 @@
     {
       "tag": "flinches",
       "id": "fakeout",
-      "uses": 16376,
+      "uses": 16421,
       "sec": "moves",
       "kind": "move",
       "verdict": "AGREE",
@@ -94,7 +94,7 @@
     {
       "tag": "spreadFoes",
       "id": "rockslide",
-      "uses": 15018,
+      "uses": 15077,
       "sec": "moves",
       "kind": "move",
       "verdict": "NOT COVERED",
@@ -103,7 +103,7 @@
     {
       "tag": "healsAtThreshold",
       "id": "sitrusberry",
-      "uses": 14929,
+      "uses": 14971,
       "sec": "items",
       "kind": "item",
       "verdict": "AGREE",
@@ -112,7 +112,7 @@
     {
       "tag": "moveClass",
       "id": "tailwind",
-      "uses": 14595,
+      "uses": 14654,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -121,7 +121,7 @@
     {
       "tag": "doublesSideSpeed",
       "id": "tailwind",
-      "uses": 14595,
+      "uses": 14654,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -130,7 +130,7 @@
     {
       "tag": "damageMultAll",
       "id": "lifeorb",
-      "uses": 13916,
+      "uses": 13961,
       "sec": "items",
       "kind": "item",
       "verdict": "DIVERGE",
@@ -139,7 +139,7 @@
     {
       "tag": "onSwitchInDrop",
       "id": "intimidate",
-      "uses": 13226,
+      "uses": 13274,
       "sec": "abilities",
       "kind": "ability",
       "verdict": "DIVERGE",
@@ -148,7 +148,7 @@
     {
       "tag": "statChange",
       "id": "closecombat",
-      "uses": 12046,
+      "uses": 12092,
       "sec": "moves",
       "kind": "move",
       "verdict": "DIVERGE",
@@ -157,7 +157,7 @@
     {
       "tag": "lowersUser",
       "id": "closecombat",
-      "uses": 12046,
+      "uses": 12092,
       "sec": "moves",
       "kind": "move",
       "verdict": "DIVERGE",
@@ -166,7 +166,7 @@
     {
       "tag": "reversesSpeed",
       "id": "trickroom",
-      "uses": 9235,
+      "uses": 9259,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -175,7 +175,7 @@
     {
       "tag": "inflictsBurn",
       "id": "heatwave",
-      "uses": 9096,
+      "uses": 9149,
       "sec": "moves",
       "kind": "move",
       "verdict": "NOT COVERED",
@@ -184,7 +184,7 @@
     {
       "tag": "weatherScaled",
       "id": "weatherball",
-      "uses": 9069,
+      "uses": 9107,
       "sec": "moves",
       "kind": "move",
       "verdict": "AGREE",
@@ -193,7 +193,7 @@
     {
       "tag": "secondaryStatEffect",
       "id": "moonblast",
-      "uses": 9054,
+      "uses": 9095,
       "sec": "moves",
       "kind": "move",
       "verdict": "NOT COVERED",
@@ -202,7 +202,7 @@
     {
       "tag": "priorityMod",
       "id": "prankster",
-      "uses": 9013,
+      "uses": 9054,
       "sec": "abilities",
       "kind": "ability",
       "verdict": "DIVERGE",
@@ -211,7 +211,7 @@
     {
       "tag": "needsTargetToAttack",
       "id": "suckerpunch",
-      "uses": 8979,
+      "uses": 9008,
       "sec": "moves",
       "kind": "move",
       "verdict": "DIVERGE",
@@ -220,7 +220,7 @@
     {
       "tag": "failsIfTargetNotAttacking",
       "id": "suckerpunch",
-      "uses": 8979,
+      "uses": 9008,
       "sec": "moves",
       "kind": "move",
       "verdict": "DIVERGE",
@@ -229,7 +229,7 @@
     {
       "tag": "spreadAll",
       "id": "earthquake",
-      "uses": 8950,
+      "uses": 8989,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -238,7 +238,7 @@
     {
       "tag": "sound",
       "id": "partingshot",
-      "uses": 8910,
+      "uses": 8934,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -247,7 +247,7 @@
     {
       "tag": "statChangeInCode",
       "id": "partingshot",
-      "uses": 8910,
+      "uses": 8934,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -256,7 +256,7 @@
     {
       "tag": "lowersTarget",
       "id": "partingshot",
-      "uses": 8910,
+      "uses": 8934,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -265,7 +265,7 @@
     {
       "tag": "pivotStatus",
       "id": "partingshot",
-      "uses": 8910,
+      "uses": 8934,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -274,7 +274,7 @@
     {
       "tag": "thawsTarget",
       "id": "flareblitz",
-      "uses": 8550,
+      "uses": 8569,
       "sec": "moves",
       "kind": "move",
       "verdict": "NOT COVERED",
@@ -283,7 +283,7 @@
     {
       "tag": "recoil",
       "id": "flareblitz",
-      "uses": 8550,
+      "uses": 8569,
       "sec": "moves",
       "kind": "move",
       "verdict": "NOT COVERED",
@@ -292,7 +292,7 @@
     {
       "tag": "boostsWhenLowered",
       "id": "defiant",
-      "uses": 8467,
+      "uses": 8493,
       "sec": "abilities",
       "kind": "ability",
       "verdict": "DIVERGE",
@@ -301,7 +301,7 @@
     {
       "tag": "passiveHeal",
       "id": "leftovers",
-      "uses": 8363,
+      "uses": 8391,
       "sec": "items",
       "kind": "item",
       "verdict": "DIVERGE",
@@ -310,7 +310,7 @@
     {
       "tag": "choiceLock",
       "id": "choicescarf",
-      "uses": 7758,
+      "uses": 7787,
       "sec": "items",
       "kind": "item",
       "verdict": "DIVERGE",
@@ -319,7 +319,7 @@
     {
       "tag": "speedMult",
       "id": "choicescarf",
-      "uses": 7758,
+      "uses": 7787,
       "sec": "items",
       "kind": "item",
       "verdict": "DIVERGE",
@@ -328,7 +328,7 @@
     {
       "tag": "powder",
       "id": "ragepowder",
-      "uses": 7692,
+      "uses": 7718,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -337,7 +337,7 @@
     {
       "tag": "redirects",
       "id": "ragepowder",
-      "uses": 7692,
+      "uses": 7718,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -346,7 +346,7 @@
     {
       "tag": "punishesAttacker",
       "id": "roughskin",
-      "uses": 7412,
+      "uses": 7437,
       "sec": "abilities",
       "kind": "ability",
       "verdict": "DIVERGE",
@@ -355,7 +355,7 @@
     {
       "tag": "neverMissesAttack",
       "id": "kowtowcleave",
-      "uses": 7400,
+      "uses": 7426,
       "sec": "moves",
       "kind": "move",
       "verdict": "DIVERGE",
@@ -364,7 +364,7 @@
     {
       "tag": "healsAllyOnSwitchIn",
       "id": "hospitality",
-      "uses": 6405,
+      "uses": 6425,
       "sec": "abilities",
       "kind": "ability",
       "verdict": "DIVERGE",

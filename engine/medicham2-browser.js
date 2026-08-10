@@ -290,8 +290,20 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                         DISABLE HALF OF THIS HAD NEVER FIRED AT ALL, and it is the whole of the
    *                         `showdown=0 ours=4` turn-1 row. */
   volDurationApplied: 0, volDurationTicked: 0, volDurationExpired: 0,
-  volRestartRefused: 0, volSealNoLastMove: 0 };
-const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnknownFirst: '',
+  volRestartRefused: 0, volSealNoLastMove: 0,
+  /* WIRE 143 -- an action REWRITTEN at execution time by an Encore that landed mid-turn (Showdown's
+   * `onOverrideAction`). This is the half `sealsMoves` never had: the menu filter in chooseAction and
+   * the WIRE 24 rewrite in mk() both answer at SELECTION, and a mid-turn Encore is written after both
+   * have run. A zero after real games with an Encore in them is the finding -- it means the only turn
+   * the override can fire on is being missed, which is the state this counter was added to end. */
+  encoreOverrodeAtExecution: 0 };
+const MEDFAILS = { encoreAction: 0,
+  /* WIRE 143 -- the execution-time override was owed and `playerAction` could not BUILD the encored
+   * click (it came back null or as the unmodelled `pass`). The un-encored action then runs, which is a
+   * real behaviour change dressed as a no-op, so it is counted apart from `encoreAction` -- that one is
+   * a THROW inside the chooser's own branch, and a merged counter could not say which happened. */
+  encoreOverrideUnbuilt: 0,
+  megaRevert: 0, weatherUnknown: 0, weatherUnknownFirst: '',
   /* ROADMAP #92 -- MISTY TERRAIN ALSO REFUSES CONFUSION to a grounded body, and this engine has no
    * per-terrain volatile refusal to hang that on. 9 corpus uses. Counted every time confusion is
    * written while misty terrain is up, so the size of the gap is a number in the run rather than a
@@ -6347,6 +6359,75 @@ function battleTurn(S,rng,actsForA,actsForB){
        * one line that already answers the question, so the two cannot come apart. */
       m._acted=true;
       if(m.fainted||m.curHP<=0)continue;
+      /* WIRE 143 -- ENCORE AT EXECUTION TIME, AND THIS IS WIRE 119's PLACE FOR WIRE 119's REASON.
+       *
+       * Showdown answers Encore in TWO handlers off one condition, exactly as it answers Taunt:
+       * `onDisableMove` takes the other moves off the victim's NEXT request, and `onOverrideAction`
+       * rewrites an action that was ALREADY CHOSEN when the Encore lands in the same turn. This engine
+       * only ever had the first half. `chooseAction` honours the lock (WIRE 20) and `mk()` rewrites a
+       * caller-supplied action against it (WIRE 24) -- but `mk()` runs for all four bodies BEFORE the
+       * queue is sorted, and at that instant `mon._lock` is still null, because a mid-turn Encore is
+       * written later, at move resolution. So the WIRE 24 rewrite evaluated once per turn AT THE WRONG
+       * INSTANT and could not fire at all on the only turn that needs it.
+       *
+       * AUTHORITY -- sim/battle-actions.ts:223-234, inside runMove, i.e. PER ACTION AT EXECUTION:
+       *
+       *     const changedMove = this.battle.runEvent('OverrideAction', pokemon, target, baseMove);
+       *     if (changedMove && changedMove !== true) {
+       *       baseMove = this.dex.getActiveMove(changedMove);
+       *       baseMove.priority = priority;                          // the bracket, already WIRE 118's
+       *       target = this.battle.getRandomTarget(pokemon, baseMove);   // and the target is RE-ROLLED
+       *     }
+       *
+       * ABOVE THE FIVE BeforeMove GATES, AND THE ORDER IS A CORRECTNESS CLAIM RATHER THAN A STYLE ONE.
+       * `OverrideAction` is raised inside runMove BEFORE `runEvent('BeforeMove')`, so sleep, freeze,
+       * flinch, confusion, paralysis, the recharge, Throat Chop's silence and Taunt's refusal all ask
+       * their question about the move Encore FORCES, not about the one the player picked. A silenced
+       * body Encored into a sound move is refused; one Encored OFF a sound move is not.
+       *
+       * THE BRACKET IS NOT TOUCHED, AND IT IS SAFE BY CONSTRUCTION RATHER THAN BY A GUARD. `_pri` was
+       * frozen at WIRE 118's pass, above this loop, and `turnOrderKey` reads `it._pri` and never
+       * recomputes -- so a body that clicked Quick Attack and is Encored into a non-priority move still
+       * moves in the fast bracket this turn, which is what `baseMove.priority = priority` says. `_selMv`
+       * stays a COLLECTION-time field for the same reason and is deliberately not written here.
+       *
+       * THE TARGET IS RE-ROLLED FROM THE ENGINE'S OWN SEEDED STREAM, NEVER Math.random(). `targetForMove`
+       * -- which the WIRE 24 rewrite uses -- picks the foe the move hits HARDEST; `getRandomTarget` in a
+       * double falls through to `side.randomFoe()`, which is `sample(this.foes())`, UNIFORM over the
+       * LIVING foes (`activePerHalf > 2` is the triples branch and is not this format). Those are two
+       * different functions and the second is the authority's, so a deterministic pick here is a defect
+       * even when it is a good pick. `rng` is the same stream the accuracy, crit and damage rolls take,
+       * and it is drawn ONLY when an override actually fires -- so every existing seeded probe, the
+       * differential and the roster draw the identical sequence they drew before this wire.
+       * `chooseAction`'s own Encore branch already samples a uniform live target this way; that is the
+       * one implementation of the rule and this is the second caller of it, not a second rule.
+       *
+       * SWITCH, PASS AND STRUGGLE ARE EXCLUDED, each because the authority excludes it: a switch is a
+       * different action phase entirely, a pass is not a move action at all, and runMove's guard is
+       * `baseMove.id !== 'struggle'` in so many words.
+       *
+       * A REBUILD THAT FAILS IS LOUD. Falling through and playing the un-encored move is a real
+       * behaviour change dressed as a no-op, which is this project's signature failure, so it counts
+       * itself rather than vanishing. */
+      if(it.a&&m._vol&&m._vol.encore>0&&m._encoreMove&&MC.moves[m._encoreMove]
+         &&it.a.kind!=='switch'&&it.a.kind!=='pass'&&it.a.kind!=='struggle'
+         &&actionMoveId(it.a)!==m._encoreMove){
+        const _efoes=it.side==='A'?actB:actA, _elive=live(_efoes);
+        if(_elive.length){
+          const _etgt=_elive[Math.floor(rng()*_elive.length)%_elive.length];
+          let _eact=null;
+          try{ _eact=playerAction(m,m._encoreMove,_etgt,field); }catch(e){ MEDFAILS.encoreAction++; }
+          if(_eact&&_eact.kind!=='pass'){
+            MEDSEEN.encoreOverrodeAtExecution++;
+            it.a=_eact;
+            /* The slot, re-derived against the SAME foe array `mk()` used, because every re-aim below
+             * (the `|move|` line, the attack branch's `aim`) resolves through `tgtSlot` and a stale one
+             * would send the forced move at the body the PLAYER had named. -1 for a self- or
+             * ally-directed encored move, which is what `mk()` writes for those too. */
+            it.tgtSlot=_eact.target?_efoes.indexOf(_eact.target):-1;
+          } else MEDFAILS.encoreOverrideUnbuilt++;
+        }
+      }
       /* ROADMAP #68 -- `|cant|POKEMON|REASON`, and the REASON strings are Showdown's own, read off the
        * add() calls in data/conditions.ts (par :42, slp :76, frz :103, flinch :203, recharge :369) and
        * data/mods/champions/conditions.ts, which overrides par and frz for this format. A refusal that

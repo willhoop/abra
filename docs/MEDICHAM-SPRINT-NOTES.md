@@ -119,6 +119,38 @@ and HP values exactly).
 refuses. Boards agree so the state comparator is silent, but the PROTOCOL arm of
 `game_differential.js` would see it.
 
+### FIXED — WIRE 143, both halves, 2026-08-10
+
+| # | row | uses | what it was | verdict move |
+|---|---|---|---|---|
+| 9 | **Encore** | 6,102 | the `onOverrideAction` half had never been wired. `mk()` reads `_lock` before the queue is sorted, and a mid-turn Encore is written after that — so on the ONE turn the override is reachable, `_lock` is still null. Half 2: the target is re-rolled UNIFORMLY (`getRandomTarget` → `side.randomFoe()` → `sample(foes())`), and `targetForMove` picks the hardest hit | FIRED-AND-BOARDS-DIFFER → **awaiting Will's roster re-run** |
+
+Census **333 → 335 live, 335 probed, 0 missing, 0 threw**, on two new probes:
+`an Encore landing MID-TURN overrides the action its victim already chose` and
+`the encored move's target is RE-ROLLED, not aimed at the best foe`. Both shown RED first.
+
+**THE ROW STAYS RED AFTER EITHER HALF ALONE, AND IT WAS SHOWN.** With half 1 landed and the target
+taken from `targetForMove`, the census reads **334 live / 1 missing** — the re-roll probe goes red on
+its own while the override probe stays green.
+
+**THE BRACKET DID NOT MOVE, AND IT IS SAFE BY CONSTRUCTION.** `_pri` is frozen above the loop and
+`turnOrderKey` reads it without recomputing, so `_selMv` stays a collection-time field and finding #2
+above is untouched. Measured on the reachable case (Prankster Whimsicott 116 Encores a Garchomp 102
+that clicked Quick Attack, Dragapult 142 behind them): Garchomp executes the ENCORED X-Scissor and
+still moves before the 142, which is `baseMove.priority = priority` exactly.
+
+**THE RE-ROLL TAKES THE ENGINE'S OWN SEEDED `rng`, NEVER `Math.random()`,** and draws only when an
+override actually fires — so the differential and the roster draw the sequence they drew before.
+
+**NOT CLAIMED: the roster verdict.** `tests/roster.js` was not run — it is Will's to run against a
+frozen tree. The row's state is unknown, not closed.
+
+**FOUND AND NOT FIXED:** an Encore into a **status** move still cannot be honoured through the WIRE 24
+selection path, because `targetForMove` opens `if(!mv||!hasPower(mv))return null`. The new
+execution-time path goes through `playerAction` and does not have that limitation, so the two paths
+now disagree about status moves. It is a change to the Choice-lock rewrite that every Choice holder
+rides, and it needs a probe of its own.
+
 ---
 
 ## DECISIONS TAKEN BY WILL DURING THE SPRINT — record, not recollection

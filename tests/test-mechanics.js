@@ -232,7 +232,14 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * the Speed stages and the confusion flags of all three non-acting bodies, because the two halves of
  * the branch (the `sc` boost loop and the `si` effects loop) are different code and one can be fixed
  * without the other. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(/;
+/* `encoreExec(` added 2026-08-10 with WIRE 143, declared HERE and with its reason, exactly as the
+ * paragraph above requires. It stages a real doubles board through `battleInit` and spends TWO real
+ * turns through `battleTurn`, and it has to spend both: the defect it watches only exists on the turn
+ * an Encore LANDS, because on every later turn the victim's move list has already been narrowed and
+ * the chosen move equals the encored one. It reads the `|move|` stream rather than state, because
+ * both halves of the mechanic — WHICH move ran and WHICH body it ran at — are on that one line, and
+ * `S.lastActs` records the click rather than the execution and is unchanged by this fix by design. */
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bturnDamage\(|\bencoreExec\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -9075,6 +9082,110 @@ probe('move', 'spreadAll', 'Teeter Dance confuses BOTH foes AND my own partner; 
            detail: `[my partner, foe 1, foe 2] confused? — Confuse Ray (target: normal) ${control}; `
                  + `Teeter Dance (target: allAdjacent, same Mr. Rime, same board) ${test} — the `
                  + `partner is in the set for spreadAll and must NOT be for spreadFoes` };
+});
+
+/* ================= WIRE 143 — ENCORE AT EXECUTION TIME =============================================
+ *
+ * THE REACHABLE SET IS A FAST ENCORE INTO A SLOWER FOE, AND NOTHING ELSE. On any turn AFTER the
+ * Encore lands, Showdown's `onDisableMove` has already taken the other moves off the victim's
+ * request, so the move it "chooses" IS the encored one and no override has to happen — which is why
+ * the two probes above (`locksTarget`, `sealsMoves`) are both green against an engine that has never
+ * once overridden an action. They measure the SELECTION half. A probe that clicks Encore on the turn
+ * it cannot land measures nothing at all, and that exact mistake was made twice in this sprint.
+ *
+ * So: the victim commits X-Scissor on turn 1; on turn 2 the Encorer is FASTER and the victim has
+ * already been handed Brick Break. Showdown re-reads the lock inside `runMove`
+ * (sim/battle-actions.ts:223-234, `OverrideAction`), so the victim executes X-Scissor. This engine
+ * read the lock once per turn in `mk()`, before the queue was sorted and before any Encore could
+ * have landed, so `mon._lock` was still null and the rewrite could not fire.
+ *
+ * MEASURED RED BEFORE THE FIX, and the control is the sharpest statement of it: with the Encore
+ * click replaced by a pass the turn-2 stream was BIT-IDENTICAL, at every rng value tried. Landing
+ * the Encore changed nothing whatsoever.
+ *
+ * THE STREAM IS THE INSTRUMENT, not `S.lastActs` and not `_lastMove`. `S.lastActs` is built from
+ * `acts` BEFORE the dispatch loop runs, so it records what was CLICKED and is unchanged by this fix
+ * either way; the `|move|` line is emitted below the BeforeMove gates and carries both halves of what
+ * is being tested — the move that ran AND the target it ran at.
+ *
+ * THE UN-ENCORED PARTNER IS ASSERTED IN EVERY ARM (`partner`). Half 2 changes TARGET SELECTION, so a
+ * fix that re-aimed every click would pass the first probe and be catastrophic; p2b's ordinary
+ * single-target Brick Break must land on the body it named, in both arms and at every rng value. */
+const encoreExec = (enc, r) => {
+  const rng = () => r;
+  const me = bare('whimsicott'), ally = bare('incineroar');
+  const f1 = bare('garchomp'), f2 = bare('milotic');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  /* Both of side A are made unfaintable: the victim's move is aimed at one of them and a KO would
+   * empty a slot, which is a DIFFERENT mechanic (an emptied slot re-aims) riding along in the
+   * measurement. Nothing else about either body is touched. */
+  unfaintable(me); unfaintable(ally);
+  const trace = []; S._trace = trace;
+  /* Turn 1 — the victim commits X-Scissor, so it has a last move for Encore to copy. */
+  M.battleTurn(S, rng, PASS2(me, ally),
+    new Map([[f1, M.playerAction(f1, 'xscissor', me, S.field)], [f2, { kind: 'pass' }]]));
+  const committed = f1._lastMove;
+  trace.length = 0;
+  /* Turn 2 — Whimsicott (116 Spe, and `bare` strips Prankster so this is a plain +0 bracket) Encores
+   * the slower Garchomp (102) AFTER both sides' actions were collected. Both foes were handed Brick
+   * Break, aimed at a named body each. X-Scissor and Brick Break are both 100%-accurate,
+   * single-target, physical and carry NO secondary, so a constant rng cannot make one of them miss,
+   * crit or land a status and change the answer for a reason that is not the lock. */
+  M.battleTurn(S, rng,
+    new Map([[me, enc ? M.playerAction(me, 'encore', f1, S.field) : { kind: 'pass' }],
+             [ally, { kind: 'pass' }]]),
+    new Map([[f1, M.playerAction(f1, 'brickbreak', me, S.field)],
+             [f2, M.playerAction(f2, 'brickbreak', ally, S.field)]]));
+  const line = (p) => (trace.find(l => l.startsWith('|move|' + p)) || '').split('|');
+  const v = line('p2a'), w = line('p2b');
+  return { committed, vol: !!(f1._vol && f1._vol.encore > 0),
+           used: v[3] || 'NONE', at: (v[4] || 'NONE').split(':')[0],
+           partner: (w[3] || 'NONE') + '@' + (w[4] || 'NONE').split(':')[0] };
+};
+
+probe('move', 'sealsMoves', 'an Encore landing MID-TURN overrides the action its victim already chose', () => {
+  const control = encoreExec(false, 0.5), test = encoreExec(true, 0.5);
+  return { works: control.committed === 'xscissor' && test.committed === 'xscissor'
+                  && !control.vol && test.vol
+                  && control.used === 'brickbreak' && test.used === 'xscissor'
+                  && control.partner === test.partner && test.partner === 'brickbreak@p1b',
+           arms: { control: control.used, test: test.used },
+           detail: `victim committed ${control.committed}; on the Encore turn it had already been `
+                 + `handed Brick Break — with the Encore click replaced by a pass it used `
+                 + `${control.used} (volatile ${control.vol}), with the Encore landing it used `
+                 + `${test.used} (volatile ${test.vol}). The un-Encored partner clicked `
+                 + `${control.partner} in both arms` };
+});
+
+/* HALF TWO, AND IT IS A SEPARATE FIX WITH A SEPARATE FAILURE. `targetForMove` picks the foe the move
+ * hits HARDEST; Showdown re-rolls with `getRandomTarget`, which in a double is
+ * `side.randomFoe()` -> `sample(this.foes())` — UNIFORM over the living foes (sim/battle.ts, and
+ * `activePerHalf > 2` is the triples branch, not this one). The two are different functions and the
+ * re-roll sits inside the same `if` block as the override, so it only ever fires on an overridden
+ * action.
+ *
+ * A DETERMINISTIC PICK AND A RANDOM ONE ARE INDISTINGUISHABLE FROM ONE ARM. The knob is the engine's
+ * OWN seeded rng — a constant 0.1 selects live foe 0 and a constant 0.9 selects live foe 1 — and if
+ * the two arms name the same body the target is not being re-rolled at all. `Math.random()` is never
+ * reached: the draw is the `rng` already threaded through `battleTurn` for the accuracy, crit and
+ * damage rolls, which is what keeps the differential and the roster reproducible.
+ *
+ * BOTH ARMS MUST STILL BE THE ENCORED MOVE, or this probe would go green on an engine that had lost
+ * half 1 and was simply aiming Brick Break somewhere new. */
+probe('move', 'sealsMoves', 'the encored move\'s target is RE-ROLLED, not aimed at the best foe', () => {
+  const control = encoreExec(true, 0.1), test = encoreExec(true, 0.9);
+  const unencored = encoreExec(false, 0.1), unencored9 = encoreExec(false, 0.9);
+  return { works: control.used === 'xscissor' && test.used === 'xscissor'
+                  && control.at === 'p1a' && test.at === 'p1b'
+                  && control.partner === 'brickbreak@p1b' && test.partner === 'brickbreak@p1b'
+                  && unencored.partner === 'brickbreak@p1b' && unencored9.partner === 'brickbreak@p1b'
+                  && unencored.at === 'p1a' && unencored9.at === 'p1a',
+           arms: { control: control.at, test: test.at },
+           detail: `the same mid-turn Encore, same board, only the seeded rng varied — at 0.1 the `
+                 + `forced ${control.used} hit ${control.at}, at 0.9 it hit ${test.at} (identical `
+                 + `targets would mean the re-roll is unwired). The UN-Encored victim's own Brick `
+                 + `Break named p1a and hit ${unencored.at}/${unencored9.at} at both rng values, and `
+                 + `the un-Encored partner hit ${control.partner} throughout` };
 });
 
 const works = results.filter(r => r.works);

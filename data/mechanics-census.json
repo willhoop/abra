@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-10T02:05:35.212Z",
+  "generated": "2026-08-10T02:20:23.765Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 333,
-  "live": 333,
+  "probed": 335,
+  "live": 335,
   "missing": 0,
-  "armed": 333,
+  "armed": 335,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2406,7 +2406,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 26.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3337,6 +3337,26 @@
       "label": "Teeter Dance confuses BOTH foes AND my own partner; Confuse Ray confuses one",
       "live": true,
       "detail": "[my partner, foe 1, foe 2] confused? — Confuse Ray (target: normal) 0,1,0; Teeter Dance (target: allAdjacent, same Mr. Rime, same board) 1,1,1 — the partner is in the set for spreadAll and must NOT be for spreadFoes",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "sealsMoves",
+      "label": "an Encore landing MID-TURN overrides the action its victim already chose",
+      "live": true,
+      "detail": "victim committed xscissor; on the Encore turn it had already been handed Brick Break — with the Encore click replaced by a pass it used brickbreak (volatile false), with the Encore landing it used xscissor (volatile true). The un-Encored partner clicked brickbreak@p1b in both arms",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "sealsMoves",
+      "label": "the encored move's target is RE-ROLLED, not aimed at the best foe",
+      "live": true,
+      "detail": "the same mid-turn Encore, same board, only the seeded rng varied — at 0.1 the forced xscissor hit p1a, at 0.9 it hit p1b (identical targets would mean the re-roll is unwired). The UN-Encored victim's own Brick Break named p1a and hit p1a/p1a at both rng values, and the un-Encored partner hit brickbreak@p1b throughout",
       "hollow": false,
       "armed": true,
       "directCall": false

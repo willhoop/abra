@@ -33,7 +33,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  333/333 probed mechanics live, 0 missing   (census 2026-08-10 02:02)
+  335/335 probed mechanics live, 0 missing   (census 2026-08-10 02:20)
   0/150 differential comparisons disagree with Showdown   (2026-08-10 02:02)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -57,9 +57,144 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 183/194 probed, 11 unprobed
 ```
 
-_stamped 2026-08-10 02:03_
+_stamped 2026-08-10 02:23_
 
 <!-- /GENERATED -->
+
+## WIRE 143 — ENCORE WAS APPLIED AT SELECTION AND SHOWDOWN APPLIES IT AT EXECUTION. TWO HALVES, AND FOUR GREEN PROBES SAW NEITHER. 2026-08-10.
+
+Census **333 → 335 live, 335 probed, 0 missing, 0 threw.** Two new probes. Diagnosis by `@measure`
+against frozen release `a59b885861cd`; the fix and the probes are this pass.
+**The roster verdict is NOT claimed here — `tests/roster.js` is Will's to run against a frozen tree,
+and until it is re-run the Encore row's state is unknown rather than closed.**
+
+### THE RESIDUAL WAS NOT DAMAGE AND NOT TARGETING-IN-GENERAL. THE OVERRIDE HAD NEVER RUN.
+
+`@measure` ruled out, with measurements, every candidate the previous pass had left standing: not
+damage (the identical un-encored Dragon Claw deals 39 in **both** engines), not the volatile, not its
+counter, not `targetForMove` mis-aiming — **that code never executed** — not the fixture, not the
+harness. What was left is that our `mk()` collects all four bodies' actions **before the queue is
+sorted**, and at that instant `mon._lock` is still null, because a mid-turn Encore is written later,
+at move resolution. The WIRE 24 rewrite therefore evaluated **once per turn, at the wrong instant**.
+
+Reproduced on the live tree before anything changed, and the CONTROL is the sharpest statement of it —
+the same two turns with the Encore click replaced by a pass, at three different rng values:
+
+```
+  enc=false  vol=false   |move|p2a: garchomp|brickbreak|p1a: whimsicott
+  enc=true   vol=TRUE    |move|p2a: garchomp|brickbreak|p1a: whimsicott     <- bit-identical
+```
+
+The volatile lands, and **landing it changes nothing whatsoever**.
+
+### THE AUTHORITY PUTS BOTH HALVES ON ONE LINE, AND WE HAD NEITHER
+
+`sim/battle-actions.ts:223-234`, inside `runMove`, i.e. **per action at execution**:
+
+```ts
+const changedMove = this.battle.runEvent('OverrideAction', pokemon, target, baseMove);
+if (changedMove && changedMove !== true) {
+    baseMove = this.dex.getActiveMove(changedMove);
+    baseMove.priority = priority;                          // the bracket stays the SELECTED move's
+    target = this.battle.getRandomTarget(pokemon, baseMove);   // and the target is RE-ROLLED
+}
+```
+
+1. **The action is rewritten at execution.** Ours was rewritten at selection only.
+2. **The target is re-rolled uniformly.** `getRandomTarget` in a double falls through to
+   `side.randomFoe()` → `sample(this.foes())` — uniform over the **living** foes. (`activePerHalf > 2`
+   is the triples branch and is not this format.) `targetForMove` picks the foe the move hits
+   **hardest**. Different functions, so a deterministic pick here is a defect even when it is a good
+   pick.
+
+**THE ROW STAYS RED AFTER EITHER HALF ALONE, AND THAT WAS SHOWN RATHER THAN ASSERTED.** With half 1
+landed and the target taken from `targetForMove`, the census reads **334 live, 1 missing** — the
+re-roll probe goes red on its own while the override probe stays green.
+
+### THE PRECEDENT IS IN THIS FILE AND ENCORE ONLY EVER GOT HALF OF IT
+
+`WIRE 119 — TAUNT AT EXECUTION TIME` gave Taunt **both** handlers: `onDisableMove` as a menu filter in
+`chooseAction`, and `onBeforeMove` as a second check in the dispatch loop. Encore's `onDisableMove`
+half was wired twice over (WIRE 20 in the chooser, WIRE 24 for a caller-supplied action) and its
+`onOverrideAction` half was never wired at all.
+
+**PLACED ABOVE THE FIVE BeforeMove GATES, AND THE ORDER IS A CORRECTNESS CLAIM.** `OverrideAction` is
+raised inside `runMove` **before** `runEvent('BeforeMove')`, so sleep, freeze, flinch, confusion,
+paralysis, the recharge, Throat Chop's silence and Taunt's refusal all ask their question about the
+move Encore **forces**, not about the one the player picked. A silenced body Encored into a sound move
+is refused; one Encored **off** a sound move is not.
+
+**THE BRACKET IS SAFE BY CONSTRUCTION, NOT BY A GUARD, AND IT WAS MEASURED.** `_pri` is frozen at WIRE
+118's pass above the loop and `turnOrderKey` reads `it._pri` without recomputing, so nothing this wire
+does can move an action. `_selMv` stays a collection-time field and is deliberately not written here.
+Staged on the reachable case — a Prankster Whimsicott (116) Encoring a Garchomp (102) that clicked
+**Quick Attack**, with a Dragapult (142) clicking a 0-priority move behind them:
+
+```
+  |move|p1a: whimsicott|encore|p2a: garchomp
+  |move|p2a: garchomp|xscissor|p1b: dragapult     <- +1 bracket kept; the ENCORED move executed
+  |move|p1b: dragapult|brickbreak|p2a: garchomp   <- 142 Speed, and still second
+```
+
+That is `baseMove.priority = priority` exactly: the bracket of what the player picked, the move Encore
+forces.
+
+### THE RE-ROLL TAKES THE ENGINE'S OWN SEEDED STREAM, AND THAT IS THE WHOLE OF WHY IT IS SAFE
+
+`Math.random()` is never reached. The draw is the `rng` already threaded through `battleTurn` for the
+accuracy, crit and damage rolls, and it is consumed **only when an override actually fires** — so
+every existing seeded probe, the differential and the roster draw the identical sequence they drew
+before this wire. `chooseAction`'s own Encore branch already samples a uniform live target this way;
+this is a second caller of one rule, not a second rule.
+
+### THE TWO PROBES, AND WHY THE FOUR THAT WERE ALREADY GREEN COULD NOT SEE THIS
+
+`locksTarget` and `sealsMoves` both had live Encore probes, and both stay green against an engine that
+has never once overridden an action — **they measure the selection half.** On any turn AFTER the
+Encore lands, `onDisableMove` has already narrowed the victim's request, so the move it "chooses" IS
+the encored one and no override has to happen.
+
+**A FAST ENCORE INTO A SLOWER FOE IS THE WHOLE OF THE REACHABLE SET.** A probe that clicks Encore on
+the turn it cannot land measures nothing, and that exact mistake was made twice in this sprint.
+
+- `an Encore landing MID-TURN overrides the action its victim already chose` — the victim commits
+  X-Scissor on turn 1; on turn 2 the Encorer is faster and the victim has **already been handed** Brick
+  Break. Control arm, Encore replaced by a pass: `brickbreak`. Test arm: `xscissor`.
+- `the encored move's target is RE-ROLLED, not aimed at the best foe` — the same board, the only knob
+  the seeded rng. At 0.1 the forced X-Scissor hits `p1a`, at 0.9 it hits `p1b`. **Identical targets
+  across that knob mean the re-roll is unwired**, which is what the file's own rule says and what the
+  half-1-only run above prints.
+
+**THE UN-ENCORED CONTROL IS ASSERTED IN EVERY ARM.** Half 2 changes target selection, so a fix that
+re-aimed every click would pass the first probe and be catastrophic. The victim's partner clicks an
+ordinary single-target Brick Break at a named body and lands on it — `brickbreak@p1b` — in both arms
+and at every rng value; and the un-Encored victim's own Brick Break named `p1a` and hit `p1a` at both.
+
+**THE STREAM IS THE INSTRUMENT, NOT `S.lastActs`.** `lastActs` is built from `acts` before the
+dispatch loop, so it records what was CLICKED and is unchanged by this fix by design. The `|move|`
+line is emitted below the BeforeMove gates and carries both halves of what is being tested — which
+move ran and which body it ran at.
+
+### COUNTERS
+
+`MEDSEEN.encoreOverrodeAtExecution` (fires; measured 1 on the staged turn) and
+`MEDFAILS.encoreOverrideUnbuilt` (0), which exists because falling through and playing the un-encored
+move is a real behaviour change dressed as a no-op.
+
+### FOUND AND NOT FIXED — reported, not absorbed
+
+- **An Encore into a STATUS move cannot be honoured through the WIRE 24 path.** `mk()`'s rewrite goes
+  through `targetForMove`, which opens `if(!mv||!hasPower(mv))return null` — so a caller handed a
+  different move while the victim is locked into Swords Dance keeps its own click. The execution-time
+  path added here goes through `playerAction` and does NOT have that limitation, so the two paths now
+  disagree about status moves. Not touched: it is a change to the Choice-lock rewrite that every
+  Choice holder rides, and it belongs with a probe of its own.
+- **We still emit no `|-fail|` for a turn-1 Encore that correctly refuses** (WIRE 69's guard). Boards
+  agree, so the state comparator is silent; the PROTOCOL arm of `game_differential.js` would see it.
+  Carried forward from `@measure`'s note, unchanged.
+- **The feature-semantics banner on `data/policy-weights.json` is pre-existing and is not this wire.**
+  Proved rather than assumed: `encoreOverrodeAtExecution` reads **0** after building every fixture
+  feature, so this block never executes on that board. It is a MEASURE item.
 
 ## A SPREAD *STATUS* MOVE REACHED ONE FOE. FOUR MOVES, ONE MISSING LOOP, AND `spreadFoes` HAD FOUR GREEN PROBES ALREADY. 2026-08-10.
 
@@ -365,10 +500,17 @@ This builder was once one run from dropping ten species (3.88.0), so the diff is
 
 ### TWO ROWS INVESTIGATED AND NOT FIXED — reported, not implied by silence
 
-- **Encore, 6,102 uses, the single heaviest row left.** It is **not** the missing action-override I
+- ~~**Encore, 6,102 uses, the single heaviest row left.** It is **not** the missing action-override I
   first assumed. `WIRE 24` already binds a handed-in action to `_lock`, and Encore sets `_lock` when it
   lands, so the override is wired. The residual difference is **targeting**: Showdown's second
-  aggressor hit Corviknight for 36, ours hit Goodra-Hisui for 55. Needs its own pass.
+  aggressor hit Corviknight for 36, ours hit Goodra-Hisui for 55. Needs its own pass.~~
+  **RETRACTED 2026-08-10 by WIRE 143 (top of this file), and the retracted half is the interesting
+  one.** It WAS the missing action-override. `WIRE 24` binds a handed-in action to `_lock`, but it runs
+  in `mk()` before the queue is sorted, and a mid-turn Encore is written after that — so on the one
+  turn the override is reachable, `_lock` is still null and the rewrite cannot fire. The targeting
+  observation was correct and was the SECOND half, not the residual: `getRandomTarget` re-rolls
+  uniformly and `targetForMove` does not. Both are now probed. **The roster row's state is unknown
+  until Will re-runs `tests/roster.js` against a frozen tree; it is not claimed closed here.**
 - **The lock-in family** — Outrage, Petal Dance, Thrash, Raging Fury, Uproar. `DID-NOT-FIRE` because
   `self.volatileStatus: 'lockedmove'` **has no tag at all**: the engine has nothing to read, and the
   roster's control arm has nothing to strip, which is why the delta is empty rather than wrong. Real,
