@@ -1,13 +1,13 @@
 {
- "generated": "2026-08-10T00:06:12.733Z",
+ "generated": "2026-08-10T00:23:04.370Z",
  "by": "tests/roster.js",
  "stage": "items",
- "engine_release": "c587032378a3",
+ "engine_release": "13bda114d649",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
-  "DID-NOT-FIRE": 6,
-  "FIRED-AND-BOARDS-MATCH": 134,
+  "DID-NOT-FIRE": 4,
+  "FIRED-AND-BOARDS-MATCH": 136,
   "CONTROL-NOT-QUIET": 0,
   "COULD-NOT-STAGE": 8
  },
@@ -4042,8 +4042,8 @@
    "rule": "item/speed-scaled",
    "reads": "onModifySpe",
    "note": "x0.5 on charizard (120 -> 60 against 106) against glimmora; each kills the other, so the ORDER decides who is standing",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "sd_delta": [
@@ -4108,107 +4108,7 @@
      "without": 153
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "glimmora",
-     "field": "party.hp",
-     "showdown": 158,
-     "ours": 0,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "glimmora",
-     "field": "party.fainted",
-     "showdown": false,
-     "ours": true,
-     "bucket": "one-says-yes-one-says-no"
-    },
-    {
-     "turn": 1,
-     "slot": "p1a",
-     "body": "milotic",
-     "field": "species",
-     "showdown": "glimmora",
-     "ours": "milotic",
-     "bucket": "different-value"
-    },
-    {
-     "turn": 1,
-     "slot": "p1a",
-     "body": "milotic",
-     "field": "hp",
-     "showdown": 158,
-     "ours": 170,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p1a",
-     "body": "milotic",
-     "field": "maxhp",
-     "showdown": 158,
-     "ours": 170,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "charizard",
-     "field": "party.hp",
-     "showdown": 0,
-     "ours": 153,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "charizard",
-     "field": "party.fainted",
-     "showdown": true,
-     "ours": false,
-     "bucket": "one-says-yes-one-says-no"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "charizard",
-     "field": "species",
-     "showdown": "milotic",
-     "ours": "charizard",
-     "bucket": "different-value"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "charizard",
-     "field": "hp",
-     "showdown": 170,
-     "ours": 153,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "charizard",
-     "field": "maxhp",
-     "showdown": 170,
-     "ours": 153,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "charizard",
-     "field": "item",
-     "showdown": "",
-     "ours": "ironball",
-     "bucket": "present-in-one-engine-only"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "item",
@@ -4498,8 +4398,8 @@
    "rule": "item/species-locked-stat",
    "reads": "itemUser + onModifyAtk / onModifySpA",
    "note": "held by Pikachu, with a different species holding the same item beside it",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "sd_delta": [
@@ -4516,26 +4416,7 @@
      "without": 1411
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "kangaskhan",
-     "field": "party.hp",
-     "showdown": 1383,
-     "ours": 1411,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p1a",
-     "body": "kangaskhan",
-     "field": "hp",
-     "showdown": 1383,
-     "ours": 1411,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "item",

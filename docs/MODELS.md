@@ -1,6 +1,10 @@
 # ABRA — the model family (living reference)
 
-**Version 3.95.0 · Last updated 2026-08-09.**
+**Version 3.96.0 · Last updated 2026-08-09.**
+
+**3.96.0 — MEDICHAM: THREE ITEMS DID NOTHING BECAUSE THE ARTIFACT NEVER NAMED THEM.** Iron Ball, Light
+Ball and Oran Berry. In every case the mechanic existed; the tag rule matched on a hardcoded NAME, or
+on an amount shape the handler did not use. MEDICHAM-only, quarantine unchanged.
 
 **3.95.0 — MEDICHAM: THE CALCULATOR PRICED A WOOD HAMMER INTO MIMIKYU AT 120 WHEN IT DOES NOTHING.**
 An intact Disguise blocks the move outright. The loop knew; `dmgRange` did not, so every board feature

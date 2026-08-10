@@ -1,6 +1,15 @@
 # ABRA — Technical Documentation
 
-**Version 3.95.0 · Last updated 2026-08-10**
+**Version 3.96.0 · Last updated 2026-08-10**
+
+**3.96.0 — DERIVE TAG MEMBERSHIP FROM THE HANDLER. DO NOT MATCH A NAME.**
+The rule `speedMult` matched the name "choicescarf". The item Iron Ball has the same handler
+`onModifySpe`. It did not get the tag. The consumer was correct. The producer was not.
+The rule `statMult` matched four names. All four names are `isNonstandard: 'Past'`. The rule could not
+give a tag to any item. No code read the tag.
+Read `chainModify` from the handler. Read the species lock from the handler. Do not write a name.
+The item Oran Berry heals a flat amount. The handler is `heal(10)`. There is no `maxhp` in it. Use the
+field `restoresFlat` for a flat amount. Do not multiply a flat amount by the maximum HP.
 
 **3.95.0 — THE DAMAGE FUNCTION MUST HONOUR AN INTACT DISGUISE.**
 The ability Disguise blocks the damage of a move. The move does 0 damage. The ability then does damage

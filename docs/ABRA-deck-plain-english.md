@@ -1,6 +1,17 @@
 # ABRA — the plain-English deck
 
-**Version 3.95.0 · 2026-08-10 · Will Hooper**
+**Version 3.96.0 · 2026-08-10 · Will Hooper**
+
+**3.96.0 — THREE ITEMS DID NOTHING IN OUR SIMULATOR, AND NONE OF THEM WAS ACTUALLY MISSING.** Iron
+Ball halves your Speed. Our engine handles that perfectly — for Choice Scarf. The rule that decides
+which items get the treatment was written as "the item called Choice Scarf" rather than "any item that
+does this", so Iron Ball was left out for 139 recorded uses while the working code sat there unused.
+Same story for Light Ball: the rule listed four items by name, and **all four are banned in this
+format** — so it could never do anything for anyone. And Oran Berry heals a flat 10 health, while we
+only knew how to read heals written as a fraction, so we read "unknown" and did nothing — which is the
+right call, guessing would be worse. All three now work it out from the game's own rules instead of a
+list of names. **The lesson:** something can be built, correct, and working, and still be switched off
+for a particular Pokémon or item because a list somewhere never mentioned them.
 
 **3.95.0 — WE THOUGHT WE COULD KNOCK OUT A MIMIKYU. WE CANNOT.** Mimikyu has an ability that soaks up
 the first hit it takes — the attack does nothing at all. Our simulator has two halves: one plays out

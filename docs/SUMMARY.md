@@ -1,6 +1,13 @@
 # ABRA — Project Summary
 
-**Version 3.95.0 · 2026-08-10 · Will Hooper**
+**Version 3.96.0 · 2026-08-10 · Will Hooper**
+
+**3.96.0 — ITEMS QUEUE 6 → 3, AND ALL THREE WERE NAME HARDCODES OR AN UNREADABLE AMOUNT.** Iron Ball
+(139 uses) went untagged because `speedMult` matched on the NAME "choicescarf" — the consumer worked
+and was starved. `statMult` hardcoded four items **all banned in this format**, had no consumer, and
+`dmgRange` carried three matching permanently-false conditions; its only live member is Light Ball
+(41). Oran Berry heals a flat 10 rather than a fraction, so its amount read null and the consumer
+correctly refused. Census unmoved at 330 live; nothing else moved.
 
 **3.95.0 — THE DAMAGE CALCULATOR NEVER KNEW ABOUT DISGUISE, AND THAT WAS A QUARTER OF THE GATE.**
 One row out of 150: `chesnaught woodhammer -> mimikyu`, showdown `0-0`, ours `120-130`. The battle

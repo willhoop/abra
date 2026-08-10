@@ -33,7 +33,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  330/330 probed mechanics live, 0 missing   (census 2026-08-10 00:13)
+  330/330 probed mechanics live, 0 missing   (census 2026-08-10 00:22)
   0/150 differential comparisons disagree with Showdown   (2026-08-10 00:13)
     seed 20260804, requested 150, 11 not comparable (multihit 7, non-finite 0, threw 4)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -57,9 +57,68 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 183/191 probed, 8 unprobed
 ```
 
-_stamped 2026-08-10 00:16_
+_stamped 2026-08-10 00:27_
 
 <!-- /GENERATED -->
+
+## THE ITEMS QUEUE: 6 → 3. EVERY ONE WAS A PRODUCER THAT COULD NOT NAME ITS MEMBER. 2026-08-10.
+
+Roster items **6 → 3 DID-NOT-FIRE / 134 → 137 match**, 0 FIRED-AND-BOARDS-DIFFER throughout. Exactly
+three verdicts changed and nothing else moved.
+
+| item | uses | the defect |
+|---|---|---|
+| Iron Ball | 139 | `speedMult` matched `name === 'choicescarf'`. **The consumer worked and was starved.** |
+| Light Ball | 41 | `statMult` matched four names, **all four banned here**, and nothing read the tag |
+| Oran Berry | 1 | heals a **flat 10**, not a fraction; the regex read only `maxhp/N` |
+
+**NOT ONE OF THE THREE WAS A MISSING MECHANIC.** That is the finding.
+
+### A WORKING CONSUMER, STARVED BY A HARDCODED PRODUCER
+
+`effSpeed` has read `speedMult` since WIRE 91 and is correct. Iron Ball halves Speed through the
+**identical** `onModifySpe` handler as Choice Scarf. It read DID-NOT-FIRE for 139 uses because
+`tag_dex` asked for a NAME.
+
+CLAUDE.md's own rule is written for exactly this — *"match on tag shape, never on a name, so an
+ability added later is picked up without editing the engine."* And the rule **immediately below**
+`speedMult` in the same file records that lesson being learned for Life Orb, while `speedMult` sat
+unfixed above it. Membership is derived now and is exactly two here: Choice Scarf x1.5, Iron Ball x0.5.
+
+### A DEAD RULE AND A DEAD CONSUMER, DESCRIBING EACH OTHER
+
+`statMult` hardcoded Choice Band, Choice Specs, Assault Vest, Eviolite. **All four are
+`isNonstandard: 'Past'`** — CLAUDE.md names the first three on the ban list — none has a row in
+`data/tags.json`, and **nothing in `engine/` read the tag.** `dmgRange` carried the mirror image:
+
+```js
+if(phys && att.item==='choiceband')  ACH(1.5);   // permanently false
+if(!phys && att.item==='choicespecs')ACH(1.5);   // permanently false
+if(!phys && def.item==='assaultvest')DCH(1.5);   // permanently false
+```
+
+Both derived now. The only member this format has is **Light Ball**, x2 to Atk and SpA and **only on
+Pikachu** — the lock is carried in the tag and honoured in the consumer, compared on BASE species
+because Showdown's own check is `baseSpecies.baseSpecies === "Pikachu"`.
+
+### A DOCUMENTED GAP IS STILL A GAP
+
+The residual loop said plainly: *"Oran restores a FLAT 10 HP, not a fraction — its param is honestly
+null and it stays unwired."* Honest, accurate, and **the roster read it DID-NOT-FIRE regardless.**
+`restoresFlat` is derived beside `restores` and is deliberately **not** scaled by max HP — that
+distinction is the whole reason they are two fields. Sitrus unchanged.
+
+### STILL OPEN — three rows, and they are a bigger piece than these were
+
+Big Root (53 uses, multiplies drain heals by 5324/4096), Shell Bell (44, heals 1/8 of damage dealt),
+Metronome (19, powers up on consecutive same-move use). Each needs a **new tag AND a new consumer**,
+where the three above needed only a producer fixed.
+
+**Two more hardcodes of the same shape are filed and NOT fixed**, found while reading: `passiveHeal`
+matches `name === 'leftovers'`, and `blocksSecondary` / `blocksPowder` match Covert Cloak and Safety
+Goggles — **both of which this format bans.**
+
+---
 
 ## THE DAMAGE CALCULATOR NEVER KNEW ABOUT DISGUISE — A WHOLE GATE CLAUSE WAS ONE ROW. 2026-08-10.
 

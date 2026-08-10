@@ -2244,7 +2244,12 @@ function berryCureUpdate(m){
 function berryPinchUpdate(m,foes){
   if(!m||m.fainted||m.curHP<=0)return;
   const _ht=TAGS.param('item',m.item,'healsAtThreshold');
-  if(!(_ht&&_ht.restores&&_ht.triggersBelow))return;
+  /* A FLAT RESTORE COUNTS TOO. This demanded `_ht.restores` — a FRACTION — and Oran Berry's handler
+   * is `this.heal(10)`, a flat ten with no `maxhp` in it, so its param was null and the berry stayed
+   * unwired. That was declared honestly in the residual loop's comment rather than hidden, and the
+   * roster still read it DID-NOT-FIRE, which is the difference between a documented gap and a closed
+   * one. `restoresFlat` is derived now; either form arms the berry, neither is guessed. */
+  if(!(_ht&&_ht.triggersBelow&&(_ht.restores||_ht.restoresFlat)))return;
   if(healBlocked(m))return;
   /* UNNERVE stops the OTHER SIDE eating at all -- the berry is not consumed and is still there
    * afterwards, which is why the gate wraps the whole block and not only the HP line. */
@@ -2252,7 +2257,10 @@ function berryPinchUpdate(m,foes){
   const _fr=s=>{const p=String(s).match(/(\d+)\s*\/\s*(\d+)/);return p?+p[1]/+p[2]:0;};
   if(m.curHP>m.st.hp*_fr(_ht.triggersBelow))return;
   const _it=m.item;
-  m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp*_fr(_ht.restores)));m.item='';
+  /* The flat amount is an absolute HP count and must NOT be scaled by max HP — that is the whole
+   * distinction the two fields exist to keep. */
+  const _amt=_ht.restores?Math.floor(m.st.hp*_fr(_ht.restores)):+_ht.restoresFlat;
+  m.curHP=Math.min(m.st.hp,m.curHP+_amt);m.item='';
   if(TR){TR.enditem(m,_it,'[eat]');TR.heal(m,'[from] item: '+_it);}
 }
 /* WHAT GOES THROUGH A SUBSTITUTE. Showdown's flag is `bypasssub` and NO artifact this engine reads
@@ -2975,9 +2983,40 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
    * damage formula. */
   let _aCh=CH_ONE,_dCh=CH_ONE;
   const ACH=m=>{_aCh=ch4096(_aCh,m);},DCH=m=>{_dCh=ch4096(_dCh,m);};
-  if(phys&&att.item==='choiceband')ACH(1.5);
-  if(!phys&&att.item==='choicespecs')ACH(1.5);
-  if(!phys&&def.item==='assaultvest')DCH(1.5);
+  /* THESE THREE LINES WERE HARDCODED TO ITEMS THIS FORMAT BANS, AND THE TAG THAT SHOULD HAVE STOOD
+   * HERE HAD NO CONSUMER AT ALL. (2026-08-10, the items queue.)
+   *
+   *     if(phys && att.item==='choiceband')  ACH(1.5);
+   *     if(!phys && att.item==='choicespecs')ACH(1.5);
+   *     if(!phys && def.item==='assaultvest')DCH(1.5);
+   *
+   * Choice Band, Choice Specs and Assault Vest are all `isNonstandard: 'Past'` here — CLAUDE.md names
+   * all three on the ban list — so every one of those conditions was permanently false. Meanwhile
+   * `statMult`, the tag that describes exactly this, was itself hardcoded to the SAME four dead names
+   * in `tag_dex.js` and read by nothing. A dead producer and a dead consumer, describing each other.
+   *
+   * Both are derived now. The only member this format has is **Light Ball** (41 uses, x2 to Atk and
+   * SpA, and ONLY on Pikachu) — a roster DID-NOT-FIRE row. The species lock is carried in the tag and
+   * honoured here, because an item that doubles everybody's Attack is a different item.
+   *
+   * The attacker's side and the defender's side are asked separately: a stat this move does not use
+   * must not fold into its chain. `_aKey`/`_dKey` are already the two stats in play. */
+  {
+    const _sm=(body,key,apply)=>{
+      if(!body||!body.item)return;
+      const p=TAGS.param('item',body.item,'statMult');
+      if(!p||!p.mult||!Array.isArray(p.stats))return;
+      /* THE LOCK COMPARES BASE SPECIES, because Showdown's own check is
+       * `pokemon.baseSpecies.baseSpecies === "Pikachu"` — the BASE name, so every Pikachu forme
+       * qualifies and nothing else does. Our body carries a key like `pikachu` or `pikachu-world`;
+       * the segment before the first hyphen is that base name. Deliberately not a whole-key equality,
+       * which would silently exclude a forme the authority includes. */
+      if(p.onlySpecies&&pasteKey(p.onlySpecies)!==String(body.name||'').split('-')[0])return;
+      if(p.stats.some(s=>_S2E[s]===key))apply(+p.mult);
+    };
+    _sm(att,_aKey,ACH);
+    _sm(def,_dKey,DCH);
+  }
   /* WEATHER RAISES A DEFENCE, and both halves were missing. Snow gives an Ice type x1.5 DEFENCE and
    * sand gives a Rock type x1.5 SPECIAL DEFENCE -- these are passive properties of the weather, not
    * abilities, so nothing in the ability chain above could ever have caught them. Found by Will
@@ -9750,8 +9789,11 @@ function battleTurn(S,rng,actsForA,actsForB){
          if(TR&&m.curHP>_h0)TR.heal(m,'[from] item: '+m.item);}}
       /* WIRE 14 -- healsAtThreshold, from the artifact instead of a Sitrus name check. The tag
        * carries the threshold AND the restore as the handler states them ('1/2' -> '1/4'), so a
-       * future pinch berry joins by existing rather than by someone remembering. Oran restores a
-       * FLAT 10 HP, not a fraction -- its param is honestly null and it stays unwired (0 uses). */
+       * future pinch berry joins by existing rather than by someone remembering.
+       * *(This said "Oran restores a FLAT 10 HP ... its param is honestly null and it stays unwired
+       * (0 uses)". True when written, and CLOSED 2026-08-10: `restoresFlat` is derived beside
+       * `restores`, so a flat heal arms the berry too. A documented gap is still a gap — the roster
+       * read Oran DID-NOT-FIRE regardless of how honestly the comment described it.)* */
       /* Under Heal Block the berry is not eaten AT ALL — it is still there afterwards — so the gate
        * wraps the whole block rather than only the HP line. */
       /* WIRE 58 -- UNNERVE, 1,949 sheets. It stops the OTHER SIDE eating a berry at all -- the berry

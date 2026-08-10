@@ -2310,9 +2310,36 @@ const ITEM_TAGS = [
   { tag: 'choiceLock', param: 'the holder is locked into one move', probe: 'locking',
     why: 'the single strongest thing an open sheet tells you about what they can do next turn',
     of: it => (it.isChoice) ? { choice: true } : null },
-  { tag: 'speedMult', param: 'speed x1.5', probe: 'choicescarf',
+  /* WAS A NAME HARDCODE — `norm(it.name) === 'choicescarf'` — WHICH IS THE ONE THING CLAUDE.md SAYS
+   * NOT TO DO: "match on tag shape, never on a name, so an ability added later is picked up without
+   * editing the engine." The very next rule in this file records that same lesson being learned for
+   * Life Orb, and this one sat unfixed above it.
+   *
+   * IT COST A LIVE ROW. Iron Ball halves Speed through the identical handler, carried **139 sheet
+   * uses**, and the roster read it DID-NOT-FIRE — not because the consumer was missing (`effSpeed`
+   * has read `speedMult` since WIRE 91) but because the ARTIFACT never told it. A working consumer
+   * starved by a hardcoded producer.
+   *
+   * Derived from `onModifySpe`'s own `chainModify` now. Membership in this format is exactly two:
+   *
+   *     Choice Scarf   7,844 uses   x1.5      (unchanged)
+   *     Iron Ball        139 uses   x0.5      (new — this is the roster row)
+   *
+   * Scarf's handler also bails under `dynamax`, which does not exist in this format; the guard is
+   * ignored rather than modelled, and stating that is cheaper than pretending it was read. */
+  { tag: 'speedMult', param: 'the holder\'s Speed is multiplied', probe: 'onModifySpe',
     why: 'order, which most kill features hang off',
-    of: it => norm(it.name) === 'choicescarf' ? { mult: 1.5 } : null },
+    of: (it) => {
+      const src = String(it.onModifySpe || '').replace(/\s+/g, ' ');
+      if (!src) return null;
+      const frac = src.match(/chainModify\(\s*\[\s*(\d+)\s*,\s*(\d+)\s*\]\s*\)/);
+      if (frac) return { mult: +frac[1] / +frac[2], readFrom: 'onModifySpe' };
+      const flat = src.match(/chainModify\(\s*([\d.]+)\s*\)/);
+      /* NO SILENT DEFAULT. A handler this cannot read emits no tag, so the consumer refuses rather
+       * than applying a guessed multiplier — #92's rule, and the reason the pinch family's long
+       * refusal was correct. */
+      return flat ? { mult: +flat[1], readFrom: 'onModifySpe' } : null;
+    } },
   /* Will: "life orb is a damage boost?" It is -- and it also costs 1/10 max HP on EVERY attack,
    * which this tag's own `why` admitted it did not model while recording the multiplier as though
    * the item were free. Two things were wrong: the cost was missing, and membership was a name
@@ -2435,8 +2462,17 @@ const ITEM_TAGS = [
        * no amount and looked merely incomplete rather than broken. */
       const trig = (upd.match(/maxhp\s*\/\s*(\d+)/i) || [])[1];
       const heal = (eat.match(/maxhp\s*\/\s*(\d+)/i) || [])[1];
-      if (!trig && !heal) return null;
+      /* NOT EVERY BERRY HEALS A FRACTION. Oran Berry's `onEat` is `this.heal(10)` — a FLAT ten HP,
+       * with no `maxhp` in it at all — so the fraction regex above found nothing, `restores` came out
+       * null, and the consumer refused (correctly, per #92: an amount it cannot read is not guessed).
+       * The tag looked merely incomplete rather than broken, and the roster read the berry
+       * DID-NOT-FIRE. Berry Juice is the same shape at 20. Read as a SEPARATE field, because a flat
+       * heal and a fraction are different quantities and collapsing them would need a maxhp the tag
+       * does not have. */
+      const flat = (eat.match(/\bheal\(\s*(\d+)\s*[),]/) || [])[1];
+      if (!trig && !heal && !flat) return null;
       return { triggersBelow: trig ? '1/' + trig : null, restores: heal ? '1/' + heal : null,
+               restoresFlat: flat ? +flat : null,
                confusesIfWrongNature: /confus/i.test(eat) || null };
     } },
   { tag: 'passiveHeal', param: 'restores HP every turn', probe: 'leftovers',
@@ -2520,9 +2556,40 @@ const ITEM_TAGS = [
     why: 'Bright Powder makes attacks against the holder 0.9x; Wide Lens (411 uses) makes the holder 1.1x. '
        + 'Feeds the same P(hit) the kill distribution consumes',
     of: it => (it.onModifyAccuracy || it.onSourceModifyAccuracy) ? { accuracy: true } : null },
-  { tag: 'statMult', param: 'raises one stat', probe: 'assaultvest',
-    why: 'Band, Specs, Assault Vest, Eviolite',
-    of: it => /^(choiceband|choicespecs|assaultvest|eviolite)$/.test(norm(it.name)) ? { mult: 1.5 } : null },
+  /* THIS RULE COULD NOT FIRE IN THIS FORMAT AND NOTHING READ IT EITHER. Measured 2026-08-10: it
+   * hardcoded four names and **all four are `isNonstandard: 'Past'`** — Choice Band, Choice Specs and
+   * Assault Vest are on the format's ban list (CLAUDE.md names them), and Eviolite is gone too. None
+   * has a row in `data/tags.json`. And `statMult` has **no consumer anywhere** in `engine/`. A dead
+   * rule producing a dead tag, sitting directly above the `speedMult` hardcode it shares a defect
+   * with.
+   *
+   * Derived from the stat handlers now. Membership in this format is exactly ONE:
+   *
+   *     Light Ball   41 uses   x2 to Atk and SpA, and ONLY on Pikachu
+   *
+   * which the roster reads DID-NOT-FIRE. The species lock is part of the FACT and is carried, not
+   * dropped: an item that doubles everyone's Attack is a different item. */
+  { tag: 'statMult', param: 'multiplies one or more of the holder\'s stats, possibly only on one species',
+    probe: 'onModifyAtk / onModifySpA / onModifyDef / onModifySpD',
+    why: 'Light Ball is the only member this format still has, and it doubles two stats at once',
+    of: (it) => {
+      const MAP = { onModifyAtk: 'atk', onModifySpA: 'spa', onModifyDef: 'def', onModifySpD: 'spd' };
+      const stats = []; let mult = null, species = null;
+      for (const h of Object.keys(MAP)) {
+        const src = String(it[h] || '').replace(/\s+/g, ' ');
+        if (!src) continue;
+        const frac = src.match(/chainModify\(\s*\[\s*(\d+)\s*,\s*(\d+)\s*\]\s*\)/);
+        const flat = src.match(/chainModify\(\s*([\d.]+)\s*\)/);
+        const m = frac ? (+frac[1] / +frac[2]) : (flat ? +flat[1] : null);
+        if (m === null) continue;                       /* unreadable handler -> not claimed */
+        /* `pokemon.baseSpecies.baseSpecies === "Pikachu"` — the lock, read rather than assumed. */
+        const sp = src.match(/baseSpecies\s*===?\s*["']([A-Za-z-]+)["']/);
+        if (sp) species = sp[1];
+        if (mult !== null && m !== mult) return null;   /* two different multipliers is not one fact */
+        mult = m; stats.push(MAP[h]);
+      }
+      return stats.length ? { mult, stats, onlySpecies: species } : null;
+    } },
 ];
 
 const ABILITY_TAGS = [

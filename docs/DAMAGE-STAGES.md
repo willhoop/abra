@@ -1,7 +1,14 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 3.95.0 — 2026-08-10.**
+**Version: 3.96.0 — 2026-08-10.**
 
+
+**3.96.0 — THREE DEAD LINES LEFT THE ATTACK AND DEFENCE CHAINS, AND ONE LIVE ONE JOINED.** The
+hardcoded Choice Band / Choice Specs / Assault Vest multipliers were permanently false — all three are
+banned in this format — and are replaced by a derived `statMult` consumer whose only live member here
+is Light Ball. The chains themselves are unchanged in ORDER and `tests/test-damage-stages.js` re-reads
+**1728/1728 exact, 0 at the wrong stage.** **The boost-stage difference filed at 3.89.0 is still filed
+and still not fixed.**
 
 **3.95.0 — A DAMAGE ANSWER CHANGED, AND IT IS NOT A STAGE.** `dmgRange` now returns **0** against an
 intact Disguise, because the authority's `onDamage` blocks the move outright and the `maxhp/8` that

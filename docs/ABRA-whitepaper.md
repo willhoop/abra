@@ -1,6 +1,21 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 3.95.0 · Last updated 2026-08-10**
+**Version 3.96.0 · Last updated 2026-08-10**
+
+**3.96.0 — THE ITEMS QUEUE WENT 6 TO 3, AND NOT ONE OF THE THREE WAS A MISSING MECHANIC.** Each was a
+producer that could not name its member. `speedMult` was hardcoded to `name === 'choicescarf'`, so
+Iron Ball — which halves Speed through the identical `onModifySpe` handler — went untagged for 139
+uses while the CONSUMER sat working and starved. `statMult` hardcoded four names of which **all four
+are banned in this format**, had no row in the artifact, and was read by nothing; `dmgRange` carried
+the matching hardcode for the same three banned items, three permanently-false conditions. Oran Berry
+heals a flat 10 HP rather than a fraction, and the derivation read only `maxhp/N`, so its amount came
+out null and the consumer refused — correctly, since a guessed heal is worse than none. CLAUDE.md's
+rule, *"match on tag shape, never on a name"*, is written for precisely this, and the rule immediately
+below `speedMult` in the same file records that lesson being learned for Life Orb while `speedMult`
+sat unfixed above it. **What this says about coverage:** a mechanic can be implemented, correct, and
+demonstrably live, and still be absent for a specific holder because the artifact never named them.
+The deliberate roster finds those because it stages every legal entity rather than the ones anyone
+thought to check.
 
 **3.95.0 — TWO READERS OF ONE FACT, AGAIN, AND THIS TIME IT WAS A QUARTER OF THE GATE.** The damage
 differential's sole remaining disagreement across 150 comparisons was `chesnaught woodhammer ->

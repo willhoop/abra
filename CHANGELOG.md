@@ -10,6 +10,58 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.96.0] — 2026-08-10
+
+### Fixed
+- **THE ITEMS QUEUE: 6 → 3 DID-NOT-FIRE. THREE ROWS, AND EVERY ONE WAS A NAME HARDCODE OR AN
+  UNREADABLE AMOUNT — never a missing mechanic.**
+
+  | item | uses | what was wrong |
+  |---|---|---|
+  | Iron Ball | 139 | `speedMult` was hardcoded to `name === 'choicescarf'`. The CONSUMER existed and worked; the producer starved it |
+  | Light Ball | 41 | `statMult` was hardcoded to four names, **all four banned in this format**, and read by nothing at all |
+  | Oran Berry | 1 | heals a **flat 10 HP**, not a fraction; the regex read only `maxhp/N`, so `restores` was null and the consumer refused |
+
+- **A WORKING CONSUMER STARVED BY A HARDCODED PRODUCER.** `effSpeed` has read `speedMult` since WIRE 91.
+  Iron Ball halves Speed through the identical `onModifySpe` handler as Choice Scarf. It read
+  DID-NOT-FIRE for 139 uses because `tag_dex` asked for a NAME. CLAUDE.md's rule — *"match on tag
+  shape, never on a name"* — was written for exactly this, and the very next rule in the file records
+  that same lesson being learned for Life Orb while this one sat unfixed above it. Derived from the
+  handler now; membership in this format is exactly two, Choice Scarf x1.5 and Iron Ball x0.5.
+
+- **A DEAD RULE PRODUCING A DEAD TAG, DESCRIBING EACH OTHER.** `statMult` hardcoded Choice Band, Choice
+  Specs, Assault Vest and Eviolite. **All four are `isNonstandard: 'Past'`** — the first three are on
+  the format's ban list by name in CLAUDE.md — none has a row in `data/tags.json`, and **nothing in
+  `engine/` consumed the tag.** `dmgRange` carried the matching hardcode:
+
+  ```js
+  if(phys && att.item==='choiceband')  ACH(1.5);   // permanently false
+  if(!phys && att.item==='choicespecs')ACH(1.5);   // permanently false
+  if(!phys && def.item==='assaultvest')DCH(1.5);   // permanently false
+  ```
+
+  Both derived now. The only member this format has is **Light Ball** — x2 to Atk and SpA, and only on
+  Pikachu. The species lock is carried in the tag and honoured in the consumer, because an item that
+  doubles everyone's Attack is a different item.
+
+- **A DOCUMENTED GAP IS STILL A GAP.** The residual loop stated plainly that *"Oran restores a FLAT 10
+  HP, not a fraction — its param is honestly null and it stays unwired"*. Honest, accurate, and the
+  roster read the berry DID-NOT-FIRE anyway. `restoresFlat` is derived beside `restores`; the flat
+  amount is an absolute HP count and is deliberately **not** scaled by max HP, which is the whole
+  reason they are two fields. Sitrus is unchanged.
+
+### Notes
+- **Every regeneration was diffed before it was trusted.** Batch 1: 5 params changed, 0 added, 0
+  removed. Batch 2: 2 params changed, 0 added, 0 removed. Roster verdict changes were exactly the
+  three predicted rows and nothing else moved.
+- Census unmoved at **330 live / 330 probed / 0 missing**; `test-damage-stages` 1728/1728 exact, 0 at
+  the wrong stage; `test-engine-consistency` all pass. Release `13bda114d649`, then the flat-heal cut.
+- **Still open, named rather than implied:** Big Root (53 uses — multiplies drain heals by 5324/4096),
+  Shell Bell (44 — heals 1/8 of damage dealt), Metronome (19 — powers up on consecutive same-move use).
+  All three need a new tag AND a new consumer, which is a larger piece than the three above.
+
+---
+
 ## [3.95.0] — 2026-08-10
 
 ### Fixed

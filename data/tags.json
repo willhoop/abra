@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-09T23:26:42.918Z",
+ "generated": "2026-08-10T00:25:01.068Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1752,14 +1752,15 @@
   {
    "tag": "speedMult",
    "kind": "item",
-   "param": "speed x1.5",
+   "param": "the holder's Speed is multiplied",
    "why": "order, which most kill features hang off",
-   "consumedBy": "choicescarf",
+   "consumedBy": "onModifySpe",
    "used": true,
-   "n": 1,
-   "uses": 7844,
+   "n": 2,
+   "uses": 7983,
    "examples": [
-    "Choice Scarf"
+    "Choice Scarf",
+    "Iron Ball"
    ]
   },
   {
@@ -2031,13 +2032,15 @@
   {
    "tag": "statMult",
    "kind": "item",
-   "param": "raises one stat",
-   "why": "Band, Specs, Assault Vest, Eviolite",
-   "consumedBy": "assaultvest",
-   "used": true,
-   "n": 0,
-   "uses": 0,
-   "examples": []
+   "param": "multiplies one or more of the holder's stats, possibly only on one species",
+   "why": "Light Ball is the only member this format still has, and it doubles two stats at once",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 41,
+   "examples": [
+    "Light Ball"
+   ]
   },
   {
    "tag": "convertsMoveType",
@@ -22738,7 +22741,8 @@
      "choice": true
     },
     "speedMult": {
-     "mult": 1.5
+     "mult": 1.5,
+     "readFrom": "onModifySpe"
     },
     "flingable": {
      "basePower": 10,
@@ -23026,10 +23030,15 @@
   "ironball": {
    "name": "Iron Ball",
    "tags": [
+    "speedMult",
     "flingable"
    ],
    "uses": 139,
    "params": {
+    "speedMult": {
+     "mult": 0.5,
+     "readFrom": "onModifySpe"
+    },
     "flingable": {
      "basePower": 130,
      "status": null,
@@ -23158,7 +23167,8 @@
   "lightball": {
    "name": "Light Ball",
    "tags": [
-    "flingable"
+    "flingable",
+    "statMult"
    ],
    "uses": 41,
    "params": {
@@ -23167,6 +23177,14 @@
      "status": "par",
      "volatileStatus": null,
      "isBerry": false
+    },
+    "statMult": {
+     "mult": 2,
+     "stats": [
+      "atk",
+      "spa"
+     ],
+     "onlySpecies": "Pikachu"
     }
    }
   },
@@ -23412,6 +23430,7 @@
     "healsAtThreshold": {
      "triggersBelow": "1/2",
      "restores": null,
+     "restoresFlat": 10,
      "confusesIfWrongNature": null
     },
     "flingable": {
@@ -23758,6 +23777,7 @@
     "healsAtThreshold": {
      "triggersBelow": "1/2",
      "restores": "1/4",
+     "restoresFlat": null,
      "confusesIfWrongNature": null
     },
     "flingable": {

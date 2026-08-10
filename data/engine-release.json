@@ -1,10 +1,10 @@
 {
-  "current": "a4c7f898ad0e",
-  "cut": "2026-08-10T00:13:29.542Z",
-  "why": "dmgRange honours an intact Disguise; the fact is stated once",
+  "current": "fb8b4fc84f8a",
+  "cut": "2026-08-10T00:25:12.642Z",
+  "why": "a flat berry heal arms the pinch path; Oran reaches the engine",
   "cuts": 1,
-  "latest_cut": "2026-08-10T00:13:29.542Z",
-  "latest_why": "dmgRange honours an intact Disguise; the fact is stated once",
-  "pointer_written": "2026-08-10T00:13:29.545Z",
+  "latest_cut": "2026-08-10T00:25:12.642Z",
+  "latest_why": "a flat berry heal arms the pinch path; Oran reaches the engine",
+  "pointer_written": "2026-08-10T00:25:12.645Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }
