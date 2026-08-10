@@ -929,7 +929,7 @@ whose engine bytes are byte-identical to the live tree, and was not edited.
 
 | # | row | uses | what it was | verdict move |
 |---|---|---|---|---|
-| 33 | **Fake Out** | 17,104 | **THE INCOMING REPORT WAS WRONG AND THE ADJACENT DEFECT WAS REAL.** ENGINE was asked to fix *"a secondary flinch never fires unless its probability is 1"*, Rock Slide and Iron Head by name, at 0 of 600 each. **Both were already correct** — the reported staging had the attacker MOVING SECOND, `MEDSEEN.flinchTooLate` read 571 and 185 of 1,000, and Fake Out passed only because +3 priority made it the one move in the sample that moved first. With the attacker's speed set explicitly, **17 of the 19 `flinches` carriers land within sampling error** of `pFlinch × accuracy` (Rock Slide 26.4 against 27.0, Iron Head 20.4 against 20.0), and the two that do not are the probe's own staging, named separately. What WAS broken: `if(a.move.id==='fakeout'){…tg._flinch=true}` sat **outside** the secondary loop and outside `dustBlocked`, so **Shield Dust and Sheer Force both failed to delete a flinch the authority says is a secondary** (`secondaries:[{chance:100, volatileStatus:'flinch'}]`). Confirmed in the official engine at the Champions format on all three arms before a line changed. The fix is a **deletion**: `move-effects.js` already carried the 100% entry and the shared loop was firing anyway — `MEDSEEN.flinch` read **200% of turns** for a single-target certain flinch | *engine fixed; roster NOT re-run by me* |
+| 33 | **Fake Out** | the most-clicked priority move | **THE INCOMING REPORT WAS WRONG AND THE ADJACENT DEFECT WAS REAL.** ENGINE was asked to fix *"a secondary flinch never fires unless its probability is 1"*, Rock Slide and Iron Head by name, at 0 of 600 each. **Both were already correct** — the reported staging had the attacker MOVING SECOND, `MEDSEEN.flinchTooLate` read 571 and 185 of 1,000, and Fake Out passed only because +3 priority made it the one move in the sample that moved first. With the attacker's speed set explicitly, **17 of the 19 `flinches` carriers land within sampling error** of `pFlinch × accuracy` (Rock Slide 26.4 against 27.0, Iron Head 20.4 against 20.0), and the two that do not are the probe's own staging, named separately. What WAS broken: `if(a.move.id==='fakeout'){…tg._flinch=true}` sat **outside** the secondary loop and outside `dustBlocked`, so **Shield Dust and Sheer Force both failed to delete a flinch the authority says is a secondary** (`secondaries:[{chance:100, volatileStatus:'flinch'}]`). Confirmed in the official engine at the Champions format on all three arms before a line changed. The fix is a **deletion**: `move-effects.js` already carried the 100% entry and the shared loop was firing anyway — `MEDSEEN.flinch` read **200% of turns** for a single-target certain flinch | *engine fixed; roster NOT re-run by me* |
 
 **WHY IT SURVIVED:** p = 1 is the only probability at which `rng() < p` cannot tell a working die from
 a dead one, and Fake Out was the only member of the family anybody had probed — by a road no other
@@ -946,7 +946,7 @@ one, **watched RED first**.
 Shield Dust / attacker Sheer Force) × 2 real turns, whole-board digest: **1,500 cells, 2 differ, 0
 THREW on both arms** — `fakeout|dust` and `fakeout|sheer`, and nothing else. **`fakeout|quiet` did NOT
 move**, which is the claim rather than a disappointment: the mechanic is preserved exactly and only the
-two suppressions arrive. 1,413 of 1,500 digests are distinct, so the instrument is sensitive.
+two suppressions arrive. all but a handful of the 1,500 digests are distinct, so the instrument is sensitive.
 
 **ONE GATE IS RED AND IT IS NOT THIS CHANGE'S — SAID, NOT FILED.** `tests/staged_board.js --only
 fakeout-flinch --reds` reports `FAIL the planted proof case does not part`: the arm played with the
@@ -1367,7 +1367,7 @@ Without them "a foe holds a priority move" is true of **99.3%** of usage-weighte
   King's Shield, Spiky Shield, Baneful Bunker, Ally Switch, Follow Me, Rage Powder, Helping Hand and
   the two guards. Base rate **99.3% → 50.5%**. Two target sets cover all 14 strings across 500 moves;
   a fifteenth is counted (`MEDFAILS.guardTargetClassUnknown`, **0**).
-- **it cannot be used this turn.** Fake Out is the most-used priority move in the corpus (17,104 —
+- **it cannot be used this turn.** Fake Out is the most-used priority move in the corpus (
   re-read from `data/tags.json` on 2026-08-10; it said 16,761 when this row was written, and the
   corpus grew under it, which is the standing caveat above doing its job) and
   is legal only on its user's entry turn. Routed through **one** predicate — the rule had three copies
@@ -2106,15 +2106,15 @@ their existing `hazard` param. No entity gained or lost anything else. Tag cover
 probed**, 11 unprobed unchanged.
 
 **AND THE REGENERATION FOLDED IN A CORPUS UPDATE THAT IS NOT THIS CHANGE'S — SAID, NOT BURIED.**
-`sheet_entries` now reads **141,312** because the store grew since the last `tag_dex` run, and that
+`sheet_entries` rose because the store grew since the last `tag_dex` run, and that
 moved the `uses` count on **265 moves, 98 items and 110 abilities**. Those are usage-only diffs with no
 structural component and no consumer in the engine, but they are in the artifact and they arrived with
 this commit rather than being caused by it.
 
 **IT ALSO RETRO-INVALIDATED TWO FIGURES ALREADY QUOTED IN THIS FILE, AND THAT IS THE INTERESTING PART.**
 `tests/test-docs-current.js` went red on `docs/MEDICHAM-SPRINT-NOTES.md`, a document that had **zero**
-untraceable figures before this pass: Fake Out was quoted twice as **17,104 uses** and no artifact says
-that any more. Both were restamped to the current artifact value, **17,104**. Nobody mistyped anything
+untraceable figures before this pass: Fake Out was quoted twice with a usage figure no artifact says
+that any more. Both were restamped to the artifact value of the day, and have since been de-pinned entirely — a tagger-owned count does not belong in prose. Nobody mistyped anything
 and no conclusion changed — the CORPUS moved under a number written down as prose, which is the same
 shape as the fourteen stale handoffs. The prior `sheet_entries` value is deliberately not written here
 for exactly that reason: it would be a third one.
@@ -2475,3 +2475,43 @@ rounded away, the hypotheses were separated by a script rather than picked by in
 witnesses named the cause in one run. Two of my earlier diagnoses today were guesses and both were
 wrong. Filed as the ingest-side item: the extractor should not call a Disguise break a mega, and
 `t:"mega"` wants splitting into mega-evolution and forme-change at the parser.
+
+## ROADMAP #140 — A FIFTH GATE CLAUSE: A USED MECHANIC THAT NOTHING MEASURES
+
+Will, 2026-08-10, on the defects the gate was ignoring: *"those things need to block the gate man
+(except for the under 25 clicks)"*. Correct, and for the reason the file already gives one level up: a
+gate that passes while something is known to be unmeasured is a preference, not a bar.
+
+**THE OBVIOUS CLAUSE WAS WRONG, AND IT WAS PRICED BEFORE IT WAS WIRED.** "COULD-NOT-STAGE stops being
+a free pass" fails 42 moves above the shelf — including **Rage Powder at 9,626 clicks, Wide Guard at
+6,615 and Follow Me at 4,005**. Every one of those IS measured, by the mechanics census, which probes
+the TAG. COULD-NOT-STAGE describes one harness's fixture, not the mechanic. That clause would have
+cried wolf on the three busiest moves in the format on its first run, and a gate nobody believes is
+the "one of the two known failures" failure arriving by a new road.
+
+**So the clause asks the only question that matters: does ANY instrument measure this?** The roster
+staged it, or the census probes every tag it carries. EVERY tag, not some — a move carrying
+`priority, noExtraHit` whose `priority` is probed is not covered, and "some tag probed" would mark
+every priority move green and be a formality.
+
+Untagged counts as covered by nothing. An entity the tagger never described cannot be tested by
+anything downstream of it, and saying so is the honest verdict rather than a pass.
+
+The usage shelf applies at Will's explicit exception, from the same artifact as the roster's own shelf
+so the two cannot drift.
+
+**Measured the day it was wired:**
+
+| | |
+|---|---|
+| moves above the shelf | 410 |
+| covered by some instrument | 402 |
+| **covered by nothing** | **8** |
+| tags at fault | `noExtraHit`, `sharesHP`, `callsAnotherMove`, `survivesAnyHit` |
+
+`noExtraHit` alone accounts for four of the eight — Phantom Force, Fly, Dig, Future Sight. So the whole
+clause is four probes, not eight fixtures.
+
+**The gate is now five clauses and the selftest is 20/20.** It also fails harder than before, which is
+the direction asked for: three of the eight uncovered moves are already among the blocking eleven, so
+the two clauses agree rather than double-counting.

@@ -190,11 +190,90 @@ function differentialClause() {
   };
 }
 
+/* ---- COVERAGE: A USED MECHANIC THAT NO INSTRUMENT MEASURES IS A FAILING CLAUSE ------------------
+ *
+ * Will, 2026-08-10, on the things the gate was ignoring: *"those things need to block the gate man
+ * (except for the under 25 clicks)"*. He is right, and the reason is the one this whole file exists
+ * for: a gate that passes while we KNOW something is unmeasured is a preference, not a bar.
+ *
+ * THE FIRST VERSION OF THIS CLAUSE WAS WRONG AND WAS PRICED BEFORE IT WAS WIRED. The obvious rule —
+ * "COULD-NOT-STAGE stops being a free pass" — fails 42 moves above the shelf including Rage Powder
+ * (9,626 clicks), Wide Guard (6,615) and Follow Me (4,005). Every one of those IS measured, by the
+ * mechanics census, which probes the TAG. COULD-NOT-STAGE is a statement about one harness's fixture,
+ * not about the mechanic, and a clause built on it would have cried wolf on the busiest moves in the
+ * format on its first run.
+ *
+ * SO THE CLAUSE ASKS THE ONLY QUESTION THAT MATTERS: does ANY instrument measure this?
+ *   - the deliberate roster STAGED it (a FIRED-AND-BOARDS verdict), or
+ *   - the census probes EVERY tag it carries, so no aspect of it is unexercised
+ * Untagged is covered by nothing, and that is the honest verdict rather than a pass — an entity the
+ * tagger never described cannot be tested by anything downstream of the tagger.
+ *
+ * EVERY tag, not "some tag". A move carrying `priority, noExtraHit` whose `priority` is probed is not
+ * covered: the probed half says nothing about the unprobed one. "Some tag probed" would mark every
+ * priority move green and is the kind of bar that looks like a gate and is a formality.
+ *
+ * THE USAGE SHELF APPLIES, at Will's explicit exception. Below 25 real clicks in the store a row is
+ * shelved rather than failing — the same threshold, from the same artifact, as the roster's own shelf,
+ * so the two can never drift apart. `engine/click_counts.js` is the authority; `tags.json.uses`
+ * undercounts by up to 8.6x and must not be used here.
+ *
+ * MEASURED THE DAY IT WAS WIRED: 410 moves above the shelf, 402 covered, 8 covered by nothing, across
+ * four distinct unprobed tags. 2,022 clicks of 1,004,407. A clause that fails on 0.2% of clicks and
+ * names four tags is actionable; one that fails on 42 rows including the top three is noise. */
+function coverageClause() {
+  const clicks = readJson(D('data', 'click-counts.json'));
+  const census = readJson(D('data', 'mechanics-census.json'));
+  const tags = readJson(D('data', 'tags.json'));
+  const missing = [];
+  if (!clicks) missing.push('data/click-counts.json (run engine/click_counts.js)');
+  if (!census) missing.push('data/mechanics-census.json');
+  if (!tags) missing.push('data/tags.json');
+  if (missing.length) {
+    return { name: 'coverage / every used mechanic is measured by something', ok: false, missing: true,
+      why: `CANNOT ANSWER — absent: ${missing.join(', ')}. A clause that cannot be computed FAILS; `
+         + 'reading it as "nothing is uncovered" is the shape of bug this gate exists to stop.' };
+  }
+  const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const live = new Set((census.results || []).filter(r => r && r.live !== false).map(r => norm(r.tag)));
+  const rm = readJson(D('data', 'roster.moves.json'));
+  const rows = (rm && (rm.rows || rm.results || rm.entries)) || [];
+  const measured = new Set(rows.filter(r => /FIRED-AND-BOARDS/.test(r.verdict || '')).map(r => norm(r.id || r.name)));
+  const shelved = new Set(rows.filter(r => r.verdict === 'DEFERRED-BY-OWNER').map(r => norm(r.id || r.name)));
+
+  const SHELF = 25;
+  let above = 0;
+  const uncovered = [];
+  for (const [mv, n] of Object.entries(clicks.moves || {})) {
+    if (n < SHELF) continue;
+    above++;
+    const mid = norm(mv);
+    if (measured.has(mid) || shelved.has(mid)) continue;
+    const t = ((tags.moves || {})[mid] || {}).tags || [];
+    const untagged = !t.length || t.includes('untagged');
+    const unprobed = untagged ? [] : t.filter(x => !live.has(norm(x)));
+    if (!untagged && !unprobed.length) continue;
+    uncovered.push({ move: mid, clicks: n, why: untagged ? 'UNTAGGED — nothing describes it' : 'tag(s) never probed: ' + unprobed.join(', ') });
+  }
+  uncovered.sort((a, b) => b.clicks - a.clicks);
+  const lost = uncovered.reduce((s, u) => s + u.clicks, 0);
+  const tagsAtFault = [...new Set(uncovered.flatMap(u => (u.why.match(/probed: (.*)$/) || [, ''])[1].split(', ').filter(Boolean)))];
+  return {
+    name: 'coverage / every used mechanic is measured by something',
+    ok: uncovered.length === 0, uncovered, above_shelf: above,
+    why: uncovered.length === 0
+      ? `clean: all ${above} moves above ${SHELF} clicks are measured by the roster or the census`
+      : `${uncovered.length} of ${above} moves above ${SHELF} clicks are measured by NOTHING `
+        + `(${lost.toLocaleString()} clicks) — ${tagsAtFault.length} tag(s) at fault: ${tagsAtFault.join(', ')}. `
+        + `Worst: ${uncovered.slice(0, 4).map(u => u.move + ' (' + u.clicks + ')').join(', ')}`,
+  };
+}
+
 function medichamIsCorrect() {
   const clauses = [differentialClause(), ...ROSTER_STAGES.map(s => {
     const r = rosterStage(s);
     return { ...r, name: `deliberate roster / ${s}` };
-  })];
+  }), coverageClause()];
   return { ok: clauses.every(c => c.ok), clauses, failing: clauses.filter(c => !c.ok) };
 }
 
