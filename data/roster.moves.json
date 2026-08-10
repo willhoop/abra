@@ -1,14 +1,14 @@
 {
- "generated": "2026-08-10T19:01:14.898Z",
+ "generated": "2026-08-10T20:55:40.329Z",
  "by": "tests/roster.js",
  "stage": "moves",
- "engine_release": "c507af781de0",
+ "engine_release": "07ffb4e75207",
  "format": "gen9championsvgc2026regmb",
  "counts": {
-  "FIRED-AND-BOARDS-DIFFER": 17,
-  "DID-NOT-FIRE": 12,
-  "DEFERRED-BY-OWNER": 0,
-  "FIRED-AND-BOARDS-MATCH": 407,
+  "FIRED-AND-BOARDS-DIFFER": 7,
+  "DID-NOT-FIRE": 4,
+  "DEFERRED-BY-OWNER": 14,
+  "FIRED-AND-BOARDS-MATCH": 411,
   "CONTROL-NOT-QUIET": 0,
   "COULD-NOT-STAGE": 64
  },
@@ -17,11 +17,11 @@
   "out_of_scope": 0,
   "out_of_scope_by": {},
   "in_scope": 500,
-  "tested": 436,
-  "matched": 407,
-  "differ": 17,
-  "silent": 12,
-  "deferred": 0,
+  "tested": 422,
+  "matched": 411,
+  "differ": 7,
+  "silent": 4,
+  "deferred": 14,
   "unattributable": 0,
   "unattributable_ids": [],
   "declared_untestable": [],
@@ -849,8 +849,8 @@
    "rule": "move/needs-the-user-off-full-hp",
    "reads": "a volatile whose own condition heals on residual",
    "note": "Goodra-Hisui is chipped by Dragon Pulse on turn 1 and installs aquaring on turn 2; Torterra is chipped identically and never rings, so the residual is visible on ONE of the two bodies",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "DEFERRED-BY-OWNER",
+   "why": "SHELVED ON USAGE, NOT MEASURED CLEAN. 20 click(s) across 52,377 stored games, under the shelf of 25. Counted from the store by engine/click_counts.js, NOT from tags.json, which undercounts by up to 8.6x on these rows. Still staged and still played against the authority every run; it does not hold the gate. Underlying verdict without the shelf: DID-NOT-FIRE — Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -1375,8 +1375,8 @@
    "rule": "move/plain-attack",
    "reads": "basePower > 0 and nothing else this file has a narrower rule for",
    "note": "Fighting 120 BP into Goodra-Hisui, twice; it also carries 1 sub-100% secondary/ies which the arm decides and this staging does not test  [pinned to bottom-tie-first — it is 90-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
-   "why": null,
+   "verdict": "DEFERRED-BY-OWNER",
+   "why": "SHELVED ON USAGE, NOT MEASURED CLEAN. 2 click(s) across 52,377 stored games, under the shelf of 25. Counted from the store by engine/click_counts.js, NOT from tags.json, which undercounts by up to 8.6x on these rows. Still staged and still played against the authority every run; it does not hold the gate. Underlying verdict without the shelf: FIRED-AND-BOARDS-DIFFER — ",
    "arm": "bottom-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -2185,8 +2185,8 @@
    "rule": "move/traps-and-somebody-tries-to-leave",
    "reads": "`volatileStatus === \"partiallytrapped\"`, or an onHit that adds the `trapped` volatile",
    "note": "Goodra-Hisui is trapped by Block on turn 1 and asks to switch to Torterra on turn 2. HARD trap — nothing about it is a compared leaf, so the refusal is the whole row",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
-   "why": "SHOWDOWN REFUSED THE SWITCH AND OUR ENGINE ALLOWED IT. The authority rejected the choice outright (p2 choice rejected \"switch 3, move 1\": Can't switch: The active Pokémon is trapped) and medicham2's slot now holds Torterra. The trap does not prevent a switch in this engine. The control proves the ask was real: without the move the same switch succeeded in both engines.",
+   "verdict": "DEFERRED-BY-OWNER",
+   "why": "SHELVED ON USAGE, NOT MEASURED CLEAN. 3 click(s) across 52,377 stored games, under the shelf of 25. Counted from the store by engine/click_counts.js, NOT from tags.json, which undercounts by up to 8.6x on these rows. Still staged and still played against the authority every run; it does not hold the gate. Underlying verdict without the shelf: FIRED-AND-BOARDS-DIFFER — SHOWDOWN REFUSED THE SWITCH AND OUR ENGINE ALLOWED IT. The authority rejected the choice outright (p2 choice rejected \"switch 3, move 1\": Can't switch: The acti",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -3242,7 +3242,7 @@
    "rule": "move/plain-attack",
    "reads": "basePower > 0 and nothing else this file has a narrower rule for",
    "note": "Dark 65 BP into Goodra-Hisui, twice  [pinned to bottom-tie-first — it is 90-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
@@ -3288,26 +3288,7 @@
      "without": 1240
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "",
-     "field": "hazards.spikes",
-     "showdown": 1,
-     "ours": 0,
-     "bucket": "off-by-one"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "",
-     "field": "hazards.spikes",
-     "showdown": 2,
-     "ours": 0,
-     "bucket": "off-by-2-or-3"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -4151,8 +4132,8 @@
    "rule": "move/fixed-damage",
    "reads": "damage / damageCallback",
    "note": "hit physically AND specially first, then answering Kangaskhan",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "DEFERRED-BY-OWNER",
+   "why": "SHELVED ON USAGE, NOT MEASURED CLEAN. 1 click(s) across 52,377 stored games, under the shelf of 25. Counted from the store by engine/click_counts.js, NOT from tags.json, which undercounts by up to 8.6x on these rows. Still staged and still played against the authority every run; it does not hold the gate. Underlying verdict without the shelf: DID-NOT-FIRE — Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -4336,8 +4317,8 @@
    "rule": "move/generic-status",
    "reads": "nothing matched above — this is the second residue, and it is the WEAK one",
    "note": "generic: clicked ONCE on turn 2 by the aggressor at Goodra-Hisui, both sides chipped and holding an item",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "DEFERRED-BY-OWNER",
+   "why": "SHELVED ON USAGE, NOT MEASURED CLEAN. 1 click(s) across 52,377 stored games, under the shelf of 25. Counted from the store by engine/click_counts.js, NOT from tags.json, which undercounts by up to 8.6x on these rows. Still staged and still played against the authority every run; it does not hold the gate. Underlying verdict without the shelf: DID-NOT-FIRE — Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -4563,8 +4544,8 @@
    "rule": "move/fixed-damage",
    "reads": "damage / damageCallback",
    "note": "hit physically AND specially first, then answering Kangaskhan",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "DEFERRED-BY-OWNER",
+   "why": "SHELVED ON USAGE, NOT MEASURED CLEAN. 11 click(s) across 52,377 stored games, under the shelf of 25. Counted from the store by engine/click_counts.js, NOT from tags.json, which undercounts by up to 8.6x on these rows. Still staged and still played against the authority every run; it does not hold the gate. Underlying verdict without the shelf: DID-NOT-FIRE — Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -6600,8 +6581,8 @@
    "rule": "move/volatile",
    "reads": "volatileStatus",
    "note": "electrify onto Goodra-Hisui, which clicks Dragon Pulse every turn so a move-sealing volatile has something to seal; Torkoal clicks the same move and is never aimed at",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "DEFERRED-BY-OWNER",
+   "why": "SHELVED ON USAGE, NOT MEASURED CLEAN. 16 click(s) across 52,377 stored games, under the shelf of 25. Counted from the store by engine/click_counts.js, NOT from tags.json, which undercounts by up to 8.6x on these rows. Still staged and still played against the authority every run; it does not hold the gate. Underlying verdict without the shelf: DID-NOT-FIRE — Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -8689,8 +8670,8 @@
    "rule": "move/plain-attack",
    "reads": "basePower > 0 and nothing else this file has a narrower rule for",
    "note": "Fighting 100 BP into Goodra-Hisui, twice  [pinned to bottom-tie-first — it is 95-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
-   "why": null,
+   "verdict": "DEFERRED-BY-OWNER",
+   "why": "SHELVED ON USAGE, NOT MEASURED CLEAN. 19 click(s) across 52,377 stored games, under the shelf of 25. Counted from the store by engine/click_counts.js, NOT from tags.json, which undercounts by up to 8.6x on these rows. Still staged and still played against the authority every run; it does not hold the gate. Underlying verdict without the shelf: FIRED-AND-BOARDS-DIFFER — ",
    "arm": "bottom-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -11468,8 +11449,8 @@
    "rule": "move/needs-the-user-off-full-hp",
    "reads": "a volatile whose own condition heals on residual",
    "note": "Goodra-Hisui is chipped by Dragon Pulse on turn 1 and installs ingrain on turn 2; Torterra is chipped identically and never rings, so the residual is visible on ONE of the two bodies",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "DEFERRED-BY-OWNER",
+   "why": "SHELVED ON USAGE, NOT MEASURED CLEAN. 5 click(s) across 52,377 stored games, under the shelf of 25. Counted from the store by engine/click_counts.js, NOT from tags.json, which undercounts by up to 8.6x on these rows. Still staged and still played against the authority every run; it does not hold the gate. Underlying verdict without the shelf: DID-NOT-FIRE — Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -13145,8 +13126,8 @@
    "rule": "move/traps-and-somebody-tries-to-leave",
    "reads": "`volatileStatus === \"partiallytrapped\"`, or an onHit that adds the `trapped` volatile",
    "note": "Goodra-Hisui is trapped by Mean Look on turn 1 and asks to switch to Torterra on turn 2. HARD trap — nothing about it is a compared leaf, so the refusal is the whole row",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
-   "why": "SHOWDOWN REFUSED THE SWITCH AND OUR ENGINE ALLOWED IT. The authority rejected the choice outright (p2 choice rejected \"switch 3, move 1\": Can't switch: The active Pokémon is trapped) and medicham2's slot now holds Torterra. The trap does not prevent a switch in this engine. The control proves the ask was real: without the move the same switch succeeded in both engines.",
+   "verdict": "DEFERRED-BY-OWNER",
+   "why": "SHELVED ON USAGE, NOT MEASURED CLEAN. 20 click(s) across 52,377 stored games, under the shelf of 25. Counted from the store by engine/click_counts.js, NOT from tags.json, which undercounts by up to 8.6x on these rows. Still staged and still played against the authority every run; it does not hold the gate. Underlying verdict without the shelf: FIRED-AND-BOARDS-DIFFER — SHOWDOWN REFUSED THE SWITCH AND OUR ENGINE ALLOWED IT. The authority rejected the choice outright (p2 choice rejected \"switch 3, move 1\": Can't switch: The acti",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -17020,8 +17001,8 @@
    "rule": "move/needs-a-berry-already-eaten",
    "reads": "`ateBerry` / `lastItem` inside the move's own gate",
    "note": "Goodra-Hisui holds a Oran Berry, is chipped 3x by Dragon Pulse (38 a time into 155 HP) so it crosses the half-HP line and EATS it, then clicks with `ateBerry` set",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "DEFERRED-BY-OWNER",
+   "why": "SHELVED ON USAGE, NOT MEASURED CLEAN. 22 click(s) across 52,377 stored games, under the shelf of 25. Counted from the store by engine/click_counts.js, NOT from tags.json, which undercounts by up to 8.6x on these rows. Still staged and still played against the authority every run; it does not hold the gate. Underlying verdict without the shelf: DID-NOT-FIRE — Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -20190,7 +20171,7 @@
    "rule": "move/side-condition",
    "reads": "sideCondition, and the condition's own onSideRestart",
    "note": "stealthrock — the turn-3 re-click must FAIL and must not refresh the clock (its condition declares no onSideRestart)",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
@@ -20224,26 +20205,7 @@
      "without": 0
     }
    ],
-   "diffs": [
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "",
-     "field": "hazards.stealthrock",
-     "showdown": 1,
-     "ours": 2,
-     "bucket": "off-by-one"
-    },
-    {
-     "turn": 4,
-     "slot": "",
-     "body": "",
-     "field": "hazards.stealthrock",
-     "showdown": 1,
-     "ours": 2,
-     "bucket": "off-by-one"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -20523,7 +20485,7 @@
    "rule": "move/side-condition",
    "reads": "sideCondition, and the condition's own onSideRestart",
    "note": "stickyweb — the turn-3 re-click must FAIL and must not refresh the clock (its condition declares no onSideRestart)",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
@@ -20557,26 +20519,7 @@
      "without": 0
     }
    ],
-   "diffs": [
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "",
-     "field": "hazards.stickyweb",
-     "showdown": 1,
-     "ours": 2,
-     "bucket": "off-by-one"
-    },
-    {
-     "turn": 4,
-     "slot": "",
-     "body": "",
-     "field": "hazards.stickyweb",
-     "showdown": 1,
-     "ours": 2,
-     "bucket": "off-by-one"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -20683,7 +20626,7 @@
    "rule": "move/plain-attack",
    "reads": "basePower > 0 and nothing else this file has a narrower rule for",
    "note": "Rock 65 BP into Goodra-Hisui, twice  [pinned to bottom-tie-first — it is 90-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
@@ -20729,26 +20672,7 @@
      "without": 1240
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "",
-     "field": "hazards.stealthrock",
-     "showdown": 1,
-     "ours": 0,
-     "bucket": "off-by-one"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "",
-     "field": "hazards.stealthrock",
-     "showdown": 1,
-     "ours": 0,
-     "bucket": "off-by-one"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -21081,8 +21005,8 @@
    "rule": "move/generic-status",
    "reads": "nothing matched above — this is the second residue, and it is the WEAK one",
    "note": "generic: clicked ONCE on turn 2 by Goodra-Hisui itself, both sides chipped and holding an item",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
-   "why": null,
+   "verdict": "DEFERRED-BY-OWNER",
+   "why": "SHELVED ON USAGE, NOT MEASURED CLEAN. 0 click(s) across 52,377 stored games, under the shelf of 25. Counted from the store by engine/click_counts.js, NOT from tags.json, which undercounts by up to 8.6x on these rows. Still staged and still played against the authority every run; it does not hold the gate. Underlying verdict without the shelf: FIRED-AND-BOARDS-DIFFER — ",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -22064,8 +21988,8 @@
    "rule": "move/plain-attack",
    "reads": "basePower > 0 and nothing else this file has a narrower rule for",
    "note": "Grass 60 BP into Goodra-Hisui, twice  [pinned to bottom-tie-first — it is 90-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
-   "why": null,
+   "verdict": "DEFERRED-BY-OWNER",
+   "why": "SHELVED ON USAGE, NOT MEASURED CLEAN. 17 click(s) across 52,377 stored games, under the shelf of 25. Counted from the store by engine/click_counts.js, NOT from tags.json, which undercounts by up to 8.6x on these rows. Still staged and still played against the authority every run; it does not hold the gate. Underlying verdict without the shelf: FIRED-AND-BOARDS-DIFFER — ",
    "arm": "bottom-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -22304,8 +22228,8 @@
    "rule": "move/generic-status",
    "reads": "nothing matched above — this is the second residue, and it is the WEAK one",
    "note": "generic: clicked ONCE on turn 2 by Goodra-Hisui itself, both sides chipped and holding an item",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "DEFERRED-BY-OWNER",
+   "why": "SHELVED ON USAGE, NOT MEASURED CLEAN. 0 click(s) across 52,377 stored games, under the shelf of 25. Counted from the store by engine/click_counts.js, NOT from tags.json, which undercounts by up to 8.6x on these rows. Still staged and still played against the authority every run; it does not hold the gate. Underlying verdict without the shelf: DID-NOT-FIRE — Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,

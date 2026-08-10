@@ -2260,3 +2260,134 @@ that, on the overwhelming majority of the corpus, cannot see a 4x damage error.
   look and then reported as the instrument being blind. It was not blind; it was never asked.
 - the refusal now NAMES the boards it was blind on. A refusal that reports only a count made two
   sessions re-derive the diagnosis from scratch, and I guessed wrong twice before looking.
+
+---
+
+## THE REACTION CLUSTER — AN ABILITY THAT READS AN EVENT AND DOES NOT ACT ON IT. WIRE 157, 2026-08-10.
+
+Eight abilities, one family. WIRE 156 routed Fake Out's flinch through the shared secondary loop and
+**Inner Focus started working for free** — because Inner Focus is a REFUSAL and the loop already asked
+about refusals. Steadfast did not, because it is a REACTION: it takes the flinch and is paid for it.
+Seven roster rows turned out to be the same shape one field over — an event this engine could see and
+did not answer.
+
+Census **381 → 390 live / 390 probed / 0 missing / 0 threw**. Every row below had its probe watched
+RED first, individually, and the RED reading is printed beside the green one.
+
+| ability | probe | red reading | green reading |
+|---|---|---|---|
+| `boostsOnFlinch` **Steadfast** | Iron Head at a Machamp, 2,000 seeded turns, `MEDSEEN.flinchTooLate` read as the receipt | flinched **404**, Speed raised **0** | flinched 404, Speed raised **404** — equal, so the boost is bound to the EVENT and not the click |
+| `buffsHolderOnHit` **Electromorphosis** | Bellibolt's Thunderbolt on the two turns after it is struck | 72 then 72 | **142** then 72 — banked, then SPENT |
+| `weatherResidualHP` **Ice Body** (+ Dry Skin, Rain Dish, Solar Power) | three turns of snow, then every sky | +0 | **+30** (3 x 1/16); Dry Skin **+19 in rain and −19 in sun** off one handler |
+| `clearsAllyBoostsOnEntry` **Curious Medicine** | carrier walks in beside a partner on atk/def/spe stages | 2/−1/3 | **0/0/0**, foes and the carrier's own stages untouched |
+| `damageBoost` **Reckless** | Brave Bird vs Drill Peck off the same Staraptor | 123 vs 123 | **147** vs 83 — x1.195 against the handler's 4915/4096 |
+| `protectsAllyFromStatus` **Sweet Veil** (+ Pastel Veil, Flower Veil) | Hypnosis at the body BESIDE the carrier | `slp` | `-`; Toxic still `tox`, the foe still `slp` |
+| `preventsStatDrop.reflects` **Mirror Armor** | Intimidate, Parting Shot and a secondary, read at the SOURCE | target 0, **source 0** | target 0, **source −1 / −1,−1 / −1** |
+| `onSwitchInDrop.oncePerBattle` **Supersweet Syrup** | lead, leave, come back | −1 → −1 → **−2** | −1 → −1 → **−1**, while Intimidate on the same path still goes to −2 |
+
+**THE ODD ONE OUT IS SUPERSWEET SYRUP AND IT IS A DIFFERENT DEFECT CLASS.** The other seven did
+NOTHING; this one did its thing TWICE. `syrupTriggered` is set on the Pokemon (sim/pokemon.ts:263,
+:482) and **is not reset by `clearVolatile()`** — checked line by line, because "it survives a switch"
+is the entire claim. Only a staging that walks a body out and back can see it; every single-entry arm
+reads correct in both engines. Intimidate is the control and it must still fire again, so the flag is
+read per carrier off the artifact rather than applied to the tag.
+
+**TWO FIXES WERE DELIBERATELY WIDER THAN THE ROSTER ROW, TO AVOID BUYING A NEW ONE-DIRECTIONAL ERROR.**
+`onWeather` matches four abilities and **two of them LOSE HP**; a wire that read only Ice Body's heal
+would have made Dry Skin strictly better than the real ability on every sun board. And Sweet Veil was
+a typed name in the engine's self-immunity `slp` list, where it protected the holder *by accident* and
+the partner not at all — the name is **removed**, and both halves now rest on the derived tag.
+
+**THE TAG ARTIFACT MOVED AND THE DIFF IS PRINTED:** `data/tags.json` regenerated, **0 entities removed
+/ 0 added / 68 changed**, of which only **9 changed their TAG SET** — `curiousmedicine`, `dryskin`,
+`flowerveil`, `icebody`, `pastelveil`, `raindish`, `solarpower`, `steadfast`, `sweetveil`. The other 59
+are param FIELDS added to entities whose behaviour is unchanged (`stage`, `reflects*`, `oncePerBattle`).
+Every new derivation had its membership printed against the format dex before it was wired: `onFlinch`
+**1**, `adjacentAllies()+clearBoosts()` **1**, `move.recoil||hasCrashDamage` **1**, `onTryBoost`
+re-aiming at `source` **1**, `onWeather` **4**, `onAllySetStatus` **3**.
+
+**DIGEST SWEEP, before bytes against after bytes** (baseline = the frozen pre-session release
+`30b21c5a335a`, whose `tags.json` is byte-identical to the pre-change artifact — so no git and no new
+cut): **46 differ and 0 THREW in either engine**, over six arms — **500** move arms, **2,660**
+ability-x-click arms on the defender and **2,660** on the attacker, **1,064** weather arms, **266**
+entry arms, and **2,660** more with the ability on the PARTNER. **0 of 500 moves** changed under
+quiet abilities. Every difference is attributable by name: `electromorphosis` (a new volatile, so every
+arm that carries it), `steadfast [fakeout]`, `reckless [bravebird]` only, `mirrorarmor [icywind,
+partingshot]`, `sweetveil [spore,yawn]`, `pastelveil [toxic]`, `supersweetsyrup [partingshot, entry]`,
+`curiousmedicine [entry]`, and the four `weatherResidualHP` carriers under their own skies.
+
+**THE SWEEP WAS WRONG BEFORE THE ENGINE WAS, TWICE, AND BOTH ARE THE TRAPS THIS FAMILY LIVES IN.** Its
+first board had Incineroar (80 Speed) attacking Corviknight (112), so **every flinch arrived at a body
+that had already moved** — Steadfast swept clean while working, the identical staging that produced
+the false Rock Slide report WIRE 156 had to retract. And `ironhead` is a 20% die that drew **zero**
+flinches in three seeded turns, so `fakeout` (p=1, +3 priority) is in the click set. A third arm was
+added because the veil family protects the body BESIDE it and a sweep that puts the ability on its own
+target only ever tests the self half — which already worked.
+
+**COUNTERS EXPORTED.** `MEDSEEN` and `MEDFAILS` reached neither `root` nor `module.exports`, so the
+100+ receipts this engine keeps were unreadable from any test — which is how a Rock Slide report of
+"0 of 600" was filed with `flinchTooLate` sitting at 571 and invisible. The Steadfast probe now
+subtracts `MEDSEEN.flinchTooLate` across its own turns and asserts zero.
+
+**TWO PROTOCOL LINES ARE NOT EMITTED AND ARE COUNTED, NOT PAPERED OVER:** `|-clearboost|` (Curious
+Medicine) and `|-block|` (the veil family). Neither event is in `TRACE_EVENTS`, and
+`tests/test-protocol-trace.js` PART 1 asserts every event this engine CLAIMS actually fires in a real
+game — a three-use ability on a body with no MC row never would. `MEDFAILS.clearBoostUnannounced` and
+`MEDFAILS.blockLineUnannounced` carry the shortfall.
+
+**WHAT THE SURVEY FOUND AND THIS WIRE DID NOT CLOSE.** Asked over the whole format dex: `onFlinch`
+matches exactly one ability, so the flinch family is now complete, and there is no "react to any
+volatile" hook in this format at all — the `onTryAddVolatile` family is entirely REFUSALS and is
+covered. Four reaction abilities with real usage remain **untagged and unwired**, each the same shape
+as Steadfast and none with a failing probe yet: **Synchronize** (135 uses, `onAfterSetStatus` — it
+sends the status back at its source), **Pickpocket** (95, `onAfterMoveSecondary`), **Aroma Veil** (60,
+the ally-side Taunt/Encore/Disable refusal — the one member of the veil family this wire does not
+serve), **Berserk** (44, `onAfterMoveSecondary`).
+
+**Verified:** census 390/390/0 missing/0 threw; `test-damage-stages` **1728/1728 exact**;
+`test-engine-diff --n 20000` **20000 compared, 0 disagreed**; `test-engine-consistency`,
+`test-volatile-duration`, `test-protocol-trace`, `test-game-diff`, `test-wiring`,
+`test-medicham-coverage` (ratchet held), `test-mutation-coverage`, `test-docs-current`, `test-parse`
+and `artifact_audit` all green.
+
+**RED AND NOT MINE, REPORTED RATHER THAN FILED:** `engine/conformance.js` (10 findings, every one
+naming `engine/replay_differential.js` or its artifacts) and `engine/selftest.js` (5 raw-store readers
+undeclared). Both are pre-existing — `medicham2-browser.js`'s single `games.ladder.jsonl` mention is a
+COMMENT at line 1651 and is byte-identical in the pre-session release — and `replay_differential.js`
+is another agent's live file, which this division was instructed not to touch.
+
+## ROADMAP #136 — THE USAGE SHELF, AND THE NUMBER IT NEARLY GOT WRONG
+
+Will, 2026-08-10: *"if no one clicks them we can just put them on the to do list at some point but not
+holding back medicham from functioning"*, then on Block — *"block is almost never clicked so we can
+quarantine it right"*. Correct on both counts, and the implementation nearly went wrong twice.
+
+**IT MUST BE A RULE.** The named `DEFERRED` map suits a judgement about one entity. A shelf of a dozen
+rare moves has to be a threshold, or it becomes the hand-kept exception list this project has already
+paid for once with the ban list of four.
+
+**AND IT MUST READ THE RIGHT NUMBER, WHICH IS NOT THE ONE THAT WAS TO HAND.** `tags.json.uses`
+undercounts the store badly on exactly these rows — Toxic 1,132 there against 3,640 real clicks,
+Terrain Pulse 9 against 77, Copycat 10 against 78. Thresholding on it would have shelved eleven moves
+clicked between 16 and 78 times. That is ROADMAP #70 arriving at a live decision rather than a
+document, and it is why `engine/click_counts.js` now exists: one authoritative click count, taken from
+the store, which is the only thing that actually knows.
+
+**THE SHELF SITS AT THE CHOKE POINT, AND THE FIRST VERSION DID NOT.** Placed inside the
+board-comparison path it never saw the trapping rows, which are decided by their own function and
+return early — so Block, the row Will named, went on holding the gate at 3 clicks while twelve quieter
+moves were shelved. It now runs on every verdict as it leaves `runEntry`, so no path can bypass it and
+no path added later can either.
+
+A shelved row keeps its scenario, is staged, is played against the authority every run, and prints its
+click count and its underlying verdict. It stops holding the gate and stops nothing else. A row that
+would PASS is never shelved. A missing artifact means CANNOT DEFER, never zero clicks.
+
+**Moves only.** The store records that a move was clicked; it does not record which ability a body
+carried unless the game had an open sheet. There is no honest store-derived usage for an ability, so
+none is invented and no ability row is shelved this way — and none needed to be, because the abilities
+clause went clean on its own.
+
+**Where the gate stands:** three clauses of four now PASS. The moves clause is down from 29 blocking
+rows to 11, and every one of the 11 is genuinely used — the largest is Toxic, whose second application
+must fail and does not.

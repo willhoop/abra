@@ -127,6 +127,11 @@ if (!process.argv.includes('--state')) process.argv.push('--state');
 
 const BS = require(D('engine', 'board_state.js'));
 const SB = require(D('tests', 'staged_board.js'));       // the harness, as a library
+/* HOW OFTEN EACH MOVE IS ACTUALLY CLICKED, counted from the store — the usage shelf's only input.
+ * Deliberately NOT frozen into the release: the shelf is a statement about the live meta, and a
+ * six-month-old click count is exactly the stale artifact this file distrusts everywhere else.
+ * Null when the artifact was never built, which means "cannot defer", never "zero clicks". */
+const CLICKS = require(D('engine', 'click_counts.js')).load();
 const CS = require(D('engine', 'champions_sim.js'));
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
 const TAGS = JSON.parse(REL.read('data/tags.json'));
@@ -1081,6 +1086,51 @@ function switchVerdict(e, subject, control, base) {
     + 'arm. This is a refusal comparison, not a board comparison; see the rule.');
 }
 
+/* ---- THE USAGE SHELF ---------------------------------------------------------------------------
+ * Will, 2026-08-10: *"if no one clicks them we can just put them on the to do list at some point but
+ * not holding back medicham from functioning"*, and on Block at 3 clicks in 52,377 games —
+ * *"block is almost never clicked so we can quarantine it right"*.
+ *
+ * A RULE, NOT A LIST. The named `DEFERRED` map is right for a judgement about ONE entity. A shelf of a
+ * dozen rare moves has to be a threshold, because a hand-kept list of exceptions is the stale
+ * ban-list-of-four failure this project has already paid for.
+ *
+ * IT READS THE STORE, NOT `tags.json`, AND THAT MATTERS MORE THAN THE THRESHOLD DOES. `tags.json.uses`
+ * undercounts: measured 2026-08-10, Toxic reads 1,132 there against 3,640 real clicks, Terrain Pulse 9
+ * against 77, Copycat 10 against 78 — up to 8.6x on exactly these rows. Thresholding on it would have
+ * shelved eleven moves clicked between 16 and 78 times. That is ROADMAP #70 landing on a live
+ * decision, and `engine/click_counts.js` exists because of it.
+ *
+ * IT SITS AT THE CHOKE POINT, NOT INSIDE A BRANCH, and the first version got this wrong. Placed inside
+ * the board-comparison path it never saw the trapping rows, which are decided by their own function
+ * and return early — so Block, the row Will named, went on holding the gate at 3 clicks while twelve
+ * quieter moves were shelved. Applied here it covers every path by construction, including any path
+ * added later.
+ *
+ * MOVES ONLY. The store records that a move was CLICKED; it does not record which ability a body
+ * carried unless the game had an open sheet (891 of 52,377). No honest store-derived usage exists for
+ * an ability, so none is invented and no ability row is shelved this way.
+ *
+ * A PASS IS NEVER SHELVED, and a missing artifact means CANNOT DEFER rather than zero clicks — a shelf
+ * that opens when its evidence disappears is not a shelf. */
+const USAGE_SHELF_BELOW = 25;
+function usageShelf(r) {
+  if (STAGE !== 'moves' || !r || !CLICKS) return r;
+  if (r.verdict !== 'FIRED-AND-BOARDS-DIFFER' && r.verdict !== 'DID-NOT-FIRE') return r;
+  if (DEFERRED[r.id]) return r;                       // an owner judgement outranks the threshold
+  const clicks = CLICKS.moves[r.id] || 0;
+  if (clicks >= USAGE_SHELF_BELOW) return r;
+  return { ...r, verdict: 'DEFERRED-BY-OWNER', usage_shelf: true, clicks_in_store: clicks,
+    underlying_verdict: r.verdict,
+    deferred: { on: '2026-08-10', by: 'Will', why: 'below the usage shelf of ' + USAGE_SHELF_BELOW },
+    why: 'SHELVED ON USAGE, NOT MEASURED CLEAN. ' + clicks + ' click(s) across '
+       + (CLICKS.store_games || 0).toLocaleString() + ' stored games, under the shelf of '
+       + USAGE_SHELF_BELOW + '. Counted from the store by engine/click_counts.js, NOT from '
+       + 'tags.json, which undercounts by up to 8.6x on these rows. Still staged and still played '
+       + 'against the authority every run; it does not hold the gate. Underlying verdict without the '
+       + 'shelf: ' + r.verdict + ' — ' + String(r.why || '').slice(0, 160) };
+}
+
 function runEntry(e) {
   const sc = e.scenario;
   const { sc: ctrlSc, ignore } = controlOf(sc);
@@ -1233,6 +1283,28 @@ function runEntry(e) {
          + (wouldPass ? 'FIRED-AND-BOARDS-MATCH — THE SHELF IS STALE, take it down'
                       : (usMoved.length ? 'FIRED-AND-BOARDS-DIFFER' : 'DID-NOT-FIRE')) + '.' };
   }
+  /* THE USAGE SHELF. Will, 2026-08-10: *"if no one clicks them we can just put them on the to do list
+   * at some point but not holding back medicham from functioning"*, and on Block specifically —
+   * 3 clicks in 52,377 games — *"block is almost never clicked so we can quarantine it right"*.
+   *
+   * A RULE, NOT A LIST. The named `DEFERRED` map above is fine for a judgement about ONE entity
+   * (Metronome is a joke). A shelf of a dozen rare moves must be a threshold, because a hand-kept list
+   * of exceptions is the ban-list-of-four failure this project has already paid for once.
+   *
+   * IT READS THE STORE, NOT `tags.json`. This matters more than the threshold does. `tags.json.uses`
+   * UNDERCOUNTS: measured 2026-08-10, Toxic reads 1,132 there against 3,640 real clicks, Terrain Pulse
+   * 9 against 77, Copycat 10 against 78 — up to 8.6x on the rows in question. Thresholding on it would
+   * have shelved eleven moves that are clicked between 16 and 78 times, including Terrain Pulse. That
+   * is ROADMAP #70 landing on a live decision, and `engine/click_counts.js` exists because of it.
+   *
+   * MOVES ONLY. The store records that a move was CLICKED; it does not record which ability a body
+   * carried unless the game had an open sheet (891 of 52,377). There is no honest store-derived usage
+   * for an ability, so none is invented and no ability row is ever shelved this way.
+   *
+   * AND IT STAYS VISIBLE. The row keeps its scenario, is staged, is played against the authority every
+   * run, and prints with its click count. It stops holding the gate shut and stops nothing else. If
+   * the artifact is missing the answer is "cannot defer", never "zero clicks" — a shelf that opens
+   * when its evidence disappears is not a shelf. */
   /* THE ACCUSING VERDICTS ARE GATED ON THE DELTA BEING ATTRIBUTABLE, and the gate sits here rather
    * than in the report so nothing downstream — the artifact, `--reds`, the exit code — can read a
    * contaminated row as a subject failure. It is satisfied two ways and only two:
@@ -6841,6 +6913,7 @@ function main() {
     let r;
     try { r = runEntry(e); }
     catch (err) { r = { ...e, verdict: 'COULD-NOT-STAGE', why: 'the harness threw: ' + err.message }; }
+    r = usageShelf(r);          // one choke point, so no verdict path can bypass the shelf
     /* A DIFFERING PAIR IS ONLY A FOLDING BUG IF EACH HALF AGREES ON ITS OWN. Re-run the two singles
      * and record which arms parted, because "both together are wrong" and "one of them is wrong"
      * are different findings and the pair arm cannot tell them apart. */
