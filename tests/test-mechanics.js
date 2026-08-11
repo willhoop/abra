@@ -239,6 +239,58 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * the chosen move equals the encored one. It reads the `|move|` stream rather than state, because
  * both halves of the mechanic — WHICH move ran and WHICH body it ran at — are on that one line, and
  * `S.lastActs` records the click rather than the execution and is unchanged by this fix by design. */
+/* `guardRun(` added 2026-08-11 with ROADMAP #175's Magic Guard row, declared HERE and with its reason,
+ * exactly as the paragraph above requires — the ratchet caught it as a direct call on its first run,
+ * which is the guard working. It stages a real doubles board through `battleInit` and spends a real
+ * turn through `battleTurn`, and it has to: the four chips it watches (the sandstorm residual, the burn
+ * residual, the Leech Seed residual and the Life Orb toll) live in four different places in the turn
+ * loop and NONE of them is reachable from a direct call — the Orb toll in particular only exists after
+ * a move has connected. */
+/* `thiefRun(` added 2026-08-11 with ROADMAP #175's `stealsItem` row, declared HERE and with its
+ * reason. It stages a real doubles board through `battleInit` and spends a real turn through
+ * `battleTurn`, and it has to: both members fire off an `AfterMoveSecondary` event, which only exists
+ * once a move has been used and has connected — nothing below the turn loop has used a move. */
+/* `syncRun(` added 2026-08-11 with ROADMAP #175's `reflectsStatusToSource` row, declared HERE and with
+ * its reason. It stages a real doubles board through `battleInit` and spends a real turn through
+ * `battleTurn`, and it has to: the handler is `onAfterSetStatus` and needs a SOURCE — a direct call to
+ * `applyStatus` with a hand-supplied source would test the hook and not the road, and the road is
+ * where the source is either passed or lost. */
+/* `cleanerRun(` added 2026-08-11 with ROADMAP #175's `clearsScreensOnEntry` row, declared HERE and
+ * with its reason. It stages a real board through `battleInit` and spends a real turn through
+ * `battleTurn` performing a SWITCH, and it has to: the handler is `onStart`, so the mechanic exists
+ * only on the entry itself and a direct call to the entry function would test the hook rather than
+ * whether the switch path reaches it — which is exactly the WIRE 123 shape this file's direct-call
+ * ratchet was built for. */
+/* `phealRun(` added 2026-08-11 with ROADMAP #175's `healsFromOwnStatus` row, declared HERE and with
+ * its reason. It stages a real doubles board through `battleInit` and spends TWO real turns through
+ * `battleTurn`, and it needs both: the first proves the status LANDS (the defect was an immunity that
+ * refused it) and the second proves the payment is FLAT — an engine that healed on a Toxic ramp would
+ * pass a one-turn probe. */
+/* `berserkRun(` added 2026-08-11 with ROADMAP #175's `boostsAtHPThreshold` row, declared HERE and
+ * with its reason. It stages a real doubles board through `battleInit` and spends a real turn through
+ * `battleTurn`, and it has to: the handler needs the damage of the hit that just landed and the HP on
+ * both sides of it, which only exists inside a real hit. */
+/* `linkRun(` added 2026-08-11 with ROADMAP #175's `multihitAlwaysMax` row, declared HERE and with its
+ * reason. It stages a real doubles board through `battleInit`, spends a real turn through
+ * `battleTurn` and reads the `|-hitcount|` line off the emitted stream, because the hit COUNT is what
+ * the ability changes and a damage read cannot separate "pinned to five" from "the die said five". */
+/* `cureRun(` added 2026-08-11 with ROADMAP #175's `curesStatusResidual` row, declared HERE and with
+ * its reason. It stages a real doubles board through `battleInit` and spends a real turn through
+ * `battleTurn`, and it has to: the mechanic is a RESIDUAL, which by definition only exists at the end
+ * of a turn, and the claim being made is about its ORDER relative to the burn chip — which is a
+ * property of the residual walk and of nothing below it. */
+/* `lensRun(` added 2026-08-11 with ROADMAP #175's `boostsNotVeryEffective` row, declared HERE and
+ * with its reason: it is a thin wrapper over `turnDamageBig(`, which is already declared above, and
+ * it exists only so both arms are staged identically. It spends a real turn through `battleTurn`.
+ *
+ * AND ONE HONEST LIMIT, SAID OUT LOUD RATHER THAN LEFT TO BE FOUND: this probe CANNOT tell the tag
+ * lookup from the name literal it replaced — `att.ability === 'tintedlens'` produced the same 105.
+ * The probe's job is that the MECHANIC is live and correctly gated; the claim that the TAG is what is
+ * read belongs to `tests/test-tag-consumed.js`, which is the instrument that called it dead. */
+/* `reachRun(` added 2026-08-11 with ROADMAP #175's `removesOwnMoveFlag` row, declared HERE and with
+ * its reason. It stages a real doubles board through `battleInit` and spends a real turn through
+ * `battleTurn`, and it has to: the mechanic is only observable through another body's REACTION to a
+ * hit, and nothing below the turn loop has a reactor. */
 /* `lockRun(` and `uproarSleep(` added 2026-08-10 with WIRE 144, declared HERE and with their reasons,
  * exactly as the paragraph above requires. Both stage a real doubles board through `battleInit`.
  * `lockRun(` spends UP TO FOUR real turns through `battleTurn`, and it has to spend more than one: the
@@ -323,7 +375,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * spends up to three real turns through `battleTurn`, and it has to: the whole mechanic is a fact
  * carried ACROSS a turn boundary -- what the body CONSUMED on an earlier turn -- and the berry that
  * creates that fact fires at the residual, so nothing below the turn loop can see either end of it. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(/;
+const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -13595,6 +13647,446 @@ probe('move', 'restoresOwnLastItem', 'Recycle hands back the item the body spent
                  + 'berry forced out of its hands, a second Recycle finds the memory gone — slot "'
                  + spentRun.log[2].item + '" (must be empty). REFUSE: a body still holding Leftovers keeps "'
                  + held.log[1].item + '" and is given no second item' };
+});
+
+/* ROADMAP #175 -- MAGIC GUARD, THE FIRST OF THE TWENTY-TWO TAGS NOTHING READ.
+ *
+ * The engine's sandstorm block carried a comment saying Magic Guard "carries `untagged` in
+ * data/tags.json (79 uses) and this tag cannot see it", and counted every chip it took in
+ * MEDFAILS.magicGuardChip. That was TRUE WHEN WRITTEN and is no longer: the artifact now derives
+ * `refusesIndirectDamage {movesOnly:true}` onto magicguard, so the fact is there and nothing read it.
+ *
+ * THE AUTHORITY IS ONE HANDLER, and it is why this is a CLASS gate and not five special cases --
+ * data/abilities.ts:2455-2461 (no Champions override; `grep magicguard data/mods/champions/abilities.ts`
+ * is empty):
+ *
+ *     onDamage(damage, target, source, effect) { if (effect.effectType !== 'Move') { ...; return false; } }
+ *
+ * Legal carriers DERIVED from `Dex.forFormat('gen9championsvgc2026regmb')`, not recalled: Clefable,
+ * Alakazam, Reuniclus.
+ *
+ * FOUR CHIPS AT ONCE, DELIBERATELY, because the defect is that a class gate did not exist -- a probe
+ * that watched only the sandstorm would pass on an engine that special-cased the sandstorm. Sand, a
+ * burn, a Leech Seed and a Life Orb toll are four different sites in this file.
+ *
+ * THE SEEDER'S HALF IS READ TOO. Showdown's leechseed onResidual heals `damage`, so a blocked chip
+ * pays the seeder NOTHING -- an implementation that skipped the victim's HP line and left the heal
+ * would mint HP, and that is the direction this project's mistakes go. */
+const guardRun = (ab) => {
+  const B = board('clefable', 'skeledirge', 'garchomp', 'farigiraf');   // Garchomp: Ground, so sand cannot chip the seeder
+  B.me.ability = ab;
+  B.me.item = 'lifeorb';
+  B.S.field.weather = 'sand';
+  B.me.status = 'brn';
+  B.me._seededBy = { by: B.f1, per: 8 };
+  B.f1.curHP = Math.floor(B.f1.st.hp / 2);
+  unfaintable(B.f2);
+  const hp0 = B.me.curHP, s0 = B.f1.curHP;
+  /* THE CLICK IS AIMED AT THE OTHER FOE, AND THE FIRST DRAFT OF THIS PROBE GOT THAT WRONG. Aimed at
+   * the SEEDER, the Moonblast's own damage swamped the seeder's return and `seederGain` read -218 in
+   * BOTH arms — a fixture reading the mechanic under test through a hole of its own making. */
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, 'moonblast', B.f2, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    PASS2(B.f1, B.f2));
+  return { lost: hp0 - B.me.curHP, seederGain: B.f1.curHP - s0 };
+};
+probe('ability', 'refusesIndirectDamage', 'Magic Guard pays nothing for sand, a burn, a seed or an Orb', () => {
+  const off = guardRun('none'), on = guardRun('magicguard');
+  return { works: off.lost > 0 && on.lost === 0 && off.seederGain > 0 && on.seederGain === 0,
+           arms: { control: off.lost, test: on.lost },
+           detail: 'the same Clefable, burned, seeded, standing in sand and holding a Life Orb: with no '
+                 + 'ability it loses ' + off.lost + ' hp in one turn and the seeder gains '
+                 + off.seederGain + '; with Magic Guard it loses ' + on.lost + ' and the seeder gains '
+                 + on.seederGain };
+});
+
+/* ROADMAP #175 -- STEALS ITEM. TWO MEMBERS, TWO DIRECTIONS, ONE TAG.
+ *
+ * `stealsItem` distinguishes them by SHAPE and not by name, which is what makes one dispatch possible:
+ *   magician    {takesFrom:'target',   onlyMoveFlag:null,      excludesStatus:true}
+ *   pickpocket  {takesFrom:'attacker', onlyMoveFlag:'contact', excludesStatus:false}
+ *
+ * Authority: data/abilities.ts:2467-2485 (Magician, `onAfterMoveSecondarySelf`) and :3229-3246
+ * (Pickpocket, `onAfterMoveSecondary`). Neither is overridden in data/mods/champions/abilities.ts.
+ * Legal carriers DERIVED from `Dex.forFormat('gen9championsvgc2026regmb')`: Delphox and Klefki carry
+ * Magician; Weavile, Barbaracle, Grimmsnarl and Tinkaton carry Pickpocket.
+ *
+ * BOTH ARMS READ BOTH SLOTS. An implementation that gave the thief an item without emptying the
+ * victim's would mint one, which is the direction this project's mistakes go, so the probe asserts the
+ * victim ends EMPTY as well as the thief ending FULL. The refusal clause is read too: a thief whose
+ * hands are already full takes nothing, and that is the arm that separates "the ability works" from
+ * "the engine hands out items". */
+const thiefRun = (who, ab, thiefItem) => {
+  /* Weavile steals FROM the attacker; Delphox steals FROM its own target. Both are staged on the same
+   * board with the roles swapped, so the two directions cannot share a bug. */
+  const B = who === 'pickpocket'
+    ? board('weavile', 'skeledirge', 'incineroar', 'farigiraf')
+    : board('delphox', 'skeledirge', 'incineroar', 'farigiraf');
+  B.me.ability = ab; B.me.item = thiefItem;
+  B.f1.item = 'leftovers';
+  unfaintable(B.me); unfaintable(B.f1);
+  B.f1.moves = ['firepunch', 'flamethrower', 'protect', 'snarl'];
+  B.me.moves = ['flamethrower', 'protect', 'snarl', 'firepunch'];
+  M.battleTurn(B.S, rng5,
+    who === 'pickpocket'
+      ? PASS2(B.me, B.ally)
+      : new Map([[B.me, M.playerAction(B.me, 'flamethrower', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    who === 'pickpocket'
+      ? new Map([[B.f1, M.playerAction(B.f1, 'firepunch', B.me, B.S.field)], [B.f2, { kind: 'pass' }]])
+      : PASS2(B.f1, B.f2));
+  return { thief: B.me.item, victim: B.f1.item };
+};
+probe('ability', 'stealsItem', 'Pickpocket takes from the attacker, Magician from the target', () => {
+  const pOff = thiefRun('pickpocket', 'none', ''), pOn = thiefRun('pickpocket', 'pickpocket', '');
+  const mOff = thiefRun('magician', 'none', ''), mOn = thiefRun('magician', 'magician', '');
+  /* THE REFUSAL: a thief already holding something takes nothing and the victim keeps its own. */
+  const pFull = thiefRun('pickpocket', 'pickpocket', 'sitrusberry');
+  const ok = pOff.thief === '' && pOff.victim === 'leftovers'
+          && pOn.thief === 'leftovers' && pOn.victim === ''
+          && mOff.thief === '' && mOff.victim === 'leftovers'
+          && mOn.thief === 'leftovers' && mOn.victim === ''
+          && pFull.thief === 'sitrusberry' && pFull.victim === 'leftovers';
+  return { works: ok,
+           arms: { control: pOff.thief + '/' + pOff.victim, test: pOn.thief + '/' + pOn.victim },
+           detail: 'PICKPOCKET: hit by a Fire Punch, an empty-handed Weavile ends holding "' + pOn.thief
+                 + '" and the attacker "' + pOn.victim + '"; with no ability "' + pOff.thief + '" / "'
+                 + pOff.victim + '". MAGICIAN: after its own Flamethrower connects, Delphox holds "'
+                 + mOn.thief + '" and the target "' + mOn.victim + '" (control "' + mOff.thief + '" / "'
+                 + mOff.victim + '"). REFUSED with full hands: "' + pFull.thief + '" / "'
+                 + pFull.victim + '"' };
+});
+
+/* ROADMAP #175 -- SYNCHRONIZE. THE TAG CARRIES THE THREE REFUSALS AND THE PROBE READS TWO OF THEM.
+ *
+ * `reflectsStatusToSource {excludes:['slp','frz'], excludesHazards:true, notSelfInflicted:true}`.
+ * Authority: data/abilities.ts:4849-4858, no Champions override —
+ *
+ *     onAfterSetStatus(status, target, source, effect) {
+ *       if (!source || source === target) return;            // notSelfInflicted
+ *       if (effect && effect.id === 'toxicspikes') return;    // excludesHazards
+ *       if (status.id === 'slp' || status.id === 'frz') return;  // excludes
+ *       source.trySetStatus(status, target, ...);
+ *     }
+ *
+ * Legal carriers DERIVED from `Dex.forFormat('gen9championsvgc2026regmb')`: Alakazam, Espeon, Umbreon,
+ * Gardevoir, Musharna.
+ *
+ * THE SLEEP ARM IS WHAT MAKES THIS MORE THAN A FLAG. An engine that reflected everything passes the
+ * burn arm and fails here, and reflecting Spore would be a NEW wrong number rather than a wired
+ * mechanic — the same shape as WIRE 31's snow. */
+const syncRun = (ab, mvId, foeSp) => {
+  const B = board('espeon', 'skeledirge', foeSp, 'farigiraf');
+  B.me.ability = ab;
+  B.f1.moves = [mvId, 'protect', 'snarl', 'flamethrower'];
+  M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
+    new Map([[B.f1, M.playerAction(B.f1, mvId, B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+  return { victim: B.me.status || '', caster: B.f1.status || '' };
+};
+probe('ability', 'reflectsStatusToSource', 'Synchronize hands the burn back and keeps the sleep', () => {
+  /* THE CASTER MUST BE ABLE TO TAKE THE STATUS IT CASTS, and the first draft of this probe used
+   * INCINEROAR — a Fire type, which cannot be burned, so the reflection fired and landed on nothing
+   * and the probe read as an unwired mechanic. Sableye is Dark/Ghost, is tier UU in this format and
+   * `getLearnsetData('sableye').willowisp` is true. */
+  const bOff = syncRun('none', 'willowisp', 'sableye'), bOn = syncRun('synchronize', 'willowisp', 'sableye');
+  /* Sleep Powder off a Vileplume rather than Spore off an Amoonguss, and the reason is the FIXTURE
+   * and not the mechanic: `buildMon` has no row for amoonguss (317 species), so the first draft of
+   * this probe THREW. Both are legal in Reg M-B — `getLearnsetData('vileplume').sleeppowder` is true
+   * and Vileplume's tier is OU — and the handler excludes the STATUS, not the move. */
+  const sOff = syncRun('none', 'sleeppowder', 'vileplume'), sOn = syncRun('synchronize', 'sleeppowder', 'vileplume');
+  const ok = bOff.victim === 'brn' && bOff.caster === ''
+          && bOn.victim === 'brn' && bOn.caster === 'brn'
+          && sOff.victim === 'slp' && sOn.victim === 'slp' && sOn.caster === '';
+  return { works: ok, arms: { control: bOff.caster, test: bOn.caster },
+           detail: 'Will-O-Wisp into Espeon: victim "' + bOn.victim + '", caster "' + bOn.caster
+                 + '" (control caster "' + bOff.caster + '"). SPORE, which the handler excludes: victim "'
+                 + sOn.victim + '", caster "' + sOn.caster + '" — an engine that reflected everything '
+                 + 'would put the Vileplume to sleep with its own Sleep Powder' };
+});
+
+/* ROADMAP #175 -- SCREEN CLEANER, AND THE HALF A CARELESS WIRE DROPS IS `sides:'both'`.
+ *
+ * `clearsScreensOnEntry {conditions:['reflect','lightscreen','auroraveil'], sides:'both'}`.
+ * Authority: data/abilities.ts screencleaner, no Champions override —
+ *
+ *     onStart(pokemon) {
+ *       let activated = false;
+ *       for (const sideCondition of ['reflect', 'lightscreen', 'auroraveil']) {
+ *         for (const side of [pokemon.side, ...pokemon.side.foeSidesWithConditions()]) {
+ *           if (side.getSideCondition(sideCondition)) { ...; side.removeSideCondition(sideCondition); }
+ *
+ * so it takes down its OWN side's screens as well as the foe's — the reason the ability is a
+ * liability as well as a tool. Legal carrier DERIVED: Mr. Rime, the only one in Reg M-B.
+ *
+ * BOTH SIDES ARE READ. An implementation that cleared only the foe's would pass a one-sided probe and
+ * be strictly better than the real ability, which is the direction this project's mistakes go. */
+const cleanerRun = (ab) => {
+  const me = bare('corviknight'), ally = bare('skeledirge');
+  const f1 = bare('garchomp'), f2 = bare('farigiraf');
+  const inc = bare('mrrime'); inc.ability = ab;
+  const S = M.battleInit([me, ally, inc], [f1, f2], { seeded: true });
+  /* Screens on BOTH sides, set as state rather than clicked, so the probe varies one knob. */
+  (S.sfA.sc = S.sfA.sc || {}).reflect = 5;
+  (S.sfB.sc = S.sfB.sc || {}).lightscreen = 5;
+  M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: inc }], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return { own: (S.sfA.sc && S.sfA.sc.reflect) || 0, foe: (S.sfB.sc && S.sfB.sc.lightscreen) || 0,
+           slot0: S.actA[0] && S.actA[0].name };
+};
+probe('ability', 'clearsScreensOnEntry', 'Screen Cleaner takes down BOTH sides, its own included', () => {
+  const off = cleanerRun('none'), on = cleanerRun('screencleaner');
+  return { works: off.slot0 === 'mrrime' && off.own > 0 && off.foe > 0 && on.own === 0 && on.foe === 0,
+           arms: { control: off.own + '/' + off.foe, test: on.own + '/' + on.foe },
+           detail: 'Mr. Rime walks in ("' + on.slot0 + '") with a Reflect on its OWN side and a Light '
+                 + 'Screen on the foe\'s: with no ability they read ' + off.own + ' and ' + off.foe
+                 + ' turns, with Screen Cleaner ' + on.own + ' and ' + on.foe };
+});
+
+/* ROADMAP #175 -- POISON HEAL, AND THE ENGINE HAD IT AS AN IMMUNITY, WHICH IS THE OPPOSITE ABILITY.
+ *
+ * `healsFromOwnStatus {statuses:['psn','tox'], fraction:0.125, refusesTheDamage:true}`.
+ * Authority: data/abilities.ts:3321-3328, no Champions override —
+ *
+ *     onDamagePriority: 1,
+ *     onDamage(damage, target, source, effect) {
+ *       if (effect.id === 'psn' || effect.id === 'tox') { this.heal(target.baseMaxhp / 8); return false; }
+ *     }
+ *
+ * There is NO `onSetStatus`. The poison LANDS and then pays the holder a eighth of its maximum every
+ * turn. `medicham2` listed `poisonheal` in `STATUS_IMMUNE_ABIL` under both psn and tox, so a Toxic
+ * clicked at a Gliscor simply failed — the holder was neither poisoned nor healed, and the whole
+ * reason the ability is played (a Toxic Orb body that outlasts everything) was worth nothing.
+ *
+ * Legal carrier DERIVED from `Dex.forFormat('gen9championsvgc2026regmb')`: Gliscor, the only one.
+ *
+ * THE PROBE READS HP GOING UP, NOT THE STATUS FIELD. A body that merely takes the poison and no
+ * longer heals would pass a status read; only the HP separates "the immunity is gone" from "the
+ * ability works". */
+const phealRun = (ab) => {
+  /* Glimmora rather than Sableye: `getLearnsetData('sableye').toxic` is FALSE in this format, and a
+   * caster that does not have the move is a fixture reading zero rather than a mechanic. Glimmora is
+   * tier OU here and learns it. */
+  const B = board('gliscor', 'skeledirge', 'glimmora', 'farigiraf');
+  B.me.ability = ab;
+  B.me.curHP = Math.floor(B.me.st.hp / 2);
+  B.f1.moves = ['toxic', 'protect', 'snarl', 'flamethrower'];
+  const hp0 = B.me.curHP;
+  M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
+    new Map([[B.f1, M.playerAction(B.f1, 'toxic', B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+  const afterT1 = B.me.curHP;
+  M.battleTurn(B.S, rng5, PASS2(B.me, B.ally), PASS2(B.f1, B.f2));
+  return { status: B.me.status || '', t1: afterT1 - hp0, t2: B.me.curHP - afterT1, max: B.me.st.hp };
+};
+probe('ability', 'healsFromOwnStatus', 'Poison Heal takes the Toxic and is PAID by it', () => {
+  const off = phealRun('none'), on = phealRun('poisonheal');
+  const eighth = Math.floor(on.max / 8);
+  return { works: off.status === 'tox' && off.t1 < 0 && off.t2 < off.t1
+                  && on.status === 'tox' && on.t1 === eighth && on.t2 === eighth,
+           arms: { control: [off.t1, off.t2], test: [on.t1, on.t2] },
+           detail: 'Gliscor (' + on.max + ' max) Toxic\'d at half HP. With no ability it is "' + off.status
+                 + '" and loses ' + (-off.t1) + ' then ' + (-off.t2) + ' (the ramp). With Poison Heal it '
+                 + 'is still "' + on.status + '" — the ability has no onSetStatus — and GAINS ' + on.t1
+                 + ' then ' + on.t2 + ', which is max/8 = ' + eighth + ' both turns because the ramp '
+                 + 'never applies to a heal' };
+});
+
+/* ROADMAP #175 -- BERSERK, AND `onCrossingOnly` IS THE WHOLE MECHANIC.
+ *
+ * `boostsAtHPThreshold {threshold:0.5, boosts:{spa:1}, onCrossingOnly:true, defersHealingBerry:true}`.
+ * Authority: data/abilities.ts:404-429 for the rule, and Champions overrides ONLY the `onDamage`
+ * bookkeeping line (data/mods/champions/abilities.ts:8-13) — the boost clause is inherited:
+ *
+ *     if (target.hp <= target.maxhp / 2 && target.hp + damage > target.maxhp / 2) this.boost({spa: 1}, ...)
+ *
+ * so it fires on the hit that CROSSES the half and never again while the body stays under it. An
+ * engine that boosted on every hit below half would be a different and much better ability, which is
+ * why the second arm here starts the body already under the line.
+ *
+ * Legal carriers DERIVED: Drampa and Drampa-Mega carry Berserk. Anger Shell, the other member of the
+ * tag, has NO legal carrier in Reg M-B — Klawf is `isNonstandard: 'Past'` — so it is served by the
+ * same shape dispatch and cannot be staged. That is stated, not hidden. */
+/* THE BODY IS MADE UNFAINTABLE AND THE HIT IS MEASURED BEFORE IT IS PLACED, and the first draft of
+ * this probe did neither: a Dragon Claw took Drampa from 94 straight to 0, so BOTH arms read spa 0 and
+ * the probe was measuring a KO. `place` is null on the measuring run (start at full HP) and a number
+ * on the staged ones. */
+const berserkRun = (ab, place) => {
+  const B = board('drampa', 'skeledirge', 'garchomp', 'farigiraf');
+  B.me.ability = ab;
+  unfaintable(B.me);
+  if (place != null) B.me.curHP = place;
+  B.f1.moves = ['dragonclaw', 'protect', 'snarl', 'flamethrower'];
+  const hp0 = B.me.curHP;
+  M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
+    new Map([[B.f1, M.playerAction(B.f1, 'dragonclaw', B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+  return { spa: B.me.boosts.sa, hp0, hp: B.me.curHP, half: B.me.st.hp / 2, dmg: hp0 - B.me.curHP };
+};
+probe('ability', 'boostsAtHPThreshold', 'Berserk fires on the hit that CROSSES half, and only then', () => {
+  const gauge = berserkRun('none', null);
+  const halfHP = Math.floor(gauge.half);
+  const atLine = halfHP + Math.max(1, Math.floor(gauge.dmg / 2));   // one Dragon Claw takes it under
+  const below = halfHP - Math.max(1, Math.floor(gauge.dmg / 2));    // already under, and survives the hit
+  const off = berserkRun('none', atLine), on = berserkRun('berserk', atLine);
+  const under = berserkRun('berserk', below);
+  const crossed = on.hp0 > on.half && on.hp <= on.half;
+  const stayedUnder = under.hp0 <= under.half;
+  return { works: crossed && stayedUnder && off.spa === 0 && on.spa === 1 && under.spa === 0,
+           arms: { control: off.spa, test: on.spa },
+           detail: 'Drampa at ' + on.hp0 + ' (half is ' + on.half + ') takes a Dragon Claw to ' + on.hp
+                 + ' — SpA stage ' + on.spa + ', control ' + off.spa + '. Already UNDER the line at '
+                 + under.hp0 + ' it takes the same hit to ' + under.hp + ' and reads ' + under.spa
+                 + ': the ability is a crossing, not a state' };
+});
+
+/* ROADMAP #175 -- SKILL LINK. `multihitAlwaysMax {takesIndex:1, removesMultiaccuracy:true}`.
+ *
+ * Authority: data/abilities.ts:4287-4295, no Champions override —
+ *
+ *     onModifyMove(move) {
+ *       if (move.multihit && Array.isArray(move.multihit) && move.multihit.length) move.multihit = move.multihit[1];
+ *       if (move.multiaccuracy) delete move.multiaccuracy;
+ *     }
+ *
+ * Legal carriers DERIVED: Toucannon and Heracross-Mega. Toucannon's learnset carries `rockblast`, so
+ * the board is one a player could bring.
+ *
+ * IT READS THE HIT COUNT OFF THE STREAM, NOT THE DAMAGE. `MULTIHIT_2_5` is a weighted sample table, so
+ * an unmodified Rock Blast at rng 0.5 draws SOME number and a damage read cannot tell "the ability
+ * pinned it to five" from "the die happened to say five". The `|-hitcount|` line says it outright, and
+ * the control arm prints its own draw beside it. */
+const linkRun = (ab) => {
+  const B = board('toucannon', 'skeledirge', 'garchomp', 'farigiraf');
+  B.me.ability = ab;
+  B.me.moves = ['rockblast', 'protect', 'snarl', 'flamethrower'];
+  unfaintable(B.f1);
+  const trace = []; B.S._trace = trace;
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, 'rockblast', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    PASS2(B.f1, B.f2));
+  const hc = trace.filter(l => l.startsWith('|-hitcount|'));
+  return { hits: hc.length ? +hc[0].split('|')[3] : -1, lines: hc };
+};
+probe('ability', 'multihitAlwaysMax', 'Skill Link pins Rock Blast to the top of its own range', () => {
+  const off = linkRun('none'), on = linkRun('skilllink');
+  return { works: off.hits > 0 && off.hits < 5 && on.hits === 5,
+           arms: { control: off.hits, test: on.hits },
+           detail: 'Toucannon clicks Rock Blast on the same roll both times: with no ability the '
+                 + '`|-hitcount|` line says ' + off.hits + ', with Skill Link it says ' + on.hits
+                 + ' — the top of the artifact\'s own [2,5] range, taken by index and not typed' };
+});
+
+/* ROADMAP #175 -- THE RESIDUAL STATUS CURES. THREE MEMBERS, THREE DIFFERENT GATES, ONE TAG.
+ *
+ *   healer     {scope:'adjacentAllies', chance:0.5,  weathers:null}
+ *   hydration  {scope:'self',           chance:1,    weathers:['rain']}
+ *   shedskin   {scope:'self',           chance:0.33, weathers:null}
+ *
+ * Authority: data/abilities.ts:4177-4186 (Shed Skin) and :1915-1924 (Hydration), both
+ * `onResidualOrder: 5`. HEALER IS OVERRIDDEN BY CHAMPIONS (data/mods/champions/abilities.ts:46-57)
+ * and its chance there is `randomChance(1, 2)` — 50%, not mainline's 30%. That is exactly the value
+ * the memory note says was typed from recall once already, so it is read here and not remembered.
+ *
+ * Legal carriers DERIVED: Vaporeon and Goodra (Hydration); Arbok, Scrafty and Sandaconda (Shed Skin);
+ * Audino, Audino-Mega, Aromatisse and Hatterene (Healer).
+ *
+ * ORDER 5 IS ABOVE THE STATUS CHIPS (brn/psn/tox are order 9-10), so a body cured this turn does NOT
+ * take the chip — which is why the probe reads HP as well as the status field. A cure written below
+ * the chips would pass a status read and cost the body a burn tick every turn it was ever burned.
+ *
+ * HYDRATION IS THE DETERMINISTIC ARM (chance 1) and its WEATHER GATE is the control: same body, same
+ * burn, rain on or off. Shed Skin's arm varies the DIE instead, on a fixed board. */
+const cureRun = (sp, ab, weather, r) => {
+  const B = board(sp, 'skeledirge', 'garchomp', 'farigiraf');
+  B.me.ability = ab;
+  B.me.status = 'brn';
+  B.me.curHP = Math.floor(B.me.st.hp / 2);
+  B.S.field.weather = weather || '';
+  const hp0 = B.me.curHP;
+  M.battleTurn(B.S, () => (r == null ? 0.5 : r), PASS2(B.me, B.ally), PASS2(B.f1, B.f2));
+  return { status: B.me.status || '', lost: hp0 - B.me.curHP };
+};
+probe('ability', 'curesStatusResidual', 'Hydration cures in rain and not out of it — above the chip', () => {
+  const dry = cureRun('vaporeon', 'hydration', '');
+  const wet = cureRun('vaporeon', 'hydration', 'rain');
+  const noAb = cureRun('vaporeon', 'none', 'rain');
+  /* Shed Skin is a 33% die: the same board, the same burn, two rolls either side of the line. */
+  const skinLo = cureRun('scrafty', 'shedskin', '', 0.1);
+  const skinHi = cureRun('scrafty', 'shedskin', '', 0.9);
+  return { works: dry.status === 'brn' && dry.lost > 0
+                  && wet.status === '' && wet.lost === 0
+                  && noAb.status === 'brn' && noAb.lost > 0
+                  && skinLo.status === '' && skinHi.status === 'brn',
+           arms: { control: dry.status + '/' + dry.lost, test: wet.status + '/' + wet.lost },
+           detail: 'the same burned Vaporeon: out of rain it stays "' + dry.status + '" and loses '
+                 + dry.lost + ' to the burn; IN rain it reads "' + wet.status + '" and loses '
+                 + wet.lost + ' — the cure is above the chip. With no ability in the same rain it is "'
+                 + noAb.status + '" (' + noAb.lost + '). SHED SKIN at roll 0.1 -> "' + skinLo.status
+                 + '", at 0.9 -> "' + skinHi.status + '" (the tag says 0.33)' };
+});
+
+/* ROADMAP #175 / #181 -- TINTED LENS. THE RULE WAS LIVE AND UNCOUNTED, WHICH IS THE #181 SHAPE.
+ *
+ * `boostsNotVeryEffective {mult:2, appliesWhen:'the type chart returned not-very-effective'}`, and the
+ * engine applied it as `att.ability === 'tintedlens' && eff < 1` — a name literal carrying a whole
+ * rule, so `test-tag-consumed` read the tag as having no consumer while the behaviour was working.
+ * The wire reads the MULTIPLIER out of the artifact too, so it is derived end to end.
+ *
+ * NO LEGAL CARRIER IN REG M-B, stated rather than discovered: every Tinted Lens species is
+ * `isNonstandard: 'Past'` under `Dex.forFormat('gen9championsvgc2026regmb')` and Venomicon-Epilogue
+ * is CAP. The probe stages the ability by hand, which is what every probe in this file does, and the
+ * claim it makes is about the engine rather than about the regulation.
+ *
+ * THE SUPER-EFFECTIVE ARM IS THE CONTROL THAT MATTERS. An engine that doubled EVERYTHING would pass a
+ * single not-very-effective arm; `appliesWhen` is the mechanic, so a resisted hit and a
+ * super-effective hit are both read on the same body. */
+const lensRun = (ab, moveId) => turnDamageBig(['gengar', 'skeledirge', 'garchomp', 'farigiraf'],
+  (B) => { B.me.ability = ab; B.me.moves = [moveId, 'protect', 'snarl', 'shadowball']; }, moveId);
+probe('ability', 'boostsNotVeryEffective', 'Tinted Lens doubles the RESISTED hit and nothing else', () => {
+  /* Sludge Bomb (Poison) into Garchomp (Dragon/Ground) is 0.5x — Ground resists Poison. */
+  const nveOff = lensRun('none', 'sludgebomb'), nveOn = lensRun('tintedlens', 'sludgebomb');
+  /* Sludge Wave is the same type and category, so the SE control is a different TARGET question —
+   * Shadow Ball (Ghost) into Garchomp is neutral, which is the "not < 1" arm the tag's gate needs. */
+  const neuOff = lensRun('none', 'shadowball'), neuOn = lensRun('tintedlens', 'shadowball');
+  /* NOT AN EXACT DOUBLE, AND THE REASON IS THE CHAIN. The multiplier is applied inside the damage
+   * chain and the result is truncated once at the end, so 53 becomes 105 rather than 106 — the same
+   * off-by-one every chained modifier in this engine has and the authority has too. Asserting `=== 2x`
+   * would be asserting a rounding model this file does not own; the band is one point either side. */
+  const doubled = Math.abs(nveOn - 2 * nveOff) <= 2 && nveOn > 1.5 * nveOff;
+  return { works: nveOff > 0 && doubled && neuOff > 0 && neuOn === neuOff,
+           arms: { control: [nveOff, neuOff], test: [nveOn, neuOn] },
+           detail: 'Gengar into an unfaintable Garchomp. RESISTED (Sludge Bomb, Ground halves Poison): '
+                 + nveOff + ' -> ' + nveOn + ' with Tinted Lens, which is the artifact\'s own mult of 2. '
+                 + 'NEUTRAL (Shadow Ball): ' + neuOff + ' -> ' + neuOn + ' — unchanged, because '
+                 + '`appliesWhen` is the mechanic and not decoration' };
+});
+
+/* ROADMAP #175 -- LONG REACH. `removesOwnMoveFlag {flag:'contact', appliesTo:"the holder's own moves"}`.
+ *
+ * Authority: `longreach.onModifyMove(move) { delete move.flags['contact']; }`, no Champions override.
+ * Legal carrier DERIVED from `Dex.forFormat('gen9championsvgc2026regmb')`: Decidueye, the only one —
+ * and `getLearnsetData('decidueye').leafblade` is true, so the board is one a player could bring.
+ *
+ * IT IS READ ON THE VICTIM'S REACTION, NOT ON A FLAG. Rough Skin tolls a body that touched it; a Long
+ * Reach body pays nothing. That is HP on the ATTACKER, two mechanics deep, and it is the only reading
+ * that separates "the flag is off" from "something looked at the flag". */
+const reachRun = (ab) => {
+  const B = board('decidueye', 'skeledirge', 'garchomp', 'farigiraf');
+  B.me.ability = ab;
+  B.me.moves = ['leafblade', 'protect', 'snarl', 'shadowball'];
+  B.f1.ability = 'roughskin';
+  unfaintable(B.me); unfaintable(B.f1);
+  const hp0 = B.me.curHP;
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, 'leafblade', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    PASS2(B.f1, B.f2));
+  return { paid: hp0 - B.me.curHP, dealt: B.f1.st.hp - B.f1.curHP };
+};
+probe('ability', 'removesOwnMoveFlag', 'Long Reach walks out of Rough Skin without paying', () => {
+  const off = reachRun('none'), on = reachRun('longreach');
+  return { works: off.paid > 0 && on.paid === 0 && off.dealt > 0 && on.dealt === off.dealt,
+           arms: { control: off.paid, test: on.paid },
+           detail: 'Decidueye clicks Leaf Blade into a Rough Skin Garchomp: with no ability it pays '
+                 + off.paid + ' hp for the contact, with Long Reach it pays ' + on.paid
+                 + '. The DAMAGE it deals is unchanged (' + off.dealt + ' vs ' + on.dealt
+                 + '), which is the control that says the move still happened' };
 });
 
 const works = results.filter(r => r.works);

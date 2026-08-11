@@ -146,6 +146,43 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * recoil because the two are different currencies off different artifact fields, and a zero here
    * with a healthy `rc` recoil is exactly the state this engine was in: one paid, the other free. */
   maxHPRecoilPaid: 0,
+  /* ROADMAP #175 -- every damage packet `refusesIndirectDamage` turned away, across all nine gated
+   * sites. It replaces MEDFAILS.magicGuardChip, which counted the same event as a KNOWN GAP: the
+   * counter moves from the failures object to the capabilities one, which is the whole shape of the
+   * fix. A zero here on a board with a Magic Guard body standing in sand means the gate is inert. */
+  indirectDamageRefused: 0,
+  /* ROADMAP #175 -- an item that changed hands because of an ABILITY rather than a move. Counted
+   * across both directions of `stealsItem` (Pickpocket off the attacker, Magician off the target),
+   * because the failure worth catching is "one direction is wired and the other is dead" and a
+   * per-direction counter is what would let that hide behind a healthy total. The census probe reads
+   * both slots on both members for the same reason. */
+  itemStolenByAbility: 0,
+  /* ROADMAP #175 -- a status handed BACK to whoever inflicted it (`reflectsStatusToSource`). Bumped
+   * only when the reflected status actually LANDS, so a Synchronize announcing itself into a Fire
+   * type does not inflate it. A zero on a board where a Synchronize body got burned is the gate
+   * being inert. */
+  statusReflected: 0,
+  /* ROADMAP #175 -- screens taken down by an ENTERING body (`clearsScreensOnEntry`). Counted per
+   * screen rather than per entry, because "it cleared one side" and "it cleared both" are the two
+   * things that can be true and only the second is the ability. */
+  screensCleanedOnEntry: 0,
+  /* ROADMAP #175 -- a residual status chip turned into a HEAL (`healsFromOwnStatus`). A zero on a
+   * board with a poisoned Gliscor on it means the status is landing and paying nothing, which is
+   * halfway back to the immunity this replaced. */
+  healedFromOwnStatus: 0,
+  /* ROADMAP #175 -- a `boostsAtHPThreshold` body that CROSSED its line and was boosted for it. A
+   * non-zero that grows every turn a body sits under half would mean `onCrossingOnly` is not being
+   * honoured, which is the one way this wire can be wrong and still look alive. */
+  hpThresholdBoosted: 0,
+  /* ROADMAP #175 -- a multi-hit count pinned to the top of its range by `multihitAlwaysMax`. */
+  multiHitPinnedToMax: 0,
+  /* ROADMAP #175 -- a status wiped at the residual by `curesStatusResidual` (Shed Skin, Hydration,
+   * Healer). A zero on a rainy board with a Hydration body standing in it means the gate is inert. */
+  statusCuredByResidual: 0,
+  /* ROADMAP #175 -- a move that carries the contact flag and did NOT make contact, because the body
+   * using it carries `removesOwnMoveFlag` (Long Reach). A zero with a Decidueye clicking Leaf Blade
+   * means the attacker is not reaching the predicate at one of its six in-turn sites. */
+  contactFlagRemoved: 0,
   /* ROADMAP #139 -- the per-turn-HP VOLATILE ticks, apart from Curse's own `_ptDmg` chip and apart
    * from each other. Salt Cure chipping and Aqua Ring healing are one map and two consumers, and a
    * zero on either is a whole family of residual doing nothing. */
@@ -945,10 +982,44 @@ const MEDFAILS = { encoreAction: 0,
    * that never went through battleInit so it has no board to read. Counted rather than swallowed,
    * because the swallowing is exactly what hid 56,524 uses of the spread family. */
   damagingClickWithoutTarget: 0, damagingClickWithoutTargetFirst: '',
-  /* A Magic Guard body that took the sandstorm residual anyway (WIRE 31). It blocks indirect damage
-   * through `onDamage`, which no derivation in tag_dex reads, so the ability carries `untagged` and
-   * the chip cannot see it. Counted rather than name-checked -- see the comment at WIRE 31. */
+  /* ROADMAP #175 -- RETIRED, KEPT AT ZERO, AND THE ZERO IS THE POINT. This counted a Magic Guard body
+   * that took the sandstorm residual anyway (WIRE 31), when the ability carried `untagged` and no
+   * derivation could see it. The artifact now derives `refusesIndirectDamage` and `refusesIndirect`
+   * gates all nine damage sites, so the event this counted can no longer happen and its successor is
+   * MEDSEEN.indirectDamageRefused -- a capability counter rather than a failure one. The key stays so
+   * a reader of an old artifact can tell "the gap is closed" from "the field was renamed". */
   magicGuardChip: 0,
+  /* ROADMAP #175 -- `stealsItem` gaps, both of which are the artifact or the click reaching further
+   * than this engine's state does. `stealFlagUnmodelled` fires when a member declares an
+   * `onlyMoveFlag` this engine cannot answer (only `contact` is answered); `stealFromFlingUnmodelled`
+   * fires when Magician's own click is a Fling, which the authority refuses and this engine has no
+   * item-spend state to refuse it with. Both refuse the theft rather than guessing. */
+  stealFlagUnmodelled: 0, stealFlagUnmodelledFirst: '', stealFromFlingUnmodelled: 0,
+  /* ROADMAP #175 -- a `clearsScreensOnEntry` member whose `sides` is neither 'both', 'own' nor 'foe'.
+   * It clears NOTHING and says so, because the silent default would be to clear both, and clearing a
+   * side the authority leaves alone is a state bug that survives the turn. */
+  screenCleanScopeUnknown: 0, screenCleanScopeUnknownFirst: '',
+  /* ROADMAP #175 -- a `healsFromOwnStatus` member that does NOT refuse the damage it heals from. No
+   * such member exists today (Poison Heal is the only one and its handler returns false), and the
+   * chip is refused anyway; this counts the arrival so "we heal AND chip" cannot become true silently. */
+  statusHealNoRefusal: 0,
+  /* ROADMAP #175 -- a `multihitAlwaysMax` member that pins the COUNT and does not delete the per-hit
+   * accuracy. None exists (Skill Link's handler does both), and the pin is DECLINED rather than
+   * applied half-way, because half of this ability is strictly worse than none of it. */
+  pinnedHitsKeptAccuracy: 0,
+  /* ROADMAP #175 -- a `curesStatusResidual` member whose `scope` is neither 'self' nor
+   * 'adjacentAllies'. It cures NOBODY and says so: a silent default of 'self' would give a partner's
+   * ability to the wrong body, which is the Sweet Veil mistake in a new place. */
+  cureScopeUnknown: 0, cureScopeUnknownFirst: '',
+  /* ROADMAP #181 -- the ONE remaining ability name literal in the damage table. Neuroforce's x1.25 on
+   * a super-effective hit is applied by NAME because `data/tags.json` carries no row for the ability
+   * at all, so converting it would delete the rule rather than derive it. Its only carrier
+   * (Necrozma-Ultra) is `Illegal` in Reg M-B, so this reads 0 on every real board -- a non-zero means
+   * somebody staged it and the fallback is load-bearing. */
+  nameFallbackNeuroforce: 0,
+  /* ROADMAP #175 -- a `removesOwnMoveFlag` member deleting a flag that is not `contact`. The flag is
+   * LEFT ON rather than guessed at, because guessing would hand a body an immunity it does not have. */
+  removedFlagUnmodelled: 0, removedFlagUnmodelledFirst: '',
   /* WIRE 157 -- a Curious Medicine entry whose STATE landed and whose `|-clearboost|` line did not.
    * The reason is written at the site: `-clearboost` is not in TRACE_EVENTS and adding it would turn
    * tests/test-protocol-trace.js PART 1 red on an event no generated game can reach. A stream gap,
@@ -2647,6 +2718,56 @@ function condHolds(w,self,hit){
  * ends the volatile — and it does not gate Hospitality, which heals a partner on ENTRY. Both
  * exclusions are stated here rather than left to whoever reads the diff. */
 const healBlocked=m=>!!(m&&m._healBlock>0);
+/* ROADMAP #175 -- INDIRECT DAMAGE IS A CLASS, AND `refusesIndirectDamage` IS ITS ONE GATE.
+ *
+ * Magic Guard was one of the twenty-two derived tags nothing read. The sandstorm block below used to
+ * carry a comment saying the ability "carries `untagged` in data/tags.json (79 uses) and this tag
+ * cannot see it", and counted every chip a Magic Guard body took in `MEDFAILS.magicGuardChip` --
+ * honest, and a declared gap is still a gap. The artifact has since been regenerated and now derives
+ * `refusesIndirectDamage {movesOnly:true}` onto magicguard, so the fact exists and this reads it.
+ *
+ * THE AUTHORITY IS ONE HANDLER, WHICH IS WHY THIS IS A CLASS AND NOT FIVE SPECIAL CASES.
+ * data/abilities.ts:2455-2461 (no Champions override -- `grep magicguard data/mods/champions/abilities.ts`
+ * returns nothing):
+ *
+ *     onDamage(damage, target, source, effect) { if (effect.effectType !== 'Move') { ...; return false; } }
+ *
+ * So the question at every damage site is "is the EFFECT a Move", and the answer is read off the
+ * authority per site rather than guessed. Three sites are DELIBERATELY LEFT UNGATED, each with the
+ * line that settles it, because getting them wrong makes the ability strictly better than the real one:
+ *
+ *   - CONFUSION SELF-HIT. data/conditions.ts:193 builds `{id:'confused', effectType:'Move', type:'???'}`
+ *     and damages with it. It IS a Move to this handler, so a confused Clefable still hits itself.
+ *   - STRUGGLE RECOIL. sim/battle-actions.ts:1388 routes it through `directDamage`, which does not run
+ *     `onDamage` at all. Ordinary recoil one line down (`:1391`) is `this.battle.damage(..., 'recoil')`
+ *     and IS blocked; Mind Blown / Steel Beam's is `dex.conditions.get(move.name)` and is blocked too.
+ *   - THE HOLDER'S OWN WEATHER-ABILITY CHIP (Solar Power, Dry Skin). `effectType === 'Ability'` is
+ *     blocked by the handler, but a body holds ONE ability, so a Magic Guard body can never also be a
+ *     Solar Power body. Left ungated because gating it would be a branch no board can reach.
+ *
+ * NOT MOLD-BREAKABLE: the ability's `flags: {}` carries no `breakable`, so this reads `m.ability`
+ * directly rather than going through `suppressedAbility`. */
+/* ROADMAP #175 -- `stealsItem`'s move-flag gate, shared by both directions so the two members cannot
+ * come apart. `onlyMoveFlag` is a SHOWDOWN FLAG name (`move.flags[...]`), and this engine answers
+ * exactly one of them -- `contact`, through the shared `mvMakesContact`. A member arriving with any
+ * other flag is COUNTED and refused rather than silently treated as unconditional, because the silent
+ * version would let a Pickpocket-shaped ability steal off a move it never touches. */
+function stealFlagOK(p,mvId,att){
+  if(!p||!p.onlyMoveFlag)return true;
+  /* ROADMAP #175 -- the ATTACKER goes through, so a Long Reach body's move is not contact here
+   * either. Pickpocket off a Decidueye must fail for the same reason Rough Skin does not toll it. */
+  if(String(p.onlyMoveFlag)==='contact')return mvMakesContact(mvId,att);
+  MEDFAILS.stealFlagUnmodelled++;
+  if(!MEDFAILS.stealFlagUnmodelledFirst)MEDFAILS.stealFlagUnmodelledFirst=String(p.onlyMoveFlag);
+  return false;
+}
+const refusesIndirect=m=>{
+  if(!m)return false;
+  const _r=TAGS.param('ability',m.ability,'refusesIndirectDamage');
+  if(!_r)return false;
+  MEDSEEN.indirectDamageRefused++;
+  return true;
+};
 /* THE HEAL FRACTION FROM THE ARTIFACT, not from a second copy in the dex blob.
  *
  * `healsSelf`/`healsAlly` carry the same `[1,2]` / `[1,4]` the dex does — verified move by move
@@ -3250,11 +3371,42 @@ function buildMonFromSet(set){
 /* Does this move make contact? Read from the move's own flag via the tag artifact, which is the
  * `contact` linkage key -- 141 moves and 77,226 move-slots. No name list. */
 const _contactCache=Object.create(null);
-function mvMakesContact(id){
+/* ROADMAP #175 -- LONG REACH ARRIVES AS AN OPTIONAL SECOND ARGUMENT, AND THE ANSWER IS PER-ATTACKER.
+ *
+ * `removesOwnMoveFlag {flag:'contact', appliesTo:"the holder's own moves"}`. The authority is one
+ * line -- `onModifyMove(move) { delete move.flags['contact']; }` -- so contact is a property of the
+ * MOVE AND THE BODY USING IT, not of the move alone, and this function could not express that.
+ *
+ * WHAT IT TURNS OFF, all through this one predicate rather than at each site: the contact punishes
+ * (Rough Skin, Iron Barbs, Effect Spore, Static, Flame Body), Mummy and Wandering Spirit's rewrite,
+ * Pickpocket's steal off the attacker, Poison Touch, and the pre-turn shield's contact trigger. That
+ * is the whole reason the ability is played and every one of those sites had its own hand-written
+ * `mvMakesContact(a.move.id)` with no body attached.
+ *
+ * THE CACHE STAYS ON THE MOVE and the ability is asked ABOVE it, because the cached fact ("does this
+ * move carry the flag") is still true -- what changes is whether this body's copy of it does.
+ *
+ * THE ATTACKER IS OPTIONAL so the valuation paths, which hold a move id and no body, keep exactly
+ * their old answer. A caller that should pass one and does not is a silent wrong answer, so the
+ * SITES are the review surface, not this function -- all of them are named above.
+ *
+ * `flag` IS READ, NOT ASSUMED. A member that deletes some other flag is refused and COUNTED rather
+ * than being treated as a contact-remover, because guessing here would hand a body an immunity to
+ * Rough Skin it does not have. Legal carrier DERIVED: Decidueye, the only one in Reg M-B. */
+function mvMakesContact(id,att){
   if(!id) return false;
   const k=String(id).toLowerCase().replace(/[^a-z0-9]/g,'');
-  if(k in _contactCache) return _contactCache[k];
-  return (_contactCache[k]=TAGS.has('move',k,'contact'));
+  const base=(k in _contactCache)?_contactCache[k]:(_contactCache[k]=TAGS.has('move',k,'contact'));
+  if(!base||!att) return base;
+  const _rf=TAGS.param('ability',att.ability,'removesOwnMoveFlag');
+  if(!_rf) return base;
+  if(String(_rf.flag)!=='contact'){
+    MEDFAILS.removedFlagUnmodelled++;
+    if(!MEDFAILS.removedFlagUnmodelledFirst)MEDFAILS.removedFlagUnmodelledFirst=String(_rf.flag);
+    return base;
+  }
+  MEDSEEN.contactFlagRemoved++;
+  return false;
 }
 
 /* WIRE 35 -- THE CRIT RATE, IN ONE PLACE, because this engine had exactly two crit facts and both
@@ -5214,7 +5366,27 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
     }
   }
   if(att.ability==='neuroforce'&&eff>1)MODMUL(1.25);
-  if(att.ability==='tintedlens'&&eff<1)MODMUL(2);
+  /* ROADMAP #175 / #181 -- TINTED LENS, OFF THE TAG INSTEAD OF THE NAME. `boostsNotVeryEffective
+   * {mult:2, appliesWhen:'the type chart returned not-very-effective'}`, and the multiplier now comes
+   * out of the artifact rather than being typed beside a name. This is the same shape as the
+   * `tracksTargetOf` fallback #181 records: the rule was live and UNCOUNTED, so `test-tag-consumed`
+   * called the tag dead while the engine was applying it.
+   *
+   * NO LEGAL CARRIER IN REG M-B, and that is stated rather than discovered.
+   * `Dex.forFormat('gen9championsvgc2026regmb')` marks every Tinted Lens species `isNonstandard:
+   * 'Past'` (Butterfree, Venomoth, Noctowl, Yanmega, Sigilyph, Braviary-Hisui, Lokix and the rest),
+   * and Venomicon-Epilogue is CAP. So this cannot fire in a real game of this format and the census
+   * probe stages the ability by hand. It is WIRED rather than deleted because the behaviour was
+   * already here under a name -- deleting the tag would leave the name, which is the defect.
+   *
+   * NEUROFORCE ONE LINE UP IS THE SAME SHAPE AND IS *NOT* CONVERTED, deliberately and with the
+   * reason: `tags.json` has NO ROW for `neuroforce` at all (`tagsFor('ability','neuroforce')` is
+   * null), so replacing the name with a lookup would silently DELETE the rule rather than derive it.
+   * Its only carrier is Necrozma-Ultra, which is `Illegal` here. Counted as a known name fallback in
+   * MEDFAILS.nameFallbackNeuroforce so it reads as the gap it is instead of as a decision. */
+  {const _tl=TAGS.param('ability',att.ability,'boostsNotVeryEffective');
+   if(_tl&&+_tl.mult>0&&eff<1)MODMUL(+_tl.mult);}
+  if(att.ability==='neuroforce')MEDFAILS.nameFallbackNeuroforce++;
   /* SCREENS. In DOUBLES the reduction is x2732/4096, not the x0.5 the tag carries — the tag states
    * the singles value and this is a doubles engine, so using 0.5 would overvalue every screen click
    * by a third. Stated here rather than corrected in the artifact, because the artifact is right
@@ -5768,11 +5940,46 @@ function expectedHitsOf(moveId){
  * 1+p+p^2 is a mean and this is a draw -- and it agrees with the authority at both corners, where
  * `randomChance(90,100)` is `0 < 90` (hit) and `99 < 90` (miss). */
 const MULTIHIT_2_5=[2,2,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,5,5,5];
-function rollHitsOf(moveId,rnd){
+/* ROADMAP #175 -- SKILL LINK ARRIVES AS A THIRD ARGUMENT, AND IT IS OPTIONAL ON PURPOSE.
+ *
+ * `multihitAlwaysMax {takesIndex:1, meaning:'the TOP of the [min,max] pair', removesMultiaccuracy:true}`.
+ * Authority: data/abilities.ts:4287-4295, no Champions override —
+ *
+ *     onModifyMove(move) {
+ *       if (move.multihit && Array.isArray(move.multihit) && move.multihit.length) move.multihit = move.multihit[1];
+ *       if (move.multiaccuracy) delete move.multiaccuracy;
+ *     }
+ *
+ * BOTH CLAUSES OR NEITHER. Pinning the count and leaving `multiAccuracy` in place would let a Skill
+ * Link Rock Blast be cut short by the per-hit roll, which is the one thing the ability exists to stop.
+ * `takesIndex` and `removesMultiaccuracy` come out of the tag, so nothing here says "five" or "the
+ * second element".
+ *
+ * THE ATTACKER IS OPTIONAL because this function has one caller inside the turn loop and several
+ * potential ones outside it (a valuation path holds a move id and no body). Omitting it keeps the old
+ * behaviour exactly, and the CALLER inside the loop passes the attacker -- so a missing wire here
+ * would show as the census probe going red rather than as a silently unchanged hit count.
+ *
+ * NO RNG IS CONSUMED DIFFERENTLY FOR A NON-CARRIER: the early return happens before the sample draw
+ * only when the ability is present, so every existing seeded probe, differential arm and roster row
+ * draws the same sequence it drew before. That is the WIRE 145 rule. */
+function rollHitsOf(moveId,rnd,att){
   const p=TAGS.param('move',moveId,'multiHit');
   if(!p)return 1;
   const r=p.range;
   let n;
+  const _sl=att?TAGS.param('ability',att.ability,'multihitAlwaysMax'):null;
+  if(_sl&&Array.isArray(r)&&r.length===2){
+    const _i=(+_sl.takesIndex>=0)?+_sl.takesIndex:1;
+    if(r[_i]!=null){
+      MEDSEEN.multiHitPinnedToMax++;
+      /* `removesMultiaccuracy` is honoured by returning HERE, above the per-hit accuracy walk below
+       * -- the same deletion the handler performs, expressed as not reaching the code. A member that
+       * pins the count and does NOT delete the accuracy is counted rather than assumed away. */
+      if(!_sl.removesMultiaccuracy&&TAGS.param('move',moveId,'multiAccuracy'))MEDFAILS.pinnedHitsKeptAccuracy++;
+      else return Math.max(1,Math.floor(+r[_i]));
+    }
+  }
   if(Array.isArray(r)&&r.length===2&&+r[0]!==+r[1]){
     if(+r[0]===2&&+r[1]===5){
       n=MULTIHIT_2_5[Math.min(MULTIHIT_2_5.length-1,Math.floor(rnd()*MULTIHIT_2_5.length))];
@@ -6699,8 +6906,16 @@ const STATUS_IMMUNE_TYPE={ brn:['Fire'], par:['Electric'], frz:['Ice'], psn:['Po
 const STATUS_IMMUNE_ABIL={ brn:['waterveil','waterbubble','thermalexchange'],
                            par:['limber'],
                            frz:['magmaarmor'],
-                           psn:['immunity','poisonheal'],
-                           tox:['immunity','poisonheal'],
+                           /* ROADMAP #175 -- `poisonheal` IS GONE FROM BOTH OF THESE AND IT WAS NEVER
+                            * THIS KIND OF ABILITY, exactly as `sweetveil` was not (see the note
+                            * below). Poison Heal has NO `onSetStatus` at all
+                            * (data/abilities.ts:3321-3328, no Champions override); its only handler
+                            * is an `onDamage` that returns false and heals a eighth. Sitting here it
+                            * made a Gliscor REFUSE a Toxic — so the body was neither poisoned nor
+                            * paid, and the whole reason the ability is played was worth nothing. It
+                            * is served by `healsFromOwnStatus` in the residual now. */
+                           psn:['immunity'],
+                           tox:['immunity'],
                            /* WIRE 157 -- `sweetveil` IS GONE FROM THIS LIST AND THE REASON IS THAT IT
                             * WAS NEVER THIS KIND OF ABILITY. Insomnia and Vital Spirit are
                             * `onSetStatus` -- a body refusing its own sleep. Sweet Veil has no
@@ -7606,7 +7821,41 @@ function applyStatus(t,st,src){
      return false;}}
   if(!canTakeStatus(t,st))return false;t.status=st;
   if(TR)TR.sta(t,st);
-  if(st==='slp')t.slpTurns=0;if(st==='frz')t.frzTurns=0;if(st==='tox')t.toxTurns=0;return true;}
+  if(st==='slp')t.slpTurns=0;if(st==='frz')t.frzTurns=0;if(st==='tox')t.toxTurns=0;
+  /* ROADMAP #175 -- SYNCHRONIZE, and it is `onAfterSetStatus` so it belongs at the BOTTOM of this
+   * function rather than at any one call site. data/abilities.ts:4849-4858, no Champions override:
+   *
+   *     if (!source || source === target) return;                 // notSelfInflicted
+   *     if (effect && effect.id === 'toxicspikes') return;        // excludesHazards
+   *     if (status.id === 'slp' || status.id === 'frz') return;   // excludes
+   *     source.trySetStatus(status, target, ...)
+   *
+   * ALL THREE REFUSALS COME OUT OF THE TAG'S PARAMS and none is typed here. `excludesHazards` is
+   * honoured by the SHAPE of this engine rather than by a branch, and that is stated rather than
+   * assumed: the Toxic Spikes site (the `sf.hz.toxicspikes` block on the switch-in path) calls
+   * `applyStatus(nx, ...)` with NO source at all, so `notSelfInflicted` turns it away before
+   * `excludesHazards` is needed. That is a property of this engine's call, not of the tag, and it is
+   * written here because a future caller that DOES pass a source would silently start reflecting.
+   *
+   * IT RECURSES EXACTLY ONCE AND THAT IS THE AUTHORITY'S OWN BEHAVIOUR. The reflected call names the
+   * original TARGET as its source, so a Synchronize body hit by another Synchronize body reflects
+   * back — and the second reflection finds the original target already statused, `canTakeStatus`
+   * returns false, and it stops. No re-entrancy flag is added, because adding one would be a rule the
+   * authority does not have.
+   *
+   * A FAINTED SOURCE IS STILL BURNED: the handler has no hp test, the same finding as `takeItem`. */
+  {const _sy=TAGS.param('ability',t.ability,'reflectsStatusToSource');
+   if(_sy&&src&&src!==t&&!(Array.isArray(_sy.excludes)&&_sy.excludes.includes(st))){
+     if(_sy.notSelfInflicted!==false){
+       /* The `-activate` line is emitted BEFORE the reflected set and unconditionally, exactly as the
+        * handler does it: a Synchronize that hands a burn to a Fire type still announces itself. The
+        * COUNTER is only bumped when the status actually lands, so a non-zero counter means a body
+        * really got a status it would not otherwise have had. */
+       if(TR)TR.act(t,'ability: '+t.ability);
+       if(applyStatus(src,st,t))MEDSEEN.statusReflected++;
+     }
+   }}
+  return true;}
 
 /* ================= CONFUSION, WHICH THIS ENGINE DID NOT HAVE AT ALL ==============================
  *
@@ -7950,6 +8199,44 @@ function applyEntryEffects(m,field,ally){
    * priority is not in data/tags.json -- wiring it would mean typing the sixteen abilities that carry
    * one. It can only bite when a partner is ALREADY DAMAGED as the pair enters, which turn-1 leads
    * never are; the full-HP gate above is what the ladder actually sees. */
+  /* ROADMAP #175 -- SCREEN CLEANER, AND `sides:'both'` IS THE HALF THAT COSTS ITS OWNER.
+   *
+   * data/abilities.ts:4089-4103, no Champions override. `onStart` walks
+   * `[pokemon.side, ...pokemon.side.foeSidesWithConditions()]` for each of reflect, lightscreen and
+   * auroraveil, so it takes down ITS OWN SIDE'S screens as well as the foe's -- which is why the
+   * ability is a liability on a screen team and not just a tool against one. Wiring only the foe's
+   * half would have made it strictly better than the real ability.
+   *
+   * NO SCREEN IS NAMED HERE. The names come out of `conditions`, and `sf.sc` is keyed by the MOVE ID
+   * that set the screen -- which for these three IS the condition name, the same identity WIRE 8
+   * relies on. The other side is reached through `m._sf._S`, the back-reference battleInit writes.
+   *
+   * `sides` IS READ RATHER THAN ASSUMED: an 'own'-only or 'foe'-only member arriving later is served,
+   * and anything else is counted in MEDFAILS.screenCleanScopeUnknown rather than silently treated as
+   * both -- a silent default here would take down a side the authority leaves alone. */
+  {const _cs=TAGS.param('ability',m.ability,'clearsScreensOnEntry');
+   if(_cs&&Array.isArray(_cs.conditions)&&m._sf){
+     const _S=m._sf._S, _own=m._sf, _foe=_S?(_own===_S.sfA?_S.sfB:_S.sfA):null;
+     let _sides;
+     if(_cs.sides==='both')_sides=[_own,_foe];
+     else if(_cs.sides==='own')_sides=[_own];
+     else if(_cs.sides==='foe')_sides=[_foe];
+     else {_sides=[];MEDFAILS.screenCleanScopeUnknown++;
+           if(!MEDFAILS.screenCleanScopeUnknownFirst)MEDFAILS.screenCleanScopeUnknownFirst=String(_cs.sides);}
+     let _hit=false;
+     for(const _nm of _cs.conditions)for(const _sd of _sides){
+       if(_sd&&_sd.sc&&_sd.sc[_nm]>0){
+         delete _sd.sc[_nm]; _hit=true; MEDSEEN.screensCleanedOnEntry++;
+         /* `sendSide`, NOT `send`: `send` labels the line with `sideOf(m)`, the ENTERING body's side,
+          * and half of these removals are on the other one. A `-sideend` attributed to the wrong side
+          * is a stream defect that reads as the mechanic working. */
+         if(TR)TR.sendSide(_sd===_own?(_own.side==='A'?'p1':'p2'):(_own.side==='A'?'p2':'p1'),_nm);
+       }
+     }
+     /* One `-activate` for the whole sweep, however many screens fell -- the handler's `activated`
+      * latch. Emitted only when something was actually taken down, which is the same latch. */
+     if(_hit&&TR)TR.act(m,'ability: '+m.ability);
+   }}
   const _h=TAGS.param('ability',m.ability,'healsAllyOnSwitchIn');
   if(_h&&_h.heals&&ally&&!ally.fainted&&ally.curHP>0&&ally.st&&ally.curHP<ally.st.hp){
     ally.curHP=Math.min(ally.st.hp,ally.curHP+Math.floor(ally.st.hp/4));
@@ -8599,9 +8886,16 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry){
        about Eelevate. One function now answers it for the hazards, the switch branch, the Grassy
        Terrain heal and Psychic Terrain's priority bar. */
     const _grounded=isGrounded(nx);
-    if(sf.hz.stealthrock){nx.curHP-=Math.floor(nx.st.hp*mcEff('Rock',nx.types)/8);
+    /* ROADMAP #175 -- THE TWO DAMAGING HAZARDS ARE INDIRECT AND THE TWO STATUS ONES ARE NOT.
+     * Stealth Rock and Spikes damage through their own side condition, so `effect.effectType` is
+     * 'Condition' and `refusesIndirectDamage` turns both away. Toxic Spikes and Sticky Web below are
+     * NOT gated and must not be: neither deals damage -- one sets a status (which then chips, and
+     * THAT chip is refused in the residual) and one drops a stat. A gate written around the whole
+     * `sf.hz` block would have made Magic Guard immune to Sticky Web, which is not the ability. */
+    const _hzGuard=refusesIndirect(nx);
+    if(sf.hz.stealthrock&&!_hzGuard){nx.curHP-=Math.floor(nx.st.hp*mcEff('Rock',nx.types)/8);
       if(TR)TR.dmg(nx,'[from] Stealth Rock');}
-    if(sf.hz.spikes&&_grounded){
+    if(sf.hz.spikes&&_grounded&&!_hzGuard){
       nx.curHP-=Math.floor(nx.st.hp/[8,8,6,4][Math.min(sf.hz.spikes,3)]);
       if(TR)TR.dmg(nx,'[from] Spikes');}
     if(sf.hz.toxicspikes&&_grounded&&nx.curHP>0){
@@ -12728,6 +13022,9 @@ function battleTurn(S,rng,actsForA,actsForB){
       const _crashOnFail=()=>{
         const _cm=TAGS.param('move',a.move.id,'crashOnMiss');
         if(!(_cm&&_cm.fraction&&m.st))return;
+        /* ROADMAP #175 -- the crash is `this.damage(..., this.dex.conditions.get('High Jump Kick'))`
+         * (data/moves.ts:8912), a Condition and not a Move, so `refusesIndirectDamage` refuses it. */
+        if(refusesIndirect(m))return;
         m.curHP-=Math.floor(m.st.hp*+_cm.fraction);
         if(TR)TR.dmg(m,'[from] '+a.move.id);
         if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}
@@ -12766,7 +13063,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            * Protect-family move sets it. Contact is asked of the same helper Rough Skin uses. */
           if(TR)TR.act(tg,'move: Protect');
           const _pc=TAGS.param('move',tg._protectMove,'punishesContact');
-          if(_pc&&_pc.onContact&&mvMakesContact(a.move.id)){
+          if(_pc&&_pc.onContact&&mvMakesContact(a.move.id,m)){
             if(_pc.fraction){m.curHP-=Math.floor(m.st.hp/(+_pc.fraction));
               if(TR)TR.dmg(m,'[from] move: '+tg._protectMove,tg);
               if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}}
@@ -13024,7 +13321,8 @@ function battleTurn(S,rng,actsForA,actsForB){
       let _condPowerThisUse;
       const _stepDamage=(R)=>{const tg=R.tg;
         _reached++;   // ROADMAP #81 WIRE 1 -- past every gate: this target is a HIT, so the move did not fail
-        if(_hitsThisUse===null)_hitsThisUse=rollHitsOf(a.move.id,rng);
+        /* ROADMAP #175 -- the ATTACKER is passed so `multihitAlwaysMax` (Skill Link) can be read. */
+        if(_hitsThisUse===null)_hitsThisUse=rollHitsOf(a.move.id,rng,m);
         if(_condPowerThisUse===undefined){
           const _cpr=rollConditionalPower(a.move.id,rng);
           _condPowerThisUse=(_cpr===null)?null:_cpr;
@@ -13610,7 +13908,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * not it survives, because both happen DURING the hit. */
         if(tg._preTurn&&tg._preTurn.id&&!(tg._preTurn.p.foesOnly&&tg._sf===m._sf)){
           const _ps=tg._preTurn.p;
-          const _tr=_ps.trigger==='contact'?mvMakesContact(a.move.id)
+          const _tr=_ps.trigger==='contact'?mvMakesContact(a.move.id,m)
                    :_ps.trigger==='physical'?mv.c==='P'
                    :/* damaging */ mv.c==='P'||mv.c==='S';
           if(_tr){
@@ -13621,7 +13919,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         const _pun=TAGS.param('ability',tg.ability,'punishesAttacker');
         if(_pun&&!_pun.requiresForme){
-          const _trig=_pun.trigger==='contact'?mvMakesContact(a.move.id)
+          const _trig=_pun.trigger==='contact'?mvMakesContact(a.move.id,m)
                      :_pun.trigger==='physical'?mv.c==='P'
                      :_pun.trigger==='special'?mv.c==='S'
                      :true;
@@ -13702,11 +14000,85 @@ function battleTurn(S,rng,actsForA,actsForB){
          * was typing the list here. `becomes` comes out of the tag, so no ability name is written. */
         {
           const _rw=TAGS.param('ability',tg.ability,'rewritesAbilityOnContact');
-          if(_rw&&_rw.trigger==='contact'&&mvMakesContact(a.move.id)&&!m.fainted&&m.ability!==tg.ability){
+          if(_rw&&_rw.trigger==='contact'&&mvMakesContact(a.move.id,m)&&!m.fainted&&m.ability!==tg.ability){
             if(_rw.mode==='infect'&&_rw.becomes){m.ability=String(_rw.becomes);
               if(TR){TR.act(tg,'ability: '+tg.ability);TR.ab(m,m.ability,'[from] ability: '+tg.ability);}}
             else if(_rw.mode==='swap'){const _t=m.ability;m.ability=tg.ability;tg.ability=_t;
               if(TR){TR.act(tg,'ability: '+_t);TR.ab(m,m.ability);TR.ab(tg,tg.ability);}}
+          }
+        }
+        /* ROADMAP #175 -- PICKPOCKET. The `takesFrom:'attacker'` HALF of `stealsItem`.
+         *
+         * data/abilities.ts:3229-3246, no Champions override. `onAfterMoveSecondary`, so it fires
+         * AFTER the punishes above -- Showdown runs `DamagingHit` (where Rough Skin and Aftermath
+         * hang) at sim/battle-actions.ts:1121 and `AfterMoveSecondary` at :814-815, which is the
+         * whole hit loop later. Placed at the bottom of this per-hit reaction block for that reason.
+         *
+         * THE DIRECTION IS THE TAG'S, NOT A NAME. `takesFrom` is 'attacker' here and 'target' for
+         * Magician (which is the block beside the Life Orb toll, on the other event), and
+         * `onlyMoveFlag:'contact'` is the gate. A third member arriving with either shape is served.
+         *
+         * THE HANDLER'S OWN FOUR REFUSALS, each honoured and each named:
+         *   `source && source !== target`          -- no self-theft (the loop cannot stage it, kept anyway)
+         *   `move.flags['contact']`                -- `onlyMoveFlag`
+         *   `target.item` -> return                -- `requiresEmptyHand`: full hands take nothing
+         *   `takeItem` returns falsy -> return     -- `itemRefusesTake`, the mega-stone rule
+         * A FAINTED THIEF STILL STEALS in the authority (there is no hp test in the handler) and a
+         * fainted VICTIM still loses the item (`Pokemon#takeItem` has no hp test either -- the same
+         * finding Knock Off's block below records), so no faint gate is added on either side. */
+        {
+          /* ROADMAP #175 -- BERSERK / ANGER SHELL. `boostsAtHPThreshold`, and `onCrossingOnly` is the
+           * whole mechanic rather than a detail.
+           *
+           * data/abilities.ts:404-429 for the rule; Champions overrides only the `onDamage`
+           * bookkeeping line (data/mods/champions/abilities.ts:8-13) and inherits the clause:
+           *
+           *     if (target.hp <= target.maxhp / 2 && target.hp + damage > target.maxhp / 2)
+           *
+           * so the boost is a CROSSING and not a state. An engine that fired while the body sat under
+           * the line would be a different and far better ability.
+           *
+           * IT IS `onAfterMoveSecondary`, the same event as Pickpocket, which is why it sits in this
+           * block. Per-PACKET here against the authority's `move.totalDamage` once per move: the two
+           * agree, because HP only falls -- the packet that crosses satisfies the test and every later
+           * packet finds `hp + dmg` already at or under the half. Written down because it is a
+           * difference in shape that happens not to be a difference in behaviour.
+           *
+           * BOTH MEMBERS SERVED BY SHAPE: Anger Shell's five-way boost vector is the same `boosts`
+           * field, so nothing here knows there are two. Anger Shell has NO LEGAL CARRIER in Reg M-B
+           * (Klawf is `isNonstandard: 'Past'`), which is a fact about the regulation and not a gap.
+           *
+           * `defersHealingBerry` IS DECLARED AND NOT BRANCHED ON. The authority's `onTryEatItem` makes
+           * a pinch berry wait for the boost; this engine eats pinch berries in the RESIDUAL, which is
+           * already after every hit in the turn, so the order the flag exists to enforce holds without
+           * a branch. Counted if a member ever needs it inside the turn -- see berryPinchUpdate. */
+          {
+            const _bt=TAGS.param('ability',tg.ability,'boostsAtHPThreshold');
+            if(_bt&&_bt.boosts&&+_bt.threshold>0&&tg.boosts&&!tg.fainted&&tg.curHP>0&&dmg>0){
+              const _line=tg.st.hp*+_bt.threshold;
+              const _crossed=tg.curHP<=_line&&(tg.curHP+dmg)>_line;
+              if(_crossed||_bt.onCrossingOnly===false){
+                for(const k in _bt.boosts){
+                  const _s2=SD2ENG[k];
+                  if(_s2&&tg.boosts[_s2]!=null){
+                    const _b0=tg.boosts[_s2];
+                    tg.boosts[_s2]=clamp(tg.boosts[_s2]+_bt.boosts[k],-6,6);
+                    if(TR&&tg.boosts[_s2]!==_b0)TR.bst(tg,_s2,tg.boosts[_s2]-_b0,'[from] ability: '+tg.ability);
+                  }
+                }
+                MEDSEEN.hpThresholdBoosted++;
+              }
+            }
+          }
+          const _st=TAGS.param('ability',tg.ability,'stealsItem');
+          if(_st&&_st.takesFrom==='attacker'&&m!==tg
+             &&stealFlagOK(_st,a.move.id,m)
+             &&(!_st.requiresEmptyHand||!tg.item)
+             &&m.item&&!itemRefusesTake(m)){
+            const _took=m.item; m.item='';
+            tg.item=_took; MEDSEEN.itemStolenByAbility++;
+            if(TR){TR.enditem(m,_took,'[silent][from] ability: '+tg.ability,m);
+                   TR.item(tg,_took,'[from] ability: '+tg.ability,m);}
           }
         }
         }   /* end WIRE 84 per-hit reaction loop */
@@ -14248,7 +14620,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              and 0/40 into Shield Dust. Named here, beside the effect, rather than inside a gate that
              also refuses Will-O-Wisp. */
           {const _pt=TAGS.param('ability',m.ability,'poisonsOnMyContact');
-           if(_pt&&!dustBlocked&&(!_pt.needsContact||mvMakesContact(a.move.id))&&rng()<(+_pt.p||0.3))applyStatus(tg,'psn',m);}
+           if(_pt&&!dustBlocked&&(!_pt.needsContact||mvMakesContact(a.move.id,m))&&rng()<(+_pt.p||0.3))applyStatus(tg,'psn',m);}
           /* WIRE 30 -- blocksHealing. Psychic Noise is a DAMAGING move whose whole point is the two
            * turns of Heal Block it leaves behind, and the engine landed the 75 base power and none of
            * the effect. It is the counter to the entire healing family, so it lands in the same pass
@@ -14483,7 +14855,11 @@ function battleTurn(S,rng,actsForA,actsForB){
       const _rc=a.move.mv&&a.move.mv.rc;
       const _rcMul=(_nr&&_nr.recoil!=null)?+_nr.recoil:1;
       const _rcDmg=(_rc&&_rcMul)?Math.max(1,Math.round(dealt*_rc[0]*_rcMul/_rc[1])):0;
-      if(_rcF&&dealt>0){m.curHP-=_rcDmg;
+      /* ROADMAP #175 -- ordinary recoil is `this.battle.damage(recoilDamage, pokemon, pokemon,
+       * 'recoil')` (sim/battle-actions.ts:1391), a Condition, so it is refused. Struggle's is
+       * `directDamage` one line up (`:1388`) and is NOT -- that is the max-HP block below, which
+       * carries its own note. */
+      if(_rcF&&dealt>0&&!refusesIndirect(m)){m.curHP-=_rcDmg;
         if(TR)TR.dmg(m,'[from] Recoil');
         if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}}
       /* ROADMAP #139 -- THE OTHER RECOIL, AND IT IS A DIFFERENT CURRENCY. The block above reads
@@ -14509,7 +14885,20 @@ function battleTurn(S,rng,actsForA,actsForB){
        *     where a floor here would part from the authority by one.
        * WHAT IT DOES NOT COVER, SAID OUT LOUD: a Steel Beam that MISSES still pays, through the
        * move's own `onMoveFail`. This engine's miss path exits above this line, so the missing arm is
-       * a known remaining gap rather than something this wire quietly claims. */
+       * a known remaining gap rather than something this wire quietly claims.
+       *
+       * ROADMAP #175 -- THIS BLOCK IS DELIBERATELY NOT GATED ON `refusesIndirectDamage`, and the
+       * reason is DERIVED rather than convenient. The two members split in the authority:
+       * `struggleRecoil` goes through `directDamage` (sim/battle-actions.ts:1388), which never runs
+       * `onDamage`, so Magic Guard does NOT stop it; `mindBlownRecoil` -- Steel Beam's -- goes through
+       * `this.battle.damage(..., dex.conditions.get(move.name))` at `:1391` and IS stopped. The
+       * artifact's `recoil {fraction, of:'maxhp'}` does not distinguish them, and separating them here
+       * would mean typing a move name, which is the shape ROADMAP #181 is about. It is left ungated
+       * because on every board this FORMAT can build the ungated answer is the right one:
+       * `Dex.forFormat('gen9championsvgc2026regmb').species.getLearnsetData()` says none of the three
+       * legal Magic Guard carriers -- Clefable, Alakazam, Reuniclus -- learns Steel Beam, so the only
+       * member a Magic Guard body can ever pay is Struggle, which the authority charges anyway. If a
+       * regulation puts Steel Beam on one of them, this is where it breaks and this is the note. */
       {const _mr=TAGS.param('move',a.move&&a.move.id,'recoil');
        if(_mr&&_mr.of==='maxhp'&&+_mr.fraction>0&&m.st&&!m.fainted){
          m.curHP-=Math.max(1,Math.round(m.st.hp*+_mr.fraction));
@@ -14631,9 +15020,53 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(m.item==='lifeorb'&&a.move.d.max>0&&_reached>0){
         const _ros2=TAGS.param('ability',m.ability,'removesOwnSecondaries');
         const _sfB=_ros2&&(()=>{const f=moveFx(a.move.id);return !!(f&&f.secondary&&f.secondary.length);})();
-        if(!_sfB){m.curHP-=Math.floor(m.st.hp*0.1);
+        /* ROADMAP #175 -- the Orb's toll is `this.damage(..., this.dex.items.get('lifeorb'))`, an
+         * Item and not a Move, so `refusesIndirectDamage` refuses it. The BOOST is untouched: Magic
+         * Guard does not stop the item working, only the recoil, which is why the ability is played
+         * with one at all. */
+        if(!_sfB&&!refusesIndirect(m)){m.curHP-=Math.floor(m.st.hp*0.1);
           if(TR)TR.dmg(m,'[from] item: Life Orb');
           if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}}
+      }
+      /* ROADMAP #175 -- MAGICIAN. The `takesFrom:'target'` HALF of `stealsItem`.
+       *
+       * data/abilities.ts:2467-2485, no Champions override. It hangs off `AfterMoveSecondarySelf`,
+       * which is the SAME event the Life Orb toll above is on (sim/battle-actions.ts:538) -- so it
+       * sits here rather than in the per-hit reaction loop, and Pickpocket sits there rather than
+       * here. Two members, two events, one tag, and the tag's `takesFrom` is what routes them.
+       *
+       * THE HANDLER'S REFUSALS, each honoured and each named:
+       *   `source.item`                -> return   `requiresEmptyHand`
+       *   `move.category === 'Status'`  -> return   `excludesStatus`
+       *   `!move.hitTargets`            -> return   nothing connected: `_reached > 0`
+       *   `pokemon !== source`                     no self-theft
+       *   `takeItem` falsy -> continue             `itemRefusesTake`, the mega-stone rule
+       *   `return` after the FIRST success         one item per move, whatever it hit
+       * `move.id === 'fling'` and `source.volatiles['gem']` are the two refusals NOT reproduced:
+       * neither Fling's item-spend nor a Gem is state this engine holds, so a gate on them would be a
+       * branch nothing can reach. Counted rather than silent -- `MEDFAILS.stealFromFlingUnmodelled`
+       * fires if the click IS a Fling, so the gap reads as a gap.
+       *
+       * IT WALKS `_rows` IN SPEED ORDER, which is the authority's `this.speedSort(hitTargets)`. The
+       * rows are built in target order, so a doubles spread that hits two item-holders would take from
+       * the wrong one without the sort. */
+      {
+        const _mg=TAGS.param('ability',m.ability,'stealsItem');
+        if(_mg&&_mg.takesFrom==='target'&&_reached>0&&!m.item
+           &&(!_mg.excludesStatus||a.move.mv.c==='P'||a.move.mv.c==='S')
+           &&stealFlagOK(_mg,a.move.id,m)){
+          if(a.move.id==='fling'){MEDFAILS.stealFromFlingUnmodelled++;}
+          else{
+            const _cand=_rows.filter(R=>!R.out&&R.tg&&R.tg!==m&&R.tg.item&&!itemRefusesTake(R.tg))
+                             .sort((x,y)=>effSpeed(y.tg,field)-effSpeed(x.tg,field));
+            if(_cand.length){
+              const _v=_cand[0].tg, _took=_v.item; _v.item='';
+              m.item=_took; MEDSEEN.itemStolenByAbility++;
+              if(TR){TR.enditem(_v,_took,'[silent][from] ability: '+m.ability,m);
+                     TR.item(m,_took,'[from] ability: '+m.ability,_v);}
+            }
+          }
+        }
       }
       /* WIRE 137 -- THE PIVOT MOVED TO THE BOTTOM OF THE MOVE, AND IT WAS EMITTING FOR A BODY THAT
          HAD ALREADY LEFT THE FIELD.
@@ -15063,17 +15496,19 @@ function battleTurn(S,rng,actsForA,actsForB){
        * derivation now reads out of each handler, so Overcoat refusing both and Sand Veil refusing
        * only sand falls out of the artifact.
        *
-       * MAGIC GUARD IS DELIBERATELY NOT EXEMPTED, AND IT IS COUNTED RATHER THAN SILENT. It blocks all
-       * indirect damage through `onDamage`, not `onImmunity`, so it carries `untagged` in
-       * data/tags.json (79 uses) and this tag cannot see it. Exempting it HERE by name would do two
-       * bad things at once: type a membership list the artifact is supposed to derive, and leave the
-       * ability HALF-right -- burn, poison, Toxic and Leech Seed above already chip a Magic Guard body
-       * and would keep doing so. One policy, and the gap is counted in fails.magicGuardChip. */
+       * MAGIC GUARD IS NOW EXEMPTED, AND THE OLD COMMENT HERE IS RETRACTED RATHER THAN DELETED. It
+       * said the ability "carries `untagged` in data/tags.json (79 uses) and this tag cannot see it",
+       * so the chip was taken and counted in `MEDFAILS.magicGuardChip` -- a declared gap, which is
+       * still a gap. It was true when written and is not now: the artifact derives
+       * `refusesIndirectDamage` onto magicguard and `refusesIndirect` (ROADMAP #175) is the class gate.
+       * The reasoning that kept it out was right and only its premise expired -- exempting it HERE by
+       * name would have typed a membership list the artifact is supposed to derive AND left the
+       * ability half-right, because burn, poison, Toxic and Leech Seed chip in a different block. The
+       * gate is asked in all nine places instead. */
       if(field.weather==='sand'&&!field.wSup&&!m.types.some(t=>t==='Rock'||t==='Ground'||t==='Steel')){
         const _wc=TAGS.param('ability',m.ability,'weatherChipImmune');
         const _im=!!(_wc&&Array.isArray(_wc.weathers)&&_wc.weathers.includes('sand'));
-        if(!_im){
-          if(String(m.ability||'').replace(/[^a-z0-9]/g,'')==='magicguard')MEDFAILS.magicGuardChip++;
+        if(!_im&&!refusesIndirect(m)){
           m.curHP-=Math.floor(m.st.hp/16);
           if(TR)TR.dmg(m,'[from] Sandstorm');
         }
@@ -15165,6 +15600,47 @@ function battleTurn(S,rng,actsForA,actsForB){
        * available. It now asks the shared `isGrounded`, the same predicate the hazards, the switch
        * branch and Psychic Terrain's priority bar ask, and the failure counter is replaced by
        * MEDSEEN.terrainHealSkippedAirborne so the event is still countable. */
+      /* ROADMAP #175 -- THE RESIDUAL STATUS CURES, AND THE POSITION IS THE MECHANIC.
+       *
+       * `curesStatusResidual` has three members and each carries its own gate:
+       *   healer     {scope:'adjacentAllies', chance:0.5,  weathers:null}   -- CHAMPIONS OVERRIDES IT
+       *   hydration  {scope:'self',           chance:1,    weathers:['rain']}
+       *   shedskin   {scope:'self',           chance:0.33, weathers:null}
+       *
+       * All three are `onResidualOrder: 5` (data/abilities.ts:4177-4179, :1915-1917, :1807-1809),
+       * which is ABOVE the status chips at order 9-10 -- so a body cured this turn does not take the
+       * burn tick. Placed here, above the terrain heal and the chips, for exactly that reason: below
+       * them it would pass a status read and still cost a tick every turn.
+       *
+       * HEALER'S 50% IS THE CHAMPIONS VALUE, READ AND NOT RECALLED. Mainline says 30%; the mod
+       * (data/mods/champions/abilities.ts:46-57) rewrites the handler with `randomChance(1, 2)`. The
+       * number is not typed here at all -- it comes out of `chance` in the artifact, which is derived
+       * from the mod. This is the exact ability the memory note records being typed from memory once.
+       *
+       * `scope` ROUTES IT, so nothing here knows there are three: 'self' cures the holder, and
+       * 'adjacentAllies' cures the PARTNER and not the holder -- one word apart in the dex and the
+       * opposite ability if confused, the same trap WIRE 157 records for Sweet Veil. An unknown scope
+       * cures NOBODY and is counted.
+       *
+       * THE WEATHER GATE IS `effectiveWeather`, so a suppressed sky is not a sky -- `field.wSup` is
+       * the same guard the weather residual above uses. */
+      {const _cr=TAGS.param('ability',m.ability,'curesStatusResidual');
+       if(_cr&&m.curHP>0&&!m.fainted){
+         const _wOK=!Array.isArray(_cr.weathers)||(!field.wSup&&_cr.weathers.includes(field.weather));
+         if(_wOK&&(+_cr.chance>=1||rng()<+_cr.chance)){
+           let _who=null;
+           if(_cr.scope==='self')_who=[m];
+           else if(_cr.scope==='adjacentAllies')_who=(actA.indexOf(m)>=0?actA:actB).filter(x=>x&&x!==m);
+           else {_who=[];MEDFAILS.cureScopeUnknown++;
+                 if(!MEDFAILS.cureScopeUnknownFirst)MEDFAILS.cureScopeUnknownFirst=String(_cr.scope);}
+           for(const _t of _who){
+             if(!_t||_t.fainted||_t.curHP<=0||!_t.status)continue;
+             const _was=_t.status; _t.status=''; _t.toxTurns=0; _t.slpTurns=0; _t.frzTurns=0;
+             MEDSEEN.statusCuredByResidual++;
+             if(TR){TR.act(m,'ability: '+m.ability);TR.cure(_t,_was,'[from] ability: '+m.ability);}
+           }
+         }
+       }}
       {const _th=terrainPerTurnHP()[terrainId(field.terrain)];
        if(_th&&_th.effect==='heal'&&_th.per&&!healBlocked(m)){
          if(isGrounded(m)){const _h0=m.curHP;m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/_th.per));
@@ -15188,10 +15664,40 @@ function battleTurn(S,rng,actsForA,actsForB){
        * turn; nothing in this format is that small, and the clamp is written here because the
        * authority's line has it, not because a probe can reach it. The same clamp is added to burn and
        * to ordinary poison for the identical reason -- all three are `this.damage(...)` calls. */
-      if(m.status==='brn'){m.curHP-=Math.max(1,Math.floor(m.st.hp/16));if(TR)TR.dmg(m,'[from] brn');}
-      if(m.status==='psn'){m.curHP-=Math.max(1,Math.floor(m.st.hp/8));if(TR)TR.dmg(m,'[from] psn');}   // regular poison: a flat 1/8
+      /* ROADMAP #175 -- THE THREE STATUS CHIPS ARE GATED AND THE TOXIC COUNTER STILL TICKS. The `tox`
+       * stage is `effectState.stage`, incremented by the condition's own onResidual BEFORE the damage
+       * call, so a body that refuses the damage still climbs the ramp and pays the full stage the turn
+       * the ability leaves. Blocking the increment as well as the damage would be a second fact. */
+      /* ROADMAP #175 -- POISON HEAL. It is an `onDamage` at priority 1, so it sits exactly where the
+       * chip it replaces sits, and it does TWO things: refuses the damage and pays the holder.
+       * data/abilities.ts:3321-3328, no Champions override.
+       *
+       * THE STATUSES AND THE FRACTION COME OUT OF THE TAG (`statuses:['psn','tox']`, `fraction:0.125`),
+       * so an ability that pays off a BURN arrives without an edit here. `refusesTheDamage` is read
+       * rather than assumed, because a member that heals AND still takes the chip is expressible.
+       *
+       * THE TOXIC RAMP STILL CLIMBS. The `tox` condition increments its own stage before it calls
+       * `this.damage`, and the ability only intercepts the damage — so a Poison Heal body that loses
+       * the ability mid-battle pays the full accumulated stage, which is the authority's behaviour.
+       *
+       * HEAL BLOCK STOPS THE PAYMENT AND NOT THE REFUSAL, the same split every other heal in this
+       * residual has: `onTryHeal` refuses restored HP and says nothing about damage. */
+      const _phl=TAGS.param('ability',m.ability,'healsFromOwnStatus');
+      const _ph=!!(_phl&&Array.isArray(_phl.statuses)&&_phl.statuses.includes(m.status));
+      if(_ph){
+        if(_phl.refusesTheDamage===false)MEDFAILS.statusHealNoRefusal++;
+        if(+_phl.fraction>0&&!healBlocked(m)&&m.curHP<m.st.hp&&m.curHP>0){
+          const _h0=m.curHP;
+          m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp*+_phl.fraction));
+          MEDSEEN.healedFromOwnStatus++;
+          if(TR&&m.curHP>_h0)TR.heal(m,'[from] ability: '+m.ability);
+        }
+      }
+      const _mgi=_ph||((m.status==='brn'||m.status==='psn'||m.status==='tox')&&refusesIndirect(m));
+      if(m.status==='brn'&&!_mgi){m.curHP-=Math.max(1,Math.floor(m.st.hp/16));if(TR)TR.dmg(m,'[from] brn');}
+      if(m.status==='psn'&&!_mgi){m.curHP-=Math.max(1,Math.floor(m.st.hp/8));if(TR)TR.dmg(m,'[from] psn');}   // regular poison: a flat 1/8
       if(m.status==='tox'){m.toxTurns=(m.toxTurns||0)+1;                        // Toxic: n x 1/16, escalating
-        m.curHP-=Math.max(1,Math.floor(m.st.hp/16))*Math.min(15,m.toxTurns);if(TR)TR.dmg(m,'[from] psn');}
+        if(!_mgi){m.curHP-=Math.max(1,Math.floor(m.st.hp/16))*Math.min(15,m.toxTurns);if(TR)TR.dmg(m,'[from] psn');}}
       /* WIRE 29 -- passiveHeal, from the item's own tag instead of a Leftovers name check. The tag
        * carries the fraction (0.0625 = 1/16) and the name check carried the same number typed out, so
        * this is a no-op today and the point is next month: a second passive-heal item joins by
@@ -15311,13 +15817,20 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _by=m._trap.by;
         if(_by&&(_by.fainted||_by.curHP<=0||(actA.indexOf(_by)<0&&actB.indexOf(_by)<0))){m._trap=null;}
         else{
-          m.curHP-=Math.floor(m.st.hp*m._trap.frac);
-          if(TR)TR.dmg(m,'[from] partiallytrapped');
+          /* ROADMAP #175 -- the CHIP is refused and the CLOCK still runs. `partiallytrapped`'s
+           * onResidual damages and its `duration` is decremented by the volatile machinery either
+           * way, so a Magic Guard body is still stuck for the same number of turns. */
+          if(!refusesIndirect(m)){m.curHP-=Math.floor(m.st.hp*m._trap.frac);
+            if(TR)TR.dmg(m,'[from] partiallytrapped');}
           if(--m._trap.turns<=0){m._trap=null;if(TR)TR.vend(m,'partiallytrapped');}
           if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}
         }
       }
-      if(m._seededBy&&m.curHP>0){
+      /* ROADMAP #175 -- A REFUSED SEED PAYS THE SEEDER NOTHING, and that is the half a careless gate
+       * gets wrong. Showdown's leechseed onResidual is `const damage = this.damage(...); if (damage)
+       * this.heal(damage, ...)` -- the heal is the RETURN of the damage call, so a blocked chip returns
+       * false and the seeder gets nothing. Skipping only the victim's subtraction would mint HP. */
+      if(m._seededBy&&m.curHP>0&&!refusesIndirect(m)){
         /* Heal what was TAKEN, not the formula amount: the killing tick drains only the HP the
          * victim still had, and handing the seeder more than that would mint HP from nothing. */
         const _d=Math.min(Math.floor(m.st.hp/m._seededBy.per),m.curHP);
@@ -15339,7 +15852,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          SALT CURE CARRIES THE SAME TAG AND IS NOT SET ANYWHERE, which is stated rather than left to
          be discovered: it is a DAMAGING move, so its volatile would have to be applied on the attack
          path, and that is a different site. It stays visibly unwired. */
-      if(m._ptDmg&&m.curHP>0){
+      if(m._ptDmg&&m.curHP>0&&!refusesIndirect(m)){   /* ROADMAP #175 -- Curse's chip is a Condition */
         m.curHP-=Math.max(1,Math.trunc(m.st.hp/m._ptDmg.per));
         if(TR)TR.dmg(m,'[from] Curse');
         MEDSEEN.perTurnDamageChip++;
@@ -15363,7 +15876,8 @@ function battleTurn(S,rng,actsForA,actsForB){
        * `_ptDmg` and never `_vol.curse`, so the branch above owns it and this one never sees it. If
        * Curse is ever routed through `applyMoveVolatile` the two must be merged, and this sentence is
        * where that is written down. */
-      if(m.curHP>0&&m._vol)for(const [_v,_r] of perTurnHPVolatiles()){
+      /* ROADMAP #175 -- Salt Cure and every other chipping volatile is a Condition too. */
+      if(m.curHP>0&&m._vol&&!refusesIndirect(m))for(const [_v,_r] of perTurnHPVolatiles()){
         if(!(m._vol[_v]>0)||_r.pt.effect!=='damage')continue;
         m.curHP-=Math.max(1,Math.trunc(m.st.hp/perTurnHPDenominator(_r.pt,m)));
         MEDSEEN.perTurnVolatileChip++;

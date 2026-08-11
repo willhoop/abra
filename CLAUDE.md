@@ -85,6 +85,40 @@ Cowork drafts docs and analysis; Claude Code applies, tests and pushes.
   as suspect and verify it yourself.
 - You are the sole publisher. Cowork runs no git and no scripts.
 
+## EVERY HEAVY RUN GOES THROUGH `tools/lownode.cmd`. THE FIX FOR A FROZEN MACHINE IS PRIORITY, NOT FEWER AGENTS.
+
+*(Will, 2026-08-11: **"U KEEP FREEZING UP AND I HAVE TO FORCE CLOSE YOU"**, and then, when the first
+answer offered was to run one agent instead of several: **"NO WE CAN HAVE SEVERAL AGENTS, DO NUMBER 3"**.)*
+
+```cmd
+tools\lownode.cmd engine\quarantine.js        REM not: node engine\quarantine.js
+```
+
+This machine is **16 cores and 13 GB of RAM** with ~12 Claude processes already resident. The heavy
+runs here each pin every core for minutes AND each load the 30 MB store plus the dex plus the tags:
+`quarantine.js` alone runs a 20,000-comparison differential plus three roster stages, and the
+interaction matrix stages 2,250 pairs. Two division agents doing that concurrently, with test batches
+on top, starved the UI thread and pushed RAM toward swap. **A swapping desktop does not look slow, it
+looks FROZEN**, which is why the reported symptom was a force-quit rather than a complaint about speed.
+
+**SERIALISING THE DIVISIONS IS THE WRONG FIX AND IT WAS PROPOSED FIRST.** It throws away exactly the
+parallelism the divisions were cut apart to make safe — the same argument `docs/DIVISIONS.md` already
+makes about treating the invalidation ORDER as a scheduling constraint. Priority is the right lever:
+the work still takes every idle core, and the instant a foreground window wants one it gets it back.
+On an idle machine throughput is unchanged.
+
+`BELOWNORMAL`, not `/LOW`. `/LOW` is the IDLE class and can starve outright under sustained load,
+turning a four-minute gate run into an unbounded one — which would look like the hang it is meant to fix.
+
+**THE LOAD-BEARING CLAIM IS THE EXIT CODE, NOT THE SPEED.** Every gate in this repo is read as
+`node tests/x.js && GREEN || RED`. A wrapper that returned 0 for a failing script would turn every red
+test green everywhere at once, silently — far worse than the freezing. `tests/test-lownode.js` asserts
+it, and was **shown RED on a deliberate break** first: delete `exit /b %ERRORLEVEL%` from the .cmd and
+it reports *"A FAILING SCRIPT WAS REPORTED AS SUCCESS"*.
+
+Node ≥20 refuses to spawn a `.cmd` directly (the 2024 batch-injection advisory). Call it through
+`cmd.exe /c`; do **not** reach for `shell: true`, which reintroduces the quoting hazard that refusal exists to prevent.
+
 ## WHO MAY WRITE TO THIS REPO (S11 — one publisher)
 
 Three agents can touch these files. Only one may touch git.

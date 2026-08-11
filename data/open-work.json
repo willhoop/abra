@@ -1,12 +1,12 @@
 {
-  "generated": "2026-08-11T08:19:22.951Z",
+  "generated": "2026-08-11T09:14:13.342Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
-    "register_rows": 148,
-    "open": 97,
+    "register_rows": 149,
+    "open": 98,
     "closed": 51,
     "open_asserting_breakage": 2,
     "measured_disagreements": 0,
@@ -597,6 +597,15 @@
       "uses": 0,
       "title": "`playerAction` STILL CARRIES A NAME FALLBACK FOR ALLY SWITCH, BESIDE THE DERIVED TEST. `|| id === \\'allyswitch\\'` sits n",
       "full": "`playeraction` still carries a name fallback for ally switch, beside the derived test. `|| id === \\'allyswitch\\'` sits next to the `swapsslots` tag test. it is silent and uncounted, so if the tag ever stops matching, the name catches it and nothing reports that the derived path failed — a fallback that hides the failure of the thing it is backing up. this is the mechanism #127 indicts, surviving inside the fix for #127"
+    },
+    {
+      "n": 183,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE EFFECTIVE-IDENTITY RATCHET WAS RESTAMPED WHOLESALE, ON WILL'S INSTRUCTION, AND 964 READS WENT IN UNREVIEWED — 2026-0",
+      "full": "the effective-identity ratchet was restamped wholesale, on will's instruction, and 964 reads went in unreviewed — 2026-08-11. will, asked whether to walk the reads or reset the reference point: *\"restamp i guess\"*. recorded as a row rather than done quietly, because this is the exact move the repo has been burned by — *\"the gate went green after somebody re-stamped it\"* — and the difference between a legitimate re-baseline and laundering is whether anybody can later see what was swallowed. baseline 2026-08-02, count 234 -> 2026-08-11, count 1,198: 964 reads adopted across 46 files. largest: `tests/roster.js` 247 (new), `tests/test-mechanics.js` 226 (new), `engine/medicham2-browser.js` 59 -> 215, `tests/probe_red_demo.js` 123 (new). the simulator entry is the one that matters — the other large entries are harnesses that legitimately construct bodies, but 156 new raw reads inside the engine itself are exactly where a declared-versus-effective ability confusion would do damage, and nobody read them. the restamp was timed after the tree settled (doing it mid-run is what put this red in the first place, per claude.md on a measuring agent beside a writing one) and the adoption was diffed rather than assumed. what is owed: a walk of the 156 simulator reads specifically, routing the ones that want the live value and declaring the ones that legitimately want the declaration. the other 808 can stay adopted"
     },
     {
       "n": 47,

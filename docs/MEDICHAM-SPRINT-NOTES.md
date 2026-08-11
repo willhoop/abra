@@ -21,6 +21,35 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE MACHINE FROZE AND THE FIRST ANSWER WAS THE WRONG ONE. 2026-08-11.
+
+Will: **"U KEEP FREEZING UP AND I HAVE TO FORCE CLOSE YOU"**. Then, when the answer offered was to
+run one agent instead of several: **"NO WE CAN HAVE SEVERAL AGENTS, DO NUMBER 3"**.
+
+Measured rather than guessed: 16 cores, **13 GB of RAM**, ~12 Claude processes already resident.
+`engine/quarantine.js` runs a 20,000-comparison differential plus three roster stages; the interaction
+matrix stages 2,250 pairs; each node run loads the 30 MB store plus the dex plus the tags. Two
+division agents doing that concurrently, with test batches on top, starved the UI thread and pushed
+RAM toward swap. **A swapping desktop does not look slow, it looks frozen** — which is why the symptom
+reported was a force-quit and not a complaint about speed.
+
+**Serialising the divisions was proposed first and it was the wrong answer.** It throws away exactly
+the parallelism they were cut apart to make safe — the same argument `docs/DIVISIONS.md` already makes
+about treating the invalidation ORDER as a scheduling constraint. `tools/lownode.cmd` runs node at
+BELOWNORMAL instead: the work still takes every idle core, and a foreground window can always take one
+back. BELOWNORMAL, not `/LOW` — `/LOW` is the IDLE class and can starve outright under sustained load,
+turning a four-minute gate run into an unbounded one, which would look like the hang it fixes.
+
+**The load-bearing claim is the EXIT CODE, not the speed.** Every gate here is read as
+`node tests/x.js && GREEN || RED`, so a wrapper returning 0 for a failing script would turn every red
+test green at once, silently — strictly worse than the freezing it was written to fix.
+`tests/test-lownode.js` asserts it and was **shown RED on a deliberate break**: with
+`exit /b %ERRORLEVEL%` deleted it reports *"A FAILING SCRIPT WAS REPORTED AS SUCCESS"*, 3 passed
+1 failed, then 4 passed once restored.
+
+---
+
+
 ## THE OTHER SIX: THREE MORE FIXTURES, THREE REAL WIRES, AND A NAME THAT HAD BEEN CARRYING A RULE ON ITS OWN. 2026-08-11 (ENGINE).
 
 **#171, #168, #169 — ALL THREE ARE THE FIXTURE, AND ALL THREE ARE THE SAME FIXTURE BUG.** ROADMAP #144

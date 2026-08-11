@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-11T08:18:26.121Z",
+  "generated": "2026-08-11T09:09:10.118Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 451,
-  "live": 451,
+  "probed": 461,
+  "live": 461,
   "missing": 0,
-  "armed": 451,
+  "armed": 461,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2756,7 +2756,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 25.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4517,6 +4517,106 @@
       "label": "Recycle hands back the item the body spent — and only then",
       "live": true,
       "detail": "the Sitrus fires on its own (slot now \"\"). Knocked back to 45% and Recycled, the berry comes back AND is eaten again — hp 118 from 76, slot \"\". SPEND: with the returned berry forced out of its hands, a second Recycle finds the memory gone — slot \"\" (must be empty). REFUSE: a body still holding Leftovers keeps \"leftovers\" and is given no second item",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "refusesIndirectDamage",
+      "label": "Magic Guard pays nothing for sand, a burn, a seed or an Orb",
+      "live": true,
+      "detail": "the same Clefable, burned, seeded, standing in sand and holding a Life Orb: with no ability it loses 58 hp in one turn and the seeder gains 21; with Magic Guard it loses 0 and the seeder gains 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "stealsItem",
+      "label": "Pickpocket takes from the attacker, Magician from the target",
+      "live": true,
+      "detail": "PICKPOCKET: hit by a Fire Punch, an empty-handed Weavile ends holding \"leftovers\" and the attacker \"\"; with no ability \"\" / \"leftovers\". MAGICIAN: after its own Flamethrower connects, Delphox holds \"leftovers\" and the target \"\" (control \"\" / \"leftovers\"). REFUSED with full hands: \"sitrusberry\" / \"leftovers\"",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "reflectsStatusToSource",
+      "label": "Synchronize hands the burn back and keeps the sleep",
+      "live": true,
+      "detail": "Will-O-Wisp into Espeon: victim \"brn\", caster \"brn\" (control caster \"\"). SPORE, which the handler excludes: victim \"slp\", caster \"\" — an engine that reflected everything would put the Vileplume to sleep with its own Sleep Powder",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "clearsScreensOnEntry",
+      "label": "Screen Cleaner takes down BOTH sides, its own included",
+      "live": true,
+      "detail": "Mr. Rime walks in (\"mrrime\") with a Reflect on its OWN side and a Light Screen on the foe's: with no ability they read 4 and 4 turns, with Screen Cleaner 0 and 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "healsFromOwnStatus",
+      "label": "Poison Heal takes the Toxic and is PAID by it",
+      "live": true,
+      "detail": "Gliscor (150 max) Toxic'd at half HP. With no ability it is \"tox\" and loses 9 then 18 (the ramp). With Poison Heal it is still \"tox\" — the ability has no onSetStatus — and GAINS 18 then 18, which is max/8 = 18 both turns because the ramp never applies to a heal",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsAtHPThreshold",
+      "label": "Berserk fires on the hit that CROSSES half, and only then",
+      "live": true,
+      "detail": "Drampa at 707 (half is 612) takes a Dragon Claw to 517 — SpA stage 1, control 0. Already UNDER the line at 517 it takes the same hit to 327 and reads 0: the ability is a crossing, not a state",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "multihitAlwaysMax",
+      "label": "Skill Link pins Rock Blast to the top of its own range",
+      "live": true,
+      "detail": "Toucannon clicks Rock Blast on the same roll both times: with no ability the `|-hitcount|` line says 3, with Skill Link it says 5 — the top of the artifact's own [2,5] range, taken by index and not typed",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "curesStatusResidual",
+      "label": "Hydration cures in rain and not out of it — above the chip",
+      "live": true,
+      "detail": "the same burned Vaporeon: out of rain it stays \"brn\" and loses 12 to the burn; IN rain it reads \"\" and loses 0 — the cure is above the chip. With no ability in the same rain it is \"brn\" (12). SHED SKIN at roll 0.1 -> \"\", at 0.9 -> \"brn\" (the tag says 0.33)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsNotVeryEffective",
+      "label": "Tinted Lens doubles the RESISTED hit and nothing else",
+      "live": true,
+      "detail": "Gengar into an unfaintable Garchomp. RESISTED (Sludge Bomb, Ground halves Poison): 53 -> 105 with Tinted Lens, which is the artifact's own mult of 2. NEUTRAL (Shadow Ball): 95 -> 95 — unchanged, because `appliesWhen` is the mechanic and not decoration",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "removesOwnMoveFlag",
+      "label": "Long Reach walks out of Rough Skin without paying",
+      "live": true,
+      "detail": "Decidueye clicks Leaf Blade into a Rough Skin Garchomp: with no ability it pays 155 hp for the contact, with Long Reach it pays 0. The DAMAGE it deals is unchanged (84 vs 84), which is the control that says the move still happened",
       "hollow": false,
       "armed": true,
       "directCall": false
