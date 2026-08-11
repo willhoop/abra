@@ -3539,8 +3539,16 @@ const ITEM_TAGS = [
        * does not have. */
       const flat = (eat.match(/\bheal\(\s*(\d+)\s*[),]/) || [])[1];
       if (!trig && !heal && !flat) return null;
+      /* ROADMAP #128 -- THE GLUTTONY THRESHOLD IS WRITTEN HERE, ON THE BERRY, AND NOT ON THE ABILITY.
+       * The handler is one `if` with two arms:
+       *     pokemon.hp <= pokemon.maxhp / 4 || (pokemon.hp <= pokemon.maxhp / 2 && ...gluttony)
+       * so the ABILITY only arms it (`lowersBerryThreshold`) and the FRACTION belongs to the item.
+       * Read as a second fraction rather than folded into `triggersBelow`, because a consumer that
+       * does not know about Gluttony must keep getting the plain number. */
+      const gl = upd.replace(/\s+/g, ' ').match(/maxhp\s*\/\s*(\d+)\s*&&[^)]*gluttony/i);
       return { triggersBelow: trig ? '1/' + trig : null, restores: heal ? '1/' + heal : null,
                restoresFlat: flat ? +flat : null,
+               triggersBelowWithAbility: gl ? { ability: 'gluttony', at: '1/' + gl[1] } : null,
                confusesIfWrongNature: /confus/i.test(eat) || null };
     } },
   /* THE LAST THREE ITEMS ON THE GATE'S QUEUE (2026-08-10). Unlike Iron Ball and Light Ball — where
@@ -4779,6 +4787,83 @@ const ABILITY_TAGS = [
   { tag: 'blocksBerries', param: 'their berries cannot be eaten', probe: 'unnerve',
     why: 'Unnerve, 2.03%. Turns off Sitrus (10.8% of items) and every resist berry on the other side',
     of: a => a.onFoeTryEatItem ? { blocks: true } : null },
+  /* ---- ROADMAP #128 -- THE BERRY-ABILITY FAMILY, AND SIX OF SEVEN CARRIED NO TAG AT ALL ----------
+   *
+   * Will, 2026-08-10: *"do you have the berry abilties impelmented, like cud chew, harvest, etc"*.
+   * Measured then: Cud Chew, Harvest, Gluttony, Cheek Pouch and Pickup were `untagged` and all
+   * COULD-NOT-STAGE; Ripen was tagged `damageReduce`, which catches its resist-berry halving and NOT
+   * that it doubles EVERY berry effect -- so it was modelled in a way that read as covered, which is
+   * worse than absent. Only Unnerve, one row up, worked.
+   *
+   * FIVE TAGS RATHER THAN ONE, because they hook at five different moments and a single "berry
+   * ability" tag would have to be read five ways: on eating (Cheek Pouch), at the threshold that
+   * decides WHETHER to eat (Gluttony), on the size of what was eaten (Ripen), at the residual to give
+   * one back (Harvest), and at the residual to eat one again (Cud Chew). */
+  { tag: 'healsOnBerryEaten', param: 'the holder heals a fraction of max HP whenever it eats a berry',
+    probe: 'healsOnBerryEaten',
+    why: 'Cheek Pouch, 9 uses. A Sitrus under Cheek Pouch is 1/4 + 1/3 of max HP off one item, which '
+       + 'is most of a Leftovers turn on top of the berry the calculation already knows about',
+    of: a => {
+      const src = String(a.onEatItem || '').replace(/\s+/g, ' ');
+      const m = src.match(/heal\(\s*\w+\.baseMaxhp\s*\/\s*(\d+)/);
+      return m ? { heal: [1, +m[1]] } : null;
+    } },
+  /* THE DOUBLER, AND IT IS EVERY EFFECT AND NOT THE HEAL. Ripen's handlers are `onTryHeal`
+   * (chainModify 2 for a berry), `onChangeBoost` (every stat step x2) and `onEatItem`, plus the
+   * resist-berry halving that `damageReduce` already carries. The three multiplied fields are read
+   * separately so a consumer applies it where the authority applies it. */
+  { tag: 'doublesBerryEffect', param: 'every berry effect this holder gets is doubled', probe: 'doublesBerryEffect',
+    why: 'Ripen. `damageReduce` caught the resist-berry half only, so a Sitrus under Ripen healed 1/4 '
+       + 'and reads as covered -- a mechanic modelled at half strength is harder to find than one that '
+       + 'is absent',
+    of: a => {
+      const heal = /isBerry\)\s*return this\.chainModify\(\s*2\s*\)/.test(String(a.onTryHeal || '').replace(/\s+/g, ' '));
+      const boost = /isBerry[\s\S]*\*=\s*2/.test(String(a.onChangeBoost || '').replace(/\s+/g, ' '));
+      if (!heal && !boost) return null;
+      return { mult: 2, heal, boost };
+    } },
+  /* THE PINCH THRESHOLD MOVES, AND THE HANDLER THAT SAYS SO IS THE BERRY'S, NOT THE ABILITY'S.
+   * Gluttony itself only sets a flag (`abilityState.gluttony = true`); the number lives in each pinch
+   * berry's `onUpdate`, which reads
+   *     if (pokemon.hp <= pokemon.maxhp / 4 || (pokemon.hp <= pokemon.maxhp / 2 && ...gluttony))
+   * So the FRACTION is derived on the ITEM side (`healsAtThreshold.triggersBelowWithAbility`) and this
+   * tag carries only the fact that the ability arms it. Two halves, each read where it is written. */
+  { tag: 'lowersBerryThreshold', param: 'pinch berries fire at a higher HP for this holder', probe: 'lowersBerryThreshold',
+    why: 'Gluttony, 35 uses. A Sitrus at 1/2 instead of 1/4 is a different item -- it fires before the '
+       + 'hit that would have killed rather than after it',
+    of: a => /abilityState\.gluttony\s*=\s*true/.test(String(a.onStart || '') + String(a.onDamage || ''))
+      ? { armsBerryAbility: 'gluttony' } : null },
+  { tag: 'restoresBerryAtResidual', param: 'a berry it used up comes back at the end of the turn',
+    probe: 'restoresBerryAtResidual',
+    why: 'Harvest, 25 uses. One of the three mechanics blocked on `lastItem`, which appeared ZERO '
+       + 'times in the simulator: a consumed item left `item: ""` and nothing recorded WHICH berry',
+    of: a => {
+      const src = String(a.onResidual || '').replace(/\s+/g, ' ');
+      if (!/lastItem/.test(src) || !/isBerry/.test(src) || !/setItem/.test(src)) return null;
+      const ch = src.match(/randomChance\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
+      const w = [...(src.match(/isWeather\(\[([^\]]*)\]/) || [, ''])[1].matchAll(/"([a-z]+)"/g)].map(x => x[1]);
+      return { chance: ch ? (+ch[1] / +ch[2]) : 1, alwaysInWeather: w };
+    } },
+  { tag: 'reEatsBerry', param: 'the berry it just ate is eaten AGAIN a turn later', probe: 'reEatsBerry',
+    why: 'Cud Chew, 19 uses. The second helping is a whole extra Sitrus, and it is the other mechanic '
+       + 'blocked on recording WHICH berry was eaten',
+    of: a => {
+      const eat = String(a.onEatItem || '').replace(/\s+/g, ' ');
+      const res = String(a.onResidual || '').replace(/\s+/g, ' ');
+      if (!/effectState\.berry\s*=/.test(eat) || !/effectState\.berry/.test(res)) return null;
+      const c = eat.match(/counter\s*=\s*(\d+)/);
+      /* The excluded effects are the handler's own: a berry taken off you by Bug Bite or Pluck is not
+       * one you chewed, so it does not come back. */
+      const ex = [...eat.matchAll(/"([a-z]+)"/g)].map(x => x[1]);
+      return { delayTurns: c ? +c[1] : 2, notFromEffects: ex };
+    } },
+  { tag: 'picksUpUsedItem', param: 'takes an item an adjacent body used up this turn', probe: 'picksUpUsedItem',
+    why: 'Pickup, 3 uses. It needs the same two fields Harvest and Cud Chew need -- `lastItem` and '
+       + '"was it spent THIS turn" -- so it is one tag away once those exist',
+    of: a => {
+      const src = String(a.onResidual || '').replace(/\s+/g, ' ');
+      return (/usedItemThisTurn/.test(src) && /lastItem/.test(src)) ? { adjacentOnly: /isAdjacent/.test(src) } : null;
+    } },
   { tag: 'ignoresStatStages', param: 'the boost multiplier does not apply, permanently', probe: 'unaware',
     why: 'Unaware, 172 uses. Ignores the opponent stat stages in BOTH directions, so their setup is '
        + 'worthless and so is yours. Same parameter Darkest Lariat sets for one move',

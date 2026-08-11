@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-11T01:40:41.602Z",
+ "generated": "2026-08-11T02:55:44.997Z",
  "by": "engine/conformance.js",
- "files": 359,
+ "files": 362,
  "findings": [
   {
    "std": "S12",
@@ -233,6 +233,15 @@
    "file": "engine/mega_harvest.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "engine/million_targets.js",
+   "what": "names 1 Pokemon thing(s) in code: move:protect",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:protect"
+   ]
   },
   {
    "std": "S12",
@@ -506,6 +515,12 @@
   {
    "std": "S12",
    "file": "tests/test-team-preview-race.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/test-unmodelled-clicks.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },

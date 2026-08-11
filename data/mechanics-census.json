@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-11T01:35:48.383Z",
+  "generated": "2026-08-11T03:09:29.830Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 423,
-  "live": 423,
+  "probed": 437,
+  "live": 437,
   "missing": 0,
-  "armed": 423,
+  "armed": 437,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -3036,7 +3036,7 @@
       "tag": "statusCategory",
       "label": "every action kind the engine can resolve announces its |move| line",
       "live": true,
-      "detail": "37/37 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
+      "detail": "38/38 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4237,6 +4237,146 @@
       "label": "Eerie Spell takes 3 PP off the move the target just used",
       "live": true,
       "detail": "the target's Earthquake (maxpp 12) reads 8 after EERIE SPELL and 11 after PSYCHIC — the same body, the same turn order, the same one PP the victim spends on its own click, and 3 more taken off the slot it last used",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "groundsField",
+      "label": "Gravity brings a Flying type down and Earthquake reaches it",
+      "live": true,
+      "detail": "Earthquake into a Flying Corviknight: 0 with nothing up, 148 after a real Gravity CLICK. CONTROL, the other direction: 167 into a grounded Incineroar, so this is not an engine that stopped refusing Ground",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "typeRemovedForTurn",
+      "label": "a Roosting body loses Flying for the turn and Earthquake lands",
+      "live": true,
+      "detail": "a half-HP Talonflame, Earthquake on the same turn: passing it moves 0 HP (airborne, correct); Roosting it moves -76 HP — the heal MINUS an Earthquake that now lands. Types after the turn: Fire/Flying, so the deletion is given back",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statusInflict",
+      "label": "Smack Down grounds the target, and the volatile is the move own",
+      "live": true,
+      "detail": "Earthquake into a Flying Corviknight: 0 untouched, 139 after Smack Down landed its own volatile",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statusInflict",
+      "label": "Magnet Rise lifts a grounded body out of Earthquake",
+      "live": true,
+      "detail": "Earthquake into a grounded Incineroar: 167 normally, 0 after it clicked Magnet Rise",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "perTurnHP",
+      "label": "Ingrain plants a Flying body on the floor",
+      "live": true,
+      "detail": "Earthquake into a Flying Corviknight: 0 untouched, 138 after Ingrain",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "semiInvulnerable",
+      "label": "Earthquake pierces Dig for DOUBLE, and Iron Head still misses",
+      "live": true,
+      "detail": "underground: Earthquake 23 -> 46 (the exception, x2); Iron Head 51 -> 0 (not on the list, still refused). Two arms in opposite directions, so neither \"everything gets through\" nor \"nothing does\" can pass",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "semiInvulnerable",
+      "label": "Hurricane pierces Fly WITHOUT doubling — the two lists are not one list",
+      "live": true,
+      "detail": "Hurricane into a flying body 94 -> 94 (pierces, NORMAL damage); Surf into a diving body 29 -> 57 (pierces AND doubles). Same mechanic, two different lists",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "healsOnBerryEaten",
+      "label": "Cheek Pouch heals a third on TOP of the berry",
+      "live": true,
+      "detail": "a 170 HP Incineroar starting at 76: no ability 118 (the Sitrus quarter), Cheek Pouch 170. CONTROL, the same ability with NO berry: 76 — so the heal is the BERRY firing and not the ability healing on its own",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "doublesBerryEffect",
+      "label": "Ripen doubles the berry heal, not just the resist halving",
+      "live": true,
+      "detail": "starting at 76: a plain Sitrus reaches 118 (+42), under Ripen 160 (+84) — exactly double, and the no-berry arm fixes the baseline",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "reEatsBerry",
+      "label": "Cud Chew eats the same berry again a turn later",
+      "live": true,
+      "detail": "HP over three turns — no ability 118,118,118 (one helping); Cud Chew 118,160,160 (a second one, ABOVE the threshold that would refuse a first). CONTROL, Cud Chew with no berry: 76,76,76",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "restoresBerryAtResidual",
+      "label": "Harvest gives the berry back — always in sun, half the time otherwise",
+      "live": true,
+      "detail": "after the Sitrus is eaten, the item slot reads: rain + a losing roll \"\", rain + a winning roll \"sitrusberry\", SUN + the SAME losing roll \"sitrusberry\" (the sky overrides the die). CONTROL, no ability in sun: \"\"",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "picksUpUsedItem",
+      "label": "Pickup takes an item another body spent THIS turn",
+      "live": true,
+      "detail": "the ally ends the turn holding \"sitrusberry\" when a body ate a berry beside it; \"\" with the ability removed, and \"\" when nobody spent anything — so neither arm can pass by the slot simply filling",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "lowersBerryThreshold",
+      "label": "Gluttony is READ, and it changes nothing in this regulation",
+      "live": true,
+      "detail": "at 60% HP a Gluttony holder keeps its Sitrus (\"sitrusberry\", same as a plain holder \"sitrusberry\"); at 45% it eats it (\"\"). gluttonyRaisedThreshold = 0 — no berry in this format triggers at 1/4, so the ability is read and has nothing to raise",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "sealsMoves",
+      "label": "Encore reaches a move kind that never recorded itself — the room comes DOWN",
+      "live": true,
+      "detail": "Trick Room goes up (4 turns). Left alone the victim clicks Scald and the room ticks to 3; ENCORED it re-clicks Trick Room and the room reads 0 — a second Trick Room ends it. `trickroom` is one of the thirteen kinds that recorded no last move, so the seal could not have landed at all",
       "hollow": false,
       "armed": true,
       "directCall": false

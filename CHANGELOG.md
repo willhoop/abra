@@ -10,6 +10,55 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.0.0] — 2026-08-10
+
+### Changed
+- **THE MEDICHAM GATE IS OPEN — all six clauses, verified against a frozen release.** Census
+  **437 live / 437 probed / 0 missing / 0 unarmed**; differential **0 of 20,000**; all three roster
+  stages re-run against release `82250b3c3139`, cut from this tree with **0 of 24 files moved**, at
+  **0 FIRED-AND-BOARDS-DIFFER / 0 DID-NOT-FIRE**. Quarantine selftest 20/20 including the RED arm.
+  **This is not 4.0.0 again** — that opening was retracted two commits later because the gate could
+  not read its own defect register. This one is stamped to a release that has not drifted.
+
+### Fixed
+- **Four of the eight were already fixed and nobody closed the row.** `_lastMove`, the Choice lock,
+  Struggle and Quick Guard were repaired by the previous batch and left open in the register, so the
+  gate kept counting them. Each was re-measured rather than trusted.
+- **The grounded axis was worse than #147 described.** The Ground immunity was read off the TYPE CHART
+  and never asked `isGrounded()` at all. Earthquake into a Flying Corviknight: **0 → 148** under
+  Gravity, **0 → 139** Smack Down, **0 → 138** Ingrain, **167 → 0** Magnet Rise. Iron Ball on a Flying
+  body was wrong before this row existed.
+- **#123 confirmed Will's correction and the row was wrong as written.** Earthquake **hits Dig for
+  double** (23 → 46); Iron Head still misses (51 → 0); Surf/Dive 29 → 57; and **Hurricane into Fly is
+  94 → 94** — pierce and double are different sets. `invulnPierced` 6, `invulnDoubled` 4.
+- **The "32 no-op moves" was wrong: it is 15, and 307 clicks, not 1,702.** Transform 89, Entrainment
+  72, Worry Seed 69, Role Play 35, and five at literally zero. Ratcheted in
+  `data/unmodelled-clicks.json` — may shrink, never grow.
+- **The gate clause itself was the last thing in the way**, and it counted **#148 against itself** for
+  quoting the breakage vocabulary. It scanned prose case-sensitively, so rows headed `— CLOSED` kept
+  counting. It reads the row's **status cell** now, refuses `PART DONE`, and was shown RED on a planted
+  open row before being trusted.
+
+### Notes
+- **RETRACTED WITHIN THE HOUR: "Unseen Fist and Piercing Drill are two mechanisms sharing one tag."**
+  I read `/data/abilities.ts` — **mainline** — where Unseen Fist deletes the `protect` flag and goes
+  through at full damage. **The Champions mod overrides it**: `onModifyMove: undefined`, then the same
+  `onHitProtect` as Piercing Drill, *"contact moves ignore a target's protection and deal 1/4 the usual
+  damage."* Will caught it. Identical mechanisms, one tag, `damageMult: 0.25` — **the tag was right and
+  I was wrong.** Same error as the 21 mainline constants and Moonblast's 30% against the format's 10%.
+- **`piercesProtect` is derived with correct params and READ BY NOTHING** — both abilities are still
+  stopped by Protect in our engine. Invisible to the usage shelf because both are mega-only and sheets
+  declare the pre-mega ability. Registered as a defect: an open gate that has not registered a live
+  defect is the sixth clause failing quietly.
+- **OPEN IS NOT "START CONSUMING THE DOWNSTREAM NUMBERS".** Will: *"why run miltank when we probably
+  are going to change medicham"*. Exactly — 88 scenario rows are still unbuilt, the last sweep found
+  148 divergences from a THINNER fixture set, and every bug they expose moves the engine again. The 47
+  artifacts are **re-runnable, not worth re-running yet**. Order agreed: build the scenarios → sweep →
+  fix what it finds → million games → and only then re-run and refit, once, on an engine that has
+  stopped moving.
+
+---
+
 ## [4.13.0] — 2026-08-10
 
 ### Changed

@@ -37,6 +37,53 @@ Census **330 live / 330 probed / 0 missing**. Damage stages **1728/1728 exact**.
 
 ---
 
+## 2026-08-11 — THE GATE OPENED. ALL EIGHT REMAINING ROWS CLOSED.
+
+`node engine/quarantine.js` reads **GATE: OPEN — all six clauses pass** for the first time.
+
+| clause | reading |
+|---|---|
+| game differential | **0 of 20,000** disagree (seed 20260804), artifact re-written at n=20000 LAST |
+| roster / items | 0 DIFFER, 0 DID-NOT-FIRE, 139 tested — release `82250b3c3139` |
+| roster / abilities | 0 DIFFER, 0 DID-NOT-FIRE, 94 tested — same release |
+| roster / moves | 0 DIFFER, 0 DID-NOT-FIRE, 427 tested — same release |
+| coverage | all 412 moves above 25 clicks measured by the roster or the census |
+| no open engine defect | **0** open rows |
+
+Census **423 → 437 live / 437 probed / 0 missing / 0 hollow / 0 unarmed / 0 direct-call.** Fourteen new
+probes. Release `82250b3c3139` was cut from this tree and reads **0 of 24 files moved**, so the three
+roster runs are a photograph and not a moving tree.
+
+| row | what it was | what closed it |
+|---|---|---|
+| #117 | thirteen action kinds never recorded `_lastMove` | already landed; **re-measured over all 500 moves and all 37 kinds — 0 fail**. Probe is the payoff: Encored into Trick Room, the room comes DOWN (4 → 0) |
+| #118 | the Choice lock did not arm on a status move | already landed; re-measured — 9 status kinds arm it, `choiceLockArmedOnStatus` = 9 |
+| #119 | Struggle was a silent no-op | already landed; re-measured — 50 damage, 64 max-HP recoil, real `\|move\|` line; and a Scarf lock onto a Disabled move at FULL PP Struggles |
+| #123 | the semi-invulnerability exception list was absent | **two lists**, both derived. EQ into Dig 23 → 46, Iron Head into Dig 51 → 0, Surf into Dive 29 → 57, Hurricane into Fly 94 → 94. `invulnPierced` 6 vs `invulnDoubled` 4 |
+| #125 | the terminal `{kind:'pass'}` had no counter | counter in FIRST, with a per-move histogram. The queue is **15 moves / 307 clicks**, not 32 / 1,702. Ratcheted |
+| #126 | Quick Guard was the only broken priority refusal | already landed; re-measured — QG blocks Quick Attack and Fake Out and not Earthquake; Wide Guard is the mirror |
+| #128 | six of seven berry abilities unimplemented | one `consumeBerry` site + `_lastItem`/`_ateBerry`; six new derived tags. Sitrus 118 / Cheek Pouch 170 / Ripen 160 / Cud Chew 118→160; Harvest and Pickup measured |
+| #147 | the grounded axis, five missing inputs | five inputs **and** the real defect: the Ground immunity read the type chart instead of `isGrounded()`. EQ into Corviknight 0 → 148 under Gravity, 0 → 139 Smack Down, 0 → 138 Ingrain; 167 → 0 Magnet Rise; Roost through a type deletion |
+
+**Two things were fixed that no row named**, and both are recorded because they would otherwise look
+like the gate being talked into opening:
+
+- **The clause itself.** With all eight closed it still counted five, scanning PROSE case-sensitively —
+  four rows headed `— CLOSED 2026-08-11` in capitals went on counting, and **#148 counted ITSELF** for
+  quoting the breakage vocabulary. It reads the row's **status cell** now; printed before wiring, it
+  newly clears 16 rows and every one is stamped closed/DONE in that cell; `PART DONE` is refused; shown
+  RED on a planted row carrying a number no register holds, first.
+- **The report contradicted itself the moment the gate opened** — `GATE: OPEN — nothing is withheld`
+  above `47 … are WITHHELD`. Open, those 47 are **re-runnable and stale**, and it says so (ROADMAP #57).
+
+**Reds that are not this batch's**, each reproduced in a throwaway worktree at `f8f2c67`:
+`test-stadium-roster` (another division's `engine/million_targets.js`), `test-quality` (the store grew
+20,688 → 52,840 under it), `test-web-quarantine` (the board payload was built while the gate was closed —
+WEB rebuilds it), `test-tag-consumed` (`piercesProtect`, staged only by another division's
+`engine/faces.js`). Full list in `docs/ENGINE.md`.
+
+---
+
 ## ROWS CLOSED THIS SPRINT
 
 | # | row(s) | uses | what it was | verdict move |
@@ -3475,3 +3522,29 @@ Pickup is the only one where the fixture costs more than the mechanic is worth, 
 rarest by threefold. It is declared in `tests/roster.js`'s `DEFERRED` table with its number, its
 reason, and the explicit note that this is NOT a general usage rule. It keeps its scenario, stays
 staged, and is printed every run — it simply stops holding the gate.
+
+---
+
+## THE CLOSET, AND WILL'S "ARE WE SURE THOSE ARENT JUST FUTURE MEGAS". 2026-08-10.
+
+Three abilities shelved on a measured ZERO across 26,232 declared sheets: `battlebond`, `minus`,
+`stall`. Ripen was already shelved. **Will asked whether they were just mega bodies, and checking made
+the shelf STRONGER while proving my stated reason wrong.**
+
+    Sableye     758 teams (2.9%)   Keen Eye / STALL / Prankster        mega: Magic Bounce
+    Greninja    189 teams          Torrent / Protean / BATTLE BOND     mega: Protean
+    Manectric    70 teams          Static / Lightning Rod / MINUS      mega: Intimidate
+
+**These bodies are played constantly — Sableye is on one team in thirty-four.** The zero is not "nobody
+brings the carrier", which is what my first wording implied. It is **nobody CHOOSES that ability when a
+better one sits on the same body**: Prankster over Stall, Protean over Battle Bond, Lightning Rod over
+Minus, and in every case a mega forme that overwrites the slot anyway.
+
+That is a much stronger justification. A shelf resting on "the carrier is rare" breaks the moment the
+carrier gets popular. A shelf resting on "there are three abilities and this is the one nobody takes"
+holds until the metagame moves, and the entry says to delete it the day a sheet declares one.
+
+**AND IT IS THE SAME MISTAKE I MADE WITH CUD CHEW, IN REVERSE.** There I read a low ability count and
+nearly shelved a mechanic that sits on Farigiraf at 18.3%; here I read a low count and explained it
+with a rare carrier that is not rare at all. **The ability count alone answers neither question — the
+BODY has to be looked at too**, and Will asked the right question both times.

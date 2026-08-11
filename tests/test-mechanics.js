@@ -303,7 +303,21 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * `battleInit` and spends an arbitrary number of real turns through `battleTurn`, reading every body
  * on every turn — the whole move queue it serves is made of facts carried ACROSS a turn boundary or
  * paid on a body other than the one aimed at, and no single-turn probe can see either. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(/;
+/* `vsCharging(` added 2026-08-11 with ROADMAP #123, declared HERE and with its reason, exactly as the
+ * paragraph above requires -- the ratchet caught both new probes as direct calls on their first run,
+ * which is the guard working. It stages a real doubles board through `battleInit` and spends TWO real
+ * turns through `battleTurn`, because semi-invulnerability is a fact carried ACROSS a turn boundary:
+ * the charge is declared on turn one and the exception is tested on turn two, and no single-turn probe
+ * can see either. It also has to hand the charger its move AGAIN on the second turn, which is itself
+ * only observable through the turn loop -- the engine cancels a charge for any body given a non-attack
+ * action, so a direct call to `dmgRange` would price a body that the real loop would have un-dug. */
+/* `berryRun(` added 2026-08-11 with ROADMAP #128, declared HERE and with its reason, exactly as the
+ * paragraph above requires -- the ratchet caught four of the six berry probes as direct calls on
+ * their first run, which is the guard working. It stages a real doubles board through `battleInit` and
+ * spends an arbitrary number of real turns through `battleTurn`, and it has to: three of the family
+ * (Harvest, Cud Chew, Pickup) fire at the RESIDUAL, and two of those are facts carried across a turn
+ * boundary, so nothing below the turn loop can see them even in principle. */
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -12616,6 +12630,335 @@ probe('move', 'removesPP', 'Eerie Spell takes 3 PP off the move the target just 
                  + 'victim spends on its own click, and 3 more taken off the slot it last used' };
 });
 
+/* ---- ROADMAP #147 — THE GROUNDED AXIS ------------------------------------------------------------
+ *
+ * Seven readers consult `isGrounded()` and five of its inputs were absent, so one wrong answer was
+ * wrong seven ways. Every probe below measures the SAME OUTCOME — how much Earthquake takes off — so
+ * it cannot pass by moving a flag nobody reads. That is not decoration: the first version of the
+ * grounding fix set `isGrounded` correctly on all five inputs and STILL dealt 0 damage, because the
+ * Ground immunity was being read off the type chart and never asked the predicate at all.
+ *
+ * THE CONTROL IS EXPLICIT AND IT IS TWO-SIDED. `earthquake into corviknight` with nothing on is 0 and
+ * `earthquake into incineroar` is a real number, so a probe cannot pass by an engine that has stopped
+ * refusing Ground moves generally. */
+const eqInto = (foeSp, stage) => {
+  const B = board('garchomp', 'skeledirge', foeSp, 'farigiraf');
+  if (stage) stage(B);
+  const before = B.f1.curHP;
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, 'earthquake', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    PASS2(B.f1, B.f2));
+  return before - B.f1.curHP;
+};
+
+probe('move', 'groundsField', 'Gravity brings a Flying type down and Earthquake reaches it', () => {
+  /* THE CLICK IS SPENT, NOT THE FIELD SLOT POKED. `field.gravity = 5` written by hand would prove the
+   * predicate and say nothing about whether a Gravity CLICK can reach it — and it could not: the move
+   * carries `sealsMoves` as well, that branch sat first in the classifier, and the click was routed
+   * down the Encore road where it moved nothing. */
+  const gravityUp = (B) => {
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'gravity', null, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+  };
+  const control = eqInto('corviknight');
+  const test = eqInto('corviknight', gravityUp);
+  const floorControl = eqInto('incineroar');
+  return { works: control === 0 && test > 0 && floorControl > 0,
+           arms: { control, test },
+           detail: 'Earthquake into a Flying Corviknight: ' + control + ' with nothing up, ' + test
+                 + ' after a real Gravity CLICK. CONTROL, the other direction: ' + floorControl
+                 + ' into a grounded Incineroar, so this is not an engine that stopped refusing Ground' };
+});
+
+probe('move', 'typeRemovedForTurn', 'a Roosting body loses Flying for the turn and Earthquake lands', () => {
+  /* THE ROOSTER MUST BE FASTER OR THE PROBE MEASURES THE WRONG TURN. Talonflame is 126 and Garchomp
+   * 102, so the Roost resolves first and the Earthquake arrives while the type is gone. Staged the
+   * other way round the engine is RIGHT to deal 0 and the probe would report a bug that is not there.
+   * AND THE ROOST MUST SUCCEED: a Roost at full HP fails and applies nothing, measured against the
+   * authority, so the body is chipped first. */
+  const run = (roost) => {
+    const B = board('garchomp', 'skeledirge', 'talonflame', 'farigiraf');
+    B.f1.curHP = Math.floor(B.f1.st.hp / 2);
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'earthquake', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      new Map([[B.f1, roost ? M.playerAction(B.f1, 'roost', null, B.S.field) : { kind: 'pass' }],
+               [B.f2, { kind: 'pass' }]]));
+    return { net: B.f1.curHP - before, types: (B.f1.types || []).join('/') };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.net === 0 && test.net < 0 && test.types === 'Fire/Flying',
+           arms: { control: control.net, test: test.net },
+           detail: 'a half-HP Talonflame, Earthquake on the same turn: passing it moves ' + control.net
+                 + ' HP (airborne, correct); Roosting it moves ' + test.net
+                 + ' HP — the heal MINUS an Earthquake that now lands. Types after the turn: '
+                 + test.types + ', so the deletion is given back' };
+});
+
+probe('move', 'statusInflict', 'Smack Down grounds the target, and the volatile is the move own', () => {
+  /* THE VOLATILE IS THE MOVE'S PRIMARY EFFECT, NOT A SECONDARY, which is why this was absent: the
+   * secondary loop is the only road a volatile had, and a damaging move whose `volatileStatus` sits on
+   * the move itself is not in that list. Measured as damage, so a written-but-unread volatile fails. */
+  const smacked = (B) => {
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'smackdown', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+  };
+  const control = eqInto('corviknight');
+  const test = eqInto('corviknight', smacked);
+  return { works: control === 0 && test > 0,
+           arms: { control, test },
+           detail: 'Earthquake into a Flying Corviknight: ' + control + ' untouched, ' + test
+                 + ' after Smack Down landed its own volatile' };
+});
+
+probe('move', 'statusInflict', 'Magnet Rise lifts a grounded body out of Earthquake', () => {
+  /* THE OPPOSITE SIGN, AND IT IS THE ARM THAT CATCHES AN ENGINE THAT SIMPLY STOPPED REFUSING GROUND.
+   * Every other row here turns a 0 into a number; this one must turn a number into 0. The first
+   * version of the fix only looked at bodies the type chart already called immune, so this read 167
+   * with `grounded=false` printed beside it — a flag moved and a damage number that never asked. */
+  const risen = (B) => {
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
+      new Map([[B.f1, M.playerAction(B.f1, 'magnetrise', null, B.S.field)], [B.f2, { kind: 'pass' }]]));
+  };
+  const control = eqInto('incineroar');
+  const test = eqInto('incineroar', risen);
+  return { works: control > 0 && test === 0,
+           arms: { control, test },
+           detail: 'Earthquake into a grounded Incineroar: ' + control + ' normally, ' + test
+                 + ' after it clicked Magnet Rise' };
+});
+
+probe('move', 'perTurnHP', 'Ingrain plants a Flying body on the floor', () => {
+  const planted = (B) => {
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
+      new Map([[B.f1, M.playerAction(B.f1, 'ingrain', null, B.S.field)], [B.f2, { kind: 'pass' }]]));
+  };
+  const control = eqInto('corviknight');
+  const test = eqInto('corviknight', planted);
+  return { works: control === 0 && test > 0,
+           arms: { control, test },
+           detail: 'Earthquake into a Flying Corviknight: ' + control + ' untouched, ' + test
+                 + ' after Ingrain' };
+});
+
+/* ---- ROADMAP #123 — THE SEMI-INVULNERABILITY EXCEPTION LISTS, AND THERE ARE TWO OF THEM ----------
+ *
+ * The row this closes was WRONG AS FILED and the correction is the mechanic: it said Earthquake
+ * "misses a digging target"; it hits for DOUBLE. And "pierces" is not "doubles" — Fly is pierced by
+ * seven moves and doubled by two, so an engine implementing one list is wrong on Thunder, Hurricane,
+ * Sky Uppercut, Smack Down and Thousand Arrows.
+ *
+ * THE STAGING IS THE PROBE AND IT WAS WRONG TWICE BEFORE IT WAS RIGHT: the charger must be SLOWER
+ * (Torterra 56 against Dragapult 142) or it releases and lands before the attack, and it must be
+ * handed its charge move AGAIN on the second turn — the engine cancels a charge for any body given a
+ * non-attack action, so a `{kind:'pass'}` there silently un-digs it and every row reads ratio 1.00. */
+const vsCharging = (chargeMove, atkMove) => {
+  const B = board('dragapult', 'skeledirge', 'torterra', 'farigiraf');
+  if (chargeMove) {
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
+      new Map([[B.f1, M.playerAction(B.f1, chargeMove, B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    if (B.f1._charging !== chargeMove || !B.f1._invuln) return null;
+  }
+  const before = B.f1.curHP;
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, atkMove, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    new Map([[B.f1, chargeMove ? M.playerAction(B.f1, chargeMove, B.me, B.S.field) : { kind: 'pass' }],
+             [B.f2, { kind: 'pass' }]]));
+  return before - B.f1.curHP;
+};
+
+probe('move', 'semiInvulnerable', 'Earthquake pierces Dig for DOUBLE, and Iron Head still misses', () => {
+  const flat = vsCharging(null, 'earthquake');
+  const dug = vsCharging('dig', 'earthquake');
+  const blocked = vsCharging('dig', 'ironhead');
+  const flatIH = vsCharging(null, 'ironhead');
+  return { works: flat > 0 && dug >= 2 * flat - 2 && blocked === 0 && flatIH > 0,
+           arms: { control: [flat, flatIH], test: [dug, blocked] },
+           detail: 'underground: Earthquake ' + flat + ' -> ' + dug + ' (the exception, x2); Iron Head '
+                 + flatIH + ' -> ' + blocked + ' (not on the list, still refused). Two arms in opposite '
+                 + 'directions, so neither "everything gets through" nor "nothing does" can pass' };
+});
+
+probe('move', 'semiInvulnerable', 'Hurricane pierces Fly WITHOUT doubling — the two lists are not one list', () => {
+  /* THE ARM THAT SEPARATES THE FACT FROM THE OBVIOUS IMPLEMENTATION. An engine that wired
+   * "pierces => doubles" passes the Dig probe above and fails here, which is exactly why this is a
+   * probe of its own rather than another row inside it. Surf/Dive is the third arm: a different
+   * charge, a different list, and it DOES double — so "nothing doubles" cannot pass either. */
+  const flatHur = vsCharging(null, 'hurricane');
+  const flyHur = vsCharging('fly', 'hurricane');
+  const flatSurf = vsCharging(null, 'surf');
+  const diveSurf = vsCharging('dive', 'surf');
+  return { works: flatHur > 0 && flyHur === flatHur && flatSurf > 0 && diveSurf >= 2 * flatSurf - 2,
+           arms: { control: [flatHur, flatSurf], test: [flyHur, diveSurf] },
+           detail: 'Hurricane into a flying body ' + flatHur + ' -> ' + flyHur
+                 + ' (pierces, NORMAL damage); Surf into a diving body ' + flatSurf + ' -> ' + diveSurf
+                 + ' (pierces AND doubles). Same mechanic, two different lists' };
+});
+/* ---- ROADMAP #128 — THE BERRY-ABILITY FAMILY ----------------------------------------------------
+ *
+ * Six of seven were unimplemented and two were blocked on a field the simulator did not have. Every
+ * probe below is the SAME staging with one ability changed, and the interaction hazard the roadmap
+ * named is honoured: a berry firing at half HP heals 25%, which is numerically identical to Life Dew,
+ * Hospitality and Aqua Ring, so every body here is built with its item and ability BLANK (`bare`) and
+ * only the one under test is given either.
+ *
+ * NO ATTACK IS THROWN. The first version chipped the holder across the line with a Dragon Claw and the
+ * damage roll moved with the rng — so the Harvest arms, which need a rng the OTHER way, killed the
+ * body instead and read 0 HP with the berry still held. Starting the holder below the threshold means
+ * the only thing the rng touches is the mechanic. */
+const berryRun = (ability, item, turns, weather, rngv, holderSp) => {
+  const rng = () => (rngv == null ? 0.5 : rngv);
+  const B = board('garchomp', 'skeledirge', holderSp || 'incineroar', 'farigiraf');
+  B.f1.ability = ability; B.f1.item = item;
+  if (weather) { B.S.field.weather = weather; B.S.field.weatherT = 20; }
+  B.f1.curHP = Math.floor(B.f1.st.hp * 0.45);          // already under the Sitrus line
+  const log = [];
+  for (let t = 0; t < turns; t++) {
+    M.battleTurn(B.S, rng, PASS2(B.me, B.ally), PASS2(B.f1, B.f2));
+    log.push({ hp: B.f1.curHP, item: B.f1.item });
+  }
+  return { max: B.f1.st.hp, log, last: log[log.length - 1] };
+};
+
+probe('ability', 'healsOnBerryEaten', 'Cheek Pouch heals a third on TOP of the berry', () => {
+  const control = berryRun('none', 'sitrusberry', 2).last.hp;
+  const test = berryRun('cheekpouch', 'sitrusberry', 2).last.hp;
+  const noItem = berryRun('cheekpouch', '', 2).last.hp;
+  return { works: test > control && control > noItem,
+           arms: { control, test },
+           detail: 'a 170 HP Incineroar starting at 76: no ability ' + control + ' (the Sitrus quarter), '
+                 + 'Cheek Pouch ' + test + '. CONTROL, the same ability with NO berry: ' + noItem
+                 + ' — so the heal is the BERRY firing and not the ability healing on its own' };
+});
+
+probe('ability', 'doublesBerryEffect', 'Ripen doubles the berry heal, not just the resist halving', () => {
+  /* `damageReduce` already covered Ripen's resist-berry half, so the ability read as MODELLED while
+   * three quarters of it was absent — a mechanic at partial strength is harder to find than one that
+   * is missing. This arm is the heal, which `damageReduce` can never reach. */
+  const control = berryRun('none', 'sitrusberry', 2).last.hp;
+  const test = berryRun('ripen', 'sitrusberry', 2).last.hp;
+  const noItem = berryRun('ripen', '', 2).last.hp;
+  return { works: (test - noItem) === 2 * (control - noItem) && control > noItem,
+           arms: { control, test },
+           detail: 'starting at ' + noItem + ': a plain Sitrus reaches ' + control + ' (+'
+                 + (control - noItem) + '), under Ripen ' + test + ' (+' + (test - noItem)
+                 + ') — exactly double, and the no-berry arm fixes the baseline' };
+});
+
+probe('ability', 'reEatsBerry', 'Cud Chew eats the same berry again a turn later', () => {
+  /* THE SECOND HELPING IGNORES THE THRESHOLD, which is the half the first implementation got wrong:
+   * it put the berry back and let the pinch updater find it, so a holder healed ABOVE half by its own
+   * first Sitrus chewed a berry that did nothing while the counter still said the mechanic fired.
+   * The authority calls `singleEvent('Eat')` directly — the EFFECT, not the TRIGGER. */
+  const control = berryRun('none', 'sitrusberry', 3).log.map(x => x.hp);
+  const test = berryRun('cudchew', 'sitrusberry', 3).log.map(x => x.hp);
+  const noItem = berryRun('cudchew', '', 3).log.map(x => x.hp);
+  return { works: control[0] === control[2] && test[2] > test[0] && test[0] === control[0]
+                  && noItem[0] === noItem[2],
+           arms: { control, test },
+           detail: 'HP over three turns — no ability ' + control.join(',') + ' (one helping); Cud Chew '
+                 + test.join(',') + ' (a second one, ABOVE the threshold that would refuse a first). '
+                 + 'CONTROL, Cud Chew with no berry: ' + noItem.join(',') };
+});
+
+probe('ability', 'restoresBerryAtResidual', 'Harvest gives the berry back — always in sun, half the time otherwise', () => {
+  /* THREE ARMS, because two would not separate the mechanic from the weather. The rng is the knob on
+   * the first two and the SKY is the knob on the second and third, so neither "it always fires" nor
+   * "it never fires" can pass. */
+  const missed = berryRun('harvest', 'sitrusberry', 2, 'rain', 0.9).last.item;
+  const rolled = berryRun('harvest', 'sitrusberry', 2, 'rain', 0.1).last.item;
+  const sunny = berryRun('harvest', 'sitrusberry', 2, 'sun', 0.9).last.item;
+  const control = berryRun('none', 'sitrusberry', 2, 'sun', 0.9).last.item;
+  return { works: missed === '' && rolled === 'sitrusberry' && sunny === 'sitrusberry' && control === '',
+           arms: { control: [missed, control], test: [rolled, sunny] },
+           detail: 'after the Sitrus is eaten, the item slot reads: rain + a losing roll "' + missed
+                 + '", rain + a winning roll "' + rolled + '", SUN + the SAME losing roll "' + sunny
+                 + '" (the sky overrides the die). CONTROL, no ability in sun: "' + control + '"' };
+});
+
+probe('ability', 'picksUpUsedItem', 'Pickup takes an item another body spent THIS turn', () => {
+  const run = (ability, foeItem) => {
+    const B = board('garchomp', 'skeledirge', 'incineroar', 'farigiraf');
+    B.ally.ability = ability;
+    B.f1.item = foeItem;
+    B.f1.curHP = Math.floor(B.f1.st.hp * 0.45);
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally), PASS2(B.f1, B.f2));
+    return B.ally.item;
+  };
+  const test = run('pickup', 'sitrusberry');
+  const noAbility = run('none', 'sitrusberry');
+  const nothingSpent = run('pickup', '');
+  return { works: test === 'sitrusberry' && noAbility === '' && nothingSpent === '',
+           arms: { control: [noAbility, nothingSpent], test },
+           detail: 'the ally ends the turn holding "' + test + '" when a body ate a berry beside it; '
+                 + '"' + noAbility + '" with the ability removed, and "' + nothingSpent
+                 + '" when nobody spent anything — so neither arm can pass by the slot simply filling' };
+});
+
+probe('ability', 'lowersBerryThreshold', 'Gluttony is READ, and it changes nothing in this regulation', () => {
+  /* A MEASURED NULL RESULT, RECORDED RATHER THAN A GREEN TICK. Gluttony raises a pinch berry's trigger
+   * from 1/4 to 1/2 — and the ONLY two pinch berries above this format's usage floor are Sitrus and
+   * Oran, and BOTH already fire at 1/2. So the ability is wired, reads its param, and has nothing to
+   * raise; `MEDSEEN.gluttonyRaisedThreshold` is 0 and that is the regulation, not a broken wire.
+   *
+   * WHAT THIS PROBE ASSERTS is that the reading is HARMLESS: a Gluttony holder must eat at exactly the
+   * same point as a plain one. A version that applied a doubled threshold unconditionally would eat
+   * early, and this catches it. The arms differ on the ITEM, not on the ability, so the probe still
+   * carries a real knob: a body above the line does not eat and a body below it does. */
+  const above = (ab) => {
+    const B = board('garchomp', 'skeledirge', 'incineroar', 'farigiraf');
+    B.f1.ability = ab; B.f1.item = 'sitrusberry';
+    B.f1.curHP = Math.floor(B.f1.st.hp * 0.60);     // ABOVE 1/2 — no berry may fire
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally), PASS2(B.f1, B.f2));
+    return B.f1.item;
+  };
+  const plainAbove = above('none'), gluttonAbove = above('gluttony');
+  const gluttonBelow = berryRun('gluttony', 'sitrusberry', 1).last.item;
+  const raised = M.MEDSEEN.gluttonyRaisedThreshold;
+  return { works: plainAbove === 'sitrusberry' && gluttonAbove === 'sitrusberry'
+                  && gluttonBelow === '' && raised === 0,
+           arms: { control: gluttonAbove, test: gluttonBelow },
+           detail: 'at 60% HP a Gluttony holder keeps its Sitrus ("' + gluttonAbove + '", same as a '
+                 + 'plain holder "' + plainAbove + '"); at 45% it eats it ("' + gluttonBelow + '"). '
+                 + 'gluttonyRaisedThreshold = ' + raised + ' — no berry in this format triggers at 1/4, '
+                 + 'so the ability is read and has nothing to raise' };
+});
+/* ---- ROADMAP #117 — `_lastMove` REACHED ONLY 27 OF THE 40 ACTION KINDS ---------------------------
+ *
+ * Thirteen kinds executed and never recorded the move: every `heal` (Recover, Roost, Life Dew,
+ * Moonlight, Morning Sun), both `switch` kinds, `tail`, `trickroom` and `wideguard`. `volNeedsLastMove`
+ * then CORRECTLY refused an Encore or a Disable against a body with no recorded move — so a live
+ * Encore could never lock anyone into Trick Room, Tailwind, Wide Guard or a recovery move, which is
+ * the whole list Encore is clicked for. The capability was built and unreachable.
+ *
+ * THE PROBE IS THE PAYOFF, NOT THE FIELD. Reading `_lastMove` back would pass on an engine where the
+ * field is written and the seal still refuses; this reads the ROOM COMING DOWN, which is two mechanics
+ * deep and the reason anyone clicks Encore at a Trick Room setter. */
+probe('move', 'sealsMoves', 'Encore reaches a move kind that never recorded itself — the room comes DOWN', () => {
+  const run = (encore) => {
+    const B = board('farigiraf', 'skeledirge', 'milotic', 'corviknight');
+    B.f1.moves = ['trickroom', 'scald', 'icebeam', 'protect'];
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
+      new Map([[B.f1, M.playerAction(B.f1, 'trickroom', null, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    const up = B.S.field.tr;
+    /* The victim now WANTS to attack. Encored, it must re-click Trick Room instead — and a second
+     * Trick Room ENDS the room, which is why this is the arm that cannot be faked by a flag. */
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, encore ? M.playerAction(B.me, 'encore', B.f1, B.S.field) : { kind: 'pass' }],
+               [B.ally, { kind: 'pass' }]]),
+      new Map([[B.f1, M.playerAction(B.f1, 'scald', B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    return { up, after: B.S.field.tr, last: B.f1._lastMove || '' };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.up > 0 && control.after > 0 && test.after === 0 && control.last === 'scald',
+           arms: { control: control.after, test: test.after },
+           detail: 'Trick Room goes up (' + control.up + ' turns). Left alone the victim clicks Scald and '
+                 + 'the room ticks to ' + control.after + '; ENCORED it re-clicks Trick Room and the room '
+                 + 'reads ' + test.after + ' — a second Trick Room ends it. `trickroom` is one of the '
+                 + 'thirteen kinds that recorded no last move, so the seal could not have landed at all' };
+});
 
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);

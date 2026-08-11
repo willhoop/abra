@@ -546,7 +546,24 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                   strictly less over a mixed sample: Thunder, Hurricane, Sky Uppercut, Smack Down
    *                   and Thousand Arrows pierce Fly for NORMAL damage. Equal counts over a varied
    *                   sample is the signature of "pierces => doubles", which is the wrong rule. */
-  invulnPierced: 0, invulnDoubled: 0 };
+  invulnPierced: 0, invulnDoubled: 0,
+  /* ROADMAP #128 -- THE BERRY-ABILITY FAMILY, SEVEN COUNTERS, one per mechanic, because six of the
+   * seven were absent and a shared total could not have told you which one came back.
+   *   berryConsumed             a berry was EATEN (not knocked off, not tricked away) and the one
+   *                             consumption site ran. Zero means `_lastItem` is never written and
+   *                             Harvest, Cud Chew and Pickup are all structurally dead again.
+   *   cheekPouchHealed          Cheek Pouch's extra third landed.
+   *   ripenDoubled              a berry effect was doubled by Ripen. Counted per READ, so it is a
+   *                             "this path is reachable" receipt rather than a count of berries.
+   *   gluttonyRaisedThreshold   a pinch berry fired at the HIGHER line. EXPECTED 0 in this regulation
+   *                             and that is measured, not assumed: the only two pinch berries above
+   *                             the usage floor already trigger at 1/2. See berryPinchUpdate.
+   *   cudChewArmed / cudChewReEaten   the two halves, apart, because arming without spending is the
+   *                             half-wired state that reads as working.
+   *   harvestRestored           a spent berry came back.
+   *   pickupTook                an item was taken off a body that spent one this turn. */
+  berryConsumed: 0, cheekPouchHealed: 0, ripenDoubled: 0, gluttonyRaisedThreshold: 0,
+  cudChewArmed: 0, cudChewReEaten: 0, harvestRestored: 0, pickupTook: 0 };
 const MEDFAILS = { encoreAction: 0,
   /* ROADMAP #125 -- THE TERMINAL FALL-THROUGH OF THE CLASSIFIER, AND IT HAD NO COUNTER AT ALL.
    *
@@ -577,6 +594,17 @@ const MEDFAILS = { encoreAction: 0,
   /* ROADMAP #144 -- a Ripen holder ate a berry whose effect Ripen doubles, and this engine applied the
    * single amount. Declared at berryPPUpdate. Legal carriers: Flapple, Appletun -- 0 corpus uses. */
   ripenBerryBoostUnmodelled: 0,
+  /* ROADMAP #123 -- a body flagged `_invuln` with no `_charging` to explain it. The pierce list is a
+   * property of the MOVE that took it off the field, so a body in that state has no list and every
+   * move would be refused -- which is the pre-fix behaviour arriving back through the fallback. Must
+   * read 0: the charge branch writes and clears the pair together. */
+  invulnWithoutChargeSource: 0, invulnWithoutChargeSourceFirst: '',
+  /* ROADMAP #128 -- Cud Chew spent its counter on a berry whose `onEat` this engine cannot express
+   * (Leppa's PP restore is the live example: the slot CHOICE lives in berryPPUpdate and is not routed
+   * through berryForceEat). The helping is announced and delivers nothing, which is precisely the
+   * shape of a mechanic that reads as working -- so it names its first offender rather than being
+   * silent. Non-zero is a real gap, not a wrong number. */
+  cudChewEffectUnexpressed: 0, cudChewEffectUnexpressedFirst: '',
   /* ROADMAP #141 -- a CATEGORY-GATED breaker (Mycelium Might) asked of a caller that could not say
    * which category the move is. The suppression is DECLINED, which is the conservative direction, and
    * it is counted because declining silently is exactly how a half-wired mechanic looks like a
@@ -1843,7 +1871,16 @@ const FLOATING_VOL=['magnetrise','telekinesis'];
  * that is not in a battle (a probe body, a board.js feature read) has no `_sf` and therefore no
  * Gravity, which is the correct answer rather than a default: there is no field for it to be on. */
 function fieldOfBody(mon){ const sf=mon&&mon._sf; const S=sf&&sf._S; return (S&&S.field)||null; }
-function isGrounded(mon){
+/* `att` IS OPTIONAL AND IT IS ABOUT MOLD BREAKER, and it is here because leaving it out cost the
+ * census two rows before this line existed. The authority's `isGrounded` reads `hasAbility(...)`, and
+ * `hasAbility` is false under `ignoringAbility()` -- so a Mold Breaker's Earthquake hits a Levitate
+ * body because the LEVITATE CLAUSE STOPS MATCHING, not because anything downstream overrides it.
+ * The seven callers that ask "is this body on the floor" as a FIELD question (hazards, the terrains,
+ * the switch-trap gate) pass no attacker and get the body's own ability, which is right: Spikes does
+ * not break moulds. Only the damage path, which has an attacker, passes one.
+ * `mvCategory` rides along for a category-gated breaker (Mycelium Might); `suppressedAbility` counts
+ * a caller that cannot supply it rather than guessing. */
+function isGrounded(mon,att,mvCategory){
   if(!mon) return true;
   const g=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
   const it=g(mon.item);
@@ -1860,7 +1897,7 @@ function isGrounded(mon){
     if(!MEDFAILS.groundedBodyIncompleteFirst) MEDFAILS.groundedBodyIncompleteFirst=g(mon.ability)||'(no ability)';
   }
   if((mon.types||[]).indexOf('Flying')>=0) return false;
-  if(AIRBORNE_ABIL.has(g(mon.ability))) return false;
+  if(AIRBORNE_ABIL.has(g(att?suppressedAbility(att,mon,mvCategory):mon.ability))) return false;
   for(const v of FLOATING_VOL) if(vol[v]>0) return false;
   return it!=='airballoon';
 }
@@ -3367,6 +3404,96 @@ function grantSubstitute(m,moveId){
  * ONE IMPLEMENTATION EACH, TWO CALL SITES EACH. The residual keeps calling these at its own two
  * positions (the cure BEFORE the status chips, the pinch heal AFTER Leftovers), because the residual
  * order is Showdown's and is not what this wire is changing. What is added is the after-action pass. */
+/* ---- ROADMAP #128: THE BERRY-ABILITY FAMILY, AND THE FIELD SIX OF THEM WERE BLOCKED ON ------------
+ *
+ * Will, 2026-08-10: *"do you have the berry abilties impelmented, like cud chew, harvest, etc"*. The
+ * answer was one of seven -- Unnerve. The other six had no tag at all or, worse in Ripen's case, a tag
+ * that described one quarter of the ability and read as covered.
+ *
+ * THE STRUCTURAL BLOCKER WAS ONE MISSING FACT: `lastItem` and `ateBerry` appeared ZERO times in this
+ * file. Every consumption site wrote `m.item = ''` and nothing recorded WHICH item had gone, so an
+ * ability whose whole job is to give one back had nothing to give. Three mechanics across two
+ * divisions were waiting on it -- Harvest, Cud Chew and Recycle (#71).
+ *
+ * SO THE FIX IS A SINGLE CONSUMPTION SITE RATHER THAN SIX BOOKKEEPING LINES. `m.item=''` appeared at
+ * twelve places in this file; the THREE that are a berry being eaten now route through here, and the
+ * others (Knock Off removing it, Trick swapping it, Magic Room hiding it) deliberately do not, because
+ * a berry that was taken off you was not one you ate: Harvest gives back a berry you SPENT, and
+ * Cheek Pouch heals you for eating one.
+ *
+ *   _lastItem            what left. `Pokemon#lastItem`.
+ *   _ateBerry            it was a berry and it was EATEN. `Pokemon#ateBerry`.
+ *   _usedItemThisTurn    Pickup's condition, and it is cleared at the top of every turn.
+ *
+ * WHAT IT FIRES, all off the artifact and none of it named here: Cheek Pouch's heal, Cud Chew's
+ * second helping, and the record Harvest and Pickup read at the residual. */
+function consumeBerry(m,itemId){
+  if(!m)return;
+  m._lastItem=String(itemId||'');
+  m._ateBerry=true;
+  m._usedItemThisTurn=true;
+  m.item='';
+  MEDSEEN.berryConsumed++;
+  /* CHEEK POUCH -- a third of max HP on TOP of whatever the berry did, on ANY berry. Heal Block gates
+   * it exactly as it gates every other heal in this file; the amount is the ability's own fraction. */
+  {const _cp=TAGS.param('ability',m.ability,'healsOnBerryEaten');
+   if(_cp&&Array.isArray(_cp.heal)&&!healBlocked(m)&&m.curHP>0){
+     const _h0=m.curHP;
+     m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp*_cp.heal[0]/_cp.heal[1]));
+     if(m.curHP>_h0){MEDSEEN.cheekPouchHealed++;if(TR)TR.heal(m,'[from] ability: '+m.ability);}
+   }}
+  /* CUD CHEW arms its second helping here, in `onEatItem`, exactly where the authority arms it. The
+   * counter is the handler's own (2) and the residual spends it; `notFromEffects` is carried and is
+   * unreachable from this site, because Bug Bite and Pluck do not come through here at all -- which is
+   * the point of routing only real EATING through one function. */
+  {const _cc=TAGS.param('ability',m.ability,'reEatsBerry');
+   if(_cc&&+_cc.delayTurns>0&&String(itemId||'')){
+     m._cud={berry:String(itemId),left:+_cc.delayTurns};
+     MEDSEEN.cudChewArmed++;
+   }}
+}
+/* HOW MUCH A BERRY EFFECT IS WORTH TO THIS HOLDER. Ripen doubles EVERY berry effect and the artifact
+ * used to say only that it halves a resist-berry hit (`damageReduce`), so a Sitrus under Ripen healed
+ * a quarter and the ability read as modelled. One reader, so the heal, the PP restore and anything
+ * added later cannot each grow their own copy of the rule. */
+function berryEffectMult(m){
+  const _r=TAGS.param('ability',m&&m.ability,'doublesBerryEffect');
+  if(!_r||!(+_r.mult>1))return 1;
+  MEDSEEN.ripenDoubled++;
+  return +_r.mult;
+}
+/* ROADMAP #128 -- THE `onEat` HALF WITHOUT THE `onUpdate` TRIGGER, AND THE DISTINCTION IS THE WHOLE
+ * OF CUD CHEW'S SECOND HELPING.
+ *
+ * A berry has TWO handlers and this engine only ever ran them together. `onUpdate` is the TRIGGER --
+ * "am I below half" -- and `onEat` is the EFFECT. Cud Chew's residual calls
+ * `singleEvent('Eat', item, ...)` DIRECTLY, so the second helping heals whatever the holder's HP is;
+ * the same is true of Bug Bite, Pluck, Fling and Natural Gift, none of which this engine routes here
+ * yet. The first version of the re-eat put the berry back and let `berryPinchUpdate` find it, which
+ * re-ran the TRIGGER -- so a body healed above half by its own first Sitrus chewed a berry that did
+ * nothing at all, and the counter still said the mechanic had fired.
+ *
+ * IT RETURNS WHETHER ANYTHING HAPPENED, because a berry whose effect this engine cannot express must
+ * not report a helping it did not give -- see `cudChewEffectUnexpressed`. */
+function berryForceEat(m,itemId){
+  if(!m||m.fainted||m.curHP<=0||!itemId)return false;
+  let did=false;
+  const _fr=s=>{const p=String(s).match(/(\d+)\s*\/\s*(\d+)/);return p?+p[1]/+p[2]:0;};
+  const _cs=TAGS.param('item',itemId,'curesStatus');
+  if(_cs&&m.status&&_cs.statuses
+     &&(_cs.statuses==='any'||(Array.isArray(_cs.statuses)&&_cs.statuses.indexOf(m.status)>=0))){
+    if(TR)TR.cure(m,m.status,'[from] item: '+itemId);
+    m.status='';m.toxTurns=0;did=true;
+  }
+  const _ht=TAGS.param('item',itemId,'healsAtThreshold');
+  if(_ht&&(_ht.restores||_ht.restoresFlat)&&!healBlocked(m)){
+    const _h0=m.curHP;
+    const _amt=(_ht.restores?Math.floor(m.st.hp*_fr(_ht.restores)):+_ht.restoresFlat)*berryEffectMult(m);
+    m.curHP=Math.min(m.st.hp,m.curHP+_amt);
+    if(m.curHP>_h0){did=true;if(TR)TR.heal(m,'[from] item: '+itemId);}
+  }
+  return did;
+}
 function berryCureUpdate(m){
   if(!m||m.fainted||m.curHP<=0)return;
   /* ROADMAP #92 -- A BERRY CAN BE SPENT ON A VOLATILE, NOT ONLY ON A STATUS. Lum's `onUpdate` fires on
@@ -3379,7 +3506,8 @@ function berryCureUpdate(m){
   if(!(_cs&&m.status&&_cs.statuses))return;
   if(!(_cs.statuses==='any'||(Array.isArray(_cs.statuses)&&_cs.statuses.indexOf(m.status)>=0)))return;
   if(TR){TR.enditem(m,m.item,'[eat]');TR.cure(m,m.status,'[from] item: '+m.item);}
-  m.status='';m.toxTurns=0;m.item='';
+  m.status='';m.toxTurns=0;
+  consumeBerry(m,m.item);        // ROADMAP #128 -- the one consumption site
 }
 function berryPinchUpdate(m,foes){
   if(!m||m.fainted||m.curHP<=0)return;
@@ -3395,12 +3523,33 @@ function berryPinchUpdate(m,foes){
    * afterwards, which is why the gate wraps the whole block and not only the HP line. */
   if(foes&&foes.some(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksBerries')))return;
   const _fr=s=>{const p=String(s).match(/(\d+)\s*\/\s*(\d+)/);return p?+p[1]/+p[2]:0;};
-  if(m.curHP>m.st.hp*_fr(_ht.triggersBelow))return;
+  /* ROADMAP #128 -- GLUTTONY MOVES THE LINE, AND THE NUMBER IS THE BERRY'S. The ability only ARMS it
+   * (`lowersBerryThreshold`); the fraction lives in each pinch berry's own `onUpdate`, which is one
+   * `if` with two arms. So both halves have to be present for the higher threshold to apply, and
+   * neither is typed here.
+   *
+   * MEASURED AND STATED RATHER THAN ASSUMED: NO berry in `data/tags.json` carries
+   * `triggersBelowWithAbility` today -- the only two pinch berries above the usage floor are Sitrus
+   * and Oran and BOTH already fire at 1/2, which is the fraction Gluttony would raise them to. So
+   * Gluttony is READ and has nothing to change in this regulation, and `gluttonyRaisedThreshold`
+   * reading 0 is that fact rather than a broken wire. A 1/4 berry entering the corpus arms it with no
+   * edit here. */
+  let _thr=_fr(_ht.triggersBelow);
+  {const _gl=_ht.triggersBelowWithAbility;
+   if(_gl&&_gl.ability&&TAGS.has('ability',m.ability,'lowersBerryThreshold')){
+     const _t2=_fr(_gl.at);
+     if(_t2>_thr){_thr=_t2;MEDSEEN.gluttonyRaisedThreshold++;}
+   }}
+  if(m.curHP>m.st.hp*_thr)return;
   const _it=m.item;
   /* The flat amount is an absolute HP count and must NOT be scaled by max HP — that is the whole
    * distinction the two fields exist to keep. */
-  const _amt=_ht.restores?Math.floor(m.st.hp*_fr(_ht.restores)):+_ht.restoresFlat;
-  m.curHP=Math.min(m.st.hp,m.curHP+_amt);m.item='';
+  /* ROADMAP #128 -- AND RIPEN DOUBLES IT. `onTryHeal` is `chainModify(2)` for anything `isBerry`, so
+   * it applies to the fraction AND to Oran's flat ten. One reader (berryEffectMult) rather than a
+   * clause here, because the PP restore below needs the identical answer. */
+  const _amt=(_ht.restores?Math.floor(m.st.hp*_fr(_ht.restores)):+_ht.restoresFlat)*berryEffectMult(m);
+  m.curHP=Math.min(m.st.hp,m.curHP+_amt);
+  consumeBerry(m,_it);           // ROADMAP #128 -- the one consumption site
   if(TR){TR.enditem(m,_it,'[eat]');TR.heal(m,'[from] item: '+_it);}
 }
 /* ROADMAP #144 -- THE BERRY THAT GIVES PP BACK, AND IT COULD NOT EXIST BEFORE PP DID.
@@ -3435,18 +3584,19 @@ function berryPPUpdate(m,foes){
   if(!_rp.prefersEmptySlot){ for(const id of mv){ const l=ppLeft(m,id); const mx=ppMax(id);
     if(l!=null&&mx!=null&&l<mx){pick=id;break;} } }
   const mx=ppMax(pick); if(mx==null)return;
-  /* RIPEN IS NOT MODELLED, AND IT IS DECLARED RATHER THAN QUIETLY FLATTENED. The handler doubles the
-   * restore (`hasAbility('ripen') ? 20 : 10`), the tag carries `ripenAmount: 20`, and this engine has
-   * no `doublesBerryEffect` tag for ANY of Ripen's effects -- so a branch reading one here would be a
-   * lookup that can never return, which is exactly the silent default this file counts everywhere
-   * else. Legal carriers in Reg M-B: Flapple and Appletun, 0 corpus uses between them. It is a real
-   * gap and it belongs to whoever wires Ripen's other halves, not to a Leppa reader. */
-  const amt=+_rp.amount;
-  if(+_rp.ripenAmount>0&&TAGS.has('ability',m.ability,'damageReduce')&&String(m.ability||'')==='ripen')
-    MEDFAILS.ripenBerryBoostUnmodelled++;
+  /* ROADMAP #128 -- RIPEN IS MODELLED NOW, AND THIS COMMENT KEEPS WHAT IT SAID BECAUSE THE SHAPE OF
+   * THE GAP IS THE LESSON. It used to read: *"this engine has no `doublesBerryEffect` tag for ANY of
+   * Ripen's effects -- so a branch reading one here would be a lookup that can never return"*. That
+   * was true and honest and the mechanic was still absent for as long as it stood. The tag exists now,
+   * derived from the ability's own `onTryHeal` and `onChangeBoost`, and the amount is taken from
+   * `ripenAmount` -- the handler's own `hasAbility('ripen') ? 20 : 10` -- rather than by multiplying,
+   * because the authority states the doubled number directly for this one item.
+   * `ripenBerryBoostUnmodelled` is kept and must now read 0 in a run with a Ripen holder in it. */
+  const _rpMul=berryEffectMult(m);
+  const amt=(_rpMul>1&&+_rp.ripenAmount>0)?+_rp.ripenAmount:+_rp.amount;
   const _it=m.item;
   m._pp[String(pick).toLowerCase().replace(/[^a-z0-9]/g,'')]=Math.min(mx,ppLeft(m,pick)+amt);
-  m.item='';
+  consumeBerry(m,_it);           // ROADMAP #128 -- the one consumption site
   MEDSEEN.ppRestoredByItem++;
   if(TR){TR.enditem(m,_it,'[eat]');TR.act(m,'item: '+_it);}
 }
@@ -4711,6 +4861,12 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
       if(_htd&&_htd.basePowerTypes&&_htd.basePowerTypes.indexOf(mvT)>=0&&_htd.basePowerMult)
         BPCH(+_htd.basePowerMult);
     }
+    /* ROADMAP #123 -- BOUNCE'S DOUBLE IS `onSourceBasePower`, which is this relay and not the damage
+     * one four hundred lines below. Fly's identical pair of moves doubles through
+     * `onSourceModifyDamage` instead, and the artifact says which -- so the two are applied at the two
+     * stages the authority applies them at rather than being collapsed into one number that is right
+     * for one of them and out by a truncation for the other. */
+    {const _ib=invulnDamageMult(def,mv.id,'basePower'); if(_ib!==1)BPCH(_ib);}
     /* SPENT ONCE, and clamped to 1 exactly as `battle-actions.ts:1653` clamps it after the event. */
     if(_bpChain!==CH_ONE){mvBP=Math.max(1,mdChain(mvBP,_bpChain));MEDSEEN.bpChainSpent++;MEDSEEN.bpChainMembers+=_bpMembers;}
   }
@@ -4983,6 +5139,11 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
    * requirement, so the condition comes from requiresSuperEffective rather than being assumed. */
   const _rb=TAGS.param('item',def.item,'resistBerry');
   if(_rb&&_rb.onType===mvT&&(!_rb.requiresSuperEffective||eff>1))MODMUL((_rb.mult||0.5));
+  /* ROADMAP #123 -- EARTHQUAKE INTO A DIGGING BODY IS DOUBLE, and this is the stage it happens at:
+   * Dig, Dive and Fly all declare `onSourceModifyDamage`, which is the chain `mod` is spent on. Bounce
+   * declares the SAME pair of moves under `onSourceBasePower` and is applied in the base-power relay
+   * instead -- see invulnDamageMult, which is the one reader of both. */
+  {const _id=invulnDamageMult(def,mv.id,'damage'); if(_id!==1)MODMUL(_id);}
   /* ROADMAP #92 -- SNIPER IS `onModifyDamage`, SO IT IS A MEMBER OF *THIS* CHAIN. It used to be
    * folded into the crit's plain `Math.floor(base*1.5*critMult)` in two places, which is neither the
    * right stage nor a modifier at all -- the crit is one of the two steps the authority's own source
@@ -6547,6 +6708,30 @@ function suppressedAbility(att,def,mvCategory){
  * `mvT` IS PASSED IN RATHER THAN DERIVED, because dmgRange has already resolved the click's real
  * type (conversion, then weather) alongside a base-power multiplier it needs from the same read.
  * The loop hands it effMoveType(mv,id,field,att), which is that same resolution. */
+/* ROADMAP #123 -- HOW A SEMI-INVULNERABLE DEFENDER CHANGES THE DAMAGE OF A MOVE THAT REACHED IT.
+ * ONE reader, because it is a FACT and it has two consumers at two different stages: Fly and Dig
+ * double through `onSourceModifyDamage` (final damage) and Bounce through `onSourceBasePower` (base
+ * power), off the SAME two moves. `via` is the caller saying which stage it is standing at, so the
+ * pair cannot be flattened into one multiplier applied in the wrong place.
+ *
+ * THE DOUBLE LIST IS NOT THE PIERCE LIST and this function must never be used to decide whether the
+ * move CONNECTS. Fly is pierced by seven moves and doubled by two: Thunder, Hurricane, Sky Uppercut,
+ * Smack Down and Thousand Arrows hit a flying target for NORMAL damage. `invulnPierced` and
+ * `invulnDoubled` are counted apart for exactly that reason -- equal counts over a varied sample is
+ * the signature of "pierces => doubles", which is the wrong rule on five moves.
+ *
+ * IT IS A PURE READ and it counts. dmgRange is called many times per turn while pricing hypothetical
+ * clicks, so `invulnDoubled` is a "this path is reachable" receipt rather than a count of turns --
+ * stated here rather than left to be misread as a per-hit number. */
+function invulnDamageMult(def,moveId,via){
+  if(!def||!def._invuln||!def._charging||!moveId) return 1;
+  const _si=TAGS.param('move',def._charging,'semiInvulnerable');
+  const _d=_si&&_si.doubles;
+  if(!_d||_d.via!==via||!Array.isArray(_d.moves)) return 1;
+  if(_d.moves.indexOf(moveId)<0) return 1;
+  MEDSEEN.invulnDoubled++;
+  return +_d.mult||2;
+}
 function typeEffAgainst(att,def,mv,mvT){
   if(!def||!mv)return 1;
   let eff=mcEff(mvT,def.types);
@@ -6590,7 +6775,13 @@ function typeEffAgainst(att,def,mv,mvT){
    * sitting right beside it. The test is the airborne one, always, exactly as the authority's ternary
    * has no such guard either. */
   if(mvT==='Ground'&&def.types&&(MC.C&&MC.C.Ground)){
-    eff=isGrounded(def)?mcEff('Ground',def.types.filter(t=>MC.C.Ground[t]!==0)):0;
+    /* THE ATTACKER GOES IN, and forgetting it took the census from 423 live to 421: a Mold Breaker's
+     * Earthquake into a Levitate body was priced at 0 again, because this clause re-asked the airborne
+     * question with the DEFENDER'S OWN ability after WIRE 128 had already suppressed it. Two readers
+     * of "does this body have Levitate right now" is the FACTS ARE GLOBAL rule broken, one clause
+     * apart, and the census caught it inside a minute. */
+    const _cat=(mv&&mv.c==='P')?'Physical':(mv&&mv.c==='S')?'Special':'Status';
+    eff=isGrounded(def,att,_cat)?mcEff('Ground',def.types.filter(t=>MC.C.Ground[t]!==0)):0;
   }
   return eff;
 }
@@ -8241,6 +8432,12 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * a benched mon would come back locked into a move it started two switches ago -- or worse,
    * come back untargetable. */
   out._charging=null; out._invuln=false;
+  /* ROADMAP #147 -- AND A ROOSTED TYPE COMES BACK WITH IT. `roost` is an ordinary volatile, so
+   * `Pokemon#clearVolatile()` takes it on the way out and the body is Flying again the instant it
+   * leaves. The end-of-turn restore walks the ACTIVE slots and would never see a body that pivoted
+   * out on the same turn -- so without this line a U-turn after a Roost is a Pokemon that is
+   * permanently no longer Flying, which is worse than the bug being fixed and would be silent. */
+  if(out._typeWas){ out.types=out._typeWas; out._typeWas=null; MEDSEEN.roostTypeRestored++; }
   /* THE STATE ADDED BY WIRES 42-54 LEAVES WITH THE BODY, and each of these is a volatile in the real
      game: the substitute is gone, Throat Chop's silence ends, the Gigaton Hammer lockout ends, the
      recharge is not owed by a body that left, the partial trap releases, and Protean converts again
@@ -8683,6 +8880,12 @@ function battleTurn(S,rng,actsForA,actsForB){
       m._hitBy=null;m._hurtThisTurn=false;m._acted=false;m._newlySwitched=false;
       /* `_took` clears with the rest: Counter reads damage taken THIS turn, and a counter that
        * remembered last turn's hit would fire off a hit that is over. */
+      /* ROADMAP #128 -- `_usedItemThisTurn` IS PICKUP'S WHOLE CONDITION and it is a THIS-TURN fact.
+       * Cleared here, with the rest of the per-turn clock, because an "ever spent an item" flag would
+       * let Pickup harvest a Sitrus eaten six turns ago -- which is not the mechanic and would look
+       * exactly like it working. `_lastItem` and `_ateBerry` deliberately do NOT clear: Harvest and
+       * Cud Chew are about what the body spent, not about when. */
+      m._usedItemThisTurn=false;
       m._took=null;}});
     field.sgA={};field.sgB={};              // duration:1 on both conditions -- they never survive a turn
 
@@ -11189,6 +11392,42 @@ function battleTurn(S,rng,actsForA,actsForB){
          * let a blocked Spit Up keep its layers. */
         {const _spv=TAGS.param('move',a.mv,'spendsVolatile');
          if(_spv&&_spv.volatile&&_spv.when==='onHit')releaseLayeredVolatile(m,_spv.volatile);}
+        /* ROADMAP #147 -- ROOST DELETES A TYPE FOR THE TURN, AND THIS ENGINE HAD NO WAY TO SAY THAT.
+         *
+         * Will: *"ROOST ALSO CAUSES THE MON TO LOSE FLYING TYPE FOR THE TURN."* Nothing anywhere
+         * removed a type temporarily, so a Roosting Corviknight ate a full Earthquake here and takes
+         * ZERO in the real game -- and the same deletion is what GROUNDS it, so Spikes, Sticky Web,
+         * the terrains and the Ground immunity were all wrong on the same body at the same time.
+         *
+         * BELOW THE HEAL, which is the authority's own order, read off a real battle rather than
+         * assumed. The volatile is `self: {volatileStatus:'roost'}`, so its `onStart` runs after the
+         * primary effect:
+         *     |move|p1a: Talonflame|Roost|p1a: Talonflame
+         *     |-heal|p1a: Talonflame|115/153
+         *     |-singleturn|p1a: Talonflame|move: Roost
+         * Put at the commit site instead, the `-singleturn` would precede the `-heal` and the stream
+         * would differ from the authority's on every Roost in the corpus -- 2,808 clicks.
+         *
+         * A FAILED ROOST APPLIES NOTHING, and that is not this block's judgement: a Roost at full HP
+         * emits `|-fail|...|heal` and the body stays airborne. Measured against the authority, which is
+         * why this sits inside the `if(_hp)`-bearing branch and after `amt(m)` rather than at the top.
+         *
+         * PURE FLYING BECOMES NORMAL, NOT TYPELESS. `Pokemon#getTypes` ends
+         * `return [this.battle.gen >= 5 ? 'Normal' : '???']` for an empty list, so a Tornadus that
+         * Roosts is a Normal type and takes Ghost for nothing. Mirrored rather than guessed.
+         *
+         * THE RESTORE IS AT THE RESIDUAL, and the pair is counted rather than the drop alone: a
+         * deletion with no restore is a permanently retyped Pokemon, which is worse than the bug. */
+        {const _trt=TAGS.param('move',a.mv,'typeRemovedForTurn');
+         if(_trt&&Array.isArray(_trt.removes)&&_trt.removes.length&&m.types&&!m._typeWas){
+           const _left=m.types.filter(t=>_trt.removes.indexOf(t)<0);
+           if(_left.length!==m.types.length){
+             m._typeWas=m.types.slice();
+             m.types=_left.length?_left:['Normal'];
+             MEDSEEN.roostTypeDropped++;
+             if(TR)TR.st1(m,'move: '+a.mv);
+           }
+         }}
         continue;
       }
       /* ---- WIRE 154 -- THE HEAL DESCRIPTOR, ALL FOUR MOVES, ONE BRANCH ---------------------------
@@ -12062,7 +12301,31 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* OFF THE FIELD. A Pokemon in the charge turn of Fly, Dig, Dive, Bounce or Phantom Force
          * cannot be hit at all. Without this the charge is pure cost and those five become strictly
          * worse than reality -- the same one-directional error as the unmodelled charge, reversed. */
-        if(tg._invuln){_explicitFail=true;if(TR)TR.miss(m,tg);R.out=true;return;}
+        if(!tg._invuln)return;
+        /* ROADMAP #123 -- AND SOME MOVES GET THROUGH. This branch was `_invuln -> miss`, full stop, so
+         * Earthquake MISSED a digging body where the authority hits it for DOUBLE. The counter-play to
+         * a semi-invulnerable turn was impossible rather than free -- the opposite sign to the defect
+         * the row was originally filed under, and the row carries that retraction.
+         *
+         * THE LIST IS THE CHARGING MOVE'S, NOT A GLOBAL ONE, and that is why it is read off `_charging`
+         * rather than off a table here: Dig lets Earthquake and Magnitude through, Dive lets Surf and
+         * Whirlpool through, Fly and Bounce let seven others through, and Phantom Force declares
+         * `onInvulnerability: false` and lets NOTHING through -- an empty `pierces` list, which is a
+         * statement and not a missing value.
+         *
+         * `_charging` IS THE ID and it is already there: the charge branch writes `_invuln` and
+         * `_charging` together and clears them together, so no second field is needed. An `_invuln`
+         * with no `_charging` would be a state this engine cannot explain, so it is counted rather
+         * than defaulted either way -- defaulting to "miss" would restore the bug silently. */
+        const _si=tg._charging?TAGS.param('move',tg._charging,'semiInvulnerable'):null;
+        if(!_si){
+          MEDFAILS.invulnWithoutChargeSource++;
+          if(!MEDFAILS.invulnWithoutChargeSourceFirst)
+            MEDFAILS.invulnWithoutChargeSourceFirst=String(tg._charging||'(no _charging)');
+        }
+        const _pierce=(_si&&Array.isArray(_si.pierces))?_si.pierces:[];
+        if(_pierce.indexOf(a.move.id)>=0){ MEDSEEN.invulnPierced++; return; }
+        _explicitFail=true;if(TR)TR.miss(m,tg);R.out=true;
       };
       /* STEP 1 -- THE TryHit EVENT (`hitStepTryHitEvent`, battle-actions.ts:643): the absorbing
        * abilities. Protect also answers here and is handled above, hoisted out by WIRE 1. */
@@ -13877,6 +14140,16 @@ function battleTurn(S,rng,actsForA,actsForB){
     /* ROADMAP #147 -- GRAVITY TICKS WITH THE ROOMS. One clock, in the one place every other field
      * timer already lives, so it cannot become the field slot that never comes down. */
     if(field.gravity>0){if(--field.gravity<=0&&TR)TR.fend('Gravity');}
+    /* ROADMAP #147 -- AND THE TYPE COMES BACK. `roost` is `duration: 1` with `onResidualOrder: 25`, so
+     * it ends inside THIS residual and after everything that reads a type: the Grassy Terrain heal is
+     * order 5 and DOES heal a Roosting Flying body, which it would not if the restore ran first. The
+     * counter is paired with the drop deliberately -- a drop without a restore is a Pokemon that has
+     * permanently lost a type, and it would look exactly like the mechanic working. */
+    for(const _b of [...actA,...actB]){
+      if(!_b||!_b._typeWas)continue;
+      _b.types=_b._typeWas; _b._typeWas=null;
+      MEDSEEN.roostTypeRestored++;
+    }
     /* WIRE 133 -- THE OTHER TWO ROOMS TICK BESIDE TRICK ROOM, for the reason the screens tick beside
      * the field timers: three clocks with one lifetime rule in one place cannot drift apart.
      * MAGIC ROOM GIVES THE ITEMS BACK ON THE TURN IT ENDS, and that restore is the half that would
@@ -14233,6 +14506,70 @@ function battleTurn(S,rng,actsForA,actsForB){
        * because this residual loop walks both sides in one pass. */
       berryPinchUpdate(m,(actA.indexOf(m)>=0?actB:actA));   // ROADMAP #81 WIRE 7 -- one implementation
       berryPPUpdate(m,(actA.indexOf(m)>=0?actB:actA));      // ROADMAP #144 -- Leppa, on the same clock
+      /* ---- ROADMAP #128 -- THE THREE RESIDUAL BERRY ABILITIES ------------------------------------
+       *
+       * All three are `onResidualOrder: 28, onResidualSubOrder: 2` in the authority -- the same slot,
+       * which is why they are written together and BELOW the berry updaters above: a Sitrus eaten this
+       * turn is what Harvest gives back and what Cud Chew chews again, so a pass placed above them
+       * would be one turn early on every one of them.
+       *
+       * THEY WERE ALL BLOCKED ON THE SAME ONE FIELD. `lastItem` appeared zero times in this file, so
+       * none of these could exist however they were wired -- see consumeBerry. */
+      if(m.curHP>0){
+        /* CUD CHEW -- the second helping. The counter is armed at the eat and spent here; the berry's
+         * own effect is re-applied by putting it BACK and letting the ordinary updaters eat it again
+         * on the next pass, which is exactly what the authority does (`singleEvent('Eat', item...)`)
+         * and means the second helping cannot drift from the first. */
+        if(m._cud&&--m._cud.left<=0){
+          const _b=m._cud.berry;
+          MEDSEEN.cudChewReEaten++;
+          if(TR){TR.act(m,'ability: '+m.ability);TR.enditem(m,_b,'[eat]');}
+          /* THE EFFECT, NOT THE TRIGGER -- see berryForceEat. */
+          if(!berryForceEat(m,_b)){
+            MEDFAILS.cudChewEffectUnexpressed++;
+            if(!MEDFAILS.cudChewEffectUnexpressedFirst)MEDFAILS.cudChewEffectUnexpressedFirst=String(_b);
+          }
+          /* AND IT DOES NOT CHEW FOREVER, WHICH IS WHAT THE FIRST VERSION DID: a Sitrus went
+           * 43 -> 85 -> 85 -> 127 on a body that should have eaten exactly twice, because the re-eat
+           * ran through `consumeBerry` and `consumeBerry` re-arms the counter. The authority has the
+           * same shape and closes it the same way -- its `onResidual` calls `runEvent('EatItem')`
+           * (which re-arms) and then `delete this.effectState.berry` BELOW it. So the clear belongs
+           * AFTER the re-eat, and this line is that `delete`. */
+          m._cud=null;
+        }
+        /* HARVEST -- the berry comes back. `chance` and the weather list are the handler's own, so the
+         * sun clause is not a name here. It requires an EMPTY item slot and a `lastItem` that is a
+         * berry, both of which are the handler's conditions. */
+        {const _hv=TAGS.param('ability',m.ability,'restoresBerryAtResidual');
+         if(_hv&&!m.item&&m._lastItem&&m._ateBerry){
+           /* THE WEATHER NAMES ARE THE AUTHORITY'S (`sunnyday`, `desolateland`) and this engine's are
+            * short (`sun`). The prefix match is the seam and it is stated rather than hidden:
+            * `sunnyday`.startsWith(`sun`). `desolateland` is Primal Groudon's sun and has no carrier
+            * in this format, so it is carried in the artifact and unreachable here -- named, not
+            * silently dropped. `effWeatherOf` is used so Cloud Nine and a suppressed sky answer the
+            * same way they do everywhere else in this file. */
+           const _w=String(effWeatherOf(field,m,null)||'');
+           const _sun=!!_w&&Array.isArray(_hv.alwaysInWeather)
+             &&_hv.alwaysInWeather.some(x=>String(x).indexOf(_w)===0);
+           if(_sun||rng()<(+_hv.chance||0.5)){
+             m.item=m._lastItem; m._lastItem=''; MEDSEEN.harvestRestored++;
+             if(TR)TR.act(m,'item: '+m.item);
+           }
+         }}
+        /* PICKUP -- take what an adjacent body spent this turn. `_usedItemThisTurn` is cleared at the
+         * top of every turn, so "this turn" is a real clock rather than "ever". The ally is the only
+         * adjacent body in a doubles slot layout this engine models, plus both foes. */
+        {const _pu=TAGS.param('ability',m.ability,'picksUpUsedItem');
+         if(_pu&&!m.item){
+           const _cands=[...actA,...actB].filter(x=>x&&x!==m&&!x.fainted&&x.curHP>0
+                                                 &&x._lastItem&&x._usedItemThisTurn);
+           if(_cands.length){
+             const _t=_cands[Math.floor(rng()*_cands.length)%_cands.length];
+             m.item=_t._lastItem; _t._lastItem=''; MEDSEEN.pickupTook++;
+             if(TR)TR.act(m,'item: '+m.item);
+           }
+         }}
+      }
       /* WIRE 8 -- the drain lands here, with the residuals. The amount divides the VICTIM's max HP
        * (seeding a tank returns more than seeding a pixie -- that is the tag's per, not a constant)
        * and the same number is handed to the seeder, capped at full. If the seeder is down the chip

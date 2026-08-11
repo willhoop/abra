@@ -1001,6 +1001,54 @@ const DEFERRED = {
    * The row keeps its scenario and is still staged and printed on every run. What it stops doing is
    * holding the gate. Underlying verdict: COULD-NOT-STAGE, and naming it here is what stops the shelf
    * being read as a pass. */
+  /* ---- THE CLOSET, 2026-08-10. Will: "keep putting the mickey mouse abilities with next to no usage
+   *      into the closet" — with his own condition attached from an hour earlier: "AS LONG AS WE KNOW
+   *      ITS PURPOSELY NOT BEING BUILT."
+   *
+   * EACH OF THESE IS RUN BY **ZERO** TEAMS across 26,232 declared sheets. Not "few" — none. They have
+   * a legal carrier, the carrier is legal, and nobody in two ladders over three weeks has brought it.
+   *
+   * THE MEASUREMENT IS NEW AND IT IS WHY THIS IS NOW POSSIBLE. Until `engine/sheet_usage.js` was
+   * written tonight there was no honest ability-usage number at all — `click_counts.js` says so in its
+   * own header — so an ability could only be shelved on a guess. It is now a count, and a count is
+   * what makes a shelf defensible instead of a preference.
+   *
+   * AND IT IS NOT A USAGE THRESHOLD, WHICH WILL KILLED EARLIER TODAY FOR GOOD REASON. Cud Chew is on
+   * 21 teams and is BUILT, because Farigiraf is on 18.3% of them and Will's own read is that Cud Chew
+   * is deliberate closed-sheet tech: everyone assumes Armor Tail and stops clicking priority, so you
+   * collect the deterrent free. A rare ability on a common body is a thing you FACE. These four are
+   * rare abilities that nobody brings at all, which is a different fact.
+   *
+   * ZERO IS NOT PROOF OF ZERO EXPOSURE — the honest caveat. The sheets are the OPEN-sheet population;
+   * the bo1 ladder declares almost nothing, so a body running one of these in bo1 is invisible here.
+   * That is exactly the Cud Chew argument turned around, and it is why these keep their scenarios and
+   * stay staged and printed. What they stop doing is holding the gate. Underlying verdict:
+   * COULD-NOT-STAGE. If any of them ever appears in a declared sheet, this entry is wrong and should
+   * be deleted rather than argued with. */
+  battlebond: {
+    by: 'Will', on: '2026-08-10',
+    why: 'ZERO of 26,232 declared-sheet teams, AND THE FORME IT EXISTS FOR IS BANNED HERE. '
+       + 'Greninja-Bond and Greninja-Ash are both isNonstandard: \u0027Past\u0027 in this format. Standard '
+       + 'Greninja still LISTS Battle Bond and is on 189 teams, but nobody takes it, because the '
+       + 'thing it exists to do cannot happen. Will: "only the special greninja gets battle bond, '
+       + 'its not in the game." I gave two WRONG reasons for this shelf before measuring: first '
+       + 'that the carrier was rare (it is not, 189 teams), then that it was a rejected choice '
+       + '(it is not a live choice at all). Deliberately not built. Underlying: COULD-NOT-STAGE.',
+  },
+  minus: {
+    by: 'Will', on: '2026-08-10',
+    why: 'ZERO of 26,232 declared-sheet teams, on a body that IS played — Manectric is on 70 teams, but its other abilities are Static and Lightning Rod and its mega is Intimidate, so nobody picks Minus. It is also HALF OF A PAIR — Minus only does '
+       + 'anything beside an ally holding Plus, so the fixture is two specific bodies side by side, and '
+       + 'Plus itself is on 4 teams. Deliberately not built. Underlying verdict: COULD-NOT-STAGE.',
+  },
+  stall: {
+    by: 'Will', on: '2026-08-10',
+    why: 'ZERO of 26,232 declared-sheet teams, AND IT IS NOT RARE — IT IS BAD. Will: \u0027why would you ever want this\u0027. Stall makes the holder move LAST within its bracket, and its ONE legal carrier is Sableye, which is on 758 teams (2.9% of the format) and also has PRANKSTER — one of the strongest abilities in the game — plus a mega that overwrites the slot with Magic Bounce. Nobody chooses to move last when that is the alternative. The zero is a judgement the whole ladder has already made. Observing it would need a constructed speed pair where the order decides the board, and it carries no tag at all, so the rule would have to be written first. It moves the holder LAST within its bracket, '
+       + 'so observing it needs a constructed speed pair where the order decides the board — the same '
+       + 'build Will described for priority — for an ability nobody runs. It also carries no tag at '
+       + 'all, so the rule would have to be written first. Deliberately not built. Underlying verdict: '
+       + 'COULD-NOT-STAGE.',
+  },
   pickup: {
     by: 'Will', on: '2026-08-10',
     why: 'SHELVED ON FIXTURE COST AGAINST 0.011% USAGE — 3 teams of 26,232, the rarest ability in this '

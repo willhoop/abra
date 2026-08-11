@@ -314,6 +314,33 @@ function openDefectClause() {
   for (const l of lines) {
     const m = l.match(/^\|\s*#(\d+)\s*\|\s*\*\*(.{0,140})/);
     if (!m) continue;
+    /* THE STATUS IS READ FROM THE STATUS COLUMN, AND THAT IS #148'S OWN PRESCRIPTION CASHED IN.
+     *
+     * The first version scanned the first 600 characters of PROSE for `— DONE`, `closed 20\d\d` and
+     * friends, case-sensitively. #148 records what that costs, in its own words: *"a defect register
+     * whose enforcement depends on word choice is a structural weakness"*. It cost twice on 2026-08-11
+     * in one pass:
+     *   - four rows CLOSED that day, each headed `— CLOSED 2026-08-11` in capitals, went on counting,
+     *     because the pattern had no `/i` and `closed` is lower case in it;
+     *   - **#148 counted ITSELF**, because it QUOTES the breakage vocabulary (`IS ABSENT`,
+     *     `IS NOT IMPLEMENTED`) while explaining the detector. A row about the detector tripping the
+     *     detector is the clearest possible statement that prose-matching is the wrong instrument.
+     *
+     * So the row's STATUS CELL — the last cell of the table row, which is where this register has
+     * always recorded status — is consulted first, and it must BEGIN with a closed word. That is not a
+     * loosening: measured over all 119 rows before it was wired (LESSONS §4, print what it matches),
+     * the cell clause newly clears **16** rows and every one of them is stamped `closed 20xx-xx-xx`,
+     * `DONE 2026-08-10` or `page closed 2026-08-10` in that cell. It clears NOTHING whose cell reads
+     * `open — …`, `in progress`, `scoping`, `queued behind 42` or prose.
+     *
+     * `PART DONE` IS DELIBERATELY NOT ACCEPTED. Partly done is open, and a gate that reads it as closed
+     * is the "known failure" filing this clause exists to stop.
+     *
+     * The prose scan is KEPT as well, not replaced: a row that says it is done in its title and forgets
+     * the cell should still drop out, and removing a working clause in the same pass as adding one is
+     * how a fix eats a guard. */
+    const statusCell = /\|\s*(closed|done|page closed)\b[^|]*\|\s*$/i.test(l);
+    if (statusCell) continue;
     if (/—\s*DONE|DONE,|RETRACTED|closed 20\d\d|GUARDED,/.test(l.slice(0, 600))) continue;
     /* THE ROW MUST ASSERT BREAKAGE, NOT MERELY BE FILED TO ENGINE.
      *
@@ -854,7 +881,23 @@ if (require.main === module) {
     process.exitCode = 1;
   } else {
     const held = [...S.rows.values()].filter(r => r.quarantined).sort((a, b) => a.file.localeCompare(b.file));
-    console.log(`  ${held.length} of ${S.rows.size} artifacts are downstream of MEDICHAM and are WITHHELD:`);
+    /* THE HEADING FOLLOWS THE GATE, AND UNTIL 2026-08-11 IT DID NOT — because until 2026-08-11 the
+     * gate had never been open, so nobody had read this page in that state. It printed
+     * `GATE: OPEN — nothing is withheld` and then, four lines down, `47 artifacts … are WITHHELD`.
+     * Two contradictory statements about the same 47 files, and a reader would have been entitled to
+     * believe either.
+     *
+     * `withholder()` is the authority on the WITHHOLDING and it is right in both states (its selftest
+     * asserts the lift explicitly). This list is the DOWNSTREAM SET, which does not change when the
+     * gate opens; what changes is what it means. Open, these numbers are not false and not withheld —
+     * they are STALE, measured under an engine that has since been corrected, and ROADMAP #57 is the
+     * re-run list. Saying so is the whole difference between "you may quote this" and "you may quote
+     * this once you have re-run it". */
+    console.log(S.gate.ok
+      ? `  ${held.length} of ${S.rows.size} artifacts are downstream of MEDICHAM and are now RE-RUNNABLE.`
+        + ` They are NOT withheld and they are NOT current — every one was measured under an engine`
+        + ` that has since changed, so each must be re-run before it is quoted (ROADMAP #57):`
+      : `  ${held.length} of ${S.rows.size} artifacts are downstream of MEDICHAM and are WITHHELD:`);
     for (const r of held) console.log('    data/' + pad2(r.file, 34) + ' re-run: node ' + r.by);
     console.log('');
     console.log('  Re-running is not optional once the gate opens. A quarantined number does not become');

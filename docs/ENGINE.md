@@ -33,11 +33,11 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  421/421 probed mechanics live, 0 missing   (census 2026-08-11 00:43)
-  0/20000 differential comparisons disagree with Showdown   (2026-08-11 00:44)
+  437/437 probed mechanics live, 0 missing   (census 2026-08-10 23:09)
+  0/20000 differential comparisons disagree with Showdown   (2026-08-10 23:05)
     seed 20260804, requested 20000, 850 not comparable (multihit 630, non-finite 0, threw 220)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
+  interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 17:50)
     2300 of 8795 theoretical pairs staged — agreement is a claim about the 2300 that ran, not about the 8795
       530 inert      not scored — the reference engine behaves identically with and without the reactor
       109 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
@@ -49,17 +49,160 @@ ENGINE — does the simulator do what Pokémon does
     DISAGREES  stoneaxe -> gooey  (secondary, 63 uses)
     DISAGREES  gigaimpact -> spikyshield  (secondary, 38 uses)
     DISAGREES  supercellslam -> kingsshield  (secondary, 85 uses)
-  release ladder: 14 frozen releases x 1997 games, one pinned census   (2026-08-07 17:44)
-    median completed turns before divergence: 1 at the baseline, 1 at the top rung  <-- UNMOVED by the whole series
-    whole-game agreement 7/1997 -> 134/1997; first-divergence line, mean 14.78 -> 33.98
-    paired against the baseline: 1295 games part later, 116 EARLIER, 586 unchanged
-    the baseline ran first and last and reproduced exactly; comparability: every arm cleared
-  tag coverage: 208/222 probed, 14 unprobed
+  release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f1b9c29625f0 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is c7830b1368ea now
+    (+6 more — node engine/provenance.js)
+    it becomes quotable again when this is re-run: node engine/wire_ladder.js
+  tag coverage: 216/230 probed, 14 unprobed
 ```
 
-_stamped 2026-08-11 00:52_
+_stamped 2026-08-10 23:09_
 
 <!-- /GENERATED -->
+
+## THE EIGHT ROWS THAT HELD THE MEDICHAM GATE — ALL EIGHT CLOSED, AND THE GATE IS OPEN. 2026-08-11.
+
+**Census 423 → 437 live / 437 probed / 0 missing / 0 threw / 0 hollow / 0 unarmed / 0 direct-call.**
+`tests/test-engine-diff.js --n 20000` held at **0 of 20,000** before and after. All three deliberate-
+roster stages were re-run **against release `82250b3c3139`, cut from this tree with 0 of 24 files
+moved**: **0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE** on items (139 tested), abilities (94) and
+moves (427). `node engine/quarantine.js` now reads **GATE: OPEN — all six clauses pass**, for the first
+time. Receipts: [_outbox/gate-eight-notes.md](_outbox/gate-eight-notes.md).
+
+**FOUR OF THE EIGHT WERE ALREADY FIXED IN THE ENGINE AND STILL OPEN IN THE REGISTER**, and that is
+worth stating first because it is a failure mode of its own. #117, #118, #119 and #126 were landed by
+the previous batch and never marked done, so the gate went on counting them — the mirror of a stale
+handoff, one level up. Each was **re-measured before it was closed**, not taken on trust:
+
+| row | re-measured 2026-08-11 |
+|---|---|
+| #117 `_lastMove` | swept all 500 moves through a real turn across all 37 action kinds — **0 fail to record it** |
+| #118 Choice lock on a status move | `taunt`, `tailwind`, `trickroom`, `swordsdance`, `protect`, `recover`, `wideguard`, `quickguard`, `transform` all arm it; `choiceLockArmedOnStatus` = 9 |
+| #119 Struggle | an empty PP bar Struggles for 50 with 64 max-HP recoil and a real `\|move\|…\|struggle\|` line; a Scarf lock onto a **Disabled** move at FULL PP Struggles too |
+| #126 Quick Guard | blocks Quick Attack 38 → 0 and Fake Out 38 → 0, and does **not** block Earthquake (55 → 55); Wide Guard is the mirror. The two arms cross, which no name-match produces |
+
+### #147 — THE GROUNDED AXIS, AND THE PREDICATE WAS NOT THE EXPENSIVE HALF
+
+Five inputs were missing from `isGrounded()` — Gravity, Ingrain, Smack Down, Magnet Rise, Roost. Wiring
+all five left **Earthquake still dealing 0** to a Corviknight under Gravity, because **the Ground
+immunity was read off the TYPE CHART and never asked the predicate at all.** It is the authority's own
+split and it is easy to miss because the two agree on the common case:
+
+```
+sim/pokemon.ts:2254   const notImmune = type === 'Ground' ? this.isGrounded(negateImmunity)
+                                                          : negateImmunity || getImmunity(type, this);
+```
+
+Ground is the ONE type whose immunity does not come off the chart. `getEffectiveness` scores the Flying
+row as **zero steps** — neutral, not immune — so a grounded Talonflame takes Earthquake at 2x off its
+Fire half. **Iron Ball on a Flying body was therefore already wrong before this row**, independently of
+Gravity: the predicate said grounded and the damage number never asked.
+
+Measured, Earthquake into a Flying Corviknight: **0 → 148** under Gravity, **0 → 139** after Smack Down,
+**0 → 138** after Ingrain; into a grounded Incineroar **167 → 0** after Magnet Rise. **Roost is a TYPE
+DELETION, not a clause** — which is how the authority grounds it, and it makes Earthquake, Stealth Rock
+and the Ground immunity agree for free; a `roost` clause inside `isGrounded` would have grounded the
+body and left it still resisting Ground. The `-singleturn` sits **below** the `-heal`, read off a real
+battle rather than assumed.
+
+Three sub-defects fell out that were not in the row: Gravity carried `sealsMoves` and was routed down
+the **Encore** road (order in the classifier was the fix); a damaging move's **primary** volatile
+reached no applier at all, because the secondary loop was the only road (Smack Down, plus seven
+partial-trap members that `_trap` already owns and that are now refused at `applyMoveVolatile`); and
+`isGrounded` had to take the **attacker**, because a Mold Breaker's Earthquake into a Levitate body went
+back to 0 without it — **the census caught that within a minute, 423 → 421**.
+
+### #123 — IT IS TWO LISTS, AND THE ROW WAS WRONG AS WRITTEN
+
+The row said Earthquake *"MISSES a digging target"*. It hits for **double**; the engine dealt **0**, so
+the counter-play was impossible rather than free — the opposite sign. `onInvulnerability` says who gets
+THROUGH, `onSourceModifyDamage`/`onSourceBasePower` says who gets DOUBLED, and **Fly's second list is
+two of its first list's seven**: an engine implementing "pierces ⇒ doubles" is wrong on Thunder,
+Hurricane, Sky Uppercut, Smack Down and Thousand Arrows. Both lists are derived onto `semiInvulnerable`,
+with `via` keeping Fly's damage-stage double and **Bounce's base-power** double at the two stages the
+authority uses. Phantom Force carries `pierces: []` — an empty list is a statement, not a missing value.
+
+Measured: Earthquake into Dig **23 → 46**; Iron Head into Dig **51 → 0**; Surf into Dive **29 → 57**;
+Hurricane into Fly **94 → 94**; Smack Down into Fly **16 → 16**. `invulnPierced` 6 against
+`invulnDoubled` 4 — **equal counts over that sample would BE the wrong rule**.
+
+### #125 — THE COUNTER WENT IN FIRST, AND THE QUEUE IS 15, NOT 32
+
+`MEDFAILS.unmodelledClick` / `unmodelledClickFirst` / `unmodelledClickBy` — a per-move **histogram**,
+because `healProceduralFirst` naming `swallow` is what made that one row findable. A bare
+`{kind:'pass'}` a caller built is deliberately not counted. `tests/test-unmodelled-clicks.js` prints the
+list and **ratchets it: the set may shrink and may never grow.**
+
+**The list Will is owed:** transform 89, entrainment 72, worryseed 69, roleplay 35, simplebeam 17,
+speedswap 12, spite 8, recycle 3, fairylock 1, magneticflux 1, and guardsplit / healbell / lockon /
+powersplit / teatime at 0 — **15 moves, 307 clicks**, not the 32 / 1,702 the row was filed with.
+
+### #128 — THE BERRY-ABILITY FAMILY, AND ONE MISSING FACT UNDER SIX OF THEM
+
+`lastItem` and `ateBerry` appeared **zero times** in `medicham2-browser.js`. Closed by making berry
+consumption a **single site** rather than six bookkeeping lines: `m.item=''` appears twelve times in
+that file and only the **three that are a berry being EATEN** route through `consumeBerry` — a berry
+Knocked Off or Tricked away is not one you ate, which is exactly the distinction Harvest and Cheek Pouch
+turn on. It also unblocks Recycle (#71).
+
+Measured on a 170 HP body started at 76, with every other item and ability **blank** (the row's own
+interaction hazard honoured — a berry at half heals 25%, identical to Life Dew, Hospitality and Aqua
+Ring): plain Sitrus **118**; Cheek Pouch **170**; Ripen **160** (+84, exactly double); Cud Chew 118 then
+**160** the next turn. Harvest returns the berry on a winning roll and **always in sun**; Pickup takes
+the spent Sitrus off the body beside it.
+
+**GLUTTONY IS A MEASURED NULL AND IS RECORDED AS ONE.** It is read, and the only two pinch berries above
+this format's usage floor (Sitrus, Oran) already trigger at 1/2 — the fraction Gluttony would raise them
+to. `MEDSEEN.gluttonyRaisedThreshold` is **0 by regulation, not by breakage**, and its probe asserts the
+reading is HARMLESS rather than asserting a change that cannot happen.
+
+**Cud Chew took two passes and the first one is worth keeping.** It put the berry back and let the pinch
+updater find it — which re-runs the **trigger**, so a body healed above half by its own first Sitrus
+chewed a berry that did nothing while the counter still said the mechanic fired. The authority calls
+`singleEvent('Eat')` directly: the **effect**, not the trigger. `berryForceEat` is that split.
+
+### THE GATE CLAUSE ITSELF WAS THE LAST THING IN THE WAY, AND #148 HAD ALREADY PREDICTED IT
+
+With all eight rows closed the clause still counted five, because it scanned the first 600 characters of
+**prose**, case-sensitively, for `closed 20\d\d`. Four rows headed `— CLOSED 2026-08-11` in capitals went
+on counting — and **#148 counted itself**, because it QUOTES the breakage vocabulary (`IS ABSENT`,
+`IS NOT IMPLEMENTED`) while explaining the detector. #148's own text calls this out: *"a defect register
+whose enforcement depends on word choice is a structural weakness"*.
+
+So the clause now reads the row's **status cell** first. **Printed before it was wired** (LESSONS §4):
+over all 119 rows it newly clears **16**, and every one is stamped `closed 20xx-xx-xx`, `DONE 2026-08-10`
+or `page closed 2026-08-10` in that cell. It clears nothing reading `open — …`, `in progress`, `scoping`
+or prose, and **`PART DONE` is deliberately not accepted**. Shown **RED** on a planted row carrying a
+number no register holds, reading `…DOES NOT WORK… | open`, before it was trusted — the clause reported
+one open defect and the gate went back to CLOSED. The prose scan is kept beside it rather than replaced.
+
+`engine/quarantine.js` also printed `GATE: OPEN — nothing is withheld` and then listed 47 withheld
+artifacts four lines down — two contradictory statements nobody had ever seen, because the gate had never
+been open. Open, those 47 are **re-runnable and stale**, not released: ROADMAP #57.
+
+### THE HAND LIST LOSES EIGHT LINES
+
+**#117, #118, #119, #123, #125, #126, #128 and #147 are all off it** — the census carries them as
+fourteen new probes. The re-applied-volatile row and Rivalry both stay.
+
+### THREE REDS THAT ARE NOT MINE, VERIFIED AGAINST A CLEAN WORKTREE AT `f8f2c67` RATHER THAN ASSERTED
+
+`tests/run-all.js` is 84 passed / 22 failed. Every one of the 22 was reproduced at the baseline commit in
+a throwaway worktree, **except three**, and none of those three is an engine defect:
+
+- **`tests/test-stadium-roster.js`** — names `engine/million_targets.js -> data/million-targets.json`,
+  a file another division created tonight and has not registered. Green at baseline because the file did
+  not exist there.
+- **`tests/test-quality.js`** — `clean share 22.1% now vs 17.3% recorded`, because the store grew
+  **20,688 → 52,840** while this ran. OPS's, and it is the ingest working.
+- **`tests/test-web-quarantine.js`** — the board payload still carries five QUARANTINED verdict strings.
+  That is a **consequence of the gate opening**: `web/quarantine-data.js` was built while it was closed.
+  WEB's to rebuild; filed, not touched.
+
+`tests/test-tag-consumed.js` is RED on **`piercesProtect`**, whose only stager is `engine/faces.js` —
+another division's file, mid-edit. It is red at baseline too and this ledger already recorded it as
+not-ours on 2026-08-11.
 
 ## ROADMAP #151 — THE CONSTRUCTED-GAME RUN'S TWO BIGGEST FAMILIES, AND THE ABILITY UNDER EIGHT MORE ROWS. 2026-08-10.
 

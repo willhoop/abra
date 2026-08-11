@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-11T01:56:12.252Z",
+ "generated": "2026-08-11T02:17:53.201Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1724,8 +1724,8 @@
    "kind": "move",
    "param": "a pseudo-weather that puts every Pokemon on the ground",
    "why": "Gravity, 79 corpus uses. It is the largest single input to isGrounded() -- Spikes, Toxic Spikes, Sticky Web, all four terrains and the Ground immunity all change answer under it",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "groundsField",
+   "used": true,
    "n": 1,
    "uses": 91,
    "examples": [
@@ -1737,8 +1737,8 @@
    "kind": "move",
    "param": "a type the user loses until the end of the turn",
    "why": "Roost, 2,808 clicks. Losing Flying for the turn is what makes Earthquake and Stealth Rock land on a Roosting body, and it is a second input to isGrounded()",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "typeRemovedForTurn",
+   "used": true,
    "n": 1,
    "uses": 2736,
    "examples": [
@@ -2927,6 +2927,82 @@
    "uses": 2402,
    "examples": [
     "Unnerve"
+   ]
+  },
+  {
+   "tag": "healsOnBerryEaten",
+   "kind": "ability",
+   "param": "the holder heals a fraction of max HP whenever it eats a berry",
+   "why": "Cheek Pouch, 9 uses. A Sitrus under Cheek Pouch is 1/4 + 1/3 of max HP off one item, which is most of a Leftovers turn on top of the berry the calculation already knows about",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 9,
+   "examples": [
+    "Cheek Pouch"
+   ]
+  },
+  {
+   "tag": "doublesBerryEffect",
+   "kind": "ability",
+   "param": "every berry effect this holder gets is doubled",
+   "why": "Ripen. `damageReduce` caught the resist-berry half only, so a Sitrus under Ripen healed 1/4 and reads as covered -- a mechanic modelled at half strength is harder to find than one that is absent",
+   "consumedBy": "doublesBerryEffect",
+   "used": true,
+   "n": 1,
+   "uses": 0,
+   "examples": []
+  },
+  {
+   "tag": "lowersBerryThreshold",
+   "kind": "ability",
+   "param": "pinch berries fire at a higher HP for this holder",
+   "why": "Gluttony, 35 uses. A Sitrus at 1/2 instead of 1/4 is a different item -- it fires before the hit that would have killed rather than after it",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 36,
+   "examples": [
+    "Gluttony"
+   ]
+  },
+  {
+   "tag": "restoresBerryAtResidual",
+   "kind": "ability",
+   "param": "a berry it used up comes back at the end of the turn",
+   "why": "Harvest, 25 uses. One of the three mechanics blocked on `lastItem`, which appeared ZERO times in the simulator: a consumed item left `item: \"\"` and nothing recorded WHICH berry",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 25,
+   "examples": [
+    "Harvest"
+   ]
+  },
+  {
+   "tag": "reEatsBerry",
+   "kind": "ability",
+   "param": "the berry it just ate is eaten AGAIN a turn later",
+   "why": "Cud Chew, 19 uses. The second helping is a whole extra Sitrus, and it is the other mechanic blocked on recording WHICH berry was eaten",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 19,
+   "examples": [
+    "Cud Chew"
+   ]
+  },
+  {
+   "tag": "picksUpUsedItem",
+   "kind": "ability",
+   "param": "takes an item an adjacent body used up this turn",
+   "why": "Pickup, 3 uses. It needs the same two fields Harvest and Cud Chew need -- `lastItem` and \"was it spent THIS turn\" -- so it is one tag away once those exist",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 3,
+   "examples": [
+    "Pickup"
    ]
   },
   {
@@ -27440,6 +27516,7 @@
      "triggersBelow": "1/2",
      "restores": null,
      "restoresFlat": 10,
+     "triggersBelowWithAbility": null,
      "confusesIfWrongNature": null
     },
     "flingable": {
@@ -27797,6 +27874,7 @@
      "triggersBelow": "1/2",
      "restores": "1/4",
      "restoresFlat": null,
+     "triggersBelowWithAbility": null,
      "confusesIfWrongNature": null
     },
     "flingable": {
@@ -28499,10 +28577,17 @@
   "cheekpouch": {
    "name": "Cheek Pouch",
    "tags": [
-    "untagged"
+    "healsOnBerryEaten"
    ],
    "uses": 9,
-   "params": {}
+   "params": {
+    "healsOnBerryEaten": {
+     "heal": [
+      1,
+      3
+     ]
+    }
+   }
   },
   "chlorophyll": {
    "name": "Chlorophyll",
@@ -28629,10 +28714,18 @@
   "cudchew": {
    "name": "Cud Chew",
    "tags": [
-    "untagged"
+    "reEatsBerry"
    ],
    "uses": 19,
-   "params": {}
+   "params": {
+    "reEatsBerry": {
+     "delayTurns": 2,
+     "notFromEffects": [
+      "bugbite",
+      "pluck"
+     ]
+    }
+   }
   },
   "curiousmedicine": {
    "name": "Curious Medicine",
@@ -29266,10 +29359,14 @@
   "gluttony": {
    "name": "Gluttony",
    "tags": [
-    "untagged"
+    "lowersBerryThreshold"
    ],
    "uses": 36,
-   "params": {}
+   "params": {
+    "lowersBerryThreshold": {
+     "armsBerryAbility": "gluttony"
+    }
+   }
   },
   "goodasgold": {
    "name": "Good as Gold",
@@ -29456,10 +29553,18 @@
   "harvest": {
    "name": "Harvest",
    "tags": [
-    "untagged"
+    "restoresBerryAtResidual"
    ],
    "uses": 25,
-   "params": {}
+   "params": {
+    "restoresBerryAtResidual": {
+     "chance": 0.5,
+     "alwaysInWeather": [
+      "sunnyday",
+      "desolateland"
+     ]
+    }
+   }
   },
   "heatproof": {
    "name": "Heatproof",
@@ -30647,10 +30752,14 @@
   "pickup": {
    "name": "Pickup",
    "tags": [
-    "untagged"
+    "picksUpUsedItem"
    ],
    "uses": 3,
-   "params": {}
+   "params": {
+    "picksUpUsedItem": {
+     "adjacentOnly": true
+    }
+   }
   },
   "pixilate": {
    "name": "Pixilate",
@@ -31044,10 +31153,16 @@
   "ripen": {
    "name": "Ripen",
    "tags": [
+    "doublesBerryEffect",
     "damageReduce"
    ],
    "uses": 0,
    "params": {
+    "doublesBerryEffect": {
+     "mult": 2,
+     "heal": true,
+     "boost": true
+    },
     "damageReduce": {
      "damageMult": 0.5,
      "onlyWhen": null
