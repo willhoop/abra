@@ -481,6 +481,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * which Shield Dust acts, so a zero here after games with a Vivillon on the field is the finding;
    * before this pass the ability was refusing direct status moves and Static as well. */
   dustBlockedSecondary: 0,
+  /* ROADMAP #187 -- a generic-rulebook secondary thrown away because THIS FORMAT does not give the
+   * move one. `formatSecondaryCount` is total over the 500 legal moves, so `count: 0` is a positive
+   * statement of removal rather than the absence of a tag. Exactly one legal move disagrees with the
+   * generic rulebook this way today (Freeze-Dry, 1,656 corpus uses, which used to roll mainline's
+   * 10% freeze here); the counter is what proves the refusal fires rather than being assumed. */
+  secondaryRefusedByFormat: 0,
   /* WIRE 90 -- an entry hazard that RESOLVED on a switch-in (toxic spikes' poison, sticky web's
    * drop). The old MEDFAILS.hazardUnresolved counter is gone because the gap it declared is wired;
    * this is its receipt, so the counter did not merely vanish (docs/ENGINE.md rule). */
@@ -1109,6 +1115,17 @@ const MEDFAILS = { encoreAction: 0,
      the first offender named, because there are exactly two today (Iron Head, Toxic Thread) and a
      third arriving unannounced is the whole failure mode two rulebooks have. */
   rulebookChanceDrift: 0, rulebookChanceDriftFirst: '',
+  /* ROADMAP #187. THE OTHER HALF OF WIRE 89, AND THE HALF NO CHANCE COMPARISON COULD SEE. WIRE 89
+     reconciles a secondary whose CHANCE differs between the two rulebooks. It cannot reconcile a
+     secondary the format DELETED, because there is then no format-side chance to compare against and
+     `_fmt != null ? _fmt : _generic` silently means "use mainline". `formatSecondaryCount` states the
+     format's count positively for every move, so the deletion is representable. The CAPABILITY
+     counter for the refusal itself lives in MEDSEEN (`secondaryRefusedByFormat`), because a refusal
+     that cannot prove it fired is assumed broken. This one is the LOUD side of the fallback that is
+     left: the generic rulebook offers a secondary for a move `data/tags.json` has no format reading
+     of AT ALL, so mainline is being used and nothing challenged it. Must read 0 across the 500
+     legal moves; a non-zero means a move reached the engine that the tag derivation never saw. */
+  secondaryProfileUnknown: 0, secondaryProfileUnknownFirst: '',
   /* WIRE 123. Two leads arriving on the same speed. Showdown breaks that with a coin (speedSort's
      Fischer-Yates); battleInit is handed no rng, so it keeps declaration order and counts the event.
      Non-zero is not a bug — it is the share of battle starts whose entry-ability order this engine
@@ -14451,7 +14468,33 @@ function battleTurn(S,rng,actsForA,actsForB){
            * So this is not a wholesale switch of rulebooks (that is an architecture decision and it
            * is not ENGINE's): it is the CHANCE, one field, taken from the artifact that read the
            * format, and every disagreement is COUNTED so a third one cannot arrive silently. */
+          /* ROADMAP #187 -- WIRE 89 RECONCILED THE CHANCE AND COULD NOT REPRESENT A DELETION.
+           *
+           * Everything below this line asks the format for a secondary's CHANCE and falls back to the
+           * generic number when the format says nothing. That fallback is unchallengeable for a
+           * secondary Champions REMOVED, because a removed secondary leaves no chance to read:
+           * `data/mods/champions/moves.ts:394-399` gives Freeze-Dry `secondary: undefined, // no
+           * inherit`, `data/move-effects.js` still carries mainline's 10% freeze, and so this engine
+           * froze people with a move that cannot freeze here -- 1,656 corpus uses. Found by
+           * `million_run.js --declaration-only`, the one real disagreement of 118 (move, effect) pairs.
+           *
+           * `formatSecondaryCount` is the missing shape and it is TOTAL: every move the format defines
+           * carries it, `count: 0` included, so "the format removed the secondaries" is a positive
+           * statement instead of an absence. Read as a shape and not as a name -- any move the format
+           * strips next is refused without an edit here. Swept before wiring: of the 380 legal moves
+           * carrying `count: 0`, exactly ONE has a generic secondary to refuse (freezedry), and zero
+           * moves go the other way, so the behavioural delta is one move and the mechanism is general.
+           *
+           * THE REMAINING FALLBACK IS LOUD. A move with a generic secondary and NO format reading at
+           * all is a hole in `data/tags.json`, not a format statement, so it is counted by name. */
           if(fx&&fx.secondary&&!sheerForce){
+            const _fsc=TAGS.param('move',a.move.id,'formatSecondaryCount');
+            if(!_fsc){
+              MEDFAILS.secondaryProfileUnknown++;
+              if(!MEDFAILS.secondaryProfileUnknownFirst)
+                MEDFAILS.secondaryProfileUnknownFirst=a.move.id+' has a generic secondary and no formatSecondaryCount';
+            }
+            const _fmtStripped=!!(_fsc&&_fsc.count===0);
             const _si=TAGS.param('move',a.move.id,'statusInflict');
             /* ROADMAP #132 -- AND THE SECOND KIND OF SECONDARY, WHICH THIS READER COULD NOT SEE.
              *
@@ -14480,6 +14523,31 @@ function battleTurn(S,rng,actsForA,actsForB){
                 const _r=_sc.target.find(e=>e&&e.boosts&&Object.keys(e.boosts).sort().join(',')===_keys);
                 return _r&&_r.chance!=null?+_r.chance:null;
               }
+              /* ROADMAP #187, THE THIRD KIND OF SECONDARY THIS READER COULD NOT SEE, and the one that
+               * left the whole remaining unguarded surface. WIRE 89 covered a status or a volatile
+               * (`statusInflict`); #132 covered a drop on the TARGET (`statChange.target[]`). A boost
+               * on the USER -- Charge Beam's 70% SpA, Meteor Mash's 20% Attack, Ancient Power's 10%
+               * omniboost -- lives under `statChange.user[]`, which nothing here read, so all twelve
+               * of them rolled the GENERIC gen-9 number with nothing format-derived guarding it.
+               *
+               * MEASURED, BOTH BEFORE AND AFTER, by mirroring million_run.js's declaration gate over
+               * all 118 comparable (move, effect) pairs. Before: tag 103, proceduralStatus 2,
+               * RULEBOOK-ONLY 13. After the `formatSecondaryCount` refusal above and this branch:
+               * tag 115, proceduralStatus 2, removed-by-format 1, RULEBOOK-ONLY 0. So there is no
+               * longer any secondary chance in this engine that a Champions value is not standing
+               * behind, which is the whole point of Will's 2026-08-11 ruling -- "LETS USE EVERYTHING
+               * FROM THE SHOWDOWN SOURCE".
+               *
+               * ALL TWELVE AGREE WITH THE GENERIC NUMBER TODAY, and that is exactly why this needed a
+               * varied-knob probe rather than a rate comparison: an outcome check would read the same
+               * in both arms and prove nothing (#178). The probe drives the artifact's own chance to
+               * 0 and to 100 and requires the engine to follow it. Same key-set match as the target
+               * half, so a move carrying both kinds is priced from the right row. */
+              if(s&&s.selfBoosts&&_sc&&Array.isArray(_sc.user)){
+                const _keys=Object.keys(s.selfBoosts).sort().join(',');
+                const _r=_sc.user.find(e=>e&&e.boosts&&Object.keys(e.boosts).sort().join(',')===_keys);
+                return _r&&_r.chance!=null?+_r.chance:null;
+              }
               if(!_si||!Array.isArray(_si.effects))return null;
               const _k=s.status?['status',s.status]:s.volatile?['volatile',s.volatile]:null;
               if(!_k)return null;
@@ -14492,6 +14560,11 @@ function battleTurn(S,rng,actsForA,actsForB){
                  the rest, so a status, a target drop or a flinch goes and the user's own boost stays.
                  Counted, because a refusal that cannot prove it fired is assumed broken. */
               if(dustBlocked&&!s.selfBoosts){MEDSEEN.dustBlockedSecondary++;continue;}
+              /* ROADMAP #187 -- THE FORMAT SAYS THIS MOVE HAS NO SECONDARIES, so there is nothing to
+                 roll. Placed after Shield Dust deliberately: this is not an ability refusing an
+                 effect, it is the effect not existing in this regulation, and the two must not share
+                 a counter. */
+              if(_fmtStripped){MEDSEEN.secondaryRefusedByFormat++;continue;}
               const _generic=(s.chance==null?100:s.chance);
               const _fmt=_fmtChance(s);
               if(_fmt!=null&&_fmt!==_generic){

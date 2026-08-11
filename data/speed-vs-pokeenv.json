@@ -1,0 +1,33 @@
+{
+  "generated": "2026-08-11T10:56:23.558Z",
+  "by": "engine/speed_vs_pokeenv.js",
+  "format": "gen9championsvgc2026regmb",
+  "games": 200,
+  "readiness": {
+    "ok": false,
+    "why": [
+      "the MEDICHAM gate is CLOSED — failing: no open, known engine defect",
+      "NOTE: engine/ has uncommitted edits — 5 file(s). The number describes bytes that are not in any commit."
+    ]
+  },
+  "forced": true,
+  "what": "Simulation cost, three arms, same teams and same random policy. Arm A (poke-env) is written by engine/bench_pokeenv.py and merged in.",
+  "the_honest_baseline": "B is the baseline that matters. C/B answers \"is our simulator faster than Showdown's simulator\". C/A answers \"is it faster than the harness the neighbours used\", which is mostly websocket and process boundary. THE TWO MUST NEVER BE QUOTED AS ONE NUMBER.",
+  "what_a_null_result_means": "If C/B is near 1, the engine programme's justification is transport avoidance — which driving BattleStream in-process already gave us for free, without writing a simulator. That is the outcome a two-arm benchmark would have hidden.",
+  "arms": [
+    {
+      "arm": "B. Showdown, in-process (champions_sim.battle)",
+      "games": 200,
+      "ms": 6969.1,
+      "games_per_sec": 28.7,
+      "error": null
+    },
+    {
+      "arm": "C. MEDICHAM",
+      "games": 200,
+      "turns": 2130,
+      "ms": 890.8,
+      "games_per_sec": 224.5
+    }
+  ]
+}

@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-11T10:13:30.791Z",
+  "generated": "2026-08-11T10:37:21.666Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 468,
-  "live": 468,
+  "probed": 470,
+  "live": 470,
   "missing": 0,
-  "armed": 468,
+  "armed": 470,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2786,7 +2786,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.9% (format 20, generic 30), control Rock Slide 25.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 27.5% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4387,6 +4387,26 @@
       "label": "a secondary STAT DROP fires at the FORMAT's chance, not gen 9's",
       "live": true,
       "detail": "Moonblast drops Special Attack on 10.4% of 4,000 real turns — the format's 10, against the 30 data/move-effects.js states. CONTROLS, both 100% in both rulebooks: Snarl 95.3%, Icy Wind 95.3% (95-accurate moves, so a miss applies nothing). engine/format_audit.js sweeps all 500 moves and reports every remaining row with whether the engine reads it",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "formatSecondaryCount",
+      "label": "a secondary THIS FORMAT REMOVED never rolls",
+      "live": true,
+      "detail": "Freeze-Dry froze on 0% of 600 real turns (Champions deletes its secondary outright; must be 0) and the refusal fired 600 times, so it is a refusal and not a mechanic that quietly went missing. CONTROL, same body, same seeds, same Ice special attack: Ice Beam 10.7% (the format keeps its 10% freeze). Before the wire both arms read 11.2%",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statChange",
+      "label": "a secondary boost on the USER is priced by the FORMAT, not by gen 9",
+      "live": true,
+      "detail": "Fiery Dance raises the USER's Special Attack on 50.2% of 600 real turns at the artifact's own 50% (100 accuracy, so no miss is hiding in this). Driven to 0 in data/tags.json it reads 0%, driven to 100 it reads 100% — so the number the engine rolls is the FORMAT's and not data/move-effects.js's. The rulebook says 50 in all three arms, which is why an outcome comparison could not have told them apart; with the branch disabled the three arms read 50 / 50 / 50",
       "hollow": false,
       "armed": true,
       "directCall": false

@@ -144,16 +144,36 @@ async function armMedicham(n) {
   let MC;
   try {
     const REL = require('./engine_release.js').open(ARG('--release') || null);
+    /* AND THE DATA TABLES MUST BE LOADED FIRST. The comment above says this was copied from
+     * game_differential.js:147 — it copied :147 and not :128, which is `REL.require('data/engine-data.js')`.
+     * That file is what populates the global the browser bundle reads, so without it `buildMon`
+     * dies on its first row lookup with the very error the comment above warns about. Diagnosed
+     * 2026-08-11 by running the benchmark for the first time: it had never been executed, so a
+     * two-line load sequence had only ever half-existed. */
+    REL.require('data/engine-data.js');
     MC = REL.require('engine/medicham2-browser.js', {
       need: ['battleInit', 'battleTurn', 'battleOver', 'playerAction', 'buildMon'],
     });
   } catch (e) { return { arm: 'C. MEDICHAM', error: 'could not load through the release: ' + e.message }; }
 
+  /* USE THE REPO'S OWN CONVERTER. `MC.buildMon` takes MEDICHAM-shaped sets and this file builds
+   * SHOWDOWN-shaped ones, so calling it directly returned 0 usable bodies from 6 sets — which the
+   * header above had already predicted, and which said the fix is `buildPair` from
+   * `game_differential.js`, adding "do not write a third one". That advice stands; the header's claim
+   * that it is NOT exported is simply stale — it sits in `module.exports` at :2941.
+   *
+   * It returns `{medi, spec, sd}` per body: `medi` is the built MEDICHAM body, `sd` the Showdown set.
+   * Requiring the module costs ~1s of setup and is side-effect safe (no main guard needed — it does
+   * not self-run), measured before wiring. */
   const sets = team();
-  const build = () => sets.slice(0, 4).map(st => MC.buildMon(st)).filter(Boolean);
+  let buildPair;
+  try { ({ buildPair } = require('./game_differential.js')); }
+  catch (e) { return { arm: 'C. MEDICHAM', error: 'could not reach buildPair: ' + e.message }; }
+
+  const build = () => buildPair(sets, { max: 4 }).map(p => p && p.medi).filter(Boolean);
   const probe = build();
   if (probe.length < 2)
-    return { arm: 'C. MEDICHAM', error: 'buildMon returned ' + probe.length + ' usable bodies from ' + sets.length + ' sets — the fixture is wrong, not the engine' };
+    return { arm: 'C. MEDICHAM', error: 'buildPair returned ' + probe.length + ' usable bodies from ' + sets.length + ' sets — the fixture is wrong, not the engine' };
 
   const t0 = process.hrtime.bigint();
   let done = 0, turns = 0;
@@ -227,8 +247,21 @@ function readiness() {
     process.exit(2);
   }
   for (const w of R.why) console.log('  ' + w);
-  const B = await armBattleStream(GAMES);
-  const C = await armMedicham(GAMES);
+  /* ONE ARM FAILING MUST NOT DISCARD ANOTHER ARM'S MEASUREMENT. Found 2026-08-11 by running it:
+   * arm C threw an UNCAUGHT ReferenceError, which killed the process before the artifact was
+   * written — so arm B, which had already run and produced a perfectly good baseline, was lost.
+   * The `a.error` handling below only ever covered errors an arm CAUGHT and returned; a throw
+   * escaped it entirely.
+   *
+   * That matters more than it looks. Arm B is the HONEST BASELINE — it is Showdown's own simulator
+   * and it has no dependency on ours being correct or even loadable. Coupling its number to arm C's
+   * health meant the one measurement that can always be taken was the one we could never keep. */
+  const runArm = async (name, fn) => {
+    try { return await fn(GAMES); }
+    catch (e) { return { arm: name, error: (e && e.message ? e.message : String(e)).split('\n')[0] }; }
+  };
+  const B = await runArm('B. BattleStream (Showdown, in-process)', armBattleStream);
+  const C = await runArm('C. MEDICHAM (ours)', armMedicham);
   const art = {
     generated: new Date().toISOString(), by: 'engine/speed_vs_pokeenv.js', format: FORMAT, games: GAMES,
     readiness: readiness(), forced: process.argv.includes('--anyway') || undefined,

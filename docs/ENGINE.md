@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  468/468 probed mechanics live, 0 missing   (census 2026-08-11 06:13)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-11 05:03)
+  470/470 probed mechanics live, 0 missing   (census 2026-08-11 06:37)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-11 06:50)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1641/1641 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 02:49)
@@ -45,15 +45,53 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f1b9c29625f0 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 429d4ef64f0e now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 9180bc44436e now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 241/266 probed, 25 unprobed
+  tag coverage: 242/267 probed, 25 unprobed
 ```
 
-_stamped 2026-08-11 06:17_
+_stamped 2026-08-11 06:51_
 
 <!-- /GENERATED -->
+
+## FREEZE-DRY, AND #185 TURNING OUT TO BE THE FIXTURE AGAIN. 2026-08-11 (overnight, third pass).
+
+Full write-up in `docs/MEDICHAM-SPRINT-NOTES.md` (living docs are paused for the sprint by Will's
+decision). For this ledger:
+
+**Census 468 → 470 — 2 arrived, 0 broke, net +2.** `missing` 0 → 0, 0 hollow, 0 unarmed, 0 threw,
+470/470 armed and 470/470 spending a real turn. Differential still 0 of 6000.
+
+- **ROADMAP #187 — RECOMMEND STRIKE.** Champions deletes Freeze-Dry's secondary and the tag layer had
+  no shape that could SAY so, because every secondary tag is derived FROM a secondary. New
+  **`formatSecondaryCount`**, total over all 500 legal moves: `count: 0` is a positive statement of
+  removal, and the absence of a row now means "no format reading at all" and is counted loudly.
+  380 moves carry `count: 0` and exactly ONE of them has a generic secondary to refuse, printed
+  before wiring. Probe: Freeze-Dry 45/400 → 0, control Ice Beam 45/400 unchanged. The self-boost half
+  (`statChange.user[]`) went in beside it, which takes the "rulebook alone, nothing format-derived
+  guarding it" exposure from **13 (move, effect) pairs to 0**.
+- **ROADMAP #185 — RECOMMEND STRIKE AS MISDIAGNOSED. There is no engine or fixture defect here.**
+  Staged the named rows against the same mutant `test-assert-mode.js` builds: `charm` and
+  `earthpower` at `t:0` are clean-IDENTICAL and broken-**DIFFERS**. The `t:1` rows are identical
+  because **t:1 is the PARTNER**, which never had the ability the mutant deletes — that is the
+  harness being right, not blind. `aimCounters()` reads `foe: 3` on a `normal` t:0 click.
+- **ROADMAP #175 — MEASURED, DO NOT ADOPT.** 93 of 294 ability rows have no legal carrier; skipping
+  them makes 5 tags vanish, and **two of the five carry LIVE census probes** (`auraBreak`,
+  `boostsNotVeryEffective`), so the proposal costs the one number that may never go down. Five of the
+  93 also record corpus uses, which the carrier derivation says is impossible. Owner's call, with
+  that contradiction settled first.
+
+### WHAT WAS FOUND AND DELIBERATELY NOT FIXED, NAMED RATHER THAN ABSORBED
+
+- **`staged_board.js --only nuzzle-paralysis --reds` flaked once**, printing `NOT CAUGHT` on one run
+  and `CAUGHT AND LOCALISED` on the four after it with no file edited between. Not reproduced, not
+  called fixed.
+- **`test-assert-mode.js`'s `SPREAD` filter is a restriction it does not need** now that #185 is
+  disproved. Widening it is a change to a live gate and was not taken tonight.
+- **The 22 real mainline-drift rows in `data/move-effects.js` are all moot in the engine** —
+  falsified by driving the file's `bp` and `type` to absurd values and watching a real turn not move.
+  Repointing CHOMP's generator is still right and is still not ENGINE's.
 
 ## HAZARD REMOVAL, THREE MORE OF #175, AND THE ASSERT-MODE DEMONSTRATION THAT PROVED NOTHING. 2026-08-11 (overnight).
 

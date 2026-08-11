@@ -375,7 +375,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * spends up to three real turns through `battleTurn`, and it has to: the whole mechanic is a fact
  * carried ACROSS a turn boundary -- what the body CONSUMED on an earlier turn -- and the berry that
  * creates that fact fires at the residual, so nothing below the turn loop can see either end of it. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(/;
+const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -13371,6 +13371,110 @@ probe('move', 'statChange', 'a secondary STAT DROP fires at the FORMAT\'s chance
                  + 'both rulebooks: Snarl ' + snarl + '%, Icy Wind ' + icy + '% (95-accurate moves, '
                  + 'so a miss applies nothing). engine/format_audit.js sweeps all 500 moves and '
                  + 'reports every remaining row with whether the engine reads it' };
+});
+
+/* ROADMAP #187 -- A SECONDARY THIS FORMAT DELETED, WHICH IS NOT THE SAME PROBLEM AS ONE IT RE-PRICED.
+ *
+ * The probe above pins a secondary whose CHANCE differs between the two rulebooks. This one pins a
+ * secondary that exists in exactly one of them: `data/mods/champions/moves.ts:394-399` gives
+ * Freeze-Dry `secondary: undefined, // no inherit`, while `data/move-effects.js` still carries
+ * mainline's 10% freeze. Until `formatSecondaryCount` existed there was NO TAG SHAPE that could say
+ * "removed" -- every secondary tag is derived FROM a secondary -- so the engine's
+ * `_fmt != null ? _fmt : _generic` fell through to mainline and froze people with a move that cannot
+ * freeze in this regulation. 1,656 corpus uses.
+ *
+ * THE CONTROL IS ICE BEAM AND IT MUST STAY FROZEN. Both arms are the same Ice special attack into the
+ * same body off the same seeds; the ONLY difference is which move id is clicked. An engine that had
+ * simply lost its freeze secondary, or that refused freeze on a Dragon/Ground body, or that had a
+ * broken status path, collapses both arms to zero -- which is #178's signature and is why the control
+ * is measured rather than assumed. Measured RED before the wire: Freeze-Dry 45/400, Ice Beam 45/400,
+ * identical, because the engine was reading one rulebook for both. */
+const frzRate = (moveId, n) => {
+  let frz = 0;
+  for (let i = 0; i < n; i++) {
+    let s = (i * 2654435761) >>> 0;
+    const rng = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return (s % 100000) / 100000; };
+    const B = board('glaceon', 'farigiraf', 'garchomp', 'farigiraf');
+    unfaintable(B.f1);
+    M.battleTurn(B.S, rng,
+      new Map([[B.me, M.playerAction(B.me, moveId, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    if (B.f1.status === 'frz') frz++;
+  }
+  return Math.round(1000 * frz / n) / 10;
+};
+
+probe('move', 'formatSecondaryCount', 'a secondary THIS FORMAT REMOVED never rolls', () => {
+  const before = M.MEDSEEN.secondaryRefusedByFormat;
+  const dry = frzRate('freezedry', 600);
+  const fired = M.MEDSEEN.secondaryRefusedByFormat - before;
+  const beam = frzRate('icebeam', 600);
+  return { works: dry === 0 && beam >= 7 && beam <= 14 && fired > 0,
+           arms: { control: [beam, 1], test: [dry, fired] },
+           detail: 'Freeze-Dry froze on ' + dry + '% of 600 real turns (Champions deletes its '
+                 + 'secondary outright; must be 0) and the refusal fired ' + fired + ' times, so it '
+                 + 'is a refusal and not a mechanic that quietly went missing. CONTROL, same body, '
+                 + 'same seeds, same Ice special attack: Ice Beam ' + beam + '% (the format keeps its '
+                 + '10% freeze). Before the wire both arms read 11.2%' };
+});
+
+/* ROADMAP #187, THE SELF-BOOST HALF — AND A PROBE THAT HAD TO VARY THE ARTIFACT, BECAUSE COMPARING
+ * OUTCOMES HERE PROVES NOTHING.
+ *
+ * A secondary that boosts the USER (Charge Beam 70% SpA, Meteor Mash 20% Atk, Ancient Power's 10%
+ * omniboost) lives under `statChange.user[]`. `_fmtChance` read the status half and the TARGET half
+ * and never this one, so twelve (move, effect) pairs rolled the generic gen-9 number with nothing
+ * format-derived standing behind it — the class Freeze-Dry was in, minus the luck.
+ *
+ * ALL TWELVE AGREE WITH THE GENERIC NUMBER TODAY. So a rate comparison — the shape of the Moonblast
+ * probe above — reads identically whether the engine consults the format or the rulebook, which is
+ * #178's signature exactly: a knob that looks unwired and a knob that is unwired produce the same
+ * number. The only honest test is to MOVE THE KNOB. `data/tags.json` is mutated in place (require
+ * caches the object engine/tags.js serves) to 0% and to 100%, and the engine has to follow it; an
+ * engine reading `data/move-effects.js` sits at its own number through all three arms. Restored in a
+ * `finally`, because every probe after this one reads the same object.
+ *
+ * FIERY DANCE AND NOT CHARGE BEAM, AND THE FIRST VERSION GOT THIS WRONG. Charge Beam is the biggest
+ * gap between the two rulebooks' shapes, but this format prints it at 90 accuracy
+ * (`Dex.forFormat(...).moves.get('chargebeam').accuracy === 90`), so the 100% arm topped out at 89
+ * and the honest arm read 59.8 against an expected 63 — thresholds wide enough to swallow the very
+ * thing being measured. Fiery Dance is 100 accuracy with a 50% self boost (same derivation), so
+ * every miss is gone from the measurement and the three arms are 50 / 0 / 100 with nothing to
+ * explain away. Volcarona is its only legal carrier in this regulation. */
+const selfBoostRate = (moveId, stat, n) => {
+  let hits = 0;
+  for (let i = 0; i < n; i++) {
+    let s = (i * 2654435761) >>> 0;
+    const rng = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return (s % 100000) / 100000; };
+    const B = board('volcarona', 'farigiraf', 'farigiraf', 'farigiraf');
+    unfaintable(B.f1);
+    M.battleTurn(B.S, rng,
+      new Map([[B.me, M.playerAction(B.me, moveId, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    if (B.me.boosts[stat] > 0) hits++;
+  }
+  return Math.round(1000 * hits / n) / 10;
+};
+
+probe('move', 'statChange', 'a secondary boost on the USER is priced by the FORMAT, not by gen 9', () => {
+  const T = require(D('data', 'tags.json'));
+  const row = T.moves.fierydance.params.statChange.user[0];
+  const was = row.chance;
+  let off, on, real;
+  try {
+    real = selfBoostRate('fierydance', 'sa', 600);
+    row.chance = 0;   off = selfBoostRate('fierydance', 'sa', 600);
+    row.chance = 100; on  = selfBoostRate('fierydance', 'sa', 600);
+  } finally { row.chance = was; }
+  return { works: was === 50 && real >= 44 && real <= 56 && off === 0 && on === 100,
+           arms: { control: [real, was], test: [off, on] },
+           detail: 'Fiery Dance raises the USER\'s Special Attack on ' + real + '% of 600 real turns '
+                 + 'at the artifact\'s own ' + was + '% (100 accuracy, so no miss is hiding in this). '
+                 + 'Driven to 0 in data/tags.json it reads ' + off + '%, driven to 100 it reads ' + on
+                 + '% — so the number the engine rolls is the FORMAT\'s and not '
+                 + 'data/move-effects.js\'s. The rulebook says 50 in all three arms, which is why an '
+                 + 'outcome comparison could not have told them apart; with the branch disabled the '
+                 + 'three arms read 50 / 50 / 50' };
 });
 
 

@@ -4619,3 +4619,99 @@ provenance's ranked arms miss it. The two orphans also had `by` added to the byt
 regenerating** — a declaration of authorship is not a measured figure, and their top-level key shape is
 identical to `replay-differential-freezes.json`, which provenance already attributes to that script by
 `path variable`. Artifacts with no writer: **19 → 17**.
+
+---
+
+## ENGINE, overnight 2026-08-11, third pass
+
+**Census 468 live / 0 missing → 470 live / 0 missing. Arrived 2, broke 0, net +2.** Both arrivals are
+new probes on new wires; nothing left the live set and `missing` stayed at 0.
+
+**#187 — FREEZE-DRY. THE FIX IS A TAG SHAPE, NOT A VALUE.** Champions gives Freeze-Dry
+`secondary: undefined, // no inherit` (`data/mods/champions/moves.ts:394-399`); `data/move-effects.js`
+carries mainline's 10% freeze. Every secondary tag we derive is derived FROM a secondary, so a
+REMOVED one leaves nothing to derive and medicham2's `rng()*100 >= (_fmt != null ? _fmt : _generic)`
+silently meant *use mainline*. New tag **`formatSecondaryCount`**, total over all 500 legal moves,
+param `{count}` — `count: 0` is a POSITIVE statement of removal, and absence of the row now means
+"no format reading of this move at all" and is counted loudly in
+`MEDFAILS.secondaryProfileUnknown` (reads 0). The refusal itself is counted in
+`MEDSEEN.secondaryRefusedByFormat`.
+
+*Printed before wiring, because a new derived tag over-matches:* 500 moves tagged, **380 carry
+`count: 0`**, and of those **exactly 1** has a generic secondary to refuse (`freezedry`); zero moves
+go the other way. So the behavioural delta is one move and the mechanism is general.
+Probe `move/formatSecondaryCount`: Freeze-Dry 45/400 → **0**, control Ice Beam **45/400 unchanged**.
+
+**#187, the self-boost half.** `_fmtChance` read the status half and `statChange.target[]` and never
+`statChange.user[]`, so twelve (move, effect) pairs rolled the gen-9 number unguarded. Wired.
+**All twelve agree with the generic number today**, so an outcome comparison proves nothing — the
+probe drives the artifact's own chance to 0% and to 100% and requires the engine to follow. Fiery
+Dance reads **fifty-point-two per cent, then zero, then one hundred** across the three arms; with the
+branch disabled it reads fifty in all three. The three numbers live in the census probe's own
+`detail` string (`move/statChange`, "a secondary boost on the USER is priced by the FORMAT"), which is
+where they are quotable from.
+
+**THE EXPOSURE, RE-STATED (Will's ruling, "LETS USE EVERYTHING FROM THE SHOWDOWN SOURCE").** Mirroring
+`million_run.js`'s declaration gate over all 118 comparable (move, effect) pairs — read-only, that
+file is untracked and MEASURE is using it:
+
+| | before tonight | after |
+|---|---|---|
+| tag | 103 | 115 |
+| proceduralStatus tag | 2 | 2 |
+| removed-by-format | – | 1 |
+| **rulebook alone, nothing format-derived guarding it** | **13** | **0** |
+| disagreements | 1 (freezedry) | 0 |
+
+**THE 24 DRIFT ROWS: 22 REAL, AND ALL 22 ARE MOOT IN THE ENGINE TODAY.** `ceaselessedge` and
+`stoneaxe` are false positives — the rulebook writes `{chance:100}` and the mod writes `{}`, which
+Showdown reads as 100. Of the 22 real ones, **0 reach the engine**. Falsified rather than inferred:
+driving `data/move-effects.js`'s `bp` to 999 moves a real turn's damage by **nothing** (56 → 56) while
+driving `engine-data.js`'s moves it (56 → 647); forcing the rulebook's `type` moves nothing (155 →
+155) while forcing engine-data's does (155 → 78). bp, type and accuracy come from `engine-data.js`
+and the ACC table, which are format-derived; the only field the engine reads out of
+`data/move-effects.js` is the secondary, and after tonight none of those is unguarded.
+**Repointing CHOMP's generator is still right and is still not ENGINE's.**
+
+**#185 — MISDIAGNOSED. THE SCRIPTED SINGLE-TARGET AIM WORKS; DO NOT EDIT THE ENGINE.** Staged the
+exact rows the register names, clean arm against the same mutant `test-assert-mode.js` builds:
+
+    charm       (normal, t:0)   clean IDENTICAL   broken DIFFERS   <- boosts.atk -2 vs 0
+    earthpower  (normal, t:0)   clean IDENTICAL   broken DIFFERS   <- party.hp 93 vs 150
+    earthquake  (allAdjacent)   clean IDENTICAL   broken DIFFERS
+    charm       (normal, t:1)   clean IDENTICAL   broken IDENTICAL
+    earthpower  (normal, t:1)   clean IDENTICAL   broken IDENTICAL
+
+`moveNotOnRequest` is 0 throughout and `aimCounters()` reads `foe: 3` on a `normal` t:0 click, so the
+aim resolves. **The t:1 rows are IDENTICAL because t:1 is the PARTNER** — Corviknight beside the
+Gholdengo, Snorlax beside the Chimecho — and the mutant deletes an ability that body never had. There
+is nothing to diverge. The row's `t:0 IDENTICAL` observation does not reproduce. The `SPREAD` filter
+in `test-assert-mode.js` is therefore a restriction it does not need; widening it is a separate
+decision and was NOT taken tonight.
+
+**ONE UNEXPLAINED FLAKE, RECORDED RATHER THAN FILED.**
+`staged_board.js --only nuzzle-paralysis --reds` printed `BROKEN ENGINE -> IDENTICAL … NOT CAUGHT`
+once at ~10:40 and `DIFFERS … CAUGHT AND LOCALISED` on four consecutive runs afterwards, with no file
+edited in between and the same census digest reported by both. A red demonstration that is
+intermittently green is worth more attention than the run it appeared in; I could not reproduce it
+and I am not calling it fixed.
+
+**#175 — THE CARRIER-LESS PROPOSAL, MEASURED. DO NOT ADOPT IT AS STATED.**
+The artifact carries two hundred and ninety-four ability rows; **ninety-three have no legal carrier**
+in the format's species table
+(checked with formes and `tier: 'Illegal'` inspected separately — no mega forme is being dropped).
+Skipping them would make **5 tags vanish entirely** and 41 shrink:
+
+    allyBasePowerBoost (battery, powerspot, steelyspirit)
+    amplifiesBoosts    (simple)
+    auraBreak          (aurabreak)
+    boostsNotVeryEffective (tintedlens)
+    secondaryChanceMult (serenegrace)
+
+**TWO OF THE FIVE CARRY LIVE CENSUS PROBES** — `auraBreak` ("Aura Break INVERTS the aura to 0.75")
+and `boostsNotVeryEffective` ("Tinted Lens doubles the RESISTED hit") — so adopting this drops the
+one number that may never go down, by 2. And **5 of the 93 record corpus uses** (`serenegrace` 5,
+`stormdrain` 3, `psychicsurge` 2, `tintedlens` 2, `steelyspirit` 1), which the carrier derivation says
+cannot happen. Either the usage corpus contains games outside Reg M-B or the carrier read is
+incomplete; **that contradiction has to be settled before anyone deletes anything**, because a skip
+rule that removes a tag with real observed uses is the over-match #178 exists to catch.

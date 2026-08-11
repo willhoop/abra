@@ -3272,6 +3272,44 @@ const MOVE_TAGS = [
    * carries volatileStatus 'encore' and no `status`, so an engine that only reads `status` applies
    * nothing, returns a kind that looks handled, and spends the turn. Both are recorded, separately
    * and by name, so a consumer can implement the ones it supports and SEE the ones it does not. */
+  /* ROADMAP #187 -- THE TAG LAYER COULD NOT SAY "THIS FORMAT DELETED THE SECONDARY", AND THAT
+   * ABSENCE MEANT MAINLINE.
+   *
+   * Every secondary tag above this line -- `statusInflict`, `statChange`, `secondaryStatEffect`,
+   * `inflictsFreeze` -- is derived FROM a secondary, so it can only ever say what a secondary DOES.
+   * When Champions removes one outright (`secondary: undefined, // no inherit`,
+   * data/mods/champions/moves.ts:394-399 for Freeze-Dry) there is nothing left to derive from, so
+   * NO tag is emitted -- and medicham2's rule was `rng()*100 >= (_fmt != null ? _fmt : _generic)`,
+   * i.e. no format reading means USE THE GENERIC RULEBOOK. `data/move-effects.js` is generated from
+   * the generic gen-9 client dex (see WIRE 89), so the engine rolled mainline's 10% freeze on 1,656
+   * corpus clicks of a move that cannot freeze anything in this regulation.
+   *
+   * THE REPAIR IS TOTALITY, NOT A SPECIAL CASE. This tag is emitted for EVERY move the format
+   * defines, carrying the format's secondary COUNT -- including zero. Absence of the tag then means
+   * "we have no format reading of this move at all", which is a different and much rarer claim than
+   * "this move has no secondary", and a consumer can treat the two differently. The count is the
+   * whole param on purpose: WHAT each secondary does is already carried, correctly, by the four tags
+   * named above, and a second copy of that fact here would be FACTS-ARE-GLOBAL broken inside one
+   * artifact.
+   *
+   * WHAT IT MATCHES, PRINTED BEFORE IT WAS WIRED (engine/tag_dex.js sweep, 2026-08-11): 500 legal
+   * moves, of which 380 carry `count: 0`. That looks like a huge over-match until you ask the only
+   * question that matters -- how many of those 380 does the generic rulebook disagree with? Swept
+   * `data/move-effects.js` against `Dex.forFormat('gen9championsvgc2026regmb')` across all 500:
+   *     generic declares a secondary, format does not   ->   1   (freezedry)
+   *     format declares a secondary, generic does not   ->   0
+   * So the behavioural delta of wiring this is exactly one move today, and the shape catches the
+   * next deletion without an edit. `pp` is the precedent for a tag that is total over the format. */
+  { tag: 'formatSecondaryCount', param: 'how many secondaries THIS FORMAT gives the move; 0 means the format removed them',
+    probe: 'formatSecondaryCount',
+    why: 'Champions deletes Freeze-Dry\'s secondary outright, and no derived-from-a-secondary tag can '
+       + 'represent a secondary that is not there, so the engine fell through to mainline\'s 10% '
+       + 'freeze on 1,656 corpus uses',
+    of: m => {
+      /* Same canonical read as `statusInflict`: `secondaries` IS `secondary`, never an addition. */
+      const secs = ((m.secondaries && m.secondaries.length) ? m.secondaries : [m.secondary]).filter(Boolean);
+      return { count: secs.length };
+    } },
   { tag: 'statusInflict', param: 'status and volatile conditions the move applies, and to whom',
     probe: 'statusInflict',
     why: 'Encore, Taunt, Confuse Ray and Disable all resolve to nothing because volatiles were never '

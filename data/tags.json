@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-11T09:48:29.944Z",
+ "generated": "2026-08-11T10:28:40.032Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -795,8 +795,8 @@
    "kind": "move",
    "param": "the type chart is WRONG for this move",
    "why": "Freeze-Dry, 748 uses: x2 into Water where the chart says x0.5. A 4x error, and mcEff is a static lookup that cannot see the handler",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "onEffectiveness",
+   "used": true,
    "n": 2,
    "uses": 1659,
    "examples": [
@@ -1884,6 +1884,24 @@
     "Grav Apple",
     "Growth",
     "Howl"
+   ]
+  },
+  {
+   "tag": "formatSecondaryCount",
+   "kind": "move",
+   "param": "how many secondaries THIS FORMAT gives the move; 0 means the format removed them",
+   "why": "Champions deletes Freeze-Dry's secondary outright, and no derived-from-a-secondary tag can represent a secondary that is not there, so the engine fell through to mainline's 10% freeze on 1,656 corpus uses",
+   "consumedBy": "formatSecondaryCount",
+   "used": true,
+   "n": 500,
+   "uses": 557759,
+   "examples": [
+    "Apple Acid",
+    "Baneful Bunker",
+    "Beak Blast",
+    "Bone Rush",
+    "Burn Up",
+    "Clangorous Soul"
    ]
   },
   {
@@ -8718,7 +8736,8 @@
    "tags": [
     "pp",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 19,
    "params": {
@@ -8744,6 +8763,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -8760,6 +8782,7 @@
     "failsIfMovesLast",
     "statusCategory",
     "inflictsPoison",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 1027,
@@ -8807,6 +8830,9 @@
      "p": 1,
      "via": "contact with the shield"
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -8825,6 +8851,7 @@
     "priority",
     "moveClass",
     "inflictsBurn",
+    "formatSecondaryCount",
     "preTurnShield"
    ],
    "uses": 7,
@@ -8847,6 +8874,9 @@
      "p": 1,
      "via": "contact with the shield"
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "preTurnShield": {
      "setsUpAtTurnStart": true,
      "trigger": "contact",
@@ -8858,7 +8888,8 @@
   "belch": {
    "name": "Belch",
    "tags": [
-    "pp"
+    "pp",
+    "formatSecondaryCount"
    ],
    "uses": 0,
    "params": {
@@ -8866,6 +8897,9 @@
      "max": 12,
      "base": 10,
      "noPPBoosts": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -8873,7 +8907,8 @@
    "name": "Bone Rush",
    "tags": [
     "pp",
-    "multiHit"
+    "multiHit",
+    "formatSecondaryCount"
    ],
    "uses": 5,
    "params": {
@@ -8890,6 +8925,9 @@
       2,
       5
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -8897,7 +8935,8 @@
    "name": "Burn Up",
    "tags": [
     "pp",
-    "thawsTarget"
+    "thawsTarget",
+    "formatSecondaryCount"
    ],
    "uses": 46,
    "params": {
@@ -8908,6 +8947,9 @@
     },
     "thawsTarget": {
      "thaws": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -8920,7 +8962,8 @@
     "neverMisses",
     "boostsUser",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 422,
    "params": {
@@ -8962,6 +9005,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -8973,6 +9019,7 @@
     "spreadAll",
     "moveClass",
     "statusCategory",
+    "formatSecondaryCount",
     "removesItem"
    ],
    "uses": 1,
@@ -8999,6 +9046,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "removesItem": {
      "steals": false
     }
@@ -9009,7 +9059,8 @@
    "tags": [
     "pp",
     "critRatioUp",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 13,
    "params": {
@@ -9023,6 +9074,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -9033,7 +9087,8 @@
     "contact",
     "moveClass",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 0,
    "params": {
@@ -9067,6 +9122,9 @@
        "chance": 50
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -9076,7 +9134,8 @@
     "pp",
     "contact",
     "moveClass",
-    "proceduralStatus"
+    "proceduralStatus",
+    "formatSecondaryCount"
    ],
    "uses": 2994,
    "params": {
@@ -9101,6 +9160,9 @@
       "slp"
      ],
      "each": 0.1
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -9111,6 +9173,7 @@
     "sound",
     "neverMisses",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 25,
@@ -9130,6 +9193,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -9146,7 +9212,8 @@
    "tags": [
     "pp",
     "contact",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 7915,
    "params": {
@@ -9162,6 +9229,9 @@
      "classes": [
       "slicing"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -9171,6 +9241,7 @@
     "pp",
     "neverMisses",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 3,
@@ -9186,6 +9257,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "statusInflict": {
      "effects": [
@@ -9206,6 +9280,7 @@
     "moveClass",
     "statusCategory",
     "locksTarget",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 6122,
@@ -9231,6 +9306,9 @@
     "locksTarget": {
      "locks": "encore"
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -9249,6 +9327,7 @@
     "firstTurnOnly",
     "priority",
     "contact",
+    "formatSecondaryCount",
     "statusInflict",
     "flinches"
    ],
@@ -9270,6 +9349,9 @@
     "contact": {
      "contact": true
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -9290,7 +9372,8 @@
     "pp",
     "contact",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 2,
    "params": {
@@ -9319,6 +9402,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -9328,7 +9414,8 @@
     "pp",
     "firstTurnOnly",
     "priority",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 8,
    "params": {
@@ -9347,6 +9434,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -9354,7 +9444,8 @@
    "name": "Freeze-Dry",
    "tags": [
     "pp",
-    "overridesEffectiveness"
+    "overridesEffectiveness",
+    "formatSecondaryCount"
    ],
    "uses": 1656,
    "params": {
@@ -9368,6 +9459,9 @@
      "perType": {
       "Water": 1
      }
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -9377,7 +9471,8 @@
     "pp",
     "conditionalPower",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 14,
    "params": {
@@ -9407,6 +9502,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -9418,7 +9516,8 @@
     "neverMisses",
     "boostsUser",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 8,
    "params": {
@@ -9459,6 +9558,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -9470,7 +9572,8 @@
     "neverMisses",
     "boostsTarget",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 51,
    "params": {
@@ -9503,6 +9606,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -9512,6 +9618,7 @@
     "pp",
     "variablePower",
     "inflictsBurn",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 23,
@@ -9529,6 +9636,9 @@
      "p": 0.3,
      "via": "secondary"
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -9545,6 +9655,7 @@
    "tags": [
     "pp",
     "contact",
+    "formatSecondaryCount",
     "statusInflict",
     "flinches"
    ],
@@ -9557,6 +9668,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -9584,6 +9698,7 @@
     "shieldsUser",
     "failsIfMovesLast",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 240,
@@ -9629,6 +9744,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -9644,7 +9762,8 @@
    "name": "Light of Ruin",
    "tags": [
     "pp",
-    "recoil"
+    "recoil",
+    "formatSecondaryCount"
    ],
    "uses": 1810,
    "params": {
@@ -9655,6 +9774,9 @@
     },
     "recoil": {
      "readFrom": "m.recoil"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -9664,7 +9786,8 @@
     "pp",
     "spreadFoes",
     "lowersUser",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 2881,
    "params": {
@@ -9691,6 +9814,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -9699,7 +9825,8 @@
    "tags": [
     "pp",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 9318,
    "params": {
@@ -9725,6 +9852,9 @@
        "chance": 10
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -9732,6 +9862,7 @@
    "name": "Mountain Gale",
    "tags": [
     "pp",
+    "formatSecondaryCount",
     "statusInflict",
     "flinches"
    ],
@@ -9741,6 +9872,9 @@
      "max": 12,
      "base": 10,
      "noPPBoosts": false
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -9761,7 +9895,8 @@
    "tags": [
     "pp",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 0,
    "params": {
@@ -9787,6 +9922,9 @@
        "chance": 40
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -9796,7 +9934,8 @@
     "pp",
     "critRatioUp",
     "contact",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 139,
    "params": {
@@ -9815,6 +9954,9 @@
      "classes": [
       "slicing"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -9824,6 +9966,7 @@
     "pp",
     "neverMisses",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 0,
@@ -9839,6 +9982,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "statusInflict": {
      "effects": [
@@ -9862,6 +10008,7 @@
     "shieldsUser",
     "failsIfMovesLast",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 94313,
@@ -9901,6 +10048,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -9918,7 +10068,8 @@
     "pp",
     "contact",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 24,
    "params": {
@@ -9947,6 +10098,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -9957,7 +10111,8 @@
     "needsUntrackedState",
     "variablePower",
     "contact",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 524,
    "params": {
@@ -9980,6 +10135,9 @@
      "classes": [
       "punch"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -9988,6 +10146,7 @@
    "tags": [
     "pp",
     "perTurnHP",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 55,
@@ -10012,6 +10171,9 @@
      "immuneType": null,
      "fraction": "1/16"
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -10030,7 +10192,8 @@
     "moveClass",
     "neverMisses",
     "setsWeather",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 19,
    "params": {
@@ -10053,6 +10216,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -10062,7 +10228,8 @@
     "pp",
     "critRatioUp",
     "contact",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 141,
    "params": {
@@ -10081,6 +10248,9 @@
      "classes": [
       "slicing"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -10090,6 +10260,7 @@
     "pp",
     "partialTrap",
     "contact",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 2,
@@ -10120,6 +10291,9 @@
     "contact": {
      "contact": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -10137,7 +10311,8 @@
     "pp",
     "neverMisses",
     "setsWeather",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 16,
    "params": {
@@ -10155,6 +10330,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -10170,6 +10348,7 @@
     "shieldsUser",
     "failsIfMovesLast",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 1358,
@@ -10213,6 +10392,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -10227,7 +10409,8 @@
   "spiritshackle": {
    "name": "Spirit Shackle",
    "tags": [
-    "pp"
+    "pp",
+    "formatSecondaryCount"
    ],
    "uses": 3,
    "params": {
@@ -10235,6 +10418,9 @@
      "max": 12,
      "base": 10,
      "noPPBoosts": false
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -10243,7 +10429,8 @@
    "tags": [
     "pp",
     "alwaysCrit",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 22,
    "params": {
@@ -10257,6 +10444,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -10267,7 +10457,8 @@
     "takesTargetItem",
     "neverMisses",
     "statChangeInCode",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 1,
    "params": {
@@ -10294,6 +10485,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -10302,6 +10496,7 @@
    "tags": [
     "pp",
     "moveClass",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 2,
@@ -10315,6 +10510,9 @@
      "classes": [
       "bullet"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -10336,6 +10534,7 @@
     "statusCategory",
     "inflictsPoison",
     "statChange",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 6,
@@ -10372,6 +10571,9 @@
       }
      ]
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -10389,7 +10591,8 @@
     "pp",
     "changesTargetType",
     "moveClass",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 8,
    "params": {
@@ -10409,6 +10612,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -10418,7 +10624,8 @@
     "pp",
     "contact",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 222,
    "params": {
@@ -10447,6 +10654,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -10455,7 +10665,8 @@
    "tags": [
     "pp",
     "priority",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 672,
    "params": {
@@ -10470,6 +10681,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -10480,7 +10694,8 @@
     "neverMisses",
     "boostsUser",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 15,
    "params": {
@@ -10510,6 +10725,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -10519,7 +10737,8 @@
     "pp",
     "moveClass",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 77,
    "params": {
@@ -10550,6 +10769,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -10559,7 +10781,8 @@
     "pp",
     "variablePower",
     "readsOwnItem",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 213,
    "params": {
@@ -10577,6 +10800,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -10586,7 +10812,8 @@
     "pp",
     "neverMisses",
     "statChangeInCode",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 2,
    "params": {
@@ -10611,6 +10838,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -10620,7 +10850,8 @@
     "pp",
     "contact",
     "moveClass",
-    "neverMissesAttack"
+    "neverMissesAttack",
+    "formatSecondaryCount"
    ],
    "uses": 40,
    "params": {
@@ -10639,6 +10870,9 @@
     },
     "neverMissesAttack": {
      "pHit": 1
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -10649,7 +10883,8 @@
     "reordersTurn",
     "neverMisses",
     "ignoresProtect",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 207,
    "params": {
@@ -10670,6 +10905,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -10680,7 +10918,8 @@
     "neverMisses",
     "boostsUser",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 28,
    "params": {
@@ -10710,6 +10949,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -10719,7 +10961,8 @@
     "pp",
     "critRatioUp",
     "spreadFoes",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 2,
    "params": {
@@ -10740,6 +10983,9 @@
       "slicing",
       "wind"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -10748,6 +10994,7 @@
    "tags": [
     "pp",
     "moveClass",
+    "formatSecondaryCount",
     "statusInflict",
     "flinches"
    ],
@@ -10762,6 +11009,9 @@
      "classes": [
       "slicing"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -10782,7 +11032,8 @@
    "tags": [
     "pp",
     "punishesBoostedTarget",
-    "sound"
+    "sound",
+    "formatSecondaryCount"
    ],
    "uses": 195,
    "params": {
@@ -10798,6 +11049,9 @@
     },
     "sound": {
      "sound": true
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -10809,7 +11063,8 @@
     "neverMisses",
     "privateStallCounter",
     "swapsSlots",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 224,
    "params": {
@@ -10839,6 +11094,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -10849,7 +11107,8 @@
     "neverMisses",
     "boostsUser",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 9,
    "params": {
@@ -10879,6 +11138,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -10887,7 +11149,8 @@
    "tags": [
     "pp",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 773,
    "params": {
@@ -10921,6 +11184,9 @@
        "chance": 10
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -10929,7 +11195,8 @@
    "tags": [
     "pp",
     "critRatioUp",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 54,
    "params": {
@@ -10945,6 +11212,9 @@
      "classes": [
       "slicing"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -10953,7 +11223,8 @@
    "tags": [
     "pp",
     "priority",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 6212,
    "params": {
@@ -10968,6 +11239,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -10978,6 +11252,7 @@
     "perTurnHP",
     "neverMisses",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 5,
@@ -11003,6 +11278,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -11020,7 +11298,8 @@
     "pp",
     "contact",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 47,
    "params": {
@@ -11049,6 +11328,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -11056,7 +11338,8 @@
    "name": "Aqua Tail",
    "tags": [
     "pp",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 25,
    "params": {
@@ -11067,6 +11350,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -11075,7 +11361,8 @@
    "tags": [
     "pp",
     "lowersUser",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 39,
    "params": {
@@ -11099,6 +11386,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -11109,7 +11399,8 @@
     "neverMisses",
     "boostsTarget",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 3,
    "params": {
@@ -11139,6 +11430,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -11148,7 +11442,8 @@
     "pp",
     "variablePower",
     "contact",
-    "needsTargetToAttack"
+    "needsTargetToAttack",
+    "formatSecondaryCount"
    ],
    "uses": 50,
    "params": {
@@ -11169,6 +11464,9 @@
      "effect": "doublePower",
      "when": "targetHurtThisTurn",
      "mult": 2
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -11178,6 +11476,7 @@
     "pp",
     "moveClass",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 2,
@@ -11195,6 +11494,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -11211,7 +11513,8 @@
    "tags": [
     "pp",
     "moveClass",
-    "neverMissesAttack"
+    "neverMissesAttack",
+    "formatSecondaryCount"
    ],
    "uses": 1590,
    "params": {
@@ -11228,6 +11531,9 @@
     },
     "neverMissesAttack": {
      "pHit": 1
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -11236,7 +11542,8 @@
    "tags": [
     "pp",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 33,
    "params": {
@@ -11262,6 +11569,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -11272,7 +11582,8 @@
     "neverMisses",
     "halvesDamage",
     "failsWithoutWeather",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 1587,
    "params": {
@@ -11294,6 +11605,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -11304,7 +11618,8 @@
     "variablePower",
     "priority",
     "contact",
-    "needsTargetToAttack"
+    "needsTargetToAttack",
+    "formatSecondaryCount"
    ],
    "uses": 18,
    "params": {
@@ -11329,6 +11644,9 @@
      "effect": "doublePower",
      "when": "damagedByTargetThisTurn",
      "mult": 2
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -11339,6 +11657,7 @@
     "crashOnMiss",
     "contact",
     "inflictsConfusion",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 0,
@@ -11356,6 +11675,9 @@
     },
     "inflictsConfusion": {
      "p": 0.3
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -11376,7 +11698,8 @@
     "moveClass",
     "lowersTarget",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 103,
    "params": {
@@ -11411,6 +11734,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -11420,6 +11746,7 @@
     "pp",
     "conditionalPower",
     "inflictsPoison",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 42,
@@ -11441,6 +11768,9 @@
      "p": 0.5,
      "via": "secondary"
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -11458,7 +11788,8 @@
     "pp",
     "neverMisses",
     "passesState",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 156,
    "params": {
@@ -11479,6 +11810,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -11486,7 +11820,8 @@
    "name": "Beat Up",
    "tags": [
     "pp",
-    "variablePower"
+    "variablePower",
+    "formatSecondaryCount"
    ],
    "uses": 317,
    "params": {
@@ -11500,6 +11835,9 @@
      "base": 5,
      "div": 10,
      "perAlly": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -11509,7 +11847,8 @@
     "pp",
     "neverMisses",
     "statChangeInCode",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 103,
    "params": {
@@ -11532,6 +11871,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -11541,6 +11883,7 @@
     "pp",
     "partialTrap",
     "contact",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 0,
@@ -11571,6 +11914,9 @@
     "contact": {
      "contact": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -11588,6 +11934,7 @@
     "pp",
     "contact",
     "moveClass",
+    "formatSecondaryCount",
     "statusInflict",
     "flinches"
    ],
@@ -11605,6 +11952,9 @@
      "classes": [
       "bite"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -11626,7 +11976,8 @@
     "pp",
     "contact",
     "moveClass",
-    "drain"
+    "drain",
+    "formatSecondaryCount"
    ],
    "uses": 526,
    "params": {
@@ -11647,6 +11998,9 @@
      "readFrom": "m.drain",
      "fraction": 0.5,
      "unusual": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -11655,7 +12009,8 @@
    "tags": [
     "pp",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 0,
    "params": {
@@ -11681,6 +12036,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -11688,6 +12046,7 @@
    "name": "Blast Burn",
    "tags": [
     "pp",
+    "formatSecondaryCount",
     "recharge"
    ],
    "uses": 7,
@@ -11696,6 +12055,9 @@
      "max": 8,
      "base": 5,
      "noPPBoosts": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "recharge": {
      "recharge": true
@@ -11709,6 +12071,7 @@
     "critRatioUp",
     "contact",
     "inflictsBurn",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 163,
@@ -11727,6 +12090,9 @@
     "inflictsBurn": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -11747,6 +12113,7 @@
     "spreadFoes",
     "moveClass",
     "inflictsFreeze",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 3255,
@@ -11776,6 +12143,9 @@
      "p": 0.1,
      "via": "secondary"
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -11795,7 +12165,8 @@
     "trapsTarget",
     "neverMisses",
     "ignoresProtect",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 0,
    "params": {
@@ -11823,6 +12194,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -11832,6 +12206,7 @@
     "pp",
     "swapsStat",
     "contact",
+    "formatSecondaryCount",
     "statSwap"
    ],
    "uses": 1154,
@@ -11849,6 +12224,9 @@
     "contact": {
      "contact": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statSwap": {
      "attackWith": "def"
     }
@@ -11860,6 +12238,7 @@
     "pp",
     "contact",
     "inflictsParalysis",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 156,
@@ -11875,6 +12254,9 @@
     "inflictsParalysis": {
      "p": 0.3,
      "via": "secondary"
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -11892,7 +12274,8 @@
    "tags": [
     "pp",
     "spreadAll",
-    "sound"
+    "sound",
+    "formatSecondaryCount"
    ],
    "uses": 16,
    "params": {
@@ -11907,6 +12290,9 @@
     },
     "sound": {
      "sound": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -11919,6 +12305,7 @@
     "inflictsParalysis",
     "chargeTurn",
     "semiInvulnerable",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 0,
@@ -11963,6 +12350,9 @@
       ]
      }
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -11979,7 +12369,8 @@
    "tags": [
     "pp",
     "contact",
-    "recoil"
+    "recoil",
+    "formatSecondaryCount"
    ],
    "uses": 4736,
    "params": {
@@ -11993,6 +12384,9 @@
     },
     "recoil": {
      "readFrom": "m.recoil"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -12003,7 +12397,8 @@
     "spreadFoes",
     "contact",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 92,
    "params": {
@@ -12036,6 +12431,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -12044,7 +12442,8 @@
    "tags": [
     "pp",
     "clearsScreens",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 565,
    "params": {
@@ -12058,6 +12457,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -12066,7 +12468,8 @@
    "tags": [
     "pp",
     "spreadAll",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 8,
    "params": {
@@ -12081,6 +12484,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -12090,6 +12496,7 @@
     "pp",
     "takesTargetItem",
     "contact",
+    "formatSecondaryCount",
     "removesItem"
    ],
    "uses": 310,
@@ -12107,6 +12514,9 @@
     "contact": {
      "contact": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "removesItem": {
      "steals": false
     }
@@ -12118,7 +12528,8 @@
     "pp",
     "sound",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 69,
    "params": {
@@ -12147,6 +12558,9 @@
        "chance": 10
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -12157,7 +12571,8 @@
     "neverMisses",
     "boostsUser",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 1095,
    "params": {
@@ -12188,6 +12603,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -12197,7 +12615,8 @@
     "pp",
     "spreadAll",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 42,
    "params": {
@@ -12227,6 +12646,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -12236,7 +12658,8 @@
     "pp",
     "priority",
     "contact",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 1073,
    "params": {
@@ -12256,6 +12679,9 @@
      "classes": [
       "punch"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -12264,7 +12690,8 @@
    "tags": [
     "pp",
     "multiHit",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 52,
    "params": {
@@ -12286,6 +12713,9 @@
      "classes": [
       "bullet"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -12294,7 +12724,8 @@
    "tags": [
     "pp",
     "punishesBoostedTarget",
-    "spreadFoes"
+    "spreadFoes",
+    "formatSecondaryCount"
    ],
    "uses": 74,
    "params": {
@@ -12311,6 +12742,9 @@
     "spreadFoes": {
      "target": "allAdjacentFoes",
      "hitsAlly": false
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -12321,7 +12755,8 @@
     "neverMisses",
     "boostsUser",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 2648,
    "params": {
@@ -12352,6 +12787,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -12361,7 +12799,8 @@
     "pp",
     "contact",
     "moveClass",
-    "hazardOnHit"
+    "hazardOnHit",
+    "formatSecondaryCount"
    ],
    "uses": 56,
    "params": {
@@ -12383,6 +12822,9 @@
      "maxLayers": 3,
      "throughSubstitute": true,
      "onlyOnConnect": true
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -12394,6 +12836,7 @@
     "boostsUser",
     "statusCategory",
     "statChange",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 1,
@@ -12425,6 +12868,9 @@
       }
      ]
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -12441,7 +12887,8 @@
    "tags": [
     "pp",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 5,
    "params": {
@@ -12467,6 +12914,9 @@
        "chance": 70
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -12477,7 +12927,8 @@
     "moveClass",
     "lowersTarget",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 1617,
    "params": {
@@ -12508,6 +12959,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -12516,7 +12970,8 @@
    "tags": [
     "pp",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 66,
    "params": {
@@ -12542,6 +12997,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -12552,7 +13010,8 @@
     "neverMisses",
     "pivotStatus",
     "setsWeather",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 42,
    "params": {
@@ -12573,6 +13032,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -12582,7 +13044,8 @@
     "pp",
     "priority",
     "contact",
-    "forcesSwitch"
+    "forcesSwitch",
+    "formatSecondaryCount"
    ],
    "uses": 2,
    "params": {
@@ -12600,6 +13063,9 @@
     },
     "forcesSwitch": {
      "forceSwitch": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -12609,7 +13075,8 @@
     "pp",
     "spreadFoes",
     "sound",
-    "lowersUser"
+    "lowersUser",
+    "formatSecondaryCount"
    ],
    "uses": 823,
    "params": {
@@ -12629,6 +13096,9 @@
      "readFrom": "m.self.boosts",
      "lowersSpeed": false,
      "alsoRaises": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -12638,7 +13108,8 @@
     "pp",
     "neverMissesAttack",
     "clearsBoosts",
-    "statChangeInCode"
+    "statChangeInCode",
+    "formatSecondaryCount"
    ],
    "uses": 11,
    "params": {
@@ -12655,6 +13126,9 @@
     },
     "statChangeInCode": {
      "procedural": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -12664,7 +13138,8 @@
     "pp",
     "contact",
     "lowersUser",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 12482,
    "params": {
@@ -12691,6 +13166,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -12701,7 +13179,8 @@
     "neverMisses",
     "boostsTarget",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 1049,
    "params": {
@@ -12733,6 +13212,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -12744,7 +13226,8 @@
     "accuracyMod",
     "boostsUser",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 623,
    "params": {
@@ -12779,6 +13262,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -12787,7 +13273,8 @@
    "tags": [
     "pp",
     "fixedDamage",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 0,
    "params": {
@@ -12807,6 +13294,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -12817,6 +13307,7 @@
     "moveClass",
     "inflictsConfusion",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 8,
@@ -12837,6 +13328,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -12854,7 +13348,8 @@
     "pp",
     "callsAnotherMove",
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 10,
    "params": {
@@ -12875,6 +13370,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -12885,7 +13383,8 @@
     "neverMisses",
     "boostsUser",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 23,
    "params": {
@@ -12916,6 +13415,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -12926,7 +13428,8 @@
     "neverMisses",
     "boostsUser",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 25,
    "params": {
@@ -12956,6 +13459,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -12968,7 +13474,8 @@
     "moveClass",
     "lowersTarget",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 32,
    "params": {
@@ -13006,6 +13513,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -13016,7 +13526,8 @@
     "fixedDamage",
     "priority",
     "contact",
-    "needsTargetToAttack"
+    "needsTargetToAttack",
+    "formatSecondaryCount"
    ],
    "uses": 11,
    "params": {
@@ -13045,6 +13556,9 @@
      "needs": "target attacking",
      "effect": "reflectsDamage",
      "modelled": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -13054,6 +13568,7 @@
     "pp",
     "takesTargetItem",
     "contact",
+    "formatSecondaryCount",
     "removesItem"
    ],
    "uses": 0,
@@ -13071,6 +13586,9 @@
     "contact": {
      "contact": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "removesItem": {
      "steals": true
     }
@@ -13081,7 +13599,8 @@
    "tags": [
     "pp",
     "critRatioUp",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 27,
    "params": {
@@ -13095,6 +13614,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -13106,6 +13628,7 @@
     "contact",
     "moveClass",
     "inflictsPoison",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 7,
@@ -13130,6 +13653,9 @@
      "p": 0.1,
      "via": "secondary"
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -13148,7 +13674,8 @@
     "contact",
     "moveClass",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 454,
    "params": {
@@ -13182,6 +13709,9 @@
        "chance": 20
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -13194,6 +13724,7 @@
     "ignoresProtect",
     "typeSplitMove",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 149,
@@ -13233,6 +13764,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -13249,6 +13783,7 @@
    "tags": [
     "pp",
     "contact",
+    "formatSecondaryCount",
     "ignoresBoosts"
    ],
    "uses": 2464,
@@ -13261,6 +13796,9 @@
     "contact": {
      "contact": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "ignoresBoosts": {
      "defensive": true
     }
@@ -13271,6 +13809,7 @@
    "tags": [
     "pp",
     "moveClass",
+    "formatSecondaryCount",
     "statusInflict",
     "flinches"
    ],
@@ -13285,6 +13824,9 @@
      "classes": [
       "pulse"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -13304,7 +13846,8 @@
    "name": "Dazzling Gleam",
    "tags": [
     "pp",
-    "spreadFoes"
+    "spreadFoes",
+    "formatSecondaryCount"
    ],
    "uses": 4616,
    "params": {
@@ -13316,6 +13859,9 @@
     "spreadFoes": {
      "target": "allAdjacentFoes",
      "hitsAlly": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -13327,7 +13873,8 @@
     "ignoresProtect",
     "boostsTarget",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 46,
    "params": {
@@ -13362,6 +13909,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -13374,7 +13924,8 @@
     "removesHazards",
     "statChangeInCode",
     "lowersTarget",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 20,
    "params": {
@@ -13423,6 +13974,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -13432,6 +13986,7 @@
     "pp",
     "neverMisses",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 101,
@@ -13447,6 +14002,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "statusInflict": {
      "effects": [
@@ -13470,6 +14028,7 @@
     "shieldsUser",
     "failsIfMovesLast",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 3062,
@@ -13509,6 +14068,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -13527,7 +14089,8 @@
     "contact",
     "noExtraHit",
     "chargeTurn",
-    "semiInvulnerable"
+    "semiInvulnerable",
+    "formatSecondaryCount"
    ],
    "uses": 8,
    "params": {
@@ -13561,6 +14124,9 @@
        "magnitude"
       ]
      }
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -13572,6 +14138,7 @@
     "moveClass",
     "statusCategory",
     "locksTarget",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 868,
@@ -13597,6 +14164,9 @@
     "locksTarget": {
      "locks": "disable"
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -13614,6 +14184,7 @@
     "pp",
     "spreadAll",
     "inflictsParalysis",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 587,
@@ -13630,6 +14201,9 @@
     "inflictsParalysis": {
      "p": 0.3,
      "via": "secondary"
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -13649,7 +14223,8 @@
     "contact",
     "noExtraHit",
     "chargeTurn",
-    "semiInvulnerable"
+    "semiInvulnerable",
+    "formatSecondaryCount"
    ],
    "uses": 1,
    "params": {
@@ -13683,6 +14258,9 @@
        "whirlpool"
       ]
      }
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -13691,7 +14269,8 @@
    "tags": [
     "pp",
     "contact",
-    "recoil"
+    "recoil",
+    "formatSecondaryCount"
    ],
    "uses": 331,
    "params": {
@@ -13705,6 +14284,9 @@
     },
     "recoil": {
      "readFrom": "m.recoil"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -13713,7 +14295,8 @@
    "tags": [
     "pp",
     "multiHit",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 0,
    "params": {
@@ -13730,6 +14313,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -13741,7 +14327,8 @@
     "accuracyMod",
     "boostsUser",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 3,
    "params": {
@@ -13774,6 +14361,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -13782,7 +14372,8 @@
    "tags": [
     "pp",
     "lowersUser",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 2175,
    "params": {
@@ -13805,6 +14396,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -13815,7 +14409,8 @@
     "neverMisses",
     "boostsUser",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 817,
    "params": {
@@ -13846,6 +14441,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -13855,7 +14453,8 @@
     "pp",
     "multiHit",
     "smartTarget",
-    "noExtraHit"
+    "noExtraHit",
+    "formatSecondaryCount"
    ],
    "uses": 126,
    "params": {
@@ -13879,6 +14478,9 @@
      "because": [
       "noparentalbond"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -13886,7 +14488,8 @@
    "name": "Dragon Pulse",
    "tags": [
     "pp",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 3531,
    "params": {
@@ -13899,6 +14502,9 @@
      "classes": [
       "pulse"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -13907,6 +14513,7 @@
    "tags": [
     "pp",
     "contact",
+    "formatSecondaryCount",
     "statusInflict",
     "flinches"
    ],
@@ -13919,6 +14526,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -13940,7 +14550,8 @@
     "pp",
     "priority",
     "contact",
-    "forcesSwitch"
+    "forcesSwitch",
+    "formatSecondaryCount"
    ],
    "uses": 107,
    "params": {
@@ -13958,6 +14569,9 @@
     },
     "forcesSwitch": {
      "forceSwitch": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -13966,7 +14580,8 @@
    "tags": [
     "pp",
     "contact",
-    "drain"
+    "drain",
+    "formatSecondaryCount"
    ],
    "uses": 1089,
    "params": {
@@ -13982,6 +14597,9 @@
      "readFrom": "m.drain",
      "fraction": 0.75,
      "unusual": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -13991,7 +14609,8 @@
     "pp",
     "contact",
     "moveClass",
-    "drain"
+    "drain",
+    "formatSecondaryCount"
    ],
    "uses": 1141,
    "params": {
@@ -14012,6 +14631,9 @@
      "readFrom": "m.drain",
      "fraction": 0.5,
      "unusual": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14019,7 +14641,8 @@
    "name": "Drill Peck",
    "tags": [
     "pp",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 9,
    "params": {
@@ -14030,6 +14653,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14038,7 +14664,8 @@
    "tags": [
     "pp",
     "critRatioUp",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 71,
    "params": {
@@ -14052,6 +14679,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14060,7 +14690,8 @@
    "tags": [
     "pp",
     "multiHit",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 3961,
    "params": {
@@ -14077,6 +14708,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14087,6 +14721,7 @@
     "contact",
     "moveClass",
     "inflictsConfusion",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 20,
@@ -14107,6 +14742,9 @@
     "inflictsConfusion": {
      "p": 1
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -14123,7 +14761,8 @@
    "tags": [
     "pp",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 5672,
    "params": {
@@ -14149,6 +14788,9 @@
        "chance": 10
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -14156,7 +14798,8 @@
    "name": "Earthquake",
    "tags": [
     "pp",
-    "spreadAll"
+    "spreadAll",
+    "formatSecondaryCount"
    ],
    "uses": 9209,
    "params": {
@@ -14168,6 +14811,9 @@
     "spreadAll": {
      "target": "allAdjacent",
      "hitsAlly": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14178,7 +14824,8 @@
     "moveClass",
     "lowersTarget",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 25,
    "params": {
@@ -14209,6 +14856,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14217,7 +14867,8 @@
    "tags": [
     "pp",
     "removesPP",
-    "sound"
+    "sound",
+    "formatSecondaryCount"
    ],
    "uses": 3,
    "params": {
@@ -14233,6 +14884,9 @@
     },
     "sound": {
      "sound": true
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -14242,7 +14896,8 @@
     "pp",
     "neverMisses",
     "setsTerrain",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 12,
    "params": {
@@ -14260,6 +14915,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14269,7 +14927,8 @@
     "pp",
     "needsUntrackedState",
     "variablePower",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 13,
    "params": {
@@ -14296,6 +14955,9 @@
      "classes": [
       "bullet"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14306,7 +14968,8 @@
     "weatherScaled",
     "noExtraHit",
     "chargeTurn",
-    "chargeSkippedByWeather"
+    "chargeSkippedByWeather",
+    "formatSecondaryCount"
    ],
    "uses": 2861,
    "params": {
@@ -14335,6 +14998,9 @@
     },
     "chargeSkippedByWeather": {
      "skipsIn": "rain"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14344,7 +15010,8 @@
     "pp",
     "spreadFoes",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 645,
    "params": {
@@ -14374,6 +15041,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -14383,7 +15053,8 @@
     "pp",
     "fixedDamage",
     "contact",
-    "noExtraHit"
+    "noExtraHit",
+    "formatSecondaryCount"
    ],
    "uses": 107,
    "params": {
@@ -14404,6 +15075,9 @@
      "because": [
       "noparentalbond"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14418,6 +15092,7 @@
     "stallCounterChecks",
     "failsIfMovesLast",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 5,
@@ -14458,6 +15133,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -14475,7 +15153,8 @@
     "pp",
     "moveClass",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 873,
    "params": {
@@ -14506,6 +15185,9 @@
        "chance": 10
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -14515,6 +15197,7 @@
     "pp",
     "moveClass",
     "statusCategory",
+    "formatSecondaryCount",
     "rewritesTargetAbility"
    ],
    "uses": 65,
@@ -14532,6 +15215,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "rewritesTargetAbility": {
      "becomes": "the user's own ability",
      "refusedBy": "cantsuppress",
@@ -14547,7 +15233,8 @@
    "tags": [
     "pp",
     "variablePower",
-    "spreadFoes"
+    "spreadFoes",
+    "formatSecondaryCount"
    ],
    "uses": 1102,
    "params": {
@@ -14562,6 +15249,9 @@
     "spreadFoes": {
      "target": "allAdjacentFoes",
      "hitsAlly": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14570,7 +15260,8 @@
    "tags": [
     "pp",
     "terrainScaled",
-    "conditionalPower"
+    "conditionalPower",
+    "formatSecondaryCount"
    ],
    "uses": 211,
    "params": {
@@ -14587,6 +15278,9 @@
     "conditionalPower": {
      "conditional": true,
      "note": "condition not derivable here -- carried by another tag"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14596,7 +15290,8 @@
     "pp",
     "spreadAll",
     "noExtraHit",
-    "userFaints"
+    "userFaints",
+    "formatSecondaryCount"
    ],
    "uses": 34,
    "params": {
@@ -14616,6 +15311,9 @@
     },
     "userFaints": {
      "faints": "always"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14623,6 +15321,7 @@
    "name": "Extrasensory",
    "tags": [
     "pp",
+    "formatSecondaryCount",
     "statusInflict",
     "flinches"
    ],
@@ -14632,6 +15331,9 @@
      "max": 20,
      "base": 20,
      "noPPBoosts": false
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -14652,7 +15354,8 @@
    "tags": [
     "pp",
     "priority",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 1667,
    "params": {
@@ -14667,6 +15370,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14675,7 +15381,8 @@
    "tags": [
     "pp",
     "conditionalPower",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 58,
    "params": {
@@ -14693,6 +15400,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14702,7 +15412,8 @@
     "pp",
     "neverMisses",
     "setsRoom",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 1,
    "params": {
@@ -14720,6 +15431,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14730,7 +15444,8 @@
     "moveClass",
     "lowersTarget",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 548,
    "params": {
@@ -14761,6 +15476,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14771,7 +15489,8 @@
     "moveClass",
     "lowersTarget",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 44,
    "params": {
@@ -14802,6 +15521,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14810,7 +15532,8 @@
    "tags": [
     "pp",
     "priority",
-    "ignoresProtect"
+    "ignoresProtect",
+    "formatSecondaryCount"
    ],
    "uses": 544,
    "params": {
@@ -14825,6 +15548,9 @@
     },
     "ignoresProtect": {
      "throughProtect": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14832,7 +15558,8 @@
    "name": "Fell Stinger",
    "tags": [
     "pp",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 23,
    "params": {
@@ -14843,6 +15570,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14850,7 +15580,8 @@
    "name": "Fickle Beam",
    "tags": [
     "pp",
-    "conditionalPower"
+    "conditionalPower",
+    "formatSecondaryCount"
    ],
    "uses": 42,
    "params": {
@@ -14863,6 +15594,9 @@
      "when": "chance",
      "p": 0.3,
      "mult": 2
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14871,7 +15605,8 @@
    "tags": [
     "pp",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 65,
    "params": {
@@ -14897,6 +15632,9 @@
        "chance": 50
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -14906,7 +15644,8 @@
     "pp",
     "fixedDamage",
     "noExtraHit",
-    "userFaints"
+    "userFaints",
+    "formatSecondaryCount"
    ],
    "uses": 310,
    "params": {
@@ -14927,6 +15666,9 @@
     },
     "userFaints": {
      "faints": "ifHit"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -14935,6 +15677,7 @@
    "tags": [
     "pp",
     "inflictsBurn",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 79,
@@ -14947,6 +15690,9 @@
     "inflictsBurn": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -14966,6 +15712,7 @@
     "contact",
     "moveClass",
     "inflictsBurn",
+    "formatSecondaryCount",
     "statusInflict",
     "flinches"
    ],
@@ -14987,6 +15734,9 @@
     "inflictsBurn": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "formatSecondaryCount": {
+     "count": 2
     },
     "statusInflict": {
      "effects": [
@@ -15014,6 +15764,7 @@
     "contact",
     "moveClass",
     "inflictsBurn",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 105,
@@ -15035,6 +15786,9 @@
      "p": 0.1,
      "via": "secondary"
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -15051,6 +15805,7 @@
    "tags": [
     "pp",
     "partialTrap",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 22,
@@ -15078,6 +15833,9 @@
       "chipPerTurn": 0.16666666666666666
      }
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -15094,6 +15852,7 @@
    "tags": [
     "pp",
     "fixedDamage",
+    "formatSecondaryCount",
     "ohko"
    ],
    "uses": 63,
@@ -15108,6 +15867,9 @@
      "flat": null,
      "ignoresStatsAndSTAB": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "ohko": {
      "ohko": true
     }
@@ -15118,7 +15880,8 @@
    "tags": [
     "pp",
     "variablePower",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 0,
    "params": {
@@ -15156,6 +15919,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -15165,7 +15931,8 @@
     "pp",
     "contact",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 16,
    "params": {
@@ -15194,6 +15961,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -15202,6 +15972,7 @@
    "tags": [
     "pp",
     "inflictsBurn",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 895,
@@ -15214,6 +15985,9 @@
     "inflictsBurn": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -15234,6 +16008,7 @@
     "thawsTarget",
     "inflictsBurn",
     "recoil",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 8885,
@@ -15256,6 +16031,9 @@
     "recoil": {
      "readFrom": "m.recoil"
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -15272,7 +16050,8 @@
    "tags": [
     "pp",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 3134,
    "params": {
@@ -15298,6 +16077,9 @@
        "chance": 10
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -15310,6 +16092,7 @@
     "boostsTarget",
     "statusCategory",
     "statChange",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 0,
@@ -15345,6 +16128,9 @@
       }
      ]
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -15361,7 +16147,8 @@
    "tags": [
     "pp",
     "flingsOwnItem",
-    "noExtraHit"
+    "noExtraHit",
+    "formatSecondaryCount"
    ],
    "uses": 34,
    "params": {
@@ -15380,6 +16167,9 @@
      "because": [
       "noparentalbond"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -15388,7 +16178,8 @@
    "tags": [
     "pp",
     "contact",
-    "pivotDamaging"
+    "pivotDamaging",
+    "formatSecondaryCount"
    ],
    "uses": 3267,
    "params": {
@@ -15402,6 +16193,9 @@
     },
     "pivotDamaging": {
      "selfSwitch": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -15410,7 +16204,8 @@
    "tags": [
     "pp",
     "alwaysCrit",
-    "neverMissesAttack"
+    "neverMissesAttack",
+    "formatSecondaryCount"
    ],
    "uses": 313,
    "params": {
@@ -15424,6 +16219,9 @@
     },
     "neverMissesAttack": {
      "pHit": 1
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -15434,7 +16232,8 @@
     "contact",
     "noExtraHit",
     "chargeTurn",
-    "semiInvulnerable"
+    "semiInvulnerable",
+    "formatSecondaryCount"
    ],
    "uses": 5,
    "params": {
@@ -15473,6 +16272,9 @@
        "twister"
       ]
      }
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -15481,7 +16283,8 @@
    "tags": [
     "pp",
     "contact",
-    "overridesEffectiveness"
+    "overridesEffectiveness",
+    "formatSecondaryCount"
    ],
    "uses": 3,
    "params": {
@@ -15496,6 +16299,9 @@
     "overridesEffectiveness": {
      "overrides": true,
      "perType": null
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -15505,7 +16311,8 @@
     "pp",
     "moveClass",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 2835,
    "params": {
@@ -15536,6 +16343,9 @@
        "chance": 10
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -15545,6 +16355,7 @@
     "pp",
     "neverMisses",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 12,
@@ -15560,6 +16371,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "statusInflict": {
      "effects": [
@@ -15580,6 +16394,7 @@
     "contact",
     "moveClass",
     "needsTargetToAttack",
+    "formatSecondaryCount",
     "preTurnShield"
    ],
    "uses": 14,
@@ -15604,6 +16419,9 @@
     "needsTargetToAttack": {
      "needs": "target attacking"
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "preTurnShield": {
      "setsUpAtTurnStart": true,
      "trigger": "damaging",
@@ -15619,6 +16437,7 @@
     "neverMisses",
     "redirects",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 1735,
@@ -15642,6 +16461,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -15659,7 +16481,8 @@
     "pp",
     "changesTargetType",
     "moveClass",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 1,
    "params": {
@@ -15679,6 +16502,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -15687,7 +16513,8 @@
    "tags": [
     "pp",
     "swapsStat",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 966,
    "params": {
@@ -15703,6 +16530,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -15710,6 +16540,7 @@
    "name": "Frenzy Plant",
    "tags": [
     "pp",
+    "formatSecondaryCount",
     "recharge"
    ],
    "uses": 7,
@@ -15718,6 +16549,9 @@
      "max": 8,
      "base": 5,
      "noPPBoosts": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "recharge": {
      "recharge": true
@@ -15728,7 +16562,8 @@
    "name": "Frost Breath",
    "tags": [
     "pp",
-    "alwaysCrit"
+    "alwaysCrit",
+    "formatSecondaryCount"
    ],
    "uses": 54,
    "params": {
@@ -15739,6 +16574,9 @@
     },
     "alwaysCrit": {
      "pCrit": 1
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -15747,7 +16585,8 @@
    "tags": [
     "pp",
     "noExtraHit",
-    "ignoresProtect"
+    "ignoresProtect",
+    "formatSecondaryCount"
    ],
    "uses": 11,
    "params": {
@@ -15763,6 +16602,9 @@
     },
     "ignoresProtect": {
      "throughProtect": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -15772,6 +16614,7 @@
     "pp",
     "moveClass",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 5,
@@ -15789,6 +16632,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -15804,7 +16650,8 @@
    "name": "Giga Drain",
    "tags": [
     "pp",
-    "drain"
+    "drain",
+    "formatSecondaryCount"
    ],
    "uses": 1725,
    "params": {
@@ -15817,6 +16664,9 @@
      "readFrom": "m.drain",
      "fraction": 0.5,
      "unusual": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -15825,6 +16675,7 @@
    "tags": [
     "pp",
     "contact",
+    "formatSecondaryCount",
     "recharge"
    ],
    "uses": 47,
@@ -15837,6 +16688,9 @@
     "contact": {
      "contact": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "recharge": {
      "recharge": true
     }
@@ -15846,7 +16700,8 @@
    "name": "Gigaton Hammer",
    "tags": [
     "pp",
-    "cantUseTwice"
+    "cantUseTwice",
+    "formatSecondaryCount"
    ],
    "uses": 219,
    "params": {
@@ -15858,6 +16713,9 @@
     "cantUseTwice": {
      "lockoutTurns": 1,
      "failsEncore": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -15868,6 +16726,7 @@
     "moveClass",
     "statusCategory",
     "inflictsParalysis",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 38,
@@ -15889,6 +16748,9 @@
      "p": 1,
      "via": "primary"
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -15906,7 +16768,8 @@
     "pp",
     "variablePower",
     "weightBased",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 458,
    "params": {
@@ -15950,6 +16813,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -15957,7 +16823,8 @@
    "name": "Grassy Glide",
    "tags": [
     "pp",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 6,
    "params": {
@@ -15968,6 +16835,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -15978,7 +16848,8 @@
     "perTurnHP",
     "neverMisses",
     "setsTerrain",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 13,
    "params": {
@@ -16005,6 +16876,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16016,7 +16890,8 @@
     "neverMisses",
     "accuracyMod",
     "statusCategory",
-    "groundsField"
+    "groundsField",
+    "formatSecondaryCount"
    ],
    "uses": 77,
    "params": {
@@ -16044,6 +16919,9 @@
      "pseudoWeather": "gravity",
      "turns": 5,
      "accuracyMult": 1.669921875
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16053,6 +16931,7 @@
     "pp",
     "neverMisses",
     "statusCategory",
+    "formatSecondaryCount",
     "rewritesStoredStats"
    ],
    "uses": 0,
@@ -16068,6 +16947,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "rewritesStoredStats": {
      "stats": [
@@ -16087,7 +16969,8 @@
     "neverMisses",
     "statChangeInCode",
     "lowersTarget",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 0,
    "params": {
@@ -16120,6 +17003,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16129,6 +17015,7 @@
     "pp",
     "fixedDamage",
     "contact",
+    "formatSecondaryCount",
     "ohko"
    ],
    "uses": 5,
@@ -16146,6 +17033,9 @@
     "contact": {
      "contact": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "ohko": {
      "ohko": true
     }
@@ -16156,6 +17046,7 @@
    "tags": [
     "pp",
     "inflictsPoison",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 537,
@@ -16168,6 +17059,9 @@
     "inflictsPoison": {
      "p": 0.3,
      "via": "secondary"
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -16187,7 +17081,8 @@
     "needsUntrackedState",
     "variablePower",
     "contact",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 48,
    "params": {
@@ -16213,6 +17108,9 @@
      "classes": [
       "bullet"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16223,7 +17121,8 @@
     "contact",
     "moveClass",
     "lowersUser",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 243,
    "params": {
@@ -16254,6 +17153,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16262,7 +17164,8 @@
    "tags": [
     "pp",
     "variablePower",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 109,
    "params": {
@@ -16278,6 +17181,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16287,7 +17193,8 @@
     "pp",
     "neverMisses",
     "clearsBoosts",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 641,
    "params": {
@@ -16305,6 +17212,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16315,7 +17225,8 @@
     "contact",
     "moveClass",
     "lowersUser",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 67,
    "params": {
@@ -16347,6 +17258,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16355,7 +17269,8 @@
    "tags": [
     "pp",
     "contact",
-    "recoil"
+    "recoil",
+    "formatSecondaryCount"
    ],
    "uses": 1034,
    "params": {
@@ -16369,6 +17284,9 @@
     },
     "recoil": {
      "readFrom": "m.recoil"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16378,7 +17296,8 @@
     "pp",
     "sound",
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 0,
    "params": {
@@ -16396,6 +17315,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16407,7 +17329,8 @@
     "userFaints",
     "statusCategory",
     "healsSelf",
-    "healDescriptor"
+    "healDescriptor",
+    "formatSecondaryCount"
    ],
    "uses": 14,
    "params": {
@@ -16439,6 +17362,9 @@
      },
      "curesStatus": true,
      "userFaints": "ifHit"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16450,7 +17376,8 @@
     "neverMisses",
     "statusCategory",
     "healsAlly",
-    "healDescriptor"
+    "healDescriptor",
+    "formatSecondaryCount"
    ],
    "uses": 143,
    "params": {
@@ -16483,6 +17410,9 @@
      },
      "who": "target",
      "when": "now"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16492,7 +17422,8 @@
     "pp",
     "variablePower",
     "weightBased",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 11,
    "params": {
@@ -16532,6 +17463,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16542,6 +17476,7 @@
     "spreadFoes",
     "moveClass",
     "inflictsBurn",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 9444,
@@ -16564,6 +17499,9 @@
      "p": 0.1,
      "via": "secondary"
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -16581,7 +17519,8 @@
     "pp",
     "variablePower",
     "weightBased",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 326,
    "params": {
@@ -16621,6 +17560,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16631,6 +17573,7 @@
     "priority",
     "neverMisses",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 4927,
@@ -16651,6 +17594,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -16666,7 +17612,8 @@
    "name": "Hex",
    "tags": [
     "pp",
-    "variablePower"
+    "variablePower",
+    "formatSecondaryCount"
    ],
    "uses": 163,
    "params": {
@@ -16678,6 +17625,9 @@
     "variablePower": {
      "kind": "targetStatused",
      "mult": 2
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16685,7 +17635,8 @@
    "name": "High Horsepower",
    "tags": [
     "pp",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 2878,
    "params": {
@@ -16696,6 +17647,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16704,7 +17658,8 @@
    "tags": [
     "pp",
     "crashOnMiss",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 169,
    "params": {
@@ -16718,6 +17673,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16727,6 +17685,7 @@
     "pp",
     "fixedDamage",
     "contact",
+    "formatSecondaryCount",
     "ohko"
    ],
    "uses": 2,
@@ -16744,6 +17703,9 @@
     "contact": {
      "contact": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "ohko": {
      "ohko": true
     }
@@ -16754,7 +17716,8 @@
    "tags": [
     "pp",
     "contact",
-    "drain"
+    "drain",
+    "formatSecondaryCount"
    ],
    "uses": 13,
    "params": {
@@ -16770,6 +17733,9 @@
      "readFrom": "m.drain",
      "fraction": 0.5,
      "unusual": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16780,6 +17746,7 @@
     "weatherScaled",
     "moveClass",
     "inflictsConfusion",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 4070,
@@ -16807,6 +17774,9 @@
     "inflictsConfusion": {
      "p": 0.3
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -16822,6 +17792,7 @@
    "name": "Hydro Cannon",
    "tags": [
     "pp",
+    "formatSecondaryCount",
     "recharge"
    ],
    "uses": 20,
@@ -16831,6 +17802,9 @@
      "base": 5,
      "noPPBoosts": false
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "recharge": {
      "recharge": true
     }
@@ -16839,7 +17813,8 @@
   "hydropump": {
    "name": "Hydro Pump",
    "tags": [
-    "pp"
+    "pp",
+    "formatSecondaryCount"
    ],
    "uses": 1353,
    "params": {
@@ -16847,6 +17822,9 @@
      "max": 8,
      "base": 5,
      "noPPBoosts": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16854,6 +17832,7 @@
    "name": "Hyper Beam",
    "tags": [
     "pp",
+    "formatSecondaryCount",
     "recharge"
    ],
    "uses": 2554,
@@ -16862,6 +17841,9 @@
      "max": 8,
      "base": 5,
      "noPPBoosts": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "recharge": {
      "recharge": true
@@ -16873,7 +17855,8 @@
    "tags": [
     "pp",
     "spreadFoes",
-    "sound"
+    "sound",
+    "formatSecondaryCount"
    ],
    "uses": 5382,
    "params": {
@@ -16888,6 +17871,9 @@
     },
     "sound": {
      "sound": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -16898,6 +17884,7 @@
     "moveClass",
     "statusCategory",
     "inflictsSleep",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 672,
@@ -16919,6 +17906,9 @@
      "p": 0.6,
      "via": "primary"
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -16935,6 +17925,7 @@
    "tags": [
     "pp",
     "inflictsFreeze",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 1475,
@@ -16947,6 +17938,9 @@
     "inflictsFreeze": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -16966,6 +17960,7 @@
     "contact",
     "moveClass",
     "inflictsFreeze",
+    "formatSecondaryCount",
     "statusInflict",
     "flinches"
    ],
@@ -16987,6 +17982,9 @@
     "inflictsFreeze": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "formatSecondaryCount": {
+     "count": 2
     },
     "statusInflict": {
      "effects": [
@@ -17014,7 +18012,8 @@
     "contact",
     "moveClass",
     "lowersUser",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 77,
    "params": {
@@ -17045,6 +18044,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -17055,6 +18057,7 @@
     "contact",
     "moveClass",
     "inflictsFreeze",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 2852,
@@ -17076,6 +18079,9 @@
      "p": 0.1,
      "via": "secondary"
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -17091,7 +18097,8 @@
    "name": "Ice Shard",
    "tags": [
     "pp",
-    "priority"
+    "priority",
+    "formatSecondaryCount"
    ],
    "uses": 751,
    "params": {
@@ -17103,6 +18110,9 @@
     "priority": {
      "readFrom": "m.priority",
      "sign": "+"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -17110,7 +18120,8 @@
    "name": "Ice Spinner",
    "tags": [
     "pp",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 103,
    "params": {
@@ -17121,6 +18132,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -17128,6 +18142,7 @@
    "name": "Icicle Crash",
    "tags": [
     "pp",
+    "formatSecondaryCount",
     "statusInflict",
     "flinches"
    ],
@@ -17137,6 +18152,9 @@
      "max": 12,
      "base": 10,
      "noPPBoosts": false
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -17156,7 +18174,8 @@
    "name": "Icicle Spear",
    "tags": [
     "pp",
-    "multiHit"
+    "multiHit",
+    "formatSecondaryCount"
    ],
    "uses": 13,
    "params": {
@@ -17173,6 +18192,9 @@
       2,
       5
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -17183,7 +18205,8 @@
     "spreadFoes",
     "moveClass",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 1914,
    "params": {
@@ -17218,6 +18241,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -17228,6 +18254,7 @@
     "sealsMoves",
     "neverMisses",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 335,
@@ -17249,6 +18276,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -17265,6 +18295,7 @@
    "tags": [
     "pp",
     "inflictsBurn",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 4,
@@ -17277,6 +18308,9 @@
     "inflictsBurn": {
      "p": 1,
      "via": "secondary"
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -17295,6 +18329,7 @@
     "pp",
     "partialTrap",
     "contact",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 1040,
@@ -17325,6 +18360,9 @@
     "contact": {
      "contact": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -17343,6 +18381,7 @@
     "perTurnHP",
     "neverMisses",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 0,
@@ -17368,6 +18407,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -17386,7 +18428,8 @@
     "reordersTurn",
     "instructsTarget",
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 187,
    "params": {
@@ -17443,6 +18486,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -17453,7 +18499,8 @@
     "neverMisses",
     "boostsUser",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 312,
    "params": {
@@ -17483,6 +18530,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -17492,7 +18542,8 @@
     "pp",
     "contact",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 38,
    "params": {
@@ -17521,6 +18572,9 @@
        "chance": 30
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -17530,7 +18584,8 @@
     "pp",
     "priority",
     "contact",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 200,
    "params": {
@@ -17550,6 +18605,9 @@
      "classes": [
       "punch"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -17562,6 +18620,7 @@
     "readsTargetItem",
     "takesTargetItem",
     "contact",
+    "formatSecondaryCount",
     "removesItem"
    ],
    "uses": 3834,
@@ -17591,6 +18650,9 @@
     "contact": {
      "contact": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "removesItem": {
      "steals": false
     }
@@ -17602,7 +18664,8 @@
     "pp",
     "contact",
     "moveClass",
-    "neverMissesAttack"
+    "neverMissesAttack",
+    "formatSecondaryCount"
    ],
    "uses": 7739,
    "params": {
@@ -17621,6 +18684,9 @@
     },
     "neverMissesAttack": {
      "pHit": 1
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -17629,7 +18695,8 @@
    "tags": [
     "pp",
     "conditionalPower",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 82,
    "params": {
@@ -17644,6 +18711,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -17651,7 +18721,8 @@
    "name": "Last Resort",
    "tags": [
     "pp",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 213,
    "params": {
@@ -17662,6 +18733,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -17671,7 +18745,8 @@
     "pp",
     "powerFromFallen",
     "needsUntrackedState",
-    "variablePower"
+    "variablePower",
+    "formatSecondaryCount"
    ],
    "uses": 6118,
    "params": {
@@ -17691,6 +18766,9 @@
     "variablePower": {
      "computed": true,
      "note": "idiom not yet derivable"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -17700,6 +18778,7 @@
     "pp",
     "spreadAll",
     "inflictsBurn",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 5,
@@ -17716,6 +18795,9 @@
     "inflictsBurn": {
      "p": 0.3,
      "via": "secondary"
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -17734,7 +18816,8 @@
     "pp",
     "critRatioUp",
     "contact",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 217,
    "params": {
@@ -17753,6 +18836,9 @@
      "classes": [
       "slicing"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -17761,7 +18847,8 @@
    "tags": [
     "pp",
     "lowersUser",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 934,
    "params": {
@@ -17784,6 +18871,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -17792,7 +18882,8 @@
    "tags": [
     "pp",
     "contact",
-    "drain"
+    "drain",
+    "formatSecondaryCount"
    ],
    "uses": 171,
    "params": {
@@ -17808,6 +18899,9 @@
      "readFrom": "m.drain",
      "fraction": 0.5,
      "unusual": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -17818,6 +18912,7 @@
     "perTurnHP",
     "moveClass",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 427,
@@ -17844,6 +18939,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -17862,7 +18960,8 @@
     "neverMisses",
     "statusCategory",
     "healsSelf",
-    "healsAlly"
+    "healsAlly",
+    "formatSecondaryCount"
    ],
    "uses": 2824,
    "params": {
@@ -17889,6 +18988,9 @@
       1,
       4
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -17898,7 +19000,8 @@
     "pp",
     "neverMisses",
     "halvesDamage",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 4230,
    "params": {
@@ -17917,6 +19020,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -17926,7 +19032,8 @@
     "pp",
     "contact",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 1043,
    "params": {
@@ -17955,6 +19062,9 @@
        "chance": 20
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -17964,6 +19074,7 @@
     "pp",
     "neverMisses",
     "statusCategory",
+    "formatSecondaryCount",
     "guaranteesNextMove"
    ],
    "uses": 0,
@@ -17980,6 +19091,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "guaranteesNextMove": {
      "volatile": "lockon",
      "on": "the user",
@@ -17994,7 +19108,8 @@
     "pp",
     "variablePower",
     "weightBased",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 5044,
    "params": {
@@ -18038,6 +19153,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -18047,7 +19165,8 @@
     "pp",
     "contact",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 13,
    "params": {
@@ -18076,6 +19195,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -18084,7 +19206,8 @@
    "tags": [
     "pp",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 122,
    "params": {
@@ -18110,6 +19233,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -18119,7 +19245,8 @@
     "pp",
     "contact",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 41,
    "params": {
@@ -18148,6 +19275,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -18157,7 +19287,8 @@
     "pp",
     "priority",
     "contact",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 79,
    "params": {
@@ -18177,6 +19308,9 @@
      "classes": [
       "punch"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -18187,7 +19321,8 @@
     "changesTargetType",
     "powder",
     "moveClass",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 9,
    "params": {
@@ -18210,6 +19345,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -18219,7 +19357,8 @@
     "pp",
     "neverMisses",
     "suppressesItems",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 4,
    "params": {
@@ -18237,6 +19376,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -18246,6 +19388,7 @@
     "pp",
     "neverMisses",
     "statusCategory",
+    "formatSecondaryCount",
     "boostsAlliesWithAbility"
    ],
    "uses": 1,
@@ -18261,6 +19404,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "boostsAlliesWithAbility": {
      "requiresAllyAbility": [
@@ -18280,6 +19426,7 @@
     "neverMisses",
     "failsWithoutWeather",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 1,
@@ -18306,6 +19453,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -18325,6 +19475,7 @@
     "thawsTarget",
     "inflictsBurn",
     "drain",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 6549,
@@ -18350,6 +19501,9 @@
      "fraction": 0.5,
      "unusual": false
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -18369,7 +19523,8 @@
     "trapsTarget",
     "neverMisses",
     "ignoresProtect",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 8,
    "params": {
@@ -18397,6 +19552,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -18404,7 +19562,8 @@
    "name": "Megahorn",
    "tags": [
     "pp",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 40,
    "params": {
@@ -18415,6 +19574,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -18422,7 +19584,8 @@
    "name": "Mega Kick",
    "tags": [
     "pp",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 6,
    "params": {
@@ -18433,6 +19596,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -18443,7 +19609,8 @@
     "lowersTarget",
     "userFaints",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 35,
    "params": {
@@ -18473,6 +19640,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -18481,7 +19651,8 @@
    "tags": [
     "pp",
     "fixedDamage",
-    "needsTargetToAttack"
+    "needsTargetToAttack",
+    "formatSecondaryCount"
    ],
    "uses": 7,
    "params": {
@@ -18503,6 +19674,9 @@
      "needs": "target attacking",
      "effect": "reflectsDamage",
      "modelled": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -18514,7 +19688,8 @@
     "sound",
     "lowersTarget",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 3,
    "params": {
@@ -18548,6 +19723,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -18556,7 +19734,8 @@
    "tags": [
     "pp",
     "noExtraHit",
-    "chargeTurn"
+    "chargeTurn",
+    "formatSecondaryCount"
    ],
    "uses": 11,
    "params": {
@@ -18575,6 +19754,9 @@
      "boosts": {
       "spa": 1
      }
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -18585,7 +19767,8 @@
     "contact",
     "moveClass",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 429,
    "params": {
@@ -18619,6 +19802,9 @@
        "chance": 20
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -18631,6 +19817,7 @@
     "boostsUser",
     "statusCategory",
     "statChange",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 20,
@@ -18665,6 +19852,9 @@
       }
      ]
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -18682,7 +19872,8 @@
     "pp",
     "fixedDamage",
     "priority",
-    "needsTargetToAttack"
+    "needsTargetToAttack",
+    "formatSecondaryCount"
    ],
    "uses": 29,
    "params": {
@@ -18708,6 +19899,9 @@
      "needs": "target attacking",
      "effect": "reflectsDamage",
      "modelled": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -18718,7 +19912,8 @@
     "terrainScaled",
     "conditionalPower",
     "spreadAll",
-    "userFaints"
+    "userFaints",
+    "formatSecondaryCount"
    ],
    "uses": 6,
    "params": {
@@ -18742,6 +19937,9 @@
     },
     "userFaints": {
      "faints": "always"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -18751,7 +19949,8 @@
     "pp",
     "neverMisses",
     "setsTerrain",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 13,
    "params": {
@@ -18769,6 +19968,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -18779,7 +19981,8 @@
     "weatherScaled",
     "neverMisses",
     "statusCategory",
-    "healsSelf"
+    "healsSelf",
+    "formatSecondaryCount"
    ],
    "uses": 35,
    "params": {
@@ -18814,6 +20017,9 @@
     },
     "healsSelf": {
      "heal": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -18824,7 +20030,8 @@
     "weatherScaled",
     "neverMisses",
     "statusCategory",
-    "healsSelf"
+    "healsSelf",
+    "formatSecondaryCount"
    ],
    "uses": 18,
    "params": {
@@ -18859,6 +20066,9 @@
     },
     "healsSelf": {
      "heal": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -18870,6 +20080,7 @@
     "contact",
     "removesHazards",
     "inflictsPoison",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 44,
@@ -18904,6 +20115,9 @@
      "p": 1,
      "via": "secondary"
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -18921,7 +20135,8 @@
     "pp",
     "spreadFoes",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 945,
    "params": {
@@ -18951,6 +20166,9 @@
        "chance": 30
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -18959,7 +20177,8 @@
    "tags": [
     "pp",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 15,
    "params": {
@@ -18985,6 +20204,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -18993,7 +20215,8 @@
    "tags": [
     "pp",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 5,
    "params": {
@@ -19019,6 +20242,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -19027,7 +20253,8 @@
    "tags": [
     "pp",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 140,
    "params": {
@@ -19053,6 +20280,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -19063,7 +20293,8 @@
     "neverMisses",
     "boostsUser",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 3891,
    "params": {
@@ -19093,6 +20324,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -19101,7 +20335,8 @@
    "tags": [
     "pp",
     "fixedDamage",
-    "fixedDamage"
+    "fixedDamage",
+    "formatSecondaryCount"
    ],
    "uses": 33,
    "params": {
@@ -19112,6 +20347,9 @@
     },
     "fixedDamage": {
      "damage": "level"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -19123,7 +20361,8 @@
     "sound",
     "lowersTarget",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 0,
    "params": {
@@ -19158,6 +20397,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -19170,6 +20412,7 @@
     "boostsUser",
     "statusCategory",
     "statChange",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 89,
@@ -19211,6 +20454,9 @@
       }
      ]
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -19228,6 +20474,7 @@
     "pp",
     "contact",
     "inflictsParalysis",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 154,
@@ -19243,6 +20490,9 @@
     "inflictsParalysis": {
      "p": 1,
      "via": "secondary"
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -19261,6 +20511,7 @@
     "pp",
     "randomTarget",
     "contact",
+    "formatSecondaryCount",
     "locksIntoMove"
    ],
    "uses": 76,
@@ -19276,6 +20527,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "locksIntoMove": {
      "volatile": "lockedmove",
@@ -19296,7 +20550,8 @@
    "tags": [
     "pp",
     "lowersUser",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 1647,
    "params": {
@@ -19319,6 +20574,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -19328,7 +20586,8 @@
     "pp",
     "sharesHP",
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 51,
    "params": {
@@ -19349,6 +20608,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -19357,7 +20619,8 @@
    "tags": [
     "pp",
     "spreadAll",
-    "drain"
+    "drain",
+    "formatSecondaryCount"
    ],
    "uses": 124,
    "params": {
@@ -19374,6 +20637,9 @@
      "readFrom": "m.drain",
      "fraction": 0.5,
      "unusual": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -19386,7 +20652,8 @@
     "pivotStatus",
     "statChangeInCode",
     "lowersTarget",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 9207,
    "params": {
@@ -19420,6 +20687,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -19429,7 +20699,8 @@
     "pp",
     "variablePower",
     "contact",
-    "needsTargetToAttack"
+    "needsTargetToAttack",
+    "formatSecondaryCount"
    ],
    "uses": 5,
    "params": {
@@ -19450,6 +20721,9 @@
      "effect": "doublePower",
      "when": "targetHasNotMovedYet",
      "mult": 2
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -19460,7 +20734,8 @@
     "sound",
     "neverMisses",
     "statusCategory",
-    "perishClock"
+    "perishClock",
+    "formatSecondaryCount"
    ],
    "uses": 1342,
    "params": {
@@ -19482,6 +20757,9 @@
     "perishClock": {
      "turns": 4,
      "ticksOnTheTurnItIsSet": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -19490,7 +20768,8 @@
    "tags": [
     "pp",
     "spreadAll",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 13,
    "params": {
@@ -19507,6 +20786,9 @@
      "classes": [
       "wind"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -19516,6 +20798,7 @@
     "pp",
     "randomTarget",
     "contact",
+    "formatSecondaryCount",
     "locksIntoMove"
    ],
    "uses": 18,
@@ -19531,6 +20814,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "locksIntoMove": {
      "volatile": "lockedmove",
@@ -19554,7 +20840,8 @@
     "noExtraHit",
     "ignoresProtect",
     "chargeTurn",
-    "semiInvulnerable"
+    "semiInvulnerable",
+    "formatSecondaryCount"
    ],
    "uses": 552,
    "params": {
@@ -19581,6 +20868,9 @@
      "untargetable": true,
      "pierces": [],
      "doubles": null
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -19588,7 +20878,8 @@
    "name": "Pin Missile",
    "tags": [
     "pp",
-    "multiHit"
+    "multiHit",
+    "formatSecondaryCount"
    ],
    "uses": 28,
    "params": {
@@ -19605,6 +20896,9 @@
       2,
       5
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -19614,7 +20908,8 @@
     "pp",
     "contact",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 1588,
    "params": {
@@ -19643,6 +20938,9 @@
        "chance": 10
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -19652,6 +20950,7 @@
     "pp",
     "takesTargetItem",
     "contact",
+    "formatSecondaryCount",
     "removesItem"
    ],
    "uses": 0,
@@ -19669,6 +20968,9 @@
     "contact": {
      "contact": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "removesItem": {
      "steals": false
     }
@@ -19681,6 +20983,7 @@
     "contact",
     "moveClass",
     "inflictsToxic",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 5,
@@ -19702,6 +21005,9 @@
      "p": 0.5,
      "via": "secondary"
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -19719,6 +21025,7 @@
     "pp",
     "contact",
     "inflictsPoison",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 1753,
@@ -19734,6 +21041,9 @@
     "inflictsPoison": {
      "p": 0.3,
      "via": "secondary"
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -19754,6 +21064,7 @@
     "moveClass",
     "statusCategory",
     "inflictsPoison",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 1,
@@ -19778,6 +21089,9 @@
      "p": 0.75,
      "via": "primary"
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -19794,7 +21108,8 @@
    "tags": [
     "pp",
     "dualPurpose",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 145,
    "params": {
@@ -19813,6 +21128,9 @@
      "classes": [
       "bullet"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -19820,7 +21138,8 @@
    "name": "Poltergeist",
    "tags": [
     "pp",
-    "readsTargetItem"
+    "readsTargetItem",
+    "formatSecondaryCount"
    ],
    "uses": 362,
    "params": {
@@ -19832,6 +21151,9 @@
     "readsTargetItem": {
      "failsIfNone": true,
      "mult": null
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -19842,7 +21164,8 @@
     "multiHit",
     "multiAccuracy",
     "contact",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 449,
    "params": {
@@ -19868,6 +21191,9 @@
      "classes": [
       "slicing"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -19877,7 +21203,8 @@
     "pp",
     "contact",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 16,
    "params": {
@@ -19906,6 +21233,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -19913,7 +21243,8 @@
    "name": "Pound",
    "tags": [
     "pp",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 0,
    "params": {
@@ -19924,13 +21255,17 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
   "powergem": {
    "name": "Power Gem",
    "tags": [
-    "pp"
+    "pp",
+    "formatSecondaryCount"
    ],
    "uses": 2039,
    "params": {
@@ -19938,6 +21273,9 @@
      "max": 20,
      "base": 20,
      "noPPBoosts": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -19947,6 +21285,7 @@
     "pp",
     "neverMisses",
     "statusCategory",
+    "formatSecondaryCount",
     "rewritesStoredStats"
    ],
    "uses": 0,
@@ -19962,6 +21301,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "rewritesStoredStats": {
      "stats": [
@@ -19981,7 +21323,8 @@
     "neverMisses",
     "statChangeInCode",
     "lowersTarget",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 11,
    "params": {
@@ -20014,6 +21357,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20023,6 +21369,7 @@
     "pp",
     "neverMisses",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 0,
@@ -20038,6 +21385,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "statusInflict": {
      "effects": [
@@ -20055,7 +21405,8 @@
    "tags": [
     "pp",
     "variablePower",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 6,
    "params": {
@@ -20070,6 +21421,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20077,7 +21431,8 @@
    "name": "Power Whip",
    "tags": [
     "pp",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 319,
    "params": {
@@ -20088,6 +21443,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20096,7 +21454,8 @@
    "tags": [
     "pp",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 4817,
    "params": {
@@ -20122,6 +21481,9 @@
        "chance": 10
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -20131,7 +21493,8 @@
     "pp",
     "clearsScreens",
     "contact",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 2087,
    "params": {
@@ -20150,6 +21513,9 @@
      "classes": [
       "bite"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20159,6 +21525,7 @@
     "pp",
     "blocksHealing",
     "sound",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 242,
@@ -20173,6 +21540,9 @@
     },
     "sound": {
      "sound": true
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -20191,7 +21561,8 @@
     "pp",
     "neverMisses",
     "setsTerrain",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 112,
    "params": {
@@ -20209,6 +21580,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20217,7 +21591,8 @@
    "tags": [
     "pp",
     "critRatioUp",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 330,
    "params": {
@@ -20233,6 +21608,9 @@
      "classes": [
       "slicing"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20243,7 +21621,8 @@
     "neverMisses",
     "ignoresProtect",
     "statChangeInCode",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 61,
    "params": {
@@ -20270,6 +21649,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20278,6 +21660,7 @@
    "tags": [
     "pp",
     "swapsStat",
+    "formatSecondaryCount",
     "statSwap"
    ],
    "uses": 994,
@@ -20292,6 +21675,9 @@
      "defensiveStat": "def",
      "offensiveFrom": null
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statSwap": {
      "attackInto": "def"
     }
@@ -20302,7 +21688,8 @@
    "tags": [
     "pp",
     "reordersTurn",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 189,
    "params": {
@@ -20316,6 +21703,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20324,7 +21714,8 @@
    "tags": [
     "pp",
     "priority",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 2926,
    "params": {
@@ -20339,6 +21730,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20351,7 +21745,8 @@
     "stallCounterFeeds",
     "failsIfMovesLast",
     "oneTurnGuard",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 946,
    "params": {
@@ -20380,6 +21775,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20390,7 +21788,8 @@
     "neverMisses",
     "boostsUser",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 90,
    "params": {
@@ -20422,6 +21821,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20434,6 +21836,7 @@
     "neverMisses",
     "redirects",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 7943,
@@ -20460,6 +21863,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -20476,7 +21882,8 @@
    "tags": [
     "pp",
     "clearsScreens",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 23,
    "params": {
@@ -20490,6 +21897,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20498,6 +21908,7 @@
    "tags": [
     "pp",
     "randomTarget",
+    "formatSecondaryCount",
     "locksIntoMove"
    ],
    "uses": 3,
@@ -20510,6 +21921,9 @@
     "randomTarget": {
      "target": "randomNormal",
      "uniformOverLivingFoes": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "locksIntoMove": {
      "volatile": "lockedmove",
@@ -20531,7 +21945,8 @@
     "pp",
     "neverMisses",
     "setsWeather",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 1074,
    "params": {
@@ -20549,6 +21964,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20559,7 +21977,8 @@
     "contact",
     "removesHazards",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 14,
    "params": {
@@ -20602,6 +22021,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -20612,7 +22034,8 @@
     "contact",
     "moveClass",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 21,
    "params": {
@@ -20646,6 +22069,9 @@
        "chance": 50
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -20655,7 +22081,8 @@
     "pp",
     "neverMisses",
     "statusCategory",
-    "healsSelf"
+    "healsSelf",
+    "formatSecondaryCount"
    ],
    "uses": 797,
    "params": {
@@ -20676,6 +22103,9 @@
       1,
       2
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20685,7 +22115,8 @@
     "pp",
     "restoresOwnLastItem",
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 3,
    "params": {
@@ -20705,6 +22136,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20714,7 +22148,8 @@
     "pp",
     "neverMisses",
     "halvesDamage",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 3255,
    "params": {
@@ -20733,6 +22168,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20742,7 +22180,8 @@
     "pp",
     "changesTargetType",
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 3,
    "params": {
@@ -20761,6 +22200,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20771,7 +22213,8 @@
     "neverMisses",
     "statusCategory",
     "healsSelf",
-    "healDescriptor"
+    "healDescriptor",
+    "formatSecondaryCount"
    ],
    "uses": 62,
    "params": {
@@ -20802,6 +22245,9 @@
       "turns": 3
      },
      "curesStatus": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20810,7 +22256,8 @@
    "tags": [
     "pp",
     "variablePower",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 4,
    "params": {
@@ -20848,6 +22295,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20856,7 +22306,8 @@
    "tags": [
     "pp",
     "terrainScaled",
-    "variablePower"
+    "variablePower",
+    "formatSecondaryCount"
    ],
    "uses": 132,
    "params": {
@@ -20873,6 +22324,9 @@
     "variablePower": {
      "computed": true,
      "note": "idiom not yet derivable"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20886,7 +22340,8 @@
     "neverMisses",
     "ignoresProtect",
     "forcesSwitch",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 482,
    "params": {
@@ -20919,6 +22374,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20927,7 +22385,8 @@
    "tags": [
     "pp",
     "multiHit",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 66,
    "params": {
@@ -20949,6 +22408,9 @@
      "classes": [
       "bullet"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20959,7 +22421,8 @@
     "neverMisses",
     "boostsUser",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 0,
    "params": {
@@ -20989,6 +22452,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -20997,6 +22463,7 @@
    "tags": [
     "pp",
     "spreadFoes",
+    "formatSecondaryCount",
     "statusInflict",
     "flinches"
    ],
@@ -21010,6 +22477,9 @@
     "spreadFoes": {
      "target": "allAdjacentFoes",
      "hitsAlly": false
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -21030,7 +22500,8 @@
    "tags": [
     "pp",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 938,
    "params": {
@@ -21056,6 +22527,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -21064,6 +22538,7 @@
    "tags": [
     "pp",
     "moveClass",
+    "formatSecondaryCount",
     "recharge"
    ],
    "uses": 8,
@@ -21078,6 +22553,9 @@
       "bullet"
      ]
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "recharge": {
      "recharge": true
     }
@@ -21089,7 +22567,8 @@
     "pp",
     "neverMisses",
     "ignoresProtect",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 35,
    "params": {
@@ -21107,6 +22586,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -21117,7 +22599,8 @@
     "neverMisses",
     "statusCategory",
     "healsSelf",
-    "typeRemovedForTurn"
+    "typeRemovedForTurn",
+    "formatSecondaryCount"
    ],
    "uses": 2655,
    "params": {
@@ -21144,6 +22627,9 @@
       "Flying"
      ],
      "duration": 1
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -21152,7 +22638,8 @@
    "tags": [
     "pp",
     "variablePower",
-    "sound"
+    "sound",
+    "formatSecondaryCount"
    ],
    "uses": 27,
    "params": {
@@ -21167,6 +22654,9 @@
     },
     "sound": {
      "sound": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -21176,6 +22666,7 @@
     "pp",
     "contact",
     "moveClass",
+    "formatSecondaryCount",
     "ignoresBoosts"
    ],
    "uses": 273,
@@ -21193,6 +22684,9 @@
       "slicing"
      ]
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "ignoresBoosts": {
      "defensive": true
     }
@@ -21204,7 +22698,8 @@
     "pp",
     "neverMisses",
     "sideBuff",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 15,
    "params": {
@@ -21226,6 +22721,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -21234,6 +22732,7 @@
    "tags": [
     "pp",
     "partialTrap",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 31,
@@ -21261,6 +22760,9 @@
       "chipPerTurn": 0.16666666666666666
      }
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -21278,6 +22780,7 @@
     "pp",
     "thawsTarget",
     "inflictsBurn",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 1679,
@@ -21293,6 +22796,9 @@
     "inflictsBurn": {
      "p": 0.3,
      "via": "secondary"
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -21311,7 +22817,8 @@
     "pp",
     "multiHit",
     "boostsUser",
-    "lowersUser"
+    "lowersUser",
+    "formatSecondaryCount"
    ],
    "uses": 209,
    "params": {
@@ -21338,6 +22845,9 @@
      "readFrom": "m.self.boosts",
      "lowersSpeed": false,
      "alsoRaises": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -21348,7 +22858,8 @@
     "moveClass",
     "lowersTarget",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 249,
    "params": {
@@ -21379,6 +22890,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -21388,6 +22902,7 @@
     "pp",
     "thawsTarget",
     "inflictsBurn",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 177,
@@ -21403,6 +22918,9 @@
     "inflictsBurn": {
      "p": 0.3,
      "via": "secondary"
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -21423,7 +22941,8 @@
     "sound",
     "lowersTarget",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 4,
    "params": {
@@ -21457,6 +22976,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -21464,7 +22986,8 @@
    "name": "Seed Bomb",
    "tags": [
     "pp",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 38,
    "params": {
@@ -21477,6 +23000,9 @@
      "classes": [
       "bullet"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -21486,7 +23012,8 @@
     "pp",
     "fixedDamage",
     "fixedDamage",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 0,
    "params": {
@@ -21500,6 +23027,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -21509,7 +23039,8 @@
     "pp",
     "spreadAll",
     "noExtraHit",
-    "userFaints"
+    "userFaints",
+    "formatSecondaryCount"
    ],
    "uses": 11,
    "params": {
@@ -21529,6 +23060,9 @@
     },
     "userFaints": {
      "faints": "always"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -21538,7 +23072,8 @@
     "pp",
     "moveClass",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 6997,
    "params": {
@@ -21569,6 +23104,9 @@
        "chance": 20
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -21578,7 +23116,8 @@
     "pp",
     "contact",
     "moveClass",
-    "neverMissesAttack"
+    "neverMissesAttack",
+    "formatSecondaryCount"
    ],
    "uses": 2,
    "params": {
@@ -21597,6 +23136,9 @@
     },
     "neverMissesAttack": {
      "pHit": 1
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -21605,7 +23147,8 @@
    "tags": [
     "pp",
     "priority",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 794,
    "params": {
@@ -21620,6 +23163,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -21632,6 +23178,7 @@
     "passesState",
     "substitute",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 81,
@@ -21665,6 +23212,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -21681,6 +23231,7 @@
    "tags": [
     "pp",
     "fixedDamage",
+    "formatSecondaryCount",
     "ohko"
    ],
    "uses": 63,
@@ -21695,6 +23246,9 @@
      "flat": null,
      "ignoresStatsAndSTAB": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "ohko": {
      "ohko": true
     }
@@ -21706,6 +23260,7 @@
     "pp",
     "dualPurpose",
     "inflictsPoison",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 14,
@@ -21722,6 +23277,9 @@
     "inflictsPoison": {
      "p": 0.2,
      "via": "secondary"
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -21742,7 +23300,8 @@
     "boostsUser",
     "lowersUser",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 618,
    "params": {
@@ -21781,6 +23340,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -21791,7 +23353,8 @@
     "neverMisses",
     "boostsUser",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 35,
    "params": {
@@ -21821,6 +23384,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -21830,6 +23396,7 @@
     "pp",
     "moveClass",
     "statusCategory",
+    "formatSecondaryCount",
     "rewritesTargetAbility"
    ],
    "uses": 12,
@@ -21846,6 +23413,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "rewritesTargetAbility": {
      "becomes": "simple",
@@ -21866,6 +23436,7 @@
     "sound",
     "statusCategory",
     "inflictsSleep",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 0,
@@ -21890,6 +23461,9 @@
      "p": 0.55,
      "via": "primary"
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -21907,7 +23481,8 @@
     "pp",
     "swapsAbilities",
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 131,
    "params": {
@@ -21925,6 +23500,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -21934,7 +23512,8 @@
     "pp",
     "contact",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 3,
    "params": {
@@ -21963,6 +23542,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -21973,6 +23555,7 @@
     "critRatioUp",
     "noExtraHit",
     "chargeTurn",
+    "formatSecondaryCount",
     "statusInflict",
     "flinches"
    ],
@@ -21994,6 +23577,9 @@
     "chargeTurn": {
      "charge": true
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -22014,7 +23600,8 @@
     "pp",
     "neverMisses",
     "statusCategory",
-    "healsSelf"
+    "healsSelf",
+    "formatSecondaryCount"
    ],
    "uses": 99,
    "params": {
@@ -22035,6 +23622,9 @@
       1,
       2
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -22046,6 +23636,7 @@
     "moveClass",
     "statusCategory",
     "inflictsSleep",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 1793,
@@ -22070,6 +23661,9 @@
      "p": 0.75,
      "via": "primary"
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -22087,7 +23681,8 @@
     "pp",
     "callsAnotherMove",
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 20,
    "params": {
@@ -22109,6 +23704,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -22118,6 +23716,7 @@
     "pp",
     "moveClass",
     "inflictsPoison",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 4916,
@@ -22136,6 +23735,9 @@
      "p": 0.3,
      "via": "secondary"
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -22153,6 +23755,7 @@
     "pp",
     "spreadAll",
     "inflictsPoison",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 159,
@@ -22170,6 +23773,9 @@
      "p": 0.1,
      "via": "secondary"
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -22185,6 +23791,7 @@
    "name": "Smack Down",
    "tags": [
     "pp",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 25,
@@ -22193,6 +23800,9 @@
      "max": 16,
      "base": 15,
      "noPPBoosts": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "statusInflict": {
      "effects": [
@@ -22210,7 +23820,8 @@
    "tags": [
     "pp",
     "contact",
-    "neverMissesAttack"
+    "neverMissesAttack",
+    "formatSecondaryCount"
    ],
    "uses": 2,
    "params": {
@@ -22224,6 +23835,9 @@
     },
     "neverMissesAttack": {
      "pHit": 1
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -22234,7 +23848,8 @@
     "spreadFoes",
     "sound",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 990,
    "params": {
@@ -22267,6 +23882,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -22275,6 +23893,7 @@
    "tags": [
     "pp",
     "sound",
+    "formatSecondaryCount",
     "statusInflict",
     "flinches"
    ],
@@ -22287,6 +23906,9 @@
     },
     "sound": {
      "sound": true
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -22308,7 +23930,8 @@
     "pp",
     "changesTargetType",
     "moveClass",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 146,
    "params": {
@@ -22328,6 +23951,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -22337,7 +23963,8 @@
     "pp",
     "neverMisses",
     "statusCategory",
-    "healsSelf"
+    "healsSelf",
+    "formatSecondaryCount"
    ],
    "uses": 0,
    "params": {
@@ -22358,6 +23985,9 @@
       1,
       2
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -22369,7 +23999,8 @@
     "conditionalPower",
     "noExtraHit",
     "chargeTurn",
-    "chargeSkippedByWeather"
+    "chargeSkippedByWeather",
+    "formatSecondaryCount"
    ],
    "uses": 5409,
    "params": {
@@ -22408,6 +24039,9 @@
     },
     "chargeSkippedByWeather": {
      "skipsIn": "sun"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -22421,7 +24055,8 @@
     "moveClass",
     "noExtraHit",
     "chargeTurn",
-    "chargeSkippedByWeather"
+    "chargeSkippedByWeather",
+    "formatSecondaryCount"
    ],
    "uses": 12,
    "params": {
@@ -22468,6 +24103,9 @@
     },
     "chargeSkippedByWeather": {
      "skipsIn": "sun"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -22477,6 +24115,7 @@
     "pp",
     "spreadAll",
     "sound",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 4,
@@ -22492,6 +24131,9 @@
     },
     "sound": {
      "sound": true
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -22510,6 +24152,7 @@
     "pp",
     "neverMisses",
     "statusCategory",
+    "formatSecondaryCount",
     "rewritesStoredStats"
    ],
    "uses": 12,
@@ -22525,6 +24168,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "rewritesStoredStats": {
      "stats": [
@@ -22544,7 +24190,8 @@
     "neverMisses",
     "lowersTarget",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 8,
    "params": {
@@ -22580,6 +24227,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -22590,7 +24240,8 @@
     "moveClass",
     "neverMisses",
     "hazard",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 14,
    "params": {
@@ -22614,6 +24265,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -22623,7 +24277,8 @@
     "pp",
     "contact",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 1867,
    "params": {
@@ -22652,6 +24307,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -22661,7 +24319,8 @@
     "pp",
     "removesPP",
     "moveClass",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 8,
    "params": {
@@ -22682,6 +24341,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -22690,6 +24352,7 @@
    "tags": [
     "pp",
     "variablePower",
+    "formatSecondaryCount",
     "spendsVolatile"
    ],
    "uses": 0,
@@ -22703,6 +24366,9 @@
      "kind": "volatileLayers",
      "volatile": "stockpile",
      "per": 100
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "spendsVolatile": {
      "volatile": "stockpile",
@@ -22719,6 +24385,7 @@
     "moveClass",
     "statusCategory",
     "inflictsSleep",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 3,
@@ -22743,6 +24410,9 @@
      "p": 1,
      "via": "primary"
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -22761,7 +24431,8 @@
     "moveClass",
     "neverMisses",
     "hazard",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 161,
    "params": {
@@ -22785,6 +24456,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -22792,7 +24466,8 @@
    "name": "Steel Beam",
    "tags": [
     "pp",
-    "recoil"
+    "recoil",
+    "formatSecondaryCount"
    ],
    "uses": 46,
    "params": {
@@ -22804,6 +24479,9 @@
     "recoil": {
      "fraction": 0.5,
      "of": "maxhp"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -22812,7 +24490,8 @@
    "tags": [
     "pp",
     "contact",
-    "failsWithoutTerrain"
+    "failsWithoutTerrain",
+    "formatSecondaryCount"
    ],
    "uses": 9,
    "params": {
@@ -22827,6 +24506,9 @@
     "failsWithoutTerrain": {
      "needsTerrain": true,
      "clears": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -22836,7 +24518,8 @@
     "pp",
     "contact",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 19,
    "params": {
@@ -22865,6 +24548,9 @@
        "chance": 10
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -22875,7 +24561,8 @@
     "moveClass",
     "neverMisses",
     "hazard",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 37,
    "params": {
@@ -22899,6 +24586,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -22908,6 +24598,7 @@
     "pp",
     "neverMisses",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict",
     "layeredVolatile"
    ],
@@ -22924,6 +24615,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "statusInflict": {
      "effects": [
@@ -22951,7 +24645,8 @@
    "tags": [
     "pp",
     "variablePower",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 4188,
    "params": {
@@ -22966,6 +24661,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -22975,7 +24673,8 @@
     "pp",
     "contact",
     "moveClass",
-    "hazardOnHit"
+    "hazardOnHit",
+    "formatSecondaryCount"
    ],
    "uses": 82,
    "params": {
@@ -22997,6 +24696,9 @@
      "maxLayers": 1,
      "throughSubstitute": true,
      "onlyOnConnect": true
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -23004,7 +24706,8 @@
    "name": "Stone Edge",
    "tags": [
     "pp",
-    "critRatioUp"
+    "critRatioUp",
+    "formatSecondaryCount"
    ],
    "uses": 243,
    "params": {
@@ -23015,6 +24718,9 @@
     },
     "critRatioUp": {
      "critRatio": 2
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -23022,7 +24728,8 @@
    "name": "Stored Power",
    "tags": [
     "pp",
-    "variablePower"
+    "variablePower",
+    "formatSecondaryCount"
    ],
    "uses": 36,
    "params": {
@@ -23034,6 +24741,9 @@
     "variablePower": {
      "kind": "positiveBoosts",
      "per": 20
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -23045,7 +24755,8 @@
     "statChangeInCode",
     "lowersTarget",
     "statusCategory",
-    "healsSelf"
+    "healsSelf",
+    "formatSecondaryCount"
    ],
    "uses": 728,
    "params": {
@@ -23077,6 +24788,9 @@
      "heal": true,
      "note": "heals the user while targeting a foe",
      "fromTargetStat": "atk"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -23088,7 +24802,8 @@
     "moveClass",
     "lowersTarget",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 24,
    "params": {
@@ -23123,6 +24838,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -23134,7 +24852,8 @@
     "randomTarget",
     "contact",
     "neverMissesAttack",
-    "recoil"
+    "recoil",
+    "formatSecondaryCount"
    ],
    "uses": 0,
    "params": {
@@ -23159,6 +24878,9 @@
     "recoil": {
      "fraction": 0.25,
      "of": "maxhp"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -23168,7 +24890,8 @@
     "pp",
     "spreadFoes",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 99,
    "params": {
@@ -23198,6 +24921,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -23209,6 +24935,7 @@
     "moveClass",
     "statusCategory",
     "inflictsParalysis",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 28,
@@ -23233,6 +24960,9 @@
      "p": 0.75,
      "via": "primary"
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -23252,6 +24982,7 @@
     "neverMisses",
     "substitute",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 834,
@@ -23277,6 +25008,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -23295,6 +25029,7 @@
     "priority",
     "contact",
     "needsTargetToAttack",
+    "formatSecondaryCount",
     "failsIfTargetNotAttacking"
    ],
    "uses": 9330,
@@ -23315,6 +25050,9 @@
      "needs": "target attacking",
      "effect": "failsOutright"
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "failsIfTargetNotAttacking": {
      "fails": true,
      "refusesStatusTarget": true,
@@ -23328,7 +25066,8 @@
     "pp",
     "neverMisses",
     "setsWeather",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 707,
    "params": {
@@ -23346,6 +25085,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -23354,7 +25096,8 @@
    "tags": [
     "pp",
     "crashOnMiss",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 97,
    "params": {
@@ -23368,6 +25111,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -23376,7 +25122,8 @@
    "tags": [
     "pp",
     "fixedDamage",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 715,
    "params": {
@@ -23392,6 +25139,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -23401,7 +25151,8 @@
     "pp",
     "contact",
     "lowersUser",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 561,
    "params": {
@@ -23428,6 +25179,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -23435,7 +25189,8 @@
    "name": "Surf",
    "tags": [
     "pp",
-    "spreadAll"
+    "spreadAll",
+    "formatSecondaryCount"
    ],
    "uses": 161,
    "params": {
@@ -23447,6 +25202,9 @@
     "spreadAll": {
      "target": "allAdjacent",
      "hitsAlly": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -23459,6 +25217,7 @@
     "boostsTarget",
     "statusCategory",
     "statChange",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 71,
@@ -23494,6 +25253,9 @@
       }
      ]
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -23512,6 +25274,7 @@
     "neverMisses",
     "statusCategory",
     "healsSelf",
+    "formatSecondaryCount",
     "spendsVolatile"
    ],
    "uses": 0,
@@ -23539,6 +25302,9 @@
       ]
      }
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "spendsVolatile": {
      "volatile": "stockpile",
      "requires": true,
@@ -23553,6 +25319,7 @@
     "moveClass",
     "inflictsConfusion",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 0,
@@ -23572,6 +25339,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "statusInflict": {
      "effects": [
@@ -23593,7 +25363,8 @@
     "accuracyMod",
     "lowersTarget",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 1,
    "params": {
@@ -23631,6 +25402,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -23640,6 +25414,7 @@
     "pp",
     "takesTargetItem",
     "statusCategory",
+    "formatSecondaryCount",
     "removesItem"
    ],
    "uses": 8,
@@ -23657,6 +25432,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "removesItem": {
      "steals": true
     }
@@ -23669,7 +25447,8 @@
     "neverMisses",
     "boostsUser",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 3317,
    "params": {
@@ -23699,6 +25478,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -23709,7 +25491,8 @@
     "weatherScaled",
     "neverMisses",
     "statusCategory",
-    "healsSelf"
+    "healsSelf",
+    "formatSecondaryCount"
    ],
    "uses": 61,
    "params": {
@@ -23744,6 +25527,9 @@
     },
     "healsSelf": {
      "heal": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -23752,7 +25538,8 @@
    "tags": [
     "pp",
     "multiHit",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 0,
    "params": {
@@ -23772,6 +25559,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -23782,7 +25572,8 @@
     "moveClass",
     "neverMisses",
     "doublesSideSpeed",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 15011,
    "params": {
@@ -23805,6 +25596,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -23816,6 +25610,7 @@
     "moveClass",
     "statusCategory",
     "forbidsStatusMoves",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 1715,
@@ -23841,6 +25636,9 @@
     "forbidsStatusMoves": {
      "forbids": "Status"
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -23861,7 +25659,8 @@
     "ignoresProtect",
     "lowersTarget",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 3,
    "params": {
@@ -23900,6 +25699,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -23908,7 +25710,8 @@
    "tags": [
     "pp",
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 0,
    "params": {
@@ -23923,6 +25726,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -23933,6 +25739,7 @@
     "spreadAll",
     "inflictsConfusion",
     "statusCategory",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 1,
@@ -23952,6 +25759,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -23968,7 +25778,8 @@
    "tags": [
     "pp",
     "variablePower",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 45,
    "params": {
@@ -23983,6 +25794,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -23991,7 +25805,8 @@
    "tags": [
     "pp",
     "terrainScaled",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 9,
    "params": {
@@ -24015,6 +25830,9 @@
      "classes": [
       "pulse"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -24024,6 +25842,7 @@
     "pp",
     "takesTargetItem",
     "contact",
+    "formatSecondaryCount",
     "removesItem"
    ],
    "uses": 8,
@@ -24041,6 +25860,9 @@
     "contact": {
      "contact": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "removesItem": {
      "steals": true
     }
@@ -24052,6 +25874,7 @@
     "pp",
     "randomTarget",
     "contact",
+    "formatSecondaryCount",
     "locksIntoMove"
    ],
    "uses": 0,
@@ -24067,6 +25890,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "locksIntoMove": {
      "volatile": "lockedmove",
@@ -24088,7 +25914,8 @@
     "pp",
     "blocksSoundMoves",
     "sealsMoves",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 3654,
    "params": {
@@ -24108,6 +25935,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -24117,6 +25947,7 @@
     "pp",
     "weatherScaled",
     "inflictsParalysis",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 289,
@@ -24140,6 +25971,9 @@
      "p": 0.3,
      "via": "secondary"
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -24156,6 +25990,7 @@
    "tags": [
     "pp",
     "inflictsParalysis",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 3670,
@@ -24168,6 +26003,9 @@
     "inflictsParalysis": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -24187,6 +26025,7 @@
     "contact",
     "moveClass",
     "inflictsParalysis",
+    "formatSecondaryCount",
     "statusInflict",
     "flinches"
    ],
@@ -24208,6 +26047,9 @@
     "inflictsParalysis": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "formatSecondaryCount": {
+     "count": 2
     },
     "statusInflict": {
      "effects": [
@@ -24235,6 +26077,7 @@
     "contact",
     "moveClass",
     "inflictsParalysis",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 333,
@@ -24256,6 +26099,9 @@
      "p": 0.1,
      "via": "secondary"
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -24274,6 +26120,7 @@
     "moveClass",
     "statusCategory",
     "inflictsParalysis",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 438,
@@ -24295,6 +26142,9 @@
      "p": 0.9,
      "via": "primary"
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -24313,7 +26163,8 @@
     "moveClass",
     "lowersTarget",
     "statusCategory",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 236,
    "params": {
@@ -24345,6 +26196,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -24355,7 +26209,8 @@
     "neverMisses",
     "removesHazards",
     "statChangeInCode",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 26,
    "params": {
@@ -24389,6 +26244,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -24399,7 +26257,8 @@
     "moveClass",
     "neverMisses",
     "statChangeInCode",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 16,
    "params": {
@@ -24428,6 +26287,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -24437,7 +26299,8 @@
     "pp",
     "sound",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 45,
    "params": {
@@ -24466,6 +26329,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -24477,6 +26343,7 @@
     "moveClass",
     "statusCategory",
     "locksTarget",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 5,
@@ -24502,6 +26369,9 @@
     "locksTarget": {
      "locks": "torment"
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -24520,6 +26390,7 @@
     "moveClass",
     "statusCategory",
     "inflictsToxic",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 1132,
@@ -24541,6 +26412,9 @@
      "p": 0.9,
      "via": "primary"
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -24559,7 +26433,8 @@
     "moveClass",
     "neverMisses",
     "hazard",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 34,
    "params": {
@@ -24583,6 +26458,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -24592,7 +26470,8 @@
     "pp",
     "contact",
     "secondaryStatEffect",
-    "statChange"
+    "statChange",
+    "formatSecondaryCount"
    ],
    "uses": 72,
    "params": {
@@ -24621,6 +26500,9 @@
        "chance": 100
       }
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -24630,7 +26512,8 @@
     "pp",
     "neverMisses",
     "ignoresProtect",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 87,
    "params": {
@@ -24648,6 +26531,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -24655,7 +26541,8 @@
    "name": "Tri Attack",
    "tags": [
     "pp",
-    "proceduralStatus"
+    "proceduralStatus",
+    "formatSecondaryCount"
    ],
    "uses": 5,
    "params": {
@@ -24672,6 +26559,9 @@
       "frz"
      ],
      "each": 0.067
+    },
+    "formatSecondaryCount": {
+     "count": 1
     }
    }
   },
@@ -24681,6 +26571,7 @@
     "pp",
     "takesTargetItem",
     "statusCategory",
+    "formatSecondaryCount",
     "removesItem"
    ],
    "uses": 414,
@@ -24698,6 +26589,9 @@
     "statusCategory": {
      "status": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "removesItem": {
      "steals": true
     }
@@ -24710,7 +26604,8 @@
     "priority",
     "neverMisses",
     "reversesSpeed",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 9559,
    "params": {
@@ -24732,6 +26627,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -24742,6 +26640,7 @@
     "critRatioUp",
     "secondaryStatEffect",
     "statChange",
+    "formatSecondaryCount",
     "statusInflict",
     "flinches"
    ],
@@ -24773,6 +26672,9 @@
       }
      ]
     },
+    "formatSecondaryCount": {
+     "count": 2
+    },
     "statusInflict": {
      "effects": [
       {
@@ -24794,7 +26696,8 @@
     "multiHit",
     "variablePower",
     "multiAccuracy",
-    "contact"
+    "contact",
+    "formatSecondaryCount"
    ],
    "uses": 765,
    "params": {
@@ -24819,6 +26722,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -24826,7 +26732,8 @@
    "name": "Twin Beam",
    "tags": [
     "pp",
-    "multiHit"
+    "multiHit",
+    "formatSecondaryCount"
    ],
    "uses": 849,
    "params": {
@@ -24840,6 +26747,9 @@
      "distribution": "fixed",
      "hits": 2,
      "range": null
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -24850,6 +26760,7 @@
     "priority",
     "contact",
     "needsTargetToAttack",
+    "formatSecondaryCount",
     "statusInflict",
     "failsIfTargetNotAttacking",
     "failsIfTargetMoveNotPriority",
@@ -24872,6 +26783,9 @@
     "needsTargetToAttack": {
      "needs": "target attacking",
      "effect": "failsOutright"
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -24903,6 +26817,7 @@
     "pp",
     "randomTarget",
     "sound",
+    "formatSecondaryCount",
     "locksIntoMove"
    ],
    "uses": 3,
@@ -24918,6 +26833,9 @@
     },
     "sound": {
      "sound": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "locksIntoMove": {
      "volatile": "uproar",
@@ -24938,7 +26856,8 @@
    "tags": [
     "pp",
     "contact",
-    "pivotDamaging"
+    "pivotDamaging",
+    "formatSecondaryCount"
    ],
    "uses": 1300,
    "params": {
@@ -24952,6 +26871,9 @@
     },
     "pivotDamaging": {
      "selfSwitch": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -24959,7 +26881,8 @@
    "name": "Vacuum Wave",
    "tags": [
     "pp",
-    "priority"
+    "priority",
+    "formatSecondaryCount"
    ],
    "uses": 426,
    "params": {
@@ -24971,6 +26894,9 @@
     "priority": {
      "readFrom": "m.priority",
      "sign": "+"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -24978,7 +26904,8 @@
    "name": "Venoshock",
    "tags": [
     "pp",
-    "conditionalPower"
+    "conditionalPower",
+    "formatSecondaryCount"
    ],
    "uses": 9,
    "params": {
@@ -24994,6 +26921,9 @@
       "tox"
      ],
      "mult": 2
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -25001,7 +26931,8 @@
    "name": "Volt Switch",
    "tags": [
     "pp",
-    "pivotDamaging"
+    "pivotDamaging",
+    "formatSecondaryCount"
    ],
    "uses": 1662,
    "params": {
@@ -25012,6 +26943,9 @@
     },
     "pivotDamaging": {
      "selfSwitch": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -25022,6 +26956,7 @@
     "contact",
     "inflictsParalysis",
     "recoil",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 227,
@@ -25041,6 +26976,9 @@
     "recoil": {
      "readFrom": "m.recoil"
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -25057,6 +26995,7 @@
    "tags": [
     "pp",
     "contact",
+    "formatSecondaryCount",
     "statusInflict",
     "flinches"
    ],
@@ -25069,6 +27008,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -25090,6 +27032,7 @@
     "pp",
     "moveClass",
     "inflictsConfusion",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 95,
@@ -25106,6 +27049,9 @@
     },
     "inflictsConfusion": {
      "p": 0.2
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [
@@ -25124,7 +27070,8 @@
     "pp",
     "multiHit",
     "variablePower",
-    "priority"
+    "priority",
+    "formatSecondaryCount"
    ],
    "uses": 44,
    "params": {
@@ -25149,6 +27096,9 @@
     "priority": {
      "readFrom": "m.priority",
      "sign": "+"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -25157,7 +27107,8 @@
    "tags": [
     "pp",
     "variablePower",
-    "spreadFoes"
+    "spreadFoes",
+    "formatSecondaryCount"
    ],
    "uses": 857,
    "params": {
@@ -25172,6 +27123,9 @@
     "spreadFoes": {
      "target": "allAdjacentFoes",
      "hitsAlly": false
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -25180,7 +27134,8 @@
    "tags": [
     "pp",
     "contact",
-    "recoil"
+    "recoil",
+    "formatSecondaryCount"
    ],
    "uses": 7848,
    "params": {
@@ -25194,6 +27149,9 @@
     },
     "recoil": {
      "readFrom": "m.recoil"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -25202,7 +27160,8 @@
    "tags": [
     "pp",
     "weatherScaled",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 9357,
    "params": {
@@ -25235,6 +27194,9 @@
      "classes": [
       "bullet"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -25243,6 +27205,7 @@
    "tags": [
     "pp",
     "partialTrap",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 29,
@@ -25270,6 +27233,9 @@
       "chipPerTurn": 0.16666666666666666
      }
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -25290,7 +27256,8 @@
     "neverMisses",
     "ignoresProtect",
     "forcesSwitch",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 27,
    "params": {
@@ -25321,6 +27288,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -25333,7 +27303,8 @@
     "stallCounterFeeds",
     "failsIfMovesLast",
     "oneTurnGuard",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 4040,
    "params": {
@@ -25362,6 +27333,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -25370,7 +27344,8 @@
    "tags": [
     "pp",
     "contact",
-    "recoil"
+    "recoil",
+    "formatSecondaryCount"
    ],
    "uses": 146,
    "params": {
@@ -25384,6 +27359,9 @@
     },
     "recoil": {
      "readFrom": "m.recoil"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -25394,6 +27372,7 @@
     "moveClass",
     "statusCategory",
     "inflictsBurn",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 2190,
@@ -25415,6 +27394,9 @@
      "p": 0.85,
      "via": "primary"
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -25433,7 +27415,8 @@
     "neverMisses",
     "statusCategory",
     "healsSelf",
-    "healDescriptor"
+    "healDescriptor",
+    "formatSecondaryCount"
    ],
    "uses": 58,
    "params": {
@@ -25461,6 +27444,9 @@
       "of": "user",
       "round": "trunc"
      }
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -25470,7 +27456,8 @@
     "pp",
     "neverMisses",
     "swapsDefences",
-    "statusCategory"
+    "statusCategory",
+    "formatSecondaryCount"
    ],
    "uses": 12,
    "params": {
@@ -25488,6 +27475,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -25496,7 +27486,8 @@
    "tags": [
     "pp",
     "contact",
-    "recoil"
+    "recoil",
+    "formatSecondaryCount"
    ],
    "uses": 68,
    "params": {
@@ -25510,6 +27501,9 @@
     },
     "recoil": {
      "readFrom": "m.recoil"
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -25519,6 +27513,7 @@
     "pp",
     "moveClass",
     "statusCategory",
+    "formatSecondaryCount",
     "rewritesTargetAbility"
    ],
    "uses": 67,
@@ -25535,6 +27530,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "formatSecondaryCount": {
+     "count": 0
     },
     "rewritesTargetAbility": {
      "becomes": "insomnia",
@@ -25553,6 +27551,7 @@
     "pp",
     "partialTrap",
     "contact",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 0,
@@ -25583,6 +27582,9 @@
     "contact": {
      "contact": true
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -25599,7 +27601,8 @@
    "tags": [
     "pp",
     "contact",
-    "moveClass"
+    "moveClass",
+    "formatSecondaryCount"
    ],
    "uses": 90,
    "params": {
@@ -25615,6 +27618,9 @@
      "classes": [
       "slicing"
      ]
+    },
+    "formatSecondaryCount": {
+     "count": 0
     }
    }
   },
@@ -25626,6 +27632,7 @@
     "neverMisses",
     "statusCategory",
     "delayedSleep",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 1124,
@@ -25650,6 +27657,9 @@
     "delayedSleep": {
      "delay": 1
     },
+    "formatSecondaryCount": {
+     "count": 0
+    },
     "statusInflict": {
      "effects": [
       {
@@ -25667,6 +27677,7 @@
     "pp",
     "moveClass",
     "inflictsParalysis",
+    "formatSecondaryCount",
     "statusInflict"
    ],
    "uses": 2693,
@@ -25685,6 +27696,9 @@
      "p": 1,
      "via": "secondary"
     },
+    "formatSecondaryCount": {
+     "count": 1
+    },
     "statusInflict": {
      "effects": [
       {
@@ -25701,6 +27715,7 @@
    "tags": [
     "pp",
     "contact",
+    "formatSecondaryCount",
     "statusInflict",
     "flinches"
    ],
@@ -25713,6 +27728,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "formatSecondaryCount": {
+     "count": 1
     },
     "statusInflict": {
      "effects": [

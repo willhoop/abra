@@ -1,14 +1,14 @@
 {
-  "generated": "2026-08-11T10:20:07.335Z",
+  "generated": "2026-08-11T11:02:51.092Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
-    "register_rows": 155,
-    "open": 99,
-    "closed": 56,
-    "open_asserting_breakage": 3,
+    "register_rows": 160,
+    "open": 102,
+    "closed": 58,
+    "open_asserting_breakage": 1,
     "measured_disagreements": 0,
     "unregistered": 0
   },
@@ -581,15 +581,6 @@
       "full": "`test-tag-consumed` is red and it is the instrument, not the engine — 2026-08-11. its ratchet diffs a name list, so ten tags that arrived without a consumer read as ten that lost one. verified against `23661cc:data/tags.json`, where all ten are absent. the count is therefore not a regression and never was. it is in neither `run-all.js` nor the pre-commit hook, which is why a broken ratchet could sit red across a whole sprint being quoted as an engine figure — including by me, to will, twice tonight. fix the diff to compare consumption rather than membership, then register it as a gate"
     },
     {
-      "n": 185,
-      "section": "Solving — DUSK, and the retrograde idea",
-      "closed": false,
-      "saysBroken": true,
-      "uses": 0,
-      "title": "SINGLE-TARGET SCRIPTED CLICKS DO NOT REACH EITHER FOE — the open half of #174. In `staged_board` / `game_differential`, ",
-      "full": "single-target scripted clicks do not reach either foe — the open half of #174. in `staged_board` / `game_differential`, spread clicks diverge correctly under a mutant engine but `normal`-target clicks are identical at t:0 and t:1, with `movenotonrequest` at zero — so the click is accepted and lands on nobody. the engine is fine: the same charm through `battleturn` reads -2 with the ability off. it is the scripted path. until this is fixed, any single-target assertion in that harness is vacuous in the same way #174's twelve rows were, and #174 was only caught because somebody ran it with the mechanic deleted"
-    },
-    {
       "n": 186,
       "section": "Solving — DUSK, and the retrograde idea",
       "closed": false,
@@ -597,15 +588,6 @@
       "uses": 0,
       "title": "LEVITATE IS GATED TWICE AND THE TWO GATES AGREE ONLY BY LUCK — 2026-08-11. `absorbedBy`/`typeImmunity` and `isGrounded`/",
       "full": "levitate is gated twice and the two gates agree only by luck — 2026-08-11. `absorbedby`/`typeimmunity` and `isgrounded`/`airborne_abil` are independent implementations of one fact, which is facts-are-global broken inside the engine. found because breaking either one alone left the assert-mode probe green at 0/85 — the duplication is what made the test unfalsifiable. they agree today. one implementation, everyone calls it"
-    },
-    {
-      "n": 187,
-      "section": "Solving — DUSK, and the retrograde idea",
-      "closed": false,
-      "saysBroken": true,
-      "uses": 0,
-      "title": "FREEZE-DRY ROLLS A 10% FREEZE THAT THIS FORMAT DELETED — 1,656 corpus uses. `data/move-effects.js` carries MAINLINE's se",
-      "full": "freeze-dry rolls a 10% freeze that this format deleted — 1,656 corpus uses. `data/move-effects.js` carries mainline's secondary; `pokemon-showdown/data/mods/champions/moves.ts:394-399` sets `secondary: undefined, // no inherit`. no tag covers a removed secondary, so the rulebook fallback is unchallenged and the engine freezes people with a move that cannot freeze in champions. found by `million_run.js --declaration-only` — the one real disagreement of 118 pairs. the pair is refused for scoring so the published run is unaffected. this is the shape the whole mod-override rule exists for: reading `/data/moves.ts` is reading mainline, and here the mainline value reached an artifact"
     },
     {
       "n": 188,
@@ -624,6 +606,51 @@
       "uses": 0,
       "title": "THE RUNNER'S LOUDEST NUMBER WAS ITS OWN BUG, AND THAT IS THE ROW. The OHKO arm read 34.40% against a declared 30 on 7,00",
       "full": "the runner's loudest number was its own bug, and that is the row. the ohko arm read 34.40% against a declared 30 on 7,005 trials, z = +8.0 — bonferroni-surviving, and a clean false accusation against the engine. a raw probe over 25,000 games counting only `|-miss|` and `|-damage|` inside an ohko block, with no eligibility rules at all, reads 1,081/3,622 = 29.85% [28.4, 31.4], and `hitchance` returns exactly 30 for fissure. the family is now tallied and not scored — withheld rather than captioned, per claude.md. three further instrument denominator defects were found and fixed as controlled before/afters (same seed, same release, one change each): silently-refused secondary stat drops (z −6.157 -> −4.60), `[from]` residual lines counting as connections, and an explicit miss being overridden (accuracy z +2.53 -> +1.52, ohko 34.40 -> 32.89). two hypotheses were measured and rejected before becoming prose — ally veils/safeguard (`allyveilrefused=1`, `sidebuffrefused=0`) and mid-turn replacements (moved z by 0.000). owed: the ohko denominator must be reconciled with the rule-free count before that arm is scored again"
+    },
+    {
+      "n": 190,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "FIVE ABILITIES RECORD CORPUS USES THAT THE CARRIER DERIVATION SAYS ARE IMPOSSIBLE. Found 2026-08-11 while measuring #175",
+      "full": "five abilities record corpus uses that the carrier derivation says are impossible. found 2026-08-11 while measuring #175's proposal. `serenegrace` 5, `stormdrain` 3, `psychicsurge` 2, `tintedlens` 2, `steelyspirit` 1 — all five sit in the 93 abilities derived as having no legal carrier in reg m-b, and all five appear in the usage corpus. exactly one of two things is true and both are serious: either the corpus contains games that are not reg m-b — which would contaminate every usage-weighted figure this project quotes, including the 99%-of-usage coverage bar — or the carrier derivation is incomplete, which would mean the legality filter this repo now relies on everywhere under-reports. this must be settled before #175's carrier-less proposal is adopted, and before any usage weight is quoted as authoritative. note the shape: it is the same class as the mega-ability audit — two derived views of one fact that nobody had compared"
+    },
+    {
+      "n": 191,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "OUR MOVE RULEBOOK IS GENERATED FROM MAINLINE, NOT FROM THE CHAMPIONS MOD — and 22 values differ. THE 22 ARE MOOT; THE GE",
+      "full": "our move rulebook is generated from mainline, not from the champions mod — and 22 values differ. the 22 are moot; the generator is not. `data/move-effects.js` is generated from `chomp/data/move-effects.json`, built by `chomp/build/build_move_effects.js`, which contains zero references to `forformat`, `mods/champions` or the champions dex. its own header claims the values come *\"straight from showdown's moves.json - the same server data that runs the format\"* — that sentence is false: `moves.json` is mainline, the format runs the mod. `tests/test-mod-conformance.js` (new) asks the two dexes which fields differ rather than comparing a chosen list, because the hand-written first version compared six fields, found 24, and missed 42 pp differences, 6 flag changes and salt cure's halved residual — the exact failure `mod_audit.js`'s own header warns about, read on the same night it was repeated. the 22 were then falsified rather than assumed live: driving the rulebook's `bp` to 999 moves a real turn by nothing (56 -> 56) while `engine-data.js` moves it (56 -> 647); forcing its `type` moves nothing (155 -> 155) while forcing engine-data's does (155 -> 78). base power, type and accuracy all come from format-derived surfaces; the only field the engine reads out of that file is the secondary, and after #187 none is unguarded. so this row is about the generator, not the values. repoint it at the mod. cross-checked independently against bulbapedia's champions section, which confirms dire claw 50% -> 30% + slicing, and freeze-dry losing freeze"
+    },
+    {
+      "n": 192,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE SPEED CLAIM THE WHOLE ENGINE PROGRAMME RESTS ON, MEASURED FOR THE FIRST TIME: C/B = 7.82x. `engine/speed_vs_pokeenv.",
+      "full": "the speed claim the whole engine programme rests on, measured for the first time: c/b = 7.82x. `engine/speed_vs_pokeenv.js` had never been executed. 200 games, same teams, same random policy, quiet machine: showdown in-process 28.7 games/sec; medicham 224.5 games/sec. adr-003's feared null result — *\"if c/b is near 1 the programme's justification is transport avoidance, which driving battlestream in-process already gave us for free\"* — did not happen. three defects were found by running it, each invisible to inspection: (1) it loaded the engine wrong, copying `game_differential.js:147` and not `:128`, so the data tables were never loaded and the first call died on `mc is not defined`; (2) it handed showdown-shaped sets to a medicham-shaped builder and got 0 usable bodies from 6 — fixed with the repo's existing `buildpair`, as its own header instructed, rather than a third implementation; (3) an uncaught throw in one arm destroyed the other arm's measurement, because the artifact is written after both — arm b, the honest baseline, was computed and discarded every time. arms are isolated now. taken under `--anyway` with the gate closed and 5 uncommitted engine files, both stamped into the artifact. arm a (poke-env) remains unwritten and will has declared it out of scope — it measures a network round trip"
+    },
+    {
+      "n": 193,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "A RED DEMONSTRATION WENT INTERMITTENTLY GREEN AND NOBODY CAN EXPLAIN IT. `staged_board.js --only nuzzle-paralysis --reds",
+      "full": "a red demonstration went intermittently green and nobody can explain it. `staged_board.js --only nuzzle-paralysis --reds` printed `not caught` once at ~10:40 on 2026-08-11 and `caught and localised` on four consecutive runs after, with no file edited between and the same census digest both times. a demonstration that a probe can fail is the only thing that makes it worth trusting; one that is intermittently green is worse than the run it appeared in, because it makes every future red look like noise. not reproduced, not called fixed, deliberately not buried in a passing run"
+    },
+    {
+      "n": 194,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "MILTANK AND MAG ARE BOTH OWNED BY WILL AND ARE BEING REWORKED BY HIM — DECLARED 2026-08-11. Will: *\"im gonna rework milt",
+      "full": "miltank and mag are both owned by will and are being reworked by him — declared 2026-08-11. will: *\"im gonna rework miltank so dont spend too much time on it\"*, then *\"same with mag\"*. this extends #26, which already put the mag weights in his hands, to the search itself. consequences, so nobody spends a night on a number that is about to be replaced: do not refit the weights, do not restamp the feature fixture, and do not re-run the miltank timing — `data/miltank-timing-r6.json` is 7 days old and describes a superseded engine build (`medicham2-browser.js b1b3ea94d5c3`), and re-running it costs ~8 minutes of quiet machine to characterise something being rewritten. the invocation is recorded in `docs/search.md` if it is ever wanted: `miltank_timing=… engine/mew.js --miltank --miltank-n 200 --miltank-preview-n 40 --seed 90001`, then `engine/miltank.js --reduce`. what is still worth knowing and is not his: #62's gate — miltank untimed against miltank on the clock — because `clock_observations` reads 0 in that artifact, so the clocked arm has never once been observed, and that is a fact about the harness rather than about any particular miltank"
     },
     {
       "n": 47,
@@ -910,7 +937,7 @@
     {
       "artifact": "data/interaction-matrix.json",
       "generated": "2026-08-11T06:49:30.092Z",
-      "age_days": 0.1
+      "age_days": 0.2
     }
   ]
 }
