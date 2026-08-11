@@ -1952,6 +1952,42 @@ function ppDeduct(m,id,amount){
   if(amt>0) MEDSEEN.ppDeducted+=amt;
   return amt;
 }
+/* HOW MUCH PP THIS BODY HAS SPENT, PER MOVE -- the quantity a COMPARATOR can ask both engines.
+ *
+ * WHY SPENT AND NOT REMAINING. `_pp` is LAZY: a slot only appears the first time it is touched, so an
+ * unspent move is ABSENT here and FULL in Showdown's eager `moveSlots`. Read as REMAINING those two
+ * shapes disagree on every untouched move in every game; read as SPENT they are both 0, which is the
+ * same collapse `board_state.js`'s `no-condition-is-zero` mapping already makes and for the same
+ * reason. Spent is also the quantity Spite, Pressure and Leppa Berry MOVE, so nothing interesting is
+ * lost by choosing it.
+ *
+ * IT MUST NOT MATERIALISE THE TABLE. `ppLeft` writes the slot on first read, so calling it here would
+ * make merely LOOKING at a board change the board -- an observer that mutates its subject. The map is
+ * read directly and an absent key is 0.
+ *
+ * EXPORTED BECAUSE IT IS A FACT AND NOT A FEATURE (CLAUDE.md). The comparator must not keep its own
+ * idea of what our PP maximum is; it asks this engine, exactly as it asks `weatherId` for our word
+ * for the sky. `null` is returned for a body with no PP number at all, which is deliberately distinct
+ * from "nothing spent". */
+function ppSpentMap(m){
+  if(!m) return null;
+  const out={};
+  const t=(m&&m._pp)||null;
+  const keys=new Set();
+  for(const id of ((m&&m.moves)||[])) keys.add(String(id).toLowerCase().replace(/[^a-z0-9]/g,''));
+  /* A KEY IN THE TABLE THAT IS NOT ON THE MOVE LIST STILL COUNTS. Mimic and Transform can spend a
+   * move the body did not start with, and a comparator that walked only `moves` would silently drop
+   * exactly the rows where the two engines are most likely to part. */
+  if(t) for(const k of Object.keys(t)) keys.add(k);
+  for(const k of keys){
+    if(!k) continue;
+    const mx=ppMax(k);
+    if(mx==null) continue;                      // no PP number for this move -- ppMax already counted it
+    const left=(t&&(k in t))?t[k]:mx;           // absent = untouched = full = 0 spent
+    out[k]=Math.max(0,mx-left);
+  }
+  return out;
+}
 /* IS EVERY MOVE ON THIS BODY OUT? -- the Struggle condition, and it asks the body's OWN move list so
  * a four-move sheet and a one-move probe body both answer correctly. A body carrying no PP number at
  * all (a tagger gap) answers false, because "unknown" must never be read as "empty". */
@@ -18125,6 +18161,10 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
    * be able to ask THIS engine what its weather words are, rather than keeping a second map that
    * drifts. rollout_leaf.applyField is the caller that needed it and could not reach it. */
   weatherId,terrainId,
+  /* THE PP FACT, for the comparator. `ppSpentMap` is the only place that knows our table is lazy and
+     that an absent slot is a full one; `ppMax` rides beside it so an instrument can say what the
+     format's maximum is without keeping a second copy of the artifact. See ppSpentMap's comment. */
+  ppSpentMap,ppMax,
   /* Same argument one step further on: the MEGA route lives in rollout_leaf and was the third of
    * four setters writing a literal 5. It calls this rather than growing its own rock read. */
   weatherTurns,

@@ -430,6 +430,25 @@ function engine() {
     for (const w of (d.worst || []).slice(0, 6)) {
       say(`    ${w.att} ${w.mv} -> ${w.def}: showdown ${w.showdown}, medicham ${w.medicham}  (${w.uses} uses)`);
     }
+    /* ---- THE HEADLINE ABOVE IS A MIDPOINT, AND SAYING SO IS NOT OPTIONAL (ROADMAP #88) -----------
+     *
+     * `disagreed` averages Showdown's two damage endpoints, averages MEDICHAM's, and compares the two
+     * averages. A range wrong by the same amount at BOTH ends has an identical midpoint and cannot move
+     * it — demonstrated in the instrument itself by `--plant spread`, which reads 0 on the midpoint and
+     * 196/218 of 300 on the corners. The number is real and it is weaker than it looks, so the corners
+     * are printed BESIDE it rather than instead of it: the series stays comparable and nobody reads the
+     * headline as the stronger claim. `engine/quarantine.js` gates on both.
+     *
+     * ABSENT IS SAID OUT LOUD. An older artifact carries no `arms`, and printing nothing there would be
+     * indistinguishable from printing two zeros. */
+    if (Array.isArray(d.arms) && d.arms.length) {
+      say('    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:'
+        + '  ' + d.arms.map(a => `${a.arm} ${a.disagreed || 0}/${a.compared}`).join(',  '));
+    } else {
+      say('    THE CORNER ARMS ARE ABSENT from this artifact, so the line above is a MIDPOINT and nothing '
+        + 'here says whether either endpoint agrees. Re-run tests/test-engine-diff.js.');
+    }
+    if (d.plant) say(`    *** THIS ARTIFACT IS A PLANTED RED DEMONSTRATION (--plant ${d.plant.kind}) AND IS NOT A MEASUREMENT.`);
     say('    a differential hit is NOT in the census count above — the census probes what someone thought to probe');
   } else say('  differential: NOT DERIVED (data/engine-diff.json absent — run tests/test-engine-diff.js)');
 

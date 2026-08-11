@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-11T13:55:05.578Z",
+  "generated": "2026-08-11T14:16:36.914Z",
   "by": "tests/test-engine-diff.js",
   "design": "Showdown is the authority. Same attacker, move and defender through both engines; a disagreement is a MEDICHAM bug, including one nobody thought to look for.",
   "scope": "damage only, no items or abilities. Turn order, status duration and switching need a different harness and are not attempted here rather than attempted badly.",
@@ -9,6 +9,28 @@
   "agreed": 6000,
   "disagreed": 0,
   "worst": [],
+  "plant": null,
+  "arms": [
+    {
+      "arm": "top",
+      "what": "Showdown damage roll index 0 (MAXIMUM) against MEDICHAM's `max`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 6000,
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
+    },
+    {
+      "arm": "bottom",
+      "what": "Showdown damage roll index 15 (MINIMUM) against MEDICHAM's `min`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 6000,
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
+    }
+  ],
+  "arms_why": "A MIDPOINT CANNOT SEE A RANGE THAT IS WRONG BY THE SAME AMOUNT AT BOTH ENDS. `--plant spread` widens MEDICHAM's range symmetrically and leaves `disagreed` at exactly its unplanted value while both arms light up, which is the demonstration that these two numbers are not restatements of the one above them.",
   "skipped_non_finite": 0,
   "skipped_moves": {},
   "skipped_multihit": 187,

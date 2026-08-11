@@ -1,0 +1,867 @@
+{
+  "generated": "2026-08-11T14:16:17.226Z",
+  "by": "tests/test-engine-diff.js",
+  "design": "Showdown is the authority. Same attacker, move and defender through both engines; a disagreement is a MEDICHAM bug, including one nobody thought to look for.",
+  "scope": "damage only, no items or abilities. Turn order, status duration and switching need a different harness and are not attempted here rather than attempted badly.",
+  "seed": 20260804,
+  "requested": 300,
+  "compared": 300,
+  "agreed": 300,
+  "disagreed": 0,
+  "worst": [],
+  "plant": {
+    "kind": "spread",
+    "halfwidth": 12,
+    "warning": "THIS RUN WAS DELIBERATELY BROKEN. It is a red demonstration of the corner arms and NOTHING in it may be quoted as a measurement."
+  },
+  "arms": [
+    {
+      "arm": "top",
+      "what": "Showdown damage roll index 0 (MAXIMUM) against MEDICHAM's `max`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 300,
+      "agreed": 104,
+      "disagreed": 196,
+      "worst": [
+        {
+          "att": "grimmsnarl",
+          "mv": "fakeout",
+          "def": "appletun",
+          "showdown": "35",
+          "medicham": "47",
+          "rel": 0.34285714285714286,
+          "uses": 16871,
+          "suspect": false
+        },
+        {
+          "att": "toxicroak",
+          "mv": "fakeout",
+          "def": "klefki",
+          "showdown": "12",
+          "medicham": "24",
+          "rel": 1,
+          "uses": 16871,
+          "suspect": false
+        },
+        {
+          "att": "sableye",
+          "mv": "fakeout",
+          "def": "diggersby",
+          "showdown": "17",
+          "medicham": "29",
+          "rel": 0.7058823529411765,
+          "uses": 16871,
+          "suspect": false
+        },
+        {
+          "att": "blastoise",
+          "mv": "fakeout",
+          "def": "reuniclus",
+          "showdown": "19",
+          "medicham": "31",
+          "rel": 0.631578947368421,
+          "uses": 16871,
+          "suspect": false
+        },
+        {
+          "att": "toxicroak",
+          "mv": "fakeout",
+          "def": "houndoom",
+          "showdown": "55",
+          "medicham": "67",
+          "rel": 0.21818181818181817,
+          "uses": 16871,
+          "suspect": false
+        },
+        {
+          "att": "weavile",
+          "mv": "fakeout",
+          "def": "avalugg",
+          "showdown": "18",
+          "medicham": "30",
+          "rel": 0.6666666666666666,
+          "uses": 16871,
+          "suspect": false
+        },
+        {
+          "att": "meowstic",
+          "mv": "fakeout",
+          "def": "crabominable",
+          "showdown": "21",
+          "medicham": "33",
+          "rel": 0.5714285714285714,
+          "uses": 16871,
+          "suspect": false
+        },
+        {
+          "att": "mrrime",
+          "mv": "fakeout",
+          "def": "torterra",
+          "showdown": "15",
+          "medicham": "27",
+          "rel": 0.8,
+          "uses": 16871,
+          "suspect": false
+        },
+        {
+          "att": "meowstic",
+          "mv": "fakeout",
+          "def": "overqwil",
+          "showdown": "18",
+          "medicham": "30",
+          "rel": 0.6666666666666666,
+          "uses": 16871,
+          "suspect": false
+        },
+        {
+          "att": "garchomp",
+          "mv": "rockslide",
+          "def": "excadrill",
+          "showdown": "21",
+          "medicham": "33",
+          "rel": 0.5714285714285714,
+          "uses": 15508,
+          "suspect": false
+        },
+        {
+          "att": "hippowdon",
+          "mv": "rockslide",
+          "def": "aegislash",
+          "showdown": "21",
+          "medicham": "33",
+          "rel": 0.5714285714285714,
+          "uses": 15508,
+          "suspect": false
+        },
+        {
+          "att": "runerigus",
+          "mv": "rockslide",
+          "def": "kangaskhan",
+          "showdown": "56",
+          "medicham": "68",
+          "rel": 0.21428571428571427,
+          "uses": 15508,
+          "suspect": false
+        },
+        {
+          "att": "dragonite",
+          "mv": "rockslide",
+          "def": "simipour",
+          "showdown": "91",
+          "medicham": "103",
+          "rel": 0.13186813186813187,
+          "uses": 15508,
+          "suspect": false
+        },
+        {
+          "att": "orthworm",
+          "mv": "rockslide",
+          "def": "typhlosion",
+          "showdown": "96",
+          "medicham": "108",
+          "rel": 0.125,
+          "uses": 15508,
+          "suspect": false
+        },
+        {
+          "att": "mamoswine",
+          "mv": "rockslide",
+          "def": "meowstic",
+          "showdown": "56",
+          "medicham": "68",
+          "rel": 0.21428571428571427,
+          "uses": 15508,
+          "suspect": false
+        },
+        {
+          "att": "avalugg",
+          "mv": "rockslide",
+          "def": "blaziken",
+          "showdown": "69",
+          "medicham": "81",
+          "rel": 0.17391304347826086,
+          "uses": 15508,
+          "suspect": false
+        },
+        {
+          "att": "arbok",
+          "mv": "rockslide",
+          "def": "starmie",
+          "showdown": "52",
+          "medicham": "64",
+          "rel": 0.23076923076923078,
+          "uses": 15508,
+          "suspect": false
+        },
+        {
+          "att": "medicham",
+          "mv": "closecombat",
+          "def": "sinistcha",
+          "showdown": "0",
+          "medicham": "12",
+          "rel": 12,
+          "uses": 12482,
+          "suspect": true
+        },
+        {
+          "att": "medicham",
+          "mv": "closecombat",
+          "def": "toxapex",
+          "showdown": "53",
+          "medicham": "65",
+          "rel": 0.22641509433962265,
+          "uses": 12482,
+          "suspect": false
+        },
+        {
+          "att": "kleavor",
+          "mv": "closecombat",
+          "def": "hydrapple",
+          "showdown": "93",
+          "medicham": "105",
+          "rel": 0.12903225806451613,
+          "uses": 12482,
+          "suspect": false
+        },
+        {
+          "att": "infernape",
+          "mv": "closecombat",
+          "def": "aromatisse",
+          "showdown": "49",
+          "medicham": "61",
+          "rel": 0.24489795918367346,
+          "uses": 12482,
+          "suspect": false
+        },
+        {
+          "att": "hawlucha",
+          "mv": "closecombat",
+          "def": "hawlucha",
+          "showdown": "75",
+          "medicham": "87",
+          "rel": 0.16,
+          "uses": 12482,
+          "suspect": false
+        },
+        {
+          "att": "annihilape",
+          "mv": "closecombat",
+          "def": "basculegion",
+          "showdown": "0",
+          "medicham": "12",
+          "rel": 12,
+          "uses": 12482,
+          "suspect": true
+        },
+        {
+          "att": "hydreigon",
+          "mv": "heatwave",
+          "def": "chimecho",
+          "showdown": "83",
+          "medicham": "95",
+          "rel": 0.14457831325301204,
+          "uses": 9444,
+          "suspect": false
+        },
+        {
+          "att": "flareon",
+          "mv": "heatwave",
+          "def": "grimmsnarl",
+          "showdown": "51",
+          "medicham": "63",
+          "rel": 0.23529411764705882,
+          "uses": 9444,
+          "suspect": false
+        },
+        {
+          "att": "charizard",
+          "mv": "heatwave",
+          "def": "snorlax",
+          "showdown": "97",
+          "medicham": "109",
+          "rel": 0.12371134020618557,
+          "uses": 9444,
+          "suspect": false
+        },
+        {
+          "att": "flareon",
+          "mv": "heatwave",
+          "def": "skeledirge",
+          "showdown": "35",
+          "medicham": "47",
+          "rel": 0.34285714285714286,
+          "uses": 9444,
+          "suspect": false
+        },
+        {
+          "att": "flareon",
+          "mv": "weatherball",
+          "def": "zoroark",
+          "showdown": "30",
+          "medicham": "42",
+          "rel": 0.4,
+          "uses": 9357,
+          "suspect": false
+        },
+        {
+          "att": "politoed",
+          "mv": "weatherball",
+          "def": "drampa",
+          "showdown": "33",
+          "medicham": "45",
+          "rel": 0.36363636363636365,
+          "uses": 9357,
+          "suspect": false
+        },
+        {
+          "att": "meowscarada",
+          "mv": "suckerpunch",
+          "def": "bastiodon",
+          "showdown": "42",
+          "medicham": "54",
+          "rel": 0.2857142857142857,
+          "uses": 9330,
+          "suspect": false
+        },
+        {
+          "att": "spiritomb",
+          "mv": "suckerpunch",
+          "def": "manectric",
+          "showdown": "67",
+          "medicham": "79",
+          "rel": 0.1791044776119403,
+          "uses": 9330,
+          "suspect": false
+        },
+        {
+          "att": "houndoom",
+          "mv": "suckerpunch",
+          "def": "feraligatr",
+          "showdown": "45",
+          "medicham": "57",
+          "rel": 0.26666666666666666,
+          "uses": 9330,
+          "suspect": false
+        },
+        {
+          "att": "musharna",
+          "mv": "moonblast",
+          "def": "vileplume",
+          "showdown": "37",
+          "medicham": "49",
+          "rel": 0.32432432432432434,
+          "uses": 9318,
+          "suspect": false
+        },
+        {
+          "att": "musharna",
+          "mv": "moonblast",
+          "def": "farigiraf",
+          "showdown": "92",
+          "medicham": "104",
+          "rel": 0.13043478260869565,
+          "uses": 9318,
+          "suspect": false
+        },
+        {
+          "att": "whimsicott",
+          "mv": "moonblast",
+          "def": "scolipede",
+          "showdown": "53",
+          "medicham": "65",
+          "rel": 0.22641509433962265,
+          "uses": 9318,
+          "suspect": false
+        },
+        {
+          "att": "kommoo",
+          "mv": "ironhead",
+          "def": "avalugg",
+          "showdown": "44",
+          "medicham": "56",
+          "rel": 0.2727272727272727,
+          "uses": 9314,
+          "suspect": false
+        },
+        {
+          "att": "aerodactyl",
+          "mv": "earthquake",
+          "def": "hydreigon",
+          "showdown": "0",
+          "medicham": "12",
+          "rel": 12,
+          "uses": 9209,
+          "suspect": true
+        },
+        {
+          "att": "passimian",
+          "mv": "earthquake",
+          "def": "toxapex",
+          "showdown": "80",
+          "medicham": "92",
+          "rel": 0.15,
+          "uses": 9209,
+          "suspect": false
+        },
+        {
+          "att": "swampert",
+          "mv": "earthquake",
+          "def": "hydreigon",
+          "showdown": "0",
+          "medicham": "12",
+          "rel": 12,
+          "uses": 9209,
+          "suspect": true
+        },
+        {
+          "att": "basculegion",
+          "mv": "wavecrash",
+          "def": "milotic",
+          "showdown": "74",
+          "medicham": "86",
+          "rel": 0.16216216216216217,
+          "uses": 7848,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "bottom",
+      "what": "Showdown damage roll index 15 (MINIMUM) against MEDICHAM's `min`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 300,
+      "agreed": 82,
+      "disagreed": 218,
+      "worst": [
+        {
+          "att": "grimmsnarl",
+          "mv": "fakeout",
+          "def": "appletun",
+          "showdown": "29",
+          "medicham": "17",
+          "rel": 0.41379310344827586,
+          "uses": 16871,
+          "suspect": false
+        },
+        {
+          "att": "toxicroak",
+          "mv": "fakeout",
+          "def": "klefki",
+          "showdown": "10",
+          "medicham": "-2",
+          "rel": 1.2,
+          "uses": 16871,
+          "suspect": false
+        },
+        {
+          "att": "sableye",
+          "mv": "fakeout",
+          "def": "diggersby",
+          "showdown": "14",
+          "medicham": "2",
+          "rel": 0.8571428571428571,
+          "uses": 16871,
+          "suspect": false
+        },
+        {
+          "att": "blastoise",
+          "mv": "fakeout",
+          "def": "reuniclus",
+          "showdown": "16",
+          "medicham": "4",
+          "rel": 0.75,
+          "uses": 16871,
+          "suspect": false
+        },
+        {
+          "att": "toxicroak",
+          "mv": "fakeout",
+          "def": "houndoom",
+          "showdown": "46",
+          "medicham": "34",
+          "rel": 0.2608695652173913,
+          "uses": 16871,
+          "suspect": false
+        },
+        {
+          "att": "weavile",
+          "mv": "fakeout",
+          "def": "avalugg",
+          "showdown": "15",
+          "medicham": "3",
+          "rel": 0.8,
+          "uses": 16871,
+          "suspect": false
+        },
+        {
+          "att": "meowstic",
+          "mv": "fakeout",
+          "def": "crabominable",
+          "showdown": "17",
+          "medicham": "5",
+          "rel": 0.7058823529411765,
+          "uses": 16871,
+          "suspect": false
+        },
+        {
+          "att": "mrrime",
+          "mv": "fakeout",
+          "def": "torterra",
+          "showdown": "12",
+          "medicham": "0",
+          "rel": 1,
+          "uses": 16871,
+          "suspect": false
+        },
+        {
+          "att": "meowstic",
+          "mv": "fakeout",
+          "def": "overqwil",
+          "showdown": "15",
+          "medicham": "3",
+          "rel": 0.8,
+          "uses": 16871,
+          "suspect": false
+        },
+        {
+          "att": "garchomp",
+          "mv": "rockslide",
+          "def": "excadrill",
+          "showdown": "17",
+          "medicham": "5",
+          "rel": 0.7058823529411765,
+          "uses": 15508,
+          "suspect": false
+        },
+        {
+          "att": "hippowdon",
+          "mv": "rockslide",
+          "def": "aegislash",
+          "showdown": "18",
+          "medicham": "6",
+          "rel": 0.6666666666666666,
+          "uses": 15508,
+          "suspect": false
+        },
+        {
+          "att": "runerigus",
+          "mv": "rockslide",
+          "def": "kangaskhan",
+          "showdown": "47",
+          "medicham": "35",
+          "rel": 0.2553191489361702,
+          "uses": 15508,
+          "suspect": false
+        },
+        {
+          "att": "dragonite",
+          "mv": "rockslide",
+          "def": "simipour",
+          "showdown": "77",
+          "medicham": "65",
+          "rel": 0.15584415584415584,
+          "uses": 15508,
+          "suspect": false
+        },
+        {
+          "att": "orthworm",
+          "mv": "rockslide",
+          "def": "typhlosion",
+          "showdown": "80",
+          "medicham": "68",
+          "rel": 0.15,
+          "uses": 15508,
+          "suspect": false
+        },
+        {
+          "att": "mamoswine",
+          "mv": "rockslide",
+          "def": "meowstic",
+          "showdown": "47",
+          "medicham": "35",
+          "rel": 0.2553191489361702,
+          "uses": 15508,
+          "suspect": false
+        },
+        {
+          "att": "avalugg",
+          "mv": "rockslide",
+          "def": "blaziken",
+          "showdown": "58",
+          "medicham": "46",
+          "rel": 0.20689655172413793,
+          "uses": 15508,
+          "suspect": false
+        },
+        {
+          "att": "arbok",
+          "mv": "rockslide",
+          "def": "starmie",
+          "showdown": "44",
+          "medicham": "32",
+          "rel": 0.2727272727272727,
+          "uses": 15508,
+          "suspect": false
+        },
+        {
+          "att": "medicham",
+          "mv": "closecombat",
+          "def": "sinistcha",
+          "showdown": "0",
+          "medicham": "-12",
+          "rel": 12,
+          "uses": 12482,
+          "suspect": false
+        },
+        {
+          "att": "medicham",
+          "mv": "closecombat",
+          "def": "toxapex",
+          "showdown": "45",
+          "medicham": "33",
+          "rel": 0.26666666666666666,
+          "uses": 12482,
+          "suspect": false
+        },
+        {
+          "att": "kleavor",
+          "mv": "closecombat",
+          "def": "hydrapple",
+          "showdown": "79",
+          "medicham": "67",
+          "rel": 0.1518987341772152,
+          "uses": 12482,
+          "suspect": false
+        },
+        {
+          "att": "infernape",
+          "mv": "closecombat",
+          "def": "aromatisse",
+          "showdown": "42",
+          "medicham": "30",
+          "rel": 0.2857142857142857,
+          "uses": 12482,
+          "suspect": false
+        },
+        {
+          "att": "hawlucha",
+          "mv": "closecombat",
+          "def": "hawlucha",
+          "showdown": "63",
+          "medicham": "51",
+          "rel": 0.19047619047619047,
+          "uses": 12482,
+          "suspect": false
+        },
+        {
+          "att": "annihilape",
+          "mv": "closecombat",
+          "def": "basculegion",
+          "showdown": "0",
+          "medicham": "-12",
+          "rel": 12,
+          "uses": 12482,
+          "suspect": false
+        },
+        {
+          "att": "hydreigon",
+          "mv": "heatwave",
+          "def": "chimecho",
+          "showdown": "70",
+          "medicham": "58",
+          "rel": 0.17142857142857143,
+          "uses": 9444,
+          "suspect": false
+        },
+        {
+          "att": "flareon",
+          "mv": "heatwave",
+          "def": "grimmsnarl",
+          "showdown": "42",
+          "medicham": "30",
+          "rel": 0.2857142857142857,
+          "uses": 9444,
+          "suspect": false
+        },
+        {
+          "att": "charizard",
+          "mv": "heatwave",
+          "def": "snorlax",
+          "showdown": "82",
+          "medicham": "70",
+          "rel": 0.14634146341463414,
+          "uses": 9444,
+          "suspect": false
+        },
+        {
+          "att": "flareon",
+          "mv": "heatwave",
+          "def": "skeledirge",
+          "showdown": "29",
+          "medicham": "17",
+          "rel": 0.41379310344827586,
+          "uses": 9444,
+          "suspect": false
+        },
+        {
+          "att": "ninetales",
+          "mv": "heatwave",
+          "def": "audino",
+          "showdown": "84",
+          "medicham": "72",
+          "rel": 0.14285714285714285,
+          "uses": 9444,
+          "suspect": false
+        },
+        {
+          "att": "flareon",
+          "mv": "weatherball",
+          "def": "zoroark",
+          "showdown": "25",
+          "medicham": "13",
+          "rel": 0.48,
+          "uses": 9357,
+          "suspect": false
+        },
+        {
+          "att": "politoed",
+          "mv": "weatherball",
+          "def": "drampa",
+          "showdown": "28",
+          "medicham": "16",
+          "rel": 0.42857142857142855,
+          "uses": 9357,
+          "suspect": false
+        },
+        {
+          "att": "meowscarada",
+          "mv": "suckerpunch",
+          "def": "bastiodon",
+          "showdown": "34",
+          "medicham": "22",
+          "rel": 0.35294117647058826,
+          "uses": 9330,
+          "suspect": false
+        },
+        {
+          "att": "spiritomb",
+          "mv": "suckerpunch",
+          "def": "manectric",
+          "showdown": "57",
+          "medicham": "45",
+          "rel": 0.21052631578947367,
+          "uses": 9330,
+          "suspect": false
+        },
+        {
+          "att": "houndoom",
+          "mv": "suckerpunch",
+          "def": "feraligatr",
+          "showdown": "37",
+          "medicham": "25",
+          "rel": 0.32432432432432434,
+          "uses": 9330,
+          "suspect": false
+        },
+        {
+          "att": "florges",
+          "mv": "moonblast",
+          "def": "cofagrigus",
+          "showdown": "85",
+          "medicham": "73",
+          "rel": 0.1411764705882353,
+          "uses": 9318,
+          "suspect": false
+        },
+        {
+          "att": "musharna",
+          "mv": "moonblast",
+          "def": "vileplume",
+          "showdown": "31",
+          "medicham": "19",
+          "rel": 0.3870967741935484,
+          "uses": 9318,
+          "suspect": false
+        },
+        {
+          "att": "musharna",
+          "mv": "moonblast",
+          "def": "farigiraf",
+          "showdown": "78",
+          "medicham": "66",
+          "rel": 0.15384615384615385,
+          "uses": 9318,
+          "suspect": false
+        },
+        {
+          "att": "whimsicott",
+          "mv": "moonblast",
+          "def": "scolipede",
+          "showdown": "45",
+          "medicham": "33",
+          "rel": 0.26666666666666666,
+          "uses": 9318,
+          "suspect": false
+        },
+        {
+          "att": "kommoo",
+          "mv": "ironhead",
+          "def": "avalugg",
+          "showdown": "36",
+          "medicham": "24",
+          "rel": 0.3333333333333333,
+          "uses": 9314,
+          "suspect": false
+        },
+        {
+          "att": "aerodactyl",
+          "mv": "earthquake",
+          "def": "hydreigon",
+          "showdown": "0",
+          "medicham": "-12",
+          "rel": 12,
+          "uses": 9209,
+          "suspect": false
+        },
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "slowbro",
+          "showdown": "87",
+          "medicham": "75",
+          "rel": 0.13793103448275862,
+          "uses": 9209,
+          "suspect": false
+        }
+      ]
+    }
+  ],
+  "arms_why": "A MIDPOINT CANNOT SEE A RANGE THAT IS WRONG BY THE SAME AMOUNT AT BOTH ENDS. `--plant spread` widens MEDICHAM's range symmetrically and leaves `disagreed` at exactly its unplanted value while both arms light up, which is the demonstration that these two numbers are not restatements of the one above them.",
+  "skipped_non_finite": 0,
+  "skipped_moves": {},
+  "skipped_multihit": 10,
+  "skipped_multihit_moves": {
+    "bulletseed": 2,
+    "populationbomb": 1,
+    "rockblast": 2,
+    "dualwingbeat": 1,
+    "tripleaxel": 3,
+    "dragondarts": 1
+  },
+  "dropped_by_exception": 10,
+  "dropped_where": {
+    "showdown moveHit Salazzle Heat Wave -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Conkeldurr Mach Punch -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Torkoal Solar Beam -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Mawile Iron Head -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Hatterene Mystical Fire -> Bellibolt: Cannot read properties of null (reading 'name')": 2
+  },
+  "controls": "both leads are really sent out on the Showdown side, so MEDICHAM is given the same switch-in (Intimidate, weather setters) through the engine's own applyEntryEffects/applyIntimidate; and the defender ability's onTryHit is asked directly, because Showdown's moveHit entry point does not run it.",
+  "touched": {
+    "intimidate": 15,
+    "weather": 4,
+    "absorbMon": 14,
+    "absorbFired": 3,
+    "bpCallback": 11
+  }
+}

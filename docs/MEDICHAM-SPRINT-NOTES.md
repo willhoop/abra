@@ -5304,3 +5304,124 @@ made to reuse the ability rule's parser, and the reason is worth keeping: that p
 `Status`-equality test matches Quick Claw's **Mycelium Might** clause and would have derived
 `onlyStatus: true`, turning Quick Claw into a status-moves-only item. Printed before it was
 attempted, which is why it was not done.
+
+---
+
+## THE DAMAGE ROLL HAD TWO CORNERS AND THE GATE READ AN AVERAGE; PP HAD NO INSTRUMENT AT ALL. 2026-08-11 (sixth pass).
+
+**Census 480 -> 480 — 0 arrived, 0 broke, net 0.** `missing` 0 -> 0, 0 hollow, 0 unarmed, 0 direct-call,
+0 threw. **Gate re-run after every change: OPEN — 6 of 6 throughout, and no passing clause moved.**
+
+### THE GATED DIFFERENTIAL WAS A MIDPOINT, AND A MIDPOINT CANNOT SEE HALF THE FAILURES THERE ARE
+
+`tests/test-engine-diff.js` computed Showdown's damage at roll index 0 AND index 15, then **averaged
+them**, averaged MEDICHAM's `min`/`max`, and compared the two averages inside a 12% band. **A range that
+is wrong by the same amount at both ends has an identical midpoint and cannot move that number at all.**
+"0 of 6000 disagree" was therefore a strictly weaker claim than it read, and it is the claim the MEDICHAM
+gate rested on. It is the same shape as the pin in `engine/game_differential.js` — there the dice were
+held at one corner, here both corners were computed and then added together — and CHANGELOG 3.75.0
+records what the shape costs: the rolled crit sat in the wrong position in the damage formula, **46.5%
+of rows wrong at the bottom roll and invisible at the top**, with every check in the repository green.
+
+- **TWO ARMS NOW, EACH AT THE SAME 12% BAND, NEVER POOLED.** `top` is Showdown's roll 0 against our
+  `max`; `bottom` is roll 15 against our `min`. The tolerance policy is deliberately unchanged — this
+  pass moved WHICH quantity is compared, not how close it has to be, because moving both at once makes
+  a red row unattributable.
+- **SHOWN RED BY A PLANT THE OLD NUMBER STRUCTURALLY CANNOT SEE.** `--plant spread` widens MEDICHAM's
+  range symmetrically, leaving the midpoint on the same floating-point bit. At `--n 300`: **midpoint
+  0 of 300, top 196 of 300, bottom 218 of 300.** A planted run writes to
+  `data/engine-diff-PLANTED-spread.json` and never to the gate's artifact, and the gate clause refuses
+  an artifact carrying `plant` even when every number in it is zero.
+- **THE MEASUREMENT, recorded in `data/engine-diff.json`: 0 and 0 of 6000 at seed 20260804.** Both corners clean. The claim got stronger and
+  the answer did not change, which is the good outcome and not a reason the arms were unnecessary.
+- **THE GATE CLAUSE NOW REQUIRES BOTH,** and an artifact with **no** `arms` block FAILS rather than
+  passing by absence. Seven selftest rows drive the SHIPPING function on whole synthetic artifacts —
+  the roster clause's selftest re-implements its rule in three lines and so proves nothing about the
+  rule that ships; this one cannot.
+
+### PP WAS TRACKED, WAS NEVER COMPARED, AND IS WRONG
+
+`board_state.js` published PP in `NOT_COMPARED` on the reason *"medicham2 does not track PP at all"*.
+That stopped being true at ROADMAP #144 — the engine holds `_pp`, `ppMax`, `ppLeft`, `ppDeduct` and four
+counters — so **the declaration outlived what it described, and PP could have been wrong in every game
+ever played here with nothing able to notice.** Four other files quote that same dead sentence.
+
+- **THE QUANTITY IS PP SPENT, AND THE REPRESENTATION DIFFERENCE IS DECLARED RATHER THAN COLLAPSED.**
+  Our `_pp` is **lazy** (a slot appears on first use, so an unclicked move is ABSENT) and Showdown's
+  `moveSlots` are **eager** (present and FULL). Read as REMAINING those two shapes disagree on every
+  untouched move on every turn; read as SPENT both are 0. New mapping `pp-is-what-has-been-spent`,
+  proved in both directions before any board is read, and **keyed by move id, never by slot index** —
+  Mimic and Transform rewrite `moveSlots`.
+- **NOTHING FILLS OUR NUMBER FROM SHOWDOWN'S.** Our side is read through the engine's own exported
+  `ppSpentMap`, which is the only place that knows the table is lazy; the maximum is a format fact
+  (`floor(base*0.8+4)` — the mainline `pp*8/5` rule is wrong on the large majority of these 500 moves, a figure engine/medicham2-browser.js:1900 already carries) and a second
+  copy of it in the comparator would have drifted.
+- **SHOWN RED TWICE, AND THE SECOND PLANT IS THE ONE THAT MATTERS.** `STATE_PLANTS` gains a plant on a
+  slot the body has already used and a plant on a slot **NOTHING has touched** — the blind spot the lazy
+  table makes possible, where a comparator that read absence as "nothing to compare" would look exactly
+  like one that worked. Both **CAUGHT+LOCALISED**; the proof now runs 27 plants. *(The first run reported
+  both as `caught, NOT LOCALISED`: the expected path was `pp.` and the comparator emits `pp[0].blizzard`.
+  The ASSERTION was wrong before the engine was, which is this division's standing hazard.)*
+- **AND IT FOUND THAT PP IS MATERIALLY WRONG.** Against the authority, on this repo's own fixtures:
+  **Trick Room 3/1, Stealth Rock 3/1, Haze 2/1, Charm 1/2, Crunch 1/2, Roar 2/4, Perish Song 2/1,
+  Parting Shot 1/0, Triple Axel 3/2, Electro Shot 1/2** (showdown/ours). On the deliberate roster's
+  moves stage the leaf takes **COULD-NOT-STAGE from 64 to 11** — 44 moves that were "inert" now move a
+  board — and **FIRED-AND-BOARDS-DIFFER from 0 to 26**; on abilities, FIRED-AND-BOARDS-MATCH 107 -> 117.
+- **ONE CAUSE REPRODUCED BY HAND WITH A ONE-SUBSTITUTION CONTROL.** Showdown resolves `target: all` to
+  allies **and foes** and prices Pressure off that list (`sim/pokemon.ts:794-860`); ours hands
+  `ppPressureExtra` an empty list whenever the action names no explicit target. The SAME staged Haze
+  fixture reads **1/1 against Scrappy and 1/2 against Pressure**, one body apart. Fixing it needs a move
+  TARGET CLASS that `data/tags.json` does not carry (`MC.moves` has no `target`; `data/move-effects.js`
+  does) — a `tag_dex` change with its own membership print and its own census probe, which is a separate
+  batch. **NOT ATTEMPTED HERE.**
+- **SO THE LEAF IS COMPARED AND IS HELD OUT OF EVERY PASS/FAIL VERDICT, DECLARED AND PRINTED.**
+  `engine/game_differential.js` compares it in full and publishes it per arm; `tests/roster.js`,
+  `tests/staged_board.js` (and `tests/test-volatile-duration.js` through it) and
+  `tests/staged_status_counters.js` pass `ppHold: true` and print the reason with its numbers on every
+  run. `board_state.js` stamps `pp_comparable.held_by_the_caller` on every snapshot taken that way, so
+  **a run that never asked can never be read as a run in which PP agreed.** Lifting it is deleting one
+  line per call site. This is a hold on ONE FIELD in the verdict-bearing consumers, not a shelf on any
+  entity: no row is excused and every count above is published.
+
+### ABILITY TRAPPING WAS ALREADY COMPARED, AND THE DECLARATION SAYING OTHERWISE WAS THE STALE PART
+
+`board_state.js`'s `NOT_COMPARED` entry is correct that a BOARD cannot carry a refusal — and it was
+being read as "nothing compares it". `tests/roster.js`'s `switchVerdict` does, exactly the way it should
+be done: **it asks both engines the same question at the same moment** (Showdown by rejecting the choice
+string, ours by whether the slot changed hands) and restates neither engine's rule. Shadow Tag reads
+**FIRED-AND-BOARDS-MATCH**, with an in-game control — the identical ask one turn earlier, before the mega
+— and exception arms so an OVER-refusal fails as an under-refusal does. **Arena Trap and Magnet Pull have
+NO legal carrier in this regulation** and their own roster rows say so, so Shadow Tag is the whole of
+ability trapping here. The entry now carries `measured_by` and `population` instead of implying a gap.
+
+### THE WHOLE-GAME DIFFERENTIAL, BOTH ARMS, RE-RUN
+
+1,556 games each, same teams, same driver state: **top-tie-first 570 diverged, bottom-tie-first 613**,
+0 threw either side, 201,493 tied groups resolved. Turn-1 boards identical **1,529 / 1,556 = 98.3%**
+with PP compared (98.5% without it — the 4-game drop IS the new leaf). All 9 representation mappings
+collapse and keep meaning; 27 of 27 state plants CAUGHT+LOCALISED.
+
+### THREE REDS THAT ARE NOT MINE, MEASURED RATHER THAN ASSERTED
+
+- **`tests/staged_status_counters.js` — all 11 rows `release THREW`.** Its BEFORE arm is pinned to
+  release `6b5447db1738`, *"frozen before engine/medicham2-browser.js exported: natureL50"*. Nothing to
+  do with PP; the live arm is IDENTICAL on all 11. The file needs a newer pinned baseline.
+- **`tests/staged_board.js` — `THE QUIETENING MECHANISM IS NOT TRUSTWORTHY`.** `allowProof()`'s
+  `fakeout-flinch` anchor `if(m._flinch){m._flinch=false;m._mvRes=false;` matches 0 times: the engine
+  has that block split across lines 10914-10915. A stale source anchor, not a comparator fault. All 24
+  scenarios are clean and board-identical.
+- **`MEDFAILS.traceBodyOffField = 217`** in the whole-game run (300 in the run before this pass).
+
+### WHAT WAS FOUND AND DELIBERATELY NOT FIXED, NAMED RATHER THAN ABSORBED
+
+- **The four PP defect families above.** Register rows handed over; not fixed here, and the hold names
+  each one at every call site.
+- **`ppMax('tackle')` returns `null`** — Tackle carries no `pp` row, so it would be free forever if it
+  were reachable. It is not in this format's 500; found because the PP mapping's first proof fixture
+  used it and went RED. Named, not chased.
+- **Four files still quote "medicham2 does not track PP at all"** as a live reason (`tests/roster.js` in
+  two places, `tests/test-interaction-matrix.js`, and the Struggle refusal). They are wrong today. The
+  `board_state.js` entry that was their source is corrected; the copies are not, because changing what
+  the roster's `item/pp-restore` rule REFUSES moves staged rows and therefore moves the gate.
+- **NOT REACHED THIS PASS:** `quickfeet`, `poisonheal`, the `eelevate` KO-boost arm, the ~44 inert
+  abilities and 57 inert moves, `magmaarmor`, the stale `recycle` deferral, and Rivalry.

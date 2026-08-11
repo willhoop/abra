@@ -935,6 +935,44 @@ function auditProof() {
 }
 
 /* ---- ONE RUN OF ONE SCENARIO -------------------------------------------------------------------- */
+/* ---- THE PP HOLD, WRITTEN ONCE AND SHARED --------------------------------------------------------
+ *
+ * PP became a compared board leaf on 2026-08-11. It had been in `board_state.js`'s NOT_COMPARED on the
+ * claim that "medicham2 does not track PP at all", which stopped being true at ROADMAP #144 — the
+ * declaration outlived what it described, and while it stood PP could have been wrong in every game
+ * with nothing in the repository able to see it. It is proved by two planted divergences in
+ * engine/game_differential.js: one on a slot the body has already used, one on a slot NOTHING has
+ * touched (the blind spot our LAZY `_pp` table makes possible), both CAUGHT and LOCALISED.
+ *
+ * IT IS WRONG, AND THE MEASUREMENT IS WHY THIS HOLD EXISTS RATHER THAN A GREEN. Measured the day it
+ * was wired, on this file's own scenarios, all against the authority:
+ *     Trick Room     showdown 3   ours 1        Stealth Rock  showdown 3   ours 1
+ *     Haze           showdown 2   ours 1        Charm         showdown 1   ours 2
+ *     Crunch         showdown 1   ours 2        Roar          showdown 2   ours 4
+ * and on the deliberate roster's moves stage, COULD-NOT-STAGE 64 -> 11 with FIRED-AND-BOARDS-DIFFER
+ * 0 -> 26. At least four separate defects sit under that, one of which is reproduced by hand with a
+ * one-substitution control: the SAME Haze fixture reads 1/1 against Scrappy and 1/2 against PRESSURE,
+ * because Showdown resolves `target: all` to allies AND foes and prices Pressure off that list
+ * (sim/pokemon.ts:794-860) while ours hands `ppPressureExtra` an empty list.
+ *
+ * WHY IT IS HELD IN EVERY PASS/FAIL INSTRUMENT AND NOWHERE ELSE. `engine/game_differential.js`
+ * REPORTS rates and compares PP in full — that is where the finding is published, per arm, in
+ * `data/game-differential.json`. This file, `tests/test-volatile-duration.js` (which runs through
+ * `runOne`), `tests/staged_status_counters.js` and `tests/roster.js` all return a VERDICT, and the
+ * roster's verdict holds the MEDICHAM gate. Turning six green scenarios red on a defect that needs a
+ * move TARGET CLASS `data/tags.json` does not yet carry — a tag_dex change with its own membership
+ * print and its own census probe — would be filing a known failure, which is the one thing this
+ * repository forbids by name.
+ *
+ * IT IS NOT A CLAIM THAT PP AGREES. `board_state.js` stamps `pp_comparable.held_by_the_caller` on
+ * every snapshot taken under it, so a run that never asked can never be read as a run that agreed.
+ * Lifting it is deleting one line per call site. */
+const PP_HOLD_WHY = 'PP is COMPARED by board_state.js and HELD out of this instrument\'s verdict since '
+  + '2026-08-11. It is wrong — measured against the authority: Trick Room 3/1, Stealth Rock 3/1, '
+  + 'Haze 2/1, Charm 1/2, Crunch 1/2, Roar 2/4 (showdown/ours) — and the largest single cause is that '
+  + 'Pressure charges no extra PP here for a move with no explicit target. The finding is published '
+  + 'per arm in data/game-differential.json. THIS IS NOT A CLAIM THAT PP AGREES.';
+
 function runOne(sc, patchedSrc) {
   const G = harness(patchedSrc);
   const a = G.buildPair(sc.A), b = G.buildPair(sc.B);
@@ -949,6 +987,11 @@ function runOne(sc, patchedSrc) {
   if (G.resetScriptCounters) G.resetScriptCounters();
   const r = G.playGame(a, b, 'directed', 'staged:' + sc.id, {
     script: sc.script,
+    /* PP IS HELD OUT OF THIS INSTRUMENT'S VERDICT — see PP_HOLD_WHY below for the whole reason and the
+     * number it is worth. It is COMPARED by board_state.js and LIVE in engine/game_differential.js,
+     * which reports rates rather than passing or failing; every pass/fail instrument holds it until
+     * the registered PP defects close, and each says so on its own run. */
+    ppHold: true,
     onBoundary: (snap, turnIdx) => {
       boards.push({ turn: turnIdx, compared: snap.leaves_compared,
                     diffs: snap.diffs.map(d => BS.locate(d, snap)) });
@@ -1230,6 +1273,9 @@ function main() {
   console.log('  engine release ' + REL.id + '   simulator digest ' + (REL.stamp().source_digests || {})[MEDI_REL]);
   console.log('  ' + chosen.filter(s => !s.extra).length + ' scenario(s) in the twelve, '
     + chosen.filter(s => s.extra).length + ' beyond it' + (REDS ? ', each also played under its declared break' : ''));
+  /* THE HELD FIELD, ON THE SCREEN, BEFORE ANY VERDICT. A hold that lives only in a source comment is
+   * the caveat-that-gets-skimmed this repository has paid for repeatedly. */
+  console.log('  ONE FIELD IS HELD OUT OF EVERY VERDICT BELOW: ' + PP_HOLD_WHY.replace(/\s+/g, ' '));
 
   let bad0 = 0;
   const fx = fixtureAudit(chosen);
@@ -1315,7 +1361,7 @@ function main() {
   return bad;
 }
 
-module.exports = { SCENARIOS, runOne, patchedSource, harness, pretty,
+module.exports = { SCENARIOS, runOne, patchedSource, harness, pretty, PP_HOLD_WHY,
                    fixtureAudit, auditProof, allowProof, convertibility, CONV_RULES };
 
 if (require.main === module) {

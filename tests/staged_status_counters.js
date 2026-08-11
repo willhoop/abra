@@ -435,6 +435,9 @@ function runOne(sc, src, armId) {
   const boards = [];
   const r = G.playGame(a, b, 'directed', 'status:' + sc.id, {
     script: sc.script, arm,
+    /* PP IS HELD — see `PP_HOLD_WHY` in tests/staged_board.js, which this file already treats as its
+     * library. One reason, one place; every pass/fail instrument holds the field and prints why. */
+    ppHold: true,
     onBoundary: (snap, turnIdx) => {
       boards.push({ turn: turnIdx, compared: snap.leaves_compared,
                     diffs: snap.diffs.map(d => BS.locate(d, snap)) });

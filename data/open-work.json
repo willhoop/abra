@@ -1,14 +1,14 @@
 {
-  "generated": "2026-08-11T12:03:34.629Z",
+  "generated": "2026-08-11T14:48:56.953Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
-    "register_rows": 162,
+    "register_rows": 171,
     "open": 104,
-    "closed": 58,
-    "open_asserting_breakage": 1,
+    "closed": 67,
+    "open_asserting_breakage": 0,
     "measured_disagreements": 0,
     "unregistered": 0
   },
@@ -527,15 +527,6 @@
       "full": "heat wave hits your own partner. `test-tag-wire`: *\"heat wave leaves the partner untouched — the ally-safe family stays safe\"* fails, while both membership assertions pass — *\"spreadfoes (22) is the ally-safe family — heat wave in, earthquake out\"* and *\"spreadall (16) hits the partner\"*. the artifact separates the two families correctly and the consumer is collapsing them. this is the one on the list with the largest effect on play: the whole point of the ally-safe spread moves is that you can click them beside your own body, and an engine that charges you for it will refuse a line that is actually free | closed 2026-08-11 — the engine was never broken and this row misdiagnosed it. one defect explains all four: `_chooseaction`'s last fallback clicked struggle past a legal button (the #152 block, whose own comment stated the bug in place — *\"a body with legal status moves left is not on struggle\"* — and filed it as the lesser evil). struggle is a 50 bp attack with 1/4-max recoil, so every fixture body holding a single protect or roost was hitting the thing under test and paying for it. heat wave never touched the partner: the trace reads `|move|p2b: whimsicott|struggle"
     },
     {
-      "n": 175,
-      "section": "Solving — DUSK, and the retrograde idea",
-      "closed": false,
-      "saysBroken": true,
-      "uses": 0,
-      "title": "TWENTY-THREE TAGS HAVE NO CONSUMER — WE DERIVED THE FACT AND NEVER TAUGHT THE ENGINE TO USE IT. `test-tag-consumed` name",
-      "full": "twenty-three tags have no consumer — we derived the fact and never taught the engine to use it. `test-tag-consumed` names them: `stealsitem`, `announcesonentry`, `reflectsstatustosource`, `refusesindirectdamage`, `clearsscreensonentry`, `nameimplementedbysim`, `passesitemtoally`, `multihitalwaysmax`, `ignoresredirection`, `boostsathpthreshold`, `curesstatusresidual`, `healsfromownstatus`, `addsownsecondary`, `formefollowsweather`, `secondarychancemult`, `typefollowsterrain`, `removesownmoveflag`, `inheritsallyability`, `boostsnotveryeffective`, `boostsallieswithability`, `allybasepowerboost`, `suppressesownitem`, `guaranteesnextmove`. the test also prints a longer dead list headed by `ignoresredirection` (47 uses, propeller tail / stalwart). each one is a decision, not a batch: wire it, or delete the tag and say why. a derived tag nothing reads is indistinguishable from a tag that is wrong. expect this count to move when the tag split lands — re-measure before working it | open — engine defect. 23 -> 22 on 2026-08-11: `ignoresredirection` wired and closed, 21 rows untouched because each is a decision and batching them is the failure mode. that one fix found a live bug of #181's exact shape one function over: `trackstargetof` looked for an ability-side `trackstarget` tag that does not exist in the artifact, so `ab==='stalwart'|"
-    },
-    {
       "n": 176,
       "section": "Solving — DUSK, and the retrograde idea",
       "closed": false,
@@ -570,24 +561,6 @@
       "uses": 0,
       "title": "THE EFFECTIVE-IDENTITY RATCHET WAS RESTAMPED WHOLESALE, ON WILL'S INSTRUCTION, AND 964 READS WENT IN UNREVIEWED — 2026-0",
       "full": "the effective-identity ratchet was restamped wholesale, on will's instruction, and 964 reads went in unreviewed — 2026-08-11. will, asked whether to walk the reads or reset the reference point: *\"restamp i guess\"*. recorded as a row rather than done quietly, because this is the exact move the repo has been burned by — *\"the gate went green after somebody re-stamped it\"* — and the difference between a legitimate re-baseline and laundering is whether anybody can later see what was swallowed. baseline 2026-08-02, count 234 -> 2026-08-11, count 1,198: 964 reads adopted across 46 files. largest: `tests/roster.js` 247 (new), `tests/test-mechanics.js` 226 (new), `engine/medicham2-browser.js` 59 -> 215, `tests/probe_red_demo.js` 123 (new). the simulator entry is the one that matters — the other large entries are harnesses that legitimately construct bodies, but 156 new raw reads inside the engine itself are exactly where a declared-versus-effective ability confusion would do damage, and nobody read them. the restamp was timed after the tree settled (doing it mid-run is what put this red in the first place, per claude.md on a measuring agent beside a writing one) and the adoption was diffed rather than assumed. what is owed: a walk of the 156 simulator reads specifically, routing the ones that want the live value and declaring the ones that legitimately want the declaration. the other 808 can stay adopted"
-    },
-    {
-      "n": 184,
-      "section": "Solving — DUSK, and the retrograde idea",
-      "closed": false,
-      "saysBroken": false,
-      "uses": 0,
-      "title": "`test-tag-consumed` IS RED AND IT IS THE INSTRUMENT, NOT THE ENGINE — 2026-08-11. Its ratchet diffs a NAME LIST, so ten ",
-      "full": "`test-tag-consumed` is red and it is the instrument, not the engine — 2026-08-11. its ratchet diffs a name list, so ten tags that arrived without a consumer read as ten that lost one. verified against `23661cc:data/tags.json`, where all ten are absent. the count is therefore not a regression and never was. it is in neither `run-all.js` nor the pre-commit hook, which is why a broken ratchet could sit red across a whole sprint being quoted as an engine figure — including by me, to will, twice tonight. fix the diff to compare consumption rather than membership, then register it as a gate"
-    },
-    {
-      "n": 186,
-      "section": "Solving — DUSK, and the retrograde idea",
-      "closed": false,
-      "saysBroken": false,
-      "uses": 0,
-      "title": "LEVITATE IS GATED TWICE AND THE TWO GATES AGREE ONLY BY LUCK — 2026-08-11. `absorbedBy`/`typeImmunity` and `isGrounded`/",
-      "full": "levitate is gated twice and the two gates agree only by luck — 2026-08-11. `absorbedby`/`typeimmunity` and `isgrounded`/`airborne_abil` are independent implementations of one fact, which is facts-are-global broken inside the engine. found because breaking either one alone left the assert-mode probe green at 0/85 — the duplication is what made the test unfalsifiable. they agree today. one implementation, everyone calls it"
     },
     {
       "n": 188,
@@ -668,7 +641,43 @@
       "saysBroken": false,
       "uses": 0,
       "title": "THE RATE RUNNER MUST PLAY THE STAGED SCENARIOS, NOT RANDOM SELF-PLAY — WILL'S DESIGN, 2026-08-11. Will: *\"the million ga",
-      "full": "the rate runner must play the staged scenarios, not random self-play — will's design, 2026-08-11. will: *\"the million game run will be all these staging scenarios right, just with normal accuracy, proc chances, crit chances, etc\"*, then *\"so those will have to be in the million game run\"*. one set of fixtures at two dice settings: the roster plays a staged board with the dice pinned and asks *does it do the right thing when it fires*; the rate runner plays the same board with the dice free and asks *does it fire at the right rate*. the runner already names this as its missing piece — `engine/million_run.js` marks the whole `proc` family `observable: false` because *\"an ability/item proc needs the trigger to be reached … the trace does not say whether the trigger was reached, only whether it fired, so the denominator would be invented. needs a staged arm, not a bigger corpus.\"* that is the whole argument: on a staged board you know the trigger was reached, so the denominator is real rather than invented, and more random games never fixes an invented denominator — it only makes it bigger. today the runner is self-play over random teams (211 rows) and coverage is whatever the games happen to produce. what this reclassifies, and it is most of the remaining backlog: the 17 pinned-dice rows (static, effect spore, flame body, poison point, poison touch, cute charm, shed skin, stench, harvest, healer, cursed body, quick draw, king's rock, quick claw, focus band, aspear berry, rawst berry), early bird as a sleep-duration row, and the modifier abilities that need a real roll — sniper and merciless, because no sniper or merciless carrier learns flower trick (verified: beedrill, ariados, barbaracle, toxapex; only meowscarada learns it), plus compound eyes, no guard and tangled feet as accuracy rows. none of these is unstageable. every one is in the wrong instrument"
+      "full": "the rate runner must play the staged scenarios, not random self-play — will's design, 2026-08-11. will: *\"the million game run will be all these staging scenarios right, just with normal accuracy, proc chances, crit chances, etc\"*, then *\"so those will have to be in the million game run\"*. one set of fixtures at two dice settings: the roster plays a staged board with the dice pinned and asks *does it do the right thing when it fires*; the rate runner plays the same board with the dice free and asks *does it fire at the right rate*. the runner already names this as its missing piece — `engine/million_run.js` marks the whole `proc` family `observable: false` because *\"an ability/item proc needs the trigger to be reached … the trace does not say whether the trigger was reached, only whether it fired, so the denominator would be invented. needs a staged arm, not a bigger corpus.\"* that is the whole argument: on a staged board you know the trigger was reached, so the denominator is real rather than invented, and more random games never fixes an invented denominator — it only makes it bigger. today the runner is self-play over random teams (211 rows) and coverage is whatever the games happen to produce. what this reclassifies, and it is most of the remaining backlog: the 17 pinned-dice rows (static, effect spore, flame body, poison point, poison touch, cute charm, shed skin, stench, harvest, healer, cursed body, quick draw, king's rock, quick claw, focus band, aspear berry, rawst berry), early bird as a sleep-duration row, and the modifier abilities that need a real roll — sniper and merciless, because no sniper or merciless carrier learns flower trick (verified: beedrill, ariados, barbaracle, toxapex; only meowscarada learns it), plus compound eyes, no guard and tangled feet as accuracy rows. none of these is unstageable. every one is in the wrong instrument | closed 2026-08-11 — the staged arm shipped and the proc sampler is right. `engine/million_run.js --staged` -> `data/million-run-staged.json`, release `eafb0abb9736`, free-running dice. 17 fixtures covering all 12 proc target rows plus 5 the target list does not carry. pooled over every row that fires: 58,738 of 176,209 against 58,613.76 expected, z = +0.64, every row powered to one point. denominator known by construction and proved so by a trigger-control arm that must record zero trials — `millionrun_sabotage=staged-precondition` shows it red (13 of 17 controls went 0 -> 60 trials, refused). will's stopping rule, and it answers the question nobody could: 241,525 staged battles / 63 seconds for 1-point resolution; 78,494 / 21 s for 2 points; 19,758 / 6 s for 5. a staged battle is one constructed four-body board played for one turn at 0.26 ms — not comparable to a self-play game, which is why 'a million games' was always the wrong unit. the rule earned itself immediately: at 2 points effect spore read 31.90% and diverged at 95%, with a split-half spread of 1.97 against an effect of 1.90 — not an effect (lessons §9) — and at the powered n it reads 30.34%. a row stopped early is not a smaller answer, it is a different one. and the instrument's own three bugs were found before publication: the first version matched the tag's status word against the engine's and read flame body 0/40 and poison point 0/40 — a headline that would have been filed against engine — because the tag speaks `burn`/`poison`/`sleep` and the engine speaks `brn`/`psn`/`slp`, and static passed by pure accident on three shared letters; the filler pool was `attackers.slice()` over a three-body pool, so six fixtures reported zero trials; and one refusal rate conflated by-design refusals with construction failures, silently dropping harvest and both berries | closed — measure"
+    },
+    {
+      "n": 199,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "`million_targets.js`'s `PROC_WHAT` IS A HAND-TYPED LIST OF TWELVE AND THE PROC FAMILY HAS SEVENTEEN MEMBERS. Static, Ste",
+      "full": "`million_targets.js`'s `proc_what` is a hand-typed list of twelve and the proc family has seventeen members. static, stench, shed skin, rawst berry and aspear berry have no target row, so five staged rates rest on one declaration surface with no independent corroboration — the frozen `data/tags.json` alone, with nothing derived from the showdown handler to cross-check them. the other twelve are corroborated by two surfaces and agree 10-for-10 with zero disagreements, which is the standard the five cannot meet. derive `proc_what` from the tag artifact instead of typing it — a hand-maintained list of twelve went stale exactly the way the ban list of four did, and this repo has a rule about that"
+    },
+    {
+      "n": 202,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE `recycle` DEFERRAL IS STALE — TAKE THE SHELF DOWN. It came off the owner's shelf reading FIRED-AND-BOARDS-MATCH on 2",
+      "full": "the `recycle` deferral is stale — take the shelf down. it came off the owner's shelf reading fired-and-boards-match on 2026-08-11 after `restoresownlastitem` and the `itemback` action kind landed. moves stage 427 -> 428. a deferral that now passes on its own is exactly what `staleshelf` exists to catch, and leaving it shelved understates coverage while pretending a decision is still live"
+    },
+    {
+      "n": 204,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THREE FORMES HAVE NO BODY TO BECOME, AND IT IS A DATA GAP RATHER THAN AN ENGINE ONE. `data/engine-data.js` carries no ro",
+      "full": "three formes have no body to become, and it is a data gap rather than an engine one. `data/engine-data.js` carries no row for `mimikyu-busted`, `morpeko-hangry` or `castform-sunny/rainy/snowy`, so disguise, hunger switch and forecast cannot be asserted at all — there is no target forme to compare against. the new forme instrument prints this on every run and never as a pass, which is the correct handling of an absence (an unprinted gap reads exactly like an agreeing one). `engine/engine-data.js` was not regenerated — a previous agent hit the same wall wiring `formefollowsweather` and it is explicitly not to be rebuilt. and the sprint notes' table of nine forme-changers is wrong for this regulation: derived from `dex.forformat`, exactly five `formechange(`-calling abilities have a legal carrier. ice face, shields down, schooling, power construct, zen mode, gulp missile, flower gift and tera shift have none, and mimicry changes type, not forme. `refusescopy` holds ten members, not the 34/37 the spec quotes — that count predates the carrier toss and is stale"
+    },
+    {
+      "n": 205,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "EVERY FIXTURE IN THE REPO IS GENDERLESS, AND ONE ABILITY NEEDS GENDER TO EXIST. All harnesses declare `gender:'N'` to Sh",
+      "full": "every fixture in the repo is genderless, and one ability needs gender to exist. all harnesses declare `gender:'n'` to showdown — `game_differential.js:3762` states it in words — and showdown's `attract` refuses a genderless target. so cute charm is correctly wired and can still never fire on any board we own, and the staged rate arm's declared 30% is unreachable rather than wrong. this is not a defect in either engine; it is a property of every fixture, and it means any mechanic keyed on gender is currently untestable by construction — rivalry and attract are in the same position. give the fixture builders a gender before scoring any gender-keyed row, and until then report those rows unreachable rather than short"
     },
     {
       "n": 47,
@@ -757,8 +766,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "every rollout-derived number predates a correct engine — the leaf's 51.0%, R1's 69.84%, R4's 55.5%. Enumerate the re-run",
-      "full": "every rollout-derived number predates a correct engine — the leaf's 51.0%, r1's 69.84%, r4's 55.5%. enumerate the re-run list from the release stamps; prioritise by whether the verdict could flip, not by age"
+      "title": "SHELVED BY THE OWNER 2026-08-11 — do NOT re-run, and do not put it back on a plan. Will, twice in one session: *\"i might",
+      "full": "shelved by the owner 2026-08-11 — do not re-run, and do not put it back on a plan. will, twice in one session: *\"i might want to rework a lot of them and dont want to waste time\"*, then *\"dont re run the artifacts weve bene over this\"*. when the gate opened these ~52 stopped being withheld and became re-runnable, which reads like a to-do list and is not one. most of the list is downstream of miltank and mag — the fits, the exploitability runs, the rollout artifacts, the head-to-heads, the leaf contrasts, the collinearity audits — and will owns both and is reworking them himself (#194). re-running now measures a model about to be replaced, so the work is thrown away twice. `quarantine.js` already prints them as \"not withheld and not current — must be re-run before quoted\", which is the correct resting state and needs no action. the row reopens when will lands his rework, not before. if a number from this list is ever needed, say it is stale and why rather than quietly refreshing it"
     },
     {
       "n": 108,
@@ -878,15 +887,6 @@
       "full": "the store reaches four facts and throws them away — and #68 needs every one of them. will, reading the replay design: *'i think multi hit moves say how many times they hit in the chat'*, *'life orb in the chat too'*, *'same with focus sash'*. all correct. `engine/durable-ingest.js` parses 30 protocol lines and drops these four: `|-hitcount|` (never read — so the differential skips 630 multi-hit rows as incomparable when the real hit count was on the wire); `|cant|` (never read — a flinched, paralysed, asleep, frozen or recharging body is simply an absent `m` event, indistinguishable from each other, 0 games in 52,089 carry a flinch marker); the `[from]` clause on chip damage — the parser tests for it to decide the damage is residual and then discards the text, so burn, sandstorm, life orb and rocky helmet all land as a bare `{t:'hp'}` with no source, and its own comment names them; `|-enditem|`, read only to infer what item a body held, never emitted as a turn event, so 'the focus sash triggered this turn' is gone. the store's event vocabulary is `b f fs hp m mega s w x`. this contradicts the project's founding principle — *store raw, analyze on top, every fact we might ever want* — at the parser. four regex arms; the raw replays can be re-pulled so no history is lost. ops work, touches no engine, and it makes #68 able to attribute a divergence instead of reporting an unexplained hp drop"
     },
     {
-      "n": 141,
-      "section": "Measurement integrity",
-      "closed": false,
-      "saysBroken": false,
-      "uses": 0,
-      "title": "MOLD BREAKER SUPPRESSES 82 ABILITIES IN THIS FORMAT, AND WE DO NOT KNOW WHETHER OUR ENGINE READS IT AT ALL. Will, 2026-0",
-      "full": "mold breaker suppresses 82 abilities in this format, and we do not know whether our engine reads it at all. will, 2026-08-10: *\"does tinkaton mold breaker fake out flinch a mon with inner focus? idk what the answer should be\"*. measured against the format: yes it does. inner focus carries `flags: {breakable: 1}`, mold breaker sets `move.ignoreability = true`, and tinkaton carries mold breaker legally. the surface is 82 abilities — disguise, sturdy, levitate, filter, shell armor, shield dust, solid rock, multiscale, thick fat, wonder guard, suction cups, volt absorb, water absorb and the whole immunity family. steadfast is not breakable (`flags: {}`), so a mold breaker fake out into steadfast flinches and grants the +1 speed, while the same click into inner focus flinches and grants nothing. two abilities that look like siblings behave oppositely, which is exactly the kind of pair a name-matched implementation gets wrong. and the obvious lookup is a trap: `ability.isbreakable` reads `undefined` on every ability in this format, so a naive check concludes mold breaker suppresses nothing and passes its own test. the live flag is `flags.breakable`. nothing in `data/tags.json` or the engine is known to read `ignoreability`; that is the first thing to measure, before any wiring"
-    },
-    {
       "n": 143,
       "section": "Measurement integrity",
       "closed": false,
@@ -954,8 +954,8 @@
   "instruments": [
     {
       "artifact": "data/interaction-matrix.json",
-      "generated": "2026-08-11T06:49:30.092Z",
-      "age_days": 0.2
+      "generated": "2026-08-11T14:01:23.105Z",
+      "age_days": 0
     }
   ]
 }

@@ -64,17 +64,36 @@ const NOT_COMPARED = [
        + 'medicham2\'s rule to have anything to compare, and would then be checking its own belief '
        + 'against the authority rather than checking two engines. MOVE trapping IS compared — both '
        + 'engines hold it as state (medicham2 `_trap.turns`, Showdown `volatiles.partiallytrapped.'
-       + 'duration`) — and it is the half that carries a counter and chip damage.' },
+       + 'duration`) — and it is the half that carries a counter and chip damage.',
+    /* AND IT IS NOT UNMEASURED, WHICH IS A DIFFERENT SENTENCE AND HAD TO BE ADDED. The entry above
+     * says why THIS FILE cannot compare it, and for two months that was read as "nothing compares
+     * it" — the same shape as the PP entry that sat here on a reason three weeks out of date.
+     *
+     * `tests/roster.js` DOES compare it, and it does it the only way that is not a reimplementation:
+     * IT ASKS BOTH ENGINES THE SAME QUESTION AT THE SAME MOMENT. Showdown answers by REJECTING the
+     * switch choice; medicham2 answers by whether the slot changed hands. Neither engine's rule is
+     * restated by the comparator. The row carries an in-game control (the identical ask one turn
+     * earlier, before the mega, which must succeed in BOTH engines) and exception arms for the bodies
+     * the authority lets leave, so an OVER-refusal fails exactly as an under-refusal does.
+     *
+     * THE POPULATION IS ONE ABILITY, DERIVED AND NOT REMEMBERED: Arena Trap and Magnet Pull have NO
+     * legal carrier in this regulation, which `data/roster.abilities.json` states in their own rows.
+     * Shadow Tag is the whole of ability trapping here. */
+    measured_by: 'tests/roster.js (switchVerdict) — a REFUSAL comparison, not a board comparison',
+    population: 'Shadow Tag only. Arena Trap and Magnet Pull have no legal carrier in this format; '
+              + 'the roster says so per-entity rather than this file asserting it.' },
   { field: 'item DISPOSITION (eaten vs knocked off vs used)',
     why: 'medicham2 has no `lastItem` and no `ateBerry`: once an item is gone the body records only '
        + 'that it is gone. The current item IS compared, which is the fact that changes damage and '
        + 'speed. The disposition is already a published finding (data/game-differential.json '
        + 'knock_off_roadmap_80: Showdown records Colbur as EATEN BY ITSELF, medicham2 as KNOCKED OFF) '
        + 'and Harvest, Recycle, Belch, Cud Chew and Unburden are what read it.' },
-  { field: 'PP',
-    why: 'medicham2 does not track PP at all. Nothing in a 12-turn horizon reaches a PP wall, and '
-       + 'reporting it would put a known, permanent, whole-population divergence on top of every '
-       + 'other number in the run.' },
+  /* PP WAS HERE AND IS NOW COMPARED. The entry read "medicham2 does not track PP at all", which was
+   * true when it was written and stopped being true at ROADMAP #144 — the engine has held a full `_pp`
+   * map, `ppMax`/`ppLeft`/`ppDeduct` and four counters since. The declaration outlived what it
+   * described, which is this repository's most expensive recurring failure, and while it stood PP
+   * could have been wrong in every game with nothing to notice. See the `pp-is-what-has-been-spent`
+   * mapping for the lazy/eager difference, which is real and is declared rather than collapsed. */
   { field: 'the stall counter behind consecutive Protect',
     why: 'medicham2 holds `tookProtectTurns` (a count UP of consecutive successful shields) and '
        + 'Showdown holds a `stall` volatile with a `counter` that is a DENOMINATOR (3, 9, 27). They '
@@ -152,6 +171,38 @@ const MAPPINGS = [
        + 'SAME reader the sleep counter uses. It cannot hide a wrong freeze length: a body on its '
        + 'second frozen turn reads 2 in both engines whatever the timer was.',
     equal: [2, 2], distinct: [1, 2] },
+  /* ---- PP: THE ONE PLACE THE TWO ENGINES HOLD THE SAME FACT IN GENUINELY DIFFERENT SHAPES --------
+   *
+   * OURS IS LAZY AND THEIRS IS EAGER. medicham2 derives a slot on FIRST TOUCH (`ppLeft`: `if (!(k in
+   * t)) t[k] = ppMax(k)`), so a move nobody has clicked is ABSENT from `_pp`. Showdown builds every
+   * `moveSlot` at construction with `pp` already equal to `maxpp`. Compared as PP REMAINING those two
+   * shapes disagree on every untouched move on every body on every turn — which is not a finding, it
+   * is two representations of "nothing has happened yet".
+   *
+   * SO THE QUANTITY IS WHAT HAS BEEN SPENT, WHICH IS 0 ON BOTH SIDES AT THE START. It is the same
+   * collapse `no-condition-is-zero` makes, and it is safe for the same reason: a move that HAS been
+   * spent is >= 1 in both engines and 1 !== 0. Spent is also exactly what Spite, Pressure and Leppa
+   * Berry move, so the choice costs no mechanic.
+   *
+   * OUR SIDE IS READ THROUGH THE ENGINE'S OWN `ppSpentMap`, NOT RECONSTRUCTED HERE. The maximum is a
+   * format fact (`floor(base * 0.8 + 4)`, and the mainline `pp * 8/5` rule is wrong on 415 of these
+   * 500 moves), and a comparator that kept its own copy of it would eventually disagree with the
+   * engine while both kept working — the two-copies-of-one-fact breach CLAUDE.md names. Nothing here
+   * fills our number from Showdown's, which would be checking the authority against itself.
+   *
+   * KEYED BY MOVE ID AND NOT BY SLOT INDEX, for the reason `partyMap` is keyed by species: an index
+   * is a position and a position is not a promise. Showdown rewrites `moveSlots` for Mimic and
+   * Transform, and a move present in one engine and absent in the other must read as a DIFFERENCE
+   * rather than silently line up against whatever sits at that index. */
+  { id: 'pp-is-what-has-been-spent',
+    why: 'medicham2\'s `_pp` is LAZY — a slot appears on first use, so an unclicked move is ABSENT — '
+       + 'and Showdown\'s `moveSlots` are EAGER, so the same move is present and FULL. PP SPENT is the '
+       + 'quantity both shapes can express: absent-and-untouched is 0 and full-and-untouched is 0. '
+       + 'Ours is read through medicham2\'s own `ppSpentMap`, never reconstructed here and never '
+       + 'filled in from Showdown\'s number. It cannot hide a real PP difference: a move that has '
+       + 'been clicked once reads 1 in both engines and 1 !== 0, and a move spent by different '
+       + 'amounts reads two different numbers.',
+    equal: [{ tackle: 0 }, { tackle: 0 }], distinct: [{ tackle: 0 }, { tackle: 1 }] },
   { id: 'sleep-counter-is-turns-slept',
     why: 'medicham2 counts sleep UP (`slpTurns`, incremented as the body tries to move) and Showdown '
        + 'counts DOWN (`statusState.time` from `startTime`). TURNS ALREADY SLEPT is the quantity both '
@@ -195,6 +246,37 @@ function mappingProof(N, M) {
   }
   check('fainted-is-not-a-status', statusOf(true, '') === statusOf(true, 'fnt'),
         statusOf(false, 'brn') !== statusOf(true, 'fnt'));
+  /* THE PP MAPPING, EXERCISED IN BOTH DIRECTIONS THROUGH THE CODE THAT APPLIES IT.
+   *
+   * COLLAPSES: a body that has clicked nothing. Our lazy table is EMPTY and Showdown's eager slots are
+   * FULL, and the two must come out the same — that is the whole claim, and it is asked of `sdPP` and
+   * of the engine's own `ppSpentMap` rather than of a restatement of them.
+   *
+   * KEEPS MEANING, AND IT IS ASKED TWICE BECAUSE THERE ARE TWO WAYS TO SILENCE THIS ONE. A move spent
+   * once must not read the same as a move spent none (the ordinary direction), AND a move PRESENT in
+   * one engine must not read the same as one absent from the other — the failure a slot-index
+   * comparison would have. Both are demonstrated below; a mapping that collapsed either would be a
+   * SILENCER and is the reason this file makes its proofs run before any board is read. */
+  {
+    /* THE MAXIMA ARE DERIVED FROM THE ENGINE, NOT TYPED — and the first version of this proof typed
+     * `tackle` at 56 and went RED, correctly: Tackle has no `pp` row in this regulation at all, so our
+     * map skips it and Showdown's slot carries it. The proof caught the FIXTURE, which is what it is
+     * for. Two moves that really are in this format, at whatever this format says they hold. */
+    const MV = ['protect', 'dragonpulse'];
+    const mx = M.ppMax ? MV.map(k => M.ppMax(k)) : [null, null];
+    const slots = (spend) => ({ moveSlots: MV.map((k, i) => ({ id: k, pp: mx[i] - (spend[i] || 0), maxpp: mx[i] })) });
+    const ok = mx.every(v => v != null);
+    /* COLLAPSES: our EMPTY lazy table against Showdown's FULL eager slots — both must read 0 spent. */
+    const ourFull = (ok && M.ppSpentMap) ? M.ppSpentMap({ moves: MV.slice(), _pp: {} }) : null;
+    const eq = !!ourFull && JSON.stringify(ourFull) === JSON.stringify(sdPP(slots([0, 0])));
+    /* KEEPS MEANING, TWICE: one PP spent must not read as none, AND a move MISSING from one side must
+     * not read as a move present at 0 — the failure a slot-index comparison would have. */
+    const keeps = ok
+      && JSON.stringify(sdPP(slots([0, 0]))) !== JSON.stringify(sdPP(slots([1, 0])))
+      && JSON.stringify(sdPP(slots([0, 0])))
+         !== JSON.stringify(sdPP({ moveSlots: [{ id: MV[0], pp: mx[0], maxpp: mx[0] }] }));
+    check('pp-is-what-has-been-spent', eq, keeps);
+  }
   check('sleep-counter-is-turns-slept', sleptTurns({ startTime: 3, time: 1 }) === 2,
         sleptTurns({ startTime: 3, time: 2 }) !== sleptTurns({ startTime: 3, time: 1 }));
   /* The Champions freeze timer, at its own numbers rather than sleep's: startTime is 3 by the format's
@@ -218,6 +300,17 @@ const frozenTurns = sleptTurns;
 /* ONE FUNCTION FOR BOTH ENGINES — see the `fainted-is-not-a-status` mapping. A dead body reads `fnt`
  * whichever engine holds it; a living one reads whatever status it actually carries. */
 const statusOf = (fainted, status) => (fainted ? 'fnt' : String(status || ''));
+/* SHOWDOWN'S PP, AS SPENT. `maxpp - pp` per slot, keyed by move id. A slot with no id is skipped
+ * rather than keyed under the empty string, which would collapse two of them together. */
+function sdPP(p) {
+  const out = {};
+  for (const s of ((p && p.moveSlots) || [])) {
+    const k = String((s && s.id) || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (!k) continue;
+    out[k] = Math.max(0, num(s.maxpp) - num(s.pp));
+  }
+  return out;
+}
 function mediBoosts(m) {
   const b = (m && m.boosts) || {};
   return { atk: num(b.at), def: num(b.df), spa: num(b.sa), spd: num(b.sd), spe: num(b.sp),
@@ -404,6 +497,13 @@ function readMedi(S, ctx) {
                                                         maxhp: num(m.st && m.st.hp), fainted: !!m.fainted })),
                     ctx.fails),
     active: [0, 1].map(i => mediBody(act[i], id)),
+    /* PP SITS BESIDE THE BODY AND NOT INSIDE IT, exactly as `screens.named` does, because it is the
+     * one leaf an engine may be UNABLE TO EXPRESS. A release cut before ROADMAP #144 has no `_pp` and
+     * no `ppSpentMap`, and folding an inexpressible field into the body would make every board of
+     * every frozen release on the ladder part on it — which is the manufactured divergence
+     * `partyMap`'s comment records paying for once already. `null` here means "this engine cannot
+     * say", which `compare()` skips and `snapshot()` reports; it never means "nothing spent". */
+    pp: [0, 1].map(i => (!ctx.ppHold && ctx.ppSpent && act[i] ? ctx.ppSpent(act[i]) : null)),
   });
   return {
     engine: 'medicham2',
@@ -441,6 +541,10 @@ function readShowdown(battle, ctx) {
                                                    hp: Math.max(0, num(p.hp)), maxhp: num(p.maxhp),
                                                    fainted: !!p.fainted })), ctx.fails),
     active: [0, 1].map(i => sdBody((sd.active || [])[i], id)),
+    /* HELD ON BOTH SIDES OR NEITHER. A hold that only silenced OUR side would leave Showdown's map
+     * walking against `null` and report every move as present-in-one-engine-only — a manufactured
+     * divergence, which is worse than the thing being held. */
+    pp: [0, 1].map(i => (!ctx.ppHold && (sd.active || [])[i] ? sdPP((sd.active || [])[i]) : null)),
   });
   return {
     engine: 'showdown',
@@ -490,6 +594,13 @@ function compare(medi, sd, stats) {
     walk(A.hazards, B.hazards, s + '.hazards', out, stats);
     walk(A.party, B.party, s + '.party', out, stats);
     walk(A.active, B.active, s + '.active', out, stats);
+    /* PP, PER SLOT, ONLY WHERE BOTH ENGINES CAN EXPRESS IT — the same rule and the same reason as
+     * `screens.named` two lines up. Skipped LOUDLY: `pp_comparable` rides on every snapshot, so an
+     * engine that cannot answer is a receipt and never an agreement. */
+    for (let i = 0; i < 2; i++) {
+      const ap = (A.pp || [])[i], bp = (B.pp || [])[i];
+      if (ap && bp) walk(ap, bp, s + '.pp[' + i + ']', out, stats);
+    }
   }
   return out;
 }
@@ -530,7 +641,18 @@ function locate(d, snap) {
   const p = String(d.path);
   const out = { path: p, side: '', slot: '', body: '', body_showdown: '', field: p,
                 us: d.medicham, sd: d.showdown, bucket: bucket(d), family: family(p) };
-  let m = /^(p[12])\.active\[(\d+)\]\.(.+)$/.exec(p);
+  /* PP FIRST, because its path carries a SLOT and the generic `p1.<field>` fallback below would strip
+   * the body off it and report a spent move with nobody standing there. */
+  let m = /^(p[12])\.pp\[(\d+)\]\.(.+)$/.exec(p);
+  if (m) {
+    const i = +m[2];
+    const mb = snap && snap.medi.sides[m[1]].active[i], sb = snap && snap.sd.sides[m[1]].active[i];
+    out.side = m[1]; out.slot = m[1] + SLOT_LETTER[i]; out.field = 'pp.' + m[3];
+    out.body = (mb && mb.species) || (sb && sb.species) || '';
+    out.body_showdown = (sb && sb.species) || '';
+    return out;
+  }
+  m = /^(p[12])\.active\[(\d+)\]\.(.+)$/.exec(p);
   if (m) {
     const i = +m[2];
     const mb = snap && snap.medi.sides[m[1]].active[i], sb = snap && snap.sd.sides[m[1]].active[i];
@@ -601,6 +723,8 @@ function explain(loc, v, pretty) {
   if (f === 'vol.leechseed') return who + (v ? ' is seeded' : ' is not seeded');
   if (f.indexOf('vol.') === 0) { const k = f.slice(4);
     return who + (v ? ' has ' + k + ' with ' + v + ' turn(s) left' : ' has no ' + k); }
+  if (f.indexOf('pp.') === 0) { const mv = P(f.slice(3));
+    return who + (v ? ' has spent ' + v + ' PP on ' + mv : ' has spent no PP on ' + mv); }
   if (f === 'party.hp') return P(loc.body) + ' on the team is on ' + v + ' HP';
   if (f === 'party.maxhp') return P(loc.body) + ' on the team has ' + v + ' maximum HP';
   if (f === 'party.fainted') return P(loc.body) + ' on the team ' + (v ? 'has fainted' : 'is still standing');
@@ -625,10 +749,27 @@ function snapshot(S, battle, ctx) {
            identical: diffs.length === 0,
            leaves_compared: stats.compared,
            screens_shape_medicham: medi.sides.p1.screens.shape,
-           screens_named_comparable: !!(medi.sides.p1.screens.named && sd.sides.p1.screens.named) };
+           screens_named_comparable: !!(medi.sides.p1.screens.named && sd.sides.p1.screens.named),
+           /* THE PP RECEIPT. Counted over every occupied slot on both sides, so "PP agreed" and "PP
+            * was never asked" can be told apart — which is the whole of `docs/LESSONS.md` §1. */
+           pp_comparable: (() => {
+             /* `held` IS A RECEIPT AND NOT A SETTING. A caller that asks for the hold says so in every
+              * snapshot it takes, so a run in which PP was never compared can never be read as a run
+              * in which PP agreed. See tests/roster.js for the only caller that asks. */
+             if (ctx.ppHold) return { held_by_the_caller: true, slots_occupied: null, slots_compared: 0,
+               why: 'THE CALLER ASKED FOR PP TO BE HELD. Nothing below says PP agrees; it says PP was '
+                  + 'not asked. board_state.js compares it by default.' };
+             let both = 0, occupied = 0;
+             for (const s of ['p1', 'p2']) for (let i = 0; i < 2; i++) {
+               const a = (medi.sides[s].pp || [])[i], b = (sd.sides[s].pp || [])[i];
+               if (medi.sides[s].active[i] || sd.sides[s].active[i]) occupied++;
+               if (a && b) both++;
+             }
+             return { slots_occupied: occupied, slots_compared: both };
+           })() };
 }
 
 module.exports = { readMedi, readShowdown, compare, snapshot, family, mappingProof, locate, bucket,
                    explain, MAPPINGS, NOT_COMPARED, PHYSICAL_SCREENS, SPECIAL_SCREENS,
                    _internals: { num, layers, dur, sleptTurns, frozenTurns, mediBoosts, sdBoosts,
-                                 mediScreens, sdScreens } };
+                                 mediScreens, sdScreens, sdPP } };

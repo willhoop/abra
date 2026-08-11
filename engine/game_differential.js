@@ -171,7 +171,14 @@ const id = N.id;
  * could not be made produces `UNTRANSLATABLE:<name>` rather than an empty string, because empty reads
  * as clear skies and would agree with a Showdown that also had none. */
 const STATE_FAILS = {};
-const BS_CTX = { id, weatherId: M.weatherId, terrainId: M.terrainId, fails: STATE_FAILS };
+/* `ppSpent` IS TAKEN FROM THE RELEASE THE SAME WAY, and its ABSENCE is meaningful rather than an
+ * error: a release cut before ROADMAP #144 has no PP at all, so it cannot answer and `board_state.js`
+ * skips the leaf and says so on every snapshot (`pp_comparable`). Reconstructing it here from the tag
+ * artifact would hand an old engine a capability it never had and make the ladder measure the reader.
+ * The absence is counted so a run cannot quietly compare nothing. */
+if (!M.ppSpentMap) STATE_FAILS.pp_not_expressible_by_this_engine = 1;
+const BS_CTX = { id, weatherId: M.weatherId, terrainId: M.terrainId, fails: STATE_FAILS,
+                 ppSpent: M.ppSpentMap || null };
 /* THE AUTHORITY'S OWN DISPLAY NAME FOR AN ID, so the plain-English report says "Sitrus Berry" and not
  * `sitrusberry`. It is passed INTO board_state.js rather than duplicated there — one naming table,
  * and it is the dex's. A name the dex does not know falls back to the id, LOUDLY (counted), because a
@@ -1794,7 +1801,9 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
      * LIVE ENGINE STATE rather than to the snapshot, so the plant travels through the reader — a plant
      * applied to the output would prove only that `compare` can subtract. */
     if (STATE && opts.statePlant) opts.statePlant(S, battle, turnIdx);
-    const snap = BS.snapshot(S, battle, BS_CTX);
+    /* `opts.ppHold` IS A CALLER'S DECLARATION, NOT A DEFAULT. This driver always compares PP; the one
+     * caller that asks for it to be held is tests/roster.js, and it says why on its own call. */
+    const snap = BS.snapshot(S, battle, opts.ppHold ? { ...BS_CTX, ppHold: true } : BS_CTX);
     if (play) creditTurn(play, prevSnap, snap);
     prevSnap = snap;
     if (!STATE) return null;
@@ -2519,6 +2528,43 @@ const STATE_PLANTS = [
   ['a MOVE TRAP counter off by one', 'active[0].vol.trapped_by_move',
    S => !!S.actA[0] && ((S.actA[0]._trap = { turns: ((S.actA[0]._trap && S.actA[0]._trap.turns) || 0) + 3,
                                              frac: 1 / 8, by: S.actB[0] }), true)],
+  /* ---- THE PP PLANTS, AND THERE ARE TWO BECAUSE THERE ARE TWO WAYS TO BE WRONG ------------------
+   *
+   * PP was in `board_state.js`'s NOT_COMPARED until this pass, on a reason that had gone stale: "the
+   * engine does not track PP at all" stopped being true at ROADMAP #144 and the declaration outlived
+   * it. So PP could have been wrong in every game in every run and no instrument would have said so.
+   *
+   * THE FIRST PLANT IS THE ORDINARY DIRECTION — a slot the engine has already touched, moved by one.
+   * THE SECOND IS THE ONE THE LAZY TABLE MAKES POSSIBLE AND IS WHY IT IS NOT ENOUGH ON ITS OWN: it
+   * writes a slot that was NEVER TOUCHED. Our map is lazy, so an untouched move is absent and reads
+   * as 0 spent; a comparator that treated absence as "nothing to compare" rather than as 0 would be
+   * blind to exactly this, and would look identical to one that worked. Both must be CAUGHT.
+   *
+   * WRITTEN THROUGH `_pp`, WHICH IS THE ENGINE'S OWN TABLE, so the whole path is proved: engine body,
+   * `ppSpentMap`, the mapping, the comparator. `ppMax` is asked for the maximum rather than a number
+   * being typed here — a plant carrying its own idea of Protect's PP would be a second copy of a fact.
+   * A plant that cannot find a body reports NOT APPLIED and fails the proof, per the rule above. */
+  /* THE EXPECTED PATH IS `pp[`, WHICH IS THE SLOT, and it was `pp.` on the first run — both plants
+   * came back "caught, NOT LOCALISED" reporting `p1.pp[0].blizzard`. That is the ASSERTION being
+   * wrong rather than the comparator, and it is written down because it is the failure this division
+   * is warned about: the probe wrong before the engine is. */
+  ['PP SPENT off by one on a slot the body has already used', 'pp[',
+   S => { const m = living(S.actA); if (!m) return false;
+          const k = String((m.moves || [])[0] || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (!k || !M.ppMax) return false;
+          const mx = M.ppMax(k); if (mx == null) return false;
+          m._pp = m._pp || {}; m._pp[k] = Math.max(0, (k in m._pp ? m._pp[k] : mx) - 1); return true; }],
+  ['PP SPENT on a slot NOTHING has touched — the lazy-table blind spot', 'pp[',
+   S => { const m = living(S.actB); if (!m) return false;
+          const mv = (m.moves || []);
+          if (!M.ppMax) return false;
+          for (let i = mv.length - 1; i >= 0; i--) {
+            const k = String(mv[i] || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (!k || (m._pp && (k in m._pp))) continue;      // must be UNTOUCHED to be the blind spot
+            const mx = M.ppMax(k); if (mx == null) continue;
+            m._pp = m._pp || {}; m._pp[k] = Math.max(0, mx - 2); return true;
+          }
+          return false; }],
   ['a BENCHED party member\'s HP off by one', 'party.',
    S => { const t = S.sfA.team || []; const m = t[t.length - 1]; if (!m) return false;
           m.curHP = Math.max(0, m.curHP - 1); return true; }],

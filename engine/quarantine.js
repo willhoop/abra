@@ -189,20 +189,66 @@ function rosterStage(stage) {
   };
 }
 
-function differentialClause() {
-  const j = readJson(D('data', 'engine-diff.json'));
+/* `artifact` IS AN INJECTION POINT FOR THE SELFTEST AND NOTHING ELSE. The roster clause's selftest
+ * reimplements its rule in three lines and therefore proves nothing about the rule that ships; this
+ * one drives THE SHIPPING FUNCTION on synthetic artifacts. Absent, it reads the real file exactly as
+ * before. */
+function differentialClause(artifact) {
+  const j = artifact === undefined ? readJson(D('data', 'engine-diff.json')) : artifact;
   if (!j) {
     return { name: 'game differential', ok: false, missing: true,
              why: 'NO ARTIFACT — data/engine-diff.json is absent. Run tests/test-engine-diff.js.' };
   }
   const dis = j.disagreed || 0;
   const worst = (j.worst || [])[0];
+  /* ---- ROADMAP #88 — THE CLAUSE ASKS BOTH CORNERS, NOT ONE AVERAGED NUMBER ---------------------
+   *
+   * `disagreed` above is a MIDPOINT residual: the instrument averages Showdown's two endpoints, averages
+   * MEDICHAM's, and compares those. A range that is wrong by the SAME AMOUNT AT BOTH ENDS has an
+   * identical midpoint and cannot move it — demonstrated in the instrument itself by `--plant spread`,
+   * which reads 0 on the midpoint and 196/218 of 300 on the corners. So "0 of 6000" was a weaker claim
+   * than it read, and this gate was resting on it.
+   *
+   * IT HAD ALREADY HIDDEN ONE. CHANGELOG 3.75.0: the rolled crit sat in the wrong position in the
+   * damage formula — 46.5% of rows wrong at the bottom roll, invisible at the top — while every check
+   * in the repository stayed green.
+   *
+   * AN ARTIFACT WITH NO `arms` FAILS, and that is deliberate rather than lenient. A clause that cannot
+   * be computed must fail (the same rule `coverageClause` states); reading a missing arm as "nothing
+   * disagreed" is exactly the silent default this file exists to stop. A PLANTED run fails too — a red
+   * demonstration is not a measurement, and the instrument already refuses to write it here. */
+  if (j.plant) {
+    return { name: 'game differential', ok: false, generated: j.generated || null,
+      why: `THIS ARTIFACT IS A PLANTED RED DEMONSTRATION (--plant ${j.plant.kind}) and is not a `
+         + 'measurement. Re-run tests/test-engine-diff.js without --plant.' };
+  }
+  const arms = Array.isArray(j.arms) ? j.arms : null;
+  if (!arms || !arms.length) {
+    return { name: 'game differential', ok: false, generated: j.generated || null,
+      why: 'THE CORNER ARMS ARE ABSENT from data/engine-diff.json. `disagreed` is a MIDPOINT residual '
+         + 'and cannot see a range wrong by the same amount at both ends, so it is not a sufficient '
+         + 'claim on its own. Re-run: SHOWDOWN_PATH=... node tests/test-engine-diff.js --n 6000 '
+         + '--seed 20260804' };
+  }
+  const badArms = arms.filter(a => (a.disagreed || 0) > 0);
+  const ok = dis === 0 && badArms.length === 0;
+  const armTxt = arms.map(a => `${a.arm} ${a.disagreed || 0}/${a.compared}`).join(', ');
   return {
-    name: 'game differential', ok: dis === 0, generated: j.generated || null,
-    why: dis === 0
-      ? `clean: 0 of ${j.compared} comparisons disagree with Showdown (seed ${j.seed})`
-      : `${dis} of ${j.compared} comparisons disagree with Showdown`
-        + (worst ? ` — worst: ${worst.att} ${worst.mv} -> ${worst.def} (showdown ${worst.showdown}, medicham ${worst.medicham})` : ''),
+    name: 'game differential', ok, generated: j.generated || null,
+    arms: arms.map(a => ({ arm: a.arm, compared: a.compared, disagreed: a.disagreed || 0 })),
+    why: ok
+      ? `clean at BOTH corners of the damage roll: midpoint 0 of ${j.compared}, ${armTxt} (seed ${j.seed})`
+      : (dis > 0
+          ? `${dis} of ${j.compared} comparisons disagree with Showdown at the MIDPOINT`
+            + (worst ? ` — worst: ${worst.att} ${worst.mv} -> ${worst.def} (showdown ${worst.showdown}, medicham ${worst.medicham})` : '')
+          : `the midpoint is clean and a CORNER IS NOT — ${armTxt}`)
+        + (badArms.length
+            ? '. ' + badArms.map(a => {
+                const w = (a.worst || [])[0];
+                return `${a.arm}: ${a.disagreed} of ${a.compared}`
+                     + (w ? ` — worst ${w.att} ${w.mv} -> ${w.def} (showdown ${w.showdown}, medicham ${w.medicham})` : '');
+              }).join('; ')
+            : ''),
   };
 }
 
@@ -881,6 +927,29 @@ if (require.main === module) {
     /* THE CASE THE WHOLE FILE TURNS ON. A stage with no artifact must FAIL, not pass by absence. */
     const missing = rosterStage('__no_such_stage__');
     ok('a MISSING stage is a FAILING clause, not a passing one', missing.ok === false && missing.missing === true, missing);
+
+    /* -- ROADMAP #88: THE DIFFERENTIAL CLAUSE, THROUGH THE SHIPPING FUNCTION -------------------
+     * Every case below is a WHOLE artifact handed to `differentialClause` itself, so a change to the
+     * rule cannot pass by having its selftest re-state the old one. The two RED cases are the point:
+     * a clean midpoint with a dirty corner, and an artifact with no corners at all. */
+    const armArt = (mid, top, bot) => ({ compared: 6000, seed: 20260804, disagreed: mid,
+      arms: [{ arm: 'top', compared: 6000, disagreed: top, worst: [] },
+             { arm: 'bottom', compared: 6000, disagreed: bot, worst: [] }] });
+    ok('both corners clean and the midpoint clean PASSES', differentialClause(armArt(0, 0, 0)).ok === true);
+    ok('RED — the midpoint is clean and the BOTTOM corner is not: the clause FAILS',
+      differentialClause(armArt(0, 0, 7)).ok === false, differentialClause(armArt(0, 0, 7)).why);
+    ok('RED — the midpoint is clean and the TOP corner is not: the clause FAILS',
+      differentialClause(armArt(0, 3, 0)).ok === false);
+    ok('RED — an artifact with NO corner arms FAILS rather than passing by absence',
+      differentialClause({ compared: 6000, seed: 1, disagreed: 0 }).ok === false);
+    ok('RED — a PLANTED artifact is refused even when every number in it is zero',
+      differentialClause({ ...armArt(0, 0, 0), plant: { kind: 'spread', halfwidth: 12 } }).ok === false);
+    ok('a dirty midpoint still fails, with both corners clean',
+      differentialClause(armArt(5, 0, 0)).ok === false);
+    ok('the passing reason NAMES both corners rather than one pooled number',
+      /top 0\/6000/.test(differentialClause(armArt(0, 0, 0)).why)
+      && /bottom 0\/6000/.test(differentialClause(armArt(0, 0, 0)).why),
+      differentialClause(armArt(0, 0, 0)).why);
 
     /* -- membership, on a synthetic source tree ------------------------------------------------ */
     const src = {

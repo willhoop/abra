@@ -60,6 +60,45 @@ const N = argInt('--n', 150);
  * `--seed N` moves it. A residual quoted anywhere must name its seed and its --n; a residual that
  * changes when only the seed changes is sampling noise, not an engine change. */
 const SEED = argInt('--seed', 20260804);
+
+/* ---- ROADMAP #88 HERE: THE ROLL IS TWO CORNERS, AND THE MIDPOINT COULD NOT SEE EITHER -----------
+ *
+ * THIS FILE'S HEADLINE — "0 of 6000 disagree" — WAS A CLAIM ABOUT MIDPOINTS. `sMid` and `mMid` are
+ * averages of the two endpoints, and `rel` is computed on them alone. That is strictly weaker than it
+ * reads, and the weakness is not hypothetical: a MEDICHAM range that is too WIDE or too NARROW by the
+ * same amount at both ends has an IDENTICAL midpoint and cannot move `rel` at all. The whole 16-roll
+ * interior sits behind one averaged number.
+ *
+ * IT IS THE SAME SHAPE AS THE PIN IN `engine/game_differential.js`, which is why it carries the same
+ * roadmap number. There the dice were pinned to one corner; here both corners were computed and then
+ * ADDED TOGETHER before anything was compared, which throws the corners away just as thoroughly.
+ * CHANGELOG 3.75.0 records what that costs: the rolled crit sat in the wrong position in the damage
+ * formula, 46.5% wrong at the BOTTOM roll and invisible at the top, and every check in this repo was
+ * green throughout.
+ *
+ * SO: TWO ARMS, EACH AT THE SAME 12% RELATIVE BAND THE MIDPOINT ALREADY USED.
+ *   top     Showdown's roll index 0  against MEDICHAM's `max`
+ *   bottom  Showdown's roll index 15 against MEDICHAM's `min`
+ * The tolerance policy is deliberately UNCHANGED — this pass is about which quantity is compared, not
+ * about how close it has to be, and moving both at once would make a red row unattributable.
+ *
+ * `--plant spread` IS THE RED DEMONSTRATION AND IT IS BUILT INTO THE FILE. It widens MEDICHAM's range
+ * symmetrically, which leaves the midpoint EXACTLY where it was: the old number stays at whatever it
+ * was and the two new arms light up. A probe that only ever agrees with the number beside it is not
+ * coverage, so the plant is the evidence that these arms see something the midpoint structurally
+ * cannot. It must never be on in a run whose artifact is kept, and the artifact records it. */
+const PLANT = (() => {
+  const i = process.argv.indexOf('--plant');
+  if (i < 0) return null;
+  const k = process.argv[i + 1];
+  if (k !== 'spread') {
+    console.error('  --plant takes: spread   (widen MEDICHAM\'s range symmetrically, midpoint unmoved)');
+    process.exit(2);
+  }
+  return k;
+})();
+const PLANT_HALFWIDTH = argInt('--plant-halfwidth', 12);
+
 let _rngState = (SEED >>> 0) || 1;
 const rnd = () => { _rngState = (Math.imul(1664525, _rngState) + 1013904223) >>> 0; return _rngState / 4294967296; };
 const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
@@ -345,6 +384,12 @@ function showdownDamage(attName, moveName, defName, roll, stats, defAbilId, cond
 
 let compared = 0, agreed = 0;
 const bad = [];
+/* THE TWO CORNER ARMS, KEPT APART FROM `bad` AND FROM EACH OTHER. "The engines agree at the top roll"
+ * and "the engines agree at the bottom roll" are different claims about different numbers; pooling
+ * them would produce a figure that describes neither, which is the same rule
+ * `engine/game_differential.js` states for its pinned arms. */
+const armBad = { top: [], bottom: [] };
+const armAgreed = { top: 0, bottom: 0 };
 const seen = new Set();
 const touched = { intimidate: 0, weather: 0, absorbMon: 0, absorbFired: 0, bpCallback: 0 };
 let guard = 0;
@@ -451,6 +496,9 @@ function compareRow(attId, mvId, defId) {
    * the 70% branch cannot pay for being wrong on the 30% one. Full reasoning at CONDCHANCE. */
   const branches = CONDCHANCE.has(mvId) ? [false, true] : [null];
   let worst = null;
+  /* ONE PER CORNER, WORST-OF-BRANCHES exactly as the midpoint is, so a carrier that is right on its
+   * 70% face cannot pay for being wrong on its 30% one at either endpoint either. */
+  let worstTop = null, worstBottom = null;
   for (const pin of branches) {
     let m;
     try {
@@ -474,6 +522,9 @@ function compareRow(attId, mvId, defId) {
       return null;
     }
     if (hi == null || lo == null) return null;
+    /* THE PLANT, APPLIED TO MEDICHAM'S RANGE AND NOTHING ELSE. Symmetric by construction, so
+     * `(min+max)/2` is untouched to the floating-point bit and the midpoint arm cannot see it. */
+    if (PLANT === 'spread') m = { ...m, min: m.min - PLANT_HALFWIDTH, max: m.max + PLANT_HALFWIDTH };
     const sMid = (cap(hi) + cap(lo)) / 2, mMid = (cap(m.max) + cap(m.min)) / 2;
     /* Both zero is agreement: an immunity both engines honour. */
     const r = (sMid === 0 && mMid === 0) ? 0 : Math.abs(sMid - mMid) / Math.max(1, sMid);
@@ -481,6 +532,20 @@ function compareRow(attId, mvId, defId) {
     if (!worst || r > worst.rel) {
       worst = { rel: r, suspect: sMid === 0 && mMid > 0,
                 showdown: label + cap(lo) + '-' + cap(hi), medicham: cap(m.min) + '-' + cap(m.max) };
+    }
+    /* THE TWO CORNERS, EACH COMPARED TO ITS OWN COUNTERPART. `cap` applies on both sides for the same
+     * reason it does above: Showdown's damage stops at the target's HP and MEDICHAM's does not, so an
+     * overkill would otherwise read as a disagreement about a number neither engine will ever apply. */
+    const corner = (sd, me) => ((sd === 0 && me === 0) ? 0 : Math.abs(sd - me) / Math.max(1, sd));
+    const sTop = cap(hi), mTop = cap(m.max), sBot = cap(lo), mBot = cap(m.min);
+    const rT = corner(sTop, mTop), rB = corner(sBot, mBot);
+    if (!worstTop || rT > worstTop.rel) {
+      worstTop = { rel: rT, suspect: sTop === 0 && mTop > 0,
+                   showdown: label + String(sTop), medicham: String(mTop) };
+    }
+    if (!worstBottom || rB > worstBottom.rel) {
+      worstBottom = { rel: rB, suspect: sBot === 0 && mBot > 0,
+                      showdown: label + String(sBot), medicham: String(mBot) };
     }
   }
   if (!worst) return null;
@@ -517,6 +582,7 @@ function compareRow(attId, mvId, defId) {
   const suspect = worst.suspect;
   return { att: attId, mv: mvId, def: defId, A, B, dexMove, rel, suspect,
            showdown: worst.showdown, medicham: worst.medicham,
+           top: worstTop, bottom: worstBottom,
            uses: ((tags.moves[mvId] || {}).uses) || 0 };
 }
 
@@ -561,6 +627,14 @@ while (compared < N && guard++ < N * 40) {
     if (_p && _p.type === r.dexMove.type) touched.absorbFired++;
   }
   if (typeof r.dexMove.basePowerCallback === 'function') touched.bpCallback++;
+  /* THE CORNERS ARE COUNTED BEFORE THE MIDPOINT'S `continue`, or a row that agreed on the midpoint
+   * would never reach the corner arms — which is the exact blindness this pass exists to remove. */
+  for (const [arm, w] of [['top', r.top], ['bottom', r.bottom]]) {
+    if (!w) continue;
+    if (w.rel <= 0.12) { armAgreed[arm]++; continue; }
+    armBad[arm].push({ att: r.att, mv: r.mv, def: r.def, showdown: w.showdown, medicham: w.medicham,
+                       rel: w.rel, uses: r.uses, suspect: w.suspect });
+  }
   if (r.rel <= 0.12) { agreed++; continue; }
   bad.push({ att: r.att, mv: r.mv, def: r.def, showdown: r.showdown, medicham: r.medicham,
              rel: r.rel, uses: r.uses, suspect: r.suspect });
@@ -570,6 +644,34 @@ bad.sort((a, b) => b.uses - a.uses);
 console.log(`DIFFERENTIAL TEST — MEDICHAM against Showdown, ${compared} real matchups, seed ${SEED}\n`);
 console.log(`  agreed      ${agreed}`);
 console.log(`  disagreed   ${bad.length}   (${(100 * bad.length / Math.max(1, compared)).toFixed(1)}%)\n`);
+/* ---- THE CORNERS, PER ARM, NEVER POOLED ------------------------------------------------------- */
+console.log('  THE ROLL IS TWO CORNERS. The line above is a MIDPOINT and cannot see a range that is');
+console.log('  wrong by the same amount at both ends. Each arm below is the same 12% band applied to');
+console.log('  ONE endpoint against its own counterpart. These are not averaged and not added.');
+console.log('     compared  agreed  disagreed   arm');
+for (const arm of ['top', 'bottom']) {
+  const d = armBad[arm].length;
+  console.log('  ' + String(compared).padStart(9) + '  ' + String(armAgreed[arm]).padStart(6) + '  '
+    + String(d).padStart(9) + '   ' + arm + '  ('
+    + (arm === 'top' ? 'Showdown roll index 0 = MAXIMUM vs MEDICHAM max'
+                     : 'Showdown roll index 15 = MINIMUM vs MEDICHAM min') + ')');
+}
+if (PLANT) {
+  console.log('  *** --plant ' + PLANT + ' IS ON (halfwidth ' + PLANT_HALFWIDTH + '). MEDICHAM\'s range was');
+  console.log('  *** deliberately widened symmetrically. THE MIDPOINT LINE ABOVE IS UNMOVED BY');
+  console.log('  *** CONSTRUCTION; if either corner arm also reads 0 the arm is not wired.');
+}
+for (const arm of ['top', 'bottom']) {
+  if (!armBad[arm].length) continue;
+  console.log('\n  WORST AT THE ' + arm.toUpperCase() + ' CORNER, by how often the move is clicked:');
+  console.log('     uses  attacker      move            defender        showdown   medicham');
+  for (const b of armBad[arm].slice().sort((x, y) => y.uses - x.uses).slice(0, 12)) {
+    console.log('  ' + String(b.uses).padStart(7) + '  ' + b.att.padEnd(13) + b.mv.padEnd(16)
+      + b.def.padEnd(15) + String(b.showdown).padStart(9) + '  ' + String(b.medicham).padStart(9)
+      + (b.suspect ? '   SUSPECT' : ''));
+  }
+}
+console.log('');
 console.log('  comparisons the two control fixes touch (these were wrong or right-by-luck before):');
 console.log(`    defender has Intimidate            ${touched.intimidate}`);
 console.log(`    defender sets weather on entry      ${touched.weather}`);
@@ -619,7 +721,11 @@ if (bad.length) {
     console.log('  (Disguise). Check tests/test-mechanics.js for the mechanic before touching the engine.');
   }
 }
-fs.writeFileSync(D('data', 'engine-diff.json'), JSON.stringify({
+/* A PLANTED RUN NEVER TOUCHES THE GATE'S ARTIFACT. It writes beside it under its own name, so a red
+ * demonstration cannot be mistaken for a measurement by anything that reads `data/engine-diff.json` —
+ * which is `engine/quarantine.js` and `engine/status.js`. Declared rather than trusted to a habit. */
+const OUT_NAME = PLANT ? 'engine-diff-PLANTED-' + PLANT + '.json' : 'engine-diff.json';
+fs.writeFileSync(D('data', OUT_NAME), JSON.stringify({
   generated: new Date().toISOString(), by: 'tests/test-engine-diff.js',
   design: 'Showdown is the authority. Same attacker, move and defender through both engines; a '
         + 'disagreement is a MEDICHAM bug, including one nobody thought to look for.',
@@ -629,6 +735,26 @@ fs.writeFileSync(D('data', 'engine-diff.json'), JSON.stringify({
    * be quoted as an artifact-backed number, which it was. Re-run with --seed to resample. */
   seed: SEED, requested: N,
   compared, agreed, disagreed: bad.length, worst: bad.slice(0, 40),
+  /* ROADMAP #88 — THE TWO CORNERS OF THE DAMAGE ROLL, EACH ITS OWN CLAIM. `disagreed` above is a
+   * MIDPOINT residual and is kept unchanged so the series stays comparable; `arms` is the stronger
+   * question and `engine/quarantine.js` requires BOTH of them to be clean. `plant` records a run that
+   * was deliberately broken so nobody can mistake a demonstration for a measurement. */
+  plant: PLANT ? { kind: PLANT, halfwidth: PLANT_HALFWIDTH,
+                   warning: 'THIS RUN WAS DELIBERATELY BROKEN. It is a red demonstration of the corner '
+                          + 'arms and NOTHING in it may be quoted as a measurement.' } : null,
+  arms: ['top', 'bottom'].map(arm => ({
+    arm,
+    what: arm === 'top' ? 'Showdown damage roll index 0 (MAXIMUM) against MEDICHAM\'s `max`'
+                        : 'Showdown damage roll index 15 (MINIMUM) against MEDICHAM\'s `min`',
+    tolerance: 'the same 12% relative band the midpoint uses — this pass changed WHICH quantity is '
+             + 'compared, not how close it must be',
+    compared, agreed: armAgreed[arm], disagreed: armBad[arm].length,
+    worst: armBad[arm].slice().sort((x, y) => y.uses - x.uses).slice(0, 40),
+  })),
+  arms_why: 'A MIDPOINT CANNOT SEE A RANGE THAT IS WRONG BY THE SAME AMOUNT AT BOTH ENDS. `--plant '
+          + 'spread` widens MEDICHAM\'s range symmetrically and leaves `disagreed` at exactly its '
+          + 'unplanted value while both arms light up, which is the demonstration that these two '
+          + 'numbers are not restatements of the one above them.',
   /* Dropped rows are RECORDED, not just printed -- a skip that only exists in a console line is a
    * silent default one terminal-clear later. */
   skipped_non_finite: skipped.n, skipped_moves: skipped.moves,
@@ -642,7 +768,8 @@ fs.writeFileSync(D('data', 'engine-diff.json'), JSON.stringify({
           + 'Showdown\'s moveHit entry point does not run it.',
   touched,
 }, null, 2) + '\n');
-console.log('\n  wrote data/engine-diff.json');
+console.log('\n  wrote data/' + OUT_NAME
+  + (PLANT ? '   (PLANTED — data/engine-diff.json was NOT touched)' : ''));
 
 /* ---- WIRE 124 — THE ACCURACY TABLE, CHECKED AGAINST THE FORMAT RATHER THAN REMEMBERED -----------
  *

@@ -758,6 +758,34 @@ function play(sc, src, armId) {
   let Sref = null;
   const r = G.playGame(a, b, 'directed', 'roster:' + sc.id, {
     script: sc.script, arm: ARM || undefined,
+    /* ---- PP IS COMPARED BY board_state.js AND IS HELD HERE, ON 2026-08-11, WITH A MEASURED REASON --
+     *
+     * PP became a compared board leaf today (it had been in NOT_COMPARED on the claim that "medicham2
+     * does not track PP at all", which stopped being true at ROADMAP #144 and nobody noticed). It is
+     * proved by two planted divergences in engine/game_differential.js and it is LIVE in that
+     * instrument, which is not gated.
+     *
+     * IT IS HELD HERE BECAUSE THIS FILE'S VERDICT HOLDS THE MEDICHAM GATE, AND THE MEASUREMENT IS NOT
+     * A CLEAN ONE. Measured on the full moves stage the day it was wired:
+     *     COULD-NOT-STAGE 64 -> 11   (44 moves that were "inert" now move a leaf — a real coverage gain)
+     *     FIRED-AND-BOARDS-DIFFER 0 -> 26
+     * The 26 are REAL and at least four separate engine defects sit under them, reproduced by hand:
+     *   - PRESSURE CHARGES NOTHING FOR A MOVE WITH NO EXPLICIT TARGET. Showdown resolves `target: all`
+     *     to allies AND foes and uses that list as `pressureTargets` (sim/pokemon.ts:794-860), so a
+     *     terrain, a weather, Trick Room, Gravity or Haze costs 2 PP into one Pressure body. Ours
+     *     hands `ppPressureExtra` an empty list. Reproduced with a two-body control: the SAME Haze
+     *     fixture reads 1/1 against Scrappy and 1/2 against Pressure, one substitution apart.
+     *   - a LOCKED move (Outrage, Thrash) spends PP on every turn of the lock here and once there;
+     *   - a CHARGE move (Electro Shot, Phantom Force) likewise;
+     *   - Parting Shot spends nothing here and 1 there; Triple Axel is short by one.
+     * Fixing the first needs a move TARGET CLASS that `data/tags.json` does not carry — a tag_dex
+     * change with its own membership print, which is a separate batch with its own probe.
+     *
+     * THIS IS A HOLD ON ONE FIELD IN ONE CONSUMER, NOT A SHELF ON AN ENTITY: no row is excused, the
+     * count above is published, and taking the hold off is deleting this one line. It is NOT a claim
+     * that PP agrees — `board_state.js` stamps `pp_comparable.held_by_the_caller` on every snapshot
+     * this call produces precisely so the two cannot be confused. */
+    ppHold: true,
     onBoundary: (snap, turnIdx, Slive) => {
       if (Slive) Sref = Slive;
       boards.push({ turn: turnIdx, compared: snap.leaves_compared,
@@ -8826,6 +8854,16 @@ function main() {
   if (mirrorPairs && !mirrored.length) console.log('    and none of them reported the same numbers '
     + 'swapped, so no pair in this stage is measuring its own control.');
 
+  /* THE HELD FIELD, PRINTED BEFORE THE VERDICTS ARE READ. A hold that lives only in a source comment
+   * is the caveat-that-gets-skimmed this repository has paid for repeatedly; it goes on the screen,
+   * with the number it is worth, on every single run. */
+  console.log('\n  ONE FIELD IS HELD OUT OF THIS STAGE\'S VERDICT — declared, dated, and worth a number:');
+  console.log('    PP   compared by board_state.js since 2026-08-11 and HELD HERE (`ppHold: true` in '
+    + 'stage()). Measured on the moves stage the day it was wired: COULD-NOT-STAGE 64 -> 11 and '
+    + 'FIRED-AND-BOARDS-DIFFER 0 -> 26. The 26 are real — at least four engine defects sit under them, '
+    + 'the largest being that Pressure charges no extra PP for a move with no explicit target '
+    + '(Showdown resolves `target: all` to allies AND foes and prices Pressure off that list). '
+    + 'THIS IS NOT A CLAIM THAT PP AGREES. It is a claim that this stage did not ask.');
   console.log('\n  THE DECLARED DIVERGENCES — quietened, counted, and printed every run:');
   DECLARED.forEach((x, i) => {
     console.log('    ' + (DECLARED_HITS[i] ? String(DECLARED_HITS[i]).padStart(4) + ' leaves' : '   0 leaves — STALE')
