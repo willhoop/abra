@@ -204,18 +204,38 @@ add({
   note: 'ineligible: ' + notrace.join(' '),
 });
 
+
+/* ---- THE THREE STATUS ROWS WERE WRITTEN FROM MAINLINE AND ALL THREE ARE WRONG ------------------
+ *
+ * Will, 2026-08-10: *"where else might mainline data have snuck in aside from the champions mod?"*
+ * The answer was `data/mods/champions/conditions.ts`, which overrides par, slp and frz, and which
+ * nothing in this project had ever read:
+ *
+ *     par   randomChance(1, 8)      = 12.5%, not the 25% I wrote
+ *     slp   sample([2, 3, 3])       = 2 or 3 turns, 1/3 chance of 2 — it can NEVER last one turn
+ *     frz   startTime = 3           = a FIXED three-turn timer, not a 20% per-turn thaw roll
+ *
+ * Paralysis is HALF what this file claimed. Freeze is not a die at all. Every one of these would
+ * have failed a correct engine, or — far worse — passed a wrong one that happened to match mainline.
+ * It is the Moonblast error again: 30% written where the format says 10%.
+ *
+ * THE GENERAL RULE, and it is bigger than these three: the Champions mod overrides EIGHT files —
+ * abilities, moves, items, conditions, learnsets, rulesets, formats-data and scripts. Two of the
+ * eight have been audited, both only after they bit us. `scripts.ts` alone overrides `modifyDamage`,
+ * `statModify`, `calculatePP`, `formeChange`, `getActionSpeed`, `canMegaEvo`, `spreadMoveHit` and
+ * `hitStepMoveHitLoop` — the damage formula, the SP formula, and the multi-hit loop. Read the MOD. */
 /* ---- 8. STATUS DURATIONS AND SELF-HARM ------------------------------------------------------------
  * Every one of these is a die the pin freezes, and each has a denominator that is easy to get wrong.
  * Confusion in particular is a rate per ATTEMPTED move while confused, not per turn. */
-add({ family: 'duration', subject: 'slp', kind: 'status', expect: '1-3 turns, uniform', unit: 'turns',
+add({ family: 'duration', subject: 'slp', kind: 'status', expect: '2 or 3 turns, 1/3 chance of 2', unit: 'turns',
       what: 'sleep length', clicks: null,
       denominator: 'bodies that FELL asleep and were not woken early by Wake-Up Slap, Uproar or an '
                  + 'ability. Early Bird halves it and needs its own arm.' });
-add({ family: 'duration', subject: 'frz', kind: 'status', expect: 20, unit: '% thaw per turn',
+add({ family: 'duration', subject: 'frz', kind: 'status', expect: 'a FIXED 3-turn timer', unit: 'turns',
       what: 'thaw chance', clicks: null,
       denominator: 'frozen upkeeps. A Fire-type move or Scald thaws outright and is NOT a sample of '
                  + 'the 20%.' });
-add({ family: 'chance', subject: 'par', kind: 'status', expect: 25, unit: '% full paralysis',
+add({ family: 'chance', subject: 'par', kind: 'status', expect: 12.5, unit: '% full paralysis',
       what: 'fails to move', clicks: null,
       denominator: 'attempted moves while paralysed.' });
 add({ family: 'chance', subject: 'confusion', kind: 'volatile', expect: 33, unit: '% self-hit',

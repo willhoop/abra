@@ -10,6 +10,42 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.1.0] — 2026-08-10
+
+### Fixed
+- **THREE STATUS RATES IN THE MILLION-GAME LIST WERE MAINLINE AND ALL THREE ARE WRONG.** Will asked
+  *"where else might mainline data have snuck in aside from the champions mod?"* — the answer was
+  `data/mods/champions/conditions.ts`, which nothing here had ever opened. **Paralysis is
+  `randomChance(1, 8)` = 12.5%, not 25% — half.** **Sleep is `sample([2,3,3])` — 2 or 3 turns, and it
+  can NEVER last one.** **Freeze is a fixed 3-turn timer, not a 20% per-turn thaw roll** — not a die at
+  all, and I had listed it as one. Each would have failed a correct engine, or passed a wrong one that
+  happened to match mainline.
+- Confusion, Attract and flinch are **not** overridden and inherit mainline — 33% / 50% stand. Checked
+  rather than assumed, because "this file overrides some conditions" is not "it overrides this one".
+
+### Notes
+- **THE STRUCTURAL ANSWER: the Champions mod overrides EIGHT files and we had audited TWO** — both only
+  after they bit us (`abilities.ts` via Unseen Fist, `moves.ts` via Moonblast and the 21 constants).
+  Never read: `items.ts`, `learnsets.ts` (328 KB), `rulesets.ts`, `formats-data.ts`, and **`scripts.ts`**.
+- **`scripts.ts` is 22 KB of overridden BATTLE MECHANICS, not constants** — `modifyDamage`,
+  `statModify`, `calculatePP`, `formeChange`, `getActionSpeed`, `canMegaEvo`, `spreadMoveHit`,
+  `hitStepMoveHitLoop`. **Every mechanic debugged tonight has an overridden implementation in a file we
+  have never opened**, including the multi-hit loop an agent rewrote from mainline.
+  `engine/format_audit.js` cannot see this: it sweeps CONSTANTS, and a rewritten function is not one.
+- **Two builders still fetch mainline over the network** — `build_mega_dex.js:50` and
+  `build_species_abilities.js:29` pull `play.pokemonshowdown.com/data/pokedex.json`, the first calling
+  it *"the data the Showdown server runs this format on."* Measured harmless (all 76 legal megas exist
+  in mainline with identical base stats; Champions does not override `pokedex.ts`) — but the belief is
+  the one that produced the 21 constants.
+- **`app/` and `web/` disagree about the gate** — `app/quarantine-data.js` still says CLOSED with 33
+  withheld figures while `web/` says OPEN with 0, because the builder writes `web/` and never `app/`.
+  Not a leak (`app/` over-withholds, the safe direction). Registered, not fixed — web is paused.
+- *I nearly reported a catastrophe here twice in three minutes — first by reading a key that did not
+  exist, then by testing `isNonstandard` when every gen-9 mega is `Past` by definition. Both were my
+  probe, not the data.*
+
+---
+
 ## [5.0.0] — 2026-08-10
 
 ### Changed

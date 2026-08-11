@@ -3548,3 +3548,61 @@ holds until the metagame moves, and the entry says to delete it the day a sheet 
 nearly shelved a mechanic that sits on Farigiraf at 18.3%; here I read a low count and explained it
 with a rare carrier that is not rare at all. **The ability count alone answers neither question — the
 BODY has to be looked at too**, and Will asked the right question both times.
+
+---
+
+## "WHERE ELSE MIGHT MAINLINE HAVE SNUCK IN" — THREE MORE, AND THE ANSWER IS SIX UNAUDITED FILES.
+
+Will asked it immediately after catching me reading mainline `abilities.ts` for Unseen Fist. **The
+answer was `data/mods/champions/conditions.ts`, which nothing in this project had ever opened.** It
+overrides exactly three conditions, and my million-game target list had all three wrong:
+
+    par   randomChance(1, 8)   = 12.5%   I wrote 25%  — HALF
+    slp   sample([2, 3, 3])    = 2 or 3 turns, 1/3 chance of 2 — it can NEVER last one turn
+    frz   startTime = 3        = a FIXED three-turn timer, NOT a 20% per-turn thaw roll
+
+Freeze is not a die at all, and I had listed it as one. Every one of these would have failed a correct
+engine — or, far worse, passed a wrong one that happened to match mainline. **It is the Moonblast error
+again**: 30% written where the format says 10%.
+
+Confusion, Attract and flinch are NOT overridden and inherit mainline, so 33% / 50% stand. Checked
+rather than assumed, because "this file overrides some conditions" is not "it overrides this one".
+
+### THE REAL ANSWER IS STRUCTURAL: EIGHT FILES, TWO AUDITED, BOTH AFTER THEY BIT US
+
+    abilities.ts     AUDITED — after Unseen Fist
+    moves.ts         AUDITED — after Moonblast and the 21 constants
+    conditions.ts    audited now, and it was wrong in three places
+    items.ts         NEVER READ
+    learnsets.ts     NEVER READ — 328 KB
+    rulesets.ts      NEVER READ
+    formats-data.ts  NEVER READ
+    scripts.ts       NEVER READ — and it is the dangerous one
+
+**`scripts.ts` is 22 KB of overridden BATTLE MECHANICS**, not constants:
+
+    statModify()            the SP stat formula
+    calculatePP()           the PP rule
+    getActionSpeed()        speed
+    formeChange()           <- the SP-spread bug found tonight
+    canMegaEvo()            mega rules
+    modifyDamage()          THE DAMAGE FORMULA
+    spreadMoveHit()         spread resolution
+    hitStepMoveHitLoop()    <- the multi-hit loop an agent rewrote tonight, from mainline
+
+**Every mechanic this project has spent the night debugging has an overridden implementation sitting in
+a file we have never opened.** `engine/format_audit.js` swept 7,653 constants and found 21 — but it
+compares `Dex.forGen(9)` to the format for MOVES. **A constant sweep cannot see a rewritten function.**
+
+### AND TWO BUILDERS STILL FETCH MAINLINE OVER THE NETWORK
+
+`engine/build_mega_dex.js:50` and `engine/build_species_abilities.js:29` both fetch
+`play.pokemonshowdown.com/data/pokedex.json`, and the first calls it *"the data the Showdown server runs
+this format on."* **It is not — it is mainline.** Measured harmless for now: all 76 legal Champions megas
+exist in mainline's pokedex with identical base stats, because Champions does not override `pokedex.ts`.
+But the COMMENT is the same wrong belief that put 21 mainline constants into `data/move-effects.js`, one
+file away from data that IS overridden.
+
+*(I nearly reported a catastrophe here twice in three minutes — first by reading a key that did not
+exist, then by testing `isNonstandard` when every gen-9 mega is `Past` by definition. Both were my
+probe, not the data. Measure, then measure the measurement.)*
