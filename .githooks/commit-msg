@@ -1,0 +1,74 @@
+#!/bin/sh
+# commit-msg — a version announced in the commit subject must exist in CHANGELOG.md.
+#
+# WHY THIS EXISTS, AND WHY pre-commit COULD NOT DO IT.
+# On 2026-08-10 five consecutive commits shipped with a version in the subject line and no CHANGELOG
+# entry at all: 3.99.1, 4.0.0, 4.1.0, 4.1.0 and 4.2.0. CHANGELOG.md topped out at 3.98.0 while the
+# repository's own history announced four versions past it. Backfilled at 4.3.0.
+#
+# `.githooks/pre-commit` was ARMED the whole time and did not fire, and that is a real defect rather
+# than bad luck. It runs tests/test-docs-current.js, which asks whether a version-headed DOCUMENT
+# trails CHANGELOG.md. That is the CONVERSE of what happened. Nothing asked whether a version named in
+# the COMMIT MESSAGE has a matching heading -- and it could not, because a pre-commit hook is not given
+# the message. That is what commit-msg is for.
+#
+# This is the same shape as the failure that created pre-commit in the first place (f60b01c stamped
+# "3.60.0" and wrote nothing): a rule that was checked in one direction only, by a gate that looked
+# like it covered both.
+#
+# INSTALL: already armed if `git config core.hooksPath .githooks` is set -- the same setting arms
+# pre-commit. Verify with: git config core.hooksPath
+
+MSG_FILE="$1"
+[ -f "$MSG_FILE" ] || exit 0
+
+# NEVER FIRE MID-REBASE, for the same reason pre-commit does not: this repository has reached a
+# detached HEAD 43 commits into a 45-commit rebase, and a hook that blocks a replay step turns a
+# recoverable rebase into a wedged one. The replayed commits were checked when first made.
+GITDIR=$(git rev-parse --git-dir)
+if [ -d "$GITDIR/rebase-merge" ] || [ -d "$GITDIR/rebase-apply" ]; then
+  exit 0
+fi
+
+# The subject line only. A version mentioned in the BODY is usually a reference to an older release
+# ("this retracts 4.0.0"), not a claim to be shipping one, and blocking on that would train people to
+# work around the hook.
+SUBJECT=$(sed -n '1p' "$MSG_FILE")
+
+# A version CLAIM is a semver at the very start of the subject, which is this repository's convention:
+#   "4.2.0: a sixth gate clause"      -> claims 4.2.0
+#   "Retract Loaded Dice: ..."        -> claims nothing
+#   "fix typo in 3.91.0 notes"        -> claims nothing (not at the start)
+VERSION=$(printf '%s' "$SUBJECT" | sed -n 's/^\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/p')
+[ -n "$VERSION" ] || exit 0
+
+CHANGELOG="CHANGELOG.md"
+if [ ! -f "$CHANGELOG" ]; then
+  echo "commit-msg: subject claims $VERSION but $CHANGELOG does not exist" >&2
+  exit 1
+fi
+
+# Match the Keep-a-Changelog heading exactly: "## [4.2.0]". Not a loose grep for the number, which
+# would be satisfied by any prose mentioning it -- including the retraction note that says a version
+# was superseded.
+if grep -qE "^## \[$(printf '%s' "$VERSION" | sed 's/\./\\./g')\]" "$CHANGELOG"; then
+  exit 0
+fi
+
+cat >&2 <<MSG
+
+  BLOCKED: this commit announces version $VERSION and CHANGELOG.md has no entry for it.
+
+    Expected a heading:  ## [$VERSION] - YYYY-MM-DD
+    Newest entry found:  $(grep -m1 -E '^## \[' "$CHANGELOG" 2>/dev/null || echo '(none)')
+
+  Five versions shipped this way on 2026-08-10 -- 3.99.1 through 4.2.0 -- and the changelog sat four
+  releases behind the history until somebody happened to reconcile it. A version in a commit subject
+  is a claim that a release happened; the entry is the only place that claim is recorded.
+
+  Either add the entry, or take the version out of the subject line.
+
+  DO NOT PASS --no-verify. If this gate is wrong, fix the gate and say so in the commit.
+
+MSG
+exit 1

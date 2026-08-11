@@ -10,6 +10,316 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [4.5.0] — 2026-08-10
+
+### Fixed
+- **TWO SHIPPED COMMITS CITED ROADMAP NUMBERS THAT WERE NEVER REGISTERED, AND A LATER AGENT REUSED
+  THEM.** `0a28580` (4.1.0) names "ROADMAP #145" for the grounded axis and `e7d672a` (4.2.0) names
+  "ROADMAP #146" for the sixth gate clause. **Neither existed in §5** — HEAD's register stopped at
+  #143 — so the SEARCH agent correctly took #145/#146 for the PP work, and those two numbers now mean
+  two different things depending on whether you read a commit message or the register. Re-registered
+  as **#147** (grounded axis, open) and **#148** (sixth gate clause, closed), with **#149** recording
+  the collision itself. The commit messages cannot be rewritten and are left alone.
+- **THE GATE COUNTED 7 OPEN DEFECTS AGAINST A REGISTER HOLDING 8.** #147 first read *"Roost has no
+  mechanism at all"* — plainly a live defect, matching none of the sixth clause's phrase list. **The
+  ROW was reworded to the register's own vocabulary rather than the regex widened**, because widening
+  prose-matching only moves the boundary. The clause errs SHUT on ambiguity and OPEN on unfamiliar
+  phrasing, which is the wrong direction; the durable fix is a machine-readable severity field per
+  row. **Gate now reads CLOSED, 1 of 6, on 8 open defects.**
+- **`status.js` STAMPS UTC WHILE EVERY DATED ARTIFACT USES LOCAL (#150).** Measured 20:43 EDT:
+  `engine/medicham2-browser.js` has mtime `2026-08-10 20:41:29 -0400` and `docs/SEARCH.md` renders it
+  as `2026-08-11 00:40`. A CHANGELOG entry written in the same session was stamped
+  `[4.4.0] — 2026-08-11` against a real date of the 10th, and corrected by hand. Small, and exactly
+  the class this repository keeps paying for: **an artifact that looks newer than it is**, feeding a
+  staleness comparison that then reads backwards — the reason `engine/provenance.js` already had to
+  stop comparing mtimes.
+
+### Notes
+- **`tests/test-roadmap-register.js` did not catch the collision and is not wrong to have missed it.**
+  It checks that every item a DIVISION LEDGER schedules is named in §5; these citations were in a
+  commit message and in the sprint notes, neither of which it reads. Until it is widened, **a number
+  in a commit message is not a registered number.**
+- **`tests/test-effective-identity.js` and `tests/test-no-silent-failure.js` are RED**, routed to the
+  ENGINE agent whose uncommitted work names every offender. Stated here rather than filed: 49 new
+  silent catches inside a correctness batch is the defect class this project is built around — a
+  capability absent while everything reports success.
+
+---
+
+## [4.4.0] — 2026-08-10
+
+### Fixed
+- **PP DID NOT EXIST IN A BOARD POSITION, SO EVERY MILTANK ROLLOUT STARTED AT FULL PP.** (Will:
+  *"FIX 1"*.) ROADMAP #144 gave `engine/medicham2-browser.js` real PP the same evening, and it named
+  its own remaining gap in its header: *"a rollout STARTS at full PP, because `board.js` does not
+  track PP and is not ENGINE's to change."* Measured RED before a byte moved: a position that had
+  already spent all 8 of Protect's PP rolled out **8 more — sixteen out of a move that has eight.**
+  It is now capped at 8 and the drained body Struggles. `engine/pp_board_probe.js` →
+  `data/pp-board-probe.json`; ROADMAP #145.
+- **It is not a rounding error despite games ending at turn 6.** The rollout cap is 60, and that gap
+  is the defect rather than a reason to shrug at it: a 60-turn playout with infinite PP discovers
+  unlimited Protect, unlimited recovery and unlimited redirection — a systematically wrong valuation
+  of exactly the positions the search believes it is being clever in.
+- **`Board.pp` is per side and per SPECIES, not per slot**, and that was the easy thing to get wrong.
+  `switchIn` builds a new mon object every time a Pokemon comes out — correct for stat stages, which
+  belong to the slot's occupant — so a table held there would have silently refilled every move on a
+  pivot, and pivoting is what a stall line is made of. The mon holds a reference; the ledger outlives
+  it.
+- **`noteMove` spends PP ABOVE the `worked` gate**, because Showdown deducts below every BeforeMove
+  refusal and above the `|move|` announcement: a Protect that failed its own consecutive-use roll, a
+  move that missed and a move a Protect ate have all been paid for. Charging on `worked` would have
+  refunded every failed stall, which is the one case this fix is about.
+- **`dmgMon` seeds the built body AFTER the sheet overwrites `b.moves`**, never before — seeding
+  first would key the table to moves the body no longer carries, silently. `rollout_leaf.sideTeam`
+  gives the BENCH its ledger too, which is the body that arrives at full PP most easily and the one
+  that spent six turns on the field before it pivoted out.
+- **The shipped `explore=1.0` playout was clicking empty slots — a defect in SEARCH's own file.**
+  `runPlayout`'s uniform draw bypasses `chooseAction`, which is the point of it and is also where
+  every selection guard lives, so a drained body answered `|cant|nopp` at execution and wasted the
+  turn instead of Struggling: 52 such lines and 0 Struggles on the probe board. The draw now filters
+  on selectability and falls back to the chooser when nothing is selectable. `pickByPrior` takes the
+  filtered list, or the priors sampler would put the empty slot straight back — the leak WIRE 26
+  found on Disable, one layer up.
+
+### Added
+- **`engine/pp.js` — Champions PP as one fact.** Maxima are READ off `data/tags.json`'s `pp` row
+  (built by `engine/tag_dex.js` from a real `Battle` in `gen9championsvgc2026regmb`), never computed:
+  Protect is 8 in this format against 16 mainline, and the mainline `pp * 8/5` rule matches only 85
+  of the format's 500 moves. Selectability is modelled as its own predicate with PP as one input, so
+  that when ENGINE widens the Struggle condition past PP — a Choice lock plus Disable empties the
+  menu at full PP — every caller widens at once.
+- **`tests/test-pp-fact.js` — 31 assertions, and it compares BEHAVIOUR rather than source.** It plays
+  a real turn and asserts the number MEDICHAM wrote into its own `_pp` equals the number `pp.js`
+  gives, at every maxpp tier the format produces (8, 12, 16, 20), because comparing two
+  implementations by reading one of them proves nothing.
+
+### Changed
+- **Pressure is charged per APPARENT TARGET, so a self-targeting move pays nothing extra.** Measured
+  in Showdown rather than reasoned: Protect goes 8 → 3 in five clicks against a Pressure foe and
+  against a Levitate foe alike, while Flamethrower goes 16 → 6 against Pressure and 16 → 11 against
+  Levitate. An implementation that simply doubles every deduction under Pressure passes the attacking
+  arm and fails the Protect one, so both are probe arms. `noteMove` is not told which of two foes a
+  single-target move hit, so the extra is charged only when it is unambiguous and
+  `ppCounters.pressureAmbiguous` counts the rest — erring low keeps the board's PP an upper bound on
+  the truth, which can only under-spend and never invent a turn.
+
+### Notes
+- **This is a MECHANISM fix and it is NOT a measurement.** No engine release was cut, and
+  `engine/medicham2-browser.js` was being edited by ENGINE throughout. `data/pp-board-probe.json` is
+  a receipt that a state is representable, not a leaf value, and must not be quoted as one.
+- **It invalidates board-derived rollout numbers further, and that is the right order** — before the
+  refit, not after. Nothing MAG scores reads PP: `FEATURES` is still 58 and
+  `data/policy-weights.json` keeps its dimensionality, so the fitted vector is untouched.
+- **`candidates()` still offers a drained move, deliberately.** Showdown would not, so this is
+  probably wrong — and fixing it changes what MAG clicks, which makes it a SEARCH decision that
+  deserves its own arm rather than a free ride on a mechanics fix. `Board.slotSelectable()` and
+  `Board.mustStruggle()` exist for whoever takes it.
+- **THE PP FACT HAS TWO READERS UNTIL ENGINE ADOPTS THE SHARED ONE (ROADMAP #146).**
+  `medicham2-browser.js`'s five PP functions are file-local — on neither `module.exports` nor `root`
+  — so `board.js` cannot call them and exporting them is an edit in a file SEARCH may not touch. The
+  alternative was a copy, which is the hazard CLAUDE.md names by name. Guarded by
+  `tests/test-pp-fact.js` rather than merely declared.
+- **Measured correction to `docs/_outbox/pp-and-moldbreaker-notes.md`:** `floor(base * 0.8) + 4` fits
+  **499 of 500** rows, not 500. Struggle carries `noPPBoosts` and stays at 1/1 where the formula
+  gives 4. Nothing downstream is wrong — the number is read, never computed — but the claim as
+  written would have to break before the artifact did.
+
+---
+
+## [4.3.0] — 2026-08-10
+
+### Fixed
+- **FIVE VERSIONS SHIPPED WITH NO CHANGELOG ENTRY — 3.99.1 through 4.2.0, backfilled below.** Each
+  commit announced a version in its subject line and wrote nothing here. This is the living-docs rule
+  broken five consecutive times, in the sprint whose own CLAUDE.md section is titled "KNOWN FAILURE"
+  IS A BANNED PHRASE.
+- **The pre-commit hook was armed and did not fire, which is its own defect.** `.githooks/pre-commit`
+  is installed (`core.hooksPath = .githooks`) and checks that version-headed DOCUMENTS do not trail
+  `CHANGELOG.md`. It never asserts the converse — that a version named in a COMMIT MESSAGE has a
+  matching `## [x.y.z]` heading here. So the one direction that actually happened was unguarded. The
+  hook was built on 2026-08-06 specifically to stop `f60b01c`, which stamped `3.60.0` in its message
+  with no entry; it then failed to stop the identical thing five more times.
+
+- **`.githooks/commit-msg` — the missing direction, shown RED on six fixtures before arming.** A
+  pre-commit hook is never handed the commit message, which is why the check could not live there.
+  Blocks `9.9.9: …` and `4.2.1: …` (no entry); passes `4.3.0: …`, `3.98.0: …`, a subject with no
+  version, and `fix a typo in the 3.91.0 notes` (a version not at the start is a reference, not a
+  claim). Skips mid-rebase, like `pre-commit`, for the same detached-HEAD reason.
+
+- **The harness charged one slot's bug to three unrelated moves.** `engine/all_mechanics_fire.js`
+  recorded a game's first protocol divergence and attributed it to whatever row the game was staged
+  for. `afteryou`, `sleeptalk` and `snore` — 442 clicks — were each filed as the SUBJECT emitting a
+  spurious `-fail`, when the line is `|-fail|p1b: Venusaur`: the PARTNER, mid-move, while every
+  subject here is staged at `p1a`. Will read it off the mechanics without seeing the code.
+  Divergences now record which slot's move segment they fell inside, and the reporter groups the
+  rest as SHARED SUSPECTS.
+
+### Notes
+- **THE ATTRIBUTION RULE WAS WRITTEN THREE TIMES AND SHIPPED AS A FLAG, NOT A VERDICT.** Recorded
+  because the pattern matters more than the fix. (1) *Compare the slot named on the line* — killed by
+  its own fixture: `|-damage|p2a: Feraligatr` names the OPPONENT and is the subject's move landing, so
+  the rule would have exonerated the entire Aegislash class while fixing three false rows. (2)
+  *Attribute by the move's TARGET*, since After You reaches its partner — Will: *"AFTER YOU IS USED BY
+  A FAST POKEMON LIKE LOPUNNY TO MAKE THEIR SLOW PARTNER MOVE FIRST LIKE TORKOAL"*, which is right, and
+  measuring it killed the rule: After You's target in this format is `normal`, and `normal` in doubles
+  includes the ally — as does Snore's. The dex does not separate these rows. (3) So the divergence is
+  **flagged and grouped, never dismissed.** Each earlier version traded a false positive for a false
+  negative, and here a false negative is strictly worse: a defect wrongly kept gets investigated, a
+  defect wrongly disowned is invisible.
+- **The doc pause does not extend to this file.** A changelog entry is the record that a change
+  happened; the whitepaper/deck/technical-docs pass is the interpretation of it. Pausing the second is
+  a scheduling choice. Pausing the first is how a sprint becomes unreconstructable.
+- **A DUPLICATE RUNNING LIST WAS CREATED AND DELETED THE SAME HOUR.** Asked whether the notes list was
+  being kept, I searched for `pend|owed|debt|running|defer|todo`, matched nothing, reported the absence
+  as fact and started `docs/DOCS-OWED.md`. **`docs/MEDICHAM-SPRINT-NOTES.md` existed the whole time** —
+  193 KB, written that evening, and already enforced by this hook's own sprint clause. A failed search
+  is not evidence of absence, and a second running list is the "two files that both decide one fact"
+  failure this repository has been bitten by repeatedly. The duplicate's content was folded into the
+  sprint notes and the file removed; there is one list.
+
+---
+
+## [4.2.0] — 2026-08-10
+
+### Changed
+- **A SIXTH GATE CLAUSE — no open, known, unfixed engine defect.** *(Registered as **#148**. The
+  commit says "#146"; that number was never in §5 and was later taken by different work — see #149.)*
+  (Will: *"THE GATE SHOULDNT BE
+  OPEN, SO MANY OF THESE ITEMS ARE DISQUALIFYING FOR THE ENGINE TO WORK."* Right, and the gate was
+  wrong rather than the items.) The first five clauses ask whether our two engines agree, whether
+  Showdown disagreed about what bots happened to click, and whether something measured it. **None
+  asked whether we already KNOW a mechanic is broken** — and we did know, in a register the gate
+  never read. That is "known failure" filed one level up.
+- **THIS RETRACTS 4.0.0's HEADLINE.** The gate was reported OPEN two commits earlier and is CLOSED
+  again here. Nothing about the engine regressed; the gate learned to read the defect register. The
+  earlier entry stands as written rather than being rewritten — a prior conclusion is never silently
+  amended — but **4.0.0's "the quarantine is lifted" must not be acted on.** The quarantine holds.
+
+### Fixed
+- **The first version of the clause OVER-FIRED and that is recorded rather than quietly corrected.**
+  It counted any row filed to `docs/ENGINE.md` and reported SIXTEEN, of which four were not defects
+  at all (including *"hand MEDICHAM to Fable 5 and make it faster"*) and three had been finished the
+  same night. A bar that cries wolf is exactly how "one of the two known failures" begins. It now
+  tests the row's own CLAIM, and still errs SHUT on ambiguous wording.
+
+### Notes
+- **GATE: CLOSED, 1 of 6 clauses fail**, on 7 registered defects plus 4 found that night and not yet
+  registered. Eleven concrete defects, not fifty-one. Selftest 20/20.
+
+---
+
+## [4.1.0] — 2026-08-10
+
+*(Two commits carry this version — `8a38cb3` and `0a28580`. Folded into one entry; the second
+supersedes the first and adds the grounded axis.)*
+
+### Added
+- **The scenario catalogue — ONE SHAPE PER TAG, NOT PER ENTITY.** (Will: *"START DEVISING TESTS AND
+  SCENARIOS FOR EACH MECHANIC (ITEM, ABILITY, MOVE, MON) IN THE GAME THAT WE CAN RUN."*) 920 entities
+  across 500 moves, 272 abilities and 148 items carry 217 distinct tags between them, so **217 shapes
+  cover all of them** and an entity added tomorrow inherits its shape for free. Plus 357 legal species
+  as one `structural` shape needing no battle at all — the cheapest coverage here, and exactly where a
+  mainline-versus-Champions error hides.
+- **Ten archetypes, and the archetype decides which instrument can ask the question.** `chance` tags
+  are marked so nobody builds a one-board test for a coin: a 30% effect that does not fire on one
+  staged turn has told you nothing.
+- **`faces` — what the subject must be FACING, Will's addition and the catalogue needed it.** (*"IE
+  WIDE GUARD NEEDS A SPREAD MOVE AGAINST IT, ITS POINTLESS TO TEST IF IT DOESNT FACE THAT."*) A
+  precondition is the subject's own state; `faces` is the ADVERSARY'S action. Omitting it produces a
+  green that proves nothing — Wide Guard into a single-target attack, Counter against a special
+  attacker, a trap with nobody leaving. It is "A CLICK IS NOT A TEST" one level up, and it explains
+  the COULD-NOT-STAGE pile: the harness did not know what the subject had to face.
+- **A PROPERTY IS TESTED THROUGH ITS REACTOR**, also Will's (*"HAVE CONTACT HIT ROUGH SKIN TO
+  CHECK."*). Every property flag has one, derived rather than listed: contact/Rough Skin,
+  sound/Soundproof, bullet/Bulletproof, slicing/Sharpness, punch/Iron Fist, powder/Overcoat. `wind`
+  has three reactors and zero legal carriers here; `reflectable` has none at all and is tested by the
+  move bouncing.
+
+### Changed
+- **ROADMAP #20 RETRACTED — a TYPE IS a reactor.** (Will: *"DYM A TYPE CANNOT BE A REACTOR? ALL TYPES
+  HAVE A SORTA ABILITY."*) Fire refuses burn, Steel poison, Electric paralysis, Ice freeze; the type
+  chart carries seven more; Prankster names Dark; the trapped volatile refuses Ghost; powder is gated
+  in the battle rules. It looked impossible because **type reactions live in FIVE places and only one
+  of them resembles a reactor.** A type reactor is cheaper than an ability reactor, not harder.
+
+### Fixed
+- **The grounded axis — `isGrounded()` misses its inputs.** *(Registered as **#147**. The commit says
+  "#145"; that number was never in §5 and was later taken by different work — see #149.)* It consults
+  Iron Ball, Air Balloon, the Flying type **and Levitate** — the claim that Levitate was missing is
+  **RETRACTED**, measured at `medicham2-browser.js:1714`. Genuinely absent: **Roost (2,808 clicks),
+  Gravity, Smack Down, Magnet Rise and Ingrain**. Seven mechanics read that predicate — Spikes, Toxic Spikes, Sticky Web and all four
+  terrains — so one wrong answer is wrong seven ways, and Levitate is wrong on turn 1 with no setup.
+  **Roost has NO mechanism at all**: nothing removes a type temporarily, so a Roosting Corviknight
+  eats a full Earthquake here and takes zero in the real game.
+
+### Notes
+- **Will's Stun Spore question is the sharpest fixture of the night.** It is powder AND paralysis, so
+  Grass refuses it before resolution and Electric refuses it at status application. A Grass/Electric
+  body refuses it twice over — **an engine missing exactly one of the two gates still passes.**
+- **THE GATE CANNOT SEE ANY OF THIS.** The roster compares our two engines; a shared wrong input
+  produces perfect agreement. Third such class in one night, after the mainline constants and the
+  mega movesets.
+
+---
+
+## [4.0.0] — 2026-08-10
+
+> **SUPERSEDED BY 4.2.0 — DO NOT ACT ON THE HEADLINE.** The gate was reported open here and closed
+> again two commits later when a sixth clause taught it to read the defect register. Nothing about the
+> engine regressed. **The quarantine was NOT lifted and is still in force.** The entry is preserved as
+> written because a prior conclusion is never silently rewritten.
+
+### Changed
+- **THE MEDICHAM GATE IS OPEN — all five clauses pass.** Game differential 0 of 20,000 comparisons
+  disagree with Showdown; roster items 139 tested clean, abilities 94 clean, moves 427 clean; coverage
+  says every used move is measured by some instrument. Zero FIRED-AND-BOARDS-DIFFER anywhere. Census
+  408 live / 408 probed / 0 missing.
+
+### Fixed
+- **Ten of the eleven blocking move rows closed on their mechanics**: toxic's ramp order,
+  clangoroussoul's 33/100 cost, steelbeam's recoil reader, noretreat's `failsIfVolatile`, saltcure's
+  `perIfType`, growth's `weatherScaled` boosts, terrainpulse's `byTerrain`, painsplit's `sharesHP`,
+  metalburst's scripted target, endure's `survivesAnyHit`. Block and Mean Look closed on a new
+  `trapsTarget`; Aqua Ring and Ingrain came off the shelf free.
+- **Parental Bond became TWO real hits** and passes Will's own test: frozen leaves the Focus Sash
+  holder alive on 1, live KILLS it.
+- **Mega movesets, from 44,163 sheet observations.** Of 76 mega rows, **68 differed from their source
+  and not one carried an observation record** — nothing had ever observed a mega row, because the
+  store names only the base species. Meganium-Mega now reads
+  dazzlinggleam/protect/solarbeam/weatherball off 226 observations; Will named Weather Ball from
+  memory and the data agrees.
+
+### Notes
+- **Copycat is SHELVED BY THE OWNER, not fixed** — *"PUT COPYCAT INTO THE QUARANTINE IM NOT TOUCHING
+  THAT"*. Its mechanism is green; the row fails on a separate rule it reveals, and a blanket fix
+  breaks Protect, Follow Me, Rage Powder and Helping Hand, all of which must be re-settable.
+- **AND THE THING THE GATE DOES NOT SAY.** (Will: *"WE DONT KNOW SPS IN BO3 SO ITS STILL IMPOSSIBLE…
+  WE HAVE TO CREATE THE GAMES OURSELVES AND TEST IT ON SHOWDOWN."*) Proved in one number: the bo3
+  open-sheet ladder replayed at turn 1, with item, ability, moves and nature declared on both sides
+  across 12,071 games, resolves **ZERO of 22,313 damage comparisons to an exact roll.** Champions
+  sheets do not declare SP and the legal-SP envelope is wider than the whole 16-roll band. Replay can
+  answer "does the engine contradict reality" and can NEVER answer "is the engine exact". The
+  instrument that can is the one that BUILDS the game.
+- **A STORE WAS MISSED FOR MOST OF THIS SPRINT.** Every usage figure before this commit read
+  `games.ladder.jsonl` alone while `games.bo3.jsonl` had been ingesting in parallel since 2026-07-23
+  at ~640 games a day. `click_counts.js` now reads both. Blast radius on the gate: one row, already
+  fixed on its merits.
+
+---
+
+## [3.99.1] — 2026-08-10
+
+### Fixed
+- **The replayer stops scoring turns downstream of a phaze.** (Will: *"I MEAN ROAR IS RANDOM IT
+  DOESNT REALLY MATTER WHAT IT DRAGS IN."*) Correct — and the roster's forced-switch arm is right to
+  ask only whether the body LEFT. **That judgement does not survive an ALL-TURNS replay.** Roar,
+  Whirlwind, Dragon Tail and Circle Throw draw the replacement at random; if the record drew
+  Corviknight and we draw Venusaur, every later turn compares two different boards and this instrument
+  would charge each of them to the engine. That is scoring a die, which the turn-order comparator
+  already refuses to do for a speed tie.
+
+---
+
 ## [3.98.0] — 2026-08-10
 
 ### Fixed

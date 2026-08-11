@@ -2766,3 +2766,209 @@ missing six inputs, Roost's temporary type removal absent, and the mainline cons
 
 Eleven concrete defects. Not the fifty-one-row roadmap: most of that register is design, measurement
 and search work, none of which blocks the engine being right.
+
+---
+
+## THE CONSTRUCTED-GAME DIVERGENCE LIST — 148 ROWS, AND THEY COLLAPSE INTO A HANDFUL. 2026-08-10.
+
+Will: *"OKAY MAKE A LIST OF EVERYTHING THAT DIFFERED OR WHAT WE NEED TO ADD AND LETS GET ON IT."*
+
+`engine/all_mechanics_fire.js` built teams so every mechanic fires inside a REAL Showdown game and
+compared turn by turn. **484 of 500 moves resolved; 148 rows diverged across 100 stated causes.** The
+causes are the SYMPTOM the comparator saw, not the defect, and grouping by symptom was my first error.
+
+**THE DIE IS PINNED IDENTICALLY ON BOTH SIDES**, so none of this is RNG noise and all of it is
+evidence. `all_mechanics_fire.js` has no RNG of its own; it delegates to `game_differential.js`, which
+installs `pinRandom`/`pinShuffle` over both engines (`:451`, `:467`), with `random(m, n)` pinned to `m`.
+Will asked the right question — *"ARE THE NUMBER OF HITS STANDARDIZED"* — and the answer decides
+whether half these rows mean anything. They do.
+
+### THE ERROR WORTH RECORDING: I GROUPED BY SYMPTOM AND NAMED THE CLASS WRONG
+
+I reported the eleven rows as "the multi-hit family", with a click total I had summed myself, over a
+class whose comparator label was `-damage field 3` — meaning only *a damage number differs*. (The
+total is deliberately not restated here: it was an invented aggregate over a wrongly-drawn class, and
+repeating it would give a discarded figure a second life. `data/all-mechanics-fire.json` carries the
+rows.) Will: **"IRON HEAD IS NOT MULTI HIT"**, then
+**"MOST OF THOSE ARE NOT MULTI HIT"**. Correct. Read the CARRIER column instead and the class is:
+
+    doublehit  flashcannon  gyroball  headsmash                   -- all on AEGISLASH
+    ironhead   reversal     sacredsword  steelbeam                -- all on AEGISLASH
+    beatup (annihilape)   populationbomb (maushold)   tripleaxel (empoleon)
+
+**EIGHT OF ELEVEN ARE ONE POKEMON.** `stancechange` appears **zero** times in
+`engine/medicham2-browser.js` and has **no row** in `data/tags.json`, while
+`Dex.forFormat('gen9championsvgc2026regmb').abilities.get('stancechange')` returns `exists: true,
+isNonstandard: null` — legal in this format, and absent from our engine.
+
+Aegislash-Shield is 50 Atk / 140 Def / 50 SpA / 140 SpD; Blade is 150 / 50 / 150 / 50. An attacking
+move flips Shield to Blade BEFORE damage, King's Shield flips it back. We never flip, so **every
+Aegislash attack computes at one third of the correct attack stat.** The observed ratios confirm it —
+Showdown dealt 45 where we dealt 21 (Iron Head), 114 vs 51 (Head Smash), 53 vs 23 (Flash Cannon): all
+about 2.2-2.4x, which is what a 3x attack stat gives once the damage formula's `+2` is included.
+
+**The lesson is the same one this file records three times already**: a comparator's label names what
+it SAW, and a class named from it will be named after the wrong thing. Group by carrier, or by the
+shared input, never by the diff string.
+
+### THE SECOND ERROR: I HAD BELCH / LAST RESORT / UPPER HAND BACKWARDS
+
+I briefed an agent that "we `-fail` where Showdown crits". The artifact says the reverse:
+
+    showdown: |-fail|p1a: Arbok          medicham: |-crit|p2a: Feraligatr
+
+**SHOWDOWN REFUSES THE MOVE AND WE EXECUTE IT.** All three carry an `onTry` in the format's dex — Belch
+needs a berry EATEN, Last Resort needs every other move used, Upper Hand needs the target about to use
+a damaging priority move. We enforce none of them, which hands the search three moves that cannot
+legally be clicked. 2,002 clicks. Ties to ROADMAP #60.
+
+### THE MULTI-HIT ROWS ARE AN EVENT-SHAPE BUG, NOT A HIT-COUNT BUG
+
+`bonerush bulletseed dualwingbeat iciclespear pinmissile rockblast scaleshot tailslap twinbeam
+watershuriken`, filed as "event missing from medicham2". In every one, our total is **exactly 2x
+Showdown's first `-damage`**. Under a pin of `m` both engines hit TWICE; the count agrees. **Showdown
+emits one `-damage` PER HIT and we emit a single aggregated line.**
+
+Not cosmetic: Focus Sash, Sturdy, Substitute break, Rough Skin and Loaded Dice all resolve per hit, and
+an aggregate hit gets every one of them wrong. **This is NOT a regression of ROADMAP #103** (the count
+was once the MEAN) and must not be reported as one. Whether FREE, unpinned play samples 2/3/4/5 at
+35/35/15/15 is a separate question worth its own measurement, because rollouts run unpinned.
+
+**POPULATION BOMB IS A DIFFERENT BUG IN THE SAME FAMILY.** Showdown dealt 15, we dealt 150 — exactly
+10x. It is 10 hits at 90% accuracy **rechecked on every hit**; Showdown landed one and stopped, we
+landed all ten. **We do not re-roll accuracy per hit.**
+
+### BEAT UP — WILL CAUGHT THE PARTY SIZE, AND I HAD BRIEFED IT AMBIGUOUSLY
+
+Will: **"I THINK BEAT UP ONLY TAKES THE 3 OTHER MONS YOU BRING TO BATTLE NOT THE 5 ON YOUR TEAM TOTAL
+IN VGC."** Right, and decisive in the source — `sim/battle.ts:2747`:
+
+    case 'team':
+      if (action.index === 0) { action.pokemon.side.pokemon = []; }   // wipes the six
+      action.pokemon.side.pokemon.push(action.pokemon);
+
+The `team` action EMPTIES `side.pokemon` and rebuilds it from the picked positions
+(`side.ts:1068`, `positions = result.slice(0, pickedTeamSize)`). Beat Up filters that array, so after
+team preview it holds exactly the four brought. **Beat Up is 1-4 hits in VGC, never 5 or 6.**
+
+Three more, each read from the format rather than a wiki:
+
+- `onModifyMove`: `move.allies = side.pokemon.filter(a => a === pokemon || (!a.fainted && !a.status))`.
+  **The user ALWAYS participates even when statused** — `a === pokemon ||` short-circuits the status
+  test — while a statused TEAMMATE is skipped. A uniform rule is wrong.
+- **Base power uses the ALLY's BASE Attack; the attack STAT in the formula is the USER's.**
+  `data/moves.ts:1154` returns `5 + floor(setSpecies.baseStats.atk/10)` per hit, but the move is
+  executed by the user, so the user's current Attack, boosts, STAB and items apply and teammates' items
+  do not. **A weak teammate adds a HIT, not weak damage.**
+- **Beat Up has no `contact` flag** — `{protect:1, mirror:1, allyanim:1, metronome:1}`. No contact
+  reactor fires.
+
+And **do not take PP from a fan wiki**: pokemondb lists Beat Up at 10 (max 16), which is mainline.
+Champions is `floor(10 * 0.8) + 4 = 12`.
+
+### THE REMAINING CLASSES, EXPLAINED RATHER THAN LISTED
+
+| Rows | Clicks | What is actually wrong |
+|---|---|---|
+| 11 | 4,875 | **Fixed-damage and OHKO moves emit `-crit` and cannot.** `seismictoss nightshade counter mirrorcoat comeuppance endeavor finalgambit fissure guillotine horndrill`. One predicate — ask whether damage is COMPUTED before rolling a crit — keyed off the tag, not a name list. |
+| 4 | 339 | **Self-KO faint order.** `sim/battle-actions.ts:499` calls `this.battle.faint(pokemon, pokemon, move)` ABOVE `trySpreadMoveHit`, and `faint()` zeroes HP directly — so Showdown emits a bare faint line with **no `-damage` line at all**, and the user is already gone when the targets take damage. We emit a `-damage 0 fnt` instead, later. `explosion selfdestruct mistyexplosion memento`. |
+| 5 | 33 | **Endure emits `-start`, Showdown `-singleturn`.** `-singleturn` clears at end of turn; `-start` is a persistent volatile. If ours is genuinely persistent, **Endure never expires** — the volatile-duration bug a fourth time. Also `damp electromorphosis heatproof hospitality`. |
+| 3 | 1,180 | **Stockpile boosts before it announces.** Showdown announces the layer, then boosts Def and SpD. Cosmetic UNLESS something reads the counter between the two. |
+| 2 | 573 | **Illusion puts the wrong body on the field** — `bittermalice nightdaze`. ROADMAP #67, caught live for the first time. |
+| 2 | 101 | **Quick Draw never activates.** No tag row, no code. It is Quick Claw for attacks: 30% to move first within the priority bracket, damaging moves only (Quick Claw is 20% and any move). |
+| 1 | 437 | **Belly Drum boosts where Showdown does nothing.** |
+| 1 | 198 | **Burn Up's typechange is never emitted.** |
+
+### AND ONE OF THE ROWS IS A HARNESS BUG, NOT AN ENGINE BUG
+
+`afteryou`, `sleeptalk` and `snore` (442 clicks) are all filed as the subject emitting a spurious
+`-fail`. The `-fail` is on **`p1b: Venusaur`** — the PARTNER — while the subject is `p1a`. **The harness
+blamed the subject for the partner slot's divergence.** Three rows are one shared bug, and none of them
+is about After You. Will's own read was the giveaway: *"7 YOU GOTTA BE ASLEEP FOR SLEEP TALK AND
+SNORE"* — which is true, and which is why the subject failing made no sense.
+
+### ABILITY USAGE IS MEASURABLE NOW, AND WE HAVE BEEN SAYING IT IS NOT
+
+`engine/click_counts.js`'s header states that no honest store-derived ability usage exists, so the
+roster does not defer ability rows on usage. **That was written against the bo1 ladder alone.** Adding
+the bo3 store makes it measurable, and `engine/sheet_usage.js` → `data/sheet-usage.json` now does it:
+**13,116 games with real sheets (895 bo1 + 12,221 bo3), 26,232 teams, 157,392 slots, every one
+declaring an ability.**
+
+    friendguard   1,056 teams   4.03%     tagged, and its own tag row says nothing applies it
+    stancechange    235          0.90%     absent from the engine entirely
+    ripen             0          0.00%     SHELVED by Will — "SHELVE 2 UNLESS IT HAS REAL USAGE"
+
+**MY FIRST VERSION OF THIS TABLE WAS WRONG TWICE OVER, and both errors are the same error.** I
+reported Friend Guard at "0.69%" and Stance Change at "0.16%" — those were shares of SLOTS, which
+divides by six and is not the number anyone reasons in. Will caught it on the species: *"I FEEL LIKE
+AEGISLASH GETS MORE USAGE THAN THAT AM I CRAZY."* He was right. **Friend Guard is on one team in
+twenty-five**, not one in a hundred and fifty, and it changes every damage number aimed at a partner.
+The artifact reports `per_team` first for this reason.
+
+**A `sheets` KEY IS NOT A SHEET**, and this artifact's own first run proved it: counting every game
+whose `sheets` field was merely truthy gave **64,846 sheet games against 26,232 teams** — six slots
+per team, so the team count was right and the game count was nonsense. The bo1 store carries an empty
+`sheets` object on games that declared nothing. Fixed before the artifact shipped.
+
+**AND FOURTEEN ABILITIES CANNOT BE COUNTED HERE AT ALL.** A sheet declares the PRE-MEGA ability, so
+`parentalbond` reads 0 and that does **not** mean nobody brings Mega Kangaskhan. The artifact derives
+the mega-only set from the format and lists it under `not_countable` — `aerilate dragonize eelevate
+electricsurge fairyaura filter firemane innardsout megasol parentalbond piercingdrill shadowtag
+spicyspray unseenfist` — rather than letting those read as unused. **A zero meaning "invisible to this
+instrument" and a zero meaning "nobody brings it" are different facts**, and merging them is how
+ROADMAP #112 came to declare the pinch family dead. Count those through `engine/mega_census.js`.
+
+### FRIEND GUARD IS TAGGED AND NOT APPLIED, AND ITS OWN TAG SAYS SO
+
+Will: *"HAVE WE MODELED FRIEND GUARD."* `data/tags.json` carries
+`{tag: 'reducesAllyDamage', param: 'my PARTNER takes x0.75', why: 'Friend Guard. Changes every damage
+number aimed at the partner and nothing applies it'}`. The identifier appears zero times in the engine.
+**A tag that documents its own non-implementation is the artifact-audit lesson again**: a derived fact
+is not a fact until something compares it to its source.
+
+### STRUGGLE IS NOT CLOSED. THE CONDITION IS PP-ONLY AND SHOWDOWN'S IS NOT
+
+The PP batch reported #119 done. It is half done. Our predicate is `ppAllOut(m)` at
+`engine/medicham2-browser.js:1450` — *every move's PP is zero*. Showdown's is `!moves.length` where
+`moves` is the list of **ENABLED** moves (`sim/side.ts:697`, `sim/pokemon.ts:1022-1044`); a slot leaves
+that menu when it is **disabled OR at 0 PP**. Will named the cases exactly: *"U ONLY STRUGGLE WHEN
+COMPLETELY OUT OF PP OR ARE LOCKED INTO A MOVE U CANT USE LIKE CHOICE SCARF DISABLED OR ENCORED
+DISABLED."*
+
+- Choice lock + Disable — the item disables the other three, Disable takes the fourth. Choice Scarf is
+  legal here, so this is live.
+- Encore into a move that then hits 0 PP or is Disabled.
+- Taunt on an all-status set, Imprison, Torment, Throat Chop, Heal Block, Gravity.
+
+(`canCauseStruggle` at `pokemon.ts:1025` is inside `if (this.volatiles['dynamax'])` and is irrelevant
+here.) **This is the same missing concept as ROADMAP #118** — we have no notion of a move being
+*present but disabled*, only "PP is gone". The two must be fixed together, and #118 carries the
+largest usage figure in the whole open register; read it from the row rather than from here.
+
+### PP DOES NOT EXIST IN `board.js`, SO EVERY IMAGINED FUTURE HAS INFINITE PP
+
+Will: **"FIX 1"**. The simulator tracks PP as of tonight; the rollout board tracks none. With a 60-turn
+cap (ROADMAP #38) and real games ending near turn 6, the surface reading is "harmless". It is not: an
+infinite-PP 60-turn rollout lets the search discover **stall lines that cannot exist** — unlimited
+Protect, recovery and redirection. That is a systematically wrong valuation in exactly the positions
+where the search believes it is being clever.
+
+### PROCESS, RECORDED BECAUSE IT NEARLY COST SOMETHING
+
+- **Two agents were put on `engine/medicham2-browser.js` at once** and caught before damage. Will's
+  rule, given on the spot: **"MULTIPLE AGENTS BUT ONLY ONE PER DIVISION."** CLAUDE.md's "never run both
+  agents against this repo at the same time" was written about Cowork and reads as a blanket ban; it is
+  not one. The division split already gives one writer per file.
+- **Release `9779c50340fb` was cut over a mid-batch tree unintentionally.** Nothing was measured against
+  it. It must not be quoted.
+- **CHANGELOG.md was missing five versions** — 3.99.1 through 4.2.0 shipped with a version in the commit
+  subject and no entry. Backfilled at 4.3.0. **The pre-commit hook was armed and did not fire**: it
+  checks that version-headed DOCUMENTS do not trail the changelog, and never the converse — that a
+  version named in a COMMIT MESSAGE has a matching heading. The one direction that actually happened was
+  the unguarded one.
+- **I told Will this running list did not exist.** It does — this file, enforced by the hook's sprint
+  clause. I searched for `pend|owed|debt|running|defer|todo`, the filename matches none of them, and I
+  reported the absence as fact and started a duplicate. **A failed search is not evidence of absence**,
+  and a second running list is the "two files that both decide one fact" failure this document warns
+  about in three other places. The duplicate was deleted; this file is the only one.

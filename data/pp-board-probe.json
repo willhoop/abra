@@ -1,0 +1,86 @@
+{
+  "probe": "pp-board",
+  "roadmap": 145,
+  "move": "protect",
+  "maxpp": 8,
+  "what": "total Protect executions a position contains: already spent on the board + spent inside one rollout",
+  "verdict": "GREEN",
+  "rows": [
+    {
+      "alreadyUsed": 0,
+      "boardSaysLeft": 8,
+      "bodySeededWith": {
+        "protect": 0
+      },
+      "protectsInRollout": 8,
+      "totalProtects": 8,
+      "struggles": 2,
+      "cantNoPP": 0,
+      "exceedsMax": false
+    },
+    {
+      "alreadyUsed": 5,
+      "boardSaysLeft": 3,
+      "bodySeededWith": {
+        "protect": 0
+      },
+      "protectsInRollout": 3,
+      "totalProtects": 8,
+      "struggles": 6,
+      "cantNoPP": 0,
+      "exceedsMax": false
+    },
+    {
+      "alreadyUsed": 8,
+      "boardSaysLeft": 0,
+      "bodySeededWith": {
+        "protect": 0
+      },
+      "protectsInRollout": 0,
+      "totalProtects": 8,
+      "struggles": 7,
+      "cantNoPP": 0,
+      "exceedsMax": false
+    }
+  ],
+  "pressure": [
+    {
+      "foeAbility": "pressure",
+      "move": "aimed (flamethrower)",
+      "max": 16,
+      "left": 14,
+      "costOfOneClick": 2
+    },
+    {
+      "foeAbility": "pressure",
+      "move": "self (protect)",
+      "max": 8,
+      "left": 7,
+      "costOfOneClick": 1
+    },
+    {
+      "foeAbility": "levitate (control)",
+      "move": "aimed (flamethrower)",
+      "max": 16,
+      "left": 15,
+      "costOfOneClick": 1
+    },
+    {
+      "foeAbility": "levitate (control)",
+      "move": "self (protect)",
+      "max": 8,
+      "left": 7,
+      "costOfOneClick": 1
+    }
+  ],
+  "pressureOK": true,
+  "counters": {
+    "spent": 18,
+    "seeded": 2,
+    "pressureCharged": 1,
+    "pressureAmbiguous": 0,
+    "noRow": 0,
+    "moduleMissing": 0
+  },
+  "generated": "2026-08-11T00:41:11.399Z"
+}

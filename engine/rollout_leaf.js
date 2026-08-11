@@ -24,6 +24,9 @@ require(D('data', 'engine-data.js'));                   // globalThis.MC / mcEff
 const MEDI = require('./medicham2-browser.js');
 const B = require('./board.js');
 const TAGSMOD = require('./tags.js');
+/* ROADMAP #145 — the one PP fact. See engine/pp.js for why it is a module and not a call into
+ * medicham2-browser.js, whose five PP functions are file-local and are ENGINE's to export. */
+const PP = require('./pp.js');
 
 /* Every Pokemon a side owns, actives first, then the bench.
  *
@@ -49,7 +52,14 @@ function sideTeam(board, side, dex) {
     const sh = sheets[sp] || null;
     out.push({ species: sp, hp: 1, status: '', boosts: {},
                item: sh ? (sh.item || '') : undefined,
-               nature: sh ? (sh.nature || '') : undefined });
+               nature: sh ? (sh.nature || '') : undefined,
+               /* PP (ROADMAP #145). A BENCHED Pokemon is exactly the one this is easiest to get
+                * wrong: it has no live tracked object, so it is synthesised here — and a synthesised
+                * body with no ledger arrives at full PP even though it may have spent six turns on
+                * the field before it pivoted out. Taken by REFERENCE from the board, same object the
+                * actives hold, so the two cannot drift. `ppTable` is absent on a Board built before
+                * this landed, hence the guard rather than a bare call. */
+               pp: (typeof board.ppTable === 'function') ? board.ppTable(side, sp) : undefined });
   }
   return out;
 }
@@ -230,9 +240,13 @@ function movePriorFor(name) {
 
 /* Pick from the mon's OWN moveset, weighted by how often that species really clicks each one.
  * Moves it is not carrying are skipped rather than renormalised away silently. */
-function pickByPrior(mon, rng) {
+/* `usable` is the SELECTABLE subset, supplied by the caller (ROADMAP #145). Defaulting to
+ * `mon.moves` keeps every existing caller identical; passing the filtered list is what stops the
+ * priors sampler putting an empty slot back after the uniform draw already filtered it out — the
+ * exact leak WIRE 26 found on Disable, one layer up. */
+function pickByPrior(mon, rng, usable) {
   const rows = movePriorFor(mon && mon.name);
-  const have = (mon && mon.moves) || [];
+  const have = usable || (mon && mon.moves) || [];
   if (!rows || !have.length) return null;
   const cand = [];
   let tot = 0;
@@ -282,11 +296,25 @@ function runPlayout(S, rng, explore, foePolicy, counters) {
        * the live bot's, and randomising it would change shipped behaviour to fix a rollout. */
       const pick = (mon, mineSide) => {
         if (!mon || mon.fainted || mon.curHP <= 0 || rng() >= explore) return null;
-        const mvs = mon.moves || [];
+        /* THE EXPLORE PICK MUST NOT OFFER A SLOT THE CHOOSER WOULD REFUSE (ROADMAP #145).
+         *
+         * This line bypasses `chooseAction`, which is the whole point of it — but `chooseAction` is
+         * also where every selection guard lives, including ENGINE's new empty-slot refusal and the
+         * Struggle branch under it. So a uniformly random draw over `mon.moves` kept clicking moves
+         * that were out of PP, and the engine answered `|cant|nopp` at execution: **the turn was
+         * wasted rather than Struggled**. Measured on the probe board at explore=1.0, which is the
+         * SHIPPED setting: 52 `|cant|nopp` lines and 0 Struggles.
+         *
+         * Filtering here restores the invariant, and returning null when NOTHING is selectable is
+         * the other half — that hands the body back to `chooseAction`, whose `ppAllOut` branch
+         * produces the real Struggle action. Deliberately routed through `PP.bodySelectable` rather
+         * than testing `_pp[id] > 0` inline, so when ENGINE widens the condition past PP (Choice
+         * lock plus Disable, Encore into an unusable move) this line widens with it. */
+        const mvs = (mon.moves || []).filter(id => PP.bodySelectable(mon, id));
         const foesL = (mineSide ? S.actB : S.actA).filter(x => x && !x.fainted && x.curHP > 0);
         if (!mvs.length || !foesL.length) return null;
         /* Weighted by what this species really clicks when foePolicy is 'prior'. */
-        const mv = (foePolicy === 'prior' && pickByPrior(mon, rng)) ||
+        const mv = (foePolicy === 'prior' && pickByPrior(mon, rng, mvs)) ||
           mvs[Math.floor(rng() * mvs.length) % mvs.length];
         const tg = foesL[Math.floor(rng() * foesL.length) % foesL.length];
         try {

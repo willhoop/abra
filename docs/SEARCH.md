@@ -14,21 +14,21 @@ mid-run silently invalidates the run, and the run still prints a result.
 SEARCH — does MILTANK choose better than MAG
   R1 leaf accuracy: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r1-explore1.json is downstream of MEDICHAM: engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played
-    MEDICHAM is not correct — 1 of 5 gate clauses fail (deliberate roster / moves)
+    MEDICHAM is not correct — 1 of 6 gate clauses fail (no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r1_artifact.js
   R2 leaf cost: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-cost.json is downstream of MEDICHAM: its generator engine/rollout_r2.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 1 of 5 gate clauses fail (deliberate roster / moves)
+    MEDICHAM is not correct — 1 of 6 gate clauses fail (no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r2.js
   R3 divergence: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r3.json is downstream of MEDICHAM: its generator engine/rollout_r3.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 1 of 5 gate clauses fail (deliberate roster / moves)
+    MEDICHAM is not correct — 1 of 6 gate clauses fail (no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r3.js
   R4 does it win: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
-    MEDICHAM is not correct — 1 of 5 gate clauses fail (deliberate roster / moves)
+    MEDICHAM is not correct — 1 of 6 gate clauses fail (no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
-  runs vs engine (newest engine source: data/engine-data.js 2026-08-10 22:59):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-11 00:34):
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41
     PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-04 02:36
     PRE-CHANGE games.r4.jsonl  2026-08-04 02:33
@@ -36,9 +36,120 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-04 00:45
 ```
 
-_stamped 2026-08-10 22:59_
+_stamped 2026-08-11 00:40_
 
 <!-- /GENERATED -->
+
+## R12 — PP EXISTS IN THE ROLLOUT NOW. It did not, and every position started full. FIXED 2026-08-11.
+
+Artifact: **`data/pp-board-probe.json`**, written by `engine/pp_board_probe.js`. Gate:
+`tests/test-pp-fact.js` (31 assertions, auto-discovered by `tests/run-all.js`). ROADMAP #145 closed,
+#146 opened against ENGINE.
+
+**This is a MECHANISM fix and it is not a measurement.** No engine release was cut for it and the
+tree moved while it was made — `engine/medicham2-browser.js` was being edited by ENGINE the whole
+evening. The probe below is a receipt that a state is representable, not a leaf value, and it is not
+quotable as one. Everything genuinely downstream stays quarantined and is now further invalidated,
+which is the right order: **before the refit, not after.**
+
+### The defect, in one row
+
+| | before | after |
+|---|---|---|
+| a position that has already spent 8 of Protect's 8 PP | the rollout Protects **8 more** — 16 out of a move that has 8 | **0**, and the body Struggles |
+| a position that has spent 5 | the rollout Protects 8 more, total 13 | 3 more, total **8** |
+| a position that has spent 0 (control) | 8 | 8 — unchanged, so the fix does not deduct what was never spent |
+
+**The cap on Protect in a board rollout was `already spent + 8`, unbounded in the first term. It is
+now 8, full stop**, which is what `maxpp` says in this format (read off `data/tags.json`, built by
+`engine/tag_dex.js` from a real `Battle` in `gen9championsvgc2026regmb` — Protect is 8 here against
+16 mainline, and the mainline `pp * 8/5` rule matches only **85 of this format's 500 moves**).
+
+### Why this is not a rounding error, given games end at turn 6
+
+ROADMAP #38 measured median 6 turns over 53,059 stored games, and `maxTurns` is **60**. That gap is
+the whole defect rather than a reason to shrug at it: a 60-turn playout with infinite PP can discover
+unlimited Protect, unlimited recovery and unlimited redirection, and those lines are precisely where
+the search believes it has found something. The simulator's own header said so before this was fixed:
+
+> *"WHAT IS NOT CLAIMED: a rollout STARTS at full PP, because `board.js` does not track PP and is not
+> ENGINE's to change. So a stall priced 8 turns deep inside a rollout is 8 turns from NOW, not 8 from
+> the start of the game."*
+
+### Where the state lives, and the one thing that was easy to get wrong
+
+`Board.pp` is **per side and per SPECIES**, not per slot. `switchIn` builds a brand-new mon object
+every time a Pokemon comes out — correct for stat stages, which belong to the slot's occupant — and a
+PP table held on that object would have **silently refilled every move on a pivot**. Pivoting is what
+the stall lines this fix exists to price are made of, so that version would have looked like it
+worked and fixed nothing. The mon holds a REFERENCE to the side's ledger; the ledger outlives it.
+
+Three call sites, and each one's position is the mechanic:
+
+- **`noteMove` spends it, ABOVE the `worked` gate.** Showdown deducts inside `runMove` below every
+  BeforeMove refusal and above the `|move|` announcement, so a Protect that fails its own
+  consecutive-use roll, a move that missed and a move a Protect ate have all been paid for. Only a
+  click that never executed is free, and those emit `|cant|` rather than `|move|`. Charging on
+  `worked` would have refunded every failed stall — the one case this fix is about.
+- **`dmgMon` seeds the built body, AFTER the sheet overwrites `b.moves`.** `buildMon` fills the
+  dataset's representative four and the sheet's four replace them; seeding first would key the table
+  to moves the body no longer has, silently.
+- **`rollout_leaf.sideTeam` gives the BENCH its ledger too.** A benched Pokemon is synthesised from a
+  species name with no live object, so it is the one that arrives at full PP most easily — and it is
+  the one that spent six turns on the field before it pivoted out.
+
+Measured over the fitter's own corpus replay (`engine/feature_coverage.js`, which calls the same
+`noteMove` every offline adapter does): **9,502 PP spent, 0 moves with no `pp` row, 0 artifact
+lookups failed.** The wire is not inert.
+
+### A second defect fell out, and it was in this division's own file
+
+**At the shipped `explore=1.0` the playout was clicking empty slots.** `runPlayout`'s uniform draw
+bypasses `chooseAction` — which is the entire point of it — and `chooseAction` is also where every
+selection guard lives, including ENGINE's new empty-slot refusal and the Struggle branch under it. So
+a drained body answered `|cant|nopp` at execution and **wasted the turn instead of Struggling**: 52
+`|cant|nopp` lines and 0 Struggles on the probe board. The draw now filters on selectability and
+returns null when nothing is selectable, which hands the body back to the chooser and produces a real
+Struggle. `pickByPrior` takes the filtered list too, or the priors sampler would put the empty slot
+straight back — the identical leak WIRE 26 found on Disable, one layer up.
+
+### What this deliberately does NOT do
+
+- **No feature was added.** `FEATURES` is still 58 and `data/policy-weights.json` keeps its
+  dimensionality. Nothing MAG scores reads PP.
+- **`candidates()` still offers a drained move.** Showdown would not, so this is probably wrong — and
+  fixing it changes what MAG clicks, which makes it a SEARCH decision that deserves its own arm
+  rather than a free ride on a mechanics fix. `Board.slotSelectable()` and `Board.mustStruggle()`
+  exist for whoever takes that arm.
+- **Pressure is charged only when it is unambiguous.** The extra is per APPARENT TARGET, so a
+  self-targeting move pays nothing extra (measured: Protect goes 8 → 3 in five clicks against a
+  Pressure foe and against a Levitate foe alike, while Flamethrower goes 16 → 6 against Pressure and
+  16 → 11 against Levitate). `noteMove` is not told which of two foes a single-target move hit, so the
+  extra is charged when the caller names the target or when every live foe charges the same, and
+  `ppCounters.pressureAmbiguous` counts the rest. Erring low keeps the board's PP an **upper bound**
+  on the truth, which is the safe direction: it can only ever under-spend, never invent a turn.
+  `magnemite.js` DOES have the target on the `|move|` line and could pass it — one argument, in a
+  file this division does not own. Owed.
+
+### The FACT has two readers, and that is filed rather than glossed
+
+`engine/pp.js` is the shared implementation. It exists because
+`medicham2-browser.js`'s five PP functions are **file-local** — on neither `module.exports` nor
+`root` — so `board.js` cannot call them, and exporting them is an edit in ENGINE's file that SEARCH
+may not make while ENGINE holds it. The alternative was a copy, which is the defect CLAUDE.md names
+by name. **ROADMAP #146 is the ask**: have those five delegate to `engine/pp.js`, or export them and
+let `pp.js` become a thin adapter.
+
+Until then the window is guarded rather than declared. `tests/test-pp-fact.js` compares BEHAVIOUR,
+not source — it plays a real turn and asserts the number MEDICHAM wrote into its own `_pp` equals the
+number `pp.js` gives, at every maxpp tier the format produces (8, 12, 16, 20) — because comparing two
+implementations by reading one of them proves nothing.
+
+**One measured correction to the ENGINE note beside this.** `docs/_outbox/pp-and-moldbreaker-notes.md`
+says `floor(base * 0.8) + 4` fits **500 of 500** rows. It fits **499**: Struggle carries `noPPBoosts`
+and stays at 1/1 where the formula gives 4. Nothing downstream is wrong, because the number is READ
+and never computed — but the claim as written would have to break before the artifact did.
+
 
 ## ALL FOUR ROLLOUT GATES ARE QUARANTINED — 2026-08-08 (MEASURE)
 

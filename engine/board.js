@@ -568,6 +568,18 @@ class Board {
     this.itemNow = { p1: {}, p2: {} };
     this.party = { p1: [], p2: [] };
     this.graveyard = { p1: new Set(), p2: new Set() };
+    /* PP, PER SIDE AND PER SPECIES — NOT PER SLOT (ROADMAP #145).
+     *
+     * `switchIn` builds a BRAND NEW mon object every time a Pokemon comes out, and that is correct
+     * for the stat stages sitting a few lines below it: a boost belongs to the slot's occupant and
+     * must not follow the next one in. PP is the opposite kind of quantity — it belongs to the
+     * POKEMON — so keeping it on the slot object would silently refill every move on a pivot, and
+     * pivoting is exactly what the stall lines this fix exists to price are made of.
+     *
+     * Keyed the same way `sheet` and `itemNow` are, by `baseSpecies`, so a mid-battle mega keeps the
+     * PP its base forme spent. Sparse: `{}` for a Pokemon that has clicked nothing, and inside each
+     * table an absent move means FULL rather than unknown (engine/pp.js `left`). */
+    this.pp = { p1: {}, p2: {} };
     this.pseudoWeather = new Map();
     this.weather = '';
     /* Counted, not hidden: when a stored target name matches a species on both sides we cannot tell
@@ -691,6 +703,58 @@ class Board {
     this.sheet[side][baseSpecies(species)] = info;
   }
 
+  /* ---- PP (ROADMAP #145) --------------------------------------------------------------------
+   *
+   * Four methods, and they are the whole of the board's PP model. Everything they know about
+   * Champions PP comes out of engine/pp.js, which reads data/tags.json's `pp` row — built by
+   * engine/tag_dex.js off a real Battle in gen9championsvgc2026regmb, never computed from the
+   * mainline `pp * 8/5` rule that is wrong on 415 of this format's 500 moves.
+   *
+   * THE LEDGER IS RETURNED BY REFERENCE, on purpose. `switchIn` hands the live table to the mon it
+   * builds, so a Pokemon that pivots out and back in carries the same object rather than a copy that
+   * stops being updated — which is the version of this that looks like it works. */
+  ppTable(side, species) {
+    const s = this.pp && this.pp[side];
+    if (!s) return null;
+    const k = baseSpecies(species);
+    if (!k) return null;
+    return s[k] || (s[k] = {});
+  }
+
+  /* Clicks left on one move. `null` means this project has no PP number for it, and is deliberately
+   * distinct from 0 — a tagger gap must never read as an empty slot. */
+  ppLeft(side, species, move) {
+    if (!_PP) return null;
+    return _PP.left(this.ppTable(side, species), move);
+  }
+
+  /* Spend, returning what was ACTUALLY taken after the clamp at zero. `amount` is 1 plus whatever a
+   * foe's Pressure charged; see noteMove, which is the only caller that should ever pass one. */
+  ppSpend(side, species, move, amount) {
+    if (!_PP) return 0;
+    return _PP.spend(this.ppTable(side, species), move, amount);
+  }
+
+  /* CAN THIS SLOT BE CHOSEN — asked as its own question, with PP as one input.
+   *
+   * Showdown Struggles on an empty menu of ENABLED moves (sim/side.ts:697), which is broader than
+   * "out of PP": a Choice lock onto a move that is then Disabled empties the menu at full PP. Our
+   * simulator's predicate is PP-only and widening it is ENGINE's open item. Routing through
+   * pp.slotSelectable means the day it widens, this method and every caller widen with it — as
+   * opposed to `ppLeft(...) > 0` written at three call sites, which would each need finding. */
+  slotSelectable(side, species, move) {
+    if (!_PP) return true;
+    return _PP.slotSelectable({ ppLeft: this.ppLeft(side, species, move) });
+  }
+
+  /* IS THIS POKEMON REDUCED TO STRUGGLE. The PP half only, for the reason above. `moves` defaults to
+   * what the sheet declared, because that is the menu the format actually offers. */
+  mustStruggle(side, species, moves) {
+    if (!_PP) return false;
+    const mv = moves || ((this.sheet[side] && this.sheet[side][baseSpecies(species)] || {}).moves || []).map(norm);
+    return _PP.allOut(mv, this.ppTable(side, species));
+  }
+
   setParty(side, list) {
     this.party[side] = (list || []).map(s => baseSpecies(s)).filter(Boolean);
   }
@@ -739,6 +803,12 @@ class Board {
        * it every consumer that builds a damage mon from a board active fell back to the dataset's
        * representative set -- see the note in dmgMon. */
       moves: ((this.sheet[side] && this.sheet[side][baseSpecies(species)] || {}).moves || []).map(norm),
+      /* PP, BY REFERENCE TO THE SIDE'S LEDGER (ROADMAP #145). Not a copy: the object below is the
+       * same one `ppTable` hands out, so a Pokemon that switches out and comes back finds the moves
+       * it already spent still spent. Everything above this line is deliberately reset on switch-in
+       * — boosts, turnsActive, lastMove — because those belong to the SLOT'S OCCUPANCY. PP belongs
+       * to the Pokemon, which is why it is the one field that is shared rather than rebuilt. */
+      pp: this.ppTable(side, species),
       /* The forme it will actually be, if the sheet's item is its own mega stone. Filled in by
        * effSpecies, because megaFormeOf needs the dex and the Board deliberately does not hold one.
        * `megaFor` records which species the answer was computed for, so a mid-battle transformation
@@ -918,6 +988,23 @@ const mcKeyFor = (typeof require === 'function')
   ? require('./mc_key.js').mcKey
   : (typeof globalThis !== 'undefined' && globalThis.mcKey);
 
+/* ---- PP (ROADMAP #145) ------------------------------------------------------------------------
+ *
+ * THE ONE PP FACT, loaded the same dual way as everything else here so the browser bundle does not
+ * quietly lose it. See engine/pp.js's header for why the shared module exists at all rather than
+ * board.js calling `medicham2-browser.js`'s five PP functions: they are file-local there and
+ * exporting them is ENGINE's edit to make (ROADMAP #146).
+ *
+ * NOTHING BELOW ADDS A FEATURE. `FEATURES` is untouched and `candidates()` still offers a drained
+ * move, deliberately: both would change what MAG clicks, and `data/policy-weights.json` was fitted on
+ * the 58-vector as it stands. Removing an empty slot from the MENU is a real and probably-correct
+ * change, and it is a SEARCH decision that deserves its own arm rather than a free ride on a
+ * mechanics fix. What this does is make the STATE representable, so the rollout can no longer imagine
+ * PP the position has already spent. */
+const _PP = (typeof require === 'function')
+  ? require('./pp.js')
+  : (typeof globalThis !== 'undefined' && globalThis.ABRA_PP) || null;
+
 /* A tracked mon -> the shape the damage formula expects. Returns null when the species is not in the
  * table, which is a real condition (a forme the usage data has never seen) and not an error. */
 function dmgMon(mon, D, dex) {
@@ -985,6 +1072,32 @@ function dmgMon(mon, D, dex) {
   if (Array.isArray(mon.moves) && mon.moves.length) {
     const mv = mon.moves.map(norm).filter(id => MC.moves[id]);
     if (mv.length) b.moves = mv;
+  }
+  /* ---- AND THE PP, WHICH IS THE WHOLE OF ROADMAP #145 ----------------------------------------
+   *
+   * THIS LINE IS THE FIX. Every position MILTANK imagines is built here, and until this existed every
+   * one of them started at full PP however many Protects the real game had already seen — so a
+   * 60-turn playout could discover unlimited stalling, unlimited recovery and unlimited redirection
+   * in a position that has eight Protects left in the world. medicham2-browser.js's own ROADMAP #144
+   * header names exactly this gap and says it is not ENGINE's to close: *"a rollout STARTS at full
+   * PP, because board.js does not track PP"*.
+   *
+   * AFTER the moves overwrite above, never before, and that ordering is load-bearing: `buildMon`
+   * fills the dataset's representative four and the sheet's four replace them, so seeding first
+   * would key the table to moves the body no longer has. ENGINE's decision to derive each slot
+   * lazily is what makes seeding only the DEPLETED slots correct — an absent key is filled with the
+   * maximum on first touch by the one function that owns that number.
+   *
+   * A mon with no `pp` ledger (a synthesised bench body, a fixture, any caller that predates this)
+   * writes nothing and behaves exactly as before. */
+  if (mon.pp) {
+    /* COUNTED, NOT ASSUMED. In a browser this module arrives through `globalThis.ABRA_PP` and a page
+     * that forgot the script tag would seed nothing — every rollout back at full PP, silently, which
+     * is the exact failure this fix removes arriving through the one runtime nothing measures. The
+     * position knows its PP (`mon.pp` is populated with or without the module); only the SEEDING
+     * needs it, so this is the one place where its absence costs anything. */
+    if (_PP) ppCounters.seeded += _PP.seedBody(b, mon.pp);
+    else ppCounters.moduleMissing++;
   }
   return b;
 }
@@ -2488,10 +2601,76 @@ function fieldKey(m) {
  *
  * `worked` is the caller's judgement that the move resolved. Offline that is "the move event
  * exists and the setter is not already up"; online it is the absence of a |-fail| for it. */
-function noteMove(board, side, user, move, worked) {
+/* PP SPENT BY ONE CLICK, INCLUDING WHAT A FOE'S ABILITY CHARGED (ROADMAP #145).
+ *
+ * Pressure charges ONCE PER APPARENT TARGET (sim/battle-actions.ts:476) and an ally charges nothing,
+ * so this is a question about the move's TARGET CLASS and not about whether a Pressure body is
+ * standing somewhere. Measured in Showdown: Protect costs the same 1 PP into a Pressure foe as into
+ * anything else, because a self-targeting move's `pressureTargets` is `[self]`. An implementation
+ * that doubles every deduction under Pressure passes a Close Combat test and fails that one.
+ *
+ * THE HONEST LIMIT, COUNTED RATHER THAN GUESSED. A SINGLE-TARGET move aimed at one of two live foes
+ * costs 2 PP if it hit the Pressure one and 1 if it hit the other, and `noteMove`'s callers do not
+ * all know which. So the extra is charged when it is UNAMBIGUOUS — the caller named the targets, or
+ * every live foe carries it — and `ppPressureAmbiguous` counts the rest. Erring low is the safe
+ * direction here: it under-spends, which keeps the board's PP an UPPER BOUND on the truth, and an
+ * upper bound is what stops the rollout inventing turns that do not exist. */
+/* SPREAD_TARGETS and SELF_TARGETS are this file's existing lists and are reused rather than retyped
+ * — a second copy of "which moves point at a foe" is the shape that gave terrain three dialects. */
+const ppCounters = { spent: 0, seeded: 0, pressureCharged: 0, pressureAmbiguous: 0, noRow: 0, moduleMissing: 0 };
+function ppCostOf(board, side, move, opts) {
+  if (!_PP) return 1;
+  const tc = move && move.target;
+  /* SELF_TARGETS is the list this file already keeps for exactly this question — "does this move
+   * point at a foe at all" — so Protect, Recover, Swords Dance and Tailwind take this branch and are
+   * charged the flat 1 that Showdown charges them. */
+  if (!tc || SELF_TARGETS.has(tc)) return 1;
+  const foeSide = side === 'p1' ? 'p2' : 'p1';
+  const named = opts && Array.isArray(opts.targets) ? opts.targets : null;
+  const live = named || board.field().filter(x => x.side === foeSide).map(x => x.mon);
+  if (!live.length) return 1;
+  /* effAbility rather than the mon's raw field, per tests/test-effective-identity.js: the sheet
+   * declares the PRE-mega ability, and with no dex in scope effective() returns exactly that — so
+   * passing the optional dex through is a strict improvement and its absence is today's behaviour.
+   * (The raw-read ratchet in that test scans TEXT, so the field is not named here even in prose.) */
+  const dex = opts && opts.dex;
+  const extras = live.map(m => _PP.extraPerTarget(effAbility(m, dex)));
+  const spread = SPREAD_TARGETS.has(tc);
+  if (spread) {
+    const e = extras.reduce((a, b) => a + b, 0);
+    if (e) ppCounters.pressureCharged++;
+    return 1 + e;
+  }
+  /* Single-target. Unambiguous only when the caller named one body, or when every live foe charges
+   * the same amount. */
+  if (named && named.length === 1) { if (extras[0]) ppCounters.pressureCharged++; return 1 + extras[0]; }
+  const allSame = extras.every(e => e === extras[0]);
+  if (!allSame) { ppCounters.pressureAmbiguous++; return 1; }
+  if (extras[0]) ppCounters.pressureCharged++;
+  return 1 + extras[0];
+}
+
+function noteMove(board, side, user, move, worked, opts) {
   if (!user) return;
   user.moveThisTurn = norm(move && move.id || '');
   if (move && move.stallingMove) user.stalledThisTurn = true;
+  /* ---- PP IS SPENT HERE, ABOVE THE `worked` GATE, AND THE POSITION IS THE MECHANIC ------------
+   *
+   * `worked` is the caller's judgement that the move RESOLVED — offline "the setter is not already
+   * up", online "there was no |-fail|". PP does not care. Showdown deducts inside `runMove` below
+   * every BeforeMove refusal and ABOVE the `|move|` announcement (sim/battle-actions.ts:282), so a
+   * Protect that fails to its own consecutive-use roll, a move that misses, and a move a Protect
+   * ate have all been paid for. Only a click that never executed at all — flinch, full paralysis,
+   * sleep, Throat Chop — is free, and those emit `|cant|` rather than `|move|`, which is precisely
+   * the event this function is called on. Charging on `worked` would have refunded every failed
+   * stall, which is the one case this whole fix is about.
+   *
+   * Struggle is excluded because Showdown excludes it (`move.id !== 'struggle'`), and a move with no
+   * `pp` row spends 0 and is counted rather than silently free. */
+  if (_PP && move && move.id && norm(move.id) !== 'struggle') {
+    const sp = board.ppSpend(side, user.species, move.id, ppCostOf(board, side, move, opts));
+    if (sp > 0) ppCounters.spent += sp; else ppCounters.noRow++;
+  }
   if (!worked || !move) return;
   if (move.sideCondition) board.startSide(side, move.sideCondition, move.condition && move.condition.duration);
   const fk = fieldKey(move);
@@ -3487,6 +3666,11 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
  * stone that belongs to another species. One resolver, per CLAUDE.md's facts-are-global rule. */
 /* PUBLISHED BOTH WAYS. In node this is the module; in a browser it is globalThis.BOARD, so the page
  * can call the same featuresFor() the engine calls instead of maintaining a second scorer. */
-const _EXPORTS = { FEATURES, FEATURE_INDEX, mcKeyFor, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, effSpecies, effective, effAbility, effTypes, effStats, effWeight, SELF_TARGETS, dmgFailures, probeFailures, damageEngine, dmgMon, megaFormeOf, entryEffects, resolveDrop, setOpponentModel, foeActionDistribution, loadData };
+const _EXPORTS = { FEATURES, FEATURE_INDEX, mcKeyFor, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, effSpecies, effective, effAbility, effTypes, effStats, effWeight, SELF_TARGETS, dmgFailures, probeFailures, damageEngine, dmgMon, megaFormeOf, entryEffects, resolveDrop, setOpponentModel, foeActionDistribution, loadData,
+  /* ROADMAP #145. `ppCounters` is exported for the same reason `dmgFailures` is: a capability that
+   * cannot prove it ran is assumed broken, and `spent: 0` after a real game means this wire is inert.
+   * `PP` is re-exported so the 40 files that already require board.js can reach the one PP fact
+   * without each growing an import — the same argument mcKeyFor is re-exported on. */
+  ppCounters, PP: _PP };
 if (typeof module !== 'undefined' && module.exports) module.exports = _EXPORTS;
 if (typeof globalThis !== 'undefined') globalThis.BOARD = _EXPORTS;
