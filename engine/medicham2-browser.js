@@ -88,6 +88,21 @@ const TAGS = (function(){
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
 const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+  /* ROADMAP #197 -- Stench. The ability pushed a secondary onto the move's own list. A zero over a
+   * run containing a carrier means `addsOwnSecondary` is back to doing nothing, which is the state it
+   * was in from the day the tag was derived until 2026-08-11. */
+  abilityAddedSecondary: 0,
+  /* ROADMAP #197 -- ATTRACT. `attractApplied` is the volatile landing; the two refusal counters split
+   * "the format made this impossible" (genderless, which is every harness board in this repo) from
+   * "the two genders matched", because only the second is a board somebody could have staged better.
+   * `attractStoppedMove` is the mechanic actually costing a turn -- a zero there with a non-zero
+   * `attractApplied` means the volatile is written and unread again. */
+  attractApplied: 0, attractRefusedGenderless: 0, attractRefusedSameGender: 0,
+  attractStoppedMove: 0, attractSourceLeft: 0,
+  /* the `inflictsVolatile` parameter deferred to a sharper tag on the same ability row (Cursed Body's
+   * `disablesAttacker`). Non-zero is correct and expected; a zero over a run holding a Cursed Body
+   * means the deferral stopped happening and the disable is being applied twice. */
+  inflictsVolatileDeferred: 0,
   /* ROADMAP #144 -- PP. Five counters because five different things can be true and only one of them
    * is "PP is working": `ppDeducted` is the base spend, `ppPressureCharged` the extra one an ability
    * takes, `ppRefusedAtSelection` the chooser declining an empty slot, `ppRefusedAtExecution` the
@@ -741,6 +756,14 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * job rather than an error. */
   abilityBoostLifted: 0, abilityBoostNoTarget: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* ROADMAP #197 -- a `fractionalPriority` ABILITY whose row states no bracket, so the SIGN of the
+   * nudge is unknown and it is treated as the forward one. Non-zero means a carrier arrived that
+   * tag_dex could not read a `return <number>` out of; the ITEM derivation states only a chance by
+   * construction and is deliberately not counted here. */
+  fractionalPriorityNoBracket: 0, fractionalPriorityNoBracketFirst: null,
+  /* ROADMAP #197 -- an `addsOwnSecondary` carrier whose row names neither a volatile nor a status, so
+   * there is no effect to add and the addition is REFUSED rather than given an invented one. */
+  addedSecondaryEmpty: 0, addedSecondaryEmptyFirst: null,
   /* ROADMAP #161 -- a heal block whose CARRIER declared no duration. The number is the move's
    * (data/moves.ts:8290 returns 2 for Psychic Noise and 5 otherwise), so a carrier with no
    * `blocksHealing.turns` has no honest number to use and the block is REFUSED rather than given a
@@ -8233,8 +8256,75 @@ function applyConfusion(t,src,field,viaSecondary){
  *
  * `alreadyMoved` is the one thing it cannot compute for itself -- it is a question about THIS TURN's
  * outstanding actions, which only the turn loop holds. */
+/* ROADMAP #197 -- ATTRACT, AND THE GENDER THIS ENGINE HAS NEVER HAD.
+ *
+ * Cute Charm fired 0 times in 16,575 constructed trials against a declared 30% (95% upper bound
+ * 0.023%): `punishesAttacker.inflictsVolatile` had no consumer, this file's own comment beside the
+ * hazard branch said so, and there was no `attract` volatile for it to write.
+ *
+ * THE GATE IS GENDER AND IT IS NOT OPTIONAL. `data/moves.ts:716-735`, the attract condition's own
+ * onStart: `if (!(pokemon.gender === 'M' && source.gender === 'F') && !(pokemon.gender === 'F' &&
+ * source.gender === 'M')) return false;`. So an implementation that lands the volatile whenever the
+ * roll passes is not a partial implementation of Cute Charm -- it is a different ability, and it would
+ * DISAGREE with the authority on every board that ever reached it.
+ *
+ * THE DEFAULT IS 'N' AND THAT IS A MEASUREMENT, NOT A GUESS. `MC.mons` carries no gender, `buildMon`
+ * returns none, and EVERY harness in this repository declares `gender: 'N'` to the official engine --
+ * game_differential.js:1391, test-engine-diff.js:164, test-game-diff.js:247, roster/walk_tags/
+ * protocol-trace and all_mechanics_fire alike. `engine/game_differential.js:3762` prints the
+ * consequence in as many words: *"gender is N on both sides, so Attract / Rivalry / Cute Charm are not
+ * exercised."* Genderless is genderless to Showdown too, so a body with no `gender` field refuses
+ * exactly where the authority refuses and nothing already measured moves. A probe that wants the
+ * mechanic sets the two genders, which is what the census probe does.
+ *
+ * FIVE LEGAL CARRIERS, EVERY ONE OF THEM A RATIO (Clefable 1:3, Milotic 1:1, Lopunny 1:1, Sylveon
+ * 7:1, and Slowbro-Galar for the unrelated tag) -- there is no fixed-gender carrier to derive from, so
+ * rolling a gender at build time would be inventing a fact the sheet does not carry. Declared here
+ * rather than defaulted quietly, and the refusal is COUNTED. */
+const genderOf=m=>{const g=String((m&&m.gender)||'N').toUpperCase();return (g==='M'||g==='F')?g:'N';};
+function attractCompatible(target,source){
+  const t=genderOf(target),s=genderOf(source);
+  if((t==='M'&&s==='F')||(t==='F'&&s==='M'))return true;
+  if(t==='N'||s==='N')MEDSEEN.attractRefusedGenderless++; else MEDSEEN.attractRefusedSameGender++;
+  return false;
+}
+/* The one writer. Both roads reach it -- the MOVE Attract through applyMoveVolatile, and Cute Charm
+ * through `punishesAttacker.inflictsVolatile` -- because the gender clause, the already-attracted
+ * refusal and the source identity are one fact and must not exist twice. */
+function applyAttract(who,src){
+  if(!who||who.fainted||who.curHP<=0)return false;
+  if(who._vol&&who._vol.attract>0)return false;      /* addVolatile refuses a repeat: no onRestart */
+  if(!attractCompatible(who,src))return false;
+  (who._vol=who._vol||{}).attract=1;
+  who._attractedBy=src||null;
+  MEDSEEN.attractApplied++;
+  if(TR)TR.vstart(who,'Attract');
+  return true;
+}
+/* THE CONSUMER, and a volatile with no consumer is what this whole row was about. `onBeforeMove`:
+ * `if (this.randomChance(1, 2)) { this.add('cant', pokemon, 'Attract'); return false; }` -- so it is
+ * a coin, every turn, for as long as the source is on the field. The `onUpdate` half is folded in
+ * here rather than given its own sweep: the authority drops the volatile the moment
+ * `effectState.source` stops being active, and the only moment that is observable is the moment the
+ * coin would otherwise be flipped. Returning true means the turn is spent. */
+function attractBeforeMove(m,rng,active){
+  if(!m||!m._vol||!(m._vol.attract>0))return false;
+  const src=m._attractedBy;
+  if(!src||src.fainted||src.curHP<=0||(active&&active.indexOf(src)<0)){
+    delete m._vol.attract;m._attractedBy=null;MEDSEEN.attractSourceLeft++;
+    if(TR)TR.vend(m,'Attract');
+    return false;
+  }
+  if(rng()<0.5){MEDSEEN.attractStoppedMove++;if(TR)TR.cant(m,'Attract');return true;}
+  return false;
+}
 function applyMoveVolatile(who,vol,src,mvId,field,opts){
   if(!who||!vol)return false;
+  /* ROADMAP #197 -- ATTRACT IS OWNED, exactly as substitute, confusion, partiallytrapped and
+   * healblock are, and for the same reason: the generic write below would put a bare `_vol.attract`
+   * on a body of ANY gender, which the authority refuses outright, and it would not record WHO the
+   * source was -- and without the source the volatile can never be dropped again. */
+  if(vol==='attract')return applyAttract(who,src);
   /* ROADMAP #161 -- A FAINTED BODY TAKES NO VOLATILE. `Pokemon#addVolatile` opens with
      `if (!this.hp && !status.affectsFainted) return false` (sim/pokemon.ts:1980), and no member of
      this family declares `affectsFainted`. It sat unwritten while the effects step refused to run at
@@ -8812,7 +8902,18 @@ function formeSwap(mon,becomes,why){
   {
     const _old=monRow(mon.name), _new=monRow(key);
     if(_old&&_old.bs&&_new&&_new.bs){
-      const _ob=l50(_old.bs), _nb=l50(_new.bs);
+      /* ROADMAP #197 -- BOTH ANCHORS CARRY THE BODY'S NATURE, AND THIS ROAD DID NOT. `megaEvolveNow`
+       * was corrected to `l50(bs, null, m._nature)` and this line -- the MID-BATTLE road into the same
+       * fact -- was left unnatured, so one implementation of one fact was fixed and the other was not.
+       * That is precisely the FACTS-ARE-GLOBAL failure CLAUDE.md names, and it was invisible because a
+       * NEUTRAL body is byte-identical either way: every existing fixture is Serious.
+       *
+       * MEASURED BY tests/test-forme-assert.js ON ITS FIRST RUN, both members, against the authority:
+       *   Adamant Aegislash -> Blade   at 167 / spa 153   authority 176 / 144
+       *   Adamant Palafin   -> Hero    at 189 / spa 118   authority 198 / 113
+       * The size of the error is (mul - 1) x the OLD forme's line rather than the investment, so it is
+       * always on exactly the stat the nature moved and always in the direction the nature moved it. */
+      const _ob=l50(_old.bs,null,mon._nature), _nb=l50(_new.bs,null,mon._nature);
       _st={hp:_nb.hp+(mon.st.hp-_ob.hp), at:_nb.at+(mon.st.at-_ob.at), df:_nb.df+(mon.st.df-_ob.df),
            sa:_nb.sa+(mon.st.sa-_ob.sa), sd:_nb.sd+(mon.st.sd-_ob.sd), sp:_nb.sp+(mon.st.sp-_ob.sp)};
     } else {
@@ -10255,9 +10356,53 @@ function battleTurn(S,rng,actsForA,actsForB){
        re-drawn per comparison). The rng is consumed only for a body that actually carries the tag, so
        every existing seeded probe draws the same stream. Trick Room does not flip it -- the claw wins
        within the bracket under either ordering, which is the real rule. */
+    /* ROADMAP #197 -- AND THE ABILITY HALF OF THE SAME FACT, WHICH THIS READER COULD NOT SEE.
+     *
+     * `fractionalPriority` has two kinds of carrier and this loop asked `TAGS.param('item', ...)` and
+     * nothing else, so Quick Claw fired at 20.19% of turns while QUICK DRAW COULD NOT FIRE AT ALL --
+     * 0 times in 16,575 constructed trials against a declared 30%, 95% upper bound 0.023%. The defect
+     * was never in the roll; it was that one of the two carriers had no reader. THE FIX IS TO MAKE THE
+     * READER ASK BOTH, not to bolt a second ability-shaped branch on beside it.
+     *
+     * THE ITEM ARM IS BYTE-IDENTICAL, DELIBERATELY. It still rolls for every action kind including a
+     * bare switch -- which the authority does not (`priority <= 0` gates Quick Claw's die) -- because
+     * changing WHEN a die is drawn shifts the RNG stream of every seeded run in the repo that has a
+     * claw holder in it, and that is a separate change with a separate probe. Named here rather than
+     * quietly folded in.
+     *
+     * THE ABILITY ARM READS ITS PARAMS AND NOT ITS NAME. `excludesStatus` (Quick Draw:
+     * `move.category !== "Status"`) and `onlyStatus` (Mycelium Might: `=== "Status"`) are both carried
+     * by the artifact, and the category question is answered by `statusCategory`, which is the only
+     * fact in this engine that can tell a Status move from a Special one -- `MC.moves[id].c` reads 'S'
+     * for BOTH Slack Off and Psychic, so the bp>0 test used elsewhere in this file would have called
+     * Seismic Toss a status click.
+     *
+     * THE SIGN OF THE BRACKET IS PART OF THE FACT: Quick Draw returns +0.1 and Mycelium Might and
+     * Stall return -0.1, so `_qc` carries -1 as well as +1 and the comparator already orders on it.
+     * An ability whose row carries no bracket at all is a hole in the artifact and is COUNTED; the
+     * item derivation states only a chance by construction, so its absence is not counted.
+     *
+     * ORDER, WHEN ONE BODY CARRIES BOTH (Slowbro-Galar's own usage item is a Quick Claw): Showdown
+     * runs `onFractionalPriorityPriority` -1 (the ability) before -2 (the item) and the LAST handler
+     * to return wins, so a claw that fires beats an ability that pushed the other way. The die is
+     * drawn either way; only the result is conditional. */
     for(const it of acts){
       const _fp=TAGS.param('item',it.mon.item,'fractionalPriority');
-      it._qc=(_fp&&_fp.chance&&rng()<+_fp.chance)?1:0;
+      let _q=(_fp&&_fp.chance&&rng()<+_fp.chance)?1:0;
+      const _fa=TAGS.param('ability',it.mon.ability,'fractionalPriority');
+      if(_fa){
+        const _mid=actionMoveId(it.a);
+        const _isSt=_mid?TAGS.has('move',_mid,'statusCategory'):false;
+        const _gate=!!_mid&&!(_fa.excludesStatus&&_isSt)&&!(_fa.onlyStatus&&!_isSt);
+        const _hit=_gate&&(_fa.unconditional||rng()<+(_fa.chance==null?1:_fa.chance));
+        if(_hit){
+          if(_fa.bracket==null){ MEDFAILS.fractionalPriorityNoBracket++;
+            if(!MEDFAILS.fractionalPriorityNoBracketFirst)
+              MEDFAILS.fractionalPriorityNoBracketFirst=String(it.mon.ability); }
+          if(_q===0) _q=(_fa.bracket!=null&&_fa.bracket<0)?-1:1;
+        }
+      }
+      it._qc=_q;
     }
     /* WIRE 118 -- the bracket is FROZEN here, once, exactly as Showdown resolves an action's priority
        when it is queued and never again. The comparator, the Trick Room inversion and the tie now
@@ -10757,6 +10902,14 @@ function battleTurn(S,rng,actsForA,actsForB){
        * beside a confusion fix. */
       if(!(it.a&&(it.a.kind==='pass'||it.a.kind==='switch'))
          &&confusionBeforeMove(m,rng)){m._mvRes=false;continue;}
+      /* ROADMAP #197 -- ATTRACT, AND ITS POSITION IN THIS CHAIN IS READ RATHER THAN CHOSEN. The
+       * authority orders the BeforeMove refusals by `onBeforeMovePriority`: recharge 11, slp and frz
+       * 10, flinch 8, confusion 3, ATTRACT 2 (data/moves.ts:742), par 1. So it sits below confusion
+       * and above paralysis, which is exactly here -- a confused body that hits itself never flips
+       * the attract coin, and an attracted body that loses the coin never rolls for full paralysis.
+       * The same not-a-move guard as confusion: `onBeforeMove` does not run for a switch or a pass. */
+      if(!(it.a&&(it.a.kind==='pass'||it.a.kind==='switch'))
+         &&attractBeforeMove(m,rng,[...actA,...actB])){m._mvRes=false;continue;}
       if(m.status==='par'&&rng()<0.125){m._mvRes=false;if(TR)TR.cant(m,'par');continue;}   // Champions: 12.5% full-para (was 25%)
       const a=it.a;
       /* WIRE 43 -- THE RECHARGE TURN. Hyper Beam is 1,627 corpus clicks and Giga Impact 29, and both
@@ -14729,6 +14882,27 @@ function battleTurn(S,rng,actsForA,actsForB){
              * counted in MEDFAILS.hazardCapUnknown instead of quietly becoming 1. */
             if(_pun.hazard&&m._sf)
               layHazard(m._sf,_pun.hazard,_pun.maxLayers,tg,m._sf.side==='A'?'p1':'p2');
+            /* ROADMAP #197 -- AND `inflictsVolatile`, WHICH THE COMMENT ABOVE SAID HAD NOWHERE TO
+             * LAND. Cute Charm read 0 fires in 16,575 constructed trials against a declared 30%.
+             * There IS state for it now: `applyAttract` owns the volatile, its gender clause and its
+             * source identity, and `attractBeforeMove` spends the turn.
+             *
+             * IT DEFERS TO A SHARPER TAG ON THE SAME ROW, AND THE MEMBERSHIP WAS PRINTED BEFORE THIS
+             * WENT IN (docs/LESSONS §4):
+             *     APPLY  cutecharm    attract  0.3  tags ["punishesAttacker"]                  91 uses
+             *     DEFER  cursedbody   disable  0.3  tags ["disablesAttacker","punishesAttacker"] 1,888
+             * Cursed Body's disable is DESCRIBED TWICE by the artifact and is already applied at WIRE
+             * 52 off its own tag; landing it a second time here would seal a move on a body the
+             * authority left alone. The test is the shape the file already uses for `damageBoost`
+             * (see TAGS.tagsFor's own comment) -- read this parameter only on a row that carries
+             * nothing else, because a second tag means a sharper description exists and this engine
+             * already spends it. Counted, so a member that goes quiet is visible rather than absent. */
+            if(_pun.inflictsVolatile&&_pun.inflictsVolatile.volatile&&!m.fainted){
+              const _row=TAGS.tagsFor('ability',tg.ability);
+              if(_row&&Array.isArray(_row.tags)&&_row.tags.length>1)MEDSEEN.inflictsVolatileDeferred++;
+              else if(rng()<+(_pun.inflictsVolatile.chance==null?1:_pun.inflictsVolatile.chance))
+                applyMoveVolatile(m,_pun.inflictsVolatile.volatile,tg,null,field,{alreadyMoved:false});
+            }
           }
         }
         /* WIRE 80 -- MUMMY AND WANDERING SPIRIT REWRITE THE ATTACKER'S ABILITY.
@@ -15066,9 +15240,56 @@ function battleTurn(S,rng,actsForA,actsForB){
            *
            * THE REMAINING FALLBACK IS LOUD. A move with a generic secondary and NO format reading at
            * all is a hole in `data/tags.json`, not a format statement, so it is counted by name. */
-          if(fx&&fx.secondary&&!sheerForce){
+          /* ROADMAP #197 -- STENCH, AND `addsOwnSecondary` APPEARED ZERO TIMES IN THIS FILE.
+           *
+           * 0 fires in 7,248 constructed trials against a declared 10%. The tag was derived, carried
+           * every parameter of the handler, and had no consumer at all.
+           *
+           * IT IS AN ADDITION TO THE MOVE'S OWN LIST, NOT A BOLT-ON BESIDE IT, and that is the whole
+           * shape of the mechanic: `data/abilities.ts:4594-4608` pushes `{chance:10, volatileStatus:
+           * 'flinch'}` onto `move.secondaries` in `onModifyMove`. Everything downstream of that list
+           * therefore applies to it -- Shield Dust filters it out (`secondaries.filter(e => !!e.self)`)
+           * and the flinch lands through the same Inner-Focus-and-already-moved gate every other
+           * flinch uses. Implementing it as a separate roll after the loop would pass a rate check and
+           * be wrong about both.
+           *
+           * THE OLD GATE WAS `fx && fx.secondary`, WHICH IS EXACTLY THE CASE THIS ABILITY EXISTS FOR:
+           * the move it matters most on is one with NO secondaries of its own, so the whole block was
+           * skipped and there was nowhere for the addition to go.
+           *
+           * THREE PARAMS READ RATHER THAN THREE NAMES. `excludesStatus` is the handler's
+           * `move.category !== "Status"`, answered by `statusCategory` because `MC.moves[id].c` reads
+           * 'S' for a Status move as well as a Special one. `dedupes` is its early `for (const
+           * secondary of move.secondaries) if (secondary.volatileStatus === 'flinch') return;` -- a
+           * move that already flinches does not get a second flinch. `chance` and `volatile` are the
+           * effect itself. `status` is carried by the shape and no member of it uses one; a member
+           * that did would arrive here without an edit.
+           *
+           * NOT FORMAT-GUARDED, DELIBERATELY: `formatSecondaryCount` is a statement about the MOVE's
+           * own secondaries and this one is the ABILITY's, so a move the format stripped still gets
+           * it -- which is what the authority does, because `onModifyMove` runs on the already-stripped
+           * list. Its chance is likewise the ability's fact, so `_fmtChance` is not consulted. */
+          const _aos=(()=>{
+            const p=TAGS.param('ability',mAb,'addsOwnSecondary');
+            if(!p)return null;
+            if(p.excludesStatus&&TAGS.has('move',a.move.id,'statusCategory'))return null;
+            if(p.onlyStatus&&!TAGS.has('move',a.move.id,'statusCategory'))return null;
+            const _own=(fx&&fx.secondary)||[];
+            if(p.dedupes&&_own.some(s=>s&&(s.volatile===p.volatile||s.status===p.status&&p.status)))return null;
+            if(!p.volatile&&!p.status){ MEDFAILS.addedSecondaryEmpty++;
+              if(!MEDFAILS.addedSecondaryEmptyFirst)MEDFAILS.addedSecondaryEmptyFirst=String(mAb); return null; }
+            MEDSEEN.abilityAddedSecondary++;
+            return {chance:(p.chance==null?1:+p.chance)*100, volatile:p.volatile||undefined,
+                    status:p.status||undefined, _fromAbility:true};
+          })();
+          const _secs=((fx&&fx.secondary)||[]).concat(_aos?[_aos]:[]);
+          if(_secs.length&&!sheerForce){
             const _fsc=TAGS.param('move',a.move.id,'formatSecondaryCount');
-            if(!_fsc){
+            /* ROADMAP #197 -- ASKED ONLY OF A MOVE THAT HAS ITS OWN GENERIC SECONDARY. The counter's
+             * claim is "this MOVE has a generic secondary and no format reading", and an
+             * ability-added one is not the move's, so counting it here would report a hole in
+             * data/tags.json that is not there. */
+            if(!_fsc&&fx&&fx.secondary){
               MEDFAILS.secondaryProfileUnknown++;
               if(!MEDFAILS.secondaryProfileUnknownFirst)
                 MEDFAILS.secondaryProfileUnknownFirst=a.move.id+' has a generic secondary and no formatSecondaryCount';
@@ -15097,6 +15318,10 @@ function battleTurn(S,rng,actsForA,actsForB){
              * would price one with the other's chance. */
             const _sc=TAGS.param('move',a.move.id,'statChange');
             const _fmtChance=(s)=>{
+              /* ROADMAP #197 -- an ABILITY-ADDED secondary carries the ability's own chance and there
+               * is no move row that could speak for it. Refusing here rather than falling through
+               * means it is never priced off a same-shaped entry belonging to the move. */
+              if(s&&s._fromAbility)return null;
               if(s&&s.targetBoosts&&_sc&&Array.isArray(_sc.target)){
                 const _keys=Object.keys(s.targetBoosts).sort().join(',');
                 const _r=_sc.target.find(e=>e&&e.boosts&&Object.keys(e.boosts).sort().join(',')===_keys);
@@ -15133,7 +15358,7 @@ function battleTurn(S,rng,actsForA,actsForB){
               const _e=_si.effects.find(e=>e&&e[_k[0]]===_k[1]&&(e.to==null||e.to==='target'));
               return _e&&_e.chance!=null?+_e.chance:null;
             };
-            for(const s of fx.secondary){
+            for(const s of _secs){
               /* WIRE 115 -- SHIELD DUST, at the one site where it is correct, and shaped like the
                  handler rather than like a name: the filter KEEPS the entries marked `self` and drops
                  the rest, so a status, a target drop or a flinch goes and the user's own boost stays.
@@ -15143,7 +15368,9 @@ function battleTurn(S,rng,actsForA,actsForB){
                  roll. Placed after Shield Dust deliberately: this is not an ability refusing an
                  effect, it is the effect not existing in this regulation, and the two must not share
                  a counter. */
-              if(_fmtStripped){MEDSEEN.secondaryRefusedByFormat++;continue;}
+              /* ROADMAP #197 -- and NOT an ability-added one: `count: 0` says the format gave this
+                 MOVE no secondaries, which is exactly the state Showdown's onModifyMove then adds to. */
+              if(_fmtStripped&&!s._fromAbility){MEDSEEN.secondaryRefusedByFormat++;continue;}
               const _generic=(s.chance==null?100:s.chance);
               const _fmt=_fmtChance(s);
               if(_fmt!=null&&_fmt!==_generic){

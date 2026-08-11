@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-11T13:15:29.866Z",
+  "generated": "2026-08-11T13:56:32.278Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 476,
-  "live": 476,
+  "probed": 480,
+  "live": 480,
   "missing": 0,
-  "armed": 476,
+  "armed": 480,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2786,7 +2786,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 26.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2882,11 +2882,51 @@
       "directCall": false
     },
     {
+      "kind": "ability",
+      "tag": "fractionalPriority",
+      "label": "Quick Draw jumps the bracket on its 30%, and never on a Status click",
+      "live": true,
+      "detail": "damage the slow holder took before acting -- draw wins the roll 0 (it KOd first: true), draw loses the roll 87, no ability 79; Status click (excludesStatus) ability 106 hp vs control 106 hp -- equal means the roll was refused, 91 would mean the param was ignored",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "item",
       "tag": "addsFlinch",
       "label": "King's Rock flinches on its 10%, and Sheer Force deletes it",
       "live": true,
       "detail": "did the target get its Swords Dance off -- rock+low roll false (flinched), no rock true, rock+high roll true, rock+Sheer Force true (the boost deletes the rock's flinch)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "formeChangeKeepsNature",
+      "label": "a mid-battle forme change re-applies the spread under the body's own nature",
+      "live": true,
+      "detail": "Aegislash -> aegislash-blade, atk/spa after the change -- Serious 160/160 (wanted 160/160), Adamant 176/144 (wanted 176/144). Before the fix the Adamant arm read 167/153: the unnatured anchors carried (mul-1) x the OLD forme's line instead of the investment",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "punishesAttacker",
+      "label": "Cute Charm attracts the contact attacker on its 30%, and only across opposite genders",
+      "live": true,
+      "detail": "did the attacker get its Swords Dance off on turn 2 -- Cute Charm, opposite genders, roll 0.05 false (attracted, and the coin took the turn); roll 0.40, above the 30% true; SAME gender true (the authority refuses it); no ability true; a NON-CONTACT click true",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "addsOwnSecondary",
+      "label": "Stench adds its own 10% flinch to a move that has none, and Shield Dust deletes it",
+      "live": true,
+      "detail": "did the target get its Swords Dance off -- Stench at roll 0.05 false (flinched), at 0.5 true, no ability true; same board into a Vivillon: Shield Dust true (the secondary is filtered) vs the same Vivillon with no ability false",
       "hollow": false,
       "armed": true,
       "directCall": false

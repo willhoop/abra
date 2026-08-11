@@ -33,11 +33,11 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  476/476 probed mechanics live, 0 missing   (census 2026-08-11 09:15)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-11 09:15)
+  480/480 probed mechanics live, 0 missing   (census 2026-08-11 09:56)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-11 09:55)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1641/1641 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 09:11)
+  interaction matrix: 1641/1641 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 10:01)
     2250 of 7103 theoretical pairs staged — agreement is a claim about the 2250 that ran, not about the 7103
       489 inert      not scored — the reference engine behaves identically with and without the reactor
       111 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
@@ -45,15 +45,68 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f1b9c29625f0 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 79a0d0cbb329 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is eabc3c6caac1 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 247/267 probed, 20 unprobed
+  tag coverage: 248/267 probed, 19 unprobed
 ```
 
-_stamped 2026-08-11 09:16_
+_stamped 2026-08-11 10:01_
 
 <!-- /GENERATED -->
+
+## ROADMAP #197 — THE THREE ABILITIES THAT DID NOTHING ARE WIRED, AND A TENTH INSTRUMENT FOUND A FOURTH. 2026-08-11 (fifth pass).
+
+Full write-up in `docs/MEDICHAM-SPRINT-NOTES.md` (living docs are paused for the sprint by Will's
+decision). For this ledger:
+
+**Census 476 → 480 — 4 arrived, 0 broke, net +4.** `missing` 0 → 0 throughout, 0 hollow, 0 unarmed,
+0 direct-call, 0 threw. Differential re-run after every change at `--n 6000 --seed 20260804`:
+**0 disagree**. All three roster stages re-run after every change: **0 differ, 0 did-not-fire**, counts
+unmoved. Gate re-run after every change: **CLOSED — 1 of 6, unchanged**, and the failing clause is the
+REGISTER clause naming `#197` alone. **No passing clause moved.**
+
+- **ROADMAP #197 — ALL THREE ARE WIRED. RECOMMEND STRIKE.** `fractionalPriority` now has ONE reader
+  that asks the ITEM and the ABILITY (Quick Draw was 0 of 16,575); `addsOwnSecondary` has a consumer at
+  all (Stench, 0 of 7,248, and the tag's name appeared zero times in the file); `inflictsVolatile` has
+  a consumer and an `attract` volatile to write, with the authority's GENDER clause, which is the half
+  that makes it Cute Charm rather than a different ability. Four probes, each shown red first, each
+  re-run before the next. Focus Band is untouched and still needs a TAG before a consumer.
+- **A NEW INSTRUMENT: `tests/test-forme-assert.js`, the forme absolute-assertion mode** — subject
+  against the AUTHORITY with no control arm, because every carrier in this family has its forme-changer
+  as its only ability and the format flags it uncopyable. Three assertions on separate BODIES (the
+  forme changed in the active slot AND the party row; the base line is the new forme's on a neutral
+  body; the spread survived on a natured one), each shown red by its own plant under `--reds`.
+  **3 of 3 rows agree** — Stance Change both directions, Zero to Hero, mega evolution.
+- **AND IT FOUND A DEFECT ON ITS FIRST RUN.** `formeSwap` rebased a MID-BATTLE forme change on
+  UNNATURED anchors while `megaEvolveNow` had already been corrected to natured ones — one fact, two
+  implementations, one fixed. An Adamant Aegislash read atk 167 / spa 153 against the authority's
+  176 / 144. Fixed; the census carries it as `formeChangeKeepsNature`, with the expected value DERIVED
+  from `M.natureL50` rather than typed.
+- **THREE FORMES CANNOT BE COVERED AND IT IS A DATA GAP, NOT A COVERAGE CLAIM.**
+  `data/engine-data.js` has no row for `mimikyu-busted`, `morpeko-hangry` or the three Castform
+  weather formes, so Disguise, Hunger Switch and Forecast have no body to become. Printed on every run
+  of the new instrument. ENGINE may not edit that artifact and this pass did not regenerate it.
+
+### THE HAND LIST IS UNCHANGED — RIVALRY STAYS
+
+None of this pass's four probes was on it. What remains by hand is **Rivalry**, plus the items named
+as deliberately not fixed below and in the sections beneath this one.
+
+### WHAT WAS FOUND AND DELIBERATELY NOT FIXED, NAMED RATHER THAN ABSORBED
+
+- **Quick Claw's `priority <= 0` gate is still not modelled.** The item arm of the shared reader is
+  byte-identical on purpose: changing WHEN a die is drawn shifts the RNG stream of every seeded run
+  with a claw holder in it, and that is a separate change with a separate probe.
+- **`tag_dex`'s ITEM rule for `fractionalPriority` still hard-codes `chance: 0.2`** — a typed value
+  inside a derivation. It was NOT made to reuse the ability rule's parser, because that parser's
+  `Status`-equality test matches Quick Claw's Mycelium Might clause and would derive
+  `onlyStatus: true`, turning Quick Claw into a status-moves-only item. Printed before it was
+  attempted.
+- **`refusesCopy` holds TEN members, not the 34/37 an earlier note quotes.** That count predates the
+  #190 carrier toss and should not be re-quoted.
+- **NOT REACHED THIS PASS:** `quickfeet`, `poisonheal`, the `eelevate` KO-boost arm, the ~44 inert
+  abilities and 57 inert moves, `magmaarmor`, and the stale `recycle` deferral.
 
 ## #175 IS ENGINE-COMPLETE, #184's GAUGE WAS BROKEN, AND THE TOSS COST FIVE PROBES. 2026-08-11 (fourth pass).
 

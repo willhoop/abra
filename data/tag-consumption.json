@@ -3,8 +3,8 @@
   "method": "engine/tags.js counts ASKED (any lookup) and FOUND (the entity carried it). ASKED=0 is the decisive reading. FOUND>0 is necessary and NOT sufficient — proving the read changes behaviour is the mutation tier in docs/TAG-COVERAGE.md.",
   "diff_method": "ROADMAP #184. `by_tag` records a status for EVERY tag so the next run compares CONSUMPTION per tag, not membership of the dead list. Without it, a tag that ARRIVED unwired is indistinguishable from one that LOST its consumer, and the eight reported as regressions on 2026-08-10..11 were all arrivals.",
   "total_tags": 258,
-  "live": 146,
-  "staged": 71,
+  "live": 148,
+  "staged": 69,
   "unreached": 24,
   "unreached_this_run": [
     "neverMisses",
@@ -12,6 +12,7 @@
     "stalling",
     "secondaryStatEffect",
     "flinches",
+    "thawsTarget",
     "doublesSideSpeed",
     "statChangeInCode",
     "powder",
@@ -27,7 +28,6 @@
     "ohko",
     "groundsField",
     "lowersBerryThreshold",
-    "addsOwnSecondary",
     "escapesTrap",
     "preventsSwitch",
     "refusesForcedSwitch"
@@ -184,7 +184,7 @@
     "lowersUser": "DEAD",
     "sound": "LIVE",
     "survivesFromFull": "LIVE",
-    "thawsTarget": "STAGED",
+    "thawsTarget": "UNREACHED",
     "firstTurnOnly": "LIVE",
     "damageBoost": "LIVE",
     "healsAtThreshold": "LIVE",
@@ -252,7 +252,7 @@
     "speedOnItemLoss": "LIVE",
     "refusesStatusMoves": "STAGED",
     "redirectsType": "LIVE",
-    "weatherChipImmune": "STAGED",
+    "weatherChipImmune": "LIVE",
     "ignoresBoosts": "LIVE",
     "restoresStats": "LIVE",
     "clearsScreens": "LIVE",
@@ -397,7 +397,7 @@
     "restoresOwnLastItem": "STAGED",
     "clearsAllyBoostsOnEntry": "STAGED",
     "picksUpUsedItem": "LIVE",
-    "addsOwnSecondary": "UNREACHED",
+    "addsOwnSecondary": "LIVE",
     "escapesTrap": "UNREACHED",
     "removesOwnMoveFlag": "STAGED",
     "inheritsAllyAbility": "LIVE",
@@ -419,7 +419,6 @@
   },
   "staged_this_run": [
     "spreadFoes",
-    "thawsTarget",
     "spreadAll",
     "redirects",
     "noExtraHit",
@@ -430,7 +429,6 @@
     "accuracyMod",
     "healsAlly",
     "refusesStatusMoves",
-    "weatherChipImmune",
     "punishesContact",
     "failsWithoutWeather",
     "writesAccuracy",
@@ -490,5 +488,5 @@
     "spendsVolatile",
     "doublesBerryEffect"
   ],
-  "generated": "2026-08-11T13:10:38.700Z"
+  "generated": "2026-08-11T13:42:38.787Z"
 }

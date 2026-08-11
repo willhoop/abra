@@ -1,16 +1,16 @@
 {
- "generated": "2026-08-11T12:57:57.899Z",
+ "generated": "2026-08-11T13:41:30.176Z",
  "by": "tests/roster.js",
  "stage": "abilities",
- "engine_release": "0a829405f1ba",
+ "engine_release": "2810bcbd6c94",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
   "DEFERRED-BY-OWNER": 6,
-  "FIRED-AND-BOARDS-MATCH": 100,
-  "CONTROL-NOT-QUIET": 14,
-  "COULD-NOT-STAGE": 196
+  "FIRED-AND-BOARDS-MATCH": 107,
+  "CONTROL-NOT-QUIET": 15,
+  "COULD-NOT-STAGE": 188
  },
  "scope": {
   "total": 316,
@@ -19,12 +19,12 @@
    "no-legal-carrier": 114
   },
   "in_scope": 202,
-  "tested": 100,
-  "matched": 100,
+  "tested": 107,
+  "matched": 107,
   "differ": 0,
   "silent": 0,
   "deferred": 6,
-  "unattributable": 14,
+  "unattributable": 15,
   "unattributable_ids": [
    "aftermath",
    "angerpoint",
@@ -34,6 +34,7 @@
    "fluffy",
    "justified",
    "keeneye",
+   "magmaarmor",
    "moxie",
    "opportunist",
    "rivalry",
@@ -46,7 +47,7 @@
    "flowerveil",
    "fluffy"
   ],
-  "could_not_stage_in_scope": 82,
+  "could_not_stage_in_scope": 74,
   "attributed_by_second_control": [
    "adaptability",
    "aftermath",
@@ -89,7 +90,6 @@
    "keeneye",
    "klutz",
    "lightningrod",
-   "limber",
    "magicbounce",
    "magicguard",
    "magmaarmor",
@@ -150,7 +150,7 @@
  },
  "reds": [],
  "mirror": {
-  "pairs": 25,
+  "pairs": 26,
   "same_numbers_swapped": [
    {
     "a": "corrosion",
@@ -163,6 +163,19 @@
      "p1.hazards.toxicspikes  Corrosion with=0/without=1   Toxic Debris with=1/without=0",
      "p1.hazards.toxicspikes  Corrosion with=0/without=2   Toxic Debris with=2/without=0",
      "p1.hazards.toxicspikes  Corrosion with=0/without=2   Toxic Debris with=2/without=0"
+    ]
+   },
+   {
+    "a": "imposter",
+    "b": "limber",
+    "verdicts": [
+     "FIRED-AND-BOARDS-MATCH",
+     "FIRED-AND-BOARDS-MATCH"
+    ],
+    "leaves": [
+     "p2.party.ditto  Imposter with=null/without=[object Object]   Limber with=[object Object]/without=null",
+     "p2.party.ditto  Imposter with=null/without=[object Object]   Limber with=[object Object]/without=null",
+     "p2.party.ditto  Imposter with=null/without=[object Object]   Limber with=[object Object]/without=null"
     ]
    },
    {
@@ -4080,26 +4093,81 @@
    "kind": "ability",
    "id": "immunity",
    "name": "Immunity",
-   "rule": "ability/generic",
-   "reads": "nothing matched above — this is the residue",
-   "note": "ALTERNATE carrier Snorlax; control = Thick Fat (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
-   "arm": "top-tie-first",
+   "rule": "ability/refuses-one-status",
+   "reads": "a status id quoted inside onSetStatus / onTrySetStatus / onImmunity / onUpdate",
+   "note": "Ariados clicks Toxic Thread at Snorlax twice. WITHOUT the ability the carrier must end up \"psn\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Snorlax's typing nor Toxic Thread's can refuse it, which is a condition of the pairing.   [carrier Snorlax, control = Thick Fat — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "arm": "bottom-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": {
     "control": "Gluttony",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Gluttony in the slot instead of Thick Fat. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (0 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Thick Fat registers 2 handler(s), Gluttony registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 0,
-    "leaves_second": 0,
-    "leaves_kept": 0,
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Gluttony in the slot instead of Thick Fat. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (18 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Thick Fat registers 2 handler(s), Gluttony registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
+    "leaves_first": 18,
+    "leaves_second": 18,
+    "leaves_kept": 18,
     "dropped": []
    },
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.snorlax.hp",
+     "with": 940,
+     "without": 823
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 940,
+     "without": 823
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "psn"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.snorlax.hp",
+     "with": 940,
+     "without": 706
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 940,
+     "without": 706
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "psn"
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.snorlax.hp",
+     "with": 940,
+     "without": 589
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].hp",
+     "with": 940,
+     "without": 589
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "psn"
+    }
+   ],
    "diffs": []
   },
   {
@@ -4282,26 +4350,39 @@
    "kind": "ability",
    "id": "insomnia",
    "name": "Insomnia",
-   "rule": "ability/generic",
-   "reads": "nothing matched above — this is the residue",
-   "note": "ALTERNATE carrier Gourgeist-Super; control = Pickup (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
-   "arm": "top-tie-first",
+   "rule": "ability/refuses-one-status",
+   "reads": "a status id quoted inside onSetStatus / onTrySetStatus / onImmunity / onUpdate",
+   "note": "Venusaur clicks Sleep Powder at Ariados twice. WITHOUT the ability the carrier must end up \"slp\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Ariados's typing nor Sleep Powder's can refuse it, which is a condition of the pairing.   [carrier Ariados, control = Sniper — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "arm": "bottom-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": {
-    "control": "Frisk",
+    "control": "Swarm",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Frisk in the slot instead of Pickup. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (0 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Pickup registers 1 handler(s), Frisk registers 1.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 0,
-    "leaves_second": 0,
-    "leaves_kept": 0,
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Swarm in the slot instead of Sniper. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (4 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Sniper registers 1 handler(s), Swarm registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
+    "leaves_first": 4,
+    "leaves_second": 4,
+    "leaves_kept": 4,
     "dropped": []
    },
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "slp"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].status_counter",
+     "with": 0,
+     "without": 1
+    }
+   ],
    "diffs": []
   },
   {
@@ -4955,26 +5036,101 @@
    "kind": "ability",
    "id": "limber",
    "name": "Limber",
-   "rule": "ability/generic",
-   "reads": "nothing matched above — this is the residue",
-   "note": "ALTERNATE carrier Toxapex; control = Merciless (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
-   "arm": "top-tie-first",
+   "rule": "ability/refuses-one-status",
+   "reads": "a status id quoted inside onSetStatus / onTrySetStatus / onImmunity / onUpdate",
+   "note": "Serperior clicks Glare at Ditto twice. WITHOUT the ability the carrier must end up \"par\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Ditto's typing nor Glare's can refuse it, which is a condition of the pairing.   [carrier Ditto, control = Imposter — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "arm": "bottom-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
-   "second_control": {
-    "control": "Regenerator",
-    "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Regenerator in the slot instead of Merciless. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (0 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Merciless registers 1 handler(s), Regenerator registers 1.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 0,
-    "leaves_second": 0,
-    "leaves_kept": 0,
-    "dropped": []
-   },
+   "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 0,
+     "path": "p2.party.ditto",
+     "with": {
+      "hp": 492,
+      "maxhp": 492,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 0,
+     "path": "p2.active[0].species",
+     "with": "ditto",
+     "without": "corviknight"
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.ditto",
+     "with": {
+      "hp": 492,
+      "maxhp": 492,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "ditto",
+     "without": "corviknight"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "par"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.ditto",
+     "with": {
+      "hp": 492,
+      "maxhp": 492,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "ditto",
+     "without": "corviknight"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "par"
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.ditto",
+     "with": {
+      "hp": 492,
+      "maxhp": 492,
+      "fainted": false
+     },
+     "without": null
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].species",
+     "with": "ditto",
+     "without": "corviknight"
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "par"
+    }
+   ],
    "diffs": []
   },
   {
@@ -5257,23 +5413,30 @@
    "kind": "ability",
    "id": "magmaarmor",
    "name": "Magma Armor",
-   "rule": "ability/generic",
-   "reads": "nothing matched above — this is the residue",
-   "note": "ALTERNATE carrier Camerupt; control = Solid Rock (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
-   "arm": "top-tie-first",
-   "control_why": null,
+   "rule": "ability/refuses-one-status",
+   "reads": "a status id quoted inside onSetStatus / onTrySetStatus / onImmunity / onUpdate",
+   "note": "Blastoise clicks Ice Beam at Camerupt twice. WITHOUT the ability the carrier must end up \"frz\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Camerupt's typing nor Ice Beam's can refuse it, which is a condition of the pairing.   [carrier Camerupt, control = Solid Rock — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
+   "verdict": "CONTROL-NOT-QUIET",
+   "why": "NOTHING SURVIVES BOTH CONTROLS, AND THAT IS NOT THE SAME AS INERT. The delta against Solid Rock is 0 leaf/leaves and against Anger Point it is 6, and they share none. Either this entity does nothing here and the leaves are the control's, OR this entity and one of the controls move the same leaves and cancel. TWO ARMS CANNOT SEPARATE THOSE and the species has no third alternative to ask with. Measured, not assumed: THE SECOND CONTROL: the identical scenario played a third time with Anger Point in the slot instead of Solid Rock. THE TWO DELTAS DIFFER on 6 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p2.active[0].boosts.atk with=0 without=6; ours turn 1 p2.active[0].boosts.atk with=0 without=6; showdown turn 2 p2.active[0].boosts.atk with=0 without=6; ours turn 2 p2.active[0].boosts.atk with=0 without=6, +2 more. 0 of 0 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Solid Rock registers 1 handler(s), Anger Point registers 1.)",
+   "arm": "bottom-tie-first",
+   "control_why": "THE SECOND CONTROL: the identical scenario played a third time with Anger Point in the slot instead of Solid Rock. THE TWO DELTAS DIFFER on 6 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p2.active[0].boosts.atk with=0 without=6; ours turn 1 p2.active[0].boosts.atk with=0 without=6; showdown turn 2 p2.active[0].boosts.atk with=0 without=6; ours turn 2 p2.active[0].boosts.atk with=0 without=6, +2 more. 0 of 0 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Solid Rock registers 1 handler(s), Anger Point registers 1.)",
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": {
     "control": "Anger Point",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Anger Point in the slot instead of Solid Rock. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (0 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Solid Rock registers 1 handler(s), Anger Point registers 1.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Anger Point in the slot instead of Solid Rock. THE TWO DELTAS DIFFER on 6 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p2.active[0].boosts.atk with=0 without=6; ours turn 1 p2.active[0].boosts.atk with=0 without=6; showdown turn 2 p2.active[0].boosts.atk with=0 without=6; ours turn 2 p2.active[0].boosts.atk with=0 without=6, +2 more. 0 of 0 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Solid Rock registers 1 handler(s), Anger Point registers 1.)",
     "leaves_first": 0,
-    "leaves_second": 0,
+    "leaves_second": 6,
     "leaves_kept": 0,
-    "dropped": []
+    "dropped": [
+     "showdown turn 1 p2.active[0].boosts.atk with=0 without=6",
+     "ours turn 1 p2.active[0].boosts.atk with=0 without=6",
+     "showdown turn 2 p2.active[0].boosts.atk with=0 without=6",
+     "ours turn 2 p2.active[0].boosts.atk with=0 without=6",
+     "showdown turn 3 p2.active[0].boosts.atk with=0 without=6",
+     "ours turn 3 p2.active[0].boosts.atk with=0 without=6"
+    ]
    },
    "switch_probe": null,
    "sd_delta": [],
@@ -5370,18 +5533,43 @@
    "kind": "ability",
    "id": "megasol",
    "name": "Mega Sol",
-   "rule": "ability/generic",
-   "reads": "nothing matched above — this is the residue",
-   "note": "MEGA carrier Meganium -> Meganium-Mega via Meganiumite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "rule": "ability/private-sky",
+   "reads": "the ability is named inside Showdown's own `Pokemon#effectiveWeather` — parsed out of that function, never listed here",
+   "note": "the carrier clicks Weather Ball at Skeledirge (immune to Normal, which is what it stays without the ability) and then Solar Beam twice. With the ability the first click resolves as Fire and lands, and the second fires on the turn it is clicked; without it, exactly 0 and a charge turn. Every other body clicks the inert click.   [MEGA carrier Meganium -> Meganium-Mega via Meganiumite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui)]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p1.party.skeledirge.hp",
+     "with": 122,
+     "without": 179
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 122,
+     "without": 179
+    },
+    {
+     "turn": 3,
+     "path": "p1.party.skeledirge.hp",
+     "with": 53,
+     "without": 179
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].hp",
+     "with": 53,
+     "without": 179
+    }
+   ],
    "diffs": []
   },
   {
@@ -6543,18 +6731,55 @@
    "kind": "ability",
    "id": "piercingdrill",
    "name": "Piercing Drill",
-   "rule": "ability/generic",
-   "reads": "nothing matched above — this is the residue",
-   "note": "MEGA carrier Excadrill -> Excadrill-Mega via Excadrite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "rule": "ability/pierces-protect",
+   "reads": "onHitProtect",
+   "note": "Venusaur spends its turn on Protect and the carrier throws Iron Head — a CONTACT click, which is what the handler reads — straight into it. With the ability the damage is non-zero; without it the shield refuses it and the number is exactly 0. Every other body clicks the inert click.   [MEGA carrier Excadrill -> Excadrill-Mega via Excadrite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui)]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p1.party.venusaur.hp",
+     "with": 131,
+     "without": 155
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 131,
+     "without": 155
+    },
+    {
+     "turn": 3,
+     "path": "p1.party.venusaur.hp",
+     "with": 34,
+     "without": 58
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].hp",
+     "with": 34,
+     "without": 58
+    },
+    {
+     "turn": 4,
+     "path": "p1.party.venusaur.hp",
+     "with": 34,
+     "without": 58
+    },
+    {
+     "turn": 4,
+     "path": "p1.active[0].hp",
+     "with": 34,
+     "without": 58
+    }
+   ],
    "diffs": []
   },
   {
@@ -11206,18 +11431,55 @@
    "kind": "ability",
    "id": "unseenfist",
    "name": "Unseen Fist",
-   "rule": "ability/generic",
-   "reads": "nothing matched above — this is the residue",
-   "note": "MEGA carrier Golurk -> Golurk-Mega via Golurkite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "rule": "ability/pierces-protect",
+   "reads": "onHitProtect",
+   "note": "Venusaur spends its turn on Protect and the carrier throws Iron Head — a CONTACT click, which is what the handler reads — straight into it. With the ability the damage is non-zero; without it the shield refuses it and the number is exactly 0. Every other body clicks the inert click.   [MEGA carrier Golurk -> Golurk-Mega via Golurkite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui)]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p1.party.venusaur.hp",
+     "with": 139,
+     "without": 155
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 139,
+     "without": 155
+    },
+    {
+     "turn": 3,
+     "path": "p1.party.venusaur.hp",
+     "with": 76,
+     "without": 92
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].hp",
+     "with": 76,
+     "without": 92
+    },
+    {
+     "turn": 4,
+     "path": "p1.party.venusaur.hp",
+     "with": 76,
+     "without": 92
+    },
+    {
+     "turn": 4,
+     "path": "p1.active[0].hp",
+     "with": 76,
+     "without": 92
+    }
+   ],
    "diffs": []
   },
   {
@@ -11260,26 +11522,45 @@
    "kind": "ability",
    "id": "vitalspirit",
    "name": "Vital Spirit",
-   "rule": "ability/generic",
-   "reads": "nothing matched above — this is the residue",
-   "note": "ALTERNATE carrier Annihilape; control = Defiant (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
-   "arm": "top-tie-first",
+   "rule": "ability/refuses-one-status",
+   "reads": "a status id quoted inside onSetStatus / onTrySetStatus / onImmunity / onUpdate",
+   "note": "Venusaur clicks Sleep Powder at Lycanroc-Midnight twice. WITHOUT the ability the carrier must end up \"slp\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Lycanroc-Midnight's typing nor Sleep Powder's can refuse it, which is a condition of the pairing.   [carrier Lycanroc-Midnight, control = Keen Eye — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "arm": "bottom-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": {
-    "control": "Inner Focus",
+    "control": "No Guard",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Inner Focus in the slot instead of Defiant. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (0 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Defiant registers 1 handler(s), Inner Focus registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 0,
-    "leaves_second": 0,
-    "leaves_kept": 0,
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with No Guard in the slot instead of Keen Eye. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (6 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Keen Eye registers 2 handler(s), No Guard registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
+    "leaves_first": 6,
+    "leaves_second": 6,
+    "leaves_kept": 6,
     "dropped": []
    },
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "slp"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "slp"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].status_counter",
+     "with": 0,
+     "without": 1
+    }
+   ],
    "diffs": []
   },
   {

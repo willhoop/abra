@@ -5202,3 +5202,105 @@ version hand-matched the two status vocabularies, read Flame Body 0/40 and Poiso
 have filed a false headline against this division — while Static passed by accident on three shared
 letters. Verified loadable: `require('./engine/medicham2-browser.js').CODE_OF_STATUS` returns the map.
 Census re-run after: 476 live, 0 missing. Differential re-run after: 0 of 6000.
+
+---
+
+## ROADMAP #197 — THE THREE ABILITIES THAT DID NOTHING ARE WIRED, AND THE FORME MODE FOUND A FOURTH DEFECT ON ITS FIRST RUN. 2026-08-11 (ENGINE).
+
+**Census 476 live / 0 missing → 480 live / 0 missing (4 arrived, 0 broke, net +4).** 0 hollow,
+0 unarmed, 0 direct-call, 0 threw, 480/480 armed and spending a real turn. Differential re-run at
+`--n 6000 --seed 20260804` after every change: **0 disagree**. All three roster stages re-run after
+every change: **0 FIRED-AND-BOARDS-DIFFER, 0 DID-NOT-FIRE**, counts unmoved (items 139/148,
+abilities 107/202, moves 428/500). Gate re-run after every change: **CLOSED, 1 of 6, and it is the
+same clause it was — the REGISTER clause naming #197. No passing clause moved.**
+
+### THE THREE, EACH SHOWN RED FIRST AND RE-RUN BEFORE THE NEXT
+
+- **QUICK DRAW — one fact, two carriers, one reader.** `fractionalPriority` was read at exactly one
+  site off `it.mon.item`, so Quick Claw fired at 20.19% and the ABILITY path could not fire at all
+  (0 of 16,575). The reader now asks BOTH and reads the PARAMS: `excludesStatus` / `onlyStatus`
+  answered by `statusCategory` (the only fact in the file that separates a Status move from a Special
+  one — `MC.moves[id].c` reads `'S'` for Slack Off as well as for Psychic), and the SIGN of `bracket`,
+  so a negative nudge orders the other way. **The item arm is byte-identical on purpose**: Quick
+  Claw's `priority <= 0` gate is still not modelled, because changing WHEN a die is drawn shifts every
+  seeded run that has a claw holder in it. Named rather than folded in.
+- **STENCH — `addsOwnSecondary` appeared ZERO times in the file** (0 of 7,248). It is an ADDITION to
+  the move's own secondary list, not a bolt-on beside it, and the old gate was `fx && fx.secondary` —
+  which is exactly the case the ability exists for, a move with no secondaries of its own. Wiring it
+  as a separate roll would have passed a rate check and been wrong about Shield Dust, which filters it
+  in the authority and now filters it here.
+- **CUTE CHARM — and THE GATE IS GENDER, which this engine has never had.** `inflictsVolatile` had no
+  consumer and there was no `attract` volatile to write. Both are built: one writer
+  (`applyAttract`, owning the gender clause, the no-restart rule and the source identity), one consumer
+  (`attractBeforeMove`, the 50% coin, placed between confusion and paralysis because the authority's
+  `onBeforeMovePriority` is confusion 3, ATTRACT 2, par 1). **The default gender is `'N'` and that is a
+  MEASUREMENT, not a guess**: `MC.mons` carries none, `buildMon` returns none, and every harness in this
+  repository declares `gender: 'N'` to Showdown — `game_differential.js:3762` prints the consequence in
+  as many words. So a body with no gender refuses exactly where the authority refuses and nothing
+  already measured moves. **The membership was printed before the wire**, and it is two rows: Cute Charm
+  APPLY, Cursed Body DEFER — Cursed Body's disable is described twice by the artifact and is already
+  applied off `disablesAttacker`, so `inflictsVolatile` is read only on a row that carries nothing else.
+
+### AND A DEFECT NOBODY ASKED FOR: A MID-BATTLE FORME CHANGE THREW THE NATURE AWAY
+
+`tests/test-forme-assert.js` is the forme absolute-assertion mode — subject against the AUTHORITY,
+no control arm, because every body in this family carries its forme-changer as its only ability and
+the format says so itself (`refusesCopy`, 10 members in the current artifact — **not the 34/37 the
+earlier note quotes; that count predates the #190 carrier toss**). On its FIRST run:
+
+    Adamant Aegislash -> Blade   ours atk 167 / spa 153   authority 176 / 144
+    Adamant Palafin   -> Hero    ours atk 189 / spa 118   authority 198 / 113
+
+`megaEvolveNow` had already been corrected to carry `_nature` into both anchors of its
+`newL50 + (st - oldL50)` rebase. `formeSwap` — the MID-BATTLE road into the same fact — had not. One
+fact, two implementations, one fixed: the FACTS-ARE-GLOBAL failure, invisible because a NEUTRAL body
+is byte-identical either way and every fixture in the repo was Serious. Fixed, and the census now
+carries it (`formeChangeKeepsNature`) with the expected number DERIVED from `M.natureL50`, never typed.
+
+### THE MODE ITSELF — THREE ASSERTIONS, EACH SHOWN RED BY ITS OWN PLANT
+
+`A1` the forme changed (**active slot AND party row**), `A2` the base line is the new forme's on a
+NEUTRAL body, `A3` the body's own spread survived on a NATURED one. A2 and A3 are separate BODIES, not
+separate reads of one: the defect above is invisible on a neutral body, so an assertion that only
+checked the new forme's base line would have been green for the whole life of it. `--reds` plants four
+faults and each is caught by its owner alone (A2's plant necessarily also shows in A3 — both read a
+stat line — and that is declared rather than hidden). **3 of 3 rows agree**: Stance Change (both
+directions), Zero to Hero, mega evolution. The mega row is not a duplicate of
+`test-nature-differential.js` PART 4: that instrument pins the STAT LINE and never asks about the
+PARTY ROW.
+
+**TWO FIXTURE FAULTS THE INSTRUMENT FOUND IN ITSELF, recorded because each produced a wrong answer
+rather than an error.** (1) `hpBoost: 4` made the mega row read `hp: ours 660, authority 165` — the
+harness's boost is applied to the built body and Showdown's `setSpecies` recomputes `maxhp` from the
+species on a permanent forme change, wiping it. That would have been published as an engine defect.
+(2) The very first scratch read `storedStats` BY REFERENCE and printed it after the game ended, so a
+Blade Aegislash appeared to carry Shield's stat line in the authority — Showdown mutates that object
+in place and medicham2 replaces `st` wholesale. Both were the PROBE being wrong before the engine was.
+
+### WHAT THE FORME MODE CANNOT COVER, MEASURED RATHER THAN ASSUMED
+
+**`data/engine-data.js` HAS NO ROW for `mimikyu-busted`, `morpeko-hangry`, `castform-sunny`,
+`castform-rainy` or `castform-snowy`.** There is no body for medicham2 to become, so **Disguise,
+Hunger Switch and Forecast are UNCOVERABLE** and are printed as such on every run — never as a pass.
+ENGINE may not edit that artifact and this pass did not regenerate it. Derived alongside it, and it
+retires the hand-written table of nine in this file: of every ability in the format whose handler calls
+`formeChange(`, exactly **FIVE have a legal carrier in Reg M-B** — Disguise, Forecast, Hunger Switch,
+Stance Change, Zero to Hero. **Ice Face, Shields Down, Schooling, Power Construct, Zen Mode, Gulp
+Missile, Flower Gift and Tera Shift have NO legal carrier**, and Mimicry changes TYPE rather than forme.
+
+**THE ZERO TO HERO RETURN LEG IS NOT SCRIPTABLE AND THE ROW SAYS SO.** The driver stamps medicham2's
+`_switchKey` at BUILD time while Showdown resolves a bench ask against the body's CURRENT `species.id`
+— `palafinhero` once it has left — so `{sw:'palafin'}` and `{sw:'palafinhero'}` each resolve on exactly
+one engine and the game throws on the other. The row asserts the OUT leg, which is where the transform
+actually happens.
+
+### WHAT WAS NOT REACHED, SO NOBODY COUNTS IT AS DONE
+
+`quickfeet` and `poisonheal`; the `eelevate` KO-boost arm; the ~44 inert abilities and 57 inert moves;
+`magmaarmor`; and the stale `recycle` deferral. Untouched this pass. Also left standing, named rather
+than absorbed: **`tag_dex`'s ITEM rule for `fractionalPriority` hard-codes `chance: 0.2`** — a typed
+value inside a derivation, correct today (`randomChance(1,5)`) and carrying no `bracket`. It was NOT
+made to reuse the ability rule's parser, and the reason is worth keeping: that parser's
+`Status`-equality test matches Quick Claw's **Mycelium Might** clause and would have derived
+`onlyStatus: true`, turning Quick Claw into a status-moves-only item. Printed before it was
+attempted, which is why it was not done.

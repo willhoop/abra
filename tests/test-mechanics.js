@@ -8612,6 +8612,55 @@ probe('item', 'fractionalPriority', 'Quick Claw lets a slow holder move first wi
                  + `claw loses the roll ${miss.hurt}, no item ${none.hurt}` };
 });
 
+/* ROADMAP #197 -- QUICK DRAW, THE *ABILITY* HALF OF `fractionalPriority`, WHICH READ AS ZERO.
+ *
+ * The staged rate arm counted 0 fires in 16,575 constructed trials against a declared 30% (95% upper
+ * bound 0.023%), and the cause is one reader: the engine asked `TAGS.param('item', ...)` and nothing
+ * else, so Quick Claw fired at 20.19% while the ability path could not fire at all. SAME FACT, TWO
+ * CARRIERS, ONE READER.
+ *
+ * SLOWBRO-GALAR IS THE CARRIER AND ITS DEFAULT ITEM IS A QUICK CLAW -- `bare()` blanks the item, and
+ * that is load-bearing here rather than tidy: without it every arm would carry the ITEM whose reader
+ * already worked, and the probe would have measured the thing it is trying to prove is missing.
+ *
+ * THE OBSERVABLE IS WHO GOT THERE FIRST, not a flag: Garchomp is on 40 HP and dies to the Psychic,
+ * so if the draw really won its bracket the foe never acts and the holder takes exactly 0. Slowbro-
+ * Galar is 75 Speed against 161, so nothing but the nudge can produce that.
+ *
+ * THE FOURTH AND FIFTH ARMS ARE THE PARAM, NOT THE NAME. `excludesStatus: true` is read off the
+ * artifact, and a wire that only asked "does this body carry the tag" would jump on a Slack Off too.
+ * Both status arms heal from 100 and then eat the Dragon Claw: moving SECOND reads 106 (100 - dmg +
+ * 85), moving FIRST would read 91 (170 capped, then - dmg). So 106 in both is the refusal working
+ * and 91 in the ability arm is the param being ignored. */
+probe('ability', 'fractionalPriority', 'Quick Draw jumps the bracket on its 30%, and never on a Status click', () => {
+  const run = (ab, roll, click, hp) => {
+    const me = bare('slowbro-galar');                            /* base 75 Speed */
+    me.ability = ab || 'none'; me.curHP = hp;
+    const ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('weavile');            /* 161 Speed, always faster */
+    f1.curHP = 40;                                                /* one Psychic ends it */
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    let first = true;
+    const rng = () => { if (first) { first = false; return roll; } return 0.5; };
+    const before = me.curHP;
+    M.battleTurn(S, rng, new Map([[me, M.playerAction(me, click, f1, S.field)], [ally, { kind: 'pass' }]]),
+                 new Map([[f1, M.playerAction(f1, 'dragonclaw', me, S.field)], [f2, { kind: 'pass' }]]));
+    return { hurt: before - me.curHP, hp: me.curHP, foeDead: f1.fainted };
+  };
+  const win  = run('quickdraw', 0.05, 'psychic', 170);
+  const lose = run('quickdraw', 0.90, 'psychic', 170);
+  const none = run('', 0.05, 'psychic', 170);
+  const stAb = run('quickdraw', 0.05, 'slackoff', 100);
+  const stNo = run('', 0.05, 'slackoff', 100);
+  return { works: win.hurt === 0 && win.foeDead && lose.hurt > 0 && none.hurt > 0
+                  && stAb.hp === stNo.hp,
+           arms: { control: none.hurt, test: win.hurt },
+           detail: `damage the slow holder took before acting -- draw wins the roll ${win.hurt} (it KOd first: `
+                 + `${win.foeDead}), draw loses the roll ${lose.hurt}, no ability ${none.hurt}; `
+                 + `Status click (excludesStatus) ability ${stAb.hp} hp vs control ${stNo.hp} hp -- equal `
+                 + `means the roll was refused, 91 would mean the param was ignored` };
+});
+
 /* WIRE 103 -- King's Rock. */
 probe('item', 'addsFlinch', "King's Rock flinches on its 10%, and Sheer Force deletes it", () => {
   /* the receipt is whether Recover happened: a flinched Milotic stays hurt. The flinch roll is
@@ -8637,6 +8686,143 @@ probe('item', 'addsFlinch', "King's Rock flinches on its 10%, and Sheer Force de
            arms: { control: noRock, test: flinched },
            detail: `did the target get its Swords Dance off -- rock+low roll ${flinched} (flinched), no rock ${noRock}, `
                  + `rock+high roll ${badRoll}, rock+Sheer Force ${sheer} (the boost deletes the rock's flinch)` };
+});
+
+/* ROADMAP #197 -- A MID-BATTLE FORME CHANGE CARRIES THE BODY'S NATURE, AND IT DID NOT.
+ *
+ * Found by tests/test-forme-assert.js, the forme absolute-assertion mode, on its first run:
+ * an Adamant Aegislash going to Blade read atk 167 / spa 153 where the authority reads 176 / 144, and
+ * an Adamant Palafin going to Hero read 189 / 118 against 198 / 113. `megaEvolveNow` had already been
+ * corrected to carry `_nature` into BOTH anchors of its `newL50 + (st - oldL50)` rebase and
+ * `formeSwap` -- the mid-battle road into the same fact -- had not. One fact, two implementations,
+ * one of them fixed: the FACTS-ARE-GLOBAL failure, and invisible because a NEUTRAL body is
+ * byte-identical either way and every fixture in this repository was Serious.
+ *
+ * THE EXPECTED NUMBER IS DERIVED, NOT TYPED. `M.natureL50(<the new forme's base stats>, nature)` is
+ * the engine's own level-50 line, which tests/test-nature-differential.js PART 2 pins against the
+ * authority for all 8,925 (species x nature) pairs. So this probe asserts the identity Showdown's
+ * `setSpecies` states -- recompute from the SAME set on the NEW species -- rather than a constant.
+ *
+ * BOTH ARMS ARE REAL AND THE KNOB IS THE NATURE. A Serious body passes with or without the fix, which
+ * is exactly why the natured arm has to be here: an assertion that only checked the neutral line
+ * would have been green throughout the defect's whole life. */
+probe('ability', 'formeChangeKeepsNature', 'a mid-battle forme change re-applies the spread under the body\'s own nature', () => {
+  const line = (key, nature) => {
+    const row = (global.MC && global.MC.mons && global.MC.mons[key]) || null;
+    if (!row || !row.bs) throw new Error('no base stats for ' + key);
+    return M.natureL50(row.bs, nature);
+  };
+  const run = (nature) => {
+    const me = bare('aegislash'); me.ability = 'stancechange'; me._nature = nature;
+    me.st = line('aegislash', nature); me.curHP = me.st.hp;
+    const ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('weavile');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'ironhead', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { name: me.name, at: me.st.at, sa: me.st.sa };
+  };
+  const flat = run('Serious'), nat = run('Adamant');
+  const wantFlat = line('aegislash-blade', 'Serious'), wantNat = line('aegislash-blade', 'Adamant');
+  return { works: flat.name === 'aegislash-blade' && nat.name === 'aegislash-blade'
+                  && flat.at === wantFlat.at && flat.sa === wantFlat.sa
+                  && nat.at === wantNat.at && nat.sa === wantNat.sa
+                  && nat.at !== flat.at,
+           arms: { control: flat.at + '/' + flat.sa, test: nat.at + '/' + nat.sa },
+           detail: `Aegislash -> ${nat.name}, atk/spa after the change -- Serious ${flat.at}/${flat.sa} `
+                 + `(wanted ${wantFlat.at}/${wantFlat.sa}), Adamant ${nat.at}/${nat.sa} (wanted `
+                 + `${wantNat.at}/${wantNat.sa}). Before the fix the Adamant arm read 167/153: the `
+                 + `unnatured anchors carried (mul-1) x the OLD forme's line instead of the investment` };
+});
+
+/* ROADMAP #197 -- CUTE CHARM, AND THE GENDER GATE THAT IS PART OF THE MECHANIC.
+ *
+ * 0 fires in 16,575 constructed trials against a declared 30% (95% upper bound 0.023%):
+ * `punishesAttacker.inflictsVolatile` had no consumer and there was no `attract` volatile in the
+ * engine for it to write. Shown red on this exact board before the wire -- all five arms read
+ * "the attacker set up", including the two that must now differ.
+ *
+ * MILOTIC AND NOT CLEFABLE, AND THE FIRST DRAFT GOT IT WRONG. Clefable is FAIRY and Garchomp's only
+ * contact move is DRAGON CLAW, so the delivery was a type immunity: the carrier took 0 damage, the
+ * contact trigger was never reached, and every arm agreed for a reason that had nothing to do with
+ * the ability. Milotic is pure Water and carries Cute Charm as its hidden ability, so the same
+ * attacker connects for 93.
+ *
+ * THE THIRD ARM IS THE ONE THIS ROW EXISTS FOR. `data/moves.ts:716-735` refuses the volatile unless
+ * the two genders are opposite, so an engine that lands it on the roll alone is not a partial Cute
+ * Charm, it is a wrong one -- and it would disagree with the authority on every board that reached
+ * it. Arms one and three differ ONLY in the attacker's gender.
+ *
+ * THE ROLL IS 0.40 IN ARM TWO ON PURPOSE, not 0.9: it is above the attract's 30% and BELOW the
+ * volatile's own 50% coin, so an engine that landed the volatile on any roll would still be stopped
+ * by the coin and would fail this arm. A 0.9 would have passed either way. */
+probe('ability', 'punishesAttacker', 'Cute Charm attracts the contact attacker on its 30%, and only across opposite genders', () => {
+  const run = (ab, roll, foeGender, mv) => {
+    const me = bare('milotic'); me.ability = ab || 'none'; me.gender = 'F';
+    const ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('weavile');            /* 161 Speed, so it always leads */
+    f1.gender = foeGender;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const rng = () => roll;
+    /* turn 1 lands the contact hit and the attract; turn 2 is where the volatile costs a turn. */
+    M.battleTurn(S, rng, new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, mv, me, S.field)], [f2, { kind: 'pass' }]]));
+    M.battleTurn(S, rng, new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'swordsdance', null, S.field)], [f2, { kind: 'pass' }]]));
+    return f1.boosts.at === 2;                                    /* true = the attacker set up */
+  };
+  const hit  = run('cutecharm', 0.05, 'M', 'dragonclaw');
+  const roll = run('cutecharm', 0.40, 'M', 'dragonclaw');
+  const same = run('cutecharm', 0.05, 'F', 'dragonclaw');
+  const none = run('', 0.05, 'M', 'dragonclaw');
+  const nocon = run('cutecharm', 0.05, 'M', 'rockslide');
+  return { works: hit === false && roll === true && same === true && none === true && nocon === true,
+           arms: { control: none, test: hit },
+           detail: `did the attacker get its Swords Dance off on turn 2 -- Cute Charm, opposite genders, `
+                 + `roll 0.05 ${hit} (attracted, and the coin took the turn); roll 0.40, above the 30% `
+                 + `${roll}; SAME gender ${same} (the authority refuses it); no ability ${none}; a `
+                 + `NON-CONTACT click ${nocon}` };
+});
+
+/* ROADMAP #197 -- STENCH. `addsOwnSecondary` APPEARED ZERO TIMES IN THE ENGINE.
+ *
+ * 0 fires in 7,248 constructed trials against a declared 10% (95% upper bound 0.053%). The tag exists,
+ * the artifact carries every parameter the handler states, and no line of medicham2 mentioned it --
+ * so an ability that adds a flinch to EVERY damaging click the holder makes added nothing to any of
+ * them. Facade is the delivery: Normal, physical, 100 accuracy, and it carries no secondary of its
+ * own, so any flinch on that board is the ability's and nothing else's.
+ *
+ * THE RECEIPT IS THE TARGET'S SETUP, borrowed from the King's Rock probe above and for the same
+ * reason: a flinched body never clicks its Swords Dance, and a boost is not a damage number that a
+ * crit can move underneath the reading. The target is pinned to 50 Speed so the holder always moves
+ * first -- a flinch that arrives after the target has acted is not a flinch, it is a no-op, and an
+ * arm that could not tell those apart would pass on either.
+ *
+ * ARMS FOUR AND FIVE ARE THE ONE THAT MATTERS. Showdown adds this flinch to `move.secondaries` in
+ * `onModifyMove`, so SHIELD DUST -- which filters secondaries at hit time -- deletes it. Both arms
+ * throw the identical board at the identical Vivillon and vary only the target's ability, so an
+ * implementation that bolted the flinch on outside the secondaries pipeline passes arms one to three
+ * and fails here. */
+probe('ability', 'addsOwnSecondary', 'Stench adds its own 10% flinch to a move that has none, and Shield Dust deletes it', () => {
+  const hit = (ab, roll, tgtSp, tgtAb) => {
+    const me = bare('garbodor'); me.ability = ab || 'none';        /* 127 Speed */
+    const ally = bare('corviknight');
+    const f1 = bare(tgtSp || 'milotic'), f2 = bare('garchomp');
+    if (tgtAb) f1.ability = tgtAb;
+    f1.st = Object.assign({}, f1.st, { sp: 50 });                  /* the holder always moves first */
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const rng = () => roll;
+    M.battleTurn(S, rng, new Map([[me, M.playerAction(me, 'facade', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'swordsdance', null, S.field)], [f2, { kind: 'pass' }]]));
+    return f1.boosts.at === 2;                                     /* true = it set up = no flinch */
+  };
+  const low = hit('stench', 0.05), high = hit('stench', 0.5), none = hit('', 0.05);
+  const dust = hit('stench', 0.05, 'vivillon', 'shielddust'), bare_ = hit('stench', 0.05, 'vivillon', 'none');
+  return { works: low === false && high === true && none === true && dust === true && bare_ === false,
+           arms: { control: none, test: low },
+           detail: `did the target get its Swords Dance off -- Stench at roll 0.05 ${low} (flinched), at 0.5 `
+                 + `${high}, no ability ${none}; same board into a Vivillon: Shield Dust ${dust} (the `
+                 + `secondary is filtered) vs the same Vivillon with no ability ${bare_}` };
 });
 
 /* WIRE 97 -- Sheer Force, both halves plus the Life Orb interaction.
