@@ -2427,6 +2427,43 @@ function legalPair(speciesId, ability, moveId) {
   return out;
 }
 
+/* CANDIDATE **AND** AUTHORITY, IN ONE CALL. `learnsMove` walks the prevo chain and therefore says YES
+ * to Blastoise/Mud-Slap, which the format's own validator refuses.
+ *
+ * THIS IS CONSERVATISM, NOT A CORRECTNESS FIX, AND THE DIFFERENCE MATTERS — the first version of this
+ * comment claimed the illegal click "resolved to a pass" and that is FALSE. `CAST` says it in its own
+ * header: staged moves are NOT learnset-checked, both engines receive the identical body, and nothing
+ * about the comparison depends on legality. The Shield Dust second arm really did measure nothing, and
+ * the cause was the TYPE CHART (a Ground click at a Bug/Flying carrier), not the learnset. Correcting
+ * the diagnosis rather than only the bug is the standing rule; the check is kept because a fixture
+ * that could exist in a real game is worth more than one that could not, and it costs nothing.
+ *
+ * `legalPair` answers `banned` only, which is why it is not enough here: an unlearnable move is not
+ * BANNED, it is impossible — `checkLegal` reports `legal: false` with an EMPTY `banned`. And an
+ * `unavailable` answer means the validator could not be asked, which is not a verdict either way, so
+ * the candidate is allowed through rather than a fixture being retired on a hiccup. */
+/* AND IT ASKS `legal`, NOT `banned`, WHICH IS THE SECOND HALF OF THE SAME MISTAKE. `legalPair` above
+ * reads only `r.banned` — it exists to answer "is this pairing FORBIDDEN by the format" — and an
+ * unlearnable move is not banned, it is impossible: `checkLegal` reports it as `legal: false` with
+ * the sentence in `problems`/`pairing` and an EMPTY `banned`. Wiring the new rules through
+ * `legalPair` therefore changed nothing at all and Blastoise kept its Mud-Slap. */
+const _CC = new Map();
+function canClick(sp, moveId) {
+  if (!sp || !moveId) return false;
+  if (!learnsMove(sp, moveId)) return false;
+  const k = sp.id + '|' + moveId;
+  if (_CC.has(k)) return _CC.get(k);
+  let ok = true;
+  try {
+    const r = CS.checkLegal({ species: sp.id, ability: carrierAbility(sp) || '', moves: [moveId] });
+    /* `unavailable` means the validator could not be asked at all. That is not a verdict either way,
+     * so the candidate is allowed through rather than a fixture being retired on a hiccup. */
+    if (!r.unavailable && r.legal === false) ok = false;
+  } catch (err) { ok = true; }
+  _CC.set(k, ok);
+  return ok;
+}
+
 /* ---- 8. DAMAGE ON THE BOARD BEFORE THE HEAL, AND FOUR SHAPES THAT NEED FOUR STAGINGS -----------
  *
  * Will, 2026-08-10: *"we need to set up scenarios to test where damage is dealt and then the healing
@@ -2817,6 +2854,52 @@ function stageAbility(e, C, o) {
     arm: o.arm || null, scenario: sc, tier: 'ALTERNATE', controlQuiet: sc.controlQuiet };
 }
 
+/* THE SAME BUILDER FOR A CARRIER THAT HAS NO SECOND ABILITY TO CONTROL WITH.
+ *
+ * `stageAbility` only serves the ALTERNATE tier — it swaps the carrier's ability on the SHEET, which
+ * is impossible for a species whose only ability is the one under test (Rotom/Levitate, Hydreigon/
+ * Levitate) and for a MEGA forme, whose ability is written by the forme change. Those two tiers are
+ * exactly the ones `abilityScenario` already controls with an in-play SKILL SWAP, proven live by
+ * `swapControlWorks()` before it is used — so a hand-written rule that needs one of those carriers had
+ * no builder at all and could only fall through to the generic staging.
+ *
+ * Everything about the control is `controlOf`'s: side A slot 1 is the SWAPPER, present in BOTH arms,
+ * idling in the subject arm and clicking Skill Swap at the carrier on the prepended setup turn. The
+ * rule supplies BODIES and a SCRIPT and cannot forget the half that makes the control arm a control,
+ * which is the same contract `stageAbility` has. */
+function stageAbilitySwap(e, C, o) {
+  const S = swapControlWorks();
+  if (!S.ok) return cannot('its carrier is ' + C.tier + '-tier — the ability cannot be swapped out on '
+    + 'the SHEET, so the control has to be applied IN PLAY, and the Skill Swap control is not '
+    + 'available: ' + S.why);
+  if (swapRefused(e.id)) return cannot('the format flags this ability `failskillswap`, so Showdown '
+    + 'refuses the exchange and medicham2 does not model the refusal at all — the two engines would '
+    + 'part IN THE CONTROL ARM and the row would accuse the entity for the control\'s divergence');
+  const sp = dex.species.get(C.species);
+  const carrier = mon(sp.id, C.tier === 'MEGA' ? C.stone : (o.item || ''),
+                      C.tier === 'MEGA' ? '' : dex.abilities.get(e.id).name, (o.moves || []).slice());
+  const script = [turn([IDLE, IDLE],
+                       [C.tier === 'MEGA' ? { m: INERT, mega: true } : IDLE, IDLE])].concat(o.script);
+  const sc = scaffold({ hpA: o.hpA || 1, hpB: o.hpB || 1, subject: 'B0',
+    a0: o.a0, a1: mon(SWAPPER.species, '', SWAPPER.ability, (o.a1moves || [INERT]).slice()), a2: o.a2,
+    b0: carrier, b1: o.b1, b2: o.b2, script });
+  sc.controlAbility = SWAPPER.ability;
+  sc.controlAbility2 = null;      // an in-play exchange has exactly one form
+  sc.controlQuiet = true;         // the swapper's own ability is drawn from QUIET_SET
+  sc.controlKind = 'abilityswap';
+  sc.abilityId = e.id;
+  sc.carrierSpecies = sp.id;
+  return { note: o.note + '   [' + C.tier + ' carrier ' + sp.name
+      + (C.tier === 'MEGA' ? ' -> ' + pretty(C.forme) + ' via ' + pretty(C.stone) : '')
+      + ', control = Skill Swap lends ' + SWAPPER.ability + ' off ' + SWAPPER.name + ' (' + S.why + ')]',
+    arm: o.arm || null, scenario: sc, tier: C.tier, controlQuiet: true };
+}
+/* one door for a rule that does not care which tier its carrier landed in */
+function stageAbilityAnyTier(e, C, o) {
+  if (!C) return cannot('no legal species in this format carries it');
+  return C.tier === 'ALTERNATE' ? stageAbility(e, C, o) : stageAbilitySwap(e, C, o);
+}
+
 /* A DERIVED HIT THAT LANDS A BODY IN A NAMED HP BAND, thrown by a named attacker. The pinch family is
  * unstageable without it: "chip it a bit" leaves the carrier above the third and the rule measures
  * nothing, which is how `item/hp-floor` and `move/protect-family` both first came back inert. The
@@ -3185,6 +3268,43 @@ function abilityScenario(e, C, kind) {
       + (sc.controlQuiet ? '' : ' (NOT A QUIET ABILITY — see the caveat on any finding)')
       + '; staged as ' + kind, scenario: sc, tier: C.tier, controlQuiet: sc.controlQuiet };
 }
+
+/* ---- WHAT THE AUTHORITY'S OWN `isGrounded` SAYS, PARSED RATHER THAN COPIED ----------------------
+ *
+ * Levitate registers NO handler. The immunity lives inside `Pokemon#isGrounded`, so there is nothing
+ * on the ability to match a shape against and a hand-typed list would be exactly the stale-list
+ * failure this file exists to avoid. The function is parsed instead: the airborne ABILITIES, the
+ * volatiles that force a body down, and whether Gravity is a clause at all. Add a third airborne
+ * ability upstream and `ability/ground-immunity` picks it up with no edit here. */
+const AIRBORNE = (() => {
+  const P = require(require(D('engine', 'showdown_path.js')).resolve() + '/dist/sim/pokemon.js');
+  const src = String(P.Pokemon.prototype.isGrounded);
+  const abil = ((src.match(/hasAbility\(\[([^\]]*)\]\)/) || [])[1] || '')
+    .split(',').map(s => idOf(s)).filter(Boolean);
+  const ground = [...src.matchAll(/if \("(\w+)" in this\.volatiles[^)]*\) return true/g)].map(m => m[1]);
+  return { abil: new Set(abil), ground, gravity: /pseudoWeather/.test(src), src };
+})();
+/* the move that installs a grounding volatile, and the move that puts up Gravity — both derived */
+const GROUND_PIN = dex.moves.all().find(m => m.exists && !m.isNonstandard
+  && AIRBORNE.ground.includes(m.volatileStatus) && (m.accuracy === true || m.accuracy === 100)
+  && (m.target === 'normal' || m.target === 'any')) || null;
+const GRAVITY_MOVE = dex.moves.all().find(m => m.exists && !m.isNonstandard
+  && m.pseudoWeather === 'gravity') || null;
+/* THE MOULD BREAKER, read off the ability's own text rather than named: an ability whose handler sets
+ * `move.ignoreAbility`. That is the shape, so Teravolt and Turboblaze come with it for free. */
+const MOULD = dex.abilities.all().filter(a => a.exists && !a.isNonstandard
+  && /ignoreAbility\s*=\s*true/.test(Object.keys(a)
+      .filter(k => /^on/.test(k) && typeof a[k] === 'function').map(k => String(a[k])).join('\n')));
+/* the weakest always-hitting Ground click with no dice in it — see Will's noise rule */
+const GROUND_CLICK = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.type === 'Ground'
+    && m.category !== 'Status' && m.basePower > 0 && (m.accuracy === true || m.accuracy === 100)
+    && (m.target === 'normal' || m.target === 'any')
+    && !m.self && !m.multihit && !m.basePowerCallback && !m.damageCallback && !(m.critRatio > 1)
+    && !m.willCrit && !m.drain && !m.recoil && !m.selfSwitch && !m.status && !m.volatileStatus
+    && !m.boosts && !Object.keys(m).some(k => /^on/.test(k) && typeof m[k] === 'function')
+    && (m.secondaries || []).every(s => s.chance === 100)
+    && (!m.secondary || m.secondary.chance === 100))
+  .sort((a, b) => a.basePower - b.basePower)[0] || null;
 
 const RULES = [
 
@@ -5329,6 +5449,623 @@ const RULES = [
       a0: mon(atk.id, berry.id, CAST.ATTACKER().ability, [INERT]),
       script: [turn([IDLE, IDLE], [click(hit.id, 0), IDLE]),
                turn([IDLE, IDLE], [click(hit.id, 0), IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
+/* ---- THE GROUND IMMUNITY, AND THE THREE THINGS THAT DEFEAT IT ----------------------------------
+ *
+ * WILL, 2026-08-11, dictated this board and then extended it twice: *"yes test it with gravity and
+ * smack down too"* and *"make sure a mold breaker mon can hit it with a ground move too"*. It is
+ * `data/scenarios-from-will.json` row `levitate-both-gates-not-just-the-immunity`.
+ *
+ * THE MEMBERSHIP IS READ OFF THE AUTHORITY'S OWN FUNCTION, not typed. Levitate registers NO handler
+ * at all — the immunity lives inside `Pokemon#isGrounded`, which is why it sat INERT under the generic
+ * staging and why nothing in the ability's text could ever have suggested this board. So the rule
+ * parses `Pokemon.prototype.isGrounded` and takes the ability list, the grounding volatiles and the
+ * floating volatiles out of it. Add a third airborne ability upstream and this rule picks it up.
+ *
+ * FOUR ARMS ON ONE SCRIPT, AND THE POINT IS THAT THEY REACH DIFFERENT GATES (ROADMAP #186):
+ *
+ *   A  the Ground click, nothing else        NOTHING HAPPENS. Ground into Electric/Ghost or Dark/
+ *                                            Dragon HITS normally, so the immunity is ENTIRELY the
+ *                                            ability and no typing can be credited for it.
+ *   B  Gravity up, then the Ground click     IT LANDS. The field grounds the body.
+ *   C  the gravity expires, Smack Down,      IT LANDS. The VOLATILE grounds the body — a different
+ *      then the Ground click                 clause of the same function.
+ *   D  a MOLD BREAKER body throws it         IT LANDS. A fourth mechanism, not a variant of B or C:
+ *                                            the body is still airborne and the ABILITY is what stops
+ *                                            applying. `levitate` carries flags {breakable:1}.
+ *
+ * ARM A IS THE ONLY ONE THAT MOVES THE SUBJECT-AGAINST-CONTROL DELTA, and that is correct rather than
+ * a weakness: B, C and D land in BOTH arms by construction, so what they test is the ENGINE AGAINST
+ * THE AUTHORITY at those boundaries. A mutant with the grounded gate deleted still passes arm A and
+ * fails B, C and D — which is exactly the duplication ROADMAP #186 records, where each gate broken
+ * singly measured 0/85 and assert-mode stayed green.
+ *
+ * ARM D IS THE FIRST TEST MOLD BREAKER HAS EVER HAD (ROADMAP #141).
+ *
+ * THE CLICK IS THE WEAKEST GROUND MOVE THE FORMAT HAS, per the noise rule in Will's own file: every
+ * body not under test clicks the inert click, and the one that IS under test is hit with 20 base power
+ * so that four landed hits over twelve turns cannot KO the reading away. */
+{ id: 'ability/ground-immunity', kind: 'ability',
+  reads: "the ability is named inside Showdown's own `Pokemon#isGrounded` — parsed out of that "
+       + 'function, never listed here',
+  why: "LEVITATE HAS NO HANDLER AT ALL, so every shape rule that reads a handler surface missed it and "
+     + 'it fell through to the generic staging, which throws a CONTACT hit and never a Ground one. It '
+     + 'read INERT. This rule throws the weakest Ground click in the format at the carrier and then '
+     + 'defeats the immunity three different ways on the same script: Gravity (the field), Smack Down '
+     + '(a volatile) and a Mold Breaker thrower (the ability stops applying). Only the first arm moves '
+     + 'the with-against-without delta; the other three are checked against the AUTHORITY, which is '
+     + 'the only way to reach the second gate — ROADMAP #186 records that medicham2 gates this twice, '
+     + 'independently, and that each gate broken singly measured 0/85 and stayed green.',
+  break: { why: 'the airborne-ability set is emptied, so the carrier is grounded and arm A lands',
+    patch: [["const AIRBORNE_ABIL=new Set(['levitate','eelevate']);",
+             'const AIRBORNE_ABIL=new Set([]);']] },
+  match(e) {
+    if (!AIRBORNE.abil.has(e.id)) return null;
+    if (!GROUND_CLICK) return cannot('this format has no Ground damaging move that always hits with no '
+      + 'dice in it, so the immunity cannot be read off a single click');
+    if (!GROUND_PIN) return cannot('this format has no 100-accuracy single-target move installing any '
+      + 'of the grounding volatiles ' + AIRBORNE.ground.join('/') + ', so arm C cannot be staged');
+    if (!GRAVITY_MOVE) return cannot('this format has no move that puts up Gravity, so arm B cannot be '
+      + 'staged');
+    const C = carrierFor(e);
+    if (!C) return cannot('no legal species in this format carries it');
+    /* A FLYING CARRIER WOULD MAKE THE WHOLE BOARD INERT — `isGrounded` returns false on the Flying
+     * clause BEFORE it ever reaches the ability, so the control arm would be immune too and the delta
+     * would collapse. Rotom-Fan is exactly that body and is skipped for that reason. */
+    const forme = dex.species.get(C.tier === 'MEGA' ? C.forme : C.species);
+    if ((forme.types || []).includes('Flying')) return cannot('its ranked carrier ' + forme.name
+      + ' is Flying, and `isGrounded` answers on the Flying clause BEFORE it reaches the ability — so '
+      + 'the control arm would be airborne too and the board could not show anything');
+    /* THE AGGRESSOR HAS TO OWN ALL THREE CLICKS. One body throws the Ground move, puts up Gravity and
+     * installs the grounding volatile, because side A slot 1 is spoken for by the swapper. */
+    const thrower = CANDIDATES.find(s => buildableSpecies(s.id) && carrierAbility(s)
+      && idOf(s.id) !== idOf(C.species) && canClick(s, GROUND_CLICK.id)
+      && canClick(s, GRAVITY_MOVE.id) && canClick(s, GROUND_PIN.id));
+    if (!thrower) return cannot('no legal buildable body in this format learns ' + GROUND_CLICK.name
+      + ', ' + GRAVITY_MOVE.name + ' AND ' + GROUND_PIN.name + ', and side A slot 1 is the swapper, so '
+      + 'the three set-ups cannot be split over two bodies');
+    /* AND A MOULD BREAKER THAT LEARNS THE SAME CLICK, for arm D */
+    const breaker = (() => {
+      for (const a of MOULD) for (const s of (CARRIERS[a.id] || [])) {
+        if (!s.exists || s.isNonstandard || s.battleOnly || s.forme.endsWith('Mega')) continue;
+        if (!buildableSpecies(s.id) || idOf(s.id) === idOf(C.species)
+            || idOf(s.id) === idOf(thrower.id)) continue;
+        if (!canClick(s, GROUND_CLICK.id)) continue;
+        return { sp: s, ability: a };
+      }
+      return null;
+    })();
+    if (!breaker) return cannot('no legal buildable body carrying an ability that sets '
+      + '`move.ignoreAbility` also learns ' + GROUND_CLICK.name + ', so arm D has nobody to throw it');
+    const G = click(GROUND_CLICK.id, 0);
+    return stageAbilityAnyTier(e, C, { hpA: 1, hpB: 1, moves: [INERT],
+      a0: mon(thrower.id, '', carrierAbility(thrower) || '',
+              [GROUND_CLICK.id, GRAVITY_MOVE.id, GROUND_PIN.id]),
+      a2: mon(breaker.sp.id, '', breaker.ability.name, [GROUND_CLICK.id]),
+      note: 'FOUR ARMS ON ONE SCRIPT. ' + pretty(thrower.id) + ' throws ' + GROUND_CLICK.name + ' at the '
+          + 'carrier and it must do NOTHING (arm A); ' + GRAVITY_MOVE.name + ' goes up and the same '
+          + 'click LANDS (arm B); the Gravity expires and ' + GROUND_PIN.name + ' grounds the body and '
+          + 'it LANDS again (arm C); and ' + pretty(breaker.sp.id) + ', carrying '
+          + breaker.ability.name + ', lands it on an airborne body with no set-up at all (arm D). '
+          + 'Every other body clicks the inert click.',
+      script: [
+        turn([G, IDLE], [IDLE, IDLE]),                             /* 2  ARM A — must do nothing   */
+        turn([click(GRAVITY_MOVE.id), IDLE], [IDLE, IDLE]),        /* 3  Gravity up                */
+        turn([G, IDLE], [IDLE, IDLE]),                             /* 4  ARM B — must land         */
+        turn([IDLE, IDLE], [IDLE, IDLE]),                          /* 5                            */
+        turn([IDLE, IDLE], [IDLE, IDLE]),                          /* 6                            */
+        turn([{ sw: breaker.sp.id }, IDLE], [IDLE, IDLE]),         /* 7  the breaker walks in      */
+        turn([G, IDLE], [IDLE, IDLE]),                             /* 8  ARM D — Gravity has gone  */
+        turn([{ sw: thrower.id }, IDLE], [IDLE, IDLE]),            /* 9  and back out again        */
+        turn([click(GROUND_PIN.id, 0), IDLE], [IDLE, IDLE]),       /* 10 the volatile              */
+        turn([G, IDLE], [IDLE, IDLE]),                             /* 11 ARM C — must land         */
+        turn([IDLE, IDLE], [IDLE, IDLE])],                         /* 12                           */
+      precondition: null });
+  } },
+
+/* ---- AN ABILITY THAT MAKES THE SKY LIE, AND IT IS NOT IN THE ABILITY -----------------------------
+ *
+ * WILL, 2026-08-11, gave this board and its gotcha in the same breath: Mega Sol declares ONLY
+ * `onWeatherModifyDamage`, and the rest of it is implemented in `Pokemon#effectiveWeather()` — the
+ * ability's own LAST LINE says so, and reading the handler block and stopping there cost two wrong
+ * answers that night. So membership is parsed out of `effectiveWeather` exactly as the ground
+ * immunity is parsed out of `isGrounded`: neither ability can be found by looking at abilities.
+ *
+ * TWO ARMS, BOTH READ AS DAMAGE, AND BOTH BINARY AT ONE END:
+ *
+ *   Weather Ball   the target is a GHOST. With the ability the click resolves as FIRE and lands; with
+ *                  the ability gone there is no weather at all, so it stays NORMAL and a Ghost is
+ *                  IMMUNE — exactly 0. (Will's three-way discriminator collapses to two here for a
+ *                  reason worth recording: THIS FORMAT HAS NO SAND-SETTING MOVE, so his "real sand"
+ *                  arm cannot be clicked into existence at all; sand is only reachable from an
+ *                  ability, which would be a second live ability on the board.)
+ *   Solar Beam     it fires the turn it is clicked instead of charging. With the ability the damage
+ *                  is on the board at the first boundary; without it, one turn later.
+ */
+{ id: 'ability/private-sky', kind: 'ability',
+  reads: "the ability is named inside Showdown's own `Pokemon#effectiveWeather` — parsed out of that "
+       + 'function, never listed here',
+  why: 'THE ABILITY DECLARES ALMOST NOTHING AND DOES ALMOST EVERYTHING. Its own handlers touch one '
+     + 'damage modifier; the sky it invents lives in the SIM. Both arms here read that invented sky '
+     + 'through a move that asks for it — a Weather Ball whose TYPE changes, and a Solar Beam whose '
+     + 'charge turn disappears — and both are damage numbers with a hard zero at one end.',
+  break: { why: 'the private sky is switched off, so Weather Ball stays Normal and Solar Beam charges',
+    patch: [["{const _pw=TAGS.param('ability',att&&att.ability,'privateWeather');",
+             "{const _pw=null&&TAGS.param('ability',att&&att.ability,'privateWeather');"]] },
+  match(e) {
+    const P = require(require(D('engine', 'showdown_path.js')).resolve() + '/dist/sim/pokemon.js');
+    const named = [...String(P.Pokemon.prototype.effectiveWeather)
+      .matchAll(/hasAbility\("(\w+)"\)/g)].map(m => idOf(m[1]));
+    if (!named.includes(e.id)) return null;
+    const C = carrierFor(e);
+    if (!C) return cannot('no legal species in this format carries it');
+    const base = dex.species.get(C.tier === 'MEGA' ? (C.base || C.species) : C.species);
+    /* the click whose TYPE is decided by the sky, read off its own onModifyType */
+    const ball = dex.moves.all().find(m => m.exists && !m.isNonstandard && m.category !== 'Status'
+      && typeof m.onModifyType === 'function' && /effectiveWeather\(\)/.test(String(m.onModifyType)));
+    /* and the click whose CHARGE TURN is decided by the sky */
+    /* A LIST, NOT A WINNER, AND THE FIRST VERSION TOOK THE FIRST MATCH. Electro Shot reads
+     * `effectiveWeather()` in its `onTryMove` exactly as Solar Beam does, sorts earlier, and Meganium
+     * cannot click it — so the whole row was refused for a reason about the search order. */
+    const chargedPool = dex.moves.all().filter(m => m.exists && !m.isNonstandard
+      && m.category !== 'Status' && typeof m.onTryMove === 'function'
+      /* `effectiveWeather()` AND `effectiveWeather(void 0, true)` — Solar Beam passes the message flag
+       * and Electro Shot does not, so a regex pinned to the empty call found only Electro Shot. */
+      && /effectiveWeather\(/.test(String(m.onTryMove)));
+    if (!ball || !chargedPool.length) return cannot('this format has no move that reads '
+      + '`effectiveWeather()` for its type and none that reads it for its charge turn, so the invented '
+      + 'sky has nothing to show itself through');
+    if (!canClick(base, ball.id)) return cannot(base.name + ' cannot click ' + ball.name + ', and the '
+      + 'ability is only reachable on its own body');
+    const charged = chargedPool.find(m => canClick(base, m.id));
+    if (!charged) return cannot(base.name + ' cannot click any of the charge moves that read the sky ('
+      + chargedPool.map(m => m.name).join(', ') + '), and the ability is only reachable on its own body');
+    /* THE TARGET IS IMMUNE TO THE CLICK'S DEFAULT TYPE. That is what makes the first arm binary: with
+     * no weather the ball stays Normal and a Ghost refuses it outright. It must NOT be immune to the
+     * weather type the ability invents, nor to the charged move. */
+    const skyType = (String(ball.onModifyType).match(/move\.type = "(\w+)"/) || [])[1] || 'Fire';
+    const target = CANDIDATES.filter(s => buildableSpecies(s.id) && carrierAbility(s)
+        && idOf(s.id) !== idOf(base.id)
+        && dex.getImmunity(ball.type, s.types) === false
+        && dex.getImmunity(skyType, s.types) !== false
+        && dex.getImmunity(charged.type, s.types) !== false)
+      .sort((a, b) => (b.baseStats.hp + b.baseStats.def + b.baseStats.spd)
+                    - (a.baseStats.hp + a.baseStats.def + a.baseStats.spd))[0] || null;
+    if (!target) return cannot('no legal buildable body is immune to ' + ball.name + '\'s default '
+      + ball.type + ' type while still taking ' + skyType + ' and ' + charged.type + ' — without one '
+      + 'the first arm is a damage comparison rather than a hard zero');
+    return stageAbilitySwap(e, C, { hpA: 1, hpB: 1, moves: [ball.id, charged.id],
+      note: 'the carrier clicks ' + ball.name + ' at ' + target.name + ' (immune to ' + ball.type
+          + ', which is what it stays without the ability) and then ' + charged.name + ' twice. With '
+          + 'the ability the first click resolves as ' + skyType + ' and lands, and the second fires '
+          + 'on the turn it is clicked; without it, exactly 0 and a charge turn. Every other body '
+          + 'clicks the inert click.',
+      a0: mon(target.id, '', carrierAbility(target) || '', [INERT]),
+      /* AND THE SCRIPT STOPS AT THE CHARGE TURN, WHICH IS NOT TIDINESS. A body mid-charge is LOCKED:
+       * Showdown refuses an idle from it ("you must use Solar Beam") and refuses a TARGETED release
+       * ("you can't choose a target for Solar Beam") — and the control arm is the only one in that
+       * state, so any third turn is a choice one arm can make and the other cannot. The reading is
+       * complete at the boundary after the charge: with the ability the damage is there, without it
+       * it is not. */
+      script: [turn([IDLE, IDLE], [click(ball.id, 0), IDLE]),
+               turn([IDLE, IDLE], [click(charged.id, 0), IDLE])] });
+  } },
+
+/* ---- AN ABILITY THAT REACHES THROUGH PROTECT -----------------------------------------------------
+ *
+ * WILL, 2026-08-11: *"piercing drill is the exact same as unseen fist"* — verified, the two
+ * `onHitProtect` handlers are byte-identical — so ONE rule closes both, and the membership is that
+ * handler rather than either name. Both live only on a MEGA forme, which is why they sat inert: the
+ * generic staging never raises a shield for them to walk through, and until `stageAbilitySwap` existed
+ * a hand-written rule had no builder for a carrier whose ability is written by the forme change.
+ *
+ * THE OBSERVABLE IS DAMAGE THROUGH A SHIELD, WHICH IS BINARY AT THE BOTTOM: with the ability a
+ * CONTACT click lands (at a quarter, in this format), without it the shield refuses it outright and
+ * the number is 0. Nothing about the reading depends on a roll. */
+{ id: 'ability/pierces-protect', kind: 'ability',
+  reads: 'onHitProtect',
+  why: 'THE GENERIC STAGING NEVER RAISES A SHIELD, so an ability whose whole content is walking '
+     + 'through one had nothing to do and read INERT. Here the target spends its turn protecting and '
+     + 'the carrier throws a CONTACT click into it: with the ability the damage is non-zero, without '
+     + 'it the damage is exactly 0.',
+  break: { why: 'the pierce is skipped, so the shield refuses the contact click like any other',
+    patch: [["const p=TAGS.param('ability',m.ability,'piercesProtect');",
+             "const p=null&&TAGS.param('ability',m.ability,'piercesProtect');"]] },
+  match(e) {
+    if (typeof e.onHitProtect !== 'function') return null;
+    const C = carrierFor(e);
+    if (!C) return cannot('no legal species in this format carries it');
+    const baseId = C.tier === 'MEGA' ? C.base || C.species : C.species;
+    const base = dex.species.get(baseId);
+    /* THE SHIELD. Derived off the move's own `stallingMove` flag rather than by name, so Detect and
+     * every other member of the family is eligible and Champions' banned three are excluded by the
+     * standard legality filter. */
+    /* AND IT MUST BE A PLAIN SHIELD. Baneful Bunker POISONS whatever touches it and Spiky Shield
+     * chips it — both would put a second, opposite effect on the board of a rule whose reading is
+     * "did any damage reach the protector", and the first run of this rule picked Baneful Bunker.
+     * The punish is read off the shield's own condition rather than named. */
+    const shield = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.stallingMove
+        && m.target === 'self' && m.volatileStatus
+        && !/damage\(|trySetStatus|setStatus|boost\(/.test(String((m.condition || {}).onHit || '')))
+      .sort((a, b) => a.priority - b.priority)[0] || null;
+    if (!shield) return cannot('this format has no self-targeting stalling move, so there is no '
+      + 'shield for the ability to walk through');
+    /* the carrier's click must be CONTACT — the handler reads `move.flags.contact` — and the
+     * protector must be a body the click actually reaches */
+    let pick = null;
+    for (const t of Object.keys(CONTACT)) {
+      const mv = CONTACT[t];
+      if (!canClick(base, mv.id)) continue;
+      const prot = CANDIDATES.find(s => buildableSpecies(s.id) && carrierAbility(s)
+        && idOf(s.id) !== idOf(base.id) && canClick(s, shield.id)
+        /* NOT IMMUNE IS THE WHOLE BAR, and asking for exactly-neutral was over-strict enough to
+         * retire both members on the first run. The contrast here is SOME damage against EXACTLY
+         * ZERO, so a resisted click reads it just as clearly as a neutral one. */
+        && dex.getImmunity(mv.type, s.types) !== false);
+      if (!prot) continue;
+      pick = { mv, prot }; break;
+    }
+    if (!pick) return cannot('no CONTACT delivery move that ' + base.name + ' can click has a legal '
+      + 'buildable ' + shield.name + ' user that is not immune to it — and the handler reads '
+      + '`move.flags.contact`, so a non-contact click would prove nothing');
+    return stageAbilitySwap(e, C, { hpA: 1, hpB: 1, moves: [pick.mv.id],
+      note: pretty(pick.prot.id) + ' spends its turn on ' + shield.name + ' and the carrier throws '
+          + pick.mv.name + ' — a CONTACT click, which is what the handler reads — straight into it. '
+          + 'With the ability the damage is non-zero; without it the shield refuses it and the number '
+          + 'is exactly 0. Every other body clicks the inert click.',
+      a0: mon(pick.prot.id, '', carrierAbility(pick.prot) || '', [shield.id]),
+      script: [turn([click(shield.id), IDLE], [click(pick.mv.id, 0), IDLE]),
+               turn([IDLE, IDLE], [click(pick.mv.id, 0), IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
+/* ---- AN ABILITY THAT REFUSES ONE NAMED STATUS ----------------------------------------------------
+ *
+ * WILL, 2026-08-11, on Insomnia: *"any legal Sleep Powder user against an Insomnia body ... the
+ * target does NOT fall asleep; the refusal IS the observable"*, and *"the control body must be one
+ * that WOULD have slept, or the row proves nothing"*. That second sentence is the whole rule: the
+ * control arm has to take the status, so every reason the status might not land has to be derived
+ * away FIRST — and there are four of them, each of which killed a real fixture:
+ *
+ *   1  THE MOVE MISSES.        There is no 100-accuracy sleep move anybody can click in this format —
+ *                              Will: *"spore aint in the game"*, and it is true in the strongest
+ *                              sense: Spore passes every standard filter and has ZERO legal learners.
+ *                              So the rule runs on `bottom-tie-first`, the corner where every
+ *                              sub-100 move HITS and every secondary FIRES. That corner is also the
+ *                              only way to reach FREEZE at all, since this format has no freezing
+ *                              move — only a 10% secondary.
+ *   2  THE TYPE REFUSES THE STATUS.  Will: *"jolteon cant be paralyzed we have to burn it"*. Read off
+ *                              `dex.types.get(t).damageTaken[status] === 3`, which is the authority's
+ *                              own table, so it covers par/brn/psn/tox/frz without a list here.
+ *   3  THE TYPE REFUSES THE MOVE.    Sleep Powder is a POWDER move and Grass is immune — the same
+ *                              `damageTaken` table says so — and FOUR of Insomnia's seven carriers
+ *                              are Grass. The roster's own ranked carrier was Gourgeist-Super.
+ *   4  THE CARRIER IS THE WRONG SHAPE. It needs a second ability to control with.
+ *
+ * MEMBERSHIP IS THE HANDLER'S OWN TEXT: a status id quoted inside `onSetStatus`, `onTrySetStatus`,
+ * `onImmunity` or `onUpdate`. Nothing is named here, so Water Veil and Pastel Veil arrive the moment
+ * the format gives them a carrier. */
+{ id: 'ability/refuses-one-status', kind: 'ability',
+  reads: 'a status id quoted inside onSetStatus / onTrySetStatus / onImmunity / onUpdate',
+  why: 'THE REFUSAL IS THE OBSERVABLE, so the control arm MUST take the status or the row proves '
+     + 'nothing. Staged on `bottom-tie-first` — the corner where a sub-100 move lands and a secondary '
+     + 'fires — because this format has no 100-accuracy sleep move any legal body can learn and no '
+     + 'freezing move at all. The carrier is chosen so that neither its typing nor the click\'s typing '
+     + 'can refuse the status for a reason that is not the ability.',
+  break: { why: 'the status refusal is skipped, so the named status lands on the carrier anyway',
+    patch: [['function canTakeStatus(t,st,ignoreTypeImmunity){',
+             'function canTakeStatus(t,st,ignoreTypeImmunity){ if(t&&!t.fainted&&!t.status)return true;']] },
+  match(e) {
+    const src = ['onSetStatus', 'onTrySetStatus', 'onImmunity', 'onUpdate']
+      .filter(k => typeof e[k] === 'function').map(k => String(e[k])).join('\n');
+    if (!src) return null;
+    const named = [...new Set([...src.matchAll(/['"](slp|par|brn|psn|tox|frz)['"]/g)].map(m => m[1]))];
+    if (!named.length) return null;
+    /* every click that can WRITE one of those statuses, primary or 100%-on-the-bottom-arm secondary,
+     * ranked so a pure Status move is preferred over a damaging one — a damage number beside a status
+     * leaf is noise this row does not need */
+    const writers = {};
+    for (const m of dex.moves.all()) {
+      if (!m.exists || m.isNonstandard) continue;
+      if (!(m.target === 'normal' || m.target === 'any')) continue;
+      const st = m.status || ((m.secondaries || []).find(s => s.status) || {}).status
+        || ((m.secondary || {}).status);
+      if (!st || !named.includes(st)) continue;
+      (writers[st] = writers[st] || []).push(m);
+    }
+    for (const st of Object.keys(writers))
+      writers[st].sort((a, b) => (b.category === 'Status') - (a.category === 'Status')
+        || (b.accuracy === true ? 100 : b.accuracy) - (a.accuracy === true ? 100 : a.accuracy));
+    const refusesByType = (types, status) => (types || []).some(t =>
+      ((dex.types.get(t) || {}).damageTaken || {})[status] === 3);
+    const refusesMove = (types, mv) => (mv.flags && mv.flags.powder && refusesByType(types, 'powder'))
+      || (mv.category !== 'Status' && dex.getImmunity(mv.type, types) === false);
+    let pick = null;
+    for (const sp of (CARRIERS[e.id] || [])) {
+      if (!sp.exists || sp.isNonstandard || sp.battleOnly || sp.forme.endsWith('Mega')) continue;
+      if (!buildableSpecies(sp.id) || !altAbility(sp, e.id)) continue;
+      for (const st of named) {
+        if (refusesByType(sp.types, st)) continue;           // clause 2 — Will's Jolteon
+        for (const mv of (writers[st] || [])) {
+          if (refusesMove(sp.types, mv)) continue;           // clause 3 — Will's Gourgeist
+          const th = CANDIDATES.find(s => buildableSpecies(s.id) && carrierAbility(s)
+            && idOf(s.id) !== idOf(sp.id) && canClick(s, mv.id));
+          if (!th) continue;
+          pick = { sp, st, mv, thrower: th };
+          break;
+        }
+        if (pick) break;
+      }
+      if (pick) break;
+    }
+    if (!pick) return cannot('this ability refuses ' + named.join('/') + ' and no board can show the '
+      + 'refusal: for every legal buildable carrier with a second ability, either its own TYPING '
+      + 'already refuses that status (so the control arm would not take it either), or every move in '
+      + 'this format that writes it is refused by that same typing, or no legal body can throw one. '
+      + 'Statuses this format can write at all: ' + Object.keys(writers).join('/') || 'none');
+    const C = { tier: 'ALTERNATE', species: pick.sp.id, control: altAbility(pick.sp, e.id),
+                control2: altAbility2(pick.sp, e.id) };
+    const shot = { m: pick.mv.id, t: 0, mayMiss: 'the bottom pin lands every sub-100 click and fires '
+      + 'every secondary, which is the only corner in which this status can be written at all' };
+    return stageAbility(e, C, { hpA: 4, hpB: 4, moves: [INERT], arm: BOTTOM_ARM,
+      note: pretty(pick.thrower.id) + ' clicks ' + pick.mv.name + ' at ' + pick.sp.name + ' twice. '
+          + 'WITHOUT the ability the carrier must end up "' + pick.st + '"; with it, the status field '
+          + 'must stay empty — the REFUSAL is the reading. Neither ' + pick.sp.name + '\'s typing nor '
+          + pick.mv.name + '\'s can refuse it, which is a condition of the pairing.',
+      a0: mon(pick.thrower.id, '', carrierAbility(pick.thrower) || '', [pick.mv.id]),
+      script: [turn([shot, IDLE], [IDLE, IDLE]),
+               turn([shot, IDLE], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
+/* ---- AN ABILITY THAT DELETES A SECONDARY, MEASURED WITH NO DICE AT ALL ---------------------------
+ *
+ * WILL, 2026-08-11: *"have kanga fake out a vivillon with shield dust and make sure the vivillon
+ * doesnt flinch"*. It is the SAME escape as the always-crit move one section down and that is why the
+ * two sit together: Fake Out's flinch is `secondaries: [{chance: 100, volatileStatus: 'flinch'}]` — a
+ * SECONDARY AT 100%, a certainty dressed as a chance — so `onModifySecondaries` filters it out and NO
+ * DIE IS EVER ROLLED. The pinned-dice problem is sidestepped rather than argued with.
+ *
+ * TWO ARMS, IN OPPOSITE DIRECTIONS, ON ONE SCRIPT:
+ *
+ *   turn 1  the flinch          the carrier clicks a pure SELF-BOOST on the same turn. With the
+ *                               ability the boosts are on the board; without it, it flinched and
+ *                               there are none. Nothing is read off a damage number, so the reading
+ *                               cannot be moved by a roll.
+ *   turn 2  a 100% stat DROP    the carrier idles and takes a move whose secondary lowers a stage.
+ *                               With the ability the stage does not move; without it, it does.
+ *
+ * ONE ARM ALONE WOULD NOT DO. An engine that deleted every secondary and an engine that deleted none
+ * disagree on both, but an engine that special-cases FLINCH passes the first and fails the second. */
+{ id: 'ability/deletes-secondaries', kind: 'ability',
+  reads: 'onModifySecondaries',
+  why: 'A SECONDARY AT 100% IS A CERTAINTY, so the one family of secondaries this instrument can see '
+     + 'at all is the one this ability exists to delete. The carrier clicks a self-boost into a '
+     + 'guaranteed flinch (the boosts land or they do not) and then takes a guaranteed stat drop (the '
+     + 'stage moves or it does not). Both are read off `boosts`, never off HP.',
+  break: { why: 'the secondary filter is skipped, so the 100% flinch and the 100% drop both land',
+    patch: [["const dustBlocked = !!TAGS.param('ability',tgAb,'refusesSecondaries');",
+             "const dustBlocked = false&&!!TAGS.param('ability',tgAb,'refusesSecondaries');"]] },
+  match(e) {
+    if (typeof e.onModifySecondaries !== 'function') return null;
+    /* the guaranteed FLINCH click: a secondary at 100% carrying the flinch volatile, and positive
+     * priority so it resolves before the body it is aimed at */
+    const flinchClick = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.basePower > 0
+        && m.priority > 0 && (m.accuracy === true || m.accuracy === 100)
+        && (m.target === 'normal' || m.target === 'any')
+        && (m.secondaries || []).length && (m.secondaries || []).every(s => s.chance === 100)
+        && (m.secondaries || []).some(s => s.volatileStatus === 'flinch'))
+      .sort((a, b) => a.basePower - b.basePower)[0] || null;
+    /* the guaranteed stat DROP clicks: a secondary at 100% lowering a stage ON THE TARGET. A LIST and
+     * not a winner, because which one is usable depends on the carrier's TYPING — see below. */
+    const dropPool = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.basePower > 0
+        && (m.accuracy === true || m.accuracy === 100)
+        && (m.target === 'normal' || m.target === 'any')
+        && (m.secondaries || []).length && (m.secondaries || []).every(s => s.chance === 100)
+        && (m.secondaries || []).some(s => s.boosts && !s.self
+              && Object.values(s.boosts).some(v => v < 0)))
+      .sort((a, b) => a.basePower - b.basePower);
+    if (!flinchClick || !dropPool.length) return cannot('this format has no move carrying a 100% '
+      + 'flinch AND no move carrying a 100% stat drop, so every secondary reachable here is a die the '
+      + 'pin does not roll');
+    /* the carrier's own click is a pure SELF-BOOST, so the flinch is read off `boosts` and not off a
+     * damage number — and the carrier must actually learn one */
+    let boost = null, C = null, thrower = null, dropClick = null;
+    for (const sp of (CARRIERS[e.id] || [])) {
+      if (!sp.exists || sp.isNonstandard || sp.battleOnly || sp.forme.endsWith('Mega')) continue;
+      if (!buildableSpecies(sp.id) || !altAbility(sp, e.id)) continue;
+      if (dex.getImmunity(flinchClick.type, sp.types) === false) continue;
+      const b = BOOST_MOVES.filter(m => canClick(sp, m.id))
+        .sort((x, y) => Object.keys(y.boosts).length - Object.keys(x.boosts).length)[0];
+      if (!b) continue;
+      /* BOTH CLICKS MUST CONNECT, AND THE FIRST VERSION ONLY CHECKED ONE. Vivillon is Bug/FLYING and
+       * the cheapest 100% stat-drop move in this format is Mud-Slap, a GROUND move — so the second arm
+       * was thrown at a body immune to it, landed nothing in EITHER arm, and the row still read
+       * FIRED-AND-BOARDS-MATCH off the flinch arm alone. TWO ARMS AGREEING BECAUSE NEITHER HAPPENED IS
+       * NOT COVERAGE. It is `fixture_preflight` clause 5, and the drop click is now chosen per carrier
+       * rather than once for the format. */
+      for (const dc of dropPool) {
+        if (dex.getImmunity(dc.type, sp.types) === false) continue;
+        const th = CANDIDATES.find(s => buildableSpecies(s.id) && carrierAbility(s)
+          && idOf(s.id) !== idOf(sp.id) && canClick(s, flinchClick.id) && canClick(s, dc.id));
+        if (!th) continue;
+        thrower = th; dropClick = dc; break;
+      }
+      if (!thrower) continue;
+      boost = b; C = { tier: 'ALTERNATE', species: sp.id, control: altAbility(sp, e.id),
+                       control2: altAbility2(sp, e.id) };
+      break;
+    }
+    if (!C) return cannot(noCarrierWhy(e, 'learns a pure self-boosting status move (which is what '
+      + 'turns "it flinched" into a board leaf), is not immune to ' + flinchClick.type + ', and can '
+      + 'be paired with a 100% stat-drop move it is ALSO not immune to that some one legal body can '
+      + 'throw alongside ' + flinchClick.name));
+    return stageAbility(e, C, { hpA: 4, hpB: 4, moves: [boost.id],
+      note: pretty(thrower.id) + ' clicks ' + flinchClick.name + ' — a 100% flinch SECONDARY, so no '
+          + 'die is rolled — while the carrier clicks ' + boost.name + ' on the same turn: with the '
+          + 'ability the boosts are on the board, without it the carrier flinched and there are none. '
+          + 'On turn 2 it takes ' + dropClick.name + ', a 100% stat DROP, which must NOT land. Read '
+          + 'off `boosts` throughout, never off HP.',
+      a0: mon(thrower.id, '', carrierAbility(thrower) || '', [flinchClick.id, dropClick.id]),
+      script: [turn([click(flinchClick.id, 0), IDLE], [click(boost.id), IDLE]),
+               turn([click(dropClick.id, 0), IDLE], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
+/* ---- AN ABILITY THAT REFUSES A CRIT, MEASURED WITH NO DICE AT ALL --------------------------------
+ *
+ * WILL, 2026-08-11, and it is the whole trick: *"Meowscarada fires Flower Trick into a Battle Armor
+ * body"*. Flower Trick carries `willCrit: true`, so it ALWAYS crits — no die is rolled and the pinned-
+ * dice problem is sidestepped entirely rather than argued with. The control arm MUST crit and the
+ * subject arm must not, and the difference is a damage number.
+ *
+ * THAT IS WHY THESE TWO SAT INERT AND NOT BECAUSE THE FIXTURE WAS LAZY. Battle Armor and Shell Armor
+ * register NO handler at all — `onCriticalHit` is the literal `false`, not a function — so every shape
+ * rule in this file that reads a handler surface walked straight past them, and the generic staging
+ * throws a move whose crit rate is 1/24 under a pin that never rolls it.
+ *
+ * MEMBERSHIP IS `onCriticalHit === false`, which is exactly two abilities in this format and cannot
+ * over-match onto Disguise or Ice Face, whose `onCriticalHit` is a FUNCTION.
+ *
+ * THE CHART IS PART OF THE FIXTURE. Will: *"Grass into Torkoal or Torterra is RESISTED and shrinks the
+ * gap"*. A resisted crit and an unresisted non-crit can land within a rounding step of each other, so
+ * the carrier and the always-crit click are chosen TOGETHER and only a pairing the chart does not
+ * resist is used. And the CONTROL may not be a damage modifier or an immunity either — Goodra-Hisui's
+ * alternatives are Gooey and Sap Sipper, and a control arm that is immune to the click would read as a
+ * perfect refusal. */
+{ id: 'ability/refuses-a-crit', kind: 'ability',
+  reads: 'onCriticalHit === false — a flat refusal rather than a handler',
+  why: 'THE PIN NEVER ROLLS A CRIT, so an ability whose whole content is refusing one cannot be seen '
+     + 'through an ordinary click. An ALWAYS-CRIT move (`willCrit: true`) removes the die from the '
+     + 'question: the control arm crits by construction and the subject arm must not, and the gap is a '
+     + 'damage number. The carrier, the click and the control are chosen together so that neither the '
+     + 'type chart nor the control ability can shrink or fake that gap.',
+  break: { why: 'the crit refusal is skipped, so the armoured body takes the crit like anything else',
+    patch: [["if(defAbility&&TAGS.param('ability',defAbility,'preventsCrit'))return 0;",
+             "if(false&&defAbility&&TAGS.param('ability',defAbility,'preventsCrit'))return 0;"]] },
+  match(e) {
+    if (e.onCriticalHit !== false) return null;
+    const crits = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.willCrit
+      && m.category !== 'Status' && m.basePower > 0 && (m.accuracy === true || m.accuracy === 100)
+      && (m.target === 'normal' || m.target === 'any')
+      && !(m.secondaries || []).length && !m.secondary && !m.self && !m.multihit);
+    if (!crits.length) return cannot('this format has no always-critical move, so the refusal can only '
+      + 'be reached through a crit RATE — which the pin does not roll');
+    /* THE CONTROL MUST NOT BE ABLE TO MOVE A DAMAGE NUMBER, and this is deliberately NARROWER than
+     * `INTERFERES`. That set also bars anything which moves the board at all, and it bars
+     * `onAfterEachBoost` — which is DEFIANT, the only other ability Falinks has. Using it here
+     * retired Battle Armor's single legal carrier for a reason that has nothing to do with a critical
+     * hit. What this rule actually measures is one damage figure, so the bar is exactly: can the
+     * control change whether the click lands, how hard it lands, or whether it crits — plus anything
+     * that acts on entry or at residual, because that lands in the CONTROL ARM ONLY. */
+    const TOUCHES_A_DAMAGE_NUMBER =
+      /^on(.*Damage|.*BasePower|Effectiveness|.*Immunity|.*TryHit|.*Crit|.*ModifyDef|.*ModifySpD|.*ModifyAtk|.*ModifySpA|.*Accuracy|.*Heal|Start|SwitchIn|Residual|Update|Weather.*|Terrain.*)$/;
+    const cleanAlts = sp => altAbilities(sp, e.id).filter(n => {
+      const a = dex.abilities.get(idOf(n));
+      return !Object.keys(a).some(k => /^on/.test(k) && typeof a[k] === 'function'
+        && TOUCHES_A_DAMAGE_NUMBER.test(k));
+    });
+    let best = null;
+    for (const mv of crits) {
+      const thrower = CANDIDATES.find(s => buildableSpecies(s.id) && carrierAbility(s)
+        && canClick(s, mv.id));
+      if (!thrower) continue;
+      for (const sp of (CARRIERS[e.id] || [])) {
+        if (!sp.exists || sp.isNonstandard || sp.battleOnly || sp.forme.endsWith('Mega')) continue;
+        if (!buildableSpecies(sp.id) || idOf(sp.id) === idOf(thrower.id)) continue;
+        if (dex.getImmunity(mv.type, sp.types) === false) continue;
+        const eff = dex.getEffectiveness(mv.type, sp.types);
+        if (eff < 0) continue;                       // resisted: the gap closes and the row proves nothing
+        const alts = cleanAlts(sp);
+        if (!alts.length) continue;
+        const bulk = sp.baseStats.hp + sp.baseStats.def + sp.baseStats.spd;
+        if (!best || eff > best.eff || (eff === best.eff && bulk > best.bulk))
+          best = { mv, thrower, sp, eff, bulk, alts };
+      }
+    }
+    if (!best) return cannot('no pairing of an always-critical move with a legal buildable carrier '
+      + 'survives all three conditions at once: the chart must not RESIST the click (a resisted crit '
+      + 'and an unresisted non-crit are the same number), the carrier must have another ability to '
+      + 'control with, and that control must not itself be a damage modifier or an immunity. Every '
+      + 'carrier: ' + (CARRIERS[e.id] || []).map(s => s.name).join(', '));
+    const C = { tier: 'ALTERNATE', species: best.sp.id, control: best.alts[0],
+                control2: best.alts[1] || null };
+    /* THE BOTTOM PIN, AND `critRatioAudit` IS WHY. On `top-tie-first` the inert click's two crit
+     * stages can manufacture a one-sided crit and the audit refuses the scenario outright — it did,
+     * on the first run of this rule. On `bottom-tie-first` every crit lands in BOTH engines and BOTH
+     * arms, which is the pin an always-critical move wants anyway: the only thing that can then stop
+     * the crit is the ability under test. */
+    return stageAbility(e, C, { hpA: 4, hpB: 4, moves: [INERT], arm: BOTTOM_ARM,
+      note: pretty(best.thrower.id) + ' clicks ' + best.mv.name + ' — `willCrit: true`, so it ALWAYS '
+          + 'crits and NO DIE IS ROLLED — at ' + best.sp.name + ' twice. With the ability the damage '
+          + 'must be the plain roll; without it, the critical one. The chart reads '
+          + (best.eff > 0 ? 'SUPER EFFECTIVE' : 'neutral') + ' here, which is a condition of the '
+          + 'pairing and not a coincidence.',
+      a0: mon(best.thrower.id, '', carrierAbility(best.thrower) || '', [best.mv.id]),
+      script: [turn([click(best.mv.id, 0), IDLE], [IDLE, IDLE]),
+               turn([click(best.mv.id, 0), IDLE], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
+/* ---- AN ABILITY THAT SWITCHES OFF SOMEBODY ELSE'S ------------------------------------------------
+ *
+ * ROADMAP #141: *"MOLD BREAKER SUPPRESSES 82 ABILITIES IN THIS FORMAT, AND WE DO NOT KNOW WHETHER OUR
+ * ENGINE READS IT AT ALL."* It never had a probe, because the generic staging gives the carrier a
+ * neutral contact click and there is nothing on the other side for the suppression to bite on. So the
+ * OTHER side is built for it: the target carries an airborne ability, the carrier clicks a Ground
+ * move, and with the ability the move LANDS while without it the move does nothing at all.
+ *
+ * WHY THIS TARGET AND NOT ANOTHER. `levitate` carries the format's own `flags {breakable: 1}`, which
+ * is exactly the set Mold Breaker ignores — read off the flag rather than argued — and the outcome is
+ * BINARY (some damage against none) rather than a multiplier that could be right by luck. The pair is
+ * also the one place the engine is known to have gated the same fact twice (ROADMAP #186), so a row
+ * here is worth more than a row on a defence modifier.
+ *
+ * MEMBERSHIP IS THE HANDLER, NOT THE NAME: any ability whose handler sets `move.ignoreAbility`. That
+ * is four in this format — Mold Breaker, Mycelium Might, Teravolt, Turboblaze — and the two that have
+ * no legal carrier say so as a fact about the regulation. */
+{ id: 'ability/ignores-abilities', kind: 'ability',
+  reads: 'a handler that sets `move.ignoreAbility = true`',
+  why: 'MOLD BREAKER HAS NEVER BEEN TESTED (ROADMAP #141). The generic staging has nothing on the far '
+     + 'side for it to suppress, so it read INERT. Here the target carries an airborne ability and the '
+     + 'carrier clicks a Ground move: with the ability it LANDS, without it the move does nothing. '
+     + 'Binary, not a multiplier — and the suppressed ability is `breakable` by the format\'s own flag.',
+  break: { why: 'the suppression is skipped, so the target keeps its ability and the click is refused',
+    patch: [['function suppressedAbility(att,def,mvCategory){',
+             'function suppressedAbility(att,def,mvCategory){ if(def&&def.ability)return def.ability;']] },
+  match(e) {
+    if (!MOULD.some(a => a.id === e.id)) return null;
+    if (!GROUND_CLICK) return cannot('this format has no Ground damaging move that always hits with no '
+      + 'dice in it, so the suppression has nothing binary to show');
+    /* THE VICTIM: a body whose ability makes it airborne, and which is not Flying — a Flying body is
+     * refused on a clause Mold Breaker cannot touch, so the board would show nothing. */
+    const victim = (() => {
+      const pool = [];
+      for (const id of AIRBORNE.abil) for (const s of (CARRIERS[id] || [])) {
+        if (!s.exists || s.isNonstandard || s.battleOnly || s.forme.endsWith('Mega')) continue;
+        if (!buildableSpecies(s.id) || (s.types || []).includes('Flying')) continue;
+        pool.push({ sp: s, ability: dex.abilities.get(id).name });
+      }
+      pool.sort((a, b) => (b.sp.baseStats.hp + b.sp.baseStats.def + b.sp.baseStats.spd)
+                        - (a.sp.baseStats.hp + a.sp.baseStats.def + a.sp.baseStats.spd));
+      return pool[0] || null;
+    })();
+    if (!victim) return cannot('no legal buildable non-Flying body carries an ability that '
+      + '`Pokemon#isGrounded` treats as airborne, so there is nothing here whose immunity the '
+      + 'suppression could remove');
+    const C = abilityCarrier(e, sp => canClick(sp, GROUND_CLICK.id)
+      && idOf(sp.id) !== idOf(victim.sp.id));
+    if (!C) return cannot(noCarrierWhy(e, 'learns ' + GROUND_CLICK.name));
+    return stageAbility(e, C, { hpA: 1, hpB: 1, moves: [GROUND_CLICK.id],
+      note: 'the carrier throws ' + GROUND_CLICK.name + ' at ' + victim.sp.name + ', which carries '
+          + victim.ability + ' — an ability the format flags `breakable`. With the ability under test '
+          + 'the click LANDS; without it the target is immune and nothing happens. Every other body '
+          + 'clicks the inert click.',
+      a0: mon(victim.sp.id, '', victim.ability, [INERT]),
+      script: [turn([IDLE, IDLE], [click(GROUND_CLICK.id, 0), IDLE]),
+               turn([IDLE, IDLE], [click(GROUND_CLICK.id, 0), IDLE]),
                turn([IDLE, IDLE], [IDLE, IDLE])] });
   } },
 

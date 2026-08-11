@@ -33,11 +33,11 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  474/474 probed mechanics live, 0 missing   (census 2026-08-11 08:01)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-11 08:03)
+  476/476 probed mechanics live, 0 missing   (census 2026-08-11 09:15)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-11 09:15)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1641/1641 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 08:09)
+  interaction matrix: 1641/1641 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 09:11)
     2250 of 7103 theoretical pairs staged — agreement is a claim about the 2250 that ran, not about the 7103
       489 inert      not scored — the reference engine behaves identically with and without the reactor
       111 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
@@ -45,13 +45,13 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f1b9c29625f0 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is bc034399fdf0 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 79a0d0cbb329 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 247/267 probed, 20 unprobed
 ```
 
-_stamped 2026-08-11 08:10_
+_stamped 2026-08-11 09:16_
 
 <!-- /GENERATED -->
 

@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-11T12:12:28.979Z",
+  "generated": "2026-08-11T13:15:29.866Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 474,
-  "live": 474,
+  "probed": 476,
+  "live": 476,
   "missing": 0,
-  "armed": 474,
+  "armed": 476,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2786,7 +2786,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2987,6 +2987,16 @@
       "label": "Mega Sol's private sun changes Weather Ball's TYPE, and a Ghost feels it",
       "live": true,
       "detail": "Weather Ball into Gengar from a Meganium-Mega body -- no ability + clear sky 0 (must be 0, Normal into a Ghost), no ability + PUBLIC sun 140 (Fire; the positive control), MEGA SOL + clear sky 140 (must equal the public-sun number, not merely exceed zero)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "chargeSkippedByWeather",
+      "label": "Mega Sol's private sun spends Solar Beam's charge turn for it",
+      "live": true,
+      "detail": "Solar Beam damage ON THE TURN IT IS CLICKED, from a Meganium-Mega body: no ability + clear sky 0 (must be 0 — it charges), no ability + PUBLIC sun 170 (the positive control, so this is not an engine that stopped charging anything), MEGA SOL + clear sky 170 (must EQUAL the public-sun number, not merely exceed zero)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4527,6 +4537,16 @@
       "label": "Ingrain plants a Flying body on the floor",
       "live": true,
       "detail": "Earthquake into a Flying Corviknight: 0 untouched, 138 after Ingrain",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "typeImmunity",
+      "label": "Gravity and Smack Down ground a LEVITATE body, and the absorb gate honours it",
+      "live": true,
+      "detail": "Earthquake into a LEVITATE Incineroar: 0 with nothing up (must be 0), 167 after a real Gravity click, 93 after Smack Down. CONTROL, the other direction: 167 into the same body with its own ability (must be > 0). OVER-MATCH CONTROL: 0 into an EARTH EATER body with Gravity up — it carries the same `typeImmunity {type:Ground}` tag and is NOT airborne, so it must stay 0 or the fix grounded the wrong third of the tag",
       "hollow": false,
       "armed": true,
       "directCall": false

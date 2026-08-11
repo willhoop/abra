@@ -1,0 +1,2574 @@
+{
+  "note": "GENERATED — do not hand-edit. Written by engine/million_run.js --staged. ROADMAP #196.",
+  "engine_release": "eafb0abb9736",
+  "engine_release_cut": "2026-08-11T11:58:50.799Z",
+  "engine_release_cuts": 8,
+  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "source_digests": {
+    "engine/medicham2-browser.js": "e0c978a2534e",
+    "engine/board.js": "a55f8271e101",
+    "engine/rollout_leaf.js": "fa318c1022ff",
+    "engine/position_features.js": "7927ccb7f5af",
+    "engine/tags.js": "145a3cc9ce2f",
+    "engine/champions_sim.js": "6c48ce1952af",
+    "engine/mc_key.js": "37c42eb69363",
+    "engine/lookup.js": "03caca7859cd",
+    "engine/set_priors.js": "f8a81445ee3a",
+    "engine/smogon_priors.js": "5c039f9ebdbc",
+    "engine/quality.js": "e397e99ef257",
+    "engine/showdown_path.js": "0efe29f4245d",
+    "data/move-effects.js": "638ce5aabbe4",
+    "data/ability-blocks.json": "86741fd35452",
+    "data/smogon-priors.json": "7cff8927a784",
+    "data/regulations.json": "6c1995e9a9fb",
+    "data/quality-filter.json": "e675d10477c8",
+    "data/engine-data.js": "c6bdc5c54d70",
+    "data/abra-tags.js": "59877f2e1d7d",
+    "data/tags.json": "fde7e8f9b8c1",
+    "data/policy-weights.json": "626c1d240782",
+    "data/policy-weights-joint.json": "e2aca467ff04",
+    "data/move-priors.json": "a64314db056b",
+    "engine/pp.js": "30b12a4ef623"
+  },
+  "generated": "2026-08-11T12:54:11.828Z",
+  "by": "engine/million_run.js --staged",
+  "what": "THE STAGED ARM. Constructed boards, FREE dice, and a denominator known BY CONSTRUCTION rather than inferred from a trace. This is the arm the proc family was waiting for: FAMILY_SUPPORT.proc in this same file marks the whole family observable:false because \"the trace does not say whether the trigger was reached, only whether it fired, so the denominator would be invented. Needs a staged arm, not a bigger corpus.\" On a board this file built the trigger is reached by construction and VERIFIED per trial, and a trigger-control arm proves the verification is a trigger test rather than a click count.",
+  "rng": "FREE-RUNNING (mulberry32, a fresh stream per fixture-trial, seeded from 20260811). NOT the differential drivers pin — ROADMAP #88 pins every die to one corner, which is why these rows read COULD-NOT-STAGE in tests/roster.js and are measurable here. Both pinned corners are run as red proofs and both must be flagged.",
+  "denominator_doctrine": "ONE TRIAL IS ONE FRESHLY BUILT BOARD played for the fixture own script. The denominator is the number of trials on which the construction was VERIFIED to hold — never a count of clicks, and never a count inferred from what the trace happened to show. A trial where it did not hold is REFUSED with a named reason and counted; a fixture refusing more than 2% of its attempts is reported and NOT scored.",
+  "noise_rule": "data/scenarios-from-will.json the_noise_rule — every body not under test clicks the weakest boring move on ITS OWN learnset, aimed at the far slot and never at the experiment. A loud neighbour contaminates a reading exactly as the Struggle fallback did.",
+  "power": {
+    "what": "THE STOPPING RULE IS POWER PER ROW, NOT A TOTAL GAME COUNT. Will, 2026-08-11: \"I keep saying million but really its just however many games we need for each staging to be certain of our chances and odds of procing.\" Each row runs until IT can catch an error of `detect_points`, then stops. The total below is the ANSWER to \"how many games do we need\" for this fixture set, and it is an allocation rather than a lottery: the 50,000-game self-play run put 20,987 trials on its busiest row and ZERO on others.",
+    "detect_points": 1,
+    "test": "one-sample proportion against the DECLARED rate, two-sided alpha 0.05, power 0.80, larger of the two alternatives (p0 + detect and p0 - detect). At 10/20/30/50/70% the two directions agree; at 95% the downward alternative is the harder one (185 against 73 at five points) and this takes the harder one.",
+    "rows_met": [
+      "proc:static",
+      "proc:flamebody",
+      "proc:poisonpoint",
+      "proc:effectspore",
+      "proc:cutecharm",
+      "proc:cursedbody",
+      "proc:poisontouch",
+      "proc:stench",
+      "proc:kingsrock",
+      "proc:quickclaw",
+      "proc:quickdraw",
+      "proc:shedskin",
+      "proc:healer",
+      "proc:harvest",
+      "proc:rawstberry",
+      "proc:aspearberry"
+    ],
+    "rows_short": [],
+    "rows_unreachable": [
+      {
+        "id": "proc:focusband",
+        "why": "UNREACHABLE FOR POWER — no declared rate to power against; the FROZEN tag artifact carries no such param for focusband, so the engine has nothing to roll here. The row is tallied and NOT scored: a rate is the wrong question about a mechanic that is absent, and tests/roster.js owns absence."
+      }
+    ],
+    "all_scoreable_rows_powered": true,
+    "staged_battles_played": 241525
+  },
+  "trials_per_control_and_pin_arm": 400,
+  "target_list": {
+    "file": "data/million-targets.json",
+    "digest": "7f57e34e8b18",
+    "generated": "2026-08-11T04:05:40.164Z",
+    "age_hours": 8.79,
+    "rows": 233
+  },
+  "declaration_gate": {
+    "pairs_compared": 118,
+    "agree": 117,
+    "disagree": 1,
+    "note": "the #132 secondary gate, run before any board was staged. It does not cover the proc family; the per-fixture `declaration` block below is the proc equivalent and it cross-checks the frozen tag against the format-derived target row."
+  },
+  "corroboration": {
+    "what": "How many staged rows have a SECOND, independent declaration behind them. engine/million_targets.js derives the proc family from PROC_WHAT, a HAND-TYPED list of TWELVE subjects, and ROADMAP #196 names SEVENTEEN. The uncorroborated rows are not wrong; they rest on one surface, and that is a number rather than a feeling.",
+    "corroborated": [
+      "flamebody",
+      "poisonpoint",
+      "cutecharm",
+      "cursedbody",
+      "poisontouch",
+      "kingsrock",
+      "quickclaw",
+      "quickdraw",
+      "healer",
+      "harvest"
+    ],
+    "tag_only": [
+      "static",
+      "effectspore",
+      "stench",
+      "shedskin",
+      "rawstberry",
+      "aspearberry"
+    ],
+    "disagreeing": [],
+    "no_tag_param": [
+      "focusband"
+    ]
+  },
+  "absent_mechanics": [
+    {
+      "id": "proc:cutecharm",
+      "trials": 16575,
+      "fired": 0,
+      "declared_pct": 30,
+      "upper_bound_95_pct": 0.023,
+      "what_it_means": "zero fires in 16575 trials on a board where the trigger was reached and verified every time. At a declared 30% the expected count was 4973. This is a mechanic that is not implemented, not a rate that is off — and which of the two it is, is exactly what a staged board can say and a self-play corpus cannot."
+    },
+    {
+      "id": "proc:stench",
+      "trials": 7248,
+      "fired": 0,
+      "declared_pct": 10,
+      "upper_bound_95_pct": 0.053,
+      "what_it_means": "zero fires in 7248 trials on a board where the trigger was reached and verified every time. At a declared 10% the expected count was 725. This is a mechanic that is not implemented, not a rate that is off — and which of the two it is, is exactly what a staged board can say and a self-play corpus cannot."
+    },
+    {
+      "id": "proc:quickdraw",
+      "trials": 16575,
+      "fired": 0,
+      "declared_pct": 30,
+      "upper_bound_95_pct": 0.023,
+      "what_it_means": "zero fires in 16575 trials on a board where the trigger was reached and verified every time. At a declared 30% the expected count was 4973. This is a mechanic that is not implemented, not a rate that is off — and which of the two it is, is exactly what a staged board can say and a self-play corpus cannot."
+    }
+  ],
+  "pooled": {
+    "what": "Every scored staged trial, each row at its own declared rate, Poisson-binomial. |z| > 3 diverges. Unlike the self-play arm this pool is over CONSTRUCTED denominators, so a divergence here cannot be a denominator artefact of the corpus.",
+    "all": {
+      "trials": 216607,
+      "fired": 58738,
+      "expected_fires": 69283.56,
+      "z": -49.797,
+      "observed_pct": 27.117,
+      "expected_pct": 31.986
+    },
+    "excluding_absent_mechanics": {
+      "trials": 176209,
+      "fired": 58738,
+      "expected_fires": 58613.76,
+      "z": 0.644,
+      "observed_pct": 33.334,
+      "expected_pct": 33.264
+    },
+    "by_family": {
+      "proc": {
+        "trials": 216607,
+        "fired": 58738,
+        "expected_fires": 69283.56,
+        "z": -49.797,
+        "observed_pct": 27.117,
+        "expected_pct": 31.986
+      }
+    }
+  },
+  "red_proof": {
+    "what": "The artifact refuses to exist unless all three were CAUGHT.",
+    "trigger_control": {
+      "what": "the identical board with the TRIGGER removed and one thing changed. It must record ZERO trials — reached() must refuse every one — and ZERO raw fires. A control arm that collects trials is an invented denominator wearing a staged board clothes. MILLIONRUN_SABOTAGE=staged-precondition forces exactly that and the run refuses.",
+      "arms": 17,
+      "caught": true,
+      "missed": []
+    },
+    "pinned_corners": {
+      "high": {
+        "corner": "every die 0.99 — no proc may fire, and every scored row must be FLAGGED",
+        "rows_with_20_plus": 14,
+        "missed": [],
+        "caught": true
+      },
+      "low": {
+        "corner": "every die ~0 — every proc must fire, and every scored row must be FLAGGED",
+        "rows_with_20_plus": 14,
+        "missed": [],
+        "caught": true
+      },
+      "caught": true
+    },
+    "per_row_synthetic": {
+      "rows": 16,
+      "missed": [],
+      "caught": true,
+      "what": "every scored row with 20+ trials, its real n against a maximally wrong outcome. Decidable at every n; a miss means the row-level flagger is blind."
+    },
+    "sabotage_env": null
+  },
+  "scoring": {
+    "interval": "Wilson 95%",
+    "scored_rows": 16,
+    "note": "the split-half spread on each row is the noise floor for that row (LESSONS 9): an effect smaller than the spread between two halves of one arm is not an effect. Band rows share their parent denominator and carry no split-half of their own."
+  },
+  "cost": {
+    "elapsed_ms": 63022,
+    "fixtures": 17,
+    "stageable": 17,
+    "arms_per_fixture": 4,
+    "staged_battles_played": 241525,
+    "ms_per_battle": 0.2609,
+    "what_a_battle_is": "one freshly built four-body board played for one or two scripted turns. It is not comparable to a self-play game, which runs to a 20-turn cap — so this number must never be quoted beside the self-play arm ms/game.",
+    "note": "four arms are played per stageable fixture — subject (which runs to its own power target), trigger control, pinned high, pinned low. COVERAGE HERE IS THE FIXTURE SET, NOT N: past its power target another million trials adds precision to a row that already has enough and reaches no mechanic that has no fixture. That is the same finding the 50,000-game self-play run made from the other direction."
+  },
+  "fixtures": [
+    {
+      "id": "proc:static",
+      "family": "proc",
+      "subject": "static",
+      "kind": "ability",
+      "carrier": "Stunfisk",
+      "stageable": true,
+      "why_not": null,
+      "declaration": {
+        "tag_pct": 30,
+        "tag_from": "data/tags.json (frozen release) static.punishesAttacker.sum of inflicts[].chance",
+        "list_pct": null,
+        "list_from": null,
+        "list_expect_raw": null,
+        "corroborated": null,
+        "why": "no numeric row in data/million-targets.json corroborates this. million_targets.js derives the proc family from a HAND-TYPED list of twelve subjects (PROC_WHAT) and the ROADMAP #196 reclassification names seventeen, so this rate rests on the tag alone."
+      },
+      "denominator": "ONE TRIAL = ONE FRESHLY BUILT BOARD on which a contact move connected with the carrier, the carrier survived the hit, and the attacker was alive and eligible for the status (asked of the engine own canTakeStatus). Every one of those is true BY CONSTRUCTION and VERIFIED on the trial; nothing is inferred from what the trace happened to show.",
+      "preflight": {
+        "ok": true,
+        "why": [],
+        "note": []
+      },
+      "board": "Kangaskhan (earlybird, no item, max HP x4) clicks Assurance — a boring contact move, 100 accuracy, no secondary of its own — into Stunfisk (static, max HP x4). The two other slots click the weakest boring move on their own learnset at each other, never at the experiment.",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 16575,
+        "from": "one-sample proportion test against the DECLARED rate, two-sided alpha 0.05, power 0.80, larger of the two alternatives (p0 +/- detect)",
+        "achieved_trials": 16575,
+        "attempts_spent": 16575,
+        "met": true,
+        "verdict": "MET"
+      },
+      "subject_arm": {
+        "attempts": 16575,
+        "n": 16575,
+        "k": 5042,
+        "refused": {},
+        "bands": {
+          "par": 5042
+        },
+        "extra": {
+          "raw_fires": 5042
+        },
+        "halves": [
+          {
+            "n": 8288,
+            "k": 2531
+          },
+          {
+            "n": 8287,
+            "k": 2511
+          }
+        ],
+        "refused_total": 0,
+        "by_design": 0,
+        "construction_failures": 0,
+        "refused_rate": 0,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "exact"
+      },
+      "control_arm": {
+        "attempts": 200,
+        "n": 0,
+        "k": 0,
+        "refused": {
+          "the delivery move makes no contact, so the contact trigger was never reached": 200
+        },
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 0,
+            "k": 0
+          },
+          {
+            "n": 0,
+            "k": 0
+          }
+        ],
+        "construction_failures": 200,
+        "refused_total": 200,
+        "by_design": 0,
+        "refused_rate": 1,
+        "construction_failure_rate": 1,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "NOT CLEAN",
+        "what": "the identical board with Assurance replaced by Terrain Pulse — same accuracy, same connection, NO CONTACT. The trigger is absent, so reached() must refuse every trial and the ability must not fire once."
+      },
+      "control_proof": {
+        "kind": "trigger-removed",
+        "trials": 0,
+        "fired": 0,
+        "raw_fires": 0,
+        "caught": true
+      },
+      "pinned_high": {
+        "trials": 400,
+        "fired": 0
+      },
+      "pinned_low": {
+        "trials": 400,
+        "fired": 400
+      },
+      "ladder": {
+        "declared_by_the_frozen_tag": [
+          {
+            "name": "paralysis",
+            "declared": 30
+          }
+        ],
+        "observed_by_engine_status_code": {
+          "par": 5042
+        },
+        "note": "NOT SCORED band by band — the two vocabularies are not joined here on purpose; see the comment at this push in engine/million_run.js. The TOTAL is scored and is the row above."
+      }
+    },
+    {
+      "id": "proc:flamebody",
+      "family": "proc",
+      "subject": "flamebody",
+      "kind": "ability",
+      "carrier": "Volcarona",
+      "stageable": true,
+      "why_not": null,
+      "declaration": {
+        "tag_pct": 30,
+        "tag_from": "data/tags.json (frozen release) flamebody.punishesAttacker.sum of inflicts[].chance",
+        "list_pct": 30,
+        "list_from": "DERIVED:randomChance(3,10) in the handler",
+        "list_expect_raw": 30,
+        "corroborated": true,
+        "why": "the frozen tag and the format-derived target row agree"
+      },
+      "denominator": "ONE TRIAL = ONE FRESHLY BUILT BOARD on which a contact move connected with the carrier, the carrier survived the hit, and the attacker was alive and eligible for the status (asked of the engine own canTakeStatus). Every one of those is true BY CONSTRUCTION and VERIFIED on the trial; nothing is inferred from what the trace happened to show.",
+      "preflight": {
+        "ok": true,
+        "why": [],
+        "note": []
+      },
+      "board": "Kangaskhan (earlybird, no item, max HP x4) clicks Assurance — a boring contact move, 100 accuracy, no secondary of its own — into Volcarona (flamebody, max HP x4). The two other slots click the weakest boring move on their own learnset at each other, never at the experiment.",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 16575,
+        "from": "one-sample proportion test against the DECLARED rate, two-sided alpha 0.05, power 0.80, larger of the two alternatives (p0 +/- detect)",
+        "achieved_trials": 16575,
+        "attempts_spent": 16575,
+        "met": true,
+        "verdict": "MET"
+      },
+      "subject_arm": {
+        "attempts": 16575,
+        "n": 16575,
+        "k": 5049,
+        "refused": {},
+        "bands": {
+          "brn": 5049
+        },
+        "extra": {
+          "raw_fires": 5049
+        },
+        "halves": [
+          {
+            "n": 8288,
+            "k": 2509
+          },
+          {
+            "n": 8287,
+            "k": 2540
+          }
+        ],
+        "refused_total": 0,
+        "by_design": 0,
+        "construction_failures": 0,
+        "refused_rate": 0,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "exact"
+      },
+      "control_arm": {
+        "attempts": 200,
+        "n": 0,
+        "k": 0,
+        "refused": {
+          "the delivery move makes no contact, so the contact trigger was never reached": 200
+        },
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 0,
+            "k": 0
+          },
+          {
+            "n": 0,
+            "k": 0
+          }
+        ],
+        "construction_failures": 200,
+        "refused_total": 200,
+        "by_design": 0,
+        "refused_rate": 1,
+        "construction_failure_rate": 1,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "NOT CLEAN",
+        "what": "the identical board with Assurance replaced by Terrain Pulse — same accuracy, same connection, NO CONTACT. The trigger is absent, so reached() must refuse every trial and the ability must not fire once."
+      },
+      "control_proof": {
+        "kind": "trigger-removed",
+        "trials": 0,
+        "fired": 0,
+        "raw_fires": 0,
+        "caught": true
+      },
+      "pinned_high": {
+        "trials": 400,
+        "fired": 0
+      },
+      "pinned_low": {
+        "trials": 400,
+        "fired": 400
+      },
+      "ladder": {
+        "declared_by_the_frozen_tag": [
+          {
+            "name": "burn",
+            "declared": 30
+          }
+        ],
+        "observed_by_engine_status_code": {
+          "brn": 5049
+        },
+        "note": "NOT SCORED band by band — the two vocabularies are not joined here on purpose; see the comment at this push in engine/million_run.js. The TOTAL is scored and is the row above."
+      }
+    },
+    {
+      "id": "proc:poisonpoint",
+      "family": "proc",
+      "subject": "poisonpoint",
+      "kind": "ability",
+      "carrier": "Dragalge",
+      "stageable": true,
+      "why_not": null,
+      "declaration": {
+        "tag_pct": 30,
+        "tag_from": "data/tags.json (frozen release) poisonpoint.punishesAttacker.sum of inflicts[].chance",
+        "list_pct": 30,
+        "list_from": "DERIVED:randomChance(3,10) in the handler",
+        "list_expect_raw": 30,
+        "corroborated": true,
+        "why": "the frozen tag and the format-derived target row agree"
+      },
+      "denominator": "ONE TRIAL = ONE FRESHLY BUILT BOARD on which a contact move connected with the carrier, the carrier survived the hit, and the attacker was alive and eligible for the status (asked of the engine own canTakeStatus). Every one of those is true BY CONSTRUCTION and VERIFIED on the trial; nothing is inferred from what the trace happened to show.",
+      "preflight": {
+        "ok": true,
+        "why": [],
+        "note": []
+      },
+      "board": "Kangaskhan (earlybird, no item, max HP x4) clicks Assurance — a boring contact move, 100 accuracy, no secondary of its own — into Dragalge (poisonpoint, max HP x4). The two other slots click the weakest boring move on their own learnset at each other, never at the experiment.",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 16575,
+        "from": "one-sample proportion test against the DECLARED rate, two-sided alpha 0.05, power 0.80, larger of the two alternatives (p0 +/- detect)",
+        "achieved_trials": 16575,
+        "attempts_spent": 16575,
+        "met": true,
+        "verdict": "MET"
+      },
+      "subject_arm": {
+        "attempts": 16575,
+        "n": 16575,
+        "k": 4915,
+        "refused": {},
+        "bands": {
+          "psn": 4915
+        },
+        "extra": {
+          "raw_fires": 4915
+        },
+        "halves": [
+          {
+            "n": 8288,
+            "k": 2439
+          },
+          {
+            "n": 8287,
+            "k": 2476
+          }
+        ],
+        "refused_total": 0,
+        "by_design": 0,
+        "construction_failures": 0,
+        "refused_rate": 0,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "exact"
+      },
+      "control_arm": {
+        "attempts": 200,
+        "n": 0,
+        "k": 0,
+        "refused": {
+          "the delivery move makes no contact, so the contact trigger was never reached": 200
+        },
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 0,
+            "k": 0
+          },
+          {
+            "n": 0,
+            "k": 0
+          }
+        ],
+        "construction_failures": 200,
+        "refused_total": 200,
+        "by_design": 0,
+        "refused_rate": 1,
+        "construction_failure_rate": 1,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "NOT CLEAN",
+        "what": "the identical board with Assurance replaced by Terrain Pulse — same accuracy, same connection, NO CONTACT. The trigger is absent, so reached() must refuse every trial and the ability must not fire once."
+      },
+      "control_proof": {
+        "kind": "trigger-removed",
+        "trials": 0,
+        "fired": 0,
+        "raw_fires": 0,
+        "caught": true
+      },
+      "pinned_high": {
+        "trials": 400,
+        "fired": 0
+      },
+      "pinned_low": {
+        "trials": 400,
+        "fired": 400
+      },
+      "ladder": {
+        "declared_by_the_frozen_tag": [
+          {
+            "name": "poison",
+            "declared": 30
+          }
+        ],
+        "observed_by_engine_status_code": {
+          "psn": 4915
+        },
+        "note": "NOT SCORED band by band — the two vocabularies are not joined here on purpose; see the comment at this push in engine/million_run.js. The TOTAL is scored and is the row above."
+      }
+    },
+    {
+      "id": "proc:effectspore",
+      "family": "proc",
+      "subject": "effectspore",
+      "kind": "ability",
+      "carrier": "Vileplume",
+      "stageable": true,
+      "why_not": null,
+      "declaration": {
+        "tag_pct": 30,
+        "tag_from": "data/tags.json (frozen release) effectspore.punishesAttacker.sum of inflicts[].chance",
+        "list_pct": null,
+        "list_from": "DERIVED:this.random(100) threshold ladder in the handler",
+        "list_expect_raw": "slp 11.000% / par 10.000% / psn 9.000%  (total 30.000%)",
+        "corroborated": null,
+        "why": "no numeric row in data/million-targets.json corroborates this. million_targets.js derives the proc family from a HAND-TYPED list of twelve subjects (PROC_WHAT) and the ROADMAP #196 reclassification names seventeen, so this rate rests on the tag alone."
+      },
+      "denominator": "ONE TRIAL = ONE FRESHLY BUILT BOARD on which a contact move connected with the carrier, the carrier survived the hit, and the attacker was alive and eligible for the status (asked of the engine own canTakeStatus). Every one of those is true BY CONSTRUCTION and VERIFIED on the trial; nothing is inferred from what the trace happened to show.",
+      "preflight": {
+        "ok": true,
+        "why": [],
+        "note": []
+      },
+      "board": "Kangaskhan (earlybird, no item, max HP x4) clicks Assurance — a boring contact move, 100 accuracy, no secondary of its own — into Vileplume (effectspore, max HP x4). The two other slots click the weakest boring move on their own learnset at each other, never at the experiment.",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 16575,
+        "from": "one-sample proportion test against the DECLARED rate, two-sided alpha 0.05, power 0.80, larger of the two alternatives (p0 +/- detect)",
+        "achieved_trials": 16575,
+        "attempts_spent": 16575,
+        "met": true,
+        "verdict": "MET"
+      },
+      "subject_arm": {
+        "attempts": 16575,
+        "n": 16575,
+        "k": 5029,
+        "refused": {},
+        "bands": {
+          "slp": 1823,
+          "par": 1678,
+          "psn": 1528
+        },
+        "extra": {
+          "raw_fires": 5029
+        },
+        "halves": [
+          {
+            "n": 8288,
+            "k": 2496
+          },
+          {
+            "n": 8287,
+            "k": 2533
+          }
+        ],
+        "refused_total": 0,
+        "by_design": 0,
+        "construction_failures": 0,
+        "refused_rate": 0,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "exact"
+      },
+      "control_arm": {
+        "attempts": 200,
+        "n": 0,
+        "k": 0,
+        "refused": {
+          "the delivery move makes no contact, so the contact trigger was never reached": 200
+        },
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 0,
+            "k": 0
+          },
+          {
+            "n": 0,
+            "k": 0
+          }
+        ],
+        "construction_failures": 200,
+        "refused_total": 200,
+        "by_design": 0,
+        "refused_rate": 1,
+        "construction_failure_rate": 1,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "NOT CLEAN",
+        "what": "the identical board with Assurance replaced by Terrain Pulse — same accuracy, same connection, NO CONTACT. The trigger is absent, so reached() must refuse every trial and the ability must not fire once."
+      },
+      "control_proof": {
+        "kind": "trigger-removed",
+        "trials": 0,
+        "fired": 0,
+        "raw_fires": 0,
+        "caught": true
+      },
+      "pinned_high": {
+        "trials": 400,
+        "fired": 0
+      },
+      "pinned_low": {
+        "trials": 400,
+        "fired": 400
+      },
+      "ladder": {
+        "declared_by_the_frozen_tag": [
+          {
+            "name": "sleep",
+            "declared": 11
+          },
+          {
+            "name": "paralysis",
+            "declared": 10
+          },
+          {
+            "name": "poison",
+            "declared": 9
+          }
+        ],
+        "observed_by_engine_status_code": {
+          "slp": 1823,
+          "par": 1678,
+          "psn": 1528
+        },
+        "note": "NOT SCORED band by band — the two vocabularies are not joined here on purpose; see the comment at this push in engine/million_run.js. The TOTAL is scored and is the row above."
+      }
+    },
+    {
+      "id": "proc:cutecharm",
+      "family": "proc",
+      "subject": "cutecharm",
+      "kind": "ability",
+      "carrier": "Milotic",
+      "stageable": true,
+      "why_not": null,
+      "declaration": {
+        "tag_pct": 30,
+        "tag_from": "data/tags.json (frozen release) cutecharm.punishesAttacker.inflictsVolatile.chance",
+        "list_pct": 30,
+        "list_from": "DERIVED:randomChance(3,10) in the handler",
+        "list_expect_raw": 30,
+        "corroborated": true,
+        "why": "the frozen tag and the format-derived target row agree"
+      },
+      "denominator": "ONE TRIAL = ONE FRESHLY BUILT BOARD on which a contact move connected with the carrier, the carrier survived the hit, and the attacker was alive and eligible for the status (asked of the engine own canTakeStatus). Every one of those is true BY CONSTRUCTION and VERIFIED on the trial; nothing is inferred from what the trace happened to show.",
+      "preflight": {
+        "ok": true,
+        "why": [],
+        "note": []
+      },
+      "board": "Kangaskhan (earlybird, no item, max HP x4) clicks Assurance — a boring contact move, 100 accuracy, no secondary of its own — into Milotic (cutecharm, max HP x4). The two other slots click the weakest boring move on their own learnset at each other, never at the experiment.",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 16575,
+        "from": "one-sample proportion test against the DECLARED rate, two-sided alpha 0.05, power 0.80, larger of the two alternatives (p0 +/- detect)",
+        "achieved_trials": 16575,
+        "attempts_spent": 16575,
+        "met": true,
+        "verdict": "MET"
+      },
+      "subject_arm": {
+        "attempts": 16575,
+        "n": 16575,
+        "k": 0,
+        "refused": {},
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 8288,
+            "k": 0
+          },
+          {
+            "n": 8287,
+            "k": 0
+          }
+        ],
+        "refused_total": 0,
+        "by_design": 0,
+        "construction_failures": 0,
+        "refused_rate": 0,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "exact"
+      },
+      "control_arm": {
+        "attempts": 200,
+        "n": 0,
+        "k": 0,
+        "refused": {
+          "the delivery move makes no contact, so the contact trigger was never reached": 200
+        },
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 0,
+            "k": 0
+          },
+          {
+            "n": 0,
+            "k": 0
+          }
+        ],
+        "construction_failures": 200,
+        "refused_total": 200,
+        "by_design": 0,
+        "refused_rate": 1,
+        "construction_failure_rate": 1,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "NOT CLEAN",
+        "what": "the identical board with Assurance replaced by Terrain Pulse — same accuracy, same connection, NO CONTACT. The trigger is absent, so reached() must refuse every trial and the ability must not fire once."
+      },
+      "control_proof": {
+        "kind": "trigger-removed",
+        "trials": 0,
+        "fired": 0,
+        "raw_fires": 0,
+        "caught": true
+      },
+      "pinned_high": {
+        "trials": 400,
+        "fired": 0
+      },
+      "pinned_low": {
+        "trials": 400,
+        "fired": 0
+      }
+    },
+    {
+      "id": "proc:cursedbody",
+      "family": "proc",
+      "subject": "cursedbody",
+      "kind": "ability",
+      "carrier": "Polteageist",
+      "stageable": true,
+      "why_not": null,
+      "declaration": {
+        "tag_pct": 30,
+        "tag_from": "data/tags.json (frozen release) cursedbody.disablesAttacker.chance",
+        "list_pct": 30,
+        "list_from": "DERIVED:randomChance(3,10) in the handler",
+        "list_expect_raw": 30,
+        "corroborated": true,
+        "why": "the frozen tag and the format-derived target row agree"
+      },
+      "denominator": "ONE TRIAL = ONE FRESHLY BUILT BOARD on which a damaging hit connected with the carrier, the carrier survived it, and the attacker was alive and not already disabled.",
+      "preflight": {
+        "ok": true,
+        "why": [],
+        "note": []
+      },
+      "board": "Kangaskhan clicks Assurance into Polteageist (cursedbody, max HP x4).",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 16575,
+        "from": "one-sample proportion test against the DECLARED rate, two-sided alpha 0.05, power 0.80, larger of the two alternatives (p0 +/- detect)",
+        "achieved_trials": 16575,
+        "attempts_spent": 16575,
+        "met": true,
+        "verdict": "MET"
+      },
+      "subject_arm": {
+        "attempts": 16575,
+        "n": 16575,
+        "k": 4928,
+        "refused": {},
+        "bands": {},
+        "extra": {
+          "raw_fires": 4928
+        },
+        "halves": [
+          {
+            "n": 8288,
+            "k": 2466
+          },
+          {
+            "n": 8287,
+            "k": 2462
+          }
+        ],
+        "refused_total": 0,
+        "by_design": 0,
+        "construction_failures": 0,
+        "refused_rate": 0,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "exact"
+      },
+      "control_arm": {
+        "attempts": 200,
+        "n": 0,
+        "k": 0,
+        "refused": {
+          "the attacker passed, so no hit landed and the trigger was never reached": 200
+        },
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 0,
+            "k": 0
+          },
+          {
+            "n": 0,
+            "k": 0
+          }
+        ],
+        "construction_failures": 200,
+        "refused_total": 200,
+        "by_design": 0,
+        "refused_rate": 1,
+        "construction_failure_rate": 1,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "NOT CLEAN",
+        "what": "the identical board with the attacker PASSING. No hit lands, so the trigger is absent — the tag trigger for this one is anyHit rather than contact, so removing the CONTACT would not remove the trigger and would prove nothing."
+      },
+      "control_proof": {
+        "kind": "trigger-removed",
+        "trials": 0,
+        "fired": 0,
+        "raw_fires": 0,
+        "caught": true
+      },
+      "pinned_high": {
+        "trials": 400,
+        "fired": 0
+      },
+      "pinned_low": {
+        "trials": 400,
+        "fired": 400
+      }
+    },
+    {
+      "id": "proc:poisontouch",
+      "family": "proc",
+      "subject": "poisontouch",
+      "kind": "ability",
+      "carrier": "Dragalge",
+      "stageable": true,
+      "why_not": null,
+      "declaration": {
+        "tag_pct": 30,
+        "tag_from": "data/tags.json (frozen release) poisontouch.poisonsOnMyContact.p",
+        "list_pct": 30,
+        "list_from": "DERIVED:randomChance(3,10) in the handler",
+        "list_expect_raw": 30,
+        "corroborated": true,
+        "why": "the frozen tag and the format-derived target row agree"
+      },
+      "denominator": "ONE TRIAL = ONE FRESHLY BUILT BOARD on which the carrier own contact move connected, the target survived it, and the target was eligible for poison.",
+      "preflight": {
+        "ok": true,
+        "why": [],
+        "note": []
+      },
+      "board": "Dragalge (poisontouch) clicks Flip Turn into Kangaskhan (max HP x4), which no type or ability refuses poison for.",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 16575,
+        "from": "one-sample proportion test against the DECLARED rate, two-sided alpha 0.05, power 0.80, larger of the two alternatives (p0 +/- detect)",
+        "achieved_trials": 16575,
+        "attempts_spent": 16575,
+        "met": true,
+        "verdict": "MET"
+      },
+      "subject_arm": {
+        "attempts": 16575,
+        "n": 16575,
+        "k": 4917,
+        "refused": {},
+        "bands": {},
+        "extra": {
+          "raw_fires": 4917
+        },
+        "halves": [
+          {
+            "n": 8288,
+            "k": 2431
+          },
+          {
+            "n": 8287,
+            "k": 2486
+          }
+        ],
+        "refused_total": 0,
+        "by_design": 0,
+        "construction_failures": 0,
+        "refused_rate": 0,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "exact"
+      },
+      "control_arm": {
+        "attempts": 200,
+        "n": 0,
+        "k": 0,
+        "refused": {
+          "the delivery move makes no contact, so the contact trigger was never reached": 200
+        },
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 0,
+            "k": 0
+          },
+          {
+            "n": 0,
+            "k": 0
+          }
+        ],
+        "construction_failures": 200,
+        "refused_total": 200,
+        "by_design": 0,
+        "refused_rate": 1,
+        "construction_failure_rate": 1,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "NOT CLEAN",
+        "what": "the identical board with Flip Turn replaced by the non-contact Round."
+      },
+      "control_proof": {
+        "kind": "trigger-removed",
+        "trials": 0,
+        "fired": 0,
+        "raw_fires": 0,
+        "caught": true
+      },
+      "pinned_high": {
+        "trials": 400,
+        "fired": 0
+      },
+      "pinned_low": {
+        "trials": 400,
+        "fired": 400
+      }
+    },
+    {
+      "id": "proc:stench",
+      "family": "proc",
+      "subject": "stench",
+      "kind": "ability",
+      "carrier": "Garbodor",
+      "stageable": true,
+      "why_not": null,
+      "declaration": {
+        "tag_pct": 10,
+        "tag_from": "data/tags.json (frozen release) stench.addsOwnSecondary.the flinch chance",
+        "list_pct": null,
+        "list_from": null,
+        "list_expect_raw": null,
+        "corroborated": null,
+        "why": "no numeric row in data/million-targets.json corroborates this. million_targets.js derives the proc family from a HAND-TYPED list of twelve subjects (PROC_WHAT) and the ROADMAP #196 reclassification names seventeen, so this rate rests on the tag alone."
+      },
+      "denominator": "ONE TRIAL = ONE FRESHLY BUILT BOARD on which the holder moved FIRST (verified from the trace), its damaging move connected, and the target was alive, had an action this turn and does not refuse the flinch volatile.",
+      "preflight": {
+        "ok": true,
+        "why": [],
+        "note": []
+      },
+      "board": "Garbodor (stench) has its Speed SET to 400 and the target Kangaskhan to 1, so the holder moves first by construction, and clicks Payback — a move with no secondary of its own.",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 7248,
+        "from": "one-sample proportion test against the DECLARED rate, two-sided alpha 0.05, power 0.80, larger of the two alternatives (p0 +/- detect)",
+        "achieved_trials": 7248,
+        "attempts_spent": 7248,
+        "met": true,
+        "verdict": "MET"
+      },
+      "subject_arm": {
+        "attempts": 7248,
+        "n": 7248,
+        "k": 0,
+        "refused": {},
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 3624,
+            "k": 0
+          },
+          {
+            "n": 3624,
+            "k": 0
+          }
+        ],
+        "refused_total": 0,
+        "by_design": 0,
+        "construction_failures": 0,
+        "refused_rate": 0,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "exact"
+      },
+      "control_arm": {
+        "attempts": 200,
+        "n": 0,
+        "k": 0,
+        "refused": {
+          "the target had ALREADY acted when the hit landed, so a flinch could not be observed — the trigger was never reached": 200
+        },
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 0,
+            "k": 0
+          },
+          {
+            "n": 0,
+            "k": 0
+          }
+        ],
+        "construction_failures": 200,
+        "refused_total": 200,
+        "by_design": 0,
+        "refused_rate": 1,
+        "construction_failure_rate": 1,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "NOT CLEAN",
+        "what": "the identical board with the two Speeds SWAPPED, so the target has already acted when the hit lands. A flinch set on a body that has already moved costs nothing and is not observable, so the trigger is genuinely absent — this is the same exclusion the self-play arm has to make from the trace, made true by construction instead."
+      },
+      "control_proof": {
+        "kind": "trigger-removed",
+        "trials": 0,
+        "fired": 0,
+        "raw_fires": 0,
+        "caught": true
+      },
+      "pinned_high": {
+        "trials": 400,
+        "fired": 0
+      },
+      "pinned_low": {
+        "trials": 400,
+        "fired": 0
+      }
+    },
+    {
+      "id": "proc:kingsrock",
+      "family": "proc",
+      "subject": "kingsrock",
+      "kind": "item",
+      "carrier": "Kangaskhan",
+      "stageable": true,
+      "why_not": null,
+      "declaration": {
+        "tag_pct": 10,
+        "tag_from": "data/tags.json (frozen release) kingsrock.addsFlinch.the flinch chance",
+        "list_pct": 10,
+        "list_from": "DERIVED:the {chance} of the secondary the handler pushes",
+        "list_expect_raw": 10,
+        "corroborated": true,
+        "why": "the frozen tag and the format-derived target row agree"
+      },
+      "denominator": "ONE TRIAL = ONE FRESHLY BUILT BOARD on which the holder moved FIRST (verified from the trace), its damaging move connected, and the target was alive, had an action this turn and does not refuse the flinch volatile.",
+      "preflight": {
+        "ok": true,
+        "why": [],
+        "note": []
+      },
+      "board": "Kangaskhan holding kingsrock has its Speed SET to 400 and the target Samurott to 1, so the holder moves first by construction, and clicks Assurance — a move with no secondary of its own.",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 7248,
+        "from": "one-sample proportion test against the DECLARED rate, two-sided alpha 0.05, power 0.80, larger of the two alternatives (p0 +/- detect)",
+        "achieved_trials": 7248,
+        "attempts_spent": 7248,
+        "met": true,
+        "verdict": "MET"
+      },
+      "subject_arm": {
+        "attempts": 7248,
+        "n": 7248,
+        "k": 694,
+        "refused": {},
+        "bands": {},
+        "extra": {
+          "raw_fires": 694
+        },
+        "halves": [
+          {
+            "n": 3624,
+            "k": 371
+          },
+          {
+            "n": 3624,
+            "k": 323
+          }
+        ],
+        "refused_total": 0,
+        "by_design": 0,
+        "construction_failures": 0,
+        "refused_rate": 0,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "exact"
+      },
+      "control_arm": {
+        "attempts": 200,
+        "n": 0,
+        "k": 0,
+        "refused": {
+          "the target had ALREADY acted when the hit landed, so a flinch could not be observed — the trigger was never reached": 200
+        },
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 0,
+            "k": 0
+          },
+          {
+            "n": 0,
+            "k": 0
+          }
+        ],
+        "construction_failures": 200,
+        "refused_total": 200,
+        "by_design": 0,
+        "refused_rate": 1,
+        "construction_failure_rate": 1,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "NOT CLEAN",
+        "what": "the identical board with the two Speeds SWAPPED, so the target has already acted when the hit lands. A flinch set on a body that has already moved costs nothing and is not observable, so the trigger is genuinely absent — this is the same exclusion the self-play arm has to make from the trace, made true by construction instead."
+      },
+      "control_proof": {
+        "kind": "trigger-removed",
+        "trials": 0,
+        "fired": 0,
+        "raw_fires": 0,
+        "caught": true
+      },
+      "pinned_high": {
+        "trials": 400,
+        "fired": 0
+      },
+      "pinned_low": {
+        "trials": 400,
+        "fired": 400
+      }
+    },
+    {
+      "id": "proc:quickclaw",
+      "family": "proc",
+      "subject": "quickclaw",
+      "kind": "item",
+      "carrier": "Kangaskhan",
+      "stageable": true,
+      "why_not": null,
+      "declaration": {
+        "tag_pct": 20,
+        "tag_from": "data/tags.json (frozen release) quickclaw.fractionalPriority.chance",
+        "list_pct": 20,
+        "list_from": "DERIVED:randomChance(1,5) in the handler",
+        "list_expect_raw": 20,
+        "corroborated": true,
+        "why": "the frozen tag and the format-derived target row agree"
+      },
+      "denominator": "ONE TRIAL = ONE FRESHLY BUILT BOARD on which the holder was STRICTLY SLOWER than the foe (set outright, not hoped for), both bodies were alive, and both clicked a move in the same priority bracket. Moving first can then only be the item.",
+      "preflight": {
+        "ok": true,
+        "why": [],
+        "note": []
+      },
+      "board": "Kangaskhan holding quickclaw has its Speed SET to 1 and the foe Samurott to 400. Both click a 0-priority damaging move, so the holder moves second on every turn the item does not fire, with no speed tie anywhere near it.",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 12697,
+        "from": "one-sample proportion test against the DECLARED rate, two-sided alpha 0.05, power 0.80, larger of the two alternatives (p0 +/- detect)",
+        "achieved_trials": 12697,
+        "attempts_spent": 12697,
+        "met": true,
+        "verdict": "MET"
+      },
+      "subject_arm": {
+        "attempts": 12697,
+        "n": 12697,
+        "k": 2564,
+        "refused": {},
+        "bands": {},
+        "extra": {
+          "raw_fires": 2564
+        },
+        "halves": [
+          {
+            "n": 6349,
+            "k": 1312
+          },
+          {
+            "n": 6348,
+            "k": 1252
+          }
+        ],
+        "refused_total": 0,
+        "by_design": 0,
+        "construction_failures": 0,
+        "refused_rate": 0,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "exact"
+      },
+      "control_arm": {
+        "attempts": 200,
+        "n": 200,
+        "k": 0,
+        "refused": {},
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 100,
+            "k": 0
+          },
+          {
+            "n": 100,
+            "k": 0
+          }
+        ],
+        "refused_total": 0,
+        "by_design": 0,
+        "construction_failures": 0,
+        "refused_rate": 0,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "exact",
+        "what": "the identical board, the holder still STRICTLY SLOWER, and the quickclaw taken away. The trigger is fully present — this is the mechanism-removed shape — so the trials must be there and the numerator must be exactly ZERO. Removing the trigger instead would mean making the holder faster, and then \"moved first\" is true by construction and the observable stops meaning anything."
+      },
+      "control_proof": {
+        "kind": "mechanism-removed",
+        "trials": 200,
+        "fired": 0,
+        "raw_fires": 0,
+        "caught": true
+      },
+      "pinned_high": {
+        "trials": 400,
+        "fired": 0
+      },
+      "pinned_low": {
+        "trials": 400,
+        "fired": 400
+      }
+    },
+    {
+      "id": "proc:quickdraw",
+      "family": "proc",
+      "subject": "quickdraw",
+      "kind": "ability",
+      "carrier": "Slowbro-Galar",
+      "stageable": true,
+      "why_not": null,
+      "declaration": {
+        "tag_pct": 30,
+        "tag_from": "data/tags.json (frozen release) quickdraw.fractionalPriority.chance",
+        "list_pct": 30,
+        "list_from": "DERIVED:randomChance(3,10) in the handler",
+        "list_expect_raw": 30,
+        "corroborated": true,
+        "why": "the frozen tag and the format-derived target row agree"
+      },
+      "denominator": "ONE TRIAL = ONE FRESHLY BUILT BOARD on which the holder was STRICTLY SLOWER than the foe (set outright, not hoped for), both bodies were alive, and both clicked a move in the same priority bracket. Moving first can then only be the item.",
+      "preflight": {
+        "ok": true,
+        "why": [],
+        "note": []
+      },
+      "board": "Slowbro-Galar carrying quickdraw has its Speed SET to 1 and the foe Kangaskhan to 400. Both click a 0-priority damaging move, so the holder moves second on every turn the item does not fire, with no speed tie anywhere near it.",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 16575,
+        "from": "one-sample proportion test against the DECLARED rate, two-sided alpha 0.05, power 0.80, larger of the two alternatives (p0 +/- detect)",
+        "achieved_trials": 16575,
+        "attempts_spent": 16575,
+        "met": true,
+        "verdict": "MET"
+      },
+      "subject_arm": {
+        "attempts": 16575,
+        "n": 16575,
+        "k": 0,
+        "refused": {},
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 8288,
+            "k": 0
+          },
+          {
+            "n": 8287,
+            "k": 0
+          }
+        ],
+        "refused_total": 0,
+        "by_design": 0,
+        "construction_failures": 0,
+        "refused_rate": 0,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "exact"
+      },
+      "control_arm": {
+        "attempts": 200,
+        "n": 200,
+        "k": 0,
+        "refused": {},
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 100,
+            "k": 0
+          },
+          {
+            "n": 100,
+            "k": 0
+          }
+        ],
+        "refused_total": 0,
+        "by_design": 0,
+        "construction_failures": 0,
+        "refused_rate": 0,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "exact",
+        "what": "the identical board, the holder still STRICTLY SLOWER, and the quickdraw taken away. The trigger is fully present — this is the mechanism-removed shape — so the trials must be there and the numerator must be exactly ZERO. Removing the trigger instead would mean making the holder faster, and then \"moved first\" is true by construction and the observable stops meaning anything."
+      },
+      "control_proof": {
+        "kind": "mechanism-removed",
+        "trials": 200,
+        "fired": 0,
+        "raw_fires": 0,
+        "caught": true
+      },
+      "pinned_high": {
+        "trials": 400,
+        "fired": 0
+      },
+      "pinned_low": {
+        "trials": 400,
+        "fired": 0
+      }
+    },
+    {
+      "id": "proc:focusband",
+      "family": "proc",
+      "subject": "focusband",
+      "kind": "item",
+      "carrier": "Samurott",
+      "stageable": true,
+      "why_not": null,
+      "declaration": {
+        "tag_pct": null,
+        "tag_from": null,
+        "list_pct": 10,
+        "list_from": "DERIVED:randomChance(1,10) in the handler",
+        "list_expect_raw": 10,
+        "corroborated": null,
+        "why": "the FROZEN tag artifact carries no such param for focusband, so the engine has nothing to roll here. The row is tallied and NOT scored: a rate is the wrong question about a mechanic that is absent, and tests/roster.js owns absence."
+      },
+      "denominator": "ONE TRIAL = ONE FRESHLY BUILT BOARD on which the incoming hit WAS LETHAL, verified as the holder either fainting or standing on exactly 1 HP. A hit that left it on anything else was not lethal and is refused.",
+      "preflight": {
+        "ok": true,
+        "why": [],
+        "note": []
+      },
+      "board": "Samurott holds focusband with its max HP SET to 20 while Kangaskhan has its Attack SET to 400 and clicks Assurance, so the hit is lethal several times over on every roll and at every crit state.",
+      "power": {
+        "detect_points": 1,
+        "required_trials": null,
+        "from": "one-sample proportion test against the DECLARED rate, two-sided alpha 0.05, power 0.80, larger of the two alternatives (p0 +/- detect)",
+        "achieved_trials": 400,
+        "attempts_spent": 400,
+        "met": null,
+        "verdict": "UNREACHABLE FOR POWER — no declared rate to power against; the FROZEN tag artifact carries no such param for focusband, so the engine has nothing to roll here. The row is tallied and NOT scored: a rate is the wrong question about a mechanic that is absent, and tests/roster.js owns absence."
+      },
+      "subject_arm": {
+        "attempts": 400,
+        "n": 400,
+        "k": 0,
+        "refused": {},
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 200,
+            "k": 0
+          },
+          {
+            "n": 200,
+            "k": 0
+          }
+        ],
+        "refused_total": 0,
+        "by_design": 0,
+        "construction_failures": 0,
+        "refused_rate": 0,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "exact"
+      },
+      "control_arm": {
+        "attempts": 200,
+        "n": 0,
+        "k": 0,
+        "refused": {
+          "the hit was not lethal, so the trigger was never reached": 200
+        },
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 0,
+            "k": 0
+          },
+          {
+            "n": 0,
+            "k": 0
+          }
+        ],
+        "construction_failures": 200,
+        "refused_total": 200,
+        "by_design": 0,
+        "refused_rate": 1,
+        "construction_failure_rate": 1,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "NOT CLEAN",
+        "what": "the identical board with the holder max HP left at x8, so the hit cannot be lethal. The trigger — a hit that would otherwise have killed — is genuinely absent."
+      },
+      "control_proof": {
+        "kind": "trigger-removed",
+        "trials": 0,
+        "fired": 0,
+        "raw_fires": 0,
+        "caught": true
+      },
+      "pinned_high": {
+        "trials": 400,
+        "fired": 0
+      },
+      "pinned_low": {
+        "trials": 400,
+        "fired": 0
+      }
+    },
+    {
+      "id": "proc:shedskin",
+      "family": "proc",
+      "subject": "shedskin",
+      "kind": "ability",
+      "carrier": "Scrafty",
+      "stageable": true,
+      "why_not": null,
+      "declaration": {
+        "tag_pct": 33,
+        "tag_from": "data/tags.json (frozen release) shedskin.curesStatusResidual.chance",
+        "list_pct": null,
+        "list_from": null,
+        "list_expect_raw": null,
+        "corroborated": null,
+        "why": "no numeric row in data/million-targets.json corroborates this. million_targets.js derives the proc family from a HAND-TYPED list of twelve subjects (PROC_WHAT) and the ROADMAP #196 reclassification names seventeen, so this rate rests on the tag alone."
+      },
+      "denominator": "ONE TRIAL = ONE FRESHLY BUILT BOARD on which the body that must be cured carried a major status when the turn opened and was still alive at the residual.",
+      "preflight": {
+        "ok": true,
+        "why": [],
+        "note": []
+      },
+      "board": "Scrafty (shedskin) stands beside Kangaskhan. The body that must be cured is PARALYSED on the pre-turn board — paralysis is used because it carries no counter, so setting it is the same state the engine would have written. Nothing attacks either of them; every other body clicks its weakest boring move at the far slot.",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 17432,
+        "from": "one-sample proportion test against the DECLARED rate, two-sided alpha 0.05, power 0.80, larger of the two alternatives (p0 +/- detect)",
+        "achieved_trials": 17432,
+        "attempts_spent": 17432,
+        "met": true,
+        "verdict": "MET"
+      },
+      "subject_arm": {
+        "attempts": 17432,
+        "n": 17432,
+        "k": 5799,
+        "refused": {},
+        "bands": {},
+        "extra": {
+          "raw_fires": 5799
+        },
+        "halves": [
+          {
+            "n": 8716,
+            "k": 2932
+          },
+          {
+            "n": 8716,
+            "k": 2867
+          }
+        ],
+        "refused_total": 0,
+        "by_design": 0,
+        "construction_failures": 0,
+        "refused_rate": 0,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "exact"
+      },
+      "control_arm": {
+        "attempts": 200,
+        "n": 0,
+        "k": 0,
+        "refused": {
+          "nobody carried a status, so the residual cure had nothing to act on and the trigger was never reached": 200
+        },
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 0,
+            "k": 0
+          },
+          {
+            "n": 0,
+            "k": 0
+          }
+        ],
+        "construction_failures": 200,
+        "refused_total": 200,
+        "by_design": 0,
+        "refused_rate": 1,
+        "construction_failure_rate": 1,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "NOT CLEAN",
+        "what": "the identical board with NOBODY paralysed. There is no status to cure, so the residual trigger is absent and reached() must refuse every trial."
+      },
+      "control_proof": {
+        "kind": "trigger-removed",
+        "trials": 0,
+        "fired": 0,
+        "raw_fires": 0,
+        "caught": true
+      },
+      "pinned_high": {
+        "trials": 400,
+        "fired": 0
+      },
+      "pinned_low": {
+        "trials": 400,
+        "fired": 400
+      }
+    },
+    {
+      "id": "proc:healer",
+      "family": "proc",
+      "subject": "healer",
+      "kind": "ability",
+      "carrier": "Audino-Mega",
+      "stageable": true,
+      "why_not": null,
+      "declaration": {
+        "tag_pct": 50,
+        "tag_from": "data/tags.json (frozen release) healer.curesStatusResidual.chance",
+        "list_pct": 50,
+        "list_from": "DERIVED:randomChance(1,2) in the handler",
+        "list_expect_raw": 50,
+        "corroborated": true,
+        "why": "the frozen tag and the format-derived target row agree"
+      },
+      "denominator": "ONE TRIAL = ONE FRESHLY BUILT BOARD on which the body that must be cured carried a major status when the turn opened and was still alive at the residual.",
+      "preflight": {
+        "ok": true,
+        "why": [],
+        "note": []
+      },
+      "board": "Audino-Mega (healer) stands beside Kangaskhan. The body that must be cured is PARALYSED on the pre-turn board — paralysis is used because it carries no counter, so setting it is the same state the engine would have written. Nothing attacks either of them; every other body clicks its weakest boring move at the far slot.",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 19620,
+        "from": "one-sample proportion test against the DECLARED rate, two-sided alpha 0.05, power 0.80, larger of the two alternatives (p0 +/- detect)",
+        "achieved_trials": 19620,
+        "attempts_spent": 19620,
+        "met": true,
+        "verdict": "MET"
+      },
+      "subject_arm": {
+        "attempts": 19620,
+        "n": 19620,
+        "k": 9813,
+        "refused": {},
+        "bands": {},
+        "extra": {
+          "raw_fires": 9813
+        },
+        "halves": [
+          {
+            "n": 9810,
+            "k": 4905
+          },
+          {
+            "n": 9810,
+            "k": 4908
+          }
+        ],
+        "refused_total": 0,
+        "by_design": 0,
+        "construction_failures": 0,
+        "refused_rate": 0,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "exact"
+      },
+      "control_arm": {
+        "attempts": 200,
+        "n": 0,
+        "k": 0,
+        "refused": {
+          "nobody carried a status, so the residual cure had nothing to act on and the trigger was never reached": 200
+        },
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 0,
+            "k": 0
+          },
+          {
+            "n": 0,
+            "k": 0
+          }
+        ],
+        "construction_failures": 200,
+        "refused_total": 200,
+        "by_design": 0,
+        "refused_rate": 1,
+        "construction_failure_rate": 1,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "NOT CLEAN",
+        "what": "the identical board with NOBODY paralysed. There is no status to cure, so the residual trigger is absent and reached() must refuse every trial."
+      },
+      "control_proof": {
+        "kind": "trigger-removed",
+        "trials": 0,
+        "fired": 0,
+        "raw_fires": 0,
+        "caught": true
+      },
+      "pinned_high": {
+        "trials": 400,
+        "fired": 0
+      },
+      "pinned_low": {
+        "trials": 400,
+        "fired": 400
+      }
+    },
+    {
+      "id": "proc:harvest",
+      "family": "proc",
+      "subject": "harvest",
+      "kind": "ability",
+      "carrier": "Trevenant",
+      "stageable": true,
+      "why_not": null,
+      "declaration": {
+        "tag_pct": 50,
+        "tag_from": "data/tags.json (frozen release) harvest.restoresBerryAtResidual.chance",
+        "list_pct": 50,
+        "list_from": "DERIVED:randomChance(1,2) in the handler",
+        "list_expect_raw": 50,
+        "corroborated": true,
+        "why": "the frozen tag and the format-derived target row agree"
+      },
+      "denominator": "ONE TRIAL = ONE FRESHLY BUILT BOARD on which the berry was ACTUALLY EATEN this turn (the engine own _ateBerry, which it sets at the consumption site) and the carrier was alive at the residual.",
+      "preflight": {
+        "ok": true,
+        "why": [],
+        "note": []
+      },
+      "board": "Trevenant (harvest) holds a Sitrus Berry and opens the turn on 52% of its max HP; Kangaskhan chips it below half with Assurance, so the berry is eaten inside the turn and the residual has something to restore.",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 19620,
+        "from": "one-sample proportion test against the DECLARED rate, two-sided alpha 0.05, power 0.80, larger of the two alternatives (p0 +/- detect)",
+        "achieved_trials": 19620,
+        "attempts_spent": 19620,
+        "met": true,
+        "verdict": "MET"
+      },
+      "subject_arm": {
+        "attempts": 19620,
+        "n": 19620,
+        "k": 9846,
+        "refused": {},
+        "bands": {},
+        "extra": {
+          "raw_fires": 9846
+        },
+        "halves": [
+          {
+            "n": 9810,
+            "k": 4949
+          },
+          {
+            "n": 9810,
+            "k": 4897
+          }
+        ],
+        "refused_total": 0,
+        "by_design": 0,
+        "construction_failures": 0,
+        "refused_rate": 0,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "exact"
+      },
+      "control_arm": {
+        "attempts": 200,
+        "n": 0,
+        "k": 0,
+        "refused": {
+          "the berry was never eaten this turn, so the residual had nothing to restore": 200
+        },
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 0,
+            "k": 0
+          },
+          {
+            "n": 0,
+            "k": 0
+          }
+        ],
+        "construction_failures": 200,
+        "refused_total": 200,
+        "by_design": 0,
+        "refused_rate": 1,
+        "construction_failure_rate": 1,
+        "by_design_refusal_rate": 0,
+        "denominator_clean": "NOT CLEAN",
+        "what": "the identical board with the carrier at FULL HP, so the berry is never eaten and there is nothing to restore — the trigger is absent."
+      },
+      "control_proof": {
+        "kind": "trigger-removed",
+        "trials": 0,
+        "fired": 0,
+        "raw_fires": 0,
+        "caught": true
+      },
+      "pinned_high": {
+        "trials": 400,
+        "fired": 0
+      },
+      "pinned_low": {
+        "trials": 400,
+        "fired": 400
+      }
+    },
+    {
+      "id": "proc:rawstberry",
+      "family": "proc",
+      "subject": "rawstberry",
+      "kind": "item",
+      "carrier": "Samurott",
+      "stageable": true,
+      "why_not": null,
+      "declaration": {
+        "tag_pct": 100,
+        "tag_from": "data/tags.json (frozen release) rawstberry.curesStatus — the tag declares WHICH statuses it cures and NO chance field. The engine own secondary loop reads an absent chance as 100 (`s.chance == null ? 100 : s.chance`), so a certainty is what the engine rolls with here. Nothing is typed.",
+        "list_pct": null,
+        "list_from": null,
+        "list_expect_raw": null,
+        "corroborated": null,
+        "why": "a CERTAINTY rather than a die. It is in this instrument because the trigger — the status actually landing — cannot be reached under the roster pinned dice, not because the rate is in doubt. data/million-targets.json has no row for it (PROC_WHAT is a hand-typed list of twelve)."
+      },
+      "denominator": "ONE TRIAL = ONE FRESHLY BUILT BOARD on which the trace shows the status ACTUALLY LANDING on the holder this turn. That is an independent observation of the trigger — not the berry own consumption, which would make the test circular.",
+      "preflight": {
+        "ok": true,
+        "why": [],
+        "note": []
+      },
+      "board": "Kangaskhan clicks Fire Blast at Samurott, which holds rawstberry. The dice are free, so the status lands at its own rate; only the trials where it actually landed are in the denominator.",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 71,
+        "from": "one-sample proportion test against the DECLARED rate, two-sided alpha 0.05, power 0.80, larger of the two alternatives (p0 +/- detect)",
+        "achieved_trials": 71,
+        "attempts_spent": 952,
+        "met": true,
+        "verdict": "MET"
+      },
+      "subject_arm": {
+        "attempts": 952,
+        "n": 71,
+        "k": 71,
+        "refused": {
+          "the status never landed this turn, so the berry was never asked": 881
+        },
+        "bands": {},
+        "extra": {
+          "raw_fires": 71
+        },
+        "halves": [
+          {
+            "n": 35,
+            "k": 35
+          },
+          {
+            "n": 36,
+            "k": 36
+          }
+        ],
+        "by_design": 881,
+        "refused_total": 881,
+        "construction_failures": 0,
+        "refused_rate": 0.9254,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0.9254,
+        "denominator_clean": "exact"
+      },
+      "control_arm": {
+        "attempts": 2567,
+        "n": 200,
+        "k": 0,
+        "refused": {
+          "the status never landed this turn, so the berry was never asked": 2367
+        },
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 107,
+            "k": 0
+          },
+          {
+            "n": 93,
+            "k": 0
+          }
+        ],
+        "by_design": 2367,
+        "refused_total": 2367,
+        "construction_failures": 0,
+        "refused_rate": 0.9221,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0.9221,
+        "denominator_clean": "exact",
+        "what": "the identical board with the target holding NOTHING. This is the mechanism-removed shape: the trigger — the status landing — is still fully present, so the trials must be there and the numerator must be ZERO."
+      },
+      "control_proof": {
+        "kind": "mechanism-removed",
+        "trials": 200,
+        "fired": 0,
+        "raw_fires": 0,
+        "caught": true
+      },
+      "pinned_high": {
+        "trials": 0,
+        "fired": 0
+      },
+      "pinned_low": {
+        "trials": 400,
+        "fired": 400
+      }
+    },
+    {
+      "id": "proc:aspearberry",
+      "family": "proc",
+      "subject": "aspearberry",
+      "kind": "item",
+      "carrier": "Samurott",
+      "stageable": true,
+      "why_not": null,
+      "declaration": {
+        "tag_pct": 100,
+        "tag_from": "data/tags.json (frozen release) aspearberry.curesStatus — the tag declares WHICH statuses it cures and NO chance field. The engine own secondary loop reads an absent chance as 100 (`s.chance == null ? 100 : s.chance`), so a certainty is what the engine rolls with here. Nothing is typed.",
+        "list_pct": null,
+        "list_from": null,
+        "list_expect_raw": null,
+        "corroborated": null,
+        "why": "a CERTAINTY rather than a die. It is in this instrument because the trigger — the status actually landing — cannot be reached under the roster pinned dice, not because the rate is in doubt. data/million-targets.json has no row for it (PROC_WHAT is a hand-typed list of twelve)."
+      },
+      "denominator": "ONE TRIAL = ONE FRESHLY BUILT BOARD on which the trace shows the status ACTUALLY LANDING on the holder this turn. That is an independent observation of the trigger — not the berry own consumption, which would make the test circular.",
+      "preflight": {
+        "ok": true,
+        "why": [],
+        "note": []
+      },
+      "board": "Kangaskhan clicks Blizzard at Samurott, which holds aspearberry. The dice are free, so the status lands at its own rate; only the trials where it actually landed are in the denominator.",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 71,
+        "from": "one-sample proportion test against the DECLARED rate, two-sided alpha 0.05, power 0.80, larger of the two alternatives (p0 +/- detect)",
+        "achieved_trials": 71,
+        "attempts_spent": 1273,
+        "met": true,
+        "verdict": "MET"
+      },
+      "subject_arm": {
+        "attempts": 1273,
+        "n": 71,
+        "k": 71,
+        "refused": {
+          "the status never landed this turn, so the berry was never asked": 1202
+        },
+        "bands": {},
+        "extra": {
+          "raw_fires": 71
+        },
+        "halves": [
+          {
+            "n": 29,
+            "k": 29
+          },
+          {
+            "n": 42,
+            "k": 42
+          }
+        ],
+        "by_design": 1202,
+        "refused_total": 1202,
+        "construction_failures": 0,
+        "refused_rate": 0.9442,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0.9442,
+        "denominator_clean": "exact"
+      },
+      "control_arm": {
+        "attempts": 3268,
+        "n": 200,
+        "k": 0,
+        "refused": {
+          "the status never landed this turn, so the berry was never asked": 3068
+        },
+        "bands": {},
+        "extra": {},
+        "halves": [
+          {
+            "n": 93,
+            "k": 0
+          },
+          {
+            "n": 107,
+            "k": 0
+          }
+        ],
+        "by_design": 3068,
+        "refused_total": 3068,
+        "construction_failures": 0,
+        "refused_rate": 0.9388,
+        "construction_failure_rate": 0,
+        "by_design_refusal_rate": 0.9388,
+        "denominator_clean": "exact",
+        "what": "the identical board with the target holding NOTHING. This is the mechanism-removed shape: the trigger — the status landing — is still fully present, so the trials must be there and the numerator must be ZERO."
+      },
+      "control_proof": {
+        "kind": "mechanism-removed",
+        "trials": 200,
+        "fired": 0,
+        "raw_fires": 0,
+        "caught": true
+      },
+      "pinned_high": {
+        "trials": 0,
+        "fired": 0
+      },
+      "pinned_low": {
+        "trials": 400,
+        "fired": 400
+      }
+    }
+  ],
+  "rows": [
+    {
+      "key": "proc:static",
+      "family": "proc",
+      "subject": "static",
+      "detail": "contact punisher",
+      "declared_pct": 30,
+      "observed_pct": 30.419,
+      "trials": 16575,
+      "fired": 5042,
+      "ci95_pct": [
+        29.724,
+        31.124
+      ],
+      "half_width_pts": 0.7,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 30.54,
+        "b": 30.3,
+        "spread_pts": 0.24
+      },
+      "denominator_clean": "exact",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 16575,
+        "achieved_trials": 16575,
+        "verdict": "MET"
+      },
+      "certain": true
+    },
+    {
+      "key": "proc:flamebody",
+      "family": "proc",
+      "subject": "flamebody",
+      "detail": "contact punisher",
+      "declared_pct": 30,
+      "observed_pct": 30.462,
+      "trials": 16575,
+      "fired": 5049,
+      "ci95_pct": [
+        29.765,
+        31.167
+      ],
+      "half_width_pts": 0.701,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 30.27,
+        "b": 30.65,
+        "spread_pts": 0.38
+      },
+      "denominator_clean": "exact",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 16575,
+        "achieved_trials": 16575,
+        "verdict": "MET"
+      },
+      "certain": true
+    },
+    {
+      "key": "proc:poisonpoint",
+      "family": "proc",
+      "subject": "poisonpoint",
+      "detail": "contact punisher",
+      "declared_pct": 30,
+      "observed_pct": 29.653,
+      "trials": 16575,
+      "fired": 4915,
+      "ci95_pct": [
+        28.963,
+        30.353
+      ],
+      "half_width_pts": 0.695,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 29.43,
+        "b": 29.88,
+        "spread_pts": 0.45
+      },
+      "denominator_clean": "exact",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 16575,
+        "achieved_trials": 16575,
+        "verdict": "MET"
+      },
+      "certain": true
+    },
+    {
+      "key": "proc:effectspore",
+      "family": "proc",
+      "subject": "effectspore",
+      "detail": "contact punisher",
+      "declared_pct": 30,
+      "observed_pct": 30.341,
+      "trials": 16575,
+      "fired": 5029,
+      "ci95_pct": [
+        29.646,
+        31.045
+      ],
+      "half_width_pts": 0.7,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 30.12,
+        "b": 30.57,
+        "spread_pts": 0.45
+      },
+      "denominator_clean": "exact",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 16575,
+        "achieved_trials": 16575,
+        "verdict": "MET"
+      },
+      "certain": true
+    },
+    {
+      "key": "proc:cutecharm",
+      "family": "proc",
+      "subject": "cutecharm",
+      "detail": "contact punisher",
+      "declared_pct": 30,
+      "observed_pct": 0,
+      "trials": 16575,
+      "fired": 0,
+      "ci95_pct": [
+        0,
+        0.023
+      ],
+      "half_width_pts": 0.012,
+      "scored": true,
+      "diverges_at_95": true,
+      "diverges_bonferroni": true,
+      "split_half": {
+        "a": 0,
+        "b": 0,
+        "spread_pts": 0
+      },
+      "denominator_clean": "exact",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 16575,
+        "achieved_trials": 16575,
+        "verdict": "MET"
+      },
+      "certain": true
+    },
+    {
+      "key": "proc:cursedbody",
+      "family": "proc",
+      "subject": "cursedbody",
+      "detail": "disables the move that hit it",
+      "declared_pct": 30,
+      "observed_pct": 29.732,
+      "trials": 16575,
+      "fired": 4928,
+      "ci95_pct": [
+        29.04,
+        30.432
+      ],
+      "half_width_pts": 0.696,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 29.75,
+        "b": 29.71,
+        "spread_pts": 0.04
+      },
+      "denominator_clean": "exact",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 16575,
+        "achieved_trials": 16575,
+        "verdict": "MET"
+      },
+      "certain": true
+    },
+    {
+      "key": "proc:poisontouch",
+      "family": "proc",
+      "subject": "poisontouch",
+      "detail": "poisons what it touches",
+      "declared_pct": 30,
+      "observed_pct": 29.665,
+      "trials": 16575,
+      "fired": 4917,
+      "ci95_pct": [
+        28.975,
+        30.365
+      ],
+      "half_width_pts": 0.695,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 29.33,
+        "b": 30,
+        "spread_pts": 0.67
+      },
+      "denominator_clean": "exact",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 16575,
+        "achieved_trials": 16575,
+        "verdict": "MET"
+      },
+      "certain": true
+    },
+    {
+      "key": "proc:stench",
+      "family": "proc",
+      "subject": "stench",
+      "detail": "adds a flinch to its own damaging move",
+      "declared_pct": 10,
+      "observed_pct": 0,
+      "trials": 7248,
+      "fired": 0,
+      "ci95_pct": [
+        0,
+        0.053
+      ],
+      "half_width_pts": 0.026,
+      "scored": true,
+      "diverges_at_95": true,
+      "diverges_bonferroni": true,
+      "split_half": {
+        "a": 0,
+        "b": 0,
+        "spread_pts": 0
+      },
+      "denominator_clean": "exact",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 7248,
+        "achieved_trials": 7248,
+        "verdict": "MET"
+      },
+      "certain": true
+    },
+    {
+      "key": "proc:kingsrock",
+      "family": "proc",
+      "subject": "kingsrock",
+      "detail": "adds a flinch to its own damaging move",
+      "declared_pct": 10,
+      "observed_pct": 9.575,
+      "trials": 7248,
+      "fired": 694,
+      "ci95_pct": [
+        8.919,
+        10.274
+      ],
+      "half_width_pts": 0.678,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 10.24,
+        "b": 8.91,
+        "spread_pts": 1.32
+      },
+      "denominator_clean": "exact",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 7248,
+        "achieved_trials": 7248,
+        "verdict": "MET"
+      },
+      "certain": true
+    },
+    {
+      "key": "proc:quickclaw",
+      "family": "proc",
+      "subject": "quickclaw",
+      "detail": "moves first out of its bracket",
+      "declared_pct": 20,
+      "observed_pct": 20.194,
+      "trials": 12697,
+      "fired": 2564,
+      "ci95_pct": [
+        19.505,
+        20.901
+      ],
+      "half_width_pts": 0.698,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 20.66,
+        "b": 19.72,
+        "spread_pts": 0.94
+      },
+      "denominator_clean": "exact",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 12697,
+        "achieved_trials": 12697,
+        "verdict": "MET"
+      },
+      "certain": true
+    },
+    {
+      "key": "proc:quickdraw",
+      "family": "proc",
+      "subject": "quickdraw",
+      "detail": "moves first out of its bracket",
+      "declared_pct": 30,
+      "observed_pct": 0,
+      "trials": 16575,
+      "fired": 0,
+      "ci95_pct": [
+        0,
+        0.023
+      ],
+      "half_width_pts": 0.012,
+      "scored": true,
+      "diverges_at_95": true,
+      "diverges_bonferroni": true,
+      "split_half": {
+        "a": 0,
+        "b": 0,
+        "spread_pts": 0
+      },
+      "denominator_clean": "exact",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 16575,
+        "achieved_trials": 16575,
+        "verdict": "MET"
+      },
+      "certain": true
+    },
+    {
+      "key": "proc:focusband",
+      "family": "proc",
+      "subject": "focusband",
+      "detail": "survives a lethal hit on 1 HP",
+      "declared_pct": null,
+      "observed_pct": 0,
+      "trials": 400,
+      "fired": 0,
+      "ci95_pct": [
+        0,
+        0.951
+      ],
+      "half_width_pts": 0.476,
+      "scored": false,
+      "denominator_clean": "exact",
+      "power": {
+        "detect_points": 1,
+        "required_trials": null,
+        "achieved_trials": 400,
+        "verdict": "UNREACHABLE FOR POWER — no declared rate to power against; the FROZEN tag artifact carries no such param for focusband, so the engine has nothing to roll here. The row is tallied and NOT scored: a rate is the wrong question about a mechanic that is absent, and tests/roster.js owns absence."
+      },
+      "certain": false
+    },
+    {
+      "key": "proc:shedskin",
+      "family": "proc",
+      "subject": "shedskin",
+      "detail": "cures its own status at the residual",
+      "declared_pct": 33,
+      "observed_pct": 33.266,
+      "trials": 17432,
+      "fired": 5799,
+      "ci95_pct": [
+        32.571,
+        33.969
+      ],
+      "half_width_pts": 0.699,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 33.64,
+        "b": 32.89,
+        "spread_pts": 0.75
+      },
+      "denominator_clean": "exact",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 17432,
+        "achieved_trials": 17432,
+        "verdict": "MET"
+      },
+      "certain": true
+    },
+    {
+      "key": "proc:healer",
+      "family": "proc",
+      "subject": "healer",
+      "detail": "cures an ally status at the residual",
+      "declared_pct": 50,
+      "observed_pct": 50.015,
+      "trials": 19620,
+      "fired": 9813,
+      "ci95_pct": [
+        49.316,
+        50.715
+      ],
+      "half_width_pts": 0.7,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 50,
+        "b": 50.03,
+        "spread_pts": 0.03
+      },
+      "denominator_clean": "exact",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 19620,
+        "achieved_trials": 19620,
+        "verdict": "MET"
+      },
+      "certain": true
+    },
+    {
+      "key": "proc:harvest",
+      "family": "proc",
+      "subject": "harvest",
+      "detail": "restores the berry it ate",
+      "declared_pct": 50,
+      "observed_pct": 50.183,
+      "trials": 19620,
+      "fired": 9846,
+      "ci95_pct": [
+        49.484,
+        50.883
+      ],
+      "half_width_pts": 0.7,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 50.45,
+        "b": 49.92,
+        "spread_pts": 0.53
+      },
+      "denominator_clean": "exact",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 19620,
+        "achieved_trials": 19620,
+        "verdict": "MET"
+      },
+      "certain": true
+    },
+    {
+      "key": "proc:rawstberry",
+      "family": "proc",
+      "subject": "rawstberry",
+      "detail": "cures brn the moment it lands",
+      "declared_pct": 100,
+      "observed_pct": 100,
+      "trials": 71,
+      "fired": 71,
+      "ci95_pct": [
+        94.867,
+        100
+      ],
+      "half_width_pts": 2.566,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 100,
+        "b": 100,
+        "spread_pts": 0
+      },
+      "denominator_clean": "exact",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 71,
+        "achieved_trials": 71,
+        "verdict": "MET"
+      },
+      "certain": true
+    },
+    {
+      "key": "proc:aspearberry",
+      "family": "proc",
+      "subject": "aspearberry",
+      "detail": "cures frz the moment it lands",
+      "declared_pct": 100,
+      "observed_pct": 100,
+      "trials": 71,
+      "fired": 71,
+      "ci95_pct": [
+        94.867,
+        100
+      ],
+      "half_width_pts": 2.566,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": null,
+      "denominator_clean": "exact",
+      "power": {
+        "detect_points": 1,
+        "required_trials": 71,
+        "achieved_trials": 71,
+        "verdict": "MET"
+      },
+      "certain": true
+    }
+  ],
+  "coverage_against_target_list": {
+    "proc_rows_in_list": 12,
+    "with_a_staged_fixture": 12,
+    "list_rows_with_no_fixture": [],
+    "fixtures_with_no_list_row": [
+      "static",
+      "stench",
+      "shedskin",
+      "rawstberry",
+      "aspearberry"
+    ],
+    "note": "a fixture with no list row is not an error — million_targets.js PROC_WHAT is a hand-typed list of twelve subjects and ROADMAP #196 names seventeen. It is the corroboration gap, counted rather than felt."
+  }
+}

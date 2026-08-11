@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-11T06:49:30.092Z",
+  "generated": "2026-08-11T13:11:30.077Z",
   "by": "tests/test-interaction-matrix.js",
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "depth": "full",
   "theoretical": {
-    "flag": 8740,
-    "type": 480,
+    "flag": 6534,
+    "type": 413,
     "field": 156,
-    "total": 9376
+    "total": 7103
   },
   "emitted": 2250,
   "ran": 2250,
@@ -39,9 +39,8 @@
     "reactor-is-a-die: its own effect fires on a percentage, so ONE seeded battle compares luck": 6,
     "no-user: no body both has the attacker-side reactor and learns the carrier": 161,
     "carrier-unmeasurable-by-ratio: a residual or a multi-hit lands in the same HP delta as the multiplier": 20,
-    "layer-unclassified: the reactor is tagged, but no tag maps to a resolution stage": 14,
+    "layer-unclassified: the reactor is tagged, but no tag maps to a resolution stage": 12,
     "holder-immune-by-chart: every candidate body already takes zero from this move type": 73,
-    "reactor-not-in-format: no species in this format has the ability at all": 29,
     "no-control-carrier: the user has no flagless move of the same category": 104,
     "no-holder: no species in MC.mons learns the reactor move on a body this carrier can reach": 46,
     "reactor-not-in-format: no species in this format learns the reactor move": 1,
@@ -52,6 +51,7 @@
     "carrier-does-not-aim-at-a-foe: target=allySide": 62,
     "carrier-does-not-aim-at-a-foe: target=foeSide": 28,
     "carrier-does-not-aim-at-a-foe: target=adjacentAllyOrSelf": 7,
+    "reactor-not-in-format: no species in this format has the ability at all": 5,
     "control-impossible-for-this-key: every move of the carrier's own category carries this key by construction, so a control that is same-category AND flagless cannot exist — the reactor treats the control exactly like the carrier and the pair would report INERT": 189,
     "reactor-also-moves-accuracy: a damage RATIO would be measuring a miss, not a multiplier": 1,
     "carrier-reaches-this-key-only-through-a-roll: a 30% secondary, and the pinned median die does not fire it": 41,
@@ -62,8 +62,8 @@
     "carrier-reaches-this-key-only-through-a-roll: a 50% secondary, and the pinned median die does not fire it": 5,
     "carrier-reaches-this-key-only-through-a-roll: a 40% secondary, and the pinned median die does not fire it": 1,
     "no-user: no body both has the attacker-side reactor and learns a move of its type": 40,
-    "no-type-param: the reactor is in the moveType index but no param names a type": 21,
-    "layer-unclassified: no tag on the reactor maps to a resolution stage": 3,
+    "no-type-param: the reactor is in the moveType index but no param names a type": 19,
+    "layer-unclassified: no tag on the reactor maps to a resolution stage": 2,
     "field-setter-self-switches: the case would be about the replacement, not the field": 1,
     "field-not-in-projection: persists, but neither engine projection carries it": 4
   },
@@ -71,7 +71,7 @@
   "agree": 1641,
   "part": 0,
   "agreement_pct": 100,
-  "staged_pct_of_theoretical": 24,
+  "staged_pct_of_theoretical": 31.7,
   "inert": 489,
   "saturated": 111,
   "ko_timing": 7,
@@ -6462,7 +6462,7 @@
       "why": "1359/test turn 1: p1 choice rejected — \"move 1 1, move 1\"  (Can't move: You can't choose a target for Curse)"
     }
   ],
-  "off_gate": 24,
+  "off_gate": 23,
   "off_gate_rows": [
     {
       "key": "contact",
@@ -6816,21 +6816,6 @@
           "path": ".B.active[0].hurt",
           "medi": "true",
           "sd": "false"
-        }
-      ]
-    },
-    {
-      "key": "physicalMove",
-      "bucket": "inert",
-      "carrier": "rapidspin",
-      "reactor": "toxicdebris",
-      "kind": "ability",
-      "uses": 14,
-      "diffs": [
-        {
-          "path": ".A.hazards.toxicspikes",
-          "medi": "1",
-          "sd": "null"
         }
       ]
     },

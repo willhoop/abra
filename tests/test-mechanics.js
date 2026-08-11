@@ -8914,6 +8914,43 @@ probe('ability', 'privateWeatherMoveType', "Mega Sol's private sun changes Weath
                  + `public-sun number, not merely exceed zero)` };
 });
 
+/* THE SAME PRIVATE SKY, ONE FIELD OVER, AND THIS ONE WAS STILL WRONG. `chargeSkip` asks
+ * `field.weather === skipsIn` — the PUBLIC sky — while every other weather read in this engine goes
+ * through `effWeatherOf`, which honours the private one. So a Meganium-Mega's Solar Beam spent a
+ * charge turn it does not spend upstream. FACTS ARE GLOBAL broken for the third time on this ability:
+ * WIRE 99 wired the private sky into the damage path, WIRE 126 into the type path, and the charge
+ * path was never asked.
+ *
+ * FOUND BY `tests/roster.js`'s `ability/private-sky` rule, off Will's own board: *"Meganium-Mega with
+ * Mega Sol against Swampert-Mega, NO real sun — it fires IMMEDIATELY"*. Measured on the deliberate
+ * roster before the fix: Showdown took the target to 53 HP on the click turn, medicham2 left it at 122.
+ *
+ * THE POSITIVE CONTROL IS A REAL SUN. "Solar Beam did damage on turn 1" is also satisfied by an engine
+ * that never charges anything, which is the failure the other direction — so the no-ability/no-sun arm
+ * must be a hard zero and the no-ability/PUBLIC-sun arm must equal the private-sun one. */
+probe('move', 'chargeSkippedByWeather', "Mega Sol's private sun spends Solar Beam's charge turn for it", () => {
+  const firstTurn = (ability, weather) => {
+    const B = board('meganium-mega', 'corviknight', 'milotic', 'clefable');
+    B.me.ability = ability; B.S.field.weather = weather;
+    if (weather) B.S.field.weatherT = 5;
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'solarbeam', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return before - B.f1.curHP;
+  };
+  const control = firstTurn('none', '');        // must be 0 — the charge turn is spent
+  const publicSun = firstTurn('none', 'sun');   // the positive control — a real sun already worked
+  const privateSun = firstTurn('megasol', '');  // the cross — clear field, private sun
+  return { works: control === 0 && publicSun > 0 && privateSun === publicSun,
+           arms: { control, test: [privateSun, publicSun] },
+           detail: 'Solar Beam damage ON THE TURN IT IS CLICKED, from a Meganium-Mega body: no ability '
+                 + '+ clear sky ' + control + ' (must be 0 — it charges), no ability + PUBLIC sun '
+                 + publicSun + ' (the positive control, so this is not an engine that stopped charging '
+                 + 'anything), MEGA SOL + clear sky ' + privateSun + ' (must EQUAL the public-sun '
+                 + 'number, not merely exceed zero)' };
+});
+
 /* ================================================================================================
  * THE CENSUS ASKS WHETHER A MECHANIC FIRES. IT NEVER ASKED WHETHER IT FIRES *ONLY WHERE IT SHOULD*.
  *
@@ -14013,6 +14050,61 @@ probe('move', 'perTurnHP', 'Ingrain plants a Flying body on the floor', () => {
            arms: { control, test },
            detail: 'Earthquake into a Flying Corviknight: ' + control + ' untouched, ' + test
                  + ' after Ingrain' };
+});
+
+/* ---- ROADMAP #186 — THE SECOND GATE. THE GROUNDED AXIS ABOVE NEVER ASKED A *LEVITATE* BODY --------
+ *
+ * EVERY PROBE IN THE BLOCK ABOVE STAGES CORVIKNIGHT, AND THAT IS THE HOLE. A Flying body is refused by
+ * `isGrounded`'s FLYING clause; a Levitate body is refused somewhere else entirely. This engine gates
+ * the Ground immunity TWICE and independently —
+ *
+ *     dmgRange   eff = isGrounded(def, att) ? mcEff('Ground', ...) : 0        (honours Gravity)
+ *     the loop   absorbedBy() -> TAGS typeImmunity {type:'Ground'}            (asks NOTHING else)
+ *
+ * — which is FACTS ARE GLOBAL broken inside one file. The second gate ends the hit before the first
+ * one's answer can matter, so Gravity and Smack Down were wired, counted, PROVEN on a Flying body, and
+ * did nothing at all to the ability that carries 8 of this format's Ground immunities. Found by
+ * `tests/roster.js`'s `ability/ground-immunity` rule, staged from Will's own four-arm board.
+ *
+ * FIVE ARMS, AND `eartheater` IS THE ONE THAT DECIDES THE FIX'S SHAPE. `typeImmunity {type:'Ground'}`
+ * has THREE members — levitate, eelevate and eartheater — and Orthworm is Ground-immune while standing
+ * squarely on the floor. A fix that made the whole tag defer to `isGrounded` would ground Earth Eater,
+ * so the arm is here and it must stay 0 with Gravity up. */
+probe('ability', 'typeImmunity', 'Gravity and Smack Down ground a LEVITATE body, and the absorb gate honours it', () => {
+  const eqAt = (ab, stage) => {
+    const B = board('garchomp', 'skeledirge', 'incineroar', 'farigiraf');
+    if (ab) B.f1.ability = ab;
+    if (stage) stage(B);
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'earthquake', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return before - B.f1.curHP;
+  };
+  /* THE CLICKS ARE SPENT, never a field slot poked — the same rule the Gravity probe above states. */
+  const gravityUp = (B) => {
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'gravity', null, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+  };
+  const smacked = (B) => {
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'smackdown', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+  };
+  const levFlat = eqAt('levitate', null);          // must be 0 — the immunity is the ability's
+  const levGrav = eqAt('levitate', gravityUp);     // must land
+  const levSmack = eqAt('levitate', smacked);      // must land
+  const floor = eqAt(null, null);                  // must land — not an engine that stopped refusing
+  const eaterGrav = eqAt('eartheater', gravityUp); // must STAY 0 — Earth Eater is not airborne
+  return { works: levFlat === 0 && levGrav > 0 && levSmack > 0 && floor > 0 && eaterGrav === 0,
+           arms: { control: [levFlat, eaterGrav], test: [levGrav, levSmack, floor] },
+           detail: 'Earthquake into a LEVITATE Incineroar: ' + levFlat + ' with nothing up (must be 0), '
+                 + levGrav + ' after a real Gravity click, ' + levSmack + ' after Smack Down. '
+                 + 'CONTROL, the other direction: ' + floor + ' into the same body with its own '
+                 + 'ability (must be > 0). OVER-MATCH CONTROL: ' + eaterGrav + ' into an EARTH EATER '
+                 + 'body with Gravity up — it carries the same `typeImmunity {type:Ground}` tag and is '
+                 + 'NOT airborne, so it must stay 0 or the fix grounded the wrong third of the tag' };
 });
 
 /* ---- ROADMAP #123 — THE SEMI-INVULNERABILITY EXCEPTION LISTS, AND THERE ARE TWO OF THEM ----------

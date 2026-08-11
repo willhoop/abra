@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-11T09:32:56.468Z",
+ "generated": "2026-08-11T11:13:28.469Z",
  "by": "engine/conformance.js",
  "files": 375,
  "findings": [
@@ -516,6 +516,12 @@
    "why": "headers explain the failure the file prevents"
   },
   {
+   "std": "S12",
+   "file": "tests/test-mod-conformance.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
    "std": "S8",
    "file": "tests/test-prng.js",
    "what": "CHI_LIMIT = 27.877 with no stated derivation",
@@ -604,9 +610,36 @@
   },
   {
    "std": "S13",
+   "file": "data/artifact-accessors.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "named in the CODE of tests/test-artifact-keys.js but never beside a write: those files READ it. Nothing in this repository can be shown to generate it."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/battle-formes.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "the artifact DECLARES its origin and the declaration names no script on disk: \"https://play.pokemonshowdown.com/data/pokedex.json\""
+   ]
+  },
+  {
+   "std": "S13",
    "file": "data/calibration.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/conditional-audit.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "named ONLY in a comment, by engine/conditional_audit.js — the write path is supplied at runtime (a flag or an environment variable), so no literal reaches a write call."
+   ]
   },
   {
    "std": "S13",
@@ -628,6 +661,15 @@
   },
   {
    "std": "S13",
+   "file": "data/exploitability-holdout.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "a generator's output PATTERN matched and was REVOKED — exploitability-holdout.json matches engine/exploit.js's output pattern but its keys do not agree with exploitability.json, which that generator writes by name"
+   ]
+  },
+  {
+   "std": "S13",
    "file": "data/jolteon-weights.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
@@ -642,7 +684,10 @@
    "std": "S13",
    "file": "data/leaf-comparison.json",
    "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "the artifact DECLARES its origin and the declaration names no script on disk: \"an ad-hoc MEASURE analysis; NO generator script is committed for this file. It is a one-shot comparison, not a standing gate. Re-derive it, do not quo\""
+   ]
   },
   {
    "std": "S13",
@@ -664,45 +709,84 @@
   },
   {
    "std": "S13",
-   "file": "data/million-run.json",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
+   "file": "data/meta-nash.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "named in the CODE of engine/sanity_check.py but never beside a write: those files READ it. Nothing in this repository can be shown to generate it."
+   ]
   },
   {
    "std": "S13",
    "file": "data/miltank-timing-r6.json",
    "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
   },
   {
    "std": "S13",
    "file": "data/policy-weights-all.json",
    "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing. SUGGESTIVE ONLY, NOT AN ATTRIBUTION: the sibling policy-weights.json differs by one name segment (\"all\") and IS attributed, to engine/fit_policy.js."
+   ]
   },
   {
    "std": "S13",
    "file": "data/policy-weights-julyonly.json",
    "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing. SUGGESTIVE ONLY, NOT AN ATTRIBUTION: the sibling policy-weights.json differs by one name segment (\"julyonly\") and IS attributed, to engine/fit_policy.js."
+   ]
   },
   {
    "std": "S13",
    "file": "data/policy-weights-multiturn.json",
    "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing. SUGGESTIVE ONLY, NOT AN ATTRIBUTION: the sibling policy-weights.json differs by one name segment (\"multiturn\") and IS attributed, to engine/fit_policy.js."
+   ]
   },
   {
    "std": "S13",
    "file": "data/policy-weights-nomt.json",
    "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing. SUGGESTIVE ONLY, NOT AN ATTRIBUTION: the sibling policy-weights.json differs by one name segment (\"nomt\") and IS attributed, to engine/fit_policy.js."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/policy-weights-nopop.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "named in the CODE of build/build_mag_variables.js but never beside a write: those files READ it. Nothing in this repository can be shown to generate it. SUGGESTIVE ONLY, NOT AN ATTRIBUTION: the sibling policy-weights.json differs by one name segment (\"nopop\") and IS attributed, to engine/fit_policy.js."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/policy-weights-pre-censoring.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "named in the CODE of engine/censoring_value.js but never beside a write: those files READ it. Nothing in this repository can be shown to generate it."
+   ]
   },
   {
    "std": "S13",
    "file": "data/policy-weights-presheet.json",
    "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing. SUGGESTIVE ONLY, NOT AN ATTRIBUTION: the sibling policy-weights.json differs by one name segment (\"presheet\") and IS attributed, to engine/fit_policy.js."
+   ]
   },
   {
    "std": "S13",
@@ -736,6 +820,15 @@
   },
   {
    "std": "S13",
+   "file": "data/raw-log-census.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "the artifact DECLARES its origin and the declaration names no script on disk: \"ROADMAP #134 — written so the frequencies in the sprint notes are checkable, not trusted\""
+   ]
+  },
+  {
+   "std": "S13",
    "file": "data/replay-differential-bo3-freezes.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
@@ -755,8 +848,8 @@
   {
    "std": "S13",
    "file": "data/replay-differential-sheets-freezes.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
   },
   {
    "std": "S13",

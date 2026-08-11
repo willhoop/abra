@@ -205,6 +205,10 @@ function checkAsserted(f, src) {
  * Two shapes: a data file nobody generates, and a generated file that does not say so.
  * ------------------------------------------------------------------------------------------- */
 const unreadable = [];
+/* Every data file this standard actually LOOKED AT. The ratchet's regression-vs-discovery split needs
+ * to know whether a finding's subject was in scope last time and whether it has moved since, and a
+ * subject nobody recorded looking at cannot be told from a subject that did not exist. */
+const judgedData = [];
 /* WHO WRITES THIS FILE IS ASKED, NOT GUESSED — engine/provenance.js --graph --json.
  *
  * This check used to answer it with `allSrc.includes(file)`: a substring search for the file's NAME
@@ -243,6 +247,7 @@ function checkGeneratedFiles() {
   let files; try { files = fs.readdirSync(D('data')); } catch (e) { return; }
   for (const file of files) {
     if (!/\.(json|js)$/.test(file)) continue;
+    judgedData.push(file);
     if (/^games\./.test(file)) continue;                       // stores, not artifacts
     /* CONFIG IS NOT AN ARTIFACT. data/quality-filter.json and data/regulations.json are the SOURCES
      * S12 points everything else at — hand-maintained on purpose, and each already carries its own
@@ -410,7 +415,16 @@ fs.writeFileSync(D('data', 'conformance.json'), JSON.stringify({
  *      finding would be in the baseline by the time anyone re-ran it and the gate would be green on
  *      the second try. The write happens ONLY when nothing is new.
  * ------------------------------------------------------------------------------------------- */
-const BASELINE = D('data', 'conformance-baseline.json');
+/* `--baseline <path>` POINTS THE RATCHET AT A SCRATCH FILE, and it exists for one reason: the
+ * regression-vs-discovery split below could not otherwise be SHOWN RED. Exercising it needs a
+ * baseline that already carries a scope map and rule digests, and the real one cannot acquire those
+ * while the gate is red — it is not rewritten while anything is new, which is the point. Without
+ * this flag the only way to demonstrate the mechanism is to sabotage the published baseline, which
+ * is how a chain of custody gets broken. Default is unchanged; nothing in the suite passes it. */
+const BASELINE = (() => {
+  const i = process.argv.indexOf('--baseline');
+  return i >= 0 && process.argv[i + 1] ? path.resolve(process.argv[i + 1]) : D('data', 'conformance-baseline.json');
+})();
 
 /* THE IDENTITY OF A FINDING IS ITS SHAPE, NOT ITS TEXT.
  *
@@ -435,6 +449,91 @@ function fingerprint(v) {
   else if (/^nothing runs it/.test(v.what)) kind = 'dead: nothing runs it';
   else kind = v.what;                       /* S13 and convention findings are already invariant */
   return `${v.std} | ${file} | ${kind}`;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * REGRESSION vs DISCOVERY — ROADMAP #188
+ *
+ * A CHECKER THAT GETS BETTER MUST NOT BREAK THE GATE. On 2026-08-11 S13 stopped guessing who writes
+ * an artifact (`allSrc.includes(file)`, a substring search over the whole repository) and started
+ * asking `engine/provenance.js --graph --json`. That is strictly better and it raised NINE findings
+ * the substring search had concealed — every one a true positive. The gate went red on them, on the
+ * same run it went red on nineteen findings that were already there. Those two events are OPPOSITE
+ * and the ratchet could not tell them apart, so the only ways out were to rewrite the baseline
+ * wholesale — which buries the nineteen — or to leave a red gate and normalise it, which is the
+ * failure CLAUDE.md's banned-phrase section is entirely about.
+ *
+ * `data/provenance-stamp.json` had already solved this from the other side: `graph_files` records
+ * what the checker could SEE, a growth in that set is a DISCOVERY, a file losing its stamp is a
+ * REGRESSION, and only the second is fatal. This is that shape, with the two inputs conformance
+ * actually has.
+ *
+ *   SUBJECT   the file a finding is about, digested. `scope` in the baseline.
+ *   RULE      the code that emits findings for that STANDARD, digested. `rule_digests`.
+ *
+ *   subject is new to the scan .................. REGRESSION  (new code must conform)
+ *   subject moved ............................... REGRESSION  (the file changed and now violates)
+ *   subject unchanged AND that standard's rule moved  DISCOVERY
+ *   subject unchanged AND no rule moved ......... REGRESSION, and printed as UNEXPLAINED — an input
+ *                                                 nothing here tracks moved, which is a fact worth
+ *                                                 hearing rather than a category to fall into.
+ *
+ * THE RULE DIGEST IS PER STANDARD, AND THAT IS THE WHOLE GUARD. A whole-file digest of
+ * conformance.js would have let one line changed in S13 bless ten S12 findings on files nobody had
+ * touched — laundering wearing the new mechanism's name. The digest covers the top-level functions
+ * that CALL `flag(<std>, …)`, so editing S13 moves S13's digest and nothing else's.
+ *
+ * WHAT IT DELIBERATELY CANNOT SEE, because a mechanism that hides its blind spot is worse than none:
+ * a module-level constant those functions read (CONFIG_VALUES, the name tables) is outside the
+ * slice, so changing one and re-raising a finding reads as UNEXPLAINED — which fails the gate. That
+ * is the conservative direction and it is the correct one to be wrong in.
+ * ------------------------------------------------------------------------------------------- */
+const RS_ = require('./run_stamp.js');
+const sha = rel => { try { return RS_.sha12(rel); } catch (e) { return null; } };
+
+/* The scan's whole subject surface: every source file it read, and every data file S13 looked at. */
+function scopeMap() {
+  const out = {};
+  for (const s of srcs) out[s.rel] = sha(s.rel);
+  for (const f of judgedData) out['data/' + f] = sha('data/' + f);
+  return out;
+}
+
+/* THE STANDARD'S OWN CODE, SLICED OUT OF THIS FILE BY WHO CALLS `flag`. Top-level functions only —
+ * this file has no nested ones — found by a `function name(` at column 0 and closed by a `}` at
+ * column 0. If that shape ever stops holding, `ruleDigests()` returns an EMPTY map and every added
+ * finding falls to UNEXPLAINED, which fails. It does not silently classify on a bad slice. */
+function ruleDigests() {
+  const src = read(__filename);
+  const lines = src.split('\n');
+  const byName = new Map();
+  for (let i = 0; i < lines.length; i++) {
+    const m = /^function\s+([A-Za-z0-9_$]+)\s*\(/.exec(lines[i]);
+    if (!m) continue;
+    let j = i + 1;
+    while (j < lines.length && !/^\}/.test(lines[j])) j++;
+    if (j >= lines.length) continue;
+    byName.set(m[1], lines.slice(i, j + 1).join('\n'));
+  }
+  if (!byName.size) return {};
+  const crypto = require('crypto');
+  const out = {};
+  for (const [, text] of byName) {
+    for (const mm of text.matchAll(/\bflag\(\s*'([A-Za-z0-9]+)'/g)) {
+      (out[mm[1]] = out[mm[1]] || []).push(text);
+    }
+  }
+  const digests = {};
+  for (const std of Object.keys(out)) {
+    digests[std] = crypto.createHash('sha256').update(out[std].sort().join('\n')).digest('hex').slice(0, 12);
+  }
+  /* S13's ANSWER IS NOT IN THIS FILE. It comes from engine/provenance.js's graph, so that file is
+   * part of S13's rule and a change there is a rule change — which is exactly what happened on
+   * 2026-08-11 and what this whole split is for. Stated here rather than left implicit, because it
+   * also means a provenance edit can bless an S13 finding on an unchanged subject. */
+  const pv = sha('engine/provenance.js');
+  if (digests.S13 && pv) digests.S13 = digests.S13 + '+' + pv;
+  return digests;
 }
 
 const nowByKey = new Map();
@@ -469,9 +568,9 @@ if (errBaseline) {
   console.log('  finding introduced since the file was last good. Restore it from git and re-run.');
   process.exitCode = 1;
 } else if (!prev) {
-  console.log(`  RATCHET — no baseline at data/conformance-baseline.json; adopting the current`);
+  console.log(`  RATCHET — no baseline at ${path.relative(ROOT, BASELINE).split('\\').join('/')}; adopting the current`);
   console.log(`  ${nowKeys.length} finding(s) as the baseline. From here it may only shrink.`);
-  writeBaseline();
+  writeBaseline({ scope: scopeMap(), rules: ruleDigests(), discovered: [], cls: new Map() });
 } else {
   const prevByKey = new Map(prev.findings.map(e => [e.key, e]));
   const added = nowKeys.filter(k => !prevByKey.has(k));
@@ -492,7 +591,68 @@ if (errBaseline) {
     if (grew.length) widened.push([k, grew]);
   }
 
-  console.log(`  RATCHET — ${prev.findings.length} baselined, ${added.length} new, ${removed.length} fixed`);
+  /* ---- the split ---- */
+  const scopeNow = scopeMap();
+  const rulesNow = ruleDigests();
+  const scopeWas = (prev && prev.scope) || null;
+  const rulesWas = (prev && prev.rule_digests) || null;
+  const classify = (k) => {
+    const e = nowByKey.get(k);
+    const file = e.file;
+    if (!scopeWas || !rulesWas) return { klass: 'REGRESSION', why: 'the previous baseline carries no '
+      + 'scope map or no rule digests, so this run cannot hold the subject constant; a finding it '
+      + 'cannot explain is a regression' };
+    if (!Object.prototype.hasOwnProperty.call(scopeWas, file))
+      return { klass: 'REGRESSION', why: 'the subject was not in the previous scan — new code must conform' };
+    if (scopeWas[file] !== scopeNow[file])
+      return { klass: 'REGRESSION', why: 'the subject file changed since the baseline' };
+    const rw = rulesWas[e.std], rn = rulesNow[e.std];
+    if (rn && rw && rn !== rw)
+      return { klass: 'DISCOVERY', why: `the subject is byte-identical to the baseline and ${e.std}'s own rule moved (${rw} -> ${rn})` };
+    /* A FINDING THAT WAS ALREADY NEW WHEN THE SPLIT WAS INSTALLED IS NOT AN UNEXPLAINED EVENT, AND
+     * SAYING SO WOULD BE THIS FILE INVENTING A CAUSE. --seed-split records the exact set that was
+     * outstanding at the seed; those predate the mechanism, cannot be attributed by it, and are
+     * reported as such. They still fail — the split was never a way to make them go away. */
+    if (Array.isArray(prev.new_at_seed) && prev.new_at_seed.includes(k))
+      return { klass: 'REGRESSION', why: 'it was ALREADY new when --seed-split installed the split ('
+        + (prev.seeded || 'unknown date') + '), so this mechanism cannot attribute it either way. '
+        + 'Triage it on its merits' };
+    return { klass: 'REGRESSION', why: 'UNEXPLAINED — neither the subject nor ' + e.std + '\'s rule '
+      + 'moved, so an input this checker does not track did. Treated as a regression on purpose' };
+  };
+  const cls = new Map(added.map(k => [k, classify(k)]));
+  const discoveries = added.filter(k => cls.get(k).klass === 'DISCOVERY');
+  const regressions = added.filter(k => cls.get(k).klass === 'REGRESSION');
+
+  /* `--seed-split` INSTALLS THE TWO INPUTS AND ADOPTS NOTHING, and it exists because otherwise the
+   * split can never switch itself on. The baseline is not rewritten while anything is new — rule 3
+   * above, and it is the right rule — so a gate that is already red can never acquire the scope map
+   * the split needs, and the mechanism would sit dormant forever behind the findings it was built to
+   * classify. This writes `scope` and `rule_digests` and REFUSES if the finding list would move by
+   * one entry, which is the only thing rule 3 is actually protecting. It blesses nothing: every
+   * finding that is new today is still new tomorrow, and every one of them still fails. */
+  if (process.argv.includes('--seed-split')) {
+    const body = Object.assign({}, prev, { scope: scopeNow, rule_digests: rulesNow,
+      seeded: new Date().toISOString(),
+      new_at_seed: added.slice(),
+      seeded_note: 'scope and rule_digests were installed by --seed-split on a run that had '
+        + added.length + ' new finding(s). The finding list was NOT touched and nothing was adopted. '
+        + '`new_at_seed` is the set that was already outstanding, recorded so later runs report them '
+        + 'as predating the split instead of inventing an UNEXPLAINED cause for them.' });
+    if (JSON.stringify(body.findings) !== JSON.stringify(prev.findings)) {
+      console.log('\n  --seed-split REFUSED: the finding list would change. That is not a seed.');
+      process.exit(1);
+    }
+    fs.writeFileSync(BASELINE, JSON.stringify(body, null, 1) + '\n');
+    console.log(`\n  --seed-split: wrote ${Object.keys(scopeNow).length} subject digests and `
+      + `${Object.keys(rulesNow).length} per-standard rule digests into the baseline.`);
+    console.log(`  ${prev.findings.length} baselined findings UNCHANGED; ${added.length} new finding(s) `
+      + `still new and still failing. From the next rule change on, the split classifies them.`);
+    process.exit(added.length ? 1 : 0);
+  }
+
+  console.log(`  RATCHET — ${prev.findings.length} baselined, ${added.length} new `
+              + `(${regressions.length} regression, ${discoveries.length} discovery), ${removed.length} fixed`);
   if (removed.length) {
     console.log(`  FIXED (${removed.length}) — leaving the baseline, and they may never come back:`);
     for (const k of removed) console.log('    ' + k);
@@ -502,26 +662,39 @@ if (errBaseline) {
     console.log(`  NOTICE — ${widened.length} baselined finding(s) got WIDER (already flagged, still flagged):`);
     for (const [k, grew] of widened) console.log(`    ${k}  +${grew.join(', ')}`);
   }
-  if (added.length) {
+  /* A DISCOVERY IS PRINTED IN FULL AND RECORDED PERMANENTLY, NEVER JUST WAVED THROUGH. The growth is
+   * auditable — date, reason, the standard whose rule moved, and every key — which is the only thing
+   * that separates "the checker got better" from "somebody buried a hundred findings". */
+  if (discoveries.length) {
     console.log('');
-    console.log(`  RATCHET BROKEN: ${added.length} finding(s) not in the baseline —`);
-    for (const k of added) {
+    console.log(`  DISCOVERY (${discoveries.length}) — the checker got BETTER; these subjects did not move.`);
+    console.log('  Adopted into the baseline and listed in `discoveries` with their reason. NOT fatal:');
+    for (const k of discoveries) {
+      console.log(`    + ${k}`);
+      console.log(`        ${cls.get(k).why}`);
+    }
+  }
+  if (regressions.length) {
+    console.log('');
+    console.log(`  RATCHET BROKEN: ${regressions.length} finding(s) not in the baseline —`);
+    for (const k of regressions) {
       const e = nowByKey.get(k);
       console.log(`    ${k}`);
       console.log(`        ${e.what}`);
+      console.log(`        why it is a REGRESSION: ${cls.get(k).why}`);
     }
-    console.log('  Fix them, or fix the standard. The baseline is NOT rewritten while anything is new,');
-    console.log('  so re-running will not make this green — that is the point.');
+    console.log('  Fix them, or fix the standard. The baseline is NOT rewritten while anything is a');
+    console.log('  regression — not even the discoveries beside them, which wait for the next clean run.');
     if (STRICT) process.exit(1);
     process.exitCode = 1;
   } else {
-    writeBaseline();
+    writeBaseline({ scope: scopeNow, rules: rulesNow, discovered: discoveries, cls });
   }
 }
 
 /* One writer, called from two branches. Two copies of a ratchet writer is how a ratchet quietly
  * stops ratcheting (engine/provenance.js:710). */
-function writeBaseline() {
+function writeBaseline(split) {
   /* WHAT `source_digests` MEANS HERE, because the honest answer is narrower than it looks.
    *
    * engine/provenance.js verifies every entry in this map by CONTENT and marks the artifact UNSAFE
@@ -551,6 +724,31 @@ function writeBaseline() {
     count: nowKeys.length + carried.length,
     findings: [...nowKeys.map(k => nowByKey.get(k)), ...carried]
       .sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0)),
+    /* THE TWO INPUTS THE REGRESSION-vs-DISCOVERY SPLIT NEEDS, and they are recorded rather than
+     * re-derived on the next run for the same reason `graph_files` is: the question is what the
+     * checker saw LAST time, and only last time can answer it. `scope` is deliberately outside the
+     * no-op comparison below — data/ moves constantly, and a baseline rewritten on every run buries
+     * the one thing its history is for. A stale scope reads a file as CHANGED, which fails the gate;
+     * that is the safe direction and it is why the staleness is tolerable. */
+    rule_digests: (split && split.rules) || (prev && prev.rule_digests) || {},
+    rule_digests_note: 'Per STANDARD, over the top-level functions in engine/conformance.js that call '
+        + 'flag(<std>, …) — plus engine/provenance.js for S13, whose answer comes from that graph. Per '
+        + 'standard rather than per file so a change to S13 cannot bless an S12 finding.',
+    scope: (split && split.scope) || (prev && prev.scope) || {},
+    scope_note: 'file -> sha12 of every subject this scan judged: each source file it read and each '
+        + 'data/ file S13 looked at. A finding on a subject that is new to this map, or whose digest '
+        + 'moved, is a REGRESSION whatever the rule did.',
+    discoveries: [
+      ...((prev && Array.isArray(prev.discoveries) && prev.discoveries) || []),
+      ...((split && split.discovered && split.discovered.length) ? [{
+        when: new Date().toISOString(),
+        reason: 'the checker got better: the standard\'s own rule moved while these subjects stayed '
+              + 'byte-identical, so the finding is newly VISIBLE rather than newly TRUE',
+        basis: 'exact — the subject digest was compared against the previous baseline\'s scope map',
+        keys: split.discovered.slice(),
+        detail: split.discovered.map(k => split.cls.get(k).why),
+      }] : []),
+    ],
   };
   /* A NO-OP RUN MUST NOT TOUCH THE FILE. Only `generated` would differ, and this repo has an
    * unattended auto-commit on a ~2-minute timer: rewriting the baseline on every green run would
@@ -558,7 +756,10 @@ function writeBaseline() {
    * history is for — the run where a finding entered or left. */
   /* files_scanned is compared too, or it would sit stale on a file that was added and had nothing
    * to report — a small lie, but a field that CAN go stale is a field that eventually does. */
-  const proj = o => JSON.stringify({ s: o.source_digests, n: o.files_scanned, f: o.findings });
+  /* `rule_digests` joins the comparison and `scope` deliberately does not: a rule that moved is a
+   * fact worth a commit, and data/ moving is not. */
+  const proj = o => JSON.stringify({ s: o.source_digests, n: o.files_scanned, f: o.findings,
+                                     r: o.rule_digests || {} });
   const same = prev && proj(prev) === proj(body);
   if (same) return;
   try { fs.writeFileSync(BASELINE, JSON.stringify(body, null, 1) + '\n'); }

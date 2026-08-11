@@ -4976,3 +4976,229 @@ it reports. The 114 stay OUT OF SCOPE for the same reason they always were.
   nothing — left in deliberately so a regulation change re-arms both ends, and named here so the next
   reader does not mistake them for live coverage.
 - **`test-tag-consumed` is green and still unregistered** — see above.
+
+---
+
+## MEASURE — THE STAGED ARM OF THE RATE RUNNER (ROADMAP #196), 2026-08-11
+
+*Appended by MEASURE. Nothing above this heading was edited.*
+
+**THE PROC FAMILY IS MEASURED, EVERY ROW IS POWERED TO ONE POINT, AND THE CLAIM THAT ITS DENOMINATOR
+IS KNOWN BY CONSTRUCTION HAS ITS OWN RED PROOF.** `engine/million_run.js --staged` →
+`data/million-run-staged.json`, release `eafb0abb9736`, free-running dice.
+
+`FAMILY_SUPPORT.proc` in that same file had the whole family at `observable: false`, in its own words:
+*"the trace does not say whether the trigger was reached, only whether it fired, so the denominator
+would be invented. Needs a staged arm, not a bigger corpus."* That is the whole argument. **More random
+games never fix an invented denominator; they only make it bigger.** On a board the instrument builds,
+the trigger is reached by construction — a contact move that connected and did not kill, a holder that
+is strictly slower, a hit that was lethal — so the denominator is the count of trials and nothing is
+inferred from what a trace happened to show.
+
+**THE STOPPING RULE IS POWER PER ROW, NOT A GAME COUNT.** Will: *"I keep saying million but really its
+just however many games we need for each staging to be certain of our chances and odds of procing."*
+Each row derives its own required n from its own declared rate (one-sample proportion, two-sided α
+0.05, power 0.80, the harder of the two alternatives) and stops when it has it.
+
+| detectable error | staged battles | wall clock |
+|---|---|---|
+| 5 points | 19,758 | 6 s |
+| 2 points | 78,494 | 21 s |
+| **1 point (published)** | **241,525** | **63 s** |
+
+That is the answer to "how many games do we need" for this fixture set, and it is an **allocation
+rather than a lottery**: the 50,000-game self-play run put 20,987 trials on its busiest row and zero on
+others. A staged battle is one freshly built four-body board played for one scripted turn at 0.26 ms —
+it is not comparable to a self-play game and must never be quoted beside that arm's ms/game.
+
+**THE SAMPLER IS RIGHT. Pooled over every row that fires at all: 58,738 fires against 58,613.76
+expected on 176,209 constructed trials, z = +0.64.** Every live row sits inside its interval at a
+resolution of one point.
+
+| row | n | observed | 95% CI | declared | split-half spread |
+|---|---|---|---|---|---|
+| Static | 16,575 | 30.42% | [29.72, 31.12] | 30 | 0.24 |
+| Flame Body | 16,575 | 30.46% | [29.77, 31.17] | 30 | 0.38 |
+| Poison Point | 16,575 | 29.65% | [28.96, 30.35] | 30 | 0.45 |
+| Effect Spore (total) | 16,575 | 30.34% | [29.65, 31.05] | 30 | 0.45 |
+| Cursed Body | 16,575 | 29.73% | [29.04, 30.43] | 30 | 0.04 |
+| Poison Touch | 16,575 | 29.67% | [28.98, 30.37] | 30 | 0.67 |
+| King's Rock | 7,248 | 9.58% | [8.92, 10.27] | 10 | 1.32 |
+| Quick Claw | 12,697 | 20.19% | [19.51, 20.90] | 20 | 0.94 |
+| Shed Skin | 17,432 | 33.27% | [32.57, 33.97] | 33 | 0.75 |
+| Healer | 19,620 | 50.02% | [49.32, 50.72] | 50 | 0.03 |
+| Harvest | 19,620 | 50.18% | [49.48, 50.88] | 50 | 0.53 |
+| Rawst Berry | 71 | 100% | [94.87, 100] | 100 | 0 |
+| Aspear Berry | 71 | 100% | [94.87, 100] | 100 | — |
+
+**AN UNDER-POWERED RUN OF THE SAME INSTRUMENT PRODUCED A DIVERGENCE THAT WAS NOT THERE, AND IT IS
+WORTH RECORDING BECAUSE IT IS THE WHOLE CASE FOR THE STOPPING RULE.** At `--detect 0.02` Effect Spore
+read **31.90% against 30 and diverged at 95%**; its split-half spread on that same arm was **1.97
+points against an effect of 1.90** (LESSONS §9: not an effect), a second seed read 30.20%, and at the
+powered n it reads **30.34%**. A row stopped early is not a small answer, it is a different one.
+
+**THREE MECHANICS ARE ABSENT RATHER THAN MIS-SAMPLED, AND A STAGED BOARD IS WHAT TELLS THOSE APART.**
+Zero fires on a trigger that was reached and verified on every one of those trials:
+
+| mechanic | trials | declared | 95% upper bound | what the frozen tag says |
+|---|---|---|---|---|
+| **Cute Charm** | 16,575 | 30% | **0.023%** | `punishesAttacker.inflictsVolatile {attract, 0.3}` — medicham2's own comment at that wire says *"Cute Charm's attract and Perish Body's clock have no state in this engine"*, so `inflictsVolatile` is unconsumed |
+| **Stench** | 7,248 | 10% | **0.053%** | `addsOwnSecondary {flinch, 0.1}` — **the string `addsOwnSecondary` appears ZERO times in the simulator.** No consumer exists |
+| **Quick Draw** | 16,575 | 30% | **0.023%** | `fractionalPriority {chance 0.3}` — the engine reads that tag at ONE site and only off `it.mon.item`, so the ITEM path works (Quick Claw, 20.19%) and the ABILITY path cannot fire |
+
+And a fourth that is tallied and deliberately **not scored**: **Focus Band** (0 of 400). The frozen
+`data/tags.json` gives it **only** `flingable` — `survivesFromFull` is read for Focus Sash and this
+item never carries it, so the engine has nothing to roll. A rate is the wrong question about an absent
+mechanic, so the row reports the absence instead of a percentage.
+
+These are filed to ENGINE as candidates, not verdicts, and each is attributable: Quick Claw and Quick
+Draw share one board shape and one denominator, and exactly one of them fires. **Pooled WITH the absent
+mechanics the arm reads z = −49.8, which is why they are split out — that number is three abilities
+doing nothing, not a sampler running cold, and printing it as one figure would be a headline about the
+wrong thing.**
+
+**WHAT THE ARM ASSERTS ON EVERY RUN, OR REFUSES TO WRITE.** Three proofs; both new sabotage modes were
+shown red before anything was published.
+
+- **THE TRIGGER CONTROL.** Every fixture plays its board a second time with the trigger removed — a
+  non-contact delivery move where the ability wants contact, a chip that cannot reach half HP where
+  Harvest wants a berry eaten, no status on the board where a residual cure wants one. It must record
+  **zero** trials — `reached()` must refuse every one — and zero fires. *This is the proof that the
+  denominator counts triggers rather than clicks.* `MILLIONRUN_SABOTAGE=staged-precondition` forces
+  `reached()` true: **13 of 17 control arms went from 0 trials to 60 and the run refused, exit 1.**
+- **A SECOND CONTROL SHAPE, because the first is a formality on three fixtures.** With Quick Claw the
+  trigger *is* "the holder would move second", so a board without it has the holder moving first by
+  definition and the observable stops meaning anything — asserted the wrong way it read 200 raw fires
+  out of 200. Those rows use MECHANISM-REMOVED: trigger fully present, subject taken away, trials must
+  be non-zero and the numerator must be **zero**. It caught a real confound on Aspear Berry — a freeze
+  thaws on its own at 25% per attempt, so two control trials had the status gone with no berry
+  anywhere near them, and the numerator now requires the berry to have been *spent*.
+- **BOTH PINNED CORNERS AND THE PER-ROW SYNTHETIC.** The identical fixtures with every die at 0.99 (no
+  proc may fire) and at ~0 (every proc must), each judged by the same flagger that judges the real arm.
+  `MILLIONRUN_SABOTAGE=staged-declaration` moves the target-list surface 25 points and defeats the
+  fixture's own refusal: **10 rows scored against a rejected declaration, run refused, exit 1.**
+
+**NOTHING IN THE STAGED ARM TYPES A PERCENTAGE, AND TWO SURFACES ARE CROSS-CHECKED.** The frozen
+`data/tags.json` (what the engine actually rolls with) against `data/million-targets.json` (DERIVED by
+`million_targets.js` from the handler source). **Ten agree, ZERO disagree, and five rest on the tag
+alone: Static, Stench, Shed Skin, Rawst Berry, Aspear Berry.** That gap is not an accident —
+`million_targets.js`'s `PROC_WHAT` is a **hand-typed list of twelve subjects** and the #196
+reclassification names seventeen. All 12 proc rows in the target list now have a staged fixture; five
+fixtures have no target row.
+
+**AN INSTRUMENT FAULT THAT WOULD HAVE BEEN FILED AS AN ENGINE DEFECT, CAUGHT BEFORE PUBLICATION.** The
+first version matched the tag's status word against the engine's and read **Flame Body 0/40 and Poison
+Point 0/40**. The tag artifact speaks Showdown's vocabulary (`burn`, `poison`, `sleep`) and this engine
+speaks its own (`brn`, `psn`, `slp`); `CODE_OF_STATUS` translates at the roll site and its own comment
+says it is *"naming conventions, not mechanics"*. **Static passed by pure accident — "paralysis" and
+"par" share three letters and nothing else in that map does.** The fix is not a second copy of that map
+(that is the facts-are-global breach): the board answers it without one, because the attacker starts
+clean and every other click on the board is a boring move with no status, so any status it ends the
+turn holding came from the punisher.
+
+**ONE-LINE REQUEST TO ENGINE: export `CODE_OF_STATUS`.** With it the Effect Spore ladder is scored band
+by band instead of only in total, and a ladder is exactly where the total can agree while a branch is
+wrong. Printed side by side today: declared 11 / 10 / 9, observed `slp` 1,823, `par` 1,678, `psn` 1,528
+of 16,575 (11.00% / 10.12% / 9.22%). Nothing joins the two columns.
+
+**TWO FIXTURE FAULTS WORTH RECORDING, because each produced a silent wrong answer rather than an
+error.** (1) The filler pool was `ATTACKERS.slice()`, and the attacker pool is narrow by design —
+three bodies at this release — so on every fixture whose subject and target both came from it there
+was one body left for two slots and `build` threw. **Six fixtures reported ZERO trials**, which looks
+exactly like a mechanic nobody could reach. (2) A refusal rate was judged as one number, so Harvest and
+both berries came out `NOT CLEAN` and dropped silently out of the scored set: the berries refuse 90%+
+of attempts **by design** (they wait on a 10% secondary to land) while Harvest was refusing 4.0%
+because a CRIT killed the carrier from 52% HP before the berry could be eaten. The two are now split —
+by-design refusals cost boards, construction failures cost correctness, and only the second is measured
+against the 2% tolerance. Harvest's carrier got a bigger HP pool and the row is `exact`.
+
+**Every board honours `data/scenarios-from-will.json`'s `the_noise_rule`** — the two bodies that are
+not the subject or its target click the weakest boring move on their **own** learnset, aimed at each
+other and never at the experiment. Carriers, control abilities and delivery moves are derived from
+`Dex.forFormat` and checked through `engine/fixture_preflight.js`.
+
+**WHAT IS NOT DONE, said plainly.** Sniper, Merciless, Compound Eyes, No Guard and Tangled Feet are
+**not** in this arm yet. The framework takes them — they are paired comparative arms rather than
+one-sample rate rows — and Tangled Feet needs its gate (the holder is confused) stated somewhere
+derivable before a staged board can know when the modifier is supposed to apply. Early Bird as a
+sleep-DURATION row is also not in: it is a distribution rather than a proportion and needs its own
+reporting block, not a Wilson interval. **Quick Draw is stageable after all** — Slowbro-Galar does have
+a row in `MC.mons`, which an earlier lookup of mine said it did not.
+
+---
+
+## WILL'S FOURTEEN BOARDS, WIRED. TWO ENGINE DEFECTS FELL OUT, AND BOTH WERE THE SAME FACT READ TWICE. 2026-08-11 (ENGINE).
+
+`data/scenarios-from-will.json` was a spec file that nothing consumed. Will noticed: *"I thought we
+just added all those wtf"*. Seven new shape rules in `tests/roster.js` now stage them, and the roster's
+abilities stage moved **94 TESTED -> 107**, with **0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE**
+throughout. The census moved **474 live / 0 missing -> 476 live / 0 missing** (2 arrived, 0 broke, net
++2). The differential re-ran at `--n 6000 --seed 20260804`: **0 disagree**. The interaction matrix
+re-ran at `--full`: **1641/1641, unchanged**.
+
+**THE MEMBERSHIP OF TWO OF THESE RULES IS PARSED OUT OF SHOWDOWN'S OWN SOURCE, and it had to be.**
+Levitate registers NO handler and Mega Sol registers almost none — their mechanics live in
+`Pokemon#isGrounded` and `Pokemon#effectiveWeather`. There is nothing on the ABILITY to match a shape
+against, which is exactly why both sat INERT, and a hand-typed list of two names is the stale-list
+failure this project has already paid for. So the rules read the airborne ability set, the grounding
+volatiles and the private-sky ability set out of those two functions at load time.
+
+**DEFECT 1 — ROADMAP #186's SECOND GATE, AND IT WAS REAL.** The engine decides a Ground move's
+immunity twice: `typeEffAgainst` consults `isGrounded()` exactly as the authority's ternary does, and
+the battle loop's `absorbedBy()` then zeroed the hit anyway off a static `typeImmunity` tag. Every
+grounding probe in the census stages **Corviknight** — a FLYING body, refused on a clause Mold Breaker
+and Gravity cannot touch — so Gravity, Smack Down, Ingrain and Iron Ball were wired, counted and proven
+on a body whose immunity is its typing, and did **nothing whatever** to a Levitate body. Will's
+four-arm board found it in one run: Showdown's Hydreigon took the click under Gravity (turn 4) and
+under Smack Down (turn 11); ours took neither. `absorbedBy` now defers to `isGrounded` **for the
+airborne abilities only** — `typeImmunity {type:'Ground'}` has a third member, `eartheater`, and
+Orthworm is Ground-immune while standing squarely on the floor, so that arm is in the probe as the
+over-match control and must stay 0 with Gravity up.
+
+**DEFECT 2 — THE PRIVATE SKY, WIRED ONE READER AT A TIME FOR THE THIRD TIME.** `chargeSkip` asked
+`field.weather === skipsIn`, the PUBLIC sky, while every other weather read in the file goes through
+`effWeatherOf`, which honours Mega Sol's private sun. So a Meganium-Mega's Solar Beam spent a charge
+turn Showdown does not spend. Measured on the roster before the fix: the target reached 53 HP upstream
+on the click turn and 122 here. WIRE 99 wired the damage path, WIRE 126 the type path, and the CHARGE
+path was never asked — one fact, three readers, two of them right.
+
+**THE THIRTEEN ROWS, BY NAME:** `levitate`, `eelevate` (four arms — immunity, Gravity, Smack Down, and
+a Mold Breaker thrower, which is the first test Mold Breaker has ever had); `moldbreaker`;
+`battlearmor`, `shellarmor` (an always-critical move, so no die is rolled); `shielddust` (a 100%
+flinch SECONDARY, same escape); `insomnia`, `immunity`, `limber`, `vitalspirit` (the refusal IS the
+observable, on `bottom-tie-first` because this format has **no 100-accuracy sleep move any legal body
+can learn** and no freezing move at all); `megasol`; `piercingdrill`, `unseenfist` (byte-identical
+`onHitProtect`, so one rule closes both).
+
+**A PROBE THAT PROVED NOTHING, CAUGHT AND NAMED.** The Shield Dust board's SECOND arm — a 100%
+stat-drop secondary — was thrown at Vivillon, which is Bug/**FLYING**, using the format's cheapest
+100% drop move, Mud-Slap, which is **GROUND**. It landed nothing in EITHER arm and the row still read
+FIRED-AND-BOARDS-MATCH off the flinch arm alone. Two arms agreeing because neither happened is not
+coverage. The drop click is now chosen per carrier against the chart (`fixture_preflight` clause 5) and
+the board picks Acid Spray. A second, smaller one: `learnsMove` walks the prevo chain and offered
+Blastoise/Mud-Slap, which the validator refuses — that one was **not** the cause of the silent arm and
+saying so is the point, because a fix aimed at the wrong mechanism is still a bug.
+
+**MAGMA ARMOR IS NOT COVERAGE AND IS NOT COUNTED.** It reads CONTROL-NOT-QUIET rather than
+COULD-NOT-STAGE now: this format has no freezing MOVE, only a 10% secondary, so the board needs the
+bottom pin — where every crit also lands — and Camerupt's only two alternatives are Solid Rock (a
+damage reducer) and Anger Point (+6 Attack on a crit). Both are live on that corner. One carrier, no
+third ability, so two arms cannot separate them.
+
+**WILL'S SAND ARM FOR MEGA SOL CANNOT BE CLICKED INTO EXISTENCE.** His three-way discriminator wanted
+real sand under the private sun. **This format has NO sand-setting move** — sand is reachable only
+from an ability, which would put a second live ability on the board — so the row runs as a two-way one
+(Fire lands / Normal is refused by a Ghost) and says so rather than quietly staging something else.
+
+**NOT REACHED, so nobody counts them as done:** Quick Feet and Poison Heal (both need the OPPONENT to
+apply the status first, per Will's gotchas, and Quick Feet's reading is a SPEED ORDER rather than a
+board leaf); the forme absolute-assertion mode; the three harness `Can't pass` crashes (`imprison`,
+`memento`, `sharpness`); the priority brackets; the forme-keyed types; and the remaining 46 inert
+ability rows.
+
+**ROADMAP #198 IS DONE — `CODE_OF_STATUS` IS EXPORTED FROM `engine/medicham2-browser.js`.** One line,
+and the reason it is a line and not a copy is in the export's own comment: the staged arm's first
+version hand-matched the two status vocabularies, read Flame Body 0/40 and Poison Point 0/40, and would
+have filed a false headline against this division — while Static passed by accident on three shared
+letters. Verified loadable: `require('./engine/medicham2-browser.js').CODE_OF_STATUS` returns the map.
+Census re-run after: 476 live, 0 missing. Differential re-run after: 0 of 6000.

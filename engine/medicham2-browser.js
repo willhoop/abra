@@ -664,6 +664,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *   groundedByVolatile      Ingrain or Smack Down put a body on the floor that was not on it. */
   gravitySet: 0, gravityGroundedCharge: 0, roostTypeDropped: 0, roostTypeRestored: 0,
   groundedByVolatile: 0,
+  /* ROADMAP #186 -- the branch where the ABSORB gate deferred to `isGrounded` and let a Ground move
+   * through a Levitate body that Gravity or Smack Down had put on the floor. It did not exist before
+   * 2026-08-11; a zero here means the second gate has gone back to answering on its own. */
+  absorbGroundedNotAbsorbed: 0,
   /* ROADMAP #147 -- a damaging move's PRIMARY volatile landing (Smack Down), and the generic refusal
    * that keeps the partial-trap family out of `_vol`. Both are silent by construction. */
   primaryVolatileApplied: 0, volRefusedOwnedElsewhere: 0,
@@ -5471,7 +5475,7 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
   let eff=typeEffAgainst(att,def,mv,mvT);
   if(eff===0)return{min:0,max:0,eff:0};
   // type-immunity abilities (defender absorbs the type)
-  const _imm=absorbedBy(att,def,mvT);
+  const _imm=absorbedBy(att,def,mvT,(mv&&mv.c==='P')?'Physical':(mv&&mv.c==='S')?'Special':'Status');
   if(_imm)return{min:0,max:0,eff:0};
   /* WIRE 22 -- immuneToMoveClass, and WIRE 128 collapsed it: this block was a second, independent
    * copy of moveClassBlocked() sitting inside the damage calc, and the two had already drifted --
@@ -7418,9 +7422,28 @@ function typeEffAgainst(att,def,mv,mvT){
  * WIRE 128 -- and it is asked of the SUPPRESSED ability, which the loop was not doing: a Mold
  * Breaker Tinkaton's Earthquake was priced at 60 by dmgRange and absorbed by Levitate in the loop.
  * Returns the PARAM so the absorber's gain is read from one place too. */
-function absorbedBy(att,def,mvT){
-  const _imm=TAGS.param('ability',suppressedAbility(att,def),'typeImmunity');
-  return (_imm&&_imm.type===mvT)?_imm:null;
+/* ROADMAP #186 -- AND THE SECOND GATE NOW ASKS THE FIRST ONE. Ground was gated TWICE, independently:
+ * `typeEffAgainst` above consults `isGrounded()` exactly as the authority's ternary does, and THIS
+ * function then zeroed the hit anyway off a static tag. So Gravity, Smack Down, Ingrain and Iron Ball
+ * were all wired, counted and PROVEN -- on a Flying Corviknight, whose immunity is the Flying clause --
+ * and did nothing whatever to a LEVITATE body, which is where 8 of this format's Ground immunities
+ * actually live. Measured on Will's four-arm board: Showdown's Hydreigon took the click under Gravity
+ * and under Smack Down; ours took neither. That is FACTS ARE GLOBAL broken one clause apart, and the
+ * fix is that there is one owner of "is this body on the floor".
+ *
+ * NARROW BY MEMBERSHIP, AND THE THIRD MEMBER IS WHY. `typeImmunity {type:'Ground'}` is carried by
+ * levitate, eelevate AND eartheater; Orthworm is Ground-immune while standing squarely on the floor,
+ * so deferring the WHOLE tag to `isGrounded` would ground Earth Eater and break it. Only the abilities
+ * that make a body AIRBORNE defer, and AIRBORNE_ABIL is the same set the predicate itself reads --
+ * mirroring the reference engine's own `isGrounded`, which hard-names the identical pair. */
+function absorbedBy(att,def,mvT,mvCategory){
+  const _sa=suppressedAbility(att,def);
+  const _imm=TAGS.param('ability',_sa,'typeImmunity');
+  if(!(_imm&&_imm.type===mvT))return null;
+  if(mvT==='Ground'&&AIRBORNE_ABIL.has(String(_sa||'').toLowerCase().replace(/[^a-z0-9]/g,''))){
+    if(isGrounded(def,att,mvCategory)){MEDSEEN.absorbGroundedNotAbsorbed++;return null;}
+  }
+  return _imm;
 }
 function moveClassBlocked(t,moveId,att){
   if(!t||!moveId)return false;
@@ -13153,9 +13176,17 @@ function battleTurn(S,rng,actsForA,actsForB){
               m.boosts[_kk]=Math.max(-6,Math.min(6,m.boosts[_kk]+_b[_k]));
               if(TR)TR.bst(m,_kk,m.boosts[_kk]-_b0);}
           }
+          /* ROADMAP #186 -- AND IT ASKS `effWeatherOf`, NOT `field.weather`. This line read the PUBLIC
+           * sky and spelled the suppression clause out by hand, which is the third time Mega Sol's
+           * private sun has had to be wired into a weather reader one at a time: WIRE 99 did the
+           * damage path, WIRE 126 the type path, and the CHARGE path was never asked -- so a
+           * Meganium-Mega's Solar Beam spent a turn winding up that Showdown does not spend. Measured
+           * on the deliberate roster before this line changed: the target reached 53 HP upstream on
+           * the click turn and 122 here. `effWeatherOf` already applies `field.wSup` and both bodies'
+           * Cloud Nine, so the hand-written suppression test goes with it rather than beside it. */
           const _sk=TAGS.param('move',a.move.id,'chargeSkippedByWeather');
           const _herb=m.item==='powerherb';
-          if(!(_sk&&_sk.skipsIn&&!field.wSup&&field.weather===_sk.skipsIn)&&!_herb){
+          if(!(_sk&&_sk.skipsIn&&effWeatherOf(field,m)===_sk.skipsIn)&&!_herb){
             m._charging=a.move.id;
             m._invuln=TAGS.has('move',a.move.id,'semiInvulnerable');
             m._lastMove=a.move.id;
@@ -13942,7 +13973,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * WIRE 128 -- and it does NOT eat a Mold Breaker's, which this line read raw off `tg` while
          * dmgRange had honoured the suppression since WIRE 37. Measured before the fix: a Mold
          * Breaker Tinkaton's Earthquake into a Levitate body was priced 60 and dealt 0. */
-        const _ab=absorbedBy(m,tg,effMoveType(mv,a.move.id,field,m));
+        const _ab=absorbedBy(m,tg,effMoveType(mv,a.move.id,field,m),(mv&&mv.c==='P')?'Physical':(mv&&mv.c==='S')?'Special':'Status');
         if(_ab){
           if(TR)TR.imm(tg,'[from] ability: '+tg.ability);
           if(_ab.gain&&!tg.fainted){
@@ -17799,6 +17830,14 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
   moveFx,movePriority,priorityRefusedAbove,isGrounded,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors,
   /* ROADMAP #81 WIRE 12 -- the aura roster read; see the root export above. */
   auraStateOf,
+  /* ROADMAP #198 -- THE STATUS VOCABULARY, EXPORTED RATHER THAN RE-TYPED. The tag artifact speaks
+   * Showdown's words (`burn`, `poison`, `sleep`) and this engine speaks its own (`brn`, `psn`, `slp`).
+   * `engine/million_run.js`'s staged arm needs the join to score Effect Spore's 11/10/9 ladder band by
+   * band, and its FIRST version hand-matched the two vocabularies: it read Flame Body 0/40 and Poison
+   * Point 0/40 and would have filed a false headline against this division, while STATIC passed by
+   * accident on three shared letters. A second copy of this map is precisely the FACTS ARE GLOBAL
+   * breach CLAUDE.md forbids, so there is one map and everybody calls it. */
+  CODE_OF_STATUS,
   /* WIRE 157 -- the counters, by reference. See the root export above for why. */
   MEDSEEN,MEDFAILS,
   /* WIRE 129 -- exported for the ACCURACY-MODIFIER CONFORMANCE block in tests/test-engine-diff.js,

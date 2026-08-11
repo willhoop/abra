@@ -1,14 +1,14 @@
 {
- "generated": "2026-08-11T06:50:52.200Z",
+ "generated": "2026-08-11T13:14:00.529Z",
  "by": "tests/roster.js",
  "stage": "moves",
- "engine_release": "a63f0f139f37",
+ "engine_release": "8935709e31ec",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
-  "DEFERRED-BY-OWNER": 9,
-  "FIRED-AND-BOARDS-MATCH": 427,
+  "DEFERRED-BY-OWNER": 8,
+  "FIRED-AND-BOARDS-MATCH": 428,
   "CONTROL-NOT-QUIET": 0,
   "COULD-NOT-STAGE": 64
  },
@@ -17,11 +17,11 @@
   "out_of_scope": 0,
   "out_of_scope_by": {},
   "in_scope": 500,
-  "tested": 427,
-  "matched": 427,
+  "tested": 428,
+  "matched": 428,
   "differ": 0,
   "silent": 0,
-  "deferred": 9,
+  "deferred": 8,
   "unattributable": 0,
   "unattributable_ids": [],
   "declared_untestable": [],
@@ -16551,8 +16551,8 @@
    "rule": "move/needs-a-berry-already-eaten",
    "reads": "`ateBerry` / `lastItem` inside the move's own gate",
    "note": "Goodra-Hisui holds a Oran Berry, is chipped 3x by Dragon Pulse (38 a time into 155 HP) so it crosses the half-HP line and EATS it, then clicks with `ateBerry` set",
-   "verdict": "DEFERRED-BY-OWNER",
-   "why": "SHELVED ON USAGE, NOT MEASURED CLEAN. 22 click(s) across 64,846 stored games, under the shelf of 25. Counted from the store by engine/click_counts.js, NOT from tags.json, which undercounts by up to 8.6x on these rows. Still staged and still played against the authority every run; it does not hold the gate. Underlying verdict without the shelf: DID-NOT-FIRE — Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -16585,44 +16585,7 @@
      "without": 30
     }
    ],
-   "diffs": [
-    {
-     "turn": 4,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 40,
-     "ours": 30,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 4,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 40,
-     "ours": 30,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 5,
-     "slot": "",
-     "body": "goodrahisui",
-     "field": "party.hp",
-     "showdown": 40,
-     "ours": 30,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 5,
-     "slot": "p2a",
-     "body": "goodrahisui",
-     "field": "hp",
-     "showdown": 40,
-     "ours": 30,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",
@@ -23178,134 +23141,7 @@
    "second_control": null,
    "switch_probe": null,
    "sd_delta": [],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "volcarona",
-     "field": "party.hp",
-     "showdown": 160,
-     "ours": 121,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p1a",
-     "body": "volcarona",
-     "field": "hp",
-     "showdown": 160,
-     "ours": 121,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "crabominable",
-     "field": "party.hp",
-     "showdown": 0,
-     "ours": 172,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "crabominable",
-     "field": "party.fainted",
-     "showdown": true,
-     "ours": false,
-     "bucket": "one-says-yes-one-says-no"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "crabominable",
-     "field": "species",
-     "showdown": "milotic",
-     "ours": "crabominable",
-     "bucket": "different-value"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "crabominable",
-     "field": "hp",
-     "showdown": 170,
-     "ours": 172,
-     "bucket": "off-by-2-or-3"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "crabominable",
-     "field": "maxhp",
-     "showdown": 170,
-     "ours": 172,
-     "bucket": "off-by-2-or-3"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "volcarona",
-     "field": "party.hp",
-     "showdown": 160,
-     "ours": 121,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p1a",
-     "body": "volcarona",
-     "field": "hp",
-     "showdown": 160,
-     "ours": 121,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "crabominable",
-     "field": "party.hp",
-     "showdown": 0,
-     "ours": 172,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "crabominable",
-     "field": "party.fainted",
-     "showdown": true,
-     "ours": false,
-     "bucket": "one-says-yes-one-says-no"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "crabominable",
-     "field": "species",
-     "showdown": "milotic",
-     "ours": "crabominable",
-     "bucket": "different-value"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "crabominable",
-     "field": "hp",
-     "showdown": 170,
-     "ours": 172,
-     "bucket": "off-by-2-or-3"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "crabominable",
-     "field": "maxhp",
-     "showdown": 170,
-     "ours": 172,
-     "bucket": "off-by-2-or-3"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",

@@ -140,9 +140,22 @@ function rosterStage(stage) {
     const unattributable = sc ? sc.unattributable
       : (Array.isArray(j.results)
           ? j.results.filter(r => r && r.verdict === 'CONTROL-NOT-QUIET').length : null);
+    /* WHAT IS NOT IN THE REGULATION IS NOT A DENOMINATOR. Will, 2026-08-11, reading this line on his
+     * phone: *"Can we remove all the irrelevant numbers then and just have a quarantined closet
+     * section. Like not legal in the regulation should be gone"*.
+     *
+     * This used to print `94 TESTED of 202 IN SCOPE, of 316 total (114 have NO LEGAL CARRIER in this
+     * format — a fact about the regulation)`. The 316 and the 114 describe the National Dex, not the
+     * game we play. Printing them next to the real ratio invites exactly the reading CLAUDE.md spends
+     * a section forbidding — a number that looks authoritative because it sits beside one that is.
+     * An entity no legal body can carry is not untested coverage; it does not exist here.
+     *
+     * The out-of-scope count is still CARRIED in the returned object (`scope`), so nothing that wants
+     * it has lost it — it is dropped from the SENTENCE, not from the artifact. The deliberate
+     * deferrals keep their own clause because those ARE in the regulation and someone chose to
+     * shelve them, which is a different fact and belongs in the closet. */
     const denom = sc
-      ? `${sc.tested} TESTED of ${sc.in_scope} IN SCOPE, of ${sc.total} total `
-        + `(${sc.out_of_scope} have NO LEGAL CARRIER in this format — a fact about the regulation)`
+      ? `${sc.tested} of ${sc.in_scope} tested`
       : `DENOMINATOR NOT CARRIED by ${'data/' + f} — it predates the scope block; re-run `
         + `tests/roster.js --stage ${stage} --write`;
     const unattrib = unattributable === null
@@ -156,9 +169,12 @@ function rosterStage(stage) {
       couldNotStage: c['COULD-NOT-STAGE'] || 0,
       deferred: deferred.length, staleShelf, scope: sc, unattributable,
       ok: differ === 0 && silent === 0 && badReds === 0 && staleShelf === 0,
+      /* THE DEFERRAL COUNT MOVED TO THE CLOSET SECTION and is deliberately not repeated here — it
+       * was printing in both places once the closet existed, and a number shown twice is a number
+       * a reader has to reconcile. The count is still on the returned object for anything that
+       * wants it programmatically. */
       why: (differ === 0 && silent === 0 && badReds === 0 && staleShelf === 0
         ? `clean: ${denom}`
-          + (deferred.length ? ` (${deferred.length} deferred by the owner, still staged and printed)` : '')
         : `${differ} FIRED-AND-BOARDS-DIFFER, ${silent} DID-NOT-FIRE — ${denom}`
           + (badReds ? `, ${badReds} red demonstration(s) did not behave as their rule predicted` : '')
           + (staleShelf ? `, ${staleShelf} DEFERRAL(S) NOW PASS ON THEIR OWN — take the shelf down` : ''))
@@ -955,6 +971,29 @@ if (require.main === module) {
     console.log('');
     console.log('  STALE EXEMPTION — a declared instrument that is no longer in the play layer:');
     for (const m of S.staleExemptions) console.log('    ' + m);
+  }
+
+  /* THE CLOSET — things IN the regulation that somebody deliberately shelved.
+   *
+   * Will, 2026-08-11: *"Can we remove all the irrelevant numbers then and just have a quarantined
+   * closet section."* The out-of-scope counts are gone from the clause lines above, because an
+   * entity no legal body can carry is not untested coverage — it is not in this game.
+   *
+   * What IS worth a section is the opposite: entities that ARE legal, that COULD be tested, and that
+   * a human chose to defer. That is a decision with an owner and it should be visible rather than
+   * folded into a parenthetical, because a deferral nobody re-reads is how a shelf becomes permanent.
+   * Every row here is staged and printed by its own instrument; none of them is being hidden. */
+  const closet = [];
+  for (const c of S.gate.clauses) {
+    if (c.deferred) closet.push(`    ${pad2(c.stage || c.name, 12)} ${c.deferred} deferred by the owner`);
+  }
+  if (closet.length) {
+    console.log('');
+    console.log('  THE CLOSET — legal in this regulation, testable, and deliberately shelved:');
+    for (const l of closet) console.log(l);
+    console.log('    ' + pad2('illusion', 12) + 'ROADMAP #160 — Zoroark, 384 games excluded from the fit corpus; ILLUSION_IN=1 re-admits');
+    console.log('    ' + pad2('stall', 12) + 'ROADMAP #195 — zero corpus uses, one carrier; reopens if a Sableye ever appears');
+    console.log('    Nothing here is a coverage gap. Each is a choice, and each names the way back.');
   }
   console.log('');
   if (S.error) {
