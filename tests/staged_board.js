@@ -942,6 +942,11 @@ function runOne(sc, patchedSrc) {
     why: 'buildPair returned null for ' + (!a ? 'side A' : 'side B') + ' — the scenario never ran' };
 
   const boards = [];
+  /* ROADMAP #174 -- DID THE SCRIPT ACTUALLY CLICK WHAT IT SAID? The driver answers `pass` for a
+   * scripted move that is not on Showdown's request, which is the right behaviour and was SILENT: a
+   * scenario whose click never happened reports IDENTICAL, because both engines passed. Reset per
+   * scenario and read back on the result so a caller can assert it rather than assume it. */
+  if (G.resetScriptCounters) G.resetScriptCounters();
   const r = G.playGame(a, b, 'directed', 'staged:' + sc.id, {
     script: sc.script,
     onBoundary: (snap, turnIdx) => {
@@ -980,7 +985,8 @@ function runOne(sc, patchedSrc) {
   const stale = allow.filter(x => !x.hits);
   const unexplained = boards.reduce((n, x) => n + x.unexplained.length, 0);
   const compared = boards.reduce((n, x) => n + x.compared, 0);
-  return { id: sc.id, boards, allow, stale, compared, unexplained,
+  const script = G.scriptCounters ? G.scriptCounters() : null;
+  return { id: sc.id, boards, allow, stale, compared, unexplained, script,
     verdict: stale.length ? 'STALE-ALLOW' : (unexplained ? 'DIFFERS' : 'IDENTICAL') };
 }
 

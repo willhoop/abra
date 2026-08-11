@@ -6828,6 +6828,149 @@ probe('move', 'hazardOnHit', 'Ceaseless Edge lays Spikes only when it connects -
                  + ' layer (onAfterSubDamage -- must be 1)' };
 });
 
+/* ROADMAP #72, THE OTHER HALF -- HAZARDS COME BACK UP. 2026-08-11.
+ *
+ * Setting landed (WIRE 41, WIRE 68, the `hazardOnHit` pair above) and REMOVAL did not exist at all:
+ * `data/tags.json` carried no tag for it, `engine/medicham2-browser.js` contained the strings
+ * `defog`, `rapidspin`, `mortalspin` and `tidyup` exactly ZERO times, and the engine therefore
+ * believed a layer of Stealth Rock was permanent. That over-values every hazard click and prices
+ * Rapid Spin as a 50 BP Normal attack, which is the cheap half of what it is.
+ *
+ * COURT CHANGE IS NOT HERE, AND IT IS NOT AN OMISSION. It was named in the brief as a candidate and
+ * the authority refuses it: `Dex.forFormat('gen9championsvgc2026regmb').moves.get('courtchange')`
+ * reports `isNonstandard: 'Past'`, which is this format's ban mechanism (CLAUDE.md). There is no
+ * legal Court Change in Reg M-B, so there is nothing to tag, nothing to wire, and a probe for it
+ * would be a probe for a different game. It also would NOT have shared this tag: Court Change SWAPS
+ * the two sides' conditions and removes none.
+ *
+ * THE FOUR LEGAL MEMBERS DIFFER IN WAYS A SINGLE BOOLEAN WOULD FLATTEN, which is why the tag carries
+ * params and why there are three probes rather than one. Read off the authority, whole blocks:
+ *   Rapid Spin   data/moves.ts:14698  own side only, + own Leech Seed, + own partial trap
+ *   Mortal Spin  data/moves.ts:12326  identical handler, spread + 100% poison
+ *   Defog        data/moves.ts:3457   BOTH sides' hazards, the TARGET side's screens/Safeguard/Mist,
+ *                                     and the terrain -- but NOT the user's own screens
+ *   Tidy Up      data/moves.ts:19628  both sides' hazards, and every Substitute on the field
+ * No Champions override exists for any of the four (`grep` over data/mods/champions/moves.ts). */
+probe('move', 'removesHazards', 'Rapid Spin sweeps MY side and leaves theirs standing', () => {
+  const run = (mv) => {
+    const me = bare('excadrill'), ally = bare('corviknight'), mbench = bare('staraptor');
+    const f1 = bare('incineroar'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally, mbench], [f1, f2], { seeded: true });
+    unfaintable(f1);
+    /* Both sides get a layer, in one turn, from a `foeSide` move each. The foe's rocks land on MY
+     * side and mine land on THEIRS, so the two bags can be told apart by which one moved. */
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'stealthrock', null, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'stealthrock', null, S.field)], [f2, { kind: 'pass' }]]));
+    const dealtBefore = f1.st.hp - f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    /* CONNECTED is asserted because the sweep lives in `onAfterHit`: a move that missed removes
+     * nothing in Showdown either, so an unconnected arm proves nothing about the mechanic. */
+    const connected = (f1.st.hp - f1.curHP) > dealtBefore;
+    const mine = ((me._sf && me._sf.hz) || {}).stealthrock || 0;
+    const theirs = ((f1._sf && f1._sf.hz) || {}).stealthrock || 0;
+    /* THE OUTCOME, NOT THE BAG: a body walks into my side afterwards and either pays or does not. */
+    const before = mbench.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, { kind: 'switch', to: mbench }], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { connected, mine, theirs, cameIn: S.actA.indexOf(mbench) >= 0, lost: before - mbench.curHP };
+  };
+  const control = run('ironhead'), test = run('rapidspin');
+  return { works: control.connected && control.mine === 1 && control.theirs === 1
+                  && control.cameIn && control.lost > 0
+                  && test.connected && test.mine === 0 && test.theirs === 1
+                  && test.cameIn && test.lost === 0,
+           arms: { control: [control.mine, control.theirs, control.lost],
+                   test: [test.mine, test.theirs, test.lost] },
+           detail: 'Iron Head (control, connected=' + control.connected + '): my rocks ' + control.mine
+                 + ', theirs ' + control.theirs + ', Staraptor walked in for ' + control.lost
+                 + ' (must be 1/1/>0)   |   Rapid Spin (connected=' + test.connected + '): my rocks '
+                 + test.mine + ', theirs ' + test.theirs + ', Staraptor walked in for ' + test.lost
+                 + ' (must be 0/1/0 -- it sweeps its OWN side only)' };
+});
+
+/* DEFOG IS THE OVER-MATCH TEST, and it is deliberately the one with an arm that must NOT move. The
+ * handler removes hazards from BOTH sides but the screens only from the TARGET's side, so a wire
+ * that read "clear the side conditions" would take the user's own Reflect down with it and every
+ * other arm here would still be green. My Reflect surviving is the load-bearing assertion. */
+probe('move', 'removesHazards', 'Defog clears both sides\' rocks, THEIR screen and the terrain -- and not MY screen', () => {
+  const run = (mv) => {
+    const me = bare('corviknight'), ally = bare('archaludon');
+    const f1 = bare('incineroar'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally, bare('staraptor')], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, { kind: 'pass' }], [ally, M.playerAction(ally, 'stealthrock', null, S.field)]]),
+      new Map([[f1, M.playerAction(f1, 'stealthrock', null, S.field)], [f2, { kind: 'pass' }]]));
+    M.battleTurn(S, rng5,
+      new Map([[me, { kind: 'pass' }], [ally, M.playerAction(ally, 'reflect', null, S.field)]]),
+      new Map([[f1, M.playerAction(f1, 'reflect', null, S.field)], [f2, { kind: 'pass' }]]));
+    S.field.terrain = 'electric';
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { mine: ((me._sf && me._sf.hz) || {}).stealthrock || 0,
+             theirs: ((f1._sf && f1._sf.hz) || {}).stealthrock || 0,
+             myScreen: ((me._sf && me._sf.sc) || {}).reflect > 0 ? 1 : 0,
+             theirScreen: ((f1._sf && f1._sf.sc) || {}).reflect > 0 ? 1 : 0,
+             terrain: S.field.terrain || '' };
+  };
+  const control = run('roost'), test = run('defog');
+  const shape = (r) => [r.mine, r.theirs, r.myScreen, r.theirScreen, r.terrain];
+  return { works: control.mine === 1 && control.theirs === 1 && control.myScreen === 1
+                  && control.theirScreen === 1 && control.terrain === 'electric'
+                  && test.mine === 0 && test.theirs === 0 && test.myScreen === 1
+                  && test.theirScreen === 0 && test.terrain === '',
+           arms: { control: shape(control), test: shape(test) },
+           detail: '[my rocks, their rocks, my Reflect, their Reflect, terrain] — Roost (control) '
+                 + JSON.stringify(shape(control)) + ' (must be 1,1,1,1,electric)   |   Defog '
+                 + JSON.stringify(shape(test)) + ' (must be 0,0,1,0,"" — MY Reflect survives, '
+                 + 'because Defog removes screens from the TARGET side only)' };
+});
+
+/* TIDY UP AND MORTAL SPIN. Two claims a hazard-only wire gets wrong in opposite directions: Tidy Up
+ * takes down EVERY Substitute on the field including its own side's, and the spin family removes the
+ * USER's Leech Seed. Neither is a side condition, and both live in the same handler as the sweep. */
+probe('move', 'removesHazards', 'Tidy Up tidies both sides and every Substitute; Mortal Spin pulls its own Leech Seed', () => {
+  const tidy = (mv) => {
+    const me = bare('maushold'), ally = bare('corviknight');
+    const f1 = bare('incineroar'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally, bare('staraptor')], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, { kind: 'pass' }], [ally, M.playerAction(ally, 'stealthrock', null, S.field)]]),
+      new Map([[f1, M.playerAction(f1, 'stealthrock', null, S.field)], [f2, { kind: 'pass' }]]));
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'substitute', null, S.field)], [f2, { kind: 'pass' }]]));
+    const subUp = !!f1._sub;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, null, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return [((me._sf && me._sf.hz) || {}).stealthrock || 0,
+            ((f1._sf && f1._sf.hz) || {}).stealthrock || 0,
+            subUp ? (f1._sub ? 1 : 0) : -1];
+  };
+  const seed = (mv) => {
+    const me = bare('glimmora'), ally = bare('corviknight');
+    const f1 = bare('whimsicott'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(f1); unfaintable(me);
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'leechseed', me, S.field)], [f2, { kind: 'pass' }]]));
+    const seeded = !!me._seededBy;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return seeded ? (me._seededBy ? 1 : 0) : -1;
+  };
+  const control = [tidy('howl'), seed('poisonjab')];
+  const test = [tidy('tidyup'), seed('mortalspin')];
+  return { works: JSON.stringify(control[0]) === JSON.stringify([1, 1, 1]) && control[1] === 1
+                  && JSON.stringify(test[0]) === JSON.stringify([0, 0, 0]) && test[1] === 0,
+           arms: { control, test },
+           detail: 'Tidy Up arm [my rocks, their rocks, their Substitute] — Howl (control) '
+                 + JSON.stringify(control[0]) + ' (must be 1,1,1), Tidy Up ' + JSON.stringify(test[0])
+                 + ' (must be 0,0,0)   |   Leech Seed still on the user after Poison Jab (control) '
+                 + control[1] + ' (must be 1), after Mortal Spin ' + test[1] + ' (must be 0). '
+                 + 'A -1 in any slot means the fixture never staged it' };
+});
+
 probe('move', 'blocksHealing', 'Psychic Noise stops the target healing', () => {
   const run = (noise) => {
     const { me, ally, f1, f2, S } = board('alakazam', 'incineroar', 'milotic', 'garchomp');
@@ -9872,6 +10015,61 @@ probe('move', 'variablePower', 'a FLINCHED Stomping Tantrum doubles next turn an
            detail: `Stomping Tantrum into the same Milotic — after a clean turn ${clean}; after a Fake `
                  + `Out FLINCH ${flinched} (BeforeMove returned false, so it counts); after a RECHARGE `
                  + `turn ${recharged} (BeforeMove returned null, so it must not)` };
+});
+
+/* ROADMAP #84 — A MISS COUNTS, AND THE CAPABILITY COUNTER IS READ RATHER THAN ASSUMED. 2026-08-11.
+ *
+ * The probe above covers the FLINCH (`false`) and the RECHARGE (`null`). It does not cover the miss,
+ * which is the commonest way a click fails in a real game, and it never reads
+ * `MEDSEEN.powerDoubledAfterFailure` — so the doubling could have come from anywhere.
+ *
+ * THE AUTHORITY, CLAUSE BY CLAUSE, EACH LINE READ RATHER THAN RECALLED:
+ *   sim/battle-actions.ts:748   `hitStepAccuracy` writes `hitResults[i] = false` on a missed roll
+ *   sim/battle-actions.ts:606   `atLeastOneFailure = atLeastOneFailure || hitResults.some(v => v === false)`
+ *   sim/battle-actions.ts:618   `if (!moveResult && !atLeastOneFailure) pokemon.moveThisTurnResult = null;`
+ *                               — the null branch is SKIPPED, because a failure was recorded
+ *   sim/battle-actions.ts:374   `useMove` then writes the boolean: `pokemon.moveThisTurnResult = moveResult`
+ *   data/moves.ts:18047         the callback tests `pokemon.moveLastTurnResult === false`
+ * No Champions override: `grep stompingtantrum data/mods/champions/moves.ts` is empty, and Temper
+ * Flare is the only other carrier of the same callback.
+ *
+ * THE COUNTER IS AN ARM, NOT AN ANNOTATION. A capability that cannot prove it ran is assumed broken
+ * (CLAUDE.md), and a doubled number alone cannot say WHICH code doubled it — a base-power table that
+ * happened to read 150 would satisfy the damage half. So both arms carry the counter DELTA measured
+ * across their own turns, and the control's must be exactly 0. */
+probe('move', 'variablePower', 'a MISSED Stomping Tantrum doubles the next one, and the counter says so', () => {
+  const run = (missFirst) => {
+    const before = M.MEDSEEN.powerDoubledAfterFailure;
+    const dealt = tantrumAfter((S, me, ally, f1, f2) => {
+      /* A LOSING ROLL ON THE FIRST CLICK AND A WINNING ONE ON THE SECOND. `tantrumAfter` spends the
+       * second turn at rng5, so the miss is confined to the setup turn and cannot be confused with
+       * the measured one. Stomping Tantrum is 100% accurate, so `rngLose` cannot make it miss —
+       * Mud-Slap at 100 cannot either; the setup click has to be a move that CAN miss. */
+      M.battleTurn(S, missFirst ? rngLose : rng5,
+        new Map([[me, M.playerAction(me, 'highhorsepower', f1, S.field)], [ally, { kind: 'pass' }]]),
+        PASS2(f1, f2));
+    });
+    return { dealt, fired: M.MEDSEEN.powerDoubledAfterFailure - before };
+  };
+  const control = run(false), test = run(true);
+  /* IT IS ASSERTED AS ">= 1", NOT AS "== 1", AND THE REASON IS MEASURED RATHER THAN ASSUMED. The
+   * delta reads 2 on one click, because the counter sits inside the BASE-POWER computation and
+   * `dmgRange` evaluates that more than once per resolution (the flat packet at :5636 and the
+   * per-hit path at :5662 both reach it). So it counts EVALUATIONS, not clicks. Pinning it to 1
+   * would be pinning an internal call count, which is the kind of assertion that breaks on a
+   * refactor that changed nothing about the game. The load-bearing claim is CONTROL EXACTLY ZERO —
+   * that is what says the doubling came from this branch and not from a base-power table that
+   * happened to read 150. */
+  return { works: control.dealt > 0 && control.fired === 0
+                  && test.dealt >= control.dealt * 1.8 && test.dealt <= control.dealt * 2.2
+                  && test.fired >= 1,
+           arms: { control: [control.dealt, control.fired], test: [test.dealt, test.fired] },
+           detail: '[Stomping Tantrum damage, MEDSEEN.powerDoubledAfterFailure delta] — after a High '
+                 + 'Horsepower that LANDED ' + JSON.stringify([control.dealt, control.fired])
+                 + ' (the counter must be EXACTLY 0)   |   after one that MISSED '
+                 + JSON.stringify([test.dealt, test.fired]) + ' (double, and the counter must have '
+                 + 'moved — a miss sets moveThisTurnResult to false, not null. The delta counts '
+                 + 'base-power EVALUATIONS, not clicks, so it is asserted >= 1)' };
 });
 
 /* ---- ROADMAP #81 WIRE 11 — FOUR DEFECTS WILL READ OFF REAL DIVERGENCES, 2026-08-07 ---------------
@@ -14087,6 +14285,117 @@ probe('ability', 'removesOwnMoveFlag', 'Long Reach walks out of Rough Skin witho
                  + off.paid + ' hp for the contact, with Long Reach it pays ' + on.paid
                  + '. The DAMAGE it deals is unchanged (' + off.dealt + ' vs ' + on.dealt
                  + '), which is the control that says the move still happened' };
+});
+
+/* ROADMAP #175 — `nameImplementedBySim`. TWO REAL MECHANICS, 59 corpus uses, NO CONSUMER. 2026-08-11.
+ *
+ * The tag exists because Corrosion and Early Bird expose NO handler at all — Showdown consults them
+ * by name, inside `Pokemon#setStatus` (sim/pokemon.ts:1715) and inside the `slp` condition's own
+ * `onBeforeMove` (data/conditions.ts:68-70). Neither line is overridden by Champions: the mod
+ * replaces `slp.onStart` only and inherits the rest, and it does not touch `sim/`.
+ *
+ * SO THE TAG SAID "known, and irreducible" AND STOPPED THERE, which is exactly the shape #175 names:
+ * a derived fact with nothing reading it is indistinguishable from a fact that is wrong. The fix is
+ * not a new tag — it is a PARAM the engine can act on. `ignoresStatusImmunityFor` and
+ * `extraStatusTicks` are shapes; medicham2 names neither ability and would pick up a third carrier
+ * the day the format grew one.
+ *
+ * LEGAL CARRIERS DERIVED RATHER THAN RECALLED, over the filtered species walk: Corrosion is Salazzle
+ * and Glimmora, Early Bird is Kangaskhan and Houndoom. */
+probe('ability', 'nameImplementedBySim', 'Corrosion poisons a Steel type, and does not burn a Fire type', () => {
+  const run = (ab, mv, foeSp) => {
+    const me = bare('salazzle'), ally = bare('corviknight');
+    const f1 = bare(foeSp), f2 = bare('milotic');
+    me.ability = ab;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return f1.status || 'none';
+  };
+  /* THE FIRE ARM IS THE OVER-MATCH GUARD and it is the one that must NOT move: the authority's test
+   * is `['tox','psn'].includes(status.id)`, so a wire that read "this ability ignores status
+   * immunity" would burn an Incineroar and every other arm here would still be green. */
+  const control = [run('none', 'toxic', 'corviknight'), run('none', 'willowisp', 'incineroar'),
+                   run('none', 'toxic', 'milotic')];
+  const test = [run('corrosion', 'toxic', 'corviknight'), run('corrosion', 'willowisp', 'incineroar'),
+                run('corrosion', 'toxic', 'milotic')];
+  return { works: JSON.stringify(control) === JSON.stringify(['none', 'none', 'tox'])
+                  && JSON.stringify(test) === JSON.stringify(['tox', 'none', 'tox']),
+           arms: { control, test },
+           detail: '[Toxic at a STEEL Corviknight, Will-O-Wisp at a FIRE Incineroar, Toxic at a '
+                 + 'neutral Milotic] — no ability ' + JSON.stringify(control)
+                 + ' (must be none,none,tox: the first two are refused by type and the third is the '
+                 + 'control that says the click works at all)   |   CORROSION ' + JSON.stringify(test)
+                 + ' (must be tox,none,tox — the Fire immunity is NOT bypassed)' };
+});
+
+probe('ability', 'nameImplementedBySim', 'Early Bird spends one fewer turn asleep', () => {
+  const run = (ab) => {
+    const me = bare('houndoom'), ally = bare('corviknight');
+    const f1 = bare('milotic'), f2 = bare('garchomp');
+    me.ability = ab;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(f1);
+    me.status = 'slp'; me.slpTurns = 0;
+    /* THE OUTCOME IS WHICH TURN IT ACTS ON, not a counter: the foe either loses HP or it does not.
+     * At a fixed roll of 0.5 the 1/3 early-wake die never comes up, so the two arms differ by the
+     * ability alone and by nothing stochastic. */
+    const acted = [];
+    for (let t = 0; t < 4; t++) {
+      const before = f1.curHP;
+      M.battleTurn(S, rng5,
+        new Map([[me, M.playerAction(me, 'flamethrower', f1, S.field)], [ally, { kind: 'pass' }]]),
+        PASS2(f1, f2));
+      acted.push(before - f1.curHP > 0 ? 1 : 0);
+    }
+    return acted;
+  };
+  const control = run('none'), test = run('earlybird');
+  return { works: JSON.stringify(control) === JSON.stringify([0, 0, 1, 1])
+                  && JSON.stringify(test) === JSON.stringify([0, 1, 1, 1]),
+           arms: { control, test },
+           detail: 'did the sleeper deal damage on turns 1-4 — no ability ' + JSON.stringify(control)
+                 + ' (must be 0,0,1,1: Champions starts the counter at sample([2,3,3]) and a 0.5 roll '
+                 + 'never takes the turn-2 wake)   |   EARLY BIRD ' + JSON.stringify(test)
+                 + ' (must be 0,1,1,1 — one extra tick per turn, data/conditions.ts:68-70)' };
+});
+
+/* ROADMAP #175 — `suppressesOwnItem`. Klutz, derived and unread. 2026-08-11.
+ *
+ * Every item consumer in this engine reads `m.item`, so a Klutz body was being priced with an item
+ * that is switched off — a free Leftovers, a free Life Orb boost, a free Focus Sash. Legal carriers
+ * derived rather than recalled: Lopunny, Audino and Golurk.
+ *
+ * IT IS THE SAME PREDICATE MAGIC ROOM ALREADY USES, and that is why this is four lines rather than a
+ * new mechanism: `Pokemon#ignoringItem` (sim/pokemon.ts:885-892) is ONE function returning true for
+ * `field.pseudoWeather['magicroom']` and for `hasAbility('klutz')`, and this engine already has the
+ * Magic Room half behind `itemRoomSync`. Two implementations of one fact is what CLAUDE.md's
+ * FACTS-ARE-GLOBAL rule exists to stop.
+ *
+ * THE `ignoreKlutz` EXCEPTION IS DERIVED AND IS EMPTY HERE: zero legal items in Reg M-B carry the
+ * flag, measured over the filtered item walk. The tag states it anyway so it starts working the day
+ * the format grows one.
+ *
+ * THE ALLY ARM IS THE OVER-MATCH GUARD: Klutz switches off the HOLDER's item, so a wire that hid the
+ * whole side's items would still pass every other assertion here. */
+probe('ability', 'suppressesOwnItem', 'Klutz switches off its OWN Leftovers and not the partner\'s', () => {
+  const run = (ab) => {
+    const me = bare('lopunny'), ally = bare('audino');
+    const f1 = bare('milotic'), f2 = bare('garchomp');
+    me.ability = ab; me.item = 'leftovers'; ally.item = 'leftovers';
+    me.curHP = Math.floor(me.st.hp / 2); ally.curHP = Math.floor(ally.st.hp / 2);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const b1 = me.curHP, b2 = ally.curHP;
+    M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    return [me.curHP - b1 > 0 ? 1 : 0, ally.curHP - b2 > 0 ? 1 : 0];
+  };
+  const control = run('none'), test = run('klutz');
+  return { works: JSON.stringify(control) === JSON.stringify([1, 1])
+                  && JSON.stringify(test) === JSON.stringify([0, 1]),
+           arms: { control, test },
+           detail: '[did the holder heal, did the PARTNER heal] both on Leftovers at half HP — no '
+                 + 'ability ' + JSON.stringify(control) + ' (must be 1,1)   |   KLUTZ '
+                 + JSON.stringify(test) + ' (must be 0,1 — the partner\'s Leftovers is untouched)' };
 });
 
 const works = results.filter(r => r.works);

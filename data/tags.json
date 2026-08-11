@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-11T08:03:50.457Z",
+ "generated": "2026-08-11T09:48:29.944Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1153,8 +1153,8 @@
    "kind": "move",
    "param": "held items stop working, field-wide",
    "why": "Magic Room. Kills Focus Sash, Choice items, Assault Vest and the berries at once",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "magicroom",
+   "used": true,
    "n": 1,
    "uses": 4,
    "examples": [
@@ -1384,6 +1384,22 @@
    "examples": [
     "Ceaseless Edge",
     "Stone Axe"
+   ]
+  },
+  {
+   "tag": "removesHazards",
+   "kind": "move",
+   "param": "entry hazards are swept, from WHICH sides -- plus the screens, the terrain, the user's Leech Seed and partial trap, and every Substitute, where the handler says so",
+   "why": "The engine had no hazard removal at all, so a laid hazard was permanent -- it over-values every Stealth Rock and prices Rapid Spin as a 50 BP Normal attack. 104 corpus uses across the four members against 384 for the setting family",
+   "consumedBy": "removesHazards",
+   "used": true,
+   "n": 4,
+   "uses": 104,
+   "examples": [
+    "Defog",
+    "Mortal Spin",
+    "Rapid Spin",
+    "Tidy Up"
    ]
   },
   {
@@ -3636,8 +3652,8 @@
    "kind": "ability",
    "param": "takes no residual damage from the named weathers",
    "why": "Sand Veil, Sand Rush, Sand Force, Overcoat (sandstorm); Ice Body, Snow Cloak, Overcoat (hail). The sandstorm residual is 1/16 a turn and this engine did not have it at all",
-   "consumedBy": "onImmunity",
-   "used": true,
+   "consumedBy": null,
+   "used": false,
    "n": 6,
    "uses": 2769,
    "examples": [
@@ -3670,8 +3686,8 @@
    "kind": "ability",
    "param": "HP loss from anything that is not a MOVE is refused outright",
    "why": "Magic Guard, 114 fields, `untagged` until 2026-08-11. Sand, poison, burn, Life Orb, Leech Seed and every residual in the game are zero on this body, and nothing in the artifact said so",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "refusesIndirectDamage",
+   "used": true,
    "n": 1,
    "uses": 112,
    "examples": [
@@ -3683,8 +3699,8 @@
    "kind": "ability",
    "param": "a named status HEALS instead of hurting",
    "why": "Poison Heal, 9 fields. Its holder gains 1/8 every turn it is poisoned, and this engine charged it 1/8 instead — a 2/8 swing per turn on a body built to be poisoned",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "healsFromOwnStatus",
+   "used": true,
    "n": 1,
    "uses": 9,
    "examples": [
@@ -3696,8 +3712,8 @@
    "kind": "ability",
    "param": "a boost paid for CROSSING a fraction of max HP, once per crossing",
    "why": "Berserk, 44 fields, and Anger Shell. The crossing rule is the whole mechanic — an engine that reads the HP LEVEL boosts every turn the body stays low",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "boostsAtHPThreshold",
+   "used": true,
    "n": 2,
    "uses": 33,
    "examples": [
@@ -3709,8 +3725,8 @@
    "kind": "ability",
    "param": "a status cured at the end of turn — whose, how often, and under what sky",
    "why": "Healer (32 fields), Shed Skin (8) and Hydration (3) all `untagged`. A status this engine believes is permanent is a burn it keeps charging and a sleep it keeps counting",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "curesStatusResidual",
+   "used": true,
    "n": 3,
    "uses": 36,
    "examples": [
@@ -3724,8 +3740,8 @@
    "kind": "ability",
    "param": "an item taken off another body, and on whose turn",
    "why": "Magician (265 fields) and Pickpocket (104), both `untagged`. An item that has changed hands and is still being priced on the old holder is CLAUDE.md's Knock Off lesson exactly",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "stealsItem",
+   "used": true,
    "n": 2,
    "uses": 357,
    "examples": [
@@ -3751,8 +3767,8 @@
    "kind": "ability",
    "param": "screens removed on switch-in, and from WHICH sides",
    "why": "Screen Cleaner, 78 fields, `untagged`. It deletes its OWN side's Reflect too, so an engine that clears only the foe's makes the ability strictly better than it is",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "clearsScreensOnEntry",
+   "used": true,
    "n": 1,
    "uses": 66,
    "examples": [
@@ -3764,8 +3780,8 @@
    "kind": "ability",
    "param": "a 2-5 move always hits the maximum, and per-hit accuracy is off",
    "why": "Skill Link, 50 fields, `untagged`. Bullet Seed at a flat 5 hits instead of a 3.1 expectation is a 60% damage error on every click, and the multiaccuracy half is the one that gets missed",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "multihitAlwaysMax",
+   "used": true,
    "n": 1,
    "uses": 13,
    "examples": [
@@ -3777,8 +3793,8 @@
    "kind": "ability",
    "param": "its moves cannot be pulled by Follow Me, Rage Powder or a draw ability",
    "why": "Stalwart, 47 fields, `untagged`. Follow Me and Rage Powder are both live in this engine, so the body that is supposed to ignore them was being pulled by them",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "ignoresRedirection",
+   "used": true,
    "n": 2,
    "uses": 47,
    "examples": [
@@ -3803,8 +3819,8 @@
    "kind": "ability",
    "param": "a FLAG deleted from the holder's own moves — a linkage key turned off",
    "why": "Long Reach, 2 fields, `untagged`. `contact` is a linkage key with eight reactors on the far side of it, and this ability unsubscribes from every one of them at once",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "removesOwnMoveFlag",
+   "used": true,
    "n": 1,
    "uses": 2,
    "examples": [
@@ -3829,8 +3845,8 @@
    "kind": "ability",
    "param": "a status inflicted on the holder is applied back to its source",
    "why": "Synchronize, 135 fields, `untagged`. A Will-O-Wisp at a Synchronize body burns the THROWER, and this engine burned nobody",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "reflectsStatusToSource",
+   "used": true,
    "n": 1,
    "uses": 109,
    "examples": [
@@ -3842,8 +3858,8 @@
    "kind": "ability",
    "param": "the holder's own item does nothing while it is on the field",
    "why": "Klutz, 1 field, `untagged`. Every item consumer here reads the SLOT, so a Klutz body is priced with an item that is switched off",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "suppressesOwnItem",
+   "used": true,
    "n": 1,
    "uses": 1,
    "examples": [
@@ -3948,8 +3964,8 @@
    "kind": "ability",
    "param": "damage against a RESISTANT target is multiplied back up",
    "why": "Tinted Lens, `untagged` since it lost its carrier. It is a damage multiplier that keys on the TYPE CHART RESULT, which no other tag in this artifact can express",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "boostsNotVeryEffective",
+   "used": true,
    "n": 1,
    "uses": 2,
    "examples": [
@@ -3979,8 +3995,8 @@
    "kind": "ability",
    "param": "a real mechanic the simulator implements BY NAME, with no handler to probe",
    "why": "Corrosion (35 fields) and Early Bird (26) expose no handler whatsoever — Showdown consults them by name inside setStatus and the sleep counter. Left `untagged` they read as \"nothing known\"; this says \"known, and irreducible\", which is a different claim",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "nameImplementedBySim",
+   "used": true,
    "n": 2,
    "uses": 59,
    "examples": [
@@ -13355,6 +13371,7 @@
     "pp",
     "moveClass",
     "neverMisses",
+    "removesHazards",
     "statChangeInCode",
     "lowersTarget",
     "statusCategory"
@@ -13374,6 +13391,24 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "removesHazards": {
+     "hazards": [
+      "spikes",
+      "toxicspikes",
+      "stealthrock",
+      "stickyweb"
+     ],
+     "hazardsFrom": "both",
+     "alsoRemoves": [
+      "reflect",
+      "lightscreen",
+      "auroraveil",
+      "safeguard"
+     ],
+     "screensFrom": "target",
+     "clearsTerrain": true,
+     "onlyOnConnect": false
     },
     "statChangeInCode": {
      "procedural": true,
@@ -18833,6 +18868,7 @@
     "pp",
     "spreadFoes",
     "contact",
+    "removesHazards",
     "inflictsPoison",
     "statusInflict"
    ],
@@ -18849,6 +18885,20 @@
     },
     "contact": {
      "contact": true
+    },
+    "removesHazards": {
+     "hazards": [
+      "spikes",
+      "toxicspikes",
+      "stealthrock",
+      "stickyweb"
+     ],
+     "hazardsFrom": "self",
+     "removesOwnLeechSeed": true,
+     "removesOwnPartialTrap": true,
+     "onlyOnConnect": true,
+     "throughSubstitute": true,
+     "refusedBySheerForce": true
     },
     "inflictsPoison": {
      "p": 1,
@@ -20507,6 +20557,7 @@
    "tags": [
     "pp",
     "contact",
+    "removesHazards",
     "secondaryStatEffect",
     "statChange"
    ],
@@ -20519,6 +20570,20 @@
     },
     "contact": {
      "contact": true
+    },
+    "removesHazards": {
+     "hazards": [
+      "spikes",
+      "toxicspikes",
+      "stealthrock",
+      "stickyweb"
+     ],
+     "hazardsFrom": "self",
+     "removesOwnLeechSeed": true,
+     "removesOwnPartialTrap": true,
+     "onlyOnConnect": true,
+     "throughSubstitute": true,
+     "refusedBySheerForce": true
     },
     "secondaryStatEffect": {
      "p": 1,
@@ -24288,6 +24353,7 @@
    "tags": [
     "pp",
     "neverMisses",
+    "removesHazards",
     "statChangeInCode",
     "statusCategory"
    ],
@@ -24301,6 +24367,17 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "removesHazards": {
+     "hazards": [
+      "spikes",
+      "toxicspikes",
+      "stealthrock",
+      "stickyweb"
+     ],
+     "hazardsFrom": "both",
+     "removesSubstitutes": "all",
+     "onlyOnConnect": false
     },
     "statChangeInCode": {
      "procedural": true,
@@ -29628,8 +29705,13 @@
    "params": {
     "nameImplementedBySim": {
      "irreducible": true,
+     "via": "not derivable — the ability has no handler",
      "what": "it may poison Steel and Poison types — the immunity check in `setStatus` consults the ATTACKER's ability by name",
-     "via": "not derivable — the ability has no handler"
+     "cite": "sim/pokemon.ts:1715",
+     "ignoresStatusImmunityFor": [
+      "tox",
+      "psn"
+     ]
     }
    }
   },
@@ -29925,8 +30007,12 @@
    "params": {
     "nameImplementedBySim": {
      "irreducible": true,
-     "what": "sleep counts down twice as fast — the `slp` condition's own duration is halved by name",
-     "via": "not derivable — the ability has no handler"
+     "via": "not derivable — the ability has no handler",
+     "what": "sleep spends an extra tick every turn — the `slp` condition's own `onBeforeMove` decrements twice for this ability",
+     "cite": "data/conditions.ts:68-70",
+     "extraStatusTicks": {
+      "slp": 1
+     }
     }
    }
   },
@@ -31232,7 +31318,8 @@
    "params": {
     "suppressesOwnItem": {
      "suppresses": "the holder's own item",
-     "whileActive": true
+     "whileActive": true,
+     "exceptItems": []
     }
    }
   },

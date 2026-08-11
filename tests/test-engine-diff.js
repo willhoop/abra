@@ -499,8 +499,16 @@ function compareRow(attId, mvId, defId) {
    * than a MEDICHAM bug. Two confirmed causes, neither an engine fault:
    *   - a basePowerCallback starved of state trySpreadMoveHit would have set (Triple Axel);
    *   - a nullification Showdown applies at a layer moveHit only half-runs, which MEDICHAM applies
-   *     in its BATTLE LOOP instead of in dmgRange. DISGUISE is exactly this: Showdown's onDamage
-   *     returns 0 here while the maxhp/8 never lands because battle.update() is never called, and
+   *     in its BATTLE LOOP instead of in dmgRange. DISGUISE is exactly this.
+   *     ROADMAP #89 -- THE REASON THIS PARAGRAPH GAVE WAS FICTION AND IS CORRECTED HERE. It said the
+   *     maxhp/8 "never lands because battle.update() is never called". THERE IS NO SUCH METHOD:
+   *     enumerating `Battle.prototype` returns `sendUpdates`, `faintMessages` and `commitChoices`
+   *     and nothing named `update`. The true mechanism is that Disguise splits itself across two
+   *     handlers -- `onDamage` returns 0 and sets `effectState.busted` (data/abilities.ts:962-966),
+   *     and the eighth is dealt separately inside `onUpdate`, after the forme change
+   *     (`this.damage(pokemon.baseMaxhp / 8, ...)`, data/abilities.ts:996). A single-hit damage
+   *     comparison sees the 0 and never reaches the second event, which is a LAYER mismatch exactly
+   *     as this paragraph claims -- the claim was right and its reason was invented.
    *     MEDICHAM's dmgRange correctly reports the raw damage because WIRE 23 substitutes one level
    *     up. Both engines are right and the comparison is asking dmgRange a question about battleTurn.
    * A true immunity is NOT caught by this, because both sides read 0 and the row agrees before it

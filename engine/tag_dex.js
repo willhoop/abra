@@ -562,6 +562,23 @@ function hazardCap(cond) {
   return +mm[1];
 }
 
+/* THE SIDE-CONDITION VOCABULARY, DERIVED FROM THE FORMAT'S OWN MOVES. `removesHazards` has to decide
+ * whether a name quoted inside a handler is a HAZARD or a SCREEN, and the only honest source for that
+ * is the same statement the `hazard` and `sideBuff` tags already stand on: a move that DECLARES the
+ * condition and says which side it lands on. `target: 'foeSide'` is a hazard; anything else a legal
+ * move declares (the three screens, Safeguard, Mist, Tailwind) is not.
+ *
+ * NOTHING IS TYPED HERE. Measured on the day it was written: hazards = spikes, toxicspikes,
+ * stealthrock, stickyweb. `gmaxsteelsurge` is named in all four removal handlers upstream and is
+ * absent from both sets, because no legal move in Reg M-B lays it -- which is exactly the behaviour
+ * wanted, and is why the vocabulary is derived rather than copied out of `data/moves.ts`. */
+const HAZARD_CONDS = new Set();
+const OTHER_SIDE_CONDS = new Set();
+for (const m of dex.moves.all()) {
+  if (!m || !m.exists || m.isNonstandard || !m.sideCondition) continue;
+  (m.target === 'foeSide' ? HAZARD_CONDS : OTHER_SIDE_CONDS).add(String(m.sideCondition).toLowerCase());
+}
+
 const MOVE_TAGS = [
   /* ROADMAP #144 -- HOW MANY TIMES THIS MOVE CAN BE CLICKED, and until 2026-08-11 the engine had no
    * such number at all: zero mentions of PP in medicham2-browser.js and no `pp` field on a built
@@ -2406,6 +2423,75 @@ const MOVE_TAGS = [
        * stop both, because neither handler runs at all. */
       return { hazard: h, maxLayers: hazardCap(h),
                throughSubstitute: !!m.onAfterSubDamage, onlyOnConnect: true };
+    } },
+  /* ROADMAP #72, THE OTHER HALF -- HAZARDS COME BACK UP, AND NOTHING SAID SO. 2026-08-11.
+   *
+   * Setting has three tags (`hazard`, `hazardOnHit`, and the ability side's) and removal had none, so
+   * medicham2 believed a layer of Stealth Rock was permanent: the strings `defog`, `rapidspin`,
+   * `mortalspin` and `tidyup` appeared in it ZERO times. Measured before a byte moved, three probes
+   * red with every control arm exactly right -- Rapid Spin left both bags at one layer, Defog left
+   * both bags, both Reflects and the terrain untouched.
+   *
+   * THE HAZARD VOCABULARY IS DERIVED, NOT LISTED. A side condition is a hazard here if some legal
+   * move DECLARES it with `target: 'foeSide'` -- the same statement the `hazard` tag is built on --
+   * so the two can never drift apart, and `gmaxsteelsurge`, which every one of these handlers names,
+   * drops out on its own because no legal move lays it in this format.
+   *
+   * THAT GATE IS ALSO WHAT KEEPS THE SCREEN-BREAKERS OUT. Brick Break, Psychic Fangs and Raging Bull
+   * all call `removeSideCondition` and are `clearsScreens`, not this; they name no hazard, so they
+   * do not match. PRINTED BEFORE IT WAS WIRED, over all 500 legal moves: seven moves reach
+   * `removeSideCondition` and exactly FOUR name a hazard -- defog, mortalspin, rapidspin, tidyup.
+   *
+   * COURT CHANGE IS NOT A MEMBER AND COULD NOT BE. It is `isNonstandard: 'Past'` in Reg M-B, so the
+   * tagger never sees it; and it SWAPS the two sides' conditions rather than removing any, which is a
+   * different mechanic that would need its own tag if the format ever restored it.
+   *
+   * WHICH SIDE, read off the receiver of the call rather than from the move's name:
+   *   `pokemon.side.` / `source.side.`   -> the user's own side          (Rapid Spin, Mortal Spin)
+   *   `target.side.`                     -> the target's side            (Defog)
+   *   `foeSidesWithConditions()`         -> both, in one loop            (Tidy Up)
+   * `screensFrom` is separate from `hazardsFrom` ON PURPOSE and it is the whole reason this tag has
+   * params: Defog takes hazards off BOTH sides but screens off the TARGET's side only, so a consumer
+   * that collapsed the two would delete the user's own Reflect. That is the one arm the Defog probe
+   * asserts must NOT move. */
+  { tag: 'removesHazards', param: 'entry hazards are swept, from WHICH sides -- plus the screens, the '
+       + 'terrain, the user\'s Leech Seed and partial trap, and every Substitute, where the handler says so',
+    probe: 'removesHazards',
+    why: 'The engine had no hazard removal at all, so a laid hazard was permanent -- it over-values '
+       + 'every Stealth Rock and prices Rapid Spin as a 50 BP Normal attack. 104 corpus uses across '
+       + 'the four members against 384 for the setting family',
+    of: m => {
+      const src = ['onHit', 'onAfterHit', 'onAfterSubDamage', 'onHitField', 'onHitSide']
+        .map(h => String(m[h] || '')).join('\n');
+      if (!/removeSideCondition/.test(src)) return null;
+      /* BOTH QUOTE STYLES, for the reason written on sideBuff's `startsAs`: the dex is read out of
+       * `dist/`, which is COMPILED, and the compiler rewrites single quotes to double ones. */
+      const quoted = [...src.matchAll(/["'](\w+)["']/g)].map(x => x[1].toLowerCase());
+      const hazards = [...new Set(quoted.filter(q => HAZARD_CONDS.has(q)))];
+      if (!hazards.length) return null;    /* the screen-breakers -- `clearsScreens` owns them */
+      const both = /foeSidesWithConditions/.test(src);
+      const own = both || /(?:pokemon|source)\.side\.removeSideCondition/.test(src);
+      const foe = both || /target\.side\.removeSideCondition/.test(src);
+      const out = { hazards, hazardsFrom: own && foe ? 'both' : (foe ? 'target' : 'self') };
+      /* The non-hazard conditions the same handler names. Kept as the AUTHORITY's list rather than a
+       * boolean, because Defog takes Safeguard and Mist down with the screens and a `screens: true`
+       * would not have said so. */
+      const others = [...new Set(quoted.filter(q => OTHER_SIDE_CONDS.has(q)))];
+      if (others.length) { out.alsoRemoves = others; out.screensFrom = foe ? 'target' : 'self'; }
+      if (/clearTerrain\(\)/.test(src)) out.clearsTerrain = true;
+      if (/removeVolatile\(\s*["']leechseed["']/.test(src)) out.removesOwnLeechSeed = true;
+      if (/removeVolatile\(\s*["']partiallytrapped["']/.test(src)) out.removesOwnPartialTrap = true;
+      /* Tidy Up walks `this.getAllActive()`, so it is EVERY Substitute on the field and not the
+       * target's. The scope is read off the iterator, not assumed. */
+      if (/removeVolatile\(\s*["']substitute["']/.test(src))
+        out.removesSubstitutes = /getAllActive/.test(src) ? 'all' : 'target';
+      /* WHICH FAILURES STOP IT, the half a "does it fire" consumer gets wrong. The spin family lives
+       * in `onAfterHit`, so a miss or a Protect removes nothing; Defog and Tidy Up are `onHit` on a
+       * never-miss status move. Reported rather than inferred, exactly as `hazardOnHit` does. */
+      out.onlyOnConnect = !m.onHit && !!(m.onAfterHit || m.onAfterSubDamage);
+      if (out.onlyOnConnect) out.throughSubstitute = !!m.onAfterSubDamage;
+      if (/hasSheerForce/.test(src)) out.refusedBySheerForce = true;
+      return out;
     } },
   /* Will: "does the engine know what the boostsUser actually boosts". IT DOES NOT. board.js has
    * movesBoostMe, which is a SIGN (+1/0/-1) from expectedBoostSign -- so Swords Dance (+2 Atk),
@@ -6134,8 +6220,16 @@ const ABILITY_TAGS = [
     probe: 'suppressesOwnItem',
     why: 'Klutz, 1 field, `untagged`. Every item consumer here reads the SLOT, so a Klutz body is '
        + 'priced with an item that is switched off',
+    /* ROADMAP #175 -- THE EXCEPTION LIST IS PART OF THE FACT, and it was missing. `ignoringItem`
+     * (sim/pokemon.ts:891) is `!this.getItem().ignoreKlutz && this.hasAbility('klutz')`, so an item
+     * carrying `ignoreKlutz` works THROUGH the suppression. Derived over the format's own item table
+     * rather than listed: measured 2026-08-11, ZERO legal items in Reg M-B carry the flag, so the
+     * exception is empty here -- which is a fact about the regulation and not a reason to omit it.
+     * A consumer that reads this list starts honouring the exception the day the format grows one. */
     of: a => (a.onStart && /singleEvent\(\s*["']End["']\s*,\s*\w+\.getItem\(\)/.test(String(a.onStart).replace(/\s+/g, ' ')))
-      ? { suppresses: 'the holder\'s own item', whileActive: true } : null },
+      ? { suppresses: 'the holder\'s own item', whileActive: true,
+          exceptItems: dex.items.all().filter(i => i && i.exists && !i.isNonstandard && i.ignoreKlutz)
+            .map(i => i.id) } : null },
 
   /* TRACE — 274 fields, the biggest `untagged` row in the artifact. It REWRITES THE HOLDER'S OWN
    * ABILITY on entry, which means every other tag this file derives is looked up against the wrong
@@ -6346,12 +6440,42 @@ const ABILITY_TAGS = [
     of: a => {
       const hooks = Object.keys(a).filter(k => /^on/.test(k) && typeof a[k] === 'function');
       if (hooks.length) return null;
-      const WHAT = { corrosion: 'it may poison Steel and Poison types — the immunity check in '
-                              + '`setStatus` consults the ATTACKER\'s ability by name',
-                     earlybird: 'sleep counts down twice as fast — the `slp` condition\'s own duration '
-                              + 'is halved by name' };
+      /* ROADMAP #175 -- THE PARAM WAS PROSE, SO NOTHING COULD READ IT. 2026-08-11.
+       *
+       * This tag said `{irreducible, what: <a sentence>, via: <a sentence>}` and stopped, which is
+       * exactly the failure #175 describes: a derived fact with no consumer is indistinguishable
+       * from a fact that is wrong. Two real mechanics on 59 corpus uses -- Corrosion may poison a
+       * STEEL type, Early Bird halves the sleep -- were both absent from the engine.
+       *
+       * THE MEMBERSHIP IS BY NAME AND THE CONSUMER IS NOT, and that split is the point. There is no
+       * handler to probe, so the two names are unavoidable HERE (they are two of the 20 name-based
+       * rules this file counts). What goes into the artifact is a SHAPE -- `ignoresStatusImmunityFor`
+       * and `extraStatusTicks` -- so medicham2 names neither ability and would pick up a third
+       * carrier the day the format grew one.
+       *
+       * BOTH CITED, and both read WHOLE rather than skimmed:
+       *   corrosion  sim/pokemon.ts:1715  `!(source?.hasAbility('corrosion') && ['tox','psn']
+       *              .includes(status.id))` -- it is the ATTACKER's ability, and it is the psn/tox
+       *              pair ONLY. A Fire type still refuses a burn.
+       *   earlybird  data/conditions.ts:68-70  `if (pokemon.hasAbility('earlybird'))
+       *              pokemon.statusState.time--;` immediately above the ordinary `time--`, so it is
+       *              ONE EXTRA TICK PER TURN and not a halved duration -- which is what the old prose
+       *              said and is a different number at an odd start time.
+       * NEITHER IS OVERRIDDEN BY CHAMPIONS: the mod replaces `slp.onStart` and inherits the rest of
+       * the condition, and it does not ship a `sim/` at all. */
+      const WHAT = {
+        corrosion: { what: 'it may poison Steel and Poison types — the immunity check in `setStatus` '
+                         + 'consults the ATTACKER\'s ability by name',
+                     cite: 'sim/pokemon.ts:1715',
+                     ignoresStatusImmunityFor: ['tox', 'psn'] },
+        earlybird: { what: 'sleep spends an extra tick every turn — the `slp` condition\'s own '
+                         + '`onBeforeMove` decrements twice for this ability',
+                     cite: 'data/conditions.ts:68-70',
+                     extraStatusTicks: { slp: 1 } },
+      };
       const w = WHAT[norm(a.name)];
-      return w ? { irreducible: true, what: w, via: 'not derivable — the ability has no handler' } : null;
+      return w ? Object.assign({ irreducible: true,
+                                 via: 'not derivable — the ability has no handler' }, w) : null;
     } },
 ];
 

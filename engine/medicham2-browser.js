@@ -485,6 +485,23 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * drop). The old MEDFAILS.hazardUnresolved counter is gone because the gap it declared is wired;
    * this is its receipt, so the counter did not merely vanish (docs/ENGINE.md rule). */
   hazardResolvedOnEntry: 0,
+  /* ROADMAP #72, THE OTHER HALF -- a layer that came back OFF. Before 2026-08-11 the engine had no
+   * removal at all, so a laid hazard was permanent and these six were structurally unreachable. They
+   * are split rather than one `sweptSomething` because the four members of `removesHazards` disagree
+   * about every clause: a zero on `terrainSweptByMove` with a non-zero on `hazardSwept` means Defog
+   * is being played as a spin, which is a real defect and not a quiet one. */
+  hazardSwept: 0, sideConditionSwept: 0, terrainSweptByMove: 0,
+  leechSeedSwept: 0, partialTrapSwept: 0, substituteSwept: 0,
+  /* ROADMAP #175 -- the two halves of `nameImplementedBySim`, which had no consumer at all until
+   * 2026-08-11. `statusImmunityIgnoredByAbility` fires when a Corrosion body's Toxic walks past the
+   * type chart; `sleepTickAccelerated` fires on every turn an Early Bird body spends asleep. Both are
+   * capability counters: a zero after games with a Salazzle, a Glimmora, a Kangaskhan or a Houndoom
+   * on the field is the finding. */
+  statusImmunityIgnoredByAbility: 0, sleepTickAccelerated: 0,
+  /* ROADMAP #175 -- `suppressesOwnItem`. Klutz, which had no consumer, so a Lopunny, an Audino or a
+   * Golurk was priced with a Leftovers, a Life Orb or a Focus Sash that does nothing. Counted per
+   * SYNC rather than per suppression event, so it ticks every turn a carrier is on the field. */
+  itemSuppressedByAbility: 0,
   /* ROADMAP #81 WIRE 11 -- a White Herb that actually came off and put a negative stage back to
    * zero. It fires at four triggers now (switch-in, mega, after every action, residual) and had one
    * before; a zero here after real games with a Sneasler or an Incineroar on the field is the
@@ -7241,7 +7258,14 @@ function pranksterBlocked(attacker,target,moveId){
   if(!fx||fx.category!=='Status') return false;
   return (target.types||[]).includes('Dark');
 }
-function canTakeStatus(t,st){
+/* `ignoreTypeImmunity` -- ROADMAP #175, and it is a property of the ATTACKER rather than of the body
+ * being statused, which is why it arrives as an argument instead of being read here. Every other
+ * refusal in this function belongs to the target; Corrosion belongs to whoever threw the Toxic
+ * (`source?.hasAbility('corrosion')`, sim/pokemon.ts:1715), and reading the target's ability for it
+ * would have been the wrong body. The ABILITY refusals below are deliberately NOT bypassed: the
+ * authority's clause guards `runStatusImmunity`, which is the TYPE chart, and an Immunity body still
+ * refuses a Corrosion Toxic. */
+function canTakeStatus(t,st,ignoreTypeImmunity){
   if(!t||t.fainted||t.curHP<=0) return false;
   if(t.status) return false;                                  // one major status at a time
   const ab=(t.ability||'').replace(/[^a-z0-9]/g,'');
@@ -7258,7 +7282,7 @@ function canTakeStatus(t,st){
    * Dust / Covert Cloak block Poison Touch's effect"). Covert Cloak is banned in this format, so
    * Shield Dust is the live carrier of every one of those. */
   const byType=STATUS_IMMUNE_TYPE[st]||[];
-  if((t.types||[]).some(ty=>byType.includes(ty))) return false;
+  if(!ignoreTypeImmunity&&(t.types||[]).some(ty=>byType.includes(ty))) return false;
   if(STATUS_IMMUNE_ABIL_ANY.includes(ab)) return false;        // WIRE 114 -- refuses every status
   if((STATUS_IMMUNE_ABIL[st]||[]).includes(ab)) return false;
   return true;
@@ -7819,7 +7843,16 @@ function applyStatus(t,st,src){
       * (data/moves.ts:15595), which is exactly the direct status-move path this engine routes here. */
      if(TR)TR.act(t,'move: '+(_sb.startsAs||_sb.sideCondition));
      return false;}}
-  if(!canTakeStatus(t,st))return false;t.status=st;
+  /* ROADMAP #175 -- CORROSION, off the SHAPE of `nameImplementedBySim` rather than off its name.
+   * The param states WHICH statuses walk through the type chart (`['tox','psn']`), so a Will-O-Wisp
+   * from the same body is still refused by a Fire type -- which is the one arm the probe asserts must
+   * not move. `src` is the attacker; a status this engine applies with no source (the Toxic Spikes
+   * entry path, the residual burns) cannot reach this and should not. */
+  let _ignTypeImm=false;
+  {const _nis=src?TAGS.param('ability',src.ability,'nameImplementedBySim'):null;
+   if(_nis&&Array.isArray(_nis.ignoresStatusImmunityFor)&&_nis.ignoresStatusImmunityFor.indexOf(st)>=0){
+     _ignTypeImm=true;MEDSEEN.statusImmunityIgnoredByAbility++;}}
+  if(!canTakeStatus(t,st,_ignTypeImm))return false;t.status=st;
   if(TR)TR.sta(t,st);
   if(st==='slp')t.slpTurns=0;if(st==='frz')t.frzTurns=0;if(st==='tox')t.toxTurns=0;
   /* ROADMAP #175 -- SYNCHRONIZE, and it is `onAfterSetStatus` so it belongs at the BOTTOM of this
@@ -8546,9 +8579,32 @@ function statsRoseThisTurn(m){
 function itemRoomHide(m){ if(!m)return; if(m.item&&m._roomItem==null){m._roomItem=m.item;m.item='';MEDSEEN.itemRoomHidden++;} }
 function itemRoomShow(m){ if(!m)return; if(m._roomItem!=null){if(!m.item)m.item=m._roomItem;m._roomItem=null;} }
 function itemRoomForget(m){ if(m)m._roomItem=null; }
+/* ROADMAP #175 -- KLUTZ JOINS MAGIC ROOM HERE, IN ONE PREDICATE, because upstream they ARE one
+ * predicate: `Pokemon#ignoringItem` (sim/pokemon.ts:885-892) returns true for
+ * `field.pseudoWeather['magicroom']` and for `hasAbility('klutz')` out of the same function, and
+ * every item read in the simulator goes through it. A second mechanism for the ability half would be
+ * the FACTS-ARE-GLOBAL rule broken in a new place.
+ *
+ * `exceptItems` is the authority's `!this.getItem().ignoreKlutz` and comes off the tag. It is EMPTY
+ * in Reg M-B -- zero legal items carry the flag, derived over the item table -- so it changes nothing
+ * today and is honoured anyway rather than being left out because it currently cannot fire.
+ *
+ * NOT gated on being ACTIVE: `ignoringItem` returns true for a benched body as well (`gen >= 5 &&
+ * !this.isActive`), so a Klutz body keeping its item hidden on the bench is the authority rather than
+ * a shortcut -- and the item comes back the moment the ability does not, because this is a SYNC and
+ * not a one-shot. */
+function itemSuppressed(m,field){
+  if(field&&field.magicRoom>0)return true;
+  const _k=m&&TAGS.param('ability',m.ability,'suppressesOwnItem');
+  /* THE ITEM IS READ THROUGH `_roomItem` AS WELL AS THROUGH THE SLOT, because this function is asked
+   * again on a body whose slot this very mechanism has already emptied -- reading the slot alone
+   * would make an exception item stop being an exception one tick after it started. */
+  if(_k&&_k.whileActive&&!((_k.exceptItems||[]).indexOf(String(m.item||m._roomItem||'').replace(/[^a-z0-9]/g,''))>=0)){
+    MEDSEEN.itemSuppressedByAbility++;return true;}
+  return false;
+}
 function itemRoomSync(field,bodies){
-  const up=field&&field.magicRoom>0;
-  for(const m of bodies){ if(!m)continue; if(up)itemRoomHide(m); else itemRoomShow(m); }
+  for(const m of bodies){ if(!m)continue; if(itemSuppressed(m,field))itemRoomHide(m); else itemRoomShow(m); }
 }
 /* ---- WIRE 141 -- THE TRANSFORM, AND IT IS NOT A FORME SWAP -------------------------------------
  *
@@ -8744,6 +8800,66 @@ function layHazard(sf,hz,cap,setter,sideLabel){
   if(setter)(sf.hzBy=sf.hzBy||{})[hz]=setter;
   if(TR&&sideLabel)TR.sstartSide(sideLabel,hz);
   return true;
+}
+/* ROADMAP #72, THE OTHER HALF -- TAKE THE HAZARDS BACK OFF. ONE function, three call sites, for the
+ * same reason layHazard is one function for three: "what does this click remove from the field" is a
+ * FACT about the move, and the three sites that need it are a status click (`affect` -- Defog), a
+ * self-targeting status click (`statcode` -- Tidy Up) and the attack path's after-hit block (Rapid
+ * Spin, Mortal Spin). Three copies of this would disagree eventually and nothing would notice.
+ *
+ * EVERY CLAUSE COMES OUT OF THE TAG'S PARAMS AND NOT ONE MOVE IS NAMED HERE. `hazardsFrom` decides
+ * which bags are emptied, `alsoRemoves` + `screensFrom` decide whose screens go, and `clearsTerrain`,
+ * `removesOwnLeechSeed`, `removesOwnPartialTrap` and `removesSubstitutes` are each a separate
+ * statement because the four members disagree about every one of them. Defog is the reason the two
+ * side questions are separate: it takes hazards off BOTH sides and screens off the TARGET's side
+ * only, so a wire that collapsed them would delete the user's own Reflect.
+ *
+ * `ownSf` is the USER's side and `foeSf` is the other one. Tidy Up's `foeSidesWithConditions()` and
+ * Defog's pair of loops both come out as `hazardsFrom: 'both'`, which is the same behaviour in a
+ * two-side game -- the difference upstream is only that Showdown skips a side with nothing on it.
+ *
+ * Returns how many DISTINCT things it took away, so a caller can tell a sweep that did something
+ * from one that swept an empty field. Nothing in this engine fails a click on that today (Defog
+ * still drops evasion and Tidy Up still boosts), and Showdown agrees -- both return `success ||`
+ * their own boost. */
+function sweepField(rm,user,ownSf,foeSf,field,acts){
+  if(!rm)return 0;
+  let n=0;
+  const _lab=sf=>sf&&sf.side==='A'?'p1':'p2';
+  const _bags=[];
+  if(rm.hazardsFrom==='self'||rm.hazardsFrom==='both')_bags.push(ownSf);
+  if(rm.hazardsFrom==='target'||rm.hazardsFrom==='both')_bags.push(foeSf);
+  for(const sf of _bags){
+    if(!sf||!sf.hz)continue;
+    for(const hz of (rm.hazards||[])){
+      if(!(sf.hz[hz]>0))continue;
+      delete sf.hz[hz]; if(sf.hzBy)delete sf.hzBy[hz];
+      n++; MEDSEEN.hazardSwept++;
+      if(TR)TR.sendSide(_lab(sf),hz);
+    }
+  }
+  if(rm.alsoRemoves&&rm.alsoRemoves.length){
+    const sf=rm.screensFrom==='target'?foeSf:ownSf;
+    if(sf&&sf.sc)for(const id of rm.alsoRemoves){
+      if(!(sf.sc[id]>0))continue;
+      delete sf.sc[id]; n++; MEDSEEN.sideConditionSwept++;
+      if(TR)TR.sendSide(_lab(sf),id);
+    }
+  }
+  if(rm.clearsTerrain&&field&&field.terrain){field.terrain='';n++;MEDSEEN.terrainSweptByMove++;}
+  /* THE USER'S OWN, not the target's: `pokemon.removeVolatile('leechseed')` in the spin handlers
+   * names the ATTACKER. A wire that pulled the target's seed would be a different move. */
+  if(rm.removesOwnLeechSeed&&user&&user._seededBy){user._seededBy=null;n++;MEDSEEN.leechSeedSwept++;
+    if(TR)TR.vend(user,'move: Leech Seed');}
+  if(rm.removesOwnPartialTrap&&user&&user._trap){user._trap=null;n++;MEDSEEN.partialTrapSwept++;
+    if(TR)TR.vend(user,'partiallytrapped');}
+  /* `getAllActive()` is EVERY body on the field, its own side included -- read off the iterator by
+   * tag_dex rather than assumed, and the probe asserts the foe's doll specifically because a wire
+   * that only cleared the user's would still look like it fired. */
+  if(rm.removesSubstitutes==='all'&&acts)for(const m of acts){
+    if(m&&!m.fainted&&m._sub>0){m._sub=0;n++;MEDSEEN.substituteSwept++;if(TR)TR.vend(m,'Substitute');}
+  }
+  return n;
 }
 /* BRING A BENCHED POKEMON IN. Shared by faint replacement and by voluntary/pivot switching.
    WHICH mon: live(bench)[0], the same choice refill() has always made. A rollout needs SOME policy
@@ -9507,6 +9623,11 @@ function battleTurn(S,rng,actsForA,actsForB){
     /* WIRE 144 -- and the sleep refusal on the same line and for the same reason: an `onAny` handler is
      * a property of the field while a carrier stands on it. See refreshSleepBlock. */
     refreshSleepBlock(actA,actB,sfA,sfB);
+    /* ROADMAP #175 -- and the item suppression on the same line and for the same reason: it is a
+     * property of whatever is STANDING on the field, so a switch, a faint or a Skill Swap changes
+     * it. Magic Room already re-synced at its own start and end; the ability half has no event of
+     * its own, so the sync runs once a turn over the four actives. See itemSuppressed. */
+    itemRoomSync(field,[...actA,...actB]);
     const acts=[];
     /* actsForB exists for the Tower's LOWER floors: a floor-3 guardian clicks random legal moves,
      * so the caller hands the weak actions in rather than this engine growing a "play badly" mode. */
@@ -10083,7 +10204,19 @@ function battleTurn(S,rng,actsForA,actsForB){
        * and it moves anyway, because a list that is four fifths of the authority's list is the shape
        * that comes apart the day somebody adds the fifth member. */
       if(m.status==='frz'){m.frzTurns=(m.frzTurns||0)+1;if(m.frzTurns>=3||rng()<0.25){m.status='';if(TR)TR.cure(m,'frz');}else {m._mvRes=false;if(TR)TR.cant(m,'frz');continue;}}   // Champions: 25%/attempt, guaranteed thaw turn 3
-      if(m.status==='slp'){m.slpTurns=(m.slpTurns||0)+1;if(m.slpTurns>=3||(m.slpTurns===2&&rng()<1/3)){m.status='';if(TR)TR.cure(m,'slp');}else {m._mvRes=false;if(TR)TR.cant(m,'slp');continue;}}   // Champions: 33% wake turn 2, 100% turn 3
+      /* ROADMAP #175 -- EARLY BIRD IS AN EXTRA TICK, NOT A HALVED DURATION, and the distinction is
+       * the whole reason this reads a param instead of a name. `data/conditions.ts:68-70` puts
+       * `pokemon.statusState.time--` for the ability IMMEDIATELY ABOVE the ordinary one, so each turn
+       * spends two ticks off a counter Champions starts at `sample([2,3,3])` (the mod's own
+       * `slp.onStart`, data/mods/champions/conditions.ts:23). This engine counts UP to the same
+       * ceilings, so the extra tick is a subtraction from the two thresholds -- which is why they are
+       * written as `3 - extra` and `2 - extra` rather than halved. `extraStatusTicks` is keyed by
+       * status, so the shape covers a future ability that accelerates a different one. */
+      if(m.status==='slp'){m.slpTurns=(m.slpTurns||0)+1;
+        const _est=TAGS.param('ability',m.ability,'nameImplementedBySim');
+        const _tick=(_est&&_est.extraStatusTicks&&+_est.extraStatusTicks.slp)||0;
+        if(_tick)MEDSEEN.sleepTickAccelerated++;
+        if(m.slpTurns>=3-_tick||(m.slpTurns===2-_tick&&rng()<1/3)){m.status='';if(TR)TR.cure(m,'slp');}else {m._mvRes=false;if(TR)TR.cant(m,'slp');continue;}}   // Champions: 33% wake turn 2, 100% turn 3
       /* `_flinch` is cleared for every active body at the end of the turn (the `forEach` below the
        * action loop), so a flinch that sleep got to first does NOT survive into the next turn -- which
        * is Showdown's `duration: 1` on the volatile, arriving by a different road. */
@@ -10941,6 +11074,13 @@ function battleTurn(S,rng,actsForA,actsForB){
           }
           _landed++;
         }
+        /* ROADMAP #72, THE OTHER HALF -- DEFOG. It arrives here as `affect` because playerAction
+         * classifies it on its evasion drop, and the sweep is the rest of the same `onHit`. Gated on
+         * `_landed` for the reason the Memento block below is: every refusal in the loop `continue`s,
+         * so a Defog that a Protect, a Good as Gold or a Magic Bounce turned away must remove nothing
+         * -- and the whole gauntlet above is the one this branch already runs, not a second copy. */
+        {const _rm=TAGS.param('move',a.mv,'removesHazards');
+         if(_rm&&_landed)sweepField(_rm,m,m._sf,m._sf===sfA?sfB:sfA,field,actA.concat(actB));}
         /* WIRE 86 -- MEMENTO FAINTS ITS USER, AND THE CHECK LIVED IN THE ATTACK BRANCH.
          * WIRE 46 wired `userFaints` where damaging moves resolve, gated on `dealt > 0`. Memento is
          * a STATUS move: it resolves here, in `affect`, so its whole cost -- the user dies -- never
@@ -11207,6 +11347,13 @@ function battleTurn(S,rng,actsForA,actsForB){
           m.boosts[_s]=clamp(m.boosts[_s]+_sc4.boosts[k]*_sg,-6,6);
           if(TR)TR.bst(m,_s,m.boosts[_s]-_b0);
         }
+        /* ROADMAP #72, THE OTHER HALF -- TIDY UP. It reaches this branch on its +1 Atk / +1 Spe, and
+         * the sweep is the rest of the same `onHit`. No landing gate here and that is the authority
+         * rather than an omission: Tidy Up is `target: 'self'` with `flags: {}` -- no `protect`, no
+         * `reflectable` -- so there is no body between the click and the effect for anything to
+         * refuse, which is exactly why this branch has no gauntlet for it to have skipped. */
+        {const _rm=TAGS.param('move',a.mv,'removesHazards');
+         if(_rm)sweepField(_rm,m,m._sf,m._sf===sfA?sfB:sfA,field,actA.concat(actB));}
         m._lastMove=a.mv;continue;
       }
       /* ROADMAP #81 WIRE 8 -- A TAILWIND ALREADY UP IS NOT REFRESHED, AND THE SECOND CLICK FAILS.
@@ -13599,14 +13746,28 @@ function battleTurn(S,rng,actsForA,actsForB){
          * verified by enumerating the prototype; the nearest real methods are `sendUpdates`,
          * `faintMessages` and `commitChoices`. The model was right for a reason nobody had checked.
          *
-         * THE REAL REASON, out of the ability's own source (data/abilities.ts:960): `onDamage` returns
-         * 0 for the hit and sets `effectState.busted`, and the SELF-INFLICTED EIGHTH IS DEALT IN
-         * `onUpdate` -- `this.damage(pokemon.baseMaxhp / 8, ...)` -- on the same pass that performs the
-         * forme change. So it is not that the eighth never lands; it lands LATER, at the next update,
-         * as a separate damage event. A direct `dmgRange` comparison sees the 0 and not the eighth,
-         * which is exactly what the differential's surviving `chesnaught woodhammer -> mimikyu` row
-         * is. Substituting the eighth here reproduces the BOARD (both engines end at 114/130) while
-         * announcing it as one event rather than two, and that is the declared approximation.
+         * THE REAL REASON, out of the ability's own source, cited line by line rather than described:
+         *     data/abilities.ts:962-966   `onDamage` returns 0 for the hit and sets
+         *                                 `this.effectState.busted = true`
+         *     data/abilities.ts:992-996   `onUpdate` performs the forme change and THEN deals the
+         *                                 eighth: `this.damage(pokemon.baseMaxhp / 8, pokemon,
+         *                                 pokemon, this.dex.species.get(speciesid))`
+         * So it is not that the eighth never lands; it lands LATER, at the next update, as a separate
+         * damage event with the BUSTED forme named as its source. A direct `dmgRange` comparison sees
+         * the 0 and not the eighth, which is exactly what the differential's surviving
+         * `chesnaught woodhammer -> mimikyu` row is. Substituting the eighth here reproduces the BOARD
+         * (both engines end at 114/130) while announcing it as one event rather than two, and that is
+         * the declared approximation.
+         *
+         * AND CHAMPIONS **DOES** OVERRIDE THIS ABILITY, which the corrected paragraph above still did
+         * not say -- reading `data/abilities.ts` alone is reading MAINLINE (CLAUDE.md), and this is
+         * one of the entries where that matters. `data/mods/champions/abilities.ts:14` declares
+         * `disguise: { inherit: true, onEffectiveness(...) }`: the two handlers this wire rests on
+         * (`onDamage`, `onUpdate`) are INHERITED and identical, and what the mod changes is the
+         * MULTI-HIT case -- it keeps an `effectState.neutral` flag so every hit after the first of the
+         * same move also reads 0 rather than only the one that busted the disguise. This engine rolls
+         * a multi-hit as ONE packet, so that clause has nothing to bite on here; stated because the
+         * next reader must not have to re-derive whether the mod was checked.
          *
          * GATED ON A DAMAGING HIT ONLY, and placed before the Focus Sash block so a busted disguise
          * cannot also spend a Sash on the same hit. The flag lives on the mon and is cleared on
@@ -14810,6 +14971,28 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_hoh&&_hoh.hazard&&connected&&!m.fainted&&(_hoh.throughSubstitute||!_subAte)){
           const _hsf=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);
           if(_hsf)layHazard(_hsf,_hoh.hazard,_hoh.maxLayers,m,it.side==='A'?'p2':'p1');
+        }
+      }
+      /* ROADMAP #72, THE OTHER HALF -- THE SPIN FAMILY, IN THE SAME PLACE AND UNDER THE SAME GATE.
+       * Rapid Spin and Mortal Spin are ATTACKS whose sweep lives in `onAfterHit`/`onAfterSubDamage`,
+       * which is the pair of handlers the block above already reads for the laying family -- so the
+       * gate is character-for-character the one `hazardOnHit` uses, and for the same reasons: a miss,
+       * a Protect and a type immunity all leave `connected` false, a Substitute does not, and a user
+       * that died on the way in sweeps nothing.
+       *
+       * SHEER FORCE REFUSES IT, and that is the authority's `if (!move.hasSheerForce)` opening both
+       * handlers rather than a flourish -- both members carry an unconditional secondary, so a Sheer
+       * Force user really does trade the spin for the 1.3x. It reads the same `removesOwnSecondaries`
+       * tag WIRE 97 already reads; no ability is named here and there is no second copy of the rule.
+       *
+       * THE SIDE SWEPT IS THE USER'S OWN (`hazardsFrom: 'self'`), which is the whole difference
+       * between this family and Defog, and it comes off the tag rather than out of this call. */
+      {
+        const _rmh=TAGS.param('move',a.move&&a.move.id,'removesHazards');
+        if(_rmh&&connected&&!m.fainted&&(_rmh.throughSubstitute||!_subAte)
+           &&!(_rmh.refusedBySheerForce&&TAGS.param('ability',m.ability,'removesOwnSecondaries'))){
+          const _osf=m._sf, _fsf2=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);
+          sweepField(_rmh,m,_osf,_fsf2,field,actA.concat(actB));
         }
       }
       /* THE PIVOT HALF, AFTER THE DAMAGE. U-turn, Volt Switch and Flip Turn carry base power, so

@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-11T09:14:13.342Z",
+  "generated": "2026-08-11T10:14:31.814Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
-    "register_rows": 149,
-    "open": 98,
-    "closed": 51,
+    "register_rows": 152,
+    "open": 97,
+    "closed": 55,
     "open_asserting_breakage": 2,
     "measured_disagreements": 0,
     "unregistered": 0
@@ -167,15 +167,6 @@
       "full": "seven moves share one tag signature — pain split, recycle, copycat resolve identically"
     },
     {
-      "n": 72,
-      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
-      "closed": false,
-      "saysBroken": false,
-      "uses": 0,
-      "title": "hazard SETTING by an attacking move, and ALL hazard removal",
-      "full": "hazard setting by an attacking move, and all hazard removal"
-    },
-    {
       "n": 81,
       "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
       "closed": false,
@@ -185,15 +176,6 @@
       "full": "the wire queue. the whole-game differential's divergences, ranked and verified against showdown's source. one at a time, re-run between each (will, 2026-08-06). wire 1 (protect is not an immunity, and a shielded high jump kick still crashes) landed in 3.61.1"
     },
     {
-      "n": 84,
-      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
-      "closed": false,
-      "saysBroken": false,
-      "uses": 0,
-      "title": "\"my move didn't happen\" is TWO states in Showdown — `false` counts as a failure for Stomping Tantrum, `null` does not, a",
-      "full": "\"my move didn't happen\" is two states in showdown — `false` counts as a failure for stomping tantrum, `null` does not, and flinch returns `false`. get faked out, and your stomping tantrum doubles"
-    },
-    {
       "n": 88,
       "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
       "closed": false,
@@ -201,15 +183,6 @@
       "uses": 0,
       "title": "ONE PIN IS ONE CORNER. Every die is pinned one way, so a game runs once and is deterministic — no noise, but the tie alw",
       "full": "one pin is one corner. every die is pinned one way, so a game runs once and is deterministic — no noise, but the tie always resolves to input order, every sub-100 move misses on both sides, and damage is always the max roll. agreement is therefore by construction on the ~91% of matchups that are speed ties (compounds with #86). the crit's wrong position, found by the stage audit, is the first confirmed defect this hid: 46.5% wrong at the bottom roll, invisible at the top one we always use. fix is four pinned arms, not repetition-and-average, which would throw away the tolerance-zero this instrument exists for"
-    },
-    {
-      "n": 89,
-      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
-      "closed": false,
-      "saysBroken": true,
-      "uses": 0,
-      "title": "the engine justified its Disguise model against `battle.update()`, a Showdown method that does not exist. The model is C",
-      "full": "the engine justified its disguise model against `battle.update()`, a showdown method that does not exist. the model is correct (both engines end at 114/130) — a right answer resting on a false reason, which is worse than a wrong one, because the next reader re-derives from the reason"
     },
     {
       "n": 91,
@@ -554,15 +527,6 @@
       "full": "heat wave hits your own partner. `test-tag-wire`: *\"heat wave leaves the partner untouched — the ally-safe family stays safe\"* fails, while both membership assertions pass — *\"spreadfoes (22) is the ally-safe family — heat wave in, earthquake out\"* and *\"spreadall (16) hits the partner\"*. the artifact separates the two families correctly and the consumer is collapsing them. this is the one on the list with the largest effect on play: the whole point of the ally-safe spread moves is that you can click them beside your own body, and an engine that charges you for it will refuse a line that is actually free | closed 2026-08-11 — the engine was never broken and this row misdiagnosed it. one defect explains all four: `_chooseaction`'s last fallback clicked struggle past a legal button (the #152 block, whose own comment stated the bug in place — *\"a body with legal status moves left is not on struggle\"* — and filed it as the lesser evil). struggle is a 50 bp attack with 1/4-max recoil, so every fixture body holding a single protect or roost was hitting the thing under test and paying for it. heat wave never touched the partner: the trace reads `|move|p2b: whimsicott|struggle"
     },
     {
-      "n": 174,
-      "section": "Solving — DUSK, and the retrograde idea",
-      "closed": false,
-      "saysBroken": false,
-      "uses": 0,
-      "title": "`test-assert-mode` IS RED ON PURPOSE AND THE SCENARIOS ARE THE DEFECT. All twelve rows pass — Good as Gold refuses Corro",
-      "full": "`test-assert-mode` is red on purpose and the scenarios are the defect. all twelve rows pass — good as gold refuses corrosive gas / dragon cheer / electrify / encore / howl / toxic thread, levitate refuses bulldoze / earth power / earthquake / headlong rush / mud-slap / scorching sands — and they pass identically with both abilities deleted from the engine (`--break`). the test says so itself: *\"all 12 rows agree — and that currently proves nothing.\"* the fix is scenarios in which the refusal has an observable consequence, not more rows. left green it would have published 5,769 teams of false coverage"
-    },
-    {
       "n": 175,
       "section": "Solving — DUSK, and the retrograde idea",
       "closed": false,
@@ -606,6 +570,33 @@
       "uses": 0,
       "title": "THE EFFECTIVE-IDENTITY RATCHET WAS RESTAMPED WHOLESALE, ON WILL'S INSTRUCTION, AND 964 READS WENT IN UNREVIEWED — 2026-0",
       "full": "the effective-identity ratchet was restamped wholesale, on will's instruction, and 964 reads went in unreviewed — 2026-08-11. will, asked whether to walk the reads or reset the reference point: *\"restamp i guess\"*. recorded as a row rather than done quietly, because this is the exact move the repo has been burned by — *\"the gate went green after somebody re-stamped it\"* — and the difference between a legitimate re-baseline and laundering is whether anybody can later see what was swallowed. baseline 2026-08-02, count 234 -> 2026-08-11, count 1,198: 964 reads adopted across 46 files. largest: `tests/roster.js` 247 (new), `tests/test-mechanics.js` 226 (new), `engine/medicham2-browser.js` 59 -> 215, `tests/probe_red_demo.js` 123 (new). the simulator entry is the one that matters — the other large entries are harnesses that legitimately construct bodies, but 156 new raw reads inside the engine itself are exactly where a declared-versus-effective ability confusion would do damage, and nobody read them. the restamp was timed after the tree settled (doing it mid-run is what put this red in the first place, per claude.md on a measuring agent beside a writing one) and the adoption was diffed rather than assumed. what is owed: a walk of the 156 simulator reads specifically, routing the ones that want the live value and declaring the ones that legitimately want the declaration. the other 808 can stay adopted"
+    },
+    {
+      "n": 184,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "`test-tag-consumed` IS RED AND IT IS THE INSTRUMENT, NOT THE ENGINE — 2026-08-11. Its ratchet diffs a NAME LIST, so ten ",
+      "full": "`test-tag-consumed` is red and it is the instrument, not the engine — 2026-08-11. its ratchet diffs a name list, so ten tags that arrived without a consumer read as ten that lost one. verified against `23661cc:data/tags.json`, where all ten are absent. the count is therefore not a regression and never was. it is in neither `run-all.js` nor the pre-commit hook, which is why a broken ratchet could sit red across a whole sprint being quoted as an engine figure — including by me, to will, twice tonight. fix the diff to compare consumption rather than membership, then register it as a gate"
+    },
+    {
+      "n": 185,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "SINGLE-TARGET SCRIPTED CLICKS DO NOT REACH EITHER FOE — the open half of #174. In `staged_board` / `game_differential`, ",
+      "full": "single-target scripted clicks do not reach either foe — the open half of #174. in `staged_board` / `game_differential`, spread clicks diverge correctly under a mutant engine but `normal`-target clicks are identical at t:0 and t:1, with `movenotonrequest` at zero — so the click is accepted and lands on nobody. the engine is fine: the same charm through `battleturn` reads -2 with the ability off. it is the scripted path. until this is fixed, any single-target assertion in that harness is vacuous in the same way #174's twelve rows were, and #174 was only caught because somebody ran it with the mechanic deleted"
+    },
+    {
+      "n": 186,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "LEVITATE IS GATED TWICE AND THE TWO GATES AGREE ONLY BY LUCK — 2026-08-11. `absorbedBy`/`typeImmunity` and `isGrounded`/",
+      "full": "levitate is gated twice and the two gates agree only by luck — 2026-08-11. `absorbedby`/`typeimmunity` and `isgrounded`/`airborne_abil` are independent implementations of one fact, which is facts-are-global broken inside the engine. found because breaking either one alone left the assert-mode probe green at 0/85 — the duplication is what made the test unfalsifiable. they agree today. one implementation, everyone calls it"
     },
     {
       "n": 47,

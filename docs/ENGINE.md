@@ -33,9 +33,9 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  451/451 probed mechanics live, 0 missing   (census 2026-08-11 04:14)
-  0/20000 differential comparisons disagree with Showdown   (2026-08-11 04:14)
-    seed 20260804, requested 20000, 850 not comparable (multihit 630, non-finite 0, threw 220)
+  468/468 probed mechanics live, 0 missing   (census 2026-08-11 06:06)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-11 05:03)
+    seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1641/1641 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 02:49)
     2250 of 9376 theoretical pairs staged — agreement is a claim about the 2250 that ran, not about the 9376
@@ -45,15 +45,58 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f1b9c29625f0 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is d7b15359b2d6 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is fc89ef40df60 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 228/265 probed, 37 unprobed
+  tag coverage: 241/266 probed, 25 unprobed
 ```
 
-_stamped 2026-08-11 04:16_
+_stamped 2026-08-11 06:10_
 
 <!-- /GENERATED -->
+
+## HAZARD REMOVAL, THREE MORE OF #175, AND THE ASSERT-MODE DEMONSTRATION THAT PROVED NOTHING. 2026-08-11 (overnight).
+
+Full write-up in `docs/MEDICHAM-SPRINT-NOTES.md` (living docs are paused for the sprint by Will's
+decision). For this ledger:
+
+**Census 461 → 468 — 7 arrived, 0 broke, net +7.** `missing` 0 → 0 throughout, 0 hollow, 0 unarmed,
+0 threw. Gate re-run after every item: **CLOSED — 1 of 6, unchanged**, still `#175` alone; no passing
+clause moved. `test-tag-wire` 104 checks, green.
+
+- **ROADMAP #72's other half — HAZARDS COME BACK UP.** Removal did not exist at all: the engine
+  contained the strings `defog`, `rapidspin`, `mortalspin` and `tidyup` ZERO times, so a laid hazard
+  was permanent. New derived tag `removesHazards`, **4 members printed before wiring**, one consumer
+  (`sweepField`) called from three sites. **Court Change is `isNonstandard: 'Past'` — not in this
+  format, nothing to wire, and it SWAPS rather than removes.**
+- **ROADMAP #175 is 10, not 22** — re-measured, 13 of the 23 now have consumers. Two more wired here:
+  `nameImplementedBySim` (Corrosion, Early Bird — the param was prose, so nothing could read it) and
+  `suppressesOwnItem` (Klutz, folded into the Magic Room predicate because upstream they are one
+  function). **Four of the remaining ten have NO LEGAL CARRIER in Reg M-B and therefore cannot ever be
+  probed** — that needs a decision, not a wire.
+- **ROADMAP #174 — `--break` makes it RED now**, and the demonstration is no longer a flag anyone has
+  to remember: every row plays both arms on every run. Three causes, all real: a SILENT `pass` in the
+  driver for a click not on the request (now counted and exported), a mutation anchor aimed at the
+  wrong mechanism, and **Levitate having two independent gates** so breaking either one proved nothing.
+- **ROADMAP #89 — the `battle.update()` fiction is gone from the second place it lived**
+  (`tests/test-engine-diff.js`), cited line by line — and the corrected paragraph was itself still
+  reading MAINLINE: Champions DOES override Disguise (`abilities.ts:14`, `onEffectiveness` only).
+- **ROADMAP #84 — recommend STRIKE.** `MEDSEEN.powerDoubledAfterFailure` is now read in a census probe
+  through real turns, with the MISS case the old probe never covered: control 101/delta 0, missed
+  200/delta 2.
+
+### WHAT WAS FOUND AND DELIBERATELY NOT FIXED, NAMED RATHER THAN ABSORBED
+
+- **The single-target scripted aim in `staged_board.js` / `game_differential.js` does not reach either
+  foe.** Spread clicks diverge under a mutant engine; `normal`-target clicks are IDENTICAL at t:0 AND
+  t:1 with `moveNotOnRequest` at zero. The engine is fine — the same Charm through `battleTurn` reads
+  -2 with the ability off. This is the open half of #174.
+- **`test-tag-consumed` is RED and it is the INSTRUMENT, not the engine.** Its ratchet diffs a name
+  list, so ten tags that ARRIVED without a consumer read as ten that LOST one. Verified against the
+  baseline artifact, where all ten are absent. It is in neither `run-all.js` nor the hook.
+- **Levitate's two gates** (above) are a FACTS-ARE-GLOBAL duplicate. They agree today.
+- **Stomping Tantrum's doubling site still matches two move names.** Counted, and its comment argues
+  the case; #181's shape with a stated reason.
 
 ## THE ELEVEN GATE DEFECTS — TEN CLOSED, AND FOUR OF THEM WERE ONE BUG WITH FOUR NAMES. 2026-08-11.
 
@@ -85,6 +128,11 @@ The `ROADMAP #162` section below ends with two items *"found and deliberately no
 resolving to `{kind:'pass'}`** and **Sucker Punch's second refusal**. Both are now closed and both carry
 a census probe (`restoresOwnLastItem`; `failsIfTargetNotAttacking`'s recharge row), so the census carries
 them and they leave the list. What remains by hand is Rivalry, as before.
+
+*(2026-08-11 overnight: the hand list also loses **hazard removal** — `removesHazards` now carries three
+census probes — and **`nameImplementedBySim`**, **`suppressesOwnItem`** and **Stomping Tantrum's miss**,
+each of which now has one. What remains by hand is Rivalry, plus the four items named as deliberately
+not fixed in the section at the top of this file.)*
 
 ### WHAT WAS FOUND AND DELIBERATELY NOT FIXED, NAMED RATHER THAN ABSORBED
 

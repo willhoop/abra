@@ -2148,8 +2148,25 @@ function scripted(script, turn, sd, i, act, side) {
    * failing SILENTLY. Legality is still Showdown's to judge: an ask naming a body that is fainted,
    * already active or absent resolves to `pass` at the two call sites below AND IS COUNTED THERE. */
   if (want.sw) return { switchTo: id(want.sw) };
+  /* ROADMAP #174 -- THIS FALLBACK WAS SILENT, AND IT COST TWELVE GREEN ROWS THAT PROVED NOTHING.
+   *
+   * A scripted click that is not on Showdown's request -- the body never learned the move, or the
+   * request disabled it -- fell through to `pass`. BOTH engines then pass, the boards agree, and the
+   * scenario reports IDENTICAL while testing nothing whatsoever. That is how `tests/test-assert-mode.js`
+   * could stay green with Good as Gold and Levitate DELETED from the engine: six of its twelve moves
+   * were never on the clicker's request at all, so no turn ever aimed anything at the ability.
+   *
+   * THE `pass` STAYS -- refusing here would throw mid-game and a scenario author cannot always know
+   * what a request will offer -- but it is COUNTED and NAMED now, on the same pattern as
+   * `scriptMegaRefused` directly below, so a caller can assert its own script actually ran. A silent
+   * default looks exactly like a working feature (CLAUDE.md); this is the loud version. */
   const k = (act.moves || []).findIndex(mv => id(mv.id) === id(want.m));
-  if (k < 0) return { pass: true };
+  if (k < 0) {
+    scriptMoveNotOnRequest++;
+    if (!scriptMoveFirstMissing) scriptMoveFirstMissing = String(want.m) + ' (offered: '
+      + (act.moves || []).map(mv => mv.id).join(',') + ')';
+    return { pass: true };
+  }
   const dm = dex.moves.get(id(want.m));
   let target = null;
   const tt = (act.moves[k] && 'target' in act.moves[k]) ? act.moves[k].target : dm.target;
@@ -2180,6 +2197,11 @@ function scripted(script, turn, sd, i, act, side) {
 }
 /* Asks to mega that Showdown's request refused. MUST read 0 in any run whose scenarios ask for one. */
 let scriptMegaRefused = 0;
+/* ROADMAP #174 -- scripted clicks that were not on the request and became a `pass`. MUST read 0 in
+ * any run whose scenarios claim to have clicked something; a non-zero says the script did not run,
+ * whatever the verdicts say. The FIRST one is kept with the list it was offered instead, because a
+ * bare count sends the reader back to guess which row it was. */
+let scriptMoveNotOnRequest = 0, scriptMoveFirstMissing = '';
 
 /* Pick ONE action for one active slot. Legal actions come from Showdown's request; the choice among
  * them is the coverage rule. */
@@ -2927,6 +2949,14 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                     * the nature counters are: a caller proving the ally path RAN must read this
                     * driver's own answer, never a second copy of the arithmetic. */
                    aimOf, aimBody, aimCounters: () => Object.assign({}, AIM),
+                   /* ROADMAP #174 -- the scripted-click counters, exported for exactly the reason the
+                    * nature ones are: a caller proving its SCRIPT ran must read this driver's own
+                    * answer rather than assume it. `reset` exists because a scenario file runs many
+                    * games in one process and needs a per-scenario reading. */
+                   scriptCounters: () => ({ moveNotOnRequest: scriptMoveNotOnRequest,
+                                            firstMissing: scriptMoveFirstMissing,
+                                            megaRefused: scriptMegaRefused }),
+                   resetScriptCounters: () => { scriptMoveNotOnRequest = 0; scriptMoveFirstMissing = ''; },
                    plantedProof, pairsFor, COV_TARGETS, COV_UNMEASURABLE, PIN_CLAIMS, REL, SW,
                    runDirected, damageInterior, DIRECTED, EQUIV, equivProof, semantic, reduce, NORM_COUNTS,
                    knockOffArms, KO_TARGET_ITEMS,

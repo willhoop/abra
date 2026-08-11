@@ -4229,3 +4229,200 @@ Two of the five diagnoses I handed the agent were wrong, and both were wrong the
 from where the symptom appears rather than measuring where the control flow leaves.** Psyshield Bash was
 not a guard on the boost, it was a return three hundred lines up. Psychic Noise was not a missing gate,
 it was two fields with the same meaning. The agent found both by printing the staged board.
+
+---
+
+## ROADMAP #72, THE OTHER HALF — HAZARDS COME BACK UP. 2026-08-11 (ENGINE, overnight).
+
+**Census 461 → 464: 3 arrived, 0 broke, net +3.** `missing` 0 → 0, hollow 0, unarmed 0, threw 0.
+Gate re-run: **CLOSED — 1 of 6, unchanged**, still #175 alone; no passing clause moved.
+
+Setting had three tags and removal had **none**. `engine/medicham2-browser.js` contained the strings
+`defog`, `rapidspin`, `mortalspin` and `tidyup` **zero times**, so a laid hazard was permanent — the
+engine over-values every Stealth Rock click and prices Rapid Spin as a 50 BP Normal attack.
+
+**The three probes were red first with every control arm already correct**, which is the fixture proof
+Lesson 5 asks for before an engine byte moves: Iron Head left both bags at one layer, Roost left
+`[1,1,1,1,electric]`, Howl left `[1,1,1]` and the Leech Seed still attached.
+
+**COURT CHANGE IS NOT IN THIS FORMAT.** It was named in the brief as a fifth member. The authority
+refuses it — `Dex.forFormat('gen9championsvgc2026regmb').moves.get('courtchange').isNonstandard ===
+'Past'`, which is this format's ban mechanism — so there is nothing to tag and nothing to wire. It
+would not have shared the tag in any case: it **SWAPS** the two sides' conditions and removes none.
+
+New tag `removesHazards`, **4 members printed before wiring**, over all 500 legal moves:
+
+| move | params |
+|---|---|
+| `defog` | `hazardsFrom:'both'`, `alsoRemoves:[reflect,lightscreen,auroraveil,safeguard]` `screensFrom:'target'`, `clearsTerrain` |
+| `rapidspin` | `hazardsFrom:'self'`, `removesOwnLeechSeed`, `removesOwnPartialTrap`, `onlyOnConnect`, `throughSubstitute`, `refusedBySheerForce` |
+| `mortalspin` | identical to Rapid Spin |
+| `tidyup` | `hazardsFrom:'both'`, `removesSubstitutes:'all'` |
+
+**The hazard vocabulary is DERIVED, not listed**: a side condition is a hazard if some legal move
+declares it with `target:'foeSide'` — the same statement the `hazard` tag stands on. That gate is also
+what keeps Brick Break, Psychic Fangs and Raging Bull out (they call `removeSideCondition` and name no
+hazard — `clearsScreens` owns them), and it is why `gmaxsteelsurge`, named in all four handlers
+upstream, drops out on its own. Seven legal moves reach `removeSideCondition`; exactly four match.
+
+**`hazardsFrom` and `screensFrom` are separate params on purpose, and the Defog probe's load-bearing
+assertion is an arm that must NOT move.** Defog takes hazards off both sides and screens off the
+*target's* side only, so a wire that collapsed the two would delete the user's own Reflect and every
+other arm would still be green.
+
+One consumer, `sweepField()`, called from three sites (`affect` for Defog, `statcode` for Tidy Up, the
+after-hit block for the spin family, under character-for-character `hazardOnHit`'s gate). Six new
+MEDSEEN counters, split rather than one: a zero on `terrainSweptByMove` beside a non-zero on
+`hazardSwept` means Defog is being played as a spin.
+
+---
+
+## ROADMAP #175 — THREE OF TEN WIRED, AND THE ROW IS **10**, NOT 22. 2026-08-11 (ENGINE, overnight).
+
+**Re-measured first, as the row asks.** `test-tag-consumed` is the instrument. Of #175's 23 original
+names, **13 now have a consumer** — the previous overnight pass wired ten (`stealsItem`,
+`reflectsStatusToSource`, `refusesIndirectDamage`, `clearsScreensOnEntry`, `multihitAlwaysMax`,
+`boostsAtHPThreshold`, `curesStatusResidual`, `healsFromOwnStatus`, `boostsNotVeryEffective`,
+`removesOwnMoveFlag`) on top of `ignoresRedirection`, and `addsOwnSecondary` / `secondaryChanceMult`
+also came off the DEAD list. **Ten remain.**
+
+**Census 467 → 468 across the items below: 3 arrived, 0 broke, net +3** (`nameImplementedBySim` x2,
+`suppressesOwnItem` x1; the third census movement in this pass is #84's, below). `missing` 0 → 0.
+
+### WIRED
+
+**`nameImplementedBySim` — Corrosion and Early Bird, 59 uses, no consumer at all.** The tag's param was
+PROSE (`{irreducible, what: <a sentence>}`), which is why nothing could read it. It now carries SHAPES —
+`ignoresStatusImmunityFor: ['tox','psn']` and `extraStatusTicks: {slp: 1}` — so `medicham2` names
+neither ability. Cited whole: `sim/pokemon.ts:1715` and `data/conditions.ts:68-70`; Champions overrides
+`slp.onStart` only and inherits the rest, and ships no `sim/`.
+
+**Early Bird is an EXTRA TICK, not a halved duration**, and the old prose said halved — a different
+number at an odd start time. Champions starts the counter at `sample([2,3,3])`.
+
+**The Corrosion probe's load-bearing arm is the one that must NOT move**: Will-O-Wisp from the same
+Salazzle at a Fire-type Incineroar must still be refused. A wire reading "ignores status immunity"
+would burn it and every other arm would stay green.
+
+**`suppressesOwnItem` — Klutz.** Every item consumer reads `m.item`, so a Lopunny/Audino/Golurk was
+priced with an item that is switched off. Wired into `itemRoomSync`, **not beside it**: upstream they
+are literally one function (`Pokemon#ignoringItem`, sim/pokemon.ts:885-892, returns true for Magic Room
+AND for Klutz). The `ignoreKlutz` exception is derived and is EMPTY in Reg M-B — zero legal items carry
+the flag — and is honoured anyway. The probe's over-match guard is the PARTNER's Leftovers surviving.
+
+### NOT WIRED, AND NAMED RATHER THAN ABSORBED
+
+- **Four of the ten CANNOT BE PROBED IN THIS FORMAT because they have NO LEGAL CARRIER**, derived over
+  the filtered species walk: `allyBasePowerBoost` (Battery, Power Spot, Steely Spirit — 0/0/0),
+  `guaranteesNextMove` (Lock-On — 0), and half of `formeFollowsWeather` (Flower Gift 0, Ice Face 0) and
+  of `inheritsAllyAbility` (Power of Alchemy 0). A tag with no carrier can never leave the DEAD list,
+  because a probe would have to stage a Pokemon that cannot exist. **This is a decision for Will**: the
+  clean answer is for `tag_dex` to skip abilities with no legal carrier, exactly as the roster already
+  reports `NO LEGAL CARRIER`, which would move them into `EXPECTED_EMPTY` honestly. That is a change
+  with a wide blast radius and it was not taken overnight.
+- **Six are real and untouched, each still its own decision**: `announcesOnEntry` (148 uses, Frisk /
+  Anticipation / Forewarn — INFORMATION ONLY, no board state, so a probe would have to read the
+  protocol stream), `passesItemToAlly` (Symbiosis, 53), `typeFollowsTerrain` (Mimicry, Stunfisk-Galar),
+  `formeFollowsWeather` (Forecast, Castform), `inheritsAllyAbility` (Receiver, Passimian),
+  `boostsAlliesWithAbility` (Magnetic Flux; Plus/Minus carriers exist — Ampharos, Dedenne, Manectric).
+
+### AND `test-tag-consumed` IS RED FOR A REASON THAT IS NOT A REGRESSION
+
+It reports `FAIL 10 tag(s) newly have NO consumer`. **All ten were ABSENT from the artifact at the
+baseline** (`23661cc:data/tags.json`, 203 tags, 2026-08-10T04:12) — they arrived later with the tag
+split and have never had a consumer. The ratchet diffs a NAME LIST and so cannot tell "lost its
+consumer" from "arrived without one", and it refuses to re-stamp while `dead` is larger, so it has been
+red since. **Not mine and not a regression — but it is a broken instrument reading as a broken engine.**
+It is in neither `run-all.js` nor the pre-commit hook, which is why nobody saw it. Left alone
+deliberately: fixing it means recording the tag universe in the stamp, which changes what the ratchet
+means, and that is Will's call.
+
+---
+
+## ROADMAP #174 — `--break` NOW MAKES IT RED, AND THE DEMONSTRATION IS NO LONGER OPTIONAL. 2026-08-11.
+
+**Success criterion met, verified explicitly: `--break` takes all 3 rows to FAIL.** The default run now
+plays BOTH arms on every row, so the demonstration cannot be forgotten.
+
+**THREE SEPARATE CAUSES, all of which had to go before one row could move:**
+
+1. **SIX OF THE TWELVE MOVES WERE NEVER CLICKED.** `game_differential.js`'s `scripted()` answers `pass`
+   for a move that is not on Showdown's request, SILENTLY. Howl targets an ally; Clefable does not learn
+   Corrosive Gas, Dragon Cheer, Electrify or Toxic Thread. Both engines passed, the boards agreed.
+   **Fixed loud**: `scriptMoveNotOnRequest` plus the first missing move and what was offered instead,
+   exported as `scriptCounters()`, reset per scenario by `staged_board.runOne`, asserted by the test.
+2. **THE LEVITATE ANCHOR WAS THE WRONG MECHANISM.** It patched `AIRBORNE_ABIL`, which is the GROUNDED
+   set (hazards, terrains), and then — when re-aimed — `absorbedBy` alone. Measured, 0/85 in every arm:
+   `AIRBORNE_ABIL` emptied 0 · `typeImmunity` renamed 0 · `absorbedBy` nulled 0 · **both 104/150**.
+   **Levitate has TWO independent gates in this engine** — `absorbedBy` reads the artifact's
+   `typeImmunity`, and `typeEffAgainst`'s Ground clause asks `isGrounded`, which reads `AIRBORNE_ABIL`.
+   They agree, so no board is wrong; but a mutation that breaks one of two agreeing implementations
+   proves nothing. **Filed for ENGINE as a FACTS-ARE-GLOBAL duplicate, deliberately not collapsed**:
+   `AIRBORNE_ABIL` also answers the grounded axis, so merging them is an engine change, not a test one.
+3. **A SINGLE-TARGET SCRIPTED CLICK DOES NOT REACH EITHER FOE IN THIS COMPARATOR.** Measured clean-arm
+   vs mutant-arm, `moveNotOnRequest` ZERO throughout:
+
+   | click | target | clean | mutant |
+   |---|---|---|---|
+   | earthquake, bulldoze | `allAdjacent` | IDENTICAL | **DIFFERS** |
+   | cottonspore, sweetscent | `allAdjacentFoes` | IDENTICAL | **DIFFERS** |
+   | earthpower, charm (t:0 AND t:1) | `normal` | IDENTICAL | IDENTICAL |
+
+   The engine is fine — the same Charm into the same Gholdengo through `battleTurn` reads atk **-2**
+   with the ability off and **0** with it on. **The loss is downstream of the request, in the
+   single-target aim.** This is the OPEN half of #174 and is a harness defect, not an engine one.
+
+**So the rows are spread moves only, and that is a workaround with a defect behind it.** Three rows,
+each proven load-bearing every run: `goodasgold-refuses-cottonspore`, `levitate-refuses-bulldoze`,
+`levitate-refuses-earthquake`. The clicker is derived (first legal carrier by id) and the move sets now
+require the clicker to LEARN it, the effect to be one `board_state.js` publishes, and the target not to
+be immune by type already.
+
+---
+
+## ROADMAP #89 — THE FALSE REASON IS CORRECTED IN BOTH PLACES, AND THE MOD CHECK WAS ALSO MISSING. 2026-08-11.
+
+`battle.update()` **does not exist** — confirmed by walking `Battle.prototype`: the nearest real
+members are `updateSpeed`, `faint`, `checkFainted`, `faintMessages`, `commitChoices`, `sendUpdates`.
+
+The engine's own paragraph had already been corrected; **`tests/test-engine-diff.js:503` still carried
+the fiction** and now cites the mechanism line by line: `onDamage` returns 0 and sets
+`effectState.busted` (`data/abilities.ts:962-966`); the eighth is dealt separately inside `onUpdate`
+after the forme change (`this.damage(pokemon.baseMaxhp / 8, ...)`, `data/abilities.ts:996`). The
+paragraph's CLAIM (a layer mismatch) was right; its reason was invented.
+
+**AND THE CORRECTED PARAGRAPH WAS STILL READING MAINLINE.** `data/mods/champions/abilities.ts:14`
+declares `disguise: { inherit: true, onEffectiveness(...) }`. The two handlers this wire rests on are
+inherited unchanged; what the mod adds is an `effectState.neutral` flag so every hit after the first of
+a MULTI-HIT move also reads 0. This engine rolls a multi-hit as one packet, so that clause has nothing
+to bite on — stated so the next reader does not have to re-derive whether the mod was checked.
+
+---
+
+## ROADMAP #84 — THE COUNTER FIRES IN A REAL GAME, AND THE ROW SHOULD CLOSE. 2026-08-11.
+
+**Census 467 → 468: 1 arrived, 0 broke.** New probe: *a MISSED Stomping Tantrum doubles the next one,
+and the counter says so.* Mudsdale, High Horsepower (95%) on the setup turn at a losing roll:
+
+    landed first  ->  Stomping Tantrum 101,  MEDSEEN.powerDoubledAfterFailure delta 0
+    MISSED first  ->  Stomping Tantrum 200,  delta 2
+
+The existing probe covered the FLINCH (`false`) and the RECHARGE (`null`) and **never read the
+counter**, so the doubling could have come from anywhere. Authority verified line by line:
+`hitStepAccuracy` writes `hitResults[i] = false` (`sim/battle-actions.ts:748`), `atLeastOneFailure`
+goes true (`:606`), the null branch is therefore skipped (`:618`), `useMove` writes the boolean
+(`:374`), and the callback tests `moveLastTurnResult === false` (`data/moves.ts:18047`). No Champions
+override for Stomping Tantrum or Temper Flare.
+
+**The delta is 2, not 1, and that is not a defect**: the counter sits inside the base-power computation
+and `dmgRange` evaluates it more than once per resolution, so it counts EVALUATIONS. The probe asserts
+`>= 1` and pins the CONTROL at exactly 0, which is the load-bearing half.
+
+**RECOMMENDATION: strike #84.** The engine implements it, a miss is covered, and the capability counter
+is now read in a census probe rather than assumed.
+
+**One thing named rather than absorbed:** the doubling site still matches on
+`mv.id==='stompingtantrum'||mv.id==='temperflare'`. Unlike the two name fallbacks found last pass it is
+COUNTED and its comment argues the case (the `variablePower` param carries no condition, and matching
+the broader shape would double Last Respects and Rage Fist — six times the usage). It is #181's shape
+with a stated reason; left as-is.
