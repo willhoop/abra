@@ -100,6 +100,12 @@ function loadsOf(src) {
   const out = [];
   for (const m of src.matchAll(/<script[^>]*\ssrc\s*=\s*["']([^"']+)["']/gi)) out.push({ how: '<script src>', target: m[1] });
   for (const m of src.matchAll(/fetch\(\s*["']([^"']+)["']/g)) out.push({ how: 'fetch()', target: m[1] });
+  /* THE OTHER TWO WAYS A BROWSER READS A FILE. Neither is used on the site today and that is exactly
+     why they are here: the detector was written against the three loads that existed, so the next
+     page to reach for `import()` or an XHR would have been invisible to it. Adding them costs two
+     lines now and cannot be added retrospectively once a room ships on one. */
+  for (const m of src.matchAll(/\bimport\(\s*["']([^"']+)["']/g)) out.push({ how: 'import()', target: m[1] });
+  for (const m of src.matchAll(/\.open\(\s*["'](?:GET|POST)["']\s*,\s*["']([^"']+)["']/g)) out.push({ how: 'XHR', target: m[1] });
   return out;
 }
 /* A target is ours when it resolves inside data/. Everything else is a sibling page asset or a
@@ -190,11 +196,154 @@ if (unclassified.length) {
 }
 
 /* ================================================================================================
+ * 1b. THE ROOT ITSELF — A PAGE THAT LOADS THE SIMULATOR AND COMPUTES ITS OWN FIGURES.
+ *
+ * The detector above resolves a load to a row in `data/`, which is every DERIVED artifact. It is
+ * blind to the strictly worse case, and the site had one: `web/tower.html` loads
+ * `../engine/medicham2-browser.js` and plays a live battle out of it — damage percentages on the move
+ * buttons, HP bars, a forecast — none of which passes through an artifact at all. `asArtifact()`
+ * returns null on an `engine/` path, so the page reported clean while publishing figures straight out
+ * of the thing the quarantine exists because of. A derived artifact is at least a PHOTOGRAPH of an
+ * engine that once ran; an in-page rollout is the defective engine itself, live, on this visit.
+ *
+ * The membership is READ, never listed here: `classify().play` is the set of files that reach
+ * engine/medicham2-browser.js through require, computed by engine/quarantine.js on this run. A room
+ * that loads a play-layer file tomorrow is caught without an edit to this test.
+ * ============================================================================================== */
+const PLAY = cls.play || new Set();
+const unrel = t => String(t).replace(/^(?:\.\.?\/)+/, '');
+function detectSource(pages) {
+  const out = [];
+  for (const p of pages) {
+    const code = decomment(p.src);
+    for (const l of loadsOf(p.src)) {
+      const f = unrel(l.target);
+      if (!PLAY.has(f)) continue;
+      const asks = new RegExp('heldFor\\(\\s*[\'"](?:\\.\\.?/)*'
+        + f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[\'"]').test(code);
+      out.push({ page: p.name, how: l.how, file: f, asks: asks, root: f === Q.SIMULATOR });
+    }
+  }
+  return out;
+}
+{
+  const s = detectSource([
+    { name: 'RED/plays.html', src: '<script src="../engine/medicham2-browser.js"></script><script>battleTurn(S);</script>' },
+    { name: 'GREEN/asks.html', src: '<script src="../engine/medicham2-browser.js"></script>'
+        + '<script>if(Q.heldFor("../engine/medicham2-browser.js"))return;battleTurn(S);</script>' },
+  ]);
+  const by = Object.fromEntries(s.map(r => [r.page, r.asks]));
+  if (s.length !== 2 || by['RED/plays.html'] !== false || by['GREEN/asks.html'] !== true) {
+    fail('the play-layer detector does not behave on synthetic input (' + s.length + ' of 2 loads seen). '
+      + 'A probe that has only ever said "clean" is not evidence.');
+  } else {
+    pass('RED — the play-layer detector flags a page that loads the simulator and plays it, and passes '
+      + 'the one that asks the gate about that exact file first');
+  }
+}
+const srcFound = detectSource(PAGES.map(f => ({ name: 'web/' + f, src: fs.readFileSync(D('web', f), 'utf8') })));
+if (srcFound.length) {
+  console.log('');
+  for (const r of srcFound) {
+    console.log('        ' + (r.asks ? 'guarded' : 'LEAK   ') + '  ' + r.page.padEnd(20) + r.how.padEnd(14)
+      + r.file + (r.root ? '   <- THE ROOT OF THE QUARANTINE' : '   <- reaches the root through require'));
+  }
+  console.log('');
+}
+const srcLeaks = srcFound.filter(r => !r.asks);
+if (!CLOSED.ok && srcLeaks.length) {
+  fail(srcLeaks.length + ' page(s) load the QUARANTINED SIMULATOR (or code that reaches it) and never ask '
+    + 'engine/quarantine.js about it. Every figure such a page draws is computed live by the engine under '
+    + 'repair, and no artifact check of any kind can see it — there is no artifact.');
+} else {
+  pass(srcFound.length + ' page load(s) of the play layer, every one of them guarded by a heldFor() naming '
+    + 'that exact file' + (srcFound.length ? '' : ' (none on the site)'));
+}
+
+/* ================================================================================================
+ * 1c. A CLEARED BUNDLE THAT RE-ENCODES A WITHHELD ARTIFACT.
+ *
+ * The two directions above ask what a page LOADS. Both answer "clean" for `data/status.js`, which is
+ * a CLEAR row in the graph — and which `build/build_status.js` builds by reading
+ * data/policy-weights.json and data/policy-weights-joint.json, both WITHHELD, and baking their
+ * verdicts into `metric` strings. web/index.html printed MAGNEMITE's "33% ... 9 points better than
+ * popularity alone" in a badge tooltip and DODUO's "45.7% of decisive pairs [45.1, 46.3]" at full
+ * size in the PC. Nothing could see it: the strings are not in the page source, the bundle is
+ * cleared, and a verdict grep over the HTML returns clean forever.
+ *
+ * Each row DECLARES its own derivation in `evidence`, so the state is measured here rather than
+ * judged: every data/ file a row cites is put to the gate, and the table is printed on every run so
+ * a newly-leaking row appears without an edit to this file. THREE answers, not two — an evidence
+ * file with NO ROW in the graph is not cleared, for the reason engine/quarantine.js gives when it
+ * refuses to default its own unclassified set.
+ *
+ * This direction is a DECLARATION check, and it has to be: the value never appears in the page's
+ * bytes, so there is nothing to grep for. It is the same reason the loader direction needs a page to
+ * NAME the artifact it is asking about.
+ * ============================================================================================== */
+{
+  const bundle = D('data', 'status.js');
+  if (!fs.existsSync(bundle)) {
+    console.log('  note  data/status.js is not on disk — nothing to check in this direction');
+  } else {
+    const w = {};
+    try { new Function('window', fs.readFileSync(bundle, 'utf8'))(w); } catch (e) { w.ABRA_STATUS = null; }
+    const models = (w.ABRA_STATUS && w.ABRA_STATUS.models) || [];
+    const stateOf = f => {
+      if (wClosed(f)) return 'held';
+      return ROWS.get(String(f).replace(/^data\//, '')) ? 'clear' : 'unclassified';
+    };
+    const leaking = [];
+    for (const m of models) {
+      const cites = [...new Set(String(m.evidence || m.why || '').match(/\bdata\/[A-Za-z0-9_.\-]+/g) || [])];
+      const bad = cites.map(f => [f, stateOf(f)]).filter(x => x[1] !== 'clear');
+      if (bad.length) leaking.push({ id: m.id, metric: String(m.metric || ''), bad });
+    }
+    if (leaking.length) {
+      console.log('\n        data/status.js rows whose own evidence does NOT clear the gate:');
+      /* THE METRIC STRING IS NOT PRINTED, and that is not squeamishness. This runs in a terminal a
+         person reads and pastes; a withheld verdict quoted into a test log is the same figure loose in
+         the same project, and this file exists to argue that a number does not become publishable by
+         appearing somewhere small. The row and its citation say everything needed to act. */
+      for (const l of leaking) {
+        console.log('          ' + l.id.padEnd(11) + l.bad.map(b => b[0] + ' = ' + b[1].toUpperCase()).join(', ')
+          + '   (metric withheld, ' + l.metric.length + ' chars)');
+      }
+      console.log('');
+    }
+    /* Every page that loads the bundle must consult the gate per row. A page that loads it and never
+       asks is publishing whatever build/build_status.js happened to bake in that day. */
+    const readers = PAGES.filter(f => /<script[^>]*src\s*=\s*["'][^"']*data\/status\.js["']/.test(fs.readFileSync(D('web', f), 'utf8')));
+    const blind = readers.filter(f => !/statusHold\(|gateFor\(/.test(decomment(fs.readFileSync(D('web', f), 'utf8'))));
+    if (!CLOSED.ok && leaking.length && blind.length) {
+      fail(blind.length + ' page(s) load data/status.js and render its rows without putting each row\'s own '
+        + 'evidence to the gate: ' + blind.join(', ') + '. ' + leaking.length + ' row(s) in that bundle rest on a '
+        + 'withheld or unclassified artifact, and a tooltip is published.');
+    } else if (readers.length) {
+      pass(readers.length + ' page(s) load data/status.js; each puts every row\'s declared evidence to the gate '
+        + '(' + leaking.length + ' of ' + models.length + ' row(s) currently do not clear it)');
+    }
+    /* And the two render sites must BOTH consult it. The tooltip was the quiet half of this leak and
+       the PC card the loud one; fixing one and not the other reads as fixed. */
+    const idx = decomment(fs.readFileSync(D('web', 'index.html'), 'utf8'));
+    const sites = [['statusBadge()', /function statusBadge\(\)?[\s\S]{0,400}?statusHold\(/],
+                   ['the PC card', /const card\s*=\s*\(m\)\s*=>[\s\S]{0,1400}?statusHold\(/]];
+    const missed = sites.filter(([, re]) => !re.test(idx)).map(x => x[0]);
+    if (!CLOSED.ok && leaking.length && missed.length) {
+      fail('web/index.html renders a status row without the gate at: ' + missed.join(', '));
+    } else if (readers.length) {
+      pass('both of web/index.html\'s status render sites — the badge tooltip and the full-size PC card — '
+        + 'are behind the same gate');
+    }
+  }
+}
+
+/* ================================================================================================
  * 2. RED — GATE CLOSED. Nothing held is emitted, and nothing held is left typed on a page.
  * ============================================================================================== */
 const RELEASE = JSON.parse(fs.readFileSync(D('web', 'quarantine-release.json'), 'utf8'));
-const closed = BUILD.buildQuarantine(wClosed, CLOSED, ROWS, RELEASE);
-const open = BUILD.buildQuarantine(wOpen, OPEN, ROWS, RELEASE);
+const closed = BUILD.buildQuarantine(wClosed, CLOSED, ROWS, RELEASE, PLAY);
+const open = BUILD.buildQuarantine(wOpen, OPEN, ROWS, RELEASE, PLAY);
 
 const heldEntries = RELEASE.entries.filter(e => !!wClosed(e.src));
 if (!CLOSED.ok && !heldEntries.length) {
@@ -252,7 +401,9 @@ if (onPage.length) {
  * ============================================================================================== */
 const openHeld = Object.keys(open.held);
 if (openHeld.length) fail('LIFT FAILED — with the gate OPEN, ' + openHeld.length + ' artifact(s) are still withheld');
-else pass('LIFT — with the gate open, NOTHING is withheld');
+else if (open.root) fail('LIFT FAILED — with the gate OPEN, the simulator is still withheld, so a room that '
+  + 'computes live could never reopen');
+else pass('LIFT — with the gate open, NOTHING is withheld, and the simulator itself is released');
 
 let restored = 0; const notRestored = [];
 for (const e of RELEASE.entries) {
@@ -292,6 +443,10 @@ const RENDERS = [
   ['web/index.html', /heldFor\('data\/mag\.js'\)/, /plate\(/],
   ['web/models.html', /heldFor\(src\)/, /QUARANTINED/],
   ['web/stadium.html', /cabinetHold\(/, /QUARANTINED/],
+  /* The Tower has no figure to lose — it has a whole ROOM, and the room is the figure. It must close
+     before the simulator is stepped once, not paint over a battle it already played: a number that
+     reached the DOM is published whatever happens to it afterwards. */
+  ['web/tower.html', /heldFor\('\.\.\/engine\/medicham2-browser\.js'\)/, /plate\(/],
 ];
 for (const [f, guard, render] of RENDERS) {
   const code = decomment(fs.readFileSync(D(f), 'utf8'));
@@ -315,6 +470,10 @@ function decisionOf(payload) {
   return JSON.stringify({
     open: payload.open, held: payload.held, sources: payload.sources,
     released: Object.keys(payload.R).sort(), withheld: payload.withheld_keys,
+    /* `root` is part of the DECISION, not of the surrounding counts: it is what closes a whole room.
+       A committed block that still releases the simulator while the gate is closed is the same drift
+       as one that still releases a figure. */
+    root: payload.root, play: payload.play,
   });
 }
 function loadBlock(src, where) {
@@ -326,7 +485,7 @@ function loadBlock(src, where) {
   return win.ABRA_QUARANTINE;
 }
 
-const fresh = BUILD.buildQuarantine(wClosed, CLOSED, ROWS, RELEASE);
+const fresh = BUILD.buildQuarantine(wClosed, CLOSED, ROWS, RELEASE, PLAY);
 const text = BUILD.emit(fresh);
 const committed = fs.readFileSync(BUILD.OUT, 'utf8');
 const QQ = loadBlock(committed, 'web/quarantine-data.js');
@@ -365,6 +524,23 @@ if (QQ) {
   } else {
     pass('the shipped runtime withholds through the same relative path a page uses, and its plate carries '
       + 'the artifact, the reason, the failing clauses and the re-run command');
+  }
+  /* AND IT MUST ANSWER FOR THE ROOT THROUGH THE SAME QUESTION, at the exact path web/tower.html asks
+     with. A runtime that knows the simulator is quarantined but only under a spelling no page uses is
+     a guard that is green and off. */
+  const rootProbe = QQ.heldFor('../engine/medicham2-browser.js');
+  const deep = QQ.heldFor('../engine/board.js');
+  if (!CLOSED.ok && !(rootProbe && rootProbe.root && rootProbe.clause && rootProbe.rerun)) {
+    fail('the shipped runtime does not withhold engine/medicham2-browser.js, so a room can load the '
+      + 'simulator and draw live figures out of it with the gate closed');
+  } else if (!CLOSED.ok && !deep) {
+    fail('the shipped runtime withholds the simulator but not the play layer that reaches it — the next '
+      + 'room to load engine/board.js would be unguarded and nothing would say so');
+  } else if (!CLOSED.ok && !QQ.plate('../engine/medicham2-browser.js', {}).includes('SOURCE of the quarantine')) {
+    fail('the plate for the root reads like a derived artifact ("downstream of itself"), which is not a reason');
+  } else {
+    pass('the shipped runtime answers for the ROOT and for the ' + (QQ.play || []).length
+      + '-file play layer at the path a page loads them with, and the root plate says what it is');
   }
 }
 

@@ -26,6 +26,10 @@
  *
  *   - the GATE: whether MEDICHAM is correct, clause by clause, with each clause's magnitude;
  *   - `held`: every quarantined artifact -> why it is downstream, which clauses fail, what re-runs it;
+ *   - `root` and `play`: THE SIMULATOR ITSELF and everything that reaches it. `web/tower.html` loads
+ *     `../engine/medicham2-browser.js` and plays a live battle out of it — every damage percentage on
+ *     a move button is computed by the engine under repair, on this visit, and passes through no
+ *     artifact at all. A check that resolves a load to a `data/` row is structurally blind to it;
  *   - `R`: the RELEASED figures, keyed, and **emitted only when their artifact is not withheld**.
  *
  * `R` is the half that makes the quarantine reversible. A page that has been stripped of a number can
@@ -77,13 +81,38 @@ const RUNTIME = `
      "no" whenever the gate is OPEN, so a page needs no second branch for the healthy case. */
   Q.heldFor = function (p) {
     if (Q.open !== false) return null;
-    var k = String(p).replace(/^\\.\\.\\//, '');
+    var k = String(p).replace(/^(?:\\.\\.?\\/)+/, '');
+    /* THE ROOT ANSWERS THROUGH THE SAME QUESTION. A page can skip every artifact and load the
+       SIMULATOR — web/tower.html does, and plays a live battle out of it — in which case there is no
+       artifact to withhold and the figures on screen were computed by the engine under repair on this
+       visit. \`play\` is engine/quarantine.js's own play layer, so a room that loads a different file
+       that reaches the simulator is answered too, without a list anybody maintains. */
+    if (Q.root && (k === Q.root.file || (Q.play || []).indexOf(k) >= 0)) {
+      if (k === Q.root.file) return Q.root;
+      return { file: k, root: true, rerun: Q.root.rerun, clause: Q.root.clause,
+               because: 'it reaches ' + Q.root.file + ' through require, and ' + Q.root.because };
+    }
     if (k.indexOf('data/') !== 0) k = 'data/' + k;
     return Q.held[k] || null;
   };
   /* A RELEASED figure. Absent while its artifact is withheld — the key is not in the payload at all,
      so a page cannot accidentally read a stale value out of it. */
   Q.rel = function (k) { return (Q.R && Q.R[k]) || null; };
+
+  /* ---- THE THIRD ANSWER: UNCLASSIFIED. ------------------------------------------------------
+     engine/quarantine.js prints ~20 artifacts that have NO ROW in the dependency graph and refuses
+     to default them either way — "the set holds instruments AND consumers, so it cannot be defaulted".
+     A page needs the same three-valued answer, because a bundle can be CLEARED itself and still
+     re-encode a figure out of a file nothing can classify: data/status.js is a clear row whose DODUO
+     line is a 194,514-game head-to-head played by this simulator. Defaulting that to "publish" is how
+     a leak walks past a graph that never claimed it was safe. */
+  Q.gateFor = function (p) {
+    var k = String(p).replace(/^(?:\\.\\.?\\/)+/, '');
+    if (k.indexOf('data/') !== 0 && k.indexOf('engine/') !== 0 && k.indexOf('build/') !== 0) k = 'data/' + k;
+    if (Q.heldFor(k)) return 'held';
+    if (Q.open !== false) return 'clear';   /* gate open: nothing is withheld and nothing is pending */
+    return (Q.classified || []).indexOf(k) >= 0 ? 'clear' : 'unclassified';
+  };
 
   Q.esc = function (s) { return String(s).replace(/[&<>]/g, function (c) {
     return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); };
@@ -102,11 +131,21 @@ const RUNTIME = `
       ';border:2px solid ' + line + ';border-left:7px solid ' + line + ';border-radius:12px;padding:14px 16px;margin:12px 0;color:' + fg + '">' +
       '<div style="font-size:11px;letter-spacing:.14em;font-weight:800;color:' + hd + '">QUARANTINED — THE FIGURE IS WITHHELD, NOT ANNOTATED</div>' +
       (o.subject ? '<div style="font-size:15px;font-weight:800;margin-top:6px">' + Q.esc(o.subject) + '</div>' : '') +
-      '<p style="margin:8px 0 0;font-size:12.5px;line-height:1.6;max-width:70ch"><b>' + Q.esc(h.file) + '</b> is downstream of ' +
-        Q.esc(Q.simulator) + ' — ' + Q.esc(h.because) + '.</p>' +
-      '<p style="margin:6px 0 0;font-size:12.5px;line-height:1.6;max-width:70ch">' + Q.esc(h.clause) + '. ' +
-        'A quarantined number does not become true when MEDICHAM becomes correct; it becomes re-runnable.</p>' +
-      (h.rerun ? '<p style="margin:6px 0 0;font-size:12.5px">Re-run it: <code style="background:' + (dark ? '#120504' : '#20344a') +
+      /* THE ROOT NEEDS ITS OWN SENTENCE. "engine/medicham2-browser.js is downstream of
+         engine/medicham2-browser.js" is not a reason, and "re-run it" is the wrong instruction for a
+         room that stored nothing — it recomputed on this visit, so what it is waiting for is the gate. */
+      (h.root
+        ? '<p style="margin:8px 0 0;font-size:12.5px;line-height:1.6;max-width:70ch"><b>' + Q.esc(h.file) + '</b> is the SOURCE of the quarantine' +
+            (h.file === Q.root.file ? '' : ' — ' + Q.esc(h.because)) +
+            '. Nothing this room shows was read out of an artifact: it is computed live by the engine that is under repair, so there is no stored figure to withhold and the room is withheld instead.</p>' +
+          '<p style="margin:6px 0 0;font-size:12.5px;line-height:1.6;max-width:70ch">' + Q.esc(h.clause) + '. ' +
+            'Nothing here has to be re-run when the gate opens — nothing was stored. The room comes back the moment it does.</p>'
+        : '<p style="margin:8px 0 0;font-size:12.5px;line-height:1.6;max-width:70ch"><b>' + Q.esc(h.file) + '</b> is downstream of ' +
+            Q.esc(Q.simulator) + ' — ' + Q.esc(h.because) + '.</p>' +
+          '<p style="margin:6px 0 0;font-size:12.5px;line-height:1.6;max-width:70ch">' + Q.esc(h.clause) + '. ' +
+            'A quarantined number does not become true when MEDICHAM becomes correct; it becomes re-runnable.</p>') +
+      (h.rerun ? '<p style="margin:6px 0 0;font-size:12.5px">' + (h.root ? 'Read the gate' : 'Re-run it') +
+        ': <code style="background:' + (dark ? '#120504' : '#20344a') +
         ';color:#e6ecf8;padding:2px 7px;border-radius:5px">' + Q.esc(h.rerun) + '</code></p>' : '') +
       '<p style="margin:8px 0 0;font-size:11.5px;opacity:.8;max-width:70ch">Derivation: <code>' + Q.esc(Q.derivation) +
         '</code>. Nothing here is a list somebody maintains — the withheld set falls out of one root.</p>' +
@@ -125,7 +164,7 @@ const RUNTIME = `
 /* ================================================================================================
  * BUILD
  * ============================================================================================== */
-function buildQuarantine(withhold, gate, rows, release) {
+function buildQuarantine(withhold, gate, rows, release, play) {
   release = release || JSON.parse(fs.readFileSync(D('web', 'quarantine-release.json'), 'utf8'));
 
   const held = {};
@@ -180,6 +219,30 @@ function buildQuarantine(withhold, gate, rows, release) {
         + 'Will, 2026-08-08: "all engines that take medicham\'s output should be regarded as out of '
         + 'date and we should stop referencing them until medicham is up to date and we can rerun them."',
     derivation: 'node engine/quarantine.js --graph',
+    /* THE ROOT, AND THE ONLY PART OF THE PAYLOAD THAT IS NOT ABOUT AN ARTIFACT. A room can load the
+       simulator and compute its own figures — web/tower.html plays a live battle out of it — and no
+       check that resolves a load to a `data/` row can see that, because there is no data/ row. The
+       reason string is quarantine.js's own vocabulary and the clause line is the gate's; nothing here
+       is a judgement this division made. Absent when the gate is open, so LIFT restores the room by
+       the same mechanism that restores a figure. */
+    root: gate && !gate.ok ? {
+      file: QUARANTINE.SIMULATOR,
+      root: true,
+      because: 'it is the simulator every withheld artifact is derived from',
+      rerun: 'node engine/quarantine.js',
+      clause: `${gate.failing.length} of ${gate.clauses.length} gate clauses fail `
+            + `(${gate.failing.map(c => c.name).join('; ')})`,
+    } : null,
+    /* The play layer, so the runtime answers for a room that loads a file which REACHES the simulator
+       rather than the simulator itself. Read from engine/quarantine.js on every build — naming a
+       source file is not publishing a figure, and a hand-kept list here would be the ban-list-of-four
+       failure one more time. */
+    play: play ? [...play].sort() : [],
+    /* EVERY ARTIFACT THE GRAPH KNOWS ABOUT, withheld or not. It is what lets a page tell CLEARED from
+       UNCLASSIFIED, and a name is not a figure. Without it `Q.gateFor` could only answer two ways and
+       the third state — the one engine/quarantine.js prints twenty of and deliberately will not
+       default — would silently become "safe to publish" on the site. */
+    classified: rows ? [...rows.keys()].map(f => 'data/' + f).sort() : [],
     held,
     sources,
     withheld_keys: withheldKeys.sort(),
@@ -244,7 +307,7 @@ if (require.main === module) {
   }
   const gate = QUARANTINE.medichamIsCorrect();
   const withhold = QUARANTINE.withholder(gate, cls.rows);
-  const payload = buildQuarantine(withhold, gate, cls.rows);
+  const payload = buildQuarantine(withhold, gate, cls.rows, null, cls.play);
   const text = emit(payload);
 
   const stamp = (a, b) => a.replace(/"generated": "[^"]*"/, '"generated": "X"') ===
@@ -277,6 +340,9 @@ if (require.main === module) {
   console.log('  ' + Object.keys(payload.held).length + ' artifact(s) withheld; '
     + payload.withheld_keys.length + ' of ' + (payload.withheld_keys.length + Object.keys(payload.R).length)
     + ' page figure(s) held back');
+  console.log('  root: ' + (payload.root ? payload.root.file + ' plus ' + payload.play.length
+    + ' file(s) that reach it — a room that LOADS one of these computes its figures live and is withheld whole'
+    : 'released — a room may run the simulator again'));
   if (bad) console.log('\n' + bad + ' drift(s). Run: node web/build-quarantine.js');
   process.exit(bad ? 1 : 0);
 }

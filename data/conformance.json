@@ -1,8 +1,19 @@
 {
- "generated": "2026-08-10T20:27:04.404Z",
+ "generated": "2026-08-11T01:40:41.602Z",
  "by": "engine/conformance.js",
- "files": 344,
+ "files": 359,
  "findings": [
+  {
+   "std": "S12",
+   "file": "engine/all_mechanics_fire.js",
+   "what": "names 3 Pokemon thing(s) in code: move:protect, move:detect, item:sitrusberry",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "item:sitrusberry",
+    "move:detect",
+    "move:protect"
+   ]
+  },
   {
    "std": "convention",
    "file": "engine/analyze.js",
@@ -272,6 +283,16 @@
   },
   {
    "std": "S12",
+   "file": "engine/pp_board_probe.js",
+   "what": "names 2 Pokemon thing(s) in code: move:protect, ability:levitate",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "ability:levitate",
+    "move:protect"
+   ]
+  },
+  {
+   "std": "S12",
    "file": "engine/preflight.js",
    "what": "names 1 Pokemon thing(s) in code: move:protect",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
@@ -318,6 +339,27 @@
    "detail": [
     "move:tailwind",
     "move:trickroom"
+   ]
+  },
+  {
+   "std": "S12",
+   "file": "engine/rollout_switch_probe.js",
+   "what": "names 2 Pokemon thing(s) in code: move:trickroom, move:tailwind",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:tailwind",
+    "move:trickroom"
+   ]
+  },
+  {
+   "std": "S12",
+   "file": "engine/scenario_catalogue.js",
+   "what": "names 3 Pokemon thing(s) in code: move:protect, move:tailwind, ability:intimidate",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "ability:intimidate",
+    "move:protect",
+    "move:tailwind"
    ]
   },
   {
@@ -457,6 +499,12 @@
   },
   {
    "std": "S12",
+   "file": "tests/test-stadium-roster.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
    "file": "tests/test-team-preview-race.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
@@ -577,13 +625,13 @@
   },
   {
    "std": "S13",
-   "file": "data/miltank-timing-r6.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
+   "file": "data/medicham-bench.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
   },
   {
    "std": "S13",
-   "file": "data/nature-arms.json",
+   "file": "data/miltank-timing-r6.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie"
   },
@@ -631,21 +679,15 @@
   },
   {
    "std": "S13",
-   "file": "data/porygon2-open.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
    "file": "data/porygon2-species.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
   },
   {
    "std": "S13",
-   "file": "data/porygon2c-dist.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
+   "file": "data/pp-board-probe.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
   },
   {
    "std": "S13",
@@ -658,6 +700,18 @@
    "file": "data/raw-log-census.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
+   "file": "data/replay-differential-bo3-freezes.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
+   "file": "data/replay-differential-bo3.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
   },
   {
    "std": "S13",
@@ -674,8 +728,8 @@
   {
    "std": "S13",
    "file": "data/replay-differential-sheets.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
   },
   {
    "std": "S13",
@@ -685,63 +739,9 @@
   },
   {
    "std": "S13",
-   "file": "data/rollout-cost.meta.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
-   "file": "data/rollout-r1-explore1-rows-3932186b59ef.meta.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
-   "file": "data/rollout-r1-explore1-rows-6e43710396db.meta.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
-   "file": "data/rollout-r1-explore1-rows.meta.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
-   "file": "data/rollout-r1-greedy-rows-3932186b59ef.meta.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
    "file": "data/rollout-r1-withdrawn-join.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
-   "file": "data/rollout-r3.meta.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
-   "file": "data/roster.abilities.prev.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
-   "file": "data/roster.items.prev.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
-   "file": "data/roster.moves.staging-trial.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
   },
   {
    "std": "S13",

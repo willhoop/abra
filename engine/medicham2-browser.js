@@ -97,6 +97,24 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * 2026-08-11. */
   ppDeducted: 0, ppPressureCharged: 0, ppRefusedAtSelection: 0, ppRefusedAtExecution: 0,
   struggleUsed: 0, ppRestoredByItem: 0, ppRemovedByMove: 0,
+  /* ROADMAP #152 -- THE FOUR NEW PATHS, EACH COUNTED, because a capability that cannot prove it ran is
+   * assumed broken and all four are silent by construction.
+   *   struggleFromEmptyMenu     Struggle reached through a DISABLED menu rather than an empty PP bar.
+   *                             This is the door PP cannot open: full PP, lock plus Disable.
+   *   choiceLockArmed           the Choice lock engaging at all, on any kind of move.
+   *   choiceLockArmedOnStatus   the half that did not exist (ROADMAP #118). Split out rather than
+   *                             merged, because `choiceLockArmed` was already non-zero on attacks and
+   *                             a shared total could not have told you the status half was dead.
+   *   choiceLockDroppedWithItem the lock ending because the Choice item left (Knock Off, Trick). The
+   *                             authority re-reads the item on every menu build; this engine kept the
+   *                             lock forever. A zero here is fine in a game with no Knock Off in it. */
+  struggleFromEmptyMenu: 0, struggleFromDisabled: 0, choiceLockArmed: 0, choiceLockArmedOnStatus: 0,
+  choiceLockDroppedWithItem: 0,
+  /* The two roads that are NOT the mechanic: the engine could not build the locked click, and the
+   * chooser found no option at all. Both used to return `{kind:'struggle'}`, which matched no branch
+   * in the dispatch loop and voided the whole turn. They are counted apart from `struggleFromEmptyMenu`
+   * because a hot number here is a BUG REPORT, not evidence that Struggle works. */
+  struggleFromLockUnbuilt: 0, struggleFromNoOption: 0,
   /* ROADMAP #141 -- a defender ability actually SUPPRESSED by a Mold Breaker-class attacker. It is
    * counted rather than assumed because the fix that added the `breakable` gate could equally have
    * turned the mechanic OFF everywhere, and a zero here would be indistinguishable from the gate
@@ -5666,19 +5684,129 @@ function setPurePriors(v){ PURE_PRIORS = !!v; }
  * and nothing else -- exactly the three-copies shape the comment above warns about -- and that clause
  * is now this call, so Throat Chop's silence and the Gigaton Hammer lockout stop leaking through the
  * single most-used path in the chooser as well. */
-function illegalMoveNow(me,id){
-  if(!me||!id) return false;
-  if(me._vol&&me._vol.disable>0&&me._sealed===id)return true;
-  if(me._noSound>0&&TAGS.has('move',id,'sound'))return true;
-  if(me._noRepeat===id)return true;
-  if(volatileForbidsMove(me,id)){ MEDSEEN.tauntRefusedAtSelection++; return true; }
+function illegalMoveNow(me,id){ return !!moveDisabledBy(me,id); }
+/* ---- ROADMAP #152: A SLOT IS DISABLED, AND THE SOURCE IS PART OF THE FACT ------------------------
+ *
+ * WHAT WAS MISSING WAS A CONCEPT, NOT A CLAUSE. This engine had "its PP is gone" and nothing else, so
+ * `ppAllOut` was the ONLY door into Struggle. Showdown's condition is `!moves.length` over the ENABLED
+ * menu (`sim/side.ts:697`, `sim/pokemon.ts:1022-1044`), and a slot leaves that menu when it is
+ * **disabled OR at 0 PP**. PP exhaustion is one door among several, and it is the one that almost
+ * never opens in a 12-turn game.
+ *
+ * Will, 2026-08-10: *"U ONLY STRUGGLE WHEN COMPLETELY OUT OF PP OR ARE LOCKED INTO A MOVE U CANT USE
+ * LIKE CHOICE SCARF DISABLED OR ENCORED DISABLED."*
+ *
+ * THE SOURCE IS RETURNED, NOT A BOOLEAN, and that is deliberate rather than decorative. Showdown
+ * itself carries `moveSlot.disabledSource` beside `moveSlot.disabled` (`sim/pokemon.ts:1640`), and a
+ * report that says "the body Struggled because everything was disabled" without saying BY WHAT cannot
+ * be debugged -- which is the same reason `MEDFAILS` names its first offender everywhere else in this
+ * file. `illegalMoveNow` is now a one-line wrapper so every existing caller is byte-identical in
+ * behaviour and there is still exactly ONE implementation of "may this body select this move".
+ *
+ * THE LOCK IS NOT IN HERE, AND THAT IS THE ONE JUDGEMENT IN THIS FUNCTION. A Choice lock and an
+ * Encore both reach the authority through `onDisableMove` -- they disable the OTHER THREE slots --
+ * so they belong to the menu and not to this per-slot question. They are applied one level up, in
+ * `selectableMoves`, because this function is called with a single id by the priors sampler and by
+ * the execution gate, and neither of those may be told "your move is disabled" merely because a lock
+ * points elsewhere: the lock's own answer is to REPLACE the click, which `lockedAction` already does.
+ *
+ * WHAT IS STILL ABSENT AND IS NAMED RATHER THAN LEFT TO BE DISCOVERED. The format's full
+ * `onDisableMove` set is twelve handlers; this covers Disable, Taunt (through the forbid table),
+ * Throat Chop, Gigaton Hammer's lockout, the two locks and PP. Torment, Gravity, Heal Block, Belch,
+ * Stuff Cheeks and Gorilla Tactics are NOT here -- three of them are refused at EXECUTION already
+ * (so the turn is spent rather than the menu shortened, which is the wrong shape but not a silent
+ * one) and the rest have no carrier worth staging. Each is one clause when its probe exists. */
+function moveDisabledBy(me,id){
+  if(!me||!id) return null;
+  if(me._vol&&me._vol.disable>0&&me._sealed===id)return 'disable';
+  if(me._noSound>0&&TAGS.has('move',id,'sound'))return 'throatchop';
+  if(me._noRepeat===id)return 'noRepeat';
+  if(volatileForbidsMove(me,id)){ MEDSEEN.tauntRefusedAtSelection++; return _traceForbidder(me); }
   /* ROADMAP #144 -- AN EMPTY SLOT IS NOT ON THE MENU. Showdown never OFFERS a 0-PP move
    * (`Pokemon#getMoves` marks it disabled, and `Side#choose` rejects it), so the `|cant|nopp` path at
    * execution is only reachable through a caller that supplies the click itself. This is the menu
    * half, and it sits with Taunt and Disable because it is the same question: may this body select
    * this move right now. An unknown PP (null) is NOT a refusal -- see ppLeft. */
-  {const _l=ppLeft(me,id); if(_l!=null&&_l<=0){ MEDSEEN.ppRefusedAtSelection++; return true; }}
-  return false;
+  {const _l=ppLeft(me,id); if(_l!=null&&_l<=0){ MEDSEEN.ppRefusedAtSelection++; return 'nopp'; }}
+  return null;
+}
+/* WHICH MOVE THE LOCK LEAVES ON THE MENU, or null for a free body.
+ *
+ * `_lock` carries BOTH locks in this engine and they are told apart by `_lockT`: Infinity is the
+ * Choice item (armed at the commit site), a finite count is Encore. Both are `onDisableMove` sources
+ * in the authority (`data/conditions.ts:349` for `choicelock`, `data/moves.ts:4769` for Encore), so
+ * both empty the menu the same way -- which is exactly why the two roadmap rows are one mechanism.
+ *
+ * THE RAMPAGE LOCK IS NOT THIS AND MUST NOT BE. Outrage/Thrash/Uproar are `getLockedMove`, and
+ * `getMoves(lockedMove)` returns that move UNCONDITIONALLY -- no disabled check, no PP check, so a
+ * rampaging body can NEVER be reduced to Struggle. It lives on `_mtLock` and is answered by the
+ * caller below rather than here.
+ *
+ * THE ITEM IS RE-READ, NOT REMEMBERED. `choicelock.onDisableMove` opens with
+ * `if (!pokemon.getItem().isChoice || !pokemon.hasMove(this.effectState.move)) { removeVolatile }` --
+ * so a Scarf that was Knocked Off, Tricked away or eaten stops locking THAT INSTANT. This engine kept
+ * the lock forever, which is CLAUDE.md's PREFER OBSERVED OVER DECLARED failure with the sign
+ * reversed: a constraint that outlives the thing imposing it. Counted when it fires. */
+function lockMenuMove(m){
+  if(!m||!m._lock) return null;
+  if(m._lockT===Infinity){
+    if(!TAGS.has('item',m.item,'choiceLock')){ MEDSEEN.choiceLockDroppedWithItem++; m._lock=null; m._lockT=0; return null; }
+  }
+  if(m.moves&&m.moves.length&&m.moves.indexOf(m._lock)<0) return null;   // `hasMove` -- the lock disables nothing
+  return m._lock;
+}
+/* THE MENU: what the authority would offer this body right now. `moves` is the body's own list, so a
+ * four-move sheet and a one-move probe body both answer correctly. */
+function selectableMoves(m){
+  const mv=(m&&m.moves)||[];
+  if(!mv.length) return [];
+  if(m._mtLock&&m._mtLock.left>0) return mv.slice();     // hard lock: getMoves(lockedMove) never empties
+  const lk=lockMenuMove(m);
+  const menu=lk?mv.filter(id=>id===lk):mv;
+  return menu.filter(id=>!moveDisabledBy(m,id));
+}
+/* IS THIS BODY REDUCED TO STRUGGLE. `getMoveRequestData` replaces the whole menu with Struggle when
+ * `getMoves` comes back empty; this is that predicate and nothing else decides it.
+ *
+ * A BODY WITH NO MOVE LIST AT ALL ANSWERS FALSE, which is `ppAllOut`'s rule kept: an empty `moves`
+ * array is a probe body or a builder gap, not a Pokemon that has run out. */
+function mustStruggle(m){
+  const mv=(m&&m.moves)||[];
+  if(!mv.length) return false;
+  return selectableMoves(m).length===0;
+}
+/* WHY DID IT STRUGGLE -- the first source that closed the last open slot, for the counter and for a
+ * report. Never decides anything. */
+function struggleSource(m){
+  const mv=(m&&m.moves)||[];
+  const lk=lockMenuMove(m);
+  if(lk) return moveDisabledBy(m,lk)==='nopp'?'lock+nopp':'lock+'+(moveDisabledBy(m,lk)||'?');
+  const by={};
+  for(const id of mv){const s=moveDisabledBy(m,id); if(s)by[s]=(by[s]||0)+1;}
+  const k=Object.keys(by); return k.length?k.sort((a,b)=>by[b]-by[a])[0]:'?';
+}
+/* THE ONE BUILDER OF A STRUGGLE ACTION, and it exists because `{kind:'struggle'}` matched NO branch
+ * in the dispatch loop (`if(a.kind!=='attack')continue`) -- three call sites returned it and every
+ * one of them was a whole silently voided turn with no `|move|` line at all (ROADMAP #119).
+ *
+ * Struggle is `randomNormal`, so the target is a uniform draw over the living foes from the engine's
+ * own seeded `rng` -- the identical rule `lockedAction` and the Encore override already use, rather
+ * than a fourth answer to one question. A build that fails is COUNTED, never swallowed. */
+function struggleAction(me,live,field,rng,where){
+  const _l=(live||[]).filter(f=>f&&!f.fainted&&f.curHP>0);
+  if(!_l.length){ MEDFAILS.struggleUnbuilt++; return null; }
+  const t=_l[Math.floor(rng()*_l.length)%_l.length];
+  let a=null;
+  try{ a=playerAction(me,'struggle',t,field); }catch(e){ MEDFAILS.struggleUnbuilt++; return null; }
+  if(!a||a.kind!=='attack'){ MEDFAILS.struggleUnbuilt++; return null; }
+  MEDSEEN.struggleUsed++;
+  /* WHICH ROAD, because three of them exist and only ONE of them is the mechanic. `menu` is
+   * Showdown's own condition; `lock` and `fallback` are this engine failing to build a click and are
+   * counted apart so a hot fallback cannot hide inside a healthy-looking `struggleUsed`. */
+  if(where==='menu'){ MEDSEEN.struggleFromEmptyMenu++; if(!ppAllOut(me)) MEDSEEN.struggleFromDisabled++; }
+  else if(where==='lock') MEDSEEN.struggleFromLockUnbuilt++;
+  else if(where==='fallback') MEDSEEN.struggleFromNoOption++;
+  return a;
 }
 function chooseAction(me,foes,ally,field,side,rng){
   const _illegal=id=>illegalMoveNow(me,id);
@@ -5688,21 +5816,20 @@ function chooseAction(me,foes,ally,field,side,rng){
    * literally the only button on the screen once every slot is empty, which is why this is asked
    * ABOVE the illegal-move filter rather than inside its `if (_keep.length)` branch.
    *
-   * `ppAllOut` asks the PP question ONLY. A body whose moves are all Taunted or Disabled has a
-   * different remedy in the authority (Disable cannot cover every slot; Taunt leaves the attacks) and
-   * inventing a Struggle for it would be a new wrong behaviour, so the condition is deliberately
-   * narrow and the existing filter below still owns those cases. */
-  if(ppAllOut(me)){
-    const _sl=(foes||[]).filter(f=>f&&!f.fainted&&f.curHP>0);
-    if(_sl.length){
-      const _st=_sl[Math.floor(rng()*_sl.length)%_sl.length];
-      let _sa=null;
-      try{ _sa=playerAction(me,'struggle',_st,field); }catch(e){ MEDFAILS.struggleUnbuilt++; }
-      if(_sa&&_sa.kind==='attack'){ MEDSEEN.struggleUsed++; return _sa; }
-      /* Falling through would hand back a click the body cannot pay for, which the execution gate
-       * then refuses -- a silent no-op turn dressed as a decision. Counted instead. */
-      MEDFAILS.struggleUnbuilt++;
-    }
+   * ROADMAP #152 -- AND THE CONDITION USED TO BE `ppAllOut`, WHICH IS ONE DOOR OF SEVERAL. What stood
+   * here said a Taunted or Disabled body "has a different remedy in the authority" and that inventing
+   * a Struggle for it would be a new wrong behaviour. Half right, and wrong where it counts: Disable
+   * alone cannot cover every slot and Taunt alone leaves the attacks -- but a CHOICE LOCK plus either
+   * one empties the menu at FULL PP, and Choice Scarf is legal in this format on 7,844 uses.
+   * `mustStruggle` asks the authority's own question -- is the ENABLED menu empty -- with PP as one
+   * input among several, so PP exhaustion still arrives here and by the same road it always did.
+   *
+   * A FAILED BUILD FALLS THROUGH ON PURPOSE and is counted inside `struggleAction`: handing back a
+   * click the body cannot make would be a silent no-op turn dressed as a decision, and the ordinary
+   * chooser below at least spends the turn on something. */
+  if(mustStruggle(me)){
+    const _sa=struggleAction(me,foes,field,rng,'menu');
+    if(_sa) return _sa;
   }
   if(me&&me.moves&&me.moves.length>1&&me.moves.some(_illegal)){
     const _save=me.moves;
@@ -5717,6 +5844,10 @@ function chooseAction(me,foes,ally,field,side,rng){
 }
 function _chooseAction(me,foes,ally,field,side,rng){
   // asleep? still pick a move — the turn loop applies Champions wake rules (33% turn 2, 100% turn 3)
+  /* ROADMAP #119 -- `{kind:'struggle'}` IS KEPT HERE AND NOWHERE ELSE, and only because there is
+   * literally nothing to aim at: no living foe means `struggleAction` cannot draw a target either, so
+   * this is the one site where the sentinel is not a voided turn dressed as a decision. The turn loop
+   * is about to end the battle anyway. The other two sites now build a real Struggle. */
   const live=foes.filter(f=>f&&!f.fainted&&f.curHP>0); if(!live.length)return{kind:'struggle'};
   /* WIRE 18 -- choiceLock. A Scarf holder (4,159 sheets) clicked a move and is LOCKED into it:
    * no priors sampling, no heuristics, no re-aiming to a status move -- the one move, best legal
@@ -5765,11 +5896,18 @@ function _chooseAction(me,foes,ally,field,side,rng){
    * null, so a body locked into ANY of the 175 legal status moves in this format Struggled -- and
    * `{kind:'struggle'}` matches no branch in the dispatch loop (`if(a.kind!=='attack')continue`), so
    * the turn was a silent no-op with no `|move|` line at all. Struggle itself is unimplemented in this
-   * engine and that is a separate family, deliberately not fixed inside a re-route. */
+   * engine and that is a separate family, deliberately not fixed inside a re-route.
+   *
+   * ROADMAP #152 -- AND IT IS FIXED NOW, SO THE FALLBACK BUILDS A REAL ONE. This is the second of the
+   * three `{kind:'struggle'}` sentinels and it is reached when the lock names a move `playerAction`
+   * cannot build at all. Showdown's body in that state has one button; ours now presses it. Note this
+   * is NOT the empty-menu road -- `mustStruggle` already returned above if the locked slot was
+   * disabled or empty -- so it is counted as a BUILD failure, which is what it is. */
   if(me._lock){
     const _la=lockedAction(me,me._lock,live,field,rng);
     if(_la)return _la;
-    return{kind:'struggle'};
+    const _sa=struggleAction(me,live,field,rng,'lock');
+    return _sa||{kind:'struggle'};
   }
   // strongest option + is a KO available?
   let bestAtk=null,bestKO=-1,tgt=null;
@@ -5845,6 +5983,14 @@ function _chooseAction(me,foes,ally,field,side,rng){
     }}
   // 4) fallback: best available attack
   if(bestAtk)return{kind:'attack',move:bestAtk,target:tgt};
+  /* ROADMAP #152 -- SENTINEL THREE, AND IT WAS THE WORST OF THEM: the body has no damaging option the
+   * scanner would take, the priors sampler produced nothing usable, and the turn was simply thrown
+   * away with no `|move|` line. A real Struggle is not what Showdown would click here -- a body with
+   * legal status moves left is not on Struggle -- and that mismatch is stated rather than hidden. What
+   * it fixes is the VOID: an action nothing in the dispatch loop matches. It is counted under
+   * `struggleUsed` with `_fallback`, so if this road is ever hot the counter says so instead of the
+   * turn vanishing. */
+  {const _sa=struggleAction(me,live,field,rng,'fallback'); if(_sa)return _sa;}
   return{kind:'struggle'};
 }
 function effSpeed(m,field,side){
@@ -9216,6 +9362,46 @@ function battleTurn(S,rng,actsForA,actsForB){
          * wrote a result of its own. The failure sites below overwrite this through mvFail(); the
          * damaging branch overwrites it with all three values. */
         if(_mid)m._mvRes=true;
+        /* ================= ROADMAP #118 -- THE COMMIT SITE, AND IT IS ONE SITE =====================
+         *
+         * THE CHOICE LOCK DID NOT ARM ON A STATUS MOVE. Measured before this line existed: `knockoff`
+         * left `_lock=knockoff, _lockT=Infinity`; `taunt`, `tailwind`, `trickroom` and `swordsdance`
+         * left `_lock` UNDEFINED. So a Scarf holder that clicked a status move was free to click
+         * anything the next turn, and Scarf+Trick is a real set on 7,844 uses of a legal item.
+         *
+         * THE CAUSE WAS THE POSITION, NOT THE CONDITION. The arming line sat inside the ATTACK branch,
+         * below `if(a.kind!=='attack')continue`, which is the same guard that voided Struggle (#119).
+         * ~30 status kinds resolve in branches below it and none of them could ever reach it.
+         *
+         * WHY HERE. This is `pokemon.moveUsed()`'s position and nothing else's. In the authority the
+         * lock is a VOLATILE added by the item's `onModifyMove` (`data/items.ts`, `choicelock` at
+         * `data/conditions.ts:349`), which runs inside `useMoveInner` -- after every BeforeMove
+         * refusal and BEFORE the move resolves. Everything above this line is a BeforeMove refusal
+         * that has already `continue`d out; everything below it is a move that RAN. So a body that is
+         * flinched, paralysed, asleep, recharging, Throat-Chopped or Taunted out commits nothing, and
+         * a move that runs and then FAILS still commits -- which is right, and is why a Scarf holder
+         * whose Protect fails is still locked into Protect.
+         *
+         * `_lastMove` RIDES THE SAME SITE, WHICH IS ROADMAP #117. Thirteen move kinds -- every `heal`,
+         * both `switch` kinds, `tail`, `trickroom`, `wideguard` -- executed and never recorded it, so
+         * `volNeedsLastMove` correctly refused an Encore or a Disable aimed at most of what they exist
+         * to punish. Two facts, one question ("was this move committed"), one place. The per-branch
+         * `m._lastMove=a.mv` writes below are now redundant rather than wrong and are left alone: they
+         * assign the identical id, and removing fifty of them in the same pass as a behaviour change
+         * is how a refactor eats a fix.
+         *
+         * STRUGGLE ARMS THE LOCK TOO, and that is the authority's behaviour rather than an oversight:
+         * `onModifyMove` fires for Struggle like any other move. It costs nothing here because a body
+         * on Struggle has no selectable slot anyway, and `lockMenuMove`'s `hasMove` clause drops a
+         * lock that names a move the body does not carry. */
+        if(_mid){
+          m._lastMove=_mid;
+          if(!m._lock&&TAGS.has('item',m.item,'choiceLock')){
+            m._lock=_mid; m._lockT=Infinity;
+            MEDSEEN.choiceLockArmed++;
+            if(a.kind!=='attack') MEDSEEN.choiceLockArmedOnStatus++;
+          }
+        }
         /* ROADMAP #139 -- WHICH MOVE WAS USED LAST, BY ANYBODY, AND THE TIMING IS THE MECHANIC.
          * Showdown keeps it as `battle.lastMove` and writes it in `clearActiveMove` -- when a move
          * FINISHES, not when it starts. That one line is the difference between Copycat working and
@@ -11123,8 +11309,13 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
       }
       const mv=a.move.mv;
-      /* the lock engages on the first attack a choiceLock holder commits (WIRE 18) */
-      if(!m._lock&&TAGS.has('item',m.item,'choiceLock')){m._lock=a.move.id;m._lockT=Infinity;}m._lastMove=a.move.id;
+      /* ROADMAP #118 -- THE ARMING THAT STOOD HERE IS GONE, AND ITS ABSENCE IS THE FIX. It read
+       *   if(!m._lock&&TAGS.has('item',m.item,'choiceLock')){m._lock=a.move.id;m._lockT=Infinity;}
+       * inside the ATTACK branch, so it could not see the ~30 status kinds. It now lives at the
+       * commit site above the kind dispatch and there is exactly one of it. `_lastMove` is set there
+       * too; the assignment is kept here only because removing fifty identical writes in the same
+       * pass as a behaviour change is how a refactor eats a fix. */
+      m._lastMove=a.move.id;
       if(firstTurnOnlyRefused(m,a.move.id)){{if(TR)TR.attrStill();mvFail(m);}continue;}   // Fake Out only works the turn you enter
       /* WIRE 44 -- GIGATON HAMMER (197 uses) cannot be clicked twice in a row. `_noRepeat` is armed
          when the move lands and disarmed by the end-of-turn tick, so the block covers exactly the

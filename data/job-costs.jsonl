@@ -108,3 +108,6 @@
 {"job":"mutation-harness","peak_mb":155,"duration_s":2,"samples":2,"node":"v24.15.0","at":"2026-08-10T19:33:38.586Z"}
 {"job":"mutation-harness","peak_mb":154,"duration_s":16,"samples":2,"node":"v24.15.0","at":"2026-08-10T20:25:36.694Z"}
 {"job":"mutation-harness","peak_mb":150,"duration_s":2,"samples":2,"node":"v24.15.0","at":"2026-08-10T20:36:46.182Z"}
+{"job":"mutation-harness","peak_mb":163,"duration_s":3,"samples":2,"node":"v24.15.0","at":"2026-08-11T01:24:38.797Z"}
+{"job":"mutation-harness","peak_mb":170,"duration_s":18,"samples":2,"node":"v24.15.0","at":"2026-08-11T01:35:50.572Z"}
+{"job":"mutation-harness","peak_mb":168,"duration_s":2,"samples":2,"node":"v24.15.0","at":"2026-08-11T01:36:06.896Z"}

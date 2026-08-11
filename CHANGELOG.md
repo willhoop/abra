@@ -10,6 +10,43 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [4.8.0] — 2026-08-10
+
+### Added
+- **The rollout can switch, and its cap is now measured rather than round (#63, #38).**
+  `data/rollout-switch-census.json` over **58,639 stored games**: **71.22% of real games contain a
+  voluntary switch**, and 9.98% of decisions with a live bench are one. The derived cap is **14 turns**
+  (ladder 14, bo3 13, at 99% of occurrence-weighted positions) against the previous **60**, which the
+  artifact records as `was_derived_from: "nothing — a round number"`. The two errors compounded: a
+  rollout four times too long in which nobody ever leaves is exactly where stall lines that cannot
+  exist get discovered.
+- **Ten sprint generators declared as INSTRUMENT / CENSUS / PROBE**, each with its own reason and its
+  own TRIGGER. `tests/test-stadium-roster.js` was red on all ten at once — the GURU hole — and three
+  were mine. `click_counts` and `sheet_usage` are the borderline pair, declared as censuses on a
+  stated argument: the usage shelf reads them, but the shelf is the thing that DECIDES.
+
+### Fixed
+- **The 56 unopenable releases resolve into causes and mostly are not broken (#109).**
+  `data/release-census.json`: **54 serviceable, 55 predate an export, 4 pruned, 5 genuinely
+  unloadable.** The dominant cause is `SOURCES` growing 12 → 17 → 23 — a loader-compatibility fact,
+  not corruption, and a far smaller problem than the headline implied.
+- **The differential clause had quietly weakened to a 133x smaller sample.** The gate read
+  `0 of 150 comparisons` where it had been `0 of 20,000`; an agent ran it small and the artifact it
+  left is what the clause reads. **A gate passing on a smaller sample is a weaker claim wearing the
+  same word.** Re-run: still 0 of 20,000.
+
+### Notes
+- **FOUR AGENTS LANDED WORK AND NONE REPORTED — the session froze and had to be hard-restarted.**
+  Their edits survived; their claims did not. **Everything here was verified by RUNNING it**, which is
+  the only honest option once the reporter is gone. Verified green: `test-rollout-switch` 16/16,
+  `test-web-quarantine-loaders` ALL PASS, `test-engine-release` 66/66.
+- **The process failure is mine.** "One agent per division" is a COLLISION rule; I treated it as a
+  capacity rule as well. Four concurrent agents each spawning Showdown battles is a load problem
+  regardless of file separation.
+- **ENGINE did NOT land #118/#119.** The gate is unchanged at **CLOSED, 1 of 6, 8 open defects**.
+
+---
+
 ## [4.7.0] — 2026-08-10
 
 ### Fixed

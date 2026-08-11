@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-11T00:43:29.904Z",
+  "generated": "2026-08-11T01:35:48.383Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 421,
-  "live": 421,
+  "probed": 423,
+  "live": 423,
   "missing": 0,
-  "armed": 421,
+  "armed": 423,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2636,7 +2636,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 27.0% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4167,6 +4167,26 @@
       "label": "every slot empty: the engine Struggles",
       "live": true,
       "detail": "after 8 Close Combats the slot is empty and the chooser clicks 3 Struggles; after only 4 it clicks 0 and reaches for closecombat/flareblitz instead. Struggle is typeless (???), so mcEff answers x1 against every defender rather than 0 against a Ghost",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "choiceLock",
+      "label": "the lock arms on a STATUS move, not only on an attack",
+      "live": true,
+      "detail": "[turn 1, turn 2 after handing in Knock Off] — Taunt first with a Choice Scarf taunt,taunt (the lock must bind); the identical pair of clicks with NO item taunt,knockoff (the second click must be honoured, or the probe proves nothing); Knock Off first with the Scarf knockoff,knockoff, which armed before this row existed and is the arm that says a red is the STATUS half",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "choiceLock",
+      "label": "a Choice lock onto a Disabled move empties the menu: Struggle",
+      "live": true,
+      "detail": "turn 3 is chosen by the engine, every slot at full PP. Scarf-locked into Knock Off AND Knock Off Disabled -> struggle, which cost its user 1 recoil line(s) — a no-op turn costs 0; the same lock with NO Disable -> knockoff (recoil 0, must be 0); the same Disable with NO lock -> flareblitz. Either half alone must leave a menu, so a red on one control is the fix over-firing and a red on the other is it not firing at all",
       "hollow": false,
       "armed": true,
       "directCall": false

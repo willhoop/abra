@@ -659,8 +659,66 @@ function statusFor(id){
   const S=(window.ABRA_STATUS&&window.ABRA_STATUS.models)||[];
   return S.find(m=>m.id===id)||null;
 }
+
+/* ---- A CLEARED BUNDLE CAN STILL CARRY A QUARANTINED FIGURE, AND THIS ONE DOES ------------------
+   data/status.js is a CLEAR row in engine/quarantine.js's graph, so every check that resolves a
+   page's <script src> to an artifact says this page is clean. It is not: build/build_status.js reads
+   data/policy-weights.json and data/policy-weights-joint.json — both WITHHELD — and bakes their
+   verdicts into `metric` strings that this page printed in a badge tooltip and, in the PC, at full
+   size. MAGNEMITE's held-out click accuracy and its margin over popularity, and DODUO's paired
+   head-to-head percentage with its interval, were both live on the front door with the gate closed.
+   The figures are deliberately not repeated in this comment — a comment ships with the page — and
+   they are not repeated anywhere else on it either. A tooltip is published: CLAUDE.md's rule is that
+   the figure is WITHHELD, not annotated, and nothing in it says "unless it is small".
+
+   The rule is read, never listed. Each row in data/status.js declares the files it was derived from
+   in its own `evidence` line; every data/ file named there goes to the gate:
+
+     held         -> the badge and the metric are replaced by QUARANTINED
+     unclassified -> also replaced. engine/quarantine.js prints ~20 artifacts with NO ROW in the
+                     graph and refuses to default them, saying the set holds instruments AND
+                     consumers. A page may not default them either — DODUO's evidence is
+                     data/games.h2h-joint-trained.jsonl, 194,514 games played by this simulator, and
+                     "nothing can classify it" is not permission to publish it.
+     clear        -> rendered exactly as before.
+
+   A row whose citations are all clear is untouched, so this withholds three of nineteen rather than
+   stripping a page that was entitled to its figures. */
+function statusCites(m){
+  const s=String((m&&(m.evidence||m.why))||'');
+  return [...new Set(s.match(/\bdata\/[A-Za-z0-9_.\-]+/g)||[])];
+}
+function statusHold(m){
+  const Q=window.ABRA_QUARANTINE; if(!Q||Q.open!==false||!m) return null;
+  for(const f of statusCites(m)){
+    const g=Q.gateFor(f);
+    if(g==='held') return {file:f,state:'held',rec:Q.heldFor(f)};
+    if(g==='unclassified') return {file:f,state:'unclassified',rec:null};
+  }
+  return null;
+}
+/* One sentence per state, at the weight of the thing it replaces. */
+function statusHoldWhy(h){
+  const Q=window.ABRA_QUARANTINE;
+  return h.state==='held'
+    ? `${h.file} is downstream of ${Q.simulator} — ${h.rec?h.rec.because:''}. ${h.rec?h.rec.clause:''}. `
+      + `The status badge is derived from that artifact, so it is withheld with it. Re-run: ${h.rec&&h.rec.rerun?h.rec.rerun:'see node engine/quarantine.js'}`
+    : `${h.file} has NO ROW in the artifact dependency graph, so nothing can say whether it is downstream of `
+      + `${Q.simulator}. engine/quarantine.js refuses to default an unclassified artifact and this page refuses too: `
+      + `unclassified is not cleared. Derivation: ${Q.derivation}`;
+}
+function statusHoldChip(h){
+  const label=h.state==='held'?'QUARANTINED':'UNCLASSIFIED — NOT PUBLISHED';
+  return `<span class="chip null" style="background:#ff6b57;color:#fff;border-color:#ff6b57" `
+       + `title="${String(statusHoldWhy(h)).replace(/"/g,'&quot;')}">${label}</span>`;
+}
 function statusBadge(id){
   const m=statusFor(id); if(!m) return '';
+  const h=statusHold(m);
+  /* The LABEL goes too, not just the number: "beats its baseline" is itself read out of the withheld
+     artifact's held-out comparison, so leaving it while removing the tooltip would publish the
+     verdict and hide only the evidence for it. */
+  if(h) return `<div style="margin:6px 0 2px">${statusHoldChip(h)}</div>`;
   const [cls,label]=STATUS_LOOK[m.status]||['',m.status];
   const measured=m.derived?'measured':'not yet measured';
   const tip=`${m.metric||''}${m.evidence?'  ·  from '+m.evidence:'  ·  no artifact yet'}`;
@@ -1790,15 +1848,24 @@ function roomPC(){
     const spr=c?`<img src="${ani(c.sprite)}" style="width:46px;height:46px;image-rendering:pixelated" alt="">`:'';
     const [cls,label]=STATUS_LOOK[m.status]||['',m.status];
     const clickable=c&&ROOMS[m.id];
-    return `<div style="display:flex;gap:11px;align-items:flex-start;background:#f6f8fb;border:2px solid #e2e8f1;
+    /* THE PC PRINTS THE METRIC AT FULL SIZE, which is where DODUO's 45.7% head-to-head was actually
+       readable — the badge tooltip was the quieter half of the same leak. Same gate, same three
+       answers; the metric line is REPLACED rather than blanked, so the card still says something
+       true instead of leaving a gap a reader reads as a rendering bug. */
+    const h=statusHold(m);
+    const line=h
+      ? `<div style="font-weight:700;color:#c0432f;font-size:12.5px">The result this card carried is withheld.</div>
+         <div style="font-weight:600;color:#6d829b;font-size:11.5px;margin:3px 0 5px;line-height:1.5">${statusHoldWhy(h)}</div>`
+      : `<div style="font-weight:700;color:#5a6f8a;font-size:12.5px">${m.metric||''}</div>`;
+    return `<div style="display:flex;gap:11px;align-items:flex-start;background:#f6f8fb;border:2px solid ${h?'#ff6b57':'#e2e8f1'};
               border-radius:12px;padding:11px;${clickable?'cursor:pointer':''}"
               ${clickable?`onclick="go('${m.id}')"`:''}>
       <div style="filter:grayscale(.75);opacity:.75">${spr}</div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:900;color:#3a5372;font-size:14px">${m.name}</div>
         <div style="font-weight:700;color:#6d829b;font-size:12.5px;margin:2px 0 5px">${m.detail}</div>
-        <div style="font-weight:700;color:#5a6f8a;font-size:12.5px">${m.metric||''}</div>
-        <span class="chip ${cls}">${label}</span><span class="chip">${m.derived?'measured':'not yet measured'}</span>
+        ${line}
+        ${h?statusHoldChip(h):`<span class="chip ${cls}">${label}</span><span class="chip">${m.derived?'measured':'not yet measured'}</span>`}
       </div></div>`;
   };
   const group=(title,blurb,list)=>`<div class="panel"><h2>${title}</h2>
@@ -1806,18 +1873,28 @@ function roomPC(){
      ${list.length?`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:10px">${list.map(card).join('')}</div>`
                  :'<p style="font-weight:700;color:#8fa0b6">Nothing in this box right now.</p>'}</div>`;
 
-  const failed  = S.filter(m=>m.status==='null');
-  const retired = S.filter(m=>m.status==='retired');
-  const unbuilt = S.filter(m=>m.status==='roadmap'||m.status==='dev'||m.status==='pivot');
-  const working = S.filter(m=>['live','validated','win','built'].includes(m.status));
+  /* THE BOX A MODEL IS IN IS ITSELF THE VERDICT. "Tested — and it did not work" is exactly DODUO's
+     quarantined head-to-head said in words, and `status:'win'` for MAGNEMITE is the held-out
+     comparison inside data/policy-weights.json. So a row whose status rests on a withheld or
+     unclassified artifact is taken out of all four boxes and given its own, rather than being filed
+     under a conclusion this project currently cannot stand behind. */
+  const held    = S.filter(m=>statusHold(m));
+  const ok      = m=>!statusHold(m);
+  const failed  = S.filter(m=>m.status==='null'&&ok(m));
+  const retired = S.filter(m=>m.status==='retired'&&ok(m));
+  const unbuilt = S.filter(m=>(m.status==='roadmap'||m.status==='dev'||m.status==='pivot')&&ok(m));
+  const working = S.filter(m=>['live','validated','win','built'].includes(m.status)&&ok(m));
 
   return `<div class="panel"><div class="hero">
       <img class="mascot" src="https://play.pokemonshowdown.com/sprites/ani/porygon2.gif" alt="">
       <div><h2>The PC</h2><p class="sub">where models go when they are not working</p>
       <div class="bubble">Storage for everything that is tested-and-failed, retired, or not built yet.
       Nothing here is deleted — a model that failed is a result, and keeping it visible stops anyone
-      rebuilding it by accident. <b>${working.length} of ${S.length}</b> models are currently in active use.</div></div>
+      rebuilding it by accident. <b>${working.length} of ${S.length}</b> models are currently in active use${
+        held.length?`, and <b>${held.length}</b> cannot be filed either way while the gate is closed`:''}.</div></div>
     </div></div>
+    ${held.length?group('Withheld — the artifact that decides this is quarantined',
+        'These are not failures and they are not successes. The file each one\'s status was read out of is downstream of the simulator under repair, or is not in the dependency graph at all, so the verdict is withheld rather than annotated. They come back — with their numbers — when the gate opens and the run is repeated.',held):''}
     ${group('Tested — and it did not work','These were built, measured against a fair baseline, and lost. That is a real finding, not a bug, and it is worth more than a number nobody checked.',failed)}
     ${group('Retired','Superseded or withdrawn. Kept on the shelf so the mistake is not repeated.',retired)}
     ${group('Not built yet','Designed, scoped, or half-finished. No claim is being made about any of these — nobody has measured them.',unbuilt)}`;

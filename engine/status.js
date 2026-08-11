@@ -127,6 +127,99 @@ const sayHeld = (label, h) => {
   if (h.rerun) say(`    it becomes quotable again when the gate opens AND this is re-run: ${h.rerun}`);
 };
 
+/* ---- THE SECOND GATE, WHICH THIS FILE HAD NEVER READ — ROADMAP #108 ---------------------------
+ *
+ * `engine/provenance.js` calls an artifact UNSAFE when what it declares it was built from is not
+ * what is on disk now. This file printed figures out of those artifacts anyway. Two independent
+ * guards over one question, disagreeing in public, and the one that PRINTS wins because it is the
+ * one anybody reads — the identical shape as the quarantine gate reporting the engine correct while
+ * the defect register said otherwise, because the gate never read the register.
+ *
+ * MEASURED BEFORE FIXING, at the photograph of 2026-08-10:
+ *   - 11 artifacts read by this file, 2 of them UNSAFE. Only ONE of the two printed a figure
+ *     (`wire-ladder.json`, the release ladder — five lines, fourteen numbers, ENGINE's answer to
+ *     "does this approach terminate"). The other was already withheld by the quarantine.
+ *   - Driving the REAL quarantine withholder with an OPEN gate — the counterfactual for the day
+ *     MEDICHAM passes — this file reads 24 artifacts and SEVEN are UNSAFE.
+ *
+ * So the overlap is 1 today because the MEDICHAM quarantine happens to be covering five of the six,
+ * and it becomes 6 on the day the gate opens: the exact moment everybody starts quoting again. A
+ * disagreement that is masked by an unrelated guard is not a small disagreement, it is a hidden one.
+ *
+ * CLAUDE.md: "A CAPTION IS NOT A QUARANTINE... the figure must be WITHHELD, not annotated. Printing
+ * it with a caveat is the bug." That applies to this reason exactly as it applies to the other. */
+const PROV_VERDICTS = { rows: null, why: null };
+const unsafeFig = (...files) => {
+  if (!PROV_VERDICTS.rows) return null;
+  for (const f of files) {
+    const r = PROV_VERDICTS.rows.get(String(f).replace(/^data\//, ''));
+    if (r && (r.status === 'UNSAFE' || r.status === 'VOID')) return r;
+  }
+  return null;
+};
+/* Counted, and printed at zero as well as at seven. A guard that can only be seen when it fires is
+ * a guard nobody can tell has stopped running — `setSheet()` existed and nothing called it. */
+const UNSAFE_WITHHELD = [];
+/* PROVENANCE RUNS ONCE, AT MODULE LOAD, BEFORE ANY SECTION PRINTS.
+ *
+ * It was called from inside `measure()`, which runs third. So the ENGINE section — which holds the
+ * release ladder, the one artifact that was in fact UNSAFE and printing — had already been rendered
+ * by the time the verdicts existed. A guard that loads after the thing it guards is not a guard, and
+ * this is precisely the ordering that let the quarantine banner print above sections it could not
+ * reach. It costs nothing to hoist: the subprocess ran on this path anyway.
+ *
+ * The `--verdicts-out` sidecar goes to the OS temp directory, never into data/ — it is a fact about
+ * this run of this tool, not an artifact. One invocation, because provenance costs ~15 seconds and
+ * running it twice would add that to the one command every session is required to run first. */
+const VOUT = path.join(require('os').tmpdir(), `abra-prov-verdicts-${process.pid}.json`);
+const PROV_RUN = (() => {
+  const loadVerdicts = () => {
+    try {
+      const p = JSON.parse(fs.readFileSync(VOUT, 'utf8'));
+      PROV_VERDICTS.rows = new Map(p.rows.map(r => [r.file, r]));
+    } catch (e) {
+      /* NOT "NOTHING IS UNSAFE". A missing sidecar means provenance did not speak, and every figure
+       * below is then printed WITHOUT this guard — which is the pre-#108 behaviour and has to be
+       * said out loud rather than inferred from an absent line. */
+      PROV_VERDICTS.why = String((e && e.message) || e).split('\n')[0];
+      NOTES.push('engine/provenance.js produced no verdict sidecar, so NO figure below is checked '
+               + 'against its UNSAFE list: ' + PROV_VERDICTS.why);
+    }
+    try { fs.unlinkSync(VOUT); } catch (e) { /* a leftover temp file is not a finding */ }
+  };
+  /* `--selftest` drives the refit-edge classifier and prints nothing from an artifact, so paying
+   * fifteen seconds for provenance there would only make the selftest slower and likelier to be
+   * skipped. It is NOT silence: PROV_VERDICTS.rows stays null and `unsafeFig` returns null, which is
+   * the same "provenance did not speak" state the diagnostics line describes. */
+  if (process.argv.includes('--selftest')) return { txt: '', tripped: false, err: null, skipped: true };
+  try {
+    const txt = execFileSync(process.execPath, [D('engine', 'provenance.js'), '--verdicts-out=' + VOUT],
+      { encoding: 'utf8', maxBuffer: 1 << 24 });
+    loadVerdicts();
+    return { txt, tripped: false, err: null };
+  } catch (e) {
+    /* The sidecar is written BEFORE the table and before the ratchet exits non-zero, so a tripped
+     * ratchet still yields verdicts. Load it on this path too. */
+    loadVerdicts();
+    const txt = typeof e.stdout === 'string' ? e.stdout : (e.stdout ? String(e.stdout) : '');
+    /* OUTPUT PRESENT means it RAN and reached a verdict — a non-zero exit IS that verdict here
+     * (the ratchet grew) and the caller prints it, so there is nothing to record. EMPTY OUTPUT
+     * means the tool genuinely died, which is a defect: record it so it reaches DIAGNOSTICS
+     * instead of being swallowed by a catch that returns a plausible empty result. */
+    if (!txt) logUnreadable('engine/provenance.js (exited non-zero with no output)', e);
+    return { txt, tripped: !!txt, err: e };
+  }
+})();
+const sayUnsafe = (label, r) => {
+  UNSAFE_WITHHELD.push({ label, file: r.file, status: r.status });
+  say(`  ${label}: WITHHELD — engine/provenance.js calls data/${r.file} ${r.status}.`);
+  /* THE REASON, NOT A POINTER TO IT. "see provenance" is a caption with an extra step. */
+  for (const n of (r.notes || []).slice(0, 2)) say(`    ${n}`);
+  const more = (r.notes || []).length - 2;
+  if (more > 0) say(`    (+${more} more — node engine/provenance.js)`);
+  say(`    it becomes quotable again when this is re-run: node ${r.by || '<no generator detected>'}`);
+};
+
 /* ---- THE REFIT EDGE ---------------------------------------------------------------------------
  * provenance.js checks artifact-against-artifact and catches a great deal, but it reads the data
  * graph: a .json declaring what it was built from. It cannot see the edge that actually costs the
@@ -200,6 +293,16 @@ function classifyContrast(j, liveMedi, liveBoard) {
 
 function readContrast() {
   const muzzled = (why) => ({ muzzled: why });
+  /* ROADMAP #108, and this one is NOT a printed quantity — it is an artifact that DECIDES a printed
+   * verdict, which is the same problem wearing a hat. `data/feature-engine-contrast.json` is UNSAFE
+   * today. Its own `classifyContrast` muzzle checks two digests (medicham2, board.js); provenance
+   * checks everything the generator declared. An artifact provenance calls UNSAFE is muzzled here
+   * rather than withheld, because the refit LINE must keep printing — it is a staleness verdict
+   * about the weights, not a quantity measured through them, and it is one of the instruments that
+   * says what has to be re-run. Muzzling can only make the verdict WORSE, never better. */
+  const u = unsafeFig('feature-engine-contrast.json');
+  if (u) return muzzled('engine/provenance.js calls data/feature-engine-contrast.json ' + u.status
+                      + ' — ' + ((u.notes || [])[0] || 'see node engine/provenance.js'));
   try {
     const j = JSON.parse(fs.readFileSync(D('data', 'feature-engine-contrast.json'), 'utf8'));
     return classifyContrast(j, sha12(D('engine', 'medicham2-browser.js')), sha12(D('engine', 'board.js')));
@@ -289,12 +392,20 @@ function refitOwed() {
 
 /* ---- ENGINE ---------------------------------------------------------------------------------- */
 function engine() {
-  const c = j('mechanics-census.json');
-  const d = j('engine-diff.json');
-  const t = j('tags.json');
+  /* Every figure in this section is gated on BOTH guards. The quarantine asks "is this downstream of
+   * a simulator we know is wrong"; provenance asks "was this built from what is on disk now". They
+   * are different questions with the same answer — withhold — and neither may be skipped because the
+   * other happened to pass. */
+  const qc = unsafeFig('mechanics-census.json');
+  const qd = unsafeFig('engine-diff.json');
+  const qt = unsafeFig('tags.json');
+  const c = qc ? null : j('mechanics-census.json');
+  const d = qd ? null : j('engine-diff.json');
+  const t = qt ? null : j('tags.json');
 
   say('ENGINE — does the simulator do what Pokémon does');
-  if (c) {
+  if (qc) sayUnsafe('census', qc);
+  else if (c) {
     say(`  ${c.live}/${c.probed} probed mechanics live, ${c.missing} missing   (census ${day(new Date(c.generated))})`);
     const dead = c.results.filter(r => !r.live);
     if (dead.length) {
@@ -303,7 +414,8 @@ function engine() {
     }
   } else say('  census: NOT DERIVED (data/mechanics-census.json absent — run tests/test-mechanics.js)');
 
-  if (d) {
+  if (qd) sayUnsafe('differential', qd);
+  else if (d) {
     /* THE SEED AND THE SKIPS BELONG ON THIS LINE. The artifact carries `seed`, `requested`,
      * `skipped_multihit`, `skipped_non_finite` and `dropped_by_exception`, and this print used to
      * read none of them — so "1/150 disagree" read as unconditional when rows had been skipped as
@@ -334,8 +446,10 @@ function engine() {
    * agreement rate. "899 of 899 agree" alone reads as "the engine is correct"; what it means is
    * "the engine is correct on the pairs the generator could stage". Those are different claims and
    * the second one is the true one. */
-  const m = j('interaction-matrix.json');
-  if (m) {
+  const qm = unsafeFig('interaction-matrix.json');
+  const m = qm ? null : j('interaction-matrix.json');
+  if (qm) sayUnsafe('interaction matrix', qm);
+  else if (m) {
     const theo = (m.theoretical && m.theoretical.total) || null;
     const pct = m.live ? (100 * m.agree / m.live) : 0;
     say(`  interaction matrix: ${m.agree}/${m.live} live carrier x reactor pairs agree with the official engine`
@@ -367,8 +481,16 @@ function engine() {
    * THE MEDIAN COMPLETED TURN IS PRINTED FIRST AND THE DIVERGENCE RATE SECOND, deliberately. The rate
    * is saturated at ~99% and grades nothing; a flat median after six correct wires is the important
    * negative and it must not sit below a percentage that looks like it is improving. */
-  const wl = j('wire-ladder.json');
-  if (wl && wl.arms && wl.arms.length) {
+  /* ROADMAP #108 — THIS IS THE BLOCK THAT WAS PRINTING WHILE PROVENANCE CALLED IT UNSAFE, and it is
+   * the one that measured the whole night's work. `data/wire-ladder.json` declares eight inputs and
+   * all eight have moved since it ran — the store, the census, the protocol events, the tags, the
+   * engine data, the differential driver, the swarm and champions_sim. Its "top rung" is not the top
+   * rung any more, so "median completed turns UNMOVED by the whole series" is a claim about a ladder
+   * that no longer exists. It is WITHHELD, not captioned. */
+  const qwl = unsafeFig('wire-ladder.json');
+  const wl = qwl ? null : j('wire-ladder.json');
+  if (qwl) sayUnsafe('release ladder', qwl);
+  else if (wl && wl.arms && wl.arms.length) {
     const first = wl.arms[0], last = wl.arms[wl.arms.length - 2] || wl.arms[wl.arms.length - 1];
     const mt = a => a.median_completed_turns_before_divergence;
     say(`  release ladder: ${wl.arms.length} frozen releases x ${wl.games_per_arm} games, one pinned census`
@@ -385,7 +507,8 @@ function engine() {
       + `; comparability: ${wl.comparability.all_ok ? 'every arm cleared' : 'AN ARM WAS REFUSED'}`);
   } else say('  release ladder: NOT DERIVED (data/wire-ladder.json absent — run engine/wire_ladder.js --write)');
 
-  if (c && t) {
+  if (qt) sayUnsafe('tag coverage', qt);
+  else if (c && t) {
     const names = [...new Set(t.tags.map(x => x.tag || x.name || x.id))];
     const probed = new Set(c.results.map(r => r.tag));
     const un = names.filter(n => !probed.has(n));
@@ -398,8 +521,10 @@ function measure() {
   say('MEASURE — can we believe a number');
 
   const qb = held('winrate-backtest.json');
-  const b = qb ? null : j('winrate-backtest.json');
+  const ub = qb ? null : unsafeFig('winrate-backtest.json');
+  const b = (qb || ub) ? null : j('winrate-backtest.json');
   if (qb) sayHeld('leaf calibration', qb);
+  else if (ub) sayUnsafe('leaf calibration', ub);
   else if (b) {
     say(`  leaf calibration: ${b.verdict}`);
     say(`    n=${b.n_games_scored} games, ${b.rollouts_per_game} rollouts each   (${day(mtime('data/winrate-backtest.json'))})`);
@@ -465,8 +590,10 @@ function measure() {
    * RELIABILITY beside it, because both numbers here are small and a small number without its floor is
    * how an effect gets believed and a null gets published from a ruler with no resolution. */
   const qlc = held('leaf-engine-contrast.json');
-  const lc = qlc ? null : j('leaf-engine-contrast.json');
+  const ulc = qlc ? null : unsafeFig('leaf-engine-contrast.json');
+  const lc = (qlc || ulc) ? null : j('leaf-engine-contrast.json');
   if (qlc) sayHeld('engine correctness -> leaf', qlc);
+  else if (ulc) sayUnsafe('engine correctness -> leaf', ulc);
   else if (lc) {
     const c = lc.engine_vs_engine, jt = lc.joint || {};
     say(`  engine correctness -> leaf: ${lc.verdict}`);
@@ -499,22 +626,8 @@ function measure() {
    * hides the picture when it fires is a gate people learn to route around, which is the failure
    * this repo has already paid for once. So: keep the output, print the counts, and say the ratchet
    * tripped — the two facts are separate and both belong on screen. */
-  const readProv = () => {
-    try {
-      return { txt: execFileSync(process.execPath, [D('engine', 'provenance.js')],
-        { encoding: 'utf8', maxBuffer: 1 << 24 }), tripped: false, err: null };
-    } catch (e) {
-      const txt = typeof e.stdout === 'string' ? e.stdout : (e.stdout ? String(e.stdout) : '');
-      /* OUTPUT PRESENT means it RAN and reached a verdict — a non-zero exit IS that verdict here
-       * (the ratchet grew) and the caller prints it, so there is nothing to record. EMPTY OUTPUT
-       * means the tool genuinely died, which is a defect: record it so it reaches DIAGNOSTICS
-       * instead of being swallowed by a catch that returns a plausible empty result. */
-      if (!txt) logUnreadable('engine/provenance.js (exited non-zero with no output)', e);
-      return { txt, tripped: !!txt, err: e };
-    }
-  };
   {
-    const r = readProv();
+    const r = PROV_RUN;
     /* THE VOID TERM IS OPTIONAL BECAUSE ADDING IT SILENTLY BLANKED THIS WHOLE LINE. provenance.js
      * gained a `N VOID (declared)` term when VOID was split from UNSAFE, this regex did not, and the
      * only symptom was `provenance: NOT DERIVED` plus one NOT MEASURED slot on the web board — a
@@ -571,8 +684,12 @@ function measure() {
    * ("0.546% of recorded actions were not clicks") looks like a fact about the protocol, but the
    * numbers under it are logL differences from a policy fitted on features MEDICHAM computed. */
   const qcen = held('click-censoring-census.json', 'partial-label-em.json', 'censoring-value.json');
-  const cen = qcen ? null : j('click-censoring-census.json');
+  /* ALL THREE, for the same reason `held` takes all three: a line that reads three artifacts is
+   * withheld if ANY of them is unsafe. */
+  const ucen = qcen ? null : unsafeFig('click-censoring-census.json', 'partial-label-em.json', 'censoring-value.json');
+  const cen = (qcen || ucen) ? null : j('click-censoring-census.json');
   if (qcen) sayHeld('click censoring', qcen);
+  else if (ucen) sayUnsafe('click censoring', ucen);
   else if (!cen) say('  click censoring: NOT DERIVED (data/click-censoring-census.json absent)');
   else {
     const a1 = cen.event_stream_arm || {};
@@ -685,6 +802,14 @@ function search() {
      * they are the same measurement at two settings, and either being held holds the line. */
     const q = held(file, file === 'rollout-r1-explore1.json' ? 'rollout-r1.json' : file);
     if (q) { sayHeld(name, q); continue; }
+    /* ROADMAP #108 — and the SIDECAR counts too. `data/rollout-r3.meta.json` is UNSAFE while
+     * `data/rollout-r3.json` is ok; the sidecar is what says which configuration produced the
+     * number, so a line printed from a clean artifact with a rotten stamp is a number nobody can
+     * attribute. Both files gate the line, the same way `held` takes every file a line rests on. */
+    let metaPath = null;
+    try { metaPath = require('./run_stamp.js').metaPathFor(file); } catch (e) { metaPath = null; }
+    const u = unsafeFig(...[file, metaPath].filter(Boolean));
+    if (u) { sayUnsafe(name, u); continue; }
     const d = j(file);
     if (!d) { say(`  ${name.padEnd(18)} NOT DERIVED (data/${file} absent)`); continue; }
     if (d.withdrawn) {
@@ -742,8 +867,10 @@ function search() {
    * data/rollout-r4.json the way r1/r2/r3 do, this prints what it can see and refuses to quote
    * the number — because the number is not here to quote. */
   const qr4 = held('rollout-r4.json');
-  const r4 = qr4 ? null : j('rollout-r4.json');
+  const ur4 = qr4 ? null : unsafeFig('rollout-r4.json');
+  const r4 = (qr4 || ur4) ? null : j('rollout-r4.json');
   if (qr4) sayHeld('R4 does it win', qr4);
+  else if (ur4) sayUnsafe('R4 does it win', ur4);
   else if (r4) {
     say(`  R4 does it win     ${r4.verdict || JSON.stringify(r4).slice(0, 80)}   (${day(new Date(r4.generated))})`);
   } else {
@@ -778,12 +905,14 @@ function search() {
 /* ---- OPS ------------------------------------------------------------------------------------- */
 function ops() {
   say('OPS — the live bot and the store');
+  const ulive = unsafeFig('live.js');
   let live = null;
-  try {
+  if (!ulive) try {
     const src = fs.readFileSync(D('data', 'live.js'), 'utf8');
     live = JSON.parse(src.replace(/^\s*window\.LIVE\s*=\s*/, '').replace(/;\s*$/, ''));
   } catch (e) { logUnreadable('data/live.js', e); }
-  if (live) {
+  if (ulive) sayUnsafe('store', ulive);
+  else if (live) {
     say(`  store: ${live.games} games, ${live.usable} usable (${live.usablePct}%), ${live.teams} teams   (live.js ${live.updated})`);
   } else say('  store: NOT DERIVED (data/live.js unreadable)');
 
@@ -856,8 +985,48 @@ if (process.argv.includes('--selftest')) {
   const muzzledIsNotNull = classifyContrast(mk({ medi: 'zzzzzzzzzzzz' }), MEDI, BOARD) != null;
   if (!muzzledIsNotNull) bad++;
   console.log(`  ${muzzledIsNotNull ? 'ok  ' : 'FAIL'} a muzzled contrast is distinguishable from one that never ran`);
+
+  /* ---- ROADMAP #108 — THE PROVENANCE WITHHOLD, DRIVEN RED THEN GREEN ---------------------------
+   * The rule this file already proved about the quarantine has to be proved about the second gate
+   * too, and with the SAME discipline: a guard that has only ever been green is not evidence. These
+   * drive the real `unsafeFig` against a synthetic verdict map, including the case that matters most
+   * — provenance did not speak, which must NOT read as "nothing is unsafe".
+   *
+   * The distinction on the last case is the whole point. `unsafeFig` returning null means "print it",
+   * and it returns null both when the artifact is clean and when the check never ran. Those are
+   * opposite facts, so the RUN has to say which — and it does, on its own line above the sections. */
+  console.log('');
+  let bad2 = 0;
+  const check = (name, cond) => { if (!cond) bad2++; console.log(`  ${cond ? 'ok  ' : 'FAIL'} ${name}`); };
+  const saved = PROV_VERDICTS.rows;
+
+  PROV_VERDICTS.rows = new Map([
+    ['wire-ladder.json', { file: 'wire-ladder.json', status: 'UNSAFE', by: 'engine/wire_ladder.js', notes: ['COMPUTED FROM DIFFERENT CONTENT — x'] }],
+    ['engine-diff.json', { file: 'engine-diff.json', status: 'ok', by: 'tests/test-engine-diff.js', notes: [] }],
+    ['exploitability.json', { file: 'exploitability.json', status: 'VOID', by: 'engine/exploit.js', notes: ['declared void by its own generator'] }],
+  ]);
+  check('RED — an UNSAFE artifact is withheld and names its generator',
+    (() => { const r = unsafeFig('wire-ladder.json'); return !!r && r.status === 'UNSAFE' && r.by === 'engine/wire_ladder.js'; })());
+  check('RED — a VOID artifact is withheld too, not only UNSAFE',
+    (() => { const r = unsafeFig('exploitability.json'); return !!r && r.status === 'VOID'; })());
+  check('GREEN — an `ok` artifact is NOT withheld (the guard refuses by verdict, not always)',
+    unsafeFig('engine-diff.json') === null);
+  check('a line resting on two artifacts is withheld if EITHER is unsafe',
+    (() => { const r = unsafeFig('engine-diff.json', 'wire-ladder.json'); return !!r && r.file === 'wire-ladder.json'; })());
+  check('the data/ prefix is accepted, because callers spell it both ways',
+    unsafeFig('data/wire-ladder.json') !== null);
+  check('an artifact with NO ROW is not withheld — absent is not a verdict',
+    unsafeFig('a-file-provenance-has-never-seen.json') === null);
+
+  PROV_VERDICTS.rows = null;
+  check('WITH NO VERDICTS AT ALL nothing is withheld — and that is why the run prints a line saying '
+      + 'the check did not run, since null here is indistinguishable from clean',
+    unsafeFig('wire-ladder.json') === null);
+  PROV_VERDICTS.rows = saved;
+
   console.log(`\nSTATUS REFIT-EDGE SELFTEST: ${cases.length + 1 - bad} passed, ${bad} failed`);
-  process.exit(bad ? 1 : 0);
+  console.log(`STATUS PROVENANCE-WITHHOLD SELFTEST: ${7 - bad2} passed, ${bad2} failed`);
+  process.exit((bad + bad2) ? 1 : 0);
 }
 
 /* ---- EMIT ------------------------------------------------------------------------------------ */
@@ -953,6 +1122,34 @@ if (QS && !QS.ok) {
     console.log(line.replace(/\s+$/, ''));
   }
   console.log('  Full derivation and the withheld set: node engine/quarantine.js');
+  console.log('');
+}
+/* ---- THE SECOND GATE, REPORTED AT ZERO AS WELL AS AT SEVEN — ROADMAP #108 ---------------------
+ *
+ * Printed unconditionally and printed as a COUNT, for the same reason provenance.js prints its
+ * mtime-only count that way: the failure being closed here was a caveat that was true and was read
+ * past. A count moves; a sentence does not.
+ *
+ * A zero here must mean "every figure below was checked against provenance and none was unsafe",
+ * and it must NEVER be able to mean "the check did not run". That is why the no-verdicts case says
+ * so on this line instead of leaving it blank. */
+if (!PROV_VERDICTS.rows) {
+  console.log('PROVENANCE CHECK DID NOT RUN — no figure below was checked against the UNSAFE list.');
+  console.log('  Reason: ' + (PROV_VERDICTS.why || 'engine/provenance.js produced no verdict sidecar'));
+  console.log('  Read this as UNKNOWN, not as clean. node engine/provenance.js');
+  console.log('');
+} else {
+  const n = PROV_VERDICTS.rows.size;
+  const unsafeAll = [...PROV_VERDICTS.rows.values()].filter(r => r.status === 'UNSAFE' || r.status === 'VOID').length;
+  console.log(`PROVENANCE — ${UNSAFE_WITHHELD.length} figure(s) WITHHELD because the artifact under them is `
+            + `UNSAFE or VOID (${unsafeAll} of ${n} artifacts are, in total)`);
+  if (UNSAFE_WITHHELD.length) {
+    for (const w of UNSAFE_WITHHELD) console.log(`    ${w.label}  <- data/${w.file} (${w.status})`);
+    console.log('  An UNSAFE artifact declares inputs that are not what is on disk now. The figure is');
+    console.log('  WITHHELD rather than captioned: a caption is not a quarantine — CLAUDE.md.');
+  } else {
+    console.log('  Every artifact printed below agrees with the inputs it declares.');
+  }
   console.log('');
 }
 console.log(out.join('\n'));

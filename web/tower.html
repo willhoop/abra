@@ -192,6 +192,7 @@ select{font:inherit;border:1px solid var(--btnline);border-radius:5px;padding:4p
 
 </div></div></div>
 
+<script src="quarantine-data.js"></script>
 <script src="../data/engine-data.js"></script>
 <script src="../data/abra-meta.js"></script>
 <script src="../data/move-effects.js"></script>
@@ -200,6 +201,74 @@ select{font:inherit;border:1px solid var(--btnline);border-radius:5px;padding:4p
 <script>
 (function(){
 'use strict';
+
+/* ============================================================================================
+ * THE TOWER IS THE ONE ROOM WITH NO ARTIFACT TO WITHHOLD.
+ *
+ * Every other quarantined room loads a bundle — data/mag.js, data/mew.js, data/scoreboard.js —
+ * and can be stripped figure by figure. This room loads THE SIMULATOR and computes as you play:
+ * the damage percentage on a move button, the HP bar it moves, the boss's forecast, the price
+ * ALAKAZAM puts on a click. None of it passes through a file, so nothing that resolves a page
+ * load to a data/ row can see it — which is exactly why it went on drawing after the six rooms
+ * next door had been closed for a day.
+ *
+ * CLAUDE.md: the figure must be WITHHELD, not annotated. A banner over a playable Tower is the
+ * caption this project has already been burned by twice, and it would be a worse one than usual:
+ * you would be reading damage numbers off an engine with open, named defects while a note above
+ * asked you not to. So the room closes, whole, and says what closed it.
+ *
+ * It closes BEFORE the engine is stepped once. A number that reaches the DOM is published no
+ * matter what happens to it afterwards, so this returns out of the room's own boot rather than
+ * hiding a battle that already ran.
+ * ========================================================================================== */
+var QZ=window.ABRA_QUARANTINE,HOLD=QZ&&QZ.heldFor('../engine/medicham2-browser.js');
+if(HOLD){closeTower(HOLD);return;}
+
+function closeTower(h){
+  var lay=document.querySelector('.layout');
+  if(!lay)return;
+  var failing=(QZ.clauses||[]).filter(function(c){return !c.ok;});
+  var box=document.createElement('div');
+  box.className='panelbox';
+  box.innerHTML=
+    '<h2 style="font-size:16px">THE TOWER IS CLOSED</h2>'
+    /* The plate is the shared one every other room renders, so the reason a visitor reads here is
+       the same text, from the same builder, as the reason on the front door. */
+    +QZ.plate('../engine/medicham2-browser.js',{subject:'THIS ROOM PLAYS THE ENGINE THAT IS UNDER REPAIR'})
+    +'<div class="note" style="color:#445;line-height:1.65;max-width:78ch">'
+      +'<b>What used to be here.</b> Three floors of real Champions battles — ABRA clicking at random, '
+      +'KADABRA playing the full scorer, ALAKAZAM pricing every click and forecasting yours. Every number '
+      +'on that screen was computed live by <code>'+QZ.esc(QZ.simulator)+'</code> while you played. There is '
+      +'no stored figure to strike through and no older value to fall back on, so the room is what gets '
+      +'withheld.'
+    +'</div>'
+    +'<div class="note" style="color:#445;line-height:1.65;max-width:78ch;margin-top:8px">'
+      +'<b>Why not just warn you.</b> A caption is not a quarantine. The site has twice printed a number '
+      +'beside the sentence that retracted it and watched the number get quoted anyway — so a figure this '
+      +'project cannot stand behind is not shown at all, at any size, in any tooltip.'
+    +'</div>'
+    +'<div style="margin-top:10px;background:#fff;border:1px solid var(--btnline);border-radius:6px;padding:9px">'
+      +'<div style="font-size:10.5px;letter-spacing:.12em;font-weight:bold;color:#a33;margin-bottom:5px">'
+        +'THE GATE — '+QZ.esc(String(failing.length))+' OF '+QZ.esc(String((QZ.clauses||[]).length))+' CLAUSES FAIL</div>'
+      /* The clause sentences are engine/quarantine.js's own, magnitude and source file included. This
+         division renders them; it does not compute, round or summarise one. */
+      +failing.map(function(c){return '<div style="font-size:11px;color:#556;margin:3px 0"><b>'
+        +QZ.esc(c.name)+'</b> — '+QZ.esc(c.why)+'</div>';}).join('')
+      +'<div style="font-size:11px;color:#778;margin-top:6px">The other '
+        +QZ.esc(String((QZ.clauses||[]).length-failing.length))+' pass. The room reopens on the gate, not on anyone\'s judgement.</div>'
+    +'</div>'
+    +'<div class="note" style="margin-top:10px;color:#556">Still open, because they MEASURE the engine rather than '
+      +'draw from it: <a href="status.html">the status board</a> (the gate itself, clause by clause), '
+      +'<a href="stadium.html">the Stadium</a> and <a href="index.html">ABRA WORLD</a>. '
+      +'Read the gate yourself: <code>'+QZ.esc(h.rerun||'node engine/quarantine.js')+'</code>.</div>';
+  /* REPLACING .layout TAKES THE WHOLE ROOM WITH IT — the select screen, the battle grid, the log,
+     the streak rail AND the "what's real here" footnote, which sits inside it and vouched for
+     exactly the figures that are now withheld. Nothing is hidden with CSS: a hidden node is still
+     in the DOM, and a number in the DOM is published whatever the stylesheet says. */
+  lay.parentNode.replaceChild(box,lay);
+  document.title='ALAKAZAM’S BATTLE TOWER — CLOSED (QUARANTINE)';
+}
+
 var NAMES=Object.keys(MC.mons).sort();
 /* The one place the species count comes from. See the comment on #nSpecies above. */
 (function(){var e=document.getElementById('nSpecies');if(e)e.textContent=NAMES.length;})();

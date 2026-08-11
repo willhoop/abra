@@ -1,0 +1,232 @@
+{
+  "generated": "2026-08-11T01:29:57.256Z",
+  "node": "v24.15.0",
+  "what": "before/after receipt for putting voluntary switching in the rollout action set and re-deriving the horizon",
+  "NOT_A_LEAF_NUMBER": "MEDICHAM is out of gate. Nothing here is a claim that MILTANK is stronger, and no figure here may be compared against a baseline or quoted as a leaf value. It says a state is representable and that a measured property of the rollout now matches the store.",
+  "invalidates": "every board-derived number, further. Deliberately landed BEFORE the refit.",
+  "census_read": {
+    "generated": "2026-08-11T01:29:29.102Z",
+    "switch_rate": 0.0998,
+    "derived_max_turns": 14
+  },
+  "config": {
+    "games": 25,
+    "every": 6,
+    "n_per_arm": 20,
+    "boards": 20,
+    "explore": 1,
+    "foePolicy": "uniform",
+    "side": "p1"
+  },
+  "arms": {
+    "before": {
+      "what": "what shipped — the playout cannot switch, 60-turn horizon",
+      "switchRate": 0,
+      "maxTurns": 60,
+      "boards": 20,
+      "mean_playout_turns": 6.728,
+      "pct_playouts_truncated": 0,
+      "switch_actions_issued": 0,
+      "pct_actions_that_were_a_switch": 0,
+      "counters_cumulative": {
+        "decisions": 0,
+        "benchAvailable": 0,
+        "offered": 0,
+        "executed": 0,
+        "refused": 0,
+        "noBench": 0,
+        "drainedIntoSwitch": 0
+      },
+      "engine_trap_counters": {
+        "trapBlockedSwitch": 0,
+        "moveTrapBlockedSwitch": 0,
+        "trapBlockedSwitchByMove": 0,
+        "shedShellEscapedTrap": 0
+      },
+      "pct_when_a_switch_was_available": 0,
+      "store_target_pct": 9.98
+    },
+    "switch_only": {
+      "what": "switching in, horizon unchanged",
+      "switchRate": 0.0998,
+      "maxTurns": 60,
+      "boards": 20,
+      "mean_playout_turns": 6.805,
+      "pct_playouts_truncated": 0,
+      "switch_actions_issued": 546,
+      "pct_actions_that_were_a_switch": 5.579,
+      "counters_cumulative": {
+        "decisions": 9787,
+        "benchAvailable": 5406,
+        "offered": 546,
+        "executed": 438,
+        "refused": 108,
+        "noBench": 4381,
+        "drainedIntoSwitch": 0
+      },
+      "engine_trap_counters": {
+        "trapBlockedSwitch": 7,
+        "moveTrapBlockedSwitch": 0,
+        "trapBlockedSwitchByMove": 5,
+        "shedShellEscapedTrap": 0
+      },
+      "pct_when_a_switch_was_available": 10.1,
+      "store_target_pct": 9.98
+    },
+    "cap_only": {
+      "what": "horizon re-derived, still cannot switch",
+      "switchRate": 0,
+      "maxTurns": 14,
+      "boards": 20,
+      "mean_playout_turns": 6.505,
+      "pct_playouts_truncated": 5.25,
+      "switch_actions_issued": 0,
+      "pct_actions_that_were_a_switch": 0,
+      "counters_cumulative": {
+        "decisions": 0,
+        "benchAvailable": 0,
+        "offered": 0,
+        "executed": 0,
+        "refused": 0,
+        "noBench": 0,
+        "drainedIntoSwitch": 0
+      },
+      "engine_trap_counters": {
+        "trapBlockedSwitch": 0,
+        "moveTrapBlockedSwitch": 0,
+        "trapBlockedSwitchByMove": 0,
+        "shedShellEscapedTrap": 0
+      },
+      "pct_when_a_switch_was_available": 0,
+      "store_target_pct": 9.98
+    },
+    "after": {
+      "what": "both — what this change lands",
+      "switchRate": 0.0998,
+      "maxTurns": 14,
+      "boards": 20,
+      "mean_playout_turns": 6.758,
+      "pct_playouts_truncated": 4,
+      "switch_actions_issued": 546,
+      "pct_actions_that_were_a_switch": 5.609,
+      "counters_cumulative": {
+        "decisions": 9734,
+        "benchAvailable": 5406,
+        "offered": 546,
+        "executed": 438,
+        "refused": 108,
+        "noBench": 4328,
+        "drainedIntoSwitch": 0
+      },
+      "engine_trap_counters": {
+        "trapBlockedSwitch": 7,
+        "moveTrapBlockedSwitch": 0,
+        "trapBlockedSwitchByMove": 5,
+        "shedShellEscapedTrap": 0
+      },
+      "pct_when_a_switch_was_available": 10.1,
+      "store_target_pct": 9.98
+    },
+    "uniform_actions": {
+      "what": "the arm NOT taken: uniform over legal ACTIONS rather than the measured rate",
+      "switchRate": "uniform",
+      "maxTurns": 14,
+      "boards": 20,
+      "mean_playout_turns": 7.362,
+      "pct_playouts_truncated": 7.5,
+      "switch_actions_issued": 1532,
+      "pct_actions_that_were_a_switch": 14.295,
+      "counters_cumulative": {
+        "decisions": 10717,
+        "benchAvailable": 5978,
+        "offered": 1532,
+        "executed": 1266,
+        "refused": 266,
+        "noBench": 4739,
+        "drainedIntoSwitch": 0
+      },
+      "engine_trap_counters": {
+        "trapBlockedSwitch": 31,
+        "moveTrapBlockedSwitch": 0,
+        "trapBlockedSwitchByMove": 4,
+        "shedShellEscapedTrap": 0
+      },
+      "pct_when_a_switch_was_available": 25.627,
+      "store_target_pct": 9.98
+    }
+  },
+  "vs_before": {
+    "switch_only_vs_before": {
+      "boards_that_moved": 15,
+      "boards_that_moved_more_than_5pt": 12,
+      "mean_signed_delta_pt": 1.25,
+      "mean_abs_delta_pt": 9.75,
+      "max_abs_delta_pt": 30,
+      "abs_delta_distribution_pt": {
+        "n": 20,
+        "mean": 9.75,
+        "p50": 7.5,
+        "p90": 20,
+        "max": 30
+      }
+    },
+    "cap_only_vs_before": {
+      "boards_that_moved": 5,
+      "boards_that_moved_more_than_5pt": 3,
+      "mean_signed_delta_pt": -0.5,
+      "mean_abs_delta_pt": 1.5,
+      "max_abs_delta_pt": 10,
+      "abs_delta_distribution_pt": {
+        "n": 20,
+        "mean": 1.5,
+        "p50": 0,
+        "p90": 5,
+        "max": 10
+      }
+    },
+    "after_vs_before": {
+      "boards_that_moved": 15,
+      "boards_that_moved_more_than_5pt": 11,
+      "mean_signed_delta_pt": 1.25,
+      "mean_abs_delta_pt": 9.25,
+      "max_abs_delta_pt": 30,
+      "abs_delta_distribution_pt": {
+        "n": 20,
+        "mean": 9.25,
+        "p50": 5,
+        "p90": 20,
+        "max": 30
+      }
+    },
+    "uniform_actions_vs_before": {
+      "boards_that_moved": 16,
+      "boards_that_moved_more_than_5pt": 12,
+      "mean_signed_delta_pt": 4.5,
+      "mean_abs_delta_pt": 11,
+      "max_abs_delta_pt": 32.5,
+      "abs_delta_distribution_pt": {
+        "n": 20,
+        "mean": 11,
+        "p50": 7.5,
+        "p90": 30,
+        "max": 32.5
+      }
+    }
+  },
+  "source_digests_at_start": {
+    "engine/rollout_leaf.js": "fa318c1022ff",
+    "engine/medicham2-browser.js": "e1ea625c6edb",
+    "engine/board.js": "a55f8271e101",
+    "data/engine-data.js": "c6bdc5c54d70",
+    "data/abra-tags.js": "83ac90f3ae7c",
+    "note": "Content, not mtime. A checkout moves an mtime without moving code."
+  },
+  "source_digests_at_end": {
+    "engine/rollout_leaf.js": "fa318c1022ff",
+    "engine/medicham2-browser.js": "e1ea625c6edb",
+    "engine/board.js": "a55f8271e101",
+    "data/engine-data.js": "c6bdc5c54d70",
+    "data/abra-tags.js": "83ac90f3ae7c",
+    "note": "Content, not mtime. A checkout moves an mtime without moving code."
+  }
+}

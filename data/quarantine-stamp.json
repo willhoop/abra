@@ -1,18 +1,18 @@
 {
   "note": "RATCHET. citation_sites may SHRINK and may never grow while the MEDICHAM quarantine is closed. A new entry means a withheld figure was just published somewhere.",
   "source_digests": {
-    "engine/quarantine.js": "fe91291134d6",
-    "engine/provenance.js": "4d933c5b9e3e",
+    "engine/quarantine.js": "d08649c36dc9",
+    "engine/provenance.js": "758976049f89",
     "note": "Content, not mtime. A checkout moves an mtime without moving code."
   },
   "not_store_derived": "it records which artifacts are downstream of the simulator and where they are still cited. No game is counted anywhere in it, so the quality filter has no bearing.",
   "gate_open": false,
   "failing_clauses": [
-    "deliberate roster / abilities",
-    "deliberate roster / moves"
+    "no open, known engine defect"
   ],
   "quarantined": [
     "ab-batch-effect.json",
+    "all-mechanics-fire.json",
     "brood.json",
     "censoring-value.json",
     "click-censoring-census.json",
@@ -38,15 +38,21 @@
     "policy-weights-joint-presheet.json",
     "policy-weights-joint.json",
     "policy-weights.json",
+    "pp-board-probe.json",
     "quarantine-stamp.json",
     "recall-at-k.json",
     "redirect-audit.json",
+    "replay-differential-bo3.json",
+    "replay-differential-freezes.json",
+    "replay-differential-sheets.json",
+    "replay-differential.json",
     "rollout-cost.json",
     "rollout-r1-explore-sweep.json",
     "rollout-r1-explore1.json",
     "rollout-r1.json",
     "rollout-r3.json",
     "rollout-r4.json",
+    "rollout-switch-probe.json",
     "scoreboard.js",
     "scoreboard.json",
     "sheet-channel-value.json",
@@ -56,5 +62,5 @@
   "citation_sites": [
     "docs/ENGINE.md"
   ],
-  "generated": "2026-08-10T04:43:31.645Z"
+  "generated": "2026-08-11T01:42:31.901Z"
 }

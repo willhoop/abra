@@ -1,0 +1,1810 @@
+{
+ "generated": "2026-08-11T01:25:55.802Z",
+ "by": "engine/engine_release.js census",
+ "note": "ROADMAP #109. Derived every run. VERIFIABLE means a run stamped with this id can still be checked against its digests; RUNNABLE means the measurement can be repeated against these bytes. They are different questions and \"unopenable\" collapsed them.",
+ "sources_now": 24,
+ "caller_requirements": [
+  {
+   "file": "data/engine-data.js",
+   "need": []
+  },
+  {
+   "file": "engine/medicham2-browser.js",
+   "need": [
+    "TRACE_EVENTS",
+    "battleInit",
+    "battleOver",
+    "battleTurn",
+    "buildMon",
+    "dmgRange",
+    "effSpeed",
+    "fails",
+    "moveFx",
+    "movePriority",
+    "natureL50",
+    "natureStat",
+    "playerAction",
+    "terrainId",
+    "traceCanon",
+    "weatherId"
+   ]
+  },
+  {
+   "file": "engine/mc_key.js",
+   "need": []
+  },
+  {
+   "file": "engine/board.js",
+   "need": []
+  },
+  {
+   "file": "engine/rollout_leaf.js",
+   "need": []
+  },
+  {
+   "file": "engine/champions_sim.js",
+   "need": []
+  }
+ ],
+ "caller_requirement_sites": 15,
+ "caller_scan_error": null,
+ "counts": {
+  "serviceable": 54,
+  "predates-an-export": 55,
+  "pruned": 4,
+  "unloadable": 5
+ },
+ "releases": 118,
+ "verifiable": 118,
+ "runnable": 54,
+ "rows": [
+  {
+   "id": "0311e648fceb",
+   "cause": "serviceable",
+   "cut": "2026-08-08T21:56:45.184Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "032b4a2979dd",
+   "cause": "predates-an-export",
+   "cut": "2026-08-05T17:05:59.726Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::traceCanon, engine/medicham2-browser.js::TRACE_EVENTS, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::traceCanon",
+    "engine/medicham2-browser.js::TRACE_EVENTS",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "03be02652e0f",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T06:01:59.443Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "046f848e458d",
+   "cause": "serviceable",
+   "cut": "2026-08-08T17:55:05.636Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "0771dc47b5f6",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T02:55:52.508Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "07ffb4e75207",
+   "cause": "serviceable",
+   "cut": "2026-08-10T20:24:53.125Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "09acd3b404ef",
+   "cause": "predates-an-export",
+   "cut": "2026-08-05T02:12:57Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::traceCanon, engine/medicham2-browser.js::TRACE_EVENTS, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::traceCanon",
+    "engine/medicham2-browser.js::TRACE_EVENTS",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "0aa54cb1a9de",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T09:52:06.400Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "0dfc7d6ef0cc",
+   "cause": "serviceable",
+   "cut": "2026-08-10T01:23:45.762Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "0fc7266b0755",
+   "cause": "serviceable",
+   "cut": "2026-08-10T00:42:17.273Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "128a1ca28d34",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T05:44:41.516Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "138261a235c7",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T07:33:41.783Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "13bda114d649",
+   "cause": "serviceable",
+   "cut": "2026-08-10T00:23:01.361Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "1738cd62ae5d",
+   "cause": "serviceable",
+   "cut": "2026-08-10T00:41:14.653Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "1b7b4163e666",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T18:48:09.575Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "1e29ff6c431b",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T06:36:51.108Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "1fa28ae54075",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T12:47:04.845Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "1fc6e384fa6e",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T01:00:31.245Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "2046f06452bd",
+   "cause": "serviceable",
+   "cut": "2026-08-09T20:26:34.179Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "24ef65ae6155",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T02:25:48.136Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "254db2bad876",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T07:57:41.008Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "25958d06e36b",
+   "cause": "serviceable",
+   "cut": "2026-08-10T04:55:24.966Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "26a5b8f918d1",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T00:22:09.396Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "26f96c7894d7",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T23:16:46.066Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "273a23c24fee",
+   "cause": "serviceable",
+   "cut": "2026-08-09T21:05:09.655Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "288aee2e3501",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T03:45:39.861Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "28975aac39d7",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T12:31:12.062Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "28e66a7c9ab8",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T02:36:06.359Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "2929deeb41f3",
+   "cause": "serviceable",
+   "cut": "2026-08-09T18:32:34.076Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "2bddcc69ca83",
+   "cause": "pruned",
+   "cut": "2026-08-05T00:44:12.678Z",
+   "files_frozen": 12,
+   "verifiable": true,
+   "runnable": false,
+   "why": "bodies removed 2026-08-05T15:43:25.054Z — a recorded decision",
+   "missing_sources": [
+    "engine/mc_key.js",
+    "engine/lookup.js",
+    "engine/set_priors.js",
+    "engine/smogon_priors.js",
+    "engine/quality.js",
+    "engine/showdown_path.js",
+    "data/move-effects.js",
+    "data/ability-blocks.json",
+    "data/smogon-priors.json",
+    "data/regulations.json",
+    "data/quality-filter.json",
+    "engine/pp.js"
+   ]
+  },
+  {
+   "id": "2ed6d80efb63",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T00:44:59.534Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "30b21c5a335a",
+   "cause": "serviceable",
+   "cut": "2026-08-10T19:33:34.838Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "3589f46b8efa",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T06:25:50.749Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "3683864c51c9",
+   "cause": "serviceable",
+   "cut": "2026-08-09T23:29:07.563Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "3898951e7423",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T06:16:21.290Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "3932186b59ef",
+   "cause": "predates-an-export",
+   "cut": "2026-08-05T01:35:33.350Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::traceCanon, engine/medicham2-browser.js::TRACE_EVENTS, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::traceCanon",
+    "engine/medicham2-browser.js::TRACE_EVENTS",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "3a89b0c9d044",
+   "cause": "serviceable",
+   "cut": "2026-08-10T07:46:41.553Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "3baadaa02022",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T08:02:37.140Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "3dd96ca88574",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T05:19:00.576Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "3fd06d865427",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T07:39:10.881Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "40ed4b153671",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T02:30:54.226Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "41e28311e591",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T03:56:37.305Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "432477ef068d",
+   "cause": "serviceable",
+   "cut": "2026-08-10T22:14:00.018Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "446e6e7d54e9",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T04:58:33.449Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "45485dee6a43",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T06:46:42.560Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "46014cb0067d",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T02:52:43.050Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "4bfae56dedb7",
+   "cause": "serviceable",
+   "cut": "2026-08-10T02:25:08.649Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "4c73f9cafa4b",
+   "cause": "predates-an-export",
+   "cut": "2026-08-06T05:49:55.593Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::traceCanon, engine/medicham2-browser.js::TRACE_EVENTS, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::traceCanon",
+    "engine/medicham2-browser.js::TRACE_EVENTS",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "4c79682a3115",
+   "cause": "pruned",
+   "cut": "2026-08-05T00:55:45.552Z",
+   "files_frozen": 18,
+   "verifiable": true,
+   "runnable": false,
+   "why": "bodies removed 2026-08-05T15:43:25.062Z — a recorded decision",
+   "missing_sources": [
+    "data/move-effects.js",
+    "data/ability-blocks.json",
+    "data/smogon-priors.json",
+    "data/regulations.json",
+    "data/quality-filter.json",
+    "engine/pp.js"
+   ]
+  },
+  {
+   "id": "4d588256ae83",
+   "cause": "serviceable",
+   "cut": "2026-08-11T01:23:46.127Z",
+   "files_frozen": 24,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [],
+   "lacks": []
+  },
+  {
+   "id": "4d9dba920a8f",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T22:28:28.977Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "50908334d51e",
+   "cause": "serviceable",
+   "cut": "2026-08-09T21:10:01.529Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "522b14a17617",
+   "cause": "serviceable",
+   "cut": "2026-08-10T05:52:53.842Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "53ffd3620abe",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T22:53:50.389Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "55c7a0f19c86",
+   "cause": "pruned",
+   "cut": "2026-08-05T05:02:53.772Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "bodies removed 2026-08-05T15:43:25.070Z — a recorded decision",
+   "missing_sources": [
+    "engine/pp.js"
+   ]
+  },
+  {
+   "id": "5b81380dc260",
+   "cause": "unloadable",
+   "cut": "2026-08-11T01:20:07.803Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "engine/board.js: Cannot find module './pp.js' | engine/rollout_leaf.js: Cannot find module './pp.js'",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "5fc1f711a0e3",
+   "cause": "pruned",
+   "cut": "2026-08-04T22:54:59.393Z",
+   "files_frozen": 12,
+   "verifiable": true,
+   "runnable": false,
+   "why": "bodies removed 2026-08-05T15:43:25.077Z — a recorded decision",
+   "missing_sources": [
+    "engine/mc_key.js",
+    "engine/lookup.js",
+    "engine/set_priors.js",
+    "engine/smogon_priors.js",
+    "engine/quality.js",
+    "engine/showdown_path.js",
+    "data/move-effects.js",
+    "data/ability-blocks.json",
+    "data/smogon-priors.json",
+    "data/regulations.json",
+    "data/quality-filter.json",
+    "engine/pp.js"
+   ]
+  },
+  {
+   "id": "60d88f2e8a78",
+   "cause": "serviceable",
+   "cut": "2026-08-10T07:22:01.980Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "63f737cf7d5a",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T02:29:33.911Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "6633f8c03626",
+   "cause": "serviceable",
+   "cut": "2026-08-10T19:14:37.942Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "698e8ab9f821",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T05:14:12.855Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "6b0e4117d964",
+   "cause": "predates-an-export",
+   "cut": "2026-08-05T05:08:37.194Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::traceCanon, engine/medicham2-browser.js::TRACE_EVENTS, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::traceCanon",
+    "engine/medicham2-browser.js::TRACE_EVENTS",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "6b5447db1738",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T06:30:37.740Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "6b6f898f136f",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T04:34:51.959Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "6d9519d85207",
+   "cause": "predates-an-export",
+   "cut": "2026-08-06T20:51:25.463Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::traceCanon, engine/medicham2-browser.js::TRACE_EVENTS, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::traceCanon",
+    "engine/medicham2-browser.js::TRACE_EVENTS",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "6e43710396db",
+   "cause": "predates-an-export",
+   "cut": "2026-08-05T00:58:14.399Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::traceCanon, engine/medicham2-browser.js::TRACE_EVENTS, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::traceCanon",
+    "engine/medicham2-browser.js::TRACE_EVENTS",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "6f7fbc538318",
+   "cause": "serviceable",
+   "cut": "2026-08-08T22:43:28.182Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "70794711fe6d",
+   "cause": "serviceable",
+   "cut": "2026-08-10T19:15:09.753Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "72e361e1bd44",
+   "cause": "serviceable",
+   "cut": "2026-08-08T17:53:41.827Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "7314ff067018",
+   "cause": "serviceable",
+   "cut": "2026-08-10T01:56:28.574Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "73cc41a31183",
+   "cause": "serviceable",
+   "cut": "2026-08-11T01:20:22.331Z",
+   "files_frozen": 24,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [],
+   "lacks": []
+  },
+  {
+   "id": "7434dd2537b4",
+   "cause": "serviceable",
+   "cut": "2026-08-11T00:10:06.949Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "759a0d3292f5",
+   "cause": "serviceable",
+   "cut": "2026-08-09T19:31:26.658Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "7aa922298c4f",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T00:43:15.868Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "7bf3a1e19ce5",
+   "cause": "serviceable",
+   "cut": "2026-08-10T23:10:20.443Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "7e9ea7b03014",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T06:00:29.435Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "86048ca3a422",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T13:00:52.696Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "86e3f97c3394",
+   "cause": "serviceable",
+   "cut": "2026-08-10T03:13:42.105Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "9491abe09f54",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T00:55:27.274Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "97626e9bad71",
+   "cause": "serviceable",
+   "cut": "2026-08-10T22:57:19.568Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "9779c50340fb",
+   "cause": "serviceable",
+   "cut": "2026-08-10T23:50:14.478Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "9befcbb409e7",
+   "cause": "serviceable",
+   "cut": "2026-08-10T23:35:23.936Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "9c04f767ba8c",
+   "cause": "serviceable",
+   "cut": "2026-08-10T01:00:40.811Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "9e6561ef556e",
+   "cause": "serviceable",
+   "cut": "2026-08-10T07:09:01.498Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "9efcae3a60e2",
+   "cause": "serviceable",
+   "cut": "2026-08-09T22:16:30.961Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "a4c7f898ad0e",
+   "cause": "serviceable",
+   "cut": "2026-08-10T00:13:29.542Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "a54f25b14927",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T06:14:51.415Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "a59b885861cd",
+   "cause": "serviceable",
+   "cut": "2026-08-10T01:38:25.207Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "a5bb54b101c3",
+   "cause": "serviceable",
+   "cut": "2026-08-09T22:35:48.204Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "b26893debcb0",
+   "cause": "serviceable",
+   "cut": "2026-08-10T19:21:39.492Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "b49869710af5",
+   "cause": "serviceable",
+   "cut": "2026-08-10T03:45:12.371Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "b571cfd7a97e",
+   "cause": "serviceable",
+   "cut": "2026-08-09T22:39:24.245Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "b60047ab46e0",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T07:58:22.016Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "b908ef84ad8f",
+   "cause": "serviceable",
+   "cut": "2026-08-10T00:57:17.707Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "bfefdb697454",
+   "cause": "serviceable",
+   "cut": "2026-08-10T04:21:13.577Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "c507af781de0",
+   "cause": "serviceable",
+   "cut": "2026-08-10T19:01:01.222Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "c587032378a3",
+   "cause": "serviceable",
+   "cut": "2026-08-10T00:01:11.629Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "cb831e50eafb",
+   "cause": "serviceable",
+   "cut": "2026-08-10T06:10:10.870Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "cecf3ddbfdbe",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T02:48:33.662Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "cf6a68fa412c",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T02:34:46.005Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "d0d8f7427e8d",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T00:35:36.898Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "d3d04b669e18",
+   "cause": "unloadable",
+   "cut": "2026-08-04T23:18:53.242Z",
+   "files_frozen": 12,
+   "verifiable": true,
+   "runnable": false,
+   "why": "engine/board.js: Cannot find module './mc_key.js' | engine/rollout_leaf.js: Cannot find module './mc_key.js' | engine/champions_sim.js: Cannot find module './showdown_path.js'",
+   "missing_sources": [
+    "engine/mc_key.js",
+    "engine/lookup.js",
+    "engine/set_priors.js",
+    "engine/smogon_priors.js",
+    "engine/quality.js",
+    "engine/showdown_path.js",
+    "data/move-effects.js",
+    "data/ability-blocks.json",
+    "data/smogon-priors.json",
+    "data/regulations.json",
+    "data/quality-filter.json",
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::traceCanon",
+    "engine/medicham2-browser.js::TRACE_EVENTS",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "d59e1b76f6c8",
+   "cause": "serviceable",
+   "cut": "2026-08-10T02:51:32.985Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "dc3c43336539",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T17:27:09.775Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "dd3da7c69cb0",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T11:08:08.687Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "debbbe33ce6d",
+   "cause": "unloadable",
+   "cut": "2026-08-11T00:43:36.507Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "engine/board.js: Cannot find module './pp.js' | engine/rollout_leaf.js: Cannot find module './pp.js'",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "df5dac2998b9",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T06:23:34.764Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "e4948ab6f77f",
+   "cause": "unloadable",
+   "cut": "2026-08-11T00:39:08.566Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "engine/board.js: Cannot find module './pp.js' | engine/rollout_leaf.js: Cannot find module './pp.js'",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "e5451d32f349",
+   "cause": "serviceable",
+   "cut": "2026-08-10T22:47:30.576Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "ea58415e1cd8",
+   "cause": "serviceable",
+   "cut": "2026-08-10T06:34:15.401Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "ec3db328727d",
+   "cause": "unloadable",
+   "cut": "2026-08-11T00:27:15.189Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "engine/board.js: Cannot find module './pp.js' | engine/rollout_leaf.js: Cannot find module './pp.js'",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "ec4dc5fd4a0d",
+   "cause": "serviceable",
+   "cut": "2026-08-10T08:30:58.060Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "edddfe469864",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T08:05:54.010Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "f22367e16168",
+   "cause": "serviceable",
+   "cut": "2026-08-10T22:50:19.174Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "f727f7fdee4f",
+   "cause": "serviceable",
+   "cut": "2026-08-10T03:54:19.569Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "fa053b954539",
+   "cause": "predates-an-export",
+   "cut": "2026-08-08T02:20:13.948Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  },
+  {
+   "id": "fb8b4fc84f8a",
+   "cause": "serviceable",
+   "cut": "2026-08-10T00:25:12.642Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": true,
+   "why": null,
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": []
+  },
+  {
+   "id": "fc361643f9a7",
+   "cause": "predates-an-export",
+   "cut": "2026-08-07T18:37:09.324Z",
+   "files_frozen": 23,
+   "verifiable": true,
+   "runnable": false,
+   "why": "the frozen bytes never exported engine/medicham2-browser.js::natureL50, engine/medicham2-browser.js::natureStat",
+   "missing_sources": [
+    "engine/pp.js"
+   ],
+   "lacks": [
+    "engine/medicham2-browser.js::natureL50",
+    "engine/medicham2-browser.js::natureStat"
+   ]
+  }
+ ]
+}

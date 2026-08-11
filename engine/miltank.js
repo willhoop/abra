@@ -452,7 +452,42 @@ function makeClock(opts, timer) {
  * Showdown source actually says.  `clockEarlyDefer` is a SEPARATE flag and is also off, because it
  * changes WHAT IS CLICKED and not only how long it takes -- it needs its own SPRT arm, not a timing
  * argument.  `timing` writes the per-decision wall-clock artifact and is off unless asked. */
-const DEFAULTS = { defer: true, budgetMs: 20000, foePolicy: 'uniform', n: 200, explore: 1.0, turns: 60, previewN: 40, previewMs: 15000,
+/* THE HORIZON IS DERIVED NOW. ROADMAP #153.
+ *
+ * `turns` was **60**. Nothing derived it: MEDICHAM's own default is 20 and 60 was picked to buy a
+ * horizon long enough that stalling stops paying (the comment at `battleOver` says exactly that).
+ * Against the store it is about ten times the game — median total length 6 on the bo1 ladder, 7 on
+ * bo3, p99 16 in both across 58,639 finished human games.
+ *
+ * The quantity that actually decides the cap is not total length. A playout starts wherever the
+ * search is, so `maxTurns` has to cover REMAINING turns from a position, weighted by how often that
+ * position occurs. `engine/rollout_switch_census.js` computes it off the raw logs of both human
+ * stores and `data/rollout-switch-census.json` carries the rule and the answer. **It is READ, never
+ * typed here**, so the constant and the measurement cannot drift apart — a hand-carried number going
+ * stale without anybody noticing is this project's signature failure and 60 is what it looks like.
+ *
+ * A missing artifact falls back to 60 and SAYS SO, rather than silently shortening every playout.
+ *
+ * ONE FLAG STILL OVERRIDES THIS AND IS NOT SEARCH'S TO CHANGE: `mag_bot.js:154` reads
+ * `--rollout-turns` with its own literal default of '60' and passes it in, so the LIVE BOT keeps 60
+ * until OPS changes that one string; `mew.js` is MEASURE's and is the same one-liner. Filed, with
+ * the same standing as PRIORITIES #33's `--miltank-explore`. */
+const DERIVED = (() => {
+  try {
+    const c = require('./rollout_leaf.js').census();
+    if (c && c.ok && c.maxTurns > 0) return { turns: c.maxTurns, from: 'data/rollout-switch-census.json' };
+  } catch (e) { /* fall through to the announced default */ }
+  console.error('miltank: data/rollout-switch-census.json unavailable — the playout horizon falls back to 60, '
+    + 'which is the undebated round number ROADMAP #153 replaced. Run: node engine/rollout_switch_census.js');
+  return { turns: 60, from: 'FALLBACK — the census artifact was not readable' };
+})();
+const DEFAULTS = { defer: true, budgetMs: 20000, foePolicy: 'uniform', n: 200, explore: 1.0,
+                   turns: DERIVED.turns, turnsFrom: DERIVED.from,
+                   /* null = the store-measured rate read by rollout_leaf.census(). 0 restores the
+                    * playout that could not leave the field; 'uniform' folds switching into the
+                    * uniform action draw. See the long note at rollout_leaf.runPlayout. */
+                   switchRate: null,
+                   previewN: 40, previewMs: 15000,
                    previewExplore: null, why: false, trace: false,
                    timing: null, clock: false, clockEarlyDefer: false,
                    clockReserveMs: 45000, clockMinMs: 1500, clockSafetyMs: 10000,
@@ -465,6 +500,11 @@ const DEFAULTS = { defer: true, budgetMs: 20000, foePolicy: 'uniform', n: 200, e
 function install(bot, o) {
   const opts = Object.assign({}, DEFAULTS, o || {});
   const ROLLOUT_N = opts.n, ROLLOUT_EXPLORE = opts.explore, ROLLOUT_TURNS = opts.turns;
+  /* ROADMAP #152. `undefined` means "the store-measured rate"; an explicit 0 is the switchless
+   * playout that shipped until now, dice-identical, and is the control arm for any A/B. Threaded
+   * into all three decision points rather than left to the leaf's default, so an artifact that
+   * records the config records THIS. */
+  const SWITCH_RATE = opts.switchRate;
   const PREVIEW_N = opts.previewN, PREVIEW_MS = opts.previewMs;
   const PREVIEW_EXPLORE = typeof opts.previewExplore === 'number' ? opts.previewExplore : ROLLOUT_EXPLORE;
   const WHY = !!opts.why, TRACE = !!opts.trace;
@@ -511,7 +551,17 @@ function install(bot, o) {
       dec: _dec, kind, ms, req: CLOCK.stats().requests,
       leaf: LEAF.calls, playouts: LEAF.playouts,
       turn: (bot.board && bot.board.turn) || null,
-      n: ROLLOUT_N, explore: ROLLOUT_EXPLORE, turns: ROLLOUT_TURNS, foe: FOE_POLICY,
+      /* ROADMAP #152/#153 STAMPED ON EVERY ROW. GARY's whole lesson (#33) is that a run whose
+       * artifact does not state its opponent cannot be transferred to a run whose opponent differs;
+       * the playout's switch rate and horizon are two more of exactly that, and 60 was unrecorded
+       * for as long as it was wrong. `switchesOffered`/`switchesExecuted` are the proof-of-firing
+       * counters — a decision row carrying 0 offered while switchRate is non-zero is a broken wire. */
+      n: ROLLOUT_N, explore: ROLLOUT_EXPLORE, turns: ROLLOUT_TURNS, turnsFrom: opts.turnsFrom || null,
+      foe: FOE_POLICY,
+      switchRate: (SWITCH_RATE === undefined || SWITCH_RATE === null)
+        ? (require('./rollout_leaf.js').census().switchRate) : SWITCH_RATE,
+      switchesOffered: require('./rollout_leaf.js').SWITCH_COUNTERS.offered,
+      switchesExecuted: require('./rollout_leaf.js').SWITCH_COUNTERS.executed,
       previewN: PREVIEW_N, previewMs: PREVIEW_MS, budgetMs: opts.budgetMs || 20000,
       clock: CLOCK.enabled, early: EARLY_DEFER, bankMs: CLOCK.bankMs(), notes: CLOCK.stats().notes,
     }, extra || {}));
@@ -706,7 +756,7 @@ function install(bot, o) {
              * played out is not, and it is a PARAMETER now rather than a second implementation. */
             const r = leafWinProb(null, side, {
               n: N, dex: DEX, explore: PREVIEW_EXPLORE, foePolicy: FOE_POLICY,
-              maxTurns: ROLLOUT_TURNS, seed: previewSeed,
+              maxTurns: ROLLOUT_TURNS, switchRate: SWITCH_RATE, seed: previewSeed,
               /* NOBODY HAS ENTERED YET, so the entry effects must fire.
                *
                * `seeded:true` is right for a mid-battle leaf -- the actives are already standing
@@ -817,7 +867,7 @@ function install(bot, o) {
                * Sharing the seed cancels the variance the candidates have in common (the same
                * opponent draws, the same crit rolls) and leaves the difference that is actually
                * about WHICH POKEMON CAME IN. Standard variance reduction, and free. */
-              maxTurns: ROLLOUT_TURNS, seed: replSeed,
+              maxTurns: ROLLOUT_TURNS, switchRate: SWITCH_RATE, seed: replSeed,
               bringIn: sp, protectTurns: this._protectTurns,
             });
             if (r && typeof r.p === 'number') scored.push([r.p, sw.slot, sp]);
@@ -1170,7 +1220,7 @@ function install(bot, o) {
             const ka = clickOf(ca2), kb = clickOf(cb2);
             if (!ka || !kb) return null;
             return leafAfterActions(board, side, {
-              n, dex: DEX, explore: ROLLOUT_EXPLORE, foePolicy: FOE_POLICY, field, maxTurns: ROLLOUT_TURNS,
+              n, dex: DEX, explore: ROLLOUT_EXPLORE, foePolicy: FOE_POLICY, field, maxTurns: ROLLOUT_TURNS, switchRate: SWITCH_RATE,
               seed: (Date.now() & 0xffff) * 7919 + ia * 31 + ib + salt,
               myClicks: [ka, kb], protectTurns: this._protectTurns,
               report: (r) => { if (r.unresolved) _unres += r.unresolved; else _res += r.resolved;

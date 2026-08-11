@@ -1151,6 +1151,49 @@ for (const a of ARTIFACTS) {
   rows.push({ ...a, status: isVoid ? 'VOID' : bad ? 'UNSAFE' : (warn ? 'stale?' : 'ok'), games: n, notes, digestState });
 }
 
+/* ---- THE VERDICTS, MACHINE-READABLE — ROADMAP #108 --------------------------------------------
+ *
+ * WHY THIS EXISTS. `engine/status.js` prints figures out of artifacts this file separately calls
+ * UNSAFE. Two independent guards over one question, disagreeing in public, and the one that prints
+ * wins because it is the one anybody reads. That is the same shape as the quarantine gate reporting
+ * the engine correct while the defect register said otherwise: **the printer never read the
+ * verifier.** So the printer is given something to read.
+ *
+ * WRITTEN, NOT PARSED. status.js already shells out to this file and finds the counts with a regex
+ * over the padded human table above — and that regex has already misfired twice, once reading
+ * `448 missing` and `55 ok` out of prose. `--graph --json` set the precedent for handing a caller
+ * the derivation instead of a rendering; this is the same contract for the VERDICTS.
+ *
+ * A FILE RATHER THAN A SECOND SUBPROCESS. This run costs ~15 seconds. status.js needs the counts,
+ * the ratchet exit code AND the per-artifact verdicts, and running the tool twice to get them would
+ * add fifteen seconds to the one command every session is required to run first — which is how a
+ * tool stops being run. One invocation, one sidecar.
+ *
+ * WRITTEN BEFORE THE TABLE IS PRINTED, so a throw inside the renderer or a non-zero ratchet exit
+ * cannot lose it. A caller that gets no file must treat that as "provenance did not speak", never
+ * as "nothing is unsafe" — the whole failure being closed here is a silent absence reading as a
+ * clean bill. */
+{
+  const flag = process.argv.find(a => a.startsWith('--verdicts-out='));
+  if (flag) {
+    const out = flag.slice('--verdicts-out='.length);
+    const payload = {
+      generated: new Date().toISOString(),
+      by: 'engine/provenance.js --verdicts-out',
+      note: 'ROADMAP #108. The per-artifact verdict, so a REPORTER can withhold a figure this file '
+          + 'calls UNSAFE instead of printing it beside a caption nobody reads.',
+      counts: rows.reduce((o, r) => (o[r.status] = (o[r.status] || 0) + 1, o), {}),
+      rows: rows.map(r => ({ file: r.file, status: r.status, by: r.by, via: r.via,
+                             digestState: r.digestState || null, notes: r.notes || [] })),
+      no_writer: NO_WRITER,
+    };
+    try { fs.writeFileSync(out, JSON.stringify(payload, null, 1) + '\n'); }
+    /* LOUD. A caller waiting on this file will otherwise conclude the tool has no opinion. */
+    catch (e) { console.error('  !! could not write the verdict sidecar to ' + out + ': ' + e.message
+      + '\n     A caller expecting it will read the absence as "provenance did not speak", which is correct.'); }
+  }
+}
+
 console.log('PROVENANCE — what every published artifact was actually built on\n');
 if (cleanCount != null) console.log(`  clean games available right now: ${cleanCount.toLocaleString()}\n`);
 const pad = (s, n) => String(s).padEnd(n);

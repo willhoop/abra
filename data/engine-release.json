@@ -1,10 +1,10 @@
 {
-  "current": "debbbe33ce6d",
-  "cut": "2026-08-11T00:43:36.507Z",
-  "why": "ROADMAP #147 -- crit predicate, per-hit volley, stance change, spread-preserving formeSwap",
-  "cuts": 1,
-  "latest_cut": "2026-08-11T00:43:36.507Z",
-  "latest_why": "ROADMAP #147 -- crit predicate, per-hit volley, stance change, spread-preserving formeSwap",
-  "pointer_written": "2026-08-11T00:43:36.511Z",
+  "current": "f8fa99eed822",
+  "cut": "2026-08-11T01:33:08.838Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "cuts": 14,
+  "latest_cut": "2026-08-11T01:38:43.260Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-08-11T01:38:43.278Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

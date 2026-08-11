@@ -322,5 +322,49 @@ console.log('\n  -- the oldest release on disk (real store, read-only)');
   }
 }
 
+/* ---- 9. THE CLOSURE GUARD — ROADMAP #153, THE FOURTH TIME SOURCES WAS SHORT ---------------------
+ *
+ * §8 asserts the CONTRACT for releases that are old. This asserts that a NEW release is loadable at
+ * all, which is a different failure and the live one: between 2026-08-11T00:27Z and 00:43Z three
+ * releases were cut whose 23 digests were all valid and whose `engine/board.js` AND
+ * `engine/rollout_leaf.js` — the leaf — could not be required out of the snapshot, because
+ * `engine/pp.js` had become a require of both and was not in SOURCES.
+ *
+ * Those three verify. `open()` accepts them. Every existing check passed. That is why the guard has
+ * to be at the CUT, and why it must refuse rather than warn.
+ *
+ * SHOWN RED ON KNOWN-BAD INPUT, not merely green: the scan is driven with `engine/pp.js` removed
+ * from the list and must name it. A guard that has only ever been green is not evidence. */
+console.log('\n  -- the require closure of SOURCES (ROADMAP #153)');
+{
+  const live = REL.requireClosure(REL.SOURCES);
+  ok(live.escapes.size === 0,
+     'every file a frozen source requires is itself frozen'
+     + (live.escapes.size ? ': ESCAPES ' + [...live.escapes.keys()].join(', ') : ''));
+  ok(live.unresolved.length === 0,
+     'the scan followed every require edge it found'
+     + (live.unresolved.length ? ' — could not follow: ' + live.unresolved.join('; ') : ''));
+  /* THE SCAN GENUINELY WALKED SOMETHING. `escapes.size === 0` is also what a scan that read nothing
+   * returns, which is the "capability absent, everything reports success" shape. */
+  ok(live.scanned >= 10, `the scan actually walked the graph (${live.scanned} modules reached)`);
+
+  const short = REL.SOURCES.filter(s => s !== 'engine/pp.js');
+  const red = REL.requireClosure(short);
+  ok(red.escapes.has('engine/pp.js'),
+     'RED PROOF — with engine/pp.js removed from the list the scan names it as an escape');
+  ok((red.escapes.get('engine/pp.js') || []).some(f => /rollout_leaf|board/.test(f)),
+     'and names which frozen source requires it (the leaf and/or the board)');
+
+  /* AND THE REFUSAL IS WIRED TO cut(), not merely available beside it. Driven through the real
+   * `cut()` into a throwaway store with a deliberately short list is not possible without mutating
+   * the module constant, so the assertion is on the counter: a real cut in this run incremented the
+   * scan counter, which proves the guard is on the path rather than sitting in module scope. */
+  ok(REL.CUT_COUNTERS.closure_scans > 0,
+     `cut() ran the closure scan ${REL.CUT_COUNTERS.closure_scans} time(s) in this test run — a guard `
+     + 'that cannot prove it ran is assumed broken');
+  ok(REL.CUT_COUNTERS.closure_refusals === 0,
+     `and refused ${REL.CUT_COUNTERS.closure_refusals} of them, which is the expected steady state`);
+}
+
 console.log(`\nENGINE RELEASE TESTS: ${P} passed, ${F} failed`);
 process.exit(F ? 1 : 0);

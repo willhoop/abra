@@ -129,7 +129,71 @@ const SOURCES = [
   'data/policy-weights.json',
   'data/policy-weights-joint.json',
   'data/move-priors.json',
+  /* THE FOURTH INSTANCE, 2026-08-10 (ROADMAP #153). `engine/pp.js` became a require of BOTH
+   * `engine/board.js` and `engine/rollout_leaf.js` — the leaf itself — and was not in this list, so
+   * the three releases cut between 00:27Z and 00:43Z froze 23 valid digests and could not load the
+   * thing MEASURE's one number is about: `Cannot find module './pp.js'` out of the snapshot, for
+   * `engine/board.js` AND `engine/rollout_leaf.js`. PP decides which moves are available, so it
+   * changes a number by this list's own criterion.
+   *
+   * IT IS THE LAST ONE THAT WILL BE FOUND BY A CRASH. The previous three growths were each
+   * discovered by a run dying inside an unrelated file; `requireClosure()` below now DERIVES this
+   * set from the sources themselves and `cut()` REFUSES when it escapes the list, so a fifth
+   * omission is a refusal at second zero rather than a void measurement at minute thirty-nine. */
+  'engine/pp.js',
 ];
+
+/* WHAT THE LIST ABOVE CANNOT KNOW ABOUT ITSELF, DERIVED RATHER THAN REMEMBERED.
+ *
+ * SOURCES has now grown FOUR times, and every one of the four was found the same way: a measurement
+ * crashed. +6 loader deps (`REL.require('engine/board.js')` threw `Cannot find module './mc_key.js'`),
+ * +5 lazily-read data files (the R1 smoke run died on `data/move-effects.js`), and now
+ * `engine/pp.js`. Each time the list was patched and each time the METHOD stayed "wait for a crash".
+ *
+ * A require edge is derivable. This walks the local `require('./x.js')` graph from the .js SOURCES
+ * and returns every file reachable from a frozen source that is NOT itself frozen. A release whose
+ * closure escapes the list is a valid DIGEST SET and not a loadable ENGINE — the exact sentence the
+ * two earlier growths wrote about themselves.
+ *
+ * WHAT IT DELIBERATELY DOES NOT CATCH, said out loud rather than implied. It reads static
+ * `require('./literal')` only: a computed path, a dynamic import, or a data file opened through
+ * `fs.readFileSync` is invisible to it. `data/move-effects.js` — the +5 growth — was a lazy require
+ * and IS caught; `data/ability-blocks.json`, read through board.js's `loadData`, is NOT. So this
+ * closes the arm that has broken three times of four and says plainly that it does not close the
+ * other. A partial guard that names its own gap is not the same thing as a guard that implies it is
+ * complete, and this repository has paid for the second one. */
+function requireClosure(sources, rootDir) {
+  const root = rootDir || ROOT;
+  const inList = new Set(sources);
+  const seen = new Set(), escapes = new Map(), unresolved = [];
+  const rel = p => path.relative(root, p).split(path.sep).join('/');
+  const queue = sources.filter(s => /\.js$/.test(s));
+  while (queue.length) {
+    const cur = queue.shift();
+    if (seen.has(cur)) continue;
+    seen.add(cur);
+    const abs = path.join(root, cur);
+    let src;
+    /* UNREADABLE IS NOT EMPTY. Returning "no requires" for a file that could not be opened would
+     * report a clean closure over a source nobody read, which is this repository's signature bug. */
+    try { src = fs.readFileSync(abs, 'utf8'); }
+    catch (e) { unresolved.push(cur + ': cannot read to scan (' + e.message.slice(0, 60) + ')'); continue; }
+    const re = /require\(\s*['"`](\.[^'"`]+)['"`]\s*\)/g;
+    let m;
+    while ((m = re.exec(src))) {
+      let t = path.resolve(path.dirname(abs), m[1]);
+      if (!fs.existsSync(t) && fs.existsSync(t + '.js')) t += '.js';
+      if (!fs.existsSync(t)) { unresolved.push(cur + ' -> ' + m[1] + ' (does not resolve on disk)'); continue; }
+      const r = rel(t);
+      if (!inList.has(r)) {
+        if (!escapes.has(r)) escapes.set(r, []);
+        escapes.get(r).push(cur);
+      }
+      if (/\.js$/.test(r) && !seen.has(r)) queue.push(r);
+    }
+  }
+  return { scanned: seen.size, escapes, unresolved };
+}
 
 /* THROWS RATHER THAN RETURNING null. A null digest inside a manifest is the worst possible value:
  * `verify()` would compare null against null and PASS, so a release frozen over an unreadable file
@@ -236,6 +300,12 @@ function seedEventsFromRecord(dir, prev) {
   });
 }
 
+/* A CAPABILITY THAT CANNOT PROVE IT RAN IS ASSUMED BROKEN. The closure guard is expected to be
+ * silent forever, which is exactly the condition under which a check quietly stops running and
+ * nobody notices — `setSheet()` existed and `magnemite.js` never called it. Counted, exported, and
+ * printed by the CLI. */
+const CUT_COUNTERS = { closure_scans: 0, closure_refusals: 0, closure_unresolved: 0 };
+
 function cut(why, opts) {
   const S = store(opts);
   const files = {};
@@ -250,6 +320,36 @@ function cut(why, opts) {
   if (missing.length) {
     throw new Error('cannot cut a release — these sources do not exist: ' + missing.join(', ')
       + '\nEither the list in engine_release.js is stale or the tree is mid-write.');
+  }
+  /* AND A RELEASE WHOSE REQUIRE CLOSURE ESCAPES THE LIST IS NOT A RELEASE EITHER — same argument,
+   * one edge further out. Freezing board.js without pp.js produces a snapshot that VERIFIES, that
+   * `open()` accepts, and that throws `Cannot find module './pp.js'` the moment anything loads the
+   * leaf. That is worse than a missing file, because it passes every check the release has.
+   *
+   * IT REFUSES RATHER THAN WARNS. A warning here is a line printed at 00:27 and read at 09:00, by
+   * which time three releases exist that nothing can open and whatever they were cut for is void.
+   * The refusal names the file and the requirer, so the fix is a one-line addition to SOURCES.
+   * CUT_ESCAPES counts how many times it has fired this process — a guard that cannot prove it ran
+   * is assumed broken, and this one is expected to sit at zero forever. */
+  const clo = requireClosure(SOURCES);
+  CUT_COUNTERS.closure_scans++;
+  if (clo.unresolved.length) {
+    CUT_COUNTERS.closure_unresolved += clo.unresolved.length;
+    console.error('  !! the release closure scan could not follow ' + clo.unresolved.length
+      + ' require edge(s); the list below is therefore a LOWER BOUND on what escapes SOURCES:');
+    for (const u of clo.unresolved) console.error('     ' + u);
+  }
+  if (clo.escapes.size) {
+    CUT_COUNTERS.closure_refusals++;
+    throw new Error('cannot cut a release — ' + clo.escapes.size + ' file(s) are REQUIRED by a frozen '
+      + 'source and are not themselves frozen:\n'
+      + [...clo.escapes].map(([f, by]) => '  ' + f + '  <- required by ' + by.join(', ')).join('\n')
+      + '\n  A snapshot missing these VERIFIES and OPENS and then throws "Cannot find module" the first\n'
+      + '  time anything loads them. That is a valid digest set and not a loadable engine — the same\n'
+      + '  fault as the mc_key.js growth (2026-08-05), the move-effects.js growth (2026-08-05) and\n'
+      + '  the pp.js break (2026-08-10), each of which was found by a run crashing instead of here.\n'
+      + '  Add them to SOURCES in engine/engine_release.js. Existing releases are untouched; every\n'
+      + '  FUTURE release id changes, which is correct — the definition of the engine changed.');
   }
   /* The ID is the digest OF THE DIGESTS, so an identical tree always yields an identical release id
    * and cutting twice in a row reuses this directory rather than making a second copy. NOT "a no-op"
@@ -599,6 +699,133 @@ function surface(id, rel, opts) {
   }
 }
 
+/* ---- WHO ACTUALLY NEEDS WHAT, READ OUT OF THE CALLERS -----------------------------------------
+ *
+ * `census()` below has to know what a modern caller demands of a snapshot. Typing that list here
+ * would be the hand-maintained-ban-list-of-four failure: `engine/game_differential.js` needs twelve
+ * symbols and `engine/replay_differential.js` needs thirteen, the two lists overlap and differ, and
+ * a copy of either goes stale the first time somebody adds an export.
+ *
+ * So it is READ from the callers. Every `REL.require('<file>', { need: [...] })` in engine/ is one
+ * row of the requirement table. A caller with no `need` clause asks only that the file be loadable,
+ * which is still a real requirement and is recorded as an empty need list rather than skipped. */
+function callerNeeds(dir) {
+  const from = dir || path.join(ROOT, 'engine');
+  const out = [];
+  let files;
+  try { files = fs.readdirSync(from).filter(f => f.endsWith('.js')); }
+  catch (e) { return { rows: out, error: 'cannot scan ' + from + ': ' + e.message }; }
+  for (const f of files) {
+    /* THIS FILE'S OWN HEADER DOCUMENTS THE CALL IT IS SCANNING FOR, and the first version of this
+     * scan read `REL.require('<file>', ...)` out of that comment and reported `<file>` as a real
+     * requirement. Identical to provenance.js's `writesNear` crediting itself from its own example.
+     * Comments are stripped, and the file that DEFINES the mechanism is skipped outright. */
+    if (f === 'engine_release.js') continue;
+    let src;
+    try { src = fs.readFileSync(path.join(from, f), 'utf8'); } catch (e) { continue; }
+    src = src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+    const re = /REL\.require\(\s*['"]([^'"]+)['"]\s*(?:,\s*\{([\s\S]{0,400}?)\}\s*)?\)/g;
+    let m;
+    while ((m = re.exec(src))) {
+      /* A REQUIREMENT IS A PATH INSIDE THE RELEASE, and anything that is not one is a false read
+       * rather than a caller this census should hold every release to. */
+      if (!/^(engine|data)\/[\w.\-]+\.(js|json)$/.test(m[1])) continue;
+      const need = [];
+      const nm = m[2] && m[2].match(/need\s*:\s*\[([\s\S]*?)\]/);
+      if (nm) for (const s of nm[1].split(',')) {
+        const t = s.trim().replace(/^['"]|['"]$/g, '');
+        if (t) need.push(t);
+      }
+      out.push({ caller: 'engine/' + f, file: m[1], need });
+    }
+  }
+  return { rows: out, error: null };
+}
+
+/* ---- THE WHOLE-STORE CENSUS — ROADMAP #109 ----------------------------------------------------
+ *
+ * THE COUNT WAS A COMMENT AND THE COMMENT WENT STALE, INSIDE THE FILE THAT ARGUES AGAINST PROSE.
+ * The block above this one records "MEASURED 2026-08-09 over the 65 release directories on disk:
+ * 4 pruned, 1 that predates mc_key.js, 56 that predate natureL50, 5 that can serve the driver."
+ * On 2026-08-10 the disk holds 115 directories and 52 can serve it. Nobody mistyped anything —
+ * it is the fourteen stale handoffs and the ban list of four, one more time, and it is why the
+ * project could still describe the store as "56 of 62 unopenable" a day later.
+ *
+ * A count moves. A sentence does not. So the census is DERIVED and writes an artifact.
+ *
+ * THE WORD "UNOPENABLE" IS WRONG AND THE CENSUS SEPARATES WHAT IT WAS COLLAPSING. `open()` succeeds
+ * for almost every release on disk: the snapshot verifies, the manifest is intact, `stamp()` still
+ * proves exactly which bytes a run read. What fails is RE-RUNNING — `REL.require` refusing because
+ * the frozen bytes predate a file or an export. Those are opposite facts for a reader:
+ *   VERIFIABLE   — a run stamped with this id can still be checked against these digests. This is
+ *                  what provenance.js does, and it works for every release with a manifest.
+ *   RUNNABLE     — the measurement can be REPEATED against these bytes.
+ * A release can be verifiable and not runnable, and that is the ordinary state of an old one. */
+function census(opts) {
+  const S = store(opts);
+  const needs = callerNeeds();
+  /* One requirement row per (file, symbol), unioned across callers, so the census asks the hardest
+   * question any live caller asks rather than one caller's question. */
+  const union = new Map();
+  for (const r of needs.rows) {
+    if (!union.has(r.file)) union.set(r.file, new Set());
+    for (const k of r.need) union.get(r.file).add(k);
+  }
+  const rows = [];
+  for (const id of list(opts)) {
+    const dir = path.join(S.releases, id);
+    const row = { id, cause: null, cut: null, files_frozen: null, verifiable: false, runnable: false, why: null };
+    let man;
+    try { man = JSON.parse(fs.readFileSync(path.join(dir, 'release.json'), 'utf8')); }
+    catch (e) { row.cause = 'no-manifest'; row.why = e.message.slice(0, 120); rows.push(row); continue; }
+    row.cut = man.cut;
+    row.files_frozen = Object.keys(man.files || {}).length;
+    /* A MANIFEST IS ENOUGH TO VERIFY A STAMP. Pruned bodies do not take that away and the prune
+     * record says so in its own words; that is why `verifiable` is not `runnable`. */
+    row.verifiable = true;
+    row.missing_sources = SOURCES.filter(s => !(s in (man.files || {})));
+    if (man.bodies_pruned) { row.cause = 'pruned'; row.why = 'bodies removed ' + man.bodies_pruned.at + ' — a recorded decision'; rows.push(row); continue; }
+    const v = verify(id, opts);
+    if (!v.ok) { row.cause = 'modified'; row.verifiable = false; row.why = v.bad.slice(0, 2).join('; '); rows.push(row); continue; }
+    /* THE CAUSE IS WHAT A LIVE CALLER HITS, NOT WHAT THE LIST HAPPENS TO CONTAIN, and the first
+     * version of this got that backwards. Adding `engine/pp.js` to SOURCES instantly made 112 of 117
+     * releases "predate a source" — arithmetically true, useless as a diagnosis, and it buried the
+     * one cause that matters. `missing_sources` is kept as a FACT on every row and is never the
+     * verdict; the verdict is whether a snapshot can serve somebody. */
+    const lacks = [], unloadable = [], absent = [];
+    for (const [rel, syms] of union) {
+      const s = surface(id, rel, opts);
+      if (s.status === 'file-absent') { absent.push(rel); continue; }
+      if (s.status !== 'ok') { unloadable.push(rel + ': ' + (s.why || s.status)); continue; }
+      for (const k of syms) if (!s.exports.includes(k)) lacks.push(rel + '::' + k);
+    }
+    row.lacks = lacks;
+    if (unloadable.length) { row.cause = 'unloadable'; row.why = unloadable.join(' | ').slice(0, 240); }
+    else if (absent.length) { row.cause = 'predates-a-source'; row.why = 'froze ' + row.files_frozen + ' files and never held ' + absent.join(', '); }
+    else if (lacks.length) { row.cause = 'predates-an-export'; row.why = 'the frozen bytes never exported ' + lacks.join(', '); }
+    else { row.cause = 'serviceable'; row.runnable = true; }
+    rows.push(row);
+  }
+  const counts = {};
+  for (const r of rows) counts[r.cause] = (counts[r.cause] || 0) + 1;
+  return {
+    generated: new Date().toISOString(),
+    by: 'engine/engine_release.js census',
+    note: 'ROADMAP #109. Derived every run. VERIFIABLE means a run stamped with this id can still be '
+        + 'checked against its digests; RUNNABLE means the measurement can be repeated against these '
+        + 'bytes. They are different questions and "unopenable" collapsed them.',
+    sources_now: SOURCES.length,
+    caller_requirements: [...union].map(([file, s]) => ({ file, need: [...s].sort() })),
+    caller_requirement_sites: needs.rows.length,
+    caller_scan_error: needs.error,
+    counts,
+    releases: rows.length,
+    verifiable: rows.filter(r => r.verifiable).length,
+    runnable: rows.filter(r => r.runnable).length,
+    rows,
+  };
+}
+
 /* WHICH RELEASES CAN SERVE THIS CALLER — the inventory that turns a backlog into a list.
  * Ordered by first cut, so the answer reads as a timeline of when the caller's requirement appeared. */
 function compat(rel, symbols, opts) {
@@ -734,7 +961,8 @@ function open(id, opts) {
  * read. That is the FACTS ARE GLOBAL rule in CLAUDE.md — how to hash a file is a fact, not a
  * per-model choice, and four implementations of it will disagree eventually while all four keep
  * working. One implementation, everyone calls it. */
-module.exports = { cut, list, verify, drift, open, rerender, surface, compat, sha12, sha12OrNull, SOURCES, POINTER, RELEASES };
+module.exports = { cut, list, verify, drift, open, rerender, surface, compat, sha12, sha12OrNull,
+                   requireClosure, census, callerNeeds, CUT_COUNTERS, SOURCES, POINTER, RELEASES };
 
 if (require.main === module) {
   const [cmd, arg] = process.argv.slice(2);
@@ -812,6 +1040,36 @@ if (require.main === module) {
       + '  ' + rows.filter(r => r.status === 'file-absent').length + ' predate the file,'
       + '  ' + rows.filter(r => r.status === 'ok' && !r.provides).length + ' predate an export,'
       + '  ' + rows.filter(r => r.status === 'unloadable' || r.status === 'no-manifest').length + ' broken.\n');
+  } else if (cmd === 'census') {
+    /* ROADMAP #109. `--write` puts it in data/ so status.js and provenance.js can read it instead of
+     * anybody quoting the stale count out of this file's own header comment. */
+    const c = census();
+    console.log('\n  RELEASE CENSUS — ' + c.releases + ' releases, ' + c.sources_now + ' files in SOURCES');
+    console.log('  VERIFIABLE = a run stamped with this id can still be checked against its digests.');
+    console.log('  RUNNABLE   = the measurement can be REPEATED against these bytes. Not the same question.\n');
+    for (const [k, v] of Object.entries(c.counts).sort((a, b) => b[1] - a[1])) {
+      console.log('    ' + String(v).padStart(4) + '  ' + k);
+    }
+    console.log('\n  ' + c.verifiable + ' of ' + c.releases + ' verifiable, '
+              + c.runnable + ' of ' + c.releases + ' runnable.');
+    console.log('  asked against ' + c.caller_requirements.length + ' file(s) that live callers load out of a '
+              + 'release, read from ' + c.caller_requirement_sites + ' REL.require site(s) — not a typed list:');
+    for (const r of c.caller_requirements) {
+      console.log('    ' + r.file + (r.need.length ? '  needs ' + r.need.length + ': ' + r.need.join(', ') : '  (loadable only)'));
+    }
+    /* THE DATED BOUNDARY IS THE DIAGNOSIS, not the count. A cause that maps onto a contiguous date
+     * range is one event in the engine's history; one that scatters is many. */
+    console.log('');
+    const byCause = {};
+    for (const r of c.rows) { (byCause[r.cause] = byCause[r.cause] || []).push(r.cut); }
+    for (const [k, ds] of Object.entries(byCause)) {
+      const s = ds.filter(Boolean).sort();
+      console.log('    ' + k.padEnd(20) + (s.length ? s[0].slice(0, 19) + '  ..  ' + s[s.length - 1].slice(0, 19) : '(undated)'));
+    }
+    if (process.argv.includes('--write')) {
+      fs.writeFileSync(D('data', 'release-census.json'), JSON.stringify(c, null, 1) + '\n');
+      console.log('\n  wrote data/release-census.json');
+    } else console.log('\n  (dry run — pass --write to publish data/release-census.json)');
   } else if (cmd === 'rerender') {
     const res = rerender(arg || (JSON.parse(fs.readFileSync(POINTER, 'utf8')).current));
     console.log(`re-rendered ${res.id} from its cut log (${res.cuts} cut(s))`);
@@ -820,7 +1078,8 @@ if (require.main === module) {
     console.log('  digests and snapshot bytes untouched — this redraws the record, it does not cut.');
   } else {
     console.log('usage: engine_release.js cut "<why>" | list | verify [id] | rerender [id]\n'
-              + '       engine_release.js compat <file-in-the-release> [symbol ...]');
+              + '       engine_release.js compat <file-in-the-release> [symbol ...]\n'
+              + '       engine_release.js census [--write]   (ROADMAP #109 — verifiable vs runnable)');
     process.exit(2);
   }
 }

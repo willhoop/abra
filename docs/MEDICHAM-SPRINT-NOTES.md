@@ -3121,3 +3121,73 @@ two-things-deciding-one-fact hazard. What shipped instead is the defect that act
 said success — this project's founding failure reached through the cheapest possible door, checking
 that code runs. Here it cost four commands and a false finding. In a measurement that mattered it
 would produce a number computed over the wrong sample with nothing anywhere saying so.
+
+---
+
+## FOUR AGENTS LANDED WORK AND NONE OF THEM REPORTED — THE SESSION DIED FIRST. 2026-08-10.
+
+I ran four division agents at once (ENGINE, WEB, MEASURE, SEARCH). The session froze and Will had to
+hard-restart it, so **not one of the four returned a verdict.** Their edits survived on disk; their
+claims did not. **Everything below was verified by RUNNING it, not by reading a report**, which is the
+only honest option when the reporter is gone — and is arguably how it should have been done anyway.
+
+**THE PROCESS LESSON IS MINE, NOT THEIRS.** Will's rule was "MULTIPLE AGENTS BUT ONLY ONE PER
+DIVISION", and I satisfied it literally while missing what it was protecting: four concurrent agents,
+each spawning Showdown battles, is a load problem regardless of file separation. One-per-division is a
+COLLISION rule. It is not a capacity rule, and I treated it as both.
+
+### WHAT SURVIVED, VERIFIED BY RUNNING IT
+
+| Division | Evidence |
+|---|---|
+| SEARCH | `tests/test-rollout-switch.js` — 16 passed |
+| WEB | `tests/test-web-quarantine-loaders.js` — ALL PASS |
+| MEASURE | `tests/test-engine-release.js` — 66 passed |
+| ENGINE | gate unchanged at 8 open defects — **#118/#119 did NOT land** |
+
+### THE ROLLOUT CAP WAS A ROUND NUMBER, AND THE ARTIFACT SAYS SO IN ITS OWN WORDS
+
+`data/rollout-switch-census.json`, pooled over **58,639 stored games**:
+
+    71.22%  of games contain a voluntary switch
+     9.98%  of decisions WITH A LIVE BENCH are a voluntary switch
+       14   turns — the derived cap (ladder 14, bo3 13), at 99% of occurrence-weighted positions
+       60   turns — what it was, `was_derived_from: "nothing — a round number"`
+
+So the rollout was imagining games **four times longer than they are**, in which **nobody ever left**,
+while seven games in ten really do contain a switch. Those two errors compound rather than cancel: a
+long rollout with no switching is exactly where stall lines that cannot exist get discovered, and the
+PP work landed earlier the same night makes those lines end in Struggle.
+
+### THE 56 UNOPENABLE RELEASES RESOLVE INTO CAUSES, AND MOSTLY ARE NOT BROKEN
+
+`data/release-census.json`: **54 serviceable, 55 predate an export, 4 pruned, 5 genuinely unloadable.**
+The dominant cause is the one the release header warns about — `SOURCES` grew 12 → 17 → 23, so an
+older release lacks a file today's loader requires. That is a LOADER-COMPATIBILITY fact, not
+corruption, and it is a much smaller problem than "56 of 62 cannot be opened" implied.
+
+### THE GURU HOLE — TEN GENERATORS, NONE DECLARED, ALL RED AT ONCE
+
+`tests/test-stadium-roster.js` went red on ten artifact generators built across this sprint that were
+in neither `docs/MODELS.md` nor the Stadium and had no declared reason: `all_mechanics_fire`,
+`click_counts`, `format_audit`, `mega_census`, `pp_board_probe`, `replay_differential`,
+`rollout_switch_census`, `rollout_switch_probe`, `scenario_catalogue`, `sheet_usage`. **Three were
+mine.**
+
+They divide three ways and the division is the point: an **INSTRUMENT** measures our engine against
+the authority, a **CENSUS** states a fact about the stored corpus, a **PROBE** is a receipt that a
+capability fires. None predicts anything about a game, which is what a model does. Each is now
+declared with its own reason and its own TRIGGER — the condition that would make the declaration false
+— because that table's own rule is that a reused reason is the pattern it forbids, and a stale
+declaration stops the gate asking permanently.
+
+`click_counts` and `sheet_usage` were the borderline pair and are declared as censuses on a stated
+argument: the MEDICHAM gate's usage shelf reads them, but **the shelf is the thing that decides** and
+it lives in `engine/quarantine.js` with its own bar. The trigger is written down: false the day a
+fitted model takes those counts as a feature rather than as a threshold.
+
+### AND THE DIFFERENTIAL CLAUSE HAD QUIETLY WEAKENED
+
+The gate read `0 of 150 comparisons` where it had been `0 of 20,000` — an agent ran it small and the
+artifact it left behind is what the clause reads. **A gate passing on a 133x smaller sample is a
+weaker claim wearing the same word.** Re-run at 20,000: still 0.

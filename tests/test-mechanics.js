@@ -303,7 +303,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * `battleInit` and spends an arbitrary number of real turns through `battleTurn`, reading every body
  * on every turn — the whole move queue it serves is made of facts carried ACROSS a turn boundary or
  * paid on a body other than the one aimed at, and no single-turn probe can see either. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(/;
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -12294,6 +12294,112 @@ probe('move', 'setsOwnTypeAlways', 'every slot empty: the engine Struggles', () 
                  + (half.byMove.struggle || 0) + ' and reaches for '
                  + Object.keys(half.byMove).join('/') + ' instead. Struggle is typeless (???), so '
                  + 'mcEff answers x1 against every defender rather than 0 against a Ghost' };
+});
+
+/* ---- ROADMAP #152: THE MENU, AND WHY IT IS ONE MECHANISM WITH THE CHOICE LOCK -------------------
+ *
+ * `menuRun(` added 2026-08-11 with ROADMAP #152, declared HERE and with its reason written at the
+ * helper itself, exactly as the direct-call paragraph at the top of this file requires. It stages a
+ * real doubles board through `battleInit` and spends up to three real turns through `battleTurn`,
+ * and it needs every one of them: the thing under test is WHAT THE MENU OFFERED on a LATER turn,
+ * and the menu is not an object this engine hands anybody — it is the set of moves the chooser is
+ * willing to return. So the only observable is the `|move|` line on turn N+1, after a turn N that
+ * armed a lock and a turn N+1 that took the locked slot away. `playerAction` cannot see it (it
+ * builds whatever it is asked for), `chooseAction` is not exported, and a direct call to either
+ * would be blind by construction. It reads the `|move|` stream, the `|-damage| ... [from] Recoil`
+ * lines and the lock fields together, because "the body Struggled" is three claims — it played
+ * Struggle, it paid the recoil, and it did NOT play the move that was taken away. */
+const menuRun = (o) => {
+  const B = board('incineroar', 'farigiraf', 'garchomp', 'farigiraf');
+  /* A DECLARED FOUR-MOVE SET, so the menu has something to empty. `bare()` blanks the item and the
+   * ability; the moves are named here because the whole claim is about which of THESE four the
+   * chooser may still offer. */
+  B.me.moves = ['knockoff', 'taunt', 'swordsdance', 'tailwind'];
+  /* Nothing may faint: a KO ends the sequence early and the arms would then differ because somebody
+   * died rather than because a menu emptied. */
+  for (const b of [B.me, B.ally, B.f1, B.f2]) { b.st = Object.assign({}, b.st, { hp: b.st.hp * 60 }); b.curHP = b.st.hp; }
+  B.me.item = o.item || '';
+  const trace = []; B.S._trace = trace;
+  for (const t of o.turns) {
+    const mine = t.me === undefined ? undefined
+      : new Map([[B.me, t.me === null ? { kind: 'pass' } : M.playerAction(B.me, t.me, B.f1, B.S.field)],
+                 [B.ally, { kind: 'pass' }]]);
+    const theirs = t.foe === undefined ? undefined
+      : new Map([[B.f1, t.foe === null ? { kind: 'pass' } : M.playerAction(B.f1, t.foe, B.me, B.S.field)],
+                 [B.f2, { kind: 'pass' }]]);
+    M.battleTurn(B.S, rng5, mine, theirs);
+  }
+  return {
+    played: trace.filter(l => /^\|move\|p1a/.test(l)).map(l => l.split('|')[3]),
+    recoil: trace.filter(l => /^\|-damage\|p1a[^|]*\|[^|]*\|\[from\] Recoil/.test(l)).length,
+    lock: B.me._lock || null,
+    lockT: B.me._lockT === Infinity ? 'inf' : (B.me._lockT || 0),
+  };
+};
+
+/* ROADMAP #118. THE ARM IS THE ITEM, AND THE READING IS THE SECOND TURN'S CLICK — never `_lock`,
+ * which is the engine's own bookkeeping and would let a probe agree with the implementation instead
+ * of with the game. Turn 1 clicks the varied move; turn 2 HANDS IN Knock Off, which a locked body
+ * must refuse and an unlocked one must play.
+ *
+ * TWO CONTROLS AND THEY DO DIFFERENT WORK. The empty hand is the arm that makes this mean anything:
+ * "turn 2 played Taunt" is also what an engine that ignores the second action entirely prints. The
+ * Knock-Off-first arm is the positive control — the lock already armed on an ATTACK before this row
+ * existed, so a red here can only be the STATUS half. */
+probe('item', 'choiceLock', 'the lock arms on a STATUS move, not only on an attack', () => {
+  const run = (first, item) => menuRun({ item, turns: [{ me: first, foe: null }, { me: 'knockoff', foe: null }] });
+  const test = run('taunt', 'choicescarf');
+  const control = run('taunt', '');
+  const positive = run('knockoff', 'choicescarf');
+  return { works: String(test.played) === 'taunt,taunt'
+                  && String(control.played) === 'taunt,knockoff'
+                  && String(positive.played) === 'knockoff,knockoff',
+           arms: { control: control.played, test: test.played },
+           detail: '[turn 1, turn 2 after handing in Knock Off] — Taunt first with a Choice Scarf '
+                 + test.played + ' (the lock must bind); the identical pair of clicks with NO item '
+                 + control.played + ' (the second click must be honoured, or the probe proves '
+                 + 'nothing); Knock Off first with the Scarf ' + positive.played + ', which armed '
+                 + 'before this row existed and is the arm that says a red is the STATUS half' };
+});
+
+/* ROADMAP #119. STRUGGLE IS AN EMPTY MENU, NOT AN EMPTY PP BAR — and this is the door PP cannot
+ * reach: every slot is at FULL PP on all three arms. The Choice lock takes three moves off the menu
+ * and Disable takes the fourth, so `sim/side.ts:697`'s `!moves.length` is satisfied at full PP.
+ *
+ * TWO CONTROLS, EACH REMOVING ONE HALF OF THE PAIR, because either half alone must leave a menu:
+ * Disable with no lock still offers three moves, and the lock with no Disable still offers one.
+ * THE RECOIL IS READ AS WELL AS THE MOVE LINE — an engine that announced Struggle and dealt nothing
+ * is exactly the silent no-op this row was filed for. */
+probe('item', 'choiceLock', 'a Choice lock onto a Disabled move empties the menu: Struggle', () => {
+  const run = (item, foe2) => menuRun({ item, turns: [
+    { me: 'knockoff', foe: null },       // arms the lock, and gives Disable a last move to seal
+    { me: 'knockoff', foe: foe2 },       // the foe seals it
+    { me: undefined, foe: null },        // the engine chooses: what is left on the menu?
+  ] });
+  const test = run('choicescarf', 'disable');
+  const noDisable = run('choicescarf', null);
+  const noLock = run('', 'disable');
+  const third = (r) => r.played[2] || null;
+  /* THE RECOIL IS ASSERTED ON THE TWO ARMS WHERE IT DISCRIMINATES AND NOT ON THE THIRD, and this
+   * probe was WRONG here before the engine was. The no-lock control's chooser is free, it sampled
+   * FLARE BLITZ, and Flare Blitz carries recoil of its own — so `noLock.recoil === 0` failed for a
+   * reason that has nothing to do with Struggle. Test arm: recoil > 0 is what separates a real
+   * Struggle from ROADMAP #119's silent no-op, which cost its user exactly nothing. Lock-with-no-
+   * Disable arm: Knock Off is recoil-free, so 0 says the lock did not quietly become a Struggle.
+   * (That the free chooser reached a move which is NOT one of the body's four is a separate,
+   * pre-existing leak — the priors sampler picks by NAME out of MC.priors and never consults
+   * `me.moves`. It is filed, not fixed here, and it is why this arm asserts only "not Struggle".) */
+  return { works: third(test) === 'struggle' && test.recoil > 0
+                  && third(noDisable) === 'knockoff' && noDisable.recoil === 0
+                  && third(noLock) && third(noLock) !== 'struggle',
+           arms: { control: third(noLock), test: third(test) },
+           detail: 'turn 3 is chosen by the engine, every slot at full PP. Scarf-locked into Knock '
+                 + 'Off AND Knock Off Disabled -> ' + third(test) + ', which cost its user '
+                 + test.recoil + ' recoil line(s) — a no-op turn costs 0; the same lock with NO '
+                 + 'Disable -> ' + third(noDisable) + ' (recoil ' + noDisable.recoil + ', must be 0); '
+                 + 'the same Disable with NO lock -> ' + third(noLock) + '. Either half alone must '
+                 + 'leave a menu, so a red on one control is the fix over-firing and a red on the '
+                 + 'other is it not firing at all' };
 });
 
 const mbRun = (attAb, defAb, arm) => {
