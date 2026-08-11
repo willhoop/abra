@@ -312,14 +312,18 @@ console.log('\nwire 6 — punishesAttacker complete');
   ok(pCB && pCB.inflictsVolatile && pCB.inflictsVolatile.volatile === 'disable' && pCB.inflictsVolatile.chance === 0.3,
     'Cursed Body declares disable at 30% (unconsumed: no volatile state)');
 
-  /* Gulp Missile must be SKIPPED: the punishment exists only in Surf/Dive formes this engine does
-   * not model. A base-forme Cramorant that punishes would be a new wrong number. */
-  const pGM = TAGS.param('ability', 'gulpmissile', 'punishesAttacker');
-  ok(pGM && Array.isArray(pGM.requiresForme) && pGM.requiresForme.length === 2,
-    'Gulp Missile carries its forme gate, so the engine skips it whole');
+  /* ROADMAP #175, 2026-08-11 — GULP MISSILE IS NO LONGER IN THE ARTIFACT. Cramorant is
+   * `isNonstandard: 'Past'` in Reg M-B, so `engine/tag_dex.js` stopped deriving the ability with every
+   * other one that no legal body can carry (Will: "if no legal species, then toss it man"). The PARAM
+   * assertion is therefore gone — there is no row to read a forme gate off.
+   *
+   * THE BEHAVIOURAL ASSERTION STAYS AND IS THE ONE THAT MATTERED. An unknown ability must punish
+   * NOBODY, which is what the engine has to do with any ability it has no tag for; it is now a check
+   * on the absent-ability path rather than on the forme gate, and it is stated as that rather than
+   * left looking like coverage of a mechanic that is gone. */
   const gm = one('corviknight', 'ironhead', 'gulpmissile', 'earthquake', 0.5, 99999);
   ok(gm && gm.curHP === gm.st.hp && gm.status === '',
-    'a base-forme Gulp Missile body punishes nobody');
+    'an ability with no row in the artifact (Gulp Missile — no legal carrier here) punishes nobody');
 }
 
 /* ---- WIRE 7: weatherScaled — the weather changes the move ------------------------------------ */
@@ -503,7 +507,11 @@ console.log('\nwire 11 — typeImmunity');
 {
   const db = require(path.join(ROOT, 'data', 'tags.json'));
   const members = Object.keys(db.abilities).filter(k => (db.abilities[k].tags || []).includes('typeImmunity'));
-  ok(members.length === 12, `${members.length} absorb/immunity abilities, matching the 12-name table this wire deletes`);
+  /* ROADMAP #175, 2026-08-11 — TEN, NOT TWELVE. Two members (Storm Drain, Well-Baked Body) have no
+   * legal carrier in Reg M-B and are no longer derived. The number is asserted rather than a floor
+   * because a SHRINKING membership is the thing this line exists to notice: it was 12 when the wire
+   * deleted a 12-name table, and it is 10 now for a reason that is written down. */
+  ok(members.length === 10, `${members.length} absorb/immunity abilities, every one with a legal carrier in this format`);
   ok(members.every(k => db.abilities[k].params.typeImmunity.type),
     'every member names its TYPE (was {immune:true} — a boolean in param\'s clothing)');
 
@@ -558,18 +566,26 @@ console.log('\nwire 11 — typeImmunity');
       `the absorbed hit HEALS the absorber 1/4 (${before} -> ${holder.curHP}, a quarter is ${Math.floor(holder.st.hp / 4)}) — the old table priced this gift at nothing`);
   }
 
-  /* Storm Drain banks +1 SpA instead */
-  const sd = M.buildMon('garchomp', {}); sd.ability = 'stormdrain'; sd.item = '';
-  const pel = M.buildMon('pelipper', {}); pel.item = '';
+  /* LIGHTNING ROD BANKS +1 SpA INSTEAD — the `gain.boosts` half of the same tag, on a different
+   * member, so "the immunity fires" cannot pass for "the gift was collected".
+   *
+   * ROADMAP #175, 2026-08-11 — this was STORM DRAIN, whose every carrier (the Shellos and Gastrodon
+   * lines, Lileep, Cradily, Finneon, Lumineon, Maractus, Tatsugiri) is `isNonstandard: 'Past'` in Reg
+   * M-B, so the ability is no longer derived. Lightning Rod carries the IDENTICAL param —
+   * `gain: {boosts: {spa: 1}}` — on Manectric, Pikachu, Raichu, Sceptile-Mega and Rhyperior, so the
+   * assertion is unchanged and is now about a body a player can bring. The move changes with it:
+   * Lightning Rod draws ELECTRIC, and Ampharos is the attacker because it legally learns Thunderbolt. */
+  const sd = M.buildMon('manectric', {}); sd.ability = 'lightningrod'; sd.item = '';
+  const pel = M.buildMon('ampharos', {}); pel.item = '';
   const S2 = M.battleInit([pel], [sd]);
-  const savedP = MC.priors.pelipper; MC.priors.pelipper = null;
+  const savedP = MC.priors.ampharos; MC.priors.ampharos = null;
   const savedG = MC.priors[sd.name]; MC.priors[sd.name] = null;
-  S2.actA[0].moves = ['hydropump']; sd.moves = ['protect'];
-  try { M.battleTurn(S2, () => 0.5, new Map([[S2.actA[0], M.playerAction(S2.actA[0], 'hydropump', sd, S2.field)]]),
+  S2.actA[0].moves = ['thunderbolt']; sd.moves = ['protect'];
+  try { M.battleTurn(S2, () => 0.5, new Map([[S2.actA[0], M.playerAction(S2.actA[0], 'thunderbolt', sd, S2.field)]]),
                      IDLE(S2.actB[0])); }
-  finally { MC.priors.pelipper = savedP; MC.priors[sd.name] = savedG; }
+  finally { MC.priors.ampharos = savedP; MC.priors[sd.name] = savedG; }
   ok(sd.boosts.sa === 1 && sd.curHP === sd.st.hp,
-    `Storm Drain banks +1 SpA off the absorbed Hydro Pump (sa ${sd.boosts.sa}, untouched HP)`);
+    `Lightning Rod banks +1 SpA off the absorbed Thunderbolt (sa ${sd.boosts.sa}, untouched HP)`);
 }
 
 /* ---- WIRE 12: survivesFromFull — the kill that is not a kill --------------------------------- */
@@ -610,7 +626,9 @@ console.log('\nwire 13 — boostsMoveClass');
 {
   const db = require(path.join(ROOT, 'data', 'tags.json'));
   const members = Object.entries(db.abilities).filter(([, r]) => (r.tags || []).includes('boostsMoveClass'));
-  ok(members.length >= 6 && members.every(([, r]) => r.params.boostsMoveClass.mult > 1),
+  /* ROADMAP #175, 2026-08-11 — the floor drops from 6 to 5: one member had no legal carrier in Reg
+   * M-B and is no longer derived. The `mult > 1` half is untouched and is the half that matters. */
+  ok(members.length >= 5 && members.every(([, r]) => r.params.boostsMoveClass.mult > 1),
     `${members.length} class-boost abilities, every one carrying its real multiplier (was flag-only)`);
 
   /* REWRITTEN 2026-08-07, ROADMAP #92, AND THE ENGINE WAS RIGHT WHILE THIS ASSERTION WAS WRONG.

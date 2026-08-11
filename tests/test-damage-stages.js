@@ -305,10 +305,26 @@ row('stat', 'water bubble, attacking (onModifyAtk)',
 row('stat', 'water bubble, defending (onSourceModifyAtk)',
     { att: 'Charizard', move: 'Flamethrower', def: 'Araquanid', defAb: 'Water Bubble' },
     { att: 'Charizard', move: 'Flamethrower', def: 'Araquanid' });
-row('stat', 'steelworker (damageBoost, narrowed)',
-    { att: 'Kingambit', move: 'Iron Head', def: 'Snorlax', attAb: 'Steelworker' },
-    { att: 'Kingambit', move: 'Iron Head', def: 'Snorlax' });
-row('stat', 'transistor (damageBoost, [5325/4096])', with_(P, { attAb: 'Transistor' }), P);
+/* ROADMAP #175, 2026-08-11 — THESE TWO ROWS WERE STEELWORKER AND TRANSISTOR, AND BOTH ARE GONE.
+ * Neither has a legal carrier in Reg M-B, so `engine/tag_dex.js` no longer derives them, the engine's
+ * narrowed `damageBoost` set no longer contains them, and the rows became a comparison between
+ * Showdown applying a boost and this engine correctly not applying one — 64 disagreements that were
+ * the TEST staging an ability nobody can bring, not a stage error.
+ *
+ * FIRE MANE IS THE REPLACEMENT AND IT IS THE SAME SHAPE: a multiplier, a type, no weather, no
+ * condition, no other tag, applied at the ATTACKING STAT — which is exactly what these two rows were
+ * here to pin. Its carrier is Pyroar-Mega, which is legal here. There is no second non-conditional
+ * member left with a legal carrier (the rest of the narrowed set is Blaze, Overgrow, Swarm and
+ * Torrent, all gated on HP), so the second row is not replaced and that is said rather than padded. */
+/* THE BODY IS THE BASE PYROAR, NOT PYROAR-MEGA, and that is this harness's own convention rather
+ * than a compromise: `medichamRolls` keys the mon table with `replace(/[^a-z0-9]/g,'')`, so a hyphened
+ * forme cannot be built here at all. Every row in this file STAGES its ability onto both engines
+ * identically — the row this replaces put Steelworker on a Kingambit, which does not carry it either —
+ * because what is under test is the STAGE the multiplier is applied at, not who may hold it. Fire Mane
+ * is a legal Reg M-B ability (Pyroar-Mega) and Pyroar is a legal body. */
+row('stat', 'fire mane (damageBoost, narrowed)',
+    { att: 'Pyroar', move: 'Flamethrower', def: 'Snorlax', attAb: 'Fire Mane' },
+    { att: 'Pyroar', move: 'Flamethrower', def: 'Snorlax' });
 row('stat', 'sword of ruin', with_(K, { attAb: 'Sword of Ruin' }), K);
 row('stat', 'beads of ruin', with_(A, { attAb: 'Beads of Ruin' }), A);
 row('stat', 'guts on a burnt body',

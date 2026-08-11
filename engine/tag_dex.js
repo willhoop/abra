@@ -3706,7 +3706,23 @@ const MOVE_TAGS = [
       if (!f) return null;
       const abs = [...f[1].matchAll(/["'](\w+)["']/g)].map(x => x[1]);
       if (!abs.length) return null;
-      return { requiresAllyAbility: abs, boosts: m.boosts || null,
+      /* ROADMAP #175 — `m.boosts` IS NULL HERE AND THE MOVE DOES BOOST. The comment above said the
+       * amount comes "off the move's own `boosts` field"; Magnetic Flux has no such field, because the
+       * boost is applied INSIDE the handler (`this.boost({ def: 1, spd: 1 }, target, ...)`,
+       * data/moves.ts:10847). So the artifact carried `boosts: null` — a tag that names an eligibility
+       * rule and refuses to say what it grants, which is the "boolean instead of a parameter" defect
+       * `engine/tags.js` names as the most common one in this repo. Read out of the handler, with the
+       * move's own field kept as the first source for a member that declares it there.
+       *
+       * `includesSelf` matters and is not cosmetic: `side.allies()` INCLUDES the user, so an Ampharos
+       * clicking this with no partner still boosts itself, and a consumer that walked "the ally" alone
+       * would make the move fail on exactly the board it is most often clicked on. */
+      const bo = {};
+      const bm = /this\.boost\(\s*\{([^}]*)\}/.exec(src);
+      if (bm) for (const g of bm[1].matchAll(/(\w+)\s*:\s*(-?\d+)/g)) bo[g[1]] = +g[2];
+      return { requiresAllyAbility: abs,
+               boosts: m.boosts || (Object.keys(bo).length ? bo : null),
+               includesSelf: /side\.allies\(\)/.test(src),
                failsWithNoEligibleAlly: /if\s*\(!targets\.length\)\s*return false/.test(src) };
     } },
 
@@ -6308,8 +6324,22 @@ const ABILITY_TAGS = [
       const map = {};
       for (const m of src.matchAll(/["'](electricterrain|grassyterrain|mistyterrain|psychicterrain)["'][\s\S]{0,80}?["'](Electric|Grass|Fairy|Psychic)["']/g))
         map[m[1]] = m[2];
+      /* ROADMAP #175 -- `revertsWithoutTerrain` WAS DERIVED FALSE AND THE HANDLER REVERTS.
+       *
+       * The old pattern looked for `clearType` or `setType(x.species.types)`. Mimicry writes neither:
+       * its `default:` arm assigns `types = pokemon.baseSpecies.types` to a LOCAL and calls
+       * `pokemon.setType(types)` twenty lines later (data/abilities.ts:2592), so the regex could never
+       * match and the artifact stated the OPPOSITE of the ability. Nothing had read the field, which is
+       * the only reason it cost nothing -- and it is exactly the hazard a dead tag carries: a parameter
+       * nobody consumes is a parameter nobody checks, and the first consumer inherits it silently. A
+       * wire that trusted `false` would have modelled a Stunfisk-Galar that becomes Electric under a
+       * terrain and STAYS Electric forever, which is a different and better ability than the real one.
+       *
+       * Matching on the assignment to the base species' types covers both shapes -- the local variable
+       * and the direct call -- and `baseSpecies` rather than `species` is the authority's own word for
+       * "what it was before anything changed it". */
       return { follows: 'terrain', types: Object.keys(map).length ? map : null,
-               revertsWithoutTerrain: /clearType|setType\(\s*\w+\.species\.types/.test(src) };
+               revertsWithoutTerrain: /clearType|setType\(\s*\w+\.(?:base)?[Ss]pecies\.types|baseSpecies\.types/.test(src) };
     } },
 
   /* FORECAST — the holder's FORME follows the weather. It is not `switchInForme` (entry),
@@ -6347,7 +6377,25 @@ const ABILITY_TAGS = [
         .filter(Boolean);
       const formes = [...new Set(Object.values(byWeather).concat(literal))];
       if (!formes.length) return null;
+      /* ROADMAP #175 — THE MAP OF SKY -> FORME NAME IS NOT ENOUGH FOR A CONSUMER, and finding that out
+       * is what wiring this tag cost. `data/engine-data.js` holds a row for `castform` and for NONE of
+       * Castform-Sunny / Rainy / Snowy, and ENGINE may not edit that file — so an engine handed a forme
+       * NAME can look it up, fail, and do nothing, which is the silent-default shape exactly. What the
+       * mechanic actually IS, given `sameStats: true`, is a TYPE change, and the type is a fact the
+       * dex has right here and the artifact was throwing away.
+       *
+       * `revertsTo` is the `default:` arm of the same switch (`forme = 'Castform'`,
+       * data/abilities.ts:1482) and it is derived rather than assumed: a member with no default arm
+       * gets null and a consumer must not invent a way home for it. Read separately from the `case`
+       * runs above because `default:` carries no case label and that matcher cannot see it. */
+      const typesOf = f => { const s = dex.species.get(f); return s && s.exists && s.types ? s.types.slice() : null; };
+      const typesByWeather = {};
+      for (const k in byWeather) { const t = typesOf(byWeather[k]); if (t) typesByWeather[k] = t; }
+      const dm = /default\s*:[^]*?forme\s*=\s*["']([^"']+)["']/.exec(src);
+      const revertsTo = dm ? ok(dm[1]) : null;
       return { formes, byWeather: Object.keys(byWeather).length ? byWeather : null,
+               typesByWeather: Object.keys(typesByWeather).length ? typesByWeather : null,
+               revertsTo, revertsToTypes: revertsTo ? typesOf(revertsTo) : null,
                /* a single literal with no map is a RESTORE (Ice Face coming back in snow), not a
                 * weather-driven forme table — a consumer has to tell those apart */
                restoresRatherThanChanges: !Object.keys(byWeather).length && formes.length === 1,
@@ -6380,9 +6428,26 @@ const ABILITY_TAGS = [
       if (!/this\.add\(/.test(src)) return null;
       if (/setAbility|formeChange|boost\(|setItem|takeItem|removeSideCondition|cureStatus|singleEvent|heal\(|damage\(|addVolatile|setStatus|setWeather|setTerrain|clearBoost/.test(src))
         return null;
+      /* ROADMAP #175 — `reveals` IS PROSE AND A CONSUMER CANNOT ACT ON IT. Two of the three members
+       * say "a foe move" and they emit DIFFERENT protocol events, so a wire reading `reveals` alone
+       * cannot tell Anticipation from Forewarn — the same defect as `nameImplementedBySim`, whose
+       * param was prose until it was wired. The EVENT and the BODY it names are both in the handler's
+       * own `this.add(...)` and are read off it here:
+       *   Frisk         `this.add('-item', target, ...)`      -> '-item' on a FOE, once per foe
+       *   Anticipation  `this.add('-ability', pokemon, ...)`  -> '-ability' on SELF
+       *   Forewarn      `this.add('-activate', pokemon, ...)` -> '-activate' on SELF
+       * `on` is decided by whether the second argument is the handler's own subject; the loop variable
+       * (`target`) is anything else. Nothing here is a name test. */
+      const em = /this\.add\(\s*["'](-[a-z]+)["']\s*,\s*(\w+)/.exec(src);
+      /* THE HANDLER IS A METHOD SHORTHAND, NOT A `function` EXPRESSION — `onStart(pokemon) { ... }`.
+       * The first draft matched `/^function[^(]*\(/` and therefore matched NOTHING, so all three
+       * members derived `on: 'foe'` and Anticipation and Forewarn were silently mis-described. Caught
+       * by printing the three rows before anything read them, which is the rule. */
+      const subj = /^(?:function\s*)?[\w$]*\s*\(\s*(\w+)/.exec(String(a.onStart || '').trim());
       return { effect: 'information only',
                reveals: /getItem\(\)/.test(src) ? 'the foes\' items'
                       : /moves/.test(src) ? 'a foe move' : 'a warning',
+               emits: em ? { event: em[1], on: (subj && em[2] === subj[1]) ? 'self' : 'foe' } : null,
                visibleOnABoard: false };
     } },
 
@@ -6562,9 +6627,53 @@ function collect(kind, all, tags, usageMap) {
   return { entries, index };
 }
 
+/* ---- ROADMAP #175 / #190 — AN ABILITY NO LEGAL BODY CAN CARRY IS NOT A FACT ABOUT THIS FORMAT ----
+ *
+ * Will, 2026-08-11: *"if no legal species, then toss it man"*.
+ *
+ * `dex.abilities.all()` is the WHOLE ability table, exactly as `dex.species.all()` is the National
+ * Dex wearing this format's name (CLAUDE.md). 294 rows reached this artifact and 93 of them belong to
+ * no species that can legally be brought to a Reg M-B game — so the engine grew consumers, the census
+ * grew probes, and the deliberate roster grew a 114-row `NO LEGAL CARRIER` column, all for mechanics
+ * that cannot occur. That is not conservatism; it is 93 rows of specification nobody can ever falsify.
+ *
+ * WHY THIS WAS BLOCKED UNTIL NOW, AND WHAT UNBLOCKED IT. Five of the 93 record CORPUS USES —
+ * `serenegrace` 5, `stormdrain` 3, `psychicsurge` 2, `tintedlens` 2, `steelyspirit` 1 — which the
+ * carrier derivation says is impossible, and ROADMAP #190 held that contradiction open because it had
+ * two readings and both were serious: either the legality read under-reports, or the corpus contains
+ * games that were not played under this regulation. Will settled it on 2026-08-11: the corpus is
+ * contaminated — a replay carrying the format's name is not proof the game ran under its rules — and
+ * the contamination is OPS's to filter. The legality derivation is sound, so it is safe to cut on.
+ *
+ * WHAT IT COSTS, MEASURED BEFORE IT WAS APPLIED RATHER THAN AFTER. Five tags lose every member and
+ * cease to exist: `auraBreak` (Aura Break), `allyBasePowerBoost` (Battery, Power Spot, Steely
+ * Spirit), `secondaryChanceMult` (Serene Grace), `amplifiesBoosts` (Simple) and
+ * `boostsNotVeryEffective` (Tinted Lens). TWO OF THOSE CARRIED LIVE CENSUS PROBES, so the one number
+ * this division may never let fall DOES fall, by 2, on this change — deliberately, declared, and with
+ * the reason: a probe for an ability no legal body can carry was measuring nothing at all.
+ *
+ * MEGA FORMES ARE NOT DROPPED, and that was checked rather than assumed: the legality filter is
+ * CLAUDE.md's own (`exists && !isNonstandard && tier !== 'Illegal'`), which keeps all 76 legal megas,
+ * so Mega Ampharos's Mold Breaker and every other mega-only ability stays in.
+ *
+ * MOVES AND ITEMS ARE UNTOUCHED. Both were measured at ZERO carrier-less rows by the deliberate
+ * roster ("0 have NO LEGAL CARRIER in this format") — a move nobody learns and an item nobody may
+ * hold are different questions with different answers, and applying an ability's rule to them would
+ * be an assumption rather than a measurement. */
+const LEGAL_CARRIED = (() => {
+  const set = new Set();
+  for (const s of dex.species.all()) {
+    if (!s || !s.exists || s.isNonstandard || s.tier === 'Illegal') continue;
+    for (const a of Object.values(s.abilities || {})) set.add(norm(a));
+  }
+  return set;
+})();
 const moves = collect('move', dex.moves.all(), MOVE_TAGS, U.move);
 const items = collect('item', dex.items.all(), ITEM_TAGS, U.item);
-const abils = collect('ability', dex.abilities.all(), ABILITY_TAGS, U.ability);
+const abils = collect('ability', dex.abilities.all().filter(a => LEGAL_CARRIED.has(norm(a && (a.id || a.name)))),
+  ABILITY_TAGS, U.ability);
+console.log(`  abilities: ${LEGAL_CARRIED.size} of ${dex.abilities.all().length} have a legal carrier in `
+  + `this regulation; the rest are not derived (ROADMAP #175 — "if no legal species, then toss it").`);
 
 /* ---- LINKAGE ---------------------------------------------------------------------------------
  * Will, 2026-07-29: "i want to tie as many of these tags as possible to the move tags like the
@@ -6790,9 +6899,27 @@ for (const r of unread.slice(0, 12)) {
  *   ignoresAbility: zero moves in this format carry the flag (Sunsteel Strike, Moongeist Beam and
  *   Photon Geyser are all out), so the ABILITY version (Mold Breaker) carries the whole mechanic.
  */
+/*   ROADMAP #175, 2026-08-11 — the five below became empty on the day abilities with NO LEGAL CARRIER
+ *   stopped being derived (Will: "if no legal species, then toss it man"). Each one's every member is
+ *   an ability no species that can legally be brought to a Reg M-B game carries, so the tag is not
+ *   "unmatched", it is INAPPLICABLE TO THIS REGULATION:
+ *
+ *     auraBreak               Aura Break        — Zygarde and Zygarde-10% are 'Past', Zygarde-Mega 'Future'
+ *     allyBasePowerBoost      Battery, Power Spot, Steely Spirit
+ *     secondaryChanceMult     Serene Grace
+ *     amplifiesBoosts         Simple
+ *     boostsNotVeryEffective  Tinted Lens
+ *
+ *   They are DECLARED here rather than deleted, for the same reason the item rows above are: the
+ *   format changes, and the day one of those abilities gets a legal body the rule starts matching
+ *   again with no archaeology. What is TOSSED is the artifact row — the engine and the census read the
+ *   artifact, and the tags are gone from it (263 distinct tags -> 258). `auraBreak` and
+ *   `boostsNotVeryEffective` each carried a LIVE census probe; both probes are removed in the same
+ *   pass and the census falls by 2, which is stated in the report rather than absorbed. */
 const EXPECTED_EMPTY = new Set([
   'blocksSecondary', 'blocksPowder', 'preventsStatDrop', 'contactPunish',
   'skipsChargeTurn', 'statMult', 'ignoresAbility',
+  'auraBreak', 'allyBasePowerBoost', 'secondaryChanceMult', 'amplifiesBoosts', 'boostsNotVeryEffective',
 ]);
 /* WILL'S RULE, 2026-07-29: "if a pokemon doesnt have a recognized move or ability, lets just give
  * it a nothing placeholder... im not trying to plan for watchog man... just have it flag it if it

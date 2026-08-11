@@ -4715,3 +4715,264 @@ one number that may never go down, by 2. And **5 of the 93 record corpus uses** 
 cannot happen. Either the usage corpus contains games outside Reg M-B or the carrier read is
 incomplete; **that contradiction has to be settled before anyone deletes anything**, because a skip
 rule that removes a tag with real observed uses is the over-match #178 exists to catch.
+
+## MEASURE, overnight 2026-08-11, third pass — THE STATUS RESIDUAL WAS THE INSTRUMENT, AND IT WAS ALSO THE OHKO DENOMINATOR
+
+**VERDICT: INSTRUMENT.** One defect in `engine/million_run.js` produced the major-status residual, the
+`targetBoosts` residual, the accuracy drift and the OHKO denominator that would not reconcile. Nothing
+here is an engine rate defect. Release `b838c0d12daa`, 50,000 games, same seed on both arms.
+
+| pooled arm | before | after |
+|---|---|---|
+| ALL | z **−2.315** | z **−0.501** |
+| secondary | z **−4.597** | z **−0.472** |
+| — major status | z **−5.183** on 30,052 | z **−1.085** on 28,661 |
+| — targetBoosts | z **−3.107** | z **−0.584** |
+| accuracy | z +1.526 | z **+0.111** |
+| OHKO | WITHHELD | **SCORED**, z −1.142 on 6,915 |
+| rows surviving Bonferroni | **2** | **0** |
+
+**THE MECHANISM, AND IT WAS FOUND BY READING THE DENOMINATOR RATHER THAN ARGUING ABOUT THE MOVES.**
+`million_run.js --dump-status` writes one row per scored status trial with covariates the tally does
+not look at, so the SAME trials could be conditioned instead of a second instrument re-deriving its own
+denominator and answering a different question. Split on "did a `-damage` line for this body exist":
+
+- **1,391 of the 30,052 scored status trials had NO damage line, and they fired 0 times out of 1,391.**
+  A class that cannot fire, sitting in the denominator.
+- The carriers name themselves: **868 Speed Boost, 373 Moody, 60 Intimidate, 54 Lightning Rod**. 1,119
+  of the 1,391 bodies were not damaged by ANY block in the whole turn.
+
+`resolveBlock` marks a body `touched` on a `-status`/`-start`/`-boost`/`-unboost` line inside the block
+that does not carry `[from]`, and the block parser closes only on an ACTION line — so every end-of-turn
+line lands in the turn's LAST move block. The `[from]` filter was the right idea and **cannot work on
+this stream**: medicham2's `TR.bst(m,eng,d,from)` takes a `from` argument and the residual sites do not
+pass one, so a Speed Boost is emitted as a bare `|-boost|p2a: X|spe|1` where Showdown writes
+`|-boost|p2a: X|spe|1|[from] ability: Speed Boost`.
+
+**THE ASYMMETRY WAS NEVER ABOUT THE MOVE.** Scald, Body Slam and Poison Jab all sample 30% correctly.
+The share of contaminated trials is what differed: **12.3% of Scald's, 12.0% of Body Slam's, 9.8% of
+Flare Blitz's — against 1.7% of Poison Jab's and 2.6% of Discharge's**, which is exactly the set of rows
+that read correct. Type immunity, ability refusal, veils, Safeguard and substitutes were all candidates
+and all were **measured and rejected**: `canTakeStatus` already mirrors the type and ability tables;
+`MEDSEEN.allyVeilRefused` is **1** across 50,000 games and `sideBuffRefused` never appears at all.
+
+| row | decl | before | after | split-half |
+|---|---|---|---|---|
+| `scald -> brn` | 30 | **23.87%** of 1,818 | **27.23%** of 1,594 | 1.44 |
+| `bodyslam -> par` | 30 | **25.12%** of 1,441 | **28.55%** of 1,268 | 0.72 |
+| `poisonjab -> psn` | 30 | 29.54% of 1,970 | **30.06%** of 1,936 | 0.25 |
+| `flareblitz -> brn` | 10 | 8.28% of 2,342 | **9.18%** of 2,113 | 1.18 |
+| `volttackle -> par` | 10 | 4.64% of 151 | 5.11% of 137 | 0.04 |
+
+**THE FIX IS ONE PREDICATE AND IT IS NOT `r.damaged`.** A DAMAGING move that reached a body wrote a
+`-damage` line for it; a STATUS move reached a body without damaging it and its only evidence is exactly
+the `-status`/`-boost` line this leak is made of, so Thunder Wave and Icy Wind's accuracy arms still need
+`touched` and still have it. `category` is read from the rulebook rather than `bp > 0` because **Fissure
+has bp 0 and is a damaging move** — a `bp > 0` test would have left the OHKO family on the broken
+evidence, which is the family that most needed it.
+
+**THE OHKO WITHHOLD IS LIFTED, BY FIXING THE DENOMINATOR RATHER THAN BY DECIDING THE NUMBER LOOKED
+BETTER.** The open question was what the ~third of OHKO blocks emitting neither a hit nor a miss actually
+were; they are this. `ohko:fissure` reads **29.44% of 6,662 [28.35, 30.54]** against the rule-free probe's
+**29.85% [28.4, 31.4]** and a declared 30 — the two readings now overlap and the declaration is inside
+both. On a 30-accuracy move seven trials in ten are misses, so a leak on the hit side moves this arm
+several points where it moves a 90-accuracy arm by a tenth: 34.40% → 32.89% → **29.44%**.
+
+**`ohko:*:MODIFIED` STAYS UNSCORED AND IS ITSELF A FINDING FOR @engine.** Showdown's OHKO moves bypass
+accuracy modifiers entirely (`battle-actions.ts:696`); medicham2's `hitChance` applies the attacker's
+accuracy stage, the defender's evasion and every ACCMOD row to them. Under the authority that bucket
+could not exist. **It is not empty: 106 Fissure trials and 8 Sheer Cold.**
+
+**FILED TO @engine, NOT FIXED HERE (two, both trace fidelity):**
+- a residual or ability-sourced `-boost`/`-unboost` carries **no `[from]`**. Everything downstream of the
+  trace inherits it; this instrument no longer depends on it, and the next reader of that stream will.
+- OHKO moves are subject to accuracy modifiers here and bypass them in the authority (above).
+
+**WHAT IS LEFT, STATED SO IT IS NOT MISTAKEN FOR A CLEAN SWEEP.** 8 of 118 rows still diverge at 95%
+where ~5.9 are expected by chance, and **none survives Bonferroni**. The largest is `scald -> brn` at
+27.23% of 1,594 against 30 — a 2.77-point gap against a 1.44-point split-half spread, so it is at roughly
+its own noise floor and is a row to watch rather than a defect to file. `accuracy:focusblast` reads
+**72.8% of 1,167 against a declared 70**, the only row diverging HIGH with real n.
+
+**THE DUMP HAS ITS OWN RED PROOF AND IT WAS RED FOR REAL, FIRST TIME OUT.** Summed by key the dumped rows
+must reproduce the free arm's `n` and `k` exactly. They did not: the pinned red-proof arm replays 200
+games through the same `tallyTurn`, `trials` is cleared around it and `dumpRows` was not, so 6 trials from
+a run whose whole purpose is that no secondary ever fires leaked in — 1,824 against 1,818, biased
+DOWNWARD, in the same direction as the effect being attributed. The dump is sealed at the free arm now, a
+mismatch REFUSES to write the file, and `MILLIONRUN_SABOTAGE=dumpseal` reopens it so the check can be
+shown red on demand instead of once by accident.
+
+**AND `data/million-run.json` NOW SAYS IT IS GENERATED IN ITS FIRST 400 BYTES**, which is load-bearing:
+S13 reads that window, the artifact led with a 24-key `source_digests` block, and it was flagged
+"generated but does not say so" on the run that created it.
+
+### ROADMAP #188 — THE `--strict` RATCHET NOW SPLITS REGRESSION FROM DISCOVERY
+
+`engine/conformance.js`. A checker that gets BETTER must not break the gate: on 2026-08-11 S13 stopped
+guessing who writes an artifact and started asking `provenance.js --graph --json`, which raised **nine**
+findings the substring search had concealed — every one a true positive — on the same run it went red on
+nineteen that were already there. Two opposite events, one verdict.
+
+**THE 19/8 SPLIT IS MEASURED, NOT ASSERTED.** The pre-change checker (`960b2a8:engine/conformance.js`)
+was replayed **against this same tree**, with its two writes neutered and `ROOT` repointed and nothing
+else changed, so the subject is held constant by construction. It raises exactly **19**. The current one
+raises **27**. The difference is 9 raised and 1 retired — `data/replay-differential-sheets-freezes.json`
+moved from "no generator writes it" to "generated but does not say so", a reclassification rather than a
+new finding.
+
+**THE SHAPE IS `provenance-stamp.json`'s, with the two inputs conformance actually has.** `scope` is a
+file→sha12 map of every subject the scan judged (579 of them: each source file it read and each `data/`
+file S13 looked at). `rule_digests` is **per STANDARD** — the top-level functions that call
+`flag(<std>, …)`, plus `engine/provenance.js` for S13 whose answer comes from that graph.
+
+    subject new to the scan .......................... REGRESSION (new code must conform)
+    subject moved .................................... REGRESSION
+    subject unchanged AND that standard's rule moved .. DISCOVERY  — adopted, recorded, not fatal
+    subject unchanged AND no rule moved ............... REGRESSION, printed as UNEXPLAINED
+
+**PER STANDARD IS THE WHOLE GUARD.** A whole-file digest of `conformance.js` would have let one line
+changed in S13 bless ten S12 findings on files nobody had touched — laundering wearing the new
+mechanism's name.
+
+**SHOWN RED THREE WAYS, EACH AGAINST A SCRATCH BASELINE (`--baseline <path>`, which exists only so this
+could be demonstrated without sabotaging the published one):**
+
+| arm | planted | result |
+|---|---|---|
+| the rule gets stricter | convention header threshold 3 → 8, no file touched | **14 DISCOVERY, 0 regression, exit 0**, all 14 recorded |
+| a new file violates | a fresh `engine/*.js` with no header, *while the rule was still patched* | **2 REGRESSION, exit 1** — the rule change did not bless it |
+| an existing file regresses | a clean, already-baselined file has its header removed | **1 REGRESSION "the subject file changed since the baseline", exit 1** |
+
+**`--seed-split` INSTALLS THE TWO INPUTS AND ADOPTS NOTHING.** Without it the split could never switch
+itself on: the baseline is not rewritten while anything is new — rule 3, and it is the right rule — so a
+gate that is already red can never acquire the scope map, and the mechanism would sit dormant behind the
+very findings it was built to classify. It writes `scope` and `rule_digests`, REFUSES if the finding list
+would move by one entry, and records `new_at_seed` so later runs report the outstanding set as
+**predating the split** rather than inventing an UNEXPLAINED cause for it. Verified: findings
+byte-identical before and after, 96 baselined unchanged.
+
+**#188 IS NOT CLOSED AND THE GATE IS STILL RED AT 27.** The split classifies from the next rule change
+on; it cannot retroactively attribute findings that predate its own installation, and pretending
+otherwise would bury the 19. One of the 27 was mine and is fixed (`million-run.json`'s header); one
+arrived from ENGINE's live work during this pass (`tests/test-mod-conformance.js` hardcodes the format
+id). **The 27 need triage on their merits — that is the remaining work, and it is not a measurement.**
+
+---
+
+## ROADMAP #175 IS ENGINE-COMPLETE, #184's GAUGE WAS BROKEN, AND THE CARRIER-LESS TOSS COST MORE THAN IT WAS PRICED AT. 2026-08-11 (fourth overnight pass).
+
+**Census 470 → 474.** Arrived **7**, broke **0**, **REMOVED-AS-UNCARRIABLE 3**, net **+4**. `missing`
+0 → 0 throughout; 0 hollow, 0 unarmed, 0 direct-call, 0 threw. Gate re-run after every item and after the
+toss: **CLOSED — 1 of 6, unchanged**, and the one failing clause is the REGISTER clause naming #175. No
+passing clause moved at any point. Differential re-run at `--n 6000 --seed 20260804`: **0 disagree**.
+
+### #184 — THE INSTRUMENT, FIXED FIRST, BECAUSE EVERYTHING ELSE WAS BEING READ THROUGH IT
+
+`tests/test-tag-consumed.js` diffed a NAME LIST and reported the result as `N tag(s) newly have NO
+consumer` — which names an engine REGRESSION. A tag absent from the previous dead list is absent for two
+opposite reasons: it was consumed then (a real regression), or **it did not exist then**. The artifact
+grew 194 → 263 tags across this sprint, so the second case was the common one, and eight ARRIVALS were
+reported for days as eight LOSSES.
+
+The cause was that the stamp recorded only the dead NAMES and COUNTS for everything else, so the previous
+universe could not be reconstructed. The stamp now carries `by_tag` — a status for every tag — and the
+diff labels each row `REGRESSED (was LIVE|STAGED|UNREACHED)` / `ARRIVED` / `STILL DEAD` /
+`UNCLASSIFIABLE`. Both assertions keep their teeth: a tag outside the ratchet FLOOR fails whatever its
+label. **A second, quieter bug went with it:** the old write gate (`dead.length <= prevDead.length`) froze
+the baseline at 2026-08-10 the instant DEAD grew, so the file could never learn anything and re-reported
+the same eight rows forever. The stamp is written every run now; the FLOOR is what ratchets and only ever
+loses members. First run after the fix read **0 REGRESSED, 8 UNCLASSIFIABLE** and said out loud that a
+pre-`by_tag` baseline cannot tell arrival from regression — one run only, not resolved by assuming the
+kind answer.
+
+**It is still NOT registered in `run-all.js` or the hook.** It is green now (7 passed, 0 failed) and
+registering it is the right next step; it was not done tonight because a gate should be registered by
+someone who has watched it go red for the right reason on more than one run.
+
+### THE SEVEN WIRES — EACH SHOWN RED FIRST, EACH RE-RUN BEFORE THE NEXT
+
+| tag | what it was | what it is | the probe's load-bearing arm |
+|---|---|---|---|
+| `guaranteesNextMove` | Lock-On resolved to `{kind:'pass'}` | volatile on the USER, bound to the body it named; `hitChance` and the semi-invulnerability step both answer it | Lock-On aimed at the OTHER foe must still miss — a bare "cannot miss" flag passes the first two arms |
+| `typeFollowsTerrain` | Mimicry inert | a SYNC at every terrain write plus the top of each turn | terrain ALLOWED TO END → Ground/Steel again. The artifact said `revertsWithoutTerrain: false` and the handler reverts |
+| `formeFollowsWeather` | Forecast inert | a retype per sky, from a new derived `typesByWeather` | rain must HALVE the same Fire click that snow DOUBLES — one hardcoded type passes either arm alone |
+| `passesItemToAlly` | Symbiosis inert | the spender's ally hands its item over, at `consumeBerry` and the Focus Sash spend | the giver's slot must be EMPTY — a copy is a better ability than the real one |
+| `inheritsAllyAbility` | Receiver inert | a sweep at the three points a faint becomes visible | the inherited Flash Fire must ABSORB, not merely appear in the field |
+| `announcesOnEntry` | Frisk inert | the `-item` reveal shape, derived from a new `emits` param | TWO holding foes must produce TWO lines — Anticipation and Forewarn announce once |
+| `boostsAlliesWithAbility` | Magnetic Flux resolved to `{kind:'pass'}` | side walk gated on the ability, `SD2ENG` for the stat names | Plus on the user, nothing on the partner: the USER rises and the partner must NOT |
+
+**FIVE ARTIFACT DEFECTS WERE FOUND BY WIRING, NOT BY REVIEW,** and every one of them was a parameter no
+consumer had ever read: `revertsWithoutTerrain` derived FALSE against a handler that reverts;
+`formeFollowsWeather` carrying forme NAMES for three formes `data/engine-data.js` has no row for;
+`announcesOnEntry.reveals` being PROSE that two members share while emitting different events;
+`boostsAlliesWithAbility.boosts` derived NULL because the boost is inside `onHitSide` and not in the
+move's `boosts` field; and `announcesOnEntry`'s first `emits` draft matching a `function` expression
+against a METHOD SHORTHAND, so all three members read `on: 'foe'` — caught by printing the three rows
+before anything consumed them. **A parameter nobody consumes is a parameter nobody checks.**
+
+### DECLARED SHORTFALLS, EACH WITH A COUNTER RATHER THAN A PARAGRAPH
+
+- `MEDFAILS.guaranteeDurationAssumed` — `guaranteesNextMove` does not carry the condition's `duration`;
+  the cited `data/moves.ts:10415 duration: 2` is used and every use is counted.
+- `MEDFAILS.formeWeatherNameUnchanged` — Castform's TYPE follows the sky and its species LABEL does not,
+  because `data/engine-data.js` has no row for the three weather formes and ENGINE may not edit it.
+- `MEDFAILS.symbiosisNonBerrySites` — the herb family spend at their own `-enditem` sites; there is no
+  single `AfterUseItem` funnel to hang Symbiosis on. Berries and the Focus Sash are covered.
+- `MEDFAILS.inheritedAbilityStartNotFired` — an inherited Intimidate does not intimidate on the spot.
+  Expected to equal `MEDSEEN.abilityInherited` exactly.
+- `MEDFAILS.entryAnnounceUnmodelled` — Anticipation's super-effective scan and Forewarn's highest-BP
+  pick live in the handler, not in the artifact; implementing them would be two rules keyed off two
+  event names, which is a name match wearing a shape's clothes. 10 corpus uses between them.
+
+### THE CARRIER-LESS TOSS — WILL'S RULING, AND IT COST 5 PROBES, NOT 2
+
+Will, 2026-08-11: *"if no legal species, then toss it man"*, with #190's contradiction settled the same
+day: the corpus is contaminated, the legality derivation is sound. `engine/tag_dex.js` now derives only
+abilities with a legal carrier — **294 ability rows → 201**, 263 distinct tags → 258, moves and items
+untouched (both already measured at zero carrier-less rows).
+
+**THE PRICE WAS QUOTED AS 2 AND MEASURED AT 10.** Five tags lose every member (`auraBreak`,
+`allyBasePowerBoost`, `secondaryChanceMult`, `amplifiesBoosts`, `boostsNotVeryEffective`) and two of those
+carried live probes — that was the known 2. What nobody had measured is that **eight further probes each
+staged a carrier-less ability as their SECOND ARM**, and every one of them went MISSING:
+
+| probe | the dead arm | what was done |
+|---|---|---|
+| `protectsAllyFromStatus` | Pastel Veil | arm removed; Flower Veil is the surviving second scope |
+| `ignoresRedirection` | Storm Drain | **replaced by Lightning Rod** — and the board with it, because the aimed foe was a GARCHOMP and Ground takes no Electric, which would have made both arms 0 |
+| `damageBoost` | Transistor | **replaced by Water Bubble** on Araquanid, same narrowed shape |
+| `weatherSuppression` | Air Lock | **replaced by Cloud Nine** — Air Lock's only carrier is Rayquaza and WIRE 78's own note already said so |
+| `convertsMoveTypeByFlag` | Galvanize | **replaced by Pixilate** on Sylveon |
+| `damageReduce` | Ice Scales | **replaced by Multiscale** on Dragonite; full-HP against chipped stands in for special against physical |
+| `boostsOnKO` | Grim Neigh | arm removed — **and the probe is weaker for it.** No legal member of the tag names a stat other than Attack |
+| `auraBoost` | Dark Aura | **probe removed.** `auraBoost` has one legal member left |
+
+Plus three collateral repairs outside the census: `test-tag-wire` (Gulp Missile's param assertion, the
+Storm Drain absorb-gain arm → Lightning Rod, and two membership counts), and `test-damage-stages`, which
+read **64 disagreements** — all of them Showdown applying a boost this engine correctly no longer applies,
+because the two rows staged Steelworker and Transistor. Replaced with Fire Mane; **1696/1696 exact**.
+
+**THE ROSTER DENOMINATOR DID NOT MOVE, AND THAT IS THE USEFUL FINDING.** Re-run after the toss:
+`94 TESTED of 202 IN SCOPE, of 316 total, 114 no-legal-carrier`, **identical**, with 0
+FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE. `tests/roster.js` derives carrier legality itself from the
+dex rather than from `data/tags.json`, so the two instruments already agreed and the toss changed nothing
+it reports. The 114 stay OUT OF SCOPE for the same reason they always were.
+
+### WHAT WAS FOUND AND DELIBERATELY NOT FIXED, NAMED RATHER THAN ABSORBED
+
+- **`tests/test-protocol-trace.js` IS RED and it is NOT this pass**: `|-clearallboost|` is claimed in
+  TRACE_EVENTS and fired in none of its 28 games. Verified identical against the pre-toss artifact, so it
+  is a scan-coverage gap or a stale claim, and it predates tonight.
+- **`tests/test-mod-conformance.js` IS RED and it is NOT this pass**: the 22 mainline-drift rows in
+  `data/move-effects.js` that this ledger already records as moot in the engine. Verified identical
+  against the pre-toss artifact.
+- **The interaction matrix WAS re-run at `--full` under tonight's artifact and did not move: 1641/1641
+  (100.0%).** Its THEORETICAL denominator falls 9376 -> 7103 because 93 ability rows left the file, which
+  is the honest consequence rather than a coverage loss — the 2250 staged pairs are unchanged. It is
+  recorded here because the first draft of this section said it had not been re-run, and a stale figure
+  quoted from a ledger is the exact failure this project keeps having.
+- **Five engine consumers now read tags that no longer exist** (`auraBreak`, `boostsNotVeryEffective`,
+  `amplifiesBoosts` and the name bridge beside it). They match on tag shape, get null, and correctly do
+  nothing — left in deliberately so a regulation change re-arms both ends, and named here so the next
+  reader does not mistake them for live coverage.
+- **`test-tag-consumed` is green and still unregistered** — see above.

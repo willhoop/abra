@@ -1,12 +1,12 @@
 {
-  "generated": "2026-08-11T11:02:51.092Z",
+  "generated": "2026-08-11T12:03:34.629Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
-    "register_rows": 160,
-    "open": 102,
+    "register_rows": 162,
+    "open": 104,
     "closed": 58,
     "open_asserting_breakage": 1,
     "measured_disagreements": 0,
@@ -613,8 +613,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "FIVE ABILITIES RECORD CORPUS USES THAT THE CARRIER DERIVATION SAYS ARE IMPOSSIBLE. Found 2026-08-11 while measuring #175",
-      "full": "five abilities record corpus uses that the carrier derivation says are impossible. found 2026-08-11 while measuring #175's proposal. `serenegrace` 5, `stormdrain` 3, `psychicsurge` 2, `tintedlens` 2, `steelyspirit` 1 — all five sit in the 93 abilities derived as having no legal carrier in reg m-b, and all five appear in the usage corpus. exactly one of two things is true and both are serious: either the corpus contains games that are not reg m-b — which would contaminate every usage-weighted figure this project quotes, including the 99%-of-usage coverage bar — or the carrier derivation is incomplete, which would mean the legality filter this repo now relies on everywhere under-reports. this must be settled before #175's carrier-less proposal is adopted, and before any usage weight is quoted as authoritative. note the shape: it is the same class as the mega-ability audit — two derived views of one fact that nobody had compared"
+      "title": "FIVE ABILITIES RECORD CORPUS USES THAT THE CARRIER DERIVATION SAYS ARE IMPOSSIBLE — AND THE CAUSE IS ALREADY KNOWN: THE ",
+      "full": "five abilities record corpus uses that the carrier derivation says are impossible — and the cause is already known: the corpus is contaminated. `serenegrace` 5, `stormdrain` 3, `psychicsurge` 2, `tintedlens` 2, `steelyspirit` 1, all sitting in the 93 abilities derived as having no legal carrier in reg m-b. will, 2026-08-11: *\"i think the corpus is contaminated and people uploaded games with custom rules, weve been over this bro in the last session\"*. the row was filed as an open either/or — contaminated corpus or incomplete legality read — and that framing was the defect: it had been established in a prior session and was recorded nowhere a later session would find it. not in `docs/`, not in this register, not in memory. so it was re-derived from scratch, at the owner's expense, and he had to say so. the answer: a replay carrying the format name is not proof the game was played under the regulation's rules. the legality derivation is fine; the corpus is the suspect. consequence, and it is wider than these five: every usage-weighted figure inherits this, including the 99%-of-usage coverage bar the medicham gate is defined against. the fix is a corpus filter that validates each stored game against the regulation — not a loosening of the legality read, and not a per-ability exception. until it exists, a usage count is a lower bound on legal usage and an unknown mixture otherwise"
     },
     {
       "n": 191,
@@ -651,6 +651,24 @@
       "uses": 0,
       "title": "MILTANK AND MAG ARE BOTH OWNED BY WILL AND ARE BEING REWORKED BY HIM — DECLARED 2026-08-11. Will: *\"im gonna rework milt",
       "full": "miltank and mag are both owned by will and are being reworked by him — declared 2026-08-11. will: *\"im gonna rework miltank so dont spend too much time on it\"*, then *\"same with mag\"*. this extends #26, which already put the mag weights in his hands, to the search itself. consequences, so nobody spends a night on a number that is about to be replaced: do not refit the weights, do not restamp the feature fixture, and do not re-run the miltank timing — `data/miltank-timing-r6.json` is 7 days old and describes a superseded engine build (`medicham2-browser.js b1b3ea94d5c3`), and re-running it costs ~8 minutes of quiet machine to characterise something being rewritten. the invocation is recorded in `docs/search.md` if it is ever wanted: `miltank_timing=… engine/mew.js --miltank --miltank-n 200 --miltank-preview-n 40 --seed 90001`, then `engine/miltank.js --reduce`. what is still worth knowing and is not his: #62's gate — miltank untimed against miltank on the clock — because `clock_observations` reads 0 in that artifact, so the clocked arm has never once been observed, and that is a fact about the harness rather than about any particular miltank"
+    },
+    {
+      "n": 195,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "STALL IS IN THE CLOSET — DECLARED 2026-08-11, TEMPORARY BY DECISION. Will: *\"bro put stall in the quarantine closet aint",
+      "full": "stall is in the closet — declared 2026-08-11, temporary by decision. will: *\"bro put stall in the quarantine closet aint nobody using dat\"*. measured before closeting, not asserted: `stall` records zero uses in the corpus, and its only legal carrier in reg m-b is sableye. it sat could-not-stage with the reason `no handler` — the effect (always move last inside the priority bracket) lives in an engine table, so nothing in the ability text suggests a board, and the harness separately reports that a priority bracket is only observable when the order decides the final board, which is the same wall that holds extreme speed, ice shard and jet punch. closeted the same way illusion was (#160): declared, counted, named, and reversible — not quietly dropped. it is excluded from the staging backlog and must not be counted as a coverage gap while it is in here. re-admit when either its usage stops being zero or the priority-bracket harness learns to build a board where going last changes the outcome — that second one is shared with the three moves above, so this row reopens for free when they are solved. zero usage is the reason and the reason is measured, so if the corpus ever shows a sableye this row is wrong and should be reopened on that evidence alone"
+    },
+    {
+      "n": 196,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE RATE RUNNER MUST PLAY THE STAGED SCENARIOS, NOT RANDOM SELF-PLAY — WILL'S DESIGN, 2026-08-11. Will: *\"the million ga",
+      "full": "the rate runner must play the staged scenarios, not random self-play — will's design, 2026-08-11. will: *\"the million game run will be all these staging scenarios right, just with normal accuracy, proc chances, crit chances, etc\"*, then *\"so those will have to be in the million game run\"*. one set of fixtures at two dice settings: the roster plays a staged board with the dice pinned and asks *does it do the right thing when it fires*; the rate runner plays the same board with the dice free and asks *does it fire at the right rate*. the runner already names this as its missing piece — `engine/million_run.js` marks the whole `proc` family `observable: false` because *\"an ability/item proc needs the trigger to be reached … the trace does not say whether the trigger was reached, only whether it fired, so the denominator would be invented. needs a staged arm, not a bigger corpus.\"* that is the whole argument: on a staged board you know the trigger was reached, so the denominator is real rather than invented, and more random games never fixes an invented denominator — it only makes it bigger. today the runner is self-play over random teams (211 rows) and coverage is whatever the games happen to produce. what this reclassifies, and it is most of the remaining backlog: the 17 pinned-dice rows (static, effect spore, flame body, poison point, poison touch, cute charm, shed skin, stench, harvest, healer, cursed body, quick draw, king's rock, quick claw, focus band, aspear berry, rawst berry), early bird as a sleep-duration row, and the modifier abilities that need a real roll — sniper and merciless, because no sniper or merciless carrier learns flower trick (verified: beedrill, ariados, barbaracle, toxapex; only meowscarada learns it), plus compound eyes, no guard and tangled feet as accuracy rows. none of these is unstageable. every one is in the wrong instrument"
     },
     {
       "n": 47,

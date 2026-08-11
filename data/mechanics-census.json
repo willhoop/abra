@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-11T10:37:21.666Z",
+  "generated": "2026-08-11T12:12:28.979Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 470,
-  "live": 470,
+  "probed": 474,
+  "live": 474,
   "missing": 0,
-  "armed": 470,
+  "armed": 474,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -256,7 +256,7 @@
       "tag": "protectsAllyFromStatus",
       "label": "Sweet Veil refuses sleep for its PARTNER as well as itself, and refuses nothing else",
       "live": true,
-      "detail": "Hypnosis at the body standing BESIDE the carrier — control ability \"slp\", SWEET VEIL on the partner \"-\"; the same Hypnosis at the CARRIER itself, \"slp\" then \"-\" (the name was removed from the engine's typed slp list, so this arm now rests on the derived tag too). It refuses nothing else: TOXIC at the same partner \"tox\", and the FOE off the same board still takes Hypnosis \"slp\". PASTEL VEIL on the partner, Hypnosis \"slp\" and Toxic \"-\" — the mirror scope. FLOWER VEIL, whose handler blocks EVERY status but only on a Grass body: a Grass partner \"-\" against the same Grass partner with the control ability \"slp\", and a non-Grass one \"slp\". YAWN at the partner, read as [yawn landed]/[status three turns later] — control true/slp, SWEET VEIL false/-: the volatile itself is refused, which is the onAllyTryAddVolatile half of the same handler pair",
+      "detail": "Hypnosis at the body standing BESIDE the carrier — control ability \"slp\", SWEET VEIL on the partner \"-\"; the same Hypnosis at the CARRIER itself, \"slp\" then \"-\" (the name was removed from the engine's typed slp list, so this arm now rests on the derived tag too). It refuses nothing else: TOXIC at the same partner \"tox\", and the FOE off the same board still takes Hypnosis \"slp\". FLOWER VEIL, whose handler blocks EVERY status but only on a Grass body: a Grass partner \"-\" against the same Grass partner with the control ability \"slp\", and a non-Grass one \"slp\". YAWN at the partner, read as [yawn landed]/[status three turns later] — control true/slp, SWEET VEIL false/-: the volatile itself is refused, which is the onAllyTryAddVolatile half of the same handler pair",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -394,9 +394,9 @@
     {
       "kind": "ability",
       "tag": "damageReduce",
-      "label": "Ice Scales halves special damage and not physical",
+      "label": "Multiscale halves the hit at FULL HP and does nothing once the body is chipped",
       "live": true,
-      "detail": "[Earth Power (special), Earthquake (physical)] — no ability 28,92, Ice Scales 14,92 (only the special one may move)",
+      "detail": "[at FULL hp, at HALF hp] Dragon Claw taken — no ability 173,173, Multiscale 87,173 (only the full-HP one may move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1204,9 +1204,9 @@
     {
       "kind": "ability",
       "tag": "ignoresRedirection",
-      "label": "Stalwart is not drawn by Follow Me or by Storm Drain",
+      "label": "Stalwart is not drawn by Follow Me or by Lightning Rod",
       "live": true,
-      "detail": "Follow Me — without Stalwart the aimed foe takes 0 (drawn away, the partner took 56); WITH Stalwart the aimed foe takes 99 (must be > 0). Storm Drain — without Stalwart 0, with Stalwart 35. Equal arms on either redirector would mean the gate is unread",
+      "detail": "Follow Me — without Stalwart the aimed foe takes 0 (drawn away, the partner took 56); WITH Stalwart the aimed foe takes 99 (must be > 0). Lightning Rod — without Stalwart 0, with Stalwart 86. Equal arms on either redirector would mean the gate is unread",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1894,9 +1894,9 @@
     {
       "kind": "ability",
       "tag": "damageBoost",
-      "label": "Transistor raises an ELECTRIC move and nothing else",
+      "label": "Water Bubble raises a WATER move and nothing else",
       "live": true,
-      "detail": "Thunderbolt dealt: no ability 20, Transistor 26; Alluring Voice, a NON-Electric move off the same body: 48 -> 48 (must not move -- the tag names a type and a wire that ignored it would boost both)",
+      "detail": "Liquidation dealt: no ability 32, Water Bubble 64; Leech Life, a NON-Water move off the same body: 62 -> 62 (must not move -- the tag names a type and a wire that ignored it would boost both)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2574,9 +2574,9 @@
     {
       "kind": "ability",
       "tag": "weatherSuppression",
-      "label": "Air Lock stops the sun boosting Fire",
+      "label": "Cloud Nine stops the sun boosting Fire",
       "live": true,
-      "detail": "Flamethrower in sun: plain defender 78, Air Lock defender 52; the same click in CLEAR skies 52 (the suppressed arm must equal it exactly)",
+      "detail": "Flamethrower in sun: plain defender 78, Cloud Nine defender 52; the same click in CLEAR skies 52 (the suppressed arm must equal it exactly)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2616,7 +2616,7 @@
       "tag": "convertsMoveTypeByFlag",
       "label": "Liquid Voice makes a sound move Water",
       "live": true,
-      "detail": "Psychic Noise: no ability 112, Liquid Voice 42; Body Slam: no ability 27, Galvanize 23 (the TYPE half must still work)",
+      "detail": "Psychic Noise: no ability 112, Liquid Voice 42; Body Slam: no ability 27, Pixilate 24 (the TYPE half must still work)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2786,7 +2786,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 27.5% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2964,9 +2964,9 @@
     {
       "kind": "ability",
       "tag": "boostsOnKO",
-      "label": "Moxie boosts the NAMED stat, and Grim Neigh a different one",
+      "label": "Moxie boosts the NAMED stat, and only on a KO",
       "live": true,
-      "detail": "[atk stage, spa stage] after a KO -- no ability 0,0; MOXIE 1,0 (must be 1,0 and nothing else moved: 0); GRIM NEIGH 0,1 (must be 0,1 — the same shape, a different named stat, which is what a \"highest stat\" engine cannot produce on this body); and Moxie on a turn with NO KO (the foe at full HP survived: true) raises 0 (must be 0 — the trigger is the KO, not the click)",
+      "detail": "[atk stage, spa stage] after a KO -- no ability 0,0; MOXIE 1,0 (must be 1,0 and nothing else moved: 0); and Moxie on a turn with NO KO (the foe at full HP survived: true) raises 0 (must be 0 — the trigger is the KO, not the click)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3092,6 +3092,76 @@
       "directCall": false
     },
     {
+      "kind": "move",
+      "tag": "guaranteesNextMove",
+      "label": "Lock-On makes the next move land on a losing roll — against THAT foe only",
+      "live": true,
+      "detail": "Hydro Pump (80) into Garchomp at roll 0.99 — after Will-O-Wisp 0 (must be 0); after Lock-On AIMED AT IT 51 (must be > 0); after Lock-On aimed at the OTHER foe 0 (must be 0 — the guarantee is target-bound)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "typeFollowsTerrain",
+      "label": "Mimicry retypes Stunfisk-Galar under Electric Terrain — and gives the type back when it ends",
+      "live": true,
+      "detail": "Thunderbolt into Stunfisk-Galar [damage, its types] — Electric Terrain, NO ability 0,Ground/Steel (must be 0); Mimicry, NO terrain 0,Ground/Steel (must be 0); Mimicry UNDER Electric Terrain 70,Electric (must be > 0 and Electric — Ground's immunity is gone); terrain then ALLOWED TO END 0,Ground/Steel (must be 0 and Ground/Steel again)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "formeFollowsWeather",
+      "label": "Forecast retypes Castform per sky — Ice in snow, Water in rain, back to Normal when it clears",
+      "live": true,
+      "detail": "Flamethrower into Castform [damage, its types] — SNOW no ability 122,Normal vs Forecast 243,Ice (must roughly DOUBLE, Ice); RAIN no ability 61,Normal vs Forecast 30,Water (must roughly HALVE, Water); clear sky with Forecast 122,Normal; snow then ALLOWED TO CLEAR 122,Normal (must match the clear-sky arm exactly)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "passesItemToAlly",
+      "label": "Symbiosis hands its berry to the partner that just ate one — so the partner eats twice",
+      "live": true,
+      "detail": "Milotic at 40% beside a Florges holding a Sitrus, twice — NO ability: first heal 42, partner then holds \"\", Florges still holds \"sitrusberry\", second heal 0 (must be 0)   |   SYMBIOSIS: first heal 42, partner then holds \"sitrusberry\", Florges holds \"\" (must be EMPTY — it is handed over, not copied), second heal 42 (must be > 0)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "inheritsAllyAbility",
+      "label": "Receiver takes the ability of the partner that just fainted, and it is LIVE",
+      "live": true,
+      "detail": "Flamethrower into Passimian the turn after its Flash Fire partner was hit [partner died, Passimian's ability, damage] — no ability true,none,116 (must take damage); Receiver but the partner LIVED false,receiver,116 (must take damage); Receiver and the partner FAINTED true,flashfire,0 (must be flashfire and 0 — the inherited ability has to actually absorb)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "announcesOnEntry",
+      "label": "Frisk names each foe's item as it walks in — one line per HOLDING foe, none for an empty one",
+      "live": true,
+      "detail": "|-item| lines emitted as the body walks in — NO ability 0 (must be 0); Frisk with ONE foe holding something 1 [|-item|p2a: garchomp|leftovers|[from] ability: frisk]; Frisk with BOTH foes holding something 2 (must be 2 — the handler loops the foes, it does not announce once)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "boostsAlliesWithAbility",
+      "label": "Magnetic Flux raises Def/SpD on the Plus and Minus bodies only — the user included",
+      "live": true,
+      "detail": "Magnetic Flux clicked on all three arms [user's Def stage, partner's Def stage, Dragon Claw taken next turn] — Static/Static 0,0,95 (nothing must move); PLUS/Static 1,0,64 (the USER rises and the partner must NOT); PLUS/MINUS 1,1,64 (both rise)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "ability",
       "tag": "writesAccuracy",
       "label": "the bot VALUES a click into a No Guard body as certain, not at its printed 80",
@@ -3196,7 +3266,7 @@
       "tag": "statusCategory",
       "label": "every action kind the engine can resolve announces its |move| line",
       "live": true,
-      "detail": "41/41 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
+      "detail": "43/43 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3487,26 +3557,6 @@
       "label": "Fairy Aura on the FOE raises MY Fairy move by the same amount",
       "live": true,
       "detail": "Moonblast into Swampert — nobody has the aura 122; the AURA IS ON THE TARGET 161; the aura is on the attacker 161. The last two must be EQUAL: the field does not care which side the carrier stands on",
-      "hollow": false,
-      "armed": true,
-      "directCall": false
-    },
-    {
-      "kind": "ability",
-      "tag": "auraBoost",
-      "label": "an aura touches ONLY its own type, and Dark Aura is the second member",
-      "live": true,
-      "detail": "DARK Aura on the attacker — its Moonblast (Fairy) is 122 -> 122 (must NOT move) and Tyranitar Crunch is 193 -> 255, ratio 1.321",
-      "hollow": false,
-      "armed": true,
-      "directCall": false
-    },
-    {
-      "kind": "ability",
-      "tag": "auraBreak",
-      "label": "Aura Break INVERTS the aura to 0.75 instead of cancelling it to 1.0",
-      "live": true,
-      "detail": "Moonblast into Swampert — no aura 122, Fairy Aura 161, Fairy Aura WITH an Aura Break body on the foe side 92; 92/122 = 0.754. Cancelling would give 122; the rule is 0.75, not 1.0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4657,16 +4707,6 @@
       "label": "Hydration cures in rain and not out of it — above the chip",
       "live": true,
       "detail": "the same burned Vaporeon: out of rain it stays \"brn\" and loses 12 to the burn; IN rain it reads \"\" and loses 0 — the cure is above the chip. With no ability in the same rain it is \"brn\" (12). SHED SKIN at roll 0.1 -> \"\", at 0.9 -> \"brn\" (the tag says 0.33)",
-      "hollow": false,
-      "armed": true,
-      "directCall": false
-    },
-    {
-      "kind": "ability",
-      "tag": "boostsNotVeryEffective",
-      "label": "Tinted Lens doubles the RESISTED hit and nothing else",
-      "live": true,
-      "detail": "Gengar into an unfaintable Garchomp. RESISTED (Sludge Bomb, Ground halves Poison): 53 -> 105 with Tinted Lens, which is the artifact's own mult of 2. NEUTRAL (Shadow Ball): 95 -> 95 — unchanged, because `appliesWhen` is the mechanic and not decoration",
       "hollow": false,
       "armed": true,
       "directCall": false

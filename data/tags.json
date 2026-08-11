@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-11T10:28:40.032Z",
+ "generated": "2026-08-11T11:48:09.297Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -2130,8 +2130,8 @@
    "kind": "move",
    "param": "boosts only the allies whose ABILITY is on a named list",
    "why": "Magnetic Flux read [pp, neverMisses, statusCategory]. It fails outright unless an ally carries Plus or Minus, so a scenario staged without one measures the failure and calls it inert",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "boostsAlliesWithAbility",
+   "used": true,
    "n": 1,
    "uses": 1,
    "examples": [
@@ -2143,8 +2143,8 @@
    "kind": "move",
    "param": "the user's NEXT move against that target cannot miss",
    "why": "Lock-On read [pp, neverMisses, statusCategory] — and `neverMisses` is about LOCK-ON, not about the move it makes certain, which is the opposite end of the mechanic",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "guaranteesNextMove",
+   "used": true,
    "n": 1,
    "uses": 0,
    "examples": []
@@ -2573,7 +2573,7 @@
    "why": "Suction Cups: Showdown drags the body out and this engine did not move the board, because the ability had no row in data/tags.json at all",
    "consumedBy": "onDragOut",
    "used": true,
-   "n": 2,
+   "n": 1,
    "uses": 0,
    "examples": []
   },
@@ -2595,7 +2595,7 @@
    "why": "Pixilate (1,448 sheets) turns Normal into Fairy at x1.2; Liquid Voice (243) turns sound into Water at x1.0. Effectiveness computed against the original type is simply the wrong number",
    "consumedBy": "onModifyType",
    "used": true,
-   "n": 14,
+   "n": 10,
    "uses": 7820,
    "examples": [
     "Liquid Voice",
@@ -2613,7 +2613,7 @@
    "why": "Palafin-Hero is buildable and was never built, so every Palafin in every rollout was the weak forme and switching it out looked pointless",
    "consumedBy": "switchInForme",
    "used": true,
-   "n": 2,
+   "n": 1,
    "uses": 231,
    "examples": [
     "Zero to Hero"
@@ -2666,7 +2666,7 @@
    "why": "Mold Breaker, Mycelium Might, Turboblaze, Teravolt. Gates typeImmunity, damageReduce, blocksMove, preventsCrit and Sturdy in one flag",
    "consumedBy": "ignoresDefenderAbility",
    "used": true,
-   "n": 4,
+   "n": 1,
    "uses": 261,
    "examples": [
     "Mold Breaker"
@@ -2692,8 +2692,8 @@
    "why": "Not `isBreakable` (undefined on every ability here) -- `flags.breakable`, the field the authority itself reads. Inner Focus carries it; Steadfast does not",
    "consumedBy": "breakable",
    "used": true,
-   "n": 82,
-   "uses": 30060,
+   "n": 63,
+   "uses": 30057,
    "examples": [
     "Disguise",
     "Armor Tail",
@@ -2776,7 +2776,7 @@
    "why": "Clear Body blocks every stat, Hyper Cutter only Attack, Keen Eye only accuracy. That distinction decides Intimidate, which is 10% of the format: an Attack-blocker stops it and an accuracy-blocker does nothing",
    "consumedBy": "onTryBoost",
    "used": true,
-   "n": 15,
+   "n": 12,
    "uses": 9196,
    "examples": [
     "Big Pecks",
@@ -2825,7 +2825,7 @@
    "why": "Sweet Veil (29 uses) and Flower Veil (1,465 sheets). Both were modelled as SELF immunities or as nothing; the ally half -- the reason either is played -- reached no code",
    "consumedBy": "protectsAllyFromStatus",
    "used": true,
-   "n": 3,
+   "n": 2,
    "uses": 3610,
    "examples": [
     "Flower Veil",
@@ -2839,7 +2839,7 @@
    "why": "Scrappy (262 sheets) lets Normal and Fighting hit Ghost. The engine reads the defensive type chart and scores those moves at zero, which is the largest possible error on a move",
    "consumedBy": null,
    "used": false,
-   "n": 2,
+   "n": 1,
    "uses": 591,
    "examples": [
     "Scrappy"
@@ -2865,7 +2865,7 @@
    "why": "No Guard (1,133 fields) drives it to certainty in BOTH directions, so its own Hydro Pump never misses and neither does anything aimed at it. Compound Eyes, Wide Lens and Bright Powder scale the same number. One term, twelve writers, no branch needed",
    "consumedBy": "writesAccuracy",
    "used": true,
-   "n": 8,
+   "n": 6,
    "uses": 1465,
    "examples": [
     "Compound Eyes",
@@ -2883,7 +2883,7 @@
    "why": "Fairy Aura (1,455 fields) makes every Fairy move 1.33x -- including the foe's. A field-wide multiplier that helps both sides is unlike any other boost in the taxonomy",
    "consumedBy": "onAnyBasePower",
    "used": true,
-   "n": 2,
+   "n": 1,
    "uses": 0,
    "examples": []
   },
@@ -2894,7 +2894,7 @@
    "why": "Aura Break turns Fairy Aura and Dark Aura from x1.33 into x0.75 for EVERYONE. No legal Champions carrier exists today, so its exposure is zero and its shape is not",
    "consumedBy": "hasAuraBreak",
    "used": true,
-   "n": 1,
+   "n": 0,
    "uses": 0,
    "examples": []
   },
@@ -2946,7 +2946,7 @@
    "why": "Protean (171 fields). Its STAB and its defensive typing both change mid-turn, so a type chart read at the start of the turn is stale by the time damage is applied",
    "consumedBy": "onPrepareHit",
    "used": true,
-   "n": 2,
+   "n": 1,
    "uses": 357,
    "examples": [
     "Protean"
@@ -2959,7 +2959,7 @@
    "why": "Beast Boost and Eelevate (259 fields) and MOXIE (103, `untagged` until 2026-08-11). It compounds across a game and nothing recomputes the speed order or damage after a kill, so the second kill is priced like the first",
    "consumedBy": null,
    "used": false,
-   "n": 7,
+   "n": 2,
    "uses": 101,
    "examples": [
     "Moxie"
@@ -2985,7 +2985,7 @@
    "why": "Bulletproof blocks the 16 bullet moves (13,644 move-slots), Soundproof the sound ones, Overcoat powder. Not a type immunity and invisible to the type chart",
    "consumedBy": "immuneToMoveClass",
    "used": true,
-   "n": 5,
+   "n": 4,
    "uses": 1135,
    "examples": [
     "Bulletproof",
@@ -3092,7 +3092,7 @@
    "why": "Disguise, 142 uses. WIRE 23 modelled the free hit and never renamed the body, so the two engines part on the species in the active slot AND in the party on every Mimikyu game",
    "consumedBy": "formeOnHit",
    "used": true,
-   "n": 2,
+   "n": 1,
    "uses": 150,
    "examples": [
     "Disguise"
@@ -3131,7 +3131,7 @@
    "why": "Unnerve, 2.03%. Turns off Sitrus (10.8% of items) and every resist berry on the other side",
    "consumedBy": "unnerve",
    "used": true,
-   "n": 3,
+   "n": 1,
    "uses": 2358,
    "examples": [
     "Unnerve"
@@ -3233,7 +3233,7 @@
    "why": "Shell Armor and Battle Armor. Turns Flower Trick from a guaranteed crit into an ordinary hit",
    "consumedBy": null,
    "used": false,
-   "n": 4,
+   "n": 3,
    "uses": 191,
    "examples": [
     "Disguise",
@@ -3248,7 +3248,7 @@
    "why": "and megaing can COST you it, which is Will's reason to decline a mega. Also the first switch-in threat class: a benched Drizzle deletes the sun your Solar Beam click rides on",
    "consumedBy": "weatherSetter",
    "used": true,
-   "n": 8,
+   "n": 4,
    "uses": 9313,
    "examples": [
     "Drizzle",
@@ -3264,7 +3264,7 @@
    "why": "Mummy and Wandering Spirit. The attacker walks away as a different Pokemon, and every damage and speed number after that is computed from an ability it no longer has",
    "consumedBy": "onDamagingHit",
    "used": true,
-   "n": 3,
+   "n": 2,
    "uses": 125,
    "examples": [
     "Mummy",
@@ -3278,7 +3278,7 @@
    "why": "Air Lock and Cloud Nine. Not a handler — a flat property on the ability, which is why every handler-probing derivation in this file missed it",
    "consumedBy": "suppressWeather",
    "used": true,
-   "n": 2,
+   "n": 1,
    "uses": 235,
    "examples": [
     "Cloud Nine"
@@ -3291,11 +3291,9 @@
    "why": "same shape as weather",
    "consumedBy": "terrainSetter",
    "used": true,
-   "n": 5,
-   "uses": 2,
-   "examples": [
-    "Psychic Surge"
-   ]
+   "n": 1,
+   "uses": 0,
+   "examples": []
   },
   {
    "tag": "speedCond",
@@ -3304,7 +3302,7 @@
    "why": "Chlorophyll, Swift Swim, Sand Rush, Slush Rush, Unburden, Quick Feet. Already probed for the speed order",
    "consumedBy": "onModifySpe",
    "used": true,
-   "n": 7,
+   "n": 6,
    "uses": 4722,
    "examples": [
     "Chlorophyll",
@@ -3322,8 +3320,8 @@
    "why": "Levitate, Water Absorb, Flash Fire, Sap Sipper. Clicking into one wastes the turn entirely",
    "consumedBy": "IMM",
    "used": true,
-   "n": 12,
-   "uses": 7184,
+   "n": 10,
+   "uses": 7181,
    "examples": [
     "Dry Skin",
     "Earth Eater",
@@ -3340,11 +3338,10 @@
    "why": "Lightning Rod and Storm Drain redirect AND boost",
    "consumedBy": "lightningrod",
    "used": true,
-   "n": 2,
-   "uses": 2899,
+   "n": 1,
+   "uses": 2896,
    "examples": [
-    "Lightning Rod",
-    "Storm Drain"
+    "Lightning Rod"
    ]
   },
   {
@@ -3354,7 +3351,7 @@
    "why": "Stamina (1,643) turns every physical hit into +1 Def; Justified, Electromorphosis and Weak Armor bank a resource. Hitting it again is worse than hitting it the first time -- exactly the Bellibolt/Archaludon turn, where a resisted spread move fed a free boost",
    "consumedBy": "buffsHolderOnHit",
    "used": true,
-   "n": 12,
+   "n": 6,
    "uses": 3008,
    "examples": [
     "Anger Point",
@@ -3371,7 +3368,7 @@
    "why": "Rough Skin (3,762) chips, Static/Flame Body/Poison Point status, Cursed Body disables. Unlike a holder buff this never accumulates, so the move stays correct -- it is a cost to price in, not a reason to stop attacking",
    "consumedBy": "punishesAttacker",
    "used": true,
-   "n": 16,
+   "n": 12,
    "uses": 12035,
    "examples": [
     "Cursed Body",
@@ -3389,7 +3386,7 @@
    "why": "Filter, Solid Rock, Multiscale, Thick Fat, Heatproof, Fluffy. Overcalling kills without them",
    "consumedBy": "multiscale",
    "used": true,
-   "n": 8,
+   "n": 4,
    "uses": 957,
    "examples": [
     "Multiscale",
@@ -3403,7 +3400,7 @@
    "why": "Tough Claws (contact, 272 uses), Sharpness (slicing, 155), Iron Fist (punch), Mega Launcher (pulse), Strong Jaw (bite). The join partner of moveClass -- the ability names the flag, the move carries it, and no per-ability case is needed",
    "consumedBy": "boostsMoveClass",
    "used": true,
-   "n": 6,
+   "n": 5,
    "uses": 1213,
    "examples": [
     "Iron Fist",
@@ -3433,7 +3430,7 @@
    "why": "Adaptability, Technician, Tinted Lens, Sheer Force, Iron Fist, Strong Jaw",
    "consumedBy": "technician",
    "used": true,
-   "n": 44,
+   "n": 29,
    "uses": 16448,
    "examples": [
     "Analytic",
@@ -3451,7 +3448,7 @@
    "why": "already derived for allySideBlockProb -- Dazzling, Armor Tail, Good as Gold. Will's third switch-in threat: \"farigaraf blocking prio\" — a Sucker Punch plan dies to the pivot",
    "consumedBy": "onFoeTryMove",
    "used": true,
-   "n": 5,
+   "n": 3,
    "uses": 7286,
    "examples": [
     "Armor Tail",
@@ -3479,7 +3476,7 @@
    "why": "Simple, split out of invertsBoosts -- an inverted drop and a doubled drop point in opposite directions on the same click",
    "consumedBy": "onChangeBoost",
    "used": true,
-   "n": 1,
+   "n": 0,
    "uses": 0,
    "examples": []
   },
@@ -3490,7 +3487,7 @@
    "why": "Prankster (4,692) gives every Status move +1, which decides who moves first on the turn a Tailwind or a Fake Out lands. Gale Wings needs FULL HP, so it is a condition, not a constant",
    "consumedBy": "onModifyPriority",
    "used": true,
-   "n": 3,
+   "n": 2,
    "uses": 10193,
    "examples": [
     "Gale Wings",
@@ -3504,7 +3501,7 @@
    "why": "Poison Touch. The mirror image of punishesAttacker -- this fires when the holder ATTACKS, so it is a reason to pick a contact move rather than a reason to avoid one",
    "consumedBy": null,
    "used": false,
-   "n": 2,
+   "n": 1,
    "uses": 1442,
    "examples": [
     "Poison Touch"
@@ -3558,7 +3555,7 @@
    "why": "Shadow Tag reaches 446 fields and is on ZERO sheets. Nothing prunes switching from the opponent action set, so every reply distribution still contains a move that cannot be made",
    "consumedBy": null,
    "used": false,
-   "n": 3,
+   "n": 1,
    "uses": 0,
    "examples": []
   },
@@ -3596,7 +3593,7 @@
    "why": "Zero to Hero (needs a switch), Illusion, Imposter, Disguise",
    "consumedBy": "megaFormeOf",
    "used": true,
-   "n": 7,
+   "n": 4,
    "uses": 464,
    "examples": [
     "Disguise",
@@ -3624,7 +3621,7 @@
    "why": "Limber, Immunity, Insomnia, Vital Spirit, Water Veil, Magma Armor. onSetStatus only -- onImmunity also means weather-chip immunity and was over-capturing",
    "consumedBy": "statusImmune",
    "used": true,
-   "n": 12,
+   "n": 7,
    "uses": 557,
    "examples": [
     "Immunity",
@@ -3655,7 +3652,7 @@
    "why": "Sand Veil (135 uses, x1.25 evasion in sand), Snow Cloak (219, in snow), Compound Eyes, Victory Star, Hustle, Wonder Skin, No Guard. Same P(hit) the kill distribution needs",
    "consumedBy": "onModifyAccuracy",
    "used": true,
-   "n": 6,
+   "n": 5,
    "uses": 1405,
    "examples": [
     "Compound Eyes",
@@ -3732,7 +3729,7 @@
    "why": "Berserk, 44 fields, and Anger Shell. The crossing rule is the whole mechanic — an engine that reads the HP LEVEL boosts every turn the body stays low",
    "consumedBy": "boostsAtHPThreshold",
    "used": true,
-   "n": 2,
+   "n": 1,
    "uses": 33,
    "examples": [
     "Berserk"
@@ -3774,7 +3771,7 @@
    "why": "Quick Draw, 15 fields, `untagged`. A 30% chance to move first inside the same bracket is invisible to every speed comparison in this project",
    "consumedBy": "fractionalPriority",
    "used": true,
-   "n": 3,
+   "n": 2,
    "uses": 15,
    "examples": [
     "Quick Draw"
@@ -3813,7 +3810,7 @@
    "why": "Stalwart, 47 fields, `untagged`. Follow Me and Rage Powder are both live in this engine, so the body that is supposed to ignore them was being pulled by them",
    "consumedBy": "ignoresRedirection",
    "used": true,
-   "n": 2,
+   "n": 1,
    "uses": 47,
    "examples": [
     "Stalwart"
@@ -3850,8 +3847,8 @@
    "kind": "ability",
    "param": "its own item is handed to the PARTNER the moment the partner spends one",
    "why": "Symbiosis, 58 fields, `untagged`. Two Sitrus Berries out of one slot, and every damage number downstream is computed against an item that has moved",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "passesItemToAlly",
+   "used": true,
    "n": 1,
    "uses": 53,
    "examples": [
@@ -3902,9 +3899,9 @@
    "kind": "ability",
    "param": "the holder takes the ability of an ALLY that just fainted",
    "why": "Receiver, 2 fields, and Power of Alchemy, both `untagged`. Same rewrite as Trace with a different trigger, and a consumer has to look at a different body to resolve it",
-   "consumedBy": null,
-   "used": false,
-   "n": 2,
+   "consumedBy": "inheritsAllyAbility",
+   "used": true,
+   "n": 1,
    "uses": 2,
    "examples": [
     "Receiver"
@@ -3915,8 +3912,8 @@
    "kind": "ability",
    "param": "the holder's type is rewritten by whatever terrain is up",
    "why": "Mimicry, 4 fields, `untagged`. Under Electric Terrain a Stunfisk-Galar stops being Ground and every effectiveness number against it moves",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "typeFollowsTerrain",
+   "used": true,
    "n": 1,
    "uses": 4,
    "examples": [
@@ -3928,9 +3925,9 @@
    "kind": "ability",
    "param": "the forme is rewritten whenever the sky changes",
    "why": "Forecast, 8 fields, `untagged`. A Castform under sun is a different TYPE with different base stats, and this engine kept the Normal one on every board",
-   "consumedBy": null,
-   "used": false,
-   "n": 3,
+   "consumedBy": "formeFollowsWeather",
+   "used": true,
+   "n": 1,
    "uses": 8,
    "examples": [
     "Forecast"
@@ -3941,8 +3938,8 @@
    "kind": "ability",
    "param": "the entire effect is a message on switch-in — no board state moves",
    "why": "Anticipation, Forewarn and Frisk (141 fields between them), all `untagged`. Their whole effect is information, which is why a BOARD comparator can never see them — and that is a derived fact now rather than three names in a deferral table",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "announcesOnEntry",
+   "used": true,
    "n": 3,
    "uses": 148,
    "examples": [
@@ -3958,11 +3955,9 @@
    "why": "Steely Spirit, Battery and Power Spot, all `untagged`. The boost lands on another body's damage, which is the shape a per-body damage model cannot express without being told",
    "consumedBy": null,
    "used": false,
-   "n": 3,
-   "uses": 1,
-   "examples": [
-    "Steely Spirit"
-   ]
+   "n": 0,
+   "uses": 0,
+   "examples": []
   },
   {
    "tag": "secondaryChanceMult",
@@ -3971,11 +3966,9 @@
    "why": "Serene Grace, `untagged` since it lost its carrier. It doubles every flinch, burn and stat drop the taxonomy records — the exact inverse of Sheer Force, which IS tagged",
    "consumedBy": null,
    "used": false,
-   "n": 1,
-   "uses": 5,
-   "examples": [
-    "Serene Grace"
-   ]
+   "n": 0,
+   "uses": 0,
+   "examples": []
   },
   {
    "tag": "boostsNotVeryEffective",
@@ -3984,11 +3977,9 @@
    "why": "Tinted Lens, `untagged` since it lost its carrier. It is a damage multiplier that keys on the TYPE CHART RESULT, which no other tag in this artifact can express",
    "consumedBy": "boostsNotVeryEffective",
    "used": true,
-   "n": 1,
-   "uses": 2,
-   "examples": [
-    "Tinted Lens"
-   ]
+   "n": 0,
+   "uses": 0,
+   "examples": []
   },
   {
    "tag": "refusesCopy",
@@ -3997,7 +3988,7 @@
    "why": "Trace (274 fields) has to know what it may not copy, and nothing in this artifact said. The set is not a judgement — the format writes it on each ability as `notrace`, `noentrain`, `noreceiver`, `failroleplay`, `failskillswap`",
    "consumedBy": "refusesCopy",
    "used": true,
-   "n": 36,
+   "n": 10,
    "uses": 1042,
    "examples": [
     "Disguise",
@@ -4110,26 +4101,6 @@
     {
      "id": "aftermath",
      "name": "Aftermath",
-     "uses": 0
-    },
-    {
-     "id": "ironbarbs",
-     "name": "Iron Barbs",
-     "uses": 0
-    },
-    {
-     "id": "lingeringaroma",
-     "name": "Lingering Aroma",
-     "uses": 0
-    },
-    {
-     "id": "perishbody",
-     "name": "Perish Body",
-     "uses": 0
-    },
-    {
-     "id": "tanglinghair",
-     "name": "Tangling Hair",
      "uses": 0
     }
    ],
@@ -4933,11 +4904,6 @@
      "id": "soundproof",
      "name": "Soundproof",
      "uses": 471
-    },
-    {
-     "id": "punkrock",
-     "name": "Punk Rock",
-     "uses": 0
     }
    ],
    "items": [],
@@ -5298,18 +5264,7 @@
   },
   "wind": {
    "note": "wind-based",
-   "abilities": [
-    {
-     "id": "windpower",
-     "name": "Wind Power",
-     "uses": 0
-    },
-    {
-     "id": "windrider",
-     "name": "Wind Rider",
-     "uses": 0
-    }
-   ],
+   "abilities": [],
    "items": [],
    "carrierMoves": [
     {
@@ -5531,13 +5486,7 @@
   },
   "heal": {
    "note": "a healing move",
-   "abilities": [
-    {
-     "id": "triage",
-     "name": "Triage",
-     "uses": 0
-    }
-   ],
+   "abilities": [],
    "items": [],
    "carrierMoves": [
     {
@@ -5657,11 +5606,6 @@
      "id": "queenlymajesty",
      "name": "Queenly Majesty",
      "uses": 512
-    },
-    {
-     "id": "dazzling",
-     "name": "Dazzling",
-     "uses": 0
     }
    ],
    "items": [],
@@ -5866,38 +5810,13 @@
      "uses": 6
     },
     {
-     "id": "aurabreak",
-     "name": "Aura Break",
-     "uses": 0
-    },
-    {
-     "id": "darkaura",
-     "name": "Dark Aura",
-     "uses": 0
-    },
-    {
      "id": "fairyaura",
      "name": "Fairy Aura",
      "uses": 0
     },
     {
-     "id": "myceliummight",
-     "name": "Mycelium Might",
-     "uses": 0
-    },
-    {
      "id": "parentalbond",
      "name": "Parental Bond",
-     "uses": 0
-    },
-    {
-     "id": "wonderguard",
-     "name": "Wonder Guard",
-     "uses": 0
-    },
-    {
-     "id": "wonderskin",
-     "name": "Wonder Skin",
      "uses": 0
     }
    ],
@@ -6737,16 +6656,6 @@
      "id": "hustle",
      "name": "Hustle",
      "uses": 14
-    },
-    {
-     "id": "iceface",
-     "name": "Ice Face",
-     "uses": 0
-    },
-    {
-     "id": "toxicboost",
-     "name": "Toxic Boost",
-     "uses": 0
     }
    ],
    "items": [
@@ -7714,23 +7623,7 @@
   },
   "specialMove": {
    "note": "a special move",
-   "abilities": [
-    {
-     "id": "battery",
-     "name": "Battery",
-     "uses": 0
-    },
-    {
-     "id": "flareboost",
-     "name": "Flare Boost",
-     "uses": 0
-    },
-    {
-     "id": "icescales",
-     "name": "Ice Scales",
-     "uses": 0
-    }
-   ],
+   "abilities": [],
    "items": [
     {
      "id": "wiseglasses",
@@ -8446,16 +8339,6 @@
      "uses": 10
     },
     {
-     "id": "stormdrain",
-     "name": "Storm Drain",
-     "uses": 3
-    },
-    {
-     "id": "steelyspirit",
-     "name": "Steely Spirit",
-     "uses": 1
-    },
-    {
      "id": "dragonize",
      "name": "Dragonize",
      "uses": 0
@@ -8468,46 +8351,6 @@
     {
      "id": "aerilate",
      "name": "Aerilate",
-     "uses": 0
-    },
-    {
-     "id": "dragonsmaw",
-     "name": "Dragon's Maw",
-     "uses": 0
-    },
-    {
-     "id": "galvanize",
-     "name": "Galvanize",
-     "uses": 0
-    },
-    {
-     "id": "rockypayload",
-     "name": "Rocky Payload",
-     "uses": 0
-    },
-    {
-     "id": "steelworker",
-     "name": "Steelworker",
-     "uses": 0
-    },
-    {
-     "id": "thermalexchange",
-     "name": "Thermal Exchange",
-     "uses": 0
-    },
-    {
-     "id": "transistor",
-     "name": "Transistor",
-     "uses": 0
-    },
-    {
-     "id": "watercompaction",
-     "name": "Water Compaction",
-     "uses": 0
-    },
-    {
-     "id": "wellbakedbody",
-     "name": "Well-Baked Body",
      "uses": 0
     }
    ],
@@ -8727,7 +8570,7 @@
     }
    ],
    "moveUses": 0,
-   "reactorUses": 43890
+   "reactorUses": 43886
   }
  },
  "moves": {
@@ -19413,7 +19256,11 @@
       "plus",
       "minus"
      ],
-     "boosts": null,
+     "boosts": {
+      "def": 1,
+      "spd": 1
+     },
+     "includesSelf": true,
      "failsWithNoEligibleAlly": true
     }
    }
@@ -30876,27 +30723,6 @@
   }
  },
  "abilities": {
-  "angershell": {
-   "name": "Anger Shell",
-   "tags": [
-    "boostsAtHPThreshold"
-   ],
-   "uses": 0,
-   "params": {
-    "boostsAtHPThreshold": {
-     "threshold": 0.5,
-     "boosts": {
-      "atk": 1,
-      "spa": 1,
-      "spe": 1,
-      "def": -1,
-      "spd": -1
-     },
-     "onCrossingOnly": true,
-     "defersHealingBerry": true
-    }
-   }
-  },
   "berserk": {
    "name": "Berserk",
    "tags": [
@@ -31200,18 +31026,6 @@
     }
    }
   },
-  "airlock": {
-   "name": "Air Lock",
-   "tags": [
-    "weatherSuppression"
-   ],
-   "uses": 0,
-   "params": {
-    "weatherSuppression": {
-     "suppresses": true
-    }
-   }
-  },
   "analytic": {
    "name": "Analytic",
    "tags": [
@@ -31259,24 +31073,11 @@
     "announcesOnEntry": {
      "effect": "information only",
      "reveals": "a foe move",
+     "emits": {
+      "event": "-ability",
+      "on": "self"
+     },
      "visibleOnABoard": false
-    }
-   }
-  },
-  "arenatrap": {
-   "name": "Arena Trap",
-   "tags": [
-    "preventsSwitch"
-   ],
-   "uses": 0,
-   "params": {
-    "preventsSwitch": {
-     "source": "ability",
-     "turns": null,
-     "chips": false,
-     "scope": "adjacent foes",
-     "onlyTypes": null,
-     "onlyGrounded": true
     }
    }
   },
@@ -31306,108 +31107,6 @@
    "params": {
     "breakable": {
      "breakable": true
-    }
-   }
-  },
-  "asoneglastrier": {
-   "name": "As One (Glastrier)",
-   "tags": [
-    "boostsOnKO",
-    "blocksBerries",
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "boostsOnKO": {
-     "stat": "atk",
-     "stages": 1,
-     "trigger": "on KO",
-     "requiresMoveKO": true
-    },
-    "blocksBerries": {
-     "blocks": true
-    },
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap",
-      "cantsuppress"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": true
-    }
-   }
-  },
-  "asonespectrier": {
-   "name": "As One (Spectrier)",
-   "tags": [
-    "boostsOnKO",
-    "blocksBerries",
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "boostsOnKO": {
-     "stat": "spa",
-     "stages": 1,
-     "trigger": "on KO",
-     "requiresMoveKO": true
-    },
-    "blocksBerries": {
-     "blocks": true
-    },
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap",
-      "cantsuppress"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": true
-    }
-   }
-  },
-  "aurabreak": {
-   "name": "Aura Break",
-   "tags": [
-    "breakable",
-    "auraBreak"
-   ],
-   "uses": 0,
-   "params": {
-    "breakable": {
-     "breakable": true
-    },
-    "auraBreak": {
-     "inverts": true
-    }
-   }
-  },
-  "battery": {
-   "name": "Battery",
-   "tags": [
-    "allyBasePowerBoost"
-   ],
-   "uses": 0,
-   "params": {
-    "allyBasePowerBoost": {
-     "onlyType": null,
-     "mult": 1.300048828125,
-     "includesSelf": null
     }
    }
   },
@@ -31449,21 +31148,6 @@
      "failroleplay": true,
      "failskillswap": true,
      "cantsuppress": true
-    }
-   }
-  },
-  "beastboost": {
-   "name": "Beast Boost",
-   "tags": [
-    "boostsOnKO"
-   ],
-   "uses": 0,
-   "params": {
-    "boostsOnKO": {
-     "stat": "highest",
-     "stages": 1,
-     "trigger": "on KO",
-     "requiresMoveKO": true
     }
    }
   },
@@ -31544,21 +31228,6 @@
     }
    }
   },
-  "chillingneigh": {
-   "name": "Chilling Neigh",
-   "tags": [
-    "boostsOnKO"
-   ],
-   "uses": 0,
-   "params": {
-    "boostsOnKO": {
-     "stat": "atk",
-     "stages": 1,
-     "trigger": "on KO",
-     "requiresMoveKO": true
-    }
-   }
-  },
   "chlorophyll": {
    "name": "Chlorophyll",
    "tags": [
@@ -31606,59 +31275,6 @@
    "params": {
     "weatherSuppression": {
      "suppresses": true
-    }
-   }
-  },
-  "comatose": {
-   "name": "Comatose",
-   "tags": [
-    "statusImmune",
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "statusImmune": {
-     "immune": true
-    },
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap",
-      "cantsuppress"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": true
-    }
-   }
-  },
-  "commander": {
-   "name": "Commander",
-   "tags": [
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": false
     }
    }
   },
@@ -31833,68 +31449,6 @@
     }
    }
   },
-  "darkaura": {
-   "name": "Dark Aura",
-   "tags": [
-    "auraBoost"
-   ],
-   "uses": 0,
-   "params": {
-    "auraBoost": {
-     "type": "Dark",
-     "mult": [
-      5448,
-      4096
-     ],
-     "breakMult": [
-      3072,
-      4096
-     ],
-     "appliesToEveryone": true
-    }
-   }
-  },
-  "dazzling": {
-   "name": "Dazzling",
-   "tags": [
-    "breakable",
-    "blocksMove"
-   ],
-   "uses": 0,
-   "params": {
-    "breakable": {
-     "breakable": true
-    },
-    "blocksMove": {
-     "what": "priority",
-     "priorityAbove": 0
-    }
-   }
-  },
-  "defeatist": {
-   "name": "Defeatist",
-   "tags": [
-    "damageBoost"
-   ],
-   "uses": 0,
-   "params": {
-    "damageBoost": {
-     "mult": 0.5,
-     "onType": null,
-     "inWeather": null,
-     "onlyWhen": {
-      "cond": "hpFraction",
-      "of": "self",
-      "cmp": "<=",
-      "num": 1,
-      "den": 2,
-      "says": "only below 1/2 HP"
-     },
-     "stage": "attackStat",
-     "costsPerTurn": null
-    }
-   }
-  },
   "defiant": {
    "name": "Defiant",
    "tags": [
@@ -31910,47 +31464,6 @@
      },
      "needsSource": true,
      "notFromAlly": true
-    }
-   }
-  },
-  "deltastream": {
-   "name": "Delta Stream",
-   "tags": [
-    "weatherSetter"
-   ],
-   "uses": 0,
-   "params": {
-    "weatherSetter": {
-     "weather": "deltastream"
-    }
-   }
-  },
-  "desolateland": {
-   "name": "Desolate Land",
-   "tags": [
-    "weatherSetter"
-   ],
-   "uses": 0,
-   "params": {
-    "weatherSetter": {
-     "weather": "sun"
-    }
-   }
-  },
-  "dragonsmaw": {
-   "name": "Dragon's Maw",
-   "tags": [
-    "damageBoost"
-   ],
-   "uses": 0,
-   "params": {
-    "damageBoost": {
-     "mult": 1.5,
-     "onType": "Dragon",
-     "inWeather": null,
-     "onlyWhen": null,
-     "stage": "attackStat",
-     "costsPerTurn": null
     }
    }
   },
@@ -32117,102 +31630,6 @@
     }
    }
   },
-  "embodyaspectcornerstone": {
-   "name": "Embody Aspect (Cornerstone)",
-   "tags": [
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": false
-    }
-   }
-  },
-  "embodyaspecthearthflame": {
-   "name": "Embody Aspect (Hearthflame)",
-   "tags": [
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": false
-    }
-   }
-  },
-  "embodyaspectteal": {
-   "name": "Embody Aspect (Teal)",
-   "tags": [
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": false
-    }
-   }
-  },
-  "embodyaspectwellspring": {
-   "name": "Embody Aspect (Wellspring)",
-   "tags": [
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": false
-    }
-   }
-  },
   "fairyaura": {
    "name": "Fairy Aura",
    "tags": [
@@ -32278,23 +31695,6 @@
     }
    }
   },
-  "flareboost": {
-   "name": "Flare Boost",
-   "tags": [
-    "damageBoost"
-   ],
-   "uses": 0,
-   "params": {
-    "damageBoost": {
-     "mult": 1.5,
-     "onType": null,
-     "inWeather": null,
-     "onlyWhen": null,
-     "stage": "basePower",
-     "costsPerTurn": null
-    }
-   }
-  },
   "flashfire": {
    "name": "Flash Fire",
    "tags": [
@@ -32313,44 +31713,6 @@
      "gain": {
       "volatile": "flashfire"
      }
-    }
-   }
-  },
-  "flowergift": {
-   "name": "Flower Gift",
-   "tags": [
-    "breakable",
-    "formeFollowsWeather",
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "breakable": {
-     "breakable": true
-    },
-    "formeFollowsWeather": {
-     "formes": [
-      "Cherrim-Sunshine",
-      "Cherrim"
-     ],
-     "byWeather": null,
-     "restoresRatherThanChanges": false,
-     "sameStats": true,
-     "sameTypes": true
-    },
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": false,
-     "cantsuppress": false
     }
    }
   },
@@ -32421,6 +31783,21 @@
       "rain": "Castform-Rainy",
       "snow": "Castform-Snowy"
      },
+     "typesByWeather": {
+      "sun": [
+       "Fire"
+      ],
+      "rain": [
+       "Water"
+      ],
+      "snow": [
+       "Ice"
+      ]
+     },
+     "revertsTo": "Castform",
+     "revertsToTypes": [
+      "Normal"
+     ],
      "restoresRatherThanChanges": false,
      "sameStats": true,
      "sameTypes": false
@@ -32451,6 +31828,10 @@
     "announcesOnEntry": {
      "effect": "information only",
      "reveals": "a foe move",
+     "emits": {
+      "event": "-activate",
+      "on": "self"
+     },
      "visibleOnABoard": false
     }
    }
@@ -32481,25 +31862,11 @@
     "announcesOnEntry": {
      "effect": "information only",
      "reveals": "the foes' items",
+     "emits": {
+      "event": "-item",
+      "on": "foe"
+     },
      "visibleOnABoard": false
-    }
-   }
-  },
-  "fullmetalbody": {
-   "name": "Full Metal Body",
-   "tags": [
-    "preventsStatDrop"
-   ],
-   "uses": 0,
-   "params": {
-    "preventsStatDrop": {
-     "blocks": "all stats",
-     "onlyFrom": null,
-     "onlyGrassTypes": null,
-     "protectsAllies": null,
-     "reflects": null,
-     "reflectSkipsAtFloor": null,
-     "reflectNeedsLivingSource": null
     }
    }
   },
@@ -32526,30 +31893,6 @@
      "movesOfClass": "flying",
      "shift": 1,
      "condition": "only at full HP"
-    }
-   }
-  },
-  "galvanize": {
-   "name": "Galvanize",
-   "tags": [
-    "convertsMoveType",
-    "convertsMoveType",
-    "damageBoost"
-   ],
-   "uses": 0,
-   "params": {
-    "convertsMoveType": {
-     "converts": "Normal moves",
-     "into": "Electric",
-     "damageMult": 1.2
-    },
-    "damageBoost": {
-     "mult": 1.2,
-     "onType": null,
-     "inWeather": null,
-     "onlyWhen": null,
-     "stage": "basePower",
-     "costsPerTurn": null
     }
    }
   },
@@ -32609,133 +31952,6 @@
     }
    }
   },
-  "gorillatactics": {
-   "name": "Gorilla Tactics",
-   "tags": [
-    "damageBoost"
-   ],
-   "uses": 0,
-   "params": {
-    "damageBoost": {
-     "mult": 1.5,
-     "onType": null,
-     "inWeather": null,
-     "onlyWhen": null,
-     "stage": "attackStat",
-     "costsPerTurn": null
-    }
-   }
-  },
-  "grasspelt": {
-   "name": "Grass Pelt",
-   "tags": [
-    "breakable"
-   ],
-   "uses": 0,
-   "params": {
-    "breakable": {
-     "breakable": true
-    }
-   }
-  },
-  "grassysurge": {
-   "name": "Grassy Surge",
-   "tags": [
-    "terrainSetter"
-   ],
-   "uses": 0,
-   "params": {
-    "terrainSetter": {
-     "terrain": "grassy"
-    }
-   }
-  },
-  "grimneigh": {
-   "name": "Grim Neigh",
-   "tags": [
-    "boostsOnKO"
-   ],
-   "uses": 0,
-   "params": {
-    "boostsOnKO": {
-     "stat": "spa",
-     "stages": 1,
-     "trigger": "on KO",
-     "requiresMoveKO": true
-    }
-   }
-  },
-  "guarddog": {
-   "name": "Guard Dog",
-   "tags": [
-    "refusesForcedSwitch",
-    "breakable",
-    "preventsStatDrop"
-   ],
-   "uses": 0,
-   "params": {
-    "refusesForcedSwitch": {
-     "refuses": "forcedSwitch",
-     "announces": true
-    },
-    "breakable": {
-     "breakable": true
-    },
-    "preventsStatDrop": {
-     "blocks": "atk",
-     "onlyFrom": "Intimidate",
-     "onlyGrassTypes": null,
-     "protectsAllies": null,
-     "reflects": null,
-     "reflectSkipsAtFloor": null,
-     "reflectNeedsLivingSource": null
-    }
-   }
-  },
-  "gulpmissile": {
-   "name": "Gulp Missile",
-   "tags": [
-    "punishesAttacker",
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "punishesAttacker": {
-     "compounds": false,
-     "trigger": "anyHit",
-     "onFaintOnly": null,
-     "requiresForme": [
-      "cramorantgulping",
-      "cramorantgorging"
-     ],
-     "inflicts": [
-      {
-       "status": "paralysis",
-       "chance": 1
-      }
-     ],
-     "inflictsVolatile": null,
-     "boosts": {
-      "def": -1
-     },
-     "fraction": "4",
-     "hazard": null,
-     "maxLayers": null,
-     "setsWeather": null
-    },
-    "refusesCopy": {
-     "refuses": [
-      "cantsuppress"
-     ],
-     "notrace": false,
-     "noentrain": false,
-     "noreceiver": false,
-     "failroleplay": false,
-     "failskillswap": false,
-     "cantsuppress": true
-    }
-   }
-  },
   "guts": {
    "name": "Guts",
    "tags": [
@@ -32745,27 +31961,6 @@
    "params": {
     "damageBoost": {
      "mult": 1.5,
-     "onType": null,
-     "inWeather": null,
-     "onlyWhen": null,
-     "stage": "attackStat",
-     "costsPerTurn": null
-    }
-   }
-  },
-  "hadronengine": {
-   "name": "Hadron Engine",
-   "tags": [
-    "terrainSetter",
-    "damageBoost"
-   ],
-   "uses": 0,
-   "params": {
-    "terrainSetter": {
-     "terrain": "electric"
-    },
-    "damageBoost": {
-     "mult": 1.333,
      "onType": null,
      "inWeather": null,
      "onlyWhen": null,
@@ -32973,73 +32168,6 @@
     }
    }
   },
-  "iceface": {
-   "name": "Ice Face",
-   "tags": [
-    "breakable",
-    "formeOnHit",
-    "preventsCrit",
-    "formeFollowsWeather",
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "breakable": {
-     "breakable": true
-    },
-    "formeOnHit": {
-     "from": "Eiscue",
-     "becomes": "Eiscue-Noice",
-     "sameStats": false,
-     "sameTypes": true
-    },
-    "preventsCrit": {
-     "pCrit": 0
-    },
-    "formeFollowsWeather": {
-     "formes": [
-      "Eiscue"
-     ],
-     "byWeather": null,
-     "restoresRatherThanChanges": true,
-     "sameStats": null,
-     "sameTypes": null
-    },
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap",
-      "cantsuppress"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": true
-    }
-   }
-  },
-  "icescales": {
-   "name": "Ice Scales",
-   "tags": [
-    "breakable",
-    "damageReduce"
-   ],
-   "uses": 0,
-   "params": {
-    "breakable": {
-     "breakable": true
-    },
-    "damageReduce": {
-     "damageMult": 0.5,
-     "onlyWhen": "special"
-    }
-   }
-  },
   "illuminate": {
    "name": "Illuminate",
    "tags": [
@@ -33238,28 +32366,6 @@
     }
    }
   },
-  "ironbarbs": {
-   "name": "Iron Barbs",
-   "tags": [
-    "punishesAttacker"
-   ],
-   "uses": 0,
-   "params": {
-    "punishesAttacker": {
-     "compounds": false,
-     "trigger": "contact",
-     "onFaintOnly": null,
-     "requiresForme": null,
-     "inflicts": null,
-     "inflictsVolatile": null,
-     "boosts": null,
-     "fraction": "8",
-     "hazard": null,
-     "maxLayers": null,
-     "setsWeather": null
-    }
-   }
-  },
   "ironfist": {
    "name": "Iron Fist",
    "tags": [
@@ -33382,18 +32488,6 @@
     }
    }
   },
-  "libero": {
-   "name": "Libero",
-   "tags": [
-    "typeBecomesMoveType"
-   ],
-   "uses": 0,
-   "params": {
-    "typeBecomesMoveType": {
-     "oncePerSwitchIn": true
-    }
-   }
-  },
   "lightmetal": {
    "name": "Light Metal",
    "tags": [
@@ -33446,20 +32540,6 @@
     },
     "statusImmune": {
      "immune": true
-    }
-   }
-  },
-  "lingeringaroma": {
-   "name": "Lingering Aroma",
-   "tags": [
-    "rewritesAbilityOnContact"
-   ],
-   "uses": 0,
-   "params": {
-    "rewritesAbilityOnContact": {
-     "mode": "infect",
-     "becomes": "lingeringaroma",
-     "trigger": "contact"
     }
    }
   },
@@ -33555,25 +32635,6 @@
     }
    }
   },
-  "magnetpull": {
-   "name": "Magnet Pull",
-   "tags": [
-    "preventsSwitch"
-   ],
-   "uses": 0,
-   "params": {
-    "preventsSwitch": {
-     "source": "ability",
-     "turns": null,
-     "chips": false,
-     "scope": "adjacent foes",
-     "onlyTypes": [
-      "Steel"
-     ],
-     "onlyGrounded": null
-    }
-   }
-  },
   "marvelscale": {
    "name": "Marvel Scale",
    "tags": [
@@ -33641,34 +32702,7 @@
       "mistyterrain": "Fairy",
       "psychicterrain": "Psychic"
      },
-     "revertsWithoutTerrain": false
-    }
-   }
-  },
-  "mindseye": {
-   "name": "Mind's Eye",
-   "tags": [
-    "breakable",
-    "preventsStatDrop",
-    "ignoresTypeImmunity"
-   ],
-   "uses": 0,
-   "params": {
-    "breakable": {
-     "breakable": true
-    },
-    "preventsStatDrop": {
-     "blocks": "accuracy",
-     "onlyFrom": null,
-     "onlyGrassTypes": null,
-     "protectsAllies": null,
-     "reflects": null,
-     "reflectSkipsAtFloor": null,
-     "reflectNeedsLivingSource": null
-    },
-    "ignoresTypeImmunity": {
-     "movesOfType": "Fighting/Normal",
-     "nowHits": "Ghost"
+     "revertsWithoutTerrain": true
     }
    }
   },
@@ -33708,18 +32742,6 @@
      "reflects": true,
      "reflectSkipsAtFloor": true,
      "reflectNeedsLivingSource": true
-    }
-   }
-  },
-  "mistysurge": {
-   "name": "Misty Surge",
-   "tags": [
-    "terrainSetter"
-   ],
-   "uses": 0,
-   "params": {
-    "terrainSetter": {
-     "terrain": "misty"
     }
    }
   },
@@ -33809,31 +32831,6 @@
     }
    }
   },
-  "multitype": {
-   "name": "Multitype",
-   "tags": [
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap",
-      "cantsuppress"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": true
-    }
-   }
-  },
   "mummy": {
    "name": "Mummy",
    "tags": [
@@ -33848,51 +32845,6 @@
     }
    }
   },
-  "myceliummight": {
-   "name": "Mycelium Might",
-   "tags": [
-    "ignoresDefenderAbility",
-    "fractionalPriority"
-   ],
-   "uses": 0,
-   "params": {
-    "ignoresDefenderAbility": {
-     "ignoresDefAbility": true,
-     "onlyCategory": "Status"
-    },
-    "fractionalPriority": {
-     "chance": 1,
-     "bracket": -0.1,
-     "unconditional": false,
-     "excludesStatus": false,
-     "onlyStatus": true
-    }
-   }
-  },
-  "neutralizinggas": {
-   "name": "Neutralizing Gas",
-   "tags": [
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": false
-    }
-   }
-  },
   "noguard": {
    "name": "No Guard",
    "tags": [
@@ -33904,30 +32856,6 @@
      "setsTo": 1,
      "mult": null,
      "scope": "every move, both directions"
-    }
-   }
-  },
-  "normalize": {
-   "name": "Normalize",
-   "tags": [
-    "convertsMoveType",
-    "convertsMoveType",
-    "damageBoost"
-   ],
-   "uses": 0,
-   "params": {
-    "convertsMoveType": {
-     "converts": "its moves",
-     "into": "Normal",
-     "damageMult": 1.2
-    },
-    "damageBoost": {
-     "mult": 1.2,
-     "onType": null,
-     "inWeather": null,
-     "onlyWhen": null,
-     "stage": "basePower",
-     "costsPerTurn": null
     }
    }
   },
@@ -33962,30 +32890,6 @@
    "params": {
     "boostsEachTurn": {
      "perTurn": true
-    }
-   }
-  },
-  "orichalcumpulse": {
-   "name": "Orichalcum Pulse",
-   "tags": [
-    "weatherSetter",
-    "damageBoost"
-   ],
-   "uses": 0,
-   "params": {
-    "weatherSetter": {
-     "weather": "sun"
-    },
-    "damageBoost": {
-     "mult": 1.333,
-     "onType": null,
-     "inWeather": [
-      "sun",
-      "harsh sun"
-     ],
-     "onlyWhen": null,
-     "stage": "attackStat",
-     "costsPerTurn": null
     }
    }
   },
@@ -34076,73 +32980,6 @@
     "hitsTwice": {
      "hits": 2,
      "secondHitMult": 0.25
-    }
-   }
-  },
-  "pastelveil": {
-   "name": "Pastel Veil",
-   "tags": [
-    "breakable",
-    "protectsAllyFromStatus",
-    "statusImmune"
-   ],
-   "uses": 0,
-   "params": {
-    "breakable": {
-     "breakable": true
-    },
-    "protectsAllyFromStatus": {
-     "statuses": [
-      "psn",
-      "tox"
-     ],
-     "except": null,
-     "volatiles": null,
-     "onlyGrassTypes": null,
-     "needsSource": null,
-     "notFromSelf": null,
-     "coversSelf": true
-    },
-    "statusImmune": {
-     "immune": true
-    }
-   }
-  },
-  "perishbody": {
-   "name": "Perish Body",
-   "tags": [
-    "buffsHolderOnHit",
-    "punishesAttacker"
-   ],
-   "uses": 0,
-   "params": {
-    "buffsHolderOnHit": {
-     "compounds": true,
-     "boosts": null,
-     "gainsVolatile": "perishsong",
-     "when": {
-      "cond": "moveFlag",
-      "is": [
-       "contact"
-      ],
-      "says": "only on contact"
-     }
-    },
-    "punishesAttacker": {
-     "compounds": false,
-     "trigger": "contact",
-     "onFaintOnly": null,
-     "requiresForme": null,
-     "inflicts": null,
-     "inflictsVolatile": {
-      "volatile": "perishsong",
-      "chance": 1
-     },
-     "boosts": null,
-     "fraction": null,
-     "hazard": null,
-     "maxLayers": null,
-     "setsWeather": null
     }
    }
   },
@@ -34259,30 +33096,6 @@
     }
    }
   },
-  "poisonpuppeteer": {
-   "name": "Poison Puppeteer",
-   "tags": [
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": false
-    }
-   }
-  },
   "poisontouch": {
    "name": "Poison Touch",
    "tags": [
@@ -34293,77 +33106,6 @@
     "poisonsOnMyContact": {
      "p": 0.3,
      "needsContact": true
-    }
-   }
-  },
-  "powerconstruct": {
-   "name": "Power Construct",
-   "tags": [
-    "formeChange",
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "formeChange": {
-     "changes": true
-    },
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap",
-      "cantsuppress"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": true
-    }
-   }
-  },
-  "powerofalchemy": {
-   "name": "Power of Alchemy",
-   "tags": [
-    "inheritsAllyAbility",
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "inheritsAllyAbility": {
-     "from": "the ally that fainted",
-     "refusedBy": "the source ability's own `noreceiver` flag"
-    },
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": false,
-     "cantsuppress": false
-    }
-   }
-  },
-  "powerspot": {
-   "name": "Power Spot",
-   "tags": [
-    "allyBasePowerBoost"
-   ],
-   "uses": 0,
-   "params": {
-    "allyBasePowerBoost": {
-     "onlyType": null,
-     "mult": 1.300048828125,
-     "includesSelf": null
     }
    }
   },
@@ -34394,44 +33136,6 @@
     }
    }
   },
-  "primordialsea": {
-   "name": "Primordial Sea",
-   "tags": [
-    "weatherSetter"
-   ],
-   "uses": 0,
-   "params": {
-    "weatherSetter": {
-     "weather": "rain"
-    }
-   }
-  },
-  "prismarmor": {
-   "name": "Prism Armor",
-   "tags": [
-    "damageReduce"
-   ],
-   "uses": 0,
-   "params": {
-    "damageReduce": {
-     "damageMult": 0.75,
-     "onlyWhen": "superEffective"
-    }
-   }
-  },
-  "propellertail": {
-   "name": "Propeller Tail",
-   "tags": [
-    "ignoresRedirection"
-   ],
-   "uses": 0,
-   "params": {
-    "ignoresRedirection": {
-     "ignoresRedirection": true,
-     "exceptScripted": true
-    }
-   }
-  },
   "protean": {
    "name": "Protean",
    "tags": [
@@ -34441,73 +33145,6 @@
    "params": {
     "typeBecomesMoveType": {
      "oncePerSwitchIn": true
-    }
-   }
-  },
-  "protosynthesis": {
-   "name": "Protosynthesis",
-   "tags": [
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": false
-    }
-   }
-  },
-  "psychicsurge": {
-   "name": "Psychic Surge",
-   "tags": [
-    "terrainSetter"
-   ],
-   "uses": 2,
-   "params": {
-    "terrainSetter": {
-     "terrain": "psychic"
-    }
-   }
-  },
-  "punkrock": {
-   "name": "Punk Rock",
-   "tags": [
-    "breakable",
-    "damageReduce",
-    "boostsMoveClass",
-    "damageBoost"
-   ],
-   "uses": 0,
-   "params": {
-    "breakable": {
-     "breakable": true
-    },
-    "damageReduce": {
-     "damageMult": 0.5,
-     "onlyWhen": "sound"
-    },
-    "boostsMoveClass": {
-     "boostsFlag": "sound",
-     "mult": 1.3
-    },
-    "damageBoost": {
-     "mult": 1.3,
-     "onType": null,
-     "inWeather": null,
-     "onlyWhen": null,
-     "stage": "basePower",
-     "costsPerTurn": null
     }
    }
   },
@@ -34555,30 +33192,6 @@
     },
     "statusImmune": {
      "immune": true
-    }
-   }
-  },
-  "quarkdrive": {
-   "name": "Quark Drive",
-   "tags": [
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": false
     }
    }
   },
@@ -34641,31 +33254,6 @@
      },
      "hurts": null,
      "needsEffectiveWeather": true
-    }
-   }
-  },
-  "rattled": {
-   "name": "Rattled",
-   "tags": [
-    "buffsHolderOnHit"
-   ],
-   "uses": 0,
-   "params": {
-    "buffsHolderOnHit": {
-     "compounds": true,
-     "boosts": {
-      "spe": 1
-     },
-     "gainsVolatile": null,
-     "when": {
-      "cond": "moveType",
-      "is": [
-       "Dark",
-       "Bug",
-       "Ghost"
-      ],
-      "says": "only a Dark/Bug/Ghost hit"
-     }
     }
    }
   },
@@ -34780,31 +33368,6 @@
     }
    }
   },
-  "rkssystem": {
-   "name": "RKS System",
-   "tags": [
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap",
-      "cantsuppress"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": true
-    }
-   }
-  },
   "rockhead": {
    "name": "Rock Head",
    "tags": [
@@ -34814,23 +33377,6 @@
    "params": {
     "noRecoil": {
      "recoil": 0
-    }
-   }
-  },
-  "rockypayload": {
-   "name": "Rocky Payload",
-   "tags": [
-    "damageBoost"
-   ],
-   "uses": 0,
-   "params": {
-    "damageBoost": {
-     "mult": 1.5,
-     "onType": "Rock",
-     "inWeather": null,
-     "onlyWhen": null,
-     "stage": "attackStat",
-     "costsPerTurn": null
     }
    }
   },
@@ -34990,35 +33536,6 @@
     }
    }
   },
-  "schooling": {
-   "name": "Schooling",
-   "tags": [
-    "formeChange",
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "formeChange": {
-     "changes": true
-    },
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap",
-      "cantsuppress"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": true
-    }
-   }
-  },
   "scrappy": {
    "name": "Scrappy",
    "tags": [
@@ -35056,33 +33573,6 @@
       "auroraveil"
      ],
      "sides": "both"
-    }
-   }
-  },
-  "serenegrace": {
-   "name": "Serene Grace",
-   "tags": [
-    "secondaryChanceMult"
-   ],
-   "uses": 5,
-   "params": {
-    "secondaryChanceMult": {
-     "mult": 2,
-     "appliesTo": "every secondary on the holder's own moves",
-     "alsoSelfBoosts": true
-    }
-   }
-  },
-  "shadowshield": {
-   "name": "Shadow Shield",
-   "tags": [
-    "damageReduce"
-   ],
-   "uses": 0,
-   "params": {
-    "damageReduce": {
-     "damageMult": 0.5,
-     "onlyWhen": "fullHP"
     }
    }
   },
@@ -35193,55 +33683,6 @@
     }
    }
   },
-  "shieldsdown": {
-   "name": "Shields Down",
-   "tags": [
-    "formeChange",
-    "statusImmune",
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "formeChange": {
-     "changes": true
-    },
-    "statusImmune": {
-     "immune": true
-    },
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap",
-      "cantsuppress"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": true
-    }
-   }
-  },
-  "simple": {
-   "name": "Simple",
-   "tags": [
-    "breakable",
-    "amplifiesBoosts"
-   ],
-   "uses": 0,
-   "params": {
-    "breakable": {
-     "breakable": true
-    },
-    "amplifiesBoosts": {
-     "mult": 2
-    }
-   }
-  },
   "skilllink": {
    "name": "Skill Link",
    "tags": [
@@ -35253,28 +33694,6 @@
      "takesIndex": 1,
      "meaning": "the TOP of the [min,max] pair",
      "removesMultiaccuracy": true
-    }
-   }
-  },
-  "slowstart": {
-   "name": "Slow Start",
-   "tags": [
-    "speedCond",
-    "damageBoost"
-   ],
-   "uses": 0,
-   "params": {
-    "speedCond": {
-     "inWeather": [],
-     "speedMult": 0.5
-    },
-    "damageBoost": {
-     "mult": 0.5,
-     "onType": null,
-     "inWeather": null,
-     "onlyWhen": null,
-     "stage": "attackStat",
-     "costsPerTurn": null
     }
    }
   },
@@ -35423,23 +33842,6 @@
     }
    }
   },
-  "stakeout": {
-   "name": "Stakeout",
-   "tags": [
-    "damageBoost"
-   ],
-   "uses": 0,
-   "params": {
-    "damageBoost": {
-     "mult": 2,
-     "onType": null,
-     "inWeather": null,
-     "onlyWhen": null,
-     "stage": "attackStat",
-     "costsPerTurn": null
-    }
-   }
-  },
   "stall": {
    "name": "Stall",
    "tags": [
@@ -35561,61 +33963,6 @@
     }
    }
   },
-  "steamengine": {
-   "name": "Steam Engine",
-   "tags": [
-    "buffsHolderOnHit"
-   ],
-   "uses": 0,
-   "params": {
-    "buffsHolderOnHit": {
-     "compounds": true,
-     "boosts": {
-      "spe": 6
-     },
-     "gainsVolatile": null,
-     "when": {
-      "cond": "moveType",
-      "is": [
-       "Water",
-       "Fire"
-      ],
-      "says": "only a Water/Fire hit"
-     }
-    }
-   }
-  },
-  "steelworker": {
-   "name": "Steelworker",
-   "tags": [
-    "damageBoost"
-   ],
-   "uses": 0,
-   "params": {
-    "damageBoost": {
-     "mult": 1.5,
-     "onType": "Steel",
-     "inWeather": null,
-     "onlyWhen": null,
-     "stage": "attackStat",
-     "costsPerTurn": null
-    }
-   }
-  },
-  "steelyspirit": {
-   "name": "Steely Spirit",
-   "tags": [
-    "allyBasePowerBoost"
-   ],
-   "uses": 1,
-   "params": {
-    "allyBasePowerBoost": {
-     "onlyType": "Steel",
-     "mult": 1,
-     "includesSelf": null
-    }
-   }
-  },
   "stench": {
    "name": "Stench",
    "tags": [
@@ -35641,33 +33988,6 @@
    "params": {
     "breakable": {
      "breakable": true
-    }
-   }
-  },
-  "stormdrain": {
-   "name": "Storm Drain",
-   "tags": [
-    "breakable",
-    "typeImmunity",
-    "redirectsType"
-   ],
-   "uses": 3,
-   "params": {
-    "breakable": {
-     "breakable": true
-    },
-    "typeImmunity": {
-     "immune": true,
-     "type": "Water",
-     "via": "onTryHit",
-     "gain": {
-      "boosts": {
-       "spa": 1
-      }
-     }
-    },
-    "redirectsType": {
-     "type": "Water"
     }
    }
   },
@@ -35911,30 +34231,6 @@
     }
    }
   },
-  "tanglinghair": {
-   "name": "Tangling Hair",
-   "tags": [
-    "punishesAttacker"
-   ],
-   "uses": 0,
-   "params": {
-    "punishesAttacker": {
-     "compounds": false,
-     "trigger": "contact",
-     "onFaintOnly": null,
-     "requiresForme": null,
-     "inflicts": null,
-     "inflictsVolatile": null,
-     "boosts": {
-      "spe": -1
-     },
-     "fraction": null,
-     "hazard": null,
-     "maxLayers": null,
-     "setsWeather": null
-    }
-   }
-  },
   "technician": {
    "name": "Technician",
    "tags": [
@@ -35964,132 +34260,6 @@
     }
    }
   },
-  "teraformzero": {
-   "name": "Teraform Zero",
-   "tags": [
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": false
-    }
-   }
-  },
-  "terashell": {
-   "name": "Tera Shell",
-   "tags": [
-    "breakable",
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "breakable": {
-     "breakable": true
-    },
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": false
-    }
-   }
-  },
-  "terashift": {
-   "name": "Tera Shift",
-   "tags": [
-    "switchInForme",
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "switchInForme": {
-     "from": "Terapagos",
-     "becomes": "Terapagos-Terastal"
-    },
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap",
-      "cantsuppress"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": true
-    }
-   }
-  },
-  "teravolt": {
-   "name": "Teravolt",
-   "tags": [
-    "ignoresDefenderAbility"
-   ],
-   "uses": 0,
-   "params": {
-    "ignoresDefenderAbility": {
-     "ignoresDefAbility": true,
-     "onlyCategory": null
-    }
-   }
-  },
-  "thermalexchange": {
-   "name": "Thermal Exchange",
-   "tags": [
-    "breakable",
-    "buffsHolderOnHit",
-    "statusImmune"
-   ],
-   "uses": 0,
-   "params": {
-    "breakable": {
-     "breakable": true
-    },
-    "buffsHolderOnHit": {
-     "compounds": true,
-     "boosts": {
-      "atk": 1
-     },
-     "gainsVolatile": null,
-     "when": {
-      "cond": "moveType",
-      "is": [
-       "Fire"
-      ],
-      "says": "only a Fire hit"
-     }
-    },
-    "statusImmune": {
-     "immune": true
-    }
-   }
-  },
   "thickfat": {
    "name": "Thick Fat",
    "tags": [
@@ -36107,19 +34277,6 @@
       "Fire"
      ],
      "attackerStatMult": 0.5
-    }
-   }
-  },
-  "tintedlens": {
-   "name": "Tinted Lens",
-   "tags": [
-    "boostsNotVeryEffective"
-   ],
-   "uses": 2,
-   "params": {
-    "boostsNotVeryEffective": {
-     "mult": 2,
-     "appliesWhen": "the type chart returned not-very-effective"
     }
    }
   },
@@ -36166,36 +34323,6 @@
      "onlyWhen": null,
      "stage": "basePower",
      "costsPerTurn": null
-    }
-   }
-  },
-  "toxicboost": {
-   "name": "Toxic Boost",
-   "tags": [
-    "damageBoost"
-   ],
-   "uses": 0,
-   "params": {
-    "damageBoost": {
-     "mult": 1.5,
-     "onType": null,
-     "inWeather": null,
-     "onlyWhen": null,
-     "stage": "basePower",
-     "costsPerTurn": null
-    }
-   }
-  },
-  "toxicchain": {
-   "name": "Toxic Chain",
-   "tags": [
-    "poisonsOnMyContact"
-   ],
-   "uses": 0,
-   "params": {
-    "poisonsOnMyContact": {
-     "p": 0.3,
-     "needsContact": true
     }
    }
   },
@@ -36250,50 +34377,6 @@
     }
    }
   },
-  "transistor": {
-   "name": "Transistor",
-   "tags": [
-    "damageBoost"
-   ],
-   "uses": 0,
-   "params": {
-    "damageBoost": {
-     "mult": 1.3,
-     "onType": "Electric",
-     "inWeather": null,
-     "onlyWhen": null,
-     "stage": "attackStat",
-     "costsPerTurn": null
-    }
-   }
-  },
-  "triage": {
-   "name": "Triage",
-   "tags": [
-    "priorityMod"
-   ],
-   "uses": 0,
-   "params": {
-    "priorityMod": {
-     "movesOfClass": "all",
-     "shift": 3,
-     "condition": null
-    }
-   }
-  },
-  "turboblaze": {
-   "name": "Turboblaze",
-   "tags": [
-    "ignoresDefenderAbility"
-   ],
-   "uses": 0,
-   "params": {
-    "ignoresDefenderAbility": {
-     "ignoresDefAbility": true,
-     "onlyCategory": null
-    }
-   }
-  },
   "unaware": {
    "name": "Unaware",
    "tags": [
@@ -36331,20 +34414,6 @@
    "params": {
     "blocksBerries": {
      "blocks": true
-    }
-   }
-  },
-  "victorystar": {
-   "name": "Victory Star",
-   "tags": [
-    "writesAccuracy"
-   ],
-   "uses": 0,
-   "params": {
-    "writesAccuracy": {
-     "setsTo": null,
-     "mult": 1.1,
-     "scope": "every move on its own side, ally included"
     }
    }
   },
@@ -36458,45 +34527,6 @@
     }
    }
   },
-  "watercompaction": {
-   "name": "Water Compaction",
-   "tags": [
-    "buffsHolderOnHit"
-   ],
-   "uses": 0,
-   "params": {
-    "buffsHolderOnHit": {
-     "compounds": true,
-     "boosts": {
-      "def": 2
-     },
-     "gainsVolatile": null,
-     "when": {
-      "cond": "moveType",
-      "is": [
-       "Water"
-      ],
-      "says": "only a Water hit"
-     }
-    }
-   }
-  },
-  "waterveil": {
-   "name": "Water Veil",
-   "tags": [
-    "breakable",
-    "statusImmune"
-   ],
-   "uses": 0,
-   "params": {
-    "breakable": {
-     "breakable": true
-    },
-    "statusImmune": {
-     "immune": true
-    }
-   }
-  },
   "weakarmor": {
    "name": "Weak Armor",
    "tags": [
@@ -36521,29 +34551,6 @@
     }
    }
   },
-  "wellbakedbody": {
-   "name": "Well-Baked Body",
-   "tags": [
-    "breakable",
-    "typeImmunity"
-   ],
-   "uses": 0,
-   "params": {
-    "breakable": {
-     "breakable": true
-    },
-    "typeImmunity": {
-     "immune": true,
-     "type": "Fire",
-     "via": "onTryHit",
-     "gain": {
-      "boosts": {
-       "def": 2
-      }
-     }
-    }
-   }
-  },
   "whitesmoke": {
    "name": "White Smoke",
    "tags": [
@@ -36563,121 +34570,6 @@
      "reflects": null,
      "reflectSkipsAtFloor": null,
      "reflectNeedsLivingSource": null
-    }
-   }
-  },
-  "windpower": {
-   "name": "Wind Power",
-   "tags": [
-    "buffsHolderOnHit"
-   ],
-   "uses": 0,
-   "params": {
-    "buffsHolderOnHit": {
-     "compounds": true,
-     "boosts": null,
-     "gainsVolatile": "charge",
-     "when": {
-      "cond": "moveFlag",
-      "is": [
-       "wind"
-      ],
-      "says": "only a wind-flagged hit"
-     }
-    }
-   }
-  },
-  "windrider": {
-   "name": "Wind Rider",
-   "tags": [
-    "breakable",
-    "immuneToMoveClass"
-   ],
-   "uses": 0,
-   "params": {
-    "breakable": {
-     "breakable": true
-    },
-    "immuneToMoveClass": {
-     "blocksFlag": "wind"
-    }
-   }
-  },
-  "wonderguard": {
-   "name": "Wonder Guard",
-   "tags": [
-    "breakable",
-    "blocksMove",
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "breakable": {
-     "breakable": true
-    },
-    "blocksMove": {
-     "what": "status moves at the holder"
-    },
-    "refusesCopy": {
-     "refuses": [
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap"
-     ],
-     "notrace": false,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": false
-    }
-   }
-  },
-  "wonderskin": {
-   "name": "Wonder Skin",
-   "tags": [
-    "breakable",
-    "writesAccuracy",
-    "accuracyMod"
-   ],
-   "uses": 0,
-   "params": {
-    "breakable": {
-     "breakable": true
-    },
-    "writesAccuracy": {
-     "setsTo": 50,
-     "mult": null,
-     "scope": "moves aimed at it"
-    },
-    "accuracyMod": {
-     "accuracy": true
-    }
-   }
-  },
-  "zenmode": {
-   "name": "Zen Mode",
-   "tags": [
-    "refusesCopy"
-   ],
-   "uses": 0,
-   "params": {
-    "refusesCopy": {
-     "refuses": [
-      "notrace",
-      "noentrain",
-      "noreceiver",
-      "failroleplay",
-      "failskillswap",
-      "cantsuppress"
-     ],
-     "notrace": true,
-     "noentrain": true,
-     "noreceiver": true,
-     "failroleplay": true,
-     "failskillswap": true,
-     "cantsuppress": true
     }
    }
   },

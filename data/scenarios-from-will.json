@@ -1,0 +1,199 @@
+{
+  "what": "Staging scenarios given by Will, written down so they are NEVER asked for again.",
+  "why": "Will, 2026-08-11: 'ive had to to stage the exact same scenarios for you several times this is my final time i will do it okay'. He is right. Every scenario below was dictated by him, verified against Dex.forFormat, and is stored here so a future session inherits it instead of re-deriving it at his expense. THIS FILE IS INPUT, NOT OUTPUT. Nothing regenerates it. Add to it; never let a generator overwrite it.",
+  "how_to_use": "Each row is a complete fixture: the board, the click, and the OBSERVABLE that distinguishes a working engine from a broken one. Run each through engine/fixture_preflight.js before staging. A row whose observable is 'no change' is useless — the observable must be something a broken engine gets wrong.",
+  "stamped": "2026-08-11",
+  "format": "gen9championsvgc2026regmb",
+  "scenarios": [
+    {
+      "id": "lightningrod-redirect-and-boost",
+      "tests": [
+        "lightningrod"
+      ],
+      "board": "Rotom fires Volt Switch at Palafin, which is standing next to a Raichu carrying Lightning Rod",
+      "click": "Volt Switch (Electric, target normal)",
+      "observable": "the Electric move is REDIRECTED to the Raichu, and the Raichu gains +1 Special Attack",
+      "why_it_discriminates": "two independent effects from one click — a redirect that does not boost, or a boost without a redirect, both fail",
+      "from": "WILL 2026-08-11",
+      "roster_status_when_given": "FIRED-AND-BOARDS-MATCH — already covered"
+    },
+    {
+      "id": "speedboost-after-detect",
+      "tests": [
+        "speedboost"
+      ],
+      "board": "Blaziken with Speed Boost",
+      "click": "Detect",
+      "observable": "+1 Speed at the END OF THE TURN, even though the turn was spent protecting",
+      "why_it_discriminates": "Detect spends the turn, so an engine that only ticks residual abilities after an attack will miss it",
+      "from": "WILL 2026-08-11",
+      "roster_status_when_given": "FIRED-AND-BOARDS-MATCH — already covered"
+    },
+    {
+      "id": "insomnia-refuses-sleep",
+      "tests": [
+        "insomnia"
+      ],
+      "board": "any legal Sleep Powder user against an Insomnia body",
+      "click": "Sleep Powder — NOT Spore",
+      "observable": "the target does NOT fall asleep; the refusal IS the observable",
+      "why_it_discriminates": "the control body must be one that WOULD have slept, or the row proves nothing",
+      "gotcha": "SPORE IS NOT PLAYABLE IN THIS FORMAT. It passes isNonstandard/tier checks and ZERO legal species can learn it. Will: 'spore aint in the game but yes, sleep powder it for insomnia'",
+      "from": "WILL 2026-08-11"
+    },
+    {
+      "id": "quickfeet-needs-a-non-paralysis-status",
+      "tests": [
+        "quickfeet"
+      ],
+      "board": "an OPPONENT burns the Quick Feet body — the burn must come from the other side",
+      "click": "a burning move from the opponent",
+      "observable": "Speed goes UP rather than being unaffected, and the burn's Attack drop still applies",
+      "gotcha": "JOLTEON CANNOT BE PARALYSED — it is Electric. Will: 'jolteon cant be paralyzed we have to burn it or something'. Also: the status move belongs on the OPPONENT, not on the subject.",
+      "from": "WILL 2026-08-11"
+    },
+    {
+      "id": "poisonheal-opponent-applies-the-status",
+      "tests": [
+        "poisonheal"
+      ],
+      "board": "Gliscor with Poison Heal, poisoned BY THE OPPONENT",
+      "click": "opponent uses Toxic",
+      "observable": "Gliscor HEALS at end of turn instead of taking poison damage",
+      "gotcha": "TOXIC ORB IS BANNED IN THIS FORMAT, so the usual self-inflicting fixture is impossible. Will: 'gliscor is in the game its just useless without its toxic orb'. The poison must come from the opponent.",
+      "from": "WILL 2026-08-11"
+    },
+    {
+      "id": "megasol-weatherball-is-always-fire",
+      "tests": [
+        "megasol"
+      ],
+      "board": "Meganium-Mega with Mega Sol, sand up, against Sinistcha (Grass/Ghost)",
+      "click": "Weather Ball",
+      "observable": "SUPER EFFECTIVE — the move resolves as FIRE",
+      "why_it_discriminates": "a three-way discriminator, and each outcome names exactly one state: NORMAL means no weather reached the move and Sinistcha is IMMUNE (Ghost blocks Normal); ROCK means real sand won and Mega Sol did not override it, reading NEUTRAL; FIRE means Mega Sol acted as sun, reading SUPER EFFECTIVE",
+      "authority": "Pokemon.effectiveWeather() in sim/pokemon.ts returns 'sunnyday' whenever the active Pokemon hasAbility('megasol') and the source effect is a Move or Weather. Weather Ball's onModifyType reads effectiveWeather(), so it is ALWAYS Fire.",
+      "gotcha": "THE ABILITY'S OWN HANDLERS DO NOT SHOW THIS. megasol declares only onWeatherModifyDamage; the rest is implemented in the SIM, and the ability's last line says so: '// Partially implemented in Pokemon.effectiveWeather()'. Reading the handler block and stopping cost a wrong answer twice.",
+      "from": "WILL 2026-08-11"
+    },
+    {
+      "id": "megasol-solarbeam-fires-in-one-turn",
+      "tests": [
+        "megasol"
+      ],
+      "board": "Meganium-Mega with Mega Sol against Swampert-Mega, NO real sun",
+      "click": "Solar Beam",
+      "observable": "it fires IMMEDIATELY — no charge turn",
+      "authority": "Solar Beam's onTryMove skips the charge when attacker.effectiveWeather() is sunnyday; Mega Sol makes it so",
+      "from": "WILL 2026-08-11"
+    },
+    {
+      "id": "eelevate-ground-immunity",
+      "tests": [
+        "eelevate"
+      ],
+      "board": "any Ground move against Eelektross-Mega",
+      "click": "a Ground move",
+      "observable": "it does NOT hit — immune, exactly like Levitate",
+      "from": "WILL 2026-08-11"
+    },
+    {
+      "id": "eelevate-boosts-highest-stat-on-ko",
+      "tests": [
+        "eelevate"
+      ],
+      "board": "Eelektross-Mega, 32 SP into Sp. Atk with a Mild nature (+SpA/-Def), KOes something with a move",
+      "click": "any KOing move",
+      "observable": "+1 to its HIGHEST stat",
+      "why_it_discriminates": "Eelevate onSourceAfterFaint is BYTE-IDENTICAL to Beast Boost, so the fixture transfers. With SpA 205 > Atk 165 the engine must READ the best stat rather than assume Attack.",
+      "gotcha": "WILL WAS RIGHT AND MY FIRST READING WAS WRONG. I tried only Sp. Def — 32 SP + Gentle gives SpD 156 against Atk 165, so it does NOT discriminate, and I generalised that to \"no non-attack stat can win on this body\". Sp. ATK does: 32 SP + Mild reads SpA 205 against Atk 165, a 40-point gap. MEASURED in the sim both ways. So the discriminating fixture IS constructible on this exact carrier — use the Mild/SpA spread, and an engine that hardcodes an Attack boost fails it.",
+      "from": "WILL 2026-08-11"
+    },
+    {
+      "id": "piercingdrill-is-unseenfist",
+      "tests": [
+        "piercingdrill"
+      ],
+      "board": "Excadrill-Mega with Piercing Drill against a body that used Protect",
+      "click": "any CONTACT move",
+      "observable": "it goes THROUGH Protect and deals 1/4 damage",
+      "why_it_discriminates": "Will: 'piercing drill is the exact same as unseen fist'. VERIFIED byte-identical onHitProtect and identical shortDesc, so the Unseen Fist fixture transfers with only the carrier changed.",
+      "from": "WILL 2026-08-11"
+    },
+    {
+      "id": "crit-immunity-via-flowertrick",
+      "tests": [
+        "battlearmor",
+        "shellarmor"
+      ],
+      "board": "Meowscarada (the ONLY legal learner) fires Flower Trick into a Battle Armor body (Falinks) and into a Shell Armor body (Samurott — Water, so Grass is super effective and the numbers are unambiguous)",
+      "click": "Flower Trick",
+      "observable": "NO CRIT. The damage must equal the non-crit roll, and the crit line must not appear.",
+      "why_it_discriminates": "Flower Trick has willCrit:true, so it ALWAYS crits — no dice involved. That sidesteps the pinned-dice problem entirely: the control arm (same body without the ability) MUST crit, the subject arm must not. Both abilities have NO handler at all, so nothing in the ability text could have told you the board.",
+      "gotcha": "Battle Armor has exactly ONE legal carrier (Falinks) and Flower Trick has exactly ONE legal learner (Meowscarada). Pick the Shell Armor target for type: Grass into Torkoal or Torterra is RESISTED and shrinks the gap.",
+      "from": "WILL 2026-08-11"
+    },
+    {
+      "id": "earlybird-measured-as-a-DURATION-not-a-board",
+      "tests": [
+        "earlybird"
+      ],
+      "board": "NOT A ROSTER SCENARIO. Measure it in the million-game run as a DURATION, splitting Early Bird carriers (Kangaskhan, Houndoom) from every other sleeper.",
+      "click": "any sleep move, free-running dice",
+      "observable": "without Early Bird the sleeper misses 1 or 2 turns; WITH it, 0 or 1 — same 1/3 to 2/3 split, shifted down by one",
+      "authority": "data/conditions.ts, slp onBeforeMove: if (pokemon.hasAbility('earlybird')) { pokemon.statusState.time--; } runs BEFORE the normal time-- , so the sleep counter is spent twice per turn.",
+      "why_it_discriminates": "the roster CANNOT see this — the effect is a distribution and the driver pins every die. The rate runner already has a  family carrying slp, frz and confusion-length, so the row belongs there.",
+      "generalisation": "WILL 2026-08-11: \"can we test it in the million games and see how often they wake up early\". THIS RECLASSIFIES 17 MORE ROWS. Static, Effect Spore, Flame Body, Poison Point, Poison Touch, Cute Charm, Shed Skin, Stench, Harvest, Healer, Cursed Body, Quick Draw, Kings Rock, Quick Claw, Focus Band, Aspear Berry and Rawst Berry are all PROBABILITIES, not behaviours. They are not unstageable — they are in the WRONG INSTRUMENT. The roster asks does-it-work; these answer it-fires-30%-of-the-time, which only the rate runner can see.",
+      "from": "WILL 2026-08-11"
+    },
+    {
+      "id": "levitate-both-gates-not-just-the-immunity",
+      "tests": [
+        "levitate",
+        "eelevate",
+        "moldbreaker"
+      ],
+      "board": "Rotom (Electric/Ghost, Levitate). THREE ARMS, same board, one change each. Every other body clicks its weakest move per the noise rule.",
+      "arms": [
+        "A. Earthquake into Rotom, nothing else       -> 0 damage. The immunity is entirely the ABILITY: Ground into Electric/Ghost HITS normally, so nothing about the typing can be credited for it.",
+        "B. Gravity up, then Earthquake into Rotom    -> IT HITS. Gravity suppresses Levitate.",
+        "C. Smack Down onto Rotom, then Earthquake    -> IT HITS. The body is grounded.",
+        "D. Excadrill (MOLD BREAKER) uses Earthquake into Rotom -> IT HITS. A FOURTH MECHANISM, not a variant of B or C: Gravity and Smack Down GROUND THE BODY, Mold Breaker SUPPRESSES THE ABILITY. Verified: levitate carries flags {breakable: 1}, so it is explicitly in the set Mold Breaker ignores."
+      ],
+      "observable": "A does nothing; B and C both land full damage. An engine that fails ANY of the three is wrong in a different place.",
+      "why_it_discriminates": "WILL 2026-08-11: \"yes test it with gravity and smack down too\". THIS IS THE POINT OF THE ROW. The engine gates Levitate TWICE and independently — absorbedBy/typeImmunity, and isGrounded/AIRBORNE_ABIL — which is FACTS-ARE-GLOBAL broken inside the engine (ROADMAP #186). Arm A alone only exercises the type-immunity gate; a mutant with the grounded gate deleted still passes it. Arms B and C are the only ones that reach the second gate, and the duplication is exactly why assert-mode measured 0/85 with each gate broken singly and stayed green. WILL 2026-08-11: \"make sure a mold breaker mon can hit it with a ground move too\". Arm D reaches the gate from a third direction — the body is still airborne, the ABILITY is what stops applying.",
+      "gotcha": "Levitate has NO handler at all — the immunity lives in an engine table, so nothing in the ability text could have suggested any of this board. That is why it sat INERT. Gravity has 31 legal learners and Smack Down 48, so the fixture has plenty of carriers.",
+      "also_worth_an_arm": "Magnet Rise is the INVERSE — it grants levitation to a grounded body. 8 legal learners. If the two gates ever disagree in the other direction, that is where it shows.",
+      "from": "WILL 2026-08-11",
+      "also_closes": "ROADMAP #141 — \"MOLD BREAKER SUPPRESSES 82 ABILITIES IN THIS FORMAT, AND WE DO NOT KNOW WHETHER OUR ENGINE READS IT AT ALL.\" Arm D is the first probe that would answer it, on the one ability whose gates are already known to be duplicated. Six Mold Breaker carriers learn Earthquake: Pinsir, Gyarados-Mega, Rampardos, Emboar-Mega, Excadrill, Pangoro."
+    },
+    {
+      "id": "shielddust-blocks-a-100pct-secondary",
+      "tests": [
+        "shielddust"
+      ],
+      "board": "Kangaskhan uses Fake Out on a Vivillon carrying Shield Dust. Control arm: the same Vivillon with a different ability. Every other body clicks its weakest move, per the noise rule.",
+      "click": "Fake Out",
+      "observable": "the Vivillon does NOT flinch — it still acts that turn. The control Vivillon DOES flinch.",
+      "why_it_discriminates": "WILL 2026-08-11: 'have kanga fake out a vivillon with shield dust and make sure the vivillon doesnt flinch'. VERIFIED: Fake Out's flinch is secondaries [{chance:100, volatileStatus:'flinch'}] — a SECONDARY at 100%. So Shield Dust's onModifySecondaries filters it out and NO DIE IS EVER ROLLED. That is the same escape Flower Trick gives the crit abilities: a certainty dressed as a chance, which sidesteps the pinned-dice problem entirely instead of arguing with it.",
+      "bonus": "Vivillon carries Shield Dust / COMPOUND EYES / Friend Guard. Compound Eyes was on the list of abilities needing a human-designed board, and it sits on this same body — so its control arm is an ability swap on a fixture that already exists.",
+      "gotcha": "Kangaskhan's abilities are Early Bird / Scrappy / INNER FOCUS. Inner Focus prevents flinching. On the ATTACKER it is harmless, but anyone mirroring this board would silently lose the observable. Pin the attacker's ability explicitly rather than taking slot 0.",
+      "from": "WILL 2026-08-11"
+    }
+  ],
+  "rejected_scenarios_kept_as_warnings": [
+    {
+      "board": "Feraligatr-Mega uses Double-Edge against Hydreigon to see if it is super effective",
+      "why_rejected": "DOUBLE-EDGE IS NORMAL. Normal into Dark/Dragon is NEUTRAL, and Normal has no super-effective matchup against anything. The scenario could never show effectiveness.",
+      "but_note": "Feraligatr-Mega CAN learn Double-Edge — a mega forme has NO learnset of its own and inherits the base forme's. An earlier preflight wrongly refused this, which would have refused every mega fixture.",
+      "from": "WILL 2026-08-11, testing whether the tooling would agree with a bad scenario"
+    }
+  ],
+  "the_noise_rule": {
+    "rule": "EVERY BODY NOT UNDER TEST CLICKS THE WEAKEST AVAILABLE MOVE.",
+    "said_by": "WILL 2026-08-11: 'and in all these other mons have them use like a super weak move so to not disrupt anything else'",
+    "why": "A scenario measures ONE thing. Any other body doing something consequential — KOing, statusing, boosting, changing weather, breaking a Substitute — moves the board for a reason that has nothing to do with the subject, and the reading becomes ambiguous. The control arm suffers the same contamination, so the two arms can differ for a reason neither is testing.",
+    "how": "Give every non-subject body a low-power, no-secondary, no-status, single-target move, and prefer one that cannot KO the thing being observed. Splash and other pure no-ops are usually not learnable, so the practical choice is the weakest damaging move on that body's own learnset.",
+    "what_it_prevents": "This is the same failure as the Struggle fallback found on 2026-08-11: the chooser clicked Struggle past a legal button, so every fixture body was hitting the thing under test and paying 1/4-max recoil. Seven 'defects' were misdiagnosed because of it. A loud neighbour and a Struggling subject are the same bug wearing different clothes."
+  }
+}

@@ -221,7 +221,36 @@ if (staged.length) {
  * DEAD may fall and may never rise, the same shape as `unarmed` in the mechanics census and
  * `mtime_only` in provenance. A count alone proved insufficient in provenance within an hour of being
  * written — it fired, named nothing, and a division lost a session to it — so the LIST is the
- * baseline and the diff names the tag. */
+ * baseline and the diff names the tag.
+ *
+ * ROADMAP #184 — THE DIFF COMPARED MEMBERSHIP AND REPORTED IT AS CONSUMPTION, AND THAT IS A
+ * MISDIAGNOSIS, NOT A ROUNDING ERROR. `dead.filter(t => !prevDead.includes(t))` says "newly have NO
+ * consumer", which names an ENGINE REGRESSION — somebody deleted a read. But a tag absent from
+ * `prevDead` is absent for TWO opposite reasons: it was consumed at the baseline (a real regression),
+ * or IT DID NOT EXIST at the baseline (`tag_dex` derived it later, and nobody ever wired it). The
+ * artifact grew 194 -> 263 tags across this sprint, so the second case is the common one, and eight
+ * tags that ARRIVED unwired were reported for days as eight that LOST a consumer — quoted as an
+ * engine figure, twice, including to the owner.
+ *
+ * The cause is that the baseline recorded only the DEAD names and COUNTS for the rest, so the
+ * previous universe could not be reconstructed: a tag missing from the stamp could have been any of
+ * LIVE / STAGED / UNREACHED / absent. The fix is to record a per-tag STATUS for the whole universe,
+ * so the next run can compare CONSUMPTION per tag instead of membership of one list:
+ *
+ *   prev status existed and was not DEAD  -> REGRESSED. A consumer was removed. The serious one.
+ *   prev status was DEAD                  -> STILL DEAD. Known, unwired, outside the floor.
+ *   no prev status, prev universe known   -> ARRIVED unwired. New derivation, no consumer written.
+ *   no prev universe at all               -> UNCLASSIFIABLE. Only against a pre-status baseline, and
+ *                                            it is said out loud rather than resolved by assumption.
+ *
+ * Both assertions keep their teeth: a tag outside the ratchet FLOOR fails whatever its label. The
+ * label changes the DIAGNOSIS — who broke it and what the fix is — which is the whole complaint.
+ *
+ * The stamp is now written on EVERY run, which is itself a fix: the old write gate
+ * (`dead.length <= prevDead.length`) froze the baseline at 2026-08-10 the moment DEAD grew, so the
+ * file could never learn anything new and re-reported the same eight tags every run forever. The
+ * FLOOR is what ratchets — it only ever loses members — and it is stored separately from the status
+ * census so that refreshing one cannot loosen the other. */
 const STAMP = path.join(ROOT, 'data', 'tag-consumption.json');
 let prev = null;
 if (fs.existsSync(STAMP)) {
@@ -233,31 +262,65 @@ if (fs.existsSync(STAMP)) {
     ok(false, `the baseline exists and cannot be read (${e.message}) — refusing to adopt a new one`);
   }
 }
-const prevDead = prev && Array.isArray(prev.dead) ? prev.dead : null;
-if (prevDead) {
-  const added = dead.filter(t => !prevDead.includes(t));
-  const fixed = prevDead.filter(t => !dead.includes(t));
+const status = Object.create(null);
+for (const t of cand) status[t] = Fx(t) > 0 ? 'LIVE' : A(t) > 0 ? 'STAGED' : namedInSource(t) ? 'UNREACHED' : 'DEAD';
+
+/* The FLOOR is the accepted set of unconsumed tags. `dead_floor` is the field; a pre-#184 baseline
+ * carries the same set under `dead`, so it is read as the floor and nothing is lost in the move. */
+const prevFloor = prev && Array.isArray(prev.dead_floor) ? prev.dead_floor
+                : prev && Array.isArray(prev.dead) ? prev.dead : null;
+const prevStatus = prev && prev.by_tag && typeof prev.by_tag === 'object' ? prev.by_tag : null;
+
+if (prevFloor) {
+  const fixed = prevFloor.filter(t => !dead.includes(t));
   if (fixed.length) console.log(`\n  WIRED since the baseline (${fixed.length}): ${fixed.join(', ')}`);
-  ok(added.length === 0, added.length
-    ? `${added.length} tag(s) newly have NO consumer: ${added.join(', ')}`
-    : 'no tag lost its consumer since the baseline');
+
+  const outside = dead.filter(t => !prevFloor.includes(t));
+  const label = t => !prevStatus ? 'UNCLASSIFIABLE'
+    : !(t in prevStatus) ? 'ARRIVED'
+    : prevStatus[t] === 'DEAD' ? 'STILL DEAD' : `REGRESSED (was ${prevStatus[t]})`;
+  const regressed = outside.filter(t => prevStatus && (t in prevStatus) && prevStatus[t] !== 'DEAD');
+  const unclassifiable = prevStatus ? [] : outside.slice();
+
+  if (outside.length) {
+    console.log(`\n  OUTSIDE THE RATCHET FLOOR (${outside.length}) — each is DEAD and not in the accepted set:`);
+    for (const t of outside) console.log(`    ${t.padEnd(26)} ${label(t)}`);
+    if (unclassifiable.length) {
+      console.log('    NOTE: the baseline predates per-tag status (ROADMAP #184), so ARRIVED and');
+      console.log('          REGRESSED cannot be told apart on THIS run. This run writes the status');
+      console.log('          census; the next one is decisive. Not resolved by assuming the kind one.');
+    }
+  }
+  ok(regressed.length === 0, regressed.length
+    ? `${regressed.length} tag(s) LOST a consumer they had at the baseline: ${regressed.map(t => `${t} (was ${prevStatus[t]})`).join(', ')}`
+    : 'no tag lost a consumer it had at the baseline');
+  ok(outside.length === 0, outside.length
+    ? `${outside.length} tag(s) are DEAD outside the ratchet floor: ${outside.map(t => `${t} [${label(t)}]`).join(', ')}`
+    : `no tag is DEAD outside the ratchet floor (${prevFloor.length} accepted)`);
 }
-if (!prevDead || dead.length <= prevDead.length) {
-  fs.writeFileSync(STAMP, JSON.stringify({
-    note: 'RATCHET. `dead` may shrink and may never grow. A tag here is one NO line of engine code '
-        + 'looks for — decisive, and independent of how the sweep was staged. `staged` is a property '
-        + 'of the sweep and is recorded for information only, never ratcheted.',
-    method: 'engine/tags.js counts ASKED (any lookup) and FOUND (the entity carried it). ASKED=0 is '
-          + 'the decisive reading. FOUND>0 is necessary and NOT sufficient — proving the read changes '
-          + 'behaviour is the mutation tier in docs/TAG-COVERAGE.md.',
-    total_tags: ALL.length, live: live.length, staged: staged.length,
-    unreached: unreached.length, unreached_this_run: unreached, dead: dead.length,
-    dead_by_uses: dead.map(t => ({ tag: t, uses: uses[t] || 0, carriers: (carriers[t] || []).length })),
-    dead,
-    staged_this_run: staged,
-    generated: new Date().toISOString(),
-  }, null, 2) + '\n');
-}
+/* The floor NEVER gains a member — that is the ratchet — and it is recomputed rather than copied so
+ * a wired tag leaves it on the run that wires it. */
+const floor = (prevFloor || dead).filter(t => dead.includes(t));
+fs.writeFileSync(STAMP, JSON.stringify({
+  note: 'RATCHET. `dead_floor` may shrink and may never grow. A tag in `dead` is one NO line of '
+      + 'engine code looks for — decisive, and independent of how the sweep was staged. `staged` is '
+      + 'a property of the sweep and is recorded for information only, never ratcheted.',
+  method: 'engine/tags.js counts ASKED (any lookup) and FOUND (the entity carried it). ASKED=0 is '
+        + 'the decisive reading. FOUND>0 is necessary and NOT sufficient — proving the read changes '
+        + 'behaviour is the mutation tier in docs/TAG-COVERAGE.md.',
+  diff_method: 'ROADMAP #184. `by_tag` records a status for EVERY tag so the next run compares '
+        + 'CONSUMPTION per tag, not membership of the dead list. Without it, a tag that ARRIVED '
+        + 'unwired is indistinguishable from one that LOST its consumer, and the eight reported as '
+        + 'regressions on 2026-08-10..11 were all arrivals.',
+  total_tags: ALL.length, live: live.length, staged: staged.length,
+  unreached: unreached.length, unreached_this_run: unreached, dead: dead.length,
+  dead_by_uses: dead.map(t => ({ tag: t, uses: uses[t] || 0, carriers: (carriers[t] || []).length })),
+  dead,
+  dead_floor: floor,
+  by_tag: status,
+  staged_this_run: staged,
+  generated: new Date().toISOString(),
+}, null, 2) + '\n');
 
 console.log(`\nTAG CONSUMPTION TESTS: ${P} passed, ${F} failed`);
 process.exit(F ? 1 : 0);

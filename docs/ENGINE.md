@@ -33,27 +33,92 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  470/470 probed mechanics live, 0 missing   (census 2026-08-11 06:37)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-11 06:50)
+  474/474 probed mechanics live, 0 missing   (census 2026-08-11 08:01)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-11 08:03)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1641/1641 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 02:49)
-    2250 of 9376 theoretical pairs staged — agreement is a claim about the 2250 that ran, not about the 9376
+  interaction matrix: 1641/1641 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 08:09)
+    2250 of 7103 theoretical pairs staged — agreement is a claim about the 2250 that ran, not about the 7103
       489 inert      not scored — the reference engine behaves identically with and without the reactor
       111 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
         7 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f1b9c29625f0 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 9180bc44436e now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is bc034399fdf0 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 242/267 probed, 25 unprobed
+  tag coverage: 247/267 probed, 20 unprobed
 ```
 
-_stamped 2026-08-11 06:51_
+_stamped 2026-08-11 08:10_
 
 <!-- /GENERATED -->
+
+## #175 IS ENGINE-COMPLETE, #184's GAUGE WAS BROKEN, AND THE TOSS COST FIVE PROBES. 2026-08-11 (fourth pass).
+
+Full write-up in `docs/MEDICHAM-SPRINT-NOTES.md` (living docs are paused for the sprint by Will's
+decision). For this ledger:
+
+**Census 470 → 474 — 7 arrived, 0 broke, 3 REMOVED-AS-UNCARRIABLE, net +4.** `missing` 0 → 0
+throughout, 0 hollow, 0 unarmed, 0 direct-call, 0 threw. Gate re-run after every item: **CLOSED —
+1 of 6, unchanged**, still the REGISTER clause naming `#175` alone; no passing clause moved.
+Differential re-run at `--n 6000 --seed 20260804`: **0 disagree**.
+
+- **ROADMAP #175 — RECOMMEND STRIKE. The seven remaining unconsumed tags are wired and
+  `test-tag-consumed` is GREEN (7 passed, 0 failed, 0 dead outside the floor).** `guaranteesNextMove`
+  (Lock-On), `typeFollowsTerrain` (Mimicry), `formeFollowsWeather` (Forecast), `passesItemToAlly`
+  (Symbiosis), `inheritsAllyAbility` (Receiver), `announcesOnEntry` (Frisk) and
+  `boostsAlliesWithAbility` (Magnetic Flux) — each shown red first, each re-run before the next, each
+  with a load-bearing arm that a bare-flag implementation fails. **Three of the seven were
+  `{kind:'pass'}`** — a whole spent turn doing nothing — which is #179's shape three more times.
+  **Wiring found FIVE artifact defects that review had not**, every one a parameter no consumer had
+  ever read (`revertsWithoutTerrain` false against a handler that reverts; `boostsAlliesWithAbility.boosts`
+  null; `announcesOnEntry.reveals` prose shared by two members that emit different events; the missing
+  forme→type map; and my own first `emits` regex matching a `function` expression against a method
+  shorthand).
+- **ROADMAP #184 — RECOMMEND STRIKE.** The ratchet diffed a NAME LIST and called every arrival a
+  regression. It now records `by_tag` — a status per tag — and labels each row REGRESSED / ARRIVED /
+  STILL DEAD / UNCLASSIFIABLE, keeping both assertions' teeth. A second bug went with it: the old write
+  gate froze the baseline the instant DEAD grew, so the file could never learn anything.
+  **It is green and still NOT registered in `run-all.js` or the hook** — that is the next step and it
+  is deliberately not taken by the session that wrote it.
+- **ROADMAP #190 — settled by Will (contaminated corpus), and the toss applied.** `tag_dex` now derives
+  only abilities with a legal carrier: **294 ability rows → 201**, 263 distinct tags → 258. **THE PRICE
+  WAS QUOTED AS 2 AND MEASURED AT 10.** Two probes died with their tags (`auraBreak`,
+  `boostsNotVeryEffective`); **eight more staged a carrier-less ability as their SECOND ARM** and went
+  MISSING. Five were repaired by swapping to a legal member of the same tag (Storm Drain→Lightning Rod,
+  Transistor→Water Bubble, Air Lock→Cloud Nine, Galvanize→Pixilate, Ice Scales→Multiscale); two lost an
+  arm (Pastel Veil, Grim Neigh); one was removed (Dark Aura). `test-tag-wire` and `test-damage-stages`
+  needed the same treatment — the latter read **64 disagreements**, all of them the TEST staging an
+  ability nobody can bring, now **1696/1696 exact**.
+- **THE ROSTER DENOMINATOR DID NOT MOVE.** Re-run after the toss: `94 TESTED of 202 IN SCOPE, of 316
+  total, 114 no-legal-carrier`, identical, 0 FIRED-AND-BOARDS-DIFFER, 0 DID-NOT-FIRE. `roster.js`
+  derives carrier legality itself from the dex rather than from `data/tags.json`, so the two
+  instruments already agreed.
+
+### THE HAND LIST LOSES EVERYTHING EXCEPT RIVALRY
+
+The seven tags above all now carry census probes, so the census carries them and they leave the list.
+**What remains by hand is Rivalry**, plus the items named as deliberately not fixed below and in the
+section beneath this one.
+
+### WHAT WAS FOUND AND DELIBERATELY NOT FIXED, NAMED RATHER THAN ABSORBED
+
+- **`tests/test-protocol-trace.js` IS RED and it is not this pass.** `|-clearallboost|` is claimed in
+  TRACE_EVENTS and fires in none of its 28 games. Verified identical against the pre-toss artifact.
+- **`tests/test-mod-conformance.js` IS RED and it is not this pass** — the 22 `data/move-effects.js`
+  mainline-drift rows this ledger already records as moot in the engine. Verified identically red
+  against the pre-toss artifact.
+- **The interaction matrix WAS re-run at `--full` under tonight's artifact: 1641/1641 (100.0%),
+  unchanged.** Its THEORETICAL denominator falls 9376 -> 7103 because 93 ability rows left the file; the
+  2250 staged pairs are unchanged. The harness REFUSED a shallow default run that would have published
+  359 cases over 1641, which is that guard working.
+- **The `boostsOnKO` and `auraBoost` probes are weaker than they were.** Both existed partly to prove
+  the wire reads a tag PARAM rather than a name, and no legal member is left to contrast against. Said
+  here rather than absorbed.
+- **Five engine consumers now read tags that no longer exist** and correctly do nothing. Left in
+  deliberately, named so nobody mistakes them for coverage.
 
 ## FREEZE-DRY, AND #185 TURNING OUT TO BE THE FIXTURE AGAIN. 2026-08-11 (overnight, third pass).
 

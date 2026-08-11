@@ -1374,8 +1374,11 @@ probe('ability', 'protectsAllyFromStatus', 'Sweet Veil refuses sleep for its PAR
      so a burn arm would read "refused" whatever Sweet Veil did. */
   const other = run('sweetveil', 'ally', 'toxic');
   const foe = run('sweetveil', 'foe', 'hypnosis');
-  const pastelSlp = run('pastelveil', 'ally', 'hypnosis');
-  const pastelPsn = run('pastelveil', 'ally', 'toxic');
+  /* PASTEL VEIL'S TWO ARMS WERE REMOVED 2026-08-11 (ROADMAP #175). Its only carriers are
+     `isNonstandard: 'Past'` in Reg M-B, so `engine/tag_dex.js` no longer derives it and the arms
+     measured a mirror scope no legal body has. Flower Veil below is the surviving second member and
+     it carries the same load: a DIFFERENT scope on the same tag, which is what stops this probe from
+     passing on an engine that hardcoded Sweet Veil. */
   const flowerGrass = run('flowerveil', 'ally', 'hypnosis', 'torterra');
   const flowerNot = run('flowerveil', 'ally', 'hypnosis');
   const plainGrass = run('none', 'ally', 'hypnosis', 'torterra');
@@ -1396,7 +1399,6 @@ probe('ability', 'protectsAllyFromStatus', 'Sweet Veil refuses sleep for its PAR
   const yawnOff = yawn('none'), yawnOn = yawn('sweetveil');
   return { works: allyOff === 'slp' && allyOn === '-' && selfOff === 'slp' && selfOn === '-'
                   && other === 'tox' && foe === 'slp'
-                  && pastelSlp === 'slp' && pastelPsn === '-'
                   && plainGrass === 'slp' && flowerGrass === '-' && flowerNot === 'slp'
                   && yawnOff === 'true/slp' && yawnOn === 'false/-',
            arms: { control: allyOff, test: allyOn },
@@ -1405,8 +1407,7 @@ probe('ability', 'protectsAllyFromStatus', 'Sweet Veil refuses sleep for its PAR
                  + `"${selfOff}" then "${selfOn}" (the name was removed from the engine's typed slp `
                  + `list, so this arm now rests on the derived tag too). It refuses nothing else: `
                  + `TOXIC at the same partner "${other}", and the FOE off the same board still takes `
-                 + `Hypnosis "${foe}". PASTEL VEIL on the partner, Hypnosis "${pastelSlp}" and Toxic `
-                 + `"${pastelPsn}" — the mirror scope. FLOWER VEIL, whose handler blocks EVERY status `
+                 + `Hypnosis "${foe}". FLOWER VEIL, whose handler blocks EVERY status `
                  + `but only on a Grass body: a Grass partner "${flowerGrass}" against the same Grass `
                  + `partner with the control ability "${plainGrass}", and a non-Grass one "${flowerNot}"`
                  + `. YAWN at the partner, read as [yawn landed]/[status three turns later] — control `
@@ -1796,18 +1797,28 @@ probe('ability', 'damageReduce', 'Filter cuts super-effective damage and leaves 
                  + `Filter ${test} (only the first may move)` };
 });
 
-/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). The PHYSICAL arm is the control and it is not
- * decoration: Ice Scales halves SPECIAL damage only, and an engine that halved everything the body
- * takes would pass a one-armed version of this exactly as well. */
-probe('ability', 'damageReduce', 'Ice Scales halves special damage and not physical', () => {
-  const hit = (ab, mvId) => turnDamageBig(['garchomp', 'incineroar', 'milotic', 'corviknight'],
-    (B) => { B.f1.ability = ab; }, mvId);
-  const control = [hit('none', 'earthpower'), hit('none', 'earthquake')];
-  const test = [hit('icescales', 'earthpower'), hit('icescales', 'earthquake')];
+/* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). THE SECOND ARM IS THE CONTROL AND IT IS NOT
+ * DECORATION: `damageReduce` carries an `onlyWhen`, and an engine that halved everything the body
+ * takes would pass a one-armed version of this exactly as well.
+ *
+ * ROADMAP #175, 2026-08-11 — THE SUBJECT IS MULTISCALE, NOT ICE SCALES. Ice Scales has no legal
+ * carrier in Reg M-B and is no longer derived. Multiscale is the same tag with `damageMult: 0.5` and
+ * `onlyWhen: "fullHP"` on Dragonite, which is legal here — so the condition being the mechanic is
+ * still the thing under test, with FULL HP against DAMAGED standing in for special against physical.
+ *
+ * DRAGON CLAW AND NOT EARTHQUAKE: Dragonite is Dragon/FLYING and takes no Ground damage at all, so a
+ * Ground arm would read 0 on both sides and prove nothing — the fixture trap this file keeps
+ * recording. `curHP` is set AFTER `turnDamageBig` has made the body unfaintable, so the damaged arm
+ * is a real fraction of a real maximum rather than a body about to die. */
+probe('ability', 'damageReduce', 'Multiscale halves the hit at FULL HP and does nothing once the body is chipped', () => {
+  const hit = (ab, frac) => turnDamageBig(['garchomp', 'incineroar', 'dragonite', 'corviknight'],
+    (B) => { B.f1.ability = ab; B.f1.curHP = Math.floor(B.f1.st.hp * frac); }, 'dragonclaw');
+  const control = [hit('none', 1), hit('none', 0.5)];
+  const test = [hit('multiscale', 1), hit('multiscale', 0.5)];
   return { works: test[0] < control[0] && control[0] > 0 && test[1] === control[1] && control[1] > 0,
            arms: { control, test },
-           detail: `[Earth Power (special), Earthquake (physical)] — no ability ${control}, `
-                 + `Ice Scales ${test} (only the special one may move)` };
+           detail: `[at FULL hp, at HALF hp] Dragon Claw taken — no ability ${control}, `
+                 + `Multiscale ${test} (only the full-HP one may move)` };
 });
 
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). ON THE CARVE-OUT LIST — a status immunity turns
@@ -4222,34 +4233,49 @@ probe('move', 'redirects', 'Follow Me pulls the attack onto the partner', () => 
  * Two redirectors, because they are two different mechanisms in this engine (a `_redirect` volatile
  * from Follow Me, and an ability-typed draw from Storm Drain) and a wire that catches one and not the
  * other would read exactly like a working one on either probe alone. */
-probe('ability', 'ignoresRedirection', 'Stalwart is not drawn by Follow Me or by Storm Drain', () => {
+/* ROADMAP #175, 2026-08-11 — THE SECOND REDIRECTOR IS LIGHTNING ROD, NOT STORM DRAIN. Every Storm
+ * Drain species in this dex is `isNonstandard: 'Past'` (Lileep, Cradily, the Shellos and Gastrodon
+ * lines, Finneon, Lumineon, Maractus, Tatsugiri), so the ability is no longer derived and that arm
+ * measured a body nobody can bring. Lightning Rod is the same mechanic with a legal carrier list —
+ * Pikachu, Raichu, Sceptile-Mega, Manectric, Rhyperior — so the probe keeps BOTH redirectors and
+ * therefore keeps the thing it exists to say: a gate that answered one redirector and not the other
+ * would read exactly like a working one on either arm alone.
+ *
+ * THE BOARD CHANGES WITH THE REDIRECTOR AND IT HAS TO. Lightning Rod draws ELECTRIC, and this board's
+ * aimed foe was a GARCHOMP — Ground, immune to Electric — so keeping the old bodies would have made
+ * both arms read 0 and the probe would have "passed" for the one reason this file treats as a
+ * failure. Manectric draws, Milotic is aimed at (Water takes Electric for 2x), and Archaludon legally
+ * learns Thunderbolt. */
+probe('ability', 'ignoresRedirection', 'Stalwart is not drawn by Follow Me or by Lightning Rod', () => {
   const run = (ability, redirector) => {
-    /* Milotic is pure Water and takes Dragon neutrally — the note on the probe above explains why
-     * that matters, and this probe would have inherited the same trap. */
-    const { me, ally, f1, f2, S } = board('archaludon', 'incineroar', 'garchomp', 'milotic');
+    /* Milotic is pure Water: it takes Dragon neutrally and Electric for double, so it is a legitimate
+     * aimed body on BOTH arms — the note on the probe above explains why that matters. */
+    const rod = redirector === 'lightningrod';
+    const { me, ally, f1, f2, S } = rod ? board('archaludon', 'incineroar', 'milotic', 'manectric')
+                                        : board('archaludon', 'incineroar', 'garchomp', 'milotic');
     me.ability = ability;
     const bAimed = f1.curHP, bDrawer = f2.curHP;
-    if (redirector === 'stormdrain') f2.ability = 'stormdrain';
+    if (rod) f2.ability = 'lightningrod';
     M.battleTurn(S, rng5,
-      new Map([[me, M.playerAction(me, redirector === 'stormdrain' ? 'liquidation' : 'dragonclaw', f1, S.field)],
+      new Map([[me, M.playerAction(me, rod ? 'thunderbolt' : 'dragonclaw', f1, S.field)],
                [ally, { kind: 'pass' }]]),
       new Map([[f1, { kind: 'pass' }],
                [f2, redirector === 'followme' ? M.playerAction(f2, 'followme', null, S.field)
                                              : { kind: 'pass' }]]));
     return { aimed: bAimed - f1.curHP, drawer: bDrawer - f2.curHP };
   };
-  /* THE STORM DRAIN ARM IS LIQUIDATION AND NOT SURF, AND THE FIRST DRAFT GOT THIS WRONG IN A WAY THE
-   * PROBE ITSELF CAUGHT. Surf is `spreadAll` — it hits everything, so there is nothing to redirect,
-   * and both arms read the identical 56. Redirection only applies to a SINGLE-target click, which is
-   * the same trap the Follow Me probe above records falling into with Rock Slide. */
+  /* THE DRAWN ARM IS A SINGLE-TARGET CLICK, AND THE FIRST DRAFT GOT THIS WRONG IN A WAY THE PROBE
+   * ITSELF CAUGHT. A spread move hits everything, so there is nothing to redirect and both arms read
+   * the identical number — the same trap the Follow Me probe above records falling into with Rock
+   * Slide. Thunderbolt and Dragon Claw are both `normal`-target. */
   const fmOff = run('pressure', 'followme'), fmOn = run('stalwart', 'followme');
-  const sdOff = run('pressure', 'stormdrain'), sdOn = run('stalwart', 'stormdrain');
-  return { works: fmOff.aimed === 0 && fmOn.aimed > 0 && sdOff.aimed === 0 && sdOn.aimed > 0,
-           arms: { control: fmOff.aimed, test: fmOn.aimed },
+  const lrOff = run('pressure', 'lightningrod'), lrOn = run('stalwart', 'lightningrod');
+  return { works: fmOff.aimed === 0 && fmOn.aimed > 0 && lrOff.aimed === 0 && lrOn.aimed > 0,
+           arms: { control: [fmOff.aimed, lrOff.aimed], test: [fmOn.aimed, lrOn.aimed] },
            detail: 'Follow Me — without Stalwart the aimed foe takes ' + fmOff.aimed
                  + ' (drawn away, the partner took ' + fmOff.drawer + '); WITH Stalwart the aimed foe '
-                 + 'takes ' + fmOn.aimed + ' (must be > 0). Storm Drain — without Stalwart '
-                 + sdOff.aimed + ', with Stalwart ' + sdOn.aimed
+                 + 'takes ' + fmOn.aimed + ' (must be > 0). Lightning Rod — without Stalwart '
+                 + lrOff.aimed + ', with Stalwart ' + lrOn.aimed
                  + '. Equal arms on either redirector would mean the gate is unread' };
 });
 
@@ -6062,15 +6088,20 @@ probe('move', 'setsTerrain', 'Misty Terrain HALVES a DRAGON move and nothing els
  *
  * THE CONTROL IS SET EXPLICITLY ON BOTH ARMS. `bare()` blanks the ability, so neither arm can be
  * handed Pikachu's own Static by the builder -- the Choice-Scarf-against-a-Choice-Scarf failure. */
-probe('ability', 'damageBoost', 'Transistor raises an ELECTRIC move and nothing else', () => {
-  const hit = (ab, mv) => turnDamageBig(['pikachu', 'incineroar', 'goodra', 'garchomp'],
+/* ROADMAP #175, 2026-08-11 — THE SUBJECT IS WATER BUBBLE, NOT TRANSISTOR. Transistor has no legal
+ * carrier in Reg M-B (every species with it is `isNonstandard: 'Past'`), so it is no longer derived
+ * and a probe staging it by hand measured a body nobody can bring. Water Bubble is the SAME SHAPE —
+ * a multiplier, a type, no weather, no condition, no other tag — on Araquanid, which is legal here, so
+ * the claim this probe makes is unchanged and is now about a Pokemon that exists in this format. */
+probe('ability', 'damageBoost', 'Water Bubble raises a WATER move and nothing else', () => {
+  const hit = (ab, mv) => turnDamageBig(['araquanid', 'incineroar', 'goodra', 'garchomp'],
     (B) => { B.me.ability = ab; }, mv);
-  const control = hit('none', 'thunderbolt'), test = hit('transistor', 'thunderbolt');
-  const otherMove = [hit('none', 'alluringvoice'), hit('transistor', 'alluringvoice')];
+  const control = hit('none', 'liquidation'), test = hit('waterbubble', 'liquidation');
+  const otherMove = [hit('none', 'leechlife'), hit('waterbubble', 'leechlife')];
   return { works: test > control && control > 0 && otherMove[0] === otherMove[1] && otherMove[0] > 0,
            arms: { control, test },
-           detail: `Thunderbolt dealt: no ability ${control}, Transistor ${test}; Alluring Voice, a `
-                 + `NON-Electric move off the same body: ${otherMove[0]} -> ${otherMove[1]} `
+           detail: `Liquidation dealt: no ability ${control}, Water Bubble ${test}; Leech Life, a `
+                 + `NON-Water move off the same body: ${otherMove[0]} -> ${otherMove[1]} `
                  + `(must not move -- the tag names a type and a wire that ignored it would boost both)` };
 });
 
@@ -7872,23 +7903,24 @@ probe('ability', 'megaWeatherSetter', 'a mega sets the weather its MEGA ability 
            detail: `base Charizard (Blaze) sets ${control}; Charizard-Mega-Y (Drought) sets ${test}` };
 });
 
-/* AIR LOCK AND CLOUD NINE — PROBED AND DECLARED ABSENT, WITH THE NUMBER. They suppress every weather
- * effect while they are on the field, and NOTHING in this engine reads either: `cloudnine` carries
- * `untagged` in data/tags.json and `airlock` carries no entry at all, so there is no artifact to wire
- * from and no consumer to wire it into. This probe exists so the gap is a CENSUS ROW rather than a
- * sentence in a document — the census is the only place a claim about the engine cannot be softened.
- * It reads MISSING on purpose and will keep reading MISSING until somebody derives the tag. */
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45), AND A THIRD ARM CAME WITH IT: the suppressed
  * number must equal the CLEAR-SKY number, not merely be smaller than the sunny one. "It went down" is
- * also what a defender ability that cut Fire damage would print, which is a different mechanic. */
-probe('ability', 'weatherSuppression', 'Air Lock stops the sun boosting Fire', () => {
+ * also what a defender ability that cut Fire damage would print, which is a different mechanic.
+ *
+ * ROADMAP #175, 2026-08-11 — THE SUBJECT IS CLOUD NINE, NOT AIR LOCK, and this probe's own history is
+ * the argument for the change. It was written to read MISSING on purpose ("`cloudnine` carries
+ * `untagged` and `airlock` carries no entry at all"); `weatherSuppression` has since been derived and
+ * wired (WIRE 78), and that wire's own note records the exposure: Air Lock's only carrier is Rayquaza,
+ * which is not in this format, so AIR LOCK IS ZERO HERE. Cloud Nine has Altaria and Drampa. Same tag,
+ * same handler shape, same assertion, on a body a player can actually bring. */
+probe('ability', 'weatherSuppression', 'Cloud Nine stops the sun boosting Fire', () => {
   const at = (ab, w) => turnDamageBig(['charizard', 'incineroar', 'garchomp', 'milotic'],
     (B) => { B.f1.ability = ab; B.S.field.weather = w; }, 'flamethrower');
-  const control = at('none', 'sun'), test = at('airlock', 'sun');
+  const control = at('none', 'sun'), test = at('cloudnine', 'sun');
   const clear = at('none', '');
   return { works: control > test && test === clear && clear > 0,
            arms: { control, test },
-           detail: `Flamethrower in sun: plain defender ${control}, Air Lock defender ${test}; `
+           detail: `Flamethrower in sun: plain defender ${control}, Cloud Nine defender ${test}; `
                  + `the same click in CLEAR skies ${clear} (the suppressed arm must equal it exactly)` };
 });
 
@@ -7991,13 +8023,16 @@ probe('ability', 'convertsMoveTypeByFlag', 'Liquid Voice makes a sound move Wate
     (B) => { B.me.ability = ab; }, mvId);
   const control = hit('primarina', 'none', 'psychicnoise', 'venusaur');
   const test = hit('primarina', 'liquidvoice', 'psychicnoise', 'venusaur');
-  /* The -ate arm, so "reads the type half" cannot pass this on its own. */
-  const ateOff = hit('pikachu', 'none', 'bodyslam', 'venusaur');
-  const ateOn = hit('pikachu', 'galvanize', 'bodyslam', 'venusaur');
+  /* The -ate arm, so "reads the type half" cannot pass this on its own. ROADMAP #175, 2026-08-11 —
+   * PIXILATE, NOT GALVANIZE: Galvanize has no legal carrier in Reg M-B and is no longer derived, while
+   * Pixilate is on Sylveon, Gardevoir-Mega and Altaria-Mega. Same tag, same `converts: "Normal moves"`
+   * shape, a body that exists in this format. */
+  const ateOff = hit('sylveon', 'none', 'bodyslam', 'venusaur');
+  const ateOn = hit('sylveon', 'pixilate', 'bodyslam', 'venusaur');
   return { works: control !== test && control > 0 && ateOff !== ateOn && ateOff > 0,
            arms: { control, test },
            detail: `Psychic Noise: no ability ${control}, Liquid Voice ${test}; `
-                 + `Body Slam: no ability ${ateOff}, Galvanize ${ateOn} (the TYPE half must still work)` };
+                 + `Body Slam: no ability ${ateOff}, Pixilate ${ateOn} (the TYPE half must still work)` };
 });
 
 /* WIRE 76. docs/TAGS.md: "an immune target takes nothing — not the damage, and not the secondary."
@@ -8754,7 +8789,7 @@ probe('ability', 'boostsOnKO', 'a KO raises the killer\'s highest stat by one', 
  * carrier is a Garchomp whose highest raw stat is ATTACK, so a `highest`-only engine would pass on
  * the Attack arm alone; GRIM NEIGH is the third arm that separates them — same body, same KO, and
  * the boost must land on Special Attack instead. */
-probe('ability', 'boostsOnKO', 'Moxie boosts the NAMED stat, and Grim Neigh a different one', () => {
+probe('ability', 'boostsOnKO', 'Moxie boosts the NAMED stat, and only on a KO', () => {
   const run = (ab) => {
     const me = bare('garchomp'); me.ability = ab;
     const ally = bare('corviknight');
@@ -8777,17 +8812,25 @@ probe('ability', 'boostsOnKO', 'Moxie boosts the NAMED stat, and Grim Neigh a di
       new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
     return { fainted: f1.fainted, at: me.boosts.at };
   })();
-  const off = run('none'), moxie = run('moxie'), grim = run('grimneigh');
+  /* ROADMAP #175, 2026-08-11 — THE GRIM NEIGH ARM IS GONE AND THE PROBE IS WEAKER FOR IT, WHICH IS
+   * SAID HERE RATHER THAN QUIETLY ABSORBED. Grim Neigh's carriers are `isNonstandard: 'Past'` in Reg
+   * M-B, so it is no longer derived; the arm existed to prove the wire reads the tag's NAMED stat
+   * rather than picking the highest, and no legal member of `boostsOnKO` names a stat other than
+   * Attack (the tag has exactly two legal members: Moxie `atk` and Eelevate `highest`).
+   *
+   * WHAT STILL SEPARATES THE TWO SHAPES: the Eelevate probe directly above sums every stage on the
+   * same Garchomp and this one asserts ATTACK specifically with every other stage at zero — so a
+   * `highest`-only engine and a named-stat engine still print different things across the PAIR, which
+   * is where the load moved to. A regulation that brings back a `spa` member should restore the third
+   * arm here rather than rely on that. */
+  const off = run('none'), moxie = run('moxie');
   return { works: off.at === 0 && off.sa === 0
                   && moxie.at === 1 && moxie.sa === 0 && moxie.other === 0
-                  && grim.sa === 1 && grim.at === 0
                   && noKO.fainted === false && noKO.at === 0,
-           arms: { control: off.at, test: moxie.at },
+           arms: { control: [off.at, off.sa], test: [moxie.at, moxie.sa] },
            detail: '[atk stage, spa stage] after a KO -- no ability ' + off.at + ',' + off.sa
                  + '; MOXIE ' + moxie.at + ',' + moxie.sa + ' (must be 1,0 and nothing else moved: '
-                 + moxie.other + '); GRIM NEIGH ' + grim.at + ',' + grim.sa
-                 + ' (must be 0,1 — the same shape, a different named stat, which is what a '
-                 + '"highest stat" engine cannot produce on this body); and Moxie on a turn with NO '
+                 + moxie.other + '); and Moxie on a turn with NO '
                  + 'KO (the foe at full HP survived: ' + !noKO.fainted + ') raises ' + noKO.at
                  + ' (must be 0 — the trigger is the KO, not the click)' };
 });
@@ -9156,6 +9199,315 @@ probe('ability', 'writesAccuracy', 'No Guard makes an 80% move land on a losing 
            arms: { control, test: [attacker, defender] },
            detail: `Hydro Pump (80) at roll 0.99 — neither side ${control}; No Guard on the ATTACKER `
                  + `${attacker}; No Guard on the TARGET ${defender}` };
+});
+
+/* ROADMAP #175 — LOCK-ON, AND THE HALF THAT MAKES IT A MECHANIC RATHER THAN A NEVER-MISS FLAG.
+ *
+ * `guaranteesNextMove` is a tag with parameters and the parameters are the whole thing: the volatile
+ * goes on THE USER (`source.addVolatile('lockon', target)`, data/moves.ts:10410 — no Champions
+ * override, checked in data/mods/champions/moves.ts) and it names WHICH BODY it was aimed at. A wire
+ * that read the tag as "this body cannot miss" would be green on the first two arms here and wrong in
+ * play, because the guarantee is spent on one foe and one foe only.
+ *
+ * SO THE THIRD ARM IS THE LOAD-BEARING ONE. Lock-On is clicked in BOTH test arms — same move, same
+ * connection, same turn spent — and the only thing that varies is which foe it named. If the engine
+ * stored a bare flag those two arms collapse to the same number, which is the signature this file
+ * calls HOLLOW.
+ *
+ * THE BODY IS THE ONLY ONE THERE IS. Asked of the format's own learnsets rather than remembered:
+ * exactly one legal species in Reg M-B learns Lock-On, and it is Dragapult, which also learns Hydro
+ * Pump (80 printed) — so nothing here needs a body that could not exist. Roll 0.99 loses every
+ * printed accuracy in the format, so a hit is the engine believing the move cannot miss.
+ *
+ * WILL-O-WISP IS THE CONTROL SETUP because it is a status click Dragapult legally learns whose 85
+ * accuracy also fails at 0.99 — so the control turn is genuinely spent and changes nothing at all,
+ * rather than being "no setup", which would vary the number of turns. */
+probe('move', 'guaranteesNextMove', 'Lock-On makes the next move land on a losing roll — against THAT foe only', () => {
+  const run = (setupMv, atSecondFoe) => {
+    const B = board('dragapult', 'incineroar', 'garchomp', 'incineroar');
+    unfaintable(B.f1); unfaintable(B.f2);
+    const rng = () => 0.99;
+    const aim = atSecondFoe ? B.f2 : B.f1;
+    M.battleTurn(B.S, rng,
+      new Map([[B.me, M.playerAction(B.me, setupMv, aim, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng,
+      new Map([[B.me, M.playerAction(B.me, 'hydropump', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return before - B.f1.curHP;
+  };
+  const control = run('willowisp', false), locked = run('lockon', false), elsewhere = run('lockon', true);
+  return { works: control === 0 && locked > 0 && elsewhere === 0,
+           arms: { control: [control, elsewhere], test: [locked, elsewhere] },
+           detail: `Hydro Pump (80) into Garchomp at roll 0.99 — after Will-O-Wisp ${control} `
+                 + `(must be 0); after Lock-On AIMED AT IT ${locked} (must be > 0); after Lock-On `
+                 + `aimed at the OTHER foe ${elsewhere} (must be 0 — the guarantee is target-bound)` };
+});
+
+/* ROADMAP #175 — MIMICRY, AND THE ARM THAT MATTERS IS THE ONE WHERE THE TERRAIN GOES AWAY.
+ *
+ * Stunfisk-Galar is Ground/Steel and is the ONLY legal carrier in Reg M-B (`{"0":"Mimicry"}`, asked of
+ * `Dex.forFormat('gen9championsvgc2026regmb')`). Under Electric Terrain it becomes pure ELECTRIC, so a
+ * Thunderbolt goes from ZERO — Ground is immune — to real damage. Zero-to-non-zero is the largest
+ * swing available and cannot be produced by a rounding difference.
+ *
+ * THE 2x2 IS DELIBERATE. Terrain-with-no-ability and ability-with-no-terrain must BOTH read 0, so
+ * neither half of the condition can be the thing doing the work: an engine that retyped on entry
+ * regardless of the sky, and an engine that made Electric Terrain grant an Electric type to whatever
+ * stood on it, would each pass a single test arm.
+ *
+ * AND THE FOURTH ARM IS THE ONE THE ARTIFACT GOT WRONG. `revertsWithoutTerrain` was derived FALSE
+ * because the handler assigns `pokemon.baseSpecies.types` to a local rather than calling `clearType`
+ * (data/abilities.ts:2592) — a dead tag's parameter that nothing had ever checked. A wire that trusted
+ * it would leave the body Electric after the terrain lapses, which is a strictly better Pokemon than
+ * the real one, and the first three arms here would all still be green. */
+probe('ability', 'typeFollowsTerrain', 'Mimicry retypes Stunfisk-Galar under Electric Terrain — and gives the type back when it ends', () => {
+  const run = (ab, terrain, endIt) => {
+    const B = board('ampharos', 'milotic', 'stunfisk-galar', 'garchomp');
+    unfaintable(B.f1);
+    B.f1.ability = ab;
+    B.S.field.terrain = terrain; B.S.field.terrainT = terrain ? 5 : 0;
+    /* A turn is spent on EVERY arm, so "a turn happened" is never the varied thing. */
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally), PASS2(B.f1, B.f2));
+    if (endIt) { B.S.field.terrain = ''; B.S.field.terrainT = 0;
+                 M.battleTurn(B.S, rng5, PASS2(B.me, B.ally), PASS2(B.f1, B.f2)); }
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'thunderbolt', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { hurt: before - B.f1.curHP, types: (B.f1.types || []).join('/') };
+  };
+  const noAbil = run('none', 'electric', false), noTerr = run('mimicry', '', false);
+  const both = run('mimicry', 'electric', false), ended = run('mimicry', 'electric', true);
+  return { works: noAbil.hurt === 0 && noTerr.hurt === 0 && both.hurt > 0 && ended.hurt === 0
+                  && both.types === 'Electric' && ended.types === 'Ground/Steel',
+           arms: { control: [noAbil.hurt, noTerr.hurt, ended.hurt], test: [both.hurt, both.hurt, both.hurt] },
+           detail: `Thunderbolt into Stunfisk-Galar [damage, its types] — Electric Terrain, NO ability `
+                 + `${noAbil.hurt},${noAbil.types} (must be 0); Mimicry, NO terrain ${noTerr.hurt},`
+                 + `${noTerr.types} (must be 0); Mimicry UNDER Electric Terrain ${both.hurt},`
+                 + `${both.types} (must be > 0 and Electric — Ground's immunity is gone); terrain then `
+                 + `ALLOWED TO END ${ended.hurt},${ended.types} (must be 0 and Ground/Steel again)` };
+});
+
+/* ROADMAP #175 — FORECAST. THREE SKIES, THREE DIFFERENT ANSWERS, WHICH IS THE POINT.
+ *
+ * Castform is the only Forecast body in Reg M-B and it is NORMAL until the sky says otherwise:
+ * Fire in sun, Water in rain, Ice in snow (`typesByWeather`, derived from the dex in the same pass).
+ * A Flamethrower therefore reads 1x into the plain body, 2x once it is Ice and 0.5x once it is Water —
+ * and an engine that retyped to ONE hardcoded type would pass whichever single arm that type matched.
+ * Both directions are here for exactly that reason.
+ *
+ * SPECIAL, AND SNOW, ON PURPOSE. Snow raises the DEFENSE of an Ice body, so a physical probe would
+ * measure the type change and the Defense boost together and could not say which moved the number.
+ * Sun and rain both scale Fire damage directly, so each weather arm is compared against ITS OWN
+ * no-ability control under the same sky — never against a different sky.
+ *
+ * THE SPECIES LABEL DOES NOT FOLLOW AND THAT IS DECLARED. `data/engine-data.js` has a row for
+ * `castform` and none for Castform-Sunny / Rainy / Snowy, and ENGINE may not edit that file — so the
+ * TYPE moves (which, with `sameStats: true`, is the whole of the mechanic's effect on a board) and the
+ * name does not. The probe asserts on types rather than on a forme name so it says what it measures. */
+probe('ability', 'formeFollowsWeather', 'Forecast retypes Castform per sky — Ice in snow, Water in rain, back to Normal when it clears', () => {
+  const run = (ab, wx, endIt) => {
+    const B = board('charizard', 'milotic', 'castform', 'garchomp');
+    unfaintable(B.f1);
+    B.f1.ability = ab;
+    B.S.field.weather = wx; B.S.field.weatherT = wx ? 5 : 0;
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally), PASS2(B.f1, B.f2));
+    if (endIt) { B.S.field.weather = ''; B.S.field.weatherT = 0;
+                 M.battleTurn(B.S, rng5, PASS2(B.me, B.ally), PASS2(B.f1, B.f2)); }
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'flamethrower', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { hurt: before - B.f1.curHP, types: (B.f1.types || []).join('/') };
+  };
+  const snowOff = run('none', 'snow', false), snowOn = run('forecast', 'snow', false);
+  const rainOff = run('none', 'rain', false), rainOn = run('forecast', 'rain', false);
+  const clearOn = run('forecast', '', false), ended = run('forecast', 'snow', true);
+  return { works: snowOn.types === 'Ice' && rainOn.types === 'Water'
+                  && clearOn.types === 'Normal' && ended.types === 'Normal'
+                  && snowOn.hurt > snowOff.hurt * 1.8 && rainOn.hurt < rainOff.hurt * 0.6
+                  && ended.hurt === clearOn.hurt,
+           arms: { control: [snowOff.hurt, rainOff.hurt, snowOff.types],
+                   test:    [snowOn.hurt,  rainOn.hurt,  snowOn.types] },
+           detail: `Flamethrower into Castform [damage, its types] — SNOW no ability ${snowOff.hurt},`
+                 + `${snowOff.types} vs Forecast ${snowOn.hurt},${snowOn.types} (must roughly DOUBLE, `
+                 + `Ice); RAIN no ability ${rainOff.hurt},${rainOff.types} vs Forecast ${rainOn.hurt},`
+                 + `${rainOn.types} (must roughly HALVE, Water); clear sky with Forecast `
+                 + `${clearOn.hurt},${clearOn.types}; snow then ALLOWED TO CLEAR ${ended.hurt},`
+                 + `${ended.types} (must match the clear-sky arm exactly)` };
+});
+
+/* ROADMAP #175 — SYMBIOSIS. THE OUTCOME IS THE PARTNER EATING TWICE, NOT AN ITEM SLOT CHANGING.
+ *
+ * 53 corpus uses and three legal carriers in Reg M-B (Florges, Floette-Eternal, Oranguru — asked of
+ * the format). The handler fires on `onAllyAfterUseItem`: the moment the PARTNER spends its item, the
+ * holder hands over its own. What that is worth on a board is a second Sitrus, so the probe measures
+ * the SECOND heal — an item slot reading `sitrusberry` proves the field was written, not that anything
+ * in the game changed.
+ *
+ * BOTH ARMS SPEND A BERRY, and both Florges hold one. The only varied knob is the ability, so a
+ * control that healed once and a test that healed twice cannot be the staging. The holder's own slot
+ * is read on both arms too: an implementation that COPIED the item rather than moving it would give
+ * the partner a second Sitrus and keep its own, which is a strictly better ability than the real one
+ * and would pass every other assertion here. */
+probe('ability', 'passesItemToAlly', 'Symbiosis hands its berry to the partner that just ate one — so the partner eats twice', () => {
+  const run = (ab) => {
+    const B = board('florges', 'milotic', 'incineroar', 'garchomp');
+    B.me.ability = ab; B.me.item = 'sitrusberry';
+    B.ally.ability = 'none'; B.ally.item = 'sitrusberry';
+    const low = () => Math.floor(B.ally.st.hp * 0.4);
+    B.ally.curHP = low();
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally), PASS2(B.f1, B.f2));
+    const firstHeal = B.ally.curHP - low();
+    const held = B.ally.item, holder = B.me.item;
+    B.ally.curHP = low();
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally), PASS2(B.f1, B.f2));
+    return { firstHeal, held, holder, secondHeal: B.ally.curHP - low() };
+  };
+  const off = run('none'), on = run('symbiosis');
+  return { works: off.firstHeal > 0 && off.held === '' && off.holder === 'sitrusberry' && off.secondHeal === 0
+                  && on.firstHeal > 0 && on.held === 'sitrusberry' && on.holder === '' && on.secondHeal > 0,
+           arms: { control: [off.secondHeal, off.held, off.holder],
+                   test: [on.secondHeal, on.held, on.holder] },
+           detail: `Milotic at 40% beside a Florges holding a Sitrus, twice — NO ability: first heal `
+                 + `${off.firstHeal}, partner then holds "${off.held}", Florges still holds `
+                 + `"${off.holder}", second heal ${off.secondHeal} (must be 0)   |   SYMBIOSIS: first `
+                 + `heal ${on.firstHeal}, partner then holds "${on.held}", Florges holds "${on.holder}" `
+                 + `(must be EMPTY — it is handed over, not copied), second heal ${on.secondHeal} `
+                 + `(must be > 0)` };
+});
+
+/* ROADMAP #175 — RECEIVER. THE OUTCOME IS THE INHERITED ABILITY DOING ITS JOB, NOT A STRING MOVING.
+ *
+ * Passimian is the only legal Receiver body in Reg M-B (asked of the format). Its partner is an
+ * Incineroar carrying Flash Fire; when the Incineroar faints, the Passimian is supposed to end up
+ * holding Flash Fire — so the very next Fire move aimed at it deals ZERO instead of real damage. That
+ * is the measurement: an engine that assigned `m.ability = 'flashfire'` and had no consumer for it
+ * would read as working on any probe that inspected the field.
+ *
+ * TWO CONTROLS, EACH KILLING ONE HALF OF THE CONDITION. Without the ability, the same faint must
+ * change nothing; with the ability and NO faint, the same board must change nothing. Both take the
+ * same number of turns and the same Fire click, so the only varied things are the ability and whether
+ * the partner died. */
+probe('ability', 'inheritsAllyAbility', 'Receiver takes the ability of the partner that just fainted, and it is LIVE', () => {
+  const run = (ab, killAlly) => {
+    /* ARCANINE, NOT A BODY CHOSEN FOR CONVENIENCE. Flash Fire's legal carriers in this format are
+     * Ninetales, Arcanine, Arcanine-Hisui, Flareon, Typhlosion, Houndoom, Chandelure, Armarouge and
+     * Ceruledge — asked of `Dex.forFormat`. The first draft of this probe put Flash Fire on an
+     * Incineroar, which carries Blaze and Intimidate and nothing else, and then killed it with a FIRE
+     * move the ability absorbs — so the partner never died and all three arms read the same number.
+     * The fixture was wrong twice before the engine was wrong once. */
+    const B = board('passimian', 'arcanine', 'ninetales', 'garchomp');
+    B.me.ability = ab; B.ally.ability = 'flashfire';
+    unfaintable(B.me);
+    if (killAlly) B.ally.curHP = 1;
+    /* Turn 1: the OTHER foe clicks a DRAGON move at the partner — a type Flash Fire has no answer to,
+     * so on 1 HP the partner dies and on full HP it lives. Either way exactly one turn is spent. */
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, { kind: 'pass' }], [B.ally, { kind: 'pass' }]]),
+      new Map([[B.f1, { kind: 'pass' }], [B.f2, M.playerAction(B.f2, 'dragonclaw', B.ally, B.S.field)]]));
+    const died = !!B.ally.fainted, got = String(B.me.ability || '');
+    const before = B.me.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, { kind: 'pass' }], [B.ally, { kind: 'pass' }]]),
+      new Map([[B.f1, M.playerAction(B.f1, 'flamethrower', B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    return { died, got, hurt: before - B.me.curHP };
+  };
+  const noAbil = run('none', true), noDeath = run('receiver', false), both = run('receiver', true);
+  return { works: noAbil.died && noAbil.got === 'none' && noAbil.hurt > 0
+                  && !noDeath.died && noDeath.got === 'receiver' && noDeath.hurt > 0
+                  && both.died && both.got === 'flashfire' && both.hurt === 0,
+           arms: { control: [noAbil.hurt, noDeath.hurt], test: [both.hurt, both.hurt] },
+           detail: `Flamethrower into Passimian the turn after its Flash Fire partner was hit `
+                 + `[partner died, Passimian's ability, damage] — no ability ${noAbil.died},`
+                 + `${noAbil.got},${noAbil.hurt} (must take damage); Receiver but the partner LIVED `
+                 + `${noDeath.died},${noDeath.got},${noDeath.hurt} (must take damage); Receiver and the `
+                 + `partner FAINTED ${both.died},${both.got},${both.hurt} (must be flashfire and 0 — `
+                 + `the inherited ability has to actually absorb)` };
+});
+
+/* ROADMAP #175 — FRISK, AND THIS PROBE MUST READ THE STREAM BECAUSE THERE IS NOTHING ELSE TO READ.
+ *
+ * The tag says it itself: `visibleOnABoard: false`. An information-only ability moves no HP, no stat
+ * and no field — its entire effect IS the line it writes, so a probe that reads state is structurally
+ * blind to it and would be green on an engine that had never heard of the ability. That is the same
+ * argument `moveLines(` and `entryLines(` were built on.
+ *
+ * THE PER-FOE SHAPE IS THE LOAD-BEARING ARM. Frisk's handler loops `pokemon.foes()` and announces each
+ * one that is holding something (data/abilities.ts:1537-1541); Anticipation and Forewarn announce ONCE
+ * on themselves. So a wire that emitted a single line would look right against one foe and be wrong
+ * against two, and the third arm here is the one that separates them. The empty-handed foe is the
+ * other half: `if (target.item)` means a foe holding nothing is passed over silently, and an engine
+ * that announced an empty slot would part the streams on every board.
+ *
+ * NOIVERN IS A LEGAL FRISK BODY — Typhlosion-Hisui, Banette, Trevenant, the four Gourgeist and Noivern
+ * carry it in Reg M-B, asked of `Dex.forFormat`. */
+probe('ability', 'announcesOnEntry', 'Frisk names each foe\'s item as it walks in — one line per HOLDING foe, none for an empty one', () => {
+  const run = (ab, secondItem) => {
+    const me = bare('incineroar'), ally = bare('corviknight'), bench = bare('noivern');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    bench.ability = ab;
+    f1.item = 'leftovers'; f2.item = secondItem;
+    const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: bench }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return trace.filter(l => /^\|-item\|/.test(l));
+  };
+  const off = run('none', ''), one = run('frisk', ''), two = run('frisk', 'sitrusberry');
+  return { works: off.length === 0 && one.length === 1 && two.length === 2
+                  && /leftovers/i.test(one[0] || '') && /ability: frisk/i.test(one[0] || '')
+                  && two.some(l => /sitrusberry/i.test(l)),
+           arms: { control: off.length, test: [one.length, two.length] },
+           detail: `|-item| lines emitted as the body walks in — NO ability ${off.length} (must be 0); `
+                 + `Frisk with ONE foe holding something ${one.length} [${one[0] || 'NONE'}]; Frisk with `
+                 + `BOTH foes holding something ${two.length} (must be 2 — the handler loops the foes, `
+                 + `it does not announce once)` };
+});
+
+/* ROADMAP #175 — MAGNETIC FLUX. THE ABILITY IS THE ELIGIBILITY TEST, WHICH IS A SHAPE NO OTHER MOVE
+ * IN THE FORMAT HAS, AND IT IS THE PART A SIDE-WIDE WIRE GETS WRONG.
+ *
+ * `side.allies().filter(ally => ally.hasAbility(['plus','minus']))` (data/moves.ts:10839). Two
+ * consequences a careless implementation loses in opposite directions: the user's OWN body is in
+ * `side.allies()`, so an Ampharos with Plus boosts ITSELF even with no partner; and a partner without
+ * one of the two abilities gets NOTHING, so an engine that treated this as an ordinary `allies`-target
+ * boost would buff the wrong bodies and still look like it worked.
+ *
+ * SO THE THIRD ARM — Plus on the user, nothing on the partner — is the load-bearing one, and the
+ * partner's Defense stage is read on every arm. All three arms CLICK THE MOVE; the only varied things
+ * are the two abilities.
+ *
+ * THE BODIES CARRY THE ABILITIES THEY REALLY HAVE. Ampharos is `{"0":"Static","H":"Plus"}` and
+ * Manectric is `{"0":"Static","1":"Lightning Rod","H":"Minus"}`, asked of `Dex.forFormat` — and
+ * Ampharos is one of only two legal species in Reg M-B that learns this move at all. */
+probe('move', 'boostsAlliesWithAbility', 'Magnetic Flux raises Def/SpD on the Plus and Minus bodies only — the user included', () => {
+  const run = (myAb, allyAb) => {
+    const B = board('ampharos', 'manectric', 'garchomp', 'milotic');
+    B.me.ability = myAb; B.ally.ability = allyAb;
+    unfaintable(B.me);
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'magneticflux', null, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    const mine = (B.me.boosts || {}).df || 0, theirs = (B.ally.boosts || {}).df || 0;
+    const before = B.me.curHP;
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
+      new Map([[B.f1, M.playerAction(B.f1, 'dragonclaw', B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    return { mine, theirs, hurt: before - B.me.curHP };
+  };
+  const none = run('static', 'static'), selfOnly = run('plus', 'static'), both = run('plus', 'minus');
+  return { works: none.mine === 0 && none.theirs === 0 && none.hurt > 0
+                  && selfOnly.mine === 1 && selfOnly.theirs === 0 && selfOnly.hurt < none.hurt
+                  && both.mine === 1 && both.theirs === 1,
+           arms: { control: [none.mine, none.theirs, none.hurt],
+                   test: [selfOnly.mine, selfOnly.theirs, selfOnly.hurt] },
+           detail: `Magnetic Flux clicked on all three arms [user's Def stage, partner's Def stage, `
+                 + `Dragon Claw taken next turn] — Static/Static ${none.mine},${none.theirs},`
+                 + `${none.hurt} (nothing must move); PLUS/Static ${selfOnly.mine},${selfOnly.theirs},`
+                 + `${selfOnly.hurt} (the USER rises and the partner must NOT); PLUS/MINUS `
+                 + `${both.mine},${both.theirs},${both.hurt} (both rise)` };
 });
 
 /* ---- WIRE 131 — WHAT THE BOT THINKS A CLICK IS WORTH, WHICH IS NOT WHETHER IT LANDS ---------------
@@ -10447,41 +10799,38 @@ probe('ability', 'auraBoost', 'Fairy Aura on the FOE raises MY Fairy move by the
                  + `field does not care which side the carrier stands on` };
 });
 
-/* 1c. SCOPE. The aura names ONE type and must leave everything else alone — otherwise "the multiplier
- *     is wired" is satisfied by a multiplier applied to every move. Dark Aura is the second member
- *     and is staged on the same body, so this also shows the tag is read per-type rather than by a
- *     name that happens to be Fairy. */
-probe('ability', 'auraBoost', 'an aura touches ONLY its own type, and Dark Aura is the second member', () => {
-  const fairyPlain = auraHit('none', 'none', 'none', 'moonblast');
-  const fairyUnderDark = auraHit('darkaura', 'none', 'none', 'moonblast');
-  const darkPlain = auraHit('none', 'none', 'none', 'crunch', 'tyranitar', 'gholdengo');
-  const darkUnderDark = auraHit('darkaura', 'none', 'none', 'crunch', 'tyranitar', 'gholdengo');
-  const r = darkPlain ? darkUnderDark / darkPlain : 0;
-  return { works: fairyPlain > 0 && fairyUnderDark === fairyPlain
-                  && darkPlain > 0 && darkUnderDark > darkPlain && r > 1.30 && r < 1.36,
-           arms: { control: [fairyPlain, fairyUnderDark], test: [darkPlain, darkUnderDark] },
-           detail: `DARK Aura on the attacker — its Moonblast (Fairy) is ${fairyPlain} -> `
-                 + `${fairyUnderDark} (must NOT move) and Tyranitar Crunch is ${darkPlain} -> `
-                 + `${darkUnderDark}, ratio ${r.toFixed(3)}` };
-});
+/* 1c. THE DARK AURA PROBE IS REMOVED, 2026-08-11, AND THE CENSUS FALLS BY ONE. ROADMAP #175.
+ *
+ *     Will: *"if no legal species, then toss it man"*. Dark Aura's carriers are `isNonstandard: 'Past'`
+ *     in Reg M-B, so `engine/tag_dex.js` no longer derives it and `auraBoost` has exactly ONE legal
+ *     member left — Fairy Aura, on Floette-Mega. The probe said two things: that an aura touches only
+ *     its own type, and that the wire reads the tag's `type` PARAM rather than a name that happens to
+ *     be Fairy. The second is no longer measurable in this regulation, and asserting it on a
+ *     hand-staged ability nobody can bring was measuring nothing.
+ *
+ *     WHAT IS LOST IS SAID PLAINLY RATHER THAN ABSORBED: 1a and 1b above still prove the multiplier
+ *     and the both-sides half on the legal member, and neither of them can tell a `type`-reading wire
+ *     from one that assumes Fairy. A regulation that returns a second aura should restore this probe
+ *     rather than treat the pair above as covering it.
+ */
 
-/* 1d. AURA BREAK INVERTS RATHER THAN CANCELS, and the two are only distinguishable against the
- *     NO-AURA baseline — a probe that compared "aura" against "aura + break" would be satisfied by a
- *     break that merely turned the aura off. 3072/4096 = 0.75, so a Fairy move under BOTH is WEAKER
- *     than one under neither. `hasAuraBreak` is read off the aura's own handler, so the number is the
- *     artifact's. Zero legal carriers in this format (Zygarde is Past, Zygarde-Mega is Future), which
- *     is why it is staged on a body directly and stated here rather than left to look like coverage. */
-probe('ability', 'auraBreak', 'Aura Break INVERTS the aura to 0.75 instead of cancelling it to 1.0', () => {
-  const none = auraHit('none', 'none', 'none', 'moonblast');
-  const aura = auraHit('fairyaura', 'none', 'none', 'moonblast');
-  const both = auraHit('fairyaura', 'none', 'aurabreak', 'moonblast');
-  const r = none ? both / none : 0;
-  return { works: none > 0 && aura > none && both < none && r > 0.72 && r < 0.78,
-           arms: { control: none, test: both },
-           detail: `Moonblast into Swampert — no aura ${none}, Fairy Aura ${aura}, Fairy Aura WITH `
-                 + `an Aura Break body on the foe side ${both}; ${both}/${none} = ${r.toFixed(3)}. `
-                 + `Cancelling would give ${none}; the rule is 0.75, not 1.0` };
-});
+/* 1d. THE AURA BREAK PROBE IS REMOVED, 2026-08-11, AND THE CENSUS FALLS BY ONE. ROADMAP #175.
+ *
+ *     Will: *"if no legal species, then toss it man"*. Aura Break's only carriers are Zygarde and
+ *     Zygarde-10% ('Past') and Zygarde-Mega ('Future'), so NO body that can legally be brought to a
+ *     Reg M-B game has it — and `engine/tag_dex.js` no longer derives abilities with no legal carrier,
+ *     so `auraBreak` is not in the artifact at all. The probe staged the ability on a body by hand,
+ *     which is exactly what made it look like coverage: it measured a rule that cannot fire in this
+ *     regulation, and a slot in a number that may never fall is the most expensive place to keep one.
+ *
+ *     THE ENGINE CONSUMER STAYS (`auraStateOf`, one `TAGS.param(...,'auraBreak')` read). It matches on
+ *     tag shape, the tag is absent, and it correctly does nothing — so the day the regulation gives
+ *     Aura Break a legal body, the derivation rule (declared in tag_dex's EXPECTED_EMPTY with its
+ *     reason) and the consumer both start working with no archaeology. What is gone is the CLAIM that
+ *     this engine was measured on it.
+ *
+ *     The Fairy Aura and Dark Aura probes directly above are NOT affected: Floette-Mega carries Fairy
+ *     Aura legally, which is why that one survives and this one does not. */
 
 /* 2a. SHED TAIL ACTUALLY SWITCHES, AND ALL THREE OF ITS EFFECTS FIRE. Will: "SHED TAIL NEEDS A SUB"
  *     and "AND HP LOSS". Measured before the fix: Heliolisk paid 68 HP, built a doll, and STOOD
@@ -14339,26 +14688,25 @@ probe('ability', 'curesStatusResidual', 'Hydration cures in rain and not out of 
  * THE SUPER-EFFECTIVE ARM IS THE CONTROL THAT MATTERS. An engine that doubled EVERYTHING would pass a
  * single not-very-effective arm; `appliesWhen` is the mechanic, so a resisted hit and a
  * super-effective hit are both read on the same body. */
-const lensRun = (ab, moveId) => turnDamageBig(['gengar', 'skeledirge', 'garchomp', 'farigiraf'],
-  (B) => { B.me.ability = ab; B.me.moves = [moveId, 'protect', 'snarl', 'shadowball']; }, moveId);
-probe('ability', 'boostsNotVeryEffective', 'Tinted Lens doubles the RESISTED hit and nothing else', () => {
-  /* Sludge Bomb (Poison) into Garchomp (Dragon/Ground) is 0.5x — Ground resists Poison. */
-  const nveOff = lensRun('none', 'sludgebomb'), nveOn = lensRun('tintedlens', 'sludgebomb');
-  /* Sludge Wave is the same type and category, so the SE control is a different TARGET question —
-   * Shadow Ball (Ghost) into Garchomp is neutral, which is the "not < 1" arm the tag's gate needs. */
-  const neuOff = lensRun('none', 'shadowball'), neuOn = lensRun('tintedlens', 'shadowball');
-  /* NOT AN EXACT DOUBLE, AND THE REASON IS THE CHAIN. The multiplier is applied inside the damage
-   * chain and the result is truncated once at the end, so 53 becomes 105 rather than 106 — the same
-   * off-by-one every chained modifier in this engine has and the authority has too. Asserting `=== 2x`
-   * would be asserting a rounding model this file does not own; the band is one point either side. */
-  const doubled = Math.abs(nveOn - 2 * nveOff) <= 2 && nveOn > 1.5 * nveOff;
-  return { works: nveOff > 0 && doubled && neuOff > 0 && neuOn === neuOff,
-           arms: { control: [nveOff, neuOff], test: [nveOn, neuOn] },
-           detail: 'Gengar into an unfaintable Garchomp. RESISTED (Sludge Bomb, Ground halves Poison): '
-                 + nveOff + ' -> ' + nveOn + ' with Tinted Lens, which is the artifact\'s own mult of 2. '
-                 + 'NEUTRAL (Shadow Ball): ' + neuOff + ' -> ' + neuOn + ' — unchanged, because '
-                 + '`appliesWhen` is the mechanic and not decoration' };
-});
+/* THE TINTED LENS PROBE IS REMOVED, 2026-08-11, AND THE CENSUS FALLS BY ONE. ROADMAP #175.
+ *
+ * Will: *"if no legal species, then toss it man"*. The paragraph directly above already recorded the
+ * fact — every Tinted Lens species in this dex is `isNonstandard: 'Past'` and Venomicon-Epilogue is
+ * CAP, so NO body that can legally be brought to a Reg M-B game carries it — and it drew the wrong
+ * conclusion from it: *"the claim it makes is about the engine rather than about the regulation"*.
+ * That is true and it is not a defence. A probe that stages an ability by hand onto a body that cannot
+ * have it occupies a slot in the one number this division may never let fall, and it can never be
+ * falsified by anything a player does.
+ *
+ * `engine/tag_dex.js` no longer derives abilities with no legal carrier, so `boostsNotVeryEffective`
+ * is not in the artifact and this probe would read MISSING rather than LIVE — which is why removing it
+ * is the honest move and leaving it would have turned a green census red for a mechanic that does not
+ * exist here.
+ *
+ * THE ENGINE CONSUMER STAYS (`dmgRangeOneHit`'s one `TAGS.param(...,'boostsNotVeryEffective')` read,
+ * ROADMAP #181's shape). It matches on tag shape, the tag is absent, and it correctly does nothing.
+ * The derivation rule is declared in tag_dex's EXPECTED_EMPTY with its reason, so the day the
+ * regulation gives Tinted Lens a legal body both ends start working again. */
 
 /* ROADMAP #175 -- LONG REACH. `removesOwnMoveFlag {flag:'contact', appliesTo:"the holder's own moves"}`.
  *
