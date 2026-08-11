@@ -158,6 +158,27 @@ const SCENARIOS = [
       { p1: [PASS, PASS],                p2: [PASS, PASS] },
       { p1: [PASS, PASS],                p2: [PASS, PASS] },
     ] },
+  /* SCENARIO 3 -- THE FAINT ORDER -- WAS WRITTEN AND THEN REMOVED, AND THE REMOVAL IS THE FINDING.
+   *
+   * Will, 2026-08-11: *"pokemon faint in speed order"*, then *"in trick room do they faint in reverse
+   * speed order?"* Both are true and DERIVED: `battle.ts:2811` runs `updateSpeed()` at the start of the
+   * residual step, `pokemon.ts:557` sets `speed = getActionSpeed()`, and that returns `10000 - speed`
+   * under Trick Room -- so the residual sort is already inverted before the faints run.
+   *
+   * **MEDICHAM DOES NOT SORT AT ALL**: `medicham2-browser.js:14890` is `for(const x of [...actA,...actB])`,
+   * pure slot order. (Its mega step at :9313 and its switch-in step at :8827 DO speed-sort, so this is
+   * the one place the rule was missed, not a general absence.)
+   *
+   * A SCENARIO FOR IT WAS WRITTEN HERE AND IT PASSED AGAINST A DELIBERATELY REVERSED LOOP. `staged_board.js`
+   * compares board STATE at turn boundaries; when all four die on the same turn the end state is identical
+   * whatever order they died in. **A row that asserts what it cannot see is worse than no row** -- it is the
+   * exact defect this file was built to expose, one level up. So it is not shipped.
+   *
+   * THE FIX IS A BETTER FIXTURE, NOT A BETTER COMPARATOR. Will: *"the game ends once a trainer has no mons"*.
+   * `battle.ts:2604` -- when BOTH sides empty at once, gen 9 awards the win to `faintData.target.side`, the
+   * side of the LAST faint processed off the queue. It is not a tie. So stage it as an ENDGAME where perish
+   * empties both benches and the order surfaces as a different WINNER, which the comparator already reads.
+   * Registered as ROADMAP #115. */
 ];
 
 /* THE FIXTURE AUDIT RUNS FIRST — a click that stages nothing agrees for the wrong reason, and this

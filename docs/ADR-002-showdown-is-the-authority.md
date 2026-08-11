@@ -48,8 +48,17 @@ converged. Read at the moment of the decision, from artifacts, not prose:
 | instrument | agreement with the official engine |
 |---|---|
 | `data/engine-diff.json` (damage, seed 20260804) | **150 / 150**, clean. *(This read **149 / 150** and called the residual "a documented harness-layer boundary, both engines right". **That was wrong and is retracted, 2026-08-10.** The residual was `chesnaught woodhammer -> mimikyu`, and it was a real engine defect: `dmgRange` ignored an intact Disguise and priced the click at 120-130 where the authority says 0. Both engines were NOT right. The claim survived because the battle LOOP handles Disguise correctly, so the mechanic looked implemented — see `docs/ENGINE.md`.)* |
-| `data/interaction-matrix.json` (carrier × reactor) | **1,588 / 1,593 — 99.7%** of 2,281 staged, PLUS the artifact's own `off_gate` count of **33** disagreements in buckets the gate discards. **RE-RUN 2026-08-11 AND THE SHRINK IS A FIXTURE REGRESSION, NOT A RECLASSIFICATION** — most of the pairs that left the live set have a protect-family reactor against contact moves, which the reference engine cannot genuinely treat as inert. The harness has stopped exercising them and reports agreement for them, so this rate is over a smaller board than the last one. Counts and membership: ROADMAP #161 |
+| `data/interaction-matrix.json` (carrier × reactor) | **1,638 / 1,640 — 99.9%** of 2,253 staged, PLUS the artifact's own `off_gate` count of **32** disagreements in buckets the gate discards. The fixture regression this row carried on 2026-08-11 is diagnosed and fixed — see the note under this table. |
 | `data/mechanics-census.json` | the live/probed count, with every miss carrying a written reason. **Read it from the artifact — this figure moved four times in one night as the WIRE queue landed, and was hand-corrected three of them.** |
+
+**THE MATRIX ROW WAS A FIXTURE REGRESSION AND IT IS FIXED, 2026-08-11.** This row briefly read a
+*lower* live count with a *higher* agreement rate, and the suspicion recorded here at the time — that
+the harness had stopped exercising the protect family rather than reclassifying it — was correct. The
+control carrier for a reactor-MOVE case asked a **usage-ranked** index whether a candidate carried the
+flag under test, so Flail (contact, and unplayed, therefore absent from that index) was chosen as the
+"flagless" control; both arms made contact, Spiky Shield chipped both, and the pairs reported INERT —
+unscored, and invisible in the rate. The membership question now has one implementation,
+`engine/linkage_carrier.js`, shared with the index builder. Full account and counts in `docs/ENGINE.md`.
 
 *(Those are a snapshot, and the census in particular moves — it read 202/211 four hours before this
 was written, 211/214 when it was checked, 216/219 after WIRES 119–122, 217/220 after WIRE 123, 218/221 after WIRE 128, 231/232 after WIRES 129–130 and 234/235 after WIRES 131–132.

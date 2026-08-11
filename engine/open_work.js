@@ -58,8 +58,11 @@ for (const l of lines) {
   const closed = Q.roadmapRowIsClosed(l);
   const title = m[2].replace(/\s*\|[^|]*\|?\s*$/, '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
   const uses = +((l.match(/([\d,]{3,})\s*(uses|clicks)/) || [, '0'])[1].replace(/,/g, '')) || 0;
+  /* THE FULL LINE IS KEPT ALONGSIDE THE DISPLAY TITLE. Matching subjects against a 120-char truncation
+   * meant #161 — which registers five pairs BY NAME — still read as unregistered, because the names sit
+   * past the cut. A tool that over-reports is the thing this file exists to stop. */
   rows.push({ n: +m[1], section, closed, saysBroken: Q.roadmapRowSaysBroken(l), uses,
-              title: title.slice(0, 120) });
+              title: title.slice(0, 120), full: title.toLowerCase() });
 }
 const open = rows.filter(r => !r.closed);
 
@@ -77,7 +80,7 @@ if (matrix && Array.isArray(matrix.parting)) {
                     detail: (r.diffs || []).map(d => d[0] + ' medi=' + d[1] + ' sd=' + d[2]).join(' | ') });
 }
 /* the register mentions a subject if either name appears in any OPEN row's title */
-const openText = open.map(r => r.title.toLowerCase()).join(' ~ ');
+const openText = open.map(r => r.full).join(' ~ ');
 for (const m of measured) {
   const parts = m.subject.split(' -> ').map(s => s.trim().toLowerCase());
   m.registered = parts.some(p => p && openText.includes(p));
@@ -121,7 +124,10 @@ console.log('    ' + String(c.unregistered).padStart(4) + '  MEASURED BUT UNREGI
 
 const bySection = {};
 for (const r of open) (bySection[r.section] = bySection[r.section] || []).push(r);
-const wanted = ENGINE_ONLY ? Object.keys(bySection).filter(s => /engine|mechanic|simulat/i.test(s)) : Object.keys(bySection);
+/* `--engine` MEANS THE MEDICHAM BLOCK, which is what anyone asking actually wants. The first version
+ * matched /engine|mechanic|simulat/ against the SECTION HEADING and the heading is "MEDICHAM
+ * completeness — PHASE 1", so the flag printed nothing at all and looked like a clean board. */
+const wanted = ENGINE_ONLY ? Object.keys(bySection).filter(s => /medicham|engine|mechanic|simulat/i.test(s)) : Object.keys(bySection);
 for (const s of wanted.sort()) {
   console.log('  ' + s);
   for (const r of bySection[s].sort((a, b) => b.uses - a.uses || a.n - b.n))

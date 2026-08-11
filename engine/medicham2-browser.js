@@ -14887,7 +14887,32 @@ function battleTurn(S,rng,actsForA,actsForB){
     /* PERISH and YAWN tick here, with the field timers, so every clock in this engine advances in one
        place. Perish faints at zero -- that is the move. Yawn sleeps at zero, and only if the target is
        still statusless, because anything that landed in between takes precedence. */
-    for(const x of [...actA,...actB]){
+    /* ROADMAP #115 -- RESIDUALS RUN IN SPEED ORDER AND THIS LOOP RAN IN SLOT ORDER.
+     *
+     * Will, 2026-08-11: *"pokemon faint in speed order"*, then *"in trick room do they faint in reverse
+     * speed order?"*, then *"sandstorm damage, etc"*. All three are the same fact and all three are
+     * DERIVED: `battle.ts:2811` calls `updateSpeed()` at the HEAD of the residual step,
+     * `pokemon.ts:557` sets `speed = getActionSpeed()`, and that returns `10000 - speed` while Trick
+     * Room is up -- so `fieldEvent('Residual')`'s `speedSort` is already inverted before anything
+     * resolves. `compareTurnOrder` is the same function, and it reads the field, so Trick Room comes
+     * free rather than needing a second branch.
+     *
+     * THIS WAS THE ONLY SITE THAT MISSED IT, and saying so is the useful half: the MEGA step (:9313)
+     * and the SWITCH-IN step (:8827) both already sort through `compareTurnOrder`, so Intimidate and
+     * mega ordering -- the obvious suspects -- were correct the whole time.
+     *
+     * IT IS NOT COSMETIC AND IT IS NOT PERISH SONG. Every clock below rides this order: sandstorm and
+     * hail chip, burn, poison, Leftovers, Salt Cure, Yawn, Heal Block. And `battle.ts:2604` awards a
+     * SIMULTANEOUS double-KO to `faintData.target.side` -- the side of the LAST faint off the queue,
+     * not a tie -- so in a mutual-perish endgame this sort picks the WINNER, and we were picking it by
+     * slot position. The rollout scores wins, so a wrong verdict here reaches every number downstream.
+     *
+     * A SPEED TIE IS A COIN FLIP IN SHOWDOWN and a stable order here, the same approximation the
+     * switch-in site at :8827 already declares and for the same reason. */
+    const _res=[...actA,...actB].filter(Boolean);
+    for(const x of _res)x._resSpe=effSpeed(x,field,actA.includes(x)?'A':'B');
+    _res.sort((x,y)=>compareTurnOrder({spe:x._resSpe},{spe:y._resSpe},field));
+    for(const x of _res){
       if(!x||x.fainted)continue;
       /* ROADMAP #81 WIRE 12 -- the tick is unchanged and the number it ticks FROM is not (see the
          `kind==='perish'` branch). The KO at zero is the whole move and nothing in this repo had ever

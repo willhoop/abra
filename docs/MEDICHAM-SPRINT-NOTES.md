@@ -3215,10 +3215,12 @@ The others, with the consequence rather than the pattern:
 
 ### AND THE PART WORTH KEEPING: I FOUND A DEFECT THAT WAS NOT THERE
 
-I ran `--n 8` to check the file still loaded, saw `data/replay-differential.json` overwritten, and
+I ran a tiny smoke run to check the file still loaded, saw `data/replay-differential.json` overwritten, and
 concluded a smoke run had destroyed a real measurement. I wrote a floor guard, wrote it against a
 field the artifact does not have (`corpus.games_scored` — it is `counts.games_replayed`), fixed that,
-watched it still not fire, and only then printed the values: **the run had scored 96 games, not 8.**
+watched it still not fire, and only then printed the values: **the run had scored a full run's worth of games rather than the handful I asked for** — the flag I passed was not the flag the script reads.
+
+*(The exact count is deliberately not quoted here. It was a reading of `data/replay-differential.json` taken during a past incident; that artifact has been regenerated many times since, and the docs-currency gate correctly flagged the stale figure as a claim the artifact no longer supports. The INCIDENT is the point, not its arithmetic.)*
 
 **`--n` is `test-engine-diff.js`'s flag. This file's is `--games`.** The unknown flag was silently
 ignored and every "smoke run" was a full 100-game run. Nothing was destroyed; the artifact was
@@ -3778,3 +3780,36 @@ by hand in a throwaway script; **both the clean and the broken run returned `SHO
 asked "is the verdict not IDENTICAL" — so it printed that the guard had fired when nothing had been
 demonstrated at all. A mutation test whose control also fails proves nothing. `--break-the-faint` now
 lives inside the file that owns the scenarios, where the clean run is known to pass.
+
+### THE ORDERING SWEEP — TWO OF THREE WERE ALREADY RIGHT, AND THE THIRD DECIDES GAMES
+
+Will, 2026-08-11, across five messages: *"pokemon faint in speed order"* / *"in trick room do they faint
+in reverse speed order?"* / *"speed decides who switches out first or who megas first"* / *"mega first or
+second can determine things like the weather"* / *"the game ends once a trainer has no mons right"* /
+*"sandstorm damage, etc"*.
+
+Measured rather than assumed, and **the scoping is the useful half**:
+
+| ordering | Showdown | MEDICHAM |
+|---|---|---|
+| mega | `action.speed = getActionSpeed()`, queue-sorted | **correct** — `_run.sort(compareTurnOrder)`, `:9313` |
+| switch-in / Intimidate | speed frozen once per batch, ties by field position (`battle.ts:1010`) | **correct** — `entrants.sort(compareTurnOrder)`, `:8827` |
+| **residuals** | `updateSpeed()` then `speedSort(handlers)` | **SLOT ORDER, no sort** — `:14890` |
+
+**Intimidate and mega were the obvious suspects and both are fine.** Reporting "our ordering is wrong"
+without that scoping sends the next person at the wrong two sites.
+
+**IT IS THE WHOLE RESIDUAL FAMILY, not Perish Song.** Will got there in two words — *"sandstorm damage,
+etc"*. The same loop carries sand and hail chip, burn, poison, Leftovers, Salt Cure, Yawn and Heal Block.
+Perish Song is just the member where the consequence is unmissable.
+
+**AND IT IS NOT COSMETIC.** Will's own follow-up settled it: `battle.ts:2604` — when both sides empty at
+once, gen 9 awards the win to `faintData.target.side`, the side of the LAST faint off the queue. **Not a
+tie.** In a mutual-perish endgame the residual order picks the winner and we pick it by slot position.
+The rollout scores wins, so this is a wrong verdict feeding everything downstream of the simulator.
+
+**Mega order matters the same way in a different place:** weather is last-writer-wins, so two sides
+megaing into weather setters resolve to the SLOWER one's sky. That path is already sorted correctly here.
+
+Registered as ROADMAP #115 — which until tonight existed only in a session task list and had **no
+register row at all**, which is exactly what `engine/open_work.js` was built to stop.

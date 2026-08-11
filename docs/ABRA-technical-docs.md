@@ -527,9 +527,16 @@ The harness no longer uses Protect for this. It uses any move that the Pokémon 
 that does not block. If no such move exists, the test is not built, and the reason is recorded. A
 check stops the run if a Pokémon is given a Protect for this purpose.
 
-From `data/interaction-matrix.json`: 1,593 of the 2,281 tests can occur, and the matrix agrees with
-the official engine on 1,588 of these. The artifact also records 53 more disagreements in buckets the
+From `data/interaction-matrix.json`: 1,640 of the 2,253 tests can occur, and the matrix agrees with
+the official engine on 1,638 of these. The artifact also records 32 more disagreements in buckets the
 gate discards. These are real. Read `off_gate` and `off_gate_rows`, not the agreement rate alone.
+
+The control move for a test whose reactor is a MOVE must not carry the property under test. The
+harness used to read that property from a usage-ranked index, which omits a move that carries the
+property and that nobody plays. Fifteen contact moves are omitted in this way. One of them was
+selected as a control, so both arms of the test made contact and 57 tests showed no result. The
+property is now read from the move itself. `engine/linkage_carrier.js` holds the one rule, and both
+the index builder and the test generator call it.
 
 Many tests that showed no result now show one. The count of these is in `CHANGELOG.md`. Three new
 faults in the simulator are recorded. One new fault in the harness is also recorded. The harness fault

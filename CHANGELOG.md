@@ -10,6 +10,40 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.6.0] — 2026-08-11
+
+### Fixed
+- **RESIDUALS NOW RUN IN SPEED ORDER (ROADMAP #115), AND IN TRICK ROOM THEY RUN IN REVERSE.** Will, in five messages: *"pokemon faint in speed order"*, *"in trick room do they faint in reverse speed order?"*, *"speed decides who switches out first or who megas first"*, *"mega first or second can determine things like the weather"*, *"sandstorm damage, etc"*. All DERIVED: `battle.ts:2811` runs `updateSpeed()` at the head of the residual step, `pokemon.ts:557` sets `speed = getActionSpeed()`, and that returns `10000 - speed` under Trick Room — so the sort is already inverted before anything resolves. **`medicham2-browser.js:14890` iterated `[...actA,...actB]` — pure slot order, no sort.** It now sorts through `compareTurnOrder`, which reads the field, so Trick Room comes free rather than needing a branch.
+- **SCOPED BY MEASUREMENT, WHICH IS THE USEFUL HALF**: the MEGA step (`:9313`) and the SWITCH-IN step (`:8827`) ALREADY speed-sort, so **Intimidate and mega ordering were correct all along** — the two obvious suspects. Reporting "our ordering is wrong" without that scoping sends the next person at the wrong sites.
+- **IT IS THE WHOLE RESIDUAL FAMILY, NOT PERISH SONG** — Will got there in two words, *"sandstorm damage, etc"*. Sand and hail chip, burn, poison, Leftovers, Salt Cure, Yawn and Heal Block all ride this order.
+- **AND IT IS NOT COSMETIC.** `battle.ts:2604` awards a SIMULTANEOUS double-KO to `faintData.target.side` — the side of the LAST faint off the queue, **not a tie**. So in a mutual-perish endgame the residual order picks the WINNER and we were picking it by slot position, and the rollout scores wins.
+
+### Added
+- **`engine/speed_vs_pokeenv.js` — three arms, not two.** Will: *"benchmark medicham against poke-env so we know what we need to beat"*. The two-arm version would produce a huge number and the number would be a lie: poke-env is Python over a WEBSOCKET to a Showdown server, so most of what it spends is transport. The claim ADR-003 and #62 actually rest on is about SIMULATION cost. So: **A. poke-env** (what VGC-Bench paid), **B. Showdown’s own `BattleStream` in-process** (the simulation alone), **C. MEDICHAM**. **B is the honest baseline** — if C/B is near 1, the engine programme’s justification is transport avoidance, which driving `BattleStream` in-process already gave us for free without writing a simulator. That is the outcome a two-arm benchmark would have hidden. poke-env is installed; arm A is still to run.
+
+### Notes
+- **THE MEta IS CONCENTRATED ENOUGH FOR PRE-SOLVED CHARTS, MEASURED**: of 277 species seen across 26,232 declared teams, **14 cover 50% of team slots, 40 cover 80%, 66 cover 90%**. Combined with #47’s measured cell counts, 1v1 charts over the top 40 are ~25,600 cells and 2v1 is ~3.0M — and #47 measures 2v1 as reachable in **45.9% of games**. Registered as #163.
+- **TYPE IMMUNITY PRUNES LESS THAN IT SOUNDS**: 4,907 of 62,440 attacking clicks across the top-40 meta are 0x — **7.9%** provably dead on type alone. Will was right that real positions prune hard, but the pruning is structural (Showdown’s request disables Fake Out on turn 2) and strategic, not type-based. **And pruning attacks the wrong half**: a solver discovers dominated actions itself; what decides chart size is how many distinct MATRICES occur, not how many cells each has.
+- **#164 — the end goal is written down for the first time**: closed team sheets, #1 on the ladder. I first filed the open-sheet corpus against it as a fitting-vs-playing violation; **Will corrected that — it is a curriculum, not a mismatch** — and the row and the memory were rewritten rather than left standing.
+- **#163 rests on my RECALL of Libratus and Pluribus and is being verified**, because Will asked *"did you research them"* and the answer was no. A research pass is running.
+
+---
+
+## [5.5.0] — 2026-08-11
+
+### Fixed
+- **The interaction matrix stopped exercising the whole protect family and the agreement rate went UP.** Two `--full` runs five days apart read live 1,643 → 1,593 with agreement 98.8% → 99.7%: **57 of the 80 pairs that went LIVE → INERT had a protect-family reactor** (Spiky Shield 16, Baneful Bunker 16, King's Shield 13, Beak Blast 12) against contact carriers, and Spiky Shield versus a contact move is *never* inert — that is the chip damage. An INERT pair is **not scored**, so the regression could not make the headline look worse; it could only make it look better while covering less. **Root cause:** a reactor MOVE cannot be removed, so `controlCarrier()` varies the CARRIER instead — and it asked `LINKAGE[key].carrierMoves`, which `tag_dex` builds behind a **usage gate**, whether a candidate carried the flag. That list is *flagged moves people click*; **fifteen moves carrying `flags.contact` are absent from it purely for having zero usage** (crushclaw, axekick, bind, bounce, comeuppance, covet, doublehit, **flail**, pluck, pound, seismictoss, struggle, tailslap, thrash, wrap). Blastoise's control became **Flail**, both arms made contact, the shield punished both, and the reference engine's two arms came out identical. Measured before: **101 of 464 reactor-move cases had a control carrying the very key under test**; after: **0 of 436**. Live **1,593 → 1,640**, inert 566 → 491, **54 of the 57 exercised again**.
+- **The defect did not arrive on 2026-08-10 — it was uncovered then.** The control previously chosen was `dive`, which *also* makes contact but is a two-turn charge move that never lands on turn 1, so it never touched anything and the case passed for the wrong reason. Dive earned nonzero usage, entered `carrierMoves`, stopped being eligible as a control, and Flail took its place. **A staged board printed in both arms is what settled this**; reading the code got it wrong four times.
+
+### Added
+- **`engine/linkage_carrier.js` — "does this move carry this linkage key", one implementation, two callers.** CLAUDE.md's FACTS-ARE-GLOBAL rule: `tag_dex.js` BUILDS `linkage.<key>.carrierMoves` with it and `tests/interaction_matrix.js` REFUSES a poisoned control with it, so a usage-ranked *ranking* can never again be mistaken for a *membership test*. Proven equivalent to the inline rule it replaces over **500 moves × 16 keys, 0 mismatches**, so `data/tags.json` is byte-unchanged and was **not** regenerated. It returns `null` — never `false` — for a key with no move-carrier rule, and the caller drops the pair under a printed reason rather than proceeding as though the answer were "no".
+
+### Notes
+- **A second, honest loss, named rather than papered over.** For the `statusMove` key — Taunt, and Sucker Punch and Upper Hand reached through it — *same category* and *without the key* **contradict**: every status move carries `statusMove`, so Taunt blocks the control exactly as it blocks the carrier. Eighteen pairs were staged that way and all eighteen read INERT with the reactor firing perfectly in both arms. They are now dropped under `control-impossible-for-this-key`, printed every run. **This costs Taunt every case it had.** The fix is not a cleverer control carrier — it is for a reactor MOVE to be controlled by varying the HOLDER'S ACTION, which is a change to the two-arm staging and is left open rather than smuggled in.
+- **1,640 is not 1,643, and the two are not the same population** — the generator emits 2,253 now against 2,300 then. Eight of the recovered pairs correctly turned INERT rather than LIVE: `fly`/`dive` (charge moves) and `steelroller` (fails with no terrain) cannot express contact inside a one-turn script and used to read LIVE only because the *control* was the thing making contact. A carrier that cannot land inside the script should be a named DROP, not an INERT row. Open.
+
+---
+
 ## [5.4.0] — 2026-08-11
 
 ### Added
