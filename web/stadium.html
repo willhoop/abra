@@ -355,24 +355,32 @@
 /* ==== BEGIN GENERATED QUARANTINE BLOCK — web/build-quarantine.js ==== */
 (function (root) {
   var Q = {
-    "generated": "2026-08-11T03:38:41.865Z",
+    "generated": "2026-08-11T07:27:04.051Z",
     "by": "web/build-quarantine.js",
     "simulator": "engine/medicham2-browser.js",
-    "open": true,
+    "open": false,
     "clauses": [
       {"name":"game differential","ok":true,"why":"clean: 0 of 20000 comparisons disagree with Showdown (seed 20260804) [read from data/engine-diff.json]"},
       {"name":"deliberate roster / items","ok":true,"why":"clean: 139 TESTED of 148 IN SCOPE, of 148 total (0 have NO LEGAL CARRIER in this format — a fact about the regulation) (1 deferred by the owner, still staged and printed) [read from data/roster.items.json]"},
-      {"name":"deliberate roster / abilities","ok":true,"why":"clean: 94 TESTED of 202 IN SCOPE, of 316 total (114 have NO LEGAL CARRIER in this format — a fact about the regulation) (2 deferred by the owner, still staged and printed). 15 row(s) count in NEITHER column — the control arm is itself a live ability: aftermath, angerpoint, aromaveil, damp, flowerveil, fluffy, justified, keeneye, moxie, opportunist, rivalry, shellarmor, slushrush, stalwart, stickyhold [read from data/roster.abilities.json]"},
+      {"name":"deliberate roster / abilities","ok":true,"why":"clean: 94 TESTED of 202 IN SCOPE, of 316 total (114 have NO LEGAL CARRIER in this format — a fact about the regulation) (6 deferred by the owner, still staged and printed). 15 row(s) count in NEITHER column — the control arm is itself a live ability: aftermath, angerpoint, aromaveil, damp, flowerveil, fluffy, justified, keeneye, moxie, opportunist, rivalry, shellarmor, slushrush, stalwart, stickyhold [read from data/roster.abilities.json]"},
       {"name":"deliberate roster / moves","ok":true,"why":"clean: 427 TESTED of 500 IN SCOPE, of 500 total (0 have NO LEGAL CARRIER in this format — a fact about the regulation) (9 deferred by the owner, still staged and printed) [read from data/roster.moves.json]"},
       {"name":"coverage / every used mechanic is measured by something","ok":true,"why":"clean: all 412 moves above 25 clicks are measured by the roster or the census [read from engine/quarantine.js]"},
-      {"name":"no open, known engine defect","ok":true,"why":"clean: the roadmap registers no open row describing a live engine defect [read from engine/quarantine.js]"}
+      {"name":"no open, known engine defect","ok":false,"why":"11 OPEN roadmap row(s) describe a live engine defect (0 named uses between them). A gate cannot report the engine correct while the register says otherwise — that is \"known failure\" filed one level up. Worst: #166, #167, #168, #169, #170 [read from engine/quarantine.js]"}
     ],
-    "failing": [],
-    "n_quarantined": 47,
-    "n_artifacts": 179,
+    "failing": [
+      "no open, known engine defect"
+    ],
+    "n_quarantined": 48,
+    "n_artifacts": 183,
     "rule": "CLAUDE.md — EVERYTHING DOWNSTREAM OF MEDICHAM IS WITHHELD UNTIL MEDICHAM IS CORRECT. Will, 2026-08-08: \"all engines that take medicham's output should be regarded as out of date and we should stop referencing them until medicham is up to date and we can rerun them.\"",
     "derivation": "node engine/quarantine.js --graph",
-    "root": null,
+    "root": {
+      "file": "engine/medicham2-browser.js",
+      "root": true,
+      "because": "it is the simulator every withheld artifact is derived from",
+      "rerun": "node engine/quarantine.js",
+      "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+    },
     "play": [
       "build/build_scoreboard.js",
       "engine/all_mechanics_fire.js",
@@ -420,6 +428,7 @@
       "engine/mew.js",
       "engine/mew_farm.js",
       "engine/miltank.js",
+      "engine/open_work.js",
       "engine/opponent_calibration.js",
       "engine/opponent_recall.js",
       "engine/play.js",
@@ -440,6 +449,7 @@
       "engine/selftest.js",
       "engine/sheet_channel_value.js",
       "engine/showdown_bot.js",
+      "engine/speed_vs_pokeenv.js",
       "engine/status.js",
       "engine/surprise.js",
       "engine/tag_dex.js",
@@ -484,6 +494,7 @@
       "data/effective-identity-baseline.json",
       "data/engine-data.js",
       "data/engine-diff.json",
+      "data/engine-release.json",
       "data/eval-report.json",
       "data/exploit-step-probe-reparam.json",
       "data/exploit-step-probe.json",
@@ -524,6 +535,7 @@
       "data/meta-usage.json",
       "data/mew.js",
       "data/million-targets.json",
+      "data/mod-audit.json",
       "data/move-effects.js",
       "data/move-priors.json",
       "data/mutation-coverage.json",
@@ -531,6 +543,7 @@
       "data/nmf-rank-selection.json",
       "data/nmf-roles.json",
       "data/nmf.js",
+      "data/open-work.json",
       "data/opponent-calibration.json",
       "data/opponent-recall.json",
       "data/partial-label-em.json",
@@ -585,6 +598,7 @@
       "data/roster.abilities.pre-shape-rules.json",
       "data/roster.abilities.prev.json",
       "data/roster.all.json",
+      "data/roster.all.prev.json",
       "data/roster.items.json",
       "data/roster.items.prev.json",
       "data/roster.json",
@@ -629,7 +643,344 @@
       "data/xatu.js",
       "data/xatu.json"
     ],
-    "held": {},
+    "held": {
+      "data/ab-batch-effect.json": {
+        "file": "data/ab-batch-effect.json",
+        "state": "quarantined",
+        "because": "its generator engine/mew.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/mew.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/all-mechanics-fire.json": {
+        "file": "data/all-mechanics-fire.json",
+        "state": "quarantined",
+        "because": "its generator engine/all_mechanics_fire.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/all_mechanics_fire.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/brood.json": {
+        "file": "data/brood.json",
+        "state": "quarantined",
+        "because": "its generator engine/brood.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/brood.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/censoring-value.json": {
+        "file": "data/censoring-value.json",
+        "state": "quarantined",
+        "because": "its generator engine/censoring_value.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/censoring_value.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/click-censoring-census.json": {
+        "file": "data/click-censoring-census.json",
+        "state": "quarantined",
+        "because": "its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/click_census.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/collinearity-audit.json": {
+        "file": "data/collinearity-audit.json",
+        "state": "quarantined",
+        "because": "its generator engine/collinearity_audit.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/collinearity_audit.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/collinearity-fix.json": {
+        "file": "data/collinearity-fix.json",
+        "state": "quarantined",
+        "because": "its generator engine/collinearity_fix.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/collinearity_fix.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/collinearity-joint.json": {
+        "file": "data/collinearity-joint.json",
+        "state": "quarantined",
+        "because": "its generator engine/collinearity_joint.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/collinearity_joint.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/exploit-step-probe-reparam.json": {
+        "file": "data/exploit-step-probe-reparam.json",
+        "state": "quarantined",
+        "because": "its generator engine/exploit_step_probe.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/exploit_step_probe.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/exploit-step-probe.json": {
+        "file": "data/exploit-step-probe.json",
+        "state": "quarantined",
+        "because": "its generator engine/exploit_step_probe.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/exploit_step_probe.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/exploitability-machamp.json": {
+        "file": "data/exploitability-machamp.json",
+        "state": "quarantined",
+        "because": "its generator engine/exploit.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/exploit.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/exploitability-mag.json": {
+        "file": "data/exploitability-mag.json",
+        "state": "quarantined",
+        "because": "its generator engine/exploit.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/exploit.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/exploitability.json": {
+        "file": "data/exploitability.json",
+        "state": "quarantined",
+        "because": "its generator engine/exploit.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/exploit.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/feature-audit.json": {
+        "file": "data/feature-audit.json",
+        "state": "quarantined",
+        "because": "its generator engine/feature_audit.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/feature_audit.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/feature-engine-contrast.json": {
+        "file": "data/feature-engine-contrast.json",
+        "state": "quarantined",
+        "because": "its generator engine/feature_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/feature_engine_contrast.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/ladder.json": {
+        "file": "data/ladder.json",
+        "state": "quarantined",
+        "because": "its generator engine/ladder.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/ladder.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/leaf-engine-contrast.json": {
+        "file": "data/leaf-engine-contrast.json",
+        "state": "quarantined",
+        "because": "its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/leaf_engine_contrast.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/leaf-position-contrast.json": {
+        "file": "data/leaf-position-contrast.json",
+        "state": "quarantined",
+        "because": "its generator engine/leaf_position_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/leaf_position_contrast.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/lookahead-cost.json": {
+        "file": "data/lookahead-cost.json",
+        "state": "quarantined",
+        "because": "its generator engine/lookahead_cost.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/lookahead_cost.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/mag.js": {
+        "file": "data/mag.js",
+        "state": "quarantined",
+        "because": "it reads policy-weights.json, which is quarantined",
+        "rerun": "node build/build_mag_data.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/mew.js": {
+        "file": "data/mew.js",
+        "state": "quarantined",
+        "because": "build/build_mew_bundle.js reads games.selfplay.jsonl — a dump of games MEDICHAM played",
+        "rerun": "node build/build_mew_bundle.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/open-work.json": {
+        "file": "data/open-work.json",
+        "state": "quarantined",
+        "because": "its generator engine/open_work.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/open_work.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/opponent-calibration.json": {
+        "file": "data/opponent-calibration.json",
+        "state": "quarantined",
+        "because": "its generator engine/opponent_calibration.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/opponent_calibration.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/opponent-recall.json": {
+        "file": "data/opponent-recall.json",
+        "state": "quarantined",
+        "because": "its generator engine/opponent_recall.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/opponent_recall.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/partial-label-em.json": {
+        "file": "data/partial-label-em.json",
+        "state": "quarantined",
+        "because": "its generator engine/em_validation.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/em_validation.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/policy-weights-joint-presheet.json": {
+        "file": "data/policy-weights-joint-presheet.json",
+        "state": "quarantined",
+        "because": "its generator engine/fit_joint.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/fit_joint.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/policy-weights-joint.json": {
+        "file": "data/policy-weights-joint.json",
+        "state": "quarantined",
+        "because": "its generator engine/fit_joint.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/fit_joint.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/policy-weights.json": {
+        "file": "data/policy-weights.json",
+        "state": "quarantined",
+        "because": "its generator engine/fit_policy.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/fit_policy.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/pp-board-probe.json": {
+        "file": "data/pp-board-probe.json",
+        "state": "quarantined",
+        "because": "its generator engine/pp_board_probe.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/pp_board_probe.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/quarantine-stamp.json": {
+        "file": "data/quarantine-stamp.json",
+        "state": "quarantined",
+        "because": "its generator engine/quarantine.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/quarantine.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/recall-at-k.json": {
+        "file": "data/recall-at-k.json",
+        "state": "quarantined",
+        "because": "its generator engine/recall_at_k.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/recall_at_k.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/redirect-audit.json": {
+        "file": "data/redirect-audit.json",
+        "state": "quarantined",
+        "because": "its generator engine/redirect_audit.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/redirect_audit.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/replay-differential-bo3.json": {
+        "file": "data/replay-differential-bo3.json",
+        "state": "quarantined",
+        "because": "its generator engine/replay_differential.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/replay_differential.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/replay-differential-freezes.json": {
+        "file": "data/replay-differential-freezes.json",
+        "state": "quarantined",
+        "because": "its generator engine/replay_differential.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/replay_differential.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/replay-differential-sheets.json": {
+        "file": "data/replay-differential-sheets.json",
+        "state": "quarantined",
+        "because": "its generator engine/replay_differential.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/replay_differential.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/replay-differential.json": {
+        "file": "data/replay-differential.json",
+        "state": "quarantined",
+        "because": "its generator engine/replay_differential.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/replay_differential.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/rollout-cost.json": {
+        "file": "data/rollout-cost.json",
+        "state": "quarantined",
+        "because": "its generator engine/rollout_r2.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/rollout_r2.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/rollout-r1-explore-sweep.json": {
+        "file": "data/rollout-r1-explore-sweep.json",
+        "state": "quarantined",
+        "because": "engine/rollout_explore_sweep.js reads rollout-r1-explore1-rows.jsonl, rollout-r1-rows.jsonl — a dump of games MEDICHAM played",
+        "rerun": "node engine/rollout_explore_sweep.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/rollout-r1-explore1.json": {
+        "file": "data/rollout-r1-explore1.json",
+        "state": "quarantined",
+        "because": "engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played",
+        "rerun": "node engine/rollout_r1_artifact.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/rollout-r1.json": {
+        "file": "data/rollout-r1.json",
+        "state": "quarantined",
+        "because": "engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played",
+        "rerun": "node engine/rollout_r1_artifact.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/rollout-r3.json": {
+        "file": "data/rollout-r3.json",
+        "state": "quarantined",
+        "because": "its generator engine/rollout_r3.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/rollout_r3.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/rollout-r4.json": {
+        "file": "data/rollout-r4.json",
+        "state": "quarantined",
+        "because": "engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played",
+        "rerun": "node engine/rollout_r4.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/rollout-switch-probe.json": {
+        "file": "data/rollout-switch-probe.json",
+        "state": "quarantined",
+        "because": "its generator engine/rollout_switch_probe.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/rollout_switch_probe.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/scoreboard.js": {
+        "file": "data/scoreboard.js",
+        "state": "quarantined",
+        "because": "its generator build/build_scoreboard.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node build/build_scoreboard.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/scoreboard.json": {
+        "file": "data/scoreboard.json",
+        "state": "quarantined",
+        "because": "its generator build/build_scoreboard.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node build/build_scoreboard.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/sheet-channel-value.json": {
+        "file": "data/sheet-channel-value.json",
+        "state": "quarantined",
+        "because": "its generator engine/sheet_channel_value.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/sheet_channel_value.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/weight-multiplicity.json": {
+        "file": "data/weight-multiplicity.json",
+        "state": "quarantined",
+        "because": "it reads policy-weights.json, which is quarantined",
+        "rerun": "node engine/weight_multiplicity.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      },
+      "data/winrate-backtest.json": {
+        "file": "data/winrate-backtest.json",
+        "state": "quarantined",
+        "because": "its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/backtest_winrate.js",
+        "clause": "1 of 6 gate clauses fail (no open, known engine defect)"
+      }
+    },
     "sources": {
       "stadium.ctrl.medicham": "data/winrate-backtest.json",
       "stadium.ctrl.mag": "data/policy-weights.json",
@@ -665,227 +1016,59 @@
       "models.miltank.leaf": "data/winrate-backtest.json",
       "index.jolteon.winrate": "data/winrate-backtest.json"
     },
-    "withheld_keys": [],
-    "R": {
-      "stadium.ctrl.medicham": {
-        "buckets": [
-          [
-            "0-10%",
-            "52",
-            "53.85%",
-            0.0619,
-            0.5385
-          ],
-          [
-            "10-20%",
-            "93",
-            "55.91%",
-            0.1555,
-            0.5591
-          ],
-          [
-            "20-30%",
-            "160",
-            "51.25%",
-            0.2513,
-            0.5125
-          ],
-          [
-            "30-40%",
-            "177",
-            "52.54%",
-            0.3504,
-            0.5254
-          ],
-          [
-            "40-50%",
-            "201",
-            "46.27%",
-            0.4447,
-            0.4627
-          ],
-          [
-            "50-60%",
-            "206",
-            "50.97%",
-            0.5505,
-            0.5097
-          ],
-          [
-            "60-70%",
-            "189",
-            "51.32%",
-            0.6454,
-            0.5132
-          ],
-          [
-            "70-80%",
-            "145",
-            "57.24%",
-            0.7468,
-            0.5724
-          ],
-          [
-            "80-90%",
-            "99",
-            "54.55%",
-            0.8461,
-            0.5455
-          ],
-          [
-            "90-100%",
-            "56",
-            "53.57%",
-            0.9366,
-            0.5357
-          ]
-        ],
-        "ece": "0.1811",
-        "acc": "51.0%",
-        "accn": "1,314",
-        "accci": "[48.3, 53.7]",
-        "brier": "+0.0502",
-        "brierci": "[0.0371, 0.0628]",
-        "uses": "56"
-      },
-      "stadium.ctrl.mag": {
-        "top1": [
-          "20.0%",
-          "23.1%",
-          "32.3%"
-        ],
-        "gain": "+9.2 points",
-        "feats": "58",
-        "games": "8,414",
-        "dec": "220,613",
-        "held": "44,033",
-        "greedy": "79.7%"
-      },
-      "stadium.ctrl.miltank": {
-        "arm1": "297",
-        "split": "777",
-        "arm2": "238",
-        "pairs": "1,312",
-        "games": "2,624",
-        "dec": "535",
-        "win": "55.5%",
-        "ci": "[51.3, 59.7]",
-        "floor": "31.4%"
-      },
-      "stadium.ctrl.miltank#rollout-r3": {
-        "div": "80.2%",
-        "divn": "121"
-      },
-      "stadium.ctrl.doduo": {
-        "pairFeats": "18",
-        "apart": "10.1%",
-        "zeroed": "9.4%",
-        "joint": "12.2%",
-        "turns": "81,515",
-        "held": "14,995",
-        "games": "7,454"
-      },
-      "stadium.ctrl.wobbuffet": {
-        "was": [
-          "63.2%",
-          "49.7%"
-        ],
-        "ci": [
-          "[56.6, 69.3]",
-          "[46.2, 53.2]"
-        ],
-        "rounds": "24",
-        "per": "220",
-        "weights": "17"
-      },
-      "stadium.ctrl.wobbuffet#policy-weights": {
-        "now": "58"
-      },
-      "stadium.ctrl.machamp": {
-        "gens": "2 of 6"
-      },
-      "stadium.ctrl.machamp#policy-weights": {
-        "vecNow": "58"
-      },
-      "stadium.ctrl.ditto": {
-        "leaf": "51.0%",
-        "leafn": "1,314",
-        "leafci": "[48.3, 53.7]",
-        "ece": "0.1811"
-      },
-      "stadium.text.medicham.honest": "Its win% does not beat a coin. On the held-out fifth the live in-game leaf is <em>worse</em> than a coin on Brier — paired +0.0502, 95% CI [0.0371, 0.0628], where lower is better — and it names the winner on 51.0% of 1,314 decisive calls, 95% CI [48.3, 53.7], an interval that contains chance, with ECE 0.1811 (<code>data/winrate-backtest.json</code>). This cabinet previously read <s class='wd' title='Withdrawn 2026-08-04 — the 2026-07-23 reading, superseded by data/winrate-backtest.json measured 2026-08-04, which puts accuracy at 51.0% with a CI containing 50%.'>log-loss 1.2 against 0.69 and ~44% of decisive calls, which is below chance and therefore systematically inverted</s>; the current artifact does not support the inversion, so it is struck out here rather than quietly deleted. The damage math is validated. The win probability is a matchup heuristic wearing a probability's clothes.",
-      "stadium.text.mag.job": "The live policy — the thing that actually clicks. 58 features off a reconstructed board, fitted to real human choices by conditional logit over 8,414 clean open-sheet games and 220,613 decisions, as recorded by <code>data/policy-weights.json</code>.",
-      "stadium.stat.mag.Features": {
-        "v": "58",
-        "n": "Up from 12 at v3.21.0. <code>data/policy-weights.json</code>."
-      },
-      "stadium.stat.mag.Decisions fitted": {
-        "v": "220,613",
-        "n": "176,580 train / 44,033 held out. <code>data/policy-weights.json</code>."
-      },
-      "stadium.stat.miltank.Beats MAG greedy": {
-        "v": "55.5%",
-        "n": "Of 535 decisive pairs, CI [51.3, 59.7]. <code>data/rollout-r4.json</code>."
-      },
-      "stadium.stat.miltank.Corpus": {
-        "v": "2,624 games",
-        "n": "1,312 seed pairs. <code>data/rollout-r4.json</code>."
-      },
-      "stadium.stat.miltank.Splits discarded": {
-        "v": "777",
-        "n": "1-1 pairs the SPRT cannot score. <code>data/rollout-r4.json</code>."
-      },
-      "stadium.stat.miltank.Divergence from MAG": {
-        "v": "80.2%",
-        "n": "Over 121 decisions. <code>data/rollout-r3.json</code>."
-      },
-      "stadium.text.miltank.honest": "The run stopped at an SPRT boundary, so 55.5% is <em>biased high</em> by the stopping rule — the verdict carries the error rate, the point estimate does not. There is no A/A noise floor for this comparison; three split-half cuts (0.2, 3.9, 1.3 points against an effect of 5.5) stand in for one and are labelled a substitute, and all four figures are carried by <code>data/rollout-r4.json</code> itself. And the engine moved after the games were played, so transfer to the current build is an assumption the artifact states rather than tests.",
-      "stadium.stat.doduo.Coordination features": {
-        "v": "18",
-        "n": "On top of the single-action ones. <code>docs/MODELS.md</code>."
-      },
-      "stadium.stat.doduo.Predicting the human PAIR": {
-        "v": "12.2%",
-        "n": "Top-1, against 10.1% scoring the slots apart and 9.4% with the pair terms zeroed, over 14,995 held-out joint turns. <code>docs/MODELS.md</code>."
-      },
-      "stadium.text.doduo.honest": "This was retired once and the retirement was wrong. It rested on the double-target rate — 24.6% against humans' 23.2%, recorded in <code>docs/MODELS.md</code> — and that statistic touches 2 of the 18 features. Judging a team-coordination model by a targeting number is judging a ninth of it. The <em>second</em> retirement was also wrong, and for a sharper reason: <code>engine/fit_joint.js</code> required a candidate's target to match the human's, and a spread move is built with no target at all, so 1,393 of 1,397 spread clicks were discarded and the fit ran on 24,997 of 82,483 joint turns. Refitted on 63,305, the feature the old cabinet used as its illustration flips sign — <code>spreadFreeBesideAlly</code> <s class='wd' title='Withdrawn 2026-08-01 per docs/MODELS.md — −5.054 was produced by the spread-matcher defect described in this paragraph, not by a human preference. The refit on 63,305 turns gives +0.863, and data/policy-weights-joint.json carries +0.799 today.'>−5.054</s> becomes <em>+0.863</em>, and <code>data/policy-weights-joint.json</code> carries +0.799 today.",
-      "stadium.stat.wobbuffet.Beat MAG, current build": {
-        "v": null,
-        "n": "<b>There is no number.</b> The old one read <s class='wd' title='Retracted 2026-08-04 — a 17-feature run against the 58 we ship, on an engine 25 wire-fixes old, computed before the quality filter existed.'>63.2%, CI [56.6, 69.3]</s> and is retracted: 17 features against the <b>58</b> we ship, an engine 25 wire-fixes old, computed before the quality filter existed. The 2026-08-04 re-run (5,500 games + a 1,600-game replay) is <b>VOID</b> — MAG itself was refitted mid-search, so the two legs defended with different weight vectors. <code>data/exploitability.json</code> now declares <code>void: true</code> and <code>provenance.js</code> reads it UNSAFE. Blocked on a frozen engine release, and on a step rule that survives 58 dimensions: the hill-climb accepted <b>1 of 24</b> steps against 10 of 18 at 17 features, so even on a still tree it would have returned an uninformative null."
-      },
-      "stadium.stat.wobbuffet.Vector then / now": {
-        "v": "17 / 58",
-        "n": "Then <code>data/exploitability.json</code>, now <code>data/policy-weights.json</code>."
-      },
-      "stadium.stat.wobbuffet.Rounds run": {
-        "v": "18",
-        "n": "220 games per evaluation, seed 90210. <code>data/exploitability.json</code>."
-      },
-      "stadium.text.wobbuffet.honest": "This is the most important number in the repo and we currently cannot quote it. <code>engine/provenance.js --strict</code> marks <code>data/exploitability.json</code> UNSAFE on two counts — it predates the quality filter, so it was computed under different rules about which games count, and it predates <code>data/policy-weights.json</code>, the weights it is supposed to be attacking. It searched <b>17</b> weights; we ship <b>58</b>. Nothing about the method is wrong and nothing here says the leak was closed; the run simply describes a player we no longer are, and shipping greedy-over-sampling since then made that player <em>more</em> deterministic rather than less. Read the rest with that in front of it: exploitability grades <em>can a prepared opponent read us</em>, an adversary who studies you over many games, and a tournament opponent has never seen you play. It was also a LOWER bound by construction — the search moved only MAG's own weights, so a wider policy class would find at least as much.",
-      "stadium.stat.machamp.Generations run": {
-        "v": "2 of 6",
-        "n": "Recorded no verdict. <code>docs/MODELS.md</code>."
-      },
-      "stadium.stat.machamp.Vector then / now": {
-        "v": "17 / 58",
-        "n": "Then <code>docs/MODELS.md</code>, now <code>data/policy-weights.json</code>."
-      },
-      "stadium.stat.mew.Mirror symmetry": {
-        "v": "49.7%",
-        "n": "95% CI [46.2, 53.2] on 782 battles — <code>data/exploitability-holdout.json</code>, field <code>mirror</code>. That artifact declares <code>void: true</code>, and its own <code>void_reason</code> names this one figure as the exception that survives, because both of its legs fall inside a single stable window. It retires a live worry: the 47.0% round-0 mirror at n=217 in <code>data/exploitability.json</code> was noise, not a seat or pairing asymmetry biasing every other row. A second round-0 mirror of <s class='wd' title='Struck 2026-08-05 — NOT MEASURED. No artifact under data/ carries a 47.5% mirror control; exploitability.json reads 47.0% at n=217. The figure was typed here and has no source.'>47.5%</s> used to be quoted beside it and is NOT MEASURED."
-      },
-      "models.machamp.gens": "<text x=\"34\" y=\"1236\" class=\"st\" fill=\"#8a5a1a\">HALF-RUN AND NO VERDICT: the run on disk stopped after 2 of the 8</text>\n<text x=\"34\" y=\"1248\" class=\"st\" fill=\"#8a5a1a\">generations it asked for, on a 48-feature vector<tspan x=\"34\" dy=\"10\" class=\"src\">generations / gensRequested / features in data/ladder.json</tspan></text>",
-      "models.machamp.vector": "<text x=\"34\" y=\"1276\" class=\"st\" fill=\"#9a2b2b\">its champion vector was DELETED — 48 features against MAG's 58<tspan x=\"34\" dy=\"10\" class=\"src\">features in data/policy-weights.json · docs/MODELS.md calls it the largest untested lever here</tspan></text>",
-      "models.miltank.leaf": "<text x=\"34\" y=\"1456\" class=\"st\" fill=\"#9a2b2b\">its in-game judge names the winner on</text>\n<text x=\"34\" y=\"1470\" class=\"st\" fill=\"#9a2b2b\">51.0% of decisive calls, CI 48.3–53.7 <tspan x=\"34\" dy=\"11\" class=\"src\">from data/winrate-backtest.json</tspan></text>\n<text x=\"34\" y=\"1497\" class=\"st\" fill=\"#9a2b2b\">— the interval contains a coin</text>",
-      "index.jolteon.winrate": "MEDICHAM's in-game win meter is measured <b>worse than a coin</b> on Brier and names the winner on 51.0% of decisive calls (95% CI 48.3–53.7, <code>data/winrate-backtest.json</code>)"
-    }
+    "withheld_keys": [
+      "index.jolteon.winrate",
+      "models.machamp.gens",
+      "models.machamp.vector",
+      "models.miltank.leaf",
+      "stadium.ctrl.ditto",
+      "stadium.ctrl.doduo",
+      "stadium.ctrl.machamp",
+      "stadium.ctrl.machamp#policy-weights",
+      "stadium.ctrl.mag",
+      "stadium.ctrl.medicham",
+      "stadium.ctrl.miltank",
+      "stadium.ctrl.miltank#rollout-r3",
+      "stadium.ctrl.wobbuffet",
+      "stadium.ctrl.wobbuffet#policy-weights",
+      "stadium.stat.doduo.Coordination features",
+      "stadium.stat.doduo.Predicting the human PAIR",
+      "stadium.stat.machamp.Generations run",
+      "stadium.stat.machamp.Vector then / now",
+      "stadium.stat.mag.Decisions fitted",
+      "stadium.stat.mag.Features",
+      "stadium.stat.mew.Mirror symmetry",
+      "stadium.stat.miltank.Beats MAG greedy",
+      "stadium.stat.miltank.Corpus",
+      "stadium.stat.miltank.Divergence from MAG",
+      "stadium.stat.miltank.Splits discarded",
+      "stadium.stat.wobbuffet.Beat MAG, current build",
+      "stadium.stat.wobbuffet.Rounds run",
+      "stadium.stat.wobbuffet.Vector then / now",
+      "stadium.text.doduo.honest",
+      "stadium.text.mag.job",
+      "stadium.text.medicham.honest",
+      "stadium.text.miltank.honest",
+      "stadium.text.wobbuffet.honest"
+    ],
+    "R": {}
   };
 
   /* ---- the one question every page asks ------------------------------------------------------
-     Returns null when the figure may be shown, and the reason record when it may not. It answers
-     "no" whenever the gate is OPEN, so a page needs no second branch for the healthy case. */
+     Returns null when the figure may be shown, and the reason record when it may not.
+
+     IT USED TO OPEN THE MOMENT THE GATE DID — `if (Q.open !== false) return null;` on the first line,
+     under a comment saying a page needs no second branch for the healthy case. On 2026-08-11 the gate
+     opened and that line handed back every figure on the site in one step, including 48 artifacts that
+     had not been re-measured and were up to eight days old. THE GATE OPENING IS NOT THE FIGURES COMING
+     BACK: engine/quarantine.js says so itself in that state — "NOT withheld and NOT current … each
+     must be re-run before it is quoted (ROADMAP #57)" — and web/publish-rule.js is where that sentence
+     became a return value instead of a printed line.
+
+     So the shortcut is gone and `Q.held` decides in BOTH gate states. This is not a behaviour change
+     for the healthy case: `Q.root` is null when the gate is open, so the play-layer branch below is
+     skipped exactly as it was, and `Q.held` empties on its own once the artifacts are re-run. */
   Q.heldFor = function (p) {
-    if (Q.open !== false) return null;
     var k = String(p).replace(/^(?:\.\.?\/)+/, '');
     /* THE ROOT ANSWERS THROUGH THE SAME QUESTION. A page can skip every artifact and load the
        SIMULATOR — web/tower.html does, and plays a live battle out of it — in which case there is no
@@ -915,7 +1098,13 @@
     var k = String(p).replace(/^(?:\.\.?\/)+/, '');
     if (k.indexOf('data/') !== 0 && k.indexOf('engine/') !== 0 && k.indexOf('build/') !== 0) k = 'data/' + k;
     if (Q.heldFor(k)) return 'held';
-    if (Q.open !== false) return 'clear';   /* gate open: nothing is withheld and nothing is pending */
+    /* THIS LINE USED TO READ `if (Q.open !== false) return 'clear';` AND IT WAS A CHECK THAT FAILED
+       OPEN, inside the one function written to refuse to default. The moment the gate opened, every
+       artifact on the site answered 'clear' — the 19 that engine/quarantine.js explicitly REFUSES to
+       classify included, and the comment above is about exactly those. "The gate is open" says the
+       simulator is correct; it says nothing about whether an artifact nothing can classify is safe to
+       publish, and conflating them is how the third state silently became "safe" the first time it
+       mattered. The membership list is consulted in BOTH gate states now, which is what it is for. */
     return (Q.classified || []).indexOf(k) >= 0 ? 'clear' : 'unclassified';
   };
 
@@ -929,12 +1118,21 @@
   Q.plate = function (p, o) {
     var h = Q.heldFor(p); if (!h) return '';
     o = o || {};
+    /* TWO WITHHELD STATES AND THEY TELL A READER OPPOSITE THINGS. QUARANTINED: the simulator is wrong,
+       wait for the gate. RE-RUN OWED: the simulator is RIGHT and this number was taken before it was,
+       so there is exactly one thing to do and it is the command on the plate. Rendering the second as
+       the first tells somebody to wait for something that already happened. web/publish-rule.js. */
+    var rr = h.state === 'rerunnable';
     var dark = o.theme === 'dark';
-    var bg = dark ? '#2a0f0c' : '#fff5f3', fg = dark ? '#ffe2dc' : '#5b2a20',
-        line = dark ? '#ff6b57' : '#ff6b57', hd = dark ? '#ff9c8f' : '#c0432f';
-    return '<div class="qplate" data-q="' + Q.esc(h.file) + '" role="note" style="background:' + bg +
+    var bg = dark ? (rr ? '#2a220c' : '#2a0f0c') : (rr ? '#fffaef' : '#fff5f3'),
+        fg = dark ? (rr ? '#f5e9c8' : '#ffe2dc') : (rr ? '#54431a' : '#5b2a20'),
+        line = rr ? '#c79a1a' : '#ff6b57',
+        hd = dark ? (rr ? '#ffd970' : '#ff9c8f') : (rr ? '#8a6410' : '#c0432f');
+    return '<div class="qplate' + (rr ? ' rr' : '') + '" data-q="' + Q.esc(h.file) + '" role="note" style="background:' + bg +
       ';border:2px solid ' + line + ';border-left:7px solid ' + line + ';border-radius:12px;padding:14px 16px;margin:12px 0;color:' + fg + '">' +
-      '<div style="font-size:11px;letter-spacing:.14em;font-weight:800;color:' + hd + '">QUARANTINED — THE FIGURE IS WITHHELD, NOT ANNOTATED</div>' +
+      '<div style="font-size:11px;letter-spacing:.14em;font-weight:800;color:' + hd + '">' +
+        (rr ? 'RE-RUN OWED — THE FIGURE IS NOT WITHHELD AND IT IS NOT CURRENT'
+            : 'QUARANTINED — THE FIGURE IS WITHHELD, NOT ANNOTATED') + '</div>' +
       (o.subject ? '<div style="font-size:15px;font-weight:800;margin-top:6px">' + Q.esc(o.subject) + '</div>' : '') +
       /* THE ROOT NEEDS ITS OWN SENTENCE. "engine/medicham2-browser.js is downstream of
          engine/medicham2-browser.js" is not a reason, and "re-run it" is the wrong instruction for a
@@ -945,7 +1143,8 @@
             '. Nothing this room shows was read out of an artifact: it is computed live by the engine that is under repair, so there is no stored figure to withhold and the room is withheld instead.</p>' +
           '<p style="margin:6px 0 0;font-size:12.5px;line-height:1.6;max-width:70ch">' + Q.esc(h.clause) + '. ' +
             'Nothing here has to be re-run when the gate opens — nothing was stored. The room comes back the moment it does.</p>'
-        : '<p style="margin:8px 0 0;font-size:12.5px;line-height:1.6;max-width:70ch"><b>' + Q.esc(h.file) + '</b> is downstream of ' +
+        : '<p style="margin:8px 0 0;font-size:12.5px;line-height:1.6;max-width:70ch"><b>' + Q.esc(h.file) + '</b> ' +
+            (rr ? 'was measured through ' : 'is downstream of ') +
             Q.esc(Q.simulator) + ' — ' + Q.esc(h.because) + '.</p>' +
           '<p style="margin:6px 0 0;font-size:12.5px;line-height:1.6;max-width:70ch">' + Q.esc(h.clause) + '. ' +
             'A quarantined number does not become true when MEDICHAM becomes correct; it becomes re-runnable.</p>') +
@@ -960,9 +1159,12 @@
   /* ---- THE CHIP. What a withheld figure looks like INSIDE a sentence. ------------------------- */
   Q.chip = function (p) {
     var h = Q.heldFor(p); if (!h) return '';
-    return '<span class="qchip" data-q="' + Q.esc(h.file) + '" title="' + Q.esc(h.file + ' — ' + h.because + '. ' + h.clause) +
-      '" style="display:inline-block;background:#ff6b57;color:#fff;font-weight:800;font-size:11px;letter-spacing:.08em;' +
-      'padding:1px 7px;border-radius:5px;white-space:nowrap">QUARANTINED</span>';
+    var rr = h.state === 'rerunnable';
+    return '<span class="qchip' + (rr ? ' rr' : '') + '" data-q="' + Q.esc(h.file) + '" title="' +
+      Q.esc(h.file + ' — ' + h.because + '. ' + h.clause) +
+      '" style="display:inline-block;background:' + (rr ? '#c79a1a' : '#ff6b57') +
+      ';color:#fff;font-weight:800;font-size:11px;letter-spacing:.08em;' +
+      'padding:1px 7px;border-radius:5px;white-space:nowrap">' + (rr ? 'RE-RUN OWED' : 'QUARANTINED') + '</span>';
   };
 
   root.ABRA_QUARANTINE = Q;

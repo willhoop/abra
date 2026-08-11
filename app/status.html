@@ -55,6 +55,18 @@
                       A CAPTION IS NOT A QUARANTINE. status.js printed PRE-CHANGE and "transfer
                       assumed, not measured" beside these same figures for days and they went on
                       being quoted, so the figure is ABSENT rather than annotated.
+     - RE-RUN OWED    hazard stripes in electric, and a plate the same size as a number. Added
+                      2026-08-11, THE DAY THE GATE OPENED, and the reason it had to exist is the whole
+                      argument in web/publish-rule.js: engine/quarantine.js's withholder is BINARY, so
+                      the instant six of six clauses passed it flipped 48 artifacts from WITHHELD
+                      straight to PUBLISHED — none of which had been re-measured, several of them
+                      between six and eight days old, against a simulator rewritten that same hour.
+                      quarantine.js's own report says the right thing and does not enforce it: "NOT
+                      withheld and NOT current — every one was measured under an engine that has since
+                      changed, so each must be re-run before it is quoted (ROADMAP #57)." That is this
+                      state. It is not QUARANTINED, because nothing is broken any more and waiting is
+                      the wrong instruction; it is not MEASURED, because the build it describes is
+                      gone. It carries the one command that ends it.
      ============================================================================================ -->
 
 <style>
@@ -199,6 +211,32 @@ body{
   border:2px solid #7a3418;border-radius:7px;padding:3px 8px;color:var(--fight);
   font-family:ui-monospace,'Cascadia Mono',Consolas,'Courier New',monospace;
 }
+/* ---- RE-RUN OWED — the fifth state, added 2026-08-11 when the gate OPENED -----------------------
+   The simulator is correct and this particular number has not caught up. It is deliberately NOT the
+   red of QUARANTINED (nothing here is untrustworthy because of a broken engine any more) and NOT the
+   grey-pink of NOT MEASURED (somebody did answer the question). It borrows the page's existing
+   PRE-CHANGE/STALE hazard stripes, in electric, because that is exactly what it is: a real result that
+   describes a build which no longer exists. The plate is the same size as a number, per docs/WEB.md. */
+.fig.rr{border-color:#8a6410;background:linear-gradient(var(--card),#231d0c)}
+.fig.rr::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.10;
+  background:repeating-linear-gradient(135deg,var(--stale) 0 11px,transparent 11px 22px);
+}
+.rrplate{
+  position:relative;display:block;background:#05080f;border:2px solid #8a6410;border-radius:7px;
+  padding:5px 10px;font-size:30px;font-weight:800;line-height:1.03;letter-spacing:.02em;
+  color:var(--stale);word-break:break-word;
+}
+.rrplate.sm{font-size:19px;padding:4px 8px}
+.fig.rr .qsub{color:#ffe6a6}
+.fig.rr .qwhy{color:#e4d2a4} .fig.rr .qwhy b{color:#ffe6a6}
+.fig.rr .qrerun{border-color:#8a6410;color:var(--stale)}
+.rrbanner{background:linear-gradient(#3a2c10,#241a06);border-color:#8a6410}
+.rrbanner b.hd{color:var(--stale)}
+.rrbanner p{color:#f2e6c6}
+.rrbanner .cl div{color:#e4d2a4}
+.rrbanner code{border-color:#8a6410}
+
 /* The gate banner. It sits above every division because the withholding is global, and a reader who
    meets a redacted card halfway down the page with no context reads it as a defect. */
 .qbanner{
@@ -323,28 +361,48 @@ function srcChip(f){
    engine/status.js has exactly one sayHeld(). The four lines are that function's four lines, in the
    same order, so a reader who has seen the terminal recognises the page and vice versa. ---- */
 function qBody(f, small){
+  /* TWO WITHHELD STATES, ONE BODY, AND THE DIFFERENCE BETWEEN THEM IS THE WHOLE POINT.
+     QUARANTINED says the simulator is wrong, so nothing measured through it can be trusted and there
+     is nothing to do but wait for the gate. RE-RUN OWED says the simulator is RIGHT and this number
+     was taken before it was — so there is exactly one thing to do, and it is the command on the card.
+     Rendering the second as the first would tell a reader to wait for something that already
+     happened; rendering it as a value would publish a result measured against a build that is gone.
+     See web/publish-rule.js for why this is a state rather than a caption. */
+  var rr = f.state === 'rerunnable';
   /* The payload carries engine/status.js's sentence verbatim — "QUARANTINED — the figure is withheld,
      not annotated." — so the plate above would say QUARANTINED twice. The word is stripped here rather
      than dropped from the payload, because the payload is a mirror of what the terminal prints and a
      grep across the two should find the same string. */
-  var sub = String(f.headline || 'the figure is withheld, not annotated.').replace(/^QUARANTINED\s*[—-]\s*/, '');
-  return '<div class="qplate' + (small ? ' sm' : '') + '">QUARANTINED</div>'
+  var sub = String(f.headline || (rr ? 'the figure is not withheld and it is not current.'
+                                     : 'the figure is withheld, not annotated.'))
+              .replace(/^(QUARANTINED|RE-RUN OWED)\s*[—-]\s*/, '');
+  return '<div class="' + (rr ? 'rr' : 'q') + 'plate' + (small ? ' sm' : '') + '">'
+       + (rr ? 'RE-RUN OWED' : 'QUARANTINED') + '</div>'
        + '<div class="qsub">' + E(sub) + '</div>'
-       + '<div class="qwhy"><b>' + E(f.src) + '</b> is downstream of '
+       + '<div class="qwhy"><b>' + E(f.src) + '</b> '
+       + (rr ? 'was measured <i>through</i> ' : 'is downstream of ')
        + '<span class="mono">engine/medicham2-browser.js</span>: ' + E(f.because) + '</div>'
-       + '<div class="qwhy">MEDICHAM is not correct &mdash; ' + E(f.clause) + '</div>'
-       + (f.rerun ? '<div class="qwhy">It becomes quotable again when the gate opens AND this is re-run:</div>'
+       + '<div class="qwhy">' + (rr ? 'The gate is OPEN &mdash; ' : 'MEDICHAM is not correct &mdash; ')
+       + E(f.clause) + '</div>'
+       + (f.rerun ? '<div class="qwhy">' + (rr
+             ? 'Nothing else is owed. It becomes quotable the moment this is re-run:'
+             : 'It becomes quotable again when the gate opens AND this is re-run:') + '</div>'
                     + '<div class="qrerun">' + E(f.rerun) + '</div>' : '');
 }
 
-/* ---- one figure. The FIVE states are the whole design. ---- */
+/* ---- one figure. The SIX states are the whole design: MEASURED, STALE, BAD, NOT MEASURED,
+   QUARANTINED, RE-RUN OWED. The last was added 2026-08-11 when the gate opened. ---- */
 function figCard(f, opt){
   opt = opt || {};
   if (!f) f = { state:'notmeasured', why:'the build produced no entry for this slot' };
-  var cls = 'fig ' + (f.state === 'notmeasured' ? 'nm' : f.state === 'quarantined' ? 'q' : f.state || 'ok')
+  var cls = 'fig ' + (f.state === 'notmeasured' ? 'nm' : f.state === 'quarantined' ? 'q'
+                    : f.state === 'rerunnable' ? 'rr' : f.state || 'ok')
           + (opt.wide ? ' wide' : '');
   var h = '<div class="' + cls + '">';
-  if (f.state === 'quarantined'){
+  /* A SLOT WITH NO `v` MUST NEVER REACH THE VALUE BRANCH. Both withheld states are caught here; if a
+     third one were added and this line were not, the else branch below would render the string
+     "undefined" as a figure — a number nobody measured, at full size. */
+  if (f.state === 'quarantined' || f.state === 'rerunnable'){
     /* THE LABEL COMES FIRST HERE and nowhere else on the page. Everywhere else the number is the
        thing you read and the label explains it; here there is no number, so the label is what tells
        you WHICH figure is missing. A redaction bar with nothing naming it is just a hole. */
@@ -432,6 +490,34 @@ if (qz && qz.state === 'notmeasured'){
    + '<p style="margin-top:10px">Full derivation, and every artifact in the set: <code>' + E(qz.derivation) + '</code></p>'
    + '<div class="src"><span>source</span><code>engine/quarantine.js</code><span class="when">read at build time</span></div>'
    + '</div>');
+} else if (qz && qz.open === true && qz.n_rerunnable){
+  /* ============ THE GATE OPENED, AND THAT IS NOT THE SAME AS THE FIGURES COMING BACK ============
+     The single most misreadable moment in this project's history: on 2026-08-11 six of six clauses
+     passed and every consumer of engine/quarantine.js's binary withholder flipped 48 artifacts from
+     WITHHELD straight to PUBLISHED, none of which had been re-measured. quarantine.js's own report
+     says the right thing in the same breath — "NOT withheld and NOT current" — and its withholder
+     does not implement it. This banner is that sentence, rendered, and the cards below it are the
+     re-run list. Every string here is read out of the payload's quarantine block. */
+  out.push('<div class="qbanner rrbanner">'
+   + '<b class="hd">THE SIMULATOR PASSES ITS GATE. THESE FIGURES HAVE NOT CAUGHT UP.</b>'
+   + '<p>Every clause below passes, so nothing on this page is withheld because the engine is wrong '
+   + 'any more. But a quarantined number does not become <i>true</i> when MEDICHAM becomes correct — '
+   + 'it becomes <b>re-runnable</b>. <b>' + E(qz.n_rerunnable) + ' of ' + E(qz.n_artifacts) + '</b> '
+   + 'classified artifacts were measured <i>through</i> <span class="mono">engine/medicham2-browser.js</span> '
+   + 'before it was corrected, so each is shown as <b>RE-RUN OWED</b> with the command that fixes it, '
+   + 'rather than as a figure. Publishing them with a caption is the failure this board exists to '
+   + 'stop: <span class="mono">engine/status.js</span> printed <span class="mono">PRE-CHANGE</span> and '
+   + '<span class="mono">[engine moved since; transfer assumed, not measured]</span> beside these same '
+   + 'numbers for days and they went on being quoted anyway.</p>'
+   + '<p>' + E(qz.rerun_rule || '') + '</p>'
+   + '<p>The clauses that opened it:</p>'
+   + '<div class="cl">' + (qz.clauses||[]).map(function(c){
+       return '<div><span class="st ' + (c.ok?'p':'f') + '">' + (c.ok?'PASS':'FAIL') + '</span> <b>'
+            + E(c.name) + '</b> &mdash; ' + E(c.why) + '</div>';
+     }).join('') + '</div>'
+   + '<p style="margin-top:10px">Full derivation, and every artifact in the set: <code>' + E(qz.derivation) + '</code></p>'
+   + '<div class="src"><span>source</span><code>engine/quarantine.js</code><span class="when">read at build time</span></div>'
+   + '</div>');
 }
 
 /* ============================== LEGEND ============================== */
@@ -441,6 +527,7 @@ out.push('<div class="legend">'
  + '<div class="lg bad"><b>MEASURED, AND BAD</b><p>Red is not an error — it is a result the project does not like. A red figure here is working as intended.</p></div>'
  + '<div class="lg nm"><b>NOT MEASURED</b><p>No artifact answers the question. Rendered at full weight, never greyed, with the division that owns the gap.</p></div>'
  + '<div class="lg" style="border-color:#7a3418"><b style="color:var(--fight)">QUARANTINED</b><p>Somebody measured it and the answer may not be published. Downstream of the simulator, withheld until the simulator is correct. Redacted, never captioned — the card carries what re-runs it instead.</p></div>'
+ + '<div class="lg" style="border-color:#8a6410"><b style="color:var(--stale)">RE-RUN OWED</b><p>The gate has OPENED and this number has not caught up. The simulator is correct now; this figure was measured through the version that was not. Not withheld, not current — one command away, and the card carries it.</p></div>'
  + '</div>');
 
 /* ============================== ENGINE ============================== */
@@ -550,7 +637,7 @@ out.push('<div class="row">'
    the fitted vector under every MAG figure on this site was fitted on features computed through the
    simulator. It is not the refit line below it — that is a claim ABOUT the weights and keeps
    printing — and reading REFIT OWED as the only thing wrong with them would understate it. ---- */
-if (me.weights && me.weights.state === 'quarantined'){
+if (me.weights && (me.weights.state === 'quarantined' || me.weights.state === 'rerunnable')){
   out.push('<div class="row">' + figCard(me.weights, {wide:true, label:'the fitted policy weights — every MAG figure on this site rests on these'}) + '</div>');
 }
 out.push('<div class="row">'
@@ -585,8 +672,11 @@ out.push('<div class="lab" style="font-size:12.5px;color:var(--dim);margin:0 4px
   + 'is a rung nobody wrote down, and it reads NOT MEASURED rather than showing an empty row.</div>');
 
 se.ladder.forEach(function(g){
-  if (g.state === 'quarantined'){
-    out.push('<div class="gate q" style="border-color:#7a3418"><div class="id" style="color:var(--fight);background:#2a1409">'
+  if (g.state === 'quarantined' || g.state === 'rerunnable'){
+    var grr = g.state === 'rerunnable';
+    out.push('<div class="gate ' + (grr ? 'rr' : 'q') + '" style="border-color:' + (grr ? '#8a6410' : '#7a3418')
+      + '"><div class="id" style="color:var(' + (grr ? '--stale' : '--fight') + ');background:'
+      + (grr ? '#231d0c' : '#2a1409') + '">'
       + E(g.id) + '</div><div class="body">'
       + '<div class="q">' + E(g.q) + '</div>'
       + '<div style="margin-top:8px">' + qBody(g, true) + '</div>'
@@ -797,12 +887,34 @@ out.push('<div class="fig wide" style="margin-top:11px"><div class="lab" style="
   + '</table><div class="src"><span>source</span><code>web/ directory listing</code><span class="when">read at build time</span></div></div>');
 out.push('</div>');
 
-/* ============================== THE RAW HANDOFF ============================== */
+/* ============================== THE RAW HANDOFF ==============================
+   IT IS A PUBLICATION CHANNEL LIKE ANY OTHER, and it is the one with no card and no plate around it.
+   web/build-status.js drops the whole text when engine/status.js is printing the verdict sentence of
+   an artifact this board is withholding, and records why in its place. Rendering that reason at full
+   weight rather than showing an empty section is the same rule as everywhere else on this page: an
+   absent thing must say it is absent. */
 if (B.status_raw){
   out.push('<div class="div"><div class="divhd"><h2 style="color:var(--dim);font-size:18px">THE RAW OUTPUT</h2>'
     + '<span class="q">everything above, unformatted, exactly as the terminal prints it</span></div>'
     + '<details open><summary>node engine/status.js &mdash; captured verbatim when this board was built</summary>'
     + '<div class="inner"><pre>' + E(B.status_raw) + '</pre></div></details></div>');
+} else if (B.status_raw_withheld){
+  /* NOT rendered through figCard(): its qBody() says "<artifact> is downstream of medicham2-browser",
+     and this is not an artifact and is not downstream of anything — it is another division's TEXT that
+     this build declined to copy. A withheld thing must say accurately why it is withheld, or the plate
+     is decoration. Same visual weight, own words. */
+  var srw = B.status_raw_withheld;
+  out.push('<div class="div"><div class="divhd"><h2 style="color:var(--dim);font-size:18px">THE RAW OUTPUT</h2>'
+    + '<span class="q">not embedded on this build, and here is why</span></div>'
+    + '<div class="fig q wide"><div class="lab" style="margin:0 0 7px;font-size:12.5px">'
+    + 'the verbatim <span class="mono">node engine/status.js</span> handoff</div>'
+    + '<div class="qplate">NOT EMBEDDED</div>'
+    + '<div class="qsub">' + E(srw.headline) + '</div>'
+    + '<div class="qwhy">' + E(srw.because) + '</div>'
+    + '<div class="qwhy">' + E(srw.clause) + '</div>'
+    + '<div class="qwhy">Read it yourself &mdash; it is one command, and it is the handoff every session '
+    + 'starts from:</div><div class="qrerun">' + E(srw.rerun) + '</div>'
+    + '<div class="src"><span>source</span><code>' + E(srw.src) + '</code></div></div></div>');
 }
 
 out.push('<footer>'
@@ -811,7 +923,10 @@ out.push('<footer>'
   + 'is a scalar read verbatim from a <span class="mono">data/*.json</span> artifact, or a line printed by '
   + '<span class="mono">node engine/status.js</span>. Where neither answers, it says NOT MEASURED; where '
   + 'the answer exists but is downstream of the simulator, it says QUARANTINED and shows the command that '
-  + 're-runs it (<span class="mono">engine/quarantine.js</span>).<br>'
+  + 're-runs it (<span class="mono">engine/quarantine.js</span>). When that gate OPENS the figure still does '
+  + 'not come back on its own — it says RE-RUN OWED until somebody runs the command, because a quarantined '
+  + 'number does not become true when MEDICHAM becomes correct, it becomes re-runnable '
+  + '(<span class="mono">web/publish-rule.js</span>).<br>'
   + 'Rules: <span class="mono">CLAUDE.md</span> &middot; divisions and routing: '
   + '<a href="../docs/DIVISIONS.md">docs/DIVISIONS.md</a> &middot; lessons: '
   + '<a href="../docs/LESSONS.md">docs/LESSONS.md</a> &middot; this division: '

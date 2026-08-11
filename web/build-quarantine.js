@@ -77,10 +77,20 @@ const END = '/* ==== END GENERATED QUARANTINE BLOCK ==== */';
  * ============================================================================================== */
 const RUNTIME = `
   /* ---- the one question every page asks ------------------------------------------------------
-     Returns null when the figure may be shown, and the reason record when it may not. It answers
-     "no" whenever the gate is OPEN, so a page needs no second branch for the healthy case. */
+     Returns null when the figure may be shown, and the reason record when it may not.
+
+     IT USED TO OPEN THE MOMENT THE GATE DID — \`if (Q.open !== false) return null;\` on the first line,
+     under a comment saying a page needs no second branch for the healthy case. On 2026-08-11 the gate
+     opened and that line handed back every figure on the site in one step, including 48 artifacts that
+     had not been re-measured and were up to eight days old. THE GATE OPENING IS NOT THE FIGURES COMING
+     BACK: engine/quarantine.js says so itself in that state — "NOT withheld and NOT current … each
+     must be re-run before it is quoted (ROADMAP #57)" — and web/publish-rule.js is where that sentence
+     became a return value instead of a printed line.
+
+     So the shortcut is gone and \`Q.held\` decides in BOTH gate states. This is not a behaviour change
+     for the healthy case: \`Q.root\` is null when the gate is open, so the play-layer branch below is
+     skipped exactly as it was, and \`Q.held\` empties on its own once the artifacts are re-run. */
   Q.heldFor = function (p) {
-    if (Q.open !== false) return null;
     var k = String(p).replace(/^(?:\\.\\.?\\/)+/, '');
     /* THE ROOT ANSWERS THROUGH THE SAME QUESTION. A page can skip every artifact and load the
        SIMULATOR — web/tower.html does, and plays a live battle out of it — in which case there is no
@@ -110,7 +120,13 @@ const RUNTIME = `
     var k = String(p).replace(/^(?:\\.\\.?\\/)+/, '');
     if (k.indexOf('data/') !== 0 && k.indexOf('engine/') !== 0 && k.indexOf('build/') !== 0) k = 'data/' + k;
     if (Q.heldFor(k)) return 'held';
-    if (Q.open !== false) return 'clear';   /* gate open: nothing is withheld and nothing is pending */
+    /* THIS LINE USED TO READ \`if (Q.open !== false) return 'clear';\` AND IT WAS A CHECK THAT FAILED
+       OPEN, inside the one function written to refuse to default. The moment the gate opened, every
+       artifact on the site answered 'clear' — the 19 that engine/quarantine.js explicitly REFUSES to
+       classify included, and the comment above is about exactly those. "The gate is open" says the
+       simulator is correct; it says nothing about whether an artifact nothing can classify is safe to
+       publish, and conflating them is how the third state silently became "safe" the first time it
+       mattered. The membership list is consulted in BOTH gate states now, which is what it is for. */
     return (Q.classified || []).indexOf(k) >= 0 ? 'clear' : 'unclassified';
   };
 
@@ -124,12 +140,21 @@ const RUNTIME = `
   Q.plate = function (p, o) {
     var h = Q.heldFor(p); if (!h) return '';
     o = o || {};
+    /* TWO WITHHELD STATES AND THEY TELL A READER OPPOSITE THINGS. QUARANTINED: the simulator is wrong,
+       wait for the gate. RE-RUN OWED: the simulator is RIGHT and this number was taken before it was,
+       so there is exactly one thing to do and it is the command on the plate. Rendering the second as
+       the first tells somebody to wait for something that already happened. web/publish-rule.js. */
+    var rr = h.state === 'rerunnable';
     var dark = o.theme === 'dark';
-    var bg = dark ? '#2a0f0c' : '#fff5f3', fg = dark ? '#ffe2dc' : '#5b2a20',
-        line = dark ? '#ff6b57' : '#ff6b57', hd = dark ? '#ff9c8f' : '#c0432f';
-    return '<div class="qplate" data-q="' + Q.esc(h.file) + '" role="note" style="background:' + bg +
+    var bg = dark ? (rr ? '#2a220c' : '#2a0f0c') : (rr ? '#fffaef' : '#fff5f3'),
+        fg = dark ? (rr ? '#f5e9c8' : '#ffe2dc') : (rr ? '#54431a' : '#5b2a20'),
+        line = rr ? '#c79a1a' : '#ff6b57',
+        hd = dark ? (rr ? '#ffd970' : '#ff9c8f') : (rr ? '#8a6410' : '#c0432f');
+    return '<div class="qplate' + (rr ? ' rr' : '') + '" data-q="' + Q.esc(h.file) + '" role="note" style="background:' + bg +
       ';border:2px solid ' + line + ';border-left:7px solid ' + line + ';border-radius:12px;padding:14px 16px;margin:12px 0;color:' + fg + '">' +
-      '<div style="font-size:11px;letter-spacing:.14em;font-weight:800;color:' + hd + '">QUARANTINED — THE FIGURE IS WITHHELD, NOT ANNOTATED</div>' +
+      '<div style="font-size:11px;letter-spacing:.14em;font-weight:800;color:' + hd + '">' +
+        (rr ? 'RE-RUN OWED — THE FIGURE IS NOT WITHHELD AND IT IS NOT CURRENT'
+            : 'QUARANTINED — THE FIGURE IS WITHHELD, NOT ANNOTATED') + '</div>' +
       (o.subject ? '<div style="font-size:15px;font-weight:800;margin-top:6px">' + Q.esc(o.subject) + '</div>' : '') +
       /* THE ROOT NEEDS ITS OWN SENTENCE. "engine/medicham2-browser.js is downstream of
          engine/medicham2-browser.js" is not a reason, and "re-run it" is the wrong instruction for a
@@ -140,7 +165,8 @@ const RUNTIME = `
             '. Nothing this room shows was read out of an artifact: it is computed live by the engine that is under repair, so there is no stored figure to withhold and the room is withheld instead.</p>' +
           '<p style="margin:6px 0 0;font-size:12.5px;line-height:1.6;max-width:70ch">' + Q.esc(h.clause) + '. ' +
             'Nothing here has to be re-run when the gate opens — nothing was stored. The room comes back the moment it does.</p>'
-        : '<p style="margin:8px 0 0;font-size:12.5px;line-height:1.6;max-width:70ch"><b>' + Q.esc(h.file) + '</b> is downstream of ' +
+        : '<p style="margin:8px 0 0;font-size:12.5px;line-height:1.6;max-width:70ch"><b>' + Q.esc(h.file) + '</b> ' +
+            (rr ? 'was measured through ' : 'is downstream of ') +
             Q.esc(Q.simulator) + ' — ' + Q.esc(h.because) + '.</p>' +
           '<p style="margin:6px 0 0;font-size:12.5px;line-height:1.6;max-width:70ch">' + Q.esc(h.clause) + '. ' +
             'A quarantined number does not become true when MEDICHAM becomes correct; it becomes re-runnable.</p>') +
@@ -155,9 +181,12 @@ const RUNTIME = `
   /* ---- THE CHIP. What a withheld figure looks like INSIDE a sentence. ------------------------- */
   Q.chip = function (p) {
     var h = Q.heldFor(p); if (!h) return '';
-    return '<span class="qchip" data-q="' + Q.esc(h.file) + '" title="' + Q.esc(h.file + ' — ' + h.because + '. ' + h.clause) +
-      '" style="display:inline-block;background:#ff6b57;color:#fff;font-weight:800;font-size:11px;letter-spacing:.08em;' +
-      'padding:1px 7px;border-radius:5px;white-space:nowrap">QUARANTINED</span>';
+    var rr = h.state === 'rerunnable';
+    return '<span class="qchip' + (rr ? ' rr' : '') + '" data-q="' + Q.esc(h.file) + '" title="' +
+      Q.esc(h.file + ' — ' + h.because + '. ' + h.clause) +
+      '" style="display:inline-block;background:' + (rr ? '#c79a1a' : '#ff6b57') +
+      ';color:#fff;font-weight:800;font-size:11px;letter-spacing:.08em;' +
+      'padding:1px 7px;border-radius:5px;white-space:nowrap">' + (rr ? 'RE-RUN OWED' : 'QUARANTINED') + '</span>';
   };
 `;
 
@@ -172,8 +201,11 @@ function buildQuarantine(withhold, gate, rows, release, play) {
     for (const r of rows.values()) {
       if (!r.quarantined) continue;
       const w = withhold ? withhold('data/' + r.file) : null;
-      if (!w) continue;          /* gate open — nothing is withheld, and `held` stays empty */
-      held['data/' + r.file] = { file: w.file, because: w.because, rerun: w.rerun, clause: w.clause };
+      if (!w) continue;          /* publishable — this artifact is not downstream, or it was re-run */
+      /* `state` IS CARRIED, and it is the difference between "wait" and "run this command". A payload
+         that dropped it would render every RE-RUN OWED figure as QUARANTINED on five pages. */
+      held['data/' + r.file] = { file: w.file, state: w.state || 'quarantined',
+                                 because: w.because, rerun: w.rerun, clause: w.clause };
     }
   }
 
@@ -306,7 +338,11 @@ if (require.main === module) {
     process.exit(1);
   }
   const gate = QUARANTINE.medichamIsCorrect();
-  const withhold = QUARANTINE.withholder(gate, cls.rows);
+  /* NOT `QUARANTINE.withholder` DIRECTLY. That function is binary — gate closed/withhold, gate
+     open/publish — and on 2026-08-11 the gate opened over 48 artifacts nobody had re-measured. The
+     composed rule adds quarantine.js's own printed third state, RE-RUNNABLE, and carries the whole
+     argument in its header. Both facts underneath it are still quarantine.js's. */
+  const withhold = require('./publish-rule.js').publishRule(gate, cls.rows);
   const payload = buildQuarantine(withhold, gate, cls.rows, null, cls.play);
   const text = emit(payload);
 

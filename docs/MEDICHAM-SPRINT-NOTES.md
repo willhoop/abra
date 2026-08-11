@@ -21,6 +21,53 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE GATE OPENING RELEASED 33 STALE FIGURES ONTO THE SITE. THE WITHHOLDER HAD TWO STATES AND NEEDED THREE. 2026-08-11 (WEB).
+
+`tests/test-web-quarantine.js` was RED and the recorded reason — *"the board payload was built while the
+gate was closed — WEB rebuilds it"* — was **wrong, and rebuilding was the bug**.
+
+`engine/quarantine.js`'s `withholder(gate, rows)` is **binary**: gate closed, withhold; gate open, return
+`null`. When the gate opened at ~03:00 every consumer flipped 48 artifacts from WITHHELD straight to
+PUBLISHED. Nothing had been re-run. The six this board reads were **147–191 hours old**, measured through
+a simulator ENGINE was rewriting that same hour. quarantine.js's own report says the right thing in that
+state — *"NOT withheld and NOT current … each must be re-run before it is quoted (ROADMAP #57)"* — and it
+**prints that sentence without enforcing it**. `engine/status.js` shows the cost directly: with the gate
+open it prints R4's `ACCEPT H1 — … 55.5% of 535 decisive pairs` followed by `[engine moved since;
+transfer assumed, not measured]`. A caption. The failure CLAUDE.md names, arriving through the door
+nobody guarded — not the gate closing, the gate **opening**.
+
+**IT HAD ALREADY FIRED.** `web/quarantine-data.js`, generated **2026-08-11T03:38:41Z**, carries
+`open:true`, `held:{}`, `withheld_keys:0` and **all 33 harvested figures RELEASED** — MILTANK's
+*55.5% of 535 decisive pairs, CI [51.3, 59.7]*, MEDICHAM's leaf *51.0% CI [48.3, 53.7]*, MAG's *58
+features / 220,613 decisions*, R3's *80.2%* — live on `index.html`, `models.html`, `stadium.html`,
+`replay.html` and `scoreboard.html` with no plate. **NOT rebuilt here** (engine moving; see below).
+
+**FIXED AS LOGIC, NOT AS AN ARTIFACT. Nothing was rebuilt and no number was authored.**
+
+| file | what changed |
+|---|---|
+| `web/publish-rule.js` **(new)** | the third state, `rerunnable`, composed from quarantine.js's two facts (gate + downstream set) and quoting its own printed sentence. No flag, no `--force-publish`; gate and rows are arguments. |
+| `web/build-status.js` | uses it; `withheld()` renders both states; **`status_raw` is no longer embedded unconditionally** — its old comment predicted this leak and was right, so the verbatim status.js text is dropped when it quotes a withheld verdict. |
+| `web/status.html` | a `rerunnable` branch, its own plate, banner and legend entry. Without it those slots fell to the value branch and rendered `undefined` at 30px. |
+| `web/build-quarantine.js` | uses it; carries `state` into `held`; **`heldFor()` and `gateFor()` no longer short-circuit on `Q.open !== false`** — that line made the front-door runtime *fail open* the instant the gate lifted, answering `clear` for every artifact including the 19 `engine/quarantine.js` explicitly refuses to classify. |
+| `tests/test-web-quarantine.js` | rewritten to drive **three** synthetic states (closed / open-but-owed / re-run) instead of assuming today's gate. The old file could only be green while the gate was shut. |
+
+**THE TEST IS GREEN BECAUSE THE LOGIC WAS FIXED, NOT BECAUSE ANYTHING WAS REBUILT**, and it was shown
+RED four ways first (all in memory, nothing on disk edited): restore the binary withholder → 4 failures
+including *"a board built against the REAL gate publishes 5 verdict string(s)"*; make the quarantine
+unliftable → section C red; strip the page's `rerunnable` branch → section E red. It then passed with the
+live gate **OPEN** at 07:09 and again with it **CLOSED** at 07:23 — the oscillation the old file could
+not survive.
+
+**OWED IN THE MORNING, IN THIS ORDER.** (1) `node web/build-quarantine.js` — this one is *over*-publishing
+and is the urgent one; verified in memory that a fresh build from the corrected builder withholds all 48
+with a route back, answers for the root and the play layer, and returns `unclassified` for an unknown.
+**Do not `cp web/stadium.html app/stadium.html` first** — the only difference between them is the
+generated block, and `app/` currently holds the *safer* (pre-03:38) one. (2) `node web/build-status.js`
+after the #57 re-runs land. (3) `engine/quarantine.js` has **no exit from RE-RUNNABLE** — `classify()`'s
+flag is graph topology and never clears — so until MEASURE gives a row a `current` bit the site withholds
+those 48 permanently. Safe direction, not a resting state.
+
 ## ROADMAP #162 — THE COLLAPSED TAGS ARE SPLIT. CENSUS 444 → 448, MATRIX 1,640 → 1,641. 2026-08-11 (ENGINE).
 
 Will, 2026-08-11: *"we need to split the tags, they require very different things"*, and again:

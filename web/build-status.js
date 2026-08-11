@@ -76,6 +76,12 @@ const D = (...p) => path.join(ROOT, ...p);
  * (rather than taking `state()`'s ready-made withholder) for one reason: `withholder(gate, rows)` can
  * then be handed a DIFFERENT gate by a test, which is the only way to show the numbers come back. */
 const QUARANTINE = require('../engine/quarantine.js');
+/* AND THE THIRD STATE ON TOP OF IT. `quarantine.withholder()` is binary — closed/withhold,
+ * open/publish — and the gate opened on 2026-08-11 over 48 artifacts that had not been re-measured.
+ * web/publish-rule.js composes the module's own printed RE-RUNNABLE sentence into a return value, and
+ * carries the whole argument. Both facts it stands on are still quarantine.js's; only the composition
+ * lives in web/. */
+const PUBLISH = require('./publish-rule.js');
 let QGATE = null, QROWS = null, QERR = null;
 try {
   QGATE = QUARANTINE.medichamIsCorrect();
@@ -127,18 +133,27 @@ function gap(why, owner, label) {
  *  and the answer is not trustworthy until MEDICHAM is. Folding them together would lose the route
  *  back — the whole substitute for a withheld number is knowing what re-runs it.
  *
+ *  AND THERE IS A FOURTH, ADDED 2026-08-11 WHEN THE GATE OPENED: `rerunnable`. The gate lifting does
+ *  NOT make an old measurement true; it makes it re-runnable, and `web/publish-rule.js` carries the
+ *  whole argument for why that has to be its own state rather than a caption on a published figure.
+ *  Both states are rendered by this one function because they differ in WORDING and in nothing else —
+ *  neither carries a value, both carry the artifact, the reason, the clause and the command.
+ *
  *  There is deliberately no `v`. Every consumer of this board (the page, the tests, anything that
  *  greps the JSON) reads a value out of `v`, so a slot with no `v` cannot leak one by accident.
  *  The four lines mirror engine/status.js's `sayHeld` one for one. */
 function withheld(h, label) {
+  const st = h.state === 'rerunnable' ? 'rerunnable' : 'quarantined';
   return {
-    state: 'quarantined', label: label,
+    state: st, label: label,
     /* `src` names the artifact that is being WITHHELD, which is the file a reader would go to. It is
        not a claim that a figure came from there — there is no figure. */
     src: h.file, at: mtimeIso(h.file),
-    headline: 'QUARANTINED — the figure is withheld, not annotated.',
+    headline: h.headline || PUBLISH.HEADLINE[st],
     because: h.because, clause: h.clause, rerun: h.rerun,
-    why: h.file + ' is downstream of engine/medicham2-browser.js: ' + h.because,
+    why: st === 'rerunnable'
+      ? h.file + ' was measured through engine/medicham2-browser.js before it was corrected: ' + h.because
+      : h.file + ' is downstream of engine/medicham2-browser.js: ' + h.because,
   };
 }
 
@@ -642,12 +657,23 @@ function quarantineBlock(gate, rows, err) {
          + 'may be a number that should not be published: ' + (err || 'no gate returned'),
       owner: 'MEASURE' };
   }
+  /* THE DOWNSTREAM COUNT IS ONE COUNT AND THE GATE DECIDES WHAT IT MEANS. `r.quarantined` is graph
+     topology — it does not move when the gate opens; what moves is whether those artifacts are
+     WITHHELD or merely NOT YET RE-RUN. quarantine.js made exactly this correction to its own printed
+     heading on 2026-08-11, after printing "GATE: OPEN — nothing is withheld" four lines above
+     "47 artifacts are WITHHELD". Same count, relabelled, nothing recomputed. */
+  const nDownstream = [...rows.values()].filter(r => r.quarantined).length;
   return {
-    state: gate.ok ? 'ok' : 'bad', src: 'engine/quarantine.js',
+    /* GATE OPEN WITH A NON-EMPTY DOWNSTREAM SET IS NOT `ok`. It is the state where the simulator is
+       correct and the measurements have not caught up, which is a real thing to tell a reader about —
+       rendering it green would be the caption problem in the banner instead of on the card. */
+    state: gate.ok ? (nDownstream ? 'stale' : 'ok') : 'bad', src: 'engine/quarantine.js',
     open: gate.ok,
     clauses: gate.clauses.map(c => ({ name: c.name, ok: !!c.ok, why: String(c.why || '').replace(/\s+/g, ' ') })),
     failing: gate.failing.map(c => c.name),
-    n_quarantined: [...rows.values()].filter(r => r.quarantined).length,
+    n_quarantined: nDownstream,
+    n_rerunnable: gate.ok ? nDownstream : 0,
+    rerun_rule: PUBLISH.RERUN_CLAUSE,
     n_artifacts: rows.size,
     rule: 'CLAUDE.md — EVERYTHING DOWNSTREAM OF MEDICHAM IS QUARANTINED UNTIL MEDICHAM IS CORRECT. '
         + 'Will, 2026-08-08: "all engines that take medicham\'s output should be regarded as out of '
@@ -661,17 +687,70 @@ function quarantineBlock(gate, rows, err) {
  * once with the real gate and once with a synthetic OPEN one — and asserts the five figures vanish
  * and then come back. That is the shape engine/quarantine.js's own selftest uses, and it is the only
  * way to tell a working quarantine from a page that has simply lost the ability to print a number. */
+/* ---- THE RAW HANDOFF, AND WHY IT IS NO LONGER EMBEDDED UNCONDITIONALLY ------------------------
+ *
+ * This used to read `status_raw: STATUS_TEXT || null` under a comment that said, in full:
+ *
+ *   "THE RAW HANDOFF IS SAFE TO EMBED BECAUSE status.js WITHHOLDS AT SOURCE. It prints
+ *    'QUARANTINED — the figure is withheld, not annotated.' where the verdicts used to be, so copying
+ *    its output verbatim cannot reintroduce one. If that ever stops being true, the leak shows up here
+ *    first and tests/test-web-quarantine.js scans this string for it."
+ *
+ * IT STOPPED BEING TRUE ON 2026-08-11 AND THE COMMENT'S OWN PREDICTION IS WHAT CAUGHT IT. The gate
+ * opened, `quarantine.withholder()` went binary-open, and status.js reverted to printing
+ * "ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs" with
+ * "[engine moved since; transfer assumed, not measured]" beside it. Embedding that text verbatim
+ * republishes every figure this board is withholding, through a channel with no card and no plate.
+ *
+ * So the embed is CONDITIONAL and the condition is measured, not assumed: if any artifact this build
+ * is withholding has its own verdict/headline/summary sentence inside status.js's output, the whole
+ * text is dropped and the reason is recorded in its place. Dropping the whole text rather than
+ * redacting lines is deliberate — editing another division's output into something it did not print
+ * is worse than not printing it, and `node engine/status.js` is one command away for any reader.
+ *
+ * FIXING status.js IS NOT WEB'S. It is MEASURE's file (docs/DIVISIONS.md). Reported, not edited. */
+function statusRaw(held) {
+  if (!STATUS_TEXT) return { text: null, leaked: [] };
+  const leaked = new Set();
+  if (QROWS) {
+    for (const r of QROWS.values()) {
+      if (!held('data/' + r.file)) continue;   /* publishable — its verdict may legitimately appear */
+      const j = readJson('data/' + r.file);
+      if (!j) continue;
+      for (const k of ['verdict', 'headline', 'summary']) {
+        const v = j[k];
+        if (typeof v === 'string' && v.length >= 30 && STATUS_TEXT.includes(v.slice(0, 50))) {
+          leaked.add('data/' + r.file + ' (' + k + ')');
+        }
+      }
+    }
+  }
+  return { text: leaked.size ? null : STATUS_TEXT, leaked: [...leaked].sort() };
+}
+
 function buildPayload(held, gateBlock) {
+  const raw = statusRaw(held);
   return {
     built_at: new Date().toISOString(),
     built_by: 'web/build-status.js',
     status_js_ok: !!STATUS_TEXT,
     status_js_error: STATUS_ERR,
-    /* THE RAW HANDOFF IS SAFE TO EMBED BECAUSE status.js WITHHOLDS AT SOURCE. It prints
-       "QUARANTINED — the figure is withheld, not annotated." where the verdicts used to be, so
-       copying its output verbatim cannot reintroduce one. If that ever stops being true, the leak
-       shows up here first and tests/test-web-quarantine.js scans this string for it. */
-    status_raw: STATUS_TEXT || null,
+    status_raw: raw.text,
+    /* ITS OWN STATE, NOT `quarantined`, AND THE DIFFERENCE IS NOT PEDANTRY. Every other withheld slot
+       on this board is an ARTIFACT that is downstream of the simulator. This is another division's
+       TEXT that this build declined to copy, and labelling it `quarantined` would put it through the
+       shared withheld renderer, which says "<file> is downstream of engine/medicham2-browser.js" —
+       a sentence that is false about engine/status.js. web/status.html renders it in its own words.
+       It carries no `v`, like every other withheld thing here. */
+    status_raw_withheld: raw.leaked.length ? {
+      state: 'notembedded', src: 'engine/status.js',
+      headline: 'THE RAW engine/status.js OUTPUT IS NOT EMBEDDED ON THIS BUILD.',
+      because: 'it prints the verdict sentence of ' + raw.leaked.length + ' artifact(s) this board is '
+             + 'withholding, so embedding it verbatim would republish them: ' + raw.leaked.join(', '),
+      clause: 'engine/status.js is MEASURE\'s file and WEB may not edit it. A caption is not a '
+            + 'quarantine — CLAUDE.md.',
+      rerun: 'node engine/status.js',
+    } : null,
     quarantine: gateBlock,
     engine: engine(held),
     measure: measure(held),
@@ -684,7 +763,7 @@ function buildPayload(held, gateBlock) {
 module.exports = { buildPayload, makeHeld, quarantineBlock, gate: () => QGATE, rows: () => QROWS, error: () => QERR };
 
 if (require.main === module) {
-  const withhold = QUARANTINE.withholder(QGATE || { ok: true, clauses: [], failing: [] }, QROWS);
+  const withhold = PUBLISH.publishRule(QGATE || { ok: true, clauses: [], failing: [] }, QROWS);
   const payload = buildPayload(makeHeld(QROWS ? withhold : null), quarantineBlock(QGATE, QROWS, QERR));
 
   const banner = '/* web/status-data.js — GENERATED by web/build-status.js. Do not hand-edit.\n' +
@@ -709,6 +788,7 @@ if (require.main === module) {
   const s = JSON.stringify(payload);
   const notmeasured = s.split('"state":"notmeasured"').length - 1;
   const heldN = s.split('"state":"quarantined"').length - 1;
+  const rerunN = s.split('"state":"rerunnable"').length - 1;
   console.log('wrote web/status-data.js');
   console.log('  engine/status.js: ' + (STATUS_TEXT ? 'ran' : 'FAILED — ' + STATUS_ERR));
   console.log('  NOT MEASURED slots: ' + notmeasured);
@@ -716,8 +796,13 @@ if (require.main === module) {
     console.log('  QUARANTINE GATE NOT COMPUTED — ' + QERR);
     console.log('    Nothing was withheld. The board says so at the top; do not publish it until this reads.');
   } else {
-    console.log('  quarantine gate: ' + (QGATE.ok ? 'OPEN — nothing withheld'
+    console.log('  quarantine gate: ' + (QGATE.ok
+      ? 'OPEN — the simulator passes; downstream figures are RE-RUNNABLE, not current (ROADMAP #57)'
       : 'CLOSED (' + QGATE.failing.length + ' of ' + QGATE.clauses.length + ' clauses fail)'));
-    console.log('  WITHHELD slots: ' + heldN);
+    console.log('  WITHHELD slots: ' + heldN + ' quarantined, ' + rerunN + ' re-run owed');
+  }
+  if (!payload.status_raw) {
+    console.log('  engine/status.js RAW OUTPUT NOT EMBEDDED — '
+      + (payload.status_raw_withheld ? payload.status_raw_withheld.because : 'status.js did not run'));
   }
 }
