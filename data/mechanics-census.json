@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-11T16:05:32.556Z",
+  "generated": "2026-08-11T17:18:09.836Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 485,
-  "live": 485,
+  "probed": 491,
+  "live": 491,
   "missing": 0,
-  "armed": 485,
+  "armed": 491,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2786,7 +2786,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 25.8% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3316,7 +3316,7 @@
       "tag": "statusCategory",
       "label": "every action kind the engine can resolve announces its |move| line",
       "live": true,
-      "detail": "43/43 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
+      "detail": "45/45 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4446,7 +4446,7 @@
       "tag": "pp",
       "label": "a move built under a non-attack action kind still spends PP",
       "live": true,
-      "detail": "Heal Bell (maxpp 8, built as kind `pass`) asked 9 times -> 8 |move| lines and 1 |cant|nopp; asked 5 -> 5 and 0. One click of each of the eight spends chillyreception 1, partingshot 1, fairylock 1, healbell 1, roleplay 1, spite 1, teatime 1, transform 1 (the authority spends 1 on every one). A bare switch and a bare pass carry NO move id and still pay nothing",
+      "detail": "Heal Bell (maxpp 8, built as kind `pass`) asked 9 times -> 8 |move| lines and 1 |cant|nopp; asked 5 -> 5 and 0. One click of each of the seven spends chillyreception 1, partingshot 1, fairylock 1, healbell 1, roleplay 1, spite 1, teatime 1 (the authority spends 1 on every one). Transform is the eighth and left the family: after it resolves this body carries [\"earthquake\",\"dragonclaw\",\"rockslide\",\"protect\"] and no `transform` slot at all, which is what the authority carries too. A bare switch and a bare pass carry NO move id and still pay nothing",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4857,6 +4857,66 @@
       "label": "Klutz switches off its OWN Leftovers and not the partner's",
       "live": true,
       "detail": "[did the holder heal, did the PARTNER heal] both on Leftovers at half HP — no ability [1,1] (must be 1,1)   |   KLUTZ [0,1] (must be 0,1 — the partner's Leftovers is untouched)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "readsTargetItem",
+      "label": "Poltergeist FAILS against a target holding no item",
+      "live": true,
+      "detail": "[target HP lost] no item 0 (the authority REFUSES the click outright) |  Focus Sash 46 (it resolves).  The control must be EXACTLY 0 — an engine that merely scaled the damage down would pass \"held > none\"",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "spendsOwnType",
+      "label": "Burn Up burns off its own Fire type, and the next one is refused",
+      "live": true,
+      "detail": "first click {\"dealt\":46,\"userTypes\":\"???\"} (it lands AND the user stops being Fire) |  second click {\"dealt\":0,\"userTypes\":\"???\"} (the authority refuses it outright — the user has no Fire type left to spend)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "failsUnlessOtherMovesUsed",
+      "label": "Last Resort is refused until EVERY other slot has been used",
+      "live": true,
+      "detail": "[HP off the target] nothing else clicked 0 (refused)  |  one of two others clicked 0 (still refused — an engine that unlocked on ANY other click passes here)  |  both clicked 136 (it finally lands)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "transformsIntoTarget",
+      "label": "Transform copies the aimed body — stats, moves and ability, but NOT hp",
+      "live": true,
+      "detail": "Ditto before {\"atk\":61,\"maxhp\":123,\"moves\":[\"transform\"]}  ->  after {\"atk\":200,\"maxhp\":123,\"moves\":[\"earthquake\",\"dragonclaw\",\"protect\",\"swordsdance\"]}, types Dragon/Ground, ability sandveil.  The Attack must become the target's own 200 (read off the body this harness built, never typed), the move list must become [\"earthquake\",\"dragonclaw\",\"protect\",\"swordsdance\"] (an engine that kept `transform` on the body is the defect the roster saw), and max HP must NOT move",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "fixedDamage",
+      "label": "Mirror Coat answers the SPECIAL hitter and Counter the PHYSICAL one, on the same board",
+      "live": true,
+      "detail": "[HP taken back by the physical hitter, by the special hitter] — COUNTER {\"physHitter\":122,\"specHitter\":0}  |  MIRROR COAT {\"physHitter\":0,\"specHitter\":184}.  Both attackers hit on the SAME turn, so an engine holding one category-blind \"who hit me last\" answers the same body for both moves",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "delayedHit",
+      "label": "Future Sight books the hit and lands it TWO turns later",
+      "live": true,
+      "detail": "[HP off the target, per turn, clicking Future Sight every turn] [0,0,145,0] — must be 0, 0, a hit, 0.  The click turn moves NOTHING; the later clicks FAIL because the slot already holds one; and only the third turn pays out, which is the end of the SECOND turn after the booking",
       "hollow": false,
       "armed": true,
       "directCall": false

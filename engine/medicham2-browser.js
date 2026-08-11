@@ -152,6 +152,18 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * that handler have been modelled since #60; this is the one that let a Hyper Beam turn hand out a
    * free 70 BP priority hit. Zero in a game with no recharge move in it is fine. */
   suckerRefusedRechargingTarget: 0,
+  /* ROADMAP #210 -- Poltergeist refused because the body it resolved onto is holding nothing. Zero in
+   * a game with no Poltergeist in it is fine; zero in a game WITH one, against a bare target, means
+   * the `readsTargetItem {failsIfNone}` param stopped matching and the move is unconditional again. */
+  itemlessTargetRefused: 0,
+  /* ROADMAP #210 -- Burn Up. `ownTypeSpent` is the type actually coming off a body that connected;
+   * `ownTypeAlreadySpent` is the refusal that becomes reachable BECAUSE of it. A non-zero spend with a
+   * zero refusal, in a game where Burn Up was clicked twice, means the precondition stopped matching. */
+  ownTypeSpent: 0, ownTypeAlreadySpent: 0,
+  /* ROADMAP #210 -- a Last Resort refused because a slot on its own user is still unspent. A zero in a
+   * game where Last Resort was clicked on turn one means the precondition is not being asked and the
+   * move is a free 140 BP again. */
+  lastResortRefused: 0,
   /* ROADMAP #141 -- a defender ability actually SUPPRESSED by a Mold Breaker-class attacker. It is
    * counted rather than assumed because the fix that added the `breakable` gate could equally have
    * turned the mechanic OFF everywhere, and a zero here would be indistinguishable from the gate
@@ -600,6 +612,20 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * opposing body. `transformedOnEntry` is the copy landing; `transformRefusedNoBody` is the entry
    * with nothing to copy, which is the mechanic's own negative and must not read as a failure. */
   transformedOnEntry: 0, transformRefusedNoBody: 0, transformRefusedAlready: 0,
+  /* ROADMAP #210 -- the MOVE, which is a different rule reaching the same primitive: it copies the
+   * body it was aimed at rather than a fixed slot. A zero here in a game containing a Transform click
+   * means the classifier has stopped matching the tag and the move is a no-op turn again. */
+  transformedByMove: 0,
+  /* ROADMAP #210 -- a Transform the target's own ability refused. Found by the interaction matrix on
+   * the run after the branch landed, as the one parting pair in 1642: Good as Gold refuses any status
+   * move from another body and Transform is one. A zero with a Gholdengo on the field is the gate
+   * having stopped matching. */
+  transformRefusedByAbility: 0,
+  /* ROADMAP #210 -- Future Sight. `delayedHitBooked` is the click that books the slot, `delayedHitLanded`
+   * the payout two turns later, `delayedHitWasted` a booking that came due on the user itself or on a
+   * corpse. A booked count with a zero landed count, in a game that ran three more turns, means the
+   * residual payout is unreachable and the move has become a wasted turn instead of a delayed one. */
+  delayedHitBooked: 0, delayedHitLanded: 0, delayedHitWasted: 0, delayedHitNoSlot: 0,
   /* WIRE 141 -- a forme that flipped on the CLOCK (Hunger Switch). A zero after real games with a
    * Morpeko in them means the residual block never reached the ability.
    * flingThrown / flingRefused are the two halves of Fling and are counted APART because the refusal
@@ -1935,6 +1961,22 @@ function ppMax(id){
   if(!MEDFAILS.ppUnknownMoveFirst) MEDFAILS.ppUnknownMoveFirst=String(id);
   return null;
 }
+/* ROADMAP #210 -- THE MAXIMUM FOR *THIS BODY*, WHICH IS NOT ALWAYS THE FORMAT'S.
+ *
+ * `ppMax` answers a question about a MOVE and is right for every body that owns its own move list. A
+ * TRANSFORMED body does not: `Pokemon#transformInto` builds each copied slot as
+ * `pp = Math.min(5, move.pp)` with `maxpp = pp`, which bypasses the Champions maximum entirely
+ * (measured -- a Ditto's `transform:12/12` becomes `earthquake:5/5`). So the cap has to be able to
+ * live on the BODY, and `_ppMax` is that override; everything else keeps reading the artifact.
+ *
+ * IT IS NOT A SECOND PP RULE. `engine/pp.js` mirrors the MOVE-level fact and is unchanged, so
+ * `tests/test-pp-fact.js` still compares the same thing it always did -- this is a per-body EXCEPTION
+ * that only a transform can create, and there is exactly one place that writes it. */
+function ppMaxFor(m,k){
+  const o=m&&m._ppMax;
+  if(o&&(k in o)) return o[k];
+  return ppMax(k);
+}
 /* HOW MANY CLICKS ARE LEFT, deriving the slot on first touch. `null` means "this engine has no PP
  * number for that move" and is deliberately distinct from 0 -- the caller must not treat an unknown
  * as empty, or a tagger gap would silently Struggle the whole team. */
@@ -1942,7 +1984,7 @@ function ppLeft(m,id){
   if(!m||!id) return null;
   const k=String(id).toLowerCase().replace(/[^a-z0-9]/g,'');
   const t=(m._pp||(m._pp={}));
-  if(!(k in t)){ const mx=ppMax(k); if(mx==null) return null; t[k]=mx; }
+  if(!(k in t)){ const mx=ppMaxFor(m,k); if(mx==null) return null; t[k]=mx; }
   return t[k];
 }
 /* Showdown's `deductPP`: subtract, clamp at zero, and return HOW MUCH WAS ACTUALLY TAKEN (0 if the
@@ -1987,7 +2029,11 @@ function ppSpentMap(m){
   if(t) for(const k of Object.keys(t)) keys.add(k);
   for(const k of keys){
     if(!k) continue;
-    const mx=ppMax(k);
+    /* ROADMAP #210 -- `ppMaxFor`, so a TRANSFORMED body is measured against the 5 its copied slots
+     * actually carry rather than against the format maximum it no longer has. Read against `ppMax`
+     * instead, every copied slot would report `max - 5` spent on a body that has spent nothing, which
+     * is exactly the shape of divergence this comparator exists to find and would have been ours. */
+    const mx=ppMaxFor(m,k);
     if(mx==null) continue;                      // no PP number for this move -- ppMax already counted it
     const left=(t&&(k in t))?t[k]:mx;           // absent = untouched = full = 0 spent
     out[k]=Math.max(0,mx-left);
@@ -9261,6 +9307,58 @@ function syncFieldTypes(field,bodies){ syncTerrainTypes(field,bodies); syncWeath
  *     refusal reads as if it belonged here and DOES NOT: it is inside a
  *     `currentMod === 'gen1stadium'` branch, so a gen-9 Ditto copying a Ditto is legal and adding
  *     that guard would be a new bug wearing a citation. Read, not remembered. */
+/* ROADMAP #210 -- `Pokemon#transformInto`, AS ONE FUNCTION, BECAUSE THERE ARE TWO CALLERS.
+ *
+ * Imposter (an ENTRY ability, fixed diagonal slot) and Transform (a MOVE, the body it was aimed at)
+ * are two rules that reach the SAME primitive in the authority -- both end in
+ * `pokemon.transformInto(target)`. CLAUDE.md's FACTS-ARE-GLOBAL rule is exactly this shape: two
+ * implementations of "what crosses when a body becomes another body" would disagree eventually and
+ * nothing would notice. So the copy is extracted and the two callers keep only their own rule about
+ * WHO gets copied and WHEN.
+ *
+ * THE PP IS COPIED NOW, AND UNTIL 2026-08-11 IT WAS NOT. The `transformsOnEntry` header said "PP IS
+ * NOT MODELLED IN THIS ENGINE AT ALL, so the copied moves' 5 PP has nowhere to land. The tag carries
+ * `movePP: 5` for the day it does." ROADMAP #144 landed PP; this is that day, and the deliberate
+ * roster is what noticed -- Showdown had spent NO PP on Transform (the slot is gone from the body
+ * entirely) and this engine had spent one.
+ *
+ * THE CAP IS `min(5, base)` AND IT IGNORES THE CHAMPIONS MAXIMUM, which is not an approximation:
+ * `transformInto` builds each slot as `pp = Math.min(5, move.pp); maxpp = pp` for gen >= 5
+ * (sim/pokemon.ts), so the format's own maxpp rule does not apply to a copied slot. Measured on a real
+ * Champions battle rather than reasoned about: a Ditto holding `transform:12/12` becomes a Garchomp
+ * holding `earthquake:5/5 dragonclaw:5/5 protect:5/5 swordsdance:5/5`. `_ppMax` is the per-body
+ * override that makes that expressible, and it is restored with everything else on the way out. */
+function transformOnto(m,t){
+  const st=Object.assign({},t.st); st.hp=m.st.hp;      // EVERY STAT EXCEPT HP
+  /* ROADMAP #139 -- THE BODY IT WAS, KEPT, so the switch-out can put it back. Taken BEFORE a field is
+   * written, and only on the transform that actually happens (every refusal has already returned). */
+  m._preTransform={name:m.name,types:(m.types||[]).slice(),st:Object.assign({},m.st),wt:m.wt,
+                   _bsAtk:m._bsAtk,moves:(m.moves||[]).slice(),ability:m.ability,baseAbility:m.baseAbility,
+                   _pp:m._pp?Object.assign({},m._pp):null,_ppMax:m._ppMax?Object.assign({},m._ppMax):null};
+  m.name=t.name;
+  m.types=(t.types||[]).slice();
+  m.st=st;
+  m.wt=t.wt;
+  m._bsAtk=t._bsAtk;                                    // WIRE 83, Beat Up reads the species standing
+  m.moves=(t.moves||[]).slice();
+  m.boosts=Object.assign({},t.boosts);                  // the CURRENT stages, not a clean slate
+  m.ability=t.ability; m.baseAbility=t.ability;
+  /* THE COPIED SLOTS ARE FRESH AND CAPPED. `used: false` on every one of them is what the comparator
+   * reads as "nothing spent", and the user's OWN slots are not merely full again -- they are GONE from
+   * the body, which is why both tables are replaced rather than merged. */
+  m._pp={}; m._ppMax={};
+  for(const _id of m.moves){
+    const _k=String(_id).toLowerCase().replace(/[^a-z0-9]/g,'');
+    if(!_k)continue;
+    const _p=TAGS.param('move',_k,'pp');
+    const _base=_p&&+_p.base>0?+_p.base:null;
+    if(_base==null)continue;                            // ppMax() already counts a move with no PP row
+    const _cap=Math.min(5,_base);
+    m._ppMax[_k]=_cap; m._pp[_k]=_cap;
+  }
+  m._transformed=true;
+  return true;
+}
 function imposterCopy(m,foes,slot){
   if(!m||m.fainted||m.curHP<=0)return false;
   const p=TAGS.param('ability',m.ability,'transformsOnEntry');
@@ -9273,20 +9371,7 @@ function imposterCopy(m,foes,slot){
    * that is already somebody else, or hiding behind a doll, cannot be copied. */
   if(!t||t.fainted||t.curHP<=0){MEDSEEN.transformRefusedNoBody++;return false;}
   if(t._transformed||t._sub>0){MEDSEEN.transformRefusedAlready++;return false;}
-  /* ROADMAP #139 -- THE BODY IT WAS, KEPT, so the switch-out can put it back. Taken BEFORE a field is
-   * written, and only on the transform that actually happens (every refusal above has returned). */
-  m._preTransform={name:m.name,types:(m.types||[]).slice(),st:Object.assign({},m.st),wt:m.wt,
-                   _bsAtk:m._bsAtk,moves:(m.moves||[]).slice(),ability:m.ability,baseAbility:m.baseAbility};
-  const st=Object.assign({},t.st); st.hp=m.st.hp;      // EVERY STAT EXCEPT HP
-  m.name=t.name;
-  m.types=(t.types||[]).slice();
-  m.st=st;
-  m.wt=t.wt;
-  m._bsAtk=t._bsAtk;                                    // WIRE 83, Beat Up reads the species standing
-  m.moves=(t.moves||[]).slice();
-  m.boosts=Object.assign({},t.boosts);                  // the CURRENT stages, not a clean slate
-  m.ability=t.ability; m.baseAbility=t.ability;
-  m._transformed=true;
+  transformOnto(m,t);
   MEDSEEN.transformedOnEntry++;
   return true;
 }
@@ -9428,6 +9513,13 @@ function imposterRevert(m){
   m.name=b.name; m.types=b.types.slice(); m.st=Object.assign({},b.st); m.wt=b.wt;
   m._bsAtk=b._bsAtk; m.moves=b.moves.slice();
   m.ability=b.ability; m.baseAbility=b.baseAbility;
+  /* ROADMAP #210 -- AND THE PP COMES BACK WITH IT. `clearVolatile` restores `baseMoveSlots`, which
+   * carries the ORIGINAL slots and the PP the body had actually spent before it transformed -- so a
+   * Ditto that pivots out is a Ditto with one Transform down, not a Ditto with a full slot. Restoring
+   * `null` is correct rather than lazy: it means the table was never touched, which is the same
+   * "untouched = full" state `ppLeft` derives on first read. */
+  m._pp=b._pp?Object.assign({},b._pp):null;
+  m._ppMax=b._ppMax?Object.assign({},b._ppMax):null;
   m._transformed=false; m._preTransform=null;
   MEDSEEN.transformReverted++;
   return true;
@@ -10233,6 +10325,33 @@ function reaimToSlot(t,it,actA,actB,mvId,quiet){
   const now=foes[it.tgtSlot]||null;
   if(now!==t&&!quiet){ if(now)MEDSEEN.reaimedToSlot++; else MEDSEEN.reaimSlotEmpty++; }
   return now;
+}
+/* ROADMAP #210 -- WHO A `scripted` MOVE IS REALLY AIMED AT, AS ONE FUNCTION.
+ *
+ * Counter, Mirror Coat, Metal Burst and Comeuppance carry Showdown target `scripted`, which means THE
+ * BODY THAT LAST DAMAGED ME -- resolved at EXECUTION, not at selection, because at selection nothing
+ * has hit me yet. `playerAction` therefore aims them at the foe they would hurt most purely as a
+ * PRICE and flags `rescript`; this answers the real question.
+ *
+ * IT IS EXTRACTED BECAUSE TWO SITES ASK IT AND THEY WERE ANSWERING DIFFERENTLY. The execution branch
+ * re-aimed correctly; the PP site a few hundred lines above it charged Pressure off the PRICED body,
+ * so a Mirror Coat that Showdown aimed into a Pressure Weavile cost us 1 PP against the authority's 2.
+ * That is CLAUDE.md's facts-are-global rule: "who does this move hit" is one fact.
+ *
+ * THE CATEGORY SPLIT IS THE AUTHORITY'S: counter records the last PHYSICAL hit's source, mirrorcoat
+ * the last SPECIAL one, and a `category: null` member (Metal Burst, Comeuppance) takes whatever
+ * landed last. `null` back means the move finds nobody and FAILS, which is the authority's own
+ * `onTry` -- `_took` is cleared at the top of every turn, so "this turn" is the field's lifetime. */
+function scriptedAimOf(m,mvId){
+  const fd=TAGS.param('move',mvId,'fixedDamage')||{};
+  if(!fd.retaliates)return null;
+  const tk=m&&m._took;
+  if(!tk)return null;
+  const by=fd.category==='physical'?tk.byPhys:fd.category==='special'?tk.bySpec:tk.by;
+  const catOK=!fd.category||(fd.category==='physical'?tk.phys>0:tk.spec>0);
+  if(!by||!catOK||by.fainted||by.curHP<=0)return null;
+  if(fd.excludesAlly&&m._sf&&by._sf===m._sf)return null;
+  return by;
 }
 function battleTurn(S,rng,actsForA,actsForB){
   rng=rng||Math.random;
@@ -11150,7 +11269,23 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _pFoes=it.side==='A'?actB:actA;
           /* `quiet` -- the re-aim COUNTERS belong to the effect branch, which asks the same question
            * a few hundred lines below. Counting it twice would make one re-aim look like two. */
-          const _aim=reaimToSlot(a.target,it,actA,actB,_ppId,true);
+          /* ROADMAP #210 -- A `scripted` MOVE IS PRICED AGAINST THE BODY IT WILL ACTUALLY HIT.
+           *
+           * The comment above this block says the authority charges Pressure "a few statements later
+           * (inside `useMoveInner`, after the targets are resolved)" and that "the only observable
+           * difference would be a move that resolves to no target at all". That is true for every
+           * move whose target is chosen at selection and FALSE for the four `scripted` ones, whose
+           * target is not known until execution: `a.target` on those is the PRICE `playerAction`
+           * computed, not the aim. Measured on the deliberate roster -- Showdown spent 2 PP on a
+           * Mirror Coat that re-aimed into a Pressure Weavile and this engine spent 1, because it
+           * charged Pressure off the body the price had guessed.
+           *
+           * THE FALLBACK IS THE OLD READING AND IS DECLARED: when the scripted aim finds nobody the
+           * move is about to FAIL, and the authority still resolves a target list for it before the
+           * Try step. Nothing here can reconstruct that list, so the priced body stands -- a residue
+           * on a click that does nothing, not on one that lands. */
+          const _sc=a.rescript?scriptedAimOf(m,_ppId):null;
+          const _aim=_sc||reaimToSlot(a.target,it,actA,actB,_ppId,true);
           const _pt=pressureTargetsOf(_ppId,a,m,_pFoes,_aim);
           const _ex=ppPressureExtra(_pt,m);
           if(_ex>0) ppDeduct(m,_ppId,_ex);
@@ -12010,6 +12145,80 @@ function battleTurn(S,rng,actsForA,actsForB){
        * is taken of the resolved body, so the two can no longer disagree. An EMPTY aimed slot returns
        * null and falls through to the same `mvFail` both other sites use — the declared residue WIRE
        * 139 filed as `MEDSEEN.reaimSlotEmpty`, unchanged and still counted. */
+      /* ROADMAP #210 -- THE TRANSFORM *MOVE*. Imposter has been wired since 2026-08-08; the move
+       * reached the classifier's terminal `{kind:'pass'}` and did nothing at all.
+       *
+       * `onHit(target, pokemon) { return pokemon.transformInto(target); }` -- and it is the SAME
+       * primitive Imposter reaches, which is why the copy lives in `transformOnto` and this branch
+       * holds only the move's own rule: it copies the body it was AIMED at, resolved through
+       * `reaimToSlot` like every other single-target click, so an Ally Switch between the choice and
+       * the execution is followed.
+       *
+       * THE REFUSALS ARE THE AUTHORITY'S OWN, the same list `imposterCopy` cites and for the same
+       * reason: `transformed && gen >= 2` on EITHER body, and `substitute && gen >= 5` on the target.
+       * A body that is already somebody else cannot transform again, and one hiding behind a doll
+       * cannot be copied. A refusal here is a real `|-fail|` and a spent turn -- `transformInto`
+       * returning false is what `onHit` hands back, and a false from onHit fails the move.
+       *
+       * IT IS NOT BLOCKED BY PROTECT: transform carries `ignoresProtect` in the artifact (the dex
+       * flags have no `protect: 1`), and the shared gate above this dispatch already reads that. */
+      /* ROADMAP #210 -- FUTURE SIGHT BOOKS A SLOT AND WALKS AWAY.
+       *
+       * `onTry(source, target) { if (!target.side.addSlotCondition(target, 'futuremove')) return false;
+       *                          ...; this.add('-start', source, 'move: Future Sight');
+       *                          return this.NOT_FAIL; }`
+       *
+       * NOTHING HAPPENS TO THE TARGET NOW. The PP is spent, the turn is spent, and the damage is
+       * booked against the SLOT -- so whoever is standing there two turns later collects it, exactly
+       * as Wish pays whoever is standing in the wisher's slot. This engine reuses that machinery
+       * (`sf.slot`, the residual tick and the `due` flag) rather than growing a second delayed-effect
+       * queue: there is one, it has been carrying Wish and Healing Wish since WIRE 154, and two would
+       * be the FACTS-ARE-GLOBAL violation this file keeps finding.
+       *
+       * A SECOND BOOKING ON AN OCCUPIED SLOT FAILS, which is `addSlotCondition` returning false and is
+       * the same rule the screens and Safeguard follow. Measured on a real battle rather than assumed:
+       * turns 2 and 3 of a four-turn Future Sight sequence are both `|move|...||[still]` + `|-fail|`.
+       *
+       * THE SOURCE IS HELD BY REFERENCE, which is the authority's `data.source` -- a Future Sight
+       * still lands if its user has switched out or fainted, and it is priced off that body's stats. */
+      if(a.kind==='futurehit'){
+        const _dh=TAGS.param('move',a.mv,'delayedHit')||{};
+        m._lastMove=a.mv;
+        const _ft=reaimToSlot(a.target,it,actA,actB,a.mv);
+        const _ffoes=it.side==='A'?actB:actA;
+        const _fsf=it.side==='A'?sfB:sfA;
+        const _fslot=_ft?_ffoes.indexOf(_ft):-1;
+        if(_fslot<0){MEDSEEN.delayedHitNoSlot++;mvFail(m);continue;}
+        const _fsc=slotCondOf(_fsf);
+        if(_fsc[_fslot]){{if(TR)TR.attrStill();mvFail(m);}continue;}
+        _fsc[_fslot]={mv:a.mv,when:'futureHit',turns:+_dh.ticks||3,src:m};
+        MEDSEEN.delayedHitBooked++;
+        /* `|-start|SOURCE|move: Future Sight` -- the handler names the USER, not the target. */
+        if(TR)TR.vstart(m,'move: '+a.mv);
+        continue;
+      }
+      if(a.kind==='transform'){
+        const _tt=reaimToSlot(a.target,it,actA,actB,a.mv);
+        m._lastMove=a.mv;
+        if(!_tt||_tt.fainted||_tt.curHP<=0||_tt===m){MEDSEEN.transformRefusedNoBody++;mvFail(m);continue;}
+        /* GOOD AS GOLD REFUSES IT, AND THE INTERACTION MATRIX IS WHAT SAID SO -- `transform ->
+         * goodasgold` was the single parting pair on the run that followed this branch landing
+         * (1641/1642), reading `.A.active[0].species medi="gholdengo" sd="ditto"`. Transform is
+         * `category: 'Status'` and `data/abilities.ts:1621` refuses any status move from another body
+         * outright, so a Gholdengo cannot be copied. The reader is the shared `refusesStatusMoves`,
+         * checked at fifteen other sites in this file and matching EXACTLY ONE ability today.
+         * `_tt!==m` is the authority's `target !== source`; the Prankster/Dark rule rides along for
+         * the same reason every other status branch carries it. */
+        if(TAGS.has('ability',_tt.ability,'refusesStatusMoves')){
+          if(TR)TR.imm(_tt,'[from] ability: '+_tt.ability);
+          MEDSEEN.transformRefusedByAbility++;continue;}
+        if(pranksterBlocked(m,_tt,a.mv)){MEDSEEN.transformRefusedByAbility++;continue;}
+        if(m._transformed||_tt._transformed||_tt._sub>0){MEDSEEN.transformRefusedAlready++;mvFail(m);continue;}
+        transformOnto(m,_tt);
+        MEDSEEN.transformedByMove++;
+        if(TR)TR.act(m,'transform');
+        continue;
+      }
       if(a.kind==='phaze'){
         const _t=reaimToSlot(a.target,it,actA,actB,a.mv);
         const _foes=it.side==='A'?actB:actA, _fb=it.side==='A'?benchB:benchA, _fsf=it.side==='A'?sfB:sfA;
@@ -13545,6 +13754,61 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _ft=TAGS.param('move',a.move.id,'failsWithoutTerrain');
         if(_ft&&_ft.needsTerrain&&!field.terrain){m._lastMove=a.move.id;{if(TR)TR.attrStill();mvFail(m);}continue;}
       }
+      /* ROADMAP #210 -- BURN UP OFF A USER THAT NO LONGER HAS FIRE TO SPEND. The refusal half.
+       *
+       *     onTryMove(pokemon) { if (pokemon.hasType('Fire')) return;
+       *                          this.add('-fail', pokemon, 'move: Burn Up');
+       *                          this.attrLastMove('[still]'); return null; }        data/moves.ts:2102
+       *
+       * `onTryMove` reads the USER and nothing else, so it belongs with the other user-only
+       * preconditions rather than below target resolution -- and unlike Poltergeist's `onTry` it does
+       * not care who is standing in the slot. The spend that makes this reachable is at the bottom of
+       * the hit, beside the drain and the recoil. */
+      /* ROADMAP #210 -- LAST RESORT IS REFUSED UNTIL EVERY OTHER SLOT ON THE USER HAS BEEN CLICKED.
+       *
+       *     onTry(source) { if (source.moveSlots.length < 2) return false;
+       *                     let hasLastResort = false;
+       *                     for (const moveSlot of source.moveSlots) {
+       *                       if (moveSlot.id === 'lastresort') { hasLastResort = true; continue; }
+       *                       if (!moveSlot.used) return false; }
+       *                     return hasLastResort; }              data/moves.ts:11380
+       *
+       * This engine enforced NONE of it, so a 140 BP Normal move was clickable on turn one for
+       * nothing -- the same drawback-free over-valuation Sucker Punch had before #60.
+       *
+       * `used` IS `spent > 0` HERE, AND THAT EQUIVALENCE IS THE FORMAT'S RATHER THAN A CONVENIENCE.
+       * Showdown sets `moveSlot.used` inside `deductPP` (sim/pokemon.ts:898), above its own
+       * `if (!ppData.pp) return 0`, so a click made on an empty slot still counts. Every move in
+       * Champions starts at its maximum (engine/pp.js), so "this slot is below its maximum" and "this
+       * slot has been clicked" are the same statement, and `ppSpentMap` is the reader BOTH engines
+       * already publish for the comparator -- one implementation of the fact, not a second one.
+       *
+       * THE MOVE ITSELF IS SKIPPED, which is the authority's `continue`, and it matters because the PP
+       * for THIS click has already been deducted at the commit site above the kind dispatch. Counting
+       * it would make the move unlock itself on its own first refusal. */
+      {
+        const _lr=TAGS.param('move',a.move.id,'failsUnlessOtherMovesUsed');
+        if(_lr){
+          const _nk=x=>String(x).toLowerCase().replace(/[^a-z0-9]/g,'');
+          const _self=_nk(a.move.id);
+          const _mv=((m.moves||[]).map(_nk)).filter(x=>x);
+          const _sp=ppSpentMap(m)||{};
+          const _ok=_mv.length>=(+_lr.minSlots||2)
+                 && (!_lr.mustKnowItself||_mv.indexOf(_self)>=0)
+                 && _mv.every(k=>k===_self||_sp[k]>0);
+          if(!_ok){
+            MEDSEEN.lastResortRefused++;
+            m._lastMove=a.move.id;{if(TR)TR.attrStill();mvFail(m);}continue;
+          }
+        }
+      }
+      {
+        const _st=TAGS.param('move',a.move.id,'spendsOwnType');
+        if(_st&&_st.requires&&!(m.types||[]).includes(_st.requires)){
+          MEDSEEN.ownTypeAlreadySpent++;
+          m._lastMove=a.move.id;{if(TR)TR.attrStill();mvFail(m);}continue;
+        }
+      }
       if(m._preTurn&&m._preTurn.id===a.move.id){
         const _md=m._preTurn.p.mode,_wasHit=m._preTurn.hit;
         /* THE SHIELD COMES DOWN WHEN THE MOVE ITSELF RESOLVES (Showdown removes the volatile in Beak
@@ -13640,13 +13904,14 @@ function battleTurn(S,rng,actsForA,actsForB){
        * nothing this turn finds nobody and the move FAILS -- which is the authority's own `onTry`
        * (`if (!lastDamagedBy?.thisTurn) return false`), expressed through `_took`, whose whole
        * lifetime is one turn. */
+      /* ROADMAP #210 -- THROUGH `scriptedAimOf`, WHICH THE PP SITE NOW ASKS TOO. This block held the
+       * only copy of the rule and read `_took.by` -- whoever hit LAST in ANY category -- while its own
+       * `_catOK` term already knew the category mattered. On a turn where a physical click and a
+       * special click both land on the user, Counter and Mirror Coat therefore answered the SAME body
+       * and one of the two was always wrong. See the helper for the authority's split. */
       if(a.rescript){
-        const _fd2=TAGS.param('move',a.move.id,'fixedDamage')||{};
-        const _tk=m._took, _by=_tk&&_tk.by;
-        const _catOK=!_fd2.category||(_fd2.category==='physical'?(_tk&&_tk.phys>0):(_tk&&_tk.spec>0));
-        if(!_by||!_catOK||_by.fainted||_by.curHP<=0||(_fd2.excludesAlly&&m._sf&&_by._sf===m._sf)){
-          MEDSEEN.scriptedTargetMissing++;mvFail(m);continue;
-        }
+        const _by=scriptedAimOf(m,a.move.id);
+        if(!_by){ MEDSEEN.scriptedTargetMissing++;mvFail(m);continue; }
         aim=_by;
       }
       let targets=a.move.spread?live(foes):[aim].filter(t=>t&&!t.fainted&&t.curHP>0);
@@ -13726,6 +13991,31 @@ function battleTurn(S,rng,actsForA,actsForB){
            * engine had them exactly swapped -- silence where a line belongs and the wrong line where
            * silence does. */
           if(_rod){targets=[_rod];if(TR){TR.act(_rod,'ability: '+_rod.ability);TR.retarget(_rod);}}
+        }
+      }
+      /* ROADMAP #210 -- POLTERGEIST FAILS OUTRIGHT AGAINST A BODY HOLDING NOTHING.
+       *
+       * `onTry(source, target) { return !!target.item; }` -- data/moves.ts:13608, and Champions does
+       * not override poltergeist, so the mainline block is the rule. A `false` from Try is a real
+       * failure: `add('-fail', pokemon)` + `attrLastMove('[still]')` (battle-actions.ts:590-596), the
+       * PP is spent and the turn is gone.
+       *
+       * THE TAG ALREADY CARRIED IT AND NOTHING READ IT. `readsTargetItem {failsIfNone}` has been in
+       * the artifact since the class was derived; this engine priced the base power and never asked.
+       * MEMBERSHIP PRINTED OVER THE WHOLE MOVE TABLE BEFORE THIS WAS WIRED, as this file's rule
+       * requires: exactly TWO moves carry `readsTargetItem` -- knockoff {failsIfNone:false} at 3,834
+       * uses and poltergeist {failsIfNone:true} at 362 -- so Knock Off cannot be caught by
+       * inheritance, and a third member arrives with whichever clause it actually has.
+       *
+       * HERE, AND NOT WITH THE OTHER PRECONDITIONS TWO HUNDRED LINES UP, because the authority asks
+       * the question of `targets[0]` -- the body AFTER slot re-aim and AFTER redirection
+       * (battle-actions.ts:590). A Follow Me body holding nothing refuses the click it drew, and a
+       * check placed above the draw would have read the wrong body's item slot. */
+      {
+        const _ri=TAGS.param('move',a.move.id,'readsTargetItem');
+        if(_ri&&_ri.failsIfNone&&!(targets[0]&&targets[0].item)){
+          MEDSEEN.itemlessTargetRefused++;
+          m._lastMove=a.move.id;{if(TR)TR.attrStill();mvFail(m);}continue;
         }
       }
       /* WIRE 47 -- CRASH ON MISS. High Jump Kick, Axe Kick and Supercell Slam (209 uses) missed
@@ -14819,6 +15109,16 @@ function battleTurn(S,rng,actsForA,actsForB){
            * unordered SET; Metal Burst's dex target is `scripted`, which means THE BODY THAT LAST
            * DAMAGED ME, and neither existing field can answer that. Recorded on the same line, so the
            * amount and the source cannot come apart. */
+          /* ROADMAP #210 -- AND THE SOURCE IS PER CATEGORY TOO, WHICH THIS LINE HELD AND THE ONE ABOVE
+           * DID NOT. The comment three lines up already says the AMOUNT is kept per category "because
+           * Counter takes only physical and Mirror Coat only special" -- and then recorded WHO on one
+           * category-blind field, so on a turn where a physical hit and a special hit both land, BOTH
+           * moves answered whichever arrived last. That is the authority's own split:
+           *     counter.condition.onDamagingHit    ... getCategory(move) === 'Physical' -> slot = source
+           *     mirrorcoat.condition.onDamagingHit ... === 'Special' -> slot = source
+           * with `onRedirectTarget` sending the click to `getAtSlot(slot)`. `any` stays for Metal Burst
+           * and Comeuppance, whose tag `category` is null because they take whatever landed last. */
+          tg._took[_cat==='phys'?'byPhys':'bySpec']=m;
           tg._took.by=m;}
         /* ROADMAP #151 -- THE `|-damage|` LINE MOVED UP, INTO THE BRANCH THAT MOVED THE HP. It used to
          * stand here, below the `_took` bookkeeping, which was free while there was exactly one
@@ -16125,6 +16425,31 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(TR&&_t0)TR.terrainEnd(_t0);
           if(_t0)syncFieldTypes(field,[...actA,...actB]);}   // ROADMAP #175 -- and it goes back
       }
+      /* ROADMAP #210 -- BURN UP SPENDS THE TYPE. The other half of the block above, and it is here
+       * rather than at the click because it is a `self: { onHit }` -- it runs only when the move
+       * actually CONNECTED. Measured on the authority: a Burn Up that a Protect blocked leaves the
+       * user Fire, and the next one still works.
+       *
+       *     self.onHit(pokemon) { pokemon.setType(pokemon.getTypes(true)
+       *                             .map(type => type === 'Fire' ? '???' : type)); }   data/moves.ts:2108
+       *
+       * IT SUBSTITUTES, IT DOES NOT DELETE, and the difference is a whole type chart. Roost's own
+       * comment two thousand lines up is about the OTHER rule -- `getTypes` ends
+       * `[gen >= 5 ? 'Normal' : '???']` for an EMPTY list -- and a consumer that filtered Fire out
+       * would hit exactly that fallback and hand a mono-Fire body Normal's resistances. The authority
+       * never empties the list: `['Fire']` becomes `['???']`, measured on a real battle
+       * (`getTypes()` reads `["???"]` after one Burn Up), and `becomes` carries the literal.
+       *
+       * IT IS PERMANENT FOR THE REST OF THE BODY'S TIME ON THE FIELD, which is why nothing restores it
+       * at the residual the way `typeRemovedForTurn` does. Switching out rebuilds the body. */
+      {
+        const _st2=TAGS.param('move',a.move.id,'spendsOwnType');
+        if(_st2&&_st2.removes&&connected&&Array.isArray(m.types)&&m.types.includes(_st2.removes)){
+          m.types=m.types.map(t=>t===_st2.removes?(_st2.becomes||'???'):t);
+          MEDSEEN.ownTypeSpent++;
+          if(TR)TR.vstart(m,'typechange',m.types.join('/'));
+        }
+      }
       {
         const _dr=TAGS.param('move',a.move.id,'drain');
         /* Heal Block takes the HEAL and leaves the DAMAGE, which is the rule and is also the only
@@ -16769,6 +17094,38 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * `endOfNextTurn` ONLY. An `onEntry` record sitting in the same map belongs to `bringIn` and is
        * left alone; it is matched on the descriptor's own `when` rather than on which move wrote it. */
+      /* ROADMAP #210 -- FUTURE SIGHT PAYS OUT HERE, AND THE POSITION IS THE AUTHORITY'S.
+       * `futuremove.onResidualOrder` is 3 (data/conditions.ts:389): AFTER the weather chip (order 1)
+       * and BEFORE Wish (order 4), which is the block directly below. So a body the sandstorm already
+       * killed is not hit again, and a Wish cannot heal damage that has not landed yet.
+       *
+       * READ OFF THE SLOT, LIKE WISH, AND FOR THE SAME REASON: the booking names a POSITION, so the
+       * body that collects need not be the body that was aimed at. The SOURCE is the object that
+       * clicked it -- `data.source` in the authority -- so a Future Sight from a body that has since
+       * switched out still lands and is still priced off that body.
+       *
+       * THE USER IS NEVER HIT BY ITS OWN BOOKING (`if (target.fainted || target === data.source)
+       * return`), which is reachable here through Ally Switch and a pivot: the record is spent and
+       * nothing happens, rather than banked. */
+      {const _sfF=actA.indexOf(m)>=0?sfA:sfB, _siF=actA.indexOf(m)>=0?actA.indexOf(m):actB.indexOf(m);
+       const _scF=_sfF&&_sfF.slot, _rF=_scF&&_siF>=0?_scF[_siF]:null;
+       if(_rF&&_rF.due&&_rF.when==='futureHit'){
+         delete _scF[_siF];
+         const _src=_rF.src, _row=MC.moves[_rF.mv];
+         if(_src&&_row&&m!==_src&&!m.fainted&&m.curHP>0){
+           const _d=dmgRange(_src,m,_row,field,false);
+           const _dm=Math.max(1,_d.min+Math.floor(rng()*(_d.max-_d.min+1)));
+           if(_d.max>0){
+             /* `|-end|TARGET|move: NAME` before the damage -- the condition announces its own expiry
+              * on the body that collects, which is the one line the authority writes here. */
+             if(TR)TR.vend(m,'move: '+_rF.mv);
+             m.curHP=Math.max(0,m.curHP-_dm);
+             MEDSEEN.delayedHitLanded++;
+             if(TR)TR.dmg(m);
+             if(m.curHP<=0){m.fainted=true;if(TR)TR.faint(m);}
+           }
+         } else MEDSEEN.delayedHitWasted++;
+       }}
       {const _sf2=actA.indexOf(m)>=0?sfA:sfB, _si2=actA.indexOf(m)>=0?actA.indexOf(m):actB.indexOf(m);
        const _sc2=_sf2&&_sf2.slot, _r2=_sc2&&_si2>=0?_sc2[_si2]:null;
        if(_r2&&_r2.due&&_r2.when==='endOfNextTurn'&&!healBlocked(m)){
@@ -17093,7 +17450,11 @@ function battleTurn(S,rng,actsForA,actsForB){
       const _sc3=_sf3&&_sf3.slot; if(!_sc3)continue;
       for(const _k3 of Object.keys(_sc3)){
         const _r3=_sc3[_k3];
-        if(_r3&&_r3.due&&_r3.when==='endOfNextTurn')delete _sc3[_k3];
+        /* ROADMAP #210 -- `futureHit` is swept on the same rule and for the same reason: the authority
+         * removes the slot condition at the residual WHATEVER is standing there, and `onEnd` simply
+         * declines when the collector is the user or is fainted. A record left behind would land on a
+         * body the real game never hit, and would land it a turn late. */
+        if(_r3&&_r3.due&&(_r3.when==='endOfNextTurn'||_r3.when==='futureHit'))delete _sc3[_k3];
       }
     }
     /* The TERRAIN clock ticks here, below the residual, and the weather clock above it — see WIRE 74
@@ -17582,6 +17943,15 @@ function playerActionPrimary(me,moveId,target,field){
       }
     }
   }
+  /* ROADMAP #210 -- FUTURE SIGHT IS NOT AN ATTACK ON THE TURN IT IS CLICKED.
+   *
+   * It has base power and a target, so it reached the `{kind:'attack'}` return directly below and this
+   * engine dealt its 120 BP immediately -- FOUR TIMES over four turns, measured, where the authority
+   * deals it ONCE at the end of the second turn after the booking. The interception has to be here,
+   * above that return, for the same reason the charge branch is where it is: everything about the
+   * click looks like an attack until you ask the tag. */
+  if(mv&&target&&TAGS.param('move',id,'delayedHit'))
+    return {kind:'futurehit',mv:id,target};
   if(mv&&hasPower(mv)&&target){
     const spread=SPREAD.has(id);
     /* WIRE 131 — `acc` is the chance THIS click lands on THIS target, not the move's printed number.
@@ -18049,6 +18419,11 @@ function playerActionPrimary(me,moveId,target,field){
      substitute would make the most-clicked defensive setup move in the format strictly worse than
      doing nothing, which is a one-directional error and the exact shape WIRE 30 was landed to avoid. */
   if(TAGS.param('move',id,'costsUserHP'))return {kind:'sub',mv:id};
+  /* ROADMAP #210 -- TRANSFORM. It reached the terminal `{kind:'pass'}` below and cost a whole no-op
+   * turn on the one move whose entire effect is replacing the user with somebody else. The target is
+   * carried because THAT is what separates this from Imposter: the ability copies a fixed slot, the
+   * move copies whatever it was aimed at. */
+  if(TAGS.param('move',id,'transformsIntoTarget'))return {kind:'transform',mv:id,target};
   /* ROADMAP #81 WIRE 6 -- AN UNMODELLED CLICK IS STILL A CLICK, AND IT CARRIES ITS MOVE.
    *
    * `pass` means "this engine models no effect for that move", and it used to also mean "this engine

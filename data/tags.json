@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-11T15:33:46.240Z",
+ "generated": "2026-08-11T17:03:27.820Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -316,13 +316,65 @@
    "kind": "move",
    "param": "damage or success depends on what the TARGET is holding",
    "why": "Knock Off (1,663 uses) is 1.5x into an item and Poltergeist (183) fails without one. Both were scored at flat base power against an item slot the engine never passed in",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "readsTargetItem",
+   "used": true,
    "n": 2,
    "uses": 4196,
    "examples": [
     "Knock Off",
     "Poltergeist"
+   ]
+  },
+  {
+   "tag": "delayedHit",
+   "kind": "move",
+   "param": "the move books damage on a SLOT and lands turns later",
+   "why": "Future Sight resolved immediately here, which is a different move: the authority does nothing at all on the click turn and hits at the end of the SECOND turn after it",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 11,
+   "examples": [
+    "Future Sight"
+   ]
+  },
+  {
+   "tag": "transformsIntoTarget",
+   "kind": "move",
+   "param": "the user BECOMES the body this move was aimed at",
+   "why": "Transform (87 uses) fell through the whole classifier to {kind:pass} — a wasted turn on the one move whose whole effect is to replace the user with somebody else",
+   "consumedBy": "transformsIntoTarget",
+   "used": true,
+   "n": 1,
+   "uses": 87,
+   "examples": [
+    "Transform"
+   ]
+  },
+  {
+   "tag": "failsUnlessOtherMovesUsed",
+   "kind": "move",
+   "param": "refused until every OTHER move on the user has been clicked",
+   "why": "Last Resort (213 uses) is 140 BP and was clickable on turn one for nothing. The precondition is the entire cost of the move and no part of it was modelled",
+   "consumedBy": "failsUnlessOtherMovesUsed",
+   "used": true,
+   "n": 1,
+   "uses": 213,
+   "examples": [
+    "Last Resort"
+   ]
+  },
+  {
+   "tag": "spendsOwnType",
+   "kind": "move",
+   "param": "the move needs a type on its USER and burns it off on the way out",
+   "why": "Burn Up (46 uses) resolved off a user that no longer had a Fire type to spend, and never spent it in the first place -- so it was an unconditional, permanently repeatable 130 BP",
+   "consumedBy": "spendsOwnType",
+   "used": true,
+   "n": 1,
+   "uses": 46,
+   "examples": [
+    "Burn Up"
    ]
   },
   {
@@ -8826,6 +8878,7 @@
    "name": "Burn Up",
    "tags": [
     "pp",
+    "spendsOwnType",
     "targetClass",
     "thawsTarget",
     "formatSecondaryCount"
@@ -8836,6 +8889,11 @@
      "max": 8,
      "base": 5,
      "noPPBoosts": false
+    },
+    "spendsOwnType": {
+     "requires": "Fire",
+     "removes": "Fire",
+     "becomes": "???"
     },
     "targetClass": {
      "target": "normal",
@@ -17675,6 +17733,7 @@
    "name": "Future Sight",
    "tags": [
     "pp",
+    "delayedHit",
     "targetClass",
     "noExtraHit",
     "ignoresProtect",
@@ -17686,6 +17745,14 @@
      "max": 12,
      "base": 10,
      "noPPBoosts": false
+    },
+    "delayedHit": {
+     "slotCondition": "futuremove",
+     "ticks": 3,
+     "basePower": 120,
+     "category": "Special",
+     "type": "Psychic",
+     "missesTheUser": true
     },
     "targetClass": {
      "target": "normal",
@@ -20160,6 +20227,7 @@
    "name": "Last Resort",
    "tags": [
     "pp",
+    "failsUnlessOtherMovesUsed",
     "targetClass",
     "contact",
     "formatSecondaryCount"
@@ -20170,6 +20238,10 @@
      "max": 8,
      "base": 5,
      "noPPBoosts": false
+    },
+    "failsUnlessOtherMovesUsed": {
+     "minSlots": 2,
+     "mustKnowItself": true
     },
     "targetClass": {
      "target": "normal",
@@ -29171,6 +29243,7 @@
    "name": "Transform",
    "tags": [
     "pp",
+    "transformsIntoTarget",
     "targetClass",
     "neverMisses",
     "ignoresProtect",
@@ -29183,6 +29256,13 @@
      "max": 12,
      "base": 10,
      "noPPBoosts": false
+    },
+    "transformsIntoTarget": {
+     "copies": "the aimed body",
+     "copiesHP": false,
+     "copiesItem": false,
+     "copiesBoosts": true,
+     "movePP": 5
     },
     "targetClass": {
      "target": "normal",

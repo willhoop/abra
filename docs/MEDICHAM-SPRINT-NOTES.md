@@ -5497,3 +5497,79 @@ every run, not a silent one.
   release frozen before `natureL50` was exported. Unchanged by this pass; the live arm is IDENTICAL.
 - **NOT REACHED THIS PASS:** `quickfeet`, `poisonheal`, the `eelevate` KO-boost arm, the inert
   ability/move residue, `magmaarmor`, and Rivalry.
+
+---
+
+## ROADMAP #210 — THE SIX ARE CLOSED, AND THE SEVENTH WAS THE COMPARATOR (2026-08-11)
+
+One probe each, every one shown RED before the engine moved, re-run and gated between every fix.
+Census **485 → 491 live, 0 missing, 0 hollow, 0 unarmed, 0 direct-call**. Six arrived, none broke.
+
+| mechanic | what we did wrong | authority, cited | probe |
+|---|---|---|---|
+| **Poltergeist** | resolved it against a body holding nothing | `onTry(source, target) { return !!target.item; }` — `data/moves.ts:13608` | `move/readsTargetItem` — no item **0**, Focus Sash **46** |
+| **Burn Up** | resolved it off a user with no Fire type to spend, and never spent it | `onTryMove` + `self.onHit setType(... 'Fire' ? '???' ...)` — `data/moves.ts:2102-2113` | `move/spendsOwnType` — first click **46 and the user becomes `???`**, second click **0** |
+| **Last Resort** | no precondition at all: a free 140 BP on turn one | `onTry(source)` walks `moveSlots` for `used` — `data/moves.ts:11380` | `move/failsUnlessOtherMovesUsed` — **0 / 0 / 136** across three stages of one game |
+| **Transform** | the MOVE fell through the classifier to `{kind:'pass'}` | `onHit(target, pokemon) { return pokemon.transformInto(target); }` | `move/transformsIntoTarget` — Ditto 61 Atk / `["transform"]` → **200 Atk / Garchomp's four**, max HP unmoved |
+| **Mirror Coat** | answered whoever hit LAST, in any category | `condition.onDamagingHit ... getCategory(move) === 'Special'` | `move/fixedDamage` — Counter **122/0**, Mirror Coat **0/184**, both hitters landing on the same turn |
+| **Future Sight** | resolved it on the click turn, every turn | `onTry` books a slot condition; `conditions.ts:379` holds the clock | `move/delayedHit` — **[0, 0, 145, 0]** over four turns |
+
+**THE SEVENTH ROW WAS NOT AN ENGINE DEFECT AND THAT IS THE FINDING WORTH KEEPING.** Safeguard read
+`SHOWDOWN null / OURS 4 turns` on all four boundaries. Staged straight against the official simulator,
+Showdown's p2 carried `safeguard {duration: 4}` the whole time: `mediScreens` walked *every key our
+engine wrote* and `sdScreens` walked a **fixed three-key list**, so anything our side can hold and that
+list did not name read as `present-in-one-engine-only` whatever the authority had done. The engine had
+implemented the `onSideRestart` refusal correctly since WIRE 133. The comparator was blind and it was
+accusing the engine — the instrument-wrong-before-the-engine failure, arriving in a reader rather than
+in a probe. `board_state.js` `SCREEN_KEYS` now names the four keys `sf.sc` can hold, and the list is
+derived: of the **eleven** side conditions across this format's 500 legal moves, the other seven live
+somewhere else on our side (`field.twA/twB`, `field.sgA/sgB`, the hazard store), so naming one of them
+would manufacture the mirror image of the same bug.
+
+**FUTURE SIGHT NEEDED NO NEW MACHINERY.** The honest answer expected here was "this one needs a
+delayed-effect queue"; it does not. WIRE 154 built one for Wish — `sf.slot`, a residual tick, a `due`
+flag — and Future Sight is the same primitive with a different payout, so it reuses it rather than
+growing a second queue. **When** it lands was measured on a real battle rather than read off
+`endingTurn = (this.turn - 1) + 2`, which invites the answer "one turn later" and is wrong: nothing
+after turn 1, nothing after turn 2, `|-end|` + `|-damage|` at the end of **turn 3**.
+
+**TWO PROBES WERE WRONG BEFORE THE ENGINE WAS, both caught by the arms disagreeing for the wrong
+reason.** The Transform probe asserted Garchomp's Attack is 150 — that is the 0-EV Serious set staged
+against the authority, and `bare()` builds a Champions body and hands back 200; it now reads the target
+this harness actually built. The Mirror Coat probe first aimed its click at a body, and `playerAction`
+only sets `rescript` when the caller names NOBODY, so both arms came back identical; and its first
+special hitter clicked Surf, which is `allAdjacent` and splashed the physical attacker.
+
+### THE HOLD IS LIFTED
+
+`tests/roster.js` compares PP. Measured at each step:
+
+| | MATCH | DIFFER | COULD-NOT-STAGE |
+|---|---|---|---|
+| hold ON | 428 | 0 | 64 |
+| hold OFF, before #210 | 472 | 7 | 11 |
+| **hold OFF, after #210** | **479** | **0** | **11** |
+
+Worth **51 newly-stageable moves and 11 newly-stageable abilities, at zero differs**. Abilities went
+107 → **117 tested**; items unchanged at 139. The differential is clean at both corners of the roll,
+0/6000 each. **Every measured gate clause passes; the gate stays CLOSED only on the register clause,
+which names #210 itself.**
+
+### A SEVENTH DEFECT, FOUND BY A DIFFERENT INSTRUMENT AFTER THE SIX LANDED
+
+Wiring Transform made the interaction matrix able to score a pair it had never scored, and the pair
+parted: `transform -> goodasgold`, `.A.active[0].species medi="gholdengo" sd="ditto"`. **Good as Gold
+refuses any status move from another body (`data/abilities.ts:1621`) and Transform is one**, so a
+Gholdengo cannot be copied — and the new branch asked none of the ordinary status refusals. Fixed
+through the shared `refusesStatusMoves` reader (fifteen other sites, exactly one matching ability in
+this format), with the Prankster/Dark rule alongside it.
+
+**The matrix went 1641/1641 -> 1642/1642, 100.0%.** The denominator moved because a move that used to
+do nothing now does something: an inert pair became a live one. That is the case for running every
+instrument after a landing rather than only the one that found the defect — the census, the roster and
+the differential were all green on this.
+
+### STILL NOT REACHED THIS PASS
+
+`quickfeet`, `poisonheal`, the `eelevate` KO-boost arm, the inert ability/move residue,
+`magmaarmor`, and Rivalry. None of them was touched.

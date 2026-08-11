@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-11T16:09:34.339Z",
+  "generated": "2026-08-11T17:15:17.439Z",
   "by": "tests/test-interaction-matrix.js",
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "depth": "full",
@@ -67,14 +67,14 @@
     "field-setter-self-switches: the case would be about the replacement, not the field": 1,
     "field-not-in-projection: persists, but neither engine projection carries it": 4
   },
-  "live": 1641,
-  "agree": 1641,
+  "live": 1642,
+  "agree": 1642,
   "part": 0,
   "agreement_pct": 100,
   "staged_pct_of_theoretical": 31.7,
   "inert": 489,
   "saturated": 111,
-  "ko_timing": 7,
+  "ko_timing": 6,
   "threw": 2,
   "not_compared": [
     "hp amount",
@@ -6462,28 +6462,8 @@
       "why": "1359/test turn 1: p1 choice rejected — \"move 1 1, move 1\"  (Can't move: You can't choose a target for Curse)"
     }
   ],
-  "off_gate": 23,
+  "off_gate": 12,
   "off_gate_rows": [
-    {
-      "key": "contact",
-      "bucket": "inert",
-      "carrier": "lastresort",
-      "reactor": "roughskin",
-      "kind": "ability",
-      "uses": 213,
-      "diffs": [
-        {
-          "path": ".A.active[0].hurt",
-          "medi": "true",
-          "sd": "false"
-        },
-        {
-          "path": ".B.active[0].hurt",
-          "medi": "true",
-          "sd": "false"
-        }
-      ]
-    },
     {
       "key": "contact",
       "bucket": "inert",
@@ -6536,26 +6516,6 @@
     },
     {
       "key": "contact",
-      "bucket": "inert",
-      "carrier": "lastresort",
-      "reactor": "gooey",
-      "kind": "ability",
-      "uses": 213,
-      "diffs": [
-        {
-          "path": ".A.active[0].boosts.spe",
-          "medi": "-1",
-          "sd": "0"
-        },
-        {
-          "path": ".B.active[0].hurt",
-          "medi": "true",
-          "sd": "false"
-        }
-      ]
-    },
-    {
-      "key": "contact",
       "bucket": "ko",
       "carrier": "populationbomb",
       "reactor": "aftermath",
@@ -6581,56 +6541,6 @@
           "path": ".A.benched",
           "medi": "[\"garchomp\"]",
           "sd": "[\"garchomp\",\"incineroar\"]"
-        }
-      ]
-    },
-    {
-      "key": "contact",
-      "bucket": "inert",
-      "carrier": "lastresort",
-      "reactor": "aftermath",
-      "kind": "ability",
-      "uses": 213,
-      "diffs": [
-        {
-          "path": ".B.active[0].hurt",
-          "medi": "true",
-          "sd": "false"
-        }
-      ]
-    },
-    {
-      "key": "contact",
-      "bucket": "inert",
-      "carrier": "lastresort",
-      "reactor": "spikyshield",
-      "kind": "move",
-      "uses": 213,
-      "diffs": [
-        {
-          "path": ".A.active[0].hurt",
-          "medi": "true",
-          "sd": "false"
-        }
-      ]
-    },
-    {
-      "key": "contact",
-      "bucket": "inert",
-      "carrier": "lastresort",
-      "reactor": "banefulbunker",
-      "kind": "move",
-      "uses": 213,
-      "diffs": [
-        {
-          "path": ".A.active[0].hurt",
-          "medi": "true",
-          "sd": "false"
-        },
-        {
-          "path": ".A.active[0].status",
-          "medi": "\"psn\"",
-          "sd": "\"\""
         }
       ]
     },
@@ -6695,36 +6605,6 @@
       ]
     },
     {
-      "key": "contact",
-      "bucket": "ko",
-      "carrier": "lastresort",
-      "reactor": "beakblast",
-      "kind": "move",
-      "uses": 213,
-      "diffs": [
-        {
-          "path": ".A.active[0].status",
-          "medi": "\"brn\"",
-          "sd": "\"\""
-        },
-        {
-          "path": ".B.active[0].species",
-          "medi": "\"corviknight\"",
-          "sd": "\"toucannon\""
-        },
-        {
-          "path": ".B.active[0].types",
-          "medi": "[\"Flying\",\"Steel\"]",
-          "sd": "[\"Flying\",\"Normal\"]"
-        },
-        {
-          "path": ".B.benched",
-          "medi": "[\"weavile\"]",
-          "sd": "[\"corviknight\",\"weavile\"]"
-        }
-      ]
-    },
-    {
       "key": "statusMove",
       "bucket": "inert",
       "carrier": "roleplay",
@@ -6736,26 +6616,6 @@
           "path": ".A.active[0].ability",
           "medi": "\"prankster\"",
           "sd": "\"honeygather\""
-        }
-      ]
-    },
-    {
-      "key": "statusMove",
-      "bucket": "inert",
-      "carrier": "transform",
-      "reactor": "quickclaw",
-      "kind": "item",
-      "uses": 87,
-      "diffs": [
-        {
-          "path": ".A.active[0].species",
-          "medi": "\"ditto\"",
-          "sd": "\"venusaur\""
-        },
-        {
-          "path": ".A.active[0].types",
-          "medi": "[\"Normal\"]",
-          "sd": "[\"Grass\",\"Poison\"]"
         }
       ]
     },
@@ -6776,46 +6636,6 @@
           "path": ".B.active[0].types",
           "medi": "[\"Normal\"]",
           "sd": "[\"Grass\",\"Poison\"]"
-        }
-      ]
-    },
-    {
-      "key": "physicalMove",
-      "bucket": "inert",
-      "carrier": "poltergeist",
-      "reactor": "toxicdebris",
-      "kind": "ability",
-      "uses": 362,
-      "diffs": [
-        {
-          "path": ".A.hazards.toxicspikes",
-          "medi": "1",
-          "sd": "null"
-        },
-        {
-          "path": ".B.active[0].hurt",
-          "medi": "true",
-          "sd": "false"
-        }
-      ]
-    },
-    {
-      "key": "physicalMove",
-      "bucket": "inert",
-      "carrier": "lastresort",
-      "reactor": "toxicdebris",
-      "kind": "ability",
-      "uses": 213,
-      "diffs": [
-        {
-          "path": ".A.hazards.toxicspikes",
-          "medi": "1",
-          "sd": "null"
-        },
-        {
-          "path": ".B.active[0].hurt",
-          "medi": "true",
-          "sd": "false"
         }
       ]
     },
@@ -6870,56 +6690,6 @@
         {
           "path": ".B.active[0].boosts.spe",
           "medi": "6",
-          "sd": "0"
-        }
-      ]
-    },
-    {
-      "key": "physicalMove",
-      "bucket": "inert",
-      "carrier": "poltergeist",
-      "reactor": "weakarmor",
-      "kind": "ability",
-      "uses": 362,
-      "diffs": [
-        {
-          "path": ".B.active[0].hurt",
-          "medi": "true",
-          "sd": "false"
-        },
-        {
-          "path": ".B.active[0].boosts.def",
-          "medi": "1",
-          "sd": "2"
-        },
-        {
-          "path": ".B.active[0].boosts.spe",
-          "medi": "2",
-          "sd": "0"
-        }
-      ]
-    },
-    {
-      "key": "physicalMove",
-      "bucket": "inert",
-      "carrier": "lastresort",
-      "reactor": "weakarmor",
-      "kind": "ability",
-      "uses": 213,
-      "diffs": [
-        {
-          "path": ".B.active[0].hurt",
-          "medi": "true",
-          "sd": "false"
-        },
-        {
-          "path": ".B.active[0].boosts.def",
-          "medi": "1",
-          "sd": "2"
-        },
-        {
-          "path": ".B.active[0].boosts.spe",
-          "medi": "2",
           "sd": "0"
         }
       ]

@@ -1,8 +1,8 @@
 {
- "generated": "2026-08-11T14:37:47.038Z",
+ "generated": "2026-08-11T17:15:39.991Z",
  "by": "tests/roster.js",
  "stage": "items",
- "engine_release": "6a4292247c01",
+ "engine_release": "b089ac3b32d0",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
@@ -1586,6 +1586,12 @@
      "path": "p2.active[0].maxhp",
      "with": 155,
      "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -1719,6 +1725,18 @@
      "path": "p2.active[0].status_counter",
      "with": 0,
      "without": 2
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.pp[0].focusenergy",
+     "with": 2,
+     "without": 1
     }
    ],
    "diffs": []
@@ -1873,6 +1891,12 @@
     },
     {
      "turn": 1,
+     "path": "p1.pp[0].flamethrower",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 1,
      "path": "p2.party.scizor.hp",
      "with": 145,
      "without": 0
@@ -1900,6 +1924,12 @@
      "path": "p2.active[0].maxhp",
      "with": 145,
      "without": 170
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].xscissor",
+     "with": 1,
+     "without": null
     }
    ],
    "diffs": []
@@ -1949,6 +1979,12 @@
      "path": "p2.active[0].maxhp",
      "with": 170,
      "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -2069,6 +2105,12 @@
      "path": "p2.active[0].maxhp",
      "with": 163,
      "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -3140,6 +3182,18 @@
      "without": 170
     },
     {
+     "turn": 2,
+     "path": "p2.pp[0].focusenergy",
+     "with": 2,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[0].flashcannon",
+     "with": 2,
+     "without": 3
+    },
+    {
      "turn": 3,
      "path": "p2.party.corviknight.hp",
      "with": 173,
@@ -3180,6 +3234,12 @@
      "path": "p2.active[1].maxhp",
      "with": 173,
      "without": 170
+    },
+    {
+     "turn": 3,
+     "path": "p2.pp[0].focusenergy",
+     "with": 0,
+     "without": 1
     }
    ],
    "diffs": []
@@ -4339,6 +4399,12 @@
     },
     {
      "turn": 1,
+     "path": "p1.pp[0].powergem",
+     "with": 1,
+     "without": null
+    },
+    {
+     "turn": 1,
      "path": "p2.party.charizard.hp",
      "with": 0,
      "without": 153
@@ -4366,6 +4432,12 @@
      "path": "p2.active[0].maxhp",
      "with": 170,
      "without": 153
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].earthpower",
+     "with": null,
+     "without": 1
     }
    ],
    "diffs": []
@@ -4517,6 +4589,12 @@
      "path": "p2.active[0].maxhp",
      "with": 135,
      "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -5389,10 +5467,22 @@
      "without": 2
     },
     {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
      "turn": 2,
      "path": "p2.active[0].vol.taunt",
      "with": 0,
      "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -5879,6 +5969,12 @@
      "path": "p2.active[0].maxhp",
      "with": 145,
      "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -5990,6 +6086,12 @@
      "path": "p2.active[0].maxhp",
      "with": 158,
      "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -6577,6 +6679,12 @@
      "path": "p2.active[0].maxhp",
      "with": 190,
      "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -6626,6 +6734,12 @@
      "path": "p2.active[0].maxhp",
      "with": 170,
      "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -7318,6 +7432,12 @@
      "path": "p2.active[0].maxhp",
      "with": 158,
      "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -8039,6 +8159,12 @@
      "path": "p2.active[0].maxhp",
      "with": 161,
      "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -8442,6 +8568,12 @@
      "path": "p2.active[0].maxhp",
      "with": 1080,
      "without": 1020
+    },
+    {
+     "turn": 2,
+     "path": "p2.pp[0].supercellslam",
+     "with": 2,
+     "without": null
     }
    ],
    "diffs": []
@@ -8534,6 +8666,12 @@
      "path": "p2.active[0].maxhp",
      "with": 170,
      "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -8619,6 +8757,12 @@
      "path": "p2.active[0].maxhp",
      "with": 1080,
      "without": 1020
+    },
+    {
+     "turn": 2,
+     "path": "p2.pp[0].supercellslam",
+     "with": 2,
+     "without": null
     }
    ],
    "diffs": []

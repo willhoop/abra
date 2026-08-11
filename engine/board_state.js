@@ -360,7 +360,25 @@ const GAME_RULES = {
   PHYSICAL_SCREENS: new Set(['reflect', 'auroraveil']),
   SPECIAL_SCREENS: new Set(['lightscreen', 'auroraveil']),
   /* the order the named comparison walks, and the keys both engines spell the same */
-  SCREEN_KEYS: ['reflect', 'lightscreen', 'auroraveil'],
+  /* ROADMAP #210 -- `safeguard` ADDED 2026-08-11, AND IT WAS A COMPARATOR DEFECT ACCUSING THE ENGINE.
+   *
+   * `mediScreens` walks `Object.keys(sf.sc)` -- every key our engine wrote -- and `sdScreens` walked
+   * THIS FIXED LIST. So any condition our side could hold and this list did not name read as
+   * `present-in-one-engine-only` whatever the authority had actually done, and the deliberate roster
+   * duly reported Safeguard as an engine defect: "SHOWDOWN null / OURS 4 turns", on all four
+   * boundaries. Staged directly against the official simulator, Showdown's p2 carried
+   * `safeguard {duration: 4}` the whole time. The engine was right and the reader was blind.
+   *
+   * THE LIST IS THE KEYS `sf.sc` CAN HOLD, and that is derived rather than a preference: medicham2
+   * writes this map from exactly two branches -- `kind: 'screen'`, keyed by the MOVE ID of a
+   * `halvesDamage` move, and `kind: 'sidebuff'`, keyed by the tag's own `sideCondition`. Asked of the
+   * format rather than remembered, ELEVEN side conditions exist across the 500 legal moves --
+   * auroraveil, lightscreen, quickguard, reflect, safeguard, spikes, stealthrock, stickyweb, tailwind,
+   * toxicspikes, wideguard -- and the other seven are held SOMEWHERE ELSE on our side: tailwind in
+   * `field.twA/twB` (compared as SIDE_SLOTS), the two guards in `field.sgA/sgB`, the four hazards in
+   * their own store. Naming one of those here would manufacture the mirror image of the bug this line
+   * fixes, so the rule is "what `sf.sc` can hold", not "what Showdown can hold". */
+  SCREEN_KEYS: ['reflect', 'lightscreen', 'auroraveil', 'safeguard'],
   SIDE_SLOTS: ['tailwind'],
   FIELD_SLOTS: ['trickroom'],
 };

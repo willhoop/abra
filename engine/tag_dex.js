@@ -1222,6 +1222,129 @@ const MOVE_TAGS = [
       return { failsIfNone: /onTry/.test(String(m.onTry || '')) ? true : false,
                mult: /1\.5|hasItem/.test(src) ? 1.5 : null };
     } },
+  /* ROADMAP #210 -- A MOVE THAT SPENDS THE USER'S OWN TYPE, and refuses once it has been spent.
+   *
+   * Burn Up is BOTH halves of one mechanic and the engine had NEITHER:
+   *     onTryMove(pokemon) { if (pokemon.hasType('Fire')) return; add('-fail'); return null; }
+   *     self.onHit(pokemon) { pokemon.setType(getTypes(true).map(t => t === 'Fire' ? '???' : t)); }
+   * (data/moves.ts:2102-2113; `data/mods/champions/moves.ts:111` inherits it and only clears
+   * `isNonstandard`, so mainline IS the rule here.)
+   *
+   * WHY ONE TAG AND NOT TWO. Every legal learner of Burn Up in this format is Fire type -- derived,
+   * not remembered: Arcanine, Arcanine-Hisui, Typhlosion, Typhlosion-Hisui, Emboar, Emboar-Mega,
+   * Skeledirge, Armarouge, Ceruledge, all nine of them. So the refusal is UNREACHABLE on a legal
+   * board until the removal has fired, and an engine holding one half without the other is not half
+   * right, it is a move that either never fails or never stops being Fire. They are the same fact.
+   *
+   * MEMBERSHIP PRINTED OVER THE 500 LEGAL MOVES BEFORE THIS WAS WIRED: exactly ONE matches, burnup.
+   * Double Shock is the other member of the family in the wider dex and is `isNonstandard: 'Past'`
+   * here, so it is correctly absent -- and it will be picked up with no edit if the format grows it.
+   *
+   * `becomes` IS READ, NOT ASSUMED TO BE "NOTHING". Showdown substitutes the literal `???`, and
+   * `getTypes()` returns `['???']` rather than falling through to the empty-list `Normal` that Roost
+   * ends on (measured on a real battle: Arcanine reads `["???"]` after one Burn Up). A consumer that
+   * deleted the type instead would give the body Normal's chart, which is a different Pokemon. */
+  /* ROADMAP #210 -- LAST RESORT'S PRECONDITION, WHICH THE ENGINE DID NOT ENFORCE AT ALL.
+   *
+   *     onTry(source) {
+   *       if (source.moveSlots.length < 2) return false;
+   *       let hasLastResort = false;
+   *       for (const moveSlot of source.moveSlots) {
+   *         if (moveSlot.id === 'lastresort') { hasLastResort = true; continue; }
+   *         if (!moveSlot.used) return false;
+   *       }
+   *       return hasLastResort;
+   *     }                                                                data/moves.ts:11380-11390
+   *
+   * So it is a 140 BP Normal move that this engine let a body click on turn one, out of a four-move
+   * set, with no cost at all -- which is the same "priority move with no drawback" over-valuation
+   * that Sucker Punch had, one move over.
+   *
+   * `used` IS SHOWDOWN'S OWN FLAG AND IT IS SET IN `deductPP` (sim/pokemon.ts:898), ABOVE the
+   * `if (!ppData.pp) return 0` early exit -- so a slot that was clicked while empty still counts as
+   * used. This engine has no `used` field; what it has is `ppSpentMap`, and "spent > 0" is the same
+   * predicate for every move that starts at full PP, which in Champions is all of them
+   * ("ALL MOVES GET MAX PPED IN CHAMPIONS" -- see engine/pp.js).
+   *
+   * MEMBERSHIP PRINTED OVER THE 500 LEGAL MOVES BEFORE THIS WAS WIRED: exactly ONE move in this
+   * format reads `moveSlots` inside an onTry at all, and it is lastresort. */
+  /* ROADMAP #210 -- A MOVE THAT LANDS TURNS AFTER IT IS CLICKED, AND WE RESOLVED IT NOW.
+   *
+   * Future Sight books a SLOT CONDITION on the target's side and does nothing else on the click turn:
+   *     onTry(source, target) { if (!target.side.addSlotCondition(target, 'futuremove')) return false;
+   *                             Object.assign(..., { move: 'futuresight', source, moveData: {...} });
+   *                             this.add('-start', source, 'move: Future Sight');
+   *                             return this.NOT_FAIL; }                          data/moves.ts
+   * and `conditions.ts:379` holds the clock and the payout.
+   *
+   * WHEN IT LANDS IS MEASURED, NOT READ OFF THE ARITHMETIC. `endingTurn = (this.turn - 1) + 2` invites
+   * the answer "one turn later" and that is wrong. Staged in a real Champions battle, an Alakazam
+   * clicking Future Sight on turn 1: nothing after turn 1, nothing after turn 2, and
+   * `|-end|p2a: Garchomp|move: Future Sight` + `|-damage|` at the END OF TURN 3. Every click in
+   * between is `|-fail|` with `[still]`, because the slot condition is already there. So the tag
+   * carries the MEASURED number of residual ticks, three, and the consumer counts them down like Wish.
+   *
+   * MEMBERSHIP PRINTED OVER THE 500 LEGAL MOVES BEFORE THIS WAS WIRED: exactly ONE carries
+   * `flags.futuremove` here -- futuresight. Doom Desire is the other member of the family in the wider
+   * dex and is not in this format. */
+  { tag: 'delayedHit', param: 'the move books damage on a SLOT and lands turns later', probe: 'delayedHit',
+    why: 'Future Sight resolved immediately here, which is a different move: the authority does '
+       + 'nothing at all on the click turn and hits at the end of the SECOND turn after it',
+    of: m => {
+      if (!(m.flags || {}).futuremove) return null;
+      return { slotCondition: 'futuremove', ticks: 3, basePower: m.basePower,
+               category: m.category, type: m.type, missesTheUser: true };
+    } },
+  /* ROADMAP #210 -- THE TRANSFORM *MOVE*, WHICH `transformsOnEntry` DELIBERATELY DOES NOT COVER.
+   *
+   * That tag's own header says so: Imposter copies a FIXED SLOT (the diagonal) on entry, and Transform
+   * copies THE BODY IT WAS AIMED AT when it resolves. Same primitive underneath, different rule and a
+   * different negative, so it is a different tag rather than a param.
+   *
+   * `onHit(target, pokemon) { return pokemon.transformInto(target); }`   data/moves.ts (transform),
+   * inherited unchanged by Champions.
+   *
+   * `movePP` IS MEASURED RATHER THAN COPIED FROM THE SIBLING TAG. `transformInto` builds each copied
+   * slot as `pp = Math.min(5, move.pp)` with `maxpp = pp` for gen >= 5 (sim/pokemon.ts), which BYPASSES
+   * the Champions maximum entirely -- staged in a real battle, a Ditto holding `transform:12/12`
+   * becomes a Garchomp holding `earthquake:5/5 dragonclaw:5/5 protect:5/5 swordsdance:5/5`, not 12s.
+   * The user's OWN slots are gone from the body while it is transformed, which is what the deliberate
+   * roster saw first: Showdown had spent no PP on Transform, and this engine had spent one.
+   *
+   * MEMBERSHIP PRINTED OVER THE 500 LEGAL MOVES BEFORE THIS WAS WIRED: exactly ONE, transform. */
+  { tag: 'transformsIntoTarget', param: 'the user BECOMES the body this move was aimed at', probe: 'transformsIntoTarget',
+    why: 'Transform (87 uses) fell through the whole classifier to {kind:pass} — a wasted turn on '
+       + 'the one move whose whole effect is to replace the user with somebody else',
+    of: m => {
+      const src = String(m.onHit || '') + String(m.onTryHit || '');
+      if (!/transformInto\s*\(/.test(src)) return null;
+      return { copies: 'the aimed body', copiesHP: false, copiesItem: false, copiesBoosts: true,
+               movePP: 5 };
+    } },
+  { tag: 'failsUnlessOtherMovesUsed', param: 'refused until every OTHER move on the user has been clicked', probe: 'failsUnlessOtherMovesUsed',
+    why: 'Last Resort (213 uses) is 140 BP and was clickable on turn one for nothing. The '
+       + 'precondition is the entire cost of the move and no part of it was modelled',
+    of: m => {
+      const s = String(m.onTry || '') + String(m.onTryMove || '');
+      if (!/moveSlots/.test(s) || !/\.used/.test(s)) return null;
+      const min = /moveSlots\.length\s*<\s*(\d+)/.exec(s);
+      return { minSlots: min ? +min[1] : 2,
+               mustKnowItself: new RegExp('moveSlot\\.id\\s*===?\\s*[\'"]' + m.id + '[\'"]').test(s) };
+    } },
+  { tag: 'spendsOwnType', param: 'the move needs a type on its USER and burns it off on the way out', probe: 'spendsOwnType',
+    why: 'Burn Up (46 uses) resolved off a user that no longer had a Fire type to spend, and never '
+       + 'spent it in the first place -- so it was an unconditional, permanently repeatable 130 BP',
+    of: m => {
+      const tryS = String(m.onTryMove || '') + String(m.onTry || '');
+      const selfS = String((m.self && m.self.onHit) || '');
+      const req = /hasType\(\s*['"]([A-Za-z?]+)['"]\s*\)/.exec(tryS);
+      const rem = /setType\(/.test(selfS)
+        ? /type\s*===?\s*['"]([A-Za-z?]+)['"]\s*\?\s*['"]([A-Za-z?]+)['"]/.exec(selfS) : null;
+      if (!req && !rem) return null;
+      return { requires: req ? req[1] : null,
+               removes: rem ? rem[1] : null,
+               becomes: rem ? rem[2] : null };
+    } },
   /* THE WORST CLASS IN THE SET, and it turned up only because Will asked "do you think im missing
    * any moves". Every one of these has basePower 0 and computes its damage in a callback, so the
    * engine does not merely misprice them -- it reads them as dealing NOTHING.

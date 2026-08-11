@@ -1,16 +1,16 @@
 {
- "generated": "2026-08-11T14:37:52.876Z",
+ "generated": "2026-08-11T17:15:47.524Z",
  "by": "tests/roster.js",
  "stage": "abilities",
- "engine_release": "6a4292247c01",
+ "engine_release": "b089ac3b32d0",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
   "DEFERRED-BY-OWNER": 6,
-  "FIRED-AND-BOARDS-MATCH": 107,
-  "CONTROL-NOT-QUIET": 15,
-  "COULD-NOT-STAGE": 188
+  "FIRED-AND-BOARDS-MATCH": 117,
+  "CONTROL-NOT-QUIET": 16,
+  "COULD-NOT-STAGE": 177
  },
  "scope": {
   "total": 316,
@@ -19,12 +19,12 @@
    "no-legal-carrier": 114
   },
   "in_scope": 202,
-  "tested": 107,
-  "matched": 107,
+  "tested": 117,
+  "matched": 117,
   "differ": 0,
   "silent": 0,
   "deferred": 6,
-  "unattributable": 15,
+  "unattributable": 16,
   "unattributable_ids": [
    "aftermath",
    "angerpoint",
@@ -40,14 +40,15 @@
    "rivalry",
    "slushrush",
    "stalwart",
-   "stickyhold"
+   "stickyhold",
+   "superluck"
   ],
   "declared_untestable": [
    "aromaveil",
    "flowerveil",
    "fluffy"
   ],
-  "could_not_stage_in_scope": 74,
+  "could_not_stage_in_scope": 63,
   "attributed_by_second_control": [
    "adaptability",
    "aftermath",
@@ -353,7 +354,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Starmie; control = Natural Cure (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -452,7 +453,7 @@
    "reads": "onStart / onSwitchIn, with no onResidual",
    "note": "ALTERNATE carrier Hatterene; control = Healer (NOT A QUIET ABILITY — see the caveat on any finding); staged as entry",
    "verdict": "DEFERRED-BY-OWNER",
-   "why": "SHELVED BY THE OWNER, NOT MEASURED CLEAN. THE EFFECT IS A MESSAGE. Anticipation's whole content is a switch-in shudder — no HP, no stat stage, no volatile, no field change — so there is nothing a BOARD comparison can read, and this instrument compares boards. The only instrument that could ever test it is the PROTOCOL TRACE, which is a different comparison and does not exist here. Usage measured at 6, across two legal carriers in this format. Will: \"ANTICIPATION AND FOREWARN LETS PUT INTO THE QUARANTINE CLOSET NO ONE USES THEM.\" (deferred 2026-08-10 by Will.) It is still staged and still played every run; it does not hold the gate. Underlying verdict without the deferral: COULD-NOT-STAGE — the staging is inert, the authority own board is identical with and without it over 524 leaves, which is exactly what an effect that is only a MESSAGE looks like to a board comparator.",
+   "why": "SHELVED BY THE OWNER, NOT MEASURED CLEAN. THE EFFECT IS A MESSAGE. Anticipation's whole content is a switch-in shudder — no HP, no stat stage, no volatile, no field change — so there is nothing a BOARD comparison can read, and this instrument compares boards. The only instrument that could ever test it is the PROTOCOL TRACE, which is a different comparison and does not exist here. Usage measured at 6, across two legal carriers in this format. Will: \"ANTICIPATION AND FOREWARN LETS PUT INTO THE QUARANTINE CLOSET NO ONE USES THEM.\" (deferred 2026-08-10 by Will.) It is still staged and still played every run; it does not hold the gate. Underlying verdict without the deferral: COULD-NOT-STAGE — the staging is inert, the authority own board is identical with and without it over 559 leaves, which is exactly what an effect that is only a MESSAGE looks like to a board comparator.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -781,7 +782,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Greninja; control = Protean (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "DEFERRED-BY-OWNER",
-   "why": "SHELVED BY THE OWNER, NOT MEASURED CLEAN. ZERO of 26,232 declared-sheet teams, AND THE FORME IT EXISTS FOR IS BANNED HERE. Greninja-Bond and Greninja-Ash are both isNonstandard: 'Past' in this format. Standard Greninja still LISTS Battle Bond and is on 189 teams, but nobody takes it, because the thing it exists to do cannot happen. Will: \"only the special greninja gets battle bond, its not in the game.\" I gave two WRONG reasons for this shelf before measuring: first that the carrier was rare (it is not, 189 teams), then that it was a rejected choice (it is not a live choice at all). Deliberately not built. Underlying: COULD-NOT-STAGE. (deferred 2026-08-10 by Will.) It is still staged and still played every run; it does not hold the gate. Underlying verdict without the deferral: COULD-NOT-STAGE — the staging is inert, the authority own board is identical with and without it over 524 leaves, which is exactly what an effect that is only a MESSAGE looks like to a board comparator.",
+   "why": "SHELVED BY THE OWNER, NOT MEASURED CLEAN. ZERO of 26,232 declared-sheet teams, AND THE FORME IT EXISTS FOR IS BANNED HERE. Greninja-Bond and Greninja-Ash are both isNonstandard: 'Past' in this format. Standard Greninja still LISTS Battle Bond and is on 189 teams, but nobody takes it, because the thing it exists to do cannot happen. Will: \"only the special greninja gets battle bond, its not in the game.\" I gave two WRONG reasons for this shelf before measuring: first that the carrier was rare (it is not, 189 teams), then that it was a rejected choice (it is not a live choice at all). Deliberately not built. Underlying: COULD-NOT-STAGE. (deferred 2026-08-10 by Will.) It is still staged and still played every run; it does not hold the gate. Underlying verdict without the deferral: COULD-NOT-STAGE — the staging is inert, the authority own board is identical with and without it over 560 leaves, which is exactly what an effect that is only a MESSAGE looks like to a board comparator.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -843,7 +844,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Drampa; control = Sap Sipper (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -1014,7 +1015,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Diggersby; control = Pickup (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -1098,6 +1099,12 @@
     },
     {
      "turn": 1,
+     "path": "p1.pp[0].nobleroar",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 1,
      "path": "p2.active[0].boosts.atk",
      "with": 0,
      "without": -1
@@ -1137,6 +1144,12 @@
      "path": "p1.active[0].maxhp",
      "with": 170,
      "without": 158
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[0].nobleroar",
+     "with": null,
+     "without": 1
     },
     {
      "turn": 2,
@@ -1272,7 +1285,7 @@
    "reads": "onStart / onSwitchIn, with no onResidual",
    "note": "ALTERNATE carrier Altaria; control = Natural Cure (NOT A QUIET ABILITY — see the caveat on any finding); staged as entry",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 559 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -1395,7 +1408,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Vivillon; control = Shield Dust (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -1585,7 +1598,7 @@
    "reads": "onResidual",
    "note": "ALTERNATE carrier Farigiraf; control = Armor Tail (NOT A QUIET ABILITY — see the caveat on any finding); staged as residual",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 512 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 547 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -1903,17 +1916,72 @@
    "id": "disguise",
    "name": "Disguise",
    "rule": "ability/generic",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is SUPPRESS-tier — the ability cannot be swapped out on the SHEET, because it is the only ability its species has — so the control has to be applied IN PLAY, and neither route is available. Skill Swap: the format flags this ability `failskillswap`, so Showdown refuses the exchange and medicham2 does not model the refusal at all — the two engines would part IN THE CONTROL ARM and the row would accuse the entity for the control's divergence  Gastro Acid suppression: MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "reads": "nothing matched above — this is the residue",
+   "note": "SUPPRESS carrier Mimikyu; control = Gastro Acid suppression; staged as generic",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 0,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[0].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 1
+    }
+   ],
    "diffs": []
   },
   {
@@ -2171,7 +2239,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Kangaskhan; control = Scrappy (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -2238,7 +2306,7 @@
    "name": "Eelevate",
    "rule": "ability/ground-immunity",
    "reads": "the ability is named inside Showdown's own `Pokemon#isGrounded` — parsed out of that function, never listed here",
-   "note": "FOUR ARMS ON ONE SCRIPT. Golurk throws Mud-Slap at the carrier and it must do NOTHING (arm A); Gravity goes up and the same click LANDS (arm B); the Gravity expires and Smack Down grounds the body and it LANDS again (arm C); and Rampardos, carrying Mold Breaker, lands it on an airborne body with no set-up at all (arm D). Every other body clicks the inert click.   [MEGA carrier Eelektross -> Eelektross-Mega via Eelektrossite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "FOUR ARMS ON ONE SCRIPT. Golurk throws Mud-Slap at the carrier and it must do NOTHING (arm A); Gravity goes up and the same click LANDS (arm B); the Gravity expires and Smack Down grounds the body and it LANDS again (arm C); and Rampardos, carrying Mold Breaker, lands it on an airborne body with no set-up at all (arm D). Every other body clicks the inert click.   [MEGA carrier Eelektross -> Eelektross-Mega via Eelektrossite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 15 leaves in Showdown and 15 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -2249,6 +2317,36 @@
    "switch_probe": null,
    "sd_delta": [
     {
+     "turn": 0,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
      "turn": 2,
      "path": "p2.party.eelektrossmega.hp",
      "with": 160,
@@ -2268,6 +2366,18 @@
     },
     {
      "turn": 3,
+     "path": "p1.pp[1].focusenergy",
+     "with": 3,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 3,
      "path": "p2.party.eelektrossmega.hp",
      "with": 160,
      "without": 136
@@ -2286,6 +2396,18 @@
     },
     {
      "turn": 4,
+     "path": "p1.pp[1].focusenergy",
+     "with": 4,
+     "without": 3
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 4,
      "path": "p2.party.eelektrossmega.hp",
      "with": 136,
      "without": 112
@@ -2304,6 +2426,18 @@
     },
     {
      "turn": 5,
+     "path": "p1.pp[1].focusenergy",
+     "with": 5,
+     "without": 4
+    },
+    {
+     "turn": 5,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 5,
      "path": "p2.party.eelektrossmega.hp",
      "with": 136,
      "without": 112
@@ -2322,6 +2456,18 @@
     },
     {
      "turn": 6,
+     "path": "p1.pp[1].focusenergy",
+     "with": 6,
+     "without": 5
+    },
+    {
+     "turn": 6,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 6,
      "path": "p2.party.eelektrossmega.hp",
      "with": 136,
      "without": 112
@@ -2340,6 +2486,18 @@
     },
     {
      "turn": 7,
+     "path": "p1.pp[1].focusenergy",
+     "with": 7,
+     "without": 6
+    },
+    {
+     "turn": 7,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 7,
      "path": "p2.party.eelektrossmega.hp",
      "with": 136,
      "without": 112
@@ -2358,6 +2516,18 @@
     },
     {
      "turn": 8,
+     "path": "p1.pp[1].focusenergy",
+     "with": 8,
+     "without": 7
+    },
+    {
+     "turn": 8,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 8,
      "path": "p2.party.eelektrossmega.hp",
      "with": 120,
      "without": 96
@@ -2376,6 +2546,18 @@
     },
     {
      "turn": 9,
+     "path": "p1.pp[1].focusenergy",
+     "with": 9,
+     "without": 8
+    },
+    {
+     "turn": 9,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 9,
      "path": "p2.party.eelektrossmega.hp",
      "with": 120,
      "without": 96
@@ -2394,6 +2576,18 @@
     },
     {
      "turn": 10,
+     "path": "p1.pp[1].focusenergy",
+     "with": 10,
+     "without": 9
+    },
+    {
+     "turn": 10,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 10,
      "path": "p2.party.eelektrossmega.hp",
      "with": 87,
      "without": 63
@@ -2409,6 +2603,18 @@
      "path": "p2.active[0].boosts.accuracy",
      "with": -2,
      "without": -3
+    },
+    {
+     "turn": 11,
+     "path": "p1.pp[1].focusenergy",
+     "with": 11,
+     "without": 10
+    },
+    {
+     "turn": 11,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
     },
     {
      "turn": 11,
@@ -2427,6 +2633,18 @@
      "path": "p2.active[0].boosts.accuracy",
      "with": -3,
      "without": -4
+    },
+    {
+     "turn": 12,
+     "path": "p1.pp[1].focusenergy",
+     "with": 12,
+     "without": 11
+    },
+    {
+     "turn": 12,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
     },
     {
      "turn": 12,
@@ -2742,7 +2960,7 @@
    "name": "Fire Mane",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "MEGA carrier Pyroar -> Pyroar-Mega via Pyroarite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
+   "note": "MEGA carrier Pyroar -> Pyroar-Mega via Pyroarite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 15 leaves in Showdown and 15 here, lending Shell Armor off Goodra-Hisui); staged as generic",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -2753,6 +2971,24 @@
    "switch_probe": null,
    "sd_delta": [
     {
+     "turn": 0,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
      "turn": 2,
      "path": "p1.party.dragapult.hp",
      "with": 120,
@@ -2763,6 +2999,18 @@
      "path": "p1.active[0].hp",
      "with": 120,
      "without": 134
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
     },
     {
      "turn": 3,
@@ -2777,6 +3025,18 @@
      "without": 105
     },
     {
+     "turn": 3,
+     "path": "p1.pp[1].focusenergy",
+     "with": 3,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
      "turn": 4,
      "path": "p1.party.dragapult.hp",
      "with": 77,
@@ -2787,6 +3047,18 @@
      "path": "p1.active[0].hp",
      "with": 77,
      "without": 105
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].focusenergy",
+     "with": 4,
+     "without": 3
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
     }
    ],
    "diffs": []
@@ -3134,7 +3406,7 @@
    "reads": "onStart / onSwitchIn, with no onResidual",
    "note": "ALTERNATE carrier Musharna; control = Synchronize (NOT A QUIET ABILITY — see the caveat on any finding); staged as entry",
    "verdict": "DEFERRED-BY-OWNER",
-   "why": "SHELVED BY THE OWNER, NOT MEASURED CLEAN. THE EFFECT IS A MESSAGE, for the identical reason as Anticipation one row up: Forewarn names the foe's strongest move on entry and changes nothing on the board. A board comparison cannot see it and a green from one would be vacuous; the protocol trace is the only instrument that could. Usage measured at 4. Same quote, same date. (deferred 2026-08-10 by Will.) It is still staged and still played every run; it does not hold the gate. Underlying verdict without the deferral: COULD-NOT-STAGE — the staging is inert, the authority own board is identical with and without it over 524 leaves, which is exactly what an effect that is only a MESSAGE looks like to a board comparator.",
+   "why": "SHELVED BY THE OWNER, NOT MEASURED CLEAN. THE EFFECT IS A MESSAGE, for the identical reason as Anticipation one row up: Forewarn names the foe's strongest move on entry and changes nothing on the board. A board comparison cannot see it and a green from one would be vacuous; the protocol trace is the only instrument that could. Usage measured at 4. Same quote, same date. (deferred 2026-08-10 by Will.) It is still staged and still played every run; it does not hold the gate. Underlying verdict without the deferral: COULD-NOT-STAGE — the staging is inert, the authority own board is identical with and without it over 559 leaves, which is exactly what an effect that is only a MESSAGE looks like to a board comparator.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -3223,7 +3495,7 @@
    "reads": "onStart / onSwitchIn, with no onResidual",
    "note": "ALTERNATE carrier Gourgeist-Super; control = Pickup (NOT A QUIET ABILITY — see the caveat on any finding); staged as entry",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 559 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -3321,7 +3593,7 @@
    "reads": "onStart / onSwitchIn, with no onResidual",
    "note": "ALTERNATE carrier Snorlax; control = Immunity (NOT A QUIET ABILITY — see the caveat on any finding); staged as entry",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 559 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -3345,16 +3617,71 @@
    "name": "Good as Gold",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "SUPPRESS carrier Gholdengo; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "note": "SUPPRESS carrier Gholdengo; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 15 leaves in Showdown and 15 here, lending Shell Armor off Goodra-Hisui); staged as generic",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 0,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].focusenergy",
+     "with": 3,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].focusenergy",
+     "with": 4,
+     "without": 3
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    }
+   ],
    "diffs": []
   },
   {
@@ -3670,7 +3997,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Aggron; control = Rock Head (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -3805,17 +4132,72 @@
    "id": "hungerswitch",
    "name": "Hunger Switch",
    "rule": "ability/residual",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is SUPPRESS-tier — the ability cannot be swapped out on the SHEET, because it is the only ability its species has — so the control has to be applied IN PLAY, and neither route is available. Skill Swap: the format flags this ability `failskillswap`, so Showdown refuses the exchange and medicham2 does not model the refusal at all — the two engines would part IN THE CONTROL ARM and the row would accuse the entity for the control's divergence  Gastro Acid suppression: MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "reads": "onResidual",
+   "note": "SUPPRESS carrier Morpeko; control = Gastro Acid suppression; staged as residual",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 0,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[0].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[0].focusenergy",
+     "with": 3,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[0].focusenergy",
+     "with": 4,
+     "without": 3
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 1
+    }
+   ],
    "diffs": []
   },
   {
@@ -3877,7 +4259,7 @@
    "reads": "onResidual",
    "note": "ALTERNATE carrier Goodra; control = Gooey (NOT A QUIET ABILITY — see the caveat on any finding); staged as residual",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 512 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 547 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -4053,7 +4435,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Starmie; control = Natural Cure (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -4076,17 +4458,72 @@
    "id": "illusion",
    "name": "Illusion",
    "rule": "ability/generic",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is SUPPRESS-tier — the ability cannot be swapped out on the SHEET, because it is the only ability its species has — so the control has to be applied IN PLAY, and neither route is available. Skill Swap: the format flags this ability `failskillswap`, so Showdown refuses the exchange and medicham2 does not model the refusal at all — the two engines would part IN THE CONTROL ARM and the row would accuse the entity for the control's divergence  Gastro Acid suppression: MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "reads": "nothing matched above — this is the residue",
+   "note": "SUPPRESS carrier Zoroark; control = Gastro Acid suppression; staged as generic",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 0,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[0].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 1
+    }
+   ],
    "diffs": []
   },
   {
@@ -4274,15 +4711,34 @@
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Spiritomb; control = Pressure (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p1.pp[0].dragonclaw",
+     "with": 1,
+     "without": 2
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[0].dragonclaw",
+     "with": 2,
+     "without": 4
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[0].dragonclaw",
+     "with": 2,
+     "without": 4
+    }
+   ],
    "diffs": []
   },
   {
@@ -4291,16 +4747,71 @@
    "name": "Innards Out",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "MEGA carrier Victreebel -> Victreebel-Mega via Victreebelite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "note": "MEGA carrier Victreebel -> Victreebel-Mega via Victreebelite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 15 leaves in Showdown and 15 here, lending Shell Armor off Goodra-Hisui); staged as generic",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 0,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].focusenergy",
+     "with": 3,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].focusenergy",
+     "with": 4,
+     "without": 3
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    }
+   ],
    "diffs": []
   },
   {
@@ -4362,10 +4873,10 @@
    "second_control": {
     "control": "Swarm",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Swarm in the slot instead of Sniper. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (4 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Sniper registers 1 handler(s), Swarm registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 4,
-    "leaves_second": 4,
-    "leaves_kept": 4,
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Swarm in the slot instead of Sniper. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (10 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Sniper registers 1 handler(s), Swarm registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
+    "leaves_first": 10,
+    "leaves_second": 10,
+    "leaves_kept": 10,
     "dropped": []
    },
    "switch_probe": null,
@@ -4381,6 +4892,24 @@
      "path": "p2.active[0].status_counter",
      "with": 0,
      "without": 1
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.pp[0].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p2.pp[0].focusenergy",
+     "with": 3,
+     "without": 2
     }
    ],
    "diffs": []
@@ -4662,7 +5191,7 @@
    "reads": "onStart / onSwitchIn, with no onResidual",
    "note": "ALTERNATE carrier Audino; control = Healer (NOT A QUIET ABILITY — see the caveat on any finding); staged as entry",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 559 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -4688,7 +5217,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Meganium; control = Overgrow (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -4704,7 +5233,7 @@
    "name": "Levitate",
    "rule": "ability/ground-immunity",
    "reads": "the ability is named inside Showdown's own `Pokemon#isGrounded` — parsed out of that function, never listed here",
-   "note": "FOUR ARMS ON ONE SCRIPT. Golurk throws Mud-Slap at the carrier and it must do NOTHING (arm A); Gravity goes up and the same click LANDS (arm B); the Gravity expires and Smack Down grounds the body and it LANDS again (arm C); and Rampardos, carrying Mold Breaker, lands it on an airborne body with no set-up at all (arm D). Every other body clicks the inert click.   [SUPPRESS carrier Hydreigon, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "FOUR ARMS ON ONE SCRIPT. Golurk throws Mud-Slap at the carrier and it must do NOTHING (arm A); Gravity goes up and the same click LANDS (arm B); the Gravity expires and Smack Down grounds the body and it LANDS again (arm C); and Rampardos, carrying Mold Breaker, lands it on an airborne body with no set-up at all (arm D). Every other body clicks the inert click.   [SUPPRESS carrier Hydreigon, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 15 leaves in Showdown and 15 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -4715,6 +5244,36 @@
    "switch_probe": null,
    "sd_delta": [
     {
+     "turn": 0,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
      "turn": 2,
      "path": "p2.party.hydreigon.hp",
      "with": 167,
@@ -4734,6 +5293,18 @@
     },
     {
      "turn": 3,
+     "path": "p1.pp[1].focusenergy",
+     "with": 3,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 3,
      "path": "p2.party.hydreigon.hp",
      "with": 167,
      "without": 155
@@ -4752,6 +5323,18 @@
     },
     {
      "turn": 4,
+     "path": "p1.pp[1].focusenergy",
+     "with": 4,
+     "without": 3
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 4,
      "path": "p2.party.hydreigon.hp",
      "with": 155,
      "without": 143
@@ -4770,6 +5353,18 @@
     },
     {
      "turn": 5,
+     "path": "p1.pp[1].focusenergy",
+     "with": 5,
+     "without": 4
+    },
+    {
+     "turn": 5,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 5,
      "path": "p2.party.hydreigon.hp",
      "with": 155,
      "without": 143
@@ -4788,6 +5383,18 @@
     },
     {
      "turn": 6,
+     "path": "p1.pp[1].focusenergy",
+     "with": 6,
+     "without": 5
+    },
+    {
+     "turn": 6,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 6,
      "path": "p2.party.hydreigon.hp",
      "with": 155,
      "without": 143
@@ -4806,6 +5413,18 @@
     },
     {
      "turn": 7,
+     "path": "p1.pp[1].focusenergy",
+     "with": 7,
+     "without": 6
+    },
+    {
+     "turn": 7,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 7,
      "path": "p2.party.hydreigon.hp",
      "with": 155,
      "without": 143
@@ -4824,6 +5443,18 @@
     },
     {
      "turn": 8,
+     "path": "p1.pp[1].focusenergy",
+     "with": 8,
+     "without": 7
+    },
+    {
+     "turn": 8,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 8,
      "path": "p2.party.hydreigon.hp",
      "with": 147,
      "without": 135
@@ -4842,6 +5473,18 @@
     },
     {
      "turn": 9,
+     "path": "p1.pp[1].focusenergy",
+     "with": 9,
+     "without": 8
+    },
+    {
+     "turn": 9,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 9,
      "path": "p2.party.hydreigon.hp",
      "with": 147,
      "without": 135
@@ -4860,6 +5503,18 @@
     },
     {
      "turn": 10,
+     "path": "p1.pp[1].focusenergy",
+     "with": 10,
+     "without": 9
+    },
+    {
+     "turn": 10,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 10,
      "path": "p2.party.hydreigon.hp",
      "with": 117,
      "without": 105
@@ -4875,6 +5530,18 @@
      "path": "p2.active[0].boosts.accuracy",
      "with": -2,
      "without": -3
+    },
+    {
+     "turn": 11,
+     "path": "p1.pp[1].focusenergy",
+     "with": 11,
+     "without": 10
+    },
+    {
+     "turn": 11,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
     },
     {
      "turn": 11,
@@ -4893,6 +5560,18 @@
      "path": "p2.active[0].boosts.accuracy",
      "with": -3,
      "without": -4
+    },
+    {
+     "turn": 12,
+     "path": "p1.pp[1].focusenergy",
+     "with": 12,
+     "without": 11
+    },
+    {
+     "turn": 12,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
     },
     {
      "turn": 12,
@@ -4941,7 +5620,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Metagross; control = Clear Body (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -5066,6 +5745,12 @@
     },
     {
      "turn": 1,
+     "path": "p1.pp[0].glare",
+     "with": 1,
+     "without": 2
+    },
+    {
+     "turn": 1,
      "path": "p2.party.ditto",
      "with": {
       "hp": 492,
@@ -5087,6 +5772,18 @@
      "without": "par"
     },
     {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[0].glare",
+     "with": 2,
+     "without": 4
+    },
+    {
      "turn": 2,
      "path": "p2.party.ditto",
      "with": {
@@ -5109,6 +5806,18 @@
      "without": "par"
     },
     {
+     "turn": 2,
+     "path": "p2.pp[0].focusenergy",
+     "with": 2,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[0].glare",
+     "with": 2,
+     "without": 4
+    },
+    {
      "turn": 3,
      "path": "p2.party.ditto",
      "with": {
@@ -5129,6 +5838,12 @@
      "path": "p2.active[0].status",
      "with": "",
      "without": "par"
+    },
+    {
+     "turn": 3,
+     "path": "p2.pp[0].focusenergy",
+     "with": 3,
+     "without": 0
     }
    ],
    "diffs": []
@@ -5232,7 +5947,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Decidueye; control = Overgrow (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -5373,7 +6088,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Reuniclus; control = Regenerator (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -5399,7 +6114,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Delphox; control = Blaze (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -5535,7 +6250,7 @@
    "name": "Mega Sol",
    "rule": "ability/private-sky",
    "reads": "the ability is named inside Showdown's own `Pokemon#effectiveWeather` — parsed out of that function, never listed here",
-   "note": "the carrier clicks Weather Ball at Skeledirge (immune to Normal, which is what it stays without the ability) and then Solar Beam twice. With the ability the first click resolves as Fire and lands, and the second fires on the turn it is clicked; without it, exactly 0 and a charge turn. Every other body clicks the inert click.   [MEGA carrier Meganium -> Meganium-Mega via Meganiumite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "the carrier clicks Weather Ball at Skeledirge (immune to Normal, which is what it stays without the ability) and then Solar Beam twice. With the ability the first click resolves as Fire and lands, and the second fires on the turn it is clicked; without it, exactly 0 and a charge turn. Every other body clicks the inert click.   [MEGA carrier Meganium -> Meganium-Mega via Meganiumite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 15 leaves in Showdown and 15 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -5546,6 +6261,24 @@
    "switch_probe": null,
    "sd_delta": [
     {
+     "turn": 0,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
      "turn": 2,
      "path": "p1.party.skeledirge.hp",
      "with": 122,
@@ -5558,6 +6291,18 @@
      "without": 179
     },
     {
+     "turn": 2,
+     "path": "p1.pp[1].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
      "turn": 3,
      "path": "p1.party.skeledirge.hp",
      "with": 53,
@@ -5568,6 +6313,18 @@
      "path": "p1.active[0].hp",
      "with": 53,
      "without": 179
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].focusenergy",
+     "with": 3,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
     }
    ],
    "diffs": []
@@ -5580,7 +6337,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Toxapex; control = Regenerator (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -5642,7 +6399,7 @@
    "reads": "onModifyAtk / onModifySpA / onModifyDef / onModifySpD with NO type and NO HP gate — and any `pokemon.status` test inside the handler",
    "note": "Dragon Pulse (Special, which is what onModifySpA multiplies) and Dragon Claw (Physical, the negative) are thrown at Goodra-Hisui   [carrier Manectric, control = Static — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
    "verdict": "DEFERRED-BY-OWNER",
-   "why": "SHELVED BY THE OWNER, NOT MEASURED CLEAN. ZERO of 26,232 declared-sheet teams, on a body that IS played — Manectric is on 70 teams, but its other abilities are Static and Lightning Rod and its mega is Intimidate, so nobody picks Minus. It is also HALF OF A PAIR — Minus only does anything beside an ally holding Plus, so the fixture is two specific bodies side by side, and Plus itself is on 4 teams. Deliberately not built. Underlying verdict: COULD-NOT-STAGE. (deferred 2026-08-10 by Will.) It is still staged and still played every run; it does not hold the gate. Underlying verdict without the deferral: COULD-NOT-STAGE — the staging is inert, the authority own board is identical with and without it over 524 leaves, which is exactly what an effect that is only a MESSAGE looks like to a board comparator.",
+   "why": "SHELVED BY THE OWNER, NOT MEASURED CLEAN. ZERO of 26,232 declared-sheet teams, on a body that IS played — Manectric is on 70 teams, but its other abilities are Static and Lightning Rod and its mega is Intimidate, so nobody picks Minus. It is also HALF OF A PAIR — Minus only does anything beside an ally holding Plus, so the fixture is two specific bodies side by side, and Plus itself is on 4 teams. Deliberately not built. Underlying verdict: COULD-NOT-STAGE. (deferred 2026-08-10 by Will.) It is still staged and still played every run; it does not hold the gate. Underlying verdict without the deferral: COULD-NOT-STAGE — the staging is inert, the authority own board is identical with and without it over 548 leaves, which is exactly what an effect that is only a MESSAGE looks like to a board comparator.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -5676,11 +6433,32 @@
    "second_control": {
     "control": "Unnerve",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Unnerve in the slot instead of Pressure. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (56 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Pressure registers 2 handler(s), Unnerve registers 3.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 56,
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Unnerve in the slot instead of Pressure. THE TWO DELTAS DIFFER on 20 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p1.pp[0].nobleroar with=1 without=2; showdown turn 1 p1.pp[1].faketears with=1 without=2; ours turn 1 p1.pp[0].nobleroar with=1 without=2; ours turn 1 p1.pp[1].faketears with=1 without=2, +16 more. 56 of 76 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Pressure registers 2 handler(s), Unnerve registers 3.)",
+    "leaves_first": 76,
     "leaves_second": 56,
     "leaves_kept": 56,
-    "dropped": []
+    "dropped": [
+     "showdown turn 1 p1.pp[0].nobleroar with=1 without=2",
+     "showdown turn 1 p1.pp[1].faketears with=1 without=2",
+     "ours turn 1 p1.pp[0].nobleroar with=1 without=2",
+     "ours turn 1 p1.pp[1].faketears with=1 without=2",
+     "showdown turn 2 p1.pp[0].nobleroar with=1 without=2",
+     "showdown turn 2 p1.pp[0].scaryface with=1 without=2",
+     "showdown turn 2 p1.pp[1].faketears with=1 without=2",
+     "showdown turn 2 p1.pp[1].spicyextract with=1 without=2",
+     "ours turn 2 p1.pp[0].nobleroar with=1 without=2",
+     "ours turn 2 p1.pp[0].scaryface with=1 without=2",
+     "ours turn 2 p1.pp[1].faketears with=1 without=2",
+     "ours turn 2 p1.pp[1].spicyextract with=1 without=2",
+     "showdown turn 3 p1.pp[0].nobleroar with=1 without=2",
+     "showdown turn 3 p1.pp[0].scaryface with=1 without=2",
+     "showdown turn 3 p1.pp[1].faketears with=1 without=2",
+     "showdown turn 3 p1.pp[1].spicyextract with=1 without=2",
+     "ours turn 3 p1.pp[0].nobleroar with=1 without=2",
+     "ours turn 3 p1.pp[0].scaryface with=1 without=2",
+     "ours turn 3 p1.pp[1].faketears with=1 without=2",
+     "ours turn 3 p1.pp[1].spicyextract with=1 without=2"
+    ]
    },
    "switch_probe": null,
    "sd_delta": [
@@ -6206,16 +6984,71 @@
    "name": "Mummy",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "SUPPRESS carrier Cofagrigus; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "note": "SUPPRESS carrier Cofagrigus; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 15 leaves in Showdown and 15 here, lending Shell Armor off Goodra-Hisui); staged as generic",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 0,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].focusenergy",
+     "with": 3,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].focusenergy",
+     "with": 4,
+     "without": 3
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    }
+   ],
    "diffs": []
   },
   {
@@ -6244,7 +7077,7 @@
    "reads": "onSwitchOut",
    "note": "ALTERNATE carrier Altaria; control = Cloud Nine (NOT A QUIET ABILITY — see the caveat on any finding); staged as switchout",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 393 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 419 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -6298,7 +7131,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Machamp; control = Guts (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -6442,10 +7275,10 @@
    "second_control": {
     "control": "Soundproof",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Soundproof in the slot instead of Bulletproof. THE TWO DELTAS DIFFER on 12 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p2.party.kommoo.hp with=860 without=900; showdown turn 1 p2.active[0].hp with=860 without=900; ours turn 1 p2.party.kommoo.hp with=860 without=900; ours turn 1 p2.active[0].hp with=860 without=900, +8 more. 8 of 20 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Bulletproof registers 1 handler(s), Soundproof registers 2.)",
-    "leaves_first": 20,
-    "leaves_second": 8,
-    "leaves_kept": 8,
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Soundproof in the slot instead of Bulletproof. THE TWO DELTAS DIFFER on 12 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p2.party.kommoo.hp with=860 without=900; showdown turn 1 p2.active[0].hp with=860 without=900; ours turn 1 p2.party.kommoo.hp with=860 without=900; ours turn 1 p2.active[0].hp with=860 without=900, +8 more. 12 of 24 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Bulletproof registers 1 handler(s), Soundproof registers 2.)",
+    "leaves_first": 24,
+    "leaves_second": 12,
+    "leaves_kept": 12,
     "dropped": [
      "showdown turn 1 p2.party.kommoo.hp with=860 without=900",
      "showdown turn 1 p2.active[0].hp with=860 without=900",
@@ -6476,6 +7309,12 @@
      "without": 1
     },
     {
+     "turn": 2,
+     "path": "p2.pp[0].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
      "turn": 3,
      "path": "p2.active[0].status",
      "with": "",
@@ -6486,6 +7325,12 @@
      "path": "p2.active[0].status_counter",
      "with": 0,
      "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p2.pp[0].focusenergy",
+     "with": 3,
+     "without": 1
     }
    ],
    "diffs": []
@@ -6590,7 +7435,7 @@
    "name": "Parental Bond",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "MEGA carrier Kangaskhan -> Kangaskhan-Mega via Kangaskhanite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
+   "note": "MEGA carrier Kangaskhan -> Kangaskhan-Mega via Kangaskhanite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 15 leaves in Showdown and 15 here, lending Shell Armor off Goodra-Hisui); staged as generic",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -6601,6 +7446,24 @@
    "switch_probe": null,
    "sd_delta": [
     {
+     "turn": 0,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
      "turn": 2,
      "path": "p1.party.dragapult.hp",
      "with": 94,
@@ -6611,6 +7474,18 @@
      "path": "p1.active[0].hp",
      "with": 94,
      "without": 108
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
     },
     {
      "turn": 3,
@@ -6625,6 +7500,18 @@
      "without": 53
     },
     {
+     "turn": 3,
+     "path": "p1.pp[1].focusenergy",
+     "with": 3,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
      "turn": 4,
      "path": "p1.party.dragapult.hp",
      "with": 25,
@@ -6635,6 +7522,18 @@
      "path": "p1.active[0].hp",
      "with": 25,
      "without": 53
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].focusenergy",
+     "with": 4,
+     "without": 3
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
     }
    ],
    "diffs": []
@@ -6683,7 +7582,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Barbaracle; control = Tough Claws (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -6709,7 +7608,7 @@
    "reads": "onResidual",
    "note": "ALTERNATE carrier Gourgeist-Super; control = Frisk (NOT A QUIET ABILITY — see the caveat on any finding); staged as residual",
    "verdict": "DEFERRED-BY-OWNER",
-   "why": "SHELVED BY THE OWNER, NOT MEASURED CLEAN. SHELVED ON FIXTURE COST AGAINST 0.011% USAGE — 3 teams of 26,232, the rarest ability in this format with a legal carrier. Observing it needs a SECOND body to consume an item on an earlier turn so the holder has something to pick up, which is a three-body two-turn setup for a mechanic almost nobody brings. Deliberately NOT built, and said so rather than left to read as untested. NOT a general usage rule: Cud Chew (Farigiraf, 18.3% of teams) and Merciless (Toxapex, 5.0%) are equally rare ABILITIES on common BODIES and are built, because you face them without bringing them. Underlying verdict: COULD-NOT-STAGE. (deferred 2026-08-10 by Will.) It is still staged and still played every run; it does not hold the gate. Underlying verdict without the deferral: COULD-NOT-STAGE — the staging is inert, the authority own board is identical with and without it over 512 leaves, which is exactly what an effect that is only a MESSAGE looks like to a board comparator.",
+   "why": "SHELVED BY THE OWNER, NOT MEASURED CLEAN. SHELVED ON FIXTURE COST AGAINST 0.011% USAGE — 3 teams of 26,232, the rarest ability in this format with a legal carrier. Observing it needs a SECOND body to consume an item on an earlier turn so the holder has something to pick up, which is a three-body two-turn setup for a mechanic almost nobody brings. Deliberately NOT built, and said so rather than left to read as untested. NOT a general usage rule: Cud Chew (Farigiraf, 18.3% of teams) and Merciless (Toxapex, 5.0%) are equally rare ABILITIES on common BODIES and are built, because you face them without bringing them. Underlying verdict: COULD-NOT-STAGE. (deferred 2026-08-10 by Will.) It is still staged and still played every run; it does not hold the gate. Underlying verdict without the deferral: COULD-NOT-STAGE — the staging is inert, the authority own board is identical with and without it over 547 leaves, which is exactly what an effect that is only a MESSAGE looks like to a board comparator.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -6733,7 +7632,7 @@
    "name": "Piercing Drill",
    "rule": "ability/pierces-protect",
    "reads": "onHitProtect",
-   "note": "Venusaur spends its turn on Protect and the carrier throws Iron Head — a CONTACT click, which is what the handler reads — straight into it. With the ability the damage is non-zero; without it the shield refuses it and the number is exactly 0. Every other body clicks the inert click.   [MEGA carrier Excadrill -> Excadrill-Mega via Excadrite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Venusaur spends its turn on Protect and the carrier throws Iron Head — a CONTACT click, which is what the handler reads — straight into it. With the ability the damage is non-zero; without it the shield refuses it and the number is exactly 0. Every other body clicks the inert click.   [MEGA carrier Excadrill -> Excadrill-Mega via Excadrite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 15 leaves in Showdown and 15 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -6744,6 +7643,24 @@
    "switch_probe": null,
    "sd_delta": [
     {
+     "turn": 0,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
      "turn": 2,
      "path": "p1.party.venusaur.hp",
      "with": 131,
@@ -6754,6 +7671,18 @@
      "path": "p1.active[0].hp",
      "with": 131,
      "without": 155
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
     },
     {
      "turn": 3,
@@ -6768,6 +7697,18 @@
      "without": 58
     },
     {
+     "turn": 3,
+     "path": "p1.pp[1].focusenergy",
+     "with": 3,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
      "turn": 4,
      "path": "p1.party.venusaur.hp",
      "with": 34,
@@ -6778,6 +7719,18 @@
      "path": "p1.active[0].hp",
      "with": 34,
      "without": 58
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].focusenergy",
+     "with": 4,
+     "without": 3
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
     }
    ],
    "diffs": []
@@ -6845,7 +7798,7 @@
    "reads": "onModifyAtk / onModifySpA / onModifyDef / onModifySpD with NO type and NO HP gate — and any `pokemon.status` test inside the handler",
    "note": "Dragon Pulse (Special, which is what onModifySpA multiplies) and Dragon Claw (Physical, the negative) are thrown at Goodra-Hisui   [carrier Ampharos, control = Static — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 548 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -6863,7 +7816,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Gliscor; control = Hyper Cutter (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -7048,7 +8001,7 @@
    "reads": "onStart / onSwitchIn, with no onResidual",
    "note": "ALTERNATE carrier Kingambit; control = Defiant (NOT A QUIET ABILITY — see the caveat on any finding); staged as entry",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 559 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -7128,7 +8081,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Meowscarada; control = Overgrow (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -7429,7 +8382,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Jolteon; control = Volt Absorb (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -7520,7 +8473,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Passimian; control = Defiant (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -8794,7 +9747,7 @@
    "reads": "onStart / onSwitchIn, with no onResidual",
    "note": "ALTERNATE carrier Mr. Rime; control = Tangled Feet (NOT A QUIET ABILITY — see the caveat on any finding); staged as entry",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 559 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -9085,10 +10038,10 @@
    "second_control": {
     "control": "Friend Guard",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Friend Guard in the slot instead of Compound Eyes. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (26 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Compound Eyes registers 1 handler(s), Friend Guard registers 1.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 26,
-    "leaves_second": 26,
-    "leaves_kept": 26,
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Friend Guard in the slot instead of Compound Eyes. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (32 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Compound Eyes registers 1 handler(s), Friend Guard registers 1.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
+    "leaves_first": 32,
+    "leaves_second": 32,
+    "leaves_kept": 32,
     "dropped": []
    },
    "switch_probe": null,
@@ -9112,6 +10065,12 @@
      "without": 0
     },
     {
+     "turn": 1,
+     "path": "p2.pp[0].quiverdance",
+     "with": 1,
+     "without": 0
+    },
+    {
      "turn": 2,
      "path": "p2.party.vivillon.hp",
      "with": 559,
@@ -9142,6 +10101,12 @@
      "without": 0
     },
     {
+     "turn": 2,
+     "path": "p2.pp[0].quiverdance",
+     "with": 1,
+     "without": 0
+    },
+    {
      "turn": 3,
      "path": "p2.party.vivillon.hp",
      "with": 559,
@@ -9168,6 +10133,12 @@
     {
      "turn": 3,
      "path": "p2.active[0].boosts.spe",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.pp[0].quiverdance",
      "with": 1,
      "without": 0
     }
@@ -9218,7 +10189,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Toucannon; control = Keen Eye (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -9262,16 +10233,16 @@
    "reads": "onModifySpe whose handler names a weather id (`pokemon.effectiveWeather()` against \"sunnyday\", \"snowscape\", ...)",
    "note": "Snow Warning on the partner raises hail at boundary 0; 70 -> 140 against 95, the carrier's Drill Peck kills outright and the foe's click is Noble Roar — so the x2 decides whether that drop ever lands   [carrier Beartic, control = Swift Swim — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
    "verdict": "CONTROL-NOT-QUIET",
-   "why": "NOTHING SURVIVES BOTH CONTROLS, AND THAT IS NOT THE SAME AS INERT. The delta against Swift Swim is 28 leaf/leaves and against Snow Cloak it is 0, and they share none. Either this entity does nothing here and the leaves are the control's, OR this entity and one of the controls move the same leaves and cancel. TWO ARMS CANNOT SEPARATE THOSE and the species has no third alternative to ask with. Measured, not assumed: THE SECOND CONTROL: the identical scenario played a third time with Snow Cloak in the slot instead of Swift Swim. THE TWO DELTAS DIFFER on 28 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p1.party.beedrill.hp with=0 without=20; showdown turn 1 p1.party.beedrill.fainted with=true without=false; showdown turn 1 p1.active[0].species with=milotic without=beedrill; showdown turn 1 p1.active[0].hp with=170 without=20, +24 more. 0 of 28 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Swift Swim registers 1 handler(s), Snow Cloak registers 2.)",
+   "why": "NOTHING SURVIVES BOTH CONTROLS, AND THAT IS NOT THE SAME AS INERT. The delta against Swift Swim is 32 leaf/leaves and against Snow Cloak it is 0, and they share none. Either this entity does nothing here and the leaves are the control's, OR this entity and one of the controls move the same leaves and cancel. TWO ARMS CANNOT SEPARATE THOSE and the species has no third alternative to ask with. Measured, not assumed: THE SECOND CONTROL: the identical scenario played a third time with Snow Cloak in the slot instead of Swift Swim. THE TWO DELTAS DIFFER on 32 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p1.party.beedrill.hp with=0 without=20; showdown turn 1 p1.party.beedrill.fainted with=true without=false; showdown turn 1 p1.active[0].species with=milotic without=beedrill; showdown turn 1 p1.active[0].hp with=170 without=20, +28 more. 0 of 32 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Swift Swim registers 1 handler(s), Snow Cloak registers 2.)",
    "arm": "top-tie-first",
-   "control_why": "THE SECOND CONTROL: the identical scenario played a third time with Snow Cloak in the slot instead of Swift Swim. THE TWO DELTAS DIFFER on 28 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p1.party.beedrill.hp with=0 without=20; showdown turn 1 p1.party.beedrill.fainted with=true without=false; showdown turn 1 p1.active[0].species with=milotic without=beedrill; showdown turn 1 p1.active[0].hp with=170 without=20, +24 more. 0 of 28 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Swift Swim registers 1 handler(s), Snow Cloak registers 2.)",
+   "control_why": "THE SECOND CONTROL: the identical scenario played a third time with Snow Cloak in the slot instead of Swift Swim. THE TWO DELTAS DIFFER on 32 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p1.party.beedrill.hp with=0 without=20; showdown turn 1 p1.party.beedrill.fainted with=true without=false; showdown turn 1 p1.active[0].species with=milotic without=beedrill; showdown turn 1 p1.active[0].hp with=170 without=20, +28 more. 0 of 32 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Swift Swim registers 1 handler(s), Snow Cloak registers 2.)",
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": {
     "control": "Snow Cloak",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Snow Cloak in the slot instead of Swift Swim. THE TWO DELTAS DIFFER on 28 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p1.party.beedrill.hp with=0 without=20; showdown turn 1 p1.party.beedrill.fainted with=true without=false; showdown turn 1 p1.active[0].species with=milotic without=beedrill; showdown turn 1 p1.active[0].hp with=170 without=20, +24 more. 0 of 28 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Swift Swim registers 1 handler(s), Snow Cloak registers 2.)",
-    "leaves_first": 28,
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Snow Cloak in the slot instead of Swift Swim. THE TWO DELTAS DIFFER on 32 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p1.party.beedrill.hp with=0 without=20; showdown turn 1 p1.party.beedrill.fainted with=true without=false; showdown turn 1 p1.active[0].species with=milotic without=beedrill; showdown turn 1 p1.active[0].hp with=170 without=20, +28 more. 0 of 32 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Swift Swim registers 1 handler(s), Snow Cloak registers 2.)",
+    "leaves_first": 32,
     "leaves_second": 0,
     "leaves_kept": 0,
     "dropped": [
@@ -9280,6 +10251,7 @@
      "showdown turn 1 p1.active[0].species with=milotic without=beedrill",
      "showdown turn 1 p1.active[0].hp with=170 without=20",
      "showdown turn 1 p1.active[0].maxhp with=170 without=140",
+     "showdown turn 1 p1.pp[0].nobleroar with=null without=1",
      "showdown turn 1 p2.active[0].boosts.atk with=0 without=-1",
      "showdown turn 1 p2.active[0].boosts.spa with=0 without=-1",
      "ours turn 1 p1.party.beedrill.hp with=0 without=20",
@@ -9287,6 +10259,7 @@
      "ours turn 1 p1.active[0].species with=milotic without=beedrill",
      "ours turn 1 p1.active[0].hp with=170 without=20",
      "ours turn 1 p1.active[0].maxhp with=170 without=140",
+     "ours turn 1 p1.pp[0].nobleroar with=null without=1",
      "ours turn 1 p2.active[0].boosts.atk with=0 without=-1",
      "ours turn 1 p2.active[0].boosts.spa with=0 without=-1",
      "showdown turn 2 p1.party.beedrill.hp with=0 without=20",
@@ -9294,6 +10267,7 @@
      "showdown turn 2 p1.active[0].species with=milotic without=beedrill",
      "showdown turn 2 p1.active[0].hp with=170 without=20",
      "showdown turn 2 p1.active[0].maxhp with=170 without=140",
+     "showdown turn 2 p1.pp[0].nobleroar with=null without=1",
      "showdown turn 2 p2.active[0].boosts.atk with=0 without=-1",
      "showdown turn 2 p2.active[0].boosts.spa with=0 without=-1",
      "ours turn 2 p1.party.beedrill.hp with=0 without=20",
@@ -9301,6 +10275,7 @@
      "ours turn 2 p1.active[0].species with=milotic without=beedrill",
      "ours turn 2 p1.active[0].hp with=170 without=20",
      "ours turn 2 p1.active[0].maxhp with=170 without=140",
+     "ours turn 2 p1.pp[0].nobleroar with=null without=1",
      "ours turn 2 p2.active[0].boosts.atk with=0 without=-1",
      "ours turn 2 p2.active[0].boosts.spa with=0 without=-1"
     ]
@@ -9317,7 +10292,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Barbaracle; control = Tough Claws (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -9649,7 +10624,7 @@
    "name": "Spicy Spray",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "MEGA carrier Scovillain -> Scovillain-Mega via Scovillainite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
+   "note": "MEGA carrier Scovillain -> Scovillain-Mega via Scovillainite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 15 leaves in Showdown and 15 here, lending Shell Armor off Goodra-Hisui); staged as generic",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -9660,6 +10635,24 @@
    "switch_probe": null,
    "sd_delta": [
     {
+     "turn": 0,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
      "turn": 2,
      "path": "p1.party.dragapult.hp",
      "with": 103,
@@ -9678,6 +10671,18 @@
      "without": ""
     },
     {
+     "turn": 2,
+     "path": "p1.pp[1].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
      "turn": 3,
      "path": "p1.party.dragapult.hp",
      "with": 43,
@@ -9694,6 +10699,18 @@
      "path": "p1.active[0].status",
      "with": "brn",
      "without": ""
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].focusenergy",
+     "with": 3,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
     },
     {
      "turn": 3,
@@ -9732,6 +10749,18 @@
      "without": ""
     },
     {
+     "turn": 3,
+     "path": "p2.pp[0].energyball",
+     "with": 2,
+     "without": null
+    },
+    {
+     "turn": 3,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
      "turn": 4,
      "path": "p1.party.dragapult.hp",
      "with": 33,
@@ -9748,6 +10777,18 @@
      "path": "p1.active[0].status",
      "with": "brn",
      "without": ""
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].focusenergy",
+     "with": 4,
+     "without": 3
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
     },
     {
      "turn": 4,
@@ -9784,6 +10825,18 @@
      "path": "p2.active[0].item",
      "with": "scovillainite",
      "without": ""
+    },
+    {
+     "turn": 4,
+     "path": "p2.pp[0].energyball",
+     "with": 2,
+     "without": null
+    },
+    {
+     "turn": 4,
+     "path": "p2.pp[0].focusenergy",
+     "with": 2,
+     "without": 1
     }
    ],
    "diffs": []
@@ -9814,7 +10867,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Sableye; control = Prankster (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "DEFERRED-BY-OWNER",
-   "why": "SHELVED BY THE OWNER, NOT MEASURED CLEAN. ZERO of 26,232 declared-sheet teams, AND IT IS NOT RARE — IT IS BAD. Will: 'why would you ever want this'. Stall makes the holder move LAST within its bracket, and its ONE legal carrier is Sableye, which is on 758 teams (2.9% of the format) and also has PRANKSTER — one of the strongest abilities in the game — plus a mega that overwrites the slot with Magic Bounce. Nobody chooses to move last when that is the alternative. The zero is a judgement the whole ladder has already made. Observing it would need a constructed speed pair where the order decides the board, and it carries no tag at all, so the rule would have to be written first. It moves the holder LAST within its bracket, so observing it needs a constructed speed pair where the order decides the board — the same build Will described for priority — for an ability nobody runs. It also carries no tag at all, so the rule would have to be written first. Deliberately not built. Underlying verdict: COULD-NOT-STAGE. (deferred 2026-08-10 by Will.) It is still staged and still played every run; it does not hold the gate. Underlying verdict without the deferral: COULD-NOT-STAGE — the staging is inert, the authority own board is identical with and without it over 524 leaves, which is exactly what an effect that is only a MESSAGE looks like to a board comparator.",
+   "why": "SHELVED BY THE OWNER, NOT MEASURED CLEAN. ZERO of 26,232 declared-sheet teams, AND IT IS NOT RARE — IT IS BAD. Will: 'why would you ever want this'. Stall makes the holder move LAST within its bracket, and its ONE legal carrier is Sableye, which is on 758 teams (2.9% of the format) and also has PRANKSTER — one of the strongest abilities in the game — plus a mega that overwrites the slot with Magic Bounce. Nobody chooses to move last when that is the alternative. The zero is a judgement the whole ladder has already made. Observing it would need a constructed speed pair where the order decides the board, and it carries no tag at all, so the rule would have to be written first. It moves the holder LAST within its bracket, so observing it needs a constructed speed pair where the order decides the board — the same build Will described for priority — for an ability nobody runs. It also carries no tag at all, so the rule would have to be written first. Deliberately not built. Underlying verdict: COULD-NOT-STAGE. (deferred 2026-08-10 by Will.) It is still staged and still played every run; it does not hold the gate. Underlying verdict without the deferral: COULD-NOT-STAGE — the staging is inert, the authority own board is identical with and without it over 560 leaves, which is exactly what an effect that is only a MESSAGE looks like to a board comparator.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -9947,17 +11000,72 @@
    "id": "stancechange",
    "name": "Stance Change",
    "rule": "ability/generic",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "its carrier is SUPPRESS-tier — the ability cannot be swapped out on the SHEET, because it is the only ability its species has — so the control has to be applied IN PLAY, and neither route is available. Skill Swap: the format flags this ability `failskillswap`, so Showdown refuses the exchange and medicham2 does not model the refusal at all — the two engines would part IN THE CONTROL ARM and the row would accuse the entity for the control's divergence  Gastro Acid suppression: MEASURED: suppressing a KNOWN-LIVE ability (Rough Skin) with Gastro Acid moves 6 board leaves in Showdown and 0 in this simulator. `gastroacid` carries `statusInflict {volatile: gastroacid}` in data/tags.json and nothing reads that volatile to turn an ability off, so the control arm would be IDENTICAL to the subject arm and every entity in this tier would read DID-NOT-FIRE for the control's failure rather than the ability's. THE FAILURE OF THE CONTROL IS ITSELF A FINDING and is reported as one; it is not a licence to publish the tier.",
+   "reads": "nothing matched above — this is the residue",
+   "note": "SUPPRESS carrier Aegislash; control = Gastro Acid suppression; staged as generic",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 0,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[0].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[0].gastroacid",
+     "with": null,
+     "without": 1
+    }
+   ],
    "diffs": []
   },
   {
@@ -9986,7 +11094,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Machamp; control = Guts (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -10216,10 +11324,10 @@
    "second_control": {
     "control": "Ice Body",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Ice Body in the slot instead of Strong Jaw. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (12 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Strong Jaw registers 1 handler(s), Ice Body registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 12,
-    "leaves_second": 12,
-    "leaves_kept": 12,
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Ice Body in the slot instead of Strong Jaw. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (16 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Strong Jaw registers 1 handler(s), Ice Body registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
+    "leaves_first": 16,
+    "leaves_second": 16,
+    "leaves_kept": 16,
     "dropped": []
    },
    "switch_probe": null,
@@ -10249,6 +11357,12 @@
      "without": 170
     },
     {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
      "turn": 2,
      "path": "p2.party.milotic.hp",
      "with": 170,
@@ -10259,6 +11373,12 @@
      "path": "p2.active[0].hp",
      "with": 170,
      "without": 155
+    },
+    {
+     "turn": 2,
+     "path": "p2.pp[0].focusenergy",
+     "with": 0,
+     "without": 1
     }
    ],
    "diffs": []
@@ -10279,10 +11399,10 @@
    "second_control": {
     "control": "Infiltrator",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Infiltrator in the slot instead of Contrary. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (6 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Contrary registers 1 handler(s), Infiltrator registers 1.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 6,
-    "leaves_second": 6,
-    "leaves_kept": 6,
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Infiltrator in the slot instead of Contrary. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (12 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Contrary registers 1 handler(s), Infiltrator registers 1.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
+    "leaves_first": 12,
+    "leaves_second": 12,
+    "leaves_kept": 12,
     "dropped": []
    },
    "switch_probe": null,
@@ -10304,6 +11424,24 @@
      "path": "p2.active[0].maxhp",
      "with": 644,
      "without": 680
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.pp[0].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p2.pp[0].focusenergy",
+     "with": 3,
+     "without": 2
     }
    ],
    "diffs": []
@@ -10315,20 +11453,27 @@
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Absol; control = Justified (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "verdict": "CONTROL-NOT-QUIET",
+   "why": "NOTHING SURVIVES BOTH CONTROLS, AND THAT IS NOT THE SAME AS INERT. The delta against Justified is 0 leaf/leaves and against Pressure it is 6, and they share none. Either this entity does nothing here and the leaves are the control's, OR this entity and one of the controls move the same leaves and cancel. TWO ARMS CANNOT SEPARATE THOSE and the species has no third alternative to ask with. Measured, not assumed: THE SECOND CONTROL: the identical scenario played a third time with Pressure in the slot instead of Justified. THE TWO DELTAS DIFFER on 6 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p1.pp[0].direclaw with=1 without=2; ours turn 1 p1.pp[0].direclaw with=1 without=2; showdown turn 2 p1.pp[0].direclaw with=2 without=4; ours turn 2 p1.pp[0].direclaw with=2 without=4, +2 more. 0 of 0 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Justified registers 1 handler(s), Pressure registers 2.)",
    "arm": "top-tie-first",
-   "control_why": null,
+   "control_why": "THE SECOND CONTROL: the identical scenario played a third time with Pressure in the slot instead of Justified. THE TWO DELTAS DIFFER on 6 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p1.pp[0].direclaw with=1 without=2; ours turn 1 p1.pp[0].direclaw with=1 without=2; showdown turn 2 p1.pp[0].direclaw with=2 without=4; ours turn 2 p1.pp[0].direclaw with=2 without=4, +2 more. 0 of 0 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Justified registers 1 handler(s), Pressure registers 2.)",
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": {
     "control": "Pressure",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Pressure in the slot instead of Justified. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (0 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Justified registers 1 handler(s), Pressure registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Pressure in the slot instead of Justified. THE TWO DELTAS DIFFER on 6 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p1.pp[0].direclaw with=1 without=2; ours turn 1 p1.pp[0].direclaw with=1 without=2; showdown turn 2 p1.pp[0].direclaw with=2 without=4; ours turn 2 p1.pp[0].direclaw with=2 without=4, +2 more. 0 of 0 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Justified registers 1 handler(s), Pressure registers 2.)",
     "leaves_first": 0,
-    "leaves_second": 0,
+    "leaves_second": 6,
     "leaves_kept": 0,
-    "dropped": []
+    "dropped": [
+     "showdown turn 1 p1.pp[0].direclaw with=1 without=2",
+     "ours turn 1 p1.pp[0].direclaw with=1 without=2",
+     "showdown turn 2 p1.pp[0].direclaw with=2 without=4",
+     "ours turn 2 p1.pp[0].direclaw with=2 without=4",
+     "showdown turn 3 p1.pp[0].direclaw with=2 without=4",
+     "ours turn 3 p1.pp[0].direclaw with=2 without=4"
+    ]
    },
    "switch_probe": null,
    "sd_delta": [],
@@ -10417,7 +11562,7 @@
    "reads": "onStart / onSwitchIn, with no onResidual",
    "note": "ALTERNATE carrier Kingambit; control = Defiant (NOT A QUIET ABILITY — see the caveat on any finding); staged as entry",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 559 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -10441,16 +11586,71 @@
    "name": "Surge Surfer",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "SUPPRESS carrier Raichu-Alola; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "note": "SUPPRESS carrier Raichu-Alola; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 15 leaves in Showdown and 15 here, lending Shell Armor off Goodra-Hisui); staged as generic",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 0,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].focusenergy",
+     "with": 3,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].focusenergy",
+     "with": 4,
+     "without": 3
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    }
+   ],
    "diffs": []
   },
   {
@@ -10512,10 +11712,10 @@
    "second_control": {
     "control": "Leaf Guard",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Leaf Guard in the slot instead of Queenly Majesty. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (8 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Queenly Majesty registers 1 handler(s), Leaf Guard registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 8,
-    "leaves_second": 8,
-    "leaves_kept": 8,
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Leaf Guard in the slot instead of Queenly Majesty. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (12 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Queenly Majesty registers 1 handler(s), Leaf Guard registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
+    "leaves_first": 12,
+    "leaves_second": 12,
+    "leaves_kept": 12,
     "dropped": []
    },
    "switch_probe": null,
@@ -10533,6 +11733,12 @@
      "without": 1
     },
     {
+     "turn": 2,
+     "path": "p2.pp[1].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
      "turn": 3,
      "path": "p2.active[1].status",
      "with": "",
@@ -10543,6 +11749,12 @@
      "path": "p2.active[1].status_counter",
      "with": 0,
      "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p2.pp[1].focusenergy",
+     "with": 2,
+     "without": 1
     }
    ],
    "diffs": []
@@ -10563,10 +11775,10 @@
    "second_control": {
     "control": "Mold Breaker",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Mold Breaker in the slot instead of Adaptability. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (28 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Adaptability registers 1 handler(s), Mold Breaker registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 28,
-    "leaves_second": 28,
-    "leaves_kept": 28,
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Mold Breaker in the slot instead of Adaptability. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (32 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Adaptability registers 1 handler(s), Mold Breaker registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
+    "leaves_first": 32,
+    "leaves_second": 32,
+    "leaves_kept": 32,
     "dropped": []
    },
    "switch_probe": null,
@@ -10600,6 +11812,12 @@
      "path": "p1.active[0].maxhp",
      "with": 170,
      "without": 155
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[0].nobleroar",
+     "with": null,
+     "without": 1
     },
     {
      "turn": 1,
@@ -10642,6 +11860,12 @@
      "path": "p1.active[0].maxhp",
      "with": 170,
      "without": 155
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[0].nobleroar",
+     "with": null,
+     "without": 1
     },
     {
      "turn": 2,
@@ -10684,7 +11908,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Florges; control = Flower Veil (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -10702,7 +11926,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Umbreon; control = Inner Focus (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -10738,7 +11962,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Mr. Rime; control = Screen Cleaner (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -10845,7 +12069,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Musharna; control = Forewarn (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -11221,7 +12445,7 @@
    "reads": "onStart / onSwitchIn, with no onResidual",
    "note": "ALTERNATE carrier Gardevoir; control = Synchronize (NOT A QUIET ABILITY — see the caveat on any finding); staged as entry",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 559 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -11319,7 +12543,7 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Skeledirge; control = Blaze (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 524 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 560 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -11433,7 +12657,7 @@
    "name": "Unseen Fist",
    "rule": "ability/pierces-protect",
    "reads": "onHitProtect",
-   "note": "Venusaur spends its turn on Protect and the carrier throws Iron Head — a CONTACT click, which is what the handler reads — straight into it. With the ability the damage is non-zero; without it the shield refuses it and the number is exactly 0. Every other body clicks the inert click.   [MEGA carrier Golurk -> Golurk-Mega via Golurkite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Venusaur spends its turn on Protect and the carrier throws Iron Head — a CONTACT click, which is what the handler reads — straight into it. With the ability the damage is non-zero; without it the shield refuses it and the number is exactly 0. Every other body clicks the inert click.   [MEGA carrier Golurk -> Golurk-Mega via Golurkite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 15 leaves in Showdown and 15 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -11444,6 +12668,24 @@
    "switch_probe": null,
    "sd_delta": [
     {
+     "turn": 0,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
      "turn": 2,
      "path": "p1.party.venusaur.hp",
      "with": 139,
@@ -11454,6 +12696,18 @@
      "path": "p1.active[0].hp",
      "with": 139,
      "without": 155
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
     },
     {
      "turn": 3,
@@ -11468,6 +12722,18 @@
      "without": 92
     },
     {
+     "turn": 3,
+     "path": "p1.pp[1].focusenergy",
+     "with": 3,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
      "turn": 4,
      "path": "p1.party.venusaur.hp",
      "with": 76,
@@ -11478,6 +12744,18 @@
      "path": "p1.active[0].hp",
      "with": 76,
      "without": 92
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].focusenergy",
+     "with": 4,
+     "without": 3
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
     }
    ],
    "diffs": []
@@ -11534,10 +12812,10 @@
    "second_control": {
     "control": "No Guard",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with No Guard in the slot instead of Keen Eye. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (6 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Keen Eye registers 2 handler(s), No Guard registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 6,
-    "leaves_second": 6,
-    "leaves_kept": 6,
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with No Guard in the slot instead of Keen Eye. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (10 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Keen Eye registers 2 handler(s), No Guard registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
+    "leaves_first": 10,
+    "leaves_second": 10,
+    "leaves_kept": 10,
     "dropped": []
    },
    "switch_probe": null,
@@ -11559,6 +12837,18 @@
      "path": "p2.active[0].status_counter",
      "with": 0,
      "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p2.pp[0].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p2.pp[0].focusenergy",
+     "with": 3,
+     "without": 2
     }
    ],
    "diffs": []
@@ -11612,16 +12902,71 @@
    "name": "Wandering Spirit",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "SUPPRESS carrier Runerigus; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 6 leaves in Showdown and 6 here, lending Shell Armor off Goodra-Hisui); staged as generic",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 655 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "note": "SUPPRESS carrier Runerigus; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 15 leaves in Showdown and 15 here, lending Shell Armor off Goodra-Hisui); staged as generic",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 0,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].focusenergy",
+     "with": 2,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].focusenergy",
+     "with": 3,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].focusenergy",
+     "with": 4,
+     "without": 3
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].skillswap",
+     "with": null,
+     "without": 1
+    }
+   ],
    "diffs": []
   },
   {

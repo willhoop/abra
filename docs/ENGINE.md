@@ -33,28 +33,76 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  485/485 probed mechanics live, 0 missing   (census 2026-08-11 12:05)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-11 12:06)
+  491/491 probed mechanics live, 0 missing   (census 2026-08-11 13:14)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-11 13:16)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1641/1641 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 12:09)
+  interaction matrix: 1642/1642 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 13:15)
     2250 of 7103 theoretical pairs staged — agreement is a claim about the 2250 that ran, not about the 7103
       489 inert      not scored — the reference engine behaves identically with and without the reactor
       111 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
-        7 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
+        6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f1b9c29625f0 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 98150c87f4af now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is ca17e1d021b8 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 249/268 probed, 19 unprobed
+  tag coverage: 253/272 probed, 19 unprobed
 ```
 
-_stamped 2026-08-11 12:10_
+_stamped 2026-08-11 13:17_
 
 <!-- /GENERATED -->
+
+## ROADMAP #210 — THE SIX MOVES WE RESOLVED THAT THE AUTHORITY REFUSES OR DELAYS. 2026-08-11 (seventh pass).
+
+Full write-up in `docs/MEDICHAM-SPRINT-NOTES.md` (living docs are paused for the sprint by Will's
+decision). For this ledger:
+
+- **Census 485 live / 0 missing -> 491 live / 0 missing.** Six arrived, none broke. 0 hollow, 0
+  unarmed, 0 direct-call. Every probe was shown RED before the engine moved, one at a time, with the
+  gate re-run between each.
+- **Six defects, six probes:** `move/readsTargetItem` (Poltergeist resolved against a body holding
+  nothing — the tag has carried `failsIfNone` since the class was derived and nothing read it),
+  `move/spendsOwnType` (Burn Up never took its user's Fire type off and never refused once it was
+  gone — a new tag, membership ONE over the 500 legal moves), `move/failsUnlessOtherMovesUsed` (Last
+  Resort had no precondition at all: a free 140 BP on turn one), `move/transformsIntoTarget` (the
+  Transform MOVE fell through the classifier to `{kind:'pass'}` — Imposter has been wired since
+  2026-08-08 and the move never was), `move/fixedDamage` (Mirror Coat and Counter both answered
+  whoever hit LAST, in any category), and `move/delayedHit` (Future Sight resolved on the click turn,
+  every turn).
+- **FUTURE SIGHT NEEDED NO NEW MACHINERY, which is the opposite of what was expected.** WIRE 154 built
+  a slot-condition queue for Wish — `sf.slot`, a residual tick, a `due` flag — and Future Sight is the
+  same primitive with a different payout. WHEN it lands was measured on a real Champions battle rather
+  than read off `endingTurn = (this.turn - 1) + 2`, which invites "one turn later" and is wrong: the
+  damage arrives at the end of the SECOND turn after the booking.
+- **THE SEVENTH ROW WAS THE COMPARATOR, NOT THE ENGINE.** Safeguard read `SHOWDOWN null / OURS 4
+  turns`; the authority had `safeguard {duration: 4}` up the whole time. `board_state.js` walked every
+  key our engine wrote and a fixed THREE-KEY list on Showdown's side, so a condition our side can hold
+  and that list did not name read as present-in-one-engine-only whatever the authority had done. The
+  engine had been right since WIRE 133. `SCREEN_KEYS` now names the four keys `sf.sc` can hold, and
+  the list is derived from the eleven side conditions this format's moves declare.
+- **THE PP HOLD IS LIFTED — `tests/roster.js` compares PP.** 428 MATCH / 0 DIFFER / 64
+  COULD-NOT-STAGE with the hold on; 472 / 7 / 11 with it off before this pass; **479 / 0 / 11** after
+  it. Worth 51 newly-stageable moves and 11 newly-stageable abilities at zero differs. Abilities went
+  107 -> 117 tested. All three hold sites are now clear.
+- **A SEVENTH DEFECT, FOUND BY A DIFFERENT INSTRUMENT AFTER THE SIX LANDED.** Wiring Transform let
+  the interaction matrix score a pair it had never been able to, and it parted: `transform ->
+  goodasgold`. Good as Gold refuses any status move from another body and Transform is one, so a
+  Gholdengo cannot be copied. Fixed through the shared `refusesStatusMoves` reader. **The matrix went
+  1641/1641 -> 1642/1642, 100.0%** — the denominator moved because a move that used to do nothing now
+  does something.
+- **All five MEASURED gate clauses pass**, differential re-run at n=6000 seed 20260804 against the new
+  bytes: 0/6000 at both corners. The gate is CLOSED only on the register clause, which names #210.
+
+### THE HAND LIST LOSES SEVEN LINES
+
+Burn Up, Last Resort, Poltergeist, Future Sight, Safeguard, Transform and Mirror Coat all leave — the
+census carries them now, one probe each. What remains by hand is **Rivalry**, `magmaarmor`, Will's
+three unreached boards (`quickfeet`, `poisonheal`, the `eelevate` KO-boost arm) and the inert
+ability/move residue. None of those was touched this pass.
 
 ## ROADMAP #206 — ALL FOUR PP DEFECT FAMILIES CLOSED, AND A FIFTH THE FIX EXPOSED. 2026-08-11 (sixth pass).
 
@@ -92,6 +140,9 @@ decision). For this ledger:
 What remains by hand is **Rivalry**, plus the items named as deliberately not fixed in the sprint
 notes — chiefly the six NON-PP rows the roster hold masks again (Burn Up, Last Resort, Poltergeist,
 Future Sight, Safeguard, Transform) and the one PP row under it (Mirror Coat).
+
+*(All seven of those left the hand list on 2026-08-11 under ROADMAP #210, one probe each. See the
+seventh-pass section above.)*
 
 ## ROADMAP #197 — THE THREE ABILITIES THAT DID NOTHING ARE WIRED, AND A TENTH INSTRUMENT FOUND A FOURTH. 2026-08-11 (fifth pass).
 

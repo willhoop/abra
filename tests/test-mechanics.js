@@ -291,6 +291,34 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * its reason. It stages a real doubles board through `battleInit` and spends a real turn through
  * `battleTurn`, and it has to: the mechanic is only observable through another body's REACTION to a
  * hit, and nothing below the turn loop has a reactor. */
+/* `burnUpTwice(` added 2026-08-11 with ROADMAP #210's Burn Up row, declared HERE and with its reason,
+ * exactly as the paragraph above requires — the ratchet caught it as a direct call on its first run,
+ * which is the guard working. It stages a real doubles board through `battleInit` and spends TWO real
+ * turns through `battleTurn`, and it needs both: the refusal it watches is UNREACHABLE on a legal
+ * board until the move's own `self.onHit` has taken the user's Fire type away, so the first turn
+ * creates the condition the second turn tests. The spend is gated on the hit having CONNECTED, which
+ * only exists inside a real hit, so nothing below the turn loop can see either half. */
+/* `lastResortRun(` added 2026-08-11 with ROADMAP #210's Last Resort row, declared HERE and with its
+ * reason. It stages a real doubles board through `battleInit` and spends FIVE real turns through
+ * `battleTurn`, and it has to spend all five: the precondition is a fact accumulated ACROSS turns —
+ * which of the user's OWN slots have been clicked — and the middle arm (one of two others spent) only
+ * exists after a turn has been spent clicking one. Nothing below the turn loop has spent anything. */
+/* `transformRun(` added 2026-08-11 with ROADMAP #210's Transform row, declared HERE and with its
+ * reason. It stages a real doubles board through `battleInit` and spends a real turn through
+ * `battleTurn`, and it has to: the defect is in what `playerAction` BUILDS for the click (it built a
+ * bare `pass`) and in what the turn loop then does with it, and a direct call to the copy helper would
+ * test the helper while leaving the classifier exactly as broken as it was. */
+/* `coatRun(` added 2026-08-11 with ROADMAP #210's Mirror Coat row, declared HERE and with its reason.
+ * It stages a real doubles board through `battleInit` and spends a real turn through `battleTurn`, and
+ * it has to: the fact it watches is written by the DAMAGE PATH (who hit me, in which category, this
+ * turn) and read by the turn loop's `rescript` re-aim. Neither end exists below the turn loop, and the
+ * defect only appears when TWO attackers land in one turn — which no direct call can express. */
+/* `futureSightRun(` added 2026-08-11 with ROADMAP #210's Future Sight row, declared HERE and with its
+ * reason. It stages a real doubles board through `battleInit` and spends FOUR real turns through
+ * `battleTurn`, and it cannot spend fewer: the whole mechanic is a booking carried ACROSS turns, and
+ * the claim being tested is WHICH turn the damage arrives on. A one-turn probe cannot distinguish a
+ * delayed hit from a deleted one, and a two-turn probe cannot distinguish "two turns later" from
+ * "one turn later". */
 /* `lockRun(` and `uproarSleep(` added 2026-08-10 with WIRE 144, declared HERE and with their reasons,
  * exactly as the paragraph above requires. Both stage a real doubles board through `battleInit`.
  * `lockRun(` spends UP TO FOUR real turns through `battleTurn`, and it has to spend more than one: the
@@ -375,7 +403,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * spends up to three real turns through `battleTurn`, and it has to: the whole mechanic is a fact
  * carried ACROSS a turn boundary -- what the body CONSUMED on an earlier turn -- and the berry that
  * creates that fact fires at the residual, so nothing below the turn loop can see either end of it. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(/;
+const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -13749,7 +13777,15 @@ probe('move', 'locksIntoMove', 'a rampage pays ONE PP for the whole lock, not on
  * other move action does:
  *
  *   kind 'switch'  chillyreception, partingshot
- *   kind 'pass'    fairylock, healbell, roleplay, spite, teatime, transform
+ *   kind 'pass'    fairylock, healbell, roleplay, spite, teatime
+ *
+ * TRANSFORM LEFT THIS FAMILY ON 2026-08-11 (ROADMAP #210) AND THE REASON IS THE MECHANIC, NOT THE
+ * PAPERWORK. It is no longer built under `pass` at all — it has its own kind and its own branch — and
+ * once it resolves, the user's own move slots are GONE from the body, replaced by the copied ones. So
+ * "how much PP has this body spent on Transform" has no answer on a transformed body in EITHER engine:
+ * Showdown's `transformInto` rebuilds `moveSlots` from the target and the original slot is not in it.
+ * That is asserted below rather than dropped, because a row that silently leaves a list is exactly how
+ * a family loses a member nobody notices.
  *
  * ENUMERATED OVER ALL 500 LEGAL MOVES BEFORE THE GUARD CHANGED, and the same walk is what says the
  * exclusion is safe to drop: NO bare action carries a move id, so `actionMoveId` already returns null
@@ -13763,18 +13799,24 @@ probe('move', 'locksIntoMove', 'a rampage pays ONE PP for the whole lock, not on
  * refused once. An engine that charges it nothing lands all nine. */
 probe('move', 'pp', 'a move built under a non-attack action kind still spends PP', () => {
   const spent1 = (mv) => ppRun(mv, 1).spent;
-  const EIGHT = ['chillyreception', 'partingshot', 'fairylock', 'healbell', 'roleplay', 'spite',
-                 'teatime', 'transform'];
-  const each = {}; for (const mv of EIGHT) each[mv] = spent1(mv);
+  const SEVEN = ['chillyreception', 'partingshot', 'fairylock', 'healbell', 'roleplay', 'spite',
+                 'teatime'];
+  const each = {}; for (const mv of SEVEN) each[mv] = spent1(mv);
+  /* the eighth, which is now its own kind: after it resolves the slot does not exist on the body */
+  const tf = ppRun('transform', 1);
   const nine = ppRun('healbell', 9), five = ppRun('healbell', 5);
-  return { works: EIGHT.every(mv => each[mv] === 1)
+  return { works: SEVEN.every(mv => each[mv] === 1)
+                  && tf.spent === undefined && !('transform' in tf.spentAll)
                   && nine.clicks === 8 && nine.noPP === 1 && five.clicks === 5 && five.noPP === 0,
            arms: { control: [five.clicks, five.noPP], test: [nine.clicks, nine.noPP] },
            detail: 'Heal Bell (maxpp 8, built as kind `pass`) asked 9 times -> ' + nine.clicks
                  + ' |move| lines and ' + nine.noPP + ' |cant|nopp; asked 5 -> ' + five.clicks
-                 + ' and ' + five.noPP + '. One click of each of the eight spends '
-                 + EIGHT.map(mv => mv + ' ' + each[mv]).join(', ') + ' (the authority spends 1 on '
-                 + 'every one). A bare switch and a bare pass carry NO move id and still pay nothing' };
+                 + ' and ' + five.noPP + '. One click of each of the seven spends '
+                 + SEVEN.map(mv => mv + ' ' + each[mv]).join(', ') + ' (the authority spends 1 on '
+                 + 'every one). Transform is the eighth and left the family: after it resolves this '
+                 + 'body carries ' + JSON.stringify(Object.keys(tf.spentAll)) + ' and no `transform` '
+                 + 'slot at all, which is what the authority carries too. A bare switch and a bare '
+                 + 'pass carry NO move id and still pay nothing' };
 });
 
 probe('ability', 'deductsExtraPP', 'Pressure halves how often a foe-aimed move can be clicked', () => {
@@ -15316,6 +15358,285 @@ probe('ability', 'suppressesOwnItem', 'Klutz switches off its OWN Leftovers and 
            detail: '[did the holder heal, did the PARTNER heal] both on Leftovers at half HP — no '
                  + 'ability ' + JSON.stringify(control) + ' (must be 1,1)   |   KLUTZ '
                  + JSON.stringify(test) + ' (must be 0,1 — the partner\'s Leftovers is untouched)' };
+});
+
+/* ---- ROADMAP #210 — SIX MECHANICS WHERE WE RESOLVED A MOVE THE AUTHORITY REFUSES OR DELAYS -------
+ *
+ * Every one of these was invisible until `tests/roster.js` compared PP. A row reads COULD-NOT-STAGE
+ * when the REFERENCE board is identical with and without the entity, and A MOVE THE AUTHORITY REFUSES
+ * MOVES NO HP — so it read inert and was never compared at all. PP gave the refused click an
+ * observable, the rows staged, and this engine was seen on them for the first time. The probes below
+ * do not read PP: once the refusal is known, the OBSERVABLE is that the target's HP does not move,
+ * and that is what each of these asks.
+ */
+
+/* ROADMAP #210 — POLTERGEIST FAILS OUTRIGHT AGAINST A TARGET HOLDING NOTHING.
+ *
+ * Authority, read to the end of the block: `onTry(source, target) { return !!target.item; }`
+ * (pokemon-showdown/data/moves.ts:13608-13610), and Champions does not override poltergeist —
+ * `data/mods/champions/moves.ts` has no entry for it, so the mainline block is the rule.
+ *
+ * THE TAG ALREADY CARRIED IT AND NOTHING READ IT: `readsTargetItem {failsIfNone: true}` has been in
+ * data/tags.json since the class was derived. The engine priced the base power and never asked the
+ * question, so a Poltergeist into an item-less body dealt full damage.
+ *
+ * THE CARRIER IS A LEGAL ONE — Gengar learns Poltergeist in this format (39 legal learners, derived
+ * from `Dex.forFormat('gen9championsvgc2026regmb')` learnsets), and Garchomp is Dragon/Ground, so
+ * Ghost is neutral into it and neither arm is an immunity in disguise.
+ *
+ * THE ITEM IS FOCUS SASH, DELIBERATELY: the target is made unfaintable, so a Sash can never trigger
+ * and can never move the HP this probe reads. Leftovers would have healed the target at the residual
+ * and made the two arms differ for a reason that is not the mechanic. */
+probe('move', 'readsTargetItem', 'Poltergeist FAILS against a target holding no item', () => {
+  const run = (item) => turnDamageBig(['gengar', 'incineroar', 'garchomp', 'milotic'],
+    (B) => { B.f1.item = item; }, 'poltergeist', rng5);
+  const control = run(''), test = run('focussash');
+  return { works: control === 0 && test > 0, arms: { control, test },
+           detail: `[target HP lost] no item ${control} (the authority REFUSES the click outright) `
+                 + `|  Focus Sash ${test} (it resolves).  The control must be EXACTLY 0 — an engine `
+                 + 'that merely scaled the damage down would pass "held > none"' };
+});
+
+/* ROADMAP #210 — BURN UP SPENDS ITS USER'S FIRE TYPE, AND THE SECOND CLICK IS REFUSED.
+ *
+ * Authority, both halves of one block read to its end (data/moves.ts:2102-2113; the Champions mod
+ * inherits it at `data/mods/champions/moves.ts:111` and only clears `isNonstandard`):
+ *     onTryMove(pokemon) { if (pokemon.hasType('Fire')) return; add('-fail'); attrLastMove('[still]'); return null; }
+ *     self.onHit(pokemon) { pokemon.setType(getTypes(true).map(t => t === 'Fire' ? '???' : t)); }
+ *
+ * THE FIXTURE IS THE LEGAL ONE, AND THAT IS THE WHOLE REASON IT IS TWO TURNS. `tests/roster.js`
+ * catches this by handing Burn Up to a body that cannot learn it; on a board a player could bring,
+ * EVERY one of the nine legal learners is Fire type (derived from
+ * `Dex.forFormat('gen9championsvgc2026regmb')` learnsets), so the refusal is unreachable until the
+ * move itself has taken the type away. One turn cannot express that.
+ *
+ * VERIFIED AGAINST THE AUTHORITY BEFORE THE PROBE WAS BELIEVED — a real Champions battle, Arcanine
+ * clicking Burn Up three times into a Garchomp:
+ *     turn 1  |move|p1a: Arcanine|Burn Up  |-damage|  |-start|p1a: Arcanine|typechange|???
+ *     turn 2  |move|p1a: Arcanine|Burn Up||[still]    |-fail|p1a: Arcanine|move: Burn Up
+ *     turn 3  the same
+ * and `getTypes()` reads `["???"]`, NOT Normal — the empty-list fallback Roost ends on does not
+ * apply, because the list is not empty.
+ *
+ * BOTH HALVES ARE ASSERTED, because either alone would pass a one-sided probe: an engine that merely
+ * refused a repeated Burn Up (a Gigaton Hammer lock) would never change the type, and an engine that
+ * changed the type without the refusal would keep dealing damage. */
+const burnUpTwice = () => {
+  const B = board('arcanine', 'incineroar', 'garchomp', 'milotic');
+  unfaintable(B.f1);
+  const out = [];
+  for (let i = 0; i < 2; i++) {
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'burnup', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    out.push({ dealt: before - B.f1.curHP, userTypes: (B.me.types || []).join('/') });
+  }
+  return out;
+};
+probe('move', 'spendsOwnType', 'Burn Up burns off its own Fire type, and the next one is refused', () => {
+  const r = burnUpTwice();
+  const control = r[0], test = r[1];
+  return { works: control.dealt > 0 && control.userTypes === '???'
+                  && test.dealt === 0 && test.userTypes === '???',
+           arms: { control, test },
+           detail: `first click ${JSON.stringify(control)} (it lands AND the user stops being Fire) `
+                 + `|  second click ${JSON.stringify(test)} (the authority refuses it outright — the `
+                 + 'user has no Fire type left to spend)' };
+});
+
+/* ROADMAP #210 — LAST RESORT IS REFUSED UNTIL EVERY OTHER SLOT HAS BEEN CLICKED.
+ *
+ * Authority, read whole (data/moves.ts:11380-11390; Champions carries no override for lastresort):
+ *     onTry(source) { if (source.moveSlots.length < 2) return false;
+ *                     for (const s of source.moveSlots) { if (s.id === 'lastresort') {...continue;}
+ *                                                         if (!s.used) return false; } ... }
+ *
+ * THE THREE ARMS ARE THE POINT AND TWO WOULD NOT BE ENOUGH. An engine that simply banned Last Resort
+ * on turn one passes a two-arm probe; an engine that unlocked it after ANY other move was clicked
+ * passes one too. So the same body is asked at three stages of the SAME game — nothing clicked, ONE
+ * of its two other moves clicked, BOTH clicked — and only the third may land.
+ *
+ * KANGASKHAN LEARNS IT (33 legal learners, derived from the format's learnsets), Garchomp is
+ * Dragon/Ground so Normal is neutral into it, and the target is made unfaintable so a KO cannot clamp
+ * the two landing arms to the same number. */
+const lastResortRun = () => {
+  const B = board('kangaskhan', 'incineroar', 'garchomp', 'milotic');
+  unfaintable(B.f1);
+  B.me.moves = ['lastresort', 'crunch', 'suckerpunch'];
+  const out = [];
+  /* turn 1 Last Resort with NOTHING else spent, turn 2 Crunch, turn 3 Last Resort with ONE of the two
+   * others still unspent, turn 4 Sucker Punch, turn 5 Last Resort with both spent. */
+  for (const mv of ['lastresort', 'crunch', 'lastresort', 'suckerpunch', 'lastresort']) {
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, mv, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    out.push({ mv, dealt: before - B.f1.curHP });
+  }
+  return [out[0].dealt, out[2].dealt, out[4].dealt];
+};
+probe('move', 'failsUnlessOtherMovesUsed', 'Last Resort is refused until EVERY other slot has been used', () => {
+  const r = lastResortRun();
+  const control = [r[0], r[1]], test = r[2];
+  return { works: r[0] === 0 && r[1] === 0 && r[2] > 0, arms: { control, test },
+           detail: `[HP off the target] nothing else clicked ${r[0]} (refused)  |  one of two others `
+                 + `clicked ${r[1]} (still refused — an engine that unlocked on ANY other click `
+                 + `passes here)  |  both clicked ${r[2]} (it finally lands)` };
+});
+
+/* ROADMAP #210 — THE TRANSFORM *MOVE*, which fell through the classifier to `{kind:'pass'}`.
+ *
+ * Imposter has been wired since 2026-08-08 and the MOVE never was, which is why this reads as a
+ * separate mechanic rather than a second probe on the same one: Imposter copies a FIXED SLOT on entry,
+ * Transform copies THE BODY IT WAS AIMED AT when it resolves.
+ *
+ * `onHit(target, pokemon) { return pokemon.transformInto(target); }` — data/moves.ts, inherited by
+ * Champions unchanged. Ditto is the ONLY legal learner in this format (derived from the learnsets),
+ * which is the whole board this mechanic has.
+ *
+ * THREE INDEPENDENT HALVES ARE ASSERTED, because each one alone has been shipped broken here before:
+ *   the STATS (a Ditto that stays a 68-Attack Ditto is the bug Imposter was wired for),
+ *   the MOVE LIST (this is the half the deliberate roster saw — Showdown's transformed body no longer
+ *     carries `transform` at all, and this engine still had it and had spent a PP on it),
+ *   and the HP, which must NOT be copied.
+ * VERIFIED AGAINST THE AUTHORITY FIRST, a real Champions battle: a Ditto holding `transform:12/12`
+ * becomes a Garchomp holding `earthquake:5/5 dragonclaw:5/5 protect:5/5 swordsdance:5/5`, stats
+ * `{atk:150,def:115,spa:100,spd:105,spe:122}`, types `["Dragon","Ground"]`, ability `sandveil`. */
+const transformRun = () => {
+  const B = board('ditto', 'incineroar', 'garchomp', 'milotic');
+  B.me.moves = ['transform'];
+  B.f1.moves = ['earthquake', 'dragonclaw', 'protect', 'swordsdance'];
+  B.f1.ability = 'sandveil';
+  const before = { atk: B.me.st.at, hp: B.me.st.hp, moves: (B.me.moves || []).slice() };
+  /* THE EXPECTED ATTACK IS READ OFF THE TARGET THIS HARNESS ACTUALLY BUILT, NOT TYPED. The first
+   * version of this probe asserted 150, which is Garchomp's Attack in the 0-EV Serious set staged
+   * against the authority — `bare()` builds a Champions body off the usage spread and hands back 200.
+   * Asserting the literal would have failed a correct engine, which is this division's named hazard:
+   * the probe wrong before the engine is. */
+  const want = { atk: B.f1.st.at, moves: (B.f1.moves || []).slice(),
+                 types: (B.f1.types || []).join('/'), ability: B.f1.ability };
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, 'transform', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    PASS2(B.f1, B.f2));
+  return { before, want,
+           atk: B.me.st.at, maxhp: B.me.st.hp, moves: (B.me.moves || []).slice(),
+           types: (B.me.types || []).join('/'), ability: B.me.ability };
+};
+probe('move', 'transformsIntoTarget', 'Transform copies the aimed body — stats, moves and ability, but NOT hp', () => {
+  const r = transformRun();
+  const control = { atk: r.before.atk, maxhp: r.before.hp, moves: r.before.moves };
+  const test = { atk: r.atk, maxhp: r.maxhp, moves: r.moves };
+  return { works: r.atk === r.want.atk && r.atk !== r.before.atk && r.maxhp === r.before.hp
+                  && JSON.stringify(r.moves) === JSON.stringify(r.want.moves)
+                  && r.types === r.want.types && r.types !== 'Normal'
+                  && r.ability === r.want.ability && r.ability === 'sandveil',
+           arms: { control, test },
+           detail: `Ditto before ${JSON.stringify(control)}  ->  after ${JSON.stringify(test)}, types `
+                 + `${r.types}, ability ${r.ability}.  The Attack must become the target's own `
+                 + `${r.want.atk} (read off the body this harness built, never typed), the move list `
+                 + `must become ${JSON.stringify(r.want.moves)} (an engine that kept \`transform\` on `
+                 + 'the body is the defect the roster saw), and max HP must NOT move' };
+});
+
+/* ROADMAP #210 — MIRROR COAT AND COUNTER ANSWER THE BODY THAT HIT THEM *IN THAT CATEGORY*.
+ *
+ * DIAGNOSED SEPARATELY FROM THE PP FAMILY, and it is not the re-aim defect #206 closed. The authority
+ * keeps the SOURCE per category, not just the amount:
+ *     counter.condition.onDamagingHit:     if (!source.isAlly(target) && this.getCategory(move) === 'Physical')
+ *                                            { this.effectState.slot = source.getSlot(); ... }
+ *     mirrorcoat.condition.onDamagingHit:   ... === 'Special' ...     (data/moves.ts, both blocks)
+ * and `onRedirectTarget` then sends the click to `this.getAtSlot(this.effectState.slot)`.
+ *
+ * THIS ENGINE KEPT ONE `by`. `_took` already split the AMOUNT per category — its own comment says
+ * "Kept per category because Counter takes only physical and Mirror Coat only special" — and recorded
+ * WHO on a single category-blind field one line below. So when a physical hit and a special hit land
+ * on the same body in the same turn, both moves answered whichever arrived LAST.
+ *
+ * THE FIXTURE IS TWO ATTACKERS ON ONE TURN, which is the only board where the two readings differ,
+ * and the observable is WHICH of the two took the damage back — a probe that reads only the amount
+ * cannot see this at all.
+ *
+ * THE RETALIATOR IS SWAMPERT AND THAT WAS DERIVED, NOT CHOSEN. Asked of
+ * `Dex.forFormat('gen9championsvgc2026regmb')`, exactly TWO legal bodies learn Counter AND Mirror
+ * Coat — Swampert and Swampert-Mega — and the two arms have to be the same body or the varied knob is
+ * the species rather than the move. Milotic was the first pick and `engine/fixture_preflight.js`
+ * refused it: it cannot learn Counter.
+ *
+ * BOTH HITS ARE SINGLE-TARGET, which was the second correction this probe needed. Surf was the first
+ * special click and it is `allAdjacent` — so it splashed the PHYSICAL attacker as well, and the
+ * physical hitter's HP moved in the Mirror Coat arm for a reason that had nothing to do with Mirror
+ * Coat. Crunch (Dark) and Psychic are both neutral into Water/Ground and both aim at one body. Both
+ * hitters are made unfaintable so the retaliation cannot be clamped by a KO. */
+const coatRun = (mv) => {
+  const B = board('swampert', 'incineroar', 'garchomp', 'farigiraf');
+  B.me.moves = [mv];
+  B.f1.moves = ['crunch']; B.f2.moves = ['psychic'];
+  for (const b of [B.me, B.f1, B.f2]) { b.st = Object.assign({}, b.st, { hp: b.st.hp * 8 }); b.curHP = b.st.hp; }
+  const hp1 = B.f1.curHP, hp2 = B.f2.curHP;
+  /* CLICKED WITH NO TARGET, WHICH IS WHAT A REAL DRIVER SUPPLIES AND IS THE WHOLE MECHANIC. The first
+   * version of this probe aimed the click at `B.f1` and both arms came back identical — because
+   * `playerAction` only sets its `rescript` flag when the caller names NOBODY, which is the authority's
+   * own shape: `scripted` means "the body that last damaged me" and Showdown's request offers no target
+   * to choose. An aimed click is a different move and tests nothing here. */
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, mv, null, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    new Map([[B.f1, M.playerAction(B.f1, 'crunch', B.me, B.S.field)],
+             [B.f2, M.playerAction(B.f2, 'psychic', B.me, B.S.field)]]));
+  return { physHitter: hp1 - B.f1.curHP, specHitter: hp2 - B.f2.curHP };
+};
+probe('move', 'fixedDamage', 'Mirror Coat answers the SPECIAL hitter and Counter the PHYSICAL one, on the same board', () => {
+  const control = coatRun('counter'), test = coatRun('mirrorcoat');
+  return { works: control.physHitter > 0 && control.specHitter === 0
+                  && test.specHitter > 0 && test.physHitter === 0,
+           arms: { control, test },
+           detail: '[HP taken back by the physical hitter, by the special hitter] — COUNTER '
+                 + JSON.stringify(control) + '  |  MIRROR COAT ' + JSON.stringify(test)
+                 + '.  Both attackers hit on the SAME turn, so an engine holding one category-blind '
+                 + '"who hit me last" answers the same body for both moves' };
+});
+
+/* ROADMAP #210 — FUTURE SIGHT LANDS TWO TURNS LATER, AND WE RESOLVED IT ON THE CLICK TURN.
+ *
+ * The authority does NOTHING to the target on the turn it is clicked: `onTry` books a slot condition
+ * on the target's side and returns `NOT_FAIL`, and `conditions.ts:379`'s `futuremove` holds the clock.
+ *
+ * WHEN IT LANDS WAS MEASURED, NOT DERIVED FROM THE ARITHMETIC. `endingTurn = (this.turn - 1) + 2`
+ * reads like "one turn later" and is not. Staged in a real Champions battle, an Alakazam clicking
+ * Future Sight at a Garchomp on turn 1:
+ *     after turn 1   183/183   slotConditions [["futuremove"]]
+ *     after turn 2   183/183   slotConditions [["futuremove"]]
+ *     after turn 3    77/183   |-end|p2a: Garchomp|move: Future Sight  |-damage|
+ * and the clicks on turns 2 and 3 are both `|move|...||[still]` + `|-fail|` — the slot is occupied.
+ *
+ * THE PROBE ASKS FOR THE WHOLE SHAPE, because each half alone has a cheap wrong answer: an engine that
+ * simply DELETED Future Sight passes "no damage on turn 1", and an engine that delayed it by one turn
+ * passes "damage eventually". So the target's HP is read after EVERY one of four turns and the whole
+ * sequence must be 0, 0, hit, 0. Alakazam learns it (38 legal learners) and Garchomp is Dragon/Ground,
+ * so Psychic connects. */
+const futureSightRun = () => {
+  const B = board('alakazam', 'incineroar', 'garchomp', 'milotic');
+  B.me.moves = ['futuresight'];
+  unfaintable(B.f1);
+  const seq = [];
+  for (let i = 0; i < 4; i++) {
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'futuresight', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    seq.push(before - B.f1.curHP);
+  }
+  return seq;
+};
+probe('move', 'delayedHit', 'Future Sight books the hit and lands it TWO turns later', () => {
+  const seq = futureSightRun();
+  const control = seq.slice(0, 2), test = seq[2];
+  return { works: seq[0] === 0 && seq[1] === 0 && seq[2] > 0 && seq[3] === 0,
+           arms: { control, test },
+           detail: `[HP off the target, per turn, clicking Future Sight every turn] `
+                 + `${JSON.stringify(seq)} — must be 0, 0, a hit, 0.  The click turn moves NOTHING; `
+                 + 'the later clicks FAIL because the slot already holds one; and only the third turn '
+                 + 'pays out, which is the end of the SECOND turn after the booking' };
 });
 
 const works = results.filter(r => r.works);
