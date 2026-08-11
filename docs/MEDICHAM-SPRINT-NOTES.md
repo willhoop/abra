@@ -3437,3 +3437,41 @@ So the staging vocabulary is TWO things and we only had one:
 Forcing the second into the first would have produced entries that look like adversaries and are not,
 which is the kind of thing that passes review and then quietly means nothing. It is built as its own
 concept next.
+
+---
+
+## THE SHELF IS FINE. THE SILENCE IS NOT. 2026-08-10.
+
+Will: *"yes if it has almost no usage we can quarantine it, AS LONG AS WE KNOW ITS PURPOSELY NOT BEING
+BUILT."* That condition is the entire rule, and it is the same one CLAUDE.md already applies to
+`RAW-STORE-OK`: **a gap that is a JUDGEMENT gets declared with its reason; a gap that is merely absent
+is the failure.**
+
+### AND WILL KILLED A FLAT USAGE THRESHOLD BEFORE I COULD SHIP IT
+
+I proposed *"under 25 teams, shelve it"*. He said *"oh maybe it does then"*, and measuring showed why
+that rule was wrong:
+
+    Farigiraf   18.3% of teams — 8th most common in the format — 21 run Cud Chew
+    Toxapex      5.0%                                          — 20 run Merciless
+    Maushold     3.0%                                          — 10 run Cheek Pouch
+    Absol        0.19%                                         — 19 run Super Luck (37% of Absols)
+    Diggersby    0.16%                                         —  3 run Pickup
+
+**These are COMMON bodies running a MINORITY ability.** A flat threshold reads "20 teams" and cuts
+Merciless — but Toxapex is on one team in twenty, and what matters for a simulator is how often you
+FACE a mechanic, not how often you bring it. The threshold would have quietly removed four things that
+occur in real games.
+
+### SO THE RULE IS USAGE **times** FIXTURE COST, AND ONLY ONE ROW FAILS BOTH
+
+| | usage | fixture | call |
+|---|---|---|---|
+| Cheek Pouch, Cud Chew, Gluttony | 10 / 21 / 52 teams | **ONE shared fixture** — hold a berry, cross the threshold, look | BUILD |
+| Merciless, Super Luck | 20 / 19 | a crit RATE — no single board settles it | million games |
+| **Pickup** | **3 of 26,232 — 0.011%** | needs a SECOND body to consume an item on an earlier turn | **SHELVED** |
+
+Pickup is the only one where the fixture costs more than the mechanic is worth, and it is also the
+rarest by threefold. It is declared in `tests/roster.js`'s `DEFERRED` table with its number, its
+reason, and the explicit note that this is NOT a general usage rule. It keeps its scenario, stays
+staged, and is printed every run — it simply stops holding the gate.

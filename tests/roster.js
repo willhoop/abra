@@ -979,6 +979,38 @@ const DEFERRED = {
        + 'Powder and Helping Hand, all of which must be re-settable. Underlying verdict: DID-NOT-FIRE. '
        + 'Will: "PUT COPYCAT INTO THE QUARANTINE IM NOT TOUCHING THAT."',
   },
+  /* 2026-08-10. Will: "yes if it has almost no usage we can quarantine it, AS LONG AS WE KNOW ITS
+   * PURPOSELY NOT BEING BUILT." That condition is the whole entry — the shelf is not the risk, the
+   * SILENCE is. A gap that is a judgement gets declared with its reason, the same way `RAW-STORE-OK`
+   * is; a gap that is merely absent is the failure this project is built around.
+   *
+   * THE NUMBER: 3 teams of 26,232 with a declared sheet — 0.011%, and the rarest ability in the
+   * format that has a legal carrier at all. Its bodies are Diggersby (42 teams) and Gourgeist (fewer),
+   * so it is a minority ability on a minority body, which is the one combination where rarity
+   * compounds instead of hiding a common threat.
+   *
+   * AND IT IS SHELVED ON FIXTURE COST, NOT ON USAGE ALONE. Will pushed back on a flat usage threshold
+   * and was right to: Cud Chew sits on Farigiraf, which is on 18.3% of teams, and Merciless on
+   * Toxapex at 5.0%. Those are common bodies running a minority ability — you FACE them even when you
+   * never bring them, and shelving on usage would have cut four mechanics that matter. What separates
+   * Pickup is that its fixture is genuinely expensive: it needs a SECOND body to consume an item, on
+   * an earlier turn, before the holder can pick anything up. Cheek Pouch, Cud Chew and Gluttony share
+   * ONE cheap fixture — hold a berry, cross the threshold, look — which is why they are built despite
+   * being just as rare.
+   *
+   * The row keeps its scenario and is still staged and printed on every run. What it stops doing is
+   * holding the gate. Underlying verdict: COULD-NOT-STAGE, and naming it here is what stops the shelf
+   * being read as a pass. */
+  pickup: {
+    by: 'Will', on: '2026-08-10',
+    why: 'SHELVED ON FIXTURE COST AGAINST 0.011% USAGE — 3 teams of 26,232, the rarest ability in this '
+       + 'format with a legal carrier. Observing it needs a SECOND body to consume an item on an '
+       + 'earlier turn so the holder has something to pick up, which is a three-body two-turn setup for '
+       + 'a mechanic almost nobody brings. Deliberately NOT built, and said so rather than left to read '
+       + 'as untested. NOT a general usage rule: Cud Chew (Farigiraf, 18.3% of teams) and Merciless '
+       + '(Toxapex, 5.0%) are equally rare ABILITIES on common BODIES and are built, because you face '
+       + 'them without bringing them. Underlying verdict: COULD-NOT-STAGE.',
+  },
   metronome: {
     by: 'Will', on: '2026-08-10',
     why: 'The Metronome ITEM (19 uses) climbs a damage ladder over consecutive uses of one move. '

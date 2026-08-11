@@ -10,6 +10,30 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [4.13.0] — 2026-08-10
+
+### Changed
+- **Pickup is deliberately shelved and says so — 3 teams of 26,232, 0.011%.** Will: *"yes if it has
+  almost no usage we can quarantine it, AS LONG AS WE KNOW ITS PURPOSELY NOT BEING BUILT."* Declared in
+  `tests/roster.js`'s `DEFERRED` table with its number and its reason. It keeps its scenario, stays
+  staged and is printed every run; it stops holding the gate. The shelf is not the risk — the silence
+  is, which is the same rule `RAW-STORE-OK` already follows.
+- **A flat usage threshold was proposed and killed before it shipped.** I suggested "under 25 teams,
+  shelve it". Will pushed back and the measurement showed why: **Cud Chew sits on Farigiraf, which is
+  on 18.3% of teams — the 8th most common Pokémon in the format — and Merciless on Toxapex at 5.0%.**
+  Those are common bodies running a minority ability, and what matters for a simulator is how often you
+  **face** a mechanic, not how often you bring it. The threshold would have cut four mechanics that
+  occur in real games.
+
+### Notes
+- **The rule is usage × fixture cost, and exactly one row fails both.** Cheek Pouch, Cud Chew and
+  Gluttony are equally rare and are BUILT, because they share **one** cheap fixture — hold a berry,
+  cross the threshold, look. Merciless and Super Luck are a crit RATE and go to the million games.
+  Pickup alone needs a second body to consume an item on an earlier turn, for the rarest ability in the
+  format that has a legal carrier at all.
+
+---
+
 ## [4.12.0] — 2026-08-10
 
 ### Added
