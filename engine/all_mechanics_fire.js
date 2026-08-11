@@ -880,19 +880,58 @@ const GAUNTLET_ACTOR_MOVES = ['Facade', 'Endure', 'Rest', 'Substitute'];
  * starting an instrument. */
 const { FACES, facesFor } = require('./faces.js');
 
-function gauntletScript(bodies, beats) {
+function gauntletScript(bodies, beats, faces) {
   const { actor, ally, receiver, foeAlly } = bodies;
-  const hit = clickOf(actor, ['Facade', 'Body Slam', 'Round', 'Protect']);
+  const F_ = faces || {};
+  /* THE ADVERSARY'S CLICKS COME FIRST IN THE PREFERENCE LIST, NOT INSTEAD OF THE OLD ONES.
+   * `clickOf` walks the list and takes the first move the body actually has, so a stated adversary is
+   * used WHEN THE CARRIER CAN LEARN IT and the bare gauntlet is the fallback otherwise. That matters:
+   * a receiver that cannot learn Earthquake must still produce a runnable game rather than throwing,
+   * and the row then reports inert for a reason we can see instead of dying. */
+  const want = F_.recv || [];
+  const hit = clickOf(actor, [].concat(F_.actor || [], ['Facade', 'Body Slam', 'Round', 'Protect']));
   const A = { m: clickOf(ally, ['Protect', 'Endure']) };
   const F = { m: clickOf(foeAlly, ['Protect', 'Endure']) };
-  const phys = clickOf(receiver, ['Facade', 'Aqua Tail']);
-  const spec = clickOf(receiver, ['Hydro Pump', 'Round']);
+  const phys = clickOf(receiver, [].concat(want, ['Facade', 'Aqua Tail']));
+  const spec = clickOf(receiver, [].concat(want, ['Hydro Pump', 'Round']));
   const inert = clickOf(receiver, ['Agility', 'Endure']);
   const turns = [];
+  /* ---- SETUP TURNS THE TRIGGER NEEDS BEFORE THE BEATING STARTS -------------------------------------
+   * Each is a PRECONDITION on the subject or the field rather than an adversary's attack, so it goes
+   * ahead of the loop and is not repeated. A precondition that fails leaves the row inert for a
+   * visible reason, which is strictly better than the silent identical board it produced before. */
+  if (F_.setsWeather) {
+    /* Cloud Nine suppresses weather and Mega Sol holds its own against another — with no weather up,
+     * both suppress and hold nothing, and the two boards agree. */
+    turns.push({ p1: [{ m: clickOf(actor, [F_.setsWeather, 'Sunny Day', 'Rain Dance']), t: 0 }, A],
+                 p2: [{ m: inert }, F] });
+  }
+  if (F_.statusFirst) {
+    /* Quick Feet keys on the HOLDER being statused and Natural Cure on curing one at switch-out. The
+     * gauntlet switches out with nothing to cure, so the cure is unobservable. */
+    turns.push({ p1: [{ m: clickOf(actor, ['Rest', 'Protect']), t: 0 }, A],
+                 p2: [{ m: clickOf(receiver, [F_.statusFirst, 'Thunder Wave']), t: 0 }, F] });
+  }
+  if (F_.movesLast) {
+    /* Analytic multiplies ONLY when the holder moves last. The actor cannot be made slower mid-script,
+     * so the adversary is given a +priority click and the actor an ordinary one — the bracket, not the
+     * stat, decides the order. This is Will's constructed-pair rule: build the condition, do not wait
+     * for a board where it happens to hold. */
+    turns.push({ p1: [{ m: hit, t: 0 }, A],
+                 p2: [{ m: clickOf(receiver, ['Aqua Jet', 'Quick Attack', 'Sucker Punch']), t: 0 }, F] });
+  }
   /* HOW MANY TIMES THE ACTOR IS HIT. One physical and one special reaches an on-hit trigger; a
    * THRESHOLD trigger — Sitrus at a half, Focus Sash, Blaze, Berserk, Emergency Exit — needs the HP
    * bar to actually travel, which takes repetition and a real HP pool. */
   for (let k = 0; k < (beats || 1); k++) {
+    /* PIERCING DRILL AND UNSEEN FIST ARE ONLY OBSERVABLE AGAINST A PROTECT, and the gauntlet
+     * deliberately never clicks one — `fillerFor`'s lesson was that a Protect blocks the very move
+     * being staged. Here the Protect IS the thing being faced, so the actor's click is the subject
+     * and the receiver's Protect is the adversary. */
+    if (F_.recvProtects) {
+      turns.push({ p1: [{ m: hit, t: 0 }, A], p2: [{ m: clickOf(receiver, ['Protect', 'Detect']) }, F] });
+      continue;
+    }
     turns.push({ p1: [{ m: hit, t: 0 }, A], p2: [{ m: phys, t: 0 }, F] });
     turns.push({ p1: [{ m: hit, t: 0 }, A], p2: [{ m: spec, t: 0 }, F] });
   }
@@ -909,13 +948,13 @@ const AB_RUNGS = [
   { id: 'safe-pool', hpBoost: HP_BOOST, beats: 1 },
   { id: 'real-pool', hpBoost: 1, beats: 3 },
 ];
-function abLadder(kind, key, name, carrier, control, mkOn, mkOff, receiver) {
+function abLadder(kind, key, name, carrier, control, mkOn, mkOff, receiver, faces) {
   let best = null;
   for (const rung of AB_RUNGS) {
     const onB = stageBodies(mkOn(), receiver), offB = stageBodies(mkOff(), receiver);
-    const on = playScenario(Object.assign({ script: gauntletScript(onB, rung.beats), hpBoost: rung.hpBoost,
+    const on = playScenario(Object.assign({ script: gauntletScript(onB, rung.beats, faces), hpBoost: rung.hpBoost,
                                             tag: kind + '/' + key + '/on/' + rung.id }, onB));
-    const off = playScenario(Object.assign({ script: gauntletScript(offB, rung.beats), hpBoost: rung.hpBoost,
+    const off = playScenario(Object.assign({ script: gauntletScript(offB, rung.beats, faces), hpBoost: rung.hpBoost,
                                              tag: kind + '/' + key + '/off/' + rung.id }, offB));
     const row = abRow(kind, key, name, carrier, control, on, off);
     row.rung = rung.id;
@@ -944,7 +983,13 @@ function runAbilities(list) {
       continue;
     }
     const mkActor = (which) => bodyOf(c, which, '', GAUNTLET_ACTOR_MOVES);
-    const receiver = bodyOf(RECEIVER.species, RECEIVER.ability, RECEIVER.item, RECEIVER_MOVES);
+    /* THE RECEIVER IS BUILT TO CARRY WHAT THIS ABILITY MUST FACE (engine/faces.js). Feraligatr
+     * remains the body — it has no immunity and so blocks nothing by accident — but its MOVES are
+     * chosen for the tag under test. A fixed four-move set is why 63 abilities produced a board
+     * identical to not having them: Levitate never saw Ground, Shield Dust never saw a secondary. */
+    const faces = facesFor((TAGS.abilities[ab] || {}).tags || []);
+    const receiver = bodyOf(RECEIVER.species, RECEIVER.ability, RECEIVER.item,
+                            [].concat((faces && faces.recv) || [], RECEIVER_MOVES));
     const a1 = mkActor(da.name), a2 = mkActor(ctrl);
     if (!a1 || !a2 || !receiver) {
       rows.push({ kind: 'ability', id: ab, name: da.name, carrier: c, fired: false,
@@ -960,8 +1005,13 @@ function runAbilities(list) {
                      + 'the same species on both sides of the field' });
       continue;
     }
-    rows.push(abLadder('ability', ab, da.name, c, ctrl,
-                       () => mkActor(da.name), () => mkActor(ctrl), receiver));
+    const row = abLadder('ability', ab, da.name, c, ctrl,
+                         () => mkActor(da.name), () => mkActor(ctrl), receiver, faces);
+    /* WHAT THE ROW WAS MADE TO FACE IS RECORDED ON IT. An inert verdict is only readable if the
+     * reader can see what the subject was up against — otherwise 'nothing happened' cannot be told
+     * apart from 'nothing was tried'. */
+    if (row && faces) { row.faced = faces.recv; row.faced_why = faces.why; }
+    rows.push(row);
   }
   /* THE CONTROL ARM IS ITSELF AN ABILITY, AND WHEN IT IS A LIVE ONE THE PAIR CANNOT SAY WHICH OF THE
    * TWO MOVED THE GAME. The deliberate roster hit this first and named it `CONTROL-NOT-QUIET` on 15 of

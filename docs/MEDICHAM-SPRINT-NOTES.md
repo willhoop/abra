@@ -3355,3 +3355,51 @@ I first wrote the table INSIDE `all_mechanics_fire.js` and added a `module.expor
 require — so the probe I wrote to count coverage **began playing games**, printing the harness banner
 before it printed an answer. Moved to `engine/faces.js`, data only, no side effects. Small, and the
 same shape as everything else here: the thing that looked like a read was a write.
+
+---
+
+## THE ADVERSARY IS WIRED, AND IT REVEALED A BIGGER WALL: 37 ABILITIES HAVE NO CONTROL. 2026-08-10.
+
+`engine/faces.js` is now READ by `gauntletScript`, which takes the stated adversary's moves first in
+its preference list and falls back to the bare gauntlet when a carrier cannot learn them. Setup turns
+were added for the preconditions that are not attacks — weather up before Cloud Nine, a status on the
+holder before Quick Feet and Natural Cure, and a priority click from the ADVERSARY so Analytic's
+holder genuinely moves last (Will's constructed-pair rule: build the condition, do not wait for a
+board where it happens to hold).
+
+### AND THEN LEVITATE DID NOT REACH ANY OF IT
+
+    NO CONTROL — every legal carrier has this as its only ability, so the A/B arm has
+    nothing to swap it for. The row is not measurable by this instrument.
+
+Chimecho's only ability is Levitate. **The adversary table cannot help a row that never gets staged**,
+and this failure happens one step earlier than the one it fixes.
+
+### MEASURED: IT IS 37, NOT 7
+
+I had told Will that SEVEN abilities needed an absolute-assertion mode — the form-changers he named.
+Counted against the format: **210 legal abilities have a legal carrier, 173 have some carrier with a
+second ability to swap in, and 37 do not.**
+
+    aerilate disguise dragonize eelevate electricsurge embodyaspect(4) fairyaura filter firemane
+    forecast furcoat goodasgold gulpmissile hungerswitch iceface illusion innardsout levitate
+    megalauncher megasol mimicry mummy parentalbond piercingdrill serenegrace shadowtag shieldsdown
+    spicyspray stancechange surgesurfer terashell unseenfist wanderingspirit zerotohero
+
+**Six of those Will raised himself tonight** — Levitate, Mummy, Innards Out, Piercing Drill, Mega Sol,
+Parental Bond — which is why the seven-item framing survived as long as it did: every example that
+came up looked like a special case rather than a class.
+
+### SO THE STAGING PROBLEM IS THREE, NOT TWO
+
+| blocked by | count | fix |
+|---|---|---|
+| the FIXTURE — wrong adversary | ~26 | `engine/faces.js`, done |
+| the METHOD — no control body can exist | **37** | absolute assertion, to build |
+| the DIE — a rate, not a rule | 2 | the million-game run |
+
+**Will's form-change answer generalises to all 37 and that is the point.** It is not "did the form
+change" specifically; it is **assert the outcome directly instead of comparing two bodies.** Levitate:
+did the Ground move deal zero? Mummy: is the attacker's ability now Mummy? Innards Out: did the KOer
+lose HP equal to what the holder had? Piercing Drill: did it go through the Protect? None needs a
+control, and none is harder than the A/B it replaces.

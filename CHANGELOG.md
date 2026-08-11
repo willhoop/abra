@@ -10,6 +10,34 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [4.11.0] — 2026-08-10
+
+### Added
+- **The adversary table is wired into the gauntlet.** `gauntletScript` now takes the stated adversary's
+  moves first and falls back to the bare gauntlet when a carrier cannot learn them, plus setup turns
+  for preconditions that are not attacks — weather before Cloud Nine, a status before Quick Feet and
+  Natural Cure, and a priority click **from the adversary** so Analytic's holder actually moves last.
+
+### Fixed
+- **It is 37 abilities that need an absolute assertion, not the 7 I reported.** Levitate never reached
+  the new adversary at all: `NO CONTROL — every legal carrier has this as its only ability`. Counted
+  against the format: **210 legal abilities have a legal carrier, 173 have some carrier with a second
+  ability, 37 do not.** Six were raised by Will himself tonight — Levitate, Mummy, Innards Out,
+  Piercing Drill, Mega Sol, Parental Bond — which is why the seven-item framing survived: each example
+  looked like a special case instead of a class.
+
+### Notes
+- **The staging problem is three, not two.** ~26 blocked by the FIXTURE (fixed by `faces.js`), **37 by
+  the METHOD** (no control body can exist), 2 by the DIE (a rate — million games). Will's form-change
+  answer generalises to all 37: it is not "did the form change", it is **assert the outcome directly
+  rather than comparing two bodies**. Levitate — did the Ground move deal zero? Mummy — is the
+  attacker's ability now Mummy? None needs a control.
+- **The two red ratchets get ONE CLEAN PASS when the ENGINE agent stops** — Will's call. They cannot
+  converge against a moving tree: the silent-catch count went 52 → 47 while I fixed 14, because new
+  code kept arriving. Recorded here so it is scheduled rather than filed.
+
+---
+
 ## [4.10.0] — 2026-08-10
 
 ### Added
